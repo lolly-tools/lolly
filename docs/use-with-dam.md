@@ -4,6 +4,7 @@
 
 This arrangement suits teams that already have a curated library and administrators who own its approval practices. They can introduce new production tools while keeping those responsibilities visible.
 
+<!--i:eti-link-->
 ## Choose your DAM integration
 
 Each supported DAM has a dedicated guide with onboarding and offboarding sections. These describe the implemented connector and the checks still needed on your tenant.
@@ -21,7 +22,12 @@ Each supported DAM has a dedicated guide with onboarding and offboarding section
 
 The [source directory](/info/manage/provider-guides.html#dam-onboarding-and-offboarding) links directly to both sections for each DAM. Drives, buckets and design sources have their own guides in the same directory.
 
+<!--i:eti-sliders-->
 ## Which system controls each decision?
+
+![Who decides what while a DAM stays the source: the source DAM keeps records and approval, Lolly Work's governed catalog sets exposure and dates, the Lolly tool sets what may change, with the rights process deciding whether a use is permitted, the finished output can pass Lolly Work's review, and an explicit delivery sends it to the chosen destination. Shaded steps are decided in Lolly and Lolly Work.](/info/diagrams/work-integrations/dam-decisions.svg)
+
+Shaded steps are decided in Lolly and Lolly Work. The dashed line is the rights decision, which source approval alone does not answer.
 
 | Decision | Responsibility |
 |---|---|
@@ -34,6 +40,7 @@ The [source directory](/info/manage/provider-guides.html#dam-onboarding-and-offb
 
 The flow is: **source DAM → governed catalog → Lolly tool → finished output → chosen destination**. A source connection normally reads references and files. Outbound delivery has its own credentials and permissions.
 
+<!--i:eti-flask-->
 ## Start with one workflow
 
 1. Choose one recurring output, such as an event card, and identify its source assets and administrators.
@@ -45,24 +52,39 @@ The flow is: **source DAM → governed catalog → Lolly tool → finished outpu
 [Create on-brand content from approved DAM assets](/info/dam-production.html) turns those checks into a campaign workflow. [SUSE's Brandfolder account](/info/suse-brandfolder.html) explains the adoption and change-management experience behind this approach.
 
 <a id="does-work-preserve-each-person-s-dam-permissions"></a>
+<!--i:eti-user-check-->
 ## Does Lolly Work preserve each person's DAM permissions?
 
-The current providers generally use an administrator-configured shared credential. They do not sign every member into the source under that member's upstream identity. Lolly Work exposure rules must therefore restrict the credential's wider view to the intended audience. A successful connection is not evidence that the access configuration is correct.
+The current providers generally use an administrator-configured shared credential. They do not sign every member into the source under that member's upstream identity.
 
+::: warning Set exposure rules for the shared credential
+Lolly Work exposure rules must therefore restrict the credential's wider view to the intended audience. A successful connection is not evidence that the access configuration is correct.
+:::
+
+<!--i:eti-clock-->
 ## What happens when an asset expires?
 
 Supported upstream availability windows combine with local lifecycle rules, with the more restrictive constraint taking effect. Approval filtering depends on the provider's actual signal and mapping. Some sources have no native approval or expiry field.
 
-Listings can be cached, and upstream changes depend on refresh and file-access behaviour. Lolly Work cannot erase a copy someone already downloaded. Agree the acceptable refresh delay and test withdrawal for the workflow you intend to use. [Catalog and content](/info/work-catalog.html) describes these boundaries.
+Listings can be cached, and upstream changes depend on refresh and file-access behaviour.
 
+::: note A downloaded copy stays downloaded
+Lolly Work cannot erase a copy someone already downloaded.
+:::
+
+Agree the acceptable refresh delay and test withdrawal for the workflow you intend to use. [Catalog and content](/info/work-catalog.html) describes these boundaries.
+
+<!--i:eti-badge-check-->
 ## Does an approved source make an approved export?
 
 No. Source approval, permission for the proposed use, creative review and approval of finished bytes are separate decisions. Lolly Work supports review of exact owned source files and optional approval of staged organisation deliveries. Ordinary exports are not generally bound to reviewed final bytes. [Approvals](/info/work-approvals.html) explains the supported paths.
 
+<!--i:eti-upload-->
 ## Can finished files go back to the DAM?
 
 Only through a supported, explicitly configured write path. Brandfolder and Cloudinary have organisation delivery adapters; Optimizely CMP has a separate opt-in publish path. Source credentials never automatically grant write authority. Qualify the destination, readback and retry behaviour on your own tenant. See [Organisation delivery destinations](/info/work-delivery.html).
 
+<!--i:eti-folder-move-->
 ## What if we later decide to move?
 
 Keep the working connection while you plan the transition. Supported materialization copies files into organisation storage; cutover can move supported identities while retaining aliases for old addresses. That does not promise a complete transfer of upstream history, rights records or workflows. [Plan a DAM transition](/info/dam-transition.html) covers the people and evidence; [Leave a DAM](/info/work-offboarding.html) covers the commands.

@@ -6,6 +6,7 @@ Assets are global, versioned and controlled by the design system's owner. The `t
 
 ![The Assets toolbar - type filter pills on the left and a live asset count beside them, the file-type enum surfaced as a control](/t/url-shot?url=%2F%23%2Fa&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-toolbar&dark=1&filename=at2-assets-typefilters)
 
+<!--i:eti-upload-->
 ## Two ways to add assets
 
 ::: cols
@@ -26,6 +27,7 @@ Files added in the app live under the `user/` namespace and do not enter a share
 
 ![The Your uploads section in Assets - a drop area that takes files straight from your device into every tool's picker](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dyour-uploads&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-group--uploads&dark=1&filename=auth-assets-uploads)
 
+<!--i:eti-folder-plus-->
 ## Add an asset to a catalog
 
 A catalog keeps its files under `catalog/assets/<namespace>/<group>/<name>.<ext>`, beside one `index.json` that lists every asset:
@@ -50,6 +52,7 @@ catalog/assets/
 
 A reviewed Git flow suits a shared, governed catalog where each change should be reviewed. It is one option for that case, not how the app works day to day.
 
+<!--i:eti-code-->
 ## The asset entry (in `index.json`)
 
 Each entry is validated against `schemas/asset.schema.json`:
@@ -92,6 +95,7 @@ Each entry is validated against `schemas/asset.schema.json`:
 
 A tool that embeds another tool's output through `composes` ([Composition and brand overlays](/info/tool-composition.html)) receives the render as an `AssetRef` through the same `{{asset id}}` helper, but that is a runtime intermediate, not a catalog asset.
 
+<!--i:eti-lock-->
 ## Rules that don't bend
 
 - **`id` is forever.** Once published, never rename or reuse an id. A different logo gets a different id.
@@ -100,9 +104,14 @@ A tool that embeds another tool's output through `composes` ([Composition and br
 - **Each id has its own file.** Two ids may hold identical bytes, but never one file between them. Lolly Work decides whether a file may be served from the one asset that owns the file, so a withdrawal can name what it withdraws, and it refuses a catalog with two owners for one path. `validate:catalog` fails on that catalog, and counts a `name.<16 hex>.ext` address as also claiming `name.ext`.
 - **Deprecate, don't delete.** Set `"deprecated": true` and optionally `"replacedBy": "new/asset/id"`. Existing references keep resolving, because a deprecated asset's own bytes keep loading. `replacedBy` guides people and catalog screens to the successor and is **never a runtime redirect**: `get(id)` always returns the original asset, so a link or saved session renders exactly what it always did. The build checks that the chain points at a real asset that is not itself deprecated, but nothing follows the chain when an id resolves.
 
+<!--i:eti-user-check-->
 ## Rights and credits
 
-Record where each asset comes from. A missing record means "not recorded", never permission.
+Record where each asset comes from.
+
+::: note A missing record is not permission
+A missing record means "not recorded", never permission.
+:::
 
 - `license` - the declared licence, such as `cc-by-4.0` or `all-rights-reserved`.
 - `attribution` - the readable credit a licence requires, shown in the asset details.
@@ -111,6 +120,7 @@ Record where each asset comes from. A missing record means "not recorded", never
 
 A `.lolly` pack holds back catalog files whose licence is unrecorded or not yet interpreted, unless the sender chooses to include them, so record `license` and `rights` on anything meant to travel. [Creative rights and credits](/info/creative-rights.html) explains the rest.
 
+<!--i:eti-stamp-->
 ## Approval and intent in Details
 
 Open a file in Assets and its **Details** list shows what its Content Credential records. **Approval** gives the date of the decision, **Made for** gives the purpose and surface, and **Prompt** gives one line of a recorded prompt. Each row opens the matching panel under **Origins & credentials**, and these are the same panels [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records) draws. The **Checks** lamps add an **Approval** lamp when a record exists.
@@ -121,6 +131,7 @@ A PDF added through the upload area becomes editable vector assets, so its crede
 
 The `approved` tag on a kept file is the way to filter for approved files. There is no filter on the credential record itself, because reading it would mean opening every file.
 
+<!--i:eti-layers-->
 ## Tiers
 
 The tier decides when a device downloads an asset.
@@ -139,6 +150,7 @@ Synced when the app starts and cached, so available offline once cached. Most as
 Fetched the first time something uses it, then cached, so it needs a network connection once. For heavy items such as high-resolution photos and video b-roll.
 :::
 
+<!--i:eti-shapes-->
 ## Kinds of asset
 
 ### Palettes
@@ -159,7 +171,13 @@ The Swatches section in Assets renders a palette as chips, one per step of each 
 
 ![The Swatches section in Assets - the brand ramps laid out as labelled chips with download buttons above](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=2000&walker=1&format=svg&cropSelector=.cat-group%5Bdata-group%3D%22swatches%22%5D&dark=1&filename=auth-assets-swatches)
 
-Tools read palette swatches through `host.assets.get(id)` as `ref.meta.swatches`. Only the **CLI shell** fills that in today, by parsing the palette JSON into `meta`; the web shell's assets bridge does not yet, so do not rely on it across shells. A `color` input's `palette` and `swatchesOnly` fields are on [Tool inputs](/info/tool-inputs.html#colourway-leads-as-swatches).
+Tools read palette swatches through `host.assets.get(id)` as `ref.meta.swatches`.
+
+::: warning `ref.meta.swatches` is filled on the CLI only
+Only the **CLI shell** fills that in today, by parsing the palette JSON into `meta`; the web shell's assets bridge does not yet, so do not rely on it across shells.
+:::
+
+A `color` input's `palette` and `swatchesOnly` fields are on [Tool inputs](/info/tool-inputs.html#colourway-leads-as-swatches).
 
 ### Themable two-colour icons
 
@@ -214,6 +232,7 @@ Locale-specific format variants go under `locales`:
 
 Tools and the app pick a variant by BCP 47 locale matching, and fall back to the base entry when no variant matches.
 
+<!--i:eti-images-->
 ## Delivery addresses and display renditions
 
 This section is for whoever builds and serves a catalog release. Keep the authored asset ID and source URL stable. A release creates actual copies
@@ -287,13 +306,18 @@ The private directory and cache must be readable only by their owner. Configure
 your own pinned signing authority; the public Lolly authority is not an instance
 credential. Keep signing keys out of release artifacts, logs and ordinary CI.
 
+::: warning Serve signed images byte for byte
 Serving a signed image, including a preview, OG card or documentation shot,
 must preserve its decoded bytes. Compression of a response is allowed when
 decompression returns those same bytes. Edge image optimisers, metadata stripping,
-resizing and transcoding must be off for these files. Verify a rendition's own
+resizing and transcoding must be off for these files.
+:::
+
+Verify a rendition's own
 credential and its parent in [Lolly Verify](/info/verify-yourself.html), then check that
 an export using the asset still embeds the original.
 
+<!--i:eti-folder-shared-->
 ## Shared libraries from Lolly Work
 
 When Lolly is connected to a Lolly Work instance, Assets shows the organisation's shared library beside the files on your device. Your device assets and design-system panels stay available separately, including when a source cannot be reached. These features need no AI processing.
@@ -318,4 +342,8 @@ For an image, SVG or PDF, choose **Read text**, then review the extracted words.
 When that source revision changes, its reviewed words stop matching shared search: open the current asset and read it again. Asset details show the stale state and offer **Remove indexed text**. Older text records without a source revision stay searchable for compatibility and are labelled unverified. A revision records the current catalog snapshot; upstream revocation and source changes become known through the existing sync and file-resolution paths.
 :::
 
-Open any asset to see its details. The sidebar keeps **Download** and **Inspect & verify** in its header, with expanding sections for metadata, sharing and origins, and the provenance and content-signal lamps last under **Checks**. **Details** lists everything known about the file in one place, each label led by a small icon so you can find a row at a glance: what the asset is, its dimensions and size, its dates, its source and licence, then its tags and the camera, codec and encoding detail, with the asset ID last. Facts read from the file itself, such as camera settings or an audio codec, join the list a moment after it opens. Drag the divider to resize the sidebar or pull it inward to collapse it; the divider also takes the arrow keys, Home to collapse and Enter or a double click to reset. Width and section choices are remembered, and phone layouts stay fully expanded.
+Open any asset to see its details. The sidebar keeps **Download** and **Inspect & verify** in its header, with expanding sections for metadata, sharing and origins, and the provenance and content-signal lamps last under **Checks**.
+
+**Details** lists everything known about the file in one place, each label led by a small icon so you can find a row at a glance: what the asset is, its dimensions and size, its dates, its source and licence, then its tags and the camera, codec and encoding detail, with the asset ID last. Facts read from the file itself, such as camera settings or an audio codec, join the list a moment after it opens.
+
+Drag the divider to resize the sidebar or pull it inward to collapse it; the divider also takes the arrow keys, Home to collapse and Enter or a double click to reset. Width and section choices are remembered, and phone layouts stay fully expanded.

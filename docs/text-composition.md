@@ -6,6 +6,7 @@ Set a headline, flow a long article across frames and pages, or curve a line of 
 
 Emoji come from an emoji set (Twemoji, OpenMoji, Fluent, Noto or Blobmoji, with the default chosen under Settings → Preferences → Emoji) rather than your computer's font, so an export draws the same picture on every device, and each export credits the glyphs it uses ([Creative rights and credits](/info/creative-rights.html)).
 
+<!--i:eti-type-->
 ## Headings and paragraphs
 
 Press **T**, then click for text that grows with its content, or drag to make a fixed frame. Double-click existing text to edit it. **Enter** starts a paragraph; **Shift+Enter** inserts a line break within the paragraph. **Done** finishes editing. Escape closes the current popover first, then cancels the text edit.
@@ -20,6 +21,7 @@ Try **Field notes** in the template picker's **Publishing** filter. Its article 
 
 ![Field notes combines a large heading with one editable article in two balanced columns.](/t/url-shot?url=%2Fdesign%3Ftemplate%3Dpublishing-field-notes%26_sel%3Darticle&width=1200&height=840&dpi=96&waitMs=3000&format=svg&walker=1&chrome=1&filename=publishing-columns&try=1&waitSelector=svg%5Bdata-text-frame%3D%22article%22%5D&drive=press%3A0%3Bwait%3A600&css=.fc-toolbar-dock%7Bvisibility%3Ahidden%21important%7D)
 
+<!--i:eti-link-->
 ## Flow an article through frames
 
 A story is one continuous source with an ordered set of text frames. Select a frame and choose **Continue text**. Create a linked frame by dragging on the canvas, or choose an existing text frame from the target list. Joining two nonempty stories shows their proposed order before you apply it.
@@ -34,6 +36,7 @@ To keep an article readable at a frame boundary, open **More paragraph settings*
 
 Open **The long read** under **Publishing**. Add a sentence in the opening frame to see the same story reflow into the two frames on the next page.
 
+<!--i:eti-pen-tool-->
 ## Text on a path
 
 Use **Add > Text on a circle** or **Text on a path**. You can draw a guide or attach a text object to a selected path. The text owns an editable copy of that guide. Edit its points, drag the path handles, or enter precise start, end and baseline values.
@@ -46,6 +49,7 @@ A path accepts one paragraph and one continuous open path or closed contour. A c
 
 Use **Type in orbit** in **Publishing** to try both closed and open guides. Select the ring of text, open **Path options**, and adjust its start or baseline.
 
+<!--i:eti-sliders-->
 ## Typography and wrapping
 
 **More character settings** exposes supported font axes, named instances and OpenType alternatives. Preview an alternative before choosing it. Tracking, baseline shift and display case affect appearance while preserving source. Named paragraph and character styles can inherit from another style; changing a definition updates its uses.
@@ -54,6 +58,7 @@ Use **Type in orbit** in **Publishing** to try both closed and open guides. Sele
 
 Select another object and use **Text wrap** to keep text away from its bounding box or an admitted closed contour. Wrapping applies to text frames on the same artboard. Preview the offsets, then apply them. Unsupported clipped or painted contours offer bounding-box wrapping instead.
 
+<!--i:eti-shapes-->
 ## Convert text or emoji to editable vectors
 
 Select a range or text object, choose **Convert to paths**, and review the preview. You can convert text, emoji or both. **Keep editable copy** retains hidden source. Whole objects become paths whose points you can edit; a converted range becomes inline vectors with fixed advances and retained source meaning. Use **Ungroup** to separate a converted object into individual paths, and **Group** to collect selected parts again. Solid glyphs and emoji pieces have their own selection bounds and ordinary fill controls. Gradients, strokes and clips retain their paint; their points remain editable. Groups whose shared opacity or clipping cannot be separated without changing the picture stay together.
@@ -62,11 +67,16 @@ For a linked frame, **Duplicate appearance** preserves the original flow. **Deta
 
 A hidden source copy does not need its font to export the converted artwork. Showing that copy again checks its pinned font before it can render.
 
+<!--i:eti-download-->
 ## Share and export
 
 Saved sessions, share links, portable `.lolly` files and generated tools keep the written text and the identity of each font. User fonts follow the portable file's asset rules. A missing or changed font is reported; Lolly does not quietly swap in a different face. The editor uses the first face in a font file, so for another face in a font collection, choose a separate font file; layout and export can still use a pinned collection face.
 
-SVG, PDF, raster exports and Sequence frames all use the same letter shapes. In PowerPoint and Penpot, composed text arrives as vector artwork rather than editable text, so keep the Lolly document for wording changes. dotLottie refuses text, audio and converted vectors with independent paint; use MP4 or WebM for those.
+SVG, PDF, raster exports and Sequence frames all use the same letter shapes. Letters your design system's fonts do not have, such as Arabic, Cyrillic or Japanese in a Latin-only brand, are drawn with an open Noto font on the page and in the export; see [Fallback fonts](/info/fallback-fonts.html).
+
+::: note PowerPoint and Penpot get the text as vectors
+In PowerPoint and Penpot, composed text arrives as vector artwork rather than editable text, so keep the Lolly document for wording changes. dotLottie refuses text, audio and converted vectors with independent paint; use MP4 or WebM for those.
+:::
 
 Export waits for the current text layout. Overflowing text needs a layout fix, or the explicit **Export visible text only** choice, which leaves clipped and unplaced text out of the picture while keeping it in the document.
 

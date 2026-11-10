@@ -510,7 +510,7 @@
   "Adoption and governance": "التبنّي والحوكمة",
   "Governance": "الحوكمة",
   "Host Lolly": "استضافة Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "مضيف ويب ثابت هو الطريق الأسهل، وشبكة معزولة تقبل التثبيت نفسه. Lolly Work، خادم المؤسسة، مفتوح المصدر أيضًا: شغّله على جهاز واحد، أو على Kubernetes، أو مع فريق المنصة لديك.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "مضيف ويب ثابت هو الطريق الأسهل، وشبكة معزولة تقبل التثبيت نفسه. Lolly Work، خادم المؤسسة، مفتوح المصدر أيضًا: شغّله على Kubernetes، أو على جهاز واحد، أو مع فريق المنصة لديك.",
   "Deployment": "النشر",
   "Privacy": "الخصوصية",
   "The utilities": "الأدوات المساعدة",

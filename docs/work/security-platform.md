@@ -4,6 +4,7 @@ Lolly helps people make files on their own devices. Lolly Work adds organisation
 
 The [lolly.work](https://lolly.work) demo's landing page shows an interactive version of this overview. It explains the architecture; it does not inspect or change a live deployment, and its offline switch is an explanation rather than a network test.
 
+<!--i:eti-monitor-->
 ## Where the work happens
 
 | Workflow | On the device | Across the network |
@@ -14,6 +15,7 @@ The [lolly.work](https://lolly.work) demo's landing page shows an interactive ve
 
 Offline work needs the app, the tool and every asset or model it uses to be on the device already. New sign-ins and policy updates need a connection, and server rendering, collaboration and sync cannot complete offline. A policy change does not necessarily recall a copy already on a device.
 
+<!--i:eti-sliders-->
 ## What each part controls
 
 **Lolly Work** checks identity and permissions and applies policy to the server operations it governs. Your organisation operates the service, its storage, secrets, monitoring and backups. Read [identity](identity.md), [permissions](permissions.md) and [governance](governance.md).
@@ -26,6 +28,7 @@ Offline work needs the app, the tool and every asset or model it uses to be on t
 
 **Files and keys** have a lifecycle wherever they live. Device encryption is the endpoint's job, and browser storage is not a promise of disk encryption. Shared sessions, server records, stored files, downloaded copies and backups each need their own retention decision. Read [data lifecycle](data-lifecycle.md).
 
+<!--i:eti-checklist-->
 ## What operators should check
 
 ::: check Before you rely on a deployment

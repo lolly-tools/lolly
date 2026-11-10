@@ -510,7 +510,7 @@
   "Adoption and governance": "導入與治理",
   "Governance": "治理",
   "Host Lolly": "自行代管 Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "靜態網站代管是最簡單的方式，隔離網路（氣隙網路）也用同樣的安裝。組織伺服器 Lolly Work 同樣開源：可在一台機器上執行，也可放在 Kubernetes 上，或與你的平台團隊一起執行。",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "靜態網站代管是最簡單的方式，隔離網路（氣隙網路）也用同樣的安裝。組織伺服器 Lolly Work 同樣開源：可放在 Kubernetes 上，也可在一台機器上執行，或與你的平台團隊一起執行。",
   "Deployment": "部署",
   "Privacy": "隱私",
   "The utilities": "工具程式",

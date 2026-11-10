@@ -1,9 +1,14 @@
 # Document model draft
 
-This is a draft specification for review, dated 2026-09-24. It describes what a complete, portable Lolly tool is made of, so that any shell can open one and do the same things with the tool. If you build a shell, write tools at scale or review how Lolly records its work, read the chapter that touches your work and send what you find. Nothing in it is normative until the status chapter records that the review happened.
+This is a draft specification for review, dated 2026-09-24. It describes what a complete, portable Lolly tool is made of, so that any shell can open one and do the same things with the tool. If you build a shell, write tools at scale or review how Lolly records its work, read the chapter that touches your work and send what you find.
+
+::: note Not normative yet
+Nothing in this draft is normative until the status chapter records that the review happened.
+:::
 
 ![The four records: definition, instance, evaluation and artifact, each named with the contract that holds it today](/info/diagrams/document-model/four-records.svg)
 
+<!--i:eti-file-->
 ## What the draft says
 
 A Lolly document is a complete tool: its typed interface, the content someone authored, its dependencies, rules and behaviour, and the operations it offers. The [glossary](/info/glossary.html) defines a tool as a directory holding a manifest, a template and optional hooks. A document is that material plus the state a person authored and the results of running the tool.
@@ -14,6 +19,7 @@ An **operation** is what a tool can do: render, transform, extract, inspect, pre
 
 Compositions, timelines and recorded sessions are optional. An authored instance and one evaluation of it keep separate identities, so a new organisation policy never rewrites what someone authored. Rules travel with a tool and may also arrive from a Lolly Work instance, which supplies the applicable rules and the authority that accepts a result. Governance never decides what a render or an operation means, because that meaning belongs to the definition. Outside a governed instance, the person at the keyboard holds the acceptance authority.
 
+<!--i:eti-gauge-->
 ## Status
 
 | State | What it covers |
@@ -26,6 +32,7 @@ The chapters cite each point by an id. A **D** id is a confirmed direction. An *
 
 A focused review of digital asset management on 2026-10-15, and a production review after it, added requirements: exact source files, imported evidence, review scope, current source and processing authority, typed content and locale bindings, explicit action targets and asynchronous readiness among them. The four records and the Lolly Design, Lolly Chart and Agenda pilots stay as they are. Cases 30 to 44 describe the new requirements, which are not yet contract fixtures. The [status chapter](/info/spec/document-model/status.html) records the review's scope and the remaining work.
 
+<!--i:eti-folder-shared-->
 ## Where to read the specification
 
 The specification is its own web document, twelve chapters long. [Read it in the app](/#/document-model), with the chapter list, the headings and a search field beside the text. The same chapters are on this site:
@@ -52,10 +59,12 @@ The specification is its own web document, twelve chapters long. [Read it in the
 
 The twelve chapters are also written out in order as one file, [document-model.md](/info/spec/document-model/document-model.md), for reading offline or handing to an agent.
 
+<!--i:eti-pen-->
 ## How to review a chapter
 
 Read a chapter, then send what you found, quoting the chapter and heading. Open an issue on [the repository](https://github.com/lolly-tools/lolly/issues).
 
+<!--i:eti-eye-off-->
 ## What this draft does not claim
 
 - No conformance for any shell. A conformance suite produces a measured report and an authority records an acceptance; the two are never merged (R8).

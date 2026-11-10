@@ -2,6 +2,7 @@
 
 Can you hash a Lolly file in CI and trust the hash next week? For the right formats, yes. The same inputs, put through the same tool, produce the same render on every shell: the browser, the desktop, the terminal and the MCP endpoint. For the formats that carry no clock, rendered without provenance, they produce the same bytes too. This page shows where that comes from, how far it reaches into the bytes and what legitimately breaks the promise.
 
+<!--i:eti-repeat-->
 ## One render path, two transports
 
 There is a single renderer. `createRuntime(tool, host, initialState)` in `engine/src/runtime.ts` runs one mounted tool through the same steps everywhere: load, build the input model, resolve asset references, run the hooks, fill the template and export. Shells supply a capability bridge, not a renderer.
@@ -10,9 +11,15 @@ The command line is the same path under a different transport. The CLI uses the 
 
 ![URL parameters and CLI arguments become the same typed input model, pass through the shared runtime, then reach the shell's export bridge for the chosen format.](/info/diagrams/concepts/one-render-path.svg)
 
-```
-# the same render, two ways in
+**The same render, two ways in.** From a terminal:
+
+```bash
 lolly qr-code --url=https://example.com --export=svg --output=./qr.svg
+```
+
+And as a link:
+
+```
 https://lolly.tools/t/qr-code?url=https://example.com&format=svg&export
 ```
 
@@ -20,6 +27,7 @@ Tools sync to clients as data, ahead of the app that runs them, so the pairing i
 
 Inside one shell, slow work settles on the same result. Hook results are time-boxed rather than awaited forever (`HOOK_BUDGET_MS` in `engine/src/runtime.ts`). A slow `onInit` or `onInput` result still applies when it arrives, unless a newer run has started since, in which case it is dropped. So the final state follows the latest inputs, and a slow network or machine changes how long a render takes to settle, not what it settles on. An export taken before a slow hook has settled can differ, and an export hook that overruns its budget fails that export instead of applying late. [Hooks](/info/tool-hooks.html) gives the budgets.
 
+<!--i:eti-sparkles-->
 ## Semantic determinism, and what a seed gives you instead
 
 ::: cols
@@ -34,16 +42,20 @@ A template carries a decision. The layout, the type ramp, the safe area and the 
 
 That second property is the one automation needs: not "I can get this frame back" but "I can get five hundred frames, each correct, none of them a surprise". It is why the [MCP endpoint](/info/mcp.html) offers renders from parameters rather than image generation. An agent choosing input values inside a tool's declared bounds cannot produce an off-brand file, and the same call next month draws the same design.
 
+<!--i:eti-copy-->
 ## How far byte-identical renders go
 
 Reproducible renders and reproducible bytes are separate promises, and only some formats keep the second.
 
-**A default render is not byte-reproducible.** Content Credentials and the Lolly Imprint are on by default, in the app and the CLI alike, and each credential is signed with a fresh key and a fresh timestamp. `--no-provenance` (or `c2pa=off&imprint=0` in a link) turns a run bare, and the machine paths `smoke` and `batch` do that themselves, because a machine path wants reproducibility by default.
+::: note A default render is not byte-reproducible
+Content Credentials and the Lolly Imprint are on by default, in the app and the CLI alike, and each credential is signed with a fresh key and a fresh timestamp. `--no-provenance` (or `c2pa=off&imprint=0` in a link) turns a run bare, and the machine paths `smoke` and `batch` do that themselves, because a machine path wants reproducibility by default.
+:::
 
 Rendered bare, the vector formats (SVG, EMF, EPS, DXF), the data formats (JSON, CSV, VCF, MD) and PNG from an `<svg>`-based tool come out byte-identical run to run. ICS, PDF and everything the headless browser draws do not, because they carry a clock or the browser's own encode. [CLI batch and automation](/info/cli-automation.html#how-far-byte-identical-output-goes) holds the measured table, format by format, with the commands used.
 
 Two caveats travel with the table. A tool that renders the current time produces different bytes in every format, correctly. And the measurements are one machine, back to back: a different OS, font set or engine version moves the bytes of anything that shapes text.
 
+<!--i:eti-flask-->
 ## Check the claim yourself
 
 ```bash
@@ -56,12 +68,14 @@ lolly qr-code --url=https://example.com --export=svg --output=d.svg
 shasum -a 256 c.svg d.svg     # different: each carries its own fresh credential
 ```
 
+<!--i:eti-gauge-->
 ## What it buys you in a pipeline
 
 A machine can act on determinism only if it can branch on the result. Every CLI command returns one exit code per outcome, frozen at general availability, and `--json` puts one document on stdout and moves every human line to stderr ([Exit codes](/info/cli-reference.html#exit-codes)).
 
 That gives a build step three options: render a vector format bare and compare hashes; render a raster format and compare it visually; or verify the credential and compare provenance. None of them asks you to trust that a hosted service returned the same thing it returned last week. In practice: commit the hash of an SVG rendered with `--no-provenance` if you want a lockfile entry, and compare a PDF, an ICS, a JPEG or anything signed by rendering and inspecting rather than by digest.
 
+<!--i:eti-clipboard-->
 ## The receipts
 
 | Claim | Enforced by |
@@ -76,6 +90,7 @@ That gives a build step three options: render a vector format bare and compare h
 
 `scripts/characterize-export.ts` works differently from the tests. It drives the built web app's real export path, renders every tool-and-format pair twice and sorts the results: identical twice means the pair is hashed, while differing or container-shaped output is held to a size band instead. Nondeterminism is found rather than assumed. It is a local check in one session, not a committed CI golden, because raster bytes depend on the local Chromium build and the operating system's fonts, so its hashes do not hold across machines.
 
+<!--i:eti-warning-->
 ## Limits
 
 - **Time-of-render inputs.** A countdown, a date stamp or a calendar file reads the clock because that is its job. ICS is the clearest case: RFC 5545 requires a `DTSTAMP`, so two runs a second apart differ in exactly that line.
@@ -84,6 +99,7 @@ That gives a build step three options: render a vector format bare and compare h
 - **Provenance marks are on by default.** A credential carries a fresh signature and timestamp, and the Imprint moves pixels. Both are wanted, and both make a default export differ from run to run.
 - **The characterisation check is local.** It proves that a refactor did not change what a build draws on your machine. It is not a cross-machine byte guarantee, and nothing in the repository claims one for the browser-tier formats.
 
+<!--i:eti-link-->
 ## Related
 
 - [Constraints](/info/constraints.html): why the inputs a render depends on are a closed, declared set.

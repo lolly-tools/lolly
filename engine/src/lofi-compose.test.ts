@@ -24,6 +24,21 @@ import type { LofiBar } from './lofi-compose.ts';
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 
+/** A tune's fingerprint: FNV-1a over its bars as JSON, so any change to any note shows. */
+function fingerprint(bars: unknown): number {
+  const j = JSON.stringify(bars);
+  let h = 2166136261;
+  for (let i = 0; i < j.length; i++) { h ^= j.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h;
+}
+/** Tunes composed on main before Sherbert existed. */
+const FINGERPRINTS: Record<string, number> = {
+  'sugar.2024': 1067381605, 'sugar.2654435761': 987489652, 'chiptune.2024': 3361767685, 'chiptune.2654435761': 2547177282,
+  'kpop.2024': 1245126060, 'kpop.2654435761': 1409581692,
+  'jazz.2024': 4242884971, 'jazz.2654435761': 1166250726, 'sings.2024': 2251072788, 'sings.2654435761': 419362352,
+  'warm.2024': 3837958448, 'warm.2654435761': 1943752970,
+};
+
 test('a seed is a tune: the same seed and mood compose the same bars', () => {
   for (const mood of LOFI_MOODS) {
     assert.deepEqual(composeLofiTune(1234, mood), composeLofiTune(1234, mood));
@@ -42,8 +57,8 @@ test('a station plays one tune after another, each seed following from the last'
 });
 
 test('the dance genres: their tempo, a build with a riser and a roll, then a drop that opens on a crash', () => {
-  const BPM = { sugar: [116, 130], chiptune: [128, 150], nudisco: [115, 124], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
-  for (const mood of ['sugar', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
+  const BPM = { sugar: [116, 130], sherbert: [136, 150], chiptune: [128, 150], nudisco: [115, 124], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
+  for (const mood of ['sugar', 'sherbert', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, mood);
     const t = bars[0]!.tune;
     const where = `${mood} ${seed}`;
@@ -88,6 +103,124 @@ test('sugar: slap bass in every drop (a chip bass now and then in the verse), fo
     assert.ok(bars.some(b => b.notes.some(n => n.voice === 'coin')), `${seed}: a coin ding`);
   }
   assert.ok(verseBasses.size >= 2 && [...verseBasses].every(b => ['slap', 'pulse', 'croak'].includes(b)), `verses vary their bass across a dozen tunes (${[...verseBasses].join(', ')})`);
+});
+
+test('sherbert: half-time future bass, an 808 in every drop, chords that bend and wub, chops in leaps, hat rolls, a console in the effects', () => {
+  let chopTunes = 0, stutters = 0, powerUps = 0, leaps = 0, bends = 0, wubs = 0, rolls = 0, shouts = 0;
+  const kinds = new Set<string>();
+  for (const seed of SEEDS.slice(0, 12)) {
+    const bars = composeLofiTune(seed, 'sherbert');
+    const st = bars[0]!.tune.style;
+    const where = `sherbert ${seed}`;
+    assert.ok(bars[0]!.tune.bpm >= 136 && bars[0]!.tune.bpm <= 150, `${where}: ${bars[0]!.tune.bpm} bpm`);
+    assert.equal(st.groove, 'halfStep', `${where}: half-time`);
+    const drops = bars.filter(b => b.section === 'drop');
+    assert.ok(drops.every(b => (b.voices?.bass ?? st.bass) === 'eight'), `${where}: the 808 under every drop`);
+    for (const b of drops) {
+      const backbeat = b.notes.filter(n => n.voice === 'snare' && n.vel > 0.9).map(n => n.beat);
+      assert.deepEqual(backbeat, [2], `${where} bar ${b.index}: the clap on three`);
+      assert.ok(b.notes.some(n => n.voice === 'kick' && n.beat === 0), `${where} bar ${b.index}: a kick on one`);
+      if (b.layers.includes('hats')) assert.ok(b.notes.filter(n => n.voice === 'hat' || n.voice === 'openHat').length >= 12, `${where} bar ${b.index}: sixteenth hats`);
+      if (b.notes.some(n => n.voice === 'hat' && Math.abs(n.beat * 8 - Math.round(n.beat * 8)) < 0.01 && Math.abs(n.beat * 4 - Math.round(n.beat * 4)) > 0.01)) rolls++;
+    }
+    // The second half of the first drop and all of the second sparkle, on the chord.
+    const sparkles = drops.flatMap(b => b.notes.filter(n => n.voice === 'sparkle').map(n => ({ n, b })));
+    assert.ok(sparkles.length >= 40, `${where}: the console's arpeggios in the drops (${sparkles.length})`);
+    for (const { n, b } of sparkles) assert.ok(b.tones.includes(n.midi % 12) && [3, 4, 5].includes(n.mod ?? -1), `${where}: a sparkle on ${b.chord}`);
+    if (st.keys === 'future') {
+      const chords = drops.flatMap(b => b.notes.filter(n => n.voice === 'keys'));
+      if (chords.some(n => (n.mod ?? 0) >= 16)) bends++;
+      if (chords.some(n => (n.mod ?? 0) % 16 > 0)) wubs++;
+    }
+    if (st.lead === 'chop') chopTunes++;
+    const lead = drops.flatMap(b => b.notes.filter(n => n.voice === 'lead').map(n => n.midi));
+    if (lead.some((p, i) => i > 0 && Math.abs(p - lead[i - 1]!) >= 7)) leaps++;
+    const build = bars.filter(b => b.section === 'build');
+    const climb = build.flatMap(b => b.notes.filter(n => n.voice === 'snare').map(n => n.mod ?? 0));
+    assert.ok(climb[0] === 0 && climb.at(-1)! >= 10, `${where}: the build's roll climbs (${climb[0]} to ${climb.at(-1)} semitones)`);
+    const lastBuild = build.filter((b, i) => !build[i + 1] || build[i + 1]!.index !== b.index + 1);
+    for (const b of lastBuild) {
+      if (b.notes.filter(n => n.voice === 'lead' && n.beat >= 3 && n.beat < 3.5).length >= 4) stutters++;
+      if (b.notes.some(n => n.voice === 'game' && (n.mod ?? 0) % 16 === 1)) powerUps++;
+      assert.ok(!b.notes.some(n => !DRUMS.has(n.voice) && n.voice !== 'keys' && n.voice !== 'riser' && n.beat >= 3.5), `${where} bar ${b.index}: the breath before the drop`);
+    }
+    const breaks = bars.filter(b => b.section === 'break');
+    assert.ok(breaks.every(b => !b.notes.some(n => n.voice === 'bass' || n.voice === 'kick')), `${where}: the breakdown drops the bass and the kick`);
+    assert.ok(breaks[0]!.notes.some(n => n.voice === 'game' && (n.mod ?? 0) % 16 === 2), `${where}: the power goes down into the breakdown`);
+    shouts += bars.flatMap(b => b.notes.filter(n => n.voice === 'hey')).length;
+    for (const b of bars) for (const n of b.notes.filter(x => x.voice === 'hey' || x.voice === 'game')) kinds.add(`${n.voice}${(n.mod ?? 0) % 16}`);
+  }
+  assert.ok(shouts >= 24, `shouts call out through the drops (${shouts} in 12 tunes)`);
+  for (const k of ['hey1', 'hey2', 'game4', 'game0']) assert.ok(kinds.has(k), `a ${k} somewhere (${[...kinds].sort().join(' ')})`);
+  assert.ok(chopTunes >= 4, `chopped vowels lead most tunes (${chopTunes} of 12)`);
+  assert.ok(leaps >= 10, `the melody leaps (${leaps} of 12)`);
+  assert.ok(bends >= 6 && wubs >= 6, `the chords bend (${bends}) and wub (${wubs})`);
+  assert.ok(rolls >= 12, `thirty-second hat rolls (${rolls})`);
+  assert.ok(stutters >= 6 && powerUps >= 2, `builds end on a stutter (${stutters}) or a power-up (${powerUps})`);
+});
+
+/**
+ * A tune without the notes added since these fingerprints, each its own kind so it can be
+ * told apart: jazz's hat's foot under the ride (a hat with a `mod` of 2), and the console's
+ * newer sounds and shouts (a game sound from the level-up on, a coin that rings, echoes or
+ * doubles, a shout from "ugh" on). Without them a pinned tune must compose as it did.
+ */
+const withoutHatFoot = (bars: ReturnType<typeof composeLofiTune>): ReturnType<typeof composeLofiTune> =>
+  bars.map(b => ({ ...b, notes: b.notes.filter(n => !(n.voice === 'hat' && n.mod === 2)
+    && !(n.voice === 'game' && (n.mod ?? 0) % 16 >= 8)
+    && !(n.voice === 'coin' && (n.mod ?? 0) >= 1)
+    && !(n.voice === 'hey' && (n.mod ?? 0) >= 6)) }));
+
+test('adding Sherbert changed no other style: a seed still composes what it did', () => {
+  // Fingerprints of a few styles' tunes composed before Sherbert existed (main at 2b9783498).
+  // Jazz has since gained the hat's foot, and only that: without it, the tune is unchanged.
+  const before: Record<string, number> = FINGERPRINTS;
+  for (const [key, want] of Object.entries(before)) {
+    const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
+    assert.equal(fingerprint(withoutHatFoot(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
+  }
+});
+
+test('jazz and swing: the hat\'s foot on two and four under the ride, and nowhere else', () => {
+  for (const mood of ['jazz', 'swing'] as const) {
+    let feet = 0;
+    for (const seed of SEEDS.slice(0, 6)) {
+      for (const b of composeLofiTune(seed, mood)) {
+        const foot = b.notes.filter(n => n.voice === 'hat' && n.mod === 2);
+        const ride = b.notes.some(n => n.voice === 'hat' && n.mod !== 2);
+        if (foot.length) assert.ok(ride, `${mood}: a foot only where the ride plays`);
+        for (const n of foot) assert.ok(n.beat === 1 || n.beat === 3, `${mood}: the foot on two and four (beat ${n.beat})`);
+        feet += foot.length;
+      }
+    }
+    assert.ok(feet > 40, `${mood}: the foot keeps time (${feet})`);
+  }
+  for (const mood of ['sugar', 'rock', 'warm'] as const) {
+    for (const b of composeLofiTune(SEEDS[0]!, mood)) assert.ok(!b.notes.some(n => n.voice === 'hat' && n.mod === 2), `${mood} has no hat's foot`);
+  }
+});
+
+test('the bass genres: the bass talks at the end of each drop phrase, bleeps sit in the gaps, a phaser sweeps the build', () => {
+  for (const mood of ['dubstep', 'brostep', 'dnb'] as const) {
+    let blips = 0, zips = 0;
+    for (const seed of SEEDS.slice(0, 8)) {
+      const bars = composeLofiTune(seed, mood);
+      const where = `${mood} ${seed}`;
+      const drops = bars.filter(b => b.section === 'drop');
+      let phrase = 0;
+      for (const b of drops) {
+        const i = phrase++ % 16;
+        if (i % 4 !== 3) continue;
+        assert.ok(b.notes.some(n => n.voice === 'bwah' && n.beat >= 2), `${where} bar ${b.index}: the bass talks`);
+        assert.ok(!b.notes.some(n => n.voice === 'bass' && n.beat >= 1.99), `${where} bar ${b.index}: the line makes way`);
+        assert.ok(b.notes.some(n => n.voice === 'bass' && n.beat < 2), `${where} bar ${b.index}: the line plays up to it`);
+      }
+      blips += drops.flatMap(b => b.notes.filter(n => n.voice === 'blip')).length;
+      zips += drops.flatMap(b => b.notes.filter(n => n.voice === 'phaser')).length;
+      assert.ok(bars.filter(b => b.section === 'build').some(b => b.notes.some(n => n.voice === 'phaser' && n.mod === 0)), `${where}: a phaser rises through the build`);
+    }
+    assert.ok(blips >= 20 && zips >= 2, `${mood}: bleeps (${blips}) and zips (${zips}) in the drops`);
+  }
 });
 
 test('the dance genres change instruments between sections', () => {
@@ -220,7 +353,8 @@ test('every note is playable', () => {
         if (n.voice === 'riser') continue;   // a sweep, not a pitch
         const dance = isDanceMood(mood);
         // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
-        const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? [52, 76] : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' ? [55, 66] : n.voice === 'soar' ? [40, 60] : [64, 84];
+        const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? [52, 76] : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' ? [55, 66] : n.voice === 'soar' ? [40, 60]
+          : n.voice === 'bwah' ? [28, 60] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
       }
     }
@@ -228,6 +362,7 @@ test('every note is playable', () => {
 });
 
 const PC = (m: number): number => ((m % 12) + 12) % 12;
+
 
 test('the keys voice a few chord tones and move smoothly from chord to chord', () => {
   let moves = 0, total = 0;
@@ -353,10 +488,29 @@ test('Fantasy, Dreamscape, K-pop and Metal each have their own colour and moment
     if (drops.at(-1)!.chord !== drops[0]!.chord) keyChanges++;
     // Metal: a band song with the double kick through the chorus.
     const metal = composeLofiTune(seed, 'metal');
-    assert.equal(metal[0]!.tune.style.keys, 'crunch');
+    assert.equal(metal[0]!.tune.style.keys, 'heavy');
     assert.ok(metal.filter(b => b.section === 'drop').every(b => b.notes.filter(n => n.voice === 'kick').length >= 8), `metal ${seed}: the double kick`);
   }
   assert.ok(lydian >= 1, 'a lydian fourth in some major fantasy tune');
   assert.ok(keyChanges >= 6, `most K-pop tunes change key for the last chorus (${keyChanges} of 8)`);
 });
 
+
+test('the console\'s newer sounds and the ad-libs: where a game is played and where people call out', () => {
+  const kinds = (mood: Parameters<typeof composeLofiTune>[1]): Set<string> => {
+    const out = new Set<string>();
+    for (const seed of SEEDS.slice(0, 10)) for (const b of composeLofiTune(seed, mood)) for (const n of b.notes) {
+      if (n.voice === 'game') out.add(`game${(n.mod ?? 0) % 16}`);
+      if (n.voice === 'coin') out.add(`coin${n.mod ?? 0}`);
+      if (n.voice === 'hey') out.add(`hey${n.mod ?? 0}`);
+    }
+    return out;
+  };
+  const chip = kinds('chiptune');
+  for (const k of ['game8', 'game9', 'game10', 'game11']) assert.ok(chip.has(k), `chiptune plays ${k} (${[...chip].sort().join(' ')})`);
+  assert.ok(['coin1', 'coin2', 'coin3'].some(k => chip.has(k)), 'and coins that ring, echo or double');
+  const hip = kinds('hiphop');
+  assert.ok(['hey1', 'hey5', 'hey7', 'hey6'].filter(k => hip.has(k)).length >= 3, `hip hop's ad-libs (${[...hip].sort().join(' ')})`);
+  assert.ok(kinds('punk').has('hey0'), 'punk\'s gang shouts hey');
+  for (const mood of ['jazz', 'warm', 'rock'] as const) assert.equal(kinds(mood).size, 0, `${mood} calls no console and no ad-lib`);
+});

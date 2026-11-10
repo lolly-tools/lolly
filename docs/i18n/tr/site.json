@@ -510,7 +510,7 @@
   "Adoption and governance": "Benimseme ve yönetişim",
   "Governance": "Yönetişim",
   "Host Lolly": "Lolly'yi barındır",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "Statik bir web sunucusu kolay yoldur ve internetten yalıtılmış bir ağ da aynı kurulumu alır. Kuruluş sunucusu Lolly Work da açık kaynaktır: tek makinede, Kubernetes üzerinde ya da platform ekibinle çalıştır.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "Statik bir web sunucusu kolay yoldur ve internetten yalıtılmış bir ağ da aynı kurulumu alır. Kuruluş sunucusu Lolly Work da açık kaynaktır: Kubernetes üzerinde, tek makinede ya da platform ekibinle çalıştır.",
   "Deployment": "Dağıtım",
   "Privacy": "Gizlilik",
   "The utilities": "Yardımcı araçlar",

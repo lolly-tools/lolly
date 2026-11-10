@@ -7,6 +7,7 @@ Grafana, and both are off by default. Without them, Lolly Work still raises its 
 alerts for blob offload and credential expiry
 ([keep Lolly Work running](operations.md#blob-offload-trigger)).
 
+<!--i:eti-download-->
 ## Scraping
 
 `/metrics` needs a bearer token, `LW_METRICS_TOKEN`, from anywhere except an
@@ -34,6 +35,7 @@ metrics:
 Your own scrape job works as well. Give it the bearer token and see
 [selecting the series](#selecting-the-series) for the alerts.
 
+<!--i:eti-table-->
 ## Metric reference
 
 Counters count from process start, so a restart sets them back to zero; `rate()` and
@@ -46,8 +48,9 @@ event on. Gauges are read when Prometheus scrapes.
 | Metric | Type | Labels | Meaning |
 |---|---|---|---|
 | `lw_http_requests_total` | counter | `route`, `status` | Requests answered. `route` is the matched route pattern, such as `/api/v1/projects/:id`, or `unmatched`, `csrf-blocked` or `ratelimited:<surface>`. `status` is the class, `2xx` to `5xx`. Kubelet probes and scrapes count too, under `/healthz`, `/readyz` and `/metrics` |
-| `lw_rate_limited_total` | counter | `surface` | Requests the per-address limiter refused, by surface: `auth`, `telemetry`, `link` or `automation` |
+| `lw_rate_limited_total` | counter | `surface` | Requests the per-address limiter refused, by surface: `auth`, `telemetry`, `link`, `automation` or `brandPage` |
 | `lw_token_scope_refused_total` | counter | `route` | Requests refused with `TOKEN_SCOPE` because a service token's scopes do not open the route, by route pattern. These also count in `lw_http_requests_total` as `4xx` |
+| `lw_token_limited_total` | counter | `code` | Calls and renders a service token's own limits refused, by `RATE_LIMITED` or `BUDGET_EXHAUSTED` ([limits and usage](partner-agents.md#limits-and-usage)) |
 | `lw_rate_limit_buckets` | gauge | | Client addresses the limiter tracks in memory. When the count reaches `rateLimit.maxBuckets`, the limiter drops the oldest tenth |
 | `lw_origin_bytes_total` | counter | `class` | Response body bytes after compression, by delivery class: `public-immutable`, `public-revalidate`, `public-bounded`, `link`, `instance-private` or `person-private`. HEAD, 204 and 304 answers count nothing. A CDN can serve only the public classes |
 | `lw_process_uptime_seconds` | gauge | | Seconds since the Lolly Work process started |
@@ -94,6 +97,19 @@ The render worker exports no metrics. Its health shows in its readiness probe an
 the status of server renders, the `/api/v1/render` and `/render/:spec` routes of
 `lw_http_requests_total`.
 
+**The render queue.** The server reports its own render queue by pool: `tier-a` is the
+in-process path and `tier-b` the Chromium render worker. The lease series appear only under
+pull dispatch (`render.worker.dispatch: "pull"`, see [configuration](configuration.md#render)).
+
+| Metric | Type | Labels | Meaning |
+|---|---|---|---|
+| `lw_render_queue_depth` | gauge | `pool` | Renders waiting for their pool's capacity: queued in the database, plus jobs waiting for a worker lease under pull dispatch |
+| `lw_render_oldest_wait_seconds` | gauge | `pool` | Seconds the oldest claimable render or unleased worker job has waited |
+| `lw_render_leases_active` | gauge | `pool` | Worker jobs a render worker holds a lease on. Pull dispatch only |
+| `lw_render_workers_waiting` | gauge | `pool` | Render worker slots waiting for a job. Pull dispatch only |
+| `lw_render_leases_total` | counter | `pool`, `event` | Lease events: `granted`, `completed`, `expired`, `reclaimed`, `timed_out`, `queue_timeout` or `cancelled`. Pull dispatch only |
+
+<!--i:eti-megaphone-->
 ## Suggested alerts
 
 The chart can install twelve alerts as a Prometheus Operator `PrometheusRule`, next to
@@ -137,9 +153,11 @@ check first. Some limits to know:
   samples before it can fire.
 - `LollyWorkRateLimitBucketsHigh` reads `rateLimit.maxBuckets` from the chart's
   `config` (inline or `--set-file`), or uses Lolly Work's default of 50,000.
-- No alert ships for `lw_ofrep_evaluation_errors_total` or `lw_otlp_dropped_total`.
-  If you use your own flag service or OpenTelemetry export, alert on their `rate()`
-  staying above zero.
+
+::: note Two series have no alert of their own
+No alert ships for `lw_ofrep_evaluation_errors_total` or `lw_otlp_dropped_total`. If you use
+your own flag service or OpenTelemetry export, alert on their `rate()` staying above zero.
+:::
 
 ### Alert options
 
@@ -167,6 +185,7 @@ the unit tests in `deploy/helm/files/prometheus-rules.test.yaml`, which cover ev
 alert. To check a rendered rule yourself, take `spec.groups` from the rendered
 `PrometheusRule` into a file of its own and run `promtool check rules` on that file.
 
+<!--i:eti-gauge-->
 ## Dashboard
 
 The chart can also install a Grafana dashboard as a ConfigMap:
@@ -196,6 +215,7 @@ job, and five rows:
   delivery class and configuration polls from Lolly apps;
 - **Integrations**: a table of catalog sources and notification outcomes.
 
+<!--i:eti-badge-check-->
 ## Qualification
 
 On 2026-10-27, Lolly Work 1.1.2 ran on K3s 1.35 with kube-prometheus-stack 92.14.0 and

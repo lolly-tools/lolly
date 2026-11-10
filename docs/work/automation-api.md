@@ -10,16 +10,20 @@ background jobs, batches and provider assets.
 Every other route the console, the `lw` CLI and the apps call is in the
 [Lolly Work API reference](api.md).
 
+<!--i:eti-file-plus-->
 ## Render your first file
 
-::: timeline
-- <!--i:lock--> **Get a token.** An owner mints one for the script, with only the reach it needs: `lw tokens create --label ci --scopes render`. The secret, `lwt_…`, is shown once.
-- <!--i:search--> **Ask what the token may do.** `GET /api/v1/discovery/me` answers with the formats this server renders and whether the token may render at all.
-- <!--i:document--> **Read the tool's inputs.** `GET /api/v1/schema/qr-code` returns the inputs this caller may set, after policy and design-system rules.
-- <!--i:download--> **Render.** `POST /api/v1/render` with the tool, the format and the inputs returns the file.
+**From a token to a file**, in four steps:
+
+::: steps
+- <!--i:eti-lock--> **[Get a token](#before-you-start-a-token-and-a-permission)** An owner mints one with only the reach it needs. The secret, `lwt_…`, is shown once.
+- <!--i:eti-search--> **[Ask what the token may do](#find-out-what-you-can-do)** The formats this server renders, and whether the token may render at all.
+- <!--i:eti-sliders--> **[Read the tool's inputs](#read-a-tool-s-effective-schema)** The inputs this caller may set, after policy and design-system rules.
+- <!--i:eti-download--> **[Render](#render-and-the-other-document-verbs)** The tool, the format and the inputs go in, and the file comes back.
 :::
 
 ```bash
+lw tokens create --label ci --scopes render   # an owner mints the token
 export LW_TOKEN=lwt_...
 curl -H "Authorization: Bearer $LW_TOKEN" https://work.example.com/api/v1/discovery/me
 curl -H "Authorization: Bearer $LW_TOKEN" -H 'content-type: application/json' \
@@ -27,8 +31,12 @@ curl -H "Authorization: Bearer $LW_TOKEN" -H 'content-type: application/json' \
   https://work.example.com/api/v1/render > qr.svg
 ```
 
+::: check `qr.svg` holds the file
 The answer is the file itself, with its media type, an `x-lolly-cache-key` header and an
-`x-lolly-brand-check` header (see [design-system rules](#design-system-rules)). Add `?async=1`
+`x-lolly-brand-check` header (see [design-system rules](#design-system-rules)).
+:::
+
+Add `?async=1`
 to get a job instead, which you can poll or have the server call you back about. Every error
 reads `{ "error": { "code", "message" } }`.
 
@@ -37,6 +45,7 @@ The path a script takes: a token, a check of what the token may do and which inp
 then a render that answers with the file or with a job.
 :::
 
+<!--i:eti-lock-->
 ## Before you start: a token and a permission
 
 **The token.** Service tokens are minted by owners (`token.manage`), from the console or
@@ -55,6 +64,7 @@ or `--token`. The routes are in [service tokens](api.md#service-tokens).
 | `delivery` | listing destinations, sending this token's own finished job to one, and reading or retrying those deliveries |
 | `catalog.read` | catalog files, tool files, catalog fields and catalog search |
 | `audit.read` | the audit trail and its head |
+| `approvals.request` | opt-in: filing an export review on this token's own finished render, reading those requests and withdrawing them. Deciding stays with people ([requests from agents](partner-approvals.md#requests-from-partners-agents)) |
 
 Every scoped token can read `GET /api/v1/discovery`, `GET /api/v1/discovery/me` and
 `GET /api/auth/session`. Any other route answers `403 TOKEN_SCOPE`, and new routes stay closed
@@ -77,8 +87,10 @@ scoped token as it does to any other.
 
 **What a token is.** A token acts as its own account, with its role and no groups. Its jobs and
 [file references](api.md#file-references) belong to the token, not to the owner who minted the
-token. A token is refused wherever a person has to decide or act, such as approvals, deliveries
-to a destination that needs approval and live collaboration.
+token. A token is refused wherever a person has to decide or act, such as deciding an approval,
+a delivery to a destination that needs approval and live collaboration. A token holding
+`approvals.request` may ask for that approval, and its delivery then waits for a person instead of
+being refused.
 [Who can call what](api.md#who-can-call-what) lists every credential.
 
 On an `open` instance, a caller with no credential may also use and render any tool that no
@@ -86,6 +98,7 @@ visibility rule hides. On a `gated` instance, every route on this page except th
 `GET /api/v1/discovery` answers `401` without a credential; a job's result token counts as one
 for that job's result.
 
+<!--i:eti-search-->
 ## Find out what you can do
 
 | Route | Who | What it answers |
@@ -93,13 +106,14 @@ for that job's result.
 | `GET /api/v1/discovery` | public | What this deployment can do, the same for everyone: document API and engine versions, server render formats, hooked tools, Content Credentials, automation verbs and batch limits, live collaboration, document agents, the [organisation MCP endpoint](#connect-an-agent-over-mcp) (`agents.organisationMcp`), whether [file references](api.md#file-references) are on (`files.references`), and `unavailable` entries for what it lacks. Shared caches may hold it; it carries an ETag |
 | `GET /api/v1/discovery/me` | member or service token; anyone on an instance that is not `gated` | What the caller can do: `principal` (`member`, `service` or `guest`), `can` bits for `tool.use`, `export.server`, `export.request`, `delivery.create` and `catalog.read`, which a scoped token holds only when its scopes reach them, provider reference schemes that resolve for the caller, for a scoped token its `token` with `scopes`, `scopesVersion` and `tools`, limits, the render worker's live readiness when one is configured, and `unavailable` entries. Private, never cached |
 | `GET /api/v1/discovery/tools?limit=&cursor=` | as above | The tools the caller can use, sorted by id, 25 a page by default and at most 100. Each entry has `name`, `version`, `renderer`, the server `formats` the caller may request, `can.render`, its schema URL and `unavailable` entries. `next` is an opaque cursor, or `null` on the last page |
-| `GET /api/v1/schema/:toolId?view=&format=` | `tool.use` | The caller's effective input schema (below). `view=raw` returns the tool's own schema and needs `policy.edit`. `format` selects the output format whose design-system rules apply. Without it, the schema carries only the rules that apply to every format |
+| `GET /api/v1/schema/:toolId?view=&format=&template=` | `tool.use` | The caller's effective input schema (below). `view=raw` returns the tool's own schema and needs `policy.edit`. `format` selects the output format whose design-system rules apply. Without it, the schema carries only the rules that apply to every format. `template=inst/<id>` describes a render that starts from that published template, for a template the caller's feed carries ([templates by purpose](partner-programmes.md#templates-by-purpose)) |
 
 Discovery lives under `/api/v1` rather than `/.well-known/`, because on a shared origin
 `/.well-known/` belongs to the web shell, whose static `/.well-known/lolly.json` describes the
 shell. In the same way, the list of [brand pages](design-system-administration.md#find-the-pages-on-an-instance) lives at
 `/api/v1/brand-pages/public`. The one exact path `/.well-known/lolly-brand.json` also answers, as a Lolly convention.
 
+<!--i:eti-sliders-->
 ## Read a tool's effective schema
 
 `GET /api/v1/schema/:toolId` answers with `apiVersion` and `schema`. The schema is the
@@ -131,8 +145,9 @@ the caller.
 :::
 
 Each `unavailable` entry, here and in discovery, identifies one `format`, `action` or `feature`
-with a stable `code` and a `reason`:
+with a stable `code` and a `reason`.
 
+::: details Every `unavailable` code
 | Code | Meaning |
 |---|---|
 | `WORKER_NOT_CONFIGURED` | the format needs the Chromium render worker, and this deployment does not run one |
@@ -144,7 +159,9 @@ with a stable `code` and a `reason`:
 | `FORBIDDEN` | the caller lacks the permission, such as `export.server` for `render` |
 | `RENDER_BUSY` / `WORKER_UNREACHABLE` | the configured worker is at capacity or did not answer its readiness check |
 | `TOOL_UNAVAILABLE` | the deployment cannot load the tool |
+:::
 
+<!--i:eti-map-pin-->
 ## Start from what the piece has to do
 
 `POST /api/v1/intents/resolve` takes a [visual intent](/info/visual-intent.html): what the piece has to do, where it will be seen and what it has to say. It answers with the tool this caller can render it with on each surface, the input values, what is missing and why. It renders nothing.
@@ -178,6 +195,7 @@ The route applies the design-system rules every format shares. A rule for one fo
 
 A request the parser refuses answers `400 INTENT_INVALID` with `errors`, a list of `{ code, path, message }`. A body over 512 KiB answers `413 PAYLOAD_TOO_LARGE`. A caller who can render no tool here answers `403 FORBIDDEN`.
 
+<!--i:eti-download-->
 ## Render and the other document verbs
 
 The automation surface mirrors the open-source engine's document verbs:
@@ -237,6 +255,7 @@ looks. Policy editors publish the rules through
 `/optimize` with `output: "file"` keeps its output as a new file reference of the caller and
 answers `{ file, bytes, savedBytes, stages }` instead of `bytesBase64`.
 
+<!--i:eti-url-->
 ## Render from a URL
 
 `GET /render/<toolId>.<format>?<inputs>` renders with the inputs in the query, the way a Lolly
@@ -254,6 +273,7 @@ submitter can read the project and the file belongs to the render's scoped read 
 worker receives no general session credentials. Private files outside that scope stay out of
 reach; inline baked assets keep their original bytes.
 
+<!--i:eti-clock-->
 ## Run work in the background
 
 Any document verb, render or package takes `?async=1`, or `Prefer: respond-async`, and answers
@@ -283,9 +303,9 @@ Each callback carries `x-lolly-timestamp` and an `x-lolly-signature` header sign
 header on `GET /api/v1/jobs/:id/result`, and the receiver needs no session of its own. A
 completed job resource carries the same `resultToken`, and `null` before then.
 
-::: note The token in the result URL is deprecated
+::: warning A token in the result URL reaches logs, and stops working later
 The token used to travel in the URL, as `resultUrl?token=…`, and a URL ends up in access, proxy
-and CDN logs. In Lolly Work 1.1.2 `resultUrl` still carries `?token=` and the result route still
+and CDN logs. In Lolly Work 1.1.2 and 1.2.0, `resultUrl` still carries `?token=` and the result route still
 accepts the query token, answering with a `Deprecation` header
 ([RFC 9745](https://www.rfc-editor.org/rfc/rfc9745)). A later release drops the query from
 `resultUrl` and refuses a query token, so move receivers to the header now.
@@ -309,6 +329,7 @@ The job reports `callback: { id, state, attempts, lastOutcome, lastStatus, nextA
   receiver) or `not-sent` (the URL is not approved, or no signing secret is configured).
 - `callbackFailed` stays `true` until the receiver acknowledges.
 
+<!--i:eti-copy-->
 ## Make many files at once
 
 `POST /api/v1/batch { toolId, format, rows, keepGoing?, retries?, concurrency?, priority? }`
@@ -328,6 +349,7 @@ In place of `rows`, `bind: { source, query?, as? }` reads JSON or CSV from a gov
 For batches whose rows each need their own durable record, use
 [render batches](#durable-renders) instead.
 
+<!--i:eti-globe-->
 ## Assets from providers
 
 Provider references are resolved during compile, before the render cache identity is worked out:
@@ -341,6 +363,7 @@ Provider references are resolved during compile, before the render cache identit
 Both remote kinds are bounded in time and bytes, content-addressed, and pass through immutable
 resize, format-conversion and metadata-strip stages.
 
+<!--i:eti-badge-check-->
 ## Durable renders
 
 `POST /api/v1/renders` submits a persistent single-tool request that survives a restart. List or
@@ -382,6 +405,7 @@ requirements.
   [batch API](renders.md#batches-with-durable-rows) is separate from the `/api/v1/batch` job and
   ZIP contract.
 
+<!--i:eti-sparkles-->
 ## Connect an agent over MCP
 
 `/api/v1/mcp` is the organisation MCP endpoint. An agent connects with a service token and can then do what that token can do across this instance, and nothing more. MCP (Model Context Protocol) is the standard way AI clients connect to tools.
@@ -409,6 +433,9 @@ lw mcp config --base https://work.example.com
 | `submit_batch` | Up to 200 rows as one batch | `POST /api/v1/render-batches` | `render` |
 | `get_batch` | Counts and ordered rows | `GET /api/v1/render-batches/:id` | `render` |
 | `search_assets` | Search catalog assets by text | `GET /api/v1/catalog/search` | `catalog.read` |
+| `request_approval` | Ask for an export review of one of this token's finished renders | `POST /api/v1/approvals` | `approvals.request` |
+| `get_approval` | One approval request this token made: its state, step and any decision | `GET /api/v1/approvals/:id` | `approvals.request` |
+| `withdraw_approval` | Withdraw a request nobody has decided yet | `POST /api/v1/approvals/:id/withdraw` | `approvals.request` |
 | `list_destinations` | The organisation destinations this token may send to | `GET /api/v1/destinations` | `delivery` |
 | `deliver_render` | Send a finished render to a destination | `POST /api/v1/renders/:id/deliveries` | `delivery` and `render` |
 
@@ -416,28 +443,33 @@ lw mcp config --base https://work.example.com
 - **Tools the token can reach.** `tools/list` leaves out a tool its scopes do not open or its role cannot do. A tool called by name gets the route's own refusal, such as `TOKEN_SCOPE` or `FORBIDDEN`. A token with no scopes gets the tools its role allows. A role that may render only through a grant on one tool does not see the render tools listed, and its calls still work.
 - **Policy.** `describe_tool` leaves out hidden inputs and shows locked ones as `readOnly` with their value. A durable render checks policy at each attempt, so a locked input sent to `render_tool` records a failed attempt with `INPUT_LOCKED`. Call `validate` first to see a problem at once.
 - **Errors.** A refused call returns `isError: true` with `{ code, message, status }` and the route's own details, using the same codes as HTTP.
-- **Sending a file.** `deliver_render` sends this token's own finished render, unchanged, and needs a Content Credential on the file, as [delivery](delivery.md) does for any send. A destination with an approval chain refuses a token with `HUMAN_APPROVAL_REQUIRED` and sends nothing, because a token can neither ask for approval nor give one. A member sends those files.
+- **Sending a file.** `deliver_render` sends this token's own finished render, unchanged, and needs a Content Credential on the file, as [delivery](delivery.md) does for any send. A destination with an approval chain refuses a token with `HUMAN_APPROVAL_REQUIRED` and sends nothing, unless the token holds `approvals.request`: then the delivery waits for a person's approval. A token never gives an approval.
 - **Files.** A file up to 1 MiB comes back in the result, as an image or a resource. A larger one comes back as a link that needs the same token.
+- **Brand context.** The endpoint also serves resources: `lolly-work://me` (who the token is, its scopes, limits and today's use) and `lolly-work://brand` with the brand's `DESIGN.md`, tokens, `AGENTS.md`, checks and skills, plus a partner token's own company, templates and kit. The brand's files and the partner reads need `catalog.read`. The same reads are at `GET /api/v1/context/*`. [What an agent reads](partner-agents.md#what-an-agent-reads) lists them.
 - **Data, not instructions.** Tool descriptions on this endpoint are fixed text. Anything a tool author or policy editor wrote, and the contents of any file, arrive only inside a result. The endpoint tells clients to read results as data.
-- **Records and limits.** The audit log records `mcp.connect` and each `mcp.tool-call` with the token's label, the tool, the outcome and the refusal code, never the input values. Each message counts once against `rateLimit.automation`.
+- **Records and limits.** The audit log records `mcp.connect` and each `mcp.tool-call` with the token's label, the tool, the outcome and the refusal code, never the input values. Each message counts once against `rateLimit.automation`, and against the token's own limits when it has some.
 - **No session.** The endpoint keeps no state between calls, so any replica can answer. `GET` answers `405`.
 - **Hosts without a long-lived server.** A function-only host leaves out the render tools and keeps `resolve_intent`, and discovery reports `agents.organisationMcp.renderTools: false`.
 
-Approvals, retries, delivery of a `/jobs` result and the other document verbs stay on the HTTP routes.
+Retries, delivery of a `/jobs` result and the other document verbs stay on the HTTP routes, and deciding an approval stays with people.
 
+<!--i:eti-gauge-->
 ## Limits and errors
 
 The automation routes share the `rateLimit.automation` bucket, per client IP: discovery, schemas,
 the document verbs, `POST /api/v1/intents/resolve`, renders, batches and jobs, `GET /render/…`, agent connections, the organisation MCP endpoint and the
 outbound delivery `POST`s. That includes the public `GET /api/v1/discovery`, so reading it never
-costs a sign-in attempt. The bucket is admission control, not pricing: Lolly Work keeps no
-per-principal quota or usage account for these routes. Sizes are in
+costs a sign-in attempt. The bucket is admission control, not pricing. A service token can also carry its own limits on
+calls a minute and renders a day or a month. A token in a partner programme starts with 120 calls
+a minute and 2,000 renders a day; any other token has none unless an owner sets them
+([limits and usage](partner-agents.md#limits-and-usage)). Sizes are in
 [configuration](configuration.md#ratelimit).
 
-Errors keep the `{ "error": { "code", "message" } }` shape. These are the codes an automation
-script meets most; the [common codes](api.md#common-error-codes) cover sign-in, permissions and
-links.
+Errors keep the `{ "error": { "code", "message" } }` shape. The table below holds the codes an
+automation script meets most; the [common codes](api.md#common-error-codes) cover sign-in,
+permissions and links.
 
+::: details The codes an automation script meets most
 | Code | Status | Meaning |
 |---|---|---|
 | `INVALID_INPUT` | 400 | a required field is missing or malformed |
@@ -460,7 +492,9 @@ links.
 | `HOOKED_TOOL_NEEDS_CHROMIUM` | 501 | the tool runs scripts and no worker is configured (org-config's `render.hookedTools` is `false`) |
 | `TOOL_REQUIRES_UNMET` | 501 | the manifest's `requires` lists a `host.*` API the in-process render host lacks (`text`, `compose`, `audio`, the device APIs); route the tool through the Chromium worker |
 | `RENDER_BUSY` | 503 | the render worker is at capacity; retry after `Retry-After` seconds |
+:::
 
+<!--i:eti-link-->
 ## Related
 
 - Every other route, grouped by job: [Lolly Work API reference](api.md)

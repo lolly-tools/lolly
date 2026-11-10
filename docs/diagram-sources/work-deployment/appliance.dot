@@ -1,0 +1,16 @@
+digraph appliance {
+  rankdir=TB
+  node [shape=box]
+  people [label="People\nin a browser"]
+  admin [label="Administrator\nthrough an SSH tunnel"]
+  https [label="HTTPS\nthe machine's certificate"]
+  cockpit [label="Cockpit\nlocal networks only"]
+  server [label="Lolly Work\non K3s, production mode", style=filled, fillcolor="#dcf3e6"]
+  db [label="PostgreSQL\nits own database", style=filled, fillcolor="#dcf3e6"]
+  host [label="Leap 16.1 Immutable\nsnapshots and rollback"]
+  people -> https
+  admin -> cockpit
+  https -> server
+  server -> db
+  cockpit -> host
+}

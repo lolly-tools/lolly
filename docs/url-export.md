@@ -4,6 +4,7 @@ A Lolly link can do more than show a design. It can download the file, ready it 
 
 Most of these words are presence flags: the key alone is enough, and any value is ignored.
 
+<!--i:eti-download-->
 ## Download a file
 
 Add `export` and the file downloads as soon as the tool finishes rendering. `format=` picks the file type, and `filename=` sets the download's name, without its extension:
@@ -83,6 +84,7 @@ PNG, WebP and AVIF keep the transparency, and so does SVG, which then has no bac
 
 Tools that export a vector format also get a `convertPaths` input from the engine, the **Convert paths** control. `?convertPaths=1` outlines text and `?convertPaths=0` keeps it live. It is off by default, so text stays live unless a link or the export panel asks for outlines. A tool that sets `render.convertPaths: false` has no such control, and the parameter does nothing.
 
+<!--i:eti-copy-->
 ## Copy to the clipboard
 
 `copy` gets the tool's Copy action ready. Pair it with `format=` to choose what is copied:
@@ -94,6 +96,7 @@ Tools that export a vector format also get a `convertPaths` input from the engin
 
 The copy waits for your first click on the page. A browser allows a clipboard write only in answer to a gesture, so the app highlights the **Copy** button and copies on the click. Use `export` instead when nobody will be there to click. `copy` is for "open this link, then paste". The CLI ignores it and writes to `--output` or stdout.
 
+<!--i:eti-crop-->
 ## Set the size
 
 `width` and `height`, or `w` and `h`, set the canvas size and fill in the export panel. They are not passed to the tool as inputs, and long and short forms mix (`?width=1200&h=630`):
@@ -116,12 +119,13 @@ The copy waits for your first click on the page. A browser allows a clipboard wr
 
 ![The Wordmark canvas standing as a portrait A4 page, its shape set by the width, height and unit params before anything is exported](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DPrint%2520me%26size%3D120%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&cropSelector=%23tool-canvas-outer&filename=um-units-a4)
 
-```
+```bash
 lolly wordmark --text="Print me." --size=120 --width=210 --height=297 --unit=mm --export=svg --output=a4.svg
 ```
 
 A document with several artboards treats `width` and `height` as the size of one board; [Reserved URL parameters](/info/url-parameters.html#the-file) explains how each format handles the set.
 
+<!--i:eti-eye-->
 ## Open clean, embed or publish
 
 Four flags change what the person sees when the link opens.
@@ -154,6 +158,7 @@ Four flags change what the person sees when the link opens.
 
 `nostage` has a second meaning on a tool that exports: the `html` export drops its fixed-size frame and fills the whole window, with the tool's content as the page body and no centred card or grey backdrop. It matches the **Full page** toggle in the export panel. On a tool with no export, the Share dialog offers the visitor page as **Open as a web page (no controls)** and ticks it by default.
 
+<!--i:eti-monitor-->
 ## Present a deck
 
 `present` opens a Lolly Design document as a fullscreen deck that advances on a click. Its frames become slides in presentation order. `s` picks where to start, and `kiosk` loops:
@@ -169,6 +174,7 @@ A timed document that is not made of frames starts its playback instead, and `ki
 
 Without `present`, `s` is a still filter: `?s=2&format=png&export` downloads slide 2 alone, so every slide has an image link of its own. [Presenting](/info/design.html#presenting) covers the deck in the app, and [Presenting with camera](/info/presenting.html) puts your camera over the deck.
 
+<!--i:eti-scissors-->
 ## Print-ready output
 
 `bleed=` and `marks=` add what a print shop expects to `pdf` (RGB), `pdf-cmyk` (Print PDF) and `cmyk-tiff` (Print TIFF). Every other format ignores them.
@@ -185,7 +191,9 @@ Without `present`, `s` is a still filter: `?s=2&format=png&export` downloads sli
 - **`profile=fogra51`** sets the CMYK press condition. The Print PDF declares it in its output intent; the Print TIFF records it in `ImageDescription` and keeps its pixels untagged DeviceCMYK, so the file is never mislabelled.
 - **`_spots=process`** prints every spot ink of the design system with the four process inks, so a Print PDF has only the cyan, magenta, yellow and black plates. Finishes such as foil keep their own plates. [Spot inks as process](/info/exporting.html#spot-inks-as-process) explains the choice.
 
-Print finishing and an open `password` cannot be combined, because the finishing step cannot write an encrypted PDF. A `password` is ignored when marks or bleed are on, and `cmyk-tiff` has no password at all.
+::: warning A password and print finishing do not mix
+Print finishing and an open `password` cannot be combined, because the finishing step cannot write an encrypted PDF. A link that asks for a `password` with marks or bleed on a `pdf`, or a `password` on `pdf-cmyk` or `cmyk-tiff`, is refused and writes no file. The export panel's Strong lock covers a Print PDF ([More on password](/info/url-parameters.html#more-on-password)).
+:::
 
 ::: details How the marks are drawn in each format
 Both CMYK formats use the same engine geometry: the PDF as vectors with declared page boxes, the TIFF rasterised onto an enlarged sheet.
@@ -202,13 +210,14 @@ The author appears only when you have chosen to share your details (Settings →
 :::
 
 ::: details When a Print PDF claims PDF/X-4
-A named condition tells a RIP what the DeviceCMYK values mean, but PDF/X-4 also wants the profile itself inside the file, and no CMYK ICC profile ships with Lolly. So a named condition writes the output intent and not the `GTS_PDFXVersion` conformance claim.
+A named condition tells a RIP what the DeviceCMYK values mean, but PDF/X-4 also wants the profile itself inside the file. Lolly's one bundled CMYK profile, Coated FOGRA39, converts colours for the default condition but is not embedded, because it is ICC version 4.3 and PDF/X-4 accepts versions up to 4.2. So a named condition writes the output intent and not the `GTS_PDFXVersion` conformance claim.
 
 Load a CMYK profile of your own, in Lolly Colour Lab or the export panel's Colour profile control, and choose its *Embed* row (`profile=own` in a link). The profile is embedded as the `DestOutputProfile`, and the file claims PDF/X-4 unless something else in the export makes the claim untrue: RGB artwork the CMYK pass could not convert, `marks=prov` (its credit is set in a standard font that is not embedded) or a strong password (X-4 forbids encryption). The output intent is written either way.
 
 The intent declares the registered condition only where the profile itself proves one, through its own `targ` characterisation data or a lookup Lolly made in the ICC registry. Otherwise it declares `Custom` under the profile's own name.
 :::
 
+<!--i:eti-animation-->
 ## Motion
 
 Motion formats take their settings from the link too: `fps`, `seconds`, `wait`, `codec` and `vq` match the export panel's Frame rate, Duration, Start after, Codec and Quality controls. `motionblur` adds blur and `seqrange` exports part of a movie. Their rows in [Reserved URL parameters](/info/url-parameters.html#motion-and-timed-documents) give the ranges.
@@ -237,6 +246,7 @@ The export panel's **Frames** field makes the same request ([Exporting](/info/ex
 Web auto-export, the CLI and MCP carry the same `cuts` request to the browser renderer, and the CLI and MCP refuse a sampling request for a format that cannot take one. Ordinary web exports keep each format's own behaviour. The uniform sheet samples layer motion, while an embedded video keeps its parked poster frame; use a draft movie to review video. Explicit raster `sampletimes` requests drive supported media through the movie compositor.
 :::
 
+<!--i:eti-history-->
 ## Resume a saved session
 
 A saved session is a named snapshot of input values stored in the browser. `slot` loads one by name, and any other parameter in the link overrides the saved value for that visit:

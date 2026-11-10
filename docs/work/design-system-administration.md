@@ -20,6 +20,7 @@ sources and selects one at a time. [Brand
 architectures](https://lolly.tools/info/create/brand-architectures.html) describes those
 arrangements.
 
+<!--i:eti-palette-->
 ## What members get
 
 Open **This Deploy → Design system** to inspect the installed sources and review a change. The
@@ -34,6 +35,9 @@ copies, sessions or uploads.
 Lolly Work has no colourway setting of its own. It serves the selected source's tokens, with any
 [edit on this instance](#edit-this-instance-from-the-studio) on top, and server renders and their
 evidence do not record a colourway.
+
+A partner company's kit adds that company's own logo rules to its people's work and never
+replaces the selected design system ([Partner kits](partner-programmes.md#partner-kits)).
 
 ### Offer a second design system
 
@@ -59,6 +63,7 @@ A missing active source is shown as unavailable. Lolly Work serves an empty cata
 these controls reachable, so an owner or admin can select an installed replacement. No unrelated
 source is substituted automatically.
 
+<!--i:eti-checklist-->
 ## Review and apply
 
 Every change is previewed first, then applied with the preview's token:
@@ -86,15 +91,19 @@ Download actions use `"sourceId":"download"`. Explicit deny grants win. The olde
 `PUT /api/v1/brand/profile` and `DELETE /api/v1/instance-pack` use the same service, permissions
 and atomic state change.
 
+::: warning A catalog change can break existing references
 Private device documents, and references inside binary files, cannot be counted. Source files,
 stored versions, sessions and uploads are kept. A catalog change can make an existing reference
 unavailable or change a shared ID's appearance, so review those counts before applying.
+:::
 
+::: details What `GET /api/v1/brand/profiles` returns
 `GET /api/v1/brand/profiles` lists what is installed, for members with `catalog.read`. It keeps
 `available`, `active` and `profiles` for older clients, and adds `sources`, `activeSource`,
 `revision`, `contentRevision`, `persistence`, `mutable` and `limitation`. Source descriptors
 include identifiers, labels, tokens heads, namespaces, diagnostics and the operations the caller
 may perform; filesystem paths and provider credentials are left out.
+:::
 
 The CLI uses the same review contract:
 
@@ -106,6 +115,7 @@ lw brand preview stop-download download > download-review.json
 lw brand apply download-review.json
 ```
 
+<!--i:eti-pen-tool-->
 ## Edit this instance from the studio
 
 Someone with `brand.edit` can change this instance's colours, colour roles and brand page address
@@ -191,17 +201,21 @@ that route, so Lolly compares the tokens with the catalogue's checksum and the r
 A connect pack holds a copy of the tokens, so the pack you uploaded no longer matches once an edit is
 live. Offering that pack would put the old colours back on every device that imports the pack.
 
-- **A pack this instance's key signed** carries the edit in a derived copy: the token document changes,
-  Lolly Work signs the result with the same key and every other part keeps its bytes. The pack you uploaded is
-  kept. A derived copy is made only when an edit goes live, never for one awaiting approval, and a
-  rollback brings your pack back.
-- **Any other pack, or an instance with no signing key,** is not offered while an edit is live: new apps
-  cannot download a pack until the edit is rolled back or a new pack is uploaded. The studio shows that line
-  before a send, and the console shows it afterwards. Rollback is a button in the console. **Fleet** can upload a pack, but
-  building one from the edited document needs the pack builder.
+**A pack this instance's key signed** carries the edit in a derived copy: the token document changes,
+Lolly Work signs the result with the same key and every other part keeps its bytes. The pack you uploaded is
+kept. A derived copy is made only when an edit goes live, never for one awaiting approval, and a
+rollback brings your pack back.
+
+::: warning An edit can stop the connect download
+**Any other pack, or an instance with no signing key,** is not offered while an edit is live: new apps
+cannot download a pack until the edit is rolled back or a new pack is uploaded. The studio shows that line
+before a send, and the console shows it afterwards. Rollback is a button in the console. **Fleet** can upload a pack, but
+building one from the edited document needs the pack builder.
+:::
 
 Lolly Work never re-signs a pack its own key did not sign, because that would make an app accept a pack it refuses today.
 
+<!--i:eti-download-->
 ## Downloads for connected apps
 
 Build instance packs with Lolly's `scripts/build-instance-pack.ts`. Lolly Work checks the instance
@@ -218,6 +232,7 @@ image's own tokens or the edited ones ([Edits and the connect download](#edits-a
 - Restoring and selecting the original, unchanged source can make its kept download usable again,
   unless it was explicitly suppressed.
 
+::: details How a change of source reaches caches, render workers and clients
 The public instance descriptor and the authenticated org configuration carry a branding revision,
 for a neutral source too. Catalog and brand responses revalidate caches, and render keys include
 the revision. Each request and render attempt resolves one source snapshot, and Chromium workers
@@ -230,7 +245,9 @@ that is safe to refresh uses the existing catalog, token and font refresh. An op
 editable local copy, gets a notice instead: refreshing never discards work or overwrites that
 copy. Offline clients keep their last-known material and source information, and older servers
 without the field keep their earlier refresh behaviour.
+:::
 
+<!--i:eti-shield-check-->
 ## Managed production rules
 
 The **Rules** room shows the design system's published guide and, for policy editors, a reviewed
@@ -239,12 +256,14 @@ Lolly's interface roles. Select a tool, choose the matching example and token mo
 only inputs that serve those purposes. The review shows required input coverage separately for
 each output format before you apply.
 
+::: details The rules routes and the mapping format
 `GET /api/v1/brand/rules` needs `catalog.read`. `POST /api/v1/brand/rules/preview` and
 `POST /api/v1/brand/rules` need `policy.edit`, checked again on apply. Preview takes
 `{ mappings }`, and apply adds the returned `revision` and `reviewToken`. Each mapping has
 `toolId`, `example`, `mode` and `fields` (optional `accent`, `type`, `device`, `heading` and
 `body` input IDs). Empty mappings remove managed connections, and invalid or duplicate mappings
 are refused.
+:::
 
 Mappings belong to one source. They bind the mounted source and tool manifest digests, and commit
 with an audit event through the brand-state compare-and-swap; they never rewrite the guide or the
@@ -275,6 +294,7 @@ Each render attempt uses one source revision and refuses a concurrent source or 
 before returning its bytes. Historical receipts describe their original attempt, not current
 approval.
 
+<!--i:eti-history-->
 ## Roll back
 
 To roll back, restore a retired source if needed, preview selecting it, then apply. Review and
@@ -282,6 +302,7 @@ re-enable its matching download separately. Physically deleting a source is an o
 after checking kept references, backups and offline copies, and never a side effect of retiring
 the source.
 
+<!--i:eti-cpu-->
 ## Operator notes
 
 ### Sources and storage
@@ -338,6 +359,7 @@ General document rule evaluation is not built. A [brand page](#host-a-brand-page
 checked when the page was made. It does not check a document against those rules.
 :::
 
+<!--i:eti-globe-->
 ## Host a brand page
 
 A brand page gives one design system a public address. People see its logos, colours, type, colourways, rules
@@ -363,7 +385,7 @@ cannot do its job. Everything else on the instance stays gated. Nothing is publi
 
 ### Who may publish
 
-`brand.page.publish` is part of the `admin` and `owner` roles, and you can grant the permission to others. A service
+`brand.page.publish` is part of the `admin`, `owner` and `brand-manager` roles, and you can grant the permission to others. A service
 token limited to scopes cannot publish, list, preview or unpublish, because those routes are not in the
 [scope table](enterprise-identity.md). An unscoped token with the permission can publish, unless a chain is set.
 

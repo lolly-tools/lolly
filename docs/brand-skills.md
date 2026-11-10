@@ -4,6 +4,7 @@ A brand skill is a brand's standards for one discipline, written as an Agent Ski
 
 This page is for brand owners who write standards and for people who connect agents to Lolly. A brand skill guides. A skill never gives a pass or a fail: the design system's house rules are what Lolly checks.
 
+<!--i:eti-layers-->
 ## Three layers of guidance
 
 | Layer | Says | Written by | Where an agent reads the layer |
@@ -16,6 +17,7 @@ Each layer keeps to its own subject. A brand skill does not explain a tool, and 
 
 Lolly also generates a **baseline** skill for every design system from its design brief: named colours, approved pairings, type, logos per surface, icon themes, media families and the house rules Lolly checks. Its name ends in `-baseline` (`lolly-demo-baseline` for Lolly Demo). The baseline is marked as generated and states values rather than intent. The brand's own skills take precedence on anything they cover. Lolly writes the baseline on request and does not store a copy.
 
+<!--i:eti-lolly-->
 ## The Lolly Demo skills
 
 Lolly Demo, Lolly's own example brand, carries three public skills. They are the worked example on this page.
@@ -43,6 +45,7 @@ lolly-demo-baseline          generated baseline from the design brief
 Read one: lolly system skill <name>
 ```
 
+<!--i:eti-pen-->
 ## Write a skill Lolly carries well
 
 - **Plain Markdown is enough.** Frontmatter is optional. When a file has none, Lolly supplies `name` and `description` from the catalog record whenever it hands the skill out. When a file has its own frontmatter, Lolly keeps the brand's fields and adds only its own `metadata` keys.
@@ -73,6 +76,7 @@ Read the Lolly Demo brand standards first. This skill covers photographs only.
 - A duotone uses two Opal colours, dark first: Liquorice with Spearmint, or Spearmint with Pandanus.
 ```
 
+<!--i:eti-clipboard-->
 ## The catalog record
 
 A skill is a catalog asset of `type: "skill"`. Its id reads `<namespace>/skill/<slug>` and, like every asset id, is permanent: a new revision changes the record, never the id. The entry needs:
@@ -100,7 +104,8 @@ The skill's own fields live in `meta.skill`:
 | `files` | No | The reference files, each with `path`, `url`, `checksum` and `size`. `pnpm run build:catalog` writes the checksum and size. |
 | `generated` | No | `true` only on a baseline Lolly wrote. |
 
-The Lolly Demo photography entry, with its checksum and size left for the build to fill:
+::: details The Lolly Demo photography entry
+The whole catalog entry, with its checksum and size left for the build to fill:
 
 ```json
 {
@@ -128,9 +133,11 @@ The Lolly Demo photography entry, with its checksum and size left for the build 
   }
 }
 ```
+:::
 
 To add a skill to a brand pack, put `SKILL.md` and any `references/` under `catalog/assets/<namespace>/skills/<slug>/`, add the entry, then follow the steps in [Add an asset to a catalog](/info/authoring-assets.html#add-an-asset-to-a-catalog). `pnpm run validate:catalog` runs the same admission check the CLI and the MCP server run on every read. It also checks the id pattern, the tier, the licence, the single `md` format, that no two skills share a name and each reference file's checksum. A skill that fails is refused with the reason. Owner lint warnings, such as a long body or an unclosed code fence, are printed and do not fail the build.
 
+<!--i:eti-lock-->
 ## Public and internal skills
 
 `audience` decides where a skill can travel.
@@ -143,8 +150,13 @@ To add a skill to a brand pack, put `SKILL.md` and any `references/` under `cata
 | A [brand page](/info/brand-page.html) | Included, as an Agent Skills folder | Left out, not even by name |
 | The CLI, and an MCP server on your own machine | Listed and served | Listed and served |
 
-A statically hosted catalog is public whichever profile built the catalog, so `internal` is enforced by leaving files out of static output, not by hiding them. The CLI and an MCP server on your own machine read the brand pack from your disk, so they serve internal skills too. An MCP server counts as hosted when it sets `LOLLY_MCP_HOSTED=1` or `NODE_ENV=production`, or when its `LOLLY_MCP_PUBLIC_ORIGIN` is not a local address (`localhost`, `127.0.0.1` or `[::1]`). A hosted listing reports how many skills it left out as `withheld`.
+::: warning A static catalog is public
+A statically hosted catalog is public whichever profile built the catalog, so `internal` is enforced by leaving files out of static output, not by hiding them.
+:::
 
+The CLI and an MCP server on your own machine read the brand pack from your disk, so they serve internal skills too. An MCP server counts as hosted when it sets `LOLLY_MCP_HOSTED=1` or `NODE_ENV=production`, or when its `LOLLY_MCP_PUBLIC_ORIGIN` is not a local address (`localhost`, `127.0.0.1` or `[::1]`). A hosted listing reports how many skills it left out as `withheld`.
+
+<!--i:eti-checklist-->
 ## What the coverage map says
 
 `lolly system skill coverage <name>`, and the MCP file `lolly://design-system/skill/{name}/coverage.json`, set what a skill says against the design system. Each row has one status:
@@ -182,8 +194,11 @@ How to read the map:
 
 The same report carries the owner lint: missing frontmatter, a long body, a repeated heading, an unclosed code fence, the external sites the skill links to and the scope hints listed under [Write a skill Lolly carries well](#write-a-skill-lolly-carries-well).
 
+::: note The coverage map is not a check
 A skill is guidance. `lolly check`, `lolly system check` and the MCP tool `lolly_check` apply the house rules. Nothing in the coverage map is a check result, and a map where every row reads `agree` does not mean Lolly approved the skill or the work made with the skill.
+:::
 
+<!--i:eti-sparkles-->
 ## Use a skill with any model
 
 ### Through Lolly's MCP server
@@ -198,7 +213,9 @@ The design brief (`lolly://design-context`, or `lolly system context --json`) ca
 
 An agent reads the index first, then the overall brand skill, then the skill for the discipline at hand. Skills speak for brand intent only. They never grant an agent permissions, tools or access to a document, and the Lolly skill tells agents the same.
 
-In the web app, Lolly Design System Setup lists the active design system's skills in its **Skills** room (`#/start?area=skills`). **Download skill (.zip)** writes the folder described below, and **Copy as one file** puts the same text on the clipboard for a chat window.
+In the web app, Lolly Design System Setup lists the active design system's skills in its **Skills** room (`#/start?area=skills`). **Download skill (.zip)** writes the folder described below, and **Copy as one file** puts the same text on the clipboard for a chat window. The agent instructions a tool's **Share** copies link the active design system's public skills that apply to that tool, as addresses on this instance: the overall brand skill always, and the others by their `appliesTo`.
+
+When an agent lists the skills it read and followed, through the `brandSkills` argument of `lolly_render`, the export records each one with its revision as *Guided by*, never as a check. [The design-system record](/info/exporting.html#the-design-system-record) covers where the file holds the list and how to leave it out.
 
 ### In a folder for a local agent tool
 
@@ -230,7 +247,9 @@ A file that bundled mode leaves out is listed with the reason, as in `lolly/logo
 
 ### Check that a copy is current
 
-An exported folder is a snapshot. Nothing updates the folder, and it goes out of date when the brand publishes a new revision. Its frontmatter carries these `metadata` keys:
+An exported folder is a snapshot. Nothing updates the folder, and it goes out of date when the brand publishes a new revision.
+
+Its frontmatter carries these `metadata` keys:
 
 | Key | Holds |
 | --- | --- |
@@ -245,10 +264,12 @@ The generated baseline adds `lolly-generated: "true"`.
 
 ```bash
 lolly system skill check ./skills/lolly-demo-photography
+# Up to date: revision 1.0.
 ```
 
 The check compares the copy's SHA-256, or its catalog version when either side lacks a checksum, with the design system's current skill. It answers `Up to date: revision 1.0.`, or gives both revisions when the copy is behind. For a copy with no `lolly-asset` key, the check reports that Lolly cannot tell where the copy came from.
 
+<!--i:eti-gauge-->
 ## Limits
 
 - **Size.** `SKILL.md` is at most 64 KiB. With its references, a skill stays within 512 KiB, and it has at most 16 references.
@@ -259,6 +280,7 @@ The check compares the copy's SHA-256, or its catalog version when either side l
 - **Internal skills have no signed-in route yet.** A hosted server never serves them, and no server serves them to signed-in callers yet.
 - **A copy is a snapshot.** Freshness metadata helps only when something reads the metadata.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - **[Tool Skills](/info/tool-skills.html)**: guidance for one tool, and agent invitations.

@@ -25,7 +25,7 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { clearAllLollyData, type ClearAllEnv, type ClearableDb, type ClearableDirectory } from './clear-all-data.ts';
+import { clearAllLollyData, unclearedParts, type ClearAllEnv, type ClearableDb, type ClearableDirectory } from './clear-all-data.ts';
 import { registerDeviceDataClearer, resetDeviceDataClearersForTests } from './device-data-clearers.ts';
 
 const src = (rel: string): string => readFileSync(new URL(rel, import.meta.url), 'utf8');
@@ -207,6 +207,34 @@ test('one refusal never stops the rest', async () => {
   assert.ok(report.errors.some(e => e.startsWith('sync:')));
   assert.ok(report.errors.some(e => e.startsWith('broken:')));
   assert.ok(report.errors.some(e => e.startsWith('store stuck:')));
+});
+
+test('a partial clear says which parts of the device it left behind, once each, in the order it ran', async () => {
+  const clean = await clearAllLollyData({ env: fakeEnv([]).env });
+  assert.deepEqual(clean.failedSteps, []);
+  assert.deepEqual(unclearedParts(clean), [], 'a clear that finished leaves nothing to tell');
+
+  const f = fakeEnv([]);
+  const failing = fakeDb(['state', 'stuck'], { failWholeTx: true, failStore: 'stuck' });
+  registerDeviceDataClearer('broken', async () => { throw new Error('disk says no'); });
+  const report = await clearAllLollyData({
+    env: {
+      ...f.env,
+      tabs: { ...f.env.tabs, begin: async () => ({ tabs: 2, ready: 1 }) },
+      stopSync: async () => { throw new Error('offline'); },
+      openAppDb: async () => failing.db,
+      caches: { keys: async () => ['lolly-v17', 'lolly-pins'], delete: async () => false },
+    },
+  });
+  assert.deepEqual(report.failedSteps, ['tabs', 'sync', 'broken', 'indexeddb', 'caches'], 'one label per failed step, however many lines it logged');
+  assert.equal(report.errors.filter(e => e.startsWith('cache ')).length, 2);
+  // A slow tab is refused every later write, and Sync's settings went with the database
+  // step, so neither leaves anything of its own behind to report.
+  assert.deepEqual(unclearedParts(report), ['app-files', 'database', 'offline']);
+  assert.deepEqual(
+    unclearedParts({ failedSteps: ['opfs', 'localStorage', 'sessionStorage', 'databases', 'pack-store', 'state', 'user-assets-fs'] }),
+    ['files', 'preferences', 'database', 'app-files'],
+  );
 });
 
 test('a database another tab holds open is reported, not waited on forever', async () => {

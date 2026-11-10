@@ -4,6 +4,7 @@ _Last checked: 5 November 2026._
 
 If you generate images from templates through an API today, this page says what changes if you run that production yourself: on your own device, in CI, or on a server you control. [Move from a hosted render API](/info/work-move-from-render-api.html) is the how.
 
+<!--i:eti-award-->
 ## What hosted rendering APIs do better
 
 [Bannerbear](https://www.bannerbear.com/) and [Placid](https://placid.app/) are managed services, and that is a real advantage. You send a request and someone else runs the servers, keeps them up and handles the load.
@@ -15,6 +16,7 @@ If you generate images from templates through an API today, this page says what 
 
 If that is the arrangement you want, those services are a sound choice.
 
+<!--i:eti-home-->
 ## What self-hosting gives you
 
 - **Your content stays on your systems.** Inputs, assets and outputs live on infrastructure you chose. Rendering on a device or in CI needs no service at all.
@@ -25,6 +27,7 @@ If that is the arrangement you want, those services are a sound choice.
 
 You take on the work those services do for you. A durable server needs a persistent database and output storage, and tools that need a browser need the Chromium worker. [Install Lolly Work](/info/work-install.html) describes both.
 
+<!--i:eti-table-->
 ## How the jobs line up
 
 | Job | Hosted rendering API | Lolly |
@@ -39,6 +42,7 @@ You take on the work those services do for you. A durable server needs a persist
 
 Lolly's own output kinds are listed in [Exporting](/info/exporting.html). On a Work server today, durable renders make SVG, PNG, JPG and PDF, and [video stays on the device, CLI and MCP](/info/work-renders.html#production-still-checks-and-permitted-repairs).
 
+<!--i:eti-folder-move-->
 ## What carries across, and what does not
 
 | | Bannerbear V5 | Bannerbear V2 | Placid |
@@ -50,10 +54,13 @@ Lolly's own output kinds are listed in [Exporting](/info/exporting.html). On a W
 | WebP and AVIF output | Refused by name | Not offered | WebP refused by name |
 | Animations, videos, collections, screenshots | Not on the migration API | Not on the migration API | Not on the migration API |
 
+::: note Built from public documentation
 All of this was built from each vendor's public documentation and has not been run against a live account. [The move guide](/info/work-move-from-render-api.html#check-it-on-your-own-account) has a short check list if you hold one.
+:::
 
 Moving is not all or nothing. You can move one template and keep the rest where they are, and [leaving Lolly](/info/work-move-from-render-api.html#leave-lolly-too) stays just as open: tools are plain files and the CLI renders them with no server.
 
+<!--i:eti-building-->
 ## Who runs the service
 
 With Lolly, an individual renders locally, or a team runs Lolly Work on its own infrastructure. Submitting a server job sends its inputs and required assets to that instance, which is different from the on-device path.

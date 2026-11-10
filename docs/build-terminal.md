@@ -2,6 +2,7 @@
 
 This page is for a developer who wants to run Lolly from a terminal straight from a checkout, or package the command-line app for other machines. Running from source needs no build step: after [Get the source](/info/contributing-setup.html), both terminal apps work at once.
 
+<!--i:eti-keyboard-->
 ## Run them from the checkout
 
 The CLI renders a tool from flags, the same way a share link sets a tool's inputs:
@@ -23,6 +24,7 @@ The TUI keeps saved sessions, project folders and your profile on disk, in the d
 
 The CLI reads saved sessions from that same directory, so a session saved in the desktop app or the TUI loads there too. It writes there only when you set `$LOLLY_STATE_DIR`; otherwise a save lasts for that one run, so a plain render leaves no files behind.
 
+<!--i:eti-layers-->
 ## What renders without a browser
 
 Most formats come straight from the engine. The rest need a paint tier: a Lolly desktop app on the same machine when one is running, otherwise a scoped headless Chromium that both terminal apps share.
@@ -58,6 +60,7 @@ An existing Chromium under `services/mcp/.browsers` is reused read-only if prese
 
 To point elsewhere, set `LOLLY_BROWSER_CHANNEL` or `LOLLY_BROWSER_PATH` for a browser you already have, or `LOLLY_WEB_BASE` or `LOLLY_WEB_DIST` for a running or prebuilt web app.
 
+<!--i:eti-package-->
 ## Standalone binary
 
 Package the terminal apps for machines that have no checkout. Run these from the repository root after `pnpm install`:
@@ -72,6 +75,10 @@ node scripts/build-cli-sidecar.ts --install   # put those resources into the des
 
 **The native build** is written to `dist/cli-sidecar/bin/` and `dist/cli-sidecar/cli-lib/`. Keep both directories together. It uses Node's single executable application support for a small launcher, and the CLI and TUI stay as ESM resources beside it, so a single CommonJS bundle cannot replace that layout. It includes the matching resvg library. Build it on the target platform, or supply a matching Node runtime and native binding with the options in `scripts/build-cli-sidecar.ts`. The desktop release build runs the installer step for you.
 
-Both forms need content. Set `LOLLY_ROOT` to a Lolly checkout or a materialised public content bundle; the package itself carries no brand pack or tool catalog. A packaged desktop app extracts its embedded content for its CLI. The package's version is independent of the desktop app's version.
+::: note Both forms need content
+Set `LOLLY_ROOT` to a Lolly checkout or a materialised public content bundle; the package itself carries no brand pack or tool catalog. A packaged desktop app extracts its embedded content for its CLI.
+:::
+
+The package's version is independent of the desktop app's version.
 
 Both forms include the TUI. Start it with `lolly tui` in a real terminal.

@@ -25,6 +25,7 @@ This is not a story about villains. Most of it was built by people making sensib
 
 Living inside it gave the trade its textures. The quiet fear of picking the wrong colour or font for something that was meant to be simple. Every file stuck behind a busy queue, a slow tool or one more approval. An account before we could start, a subscription that outlived the job, pricing ladders built to hold our own work hostage.
 
+<!--i:eti-scissors-->
 ## The old way and the new way
 
 Take the smallest job there is: a logo that needs resizing.
@@ -42,6 +43,7 @@ The same trade runs through everything else:
 | Pay the AI again for something it already made, and your work becomes training data or an ad profile by default | If AI helps make something once, the result is yours and re-making it is free ([Our AI Stance](/info/ai-stance.html)). Nothing is collected, so nothing can be repurposed, and AI declares itself |
 | A policy you have to believe, rewritable at any time without telling you, while the rules about your work change and you find out later | An architecture you can check, a signed credential inside every export whose format can carry one, and the freedom to leave with everything at any time |
 
+<!--i:eti-badge-check-->
 ## Trust what you can verify
 
 A promise is something a company can change on a Tuesday. An architecture is something you can check. Each row above rests on one:
@@ -52,6 +54,7 @@ A promise is something a company can change on a Tuesday. An architecture is som
 - <!--i:globe--> **There is no consent wall.** No trackers, no analytics, no ad profile and no account needed to use the tools. Lolly asks only before a network action you start, such as fetching a font or a model. [Security & Verification](/info/security.html) covers how to confirm that.
 - <!--i:people--> **Accessibility ships now.** Motion, contrast, text size and preview intensity are settings in the product, not accommodations you request. See [Inclusive Design](/info/inclusive-design.html).
 
+<!--i:eti-info-->
 ## What this is not
 
 It is not a claim that everyone doing it the other way acts in bad faith. Server-side software is a legitimate way to build things, and plenty of it is made carefully by people who would rather not be collecting what they collect.

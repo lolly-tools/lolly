@@ -9,15 +9,26 @@ sign-in for the first owner.
 It suits a fresh VM, an UpCloud server, a private server or a Dokploy host. It
 carries no private brand pack and no production-instance configuration.
 
-The package pins Lolly Work 1.1.1 and the matching Lolly 1.1.1 web app. The web app has the
+The package pins Lolly Work 1.1.3 and the matching Lolly 1.1.3 web app. The web app has the
 publisher's catalogue key built in, while Lolly Work signs each person's catalogue with a key
 this installation creates. On first start, setup gives the installed web app the
 installation's key instead, so a signed-in browser lists the tools. Before this step
 the web app refused the catalogue and showed no tools.
 
-Which upstream sources the package uses, and which architectures have passed, is in
-[official installation routes](official-installations.md).
+Which upstream sources the package uses, which release it pins today and which
+architectures have passed is in [official installation routes](official-installations.md).
 
+**What you'll do**, in five steps:
+
+::: steps
+- <!--i:eti-checklist--> **[Prepare the server](#prepare-the-server)** A Linux host with Docker Compose, and a domain that points to the host.
+- <!--i:eti-folder-plus--> **[Write the folder](#write-the-installation-folder)** One command on your workstation, then copy the folder across.
+- <!--i:eti-package--> **[Start the instance](#start-the-instance)** `docker compose up`, with HTTPS once DNS works.
+- <!--i:eti-user-check--> **[Sign in](#sign-in-as-the-first-owner)** The first owner, through a one-time setup link.
+- <!--i:eti-badge-check--> **[Accept the instance](#accept-the-instance)** Owner, members, privacy and a restart, before anyone stores work.
+:::
+
+<!--i:eti-checklist-->
 ## Prepare the server
 
 You need a Linux host that runs Docker Compose and a domain that points to it, with
@@ -45,12 +56,14 @@ Use an account allowed to run Docker, or prefix later Docker commands with `sudo
 Configure a stateful host firewall as well as UpCloud's stateless one, and keep SSH
 limited to your actual administrator networks.
 
-**Hosts on a network with an MTU below 1500.** Some clouds run their machines on an
-overlay network whose interface MTU is below 1500. Docker's bridges default to 1500, so large TLS downloads from inside a
-container stall while the same download from the host works. The first start's
-archive download then hangs. Check the MTU of the host's main interface with
-`ip link`. When it is below 1500, give Docker the same value before the first start,
-in `/etc/docker/daemon.json`, merged into any settings already there:
+**Check the host's MTU first.** Some clouds run their machines on an overlay network whose
+interface MTU is below 1500. Docker's bridges default to 1500, so large TLS downloads from
+inside a container stall while the same download from the host works, and the first
+start's archive download hangs. Check the MTU of the host's main interface with `ip link`.
+
+::: details When the MTU is below 1500
+Give Docker the same value before the first start, in `/etc/docker/daemon.json`, merged
+into any settings already there:
 
 ```json
 { "mtu": 1450, "default-network-opts": { "bridge": { "com.docker.network.driver.mtu": "1450" } } }
@@ -59,7 +72,9 @@ in `/etc/docker/daemon.json`, merged into any settings already there:
 Use your interface's value in place of 1450, then run `sudo systemctl restart docker`.
 The first key covers Docker's default bridge and the second covers the network
 Compose creates for the instance.
+:::
 
+<!--i:eti-folder-plus-->
 ## Write the installation folder
 
 Choose the owner's email. By default the package uses built-in email and password
@@ -68,7 +83,8 @@ or mail service. The first policy admits that address and invitations, with expl
 privileged-role mapping; change admission and role rules later through a reviewed
 configuration.
 
-From the Lolly Work source checkout on your workstation:
+From a checkout of the Lolly Work release on your workstation, with Git, Node 24 and pnpm
+as in [Install Lolly Work, section 1](install.md#1-try-it-on-your-computer):
 
 ```bash
 pnpm install --frozen-lockfile
@@ -92,9 +108,14 @@ mode-0600 `.env` with fresh database, session, link and credential secrets.
   permissions.
 - Use a durable location such as `/srv/lolly-work`. Temporary folders such as `/tmp`
   can be cleared on reboot and break the mounts.
-- Keep the folder name and Compose project name the same from now on, and never
-  generate a new `.env` over an installed instance.
+- Keep the folder name and Compose project name the same from now on.
 
+::: warning Never write a new `.env` over an installed instance
+The `.env` holds the database, session, link and credential secrets the instance already
+uses. Keep the one you installed with.
+:::
+
+<!--i:eti-package-->
 ## Start the instance
 
 On the server, from the installation folder:
@@ -105,7 +126,7 @@ docker compose --project-name lolly-work ps
 curl --fail https://work.example.com/healthz
 ```
 
-The first start downloads a 724 MB archive, checks its full checksum, extracts the
+The first start downloads a 752 MB archive, checks its full checksum, extracts the
 matching web app and neutral pack to disk, creates a persistent catalogue-signing
 key and gives the web app that key. The download streams to disk rather than into container
 memory, and a slow one can take several minutes. Allow at least 6 GB free for
@@ -113,6 +134,7 @@ extraction, copied content and container layers, plus room for database growth,
 backups and kept releases. Caddy gets its HTTPS certificate once DNS and the
 challenge route work.
 
+<!--i:eti-user-check-->
 ## Sign in as the first owner
 
 For built-in sign-in, issue the owner's one-time setup link from the same folder:
@@ -123,11 +145,16 @@ docker compose --project-name lolly-work exec server \
 ```
 
 Give the link to the owner privately. They set their password before signing in.
-The link works once, expires after seven days and sends no email. It is an
-operator-authorised account: the link does not prove the owner controls that
-mailbox. Other members get invitations and password links through **People**. See
+The link works once, expires after seven days and sends no email.
+
+::: note The link does not prove the mailbox
+It is an operator-authorised account: the link does not prove the owner controls that
+mailbox.
+:::
+ Other members get invitations and password links through **People**. See
 [identity](identity.md) for setup, recovery and optional single sign-on.
 
+<!--i:eti-badge-check-->
 ## Accept the instance
 
 A healthy API alone does not finish the job. Before anyone stores work:
@@ -142,6 +169,7 @@ A healthy API alone does not finish the job. Before anyone stores work:
 - <!--i:document--> **A record.** Write down the architecture, source and digests, host and network facts and the results.
 :::
 
+<!--i:eti-sliders-->
 ## What the defaults are
 
 - No Chromium render worker, and no promise to render tools with scripts on the
@@ -154,6 +182,7 @@ A healthy API alone does not finish the job. Before anyone stores work:
   seed that first configuration: on an existing instance, change the stored
   configuration rather than expecting new environment defaults to replace the stored settings.
 
+<!--i:eti-grid-->
 ## Dokploy
 
 Use the [upstream blueprint and import instructions](../deploy/dokploy/README.md).
@@ -170,6 +199,7 @@ Caddy container. Run the same owner, member, privacy, persistence, upgrade and
 restore checks as for a VM. Admission to Dokploy's catalogue stays pending until a
 tested submission is accepted.
 
+<!--i:eti-layers-->
 ## Coolify
 
 Use the [project-owned Compose recipe](../deploy/coolify/README.md): in Coolify, add a
@@ -186,10 +216,14 @@ Use the [project-owned Compose recipe](../deploy/coolify/README.md): in Coolify,
 Coolify's proxy supplies HTTPS, routing and WebSockets; the recipe opens no host ports
 and adds no Caddy container. A Coolify service is a copy of the pasted file, so a new
 release reaches it only when you copy the changed image pins and release values into
-its Source Compose and redeploy; never create a second service in its place. This
-route has not been imported into a running Coolify, and it is not in Coolify's
-one-click catalogue, which this project does not qualify for yet.
+its Source Compose and redeploy; never create a second service in its place.
 
+::: note Not yet run on a live Coolify
+This route has not been imported into a running Coolify, and it is not in Coolify's
+one-click catalogue, which this project does not qualify for yet.
+:::
+
+<!--i:eti-history-->
 ## Back up, restore and update
 
 Keep an encrypted independent copy of `.env`, the configuration, the catalogue key
@@ -228,7 +262,12 @@ backup as good. A readable archive does not prove recovery.
    and output. Keep the previous release's image, content and configuration
    references.
 
-A PostgreSQL major version change needs its own migration. Never run
-`down --volumes` on an installed instance, and do not count on an image downgrade to
-reverse database changes. General backup coverage is in
+A PostgreSQL major version change needs its own migration.
+
+::: warning Never run `down --volumes` on an installed instance
+It deletes the `pgdata`, `state` and `keys` volumes. Do not count on an image downgrade to reverse
+database changes either.
+:::
+
+General backup coverage is in
 [keep Lolly Work running](operations.md#backup-and-restore).

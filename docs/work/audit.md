@@ -12,12 +12,14 @@ that keeps the chain verifiable ([operations](operations.md#retention-and-erasur
 
 ![The audit chain: an append-only, hash-linked record of every governed action](shots/audit-chain.svg)
 
+<!--i:eti-search-->
 ## Read and filter the log
 
 The console's **Audit** view and the **Activity** feed read the same rows for different jobs.
 Audit is the authoritative record, with chain verification. Activity is the readable merged
 timeline (audit plus attributed telemetry) with actor and category facets. `audit.export` gates
-the raw API.
+the raw API. A service token with the `audit.read` scope can read the trail and its head, for an
+audit poller with no session cookie ([service tokens](enterprise-identity.md#service-tokens)).
 
 The console filters **the full retained history**, before pagination, by exact actor ID, action
 and subject, plus an inclusive UTC date range. The API accepts `actor`, `action`, `subject`,
@@ -35,6 +37,7 @@ filtering uses stored IDs rather than a broader identity-directory lookup.
 The chain verdict covers the complete retained chain, not the filtered rows, because filtered
 rows alone cannot prove the chain is continuous.
 
+<!--i:eti-shield-check-->
 ## How the chain works
 
 ::: figure work-audit-chain
@@ -83,6 +86,7 @@ On Postgres, migration `0034` adds a trigger that refuses `UPDATE` and `DELETE` 
 The retention trim is the one delete the trigger admits, and the trim announces itself inside
 its own transaction after writing the anchor.
 
+<!--i:eti-pin-->
 ## Anchor the head outside the server
 
 Hash links and the MAC detect edits **within** the log. They do not, by themselves, stop someone
@@ -99,10 +103,14 @@ not contain the head you saved has been truncated, and you can prove the cut.
 ```
 
 Collecting and keeping those lines is the operator's job. Ship them to an independently retained
-log service with controlled deletion access, and check receipt and retention there. Local
-journald, a local file or `kubectl logs` alone can disappear with the host or deployment, so they
-do not anchor anything. The timer is unref'd, so it never holds the process open. The defaults
-are
+log service with controlled deletion access, and check receipt and retention there.
+
+::: warning Local logs do not anchor the chain
+Local journald, a local file or `kubectl logs` alone can disappear with the host or deployment,
+so they do not anchor anything.
+:::
+
+The timer is unref'd, so it never holds the process open. The defaults are
 
 ```json
 "audit": { "headLog": { "onBoot": true, "intervalMinutes": 60 } }
@@ -119,6 +127,7 @@ per release:
 lw audit head --json > audit-head-$(date +%F).json      # commit it, ticket it, ship it to a sink
 ```
 
+<!--i:eti-lock-->
 ## Rotating the session secret
 
 The MAC key is derived from `LW_SESSION_SECRET`, so a new value means a new key. Every row
@@ -219,21 +228,29 @@ From then on, verification:
   a MAC after the first row that has one.
 :::
 
-The chain then reads as intact, and says why. The head log line becomes
+::: check The chain reads as intact, and says why
+The head log line becomes
 `intact=true (412 rows signed with a retired key before 2026-10-04T09:12:00.000Z)`;
 `GET /api/v1/audit/head` and the `chain` of `GET /api/v1/audit` add `retiredKeyRows`,
 `retiredThroughSeq` and `retiredBefore` (present only when there are such rows); the console's
-badge and `lw audit head` show the same note. A later rotation works the same way: the newest
-valid boundary covers every row before it, older boundaries included.
+badge and `lw audit head` show the same note.
+:::
+
+A later rotation works the same way: the newest valid boundary covers every row before it, older
+boundaries included.
 
 **What a boundary cannot prove.** Without the old value, nothing can tell a row written under the
 old secret from one a database holder rewrote and re-chained, as long as the server writes again
 after the rewrite and before the command runs. `--expect-head` closes that for every row up to
 the recorded head. The rows after it (written by hosts still on the old value before they were
 switched; the dry run counts them) rest on their hash links alone. So record the head, switch
-every host promptly, run `retire-key` straight after, and never run the command to clear a
-broken chain that a rotation did not cause.
+every host promptly and run `retire-key` straight after.
 
+::: warning Run retire-key only after a rotation
+Never run the command to clear a broken chain that a rotation did not cause.
+:::
+
+<!--i:eti-link-->
 ## Related
 
 - What else is recorded, and what is not: [telemetry](telemetry.md)

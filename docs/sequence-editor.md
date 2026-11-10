@@ -6,20 +6,22 @@ The bar above the tracks keeps the everyday controls in view: **Add** for media,
 
 ![The timeline, tool bar first: Add, Add media, Text, Record, Edit, Track height, Fit to view, Always on and More tools, over the ruler, an audio lane, the overlay lane and the magnetic sequence row](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
-Everything runs on your device, and what plays in the timeline is what the exported file contains. Long sequences scroll both ways inside the tracks panel: use a trackpad or wheel, drag an empty track area on touch, or focus the tracks and use the arrow and Page keys. New to the timeline? [Timeline (Sequence)](/info/design.html#timeline-sequence) in the Lolly Design guide gives a short tour first.
+Everything runs on your device, and what plays in the timeline is what the exported file contains. Long sequences scroll both ways inside the tracks panel: use a trackpad or wheel, drag an empty track area on touch, or focus the tracks and use the arrow and Page keys. On a foldable half-folded on a desk, the preview sits above the fold and the timeline below. New to the timeline? [Timeline (Sequence)](/info/design.html#timeline-sequence) in the Lolly Design guide gives a short tour first.
 
+<!--i:eti-film-->
 ## Your first edit
 
-::: timeline
-- <!--i:layers--> **Arrange.** Drag clips to change their order. **Add** brings in media, a title or a recording: **Record a video**, **Record screen**, **Record a voiceover** or **Script a voiceover**.
-- <!--i:sliders--> **Trim.** Drag either end of a clip to change its length.
-- <!--i:pentool--> **Split.** Park the playhead inside a clip and press `S`.
-- <!--i:layers--> **Cross-fade.** Pull a seam to the right to turn a cut into a crossfade.
-- <!--i:download--> **Export.** Choose MP4 or WebM in Export, or mark a range first (see [Markers, ranges and frame rate](#markers-ranges-and-frame-rate)).
+::: steps
+- <!--i:eti-grid--> **Arrange** Drag clips to change their order. **Add** brings in media, a title or a recording.
+- <!--i:eti-crop--> **[Trim](#trimming)** Drag either end of a clip to change its length.
+- <!--i:eti-scissors--> **[Split](#splitting-a-clip)** Park the playhead inside a clip and press `S`.
+- <!--i:eti-blend--> **[Cross-fade](#crossfades-you-can-see-and-drag)** Pull a seam to the right to turn a cut into a crossfade.
+- <!--i:eti-download--> **Export** Choose MP4 or WebM in Export, or [mark a range](#markers-ranges-and-frame-rate) first.
 :::
 
-Each of these is one undo step. The sections below cover each one in detail.
+Each of these is one undo step. The sections below cover each one in detail. For a recording, **Add** offers **Record a video**, **Record screen**, **Record a voiceover** and **Script a voiceover**.
 
+<!--i:eti-scissors-->
 ## Splitting a clip
 
 **Split clip** cuts one clip into two at the playhead. Open **More tools** and choose it, press `S`, or use the clip's right-click menu.
@@ -46,6 +48,7 @@ Click the seam and the transition dialog offers **Join clips** beside Cut and Cr
 
 ![The transition dialog opened from a seam: Cut, Crossfade, a length and Join clips - offered only where the two sides are still continuous](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px!important%7D.fc-toolbar-dock%7Bdisplay%3Anone!important%7D&drive=click%3A.tl-ruler%7Cat%3D0.42%2C0.5%3Bpress%3AEnter%7Con%3D.tl-mobile-tools%3Bclick%3A.tl-split%3Bclick%3A.tl-seam.is-through&cropSelector=.tl-junction-modal&format=svg&walker=1&dark=1&filename=seq-junction-dialog)
 
+<!--i:eti-crop-->
 ## Trimming
 
 Drag either end of a clip to trim the clip. The grip is a narrow bar, but the area that responds is wider, and at least 24 pixels for a finger or a pen. A clip too narrow for two grips offers neither and explains in its tooltip: zoom in, or use the inspector.
@@ -73,18 +76,22 @@ Every trim also works from the keyboard:
 
 ![Trimming from the keyboard: the in edge of the selected clip is aimed and has been nudged two frames earlier](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1100&height=760&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px!important%7D&drive=click%3A.tl-clip-seq%7Cat%3D0.5%2C0.15%3Bpress%3ABracketLeft%3Bpress%3AComma%3Bpress%3AComma&cropSelector=.tl-panel&format=svg&walker=1&dark=1&filename=seq-trim-keyboard)
 
+<!--i:eti-blend-->
 ## Crossfades you can see and drag
 
 A crossfade is drawn where it happens: a band that starts at the cut and lies over the head of the next clip, as wide as the crossfade is long. The first clip stays at rest up to the cut, then fades out across the band while the next fades in under it, and the two sounds cross at equal power so the level does not sag. Preview and export follow the same rule.
 
 Drag the grip at the band's right end to change the length, in steps of one project frame, up to the length of the clip it hands over to; a badge shows the length as you go. Drag it back to the cut to make a plain cut again, or pull a plain seam to the right to make a crossfade. Escape cancels a drag. A click on the seam opens the dialog, where the length is a number you can type.
 
+::: warning A hatched band exports as a frozen frame
 If the first clip runs out of footage before the crossfade ends, that part of the band is hatched. The export holds the clip's last frame there and never invents picture, so shorten the clip or the crossfade if a frozen frame is not what you want.
+:::
 
 A clip that animates in or out on its own carries a wedge at its head or tail, as wide as that animation. Hover the clip and drag the grip on the wedge's inner end to lengthen or shorten the animation, up to half the clip. A seam between a clip that fades out and one that rises in is not a crossfade, and the dialog explains that choosing Cut or Crossfade replaces the two clips' own transitions.
 
 Undo follows what you did, not the clock: one drag is one step, and adding, deleting, pasting or splitting a clip is always its own step. A pasted main-row clip goes in after the clip under the playhead; a pasted overlay starts at the playhead.
 
+<!--i:eti-volume-->
 ## Sound
 
 Select any clip with audio, an audio box or a video's soundtrack, and the inspector grows a sound strip. The two level controls open a tall fader over the timeline when pressed, and the number beside each takes typed values.
@@ -120,6 +127,7 @@ A clip with speech offers two on-device doors in its right-click menu, and **Gen
 - **Generate subtitles** listens to the clip and writes timed caption boxes. The first run downloads the speech model once and tells you its size.
 - **Edit transcript** opens the transcript as flowing text: click a word to jump the playhead there, select a sentence to cut it. A clip with no transcript yet gets one made in the background first, and the editor opens when it is ready.
 
+<!--i:eti-pin-->
 ## Markers, ranges and frame rate
 
 **Project frame rate** sets the editing grid and the default movie export rate: 24, 25, 30, 50 or 60 fps (existing documents use 30). Frame steps, splits, trims and transition handles follow that grid. An explicit export **Frame rate**, or the `fps` link parameter, overrides the file's rate. Changing the project rate leaves clip times in place. A video clip's Timing controls show its source rate; VFR means the source uses variable frame spacing.
@@ -145,6 +153,7 @@ When a main-row clip is moved or resized, overlays that started within it follow
 Lolly Design appends `projectFps` and `sequenceMarks` to its inputs; `fps` stays an export parameter. The versioned marker value looks like `v1|m,1000,,888888,Intro|c,2000,,ffcc00,Chapter%201|i,1000|o,4000`. Each marker entry holds its kind (`m`, `c`, `r` or `n`), absolute milliseconds, an optional range end, a six-digit RGB colour and a URI-encoded label. In and out entries use `i` and `o`. Readers ignore malformed entries and unknown versions. Limits are 256 markers, 160 characters per label, one hour and 65,536 characters for the whole value.
 :::
 
+<!--i:eti-animation-->
 ## Lottie animations
 
 Drop a `.lottie` package or Lottie `.json` file on the gallery and choose **Edit animation in Sequence**, or add one from the timeline's media picker. If a package holds several animations, choose one. The new artboard takes its dimensions and the clip its duration.
@@ -155,6 +164,8 @@ Expand a clip with **+**, or choose **Animation layers**, to edit its internal l
 
 Choose **dotLottie** in Export to download the edited sequence as one animation. It supports imported shape animations, nested compositions, embedded still images, solid native shapes, paths and outer transform keys. A native shape or path also keeps its keyed fill colour, stroke colour, stroke width, corner radius and path trim (see [Key one property at a time](/info/animating.html#key-one-property-at-a-time)). The project frame rate and in and out range apply.
 
+Font-dependent text, expressions, 3D, masks, mattes, effects and themed appearance are not supported, nor are native text and video from the editor. An unsupported import or export lists the feature and is never silently replaced by a still; use a movie export instead.
+
 ::: details What dotLottie keeps and refuses
 Sources keep their original timing, including fractional frame rates; a new document uses a 30 fps editing grid when the source rate is outside the five project choices. Source keys keep their own frame times and easing. Existing spatial position keys can be edited, but a key cannot be inserted inside a curved spatial path. Animated fill and stroke properties are preserved. For nested time-remapped compositions, selecting a source key does not guess a timeline position; scrub to preview.
 
@@ -164,16 +175,19 @@ A curved motion path (see [Edit the motion path](/info/animating.html#edit-the-m
 
 A keyframe eased by a spring is written as one value per frame across its segment, because Lottie has no springs; the values are the ones the preview plays. A keyframe that follows a design-system curve or spring is written with the curve the token has at export time. Keyed stroke width and path trim keep their curves. A keyed colour is written as one value per frame, because a Lottie player blends colours differently from Lolly's OKLab blend; every frame of the file still carries Lolly's colour. A path trim reaches the stroke only, as on the canvas. dotLottie refuses colour keys on a shape with no fill or stroke, appearance keys on an image or a Lottie clip, and a trimmed box whose stroke width or corner radius is animated. A nested composition reused within one clip stays shared within that clip, and duplicated clips can diverge.
 
-Font-dependent text, expressions, 3D, masks, mattes, effects and themed appearance are not supported, nor are native text and video from the editor. An unsupported import or export lists the feature and is never silently replaced by a still; use a movie export instead.
-
 Packages can be up to 64 MiB, and clips must last at least 0.1 seconds. Required credits travel inside the exported package as readable files. dotLottie exports do not carry signed Content Credentials.
 :::
 
+<!--i:eti-repeat-->
 ## Premiere XML exchange
 
 To bring a Premiere edit in, export it as Final Cut Pro 7 XML (`xmeml`) and open it with **Import a design** in Lolly Design, using **Replace the board**. Select the media files or keep placeholders; the clips open in Sequence. The reader keeps rational rates, source references, tracks and frame counts, and reports clock conversions, missing media and unsupported effects or transitions. A Lolly ZIP with `sequence.xml` and a `Media` folder opens the same way.
 
-To send an edit to Premiere, export **Premiere XML + media**: a ZIP of timed, unprocessed clips, the original media and a report. Unzip it, import `sequence.xml` in Premiere and relink the media. Placement, fitting and effects do not transfer, so render generated layers first or export finished video. Check the timing of media whose rate differs from the project rate. Native `.prproj` files are not supported.
+To send an edit to Premiere, export **Premiere XML + media**: a ZIP of timed, unprocessed clips, the original media and a report. Unzip it, import `sequence.xml` in Premiere and relink the media. Check the timing of media whose rate differs from the project rate. Native `.prproj` files are not supported.
+
+::: warning Placement, fitting and effects do not transfer
+Render generated layers first, or export finished video.
+:::
 
 The CLI reports an XML timeline's frame counts and mapped inputs without opening the app:
 
@@ -181,6 +195,7 @@ The CLI reports an XML timeline's frame counts and mapped inputs without opening
 lolly adobe timeline sequence.xml
 ```
 
+<!--i:eti-folder-plus-->
 ## EDL, OpenTimelineIO and FCPXML exchange
 
 Sequence also opens three more timeline formats with **Import a design** and **Replace the board**. Lolly reads each one by its content, not its file name.
@@ -209,6 +224,7 @@ Nothing is dropped silently. The import report lists every feature Lolly does no
 
 These formats are import only. To send an edit out, use [Premiere XML + media](#premiere-xml-exchange). A `.fcpxmld` bundle is not read; export a plain `.fcpxml` instead. Files can hold up to 10,000 clips and 128 tracks, and the XML formats are limited to 8 MB.
 
+<!--i:eti-eye-->
 ## How selection follows the playhead
 
 A timed canvas shows one instant, and three promises keep editing predictable:
@@ -225,6 +241,7 @@ Clips not live at the playhead are not painted, so a click falls through them to
 
 ![The canvas at one instant: only the clip live at the playhead is painted, so a click hits it or falls through to whatever is underneath](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D%23tool-stage%7Bbackground-image%3Anone%21important%7D&drive=wait%3A600&cropBottom=0.35&walker=1&format=svg&dark=1&filename=seq-click-live-scene)
 
+<!--i:eti-layers-->
 ## Onion skin
 
 **Onion skin** shows neighbouring clips as ghosts over the live one, for judging the frame before and after. It is off by default, because full-frame scenes laid over each other turn to mud, and your choice is remembered on this device.
@@ -241,12 +258,14 @@ Clips not live at the playhead are not painted, so a click falls through them to
 
 Ghosts are drawn outside the exported canvas and stripped before any format is written, so an export with onion skin on is byte for byte the same as one without.
 
+<!--i:eti-keyboard-->
 ## Keyboard shortcuts
 
 Every timeline shortcut is a bare letter or punctuation key, because the familiar editor chords such as `Ctrl/Cmd+B` collide with browser bindings a web page cannot reliably take over. Press `?` with the timeline focused, or open **More tools** and choose **Keyboard shortcuts**, to see every key with what it does. Escape closes the sheet and returns focus.
 
 ![The shortcut sheet, printed in the app: every key the timeline binds with what it does, generated from the same list the key handler is written against](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px!important%7D.fc-toolbar-dock%7Bdisplay%3Anone!important%7D&drive=press%3AEnter%7Con%3D.tl-mobile-tools%3Bclick%3A.tl-keys&cropSelector=.tl-keys-modal&format=svg&walker=1&dark=1&filename=seq-shortcut-sheet)
 
+<!--i:eti-sun-->
 ## Wide colour and HDR
 
 Sequence follows the Lolly Design document's **Colour** setting, so a Wide colour / HDR document keeps its float pixels and 10-bit video through the timeline. Turn on HDR output for a 10-bit PQ movie, or export an SDR copy from the same document; see [Wide colour and HDR editing](/info/hdr-editing.html).

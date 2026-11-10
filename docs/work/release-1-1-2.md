@@ -2,7 +2,7 @@
 
 <a id="release-1-1-2-lolly-and-work"></a>
 
-The current release is [1.1.3](release-1-1-3.md). Lolly Work 1.1.2 pairs the Lolly Work server and render worker with
+The current release is [1.2.0](release-1-2-0.md). Lolly Work 1.1.2 pairs the Lolly Work server and render worker with
 [Lolly 1.1.2](https://github.com/lolly-tools/lolly/releases/tag/v1.1.2), built from
 Lolly source `fe27a843813b0a653c648e6db078ae8f982b2654`. It is published as
 [Lolly Work v1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2).
@@ -263,7 +263,7 @@ This section is for Lolly Work maintainers cutting the release.
 The commands are the same as for 1.1.1, with `vendor/lolly` at the Lolly source
 above:
 
-```text
+```bash
 node scripts/vendor-content-resolver.ts --write
 pnpm run repin-engine --apply
 pnpm run verify:engine-pin
@@ -272,7 +272,7 @@ pnpm run typecheck
 
 The packaged documentation comes from a Lolly commit that contains this page:
 
-```text
+```bash
 node scripts/sync-docs-bundle.ts --source=/path/to/lolly --commit=<full-commit-sha>
 pnpm run verify:docs-pin
 ```
@@ -295,7 +295,7 @@ mirrored to `lolly-work_ynh` and has no `yunohost-runtime.yml` run, so the
 installable package there is still `1.1.1~ynh1`. The maintained producer cuts the
 package on the final Lolly Work commit:
 
-```text
+```bash
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz --shell-sha256 bc78012aa407983ecc818e63be98ae1b45ed7db1dcad3f4c8d4ffe0c371116c1 --out ABS_NEW_ARTIFACT_DIRECTORY
 ```
 

@@ -10,18 +10,18 @@ Quinze polices, toutes issues de Google Fonts à un commit figé et toutes sous 
 
 | Écriture | Police | Version | Téléchargement |
 |---|---|---|---|
-| Arabe, y compris les lettres ourdoues et persanes | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabe, y compris les lettres ourdoues et persanes | Noto Sans Arabic | 2.012 | 211 KB |
 | Hébreu | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (hindi, marathi, népalais) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengali | Noto Sans Bengali | 3.011 | 136 KB |
-| Thaï | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrillique | Noto Sans, lettres cyrilliques | 2.015 | 112 KB, italique 129 KB |
-| Grec | Noto Sans, lettres grecques | 2.015 | 75 KB, italique 81 KB |
-| Latin, y compris le vietnamien et d'autres lettres accentuées | Noto Sans, lettres latines | 2.015 | 309 KB, italique 342 KB |
-| Chinois simplifié, les caractères GB 2312 | Noto Sans SC | 2.004 | 1,9 MB |
-| Chinois traditionnel, les caractères Big5 | Noto Sans TC | 2.004 | 3,6 MB |
-| Japonais, les caractères Shift_JIS | Noto Sans JP | 2.004 | 2,1 MB |
-| Coréen, toutes les syllabes hangeul et les caractères KS X 1001 | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (hindi, marathi, népalais) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengali | Noto Sans Bengali | 3.011 | 139 KB |
+| Thaï | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrillique | Noto Sans, lettres cyrilliques | 2.015 | 115 KB, italique 132 KB |
+| Grec | Noto Sans, lettres grecques | 2.015 | 77 KB, italique 83 KB |
+| Latin, y compris le vietnamien et d'autres lettres accentuées | Noto Sans, lettres latines | 2.015 | 316 KB, italique 350 KB |
+| Chinois simplifié, les caractères GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
+| Chinois traditionnel, les caractères Big5 | Noto Sans TC | 2.004 | 3,8 MB |
+| Japonais, les caractères Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
+| Coréen, toutes les syllabes hangeul et les caractères KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
 
 L'axe de graisse de chaque police est conservé en entier, donc chaque graisse qu'un design demande se dessine, et un titre chinois, japonais ou coréen en gras est bien en gras. L'axe de chasse des polices Noto Sans est fixé sur normal, ce qui divise chaque fichier par deux ; les polices chinoise, japonaise et coréenne n'ont pas d'axe de chasse. Noto Sans est découpée par écriture, donc un mot cyrillique ne télécharge que les lettres cyrilliques. Les contours sont ceux d'origine, inchangés.
 
@@ -53,7 +53,7 @@ Sur la page, un canevas qui contient deux de ces langues liste les deux polices,
 
 Rien ne se télécharge tant qu'un document ne contient pas un caractère qu'aucune police de son design system ne sait dessiner. Un document en anglais, ou dans n'importe quelle langue que son design system couvre, ne télécharge jamais de police de repli. Un symbole dans une ligne en anglais, comme ★ ou ※, ne télécharge jamais de police chinoise, japonaise ou coréenne.
 
-La première fois qu'un document en a besoin, Lolly télécharge cette seule police, pour cette seule écriture, et la garde sur ton appareil. Un document japonais télécharge uniquement la police japonaise, 2,1 MB, et un document en chinois traditionnel la police traditionnelle de 3,6 MB. Ensuite l'écriture se dessine hors ligne, et la police reste quand le catalogue est nettoyé. La police est conservée avec les propres fichiers du catalogue, jamais parmi les polices que tu as importées, donc elle n'apparaît pas dans la liste des polices de ta marque.
+La première fois qu'un document en a besoin, Lolly télécharge cette seule police, pour cette seule écriture, et la garde sur ton appareil. Un document japonais télécharge uniquement la police japonaise, 2,2 MB, et un document en chinois traditionnel la police traditionnelle de 3,8 MB. Ensuite l'écriture se dessine hors ligne, et la police reste quand le catalogue est nettoyé. La police est conservée avec les propres fichiers du catalogue, jamais parmi les polices que tu as importées, donc elle n'apparaît pas dans la liste des polices de ta marque.
 
 La ligne de commande, l'application de terminal et le serveur MCP lisent les mêmes fichiers sur le disque, donc ils n'ont aucun téléchargement à faire.
 

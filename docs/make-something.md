@@ -6,6 +6,13 @@ By the end of this page you will have downloaded a QR code for a web address and
 Have the web address the code should open, starting with `https://`.
 :::
 
+::: steps
+- <!--i:eti-pen--> **[Make the code](#make-the-code)** Put your address in Lolly QR Code and set its colours.
+- <!--i:eti-download--> **[Download the file](#download-the-file)** Export a PNG for a screen, or an SVG or PDF for print.
+- <!--i:eti-folder-plus--> **[Keep an editable copy](#keep-an-editable-copy)** Save your work so you can change the code later.
+:::
+
+<!--i:eti-pen-->
 ## Make the code
 
 1. Open [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). The controls sit beside the preview, or above it on a phone; what the preview shows is what the file will be.
@@ -13,6 +20,7 @@ Have the web address the code should open, starting with `https://`.
 3. To match your own colours, set **Module colour** and **Background**. Keep a strong contrast between them, or phones struggle to read the code.
 4. **Quiet zone**, under **Modules**, starts at 4. Keep it at 4 or more: that plain margin is what a phone camera looks for.
 
+<!--i:eti-download-->
 ## Download the file
 
 1. Press **Export** on the **Export | Save as** pill, at the foot of the controls on a computer or floating at the bottom of the screen on a phone.
@@ -23,10 +31,11 @@ Have the web address the code should open, starting with `https://`.
 Open the downloaded file on a screen and scan the code with a phone camera. If you made it on your phone, scan it from a second phone or a computer screen. The phone should offer your web address.
 :::
 
-::: details If the code will be printed or handled
+::: note If the code will be printed or handled
 Choose **SVG** or **PDF** so the code stays sharp at any size, and test a print at the size it will be used. If the code might get scuffed or rained on, set **Error correction**, under **Modules**, to **High (30%)**: a damaged code still reads.
 :::
 
+<!--i:eti-folder-plus-->
 ## Keep an editable copy
 
 The file you downloaded is finished. To change the code later, save your work as well:
@@ -36,11 +45,14 @@ The file you downloaded is finished. To change the code later, save your work as
 
 Saved work stays on this device, in the browser or app you used, unless you turn on [Sync](/info/sync.html). [Find and recover your work](/info/find-your-work.html) covers folders, earlier versions and moving your work to another device.
 
+<!--i:eti-sparkles-->
 ## Other first projects
 
 - [Lolly Audiogram](/#/tool/audiogram) turns a voice note into a video: a moving waveform, your words on the cover, your colours. Drop the recording into **Audio**, add a **Title**, then export **MP4**.
 - [Lolly Filter](/#/tool/filter) treats a photo for a poster: printed halftone dots, two flat colours or a few blocks of tone. Choose the photo under **Image**, pick an **Effect**, then export **PNG**, or **SVG** on an effect badged *vector*.
+- The [music generator](/#/music) composes a track from a style and a seed. Press the round shuffle button until you like what plays, then **Make the track** and **Download** an M4A or WAV file. [Generated music](/info/generated-music.html) explains what stays the same.
 
+<!--i:eti-map-pin-->
 ## Next
 
 - **Send a link instead of a file.** Every control you touched is written into the page address, so **Share** in the export panel gives a link that reopens the same design on someone else's screen. A photo you uploaded from your own device does not travel with the link. See [Sharing your work](/info/using.html#sharing-your-work).

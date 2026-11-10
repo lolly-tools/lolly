@@ -6,6 +6,7 @@ The Chart tool is a typical case. Its hook parses the pasted table, runs the lay
 
 ![A treemap from the Chart tool - nested rectangles sized and placed by a hook, with the template only printing the shapes it was handed](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dtreemap%26full&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&dark=1&filename=at2-hooks-d3-treemap&try=1)
 
+<!--i:eti-code-->
 ## How a hook works
 
 A hook is a plain top-level function with a known name, such as `onInit` or `onInput`. Lolly calls each one at a known moment, passes it the current inputs and a `host` object and merges what it returns into the render:
@@ -60,6 +61,7 @@ When a hook overruns, the runtime applies nothing at first, but the hook keeps r
 
 `onInput` also gets `id` and `value`, the input that changed. Four reserved ids mark runs the runtime starts itself: `'__view'` (a view change, below), `'__tokens'` (a theme or colourway change, below), `'__canvasSize'` (a change of canvas size, below) and `'__emoji'`, which runs when the emoji set changes for a tool that drew emoji itself through `host.emoji.renderSvg`, `host.emoji.renderText` or `host.text.layoutRuns`.
 
+<!--i:eti-palette-->
 ## Reacting to the view and the design system
 
 **View changes.** Engine v1.255 adds an optional `ctx.view` for local presentation choices. Lolly Design uses `ctx.view.pageId` to render the page the viewer chose while `ctx.model` keeps the whole document. A shell can call `runtime.setViewState()` to refresh that view through `onInput` with `id: '__view'`; the patch from this run can update computed extras but cannot write declared inputs. View state stays out of saved sessions, links, undo and collaboration. A one-shot document render leaves `pageId` absent and renders every page.
@@ -80,7 +82,11 @@ async function onInput({ id, model, host }) {
 }
 ```
 
-An isolated hook sees the new choice too: before any hook runs under it, the runtime hands the Worker a fresh copy of the design system through the executor's `tokensChanged`. Return a computed colour under a name of its own, never under the id of a declared colour input. Writing that id replaces the input's design-system link with a fixed colour, and the next switch leaves the colour behind. `tests/tool-theme-switch.test.ts` mounts every community tool, switches it live and checks that the render matches a fresh mount in the new choice.
+An isolated hook sees the new choice too: before any hook runs under it, the runtime hands the Worker a fresh copy of the design system through the executor's `tokensChanged`. `tests/tool-theme-switch.test.ts` mounts every community tool, switches it live and checks that the render matches a fresh mount in the new choice.
+
+::: warning Return a computed colour under a name of its own
+Never return a colour under the id of a declared colour input. Writing that id replaces the input's design-system link with a fixed colour, and the next switch leaves the colour behind.
+:::
 
 ### When the canvas size changes
 
@@ -118,13 +124,18 @@ return {
 
 `value` is the colour the tool draws while that input is empty, worked out as if the input were empty even when the person has set a colour, so the picker's "Follow the design system" choice shows the colour the input returns to. `source: 'design-system'` makes the field read "Design system" and announce "Ink: follows the design system (Liquorice)"; without the key the field reads "Automatic". Leave `value` out when the template decides the colour later, as Lolly Chart's palette slots do, and the field keeps the neutral pattern. `autoColors` is an ordinary extra: the template never needs to read the value, and other shells ignore the key. [Lolly Certificate](/#/tool/certificate) is the reference tool.
 
+<!--i:eti-camera-->
 ## Live input
 
 ### Motion-reactive tools (`onFrame`)
 
 Declare an `onFrame` hook and your tool can react to a **live camera**. The shell shows a **Go live** toggle wherever a camera is available (`host.media`), and the runtime calls `onFrame` once per frame with `{ frame, model, host }`, where `frame` is `{ width, height, data, t }` and `data` is RGBA pixels. Return a patch, as from `onInput`.
 
-This is pure progressive enhancement: `onFrame` is never called where there is no camera, so the tool still works as an ordinary still-image tool. **Do not** add `camera` to `capabilities`, which would require a camera and hide the tool where there is none.
+This is pure progressive enhancement: `onFrame` is never called where there is no camera, so the tool still works as an ordinary still-image tool.
+
+::: warning Do not declare `camera` for `onFrame`
+Adding `camera` to `capabilities` would require a camera and hide the tool where there is none.
+:::
 
 The usual move is to wrap the pixels in a canvas the still pipeline already understands and reuse it:
 
@@ -202,6 +213,7 @@ Engine **v1.150**. Point at an audio or video input and a text input, and the sh
 
 Everything runs locally: the clip is decoded and read on the device, and nothing is uploaded. A clip with no speech writes an **empty value** and shows a note in the interface, never invented text. The declaration is feature-detected rather than capability-gated, so a shell without on-device speech, such as the headless CLI, mounts nothing and leaves the target input with the value the link or saved session gave. Pair it with a `template.srt` or `template.vtt` ([Data formats](/info/tool-rendering.html#data-formats-json-csv-ics-vcf)) to export the cues as a separate file.
 
+<!--i:eti-globe-->
 ## Network access (`host.net`)
 
 Tools work offline first. By default a tool gets no `host.net`, so it has no supported way to reach the network. That is a contract checked in review, not isolation: [Portability and isolation](#portability-and-isolation) explains why. A live-data tool, such as weather, status, a news ticker or a calendar feed, opts in with two manifest declarations: the capability, and an explicit list of what it may fetch.
@@ -240,6 +252,7 @@ async function onInit({ model, host }) {
 
 Keep fetches inside the hook budgets above, return extras the template can print as they are and always render something sensible when the fetch fails. A network tool that renders blank offline is a bug.
 
+<!--i:eti-box-->
 ## Portability and isolation
 
 `host.*` is the only surface every shell guarantees, so build on `host.*`.
@@ -267,13 +280,16 @@ function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 
 Never edit inside the markers. Edit the shared file and run `pnpm run sync:shared`; `pnpm run validate:catalog` fails on any drift. `community/_shared/README.md` has the details.
 
+<!--i:eti-search-->
 ## Newer optional host APIs (feature-detect)
 
-The bridge grows by addition: new `host.*` APIs arrive in minor engine versions, are never removed and are optional, so an older shell may not have them yet. Check for an API, and keep the tool working when the API is missing. If your tool cannot work without one, list it in `requires` ([Tool manifests](/info/tool-manifest.html#what-the-tool-needs-from-the-host)) or raise the manifest's `engineVersion` floor, so the engine refuses the tool clearly instead of a method being missing. Three recent additions tools reach for:
+The bridge grows by addition: new `host.*` APIs arrive in minor engine versions, are never removed and are optional, so an older shell may not have them yet. Check for an API, and keep the tool working when the API is missing. If your tool cannot work without one, list it in `requires` ([Tool manifests](/info/tool-manifest.html#what-the-tool-needs-from-the-host)) or raise the manifest's `engineVersion` floor, so the engine refuses the tool clearly instead of a method being missing. Recent additions that tools reach for include these:
 
 - [`host.images`](/info/host-api.html#host-images) - decode, resize and re-encode images on the device. Read the result's `mime`, `width` and `height` rather than assuming the request was honoured exactly.
 - [`host.geom`](/info/host-api.html#host-geom) - exact vector geometry on SVG path strings: booleans, offset, stroke, simplify and measurement. Failures are returned, never thrown.
 - [`host.text.fontUrl`](/info/host-api.html#host-text) - resolve a font family the host knows to a file for `host.text.toPath()`, with the `variations` a variable face needs. It resolves `null` when no file is found, so keep your `<text>` fallback.
+- [`host.calc`](/info/host-api.html#host-calc) - work out spreadsheet formulas on the device, with `evaluate`, `table` and `functions`. Sales Quote (`quote`) is the reference tool.
+- [`host.audio.loudness`](/info/host-api.html#host-audio) and `host.audio.align` - EBU R128 loudness of a clip, and the offset between two recordings of one event. Both are optional members of `host.audio`, so check for each one.
 
 The pattern for any of them is to check, try and render something sensible either way. With `host.geom`:
 
@@ -288,4 +304,6 @@ function onInput({ model, host }) {
 }
 ```
 
+::: warning A throw leaves the tool unresponsive
 A throw out of a hook is only logged and discarded, leaving the tool silently unresponsive, which is why `host.geom` returns `{ ok: false, code, message }` instead of throwing.
+:::

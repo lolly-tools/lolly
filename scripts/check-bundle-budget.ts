@@ -142,7 +142,11 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // 158.5 KB after LUT admission, operation queues and recovery UI were split from
 // normal startup. Plan 295 records both measurements and the built-shell check.
 // Allow this required capability within 159 KB; later numerical work stays lazy.
-const MAX_PRELOAD_JS_GZ = 159 * 1024;
+// 2026-11-09: the maintainer set the ceiling to 200 KB (boot measured 158.6): room
+// for ordinary growth, low enough that a large import we could avoid still fails.
+// The forbidden-chunk check above still keeps the heavy libraries off first paint, and
+// boot-path-guard.test.ts still refuses the static imports that drag them back.
+const MAX_PRELOAD_JS_GZ = 200 * 1024;
 // -----------------------------------------------------------------------------
 
 function fail(msg: string): never {

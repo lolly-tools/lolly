@@ -11,9 +11,9 @@
  *   drums, and a reverb send from the keys and lead
  *     → tone (a low-pass that the mood, the texture and each bar's "open" set)
  *     → gentle saturation → glue compression → volume
- *   texture: vinyl crackle (in dusty patches, and on some records a faint tick once a
- *   revolution), hiss and, in the rainy mood, rain, joins after the tone filter so it
- *   stays crisp under the muffled music.
+ *   texture: a record's crackle (stereo ticks and pops in dusty patches, and on some
+ *   records a scratch once a revolution), the record's surface noise and, in the rainy
+ *   mood, rain, joins after the tone filter so it stays crisp under the muffled music.
  *
  * Each tune's style (from the composer) picks its instruments and drum tuning, and as the
  * tune starts it sets how much wobble, room, tone and kick ducking the chain gives it,
@@ -28,9 +28,11 @@
  * is hidden the station queues a few seconds ahead instead of a quarter of one.
  */
 import { lofiStream, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
-import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
+import * as D from './lofi-drums.ts';
+import * as W from './lofi-world-voices.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -39,7 +41,8 @@ export interface LofiSettings {
   texture: number;
   /** Fix parts of every tune's style (for auditioning an instrument); normally empty. */
   style?: Partial<LofiStyle>;
-  /** Repeat the first tune rather than going on to new ones (a saved tune). */
+  /** Repeat the first tune rather than going on to new ones (a saved tune). With `bars`,
+   *  the stretch of `bars` repeats instead (a saved music generator track). */
   repeat?: boolean;
   /** Start this many bars in (the music generator's seek): the bars before are composed, not played. */
   startBar?: number;
@@ -49,27 +52,53 @@ export interface LofiSettings {
   shape?: (bar: LofiBar) => LofiBar;
 }
 
-/** Part levels, for tuning the balance. 1 is the designed level. */
-export interface LofiMix { keys: number; bass: number; lead: number; drums: number; reverb: number; texture: number }
-export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, reverb: 1, texture: 1 };
+/** Part levels, for tuning the balance. 1 is the designed level. `fx` is the effects: the
+ *  risers, the console's sounds, the shouts, the birds, the sparkles, phasers and blips. */
+export interface LofiMix { keys: number; bass: number; lead: number; drums: number; fx: number; reverb: number; texture: number }
+export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, fx: 1, reverb: 1, texture: 1 };
 
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
 const MOOD_TONE: Record<LofiMood, number> = {
-  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
+  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 13000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000,
-  fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500,
+  fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
+  persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000,
 };
-/** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +4 dB), in every genre of the family. */
-const SINGS_LEAD = 1.6;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal']);
+/** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +2 dB), in every genre of the family. */
+const SINGS_LEAD = 1.3;
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
  * drums -26, bass -27, lead -29, texture -40), then set by ear in the lofi lab (Andy,
  * 2026-11-08): the keys, bass, drums and room up, the lead a little back, and the crackle
- * and hiss well down. MASTER brings the sum back to the same headroom.
+ * and hiss well down. MASTER brings the sum back to the same headroom. Then by ear across
+ * the styles (Andy, 2026-11-10): the effects too quiet and the lead too loud on average, so
+ * the effects come up about 3 dB and the lead down about a decibel (and Lolly Sings' lift
+ * from 4 dB to 2).
  */
-const BUS = { keys: 0.37, bass: 0.2, lead: 1.05, drums: 0.83, texture: 0.27, reverb: 0.44 };
+const BUS = { keys: 0.37, bass: 0.2, lead: 0.95, drums: 0.83, texture: 0.27, reverb: 0.44, fx: 1.5 };
+/** The room by section: bigger in the quiet sections, tighter in a drop. */
+const SECTION_ROOM: Partial<Record<string, number>> = { intro: 1.25, break: 1.35, outro: 1.4, bridge: 1.15, build: 1.1, drop: 0.85 };
+/** The styles built on drops, whose builds sweep a high-pass up the music. */
+const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy']);
+/** The styles that throw a phrase's last lead note into the echo, and those that keep a little echo on the lead throughout. */
+const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska']);
+const ECHO_ALWAYS = new Set<LofiMood>(['synthwave', 'dream', 'reggae']);
+const ECHO_BED = 0.12;
+/** The drums' room send, at the middle of the arrangement; the room slider and the section scale the send. */
+const DRUM_ROOM = 0.32;
+const THROW_LEVEL = 0.55;
+/** The styles whose chorus puts a sine sub under the bass guitar, and the basses it goes under. */
+const SUB_UNDER = new Set<LofiMood>(['rnb', 'soul', 'citypop', 'kpop']);
+const SUB_BASSES = new Set<string>(['motown', 'round', 'synth', 'picked']);
+/** The styles whose lead lays back behind the beat, and by how much (s). */
+const LAID_BACK = new Set<LofiMood>(['jazz', 'swing', 'blues']);
+const LAY_BACK = 0.024;
+/** Seconds between one lead note's end and the next one's start that still count as a slur. */
+const SLUR_GAP = 0.035;
+/** A riser rode the keys' bus (through its tremolo, about 0.92) before the effects had their own: this keeps that level, raised a little with the other effects. */
+const RISER_LEVEL = (BUS.keys * 0.92 * 1.2) / BUS.fx;
 /** The whole station's level under the volume control, leaving headroom above the busiest bar. */
 const MASTER = 0.62;
 /** How far the music is lifted into the grit's staircase: its loudest bars just reach full scale. */
@@ -80,11 +109,12 @@ const GRIT_MIX = 0.5;
 const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle['lead'], number>; bass: Record<LofiStyle['bass'], number>; snare: Record<LofiStyle['snare'], number>; hats: Record<LofiStyle['hats'], number> } = {
   // Short, decaying sounds (pluck, kalimba, rim, clap) measure quieter than they sound,
   // so they take most of the measured difference, not the whole difference.
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, harp: 1.3, choir: 1 },
-  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, none: 0 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1 },
+  lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 2.1, overdrive: 0.5, synthwave: 0.86, metal: 0.6, panflute: 0.56, nylon: 1.9, riff: 0.6, twang: 2.2, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1,
+    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, none: 0 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
-  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, yidaki: 1.1 },
-  snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3 },
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, yidaki: 1.1, log: 1 },
+  snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
   hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
 /** The style a station starts from, until its first tune's arrives. */
@@ -101,7 +131,7 @@ const LOOKAHEAD_HIDDEN = 3;
 interface Queued { at: number; spb: number; note: LofiNote; bar: LofiBar; lanes: Lanes }
 interface Mark { at: number; bar: LofiBar }
 /** One tune's inputs to the buses, so skipping can fade out what is still ringing. */
-interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNode }
+interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNode; fx: GainNode }
 
 export class LofiStation {
   readonly ctx: BaseAudioContext;
@@ -112,6 +142,24 @@ export class LofiStation {
   private settings: LofiSettings;
   private mix: LofiMix;
   private stream: LofiStream;
+  /** The seed the stream started from, to start it again (a saved generator track repeating). */
+  private seed: number;
+  /** The last lead note (when it ends, its pitch, its instrument), to tell whether the next one is slurred. */
+  private lastLead = { end: -1, midi: 0, voice: '' };
+  /** Each tune's drum kit, drawn once from its seed (lib/lofi-drums.ts). */
+  private kits = new Map<string, D.DrumKit>();
+
+  /** The kit `tune` plays. */
+  private kitOf(tune: LofiTuneInfo): D.DrumKit {
+    const key = `${tune.mood}:${tune.seed}`;
+    let kit = this.kits.get(key);
+    if (!kit) {
+      if (this.kits.size > 16) this.kits.clear();
+      kit = D.drumKit(tune.seed, tune.mood);
+      this.kits.set(key, kit);
+    }
+    return kit;
+  }
   private kit: V.VoiceKit;
   private queue: Queued[] = [];
   private marks: Mark[] = [];
@@ -131,9 +179,20 @@ export class LofiStation {
   private readonly keysBus: GainNode;
   private readonly bassBus: GainNode;
   private readonly leadBus: GainNode;
+  private readonly fxBus: GainNode;
   private readonly drumBus: GainNode;
   private readonly music: GainNode;
   private readonly reverbSend: GainNode;
+  /** The drums' own room: what gives a snare its tail and a tom its space. */
+  private readonly drumRoom: GainNode;
+  /** The build's sweep: a high-pass on the music (not the drums) that rises through a build and opens on the drop. */
+  private readonly sweep: BiquadFilterNode;
+  /** The echo: a tempo-synced ping-pong fed from the lead, opened for a phrase's last note (a throw). */
+  private readonly echoSend: GainNode;
+  private readonly echoTimes: DelayNode[];
+  /** How many bars of the current build have passed, and the section of the last bar marked. */
+  private buildBars = 0;
+  private sectionRoom = 1;
   private readonly tone: BiquadFilterNode;
   private readonly drumTone: BiquadFilterNode;
   private readonly shaper: WaveShaperNode;
@@ -152,6 +211,7 @@ export class LofiStation {
     this.ctx = ctx;
     this.settings = { ...settings };
     this.mix = { ...mix };
+    this.seed = seed;
     this.stream = lofiStream(seed, { mood: settings.mood, style: settings.style, repeat: settings.repeat });
     for (let i = 0; i < (settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
@@ -182,7 +242,13 @@ export class LofiStation {
     wow.connect(this.tone);
     this.music = ctx.createGain();
     this.dry = ctx.createGain();
-    this.music.connect(this.dry).connect(wow);
+    // The build's sweep sits between the music and everything after it, wide open (20 Hz)
+    // except while a build climbs (see markSection).
+    this.sweep = ctx.createBiquadFilter();
+    this.sweep.type = 'highpass';
+    this.sweep.frequency.value = 20;
+    this.sweep.Q.value = 0.7;
+    this.music.connect(this.sweep).connect(this.dry).connect(wow);
     // A sampler's grit, when a tune asks for it: the music lifted into an 80-step staircase
     // and brought back down, so the steps sit about 32 dB under the music at its usual
     // level (an old sampler, not a broken one), crossfaded with the clean signal rather
@@ -193,7 +259,7 @@ export class LofiStation {
     crush.curve = staircase(80);
     this.crunch = ctx.createGain();
     this.crunch.gain.value = 0;
-    this.music.connect(lift).connect(crush).connect(this.crunch).connect(wow);
+    this.sweep.connect(lift).connect(crush).connect(this.crunch).connect(wow);
     // The record head. Nothing here is a clean sine: the eccentric pull is lopsided, and
     // the drift and flutter are smoothed random curves, looped at lengths that never line
     // up with each other or with the revolution.
@@ -222,6 +288,9 @@ export class LofiStation {
     this.keysBus.connect(trem).connect(this.music);
     this.leadBus = ctx.createGain();
     this.leadBus.connect(this.music);
+    // The effects: their own level (the music generator's slider), ducked and given the room as the lead is.
+    this.fxBus = ctx.createGain();
+    this.fxBus.connect(this.music);
     this.bassBus = ctx.createGain();
     this.bassBus.connect(this.music);
     // The drums get their own tone filter, opening well above the music's, so the snare's
@@ -240,7 +309,44 @@ export class LofiStation {
     this.reverbSend = ctx.createGain();
     this.keysBus.connect(this.reverbSend);
     this.leadBus.connect(this.reverbSend);
+    this.fxBus.connect(this.reverbSend);
     this.reverbSend.connect(reverb).connect(this.tone);
+
+    // The drums' room: a shorter, brighter space than the music's, fed from the drums above
+    // the kick's range (a high-pass at 300 Hz keeps the low end dry and tight), so a snare
+    // rings out into the room and drops off, as a kit in a real room does.
+    const room = ctx.createConvolver();
+    room.buffer = impulse(ctx, 1.1, mulberry32(seed ^ 0x5d));
+    const roomHp = ctx.createBiquadFilter();
+    roomHp.type = 'highpass';
+    roomHp.frequency.value = 300;
+    this.drumRoom = ctx.createGain();
+    this.drumRoom.gain.value = DRUM_ROOM;
+    this.drumBus.connect(roomHp).connect(this.drumRoom).connect(room).connect(this.drumTone);
+
+    // The echo: a dotted eighth, ping-ponging left and right, each repeat darker and
+    // quieter. Its send is closed until a note is thrown into it (see play), except in the
+    // styles that keep a little echo on the lead throughout (ECHO_ALWAYS).
+    this.echoSend = ctx.createGain();
+    this.echoSend.gain.value = 0;
+    this.leadBus.connect(this.echoSend);
+    const left = ctx.createDelay(2);
+    const right = ctx.createDelay(2);
+    const darken = ctx.createBiquadFilter();
+    darken.type = 'lowpass';
+    darken.frequency.value = 3200;
+    const back = ctx.createGain();
+    back.gain.value = 0.38;
+    const panL = ctx.createStereoPanner();
+    panL.pan.value = -0.7;
+    const panR = ctx.createStereoPanner();
+    panR.pan.value = 0.7;
+    this.echoSend.connect(left);
+    left.connect(panL).connect(this.tone);
+    left.connect(right);
+    right.connect(panR).connect(this.tone);
+    right.connect(darken).connect(back).connect(left);
+    this.echoTimes = [left, right];
 
     this.toneWander.connect(this.tone.frequency);
 
@@ -248,15 +354,19 @@ export class LofiStation {
     this.crackle = ctx.createGain();
     this.crackle.connect(this.shaper);
     const crackleHp = ctx.createBiquadFilter();
-    crackleHp.type = 'highpass'; crackleHp.frequency.value = 600;
+    crackleHp.type = 'highpass'; crackleHp.frequency.value = 150;
     crackleHp.connect(this.crackle);
     this.loop(crackleBuffer(ctx, REVOLUTION * 4, mulberry32(seed ^ 0xc4)), crackleHp);
     this.hiss = ctx.createGain();
     this.hiss.connect(this.shaper);
     const hissLp = ctx.createBiquadFilter();
-    hissLp.type = 'lowpass'; hissLp.frequency.value = 6500;
+    hissLp.type = 'lowpass'; hissLp.frequency.value = 7000;
     hissLp.connect(this.hiss);
-    this.loop(noise, hissLp);
+    // The record's surface, not tape hiss (surfaceBuffer).
+    const surfaceHp = ctx.createBiquadFilter();
+    surfaceHp.type = 'highpass'; surfaceHp.frequency.value = 300;
+    surfaceHp.connect(hissLp);
+    this.loop(surfaceBuffer(ctx, mulberry32(seed ^ 0x5f)), surfaceHp);
     this.rain = ctx.createGain();
     this.rain.connect(this.shaper);
     const rainBp = ctx.createBiquadFilter();
@@ -308,6 +418,7 @@ export class LofiStation {
     for (const g of Object.values(old)) g.gain.setTargetAtTime(0, now, 0.06);
     if (typeof setTimeout === 'function') setTimeout(() => { for (const g of Object.values(old)) g.disconnect(); }, 800);
     this.lanes = this.newLanes();
+    this.seed = seed;
     this.stream = lofiStream(seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
     this.queue = [];
     this.marks = [];
@@ -345,12 +456,21 @@ export class LofiStation {
 
   // ── offline ───────────────────────────────────────────────────────────────
 
-  /** Queue everything up to `seconds` at once (an OfflineAudioContext). */
+  /** Queue everything up to `seconds` at once (an OfflineAudioContext). Short renders and
+   *  tests only: see renderStation for a whole track. */
   scheduleAll(seconds: number): void {
     this.nextBarAt = 0.05;
     this.fill(seconds);
     this.flush(seconds);
   }
+
+  /** Queue the notes up to `until` seconds, from the start the first time (an offline render in windows). */
+  scheduleUntil(until: number): void {
+    if (!this.offlineStarted) { this.nextBarAt = 0.05; this.offlineStarted = true; }
+    this.fill(until);
+    this.flush(until);
+  }
+  private offlineStarted = false;
 
   // ── scheduling ────────────────────────────────────────────────────────────
 
@@ -364,7 +484,13 @@ export class LofiStation {
   /** Queue whole bars until the next one starts after `until`. */
   private fill(until: number): void {
     while (this.nextBarAt < until) {
-      if (this.settings.bars !== undefined && this.taken >= this.settings.bars) return;
+      if (this.settings.bars !== undefined && this.taken >= this.settings.bars) {
+        if (!this.settings.repeat) return;
+        // A saved generator track repeats: its stretch of bars starts again from the top.
+        this.stream = lofiStream(this.seed, { mood: this.settings.mood, style: this.settings.style, repeat: this.settings.repeat });
+        this.taken = 0;
+        for (let i = 0; i < (this.settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
+      }
       const raw = this.stream.next();
       const bar = this.settings.shape ? this.settings.shape(raw) : raw;
       this.taken++;
@@ -390,6 +516,7 @@ export class LofiStation {
     for (const m of marks) {
       if (m.bar.index === 0 || !this.styled) { this.applyStyle(m.bar.tune.style, Math.max(m.at, now)); this.styled = true; }
       this.lastOpen = m.bar.open;
+      this.markSection(m.bar, Math.max(m.at, now));
       this.tone.frequency.setTargetAtTime(this.cutoff(m.bar.open), Math.max(m.at, now), 0.5);
       this.drumTone.frequency.setTargetAtTime(drumCutoff(this.cutoff(m.bar.open)), Math.max(m.at, now), 0.5);
       if (this.running && typeof setTimeout === 'function') {
@@ -412,48 +539,97 @@ export class LofiStation {
     const snareV = bar.voices?.snare ?? st.snare;
     const hatsV = bar.voices?.hats ?? st.hats;
     switch (note.voice) {
-      case 'keys': V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len); break;
+      case 'keys': {
+        // A future-bass chord's wub is swings a beat (the voice wants Hz), plus 16 for a bend.
+        const m = note.mod ?? 0;
+        if (W.WORLD_KEYS.has(keysV)) W.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
+        else V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
+        break;
+      }
       case 'bass': {
         // A wobble's, growl's or screech's swing is cycles a beat (the voice wants Hz); the
         // other basses' `mod` is how the note is played, passed as it is.
         const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
-        V.bass(bassV, k, lanes.bass, t, note.midi, vel * VARIANT.bass[bassV], len, mod, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        if (bassV === 'log') W.bass(k, lanes.bass, t, note.midi, vel * VARIANT.bass[bassV], len, mod, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        else V.bass(bassV, k, lanes.bass, t, note.midi, vel * VARIANT.bass[bassV], len, mod, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        // In a chorus, a modern record puts a sine under its electric bass for the weight a
+        // bass guitar alone does not give: only in the styles that do it, only in the drop,
+        // where the song opens up, so the verses keep the bass guitar's own sound.
+        if (SUB_UNDER.has(bar.tune.mood) && bar.section === 'drop' && SUB_BASSES.has(bassV)) V.sub(k, lanes.bass, t, V.mtof(note.midi), vel * 0.7, len);
         break;
       }
       case 'lead': {
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
-        V.lead(leadV, k, lanes.lead, t, note.midi, vel * VARIANT.lead[leadV] * lift, len, note.mod ?? 0);
+        // A note that starts as the last one ends, on the same instrument, is slurred onto
+        // it: a wind glides from that pitch instead of tonguing a new attack.
+        // A jazz soloist lays back: the lead's notes on the beat sit a little behind it, the
+        // swung off-beats stay with the ride.
+        const lt = LAID_BACK.has(bar.tune.mood) && Math.abs(note.beat - Math.round(note.beat)) < 0.01 ? t + LAY_BACK : t;
+        const prev = this.lastLead;
+        const gap = lt - prev.end;
+        const from = prev.voice === leadV && gap > -0.25 && gap < SLUR_GAP && prev.midi !== note.midi ? prev.midi : undefined;
+        this.lastLead = { end: lt + len, midi: note.midi, voice: leadV };
+        const play = (v: LofiStyle['lead'], level: number): void => {
+          if (W.WORLD_LEADS.has(v)) W.lead(v, k, lanes.lead, lt, note.midi, level, len, note.mod ?? 0);
+          else V.lead(v, k, lanes.lead, lt, note.midi, level, len, note.mod ?? 0, from);
+        };
+        play(leadV, vel * VARIANT.lead[leadV] * lift);
+        // An echo throw: a phrase's last lead note (the fourth bar's, held at least half a
+        // beat) thrown into the echo in the styles that throw, the send closing after the note.
+        if (THROWS.has(bar.tune.mood) && bar.index % 4 === 3 && note.beat + note.dur >= 3.4 && note.dur >= 0.5 && bar.section !== 'intro') {
+          const base = ECHO_ALWAYS.has(bar.tune.mood) ? ECHO_BED : 0;
+          this.echoSend.gain.setTargetAtTime(THROW_LEVEL, lt, 0.01);
+          this.echoSend.gain.setTargetAtTime(base, lt + len, 0.05);
+        }
         // A doubled drop: a second instrument plays the same note a little quieter.
         const double = bar.voices?.double;
-        if (double) V.lead(double, k, lanes.lead, t, note.midi, vel * VARIANT.lead[double] * lift * 0.7, len, note.mod ?? 0);
+        if (double) play(double, vel * VARIANT.lead[double] * lift * 0.7);
         break;
       }
-      case 'crash': V.crash(k, lanes.drums, t, vel); break;
-      case 'riser': V.riser(k, lanes.keys, t, vel, len); break;
-      case 'coin': V.coin(k, lanes.lead, t, note.midi, vel); break;
-      case 'magpie': V.magpie(k, lanes.lead, t, note.midi, vel, len, note.mod ?? 0); break;
-      case 'kookaburra': V.kookaburra(k, lanes.lead, t, note.midi, vel, note.mod ?? 0); break;
-      case 'tom': V.tom(k, lanes.drums, t, note.midi, vel); break;
-      case 'perc': V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0); break;
-      case 'hey': V.hey(k, lanes.lead, t, note.midi, vel); break;
+      case 'crash': D.crash(k, lanes.drums, t, vel, this.kitOf(bar.tune)); break;
+      case 'riser': V.riser(k, lanes.fx, t, vel * RISER_LEVEL, len); break;
+      case 'coin': V.coin(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'sparkle': V.sparkle(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 4); break;
+      case 'game': V.game(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'tom': D.tom(k, lanes.drums, t, note.midi, vel, this.kitOf(bar.tune)); break;
+      case 'perc':
+        if ((note.mod ?? 0) >= W.WORLD_PERC_FROM) W.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
+        else V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
+        break;
+      case 'hey': V.hey(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'bwah': {
+        // A bass shot's `mod` is the shot, plus 4 for each swing a beat (the voice wants Hz).
+        const m = note.mod ?? 0;
+        V.bwah(k, lanes.bass, t, note.midi, vel, len, m % 4, Math.floor(m / 4) / spb, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        break;
+      }
+      case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar': V.soar(k, lanes.bass, t, note.midi, vel, len, note.mod === 1); break;
-      case 'kick': V.kick(k, lanes.drums, t, vel, st.kick, st.kickLen); this.duck(t, st.duck); break;
+      case 'kick': { const kit = this.kitOf(bar.tune); D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, kit.kick, kit); this.duck(t, st.duck); break; }
       case 'snare':
         // A section given the cross-stick plays its snare hits on the rim.
-        if (bar.voices?.snare === 'rim') { V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break; }
-        V.snare(snareV === 'rim' ? 'snare' : snareV, k, lanes.drums, t, vel * VARIANT.snare[snareV], st.snareTone);
+        if (bar.voices?.snare === 'rim') { D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break; }
+        // A roll that climbs (Sherbert's builds) tunes each hit up by its `mod` in semitones.
+        D.snare(snareV === 'rim' ? 'snare' : snareV, k, lanes.drums, t, vel * VARIANT.snare[snareV], st.snareTone * 2 ** ((note.mod ?? 0) / 12), this.kitOf(bar.tune));
         if (note.vel > 0.5) this.duck(t, st.duck * 0.45);   // a backbeat, not a ghost: the music gives it a little room
         break;
       case 'rim': {
         // A section given another snare plays its rim hits on that snare instead.
         const over = bar.voices?.snare;
-        if (over && over !== 'rim') V.snare(over, k, lanes.drums, t, vel * VARIANT.snare[over], st.snareTone);
-        else V.rim(k, lanes.drums, t, vel * VARIANT.snare.rim);
+        if (over && over !== 'rim') D.snare(over, k, lanes.drums, t, vel * VARIANT.snare[over], st.snareTone, this.kitOf(bar.tune));
+        else D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim);
         break;
       }
-      case 'hat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone); break;
-      case 'openHat': V.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, true); break;
+      case 'hat':
+        // A `mod` of 2 is the hat's foot (the pedal), whatever the hats are played on.
+        if (note.mod === 2) D.pedal(k, lanes.drums, t, vel, st.hatTone, this.kitOf(bar.tune));
+        else D.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, false, note.mod === 1, this.kitOf(bar.tune));
+        break;
+      case 'openHat': D.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, true, false, this.kitOf(bar.tune)); break;
     }
   }
 
@@ -465,6 +641,34 @@ export class LofiStation {
     g.setTargetAtTime(1, at + 0.05, 0.11);
   }
 
+  /**
+   * What the arrangement does to the sound, bar by bar: the room grows in the quiet
+   * sections and tightens in a drop; through a build (in the styles built on drops) a
+   * high-pass climbs on the music, a bar at a time, and opens wide the moment the drop
+   * arrives; and the echo keeps the tempo.
+   */
+  private markSection(bar: LofiBar, at: number): void {
+    const spb = 60 / bar.tune.bpm;
+    for (const d of this.echoTimes) d.delayTime.setValueAtTime(Math.min(1.9, 0.75 * spb), at);
+    const room = SECTION_ROOM[bar.section] ?? 1;
+    if (room !== this.sectionRoom) {
+      this.sectionRoom = room;
+      this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * this.colour.room * room, at, 0.6);
+      this.drumRoom.gain.setTargetAtTime(DRUM_ROOM * this.mix.reverb * room, at, 0.6);
+    }
+    this.echoSend.gain.setTargetAtTime(ECHO_ALWAYS.has(bar.tune.mood) ? ECHO_BED : 0, at, 0.2);
+    if (bar.section === 'build' && SWEEPS.has(bar.tune.mood)) {
+      this.buildBars++;
+      const to = Math.min(900, 40 * 2 ** (this.buildBars * 1.05));
+      this.sweep.frequency.setValueAtTime(Math.max(20, this.sweep.frequency.value), at);
+      this.sweep.frequency.exponentialRampToValueAtTime(to, at + 4 * spb);
+    } else if (this.buildBars > 0) {
+      this.buildBars = 0;
+      this.sweep.frequency.cancelScheduledValues(at);
+      this.sweep.frequency.setValueAtTime(20, at);   // the drop: the music comes back whole
+    }
+  }
+
   // ── sound ─────────────────────────────────────────────────────────────────
 
   /** A new tune's colour: wobble, room, tone and grit, from the moment it starts. */
@@ -473,7 +677,7 @@ export class LofiStation {
     const grit = style.crunch ? GRIT_MIX : 0;
     this.crunch.gain.setTargetAtTime(grit / GRIT_LIFT, at, 0.1);
     this.dry.gain.setTargetAtTime(1 - grit, at, 0.1);
-    this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * style.room, at, 0.1);
+    this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * style.room * this.sectionRoom, at, 0.1);
     this.applyTexture(0.3);
   }
 
@@ -504,8 +708,8 @@ export class LofiStation {
     const t = this.settings.texture;
     const amount = this.colour.dust + (1 - this.colour.dust) * t * t;
     const dust = tex * amount * DUST_MID * (t / 0.5) ** 3;
-    set(this.crackle.gain, 0.018 * dust);
-    set(this.hiss.gain, 0.0036 * dust);
+    set(this.crackle.gain, 0.06 * dust);
+    set(this.hiss.gain, 0.0053 * dust);
     set(this.rain.gain, this.settings.mood === 'rainy' ? (0.03 + x * 0.016) * tex : 0);
     set(this.tone.frequency, this.cutoff(this.lastOpen));
     set(this.drumTone.frequency, drumCutoff(this.cutoff(this.lastOpen)));
@@ -522,13 +726,14 @@ export class LofiStation {
     this.keysBus.gain.value = BUS.keys * this.mix.keys;
     this.bassBus.gain.value = BUS.bass * this.mix.bass;
     this.leadBus.gain.value = BUS.lead * this.mix.lead;
+    this.fxBus.gain.value = BUS.fx * this.mix.fx;
     this.drumBus.gain.value = BUS.drums * this.mix.drums;
-    this.reverbSend.gain.value = BUS.reverb * this.mix.reverb * this.colour.room;
+    this.reverbSend.gain.value = BUS.reverb * this.mix.reverb * this.colour.room * this.sectionRoom;
   }
 
   private newLanes(): Lanes {
     const lane = (to: AudioNode): GainNode => { const g = this.ctx.createGain(); g.connect(to); return g; };
-    return { keys: lane(this.keysBus), bass: lane(this.bassBus), lead: lane(this.leadBus), drums: lane(this.drumBus) };
+    return { keys: lane(this.keysBus), bass: lane(this.bassBus), lead: lane(this.leadBus), drums: lane(this.drumBus), fx: lane(this.fxBus) };
   }
 
   /** A sine LFO into `depth`; returns `depth` to connect onward. */
@@ -555,8 +760,32 @@ export class LofiStation {
 export async function renderLofi(seed: number, settings: LofiSettings, seconds: number, sampleRate = 44100, mix: LofiMix = LOFI_MIX): Promise<AudioBuffer> {
   const ctx = new OfflineAudioContext(2, Math.ceil(seconds * sampleRate), sampleRate);
   const station = new LofiStation(ctx, ctx.destination, seed, settings, mix);
-  station.scheduleAll(seconds);
   station.fadeOutAt(Math.max(0, seconds - 2), 2);
+  return renderStation(ctx, station, seconds);
+}
+
+/** How far ahead of an offline render its notes are scheduled, and how often it stops to schedule more (seconds). */
+const OFFLINE_AHEAD = 4;
+const OFFLINE_STEP = 1;
+
+/**
+ * Render a station offline, scheduling its notes a few seconds ahead of the render as it
+ * goes, as the live station does, rather than the whole track at once. A graph that holds
+ * every note of a track is walked on every block, so the old way slowed with the square
+ * of the track's length: a 64-bar track crawled at a twentieth of real time and looked
+ * hung. The render stops once a second to schedule more, and tells `onProgress` how far
+ * it has got (0 to 1).
+ */
+export async function renderStation(ctx: OfflineAudioContext, station: LofiStation, seconds: number, onProgress?: (done: number) => void): Promise<AudioBuffer> {
+  station.scheduleUntil(Math.min(seconds, OFFLINE_AHEAD));
+  for (let s = OFFLINE_STEP; s < seconds; s += OFFLINE_STEP) {
+    const at = s;
+    void ctx.suspend(at).then(() => {
+      station.scheduleUntil(Math.min(seconds, at + OFFLINE_AHEAD));
+      onProgress?.(at / seconds);
+      void ctx.resume();
+    });
+  }
   return ctx.startRendering();
 }
 
@@ -619,28 +848,85 @@ function wanderBuffer(ctx: BaseAudioContext, seconds: number, spacing: [number, 
 }
 
 /**
- * Vinyl: small ticks with the occasional louder pop, each a few samples long, gathered
- * in dusty patches rather than spread evenly; on some records, a faint tick once a
- * revolution where a scratch crosses the groove. The buffer is four revolutions long.
+ * Vinyl crackle, as a record makes it rather than as static: many tiny ticks and the
+ * occasional louder pop, gathered in dusty patches. Each tick is a short damped ring at its
+ * own pitch (dust knocking the stylus rings it, high and brief), in one groove wall or the
+ * other, so the crackle sits in stereo the way it does on a record; a pop is lower, longer
+ * and usually in both walls. Most ticks are tiny and a few are loud, as on a worn record. On
+ * some records a scratch crosses the groove and ticks once a revolution. The buffer is four
+ * revolutions long, in stereo.
  */
 function crackleBuffer(ctx: BaseAudioContext, seconds: number, rng: () => number): AudioBuffer {
-  const b = ctx.createBuffer(1, Math.ceil(seconds * ctx.sampleRate), ctx.sampleRate);
-  const d = b.getChannelData(0);
-  const tick = 34 / ctx.sampleRate;
-  const pop = 2.5 / ctx.sampleRate;
+  const sr = ctx.sampleRate;
+  const b = ctx.createBuffer(2, Math.ceil(seconds * sr), sr);
+  const L = b.getChannelData(0);
+  const R = b.getChannelData(1);
+  const tick = 30 / sr;
+  const pop = 0.6 / sr;
   const dust = wanderBuffer(ctx, seconds, [0.25, 1.2], 0, rng).getChannelData(0);
-  for (let i = 0; i < d.length - 8; i++) {
+  /** A damped ring at `hz`, falling by e in `tau` seconds, added at `at` into each wall by its share. */
+  const ring = (at: number, hz: number, tau: number, amp: number, left: number, right: number): void => {
+    const len = Math.min(Math.ceil(tau * 5 * sr), L.length - at - 1);
+    const w = 2 * Math.PI * hz / sr;
+    const fall = Math.exp(-1 / (tau * sr));
+    const phase = rng() * Math.PI * 2;
+    let env = amp;
+    for (let n = 0; n < len; n++) {
+      const v = env * Math.sin(phase + w * n);
+      L[at + n] = (L[at + n] ?? 0) + v * left;
+      R[at + n] = (R[at + n] ?? 0) + v * right;
+      env *= fall;
+    }
+  };
+  for (let i = 0; i < L.length - 8; i++) {
     const r = rng() / (0.25 + 1.9 * Math.max(0, (dust[i] ?? 0) + 0.45));   // a dusty patch is denser
     if (r >= tick) continue;
     const big = r < pop;
-    const a = (big ? 0.5 + rng() * 0.5 : 0.08 + rng() * 0.22) * (rng() < 0.5 ? -1 : 1);
-    const len = big ? 6 : 3;
-    for (let n = 0; n < len; n++) d[i + n] = (d[i + n] ?? 0) + a * (1 - n / len) * (n % 2 ? -0.6 : 1);
+    // Which wall: a tick is mostly in one, a pop mostly in both.
+    const side = rng();
+    const left = big ? 0.75 + rng() * 0.25 : side < 0.45 ? 1 : side < 0.9 ? 0.15 * rng() : 0.8;
+    const right = big ? 0.75 + rng() * 0.25 : side < 0.45 ? 0.15 * rng() : side < 0.9 ? 1 : 0.8;
+    const sign = rng() < 0.5 ? -1 : 1;
+    if (big) {
+      ring(i, 300 * 2 ** (rng() * 2.3), 0.0005 + rng() * 0.0012, sign * (0.3 + rng() * 0.4), left, right);
+      ring(i, 2500 + rng() * 3000, 0.00015, sign * 0.3, left, right);   // the pop's sharp front
+    } else {
+      // Most ticks tiny, a few loud: the level falls away like a worn record's.
+      ring(i, 1800 * 2 ** (rng() * 2.3), 0.00008 + rng() * 0.00025, sign * (0.06 + 0.75 * rng() ** 4), left, right);
+    }
   }
   if (rng() < 0.35) {
-    const at = Math.floor(rng() * REVOLUTION * ctx.sampleRate);
-    for (let rev = at; rev < d.length - 12; rev += Math.round(REVOLUTION * ctx.sampleRate)) {
-      for (let n = 0; n < 10; n++) d[rev + n] = (d[rev + n] ?? 0) + 0.28 * (1 - n / 10) * (n % 2 ? -0.7 : 1);
+    const at = Math.floor(rng() * REVOLUTION * sr);
+    const hz = 600 + rng() * 900;
+    for (let rev = at; rev < L.length - 400; rev += Math.round(REVOLUTION * sr)) ring(rev, hz, 0.0009, 0.24, 0.9, 0.7);
+  }
+  return b;
+}
+
+/**
+ * A record's surface: the soft noise of the stylus in the groove, darker than tape hiss
+ * (most of it between a few hundred hertz and a few kilohertz, falling like pink noise),
+ * a little different in each wall, and swelling gently once a revolution as the record
+ * turns. Two revolutions long, so the swell loops without a seam.
+ */
+function surfaceBuffer(ctx: BaseAudioContext, rng: () => number): AudioBuffer {
+  const sr = ctx.sampleRate;
+  const seconds = REVOLUTION * 2;
+  const b = ctx.createBuffer(2, Math.ceil(seconds * sr), sr);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = b.getChannelData(ch);
+    // A pink-ish noise: three one-pole stages of white noise, summed (Voss and Kellet's way).
+    let p0 = 0;
+    let p1 = 0;
+    let p2 = 0;
+    const turn = rng() * Math.PI * 2;
+    for (let i = 0; i < d.length; i++) {
+      const white = rng() * 2 - 1;
+      p0 = 0.99765 * p0 + white * 0.099;
+      p1 = 0.963 * p1 + white * 0.2965;
+      p2 = 0.57 * p2 + white * 1.0526;
+      const swell = 1 + 0.22 * Math.sin(turn + (2 * Math.PI * i) / (REVOLUTION * sr));
+      d[i] = (p0 + p1 + p2 + white * 0.1848) * 0.11 * swell;
     }
   }
   return b;

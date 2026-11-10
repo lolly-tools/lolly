@@ -1,7 +1,13 @@
 # Generated music
 
-The Neurospicy player makes its own music. Its generated stations, all in the **Lolly Sings** group, compose every tune as they play: the original Lolly Sings, Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B, and the three **Lofi** moods (Warm, Late night and Rainy). Nothing is recorded or sampled. Each tune is written by Lolly's composer and played by instruments synthesised in your browser.
+The Neurospicy player makes its own music. Its generated stations compose every tune as they play. Nothing is recorded or sampled: each tune is written by Lolly's composer and played by instruments synthesised in your browser.
 
+- **The Lolly Sings group.** The original Lolly Sings and its genres. Lolly 1.2.0 ships 26 of them: Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B. Ten more have arrived since 1.2.0: Sherbert, Persian, Guzheng, Koto, Kora, Afrobeat, Amapiano, Ska, Punk and R&B.
+- **The Lofi group.** Three moods: Warm, Late night and Rainy.
+
+The **[music generator](#the-music-generator)** opens any of these stations as a track you can change, down to the instrument each part plays in each section.
+
+<!--i:eti-repeat-->
 ## Every tune is a number
 
 A tune comes from two things: its station and a **seed**, a whole number from 0 to 4,294,967,295. The composer turns the station and the seed into the same tune every time, on every device: the same key and tempo, the same instruments, the same groove and running order, and every note in the same place. It reads no clock, rolls no dice of its own and fetches nothing from the internet, so there is nothing else for a tune to depend on.
@@ -9,60 +15,126 @@ A tune comes from two things: its station and a **seed**, a whole number from 0 
 That is what makes the music deterministic, and everything below follows from that rule:
 
 - **A shared link plays the same tune.** **Share this tune** copies a link such as `#/?lofi=sugar.2024`. Whoever opens the link hears the tune you heard.
-- **A saved tune is a few bytes.** **Save to library** keeps the station and the seed as an asset in your library, about 70 bytes, not a recording. Playing the tune later composes the same music again.
+- **A saved tune is a few bytes.** **Save to library** keeps the station and the seed as an asset in your library, about 70 bytes, not a recording. Playing the tune later composes the same music again. Lolly Demo and Lolly Start each ship six saved tunes.
 - **A music bed renders the same audio.** A saved tune used as a video's music bed is rendered from the seed when the video is made, repeating to fill the video.
 - **Next and Previous move between seeds.** Next starts a new tune with a fresh seed. Previous goes back to the seed before, so a tune you skipped past is never lost.
 
+<!--i:eti-refresh-->
 ## What stays the same, and what can differ
 
-| Stays the same for everyone | Can differ |
-|---|---|
-| The notes, their timing and their loudness | Your **Drums** and **Texture** settings, applied on top of the tune |
-| The instruments, the tempo and the key | Your volume, your speakers and your headphones |
-| The running order: intro, verses, builds, drops and the ending | How an instrument sounds after a Lolly update that improves that instrument |
-| | A percussion part (a shaker, a tambourine, congas) that an update adds to a genre; the other parts keep their notes |
+![The station and the seed go to Lolly's composer, which reads no clock and rolls no dice, and the tune it writes is the same for everyone. Your browser synthesises the sound from that tune, with your own settings for drums, texture and volume applied on top.](/info/diagrams/concepts/tune-from-seed.svg)
 
-A Lolly update can change how an instrument is synthesised, to fix a harsh sound or balance a mix. The tune keeps its notes, so a shared link still plays the same piece. New stations are written so that existing tunes do not change. Lolly's tests pin known seeds to the tunes they compose, so an update that would rewrite an existing tune is caught before release.
+**Stays the same for everyone:**
 
+- The notes, their timing and their loudness
+- The instruments, the tempo and the key
+- The running order: intro, verses, builds, drops and the ending
+
+**Can differ:**
+
+- Your **Drums** and **Texture** settings, applied on top of the tune
+- Your volume, your speakers and your headphones
+- How an instrument sounds after a Lolly update that improves that instrument
+- A percussion part (a shaker, a tambourine, congas) that an update adds to a genre; the other parts keep their notes
+- New sounds a genre gains: Dubstep, Brostep and D&B now end each phrase of a drop with the bass talking, which takes over the second half of that bar's bass line, and add bleeps and phaser sweeps around the rest
+
+A Lolly update can change how an instrument is synthesised, to fix a harsh sound or balance a mix. The tune keeps its notes, so a shared link still plays the same piece. New stations are written so that existing tunes do not change, and a genre that gains new parts says so in the list above. Lolly's tests pin known seeds to the tunes they compose, so an update that would rewrite an existing tune by accident is caught before release.
+
+<!--i:eti-wind-chimes-->
 ## How a tune is made
 
-Each station leans the composer towards its genre without fixing the outcome:
+Each station leans the composer towards its genre without fixing the outcome.
 
 1. **A style.** The seed picks the instruments (keys, lead, bass and drum kit), how the drums are tuned, the groove, how often the chords change, and how much tape wobble and room the tune gets.
 2. **Harmony and melody.** The tune draws two chord progressions in its key, voices each chord close to the last, and writes a short melody and its answer from the key's pentatonic scale, with a chord tone on each strong beat.
-3. **A running order.** Instruments enter, take the front and drop out at different moments in each tune. The Lolly Sings dance genres build tension with a roll and a riser, open the drop on a crash, and change instruments between sections, with softer keys in the quiet parts and a second lead and bass in the second drop. The band genres play songs: verses, a pre-chorus that turns into the chorus with a fill round the toms, a solo and a last chorus. Blues plays twelve-bar choruses with the turnaround as its intro, and Jazz and Swing trade four bars with the drummer.
-4. **Sound.** Your browser plays the notes with oscillators, filters and noise. The slap bass in Sugar is shaped by frequency modulation, so it can be thumbed, popped, slid and bent. The horns brighten as they get louder, as real horns do, with breath that buzzes at the note's pitch. The cymbals ring with metal rather than hiss, and each genre has its own hand percussion.
+3. **A running order.** Instruments enter, take the front and drop out at different moments in each tune, and an intro opens on the beat, the bass, a lead or the whole band. The Lolly Sings dance genres build tension with a roll and a riser, open the drop on a crash, and change instruments between sections, with softer keys in the quiet parts and a second lead and bass in the second drop. The band genres play songs: verses, a pre-chorus that turns into the chorus with a fill round the toms, a solo and a last chorus. Blues plays twelve-bar choruses with the turnaround as its intro, and Jazz and Swing trade four bars with the drummer.
+4. **Sound.** Your browser plays the notes with oscillators, filters and noise. The slap bass in Sugar is shaped by frequency modulation, so it can be thumbed, popped, slid and bent. The horns brighten as they get louder, as real horns do, with breath that buzzes at the note's pitch. The acoustic drums are worked out from the instruments themselves before a tune starts: a cymbal is dozens of partials ringing at their own pitches, the high ones dying first, with the wash blooming just after the stick strikes; a ride has its bell; hats are two plates, choked shut, and a closed hat cuts off an open one; a drumhead rings at the membrane's own modes, starting a little sharp when struck hard; and a snare's wires buzz for as long as the head moves. The kit then plays in a room of its own, so a snare rings out and drops off, and sits across the speakers as overhead microphones hear it, hats to the left and the ride to the right. Electronic styles keep their synthesised metal, and each genre has its own hand percussion. Where a game is played (chiptune, Sugar and Sherbert), the console has more to say: a level-up fanfare ends a build, the music shrinks as a breakdown starts and grows back as it ends, a 1-up crowns a drop, and coins ring, echo or come in pairs, brighter and longer the harder they play. The texture is a record's: tiny ticks of dust, each a short ring in one groove wall or the other so it sits in stereo, an occasional lower pop, a scratch that ticks once a revolution on some records, and the soft noise of the stylus in the groove, swelling gently as the record turns, rather than a steady hiss.
+
+::: details Where the newer instruments' sounds come from
+The instruments of Persian, Guzheng, Koto, Kora and Amapiano follow published acoustics and openly licensed instrument models:
+
+- plucked and struck strings shaped by where they are played;
+- bars and drumheads as their measured modes (the balafon's from the Synthesis ToolKit's wood bar);
+- breathy flutes and bowed strings through their bodies' resonances;
+- the log drum after the MIT-licensed mda DX10's preset of that name.
+
+A Persian dastgah's koron is played a quarter-tone flat, a close approximation of the neutral steps musicians play.
+
+The wind and brass voices follow the acoustics of real ones. Each starts from its instrument's spectrum (brass's even spread, the saxophone's pulse-like drive from its conical bore, the clarinet's odd harmonics in its low register and every harmonic higher up, the flute's near-pure tone) and gets brighter the harder it is played, the way a real horn's tone opens as it gets louder. A note that starts as the one before ends is slurred: the instrument glides into the new pitch without a fresh attack, as a player does without tonguing. Every tune also plays its own drum kit, drawn from its seed and its kind of music: an acoustic bass drum for a band, a feathered one for jazz, a dusty boom for lofi, an 808 or a punchier electronic kick for dance music, with each kit's snare wires, hats, ride, crash (or splash, or china) and toms. A drum struck harder is brighter as well as louder, a ghost note is a soft dark tap, and no two strokes are quite alike. Jazz and swing keep the hi-hat's foot on two and four under the ride, and their soloists lay back a little behind the beat.
+
+Sherbert was tuned by measuring three Australian future-bass records of the mid-2010s for tempo, groove, stereo width and tonal balance (134 to 145 beats a minute, half-time, chords as wide as the speakers over a mono sub bass); it copies none of their notes or sounds.
+:::
 
 ### The genres' instruments
 
+::: details What you hear in each genre
 | Genre | What you hear |
 |---|---|
+| Sherbert | Future bass with an old games console inside: fast and half-time, with the clap on three. Wide saw chords pump under the kick, bend up into their pitch and wub. Chopped vowels sing the hook in leaps over an 808. Hats roll in sixteenths and thirty-seconds. A console's chord arpeggios sparkle, with coins, jumps, bounces, blips, lasers and power-ups between phrases, and a crowd calls hey, yeah, woo, oh and ayy. Each build's roll climbs an octave and ends on a chopped stutter or a power-up |
+| Persian | A tar strumming the drone in six-eight, a santur's hammered runs and tremolos, a ney or a kamancheh singing in a dastgah (Shur, Homayoun, Chahargah, Mahur or Esfahan), the tombak's tom and bak with finger rolls, and the daf's boom and rings |
+| Guzheng | A Chinese zither's flowing arpeggios and glissandi in a pentatonic mode, an erhu, a dizi with its buzzing membrane, a pipa or the guzheng itself pressing up into its notes, a woodblock, the tanggu's big drum and a gong |
+| Koto | The koto and the shamisen in the in, yo or Ryukyu scale, a breathy shakuhachi bending its notes, the taiko's don and ka, and the kotsuzumi's calls |
+| Kora | The kora's ostinato in twelve-eight under its own running lines in one of its tunings (sauta, silaba or tomora), a buzzing balafon, the djembe's bass, tone and slap over the dunun and its bell, and a shekere |
+| Afrobeat | A long groove: horns, an organ, a guitar chopping sixteenths, a bass riff that never lets go, a busy kit with a shekere and an agogo bell, and a talking drum answering at the end of each phrase |
+| Amapiano | The log drum's woody, sliding bass, jazzy piano chords on the offbeats, a swung shaker, a soft four on the floor, and a flute, sax or soft lead floating over |
+| Dubstep, Brostep and D&B | The bass talks at the end of each phrase of a drop: a bwah flung open, a yoi from oh to ee, a throaty growl or a deep, round wub. FM bleeps sit in the gaps, and phaser sweeps rise through the builds and zip at the turns |
 | Straya | A banjo picking rolls over a yidaki drone on the key note (pulsed by the breath, with toots, barks, the in-breath of circular breathing and a howl), an acoustic strum, a stomp and clap, clapsticks, magpies carolling between the phrases and now and then a kookaburra |
 | Country | An acoustic guitar's boom-chick or a honky-tonk piano, the train beat on the snare or brushes, a bass walking root to fifth, and a twanging guitar, pedal steel, fiddle or harmonica |
 | Blues | A slow shuffle in twelve-bar choruses: a harmonica, an overdriven guitar or a sax answering its own call, an organ or a barrelhouse piano, a walking or boogie bass |
 | Jazz | A combo swinging on the ride: piano or archtop guitar comping, a walking upright bass, and sax, trumpet or vibes on the tune |
 | Swing | The big band: brass section stabs, a clarinet, trumpet or sax lead, a feathered kick, and floor toms in a jungle intro |
 | K-pop | Supersaw stabs and bright plucks, a pulse or chip lead, a synth bass or 808, claps on every beat and a chant in the chorus, and the last chorus a key higher |
-| Metal | A band with power-chord chugs, a metal or overdriven lead, a double kick and crashes through the chorus, toms to turn it, and a phrygian melody |
+| Metal | A band with heavy, double-tracked rhythm guitars through a high-gain amp and a four-by-twelve cabinet, palm-muted chugs, a metal or overdriven lead, a clicky kick and a double kick through the chorus, toms to turn it, and a phrygian melody |
+| Punk | Fast and loud: buzzsaw power chords, a picked bass driving eighths on the root through every section, a fast rock beat, and an overdriven lead or a riff |
+| Ska | Jamaica's fast dance music: a guitar or organ skanking on every offbeat, a walking bass, the hats' chick on the offbeats, and a trumpet, sax or clarinet on the tune |
+| R&B | Smooth and slow: lush sevenths and ninths on a Rhodes, a pad or a felt piano, an 808 sliding underneath or a Motown bass with a sub beneath it in the chorus, a clap or a finger snap on the backbeat, hats that roll, and a soft, sung lead |
 | Fantasy | A harp rippling under a flute, bells or a choir, a lydian melody, a half-time pulse with toms, and a big room |
 | Dreamscape | Pads and a choir, a soft lead, chords held two bars, a slow beat with the hats on the beat, and a long room |
+:::
 
+<!--i:eti-music-->
 ## The music generator
 
-**Music generator** (under Utilities, `#/music`, or **Open in the music generator** in the player's controls while a generated station plays) is a track editor for the same stations. One row of controls holds play, the style, the seed and the length. Below it are a visualiser and the track itself, laid out like a sequence editor: the sections and chords along the top, a lane for the lead, keys, bass, drums and effects, and every note drawn. Each section is named for its genre: a band's drop is its chorus, its break the solo.
+**Music generator** (under Utilities, `#/music`, or **Open in the music generator** in the player's controls while a generated station plays) is a track editor for the same stations. One row of controls holds play, shuffle, the style, the seed, the length, the key, the tempo and **Reset**. Below it are a visualiser and the track itself, laid out like a sequence editor: the sections and chords along the top, a lane for the lead, keys, bass, drums and effects, and every note drawn. Each section is named for its genre: a band's drop is its chorus, its break the solo.
 
-- **The seed.** Type any seed, step with the arrows, choose **Surprise me** for a new one, or drag across the number to slide through seeds and watch the tune change.
-- **Instruments.** A track's own menu sets its instrument for the whole track. Click a section in a lane to change that part in every section of that kind: the bass in every chorus, the lead in every solo, or the drums' snare and cymbals in every pre-chorus. Nothing else about the tune changes.
+**Make a track** in four steps:
+
+::: steps
+- <!--i:eti-sparkles--> **Pick a start** Choose a style and a seed, or shuffle for both. Set the key and tempo if you like.
+- <!--i:eti-layers--> **Change instruments by section** Click a section in a lane to give that part another instrument there.
+- <!--i:eti-sliders--> **Mix the parts** Set each part's level, the effects, the room and the drive.
+- <!--i:eti-download--> **Keep the track** Save the tune to your library, or download an M4A or WAV file.
+:::
+
+The controls in full:
+
+- **Shuffle.** The big round button beside play (in the bottom corner on a phone) draws a new style, a new seed and a sound to suit them: some parts keep the composer's instrument and some get another that the style plays, now and then a kind of section gets an instrument of its own, and the mix, the texture, the brightness and the drive move a little either side of the style's own. The tempo goes back to the tune's own and the length stays yours. Hold Shift to keep the style, the seed and the key, and shuffle only the sound. A playing track plays on in the new one.
+- **Reset** puts every setting back to how the generator opens: Lolly Sings Sugar, seed 2024, 64 bars, every part automatic, the tune's own key and tempo, every level at its designed level, and nothing muted or soloed.
+- **The seed.** Type any seed, step with the arrows, or drag across the number to slide through seeds and watch the tune change.
+- **The key.** The key menu moves the whole tune up to six semitones up or down, and lists each key by name. Every pitched part moves together and the drums stay as they are.
+- **The tempo.** Each tune plays at its own tempo until you set one: type a number of beats a minute in the tempo field, or drag across the field. The notes stay where they are in the bar, so the tune plays faster or slower and nothing else changes. The arrow next to the tempo field returns to the tune's own tempo. The player always plays a station at the tune's own tempo.
+- **Instruments.** Each instrument draws its notes in its own shade of the part's colour. Where a part changes instrument, a line of the new shade runs down the lane, and a chip shows the instrument's family icon and its name. The chip is filled when you chose the instrument and tinted when the composer did. Each lane's head shows the instrument playing at the playhead. A track's own menu sets its instrument for the whole track. Click a section in a lane to change that part in every section of that kind: the bass in every chorus, the lead in every solo, or the drums' snare and cymbals in every pre-chorus. Nothing else about the tune changes.
 - **Playing.** Click the top row to play from a section, double-click a bar to play from that bar, and press space to play or stop. Zoom in, zoom out or fit the whole track; a wide screen shows more of the track.
-- **Sound and mix.** The sliders button opens the levels of each part, the room, the texture, the brightness and the drive.
-- **Keeping a track.** The download button opens **Make the track**, which renders it with progress, then **Download** saves an M4A or WAV file and **Save to library** keeps it in your assets with its recipe. Every setting is in the link, so the link button copies a track that anyone can open, play and change.
+- **Sound and mix.** The sliders button opens the levels of each part, the effects (the risers, the console's sounds, the shouts, the birds, the sparkles, phasers and bleeps), the room, the texture, the brightness and the drive. Each is a pill with its name and value written on it: press anywhere along the pill to set the level or drag along the pill, and the arrow keys step the level. The effects lane has its own mute and solo.
+- **Keeping a track.** **Save to library** keeps the track as a tune: a few hundred bytes holding everything it was made with (its style and seed, instruments, tempo, key, mix and length), saved at once with nothing to render first. The tune plays in the Neurospicy player beside your own audio and in Assets with a player, and you can pick it as an audiogram's sound or a video's music bed (it loops to fill a longer video), always exactly as you made the track. **Make the track** renders it with progress, scheduling its notes a few seconds ahead as it goes, then **Download** saves an M4A or WAV file. Every setting is in the link, so the link button copies a track that anyone can open, play and change.
 
 Escape closes a picker or a panel, then leaves the generator.
 
+<!--i:eti-stamp-->
+## What a track records
+
+A track the generator makes says that Lolly composed it, so nobody mistakes it for a recording or for AI output. The Make panel says what each write records before you click.
+
+- **A saved tune.** **Save to library** records who made the tune, as the name in your profile under Settings → Preferences → Your details. With no name in the profile, no maker is recorded. The maker is a statement of who made the track, not a copyright claim. The tune also records that it was made in the music generator, and the Lolly and engine versions that made the track. Its licence starts as **Not recorded**. Open the tune in Assets to see each record in its details: **Source** reads *Made in the music generator*, with **Made by**, **Made with** and **Licence** below. The **Licence** menu sets a licence for your tune (CC0, CC BY, CC BY-SA and their NonCommercial and NoDerivatives forms), and **Not recorded** clears the licence. A tune saved from the Neurospicy player reads *Saved from the Neurospicy player* and records no maker.
+- **A download.** A WAV or M4A from **Download** carries [Content Credentials](/info/exporting.html#content-credentials-c2pa) while the **Content Credentials** switch in the Make panel is ticked, which it is by default. The credential's created step says *Made with Lolly's music generator (procedural, no AI)*, then the style and the seed, and the credential carries no name. Its digital source type is algorithmic media: music computed by an algorithm, with no sampled or trained material, which Lolly Verify does not flag as AI. Untick the switch to download the file with no credential. After the download, the line under the track repeats what a reading of the written file found.
+- **A tune in another file.** A video or an audio export that plays a saved tune (a video's music bed, an audiogram's sound, a clip on a timeline) records the tune as a source in its Content Credentials: its name, the licence when the tune records one, the SHA-256 of the tune's recipe, the engine version that rendered the tune, and algorithmic media. The maker's name joins that record only while **Use my details to create** is on under Settings → Preferences → Your details, the same switch your name follows everywhere else in an export; with the switch off the name stays on your device and the rest of the record is unchanged. Before you export, a line under **Download** lists the tunes and what the record will name, the maker included only when the name will be written; after the export, the same line reports what a reading of the delivered file found. Untick **C2PA Credentials** to leave the record out. A still image records no tune, because it carries no sound.
+
+<!--i:eti-gauge-->
 ## Performance
 
-The dance stations play many more synthesised voices at once than the Lofi stations. On those stations the player offers **Light visualiser**, which shows the simple level bars instead of the full visualiser so the music has the processing time it needs. The setting is on by default on a modest device, such as a phone or a computer with four cores or fewer, and you can change it in the station's controls at any time.
+The Lolly Sings genres play many more synthesised voices at once than the original Lolly Sings and the Lofi stations. On a genre's station, and on a saved tune from one, the player offers **Light visualiser**, which shows the simple level bars instead of the full visualiser so the music has the processing time it needs. The setting is on by default on a modest device: one with a touch screen, four processor cores or fewer, or 4 GB of memory or less. You can change it in the station's controls at any time.
 
+<!--i:eti-speak-->
 ## No samples, no recorded voices
 
-Every sound is synthesised by Lolly's own code. A generated tune contains no samples, loops or recordings, and no recorded voice. The one vocal sound is the "hey" shout in Sugar and Reggae, which is built from the same oscillators and filters as every other instrument, and it says nothing else. The magpies and the kookaburra are synthesised the same way.
+Every sound is synthesised by Lolly's own code. A generated tune contains no samples, loops or recordings, and no recorded voice. The vocal sounds are built from the same oscillators and filters as every other instrument: the "hey" shout in Sugar, Reggae and K-pop; the shouts (hey, yeah, woo, oh, ayy, uh, ugh, whoa and yo), which Sherbert calls in series, hip hop and R&B use as ad-libs and punk's and ska's bands call together; and Sherbert's chopped vowels, which sing ah, eh, ee, oh and oo with no words. The magpies and the kookaburra are synthesised the same way.

@@ -4,6 +4,7 @@ If you already use another product, these pages say whether Lolly replaces that 
 
 _Last checked: 28 September 2026._
 
+<!--i:eti-grid-->
 ## Compare by product
 
 - [Lolly and Canva](/info/compare-canva.html) - templates, everyday design and shared brand production.
@@ -16,6 +17,7 @@ _Last checked: 28 September 2026._
 
 For the capability-by-capability view, see [How Lolly compares](/info/positioning.html). Each comparison is dated; a claim that no longer matches either product needs correcting.
 
+<!--i:eti-map-pin-->
 ## What runs where
 
 Every comparison covers two parts of one open-source project. **Lolly** is the engine, apps and tools. **Lolly Work** is the organisation server, maintained in the [lolly-work repository](https://github.com/lolly-tools/lolly-work). Both are MPL-2.0, and an organisation decides which Lolly Work services to turn on.
@@ -40,6 +42,7 @@ Every comparison covers two parts of one open-source project. **Lolly** is the e
 
 Standalone use keeps files on the device. Choosing shared projects, a work collab, a server render or delivery sends the data that feature needs to your organisation's server.
 
+<!--i:eti-info-->
 ## What every comparison assumes
 
 These limits apply to every page in this set, so they are stated once here:

@@ -774,7 +774,8 @@ class NeurospicyDockHost implements DockHost {
         run: async () => {
           const recipe = savedTuneOf(getNeurospicy().loopId) ?? currentLofiRecipe();
           if (!recipe || typeof location === 'undefined') return 'Play it first';
-          location.hash = `#/music?style=${encodeURIComponent(recipe.mood)}&seed=${recipe.seed >>> 0}`;
+          // A track saved from the generator opens with everything it was made with.
+          location.hash = 'generator' in recipe && recipe.generator ? `#/music?${recipe.generator}` : `#/music?style=${encodeURIComponent(recipe.mood)}&seed=${recipe.seed >>> 0}`;
           return 'Opening';
         },
       },

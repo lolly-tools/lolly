@@ -4,16 +4,18 @@ This page is for whoever is bringing Lolly to a team: a brand lead, an IT owner 
 
 One question decides whether a rollout is working: does a person who is not a designer leave with a finished, on-brand file without asking anyone? Everything else on this page supports that.
 
+<!--i:eti-info-->
 ## Status
 
 **Lolly is released, and its evidence is young.**
 
-- **Lolly is public.** The engine, every app, the schemas and the docs shipped under MPL-2.0 with the first public release, 1.0.1, on 30 August 2026. The current release is 1.1.2, with installers for macOS, Windows, Linux and Android and the hosted app at lolly.tools. SUSE runs the same code as an internal deployment and shares no usage data. Features, defaults and the tool catalog still move between releases as we learn.
+- **Lolly is public.** The engine, every app, the schemas and the docs shipped under MPL-2.0 with the first public release, 1.0.1, on 30 August 2026. The current release is 1.2.0. Lolly has installers for macOS, Windows, Linux and Android, and the hosted app at lolly.tools. SUSE runs the same code as an internal deployment and shares no usage data. Features, defaults and the tool catalog still move between releases as we learn.
 - **Its security is strong by design and not yet independently audited.** The C2PA provenance seals, the X.509 identity handling and the on-device PDF, ZIP and link encryption are built on standard algorithms, covered by fuzz targets and a written [threat model](/info/threat-model.html). No independent party has audited or certified them. Where a contract requires that assurance, it does not exist yet.
 - **The engine is settled; the adoption record is not.** The engine is deterministic: the same inputs give the same render, and with provenance off many formats reproduce byte for byte ([how far that goes](/info/determinism.html#how-far-byte-identical-renders-go)). There is no public adoption evidence yet. That is deliberate: we collect stories people choose to share, never data gathered invisibly. [We need your story](#we-need-your-story) says how to help.
 
 Judge Lolly as a platform proving one change in behaviour: routine asset creation, done safely and professionally, by the person who needs the file. That gives it a clear job and a clear measure of success.
 
+<!--i:eti-users-->
 ## Who Lolly is for
 
 Adoption succeeds or fails on the **producer**, the non-designer who has to make something on-brand. Everyone else in this table exists to make that person's path frictionless; if producers do not serve themselves, the developer integrations and the governance model have nothing to support.
@@ -28,6 +30,7 @@ Adoption succeeds or fails on the **producer**, the non-designer who has to make
 
 One producer case is easy to miss because it is not marketing at all: **critical communications**. Incident notices, compliance reports and executive briefings are structured data that has to become a clear, finished document in minutes, at any hour, with no design bottleneck in the path. A tool authored once for each of those formats means the 2am incident notice comes out as correct as the campaign poster.
 
+<!--i:eti-graduation-cap-->
 ## What onboarding looks like
 
 ### The first 15 minutes (any producer)
@@ -72,6 +75,7 @@ The **Capabilities** tab in Settings is the inventory to scope that decision aga
 2. Scope a first rollout to a low-risk context, because the independent assurance described in [Status](#status) is still open.
 3. Decide who owns **governance**; see [Governance](#governance-when-a-team-wants-a-process) below.
 
+<!--i:eti-gauge-->
 ## Measuring adoption
 
 We measure a change in behaviour, not feature usage. The main measure is **self-served requests**: routine creative requests that people now serve themselves.
@@ -86,7 +90,9 @@ We measure a change in behaviour, not feature usage. The main measure is **self-
 | **Self-served requests** | Routine requests people now serve themselves | **Lagging; the main measure** |
 | **Story capture** | Concrete before-and-after cases collected from real users | Qualitative |
 
+::: warning Leading signals alone can mislead
 A leading signal moving without the self-served number following is a warning: people are trying Lolly but not yet using it to make their own files. The self-served number is the one that says the behaviour changed.
+:::
 
 Standalone usage counters stay on each device. With **Lolly Work**, its [telemetry and dashboards](/info/work-telemetry.html) can measure allowed usage labels across the instance, in off, aggregate and standard modes. Decide the attribution and consent policy before the pilot. Usage telemetry is separate from the audit record of governed actions, and neither measures the quality of the finished work for you.
 
@@ -100,6 +106,7 @@ Adoption runs on a 90-day feedback loop, which sets how often you check whether 
 - <!--i:checklist--> **Weeks 11 to 12: look back and re-aim.** Read the self-served number, then decide which tools and which cohort come next.
 :::
 
+<!--i:eti-shield-check-->
 ## Governance, when a team wants a process
 
 Most people just make things: they work in the app, save what they make as a **session** and pass it on as a share link, a backup or a live collaboration, with no git and nothing to wait for.
@@ -122,12 +129,14 @@ A **git-backed catalog** gives an organisation a reviewable source of truth. Its
 
 The most common setback is framing and change management, not technology. Existing processes work today even when the output is off-brand, and "we can already make files" becomes the reason not to migrate. The counter is to convert one high-visibility output well and let the before and after make the case. See the [FAQ on adoption hurdles](/info/faq.html#faq-what-hurdles-could-i-expect-adopting-lolly).
 
+<!--i:eti-chat-->
 ## We need your story
 
 Standalone Lolly reports no usage to the project. An organisation can collect its own configured telemetry in Lolly Work, but those records stay with its operator and never reach us automatically. To learn how your pilot works, we depend on the evidence you choose to share.
 
 If you are piloting Lolly, the most valuable thing you can contribute is a concrete before and after: what you used to do, what you did with Lolly, how long it took and where it fell short. That evidence, not more architecture, is what moves Lolly from promising to proven.
 
+<!--i:eti-clock-->
 ## What Lolly is not yet
 
 - **Not yet independently audited.** See [Status](#status).

@@ -309,6 +309,20 @@ Lolly 附带一个 CMYK 配置文件，它按 Fogra 的 FOGRA39 特性化数据�
 有三样东西会在保留输出意图的同时撤回该声明：CMYK 处理无法转换的 RGB 作品、`prov` 校样边距署名文字（以未嵌入的标准字体绘制）和 **Strong** 密码，因为 PDF/X-4 禁止加密。每个 PDF 还带有 PDF/X-4 元数据：页面框、XMP、文档 ID 以及带配置文件的 sRGB 输出意图。
 :::
 
+### 专色转为印刷四色
+
+A design system can give a colour a spot ink, such as a Pantone or HLC colour. The **Print PDF** then prints that colour on a plate of its own, so the printer runs the job with that ink. Lolly Demo gives every colour a spot ink except its whites, Sugar and Daylight, and its black, Void, so a Print PDF made in Lolly Demo prints most colours on spot plates and black on the black plate.
+
+When you need a plain four-colour file, tick **Print spot inks as process** in the export panel's Profile card. Each spot ink then prints with cyan, magenta, yellow and black, using the CMYK build the design system gives that colour. A colour with no build of its own takes the press profile's conversion, the same as every other colour in the artwork. The file then has the four process plates and nothing more. The choice is off by default. The panel shows the box for **Print PDF** only, and only when the design system gives a colour a spot ink.
+
+A finish is not an ink. Foil, emboss, deboss, spot varnish, soft touch, die cut, crease and perforation keep their own named plates with the box ticked, because a finish printed in process would put its black mask on the page.
+
+The **Before you export** card and `lolly preflight` count the plates the file will have. With the box ticked they count the four process plates and any finish plates, and say that the spot inks print as process and add no plates. With the box clear they count up to one spot plate for each spot ink the design system gives, as before. A rate card prices those counts, so it does not price spot plates that the file will not have.
+
+The **Print TIFF** and **EPS (CMYK)** have no named plates, so they print every ink in process with or without the choice. For those two formats the card and `lolly preflight` count the four process plates and never a spot or finish plate. A finish goes into them as its black mask on the black plate, and the card reports that as an error.
+
+A link asks for the same file with `_spots=process`, the command line with `--spots=process`, the [MCP server](/info/mcp.html) with `spots: "process"` and the terminal app with its **Spot inks** row. Nothing about the choice goes into the file: only the inks change.
+
 ### HDR（明亮色彩）
 
 这是导出面板的 **HDR** 卡片，它为 HDR 屏幕提亮普通作品。在编辑中保留 HDR 原件是另一项功能：[广色域与 HDR 编辑](/info/hdr-editing.html)。

@@ -17,12 +17,20 @@ connection does not use yet.
 | Approval and dates from fields you choose | AI calls, uploads, metadata edits or new public shares |
 | Byte ranges for large files | A DAM cutover |
 
+<!--i:eti-checklist-->
 ## Onboarding
 
-1. Agree the exact tenant and storage origins, administrator query, rendition codes and Lolly Work groups. Label this pilot as rendition access: it does not provide protected originals.
-2. Seal the application credential or bearer token described below, map your tenant's approval and date fields, and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
-3. Run the [Orange Logic tenant check](tenant-check.md#orange-logic). Check rendition labels and bytes, refusal of substituted files, mapped governance and group access in a real Lolly task before widening the source.
+1. **Scope.** Agree the exact tenant and storage origins, administrator query, rendition codes and Lolly Work groups. Label this pilot as rendition access: it does not provide protected originals.
+2. **Connection.** Seal the application credential or bearer token described below, map your tenant's approval and date fields, and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
+3. **Tenant check.** Run the [Orange Logic tenant check](tenant-check.md#orange-logic). Check rendition labels and bytes, refusal of substituted files, mapped governance and group access in a real Lolly task before widening the source.
 
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The endpoint is public Search v4 with JSON
+forced, numbered pages, binned assets excluded and format generation turned off. It does not
+turn on semantic search or treat a semantic result set as the full catalog.
+:::
+
+<!--i:eti-clipboard-->
 ## What you need
 
 - **The exact HTTPS origin** of your Orange Logic environment, including a custom domain if you
@@ -34,6 +42,7 @@ connection does not use yet.
 
 Use the advanced **Providers > Orange Logic** form or `lw`.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 JSON with `clientId` and `clientSecret` for your organisation's application account. Lolly Work
@@ -46,6 +55,7 @@ the command line or a source URL. A config-managed source gives, in `credentialR
 an environment variable holding the credential. A token bound to an IP address needs a stable
 outbound path from the Lolly Work instance.
 
+<!--i:eti-code-->
 ## instance.json
 
 ```json
@@ -90,6 +100,7 @@ mapping, approval is unknown; with a field set, a record without a matching valu
 approved. Availability fields read the exact metadata keys returned, as ISO 8601 dates. This is
 not a full territory, channel or agreement rights evaluator.
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind orange-logic --options '{"baseUrl":"https://dam.your-host.example","query":"ParentFolderIdentifier:APPROVED"}' --shape
@@ -100,16 +111,18 @@ lw providers sync orange-media
 lw providers enable orange-media
 ```
 
+::: check Before you enable the source
 Check the sample, metadata, rendition labels and group access before enabling, then run the
 [Orange Logic check](tenant-check.md#orange-logic). A successful HTTP call proves neither the
-file's fidelity nor an upstream rights clearance. Contributors changing the driver follow its
+file's fidelity nor an upstream rights clearance.
+:::
+
+Contributors changing the driver follow its
 [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/orange-logic.md) in the Lolly Work repository.
 
+<!--i:eti-info-->
 ## Notes / limits
 
-- **Not yet confirmed against a live tenant.** The endpoint is public Search v4 with JSON
-  forced, numbered pages, binned assets excluded and format generation turned off. It does not
-  turn on semantic search or treat a semantic result set as the full catalog.
 - **Identity.** `SystemIdentifier` is the permanent id. A file reference includes a fingerprint
   of the source's edit and checksum fields and the rendition code, so a rename keeps the asset
   and a changed source needs a refresh. This is not retrieval of past revisions or proof that a
@@ -132,9 +145,14 @@ file's fidelity nor an upstream rights clearance. Contributors changing the driv
   responses, proxies and storage origins all need checking on your tenant. An approval mapping
   grants no AI processing authority and is not a full rights policy.
 
+<!--i:eti-folder-move-->
 ## Off-boarding
 
-Materialize can copy exposed renditions, with that limitation retained in their metadata. **Lolly Work refuses cutover for Orange Logic** because protected originals are unavailable through this connector. A successful preview or rendition copy cannot qualify an exit that preserves originals.
+Materialize can copy exposed renditions, with that limitation retained in their metadata.
+
+::: warning Lolly Work refuses cutover for Orange Logic
+Protected originals are unavailable through this connector. A successful preview or rendition copy cannot qualify an exit that preserves originals.
+:::
 
 The [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) explains how to run the destination, but does not remove this source limitation. An original-preserving migration needs a separately obtained, implemented and tested original-export path, plus checks for every required format. Keep Orange Logic authoritative until that work and the acceptance checks in [Leave a DAM](../offboarding.md) are complete.
 

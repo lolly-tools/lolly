@@ -10,7 +10,7 @@ The file and the environment are read when the server starts; governance changes
 :::
 
 - **`instance.json`** shapes the deployment: who can sign in, storage, limits and the render
-  worker. The standalone server, Compose and Helm read `./instance.json`, or the path in
+  worker. Helm, Compose and the standalone server read `./instance.json`, or the path in
   `LW_CONFIG`, when the server starts. Edit the file and restart; on Helm, update the ConfigMap
   and roll the pods. The serverless function entrypoint reads the whole configuration from the
   `LW_CONFIG_JSON` string instead ([environment variables](#serverless-entrypoint)).
@@ -24,7 +24,10 @@ The file and the environment are read when the server starts; governance changes
 ![Feature-flag governance in the console: each flag's default state and whether people may change it](shots/feature-flags.svg)
 
 Unset keys take the defaults on this page. `instance.example.json` in the Lolly Work repository is a
-working starting point, and `server/src/config/instance.ts` is the authority.
+working starting point, and `server/src/config/instance.ts` is the authority. On a running
+instance, the console's **Limits and quotas** tab, and `GET /api/v1/limits` (`policy.edit`), list
+each limit the instance enforces with its value and its source: configuration, environment or a
+built-in default.
 
 ## A starting file
 
@@ -69,10 +72,13 @@ deployment files for a staged owner cutover ([Customer setup](customer-setup.md)
 | `application` | `api` | `api` serves the console and API without requiring an employee shell. `web` requires a governed shellDir or external appUrl. A configured shellDir is checked in either profile. |
 | `requireServerRendering` | `false` | Require every advertised tool to have at least one configured server format. Hooked and HTML-layout tools need a worker URL and secret. This checks configuration, not a successful worker render. |
 
+::: note What production refuses
 Production refuses memory storage, development login, open access, missing identity,
 an unsafe public base URL, signing secrets shorter than 32 bytes, inconsistent worker
-or signer configuration, and an incompatible active pack. Helm defaults to production;
-the evaluation overlay and example JSON select evaluation.
+or signer configuration, and an incompatible active pack.
+:::
+
+Helm defaults to production; the evaluation overlay and example JSON select evaluation.
 
 ## `instance`
 
@@ -123,7 +129,7 @@ in evaluation only; production still refuses the old shell.
 | `displayName` | `""` | human name on the sign-in button ("Keycloak", "Company SSO", "ZITADEL"). Empty ⇒ "SSO" |
 | `groupsClaim` | `groups` | the claim carrying group membership |
 | `claimMap` | `given_name` / `family_name` / `email` / `title` | which claims fill firstname, lastname, email, title. `email_verified` vouches only for the `email` claim: a remapped email counts as verified only when it equals `email`, otherwise only under `emailVerification: trusted` |
-| `roleGroups` | `{}` | exact groups for owner/admin/approver/author/member/viewer. Highest match wins; unmatched accounts are members. Omitted high roles retain literal legacy names; omitted member/viewer have no mapping. An explicit empty array disables that role mapping. Each group can appear once. Applies to IdP and local groups, including existing accounts after restart. |
+| `roleGroups` | `{}` | exact groups for owner/admin/brand-manager/approver/author/member/viewer. Highest match wins; unmatched accounts are members. Omitted owner/admin/approver/author retain literal legacy names; omitted brand-manager/member/viewer have no mapping, so `brand-manager` is held only through this mapping ([roles](permissions.md#roles)). An explicit empty array disables that role mapping. Each group can appear once. Applies to IdP and local groups, including existing accounts after restart. |
 | `additional` | `[]` | further IdPs beside the primary - each `{ id, kind?, issuer, clientId, displayName, groupsClaim?, claimMap?, clientSecretRef? }`. `kind` is `oidc` (default), `github` or `password`. A GitHub entry takes no `issuer`, needs `clientSecretRef`, refuses `scopes`, `authParams`, `hostedDomain` and `tenantId`, and accepts only `emailVerification: "claim"` (see the [GitHub recipe](identity-providers.md#github)). A `password` entry is described below. Unset claims inherit the primary's; the secret rides the env var `clientSecretRef` names; subs store namespaced `<id>:<sub>`. With several houses, plain `/api/auth/login` serves a chooser. Each entry may also set the per-IdP keys below (`hostedDomain`, `tenantId`, `emailVerification`, `scopes`, `authParams`); those are never inherited from the primary. See [more than one IdP](identity-providers.md#more-than-one-idp) |
 | `admission` | absent | who may sign in, checked on every OIDC, GitHub, password and proxy sign-in before a user row is written: `{ emails?: string[], domains?: string[], invitations?: boolean (default true) }`. Absent = every verified sign-in is admitted (production setup warns). `{}` admits invitations only. Admission by email, domain or invitation needs a verified email (see `emailVerification`). See [who may sign in](identity.md#who-may-sign-in) |
 | `linkedStandingDays` | `30` | whole days, 1-365. How long one sign-in's IdP groups, and the account's own sign-in's standing under `admission`, carry over to the person's other linked sign-ins. See [one person, several sign-ins](identity.md#one-person-several-sign-ins) |
@@ -152,8 +158,10 @@ acceptance checks and lifecycle procedures.
 | `assurance.maxAgeSeconds` | absent | Integer 0-86400; requires `auth_time` within this age, with sixty seconds of tolerance |
 :::
 
-Gated access needs `idp.issuer`, `proxyAuth.enabled` or a `password` entry - or
-`dev.enabled` for local work. The server refuses to start otherwise. See [identity](identity.md).
+::: note Gated access needs a sign-in
+Gated access needs `idp.issuer`, `proxyAuth.enabled` or a `password` entry, or `dev.enabled`
+for local work. The server refuses to start otherwise. See [identity](identity.md).
+:::
 
 ### Email and password (`kind: "password"`)
 
@@ -186,8 +194,10 @@ For people who cannot use the instance's other sign-ins. Add one entry to `idp.a
   top of the lockout. A browser that runs out gets a page saying to wait a minute.
 - The forms are served with `Referrer-Policy: strict-origin`, not `no-referrer`: a form post
   from a `no-referrer` page carries `Origin: null`, which the CSRF check refuses. A proxy in
-  front must not replace that header on `/api/auth/` (the YunoHost package's nginx sets
-  `no-referrer` on `/api/`, so email and password sign-in does not work there as shipped).
+  front must not replace that header on `/api/auth/`. The YunoHost package's nginx set
+  `no-referrer` on `/api/` up to `1.2.0~ynh1`, which broke email and password sign-in,
+  invitation joins and password-protected share links there; from `1.2.0~ynh2` it keeps the
+  server's own policy.
 
 How people get and reset a password, who may issue a link, the lockout and what each sign-in
 checks are in [email and password](identity.md#email-and-password).
@@ -393,11 +403,14 @@ What each telemetry level stores, and what is never recorded, is in [telemetry](
 | `allowHooksInFastPath` | `false` | whether the in-process jsdom path may run a tool's `hooks.js`. Default refuses hooked tools with `501 HOOKED_TOOL_NEEDS_CHROMIUM`. When on, a tool whose manifest `requires` identifies a `host.*` API the in-process host lacks is refused with `501 TOOL_REQUIRES_UNMET` before any hook runs. Hooks run in a `node:vm` context with the DOM and host bridge but no `process`, `require` or `fetch` - contained, not isolated. Turn on only for a pack you curate end to end; the server warns at boot when it is on for any pack other than the bundled `packs/demo` |
 | `worker.url` | `""` | the Chromium render worker. Set (with `LW_RENDER_WORKER_SECRET`) ⇒ hooked/HTML-heavy tools dispatch there instead of `501`. **This pair is the render-topology switch** - the deployment's capability set is advertised to shells via org_config's `render` block either way ([deployment](deployment.md)) |
 | `worker.timeoutMs` | `20000` | per-job timeout |
+| `worker.dispatch` | `push` | how jobs reach the worker. `push` posts each job to `worker.url`. `pull` holds each job in Lolly Work until a worker leases it and reports the answer back; start the workers with `LW_RENDER_PULL_URL` set to this instance. `worker.url` is still required and still serves file previews |
+| `worker.pull.leaseMs` | `15000` | pull dispatch: how long a lease lasts without renewal, from 1000 to 120000 milliseconds |
+| `worker.pull.queueTimeoutMs` | `30000` | pull dispatch: how long a job waits for a worker before it fails as `503 RENDER_BUSY`, from 1000 to 600000 milliseconds |
 | `worker.connectRetryMs` | `30000` | how long a job keeps trying a worker that refuses the connection, from 0 to 120000 milliseconds. A worker that is restarting, or out of its Service while its slots are full, counts as busy: the job tries again with a short backoff and, when the time is up, fails as `503 RENDER_BUSY` with `Retry-After`. Any other worker failure is returned at once. Push dispatch only |
 | `c2pa.certFile` | `""` | signing-cert chain PEM (leaf first), public |
 | `c2pa.claimGenerator` | `""` | producer label in the signed manifest |
 
-Production worker and SIEM service URLs require HTTPS with verified server
+**Worker and SIEM addresses.** Production worker and SIEM service URLs require HTTPS with verified server
 certificates. Requests cannot follow redirects or include URL credentials, query
 strings or fragments. HTTP is accepted only for explicit loopback evaluation
 fixtures. For an internal CA, mount its public PEM read-only and set
@@ -406,18 +419,18 @@ fixtures. For an internal CA, mount its public PEM read-only and set
 continues to authenticate the control plane. TLS certificates and trust mounts
 need their own deployment qualification.
 
-Every tool in the committed `packs/demo` ships hooks, so `instance.example.json` and
+**Hooks in the demo pack.** Every tool in the committed `packs/demo` ships hooks, so `instance.example.json` and
 `values-eval.yaml` both set `allowHooksInFastPath: true`: that pack is curated in the Lolly Work
 repository end to end. Point `instance.pack` at a pack you do not fully control and set it back
 to `false`, with a Chromium worker for the hooked tools.
 
-The Chromium worker always runs its browser sandbox. A bounded launch begins at startup, and the
+**The browser sandbox.** The Chromium worker always runs its browser sandbox. A bounded launch begins at startup, and the
 worker's `/readyz` stays unavailable until the browser connects; failed startup or recovery
 stops the worker, with no unsandboxed fallback. Qualify the exact Linux image and target runtime
 with the existing non-root, seccomp and container permissions before rollout, and keep a host
 that refuses the sandbox out of service until its runtime is qualified.
 
-At capacity the worker answers `503 RENDER_BUSY` with `Retry-After` at once, with no internal
+**At capacity.** The worker answers `503 RENDER_BUSY` with `Retry-After` at once, with no internal
 queue, so saturation stays visible to the autoscaler. Readiness follows the browser, not capacity:
 a full worker stays ready, its `/readyz` reports `atCapacity: true`, and a job already under way
 can still make its next call, such as the raster of the SVG it has just rendered. Its concurrency, timeouts and startup budget are set in its own environment (see
@@ -443,9 +456,10 @@ restricted deletion access in the receiving system - see [audit](audit.md).
 | `enabled` | `false` | enables `/api/auth/dev?email=…`, a passwordless local provider |
 | `users` | `[]` | `{ email, name?, groups? }` entries the dev provider will admit |
 
-**Keep this off in production.** It bypasses OIDC entirely, and setting `idp.issuer` does
-not turn it off - the two run side by side and the passwordless route stays live. The server
-warns at boot when it finds both.
+::: warning Keep `dev` off in production
+It bypasses OIDC entirely, and setting `idp.issuer` does not turn it off: the two run side by
+side and the passwordless route stays live. The server warns at boot when it finds both.
+:::
 
 ## `proxyAuth`
 
@@ -698,9 +712,12 @@ approved requests to join for addresses with no account yet. They go through one
 mails each recipient's verified address, or the address of an invitee or a person asking to join
 who has no account yet.
 
-In this release they stay inbox-only, and every page and answer says so: the request page says
-the instance does not send email yet, and the console never shows "Emailed" for a mail that did
-not go. Email turns on only when all three hold: `people.email` is `true`, `smtp` is set, and the
+::: note People notices stay in the inbox in this release
+Every page and answer says so: the request page says the instance does not send email yet, and
+the console never shows "Emailed" for a mail that did not go.
+:::
+
+Email turns on only when all three hold: `people.email` is `true`, `smtp` is set, and the
 server's mail sender can confirm that the relay accepted each message. This release's sender
 sends and forgets, so it cannot confirm.
 
@@ -841,14 +858,14 @@ Server-side catalog connectors use `network.providers` for outbound requests.
 | `network.providers.redirectOrigins` | `[]` | exact origins a GET or HEAD read may be redirected to from another origin |
 | `network.providers.maxBytes` | `67108864` | largest request and decoded response (64 MiB), from 1 byte to 1 GiB |
 
-Initial destinations must resolve entirely to public addresses unless their exact
+**Private addresses.** Initial destinations must resolve entirely to public addresses unless their exact
 origin appears in `allowedPrivateOrigins`. Private deployments list only reviewed
 origins, including the intended scheme and port; paths and wildcards are refused.
 Native connections use a checked DNS answer while retaining the original Host and
 TLS hostname. For internal HTTPS services, use the same read-only CA trust setup
 described for other service connections.
 
-Cross-origin redirects require `redirectOrigins`, and only GET/HEAD reads may
+**Redirects and limits.** Cross-origin redirects require `redirectOrigins`, and only GET/HEAD reads may
 follow them. Credential and custom headers are removed on a cross-origin hop.
 Every hop is checked again, with at most three redirects. Explicit error/manual
 redirect modes retain their stricter caller behavior. The default private and
@@ -858,7 +875,7 @@ changing that limit. Requests have a 30-second budget. These controls apply to
 catalog federation, setup/consent checks, preview, hosted catalog bytes and publish
 requests. They do not define the identity provider or delivery destination policy.
 
-Deploy-time (GitOps / air-gap) provider entries, upserted at boot as `managedBy: 'config'`
+**Config-managed entries.** Deploy-time (GitOps / air-gap) provider entries, upserted at boot as `managedBy: 'config'`
 and read-only in the API. Each entry: `id` (lowercase, dash-separated), `kind`, `label`,
 optional `credentialRef` (the *name* of the env var holding the secret), `enabled`,
 `options`, `mapping`, `exposure`, `sync`. Duplicate ids, unknown kinds and missing labels
@@ -931,7 +948,7 @@ supports tool rendering; qualify preview behavior with the paired shell release.
 
 | Var | Default | What |
 |---|---|---|
-| `LW_CONFIG` | `./instance.json` | config file **path**. The one the standalone server, Compose and Helm read |
+| `LW_CONFIG` | `./instance.json` | config file **path**. The one Helm, Compose and the standalone server read |
 | `DATABASE_URL` | - | Postgres. Unset ⇒ in-memory store (evaluation only) |
 | `DATABASE_URL_UNPOOLED` | - | a direct (unpooled) Postgres URL that migrations run over when set; otherwise they use `DATABASE_URL` |
 | `LW_AUTO_MIGRATE` | `true` when unset | boot-time DDL. `false`/`0`/`off`/`no`/empty ⇒ no DDL and refuse to start on a pending schema (the HA invariant) |
@@ -997,4 +1014,5 @@ The Chromium render worker is a separate process with its own environment.
 | `LW_RENDER_NAV_TIMEOUT_MS`, `LW_RENDER_EXPORT_TIMEOUT_MS` | `30000`, `20000` | per-render timeouts |
 | `LW_RENDER_TS_SKEW_MS` | `300000` | the clock skew the request HMAC tolerates between server and worker |
 | `LW_RENDER_BROWSER_STARTUP_TIMEOUT_MS` | `30000` | browser startup and recovery budget, from 1000 to 120000 |
+| `LW_RENDER_PULL_URL` | - | turns on pull dispatch on the worker side: this instance's HTTPS address (HTTP only for explicit loopback evaluation), with no credentials, query or fragment. The server needs `render.worker.dispatch: "pull"` too |
 | `PORT` | `8791` | listen port |

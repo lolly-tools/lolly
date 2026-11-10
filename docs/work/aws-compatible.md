@@ -8,11 +8,14 @@ your own data centre or at the edge. The same AWS command line tool, Terraform o
 files and Kubernetes tools work on both. On Spinifex you point them at its endpoints instead
 of Amazon's.
 
-> This guide comes from test runs on a Spinifex sandbox with AWS CLI v2.38 between 26 and
-> 29 October 2026: a full run of the four shapes, a re-run with a load balancer and a render
-> load test, and on 29 October the Lolly Work 1.1.3 ready-made package on one VM. The issues
-> those runs reported to MulgaDC are fixed, so no step below needs a workaround.
+::: note Tested on a Spinifex sandbox
+This guide comes from test runs on a Spinifex sandbox with AWS CLI v2.38 between 26 and
+29 October 2026: a full run of the four shapes, a re-run with a load balancer and a render
+load test, and on 29 October the Lolly Work 1.1.3 ready-made package on one VM. The issues
+those runs reported to MulgaDC are fixed, so no step below needs a workaround.
+:::
 
+<!--i:eti-grid-->
 ## Choose a shape
 
 All four shapes passed the same acceptance on Spinifex: the first owner signs in, members
@@ -23,17 +26,22 @@ listed the tools and drew a QR code.
 
 | Shape | What runs where | Choose it when |
 |---|---|---|
-| **One VM** | An EC2 virtual machine runs the [ready-made package](ready-made-package.md): Lolly Work, PostgreSQL, the web app and Caddy in Docker Compose | You want the fewest moving parts |
-| **One VM with managed services** | The same VM, with the database on RDS PostgreSQL and files on S3 | You want database backups and file storage handled by the cloud |
-| **Kubernetes** | The [Lolly Work chart](platform-deployment.md) on an EKS cluster, with RDS and S3 | You already run Kubernetes, or want render workers that scale |
-| **Lolly appliance** (preview) | openSUSE Leap 16.1 Immutable with K3s, Lolly Work and its own PostgreSQL, imported as your own machine image | You want a host that updates itself in snapshots and rolls back |
+| **[Kubernetes](#kubernetes)** | The [Lolly Work chart](platform-deployment.md) on an EKS cluster, with RDS and S3 | You already run Kubernetes, or want render workers that scale |
+| **[Lolly appliance](#lolly-appliance-preview)** (preview) | openSUSE Leap 16.1 Immutable with K3s, Lolly Work and its own PostgreSQL, imported as your own machine image | You want a host that updates itself in snapshots and rolls back |
+| **[One VM](#one-vm)** | An EC2 virtual machine runs the [ready-made package](ready-made-package.md): Lolly Work, PostgreSQL, the web app and Caddy in Docker Compose | You want the fewest moving parts |
+| **[One VM with managed services](#one-vm-with-managed-services)** | The same VM, with the database on RDS PostgreSQL and files on S3 | You want database backups and file storage handled by the cloud |
 
 Render output was byte-for-byte identical between the Kubernetes and appliance runs, and
-between the two VM shapes, although each pair ran different Lolly Work builds.
+between the two VM shapes, although each pair ran different Lolly Work builds. What the runs
+did not cover, such as render workers under load and restoring the managed database, is
+listed under [not tested yet](#not-tested-yet).
 
+<!--i:eti-sliders-->
 ## Point the AWS tools at Spinifex
 
-On AWS, skip this section: the tools find Amazon's endpoints themselves.
+::: note On AWS, skip this section
+The AWS tools find Amazon's endpoints themselves.
+:::
 
 Spinifex serves its compute, identity, database, Kubernetes and registry APIs from one
 endpoint and object storage (S3) from another. Add a profile to `~/.aws/config`, with your
@@ -69,18 +77,23 @@ certificate from the metadata service:
 curl -fsS http://169.254.169.254/spinifex/ca.pem -o spinifex-ca.pem
 ```
 
+::: warning Check the certificate's fingerprint first
 Compare its fingerprint with the one your Spinifex administrator publishes before you trust
 the file.
+:::
 
+<!--i:eti-monitor-->
 ## One VM
 
 1. Launch a Debian 13 or Ubuntu 24.04 instance with at least 2 vCPUs, 4 GiB of memory and
    40 GB of disk. Allow TCP 80 and TCP and UDP 443 in its security group, and SSH only from
    your administrators' addresses.
 2. Install Docker.
-3. Follow [Install the ready-made package](ready-made-package.md) from **Lolly Write the
-   installation folder** onwards.
+3. Follow [Install the ready-made package](ready-made-package.md) from
+   [Write the installation folder](ready-made-package.md#write-the-installation-folder)
+   onwards.
 
+<!--i:eti-layers-->
 ## One VM with managed services
 
 Start from **One VM**, then move the database and files out.
@@ -96,9 +109,11 @@ aws rds create-db-instance --db-instance-identifier lolly-work \
   --vpc-security-group-ids "$DB_SECURITY_GROUP"
 ```
 
-Leave out `--publicly-accessible`. Spinifex refuses the flag, because the database endpoint is
-a private address in the VPC. In the re-run the database was available about four minutes
-after the request.
+::: note Leave out `--publicly-accessible`
+Spinifex refuses the flag, because the database endpoint is a private address in the VPC.
+:::
+
+In the re-run the database was available about four minutes after the request.
 
 Lolly Work connects with full certificate verification. Put the Spinifex certificate authority
 where the server container can read the file, and set the connection to verify the host name:
@@ -145,6 +160,7 @@ back byte for byte with their own content types. For a store that drops them,
 [Stores that drop object metadata](configuration.md#blobs) explains how Lolly Work keeps them in
 records of its own.
 
+<!--i:eti-lock-->
 ## Put a load balancer in front
 
 An Application Load Balancer can end HTTPS for Lolly Work with a certificate from ACM. The re-run
@@ -192,12 +208,18 @@ people joined one session over WebSocket, both with an HTTP/1.1 upgrade and over
 edit reached the other seat in 173 ms (median of 20, measured from outside the cloud), and
 the sockets stayed open through 90 idle seconds.
 
-**Client addresses.** The load balancer adds the client's address to `X-Forwarded-For`.
-With Caddy between the load balancer and Lolly Work, add the VPC range to Caddy's
-`trusted_proxies` and set `trustedProxyHops` to `2`, so Lolly Work's per-address
-[rate limits](configuration.md#ratelimit) apply to each person rather than to everyone at
-once.
+::: warning Count both proxies for client addresses
+The load balancer adds the client's address to `X-Forwarded-For`. With Caddy between the
+load balancer and Lolly Work, add the VPC range to Caddy's `trusted_proxies` and set
+`trustedProxyHops` to `2`. Otherwise Lolly Work's per-address
+[rate limits](configuration.md#ratelimit) apply to everyone at once rather than to each
+person.
+:::
 
+To cache public files at an edge as well, see
+[Put a CDN in front of Lolly Work](edge-cdn.md).
+
+<!--i:eti-gauge-->
 ## Render capacity
 
 The re-run sent 300 durable render jobs through the load balancer from outside the cloud:
@@ -211,10 +233,15 @@ raised for the test, because every request came from one address.
 | 10 | 13.4 | 610 ms | 856 ms | 251 ms | about 1.2 cores |
 | 25 | 17.9 | 1,249 ms | 1,783 ms | 1,025 ms | about 1.6 cores |
 
-All 600 jobs succeeded. With the default buckets, the same 300 jobs from one address used up
-the automation bucket within seconds and then ran at about 0.4 renders a second, limited by
-the rate limit rather than the server.
+All 600 jobs succeeded.
 
+::: note One address shares one automation bucket
+With the default buckets, the same 300 jobs from one address used up the automation bucket
+within seconds and then ran at about 0.4 renders a second, limited by the rate limit rather
+than the server.
+:::
+
+<!--i:eti-hexagon-->
 ## Kubernetes
 
 1. **Create the cluster.** An EKS cluster on Spinifex is K3s underneath (K3s 1.32 on Alpine
@@ -264,13 +291,30 @@ the rate limit rather than the server.
 5. **Check readiness.** `kubectl -n lolly get pods` should show Lolly Work ready. If Lolly Work is not
    ready, `/readyz` answers with `checks` that say which condition is holding readiness back.
 
+<!--i:eti-package-->
 ## Lolly appliance (preview)
 
 The [Lolly appliance](https://github.com/lolly-tools/lolly-work/tree/main/deploy/appliance)
 is a disk image that boots into a working Lolly Work: openSUSE Leap 16.1 Immutable, K3s, Lolly Work in
 production mode, its own PostgreSQL, HTTPS with the machine's own certificate and Cockpit for
-the host. It is built on the Leap 16.1 release candidate. Spinifex does not offer
-`ImportImage` or `ImportSnapshot`, so bring the image in through a volume and a snapshot:
+the host.
+
+::: note A preview on a release candidate
+The appliance is built on the Leap 16.1 release candidate, and no appliance image is
+published. Build the disk yourself or take it from Lolly Work's CI build, as in step 1.
+:::
+
+One image definition builds two runtime profiles. **k3s**, the default, runs Lolly Work
+under K3s, installed by K3s's Helm controller. **podman**, for small machines, runs the
+same release as Podman containers defined by Quadlet units, and idles in about half the
+memory of the k3s profile. On both, `lolly-update` applies signed Lolly Work updates, host
+updates land in read-only root snapshots, and the host rolls back when Lolly Work does not
+come up after one. The steps below use the k3s profile.
+
+![The Lolly appliance on its k3s profile: people reach Lolly Work over HTTPS with the machine's own certificate, and Lolly Work keeps its records in its own PostgreSQL. An administrator reaches Cockpit through an SSH tunnel, because Cockpit answers only from local networks, and manages the openSUSE Leap 16.1 Immutable host, which updates in snapshots and can roll back.](/info/diagrams/work-deployment/appliance.svg)
+
+Spinifex does not offer `ImportImage` or `ImportSnapshot`, so bring the image in through
+a volume and a snapshot:
 
 1. **Get the x86_64 raw disk.** Build `lolly-appliance-<version>-x86_64.raw` with the
    appliance's `build.sh` on an x86_64 Linux host, or take the compressed raw disk from
@@ -310,6 +354,7 @@ first run built the same stack by hand from the plain Leap image and Lolly Work'
 [K3s kit](https://github.com/lolly-tools/lolly-work/tree/main/deploy/suse); the appliance
 now does those steps at first boot.
 
+<!--i:eti-flask-->
 ## Not tested yet
 
 The Chromium render worker and render workers scaling under load, several Lolly Work replicas,

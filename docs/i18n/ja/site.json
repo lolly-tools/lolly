@@ -510,7 +510,7 @@
   "Adoption and governance": "導入とガバナンス",
   "Governance": "ガバナンス",
   "Host Lolly": "Lolly をホストする",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "静的な Web ホストなら手軽で、エアギャップのネットワークにも同じ手順で導入できます。組織向けサーバーの Lolly Work もオープンソースです。1 台のマシン、Kubernetes、またはプラットフォームチームと一緒に運用できます。",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "静的な Web ホストなら手軽で、エアギャップのネットワークにも同じ手順で導入できます。組織向けサーバーの Lolly Work もオープンソースです。Kubernetes、1 台のマシン、またはプラットフォームチームと一緒に運用できます。",
   "Deployment": "デプロイ",
   "Privacy": "プライバシー",
   "The utilities": "ユーティリティ",

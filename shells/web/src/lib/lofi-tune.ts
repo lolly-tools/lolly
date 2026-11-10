@@ -11,6 +11,11 @@
  * lib/lofi-station.ts, with the listener's drums and texture; the asset details, a
  * video's music bed and any tool reading audio render it to PCM or a WAV first.
  *
+ * A tune saved from the music generator carries the generator's settings too (version 2:
+ * its instruments per section, tempo, key, mix and length, as the generator's link
+ * parameters), so it plays and renders exactly as it was made, everywhere a saved tune
+ * plays: the player, the asset details, a video's music bed, an audiogram.
+ *
  * Nothing heavy loads with this module: the composer and the station are imported at
  * the point a tune is rendered.
  */
@@ -25,12 +30,16 @@ const KIND = 'lolly-lofi-tune';
 /** Reverb and echo still ringing after the last bar, rendered so the end is not cut. */
 const TAIL_SECONDS = 2.5;
 
-/** A saved tune's recipe: its station's mood and its seed. */
-export type LofiTuneRecipe = LofiLink;
+/**
+ * A saved tune's recipe: its station's mood and its seed, and for a music generator track
+ * the generator's link parameters (lib/music-state.ts), which win over the mood and seed.
+ */
+export type LofiTuneRecipe = LofiLink & { generator?: string };
 
-/** The bytes stored for a saved tune. */
+/** The bytes stored for a saved tune: version 1 a station tune, version 2 a generator track. */
 export function lofiTuneBytes(recipe: LofiTuneRecipe): Uint8Array {
-  return new TextEncoder().encode(JSON.stringify({ kind: KIND, version: 1, mood: recipe.mood, seed: recipe.seed >>> 0 }));
+  const base = { kind: KIND, version: recipe.generator ? 2 : 1, mood: recipe.mood, seed: recipe.seed >>> 0 };
+  return new TextEncoder().encode(JSON.stringify(recipe.generator ? { ...base, generator: recipe.generator } : base));
 }
 
 /** Read a saved tune's bytes, or null when they are not one. */
@@ -44,10 +53,13 @@ export function lofiTuneFromBytes(bytes: Uint8Array): LofiTuneRecipe | null {
 /** The recipe in an asset's `meta.lofi` (written when the tune is saved), or null. */
 export function lofiTuneFromMeta(value: unknown): LofiTuneRecipe | null {
   if (!value || typeof value !== 'object') return null;
-  const { mood, seed } = value as { mood?: unknown; seed?: unknown };
+  const { mood, seed, generator } = value as { mood?: unknown; seed?: unknown; generator?: unknown };
   if (typeof mood !== 'string' || !LOFI_STATION_MOODS.includes(mood as LofiMood)) return null;
   if (typeof seed !== 'number' || !Number.isInteger(seed) || seed < 0 || seed > 4294967295) return null;
-  return { mood: mood as LofiMood, seed };
+  // A generator track's settings are its link's parameters: short, and read back by the
+  // same parser the generator uses, which ignores anything it does not know.
+  const gen = typeof generator === 'string' && generator.length < 4000 ? generator : undefined;
+  return { mood: mood as LofiMood, seed, ...(gen ? { generator: gen } : {}) };
 }
 
 /** Fetch and read a saved tune from its asset url. */
@@ -66,10 +78,34 @@ export function lofiTuneName(recipe: LofiTuneRecipe, tune: { key: string; bpm: n
  * Render a saved tune to stereo PCM. Without `seconds` the tune plays once, with its
  * reverb tail; with `seconds` it repeats to fill that length (a video's music bed).
  */
-export async function renderLofiTunePcm(
+export function renderLofiTunePcm(
   recipe: LofiTuneRecipe,
   opts: { seconds?: number; prefs?: LofiPrefs; sampleRate?: number } = {},
 ): Promise<RenderedPcm> {
+  // Opening a tune in Assets asks for its WAV and for its waveform at the same moment:
+  // the same render, so the two share one instead of each taking the whole time.
+  return shareRender(renderKey(recipe, opts), () => renderUnshared(recipe, opts), inflight);
+}
+
+const inflight = new Map<string, Promise<RenderedPcm>>();
+/** What makes two renders the same render: the recipe and every option. */
+export function renderKey(recipe: LofiTuneRecipe, opts: { seconds?: number; prefs?: LofiPrefs; sampleRate?: number }): string {
+  return JSON.stringify([recipe.mood, recipe.seed >>> 0, recipe.generator ?? '', opts.seconds ?? null, opts.sampleRate ?? 44100, opts.prefs ?? null]);
+}
+/** Run `make` once for every caller asking for `key` while the first run is still going. Nothing is kept afterwards. */
+export function shareRender<T>(key: string, make: () => Promise<T>, pending: Map<string, Promise<T>>): Promise<T> {
+  const running = pending.get(key);
+  if (running) return running;
+  const run = make().finally(() => { pending.delete(key); });
+  pending.set(key, run);
+  return run;
+}
+
+async function renderUnshared(
+  recipe: LofiTuneRecipe,
+  opts: { seconds?: number; prefs?: LofiPrefs; sampleRate?: number },
+): Promise<RenderedPcm> {
+  if (recipe.generator) return renderTrackPcm(recipe.generator, opts);
   const [{ lofiTuneSeconds }, { renderLofi }] = await Promise.all([
     import('../../../../engine/src/lofi-compose.ts'),
     import('./lofi-station.ts'),
@@ -78,6 +114,27 @@ export async function renderLofiTunePcm(
   const prefs = opts.prefs ?? { drums: true, texture: 0.5 };
   const buf = await renderLofi(recipe.seed, { mood: recipe.mood, drums: prefs.drums, texture: prefs.texture, repeat: true }, seconds, opts.sampleRate ?? 44100);
   return { left: buf.getChannelData(0), right: buf.getChannelData(buf.numberOfChannels > 1 ? 1 : 0), sampleRate: buf.sampleRate };
+}
+
+/**
+ * Render a music generator track (its link's parameters) to stereo PCM, exactly as the
+ * generator plays it: its instruments, tempo, key, mix and length, with its reverb tail.
+ * With `seconds` longer than the track (a video's music bed) the track loops to fill the time.
+ */
+async function renderTrackPcm(generator: string, opts: { seconds?: number; sampleRate?: number }): Promise<RenderedPcm> {
+  const [{ parseMusicState, trackSeconds, trackSettings }, { renderLofi }] = await Promise.all([import('./music-state.ts'), import('./lofi-station.ts')]);
+  const state = parseMusicState(generator);
+  const sampleRate = opts.sampleRate ?? 44100;
+  const once = trackSeconds(state) + TAIL_SECONDS;
+  const buf = await renderLofi(state.seed, trackSettings(state), Math.min(once, opts.seconds ?? once), sampleRate, state.mix);
+  const left = buf.getChannelData(0);
+  const right = buf.getChannelData(buf.numberOfChannels > 1 ? 1 : 0);
+  if (!opts.seconds || opts.seconds <= once) return { left, right, sampleRate };
+  // Loop the track, without its tail, to fill the length asked for.
+  const loop = Math.max(1, Math.floor((once - TAIL_SECONDS) * sampleRate));
+  const total = Math.ceil(opts.seconds * sampleRate);
+  const tile = (src: Float32Array): Float32Array => { const out = new Float32Array(total); for (let i = 0; i < total; i++) out[i] = src[i % loop]!; return out; };
+  return { left: tile(left), right: tile(right), sampleRate };
 }
 
 /** Render a saved tune at `url` to a WAV blob url (asset details, video music beds). */

@@ -4,10 +4,10 @@ Sometimes you do not need a new design. You need a file fixed: a photo in the wr
 
 ![The Utilities tab: a featured strip with Lolly Verify and Jump, then cards for Lolly Compare, Prepare for sharing, Lolly Verify, Unpack, Read and extract, Lolly Rebrand, Lolly Colour Lab and Spreadsheet](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
+<!--i:eti-search-->
 ## Find the right utility
 
 - <!--i:document--> **Write a text or Markdown file:** [Lolly Write](/t/write). Start with **New file** in Projects, including its background menu, or open Lolly Write from Utilities. **Save to Projects** keeps an editable document; **Save to Assets** and **Download** make text files. Lolly Text also offers **Save to Projects** beside its asset save.
-
 - <!--i:shieldcheck--> **Share a file safely:** [Prepare for sharing, Lolly Strip Hidden Data and Redact](#share-a-file-safely).
 - <!--i:search--> **See what changed between two versions:** [Lolly Compare](#see-what-changed).
 - <!--i:convert--> **Change a format or a size:** [Convert, Compress, Convert Image and Convert Font](#change-a-format-or-a-size).
@@ -17,9 +17,10 @@ Sometimes you do not need a new design. You need a file fixed: a photo in the wr
 - <!--i:neurobeat--> **Cut or clean audio and video, or record your voice:** [Trim, Clean, Lolly Voice Recorder and Lolly Script audio](#audio-and-video).
 - <!--i:palette--> **Check a colour or build a palette:** [Lolly Colour Lab, Contrast and Lolly Palette Lab](#colour).
 - <!--i:checklist--> **Read or fix a spreadsheet:** [Spreadsheet](#spreadsheets).
-- <!--i:pentool--> **Move a deck onto your design system:** [Lolly Rebrand and Lolly Theme swap](#decks).
+- <!--i:pentool--> **Move a deck onto your design system:** [Lolly Rebrand](#decks).
 - <!--i:star--> **Everything else:** screenshots, QR scanning, a countdown, a one-link page and more, under [More utilities](#more-utilities).
 
+<!--i:eti-box-->
 ## Built into the app, or a tool
 
 Most utilities are tools. A tool keeps its inputs in the URL, so it saves sessions, reopens from a link, renders from the CLI and exports through the shared pipeline.
@@ -30,13 +31,20 @@ A view keeps no session, but it has room: it can use the app's own controls, run
 
 Every tile can be starred ([Your favourites](/info/favourites.html)) and has a details dialog. A view's tile has no *keep offline* or *saved sessions*, because views ship inside the app.
 
+<!--i:eti-shield-check-->
 ## Share a file safely
 
 ### Prepare for sharing
 
 Prepare for sharing (`#/prepare`) looks through text, JSON, YAML, HAR and ZIP files on your device and suggests what to replace before you share them. You choose the replacements, review each original beside its copy, then copy, download, send or save the result to the library.
 
-Suggestions cover credential fields and common token shapes, email, payment-card, bank-account, phone, date, postcode, address and possible name patterns. They can be wrong, and they can miss confidential information. **Keep all** and **Continue unchanged** stay available. Add a missed exact value or a sensitive field name, edit a replacement or choose individual occurrences. Identical values share one replacement across every file in the job.
+Suggestions cover credential fields and common token shapes, email, payment-card, bank-account, phone, date, postcode, address and possible name patterns.
+
+::: warning Suggestions can be wrong or miss things
+They can be wrong, and they can miss confidential information. Review each copy beside its original before you share the copy.
+:::
+
+**Keep all** and **Continue unchanged** stay available. Add a missed exact value or a sensitive field name, edit a replacement or choose individual occurrences. Identical values share one replacement across every file in the job.
 
 You can also start from elsewhere. Text opens the same panel for the selected input text, or all of it when nothing is selected. Files in Assets and saved file results have a **Prepare for sharing** action, and exported file utilities offer it for the copy.
 
@@ -83,6 +91,7 @@ Turn on **Keep text** to remove only what sits under each bar and keep the rest 
 
 ![Lolly Strip Hidden Data: the file arrives on the canvas and the badge states plainly that nothing is uploaded](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1200&height=750&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-strip-data)
 
+<!--i:eti-eye-->
 ## See what changed
 
 **Lolly Compare** (`#/compare`) puts two versions side by side on your device. It compares text, JSON, YAML, tables (CSV, TSV or XLSX) and image or PDF-page previews. For DOCX, PPTX and PDF files it compares the extracted text. The sources stay unchanged. Lolly Compare does not merge, apply edits, save the inputs or send their contents anywhere.
@@ -107,6 +116,7 @@ Two PDFs from Assets or file-operation review keep the visual comparison by defa
 Office and PDF files are limited to 32 MiB per side. Office archives must fit 8 MiB per part, 64 MiB expanded and 4,096 archive entries. Document text is limited to 2,000 blocks, 200 slides, 64 PDF pages and 2 MiB per side. Skipped or unread content is reported as partial, and matching kept text cannot establish full equality. Appearance, formulas, drawings, charts and asset dependencies are outside content comparison.
 :::
 
+<!--i:eti-refresh-->
 ## Change a format or a size
 
 ### Convert
@@ -161,19 +171,21 @@ These three are tools, so they save sessions and travel in a link.
 Convert Font reports what the font's own tables say: outline format, family and style, weight or weight range and named styles, glyph and character counts, the Unicode blocks covered and the `OS/2.fsType` embedding statement. It can subset the font to Basic Latin, Western European or characters you type. A subset keeps glyph ids, works on TrueType outlines only and is checked against its output bytes before the download. A font whose own flags say restricted, no subsetting or bitmap embedding only, or that states no permission at all, is not subset. Those flags are the font's own statement, not its licence, so a subset is never a rights grant.
 :::
 
+<!--i:eti-package-->
 ## Get the contents out
 
 ### Unpack
 
 Most software treats a design file as one sealed thing. **Unpack** (`#/unpack`) opens the container: the words, the vector marks, the images, the fonts, the colours and the attachments, each one viewable and downloadable. Nothing is uploaded, and the older `#/pdf` link still works.
 
-Drop a PDF or Illustrator file, an SVG, an HTML page, an InDesign `.idml`, a Penpot `.penpot`, a Figma `.fig`, a PowerPoint `.pptx` or a Photoshop or GIMP `.psd`, `.psb` or `.xcf`. What comes out depends on what the format holds:
+Drop a PDF or Illustrator file, an SVG, an HTML page, an InDesign `.idml` or `.indd`, an Affinity file, a Penpot `.penpot`, a Figma `.fig`, a PowerPoint `.pptx` or a Photoshop or GIMP `.psd`, `.psb` or `.xcf`. What comes out depends on what the format holds:
 
 | You bring | What comes out |
 |---|---|
 | PDF, Illustrator or PowerPoint | The words, because the file carries its glyphs. |
 | SVG | Its `<text>` runs, in document order. Fonts are listed by name, without their files, since an SVG refers to its fonts rather than embedding them. |
-| InDesign `.idml` | Fonts listed by name, without their files. Images are linked, not embedded, so their pixels are counted and never fetched. |
+| InDesign `.idml` or `.indd` | Fonts listed by name, without their files. Images are linked, not embedded, so their pixels are counted and never fetched. A native `.indd` is converted to IDML on your device first. |
+| Affinity | Its page pictures, text, colours and font names. |
 | Penpot | Embedded images, as real bytes. |
 | Photoshop or GIMP | Every layer as its own named PNG. No words: the reader flattened the text to pixels, which is not the same as the file having none. |
 
@@ -219,10 +231,12 @@ Log analysis takes pasted or opened log text, including JSON lines and journal-s
 **AI synopsis** uses the optional local model to pick original excerpts, with source references. **AI rewrite** checks names, numbers and links before offering a result. Both need your review, and neither replaces the document automatically. The model downloads only when you ask. Actions show progress and **Cancel**. A result from an older edit cannot overwrite newer text.
 :::
 
+<!--i:eti-badge-check-->
 ## Check where a file came from
 
 **Lolly Verify** (`#/verify`) has a card in the Utilities tab and pages of its own: [Verify It Yourself](/info/verify-yourself.html) and [Security & Verification](/info/security.html).
 
+<!--i:eti-file-->
 ## PDF pages
 
 **[Lolly Pages](/t/pages)** is the PDF page manager. Give it a 1-based expression such as `1-3,7,10-` to reorder, rotate, extract or delete those pages. It can also append a second PDF or split comma-separated ranges into separate files. The page strip shows the selection before download. Pages keeps the main document's own metadata and adds none of Lolly's. It refuses encrypted PDFs and XFA forms rather than risk a partial document.
@@ -233,14 +247,21 @@ Pages also turns images into a PDF. Add photos, scans or screenshots, alone or w
 A JPEG is placed without re-encoding and turned upright from its camera orientation; its location, camera details and any extra pictures stored in the file are left out. An 8-bit PNG keeps its exact pixels; a 16-bit PNG is reduced to 8 bits per channel, and a PNG's colour profile is not kept. An animated PNG is placed as its still picture, and other formats such as WebP or HEIC are converted to PNG first where the app can read them.
 :::
 
-::: details What changes in the PDF
-Before download, **What changes** lists what the operation does to the bookmarks, comments, links, form fields and signatures in your PDFs.
+::: warning A new PDF drops bookmarks, form fields and signatures
+Rotating a single PDF edits that file, and a digital signature in it no longer verifies once the file is saved again. Every other operation builds a new PDF from copies of the pages, so bookmarks are not carried over, links to other pages stop working, form fields can no longer be filled in and the new PDF is unsigned. Before download, **What changes** lists what the operation does to the bookmarks, comments, links, form fields and signatures in your PDFs.
+:::
 
+::: details What changes in the PDF
 Rotating a single PDF edits that file, so everything keeps working except a digital signature, which no longer verifies once the file is saved again. Every other operation builds a new PDF from copies of the pages. Comments and other annotations travel with their pages, but bookmarks are not carried over, links to other pages stop working, form fields can no longer be filled in and the new PDF is unsigned. A page you delete or leave out does not come along through a link or form field that pointed to it, and the signer's name, date and certificate are left out with the signature.
 :::
 
-**[Lolly Sign](/t/sign)** places a transparent signature on a chosen PDF page, in PDF-point coordinates: drag it on the page or enter the numbers. Initials and today's date are optional. A Content Credential is on by default and records the profile signer only when **Use my details** is on. A password lock is available at download time, but not together with that credential, because encrypting afterwards would break the credential. Lolly Sign makes a visible signed document with optional provenance, not a regulated e-signature or identity-verification service.
+**[Lolly Sign](/t/sign)** places a transparent signature on a chosen PDF page, in PDF-point coordinates: drag it on the page or enter the numbers. Initials and today's date are optional. A Content Credential is on by default and records the profile signer only when **Use my details** is on. A password lock is available at download time, but not together with that credential, because encrypting afterwards would break the credential.
 
+::: note Not a regulated e-signature
+Lolly Sign makes a visible signed document with optional provenance, not a regulated e-signature or identity-verification service.
+:::
+
+<!--i:eti-film-->
 ## Audio and video
 
 **[Lolly Trim](/t/trim)** cuts audio and video at exact in and out points on your device. Under **Make** it also takes a **Poster frame** (the picture at the start point) or a **Contact sheet** of frames across the range. For a clip it can:
@@ -251,6 +272,10 @@ Rotating a single PDF edits that file, so everything keeps working except a digi
 
 The result reports the real container and any codec the device could not handle.
 
+::: warning Exact can keep frames from before your start
+In an MP4 or MOV, **Exact** copies from the key frame before your start and marks the earlier frames for players to skip, but some editors and upload sites still show them. Choose **Re-encode** when nothing before the start may stay in the file.
+:::
+
 ::: details Exact, Re-encode and Fast cuts
 Lolly Trim copies packets when the chosen boundary and container allow, but a copy can only begin on a key frame, so **Cut** offers three modes:
 
@@ -259,7 +284,12 @@ Lolly Trim copies packets when the chosen boundary and container allow, but a co
 - **Fast** keeps the original packets and may start a little early.
 :::
 
-**[Lolly Clean](/t/clean)** reduces voice noise with the on-device speech model and trims silent edges to the exact sample. A separate **Repair without a model** group handles steady background noise, 50 or 60 Hz mains hum, harsh s sounds, clicks and pops, and room echo with plain signal processing. It needs no download, works offline and runs in the terminal too; the result lists each repair it made. Lolly Clean normalises to podcast, streaming or broadcast loudness and keeps the output under a -1 dBTP ceiling. It reports loudness before and after, the loudness range and the true peak, measured to the EBU R128 standard. Audio can leave as WAV, MP3, M4A or Opus. For a video, the picture is carried into the new container and the cleaned audio replaces its original track. The terminal path accepts WAV, runs the model-free repair and leaves the speech model to the browser; other containers move to the browser tier or are refused by name. Long recordings are processed in a background worker in the browser, so the page stays responsive.
+**[Lolly Clean](/t/clean)** reduces voice noise with the on-device speech model and trims silent edges to the exact sample.
+
+- **Repair without a model.** This separate group handles steady background noise, 50 or 60 Hz mains hum, harsh s sounds, clicks and pops, and room echo with plain signal processing. It needs no download, works offline and runs in the terminal too; the result lists each repair it made.
+- **Loudness.** Lolly Clean normalises to podcast, streaming or broadcast loudness and keeps the output under a -1 dBTP ceiling. It reports loudness before and after, the loudness range and the true peak, measured to the EBU R128 standard.
+- **Output.** Audio can leave as WAV, MP3, M4A or Opus. For a video, the picture is carried into the new container and the cleaned audio replaces its original track. Long recordings are processed in a background worker in the browser, so the page stays responsive.
+- **In the terminal.** The terminal path accepts WAV, runs the model-free repair and leaves the speech model to the browser; other containers move to the browser tier or are refused by name.
 
 **[Lolly Voice Recorder](/t/voice-recorder)** records a voice note with a live level meter and gentle coaching, then saves it as MP3.
 
@@ -272,6 +302,7 @@ Lolly Trim copies packets when the chosen boundary and container allow, but a co
 
 Where a device or browser has no speech support, the view says so in one sentence, and the Utilities tab shows no Lolly Script audio card.
 
+<!--i:eti-palette-->
 ## Colour
 
 **Lolly Colour Lab** (`#/lab`) reports on one colour in full. `#/lab?c=<css colour>` opens the report on any CSS colour, and the address follows what you pick, so a link reproduces the page you are looking at.
@@ -296,20 +327,29 @@ The comparison target is sRGB, Display-P3, Rec.2020 or a press profile you load 
 
 **[Lolly Contrast](/t/contrast-check)** checks a text and background pair, or every pairing in the design system palette, against WCAG 2.1 and APCA, and shows how it reads to colour-blind viewers. **[Lolly Palette Lab](/t/color-palette)** grows a palette from one seed colour, with harmony accents, perceptual OKLab ramps and readability badges. It exports DTCG tokens and CSV.
 
+<!--i:eti-table-->
 ## Spreadsheets
 
 **Lolly Spreadsheet** (`#/data`) opens, reads and lightly edits a spreadsheet with no Excel, no LibreOffice and no internet. Drop or choose an `.xlsx`, `.csv`, `.tsv` or `.json`. A workbook with several sheets gets a tab bar, so you can switch sheets without picking the file again. Cells are editable in place, and **Download as** writes the grid as it stands, as CSV, Excel, JSON or TSV.
 
 The grid draws only the rows in view and recycles them as you scroll, so a very large file stays responsive. The viewer reads up to 200,000 rows, and the reader stops at two million cells. Where either limit applies, the banner above the grid says how much you are looking at.
 
-**Lolly Spreadsheet shows values.** A formula arrives as its last computed result, and styles, merged cells, charts and every sheet but the one you download are lost in the download. The banner says this before you edit anything. Use Spreadsheet to read a file, fix some numbers and pass the data on, not to round-trip a formatted workbook. Nothing is uploaded or kept: the file stays in the page until you leave.
+**Lolly Spreadsheet shows values.** Dates, currency, percentages and fractions show as Excel formats them. A formula arrives as its last computed result, and a formula the file saved without a result is worked out.
 
+::: warning A download keeps values only
+Styles, merged cells, charts and every sheet but the one you download are lost in the download. The banner says this before you edit anything. Use Spreadsheet to read a file, fix some numbers and pass the data on, not to round-trip a formatted workbook.
+:::
+
+Nothing is uploaded or kept: the file stays in the page until you leave.
+
+<!--i:eti-monitor-->
 ## Decks
 
 **Lolly Rebrand** (`#/rebrand`) moves a PowerPoint or PDF deck onto your design system. It proposes each slide on the design system's own layouts, colours and typeface, and waits for you to review each suggestion before it opens the result in Lolly Design. **Keep the design** swaps only the theme, colours and fonts of a PowerPoint deck instead. Unlike the other views, Lolly Rebrand keeps each deck as a project on this device, so a review can wait until you come back. [Rebrand a deck](/info/rebrand.html) walks through it with a sample deck.
 
-**[Lolly Theme swap](/t/rebrand-deck)** is the tool for the quick case: it swaps the theme, colours and fonts in a PowerPoint deck on this device.
+**Lolly Theme swap**, the tool for the quick case, now opens as **Keep the design**: [its address](/t/rebrand-deck) goes straight there, and an older link that carries its settings still opens the tool.
 
+<!--i:eti-sparkles-->
 ## More utilities
 
 - **[Lolly Screen Capture](/t/screencap)** takes a screenshot or recording of your whole screen, a window or a browser tab. Drag on the canvas to crop; the export keeps the exact pixels you captured.

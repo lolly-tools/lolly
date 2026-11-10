@@ -4,6 +4,7 @@ Connect a Dropbox folder of approved files and its contents appear in the Lolly 
 for the groups you choose. Lolly Work reads the folder through a Dropbox app you register, and never
 writes to the folder.
 
+<!--i:eti-clipboard-->
 ## What you need from Dropbox
 
 - **A Dropbox app** you register in the App Console, with the **`files.content.read`** and
@@ -12,6 +13,7 @@ writes to the folder.
   folder is ideal.
 - The app's key and secret are yours; `lw providers auth` captures the refresh token.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 The OAuth credential, captured rather than typed. A public (PKCE) app leaves out
@@ -28,6 +30,7 @@ lw providers auth acme-dropbox     # one-time loopback PKCE consent
 [OAuth sources](README.md#kinds-with-a-registered-consent-flow-dropbox-gdrive-o365) explains the
 consent step.
 
+<!--i:eti-code-->
 ## instance.json / `lw providers add`
 
 ```json
@@ -42,6 +45,7 @@ consent step.
 
 - `options.path` is the folder to federate; the default is the app folder's root.
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers auth acme-dropbox
@@ -50,6 +54,7 @@ lw providers health acme-dropbox
 
 A token-refresh failure means the grant was revoked; run `lw providers auth` again.
 
+<!--i:eti-info-->
 ## Notes / limits
 
 - **Subfolders included.** The folder is walked recursively, and the first subfolder under it
@@ -60,6 +65,7 @@ A token-refresh failure means the grant was revoked; run `lw providers auth` aga
 - **Fresh downloads.** Each download is a new authenticated request to Dropbox
   (`files/download`), streamed through Lolly Work and pinned to Dropbox's hosts. Nothing is stored.
 
+<!--i:eti-folder-move-->
 ## Use as an offboarding destination
 
 Export permitted DAM originals and supporting records, upload them with Dropbox's own tools, then connect the folder using this guide. Lolly Work reads this source and does not write the migration into Dropbox. Listing includes subfolders, but the transfer does not recreate the DAM's approval workflow, history or old identities. Rebuild required governance and update references.
