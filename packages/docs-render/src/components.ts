@@ -20,11 +20,13 @@ export const NOTE_KINDS = ['note', 'warning', 'check'] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
 export type ComponentKind = NoteKind | 'details';
 
-/** Sprite keys for each glyph (registered from shells/web/src/lib/icons.ts). */
+/** Sprite keys for each glyph. An admonition opens with a large two-tone Etiquette icon
+ *  (docs/etiquette-icons.ts), painted in the theme's colours like a section icon; a
+ *  disclosure keeps the app's small stroke glyph (shells/web/src/lib/icons.ts). */
 export const COMPONENT_GLYPH: Record<ComponentKind, string> = {
-  note: 'adm-info',
-  warning: 'adm-alert',
-  check: 'adm-check',
+  note: 'eti-info',
+  warning: 'eti-warning',
+  check: 'eti-circle-check',
   details: 'adm-more',
 };
 
