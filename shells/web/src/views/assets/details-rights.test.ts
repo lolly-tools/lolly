@@ -159,3 +159,38 @@ test('an owner-published mark shows the phrase and the owner\'s own terms', () =
   assert.ok(html.includes('credited to Acme Ltd'));
   assert.ok(!html.includes('not yet interpreted'));
 });
+
+// A saved tune (Andy's approval of 2026-11-10, lib/tune-provenance.ts): the sheet says
+// where it was made, who made it and the versions, and its licence is a menu that
+// starts at "Not recorded".
+const tune = (meta: Record<string, unknown>): AssetRef => ({
+  id: 'user/tune/1-sugar-2024', type: 'audio', format: 'lofi', url: '', source: 'user',
+  meta: { name: 'Lolly Sings Sugar · C major · 96 bpm · 2024', lofi: { mood: 'sugar', seed: 2024, generator: 'style=sugar' }, generator: 'style=sugar', ...meta },
+} as unknown as AssetRef);
+
+test('a tune from the music generator shows its source, maker, versions and a licence that starts as not recorded', () => {
+  const html = assetRightsRows(tune({ madeIn: 'music-generator', maker: 'Andy <Fitz>', versions: { lolly: '1.2.0', engine: '1.300.0' } }), true);
+  assert.ok(html.includes('Source</dt><dd>Made in the music generator</dd>'), 'not "Your upload"');
+  assert.ok(!html.includes('Your upload'));
+  assert.ok(html.includes('<div data-meta="maker">') && html.includes('Made by</dt><dd>Andy &lt;Fitz&gt;</dd>'), 'the maker, escaped');
+  assert.ok(html.includes('Made with</dt><dd>Lolly 1.2.0, engine 1.300.0</dd>'));
+  assert.match(html, /<select [^>]*data-tune-licence[^>]*><option value="" selected>Not recorded<\/option>/, 'Not recorded is the first choice and selected');
+  assert.ok(html.includes('<option value="CC-BY-4.0">CC BY 4.0</option>'));
+  assert.ok(!html.includes('CC-PDM-1.0'), 'no Public Domain Mark for a new work');
+  assert.ok(html.includes('Licence not recorded.'));
+});
+
+test('a licence set on a tune is the selected choice, and a tune with no maker shows no maker row', () => {
+  const html = assetRightsRows(tune({ madeIn: 'music-generator', license: 'CC-BY-4.0' }), true);
+  assert.ok(html.includes('<option value="CC-BY-4.0" selected>CC BY 4.0</option>'));
+  assert.ok(!html.includes('<option value="" selected>'));
+  assert.ok(html.includes('Credit required. Lolly prepares it for the export routes that can carry it.'));
+  assert.ok(!html.includes('data-meta="maker"'), 'no name was set, so no maker is shown');
+});
+
+test('a tune saved from the player says so, and its licence stays a plain row', () => {
+  const html = assetRightsRows({ ...tune({}), meta: { name: 'Warm · 7', lofi: { mood: 'warm', seed: 7 } } } as unknown as AssetRef, true);
+  assert.ok(html.includes('Saved from the Neurospicy player'));
+  assert.ok(!html.includes('data-tune-licence'), 'the menu is for a tune its maker made');
+  assert.ok(html.includes('Licence</dt><dd>Not recorded</dd>'));
+});

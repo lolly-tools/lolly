@@ -1323,6 +1323,12 @@ export interface ClipAudioOpts {
    */
   onSong?(song: RondoSong, render: Pick<RondoRendered, 'run' | 'findings'>): void;
   /**
+   * Told once per clip when a saved tune has rendered into it, with its recipe. The
+   * export mix turns this into the tune's C2PA source ingredient (Andy's approval of
+   * 2026-11-10), so the credential lists only the tunes whose sound reached the file.
+   */
+  onTune?(recipe: LofiTuneRecipe): void;
+  /**
    * Length, in seconds, the PROCEDURAL source composes itself to. Only the
    * `zzfxm:` scheme reads it; a decoded file has an intrinsic length and ignores
    * it. Omitted (the mix's case, which cannot know it here) → derived from the
@@ -1636,6 +1642,7 @@ function lofiClip(recipe: LofiTuneRecipe, opts: ClipAudioOpts): ClipAudio {
   let disposed = false;
   let cacheKey = -1;
   let cached: Promise<RenderedPcm> | null = null;
+  let reported = false;
   return {
     durationSec: () => 0,
 
@@ -1659,6 +1666,10 @@ function lofiClip(recipe: LofiTuneRecipe, opts: ClipAudioOpts): ClipAudio {
         throw coded(err as Error, 'SEQ_DECODE_FAILED');
       }
       if (disposed) throw coded(new Error('clip audio disposed'), 'SEQ_ABORTED');
+      if (!reported) {
+        reported = true;
+        try { opts.onTune?.(recipe); } catch { /* a listener never breaks the mix */ }
+      }
       return assemblePcmWindow(
         [{ channels: [pcm.left, pcm.right], sampleRate: pcm.sampleRate, timestamp: 0 }],
         from, to, sampleRate,

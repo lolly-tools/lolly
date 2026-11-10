@@ -52,6 +52,7 @@ import { applySuggestion, buildThemedAssetId, buildTreatedAssetId, extractC2paSt
 import type { RewordCandidate, } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { licenceLabel, ownerPublished, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
+import { readTuneRecord, tuneLicence, tuneLicenceChoices, withTuneLicence } from '../../lib/tune-provenance.ts';
 import { lollyBadge } from '../../lib/lolly-badge.ts';
 import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
@@ -75,9 +76,14 @@ import { mountAssetFileList } from '../../components/asset-file-list.ts';
  * build does not actually hold - the old row said "SUSE catalog" on every profile,
  * including a public clone that has no SUSE pack at all. And it never reports a
  * missing licence as permission: absent reads as not recorded.
+ *
+ * A saved tune says where it was made instead of "Your upload". A tune made in the
+ * music generator also shows who made it and the versions that made it, as the tune
+ * records them, and its licence is a menu: not recorded until its maker sets one.
  */
 export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   const meta = (ref.meta ?? {}) as AssetRightsMeta;
+  const tune = isUser ? readTuneRecord(ref) : null;
   const record = readAssetRightsRecord(meta.rights);
   const label = licenceLabel(meta);
   const profile = label?.profile ?? null;
@@ -88,12 +94,15 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   // it is still data, and a link is the one place a string becomes an action.
   const sourceUrl = typeof record?.sourceUrl === 'string' && /^https?:\/\//i.test(record.sourceUrl) ? record.sourceUrl : '';
   const sourceParts = [
-    isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? (ref.source === 'remote' ? t('Shared asset') : t('Catalog'))),
+    tune ? escapeText(tune.origin === 'generator' ? t('Made in the music generator') : t('Saved from the Neurospicy player'))
+      : isUser ? escapeText(t('Your upload')) : escapeText(publisher?.name ?? (ref.source === 'remote' ? t('Shared asset') : t('Catalog'))),
     credited ? escapeText(tRaw('credited to {who}', { who: credited })) : '',
     sourceUrl ? `<a href="${escapeText(sourceUrl)}" target="_blank" rel="noopener noreferrer">${t('Original work')}</a>` : '',
   ].filter(Boolean).join(' · ');
 
-  const licenceCell = label
+  const licenceCell = tune?.origin === 'generator'
+    ? tuneLicencePick(label)
+    : label
     ? `<span title="${escapeText(label.declared)}">${escapeText(label.full)}</span>`
     : escapeText(t('Not recorded'));
 
@@ -129,9 +138,36 @@ export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
             : t('No credit required.');
 
   return metaRow('source', t('Source'), sourceParts)
+    + (tune?.maker ? metaRow('maker', t('Made by'), escapeText(tune.maker)) : '')
+    + (tune?.versions ? metaRow('madeWith', t('Made with'), escapeText(tuneVersionsText(tune.versions))) : '')
     + metaRow('licence', t('Licence'), licenceCell)
     + creditRow
     + metaRow('using', t('Using this work'), escapeText(using));
+}
+
+/** The versions a saved tune records, in one line: "Lolly 1.2.0, engine 1.300.0". */
+function tuneVersionsText(v: { lolly?: string; engine?: string }): string {
+  if (v.lolly && v.engine) return tRaw('Lolly {lolly}, engine {engine}', { lolly: v.lolly, engine: v.engine });
+  return v.lolly ? tRaw('Lolly {lolly}', { lolly: v.lolly }) : tRaw('engine {engine}', { engine: v.engine ?? '' });
+}
+
+/**
+ * The licence menu for a tune its maker made in the music generator: "Not recorded"
+ * first and selected until a licence is set, then the licences a person can declare
+ * for their own work. A declaration the menu does not list (one that arrived some
+ * other way) stays shown and selected, so the menu never reads as a change.
+ */
+function tuneLicencePick(label: ReturnType<typeof licenceLabel>): string {
+  const choices = tuneLicenceChoices();
+  const current = label?.declared ?? '';
+  const listed = choices.some(c => c.id === current);
+  const option = (value: string, text: string): string =>
+    `<option value="${escapeText(value)}"${value === current ? ' selected' : ''}>${escapeText(text)}</option>`;
+  return `<select class="field-select field-select--sm field-select--auto cat-tune-licence" data-tune-licence aria-label="${escapeText(t('Licence for this tune'))}">`
+    + option('', t('Not recorded'))
+    + (current && !listed ? option(current, label?.full ?? current) : '')
+    + choices.map(c => option(c.id, c.name)).join('')
+    + '</select>';
 }
 
 /**
@@ -761,6 +797,10 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     e.stopPropagation();
     dt.panels.closeEditCard();
   }, { capture: true });
+  // A tune's licence menu (assetRightsRows): the choice is saved on the tune at once.
+  dlg.querySelector<HTMLSelectElement>('[data-tune-licence]')?.addEventListener('change', (e) => {
+    void setTuneLicence(dt, (e.currentTarget as HTMLSelectElement).value);
+  });
   dlg.addEventListener('click', async (e) => {
     const target = e.target as HTMLElement;
     if (dt.controls.handleEditingClick(e)) return;
@@ -1656,6 +1696,31 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       if (r && art && cat.detailsDialog === dlg) art.innerHTML = audioCardArt(cat, ref);
     }).catch(() => {});
   }
+}
+
+/**
+ * Save the licence a person chose for a tune they made, then draw the sheet again from
+ * the saved record, so the Licence and "Using this work" rows show what is stored. Only
+ * the licence changes: the stored record is read first, as the author declaration is,
+ * so nothing else on the tune is rewritten.
+ */
+async function setTuneLicence(dt: DetailsCtx, id: string): Promise<void> {
+  const { cat, dlg, host, ref } = dt;
+  try {
+    const rec = (await host.assets._exportUserAssets()).find(r => r.id === ref.id);
+    if (!rec) throw new Error('Asset no longer exists');
+    await host.assets._updateUserAssetMeta(ref.id, withTuneLicence(rec.meta, id));
+  } catch {
+    announce(t('Could not save the licence.'));
+    return;
+  }
+  const meta = withTuneLicence(ref.meta, id) as typeof ref.meta;
+  ref.meta = meta;
+  const listed = cat.assetById.get(ref.id);
+  if (listed && listed !== ref) listed.meta = meta;
+  const saved = tuneLicence(meta);
+  announce(saved ? tRaw('Licence saved: {licence}.', { licence: saved.name }) : t('Licence cleared. It reads as not recorded.'));
+  if (cat.detailsDialog === dlg) dt.openDetails(cat, listed ?? ref);
 }
 
 /** Escape exits the active inspection layer even when a hidden control lost focus. */

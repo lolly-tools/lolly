@@ -22,6 +22,12 @@
  * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). Making the
  * track renders the whole of it offline with progress; it can then be downloaded or
  * saved to the library, with the recipe kept in the asset's details.
+ *
+ * What each of those writes is said in the Make panel before the click (Andy's approval
+ * of 2026-11-10, lib/tune-provenance.ts): a download carries Content Credentials that
+ * say the music generator made it, unless the person unticks the switch, and a saved
+ * tune records the person's profile name as its maker, the music generator and the
+ * Lolly and engine versions. After the click the hint says only what was written.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
@@ -29,7 +35,7 @@ import { mountHomeFab } from '../components/home-fab.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { mountProfileFab } from '../components/profile-menu.ts';
-import { t } from '../i18n.ts';
+import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
   lofiSectionName, transposeChordName, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, LOFI_PERCUSSION,
@@ -44,9 +50,11 @@ import { mountViz, type VizHandle } from '../lib/butterchurn-viz.ts';
 import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
 import { instrumentIcon, iconPath, musicIconNode } from '../lib/instrument-icons.ts';
-import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, type MusicState, type SectionVoices } from '../lib/music-state.ts';
+import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
+import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
 import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
+import { TUNE_DECLARATION } from '../../../../engine/src/tune-provenance.ts';
 import '../styles/parts/music-studio.css';
 
 // The track's settings and how they shape the composer's bars live in lib/music-state.ts
@@ -56,6 +64,10 @@ export { parseMusicState, musicStateParams, composeTrack, shapeBar, BPM_RANGE, T
 type Track = 'lead' | 'keys' | 'bass' | 'drums' | 'fx';
 const TRACKS: readonly Track[] = ['lead', 'keys', 'bass', 'drums', 'fx'];
 const TRACK_LABEL: Record<Track, string> = { lead: 'Lead', keys: 'Keys', bass: 'Bass', drums: 'Drums', fx: 'Effects' };
+/** The kinds of effect a person can turn off, by name. */
+const FX_FAMILY_LABEL: Record<FxFamily, string> = { voices: 'Voices', console: 'Console', sparkles: 'Sparkles', sweeps: 'Sweeps' };
+/** The producer's tag choices, by name. */
+const TAG_LABEL: Record<string, string> = { off: 'No Lolly tag', spoken: 'Lolly, spoken', shout: 'Lolly, shouted', crowd: 'Lolly, a crowd', sung: 'Lolly, sung', whisper: 'Lolly, whispered', high: 'Lolly, pitched up', deep: 'Lolly, pitched down', robot: 'Lolly, robot', stutter: 'Lolly, stuttered', echo: 'Lolly, echoed' };
 /** Which mix level each track's slider moves. */
 const TRACK_MIX: Record<Track, keyof LofiMix> = { lead: 'lead', keys: 'keys', bass: 'bass', drums: 'drums', fx: 'fx' };
 const DRUM_VOICES = new Set<string>(LOFI_DRUM_VOICES);
@@ -169,6 +181,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   mountProfileFab(view.querySelector('.gallery-topright'), host);
   const detachLang = attachLangMenu(view.querySelector<HTMLElement>('.lang-fab'), host);
   const state = parseMusicState(params);
+  // A first visit (a link with no track in it) opens on a track drawn at random, as
+  // Shuffle draws one: a style, a seed and a sound to suit them. A link to a track opens
+  // that track.
+  if (!/(^|[?&])(style|seed)=/.test(params)) Object.assign(state, shuffleMusic(Math.random, { bars: state.bars }));
   let bars = composeTrack(state);
   let times = barTimes(bars);
   let selected = 0;
@@ -231,6 +247,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       ${slider('texture', t('Texture'), 0, 1, 0.05, state.texture)}
       ${slider('bright', t('Brightness'), 0.5, 1.8, 0.05, state.bright ?? 1)}
       ${slider('drive', t('Drive'), 0.8, 4.5, 0.1, state.drive ?? 2)}
+      <div class="ms-fx-on" role="group" aria-label="${escapeHtml(t('Effects'))}">
+        <span class="ms-fx-label">${escapeHtml(t('Effects'))}</span>
+        ${FX_FAMILIES.map(f => `<button type="button" class="ms-ms" data-fx-family="${f}" aria-pressed="${!state.quiet?.includes(f)}">${escapeHtml(t(FX_FAMILY_LABEL[f]))}</button>`).join('')}
+      </div>
     </div>
     <div class="ms-panel ms-panel--make" data-panel-body="make" hidden>
       <button type="button" class="btn btn--primary btn--sm" data-render>${escapeHtml(t('Make the track'))}</button>
@@ -238,6 +258,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       <select class="field-select field-select--sm" data-format aria-label="${escapeHtml(t('File type'))}"><option value="m4a">M4A</option><option value="wav">WAV</option></select>
       <button type="button" class="btn btn--sm" data-download disabled>${escapeHtml(t('Download'))}</button>
       <button type="button" class="btn btn--sm" data-save>${escapeHtml(t('Save to library'))}</button>
+      <label class="field-toggle ms-cred">
+        <input type="checkbox" class="field-check" data-cred checked>
+        <span>${escapeHtml(t('Content Credentials'))}</span>
+      </label>
+      <div class="ms-make-notes">
+        <p class="ms-make-note" data-cred-note></p>
+        <p class="ms-make-note" data-save-note></p>
+      </div>
     </div>
     <div class="ms-stage">
       <canvas class="ms-viz" data-viz aria-hidden="true"></canvas>
@@ -256,8 +284,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
             <span class="ms-swatch" data-swatch="${tr}" aria-hidden="true"></span>
             <span class="ms-track-name">${escapeHtml(t(TRACK_LABEL[tr]))}</span>
             ${tr === 'lead' || tr === 'keys' || tr === 'bass' ? `<span class="ms-inst" data-inst="${tr}" role="img"></span>` : ''}
-            ${tr === 'fx' ? '' : tr === 'drums'
-              ? `<button type="button" class="ms-ms" data-drums aria-pressed="${state.drums}" title="${escapeHtml(t('Drums on or off'))}">${escapeHtml(t('On'))}</button>`
+            ${tr === 'fx'
+              ? `<select class="field-select field-select--sm ms-pick" data-tag aria-label="${escapeHtml(t('The Lolly tag'))}" title="${escapeHtml(t('How the tune says “Lolly”, or not at all'))}"></select>`
+              : tr === 'drums'
+              ? `<button type="button" class="ms-ms" data-drums aria-pressed="${state.drums}" title="${escapeHtml(t('Drums on or off'))}">${escapeHtml(t('On'))}</button><select class="field-select field-select--sm ms-pick" data-kit aria-label="${escapeHtml(t('Drum kit'))}"></select>`
               : `<select class="field-select field-select--sm ms-pick" data-pick="${tr}" aria-label="${escapeHtml(t(TRACK_LABEL[tr]))}"></select>`}
             ${`<button type="button" class="ms-ms" data-mute="${tr}" aria-pressed="false" title="${escapeHtml(t('Mute'))}">M</button><button type="button" class="ms-ms" data-solo="${tr}" aria-pressed="false" title="${escapeHtml(t('Solo'))}">S</button>`}
           </div>`).join('')}
@@ -288,12 +318,20 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const pos = q<HTMLElement>('[data-pos]');
   const progress = q<HTMLProgressElement>('[data-progress]');
   const downloadBtn = q<HTMLButtonElement>('[data-download]');
+  const credToggle = q<HTMLInputElement>('[data-cred]');
   const pop = q<HTMLElement>('[data-pop]');
   const popPick = q<HTMLSelectElement>('[data-pop-pick]');
   const popPick2 = q<HTMLSelectElement>('[data-pop-pick2]');
   const say = (text: string): void => { hint.textContent = text; };
   const HINT = t('Click a section in a track to change its instrument there. Click the top row to play from a section.');
   for (const tr of PITCHED) fillSelect(q<HTMLSelectElement>(`[data-pick="${tr}"]`), tr, state[tr], t('Auto'));
+  /** The drums' kit and the effects' tag menus, and the effect switches, set to the state. */
+  const fillOptions = (): void => {
+    q<HTMLSelectElement>('[data-kit]').replaceChildren(new Option(t('Kit: the style’s own'), ''), ...LOFI_KITS.map(k => new Option(t(LOFI_KIT_NAME[k]), k, false, k === state.kit)));
+    q<HTMLSelectElement>('[data-tag]').replaceChildren(new Option(t('Lolly tag: as composed'), ''), ...TAG_CHOICES.map(c => new Option(t(TAG_LABEL[c] ?? c), c, false, c === state.tag)));
+    for (const el of page.querySelectorAll<HTMLElement>('[data-fx-family]')) el.setAttribute('aria-pressed', String(!state.quiet?.includes(el.dataset.fxFamily as FxFamily)));
+  };
+  fillOptions();
 
   // ── drawing ─────────────────────────────────────────────────────────────────
   let height = RULER + CHORDS + TRACKS.reduce((h, tr) => h + lane[tr], 0);
@@ -349,7 +387,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   let paintVersion = 0;
 
   /** The effects lane's rows, by what makes the sound: voices on top, then the console's sounds, its sparkles and bleeps, and the sweeps at the bottom. */
-  const fxRow = (voice: string): number => voice === 'hey' || voice === 'magpie' || voice === 'kookaburra' ? 0
+  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' ? 0
     : voice === 'game' || voice === 'coin' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
 
   function paintTrack(cx: CanvasRenderingContext2D, dpr: number, offset: number, width: number, ink: string, muteInk: string, line: string): void {
@@ -580,7 +618,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     return m;
   }
   function settings(startBar: number): LofiSettings {
-    return { mood: state.mood, drums: state.drums, texture: state.texture, style: fixedStyle(state), startBar, bars: state.bars, shape: shapeBar(state) };
+    return { mood: state.mood, drums: state.drums, texture: state.texture, style: fixedStyle(state), startBar, bars: state.bars, shape: shapeBar(state), kit: state.kit, tag: state.tag };
   }
   const showPlaying = (on: boolean): void => {
     q<HTMLElement>('[data-play-icon]').hidden = on;
@@ -730,6 +768,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     q<HTMLSelectElement>('[data-bars]').value = String(state.bars);
     for (const tr of PITCHED) fillSelect(q<HTMLSelectElement>(`[data-pick="${tr}"]`), tr, state[tr], t('Auto'));
     page.querySelector('[data-drums]')?.setAttribute('aria-pressed', String(state.drums));
+    fillOptions();
     for (const el of page.querySelectorAll<HTMLElement>('[data-mute]')) el.setAttribute('aria-pressed', String(muted.has(el.dataset.mute as Track)));
     for (const el of page.querySelectorAll<HTMLElement>('[data-solo]')) el.setAttribute('aria-pressed', String(solo.has(el.dataset.solo as Track)));
     // The sliders show 1 for a brightness and 2 for a drive left to the style, as they open.
@@ -758,7 +797,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     restate({ ...drawn, bars: state.bars, ...(shift && state.transpose ? { transpose: state.transpose } : {}) });
     say(`${t('Shuffled')}: ${lofiStationName(state.mood)} · ${t('seed')} ${state.seed}`);
   });
-  listen('[data-reset]', 'click', () => { muted.clear(); solo.clear(); restate(parseMusicState('')); say(t('Every setting is back to how the generator opens.')); });
+  listen('[data-reset]', 'click', () => { muted.clear(); solo.clear(); restate({ ...parseMusicState(''), mood: state.mood, seed: state.seed }); say(t('Every setting but the style and the seed is back to the composer\'s own.')); });
   listen('[data-bars]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.bars = Number(el.value); recompose(); fit(); } });
   // The tempo: a number typed or dragged, back to the tune's own with the reset button.
   // Setting the composer's own tempo is the same as not setting one, so the link stays short.
@@ -783,6 +822,27 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (el.dataset.pick === 'keys') state.keys = LOFI_KEYS.find(x => x === v);
     if (el.dataset.pick === 'lead') state.lead = LOFI_LEADS.find(x => x === v);
     if (el.dataset.pick === 'bass') state.bass = LOFI_BASSES.find(x => x === v);
+    recompose();
+  });
+  // The kit changes the drums' sound, never their notes; the tag and the effect families
+  // change what the effects lane plays. Each is in the link.
+  listen('[data-kit]', 'change', (_e, el) => {
+    if (!(el instanceof HTMLSelectElement)) return;
+    state.kit = LOFI_KITS.find(k => k === el.value);
+    recompose();
+  });
+  listen('[data-tag]', 'change', (_e, el) => {
+    if (!(el instanceof HTMLSelectElement)) return;
+    state.tag = TAG_CHOICES.find(c => c === el.value);
+    recompose();
+  });
+  listen('[data-fx-family]', 'click', (_e, el) => {
+    const family = FX_FAMILIES.find(f => f === el.dataset.fxFamily);
+    if (!family) return;
+    const quiet = new Set(state.quiet ?? []);
+    if (quiet.has(family)) quiet.delete(family); else quiet.add(family);
+    state.quiet = quiet.size ? FX_FAMILIES.filter(f => quiet.has(f)) : undefined;
+    el.setAttribute('aria-pressed', String(!quiet.has(family)));
     recompose();
   });
   listen('[data-drums]', 'click', (_e, el) => {
@@ -927,11 +987,42 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   });
   canvas.addEventListener('dblclick', e => { selected = barAt(e); closePop(); play(selected); });
   listen('[data-render]', 'click', () => { void render().catch(err => { say(`${t('Could not make the track')}: ${String(err)}`); }); });
+  // What a download and a save will record, said before either is clicked.
+  const paintCredNote = (): void => {
+    q<HTMLElement>('[data-cred-note]').textContent = credToggle.checked
+      ? tRaw('Downloads will carry Content Credentials that record: {declaration}.', { declaration: TUNE_DECLARATION })
+      : t('Downloads will carry no Content Credentials.');
+  };
+  credToggle.addEventListener('change', paintCredNote);
+  paintCredNote();
+  void (async () => {
+    const { profileMaker } = await import('../lib/tune-provenance.ts');
+    let maker = '';
+    try { maker = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
+    q<HTMLElement>('[data-save-note]').textContent = maker
+      ? tRaw('Save to library records {maker} as the maker, the music generator as the source, and the Lolly and engine versions. The licence stays not recorded until you set one in the tune’s details.', { maker })
+      : t('Save to library records the music generator as the source, and the Lolly and engine versions. Your profile has no name, so no maker is recorded. The licence stays not recorded until you set one in the tune’s details.');
+  })().catch(() => { /* the note is a courtesy; the save still says what it wrote */ });
   listen('[data-download]', 'click', () => {
     void (async () => {
       const { blob, format } = await encoded();
-      await host.export.download(blob, fileName(format));
-      say(t('File handed to your device’s save/download flow.'));
+      if (!credToggle.checked) {
+        await host.export.download(blob, fileName(format));
+        say(t('File handed to your device’s save/download flow, with no Content Credentials.'));
+        return;
+      }
+      const { signTrackDownload } = await import('../lib/tune-provenance.ts');
+      let signed: { blob: Blob; declaration: string | null } | null = null;
+      try {
+        signed = await signTrackDownload(host, blob, format, { name: trackName(), style: state.mood, styleName: lofiStationName(state.mood), seed: state.seed });
+      } catch { signed = null; }
+      await host.export.download(signed?.blob ?? blob, fileName(format));
+      // Only what the reading of the written file found.
+      say(!signed
+        ? t('File handed to your device’s save/download flow without Content Credentials: they could not be written.')
+        : signed.declaration
+          ? tRaw('File handed to your device’s save/download flow. Its Content Credentials record: {declaration}', { declaration: signed.declaration })
+          : t('File handed to your device’s save/download flow. Reading it back found no Content Credentials, so none are confirmed.'));
     })().catch(err => { say(String(err)); });
   });
   listen('[data-save]', 'click', () => {
@@ -940,7 +1031,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // Saved as a tune (lib/lofi-tune.ts), not a recording: a few hundred bytes holding the
       // track's settings, played and rendered from them wherever a tune plays (the player,
       // the asset details, an audiogram, a video's music bed). Nothing to make first.
-      const { lofiTuneBytes, LOFI_TUNE_FORMAT } = await import('../lib/lofi-tune.ts');
+      // The tune also records who made it (the profile's name, left out when none is
+      // set: a fact, not a rights claim), the music generator and the versions that made
+      // it, all shown in its details. Its licence is not written: not recorded until set.
+      const [{ lofiTuneBytes, LOFI_TUNE_FORMAT }, { profileMaker, tuneSaveRecord }, { LOLLY_RELEASE }, { ENGINE_VERSION }] = await Promise.all([
+        import('../lib/lofi-tune.ts'), import('../lib/tune-provenance.ts'), import('../lib/lolly-release.ts'), import('../../../../engine/src/version.ts'),
+      ]);
+      let maker = '';
+      try { maker = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
       const generator = musicStateParams(state);
       const recipe = { mood: state.mood, seed: state.seed >>> 0, generator };
       const bytes = lofiTuneBytes(recipe);
@@ -951,11 +1049,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           name: trackName(), tags: ['music', 'generated', 'lolly-sings'],
           lofi: recipe, generator,
           durationMs: Math.round(times.total * 1000),
+          ...tuneSaveRecord(maker, { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }),
         },
       });
       // The player keeps a cached list of the library's audio: drop it, so the track is there now.
       (await import('../lib/neurospicy.ts')).invalidateNeurospicyTracks();
-      say(t('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound.'));
+      say(maker
+        ? tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record {maker} as the maker, the music generator, and Lolly {lolly} with engine {engine}.', { maker, lolly: LOLLY_RELEASE, engine: ENGINE_VERSION })
+        : tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record the music generator, and Lolly {lolly} with engine {engine}.', { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }));
     })().catch(err => { say(String(err)); });
   });
   listen('[data-link]', 'click', () => {

@@ -107,7 +107,11 @@ test('a music generator track saves as a tune that keeps everything it was made 
   const settings = trackSettings(state);
   assert.equal(settings.bars, 16);
   assert.equal(settings.style?.lead, 'bit');
-  assert.ok(Math.abs(trackSeconds(state) - (16 * 240) / 128) < 1e-9, 'sixteen bars at 128 bpm');
+  // About sixteen bars at 128 bpm: the track is fitted to end with its outro (lofiTrack).
+  const { composeTrack } = await import('./music-state.ts');
+  const fitted = composeTrack(state).length;
+  assert.ok(Math.abs(fitted - 16) <= 8, `${fitted} bars, about sixteen`);
+  assert.ok(Math.abs(trackSeconds(state) - (fitted * 240) / 128) < 1e-9, 'its bars at 128 bpm');
 });
 
 test('opening a tune renders once: the player and the waveform share one render', async () => {

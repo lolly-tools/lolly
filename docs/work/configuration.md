@@ -194,8 +194,10 @@ For people who cannot use the instance's other sign-ins. Add one entry to `idp.a
   top of the lockout. A browser that runs out gets a page saying to wait a minute.
 - The forms are served with `Referrer-Policy: strict-origin`, not `no-referrer`: a form post
   from a `no-referrer` page carries `Origin: null`, which the CSRF check refuses. A proxy in
-  front must not replace that header on `/api/auth/` (the YunoHost package's nginx sets
-  `no-referrer` on `/api/`, so email and password sign-in does not work there as shipped).
+  front must not replace that header on `/api/auth/`. The YunoHost package's nginx set
+  `no-referrer` on `/api/` up to `1.2.0~ynh1`, which broke email and password sign-in,
+  invitation joins and password-protected share links there; from `1.2.0~ynh2` it keeps the
+  server's own policy.
 
 How people get and reset a password, who may issue a link, the lockout and what each sign-in
 checks are in [email and password](identity.md#email-and-password).

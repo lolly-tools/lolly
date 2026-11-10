@@ -59,7 +59,7 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
  *  bass shot (its `mod` one of LOFI_BASS_SHOTS, plus 4 for each swing a beat of the
  *  throaty ones), `phaser`, a sweep through a phaser (`mod` 0 rises, 1 falls, 2 a quick
  *  zip), and `blip`, a short electronic bleep (`mod` 0 up, 1 down, 2 a pair). */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip';
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash', 'tom', 'perc'];
 /** The percussion a `perc` note plays, by its `mod`: an egg shaker, a tambourine, congas (pitched by `midi`), a cowbell, clapsticks;
  *  and the world styles' hand drums and bells, whose `midi` is the stroke: the tombak (1 tom, 2 bak, 3 a snapped
@@ -77,6 +77,12 @@ type Percussion = typeof LOFI_PERCUSSION[number];
 export const LOFI_GAME_SOUNDS = ['jump', 'powerup', 'powerdown', 'bonus', 'bounce', 'blip', 'laser', 'warp', 'levelup', 'shrink', 'grow', 'oneup', 'gem'] as const;
 /** The shouts a `hey` note can call, by its `mod`. Synthesised from vowels: no recording, no words beyond the call. */
 export const LOFI_SHOUTS = ['hey', 'yeah', 'woo', 'oh', 'ayy', 'uh', 'ugh', 'whoa', 'yo'] as const;
+/**
+ * The producer's tag: a voice saying "Lolly" (a `tag` note, `mod` its index here), the
+ * way a producer signs a track. Spoken, shouted, a crowd shouting, sung on the key,
+ * whispered, pitched up, pitched down, robotic, stuttered, or thrown into the echo.
+ */
+export const LOFI_TAGS = ['spoken', 'shout', 'crowd', 'sung', 'whisper', 'high', 'deep', 'robot', 'stutter', 'echo'] as const;
 /** The coins a `coin` note's `mod` plays: the classic blip, a long ring, an echo, a double. */
 export const LOFI_COINS = ['coin', 'ring', 'echo', 'double'] as const;
 /** The bass genres' shots, by a `bwah` note's `mod`: the bwah (a filter flung open and
@@ -577,8 +583,64 @@ export function nextLofiSeed(seed: number): number {
   return Math.floor(mulberry32(seed ^ 0x9e3779b9)() * 4294967296) >>> 0;
 }
 
-/** Build one tune's bars. */
+/** Build one tune's bars, signed with the producer's tag when the tune has one (see withTag). */
 export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiBar[] {
+  return withTag(composeTuneBars(seed, mood, fixed), seed, mood);
+}
+
+/** How often a tune carries the tag. */
+const TAG_CHANCE = 0.6;
+type Tag = typeof LOFI_TAGS[number];
+const TAG_CALM = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'dream', 'fantasy', 'triphop']);
+const TAG_SMOOTH = new Set<LofiMood>(['jazz', 'swing', 'soul', 'rnb', 'citypop', 'blues']);
+const TAG_BAND = new Set<LofiMood>(['rock', 'metal', 'punk', 'ska', 'reggae', 'country', 'funk', 'afrobeat', 'spanish', 'straya']);
+const TAG_WORLD = new Set<LofiMood>(['persian', 'guzheng', 'koto', 'kora']);
+/** The deliveries a style's tag is drawn from, by weight: whispered and sung in the calm styles, shouted in a band's, pitched and chopped in a club's. */
+function tagWeights(mood: LofiMood): Array<readonly [Tag, number]> {
+  if (TAG_CALM.has(mood)) return [['whisper', 4], ['spoken', 3], ['sung', 3], ['echo', 2], ['deep', 1]];
+  if (TAG_SMOOTH.has(mood)) return [['spoken', 3], ['sung', 3], ['whisper', 2], ['crowd', 1], ['echo', 1], ['deep', 1]];
+  if (TAG_BAND.has(mood)) return [['shout', 3], ['crowd', 3], ['spoken', 2], ['echo', 1], ['stutter', 1], ['deep', mood === 'metal' ? 3 : 1]];
+  if (TAG_WORLD.has(mood)) return [['sung', 3], ['spoken', 2], ['whisper', 2], ['echo', 2]];
+  const machine = mood === 'chiptune' || mood === 'electro' || mood === 'acid';
+  return [['deep', 3], ['stutter', 3], ['shout', 2], ['crowd', 2], ['high', 2], ['robot', machine ? 4 : 2], ['echo', 2], ['spoken', 1]];
+}
+
+/**
+ * The producer's tag (Andy, 2026-11-10: "a series of effects that say or shout 'lolly'...
+ * similar to producers putting in their signature"). Most tunes say "Lolly" once: at the
+ * top, as the moment before the first drop or chorus runs out (the word ending as the
+ * drop hits), or on the last bar of the outro. The delivery suits the style. Drawn from a
+ * stream of the tune's own, so adding the tag moved no other note of any tune.
+ */
+function withTag(bars: LofiBar[], seed: number, mood: LofiMood): LofiBar[] {
+  // Scrambled first (MurmurHash3's finish), so neighbouring seeds, which people type, draw
+  // unrelated tags: mulberry32's first draws from seeds a step apart are alike.
+  let h = (seed ^ 0x7a6c1) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  const rng = mulberry32((h ^ (h >>> 16)) >>> 0);
+  if (rng() >= TAG_CHANCE || bars.length < 4) return bars;
+  const weights = tagWeights(mood);
+  let roll = rng() * weights.reduce((sum, [, w]) => sum + w, 0);
+  let delivery: Tag = weights[0]![0];
+  for (const [d, w] of weights) {
+    roll -= w;
+    if (roll < 0) { delivery = d; break; }
+  }
+  const firstDrop = bars.findIndex(b => b.section === 'drop');
+  let lastOutro = -1;
+  for (let i = bars.length - 1; i >= 0; i--) if (bars[i]!.section === 'outro') { lastOutro = i; break; }
+  const where = rng();
+  const [at, beat] = where < 0.5 || firstDrop < 1
+    ? [0, 0]
+    : where < 0.85 || lastOutro < 0 ? [firstDrop - 1, delivery === 'stutter' || delivery === 'deep' ? 2 : 2.5] : [lastOutro, 0.5];
+  const root = bars[at]!.tones[0] ?? bars.find(b => b.tones.length)?.tones[0] ?? 0;
+  const note: LofiNote = { voice: 'tag', midi: placeIn(root, 55, 66), beat, dur: 1.5, vel: 0.85, mod: LOFI_TAGS.indexOf(delivery) };
+  return bars.map((b, i) => (i === at ? { ...b, notes: [...b.notes, note] } : b));
+}
+
+/** Build one tune's bars, before the tag. */
+function composeTuneBars(seed: number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiBar[] {
   if (isDanceMood(mood)) return composeDanceTune(seed, mood, fixed);
   const rng = mulberry32(seed >>> 0);
   const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
@@ -788,6 +850,77 @@ export function lofiStream(seed: number, opts: LofiOptions): LofiStream {
     },
   };
 }
+
+/**
+ * A track of about `target` bars that ends the way a song does: whole tunes from the
+ * stream, and the last one cut at the end of a phrase and finished with its own outro, its
+ * fade and the rest bar, rather than stopped wherever the count runs out. So the length
+ * flexes: a tune that would lose only its last few bars plays whole, a later tune that
+ * would get less than 16 bars before its outro is left out, and a cut is made where a phrase ends and a
+ * build is not about to break into a drop. Pure and deterministic, the same bars as the
+ * stream gives up to the cut.
+ */
+export function lofiTrack(seed: number, opts: Omit<LofiOptions, 'repeat'> & { tag?: LofiTagChoice }, target: number): LofiBar[] {
+  const out = fitTrack(seed, opts, target);
+  return opts.tag ? retag(out, opts.tag) : out;
+}
+
+/** A person's choice of the producer's tag: none, or one delivery for every tag in the track. */
+export type LofiTagChoice = 'off' | typeof LOFI_TAGS[number];
+
+/**
+ * The track with the tag a person chose: none at all, or every tag the composer placed
+ * said that way, and one at the top when the composer placed none.
+ */
+function retag(bars: LofiBar[], choice: LofiTagChoice): LofiBar[] {
+  const has = bars.some(b => b.notes.some(n => n.voice === 'tag'));
+  const mod = LOFI_TAGS.indexOf(choice as typeof LOFI_TAGS[number]);
+  return bars.map((b, i) => {
+    if (choice === 'off') return has ? { ...b, notes: b.notes.filter(n => n.voice !== 'tag') } : b;
+    if (b.notes.some(n => n.voice === 'tag')) return { ...b, notes: b.notes.map(n => (n.voice === 'tag' ? { ...n, mod } : n)) };
+    if (has || i !== 0) return b;
+    const root = b.tones[0] ?? bars.find(x => x.tones.length)?.tones[0] ?? 0;
+    return { ...b, notes: [...b.notes, { voice: 'tag', midi: placeIn(root, 55, 66), beat: 0, dur: 1.5, vel: 0.85, mod }] };
+  });
+}
+
+function fitTrack(seed: number, opts: Omit<LofiOptions, 'repeat'>, target: number): LofiBar[] {
+  const out: LofiBar[] = [];
+  let tuneSeed = seed >>> 0;
+  for (;;) {
+    const tune = composeLofiTune(tuneSeed, opts.mood, opts.style);
+    const left = target - out.length;
+    if (tune.length <= left + FIT_SLACK) { out.push(...tune); }
+    else if (out.length > 0 && left < FIT_SLACK) break;
+    else {
+      // The outro: the tune's last run of outro bars, and the rest bar that follows.
+      let from = tune.length;
+      while (from > 0 && (tune[from - 1]!.section === 'outro' || tune[from - 1]!.section === 'rest')) from--;
+      const outro = tune.slice(from);
+      const want = left - outro.length;
+      let cut = Math.min(from, 4);
+      let best = Infinity;
+      for (let i = 4; i <= from; i += 4) {
+        if (tune[i - 1]!.section === 'build') continue;   // a build must break into its drop
+        const ends = i === from || tune[i]!.section !== tune[i - 1]!.section;
+        const miss = Math.abs(i - want) + (ends ? 0 : 2);
+        if (miss < best) { best = miss; cut = i; }
+      }
+      // A later tune joins only with a real part of itself: an intro run straight into an
+      // outro is a scrap, and the track ends better on the previous song.
+      if (out.length > 0 && cut < FIT_PART) break;
+      out.push(...tune.slice(0, cut), ...outro);
+      break;
+    }
+    if (out.length >= target) break;
+    tuneSeed = nextLofiSeed(tuneSeed);
+  }
+  return out;
+}
+/** How many bars a track's length may flex to keep a tune whole or leave a scrap of one out. */
+const FIT_SLACK = 8;
+/** The least of a later tune a track will hold, its outro aside: past its intro and into its first section. */
+const FIT_PART = 16;
 
 /** How long one tune lasts, in seconds: its bars at its tempo (four beats a bar). */
 export function lofiTuneSeconds(seed: number, mood: LofiMood): number {
