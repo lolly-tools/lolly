@@ -2215,13 +2215,14 @@ export function hey(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   if (which > 0 && SHOUTS[which]) { shout(k, out, t, midi, vel, SHOUTS[which]!); return; }
   const { ctx } = k;
   const f = mtof(midi);
-  const len = 0.32;
-  for (const [delay, cents] of [[0, 0], [0.018, 14]] as const) {
+  // Held long enough to ring out, three voices a little apart: a few people calling.
+  const len = 0.5;
+  for (const [delay, cents] of [[0, 0], [0.018, 14], [0.032, -11]] as const) {
     const at = t + delay;
     const amp = ctx.createGain();
     amp.gain.setValueAtTime(EPS, at);
     amp.gain.setValueAtTime(EPS, at + 0.03);
-    amp.gain.exponentialRampToValueAtTime(0.22 * vel, at + 0.065);
+    amp.gain.exponentialRampToValueAtTime(0.27 * vel, at + 0.065);
     amp.gain.exponentialRampToValueAtTime(EPS, at + len);
     const glottis = osc(k, 'sawtooth', f * 1.1, at, at + len + 0.05);
     glottis.frequency.exponentialRampToValueAtTime(f * 0.86, at + len);
@@ -2287,8 +2288,8 @@ function shout(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
     const amp = ctx.createGain();
     amp.gain.setValueAtTime(EPS, at);
     amp.gain.setValueAtTime(EPS, start);
-    amp.gain.exponentialRampToValueAtTime(0.22 * vel, start + (sh.onset === 'glide' ? 0.045 : 0.018));
-    amp.gain.setTargetAtTime(0.18 * vel, start + 0.06, len * 0.4);
+    amp.gain.exponentialRampToValueAtTime(0.28 * vel, start + (sh.onset === 'glide' ? 0.045 : 0.018));
+    amp.gain.setTargetAtTime(0.23 * vel, start + 0.06, len * 0.4);
     amp.gain.setTargetAtTime(EPS, start + len * 0.8, len * 0.12);
     const side = ctx.createStereoPanner();
     side.pan.value = pan;

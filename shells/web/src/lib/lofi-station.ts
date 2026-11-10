@@ -78,6 +78,15 @@ const DRUMS = new Set(LOFI_DRUM_VOICES);
  * from 4 dB to 2).
  */
 const BUS = { keys: 0.37, bass: 0.2, lead: 0.95, drums: 0.83, texture: 0.27, reverb: 0.44, fx: 1.5 };
+/** The room by section: bigger in the quiet sections, tighter in a drop. */
+const SECTION_ROOM: Partial<Record<string, number>> = { intro: 1.25, break: 1.35, outro: 1.4, bridge: 1.15, build: 1.1, drop: 0.85 };
+/** The styles built on drops, whose builds sweep a high-pass up the music. */
+const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy']);
+/** The styles that throw a phrase's last lead note into the echo, and those that keep a little echo on the lead throughout. */
+const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska']);
+const ECHO_ALWAYS = new Set<LofiMood>(['synthwave', 'dream', 'reggae']);
+const ECHO_BED = 0.12;
+const THROW_LEVEL = 0.55;
 /** The styles whose chorus puts a sine sub under the bass guitar, and the basses it goes under. */
 const SUB_UNDER = new Set<LofiMood>(['rnb', 'soul', 'citypop', 'kpop']);
 const SUB_BASSES = new Set<string>(['motown', 'round', 'synth', 'picked']);
@@ -172,6 +181,14 @@ export class LofiStation {
   private readonly drumBus: GainNode;
   private readonly music: GainNode;
   private readonly reverbSend: GainNode;
+  /** The build's sweep: a high-pass on the music (not the drums) that rises through a build and opens on the drop. */
+  private readonly sweep: BiquadFilterNode;
+  /** The echo: a tempo-synced ping-pong fed from the lead, opened for a phrase's last note (a throw). */
+  private readonly echoSend: GainNode;
+  private readonly echoTimes: DelayNode[];
+  /** How many bars of the current build have passed, and the section of the last bar marked. */
+  private buildBars = 0;
+  private sectionRoom = 1;
   private readonly tone: BiquadFilterNode;
   private readonly drumTone: BiquadFilterNode;
   private readonly shaper: WaveShaperNode;
@@ -221,7 +238,13 @@ export class LofiStation {
     wow.connect(this.tone);
     this.music = ctx.createGain();
     this.dry = ctx.createGain();
-    this.music.connect(this.dry).connect(wow);
+    // The build's sweep sits between the music and everything after it, wide open (20 Hz)
+    // except while a build climbs (see markSection).
+    this.sweep = ctx.createBiquadFilter();
+    this.sweep.type = 'highpass';
+    this.sweep.frequency.value = 20;
+    this.sweep.Q.value = 0.7;
+    this.music.connect(this.sweep).connect(this.dry).connect(wow);
     // A sampler's grit, when a tune asks for it: the music lifted into an 80-step staircase
     // and brought back down, so the steps sit about 32 dB under the music at its usual
     // level (an old sampler, not a broken one), crossfaded with the clean signal rather
@@ -232,7 +255,7 @@ export class LofiStation {
     crush.curve = staircase(80);
     this.crunch = ctx.createGain();
     this.crunch.gain.value = 0;
-    this.music.connect(lift).connect(crush).connect(this.crunch).connect(wow);
+    this.sweep.connect(lift).connect(crush).connect(this.crunch).connect(wow);
     // The record head. Nothing here is a clean sine: the eccentric pull is lopsided, and
     // the drift and flutter are smoothed random curves, looped at lengths that never line
     // up with each other or with the revolution.
@@ -284,6 +307,30 @@ export class LofiStation {
     this.leadBus.connect(this.reverbSend);
     this.fxBus.connect(this.reverbSend);
     this.reverbSend.connect(reverb).connect(this.tone);
+
+    // The echo: a dotted eighth, ping-ponging left and right, each repeat darker and
+    // quieter. Its send is closed until a note is thrown into it (see play), except in the
+    // styles that keep a little echo on the lead throughout (ECHO_ALWAYS).
+    this.echoSend = ctx.createGain();
+    this.echoSend.gain.value = 0;
+    this.leadBus.connect(this.echoSend);
+    const left = ctx.createDelay(2);
+    const right = ctx.createDelay(2);
+    const darken = ctx.createBiquadFilter();
+    darken.type = 'lowpass';
+    darken.frequency.value = 3200;
+    const back = ctx.createGain();
+    back.gain.value = 0.38;
+    const panL = ctx.createStereoPanner();
+    panL.pan.value = -0.7;
+    const panR = ctx.createStereoPanner();
+    panR.pan.value = 0.7;
+    this.echoSend.connect(left);
+    left.connect(panL).connect(this.tone);
+    left.connect(right);
+    right.connect(panR).connect(this.tone);
+    right.connect(darken).connect(back).connect(left);
+    this.echoTimes = [left, right];
 
     this.toneWander.connect(this.tone.frequency);
 
@@ -453,6 +500,7 @@ export class LofiStation {
     for (const m of marks) {
       if (m.bar.index === 0 || !this.styled) { this.applyStyle(m.bar.tune.style, Math.max(m.at, now)); this.styled = true; }
       this.lastOpen = m.bar.open;
+      this.markSection(m.bar, Math.max(m.at, now));
       this.tone.frequency.setTargetAtTime(this.cutoff(m.bar.open), Math.max(m.at, now), 0.5);
       this.drumTone.frequency.setTargetAtTime(drumCutoff(this.cutoff(m.bar.open)), Math.max(m.at, now), 0.5);
       if (this.running && typeof setTimeout === 'function') {
@@ -511,6 +559,13 @@ export class LofiStation {
           else V.lead(v, k, lanes.lead, lt, note.midi, level, len, note.mod ?? 0, from);
         };
         play(leadV, vel * VARIANT.lead[leadV] * lift);
+        // An echo throw: a phrase's last lead note (the fourth bar's, held at least half a
+        // beat) thrown into the echo in the styles that throw, the send closing after the note.
+        if (THROWS.has(bar.tune.mood) && bar.index % 4 === 3 && note.beat + note.dur >= 3.4 && note.dur >= 0.5 && bar.section !== 'intro') {
+          const base = ECHO_ALWAYS.has(bar.tune.mood) ? ECHO_BED : 0;
+          this.echoSend.gain.setTargetAtTime(THROW_LEVEL, lt, 0.01);
+          this.echoSend.gain.setTargetAtTime(base, lt + len, 0.05);
+        }
         // A doubled drop: a second instrument plays the same note a little quieter.
         const double = bar.voices?.double;
         if (double) play(double, vel * VARIANT.lead[double] * lift * 0.7);
@@ -570,6 +625,33 @@ export class LofiStation {
     g.setTargetAtTime(1, at + 0.05, 0.11);
   }
 
+  /**
+   * What the arrangement does to the sound, bar by bar: the room grows in the quiet
+   * sections and tightens in a drop; through a build (in the styles built on drops) a
+   * high-pass climbs on the music, a bar at a time, and opens wide the moment the drop
+   * arrives; and the echo keeps the tempo.
+   */
+  private markSection(bar: LofiBar, at: number): void {
+    const spb = 60 / bar.tune.bpm;
+    for (const d of this.echoTimes) d.delayTime.setValueAtTime(Math.min(1.9, 0.75 * spb), at);
+    const room = SECTION_ROOM[bar.section] ?? 1;
+    if (room !== this.sectionRoom) {
+      this.sectionRoom = room;
+      this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * this.colour.room * room, at, 0.6);
+    }
+    this.echoSend.gain.setTargetAtTime(ECHO_ALWAYS.has(bar.tune.mood) ? ECHO_BED : 0, at, 0.2);
+    if (bar.section === 'build' && SWEEPS.has(bar.tune.mood)) {
+      this.buildBars++;
+      const to = Math.min(900, 40 * 2 ** (this.buildBars * 1.05));
+      this.sweep.frequency.setValueAtTime(Math.max(20, this.sweep.frequency.value), at);
+      this.sweep.frequency.exponentialRampToValueAtTime(to, at + 4 * spb);
+    } else if (this.buildBars > 0) {
+      this.buildBars = 0;
+      this.sweep.frequency.cancelScheduledValues(at);
+      this.sweep.frequency.setValueAtTime(20, at);   // the drop: the music comes back whole
+    }
+  }
+
   // ── sound ─────────────────────────────────────────────────────────────────
 
   /** A new tune's colour: wobble, room, tone and grit, from the moment it starts. */
@@ -578,7 +660,7 @@ export class LofiStation {
     const grit = style.crunch ? GRIT_MIX : 0;
     this.crunch.gain.setTargetAtTime(grit / GRIT_LIFT, at, 0.1);
     this.dry.gain.setTargetAtTime(1 - grit, at, 0.1);
-    this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * style.room, at, 0.1);
+    this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * style.room * this.sectionRoom, at, 0.1);
     this.applyTexture(0.3);
   }
 
@@ -629,7 +711,7 @@ export class LofiStation {
     this.leadBus.gain.value = BUS.lead * this.mix.lead;
     this.fxBus.gain.value = BUS.fx * this.mix.fx;
     this.drumBus.gain.value = BUS.drums * this.mix.drums;
-    this.reverbSend.gain.value = BUS.reverb * this.mix.reverb * this.colour.room;
+    this.reverbSend.gain.value = BUS.reverb * this.mix.reverb * this.colour.room * this.sectionRoom;
   }
 
   private newLanes(): Lanes {

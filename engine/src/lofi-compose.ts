@@ -1675,7 +1675,9 @@ function extraFx(
   if (mood === 'rnb' && i % 4 === 1 && chance(0.35)) shout(t.sb(10), (['oh', 'yeah', 'whoa'] as const)[Math.floor(r() * 3)]!, 0.5);
   if (mood === 'punk' && at.dropStart) { shout(0, 'hey', 0.9); shout(2, 'hey', 0.9); }
   else if (mood === 'punk' && i % 4 === 0 && chance(0.5)) shout(0, 'hey', 0.85);
-  if (mood === 'ska' && i % 4 === 2 && chance(0.4)) shout(t.sb(6), 'hey', 0.75);
+  // Ska's band calls out: a double hey as a chorus opens, then a hey on the offbeat every other bar.
+  if (mood === 'ska' && at.dropStart) { shout(t.sb(2), 'hey', 0.85); shout(t.sb(6), 'hey', 0.85); }
+  else if (mood === 'ska' && i % 2 === 0 && chance(0.7)) shout(t.sb(i % 4 === 0 ? 6 : 14), 'hey', 0.8);
   if ((mood === 'dubstep' || mood === 'brostep' || mood === 'dnb') && at.lastOfBuild && chance(0.5)) shout(t.sb(14), 'ugh', 0.9);
   if (mood === 'kpop' && at.lastOfBuild && chance(0.5)) shout(t.sb(12), 'whoa', 0.85);
   return out;
