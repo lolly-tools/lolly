@@ -48,6 +48,8 @@ export interface DrumKit {
   realCymbals: boolean;
   /** The snare head's pitch (Hz), and the kit's own seed for rendering its pieces. */
   snareHead: number;
+  /** How the toms are tuned against the composer's (semitones): a jazz kit's small toms high, the others a little either way. */
+  tomTune: number;
   id: string;
 }
 
@@ -98,24 +100,26 @@ export function drumKit(seed: number, mood: LofiMood): DrumKit {
     kick,
     wires: between(jazz ? 0.6 : 0.75, 1.45), ring: between(0.7, 1.5), snareBright: between(0.88, 1.18),
     hatDecay: between(0.75, 1.4), hatBright: between(0.88, 1.15),
-    rideRate: between(0.8, 0.98), bell: between(0.3, 1.2), wash: between(0.8, 1.5),
-    crash: pick(band ? ['crash', 'crash', 'splash', 'china'] as const : ['crash', 'crash', 'splash'] as const),
+    // A jazz ride is dark and washy, its bell barely there; a jazz kit has no china.
+    rideRate: jazz ? between(0.66, 0.8) : between(0.8, 0.98), bell: jazz ? between(0.2, 0.6) : between(0.3, 1.2), wash: jazz ? between(1.3, 1.7) : between(0.8, 1.5),
+    crash: pick(jazz ? ['crash', 'crash', 'splash'] as const : band ? ['crash', 'crash', 'splash', 'china'] as const : ['crash', 'crash', 'splash'] as const),
     boom: !band && !DUSTY.has(mood) && mood !== 'hiphop',
     acousticToms: band,
     real: band || DUSTY.has(mood) || mood === 'hiphop' || mood === 'rnb',
     realCymbals: !SYNTH_METAL.has(mood),
     snareHead: Math.round(between(170, 235)),
+    tomTune: jazz ? 7 : Math.round(between(-2, 2)),
     id: `${seed >>> 0}:${mood}`,
   };
 }
 
 /** The kit a tune plays when none is known: the drums as they always sounded. */
-export const PLAIN_KIT: DrumKit = { kick: 'sub', wires: 1, ring: 1, snareBright: 1, hatDecay: 1, hatBright: 1, rideRate: 0.9, bell: 1, wash: 1, crash: 'crash', boom: true, acousticToms: false, real: false, realCymbals: false, snareHead: 200, id: 'plain' };
+export const PLAIN_KIT: DrumKit = { kick: 'sub', wires: 1, ring: 1, snareBright: 1, hatDecay: 1, hatBright: 1, rideRate: 0.9, bell: 1, wash: 1, crash: 'crash', boom: true, acousticToms: false, real: false, realCymbals: false, snareHead: 200, tomTune: 0, id: 'plain' };
 
 // ── the real kit's recordings ───────────────────────────────────────────────────
 
 /** The pieces a kit has rendered so far, per audio context: rendered at a piece's first hit, kept for the tune. */
-interface Bank { buffers: Map<string, AudioBuffer>; cymbals: Map<string, ReturnType<typeof K.cymbalBase>>; open: GainNode | null }
+interface Bank { buffers: Map<string, AudioBuffer>; cymbals: Map<string, ReturnType<typeof K.cymbalBase>>; open: GainNode | null; nextRender: number }
 const BANKS = new WeakMap<BaseAudioContext, Map<string, Bank>>();
 function bankOf(ctx: BaseAudioContext, kit: DrumKit): Bank {
   let byKit = BANKS.get(ctx);
@@ -123,7 +127,7 @@ function bankOf(ctx: BaseAudioContext, kit: DrumKit): Bank {
   let bank = byKit.get(kit.id);
   if (!bank) {
     if (byKit.size > 8) byKit.clear();
-    bank = { buffers: new Map(), cymbals: new Map(), open: null };
+    bank = { buffers: new Map(), cymbals: new Map(), open: null, nextRender: -Infinity };
     byKit.set(kit.id, bank);
   }
   return bank;
@@ -137,13 +141,23 @@ function pieceRandom(kit: DrumKit, name: string): () => number {
 /** The strokes a piece is recorded at (soft, medium, hard), and how many takes of each, so no two hits in a row are the same. */
 const LAYERS = [0.35, 0.65, 0.95] as const;
 const TAKES = 3;
+/** The least music (s) between two new takes from one kit. */
+const RENDER_GAP = 0.2;
 /** One piece at the nearest of its strengths, in one of its takes, rendered on first use; the player sets the loudness. */
-function piece(k: VoiceKit, kit: DrumKit, name: string, vel: number, make: (sr: number, vel: number, rand: () => number) => Float32Array): { buf: AudioBuffer; scale: number } {
+function piece(k: VoiceKit, kit: DrumKit, t: number, name: string, vel: number, make: (sr: number, vel: number, rand: () => number) => Float32Array): { buf: AudioBuffer; scale: number } {
   const bank = bankOf(k.ctx, kit);
   const at = vel < 0.5 ? LAYERS[0] : vel < 0.8 ? LAYERS[1] : LAYERS[2];
-  const key = `${name}:${at}:${Math.floor(k.rng() * TAKES)}`;
+  let key = `${name}:${at}:${Math.floor(k.rng() * TAKES)}`;
+  // A new take costs up to a tenth of a second to work out (a long ride), so a kit makes
+  // one at most every RENDER_GAP of music and plays a take it already has meanwhile. Paced
+  // by the music's time, not the clock's, so a tune still renders the same every time.
+  if (!bank.buffers.has(key) && t < bank.nextRender) {
+    const have = Array.from({ length: TAKES }, (_, n) => `${name}:${at}:${n}`).find(x => bank.buffers.has(x));
+    if (have) key = have;
+  }
   let buf = bank.buffers.get(key);
   if (!buf) {
+    bank.nextRender = t + RENDER_GAP;
     const sr = k.ctx.sampleRate;
     const data = make(sr, at, pieceRandom(kit, key));
     buf = k.ctx.createBuffer(1, data.length, sr);
@@ -200,7 +214,7 @@ function hit(k: VoiceKit, out: AudioNode, t: number, p: { buf: AudioBuffer; scal
 /** Each piece's place across the speakers, from the drummer's side: hats left, ride right. */
 const PAN = { hat: -0.32, ride: 0.36, crash: -0.22, snare: 0.04, kick: 0 } as const;
 /** Each piece's level against the synthesised voices it replaces, so the mix holds. */
-const LEVEL = { hat: 0.113, open: 0.16, ride: 0.063, crash: 0.21, snare: 0.505, tom: 0.345, kick: 0.64 } as const;
+const LEVEL = { hat: 0.113, open: 0.168, ride: 0.077, crash: 0.23, snare: 0.505, tom: 0.297, kick: 0.64 } as const;
 
 /** The cymbal a crash note plays, by the kit, with its brightness and length. */
 function crashSpec(kit: DrumKit): K.CymbalSpec {
@@ -258,7 +272,7 @@ export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: nu
   }
   if ((kind === 'acoustic' || kind === 'feather') && kit?.real) {
     const soft = kind === 'feather';
-    const p = piece(k, kit, `kick:${Math.round(hz)}:${kind}`, vel, (sr, v, r) => K.kickStroke(sr, hz * (soft ? 0.92 : 1), v, soft ? 0.25 : 1, (soft ? 0.32 : 0.28) + len * 0.3, r));
+    const p = piece(k, kit, t, `kick:${Math.round(hz)}:${kind}`, vel, (sr, v, r) => K.kickStroke(sr, hz * (soft ? 0.92 : 1), v, soft ? 0.25 : 1, (soft ? 0.32 : 0.28) + len * 0.3, r));
     hit(k, out, t, p, LEVEL.kick * (soft ? 0.85 : 1), PAN.kick);
     return;
   }
@@ -319,7 +333,7 @@ export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t:
   if (style === 'stack') { stack(k, out, t, vel, tone, kit); return; }
   if (style === 'snap') { snap(k, out, t, vel, kit); return; }
   if (style === 'snare' && kit.real) {
-    const p = piece(k, kit, `snare:${Math.round(tone / 50)}`, vel, (sr, v, r) => K.snareStroke(sr, kit.snareHead * (tone / 2000) ** 0.25, v, kit.wires, kit.ring, r));
+    const p = piece(k, kit, t, `snare:${Math.round(tone / 50)}`, vel, (sr, v, r) => K.snareStroke(sr, kit.snareHead * (tone / 2000) ** 0.25, v, kit.wires, kit.ring, r));
     hit(k, out, t, p, LEVEL.snare, PAN.snare);
     return;
   }
@@ -477,7 +491,7 @@ export function hat(style: LofiStyle['hats'], k: VoiceKit, out: AudioNode, t: nu
       : { ...K.HAT_CLOSED, peak: K.HAT_CLOSED.peak * kit.hatBright, choke: (K.HAT_CLOSED.choke ?? 0.05) * kit.hatDecay };
     const name = open ? 'hat-open' : 'hat';
     const base = cymbalOf(kit, k, 'hats', spec);
-    const g = hit(k, out, t, piece(k, kit, name, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r)), open ? LEVEL.open : LEVEL.hat, PAN.hat);
+    const g = hit(k, out, t, piece(k, kit, t, name, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r)), open ? LEVEL.open : LEVEL.hat, PAN.hat);
     if (open) bank.open = g;
     return;
   }
@@ -542,9 +556,9 @@ export function pedal(k: VoiceKit, out: AudioNode, t: number, vel: number, tone:
  */
 export function ride(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, kit: DrumKit = PLAIN_KIT): void {
   if (kit.realCymbals) {
-    const spec: K.CymbalSpec = { ...K.RIDE, peak: K.RIDE.peak * kit.rideRate / 0.9, life: K.RIDE.life * kit.wash, bell: (K.RIDE.bell ?? 800) * kit.rideRate / 0.9 };
+    const spec: K.CymbalSpec = { ...K.RIDE, peak: K.RIDE.peak * kit.rideRate / 0.9, life: K.RIDE.life * kit.wash, seconds: K.RIDE.seconds * kit.wash, wash: K.RIDE.wash * kit.wash, bell: (K.RIDE.bell ?? 800) * kit.rideRate / 0.9 };
     const base = cymbalOf(kit, k, 'ride', spec);
-    hit(k, out, t, piece(k, kit, 'ride', vel, (sr, v, r) => K.cymbal(sr, { ...spec, bell: kit.bell > 0.5 ? spec.bell : undefined }, base, v, r)), LEVEL.ride, PAN.ride);
+    hit(k, out, t, piece(k, kit, t, 'ride', vel, (sr, v, r) => K.cymbal(sr, { ...spec, bell: kit.bell > 0.5 ? spec.bell : undefined }, base, v, r)), LEVEL.ride, PAN.ride);
     return;
   }
   const { ctx } = k;
@@ -583,7 +597,7 @@ export function tom(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   const { ctx } = k;
   if (kit.real && kit.acousticToms) {
     // Toms spread from the high tom on the left to the floor tom on the right.
-    const p = piece(k, kit, `tom:${midi}`, vel, (sr, v, r) => K.tomStroke(sr, mtof(midi), v, r));
+    const p = piece(k, kit, t, `tom:${midi}`, vel, (sr, v, r) => K.tomStroke(sr, mtof(midi + kit.tomTune), v, r));
     hit(k, out, t, p, LEVEL.tom, Math.round(Math.max(-0.35, Math.min(0.35, (52 - midi) * 0.04)) * 10) / 10);
     return;
   }
@@ -629,7 +643,7 @@ export function crash(k: VoiceKit, out: AudioNode, t: number, vel: number, kit: 
   if (kit.realCymbals) {
     const spec = crashSpec(kit);
     const base = cymbalOf(kit, k, kit.crash, spec);
-    hit(k, out, t, piece(k, kit, kit.crash, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r)), LEVEL.crash, PAN.crash);
+    hit(k, out, t, piece(k, kit, t, kit.crash, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r)), LEVEL.crash, PAN.crash);
     if (kit.boom && vel >= 0.8) boomUnder(k, out, t, vel);
     return;
   }
