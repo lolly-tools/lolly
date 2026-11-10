@@ -75,6 +75,8 @@ const DRUMS = new Set(LOFI_DRUM_VOICES);
  */
 const BUS = { keys: 0.37, bass: 0.2, lead: 1.05, drums: 0.83, texture: 0.27, reverb: 0.44, fx: 1.05 };
 /** A riser rode the keys' bus (through its tremolo, about 0.92) before the effects had their own; this keeps its level. */
+/** Seconds between one lead note's end and the next one's start that still count as a slur. */
+const SLUR_GAP = 0.035;
 const RISER_LEVEL = (BUS.keys * 0.92) / BUS.fx;
 /** The whole station's level under the volume control, leaving headroom above the busiest bar. */
 const MASTER = 0.62;
@@ -121,6 +123,8 @@ export class LofiStation {
   private stream: LofiStream;
   /** The seed the stream started from, to start it again (a saved generator track repeating). */
   private seed: number;
+  /** The last lead note (when it ends, its pitch, its instrument), to tell whether the next one is slurred. */
+  private lastLead = { end: -1, midi: 0, voice: '' };
   private kit: V.VoiceKit;
   private queue: Queued[] = [];
   private marks: Mark[] = [];
@@ -461,9 +465,15 @@ export class LofiStation {
       }
       case 'lead': {
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
+        // A note that starts as the last one ends, on the same instrument, is slurred onto
+        // it: a wind glides from that pitch instead of tonguing a new attack.
+        const prev = this.lastLead;
+        const gap = t - prev.end;
+        const from = prev.voice === leadV && gap > -0.25 && gap < SLUR_GAP && prev.midi !== note.midi ? prev.midi : undefined;
+        this.lastLead = { end: t + len, midi: note.midi, voice: leadV };
         const play = (v: LofiStyle['lead'], level: number): void => {
           if (W.WORLD_LEADS.has(v)) W.lead(v, k, lanes.lead, t, note.midi, level, len, note.mod ?? 0);
-          else V.lead(v, k, lanes.lead, t, note.midi, level, len, note.mod ?? 0);
+          else V.lead(v, k, lanes.lead, t, note.midi, level, len, note.mod ?? 0, from);
         };
         play(leadV, vel * VARIANT.lead[leadV] * lift);
         // A doubled drop: a second instrument plays the same note a little quieter.
