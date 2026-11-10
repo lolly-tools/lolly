@@ -10,6 +10,7 @@ commission or usage payment. You provide and run the hosting, domains, identity 
 backups. Forks may redistribute Lolly; the source links and release signatures
 identify the upstream packages.
 
+<!--i:eti-badge-check-->
 ## What each route has passed
 
 | Route | Upstream source | Current state |
@@ -19,7 +20,7 @@ identify the upstream packages.
 | Ready-made package (VM or private server) | [Shared distribution package](https://github.com/lolly-tools/lolly-work/tree/main/deploy/marketplaces) | Pins the 1.1.3 server, the complete matching neutral web app and PostgreSQL. The 1.1.3 web app takes the installation's catalogue key from the server that serves it, so a signed-in browser lists the tools; [a browser check of the 1.1.3 package](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md) passed on MulgaDC Spinifex, as a new installation and as an update from the 1.1.1 package. Record a fresh acceptance for each target |
 | UpCloud | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/upcloud) plus the ready-made package | [Ubuntu 24.04 amd64 reference for 1.1.1](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md#upcloud-reference-for-111): fresh install, public HTTPS, built-in owner and member sign-in, a checked SVG, reboot and an independent application restore passed. An upgrade across versions and recovery on a second host are open. **Not ready as a module:** no recorded acceptance has used the infrastructure module to create the machine; its own checks validate the configuration only |
 | Evroc | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/evroc) | **Not ready.** A separate European foundation that passes the provider's schema checks but has not been boot-tested on Evroc. Boot and runtime acceptance stay specific to each target |
-| YunoHost | [Project package](https://github.com/lolly-tools/lolly-work_ynh/tree/v1.1.3-ynh2) | 1.1.3~ynh2 beta. On amd64, YunoHost package_check passes install, backup and restore, upgrade from 1.1.0~ynh3 and change URL on YunoHost 12.1 and 13.0, and a signed-in browser on a fresh YunoHost 13 install lists the tools. Each installation makes its own catalogue signing key. The overall run reports level 0 only because the package is not yet in YunoHost's catalogue; catalogue registration and arm64 acceptance are pending |
+| YunoHost | [Project package](https://github.com/lolly-tools/lolly-work_ynh/tree/v1.1.3-ynh2) | The only Lolly package for YunoHost from 1.2.0; the static `lolly_ynh` package is discontinued. 1.1.3~ynh2 beta. On amd64, YunoHost package_check passes install, backup and restore, upgrade from 1.1.0~ynh3 and change URL on YunoHost 12.1 and 13.0, and a signed-in browser on a fresh YunoHost 13 install lists the tools. Each installation makes its own catalogue signing key. The overall run reports level 0 only because the package is not yet in YunoHost's catalogue; catalogue registration and arm64 acceptance are pending |
 | Coolify | [Project Compose recipe](https://github.com/lolly-tools/lolly-work/tree/main/deploy/coolify) | **Not ready.** The recipe is generated for Coolify's "Docker Compose Empty" import, with the proxy, generated secrets and domain variable wired, but it has not been imported into a running Coolify. It is not in Coolify's one-click catalogue, which this project does not yet qualify for |
 | Dokploy | [Upstream blueprint](https://github.com/lolly-tools/lolly-work/tree/main/deploy/dokploy) | **Not ready.** The blueprint is generated and ready to import, but it has not been imported into a running Dokploy. Runtime acceptance on a target and admission to the public catalogue are pending |
 
@@ -60,13 +61,15 @@ The repository workflow blocks static code errors and reports catalogue registra
 and working-state metadata separately. Those publication checks stay pending until the
 mirrored package is registered and qualified.
 
+<!--i:eti-shield-check-->
 ## Release verification
 
 Each Lolly Work release publishes receipts for its images, source and signatures: the current
 [Lolly Work %work{version} release](https://github.com/lolly-tools/lolly-work/releases/tag/v%work{version})
-and the earlier [Lolly Work 1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2) and
+and the earlier [Lolly Work 1.1.3](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.3),
+[Lolly Work 1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2) and
 [Lolly Work 1.1.1](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1) releases.
-The ready-made package reuses the 1.1.1 release and its checksum-verified, signed Lolly
+The ready-made package reuses the 1.1.3 release and its checksum-verified, signed Lolly
 web archive. It downloads that archive from `lolli.li` on first installation and fetches
 models from the same place when someone uses them, so it needs network access;
 [external services and mirrors](#external-services-and-mirrors) shows how to replace
@@ -84,8 +87,10 @@ each source with your own copy.
 | 1.1.1 | server | the same workflow at `refs/heads/main` |
 | 1.1.1 | worker | the same workflow at `refs/tags/v1.1.1` |
 
+::: note A published image is not a qualified device
 A successful build or multi-architecture manifest does not make every device
 qualified.
+:::
 
 **The Helm chart**, once published: download its `.tgz`, `SHA256SUMS`,
 `chart-release.json` and `.tgz.sigstore.json` from the exact chart release. Check the
@@ -101,6 +106,7 @@ starts with telemetry off. Loading a model contacts `lolli.li`, but that is not 
 Lolly Work stores projects. [Server surface](/info/trust/server-surface.html) lists what each
 server receives and keeps.
 
+<!--i:eti-globe-->
 ## External services and mirrors
 
 The official packages download from the public services below. The general
@@ -281,6 +287,7 @@ request to `instance.modelOrigin` (default `https://lolli.li`, see
 the Lolly Work server talks to the model host. Set `modelOrigin` to `null` when the web app
 carries its own models or the installation offers none.
 
+<!--i:eti-help-->
 ## Operation and support
 
 The packages share the single collaboration owner every Lolly Work deployment has; more
@@ -297,6 +304,10 @@ forward repair; an image downgrade alone is not a recovery procedure.
 
 Support is through [upstream issues](https://github.com/lolly-tools/lolly-work/issues),
 with best-effort community maintenance. Report vulnerabilities through the
-repository's `SECURITY.md` route. A provider's certification applies only to its own
-qualified offering, and a listing does not certify Lolly for regulated workloads. These
-packages come with no support contract or certification.
+repository's `SECURITY.md` route.
+
+::: note No support contract or certification
+A provider's certification applies only to its own qualified offering, and a listing does
+not certify Lolly for regulated workloads. These packages come with no support contract or
+certification.
+:::

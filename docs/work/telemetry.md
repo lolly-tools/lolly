@@ -5,13 +5,14 @@ exported. It never records what anyone typed or made. Each event carries a short
 labels, such as a tool id or a file format. Anything else is dropped before it is stored, and so
 is any label longer than 200 characters.
 
-**Lolly's own apps do not send these events today.** Lolly Work accepts them, checks them and
-charts them, and the consent route exists. But the web app, the desktop and mobile apps, the
-command line and the terminal app never post to `/api/v1/telemetry`, and none of them asks a
-person for consent. The usage charts in the console therefore stay empty unless a client of your
-own sends events. This page describes what Lolly Work does with events that arrive, for such
-clients. The audit log, the activity feed's audit half and the Fleet view do not depend on these
-events.
+::: note Lolly's own apps do not send these events today
+Lolly Work accepts them, checks them and charts them, and the consent route exists. But the web
+app, the desktop and mobile apps, the command line and the terminal app never post to
+`/api/v1/telemetry`, and none of them asks a person for consent. The usage charts in the console
+therefore stay empty unless a client of your own sends events. This page describes what Lolly
+Work does with events that arrive, for such clients. The audit log, the activity feed's audit
+half and the Fleet view do not depend on these events.
+:::
 
 Whether an event identifies the person is your choice. With the defaults (`telemetry: "standard"`,
 `telemetryAttribution: "opt-in"`), events stay anonymous until that person agrees through the
@@ -22,6 +23,7 @@ all.
 Every event passes the same checks at ingest, in this order, before anything is written.
 :::
 
+<!--i:eti-shield-check-->
 ## The rules at the door
 
 Lolly Work enforces three rules when an event arrives, not later in the query layer, where a mistake
@@ -38,6 +40,7 @@ would already have stored the data:
    `city`, `country` and `headshot`. Any other field name, such as a preference or a consent
    flag, is dropped; an update that changed none of the eight is stored with no `fields` label.
 
+<!--i:eti-sliders-->
 ## Levels and consent
 
 | Policy | What is stored |
@@ -52,6 +55,7 @@ honours it when an event arrives. A client that sends events must ask the person
 the answer on, because Lolly's own apps do not ask today. Both keys are in
 [configuration](configuration.md#telemetry-activity-and-retention).
 
+<!--i:eti-checklist-->
 ## What Lolly Work records from a sending client
 
 | Event | Labels |
@@ -76,6 +80,7 @@ without anyone having to review what is sent.
 Clients send events to `POST /api/v1/telemetry`, rate-limited per IP (`rateLimit.telemetry`, default
 capacity 120, refill 4 a second).
 
+<!--i:eti-gauge-->
 ## Dashboards
 
 The console turns these events, and the audit log, into four views. The Overview figures and the
@@ -108,11 +113,16 @@ groups, shell and engine-version range ([messages](api.md#approvals-and-inbox)).
 
 ![The client fleet: which shell and engine versions are talking to this deployment](shots/client-fleet.svg)
 
+<!--i:eti-download-->
 ## Downloads and what members see
 
 What the deploy shows members about its own measurement is a policy choice, and the console
 states its posture in the interface rather than hiding it: an internal deploy shows utilisation
 in full.
+
+Since Lolly 1.2.0, when a Lolly Work workspace is connected, the app's first-run privacy line
+says what the workspace keeps: what a person saves to its projects or shares through it, and a
+log of their sign-ins and what they do there. Without a workspace, nothing changes.
 
 Downloads are measured per item, for a client that sends them. That client sends
 `catalog.asset-download` when a catalog asset leaves as a file, with a coarse `via` label
@@ -121,6 +131,7 @@ beside "Most-used" (assets opened or placed), and both stay empty until events a
 Downloads follow the same attribution rule as every other event. Transforms and crops count as
 tool activity, not a separate event, and the console says that on the page.
 
+<!--i:eti-monitor-->
 ## Prometheus
 
 `GET /metrics` exposes gauges for the audit-chain integrity flag, process uptime and memory (RSS), live
@@ -134,13 +145,15 @@ With `LW_METRICS_TOKEN` set, the endpoint needs that bearer token. Without one, 
 may read the metrics, and only on an evaluation instance with no proxy: in production, behind
 `proxyAuth` or with `rateLimit.trustedProxyHops` above `0`, the endpoint answers `404`. The
 route is registered before sign-in checks, so no other route can shadow `/metrics`. Which gauges
-to alert on is in [operations](operations.md#monitoring).
+to alert on is in [operations](operations.md#monitoring), and
+[metrics and alerts](metrics.md) lists every series.
 
 The same series can also be pushed over OTLP to a platform team's OpenTelemetry
 Collector, beside traces and logs. That export is off unless an endpoint is set, and it
 carries no usage events and nothing about identity; see
 [OpenTelemetry export](operations.md#opentelemetry-export).
 
+<!--i:eti-link-->
 ## Related
 
 - The authoritative record of governed actions: [audit log](audit.md)

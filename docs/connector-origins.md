@@ -2,12 +2,14 @@
 
 This page is for an operator who needs Lolly to reach the organisation's own storage or services, such as a SharePoint tenant, an S3 bucket or a WebDAV server. The job is short: list the exact origins, rebuild the frontend and deploy the web server header that carries them.
 
+<!--i:eti-shield-check-->
 ## What is allowed by default
 
 The default policy permits the fixed public Google, Microsoft Graph, Dropbox and reference APIs listed in `packages/core/src/connector-origins.ts`. Everything else needs configuring: SharePoint and other storage upload and download hosts, S3, WebDAV, Mastodon, Bluesky, Discord and any additional connector endpoint. No tenant endpoints are configured by default.
 
 When a request is denied, existing connections stay on the device, forms and export bytes are not cleared and the app does not reload by itself.
 
+<!--i:eti-url-->
 ## Add your origins
 
 Set the public build variable `VITE_CONNECTOR_ORIGINS` to a space-separated list of exact HTTPS origins:
@@ -21,8 +23,11 @@ VITE_CONNECTOR_ORIGINS="https://storage.example.com https://tenant.sharepoint.co
 - **Every origin a provider uses.** Include every upload and download origin, preauthenticated storage addresses too.
 - **No secrets.** Never paste a token or a signed URL into this setting.
 
+::: note Settings do not approve an origin
 Choosing an endpoint in Settings does not approve its origin; only this list does.
+:::
 
+<!--i:eti-upload-->
 ## Apply it to your deployment
 
 ::: timeline
@@ -37,12 +42,14 @@ Each deployment shape takes the list its own way:
 
 - **Web container:** pass `VITE_CONNECTOR_ORIGINS` as a public build argument; the image renders nginx in its isolated verification stage.
 - **Sovereign Helm profile:** set `connectorOrigins`, an array of exact HTTPS DNS origins. The rendered policy is part of the workload configuration checksum.
-- **YunoHost:** use the existing `csp_extra_connect_src` setting. The package validates before reloading and keeps the setting through upgrades.
+- **YunoHost:** the `csp_extra_connect_src` setting belonged to the discontinued static `lolly_ynh` package. [Lolly Work for YunoHost](/info/work-install.html#7-yunohost), the YunoHost package from 1.2.0, serves the app under a fixed policy and has no setting for extra connector origins.
+- **Lolly Work:** where the ingress in front of an instance cannot replace response headers, list the same origins in `instance.connectorOrigins` ([configuration](/info/work-configuration.html#instance)). The served app's `connect-src` gains them, and nothing else changes.
 - **RPM or public VM:** install the rendered nginx file through the deployment's normal configuration process, and validate nginx before reloading.
 - **Development servers** apply the same connection policy plus their exact development WebSocket origin.
 
 The reusable frontend workflow takes a public `connector_origins` input, and its callers pass `vars.VITE_CONNECTOR_ORIGINS`. Compilation receives no catalog, native signing or CA private keys. Enrolment trust is pinned separately, through `VITE_CA_ENROLLMENT_TRUST_JSON`.
 
+<!--i:eti-search-->
 ## How the app checks a request
 
 ::: cols
@@ -62,6 +69,7 @@ The reusable frontend workflow takes a public `connector_origins` input, and its
 - A resource reader can set lower response byte limits, and a timeout that covers the whole native request before the response is buffered across to the app.
 :::
 
+<!--i:eti-warning-->
 ## Limits
 
 Exact origins do not tell tenants or accounts apart on the Google and Microsoft Graph APIs, so this list is not a complete data-egress boundary. Other resource directives, external sign-in windows and native capabilities have their own policies, and provider permissions and organisation controls must still approve the account and the operation. [Threat model](/info/threat-model.html) covers the wider boundary.

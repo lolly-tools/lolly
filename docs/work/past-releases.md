@@ -93,7 +93,7 @@ claim native arm64 runtime qualification.
 The preparation commands are the same as for 1.1.0, with `vendor/lolly` at
 `26cf05324f46dc4cacd65d12d6f454ada181fb5e`:
 
-```text
+```bash
 node scripts/vendor-content-resolver.ts --write
 pnpm run repin-engine --apply
 pnpm run verify:engine-pin
@@ -110,7 +110,7 @@ The `1.1.1~ynh1` package pairs Lolly Work 1.1.1 with the signed neutral Lolly we
 with the maintained producer after the release notes are committed, so the archive
 includes them:
 
-```text
+```bash
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.1.1-ynh1.tar.gz --shell-sha256 bc78012aa407983ecc818e63be98ae1b45ed7db1dcad3f4c8d4ffe0c371116c1 --out ABS_NEW_ARTIFACT_DIRECTORY
 ```
 
@@ -201,7 +201,7 @@ Use clean, isolated source checkouts, and keep the existing deployment's data,
 configuration, keys, pin and rollback artifacts. From the final committed Lolly source,
 refresh Lolly Work with the maintained producers:
 
-```text
+```bash
 node scripts/vendor-content-resolver.ts --write
 pnpm run repin-engine --apply
 pnpm run verify:engine-pin
@@ -255,7 +255,7 @@ build of source `0359d8106bccbd1da56b5552605199f0bf705472`.
   qualified runtime source; the installed server, engine, console, lockfile and other
   runtime files are unchanged.
 
-```text
+```bash
 node scripts/yunohost-release.ts --ynh-rev 3 --shell-url https://lolli.li/lolly-web-1.1.0-ynh3.tar.gz --shell-sha256 8bc8121a68e6fee6dda3902ed48d5e2669353bcfd101ca3822990235a2099376 --out ABS_NEW_ARTIFACT_DIRECTORY
 ```
 

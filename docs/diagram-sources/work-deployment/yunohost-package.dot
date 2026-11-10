@@ -1,0 +1,19 @@
+digraph yunohost_package {
+  rankdir=TB
+  node [shape=box]
+  members [label="Members\nin a browser"]
+  apps [label="Apps and agents\nlw, MCP, SCIM"]
+  portal [label="YunoHost portal\nSSOwat identity headers"]
+  nginx [label="nginx\nadds the shared secret"]
+  server [label="Lolly Work server\nand the web app at /", style=filled, fillcolor="#dcf3e6"]
+  ldap [label="Host LDAP\ngroups and roles"]
+  db [label="PostgreSQL\nrecords and jobs", style=filled, fillcolor="#dcf3e6"]
+  nextcloud [label="Nextcloud\noptional, WebDAV"]
+  members -> portal
+  portal -> nginx
+  apps -> nginx
+  nginx -> server
+  server -> ldap
+  server -> db
+  server -> nextcloud [style=dashed]
+}

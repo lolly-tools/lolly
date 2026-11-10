@@ -164,13 +164,9 @@ The app id is `tools.lolly.Desktop` and the runtime is `org.gnome.Platform` vers
 
 ### YunoHost
 
-On a [YunoHost](https://yunohost.org) server, install Lolly from its app package:
+On a [YunoHost](https://yunohost.org) server, install [Lolly Work for YunoHost](https://github.com/lolly-tools/lolly-work_ynh) (`lolly-work_ynh`). From 1.2.0 it is the only Lolly package for YunoHost. It serves the same web app from a whole domain of your own, adds the Lolly Work server and its PostgreSQL database and signs people in with the server's YunoHost accounts. [Install Lolly Work, section 7](/info/work-install.html#7-yunohost) has the install command and the exact package revision to use. The [YunoHost section of the deployment guide](/info/deployment.html#yunohost) compares it with the other ways to deploy.
 
-```bash
-sudo yunohost app install https://github.com/lolly-tools/lolly_ynh
-```
-
-The package serves the same web app, version %download{yunohost}, from a domain of your own, with the same security headers as lolly.tools. It needs a whole domain, keeps nothing on the server and fetches the on-device models from `lolli.li` the first time a tool asks for one. The [YunoHost section of the deployment guide](/info/deployment.html#yunohost) covers what the package installs and how access works.
+The static `lolly_ynh` package, which served only the app, is discontinued. A guide for replacing a static install with Lolly Work on the same domain is coming.
 
 ### A container image
 
