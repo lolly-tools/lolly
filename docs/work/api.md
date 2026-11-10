@@ -1481,6 +1481,19 @@ audit, the fleet of installed apps, setup checks and the static files the server
 | `GET /api/v1/docs`, `GET /api/v1/docs/:slug` | member - this documentation set |
 | `GET /api/v1/docs/img/:file`, `GET /api/v1/docs/shots/:file`, `GET /api/v1/docs/shots/:file/cred` | member - the images and screenshots those pages show, and a screenshot's Content Credentials as JSON (`404 NO_CRED` when it carries none) |
 
+### Release notice
+
+Whether a newer Lolly Work release is published, read from the chart repository index the server
+checks once a day ([`updates`](configuration.md#updates)), with the upgrade steps for this
+instance's [`install.route`](configuration.md#install). Owners and admins hold `fleet.view`;
+members never do unless a grant gives them `fleet.view`. The index is not signed, so the answer is information
+only, and nothing here changes the deployment.
+
+| Route | Action | Notes |
+|---|---|---|
+| `GET /api/v1/admin/updates` | `fleet.view` | the last check, from memory: it never reaches the network. `{ check, channel, feedUrl, status, checkedAt, attemptedAt, error, current: { version, chartVersion }, latest, releases, security, migrates, install: { route, release, namespace, deployment, repository }, steps }`. `status` is `off`, `never`, `ok` or `failed`; `error` is a fixed word such as `unreachable`, `refused`, `redirect` or `invalid`, and a failure keeps the last good answer. `releases` lists the newer releases on the channel, newest first, each `{ version, appVersion, created, prerelease, security, migrations, migrationClasses, notesUrl, changes }`; `migrations` is `null` when the release does not say. `steps` is the ordered list for `latest`, each `{ id, title, detail, command?, doc?, optional? }` |
+| `POST /api/v1/admin/updates/check` | `fleet.view` | read the index now and answer as above; within 30 seconds of the last check the answer comes from memory. `409 UPDATES_OFF` when `updates.check` is `false` |
+
 ### Static files
 
 | Route | Notes |
