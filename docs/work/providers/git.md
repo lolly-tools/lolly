@@ -4,6 +4,7 @@ Keep your catalog as a JSON manifest in a git repository, and Lolly Work federat
 lists, read over raw HTTP from the branch you choose. Changes go through your usual review and
 merge, so the repository history is the catalog's history.
 
+<!--i:eti-clipboard-->
 ## What you need from the repo host
 
 - **A raw-content base URL** for the branch, such as
@@ -21,6 +22,7 @@ merge, so the repository history is the catalog's history.
   Only `path` is required. A path containing `..` is dropped, and only paths the manifest lists
   can be fetched.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 A single token string, or none for a public repository. It is sent as
@@ -31,6 +33,7 @@ A single token string, or none for a public repository. It is sent as
 lw providers credential acme-git     # prompts; skip this for a public repo
 ```
 
+<!--i:eti-code-->
 ## instance.json / `lw providers add`
 
 ```json
@@ -49,6 +52,7 @@ lw providers credential acme-git     # prompts; skip this for a public repo
 | `manifestPath` | Default `lolly-catalog.json`. |
 | `authHeader` | The header name for a token that is not sent as `Bearer`. |
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind git --options '{"rawBase":"https://raw.githubusercontent.com/acme/brand/main"}'
@@ -58,12 +62,14 @@ lw providers health acme-git
 A `404` on the manifest means a wrong `rawBase` or `manifestPath`, or a branch with no such
 file.
 
+<!--i:eti-info-->
 ## Notes / limits
 
 - **No server-side search and no expiring links.** Each file is fetched over raw HTTP and
   streamed on request, pinned to the `rawBase` host.
 - **The exit works,** though a catalog kept in git is usually kept there.
 
+<!--i:eti-folder-move-->
 ## Use as an offboarding destination
 
 A self-hosted forge such as Gitea can hold a small, curated replacement catalog. Export and review permitted files, commit them with the manifest described above, then connect the raw-content endpoint. Lolly Work reads the repository and does not push the migration into Git. Plan file sizes, metadata, access and replacement references separately.

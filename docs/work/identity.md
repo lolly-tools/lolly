@@ -4,6 +4,7 @@ This page is for the person who decides how colleagues sign in to Lolly Work. By
 will know which sign-in methods to offer, who gets in, how long someone stays signed in and
 how to end their access.
 
+<!--i:eti-help-->
 ## How a sign-in works
 
 Every sign-in answers two questions. Your identity provider answers the first: who is this?
@@ -28,6 +29,7 @@ uses https. A member session wins when both cookies are present. Every token car
 domain in its signed payload, so a session token can never be replayed as a guest token, a
 link signature or an OAuth state.
 
+<!--i:eti-sliders-->
 ## Choose how people sign in
 
 | Method | Suits | Set it up |
@@ -75,12 +77,14 @@ A forgotten password works the same way: ask the person who invited you for a ne
 old password keeps working until the new one is set. Setting it ends every session the
 account had, so a password that got out stops working everywhere at once.
 
+::: warning A password link signs in whoever holds it
 Whoever holds a link can sign in as its address, so some links are owner-only:
 
 - a link that leads to an owner: an owner's account, a `bootstrapOwners` address or an
   invitation into an owner group;
 - a link that adds a password to an account that already signs in another way, unless it is
   the issuer's own account.
+:::
 
 Each link is judged again when it is opened and when it is used, on its issuer's standing at
 that moment. If the issuer has been disabled or is no longer an admin, or the address now
@@ -102,6 +106,7 @@ deletes the password; a new one needs a new link. The sign-in an account was cre
 cannot be removed. **Disable access** is the way to stop that one, and it also cancels the
 person's unused links.
 
+::: details How password guessing is slowed, and how passwords are stored
 Guessing is slowed twice over:
 
 - Every attempt uses the `auth` rate-limit bucket.
@@ -115,6 +120,7 @@ password and a locked address all get the same answer: "That email and password 
 match." The form carries a signed double-submit token against login CSRF. Passwords are
 stored as scrypt hashes, and passwords, hashes and link tokens never reach a log line or the
 audit chain.
+:::
 
 An instance whose only sign-in is email and password has no admin to issue the first link.
 The operator prints one for an address listed in `bootstrapOwners`, on the machine where the
@@ -146,11 +152,14 @@ URL that is an IP address turns them off.
   `POST /api/auth/passkeys/authenticate/options` and `.../authenticate/verify`, and
   `POST /api/auth/passkeys/:id/remove`.
 
+::: warning Signing out everywhere leaves a passkey working
 A passkey is a local credential with no provider session. A provider logout or **Sign out on
 all devices** leaves the passkey in place. To stop passkey sign-in, disable the account or
-send SCIM `active=false`. [Set up enterprise
-identity](enterprise-identity.md#5-operate-and-upgrade) explains how passkeys behave during
-offboarding.
+send SCIM `active=false`.
+:::
+
+[Set up enterprise identity](enterprise-identity.md#5-operate-and-upgrade) explains how
+passkeys behave during offboarding.
 
 ### Device-code sign-in
 
@@ -171,6 +180,7 @@ Pending codes are listed in the console's Fleet view, where an admin can deny on
 approve one. Codes are database rows, so any replica answers the poll: high availability
 needs no sticky sessions, and function-only deployments have the flow too.
 
+<!--i:eti-shield-check-->
 ## Who may sign in
 
 Completing a sign-in at the provider proves who a person is, not that they belong.
@@ -212,10 +222,12 @@ The checks run in this order, and the first one that applies decides:
    An existing staff account is admitted by the steps above or not at all. Both are kept in the database, not in this
    configuration ([Partner programmes](partner-programmes.md#add-people-by-domain)).
 
+::: note A hostedDomain pin refuses invited people outside it
 With `hostedDomain` set, only accounts in that Google Workspace get past step 2, invited
 people included. To let in people from outside it, add a second Google registration without
 `hostedDomain` (an `idp.additional` entry) and admit those people by exact `emails` or by
 invitation, never by `domains`.
+:::
 
 The refusal page starts with the workspace name ("Example Studio is invite only"), shows the
 account the person used, and says to sign in with the account the invitation went to or to
@@ -286,6 +298,7 @@ Once real owner groups exist, empty the list.
   handle requests](invitations.md#audit-actions-for-invitations-and-requests).
 :::
 
+<!--i:eti-clock-->
 ## Session length and renewal
 
 A member session lasts `policy.sessionTtlHours`. With `policy.sessionMaxHours` set, a person
@@ -329,6 +342,7 @@ and the cap at a few days, for example `sessionTtlHours: 12` with `sessionMaxHou
   acted from signed in, with a cookie in the same chain and cut the same way.
 :::
 
+<!--i:eti-link-->
 ## One person, several sign-ins
 
 A person may sign in with Google one day and GitHub the next. Both sign-ins belong to one
@@ -431,11 +445,14 @@ an existing account that reaches it through a newly linked sign-in. Adding a sig
 profile accepts it at once when that provider vouches for the invited address and links by
 email (`invite.accept` with `via: "link"`).
 
+::: details Accounts from before migration 0039
 **Upgrading.** Migration 0039 writes one identity row per existing account from `users.sub`
 (the provider is the prefix before the first `:`, or `primary` when there is none), with the
 email marked unconfirmed. Nothing links by email to a backfilled row until that person signs
 in again through the same identity and the provider confirms the address.
+:::
 
+<!--i:eti-users-->
 ## Groups → role
 
 Groups arrive from the provider claim that `groupsClaim` points at. The console can add
@@ -485,6 +502,7 @@ Group membership is also how governance targets people: overlay visibility, appr
 eligibility, provider exposure and grant principals (`group:<name>`) all read groups. What
 each role may do is in [Roles and grants](permissions.md).
 
+<!--i:eti-lock-->
 ## Offboarding, disable and revocation
 
 ![The People directory: every signed-in member with role, groups and instant lockout](shots/people-directory.svg)
@@ -537,6 +555,7 @@ Details that matter:
 Ownership transfer, retained content and personal-data review are separate actions; see
 [Account data controls](account-lifecycle.md).
 
+<!--i:eti-user-check-->
 ## Guest sessions
 
 A guest-edit link admits someone with no account. The server sets an `lw_guest` cookie scoped
@@ -548,6 +567,7 @@ access comes entirely from the link. `policy.guestLinks.maxTtlHours` caps the li
 How a guest joins is in [Share renders and links](sharing.md#guest-links-in-a-browser), and
 what a guest can do in a live room is in [Roles and grants](permissions.md#guest-write-authority).
 
+<!--i:eti-cpu-->
 ## Machine credentials
 
 Your provider's SCIM connector and your automation sign in with bearer tokens, not cookies.

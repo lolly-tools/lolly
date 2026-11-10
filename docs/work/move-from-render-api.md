@@ -2,12 +2,22 @@
 
 This page is for the developer or admin who renders images through Bannerbear or Placid and wants to run that production on a server of their own. A hosted service can stay in place while you test the move, you can move one template at a time, and leaving stays open in both directions.
 
-**Note: Built from public documentation, never run against a live account**
-
+::: note Built from public documentation, never run against a live account
 Every adapter on this page comes from each vendor's public documentation and from fixtures built from those docs. None has been run against a real Bannerbear or Placid account. If you hold an account, the [check list](#check-it-on-your-own-account) takes under an hour, and it is the check that counts for your move.
+:::
 
 [Lolly and rendering APIs](/info/compare-render-apis.html) compares the services. This page is the how.
 
+**What you'll do**, in four steps:
+
+::: steps
+- <!--i:eti-search--> **[Connect and pin](#connect)** Read the account into a folder, then keep reference renders.
+- <!--i:eti-pen-tool--> **[Recreate and map](#recreate-the-design)** Import or rebuild each design as a tool, then map the vendor's properties to its inputs.
+- <!--i:eti-eye--> **[Compare](#compare-before-you-cut-over)** Measure a render here against the vendor's reference.
+- <!--i:eti-refresh--> **[Run both, then cut over](#run-both-then-cut-over)** Turn on the migration API, then move clients one template at a time.
+:::
+
+<!--i:eti-table-->
 ## What each source allows
 
 The move follows the same stages as [leaving a DAM](offboarding.md): connect, pin, recreate, compare, run side by side, then cut over. How much carries across depends on what the vendor's API returns.
@@ -22,6 +32,7 @@ The move follows the same stages as [leaving a DAM](offboarding.md): connect, pi
 | Per-request webhook | The API has none | `webhook_url` | `webhook_success` |
 | Dynamic image URLs | Not supported | Not supported | `/u/{uuid}` with its signatures |
 
+<!--i:eti-search-->
 ## Connect
 
 Read the account, with no Lolly Work server involved. Nothing is written to the account.
@@ -39,9 +50,14 @@ lw render-api inventory --from bannerbear-v5 --token-env BANNERBEAR_KEY --out ./
 - `previews/`: each preview picture. Your key is not sent with these downloads.
 - `mappings.draft.json`: a first mapping to review.
 
+<!--i:eti-pin-->
 ## Pin
 
-Keep what you would miss after the account ends. The inventory folder is the start. To keep a real render as a reference, use `sample`, which asks the vendor to render and so **spends credits on your account**. It refuses to run without `--spend-credits`.
+Keep what you would miss after the account ends. The inventory folder is the start. To keep a real render as a reference, use `sample`, which asks the vendor to render.
+
+::: warning `sample` spends credits on your account
+Each sample is a real render, and so **spends credits on your account**. It refuses to run without `--spend-credits`.
+:::
 
 ```bash
 lw render-api sample --from placid --template ospo24ysn --token-env PLACID_KEY \
@@ -50,6 +66,7 @@ lw render-api sample --from placid --template ospo24ysn --token-env PLACID_KEY \
 
 `request.json` is the body you would send the vendor. Re-run `inventory` on a cadence while you move, and compare the folders to see what changed upstream.
 
+<!--i:eti-pen-tool-->
 ## Recreate the design
 
 **Bannerbear V5.** The API returns the design, so bring it in:
@@ -64,6 +81,7 @@ You can also open the JSON in [Design Import](/info/design-import.html#bannerbea
 
 Tools are the part worth taking time over. A rebuilt tool can use your design system's colours, type and rules, and its inputs can be locked or limited by [policy](governance.md).
 
+<!--i:eti-layers-->
 ## Map the template
 
 A mapping says which tool serves a vendor template, and which input each vendor property fills. Review it like a delivery destination, because it decides what callers can change.
@@ -102,6 +120,7 @@ lw render-api check --mapping mapping.json
 
 It reads each tool's effective schema and reports an input that does not exist, an input policy has locked, or a format this deployment cannot make. It exits `2` if any template cannot run.
 
+<!--i:eti-eye-->
 ## Compare before you cut over
 
 Measure a render here against the vendor's reference, with the same [production comparison](renders.md#production-still-checks-and-permitted-repairs) a durable render can use.
@@ -117,6 +136,7 @@ lw render-api compare --from placid --mapping mapping.json --template ospo24ysn 
 
 The command prints each check and exits `2` when the render differs, naming the region that moved. It renders in the reference's own size and format, and the reference must be a PNG or JPEG of at most 675,000 bytes. A match measures pixels against this reference. It is not an approval of the design.
 
+<!--i:eti-refresh-->
 ## Run both, then cut over
 
 The migration API is off by default, and every `/compat/` route then answers `404`. Turn it on in the instance configuration:
@@ -146,6 +166,7 @@ Authentication is the same header, `Authorization: Bearer`, carrying a [service 
 
 Move one template at a time, because a template that has no mapping answers `404` here while the vendor keeps serving that template. Send each client to whichever host holds its template, and keep the vendor account until the last one has moved and the references are safe.
 
+<!--i:eti-checklist-->
 ## What runs and what is refused
 
 | Request | Here |
@@ -161,6 +182,7 @@ Move one template at a time, because a template that has no mapping answers `404
 
 Formats depend on the deployment: JPG and PDF need the [render worker](configuration.md#render).
 
+<!--i:eti-megaphone-->
 ## Webhooks
 
 `webhook_url` and `webhook_success` post the vendor's object when the render finishes, through the same durable outbox as native callbacks, with the same retries. A failed render sends the object too, with its failed status.
@@ -168,18 +190,22 @@ Formats depend on the deployment: JPG and PDF need the [render worker](configura
 - List the receiver's origin in `automation.callbacks.allowedOrigins` and set `LW_WEBHOOK_SECRET`. Any other URL is refused with `403 CALLBACK_URL_NOT_ALLOWED`.
 - Each post also carries `x-lolly-signature`, `x-lolly-timestamp` and `x-lolly-delivery-id`, so a receiver can start checking them. Neither vendor documents signing for these webhooks, so a receiver that ignores the headers still works.
 
+<!--i:eti-lock-->
 ## Result URLs
 
 Clients built for hosted APIs store a result URL and embed it, so `image_url` and `files` hold signed URLs that need no token. This is a tradeoff, and the opposite of what [job result tokens](automation-api.md#callbacks) do, which moved out of URLs because a URL ends up in logs.
 
-- **The URL is the credential.** Anyone holding it can fetch the file until it expires.
+::: warning Treat a result URL as a secret
+**The URL is the credential.** Anyone holding it can fetch the file until it expires. **Revoking a token does not revoke its URLs.** Delete the records as well.
+:::
+
 - **It expires.** It works for `resultUrls.signedDays` after the render finished, 30 by default. Polling the record later gives a fresh URL.
 - **Deleting the record revokes the URL.** Use `DELETE /compat/requests/:id` with the token that made the record, or as an admin, and Placid's `DELETE /images/{id}` too. A shared cache may hold a file for up to five minutes after that.
-- **Revoking a token does not revoke its URLs.** Delete the records as well.
 - **`signedDays: 0` turns this off.** Result URLs then need the same bearer token, which suits server-to-server clients.
 
 Output [retention](configuration.md#policy), when configured, also ends a URL: the file then answers `410`.
 
+<!--i:eti-url-->
 ## Placid's URL API
 
 `GET /compat/placid/u/{uuid}?title[text]=Hello` answers with the image, and the same URL is one render until your design system or catalog changes. Set which service token these renders act as:
@@ -202,6 +228,7 @@ Existing signed URLs keep working with a host change alone, if you give the temp
 
 Bannerbear's signed base URLs and Instant URLs are not supported, because their signing could not be confirmed from public documentation.
 
+<!--i:eti-folder-move-->
 ## Leave Lolly too
 
 Nothing here is one-way.
@@ -213,6 +240,7 @@ Nothing here is one-way.
 
 Your vendor account also stays yours for as long as you keep the account open. Moving some templates and keeping others is a fine place to stop.
 
+<!--i:eti-flask-->
 ## Check it on your own account
 
 If you hold an account, this confirms the adapter for your templates. Use a template you can spare, and note that steps 2 and 4 spend credits.
@@ -225,6 +253,7 @@ If you hold an account, this confirms the adapter for your templates. Use a temp
 
 Tell us what you find with [an issue](https://github.com/lolly-tools/lolly-work/issues). Please leave out your key, and any customer data in the requests.
 
+<!--i:eti-link-->
 ## Related
 
 - [Lolly and rendering APIs](/info/compare-render-apis.html)
