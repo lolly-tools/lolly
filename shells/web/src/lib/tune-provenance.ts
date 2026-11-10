@@ -190,6 +190,8 @@ export async function tuneAt(url: string): Promise<LofiTuneRecipe | null> {
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
+    // A sound file states its size up front, so it is left unread.
+    if (Number(res.headers.get('content-length')) > MAX_TUNE_BYTES) return null;
     const blob = await res.blob();
     if (blob.size < 2 || blob.size > MAX_TUNE_BYTES) return null;
     return lofiTuneFromBytes(new Uint8Array(await blob.arrayBuffer()));
