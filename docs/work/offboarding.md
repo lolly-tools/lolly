@@ -7,6 +7,7 @@ your organisation can operate, with control over the hosting location, access, k
 recovery. Lolly Work can manage the replacement library, or connect to files you have moved
 to another supported source. Start early enough to verify the result before retiring the DAM.
 
+<!--i:eti-map-pin-->
 ## Choose your offboarding path
 
 ::: figure work-offboarding-paths
@@ -37,6 +38,7 @@ For a supported exit into Lolly Work, the sequence is:
 
 Connecting each kind is in [the provider guides](providers/README.md), one per kind.
 
+<!--i:eti-home-->
 ## Self-host Lolly Work with S3 storage
 
 A practical destination is Lolly for creating content, a self-hosted Lolly Work instance for
@@ -95,6 +97,7 @@ Run the supported cutover only after acceptance, then test old references and ev
 and delivery work. Keep the source and recovery evidence until the organisation accepts the
 result. [Plan a DAM transition](/info/dam-transition.html) covers ownership and team adoption.
 
+<!--i:eti-folder-shared-->
 ## Move to Nextcloud or another WebDAV server
 
 Choose this path when people should manage ordinary folders in a file service your organisation
@@ -115,6 +118,7 @@ Keep metadata exports beside the files where appropriate, but verify which field
 maps. A folder copy does not reconstruct approval history or rights evidence. Back up the file
 service and test recovery before retiring the DAM.
 
+<!--i:eti-code-->
 ## Keep a catalog in Git
 
 A self-hosted forge such as Gitea can suit a small, curated set of logos, fonts and other files
@@ -125,6 +129,7 @@ This is a separate export and repository workflow; Lolly Work does not push into
 limits, repository access, metadata mappings and replacement references. Lolly Work reads the selected
 branch, so Git history alone does not pin an existing design to a historical revision.
 
+<!--i:eti-globe-->
 ## Move to a hosted drive
 
 Google Drive, OneDrive / SharePoint and Dropbox are optional destinations when the organisation
@@ -138,7 +143,7 @@ read-only: there is no direct DAM-to-drive materialize, publishing or cutover wr
 
 | Destination | Lolly Work connection and listing limits | Upload guidance |
 |---|---|---|
-| [Google Drive](providers/gdrive.md#use-as-an-offboarding-destination) | One flat folder; native Docs, Sheets and Slides are skipped; no imported approval or availability dates | [Upload files and folders](https://support.google.com/drive/answer/2424368) |
+| [Google Drive](providers/gdrive.md#use-as-an-offboarding-destination) | One folder, and its subfolders when `recursive` is on; native Docs, Sheets and Slides are skipped; no imported approval or availability dates | [Upload files and folders](https://support.google.com/drive/answer/2424368) |
 | [OneDrive / SharePoint](providers/o365.md#use-as-an-offboarding-destination) | One folder level; subfolders are not walked; search covers the whole drive, so test exposure carefully | [Upload to a drive or library](https://support.microsoft.com/en-us/sharepoint/documents-and-library/upload-files-and-folders-to-a-library) |
 | [Dropbox](providers/dropbox.md#use-as-an-offboarding-destination) | Recursive listing includes subfolders; file ids survive renames and moves | Use the service's upload or sync tools, then follow the provider guide |
 
@@ -148,6 +153,7 @@ access and required approval or expiry controls, keep unmapped metadata and hist
 separately, and update saved designs and published links for the new source identities. The
 Lolly Work cutover's old-address aliases do not apply to this separate transfer.
 
+<!--i:eti-clock-->
 ## When to start
 
 Copy the files as soon as federation works:
@@ -173,6 +179,7 @@ Copy the files as soon as federation works:
 Set `blobs.driver` before the first copy, not after: `pg` by default, or `s3` for MinIO, Ceph or
 any S3-compatible store ([where instance bytes live](catalog.md#where-instance-bytes-live)).
 
+<!--i:eti-help-->
 ## Canto and Image Relay: which driver do you exit through?
 
 Image Relay tenants may be moved to Canto, so one set of customers can sit across two APIs.
@@ -189,6 +196,7 @@ logo.
 Exposure slices, approval gating and the availability-field mapping are Lolly-side settings, so
 pointing them at a new provider entry is an edit, not a rebuild.
 
+<!--i:eti-checklist-->
 ## Exit readiness by kind
 
 One row per DAM kind Lolly Work ships. "What imports" is the governance a driver reads off the source:
@@ -202,6 +210,11 @@ which happens on your own tenant under your own contract. [Check a source on you
 tenant](providers/tenant-check.md) says how to run that check; do it before you commit to an
 exit schedule.
 
+**The verdicts in short:** `brandfolder`, `imagerelay`, `canto`, `acquia-dam` and
+`intelligencebank` are exit targets, and `cloudinary` is a conditional one. `optimizely-cmp` is not
+an exit target, and `orange-logic` refuses cutover.
+
+::: details What each DAM kind imports, copies and supports
 | Kind | Driver | What imports | Original bytes out | Exit verdict |
 |---|---|---|---|---|
 | `brandfolder` | Public v4 API, bearer key | Native window (`availability_start`, `availability_end`) and a native `approved` boolean; Brandfolder sections become sections | Yes. The attachment's signed storage URL is fetched again per request and streamed, limited to `brandfolder.com` and `bfldr.com` | **Exit target.** Live confirmation of the availability field names open |
@@ -212,6 +225,7 @@ exit schedule.
 | `optimizely-cmp` | CMP DAM API v3, OAuth2 (bring your own token); the only kind with publish-out, opt-in per provider (`options.publish`) | `expires_at` gives available until (CMP models expiry but no release date); `is_public` and not `is_archived` give approved; folders and labels become sections | The signed `download_url` streams per request, so the copy would run | **Not an exit target.** The CMS owns these assets: read-only federation in, plus publishing Lolly exports out. Do not run `cutover` against it |
 | `cloudinary` | Search and Admin APIs and signed download by asset ID; sealed API key and secret | An optional configured approval tag and metadata dates; dynamic asset folders | Original download by asset ID, with a check of the selected version first and no transformation | **Conditional exit target.** Prove original checksums, and export any rights, proof or history data you need separately, before scheduling a move |
 | `orange-logic` | Search v4; client credentials or bearer token | Configured approval and dates, folders and tags; explicit rendition file roles | **Unsupported.** Public renditions only; the protected original contract is unavailable | **Cutover refused.** Copied renditions do not make an exit that preserves originals |
+:::
 
 The other kinds (`webdav`, `s3`, `git`, `dropbox`, `gdrive`, `o365`, `penpot`) are storage and
 design sources, not brand libraries held under someone else's contract, so the table leaves
@@ -219,6 +233,7 @@ them out. `webdav` is worth one more line: a Nextcloud or an Apache `mod_dav` se
 organisation runs itself, so there is no vendor to leave, and it is far more often **where an
 exit goes** than where one starts. The copy works against it like any other source.
 
+<!--i:eti-folder-move-->
 ## Run the exit
 
 These commands copy into Lolly Work's own blob store. For Nextcloud, Git or hosted drives, use the
@@ -261,6 +276,7 @@ After cutover, every format of a copied `inst/*` entry carries a **checksum and 
 migrated assets gain the integrity checks and offline pinning that a federated `ext/*` entry
 cannot have while its bytes live upstream.
 
+<!--i:eti-link-->
 ## Related
 
 - Per-platform setup, one guide per kind: [the provider guides](providers/README.md)
