@@ -18,7 +18,8 @@ On the programme's page, or a company's, the **Agent tokens** card mints a token
 for the programme or one company. **Mint token** takes a label, the
 company, the scopes, the days until the token expires and any limits, then shows the secret once,
 with **Copy**. Anyone with `programme.manage` for a programme issues its tokens; a grant of
-`programme.manage` on `programme:<id>` lets its holder manage that programme's tokens only. The
+`programme.manage` on `programme:<id>` covers only that programme's tokens, its usage report,
+View as and template review. The
 server sets what the request cannot: the `automation` role, the programme's and company's groups and
 the `partner` group.
 

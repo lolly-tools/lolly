@@ -128,6 +128,11 @@ can point at one:
 | `project.manage` | `project:<id>` |
 | `session.view`, `session.edit`, `comment.view`, `comment.create`, `comment.edit`, `comment.resolve`, `comment.moderate` | `session:<id>`, `project:<id>` |
 | `approval.act` | `chain:<id>`, `approval:<id>`, or the subject of the request |
+| `programme.manage` | `programme:<id>` |
+
+`programme.manage` is checked against `programme:<id>` in four places only: the programme's
+agent tokens, its usage report, [View as](partner-programmes.md#view-as-partner) and the review
+of a template published into the programme. The other programme routes check `*` only.
 
 Every other permission is decided for the whole deployment, so its resource is `*`. Tag
 selectors such as `tool:tag/<tag>` are not checked; list each tool. There is no per-asset or
