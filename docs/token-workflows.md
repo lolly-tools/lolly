@@ -6,6 +6,7 @@ Start in the Tokens room of Lolly Design System Setup (`#/start?area=tokens`). P
 
 To follow along, download the [Beacon example system](/examples/beacon.tokens.json). It has independent appearance and density choices, custom vocabulary and semantic aliases. Its `border.exampleOutline` changes colour and stroke style with appearance, and width with density.
 
+<!--i:eti-eye-->
 ## Inspect a token
 
 The Tokens room lists every definition the design system keeps, including custom paths and source sets that are not active. For each token it shows:
@@ -47,6 +48,7 @@ Agents call `lolly_inspect_tokens` on the MCP server for the same report as JSON
 Counts in the Tokens room, the TUI and MCP cover token references and declared roles inside the token document. Tool hooks and other documents are outside that scope; [Find what uses a token](#find-what-uses-a-token) looks further, on request.
 :::
 
+<!--i:eti-palette-->
 ## Choose themes for one document
 
 Each imported theme group has its own control, using the source's group names and theme ids, or the theme name when the source has no id. A choice can belong to the design system or to one document.
@@ -69,6 +71,7 @@ A tool can still ask for one theme by name, as in `host.tokens.colors({ theme: '
 Documents store the design system's choices in `$metadata.activeThemeSelection`, render links use `_themes` (a JSON object in the reserved underscore namespace) and sessions carry `__tokenSelection`.
 :::
 
+<!--i:eti-link-->
 ## Link a field to a token
 
 A field linked to a token follows the token: change the token, or switch the theme, and every linked field redraws. Open the three-dot **Input actions** menu beside a field's label to find its **Design token** status, a picker of compatible tokens and the link actions, beside **Use as a tool input** (or **Reset this input** in a generated tool). Number, text and font-family select controls can link compatible tokens, and token details stay in this menu so ordinary rows stay clean.
@@ -117,6 +120,7 @@ Linking clears size, weight, tracking and font overrides inside the linked parag
 
 **In links,** typed references travel as `_ref.<inputId>` with a plain companion value for older hosts, and literal text such as `{title}` stays literal. Colour links keep their own form ([Design Tokens](/info/design-tokens.html#the-value-model-reference-cached-value)). A custom value keeps its remembered link in `_restore.<inputId>` and in the saved session.
 
+<!--i:eti-copy-->
 ## Link many documents at once
 
 Batch and Lolly Multi-edit can link one token across many rows or sessions. In Lolly Batch, open a column's **Fill** popover; number, text and choice columns have a **Design token** section beside the fill value. In Lolly Multi-edit, each session card has the same **Input actions** menu as a tool sidebar and acts on that session only, and the **Shared** card's menu reaches every session that declares the input.
@@ -129,8 +133,15 @@ Choosing a token opens a review before anything changes. Each row or session sho
 
 **Apply** writes only the selected documents, and **Cancel** writes nothing. **Make custom** and **Restore link** work across the selection, and the Restore review selects the documents that remember the same link.
 
-In the Batch grid, a linked cell is shaded and its accessible name includes the token path. Typing, picking, pasting or filling over a linked cell makes a custom value that remembers the link, as in a tool sidebar. Cell copy and CSV export carry the value shown, not the link. Rows opened from saved sessions keep the session's theme choices and links, and render with those choices.
+In the Batch grid, a linked cell is shaded and its accessible name includes the token path. Typing, picking, pasting or filling over a linked cell makes a custom value that remembers the link, as in a tool sidebar.
 
+::: warning Copying cells drops the link
+Cell copy and CSV export carry the value shown, not the link.
+:::
+
+Rows opened from saved sessions keep the session's theme choices and links, and render with those choices.
+
+<!--i:eti-checklist-->
 ## Review a change
 
 ::: timeline
@@ -139,7 +150,11 @@ In the Batch grid, a linked cell is shaded and its accessible name includes the 
 - <!--i:check--> **Apply or discard.** **Apply reviewed change** commits it through the usual saving and undo. **Discard preview** writes nothing.
 :::
 
-Source edits, generated scales and upstream comparisons capture the document as it is. The review shows the changes you wrote and the resolved values that change because of them. A token edit, a system switch or a change to a referenced resource in the meantime makes **Apply** unavailable.
+Source edits, generated scales and upstream comparisons capture the document as it is. The review shows the changes you wrote and the resolved values that change because of them.
+
+::: note A change in the meantime blocks Apply
+A token edit, a system switch or a change to a referenced resource in the meantime makes **Apply** unavailable.
+:::
 
 When a production host is available, the review can render one existing poster, title slide, content slide or Lolly Chart before and after. Renders run one at a time, with a cancel and a deadline, and the shared comparison controls handle alignment and the noise threshold. A result describes those two outputs, not every theme combination or every document.
 
@@ -159,6 +174,7 @@ New font pins made when you publish a version locally record family, weight, sla
 Missing or changed bytes for these pins fail visibly. Portable snapshots keep the family names as authored, and worker rendering uses a separate release projection. Earlier pins that only recorded names keep their old behaviour. The guarantee covers declared local faces you pinned; it does not promise identical raster bytes across platforms or pin every platform font.
 :::
 
+<!--i:eti-search-->
 ## Find what uses a token
 
 The inspector's **Used by** list covers references inside the token document. Below the list, **Check saved work and tools** looks for the selected token in two more places on this device: saved sessions in this browser, and the tool manifests in the mounted catalog. One check covers every token in the workspace, so choosing another token shows its results without checking again. The check runs only when you ask, can be cancelled and writes nothing.

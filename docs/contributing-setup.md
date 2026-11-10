@@ -4,6 +4,15 @@ This page is for anyone who wants Lolly running from its source code, to build, 
 
 Everything you need is public. Lolly is one repository, and a plain clone builds every app, the docs and the services.
 
+**What you'll do**, in three steps:
+
+::: steps
+- <!--i:eti-checklist--> **[Check the tools](#what-you-need-first)** Node.js 22.18 or later, or 24 or later, with pnpm and git.
+- <!--i:eti-download--> **[Clone and set up](#clone-and-set-up)** One clone command, then `./setup.sh` or `pnpm install`.
+- <!--i:eti-badge-check--> **[Check the result](#check-the-result)** The profile this checkout resolves to, the tools it sees and a readiness report.
+:::
+
+<!--i:eti-checklist-->
 ## What you need first
 
 - **Node.js 22.18 or later, or 24 or later.** The repository's scripts run TypeScript directly (`node scripts/foo.ts`), which needs Node's built-in type stripping. Node 20 and early 22 releases fail at `pnpm install`. `.nvmrc` pins Node `26`, so `nvm install` in the checkout picks the right one.
@@ -12,6 +21,7 @@ Everything you need is public. Lolly is one repository, and a plain clone builds
 
 On macOS and openSUSE the setup script below installs git and Node for you if they are missing or too old.
 
+<!--i:eti-download-->
 ## Clone and set up
 
 Pick one of two clone commands. Both give you a complete working tree that builds; they differ only in how much history arrives up front.
@@ -63,6 +73,7 @@ pnpm install
 `url.insteadOf` rewrites the HTTPS address to SSH. It is safe for everyone because the repository is public, and the day you get push access nothing else needs to change. Drop both `git config` parts to authenticate over HTTPS instead. Write access is enforced by the host when you push, not by the checkout, so maintainers and readers set up the same way.
 :::
 
+<!--i:eti-badge-check-->
 ## Check the result
 
 ```bash
@@ -71,10 +82,15 @@ pnpm run cli       # the tools that profile can see
 pnpm run doctor    # a read-only readiness report, with the repair command for anything missing
 ```
 
-A public clone resolves to `lolly-start`, the blank brand, which is also the profile CI builds against. lolly.tools ships `lolly-demo`. [Profiles, brands and tool configuration](/info/configuration.html) explains how the profile is chosen.
+::: check A public clone resolves to `lolly-start`
+That is the blank brand, which is also the profile CI builds against. lolly.tools ships `lolly-demo`. [Profiles, brands and tool configuration](/info/configuration.html) explains how the profile is chosen.
+:::
+
+Before you push a change, `pnpm run ci:local` runs the checks CI runs for a pull request, in the same order. `--changed` keeps to the lanes your diff against `origin/main` touches, and `--list` prints the lanes without running them.
 
 You do not need the desktop or mobile apps' own dependencies unless you work on those apps. They are separate pnpm projects (`pnpm -C shells/tauri-desktop install`, `pnpm -C shells/tauri-mobile install`), so skip them until you need them.
 
+<!--i:eti-layers-->
 ## Check the print plates
 
 Print PDF is the one export where a wrong ink reaches paper, so a local check separates the finished file into plates and measures them. It never runs in hosted CI. It needs [Ghostscript](https://www.ghostscript.com) (`brew install ghostscript`, or your package manager) and a built web shell, because `pdf-cmyk` always takes the CLI's browser route:
@@ -90,6 +106,7 @@ Each scene in `tests/fixtures/plate-scenes/` is a small Lolly Design document, e
 
 A missing tool is a declared skip that says which tool is missing. Set `LOLLY_ORACLES_REQUIRED=1` to make a missing tool a failure, and `LOLLY_PLATES_REPORT=out.json` to write every sampled number. A scene marked `knownFailing` states the reason and is expected to fail until the exporter is fixed, at which point it turns red until you remove the marker. Ghostscript is AGPL software. Lolly runs it only as an external program and never bundles or links the program.
 
+<!--i:eti-eye-off-->
 ## What a clone leaves out
 
 Two things never download with a clone, whichever command you use:
@@ -103,6 +120,7 @@ To bundle the models into your own build instead, run `pnpm run models:vendor` f
 Most of the weight is history, not the working tree: catalog images such as tool previews and share cards re-rendered over time, the docs screenshots re-shot whenever the interface changes and the web app's fonts and binary assets. In October 2026, budget roughly 1.2 GB of download and 2.6 GB on disk once `node_modules` is installed. Both grow with the history, which is why the partial clone saves the most.
 :::
 
+<!--i:eti-globe-->
 ## Write plural strings
 
 A string that shows a count needs one form per plural category, because Russian, Polish, Arabic and other languages change the noun by the number. Lolly uses the Unicode CLDR categories (`zero`, `one`, `two`, `few`, `many`, `other`) and picks the category for the active language with the platform's `Intl.PluralRules`.
@@ -132,6 +150,7 @@ In a locale catalog (`shells/web/src/locales/<lang>.json`), the value for the `o
 
 `node scripts/plural-work.ts` writes `plans/plural-strings/translation-work.json`, which lists each plural key, its English forms and the categories every language needs. Notes for translators and the generation prompt are in `scripts/i18n/PLURALS.md`.
 
+<!--i:eti-help-->
 ## If something fails
 
 - **`pnpm install` stops with a syntax error in a `.ts` file.** Your Node is too old for type stripping. Check `node -v` against 22.18 or 24. With Homebrew, `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.
@@ -141,6 +160,7 @@ In a locale catalog (`shells/web/src/locales/<lang>.json`), the value for the `o
 
 After you edit a community tool's `tool.json`, rebuild every profile's catalog with the `:all` commands in [Publish and localize a tool](/info/tool-publishing.html).
 
+<!--i:eti-lock-->
 ## The private SUSE pack
 
 `brands/suse` holds the SUSE tools and catalog, including licensed fonts and music, so it lives in a private repository mounted as a git submodule. With access, opt in:
@@ -152,4 +172,10 @@ LOLLY_PROFILE=suse pnpm run dev:web
 
 `./setup.sh --suse` mounts it in the same run. `suse` is the `default` in `profiles.json`, so a checkout with the pack resolves to `suse`.
 
-A change inside `brands/suse` needs two commits: one inside the submodule, then one here that moves the recorded pointer. Push the submodule first, or this repository points at a commit nobody else can fetch. Every other directory takes a plain commit.
+A change inside `brands/suse` needs two commits: one inside the submodule, then one here that moves the recorded pointer.
+
+::: warning Push the submodule first
+Otherwise this repository points at a commit nobody else can fetch.
+:::
+
+Every other directory takes a plain commit.

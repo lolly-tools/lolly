@@ -20,12 +20,18 @@ Zip your tool folder, or download a `.lolly` that includes the tool. The recipie
 Add the folder to a catalog that many people sync, such as this repository's `community/`. An organisation can run the catalog as a Git repository with review and an audit trail, which is an option, not a requirement.
 :::
 
+<!--i:eti-upload-->
 ## Try it without the monorepo
 
 You do not need the full clone to run a tool you wrote. Zip the tool folder and drop the zip on [lolly.tools](https://lolly.tools) or any Lolly instance. The drop sheet offers **Install this tool**; take it and the tool installs on that device and opens. Zipping the folder and zipping its contents both work, because a single top-level folder is stripped. Nothing is uploaded: the zip is read in the page, and the files go to the same device-local store a `.lolly`'s carried tool uses.
 
-Your `hooks.js` is executable code, so the install asks the same **Trust this tool?** question a `.lolly` asks; read a stranger's tool before you accept the prompt. Drop an edited zip again and Lolly offers to replace your copy, which is the loop to use while you iterate. An id the catalogue already lists is refused rather than installed, because an installed tool never replaces a catalogue one, so give yours its own id.
+::: warning Read a stranger's tool before you trust it
+Your `hooks.js` is executable code, so the install asks the same **Trust this tool?** question a `.lolly` asks. Read a stranger's tool before you accept the prompt.
+:::
 
+Drop an edited zip again and Lolly offers to replace your copy, which is the loop to use while you iterate. An id the catalogue already lists is refused rather than installed, because an installed tool never replaces a catalogue one, so give yours its own id.
+
+<!--i:eti-flask-->
 ## Test hooks without a browser
 
 Install the tool-author SDK from npm:
@@ -36,6 +42,7 @@ npm i -D @lolly-tools/core
 
 It exports `createMockHost`, an in-memory host bridge a plain node test can drive; `validateTool`, the same manifest check the catalog CI runs; and the `HostV1` types for your editor. It depends only on `ajv`, so nothing else from the platform comes along. The package's [README on npm](https://www.npmjs.com/package/@lolly-tools/core) walks a four-file tool through a test.
 
+<!--i:eti-file-->
 ## Sharing a tool without a catalog (`.lolly`)
 
 A hand-written tool can travel without a catalog. Open the tool, choose **Share → Download .lolly** and tick **Include the tool**. The file then carries `tool.json`, `template.html`, `styles.css`, `hooks.js`, `icon.svg`, the sibling text templates its formats need and the translation file for the active language, beside the design, so it opens on a device that has never seen the tool. The box arrives ticked for any tool the deployment's signed catalog does not list, which is the state of anything you just wrote, and of every tool on a build that signs nothing.
@@ -49,6 +56,7 @@ A tool made with [Share with rules](/info/create-a-tool.html) packages its check
 
 [Sharing your work](/info/using.html#sharing-your-work) describes the same file from the recipient's side, and the boundary itself is a row in the [Threat Model](/info/threat-model.html).
 
+<!--i:eti-package-->
 ## Publish to a catalog
 
 A catalog is the shared library people's Lolly syncs from. To add a hand-written tool to one:
@@ -62,7 +70,7 @@ A catalog is the shared library people's Lolly syncs from. To add a hand-written
 
 While you work, `pnpm run dev:web` serves the app locally with your tool in the gallery.
 
-To contribute a tool to Lolly itself, open a pull request against [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly) with your tool directory under `community/<tool-id>/`.
+To contribute a tool to Lolly itself, open a pull request against [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly) with your tool directory under `community/<tool-id>/`. Run `pnpm run ci:local` before you push: it runs the checks CI runs for a pull request, on your machine, and `--changed` keeps to the checks your change touches.
 
 ### For an organisation using Lolly Work
 
@@ -70,11 +78,12 @@ The manifest and template stay the portable source. Optional **Lolly Work** adds
 
 Coordinate pack publication with the instance operator. [Configuration](/info/configuration.html#organisation-policy-with-lolly-work) and the Lolly Work pages [Catalog and content](/info/work-catalog.html) and [Policy and governance](/info/work-governance.html) describe the controls.
 
+<!--i:eti-globe-->
 ## Localizing a tool
 
 A tool's words live in the manifest, in English by default. To translate them, add an `i18n/<lang>.json` file: a sparse, flat overlay of only the strings a translator touched, keyed by dotted paths.
 
-```json
+```jsonc
 // community/your-tool-id/i18n/de.json
 {
   "name": "…",
@@ -98,6 +107,7 @@ When a tool loads with a language set, through the reserved `lang` URL or CLI pa
 - **Prefill the person's language.** An input can declare `bindToProfile: "lang"` to start from the active language, as a short code such as `en`, `de` or `ar`.
 - **Right-to-left.** Arabic and other right-to-left languages mirror the whole interface, and the shell sets the document direction from the active language. Write your template and CSS so they mirror too: prefer logical properties and `[dir]`-aware rules to fixed left and right. Exports follow the direction the browser resolved, from `dir` on the element or an ancestor, `dir="auto"` or CSS `direction`: a right-to-left line keeps its order and its right edge in SVG. In a native `<svg>` template, `text-anchor="start"` in right-to-left text means the right edge, on the page and in the file.
 
+<!--i:eti-hammer-->
 ## Example tools
 
 Every tool below is in `community/`, so you can open it in Lolly and read it in the repository.

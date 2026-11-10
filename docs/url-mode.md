@@ -6,6 +6,7 @@ Every Lolly tool opens from a link that already holds your choices. Send a colle
 A link has three parts: the tool, its inputs and a few reserved words that say what to do with the result.
 :::
 
+<!--i:eti-url-->
 ## Read a link
 
 ```
@@ -34,6 +35,7 @@ A chart takes its inputs, its short keys, a canvas size and `full` in the same w
 
 [Inputs in URLs](/info/url-inputs.html) shows how each kind of input is written. [Reserved URL parameters](/info/url-parameters.html) lists every reserved word.
 
+<!--i:eti-code-->
 ## The same link on the command line
 
 ::: cols
@@ -57,10 +59,11 @@ lolly qr-code --url=https://example.com --export=svg > qr.svg   # pipe SVG onwar
 lolly qr-code                                                  # list the tool's inputs
 ```
 
-::: note A bare --export beside --format
+::: warning A bare --export beside --format
 `--format=<fmt>` is accepted as another spelling of `--export=<fmt>`. Never pass a bare `--export` with `--format`: the bare form is read as the format `1` and the render stops.
 :::
 
+<!--i:eti-external-link-->
 ## Share, embed or automate
 
 ### Share a link
@@ -78,7 +81,9 @@ Add the `iframe` flag to embed a tool with its inputs filled in. The frame shows
         width="900" height="700" frameborder="0"></iframe>
 ```
 
+::: note Framing from another site
 A Lolly site frames inside its own origin and not inside anyone else's, because it ships `frame-ancestors 'self'` in its Content-Security-Policy. That stops a page you do not control from laying an invisible frame over Lolly's export buttons. Framing within one origin, such as your own marketing page showing your own Lolly, needs no change. To allow another site, the operator adds that origin to `frame-ancestors` in the deployment's Content-Security-Policy ([Deployment](/info/deployment.html)), naming each origin rather than allowing every site.
+:::
 
 ### Tool composition (portable embed URL)
 
@@ -116,6 +121,7 @@ lolly qr-code \
 
 [CLI batch and automation](/info/cli-automation.html) covers batches, exit codes and the `--json` envelope.
 
+<!--i:eti-lock-->
 ## Long and private links
 
 A readable link such as `?color=30BA78&theme=dark` can be edited by hand. A complex document is different. A Lolly Design file with dozens of boxes, each with coordinates, colours and text, runs to thousands of characters. Pasted links, social crawlers, QR codes and some servers still fail past about 2,000.
@@ -145,6 +151,8 @@ Tag `2` is the same DEFLATE bytes carried as unpadded upper-case base32 (RFC 464
 Both tags decode everywhere, and the tag versions the codec so a later variant cannot break a link written today. The packed form compresses the app's own canonical readable query, so there is no second encoding to keep in step and no lookup table on any server. A link packed in a browser decodes the same in Node's `zlib` and the CLI.
 :::
 
+**Past what a link can hold.** When a document's readable content passes 256 KiB and the document has a saved copy, the address keeps its place, view and saved `slot` instead of the document, and a reload restores the document from that copy. **Share** says when a link cannot carry the document, points you at the `.lolly` file and offers a link that opens the saved copy on this device only ([What a link carries](/info/url-app-links.html#what-a-link-carries)).
+
 ### Encrypted links (`zx`)
 
 A password can lock a link, with no server and no account. Tick **Password-protect this link** in the Share dialog and set a password, and the link changes to the `zx` form. On-visit flags still ride alongside in readable form.
@@ -155,6 +163,7 @@ The state is compressed, then encrypted with AES-256-GCM under a key derived fro
 - **It opens interactively only.** An encrypted link opens in Lolly, but it cannot be embedded as an image, because the embed path renders without a person to ask. It renders at the defaults there.
 - **It is its own codec.** `zx` is `<tag><base64url>` of `salt‖iv‖ciphertext`, versioned apart from `z`. `expandQuery` never touches it: decryption happens only where the app can ask for the password.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 | Task | Guide |
