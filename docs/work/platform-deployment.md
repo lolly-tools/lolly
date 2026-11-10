@@ -277,6 +277,120 @@ Work and the reviewed version. The form collects connection settings; review the
 full YAML for TLS, PostgreSQL, identity admission, owner mapping and the pack and web
 app mounts. Adding this repository does not add Lolly to Rancher's built-in catalogue.
 
+<!--i:eti-refresh-->
+## Upgrade
+
+When a newer Lolly Work release is published, owners and admins see a notice at the top of the
+console's **Overview** and on **Settings**. It gives the new version and the one you run,
+a **Security** badge when the release fixes a vulnerability, a warning when it migrates the
+database, its highlights, a link to the release notes, and the upgrade steps for how you
+installed it, ready to copy. An admin can dismiss the notice for that version, and a newer
+release shows again. Members never see the notice.
+
+To know about releases, the server reads this chart repository's `index.yaml` once a day, at a
+random time, and when an admin presses **Check now** on **Settings**. It is the same plain
+request any `helm repo update` makes. The [`updates` settings](configuration.md#updates) turn it
+off or point it at an internal mirror, and [`install.route`](configuration.md#install) chooses
+which steps the notice shows: the chart sets `helm`, Rancher's install form sets `rancher`, and
+you set `fleet` or `argocd` when Git manages the release.
+
+::: note The notice is information only
+The repository index is not signed, so the notice tells you what was published without vouching
+for the release. The chart is signed: check its Sigstore bundle before you upgrade, as below.
+:::
+
+**Every upgrade**, whichever route you installed with:
+
+::: steps
+- <!--i:eti-history--> **[Back up](operations.md#backup-and-restore)** Back up PostgreSQL and the asset store, then restore the backup into a separate target. After a release that migrates, going back means restoring that backup.
+- <!--i:eti-shield-check--> **[Check the chart](#check-the-chart-signature)** Verify the chart archive with its Sigstore bundle. Optional, and recommended.
+- <!--i:eti-refresh--> **[Upgrade](#with-helm)** With Helm, in Rancher or in your Git repository. The migration Job runs before the new pod starts.
+- <!--i:eti-badge-check--> **[Check](#check-the-installation)** The migration Job's log and the rollout, then sign-in, a live session and the exports you use.
+:::
+
+### With Helm
+
+```bash
+helm repo update lolly-work
+helm upgrade lolly-work lolly-work/lolly-work -n <namespace> --version <new> \
+  -f /path/to/reviewed-production-values.yaml
+kubectl -n <namespace> logs job/lolly-work-migrate          # the migrations it applied
+kubectl -n <namespace> rollout status deploy/lolly-work
+```
+
+Give the same reviewed values file, and every `--set` or `--set-file` you installed with, such as
+`--set-file config=instance.json`; anything you leave out returns to the new chart's default.
+Prefer `-f` to `--reuse-values`: `--reuse-values` replaces the new chart's defaults with the old
+chart's, so a setting the new release adds or changes never arrives. If your values pin
+`image.tag` or `image.digest`, set the new release's qualified digest first, or the chart upgrades
+and the server keeps its old image.
+
+The chart replaces the pod rather than running two side by side, so people in a live session
+reconnect once. With `migrate.enabled: false` there is no migration Job.
+
+### Check the chart signature
+
+Each chart version is an immutable `chart-v<version>` release with a Sigstore bundle, signed by
+the publishing workflow, the same identity the [Lolly appliance](https://github.com/lolly-tools/lolly-work/blob/main/deploy/appliance/README.md#updates)
+checks before it applies a chart:
+
+```bash
+v=<new>
+curl -fsSLO https://github.com/lolly-tools/lolly-work/releases/download/chart-v$v/lolly-work-$v.tgz
+curl -fsSLO https://github.com/lolly-tools/lolly-work/releases/download/chart-v$v/lolly-work-$v.tgz.sigstore.json
+cosign verify-blob --bundle lolly-work-$v.tgz.sigstore.json \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity https://github.com/lolly-tools/lolly-work/.github/workflows/publish-helm.yml@refs/heads/main \
+  lolly-work-$v.tgz
+tar -xOzf lolly-work-$v.tgz lolly-work/Chart.yaml | grep -x "version: $v"
+```
+
+To install exactly the file you checked, use `./lolly-work-$v.tgz` in place of
+`lolly-work/lolly-work --version $v`.
+
+### In Rancher
+
+1. **Add the chart repository once.** Under **Apps > Repositories**, create a repository with
+   `https://github.com/lolly-tools/lolly-work/releases/download/helm-index`, or your mirror. Skip
+   this when it is already listed.
+2. **Upgrade.** Open **Apps > Installed Apps**, choose the Lolly Work app in its namespace, then
+   **Upgrade** and the new version. Review the YAML before you confirm, including any image pin.
+3. **Check.** In Rancher's kubectl shell, read the migration Job's log and the rollout, as in the
+   Helm commands above.
+
+### With Fleet or Argo CD
+
+Change the chart version in your Git repository and merge it through your usual review; the
+controller upgrades the release, migration Job first. For Fleet, in the `fleet.yaml` that deploys
+Lolly Work:
+
+```yaml
+helm:
+  chart: lolly-work
+  repo: https://github.com/lolly-tools/lolly-work/releases/download/helm-index
+  version: <new>
+```
+
+For Argo CD, in the Application:
+
+```yaml
+spec:
+  source:
+    repoURL: https://github.com/lolly-tools/lolly-work/releases/download/helm-index
+    chart: lolly-work
+    targetRevision: <new>
+```
+
+Argo CD runs the chart's migration Job as a `PreSync` hook. Then check the Job's log and the
+rollout as above.
+
+::: warning Lolly Work does not upgrade itself
+An in-place upgrade from inside the cluster would need the server's own ServiceAccount to change
+every object the chart owns, its Secrets and Helm's release record included, in each namespace
+they go to. That is close to cluster-admin, held by the process people reach over the network.
+The chart grants the server no Kubernetes API rights, so you run the upgrade.
+:::
+
 <!--lb:suse opensuse rancher k3s-->
 
 ## Prepare new SLES or openSUSE Leap hosts

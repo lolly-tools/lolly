@@ -268,6 +268,8 @@ With a workspace connected, the privacy line on the app's first screen says so: 
 
 The service uses authentication cookies, including `lw_session` for signed-in members and `lw_guest` for guest access where enabled, separate from the certificate service's cookie. Policy refreshes can make requests while the app is in use, without a separate click for each. This is traffic to the configured instance, not a report to the Lolly project about deployments it does not run.
 
+**Release check.** A Lolly Work server checks the published chart index on GitHub once a day for a newer release, with the same plain request any `helm repo update` makes, carrying nothing about the instance or its people. It is on by default, and the instance's administrator can turn it off or point it at a mirror ([`updates`](/info/work-configuration.html#updates)).
+
 **Usage telemetry has three levels.** Lolly's own apps send no usage events today, so these levels apply to events from another client the operator connects. `off` stores no usage events, `aggregate` strips user ids and `standard` can attribute events. The default level is `standard`, so an instance stores the usage events it receives unless its operator chooses `off`. The default attribution policy is `opt-in`, which needs your consent before a user id is stored; an operator can instead configure attributed reporting with `telemetryAttribution: default`. Allowed attributes are labels, never tool input values. See [Lolly Work telemetry](/info/work-telemetry.html).
 
 **Audit is separate.** Governed actions can keep an identified audit record whatever your telemetry consent. Turning telemetry off does not turn off shared-session storage, approval records, render-job storage or audit. The operator controls retention and erasure, including any pseudonymisation of the audit log; see [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html).
@@ -396,6 +398,8 @@ The date at the top changes whenever this document does. A change that alters wh
 **3 November 2026:** added **Ask an agent** in the desktop app: what the app looks for on the computer when the panel opens, and what goes to an agent's provider when you ask, under your own account with that provider.
 
 **10 November 2026:** completed and corrected the description of existing behaviour. The device list now names your profile details, your signing identity, kept sign-ins and shared links, your answers to one-time questions, recent downloads, a connected instance's records, working files in the browser's file storage and what the docs pages keep. Corrected: the local usage counters travel inside your own backup file and Sync copy; Clear all my data does not end an organisation sign-in; the Trash empties items older than 30 days the next time you open Projects; a remembered Google Drive connection on the web is labelled with your Google account's email address; Lolly's own apps send a Lolly Work instance no usage events. Also described the workspace privacy line that 1.2.0 added, and brand pages published to an instance. Apart from that privacy line, the software itself did not change.
+
+**10 November 2026:** added the Lolly Work release check: a Lolly Work server reads the published chart index once a day to tell its administrators about a newer release. The request carries nothing about the instance or its people, and an administrator can turn it off or point it at a mirror.
 
 <!--i:eti-mail-->
 ## Who is responsible, and how to reach us

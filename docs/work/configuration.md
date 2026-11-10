@@ -848,6 +848,38 @@ the service, or a relay in front of the service, answers
 `POST /ofrep/v1/evaluate/flags/{key}`. The Lolly Work test suite includes a check against flagd
 0.18.1.
 
+## `updates`
+
+The release notice. Owners and admins see one in the console when a newer Lolly Work release is
+published, with the upgrade steps for how this instance was installed
+([upgrade](platform-deployment.md#upgrade)). For it, the server reads the published chart
+repository index once a day, at a random time, and when an admin presses **Check now** on
+**Settings**. It is the same plain request any `helm repo update` makes, and it carries nothing
+about this instance or its people. The index is not signed, so the notice is information only; the
+upgrade steps check the chart's own signature. Lolly Work never upgrades itself.
+
+| Key | Default | What it does |
+|---|---|---|
+| `check` | `true` | read the index daily and when asked. `false` sends no request and shows no notice |
+| `channel` | `stable` | `stable` offers releases only; `preview` includes pre-releases |
+| `feedUrl` | `https://github.com/lolly-tools/lolly-work/releases/download/helm-index/index.yaml` | the chart repository index. Point it at an internal mirror for an air-gapped or sovereign installation. HTTPS, or HTTP on a loopback address for testing, without credentials |
+
+The request goes through the same guard as catalog providers: public addresses only, each hop
+checked and its DNS answer pinned, at most 4 MiB. The configured feed's own address may be
+private, for an internal mirror. A redirect may leave it only for GitHub's release download hosts
+(with the default feed) or an origin in `network.providers.redirectOrigins`. A failed check is
+logged once, keeps the last answer and changes nothing else: readiness never depends on the check. With a
+NetworkPolicy that restricts egress, allow the feed's host on port 443.
+
+Owners and admins read the result with `GET /api/v1/admin/updates` and ask for a check with
+`POST /api/v1/admin/updates/check`, both under `fleet.view` ([API](api.md#release-notice)).
+
+## `install`
+
+| Key | Default | What it does |
+|---|---|---|
+| `route` | `other` | how this instance was installed, so the release notice shows that route's upgrade steps: `helm`, `rancher`, `fleet`, `argocd` or `other`. The Helm chart sets `helm`, and Rancher's install form sets `rancher`; set `fleet` or `argocd` in the chart's `install.route` when Git manages the release |
+
 ## `catalogProviders`
 
 Server-side catalog connectors use `network.providers` for outbound requests.
@@ -961,6 +993,11 @@ supports tool rendering; qualify preview behavior with the paired shell release.
 | `NODE_ENV` | - | `production` makes secret checks fail-closed |
 | `LW_LOG_FORMAT` | `text` | `json` writes one JSON object per log line (and turns the http access line on) for a log pipeline |
 | `LW_LOG_HTTP` | off | `1` writes an access line per request in text mode: request id, method, route label, status, ms |
+| `LW_UPDATES_CHECK` | `true` | [`updates.check`](#updates). `false` here or in `instance.json` turns the check off |
+| `LW_UPDATES_CHANNEL` | `stable` | [`updates.channel`](#updates), over `instance.json` |
+| `LW_UPDATES_FEED_URL` | the published chart index | [`updates.feedUrl`](#updates), over `instance.json` |
+| `LW_INSTALL_ROUTE` | `other` | [`install.route`](#install), over `instance.json` |
+| `LW_RELEASE_NAME`, `LW_RELEASE_NAMESPACE`, `LW_RELEASE_FULLNAME`, `LW_CHART_VERSION` | - | set by the Helm chart: the release, its namespace, its Deployment and the chart version, which the release notice's upgrade commands fill in |
 
 ### OpenTelemetry
 
