@@ -114,33 +114,31 @@ export interface CymbalSpec {
   choke?: number;
   /** The stick's tick: its centre frequency, or none (a mallet). */
   tick?: number;
-  /** The wash: the cymbal's countless higher modes, heard as noise, against its counted partials (0 none, 1 as strong). */
+  /** The wash: the cymbal's countless denser modes, heard as clusters of noise, against its counted partials (0 none, 1 as strong; a crash is mostly wash, a ride keeps its ping). */
   wash: number;
   /** Seconds to render. */
   seconds: number;
 }
 
-export const RIDE: CymbalSpec = { count: 70, lo: 320, hi: 15000, peak: 3800, spread: 1.4, life: 2.6, tilt: 0.5, bloom: 0.025, bell: 820, tick: 4800, seconds: 2.4, wash: 0.35 };
-export const CRASH: CymbalSpec = { count: 80, lo: 300, hi: 16000, peak: 5200, spread: 1.5, life: 2.0, tilt: 0.42, bloom: 0.07, tick: 5000, seconds: 2.6, wash: 0.7 };
-export const SPLASH: CymbalSpec = { count: 60, lo: 600, hi: 16000, peak: 7000, spread: 1.3, life: 0.9, tilt: 0.4, bloom: 0.03, tick: 6000, seconds: 1.2, wash: 0.6 };
-export const CHINA: CymbalSpec = { count: 80, lo: 260, hi: 13000, peak: 3200, spread: 1.6, life: 1.6, tilt: 0.35, bloom: 0.06, tick: 3500, seconds: 2.2, wash: 0.85 };
-export const HAT_CLOSED: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 8000, spread: 1.2, life: 0.9, tilt: 0.45, bloom: 0.004, choke: 0.045, tick: 9000, seconds: 0.3, wash: 0.5 };
-export const HAT_OPEN: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 7500, spread: 1.25, life: 0.9, tilt: 0.45, bloom: 0.012, choke: 0.55, tick: 9000, seconds: 1.0, wash: 0.6 };
+export const RIDE: CymbalSpec = { count: 60, lo: 320, hi: 15000, peak: 3800, spread: 1.4, life: 2.6, tilt: 0.5, bloom: 0.025, bell: 820, tick: 4800, seconds: 2.4, wash: 2 };
+export const CRASH: CymbalSpec = { count: 80, lo: 300, hi: 16000, peak: 5200, spread: 1.5, life: 2.0, tilt: 0.42, bloom: 0.07, tick: 5000, seconds: 2.6, wash: 4 };
+export const SPLASH: CymbalSpec = { count: 60, lo: 600, hi: 16000, peak: 7000, spread: 1.3, life: 0.9, tilt: 0.4, bloom: 0.03, tick: 6000, seconds: 1.2, wash: 3 };
+export const CHINA: CymbalSpec = { count: 80, lo: 260, hi: 13000, peak: 3200, spread: 1.6, life: 1.6, tilt: 0.35, bloom: 0.06, tick: 3500, seconds: 2.2, wash: 5 };
+export const HAT_CLOSED: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 8000, spread: 1.2, life: 0.9, tilt: 0.45, bloom: 0.004, choke: 0.045, tick: 9000, seconds: 0.3, wash: 2.5 };
+export const HAT_OPEN: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 7500, spread: 1.25, life: 0.9, tilt: 0.45, bloom: 0.012, choke: 0.55, tick: 9000, seconds: 1.0, wash: 3 };
 
 /** One cymbal stroke: `vel` 0..1 (soft strokes darker), the cymbal's own partials (`base`) so every stroke is the same cymbal. */
 export function cymbal(sr: number, spec: CymbalSpec, base: readonly Partial[], vel: number, rand: Rand): Float32Array {
   const out = new Float32Array(Math.ceil(spec.seconds * sr));
   const struck = stroke(base, vel, 1, rand);
   ring(out, sr, struck, rand);
-  // The wash: far more modes than are counted, too dense to hear apart, so heard as noise
-  // shaped like the cymbal's brightness, blooming with the partials and dying sooner, the
-  // top first. Set against the partials' own energy (a band of white noise this wide
-  // carries about 0.35 of its level).
+  // The wash: far more modes than are counted, too close together to hear apart. They are
+  // heard as clusters, so each is a narrow band of noise ringing at a place the cymbal
+  // rings, drawn as the partials are (more near its brightness), each with its own life,
+  // the high ones shorter, blooming in as the partials do. Set against the partials' own
+  // energy, so `wash` is the share of the sound that is the dense modes.
   const energy = Math.sqrt(struck.reduce((s, p) => s + p.a * p.a, 0) / 2);
-  const wash = (spec.wash * energy) / 0.35;
-  const life = spec.choke ? Math.min(spec.life * 0.25, spec.choke) : spec.life * 0.25;
-  noiseBand(out, sr, rand, spec.peak, 0.5, wash, spec.bloom * 2 + 0.002, life);
-  noiseBand(out, sr, rand, Math.min(spec.peak * 1.8, 15000), 0.7, wash * 0.6 * vel, spec.bloom + 0.001, life * 0.45);
+  washBank(out, sr, rand, spec, vel, spec.wash * energy);
   if (spec.bell) {
     const bell: Partial[] = [1, 1.47, 2.03, 2.6, 3.4].map((m, i) => ({ f: spec.bell! * m * (1 + (rand() - 0.5) * 0.004), a: (i ? 0.5 : 1) * (0.6 + 0.4 * vel) * 0.9, tau: spec.life * 0.8, bloom: 0 }));
     ring(out, sr, bell, rand);
@@ -153,7 +151,55 @@ export function cymbal(sr: number, spec: CymbalSpec, base: readonly Partial[], v
     let e = 1;
     for (let i = 0; i < out.length; i++) { out[i] = out[i]! * e; e *= k; }
   }
+  // The recording ends in a fade over its last seventh, so a long ring is never cut off.
+  const fadeFrom = Math.floor(out.length * 0.86);
+  for (let i = fadeFrom; i < out.length; i++) out[i] = out[i]! * ((out.length - i) / (out.length - fadeFrom));
   return normalise(out, 0.9);
+}
+
+/** How many narrow bands of noise make a cymbal's wash. */
+const WASH_BANDS = 28;
+
+/**
+ * The dense modes as clusters: white noise through WASH_BANDS resonant band-passes (each
+ * a few hundred hertz wide at the cymbal's brightness), each under its own envelope, the
+ * whole at `level` in RMS. A soft stroke reaches fewer of the high clusters.
+ */
+function washBank(out: Float32Array, sr: number, rand: Rand, spec: CymbalSpec, vel: number, level: number): void {
+  const n = out.length;
+  const noise = new Float32Array(n);
+  for (let i = 0; i < n; i++) noise[i] = rand() * 2 - 1;
+  const top = 2500 + 14000 * vel * vel;
+  const bands: Array<{ f: number; q: number; a: number; tau: number }> = [];
+  let total = 0;
+  for (let b = 0; b < WASH_BANDS; b++) {
+    const u = Math.sqrt(rand());
+    const f = Math.min(sr * 0.45, spec.lo * 1.5 * ((spec.hi / (spec.lo * 1.5)) ** u));
+    const oct = Math.log2(f / spec.peak);
+    const a = Math.exp(-(oct * oct) / (2 * spec.spread * spec.spread)) * Math.exp(-f / top) * (0.5 + rand() * 0.5);
+    const tau = Math.min(spec.choke ?? Infinity, spec.life * 0.45 * (f / 500) ** -spec.tilt * (0.7 + rand() * 0.6));
+    bands.push({ f, q: 5 + rand() * 9, a, tau });
+    total += a * a;
+  }
+  // A band of white noise at Q passes about sqrt(pi f / (2 Q sr)) of its RMS; scale each so the bank's RMS is `level`.
+  const norm = level / Math.sqrt(Math.max(1e-9, total));
+  const attack = Math.max(1, (spec.bloom * 2 + 0.002) * sr);
+  for (const { f, q, a, tau } of bands) {
+    const w = (2 * Math.PI * f) / sr;
+    const alpha = Math.sin(w) / (2 * q);
+    const a0 = 1 + alpha, a1 = -2 * Math.cos(w), a2 = 1 - alpha;
+    const gain = (a * norm) / Math.sqrt((Math.PI * f) / (2 * q * sr) + 1e-9) / Math.sqrt(3) * 1.7;
+    const fall = Math.exp(-1 / (tau * sr));
+    const len = Math.min(n, Math.ceil((tau * 7 + attack / sr) * sr));
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0, env = 1;
+    for (let i = 0; i < len; i++) {
+      const x = noise[i]!;
+      const y = (alpha * x - alpha * x2 - a1 * y1 - a2 * y2) / a0;
+      x2 = x1; x1 = x; y2 = y1; y1 = y;
+      if (i >= attack) env *= fall;
+      out[i] = out[i]! + y * gain * (i < attack ? i / attack : env);
+    }
+  }
 }
 
 /** A cymbal's fixed partials, from its own seed. */
@@ -199,12 +245,20 @@ export function snareStroke(sr: number, f0: number, vel: number, wires: number, 
   return normalise(out, 0.95);
 }
 
-/** A tom stroke at `f0`: the head's modes, ringing longer the lower the tom, a little sharp and settling, with the stick. */
+/**
+ * A tom stroke at `f0`. Two heads: the batter head struck, its modes ringing, starting
+ * sharp as the strike stretches it and falling back over a tenth of a second (the tom's
+ * "doom"); and the resonant head underneath, tuned a little higher and ringing longer, so
+ * the note beats and blooms. The stick's tick, the thwack of stick on skin, and the shell.
+ * A lower tom rings longer.
+ */
 export function tomStroke(sr: number, f0: number, vel: number, rand: Rand): Float32Array {
-  const life = 0.25 + Math.max(0, 200 - f0) * 0.003;
-  const out = new Float32Array(Math.ceil(Math.min(2, life * 5) * sr));
-  head(out, sr, f0, 0.7, life, 0.07 * vel * vel, 0.06, 5, rand);
+  const life = 0.3 + Math.max(0, 220 - f0) * 0.003;
+  const out = new Float32Array(Math.ceil(Math.min(2.4, life * 5.5) * sr));
+  head(out, sr, f0, 0.7, life, 0.03 + 0.09 * vel, 0.11, 7, rand);
+  head(out, sr, f0 * 1.035, 0.32, life * 1.35, 0.01 + 0.03 * vel, 0.15, 3, rand);
   noiseBand(out, sr, rand, 3200, 0.9, 0.5 * vel * vel, 0.0003, 0.004);
+  noiseBand(out, sr, rand, 1400, 0.5, 0.35 * vel, 0.0008, 0.012);   // the thwack of stick on skin
   noiseBand(out, sr, rand, f0 * 2.5, 1.2, 0.12 * vel, 0.001, 0.03);   // the shell
   noiseBand(out, sr, rand, 5200, 0.6, 0.06 * vel, 0.004, 0.06);   // the snare's wires, answering in sympathy
   return normalise(out, 0.9);

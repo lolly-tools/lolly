@@ -84,3 +84,41 @@ test('a stroke\'s loudness follows its velocity, whichever recording plays it', 
   const under = 20 * Math.log10(strokeLevel(0.95) / strokeLevel(0.25));
   assert.ok(under > 12 && under < 20, `${under.toFixed(1)} dB under`);
 });
+
+/** How far a spectrum's strongest bins stand above its median between 2 and 8 kHz (dB), at `at` seconds: lines stand far above, a cymbal's dense modes do not (white noise is about 8). */
+function lineStrength(x: Float32Array, at: number): number {
+  const n = 4096, s = Math.floor(at * SR);
+  const mags: number[] = [];
+  for (let k = Math.ceil((2000 * n) / SR); k <= Math.floor((8000 * n) / SR); k += 2) {
+    let re = 0, im = 0;
+    const w = (2 * Math.PI * k) / n;
+    for (let i = 0; i < n; i++) { const v = x[s + i]! * (0.5 - 0.5 * Math.cos((2 * Math.PI * i) / n)); re += v * Math.cos(w * i); im -= v * Math.sin(w * i); }
+    mags.push(10 * Math.log10(re * re + im * im + 1e-20));
+  }
+  mags.sort((a, b) => a - b);
+  return mags[Math.floor(mags.length * 0.99)]! - mags[Math.floor(mags.length / 2)]!;
+}
+
+test('a cymbal is mostly dense modes, not a few ringing lines: a crash nearly noise, a ride keeping its ping', () => {
+  const crash = K.cymbal(SR, K.CRASH, K.cymbalBase(K.CRASH, seeded(20)), 0.9, seeded(21));
+  const ride = K.cymbal(SR, K.RIDE, K.cymbalBase(K.RIDE, seeded(20)), 0.65, seeded(21));
+  for (const at of [0.05, 0.3]) {
+    assert.ok(lineStrength(crash, at) < 15, `crash at ${at} s: lines ${lineStrength(crash, at).toFixed(1)} dB`);
+    assert.ok(lineStrength(ride, at) < 18, `ride at ${at} s: lines ${lineStrength(ride, at).toFixed(1)} dB`);
+  }
+});
+
+test('a tom struck hard starts sharp and falls back into pitch', () => {
+  const tom = K.tomStroke(SR, 196, 0.95, seeded(22));
+  const pitchAt = (at: number): number => {
+    let best = 0, bf = 0;
+    for (let f = 180; f <= 230; f += 0.5) {
+      const w = (2 * Math.PI * f) / SR; let re = 0, im = 0;
+      for (let i = Math.floor(at * SR); i < Math.floor((at + 0.04) * SR); i++) { re += tom[i]! * Math.cos(w * i); im += tom[i]! * Math.sin(w * i); }
+      if (re * re + im * im > best) { best = re * re + im * im; bf = f; }
+    }
+    return bf;
+  };
+  const early = pitchAt(0.002), late = pitchAt(0.3);
+  assert.ok(early > late * 1.04, `from ${early} Hz down to ${late} Hz`);
+});
