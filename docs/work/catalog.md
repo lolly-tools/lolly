@@ -73,13 +73,15 @@ The file is the raw request body, and the declared metadata travels as query par
 (`name`, `description`, `tags`, `type`, `groups`). The response gives the new `inst/<id>`
 asset, its checksum and the state it arrived in.
 
-**Open to authors by default.** Anyone holding `catalog.submit` can submit, and the asset is
-live the moment it is stored. To require review, set `policy.submit.chain` to an approval
-chain. A submission then waits in state `submitted`, invisible in the feed, unservable at
-`/catalog/*` and not linkable, until an approver publishes the asset. If `policy.submit.chain` gives a
-chain this instance does not have (a rename, a deletion, a first boot in the wrong order),
-submissions are refused with `503 SUBMIT_CHAIN_MISSING`, giving the chain to fix. Lolly Work never
-falls back to publishing without review.
+::: note Open to authors by default
+Anyone holding `catalog.submit` can submit, and the asset is live the moment it is stored. To
+require review, set `policy.submit.chain` to an approval chain. A submission then waits in state
+`submitted`, invisible in the feed, unservable at `/catalog/*` and not linkable, until an approver
+publishes the asset. If `policy.submit.chain` gives a chain this instance does not have (a rename,
+a deletion, a first boot in the wrong order), submissions are refused with
+`503 SUBMIT_CHAIN_MISSING`, giving the chain to fix. Lolly Work never falls back to publishing
+without review.
+:::
 
 What happens to the file, in order:
 
@@ -528,6 +530,11 @@ PUT /api/v1/catalog/lifecycle/<assetId>     # catalog.expire (holds: catalog.hol
 | `revokedAt` | revoked for good, whatever the dates say |
 | `onExpiry` | `hide` (default) or `warn` |
 
+::: warning Revoking an asset is for good
+`revokedAt` wins over every date, so a revoked asset never serves again. To take an asset out of
+use for a while, end its window with `validUntil` instead.
+:::
+
 ::: figure work-catalog-lifecycle
 An asset is scheduled, live, expired or revoked, and revoked always wins. A hold blocks only the changes that would remove the asset now.
 :::
@@ -660,7 +667,12 @@ fragment is built, so excluded assets never enter the feed *or* the store. Group
 applies per caller, when the feed is composed. `requireApproved` maps an upstream flag; it is not
 a general territory or channel check, and not proof that every historical file was approved.
 A provider shared with all members does not reach people in a [partner
-programme](partner-programmes.md#what-a-programme-does): it needs the programme's group.
+programme](partner-programmes.md#what-a-programme-does): it needs the programme's group. To give a
+programme, or one company in it, a single folder of a source, use [provider
+folders](partner-programmes.md#provider-folders). With the [licence
+gate](partner-programmes.md#licences) on, a file reaches partners only when its licence lets it
+be passed on, your team marked it as your own, its type is exempt or someone chose to share it
+anyway. `lw catalog rights` records marks and licences.
 
 ### Credentials
 

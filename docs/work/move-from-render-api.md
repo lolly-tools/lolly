@@ -53,7 +53,11 @@ lw render-api inventory --from bannerbear-v5 --token-env BANNERBEAR_KEY --out ./
 <!--i:eti-pin-->
 ## Pin
 
-Keep what you would miss after the account ends. The inventory folder is the start. To keep a real render as a reference, use `sample`, which asks the vendor to render and so **spends credits on your account**. It refuses to run without `--spend-credits`.
+Keep what you would miss after the account ends. The inventory folder is the start. To keep a real render as a reference, use `sample`, which asks the vendor to render.
+
+::: warning `sample` spends credits on your account
+Each sample is a real render, and so **spends credits on your account**. It refuses to run without `--spend-credits`.
+:::
 
 ```bash
 lw render-api sample --from placid --template ospo24ysn --token-env PLACID_KEY \
@@ -191,10 +195,12 @@ Formats depend on the deployment: JPG and PDF need the [render worker](configura
 
 Clients built for hosted APIs store a result URL and embed it, so `image_url` and `files` hold signed URLs that need no token. This is a tradeoff, and the opposite of what [job result tokens](automation-api.md#callbacks) do, which moved out of URLs because a URL ends up in logs.
 
-- **The URL is the credential.** Anyone holding it can fetch the file until it expires.
+::: warning Treat a result URL as a secret
+**The URL is the credential.** Anyone holding it can fetch the file until it expires. **Revoking a token does not revoke its URLs.** Delete the records as well.
+:::
+
 - **It expires.** It works for `resultUrls.signedDays` after the render finished, 30 by default. Polling the record later gives a fresh URL.
 - **Deleting the record revokes the URL.** Use `DELETE /compat/requests/:id` with the token that made the record, or as an admin, and Placid's `DELETE /images/{id}` too. A shared cache may hold a file for up to five minutes after that.
-- **Revoking a token does not revoke its URLs.** Delete the records as well.
 - **`signedDays: 0` turns this off.** Result URLs then need the same bearer token, which suits server-to-server clients.
 
 Output [retention](configuration.md#policy), when configured, also ends a URL: the file then answers `410`.

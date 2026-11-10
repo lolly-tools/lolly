@@ -46,6 +46,8 @@ Chains apply to work in these places:
   ([review an exported file](#review-an-exported-file)).
 - **Brand page revisions** wait on the chain `brandPages.approvalChain` gives
   ([host a brand page](design-system-administration.md#who-may-publish)).
+- **Studio edits to this instance's design system** wait on the chain chosen under **Edits need
+  approval before they go live** ([the two switches](design-system-administration.md#the-two-switches)).
 - **Partner programmes** can send a company's contact edits, its kit changes and its agents'
   requests to a chain ([Partner approvals](partner-approvals.md)).
 
@@ -83,7 +85,9 @@ GET  /api/v1/approvals/:id/artifact # the file an export review carries
 
 You can raise approvals with the subjects `asset`, `tool-change`, `config`, `guest-link`,
 `source-review` or `export-review`. The server also raises `delivery` approvals for a destination with an approval
-chain ([delivery](delivery.md#optional-human-approval)). One engine handles every kind.
+chain ([delivery](delivery.md#optional-human-approval)), `brand-page` and `brand-edit` approvals for a
+brand page revision or a studio edit, and `company-profile` and `partner-kit` approvals for a partner
+company's contact edits and kit changes. One engine handles every kind.
 
 The chain is **snapshotted at submit**: an approval is judged by the rules it was raised under,
 so editing a chain never rewrites decisions already in progress.
@@ -122,8 +126,12 @@ download is that file, with a signed record of the approval added when the reque
 **Set it up.** Choose an approval chain for the tool in its policy (**Approval chain for exports**
 in the console, or `enforce.escalation`). To route a group's exports through review, deny them
 `export.download`; a member who holds `export.request` then sees **Request approval** in place of
-Download. On this path the app is cooperating with your policy: the file is made on the person's
-own device, so this guides how work moves and does not stop someone copying what is on their screen.
+Download.
+
+::: note Review guides the work and does not contain it
+On this path the app is cooperating with your policy: the file is made on the person's own device,
+so this guides how work moves and does not stop someone copying what is on their screen.
+:::
 
 **Ask for a review.** **Request approval** runs the same export as Download, with the settings on
 the export bar. The dialog shows the file, its format, size and digest, and sends it to Work.
@@ -218,8 +226,7 @@ file holds what the export wrote, including any Content Credentials or Lolly Imp
 export bar, and Work adds no watermark. An experimental tool keeps its usual mark, so the reviewer
 sees the artwork as it will leave.
 
-**Limits.**
-
+::: note Limits of an approval
 - An approval says a person approved this file. It does not establish that the file meets a brand
   rule, a licence or a law. The record in the file says the same and no more: a signer recorded a
   decision, and a viewer still has to trust that signer.
@@ -230,6 +237,7 @@ sees the artwork as it will leave.
   and optional approval.
 - Older shells still send a request with the tool's id and no file. It stays valid, and its card
   says no file is attached.
+:::
 
 **Reading the record.** [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records)
 shows a file's record as an **Approved** panel, and [Assets](/info/authoring-assets.html#approval-and-intent-in-details)

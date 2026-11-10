@@ -9,7 +9,10 @@ every shared file.
 ![Signed, expiring, revocable links: share, embed and download, revoked at once](shots/share-links.svg)
 
 Sharing a team project with colleagues, rather than a file, is on [Team
-projects](team-projects.md).
+projects](team-projects.md). A file sent from the Lolly app to a connected storage service can
+also be shared through that service: after **Send**, the Share dialog can make the service's own
+link, and **Links you've shared** stops sharing where the service allows that. Lolly keeps no copy
+of that file on a server.
 
 <!--i:eti-folder-shared-->
 ## What you can share
@@ -92,10 +95,12 @@ address:
 - Ten wrong passwords from one address within 15 minutes lock the link for that address
   (`429 PASSWORD_LOCKED`, with `Retry-After`).
 
+::: warning Keep a link's password out of its address
 Adding `&pw=<password>` to the link is deprecated. A password in an address stays in browser
 history and in server, proxy and CDN logs. It still opens the link for one more release: the
 answer carries a `Deprecation` header and sets the same cookie, and the server logs one warning
 per link. Move anything that builds `&pw=` links to the form or the `POST`.
+:::
 
 ### Linking a catalog asset
 
@@ -137,6 +142,11 @@ POST /api/v1/links   { "kind": "share", "target": { "collectionId": "launch-kit"
 the zip, and `embed` is refused (`400`). The same two checks apply to every member of the set.
 What the page shows and how members drop out are on [collection
 links](catalog.md#collection-links).
+
+With the [licence gate](partner-programmes.md#licences) on, a link a partner makes carries only
+what their gated feed holds. A link your own people make leaves held files out unless its maker
+chooses to include them, with a note ([links, ZIPs and
+credits](partner-programmes.md#links-zips-and-credits)).
 
 ### Turning a link off
 

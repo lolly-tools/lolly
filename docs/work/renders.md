@@ -34,9 +34,11 @@ lw renders retry <renderId> --idempotency-key campaign-qr-retry --json
 lw renders deliver <renderId> --destination campaign-archive --name "Launch QR"
 ```
 
+::: check What a finished render shows
 `submit` returns the job's id at once. `show` reports its state, the number of attempts and a
 structured failure when one occurs. The output is available after success, and downloading it
 verifies the stored bytes against the job's SHA-256 receipt.
+:::
 
 ::: figure work-renders-states
 A job is queued, then running, then succeeded, failed or cancelled. A retry is a new job that points back at the one it replaces.
@@ -72,7 +74,10 @@ Authentication is required even on an open instance. Creating, running and readi
 current tool visibility, `tool.use` and `export.server`. Each attempt reads the current member or
 service token, so disabling the member, revoking the token or removing the grant stops queued
 work from running. The owner can still cancel after losing a tool grant. These routes share
-`rateLimit.automation`.
+`rateLimit.automation`. A service token minted with scopes reaches them with `render`, and
+sends an output with `delivery` ([service tokens](enterprise-identity.md#service-tokens)). An
+agent holding such a token can submit and follow the same renders and batches, and cancel a
+render, over the organisation MCP endpoint ([connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp)).
 
 <!--i:eti-layers-->
 ## Batches with durable rows
@@ -390,12 +395,15 @@ stored. Outputs made before identities existed, and outputs without a receipt, h
 <!--i:eti-refresh-->
 ## Hosting and recovery
 
-The standalone server starts the runner automatically. Apply `0032_render_resources.sql`,
-`0033_render_batches.sql` and, for callbacks, delivery by reference and output retention,
-`0079_durable_render_parity.sql` through the normal migrations runner. Use PostgreSQL and a persistent
-BlobStore for recovery across restarts; memory mode is for evaluation and loses its data when the
-process exits. Every replica must use the same database, byte store and compatible mounted
-content.
+The standalone server starts the runner automatically.
+
+::: note Before you rely on recovery
+Apply `0032_render_resources.sql`, `0033_render_batches.sql` and, for callbacks, delivery by
+reference and output retention, `0079_durable_render_parity.sql` through the normal migrations
+runner. Use PostgreSQL and a persistent BlobStore for recovery across restarts; memory mode is for
+evaluation and loses its data when the process exits. Every replica must use the same database,
+byte store and compatible mounted content.
+:::
 
 - The runner polls once a second and runs up to two requests per process.
   `LW_BACKGROUND_POLL_MS` changes the poll interval in milliseconds for the render and automation
