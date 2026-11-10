@@ -1714,10 +1714,8 @@ DOC_ICONS.puzzle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M15.39 4.39a
 // AI-generated content, so the same idea wears the same glyph in both places.
 DOC_ICONS.sparkle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg>`;
 // The reading components' glyphs (packages/docs-render/src/components.ts), taken from
-// the app's registry so a note, a disclosure and Copy look the same in both readers.
-DOC_ICONS['adm-info'] = appIcon('info');
-DOC_ICONS['adm-alert'] = appIcon('alert');
-DOC_ICONS['adm-check'] = appIcon('circleCheck');
+// the app's registry so a disclosure and Copy look the same in both readers. A note,
+// warning or check draws a two-tone Etiquette icon instead, registered below.
 DOC_ICONS['adm-chevron'] = appIcon('chevronRight');
 DOC_ICONS['adm-more'] = appIcon('textL');
 DOC_ICONS['adm-clipboard'] = appIcon('clipboard');
@@ -1733,8 +1731,9 @@ DOC_ICONS['chrome-external'] = appIcon('externalLink');
 DOC_ICONS['chrome-back'] = appIcon('arrowLeft');
 DOC_ICONS['chrome-settings'] = appIcon('sliders');
 // Lolly Demo's two-tone Etiquette icons, as `eti-<slug>` (docs/etiquette-icons.ts): the
-// partner pages' cards and subject openings. Painted from --eti-accent and --eti-base,
-// which the stylesheet sets per theme, so they follow light, dark and brand.
+// partner pages' cards and subject openings, and the admonitions. Painted from
+// --eti-accent and --eti-base, which the shared reading stylesheet (docs-components.css)
+// sets from the theme's roles, so they follow light, dark, brand and High contrast.
 Object.assign(DOC_ICONS, etiquetteDocIcons());
 const DOC_ICON_SPRITE = createIconSprite(DOC_ICONS);
 function docIcon(key: string): string {
@@ -3277,14 +3276,17 @@ const APP_TOKENS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/tokens.
 // only; tokens.css and the app's themes are untouched, and the in-app reader keeps
 // following the active brand. Spearmint is the light primary and the band, Green
 // Apple the green for light on dark, Avocado washes the light surfaces, Pandanus draws
-// the light hairlines and Liquorice is the ink and the dark ground. Each block sets
+// the light hairlines and Liquorice is the ink and the dark ground. The accent for words
+// (--primary-text) reads 4.5:1 on each theme's surfaces and on an accent wash over them:
+// the primary in light and dark (Spearmint, Green Apple), and Pandanus on Brand's
+// Spearmint ground, where Green Apple on a green wash falls under. Each block sets
 // the same slots, so a later block never leaves an earlier one's value behind (:root
 // also matches a dark document at equal specificity). --muted and --border are left
 // out because the bridge below shadows both, and the High contrast blocks in
 // APP_TOKENS out-specify all three blocks, so High contrast keeps the app's values.
-const INFO_OPAL_TOKENS = `:root,[data-theme="light"]{--background:0 0% 100%;--foreground:201.2 48.6% 6.9%;--card:0 0% 100%;--card-foreground:201.2 48.6% 6.9%;--popover:0 0% 100%;--popover-foreground:201.2 48.6% 6.9%;--primary:176.5 89.5% 11.2%;--primary-foreground:0 0% 100%;--secondary:84.5 55% 92.2%;--secondary-foreground:201.2 48.6% 6.9%;--accent:121.1 46.9% 77.8%;--accent-foreground:201.2 48.6% 6.9%;--muted-foreground:207.7 10.6% 24.1%;--input:121.1 46.9% 77.8%;--ring:176.5 89.5% 11.2%;--warn:#72251c;--lolly-coin-glow:#edf6e0}
-[data-theme="dark"]{--background:201.2 48.6% 6.9%;--foreground:0 0% 100%;--card:203.3 33.3% 10.6%;--card-foreground:0 0% 100%;--popover:203.3 33.3% 10.6%;--popover-foreground:0 0% 100%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:202.1 25.3% 14.7%;--secondary-foreground:0 0% 100%;--accent:207.7 10.6% 24.1%;--accent-foreground:0 0% 100%;--muted-foreground:201.8 5.7% 62.2%;--input:207.7 10.6% 24.1%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#121d24}
-[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#fac044;--lolly-coin-glow:#0b413e}`;
+const INFO_OPAL_TOKENS = `:root,[data-theme="light"]{--background:0 0% 100%;--foreground:201.2 48.6% 6.9%;--card:0 0% 100%;--card-foreground:201.2 48.6% 6.9%;--popover:0 0% 100%;--popover-foreground:201.2 48.6% 6.9%;--primary:176.5 89.5% 11.2%;--primary-foreground:0 0% 100%;--primary-text:176.5 89.5% 11.2%;--secondary:84.5 55% 92.2%;--secondary-foreground:201.2 48.6% 6.9%;--accent:121.1 46.9% 77.8%;--accent-foreground:201.2 48.6% 6.9%;--muted-foreground:207.7 10.6% 24.1%;--input:121.1 46.9% 77.8%;--ring:176.5 89.5% 11.2%;--warn:#72251c;--lolly-coin-glow:#edf6e0}
+[data-theme="dark"]{--background:201.2 48.6% 6.9%;--foreground:0 0% 100%;--card:203.3 33.3% 10.6%;--card-foreground:0 0% 100%;--popover:203.3 33.3% 10.6%;--popover-foreground:0 0% 100%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--primary-text:133 48.9% 53.9%;--secondary:202.1 25.3% 14.7%;--secondary-foreground:0 0% 100%;--accent:207.7 10.6% 24.1%;--accent-foreground:0 0% 100%;--muted-foreground:201.8 5.7% 62.2%;--input:207.7 10.6% 24.1%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#121d24}
+[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--primary-text:121.1 46.9% 77.8%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#fac044;--lolly-coin-glow:#0b413e}`;
 
 // The landing bands, single-sourced as a real stylesheet: the static front door
 // below and the in-app docs reader (plans/123 decision D2) both render the same
@@ -3876,18 +3878,15 @@ html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
   .md-timeline .icon-list>li.ic:not(:last-child)::before{left:.875rem;top:1.75rem}}
 .li-icon{flex-shrink:0;width:1.35rem;height:1.35rem;margin-top:.2rem;color:var(--green)}
 .li-icon svg{width:100%;height:100%;display:block}
-/* Etiquette icons (eti-<slug>, docs/etiquette-icons.ts): Lolly Demo's two-tone glyphs,
-   painted from two custom properties so they follow the theme. Light keeps the icons'
-   own pairing, Green Apple on Spearmint; dark and brand paint the base in the page's ink
-   and the accent in the theme's green, the pairing the brand's dark surfaces use. */
-:root,[data-theme="light"]{--eti-accent:#50c369;--eti-base:hsl(var(--primary))}
-[data-theme="dark"],[data-theme="brand"]{--eti-accent:hsl(var(--primary));--eti-base:hsl(var(--foreground))}
+/* Etiquette icons (eti-<slug>, docs/etiquette-icons.ts) take their two colours from the
+   reading stylesheet (docs-components.css), which both readers share, so an icon on /info
+   and the same icon in the app follow the theme the same way. */
 /* The terminal's colours (docs-components.css) read the app's syntax roles. On Opal's light
    theme the primary is Spearmint, which on the Avocado code panel sits a shade from the ink,
    so flags, variables and placeholder tints take Spearmint lifted toward Green Apple (5.3:1
    on the panel) and comments and punctuation a lighter grey (5.1:1). The command keeps
    Spearmint, in bold. Dark and Brand keep their roles, and High contrast keeps the app's. */
-html:not([data-theme="dark"]):not([data-theme="brand"]):not([data-a11y-contrast="high"]){--ui-color-syntax-type:color-mix(in oklab,hsl(var(--primary)) 55%,var(--eti-accent));--ui-color-syntax-number:var(--ui-color-syntax-type);--ui-color-syntax-comment:color-mix(in oklab,var(--muted) 75%,var(--pale));--ui-color-syntax-operator:var(--ui-color-syntax-comment)}
+html:not([data-theme="dark"]):not([data-theme="brand"]):not([data-a11y-contrast="high"]){--ui-color-syntax-type:color-mix(in oklab,hsl(var(--primary)) 55%,hsl(var(--band-accent)));--ui-color-syntax-number:var(--ui-color-syntax-type);--ui-color-syntax-comment:color-mix(in oklab,var(--muted) 75%,var(--pale));--ui-color-syntax-operator:var(--ui-color-syntax-comment)}
 /* ::: cards: an icon list drawn as cards on a pale panel, the way the banked figures
    lay out their parts. A card whose text opens with a bold link IS that link: the
    link's ::after covers the card, so the whole card is one target with one name. */

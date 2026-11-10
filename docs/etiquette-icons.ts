@@ -8,10 +8,11 @@
  * that carries the meaning, and `c2` is the base, the object. A docs page cannot use the
  * fixed fills, because Spearmint on a dark page disappears. So the docs read each file at
  * build time, drop its stylesheet and paint the two parts from two custom properties
- * instead: `--eti-accent` and `--eti-base`. The docs stylesheet sets both for each theme
- * (light, dark and brand), so an icon follows the theme the reader chose, through the
- * shared icon sprite as well as inline, because custom properties inherit into a `<use>`.
- * The fallbacks are the file's own pairing, Green Apple on Spearmint.
+ * instead: `--eti-accent` and `--eti-base`. The reading stylesheet both readers share
+ * (shells/web/src/styles/parts/docs-components.css) sets both from the theme's roles, so an
+ * icon follows the theme, the colourway and High contrast on /info and in the app alike,
+ * through the shared icon sprite as well as inline, because custom properties inherit into
+ * a `<use>`. The fallbacks are the file's own pairing, Green Apple on Spearmint.
  *
  * The icons are Lucide drawings outlined by Lolly, and THIRD-PARTY-NOTICES.md credits
  * them under Lucide (ISC) by these exact files, so reading them here needs no new notice.

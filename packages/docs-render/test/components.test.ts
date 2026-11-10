@@ -43,11 +43,17 @@ test('the fence info string keeps a safe language token and allowlisted flags on
 test('a note renders as role=note with its glyph, a hidden kind word, a title that is not a paragraph, and its body', () => {
   const html = mdToHtml('::: warning Clearing site data removes saved work\nExport a backup **first**.\n:::', ctx());
   assert.match(html, /^<div class="doc-note doc-note--warning" role="note">/);
-  assert.match(html, /<span class="doc-note-glyph" aria-hidden="true"><i data-icon="adm-alert"><\/i><\/span>/);
+  assert.match(html, /<span class="doc-note-glyph" aria-hidden="true"><i data-icon="eti-warning"><\/i><\/span>/);
   assert.match(html, /<div class="doc-note-title"><span class="doc-visually-hidden">Warning: <\/span>Clearing site data removes saved work<\/div>/);
   assert.match(html, /<div class="doc-note-body"><p>Export a backup <strong>first<\/strong>\.<\/p><\/div>/);
   assert.ok(!/<aside/.test(html), 'no complementary landmark in either host');
   assert.ok(!/<p[^>]*>[^<]*Clearing/.test(html), 'the title is not a <p>, so narration ids after it stay put');
+});
+
+test('each admonition kind opens with its own two-tone Etiquette icon', () => {
+  const icons = (['note', 'warning', 'check'] as const).map(kind =>
+    /data-icon="([^"]+)"/.exec(mdToHtml(`::: ${kind} Title\nBody.\n:::`, ctx()))?.[1]);
+  assert.deepEqual(icons, ['eti-info', 'eti-warning', 'eti-circle-check']);
 });
 
 test('the kind word is translated through the render context', () => {

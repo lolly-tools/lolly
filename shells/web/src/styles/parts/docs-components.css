@@ -34,27 +34,63 @@
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* ── Admonition: ::: note | warning | check ─────────────────────────────── */
+/* ── Two-tone icons: the Etiquette set (docs/etiquette-icons.ts) ────────────
+   Each icon paints two parts from two properties: --eti-accent, the detail that
+   carries the meaning, and --eti-base, the object around it. Both readers set them
+   here from the theme's roles, so an icon follows Light, Dark, Brand and the
+   colourway the same way on /info and in the app. The base is the ink. The accent
+   is the colourway's action colour, lifted to a mid lightness and some colour where
+   it has less: a light theme's action colour is often a deep one (Spearmint, Ochre,
+   Liquorice) that would sit a shade from the ink, while a dark theme's is light
+   already and keeps its own value. High contrast takes the accent ink for words,
+   which that mode walks to Lc 75 on every surface, so no part of an icon fades. */
+.docs-content,
+.docs-landing {
+  --eti-accent: oklch(from var(--ui-color-action-primary) max(l, .62) clamp(c, c * 2, .16) h);
+  --eti-base: var(--ui-color-text-default);
+}
+html[data-a11y-contrast="high"] :is(.docs-content, .docs-landing) { --eti-accent: var(--ui-color-text-accent); }
+
+/* ── Admonition: ::: note | warning | check ───────────────────────────────
+   A tinted panel led by a large two-tone icon: info, warning or circle-check.
+   Each kind has a tone. A note is neutral, a warning takes the docs' caution ink
+   (--warn: Ochre, Banksia or Honey by theme) and a check the colourway's action
+   colour. The tone tints the panel and paints the icon's detail, so the kind reads
+   before a word does, and the hidden kind word says it to a screen reader. The edge
+   is the faint hairline all round, which darkens whatever tint it sits on: a resting
+   edge never wears the accent, and a stripe on one edge breaks on the rounded corner. */
 .docs-content .doc-note {
+  --doc-note-icon: calc(2.5rem * var(--a11y-fs, 1));
   display: grid;
-  grid-template-columns: calc(20px * var(--a11y-fs, 1)) minmax(0, 1fr);
-  gap: 14px;
-  margin: 20px 0;
-  padding: 14px 18px;
-  border-radius: var(--ui-radius-panel);
+  grid-template-columns: var(--doc-note-icon) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin: 24px 0;
+  padding: 16px 20px 16px 16px;
+  border-radius: var(--ui-radius-card);
   background: var(--ui-color-surface-muted);
+  box-shadow: var(--ui-edge-faint);
   font-size: calc(16px * var(--a11y-fs, 1));
   line-height: 1.55;
 }
-.docs-content .doc-note--check { background: color-mix(in srgb, var(--ui-color-action-primary) 12%, var(--ui-color-surface-muted)); }
+.docs-content .doc-note--check { background: color-mix(in srgb, var(--eti-accent) 14%, var(--ui-color-surface-muted)); }
 /* Tinted into the muted surface rather than the canvas, so the tint still reads on the
    dark grounds (Dark, Brand), where a tint into the canvas all but vanished. */
-.docs-content .doc-note--warning { background: color-mix(in srgb, var(--ui-color-status-danger) 14%, var(--ui-color-surface-muted)); }
-.docs-content .doc-note-glyph { display: flex; margin-block-start: 2px; color: var(--ui-color-text-muted); }
-.docs-content .doc-note--check .doc-note-glyph { color: var(--ui-color-text-accent); }
-.docs-content .doc-note--warning .doc-note-glyph { color: color-mix(in oklab, var(--ui-color-status-danger) 60%, var(--ui-color-text-default)); }
-.docs-content .doc-note-glyph svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); }
-.docs-content .doc-note-title { font-weight: 600; line-height: 1.4; color: var(--ui-color-text-default); }
+.docs-content .doc-note--warning {
+  --doc-note-tone: oklch(from var(--warn, var(--ui-color-status-danger)) max(l, .62) clamp(c, c * 2, .16) h);
+  --eti-accent: var(--doc-note-tone);
+  background: color-mix(in srgb, var(--doc-note-tone) 16%, var(--ui-color-surface-muted));
+}
+html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-tone: var(--warn, var(--ui-color-status-danger)); }
+.docs-content .doc-note-glyph { display: flex; }
+.docs-content .doc-note-glyph svg { width: var(--doc-note-icon); height: var(--doc-note-icon); flex: none; }
+/* Beside a short note the words sit level with the icon; a longer one starts at its top. */
+.docs-content .doc-note-main { align-self: center; min-width: 0; }
+.docs-content .doc-note-title { font-weight: 600; font-size: 1.0625em; line-height: 1.4; color: var(--ui-color-text-default); }
+/* A link on a tinted panel takes the accent ink for words, which each theme walks to
+   4.5:1 on its surfaces and on an accent wash over them. A link elsewhere takes the
+   action colour, a fill, and some colourways' fills read under 4.5:1 on a tint. */
+.docs-content .doc-note a:not([class]) { color: var(--ui-color-text-accent); }
 .docs-content .doc-note-body > :first-child { margin-block-start: 4px; }
 .docs-content .doc-note-body > :last-child { margin-block-end: 0; }
 .docs-content .doc-note-body p { margin: 6px 0 0; }
@@ -447,7 +483,7 @@
   .docs-content .doc-code .sh-out { min-width: calc(100% + 28px); margin-inline: -14px; padding-inline: 14px; }
   :is(.docs-content, .docs-compact-nav) .doc-details > summary { gap: 14px; padding-inline: 14px; }
   :is(.docs-content, .docs-compact-nav) .doc-details-body { padding-inline: calc(14px + 20px * var(--a11y-fs, 1) + 14px) 14px; }
-  .docs-content .doc-note { padding: 14px; gap: 12px; }
+  .docs-content .doc-note { --doc-note-icon: calc(2.25rem * var(--a11y-fs, 1)); padding: 14px; gap: 12px; }
   .docs-content .doc-code pre { padding: 12px 14px; font-size: calc(13px * var(--a11y-fs, 1)); }
 }
 @media (prefers-reduced-motion: reduce) {
