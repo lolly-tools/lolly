@@ -514,3 +514,39 @@ test('the console\'s newer sounds and the ad-libs: where a game is played and wh
   assert.ok(kinds('punk').has('hey0'), 'punk\'s gang shouts hey');
   for (const mood of ['jazz', 'warm', 'rock'] as const) assert.equal(kinds(mood).size, 0, `${mood} calls no console and no ad-lib`);
 });
+
+test('a fitted track ends the way a song does, within a few bars of the length asked for', async () => {
+  const { lofiTrack, lofiStream } = await import('./lofi-compose.ts');
+  for (const mood of ['sugar', 'warm', 'rock', 'jazz', 'ska', 'kpop'] as const) {
+    for (const target of [8, 16, 32, 64, 96, 128, 256]) {
+      const track = lofiTrack(7, { mood }, target);
+      const last = track[track.length - 1]!;
+      assert.equal(last.section, 'rest', `${mood} ${target}: the track ends on the rest bar`);
+      assert.ok(track.some((b, i) => i > track.length - 4 && b.section === 'outro'), `${mood} ${target}: an outro before it`);
+      const tunes = new Set(track.map(b => b.tune));
+      // Whole tunes keep every bar; only the last tune is cut, and only before its outro.
+      const firstLength = [...tunes][0]!.bars;
+      if (tunes.size > 1) assert.ok(track.length >= firstLength);
+      assert.ok(track.length <= Math.max(target + 8, firstLength) + 1, `${mood} ${target}: ${track.length} bars is not too long`);
+      assert.ok(track.length >= Math.min(target - 8, 12), `${mood} ${target}: ${track.length} bars is not too short`);
+      // The bars up to the cut are the stream's own.
+      const stream = lofiStream(7, { mood });
+      for (let i = 0; i < track.length && track[i]!.tune === track[0]!.tune && track[i]!.index === i; i++) {
+        assert.deepEqual(track[i]!.notes, stream.next().notes, `${mood} ${target}: bar ${i} is the stream's`);
+      }
+      assert.deepEqual(lofiTrack(7, { mood }, target).map(b => b.notes.length), track.map(b => b.notes.length), 'deterministic');
+    }
+  }
+});
+
+test('a fitted track never cuts a build off from its drop', async () => {
+  const { lofiTrack } = await import('./lofi-compose.ts');
+  for (let seed = 1; seed <= 12; seed++) {
+    for (const target of [24, 40, 56, 72]) {
+      const track = lofiTrack(seed, { mood: 'sugar' }, target);
+      for (let i = 1; i < track.length; i++) {
+        if (track[i - 1]!.section === 'build') assert.notEqual(track[i]!.section, 'outro', `seed ${seed}, ${target} bars: a build runs into the outro at bar ${i}`);
+      }
+    }
+  }
+});

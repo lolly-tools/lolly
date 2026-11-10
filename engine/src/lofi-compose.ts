@@ -789,6 +789,48 @@ export function lofiStream(seed: number, opts: LofiOptions): LofiStream {
   };
 }
 
+/**
+ * A track of about `target` bars that ends the way a song does: whole tunes from the
+ * stream, and the last one cut at the end of a phrase and finished with its own outro, its
+ * fade and the rest bar, rather than stopped wherever the count runs out. So the length
+ * flexes by a few bars: a tune that would lose only its last few bars plays whole, a tune
+ * that would get only a few bars is left out, and a cut is made where a phrase ends and a
+ * build is not about to break into a drop. Pure and deterministic, the same bars as the
+ * stream gives up to the cut.
+ */
+export function lofiTrack(seed: number, opts: Omit<LofiOptions, 'repeat'>, target: number): LofiBar[] {
+  const out: LofiBar[] = [];
+  let tuneSeed = seed >>> 0;
+  for (;;) {
+    const tune = composeLofiTune(tuneSeed, opts.mood, opts.style);
+    const left = target - out.length;
+    if (tune.length <= left + FIT_SLACK) { out.push(...tune); }
+    else if (out.length > 0 && left < FIT_SLACK) break;
+    else {
+      // The outro: the tune's last run of outro bars, and the rest bar that follows.
+      let from = tune.length;
+      while (from > 0 && (tune[from - 1]!.section === 'outro' || tune[from - 1]!.section === 'rest')) from--;
+      const outro = tune.slice(from);
+      const want = left - outro.length;
+      let cut = Math.min(from, 4);
+      let best = Infinity;
+      for (let i = 4; i <= from; i += 4) {
+        if (tune[i - 1]!.section === 'build') continue;   // a build must break into its drop
+        const ends = i === from || tune[i]!.section !== tune[i - 1]!.section;
+        const miss = Math.abs(i - want) + (ends ? 0 : 2);
+        if (miss < best) { best = miss; cut = i; }
+      }
+      out.push(...tune.slice(0, cut), ...outro);
+      break;
+    }
+    if (out.length >= target) break;
+    tuneSeed = nextLofiSeed(tuneSeed);
+  }
+  return out;
+}
+/** How many bars a track's length may flex to keep a tune whole or leave a scrap of one out. */
+const FIT_SLACK = 8;
+
 /** How long one tune lasts, in seconds: its bars at its tempo (four beats a bar). */
 export function lofiTuneSeconds(seed: number, mood: LofiMood): number {
   const bars = composeLofiTune(seed >>> 0, mood);

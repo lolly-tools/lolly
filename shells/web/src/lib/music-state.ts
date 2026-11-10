@@ -6,7 +6,7 @@
  * DOM, so the music generator (views/music-studio.ts), a saved tune's renderer
  * (lib/lofi-tune.ts) and the Neurospicy player all read a track the same way.
  */
-import { lofiStream, transposeChordName, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import { lofiTrack, transposeChordName, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_MIX, type LofiMix, type LofiSettings } from './lofi-station.ts';
 
 export const MIX_KEYS: readonly (keyof LofiMix)[] = ['keys', 'bass', 'lead', 'drums', 'fx', 'reverb', 'texture'];
@@ -162,11 +162,13 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
   };
 }
 
-/** The track's bars, composed: the same bars the station will play. */
+/**
+ * The track's bars, composed: the same bars the station will play. About `bars` long,
+ * ending as a song does, with its outro (see lofiTrack).
+ */
 export function composeTrack(s: MusicState): LofiBar[] {
-  const stream = lofiStream(s.seed, { mood: s.mood, style: fixedStyle(s) });
   const shape = shapeBar(s);
-  return Array.from({ length: s.bars }, () => shape(stream.next()));
+  return lofiTrack(s.seed, { mood: s.mood, style: fixedStyle(s) }, s.bars).map(shape);
 }
 
 /** Where each bar starts, in seconds, and the whole track's length. */

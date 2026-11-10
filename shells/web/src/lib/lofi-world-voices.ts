@@ -77,7 +77,7 @@ export function perc(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
  * near the bridge, its lambskin top giving a bright, peaky, nasal ring.
  */
 function tar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.1, bright: 26, mellow: 8.5, ring: 1.1, body: 2300, level: 0.07, course: 6 });
+  plucked(k, out, t, midi, vel, dur, { pickAt: 0.1, bright: 26, mellow: 8.5, ring: 1.1, body: 2300, level: 0.06, course: 6 });
 }
 
 /**
@@ -87,7 +87,7 @@ function tar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, 
  */
 function santur(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
   const strike = (at: number, v: number, ring: number): void => {
-    plucked(k, out, at, midi, v, Math.max(0.4, ring), { pickAt: 0.07, bright: 36, mellow: 11, ring: 2.2, body: 2400, level: 0.07, course: 5 });
+    plucked(k, out, at, midi, v, Math.max(0.4, ring), { pickAt: 0.07, bright: 36, mellow: 11, ring: 2.2, body: 2400, level: 0.052, course: 5 });
     // The mezrab's tick on the string.
     crack(k, out, at, 0.04 * v, 3200, 0.004);
   };
@@ -128,7 +128,7 @@ function koto(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
  */
 function shamisen(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
   const { ctx } = k;
-  plucked(k, out, t, midi, vel, Math.min(dur, 0.9), { pickAt: 0.06, bright: 28, mellow: 5, ring: 0.65, body: 1400, level: 0.1 });
+  plucked(k, out, t, midi, vel, Math.min(dur, 0.9), { pickAt: 0.06, bright: 28, mellow: 5, ring: 0.65, body: 1400, level: 0.065 });
   // The sawari: the string's own sound, clipped where it touches the neck, a sizzle over the note.
   const f = mtof(midi);
   const buzz = osc(k, 'sawtooth', f, t, t + 0.5);
@@ -155,12 +155,12 @@ function shamisen(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: num
 
 /** Kora (West African): a harp-lute's nylon strings over a calabash: warm, darker, a little woody. */
 function kora(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.27, bright: 13, mellow: 4.2, ring: 1.5, body: 320, level: 0.14 });
+  plucked(k, out, t, midi, vel, dur, { pickAt: 0.27, bright: 13, mellow: 4.2, ring: 1.5, body: 320, level: 0.18 });
 }
 
 /** Pipa (Chinese): a pear-shaped lute, bright and short; `art` 1 is the lunzhi, the five-finger tremolo on a held note. */
 function pipa(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
-  const pluck = (at: number, v: number, d: number): void => plucked(k, out, at, midi, v, d, { pickAt: 0.1, bright: 24, mellow: 5, ring: 0.7, body: 1500, level: 0.1 });
+  const pluck = (at: number, v: number, d: number): void => plucked(k, out, at, midi, v, d, { pickAt: 0.1, bright: 24, mellow: 5, ring: 0.7, body: 1500, level: 0.08 });
   if (art === 1 && dur > 0.35) {
     const n = Math.min(20, Math.floor(dur / 0.07));
     for (let i = 0; i < n; i++) pluck(t + i * 0.07, vel * (0.75 + (i % 5 === 0 ? 0.2 : 0)), 0.12);
