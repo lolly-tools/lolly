@@ -510,7 +510,7 @@
   "Adoption and governance": "Införande och styrning",
   "Governance": "Styrning",
   "Host Lolly": "Hosta Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "En statisk webbvärd är den enkla vägen, och ett nät utan internetförbindelse får samma installation. Lolly Work, organisationsservern, är också öppen källkod: kör den på en maskin, på Kubernetes eller med ditt plattformsteam.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "En statisk webbvärd är den enkla vägen, och ett nät utan internetförbindelse får samma installation. Lolly Work, organisationsservern, är också öppen källkod: kör den på Kubernetes, på en maskin eller med ditt plattformsteam.",
   "Deployment": "Distribution",
   "Privacy": "Integritet",
   "The utilities": "Verktygen",

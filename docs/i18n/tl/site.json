@@ -510,7 +510,7 @@
   "Adoption and governance": "Adoption at governance",
   "Governance": "Governance",
   "Host Lolly": "I-host ang Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "Ang static web host ang madaling daan, at tumatanggap ng parehong install ang air-gapped na network. Bukas din ang source ng Lolly Work, ang server ng organisasyon: patakbuhin ito sa isang makina, sa Kubernetes o kasama ang platform team mo.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "Ang static web host ang madaling daan, at tumatanggap ng parehong install ang air-gapped na network. Bukas din ang source ng Lolly Work, ang server ng organisasyon: patakbuhin ito sa Kubernetes, sa isang makina o kasama ang platform team mo.",
   "Deployment": "Deployment",
   "Privacy": "Privacy",
   "The utilities": "Ang mga Utility",

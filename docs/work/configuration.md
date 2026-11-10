@@ -10,7 +10,7 @@ The file and the environment are read when the server starts; governance changes
 :::
 
 - **`instance.json`** shapes the deployment: who can sign in, storage, limits and the render
-  worker. The standalone server, Compose and Helm read `./instance.json`, or the path in
+  worker. Helm, Compose and the standalone server read `./instance.json`, or the path in
   `LW_CONFIG`, when the server starts. Edit the file and restart; on Helm, update the ConfigMap
   and roll the pods. The serverless function entrypoint reads the whole configuration from the
   `LW_CONFIG_JSON` string instead ([environment variables](#serverless-entrypoint)).
@@ -931,7 +931,7 @@ supports tool rendering; qualify preview behavior with the paired shell release.
 
 | Var | Default | What |
 |---|---|---|
-| `LW_CONFIG` | `./instance.json` | config file **path**. The one the standalone server, Compose and Helm read |
+| `LW_CONFIG` | `./instance.json` | config file **path**. The one Helm, Compose and the standalone server read |
 | `DATABASE_URL` | - | Postgres. Unset ⇒ in-memory store (evaluation only) |
 | `DATABASE_URL_UNPOOLED` | - | a direct (unpooled) Postgres URL that migrations run over when set; otherwise they use `DATABASE_URL` |
 | `LW_AUTO_MIGRATE` | `true` when unset | boot-time DDL. `false`/`0`/`off`/`no`/empty ⇒ no DDL and refuse to start on a pending schema (the HA invariant) |

@@ -510,7 +510,7 @@
   "Adoption and governance": "Zavedení a řízení",
   "Governance": "Řízení",
   "Host Lolly": "Hostuj Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "Statický webový hosting je nejsnazší cesta a síť bez připojení k internetu využije stejnou instalaci. Lolly Work, server pro organizace, je také open source: spusť ho na jednom stroji, v Kubernetes nebo s týmem pro platformu.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "Statický webový hosting je nejsnazší cesta a síť bez připojení k internetu využije stejnou instalaci. Lolly Work, server pro organizace, je také open source: spusť ho v Kubernetes, na jednom stroji nebo s týmem pro platformu.",
   "Deployment": "Nasazení",
   "Privacy": "Soukromí",
   "The utilities": "Utility",

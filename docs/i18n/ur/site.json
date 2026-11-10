@@ -510,7 +510,7 @@
   "Adoption and governance": "اپنانا اور گورننس",
   "Governance": "گورننس",
   "Host Lolly": "Lolly خود ہوسٹ کریں",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "اسٹیٹک ویب ہوسٹ سب سے آسان راستہ ہے، اور ایئر گیپڈ نیٹ ورک پر بھی وہی انسٹال چلتا ہے۔ Lolly Work، یعنی ادارے کا سرور، بھی اوپن سورس ہے: اسے ایک مشین پر، Kubernetes پر یا اپنی پلیٹ فارم ٹیم کے ساتھ چلائیں۔",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "اسٹیٹک ویب ہوسٹ سب سے آسان راستہ ہے، اور ایئر گیپڈ نیٹ ورک پر بھی وہی انسٹال چلتا ہے۔ Lolly Work، یعنی ادارے کا سرور، بھی اوپن سورس ہے: اسے Kubernetes پر، ایک مشین پر یا اپنی پلیٹ فارم ٹیم کے ساتھ چلائیں۔",
   "Deployment": "ڈیپلائمنٹ",
   "Privacy": "پرائیویسی",
   "The utilities": "یوٹیلیٹیز",
