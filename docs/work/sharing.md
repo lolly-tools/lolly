@@ -11,6 +11,7 @@ every shared file.
 Sharing a team project with colleagues, rather than a file, is on [Team
 projects](team-projects.md).
 
+<!--i:eti-folder-shared-->
 ## What you can share
 
 | Link | The person who opens it gets | Who can make it |
@@ -28,6 +29,7 @@ A link points at one target: a tool render (a `toolId` with its inputs), a saved
 A link to library content is checked twice: once when it is made, and again on every visit.
 :::
 
+<!--i:eti-lock-->
 ## Signed links
 
 ```
@@ -41,7 +43,8 @@ GET  /api/v1/links[?all=1]
 The signature covers the link id, kind, expiry and a digest of the resolved target. Nobody can
 change what a link points at, or when it ends, by editing the address, and the parameters
 fixed when the link was made are what gets rendered: the caller's query on `/l/:id` is
-ignored.
+ignored. An [open link](api.md#share-links) to a tool is the exception: its recipients may set
+the tool's own inputs, and the tool's policy still refuses a locked, hidden or disallowed one.
 
 Failures are distinct: `403 BAD_SIGNATURE`, `410 LINK_EXPIRED`, `410 LINK_REVOKED`,
 `401 PASSWORD_REQUIRED`, `401 PASSWORD_INCORRECT` and `429 PASSWORD_LOCKED`. An API client gets
@@ -151,6 +154,7 @@ links](catalog.md#collection-links).
 The console's **Links** view lists every link the deployment has made, with its full signed
 address, a one-click copy, its status and its expiry.
 
+<!--i:eti-cpu-->
 ## Server renders
 
 ```
@@ -184,6 +188,7 @@ inputs, renders, optionally watermarks, optionally embeds provenance or signs, t
 Renders you want to keep, retry or run in batches are on [Render jobs and
 batches](renders.md).
 
+<!--i:eti-watermark-->
 ## Preview watermarking
 
 `enforce.watermark` on a tool overlay adds a diagonal, tiling **PREVIEW** brick pattern to the
@@ -192,6 +197,7 @@ use `#0002` and `#fff2`, so the watermark reads on light and dark artwork alike.
 [the enforce block](governance.md#the-enforce-block). `until-approved` lifts the pattern everywhere,
 share links included, once [a matching request is approved](governance.md#a-watermark-that-follows-approval).
 
+<!--i:eti-badge-check-->
 ## Provenance
 
 Every server render that used catalog assets carries a machine-readable ingredients list in
@@ -209,6 +215,7 @@ With a signing identity configured, exports carry a real, signed C2PA Content Cr
 instead of the unsigned island. Setting one up is one command: [Configure Lolly Work export
 signing](c2pa.md).
 
+<!--i:eti-link-->
 ## Related
 
 - Restricting formats and inputs: [governance](governance.md)

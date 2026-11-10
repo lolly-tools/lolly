@@ -14,6 +14,7 @@ The pack, connected providers and member submissions pass through exposure, life
 
 ![The governed catalog: served assets with lifecycle, expiry and one-click revocation](shots/catalog-assets.svg)
 
+<!--i:eti-package-->
 ## The pack
 
 `instance.pack` points at a directory, a "brand pack". Everything brand-shaped lives there,
@@ -41,6 +42,7 @@ the mounted catalog, and selection, retirement and suppression persist in Postgr
 changing mounted files. Source layouts, permissions, reference impact and rollback are on
 [Design-system administration](design-system-administration.md).
 
+<!--i:eti-lock-->
 ## Access modes
 
 `policy.defaultAccessMode` decides who may read the catalog at all:
@@ -56,6 +58,7 @@ that should not see them ([governance](governance.md#visibility)). Assets can be
 groups when they are submitted (below), and each provider has its own [exposure
 rules](#exposure-governance).
 
+<!--i:eti-upload-->
 ## Submitting an asset
 
 The pack does not change at runtime and providers are read-only, so submission is how a member
@@ -95,7 +98,8 @@ that says `image/png` and is not one is stored as what it is.
 
 - **Exposure.** `groups` narrows who sees the asset, and only to groups the submitter is in, so
   nobody publishes into a group they are not a member of. With no `groups`, every member sees
-  it, like a pack asset.
+  it, like a pack asset. People in a [partner programme](partner-programmes.md#what-a-programme-does)
+  are the exception: an asset shared with everyone does not reach them.
 - **Quota.** A quota scope is a group name, and a submission is charged to **every** group its
   submitter belongs to, before the file is stored, so extra memberships only tighten a budget.
   A refused submission is refunded; a returned one is not, because the file was still stored.
@@ -192,6 +196,7 @@ has nothing else to attach the event to), `catalog.approve-submission` and
 `catalog.return-submission` on the way out, and `catalog.edit-submission` with the before and
 after of every field a correction moved. These are audit actions, not grantable permissions.
 
+<!--i:eti-tag-->
 ## Org-defined metadata
 
 Tags are a flat list. Custom fields let your organisation define the fields it files assets
@@ -331,6 +336,7 @@ prefix. **Providers → Tags** on a provider's row opens the same list for that 
 provider that `instance.json` manages can declare `mapping.hiddenTags` there, and those show in
 the list as set in `instance.json`.
 
+<!--i:eti-folder-shared-->
 ## Collections
 
 A **collection** is a named, ordered set of catalog assets with its own group visibility: the
@@ -403,11 +409,14 @@ self-registration and no route into the rest of the catalog. Asking the link for
 collection does not hold is `404 NOT_IN_COLLECTION`, even with a valid signature.
 
 The zip is built in the process from Node's own `zlib`, streamed member by member with no temp
-files, and its entries are named for the asset and made unique. A set too large to zip is
+files, and its entries are named for the asset and made unique. Every zip starts with
+`CREDITS.txt` and `credits.json`, listing only the files in that zip, and the listing page shows
+one credit line where a licence asks for a credit. A set too large to zip is
 refused before a byte is sent, rather than cut short silently; download those assets one by
 one. Expiry, passwords, revocation and audit follow the ordinary [link
 rules](sharing.md#turning-a-link-off), and making a link audits as `link.create`.
 
+<!--i:eti-history-->
 ## Versions
 
 New bytes for an asset that is **already in the catalog** do not make a second asset. They
@@ -502,6 +511,7 @@ Supersession is advice to consumers, never a takedown: the asset keeps serving u
 lifecycle says otherwise. The two work together: retire it in favour of the new one, then expire
 the old one on a date you choose.
 
+<!--i:eti-calendar-->
 ## Content lifecycle
 
 Every asset can carry a lifecycle row, the "stop sharing" control, as one action:
@@ -580,6 +590,7 @@ separates **where each constraint came from**: local `validFrom`, `validUntil` a
 and the imported `upstream.availableFrom` and `upstream.availableUntil`. The console can then
 label a hidden asset "unavailable upstream" separately from a locally expired one.
 
+<!--i:eti-globe-->
 ## Catalog providers
 
 A provider is an admin-configured, **read-only** connector to a system that stays the source of
@@ -615,6 +626,7 @@ for the kinds that have one registered (`dropbox`, `gdrive`, `o365`). The other 
 capture the same sealed blob through `credential` until their authorize endpoint is confirmed
 against a real tenant. The console equivalent is **This Deploy → Providers**.
 
+::: details Notes on Cloudinary, Orange Logic, Image Relay, Canto and Optimizely CMP
 A few kinds need a note:
 
 - **Cloudinary and Orange Logic** use the advanced source form and sealed credentials. Their
@@ -631,6 +643,7 @@ A few kinds need a note:
   `is_public` (and not `is_archived`) as the approved gate; a folder name or a label can scope
   an `includeSections` slice. It is also the only kind that accepts [published
   exports](#publishing-lolly-exports-out).
+:::
 
 ### Exposure governance
 
@@ -646,6 +659,8 @@ The slice filters (`requireApproved`, `includeSections`, `excludeTags`) apply wh
 fragment is built, so excluded assets never enter the feed *or* the store. Group visibility
 applies per caller, when the feed is composed. `requireApproved` maps an upstream flag; it is not
 a general territory or channel check, and not proof that every historical file was approved.
+A provider shared with all members does not reach people in a [partner
+programme](partner-programmes.md#what-a-programme-does): it needs the programme's group.
 
 ### Credentials
 
@@ -718,6 +733,7 @@ Providers are integrations, not replacements. Every deployment brings its own AP
 OAuth apps (none ship in the repository), and provider names appear descriptively only. Lolly
 Work *includes an integration for* those services and is not affiliated with them.
 
+<!--i:eti-info-->
 ## Reference
 
 ### Large catalogs
@@ -859,6 +875,7 @@ S3 access is hand-written SigV4 (signed GET, PUT, DELETE and multipart uploads),
 any asset. [Blob limits and integrity](configuration.md#blob-limits-and-integrity) covers each
 driver's size limits, memory use, checksums and the S3 permissions and lifecycle rule.
 
+<!--i:eti-link-->
 ## Related
 
 - **Per-provider setup:** [the provider guides](providers/README.md), one per platform.
