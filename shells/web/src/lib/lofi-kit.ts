@@ -114,21 +114,33 @@ export interface CymbalSpec {
   choke?: number;
   /** The stick's tick: its centre frequency, or none (a mallet). */
   tick?: number;
+  /** The wash: the cymbal's countless higher modes, heard as noise, against its counted partials (0 none, 1 as strong). */
+  wash: number;
   /** Seconds to render. */
   seconds: number;
 }
 
-export const RIDE: CymbalSpec = { count: 70, lo: 320, hi: 15000, peak: 3800, spread: 1.4, life: 2.6, tilt: 0.5, bloom: 0.025, bell: 820, tick: 4800, seconds: 2.4 };
-export const CRASH: CymbalSpec = { count: 80, lo: 300, hi: 16000, peak: 5200, spread: 1.5, life: 2.0, tilt: 0.42, bloom: 0.07, tick: 5000, seconds: 2.6 };
-export const SPLASH: CymbalSpec = { count: 60, lo: 600, hi: 16000, peak: 7000, spread: 1.3, life: 0.9, tilt: 0.4, bloom: 0.03, tick: 6000, seconds: 1.2 };
-export const CHINA: CymbalSpec = { count: 80, lo: 260, hi: 13000, peak: 3200, spread: 1.6, life: 1.6, tilt: 0.35, bloom: 0.06, tick: 3500, seconds: 2.2 };
-export const HAT_CLOSED: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 8000, spread: 1.2, life: 0.9, tilt: 0.45, bloom: 0.004, choke: 0.045, tick: 9000, seconds: 0.3 };
-export const HAT_OPEN: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 7500, spread: 1.25, life: 0.9, tilt: 0.45, bloom: 0.012, choke: 0.55, tick: 9000, seconds: 1.0 };
+export const RIDE: CymbalSpec = { count: 70, lo: 320, hi: 15000, peak: 3800, spread: 1.4, life: 2.6, tilt: 0.5, bloom: 0.025, bell: 820, tick: 4800, seconds: 2.4, wash: 0.35 };
+export const CRASH: CymbalSpec = { count: 80, lo: 300, hi: 16000, peak: 5200, spread: 1.5, life: 2.0, tilt: 0.42, bloom: 0.07, tick: 5000, seconds: 2.6, wash: 0.7 };
+export const SPLASH: CymbalSpec = { count: 60, lo: 600, hi: 16000, peak: 7000, spread: 1.3, life: 0.9, tilt: 0.4, bloom: 0.03, tick: 6000, seconds: 1.2, wash: 0.6 };
+export const CHINA: CymbalSpec = { count: 80, lo: 260, hi: 13000, peak: 3200, spread: 1.6, life: 1.6, tilt: 0.35, bloom: 0.06, tick: 3500, seconds: 2.2, wash: 0.85 };
+export const HAT_CLOSED: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 8000, spread: 1.2, life: 0.9, tilt: 0.45, bloom: 0.004, choke: 0.045, tick: 9000, seconds: 0.3, wash: 0.5 };
+export const HAT_OPEN: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 7500, spread: 1.25, life: 0.9, tilt: 0.45, bloom: 0.012, choke: 0.55, tick: 9000, seconds: 1.0, wash: 0.6 };
 
 /** One cymbal stroke: `vel` 0..1 (soft strokes darker), the cymbal's own partials (`base`) so every stroke is the same cymbal. */
 export function cymbal(sr: number, spec: CymbalSpec, base: readonly Partial[], vel: number, rand: Rand): Float32Array {
   const out = new Float32Array(Math.ceil(spec.seconds * sr));
-  ring(out, sr, stroke(base, vel, 1, rand), rand);
+  const struck = stroke(base, vel, 1, rand);
+  ring(out, sr, struck, rand);
+  // The wash: far more modes than are counted, too dense to hear apart, so heard as noise
+  // shaped like the cymbal's brightness, blooming with the partials and dying sooner, the
+  // top first. Set against the partials' own energy (a band of white noise this wide
+  // carries about 0.35 of its level).
+  const energy = Math.sqrt(struck.reduce((s, p) => s + p.a * p.a, 0) / 2);
+  const wash = (spec.wash * energy) / 0.35;
+  const life = spec.choke ? Math.min(spec.life * 0.25, spec.choke) : spec.life * 0.25;
+  noiseBand(out, sr, rand, spec.peak, 0.5, wash, spec.bloom * 2 + 0.002, life);
+  noiseBand(out, sr, rand, Math.min(spec.peak * 1.8, 15000), 0.7, wash * 0.6 * vel, spec.bloom + 0.001, life * 0.45);
   if (spec.bell) {
     const bell: Partial[] = [1, 1.47, 2.03, 2.6, 3.4].map((m, i) => ({ f: spec.bell! * m * (1 + (rand() - 0.5) * 0.004), a: (i ? 0.5 : 1) * (0.6 + 0.4 * vel) * 0.9, tau: spec.life * 0.8, bloom: 0 }));
     ring(out, sr, bell, rand);
@@ -194,6 +206,7 @@ export function tomStroke(sr: number, f0: number, vel: number, rand: Rand): Floa
   head(out, sr, f0, 0.7, life, 0.07 * vel * vel, 0.06, 5, rand);
   noiseBand(out, sr, rand, 3200, 0.9, 0.5 * vel * vel, 0.0003, 0.004);
   noiseBand(out, sr, rand, f0 * 2.5, 1.2, 0.12 * vel, 0.001, 0.03);   // the shell
+  noiseBand(out, sr, rand, 5200, 0.6, 0.06 * vel, 0.004, 0.06);   // the snare's wires, answering in sympathy
   return normalise(out, 0.9);
 }
 
@@ -203,5 +216,6 @@ export function kickStroke(sr: number, f0: number, vel: number, click: number, l
   head(out, sr, f0, 1, life, 0.12 * vel, 0.02, 3, rand);
   noiseBand(out, sr, rand, 300, 0.8, 0.5 * vel, 0.001, 0.012);   // the shell
   if (click > 0) noiseBand(out, sr, rand, 3000, 1, 0.9 * click * vel * vel, 0.0002, 0.0018);   // the beater
+  noiseBand(out, sr, rand, 5200, 0.6, 0.035 * vel, 0.005, 0.05);   // the snare's wires, answering in sympathy
   return normalise(out, 0.95);
 }

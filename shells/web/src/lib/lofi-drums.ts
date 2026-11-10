@@ -134,12 +134,14 @@ function pieceRandom(kit: DrumKit, name: string): () => number {
   for (let i = 0; i < name.length; i++) h = Math.imul(h ^ name.charCodeAt(i), 16777619) >>> 0;
   return kitRandom(h, kit.id);
 }
-/** One piece at one strength, soft or hard (strokes in between play the nearer one, scaled), rendered on first use. */
+/** The strokes a piece is recorded at (soft, medium, hard), and how many takes of each, so no two hits in a row are the same. */
+const LAYERS = [0.35, 0.65, 0.95] as const;
+const TAKES = 3;
+/** One piece at the nearest of its strengths, in one of its takes, rendered on first use; the player sets the loudness. */
 function piece(k: VoiceKit, kit: DrumKit, name: string, vel: number, make: (sr: number, vel: number, rand: () => number) => Float32Array): { buf: AudioBuffer; scale: number } {
   const bank = bankOf(k.ctx, kit);
-  const hard = vel >= 0.6;
-  const at = hard ? 0.95 : 0.4;
-  const key = `${name}:${hard ? 'hard' : 'soft'}`;
+  const at = vel < 0.5 ? LAYERS[0] : vel < 0.8 ? LAYERS[1] : LAYERS[2];
+  const key = `${name}:${at}:${Math.floor(k.rng() * TAKES)}`;
   let buf = bank.buffers.get(key);
   if (!buf) {
     const sr = k.ctx.sampleRate;
@@ -198,7 +200,7 @@ function hit(k: VoiceKit, out: AudioNode, t: number, p: { buf: AudioBuffer; scal
 /** Each piece's place across the speakers, from the drummer's side: hats left, ride right. */
 const PAN = { hat: -0.32, ride: 0.36, crash: -0.22, snare: 0.04, kick: 0 } as const;
 /** Each piece's level against the synthesised voices it replaces, so the mix holds. */
-const LEVEL = { hat: 0.13, open: 0.165, ride: 0.057, crash: 0.21, snare: 0.455, tom: 0.32, kick: 0.52 } as const;
+const LEVEL = { hat: 0.113, open: 0.16, ride: 0.063, crash: 0.21, snare: 0.505, tom: 0.345, kick: 0.64 } as const;
 
 /** The cymbal a crash note plays, by the kit, with its brightness and length. */
 function crashSpec(kit: DrumKit): K.CymbalSpec {
