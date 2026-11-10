@@ -146,8 +146,8 @@ const src = (file: string): string => readFileSync(new URL(`../${file}`, import.
 const esc = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const PAIRS: Array<[file: string, device: string, browser: string]> = [
   ['views/privacy-notice.ts',
-    '{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays on this device. Lolly itself has no tracking or analytics.',
-    '{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser. Lolly itself has no tracking or analytics.'],
+    '{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays on this device unless you send it elsewhere. Lolly itself has no tracking or analytics.',
+    '{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser unless you send it elsewhere. Lolly itself has no tracking or analytics.'],
   ['views/profile/storage.ts', 'Storage on this device', 'Storage in this browser'],
   ['views/profile/storage.ts', 'On this device', 'In this browser'],
   ['views/profile/storage.ts', 'This removes everything Lolly keeps on this device, then restarts the app:', 'This removes everything Lolly keeps in this browser, then restarts the app:'],

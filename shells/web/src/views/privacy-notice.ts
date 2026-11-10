@@ -1,17 +1,23 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * One-time privacy transparency notice (web/PWA shell only).
+ * One-time privacy transparency notice, in the gallery of every shell (the web app
+ * and the desktop and mobile apps, each with its own "this browser" or "this
+ * device" wording).
  *
- * Lolly stores only strictly-necessary, first-party data on the device - the
- * theme preference, a few UI prefs, an offline catalog cache, local-only vanity
- * counters (metrics.js - never transmitted), and the user's own tool documents
- * (IndexedDB via host.state). No cookies, no tracking, no analytics. Nothing
- * leaves the device unless the user starts a feature that needs the internet:
- * adding a Google Font in the brand editor (one consented fetch to Google's
- * font servers, then kept on-device) or playing the opt-in net-radio (SomaFM).
- * Both are disclosed with specifics in docs/privacy.md - keep that list and
- * this comment in sync with the code (SUSE assessment 2026-08, P1: an absolute
- * "nothing sent anywhere" claim is broader than the code supports).
+ * Lolly stores only strictly-necessary, first-party data on the device: interface
+ * preferences, the profile details the person enters, an offline catalog cache,
+ * the local usage counters behind the profile card's stats (metrics.ts; never read
+ * by us, and they leave the device only inside the person's own backup file or
+ * Sync copy), the person's own work (IndexedDB and OPFS), downloaded models, a
+ * signing identity once they enrol, and the sign-ins they choose to keep.
+ * docs/privacy.md ("What stays on your device") is the full list. Standalone use
+ * sets no cookies; organisation sign-in and verified-identity enrolment set their
+ * own. No tracking, no analytics. What the person makes leaves the device only
+ * when they start something that needs the internet, such as adding a Google
+ * Font, sending a file to Drive or Dropbox, or turning on Sync; docs/privacy.md
+ * ("Every network request the app can make") lists every host. Keep that page
+ * and this comment in step with the code (SUSE assessment 2026-08, P1: an
+ * absolute "nothing sent anywhere" claim is broader than the code supports).
  * Under the ePrivacy Directive (Art. 5(3)) storage that is
  * strictly necessary for the service the user asked for needs no consent - only
  * transparency. So this is a dismissible *notice*, not an accept/reject gate:
@@ -21,9 +27,11 @@
  * storage (it remembers that you closed the notice), so it persists in
  * localStorage without any consent of its own.
  *
- * The /info docs site is intentionally NOT covered by this - it sets no cookies
- * and writes only `theme` to localStorage for its dark-mode toggle, which is the
- * same strictly-necessary preference storage. See docs/privacy.md.
+ * The /info docs site is intentionally NOT covered by this. It sets no cookies,
+ * keeps only its theme, language and language order in localStorage, reads the
+ * app's Reduce motion and Large text settings, and remembers the app view this
+ * tab came from: the same strictly-necessary preference storage. See
+ * docs/privacy.md.
  */
 
 import { docsAppHref, t, tRaw } from '../i18n.ts';
@@ -41,8 +49,9 @@ export function privacyNoticeAcknowledged(): boolean {
 }
 
 /** Record that the notice has been seen. Also called by the first-run welcome,
- *  which carries the same one-liner in its footer (plans/137 A2) - a user who
- *  dismissed that dialog has read the line, so the strip has nothing to add. */
+ *  which carries the same promise (the greeting's quiet line, or the classic
+ *  dialog's privacy page; plans/137 A2): someone who settled the welcome has read
+ *  the line, so the strip has nothing to add. */
 export function ackPrivacyNotice(): void {
   try { localStorage.setItem(ACK_KEY, '1'); } catch { /* storage blocked - just won't persist */ }
 }
@@ -52,14 +61,17 @@ export function ackPrivacyNotice(): void {
  * plain line ("stay on this device") is no longer the whole story: what the person
  * saves to its projects or shares through it (comments, uploads, links, approval
  * requests, collabs) goes there, and the workspace audits sign-ins and the actions
- * taken there. The app itself sends no usage events (no call to the workspace's
- * telemetry route), so "no tracking or analytics" still holds for Lolly itself. With no
+ * taken there. The line's first sentence is docs/privacy.md's own ("Organisation services
+ * with Lolly Work"). Everything else stays here only until the person sends it
+ * somewhere (a font, Drive, Sync), so the line says so rather than promising it never
+ * leaves. The app itself sends no usage events (no call to the workspace's telemetry
+ * route), so "no tracking or analytics" still holds for Lolly itself. With no
  * workspace, every word of the notice is unchanged.
  */
 export function workspacePrivacyLine(workspace: string): string {
   return isTauriShell()
-    ? tRaw('{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays on this device. Lolly itself has no tracking or analytics.', { workspace })
-    : tRaw('{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser. Lolly itself has no tracking or analytics.', { workspace });
+    ? tRaw('{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays on this device unless you send it elsewhere. Lolly itself has no tracking or analytics.', { workspace })
+    : tRaw('{workspace} keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser unless you send it elsewhere. Lolly itself has no tracking or analytics.', { workspace });
 }
 
 /** Where "What we store" goes with a workspace connected: the privacy page's section on

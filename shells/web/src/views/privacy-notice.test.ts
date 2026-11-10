@@ -81,12 +81,12 @@ test('with a workspace the notice says what the workspace keeps, and links to th
   localStorage.clear();
   connect('SUSE Content Automation');
   const html = privacyNoticeMarkup();
-  assert.ok(html.includes('SUSE Content Automation keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser. Lolly itself has no tracking or analytics.'));
+  assert.ok(html.includes('SUSE Content Automation keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Everything else stays in this browser unless you send it elsewhere. Lolly itself has no tracking or analytics.'));
   assert.ok(html.includes(`href="${WORKSPACE_PRIVACY_HREF}"`));
   assert.equal(WORKSPACE_PRIVACY_HREF, '#/docs/trust/privacy?h=organisation-services-with-lolly-work');
   assert.ok(!html.includes(PLAIN));
   win.__TAURI_INTERNALS__ = { invoke() {} };
-  try { assert.ok(privacyNoticeMarkup().includes('Everything else stays on this device.'), 'the apps say "on this device"'); }
+  try { assert.ok(privacyNoticeMarkup().includes('Everything else stays on this device unless you send it elsewhere.'), 'the apps say "on this device"'); }
   finally { delete win.__TAURI_INTERNALS__; }
   _clearSessionSourceForTests();
 });
