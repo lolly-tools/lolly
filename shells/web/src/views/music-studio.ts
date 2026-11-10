@@ -169,6 +169,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   mountProfileFab(view.querySelector('.gallery-topright'), host);
   const detachLang = attachLangMenu(view.querySelector<HTMLElement>('.lang-fab'), host);
   const state = parseMusicState(params);
+  // A first visit (a link with no track in it) opens on a track drawn at random, as
+  // Shuffle draws one: a style, a seed and a sound to suit them. A link to a track opens
+  // that track.
+  if (!/(^|[?&])(style|seed)=/.test(params)) Object.assign(state, shuffleMusic(Math.random, { bars: state.bars }));
   let bars = composeTrack(state);
   let times = barTimes(bars);
   let selected = 0;
@@ -758,7 +762,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     restate({ ...drawn, bars: state.bars, ...(shift && state.transpose ? { transpose: state.transpose } : {}) });
     say(`${t('Shuffled')}: ${lofiStationName(state.mood)} · ${t('seed')} ${state.seed}`);
   });
-  listen('[data-reset]', 'click', () => { muted.clear(); solo.clear(); restate(parseMusicState('')); say(t('Every setting is back to how the generator opens.')); });
+  listen('[data-reset]', 'click', () => { muted.clear(); solo.clear(); restate({ ...parseMusicState(''), mood: state.mood, seed: state.seed }); say(t('Every setting but the style and the seed is back to the composer\'s own.')); });
   listen('[data-bars]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.bars = Number(el.value); recompose(); fit(); } });
   // The tempo: a number typed or dragged, back to the tune's own with the reset button.
   // Setting the composer's own tempo is the same as not setting one, so the link stays short.
