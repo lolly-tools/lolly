@@ -140,7 +140,7 @@
     var plinth = stage === 'plinth', floorY = plinth ? -.18 : 0;
     if (!transparent && stage !== 'float') {
       var floor = new THREE.Mesh(keep(new THREE.PlaneGeometry(600, 600)), keep(new THREE.MeshStandardMaterial({
-        color: C.floor, roughness: stage === 'night' ? .38 : .92, metalness: 0, envMapIntensity: stage === 'night' ? .55 : .25,
+        color: C.floor, roughness: stage === 'night' ? .62 : .92, metalness: 0, envMapIntensity: stage === 'night' ? .22 : .25,
       })));
       floor.rotation.x = -Math.PI / 2; floor.position.y = floorY - .001; floor.receiveShadow = shadows; scene.add(floor);
     } else if (shadows && THREE.ShadowMaterial) {
@@ -199,8 +199,11 @@
       if (extra === 'vertex') { base.vertexColors = true; base.color = 0xffffff; base.side = THREE.DoubleSide; }
       if (accurate) m = new THREE.MeshBasicMaterial(base);
       else if (finish.glass && !quiet) m = new THREE.MeshPhysicalMaterial(Object.assign(base, {
-        roughness: finish.r, metalness: 0, transmission: .9, thickness: .9, ior: 1.42,
-        attenuationColor: new THREE.Color(colour), attenuationDistance: 1.4, envMapIntensity: finish.env,
+        roughness: finish.r, metalness: 0, transmission: dark ? .62 : .82, thickness: .7, ior: 1.42,
+        attenuationColor: new THREE.Color(colour), attenuationDistance: 2.2, envMapIntensity: finish.env,
+        // On a dark stage there is little behind the glass to show through, so
+        // it carries a little of its own colour.
+        emissive: new THREE.Color(colour), emissiveIntensity: dark ? .22 : 0,
       }));
       else if (finish.coat && !quiet) m = new THREE.MeshPhysicalMaterial(Object.assign(base, { roughness: finish.r, metalness: finish.m, clearcoat: finish.coat, clearcoatRoughness: .1, envMapIntensity: finish.env }));
       else m = new THREE.MeshStandardMaterial(Object.assign(base, {
@@ -396,8 +399,6 @@
     // the hooks (the same SVG the vector export uses). A moving camera
     // re-places the labels each frame with the same rules.
     var staticLabels = overlayRoot.querySelector('[data-c3d-labels]');
-    var liveLabels = svg('g', { 'data-c3d-live-labels': '' });
-    overlayRoot.appendChild(liveLabels);
     var halo = transparent ? null : C.backdrop;
     function placeLabels(project) {
       var placed = [], boxes = [], pad = plan.overlay.pad, limit = plan.overlay.bottom + pad * .5;
@@ -412,7 +413,7 @@
         var anchor = l.anchor || 'middle';
         if (l.side != null) anchor = l.side > .25 ? 'start' : l.side < -.25 ? 'end' : 'middle';
         var x = q[0] + (l.dx || 0), y = q[1];
-        if (l.kind === 'value') y -= size * .25 + (l.sub && l.up ? size * 1.15 : 0); else y += size * .35;
+        if (l.kind === 'value') y -= size * .4 + (l.sub && l.up ? size * 1.15 : 0); else y += size * .35;
         var left = anchor === 'start' ? x : anchor === 'end' ? x - w : x - w / 2, top = y - size * .95;
         var box = [left, top, left + w, top + h];
         if (box[0] < pad * .25 || box[2] > W - pad * .25 || box[1] < pad * .25 || box[3] > limit) return;
@@ -430,15 +431,26 @@
         return [(v3.x + 1) / 2 * W, (1 - v3.y) / 2 * H, v3.z];
       };
     }
-    function drawLabels(placed) {
-      while (liveLabels.firstChild) liveLabels.removeChild(liveLabels.firstChild);
+    // A moving camera re-places its labels every frame. They are painted on the
+    // presentation canvas with the frame rather than written into the DOM, so
+    // the page holds still for anything that waits for it to settle (an
+    // export, a thumbnail) and only the pixels move, as they do anyway.
+    var fontFamily = plan.font || 'SUSE, sans-serif';
+    function paintLabels(placed) {
+      out.save();
+      out.lineJoin = 'round';
       placed.forEach(function (l) {
         var dim = l.kind === 'category' || l.kind === 'series' || l.kind === 'tick';
-        var attrs = { 'class': 'c3d-' + l.kind, x: l.x.toFixed(1), y: l.y.toFixed(1), 'text-anchor': l.anchor, 'font-size': l.size, 'font-weight': l.weight, fill: l.colour || C.text, 'fill-opacity': dim ? .78 : null };
-        if (halo) { attrs.stroke = halo; attrs['stroke-width'] = 4; attrs['stroke-linejoin'] = 'round'; attrs['paint-order'] = 'stroke'; }
-        liveLabels.appendChild(svg('text', attrs, l.text));
-        if (l.sub) { var a2 = Object.assign({}, attrs, { y: (l.y + l.size * 1.15).toFixed(1), 'font-size': Math.round(l.size * .86), 'font-weight': 500, 'fill-opacity': .7 }); liveLabels.appendChild(svg('text', a2, l.sub)); }
+        out.textAlign = l.anchor === 'start' ? 'left' : l.anchor === 'end' ? 'right' : 'center';
+        function line(text, y, size, weight, alpha) {
+          out.font = weight + ' ' + size + 'px ' + fontFamily;
+          if (halo) { out.globalAlpha = 1; out.strokeStyle = halo; out.lineWidth = 4; out.strokeText(text, l.x, y); }
+          out.globalAlpha = alpha; out.fillStyle = l.colour || C.text; out.fillText(text, l.x, y);
+        }
+        line(l.text, l.y, l.size, l.weight, dim ? .78 : 1);
+        if (l.sub) line(l.sub, l.y + l.size * 1.15, Math.round(l.size * .86), 500, .7);
       });
+      out.restore();
     }
     var flightHud = null;
     if (flightCam && flight) {
@@ -448,17 +460,23 @@
       var valueText = svg('text', { x: pad, y: hudY + 23, fill: C.text, 'fill-opacity': .68, 'font-size': clamp(flightCfg.labelSize || 18, 13, 22) });
       overlayRoot.appendChild(categoryText); overlayRoot.appendChild(valueText);
       overlayRoot.appendChild(svg('line', { x1: pad, y1: H - pad + 2, x2: W - pad, y2: H - pad + 2, stroke: C.grid, 'stroke-width': 3 }));
-      var progress = svg('line', { x1: pad, y1: H - pad + 2, x2: pad, y2: H - pad + 2, stroke: C.accent || C.text, 'stroke-width': 5, 'stroke-linecap': 'round' });
-      overlayRoot.appendChild(progress);
-      flightHud = { category: categoryText, value: valueText, progress: progress, left: pad, right: W - pad };
+      flightHud = { category: categoryText, value: valueText, left: pad, right: W - pad, y: H - pad + 2, last: -1, u: 0 };
     }
     function updateFlightHud(u) {
       if (!flightHud) return;
+      flightHud.u = u;
       var i = clamp(Math.round(u * (flight.categories.length - 1)), 0, flight.categories.length - 1);
+      if (i === flightHud.last) return;
+      flightHud.last = i;
       var value = flight.values[i], formatted = Number.isFinite(value) ? value.toLocaleString('en', { maximumFractionDigits: 2 }) : 'No value';
       flightHud.category.textContent = flight.categories[i] || ('Point ' + (i + 1));
       flightHud.value.textContent = flight.series + ' · ' + formatted;
-      flightHud.progress.setAttribute('x2', String(flightHud.left + (flightHud.right - flightHud.left) * u));
+    }
+    function paintProgress() {
+      if (!flightHud) return;
+      out.save(); out.strokeStyle = C.accent || C.text; out.lineWidth = 5; out.lineCap = 'round';
+      out.beginPath(); out.moveTo(flightHud.left, flightHud.y); out.lineTo(flightHud.left + (flightHud.right - flightHud.left) * flightHud.u, flightHud.y); out.stroke();
+      out.restore();
     }
     if (data.recommendation && W >= 520 && H >= 220) {
       var rec = data.recommendation, rpad = plan.overlay.pad, cardW = Math.min(500, Math.max(300, W * .42), W - rpad * 2), cardX = W - rpad - cardW, cardY = rpad;
@@ -481,6 +499,20 @@
       if (motion === 'stagger') return function (g) { return ease(clamp((t - g * .6) / .3, 0, 1)); };
       return null;
     }
+    // The DOM changes only when something in it really changes.
+    var shown = false, valuesShown = null;
+    function showOnce() {
+      if (shown) return; shown = true;
+      if (fallback) fallback.style.display = 'none';
+      canvas.style.opacity = '1'; overlay.style.opacity = '1'; root.setAttribute('data-backend', 'webgl2');
+      if (moving && staticLabels) staticLabels.style.display = 'none';
+    }
+    function showValues(on) {
+      if (!staticLabels || valuesShown === on) return;
+      valuesShown = on;
+      var vals = staticLabels.querySelectorAll('.c3d-value');
+      for (var i = 0; i < vals.length; i++) vals[i].style.opacity = on ? '' : '0';
+    }
     function renderAt(t) {
       if (disposed) return;
       // beforeExport exposes the projected SVG for vector output. The live rAF
@@ -500,22 +532,24 @@
       else if (motion === 'orbit' || motion === 'reveal-orbit') placeCamera(cam.az + t * 360);
       else if (motion === 'arc') placeCamera(cam.az + Math.sin(t * Math.PI * 2) * (cam.arc || 26));
       else placeCamera(cam.az);
-      // Values wait until their marks have grown; a moving camera re-places labels.
-      if (moving) {
-        if (staticLabels) staticLabels.style.display = 'none';
-        drawLabels(placeLabels(projectWith(activeCam)).filter(function (l) { return grown > .98 || l.kind !== 'value'; }));
-      } else if (staticLabels) {
-        var vals = staticLabels.querySelectorAll('.c3d-value');
-        for (var i = 0; i < vals.length; i++) vals[i].style.opacity = grown > .98 ? '' : '0';
-      }
       renderer.render(scene, activeCam);
       out.clearRect(0, 0, W, H); out.drawImage(gpu, 0, 0, W, H);
-      if (fallback) fallback.style.display = 'none';
-      canvas.style.opacity = '1'; overlay.style.opacity = '1'; root.setAttribute('data-backend', 'webgl2');
+      // Values wait until their marks have grown; a moving camera re-places labels.
+      if (moving) paintLabels(placeLabels(projectWith(activeCam)).filter(function (l) { return grown > .98 || l.kind !== 'value'; }));
+      else showValues(grown > .98);
+      paintProgress();
+      showOnce();
       if (global.__lollyAnim && global.__lollyAnim.owner === root) global.__lollyAnim.curT = t;
     }
+    // The export clock. A clip passes its length and walks t from 0; a still
+    // passes neither, and gets the finished pose (the poster) rather than the
+    // first frame of an entrance, which for a reveal is bars of no height.
+    function clock(t, clipSec) {
+      renderAt(clipSec == null && !(Number(t) > 0) ? (plan.poster || 0) : t);
+    }
+    clock.stillPose = true;
     renderAt(plan.poster || 0);
-    canvas.__lollyFrameRender = renderAt;
+    canvas.__lollyFrameRender = clock;
     if (motion !== 'none') {
       var prev = global.__lollyAnim || {};
       var reduced = !!(global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -539,7 +573,7 @@
     }
 
     var api = {
-      renderAt:renderAt,
+      renderAt:clock,
       inspect:function(){return state.report||null;},
       dispose:function(){
         if (disposed) return; disposed = true; if (raf) cancelAnimationFrame(raf); delete canvas.__lollyFrameRender;

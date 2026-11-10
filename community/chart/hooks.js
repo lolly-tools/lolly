@@ -1723,7 +1723,7 @@ const SCENE_POSES = {
   high:  { az: 40, el: 52 },
   front: { az: 0, el: 12 },
   side:  { az: 74, el: 16 },
-  top:   { az: 0, el: 84 },
+  top:   { az: 0, el: 84, lens: 'orthographic' },
   iso:   { az: 45, el: 35.264, lens: 'orthographic' },
 };
 // Lens, as a vertical field of view. Orthographic has no perspective at all.
@@ -2057,7 +2057,7 @@ function planBars(data, cfg, ctx) {
       const top = Math.max(y0, y1) + 0.16;
       labels.push({ p: [r4(x), r4(top), r4(z)], text: String(cats[ci]), sub: cfg.showValues ? sceneFmt(v, cfg.numberFormat) : '', kind: 'value', size: Math.round(cfg.labelSize * 0.8), weight: on && hl ? 750 : 600, pri: on && hl ? 3 : 2, colour: cfg.valueColor || null, up: 1 });
     } else if (cfg.showValues && (showAllValues || (hl && on) || v === maxVal)) {
-      const top = Math.max(y0, y1), lift = 0.16;
+      const top = Math.max(y0, y1), lift = 0.22;
       labels.push({ p: [r4(x), r4(v < 0 ? Math.min(y0, y1) - lift - 0.1 : top + lift), r4(z)], text: sceneFmt(v, cfg.numberFormat), kind: 'value', size: valueSize, weight: on && hl ? 750 : cfg.valueWeight, pri: on && hl ? 3 : 2, colour: cfg.valueColor || null });
     }
   };
@@ -2397,7 +2397,7 @@ function placeSceneLabels(labels, project, W, H, pad, bottom) {
     let anchor = l.anchor || 'middle';
     if (l.side != null) anchor = l.side > 0.25 ? 'start' : l.side < -0.25 ? 'end' : 'middle';
     let x = q[0] + (l.dx || 0), y = q[1];
-    if (l.kind === 'value') y -= size * 0.25 + (l.sub && l.up ? size * 1.15 : 0);
+    if (l.kind === 'value') y -= size * 0.4 + (l.sub && l.up ? size * 1.15 : 0);
     else if (l.kind === 'category' || l.kind === 'series' || l.kind === 'axis' || l.kind === 'tick') y += size * 0.35;
     const left = anchor === 'start' ? x : anchor === 'end' ? x - w : x - w / 2;
     const top = y - size * 0.95;
@@ -2451,6 +2451,12 @@ function planScene(data, cfg) {
 
   const points = scenePoints(layout);
   if (!points.length) points.push([-1, 0, -1], [1, 1, 1]);
+  // A plinth is part of the composition, so it is framed with the marks.
+  if (stage === 'plinth' && layout.footprint) {
+    const f = layout.footprint;
+    if (f.circle) for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; for (const y of [-0.18, 0]) points.push([f.circle[0] + Math.cos(a) * (f.circle[2] + 0.25), y, f.circle[1] + Math.sin(a) * (f.circle[2] + 0.25)]); }
+    else if (f.rect) for (const x of [f.rect[0] - 0.25, f.rect[1] + 0.25]) for (const z of [f.rect[2] - 0.25, f.rect[3] + 0.25]) for (const y of [-0.18, 0]) points.push([x, y, z]);
+  }
   let bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity, bz0 = Infinity, bz1 = -Infinity;
   for (const p of points) { bx0 = Math.min(bx0, p[0]); bx1 = Math.max(bx1, p[0]); by0 = Math.min(by0, p[1]); by1 = Math.max(by1, p[1]); bz0 = Math.min(bz0, p[2]); bz1 = Math.max(bz1, p[2]); }
   const target = [(bx0 + bx1) / 2, (by0 + by1) / 2, (bz0 + bz1) / 2];
@@ -2728,9 +2734,18 @@ function sceneLabelsSvg(plan, placed) {
 }
 function sceneOverlaySvg(plan, placed, idp) {
   const C = plan.stage.colours, o = plan.overlay, out = [sceneLabelsSvg(plan, placed)];
+  if ((o.title || o.subtitle) && (plan.kind === 'flight' || plan.camera.framing === 'close') && !plan.transparent) {
+    const tw = Math.max(...(o.title ? o.title.lines.map((l) => l.length * o.title.size * 0.52) : [0]), o.subtitle ? o.subtitle.text.length * o.subtitle.size * 0.5 : 0);
+    const bottom = o.subtitle ? o.subtitle.y + o.subtitle.size * 0.45 : o.title.y + (o.title.lines.length - 1) * o.title.size * 1.12 + o.title.size * 0.3;
+    out.push('<rect x="' + r4(o.pad - 14) + '" y="' + r4(o.pad - 12) + '" width="' + r4(Math.min(plan.W - o.pad * 2 + 28, tw + 28)) + '" height="' + r4(bottom - o.pad + 24) + '" rx="12" fill="' + C.backdrop + '" fill-opacity=".86"/>');
+  }
   if (o.title) o.title.lines.forEach((line, i) => out.push('<text x="' + o.title.x + '" y="' + r4(o.title.y + i * o.title.size * 1.12) + '" font-size="' + o.title.size + '" font-weight="' + o.title.weight + '" fill="' + C.text + '" data-canvas-input="heading">' + xml(line) + '</text>'));
   if (o.subtitle) out.push('<text x="' + o.subtitle.x + '" y="' + r4(o.subtitle.y) + '" font-size="' + o.subtitle.size + '" fill="' + C.text + '" fill-opacity=".68" data-canvas-input="subheading">' + xml(o.subtitle.text) + '</text>');
   const lg = o.legend;
+  if (lg && plan.kind === 'flight' && !plan.transparent) {
+    const w = Math.max(...lg.rows.map((row) => row.reduce((n, it) => n + (it.w || 0) + lg.gap, 0)));
+    out.push('<rect x="' + r4(lg.x - 12) + '" y="' + r4(lg.y - lg.fs * 1.25) + '" width="' + r4(Math.min(plan.W - lg.x * 2 + 24, w + 12)) + '" height="' + r4(lg.rows.length * lg.rowH + lg.fs * 0.5) + '" rx="10" fill="' + C.backdrop + '" fill-opacity=".86"/>');
+  }
   if (lg) {
     if (lg.ramp) {
       const w = lg.rows[0][0].w, x = lg.x, y = lg.y - lg.fs * 0.55, stops = lg.ramp.stops;

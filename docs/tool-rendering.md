@@ -83,7 +83,7 @@ For a clock with `stillPose`, an SVG, SVGZ, PDF, CMYK PDF, Penpot, EPS (RGB and 
 CLI, TUI and MCP renders that go through the web shell get the same treatment.
 :::
 
-Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and Lolly Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those stills never call the clock or set the flag, and they read the page as your own loop left the page.
+Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and a flat Lolly Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those stills never call the clock or set the flag, and they read the page as your own loop left the page. Chart's 3-D scenes do declare the pose: called with `t` 0 and no clip length, their clock draws the finished scene, with every bar grown and the camera at its starting angle, so a still of a chart that rises into view shows the whole chart.
 
 **GPU rendering (WebGL, WebGPU).** Never let the export path read a GPU canvas directly. A WebGPU canvas is cleared as soon as its frame is presented and has no `preserveDrawingBuffer`, so anything read later is blank, and a WebGL canvas only survives the read with `preserveDrawingBuffer: true`, which costs memory and a copy per frame. Render into a detached scratch canvas instead and, inside the same frame callback, draw it onto the visible 2D canvas:
 

@@ -1247,7 +1247,7 @@
           "label": "Custom angle"
         }
       ],
-      "help": "Hero tries a few three-quarter angles and keeps the one that fills this artboard best, so a tall artboard and a wide one each get a view that suits them. Isometric has no perspective.",
+      "help": "Hero tries a few three-quarter angles and keeps the one that fills this artboard best, so a tall artboard and a wide one each get a view that suits them. Top down and Isometric have no perspective.",
       "showIf": {
         "renderMode": "scene"
       }
@@ -1318,7 +1318,6 @@
           "high",
           "front",
           "side",
-          "top",
           "custom"
         ]
       }
@@ -1359,7 +1358,7 @@
       "options": [
         {
           "value": "studio",
-          "label": "Studio - seamless floor and wall"
+          "label": "Studio - floor and wall in one colour"
         },
         {
           "value": "floor",
