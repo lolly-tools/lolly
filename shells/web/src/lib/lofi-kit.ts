@@ -19,6 +19,9 @@
  *   settles. A snare's wires buzz against the bottom head as long as it moves.
  * - Struck harder is brighter: more of the high partials and modes, and more stick.
  *
+ * Each recording is brought to the same peak: it carries the stroke's tone, and the player
+ * sets its loudness from the velocity.
+ *
  * Pure: no DOM and no Web Audio; the shells wrap the samples into buffers. Deterministic:
  * every random choice comes from the seeded source handed in, so a tune's kit is the same
  * on every render. The cost is a few tens of milliseconds per piece, paid once per tune.
@@ -138,7 +141,7 @@ export function cymbal(sr: number, spec: CymbalSpec, base: readonly Partial[], v
     let e = 1;
     for (let i = 0; i < out.length; i++) { out[i] = out[i]! * e; e *= k; }
   }
-  return normalise(out, 0.9 * (0.55 + 0.45 * vel));
+  return normalise(out, 0.9);
 }
 
 /** A cymbal's fixed partials, from its own seed. */
@@ -181,7 +184,7 @@ export function snareStroke(sr: number, f0: number, vel: number, wires: number, 
   noiseBand(out, sr, rand, 2600, 0.9, 0.3 * wires * (0.2 + vel ** 1.5), 0.0015, 0.06);
   // The stick on the head: a sharp, bright tick.
   noiseBand(out, sr, rand, 4200 + 2500 * vel, 0.8, 0.9 * hard, 0.0003, 0.003);
-  return normalise(out, 0.95 * (0.35 + 0.65 * vel));
+  return normalise(out, 0.95);
 }
 
 /** A tom stroke at `f0`: the head's modes, ringing longer the lower the tom, a little sharp and settling, with the stick. */
@@ -191,7 +194,7 @@ export function tomStroke(sr: number, f0: number, vel: number, rand: Rand): Floa
   head(out, sr, f0, 0.7, life, 0.07 * vel * vel, 0.06, 5, rand);
   noiseBand(out, sr, rand, 3200, 0.9, 0.5 * vel * vel, 0.0003, 0.004);
   noiseBand(out, sr, rand, f0 * 2.5, 1.2, 0.12 * vel, 0.001, 0.03);   // the shell
-  return normalise(out, 0.9 * (0.35 + 0.65 * vel));
+  return normalise(out, 0.9);
 }
 
 /** A bass drum stroke at `f0`: the batter head's modes, a small fall with the strike, the beater's click (`click` 0 for a felt beater played softly) and the shell's thump. */
@@ -200,5 +203,5 @@ export function kickStroke(sr: number, f0: number, vel: number, click: number, l
   head(out, sr, f0, 1, life, 0.12 * vel, 0.02, 3, rand);
   noiseBand(out, sr, rand, 300, 0.8, 0.5 * vel, 0.001, 0.012);   // the shell
   if (click > 0) noiseBand(out, sr, rand, 3000, 1, 0.9 * click * vel * vel, 0.0002, 0.0018);   // the beater
-  return normalise(out, 0.95 * (0.4 + 0.6 * vel));
+  return normalise(out, 0.95);
 }

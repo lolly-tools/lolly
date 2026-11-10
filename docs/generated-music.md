@@ -2,7 +2,7 @@
 
 The Neurospicy player makes its own music. Its generated stations compose every tune as they play. Nothing is recorded or sampled: each tune is written by Lolly's composer and played by instruments synthesised in your browser.
 
-- **The Lolly Sings group.** The original Lolly Sings and its genres. Lolly 1.2.0 ships 26 of them: Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B. Ten more have arrived since 1.2.0: Sherbert, Persian, Guzheng, Koto, Kora, Afrobeat, Amapiano, Ska, Punk and R&B.
+- **The Lolly Sings group.** The original Lolly Sings and its genres. Lolly 1.2.0 ships 26 of them: Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B. Thirteen more have arrived since 1.2.0: Sherbert, Persian, Guzheng, Koto, Kora, Afrobeat, Amapiano, Ska, Punk, R&B, Grunge, Stoner rock and Shoegaze.
 - **The Lofi group.** Three moods: Warm, Late night and Rainy.
 
 The **[music generator](#the-music-generator)** opens any of these stations as a track you can change, down to the instrument each part plays in each section.
@@ -86,10 +86,13 @@ Sherbert was tuned by measuring three Australian future-bass records of the mid-
 | K-pop | Supersaw stabs and bright plucks, a pulse or chip lead, a synth bass or 808, claps on every beat and a chant in the chorus, and the last chorus a key higher |
 | Metal | A band with heavy, double-tracked rhythm guitars through a high-gain amp and a four-by-twelve cabinet, palm-muted chugs, a metal or overdriven lead, a clicky kick and a double kick through the chorus, toms to turn it, and a phrygian melody |
 | Punk | Fast and loud: buzzsaw power chords, a picked bass driving eighths on the root through every section, a fast rock beat, and an overdriven lead or a riff |
+| Grunge | Quiet, then loud: a clean guitar through a chorus pedal picks the chords in a verse the band plays softly, then the chorus hits with fuzz power chords, double-tracked. A picked bass doubles the roots, the drums are big and roomy, and the lead lazily sings the tune on a driven guitar |
+| Stoner rock | Slow, heavy and hypnotic: deep fuzz riffs on the blues scale, a fuzzed bass under them, a big loose beat in a big room, and a lead bending the blue notes |
 | Ska | Jamaica's fast dance music: a guitar or organ skanking on every offbeat, a walking bass, the hats' chick on the offbeats, and a trumpet, sax or clarinet on the tune |
 | R&B | Smooth and slow: lush sevenths and ninths on a Rhodes, a pad or a felt piano, an 808 sliding underneath or a Motown bass with a sub beneath it in the chorus, a clap or a finger snap on the backbeat, hats that roll, and a soft, sung lead |
 | Fantasy | A harp rippling under a flute, bells or a choir, a lydian melody, a half-time pulse with toms, and a big room |
 | Dreamscape | Pads and a choir, a soft lead, chords held two bars, a slow beat with the hats on the beat, and a long room |
+| Shoegaze | A wall of guitars: full chords swelling in through a soft fuzz, each string swaying with the tremolo arm, in a huge room, with a dreamy lead half-buried in it, as the style's singers are |
 :::
 
 <!--i:eti-music-->
