@@ -32,7 +32,7 @@ const MARKUP: Record<InstrumentIcon, string> = {
 const KEYS: Record<LofiStyle['keys'], InstrumentIcon> = {
   rhodes: 'piano', felt: 'piano', wurli: 'piano', honky: 'piano', organ: 'piano',
   pluck: 'audioWaveform', pad: 'audioWaveform', supersaw: 'audioWaveform', future: 'audioWaveform',
-  nylon: 'guitar', steel: 'guitar', banjo: 'guitar', jazzbox: 'guitar', crunch: 'guitar', wah: 'guitar', harp: 'guitar',
+  nylon: 'guitar', steel: 'guitar', banjo: 'guitar', jazzbox: 'guitar', crunch: 'guitar', heavy: 'guitar', buzzsaw: 'guitar', wah: 'guitar', harp: 'guitar',
   tar: 'guitar', santur: 'guitar', zheng: 'guitar', koto: 'guitar', shamisen: 'guitar', kora: 'guitar',
   chiparp: 'gamepad', brass: 'horn', choir: 'micVocal', balafon: 'bell',
 };
