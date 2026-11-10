@@ -22,6 +22,7 @@ Open your organisation's Lolly and sign in, then look in **Projects → Team pro
 In a [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), wait for **Saved to work** before leaving. If a shared project is missing, check that you are connected to the right instance and ask its operator about access or retention. Clearing browser data removes local copies, not the organisation's server copy. See [Use Lolly at your organisation](/info/organisation.html).
 :::
 
+<!--i:eti-search-->
 ## Find something you saved
 
 1. Press **Home** at the top left of the tool.
@@ -79,6 +80,7 @@ not visible in the closed menu, so the alt does not list them.
 
 :::
 
+<!--i:eti-refresh-->
 ## If you closed the tab or left the tool
 
 What comes back depends on how you left and which tool you used:
@@ -87,7 +89,9 @@ What comes back depends on how you left and which tool you used:
 - **You reloaded the page in the same tab.** Your settings come back from the page address. In tools that do not save as you work, pictures and files you added from your device, and single-line text longer than 150 characters, do not come back, because the address does not hold them.
 - **You pressed Home, or the back button at the top left.** If you changed something since you last saved, downloaded or copied, an **Unsaved edits** dialog asks whether to save first. **Save & leave** saves the work and takes you to **Projects**, or back to the project folder you opened the work from. **Leave anyway** discards your changes: a saved item goes back to how you last saved it, and a creation you never saved leaves **Projects**. **Cancel** keeps you in the tool.
 
+::: warning Closing the tab does not ask first
 Lolly asks only when you press **Home** or the back button in a tool. Closing the tab, reloading and your browser's own Back button never ask. To be sure, press **Save as**, or **Save** in the export panel, before you leave a tool.
+:::
 
 When automatic recovery is unavailable, a note beside the editing controls says what to keep:
 
@@ -120,6 +124,7 @@ If a creation is open in two tabs and you save in both, the last save is kept. T
 This works in the web app only, not in the desktop or mobile apps, and not while you work live with someone else.
 :::
 
+<!--i:eti-download-->
 ## Find a file you downloaded
 
 In a browser, **Download** hands the file to your browser, which saves it in its downloads folder (usually **Downloads**) or asks you where. Lolly is not told where the file went, so look in your browser's list of downloads.
@@ -139,6 +144,7 @@ Lolly also keeps two things after each download:
 On iPhone, iPad and Android, a new file replaces an earlier one with the same name.
 :::
 
+<!--i:eti-history-->
 ## Go back to an earlier version
 
 - **During this visit:** **Undo** steps back through your last 100 changes, until you leave the tool or reload. See [Undo and redo](/info/using.html#undo-and-redo).
@@ -166,9 +172,10 @@ The **History** page (`#/history`) covers every creation in this browser. To ope
 - **Changes** puts checkpoints, downloads and Convert results on one timeline. A download has **Reopen settings**.
 - **Milestones** lists named versions.
 
-Filter by project, tool and date (behind **Filters** on a phone). The History page has no delete button; to remove an item, use Projects.
+Each creation is a tile led by its picture, and **Grid** or **List** switches the layout. Filter by project, tool and date (behind **Filters** on a phone). A tile's menu (right-click or long-press) offers **Resume**, **Versions**, **Show in Projects** and **Move to Trash**. To remove several, select them and choose **Move to Trash**, which offers Undo.
 :::
 
+<!--i:eti-folder-move-->
 ## Move your work to another device
 
 | To | Use |
@@ -199,6 +206,7 @@ The file is named `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (the name par
 The catalogue cache isn't included - it re-downloads itself on the new device. Each part is checksummed, so a file damaged in transit is caught on import rather than restored half-broken. Saved sessions re-link to your imported images automatically. The web, desktop and mobile apps read the same file; the terminal app writes a simpler backup of its own, which this format does not read. **Export my data & render everything** makes the same file plus a second zip with every saved session rendered to its output. (Full format spec: [Data transfer](/info/data-transfer.html).)
 :::
 
+<!--i:eti-globe-->
 ## If you clear your browser data
 
 In the web app, Lolly keeps everything in your browser's storage for this site: saved work, pictures, fonts, design systems, version history and offline downloads. Clearing this site's data in your browser removes all of that, and Lolly cannot bring any of it back. What remains is what already left the browser: files you downloaded, an **Export my data** file, a [Sync](/info/sync.html) copy and links you shared.
@@ -228,6 +236,7 @@ One file per saved session, in a `saved-state` folder:
 Pictures, design systems and the list of recent downloads stay in the app's internal storage, not in these folders. The terminal app and the command line read the same `saved-state` folder: see [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live).
 :::
 
+<!--i:eti-trash-->
 ## Get back something you deleted
 
 Deleting a saved session, a folder, one of your uploads or one of your fonts in the app moves it to **Trash** for 30 days, wherever you delete it: **Projects**, **Assets**, **Settings → Storage** or a tool's list of saved sessions. A folder goes with everything in it, as one entry, and a session keeps its version history while it is there. Straight after, a message offers **Undo**. Later:

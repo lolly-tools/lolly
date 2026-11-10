@@ -2,6 +2,7 @@
 
 Keep your projects, your brand and your settings the same on your computer, your phone and your tablet. Lolly copies your work to one place that you choose, and to nowhere else. You need no Lolly account for this.
 
+<!--i:eti-folder-shared-->
 ## Your storage is the only server involved
 
 When you turn on sync, you choose one place to hold your work. It can be a cloud drive (Dropbox, Google Drive or OneDrive), your own Nextcloud or WebDAV server or your own S3 bucket. The app on each device talks to that storage directly.
@@ -14,6 +15,9 @@ When you turn on sync, you choose one place to hold your work. It can be a cloud
 
 The [Privacy](/info/privacy.html) page lists every network request the app makes.
 
+The storage you connect for sync can also take files you send from the export panel, and make a share link for them there. [Export a file](/info/exporting.html#how-export-works) covers **Send to** and **Links you've shared**.
+
+<!--i:eti-refresh-->
 ## Turn on sync
 
 ::: timeline
@@ -48,6 +52,7 @@ In a browser, these buttons and the ones further down say "this browser" instead
 - the revision history of each session.
 :::
 
+<!--i:eti-shield-check-->
 ## How sync keeps your work safe
 
 **Changes go up by themselves.** Lolly uploads a few seconds after you change something, and again when you leave the app. If you are offline, the change waits and goes up when you are back online. The sync section shows when changes are waiting.
@@ -65,6 +70,7 @@ In a browser, these buttons and the ones further down say "this browser" instead
 
 The rules for how a copy meets the work already on a device are in [Data transfer](/info/data-transfer.html#import-rules).
 
+<!--i:eti-lock-->
 ## Encryption is optional
 
 Encryption is off unless you turn it on. Use it when you do not trust the place you sync to.
@@ -77,6 +83,7 @@ Encryption is off unless you turn it on. Use it when you do not trust the place 
 Lolly cannot recover them. That is why encryption is not on by default.
 :::
 
+<!--i:eti-map-pin-->
 ## Choose where to sync
 
 What you can use depends on where you run Lolly. In the app, open **Settings → Preferences → Connected services → Sync across devices**. The list **Where this device can sync** shows what works on the device you are using, and why the other choices do not.
@@ -94,23 +101,26 @@ What you can use depends on where you run Lolly. In the app, open **Settings →
 **Why the browser on lolly.tools cannot reach your own server:** the site lets the page talk only to a fixed list of hosts. That list stops injected code from sending your work somewhere else, and it cannot name every person's own server. The apps allow any secure (`https://`) address, so they can reach your server directly.
 :::
 
-**Planned, not built yet:**
-
+::: note Planned, not built yet
 - a folder that another app keeps in step, such as Syncthing or a cloud drive's own app;
 - iCloud Drive in the Apple apps;
 - sync straight to your other device on the same network, with no storage in between.
+:::
 
+<!--i:eti-sliders-->
 ## Set up each kind of storage
 
 ### Dropbox
 
 Lolly can see only its own app folder in your Dropbox.
 
+::: details Use your own Dropbox app
 If the site or app has no Dropbox app of its own, use yours:
 
 1. In the Dropbox App Console, create an app with **Scoped access** and **App folder** access.
 2. Add the redirect URI for where you use Lolly: in a browser, `<the Lolly site>/oauth-return.html`; in the mobile app, `tools.lolly.mobile:/oauth2redirect`; in the desktop app, nothing.
 3. In Lolly, paste the app's **App key** into the Dropbox row and connect.
+:::
 
 ### Google Drive
 
@@ -120,12 +130,14 @@ Lolly can see only the files it created in your Drive.
 - **On iPhone and iPad,** Google Drive works when the app includes a Google app for iOS.
 - **On Android,** Google no longer accepts a browser sign-in from apps, so the app asks Google Play services on your phone instead, which hands the answer straight to the app. You agree once, and after that the app gets access without asking again. A phone without Google Play services (for example a de-Googled phone) cannot use Google Drive, so choose another storage there.
 
+::: details Use your own Google app
 On a Lolly site with no Google app, use your own:
 
 1. In Google Cloud, create a project and turn on the Google Drive API.
 2. Set the OAuth consent screen to External and add yourself as a test user.
 3. Create an OAuth client of type **Web application**. Add the site as an authorised JavaScript origin, and `<the Lolly site>/oauth-return.html` as an authorised redirect URI.
 4. Paste its **Client ID** into the Google Drive row and connect.
+:::
 
 ### OneDrive
 
@@ -151,6 +163,7 @@ Lolly can see only its own app folder in your OneDrive. Personal accounts and wo
 
 Open **Settings → Preferences → Storage → Move to another device** and press **Export my data**. Move the file to your other device and press **Import data…** there. This works everywhere and needs no network. [Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) has the steps and what the file holds.
 
+<!--i:eti-gauge-->
 ## Limits
 
 - **Size.** A synced copy larger than 2 GB, or larger than 256 MB when sent from an app, is refused with a message, and so is a single item larger than 512 MB. Every upload sends the whole copy, so a large library uploads slowly.
