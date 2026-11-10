@@ -349,14 +349,14 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'chip') chip(k, out, t, midi, vel, dur);
   else if (style === 'angel') angel(k, out, t, midi, vel, dur);
   else if (style === 'pulse') pulseLead(k, out, t, midi, vel, dur);
-  else if (style === 'guitar') guitar(k, out, t, midi, vel, dur);
-  else if (style === 'overdrive') overdrive(k, out, t, midi, vel, dur);
+  else if (style === 'guitar') guitar(k, out, t, midi, vel, dur, art);
+  else if (style === 'overdrive') overdrive(k, out, t, midi, vel, dur, art);
   else if (style === 'synthwave') synthwave(k, out, t, midi, vel, dur);
-  else if (style === 'metal') metal(k, out, t, midi, vel, dur);
+  else if (style === 'metal') metal(k, out, t, midi, vel, dur, art);
   else if (style === 'panflute') panflute(k, out, t, midi, vel, dur);
   else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, true);
-  else if (style === 'riff') riff(k, out, t, midi, vel, dur);
-  else if (style === 'twang') twang(k, out, t, midi, vel, dur);
+  else if (style === 'riff') riff(k, out, t, midi, vel, dur, art);
+  else if (style === 'twang') twang(k, out, t, midi, vel, dur, art);
   else if (style === 'banjo') banjo(k, out, t, midi, vel, dur);
   else if (style === 'harmonica') harmonica(k, out, t, midi, vel, dur, art, from);
   else if (style === 'sax') horn(k, out, t, midi, vel, dur, art, SAX, from);
@@ -913,7 +913,7 @@ function fiddle(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
  * Riff: a mid-range lead guitar, single notes an octave below the melody through a
  * driven amp with a mid-forward cabinet: the rock riff, not the scooped metal chug.
  */
-function riff(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+function riff(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0): void {
   const { ctx } = k;
   const f = mtof(midi - 12);
   const end = t + dur + 0.2;
@@ -937,10 +937,11 @@ function riff(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
   const drive = ctx.createGain();
   drive.gain.value = ELECTRIC_DRIVE;
   drive.connect(push);
+  const attack = guitarAttack(art);
   for (const cents of [-5, 5]) {
     const s = electric(k, f, t, end, vel, dur < 0.18);
-    s.playbackRate.setValueAtTime(2 ** (-1 / 12), t);
-    s.playbackRate.exponentialRampToValueAtTime(1, t + 0.05);
+    s.playbackRate.setValueAtTime(attack.from, t);
+    s.playbackRate.exponentialRampToValueAtTime(1, t + attack.time);
     s.detune.value = cents;
     vibrato(k, s.detune, t, end, 5.2, 18, 0.3);
     s.connect(drive);
@@ -951,7 +952,7 @@ function riff(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
  * Twang: a clean mid-range guitar an octave below the melody, plucked (see plucked())
  * through a tremolo, the surf and spaghetti-western sound.
  */
-function twang(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+function twang(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0): void {
   const { ctx } = k;
   const trem = ctx.createGain();
   trem.gain.value = 0.75;
@@ -960,7 +961,7 @@ function twang(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   depth.gain.value = 0.25;
   lfo.connect(depth).connect(trem.gain);
   trem.connect(out);
-  plucked(k, trem, t, midi - 12, vel, dur, { pickAt: 0.14, bright: 10, mellow: 3, ring: 1.4, body: 1800, level: 0.145, pickup: 0.1, top: 6500 });
+  plucked(k, trem, t, midi - 12, vel, dur, { pickAt: 0.14, bright: 10, mellow: 3, ring: 1.4, body: 1800, level: 0.145, pickup: 0.1, top: 6500, ...pluckedArt(art, dur) });
 }
 
 /**
@@ -1154,7 +1155,7 @@ export function ampInput(k: VoiceKit, out: AudioNode, amp: Amp, double: boolean)
  * with the note's envelope. A short note is palm-muted: the hand on the strings darkens
  * them before they reach the amp, and the note stops dead.
  */
-export function strings(k: VoiceKit, input: AudioNode, t: number, freqs: readonly number[], vel: number, dur: number, chug: boolean, vib: boolean): void {
+export function strings(k: VoiceKit, input: AudioNode, t: number, freqs: readonly number[], vel: number, dur: number, chug: boolean, vib: boolean, bend?: { from: number; time: number }): void {
   const { ctx } = k;
   const end = t + dur + 0.14;
   const g = ctx.createGain();
@@ -1179,6 +1180,7 @@ export function strings(k: VoiceKit, input: AudioNode, t: number, freqs: readonl
   for (const [n, f] of freqs.entries()) {
     const s = electric(k, f, t + n * 0.005, end, vel, chug);
     s.detune.value = n === 0 ? -4 : 3;
+    if (bend) { s.playbackRate.setValueAtTime(bend.from, t); s.playbackRate.exponentialRampToValueAtTime(1, t + bend.time); }
     if (vib) vibrato(k, s.detune, t, end, 5.2, 14, 0.3);
     s.connect(drive);
   }
@@ -1199,8 +1201,8 @@ function heavy(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
  * Metal's lead guitar: the note itself through a high-gain amp with the mids a solo needs,
  * vibrato on held notes, and a short note muted and tight.
  */
-function metal(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  strings(k, ampInput(k, out, LEAD_AMP, false), t, [mtof(midi)], vel, dur, dur < 0.18, dur >= 0.3);
+function metal(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0): void {
+  strings(k, ampInput(k, out, LEAD_AMP, false), t, [mtof(midi)], vel, dur, dur < 0.18, dur >= 0.3, art ? guitarAttack(art) : undefined);
 }
 
 /**
@@ -1239,11 +1241,25 @@ function panflute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: num
 }
 
 /**
+ * How a lead guitar note starts, by its articulation (lib/lofi-perform.ts): 1 bent up a
+ * tone into pitch, 2 slid into from a tone below, otherwise picked with the small scoop a
+ * pick's strike gives. The pitch ratio it starts at and how long it takes to arrive.
+ */
+function guitarAttack(art: number): { from: number; time: number } {
+  return art === 1 ? { from: 2 ** (-2 / 12), time: 0.16 } : art === 2 ? { from: 2 ** (-2 / 12), time: 0.05 } : { from: 2 ** (-0.2 / 12), time: 0.03 };
+}
+/** A plucked lead's bend or slide, as plucked()'s options; held notes get a left-hand vibrato. */
+function pluckedArt(art: number, dur: number): { slide?: number; slideTime?: number; wobble?: number } {
+  const bend = art === 1 || art === 2 ? { slide: -2, slideTime: art === 1 ? 0.16 : 0.05 } : {};
+  return { ...bend, ...(dur > 0.6 ? { wobble: 12 } : {}) };
+}
+
+/**
  * Guitar: a clean electric pluck (see plucked()). Brighter than nylon, plucked nearer
  * the bridge, and it rings a little longer.
  */
-function guitar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.12, bright: 14, mellow: 3.2, ring: 1.2, body: 2400, level: 0.095, pickup: 0.2, top: 5500 });
+function guitar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0): void {
+  plucked(k, out, t, midi, vel, dur, { pickAt: 0.12, bright: 14, mellow: 3.2, ring: 1.2, body: 2400, level: 0.095, pickup: 0.2, top: 5500, ...pluckedArt(art, dur) });
 }
 
 /** The strings rendered so far, per context: one recording per note, pluck and strength, played back by every pluck. */
@@ -1383,7 +1399,7 @@ const WAH_LEVEL = 1.4;
  * about 110 Hz, a push around 1.7 kHz, no fizz above 4 kHz). Each note bends up into
  * its pitch from a semitone below, and vibrato comes in as the note holds.
  */
-function overdrive(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
+function overdrive(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0): void {
   const { ctx } = k;
   const f = mtof(midi);
   const end = t + dur + 0.2;
@@ -1407,10 +1423,11 @@ function overdrive(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: nu
   const drive = ctx.createGain();
   drive.gain.value = ELECTRIC_DRIVE;
   drive.connect(push);
+  const attack = guitarAttack(art);
   for (const cents of [-6, 6]) {
     const s = electric(k, f, t, end, vel, false);
-    s.playbackRate.setValueAtTime(2 ** (-1 / 12), t);
-    s.playbackRate.exponentialRampToValueAtTime(1, t + 0.07);   // the bend up into the note
+    s.playbackRate.setValueAtTime(attack.from, t);
+    s.playbackRate.exponentialRampToValueAtTime(1, t + attack.time);   // bent, slid or picked into the note
     s.detune.value = cents;
     vibrato(k, s.detune, t, end, 5.5, 22, 0.28);
     s.connect(drive);

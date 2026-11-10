@@ -35,6 +35,7 @@ import { lollyTag } from './lofi-tag.ts';
 import * as D from './lofi-drums.ts';
 import * as W from './lofi-world-voices.ts';
 import * as G from './lofi-guitars.ts';
+import { perform } from './lofi-perform.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -558,7 +559,11 @@ export class LofiStation {
       this.taken++;
       const spb = 60 / bar.tune.bpm;
       const at = this.nextBarAt;
-      for (const note of bar.notes) this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes });
+      // The band plays the bar (lib/lofi-perform.ts): the drums in the style's pocket, a
+      // strummed guitar's chords fingered and strummed, a lead guitar's bends and slides.
+      const keysV = bar.voices?.keys ?? bar.tune.style.keys;
+      const leadV = bar.voices?.lead ?? bar.tune.style.lead;
+      for (const note of perform(bar, spb, keysV, leadV)) this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes });
       this.marks.push({ at, bar });
       this.nextBarAt = at + 4 * spb;
     }
