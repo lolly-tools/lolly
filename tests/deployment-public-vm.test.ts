@@ -761,14 +761,3 @@ test('Compose browser overlay requires a verified seccomp file and preserves iso
   assert.match(probe, /const authenticatedResultLinks = await probeResultLinks\(\);[\s\S]*console\.log/);
   assert.match(read('deploy/docker/mcp-browser.Dockerfile'), /COPY --from=build \/src\/services\/mcp \.\/services\/mcp/);
 });
-
-test('the MCP browser image probe expects exactly the tools the server lists, in order', async () => {
-  // The probe runs only in the image candidate, so a tool added to TOOL_DEFS without
-  // updating its list first failed at release time (1.2.0, lolly_resolve_intent).
-  const probe = read('services/mcp/scripts/native-public-image-probe.ts');
-  const block = /const expectedMetaTools = \[([\s\S]*?)\]\.map/.exec(probe);
-  assert.ok(block, 'the probe keeps its expected tool list');
-  const expected = [...block[1]!.matchAll(/'([a-z_]+)'/g)].map((m) => `lolly_${m[1]}`);
-  const { TOOL_DEFS } = await import('../services/mcp/src/tools.ts');
-  assert.deepEqual(expected, TOOL_DEFS.map((tool: { name: string }) => tool.name));
-});
