@@ -15,8 +15,8 @@ identify the upstream packages.
 
 | Route | Upstream source | Current state |
 |---|---|---|
-| Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed %work{version} images (current), 1.1.3, 1.1.2 and 1.1.1 images are published for amd64 and arm64. The ready-made package's 1.1.3 server passes container qualification in CI on amd64 and arm64. The render worker's arm64 image has no runtime qualification |
 | Helm and Rancher | [Lolly Work chart](https://github.com/lolly-tools/lolly-work/tree/main/deploy/helm) | The chart carries the release version, the same number as Lolly Work and the Lolly apps. Lolly Chart %work{chart} is published in the chart repository and listed on Artifact Hub, where the project is a verified publisher |
+| Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed %work{version} images (current), 1.1.3, 1.1.2 and 1.1.1 images are published for amd64 and arm64. The ready-made package's 1.1.3 server passes container qualification in CI on amd64 and arm64. The render worker's arm64 image has no runtime qualification |
 | Ready-made package (VM or private server) | [Shared distribution package](https://github.com/lolly-tools/lolly-work/tree/main/deploy/marketplaces) | Pins the 1.1.3 server, the complete matching neutral web app and PostgreSQL. The 1.1.3 web app takes the installation's catalogue key from the server that serves it, so a signed-in browser lists the tools; [a browser check of the 1.1.3 package](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md) passed on MulgaDC Spinifex, as a new installation and as an update from the 1.1.1 package. Record a fresh acceptance for each target |
 | UpCloud | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/upcloud) plus the ready-made package | [Ubuntu 24.04 amd64 reference for 1.1.1](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md#upcloud-reference-for-111): fresh install, public HTTPS, built-in owner and member sign-in, a checked SVG, reboot and an independent application restore passed. An upgrade across versions and recovery on a second host are open. **Not ready as a module:** no recorded acceptance has used the infrastructure module to create the machine; its own checks validate the configuration only |
 | Evroc | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/evroc) | **Not ready.** A separate European foundation that passes the provider's schema checks but has not been boot-tested on Evroc. Boot and runtime acceptance stay specific to each target |
@@ -115,13 +115,13 @@ requirements for an offline deployment are in
 
 | Source | Used for | When it is contacted | Your own copy |
 |---|---|---|---|
-| `ghcr.io/lolly-tools` | The Lolly Work server image for the ready-made package (including UpCloud), Dokploy and Helm; the optional render worker image. YunoHost uses the `lolli.li` Lolly Work archive instead | Image pull at installation and update. Kubernetes also pulls on any node without the image | Copy each multi-platform image by digest into your registry |
+| `ghcr.io/lolly-tools` | The Lolly Work server image for Helm, the ready-made package (including UpCloud) and Dokploy; the optional render worker image. YunoHost uses the `lolli.li` Lolly Work archive instead | Image pull at installation and update. Kubernetes also pulls on any node without the image | Copy each multi-platform image by digest into your registry |
 | `docker.io/library` (Docker Hub) | PostgreSQL 17 and Caddy images in the ready-made package; PostgreSQL in the Dokploy blueprint | Image pull at installation and update | Copy by digest. The same digests are also at `public.ecr.aws/docker/library/postgres` and `public.ecr.aws/docker/library/caddy` |
 | `lolli.li`, release archives | The matching neutral web app archive (ready-made package, Dokploy, YunoHost); the YunoHost Lolly Work archive | First start of each release; restarts reuse the extracted content | Serve the checksum-verified archive from your own HTTPS server and set `LW_SHELL_URL` |
 | `lolli.li`, model files | On-device model files the web app fetches in the browser | In each person's browser, the first time they use a model feature | No mirror setting: the address is built into the 1.1.1 web app archive. See [model files](#model-files) |
-| Public ACME certificate authorities | Caddy's automatic HTTPS in the ready-made package; Dokploy's proxy; cert-manager when you configure it | At first start and before every renewal. The authority must also reach the host on TCP 80 or 443 | An internal ACME server or a certificate you supply; see [certificates](#certificates-without-public-acme) |
+| Public ACME certificate authorities | cert-manager when you configure it; Caddy's automatic HTTPS in the ready-made package; Dokploy's proxy | At first start and before every renewal. The authority must also reach the host on TCP 80 or 443 | An internal ACME server or a certificate you supply; see [certificates](#certificates-without-public-acme) |
 | Your OIDC provider, when used | Single sign-on with `LOLLY_AUTH_MODE=oidc` | Every sign-in, from the server and the browser | A provider inside your network, or built-in email and password sign-in |
-| GitHub and the npm registry | Source checkout and `pnpm install` for `prepare-marketplace-instance.ts`; chart releases; the YunoHost server install | Once per preparation, on the machine that writes the installation folder. YunoHost uses them on the host itself | Prepare on a connected workstation and copy the folder to the host |
+| GitHub and the npm registry | Chart releases; source checkout and `pnpm install` for `prepare-marketplace-instance.ts`; the YunoHost server install | Once per preparation, on the machine that writes the installation folder. YunoHost uses them on the host itself | Prepare on a connected workstation and copy the folder to the host |
 | Optional browser services | Font picker, cloud-storage connectors, media embeds and a few public data sources the web app's browser policy allows | Only when someone uses that feature | None; the feature does not work without access. The list is in [`shell-headers.ts`](https://github.com/lolly-tools/lolly-work/blob/main/server/src/api/shell-headers.ts) |
 
 Beyond this list, the server connects out only for features an operator turns on, such
@@ -208,6 +208,9 @@ the previous release's mirrored images and archive until you no longer need them
 :::
 
 ::: details Certificates without public ACME
+On Kubernetes, set `ingress.tls` to a Secret you manage, or point cert-manager at an
+internal issuer. Dokploy's proxy has its own certificate settings.
+
 Caddy in the ready-made package asks a public ACME certificate authority, such as
 Let's Encrypt, for its certificate. The host name must resolve to the host from the
 internet, and the authority must reach it on TCP 80 or 443 at first start and again
@@ -236,9 +239,6 @@ files before they expire and run
 `docker compose --project-name lolly-work restart caddy`. With an internal authority,
 every person's device must trust its root. An update must keep the edited `Caddyfile`
 when you compare the new package files.
-
-On Kubernetes, set `ingress.tls` to a Secret you manage, or point cert-manager at an
-internal issuer. Dokploy's proxy has its own certificate settings.
 :::
 
 ::: details Mirrors for Helm, Dokploy and YunoHost

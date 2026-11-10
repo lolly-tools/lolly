@@ -1692,7 +1692,7 @@
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
       "group": "Hosting and installation",
-      "description": "Pick how Lolly reaches people: hand out the apps, host the web app on any static server or Kubernetes, or add Lolly Work. The routes and headers a host must serve."
+      "description": "Pick how Lolly reaches people: hand out the apps, host the web app on Kubernetes or any static server, or add Lolly Work. The routes and headers a host must serve."
     },
     {
       "slug": "build-kubernetes",
@@ -2060,7 +2060,7 @@
       "icon": "server",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Pick the path that matches what you have: the public demo, a trial on your computer, one Linux server, YunoHost or Kubernetes. Downloads and checksums for the current release.",
+      "description": "Pick the path that matches what you have: Kubernetes, the public demo, a trial on your computer, one Linux server or YunoHost. Downloads and checksums for the current release.",
       "work": {
         "slug": "self-host",
         "path": "self-host.md",
@@ -2158,6 +2158,23 @@
       }
     },
     {
+      "slug": "work-platform-deployment",
+      "title": "Install on Kubernetes",
+      "src": "work/platform-deployment.md",
+      "section": "operate",
+      "group": "Hosting and installation",
+      "path": "operate/platform-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.",
+      "work": {
+        "slug": "platform-deployment",
+        "path": "platform-deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
       "slug": "work-install",
       "title": "Install Lolly Work",
       "src": "work/install.md",
@@ -2188,23 +2205,6 @@
       "work": {
         "slug": "ready-made-package",
         "path": "ready-made-package.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-platform-deployment",
-      "title": "Install on Kubernetes",
-      "src": "work/platform-deployment.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/platform-deployment",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.",
-      "work": {
-        "slug": "platform-deployment",
-        "path": "platform-deployment.md",
         "icon": "overview"
       }
     },
@@ -2340,7 +2340,7 @@
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Run Lolly Work on AWS or on MulgaDC Spinifex: one VM, managed PostgreSQL and S3, EKS with the chart or the Lolly appliance, behind a load balancer if you like, with the issues two Spinifex test runs found.",
+      "description": "Run Lolly Work on AWS or on MulgaDC Spinifex: EKS with the chart, the Lolly appliance, one VM or managed PostgreSQL and S3, behind a load balancer if you like, with the issues two Spinifex test runs found.",
       "work": {
         "slug": "aws-compatible",
         "path": "aws-compatible.md",

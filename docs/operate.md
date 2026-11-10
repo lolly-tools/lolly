@@ -4,10 +4,10 @@ Hosting the Lolly web app, handing out the packaged app and running a Lolly Work
 
 ## Choose and install
 
-- [Run Lolly Work](/info/work-self-host.html): the path that matches what you have, from the public demo to Kubernetes, with downloads and checksums.
+- [Run Lolly Work](/info/work-self-host.html): the path that matches what you have, from Kubernetes to the public demo, with downloads and checksums.
+- [Install on Kubernetes](/info/work-platform-deployment.html): the Helm chart on K3s, RKE2 or Rancher, with your own PostgreSQL and identity provider.
 - [Install Lolly Work](/info/work-install.html): from a source checkout to one server with Compose, systemd or YunoHost.
 - [Install the ready-made package](/info/work-ready-made-package.html): a finished Compose directory with HTTPS and password sign-in.
-- [Install on Kubernetes](/info/work-platform-deployment.html): the Helm chart on K3s, RKE2 or Rancher, with your own PostgreSQL and identity provider.
 - [How a Lolly Work deployment fits together](/info/work-deployment.html): the parts every Lolly Work deployment runs and the ones you can leave out.
 - [Official installation routes](/info/work-official-installations.html): which packages exist, what each has passed and how to check a download.
 

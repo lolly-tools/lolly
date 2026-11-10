@@ -78,9 +78,32 @@ export function lofiTuneName(recipe: LofiTuneRecipe, tune: { key: string; bpm: n
  * Render a saved tune to stereo PCM. Without `seconds` the tune plays once, with its
  * reverb tail; with `seconds` it repeats to fill that length (a video's music bed).
  */
-export async function renderLofiTunePcm(
+export function renderLofiTunePcm(
   recipe: LofiTuneRecipe,
   opts: { seconds?: number; prefs?: LofiPrefs; sampleRate?: number } = {},
+): Promise<RenderedPcm> {
+  // Opening a tune in Assets asks for its WAV and for its waveform at the same moment:
+  // the same render, so the two share one instead of each taking the whole time.
+  return shareRender(renderKey(recipe, opts), () => renderUnshared(recipe, opts), inflight);
+}
+
+const inflight = new Map<string, Promise<RenderedPcm>>();
+/** What makes two renders the same render: the recipe and every option. */
+export function renderKey(recipe: LofiTuneRecipe, opts: { seconds?: number; prefs?: LofiPrefs; sampleRate?: number }): string {
+  return JSON.stringify([recipe.mood, recipe.seed >>> 0, recipe.generator ?? '', opts.seconds ?? null, opts.sampleRate ?? 44100, opts.prefs ?? null]);
+}
+/** Run `make` once for every caller asking for `key` while the first run is still going. Nothing is kept afterwards. */
+export function shareRender<T>(key: string, make: () => Promise<T>, pending: Map<string, Promise<T>>): Promise<T> {
+  const running = pending.get(key);
+  if (running) return running;
+  const run = make().finally(() => { pending.delete(key); });
+  pending.set(key, run);
+  return run;
+}
+
+async function renderUnshared(
+  recipe: LofiTuneRecipe,
+  opts: { seconds?: number; prefs?: LofiPrefs; sampleRate?: number },
 ): Promise<RenderedPcm> {
   if (recipe.generator) return renderTrackPcm(recipe.generator, opts);
   const [{ lofiTuneSeconds }, { renderLofi }] = await Promise.all([

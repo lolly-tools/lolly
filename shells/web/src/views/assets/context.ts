@@ -140,6 +140,8 @@ export interface CatCtx {
   dropzoneMount: HTMLElement | null;
   detailsMeterDispose: import('../../lib/audio-meter.ts').MeterHandle | null;
   detailsTransport: import('../../lib/audio-transport.ts').AudioTransport | null;
+  /** A saved tune's preview in the open sheet: live until its WAV is made (lib/tune-preview.ts). */
+  detailsTune: import('../../lib/tune-preview.ts').TunePreview | null;
   vizTeardown: (() => void) | null;
   vizCycleStop: (() => void) | null;
   warmingFavArt: boolean;

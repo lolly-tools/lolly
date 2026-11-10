@@ -409,6 +409,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.detailsMeterDispose = null;
   /** The themed transport driving the preview's <audio> - disposed with the modal. */
   cat.detailsTransport = null;
+  cat.detailsTune = null;
   /** Releases the details modal's live visualiser (its WebGL2 context) + key handler. */
   cat.vizTeardown = null;
   cat.vizCycleStop = null;

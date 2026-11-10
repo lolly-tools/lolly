@@ -1,8 +1,8 @@
 # How a Lolly Work deployment fits together
 
 This page is for whoever runs Lolly Work once it is installed. It explains the
-parts and which ones you can leave out. It also shows what changes between Compose,
-systemd, YunoHost and Kubernetes. The commands are in the install guides; start at
+parts and which ones you can leave out. It also shows what changes between Kubernetes,
+Compose, systemd and YunoHost. The commands are in the install guides; start at
 [Run Lolly Work](self-host.md).
 
 Every deployment runs the same server. It answers the console at `/admin`, the API
@@ -29,16 +29,16 @@ pack, web app, collaboration gateway and render worker are present.
 
 | Shape | Use it for | Who applies migrations | Pack and web app |
 |---|---|---|---|
+| Helm (`deploy/helm/`) | Kubernetes or Rancher, one collaboration owner | a pre-install and pre-upgrade Job | volumes you mount |
 | Local (`node server/src/main.ts`) | development, evaluation | the server, at startup | local paths |
 | Compose (`deploy/compose/`) | one VM, a small organisation | the server, at startup | mounted from the checkout |
 | Single VM with Caddy (`deploy/vm/`) | one small team on its own domain, with live co-editing | the server, at startup, over the direct database URL | pack mounted read-only; a signed web app served by Lolly Work when configured, otherwise proxied through Caddy |
 | YunoHost (`deploy/yunohost/`) | a self-hosting box, signing in with its accounts | the server, at startup | copied from the web app into the app's data folder |
-| Helm (`deploy/helm/`) | Kubernetes or Rancher, one collaboration owner | a pre-install and pre-upgrade Job | volumes you mount |
 
 Two packaged routes build on these shapes. The
-[ready-made package](ready-made-package.md) is a finished Compose directory with Caddy
-and password sign-in. The [Lolly appliance](aws-compatible.md#lolly-appliance-preview) is
-a preview disk image that boots into Lolly Work on K3s.
+[Lolly appliance](aws-compatible.md#lolly-appliance-preview) is a preview disk image that
+boots into Lolly Work on K3s. The [ready-made package](ready-made-package.md) is a
+finished Compose directory with Caddy and password sign-in.
 
 The Lolly Work repository also keeps an optional serverless function adapter, qualified in
 CI, for operators who choose that kind of target. It bundles its pack and has no
@@ -258,7 +258,9 @@ choices, preferred image sources and Application Collection dependencies.
 
 ## RKE2 and K3s
 
-![Rancher](img/rancher-icon.svg) ![k3s](img/k3s-icon-color.svg) ![Helm](img/helm-icon-color.svg)
+::: logos
+![Rancher](img/rancher-icon.svg) ![K3s](img/k3s-icon-color.svg) ![Helm](img/helm-icon-color.svg)
+:::
 
 The chart uses only core Kubernetes objects (Deployment, Service, Ingress, Job and
 HorizontalPodAutoscaler), so it runs on any conformant cluster and is exercised on
