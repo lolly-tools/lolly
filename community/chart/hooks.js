@@ -2655,14 +2655,19 @@ function sceneVectorSvg(plan, cfg) {
     list.push({ d: project(at(mid, (m.r0 + m.r1) / 2, m.y0))[2], svg: parts.join('') });
   }
   let gid = 0;
+  const sphereGrads = {}, defs = [];
   for (const m of plan.marks) {
     if (m.t === 'box') pushBoxFaces(items, m);
     else if (m.t === 'sector') pushSectorFaces(items, m);
     else if (m.t === 'sphere') {
       const q = project(m.p), r = Math.max(1.2, m.r * q[3]);
-      const id = plan.uid + 's' + (gid++);
-      const lit = plan.finish === 'accurate' ? m.c : mixHex(m.c, '#ffffff', 0.35), deep = plan.finish === 'accurate' ? m.c : mixHex(m.c, '#000000', 0.32);
-      let svg = '<radialGradient id="' + id + '" cx=".38" cy=".34" r=".72"><stop offset="0" stop-color="' + lit + '"/><stop offset=".55" stop-color="' + m.c + '"/><stop offset="1" stop-color="' + deep + '"/></radialGradient>';
+      // One shading gradient per colour, shared by every sphere of that colour.
+      let id = sphereGrads[m.c], svg = '';
+      if (!id) {
+        id = sphereGrads[m.c] = plan.uid + 's' + (gid++);
+        const lit = plan.finish === 'accurate' ? m.c : mixHex(m.c, '#ffffff', 0.35), deep = plan.finish === 'accurate' ? m.c : mixHex(m.c, '#000000', 0.32);
+        defs.push('<radialGradient id="' + id + '" cx=".38" cy=".34" r=".72"><stop offset="0" stop-color="' + lit + '"/><stop offset=".55" stop-color="' + m.c + '"/><stop offset="1" stop-color="' + deep + '"/></radialGradient>');
+      }
       if (m.stem) { const b = project([m.p[0], 0, m.p[2]]); svg = '<line x1="' + f2(q[0]) + '" y1="' + f2(q[1]) + '" x2="' + f2(b[0]) + '" y2="' + f2(b[1]) + '" stroke="' + m.c + '" stroke-opacity=".35" stroke-width="1.2"/>' + svg; }
       svg += '<circle cx="' + f2(q[0]) + '" cy="' + f2(q[1]) + '" r="' + f2(r) + '" fill="url(#' + id + ')"' + (m.o != null && m.o < 1 ? ' fill-opacity="' + f2(m.o) + '"' : '') + '/>';
       items.push({ d: q[2], svg });
@@ -2712,6 +2717,7 @@ function sceneVectorSvg(plan, cfg) {
       items.push({ d: Infinity, svg: quads.map((q) => q.svg).join('') + walls.join('') + lines.join('') });
     }
   }
+  if (defs.length) out.push('<defs>' + defs.join('') + '</defs>');
   items.sort((a, b) => b.d - a.d).forEach((it) => out.push(it.svg));
   out.push(sceneOverlaySvg(plan, plan.placed, plan.uid + 'v'));
   out.push('</g>');

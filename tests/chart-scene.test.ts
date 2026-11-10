@@ -71,7 +71,7 @@ test('every 3-D chart type frames its marks inside the artboard and fills it', a
     ['scatter', { sceneType: 'scatter3d', data: POINTS }],
     ['surface', { sceneType: 'surface3d', data: GRID }],
   ];
-  const sizes = [[1280, 800], [1080, 1350], [1080, 1080], [1920, 1080]];
+  const sizes: [number, number][] = [[1280, 800], [1080, 1350], [1080, 1080], [1920, 1080]];
   for (const [name, values] of cases) for (const [width, height] of sizes) {
     const { state } = await render({ renderMode: 'scene', heading: 'A title', width, height, ...values });
     const scene = state.scene, e = markExtents(scene);
@@ -133,8 +133,8 @@ test('a 3-D chart paints its stage until someone asks for transparency', async (
 
 test('stage colours come from the colourway, and every mark reads on its stage', async () => {
   const lum = (hex: string) => {
-    const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
-    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)) as [number, number, number];
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
   const contrast = (a: string, b: string) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
   const studio = (await render({ renderMode: 'scene', data: BARS, background: '#fffaf2' })).state.scene;
