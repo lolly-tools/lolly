@@ -8,6 +8,7 @@ For what a reader sees, start with [Content Credentials](/info/content-credentia
 CA-issued signing first shipped at engine 1.11, and the capability bridge only grows, so everything here still holds. The verifier reads C2PA 1.x and 2.x claims, Lolly writes 2.x by default, and the trust list bundles the public C2PA and CAI anchors beside the Lolly root. Read the live `ENGINE_VERSION` in `engine/src/version.ts` and `engine/CHANGELOG.md` rather than a number pinned here. Source line numbers are left out because they drift: search for the named symbol.
 :::
 
+<!--i:eti-layers-->
 ## Architecture
 
 ![From device key to verified signer: the device holds a non-extractable key, the person signs in with a provider that verifies their email, and the CA service checks a CSR and proof of possession. A legacy root or a managed Vault intermediate signs a short-lived certificate kept on the device, which signs each export; a verifier checks the export against pinned trust anchors, and in managed mode against the revocation list.](/info/diagrams/concepts/signing-architecture.svg)
@@ -24,6 +25,7 @@ A hook that calls it can therefore put the person's CA-verified identity onto by
 
 Its companion `host.c2pa.readIngredients` (v1.104) reads every manifest a file already carries and packages each one as an ingredient, so a tool that signs an existing file carries those credentials forward instead of orphaning them. `claim`, `sign` and `rondocode` use the companion too. The engine side stays ordinary options (`opts.signer`, `opts.trustAnchors`) on existing pure functions.
 
+<!--i:eti-user-check-->
 ## Why the certificate identifies a person, not the app
 
 Lolly's engine and shells are open source. Once the code is public, "made with Lolly" can never be a *cryptographic* claim: anyone can fork the repository and emit bit-identical manifests. No certificate scheme fixes that, because the thing being attested, the software, is copyable by design.
@@ -32,6 +34,7 @@ So the certificate attests **who signed, not which app signed**. Its Subject Alt
 
 This follows Kerckhoffs's principle as Sigstore's Fulcio and Let's Encrypt practise it: **the repository holds no secrets, only protocol and public anchors.** The CA certificate is public, committed and served. The CA private key lives only in the host's environment store or a KMS. The device key is generated locally and cannot be exported.
 
+<!--i:eti-code-->
 ## Engine contracts
 
 `HostV1` grows only by addition, and `host.c2pa` is its one surface near identity. The modules underneath are these.
@@ -114,6 +117,7 @@ The enrolment protocol, the managed chain and the revocation list, shared by the
 The default anchor set is the **Lolly CA root plus the vendored C2PA known-certificate list**, the same as the web Verify view and MCP's `lolly_verify`, so a Lolly-CA-signed export reads the same on every surface. `--no-default-anchors` drops both built-in sets for a bare-trust check, and every report prints which set produced the verdict.
 
 <a id="beyond-c2pa-pixel-and-byte-level-verify-reads"></a>
+<!--i:eti-watermark-->
 ## Beyond C2PA: pixel and byte level Lolly Verify reads
 
 The Verify view runs several checks around the credential, described for readers on [What Lolly Verify checks](/info/what-verify-checks.html). Each is a pure, DOM-free module in the engine or a shell library, fed a decoded RGBA buffer or the raw file bytes by the shell. None is a bridge capability, and none uploads anything. The opt-in deep scan's one-time model download is the only network touch, from the same origin on the web and from the model host `lolli.li` in the desktop and mobile apps, and it never sends the file.
@@ -150,10 +154,12 @@ Two open pixel-watermark decoders behind a one-time consent: about 90 MB of dete
 
 TrustMark's *write* side is one switch in the export panel, off by default for the same reason its scan is opt-in: a neural pass plus that one-time model download. It sits in the Content protection card shown below.
 
+<!--i:eti-pin-->
 ## Trust anchors
 
 Trusted verification is live. The pinned Lolly root ships as a real PEM in `shells/web/src/ca-root.ts` (`CA_ROOT_PEM`, public by design) and is also served at `/api/ca/root.pem`. The verifier also bundles the public C2PA and CAI trust anchors (`engine/src/c2pa-trust.ts`), so third-party credentials (camera makers, Adobe, Google's C2PA root, Truepic-signed OpenAI output and others) resolve to their real issuer. Presence in a list never trusts on its own: a trusted verdict needs the chain to actually verify and no other check to fail.
 
+<!--i:eti-stamp-->
 ## CA service (`services/ca/`)
 
 Node (node:http and WebCrypto), with one runtime dependency, `jose`, which verifies OIDC ID tokens. It imports `engine/src/x509.ts` and `engine/src/enrollment.ts`, and it is a workspace package. One `handler.mjs` runs four ways:
@@ -206,6 +212,7 @@ Set these in the host's environment store, and in `.env` for local work.
 Managed mode adds its Vault, trust-bundle and revocation settings (`CA_VAULT_*`, `CA_ENROLLMENT_TRUST_JSON`), which the CA README lists.
 :::
 
+<!--i:eti-monitor-->
 ## Web shell
 
 Everything below appears as one card in the export panel: the C2PA switch with its ephemeral lifetime picker, the pixel Imprint and the opt-in durable mark, each enabled per format by the predicates in `views/tool-actions.ts`.
@@ -221,6 +228,7 @@ The enrolment card is where the certificate lifetime is chosen, before any popup
 
 ![The Content Credentials section of Settings, expanded from the link, on a deployment with no OIDC app wired up: one line says so in place of the lifetime picker and the provider buttons](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Didentity-section&width=1440&height=1400&dpi=192&waitMs=2600&format=svg&cropSelector=%23identity-section&walker=1&dark=1&filename=ce-identity-enrolment)
 
+<!--i:eti-cpu-->
 ## Run the CA
 
 The [CA README](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md) is the operator runbook: [hosted identity](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#deploy-and-maintain-hosted-identity) for provider clients, the verified-email policy, secrets, upgrades and rotation, and [managed intermediate enrolment](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#managed-intermediate-enrollment) for a Vault deployment, which holds no root key in the service.
@@ -239,6 +247,7 @@ pnpm run dev:web        # Vite proxies /api/ca → :8787
 4. **Deploy** one artifact: the container image from `deploy/docker/ca.Dockerfile`, or the generated function bundle `api/ca/[...path].js` (rebuild it with `pnpm run build:ca-fn`). Either way, route `/api/ca/*` to the CA ahead of the app's single-page fallback. Then `curl https://<your-host>/api/ca/health` should return JSON (`{"ok":true,…}`), not the app's HTML. HTML means the request reached the app instead of the CA, so check the routing.
 :::
 
+<!--i:eti-shield-check-->
 ## Threat model, abridged
 
 The full register is the [Threat Model](/info/threat-model.html).
@@ -249,6 +258,7 @@ The full register is the [Threat Model](/info/threat-model.html).
 - **Fork abuse.** Forks can request certificates only through this OIDC-gated, origin-allowlisted, rate-limited endpoint, and only for identities they actually control.
 - **Token replay.** The enrolment token is a 10-minute HMAC, and the proof of possession binds the *presented* keypair, not the browser that completed sign-in. So a token leaked inside its window gives whoever holds it a certificate for that identity. In legacy mode the token is stateless, so this is an accepted risk bounded by the short window, and flagged for the PKI review. Managed mode consumes each token once, so a leaked token is useless after the first enrolment.
 
+<!--i:eti-map-pin-->
 ## Roadmap
 
 1. An RFC 3161 timestamp countersignature in the same enrol and export round trip, so the *expired* verdict becomes trusted with a provable time.

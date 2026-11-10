@@ -4,6 +4,7 @@ This page is for security reviewers. It covers the standards Lolly implements, t
 
 The short version: **verification runs entirely on the device, the cryptography is standards-based and built on the platform's own WebCrypto, and every claim is backed by a test**: known-answer vectors, adversarial forgery and replay tests, fuzzing and conformance against independent tools.
 
+<!--i:eti-monitor-->
 ## Verification is on-device
 
 The app's Verify view and the local CLI verify a file **locally and offline, with no upload**. Dropping a file on `/verify`, or running `lolly validate <file>`, parses it, walks its Content Credential, re-checks the signature and the byte-hash binding and renders a verdict, all in your browser or on your machine. The separate MCP `lolly_verify` endpoint is different: calling it sends the file to that server, and the local checks never use that endpoint.
@@ -22,6 +23,7 @@ Even a **SEAL** record whose key lives in DNS is reported as "no key resolver" r
 
 If your organisation adds **Lolly Work**, review that service as well as these local paths. It adds identity, permission checks, shared storage, work collabs and server jobs, with its own [security boundaries](/info/work-security-platform.html) and [audit controls](/info/work-audit.html). The local verification tests on this page do not certify those services.
 
+<!--i:eti-checklist-->
 ## Standards implemented
 
 | Area | Standard |
@@ -39,6 +41,7 @@ If your organisation adds **Lolly Work**, review that service as well as these l
 | Durable soft binding | **Adobe TrustMark** (read and write; write off by default) |
 | Supply chain | **CycloneDX 1.5** (SBOM) |
 
+<!--i:eti-lock-->
 ## Cryptographic primitives
 
 - **Signing** (Content Credentials, catalog integrity, issued certificates): **ECDSA P-256 / ES256** with **SHA-256**. There are two signer paths. An **enrolled** identity's device key is generated **non-extractable** and kept in IndexedDB, so even Lolly's own code can only ask it to sign, never read the key. The **default anonymous** signer is a throwaway keypair made for one export inside the page and dropped afterwards. Neither key is ever transmitted.
@@ -50,6 +53,7 @@ If your organisation adds **Lolly Work**, review that service as well as these l
 
 All of these run on the platform's audited WebCrypto implementation. The two symmetric ciphers use a small in-house block layer only because WebCrypto exposes no raw AES block. That layer only encrypts, over your own content, and is never used to decrypt.
 
+<!--i:eti-badge-check-->
 ## How "trusted" is earned
 
 Lolly reports the trust a file can actually prove, in two gates.
@@ -63,6 +67,7 @@ Trust anchors are **public certificates only**: the C2PA ecosystem roots (Google
 
 There is **no timestamp authority yet**, so an authentic but *expired* signature shows the signer's identity while staying `trusted: false`. It proves *who*, not *when*. An RFC 3161 timestamp countersignature is on the roadmap. On a managed CA deployment, a chain is trusted only while its issuer's revocation list is fresh and does not list the certificate.
 
+<!--i:eti-file-->
 ## Read broad, write narrow
 
 Beyond the credential, Lolly Verify reads several signals: the Lolly Imprint, AI declarations, SEAL signatures, an opt-in deep scan for third-party pixel watermarks and hidden data. All of them run locally. [What Lolly Verify checks](/info/what-verify-checks.html) covers each one.
@@ -73,6 +78,7 @@ Lolly reads many signals but *writes* only three: C2PA, its own Imprint and an o
 
 ![The Content protection group on a PNG export, with the credential, the Imprint and the durable mark as three separate switches](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fformat%3Dpng%26c2pa%3D90%26imprint%3D1%26durable%3D1%26options&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-inputs%2C%23sidebar-utils%7Bdisplay%3Anone%7D&cropSelector=.export-protection&dark=1&filename=ce-protection-stack)
 
+<!--i:eti-flask-->
 ## How it is assured
 
 An automated test in the repository (`pnpm test`) backs every cryptographic claim above.
@@ -87,6 +93,7 @@ An automated test in the repository (`pnpm test`) backs every cryptographic clai
 
 The cryptography and parsers have not been independently audited. Where a contract calls for certified assurance, deploy Lolly as one layer of defence in depth.
 
+<!--i:eti-shield-check-->
 ## Design boundaries
 
 - **Content Credentials are tamper-*evident*, not tamper-*proof*.** They detect alteration cryptographically and offline. They do not prevent it, and that is what makes fully offline verification possible.
@@ -94,10 +101,12 @@ The cryptography and parsers have not been independently audited. Where a contra
 - **Tool hooks are not a sandbox.** A built-in tool's hooks run in the page unless its manifest declares `isolate: true`, which moves them to a Worker. Sideloaded and remote tools always run in a locked-down Worker with the browser's network and storage APIs removed, and are refused if that Worker cannot start. Review is still the control, so run only tools you have reviewed. An organisation can decide which tools its people get through Git review of a shared catalog, or with Lolly Work's per-tool grants and overlays ([Catalog and content](/info/work-catalog.html)). The [Threat Model](/info/threat-model.html#trust-boundaries) has the full boundary.
 - **Interoperability.** Two containers have no standardised C2PA mapping yet, so Lolly gives each a place of its own: WebM (the manifest as a Matroska part) and Ogg/Opus (the store as a `C2PA=` comment field, its byte range excluded from the binding so the audio still hashes identically). Lolly's own verifier reads both; a third-party tool will not. Every other format Lolly stamps, MP4, M4A, AVIF, MP3 and WAV among them, uses its spec-defined place and verifies in third-party tools by default.
 
+<!--i:eti-mail-->
 ## Reporting a vulnerability
 
 Found something? Report it privately: [fitzy+security@suse.com](mailto:fitzy+security@suse.com), the **Report a vulnerability** button on any [lolly-tools](https://github.com/lolly-tools) repository, or the machine-readable [`/.well-known/security.txt`](/.well-known/security.txt). The full policy, scope and safe-harbour statement are in [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md). We practise coordinated disclosure and credit reporters in the fix notes.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - **[Verify It Yourself](/info/verify-yourself.html)**: every checkable claim on this page and in the privacy policy as a procedure you can run, with the exact commands and the output you should see.

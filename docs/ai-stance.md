@@ -18,6 +18,7 @@ Here is what that looks like when you check the file. Nine steps survive in the 
 
 In Andy's picture, the scarcity posture toward AI is drinking spoiled tank water while floodwater races across the plains. Generated content is about to be effectively infinite. When something becomes infinite, its value moves to whatever remains scarce around it: trust, provenance, brand coherence and human judgment. Lolly is not a bigger bucket for the flood. It is irrigation: channels that direct the water, and soil where things actually grow.
 
+<!--i:eti-checklist-->
 ## The stance, in five commitments
 
 - <!--i:layers--> **AI is welcome as input, never as impersonation.** Agents are first-class users of Lolly: they run the same tools people do, through the [MCP server](/info/mcp.html) and [URL mode](/info/url-mode.html), inside exactly the same constraints. What no agent gets to do is pass its output off as something it is not. [Input, not impersonation](/info/input-not-impersonation.html) draws that line.
@@ -26,6 +27,7 @@ In Andy's picture, the scarcity posture toward AI is drinking spoiled tank water
 - <!--i:people--> **People stay the authors.** The words, the image, the palette, the call that needed judgment: tools scale that judgment and never stand in for the person. The tedious parts are what get automated: the brand-checking, the re-exporting at every size, the hand-localising. What remains is the authorship.
 - <!--i:globe--> **Channels, not buckets.** Today's models are the floor, not the ceiling, so we refuse to build anything whose value depends on hoarding access to them. The engine is open source, renders on your own device and works offline. There is no model moat, no usage meter, no scarcity business attached to the flood itself. The durable investment is the infrastructure around the water - and that infrastructure is what we give away.
 
+<!--i:eti-user-check-->
 ## Human decision is the point
 
 Individuals shape the earth and our history. Their choices, made one at a time, become the world the rest of us live in. Their actions make that world. That is how anything has ever happened.
@@ -36,6 +38,7 @@ Tools here scale what a person decided. They do not decide instead of them, and 
 
 We honour that end to end, and we record it: for history, for accountability, for trust and for tomorrow.
 
+<!--i:eti-sliders-->
 ## AI, on your terms
 
 You never need AI here. If you choose it, three things hold:
@@ -44,12 +47,14 @@ You never need AI here. If you choose it, three things hold:
 - <!--i:check--> **It stops costing.** If AI helps make something once, the result is yours. Using it again is free, however many times you need the result.
 - <!--i:shieldcheck--> **It stays honest.** A piece made by AI says so, and what you make carries your name instead of pretending to be someone else. Even the built-in help works this way: [Ask Lolly](/info/ask.html) answers with the manual's own sentence and a link, never a made-up answer.
 
+<!--i:eti-info-->
 ## What this is not
 
 - <!--i:check--> **Not a ban.** Tools may use AI where it serves the work, and agents are a supported audience - see [AI Agents](/info/ai-agents.html).
 - <!--i:seal--> **Not a purity claim.** Lolly reads provenance broadly and writes it honestly; it does not pretend to detect every generated pixel on the internet.
 - <!--i:sunburst--> **Not a moral panic.** The flood is not the enemy. Unattributed water is.
 
+<!--i:eti-search-->
 ## Check these commitments yourself
 
 Every commitment above is enforced in the open codebase, not in a policy PDF: the provenance path, the GEN AI labelling and the no-trackers guarantee all ship with tests, and the [Verify It Yourself](/info/verify-yourself.html) page walks you through checking the claims against a real export.
