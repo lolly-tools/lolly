@@ -4,8 +4,10 @@ A member who opens an EPS, EMF or WMF file in the asset viewer can ask Lolly Wor
 disposable PDF preview. The original and its permanent file identity stay intact: **Download**
 still returns the original, and **Convert** stays the explicit way to make a derivative file.
 
+::: note A preview is not the original
 A converted preview can substitute missing fonts or change effects the converter does not
 support, so the viewer labels it as a preview rather than the original.
+:::
 
 ## How a conversion runs
 

@@ -130,7 +130,9 @@ test('the drums switch takes the kit out and leaves the music', () => {
   const style = { kick: 50, hats: 'hat' as const, snare: 'snare' as const };
   const on = play(21, { ...base, style }, 60);
   const off = play(21, { ...base, drums: false, style }, 60);
-  const kicks = (c: FakeCtx): number => c.oscs.filter(o => o.frequency.events[0]?.[1] === 50 * 2.9).length;
+  // Every kind of kick in the kits (lib/lofi-drums.ts) settles on its tuning: 50 Hz, or a
+  // feathered kick's a little below, or metal's click a little above.
+  const kicks = (c: FakeCtx): number => c.oscs.filter(o => o.frequency.events.some(e => [50, 50 * 0.92, 50 * 1.15].includes(e[1] as number))).length;
   assert.ok(kicks(on) > 0, 'kicks with the drums on');
   assert.equal(kicks(off), 0, 'none with them off');
   assert.ok(off.sources.length < on.sources.length, 'and fewer noise bursts (snare, hats)');

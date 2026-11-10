@@ -44,8 +44,7 @@ needed a change for them.
 | A published web app served by Lolly Work shows its tools | `GET /api/v1/catalog/public-key`, the installation's catalogue key, which the web app accepts from the same origin only |
 | Shared originals sent to organisation delivery targets | Brandfolder and Cloudinary write adapters, with provider progress kept across retries |
 
-**The API detail behind each feature**
-
+::: details The API detail behind each feature
 - **The installation's catalogue key.** A release web app pins the publisher's catalogue
   key, while Lolly Work signs each person's catalogue with the installation's own key
   (`LW_CATALOG_SIGNING_KEY`). Lolly Work now answers `GET /api/v1/catalog/public-key` with
@@ -58,6 +57,7 @@ needed a change for them.
   checkpoints the provider's progress, then checks access again before the provider
   write. A send whose outcome is uncertain is held for review, so a retry cannot
   duplicate the provider's asset.
+:::
 
 ## Other changes since 1.1.2
 
@@ -127,12 +127,11 @@ has 67 files.
 
 This section is for Lolly Work maintainers cutting the release.
 
-**Maintainer commands**
-
+::: details Maintainer commands
 The commands are the same as for 1.1.2, with `vendor/lolly` at the Lolly source
 above:
 
-```text
+```bash
 node scripts/vendor-content-resolver.ts --write
 pnpm run repin-engine --apply
 pnpm run verify:engine-pin
@@ -141,7 +140,7 @@ pnpm run typecheck
 
 The packaged documentation comes from a Lolly commit that contains this page:
 
-```text
+```bash
 node scripts/sync-docs-bundle.ts --source=/path/to/lolly --commit=<full-commit-sha>
 pnpm run verify:docs-pin
 ```
@@ -150,6 +149,7 @@ Before tagging or publishing images, the exact final Lolly Work commit needs ord
 CI, including the native server image checks and the real Chromium worker checks
 with the matched signed shell. The tagged server and worker images must come from
 that same Lolly Work commit.
+:::
 
 ## YunoHost packaging
 
@@ -157,7 +157,7 @@ Lolly 1.1.3 publishes a new web archive, and the Lolly Work YunoHost package pin
 `lolly-web-1.1.3-ynh1.tar.gz` archive above. The maintained producer cuts the package on
 the final Lolly Work commit:
 
-```text
+```bash
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.1.3-ynh1.tar.gz --shell-sha256 1ff9a26889d10984ce377e6890283859a9ba7bca2981d8df1e49e572e792925d --out ABS_NEW_ARTIFACT_DIRECTORY
 ```
 

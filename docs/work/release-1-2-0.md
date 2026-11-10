@@ -59,8 +59,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
 | Links whose recipients can change the inputs | `"open": true` in a tool link's signed target |
 | A release-built web app lists tools when the feed holds workspace files | Instance asset checksums served in SRI form |
 
-**The API detail behind each feature**
-
+::: details The API detail behind each feature
 - **The exact file.** An approval request of subject `export-review` carries the exported
   bytes, sent by the parts protocol in the new `approval-artifact` upload scope, which
   `policy.approvalArtifacts` governs rather than `policy.uploads`. Creating the request checks
@@ -146,11 +145,11 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   are unchanged.
 - **Ask an agent, ready for the desktop apps.** The AI policy accepts the `agents` capability,
   off by default and matched exactly, for the desktop apps' Ask an agent in their next build.
+:::
 
 ## Other changes since 1.1.3
 
-**Partner programmes**
-
+::: details Partner programmes
 - **Programmes.** An administrator, or anyone granted `programme.manage`, creates a programme
   for each kind of partner. It wraps the reserved local group `programme-<id>`. Its people see
   only the tools a `tool.use` allow grant gives that group, the design system's essentials, and
@@ -244,9 +243,9 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
 - **CLI.** `lw programmes`, `lw companies` (with `profile` and `kit`), `lw templates`,
   `lw people import|exit|exits|reopen`, `lw domains`, `lw folders` and `lw catalog rights`, and
   programme placement, limits and usage on `lw tokens`.
+:::
 
-**Service tokens and agents**
-
+::: details Service tokens and agents
 - **Scopes.** A service token can name what it may reach: `render`, `documents`, `files`,
   `delivery`, `catalog.read`, `audit.read` and the opt-in `approvals.request`.
   Scopes and an optional tools list are fixed at mint. A route missing from the scope table
@@ -284,9 +283,9 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   or a different fixed value needs a new approval. Such renders record `tools.lolly.approval` in
   their Content Credentials with `covers: 'template'`, the template id and version, and the
   example file's digest.
+:::
 
-**Renders**
-
+::: details Renders
 - **Durable renders catch up.** `/renders` and `/render-batches` gain signed callbacks
   (`callbackUrl`), `bind` on batches from a JSON or CSV source, a ZIP of a finished batch and
   delivery by reference. The callback uses the job callbacks' outbox, signature and retry
@@ -318,9 +317,9 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   for a partner `partnerCompany`, `partnerCompanyLabel`, `partnerProfileRevision`,
   `partnerProgramme`, `partnerProgrammeLabel`, `partnerKit` and `partnerKitRevision`. It never
   records the person, a token, an agent or the contact's details.
+:::
 
-**Public files behind a CDN**
-
+::: details Public files behind a CDN
 - **Bunny and Cloudflare.** An instance can put either provider in front of its public files,
   configured in the `edge` block of `instance.json`. Purges by tag or URL go through an outbox
   within each provider's budget when the brand, a pack, an overlay or the governance document
@@ -336,9 +335,9 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   Rocket Loader and Email Obfuscation. `lw edge probe` checks from outside that private answers
   and errors are not cached and that security headers pass through. An unreadable setting is
   never a pass.
+:::
 
-**Permissions, links and errors**
-
+::: details Permissions, links and errors
 - **Links stop with their maker.** `GET` and `POST /l/:id` answer `410 LINK_MAKER_DISABLED`
   while the account that made the link is disabled, and work again when the account is
   re-enabled. Offboarding still revokes links for good.
@@ -357,9 +356,9 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
 - **A pack with two owners for one file.** `inspectPack` now refuses an asset index where two
   ids claim one catalogue file and gives the file and both ids. Before, such a pack mounted and
   its catalogue files answered 503.
+:::
 
-**Retention and housekeeping**
-
+::: details Retention and housekeeping
 - **Deleted documents can purge themselves.** `policy.retention.deletedDocumentsDays` lets the
   retention run remove deleted documents older than the window, in batches of 100. It is off at
   `0`, the default. Each run that purges writes a `retention.run` audit entry, and the readiness
@@ -381,11 +380,11 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   anchor form.
 - **The local demo.** `pnpm run demo` builds its pack view from hard links, so its tool feed
   serves again.
+:::
 
 ## Changes for API clients and operators
 
-**New routes**
-
+::: details New routes
 - **Tokens.** `POST /api/v1/tokens` takes `scopes`, `tools` and limits.
   `PUT /api/v1/tokens/:id/programme`, `PUT /api/v1/tokens/:id/limits` and
   `GET /api/v1/tokens/:id/usage` (owner).
@@ -422,9 +421,9 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   under `instance.config`.
 - **Limits.** `GET /api/v1/limits` (`policy.edit`) lists each enforced limit with its value and
   its source.
+:::
 
-**New configuration**
-
+::: details New configuration
 - `policy.retention.renderOutputDays` and `policy.retention.deletedDocumentsDays`, both `0`
   (keep) by default.
 - `policy.approvalArtifacts`: `enabled` `true`, `maxFileBytes` 64 MiB, `instanceBudgetBytes`
@@ -459,6 +458,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   `brand.switch`), granted only through an explicit `idp.roleGroups` mapping; `brand.edit`,
   `brand.page.publish` and `programme.manage` for admins; and the token-only `automation`
   role.
+:::
 
 **New environment variable**
 
@@ -466,8 +466,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   `renderApi.resultUrls.signedDays` above 0, the server refuses to start without this
   secret.
 
-**Changed behaviour for API clients**
-
+::: details Changed behaviour for API clients
 - Schema and the document verbs answer `404 TOOL_NOT_FOUND` for a missing tool, where they
   answered `400 DOCUMENT_API_ERROR`. A failed read that is not a missing file answers 500, so a
   durable render retries it within its attempts.
@@ -483,6 +482,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   `/catalog/ext/...`.
 - Without a configured edge provider, no answer carries `Cache-Tag` or `Surrogate-Key`. Brand
   chrome and the hashed connect pack used to send both on every answer.
+:::
 
 **On upgrade**
 
@@ -526,6 +526,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
 
 This release adds 21 SQL migrations since 1.1.3:
 
+::: details The 21 migrations
 - `0077_edge_purge_outbox.sql` adds `edge_purge_outbox`, the queue of CDN purges, and
   `edge_provider_credentials`, edge credentials sealed with the instance credential key.
 - `0078_token_scopes.sql` adds the `scopes` and `tools` columns to `api_tokens`.
@@ -557,6 +558,7 @@ This release adds 21 SQL migrations since 1.1.3:
 - `0098_instance_defaults.sql` adds `instance_defaults`, where the licence gate's mode is
   recorded on first start.
 - `0099_company_kits.sql` adds the `kit` column to `partner_company_profiles`.
+:::
 
 The numbers 0091 and 0092 were never used, and the runner accepts the gap. `pnpm run
 migrate:classify` classes 17 files as additive and four as maintenance: `0079`, `0080`, `0082`
@@ -617,12 +619,11 @@ has 88 files.
 
 This section is for Lolly Work maintainers cutting the release.
 
-**Maintainer commands**
-
+::: details Maintainer commands
 The commands are the same as for 1.1.3, with `vendor/lolly` at the Lolly source
 above:
 
-```text
+```bash
 node scripts/vendor-content-resolver.ts --write
 pnpm run repin-engine --apply
 pnpm run verify:engine-pin
@@ -631,7 +632,7 @@ pnpm run typecheck
 
 The packaged documentation comes from a Lolly commit that contains this page:
 
-```text
+```bash
 node scripts/sync-docs-bundle.ts --source=/path/to/lolly --commit=<full-commit-sha>
 pnpm run verify:docs-pin
 ```
@@ -640,6 +641,7 @@ Before tagging or publishing images, the exact final Lolly Work commit needs ord
 CI, including the native server image checks and the real Chromium worker checks
 with the matched signed shell. The tagged server and worker images must come from
 that same Lolly Work commit.
+:::
 
 ## YunoHost packaging
 
@@ -647,7 +649,7 @@ Lolly 1.2.0 publishes a new web archive, and the Lolly Work YunoHost package pin
 `lolly-web-1.2.0-ynh1.tar.gz` archive above. The maintained producer cuts the package on
 the final Lolly Work commit:
 
-```text
+```bash
 node scripts/yunohost-release.ts --ynh-rev 1 --shell-url https://lolli.li/lolly-web-1.2.0-ynh1.tar.gz --shell-sha256 3a324eef05128d32c6154ab88e360c40a8235ee181c3b49abe4ef5b556d1ac0f --out ABS_NEW_ARTIFACT_DIRECTORY
 ```
 

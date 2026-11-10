@@ -4,12 +4,13 @@ You agreed the output before production: a 200 by 100 pixel SVG, one page, with 
 
 Write the requirements once, as a small JSON file, then check wherever the file is:
 
-- in **Lolly Verify** in the app, add the file and choose **More** › **Policy**;
-- in the terminal, add `--production=checks.json` to `lolly inspect`, or to a render, which then writes the file only when every required check passes;
-- over MCP, pass the same requirements to `lolly_inspect` or `lolly_render`.
+- in **[Lolly Verify](#check-in-verify)** in the app, add the file and choose **More** › **Policy**;
+- in **[the terminal](#check-from-the-terminal-and-mcp)**, add `--production=checks.json` to `lolly inspect`, or to a render, which then writes the file only when every required check passes;
+- over **[MCP](#check-from-the-terminal-and-mcp)**, pass the same requirements to `lolly_inspect` or `lolly_render`.
 
 The checks measure the delivered bytes. They do not approve the design, confirm that a statement is true or say whether AI made the file. Ordinary exports are unchanged; only a render that asks for a production check is held to the requirements.
 
+<!--i:eti-pen-->
 ## Write the requirements
 
 A requirements file (a contract) states its profile, its own revision and the output you expect:
@@ -30,7 +31,9 @@ A requirements file (a contract) states its profile, its own revision and the ou
 }
 ```
 
+::: warning Do not copy measurements from the file
 Use the dimensions, format and content agreed before production. Do not copy measurements from the file you are checking just to make it pass.
+:::
 
 - **Size.** Dimensions are pixels, and every page must have the requested size. PDF page sizes are converted from points at 96 pixels per inch.
 - **Alpha.** `alpha` is `any`, `opaque` or `transparent`; transparent means at least one decoded pixel is less than fully opaque.
@@ -38,9 +41,12 @@ Use the dimensions, format and content agreed before production. Do not copy mea
 - **PDF text.** Locations are `page:1`, `page:2` and so on, and the expected string is the whole trimmed page text from Poppler's layout extraction, including its internal whitespace. Images and outlined text have no text to compare.
 - **Resources.** A `resource` requirement compares an expected digest with an observed read of a font or asset, by its asset id or worker resource URL. Lolly Work supplies those facts from actual reads. An unobserved resource stays undetermined, and several different digests under one id do not resolve to whichever arrived last. Optional `sourceSha256` and `contextSha256` need the matching execution snapshot, which a standalone file inspection cannot rebuild.
 
+::: note What these checks cannot see
 None of these checks shows that text is visible, unclipped, in the right font or fully covered by its glyphs. Keep Lolly Design's own text-layout receipts and export checks turned on.
+:::
 
 <a id="check-in-verify"></a>
+<!--i:eti-badge-check-->
 ## Check in Lolly Verify
 
 Production checks are for people who already have agreed requirements. For an ordinary look at a file, leave these controls hidden.
@@ -56,6 +62,7 @@ The toolbar's own **Report** exports a signed PDF of the whole Lolly Verify asse
 
 Changing the file, the requirements or the reference clears the checks shown. The JSON report binds the measurements to the exact file bytes and requirements revision.
 
+<!--i:eti-keyboard-->
 ## Check from the terminal and MCP
 
 ```sh
@@ -74,6 +81,7 @@ On-device file transforms refuse the render option; inspect their finished files
 
 Over MCP, `lolly_inspect` takes `file`, `production` and an optional base64 `productionReference`, and `lolly_render` takes the same requirements and reference. The shared render code enforces the requirement even for a direct caller, and a failure keeps the report. SVG inspection never runs the document's code or fetches its linked resources.
 
+<!--i:eti-images-->
 ## Compare with a reference image
 
 An optional `comparison` adds whole-image and region checks against a reference you supply separately, with `referenceSha256` naming its exact bytes:
@@ -100,6 +108,7 @@ The comparison never resizes or aligns an image. It checks decoded RGBA differen
 
 It compares decoded 8-bit sRGB pixels. It does not compare HDR values, separation plates, every device's rendering or compressed bytes. The 768-pixel preview comparison elsewhere in the app is a separate review feature, and this profile is not the broader draft `still-2d/1` print suite.
 
+<!--i:eti-film-->
 ## Check a video delivery
 
 `lolly/production-motion-v1` checks finished MP4 and WebM files in the CLI and MCP, including their video render paths. Lolly Work's governed renderer accepts only the still profile. Lolly Verify in the app can load a motion contract, and reports that it cannot read the whole video independently.
@@ -144,6 +153,7 @@ Limits: 32 MiB, 120 seconds, 120 fps, 14,400 frames, four million pixels per fra
 SDK callers use `parseProductionSpec` for either profile. `ProductionContract` and `parseProductionContract` stay still-only; `ProductionSpec` adds the motion form.
 :::
 
+<!--i:eti-repeat-->
 ## Let Lolly try permitted fixes
 
 A repair plan lets a render try listed alternatives when a check fails, such as a shorter layout when the legal line does not fit. It lists the protected inputs, an ordered list of permitted values, the failed findings that trigger a change and an attempt limit:
@@ -166,10 +176,15 @@ Pass it as `--production-repairs=repairs.json` on the CLI, `productionRepair` ov
 - <!--i:clock--> **Stop at the limit.** The plan's `maxAttempts`, which must be from zero to eight.
 :::
 
-A required `input` is protected whatever the plan says, a refused change to a protected input keeps the failed attempt's report, and the loop cannot change its own contract. Never list protected copy, numbers or logos as permitted edits.
+A required `input` is protected whatever the plan says, a refused change to a protected input keeps the failed attempt's report, and the loop cannot change its own contract.
+
+::: warning Keep protected content out of the plan
+Never list protected copy, numbers or logos as permitted edits.
+:::
 
 The CLI keeps every attempt's report in `<report>.history.json`; MCP and Lolly Work keep them beside the final report. An unresolved attempt never publishes a verified file. In Lolly Work, its ordinary policy checks also apply to every candidate, and cancellation and publication stay with its durable runner.
 
+<!--i:eti-gauge-->
 ## What each place can measure
 
 ::: details The capability matrix
@@ -222,6 +237,7 @@ For reusable Lolly Design tools, list their declared copy, number or data inputs
 These observations come from the runtime at its export boundary, after export hooks. Chromium reports are matched to the exact downloaded bytes, and Lolly Work signs them and binds them to the worker request and SVG. They prove where the values came from, not that every value is visible or correctly plotted, so add text or reference-region requirements for the output itself. File-only inspection, older web shells, the desktop renderer and tool export paths that bypass `host.export.render` cannot supply them and stay undetermined. Use `LOLLY_RENDERER=chromium` when a CLI job needs this evidence. The observers describe a cooperating shell; they are not a sandbox against hostile tool code.
 :::
 
+<!--i:eti-stamp-->
 ## Decisions and evidence
 
 A measurement report binds its checks to the file and contract digests, with source and context digests where they were observed. A local review record is separate and binds the exact report and finding fingerprints. Only a failed appearance check can carry a reasoned local exception; unknown coverage and structural or protected-content failures cannot be excepted.

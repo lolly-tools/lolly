@@ -2,6 +2,7 @@
 
 The facts a script or an agent looks up: exit codes, the `--json` envelope, global flags and environment variables. It also covers verifying a file, the document and picture verbs, where local state lives and shell completion. The [lolly CLI](/info/cli.html) page is the place to start.
 
+<!--i:eti-checklist-->
 ## Exit codes
 
 Every command answers with one code per outcome, so a pipeline can branch on the code instead of reading stderr. The meanings were fixed when the CLI reached general availability: a new code can be added, but an existing one does not change meaning without a major version.
@@ -31,9 +32,10 @@ Every command answers with one code per outcome, so a pipeline can branch on the
 
 Messages go to stderr; `--verbose` (or `DEBUG=1`) adds stack traces. An input that fails validation lists each field at fault. Several commands take a list of files, and then the exit code is the worst one's.
 
+<!--i:eti-code-->
 ## The --json envelope
 
-`--json` puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It works on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `mix`, `speak`, `transcribe`, `ocr`, `detect-ai`, `reword`, `rebrand`, `read`, `check`, `compose`, `look` (with `--output`), `sample`, `trace`, `system`, `start`, `files`, `prepare` and `learning`, and on `measure --text`, `measure --text-layers` and `package` of a Lolly Design document.
+`--json` puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It works on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `mix`, `speak`, `transcribe`, `ocr`, `detect-ai`, `reword`, `rebrand`, `read`, `check`, `compose`, `look` (with `--output`), `sample`, `trace`, `system`, `start`, `files`, `prepare`, `learning`, `intent`, `projects` and `reports`, and on `measure --text`, `measure --text-layers` and `package` of a Lolly Design document.
 
 It is **not** available on a render, because a render's stdout is the file; asking for both is a usage error. `lolly speak --out=- --json` is refused for the same reason.
 
@@ -75,6 +77,7 @@ lolly describe qr-code --json     # one tool's full input schema
 
 `describe --json` returns each input's declared spec plus three things the manifest cannot know: `flag` (the command-line spelling), `urlParam` (the compact alias, when the tool declares one) and `syntax` (how to write a non-scalar value). For an input whose id is also a reserved flag (`width`, `height`, `format`), `flag` is `--input.<id>=` and `shadowedByReservedParam` is `true`, because the bare id would set the export size instead.
 
+<!--i:eti-sliders-->
 ## Global flags
 
 These work on every command:
@@ -90,6 +93,7 @@ These work on every command:
 
 A flag that takes a value is refused in its bare form rather than read as `"1"`: `lolly qr-code --output` is an error, not a file called `1`. `NO_COLOR` is honoured alongside the terminal check. Render flags are listed in [Render with the CLI](/info/cli-rendering.html#flags).
 
+<!--i:eti-cpu-->
 ## Environment variables
 
 Where a flag and a variable set the same thing, the flag wins. `--trust-anchor` is the exception: it adds to the roots in `LOLLY_TRUST_ANCHOR`. When the variables that decide where the CLI reads and renders are set, `lolly list --json` reports them under `result.environment.env`.
@@ -114,6 +118,7 @@ Where a flag and a variable set the same thing, the flag wins. `--trust-anchor` 
 | `SOURCE_DATE_EPOCH` | The time written into `.lolly` zip entries by `lolly package`. |
 | `NO_COLOR` | Plain text output. |
 
+<!--i:eti-badge-check-->
 ## Verify a file (lolly validate)
 
 `lolly validate` is the read side of [Content Credentials](/info/content-credentials-identity.html), entirely on this machine:
@@ -132,7 +137,7 @@ The summary says whether the file was made with Lolly and is unchanged since. Th
 
 Trust only means something next to "trusted by what", so every report says which anchor set it used. The default is the **Lolly CA root**, the **vendored C2PA known-certificate list** (camera makers and the big generators) and anything you pinned. That is the same set the app's Verify view uses, so one word means one thing everywhere:
 
-```text
+```bash
 $ lolly validate ./qr.svg
 ./qr.svg  [svg]
 ✦ Made with Lolly - credential intact, file unchanged since export
@@ -147,6 +152,7 @@ $ lolly validate ./qr.svg --no-default-anchors
 
 Both exit `0`: this file is signed with an on-device key that chains to nothing, which is the expected state for a terminal render, not damage. [Signing from the terminal](/info/cli-signing.html) shows how to sign with a name a recipient can verify.
 
+::: details Every lolly validate flag
 | Flag | Meaning |
 |---|---|
 | `--json` | The shared envelope. `result.files[]` holds one record per file: `verdict` (the stable slug), `resolved` (the engine's verdict), `report` (the full verifier output), `metadata` (the `--metadata` report, or `null`) and `anchors`. A file that could not be read gets a record with its own `error`, so one typo does not hide nine results. |
@@ -155,7 +161,8 @@ Both exit `0`: this file is signed with an on-device key that chains to nothing,
 | `--no-default-anchors` | Trust **only** what you pinned. With nothing pinned, every signer reads untrusted: the bare-trust check, which confirms a green verdict came from a root you chose. |
 | `--require=credential\|none` | `credential` (the default) gates the exit code on the verdict; `none` reports what is in the file and exits `0` when it could be read. |
 | `--metadata` | Also report what else is in the file ([below](#metadata-what-else-is-in-this-file)). |
-| `--rebuild=<session.lolly>` | The reproducibility receipt: render the session again here and report `IDENTICAL` (exit `0`) or `DIFFERENT` (exit `1`) with every reason it could check: engine version, tool version, a font that resolves differently or the offset where the content first differs. `svg`, `emf`, `eps`, `dxf` and `csv` only; a raster or PDF is refused with exit `2`, because those bytes come from a browser engine. See [Reproducibility](/info/reproducibility.html#prove-it-yourself). |
+| `--rebuild=<session.lolly>` | The reproducibility receipt: render the session again here and report `IDENTICAL` (exit `0`) or `DIFFERENT` (exit `1`) with every reason it could check: engine version, tool version, a font that resolves differently, a different design system or the offset where the content first differs. `svg`, `emf`, `eps`, `dxf` and `csv` only; a raster or PDF is refused with exit `2`, because those bytes come from a browser engine. See [Reproducibility](/info/reproducibility.html#prove-it-yourself). |
+:::
 
 ### --metadata: what else is in this file
 
@@ -176,15 +183,16 @@ lolly validate ./photo.jpg --metadata --require=none    # report only, never a g
 | Needs | Nothing extra | The headless Chromium and a built web shell |
 | Changes the exit code | Under `--strict`: hidden text, a GPS fix or bytes after the container exit `4` | Never |
 
-What this report does not check:
-
+::: note What this report does not check
 - **No invisible or neural watermark detection runs under `--metadata`.** SynthID is not detected by Lolly at all.
 - The hidden-text pass covers one case: text under an opaque shape that covers most of the line. Text hidden by an invisible render mode, a clip path, white-on-white colour or a bar drawn tight around the glyphs is not reported.
 - PDFs are read to 25 pages. A longer document's report says how many pages it read and claims nothing about the rest.
 - A file too broken to parse gives fewer findings plus an explicit "this report is incomplete" line, never a crash and never a clean bill of health.
+:::
 
 Every report ends with what it did **not** check, because nothing found is not the same as nothing there.
 
+<!--i:eti-file-->
 ## Document verbs
 
 The versioned document API works without rendering a tool to pixels:
@@ -206,6 +214,7 @@ A logical asset input such as `image://brand/logo`, `catalog://lolly/logo/primar
 
 `measure` and `package` also take a Lolly Design document directly, and `inspect --forensic` reports located AI clues and their coverage ([AI evidence in Lolly Verify](/info/verify-ai-evidence.html)). [Rebuild a deck from the terminal](/info/cli-decks.html) covers the Lolly Design forms.
 
+<!--i:eti-pin-->
 ## Start from what the piece has to do
 
 `lolly intent` takes a JSON file, or `-` for standard input, that says what a piece has to do, where it will be seen and what it has to say. It answers with the tool for each surface, the input values, what is missing and why. `--render` makes a file for each ready surface and writes the answer beside them as `intent-resolution.json`. [Start from what the piece has to do](/info/visual-intent.html) has the format.
@@ -220,10 +229,16 @@ lolly intent certificate.json --render --no-record-intent
 
 With `--render`, each file's Content Credential records the purpose, surface, tool, language, rules and vocabulary versions and the intent digest, with occasion, audience, region and the prompt as fingerprints only. `--record-prompt` records the prompt's own words instead of its fingerprint. `--no-record-intent` records nothing about the intent. `--c2pa=off` writes no credential, or `--c2pa=<days>` sets its lifetime. Each run says what it recorded, read back from the finished file, and `--json` gives the same as `intentRecord` on each entry in `rendered`. [What goes in the file](/info/visual-intent.html#what-goes-in-the-file) has the detail.
 
+<!--i:eti-download-->
 ## Bring a design in from another service (lolly import)
 
-`lolly import <template.json>` turns a Bannerbear V5 image template into a Design document on this device and prints what was left out, one note per line. `--output=<file>` writes the frames and report, `--mapping=<file>` writes the entry `lw render-api` reads, and `--json` prints the whole result. See [Bannerbear templates](/info/design-import.html#bannerbear-templates). Bannerbear V2 and Placid return no design, so `lolly import` refuses them. Built from public documentation and not run against a live account.
+`lolly import <template.json>` turns a Bannerbear V5 image template into a Design document on this device and prints what was left out, one note per line. `--output=<file>` writes the frames and report, `--mapping=<file>` writes the entry `lw render-api` reads, and `--json` prints the whole result. See [Bannerbear templates](/info/design-import.html#bannerbear-templates). Bannerbear V2 and Placid return no design, so `lolly import` refuses them.
 
+::: note Not run against a live account
+The importer is built from public documentation and has not run against a live account.
+:::
+
+<!--i:eti-crop-->
 ## Look at a picture in its own coordinates
 
 The MCP server's looking tools are CLI verbs too, over the same code, so a script sees what an agent sees. Each takes an SVG, PNG, JPEG, GIF or WebP file, or `-` for standard input:
@@ -239,6 +254,7 @@ lolly trace photo.jpg --max-lines=20 --design-layers --json
 - `sample` gives the colour at each point, averaged over a small disc, with the nearest colour of the active design system and its distance (ΔE in OKLab).
 - `trace` gives the picture's edges as lines in the same units, longest first; `--design-layers` adds each line as a Lolly Design path layer.
 
+<!--i:eti-folder-shared-->
 ## Where saved sessions live
 
 A `lolly` run is short-lived: state a tool saves stays in memory for that run. What it does read is the saved sessions this machine already has. One directory serves the desktop app, the TUI and the CLI, picked in this order:
@@ -254,6 +270,7 @@ Sessions sit in `saved-state/<slot>.json` there, in the record the desktop app w
 
 Terminal design systems are kept differently. `lolly system init`, `import`, `add` and `use` store them under `design-systems/`, with the list in `design-systems.json`, in whichever directory the order above picks. A bare `lolly` in a terminal also records there that you have seen its start screen.
 
+<!--i:eti-globe-->
 ## Publish a brand page
 
 [Brand pages](/info/brand-page.html) explains what a page is for, what goes public and how to read someone else's page.
@@ -262,6 +279,7 @@ Terminal design systems are kept differently. `lolly system init`, `import`, `ad
 
 The source is `--file=<tokens>`, then a content profile you name with `--profile=<name>` or `LOLLY_PROFILE`, then the active terminal system. A profile is never published by default, and a pack marked as managed also needs `--manager-allows`.
 
+::: details Every lolly system publish flag
 | Flag | What it does |
 |---|---|
 | `--out=<dir>` | The folder to write. It must be new or empty. |
@@ -273,6 +291,7 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 | `--record-address` | After writing the folder, record `--origin` on the active terminal design system, so its [exports name the page](/info/brand-page.html#lead-back-from-your-files). Needs a plain `https` address on a named host. Off by default. Turn this on once the page is live there. |
 | `--no-record-address` | Remove that setting from the active terminal design system. |
 | `--name=<name>`, `--id=<id>` | Override the name and the id. |
+:::
 
 **What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A logo whose rights record says `own-work`, with its owner and terms, travels as "Owner-published, not an open licence" ([Publish your own marks](/info/brand-page.html#publish-your-own-marks)). A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.
 
@@ -280,6 +299,7 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 
 The same input gives the same bytes, so you can build twice and compare the folders.
 
+<!--i:eti-keyboard-->
 ## Shell completion (lolly completion)
 
 `lolly completion bash|zsh|fish` prints a completion script for verbs, flags and the tool ids in the active profile's catalog:
@@ -290,4 +310,6 @@ lolly completion zsh  > ~/.zsh/completions/_lolly                # then: autoloa
 lolly completion fish > ~/.config/fish/completions/lolly.fish
 ```
 
+::: note The tool list is a snapshot
 The tool-id list is a snapshot taken when the script is generated. After installing new tools, run `lolly completion <shell>` again.
+:::

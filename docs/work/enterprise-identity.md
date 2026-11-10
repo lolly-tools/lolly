@@ -9,14 +9,17 @@ Lolly Work owns organisation sign-in, admission and revocation. Serve the Lolly 
 the same HTTPS origin. The optional Lolly Content Credentials CA has its own provider
 registration and trust policy; a Lolly Work session does not sign a person into that CA.
 
-::: timeline
-- <!--i:server--> **Prepare the deployment.** Final address, secrets, database and network access.
-- <!--i:link--> **Register the client.** Redirect, logout and scope settings at your provider.
-- <!--i:sliders--> **Configure admission and assurance.** Who may sign in, and which claims a sign-in must carry.
-- <!--i:checklist--> **Qualify before opening access.** Sign-in, sign-out, logout, disable and key rotation on a candidate.
-- <!--i:wrench--> **Operate and upgrade.** Offboarding, migrations, rollback and monitoring.
+**What you'll do**, in five steps:
+
+::: steps
+- <!--i:eti-clipboard--> **[Prepare the deployment](#1-prepare-the-deployment)** Final address, secrets, database and network access.
+- <!--i:eti-link--> **[Register the client](#2-register-the-client)** Redirect, logout and scope settings at your provider.
+- <!--i:eti-user-check--> **[Configure admission and assurance](#3-configure-admission-and-optional-assurance)** Who may sign in, and which claims a sign-in must carry.
+- <!--i:eti-badge-check--> **[Qualify before opening access](#4-qualify-before-opening-access)** Sign-in, sign-out, logout, disable and key rotation on a candidate.
+- <!--i:eti-refresh--> **[Operate and upgrade](#5-operate-and-upgrade)** Offboarding, migrations, rollback and monitoring.
 :::
 
+<!--i:eti-clipboard-->
 ## 1. Prepare the deployment
 
 Choose the final HTTPS `instance.baseUrl` before registering the client. Keep
@@ -35,6 +38,7 @@ Allow server egress to the configured issuer's discovery, token and JWKS endpoin
 
 Keep node clocks synchronized.
 
+<!--i:eti-link-->
 ## 2. Register the client
 
 Create an Authorization Code client with PKCE S256 and these exact URLs, replacing
@@ -56,9 +60,11 @@ methods, the configured method must be listed. Primary secrets use `LW_IDP_CLIEN
 additional providers point at their own environment variable with `clientSecretRef`. Each
 provider's console steps are in the [provider recipes](identity-providers.md#provider-recipes).
 
-For session-specific logout, request `backchannel_logout_session_required=true` and arrange
-for **both ID tokens and logout tokens to contain `sid`**. The provider must reach the
-back-channel route directly, without an interactive proxy login.
+::: note Session-specific logout needs `sid`
+Request `backchannel_logout_session_required=true` and arrange for **both ID tokens and logout
+tokens to contain `sid`**. The provider must reach the back-channel route directly, without an
+interactive proxy login.
+:::
 
 ::: details How the back-channel route checks a logout
 - It verifies signed logout tokens and needs no Lolly Work cookie.
@@ -71,6 +77,7 @@ back-channel route directly, without an interactive proxy login.
   same account.
 :::
 
+<!--i:eti-user-check-->
 ## 3. Configure admission and optional assurance
 
 Merge this example into the instance configuration. Replace all sample values and keep the
@@ -116,9 +123,12 @@ example, after checking your issuer's actual claim vocabulary:
 - `maxAgeSeconds` requires `auth_time` and allows up to sixty seconds of clock difference.
 - Lolly Work sends `acr_values` and `max_age` and verifies the returned claims. Request hints alone
   do not enforce MFA.
-- The policy governs that provider's new sign-ins. It does not impose MFA on other providers,
-  password, proxy or passkey sign-ins, and it does not invalidate cookies already issued.
-  Review those paths separately before claiming an organisation-wide MFA requirement.
+
+::: note Assurance covers one provider's new sign-ins
+The policy governs that provider's new sign-ins. It does not impose MFA on other providers,
+password, proxy or passkey sign-ins, and it does not invalidate cookies already issued.
+Review those paths separately before claiming an organisation-wide MFA requirement.
+:::
 
 Lolly Work requires signed `iss`, nonempty `sub`, `aud`, `exp` and `iat`, plus the transaction
 nonce. The audience must include this client and no other audience unless it is listed in
@@ -139,6 +149,7 @@ references. Alternatively, pass the complete reviewed instance JSON with
 `--set-file config=instance.json` on your usual Helm install or upgrade command. No separate
 identity chart or source edit is needed.
 
+<!--i:eti-badge-check-->
 ## 4. Qualify before opening access
 
 Use a candidate environment with the same ingress and provider policy as production:
@@ -170,6 +181,7 @@ Use a candidate environment with the same ingress and provider policy as product
 Automated tests cover protocol failures and durable logout. They do not replace these checks
 against a real provider, network and secret manager.
 
+<!--i:eti-refresh-->
 ## 5. Operate and upgrade
 
 **Offboarding.** Keep `linkedStandingDays: 30`, and use SCIM or admin revocation as the
@@ -187,6 +199,7 @@ immediate control:
   `<id>:<sub>`), following [SCIM provisioning](#scim-provisioning), and verify mappings before
   enabling automated deprovisioning.
 
+::: details Upgrading an instance from before 1.1.1, which introduced provider logout
 **Release introducing logout.** Back up the database and keep the current image, configuration
 and secret versions. Apply migration `0067_oidc_logout.sql` through the normal migration runner
 before serving the new version. Helm's enabled migration Job handles this; an image-only update
@@ -203,6 +216,7 @@ Let them expire under the previous maximum lifetime, or revoke accounts' existin
 require fresh sign-in for a bounded cutover. Deploy the updated Lolly shell to show the
 provider sign-out action in Settings; the updated Lolly Work console offers the same action on its
 own.
+:::
 
 **Rollback.** Keep the new tables; do not automatically reverse database migrations. An older
 server does not enforce the new logout records or standing deadlines. If you revert server
@@ -211,7 +225,7 @@ been revoked. Test the previous image against the migrated database in the candi
 environment before you need a rollback. Reverting an assurance setting affects future
 sign-ins; it does not rebuild sessions that were refused.
 
-**Secret and issuer changes.** Follow [secret rotation](operations.md) for Lolly Work's session and
+**Secret and issuer changes.** Follow [secret rotation](operations.md#secret-rotation) for Lolly Work's session and
 link keys and their previous-key overlap. Rotate client credentials at the provider and in
 the secret manager with provider-supported overlap, then roll all replicas and verify a new
 sign-in. JWKS keys are fetched automatically and cached for ten minutes, with early refresh for
@@ -224,6 +238,7 @@ Monitor the `auth.failed`, `auth.denied`, `auth.logout-provider` and
 `auth.backchannel-logout` audit actions and callback and logout HTTP errors. Liveness alone
 does not show that discovery, credentials, claims or SCIM work.
 
+<!--i:eti-cpu-->
 ## Machine credentials
 
 Two kinds of standing bearer credential sign machines in: a SCIM token for your provider's
@@ -231,10 +246,13 @@ provisioning connector, and a service token for automation. Only an owner mints 
 (`scim.manage` and `token.manage`). Each secret is shown once and stored as its SHA-256
 hash, so a leaked database yields hashes, not usable tokens.
 
-The console's **Provisioning and service tokens** page creates, lists and revokes both. A new
-secret displays once and is cleared when acknowledged. It is never placed in the URL, browser
-storage or token metadata, so record it before leaving. Last-use metadata helps identify unused
-credentials.
+The console's **Provisioning and service tokens** page creates, lists and revokes both. Last-use
+metadata helps identify unused credentials.
+
+::: warning A new secret is shown once
+A new secret displays once and is cleared when acknowledged. It is never placed in the URL,
+browser storage or token metadata, so record it before leaving.
+:::
 
 ### SCIM provisioning
 
@@ -271,6 +289,7 @@ DELETE /api/v1/scim/tokens/:id                          # revoke
   and admin accounts, their role groups and groups with owner-only grants stay under instance
   administration.
 
+::: details Existing installations from before 1.1.1: assign SCIM resources
 On an existing installation, apply migration `0068_provisioning_scope.sql`, reissue
 provisioning tokens, and assign the earlier resources through an owner session:
 
@@ -282,6 +301,7 @@ PUT /api/v1/scim/ownership
 Every member of an assigned group must be assigned to the same connector, and resources already
 assigned to another connector cannot be reassigned by this route. Earlier tokens without an end
 date, and resources without an assignment, stay unavailable to SCIM.
+:::
 
 SAML is not implemented. A broker such as Keycloak bridges a SAML-only provider to the OpenID
 Connect that Lolly Work already speaks ([SAML recipe](identity-providers.md#saml)).
@@ -297,8 +317,9 @@ lw tokens create --label governance-sync --role admin --days 90
 ```
 
 - Give a token scopes when you can. Scopes (`render`, `documents`, `files`, `delivery`,
-  `catalog.read`, `audit.read`) say what the token may reach and refuse every other route with
-  `403 TOKEN_SCOPE`, including routes added later. `--tools` limits it further to the tools you list. The
+  `catalog.read`, `audit.read` and the opt-in `approvals.request`, which lets a token ask for
+  review of its own finished renders) say what the token may reach and refuse every other route
+  with `403 TOKEN_SCOPE`, including routes added later. `--tools` limits it further to the tools you list. The
   [automation guide](automation-api.md#before-you-start-a-token-and-a-permission) lists what each
   scope opens.
 - A scope only narrows. A route must pass the scope and then the role and grants, so no scope gives
@@ -311,6 +332,13 @@ lw tokens create --label governance-sync --role admin --days 90
 - Scopes and the tool list are fixed at mint and are recorded in the audit trail. To change them,
   mint a new token and revoke the old one.
 - A new token expires after 90 days by default; `ttlDays` accepts 1 to 365.
+- An internal token has no call or render limits unless an owner sets some on the token. A
+  token placed in a partner programme takes limits by default, 120 calls a minute and 2,000
+  renders a UTC day, and over a limit it gets `429 RATE_LIMITED` or `429 BUDGET_EXHAUSTED` with
+  `Retry-After` ([limits and usage](partner-agents.md#limits-and-usage)).
+- An agent can work under a service token over the organisation MCP endpoint,
+  `POST /api/v1/mcp`, with no more than the token allows
+  ([connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp)).
 - Presenting it resolves to a synthetic principal with the token's role and no groups. The
   role evaluator, grants and the audit trail treat it exactly like a person, so there is no
   second authorization model.

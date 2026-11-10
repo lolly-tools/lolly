@@ -11,11 +11,12 @@ There are five ways in:
 | Way in | Where it works | What the agent needs |
 |---|---|---|
 | [An invitation from Share](#invite-an-agent-from-share) | Any tool, on an instance with an agent relay | The Lolly plugin in ChatGPT, a remote MCP client or Lolly's local MCP server |
-| [Ask an agent](#ask-an-agent-in-the-desktop-app) | Lolly Design, in the Lolly desktop app | Claude Code or Codex installed and signed in on the same computer; no MCP setup |
+| [Ask an agent](#ask-an-agent-in-the-desktop-app) | Lolly Design, in the next build of the Lolly desktop app | Claude Code or Codex installed and signed in on the same computer; no MCP setup |
 | [The desktop app](#in-the-desktop-app) | Lolly Design, in the Lolly desktop app on the same computer | Lolly's local MCP server |
 | [A pairing code](#in-a-browser-with-a-pairing-code) | Lolly Design, in a development build or a self-hosted build that allows it | Lolly's local MCP server |
 | [Site tools in the browser](#site-tools-in-the-browser-webmcp) | The page itself, in a browser that supports site tools | The browser's own agent |
 
+<!--i:eti-mail-->
 ## Invite an agent from Share
 
 On an instance with an agent relay, the person who has the document open hands the agent an invitation:
@@ -37,7 +38,12 @@ How the agent connects depends on what it runs in:
 
 On an instance with no relay, Share offers **Agent instructions** instead: the Lolly skill, the tool's guidance and a link that carries the current inputs. That handoff gives the agent no access to the open document; it works from the link.
 
+<!--i:eti-chat-->
 ## Ask an agent in the desktop app
+
+::: note Arrives with the next desktop build
+Lolly 1.2.0 has no new desktop build, so the desktop app you can download today does not offer **Ask an agent** yet.
+:::
 
 The desktop app can hand one request to an agent tool you already use in a terminal, with nothing to set up. Open Lolly Design and choose **Ask an agent** in the Lolly menu.
 
@@ -52,16 +58,23 @@ The agent runs with no tools: it cannot read your files, run commands or browse.
 
 On a managed instance the organisation's AI policy decides whether **Ask an agent** and **Allow AI control** appear at all ([Manage organisation AI policy](/info/work-ai-policy.html)).
 
+<!--i:eti-monitor-->
 ## In the desktop app
 
 Open Lolly Design, choose **Connect an AI agent** in the Lolly menu and turn on **Allow AI control on this device**. The setting is off until you turn it on. While it is on, the app listens on this computer only, and an agent using Lolly's local MCP server finds the app with no code: `lolly_live_connect` connects at once.
 
+<!--i:eti-keyboard-->
 ## In a browser with a pairing code
 
 An agent using Lolly's local MCP server can pair with Lolly Design in a browser. `lolly_live_connect` returns a code such as `52817-K7QF-9XMB`. The person opens Lolly Design, chooses **Connect an AI agent** and types the code. The code works once, and three wrong codes end the pairing.
 
-The page then connects to the agent's server on `127.0.0.1`, which accepts pages from lolly.tools, from the sites listed in `LOLLY_LIVE_ORIGINS` and from localhost. The content security policy of the served builds does not allow that connection yet, so this path works in a development build, or in a self-hosted build made with `VITE_LIVE_AGENT=1` whose policy allows `ws://127.0.0.1:*`. On an instance with a relay, **Connect an AI agent** opens Share to make an invitation instead.
+The page then connects to the agent's server on `127.0.0.1`, which accepts pages from lolly.tools, from the sites listed in `LOLLY_LIVE_ORIGINS` and from localhost. On an instance with a relay, **Connect an AI agent** opens Share to make an invitation instead.
 
+::: note Only in a development or specially made build
+The content security policy of the served builds does not allow that connection yet, so this path works in a development build, or in a self-hosted build made with `VITE_LIVE_AGENT=1` whose policy allows `ws://127.0.0.1:*`.
+:::
+
+<!--i:eti-hammer-->
 ## What the agent can do
 
 The nine document tools are the same whichever way the agent joined:
@@ -93,6 +106,7 @@ Successful reads, context and apply calls include `structuredContent`. An apply 
 The connection keeps its latest 128 receipts. Older transaction ids are refused, so retrying an expired receipt cannot repeat its edit. A connection admits up to 4096 named transactions before another invitation is needed.
 :::
 
+<!--i:eti-eye-->
 ## What you see while it works
 
 The agent appears beside people in **People**, with an **AI agent** tag, its own colour and its current activity. Changed layers carry temporary outlines and a note naming the agent. These cues stay outside the artwork and exports.
@@ -105,6 +119,7 @@ You stay in charge of the session:
 
 Agent presence travels on the inviter's own collaboration connection. Lolly Work 1.1.0 and later keep the agent roster in presence. Older Lolly Work servers drop that roster, so other people on those servers see the agent's edits without its name in People or the change cues. Agent edit labels name the agent; the inviting member remains the collaboration author.
 
+<!--i:eti-globe-->
 ## Site tools in the browser (WebMCP)
 
 In a browser that supports site tools (`document.modelContext`), Lolly registers actions that the browser's agent can call on the open page. They use the page's signed-in workspace session, follow the current view and end when the page closes. OpenAI's [Site tools guide](https://learn.chatgpt.com/docs/webmcp) describes compatible clients. Registration runs in the top-level app; embedded tool pages register nothing. Browsers without site tools keep the normal interface.
@@ -125,6 +140,7 @@ Asset results include dimensions, formats, rights, attribution, AI disclosures a
 
 The MCP server and project invitations keep working for agents that work independently of an open page.
 
+<!--i:eti-cpu-->
 ## Run a document relay
 
 An operator who wants Share invitations on a self-hosted instance runs the relay alongside the web shell.

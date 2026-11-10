@@ -6,6 +6,7 @@ controller. This page is for two readers who want to go further: a Rancher platf
 evaluating Kubewarden admission policies, and a developer preparing a host for
 WebAssembly components.
 
+<!--i:eti-grid-->
 ## What exists today
 
 | Role | Approach to use | What Lolly provides now |
@@ -19,6 +20,7 @@ Kubewarden evaluates Kubernetes admission requests. It does not run the Lolly Wo
 PostgreSQL or the browser render worker, so keep the policy decision separate from the
 application runtime decision.
 
+<!--i:eti-shield-check-->
 ## Evaluate Kubewarden
 
 Use a separate rehearsal cluster, or narrowly chosen rehearsal namespaces, and follow
@@ -35,12 +37,15 @@ Start in audit mode, with curated image verification policies:
   publisher. The [Kubewarden policy set for Lolly Work](admission-policy.md) carries it, with
   the pod requirements and a preflight check.
 
+::: warning Test failure before you enforce
 Before you enforce anything, show that a qualified release is accepted and that an
 unsigned, altered or wrongly attributed release is rejected. Test controller and
 registry outages, namespace exclusions and a written recovery route, and measure the
 admission latency. A broad webhook that fails closed must not stop the operator from
 restoring the policy service itself.
+:::
 
+<!--i:eti-cpu-->
 ## Prepare a component host
 
 For an existing cluster, read its runtime configuration first, without changing
@@ -57,15 +62,19 @@ Then choose one pinned route, using the official
 or the [runwasi quickstart](https://runwasi.dev/getting-started/quickstart.html). K3s and
 RKE2 each configure containerd their own way:
 [K3s](https://docs.k3s.io/advanced#configuring-containerd) and
-[RKE2](https://docs.rke2.io/advanced#configuring-containerd). Keep the normal OCI handler
-as the default. Stage a separate runtime handler and explicit node selection before any
-application canary, and do not replace the runtime of existing Lolly Work, database or render
-pods.
+[RKE2](https://docs.rke2.io/advanced#configuring-containerd).
+
+::: warning Leave existing pods on the OCI runtime
+Keep the normal OCI handler as the default. Stage a separate runtime handler and explicit node
+selection before any application canary, and do not replace the runtime of existing Lolly Work,
+database or render pods.
+:::
 
 Wasm still uses host memory, CPU and storage, and a Kubernetes worker may still be a
 billable VM. Benchmark start-up, throughput and resource use before you claim better
 density or remove capacity from an existing deployment.
 
+<!--i:eti-clipboard-->
 ## Record what you qualified
 
 Standards and runtimes move quickly, so pin versions and write them down. As of
@@ -96,6 +105,7 @@ SUSE image trust stays useful for host services and dependencies, but a generic 
 component is not automatically an Application Collection artifact or a Rancher-supported
 runtime. Check the actual support matrix of the product you choose.
 
+<!--i:eti-hammer-->
 ## A first component, when one is built
 
 No Lolly WASI component exists yet. The pure Rust Skera font subsetter is the most likely

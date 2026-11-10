@@ -4,18 +4,21 @@
 
 This account records the Lolly maintainer's deployment experience, reported on **31 October 2026**. The migration target is the end of December 2026. The connection is in use; migration is planned, not reported complete.
 
+<!--i:eti-users-->
 ## Start from the system people already administer
 
 Introducing a creative platform also introduces decisions about who curates assets, which content needs approval and where people go to make the next version. An existing DAM contains both files and established administrative responsibilities.
 
 At SUSE, the Brandfolder integration helped Lolly inherit that existing system during adoption. Administrators could work through the changes to their content-approval responsibilities while the connection supplied continuity. The value was the time and continuity available for change management, alongside access to the library.
 
+<!--i:eti-link-->
 ## What the connector provides
 
 The public [Brandfolder source guide](/info/work-provider-brandfolder.html) describes the implementation: assets enter the Lolly Work catalog as references, selected by exposure rules, and Brandfolder remains the source of record while connected. Current attachments keep their file identities when selected in Lolly.
 
 That technical contract explains the supported integration. It does not establish which optional field or action the SUSE deployment exercised. The maintainer's account confirms successful use and its role in adoption; the two Brandfolder availability-field mappings still have a separate live-check requirement in the guide. Outbound Brandfolder delivery is a different adapter with its own qualification requirements.
 
+<!--i:eti-badge-check-->
 ## What is established, and what remains to demonstrate?
 
 | Item | Status as of 31 October 2026 |
@@ -27,6 +30,7 @@ That technical contract explains the supported integration. It does not establis
 | Quantified time, cost or adoption improvements | No measurements published in this account |
 | Completed migration and preservation of every source record | Not established by this account |
 
+<!--i:eti-map-pin-->
 ## How another organisation can apply the approach
 
 Identify the administrators and approval responsibilities before connecting the library. Introduce one bounded production workflow, retain the existing source authority and test access and withdrawal. Use the adoption period to decide which responsibilities should stay with the DAM and which belong with production or delivery.

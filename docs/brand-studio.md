@@ -8,6 +8,7 @@ Start with whatever you have. Drop in a logo and Lolly reads its colours. Choose
 
 When it looks right, give the design system a name and press **Export**. You get one `.lolly` file to keep, to open on another device or to hand to a colleague. [Lolly Settings](/info/dashboard.html#design-system) shows the active system read-only, and its cover links back here for editing.
 
+<!--i:eti-clock-->
 ## Make it yours in five minutes
 
 ::: timeline
@@ -20,6 +21,7 @@ When it looks right, give the design system a name and press **Export**. You get
 
 The bar across the top of the studio carries the design system's name, and the name is a field you can change at any time: **Enter** keeps a new name and **Escape** puts the old one back. When your first edit asks **What is this design system called?**, the words from your logo are filled in if the logo spells them out. **Save name** keeps the name; **Not now** keeps a placeholder until you type one in the bar. The name labels the system in Settings and when you switch, and it becomes the name of the file **Export** writes.
 
+<!--i:eti-grid-->
 ## The rooms
 
 The studio is a set of rooms in no fixed order: nothing is numbered and nothing waits on anything else. On a desk the rooms sit in one strip under the bar. On a phone they move to a bar along the bottom edge, where a thumb reaches them, with the open room scrolled into view; the palette sheet and the tray rise above that bar, and the bar steps aside while you type. With a keyboard, Tab reaches the strip once, and the arrow keys, Home and End move from room to room.
@@ -41,13 +43,16 @@ Link to a room with `#/start?area=<key>`. The Files room keeps the key `catalogu
 
 The **bar** holds the actions for the whole system rather than one room. **Add from…** brings a brand in ([Bring a brand in](#bring-a-brand-in)), and the **Tray** holds what a scan found that you have not added yet. **Export** writes the system as one file, and **More** holds **Tokens (.json)**, **Fonts for Linux (.rpm)**, **Versions & publishing**, **Restore brand settings** and **Design systems**, which opens the list in Settings where you switch ([Keep and move your design system](#keep-and-move-your-design-system)). Each appears once there is something for it to act on. On a phone, **Add from…** moves into **More** and **Export** shows as its icon.
 
+While the design system is still the one that came with the app, the bar leads with **Make it yours**, a menu of **Find a look**, **Add from…** and **Pick a colour**. Once the system is your own, **Export** takes that place again.
+
+<!--i:eti-clipboard-->
 ## Board
 
-With nothing chosen yet, the Board offers four ways to start. **Start from a reference** opens the source picker for a logo, screenshot, web page or design file, and **Pick a colour**, **Choose a face** and **Add a logo** open those controls directly. Opening one writes nothing, and **Explore the tools** is there from the start.
+With nothing chosen yet, the Board offers four ways to start. **Start from a reference** opens the source picker for a logo, screenshot, web page or design file, and **Pick a colour**, **Choose a face** and **Add a logo** open those controls directly. Opening one writes nothing. Below the doors, **Find a look** offers ready-made colours and type to try, and **Explore the tools** is there from the start.
 
 Once anything is your own, the Board shows what you have, with your own counts leading. Colours gives the number of colours, with a muted `· N starter` where inherited colours show; its strip puts your colours first, then a hairline, then the faded starter ones. Colourways shows each colourway as a small tile in its lead colour. Type reads by role and sets each family in its own face (*Inter for headings*, with *Starter for the rest* on the line below). Logos says how many slots are filled (or **Not set**), Tokens shows the corner radius and Files says **Nothing yet** while the library is empty. Every block opens its room.
 
-A design system that came with the app and can be edited, such as Lolly Demo, has all of that from the start: the Board shows its colours, colourways, faces and marks, with a **Came with this app** tag beside the heading.
+A design system that came with the app and can be edited, such as Lolly Demo, has all of that from the start: the Board shows its colours, colourways, faces and marks, with a **Came with this app** tag beside the heading. Above them, **Start here** offers three doors: **Find a look**, **Add from…** and **Pick a colour**.
 
 ### Starter and yours
 
@@ -71,6 +76,7 @@ A design system that came with the app and can be edited, such as Lolly Demo, ha
 
 Inherited material is never drawn with a dashed border, because here a dashed border means a drop target.
 
+<!--i:eti-shapes-->
 ## Logos
 
 Empty your folder of marks into the drop zone at the top: **"Drop marks here, or choose several at once"** takes as many files as you have. Each file is read for its shape and its ink, then waits under **Waiting for a slot** as a chip that says what it looks like, such as *"Looks like the Horizontal primary"*, with the measurement it used and a **Place** button (**Replace** where the slot is filled). Where it is unsure, the chip says so and offers **Change slot**, listing all eight. Nothing is placed until you press something.
@@ -82,7 +88,7 @@ Every mark ends up in a grid of eight optional slots, one per **orientation** an
 - **Orientations:** Horizontal (wordmark and symbol in a row) and Vertical (stacked, for square and tall spaces).
 - **Treatments:** Primary, Primary reverse (for dark backgrounds), Mono (one colour) and Mono reverse.
 
-A group with no marks yet folds to one line; open it to see its slots. Click a slot to add a PNG, SVG, JPEG or WebP, or click a filled slot to replace the mark. Everything stays on this device.
+A group with no marks yet folds to one line; open it to see its slots. Click a slot to add a PNG, SVG, JPEG or WebP, or click a filled slot to replace the mark; an empty slot also takes a dropped file. Horizontal marks sit in wide tiles and vertical ones in squares, each on the surface it was made for, with clear space a quarter of its height. Everything stays on this device.
 
 ![The logo slots with Horizontal and Vertical opened: each treatment is a slot of its own, and every slot is optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
@@ -90,6 +96,7 @@ A group with no marks yet folds to one line; open it to see its slots. Click a s
 - **More identities.** A sub-brand, product or event can have its own full set: **+ Add another logo** and give the set a name. Your main set is "Your logo". [Brand architectures](/info/brand-architectures.html) shows when a logo identity is the right block.
 - **Lolly reads the logo's colours.** A card under the drop zone, and again at the top of Colours, lists the logo's colours and asks **Which is the main colour?**, with the strongest colour already selected (never the white it was exported on). **Use these colours** adds them to your palette, makes the main colour your primary and, when the logo has a dark neutral that reads on paper, makes that the text colour. **Not now** leaves them in the Tray. On a brand-new install the likeliest answer is applied at once, and the card offers **Undo** or another main colour. An SVG gives exact colours; a PNG, JPEG or WebP gives the colours that cover a real share of the mark.
 
+<!--i:eti-palette-->
 ## Colours
 
 The room grows with the design system: a first visit is one decision, and the rest arrives as the palette does.
@@ -150,7 +157,9 @@ A reading no role fills stays as the design system defines it, and the room list
 
 **Renaming, reordering, removing.** A rename changes only the word, so everything that uses the role keeps working. Drag a role by its handle, or press Space on the handle, use the arrow keys and press Space to drop. **Remove** says what still uses the role. When tools read it, **Remove and keep those colours** leaves each reading with the colour it draws now. A house rule, a guide group, a tool field or another token that uses the role holds it until that use changes. A saved Design document can also use a role by name, and Lolly cannot see that from the token file: a document that does reports the colour as unresolved.
 
+::: details Roles in a hand-written token file
 **A hand-written file.** Colours a token file holds that no role declares are listed under **In this file, with no role yet**, each with a field for a word and **Make a role**. They keep working by name either way. A token with digits in its name cannot be a role, so it stays in the file and keeps working by its path. A record in the file that does not validate shows the table with no controls and says why.
+:::
 
 **The rest of the room speaks the same words.** The chips, the swatch's **Use as** row and the palette's **Colour roles** group all use the design system's words, and a colour role's tile opens its value. Exported files record nothing new about roles: the colours in a render change because the tokens changed.
 
@@ -168,7 +177,7 @@ On primary is derived from the primary, reads **Derived** and has no picker. The
 
 The app's own accent follows the design system by default. That is the **Interface follows the design system** setting in **Settings → Appearance**; turning the setting off leaves the app's chrome neutral, while tools, canvases and exports follow the design system either way.
 
-**Colourways.** A design system can hold several lead colours, each chosen per piece. The **Colourways** row at the head of **Colour roles** shows one chip per colourway, with **Default** on the canonical one. **+ Add** starts a new colourway from one of the palette's colours. Choose a chip, and the table, the strip, the palette and the previews show that colourway; the chosen colourway can be renamed, duplicated, made the default or removed. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the steps and the token format, and [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
+**Colourways.** A design system can hold several lead colours, each chosen per piece. The **Colourways** row at the head of **Colour roles** shows one chip per colourway, with **Default** on the canonical one. **+ Add** starts a new colourway from one of the palette's colours. Choose a chip, and the table, the strip, the palette and the previews show that colourway; the chosen colourway can be renamed, duplicated, made the default or removed. On a system with colourways, every colourway needs its own primary and secondary, and its own surface when the colourways tint the background, so those roles stay set in the swatch editor. [Add colourways to a design system](/info/colourways.html#add-colourways-to-a-design-system) has the steps and the token format, and [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work. Each person can take a colourway as their own in **Settings → Appearance** ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)).
 
 ### Find more colours
 
@@ -248,6 +257,7 @@ The optional **Gradients** panel builds blend tokens from the palette. Each grad
 
 The palette downloads (design tokens, CSS, SCSS, GIMP and Adobe Swatch Exchange) sit in the palette's head, beside its heading. [Take your palette and fonts anywhere](/info/using.html#take-your-palette-and-fonts-anywhere) describes each format.
 
+<!--i:eti-type-->
 ## Type
 
 With no face of its own, the room is one card: **Primary**, set at reading size in the face serving it today, with a **Starter** tag, a **Choose for Primary** button and the line *"Nothing installs until you choose one."* Headings, code and italic follow the primary until you choose them; **Choose them separately** shows their cards.
@@ -283,6 +293,7 @@ The stage opens inside the room, under the card you pressed, and the cards fold 
 
 The **Fonts** panel lists every face on this device and the role it serves. Faces you added lead under **In the design system**, each with its roles and a delete. The starter faces follow in one muted, folded row. **Add a face** opens the compare stage for any role. The **Type roles** panel shows a live specimen of each role with its family and state, such as *Inter* or *Inter · follows Primary*.
 
+<!--i:eti-tag-->
 ## Tokens
 
 Tokens are the named values behind the design system: colours, typefaces, logos, corners and spacing. Tools read them by name, so a change here reaches every tool at once.
@@ -299,10 +310,12 @@ Tokens are the named values behind the design system: colours, typefaces, logos,
 
 A section with nothing in it offers the way to fill the gap: **Pick a colour**, **Choose a face** or **Add a logo**.
 
+<!--i:eti-images-->
 ## Files
 
 Drop the files your brand keeps, apart from logos: **vector**, **image**, **audio** and **motion** files (video, Lottie and animations). They appear in [Assets](/info/using.html#assets-your-library), sorted into sections and ready in every tool's asset picker, and they stay on this device.
 
+<!--i:eti-checklist-->
 ## Rules
 
 **Rules** puts your brand's choices to work: what people can change, what stays fixed and what Lolly can check.
@@ -326,12 +339,14 @@ Lolly Demo brings four approved house rules. Headlines are never set in capitals
 
 A build that ships with a fixed brand shows the same rules and examples read-only, under *This brand is set*.
 
+<!--i:eti-graduation-cap-->
 ## Skills
 
 **Skills** lists the active design system's [brand skills](/info/brand-skills.html): the brand's written standards, one per discipline, for people and AI agents. Each row gives the discipline, the brand's own status (**Draft** or **Approved**), whether the skill is public or internal and its revision. Choose a row to read the skill beside its coverage, which sets the skill's lines against your tokens: what Lolly checks, what conflicts, what agrees and what is guidance only.
 
 **Download skill (.zip)** writes the skill as an Agent Skills folder for an agent tool, with catalog links pointing at this Lolly, and **Copy as one file** puts the same text on the clipboard for a chat window. A design system without skills of its own lists a baseline that Lolly writes from its tokens and house rules each time the baseline is read. The room reads skills and never edits them.
 
+<!--i:eti-upload-->
 ## Bring a brand in
 
 **Add from…** in the bar opens a picker that asks what you have, not what format it is:
@@ -349,10 +364,14 @@ Choose the design-file source and the next card lists the accepted formats as ic
 
 - A **Lolly design-system pack** (`.lolly`, or a legacy `.zip`) installs in one step.
 - A **Penpot** export (`.penpot`) brings its design tokens.
-- A **Design Tokens** (W3C DTCG) or **Tokens Studio** file (`.json`) brings its tokens. A description that asks a reader to ignore instructions, claims permissions or asks to run code is left out, and the import says where it sat. This is a line-by-line check and misses other wording, so read a file from someone you don't know before you apply the tokens.
+- A **Design Tokens** (W3C DTCG) or **Tokens Studio** file (`.json`) brings its tokens. A description that asks a reader to ignore instructions, claims permissions or asks to run code is left out, and the import says where it sat.
 - A **plain SVG** is scanned for colours you pick from, the first becoming your primary.
 - A **`DESIGN.md`** (`.md`) goes to **Try these colours** with its tokens as written. Its prose can be kept as a draft brand skill, and the card flags lines that ask a reader to ignore instructions, claim permissions or run code. Agents and brand pages do not see a draft until you press **Keep this skill** in the Skills room, and a kept skill stays internal.
 - A **brand page folder**, picked as a folder, dropped, or zipped, goes to the same review. Every file is checked against the folder's `brand.json`, and one that does not match refuses the whole folder. It adds the tokens. Logos and fonts stay in the folder.
+
+::: warning The instruction check reads line by line
+The check that leaves out instructions in a token file's descriptions reads line by line and misses other wording, so read a file from someone you don't know before you apply the tokens.
+:::
 
 Lolly reads a brand page from files you supply. It does not fetch another site's address.
 
@@ -366,7 +385,9 @@ A token file or a `DESIGN.md` can use its own words for its colours, such as mai
 
 A logo, screenshot, website or saved page opens **Try these colours**: an example in the proposed colours, a **Main colour** you can change and a name for a new system. A box spells out what applying does: it **replaces** the active token settings with the generated palette and default styles, **keeps** your fonts and library files and the previous system can be **recovered**. **Apply suggested settings** applies the light and dark palettes, after a checkpoint, and **Restore brand settings** can bring the old settings back. **Change reference** picks another source.
 
+::: details What a reference reads, and the design context report
 **Palette, source details and individual choices** shows what was read, any font names found and the preview's contrast. Font names are suggestions only; Type is still where you install a face. The source details can include typography, gaps, padding and corner values where observed, labelled **Not observed** otherwise. A saved page or a native website read reports declared styles, which the page may not use, and the browser extension can report measured styles from a sample of visible elements. These are observations: nothing is installed, and source spacing never replaces your own. **Choose individual items in the tray** keeps single items, and **Download design context** saves a JSON report of observations, proposed tokens and source information (with a SHA-256 of any supplied HTML or CSS). The report holds no raw page text and is not a signed Content Credential.
+:::
 
 PDF and design-file imports keep their own review controls. Items in the **Tray** change nothing until you add them in the room that owns that kind of material. `#/start?source=<kind>` opens the picker on a source (`file`, `pdf`, `image`, `font`, `url`, `page`), and `?import` opens the plain list.
 
@@ -378,6 +399,7 @@ Click a look to preview it in context. Previewing changes nothing. Each card's *
 
 ![Lolly Compare Sunroom and Orchard side by side before applying either colour system.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
 
+<!--i:eti-package-->
 ## Keep and move your design system
 
 ### Move a brand between devices
@@ -390,15 +412,17 @@ To bring one back, use **Add from… → Design tokens or a design file**, or dr
 
 ### Restore earlier settings
 
-Open **More** in the bar, choose **Restore brand settings**, select a dated checkpoint and press **Restore**. It restores colours, type settings and other tokens for the active brand; font and image files stay as they are. Lolly saves your current settings as **Before restore** first, so you can reverse a restore even after closing the browser. The latest 20 checkpoints are kept on this device.
+Open **More** in the bar, choose **Restore brand settings**, select a dated checkpoint and press **Restore**. It restores colours, type settings and other tokens for the active brand; font and image files stay as they are. Lolly saves your current settings as **Before restore** first, so you can reverse a restore even after closing the browser. The latest 20 checkpoints are kept on this device. An edit made while the studio says **Saving…** survives a reload, and a card offers to restore changes that did not finish saving.
 
 ### Versions
 
 A published version is a **permanent, named copy** kept on this device. It never changes, so a tool or a link that pins it (with `designv`) keeps drawing the same thing. A system with something of your own lists **Versions & publishing** in the bar's **More** menu; after your first publish **Versions** joins the rooms. `#/start?area=versions` opens it directly.
 
-- **A version is permanent.** There is no delete yet, and the panel says so.
-- **Removals lead the compatibility card**, because a removed token is what breaks a tool.
-- **Publishing cannot be undone; restoring can.** *Restore latest from this version* is an ordinary edit, with **Undo** offered straight away.
+::: warning A published version is permanent
+There is no delete yet, and the panel says so. Publishing cannot be undone; restoring can. *Restore latest from this version* is an ordinary edit, with **Undo** offered straight away.
+:::
+
+**Removals lead the compatibility card**, because a removed token is what breaks a tool.
 
 **Publish only** keeps a version without changing what tools follow; **Publish and make active** makes tools and the app follow that version. **Follow the latest again** puts every edit live the moment you make the edit.
 
@@ -424,6 +448,7 @@ A [brand page](/info/brand-page.html) is one address for people and for agents: 
 
 When no hosted server draws with your system, the sheet says so.
 
+<!--i:eti-layers-->
 ## Manage your design systems
 
 Open **Settings → Preferences → Design systems** to switch, add or remove systems. **Open** selects a system and opens it here; **Make a new one** creates a local system and opens it with its name field ready. One system is active at a time, for the whole device. [Brand architectures](/info/brand-architectures.html) helps decide when a brand needs a design system of its own.
@@ -440,12 +465,16 @@ Choose **Remove** from a system's menu; the confirmation says which system will 
 
 Removing a supplied system only hides it: its catalogue assets stay, **Bring back** shows it again and it returns by itself if you remove everything else. Removing an imported or edited copy does not remove the supplied system, its logos or its fonts, and if the copy was active, the supplied system becomes active again. Removing an active hosted copy clears only that copy's connection; a separately chosen instance stays selected.
 
+::: details Changing a design system a server supplies
 Changing what a server supplies is an administrator's task: its operator changes the source catalogue and redeploys, or a Lolly Work administrator reviews and applies a server change. Edits here stay local, with one exception: on a Lolly Work instance that grants you `brand.edit`, a managed system also offers **Edit for** that instance, which opens an editing copy, and **Send to** that instance in **Versions** sends its colours, colourways, colour roles and brand page address back. [Edit this instance from the studio](/info/work-design-system-administration.html#edit-this-instance-from-the-studio) covers what an edit can change and how the instance serves the change. See [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system) and [Configuration](/info/configuration.html#supplied-and-local-design-systems).
+:::
 
+<!--i:eti-code-->
 ## Use design context outside the app
 
 **Download design context** saves the token document, resolved colours, declared font families, asset ids, source evidence where recorded, coverage and explicit rules, with no font files and no proof of ownership. The command line reads the file with no server: `lolly system import` makes it the terminal's design system and `lolly system check` checks Lolly Design inputs against the saved context. [Bring your design system](/info/cli.html#bring-your-design-system) covers the import and [Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses) covers the check, and an MCP client reads the same brief from `lolly://design-context` ([MCP Server](/info/mcp.html)).
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - **[Using Lolly](/info/using.html)**: the tools, saving, sharing and Assets.

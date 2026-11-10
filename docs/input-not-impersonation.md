@@ -2,6 +2,7 @@
 
 An AI agent is welcome to fill in the inputs. It is not welcome to claim it is you. Here is the line between the two, how it is enforced and what happens when something tries to cross the line.
 
+<!--i:eti-image-->
 ## This is not a pipe
 
 ![A woodcut-style pipe on cream paper, its smoke billowing up into a great cloud, captioned in cursive: Ceci n'est pas une pipe](/info/not-a-pipe.webp)
@@ -22,6 +23,7 @@ Magritte's other lesson is about accountability. You cannot stuff the painted pi
 
 > We strive for honesty amongst the infinite. - Andy Fitzsimon, Lolly Contributor
 
+<!--i:eti-pen-tool-->
 ## The line
 
 ::: cols
@@ -40,12 +42,14 @@ The distinction holds up because inputs and identity are two different things tr
 
 So Lolly does not try to stop agents making things, which would be both futile and pointless. It makes the claim checkable instead: a claim that was altered, or signed with a key the signer does not hold, fails validation - and every export that carries a credential states plainly what it actually is.
 
+<!--i:eti-users-->
 ## Agents are a supported audience
 
 "AI policy" usually means restriction. Here, agents get the same tools people get, through the [MCP server](/info/mcp.html), [URL mode](/info/url-mode.html) and the [CLI](/info/cli.html). They run inside identical constraints. A tool that cannot emit an off-brand asset for a person cannot emit one for an agent either, because the constraint lives in the tool, not in a check on who is asking.
 
 What no agent gets, and no person gets either, is a way to pass its output off as something it is not.
 
+<!--i:eti-warning-->
 ## Example scenario: a rogue agent poses as an organisation
 
 Take the adversarial case. An autonomous agent decides to publish a security advisory that appears to come from Acme, an example organisation. It is capable, unsupervised and it has everything a public user has: the open source engine, the public app, the brand's real colours and typefaces from published material.
@@ -62,6 +66,7 @@ Here is where it gets, step by step.
 - <!--i:globe--> **It publishes anyway.** It can. What it cannot do is produce a file that answers "did Acme make this?" with yes. Anyone can drop the file into [Lolly Verify](/#/verify) and get an anonymous or unverified signer, a broken credential or no credential. Meanwhile a genuine Acme export answers with a CA-verified identity. The forgery does not need to be blocked. It needs to be distinguishable, and it is.
 :::
 
+<!--i:eti-info-->
 ## What this does not claim
 
 - **Not detection of every fake.** Lolly cannot tell you that an image made in other software is a forgery. Nothing can. It can tell you what a file does and does not carry.

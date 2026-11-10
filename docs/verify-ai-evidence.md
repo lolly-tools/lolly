@@ -25,6 +25,7 @@ Careful human writing can trip the same patterns. Useful categories, ordered pro
 
 Text that Lolly's own reword model wrote is different: it carries a public watermark that Lolly Verify can detect. See [What Lolly Verify checks](/info/what-verify-checks.html#text-reworded-by-lolly).
 
+<!--i:eti-eye-->
 ## Reading an assessment
 
 | Reading | What it means |
@@ -44,6 +45,7 @@ Some of the patterns Lolly looks for:
 
 Select a finding to see its text spans or page regions, measurements, method and alternative explanations. Repeated occurrences keep their own locations and measurements. Page navigation and zoom keep the region overlays aligned, and filters leave the assessment unchanged. Rules version `forensic-ai/2` invalidates calibrations from earlier rules.
 
+<!--i:eti-sun-->
 ## Seeing where: the heat view
 
 The text and the page preview carry the evidence as layers, so you can see the location of each observation before you read a list of findings. Toggle the layers beside the page selector.
@@ -58,12 +60,14 @@ Short passages score more widely than whole documents, so the chunk threshold is
 
 The narrow columns at the left of the text map the whole document, one cell per sentence. Select any lit sentence, a cell in the map or a region on the page to open the inspector. It lists every signal there with its guidance level and strength, the classifier's raw score for that group against its threshold, and a link to each full finding. **Previous** and **Next** step through the sentences that carry something. Signals about the whole text, such as even sentence rhythm or the overall classifier reading, are listed above the text rather than shading one sentence.
 
+<!--i:eti-pen-->
 ## Recording your review
 
 Annotations record a required brand pattern, a quoted example or a misdetected region, and each one keeps the original assessment alongside the note. Retrying keeps recent assessments and their notes in the JSON export.
 
 JSON and readable exports contain the recovered text, locations, coverage, versions and SHA-256 digests of the file and the report. Reload checks the report digest against the original file. Those hashes establish binding and integrity, not that the imported conclusions are true. Imported probability claims need an installed calibration, and are refused today.
 
+<!--i:eti-file-->
 ## What each format covers
 
 | Format | Available inspection |
@@ -86,6 +90,7 @@ The first browser read covers up to six pages. Inspect more pages to widen it, w
 Image decoding admits at most 40 megapixels and uses a preview edge no larger than 1800 pixels. Accent-card segmentation looks for rounded neutral panels with a thin saturated edge; white-on-white panels and other treatments may be missed. Source text is bounded at 65,536 characters per page. Classifier windows use measured token counts, keep context near the end of the document and record every inspected range. A bounded sample of a long document reports gaps rather than claiming a complete read. The classifier's gate is conservative eligibility for English prose, not a general language detector.
 :::
 
+<!--i:eti-clipboard-->
 ## Reports
 
 Choose **Report** in the toolbar, or under **More** on a phone, for a paginated PDF. It includes the current file preview, metadata, the recorded EXIF map, credential observations, completed production checks and, for each inspected page, a preview with the located findings. Pattern-confidence rings describe how well a feature was detected; per-page AI probabilities stay unestimated. Pages beyond the current inspection are marked as unread.
@@ -94,6 +99,7 @@ The PDF carries the detailed evidence and production JSON as attached data files
 
 **Policy**, under **More**, opens the otherwise hidden **Production policy** controls. They compare explicit delivery requirements and do not add to AI confidence. See [Production checks](/info/production-checks.html) for requirements and review records.
 
+<!--i:eti-code-->
 ## From the command line and MCP
 
 ```sh

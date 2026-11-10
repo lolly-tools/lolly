@@ -10,6 +10,7 @@ This page is for security reviewers. It lists each place where Lolly accepts som
 
 Each boundary cites a function, constant or file rather than a line number, so you can search the code for the name. Where this page and the code disagree, the code is right; please [report the difference](#reporting). The cryptography and its test coverage are on [Security & Verification](/info/security.html), every off-device component is on [Server Surface](/info/server-surface.html) and every file parser is on [Parser Inventory](/info/parser-inventory.html).
 
+<!--i:eti-info-->
 ## What Lolly is, security-wise
 
 **Rendering happens on the device.** Opening a tool, editing inputs, previewing, exporting and verifying a file all complete locally, and none of them uploads what you made. The shells do download files a feature needs on first use, such as an on-demand emoji set, a font you chose or an on-device model, and those requests carry none of your content.
@@ -26,6 +27,7 @@ Each boundary cites a function, constant or file rather than a line number, so y
 What crosses into a Lolly device and what an optional server sees. Each number matches a card below.
 :::
 
+<!--i:eti-shield-check-->
 ## Trust boundaries
 
 Each card has four lines: what crosses the boundary, what checks it, the test that proves the check and the risk we accept. Accepted risks that need more than a line are in the [register](#residual-risk-register).
@@ -204,6 +206,7 @@ Each card has four lines: what crosses the boundary, what checks it, the test th
 - **What we accept:** the tests on this page cover the engine, shells and services in this repository. Passing them does not establish the security of a whole deployment, so assess the shell release and the engine version the instance pins together.
 :::
 
+<!--i:eti-warning-->
 ## Residual risk register
 
 Each of these is a known, accepted design choice. They are listed so a reviewer can confirm we already know, and stop escalating them as findings.
@@ -219,6 +222,7 @@ Each of these is a known, accepted design choice. They are listed so a reviewer 
 | LSB steganalysis has stated detection limits: LSB *matching* (±1) and low-rate embedding evade it, and a smooth synthetic gradient can raise a false positive. | The `engine/src/steganalysis.ts` header, stated up front | The chi-square attack catches the naive case that appears in the wild. Callers limit it to lossless PNG-family formats and show it as an amber hint, never a verdict. | None. It must never harden into a pass or fail claim. |
 | Catalogue integrity is optional in development builds. | `scripts/build-release-web.ts`; `shells/web/src/catalog/integrity.ts`; `engine/src/catalog-integrity.ts` | No private signing key can ship in the repository, and local development must work without deployment credentials. Every release build, web and both Tauri shells, goes through the signed build wrapper and fails without a matching key pair. | None planned. Development builds stay visibly labelled as unsigned. |
 
+<!--i:eti-unlink-->
 ## What is not a boundary
 
 These read like gaps and are intended. Escalating them is a false positive.
@@ -234,6 +238,7 @@ These read like gaps and are intended. Escalating them is a false positive.
 | Locked inputs and locked design systems can be bypassed. | They are rules the Lolly app applies on behalf of its user. Someone running another client, or the app without the organisation's instance, is not bound by them, and anyone can make an editable copy of a locked design system. They are not access controls. A Lolly Work instance enforces locked inputs on the server operations it governs, such as server renders (card 24). |
 | Biome lint findings. | Lint is a per-file ratchet in CI: a change fails only when a file gains findings over `security/lint-baseline.json`, which carries more than a thousand older entries. A lint finding is not a vulnerability report, and a clean lint run is not a precondition for anything. |
 
+<!--i:eti-search-->
 ## Check the claims yourself
 
 Everything here runs from a clone.
@@ -251,6 +256,7 @@ node --test tests/runtime-hooks.test.ts tests/net-allowlist.test.ts \
 
 `tests/README.md` describes the test layout and the gated tests, and [Parser Inventory](/info/parser-inventory.html) gives the fuzzing commands. CI's jobs are in `.github/workflows/ci.yml`: tests, typechecks and ratchets (the Biome lint ratchet among them), catalogue validation, smoke renders, release builds and budgets, generated API bundles, render-action self-tests, dependency and licence audits, secret history scanning and SAST. The weekly fuzz soak is `.github/workflows/fuzz-soak.yml`.
 
+<!--i:eti-mail-->
 ## Reporting
 
 Vulnerability reporting, safe harbour and scope are in [`SECURITY.md`](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md) at the repository root. Report privately to [fitzy+security@suse.com](mailto:fitzy+security@suse.com) rather than opening a public issue.

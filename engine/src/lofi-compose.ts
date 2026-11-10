@@ -2303,6 +2303,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         } else if (has('hats') && style.groove === 'swing') {
           // The ride: ding, ding-a, ding, ding-a, the two and four leaned on.
           for (const st of [0, 4, 6, 8, 12, 14]) notes.push({ voice: 'hat', midi: 0, dur: 0, beat: sb(st), vel: clamp01((st === 4 || st === 12 ? 0.62 : st % 4 ? 0.4 : 0.5) + (rng() - 0.5) * 0.06) });
+          // The hat's foot on two and four under the ride (a `mod` of 2: the pedal), with no draw.
+          for (const st of [4, 12]) notes.push({ voice: 'hat', midi: 0, dur: 0, beat: st / 4, vel: 0.5, mod: 2 });
         } else if (has('hats') && style.groove === 'train') {
           for (const st of [4, 12]) notes.push({ voice: 'hat', midi: 0, dur: 0, beat: st / 4, vel: 0.35 });   // the hat's foot on two and four
         } else if (has('hats') && sher) {

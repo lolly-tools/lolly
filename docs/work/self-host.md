@@ -12,6 +12,7 @@ commands.
 One question decides most of the choice: will other people use this instance? Trials need no database. Team installs all finish with the same three steps.
 :::
 
+<!--i:eti-map-pin-->
 ## The paths in brief
 
 - **Trying it on a cluster?** The [cluster evaluation](platform-deployment.md#evaluate-on-a-cluster)
@@ -44,6 +45,7 @@ checked sample. After that, connect your
 [identity provider](enterprise-identity.md) if you use one, and read
 [Keep Lolly Work running](operations.md) before you invite people.
 
+<!--i:eti-monitor-->
 ## What runs where
 
 The server ships as source code and Linux container images. The Lolly desktop
@@ -60,24 +62,6 @@ server.
 The Lolly web app that Lolly Work can serve at `/` needs a secure address (HTTPS, or
 `localhost` while testing) and a browser with WebGPU. See
 [supported environments](/info/start/supported-environments.html).
-
-## YunoHost: choose Lolly Work
-
-There are two Lolly packages for YunoHost, and they are not interchangeable.
-
-- **`lolly-tools/lolly-work_ynh`** is Lolly Work. It includes the Lolly web app, a
-  PostgreSQL database, shared projects, sign-in with your host accounts, roles and
-  the Lolly Work console. Choose this one for a home or team server.
-- **`lolly-tools/lolly_ynh`** serves the static Lolly app only. People work on
-  their own devices, with no server, database or shared projects. Installing it
-  does not install Lolly Work.
-
-There is no in-place upgrade from `lolly_ynh` to `lolly-work_ynh`. If you already
-run static Lolly, install Lolly Work on another domain and check sign-in and moving your
-projects across. Keep the original app until you are satisfied.
-
-Which package versions have passed their checks is recorded in
-[official installation routes](official-installations.md).
 
 ::: details Downloads for %work{version}
 The [Lolly Work release page](https://github.com/lolly-tools/lolly-work/releases/tag/v%work{version})
@@ -109,15 +93,15 @@ compare the line for your file:
 
 ```bash
 # Linux or WSL
-sha256sum lolly-web-1.1.1-ynh1.tar.gz
+sha256sum lolly-web-1.2.0-ynh1.tar.gz
 # macOS
-shasum -a 256 lolly-web-1.1.1-ynh1.tar.gz
+shasum -a 256 lolly-web-1.2.0-ynh1.tar.gz
 ```
 
 PowerShell can check the file before you copy it to your server:
 
 ```powershell
-Get-FileHash .\lolly-web-1.1.1-ynh1.tar.gz -Algorithm SHA256
+Get-FileHash .\lolly-web-1.2.0-ynh1.tar.gz -Algorithm SHA256
 ```
 
 The file name and the whole hash must match. Archive checksums cover the
@@ -126,3 +110,24 @@ source and image record do that job, as
 [official installation routes](official-installations.md#release-verification)
 explains.
 :::
+
+<!--lb:yunohost-->
+
+## YunoHost: choose Lolly Work
+
+From 1.2.0 there is one Lolly package for YunoHost:
+**`lolly-tools/lolly-work_ynh`**, which is Lolly Work. It includes the Lolly web app, a
+PostgreSQL database, shared projects, sign-in with your host accounts, roles and the
+Lolly Work console. [Install Lolly Work, section 7](install.md#7-yunohost) has the
+steps.
+
+::: note Already run the static package?
+The static `lolly-tools/lolly_ynh` package, which served only the Lolly app, is
+discontinued and gets no further releases. A guide for replacing a static install
+with Lolly Work on the same domain, with the app kept open to visitors, is coming.
+Until that guide is published, do not upgrade `lolly_ynh` in place with a
+`lolly-work_ynh` package address.
+:::
+
+Which package versions have passed their checks is recorded in
+[official installation routes](official-installations.md).

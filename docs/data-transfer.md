@@ -6,8 +6,11 @@ This page is the format specification, for people who build shells, tools or scr
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> **Scope.** A bundle carries *user data*, not catalog tools. Catalog tools and catalog assets are synced separately and are assumed to be present on the target already, at worst at a higher version. Tools a user made themselves travel inside `profile.json`. Importing never installs or upgrades a catalog tool.
+::: note Scope
+A bundle carries *user data*, not catalog tools. Catalog tools and catalog assets are synced separately and are assumed to be present on the target already, at worst at a higher version. Tools a user made themselves travel inside `profile.json`. Importing never installs or upgrades a catalog tool.
+:::
 
+<!--i:eti-badge-check-->
 ## Goals
 
 - <!--i:box--> **One format, every shell.** The web app, the desktop and mobile apps and future shells share the same envelope and part schemas. Optional parts depend on each shell's capabilities, and unsupported parts are reported. Each capability bridge supplies its storage adapter.
@@ -15,6 +18,7 @@ This page is the format specification, for people who build shells, tools or scr
 - <!--i:clock--> **Outlives this version.** An older app can still import the parts of a newer bundle that it recognises. A truly breaking format is refused cleanly.
 - <!--i:check--> **Safe to merge.** Importing onto an install that is already in use never wipes anything that was not in the bundle.
 
+<!--i:eti-package-->
 ## The envelope
 
 A bundle is a plain `.zip`, so it survives any transport intact and any unzip tool can inspect the contents.
@@ -45,6 +49,7 @@ Nothing is re-encoded, so a file carrying Content Credentials keeps the exact by
 On a 192 MiB synthetic library, measured in Node, finishing the backup took about 125 to 150 MiB on top of the library, against about 850 MiB for the in-memory writer (`node scripts/bench-backup-finalise.ts`). Import still reads the whole zip into memory.
 :::
 
+<!--i:eti-file-->
 ## `manifest.json`
 
 ```json
@@ -78,6 +83,7 @@ On a 192 MiB synthetic library, measured in Node, finishing the backup took abou
 | `counts` | What the writer put in, for display and sanity checks. |
 | `integrity` | Optional. Maps every part except `manifest.json` to an SRI-style `sha256-<base64>` digest of its **uncompressed** bytes. |
 
+<!--i:eti-tag-->
 ## Version policy
 
 Two version numbers let the format grow without stranding older installs.
@@ -89,8 +95,11 @@ Two version numbers let the format grow without stranding older installs.
 - A **breaking** change, where a wrong import of a part corrupts data or an optional part becomes mandatory, raises `minReader`. Older apps then refuse cleanly instead of importing something they cannot handle.
 - If a future bundle sets `formatVersion` but leaves out `minReader`, readers fall back to gating on `formatVersion` and treat the change as breaking.
 
-> **Rule of thumb for authors:** if every existing reader would still do the right thing by ignoring your addition, the change is additive: bump `formatVersion` and leave `minReader`. Otherwise raise `minReader`.
+::: note Rule of thumb for authors
+If every existing reader would still do the right thing by ignoring your addition, the change is additive: bump `formatVersion` and leave `minReader`. Otherwise raise `minReader`.
+:::
 
+<!--i:eti-shield-check-->
 ## Integrity
 
 When `manifest.integrity` is present, a reader checks each listed part's SHA-256 **before writing anything**. A mismatch ("failed its integrity check") or a missing part ("incomplete") stops the whole import, so there is no partial restore. This catches the damage a file transport can do: a truncated AirDrop, an email gateway that re-encoded the attachment, a bad USB sector.
@@ -99,6 +108,7 @@ Integrity is best effort. It is written only where Web Crypto is available (ever
 
 The manifest lists neither itself nor the regenerated `lolly.txt`. The digests cover the parts the manifest vouches for.
 
+<!--i:eti-download-->
 ## Import rules
 
 An import runs in one of two modes.
@@ -136,6 +146,7 @@ In a merge, anything only on the target is kept, and each kind of data in the bu
 
 Restore is not one transaction across the profile, session, asset and history stores. Cloud sync does **not** advance its applied revision after a partial or unsupported restore, so the copy stays available to retry.
 
+<!--i:eti-unlink-->
 ## What does not travel
 
 - **Catalog caches** (downloaded asset metadata and blobs, the tool index), which the target re-syncs for free.
@@ -148,12 +159,14 @@ The storage meter shows the same split. Saved sessions, My images and File resul
 
 ![The storage meter breaking this device's data into named categories, with Saved sessions and My images tracked separately from the Asset cache, here on a fresh install where every category is still empty](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=%5Bdata-store-group%3Dmove%5D%2C.storage-actions%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&dark=1&filename=ce-storage-categories)
 
+<!--i:eti-building-->
 ## Organisation data with Lolly Work
 
 This bundle backs up the device's personal library. It is not a backup of a **Lolly Work** instance: organisation accounts, access policies, shared projects, catalog versions, approvals, render jobs and audit records are held by that service. Reconnect and sign in to regain access to shared work; importing a personal bundle does not grant that access.
 
 Operators back up, retain and erase server data with Lolly Work's own guides: [Backup and restore](/info/work-operations.html#backup-and-restore) and [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html). Clearing or exporting a device does not do any of those server operations.
 
+<!--i:eti-monitor-->
 ## Across shells
 
 `data-transfer.ts` reads and writes only through the capability bridge (`host.profile`, `host.state`, `host.assets`) and the shared `localStorage` preferences. The same module reads and writes the common envelope on the web and in the desktop and mobile apps, over IndexedDB or filesystem storage. Optional history parts appear only where their adapter is available, and an unsupported part is reported as skipped on import. The headless suite exercises the common parts against an in-memory bridge, and history transactions also have real-browser tests.
@@ -163,6 +176,7 @@ Two shells sit outside that guarantee, for different reasons:
 - The **one-shot CLI** has nothing to carry: its state is in memory and lasts one invocation.
 - The **TUI** keeps state in `~/.lolly` (sessions, folders, profile), and its Profile view can back it up, but it writes a simpler archive of its own: `saved-state/<slot>.json` per session plus `profile.json` and `folders.json`, with no manifest, no `formatVersion` or `minReader` and no integrity map. This format cannot import it (a reader rejects it as "not a Lolly backup"), and its name is confusingly similar (`lolly-backup-<stamp>.zip`). Unifying the two is a known gap.
 
+<!--i:eti-clock-->
 ## Not yet portable
 
 The envelope is a manifest plus named parts, so new kinds of portable data can join later as additive parts (a new `formatVersion`, the same `minReader`), and today's readers skip what they do not recognise. Design systems already travel this way, as `design-systems.json` plus their user assets.
@@ -174,6 +188,7 @@ Two names are reserved for data that does not travel yet:
 
 Today's readers know neither name yet. Like anything else outside the parts above, each is an unknown part to them: left untouched and counted in `skipped`.
 
+<!--i:eti-history-->
 ## History parts
 
 The two history parts are optional and have their own versions. Most readers can skip this section.
@@ -210,6 +225,7 @@ Batch manifests record every selected source before processing, including files 
 Older readers still accept the v2 envelope (`minReader: 1`) and restore the parts they know, counting unsupported history parts as skipped. Full history recovery needs a shell with the `fileHistory` adapter, a seam inside the shell rather than a new tool-facing `HostV1` capability. Real two-device restore is covered by the local Chromium gate; recovery on installed desktop, iOS and Android apps is still to be accepted separately.
 :::
 
+<!--i:eti-code-->
 ## Reference
 
 - Module: `shells/web/src/data-transfer.ts` (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; the `backupFilename()` namer is internal).

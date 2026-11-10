@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Lolly Demo's two-tone Etiquette icons as doc icons (docs/etiquette-icons.ts): each file's
- * two classes become fills on --eti-accent and --eti-base, which the docs stylesheet sets
- * per theme, and every `eti-<slug>` a page uses is registered.
+ * two classes become fills on --eti-accent and --eti-base, which the shared reading stylesheet
+ * sets from the theme roles for both readers, and every `eti-<slug>` a page or an admonition
+ * uses is registered.
  *
  * Run directly: node --test tests/docs-etiquette-icons.test.ts
  */
@@ -12,9 +13,11 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ETIQUETTE_DOC_ICONS, etiquetteDocIcons, themedEtiquetteSvg } from '../docs/etiquette-icons.ts';
 import { createIconSprite } from '../docs/icon-sprite.ts';
+import { COMPONENT_GLYPH, NOTE_KINDS } from '../packages/docs-render/src/components.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BUILD_TS = readFileSync(join(ROOT, 'docs/build.ts'), 'utf8');
+const COMPONENTS_CSS = readFileSync(join(ROOT, 'shells/web/src/styles/parts/docs-components.css'), 'utf8');
 
 test('an icon file is repainted from the two theme properties and keeps its drawing', () => {
   const file = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><style>.c1{fill:#50c369}.c2{fill:#033633}</style></defs><path class="c1" d="M1 1h2"/><path class="c2" d="M4 4h2"/></svg>';
@@ -42,9 +45,22 @@ test('every registered icon reads from the brand pack and shares through the spr
   assert.match(BUILD_TS, /Object\.assign\(DOC_ICONS, etiquetteDocIcons\(\)\)/, 'the docs build registers the icons');
 });
 
-test('the stylesheet sets both properties for the light theme and for dark and brand', () => {
-  assert.match(BUILD_TS, /:root,\[data-theme="light"\]\{--eti-accent:[^;]+;--eti-base:[^}]+\}/);
-  assert.match(BUILD_TS, /\[data-theme="dark"\],\[data-theme="brand"\]\{--eti-accent:[^;]+;--eti-base:[^}]+\}/);
+test('both readers paint the two parts from the theme roles, in one shared rule', () => {
+  // One declaration for both readers: docs/build.ts inlines this stylesheet and the app imports the same file.
+  const rule = /\.docs-content,\s*\.docs-landing\s*\{([^}]*)\}/.exec(COMPONENTS_CSS)?.[1] ?? '';
+  assert.match(rule, /--eti-accent:\s*oklch\(from var\(--ui-color-action-primary\)[^;]*;/, 'the accent follows the colourway');
+  assert.match(rule, /--eti-base:\s*var\(--ui-color-text-default\);/, 'the base is the ink');
+  assert.match(COMPONENTS_CSS, /html\[data-a11y-contrast="high"\] :is\(\.docs-content, \.docs-landing\) \{ --eti-accent: var\(--ui-color-text-accent\); \}/,
+    'High contrast takes the accent ink for words');
+  assert.ok(!/--eti-(?:accent|base)\s*:/.test(BUILD_TS), 'the static site declares no second, drifting pair');
+});
+
+test('the admonitions draw registered Etiquette icons', () => {
+  const registered = new Set(ETIQUETTE_DOC_ICONS.map(slug => `eti-${slug}`));
+  for (const kind of NOTE_KINDS) {
+    assert.match(COMPONENT_GLYPH[kind], /^eti-/, `${kind} draws a two-tone icon`);
+    assert.ok(registered.has(COMPONENT_GLYPH[kind]), `${COMPONENT_GLYPH[kind]} is registered`);
+  }
 });
 
 test('every eti- icon an English page asks for is registered', () => {

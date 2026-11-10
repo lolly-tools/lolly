@@ -5,12 +5,21 @@ Widen's own release and expiry dates and approval statuses carried across. No
 custom-field mapping is needed. Widen stays the source: Lolly Work reads with your token and never
 writes back.
 
+<!--i:eti-checklist-->
 ## Onboarding
 
-1. Choose a narrow search query, categories and Lolly Work groups. Agree which Widen statuses count as approved and whether the workflow needs release and expiry gates.
-2. Obtain the read token described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Inspect the listing before an owner enables the source.
-3. Run the [Acquia DAM / Widen tenant check](tenant-check.md#acquia-dam-widen). Confirm native date and status fields, compare originals and test allowed and refused member access in one real Lolly task before widening the query.
+1. **Scope.** Choose a narrow search query, categories and Lolly Work groups. Agree which Widen statuses count as approved and whether the workflow needs release and expiry gates.
+2. **Connection.** Obtain the read token described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Inspect the listing before an owner enables the source.
+3. **Tenant check.** Run the [Acquia DAM / Widen tenant check](tenant-check.md#acquia-dam-widen). Confirm native date and status fields, compare originals and test allowed and refused member access in one real Lolly task before widening the query.
 
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live collective. The endpoints and field names come from
+Widen's documentation. [Check a source on your own tenant](tenant-check.md#acquia-dam-widen)
+lists what to look at. Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/acquia-dam.md) in the Lolly Work repository.
+:::
+
+<!--i:eti-clipboard-->
 ## What you need from Widen
 
 - **A Widen API token** (a user access token) with read access to the assets and categories you
@@ -22,6 +31,7 @@ writes back.
 - No app registration or OAuth flow. Choose what federates with Lolly Work's **exposure** settings,
   not with the token.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 A single bearer token string: the Widen API token.
@@ -30,6 +40,7 @@ A single bearer token string: the Widen API token.
 lw providers credential acme-widen     # prompts; never argv, never shell history
 ```
 
+<!--i:eti-code-->
 ## instance.json / `lw providers add`
 
 ```json
@@ -49,6 +60,7 @@ lw providers credential acme-widen     # prompts; never argv, never shell histor
   [availability window](../catalog.md#imported-availability-windows) with no mapping.
 - Categories become sections for `includeSections`.
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind acquia-dam --options '{}'
@@ -58,15 +70,13 @@ lw providers health acme-widen
 `401` or `403` means the token is wrong or lacks access. An empty sample with `requireApproved`
 on means nothing matches `approvedStatuses`.
 
+<!--i:eti-info-->
 ## Notes / limits
 
-- **Not yet confirmed against a live collective.** The endpoints and field names come from
-  Widen's documentation. [Check a source on your own tenant](tenant-check.md#acquia-dam-widen)
-  lists what to look at. Contributors changing the driver follow its
-  [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/acquia-dam.md) in the Lolly Work repository.
 - **Signed, short-lived download links,** fetched on each request and pinned to
   `widencollective.com` and `widencdn.net`.
 
+<!--i:eti-folder-move-->
 ## Off-boarding
 
 Acquia DAM / Widen supports the exit sequence, subject to the [tenant check](tenant-check.md#acquia-dam-widen) for endpoints, original downloads and native date and status fields. The driver reads `embeds.original`, falling back to the download link; compare required files with direct source downloads.

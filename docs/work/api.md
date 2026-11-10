@@ -16,6 +16,7 @@ reverse-proxy sign-in and SCIM ownership in [identity](identity.md), back-channe
 catalog sources and file previews in [file previews](file-preview.md), and the transfer
 inventory in [project portability](project-portability.md).
 
+<!--i:eti-user-check-->
 ## Who can call what
 
 Every request comes from one kind of caller, and its credential decides which routes it can
@@ -24,7 +25,7 @@ reach at all. The action in each table then decides what that caller may do ther
 | Caller | How it identifies itself | What it can reach |
 |---|---|---|
 | A person | the `lw_session` cookie, from signing in on the instance or approving a device sign-in | every route their role and grants allow |
-| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | a scoped token reaches only the routes its scopes open and the action there allows; a token with no scopes reaches routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals, deliveries to a destination that needs approval, live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
+| A service token | `Authorization: Bearer lwt_…` ([service tokens](#service-tokens)) | a scoped token reaches only the routes its scopes open and the action there allows; a token with no scopes reaches routes gated by an action its role holds: automation (but not `GET /render/…`), uploads and file references, catalog submissions of bytes or uploads, fleet, providers, governance export and apply, audit and the telemetry summary. Refused where a person decides or acts: approvals and deliveries to a destination that needs approval (a token holding `approvals.request` may ask for review of its own renders, and such a delivery then waits for a person), live collaboration, telemetry consent, comments, versions, history, access requests, project file uploads and submitting a project file to the catalog |
 | A guest | the `lw_guest` cookie, from joining through a guest-edit link | only what the link grants: the document and tool it opens (that tool's files under `/tools/*`, a catalog that lists only that tool and `GET /render/…` for it), its own session and telemetry |
 | An agent | `Authorization: Bearer <key>` on `/api/workspace/mcp` only: `POST` for MCP calls, `DELETE` to disconnect ([agent invitations](#project-agent-invitations)) | one project or document, through MCP tools; never the REST API. A service token uses [`/api/v1/mcp`](#organisation-mcp) instead |
 | An identity provider | a SCIM bearer on `/scim/v2/*` only ([SCIM](#scim-provisioning)) | the SCIM protocol routes |
@@ -37,6 +38,7 @@ Per-IP rate limits apply to sign-in, signed links, telemetry and automation, and
 a per-person limit, given in their rows. The sizes are in
 [configuration](configuration.md#ratelimit).
 
+<!--i:eti-warning-->
 ## Common error codes
 
 | Code | Status | Meaning |
@@ -59,6 +61,7 @@ The codes a render, schema or batch answers with, such as `INPUT_LOCKED`,
 [limits and errors](automation-api.md#limits-and-errors). Sections below list the codes
 particular to their routes.
 
+<!--i:eti-link-->
 ## Connecting apps
 
 A downloaded Lolly app learns about the instance before anyone signs in, then polls one document
@@ -157,6 +160,7 @@ Anonymous and guest traffic with the same token feeds the histogram and nothing 
 there is no heartbeat: an install is seen exactly when its person uses the instance, and
 leaving the instance client-side deletes the id.
 
+<!--i:eti-users-->
 ## People and access
 
 Sign-in, the people on the instance, how new people are invited or ask to join and the machine
@@ -225,8 +229,7 @@ Who may sign in when `idp.admission` is set, one email address at a time. See
 | `DELETE /api/v1/invitations/:id` | `user.invite` | revoke; `404` when the id is unknown or already revoked |
 | `POST /api/v1/admin/password-links` | admin or owner session with `user.invite` | body `{ email, purpose: "setup" \| "reset" }`; `201 { url, expiresAt }`: a one-time link to set a password, valid 7 days, which cancels the address's earlier unused links. `404 NO_PASSWORD_SIGN_IN` without a `password` entry, `409 NOT_ADMITTED` for an address admission refuses, `409 ACCOUNT_DISABLED`, `403 OWNER_ONLY` unless an owner asks for an owner's address or for an account that already signs in another way (an admin's own account excepted). The same rules are asked again when the link is used. Service tokens are refused |
 
-An invitation reads:
-
+::: details What an invitation record holds
 ```ts
 {
   id, email, groups, invitedBy, inviter: { name } | null,
@@ -250,6 +253,7 @@ which can differ from the invited one (a GitHub account with the invited address
 secondary one). POST answers `{ invitations: [...], signInUrl, admission }`: an invitation
 carries `created: boolean`, and an address handled without one reads
 `{ email, status: "applied" | "refused" | "already", reason?, userIds, groups, created: false }`.
+:::
 
 - `emails`: 1 to 200 addresses, trimmed, lowercased and deduplicated. Each must look
   like `local@domain` with no spaces.
@@ -274,9 +278,12 @@ carries `created: boolean`, and an address handled without one reads
   (`403 OWNER_ONLY`).
 - Inviting an address closes its open request to join, if it has one.
 
-Nothing is emailed. Send each person their `link`, which opens the
-[invite page](invitations.md#invite-links) for that invitation. `signInUrl` is
-`instance.baseUrl`. Audit actions: `invite.create` (with `via`: `console`, `project`,
+::: note Nothing is emailed
+Send each person their `link`, which opens the
+[invite page](invitations.md#invite-links) for that invitation.
+:::
+
+`signInUrl` is `instance.baseUrl`. Audit actions: `invite.create` (with `via`: `console`, `project`,
 `request` or `reinvite`, plus `from` for an invitation made again and `passwordSetup`),
 `invite.link` (a new link), `invite.open` (the first sign-in started from a link),
 `invite.wrong-account`, `invite.revoke` and `invite.accept` (with `via`: `sign-in`,
@@ -318,6 +325,7 @@ New link raises the version, so every earlier link stops working. See
 | `POST /api/auth/invite` | public; `join` needs a session | the invite page's forms: `token`, `csrf`, `action` (`start`, `password` or `join`), `idp` (for `start`) and `prompt` (`select_account`, optional). `start` records the first opening, then answers `302` to that IdP, or `200` with the email and password form. `password` answers `200` with the set-password form when this invitation may set one, else the invite page again with an error line. `join` accepts the invitation for a signed-in account that holds the address and answers `303` to the project, or `200` with the wrong-account page. A dead or ended token gets its `410` page. `auth` rate-limit bucket |
 | `POST /api/auth/request` | public, with a valid `ask` token | the forms on the refusal and wrong-account pages: `ask`, `csrf`, `action` (`join`, `switch` or `withdraw`) and `note` (optional, at most 280 characters). `200` "Request sent" whether the request was created, was already open or was held by a cap; `withdraw` answers "Request withdrawn". An expired `ask` token or form is a `403` "This page expired" page. `auth` rate-limit bucket |
 
+::: details Form checks, page headers and the ask token
 Every form carries the `lw_form` double-submit nonce (a cookie on `Path=/api/auth`) and
 passes the Origin check. The pages are sent with `cache-control: no-store`,
 `x-content-type-options: nosniff`, `referrer-policy: strict-origin`,
@@ -326,6 +334,7 @@ passes the Origin check. The pages are sent with `cache-control: no-store`,
 The `ask` token is minted only on a page the server renders right after it verified a
 sign-in (the refusal and wrong-account pages). It lives 30 minutes, travels in a hidden
 form field, and carries the verified address, so the address on a request is never typed.
+:::
 
 **Project join links.** A manager can also make one reusable link that anyone may open to
 join a project, or one document in it, with a fixed role. Opening the link changes nothing;
@@ -352,6 +361,7 @@ invitation for the address the person enters.
 | `POST /api/v1/access-requests/:id/approve` | an approver, checked again now | body `{ role? }` (project requests; the role asked for when absent). `200 { request, outcome, invitation?, link?, message? }`, with `outcome` one of `added`, `already`, `invited` or `moved`. `message.text` is a ready-to-send line for an approved join, for example "You can now sign in to Example Studio. Open https://work.example.com and sign in as sam.k@example.net with GitHub." |
 | `POST /api/v1/access-requests/:id/decline` | an approver | body `{}`; `200 { request }` |
 
+::: details The request records
 ```ts
 type MyRequest = { id, status, role, createdAt, answeredAt, answerRole };
 type RequestView = {
@@ -364,6 +374,7 @@ type RequestView = {
   createdAt, expiresAt, answeredAt, answeredBy: { name } | null, answerRole,
 };
 ```
+:::
 
 Who may answer, what each approval does, and how requests close are in
 [asking for access](invitations.md#asking-for-access) and [asking to join](invitations.md#asking-to-join). Here, the
@@ -373,6 +384,7 @@ approve claims the request first, then acts. If the action then fails on a datab
 `500`, the request stays approved, the audit row records `effect: "failed"`, and a manager
 adds the person by hand.
 
+::: details Access request error codes
 | Code | Status | Meaning |
 |---|---|---|
 | `ALREADY_ANSWERED` | 409 | someone answered first; the body's `request` says who and how |
@@ -380,6 +392,7 @@ adds the person by hand.
 | `REQUESTER_UNAVAILABLE` | 409 | the requester's account is disabled; the request closes as `expired` |
 | `PROJECT_ARCHIVED` | 409 | the project was archived; the request closes as `expired` |
 | `INVITATION_ENDED` | 409 | a switch request whose invitation is no longer pending; the request closes as `expired` |
+:::
 
 Audit actions: `access.request`, `access.request.held` (held by a cap; `reason`
 `per-email`, `workspace-cap` or `per-invitation`), `access.approve`, `access.decline`,
@@ -391,9 +404,12 @@ stores nothing, so its subject is `request`). A note is recorded only as its len
 
 | Route | Action | Notes |
 |---|---|---|
-| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint: body `{ label, role?, scopes?, tools?, ttlDays? }`. `label` says which automation holds the token (up to 80 characters). `scopes` lists `render`, `documents`, `files`, `delivery`, `catalog.read` or `audit.read`, and a route no listed scope opens answers `403 TOKEN_SCOPE`. With `scopes` and no `role` the token takes the `automation` role; with no `scopes`, `role` is required and is any role but `guest` or `automation`. `tools` lists up to 64 tool ids and needs the `render` or `documents` scope. `ttlDays` is a whole number from 1 to 365 (90 by default). `201` with the token record and `token`, the secret (`lwt_…`), which appears in this response and never again |
+| `POST /api/v1/tokens` | `token.manage` (**owner**) | mint: body `{ label, role?, scopes?, tools?, ttlDays?, limits? }`. `label` says which automation holds the token (up to 80 characters). `scopes` lists `render`, `documents`, `files`, `delivery`, `catalog.read`, `audit.read` or the opt-in `approvals.request`, and a route no listed scope opens answers `403 TOKEN_SCOPE`. `limits` takes the figures `PUT …/limits` takes. With `scopes` and no `role` the token takes the `automation` role; with no `scopes`, `role` is required and is any role but `guest` or `automation`. `tools` lists up to 64 tool ids and needs the `render` or `documents` scope. `ttlDays` is a whole number from 1 to 365 (90 by default). `201` with the token record and `token`, the secret (`lwt_…`), which appears in this response and never again |
 | `GET /api/v1/tokens` | `token.manage` (**owner**) | `{ tokens, legacyUnboundedCount, scopeVocabulary }`: each token's role, `scopes`, `tools` (`null` when it has none), expiry, last-used and revocation state, never secrets, and every scope with a plain-language `label` and `description` |
 | `DELETE /api/v1/tokens/:id` | `token.manage` (**owner**) | revoke: `200 { ok: true }`, or `404` for a token that is unknown or already revoked; the very next use gets `401` |
+| `PUT /api/v1/tokens/:id/limits` | `token.manage` (**owner**) | body `{ limits }`: `callsPerMinute`, `rendersPerDay` and `rendersPerMonth`, each a whole number or `null` for no cap. A key left out takes the programme's or the instance's figure, and `limits: null` clears the token's own figures. See [limits and usage](partner-agents.md#limits-and-usage) |
+| `PUT /api/v1/tokens/:id/programme` | `token.manage` (**owner**) | body `{ programme, company? }` places the token in a partner programme, and optionally one company in it; `{ programme: null }` takes it out. An admin or owner token is never placed (`400 TOKEN_NOT_SCOPED`), and a token minted for a programme stays there (`409 PROGRAMME_TOKEN`) |
+| `GET /api/v1/tokens/:id/usage?from=&to=&by=` | `token.manage` (**owner**) | what the token did, as counts only, by day or week. [What agents did](partner-agents.md#limits-and-usage) describes the counts |
 
 A minted token rides `Authorization: Bearer lwt_…` and resolves to a synthetic
 principal carrying the token's role (no groups): permissions, grants and audit see it like any
@@ -414,6 +430,17 @@ A person's session gets `401 SERVICE_TOKEN_REQUIRED`, and a request from another
 `403 ORIGIN_REFUSED`. [Connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp) lists the
 tools and the route each one runs.
 
+The endpoint serves brand context as `lolly-work://` resources, and the same reads answer over
+REST for a service token:
+
+| Route | Scope | Answers |
+|---|---|---|
+| `GET /api/v1/context`, `/context/me`, `/context/brand` | any | the reads on offer, who the token is and what it may do, and the brand it draws with |
+| `GET /api/v1/context/brand/design-md`, `/tokens`, `/agents-md`, `/checks`, `/skills[/:slug/*]` | `catalog.read` | the brand's DESIGN.md, tokens, AGENTS.md, checks and skills |
+| `GET /api/v1/context/partner/company[/logo/:surface]`, `/partner/templates`, `/partner/kit[/logo/:surface]` | `catalog.read` | a partner token's own company and logos, its templates and its partner kit |
+
+[What an agent reads](partner-agents.md#what-an-agent-reads) says what each holds.
+
 ### SCIM provisioning
 
 Admin (cookie, owner-only) mints the bearer; the protocol half is what the IdP calls with the bearer.
@@ -430,6 +457,7 @@ See [SCIM provisioning](enterprise-identity.md#scim-provisioning).
 an IdP runs before create. `active=false` on a User `PATCH` (or a `DELETE`) deprovisions:
 disable + session-epoch bump. Group membership maps to each user's local groups.
 
+<!--i:eti-folder-shared-->
 ## Projects and documents
 
 Projects, the documents (sessions) inside them, who can open them, their saved versions and
@@ -582,10 +610,10 @@ because the cookie, not the URL, decides who reads them. See
 A wrong password is `401 PASSWORD_INCORRECT`. Ten wrong passwords from one address within 15
 minutes lock the link for that address (`429 PASSWORD_LOCKED` with `Retry-After`).
 
-::: note `&pw=` on a link is deprecated
-`&pw=…` on the `GET` is deprecated as of Lolly Work 1.1.2, which still accepts the parameter: the
+::: warning `&pw=` puts the password in the address, and stops working later
+`&pw=…` on the `GET` is deprecated as of Lolly Work 1.1.2. Lolly Work 1.2.0 still accepts the parameter: the
 answer carries a `Deprecation` header and sets the same cookie, and the server logs one warning
-per link. A later release refuses `&pw=`.
+per link. A later release refuses `&pw=`, so send the password in the body of the `POST`.
 :::
 
 `GET /render/<toolId>.<format>`, which renders from the inputs in a URL, is described in
@@ -713,8 +741,7 @@ on the instance.
 | `POST /api/v1/sessions/:id/comment-reads` | Mark threads read for the caller: `{ threadIds?, at? }`, at most 100 ids, every thread in the session when `threadIds` is absent, `at` an ISO time (now by default, never later than now). Deletes the caller's notices for those threads. `200 { readAt, count }`; `404` when an id is not a thread in this session |
 | `GET /api/v1/sessions/:id/comment-people?q=` | Who the caller may mention: `200 { people: [{ id, name }], truncated }`, at most 20, prefix match on the name (`q` up to 64 characters), sorted, caller excluded, never an address. Only for someone who may comment here; `403` when commenting or mentions are off |
 
-The listing's fields:
-
+::: details The listing's fields and read state
 - `enabled`: false when comments are off for the instance; `threads` is then empty and
   `readFloor` is absent.
 - `reads`: `{ threadId: iso }`, when the caller last read each thread. `readFloor`: when
@@ -728,6 +755,7 @@ The listing's fields:
 
 Read state is private to each person: no route reads or changes anyone else's, and a
 thread from another session is `404` on every route that identifies one.
+:::
 
 **Mentions.** `mentions` is a list of at most 10 person ids (`400 INVALID_INPUT`
 otherwise). The server keeps only the people who can open the session and read its
@@ -820,6 +848,7 @@ the design system to switch to. On a pack with no brand profiles there is
 nothing to compare a name against, so only `dsi` is checked. Sending neither
 param joins as before; sending one of the two checks only that one.
 
+::: details Interaction version 1 and asset references
 Clients can negotiate `interactionVersion: 1` in their join frame. Transform and
 text claims belong to the live room, expire after ten seconds without renewal and
 end on disconnect, demotion or object deletion. Acquisition covers all requested
@@ -836,6 +865,7 @@ The interaction-v1 shell understands these references. Older members receive ord
 fields and retain their already-restored images; extension strings are omitted from
 their operations and checkpoints. Live delivery of a newly added image needs the current shell.
 Clients that do not negotiate this version continue to use the existing protocol.
+:::
 
 ### Project session presence
 
@@ -883,6 +913,7 @@ open, or one that is not a Lolly Design document, answers `404`.
 | `POST /api/v1/sessions/:id/agents` | `{ label, role, hours? }`, with `viewer` or `editor` access and 1 to 168 hours (default 24). An `editor` agent needs a caller with editor access and edit rights. Refused on archived projects (`403 READ_ONLY`), `409 AGENT_LIMIT` when the caller already has 16 live document and project agent invitations, `503 AGENT_UNAVAILABLE` where no live room host runs. `201 { agent, endpoint, secret }` returns the connection key once |
 | `DELETE /api/v1/sessions/:id/agents/:agentId` | inviter or project manager; revokes the key and closes its connection; `204` |
 
+<!--i:eti-upload-->
 ## Files and uploads
 
 Three ways to keep bytes on the instance. **Project files** are shared inside a team project.
@@ -1105,9 +1136,12 @@ the very next request:
 A queued (`?async=1`) request is checked again when it runs, against the account that queued
 it rather than the session. Deleting the reference, revoking the token, disabling the person,
 denying `tool.use`, expiry and erasure each make it a failed job that reads nothing, with the
-reason in its `error`; these status codes do not apply to this route. Signing out everywhere ends
-sessions only, so work already queued for the account still runs. To stop that work too,
-disable the person or revoke the token before it runs.
+reason in its `error`; these status codes do not apply to this route.
+
+::: warning Signing out everywhere does not stop queued work
+Signing out everywhere ends sessions only, so work already queued for the account still runs. To
+stop that work too, disable the person or revoke the token before it runs.
+:::
 
 A reference counts toward the budgets at its size plus the 4096 bytes of overhead, plus the size
 of its `derivedFrom` and report as JSON, so a report takes room like the bytes do.
@@ -1129,6 +1163,7 @@ audited. [Discovery](automation-api.md#find-out-what-you-can-do) reports `files.
 | `RATE_LIMITED` | 429 | read back: the owner's daily amount is used up |
 :::
 
+<!--i:eti-palette-->
 ## Catalog and design system
 
 The assets members browse and place, how new ones are submitted and reviewed, the external
@@ -1299,7 +1334,9 @@ To publish, send a ZIP of the folder through [the parts protocol](#the-parts-pro
 | `POST /brand/:slug/mcp` | anyone | The read-only MCP endpoint. `GET` answers `405` |
 | `GET`, `HEAD /api/v1/brand-pages/public`, `/.well-known/lolly-brand.json` | anyone | `200 { convention, version, note, pages, truncated }`. The second address is a Lolly convention |
 
+::: details Bundle refusal codes
 A refused bundle answers `422`, or `413` over a limit, with one of these codes: `MANIFEST_INVALID`, `BUNDLE_NOT_A_ZIP`, `BUNDLE_NOT_SUPPORTED`, `BUNDLE_MANIFEST_MISSING`, `BUNDLE_MANIFEST_DIGEST`, `BUNDLE_DIGEST_MISMATCH`, `BUNDLE_FILE_MISSING`, `BUNDLE_UNLISTED_FILE`, `BUNDLE_PATH_REFUSED`, `BUNDLE_ROLE_REFUSED`, `BUNDLE_MEDIA_TYPE_REFUSED`, `BUNDLE_FILE_TOO_LARGE`, `BUNDLE_TOO_LARGE`, `BUNDLE_TOO_MANY_FILES`. `BRAND_PAGE_BUDGET` answers `413` when the instance has no room, `BRAND_PAGE_PENDING` answers `409` while a revision waits for a decision and `CHAIN_NOT_FOUND` answers `409` when the configured chain does not exist.
+:::
 
 The public routes accept a token with any scope, so a client that sends one keeps working. The publishing routes are not in the scope table, so a token limited to scopes is refused there. Publishing places files at a public address, which stays with people and unscoped tokens.
 
@@ -1307,6 +1344,7 @@ With a chain set, a decision on the approval must carry `brandPageDigest`, the `
 
 `GET /api/v1/org-config` gains `brandPages { maxBundleBytes, maxFileBytes, partBytes, approval }` and `can['brand.page.publish']` for a caller who may publish on an instance with the feature on. `GET /api/v1/discovery` gains `brandPages { enabled, index, convention }`.
 
+<!--i:eti-pen-tool-->
 ## Design system edits
 
 [An edit from the studio](design-system-administration.md#edit-this-instance-from-the-studio) changes this instance's colours, colour roles and brand page address with no pack rebuild. A service token limited to scopes reaches none of these routes.
@@ -1325,6 +1363,7 @@ With a chain set, a decision on the approval must carry `brandPageDigest`, the `
 
 `document` is the token document as text, and `digest` is the SHA-256 of those bytes. `base` is the mounted document's checksum, from the document route. `connect` says what becomes of the connect download: `none`, `derived`, `withdrawn` or `stopped`. `GET /api/v1/org-config` gains `brandEdits { maxDocumentBytes, approval }` and `can['brand.edit']` for someone who may send one.
 
+<!--i:eti-stamp-->
 ## Governance, approvals and inbox
 
 Tool policy, grants and approval chains, the approvals people act on and the inbox where
@@ -1348,10 +1387,10 @@ messages and comment notices arrive.
 
 | Route | Action |
 |---|---|
-| `GET/POST /api/v1/approvals` | member |
+| `GET/POST /api/v1/approvals` | member, or a service token holding `approvals.request` for export reviews of its own renders |
 | `GET /api/v1/approvals/approvers` | member |
 | `POST /api/v1/approvals/:id/act` | `approval.act` |
-| `POST /api/v1/approvals/:id/withdraw` | member (submitter) |
+| `POST /api/v1/approvals/:id/withdraw` | member (submitter), or the token that asked |
 | `GET /api/v1/approvals/:id/artifact` | an eligible reviewer or someone who acted; the requester once approved. An approved request answers with the approved file and `x-lolly-approval-record`; `?file=reviewed` answers with the bytes as reviewed |
 | `POST /api/v1/approvals/match` | member; the [state of a request](approvals.md#check-the-state-of-a-request) for these inputs |
 | `GET /api/v1/inbox` | member - `{ messages, unread }` with `ETag: "ib-<16 hex>"` and `cache-control: private, no-cache`; a matching `If-None-Match` answers `304`, so a shell can check often for one header. `messages` holds the caller's messages and comment notices; `unread` counts both, and the tag moves when either changes |
@@ -1371,8 +1410,9 @@ is deleted, and an access request for a project once they no longer manage the p
 not deleted: the message comes back if the access does.
 
 Comment notices appear in the same list. There is one per person
-per thread, updated as replies arrive, and it is built when the inbox is read:
+per thread, updated as replies arrive, and it is built when the inbox is read.
 
+::: details How a comment notice reads
 ```json
 { "id": "cn_<24 hex>", "kind": "comment", "severity": "info",
   "title": "Ana mentioned you in Spring poster",
@@ -1389,6 +1429,7 @@ never an address, and `Member` when the account is gone. With no message by some
 left, `body` is "This comment is no longer available." `appUrl` is `instance.appUrl`, or
 empty when the app is served from this origin. The text is English; a client should build
 its own title from `data` and its own link from `data.sessionId` and `data.threadId`.
+:::
 
 Each notice is checked again on every read with the rule the
 [comments routes](#canvas-comments) use: the caller can still open the session, `session.view`
@@ -1400,6 +1441,7 @@ the person. One whose session is deleted, or whose project the caller can no lon
 is deleted. Notices
 are never emailed today; see `policy.comments` under [Canvas comments](#canvas-comments).
 
+<!--i:eti-gauge-->
 ## Administration and health
 
 The routes an operator and the monitoring stack read: health probes, metrics, telemetry and

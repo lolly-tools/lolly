@@ -2,6 +2,7 @@
 
 `tool.json` is the one file Lolly reads to know what a tool is: its name, what people can change, which files it can export and how it appears in the gallery. This page is the field reference. Look up the field you need; [Build a tool](/info/authoring-tools.html) shows a complete small manifest first.
 
+<!--i:eti-file-->
 ## The manifest (`tool.json`)
 
 Every manifest is validated against `schemas/tool.schema.json`. Seven fields are required:
@@ -42,13 +43,14 @@ None of these fields stay private to the repository. The About card is the manif
 - `isolate` - boolean. Asks the shell to run a built-in tool's hooks in a Worker. See [Run hooks in a Worker](/info/tool-hooks.html#run-hooks-in-a-worker-isolate).
 - `singleInstance` - boolean. Set `true` when only one copy of the tool can run on a page, for example a tool that holds a WebGL context or keeps a handle on `window` (the 3D viewers, `spatial-photo`, `synth`). Lolly Multi-edit then shows its cells as still previews one after another instead of live copies. The single-tool view, URL mode and the CLI are unaffected.
 - `composes` - embed another tool's render as an image. Requires the `compose` capability. See [Composition and brand overlays](/info/tool-composition.html).
-- `renditionOf` - `{ "input": "image", "action": "c2pa.color_adjustments" }`, for a tool whose output is a changed copy of one picture the person gives it, such as a colour grade, a filter or a format conversion. `input` is the id of a top-level `asset` input, and `action` is one of `c2pa.color_adjustments`, `c2pa.filtered`, `c2pa.converted`, `c2pa.resized`, `c2pa.cropped` or `c2pa.edited`. When that picture carries a Content Credential of its own, the export's credential records the picture as its parent and opens it first, and `action` takes the place of the step that says the file was made new. Every other picture stays a component. A picture with no credential changes nothing. Darkroom, Filter and Asset Export declare the field.
+- `renditionOf` - `{ "input": "image", "action": "c2pa.color_adjustments" }`, for a tool whose output is a changed copy of one picture the person gives it, such as a colour grade, a filter or a format conversion. `input` is the id of a top-level `asset` input, and `action` is one of `c2pa.color_adjustments`, `c2pa.filtered`, `c2pa.converted`, `c2pa.resized`, `c2pa.cropped` or `c2pa.edited`. When that picture carries a Content Credential of its own, the export's credential records the picture as its parent and opens it first, and `action` takes the place of the step that says the file was made new. Every other picture stays a component. A picture with no credential changes nothing. `unlessSet` lists inputs that replace the picture as the source while they hold anything, as Darkroom's layer stack does (`"unlessSet": ["layers"]`); while one does, the export is not recorded as a rendition. A live camera frame or a recording replaces the picture too, without being listed. The field needs engine 1.341, and `@lolly-tools/core/rendition-v1` holds the action list and the reference check the validators share. Darkroom, Filter and Asset Export declare the field.
 
 ### Design-system behaviour
 
 - `designVersion` - a published design-system version slug, or `latest`, that the tool renders against. Unlike `engineVersion` it is not enforced at load: a version this device does not have falls through to the active version, then to the newest. `?designv=` overrides it for one render.
 - `tokenAxes` - keeps the tool on the canonical option of a kind of theme group, for a tool whose colours are its content. See [Colours that are the content](#colours-that-are-the-content).
 
+<!--i:eti-download-->
 ## The `render` block
 
 Most of what `render` declares reaches people in one place: the export popup. Formats, page size and unit, the **Convert paths** toggle and the Content Credentials card all come from keys below.
@@ -97,6 +99,7 @@ In all five, the data stays flat and expressible as URL parameters, so the CLI a
 - `urlSync` - default `true`. Set `false` to keep live edits out of the address bar. Explicit URL inputs and generated share links still work, and local recovery uses the session slot.
 - `denseSections` - `input.section` labels whose short controls the web sidebar lays out two to a row. A presentation hint only: the input model, URL encoding and every headless render are untouched, and the grid falls back to one column on a narrow panel or with large text.
 - `sectionIcons` - maps an `input.section` label to a shell icon name, drawn before the label on the folded section head. A tool with many sections (`chart` declares seventeen) can then be scanned by glyph as well as by word. Same contract as `denseSections`: an unknown icon name draws nothing, and the CLI and TUI ignore the map. Give each section an icon from the shell registry, keep a section's fields consecutive and put primary content before secondary settings. Translated section captions keep their icon and density.
+- `themeChoicesAfter` - the id of an input. The web sidebar draws the design system's choices for the piece (colourway, mode and any other theme group) right after that input's row, inside its section, instead of in the separate **Design system** section. It is keyed by input id, so a translated section caption cannot move the choices. Same contract as `sectionIcons`: an id that matches no input leaves the separate section in place, and the CLI and TUI ignore the key (`snippet`).
 
 ### Live camera
 
@@ -135,6 +138,7 @@ A template marks its page boxes with `data-pdf-page`. Each marked element become
 
 The recording key (`capture`) and the speech-to-text key are on [Tool hooks and host capabilities](/info/tool-hooks.html), and `portable` is on [Templates and rendering](/info/tool-rendering.html#animated-html).
 
+<!--i:eti-pen-->
 ## Opening catalog assets (`openWith`)
 
 An optional `openWith` array lets Assets offer your tool as a place to edit an asset. Each entry has a permanent `id`, the asset `types` it accepts, optional lowercase `formats` and a `binding`. The whole selection must match. Leave out `multiple` for one source; set it to `true` only when the tool can receive the selection in one session. Animated rasters need `animated: true`, a promise to keep their animation.
@@ -164,6 +168,7 @@ Declaring an export format in `render.formats` does not claim the tool can conve
 Assets also offers **Convert**, which lists the transformations the source and the device support before showing their settings. That list comes from concrete file operations, separately from `openWith` and `render.formats`. An on-device utility conversion keeps its watermark and provenance policy. PDF page splitting produces a ZIP of static single-page PDFs, and PDF page rendering produces a ZIP of PNG images. Their fidelity notes and refusal conditions appear before conversion.
 :::
 
+<!--i:eti-palette-->
 ## Colours that are the content
 
 A design system can offer several colourways, and a person picks one per piece in the tool sidebar's **Design system** section. Every colour a tool links to the design system follows that choice, which is what most tools want. A tool whose colours are its content, such as a tonal ramp or a palette pinned to a dataset, can opt out:
@@ -176,7 +181,11 @@ The keys are the kinds of theme group in [What a theme group means](/info/design
 
 The pin covers every colour the render reads, so a print export uses the CMYK or spot build the design system authored for the canonical option. `"mode": "ignore"` keeps a print piece in the canonical look; in a design system with no `mode` group, its light and dark themes with no group count as the mode.
 
-When a link or the CLI asks for an option the tool ignores, `lolly run` prints a `THEME_CHOICE_IGNORED` warning and an MCP render adds the same sentence to its warnings, so the request is never dropped silently. Engines older than the field refuse a manifest that declares `tokenAxes`, so raise `engineVersion` to the release that added the field, as listed in `engine/CHANGELOG.md`.
+When a link or the CLI asks for an option the tool ignores, `lolly run` prints a `THEME_CHOICE_IGNORED` warning and an MCP render adds the same sentence to its warnings, so the request is never dropped silently.
+
+::: warning Raise `engineVersion` with `tokenAxes`
+Engines older than the field refuse a manifest that declares `tokenAxes`, so raise `engineVersion` to the release that added the field, as listed in `engine/CHANGELOG.md`.
+:::
 
 A switch redraws the mounted tool in place, with no reload. Linked colours and `var(--brand-*)` variables follow by themselves. A hook that keeps colours it read from `host.tokens` reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) shows.
 
@@ -188,6 +197,7 @@ The colours a tool reads are the canvas variables its template, styles, hooks an
 A hook that reads the colour list or the token set, a reference built from no fixed start, module hooks and a tool that composes another tool all count as reading every token, so every group that changes a token stays. A treated picture counts as changing with every choice, because a photo look can keep a variant per theme. Declare `tokenAxes` when the tool does read the colours a group changes and must still keep its own.
 :::
 
+<!--i:eti-images-->
 ## Example looks (`examples`)
 
 A tool ships one gallery preview, but `examples` lets its tile show range: an array of example input values, each rendered live on the device through the same off-screen path an export takes, as a horizontally scrolling preview strip. When the tool is `featured`, the looks also cross-fade in the hero row. Each look is cached, so later visits are instant. Leave `examples` out when one preview says enough.
@@ -209,6 +219,7 @@ A tool ships one gallery preview, but `examples` lets its tile show range: an ar
 
 The older alias `featured.variants` still renders but is deprecated. Write `examples`.
 
+<!--i:eti-tag-->
 ## What a tool is for (`intents.json`)
 
 A tool can say which purposes it serves in an optional `intents.json` beside its manifest, so someone can [start from what a piece has to do](/info/visual-intent.html) rather than from the tool's name. A tool with no such file is not offered for an intent, and everything else about the tool works as before. Declare a purpose only where the tool serves that purpose well.
@@ -237,8 +248,13 @@ Most tools need no `surfaces` entry. A select option that states `width` and `he
 
 The file is separate from the manifest on purpose. Loading a tool never reads `intents.json`, so adding one needs no new manifest key and no change to `engineVersion`, and an older app simply ignores the file. A brand overlay can carry its own `intents.json`, which wins over the community file like any other overlay file. Signing covers the file with the rest of the tool.
 
-`validate:catalog` checks every `intents.json`: the shape (`schemas/tool-intents-v1.schema.json`), then what the schema cannot say, through `checkToolIntents`. That catches an input that does not exist, a select value that is not on offer, a repeated purpose, a required input no role can fill and an `intents.json` in a folder with no manifest. Render each declaration through `lolly intent --render` and look at the file as well: an input that takes plain text only sometimes, or falls back to a sample, passes every check here.
+`validate:catalog` checks every `intents.json`: the shape (`schemas/tool-intents-v1.schema.json`), then what the schema cannot say, through `checkToolIntents`. That catches an input that does not exist, a select value that is not on offer, a repeated purpose, a required input no role can fill and an `intents.json` in a folder with no manifest.
 
+::: note The checks do not look at the file
+Render each declaration through `lolly intent --render` and look at the file as well: an input that takes plain text only sometimes, or falls back to a sample, passes every check here.
+:::
+
+<!--i:eti-help-->
 ## A short walkthrough (`guide`)
 
 Some tools are not finished when the render is. An email signature is finished when it is pasted into the mail app's settings, and nothing on the canvas shows that step. `guide` is a few steps for that last stretch. The shell shows them in a dialog behind a help button beside the tool's name, and opens the dialog once by itself the first time a device opens the tool.

@@ -4,6 +4,7 @@ Is a Lolly link a record you can keep? It is. The whole state of a design lives 
 
 This is the neighbour of [determinism](/info/determinism.html), and a different claim. Determinism says the same inputs give the same file. Reproducibility says you still have the inputs: a short piece of text you can paste in a ticket, commit to a repository or bookmark, rather than a document held in someone's account.
 
+<!--i:eti-url-->
 ## What a link carries
 
 **Every input.** `engine/src/url-mode.ts` owns the round trip both ways: `parseUrlState` turns a query string into input values, and `serializeUrlState` turns the current state back into a query. Every input type except `file`, whose bytes stay on the device, must be expressible as a URL parameter. That is a hard rule, not a convenience some tools happen to follow, and it is also why the CLI works: the same conversion under a different transport. A long design packs into one `z` token, or a password-locked `zx` one ([Long and private links](/info/url-mode.html#long-and-private-links)).
@@ -18,6 +19,7 @@ This is the neighbour of [determinism](/info/determinism.html), and a different 
 
 **The same state everywhere.** A saved session holds the values; **Share link** on any session in Projects gives its URL form; a `.lolly` file carries one for a colleague. An operator who wants a starting point to be permanent records the values as a `templates[]` entry on the tool's manifest in the brand pack, opened with `?template=<id>` ([Deployment](/info/deployment.html)). Each is the same inputs in a different envelope.
 
+<!--i:eti-clock-->
 ## What has to survive for a link to render in ten years
 
 The list is short, and every item is something you can hold.
@@ -31,11 +33,12 @@ The list is short, and every item is something you can hold.
 
 Nothing on the list is an account, a subscription or a running service.
 
+<!--i:eti-flask-->
 ## Prove it yourself
 
 Reading a link is one kind of proof: change one input, copy the link from the Share dialog and every value you set is there to read. Rebuilding the file is the other kind. Give the CLI a finished file and the `.lolly` of the session that made it, and it renders the session again on your machine and compares:
 
-```
+```bash
 lolly validate ./poster.svg --rebuild ./poster.lolly
 ```
 
@@ -53,7 +56,9 @@ The scope is narrow on purpose. Only `svg`, `emf`, `eps`, `dxf` and `csv` can be
 
 Content Credentials are switched off for the rebuild and stripped from the delivered SVG before comparing, since a credential is signed with a fresh key at a fresh timestamp and can never equal itself. The rebuild draws in the published version and the colourway that the file's [design-system record](/info/exporting.html#the-design-system-record) gives, wherever the session itself is silent. An SVG with no record was exported with the record off, so its rebuild leaves the record out as well.
 
-One more limit: the rebuild renders through the CLI. A file exported from the browser was written by the web app, whose SVG writer is not byte-identical to the terminal's, so comparing one reports `content`. Compare a CLI export with the CLI, and use the reason list on a web export to see whether the engine, the tool or a font has changed since.
+::: note The rebuild renders through the CLI
+A file exported from the browser was written by the web app, whose SVG writer is not byte-identical to the terminal's, so comparing one reports `content`. Compare a CLI export with the CLI, and use the reason list on a web export to see whether the engine, the tool or a font has changed since.
+:::
 
 ### What a .lolly says it carries
 
@@ -79,6 +84,7 @@ A web address keeps its scheme, host and path and loses its user name, password,
 The rule looks only at the characters of each segment, so a short key written into a path can remain: treat the report as a list of where each dependency comes from, not as a scrubbed copy of every address. The design's own values still hold the full address, because the design needs the address to draw.
 :::
 
+<!--i:eti-clipboard-->
 ## The receipts
 
 | Claim | Enforced by |
@@ -99,6 +105,7 @@ The rule looks only at the characters of each segment, so a short key written in
 | A catalog asset sent by id reads available, and one the sender's catalog could not supply reads missing | `shells/web/src/lib/lolly-portability.test.ts` - `a catalog asset sent by id is available, and one the catalog could not supply is missing` |
 | An empty profile with networking off opens what the file carries, reports the rest and makes no network request | `shells/web/src/lib/lolly-portability.test.ts` - `an empty profile with networking off opens what the file carries and reports the rest` |
 
+<!--i:eti-warning-->
 ## Limits
 
 - **A link reproduces the render it declares.** `format`, `unit`, `dpi`, `bleed`, `marks`, `profile` and `depth` are parameters like any other. Ask the same link for a different format and you have asked for a different render; whether that one comes back byte-identical is a [determinism](/info/determinism.html) question.
@@ -107,6 +114,7 @@ The rule looks only at the characters of each segment, so a short key written in
 - **A password-protected link is only as durable as the password.** `packEncrypted` keeps the password out of the URL, so nothing can recover the state without the password.
 - **A link is a snapshot.** Two people opening the same link get the same starting point and then diverge. Editing the same session at the same time is a different feature, described in [Working together](/info/collaborate.html).
 
+<!--i:eti-link-->
 ## Related
 
 - [Constraints](/info/constraints.html): why what a link can say is a closed, declared vocabulary.

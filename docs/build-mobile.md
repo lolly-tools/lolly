@@ -20,6 +20,7 @@ You need a checkout from [Get the source](/info/contributing-setup.html), plus t
 - Writes an `.ipa`, then [Building for iOS](/info/ios-build.html) takes over
 :::
 
+<!--i:eti-checklist-->
 ## Prerequisites
 
 1. <!--l:android-->Install [Android Studio](https://developer.android.com/studio).
@@ -50,6 +51,7 @@ You need a checkout from [Get the source](/info/contributing-setup.html), plus t
    pnpm -C shells/tauri-mobile install --frozen-lockfile
    ```
 
+<!--i:eti-folder-shared-->
 ## The native projects are in the repository
 
 There is no init step. The Android Studio (Gradle) project is committed in `shells/tauri-mobile/src-tauri/gen/android/`, and the Xcode project in `shells/tauri-mobile/src-tauri/gen/apple/`.
@@ -58,6 +60,7 @@ There is no init step. The Android Studio (Gradle) project is committed in `shel
 The Android project holds hand-maintained code: the share-target and file-open handling in `MainActivity.kt`, the intent filters and FileProvider in `AndroidManifest.xml`, and `res/xml/file_paths.xml`. Regenerating the project can overwrite those files. The same goes for `tauri ios init`.
 :::
 
+<!--i:eti-code-->
 ## Development
 
 With an emulator running, or a phone connected with USB debugging turned on:
@@ -66,6 +69,7 @@ With an emulator running, or a phone connected with USB debugging turned on:
 pnpm run dev:android
 ```
 
+<!--i:eti-package-->
 ## Production build
 
 Build with the public content profile. Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` from your private credential store; the production frontend wrapper signs the exact catalog embedded in the app.
@@ -87,8 +91,11 @@ export ANDROID_KEY_ALIAS=...
 export ANDROID_KEY_PASSWORD=...
 ```
 
-Keep the keystore and passwords outside the checkout. Release APK and AAB files must use the established application key, so that installed copies can update.
+::: warning Sign every release with the established key
+Release APK and AAB files must use the established application key, so that installed copies can update. Keep the keystore and passwords outside the checkout.
+:::
 
+<!--i:eti-image-->
 ## Icons
 
 ```bash

@@ -4,6 +4,7 @@ Build a tool once and the request stops coming back to you: the job becomes a te
 
 New here? **[Start](/info/quickstart.html)** puts a design system and your first file in place, and [How Lolly works](/info/how-lolly-works.html) shows how a script or an agent uses the same tools as a person. The [Glossary](/info/glossary.html) defines engine, shell, bridge and tool.
 
+<!--i:eti-palette-->
 ## Designers
 
 Set the rules once and keep the tools you already use. What you decide here is what every tool obeys, so a colour or a typeface is fixed in one place rather than argued about per file.
@@ -12,7 +13,9 @@ Set the rules once and keep the tools you already use. What you decide here is w
 - **[Lolly Design System Setup](/info/brand-studio.html)** - the on-device editor for logos, colours, type and the rest of the design system (`#/start`).
 - **[Design Tokens](/info/design-tokens.html)** and **[Token workflows](/info/token-workflows.html)** - the DTCG token model a design system is made of, and how it moves between tools.
 - **[Authoring Assets](/info/authoring-assets.html)** - catalog assets, tiers, locales, palettes, themable icons and fonts.
+- **[Brand skills](/info/brand-skills.html)** - a brand's standards for one discipline, written as an Agent Skill and handed to the agent doing the work.
 
+<!--i:eti-code-->
 ## Developers
 
 The app, the CLI and an agent all make the same file from the same inputs, because every input is a URL parameter and every surface runs one render path.
@@ -23,6 +26,7 @@ The app, the CLI and an agent all make the same file from the same inputs, becau
 
 - **[CLI](/info/cli.html)** - headless rendering over the same path as the app, driven by `--foo=bar` pairs. [TUI](/info/tui.html) is the interactive terminal shell.
 - **[URL Mode](/info/url-mode.html)** - every input as a URL parameter: reserved names, compact encoding and packed links.
+- **[Start from what the piece has to do](/info/visual-intent.html)** - state an intent, and `lolly intent` or MCP `lolly_resolve_intent` chooses a tool for each place and says why.
 - **[MCP Server](/info/mcp.html)** and **[AI Agents](/info/ai-agents.html)** - the endpoint an AI agent uses to discover and run tools, and how to drive Lolly from a model.
 - **[Signing from the terminal](/info/cli-signing.html)** - give CLI output a real signing identity instead of an anonymous on-device key.
 
@@ -38,6 +42,7 @@ The app, the CLI and an agent all make the same file from the same inputs, becau
 - **[Constraints](/info/constraints.html)**, **[Determinism](/info/determinism.html)** and **[Reproducibility](/info/reproducibility.html)** - why output comes out right, what is byte-for-byte repeatable and how far a bare link carries.
 - **[Data transfer](/info/data-transfer.html)** - the `lolly-backup` bundle: envelope, integrity and the cross-shell guarantees.
 
+<!--i:eti-building-->
 ## Lolly Work automation
 
 When your organisation runs Lolly Work, automation can run on its server, under its sign-in and policy.
@@ -46,6 +51,7 @@ When your organisation runs Lolly Work, automation can run on its server, under 
 - **[Lolly Work API](/info/work-api.html)** and **[the `lw` CLI](/info/work-cli.html)** - manage an instance with its own authenticated permissions.
 - **[Invite an agent to a document](/info/work-document-agents.html)** - give an agent scoped access to one shared document. An invitation does not grant infrastructure access.
 
+<!--i:eti-hammer-->
 ## Build and contribute
 
 - **[Get the source](/info/contributing-setup.html)** - a development checkout sized to what you are here to do.

@@ -334,11 +334,9 @@ function pluck(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 /**
  * The lead, by the style's instrument. `art` 1 bends (harmonica, guitar, pedal steel) or
  * scoops (horns, fiddle) up into the note; the other leads play every note straight.
- */
-/**
- * A lead note. `from` is the note before when this one is slurred onto it (it starts as the
- * last one ends); the wind voices then glide from that pitch with no new attack, the way a
- * player changes note without tonguing. The other voices take no notice of the pitch.
+ * `from` is the note before when this one is slurred onto it (it starts as the last one
+ * ends); the wind voices then glide from that pitch with no new attack, the way a player
+ * changes note without tonguing. The other voices take no notice of the pitch.
  */
 export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0, from?: number): void {
   if (style === 'flute') flute(k, out, t, midi, vel, dur, from);
@@ -1402,7 +1400,6 @@ function vibes(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   shimmer.connect(sg).connect(out);
 }
 
-/** A flute: a near-sine that breathes in, with a little air in the tone. */
 /**
  * A flute: a near-pure tone whose upper harmonics come with the breath (louder is brighter)
  * and whose vibrato is mostly in those harmonics, a breath-pressure swell at about five a
@@ -2479,66 +2476,6 @@ export function metalAt(k: VoiceKit, t: number, dur: number, rate = 1): AudioBuf
 }
 
 /**
- * A ride cymbal: the metal ringing long behind a clear stick "ping", and the bell's two
- * inharmonic tones under the ring. Jazz's timekeeper.
- */
-export function ride(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number): void {
-  const { ctx } = k;
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = 3200;
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = tone * 0.75;
-  bp.Q.value = 0.6;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.16 * vel, t);
-  g.gain.exponentialRampToValueAtTime(0.05 * vel, t + 0.12);
-  g.gain.exponentialRampToValueAtTime(EPS, t + 1.3);
-  metalAt(k, t, 1.3, 0.9).connect(hp).connect(bp).connect(g).connect(out);
-  for (const [hz, level] of [[3150, 0.03], [4470, 0.02], [920, 0.012]] as const) {
-    const o = osc(k, 'sine', hz, t, t + 0.6);
-    const pg = ctx.createGain();
-    pg.gain.setValueAtTime(EPS, t);
-    pg.gain.exponentialRampToValueAtTime(level * vel, t + 0.002);
-    pg.gain.exponentialRampToValueAtTime(EPS, t + (hz < 1000 ? 0.55 : 0.3));
-    o.connect(pg).connect(out);
-  }
-  crack(k, out, t, vel * 0.12, 5000, 0.01);   // the stick
-}
-
-/**
- * A tom: a drum head struck, its pitch (`midi`) falling from the strike, an overtone and
- * the stick, ringing longer the lower the tom.
- */
-export function tom(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const ring = 0.28 + Math.max(0, 52 - midi) * 0.025;
-  const head = osc(k, 'sine', f * 1.6, t, t + ring + 0.05);
-  head.frequency.exponentialRampToValueAtTime(f, t + 0.06);
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.34 * vel, t + 0.002);
-  amp.gain.exponentialRampToValueAtTime(EPS, t + ring);
-  head.connect(amp).connect(out);
-  const over = osc(k, 'triangle', f * 1.5, t, t + 0.16);
-  over.frequency.exponentialRampToValueAtTime(f * 1.42, t + 0.12);
-  const og = ctx.createGain();
-  og.gain.setValueAtTime(0.1 * vel, t);
-  og.gain.exponentialRampToValueAtTime(EPS, t + 0.14);
-  over.connect(og).connect(out);
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 2400;
-  const ng = ctx.createGain();
-  ng.gain.setValueAtTime(0.12 * vel, t);
-  ng.gain.exponentialRampToValueAtTime(EPS, t + 0.05);
-  noiseAt(k, t, 0.06).connect(lp).connect(ng).connect(out);
-  crack(k, out, t, vel * 0.18, 2800, 0.02);
-}
-
-/**
  * Hand percussion, by `kind` (LOFI_PERCUSSION's order): 0 an egg shaker, 1 a tambourine,
  * 2 a conga (pitched by `midi`), 3 a cowbell, 4 clapsticks.
  */
@@ -2592,40 +2529,6 @@ export function perc(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
   }
 }
 
-
-/** A crash: cymbal metal and noise ringing for a couple of seconds, and on a drop a low boom under the kick. */
-export function crash(k: VoiceKit, out: AudioNode, t: number, vel: number): void {
-  const { ctx } = k;
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = 3800;
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = 7600;
-  bp.Q.value = 0.5;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.12 * vel, t);
-  g.gain.exponentialRampToValueAtTime(0.03 * vel, t + 0.25);
-  g.gain.exponentialRampToValueAtTime(EPS, t + 2);
-  noiseAt(k, t, 2).connect(hp).connect(bp).connect(g).connect(out);
-  // The metal: the cymbal's own ring, a little darker, swelling a moment after the hit.
-  const mhp = ctx.createBiquadFilter();
-  mhp.type = 'highpass';
-  mhp.frequency.value = 2800;
-  const mg = ctx.createGain();
-  mg.gain.setValueAtTime(EPS, t);
-  mg.gain.exponentialRampToValueAtTime(0.22 * vel, t + 0.012);
-  mg.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.4);
-  mg.gain.exponentialRampToValueAtTime(EPS, t + 2.4);
-  metalAt(k, t, 2.4, 0.82).connect(mhp).connect(mg).connect(out);
-  if (vel < 0.8) return;
-  const boom = osc(k, 'sine', 62, t, t + 1.1);
-  boom.frequency.exponentialRampToValueAtTime(34, t + 0.9);
-  const bg = ctx.createGain();
-  bg.gain.setValueAtTime(0.5 * vel, t);
-  bg.gain.exponentialRampToValueAtTime(EPS, t + 1);
-  boom.connect(bg).connect(out);
-}
 
 /** A riser: noise through a band-pass that climbs over `dur`, growing louder, cut dead at the end. */
 export function riser(k: VoiceKit, out: AudioNode, t: number, vel: number, dur: number): void {
@@ -2884,143 +2787,7 @@ export function blip(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
   }
 }
 
-// ── drums ─────────────────────────────────────────────────────────────────────
-
-export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: number, len: number): void {
-  const { ctx } = k;
-  const o = osc(k, 'sine', hz * 2.9, t, t + len + 0.05);
-  o.frequency.exponentialRampToValueAtTime(hz, t + 0.07);
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.75 * vel, t + 0.003);
-  amp.gain.exponentialRampToValueAtTime(EPS, t + len);
-  o.connect(amp).connect(out);
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 1800;
-  const cg = ctx.createGain();
-  cg.gain.setValueAtTime(0.18 * vel, t);
-  cg.gain.exponentialRampToValueAtTime(EPS, t + 0.012);
-  noiseAt(k, t, 0.015).connect(lp).connect(cg).connect(out);
-}
-
-/**
- * The backbeat, by the style's kit: a snare, a brush or a clap, around `tone` Hz. Each
- * starts with a HIT: a few milliseconds of bright noise (the crack of the stick, the
- * slap of the hands, the brush landing) over its body, so it reads as sharp and loud
- * through the lofi muffle and gives a visualizer's mid and treble bands a clear jump on
- * every backbeat.
- */
-export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number): void {
-  const { ctx } = k;
-  if (style === 'stack') { stack(k, out, t, vel, tone); return; }
-  const brush = style === 'brush';
-  // The hit: bright noise, full level at once, gone in 20 to 30 ms.
-  crack(k, out, t, vel * (brush ? 0.32 : style === 'clap' ? 0.5 : 0.62), brush ? 2600 : 3800, brush ? 0.02 : 0.03);
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = brush ? tone * 1.3 : style === 'clap' ? tone * 0.7 : tone;
-  bp.Q.value = brush ? 0.6 : style === 'clap' ? 1.4 : 0.9;
-  const g = ctx.createGain();
-  if (style === 'clap') {
-    // Three hands, a few milliseconds apart, then the room.
-    g.gain.setValueAtTime(EPS, t);
-    for (const [d, a] of [[0, 0.42], [0.011, 0.36], [0.023, 0.48]] as const) {
-      g.gain.setValueAtTime(a * vel, t + d);
-      g.gain.exponentialRampToValueAtTime(0.04 * vel, t + d + 0.009);
-    }
-    g.gain.exponentialRampToValueAtTime(EPS, t + 0.2);
-    noiseAt(k, t, 0.22).connect(bp).connect(g).connect(out);
-    return;
-  }
-  // The snap (the wires): a band of noise around `tone`.
-  const decay = brush ? 0.26 : 0.18;
-  g.gain.setValueAtTime(EPS, t);
-  g.gain.exponentialRampToValueAtTime((brush ? 0.24 : 0.44) * vel, t + (brush ? 0.012 : 0.0015));
-  g.gain.exponentialRampToValueAtTime(EPS, t + decay);
-  noiseAt(k, t, decay).connect(bp).connect(g).connect(out);
-  if (brush) return;
-  // The wires' rattle: a wide band of noise that rings on a little after the hit.
-  const wires = ctx.createBiquadFilter();
-  wires.type = 'highpass';
-  wires.frequency.value = 2200;
-  const wg = ctx.createGain();
-  wg.gain.setValueAtTime(EPS, t);
-  wg.gain.exponentialRampToValueAtTime(0.14 * vel, t + 0.004);
-  wg.gain.exponentialRampToValueAtTime(EPS, t + 0.24);
-  noiseAt(k, t, 0.25).connect(wires).connect(wg).connect(out);
-  // The body (the drum): a short tone that drops, and a ring at about 330 Hz.
-  for (const [type, from, to, level, len] of [['triangle', 205, 165, 0.3, 0.1], ['sine', 330, 290, 0.1, 0.07]] as const) {
-    const body = osc(k, type, from, t, t + len + 0.01);
-    body.frequency.exponentialRampToValueAtTime(to, t + len * 0.8);
-    const bg = ctx.createGain();
-    bg.gain.setValueAtTime(EPS, t);
-    bg.gain.exponentialRampToValueAtTime(level * vel, t + 0.0015);
-    bg.gain.exponentialRampToValueAtTime(EPS, t + len);
-    body.connect(bg).connect(out);
-  }
-}
-
-/**
- * The stacked snare (Sherbert): a clap and a snare struck together, the console's noise
- * channel buzzing under them, and a long, bright tail, the big room a future-bass snare
- * sits in.
- */
-function stack(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number): void {
-  const { ctx } = k;
-  snare('clap', k, out, t, vel * 0.75, tone);
-  // A quiet hit (a roll's, a ghost's) is the clap and the console's buzz alone: a roll is
-  // many hits, and the snare and the tail under each would cost more than they are heard.
-  const full = vel > 0.6;
-  if (full) snare('snare', k, out, t, vel * 0.6, tone);
-  const buzz = ctx.createBufferSource();
-  buzz.buffer = chipNoise(ctx);
-  buzz.loop = true;
-  buzz.playbackRate.value = tone / 2000;
-  buzz.start(t);
-  buzz.stop(t + 0.12);
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = 900;
-  const bg = ctx.createGain();
-  bg.gain.setValueAtTime(0.11 * vel, t);
-  bg.gain.exponentialRampToValueAtTime(EPS, t + 0.1);
-  buzz.connect(hp).connect(bg).connect(out);
-  if (!full) return;
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = tone * 1.6;
-  bp.Q.value = 0.6;
-  const tail = ctx.createGain();
-  tail.gain.setValueAtTime(EPS, t);
-  tail.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.02);
-  tail.gain.exponentialRampToValueAtTime(EPS, t + 0.5);
-  noiseAt(k, t, 0.52).connect(bp).connect(tail).connect(out);
-}
-
-/**
- * An old console's noise channel in its short mode: a 15-bit shift register fed back from
- * its sixth bit, which repeats after a few dozen steps, so it buzzes at a pitch rather
- * than hissing. One buffer per context, looped.
- */
-const CHIP_NOISES = new WeakMap<BaseAudioContext, AudioBuffer>();
-function chipNoise(ctx: BaseAudioContext): AudioBuffer {
-  let b = CHIP_NOISES.get(ctx);
-  if (b) return b;
-  const hold = Math.max(1, Math.round(ctx.sampleRate / 22000));
-  let reg = 1;
-  const bits: number[] = [];
-  for (let n = 0; n < 93; n++) {
-    const fb = (reg ^ (reg >> 6)) & 1;
-    reg = (reg >> 1) | (fb << 14);
-    bits.push(reg & 1 ? 0.8 : -0.8);
-  }
-  b = ctx.createBuffer(1, bits.length * hold, ctx.sampleRate);
-  const d = b.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = bits[Math.floor(i / hold)]!;
-  CHIP_NOISES.set(ctx, b);
-  return b;
-}
+// ── shared by the drums (lib/lofi-drums.ts) and the world percussion ─────────
 
 /** A drum's hit: high-passed noise at full level at once, falling away in `len` seconds. */
 export function crack(k: VoiceKit, out: AudioNode, t: number, peak: number, from: number, len: number): void {
@@ -3034,66 +2801,3 @@ export function crack(k: VoiceKit, out: AudioNode, t: number, peak: number, from
   noiseAt(k, t, len).connect(hp).connect(g).connect(out);
 }
 
-export function rim(k: VoiceKit, out: AudioNode, t: number, vel: number): void {
-  const { ctx } = k;
-  crack(k, out, t, vel * 0.3, 4500, 0.012);
-  const o = osc(k, 'sine', 1150, t, t + 0.04);
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(EPS, t);
-  g.gain.exponentialRampToValueAtTime(0.14 * vel, t + 0.001);
-  g.gain.exponentialRampToValueAtTime(EPS, t + 0.035);
-  o.connect(g).connect(out);
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = 3200;
-  bp.Q.value = 3;
-  const ng = ctx.createGain();
-  ng.gain.setValueAtTime(0.3 * vel, t);
-  ng.gain.exponentialRampToValueAtTime(EPS, t + 0.03);
-  noiseAt(k, t, 0.03).connect(bp).connect(ng).connect(out);
-}
-
-/** Hats by the style's kit: a closed or open hat around `tone` Hz, or a shaker. A `light`
- *  hat (Sherbert's sixteenth ghosts and rolls) is the hiss alone, a third of the cost. */
-export function hat(style: LofiStyle['hats'], k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, open = false, light = false): void {
-  if (style === 'ride') { ride(k, out, t, vel, tone); return; }
-  const { ctx } = k;
-  if (light && style === 'hat' && !open) {
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = tone * 1.15;
-    bp.Q.value = 0.8;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.2 * vel, t);
-    g.gain.exponentialRampToValueAtTime(EPS, t + 0.03);
-    noiseAt(k, t, 0.03).connect(bp).connect(g).connect(out);
-    return;
-  }
-  const shaker = style === 'shaker';
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = shaker ? 3500 : tone * 0.75;
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = shaker ? 5200 : tone * 1.2;
-  bp.Q.value = shaker ? 1.1 : 0.7;
-  const g = ctx.createGain();
-  const decay = open ? 0.24 : shaker ? 0.07 : 0.035;
-  if (shaker) {   // a shaker swishes in rather than striking
-    g.gain.setValueAtTime(EPS, t);
-    g.gain.exponentialRampToValueAtTime(0.13 * vel, t + 0.018);
-  } else {
-    g.gain.setValueAtTime(0.16 * vel, t);
-  }
-  g.gain.exponentialRampToValueAtTime(EPS, t + decay);
-  noiseAt(k, t, decay).connect(hp).connect(bp).connect(g).connect(out);
-  if (shaker) return;
-  // The metal under the hiss: what makes a hat sound like a cymbal and not a burst of static.
-  const mhp = ctx.createBiquadFilter();
-  mhp.type = 'highpass';
-  mhp.frequency.value = tone * 0.7;
-  const mg = ctx.createGain();
-  mg.gain.setValueAtTime(0.2 * vel, t);
-  mg.gain.exponentialRampToValueAtTime(EPS, t + decay * (open ? 1.3 : 1.1));
-  metalAt(k, t, decay * 1.3, tone / 9000).connect(mhp).connect(mg).connect(out);
-}
