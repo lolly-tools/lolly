@@ -6,7 +6,8 @@
  * DOM, so the music generator (views/music-studio.ts), a saved tune's renderer
  * (lib/lofi-tune.ts) and the Neurospicy player all read a track the same way.
  */
-import { lofiTrack, transposeChordName, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import { lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import { LOFI_KITS, type LofiKit } from './lofi-drums.ts';
 import { LOFI_MIX, type LofiMix, type LofiSettings } from './lofi-station.ts';
 
 export const MIX_KEYS: readonly (keyof LofiMix)[] = ['keys', 'bass', 'lead', 'drums', 'fx', 'reverb', 'texture'];
@@ -19,7 +20,14 @@ export const BPM_RANGE = [50, 220] as const;
 /** How far the key can be moved, in semitones each way. */
 export const TRANSPOSE_RANGE = 6;
 /** The voices that carry a pitch, which a change of key moves (the drums and sweeps stay). */
-export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'blip', 'coin', 'phaser']);
+export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'blip', 'coin', 'phaser']);
+
+/** The kinds of effect a person can turn off, and which family each effect voice is in. */
+export const FX_FAMILIES = ['voices', 'console', 'sparkles', 'sweeps'] as const;
+export type FxFamily = typeof FX_FAMILIES[number];
+const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'voices', kookaburra: 'voices', game: 'console', coin: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps' };
+/** The tag choices: none, or a delivery. */
+export const TAG_CHOICES: readonly LofiTagChoice[] = ['off', ...LOFI_TAGS];
 
 export interface MusicState {
   mood: LofiMood;
@@ -39,6 +47,12 @@ export interface MusicState {
   bright?: number;
   drive?: number;
   mix: LofiMix;
+  /** A drum kit the person chose, over the tune's own; it changes the sound, never the notes. */
+  kit?: LofiKit;
+  /** The producer's tag: none, or one delivery for every tag (absent is the composer's). */
+  tag?: LofiTagChoice;
+  /** The kinds of effect the person turned off. */
+  quiet?: FxFamily[];
 }
 
 export const DEFAULT_STATE: MusicState = { mood: 'sugar', seed: 2024, bars: 64, drums: true, texture: 0.3, mix: { ...LOFI_MIX }, sections: {} };
@@ -86,6 +100,9 @@ export function parseMusicState(params: string): MusicState {
     bright: num(q.get('bright'), 0.5, 1.8),
     drive: num(q.get('drive'), 0.8, 4.5),
     mix,
+    kit: pick(q.get('kit'), LOFI_KITS),
+    tag: pick(q.get('tag'), TAG_CHOICES),
+    quiet: ((list) => list.length ? list : undefined)(FX_FAMILIES.filter(f => (q.get('quiet') ?? '').split(',').includes(f))),
   };
 }
 
@@ -105,6 +122,9 @@ export function musicStateParams(s: MusicState): string {
   if (s.bright !== undefined) q.set('bright', String(s.bright));
   if (s.drive !== undefined) q.set('drive', String(s.drive));
   for (const k of MIX_KEYS) if (s.mix[k] !== 1) q.set(`mix.${k}`, String(s.mix[k]));
+  if (s.kit) q.set('kit', s.kit);
+  if (s.tag) q.set('tag', s.tag);
+  if (s.quiet?.length) q.set('quiet', s.quiet.join(','));
   for (const name of SECTION_NAMES) {
     const v = s.sections[name];
     if (v?.keys) q.set(`${name}.keys`, v.keys);
@@ -136,6 +156,7 @@ export function fixedStyle(s: MusicState): Partial<LofiStyle> {
 export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
   const retimed = new WeakMap<LofiTuneInfo, LofiTuneInfo>();
   const shift = s.transpose ?? 0;
+  const quiet = new Set<string>(s.quiet ?? []);
   const changed = (tune: LofiTuneInfo): LofiTuneInfo => {
     const bpm = s.bpm ?? tune.bpm;
     if (bpm === tune.bpm && !shift) return tune;
@@ -157,6 +178,7 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
         notes: out.notes.map(n => PITCHED_VOICES.has(n.voice) ? { ...n, midi: n.midi + shift } : n),
       };
     }
+    if (quiet.size) out = { ...out, notes: out.notes.filter(n => !quiet.has(FX_FAMILY[n.voice] ?? '')) };
     const tune = changed(bar.tune);
     return tune === bar.tune ? out : { ...out, tune };
   };
@@ -168,7 +190,7 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
  */
 export function composeTrack(s: MusicState): LofiBar[] {
   const shape = shapeBar(s);
-  return lofiTrack(s.seed, { mood: s.mood, style: fixedStyle(s) }, s.bars).map(shape);
+  return lofiTrack(s.seed, { mood: s.mood, style: fixedStyle(s), tag: s.tag }, s.bars).map(shape);
 }
 
 /** Where each bar starts, in seconds, and the whole track's length. */
@@ -186,5 +208,5 @@ export function trackSeconds(s: MusicState): number {
 
 /** The station settings that play a track exactly as the generator made it (a saved tune, a render). */
 export function trackSettings(s: MusicState, startBar = 0): LofiSettings {
-  return { mood: s.mood, drums: s.drums, texture: s.texture, style: fixedStyle(s), startBar, bars: s.bars, shape: shapeBar(s) };
+  return { mood: s.mood, drums: s.drums, texture: s.texture, style: fixedStyle(s), startBar, bars: s.bars, shape: shapeBar(s), kit: s.kit, tag: s.tag };
 }

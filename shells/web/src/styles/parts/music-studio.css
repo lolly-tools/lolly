@@ -118,6 +118,8 @@
   .ms-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(12em, 1fr)); gap: var(--sp-3); font-size: var(--fs-sm); }
   .ms-panel[hidden] { display: none; }
   .ms-panel--make { display: flex; }
+  .ms-fx-on { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); }
+  .ms-fx-label { margin-inline-end: var(--sp-1); color: var(--ui-color-text-muted); }
   .ms-panel--make progress { width: 10em; }
   /* The Content Credentials switch and the two lines saying what a download and a save
      will record, read before either is clicked. */

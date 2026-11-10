@@ -72,6 +72,13 @@ function kitRandom(seed: number, mood: string): () => number {
   };
 }
 
+/** The kits a person can choose, each drawn as a kind of music draws its own. */
+export const LOFI_KITS = ['acoustic', 'jazz', 'dusty', 'hiphop', 'electronic', '808'] as const;
+export type LofiKit = typeof LOFI_KITS[number];
+export const LOFI_KIT_NAME: Record<LofiKit, string> = { acoustic: 'Acoustic kit', jazz: 'Jazz kit', dusty: 'Dusty kit', hiphop: 'Hip-hop kit', electronic: 'Electronic kit', '808': '808 kit' };
+/** The kind of music whose kit each choice is. */
+export const LOFI_KIT_MOOD: Record<LofiKit, LofiMood> = { acoustic: 'rock', jazz: 'jazz', dusty: 'warm', hiphop: 'hiphop', electronic: 'electro', '808': 'dubstep' };
+
 /** The kit a tune plays, from its seed and its kind of music. */
 export function drumKit(seed: number, mood: LofiMood): DrumKit {
   const r = kitRandom(seed >>> 0, mood);

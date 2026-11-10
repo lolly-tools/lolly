@@ -50,7 +50,8 @@ import { mountViz, type VizHandle } from '../lib/butterchurn-viz.ts';
 import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
 import { instrumentIcon, iconPath, musicIconNode } from '../lib/instrument-icons.ts';
-import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, type MusicState, type SectionVoices } from '../lib/music-state.ts';
+import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
+import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
 import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
 import { TUNE_DECLARATION } from '../../../../engine/src/tune-provenance.ts';
@@ -63,6 +64,10 @@ export { parseMusicState, musicStateParams, composeTrack, shapeBar, BPM_RANGE, T
 type Track = 'lead' | 'keys' | 'bass' | 'drums' | 'fx';
 const TRACKS: readonly Track[] = ['lead', 'keys', 'bass', 'drums', 'fx'];
 const TRACK_LABEL: Record<Track, string> = { lead: 'Lead', keys: 'Keys', bass: 'Bass', drums: 'Drums', fx: 'Effects' };
+/** The kinds of effect a person can turn off, by name. */
+const FX_FAMILY_LABEL: Record<FxFamily, string> = { voices: 'Voices', console: 'Console', sparkles: 'Sparkles', sweeps: 'Sweeps' };
+/** The producer's tag choices, by name. */
+const TAG_LABEL: Record<string, string> = { off: 'No Lolly tag', spoken: 'Lolly, spoken', shout: 'Lolly, shouted', crowd: 'Lolly, a crowd', sung: 'Lolly, sung', whisper: 'Lolly, whispered', high: 'Lolly, pitched up', deep: 'Lolly, pitched down', robot: 'Lolly, robot', stutter: 'Lolly, stuttered', echo: 'Lolly, echoed' };
 /** Which mix level each track's slider moves. */
 const TRACK_MIX: Record<Track, keyof LofiMix> = { lead: 'lead', keys: 'keys', bass: 'bass', drums: 'drums', fx: 'fx' };
 const DRUM_VOICES = new Set<string>(LOFI_DRUM_VOICES);
@@ -242,6 +247,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       ${slider('texture', t('Texture'), 0, 1, 0.05, state.texture)}
       ${slider('bright', t('Brightness'), 0.5, 1.8, 0.05, state.bright ?? 1)}
       ${slider('drive', t('Drive'), 0.8, 4.5, 0.1, state.drive ?? 2)}
+      <div class="ms-fx-on" role="group" aria-label="${escapeHtml(t('Effects'))}">
+        <span class="ms-fx-label">${escapeHtml(t('Effects'))}</span>
+        ${FX_FAMILIES.map(f => `<button type="button" class="ms-ms" data-fx-family="${f}" aria-pressed="${!state.quiet?.includes(f)}">${escapeHtml(t(FX_FAMILY_LABEL[f]))}</button>`).join('')}
+      </div>
     </div>
     <div class="ms-panel ms-panel--make" data-panel-body="make" hidden>
       <button type="button" class="btn btn--primary btn--sm" data-render>${escapeHtml(t('Make the track'))}</button>
@@ -275,8 +284,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
             <span class="ms-swatch" data-swatch="${tr}" aria-hidden="true"></span>
             <span class="ms-track-name">${escapeHtml(t(TRACK_LABEL[tr]))}</span>
             ${tr === 'lead' || tr === 'keys' || tr === 'bass' ? `<span class="ms-inst" data-inst="${tr}" role="img"></span>` : ''}
-            ${tr === 'fx' ? '' : tr === 'drums'
-              ? `<button type="button" class="ms-ms" data-drums aria-pressed="${state.drums}" title="${escapeHtml(t('Drums on or off'))}">${escapeHtml(t('On'))}</button>`
+            ${tr === 'fx'
+              ? `<select class="field-select field-select--sm ms-pick" data-tag aria-label="${escapeHtml(t('The Lolly tag'))}" title="${escapeHtml(t('How the tune says “Lolly”, or not at all'))}"></select>`
+              : tr === 'drums'
+              ? `<button type="button" class="ms-ms" data-drums aria-pressed="${state.drums}" title="${escapeHtml(t('Drums on or off'))}">${escapeHtml(t('On'))}</button><select class="field-select field-select--sm ms-pick" data-kit aria-label="${escapeHtml(t('Drum kit'))}"></select>`
               : `<select class="field-select field-select--sm ms-pick" data-pick="${tr}" aria-label="${escapeHtml(t(TRACK_LABEL[tr]))}"></select>`}
             ${`<button type="button" class="ms-ms" data-mute="${tr}" aria-pressed="false" title="${escapeHtml(t('Mute'))}">M</button><button type="button" class="ms-ms" data-solo="${tr}" aria-pressed="false" title="${escapeHtml(t('Solo'))}">S</button>`}
           </div>`).join('')}
@@ -314,6 +325,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const say = (text: string): void => { hint.textContent = text; };
   const HINT = t('Click a section in a track to change its instrument there. Click the top row to play from a section.');
   for (const tr of PITCHED) fillSelect(q<HTMLSelectElement>(`[data-pick="${tr}"]`), tr, state[tr], t('Auto'));
+  /** The drums' kit and the effects' tag menus, and the effect switches, set to the state. */
+  const fillOptions = (): void => {
+    q<HTMLSelectElement>('[data-kit]').replaceChildren(new Option(t('Kit: the style’s own'), ''), ...LOFI_KITS.map(k => new Option(t(LOFI_KIT_NAME[k]), k, false, k === state.kit)));
+    q<HTMLSelectElement>('[data-tag]').replaceChildren(new Option(t('Lolly tag: as composed'), ''), ...TAG_CHOICES.map(c => new Option(t(TAG_LABEL[c] ?? c), c, false, c === state.tag)));
+    for (const el of page.querySelectorAll<HTMLElement>('[data-fx-family]')) el.setAttribute('aria-pressed', String(!state.quiet?.includes(el.dataset.fxFamily as FxFamily)));
+  };
+  fillOptions();
 
   // ── drawing ─────────────────────────────────────────────────────────────────
   let height = RULER + CHORDS + TRACKS.reduce((h, tr) => h + lane[tr], 0);
@@ -369,7 +387,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   let paintVersion = 0;
 
   /** The effects lane's rows, by what makes the sound: voices on top, then the console's sounds, its sparkles and bleeps, and the sweeps at the bottom. */
-  const fxRow = (voice: string): number => voice === 'hey' || voice === 'magpie' || voice === 'kookaburra' ? 0
+  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' ? 0
     : voice === 'game' || voice === 'coin' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
 
   function paintTrack(cx: CanvasRenderingContext2D, dpr: number, offset: number, width: number, ink: string, muteInk: string, line: string): void {
@@ -600,7 +618,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     return m;
   }
   function settings(startBar: number): LofiSettings {
-    return { mood: state.mood, drums: state.drums, texture: state.texture, style: fixedStyle(state), startBar, bars: state.bars, shape: shapeBar(state) };
+    return { mood: state.mood, drums: state.drums, texture: state.texture, style: fixedStyle(state), startBar, bars: state.bars, shape: shapeBar(state), kit: state.kit, tag: state.tag };
   }
   const showPlaying = (on: boolean): void => {
     q<HTMLElement>('[data-play-icon]').hidden = on;
@@ -750,6 +768,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     q<HTMLSelectElement>('[data-bars]').value = String(state.bars);
     for (const tr of PITCHED) fillSelect(q<HTMLSelectElement>(`[data-pick="${tr}"]`), tr, state[tr], t('Auto'));
     page.querySelector('[data-drums]')?.setAttribute('aria-pressed', String(state.drums));
+    fillOptions();
     for (const el of page.querySelectorAll<HTMLElement>('[data-mute]')) el.setAttribute('aria-pressed', String(muted.has(el.dataset.mute as Track)));
     for (const el of page.querySelectorAll<HTMLElement>('[data-solo]')) el.setAttribute('aria-pressed', String(solo.has(el.dataset.solo as Track)));
     // The sliders show 1 for a brightness and 2 for a drive left to the style, as they open.
@@ -803,6 +822,27 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (el.dataset.pick === 'keys') state.keys = LOFI_KEYS.find(x => x === v);
     if (el.dataset.pick === 'lead') state.lead = LOFI_LEADS.find(x => x === v);
     if (el.dataset.pick === 'bass') state.bass = LOFI_BASSES.find(x => x === v);
+    recompose();
+  });
+  // The kit changes the drums' sound, never their notes; the tag and the effect families
+  // change what the effects lane plays. Each is in the link.
+  listen('[data-kit]', 'change', (_e, el) => {
+    if (!(el instanceof HTMLSelectElement)) return;
+    state.kit = LOFI_KITS.find(k => k === el.value);
+    recompose();
+  });
+  listen('[data-tag]', 'change', (_e, el) => {
+    if (!(el instanceof HTMLSelectElement)) return;
+    state.tag = TAG_CHOICES.find(c => c === el.value);
+    recompose();
+  });
+  listen('[data-fx-family]', 'click', (_e, el) => {
+    const family = FX_FAMILIES.find(f => f === el.dataset.fxFamily);
+    if (!family) return;
+    const quiet = new Set(state.quiet ?? []);
+    if (quiet.has(family)) quiet.delete(family); else quiet.add(family);
+    state.quiet = quiet.size ? FX_FAMILIES.filter(f => quiet.has(f)) : undefined;
+    el.setAttribute('aria-pressed', String(!quiet.has(family)));
     recompose();
   });
   listen('[data-drums]', 'click', (_e, el) => {
