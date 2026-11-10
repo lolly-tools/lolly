@@ -2,17 +2,17 @@
   "id": "brand-terrain",
   "name": "Brand terrain",
   "category": "3-D",
-  "description": "A genuine value surface whose height, colour and material come from the data and brand.",
+  "description": "A solid value surface whose height and colour come from the data and the colourway's ramp, with the data's own rows drawn on it.",
   "values": {
     "renderMode": "scene",
     "chartType": "heatmap",
     "sceneType": "surface3d",
-    "chartStyle": "glass-3d",
+    "chartStyle": "studio-3d",
     "data": "Hour,Monday,Tuesday,Wednesday,Thursday,Friday\n08:00,12,18,14,17,22\n10:00,23,31,28,35,42\n12:00,46,55,61,58,68\n14:00,38,49,53,57,63\n16:00,29,41,47,51,58\n18:00,18,27,33,39,46",
     "heading": "Demand surface",
-    "motionPreset": "orbit",
-    "cameraProjection": "perspective",
-    "showLegend": true
+    "motionPreset": "arc",
+    "showLegend": true,
+    "sceneMaterial": "satin"
   },
   "presets": [
     {

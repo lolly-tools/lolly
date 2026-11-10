@@ -60354,11 +60354,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 --------------------------------------------------------------------------------
-three.js 0.185.1 (r185)
+three.js 0.186.1 (r186)
 SPDX-License-Identifier: MIT
 Files: tools/chart/lib/three-chart.min.js
 Copyright: Copyright © 2010-2026 three.js authors
-Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives and is rebuilt by scripts/build-chart-three.ts. It stays at r185 until that bundle is next rebuilt.
+Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives, the PMREM generator and the RoundedBoxGeometry addon, and is rebuilt by scripts/build-chart-three.ts.
 
 Copyright © 2010-2026 three.js authors
 

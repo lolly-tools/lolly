@@ -181,7 +181,9 @@ test('the shipping hook emits one brand-aware document for WebGL and vector fall
   assert.equal(state.spec.theme.scene.material, 'glass');
   assert.equal(state.spec.motion.preset, 'orbit');
   assert.match(patch._threeFallback, /<polygon/);
-  assert.match(patch._threeFallback, /Vector 3-D view/);
+  assert.match(patch._threeFallback, /class="chart3d-vector"/);
+  assert.equal(state.scene.kind, 'surface', 'the scene plan travels with the state');
+  assert.equal(state.scene.marks[0].t, 'surface');
   assert.match(patch._a11yTable, /<table>/);
   assert.match(patch._a11yTable, /Demand surface/);
   assert.equal(validateShape(state.spec), true, JSON.stringify(validateShape.errors));
@@ -231,7 +233,8 @@ test('the shipping hook emits one brand-aware document for WebGL and vector fall
   assert.equal(cinematicState.spec.presentation.camera.projection, 'perspective');
   assert.equal(cinematicState.cfg.flightSeries, 'Demand');
   assert.match(cinematic._threeFallback, /<polyline/);
-  assert.match(cinematic._threeFallback, /Cinematic vector poster/);
+  assert.match(cinematic._threeFallback, /class="chart3d-vector"/);
+  assert.equal(cinematicState.scene.flight.series, 'Demand', 'the flight follows the named series');
   assert.equal(validateShape(cinematicState.spec), true, JSON.stringify(validateShape.errors));
   assert.equal(validateChartSpec(cinematicState.spec).ok, true);
 });
