@@ -126,7 +126,11 @@ On Lolly Work, an authenticated administrator can follow **Manage instance desig
 
 ### Removing a catalogue design system
 
-A system imported into the browser is a separate local copy. Removing that copy changes this browser or device only, and cannot delete files on a host. If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalogue assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
+::: note Removing a local copy changes this device only
+A system imported into the browser is a separate local copy. Removing that copy changes this browser or device only, and cannot delete files on a host.
+:::
+
+ If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalogue assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
 
 To change or remove a design system the server supplies:
 
@@ -222,7 +226,11 @@ Promote a tool by changing one field in its manifest. Every surface shows the st
 
 ![A gallery tile carrying the Experimental status badge that its manifest sets, the same field that turns the export watermark on by default](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2400&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22voice-recorder%22%5D&tolerance=0.03&dark=1&filename=fq-experimental-badge)
 
-The manifest is the source of truth, and each brand's `catalog/tools/index.json` is generated from the manifests. `validate:catalog` checks the schemas, asset checksums, file existence, `bindToProfile` fields, palette references and `replacedBy` chains, and fails CI when the generated index drifts from the manifests. After any `tool.json` or asset edit, rebuild and validate with the commands in [Publish and localize a tool](/info/tool-publishing.html). Tool and asset ids are permanent contracts: version in the manifest, never rename the path.
+The manifest is the source of truth, and each brand's `catalog/tools/index.json` is generated from the manifests. `validate:catalog` checks the schemas, asset checksums, file existence, `bindToProfile` fields, palette references and `replacedBy` chains, and fails CI when the generated index drifts from the manifests. After any `tool.json` or asset edit, rebuild and validate with the commands in [Publish and localize a tool](/info/tool-publishing.html).
+
+::: warning Ids are permanent
+Tool and asset ids are permanent contracts: version in the manifest, never rename the path.
+:::
 
 <!--i:eti-building-->
 ## Organisation policy with Lolly Work

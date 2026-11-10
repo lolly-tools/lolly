@@ -15,12 +15,17 @@ This page is part of [Run a partner programme](run-a-partner-programme.md).
 ## Give an agent a token
 
 On the programme's page, or a company's, the **Agent tokens** card mints a token for the agent,
-for the programme or one company, and shows its secret once. **Mint token** takes a label, the
+for the programme or one company. **Mint token** takes a label, the
 company, the scopes, the days until the token expires and any limits, then shows the secret once,
 with **Copy**. Anyone with `programme.manage` for a programme issues its tokens; a grant of
 `programme.manage` on `programme:<id>` lets its holder manage that programme's tokens only. The
 server sets what the request cannot: the `automation` role, the programme's and company's groups and
 the `partner` group.
+
+::: warning The secret is shown once
+The card shows a new token's secret once. Copy the secret and hand it to the partner's agent
+before you close the card.
+:::
 
 - **Scopes.** `render` and `catalog.read` by default; `documents` and `files` may be added, and so
   may `approvals.request` ([Partner approvals](partner-approvals.md#requests-from-partners-agents)).

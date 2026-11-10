@@ -84,8 +84,11 @@ One setting chooses the mode, `policy.catalog.partnerRights`:
 
 Your own people receive exactly what they did before, in either mode. Some files are exempt,
 because every tool needs them or because they are yours by nature: tokens, fonts, palettes,
-templates, rules tools, user tools and brand skills, plus a company's own files for that company. A
-held file is simply absent for partners, and nothing tells a partner that more may come.
+templates, rules tools, user tools and brand skills, plus a company's own files for that company.
+
+::: note Partners are not told what is held back
+A held file is simply absent for partners, and nothing tells a partner that more may come.
+:::
 
 <!--i:eti-stamp-->
 ## Mark your own files

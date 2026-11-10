@@ -4,6 +4,7 @@ Lolly runs on each person's device. When a team needs sign-in, shared projects, 
 
 Start with [Use Lolly at your organisation](/info/organisation.html) to see what members get, or [Lolly Work architecture](/info/work-overview.html) for what the server is responsible for.
 
+<!--i:eti-lock-->
 ## Set access and policy
 
 - [Adoption & Governance](/info/adoption-governance.html) covers the rollout and the role of brand rules.
@@ -12,6 +13,7 @@ Start with [Use Lolly at your organisation](/info/organisation.html) to see what
 - [Account data controls](/info/work-account-lifecycle.html) and [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) cover exports, offboarding, retention and their limits.
 - [Profiles, brands and tool configuration](/info/configuration.html) covers which tools and design systems a build of Lolly carries.
 
+<!--i:eti-link-->
 ## Connect assets and review work
 
 - [Use Lolly with your existing DAM](/info/use-with-dam.html) explains source authority and connected production. [The SUSE Brandfolder account](/info/suse-brandfolder.html) records the adoption experience, and [Plan a DAM transition](/info/dam-transition.html) covers an optional later move.
@@ -21,6 +23,7 @@ Start with [Use Lolly at your organisation](/info/organisation.html) to see what
 - [Approvals](/info/work-approvals.html) covers review chains and separation of duties. [Rendering and sharing](/info/work-sharing.html) covers links and server output.
 - [Invite an agent to a document](/info/work-document-agents.html) covers scoped document access, expiry and revocation. An invitation does not grant deployment or infrastructure access.
 
+<!--i:eti-search-->
 ## Find the next task
 
 - [Create](/info/creators.html) has the creative tasks and team playbooks.

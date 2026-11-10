@@ -184,12 +184,15 @@ export const CONCEPT_FIGURES: Figure[] = [
   { set: 'concepts', name: 'asset-relay', lang: 'dot', title: 'One tool, many hands', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=24'] },
 ];
 
-/** Lolly Work guides: connecting a source, Penpot's two lanes, a resumable upload and an agent invitation. */
+/** Lolly Work guides: connecting a source, Penpot's two lanes, a resumable upload, an agent invitation
+ *  and who decides what while a DAM stays the source. */
 export const WORK_INTEGRATION_FIGURES: Figure[] = [
   { set: 'work-integrations', name: 'source-flow', lang: 'dot', title: 'From your source to Lolly tools', flags: ['--look=minimal', '--cardWidth=180', '--siblingGap=18'] },
   { set: 'work-integrations', name: 'penpot-lanes', lang: 'dot', title: 'Two lanes out of Penpot', flags: ['--look=minimal', '--cardWidth=176', '--siblingGap=18'] },
   { set: 'work-integrations', name: 'upload-parts', lang: 'dot', title: 'A resumable upload', flags: ['--look=minimal', '--cardWidth=178', '--rowGap=36'] },
   { set: 'work-integrations', name: 'agent-invite', lang: 'dot', title: 'An agent invitation', flags: ['--look=minimal', '--cardWidth=190', '--rowGap=36'] },
+  // Read beside the partner pages, so it takes their Opal greens (PARTNER_LIGHT and PARTNER_DARK below).
+  { set: 'work-integrations', name: 'dam-decisions', lang: 'dot', title: 'Who decides what', untitled: true, flags: ['--look=minimal', '--edgeColor=#008657', '--nodeStroke=#ace1ad', '--nodeText=#033633', '--cardWidth=180', '--siblingGap=18'], darkFlags: ['--background=#121d24', '--nodeFill=#1c282f', '--nodeStroke=#2f5a46', '--nodeText=#edf6e0', '--edgeColor=#50c369'] },
 ];
 
 /** Partner programme guides: how a programme fits together, what reaches a partner, the

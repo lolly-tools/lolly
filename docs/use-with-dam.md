@@ -25,6 +25,8 @@ The [source directory](/info/manage/provider-guides.html#dam-onboarding-and-offb
 <!--i:eti-sliders-->
 ## Which system controls each decision?
 
+![Who decides what while a DAM stays the source: the source DAM keeps records and approval, Lolly Work's governed catalog sets exposure and dates, the Lolly tool sets what may change, with the rights process deciding whether a use is permitted, the finished output passes Lolly Work's chains and grants, and an explicit delivery sends it to the chosen destination. Shaded steps are decided in Lolly and Lolly Work.](/info/diagrams/work-integrations/dam-decisions.svg)
+
 | Decision | Responsibility |
 |---|---|
 | Source record, current files and upstream approval | The connected DAM, within the selected connector's supported API |
@@ -51,14 +53,24 @@ The flow is: **source DAM → governed catalog → Lolly tool → finished outpu
 <!--i:eti-user-check-->
 ## Does Lolly Work preserve each person's DAM permissions?
 
-The current providers generally use an administrator-configured shared credential. They do not sign every member into the source under that member's upstream identity. Lolly Work exposure rules must therefore restrict the credential's wider view to the intended audience. A successful connection is not evidence that the access configuration is correct.
+The current providers generally use an administrator-configured shared credential. They do not sign every member into the source under that member's upstream identity.
+
+::: warning Set exposure rules for the shared credential
+Lolly Work exposure rules must therefore restrict the credential's wider view to the intended audience. A successful connection is not evidence that the access configuration is correct.
+:::
 
 <!--i:eti-clock-->
 ## What happens when an asset expires?
 
 Supported upstream availability windows combine with local lifecycle rules, with the more restrictive constraint taking effect. Approval filtering depends on the provider's actual signal and mapping. Some sources have no native approval or expiry field.
 
-Listings can be cached, and upstream changes depend on refresh and file-access behaviour. Lolly Work cannot erase a copy someone already downloaded. Agree the acceptable refresh delay and test withdrawal for the workflow you intend to use. [Catalog and content](/info/work-catalog.html) describes these boundaries.
+Listings can be cached, and upstream changes depend on refresh and file-access behaviour.
+
+::: note A downloaded copy stays downloaded
+Lolly Work cannot erase a copy someone already downloaded.
+:::
+
+Agree the acceptable refresh delay and test withdrawal for the workflow you intend to use. [Catalog and content](/info/work-catalog.html) describes these boundaries.
 
 <!--i:eti-badge-check-->
 ## Does an approved source make an approved export?

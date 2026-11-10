@@ -29,7 +29,13 @@ The template's constraints, source access, use rights and output approval need t
 
 Lolly and Lolly Work are open source under MPL-2.0. A partner can evaluate and operate them with a customer's design system and supported catalog sources. Hosting, integration work, maintenance and support still need an agreed owner and budget.
 
-The [provider directory](/info/work-provider-guides.html) lists implemented sources and open live checks. Supported sources are normally read-only; [organisation delivery](/info/work-delivery.html) has separate adapters. A provider entry is not a certification or an announced commercial partnership. Brandfolder has successful use reported at SUSE, documented in the [deployment account](/info/suse-brandfolder.html); that evidence does not qualify unrelated tenants or operations.
+The [provider directory](/info/work-provider-guides.html) lists implemented sources and open live checks. Supported sources are normally read-only; [organisation delivery](/info/work-delivery.html) has separate adapters.
+
+::: note A provider entry is not an endorsement
+A provider entry is not a certification or an announced commercial partnership.
+:::
+
+Brandfolder has successful use reported at SUSE, documented in the [deployment account](/info/suse-brandfolder.html); that evidence does not qualify unrelated tenants or operations.
 
 <!--i:eti-flask-->
 ## Evaluate one recurring task

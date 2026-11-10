@@ -38,12 +38,14 @@ programme. For a person in any programme:
 - **Assets.** They get your design system's tokens, fonts and palettes, because every tool
   draws with them. Beyond those, only the assets in collections a programme includes, and any
   submitted asset or connected provider whose groups list the programme's group. An asset,
-  collection or provider shared with everyone does not reach them.
+  collection or provider shared with everyone does not reach them. In a group list, `*` means
+  everyone internal.
 - **Everything else shared with everyone** stays internal too: announcements sent to everyone,
   projects shared with everyone in the workspace, and injectables for everyone.
 
-Admins and owners are never narrowed, so trying a programme out on your own account cannot lock
-you out.
+::: note Admins and owners are never narrowed
+Trying a programme out on your own account cannot lock you out.
+:::
 
 ### What partners can never do
 
@@ -94,12 +96,14 @@ Open a programme with **Choose what they get**:
   Each tick adds the programme's group to the collection's groups, so the collection stays
   visible to everyone it reached before.
 
+::: note Share a template's files before you publish the template
 A programme receives only the files you share with the programme. Share the logos and pictures
 its templates use, for example as a logos collection ticked here, before you publish the templates. A template
 that uses a file the programme was not given is incomplete for its partners, and with the
 [licence gate](#licences) on, a server render that uses the file answers `422 ASSET_HELD`. The
 programme's licence report lists each published template that uses a file one of its audiences
 will not receive.
+:::
 
 To give one asset to a programme without a collection, submit it with the programme's group,
 for example `lw catalog submit ./price-sheet.pdf --name "Price sheet" --groups programme-resellers-emea`.
@@ -537,7 +541,7 @@ bo@partner.example
 **Preview** shows what each line will do before anything happens: new and to be invited, already
 signing in and to be added, already in with nothing to do, or not possible, with the reason (an
 address that is not one, a company the programme does not have, an end date that has passed, a
-line listed twice). **Add** then does it in one step and shows a result for each line. Adding the
+line listed twice, an admin or an owner). **Add** then does it in one step and shows a result for each line. Adding the
 same list again changes nothing. People who already sign in are added at once, and a company the
 line gives them is set too. Everyone else gets an invitation carrying the programme's and
 company's groups, open until their end date or for at most 366 days.
@@ -596,7 +600,8 @@ not join**, with the count. Then choose how the domain is proved:
 **Two kinds of domain are refused either way:** public mail domains, such as `gmail.com` or
 `outlook.com`, where anyone can have an address; and your own domains, which are your workspace's
 address, a domain a sign-in provider is limited to, and the domains of your owners' and admins'
-addresses. People at a public mail domain are added by list instead.
+addresses. Shared suffixes such as `co.uk` are refused too. People at a public mail domain are
+added by list instead.
 
 **When a domain becomes active,** the partner accounts at it join at once, if a provider has verified
 their address, and the rest of them join at their next sign-in. People who sign in for the first
@@ -729,12 +734,14 @@ told when. Choose what happens to their projects:
 - **Move their projects to me, editable.**
 - **Leave their projects where they are.**
 
+::: warning Confirming ends their access at once
 Confirming then, in one step, first withdraws those domains (a whole domain when you chose one,
 or the programme's or company's entries on every domain otherwise), so nobody new joins while the
 rest runs. It then disables each account and signs it out everywhere, revokes the
 links, agent tokens and password links each person made, ends their memberships and withdraws the
 open invitations. Only partner accounts are touched: an internal account in a list is shown as
 left alone. Each account is audited as `user.offboard` and the whole step as `programme.exit`.
+:::
 
 Ending a programme or a company also covers what it owns:
 
@@ -799,10 +806,12 @@ provider folders it ended (where their own end date is still ahead), the domain 
 in again, and you mint tokens and choose again. After 30 days the receipt stays as the record and
 Reopen answers `409 REOPEN_CLOSED`.
 
-**Deleting** a programme removes its grants, takes its group off every collection and deletes the
+::: warning Deleting removes more than ending does
+Deleting a programme removes its grants, takes its group off every collection and deletes the
 group. Its people keep the `partner` group. Deleting a company removes its grants, its collection
 entries, its details with their history and its receipts, and revokes its logos; files already made
 keep what they record.
+:::
 
 <!--i:eti-badge-check-->
 ## The partner record in files

@@ -90,7 +90,9 @@ We measure a change in behaviour, not feature usage. The main measure is **self-
 | **Self-served requests** | Routine requests people now serve themselves | **Lagging; the main measure** |
 | **Story capture** | Concrete before-and-after cases collected from real users | Qualitative |
 
+::: warning Leading signals alone can mislead
 A leading signal moving without the self-served number following is a warning: people are trying Lolly but not yet using it to make their own files. The self-served number is the one that says the behaviour changed.
+:::
 
 Standalone usage counters stay on each device. With **Lolly Work**, its [telemetry and dashboards](/info/work-telemetry.html) can measure allowed usage labels across the instance, in off, aggregate and standard modes. Decide the attribution and consent policy before the pilot. Usage telemetry is separate from the audit record of governed actions, and neither measures the quality of the finished work for you.
 

@@ -46,7 +46,12 @@ sign-in, catalog metadata, shared projects and governance, and a private S3-comp
 the instance's files. Choose a [Lolly Work installation path](self-host.md) with durable PostgreSQL,
 your own address and sign-in. The public demo's memory storage is not a migration destination.
 
-Choose where the bytes will live before the first materialize. PostgreSQL is the default blob
+::: warning Choose the blob store before the first copy
+Choose where the bytes will live before the first materialize. Changing `blobs.driver` later does
+not transfer existing blobs; plan an explicit storage migration if the instance already holds files.
+:::
+
+PostgreSQL is the default blob
 store and needs no separate object-storage service. For larger libraries, Ceph RGW or MinIO
 lets the organisation run the object store too. A hosted S3-compatible service, including
 AWS S3, is another option. Set this block in the destination instance's configuration:
@@ -87,9 +92,7 @@ The [per-DAM readiness table](#exit-readiness-by-kind) determines whether cutove
 
 Back up PostgreSQL, the object store, configuration and the secrets needed for recovery together,
 then rehearse a restore with the [backup and restore guide](operations.md#backup-and-restore).
-A bucket alone cannot reconstruct the catalog, grants or old-address aliases. Changing
-`blobs.driver` later does not transfer existing blobs; plan an explicit storage migration if the
-instance already holds files.
+A bucket alone cannot reconstruct the catalog, grants or old-address aliases.
 
 Agree a final source freeze, re-run materialize and inspect drift alongside direct file checks.
 Drift is limited by the source timestamps it receives, so a quiet report alone is insufficient.
@@ -211,8 +214,12 @@ tenant](providers/tenant-check.md) says how to run that check; do it before you 
 exit schedule.
 
 **The verdicts in short:** `brandfolder`, `imagerelay`, `canto`, `acquia-dam` and
-`intelligencebank` are exit targets, and `cloudinary` is a conditional one. `optimizely-cmp` is not
-an exit target, and `orange-logic` refuses cutover.
+`intelligencebank` are exit targets, and `cloudinary` is a conditional one.
+
+::: warning Optimizely CMP and Orange Logic are not exits
+`optimizely-cmp` is not an exit target: the CMS owns these assets, so do not run `cutover`
+against that provider. `orange-logic` refuses cutover, because copied renditions do not preserve originals.
+:::
 
 ::: details What each DAM kind imports, copies and supports
 | Kind | Driver | What imports | Original bytes out | Exit verdict |
@@ -253,6 +260,12 @@ lw providers drift acme-ir                           # which copies the upstream
 
 lw providers cutover acme-ir       # when the upstream has gone quiet
 ```
+
+::: warning Cut over only after acceptance
+Cutover moves identities and turns the provider off. Run it only after the acceptance checks in
+[Plan a DAM transition](/info/dam-transition.html), and keep the source and its recovery evidence
+until the organisation accepts the result.
+:::
 
 **Materialize** needs `catalog.provider.manage` (admin). It streams every format's bytes into
 the instance's BlobStore, checksums them, checks each one for an embedded [Content
