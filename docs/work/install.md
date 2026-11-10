@@ -3,16 +3,16 @@
 This guide takes you from a source checkout to a Lolly Work instance running on
 one server, with real sign-in, a database and secrets that survive a restart.
 
+Two other paths have their own pages.
+[Install on Kubernetes](platform-deployment.md) covers Helm, K3s, RKE2 and Rancher.
+The [ready-made package](ready-made-package.md) is a finished Compose directory with
+HTTPS and password sign-in. Not sure which fits?
+[Run Lolly Work](self-host.md) has a one-question chooser.
+
 Sections 1 to 4 build the configuration every install uses, on your own computer
 first. Sections 5 and 6 run it on a server with Compose or systemd. Section 7,
 YunoHost, makes all of those settings for you. Sections 8 and 9 come after any
 install: the `lw` command line and your first asset source.
-
-Two other paths have their own pages. The
-[ready-made package](ready-made-package.md) is a finished Compose directory with
-HTTPS and password sign-in. [Install on Kubernetes](platform-deployment.md)
-covers Helm, K3s, RKE2 and Rancher. Not sure which fits?
-[Run Lolly Work](self-host.md) has a one-question chooser.
 
 Commands with registry, hostname or file placeholders need your own values before
 you run them.
@@ -36,9 +36,9 @@ the Compose v2 plugin: without the plugin, `docker compose up --build` fails wit
 
 Compose brings PostgreSQL 17. The optional
 [SUSE profile](../deploy/suse/README.md) pins Application Collection PostgreSQL
-18.6, with its own qualification and recovery requirements. Systemd and production
-Kubernetes installs need a database you manage. The local demo and the Helm
-evaluation keep everything in memory and reset on restart.
+18.6, with its own qualification and recovery requirements. Production Kubernetes
+and systemd installs need a database you manage. The Helm evaluation and the local
+demo keep everything in memory and reset on restart.
 
 ::: details Linux
 For Ubuntu or Debian, install Git, curl and certificate roots with
@@ -92,8 +92,8 @@ For Compose, install [Docker Desktop for Windows](https://docs.docker.com/deskto
 select Linux containers and turn on WSL integration for Ubuntu. Check
 `docker compose version` inside Ubuntu, then continue with section 5.
 
-Docker Desktop is not the deployment path for Windows Server: use a Linux VM or an
-existing Kubernetes platform there. A native Windows service install has not been
+Docker Desktop is not the deployment path for Windows Server: use an existing
+Kubernetes platform or a Linux VM there. A native Windows service install has not been
 qualified for this release.
 :::
 
@@ -150,7 +150,7 @@ Lolly Work repository's [contributing guide](https://github.com/lolly-tools/loll
 
 ## 2. Your first real instance
 
-This walk-through teaches the configuration that Compose, systemd and Kubernetes
+This walk-through teaches the configuration that Kubernetes, Compose and systemd
 all read. A platform team can skip running it locally, but should prepare its
 production configuration the same way before [installing on Kubernetes](platform-deployment.md).
 

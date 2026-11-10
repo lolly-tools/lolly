@@ -16,6 +16,16 @@ People who use the hosted web app need a browser with WebGPU. Check [Supported e
 
 The desktop and mobile apps wrap the same engine and web code in a native binary. Build them with the guides for [desktop](/info/build-desktop.html), [Android](/info/build-mobile.html) and [iOS](/info/ios-build.html), which cover signing, notarisation and store steps, or take the published installers from [Install Lolly](/info/install.html). Distribute the binaries through your device management like any other managed app.
 
+## Run it on Kubernetes
+
+The repository ships signed container images and a Helm chart, so running Lolly on your own cluster is a supported way to host the web app, not a recipe to rebuild. A minimal install pins the published web image by digest:
+
+```bash
+helm install lolly deploy/helm --set web.image.digest=sha256:<digest>
+```
+
+[Run on Kubernetes](/info/build-kubernetes.html) covers the published images, the chart's secure defaults, the optional MCP and CA components, small-cluster and single-node profiles and building your own image.
+
 ## Host the web app
 
 The web build is plain static files, which makes this the simplest and most portable path. Build it with the brand you mean to ship:
@@ -74,16 +84,6 @@ Set `LOLLY_PROFILE=<name>` on the build so the deployment carries the brand you 
 
 A service that does read tool source at request time, such as the MCP service's `/tool/<id>.<ext>` render route, needs the packs in its image and the same `LOLLY_PROFILE` in its runtime environment, not only at build time. [Profiles, brands and tool configuration](/info/configuration.html) covers the resolver, and how to change or remove a design system the deployment supplies (see [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system)).
 
-## Run it on Kubernetes
-
-The repository ships signed container images and a Helm chart, so running Lolly on your own cluster is a supported way to host the web app, not a recipe to rebuild. A minimal install pins the published web image by digest:
-
-```bash
-helm install lolly deploy/helm --set web.image.digest=sha256:<digest>
-```
-
-[Run on Kubernetes](/info/build-kubernetes.html) covers the published images, the chart's secure defaults, the optional MCP and CA components, small-cluster and single-node profiles and building your own image.
-
 ## Add the optional services
 
 None of these is needed for an ordinary local render or download. [Server surface](/info/server-surface.html) is the complete inventory, network pass-throughs included.
@@ -102,7 +102,7 @@ The CA holds policy on the server (certificate-day limits, allowed providers) an
 
 Choose Lolly Work when a deployment needs organisation single sign-on, SCIM provisioning, access policies, a shared catalog and projects, work collabs, approvals or governed delivery. It is part of the Lolly project, in a [separate repository](https://github.com/lolly-tools/lolly-work), with its own service and admin console. It serves the same web app and works with connected desktop and mobile apps, and local rendering stays available. It needs a persistent database and blob storage for shared work; its server renders and batches use the same engine, and browser formats need its optional render worker. The Helm chart in this repository does not install Lolly Work.
 
-- [Install Lolly Work](/info/work-install.html): Compose, systemd, YunoHost and Helm.
+- [Install Lolly Work](/info/work-install.html): Helm, Compose, systemd and YunoHost.
 - [Lolly Work deployment options](/info/work-deployment.html): production topology, storage and backups.
 - [Set up enterprise identity](/info/work-enterprise-identity.html): identity provider registration, SCIM, sign-out and credential rotation. Serve the Lolly shell and Lolly Work on the same HTTPS origin, and keep the sign-in routes ahead of any app fallback.
 - [UpCloud, Evroc and fewer hosting services](/info/work-cloud-deployment.html): provider foundations and what to qualify before production.

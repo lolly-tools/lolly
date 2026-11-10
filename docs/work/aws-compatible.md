@@ -23,10 +23,10 @@ listed the tools and drew a QR code.
 
 | Shape | What runs where | Choose it when |
 |---|---|---|
-| **One VM** | An EC2 virtual machine runs the [ready-made package](ready-made-package.md): Lolly Work, PostgreSQL, the web app and Caddy in Docker Compose | You want the fewest moving parts |
-| **One VM with managed services** | The same VM, with the database on RDS PostgreSQL and files on S3 | You want database backups and file storage handled by the cloud |
 | **Kubernetes** | The [Lolly Work chart](platform-deployment.md) on an EKS cluster, with RDS and S3 | You already run Kubernetes, or want render workers that scale |
 | **Lolly appliance** (preview) | openSUSE Leap 16.1 Immutable with K3s, Lolly Work and its own PostgreSQL, imported as your own machine image | You want a host that updates itself in snapshots and rolls back |
+| **One VM** | An EC2 virtual machine runs the [ready-made package](ready-made-package.md): Lolly Work, PostgreSQL, the web app and Caddy in Docker Compose | You want the fewest moving parts |
+| **One VM with managed services** | The same VM, with the database on RDS PostgreSQL and files on S3 | You want database backups and file storage handled by the cloud |
 
 Render output was byte-for-byte identical between the Kubernetes and appliance runs, and
 between the two VM shapes, although each pair ran different Lolly Work builds.

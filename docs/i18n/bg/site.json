@@ -510,7 +510,7 @@
   "Adoption and governance": "Внедряване и управление",
   "Governance": "Управление",
   "Host Lolly": "Хостни Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "Статичен уеб хост е лесният път, а изолирана мрежа ползва същата инсталация. Lolly Work, сървърът за организации, също е с отворен код: пусни го на една машина, в Kubernetes или с твоя екип за платформата.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "Статичен уеб хост е лесният път, а изолирана мрежа ползва същата инсталация. Lolly Work, сървърът за организации, също е с отворен код: пусни го в Kubernetes, на една машина или с твоя екип за платформата.",
   "Deployment": "Внедряване",
   "Privacy": "Поверителност",
   "The utilities": "Помощните инструменти",
