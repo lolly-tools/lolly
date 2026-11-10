@@ -31,6 +31,7 @@ import { lofiStream, lofiTrack, LOFI_DRUM_VOICES } from '../../../../engine/src/
 import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
+import { lollyTag } from './lofi-tag.ts';
 import * as D from './lofi-drums.ts';
 import * as W from './lofi-world-voices.ts';
 
@@ -665,6 +666,7 @@ export class LofiStation {
         else V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
         break;
       case 'hey': V.hey(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'tag': lollyTag(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, 60 / bar.tune.bpm, `${bar.tune.key}|${bar.tune.bpm}|${bar.tune.progressions[0].join(' ')}`, this.echoTimes[0]); break;
       case 'bwah': {
         // A bass shot's `mod` is the shot, plus 4 for each swing a beat (the voice wants Hz).
         const m = note.mod ?? 0;

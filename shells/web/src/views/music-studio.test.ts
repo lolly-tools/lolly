@@ -106,7 +106,7 @@ test('the key moves every pitched note and the chords, leaves the drums, and tra
   for (let b = 0; b < own.length; b++) {
     own[b]!.notes.forEach((n, i) => {
       const m = moved[b]!.notes[i]!;
-      const pitched = ['keys', 'lead', 'bass', 'coin', 'hey', 'game'].includes(n.voice);
+      const pitched = ['keys', 'lead', 'bass', 'coin', 'hey', 'tag', 'game'].includes(n.voice);
       assert.equal(m.midi, pitched ? n.midi + 3 : n.midi, `bar ${b} ${n.voice}`);
     });
     if (own[b]!.chord) assert.deepEqual(moved[b]!.tones, own[b]!.tones.map(pc => (pc + 3) % 12));

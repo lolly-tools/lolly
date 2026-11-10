@@ -163,13 +163,15 @@ test('sherbert: half-time future bass, an 808 in every drop, chords that bend an
  * A tune without the notes added since these fingerprints, each its own kind so it can be
  * told apart: jazz's hat's foot under the ride (a hat with a `mod` of 2), and the console's
  * newer sounds and shouts (a game sound from the level-up on, a coin that rings, echoes or
- * doubles, a shout from "ugh" on). Without them a pinned tune must compose as it did.
+ * doubles, a shout from "ugh" on), and the producer's tag. Without them a pinned tune must
+ * compose as it did.
  */
 const withoutHatFoot = (bars: ReturnType<typeof composeLofiTune>): ReturnType<typeof composeLofiTune> =>
   bars.map(b => ({ ...b, notes: b.notes.filter(n => !(n.voice === 'hat' && n.mod === 2)
     && !(n.voice === 'game' && (n.mod ?? 0) % 16 >= 8)
     && !(n.voice === 'coin' && (n.mod ?? 0) >= 1)
-    && !(n.voice === 'hey' && (n.mod ?? 0) >= 6)) }));
+    && !(n.voice === 'hey' && (n.mod ?? 0) >= 6)
+    && n.voice !== 'tag') }));
 
 test('adding Sherbert changed no other style: a seed still composes what it did', () => {
   // Fingerprints of a few styles' tunes composed before Sherbert existed (main at 2b9783498).
@@ -353,7 +355,7 @@ test('every note is playable', () => {
         if (n.voice === 'riser') continue;   // a sweep, not a pitch
         const dance = isDanceMood(mood);
         // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
-        const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? [52, 76] : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' ? [55, 66] : n.voice === 'soar' ? [40, 60]
+        const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? [52, 76] : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
           : n.voice === 'bwah' ? [28, 60] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
       }
@@ -549,4 +551,33 @@ test('a fitted track never cuts a build off from its drop', async () => {
       }
     }
   }
+});
+
+test('the producer\'s tag: most tunes say "Lolly" once, in a delivery that suits the style, and nothing else moves', async () => {
+  const { LOFI_TAGS } = await import('./lofi-compose.ts');
+  const seen = new Map<string, Set<number>>();
+  let tagged = 0, tunes = 0;
+  for (const mood of ['warm', 'jazz', 'rock', 'sugar', 'chiptune', 'koto', 'metal', 'dream'] as const) {
+    for (let seed = 1; seed <= 25; seed++) {
+      const bars = composeLofiTune(seed, mood);
+      const tags = bars.flatMap((b, i) => b.notes.filter(n => n.voice === 'tag').map(n => ({ n, i, b })));
+      tunes++;
+      assert.ok(tags.length <= 1, `${mood} ${seed}: one tag at most`);
+      if (!tags.length) continue;
+      tagged++;
+      const { n, i, b } = tags[0]!;
+      assert.ok(Number.isInteger(n.mod) && n.mod! >= 0 && n.mod! < LOFI_TAGS.length, 'a known delivery');
+      assert.ok(n.midi >= 55 && n.midi <= 66 && b.tones.length > 0 ? b.tones.includes(((n.midi % 12) + 12) % 12) : true, 'on the bar\'s root');
+      assert.ok(i === 0 || bars[i + 1]?.section === 'drop' || b.section === 'outro', `${mood} ${seed}: at the top, before the drop or in the outro`);
+      if (!seen.has(mood)) seen.set(mood, new Set());
+      seen.get(mood)!.add(n.mod!);
+    }
+  }
+  assert.ok(tagged / tunes > 0.45 && tagged / tunes < 0.75, `${tagged} of ${tunes} tunes tagged`);
+  // The calm styles are never shouted; a band's tag is never whispered.
+  for (const m of seen.get('warm') ?? []) assert.ok(!['shout', 'crowd', 'stutter', 'robot', 'high'].includes(LOFI_TAGS[m]!), 'warm is never shouted');
+  for (const m of seen.get('rock') ?? []) assert.ok(LOFI_TAGS[m] !== 'whisper', 'rock is never whispered');
+  const all = new Set<number>();
+  for (const s of seen.values()) for (const m of s) all.add(m);
+  assert.ok(all.size >= 7, 'many deliveries across the styles');
 });
