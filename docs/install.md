@@ -2,6 +2,7 @@
 
 You may not need to install anything: [lolly.tools](/) runs in a current browser that supports WebGPU ([which browsers](/info/supported-environments.html)). Install the app when you want Lolly in your dock or app menu, with native file dialogs and a copy that keeps working with the network unplugged. It is the same app either way: the same tools, the same design systems and the same files out.
 
+<!--i:eti-checklist-->
 ## Pick your device
 
 | Your device | Get | Version |
@@ -10,9 +11,9 @@ You may not need to install anything: [lolly.tools](/) runs in a current browser
 | Mac with Intel (last build, no updates) | [`Lolly_1.1.0_x64.dmg`](https://lolli.li/Lolly_1.1.0_x64.dmg) | %download{macos-intel} |
 | iPhone and iPad | **Lolly Tools** on the [App Store](https://apps.apple.com/app/id6804131681) | 1.1.1 |
 | Android | [`lolly-latest.apk`](https://lolli.li/lolly-latest.apk) | %download{android} |
-| Windows | [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe) | %download{windows} |
+| Windows | [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe), not code-signed yet | %download{windows} |
 | Linux | [Flatpak, RPM, `.deb`, Arch or AppImage](#linux) | 1.1.0 |
-| Your own server | [YunoHost](#yunohost) or [a container image](#a-container-image) | 1.1.1 and 1.1.2 |
+| Your own server | [YunoHost](#yunohost) or [a container image](#a-container-image) | %download{yunohost} |
 
 lolly.tools always has the newest version. The 1.1.0 builds stay at 1.1.0 until each platform's web view passes the WebGPU check that later versions need. Intel Macs are not supported after 1.1.0, so the Intel build stays at 1.1.0 for good. Every file links straight to `lolli.li`: a `lolly-latest.*` link always points at the newest build, and versioned files beside it never change. You can [check any file](#checking-what-you-downloaded) against the published checksums.
 
@@ -20,6 +21,7 @@ lolly.tools always has the newest version. The 1.1.0 builds stay at 1.1.0 until 
 Signed system repositories (openSUSE OBS, Flathub) are planned. Until they land, a direct `.rpm`, `.deb`, `.flatpak` bundle or AppImage does not update itself, so check back here for a newer build. The Arch repository updates through pacman, and the App Store keeps the iPhone and iPad app current.
 :::
 
+<!--i:eti-monitor-->
 ## Mac
 
 **Apple silicon, `.dmg`. macOS 13.5 or later.**
@@ -30,6 +32,7 @@ Download the disk image, open it and drag Lolly to Applications. The current dow
 - **Versioned:** `https://lolli.li/Lolly_<version>_aarch64.dmg`, pinned and never overwritten.
 - **Intel, last build:** [`Lolly_1.1.0_x64.dmg`](https://lolli.li/Lolly_1.1.0_x64.dmg), version %download{macos-intel}. Intel Macs are not supported after 1.1.0: this build stays downloadable and gets no updates.
 
+<!--i:eti-grid-->
 ## iPhone and iPad
 
 **iOS and iPadOS 26 or later. From the App Store.**
@@ -38,6 +41,7 @@ Lolly for iPhone and iPad is **Lolly Tools** on the [App Store](https://apps.app
 
 You can also open [the web app](/) in Safari. **Share, then Add to Home Screen** gives the web app an icon of its own. The web app needs WebGPU; [supported environments](/info/supported-environments.html) lists what has been tested so far. To build and sign the app yourself, see [Building for iOS](/info/ios-build.html).
 
+<!--i:eti-package-->
 ## Android
 
 **Phone and tablet, `.apk`, installed directly. Android 7.0 or later, `arm64-v8a`.**
@@ -49,12 +53,18 @@ There is no store and no store account. Download the APK, open it and allow your
 
 [Check the file](#checking-what-you-downloaded) against `SHA256SUMS.txt` before you install the APK. Newer versions are held back from Android because Android 11's web view has no WebGPU adapter, and Android 12 or later has not been checked yet.
 
+<!--i:eti-download-->
 ## Windows
 
 **x64, an installer. Version %download{windows}.**
 
-Download [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe) (an NSIS installer) or [`lolly-latest.msi`](https://lolli.li/lolly-latest.msi). The installers are not code-signed yet, so Windows SmartScreen warns before the first run. [Compare the file](#checking-what-you-downloaded) with `SHA256SUMS.txt` before you allow the install.
+Download [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe) (an NSIS installer) or [`lolly-latest.msi`](https://lolli.li/lolly-latest.msi).
 
+::: warning The Windows installers are not code-signed yet
+Windows SmartScreen warns before the first run. [Compare the file](#checking-what-you-downloaded) with `SHA256SUMS.txt` before you allow the install.
+:::
+
+<!--i:eti-box-->
 ## Linux
 
 Every Linux build is version 1.1.0, x86_64 unless the section says otherwise. Newer versions are held back from Linux because WebKitGTK, the web view the Linux app uses, has no WebGPU yet ([supported environments](/info/supported-environments.html)). Pick the one for your distribution:
@@ -102,6 +112,10 @@ Versioned files sit beside them, for example `https://lolli.li/lolly-desktop-<ve
 
 ### Arch
 
+::: note The repository is not GPG-signed yet
+That is why the repository entry below has a `SigLevel` line. It scopes the exception to this one repository.
+:::
+
 Add the Lolly repository to `/etc/pacman.conf`:
 
 ```ini
@@ -116,7 +130,7 @@ Then install, and from here on update, with pacman itself:
 sudo pacman -Syu lolly-desktop-bin
 ```
 
-The `SigLevel` line is needed because the repository is not GPG-signed yet; it scopes that exception to this one repository. The package repacks the official desktop version pinned in its recipe and installs the whole desktop integration: the `.lolly` file type, `lolly://` links, the thumbnailer, the GNOME Shell search provider, the D-Bus services and the KDE service menu.
+The package repacks the official desktop version pinned in its recipe and installs the whole desktop integration: the `.lolly` file type, `lolly://` links, the thumbnailer, the GNOME Shell search provider, the D-Bus services and the KDE service menu.
 
 ::: details Building the Arch package by hand, and Hyprland
 An AUR package under the same name is planned once AUR account registration reopens. The recipe is in `shells/tauri-desktop/linux/arch/`, and you can build it today:
@@ -145,6 +159,7 @@ The app id is `tools.lolly.Desktop` and the runtime is `org.gnome.Platform` vers
 
 [`lolly-latest.AppImage`](https://lolli.li/lolly-latest.AppImage) comes out of the same desktop build. Make the file executable and run it directly. The Flatpak is the supported cross-distribution package; the AppImage is there when you need a single file.
 
+<!--i:eti-cpu-->
 ## Your own server
 
 ### YunoHost
@@ -159,8 +174,9 @@ The package serves the same web app, version %download{yunohost}, from a domain 
 
 ### A container image
 
-The signed web image, `ghcr.io/lolly-tools/lolly-web`, serves the same app lolly.tools runs, version 1.1.2. A static bundle behind any web server works too, including an air-gapped one. [Deployment](/info/deployment.html) covers both, and which suits rolling Lolly out to other people.
+The signed web image, `ghcr.io/lolly-tools/lolly-web`, serves the same app lolly.tools runs, version 1.2.0. The [1.2.0 release notes](https://github.com/lolly-tools/lolly/releases/tag/v1.2.0) list its digest. A static bundle behind any web server works too, including an air-gapped one. [Deployment](/info/deployment.html) covers both, and which suits rolling Lolly out to other people.
 
+<!--i:eti-code-->
 ## For developers
 
 ::: details The terminal, the SDK, the browser extension and building it yourself
@@ -188,6 +204,7 @@ LOLLY_PROFILE=lolly-demo LOLLY_EMBED_CATALOG=profile pnpm run build:desktop
 The app is written to `shells/tauri-desktop/src-tauri/target/release/bundle/macos/`. It opens with Lolly Demo, and Lolly Starter, a blank design system to make your own, is already on the device to switch to. `pnpm run build:desktop` builds the Windows installers on Windows, and `pnpm run build:android` in `shells/tauri-mobile` builds the APK; the Build Guide lists the prerequisites for each.
 :::
 
+<!--i:eti-badge-check-->
 ## Checking what you downloaded
 
 Every release publishes a checksums file at [`https://lolli.li/SHA256SUMS.txt`](https://lolli.li/SHA256SUMS.txt). Put it next to your file, then:

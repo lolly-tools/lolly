@@ -2,14 +2,16 @@
 
 By the end of this page your tools will wear your own colours and fonts, and the work you already have will be ready to reuse. You need no account, and making and exporting run on your device.
 
-::: timeline
-- <!--i:sparkle--> **Make one file.** [Make your first file](/info/make-something.html) walks you through a QR code in a few minutes.
-- <!--i:palette--> **Put your brand in.** Start from one colour, a tokens file or a finished design.
-- <!--i:layers--> **Make more of the same.** Share a link, fill a spreadsheet or run the tool from a script.
+::: steps
+- <!--i:eti-sparkles--> **[Make one file](/info/make-something.html)** A QR code in a few minutes, with every step shown.
+- <!--i:eti-palette--> **[Put your brand in](#put-your-brand-in)** Start from one colour, a tokens file or a finished design.
+- <!--i:eti-folder-move--> **[Bring in your work](#bring-in-what-you-already-have)** Designs, decks and data you already have, read on your device.
+- <!--i:eti-repeat--> **[Make more of the same](#make-many-share-and-automate)** Share a link, fill a spreadsheet or run the tool from a script.
 :::
 
 New to the idea itself? [What is Lolly?](/info/what-is-lolly.html) is the five-minute introduction, and [How Lolly works](/info/how-lolly-works.html) shows who does what.
 
+<!--i:eti-palette-->
 ## Put your brand in
 
 lolly.tools opens in **Lolly Demo**, Lolly's own sample design system; [Meet Lolly Demo](/info/lolly-demo.html) shows what you are looking at. Your design system replaces it: a small set of design tokens, meaning colours, fonts and a few rules, that every tool draws with. Set it once, and everything you make starts on-brand.
@@ -50,6 +52,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 `--activate` registers the brand as a profile and builds and validates its catalog. It never changes the default profile: run with `LOLLY_PROFILE=acme` to use the new pack. [Configuration](/info/configuration.html) explains how brand packs and profiles fit together.
 :::
 
+<!--i:eti-folder-move-->
 ## Bring in what you already have
 
 You do not start from a blank page.
@@ -68,6 +71,7 @@ An imported layout is an ordinary Lolly Design session. **Share with rules** tur
 
 [Share a design with rules](/info/create-a-tool.html) walks through each step.
 
+<!--i:eti-repeat-->
 ## Make many, share and automate
 
 - <!--i:download--> **Export.** Tools make SVG, PDF, PNG, JPG, WebP, video and more, in the formats each tool offers, at true print sizes when you need them. See [Export a file](/info/exporting.html).
@@ -79,6 +83,7 @@ A link is a complete request. Nobody drew the chart below: its type, its heading
 
 ![An area chart of monthly signups, every value of which arrived as a query parameter rather than a click](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - <!--i:people--> **[Create](/info/creators.html)**: making, animating, recording, sharing and exporting.
