@@ -5,6 +5,7 @@ Lolly Work deployment, and how to stop them at once. Managed AI is off by defaul
 service switch for the whole deployment, not a personal preference, and it covers the features
 below.
 
+<!--i:eti-sparkles-->
 ## What managed AI covers
 
 | Capability | Supported shell paths |
@@ -23,6 +24,7 @@ downloads and drops late results. The offline profile reports that AI downloads 
 still allows removing cached model files. Pure image operations and cryptographic Content
 Credentials are separate from neural watermarking and are not governed here.
 
+<!--i:eti-badge-check-->
 ## Turn it on: two keys
 
 AI runs only when both of these say yes:
@@ -53,6 +55,7 @@ Approve the models in the exact release as part of the same change. The configur
 capabilities, not individual model IDs, so withdrawing one model means turning off its whole
 capability or shipping a reviewed replacement.
 
+<!--i:eti-clock-->
 ## How the shell holds permission
 
 `org-config.ai` and the authenticated `GET /api/v1/policy/ai` return:
@@ -87,12 +90,14 @@ deployment's capability list can include `agents` only once both the Lolly Work 
 desktop apps know the capability; an older desktop app refuses a lease that asks for it, which
 leaves every AI capability off there.
 
+<!--i:eti-eye-off-->
 ## Turn it off
 
 Set the `ai` flag to **Off** (or **Inherit**), or deploy `policy.ai.enabled=false`. Connected
 shells lose permission within one lease, at most 60 seconds, and offline devices lose it when
 their lease expires, because they cannot receive an instant remote command.
 
+<!--i:eti-warning-->
 ## What it does not control
 
 This is enforcement inside the supported application, not a sandbox for arbitrary JavaScript, a

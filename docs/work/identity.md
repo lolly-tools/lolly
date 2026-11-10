@@ -4,6 +4,7 @@ This page is for the person who decides how colleagues sign in to Lolly Work. By
 will know which sign-in methods to offer, who gets in, how long someone stays signed in and
 how to end their access.
 
+<!--i:eti-help-->
 ## How a sign-in works
 
 Every sign-in answers two questions. Your identity provider answers the first: who is this?
@@ -28,6 +29,7 @@ uses https. A member session wins when both cookies are present. Every token car
 domain in its signed payload, so a session token can never be replayed as a guest token, a
 link signature or an OAuth state.
 
+<!--i:eti-sliders-->
 ## Choose how people sign in
 
 | Method | Suits | Set it up |
@@ -102,6 +104,7 @@ deletes the password; a new one needs a new link. The sign-in an account was cre
 cannot be removed. **Disable access** is the way to stop that one, and it also cancels the
 person's unused links.
 
+::: details How password guessing is slowed, and how passwords are stored
 Guessing is slowed twice over:
 
 - Every attempt uses the `auth` rate-limit bucket.
@@ -115,6 +118,7 @@ password and a locked address all get the same answer: "That email and password 
 match." The form carries a signed double-submit token against login CSRF. Passwords are
 stored as scrypt hashes, and passwords, hashes and link tokens never reach a log line or the
 audit chain.
+:::
 
 An instance whose only sign-in is email and password has no admin to issue the first link.
 The operator prints one for an address listed in `bootstrapOwners`, on the machine where the
@@ -171,6 +175,7 @@ Pending codes are listed in the console's Fleet view, where an admin can deny on
 approve one. Codes are database rows, so any replica answers the poll: high availability
 needs no sticky sessions, and function-only deployments have the flow too.
 
+<!--i:eti-shield-check-->
 ## Who may sign in
 
 Completing a sign-in at the provider proves who a person is, not that they belong.
@@ -286,6 +291,7 @@ Once real owner groups exist, empty the list.
   handle requests](invitations.md#audit-actions-for-invitations-and-requests).
 :::
 
+<!--i:eti-clock-->
 ## Session length and renewal
 
 A member session lasts `policy.sessionTtlHours`. With `policy.sessionMaxHours` set, a person
@@ -329,6 +335,7 @@ and the cap at a few days, for example `sessionTtlHours: 12` with `sessionMaxHou
   acted from signed in, with a cookie in the same chain and cut the same way.
 :::
 
+<!--i:eti-link-->
 ## One person, several sign-ins
 
 A person may sign in with Google one day and GitHub the next. Both sign-ins belong to one
@@ -431,11 +438,14 @@ an existing account that reaches it through a newly linked sign-in. Adding a sig
 profile accepts it at once when that provider vouches for the invited address and links by
 email (`invite.accept` with `via: "link"`).
 
+::: details Accounts from before migration 0039
 **Upgrading.** Migration 0039 writes one identity row per existing account from `users.sub`
 (the provider is the prefix before the first `:`, or `primary` when there is none), with the
 email marked unconfirmed. Nothing links by email to a backfilled row until that person signs
 in again through the same identity and the provider confirms the address.
+:::
 
+<!--i:eti-users-->
 ## Groups → role
 
 Groups arrive from the provider claim that `groupsClaim` points at. The console can add
@@ -485,6 +495,7 @@ Group membership is also how governance targets people: overlay visibility, appr
 eligibility, provider exposure and grant principals (`group:<name>`) all read groups. What
 each role may do is in [Roles and grants](permissions.md).
 
+<!--i:eti-lock-->
 ## Offboarding, disable and revocation
 
 ![The People directory: every signed-in member with role, groups and instant lockout](shots/people-directory.svg)
@@ -537,6 +548,7 @@ Details that matter:
 Ownership transfer, retained content and personal-data review are separate actions; see
 [Account data controls](account-lifecycle.md).
 
+<!--i:eti-user-check-->
 ## Guest sessions
 
 A guest-edit link admits someone with no account. The server sets an `lw_guest` cookie scoped
@@ -548,6 +560,7 @@ access comes entirely from the link. `policy.guestLinks.maxTtlHours` caps the li
 How a guest joins is in [Share renders and links](sharing.md#guest-links-in-a-browser), and
 what a guest can do in a live room is in [Roles and grants](permissions.md#guest-write-authority).
 
+<!--i:eti-cpu-->
 ## Machine credentials
 
 Your provider's SCIM connector and your automation sign in with bearer tokens, not cookies.

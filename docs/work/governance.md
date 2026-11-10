@@ -13,6 +13,7 @@ poll.
 
 ![Tool policy: lock a preset, restrict choices or hide an input entirely, per group](shots/tool-policy.svg)
 
+<!--i:eti-sliders-->
 ## Tool overlays
 
 Each tool has one versioned overlay, saved with `PUT /api/v1/policy/overlays/:toolId` under
@@ -94,8 +95,9 @@ and Preview lists every tool a set of groups would not see.
 | `watermark` | `always` | Enforced: every render carries the [PREVIEW watermark](sharing.md#preview-watermarking). |
 | `watermark` | `never` | Enforced: no render carries the watermark. |
 | `watermark` | `until-approved` | Enforced on server renders: each render carries the watermark until a request for the same inputs is approved. See [follow approval](#a-watermark-that-follows-approval). |
-| `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
-| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. |
+| `defaults` | input values for groups, as `[{ groups, values }]` | Applied when saved in that shape: new work and server renders start from the values for the person's groups, the most specific group winning, below a template's own values and the person's own entry. Stored in the older flat shape, defaults are not applied to a tool's initial inputs by org-config or the render paths. The policy editor marks them, and saving them again as group rules applies them. Locked presets do enforce values. |
+| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. Otherwise the save answers `400 CHAIN_NOT_BOUND`. |
+| `approvalCovers` | `file` (the default) or `template-variants` | Enforced under `until-approved`: with `template-variants`, one approval of a published template's version covers every partner render from it ([one approval for a template's variants](partner-approvals.md#one-approval-for-a-template-s-variants)). |
 | `c2pa` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)). |
 
 With no `watermark` rule, a server render carries no mark. The render pipeline can take a request for the preview mark, but no Lolly Work route makes that request today, so a share link or a preview does not ask for the mark.
@@ -154,6 +156,7 @@ id of the approval that matched. The words are in the record, not the artwork.
 Before you rely on a rule, preview what a group will see ([Checking your
 work](permissions.md#checking-your-work)).
 
+<!--i:eti-palette-->
 ## Design systems and injectables
 
 Two more tabs in **This Deploy** govern what members work with:
@@ -165,6 +168,7 @@ Two more tabs in **This Deploy** govern what members work with:
 - **Injectables** publishes assets and tools into members' shells, under
   `catalog.injectable.manage`. The routes are in the [API reference](api.md).
 
+<!--i:eti-user-check-->
 ## Profile governance
 
 Identity fields the identity provider owns are managed, not editable. `claimMap` decides which
@@ -172,6 +176,7 @@ claim fills `firstname`, `lastname`, `email` and `title`, and those fields reach
 `mode: locked, source: idp`, which draws the padlocks in the shell's profile view. The person
 keeps every field your organisation has no opinion about.
 
+<!--i:eti-flask-->
 ## Feature flags
 
 Lolly Work governs the shell's per-person feature toggles it knows about, with two settings per
@@ -247,6 +252,7 @@ card with the service's address, its request and fallback counts and its last an
 marks each flag the service decides. [Configuration](configuration.md#featureflags) lists
 what is sent and how failures are handled.
 
+<!--i:eti-code-->
 ## Policy-as-code
 
 One canonical document holds the whole governance state, serialized deterministically so that
@@ -298,6 +304,7 @@ a provider or stores a credential, because neither is in the document. Seeding b
 deployment up already governed, and makes governance reviewable and promotable between
 environments, for example from version control.
 
+<!--i:eti-link-->
 ## Related
 
 - Who may edit any of this: [Roles and grants](permissions.md)
