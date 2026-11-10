@@ -1,19 +1,19 @@
 # Privacy Policy
 
-*Last updated: 3 November 2026*
+*Last updated: 10 November 2026*
 
-**Making things in Lolly happens on your device.** Opening a tool, typing, previewing, exporting and checking a file all run in the app on your phone, computer or browser. You need no account, and the app sets no cookies for any of that.
+- <!--i:eti-home--> **Making things in Lolly happens on your device.** Opening a tool, typing, previewing, exporting and checking a file all run in the app on your phone, computer or browser. You need no account, and the app sets no cookies for any of that.
+- <!--i:eti-globe--> **What you make leaves your device only when you ask.** Adding a Google Font, sending a file to Drive or Dropbox, turning on Sync, playing the radio or downloading an on-device AI model each makes a request you started. The app also fetches its tools and updates from its own address, and those requests carry nothing you made. [Every network request the app can make](#every-network-request-the-app-can-make) lists them, host by host.
+- <!--i:eti-cpu--> **A few Lolly services run on a server.** Render links, the image fetcher, the AI-agent endpoint and the verified-identity service receive only what you send them, and keep it no longer than this page states.
+- <!--i:eti-building--> **Your organisation's Lolly Work instance is different.** It stores the shared work you put there and a log of your sign-ins and what you do there, and its operator's policy applies to that data, not this one.
 
-**What you make leaves your device only when you ask.** Adding a Google Font, sending a file to Drive or Dropbox, turning on Sync, playing the radio or downloading an on-device AI model each makes a request you started. The app also fetches its tools and updates from its own address, and those requests carry nothing you made. [Every network request the app can make](#every-network-request-the-app-can-make) lists them, host by host.
-
-**A few Lolly services run on a server.** Render links, the image fetcher, the AI-agent endpoint and the verified-identity service receive only what you send them, and keep it no longer than this page states.
-
-**Your organisation's Lolly Work instance is different.** It stores the shared work you put there, and its operator's policy applies to that data, not this one.
+To ask about your data or use your rights, see [Your rights](#your-rights) and [Who is responsible](#who-is-responsible-and-how-to-reach-us).
 
 ::: figure privacy-where-data-goes
 Where your data goes: it stays on your device unless you start a request, and each kind of request has its own destination.
 :::
 
+<!--i:eti-clipboard-->
 ## What this policy covers
 
 Lolly is open-source software that anyone can run: an engine, app shells for the web, desktop, mobile and the terminal, and a browser extension. This policy has two parts:
@@ -23,20 +23,32 @@ Lolly is open-source software that anyone can run: an engine, app shells for the
 
 On a self-hosted or enterprise Lolly instance, the software behaviour below still applies, but the *operator* of that instance, not SUSE, is responsible for anything on their servers: their render endpoint, their MCP server, their certificate service and their Lolly Work instance. Ask them for their own policy. [Adoption & Governance](/info/adoption-governance.html) describes what operating Lolly involves.
 
+<!--i:eti-home-->
 ## What stays on your device
 
 Lolly's web, desktop and mobile apps run the whole render engine on the device. Once the tools, assets and encoders you use are on the device, rendering and downloading need no server.
 
 **Standalone app use sets no cookies.** Organisation sign-in and the optional verified-identity enrolment have their own cookies, described in their sections. The app keeps these records on the device:
 
-- <!--i:sliders--> **Interface preferences**: theme, language, sound settings, sidebar and zoom sizes, sort and view choices and which tips you have seen, in `localStorage`, so they are ready before the app finishes starting.
+- <!--i:sliders--> **Interface preferences**: theme, language, sound settings, accessibility settings, sidebar and zoom sizes, sort and view choices and which tips you have seen, in your profile record and in `localStorage`, so they are ready before the app finishes starting.
+- <!--i:usercheck--> **Your profile details**: the name, email address, phone number, job title, organisation, city, country and headshot you enter in **Settings**, in IndexedDB. They fill in the tools that ask for them, and are written into an export's provenance record or a shared `.lolly` file only when you turn on *Use my details*.
 - <!--i:download--> **An offline cache of the tool catalogue and asset previews**, so the gallery works without a connection.
-- <!--i:hash--> **Local usage counters** for your profile card's stats, such as how many exports and which tools: a small bounded record in `localStorage`, never read by us and never sent anywhere.
-- <!--i:folder--> **Your own work**: documents, saved sessions and their history, uploaded images and fonts, file results and earlier versions, and the Trash, which keeps deleted items for 30 days. These live in IndexedDB on the device and stay there unless you choose Sync or sharing.
+- <!--i:hash--> **Local usage counters** for your profile card's stats, such as how many exports and which tools: a small bounded record in `localStorage`, never read by us. They leave the device only inside your own backup file or Sync copy.
+- <!--i:folder--> **Your own work**: documents, saved sessions and their history, uploaded images and fonts, file results and earlier versions, and the Trash, which keeps deleted items for 30 days unless you empty it sooner. After 30 days an item goes the next time you open Projects, unless saved work still uses it, as it can an image or a font. These live in IndexedDB and in the browser's private file storage (OPFS) on the device, and stay there unless you choose Sync or sharing.
 - <!--i:globe--> **Meeting Planner's city lookups**, in `localStorage`, so each city is looked up once.
 - <!--i:cpu--> **Downloaded models and pinned tools**: on-device AI models you agreed to download and tools you pinned for offline use.
+- <!--i:seal--> **Your signing identity**, once you enrol: the lasting key pair that signs your Content Credentials and its certificate with your verified email address, in IndexedDB. The private key never leaves the device. Without enrolment, each export's key is made for that export and dropped; [Verified identity](#verified-identity-a-sign-in-you-start-yourself) explains both.
+- <!--i:link--> **Connected services**: the sign-ins, app passwords, keys and Sync passphrase you choose to keep, the account labels shown beside them, and the **Links you've shared** list, with each file's name and link. They are never in a backup or a Sync copy; [Files you send](#files-you-send) describes each service.
 
-**Settings → Storage** shows how much space Lolly uses on the device, with your work, the Trash, downloaded models, offline copies and caches listed one by one. **Clear all my data** there removes the local copy, and turns off Sync first; clearing the site's storage in your browser does the same. Storage that is strictly necessary for the service you asked for needs no consent under the ePrivacy Directive (Art. 5(3)), only transparency, which is what this document and the in-app notice provide.
+::: details Other records the app keeps on the device
+- **Your answers.** Which one-time questions you answered and how: adding a Google Font, the first request to each agent in **Ask an agent**, **Allow pages from any site** and **Allow AI control**. Also which notices and greetings you have closed.
+- **Recent activity.** A short list of your latest downloads, with each file's name, tool, settings and a thumbnail, for the Dashboard, and the assets and tools you used most recently.
+- **A connected instance.** Its address, an install id for this device, a note of which local copies came from which workspace, and a cached copy of what the instance sends the app: its settings and your account's name, email address, groups and role.
+- **Working files.** In-progress screen recordings, audio previews and video encodes, in OPFS, and a file another app shares to Lolly, kept until the app next starts.
+- **The documentation pages.** lolly.tools/info sets no cookies. It keeps your theme, language and language order in `localStorage`, reads the app's Reduce motion and Large text settings and, for its way back to the app, the address of the app view this browser tab came from. It keeps a copy of the docs only if you download them for offline use.
+:::
+
+**Settings → Storage** shows how much space Lolly uses on the device, with your work, the Trash, downloaded models, offline copies and caches listed one by one. **Clear all my data** there removes the local copy, including Lolly's service workers and offline caches, and turns off Sync first. It keeps only a marker that tells your other open Lolly tabs the clear happened. It does not end an organisation sign-in: that cookie goes when you sign out, or when you clear the site's data in your browser, which removes everything this button does as well. Storage that is strictly necessary for the service you asked for needs no consent under the ePrivacy Directive (Art. 5(3)), only transparency, which is what this document and the in-app notice provide.
 
 ![The storage section of Settings on a phone-width screen: every category of on-device data named, with the Clear all my data button beside the list](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -79,6 +91,7 @@ Some readers choose how to draw charts and drawings from the application name an
 **How cleanup checks its work.** Property parts, their declarations, unrelated package members, XML comments and ZIP comments are kept. Cleanup applies the census limits and checks every member's integrity before writing, then inspects the resulting properties again. Lolly Compare shows supported property differences with values collapsed; it does not compare visible text or rendered appearance. Values use previews of up to 2048 characters, so differences beyond a preview may not show, and a partial review cannot establish that two files are equal. The CLI's `prepare --strip-hidden-data` removes supported DOCX properties, and a private review envelope can select individual ones. A failed cleanup guard keeps the file and reports a failed operation.
 :::
 
+<!--i:eti-globe-->
 ## Every network request the app can make
 
 Most requests bring tools, fonts or models to your device. Send actions transmit the file you chose, Sync transmits a backup to the storage you chose, and organisation services transmit the content or details needed for shared work. Each group below lists what leaves your device, when, and what happens if an operator blocks the request. An operator's configured identity and asset providers can add destinations to that deployment. [Every fixed host, in one table](#every-fixed-host-in-one-table) lists the hosts the web app may contact.
@@ -117,7 +130,7 @@ This list limits which hosts the app can reach. It does not tell accounts or ten
 
 ::: details Sync across your devices
 - <!--i:folder--> **What leaves.** A copy of what you made on this device (saved sessions and projects, your design systems with their fonts and logos, uploaded images, your profile and preferences) as one file, to the one storage you chose: the Lolly app folder in your Dropbox (`api.dropboxapi.com`, `content.dropboxapi.com`), files Lolly created in your Google Drive (`www.googleapis.com`), the Lolly app folder in your OneDrive (`graph.microsoft.com`, with larger files uploaded to `api.onedrive.com` or storage origins the operator configured, and downloads from exact storage origins the operator configured), or your own Nextcloud, WebDAV server or S3 bucket. The same storage keeps up to seven daily copies and one copy from before your last apply.
-- <!--i:shieldcheck--> **Nothing goes to Lolly.** No Lolly server, relay or Lolly Work server is in the path, and the apps need no Lolly website for it, not even to sign in. The copy is encrypted on the device first only if you set a passphrase. Sign-ins, keys, app passwords, the passphrase and the Sync settings stay on the device and are never in the copy. On the web, a remembered Google Drive connection keeps only your account name (and your own client id, if you gave one), and the Google sign-in lasts one visit. In the Android app, the Google Drive sign-in goes through Google Play services on the phone, which Google runs.
+- <!--i:shieldcheck--> **Nothing goes to Lolly.** No Lolly server, relay or Lolly Work server is in the path, and the apps need no Lolly website for it, not even to sign in. The copy is encrypted on the device first only if you set a passphrase. Sign-ins, keys, app passwords, the passphrase and the Sync settings stay on the device and are never in the copy. On the web, a remembered Google Drive connection keeps only an account label, normally your Google account's email address, the permission it holds and when you connected (and your own client id, if you gave one). No access token is stored, and the Google sign-in lasts one visit. In the Android app, the Google Drive sign-in goes through Google Play services on the phone, which Google runs.
 - <!--i:sliders--> **When.** Only after you turn on **Sync across my devices** or press **Sync now**: an upload shortly after each change and when you leave the app, and a check for a newer copy when the app starts. If blocked, Sync fails and says why, and your work stays on the device. You can export your data to a file and move it yourself instead. [Sync your devices](/info/sync.html) covers the feature.
 :::
 
@@ -137,7 +150,7 @@ This list limits which hosts the app can reach. It does not tell accounts or ten
 - <!--i:cpu--> **Allow AI control**, in the desktop app. An agent running on this computer can read and edit the open Lolly Design document through a connection that stays on the computer. It is off until you turn it on. Lolly sends nothing to a server for it; the agent's provider handles what the agent reads under its own policy. [Threat Model & Trust Boundaries](/info/threat-model.html) lists what such an agent can and cannot do.
 - <!--i:cpu--> **Ask an agent**, in the desktop app. Opening **Ask an agent** in Lolly Design makes the app look on this computer for four agent command-line tools (Claude Code, Codex, Gemini CLI and GitHub Copilot CLI), seven apps (Claude, ChatGPT, Codex, Cursor, Visual Studio Code, LM Studio and Ollama) and the Ollama and LM Studio servers on `127.0.0.1`. It runs each tool's version and help commands (and Codex's feature list), reads app names and versions from the app bundles, and asks the two local servers which models they hold. It reads no sign-in or credential file, the result stays in the app's memory, and nothing about it is sent anywhere. When you ask an agent, your request and the open document, with uploaded pictures left out, go to that agent's provider (Anthropic for Claude Code, OpenAI for Codex) under the account that tool is signed in with, and your plan with that provider pays. No Lolly server is in the path. Before the first request to each agent the panel shows this and asks once, and your answer is kept in `localStorage` on this device. The agent runs with no tools, in an empty temporary folder, with only the environment variables it needs to find its own sign-in, so API keys set in the environment stay behind. On a managed instance the organisation's policy can turn this off, and then the app neither looks for agents nor starts one.
 - <!--i:server--> **A remote instance.** When you point the app at another Lolly deployment, it receives whatever that instance serves back, through the same catalogue sync, plus a version tag on requests to it (the kind of app and the engine version, the same information a user agent carries), so its operator can see which Lolly versions are in use. On a managed instance, while you are signed in, the tag also carries an install id for this device, so the operator's device list can tell installs apart; leaving deletes the id, and a device that reconnects later presents a fresh one. You choose the host, so it is not in the connection policy. If blocked, switching fails and your local instance is unaffected.
-- <!--i:people--> **Your organisation's Lolly Work instance.** Sign-in identity and device information, policy requests, the shared sessions, collaboration edits, uploads, approval submissions and delivery files you use, and allowed usage-event labels where configured, go to your organisation's instance, with sign-in through its identity provider. Policy refreshes and enabled telemetry can run during use; shared work, collabs, review and delivery send content as part of those workflows. If blocked, those organisation features cannot complete, and your personal work stays separate. See [Organisation services with Lolly Work](#organisation-services-with-lolly-work).
+- <!--i:people--> **Your organisation's Lolly Work instance.** Sign-in identity and device information, policy requests, the shared sessions, collaboration edits, uploads, approval submissions, brand pages you publish and delivery files you use go to your organisation's instance, with sign-in through its identity provider. Policy refreshes can run during use; shared work, collabs, review and delivery send content as part of those workflows. Lolly's own apps send the instance no usage events. If blocked, those organisation features cannot complete, and your personal work stays separate. See [Organisation services with Lolly Work](#organisation-services-with-lolly-work).
 :::
 
 ### Every fixed host, in one table
@@ -168,6 +181,7 @@ The desktop apps' own list also includes Google's token endpoint for the Drive s
 
 You can check this and every other claim on this page yourself: [Verify It Yourself](/info/verify-yourself.html) gives the commands and the output to expect.
 
+<!--i:eti-cpu-->
 ## Services lolly.tools runs
 
 These run on lolly.tools for everyone. Each one receives only what you send. [Server Surface](/info/server-surface.html) describes the same components as they work on any deployment.
@@ -232,24 +246,27 @@ If you do enrol, this is exactly what happens:
 A managed device can ask to revoke its own certificate, with an authenticated proof of the device, and no API asks for the device private key. The operator can withdraw an issuer through its trust policy. Lolly keeps no mapping from people to certificates, so revoking a person's certificates when they leave depends on records the operator keeps, and PKI records, audit records, recipients and backups follow the operator's policy. The [certificate service design](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md) covers issuer custody, provider retention and qualification.
 :::
 
+<!--i:eti-building-->
 ## Organisation services with Lolly Work
 
 **Lolly Work** is the Lolly project's optional organisation service, deployed separately by each organisation that runs an instance. Connecting to an instance adds data held on that server alongside your local editing. Its operator is responsible for that deployment's privacy policy, access controls, recipients, retention and backups.
 
+With a workspace connected, the privacy line on the app's first screen says so: the workspace keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there.
+
 | Workflow | Data handled by the organisation's service |
 |---|---|
 | Sign-in and provisioning | Identity-provider claims, account and group membership, sign-in sessions and device information. OIDC handles sign-in; administrators can provision and deactivate accounts through SCIM |
-| Shared catalog and projects | Uploaded assets, metadata and versions; shared projects and sessions; content retrieved from configured library providers |
+| Shared catalog and projects | Uploaded assets, metadata and versions; shared projects and sessions; brand pages you publish; content retrieved from configured library providers |
 | Lolly Work collabs | Shared session state, live edits and participant presence sent through the instance; saved state persists under its storage policy |
 | Managed share links | Link target and access settings, such as expiry and optional password protection; requests resolve through the instance and can be revoked |
 | Review and delivery | Submitted content, approval decisions, selected destination, staged files and delivery receipts |
 | Server renders and batches | Submitted tool inputs, render requests, status and retained output files. These jobs run on the server rather than on your device |
-| Usage reporting | Allowlisted event labels such as tool id, format and asset id, according to the telemetry policy below |
+| Usage reporting | Allowlisted event labels such as tool id, format and asset id, from a client that sends them, according to the telemetry policy below |
 | Audit | Actor and action records for governed operations, kept separately from usage telemetry |
 
-The service uses authentication cookies, including `lw_session` for signed-in members and `lw_guest` for guest access where enabled, separate from the certificate service's cookie. Policy refreshes and enabled usage reporting can make requests while the app is in use, without a separate click for each. This is traffic to the configured instance, not a report to the Lolly project about deployments it does not run.
+The service uses authentication cookies, including `lw_session` for signed-in members and `lw_guest` for guest access where enabled, separate from the certificate service's cookie. Policy refreshes can make requests while the app is in use, without a separate click for each. This is traffic to the configured instance, not a report to the Lolly project about deployments it does not run.
 
-**Usage telemetry has three levels.** `off` stores no usage events, `aggregate` strips user ids and `standard` can attribute events. The default level is `standard`, so an instance stores the usage events it receives unless its operator chooses `off`. The default attribution policy is `opt-in`, which needs your consent before a user id is stored; an operator can instead configure attributed reporting with `telemetryAttribution: default`. Allowed attributes are labels, never tool input values. See [Lolly Work telemetry](/info/work-telemetry.html).
+**Usage telemetry has three levels.** Lolly's own apps send no usage events today, so these levels apply to events from another client the operator connects. `off` stores no usage events, `aggregate` strips user ids and `standard` can attribute events. The default level is `standard`, so an instance stores the usage events it receives unless its operator chooses `off`. The default attribution policy is `opt-in`, which needs your consent before a user id is stored; an operator can instead configure attributed reporting with `telemetryAttribution: default`. Allowed attributes are labels, never tool input values. See [Lolly Work telemetry](/info/work-telemetry.html).
 
 **Audit is separate.** Governed actions can keep an identified audit record whatever your telemetry consent. Turning telemetry off does not turn off shared-session storage, approval records, render-job storage or audit. The operator controls retention and erasure, including any pseudonymisation of the audit log; see [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html).
 
@@ -259,8 +276,11 @@ The service uses authentication cookies, including `lw_session` for signed-in me
 | Who deletes it | You, with **Clear all my data** or your browser's site data | The operator, through the instance's own controls |
 | Whom to ask | Nobody: the records are on your device | The instance's operator, for access, export or erasure |
 
-**Local deletion is not server deletion.** Leaving an instance or clearing your browser removes local state, not the organisation's stored records or backups. Personal [Sync](/info/sync.html) and **Export my data** back up your device, not the organisation's service. The public [lolly.work](https://lolly.work) demo keeps its state in memory only and is not durable storage for your work.
+::: warning Local deletion is not server deletion
+Leaving an instance or clearing your browser removes local state, not the organisation's stored records or backups. Personal [Sync](/info/sync.html) and **Export my data** back up your device, not the organisation's service. The public [lolly.work](https://lolly.work) demo keeps its state in memory only and is not durable storage for your work.
+:::
 
+<!--i:eti-camera-->
 ## The browser extension
 
 The **Lolly URL Screenshot** browser extension collects no personal data for us. It has no analytics, no tracking and no server of its own. The [Browser extension](/info/extension.html) page describes how it works.
@@ -284,6 +304,7 @@ The **Lolly URL Screenshot** browser extension collects no personal data for us.
 
 None of these is used to read, monitor or transmit your browsing beyond the one request you approved.
 
+<!--i:eti-map-pin-->
 ## Delivery hosts and processors
 
 Public catalog files, tools and display renditions come from the app's own address by default. Content-addressed names change where a file is fetched, not who receives the request. No third-party CDN is activated by this delivery feature. A CDN that terminates TLS would receive request details, including IP addresses and any cookies or bearer credentials forwarded to it, even under the same browser hostname, so an operator who adds one takes on a new processor.
@@ -306,8 +327,11 @@ The reference application uses no other hosting, database or abuse-control provi
 
 **Optional principal-bound MCP download links.** An operator can turn on download links for large results on an authenticated, single-replica gateway. They are off by default. The anonymous gateway at `lolly.tools/api/mcp` returns inline results and never issues these links. The planned restricted hostname is `mcp.lolly.tools`, on the same UpCloud processor in Frankfurt; activation is pending, and this page does not claim a live download-link service. The links add no third-party CDN.
 
+::: details How an operator's MCP download links are held
 Only an authenticated caller with a file scope can receive a link, and the same caller's bearer is required to fetch it: use the validated bearer from the render call, not another token for the same account. The grant expires within 300 seconds. Ownership and result lookup stay in gateway memory, and output bytes go to private temporary files, pruned after expiry or removed on clean shutdown. A gateway restart invalidates existing links. Held results are limited to 64 MiB per bearer, 256 MiB across the gateway and 200 pending or held files. Daily CPU and decoded-byte budgets count results when they are held and when they are downloaded. Responses use `private, no-store` and `Referrer-Policy: no-referrer`. A link's token alone does not let another person or agent read the result.
+:::
 
+<!--i:eti-file-->
 ## Infrastructure logs
 
 This section describes the public lolly.tools deployment. Its hosting platform records ordinary request details: IP address, requested path, timestamp and user agent. Local edits do not reach that host. A render link's query string can contain the text its caller supplied, as explained above. MCP file tools process the bytes they are given in memory. A Lolly Work instance also holds the records described above, under its operator's logging policy.
@@ -316,6 +340,7 @@ This section describes the public lolly.tools deployment. Its hosting platform r
 
 For lolly.tools, the instance administrator controls request logging, rotation and retention on UpCloud. This page does not state a maximum log retention period that has not been verified. Contact the controller below for the current schedule and for any request about server-held logs. For another instance, its operator's settings apply, including any log exports or other processors.
 
+<!--i:eti-stamp-->
 ## Legal bases, retention and recipients
 
 This table covers the reference **lolly.tools** deployment. It does not state the legal bases or retention periods of your organisation's Lolly Work instance; its operator provides those in its own policy.
@@ -333,10 +358,12 @@ This table covers the reference **lolly.tools** deployment. It does not state th
 
 **Automated decision-making.** None. There is no profiling and no automated decision with legal or similarly significant effects (Art. 22).
 
+<!--i:eti-smile-->
 ## Children's privacy
 
 Ordinary local app use sends no personal content to lolly.tools. Its optional Content Credentials enrolment receives an email address and is not directed at or intended for children. Organisation services have their own accounts and data handling, under their operator's policy.
 
+<!--i:eti-user-check-->
 ## Your rights
 
 For records stored only on your device, you can access, correct, delete and move the data yourself. It lives in your browser's or app's storage, in a form you can inspect, export (**Export my data**, above) or delete (**Clear all my data**, or your browser's site data).
@@ -347,10 +374,12 @@ The public certificate service keeps no issuance log. Infrastructure logs can co
 
 **You have the right to complain.** If you think we have handled your data improperly, you can lodge a complaint with a data protection supervisory authority: in the EU, the authority in your country of residence, place of work or where you believe the infringement occurred (Art. 77). Our lead supervisory authority is the *Bayerisches Landesamt für Datenschutzaufsicht* (BayLDA) in Ansbach, Germany. You do not need to contact us first, though we would like the chance to fix the problem.
 
+<!--i:eti-history-->
 ## Changes to this policy
 
 The date at the top changes whenever this document does. A change that alters what leaves your device or what is kept gets its own line here rather than a silent edit. To see what changed, ask (below) or compare against the [public source](https://github.com/lolly-tools/lolly/commits/main/docs/privacy.md).
 
+::: details Earlier changes, 29 September to 23 October 2026
 **29 September 2026:** clarified the optional lolly.work service, its organisation-held content, authentication cookies, usage telemetry and audit records, and the separation between local deletion and server retention. These are existing optional workflows, not a new upload requirement for local editing.
 
 **11 October 2026:** replaced the retired Vercel hosting description with the UpCloud application hostname inventory, distinguished optional identity and asset providers, and described content-addressed delivery and the held MCP download mode. No third-party CDN is enabled by this change. Log retention is controlled by the administrator rather than a stated Vercel plan default.
@@ -358,18 +387,25 @@ The date at the top changes whenever this document does. A change that alters wh
 **22 October 2026:** corrected the description of existing behaviour. The browser extension section now covers the approval window for every request, site access asked for one site at a time and the stylesheet and icon fetches of a website reading. Also corrected: the Send to Google Drive and Meeting Planner rows, the SEAL note (no Lolly app looks up SEAL keys in DNS), the default usage-telemetry level of the organisation service, the MCP image tools and the application logging of the public services. The software itself did not change.
 
 **23 October 2026:** reorganised the policy by what starts each request, and described existing behaviour that it did not cover before: private collab invites carrying local network addresses, Nearby in the desktop app, Allow AI control, reading a design system from a website, emoji sets, Meeting Planner's on-device cache of city lookups, the Trash and the other records Settings → Storage lists. Corrected two statements: Bluesky and Discord are not desktop-only, and every host a person chooses for sending needs the operator's approval in both the web and desktop apps; the rate-limiting digest of an IP address is pseudonymous, not anonymous. The software itself did not change.
+:::
 
 **3 November 2026:** added share links after Send. When you press Create a share link, Lolly makes one extra call to the provider you sent the file to (Google Drive, Dropbox, OneDrive or your own Nextcloud), and Stop sharing makes another to switch the link off. An S3 share link is made on your device and sends nothing. No new host is involved, and Lolly keeps no copy of any link or token on a server.
 
 **3 November 2026:** added **Ask an agent** in the desktop app: what the app looks for on the computer when the panel opens, and what goes to an agent's provider when you ask, under your own account with that provider.
 
+**10 November 2026:** completed and corrected the description of existing behaviour. The device list now names your profile details, your signing identity, kept sign-ins and shared links, your answers to one-time questions, recent downloads, a connected instance's records, working files in the browser's file storage and what the docs pages keep. Corrected: the local usage counters travel inside your own backup file and Sync copy; Clear all my data does not end an organisation sign-in; the Trash empties items older than 30 days the next time you open Projects; a remembered Google Drive connection on the web is labelled with your Google account's email address; Lolly's own apps send a Lolly Work instance no usage events. Also described the workspace privacy line that 1.2.0 added, and brand pages published to an instance. Apart from that privacy line, the software itself did not change.
+
+<!--i:eti-mail-->
 ## Who is responsible, and how to reach us
 
 The **data controller** for lolly.tools is:
 
 > SUSE Software Solutions Germany GmbH
+>
 > Frankenstraße 146
+>
 > 90461 Nürnberg
+>
 > Germany
 
 SUSE has appointed a **Data Protection Officer**, reachable at [privacy@suse.com](mailto:privacy@suse.com). Use that address for any formal request under "Your rights" above.

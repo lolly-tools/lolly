@@ -2,6 +2,7 @@
 
 A Lolly tool holds the rules for one kind of file: the layout, the type, the colours and which parts other people may change. You, a colleague, a script or an AI agent fill in the fields, and every file comes out right. This page shows who does what, and the four routes from a tool to a finished file.
 
+<!--i:eti-repeat-->
 ## One tool, your rules, many files
 
 The brand rules live in the tool, not in each file it makes. Get the tool right once and every output inherits the same type, colour and spacing, whether that is one card or a spreadsheet of rows in a dozen languages.
@@ -10,6 +11,7 @@ The brand rules live in the tool, not in each file it makes. Get the tool right 
 
 The person making the hundredth file only types the words. How you check the work, and who checks it, stays your decision. Lolly makes the thing worth checking smaller, and the next file faster to make.
 
+<!--i:eti-users-->
 ## Who touches a tool
 
 Follow one campaign card through an organisation and three pairs of hands appear. Each one builds on the last.
@@ -28,6 +30,7 @@ The fresh chart in the developer's step is a render like this one, made from a d
 
 The rep's easy minute is only possible because of the designer's care and the developer's script. Every role works with the same tool, rather than a separate product each.
 
+<!--i:eti-train-->
 ## Four routes to a file
 
 Every route runs the same engine on the same tool, so the file a script makes matches the one you preview in the app.
@@ -41,10 +44,12 @@ Every route runs the same engine on the same tool, so the file a script makes ma
 
 Which route a job can use depends on the tool's formats and what the host can do: some formats need a browser, so the command line hands them to a browser tier. [Render with the CLI](/info/cli-rendering.html) lists which formats render where.
 
+<!--i:eti-monitor-->
 ## What runs where
 
 Making, editing and exporting run on your device, with no account. A feature that needs a server, such as Sync or sending a file to a connected service, only connects when you use that feature. With Lolly Work, shared projects, live team editing, approvals and server jobs use your organisation's server. [What runs where](/info/compare.html#what-runs-where) sets the two parts side by side.
 
+<!--i:eti-graduation-cap-->
 ## Read next
 
 - [Make your first file](/info/make-something.html), to try it now.

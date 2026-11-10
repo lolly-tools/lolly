@@ -6,6 +6,7 @@ That split is what makes a generated element safe to build on. The moment a voic
 
 ![A generated storm image opened in Lolly Verify, its GEN AI badge beside the green Made with Lolly verdict and the credential-intact and bytes-unchanged checks](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=560&height=1400&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-result&css=.valid-panels%2C.valid-wm%2C.valid-note%7Bdisplay%3Anone%7D&dark=1&filename=aif-verify-genai)
 
+<!--i:eti-pin-->
 ## One guess, then a fixed asset
 
 **Generation is the probabilistic step.** Asking a model to invent a voice, or to infer detail that was never in the pixels, is by nature a guess. Lolly boxes that guess in: it runs on your own device with no upload, it happens as one explicit, cancellable action rather than inside a render loop, and its output is disclosed for what it is. Then it is over. The result is saved as an ordinary asset, a clip or an image, and the model is not consulted again.
@@ -16,6 +17,7 @@ Re-open a project next year, render it in CI or send the link to a colleague on 
 
 ![A spoken clip turned into an audiogram, its waveform the actual shape of the audio - the kind of card a synthesised voice arrives in before it chains into a video's credentials](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DA%2520read%2520aloud%26subtitle%3DSynthesised%2520on%2520device%26style%3Dwave&width=1440&height=900&dpi=192&waitMs=3600&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&cropSelector=%23tool-canvas&dark=1&filename=aif-audiogram)
 
+<!--i:eti-help-->
 ## The test: did a model invent what you see?
 
 The line between "marked as AI" and "an honest edit" is a mechanical test: **did the model invent content that was not there?** Using a model is not enough to earn the label: depth estimation and reading text both use models, and neither carries the badge.
@@ -34,6 +36,7 @@ The line between "marked as AI" and "an honest edit" is a mechanical test: **did
 
 Keeping the test this strict keeps the badge worth reading. It means "a model made up part of what you are looking at", not "a model was involved somewhere nearby". A badge that fired on every AI-adjacent operation would tell a viewer nothing, and over-claiming provenance is as dishonest as hiding provenance.
 
+<!--i:eti-tag-->
 ## What gets marked
 
 - <!--i:neurobeat--> **Text to speech.** A tool's own script becomes a spoken clip on the device, offline, with no upload; a test pins that boundary (no remote models, same-origin runtime). The clip is saved as an AI-generated asset, so the [GEN AI badge](/info/what-verify-checks.html#ai-generated-content) appears wherever it is used, and a visible line says so too. Drop it into a video or an audiogram and that AI origin chains into the export's Content Credentials as an ingredient, so the composition declares that it contains AI-generated audio. A voice is a style, not a person: it is credited as a model synthesised on device, never as a performer.
@@ -46,6 +49,7 @@ We mark synthetic speech even though today's synthetic voices are audibly roboti
 
 ![Assets, where an image generated in Gemini or OpenAI and brought in sits beside the brand's own assets, each tile a permanent id every tool can call](/t/url-shot?url=%2F%23%2Fa&width=1440&height=1080&dpi=96&waitMs=2600&walker=1&format=svg&dark=1&filename=aif-assets)
 
+<!--i:eti-crop-->
 ## What does not get marked
 
 - <!--i:seal--> **Background removal.** Removing a background computes an alpha mask and keeps every original RGB pixel byte for byte: it *removes* data and adds none. So it gets no GEN AI badge. It is disclosed honestly as an edit, with a credential that records the operation (`Background removed with <model> <version>`) and keeps the original as an ingredient. Where other removers strip your metadata, colour profile and credential to hand back a bare cutout, here all three stay with the cutout. It runs on **video** too, saving an animated cut-out with real alpha beside the source. The mask can also come from a **colour key**, a traditional key for footage shot against an evenly lit, flat backdrop, which uses no trained model, downloads nothing and is recorded the same plain way.
@@ -56,6 +60,7 @@ We mark synthetic speech even though today's synthetic voices are audibly roboti
 **Method** chooses how the fill works. **Content-Aware** copies texture from the nearby patch whose surroundings match best. **Proximity Match** prefers the closest such patch. **Create Texture** fills smoothly and adds grain like the detail around the spot. **Smooth** is the Telea fast-marching fill, which spreads nearby pixels inward along the mask's edge. **Large area** is for removing a big object. A painted area of about 8,000 pixels or more (roughly 90 by 90) is filled with PatchMatch, which rebuilds the area from similar patches elsewhere in the picture and keeps repeating texture. A smaller mark under this method gets the same Smooth fill as before. PatchMatch runs on the device in a web worker, uses one thread, and takes a few seconds on a 12-megapixel photo with 5% of it painted. It accepts images up to 16 megapixels, and **Cancel** ends the run. Each copied patch is blended to meet the surrounding tone, and each separate painted area is healed on its own.
 :::
 
+<!--i:eti-eye-->
 ## Reading is not making
 
 The on-device text reader (a recognition model, downloaded once) is behind **Read the text in this image** on [Lolly Verify](/#/verify), **Read text** in Assets, **Snap to text** in Annotate and **Suggest** in Redact. The image never leaves the device. It carries no badge and writes no credential at all, by the same test: reading produces no media, so no pixel is invented or even edited. What you do with the words afterwards is a separate act with its own record.
@@ -64,6 +69,7 @@ Speech to text follows the same rule. An on-device speech model (Whisper) turns 
 
 ![The export panel's Content Credentials card, pre-ticked, so an AI-origin ingredient rides into whatever file the render becomes rather than being left behind](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26options%26c2pa%3D90%26imprint%3D1&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-inputs%2C%23sidebar-utils%7Bdisplay%3Anone%7D&cropSelector=.export-c2pa&dark=1&filename=aif-export-cc)
 
+<!--i:eti-search-->
 ## Check these claims yourself
 
 Each claim here rests on a mechanism, and each mechanism ships with tests: the on-device boundary, the source type each operation stamps and the flag that does or does not appear. Run any output through [Verify It Yourself](/info/verify-yourself.html) and read the change history back. The bridges behind these features are in [Host API](/info/host-api.html), and the wider position they follow from is [Our AI Stance](/info/ai-stance.html).
