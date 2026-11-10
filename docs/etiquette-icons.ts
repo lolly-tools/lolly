@@ -22,11 +22,21 @@ import { fileURLToPath } from 'node:url';
 
 const ICON_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../brands/lolly-demo/catalog/assets/lolly/icons');
 
-/** The Etiquette icons the docs draw, each registered as the doc icon `eti-<slug>`. Add a
- *  slug here before using it in a page: an unregistered key draws nothing. */
+/** The Etiquette icons the docs draw, each registered as the doc icon `eti-<slug>`: the
+ *  whole set, so any page can open a section with one. They ship once, in the shared
+ *  icon sprite. A new icon file needs its slug added here before a page can draw the icon. */
 export const ETIQUETTE_DOC_ICONS = [
-  'badge-check', 'building', 'calendar', 'checklist', 'download', 'eye', 'file-plus', 'flask', 'folder-move',
-  'folder-shared', 'gauge', 'globe', 'grid', 'mail', 'package', 'palette', 'sparkles', 'stamp', 'users',
+  'animation', 'award', 'badge-check', 'bird', 'blend', 'box', 'building', 'calendar', 'camera',
+  'chat', 'checklist', 'circle-check', 'city', 'clipboard', 'clock', 'cloud-lightning',
+  'cloud-rain', 'code', 'coffee', 'copy', 'cpu', 'crop', 'download', 'external-link', 'eye',
+  'eye-off', 'file', 'file-plus', 'film', 'flask', 'folder-move', 'folder-plus', 'folder-shared',
+  'gauge', 'globe', 'graduation-cap', 'grid', 'hammer', 'help', 'hexagon', 'history', 'home',
+  'image', 'image-upload', 'images', 'info', 'keyboard', 'layers', 'link', 'lock', 'lolly', 'mail',
+  'map-pin', 'megaphone', 'mic', 'monitor', 'music', 'mute', 'package', 'palette', 'pen',
+  'pen-tool', 'pin', 'refresh', 'repeat', 'scissors', 'search', 'shapes', 'shield-check',
+  'sliders', 'smile', 'sparkles', 'speak', 'stamp', 'sun', 'table', 'tag', 'train', 'trash',
+  'type', 'unlink', 'upload', 'url', 'user-check', 'users', 'volume', 'warning', 'watermark',
+  'wind-chimes',
 ] as const;
 
 /** One icon file, repainted from the two custom properties. Throws on a file that does not
