@@ -25,7 +25,9 @@ The [source directory](/info/manage/provider-guides.html#dam-onboarding-and-offb
 <!--i:eti-sliders-->
 ## Which system controls each decision?
 
-![Who decides what while a DAM stays the source: the source DAM keeps records and approval, Lolly Work's governed catalog sets exposure and dates, the Lolly tool sets what may change, with the rights process deciding whether a use is permitted, the finished output passes Lolly Work's chains and grants, and an explicit delivery sends it to the chosen destination. Shaded steps are decided in Lolly and Lolly Work.](/info/diagrams/work-integrations/dam-decisions.svg)
+![Who decides what while a DAM stays the source: the source DAM keeps records and approval, Lolly Work's governed catalog sets exposure and dates, the Lolly tool sets what may change, with the rights process deciding whether a use is permitted, the finished output can pass Lolly Work's review, and an explicit delivery sends it to the chosen destination. Shaded steps are decided in Lolly and Lolly Work.](/info/diagrams/work-integrations/dam-decisions.svg)
+
+Shaded steps are decided in Lolly and Lolly Work. The dashed line is the rights decision, which source approval alone does not answer.
 
 | Decision | Responsibility |
 |---|---|

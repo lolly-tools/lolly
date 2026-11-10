@@ -4,7 +4,7 @@ digraph dam_decisions {
   dam [label="Source DAM\nrecords and approval"]
   catalog [label="Governed catalog\nexposure and dates", style=filled, fillcolor="#dcf3e6"]
   tool [label="Lolly tool\nwhat may change", style=filled, fillcolor="#dcf3e6"]
-  output [label="Finished output\nchains and grants", style=filled, fillcolor="#dcf3e6"]
+  output [label="Finished output\noptional review", style=filled, fillcolor="#dcf3e6"]
   destination [label="Chosen destination\nexplicit delivery", style=filled, fillcolor="#dcf3e6"]
   rights [label="Rights process\nuse permission"]
   dam -> catalog

@@ -4,14 +4,13 @@
 
 [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records that approach in use: successful integration supported administrator change management, with migration planned for the end of December 2026.
 
-**A transition in five stages:**
+**A transition in four stages:**
 
 ::: steps
 - <!--i:eti-clipboard--> **[Take inventory](#inventory-content-and-responsibility-together)** Files, metadata, approval, rights, access and history, each with an owner.
 - <!--i:eti-link--> **[Connect first](#connect-before-replacing-daily-work)** One source slice and one real task, with the DAM still authoritative.
 - <!--i:eti-copy--> **[Rehearse the copy](#rehearse-the-copy-and-verify-the-gaps)** Copy a permitted set and compare it with direct downloads.
-- <!--i:eti-users--> **[Prepare people](#prepare-people-for-the-next-arrangement)** Administrators run their own tasks, and acceptance checks come before a date.
-- <!--i:eti-folder-move--> **[Cut over](#cut-over-with-a-recovery-decision)** Move identities and keep the source until the result is accepted.
+- <!--i:eti-folder-move--> **[Cut over](#cut-over-with-a-recovery-decision)** Once people are ready and acceptance checks pass, keeping the source until the result is accepted.
 :::
 
 <!--i:eti-clipboard-->

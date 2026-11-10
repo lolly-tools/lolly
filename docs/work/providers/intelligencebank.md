@@ -12,6 +12,14 @@ never writes back.
 2. **Connection.** Obtain the tenant API key described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). The driver discovers its v3 API address through the login handshake.
 3. **Tenant check.** Run the [IntelligenceBank tenant check](tenant-check.md#intelligencebank). Verify the login response, download bytes, publish, expiry and review dates, then test member access and a real production task before broadening the source.
 
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The login response, field names and download
+link come from IntelligenceBank's documentation.
+[Check a source on your own tenant](tenant-check.md#intelligencebank) lists what to look at.
+Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/intelligencebank.md) in the Lolly Work repository.
+:::
+
 <!--i:eti-clipboard-->
 ## What you need from IntelligenceBank
 
@@ -67,14 +75,6 @@ A `login <status>` error means the platform URL or the API key is wrong.
 
 <!--i:eti-info-->
 ## Notes / limits
-
-::: note Not yet confirmed live
-The driver is not yet confirmed against a live tenant. The login response, field names and download
-link come from IntelligenceBank's documentation.
-[Check a source on your own tenant](tenant-check.md#intelligencebank) lists what to look at.
-Contributors changing the driver follow its
-[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/intelligencebank.md) in the Lolly Work repository.
-:::
 
 - **v3 Graph API only.** Nothing uses the deprecated v2 resource endpoints. The one v2-named call
   is the login, which IntelligenceBank defines as the way to sign in to v3.

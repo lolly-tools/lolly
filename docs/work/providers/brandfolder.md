@@ -5,7 +5,7 @@ approval flag and availability dates carried across. Brandfolder stays the sourc
 of truth: Lolly Work stores references plus its own governance settings, and reads the files when
 someone uses them.
 
-<!--i:eti-award-->
+<!--i:eti-file-->
 ## Deployment evidence
 
 Successful Brandfolder integration at SUSE is reported in [How SUSE connected Brandfolder to Lolly](/info/suse-brandfolder.html), recorded from the Lolly maintainer's account on 31 October 2026. The connection helped inherit an existing system and supported administrator change management for content approvals. Migration is planned for the end of December 2026, not reported complete.

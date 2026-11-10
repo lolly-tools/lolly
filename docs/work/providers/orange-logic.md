@@ -24,6 +24,12 @@ connection does not use yet.
 2. **Connection.** Seal the application credential or bearer token described below, map your tenant's approval and date fields, and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
 3. **Tenant check.** Run the [Orange Logic tenant check](tenant-check.md#orange-logic). Check rendition labels and bytes, refusal of substituted files, mapped governance and group access in a real Lolly task before widening the source.
 
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The endpoint is public Search v4 with JSON
+forced, numbered pages, binned assets excluded and format generation turned off. It does not
+turn on semantic search or treat a semantic result set as the full catalog.
+:::
+
 <!--i:eti-clipboard-->
 ## What you need
 
@@ -116,12 +122,6 @@ Contributors changing the driver follow its
 
 <!--i:eti-info-->
 ## Notes / limits
-
-::: note Not yet confirmed live
-The driver is not yet confirmed against a live tenant. The endpoint is public Search v4 with JSON
-forced, numbered pages, binned assets excluded and format generation turned off. It does not
-turn on semantic search or treat a semantic result set as the full catalog.
-:::
 
 - **Identity.** `SystemIdentifier` is the permanent id. A file reference includes a fingerprint
   of the source's edit and checksum fields and the rendition code, so a rename keeps the asset

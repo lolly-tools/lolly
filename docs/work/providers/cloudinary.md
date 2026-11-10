@@ -21,6 +21,13 @@ credential: [Configure Cloudinary writes](../delivery.md#configure-cloudinary-wr
 2. **Connection.** Seal the API key and secret, then follow the [four-step connection](README.md#connect-a-source-in-four-steps) and the commands in [Verify](#verify). Budget for API calls and file reads during the pilot.
 3. **Tenant check.** Run the [Cloudinary tenant check](tenant-check.md#cloudinary), including private and authenticated files, observed versions and original checksums. Test group restrictions and metadata dates before exposing a wider library.
 
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live environment. No authenticated Cloudinary account has been
+tested. The driver accepts uploaded `image`, `video` and `raw` resources with `upload`,
+`private` or `authenticated` delivery; external delivery types are skipped with a count and a
+note.
+:::
+
 <!--i:eti-clipboard-->
 ## What you need
 
@@ -114,13 +121,6 @@ the Lolly Work repository.
 
 <!--i:eti-info-->
 ## Notes / limits
-
-::: note Not yet confirmed live
-The driver is not yet confirmed against a live environment. No authenticated Cloudinary account has been
-tested. The driver accepts uploaded `image`, `video` and `raw` resources with `upload`,
-`private` or `authenticated` delivery; external delivery types are skipped with a count and a
-note.
-:::
 
 - **References follow the observed version.** Each file reference records the version Lolly Work saw,
   and opening it checks identity, folder, version, approval and dates again. A changed file

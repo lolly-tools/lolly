@@ -15,6 +15,13 @@ first.
 2. **Connection.** Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Map your expiry field if you use one.
 3. **Tenant check.** Run the [Image Relay tenant check](tenant-check.md#image-relay), compare required originals and test group access and expiry in a real Lolly task before expanding the source.
 
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The endpoints and field names come from Image
+Relay's documentation. [Check a source on your own tenant](tenant-check.md#image-relay) lists
+what to look at. Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/imagerelay.md) in the Lolly Work repository.
+:::
+
 <!--i:eti-clipboard-->
 ## What you need from Image Relay
 
@@ -86,13 +93,6 @@ lw providers health acme-imagerelay
 
 <!--i:eti-info-->
 ## Notes / limits
-
-::: note Not yet confirmed live
-The driver is not yet confirmed against a live tenant. The endpoints and field names come from Image
-Relay's documentation. [Check a source on your own tenant](tenant-check.md#image-relay) lists
-what to look at. Contributors changing the driver follow its
-[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/imagerelay.md) in the Lolly Work repository.
-:::
 
 - **Signed, short-lived download links,** fetched on each request and pinned to `imagerelay.com`.
   The driver sends the `User-Agent` Image Relay requires and keeps to **5 requests a second**.

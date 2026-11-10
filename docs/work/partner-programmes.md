@@ -14,14 +14,13 @@ kits](partner-co-branding.md), [templates](partner-templates.md), [approvals](pa
 [shared assets and licences](partner-shared-assets.md), [agents](partner-agents.md) and [people and
 the partnership](partner-people.md).
 
-**Set up a programme** in five steps, each a section below:
+**Set up a programme** in four steps, each a section below:
 
 ::: steps
 - <!--i:eti-folder-plus--> **[Create it](#create-a-programme)** A name, an id that never changes and an owning team.
 - <!--i:eti-grid--> **[Choose what it gets](#choose-what-it-gets)** Its tools and collections, before any template.
-- <!--i:eti-building--> **[Add companies](#companies)** Each partner organisation, with its details and logos.
-- <!--i:eti-file-plus--> **[Publish templates](#templates)** Ready pieces, with what partners may change.
-- <!--i:eti-users--> **[Add people](#add-people)** By list, by domain or one at a time, after a preview.
+- <!--i:eti-file-plus--> **[Publish templates](#templates)** Ready pieces, which can take each company's details.
+- <!--i:eti-users--> **[Add people](#add-people)** By list or by domain, with an optional company and end date.
 :::
 
 <!--i:eti-layers-->
@@ -383,7 +382,6 @@ company without joining the programme.
   made for light surfaces looks faint on the dark preview. A replaced logo becomes the next version of the same asset, and only that
   company's people and agent tokens receive its logos.
 
-::: details Limits on company details and logos
 | Limit | Value |
 | --- | --- |
 | Logo file types | SVG or PNG. A JPEG is refused, because a logo needs a transparent background |
@@ -395,7 +393,6 @@ company without joining the programme.
 | Address | 600 characters on up to 6 lines |
 | Tax note | 200 characters |
 | Contacts who may edit | 50 |
-:::
 
 **Checks on every logo.** An SVG is cleaned the same way the app cleans one, and stored cleaned.
 An SVG with active content, such as a script, or with a reference to another file is refused

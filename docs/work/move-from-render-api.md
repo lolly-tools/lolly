@@ -14,7 +14,7 @@ Every adapter on this page comes from each vendor's public documentation and fro
 - <!--i:eti-search--> **[Connect and pin](#connect)** Read the account into a folder, then keep reference renders.
 - <!--i:eti-pen-tool--> **[Recreate and map](#recreate-the-design)** Import or rebuild each design as a tool, then map the vendor's properties to its inputs.
 - <!--i:eti-eye--> **[Compare](#compare-before-you-cut-over)** Measure a render here against the vendor's reference.
-- <!--i:eti-refresh--> **[Run both, then cut over](#run-both-then-cut-over)** Turn on `/compat/`, then move clients one template at a time.
+- <!--i:eti-refresh--> **[Run both, then cut over](#run-both-then-cut-over)** Turn on the migration API, then move clients one template at a time.
 :::
 
 <!--i:eti-table-->

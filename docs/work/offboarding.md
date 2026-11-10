@@ -221,7 +221,6 @@ exit schedule.
 against that provider. `orange-logic` refuses cutover, because copied renditions do not preserve originals.
 :::
 
-::: details What each DAM kind imports, copies and supports
 | Kind | Driver | What imports | Original bytes out | Exit verdict |
 |---|---|---|---|---|
 | `brandfolder` | Public v4 API, bearer key | Native window (`availability_start`, `availability_end`) and a native `approved` boolean; Brandfolder sections become sections | Yes. The attachment's signed storage URL is fetched again per request and streamed, limited to `brandfolder.com` and `bfldr.com` | **Exit target.** Live confirmation of the availability field names open |
@@ -232,7 +231,6 @@ against that provider. `orange-logic` refuses cutover, because copied renditions
 | `optimizely-cmp` | CMP DAM API v3, OAuth2 (bring your own token); the only kind with publish-out, opt-in per provider (`options.publish`) | `expires_at` gives available until (CMP models expiry but no release date); `is_public` and not `is_archived` give approved; folders and labels become sections | The signed `download_url` streams per request, so the copy would run | **Not an exit target.** The CMS owns these assets: read-only federation in, plus publishing Lolly exports out. Do not run `cutover` against it |
 | `cloudinary` | Search and Admin APIs and signed download by asset ID; sealed API key and secret | An optional configured approval tag and metadata dates; dynamic asset folders | Original download by asset ID, with a check of the selected version first and no transformation | **Conditional exit target.** Prove original checksums, and export any rights, proof or history data you need separately, before scheduling a move |
 | `orange-logic` | Search v4; client credentials or bearer token | Configured approval and dates, folders and tags; explicit rendition file roles | **Unsupported.** Public renditions only; the protected original contract is unavailable | **Cutover refused.** Copied renditions do not make an exit that preserves originals |
-:::
 
 The other kinds (`webdav`, `s3`, `git`, `dropbox`, `gdrive`, `o365`, `penpot`) are storage and
 design sources, not brand libraries held under someone else's contract, so the table leaves

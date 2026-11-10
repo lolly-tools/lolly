@@ -16,8 +16,7 @@ This page is part of [Run a partner programme](run-a-partner-programme.md).
 - <!--i:eti-folder-plus--> **[Create the programme](#create-the-programme)** A name, an id that never changes and an owning team.
 - <!--i:eti-eye--> **[Check what they get](#check-what-they-get)** A preview, or the app as a partner sees it, before anyone is invited.
 - <!--i:eti-mail--> **[Invite the people](#invite-the-people)** A list with companies and end dates, or a proved domain.
-- <!--i:eti-unlink--> **[End the partnership](#end-a-partnership)** At once, or at the end of a day with a notice.
-- <!--i:eti-refresh--> **[Reopen an end](#reopen-an-end)** Within 30 days, if the end was a mistake.
+- <!--i:eti-unlink--> **[End the partnership](#end-a-partnership)** At once or on a date, with Reopen for 30 days.
 :::
 
 <!--i:eti-folder-plus-->

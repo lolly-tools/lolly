@@ -15,6 +15,14 @@ tenants that have moved to Canto.
 2. **Connection.** Obtain the App ID, Secret and refresh token described below. Use the [four-step connection](README.md#connect-a-source-in-four-steps); this kind uses a pasted credential rather than the CLI consent flow.
 3. **Tenant check.** Run the [Canto tenant check](tenant-check.md#canto) for every required file scheme. Compare originals with direct Canto downloads and test permitted and refused access before enabling the wider audience. An Image Relay migration needs the driver selection in [Leave a DAM](../offboarding.md#canto-and-image-relay-which-driver-do-you-exit-through).
 
+::: note Not yet confirmed live
+The driver is not yet confirmed against a live tenant. The endpoint paths and field names come from
+Canto's documentation, and Lolly Work holds no Canto account, so the check runs on your own
+tenant under your contract. [Check a source on your own tenant](tenant-check.md#canto) lists
+what to look at. Contributors changing the driver follow its
+[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/canto.md) in the Lolly Work repository.
+:::
+
 <!--i:eti-clipboard-->
 ## What you need from Canto
 
@@ -98,14 +106,6 @@ lw providers health acme-canto
 
 <!--i:eti-info-->
 ## Notes / limits
-
-::: note Not yet confirmed live
-The driver is not yet confirmed against a live tenant. The endpoint paths and field names come from
-Canto's documentation, and Lolly Work holds no Canto account, so the check runs on your own
-tenant under your contract. [Check a source on your own tenant](tenant-check.md#canto) lists
-what to look at. Contributors changing the driver follow its
-[maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/canto.md) in the Lolly Work repository.
-:::
 
 - **Listing walks schemes.** Canto lists per scheme (image, video, audio, document,
   presentation, other), so each catalog id carries its scheme (`image:AB12C`). An album-scoped
