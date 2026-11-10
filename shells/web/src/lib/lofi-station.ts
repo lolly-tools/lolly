@@ -28,7 +28,7 @@
  * is hidden the station queues a few seconds ahead instead of a quarter of one.
  */
 import { lofiStream, lofiTrack, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
-import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTagChoice, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
 import { lollyTag } from './lofi-tag.ts';
@@ -51,6 +51,10 @@ export interface LofiSettings {
   bars?: number;
   /** Change each bar before it plays (the music generator's per-section instruments). Must be pure. */
   shape?: (bar: LofiBar) => LofiBar;
+  /** A drum kit a person chose (the music generator), over the one the tune draws. */
+  kit?: D.LofiKit;
+  /** The producer's tag a person chose for a generator track: none, or one delivery. */
+  tag?: LofiTagChoice;
 }
 
 /** Part levels, for tuning the balance. 1 is the designed level. `fx` is the effects: the
@@ -172,11 +176,11 @@ export class LofiStation {
 
   /** The kit `tune` plays. */
   private kitOf(tune: LofiTuneInfo): D.DrumKit {
-    const key = `${tune.mood}:${tune.seed}`;
+    const key = `${tune.mood}:${tune.seed}:${this.settings.kit ?? ''}`;
     let kit = this.kits.get(key);
     if (!kit) {
       if (this.kits.size > 16) this.kits.clear();
-      kit = D.drumKit(tune.seed, tune.mood);
+      kit = D.drumKit(tune.seed, this.settings.kit ? D.LOFI_KIT_MOOD[this.settings.kit] : tune.mood);
       this.kits.set(key, kit);
     }
     return kit;
@@ -459,9 +463,9 @@ export class LofiStation {
    * the same ones the generator composes (lofiTrack), ending with the last tune's outro.
    */
   private open(seed: number): LofiStream {
-    const { mood, style, repeat, bars } = this.settings;
+    const { mood, style, repeat, bars, tag } = this.settings;
     if (bars === undefined) return lofiStream(seed, { mood, style, repeat });
-    const track = lofiTrack(seed, { mood, style }, bars);
+    const track = lofiTrack(seed, { mood, style, tag }, bars);
     this.trackBars = track.length;
     let at = 0;
     return { next: () => track[Math.min(at++, track.length - 1)]! };

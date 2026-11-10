@@ -530,7 +530,10 @@ test('a fitted track ends the way a song does, within a few bars of the length a
       const firstLength = [...tunes][0]!.bars;
       if (tunes.size > 1) assert.ok(track.length >= firstLength);
       assert.ok(track.length <= Math.max(target + 8, firstLength) + 1, `${mood} ${target}: ${track.length} bars is not too long`);
-      assert.ok(track.length >= Math.min(target - 8, 12), `${mood} ${target}: ${track.length} bars is not too short`);
+      assert.ok(track.length >= Math.min(target - 8, 12) || tunes.size === 1 && track.length === firstLength, `${mood} ${target}: ${track.length} bars is not too short`);
+      // A later tune holds at least 16 bars before its outro: never an intro run into an outro.
+      const later = track.filter(b => b.tune !== track[0]!.tune);
+      if (later.length) assert.ok(later.filter(b => b.section !== 'outro' && b.section !== 'rest').length >= 16, `${mood} ${target}: a later tune is more than a scrap`);
       // The bars up to the cut are the stream's own.
       const stream = lofiStream(7, { mood });
       for (let i = 0; i < track.length && track[i]!.tune === track[0]!.tune && track[i]!.index === i; i++) {

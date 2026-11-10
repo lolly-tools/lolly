@@ -855,12 +855,36 @@ export function lofiStream(seed: number, opts: LofiOptions): LofiStream {
  * A track of about `target` bars that ends the way a song does: whole tunes from the
  * stream, and the last one cut at the end of a phrase and finished with its own outro, its
  * fade and the rest bar, rather than stopped wherever the count runs out. So the length
- * flexes by a few bars: a tune that would lose only its last few bars plays whole, a tune
- * that would get only a few bars is left out, and a cut is made where a phrase ends and a
+ * flexes: a tune that would lose only its last few bars plays whole, a later tune that
+ * would get less than 16 bars before its outro is left out, and a cut is made where a phrase ends and a
  * build is not about to break into a drop. Pure and deterministic, the same bars as the
  * stream gives up to the cut.
  */
-export function lofiTrack(seed: number, opts: Omit<LofiOptions, 'repeat'>, target: number): LofiBar[] {
+export function lofiTrack(seed: number, opts: Omit<LofiOptions, 'repeat'> & { tag?: LofiTagChoice }, target: number): LofiBar[] {
+  const out = fitTrack(seed, opts, target);
+  return opts.tag ? retag(out, opts.tag) : out;
+}
+
+/** A person's choice of the producer's tag: none, or one delivery for every tag in the track. */
+export type LofiTagChoice = 'off' | typeof LOFI_TAGS[number];
+
+/**
+ * The track with the tag a person chose: none at all, or every tag the composer placed
+ * said that way, and one at the top when the composer placed none.
+ */
+function retag(bars: LofiBar[], choice: LofiTagChoice): LofiBar[] {
+  const has = bars.some(b => b.notes.some(n => n.voice === 'tag'));
+  const mod = LOFI_TAGS.indexOf(choice as typeof LOFI_TAGS[number]);
+  return bars.map((b, i) => {
+    if (choice === 'off') return has ? { ...b, notes: b.notes.filter(n => n.voice !== 'tag') } : b;
+    if (b.notes.some(n => n.voice === 'tag')) return { ...b, notes: b.notes.map(n => (n.voice === 'tag' ? { ...n, mod } : n)) };
+    if (has || i !== 0) return b;
+    const root = b.tones[0] ?? bars.find(x => x.tones.length)?.tones[0] ?? 0;
+    return { ...b, notes: [...b.notes, { voice: 'tag', midi: placeIn(root, 55, 66), beat: 0, dur: 1.5, vel: 0.85, mod }] };
+  });
+}
+
+function fitTrack(seed: number, opts: Omit<LofiOptions, 'repeat'>, target: number): LofiBar[] {
   const out: LofiBar[] = [];
   let tuneSeed = seed >>> 0;
   for (;;) {
@@ -882,6 +906,9 @@ export function lofiTrack(seed: number, opts: Omit<LofiOptions, 'repeat'>, targe
         const miss = Math.abs(i - want) + (ends ? 0 : 2);
         if (miss < best) { best = miss; cut = i; }
       }
+      // A later tune joins only with a real part of itself: an intro run straight into an
+      // outro is a scrap, and the track ends better on the previous song.
+      if (out.length > 0 && cut < FIT_PART) break;
       out.push(...tune.slice(0, cut), ...outro);
       break;
     }
@@ -892,6 +919,8 @@ export function lofiTrack(seed: number, opts: Omit<LofiOptions, 'repeat'>, targe
 }
 /** How many bars a track's length may flex to keep a tune whole or leave a scrap of one out. */
 const FIT_SLACK = 8;
+/** The least of a later tune a track will hold, its outro aside: past its intro and into its first section. */
+const FIT_PART = 16;
 
 /** How long one tune lasts, in seconds: its bars at its tempo (four beats a bar). */
 export function lofiTuneSeconds(seed: number, mood: LofiMood): number {

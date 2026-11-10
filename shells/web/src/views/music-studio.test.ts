@@ -112,3 +112,38 @@ test('the key moves every pitched note and the chords, leaves the drums, and tra
     if (own[b]!.chord) assert.deepEqual(moved[b]!.tones, own[b]!.tones.map(pc => (pc + 3) % 12));
   }
 });
+
+test('a chosen kit, tag and quiet effects travel in the link; the kit leaves every note as it was', () => {
+  const s = parseMusicState('style=sugar&seed=11&bars=64&kit=jazz&tag=whisper&quiet=console,sweeps');
+  assert.equal(s.kit, 'jazz');
+  assert.equal(s.tag, 'whisper');
+  assert.deepEqual(s.quiet, ['console', 'sweeps']);
+  const again = parseMusicState(musicStateParams(s));
+  assert.deepEqual([again.kit, again.tag, again.quiet], ['jazz', 'whisper', ['console', 'sweeps']]);
+  assert.equal(parseMusicState('kit=tuba&tag=yodel&quiet=nothing').kit, undefined, 'an unknown kit falls back');
+  // The kit is sound only: the same notes as the style's own kit.
+  const own = composeTrack(parseMusicState('style=sugar&seed=11&bars=64'));
+  const kit = composeTrack(parseMusicState('style=sugar&seed=11&bars=64&kit=808'));
+  assert.deepEqual(kit.map(b => b.notes), own.map(b => b.notes));
+});
+
+test('the effect switches take their effects out and leave every other note', () => {
+  const all = composeTrack(parseMusicState('style=chiptune&seed=5&bars=64'));
+  const quiet = composeTrack(parseMusicState('style=chiptune&seed=5&bars=64&quiet=console'));
+  const count = (bars: typeof all, voices: string[]): number => bars.reduce((n, b) => n + b.notes.filter(x => voices.includes(x.voice)).length, 0);
+  assert.ok(count(all, ['game', 'coin']) > 0, 'chiptune plays the console');
+  assert.equal(count(quiet, ['game', 'coin']), 0, 'and with the console off, none of it');
+  const others = (bars: typeof all) => bars.map(b => b.notes.filter(x => x.voice !== 'game' && x.voice !== 'coin'));
+  assert.deepEqual(others(quiet), others(all));
+});
+
+test('the Lolly tag: off takes it out, a delivery says every tag that way, and one is placed at the top when the composer placed none', () => {
+  const tagsOf = (q: string) => composeTrack(parseMusicState(q)).flatMap((b, i) => b.notes.filter(n => n.voice === 'tag').map(n => ({ i, mod: n.mod })));
+  for (let seed = 1; seed <= 12; seed++) {
+    const base = `style=rock&seed=${seed}&bars=64`;
+    assert.equal(tagsOf(`${base}&tag=off`).length, 0, `seed ${seed}: off`);
+    const sung = tagsOf(`${base}&tag=sung`);
+    assert.ok(sung.length >= 1 && sung.every(x => x.mod === 3), `seed ${seed}: every tag sung`);
+    if (tagsOf(base).length === 0) assert.equal(sung[0]!.i, 0, `seed ${seed}: placed at the top`);
+  }
+});
