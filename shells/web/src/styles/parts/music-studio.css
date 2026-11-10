@@ -119,6 +119,11 @@
   .ms-panel[hidden] { display: none; }
   .ms-panel--make { display: flex; }
   .ms-panel--make progress { width: 10em; }
+  /* The Content Credentials switch and the two lines saying what a download and a save
+     will record, read before either is clicked. */
+  .ms-cred { gap: var(--sp-2); }
+  .ms-make-notes { flex-basis: 100%; display: grid; gap: var(--sp-1); }
+  .ms-make-note { margin: 0; color: var(--ui-color-text-muted); }
 
   .ms-stage { position: relative; height: 96px; border-radius: var(--radius); overflow: hidden; background: var(--ui-color-surface-muted); }
   .ms-stage.is-off { height: 0; overflow: visible; }

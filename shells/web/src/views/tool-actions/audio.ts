@@ -35,14 +35,15 @@ export const toolAudioRef = (ta: ActionsCtx): { id?: string; url?: string; forma
 // Resolve that slot to a fetchable { url, format }: the asset store when the ref
 // has an id (same on-demand fetch+cache the catalog beds use), else the ref's own
 // url (a transient upload). Null when nothing is resolvable - export stays silent.
-export async function resolveToolAudio(ta: ActionsCtx): Promise<{ url: string; format?: string } | null> {
+// The store's meta rides along, so a saved tune's record reaches its ingredient.
+export async function resolveToolAudio(ta: ActionsCtx): Promise<{ url: string; format?: string; meta?: Record<string, unknown> } | null> {
   const { host } = ta;
   const ref = toolAudioRef(ta);
   if (!ref) return null;
   if (ref.id) {
     try {
       const r = await host.assets.get(ref.id);
-      if (r?.url) return { url: r.url, format: r.format };
+      if (r?.url) return { url: r.url, format: r.format, ...(r.meta ? { meta: r.meta } : {}) };
     } catch {
       /* not in the store (transient ref) - fall back to its own url */
     }

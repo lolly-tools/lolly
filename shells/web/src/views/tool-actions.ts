@@ -232,6 +232,7 @@ function renderActions(
   ta.genWavKey = '';
   ta.songWavUrl = null; // a rondocode song's audition WAV, revoked when replaced
   ta.songNoteNames = []; // the songs the sheet says the next credential records (notes.ts)
+  ta.tuneNoteNames = []; // and the saved tunes
   ta.songNoteSeq = 0;
   ta.songNoteTimer = null;
 
