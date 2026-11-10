@@ -15,10 +15,13 @@
  *     that says it was made with Lolly's music generator (engine/src/tune-sign.ts).
  *   - AN EXPORT THAT PLAYS A TUNE. Each saved tune whose sound reaches a video or an
  *     audio export is one C2PA source ingredient (engine/src/tune-provenance.ts):
- *     its name, the maker and the licence when the tune records them, the digest of
- *     its recipe, the engine version that rendered it, and algorithmic media. The
- *     export sheet lists the tunes before the export (`tuneNoteLines`), and after it
- *     says only what a reading of the delivered bytes found (`recordedSourceNames`).
+ *     its name, the licence when the tune records one, the digest of its recipe, the
+ *     engine version that rendered it, and algorithmic media. The maker's name joins
+ *     the ingredient only while the profile's "Use my details" is on, the same rule
+ *     every other personal detail in an export follows (`usesDetails`): a name never
+ *     leaves the device with that switch off. The export sheet lists the tunes before
+ *     the export (`tuneNoteLines`), and after it says only what a reading of the
+ *     delivered bytes found (`recordedSourceNames`).
  *
  * Nothing heavy loads with this module: the engine's credential reader and the asset
  * bridge are imported where they are used.
@@ -153,15 +156,36 @@ async function recipeDigest(recipe: LofiTuneRecipe): Promise<Uint8Array> {
   return new Uint8Array(await crypto.subtle.digest('SHA-256', lofiTuneBytes(recipe) as BufferSource));
 }
 
-/** The C2PA source ingredient for one tune an export holds, rendered by this engine. */
-export async function tuneSourceIngredient(source: TuneSource): Promise<SourceIngredient> {
+/**
+ * Is "Use my details" on? The switch every personal detail in an export follows
+ * (engine/src/metadata.ts buildExportMeta). Read from the live profile; anything
+ * other than an explicit yes, including a host with no profile, reads as off.
+ */
+export async function usesDetails(host: unknown): Promise<boolean> {
+  try {
+    const store = typeof host === 'object' && host !== null && 'profile' in host
+      ? (host as { profile?: { get?(): Promise<unknown> } }).profile : undefined;
+    const profile = await store?.get?.();
+    return typeof profile === 'object' && profile !== null && (profile as { useDetails?: unknown }).useDetails === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The C2PA source ingredient for one tune an export holds, rendered by this engine.
+ * `withMaker` is the export's "Use my details" (`usesDetails`): off, the maker's name
+ * is left out and nothing else changes. The caller has to decide, so no path can
+ * send a name by forgetting to ask.
+ */
+export async function tuneSourceIngredient(source: TuneSource, opts: { withMaker: boolean }): Promise<SourceIngredient> {
   return tuneIngredient({
     name: source.name,
     hash: await recipeDigest(source.recipe),
     facts: {
       origin: source.origin,
       engineVersion: ENGINE_VERSION,
-      ...(source.maker ? { maker: source.maker } : {}),
+      ...(opts.withMaker && source.maker ? { maker: source.maker } : {}),
       ...(source.licence ? { licence: source.licence } : {}),
     },
   });
@@ -261,14 +285,15 @@ export async function timelineTunes(root: Element, lookup: TuneAssetLookup): Pro
 /**
  * The lines the export sheet shows before an export, one per tune: what the
  * credential will record. Future tense on purpose: nothing is confirmed until the
- * delivered file is read back.
+ * delivered file is read back. The maker is named only when the ingredient will
+ * carry the name (`withMaker`, the export's "Use my details").
  */
-export function tuneNoteLines(tunes: readonly TuneSource[]): string[] {
+export function tuneNoteLines(tunes: readonly TuneSource[], opts: { withMaker: boolean }): string[] {
   return tunes.map((tune) => {
     const name = `“${tune.name}”`;
     return [
       tRaw('Content Credentials will record the tune {name} as a source of this file: music Lolly composed from its recipe (procedural, no AI).', { name }),
-      tune.maker ? tRaw('The record will name {maker} as the person who made the tune.', { maker: tune.maker }) : '',
+      opts.withMaker && tune.maker ? tRaw('The record will name {maker} as the person who made the tune.', { maker: tune.maker }) : '',
       tune.licence ? tRaw('It will give the tune’s licence as {licence}.', { licence: tune.licence.name }) : '',
     ].filter(Boolean).join(' ');
   });

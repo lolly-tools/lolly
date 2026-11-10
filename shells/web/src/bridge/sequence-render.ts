@@ -1446,10 +1446,14 @@ async function mixSequenceAudio(
   }
   if (songSink && tunesHeard.length) {
     try {
-      const { tuneAssetAt, tuneSource, tuneSourceIngredient } = await import('../lib/tune-provenance.ts');
+      const [{ tuneAssetAt, tuneSource, tuneSourceIngredient, usesDetails }, { getHostRef }] = await Promise.all([
+        import('../lib/tune-provenance.ts'), import('../lib/host-ref.ts'),
+      ]);
       const lookup = async (id: string) => (await host?.assets?.get?.(id)) ?? null;
+      // A maker's name rides only while the profile's "Use my details" is on.
+      const withMaker = await usesDetails(getHostRef());
       for (const { url, recipe } of tunesHeard) {
-        const ing = await tuneSourceIngredient(tuneSource(recipe, await tuneAssetAt(url, lookup)));
+        const ing = await tuneSourceIngredient(tuneSource(recipe, await tuneAssetAt(url, lookup)), { withMaker });
         if (!songSink.some((have) => have.instanceId === ing.instanceId)) songSink.push(ing);
       }
     } catch (err) {

@@ -5,7 +5,7 @@
  *  - A tune saved from the music generator records its maker only when the profile has
  *    a name, the music generator and both versions, and no licence.
  *  - Its ingredient carries the recipe's digest, the engine version, algorithmic media,
- *    and the maker and licence only when recorded.
+ *    the licence when recorded, and the maker only while "Use my details" is on.
  *  - The sheet's lines are future tense before the export, and after it say only what a
  *    reading of the written bytes found.
  *  - A download is signed and read back, and the reading is what the hint repeats.
@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import {
   MADE_IN_GENERATOR, profileMaker, readTuneRecord, recordedSourceNames, signTrackDownload, tuneAt, tuneLicence, tuneLicenceChoices,
-  tuneNoteLines, tuneRecordLines, tuneSaveRecord, tuneSource, tuneSourceIngredient, tuneSourceOfRef, withTuneLicence, distinctTunes,
+  tuneNoteLines, tuneRecordLines, tuneSaveRecord, tuneSource, tuneSourceIngredient, tuneSourceOfRef, usesDetails, withTuneLicence, distinctTunes,
 } from './tune-provenance.ts';
 import { lofiTuneBytes } from './lofi-tune.ts';
 import { embedC2pa } from '../../../../engine/src/c2pa.ts';
@@ -86,7 +86,7 @@ test('the ingredient carries the recipe digest, the engine version, the maker an
     name: 'Lolly Sings Sugar · C major · 96 bpm · 2024', origin: 'generator', maker: 'Andy',
     licence: { name: 'CC0 1.0', url: 'https://creativecommons.org/publicdomain/zero/1.0/' },
   });
-  const ing = await tuneSourceIngredient(source);
+  const ing = await tuneSourceIngredient(source, { withMaker: true });
   assert.equal(ing.instanceId, `sha256:${createHash('sha256').update(lofiTuneBytes(recipe)).digest('hex')}`,
     'the digest of the canonical recipe bytes, so a reader holding the tune can match it');
   assert.match(ing.description ?? '', new RegExp(`by Lolly engine ${ENGINE_VERSION.replaceAll('.', '\\.')}\\. Made by Andy\\. Licence: CC0 1\\.0\\.$`));
@@ -95,10 +95,37 @@ test('the ingredient carries the recipe digest, the engine version, the maker an
   assert.ok(isTuneIngredient(ing));
 
   // A station tune by path, with no asset record: algorithmic media, no maker, no licence.
-  const station = await tuneSourceIngredient(tuneSource({ mood: 'warm', seed: 7 }, null));
+  const station = await tuneSourceIngredient(tuneSource({ mood: 'warm', seed: 7 }, null), { withMaker: true });
   assert.match(station.description ?? '', /^A tune from a station of Lolly's Neurospicy player/);
   assert.doesNotMatch(station.description ?? '', /Made by|Licence/);
   assert.equal(distinctTunes([source, source, null]).length, 1, 'the same tune twice is one source');
+});
+
+test('with "Use my details" off the maker\'s name never travels, and the licence still does', async () => {
+  const off = { profile: { get: async () => ({ firstname: 'Andy', lastname: 'Tester', useDetails: false }) } };
+  const on = { profile: { get: async () => ({ firstname: 'Andy', lastname: 'Tester', useDetails: true }) } };
+  assert.equal(await usesDetails(off), false);
+  assert.equal(await usesDetails(on), true);
+  assert.equal(await usesDetails({ profile: { get: async () => ({ useDetails: 'yes' }) } }), false, 'only an explicit yes counts');
+  assert.equal(await usesDetails({ profile: { get: async () => { throw new Error('locked'); } } }), false, 'an unreadable profile reads as off');
+  assert.equal(await usesDetails(null), false, 'no host, no profile, no name');
+
+  const source = tuneSource(recipe, tuneRef({ maker: 'Andy Tester', license: 'CC-BY-4.0' }));
+  const ing = await tuneSourceIngredient(source, { withMaker: await usesDetails(off) });
+  assert.doesNotMatch(ing.description ?? '', /Andy|Tester|Made by/, 'the name is left out');
+  assert.match(ing.description ?? '', /Licence: CC BY 4\.0\.$/, 'the licence sentence stays');
+  assert.equal(ing.informationalUri, 'https://creativecommons.org/licenses/by/4.0/', 'and its terms link');
+  const withName = await tuneSourceIngredient(source, { withMaker: await usesDetails(on) });
+  assert.equal(withName.description, `${(ing.description ?? '').replace(' Licence:', ' Made by Andy Tester. Licence:')}`, 'nothing else differs');
+
+  // The written file holds no trace of the name either.
+  const out = await embedC2pa(wav(), 'wav', {
+    title: 'Film', claimGenerator: 'Lolly lolly.tools', generatorInfo: { name: 'Lolly', version: '0.0.0-test' }, ingredients: [ing],
+  });
+  assert.equal(Buffer.from(out).includes('Andy Tester'), false, 'no byte of the file carries the maker\'s name');
+  const [line] = tuneNoteLines([source], { withMaker: false });
+  assert.doesNotMatch(line ?? '', /Andy|made the tune/, 'the sheet does not promise a name the file will not carry');
+  assert.match(line ?? '', /It will give the tune’s licence as CC BY 4\.0\.$/);
 });
 
 test('a tune is found by its bytes at a library url, and other media is never read as one', async () => {
@@ -113,11 +140,11 @@ test('a tune is found by its bytes at a library url, and other media is never re
 });
 
 test('the sheet promises in the future tense, and after the export repeats only what the reading found', () => {
-  const [line] = tuneNoteLines([tuneSource(recipe, tuneRef({ maker: 'Andy', license: 'CC-BY-4.0' }))]);
+  const [line] = tuneNoteLines([tuneSource(recipe, tuneRef({ maker: 'Andy', license: 'CC-BY-4.0' }))], { withMaker: true });
   assert.match(line ?? '', /^Content Credentials will record the tune “Lolly Sings Sugar · C major · 96 bpm · 2024” as a source of this file: music Lolly composed from its recipe \(procedural, no AI\)\./);
   assert.match(line ?? '', /The record will name Andy as the person who made the tune\./);
   assert.match(line ?? '', /It will give the tune’s licence as CC BY 4\.0\.$/);
-  const [bare] = tuneNoteLines([tuneSource(recipe, tuneRef({}))]);
+  const [bare] = tuneNoteLines([tuneSource(recipe, tuneRef({}))], { withMaker: true });
   assert.doesNotMatch(bare ?? '', /made the tune|licence/, 'nothing about a maker or a licence the tune does not record');
   assert.deepEqual(tuneRecordLines(['A', 'B'], ['A']), {
     found: 'This file’s Content Credentials record the tune “A”.',
@@ -127,7 +154,7 @@ test('the sheet promises in the future tense, and after the export repeats only 
 });
 
 test('the readback finds songs and tunes in one pass, and a file with no credential records neither', async () => {
-  const tune = await tuneSourceIngredient(tuneSource(recipe, tuneRef({})));
+  const tune = await tuneSourceIngredient(tuneSource(recipe, tuneRef({})), { withMaker: false });
   const song = rondoSongIngredient({ name: 'Acid', hash: new Uint8Array(32).fill(3), facts: { executionClass: 'vm', version: 'fbbf6512df37+lolly.1' } });
   const out = await embedC2pa(wav(), 'wav', {
     title: 'Film', claimGenerator: 'Lolly lolly.tools', generatorInfo: { name: 'Lolly', version: '0.0.0-test' }, ingredients: [song, tune],

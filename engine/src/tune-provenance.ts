@@ -14,9 +14,10 @@
  *   1. A WAV or M4A downloaded from the music generator carries a created step whose
  *      description starts with TUNE_DECLARATION, followed by the style and the seed.
  *   2. A saved tune used in another export (a video's music bed, a tool's audio, a
- *      timeline clip) is recorded as a C2PA source ingredient: its name, who made it
- *      and its licence when the tune records them, the digest of its recipe and the
- *      engine version that rendered the tune.
+ *      timeline clip) is recorded as a C2PA source ingredient: its name, its licence
+ *      when the tune records one, the digest of its recipe and the engine version that
+ *      rendered the tune. Who made the tune is added only when the shell passes a
+ *      maker, which the web shell does only while the person's "Use my details" is on.
  *
  * Pure: shells hash, sign and embed. This module only decides what is said, so a web
  * export and a later CLI path say the same thing.

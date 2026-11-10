@@ -993,7 +993,7 @@
         { "file": "shells/web/src/bridge/sequence-tune-provenance.test.ts", "test": "the tune ingredient survives the C2PA writer and reader: name, maker, licence, digest, algorithmic, no AI flag" },
         { "file": "shells/web/src/lib/tune-provenance.test.ts", "test": "the readback finds songs and tunes in one pass, and a file with no credential records neither" }
       ],
-      "note": "A saved tune is recorded as a source ingredient by the digest of its recipe, as algorithmic media, with the maker and the licence the tune records written into its description. No licence is evaluated for the tune and no credit is prepared; the export sheet lists the tunes before the export and reads the delivered file back after it."
+      "note": "A saved tune is recorded as a source ingredient by the digest of its recipe, as algorithmic media, with the licence the tune records written into its description, and its maker only while the profile's Use my details is on. No licence is evaluated for the tune and no credit is prepared; the export sheet lists the tunes before the export and reads the delivered file back after it."
     },
     {
       "id": "delivery.music-generator",

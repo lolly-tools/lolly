@@ -212,8 +212,8 @@ export function disposeMadeWith(ta: ActionsCtx): void {
 // is said.
 //
 // Andy approved the same for a saved tune on 2026-11-10 (lib/tune-provenance.ts):
-// one line per tune, naming the maker and the licence the tune records, since both
-// travel in the file.
+// one line per tune, naming the licence the tune records, and its maker only while
+// "Use my details" is on, since only then does the name travel in the file.
 
 /** Will this export carry a credential? The C2PA toggle and a format that can hold one. */
 function songCredentialOn(ta: ActionsCtx, fmt: string): boolean {
@@ -291,7 +291,11 @@ export async function fillSongNote(ta: ActionsCtx): Promise<void> {
     names = [];
     tunes = [];
   }
-  const tuneLines = tunes.length ? (await import('../../lib/tune-provenance.ts')).tuneNoteLines(tunes) : [];
+  let tuneLines: string[] = [];
+  if (tunes.length) {
+    const prov = await import('../../lib/tune-provenance.ts');
+    tuneLines = prov.tuneNoteLines(tunes, { withMaker: await prov.usesDetails(ta.host) });
+  }
   if (seq !== ta.songNoteSeq) return;
   ta.songNoteNames = names;
   ta.tuneNoteNames = tunes.map((tune) => tune.name);

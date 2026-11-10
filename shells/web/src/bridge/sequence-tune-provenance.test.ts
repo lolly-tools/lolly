@@ -18,7 +18,7 @@ import { createHash } from 'node:crypto';
 
 import { createClipAudio, type ClipAudioOpts } from './sequence-providers.ts';
 import { lofiTuneBytes, type LofiTuneRecipe } from '../lib/lofi-tune.ts';
-import { recordedSourceNames, tuneSource, tuneSourceIngredient } from '../lib/tune-provenance.ts';
+import { recordedSourceNames, tuneSource, tuneSourceIngredient, usesDetails } from '../lib/tune-provenance.ts';
 import { embedC2pa } from '../../../../engine/src/c2pa.ts';
 import { verifyC2pa } from '../../../../engine/src/c2pa-verify.ts';
 import { aiKind } from '../../../../engine/src/ai-kind.ts';
@@ -74,7 +74,7 @@ test('the tune ingredient survives the C2PA writer and reader: name, maker, lice
   const clip = await createClipAudio('blob:https://lolly.tools/tune', opts(heard));
   const pcm = await clip!.pcm(0, 1, 8000);
   const asset = { format: 'lofi', meta: { name: 'Night drive', madeIn: 'music-generator', maker: 'Andy', license: 'CC-BY-SA-4.0' } };
-  const ing = await tuneSourceIngredient(tuneSource(heard[0]!, asset));
+  const ing = await tuneSourceIngredient(tuneSource(heard[0]!, asset), { withMaker: true });
   const out = await embedC2pa(wavOf(pcm.channels, pcm.sampleRate), 'wav', {
     title: 'Design', claimGenerator: 'Lolly lolly.tools', generatorInfo: { name: 'Lolly', version: '0.0.0-test' }, ingredients: [ing],
   });
@@ -90,5 +90,25 @@ test('the tune ingredient survives the C2PA writer and reader: name, maker, lice
   assert.match(tune.digitalSourceType ?? '', /\/algorithmicMedia$/);
   assert.equal(aiKind(tune.digitalSourceType), undefined);
   assert.deepEqual((await recordedSourceNames(new Blob([out as BlobPart])))?.tunes, ['Night drive']);
+  await clip!.dispose();
+});
+
+test('with "Use my details" off, a timeline tune\'s ingredient carries no maker name and keeps everything else', async () => {
+  const heard: LofiTuneRecipe[] = [];
+  const clip = await createClipAudio('blob:https://lolly.tools/tune', opts(heard));
+  const pcm = await clip!.pcm(0, 1, 8000);
+  const asset = { format: 'lofi', meta: { name: 'Night drive', madeIn: 'music-generator', maker: 'Andy Tester', license: 'CC-BY-SA-4.0' } };
+  // The mix asks the live profile, as bridge/sequence-render.ts does.
+  const host = { profile: { get: async () => ({ firstname: 'Andy', lastname: 'Tester', useDetails: false }) } };
+  const ing = await tuneSourceIngredient(tuneSource(heard[0]!, asset), { withMaker: await usesDetails(host) });
+  const out = await embedC2pa(wavOf(pcm.channels, pcm.sampleRate), 'wav', {
+    title: 'Design', claimGenerator: 'Lolly lolly.tools', generatorInfo: { name: 'Lolly', version: '0.0.0-test' }, ingredients: [ing],
+  });
+  assert.equal(Buffer.from(out).includes('Andy Tester'), false, 'the maker\'s name must not leave the device with Use my details off');
+  const tune = ((await verifyC2pa(out)).ingredients ?? []).find(isTuneIngredient);
+  assert.ok(tune, 'the tune is still recorded');
+  assert.equal(tune.title, 'Night drive');
+  assert.match(tune.description ?? '', /by Lolly engine [^ ]+\. Licence: CC BY-SA 4\.0\.$/, 'the licence stays, straight after the engine version');
+  assert.equal(tune.informationalUri, 'https://creativecommons.org/licenses/by-sa/4.0/');
   await clip!.dispose();
 });
