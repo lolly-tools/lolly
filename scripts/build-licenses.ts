@@ -729,12 +729,12 @@ const MANIFEST: {
     },
     {
       name: 'three.js',
-      version: '0.185.1 (r185)',
+      version: '0.186.1 (r186)',
       spdx: 'MIT',
       copyright: 'Copyright © 2010-2026 three.js authors',
       files: 'tools/chart/lib/three-chart.min.js',
       text: `Copyright © 2010-2026 three.js authors\n\n${MIT_BODY}`,
-      note: "Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives and is rebuilt by scripts/build-chart-three.ts. It stays at r185 until that bundle is next rebuilt.",
+      note: "Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives, the PMREM generator and the RoundedBoxGeometry addon, and is rebuilt by scripts/build-chart-three.ts.",
       where: 'web',
     },
     {
