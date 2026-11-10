@@ -8,6 +8,7 @@ This page walks the canvas from the first box to a finished deck: the window, sh
 
 ![Lolly Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
+<!--i:eti-grid-->
 ## The Design window
 
 The **top bar** starts with **Home**, the **File menu** and the document's name (click the name to rename the document). The middle holds **Undo**, **Redo**, **History**, the zoom controls (with **Fit all** and **Fit artboard**) and toggles for the **Timeline**, the **Navigator** and the **Inspector**. On the right sit **Share**, **Present** and **Export**. On a phone, the less-used buttons move into **More actions**.
@@ -33,6 +34,7 @@ The **Inspector** puts the selected object's text or image controls first. Optio
 
 ![The Inspector's Document section: the Selection and Canvas tabs, then Dimensions and Style & look](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
+<!--i:eti-crop-->
 ## Resize, scale and rotate
 
 Select an object, then drag a handle to change its size, or drag the round handle below the selection to turn the object. A size drag works in one of two modes:
@@ -68,6 +70,7 @@ With no key held, a turn is pulled to the nearest 15 degrees once it comes withi
 **Two fingers on a selection.** On a touch screen, put two fingers on a selected object: pinch to scale, twist to turn or move both fingers to carry the selection, all as one undo step. With Scale on, a pinch scales the content too; with Scale off, it resizes in proportion. A twist snaps to the nearest 15 degrees when close, and a two-finger move never snaps. The first finger has to land on the selection and the second has to follow quickly, on the selection or just outside its edge. Two fingers anywhere else zoom and pan the view, and so do two fingers on a selection that holds an artboard or a locked object, covers most of the view or runs past its edge.
 :::
 
+<!--i:eti-pen-tool-->
 ## Draw your own shapes
 
 Boxes, circles and rounded frames cover most layouts. For any other shape, draw one: the rail's **Pen** button (or `P`) puts you in drawing mode. Four keys move between modes: `V` for the Pointer, `P` for the Pen, `Shift C` for the **Pencil** and `N` for **Edit points**. The Pointer is always the way out.
@@ -109,6 +112,7 @@ Each point also carries a continuity rule, shown by its shape: square for **Corn
 
 A drawn path travels in a share link like any other box and renders the same from the command line.
 
+<!--i:eti-blend-->
 ## Combine shapes
 
 Select two or more shapes, right-click the canvas (two-finger tap on touch) and choose:
@@ -124,6 +128,7 @@ Three more work on a single shape. **Outline stroke…** turns a stroke into a f
 
 The result is a new path you can keep editing with the pen, stored as plain Bezier curves, so the original spline type does not carry over. Holes are real holes: the **Fill rule** control on the stroke panel decides whether overlapping contours fill (*non-zero*) or punch through (*even-odd*). The operations refuse rather than destroy: ask to intersect two shapes that don't overlap and nothing changes. Text and image boxes have no outline, so they are left alone.
 
+<!--i:eti-image-->
 ## Trace an image
 
 Select one image, right-click it and choose **Trace image…** to turn the picture into editable shapes. Pick a preset and press **Trace**:
@@ -143,6 +148,7 @@ The trace follows what the box shows, so a cropped (Cover) image traces only the
 - Corner radius, a shape mask and an effect on the image box are not applied to the paths.
 - The same picture and preset always give the same shapes.
 
+<!--i:eti-hexagon-->
 ## Strokes
 
 A box, a picture, a board and a pen path can each carry a stroke: a colour, a width and a style (solid, dashed or dotted). The stroke rows sit under **Fill** in the Inspector, and the **Stroke** button on the object bar opens them.
@@ -151,17 +157,18 @@ A box, a picture, a board and a pen path can each carry a stroke: a colour, a wi
 
 **Stroke per side.** On a rectangle, a rounded box, a pill or a board, the toggle beside the width shows four widths: **Top**, **Right**, **Bottom** and **Left**. Set one side to 0 to hide that side, which gives you a divider or an underline without a second shape. The toggle only shows or hides the four cells and never changes a value. While the sides differ, the width reads **Mixed**; type a width there to set all four sides at once. Colour, position and style stay shared by every side, and rounded corners curve with the widths beside them, as a CSS border does. Ellipses, circles and pen paths draw one width all round.
 
-How the formats carry a stroke:
-
+::: details How each format carries a stroke
 | Format | Position | Per side |
 |---|---|---|
 | SVG, PDF, PNG and the other pictures | Exact. A pen path's inside or outside stroke is drawn twice as wide and clipped to one side of the outline. | A solid stroke is exact, as one shape between the stroke's outer and inner edges. A dashed or dotted one is drawn as dashes along each side in SVG and solid in PDF. |
 | Penpot | Inside, centre and outside travel as Penpot's stroke alignment. A board is always `inner`. | Penpot 2.19 or later reads the four widths natively. Penpot 2.18 draws the top width all round, and Penpot 2.17 or earlier refuses a file that carries widths per side. |
 | PowerPoint | PowerPoint draws a line centred on the shape's edge. Centre is exact; outside moves the shape out by half the width, which puts PowerPoint's line outside the box; inside keeps the centred line older exports wrote. | The stroke becomes a separate shape (the ring between the outer and inner edges), over a shape with no line. |
 | dotLottie | Lottie strokes are centred, so an outside box stroke or a pen path stroked inside or outside is refused with a message. | Refused with a message. |
+:::
 
 A translucent centred stroke shows the page through its inner half, rather than the fill, on the canvas and in every export. When you import a Penpot file, each stroke keeps its alignment and its widths per side, and a Figma file's `strokeAlign` and individual stroke weights come across the same way.
 
+<!--i:eti-box-->
 ## 3D scenes and tools inside a design
 
 A box can hold more than a picture. Both kinds below keep a recipe rather than a rendered image, so they redraw at whatever size and moment the document asks for, and an update to the source reaches every design that uses the source.
@@ -176,6 +183,7 @@ Choose **Image** from the rail's add menu, drag out a frame and pick a tool on t
 
 **Tools that move** play inside the box: a looping illustration keeps looping on the canvas, follows the playhead once the timeline is open and exports frame by frame to GIF, MP4 or WebM. When the tool says how long one loop lasts, the box gets a clip exactly that long, so a video holds whole loops. A clip you retimed keeps your timing, and turning the tool's motion off makes the box a still picture again.
 
+<!--i:eti-film-->
 ## Timeline (Sequence)
 
 **Sequence** is Lolly Design's timeline: it adds time to the canvas. Every box can start at a moment, run for a length and animate in and out, and the timeline docked under the artboard is where you arrange them. Start from Lolly Design's **Video** template and a short sequence is already in place: two timed text cards on the sequence row and a procedural music bed under them, so you can see how the timeline works before you change anything.
@@ -202,8 +210,9 @@ Select a clip and the inspector gives the same edits as numbers: **Length**, **T
 
 **Rendering.** A motion export draws, decodes and encodes each frame at an exact time, so the file does not depend on your machine keeping up, and MP4 and WebM have no practical frame ceiling. The timeline's length sets the duration unless you type one, and Content Credentials are stamped as on any other export. A still export gives the frame at the playhead, or a contact sheet from the **Frames** field; see [Stills from a timed composition](/info/exporting.html#stills-from-a-timed-composition). A sequence is capped at one hour. GIF and animated PNG hold every frame in memory, so they suit short clips. **Record live** is hidden here because the frame-by-frame render is the better path.
 
-**Keyframes, depth and a camera.** A transition animates a clip as it arrives and leaves. To pose a box within a clip (drift, fade, blur, lift it off the page and settle it back), select the clip and press **+Keyframe**: the diamond in the timeline's tools, the diamond on the canvas object bar or **Shift+K** with the timeline focused. The playhead's position decides which pose your next edit writes. The same keyframes give a timed composition a camera that pushes in, pans and pulls focus. [Animating](/info/animating.html) is the full guide, and [The sequence editor](/info/sequence-editor.html) covers selection, onion skin, splitting, trimming and markers.
+**Keyframes, depth and a camera.** A transition animates a clip as it arrives and leaves. To pose a box within a clip (drift, fade, blur, lift it off the page and settle it back), select the clip and press **+Keyframe**: the diamond in the timeline's tools, the diamond on the canvas object bar or **Shift+K** with the timeline focused. The playhead's position decides which pose your next edit writes. The same keyframes give a timed composition a camera that pushes in, pans and pulls focus. An ease can be a [spring](/info/animating.html#springs) or a curve your design system defines, and dragging the handles on a position keyframe curves the [motion path](/info/animating.html#edit-the-motion-path) on the canvas. [Animating](/info/animating.html) is the full guide, and [The sequence editor](/info/sequence-editor.html) covers selection, onion skin, splitting, trimming and markers.
 
+<!--i:eti-checklist-->
 ## Before you export
 
 Lolly Design checks your document before you send the file. The **Before you export** card, in the Inspector's **Document** section and again in the export panel, reads the saved layer structure, then looks at the settled canvas for clipped text and flat-colour contrast. It asks the same font registry the SVG and PDF outlining uses whether each text run has font bytes that can be embedded. Text that a [fallback font](/info/fallback-fonts.html) draws in the export counts as covered. A script with no fallback font, or a Chinese, Japanese or Korean character outside the sets those fonts hold, is still reported. Image and gradient backgrounds are listed as visual checks rather than given a made-up contrast score.
@@ -216,14 +225,17 @@ Where a concrete colour or font suggestion exists, its button changes that one l
 
 ### House rules and the writing signal
 
-The export panel's card also checks the house rules your design system brings with it, such as text weight and alignment, approved colour pairings or a logo per surface, layer by layer. Each finding has the layer's name above the rule. A finding against a required rule is a warning, and one against an advisory rule is a note. A logo finding gives each logo's name from the catalog. A rule this build has no checker for is listed as not checked, never as followed. [Rules](/info/brand-studio.html#rules) lists the rules, and `lolly check` applies the same ones to a saved document.
+The export panel's card also checks the house rules your design system brings with it, such as text weight and alignment, approved colour pairings or a logo per surface, layer by layer. Each finding has the layer's name above the rule. A finding against a required rule is a warning, and one against an advisory rule is a note. A logo finding gives each logo's name from the catalog. A rule this build has no checker for is listed as not checked, never as followed. [Rules](/info/brand-studio.html#rules) lists the rules, and `lolly check` applies the same ones to a saved document. In a Lolly Work partner programme, the card also checks a partner company's marks against its [partner kit](/info/manage/partner-programmes.html#partner-kits), and says plainly what it could not measure.
 
 The same card shows the writing signal for the text the document draws: its band (none, weak, notable or strong), then Lolly Verify's own sentence with the score out of 100 and up to three flagged phrases, each with the layer that holds them. **Open the text in Verify** takes that text to [Lolly Verify](/#/verify) for the full reading; [AI evidence in Lolly Verify](/info/verify-ai-evidence.html) explains what the score weighs. The score is a signal, not a verdict: it counts patterns common in generated writing and cannot tell who wrote the words. Hidden layers are left out of both checks, and the card says how many.
 
 Findings against required house rules and a strong writing signal count toward the card's "to fix" total so they are easy to find, and advisory findings count as things to know. They inform and never block: Download stays available, and there is nothing to dismiss or record as an exception. An agent working in the open document gets the same report through its site tools ([Agents in an open document](/info/open-document-agents.html)).
 
+::: note Print checks need a feature flag
 The print checks (bleed, resolution, ink coverage and plate counts) join the same card when you turn on **Settings → Feature flags → Print preflight**. In other tools that flag is what shows the card at all; [Export a file](/info/exporting.html) describes the print checks.
+:::
 
+<!--i:eti-monitor-->
 ## Presenting
 
 A Lolly Design document made of artboards is already a deck. Press **Present** in the top bar and each artboard becomes a full-screen slide, in the order the artboards sit on the canvas. The button reads **Preview** until the document's **Design outcome** is **Slides**. The deck runs on a copy of the rendered artboards, so leaving puts you back exactly where you were.
@@ -256,10 +268,11 @@ The deck is a link too. `?present` opens straight into it and `s=` picks the sli
 
 **Present with camera** places your camera, a logo and a name caption over the slides, with private controls and saved scenes; see [Presenting with camera](/info/presenting.html). A **Web page** box can take the clicker during a talk when you turn on **Make interactive** in its inspector: at its **Focus on click** step, Up and Down control the page while Next continues the deck. [Live pages that take the clicker](/info/interactive-pages.html) covers focus styles, scroll stops and site approval.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - **[Text in Lolly Design](/info/text-composition.html)**: editing text on the canvas, flowing articles through frames and typography.
 - **[Animating](/info/animating.html)**: keyframes, depth, the scene camera and Lift layers.
-- **[Import a design](/info/design-import.html)**: open a Figma, Penpot, Illustrator or InDesign file as editable boxes.
+- **[Import a design](/info/design-import.html)**: open Figma, Penpot, Illustrator, InDesign, Affinity and DXF files as editable boxes, and editing timelines as a sequence.
 - **[Share a design with rules](/info/create-a-tool.html)**: turn a Lolly Design document into a tool with only the inputs you choose.
 - **[Export a file](/info/exporting.html)**: formats, sizes, print units and video.

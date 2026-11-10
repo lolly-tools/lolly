@@ -23,13 +23,14 @@ Two jobs come up once you make the same kind of file often. Sometimes you need m
 - Opens from **Edit together** in the Projects selection bar.
 :::
 
+<!--i:eti-table-->
 ## Make many versions of one design
 
 Open the **Projects** view and press **Batch** in its header. The grid starts with one row: choose a template in it, then duplicate the row or paste data from your spreadsheet. Opened from inside a folder, Batch returns you to that folder.
 
 ![Batch on a new grid: the file name and the row tools across the top, and the first row's template list open on the tools you can choose](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-**Fill the rows.** Type into a cell or paste a block straight from Excel, Google Sheets or another spreadsheet. **Import CSV** adds rows or replaces the batch. When you paste into a cell that holds export settings, Lolly asks which input each pasted column fills. **Export CSV** writes the grid back out. Open **Columns** below the grid to show more inputs, or per-row width, height, unit and DPI.
+**Fill the rows.** Type into a cell or paste a block straight from Excel, Google Sheets or another spreadsheet. **Import CSV** adds rows or replaces the batch. When you paste into a cell that holds export settings, Lolly asks which input each pasted column fills. **Export CSV** writes the grid back out. Open **Columns** below the grid to show more inputs, or per-row width, height, unit and DPI. A number, text or choice column's **Fill** popover also has a **Design token** section, which links one token across the column's rows ([Link many documents at once](/info/token-workflows.html#link-many-documents-at-once)).
 
 **Set the output.** The toolbar sets the zip's file name, the **Default format**, units and DPI for every row. The format menu is the export panel's grouped list, showing the formats the catalogue offers and your browser supports. A row with its own format, size or file name keeps its own setting.
 
@@ -47,7 +48,11 @@ Drag across cells, Shift-click a cell or use Shift+Arrow keys to select a rectan
 
 Each row keeps its own theme choices: light or dark, and a colourway when the design system has them. A row opened from Projects, a folder or a saved batch renders in the choices its session was saved in, and its preview opens in them. The print sheet, a duplicated row and a filled row all keep them.
 
-A CSV carries the choices in a `_themes` column after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"beach"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults. The grid has no control for changing a row's choices yet, so set them in the CSV or in the saved session.
+A CSV carries the choices in a `_themes` column after the size columns, holding the same JSON as the `_themes` link parameter, for example `{"":"dark","colourway":"beach"}`. A blank cell, or `{}`, means the design system's defaults. The column is written only when some row has choices, so a batch without any exports the same CSV as before. On import, a cell that is not valid theme choices is listed as an issue and its row renders in the defaults.
+
+::: note Set a row's choices in the CSV
+The grid has no control for changing a row's choices yet, so set them in the CSV or in the saved session.
+:::
 
 ### A language for each row
 
@@ -57,13 +62,14 @@ A tool that prints its own wording, such as Certificate, can take a `language` c
 
 Lolly Batch makes many variants of one template. To re-render sessions you have already saved, select them in Projects and use **Render selection**, or **Render folder** for a whole folder; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) covers both.
 
+<!--i:eti-layers-->
 ## Edit several saved designs together
 
 Tick between two and eight saved sessions in **Projects** and choose **Edit together** from the selection bar. They open side by side as live cards at `#/multi?s=<slot>,<slot>…`. Each card is a real render of its session, so what you see is what will export.
 
 One sidebar drives them all:
 
-- <!--i:sliders--> **Shared** comes first: every input that two or more of the sessions declare the same way (same id, same type, same constraints, the rule the batch grid uses for its columns). Edit a shared control once and the value reaches every session that declares the input, live on every card. Two sessions of the same tool share everything; two different tools share only the inputs they have in common.
+- <!--i:sliders--> **Shared** comes first: every input that two or more of the sessions declare the same way (same id, same type, same constraints, the rule the batch grid uses for its columns). Edit a shared control once and the value reaches every session that declares the input, live on every card. Two sessions of the same tool share everything; two different tools share only the inputs they have in common. The Shared card's **Input actions** menu links a design token in every session that declares the input.
 - <!--i:document--> Below it, **one folded card per session** holds all of that session's own inputs, as complete as the tool's own sidebar, with a compact export block: **Format**, **W** / **H**, **Unit**, **DPI** and **Download**. That Download saves the session first, then renders the file with the same file name, format and Content Credentials it would have from the tool.
 - <!--i:search--> **Filter inputs…** at the top narrows the controls on every card at once, so you can reach "the headline" in eight sessions without scrolling.
 
@@ -78,6 +84,7 @@ Each card draws in its own session's theme choices, including a tool placed insi
 - **For anything bigger,** choose **Edit as sheet** in the same selection bar. It opens the whole selection as rows in the batch grid (`#/batch?s=…`), with no size limit and no same-tool rule. Folders stay out of both: open a folder in the grid with **Sessions → Folders…**, or render one with **Render folder** in Projects.
 - **Search does not reach Lolly Multi-edit.** It is the one view the search bar does not know about.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - **[Export a file](/info/exporting.html)**: the formats, sizes and print settings each row can use.
