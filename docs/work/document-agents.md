@@ -26,6 +26,7 @@ it makes. Admins can review all agent activity under **Agents** in the console.
 
 ![An agent invitation: you choose Invite agent, a connection key is shown once, the agent's MCP client keeps it in private settings, the agent works in the document or project with no more than your access and the audit trail records every call.](/info/diagrams/work-integrations/agent-invite.svg)
 
+<!--i:eti-mail-->
 ## Invite an agent to a document
 
 1. In a shared Lolly Design document, open **Collaboration settings** (the sliders button in the live
@@ -46,10 +47,14 @@ not share credentials. A connection key works only on this endpoint, `/api/works
 document or project under your own access. A service token works only on `/api/v1/mcp`. Only the
 organisation endpoint can render and send a finished file to a destination.
 
-The key is shown only once, and closing the dialog clears it from the page. **Agents with
-access** lists every invitation, and you or a project manager can revoke one there. An editor
+::: warning The connection key is shown once
+Closing the dialog clears the key from the page, and Lolly Work cannot show the key again.
+:::
+
+**Agents with access** lists every invitation, and you or a project manager can revoke one there. An editor
 invitation can never exceed your own current permissions.
 
+<!--i:eti-folder-shared-->
 ## Invite an agent to a project
 
 1. Open a shared project in Lolly and choose the **Agents** tab.
@@ -69,6 +74,7 @@ The inviter or a project manager can revoke an invitation, which also closes its
 connections. An archived project allows reads only. One person can hold at most 16 active
 document and project invitations combined.
 
+<!--i:eti-history-->
 ## Activity attribution
 
 Collaborators see the agent's name and its inviter in the room. The audit trail records the
@@ -87,9 +93,12 @@ attributed to the person who made that change. Older agent events that already i
 inviter are shown as agent activity without rewriting the audit chain; where the inviter is
 unknown, the attribution is left blank.
 
+::: note What the record cannot show
 The record shows who created the invitation. It cannot show which local process launched an
 agent, or who later used a forwarded connection key.
+:::
 
+<!--i:eti-link-->
 ## Connect the agent
 
 This part is for whoever sets up the agent's MCP client.
@@ -105,6 +114,7 @@ This part is for whoever sets up the agent's MCP client.
 - **Idle connections.** An idle agent leaves the room after two minutes, and its key stays
   usable until expiry or revocation. Connection checks run only while agents are connected.
 
+<!--i:eti-pen-->
 ## Tools for documents
 
 `read_document` joins the same live room as the human collaborators and returns the durable
@@ -121,6 +131,7 @@ origin and checks project permissions, input locks, room limits and human editin
 that queue. Agent edits have their own `agent:<id>` revision actor, while the inviter stays the
 accountable user for permissions and session ownership.
 
+<!--i:eti-folder-plus-->
 ## Tools for projects
 
 Start with `read_project`. Sessions and ready assets come in pages with `offset` and `limit`
@@ -153,6 +164,7 @@ Lolly Design document needs the gateway. Document invitations made before projec
 their original scope and gain no project tools. The project routes need database migration
 `0050_project_agents.sql`.
 
+<!--i:eti-eye-->
 ## Admin visibility
 
 Admins and owners with `audit.export` can open **Agents** in the console (`/admin#/agents`), and
@@ -172,6 +184,7 @@ navigate away or lose permission. The same data comes from
 [`GET /api/v1/agents/activity`](api.md#agent-activity), with no credentials, tool arguments or
 document contents.
 
+<!--i:eti-tag-->
 ## Reported agent client and model
 
 The Agents inventory shows the last client report in the selected period. Unknown clients keep
@@ -205,8 +218,12 @@ sends the optional Lolly extension:
 }
 ```
 
+::: note A reported client and model are not verified
 This is display-only information the client reports, not verified identity or an access
-signal. The [MCP initialization spec](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)
+signal.
+:::
+
+The [MCP initialization spec](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)
 identifies the client application, not necessarily its model: Cursor can report a Claude model
 while remaining a Cursor client, and a plain Claude Code or Codex client name implies no exact
 model.
