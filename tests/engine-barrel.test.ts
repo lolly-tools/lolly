@@ -27,6 +27,8 @@ const EXPECTED: readonly string[] = [
   'onColourFloor', 'readColourRoles', 'refreshDerivedOnColours', 'removeColourRole', 'renameColourRole', 'reorderColourRoles',
   'setColourRoles', 'setRoleSameAsLight', 'setRoleValue', 'unbindRole',
   'AdoptColourRolesOptions', 'AdoptedColourRole', 'adoptColourRoles', 'colourRoleThemeAccents', 'withColourwayKindRestored',
+  // Additive 1.344: the icon colours and photo washes a design system offers, one per colourway.
+  'COLOURWAY_LOOK_PREFIX', 'ColourwayInks', 'ON_DARK_SUFFIX', 'colourwayIconThemes', 'colourwayInks', 'colourwayPhotoTreatments', 'colourwaySurfaceIconThemes', 'isColourwayLookId', 'withColourwayLooks',
   // Additive 1.330: the asset rights reader, the `.lolly` credits text and the package credits
   // readback, for a Lolly Work server that gates what partners receive.
   'AssetRightsMeta', 'OWNER_PUBLISHED', 'OwnerPublishedV1', 'PackCreditEntry', 'PackHoldEntry', 'Redistribution',

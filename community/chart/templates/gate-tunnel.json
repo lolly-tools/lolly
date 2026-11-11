@@ -1,0 +1,19 @@
+{
+  "id": "gate-tunnel",
+  "name": "Gate tunnel",
+  "category": "Cinematic",
+  "description": "A ring for each category, sized by its value, all on one axis; the camera flies through them in order, with a caption for each ring.",
+  "values": {
+    "renderMode": "cinematic",
+    "chartType": "radial-bar",
+    "cinematicType": "tunnel3d",
+    "data": "Month,Signups\nJan,42\nFeb,51\nMar,63\nApr,58\nMay,72\nJun,81\nJul,77\nAug,94",
+    "heading": "Eight months of signups",
+    "subheading": "Thousands each month",
+    "sceneStage": "night",
+    "sceneMaterial": "glow",
+    "animSpeed": 1.5,
+    "showLegend": false
+  },
+  "presets": []
+}

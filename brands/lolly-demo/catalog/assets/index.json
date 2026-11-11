@@ -973,46 +973,6 @@
       ]
     },
     {
-      "id": "lolly/palette/opal-photo-treatments",
-      "name": "Photo Colour Treatments",
-      "description": "Colour treatments for photo assets, derived from Opal: greyscale and soft duotone washes.",
-      "type": "palette",
-      "version": "1.1.0",
-      "tier": "on-demand",
-      "tags": [
-        "palette",
-        "photo-treatments"
-      ],
-      "formats": [
-        {
-          "format": "json",
-          "url": "/catalog/assets/lolly/palette/opal-photo-treatments.json",
-          "checksum": "sha256-z6mXKy7tBlYUTsfnz0YLLFITMUpHl6/Z37YXLWrKYYc=",
-          "size": 1923
-        }
-      ]
-    },
-    {
-      "id": "lolly/palette/opal-icon-themes",
-      "name": "Icon Duo Themes",
-      "description": "Colour pairings for themable two-colour icons (c1 accent, c2 base), derived from Opal.",
-      "type": "palette",
-      "version": "1.1.0",
-      "tier": "on-demand",
-      "tags": [
-        "palette",
-        "icon-themes"
-      ],
-      "formats": [
-        {
-          "format": "json",
-          "url": "/catalog/assets/lolly/palette/opal-icon-themes.json",
-          "checksum": "sha256-MR8/eAdmTcT2CZPh+4nnn9KzMljKJ3QliPbAfxGAdOI=",
-          "size": 1161
-        }
-      ]
-    },
-    {
       "id": "lolly/icons/lolly",
       "name": "Lolly",
       "type": "vector",

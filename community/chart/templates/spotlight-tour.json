@@ -1,0 +1,19 @@
+{
+  "id": "spotlight-tour",
+  "name": "Spotlight tour",
+  "category": "Cinematic",
+  "description": "The camera opens on the whole chart, stops on the highest, lowest and latest values with a caption for each, then pulls back.",
+  "values": {
+    "renderMode": "cinematic",
+    "chartType": "bar",
+    "cinematicType": "tour3d",
+    "data": "Region,Revenue\nNorth,42\nSouth,58\nEast,33\nWest,71\nCentral,49\nIslands,18\nCapital,88",
+    "heading": "A tour of the regions",
+    "subheading": "Revenue, in millions",
+    "sceneStage": "studio",
+    "sceneMaterial": "satin",
+    "animSpeed": 1.5,
+    "showLegend": false
+  },
+  "presets": []
+}

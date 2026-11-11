@@ -337,3 +337,63 @@ test('an upload asked for with a look the catalog does not offer still carries i
   assert.equal(ref.meta?.bytes, 9);
   URL.revokeObjectURL(ref.url);
 });
+
+// The icon colours a design system offers are its colourways (engine brand-treatments.ts
+// colourwayIconThemes). A colourway id is offered and baked; a hand-written palette id is
+// no longer offered but still bakes, so a piece made with one keeps its colours.
+test('colourway icon colours are offered and baked, and a palette id still bakes', async context => {
+  const { readFileSync } = await import('node:fs');
+  const demo = JSON.parse(readFileSync(new URL('../../../../brands/lolly-demo/catalog/assets/lolly/tokens/demo.json', import.meta.url), 'utf8'));
+  const sri = (body: string): string => `sha256-${createHash('sha256').update(body).digest('base64')}`;
+  const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><style>.c1{fill:#50c369}.c2{fill:#033633}</style></defs><path class="c1" d="M0 0h5v5H0z"/><path class="c2" d="M5 5h5v5H5z"/></svg>';
+  const palette = JSON.stringify({ themes: [{ id: 'brand', label: 'Green Apple', c1: '#50c369', c2: '#033633' }, { id: 'ember', label: 'Outback', c1: '#ee9138', c2: '#72251c' }] });
+  const bodies: Record<string, string> = { '/star.svg': icon, '/icon-themes.json': palette };
+  const metas = [
+    { id: 'demo/icons/star', type: 'vector', version: '1', tier: 'core', tags: ['icon', 'themable'], formats: [{ format: 'svg', url: '/star.svg', checksum: sri(icon) }] },
+    { id: 'demo/palette/icon-themes', type: 'palette', version: '1', tier: 'core', tags: ['palette', 'icon-themes'], formats: [{ format: 'json', url: '/icon-themes.json', checksum: sri(palette) }] },
+  ];
+  const readObjectUrl = globalThis.fetch;
+  context.mock.method(globalThis, 'fetch', async (url: string) => new Response(bodies[String(url)] ?? '', { headers: { 'Content-Type': String(url).endsWith('.svg') ? 'image/svg+xml' : 'application/json' } }));
+  // The palette is core tier, so catalog sync has already cached it, as on a device.
+  const stored = new Map<string, unknown>([['demo/palette/icon-themes:json:1', new Blob([palette], { type: 'application/json' })]]);
+  const db = {
+    get: async (store: string, key: string) => store === 'asset-meta' ? metas.find((m) => m.id === key) : store === 'asset-blob' ? stored.get(key) : undefined,
+    getAll: async (store: string) => store === 'asset-meta' ? metas : [],
+    put: async (store: string, value: unknown, key: string) => { if (store === 'asset-blob') stored.set(key, value); },
+  };
+  const api = createAssetsAPI(db as never, { designSystemDocument: async () => demo }) as unknown as ReturnType<typeof createAssetsAPI> & {
+    _iconThemes(): Promise<Array<{ id: string }>>; _knownIconThemes(): Promise<Array<{ id: string }>>;
+  };
+  const offered = (await api._iconThemes()).map((t) => t.id);
+  assert.deepEqual(offered, ['colourway-spearmint', 'colourway-morning', 'colourway-spring', 'colourway-beach', 'colourway-afternoon', 'colourway-midnight']);
+  const { colourwaySurfaceIconThemes } = await import('../../../../engine/src/brand-treatments.ts');
+  assert.deepEqual((await api._knownIconThemes()).map((t) => t.id), [...colourwaySurfaceIconThemes(demo).map((t) => t.id), 'brand', 'ember'],
+    'every colourway pairing resolves, dark ones included, then a palette a catalog still ships');
+
+  const morning = await api.get('demo/icons/star?theme=colourway-morning');
+  const baked = await (await readObjectUrl(morning.url)).text();
+  assert.match(baked, /fill="#fac044"/, 'the Morning accent');
+  assert.match(baked, /fill="#c55123"/, 'the Morning base');
+  assert.equal(morning.id, 'demo/icons/star?theme=colourway-morning', 'the pick keeps its id');
+
+  const ember = await api.get('demo/icons/star?theme=ember');
+  assert.match(await (await readObjectUrl(ember.url)).text(), /fill="#ee9138"/, 'an older palette pick keeps its colours');
+
+  const none = createAssetsAPI(db as never) as unknown as { _iconThemes(): Promise<unknown[]> };
+  assert.deepEqual(await none._iconThemes(), [], 'no design system document: no colourways, nothing offered');
+
+  // "Colourway asset treatments" off: nothing is offered, and a piece that carries a
+  // colourway look still bakes its colours.
+  const { overrideFlagInMemory, COLOURWAY_ASSET_TREATMENTS_FLAG } = await import('../feature-flags.ts');
+  overrideFlagInMemory(COLOURWAY_ASSET_TREATMENTS_FLAG.id, false);
+  try {
+    const off = createAssetsAPI(db as never, { designSystemDocument: async () => demo }) as unknown as typeof api & { _photoTreatments(): Promise<unknown[]> };
+    assert.deepEqual(await off._iconThemes(), [], 'no icon colours offered');
+    assert.deepEqual(await off._photoTreatments(), [], 'no photo washes offered');
+    const kept = await off.get('demo/icons/star?theme=colourway-morning');
+    assert.match(await (await readObjectUrl(kept.url)).text(), /fill="#fac044"/, 'an existing pick keeps its colours');
+  } finally {
+    overrideFlagInMemory(COLOURWAY_ASSET_TREATMENTS_FLAG.id, true);
+  }
+  for (const ref of [morning, ember]) URL.revokeObjectURL(ref.url);
+});

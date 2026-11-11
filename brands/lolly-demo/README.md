@@ -55,7 +55,7 @@ handoff with one named owner.
 - **Etiquette, in two tones.** 89 of Lolly's own Etiquette icons
   (`lolly/icons/*`) in the two-colour form SUSE's icons use: a Spearmint base and
   a Green Apple accent, fill-only, tagged `themable` so the asset view and the
-  pickers offer every Opal pairing in `lolly/palette/opal-icon-themes`. They are
+  pickers offer one pairing per colourway of the design system. They are
   generated, never hand-edited: `scripts/data/etiquette-icons.json` sorts each
   registry drawing's strokes into base and accent, and
   `node scripts/build-etiquette-icons.ts` outlines the strokes with the engine,
@@ -70,9 +70,10 @@ handoff with one named owner.
   `lolly-start` ships, unchanged and under the same ids. Their checksums, and any
   credentials embedded in the files, are the starter's own. The renditions of
   the lorikeet photograph travel with it.
-- **Palette documents derived from Opal**: `lolly/palette/opal-photo-treatments`
-  and `lolly/palette/opal-icon-themes`, made with the same engine functions
-  `scripts/ingest-brand.ts` uses (`engine/src/brand-treatments.ts`).
+- **No colour palette documents.** The icon colours and photo washes come from
+  the design system's six colourways (`colourwayIconThemes` and
+  `colourwayPhotoTreatments` in `engine/src/brand-treatments.ts`), so the pack
+  ships no `icon-themes` or `photo-treatments` palette.
 - **Emoji: Fluent Emoji Flat at Full palette influence.** The tokens carry
   the pack's emoji style in `$extensions['com.suse.lolly'].emoji`, which
   `brandEmojiStyle` (`engine/src/emoji-default.ts`) reads: the Fluent Emoji Flat

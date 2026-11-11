@@ -195,6 +195,8 @@
   font-size: var(--fs-sm);
   transition: border-color var(--dur-1), box-shadow var(--dur-1);
 }
+/* "Original" (the icon's own colours) has no swatch, so its padding is even. */
+.asset-picker-theme--original { padding-inline: 10px; }
 .asset-picker-theme:hover { border-color: hsl(var(--primary)); }
 .asset-picker-theme.is-active {
   border-color: hsl(var(--primary));

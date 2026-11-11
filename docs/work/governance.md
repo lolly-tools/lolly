@@ -210,6 +210,7 @@ Governable today (the ids are the shell's own):
 | `export-preflight` | off | the export panel's prepress card: bleed, resolution, ink coverage and plate counts |
 | `private-collab` | on | the device-to-device invite and accept for editing together; force it off and hide it to route collaboration through Lolly Work only |
 | `nearby-discovery` | on | mDNS discovery of nearby Lolly devices for handing over collab invites (native shells only) |
+| `colourway-asset-treatments` | on | the colour choices for two-colour icons and photos in Assets and the asset picker, one per colourway; force it off and hide it to show icons and photos only in their own colours |
 
 `GET /api/v1/policy/flags` and `PUT /api/v1/policy/flags/:flagId` use the same `policy.edit`
 gate. The `off` and `hide` combination is how a seasonal surprise ships dark: stage it now, flip

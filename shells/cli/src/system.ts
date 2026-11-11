@@ -19,6 +19,7 @@ import { resolveStateDir } from '@lolly-tools/node-shell/state-dir';
 import { contextTokens } from '../../../engine/src/brand-context.ts';
 import { checkBrandDesign } from '../../../engine/src/brand-check.ts';
 import { brandCheckCatalog, designBrief } from '../../../engine/src/design-brief.ts';
+import { withColourwayLooks } from '../../../engine/src/brand-treatments.ts';
 import { checkDesignHouseRules } from '../../../engine/src/design-house-rules.ts';
 import { parseDesignMd } from '../../../engine/src/design-md.ts';
 import { brandSystemOf } from '../../../engine/src/brand-system.ts';
@@ -337,7 +338,8 @@ export async function systemCli(positionals: string[], flags: Flags, json = fals
       const boxes = Array.isArray(raw) ? raw : values.boxes;
       if (!Array.isArray(boxes)) throw usageError('Supply Design input values with a boxes array, or a compiled Design document.', 'NO_COMPOSITION');
       result = {
-        ...checkBrandDesign(boxes, doc, { theme: flags.theme, ...brandCheckCatalog(catalog) }),
+        // Every theme and treatment id that resolves: the colourway looks, then the palettes'.
+        ...checkBrandDesign(boxes, doc, { theme: flags.theme, ...brandCheckCatalog(catalog ? withColourwayLooks(catalog, doc) : null) }),
         // Every rule the brand states goes in, so a rule this build cannot check is listed
         // as unknown rather than silently passing.
         // A document with no frames sits on its canvas background (Design's default when unset).

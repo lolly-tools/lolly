@@ -53,6 +53,7 @@ import {
   checkGuestMarks,
   guestRecolourFrom,
   partnerKitLogoIds,
+  withColourwayLooks,
   checkFindingFromBrand,
   checkFindingFromDesign,
   checkFindingFromMounted,
@@ -1326,7 +1327,9 @@ export async function checkFile(bytes: Uint8Array, name: string, asked: CheckFil
     // linked fill beneath a mark paints each theme's colour. Inside the family's guard, like
     // every other check: a crash is said, not thrown.
     const kitRun = opts.partnerKit
-      ? await guarded(opts.signal, async () => partnerKitFindings(doc, opts.partnerKit!, lookup, opts.catalog,
+      // The catalog with the system's colourway looks in front, so a mark recoloured with one
+      // is judged by its colours; the palettes' older ids still resolve after them.
+      ? await guarded(opts.signal, async () => partnerKitFindings(doc, opts.partnerKit!, lookup, withColourwayLooks(opts.catalog, ds?.doc),
         checkThemes.map((theme) => ({ theme, boxes: inTheme(theme), resolveColor: colourResolver(ds?.doc, theme) }))))
       : null;
     const kitFailed = kitRun && isFailed(kitRun) ? kitRun.failed : null;
@@ -1346,7 +1349,8 @@ export async function checkFile(bytes: Uint8Array, name: string, asked: CheckFil
         const brand = await guarded(opts.signal, async () => {
           const result = checkBrandDesign(boxes, ds.doc, {
             ...(theme ? { theme } : {}),
-            ...brandCheckCatalog(opts.catalog ?? null),
+            // Every theme and treatment id that resolves: the colourway looks, then the palettes'.
+            ...brandCheckCatalog(opts.catalog ? withColourwayLooks(opts.catalog, ds.doc) : null),
             // The partner kit's colours and logos are the guest's own, not off-brand values.
             ...(opts.partnerKit ? { guest: { colours: opts.partnerKit.colours.map((c) => c.value), assets: partnerKitLogoIds(opts.partnerKit) } } : {}),
           });

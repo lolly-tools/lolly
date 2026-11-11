@@ -413,8 +413,44 @@
         "label": "Bars - categories × series"
       },
       {
+        "value": "area3d",
+        "label": "Walls - each series as a solid ribbon"
+      },
+      {
+        "value": "tiles3d",
+        "label": "Tiles - a heat map raised into columns"
+      },
+      {
+        "value": "blocks3d",
+        "label": "Unit blocks - one cube per unit"
+      },
+      {
+        "value": "waterfall3d",
+        "label": "Waterfall - a running total"
+      },
+      {
+        "value": "city3d",
+        "label": "City - a treemap of buildings"
+      },
+      {
         "value": "donut3d",
         "label": "Donut or pie - parts of a whole"
+      },
+      {
+        "value": "rose3d",
+        "label": "Rose - wedges sized by value"
+      },
+      {
+        "value": "funnel3d",
+        "label": "Funnel or pyramid - stages"
+      },
+      {
+        "value": "bubbles3d",
+        "label": "Bubbles - packed spheres"
+      },
+      {
+        "value": "spiral3d",
+        "label": "Spiral - a long series coiled"
       },
       {
         "value": "scatter3d",
@@ -425,7 +461,7 @@
         "label": "Surface - value grid"
       }
     ],
-    "help": "Choose how the same table is interpreted in the real 3-D scene. Bars use a label column plus numeric series; a donut uses the first numeric series as slices; Scatter uses at least three numeric columns; Surface uses the table as a value grid."
+    "help": "Choose how the same table is read in the real 3-D scene. Bars, walls, tiles and blocks use a label column plus numeric series. City, donut, rose, funnel, bubbles, spiral and waterfall draw the first numeric series. Scatter uses at least three numeric columns; Surface uses the table as a value grid."
   },
   {
     "section": "Change chart",
@@ -438,6 +474,26 @@
       "renderMode": "cinematic"
     },
     "options": [
+      {
+        "value": "tour3d",
+        "label": "Spotlight tour - stop on the values that stand out"
+      },
+      {
+        "value": "countdown3d",
+        "label": "Countdown - rank to number one"
+      },
+      {
+        "value": "reveal3d",
+        "label": "Pull-back reveal - one value, then all"
+      },
+      {
+        "value": "tunnel3d",
+        "label": "Gate tunnel - fly through the values"
+      },
+      {
+        "value": "terrain3d",
+        "label": "Terrain flight - peak and low ground"
+      },
       {
         "value": "flythrough3d",
         "label": "Data flight - follow values"
@@ -455,7 +511,7 @@
         "label": "Data skyline - fly past values"
       }
     ],
-    "help": "Turn the same table into a paced story. Category order becomes the route, numeric values set altitude, and series occupy real depth. Data flight follows the chosen series; Ribbon canyon keeps all series legible; Constellation tours observations; Data skyline turns values into towers along the route."
+    "help": "Turn the same table into a paced, directed story. The tour, countdown and reveal move a camera between named shots with a caption for each; the gate tunnel flies through one ring per value; the terrain flight crosses the table as a landscape. The flights follow a series along the category order, with values as altitude."
   },
   {
     "id": "plotBins",
@@ -848,7 +904,12 @@
         "sceneType": [
           "bar3d",
           "donut3d",
-          "scatter3d"
+          "scatter3d",
+          "city3d",
+          "rose3d",
+          "funnel3d",
+          "bubbles3d",
+          "spiral3d"
         ]
       }
     ]
@@ -983,7 +1044,10 @@
         "value": "towers",
         "label": "Towers - height shows the value too",
         "showIf": {
-          "sceneType": "donut3d"
+          "sceneType": [
+            "donut3d",
+            "rose3d"
+          ]
         }
       },
       {
@@ -992,6 +1056,20 @@
         "showIf": {
           "sceneType": "donut3d"
         }
+      },
+      {
+        "value": "funnel",
+        "label": "Funnel - widest at the top",
+        "showIf": {
+          "sceneType": "funnel3d"
+        }
+      },
+      {
+        "value": "pyramid",
+        "label": "Pyramid - widest at the base",
+        "showIf": {
+          "sceneType": "funnel3d"
+        }
       }
     ],
     "help": "Automatic gives bars one row per series when there are several and a single row for one series, and draws parts of a whole as a donut.",
@@ -999,7 +1077,9 @@
       "renderMode": "scene",
       "sceneType": [
         "bar3d",
-        "donut3d"
+        "donut3d",
+        "rose3d",
+        "funnel3d"
       ]
     }
   },
@@ -1011,9 +1091,12 @@
     "type": "text",
     "default": "",
     "placeholder": "A name, or max, min or last",
-    "help": "Category or series names separated by commas, or max, min or last. Everything else is drawn in a quiet tone of the stage, and Close-up framing centres on the highlight.",
+    "help": "Category or series names separated by commas, or max, min or last. Everything else is drawn in a quiet tone of the stage, Close-up framing centres on the highlight, and the spotlight tour and pull-back reveal stop on the highlighted values.",
     "showIf": {
-      "renderMode": "scene"
+      "renderMode": [
+        "scene",
+        "cinematic"
+      ]
     }
   },
   {
@@ -1057,7 +1140,7 @@
         "label": "Custom angle"
       }
     ],
-    "help": "Hero tries a few three-quarter angles and keeps the one that fills this artboard best, so a tall artboard and a wide one each get a view that suits them. Top down and Isometric have no perspective.",
+    "help": "Hero tries a few three-quarter angles and keeps the one that fills this artboard best. Top down and Isometric have no perspective. Drag the chart on the canvas to turn it from the camera chosen here, Shift-drag to pan and scroll to zoom; a double-click on the canvas puts it back.",
     "showIf": {
       "renderMode": "scene"
     }
@@ -1131,6 +1214,64 @@
         "custom"
       ]
     }
+  },
+  {
+    "id": "sceneView",
+    "urlKey": "svw",
+    "label": "Adjust view",
+    "section": "3-D scene",
+    "type": "vector",
+    "help": "How far the view is turned, raised, zoomed and panned from the camera chosen above. Drag, Shift-drag or scroll on the canvas to set it, or type the numbers. Choosing another camera starts again from zero.",
+    "showIf": {
+      "renderMode": "scene"
+    },
+    "fields": [
+      {
+        "id": "az",
+        "label": "Turn",
+        "symbol": "°",
+        "min": -180,
+        "max": 180,
+        "step": 1,
+        "default": 0
+      },
+      {
+        "id": "el",
+        "label": "Raise",
+        "symbol": "°",
+        "min": -90,
+        "max": 90,
+        "step": 1,
+        "default": 0
+      },
+      {
+        "id": "zoom",
+        "label": "Zoom",
+        "symbol": "×",
+        "min": 0.2,
+        "max": 8,
+        "step": 0.01,
+        "default": 1
+      },
+      {
+        "id": "x",
+        "label": "Pan across",
+        "symbol": "↔",
+        "min": -1.5,
+        "max": 1.5,
+        "step": 0.01,
+        "default": 0
+      },
+      {
+        "id": "y",
+        "label": "Pan up",
+        "symbol": "↕",
+        "min": -1.5,
+        "max": 1.5,
+        "step": 0.01,
+        "default": 0
+      }
+    ]
   },
   {
     "id": "sceneFraming",
@@ -1320,7 +1461,13 @@
     "placeholder": "First series, or a name / number",
     "help": "The series whose values drive the camera altitude. Leave blank for the first numeric series, enter its header, or use a 1-based series number.",
     "showIf": {
-      "renderMode": "cinematic"
+      "renderMode": "cinematic",
+      "cinematicType": [
+        "flythrough3d",
+        "ribbon3d",
+        "constellation3d",
+        "skyline3d"
+      ]
     }
   },
   {
@@ -1336,7 +1483,13 @@
     "step": 0.05,
     "help": "Distance above the selected value path. Lower feels faster and more dramatic; higher preserves more context.",
     "showIf": {
-      "renderMode": "cinematic"
+      "renderMode": "cinematic",
+      "cinematicType": [
+        "flythrough3d",
+        "ribbon3d",
+        "constellation3d",
+        "skyline3d"
+      ]
     }
   },
   {
@@ -1352,7 +1505,13 @@
     "step": 0.1,
     "help": "How many category steps ahead the camera aims. Short values track peaks closely; longer values make the movement calmer.",
     "showIf": {
-      "renderMode": "cinematic"
+      "renderMode": "cinematic",
+      "cinematicType": [
+        "flythrough3d",
+        "ribbon3d",
+        "constellation3d",
+        "skyline3d"
+      ]
     }
   },
   {
@@ -1368,7 +1527,13 @@
     "step": 1,
     "help": "Maximum camera roll in degrees. The local rise and fall in the chosen series controls the direction and amount.",
     "showIf": {
-      "renderMode": "cinematic"
+      "renderMode": "cinematic",
+      "cinematicType": [
+        "flythrough3d",
+        "ribbon3d",
+        "constellation3d",
+        "skyline3d"
+      ]
     }
   },
   {
@@ -1384,7 +1549,13 @@
     "step": 1,
     "help": "Lens angle in degrees. A wider view feels faster; a narrower view compresses the scene and reads more analytically.",
     "showIf": {
-      "renderMode": "cinematic"
+      "renderMode": "cinematic",
+      "cinematicType": [
+        "flythrough3d",
+        "ribbon3d",
+        "constellation3d",
+        "skyline3d"
+      ]
     }
   },
   {
@@ -2254,7 +2425,10 @@
       },
       {
         "renderMode": "scene",
-        "sceneType": "donut3d"
+        "sceneType": [
+          "donut3d",
+          "rose3d"
+        ]
       }
     ]
   },
@@ -2841,7 +3015,8 @@
       "renderMode": [
         "vector",
         "statistical",
-        "scene"
+        "scene",
+        "cinematic"
       ]
     },
     "urlKey": "nf",

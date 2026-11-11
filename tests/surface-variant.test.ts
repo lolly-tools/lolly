@@ -29,7 +29,7 @@ import {
   themeSurfaceColours,
 } from '../engine/src/surface-variant.ts';
 import { createTokenSet } from '../engine/src/tokens.ts';
-import { deriveIconThemesDoc } from '../engine/src/brand-treatments.ts';
+import { colourwaySurfaceIconThemes, deriveIconThemesDoc } from '../engine/src/brand-treatments.ts';
 import { AUTO_ASSET_THEME, parseIconThemesDoc, parseThemedAssetId } from '../engine/src/icon-theme.ts';
 import { checkBrandDesign } from '../engine/src/brand-check.ts';
 import { checkDesignHouseRules } from '../engine/src/design-house-rules.ts';
@@ -457,14 +457,15 @@ test('a theme switch made while no auto mark is present does not leave the old t
 // ── private: the delivered Sleepwalking picks ───────────────────────────────
 
 const SUSE_TOKENS = fileURLToPath(new URL('../brands/suse/catalog/assets/suse/tokens/brand.json', import.meta.url));
-const SUSE_ICONS = fileURLToPath(new URL('../brands/suse/catalog/assets/suse/palette/icon-themes.json', import.meta.url));
 const DELIVERED = process.env.LOLLY_CHECK_DELIVERED;
 const SKIP_SUSE = existsSync(SUSE_TOKENS) && DELIVERED && existsSync(`${DELIVERED}/light.lolly.boxes.json`) ? false
   : 'the delivered Sleepwalking design fixture is not on this machine (set LOLLY_CHECK_DELIVERED)';
 
 test('SUSE: one auto reference per logo and icon layer reproduces the 44 delivered picks of both decks', { skip: SKIP_SUSE }, () => {
   const doc = JSON.parse(readFileSync(SUSE_TOKENS, 'utf8'));
-  const iconThemes = JSON.parse(readFileSync(SUSE_ICONS, 'utf8'));
+  // The icon pairings come from the colourways now. An icon the decks fixed to an older
+  // palette id is one the surfaces never pick, so it stays fixed below.
+  const iconThemes = { themes: colourwaySurfaceIconThemes(doc) };
   let delivered = 0;
   let reproduced = 0;
   const misses: string[] = [];

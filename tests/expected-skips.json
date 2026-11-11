@@ -3469,7 +3469,7 @@
     },
     {
       "file": "tests/design-brief-suse.test.ts",
-      "fullName": "every SUSE icon theme states the surfaces it suits",
+      "fullName": "every SUSE colourway gives an icon pairing for each ground it suits",
       "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
       "capability": "brand:suse",
       "owner": "tests"

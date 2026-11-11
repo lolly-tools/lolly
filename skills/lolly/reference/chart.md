@@ -67,10 +67,11 @@ picks out the largest bar and quiets the rest; `sfr=close` crops in on it.
 
 | Alias | Input | Values |
 |---|---|---|
-| `sct` | `sceneType` | `bar3d`, `donut3d`, `scatter3d`, `surface3d` |
-| `sly` | `sceneLayout` | bars: `grid`, `grouped`, `stacked`, `ring`; donut: `donut`, `pie`, `towers`, `exploded`; or `auto` |
+| `sct` | `sceneType` | `bar3d`, `area3d` (walls), `tiles3d` (heat map in relief), `blocks3d` (unit cubes), `waterfall3d`, `city3d` (treemap buildings), `donut3d`, `rose3d`, `funnel3d`, `bubbles3d`, `spiral3d`, `scatter3d`, `surface3d` |
+| `sly` | `sceneLayout` | bars: `grid`, `grouped`, `stacked`, `ring`; donut: `donut`, `pie`, `towers`, `exploded`; rose: `towers`; funnel: `funnel`, `pyramid`; or `auto` |
 | `shl` | `sceneHighlight` | category or series names, comma separated, or `max`, `min`, `last` |
 | `spo` | `scenePose` | `hero` (best three-quarter fit), `low`, `high`, `front`, `side`, `top`, `iso`, `custom` (then `caz`/`cel`) |
+| `svw.az`, `svw.el`, `svw.zoom`, `svw.x`, `svw.y` | `sceneView` | the view adjusted from that camera: turn and raise in degrees, zoom (1 = as framed), pan across and up the frame (-1.5 to 1.5) |
 | `cpr` | `cameraProjection` | lens: `perspective` (standard), `wide`, `long`, `orthographic` (flat) |
 | `sfr` | `sceneFraming` | `fit` (fill the frame), `close`, `room` |
 | `sst` | `sceneStage` | `studio`, `floor`, `float`, `plinth`, `night` |
@@ -81,6 +82,30 @@ picks out the largest bar and quiets the rest; `sfr=close` crops in on it.
 A 3-D chart paints its stage, so it exports opaque unless you pass
 `transparentBg=true`, which keeps only the shadows. A still export of a moving
 scene shows the finished pose.
+
+City, donut, rose, funnel, bubbles, spiral and waterfall draw the first numeric
+series; a waterfall reads each row as a change and closes on the total, named by
+`yTitle`. In the editor, dragging the canvas turns the camera, Shift-drag pans and
+scrolling zooms; the result is saved as `sceneView`, and choosing another camera
+clears it.
+
+## A directed cinematic chart by URL
+
+```text
+https://lolly.tools/#/tool/chart?rm=cinematic&cft=tour3d&d=Region%2CRevenue%0ANorth%2C42%0ASouth%2C58%0AEast%2C33%0AWest%2C71%0ACapital%2C88&t=A+tour+of+the+regions&sst=studio&mat=satin&seconds=12&format=mp4&export
+```
+
+| `cft` value | What the camera does |
+|---|---|
+| `tour3d` | Opens wide, stops on the highest, lowest and latest values (or the `shl` names) with a caption for each, then pulls back |
+| `countdown3d` | Ranks the first series smallest first; each bar rises as the camera reaches it, counting down to number one |
+| `reveal3d` | Opens tight on one value (`shl`, else the largest) and pulls back to show it among the rest |
+| `tunnel3d` | A ring per category on one axis, sized by value; the camera flies through them in order |
+| `terrain3d` | The table as a landscape: a low approach, the peak, the low point, then the whole map |
+| `flythrough3d`, `ribbon3d`, `constellation3d`, `skyline3d` | Flights along a series in category order, values as altitude (`cfs` chooses the series) |
+
+The stage, finish and colourway apply as in a scene. A still export shows the
+closing wide shot; a video plays every beat with its caption.
 
 ## A structured spec
 
@@ -151,6 +176,7 @@ Generated from `community/chart/tool.json`. Aliases are the `urlKey` column.
 | `cameraAzimuth` | `caz` | number | 38 | 3-D scene | Camera angle |
 | `cameraElevation` | `cel` | number | 24 | 3-D scene | Camera elevation |
 | `cameraProjection` | `cpr` | select | `perspective` | 3-D scene | Lens |
+| `sceneView` | `svw` | vector | - | 3-D scene | Adjust view |
 | `sceneFraming` | `sfr` | select | `fit` | 3-D scene | Framing |
 | `sceneStage` | `sst` | select | `studio` | 3-D scene | Stage |
 | `sceneMaterial` | `mat` | select | `matte` | 3-D scene | Finish |

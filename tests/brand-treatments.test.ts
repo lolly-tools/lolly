@@ -7,20 +7,15 @@
  *    (parsePhotoTreatmentsDoc / parseIconThemesDoc - a dropped entry means a
  *    silently thinner picker strip), and the default pairing must actually
  *    bake into a contract-following themable icon;
- *  - the committed lolly-start neutral set is derivation output, not
- *    hand-tuned data - a drift guard re-derives it from the committed starter
- *    tokens and compares bytes (retune brand-treatments.ts ⇒ regenerate the
- *    committed docs + their index checksums);
- *  - scripts/ingest-brand.ts emits the derived docs (indexed, SRI-checksummed)
- *    for a fixture tokens source, and skips the icon-themes asset when the
- *    palette has no accent.
+ *  - no shipped pack carries a hand-written or derived palette any more: the
+ *    icon colours and photo washes come from a design system's colourways
+ *    (tests/colourway-looks.test.ts), so scripts/ingest-brand.ts writes none either.
  *
  * Run with: node --test tests/brand-treatments.test.ts
  */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -96,38 +91,13 @@ test('derivation is deterministic and tolerant of thin/absent palettes', () => {
   assert.equal(themes[0]!.c1, '#2453ff', 'the declared primary leads even against higher-chroma noise');
 });
 
-test('committed lolly-start neutral set is exactly the derivation of its starter tokens', () => {
-  const tokens = JSON.parse(
-    readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/lolly/tokens/brand.json'), 'utf8'),
-  );
-  const paletteDir = join(ROOT, 'brands/lolly-start/catalog/assets/lolly/palette');
-  const icons = deriveIconThemesDoc(tokens);
-  // A colourless starter derives no pairings, and the validator rejects an empty
-  // themes[] doc - so the pack ships no icon-themes asset then, exactly as
-  // scripts/ingest-brand.ts does for an accent-free pack. Both directions are
-  // checked: a starter that regains an accent must ship the asset again.
-  const expected: [string, unknown][] = [
-    ['photo-treatments.json', derivePhotoTreatmentsDoc(tokens)],
-    ...(icons.themes.length ? ([['icon-themes.json', icons]] as [string, unknown][]) : []),
-  ];
-  const index = JSON.parse(readFileSync(join(ROOT, 'brands/lolly-start/catalog/assets/index.json'), 'utf8'));
-  const indexed = (id: string) => index.assets.find((a: { id: string }) => a.id === id);
-  if (!icons.themes.length) {
-    assert.equal(existsSync(join(paletteDir, 'icon-themes.json')), false,
-      'the colourless starter derives no icon pairings, so the pack must not ship an icon-themes doc');
-    assert.equal(indexed('lolly/palette/icon-themes'), undefined,
-      'lolly/palette/icon-themes must not be indexed while the starter palette is colourless');
-  }
-  for (const [file, derived] of expected) {
-    const committed = readFileSync(join(paletteDir, file), 'utf8');
-    assert.equal(committed, JSON.stringify(derived, null, 2) + '\n',
-      `${file} drifted from derivation - regenerate it (and its index checksum) after retuning brand-treatments.ts`);
-    const id = `lolly/palette/${file.replace('.json', '')}`;
-    const entry = indexed(id);
-    assert.ok(entry, `${id} indexed in the lolly-start catalog`);
-    const fmt = entry.formats[0];
-    assert.equal(fmt.checksum, `sha256-${createHash('sha256').update(committed).digest('base64')}`);
-    assert.equal(fmt.size, Buffer.byteLength(committed));
+test('no shipped pack carries an icon-themes or photo-treatments palette', () => {
+  // The colour strips come from each design system's colourways now, so a palette left
+  // in a pack would offer nothing and drift from the system the pack ships.
+  for (const pack of ['lolly-start', 'lolly-demo']) {
+    const index = JSON.parse(readFileSync(join(ROOT, `brands/${pack}/catalog/assets/index.json`), 'utf8'));
+    const palettes = index.assets.filter((a: { tags?: string[] }) => a.tags?.some((t) => t === 'icon-themes' || t === 'photo-treatments'));
+    assert.deepEqual(palettes.map((a: { id: string }) => a.id), [], `${pack} ships no colour palette`);
   }
 });
 
@@ -156,14 +126,13 @@ function runIngest(t: { after: (fn: () => void) => void }, tokens: unknown, name
 
 /** The brand-neutral LUTs and 3D models every ingested pack inherits from
  *  brands/lolly-start (scripts/ingest-brand.ts copies them, 2026-09-06), in the
- *  order the lolly-start index lists them. They sit between the tokens document
- *  and the derived palette docs. */
+ *  order the lolly-start index lists them. They follow the tokens document. */
 const NEUTRAL_COPIED = [
   'lolly/3d/duck', 'lolly/3d/cat',
   'lolly/luts/slide-standard', 'lolly/luts/slide-vivid', 'lolly/luts/chrome-muted', 'lolly/luts/mono-fine',
 ];
 
-test('ingest-brand emits derived palette docs with SRI-checksummed index entries', (t) => {
+test('ingest-brand writes no palette: the colour strips come from colourways', (t) => {
   const out = runIngest(t, {
     color: {
       $type: 'color',
@@ -171,47 +140,8 @@ test('ingest-brand emits derived palette docs with SRI-checksummed index entries
       accent: { blue: { $value: '#2453ff' } },
     },
   }, 'treatbrand');
-
   const index = JSON.parse(readFileSync(join(out, 'catalog/assets/index.json'), 'utf8'));
-  assert.deepEqual(
-    index.assets.map((a: { id: string }) => a.id),
-    ['treatbrand/tokens/brand', ...NEUTRAL_COPIED, 'treatbrand/palette/photo-treatments', 'treatbrand/palette/icon-themes'],
-  );
-  for (const slug of ['photo-treatments', 'icon-themes']) {
-    const bytes = readFileSync(join(out, `catalog/assets/treatbrand/palette/${slug}.json`));
-    const entry = index.assets.find((a: { id: string }) => a.id === `treatbrand/palette/${slug}`);
-    assert.deepEqual(entry.tags, ['palette', slug]);
-    assert.equal(entry.type, 'palette');
-    assert.equal(entry.formats[0].url, `/catalog/assets/treatbrand/palette/${slug}.json`);
-    assert.equal(entry.formats[0].checksum, `sha256-${createHash('sha256').update(bytes).digest('base64')}`);
-    assert.equal(entry.formats[0].size, bytes.length);
-  }
-  const treatments = parsePhotoTreatmentsDoc(
-    JSON.parse(readFileSync(join(out, 'catalog/assets/treatbrand/palette/photo-treatments.json'), 'utf8')),
-  );
-  assert.ok(treatments.some(x => x.id === 'brand'), 'emitted treatments carry the brand wash');
-  const themes = parseIconThemesDoc(
-    JSON.parse(readFileSync(join(out, 'catalog/assets/treatbrand/palette/icon-themes.json'), 'utf8')),
-  );
-  assert.equal(themes[0]!.id, 'brand');
+  assert.deepEqual(index.assets.map((a: { id: string }) => a.id), ['treatbrand/tokens/brand', ...NEUTRAL_COPIED]);
+  assert.ok(!existsSync(join(out, 'catalog/assets/treatbrand/palette')), 'no palette folder');
 });
 
-test('ingest-brand skips the icon-themes asset for an accent-free palette', (t) => {
-  const out = runIngest(t, {
-    color: { $type: 'color', neutral: { ink: { $value: '#111111' }, paper: { $value: '#fafafa' } } },
-  }, 'greybrand');
-
-  const index = JSON.parse(readFileSync(join(out, 'catalog/assets/index.json'), 'utf8'));
-  assert.deepEqual(
-    index.assets.map((a: { id: string }) => a.id),
-    ['greybrand/tokens/brand', ...NEUTRAL_COPIED, 'greybrand/palette/photo-treatments'],
-    'no accent ⇒ no icon-themes asset (the validator rejects an empty themes[] doc)',
-  );
-  assert.ok(!existsSync(join(out, 'catalog/assets/greybrand/palette/icon-themes.json')));
-  const treatments = parsePhotoTreatmentsDoc(
-    JSON.parse(readFileSync(join(out, 'catalog/assets/greybrand/palette/photo-treatments.json'), 'utf8')),
-  );
-  // Greyscale plus the neutral Tone photo look (plan 291 W7), which needs no accent.
-  assert.deepEqual(treatments.map(t => t.id), ['greyscale', 'tone']);
-  assert.equal(treatments[1]!.kind, 'gradient-map');
-});

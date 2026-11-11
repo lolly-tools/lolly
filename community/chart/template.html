@@ -71,7 +71,13 @@
   ]).then(function () {
     if (ROOT.__chart3dEpoch !== epoch) return;
     if (!window.LollyChartThree || !window.LollyChart3D) throw new Error('3-D chart renderer is unavailable');
-    var mounted = window.LollyChart3D.mount({ root: wrap, state: state, THREE: window.LollyChartThree });
+    // In the editor, a hand on the canvas turns, pans and zooms the camera and
+    // saves the view it leaves as an input. Anywhere else the chart only plays.
+    var editing = typeof window.__lollySetInput === 'function' && !!(wrap.closest && wrap.closest('#tool-canvas, #tool-content'));
+    var mounted = window.LollyChart3D.mount({
+      root: wrap, state: state, THREE: window.LollyChartThree,
+      commit: editing ? function (id, value) { window.__lollySetInput(id, value); } : null
+    });
     ROOT.__lollyChart3d = mounted;
     if (clock && mounted && typeof mounted.renderAt === 'function') clock.__lollyFrameRender = mounted.renderAt;
     fireReady();

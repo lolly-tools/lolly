@@ -1,0 +1,19 @@
+{
+  "id": "countdown-ranking",
+  "name": "Countdown to number one",
+  "category": "Cinematic",
+  "description": "The bars stand in rank order and rise one by one as the camera counts down to the largest.",
+  "values": {
+    "renderMode": "cinematic",
+    "chartType": "bar",
+    "cinematicType": "countdown3d",
+    "data": "Product,Sales\nPlatform,88\nServices,64\nSupport,42\nTraining,27\nMarketplace,22\nHardware,15\nLicences,11",
+    "heading": "Best sellers this year",
+    "subheading": "Units, in thousands",
+    "sceneStage": "night",
+    "sceneMaterial": "glow",
+    "animSpeed": 1.5,
+    "showLegend": false
+  },
+  "presets": []
+}
