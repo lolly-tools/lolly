@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-11T14:42:51.493Z",
+  "generatedAt": "2026-11-11T17:46:43.287Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -8910,7 +8910,7 @@
           "id": "gate-tunnel",
           "name": "Gate tunnel",
           "category": "Cinematic",
-          "description": "A ring for each category, sized by its value, all on one axis; the camera flies through them in order and names each as it passes."
+          "description": "A ring for each category, sized by its value, all on one axis; the camera flies through them in order, with a caption for each ring."
         },
         {
           "id": "guided-chart",
