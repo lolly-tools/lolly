@@ -246,21 +246,70 @@ export function snareStroke(sr: number, f0: number, vel: number, wires: number, 
 }
 
 /**
- * A tom stroke at `f0`. Two heads: the batter head struck, its modes ringing, starting
- * sharp as the strike stretches it and falling back over a tenth of a second (the tom's
- * "doom"); and the resonant head underneath, tuned a little higher and ringing longer, so
- * the note beats and blooms. The stick's tick, the thwack of stick on skin, and the shell.
- * A lower tom rings longer.
+ * A tom's modes, as ratios to its fundamental, how strongly a stick a third of the way in
+ * from the rim sets each going, and each one's life against the fundamental's. The air
+ * inside the drum pulls the membrane's Bessel ratios (1, 1.59, 2.14, 2.30 ...) closer
+ * together, and the resonant head underneath, tuned a hair from the batter head, rings its
+ * fundamental alongside the batter head's: the two beating a few times a second is the tom's bloom.
+ */
+const TOM_MODES: ReadonlyArray<readonly [number, number, number]> = [
+  [1, 1, 1], [1.012, 0.45, 1.35], [1.5, 0.62, 0.5], [1.97, 0.4, 0.38], [2.42, 0.28, 0.3], [2.86, 0.2, 0.24], [3.3, 0.13, 0.2], [3.75, 0.09, 0.17],
+];
+/** The shell's own short rings (ratios to the fundamental) and their level. */
+const SHELL_MODES = [2.7, 4.1, 5.9] as const;
+
+/**
+ * Add a resonator's ring into `out`: a two-pole resonator at `f` (Hz) with life `tau` (s),
+ * driven by `drive`, its pitch `glide` sharp at first and falling back as the square of
+ * its own amplitude does (a membrane's tension rises with how far it swings), the
+ * coefficients worked out afresh every 16 samples.
+ */
+function resonate(out: Float32Array, drive: Float32Array, sr: number, f: number, tau: number, level: number, glide: number): void {
+  const r = Math.exp(-1 / (tau * sr));
+  const fall = Math.exp(-2 / (tau * sr));
+  const len = Math.min(out.length, Math.ceil(tau * 8 * sr));
+  let y1 = 0, y2 = 0, bend = glide, c = 0, gain = 0;
+  for (let n = 0; n < len; n++) {
+    if ((n & 15) === 0) {
+      const w = (2 * Math.PI * Math.min(f * (1 + bend), sr * 0.45)) / sr;
+      c = 2 * r * Math.cos(w);
+      gain = Math.sin(w) * level;
+    }
+    const y = c * y1 - r * r * y2 + gain * (drive[n] ?? 0);
+    y2 = y1;
+    y1 = y;
+    out[n] = out[n]! + y;
+    bend *= fall;
+  }
+}
+
+/**
+ * A tom stroke at `f0`, from the stick's contact. The stick meets the head for a moment, a
+ * millisecond for a hard stroke and a few for a soft one, so a hard stroke carries further
+ * up the spectrum and sets the high modes ringing. That push, with a breath of the skin's
+ * noise, drives every mode of the head (TOM_MODES) and the shell's short rings, and the
+ * head's pitch starts sharp and falls back as its swing dies. A lower tom rings longer.
  */
 export function tomStroke(sr: number, f0: number, vel: number, rand: Rand): Float32Array {
-  const life = 0.3 + Math.max(0, 220 - f0) * 0.003;
-  const out = new Float32Array(Math.ceil(Math.min(2.4, life * 5.5) * sr));
-  head(out, sr, f0, 0.7, life, 0.03 + 0.09 * vel, 0.11, 7, rand);
-  head(out, sr, f0 * 1.035, 0.32, life * 1.35, 0.01 + 0.03 * vel, 0.15, 3, rand);
-  noiseBand(out, sr, rand, 3200, 0.9, 0.5 * vel * vel, 0.0003, 0.004);
-  noiseBand(out, sr, rand, 1400, 0.5, 0.35 * vel, 0.0008, 0.012);   // the thwack of stick on skin
-  noiseBand(out, sr, rand, f0 * 2.5, 1.2, 0.12 * vel, 0.001, 0.03);   // the shell
-  noiseBand(out, sr, rand, 5200, 0.6, 0.06 * vel, 0.004, 0.06);   // the snare's wires, answering in sympathy
+  const life = 0.32 + Math.max(0, 220 - f0) * 0.0032;
+  const out = new Float32Array(Math.ceil(Math.min(2.6, life * 6) * sr));
+  // The push: a half-sine as long as the stick stays on the head, and the skin's noise beneath.
+  const contact = 0.0036 - 0.0026 * vel;
+  const push = new Float32Array(Math.ceil((contact + 0.006) * sr));
+  const cn = Math.max(2, Math.round(contact * sr));
+  for (let n = 0; n < cn; n++) push[n] = Math.sin((Math.PI * n) / cn) * (0.5 + 0.5 * vel);
+  let lp = 0;
+  for (let n = 0; n < push.length; n++) { lp += 0.25 * ((rand() * 2 - 1) - lp); push[n] = push[n]! + lp * 0.18 * vel * Math.exp(-n / (0.002 * sr)); }
+  const drive = new Float32Array(out.length);
+  drive.set(push);
+  const glide = 0.012 + 0.05 * vel * vel;
+  for (const [ratio, weight, lifeOf] of TOM_MODES) {
+    const tau = life * lifeOf * (0.9 + rand() * 0.2);
+    resonate(out, drive, sr, f0 * ratio * (1 + (rand() - 0.5) * 0.006), tau, weight, glide * (ratio === 1 ? 1 : 0.6));
+  }
+  for (const ratio of SHELL_MODES) resonate(out, drive, sr, f0 * ratio, 0.03 + rand() * 0.02, 0.12, 0);
+  noiseBand(out, sr, rand, 4200, 0.8, 0.3 * vel * vel, 0.0003, 0.003);   // the stick's tick
+  noiseBand(out, sr, rand, 5200, 0.6, 0.05 * vel, 0.004, 0.06);   // the snare's wires, answering in sympathy
   return normalise(out, 0.9);
 }
 
