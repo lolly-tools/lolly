@@ -1,0 +1,18 @@
+{
+  "id": "bubble-pack",
+  "name": "Packed bubbles",
+  "category": "3-D",
+  "description": "One sphere for each category, its size the value, packed together on the floor.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "pack",
+    "sceneType": "bubbles3d",
+    "data": "Topic,Mentions\nPricing,88\nSpeed,71\nSupport,58\nDesign,49\nDocs,42\nSecurity,33\nIntegrations,18",
+    "heading": "What customers talk about",
+    "subheading": "Mentions in this quarter's feedback",
+    "sceneStage": "studio",
+    "sceneMaterial": "gloss",
+    "showLegend": false
+  },
+  "presets": []
+}

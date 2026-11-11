@@ -518,6 +518,21 @@ function applyStyleDefaults(cfg, dirty) {
   return cfg;
 }
 
+// A view adjusted on the canvas, on top of the chosen camera: a turn and a
+// change of height in degrees, a zoom, and a pan across and up the frame.
+// Turned by hand on the canvas or typed in the sidebar. Zero turn, zero
+// height, zoom 1 and no pan leave the camera as it was chosen.
+function sceneViewOf(v) {
+  const num = (x, d) => (x !== '' && x != null && Number.isFinite(+x) ? +x : d);
+  if (!v || typeof v !== 'object') v = {};
+  const az = ((((num(v.az, 0) + 180) % 360) + 360) % 360) - 180;
+  return { az, el: clamp(num(v.el, 0), -90, 90), zoom: clamp(num(v.zoom, 1), 0.2, 8), x: clamp(num(v.x, 0), -1.5, 1.5), y: clamp(num(v.y, 0), -1.5, 1.5) };
+}
+function sceneViewIsPlain(v) {
+  const q = sceneViewOf(v);
+  return !q.az && !q.el && q.zoom === 1 && !q.x && !q.y;
+}
+
 function buildConfig(inp, dirty) {
   const W = clamp(Math.round(num(inp.width, 1280)), 100, 8000);
   const H = clamp(Math.round(num(inp.height, 800)), 100, 8000);
@@ -588,6 +603,7 @@ function buildConfig(inp, dirty) {
     sceneShadows:   inp.sceneShadows !== false && inp.sceneShadows !== 'false',
     sceneLayout:    String(inp.sceneLayout || 'auto'),      // bars: grid / grouped / stacked / ring; donut: donut / pie / towers / exploded
     scenePose:      String(inp.scenePose || 'hero'),        // named camera pose, or custom (azimuth + elevation)
+    sceneView:      sceneViewOf(inp.sceneView),
     sceneFraming:   String(inp.sceneFraming || 'fit'),      // fit / close / room
     sceneStage:     String(inp.sceneStage || 'studio'),     // studio / floor / float / plinth / night
     sceneHighlight: String(inp.sceneHighlight || ''),       // category or series names to pick out
@@ -968,8 +984,14 @@ function seedPalette(seedHex) {
 
 // ── renderer-neutral chart document + resolved brand theme ─────────────────
 
-const SCENE_TYPES = ['bar3d', 'donut3d', 'scatter3d', 'surface3d'];
-const CINEMATIC_TYPES = ['flythrough3d', 'ribbon3d', 'constellation3d', 'skyline3d'];
+const SCENE_TYPES = ['bar3d', 'donut3d', 'scatter3d', 'surface3d', 'area3d', 'tiles3d', 'city3d', 'rose3d', 'funnel3d', 'bubbles3d', 'blocks3d', 'spiral3d', 'waterfall3d'];
+// Scene types that read the table as categories and series, like bars do.
+const CATEGORY_SCENES = ['bar3d', 'surface3d', 'area3d', 'tiles3d', 'city3d', 'rose3d', 'funnel3d', 'bubbles3d', 'blocks3d', 'spiral3d', 'waterfall3d'];
+// Scene types that draw the first numeric series only.
+const FIRST_SERIES_SCENES = ['donut3d', 'city3d', 'rose3d', 'funnel3d', 'bubbles3d', 'spiral3d', 'waterfall3d'];
+const FLIGHT_TYPES = ['flythrough3d', 'ribbon3d', 'constellation3d', 'skyline3d'];
+const DIRECTED_TYPES = ['tour3d', 'countdown3d', 'reveal3d', 'tunnel3d', 'terrain3d'];
+const CINEMATIC_TYPES = FLIGHT_TYPES.concat(DIRECTED_TYPES);
 const REAL_3D_TYPES = SCENE_TYPES.concat(CINEMATIC_TYPES);
 const PLOT_TYPES = [
   'dot-strip', 'interval', 'range-band', 'difference-area', 'indexed-change',
@@ -980,6 +1002,9 @@ const PLOT_TYPES = [
 const SCENE_TO_VECTOR = {
   bar3d: 'bar', donut3d: 'donut', scatter3d: 'scatter', surface3d: 'heatmap',
   flythrough3d: 'line', ribbon3d: 'area', constellation3d: 'scatter', skyline3d: 'bar',
+  area3d: 'area', tiles3d: 'heatmap', city3d: 'treemap', rose3d: 'polar', funnel3d: 'funnel',
+  bubbles3d: 'pack', blocks3d: 'waffle', spiral3d: 'bar', waterfall3d: 'waterfall',
+  tour3d: 'bar', countdown3d: 'bar', reveal3d: 'bar', tunnel3d: 'radial-bar', terrain3d: 'heatmap',
 };
 
 // Renderer mode is an authoring choice, not a second copy of the document. Keep
@@ -1007,10 +1032,13 @@ function legacyModePatch(model) {
 // camera angle or a roughness someone set by hand carries on as the Custom
 // choice. A 3-D chart paints its own stage, so its background is opaque until
 // someone ticks Transparent background; leaving 3-D restores the transparency.
-function scenePatch(model, priorPatch) {
+function scenePatch(model, priorPatch, changedId) {
   const inp = Object.assign(Object.fromEntries(model.map((i) => [i.id, i.value])), priorPatch || {});
   const dirty = Object.fromEntries(model.map((i) => [i.id, !!i.isDirty]));
   const patch = {};
+  // Choosing a camera starts it clean: a view turned on the canvas adjusts the
+  // camera it was turned from, so it goes when another camera is chosen.
+  if (changedId === 'scenePose' && !sceneViewIsPlain(inp.sceneView)) patch.sceneView = { az: 0, el: 0, zoom: 1, x: 0, y: 0 };
   if ((dirty.cameraAzimuth || dirty.cameraElevation) && !dirty.scenePose && inp.scenePose !== 'custom') patch.scenePose = 'custom';
   if ((dirty.sceneRoughness || dirty.sceneMetalness) && !dirty.sceneMaterial && inp.sceneMaterial !== 'custom') patch.sceneMaterial = 'custom';
   if (!dirty.transparentBg && !Object.prototype.hasOwnProperty.call(priorPatch || {}, 'transparentBg')) {
@@ -1162,6 +1190,9 @@ function chartMark(type) {
     'radial-bar': 'radial-bar', wordcloud: 'wordcloud', bar3d: 'bar3d',
     scatter3d: 'scatter3d', surface3d: 'surface3d', donut3d: 'arc',
     flythrough3d: 'line3d', ribbon3d: 'ribbon3d', constellation3d: 'line3d', skyline3d: 'bar3d',
+    area3d: 'ribbon3d', tiles3d: 'bar3d', city3d: 'bar3d', rose3d: 'arc', funnel3d: 'mesh3d',
+    bubbles3d: 'mesh3d', blocks3d: 'bar3d', spiral3d: 'bar3d', waterfall3d: 'bar3d',
+    tour3d: 'bar3d', countdown3d: 'bar3d', reveal3d: 'bar3d', tunnel3d: 'mesh3d', terrain3d: 'surface3d',
   };
   return map[type] || type;
 }
@@ -1535,7 +1566,7 @@ function makeChartSpec(data, cfg) {
         ...(ids[3] ? { size: { field: ids[3], type: 'number', title: cols[3].name } } : {}),
       },
     }];
-  } else if (cfg.chartType === 'bar3d' || cfg.chartType === 'surface3d') {
+  } else if (CATEGORY_SCENES.indexOf(cfg.chartType) >= 0) {
     fields = [
       { id: 'category', label: 'Category', type: 'string' },
       { id: 'series', label: 'Series', type: 'string' },
@@ -1545,7 +1576,7 @@ function makeChartSpec(data, cfg) {
       category: cats[ci], series: s.name, value: s.values[ci] == null ? null : s.values[ci],
     });
     series = [{
-      id: 'series_1', name: cfg.heading || (cfg.chartType === 'surface3d' ? 'Surface' : '3-D bars'),
+      id: 'series_1', name: cfg.heading || (cfg.chartType === 'surface3d' ? 'Surface' : cfg.chartType === 'bar3d' ? '3-D bars' : '3-D chart'),
       dataset: 'data', mark: mark,
       channels: {
         x: { field: 'category', type: 'string', title: 'Category' },
@@ -1974,7 +2005,7 @@ function sceneOverlay(cfg, legend, hud) {
   out.top = y > pad ? y + Math.round(pad * 0.45) : pad;
   let bottom = H - pad;
   if (hud) bottom -= 118;
-  if (legend && (legend.items && legend.items.length > 1 || legend.ramp)) {
+  if (legend && (legend.items && (legend.items.length > 1 || legend.items.some((it) => !it.colour)) || legend.ramp)) {
     const fs = clamp(cfg.legendTextSize || Math.round(cfg.labelSize * 0.82), 11, 40);
     const sw = Math.round(fs * 0.8), gap = Math.max(12, cfg.legendGap || 24);
     const rows = [];
@@ -1982,7 +2013,7 @@ function sceneOverlay(cfg, legend, hud) {
     else {
       let row = [], width = 0;
       for (const it of legend.items.slice(0, 24)) {
-        const w = sw + 8 + String(it.label).length * fs * 0.56;
+        const w = (it.colour ? sw + 8 : 0) + String(it.label).length * fs * 0.56;
         if (row.length && width + gap + w > W - pad * 2) { rows.push(row); row = []; width = 0; }
         width += (row.length ? gap : 0) + w; row.push(Object.assign({ w }, it));
       }
@@ -2055,10 +2086,10 @@ function planBars(data, cfg, ctx) {
     if (layout === 'ring' && nz === 1) {
       // A ring has no front edge to label, so each bar carries its own name.
       const top = Math.max(y0, y1) + 0.16;
-      labels.push({ p: [r4(x), r4(top), r4(z)], text: String(cats[ci]), sub: cfg.showValues ? sceneFmt(v, cfg.numberFormat) : '', kind: 'value', size: Math.round(cfg.labelSize * 0.8), weight: on && hl ? 750 : 600, pri: on && hl ? 3 : 2, colour: cfg.valueColor || null, up: 1 });
+      labels.push({ p: [r4(x), r4(top), r4(z)], text: String(cats[ci]), sub: cfg.showValues ? sceneFmt(v, cfg.numberFormat) : '', kind: 'value', size: Math.round(cfg.labelSize * 0.8), weight: on && hl ? 750 : 600, pri: on && hl ? 3 : 2, colour: cfg.valueColor || null, up: 1, k: ci + ':' + si });
     } else if (cfg.showValues && (showAllValues || (hl && on) || v === maxVal)) {
       const top = Math.max(y0, y1), lift = 0.22;
-      labels.push({ p: [r4(x), r4(v < 0 ? Math.min(y0, y1) - lift - 0.1 : top + lift), r4(z)], text: sceneFmt(v, cfg.numberFormat), kind: 'value', size: valueSize, weight: on && hl ? 750 : cfg.valueWeight, pri: on && hl ? 3 : 2, colour: cfg.valueColor || null });
+      labels.push({ p: [r4(x), r4(v < 0 ? Math.min(y0, y1) - lift - 0.1 : top + lift), r4(z)], text: sceneFmt(v, cfg.numberFormat), kind: 'value', size: valueSize, weight: on && hl ? 750 : cfg.valueWeight, pri: on && hl ? 3 : 2, colour: cfg.valueColor || null, k: ci + ':' + si });
     }
   };
   if (layout === 'ring') {
@@ -2285,8 +2316,12 @@ function planSurface(data, cfg, ctx) {
   let best = null;
   series.forEach((s, si) => s.values.forEach((v, ci) => { if (Number.isFinite(+v) && (!best || +v > best.v)) best = { v: +v, si, ci }; }));
   if (best && cfg.showValues) labels.push({ p: [r4((best.ci / (nx - 1) - 0.5) * SX), r4(0.05 + ((best.v - lo) / rng) * hMax + 0.3), r4((best.si / (nz - 1) - 0.5) * SZ)], text: sceneFmt(best.v, cfg.numberFormat), kind: 'value', size: cfg.valueSize || Math.round(cfg.labelSize * 0.9), weight: 750, pri: 3 });
+  // The highest and lowest cells, where a directed flight stops.
+  let worst = null;
+  series.forEach((s, si) => s.values.forEach((v, ci) => { if (Number.isFinite(+v) && (!worst || +v < worst.v)) worst = { v: +v, si, ci }; }));
+  const spot = (b) => b && Object.assign(b, { p: [r4((b.ci / (nx - 1) - 0.5) * SX), r4(0.05 + ((b.v - lo) / rng) * hMax), r4((b.si / (nz - 1) - 0.5) * SZ)] });
   return {
-    marks, labels, layout: 'surface', hMax: hMax + 0.2,
+    marks, labels, layout: 'surface', hMax: hMax + 0.2, spots: { peak: spot(best && Object.assign({}, best)), low: spot(worst) },
     footprint: { rect: [-SX / 2, SX / 2, -SZ / 2, SZ / 2] }, grid: rectGrid(-SX / 2, SX / 2, -SZ / 2, SZ / 2, nx - 1, nz - 1), nx, nz,
     legend: { ramp: { stops: ctx.ramp, min: sceneFmt(lo, cfg.numberFormat), max: sceneFmt(hi, cfg.numberFormat), title: cfg.yTitle || 'Value' } },
   };
@@ -2355,6 +2390,540 @@ function planFlight(data, cfg, ctx) {
   };
 }
 
+// ── more 3-D layouts ──
+// A `mesh` mark is any solid the other mark kinds cannot say: a list of flat
+// convex faces, each with its outward normal stated, so the GPU adapter and the
+// vector projection light and cull it the same way.
+
+// `vn`, when given, holds a normal for each corner so a curved side shades
+// smoothly on the GPU; the vector projection shades each face by `n`.
+function quadFace(a, b, c, d, n, vn) {
+  const f = { v: [a, b, c, d].map((p) => p.map(r4)), n: n.map(r4) };
+  if (vn) f.vn = vn.map((q) => q.map(r4));
+  return f;
+}
+function unit3(v) { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; }
+
+// A solid wall under a profile: x/y points along x, extruded `depth` in z.
+function wallFaces(xs, ys, z, depth) {
+  const f = [], zf = z + depth / 2, zb = z - depth / 2, segs = [];
+  // The top's normal points up whichever way the profile runs along x; each
+  // corner takes the mean of the segments either side, so the top is smooth.
+  for (let i = 0; i < xs.length - 1; i++) {
+    const dx = xs[i + 1] - xs[i], dy = ys[i + 1] - ys[i];
+    segs.push(unit3(dx >= 0 ? [-dy, dx, 0] : [dy, -dx, 0]));
+  }
+  const pn = xs.map((_, i) => { const a = segs[Math.max(0, i - 1)], b = segs[Math.min(segs.length - 1, i)]; return unit3([a[0] + b[0], a[1] + b[1], 0]); });
+  for (let i = 0; i < xs.length - 1; i++) {
+    const x0 = xs[i], x1 = xs[i + 1], y0 = ys[i], y1 = ys[i + 1];
+    f.push(quadFace([x0, 0, zf], [x1, 0, zf], [x1, y1, zf], [x0, y0, zf], [0, 0, 1]));
+    f.push(quadFace([x1, 0, zb], [x0, 0, zb], [x0, y0, zb], [x1, y1, zb], [0, 0, -1]));
+    f.push(quadFace([x0, y0, zf], [x1, y1, zf], [x1, y1, zb], [x0, y0, zb], segs[i], [pn[i], pn[i + 1], pn[i + 1], pn[i]]));
+  }
+  const n = xs.length - 1, out = xs[0] <= xs[n] ? 1 : -1;
+  f.push(quadFace([xs[0], 0, zb], [xs[0], 0, zf], [xs[0], ys[0], zf], [xs[0], ys[0], zb], [-out, 0, 0]));
+  f.push(quadFace([xs[n], 0, zf], [xs[n], 0, zb], [xs[n], ys[n], zb], [xs[n], ys[n], zf], [out, 0, 0]));
+  return f;
+}
+
+// A frustum standing on y0: bottom radius rb, top radius rt.
+function frustumFaces(cx, cz, y0, y1, rb, rt, n) {
+  const f = [], top = [], bottom = [];
+  const slope = (rb - rt) / Math.max(0.001, y1 - y0);
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2, b = ((i + 1) / n) * Math.PI * 2, m = (a + b) / 2;
+    const na = unit3([Math.cos(a), slope, Math.sin(a)]), nb = unit3([Math.cos(b), slope, Math.sin(b)]);
+    f.push(quadFace([cx + Math.cos(a) * rb, y0, cz + Math.sin(a) * rb], [cx + Math.cos(a) * rt, y1, cz + Math.sin(a) * rt],
+      [cx + Math.cos(b) * rt, y1, cz + Math.sin(b) * rt], [cx + Math.cos(b) * rb, y0, cz + Math.sin(b) * rb], unit3([Math.cos(m), slope, Math.sin(m)]), [na, na, nb, nb]));
+    top.push([cx + Math.cos(a) * rt, y1, cz + Math.sin(a) * rt].map(r4));
+    bottom.push([cx + Math.cos(-a) * rb, y0, cz + Math.sin(-a) * rb].map(r4));
+  }
+  f.push({ v: top, n: [0, 1, 0] });
+  f.push({ v: bottom, n: [0, -1, 0] });
+  return f;
+}
+
+// A ring standing upright in the x/y plane, facing along z: a gate to fly through.
+function ringFaces(cy, z, r, thick, depth, n) {
+  const f = [], ro = r + thick / 2, ri = Math.max(0.02, r - thick / 2), zf = z + depth / 2, zb = z - depth / 2;
+  const at = (a, rr, zz) => [Math.cos(a) * rr, cy + Math.sin(a) * rr, zz];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2, b = ((i + 1) / n) * Math.PI * 2, m = (a + b) / 2;
+    f.push(quadFace(at(a, ri, zf), at(a, ro, zf), at(b, ro, zf), at(b, ri, zf), [0, 0, 1]));
+    f.push(quadFace(at(b, ri, zb), at(b, ro, zb), at(a, ro, zb), at(a, ri, zb), [0, 0, -1]));
+    const oa = [Math.cos(a), Math.sin(a), 0], ob = [Math.cos(b), Math.sin(b), 0], ia = [-oa[0], -oa[1], 0], ib = [-ob[0], -ob[1], 0];
+    f.push(quadFace(at(a, ro, zf), at(a, ro, zb), at(b, ro, zb), at(b, ro, zf), [Math.cos(m), Math.sin(m), 0], [oa, oa, ob, ob]));
+    f.push(quadFace(at(b, ri, zf), at(b, ri, zb), at(a, ri, zb), at(a, ri, zf), [-Math.cos(m), -Math.sin(m), 0], [ib, ib, ia, ia]));
+  }
+  return f;
+}
+
+// Catmull-Rom points between data points, for walls and paths that read as curves.
+function smoothProfile(xs, ys, steps) {
+  if (xs.length < 3 || steps < 2) return { xs, ys };
+  const ox = [], oy = [];
+  const at = (arr, i) => arr[Math.max(0, Math.min(arr.length - 1, i))];
+  for (let i = 0; i < xs.length - 1; i++) {
+    for (let s = 0; s < steps; s++) {
+      const t = s / steps, p0 = at(ys, i - 1), p1 = ys[i], p2 = ys[i + 1], p3 = at(ys, i + 2);
+      const y = 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t * t * t);
+      ox.push(xs[i] + (xs[i + 1] - xs[i]) * t);
+      oy.push(Math.max(0.012, Math.min(Math.max(p1, p2) * 1.15 + 0.02, y)));
+    }
+  }
+  ox.push(xs[xs.length - 1]); oy.push(ys[ys.length - 1]);
+  return { xs: ox, ys: oy };
+}
+
+// The first series as a list of positive values with their categories.
+function firstSeriesItems(data) {
+  const cats = data.categories || [], s = (data.series || [])[0];
+  const items = [];
+  if (s) cats.forEach((c, i) => { const v = +s.values[i]; if (Number.isFinite(v)) items.push({ c: String(c), v, i }); });
+  return items;
+}
+function isPicked(hl, name, v, maxV, minV, last) {
+  if (!hl) return true;
+  return hl.has(String(name).toLowerCase()) || (hl.has('max') && v === maxV) || (hl.has('min') && v === minV) || (hl.has('last') && last);
+}
+
+// Ribbon walls: one solid wall per series under its line, rows in depth.
+function planWalls(data, cfg, ctx) {
+  const cats = data.categories || [], series = (data.series || []).filter((s) => s && s.values);
+  const nx = Math.max(2, cats.length), nz = Math.max(1, series.length);
+  let maxV = 0; series.forEach((s) => s.values.forEach((v) => { if (Number.isFinite(+v)) maxV = Math.max(maxV, +v); }));
+  maxV = Math.max(maxV, cfg.yMax || 0, 1e-9);
+  const xs0 = ctx.camRight[0] >= 0 ? 1 : -1, zs = ctx.camDir[2] >= 0 ? 1 : -1;
+  const span = nx - 1, hMax = clamp(span * 0.42 + 0.9, 2.2, 5.5), scale = hMax / maxV;
+  const rowGap = 1.15, depth = 0.42;
+  const order = series.map((s, si) => { let sum = 0, n = 0; s.values.forEach((v) => { if (Number.isFinite(+v)) { sum += +v; n++; } }); return { si, mean: n ? sum / n : 0 }; })
+    .sort((a, b) => a.mean - b.mean || a.si - b.si);
+  const rowOf = []; order.forEach((o, i) => { rowOf[o.si] = i; });
+  const z0 = zs * (nz - 1) / 2 * rowGap;
+  const marks = [], labels = [], hl = ctx.highlight;
+  const smooth = cfg.curve !== 'linear' && cfg.curve !== 'step';
+  series.forEach((s, si) => {
+    const xs = [], ys = [];
+    s.values.forEach((v, ci) => { xs.push(xs0 * (ci - span / 2)); ys.push(Math.max(0.012, (Number.isFinite(+v) ? +v : 0) * scale)); });
+    const prof = smooth ? smoothProfile(xs, ys, 6) : { xs, ys };
+    const z = z0 - zs * rowOf[si] * rowGap;
+    const on = !hl || hl.has(String(s.name).toLowerCase());
+    const colour = on ? ctx.palette[si % ctx.palette.length] : ctx.colours.quiet;
+    marks.push({ t: 'mesh', f: wallFaces(prof.xs, prof.ys, z, depth), c: colour, q: on ? 0 : 1, g: r4(si / nz), k: 's' + si });
+    // The peak of each series is named, and every point where the table is small.
+    let best = 0; s.values.forEach((v, ci) => { if (Number.isFinite(+v) && +v > (+s.values[best] || -Infinity)) best = ci; });
+    s.values.forEach((v, ci) => {
+      if (!cfg.showValues || !Number.isFinite(+v)) return;
+      if (ci !== best && nx * nz > 24) return;
+      labels.push({ p: [r4(xs[ci]), r4(+v * scale + 0.2), r4(z)], text: sceneFmt(+v, cfg.numberFormat), kind: 'value', size: cfg.valueSize || Math.round(cfg.labelSize * 0.8), weight: cfg.valueWeight, pri: ci === best ? 3 : 2 });
+    });
+    if (nz > 1) labels.push({ p: [r4(xs0 * (span / 2 + 0.55)), 0, r4(z)], text: String(s.name), kind: 'series', size: Math.round(cfg.labelSize * 0.86), weight: cfg.labelWeight, pri: 1, anchor: xs0 > 0 ? 'start' : 'end' });
+  });
+  const every = Math.max(1, Math.ceil(nx / 14));
+  const front = z0 + zs * (depth / 2 + 0.05);
+  cats.forEach((c, ci) => { if (ci % every === 0 || ci === nx - 1) labels.push({ p: [r4(xs0 * (ci - span / 2)), 0, r4(front)], text: String(c), kind: 'category', size: cfg.labelSize, weight: cfg.labelWeight, pri: 1, below: 1 }); });
+  const ax0 = -span / 2 - 0.5, ax1 = span / 2 + 0.5, az0 = -(nz - 1) / 2 * rowGap - 0.6, az1 = (nz - 1) / 2 * rowGap + 0.6;
+  return { marks, labels, layout: 'walls', hMax, footprint: { rect: [ax0, ax1, az0, az1] }, grid: rectGrid(ax0, ax1, az0, az1, Math.min(nx, 24), nz), nx, nz, maxAbs: maxV };
+}
+
+// A squarified treemap of the first series, extruded into a city.
+function squarify(items, x, y, w, h) {
+  const out = [], total = items.reduce((n, it) => n + it.v, 0) || 1;
+  const scaled = items.map((it) => Object.assign({}, it, { a: (it.v / total) * w * h }));
+  let rect = { x, y, w, h }, row = [];
+  const worst = (r, side) => {
+    const s = r.reduce((n, it) => n + it.a, 0); if (!s) return Infinity;
+    let mx = 0, mn = Infinity; r.forEach((it) => { mx = Math.max(mx, it.a); mn = Math.min(mn, it.a); });
+    return Math.max((side * side * mx) / (s * s), (s * s) / (side * side * mn));
+  };
+  const layRow = (r) => {
+    const s = r.reduce((n, it) => n + it.a, 0);
+    if (rect.w >= rect.h) {
+      const cw = s / rect.h; let cy = rect.y;
+      r.forEach((it) => { const ch = it.a / cw; out.push(Object.assign(it, { x: rect.x, y: cy, w: cw, h: ch })); cy += ch; });
+      rect = { x: rect.x + cw, y: rect.y, w: rect.w - cw, h: rect.h };
+    } else {
+      const ch = s / rect.w; let cx = rect.x;
+      r.forEach((it) => { const cw = it.a / ch; out.push(Object.assign(it, { x: cx, y: rect.y, w: cw, h: ch })); cx += cw; });
+      rect = { x: rect.x, y: rect.y + ch, w: rect.w, h: rect.h - ch };
+    }
+  };
+  for (const it of scaled) {
+    const side = Math.min(rect.w, rect.h);
+    if (!row.length || worst(row.concat(it), side) <= worst(row, side)) row.push(it);
+    else { layRow(row); row = [it]; }
+  }
+  if (row.length) layRow(row);
+  return out;
+}
+function planCity(data, cfg, ctx) {
+  const items = firstSeriesItems(data).filter((it) => it.v > 0).sort((a, b) => b.v - a.v).slice(0, 80);
+  const n = Math.max(1, items.length), S = clamp(Math.sqrt(n) * 1.7, 4, 9.5);
+  const maxV = items.length ? items[0].v : 1, minV = items.length ? items[items.length - 1].v : 0;
+  const tiles = squarify(items, -S / 2, -S / 2, S, S);
+  const street = clamp(S / Math.sqrt(n) * 0.07, 0.03, 0.14), hMax = clamp(S * 0.5, 2.4, 5);
+  const marks = [], labels = [], hl = ctx.highlight;
+  tiles.forEach((t, k) => {
+    const on = isPicked(hl, t.c, t.v, maxV, minV, false);
+    const colour = !on ? ctx.colours.quiet : ctx.colorBy === 'value' ? rampAt(ctx.ramp, t.v / maxV) : ctx.palette[t.i % ctx.palette.length];
+    const w = Math.max(0.02, t.w - street), d = Math.max(0.02, t.h - street), h = Math.max(0.04, (t.v / maxV) * hMax);
+    marks.push({ t: 'box', p: [r4(t.x + t.w / 2), r4(h / 2), r4(t.y + t.h / 2)], s: [r4(w), r4(h), r4(d)], c: colour, r: 0, g: r4(k / n), q: on ? 0 : 1, k: String(t.i) });
+    labels.push({ p: [r4(t.x + t.w / 2), r4(h + 0.16), r4(t.y + t.h / 2)], text: t.c, sub: cfg.showValues ? sceneFmt(t.v, cfg.numberFormat) : '', kind: 'value', size: Math.round(cfg.labelSize * (k < 3 ? 0.86 : 0.72)), weight: on && hl ? 750 : 600, pri: 3 - Math.min(2, k / 6), up: 1 });
+  });
+  return { marks, labels, layout: 'city', hMax, footprint: { rect: [-S / 2, S / 2, -S / 2, S / 2] }, grid: rectGrid(-S / 2, S / 2, -S / 2, S / 2, 6, 6), nx: n, nz: 1, maxAbs: maxV };
+}
+
+// Rose: equal wedges, radius by value (area honest), around a small hub.
+function planRose(data, cfg, ctx) {
+  const items = firstSeriesItems(data).filter((it) => it.v > 0);
+  const n = Math.max(1, items.length), R = 3, hub = 0.35;
+  const maxV = items.reduce((m, it) => Math.max(m, it.v), 0) || 1, minV = items.reduce((m, it) => Math.min(m, it.v), Infinity);
+  const step = (2 * Math.PI) / n, gap = clamp(cfg.sliceGap, 0, 12) * Math.PI / 180 * 0.5 + 0.015;
+  const azr = ctx.poseAz * Math.PI / 180, marks = [], labels = [], hl = ctx.highlight;
+  items.forEach((it, k) => {
+    const r = hub + (R - hub) * Math.sqrt(it.v / maxV);
+    const a0 = k * step + gap / 2 - azr - Math.PI / 2, a1 = (k + 1) * step - gap / 2 - azr - Math.PI / 2, am = (a0 + a1) / 2;
+    const on = isPicked(hl, it.c, it.v, maxV, minV, k === n - 1);
+    const colour = !on ? ctx.colours.quiet : ctx.colorBy === 'value' ? rampAt(ctx.ramp, it.v / maxV) : ctx.palette[it.i % ctx.palette.length];
+    const h = cfg.sceneLayout === 'towers' ? 0.25 + 2 * (it.v / maxV) : 0.55;
+    marks.push({ t: 'sector', a0: r4(a0), a1: r4(a1), r0: hub, r1: r4(r), y0: 0, y1: r4(h), off: [0, 0], c: colour, q: on ? 0 : 1, g: r4(k / n), k: String(it.i) });
+    const lr = r + 0.45;
+    labels.push({ p: [r4(Math.cos(am) * lr), r4(h * 0.5), r4(Math.sin(am) * lr)], text: it.c, sub: cfg.showValues ? sceneFmt(it.v, cfg.numberFormat) : '', kind: 'category', size: Math.round(cfg.labelSize * 0.86), weight: on && hl ? 750 : cfg.labelWeight, pri: 2, side: Math.cos(am) * ctx.camRight[0] + Math.sin(am) * ctx.camRight[2] });
+  });
+  return { marks, labels, layout: 'rose', hMax: 2.4, footprint: { circle: [0, 0, R + 0.4] }, grid: ringGrid(R, n, -azr - Math.PI / 2, step), nx: n, nz: 1, maxAbs: maxV };
+}
+
+// Funnel or pyramid: the stages in order, each a frustum whose width is its value.
+function planFunnel(data, cfg, ctx) {
+  const items = firstSeriesItems(data).filter((it) => it.v > 0).slice(0, 14);
+  const n = Math.max(1, items.length), pyramid = cfg.sceneLayout === 'pyramid';
+  const maxV = items.reduce((m, it) => Math.max(m, it.v), 0) || 1, first = items.length ? items[0].v : 1;
+  const Rmax = 2.2, h = clamp(5.5 / n, 0.32, 0.8), gap = h * 0.12, marks = [], labels = [], hl = ctx.highlight;
+  const radius = (v) => 0.2 + (Rmax - 0.2) * (v / maxV);
+  const sideX = ctx.camRight[0], sideZ = ctx.camRight[2];
+  items.forEach((it, k) => {
+    // A funnel opens at the top; a pyramid stands on its widest stage.
+    const level = pyramid ? k : n - 1 - k;
+    const y0 = level * (h + gap), y1 = y0 + h;
+    const next = items[k + 1], rTop = radius(it.v), rNext = next ? radius(next.v) : rTop * 0.85;
+    const rb = pyramid ? rTop : Math.max(0.12, (rTop + rNext) / 2 * 0.98), rt = pyramid ? Math.max(0.12, (rTop + rNext) / 2 * 0.98) : rTop;
+    const on = isPicked(hl, it.c, it.v, maxV, Infinity, false);
+    const colour = !on ? ctx.colours.quiet : ctx.colorBy === 'value' ? rampAt(ctx.ramp, it.v / maxV) : ctx.palette[it.i % ctx.palette.length];
+    marks.push({ t: 'mesh', f: frustumFaces(0, 0, y0, y1, rb, rt, 56), c: colour, q: on ? 0 : 1, g: r4(k / n), k: String(it.i) });
+    const pct = first ? Math.round((it.v / first) * 100) + '%' : '';
+    const lx = sideX * (Math.max(rb, rt) + 0.45), lz = sideZ * (Math.max(rb, rt) + 0.45);
+    labels.push({ p: [r4(lx), r4((y0 + y1) / 2), r4(lz)], text: it.c, sub: (cfg.showValues ? sceneFmt(it.v, cfg.numberFormat) : '') + (k > 0 && !pyramid ? ' · ' + pct : ''), kind: 'category', size: Math.round(cfg.labelSize * 0.86), weight: on && hl ? 750 : cfg.labelWeight, pri: 2, anchor: 'start' });
+  });
+  const height = n * (h + gap);
+  return { marks, labels, layout: pyramid ? 'pyramid' : 'funnel', hMax: height, footprint: { circle: [0, 0, Rmax + 0.3] }, grid: ringGrid(Rmax, 8, 0, Math.PI / 4), nx: n, nz: 1, maxAbs: maxV };
+}
+
+// Bubbles: one sphere per category, area by value, packed on the floor.
+function planBubbles(data, cfg, ctx) {
+  const items = firstSeriesItems(data).filter((it) => it.v > 0).sort((a, b) => b.v - a.v).slice(0, 60);
+  const maxV = items.length ? items[0].v : 1, minV = items.length ? items[items.length - 1].v : 0;
+  const rMax = 1.15, placed = [], marks = [], labels = [], hl = ctx.highlight;
+  items.forEach((it) => {
+    const r = Math.max(0.12, rMax * Math.sqrt(it.v / maxV));
+    let best = null;
+    if (!placed.length) best = [0, 0];
+    else {
+      // The free spot nearest the centre, touching one placed bubble.
+      for (const p of placed) for (let a = 0; a < 48; a++) {
+        const ang = (a / 48) * Math.PI * 2, d = p.r + r + 0.06;
+        const x = p.x + Math.cos(ang) * d, z = p.z + Math.sin(ang) * d;
+        if (placed.some((o) => Math.hypot(o.x - x, o.z - z) < o.r + r + 0.05)) continue;
+        const score = Math.hypot(x, z * 1.15);
+        if (!best || score < best[2]) best = [x, z, score];
+      }
+    }
+    placed.push({ x: best[0], z: best[1], r, it });
+  });
+  let cx = 0, cz = 0; placed.forEach((p) => { cx += p.x; cz += p.z; }); cx /= placed.length || 1; cz /= placed.length || 1;
+  let R = 0;
+  placed.forEach((p, k) => {
+    const x = p.x - cx, z = p.z - cz; R = Math.max(R, Math.hypot(x, z) + p.r);
+    const it = p.it, on = isPicked(hl, it.c, it.v, maxV, minV, false);
+    const colour = !on ? ctx.colours.quiet : ctx.colorBy === 'value' ? rampAt(ctx.ramp, it.v / maxV) : ctx.palette[it.i % ctx.palette.length];
+    marks.push({ t: 'sphere', p: [r4(x), r4(p.r), r4(z)], r: r4(p.r), c: colour, q: on ? 0 : 1, g: r4(k / placed.length), k: String(it.i) });
+    labels.push({ p: [r4(x), r4(p.r * 2 + 0.14), r4(z)], text: it.c, sub: cfg.showValues ? sceneFmt(it.v, cfg.numberFormat) : '', kind: 'value', size: Math.round(cfg.labelSize * (p.r > 0.6 ? 0.86 : 0.7)), weight: on && hl ? 750 : 600, pri: 2 + p.r, up: 1 });
+  });
+  return { marks, labels, layout: 'bubbles', hMax: rMax * 2, footprint: { circle: [0, 0, R + 0.3] }, grid: ringGrid(R, 8, 0, Math.PI / 4), nx: placed.length, nz: 1, maxAbs: maxV };
+}
+
+// Unit blocks: towers of countable cubes, one block per round unit.
+function niceUnit(x) {
+  const p = Math.pow(10, Math.floor(Math.log10(Math.max(x, 1e-9))));
+  for (const m of [1, 2, 5, 10]) if (m * p >= x) return m * p;
+  return 10 * p;
+}
+function planBlocks(data, cfg, ctx) {
+  const cats = data.categories || [], series = (data.series || []).filter((s) => s && s.values);
+  const nx = Math.max(1, cats.length), nz = Math.max(1, series.length);
+  let maxTotal = 0;
+  for (let c = 0; c < nx; c++) { let t = 0; series.forEach((s) => { const v = +s.values[c]; if (Number.isFinite(v) && v > 0) t += v; }); maxTotal = Math.max(maxTotal, t); }
+  const foot = maxTotal / niceUnit(maxTotal / 60) > 40 ? 3 : 2;
+  let unit = niceUnit(maxTotal / (foot * foot * 9));
+  let total = 0; for (let c = 0; c < nx; c++) series.forEach((s) => { const v = +s.values[c]; if (Number.isFinite(v) && v > 0) total += Math.ceil(v / unit); });
+  while (total > 1400) { unit = niceUnit(unit * 1.5); total = 0; for (let c = 0; c < nx; c++) series.forEach((s) => { const v = +s.values[c]; if (Number.isFinite(v) && v > 0) total += Math.ceil(v / unit); }); }
+  const cube = 0.26, gapC = 0.035, pitch = foot * (cube + gapC) + 0.5, xs0 = ctx.camRight[0] >= 0 ? 1 : -1, zs = ctx.camDir[2] >= 0 ? 1 : -1;
+  const marks = [], labels = [], hl = ctx.highlight;
+  for (let c = 0; c < nx; c++) {
+    const cxp = xs0 * (c - (nx - 1) / 2) * pitch;
+    let slot = 0, sum = 0;
+    series.forEach((s, si) => {
+      const v = +s.values[c]; if (!Number.isFinite(v) || v <= 0) return;
+      sum += v;
+      const on = !hl || hl.has(String(cats[c]).toLowerCase()) || hl.has(String(s.name).toLowerCase());
+      const colour = on ? ctx.palette[(nz > 1 ? si : c) % ctx.palette.length] : ctx.colours.quiet;
+      const whole = Math.floor(v / unit), part = v / unit - whole;
+      for (let b = 0; b < whole + (part > 0.02 ? 1 : 0); b++) {
+        const layer = Math.floor(slot / (foot * foot)), cell = slot % (foot * foot), fx = cell % foot, fz = Math.floor(cell / foot);
+        const hgt = b < whole ? cube : cube * part;
+        const x = cxp + (fx - (foot - 1) / 2) * (cube + gapC), z = zs * (fz - (foot - 1) / 2) * (cube + gapC), y = layer * (cube + gapC) + hgt / 2;
+        marks.push({ t: 'box', p: [r4(x), r4(y), r4(z)], s: [cube, r4(hgt), cube], c: colour, r: 0, g: r4((c + layer / 40) / nx), q: on ? 0 : 1, k: c + ':' + si });
+        slot++;
+      }
+    });
+    const layers = Math.ceil(slot / (foot * foot)), top = layers * (cube + gapC);
+    if (cfg.showValues) labels.push({ p: [r4(cxp), r4(top + 0.16), 0], text: sceneFmt(sum, cfg.numberFormat), kind: 'value', size: cfg.valueSize || Math.round(cfg.labelSize * 0.82), weight: cfg.valueWeight, pri: 2 });
+    labels.push({ p: [r4(cxp), 0, r4(zs * (foot * (cube + gapC) / 2 + 0.05))], text: String(cats[c]), kind: 'category', size: cfg.labelSize, weight: cfg.labelWeight, pri: 1, below: 1 });
+  }
+  const half = (nx - 1) / 2 * pitch + pitch / 2, depth = foot * (cube + gapC) / 2 + 0.3;
+  return { marks, labels, layout: 'blocks', hMax: 3, footprint: { rect: [-half, half, -depth, depth] }, grid: rectGrid(-half, half, -depth, depth, nx, 1), nx, nz, maxAbs: maxTotal,
+    note: 'Each block is ' + sceneFmt(unit, cfg.numberFormat === 'percent' ? 'auto' : cfg.numberFormat) };
+}
+
+// Spiral: the ordered categories coil outward from the centre, a bar at each.
+function planSpiral(data, cfg, ctx) {
+  const items = firstSeriesItems(data).slice(0, 120);
+  const n = Math.max(1, items.length);
+  const maxV = items.reduce((m, it) => Math.max(m, Math.abs(it.v)), 0) || 1, minV = items.reduce((m, it) => Math.min(m, it.v), Infinity);
+  // An Archimedean spiral with the bars an equal distance apart along it, so a
+  // long series coils into a compact disc rather than a widening fan.
+  const pitch = 0.62, b = 1.05 / (2 * Math.PI), th0 = Math.PI * 1.5, a0 = 0.5;
+  const outer = a0 + b * Math.sqrt(th0 * th0 + (2 * (n - 1) * pitch) / b), hMax = clamp(outer * 0.62, 1.4, 3.4);
+  const azr = ctx.poseAz * Math.PI / 180, marks = [], labels = [], hl = ctx.highlight, path = [];
+  let R = 0;
+  const every = Math.max(1, Math.ceil(n / 8));
+  items.forEach((it, k) => {
+    const th = Math.sqrt(th0 * th0 + (2 * k * pitch) / b), r = a0 + b * th, a = th - azr - Math.PI / 2;
+    const x = Math.cos(a) * r, z = Math.sin(a) * r, w = Math.min(0.46, pitch * 0.72);
+    R = Math.max(R, r);
+    const on = isPicked(hl, it.c, it.v, maxV, minV, k === n - 1);
+    const colour = !on ? ctx.colours.quiet : ctx.colorBy === 'category' ? ctx.palette[k % ctx.palette.length] : rampAt(ctx.ramp, Math.abs(it.v) / maxV);
+    const h = Math.max(0.02, Math.abs(it.v) / maxV * hMax);
+    marks.push({ t: 'box', p: [r4(x), r4(h / 2), r4(z)], s: [r4(w), r4(h), r4(w)], c: colour, r: r4(-a), g: r4(k / n), q: on ? 0 : 1, k: String(it.i) });
+    path.push([r4(x), 0, r4(z)]);
+    if (k % every === 0 || k === n - 1) labels.push({ p: [r4(Math.cos(a) * (r + 0.42)), 0, r4(Math.sin(a) * (r + 0.42))], text: it.c, kind: 'category', size: Math.round(cfg.labelSize * 0.8), weight: cfg.labelWeight, pri: 1, side: Math.cos(a) * ctx.camRight[0] + Math.sin(a) * ctx.camRight[2] });
+    if (cfg.showValues && (it.v === maxV || (hl && on) || k === n - 1)) labels.push({ p: [r4(x), r4(h + 0.2), r4(z)], text: sceneFmt(it.v, cfg.numberFormat), kind: 'value', size: cfg.valueSize || Math.round(cfg.labelSize * 0.82), weight: 700, pri: 3 });
+  });
+  const axisLines = [];
+  for (let i = 0; i < path.length - 1; i++) axisLines.push([path[i][0], 0.005, path[i][2], path[i + 1][0], 0.005, path[i + 1][2]]);
+  return { marks, labels, layout: 'spiral', hMax, axisLines, footprint: { circle: [0, 0, R + 0.5] }, grid: ringGrid(R, 8, 0, Math.PI / 4), nx: n, nz: 1, maxAbs: maxV };
+}
+
+// Waterfall: each change steps from the running total; a total closes the walk.
+function planWaterfall(data, cfg, ctx) {
+  const items = firstSeriesItems(data).slice(0, 40);
+  const xs0 = ctx.camRight[0] >= 0 ? 1 : -1;
+  const steps = [];
+  let run = 0;
+  items.forEach((it) => { steps.push({ c: it.c, from: run, to: run + it.v, v: it.v, i: it.i }); run += it.v; });
+  steps.push({ c: cfg.yTitle ? cfg.yTitle : 'Total', from: 0, to: run, v: run, total: true, i: -1 });
+  let lo = 0, hi = 0; steps.forEach((s) => { lo = Math.min(lo, s.from, s.to); hi = Math.max(hi, s.from, s.to); });
+  const n = steps.length, span = n - 1, hMax = clamp(span * 0.45 + 1, 2.4, 5.5), scale = hMax / Math.max(hi - lo, 1e-9);
+  const up = ctx.palette[1 % ctx.palette.length], down = ctx.palette[2 % ctx.palette.length], tot = ctx.palette[0];
+  const marks = [], labels = [], axisLines = [], hl = ctx.highlight;
+  steps.forEach((s, k) => {
+    const x = xs0 * (k - span / 2), y0 = (Math.min(s.from, s.to) - lo) * scale, y1 = (Math.max(s.from, s.to) - lo) * scale;
+    const on = !hl || hl.has(String(s.c).toLowerCase()) || (s.total && hl.has('last'));
+    const colour = !on ? ctx.colours.quiet : s.total ? tot : s.v >= 0 ? up : down;
+    marks.push({ t: 'box', p: [r4(x), r4((y0 + y1) / 2), 0], s: [0.62, r4(Math.max(0.02, y1 - y0)), 0.62], c: colour, r: 0, g: r4(k / n), q: on ? 0 : 1, k: String(k) });
+    if (k < n - 1) { const ly = (s.to - lo) * scale; axisLines.push([r4(x + xs0 * 0.31), r4(ly), 0.31, r4(x + xs0 * 0.69), r4(ly), 0.31]); }
+    if (cfg.showValues) labels.push({ p: [r4(x), r4(y1 + 0.2), 0], text: (s.total || s.v < 0 ? '' : '+') + sceneFmt(s.v, cfg.numberFormat), kind: 'value', size: cfg.valueSize || Math.round(cfg.labelSize * 0.8), weight: s.total ? 750 : cfg.valueWeight, pri: s.total ? 3 : 2 });
+    labels.push({ p: [r4(x), 0, 0.36], text: s.c, kind: 'category', size: cfg.labelSize, weight: s.total ? 700 : cfg.labelWeight, pri: 1, below: 1 });
+  });
+  const half = span / 2 + 0.6;
+  return { marks, labels, layout: 'waterfall', hMax, axisLines, footprint: { rect: [-half, half, -0.6, 0.6] }, grid: rectGrid(-half, half, -0.6, 0.6, n, 1), nx: n, nz: 1, maxAbs: hi - lo,
+    legend: { items: [{ label: 'Increase', colour: up }, { label: 'Decrease', colour: down }, { label: 'Total', colour: tot }] } };
+}
+
+// Gates: a ring per category standing on the floor, sized by value, in a line
+// the camera flies through. Several series nest as rings within each gate.
+function planGates(data, cfg, ctx) {
+  const cats = (data.categories || []).slice(0, 30), series = (data.series || []).filter((s) => s && s.values).slice(0, 4);
+  const n = Math.max(1, cats.length), nz = Math.max(1, series.length);
+  let maxV = 0; series.forEach((s) => s.values.slice(0, n).forEach((v) => { if (Number.isFinite(+v)) maxV = Math.max(maxV, Math.abs(+v)); }));
+  maxV = maxV || 1;
+  const spacing = 2.4, rMax = 1.8, marks = [], labels = [], centres = [];
+  for (let c = 0; c < n; c++) {
+    const z = (n - 1) / 2 * spacing - c * spacing;
+    const v0 = series[0] ? Math.abs(+series[0].values[c]) || 0 : 0;
+    const r0 = 0.35 + (rMax - 0.35) * (v0 / maxV);
+    // Every gate shares one axis, so the camera flies straight through them all.
+    const cy = rMax + 0.3;
+    centres.push({ c, z, cy, r: r0, v: series[0] ? +series[0].values[c] : 0 });
+    series.forEach((s, si) => {
+      const v = Math.abs(+s.values[c]); if (!Number.isFinite(v)) return;
+      const r = 0.35 + (rMax - 0.35) * (v / maxV);
+      const colour = nz > 1 ? ctx.palette[si % ctx.palette.length] : (ctx.colorBy === 'category' ? ctx.palette[c % ctx.palette.length] : rampAt(ctx.ramp, v / maxV));
+      marks.push({ t: 'mesh', f: ringFaces(cy, z, Math.max(0.2, r), 0.16 + 0.04 * (nz - si), 0.22, 56), c: colour, q: 0, g: r4(c / n), k: String(c) });
+    });
+    labels.push({ p: [r4(r0 + 0.3), r4(cy), r4(z)], text: String(cats[c]), sub: cfg.showValues && series[0] ? sceneFmt(+series[0].values[c], cfg.numberFormat) : '', kind: 'category', size: Math.round(cfg.labelSize * 0.86), weight: cfg.labelWeight, pri: 1, anchor: 'start' });
+  }
+  const half = (n - 1) / 2 * spacing + 1.2;
+  return { marks, labels, layout: 'gates', hMax: rMax * 2 + 0.2, footprint: { rect: [-rMax - 0.6, rMax + 0.6, -half, half] }, grid: rectGrid(-rMax - 0.6, rMax + 0.6, -half, half, 4, Math.max(2, n)), nx: n, nz, maxAbs: maxV, gates: centres };
+}
+
+// Tiles: a heat map raised into columns, one tile per category and series,
+// height and colour both by value.
+function planTiles(data, cfg, ctx) {
+  const cats = data.categories || [], series = (data.series || []).filter((s) => s && s.values);
+  const nx = Math.max(1, cats.length), nz = Math.max(1, series.length);
+  let maxAbs = 0, maxVal = -Infinity, minVal = Infinity;
+  series.forEach((s) => s.values.forEach((v) => { if (Number.isFinite(+v)) { maxAbs = Math.max(maxAbs, Math.abs(+v)); maxVal = Math.max(maxVal, +v); minVal = Math.min(minVal, +v); } }));
+  maxAbs = Math.max(maxAbs, cfg.yMax || 0, 1e-9);
+  const xs0 = ctx.camRight[0] >= 0 ? 1 : -1, zs = ctx.camDir[2] >= 0 ? 1 : -1;
+  const hMax = clamp(Math.max(nx, nz) * 0.22 + 0.6, 1.2, 3.2), size = 0.92, hl = ctx.highlight;
+  const marks = [], labels = [], showAll = cfg.showValues && nx * nz <= 36;
+  for (let si = 0; si < nz; si++) for (let ci = 0; ci < nx; ci++) {
+    const v = +series[si].values[ci]; if (!Number.isFinite(v)) continue;
+    const x = xs0 * (ci - (nx - 1) / 2), z = zs * (si - (nz - 1) / 2), h = Math.max(0.03, Math.abs(v) / maxAbs * hMax);
+    const on = !hl || hl.has(String(cats[ci]).toLowerCase()) || hl.has(String(series[si].name).toLowerCase()) || (hl.has('max') && v === maxVal) || (hl.has('min') && v === minVal) || (hl.has('last') && ci === nx - 1);
+    const colour = on ? rampAt(ctx.ramp, Math.abs(v) / maxAbs) : ctx.colours.quiet;
+    marks.push({ t: 'box', p: [r4(x), r4(v < 0 ? -h / 2 : h / 2), r4(z)], s: [size, r4(h), size], c: colour, r: 0, g: r4((ci + si * nx) / (nx * nz)), q: on ? 0 : 1, k: ci + ':' + si });
+    if (cfg.showValues && (showAll || v === maxVal || (hl && on))) labels.push({ p: [r4(x), r4(Math.max(0, h) + 0.18), r4(z)], text: sceneFmt(v, cfg.numberFormat), kind: 'value', size: cfg.valueSize || Math.round(cfg.labelSize * 0.74), weight: cfg.valueWeight, pri: v === maxVal ? 3 : 2 });
+  }
+  const front = zs * ((nz - 1) / 2 + 0.55), every = Math.max(1, Math.ceil(nx / 16));
+  cats.forEach((c, ci) => { if (ci % every === 0 || ci === nx - 1) labels.push({ p: [r4(xs0 * (ci - (nx - 1) / 2)), 0, r4(front)], text: String(c), kind: 'category', size: cfg.labelSize, weight: cfg.labelWeight, pri: 1, below: 1 }); });
+  const side = xs0 * ((nx - 1) / 2 + 0.6);
+  series.forEach((s, si) => labels.push({ p: [r4(side), 0.02, r4(zs * (si - (nz - 1) / 2))], text: String(s.name), kind: 'series', size: Math.round(cfg.labelSize * 0.86), weight: cfg.labelWeight, pri: 1, anchor: xs0 > 0 ? 'start' : 'end' }));
+  const hx = nx / 2 + 0.2, hz = nz / 2 + 0.2;
+  return { marks, labels, layout: 'tiles', hMax, footprint: { rect: [-hx, hx, -hz, hz] }, grid: rectGrid(-hx, hx, -hz, hz, nx, nz), nx, nz, maxAbs,
+    legend: { ramp: { stops: ctx.ramp, min: sceneFmt(0, cfg.numberFormat), max: sceneFmt(maxAbs, cfg.numberFormat), title: cfg.yTitle || 'Value' } } };
+}
+
+// ── directed cinematic forms ──
+// A directed form is a list of beats. The camera arrives at a pose, holds it
+// while a caption reads, then moves on to the next. Every pose is solved here,
+// as the still camera is, so the adapter only eases between them and the
+// still and the vector export are the closing wide shot.
+const DIRECTED_FORMS = { tour3d: 'bars', countdown3d: 'bars', reveal3d: 'bars', tunnel3d: 'gates', terrain3d: 'surface' };
+
+function boxCorners(m) {
+  const pts = [], hw = m.s[0] / 2, hh = m.s[1] / 2, hd = m.s[2] / 2;
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) for (const sz of [-1, 1]) pts.push([m.p[0] + sx * hw, m.p[1] + sy * hh, m.p[2] + sz * hd]);
+  return pts;
+}
+// The safe rectangle shrunk about its centre: a subject framed into it fills
+// that share of the frame, with the rest of the chart in view.
+function shrinkSafe(safe, k) {
+  const cx = (safe.x0 + safe.x1) / 2, cy = (safe.y0 + safe.y1) / 2, hw = (safe.x1 - safe.x0) / 2 * k, hh = (safe.y1 - safe.y0) / 2 * k;
+  return { x0: cx - hw, x1: cx + hw, y0: cy - hh, y1: cy + hh };
+}
+
+function planShots(form, layout, data, cfg, wide, solve) {
+  const beats = [], fmt = (v) => sceneFmt(v, cfg.numberFormat);
+  const cats = data.categories || [], series = data.series || [];
+  const wideBeat = (hold, move) => ({ hold, move, az: wide.az, el: wide.el, dist: wide.dist, look: wide.target.slice(), fov: wide.fov, shift: wide.shift.slice(), focus: null, cap: null });
+  // A close shot of one mark, framed to fill `share` of the frame from (az,
+  // el). `head` frames only the top of a bar and the value above it.
+  const close = (m, az, el, share, head) => {
+    let pts = m.t === 'box' ? boxCorners(m) : [m.p];
+    if (head && m.t === 'box') {
+      const top = m.p[1] + m.s[1] / 2, hh = Math.min(m.s[1], Math.max(0.9, m.s[1] * 0.3));
+      pts = pts.map((q) => [q[0], q[1] > m.p[1] ? top : top - hh, q[2]]).concat([[m.p[0], top + 0.45, m.p[2]]]);
+    }
+    let x = 0, y = 0, z = 0; pts.forEach((q) => { x += q[0]; y += q[1]; z += q[2]; });
+    const centre = [x / pts.length, y / pts.length, z / pts.length];
+    const f = solve(pts, az, el, centre, share);
+    return { az: r4(az), el: r4(el), dist: r4(f.dist), look: centre.map(r4), fov: f.lens.fov, shift: f.shift.map(r4) };
+  };
+  const nameOf = (m) => {
+    const parts = String(m.k || '').split(':'), ci = +parts[0], si = +parts[1];
+    const v = series[si] ? +series[si].values[ci] : NaN;
+    return { ci, si, v, title: String(cats[ci] != null ? cats[ci] : '') + (series.length > 1 && series[si] ? ' · ' + series[si].name : '') };
+  };
+  const boxes = layout.marks.filter((m) => m.t === 'box');
+  if (form === 'tour3d' && boxes.length) {
+    // Visit the marks worth naming: what Highlight picks, else the highest, the
+    // lowest and the latest. A short table gets every mark.
+    const named = boxes.map((m) => Object.assign({ m }, nameOf(m))).filter((x) => Number.isFinite(x.v));
+    let visits = [];
+    if (layout.picked && layout.picked.length) visits = named.filter((x) => layout.picked.indexOf(x.m.k) >= 0).slice(0, 6).map((x) => Object.assign(x, { why: '' }));
+    else if (named.length <= 5) visits = named.map((x) => Object.assign(x, { why: '' }));
+    else {
+      const byV = named.slice().sort((a, b) => b.v - a.v), last = named.filter((x) => x.ci === cats.length - 1);
+      const add = (x, why) => { if (x && visits.indexOf(x) < 0) visits.push(Object.assign(x, { why })); };
+      add(byV[0], 'Highest'); add(byV[byV.length - 1], 'Lowest'); add(last[0], 'Latest');
+      visits.sort((a, b) => a.ci - b.ci || a.si - b.si);
+    }
+    beats.push(wideBeat(1.4, 0));
+    visits.forEach((x, i) => beats.push(Object.assign(close(x.m, wide.az + (i % 2 ? 20 : -16), 20 + (i % 3) * 5, 0.74), {
+      hold: 2, move: 1.5, focus: [x.m.k], cap: { title: x.title, value: fmt(x.v), sub: x.why },
+    })));
+    beats.push(wideBeat(2, 1.8));
+  } else if (form === 'countdown3d' && boxes.length) {
+    // The bars stand in rank order, smallest first. The camera counts down to
+    // the largest; each bar rises as the camera reaches it.
+    const ranked = boxes.map((m) => Object.assign({ m }, nameOf(m))).filter((x) => Number.isFinite(x.v));
+    const n = ranked.length, shown = Math.min(8, n);
+    const first = ranked[0] ? ranked[0].m : boxes[0];
+    beats.push(Object.assign(close(first, wide.az - 34, 12, 0.24), { hold: n > shown ? 1.8 : 1, move: 0, focus: null, cap: null, rises: ranked.slice(0, n - shown).map((x) => x.m.k) }));
+    ranked.slice(n - shown).forEach((x, i) => {
+      const rank = shown - i;
+      beats.push(Object.assign(close(x.m, wide.az + (i % 2 ? 14 : -12), 12 + Math.min(10, i * 1.5), 0.46 + 0.04 * (shown - rank) / shown), {
+        hold: rank === 1 ? 2.2 : 1.5, move: 1, focus: [x.m.k], cap: { title: '#' + rank + '  ' + x.title, value: fmt(x.v), sub: rank === 1 ? 'The largest' : '' }, rises: [x.m.k],
+      }));
+    });
+    beats.push(wideBeat(2, 1.7));
+  } else if (form === 'reveal3d' && boxes.length) {
+    // Open tight on one mark, then pull back to show it among all the rest.
+    const named = boxes.map((m) => Object.assign({ m }, nameOf(m))).filter((x) => Number.isFinite(x.v));
+    let hero = layout.picked && layout.picked.length ? named.find((x) => layout.picked.indexOf(x.m.k) >= 0) : null;
+    if (!hero) hero = named.slice().sort((a, b) => b.v - a.v)[0];
+    if (hero) {
+      const total = named.reduce((s, x) => s + x.v, 0);
+      beats.push(Object.assign(close(hero.m, wide.az - 24, 6, 0.6, true), { hold: 1.8, move: 0, focus: [hero.m.k], cap: { title: hero.title, value: fmt(hero.v), sub: total > 0 && hero.v > 0 && named.length > 1 ? Math.round(hero.v / total * 100) + '% of the total' : '' } }));
+    }
+    beats.push(wideBeat(2.6, 4.4));
+  } else if (form === 'tunnel3d' && layout.gates && layout.gates.length) {
+    // Fly the gates' common axis, from the first category to the last.
+    const g = layout.gates, spacing = g.length > 1 ? Math.abs(g[0].z - g[1].z) : 2.4;
+    const per = g.length > 16 ? 0.55 : 0.85;
+    beats.push(wideBeat(1, 0));
+    g.forEach((gate, i) => beats.push({
+      hold: per * 0.35, move: i === 0 ? 1.6 : per, az: 0, el: 1.5, dist: r4(spacing * 0.92), look: [0, r4(gate.cy), r4(gate.z)], fov: 62, shift: [0, 0], focus: null,
+      cap: { title: String(cats[gate.c] != null ? cats[gate.c] : ''), value: fmt(gate.v), sub: series[0] ? String(series[0].name) : '' },
+    }));
+    beats.push(wideBeat(1.8, 2.2));
+  } else if (form === 'terrain3d' && layout.spots) {
+    // Sweep in low across the land, rise over the peak, find the low ground and
+    // climb out to the whole map.
+    // Every pose keeps the camera clear of the highest ground.
+    const D = wide.dist, sp = layout.spots, ceiling = (layout.hMax || 3) + 0.9;
+    const above = (look, el, dist) => Math.max(el, Math.asin(clamp((ceiling - look[1]) / dist, 0, 0.99)) * 180 / Math.PI);
+    const pose = (az, el, dist, look, fov) => ({ az: r4(az), el: r4(above(look, el, dist)), dist: r4(dist), look: look.map(r4), fov, shift: [0, 0] });
+    beats.push(Object.assign(pose(wide.az - 58, 10, D * 1.1, wide.target, 40), { hold: 0.8, move: 0, focus: null, cap: null }));
+    const label = (s) => String(cats[s.ci] != null ? cats[s.ci] : '') + (series[s.si] ? ' · ' + series[s.si].name : '');
+    if (sp.peak) beats.push(Object.assign(pose(wide.az + 24, 34, D * 0.55, sp.peak.p, 38), { hold: 1.9, move: 2.6, focus: null, cap: { title: label(sp.peak), value: fmt(sp.peak.v), sub: 'The peak' } }));
+    // The low point often sits at an edge, so its shot keeps some of the land around it.
+    const lowLook = sp.low ? sp.low.p.map((v, i) => v + (wide.target[i] - v) * 0.35) : null;
+    if (sp.low) beats.push(Object.assign(pose(wide.az - 20, 40, D * 0.78, lowLook, 38), { hold: 1.7, move: 2.3, focus: null, cap: { title: label(sp.low), value: fmt(sp.low.v), sub: 'The low point' } }));
+    beats.push(wideBeat(2, 2.4));
+  } else beats.push(wideBeat(1, 0));
+  // Times as fractions of the clip: each beat is reached at t0 and left at t1.
+  let total = 0;
+  beats.forEach((b) => { total += b.move + b.hold; });
+  let at = 0;
+  const out = beats.map((b) => {
+    at += b.move; const t0 = at / total; at += b.hold; const t1 = at / total;
+    return { t0: r4(t0), t1: r4(t1), az: r4(b.az), el: r4(b.el), dist: r4(b.dist), look: b.look.map(r4), fov: b.fov, shift: b.shift.map(r4), focus: b.focus, cap: b.cap, rises: b.rises || null };
+  });
+  return { beats: out, seconds: r4(total), grows: form === 'countdown3d' };
+}
+
 // The world points a frame must hold: every mark's extremes and the label
 // anchors. Floors and grids are left out, so they bleed past the edges.
 function scenePoints(layout) {
@@ -2378,6 +2947,8 @@ function scenePoints(layout) {
       m.pts.forEach((p) => pts.push(p, [p[0], 0, p[2]]));
     } else if (m.t === 'surface') {
       for (let i = 0; i < m.pts.length; i += 3 * 3) pts.push([m.pts[i], m.pts[i + 1], m.pts[i + 2]], [m.pts[i], 0, m.pts[i + 2]]);
+    } else if (m.t === 'mesh') {
+      for (const f of m.f) for (const v of f.v) pts.push(v);
     }
   }
   for (const l of layout.labels) pts.push(l.p);
@@ -2419,39 +2990,76 @@ function placeSceneLabels(labels, project, W, H, pad, bottom) {
   return placed;
 }
 
+// The layout for each scene type, and the family it belongs to: the family
+// decides the legend, the stage grid and how the camera is chosen.
+const SCENE_LAYOUTS = {
+  bar3d: ['bars', planBars], donut3d: ['donut', planDonut], scatter3d: ['scatter', planScatter], surface3d: ['surface', planSurface],
+  area3d: ['walls', planWalls], tiles3d: ['tiles', planTiles], city3d: ['city', planCity], rose3d: ['rose', planRose],
+  funnel3d: ['funnel', planFunnel], bubbles3d: ['bubbles', planBubbles], blocks3d: ['blocks', planBlocks],
+  spiral3d: ['spiral', planSpiral], waterfall3d: ['waterfall', planWaterfall],
+  tour3d: ['bars', planBars], countdown3d: ['bars', planBars], reveal3d: ['bars', planBars], tunnel3d: ['gates', planGates], terrain3d: ['surface', planSurface],
+};
+// Families whose marks go round a centre: the camera's angle is part of the
+// layout, so the hero pose does not try other angles.
+const ROUND_FAMILIES = ['donut', 'rose', 'funnel', 'spiral', 'bubbles'];
+
+// A countdown ranks the first series, smallest first.
+function rankedData(data) {
+  const s = (data.series || [])[0];
+  if (!s) return data;
+  const rows = (data.categories || []).map((c, i) => ({ c, v: +s.values[i] })).filter((r) => Number.isFinite(r.v)).sort((a, b) => a.v - b.v);
+  return Object.assign({}, data, { categories: rows.map((r) => r.c), series: [Object.assign({}, s, { values: rows.map((r) => r.v) })] });
+}
+
 // Build the whole plan for one chart.
 function planScene(data, cfg) {
   const W = cfg.width, H = cfg.height, aspect = W / H;
-  const kind = cfg.chartType === 'scatter3d' ? 'scatter' : cfg.chartType === 'surface3d' ? 'surface'
-    : cfg.chartType === 'donut3d' ? 'donut' : CINEMATIC_TYPES.indexOf(cfg.chartType) >= 0 ? 'flight' : 'bars';
+  const isFlight = FLIGHT_TYPES.indexOf(cfg.chartType) >= 0;
+  const directed = DIRECTED_TYPES.indexOf(cfg.chartType) >= 0 ? cfg.chartType : null;
+  const entry = SCENE_LAYOUTS[cfg.chartType];
+  const kind = isFlight ? 'flight' : entry ? entry[0] : 'bars';
   const stage = SCENE_STAGES.indexOf(cfg.sceneStage) >= 0 ? cfg.sceneStage : 'studio';
   const colours = sceneStageColours(cfg, stage);
   const palette = sceneCategorical(cfg, colours);
   const ramp = sceneRamp(cfg, colours);
-  const poseName = kind === 'flight' ? 'hero' : (cfg.scenePose || 'hero');
+  const cinematic = isFlight || !!directed;
+  const poseName = cinematic ? 'hero' : (cfg.scenePose || 'hero');
+  const view = cinematic ? null : sceneViewOf(cfg.sceneView);
+  const adjusted = !!view && !sceneViewIsPlain(view);
   let poseDef = poseName === 'custom' ? { az: cfg.cameraAzimuth, el: cfg.cameraElevation } : (SCENE_POSES[poseName] || SCENE_POSES.hero);
-  const lensKind = poseDef.lens || (kind === 'flight' ? 'perspective' : (['wide', 'long', 'orthographic'].indexOf(cfg.cameraProjection) >= 0 ? cfg.cameraProjection : 'perspective'));
-  const colorBy = kind === 'surface' ? 'value' : cfg.colorBy;
+  const lensKind = poseDef.lens || (cinematic ? 'perspective' : (['wide', 'long', 'orthographic'].indexOf(cfg.cameraProjection) >= 0 ? cfg.cameraProjection : 'perspective'));
+  const colorBy = kind === 'surface' || kind === 'tiles' ? 'value' : cfg.colorBy;
   // A ring hides its far side from a low camera, so its hero view looks down more.
   if (poseName === 'hero' && kind === 'bars' && cfg.sceneLayout === 'ring') poseDef = Object.assign({}, poseDef, { el: 40 });
+  if (poseName === 'hero' && (kind === 'rose' || kind === 'bubbles' || kind === 'tiles')) poseDef = Object.assign({}, poseDef, { el: 38 });
+  if (poseName === 'hero' && kind === 'spiral') poseDef = Object.assign({}, poseDef, { el: 46 });
+  if (poseName === 'hero' && kind === 'gates') poseDef = Object.assign({}, poseDef, { az: 28, el: 16 });
   const baseBasis = camBasis(poseDef.az, poseDef.el);
   const ctx = { colours, palette, ramp, colorBy, highlight: sceneHighlightSet(cfg), poseAz: poseDef.az, camDir: baseBasis.dir, camRight: baseBasis.right };
-  const layout = kind === 'scatter' ? planScatter(data, cfg, ctx) : kind === 'surface' ? planSurface(data, cfg, ctx)
-    : kind === 'donut' ? planDonut(data, cfg, ctx) : kind === 'flight' ? planFlight(data, cfg, ctx) : planBars(data, cfg, ctx);
+  // Directed bars stand in one row, so the camera can visit each.
+  let layoutCfg = cfg;
+  if (directed && kind === 'bars') layoutCfg = Object.assign({}, cfg, { sceneLayout: directed === 'countdown3d' ? 'grouped' : (cfg.sceneLayout === 'grid' || cfg.sceneLayout === 'stacked' ? cfg.sceneLayout : 'grouped') });
+  const layoutData = directed === 'countdown3d' ? rankedData(data) : data;
+  const layout = isFlight ? planFlight(data, cfg, ctx) : (entry ? entry[1] : planBars)(layoutData, layoutCfg, ctx);
+  if (ctx.highlight) layout.picked = layout.marks.filter((m) => !m.q && m.k != null).map((m) => m.k);
 
   // Legend: series for bars and flights, groups or a ramp where the layout says.
   let legend = layout.legend || null;
-  if (!legend && kind === 'bars' && colorBy === 'value') legend = { ramp: { stops: ramp, min: sceneFmt(0, cfg.numberFormat), max: sceneFmt(layout.maxAbs, cfg.numberFormat), title: cfg.yTitle || 'Value' } };
-  else if (!legend && (kind === 'bars' || kind === 'flight') && colorBy !== 'category' && (data.series || []).length > 1) {
+  const seriesFamilies = ['bars', 'flight', 'walls', 'blocks'];
+  const valueFamilies = ['bars', 'city', 'rose', 'funnel', 'bubbles', 'spiral'];
+  if (!legend && valueFamilies.indexOf(kind) >= 0 && (colorBy === 'value' || (kind === 'spiral' && colorBy !== 'category'))) legend = { ramp: { stops: ramp, min: sceneFmt(0, cfg.numberFormat), max: sceneFmt(layout.maxAbs, cfg.numberFormat), title: cfg.yTitle || 'Value' } };
+  else if (!legend && seriesFamilies.indexOf(kind) >= 0 && colorBy !== 'category' && (data.series || []).length > 1 && directed !== 'countdown3d') {
     legend = { items: (data.series || []).map((s, i) => ({ label: String(s.name), colour: palette[i % palette.length] })) };
   } else if (!legend && kind === 'donut' && !cfg.showValues) {
     legend = { items: (data.categories || []).map((c, i) => ({ label: String(c), colour: palette[i % palette.length] })) };
   }
   if (!cfg.showLegend) legend = null;
-  const overlay = sceneOverlay(cfg, legend, kind === 'flight');
+  // Unit blocks always say what one block counts, legend or not.
+  if (layout.note) legend = { items: ((legend && legend.items) || []).concat([{ label: layout.note, colour: null }]) };
+  const overlay = sceneOverlay(cfg, legend, cinematic);
 
   // The safe rectangle in NDC. Framing chooses the margin.
-  const framing = ['fit', 'close', 'room'].indexOf(cfg.sceneFraming) >= 0 ? cfg.sceneFraming : 'fit';
+  const framing = ['fit', 'close', 'room'].indexOf(cfg.sceneFraming) >= 0 && !cinematic ? cfg.sceneFraming : 'fit';
   const inset = framing === 'room' ? overlay.pad * 2.4 : overlay.pad * 0.6;
   const labelPad = Math.round(cfg.labelSize * 0.6);
   const px = { x0: inset + labelPad, x1: W - inset - labelPad, y0: overlay.top + labelPad, y1: overlay.bottom - labelPad * 0.5 };
@@ -2469,14 +3077,14 @@ function planScene(data, cfg) {
   let bx0 = Infinity, bx1 = -Infinity, by0 = Infinity, by1 = -Infinity, bz0 = Infinity, bz1 = -Infinity;
   for (const p of points) { bx0 = Math.min(bx0, p[0]); bx1 = Math.max(bx1, p[0]); by0 = Math.min(by0, p[1]); by1 = Math.max(by1, p[1]); bz0 = Math.min(bz0, p[2]); bz1 = Math.max(bz1, p[2]); }
   const target = [(bx0 + bx1) / 2, (by0 + by1) / 2, (bz0 + bz1) / 2];
-  const motion = kind === 'flight' ? 'data-flight' : (cfg.motionPreset || 'none');
+  const motion = isFlight ? 'data-flight' : directed ? 'shots' : (cfg.motionPreset || 'none');
   const orbit = motion === 'orbit' || motion === 'reveal-orbit';
   const arc = motion === 'arc' ? 26 : 0;
   const scale = framing === 'close' ? 1.38 : 1;
 
   // Choose the pose: the hero tries its candidate azimuths and keeps the
   // fullest frame. A camera that moves is framed for every angle it visits.
-  const cands = poseName === 'hero' && kind !== 'donut' && !orbit ? SCENE_POSES.hero.candidates : [poseDef.az];
+  const cands = poseName === 'hero' && ROUND_FAMILIES.indexOf(kind) < 0 && kind !== 'gates' && !orbit && !cinematic ? SCENE_POSES.hero.candidates : [poseDef.az];
   let best = null;
   for (const az of cands) {
     const f = fitPose(points, { az, el: poseDef.el }, lensKind, aspect, safe, target, 1);
@@ -2531,6 +3139,33 @@ function planScene(data, cfg) {
     projector = makeProjector(camera, W, H);
     placed = placeSceneLabels(layout.labels, projector.project, W, H, overlay.pad, labelFloor);
   }
+  // The chosen camera, framed. A view adjusted on the canvas is measured from
+  // here, so the view a drag leaves is exactly the view that is saved.
+  camera.view = { az: camera.az, el: camera.el, dist: camera.dist, half: camera.half, shift: camera.shift.slice() };
+  if (adjusted) {
+    camera.az = r4(camera.az + view.az);
+    camera.el = r4(clamp(camera.el + view.el, -10, 85));
+    if (camera.ortho) camera.half = r4(Math.max(0.02, camera.half / view.zoom)); else camera.dist = r4(Math.max(0.2, camera.dist / view.zoom));
+    camera.shift = [r4(camera.shift[0] + view.x), r4(camera.shift[1] + view.y)];
+    camera.far = r4(Math.max(camera.far, camera.dist + cam.radius * 6 + 60));
+    projector = makeProjector(camera, W, H);
+    placed = placeSceneLabels(layout.labels, projector.project, W, H, overlay.pad, labelFloor);
+  }
+
+  // Directed forms: the beats, each pose solved into the same safe area.
+  let shots = null;
+  if (directed) {
+    const solve = (pts, az, el, centre, share) => fitPose(pts, { az, el }, 'perspective', aspect, shrinkSafe(safe, share), centre, 1);
+    shots = planShots(directed, layout, layoutData, cfg, camera, solve);
+    if (shots.grows) {
+      // Each bar rises as the camera reaches it; those before the first stop
+      // rise in turn while the opening shot holds.
+      const at = {};
+      shots.beats.forEach((b, i) => (b.rises || []).forEach((k, j, all) => { at[k] = i === 0 ? r4(b.t1 * (j + 1) / (all.length + 1)) : b.t0; }));
+      layout.marks.forEach((m) => { if (at[m.k] != null) m.g = at[m.k]; });
+    }
+    camera.far = r4(Math.max(camera.far, cam.radius * 8 + 80));
+  }
   const footprint = layout.footprint;
   return {
     version: 1, kind, layout: layout.layout, W, H,
@@ -2543,9 +3178,11 @@ function planScene(data, cfg) {
     marks: layout.marks, labels: layout.labels, placed, legend, overlay, camera,
     bounds: { min: [bx0, by0, bz0].map(r4), max: [bx1, by1, bz1].map(r4) },
     flight: layout.flight || null,
+    shots,
+    note: layout.note || '',
     font: cfg.fontFamily || null,
     uid: 'c3' + sceneHash(JSON.stringify([layout.marks, colours, camera, W, H])),
-    poster: motion === 'reveal' ? 0.8 : motion === 'stagger' ? 0.92 : motion === 'reveal-orbit' ? 0.9999 : motion === 'data-flight' ? 0.16 : 0,
+    poster: motion === 'reveal' ? 0.8 : motion === 'stagger' ? 0.92 : motion === 'reveal-orbit' ? 0.9999 : motion === 'data-flight' ? 0.16 : motion === 'shots' ? 0.9999 : 0,
   };
 }
 
@@ -2668,6 +3305,14 @@ function sceneVectorSvg(plan, cfg) {
   for (const m of plan.marks) {
     if (m.t === 'box') pushBoxFaces(items, m);
     else if (m.t === 'sector') pushSectorFaces(items, m);
+    else if (m.t === 'mesh') {
+      // Each visible face is drawn on its own, sorted with every other face.
+      for (const f of m.f) {
+        const n = f.v.length, ctr = [0, 1, 2].map((k) => f.v.reduce((a, q) => a + q[k], 0) / n);
+        if (!facing(ctr, f.n)) continue;
+        items.push({ d: project(ctr)[2], svg: faceSvg(f.v.map(project), sceneShade(m.c, f.n, light, plan.finish), m.o == null ? 1 : m.o) });
+      }
+    }
     else if (m.t === 'sphere') {
       const q = project(m.p), r = Math.max(1.2, m.r * q[3]);
       // One shading gradient per colour, shared by every sphere of that colour.
@@ -2772,8 +3417,12 @@ function sceneOverlaySvg(plan, placed, idp) {
     } else lg.rows.forEach((row, ri) => {
       let x = lg.x; const y = lg.y + ri * lg.rowH;
       row.forEach((it) => {
-        out.push('<rect x="' + r4(x) + '" y="' + r4(y - lg.sw * 0.85) + '" width="' + lg.sw + '" height="' + lg.sw + '" rx="' + Math.min(lg.sw / 2, lg.radius || 3) + '" fill="' + it.colour + '"/>');
-        out.push('<text x="' + r4(x + lg.sw + 8) + '" y="' + r4(y) + '" font-size="' + lg.fs + '" fill="' + C.text + '">' + xml(it.label) + '</text>');
+        // An item with no colour is a note, such as what one unit block counts.
+        if (!it.colour) out.push('<text x="' + r4(x) + '" y="' + r4(y) + '" font-size="' + lg.fs + '" fill="' + C.text + '" fill-opacity=".72">' + xml(it.label) + '</text>');
+        else {
+          out.push('<rect x="' + r4(x) + '" y="' + r4(y - lg.sw * 0.85) + '" width="' + lg.sw + '" height="' + lg.sw + '" rx="' + Math.min(lg.sw / 2, lg.radius || 3) + '" fill="' + it.colour + '"/>');
+          out.push('<text x="' + r4(x + lg.sw + 8) + '" y="' + r4(y) + '" font-size="' + lg.fs + '" fill="' + C.text + '">' + xml(it.label) + '</text>');
+        }
         x += it.w + lg.gap;
       });
     });
@@ -2936,13 +3585,19 @@ function compute(model, inputPatch) {
   if (cfg.chartType === 'scatter3d' && (!data.numericCols || data.numericCols.length < 3)) {
     data.note = appendNote(data.note, '3-D scatter needs at least three numeric columns for x, y and z.');
   }
-  if (cfg.chartType === 'donut3d' && data.series && data.series.length > 1) {
-    data.note = appendNote(data.note, 'A 3-D donut draws the first numeric series; choose another with Value columns.');
+  if (FIRST_SERIES_SCENES.indexOf(cfg.chartType) >= 0 && data.series && data.series.length > 1) {
+    data.note = appendNote(data.note, (cfg.chartType === 'donut3d' ? 'A 3-D donut' : 'This 3-D chart') + ' draws the first numeric series; choose another with Value columns.');
   }
-  if (cfg.chartType === 'surface3d' && (!data.series || data.series.length < 2 || !data.categories || data.categories.length < 2)) {
+  if (cfg.chartType === 'countdown3d' && data.series && data.series.length > 1) {
+    data.note = appendNote(data.note, 'A countdown ranks the first numeric series; choose another with Value columns.');
+  }
+  if (cfg.chartType === 'waterfall3d' && data.categories && data.categories.length < 2) {
+    data.note = appendNote(data.note, 'A waterfall needs at least two rows of changes.');
+  }
+  if ((cfg.chartType === 'surface3d' || cfg.chartType === 'terrain3d') && (!data.series || data.series.length < 2 || !data.categories || data.categories.length < 2)) {
     data.note = appendNote(data.note, 'A surface needs at least two categories and two numeric series.');
   }
-  if (CINEMATIC_TYPES.indexOf(cfg.chartType) >= 0) {
+  if (FLIGHT_TYPES.indexOf(cfg.chartType) >= 0) {
     if (!data.series || !data.series.length || !data.categories || data.categories.length < 2) {
       data.note = appendNote(data.note, 'A cinematic flight needs at least two ordered categories and one numeric series.');
     }
@@ -2989,7 +3644,7 @@ function compute(model, inputPatch) {
   const report = {
     version: 1,
     rendererFamily: spec.presentation.rendererFamily,
-    rendererId: useThree ? (CINEMATIC_TYPES.indexOf(cfg.chartType) >= 0 ? 'three-data-flight' : 'three-webgl') : usePlot ? 'observable-plot-svg' : 'd3-svg-compat',
+    rendererId: useThree ? (FLIGHT_TYPES.indexOf(cfg.chartType) >= 0 ? 'three-data-flight' : DIRECTED_TYPES.indexOf(cfg.chartType) >= 0 ? 'three-directed-shots' : 'three-webgl') : usePlot ? 'observable-plot-svg' : 'd3-svg-compat',
     style: spec.presentation.style,
     dimension: spec.presentation.dimension,
     exportFidelity: spec.presentation.exportFidelity,
@@ -3074,7 +3729,7 @@ async function onInit({ model }) {
   const modePatch = legacyModePatch(model);
   const guidedPatch = recommendationInputPatch(model, modePatch, null);
   const priorPatch = Object.assign({}, modePatch, guidedPatch);
-  const inputPatch = Object.assign(priorPatch, scenePatch(model, priorPatch));
+  const inputPatch = Object.assign(priorPatch, scenePatch(model, priorPatch, null));
   return Object.assign(compute(model, inputPatch), inputPatch);
 }
 async function onInput({ model, id }) {
@@ -3094,7 +3749,7 @@ async function onInput({ model, id }) {
   const modePatch = legacyModePatch(model);
   const guidedPatch = recommendationInputPatch(model, modePatch, id);
   const priorPatch = Object.assign({}, modePatch, guidedPatch);
-  const inputPatch = Object.assign(priorPatch, scenePatch(model, priorPatch));
+  const inputPatch = Object.assign(priorPatch, scenePatch(model, priorPatch, id || ''));
   return Object.assign(compute(model, inputPatch), inputPatch);
 }
 

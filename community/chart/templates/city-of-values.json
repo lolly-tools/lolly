@@ -1,0 +1,19 @@
+{
+  "id": "city-of-values",
+  "name": "A city of values",
+  "category": "3-D",
+  "description": "A treemap raised into buildings: area and height both show the value, so the largest parts stand over the rest.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "treemap",
+    "sceneType": "city3d",
+    "data": "Product,Revenue\nPlatform,88\nServices,64\nSupport,42\nTraining,27\nMarketplace,22\nHardware,15\nLicences,11\nOther,6",
+    "heading": "Where the revenue comes from",
+    "subheading": "In millions",
+    "sceneStage": "night",
+    "sceneMaterial": "glow",
+    "motionPreset": "stagger",
+    "showLegend": false
+  },
+  "presets": []
+}

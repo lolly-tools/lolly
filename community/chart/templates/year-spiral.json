@@ -1,0 +1,19 @@
+{
+  "id": "year-spiral",
+  "name": "A long series, coiled",
+  "category": "3-D",
+  "description": "Months coil out from the centre, one bar each, so several years read as one compact disc.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "bar",
+    "sceneType": "spiral3d",
+    "data": "Month,Visitors\nJan 2024,12\nFeb 2024,16\nMar 2024,28\nApr 2024,43\nMay 2024,58\nJun 2024,70\nJul 2024,75\nAug 2024,72\nSep 2024,63\nOct 2024,50\nNov 2024,38\nDec 2024,28\nJan 2025,26\nFeb 2025,31\nMar 2025,42\nApr 2025,57\nMay 2025,73\nJun 2025,84\nJul 2025,89\nAug 2025,87\nSep 2025,78\nOct 2025,65\nNov 2025,52\nDec 2025,43\nJan 2026,40\nFeb 2026,45\nMar 2026,57\nApr 2026,72\nMay 2026,87\nJun 2026,99\nJul 2026,103\nAug 2026,101\nSep 2026,92\nOct 2026,79\nNov 2026,66\nDec 2026,57",
+    "heading": "Three years of visitors",
+    "subheading": "Thousands each month",
+    "sceneStage": "night",
+    "sceneMaterial": "satin",
+    "colorBy": "value",
+    "showLegend": true
+  },
+  "presets": []
+}
