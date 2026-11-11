@@ -1,0 +1,19 @@
+{
+  "id": "terrain-flight",
+  "name": "Fly over the data",
+  "category": "Cinematic",
+  "description": "The table becomes a landscape; the camera crosses it, stops over the peak and the low ground, then climbs out to the whole map.",
+  "values": {
+    "renderMode": "cinematic",
+    "chartType": "heatmap",
+    "cinematicType": "terrain3d",
+    "data": "Hour,Monday,Tuesday,Wednesday,Thursday,Friday\n06:00,4,5,6,5,4\n09:00,22,28,31,27,21\n12:00,46,55,61,52,44\n15:00,38,41,44,47,36\n18:00,25,29,33,30,52\n21:00,9,12,14,13,28",
+    "heading": "A working week from above",
+    "subheading": "Requests per hour, in thousands",
+    "sceneStage": "studio",
+    "sceneMaterial": "satin",
+    "animSpeed": 1.5,
+    "showLegend": true
+  },
+  "presets": []
+}

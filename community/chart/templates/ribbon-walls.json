@@ -1,0 +1,19 @@
+{
+  "id": "ribbon-walls",
+  "name": "Series as solid walls",
+  "category": "3-D",
+  "description": "Each series becomes a solid wall under its line, the smallest in front, so three trends compare without hiding each other.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "area",
+    "sceneType": "area3d",
+    "data": "Month,Web,Store,Partners\nJan,42,28,12\nFeb,51,30,15\nMar,63,33,19\nApr,58,37,24\nMay,72,41,26\nJun,81,44,31",
+    "heading": "Three channels, one year",
+    "subheading": "Orders by channel, in thousands",
+    "sceneStage": "studio",
+    "sceneMaterial": "satin",
+    "motionPreset": "reveal",
+    "showLegend": true
+  },
+  "presets": []
+}
