@@ -300,8 +300,8 @@ test('only a reviewed main dispatch can promote, and only the approved job can s
     assert.equal(job.steps[0]!.with!['persist-credentials'], false);
   }
   const cosign = promote.steps.find(item => item.uses?.startsWith('sigstore/cosign-installer@'));
-  assert.equal(cosign?.uses, 'sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6');
-  assert.match(workflowText, /sigstore\/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4\.1\.2/);
+  assert.equal(cosign?.uses, 'sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532');
+  assert.match(workflowText, /sigstore\/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4\.1\.3/);
   assert.equal(cosign?.with?.['cosign-release'], 'v3.0.6');
   // The gated job takes the admitted files from this attempt and rebuilds its plan from them.
   const download = promote.steps.findIndex(item => item.uses?.startsWith('actions/download-artifact@'));
