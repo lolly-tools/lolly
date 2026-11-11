@@ -148,10 +148,11 @@ function piece(k: VoiceKit, kit: DrumKit, t: number, name: string, vel: number, 
   const bank = bankOf(k.ctx, kit);
   const at = vel < 0.5 ? LAYERS[0] : vel < 0.8 ? LAYERS[1] : LAYERS[2];
   let key = `${name}:${at}:${Math.floor(k.rng() * TAKES)}`;
-  // A new take costs up to a tenth of a second to work out (a long ride), so a kit makes
-  // one at most every RENDER_GAP of music and plays a take it already has meanwhile. Paced
-  // by the music's time, not the clock's, so a tune still renders the same every time.
-  if (!bank.buffers.has(key) && t < bank.nextRender) {
+  // A new take costs up to a tenth of a second to work out (a long ride), so a kit playing
+  // live makes one at most every RENDER_GAP of music and plays a take it already has
+  // meanwhile (a render ahead of playing makes every take). Paced by the music's time, not
+  // the clock's, so a tune still renders the same every time.
+  if (!k.hq && !bank.buffers.has(key) && t < bank.nextRender) {
     const have = Array.from({ length: TAKES }, (_, n) => `${name}:${at}:${n}`).find(x => bank.buffers.has(x));
     if (have) key = have;
   }
@@ -491,7 +492,7 @@ export function hat(style: LofiStyle['hats'], k: VoiceKit, out: AudioNode, t: nu
       : { ...K.HAT_CLOSED, peak: K.HAT_CLOSED.peak * kit.hatBright, choke: (K.HAT_CLOSED.choke ?? 0.05) * kit.hatDecay };
     const name = open ? 'hat-open' : 'hat';
     const base = cymbalOf(kit, k, 'hats', spec);
-    const g = hit(k, out, t, piece(k, kit, t, name, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r)), open ? LEVEL.open : LEVEL.hat, PAN.hat);
+    const g = hit(k, out, t, piece(k, kit, t, name, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r, k.hq)), open ? LEVEL.open : LEVEL.hat, PAN.hat);
     if (open) bank.open = g;
     return;
   }
@@ -558,7 +559,7 @@ export function ride(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: 
   if (kit.realCymbals) {
     const spec: K.CymbalSpec = { ...K.RIDE, peak: K.RIDE.peak * kit.rideRate / 0.9, life: K.RIDE.life * kit.wash, seconds: K.RIDE.seconds * kit.wash, wash: K.RIDE.wash * kit.wash, bell: (K.RIDE.bell ?? 800) * kit.rideRate / 0.9 };
     const base = cymbalOf(kit, k, 'ride', spec);
-    hit(k, out, t, piece(k, kit, t, 'ride', vel, (sr, v, r) => K.cymbal(sr, { ...spec, bell: kit.bell > 0.5 ? spec.bell : undefined }, base, v, r)), LEVEL.ride, PAN.ride);
+    hit(k, out, t, piece(k, kit, t, 'ride', vel, (sr, v, r) => K.cymbal(sr, { ...spec, bell: kit.bell > 0.5 ? spec.bell : undefined }, base, v, r, k.hq)), LEVEL.ride, PAN.ride);
     return;
   }
   const { ctx } = k;
@@ -643,7 +644,7 @@ export function crash(k: VoiceKit, out: AudioNode, t: number, vel: number, kit: 
   if (kit.realCymbals) {
     const spec = crashSpec(kit);
     const base = cymbalOf(kit, k, kit.crash, spec);
-    hit(k, out, t, piece(k, kit, t, kit.crash, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r)), LEVEL.crash, PAN.crash);
+    hit(k, out, t, piece(k, kit, t, kit.crash, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r, k.hq)), LEVEL.crash, PAN.crash);
     if (kit.boom && vel >= 0.8) boomUnder(k, out, t, vel);
     return;
   }

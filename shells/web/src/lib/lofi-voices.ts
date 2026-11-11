@@ -60,6 +60,8 @@ export interface VoiceKit {
   noise: AudioBuffer;
   /** Seeded 0..1, for the small detunes and noise offsets that keep repeats alive. */
   rng: () => number;
+  /** A render worked out ahead of playing (render and play): spend more on quality than live playing can. */
+  hq?: boolean;
 }
 
 export const EPS = 0.0001;
@@ -1123,7 +1125,7 @@ export function ampInput(k: VoiceKit, out: AudioNode, amp: Amp, double: boolean)
   tight.Q.value = 0.7;
   const ws = ctx.createWaveShaper();
   ws.curve = HEAVY_CURVE;
-  ws.oversample = '2x';
+  ws.oversample = k.hq ? '4x' : '2x';
   const cabs = [0.8, 0.6].map((q, j) => {
     const lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
