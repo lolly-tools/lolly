@@ -54,6 +54,7 @@ import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, parseMu
 import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
 import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
+import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { TUNE_DECLARATION } from '../../../../engine/src/tune-provenance.ts';
 import '../styles/parts/music-studio.css';
 
@@ -217,6 +218,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       </button>
       <button type="button" class="ms-shuffle" data-shuffle aria-label="${escapeHtml(t('Shuffle style and settings'))}" title="${escapeHtml(t('Shuffle: a new style, seed and sound'))}">${icon('sparkle', { size: 26 })}</button>
       <span class="ms-time" data-pos></span>
+      <button type="button" class="btn btn--sm ms-render-play" data-render-play title="${escapeHtml(t('Render the track at full quality first, then play it with the big visualiser'))}">${icon('monitor', { size: 16 })}<span>${escapeHtml(t('Render and play'))}</span></button>
       <select class="field-select field-select--sm" data-style aria-label="${escapeHtml(t('Style'))}">${LOFI_STATION_MOODS.map(m => `<option value="${m}"${m === state.mood ? ' selected' : ''}>${escapeHtml(lofiStationName(m))}</option>`).join('')}</select>
       <span class="ms-seed" role="group" aria-label="${escapeHtml(t('Seed'))}">
         ${iconBtn('data-seed-step="-1"', 'chevronLeft', t('Previous seed'))}
@@ -271,6 +273,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       <canvas class="ms-viz" data-viz aria-hidden="true"></canvas>
       <canvas class="ms-viz" data-viz-rich aria-hidden="true" hidden></canvas>
       ${iconBtn('data-viz-mode', 'neuroBeat', t('Visualiser'))}
+      ${iconBtn('data-viz-full hidden', 'monitor', t('Full screen'))}
     </div>
     <div class="ms-editor">
       <div class="ms-heads">
@@ -596,10 +599,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     paintVersion++;
     times = barTimes(bars);
     selected = Math.min(selected, bars.length - 1);
+    // A render under way is of the track as it was: let it go.
+    rendering++;
     renderedBuffer = null; rendered = 0;
     downloadBtn.disabled = true; progress.hidden = true;
     writeLink(); meta(); draw();
-    if (station) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
+    if (station || renderedSrc) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
+    showFull();
   }
 
   // ── playback ─────────────────────────────────────────────────────────────────
@@ -626,14 +632,18 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     playBtn.setAttribute('aria-label', on ? t('Stop') : t('Play'));
     playBtn.setAttribute('aria-pressed', String(on));
   };
+  /** A rendered track playing (render and play), instead of the live station. */
+  let renderedSrc: AudioBufferSourceNode | null = null;
   function stopPlayback(): void {
     station?.stop(0.15);
     station = null;
+    if (renderedSrc) { renderedSrc.onended = null; try { renderedSrc.stop(); } catch { /* not started */ } }
+    renderedSrc = null;
     cancelAnimationFrame(raf);
     showPlaying(false);
   }
-  function play(fromBar: number): void {
-    station?.stop(0.08);
+  /** The audio graph, made on first play: the master, and the analyser the visualisers read. */
+  function ensureAudio(): AudioContext {
     if (!ctx) {
       ctx = new AudioContext();
       master = ctx.createGain();
@@ -644,15 +654,44 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       void syncRichViz();
     }
     void ctx.resume();
-    station = new LofiStation(ctx, master ?? ctx.destination, state.seed, settings(fromBar), effectiveMix());
+    return ctx;
+  }
+  function play(fromBar: number): void {
+    station?.stop(0.08);
+    if (renderedSrc) stopPlayback();
+    const c = ensureAudio();
+    station = new LofiStation(c, master ?? c.destination, state.seed, settings(fromBar), effectiveMix());
     station.setVolume(1);
     station.start();
-    startedAt = ctx.currentTime + 0.1;
+    follow(fromBar, 0.1);
+  }
+  /**
+   * Play the rendered track from `fromBar`, with the big visualiser: render and play's
+   * second half. The live station stops; a change to the track goes back to live playing,
+   * since the render no longer matches.
+   */
+  function playRendered(fromBar: number): void {
+    if (!renderedBuffer) return;
+    stopPlayback();
+    const c = ensureAudio();
+    const src = c.createBufferSource();
+    src.buffer = renderedBuffer;
+    src.connect(master ?? c.destination);
+    src.start(c.currentTime + 0.05, times.starts[fromBar] ?? 0);
+    src.onended = () => { if (renderedSrc === src) { stopPlayback(); playheadBar = -1; meta(); draw(); } };
+    renderedSrc = src;
+    if (vizMode !== 'milkdrop') { vizMode = 'milkdrop'; showVizMode(); void syncRichViz(); }
+    follow(fromBar, 0.05);
+  }
+  /** Move the playhead with whatever is playing, from `fromBar`, starting `lead` seconds from now. */
+  function follow(fromBar: number, lead: number): void {
+    const c = ensureAudio();
+    startedAt = c.currentTime + lead;
     startedBar = fromBar;
     showPlaying(true);
     cancelAnimationFrame(raf);
     const tick = (): void => {
-      if (!ctx || !station) return;
+      if (!ctx || (!station && !renderedSrc)) return;
       const at = times.starts[startedBar]! + Math.max(0, ctx.currentTime - startedAt);
       if (at >= times.total + 1.5) { stopPlayback(); playheadBar = -1; meta(); draw(); return; }
       let b = startedBar;
@@ -672,21 +711,77 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // ── making the track ─────────────────────────────────────────────────────────
   let renderedBuffer: AudioBuffer | null = null;
   let rendering = 0;
-  async function render(): Promise<void> {
+  /** Render the track, at full quality (a render can take longer than the track: it is not live). True if it finished. */
+  async function render(onProgress?: (done: number) => void): Promise<boolean> {
     const job = ++rendering;
     const seconds = times.total + 2.5;
     const octx = new OfflineAudioContext(2, Math.ceil(seconds * 44100), 44100);
-    const offline = new LofiStation(octx, octx.destination, state.seed, settings(0), effectiveMix());
+    const offline = new LofiStation(octx, octx.destination, state.seed, { ...settings(0), quality: 'high' }, effectiveMix());
     offline.fadeOutAt(Math.max(0, seconds - 2.5), 2.5);
     progress.hidden = false; progress.value = 0;
     say(t('Making the track…'));
     const buffer = await renderStation(octx, offline, seconds, (done) => {
-      if (job === rendering) { rendered = done; progress.value = rendered; draw(); }
+      if (job === rendering) { rendered = done; progress.value = rendered; onProgress?.(done); draw(); }
     });
-    if (job !== rendering) return;
+    if (job !== rendering) return false;
     renderedBuffer = buffer; rendered = 1; progress.value = 1; draw();
     downloadBtn.disabled = false;
+    showFull();
     say(t('Made. Download the track or save it to your library.'));
+    return true;
+  }
+
+  // ── render and play ──────────────────────────────────────────────────────────
+  /**
+   * Render and play: the track worked out at full quality first, behind a progress card
+   * with the shared candy-stripe bar and Cancel (Escape cancels too), then played with
+   * the big visualiser, which can go full screen. A track already rendered plays at once.
+   */
+  let renderCard: ModalHandle<void> | null = null;
+  async function renderAndPlay(): Promise<void> {
+    if (renderedBuffer) { playRendered(Math.max(0, selected)); return; }
+    stopPlayback();
+    let finished = false;
+    const titleId = 'ms-render-title';
+    renderCard = mountModal<void>(`
+      <h2 class="modal-title" id="${titleId}" tabindex="-1">${escapeHtml(t('Rendering your track'))}</h2>
+      <p class="ms-render-note">${escapeHtml(t('Every part at full quality, worked out before it plays. A render can take longer than the track itself.'))}</p>
+      <div class="ms-render-status"><span data-render-pct role="status" aria-live="polite">0%</span><span data-render-eta></span></div>
+      <div class="job-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="${titleId}"><span class="job-bar-fill"></span></div>
+      <div class="modal-actions"><button type="button" class="btn modal-cancel" data-act="cancel">${escapeHtml(t('Cancel'))}</button></div>`, {
+      className: 'modal ms-render-card',
+      ariaLabel: t('Rendering your track'),
+      dismissOnBackdrop: false,
+      initialFocus: (el) => el.querySelector<HTMLElement>('.modal-title'),
+      onClose: () => {
+        renderCard = null;
+        if (!finished) { rendering++; progress.hidden = true; say(t('Render stopped.')); }
+      },
+    });
+    const card = renderCard;
+    card.el.querySelector('[data-act="cancel"]')?.addEventListener('click', () => card.close());
+    const bar = card.el.querySelector<HTMLElement>('.job-bar');
+    const fill = card.el.querySelector<HTMLElement>('.job-bar-fill');
+    const pct = card.el.querySelector<HTMLElement>('[data-render-pct]');
+    const eta = card.el.querySelector<HTMLElement>('[data-render-eta]');
+    const began = performance.now();
+    const ok = await render((done) => {
+      const p = Math.round(done * 100);
+      if (fill) fill.style.width = `${p}%`;
+      bar?.setAttribute('aria-valuenow', String(p));
+      if (pct) pct.textContent = `${p}%`;
+      // Time left, from the pace so far, once there is a pace to go by.
+      if (eta && done > 0.05) eta.textContent = t('About {s} s to go', { s: String(Math.max(1, Math.round(((performance.now() - began) / 1000) * (1 - done) / done))) });
+    }).catch((err: unknown) => { say(`${t('Could not make the track')}: ${String(err)}`); return false; });
+    if (!ok || renderCard !== card) { card.close(); return; }
+    finished = true;
+    card.close();
+    playRendered(0);
+  }
+  /** The full-screen button shows once a track is rendered, where the browser can go full screen. */
+  function showFull(): void {
+    const btn = page.querySelector<HTMLButtonElement>('[data-viz-full]');
+    if (btn) btn.hidden = !renderedBuffer || !document.fullscreenEnabled;
   }
   async function encoded(): Promise<{ blob: Blob; format: string }> {
     if (!renderedBuffer) throw new Error('nothing made yet');
@@ -752,7 +847,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const listen = <K extends keyof HTMLElementEventMap>(sel: string, type: K, fn: (e: HTMLElementEventMap[K], el: HTMLElement) => void): void => {
     for (const el of page.querySelectorAll<HTMLElement>(sel)) el.addEventListener(type, e => fn(e, el));
   };
-  listen('[data-play]', 'click', () => { if (station) stopPlayback(); else play(selected); });
+  listen('[data-play]', 'click', () => { if (station || renderedSrc) stopPlayback(); else play(selected); });
   listen('[data-style]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) { state.mood = parseMusicState(`style=${el.value}`).mood; recompose(); fit(); } });
   const setSeed = (seed: number): void => {
     state.seed = ((seed % 4294967296) + 4294967296) % 4294967296;
@@ -918,7 +1013,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (!cx) return;
     cx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cx.clearRect(0, 0, w, h);
-    if (!analyser || !station) return;
+    if (!analyser || (!station && !renderedSrc)) return;
     cx.fillStyle = sectionColour.get(bars[Math.max(0, playheadBar)]?.section ?? 'intro') ?? trackColour.lead;
     cx.strokeStyle = cx.fillStyle;
     if (vizMode === 'bars') {
@@ -985,8 +1080,16 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     say(`${t('Bar')} ${selected + 1} · ${sectionLabel(bar.section)} · ${bar.chord || t('rest')}`);
     draw();
   });
-  canvas.addEventListener('dblclick', e => { selected = barAt(e); closePop(); play(selected); });
+  canvas.addEventListener('dblclick', e => { selected = barAt(e); closePop(); if (renderedSrc) playRendered(selected); else play(selected); });
   listen('[data-render]', 'click', () => { void render().catch(err => { say(`${t('Could not make the track')}: ${String(err)}`); }); });
+  listen('[data-render-play]', 'click', () => { void renderAndPlay(); });
+  listen('[data-viz-full]', 'click', () => {
+    const stage = page.querySelector<HTMLElement>('.ms-stage');
+    if (!stage) return;
+    if (document.fullscreenElement) { void document.exitFullscreen(); return; }
+    if (vizMode !== 'milkdrop') { vizMode = 'milkdrop'; showVizMode(); void syncRichViz(); }
+    void stage.requestFullscreen().catch(() => { say(t('This browser would not go full screen.')); });
+  });
   // What a download and a save will record, said before either is clicked.
   const paintCredNote = (): void => {
     q<HTMLElement>('[data-cred-note]').textContent = credToggle.checked
@@ -1075,7 +1178,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       return;
     }
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
-    if (e.key === ' ') { e.preventDefault(); if (station) stopPlayback(); else play(selected); }
+    if (e.key === ' ') { e.preventDefault(); if (station || renderedSrc) stopPlayback(); else play(selected); }
     else if (e.key === 'ArrowRight' && e.shiftKey) setSeed(state.seed + 1);
     else if (e.key === 'ArrowLeft' && e.shiftKey) setSeed(state.seed - 1);
   };
@@ -1108,7 +1211,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     detachTempoScrub();
     rich?.destroy();
     stopPlayback();
+    renderCard?.close();
     rendering++;
+    if (document.fullscreenElement) void document.exitFullscreen();
     document.removeEventListener('keydown', onKey);
     document.removeEventListener('pointerdown', onDown);
     window.removeEventListener('resize', onResize);

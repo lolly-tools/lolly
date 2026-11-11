@@ -128,7 +128,7 @@ export const HAT_CLOSED: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 800
 export const HAT_OPEN: CymbalSpec = { count: 56, lo: 450, hi: 16000, peak: 7500, spread: 1.25, life: 0.9, tilt: 0.45, bloom: 0.012, choke: 0.55, tick: 9000, seconds: 1.0, wash: 3 };
 
 /** One cymbal stroke: `vel` 0..1 (soft strokes darker), the cymbal's own partials (`base`) so every stroke is the same cymbal. */
-export function cymbal(sr: number, spec: CymbalSpec, base: readonly Partial[], vel: number, rand: Rand): Float32Array {
+export function cymbal(sr: number, spec: CymbalSpec, base: readonly Partial[], vel: number, rand: Rand, hq = false): Float32Array {
   const out = new Float32Array(Math.ceil(spec.seconds * sr));
   const struck = stroke(base, vel, 1, rand);
   ring(out, sr, struck, rand);
@@ -138,7 +138,7 @@ export function cymbal(sr: number, spec: CymbalSpec, base: readonly Partial[], v
   // the high ones shorter, blooming in as the partials do. Set against the partials' own
   // energy, so `wash` is the share of the sound that is the dense modes.
   const energy = Math.sqrt(struck.reduce((s, p) => s + p.a * p.a, 0) / 2);
-  washBank(out, sr, rand, spec, vel, spec.wash * energy);
+  washBank(out, sr, rand, spec, vel, spec.wash * energy, hq ? WASH_BANDS_HQ : WASH_BANDS);
   if (spec.bell) {
     const bell: Partial[] = [1, 1.47, 2.03, 2.6, 3.4].map((m, i) => ({ f: spec.bell! * m * (1 + (rand() - 0.5) * 0.004), a: (i ? 0.5 : 1) * (0.6 + 0.4 * vel) * 0.9, tau: spec.life * 0.8, bloom: 0 }));
     ring(out, sr, bell, rand);
@@ -159,20 +159,22 @@ export function cymbal(sr: number, spec: CymbalSpec, base: readonly Partial[], v
 
 /** How many narrow bands of noise make a cymbal's wash. */
 const WASH_BANDS = 28;
+/** And in a render worked out ahead of playing, where time is not short: denser still. */
+const WASH_BANDS_HQ = 56;
 
 /**
  * The dense modes as clusters: white noise through WASH_BANDS resonant band-passes (each
  * a few hundred hertz wide at the cymbal's brightness), each under its own envelope, the
  * whole at `level` in RMS. A soft stroke reaches fewer of the high clusters.
  */
-function washBank(out: Float32Array, sr: number, rand: Rand, spec: CymbalSpec, vel: number, level: number): void {
+function washBank(out: Float32Array, sr: number, rand: Rand, spec: CymbalSpec, vel: number, level: number, count: number): void {
   const n = out.length;
   const noise = new Float32Array(n);
   for (let i = 0; i < n; i++) noise[i] = rand() * 2 - 1;
   const top = 2500 + 14000 * vel * vel;
   const bands: Array<{ f: number; q: number; a: number; tau: number }> = [];
   let total = 0;
-  for (let b = 0; b < WASH_BANDS; b++) {
+  for (let b = 0; b < count; b++) {
     const u = Math.sqrt(rand());
     const f = Math.min(sr * 0.45, spec.lo * 1.5 * ((spec.hi / (spec.lo * 1.5)) ** u));
     const oct = Math.log2(f / spec.peak);

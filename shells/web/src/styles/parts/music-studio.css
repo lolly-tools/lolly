@@ -132,6 +132,12 @@
   .ms-stage.is-off [data-viz-mode] { top: calc(var(--ui-size-target) * -1 - var(--sp-1)); }
   .ms-viz { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .ms-stage [data-viz-mode] { position: absolute; top: var(--sp-1); right: var(--sp-1); }
+  /* Full screen sits beside the visualiser's own button, and only once a track is rendered. */
+  .ms-stage [data-viz-full] { position: absolute; top: var(--sp-1); right: calc(var(--sp-1) * 2 + var(--ui-size-target)); }
+  .ms-stage [data-viz-full][hidden] { display: none; }
+  /* Full screen: the stage is the whole screen, the visualiser filling it. */
+  .ms-stage:fullscreen { height: 100vh; border-radius: 0; background: #000; }
+  .ms-render-play { flex: none; display: inline-flex; align-items: center; gap: var(--sp-2); }
 
   .ms-editor {
     display: grid;
@@ -216,3 +222,16 @@
     .ms-hint { padding-inline-end: calc(var(--ms-cap) + var(--sp-4)); }
   }
 }
+
+/* Render and play's progress card (views/music-studio.ts): the plain .modal card with the
+   shared candy-stripe bar (parts/job-toast.css, which also stops the drift under reduced
+   motion), the share done and the time left, and Cancel. */
+.ms-render-card {
+  width: min(380px, 92vw);
+  --candy-a: var(--job-candy-a);
+  --candy-b: var(--job-candy-b);
+}
+.ms-render-card .modal-title:focus { outline: none; }
+.ms-render-note { margin: 0 0 var(--sp-4); font-size: var(--fs-sm); line-height: 1.5; color: var(--ui-color-text-muted); }
+.ms-render-status { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; color: var(--ui-color-text-muted); }
+.ms-render-card .job-bar { height: 10px; margin: 0 0 18px; }

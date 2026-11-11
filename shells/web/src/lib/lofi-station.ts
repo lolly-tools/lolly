@@ -59,6 +59,8 @@ export interface LofiSettings {
   kit?: D.LofiKit;
   /** The producer's tag a person chose for a generator track: none, or one delivery. */
   tag?: LofiTagChoice;
+  /** 'high' for a render worked out ahead of playing: more oversampling and denser cymbals, at a cost live playing cannot pay. */
+  quality?: 'live' | 'high';
 }
 
 /** Part levels, for tuning the balance. 1 is the designed level. `fx` is the effects: the
@@ -249,7 +251,7 @@ export class LofiStation {
     this.stream = this.open(seed);
     for (let i = 0; i < (settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
     const noise = noiseBuffer(ctx, 2, mulberry32(seed ^ 0x51));
-    this.kit = { ctx, noise, rng: mulberry32(seed ^ 0x5eed) };
+    this.kit = { ctx, noise, rng: mulberry32(seed ^ 0x5eed), hq: settings.quality === 'high' };
 
     // Output: tone → high-pass → saturation → compression → volume.
     this.out = ctx.createGain();
@@ -260,7 +262,7 @@ export class LofiStation {
     comp.attack.value = 0.015; comp.release.value = 0.3;
     comp.connect(this.out);
     this.shaper = ctx.createWaveShaper();
-    this.shaper.oversample = '2x';
+    this.shaper.oversample = settings.quality === 'high' ? '4x' : '2x';
     this.shaper.connect(comp);
     const hp = ctx.createBiquadFilter();
     hp.type = 'highpass'; hp.frequency.value = 28;
