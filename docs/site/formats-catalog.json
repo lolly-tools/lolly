@@ -1117,7 +1117,7 @@
     {
       "token": "Affinity",
       "name": "Affinity",
-      "full": "Affinity documents (.af, .afdesign, .afphoto, .afpub)",
+      "full": "Affinity documents and templates (.af, .afdesign, .afphoto, .afpub, .aftemplate)",
       "category": "Vector",
       "dir": "in",
       "features": [
@@ -1126,7 +1126,7 @@
         "editable-text",
         "embeds-bitmaps"
       ],
-      "desc": "Native Affinity files: .af from Affinity 3 and .afdesign, .afphoto and .afpub from Affinity 1 and 2. They open in Lolly Design on the device, in the browser and in the command line, with no upload and no Affinity software. Each artboard (or page) becomes a frame; groups, rectangles, curves, text, tables and pictures become editable layers, and effects, adjustments and anything approximated are listed in the import report. If the layers cannot be read, Affinity's own embedded preview opens as one picture instead. Import only, up to 96 MB; the layout was learned without a published specification, so a file from an untested Affinity build can fall back to its preview.",
+      "desc": "Native Affinity files: .af from Affinity 3, .afdesign, .afphoto and .afpub from Affinity 1 and 2, and .aftemplate templates. They open in Lolly Design on the device, in the browser and in the command line, with no upload and no Affinity software. Each artboard (or page) becomes a frame; groups, rectangles, curves, text, tables and pictures become editable layers, and effects, adjustments and anything approximated are listed in the import report. If the layers cannot be read, Affinity's own embedded preview opens as one picture instead. Import only, up to 96 MB; the layout was learned without a published specification, so a file from an untested Affinity build can fall back to its preview.",
       "metadata": {
         "reads": [],
         "writes": [],

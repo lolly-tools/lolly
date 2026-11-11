@@ -43,11 +43,17 @@ test('the fence info string keeps a safe language token and allowlisted flags on
 test('a note renders as role=note with its glyph, a hidden kind word, a title that is not a paragraph, and its body', () => {
   const html = mdToHtml('::: warning Clearing site data removes saved work\nExport a backup **first**.\n:::', ctx());
   assert.match(html, /^<div class="doc-note doc-note--warning" role="note">/);
-  assert.match(html, /<span class="doc-note-glyph" aria-hidden="true"><i data-icon="adm-alert"><\/i><\/span>/);
+  assert.match(html, /<span class="doc-note-glyph" aria-hidden="true"><i data-icon="eti-warning"><\/i><\/span>/);
   assert.match(html, /<div class="doc-note-title"><span class="doc-visually-hidden">Warning: <\/span>Clearing site data removes saved work<\/div>/);
   assert.match(html, /<div class="doc-note-body"><p>Export a backup <strong>first<\/strong>\.<\/p><\/div>/);
   assert.ok(!/<aside/.test(html), 'no complementary landmark in either host');
   assert.ok(!/<p[^>]*>[^<]*Clearing/.test(html), 'the title is not a <p>, so narration ids after it stay put');
+});
+
+test('each admonition kind opens with its own two-tone Etiquette icon', () => {
+  const icons = (['note', 'warning', 'check'] as const).map(kind =>
+    /data-icon="([^"]+)"/.exec(mdToHtml(`::: ${kind} Title\nBody.\n:::`, ctx()))?.[1]);
+  assert.deepEqual(icons, ['eti-info', 'eti-warning', 'eti-circle-check']);
 });
 
 test('the kind word is translated through the render context', () => {
@@ -111,6 +117,40 @@ test('a cards fence wraps its icon list, and an intro fence sets its icon beside
   assert.equal(intro, '<div class="md-intro"><span class="md-intro-icon" aria-hidden="true"><i data-icon="eti-stamp"></i></span><div class="md-intro-body"><p>Approvals are off by default.</p></div></div>');
   assert.equal(mdToHtml('::: intro\nNo icon.\n:::', ctx()), '<div class="md-intro"><div class="md-intro-body"><p>No icon.</p></div></div>');
   assert.equal(warn.mock.callCount(), 0);
+});
+
+test('a steps fence is an ordered row of the same cards', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const steps = mdToHtml('::: steps\n- <!--i:eti-flask--> **[Evaluate](#evaluate)** One command.\n- <!--i:eti-package--> **[Install](#install)** For real.\n:::', ctx());
+  assert.equal(steps, '<div class="md-steps"><ol class="icon-list">\n'
+    + '<li class="ic"><span class="li-icon"><i data-icon="eti-flask"></i></span><span><strong><a href="#evaluate">Evaluate</a></strong> One command.</span></li>\n'
+    + '<li class="ic"><span class="li-icon"><i data-icon="eti-package"></i></span><span><strong><a href="#install">Install</a></strong> For real.</span></li>\n'
+    + '</ol></div>');
+  // Anything but one icon list is kept as it is, never cut into broken lists.
+  const two = mdToHtml('::: steps\n- <!--i:eti-flask--> A\n\nBetween.\n\n- <!--i:eti-flask--> B\n:::', ctx());
+  assert.equal((two.match(/<ul class="icon-list">/g) ?? []).length, 2);
+  assert.ok(!two.includes('<ol'));
+  assert.equal(warn.mock.callCount(), 0);
+});
+
+test('a logos fence names each mark beside it, and the image itself is silent', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const html = mdToHtml('::: logos\n![Rancher](img/rancher.svg) ![K3s <b>](img/k3s.svg)\n:::', ctx());
+  assert.equal(html, '<ul class="md-logos">'
+    + '<li><span class="md-logo"><img src="img/rancher.svg" alt="" loading="lazy"></span><span class="md-logo-name">Rancher</span></li>'
+    + '<li><span class="md-logo"><img src="img/k3s.svg" alt="" loading="lazy"></span><span class="md-logo-name">K3s &lt;b&gt;</span></li>'
+    + '</ul>');
+  assert.equal(warn.mock.callCount(), 0);
+  assert.equal(mdToHtml('::: logos\nNo pictures.\n:::', ctx()), '<p>No pictures.</p>');
+  assert.equal(warn.mock.callCount(), 1, 'an empty strip says so');
+});
+
+test('an icon marker on a line of its own opens the section below it', () => {
+  const html = mdToHtml('<!--i:eti-flask-->\n## Evaluate\n\n- <!--i:eti-flask--> A list icon stays in its list.', ctx());
+  assert.equal(html, '<div class="md-section-icon" aria-hidden="true"><i data-icon="eti-flask"></i></div>\n'
+    + '<h2 id="evaluate">Evaluate</h2>\n'
+    + '<ul class="icon-list">\n<li class="ic"><span class="li-icon"><i data-icon="eti-flask"></i></span><span>A list icon stays in its list.</span></li>\n</ul>');
+  assert.equal(mdToHtml('<!--i:unknown-->\nText.', ctx({ docIcon: () => '' })).trim(), '<p>Text.</p>', 'an unknown icon leaves nothing behind');
 });
 
 test('the markdown twin keeps every title and body and drops the fence lines', () => {

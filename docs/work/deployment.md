@@ -1,8 +1,8 @@
 # How a Lolly Work deployment fits together
 
 This page is for whoever runs Lolly Work once it is installed. It explains the
-parts and which ones you can leave out. It also shows what changes between Compose,
-systemd, YunoHost and Kubernetes. The commands are in the install guides; start at
+parts and which ones you can leave out. It also shows what changes between Kubernetes,
+Compose, systemd and YunoHost. The commands are in the install guides; start at
 [Run Lolly Work](self-host.md).
 
 Every deployment runs the same server. It answers the console at `/admin`, the API
@@ -20,6 +20,7 @@ the console and API.
 One server and one database, with optional parts around them. Every install shape below arranges the same pieces.
 :::
 
+<!--i:eti-layers-->
 ## The install shapes
 
 The shapes run the same application code. They differ in three ways: how
@@ -28,26 +29,35 @@ pack, web app, collaboration gateway and render worker are present.
 
 | Shape | Use it for | Who applies migrations | Pack and web app |
 |---|---|---|---|
+| Helm (`deploy/helm/`) | Kubernetes or Rancher, one collaboration owner | a pre-install and pre-upgrade Job | volumes you mount |
 | Local (`node server/src/main.ts`) | development, evaluation | the server, at startup | local paths |
 | Compose (`deploy/compose/`) | one VM, a small organisation | the server, at startup | mounted from the checkout |
 | Single VM with Caddy (`deploy/vm/`) | one small team on its own domain, with live co-editing | the server, at startup, over the direct database URL | pack mounted read-only; a signed web app served by Lolly Work when configured, otherwise proxied through Caddy |
 | YunoHost (`deploy/yunohost/`) | a self-hosting box, signing in with its accounts | the server, at startup | copied from the web app into the app's data folder |
-| Helm (`deploy/helm/`) | Kubernetes or Rancher, one collaboration owner | a pre-install and pre-upgrade Job | volumes you mount |
+
+Two packaged routes build on these shapes. The
+[Lolly appliance](aws-compatible.md#lolly-appliance-preview) is a preview disk image that
+boots into Lolly Work on K3s. The [ready-made package](ready-made-package.md) is a
+finished Compose directory with Caddy and password sign-in.
 
 The Lolly Work repository also keeps an optional serverless function adapter, qualified in
 CI, for operators who choose that kind of target. It bundles its pack and has no
 live co-editing and no Chromium worker; its runbook is `deploy/vercel/README.md` in
 that repository.
 
+<!--i:eti-users-->
 ## One process owns live collaboration
 
 The server handles HTTP and WebSocket traffic in one process, and that process is
 the one writable owner of every live editing room. Keep one application replica.
 The chart refuses any `replicaCount` other than one until room routing and operation
-ordering are supported. PostgreSQL persistence, a multi-node cluster, ingress
-affinity or a different ingress controller does not make writable replicas
-interchangeable or give the application high availability. The reserved
-multi-replica affinity settings do not turn room routing on.
+ordering are supported.
+
+::: warning More replicas do not add high availability
+PostgreSQL persistence, a multi-node cluster, ingress affinity or a different ingress
+controller does not make writable replicas interchangeable or give the application high
+availability. The reserved multi-replica affinity settings do not turn room routing on.
+:::
 
 Rollouts replace the owner rather than overlapping two. The Kubernetes deployment
 uses the `Recreate` strategy with a 60-second grace period, so the old owner drains
@@ -59,6 +69,7 @@ Separate render workers can scale once you have tested the workload. Lolly Work 
 durable jobs in PostgreSQL, and a saturated render worker answers with a bounded
 `503`.
 
+<!--i:eti-image-->
 ## Two ways to render
 
 Each deployment picks one of two render setups. The switch is whether the worker
@@ -97,6 +108,7 @@ render workload. Measure CPU, memory, disk growth and latency on your chosen hos
 before you raise concurrency or add replicas. Adding replicas still needs room
 affinity, migration ownership and shared-limit checks.
 
+<!--i:eti-sliders-->
 ## Helm values to know
 
 `deploy/helm/values.yaml` is the one file you edit. It is heavily commented, and it
@@ -142,6 +154,9 @@ that owns the schema.
   until a worker exists. The details for turning it on are below.
 - **Behind an ingress, set `config.rateLimit.trustedProxyHops: 1`**, or per-address
   limits see only the ingress.
+- **Some secrets have no chart value of their own.** Supply them through `extraEnv`, for
+  example `LW_RENDER_API_URL_SECRET` for the
+  [render API migration](move-from-render-api.md)'s signed result URLs.
 - **Alerts and a dashboard are optional.** `metrics.prometheusRule.enabled` installs
   suggested alerts as a `PrometheusRule`, and `metrics.grafanaDashboard.enabled` a
   Grafana dashboard for the sidecar. Both are off by default and read only what
@@ -243,7 +258,9 @@ choices, preferred image sources and Application Collection dependencies.
 
 ## RKE2 and K3s
 
-![Rancher](img/rancher-icon.svg) ![k3s](img/k3s-icon-color.svg) ![Helm](img/helm-icon-color.svg)
+::: logos
+![Rancher](img/rancher-icon.svg) ![K3s](img/k3s-icon-color.svg) ![Helm](img/helm-icon-color.svg)
+:::
 
 The chart uses only core Kubernetes objects (Deployment, Service, Ingress, Job and
 HorizontalPodAutoscaler), so it runs on any conformant cluster and is exercised on
@@ -268,6 +285,7 @@ workload. Its limits are operational:
   hardware.
 - **ARM nodes.** Release images are multi-architecture (amd64 and arm64) from v0.2.0.
 
+<!--i:eti-globe-->
 ## Hosting and operating-system choices
 
 On a SUSE stack, Lolly Work runs on SLES with Rancher Prime or on openSUSE Leap with
@@ -286,6 +304,7 @@ and the console serves its own assets. Optional DAM, identity, email, model and 
 integrations can still reach outside services, so list those paths before you claim
 sovereign or offline operation.
 
+<!--i:eti-box-->
 ## Single server with Compose
 
 The commands are in [Install Lolly Work, section 5](install.md#5-container-compose).
@@ -304,11 +323,15 @@ pending migrations at startup. The server waits for the database's `pg_isready`
 health check first, because its migration step retries a refused connection for
 only about 10 seconds and a database's first start can take longer.
 
+An optional `garage` profile adds an S3-compatible file store on the Compose network;
+[section 5](install.md#5-container-compose) has the steps.
+
 The web app is not mounted by default, so only the console and API answer. A
 commented-out mount in `docker-compose.yml` shows how to bind a built
 `shells/web/dist` and point `instance.shellDir` at that build. The same startup guard as Helm
 applies.
 
+<!--i:eti-monitor-->
 ## Single VM with Caddy
 
 `deploy/vm/` runs a private instance on one server. Caddy handles TLS and routing.
@@ -329,9 +352,12 @@ external database and the existing public API proxy.
   every path except the WebSocket.
 
 The kit's scripts create the host, harden it, write secrets, push a release and run
-smoke checks; the runbook, `deploy/vm/README.md`, lists them with their history. The
-kit's lolly.ing example records a former deployment; do not use it to update a
+smoke checks; the runbook, `deploy/vm/README.md`, lists them with their history.
+
+::: warning The lolly.ing example is a record
+The kit's lolly.ing example records a former deployment. Do not use it to update a
 production domain.
+:::
 
 **On a database that scales to zero**, two settings matter. `LW_BACKGROUND_POLL_MS=0`
 stops the render and automation runners checking for work every second; work still
@@ -342,6 +368,7 @@ container health check, because every HTTP request reads the database. Migration
 over `DATABASE_URL_UNPOOLED` when it is set and take a transaction-level lock, so a
 connection pooler cannot keep the lock after the runner leaves.
 
+<!--i:eti-badge-check-->
 ## Verifying the images
 
 Release images (`v*` tags) are signed keylessly in CI and carry SBOM and provenance
@@ -360,6 +387,7 @@ image never schedules. The source SBOM (`sbom.cdx.json`) stays in the repository
 beside the per-image attestations. The exact identity of each release is in
 [official installation routes](official-installations.md#release-verification).
 
+<!--i:eti-unlink-->
 ## Air-gap
 
 An offline deployment needs every outside path listed and tested: DAMs, OIDC, SMTP,
@@ -371,6 +399,7 @@ rather than assuming air-gap support from how the software is packaged. Mirrorin
 each project download is described in
 [official installation routes](official-installations.md#external-services-and-mirrors).
 
+<!--i:eti-link-->
 ## Related
 
 - Every key you can set: [configuration](configuration.md)

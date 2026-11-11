@@ -2,14 +2,18 @@
 
 You should be able to use good work made by other people without becoming an expert in licensing, and without quietly dropping the people who made the work. So Lolly keeps the source of every work it draws, reads the licence recorded for it, works out what that licence asks of the use you are actually making, does the part a program can do and tells you the part only you can do.
 
-None of this is legal advice, and none of it is a ruling about your project. Lolly records facts, applies a small set of rules read from the licences' own legal texts and shows its working. A licence with conditions is a normal, permitted choice. It is never presented as a broken asset.
+::: note None of this is legal advice
+None of it is a ruling about your project either. Lolly records facts, applies a small set of rules read from the licences' own legal texts and shows its working. A licence with conditions is a normal, permitted choice. It is never presented as a broken asset.
+:::
 
+<!--i:eti-smile-->
 ## Where you meet this
 
 The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with the artwork credited and nothing left for you to do. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Fluent (MIT), Noto and Blobmoji (both Apache 2.0) are registered too, and each resolves under its own reviewed licence.
 
 Choosing a set is never blocked, and the set control shows the licence where you choose. The same rules answer for a catalog illustration, a LUT, a font and any other recorded work.
 
+<!--i:eti-layers-->
 ## Three facts, kept apart
 
 "CC BY 4.0", "this use needs a credit" and "the credit is in the file you just downloaded" are three different statements, and Lolly keeps them apart:
@@ -20,6 +24,7 @@ Choosing a set is never blocked, and the set control shows the licence where you
 
 ![Recorded source evidence and the chosen use feed reviewed rules. Export prepares the credits, then a delivery check reads the finished bytes to report which credits were found or are still needed.](/info/diagrams/concepts/rights-evidence-to-delivery.svg)
 
+<!--i:eti-eye-->
 ## What you see, and what to do
 
 The same words appear in the export panel, Lolly Verify, the command line and the machine result, roughly in order of how often you will meet them.
@@ -39,6 +44,7 @@ The same words appear in the export panel, Lolly Verify, the command line and th
 
 Lolly never says "copyright verified", "legally safe", "fully cleared" or "rights cleared", and there is no single green licence badge anywhere in the product. Those words would claim something no program can check.
 
+<!--i:eti-user-check-->
 ## What stays yours
 
 - **Your licence choice is yours.** Claiming a file separates three states that used to be one: no public licence declared, an explicit all-rights-reserved notice and an actual public licence grant. Lolly writes a rights line only for the last two, and never from your profile.
@@ -47,6 +53,7 @@ Lolly never says "copyright verified", "legally safe", "fully cleared" or "right
 - **A decision is remembered against its own facts.** Every choice you record is stamped with a fingerprint of the works, uses, route and audience it was made about. Change the set, the treatment, the format or the audience and the question is asked again. There is no blanket "ignore licences" switch, because clicking a warning away cannot deliver a credit or grant a permission.
 - **Your details stay separate from a third party's credit.** Removing your own personal metadata does not remove a credited artist, and a required credit is never an excuse to export your contact details.
 
+<!--i:eti-map-pin-->
 ## What Lolly does in each place
 
 - **In the catalog.** A work's sheet shows its source and creator, the canonical licence name with the original label kept underneath, a copyable credit where one is recorded and one line saying what using it asks for. A tile states the requirement; it never claims an export was completed.
@@ -127,6 +134,7 @@ Five engine modules, all pure: no network, no clock, no filesystem. The rule dat
 The expectation files in `tests/fixtures/rights/` were written from the licence texts rather than from the evaluator's output, and their README cites the section behind each expectation.
 :::
 
+<!--i:eti-hammer-->
 ## What this does not do yet
 
 - **No destination is confirmed.** Lolly prepares a caption. A connector accepting a request is not proof that a credit reached a reader, and nothing here promises that a later upload, screenshot or transcode keeps hidden metadata.

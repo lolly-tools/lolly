@@ -20,10 +20,24 @@ import type { LofiStation } from './lofi-station.ts';
 
 export const LOFI_PREFIX = 'lofi:';
 /** The stations, in picker order. Kept here (not imported) so this module never loads the composer. */
-export const LOFI_STATION_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings'];
-/** The Lofi moods: the stations the Mood control moves between (Lolly Sings is its own genre). */
+export const LOFI_STATION_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'sherbert', 'kpop', 'straya', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'rnb', 'nudisco', 'hiphop', 'triphop', 'reggae', 'ska', 'spanish', 'rock', 'punk', 'grunge', 'stoner', 'metal', 'country', 'blues', 'jazz', 'swing', 'fantasy', 'dream', 'shoegaze', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'warm', 'lateNight', 'rainy'];
+/** The Lofi moods: the stations the Mood control moves between. */
 export const LOFI_ONLY_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy'];
-export const LOFI_MOOD_LABEL: Record<LofiMood, string> = { warm: 'Warm', lateNight: 'Late night', rainy: 'Rainy', sings: 'Lolly Sings' };
+/** The Lolly Sings family: the melody-first station and its dance genres, which the Style control moves between. */
+export const LOFI_SINGS_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'sherbert', 'kpop', 'straya', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'rnb', 'nudisco', 'hiphop', 'triphop', 'reggae', 'ska', 'spanish', 'rock', 'punk', 'grunge', 'stoner', 'metal', 'country', 'blues', 'jazz', 'swing', 'fantasy', 'dream', 'shoegaze', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'];
+export const LOFI_MOOD_LABEL: Record<LofiMood, string> = {
+  warm: 'Warm', lateNight: 'Late night', rainy: 'Rainy', sings: 'Lolly Sings',
+  sugar: 'Sugar', sherbert: 'Sherbert', persian: 'Persian', guzheng: 'Guzheng', koto: 'Koto', kora: 'Kora', afrobeat: 'Afrobeat', amapiano: 'Amapiano', chiptune: 'Chiptune', citypop: 'City pop', nudisco: 'Nu-disco', triphop: 'Trip hop', funk: 'Funk', soul: 'Soul', rnb: 'R&B', ska: 'Ska', punk: 'Punk', grunge: 'Grunge', stoner: 'Stoner rock', shoegaze: 'Shoegaze', acid: 'Acid', hiphop: 'Hip hop', reggae: 'Reggae', spanish: 'Spanish guitar', rock: 'Rock', country: 'Country', blues: 'Blues', jazz: 'Jazz', swing: 'Swing', straya: 'Straya', fantasy: 'Fantasy', dream: 'Dreamscape', kpop: 'K-pop', metal: 'Metal', synthwave: 'Synthwave', electro: 'Electro', dubstep: 'Dubstep', brostep: 'Brostep', dnb: 'D&B',
+};
+
+/** Whether `mood` belongs to the Lolly Sings family. */
+export function isSingsMood(mood: LofiMood): boolean { return LOFI_SINGS_MOODS.includes(mood); }
+
+/** A station's name in the player: "Lofi · Warm", "Lolly Sings", "Lolly Sings · Sugar". */
+export function lofiStationName(mood: LofiMood): string {
+  if (mood === 'sings') return 'Lolly Sings';
+  return isSingsMood(mood) ? `Lolly Sings · ${LOFI_MOOD_LABEL[mood]}` : `Lofi · ${LOFI_MOOD_LABEL[mood]}`;
+}
 
 /** What a listener sets for every Lofi station: whether the drums play, and how dusty it sounds. */
 export interface LofiPrefs { drums: boolean; texture: number }
@@ -37,11 +51,9 @@ export function lofiMoodOf(id: string): LofiMood | null {
   return LOFI_STATION_MOODS.includes(mood) ? mood : null;
 }
 
-/** The three stations as player tracks (the same shape as lib/neurospicy.ts's NeuroTrack). */
+/** The stations as player tracks (the same shape as lib/neurospicy.ts's NeuroTrack). */
 export function lofiTracks(): Array<{ id: string; name: string; tags: string[]; format: string }> {
-  return LOFI_STATION_MOODS.map((mood) => ({
-    id: lofiId(mood), name: mood === 'sings' ? 'Lolly Sings' : `Lofi · ${LOFI_MOOD_LABEL[mood]}`, tags: ['generated'], format: 'lofi',
-  }));
+  return LOFI_STATION_MOODS.map((mood) => ({ id: lofiId(mood), name: lofiStationName(mood), tags: ['generated'], format: 'lofi' }));
 }
 
 /**
@@ -57,6 +69,23 @@ export function retiredTrackStation(id: string): string | null {
   if (/3-?am|night|static|echoes|blue|jazz/.test(id)) return lofiId('lateNight');
   return lofiId('warm');
 }
+
+// ── saved tunes ──────────────────────────────────────────────────────────────
+
+/**
+ * Tunes the listener saved to the asset library (lib/lofi-tune.ts), by asset id. The
+ * player fills this as it lists the library, so playing one needs no fetch.
+ */
+const savedTunes = new Map<string, LofiLink>();
+
+/** Note that asset `id` is a saved tune with this recipe. */
+export function rememberSavedTune(id: string, recipe: LofiLink): void { savedTunes.set(id, recipe); }
+
+/** The recipe of saved tune `id`, or null when `id` is not one. */
+export function savedTuneOf(id: string): LofiLink | null { return savedTunes.get(id) ?? null; }
+
+/** A station or a saved tune: anything the live station plays. */
+export function playsOnStation(id: string): boolean { return isLofiId(id) || savedTunes.has(id); }
 
 // ── the live station ─────────────────────────────────────────────────────────
 
@@ -80,21 +109,32 @@ function notifyTune(): void {
 
 /**
  * Start station `id` into `dest` on `ctx`. A queued link seed wins; then the tune that
- * was paused, if it was this station's; otherwise a new tune.
+ * was paused, if it was this station's; otherwise a new tune. A saved tune (`id` is its
+ * asset id) plays its own seed and repeats; `onTuneEnd` runs each time it comes round
+ * again, for a player that moves on to the next track instead.
  */
-export async function startLofi(ctx: AudioContext, dest: AudioNode, id: string, prefs: LofiPrefs): Promise<void> {
-  const mood = lofiMoodOf(id);
+export async function startLofi(ctx: AudioContext, dest: AudioNode, id: string, prefs: LofiPrefs, onTuneEnd?: () => void): Promise<void> {
+  const saved = savedTunes.get(id);
+  const mood = saved?.mood ?? lofiMoodOf(id);
   if (!mood) return;
   const { LofiStation } = await import('./lofi-station.ts');
   stopLofi();
-  const seed = queued ?? (resume?.id === id ? resume.seed : freshSeed());
-  queued = null;
+  const seed = saved?.seed ?? queued ?? (resume?.id === id ? resume.seed : freshSeed());
+  if (!saved) queued = null;
   if (stationId !== id || heard[heard.length - 1] !== seed) heard = [...(stationId === id ? heard : []), seed].slice(-50);
   stationId = id;
-  const s = new LofiStation(ctx, dest, seed, { mood, drums: prefs.drums, texture: prefs.texture });
+  // A track saved from the music generator plays exactly as it was made (its instruments,
+  // tempo, key, mix and length), repeating; the listener's drums switch still holds.
+  const track = saved?.generator ? await import('./music-state.ts') : null;
+  const state = track && saved?.generator ? track.parseMusicState(saved.generator) : null;
+  const s = state && track
+    ? new LofiStation(ctx, dest, state.seed, { ...track.trackSettings(state), drums: prefs.drums && state.drums, repeat: true }, state.mix)
+    : new LofiStation(ctx, dest, seed, { mood, drums: prefs.drums, texture: prefs.texture, repeat: Boolean(saved) });
   s.setVolume(1);
+  let rounds = 0;
   s.onBar = (bar) => {
     if (bar.index !== 0) return;
+    if (saved && rounds++ > 0) { onTuneEnd?.(); return; }
     // A tune that followed on by itself joins the run, so Previous can go back to that tune.
     if (heard[heard.length - 1] !== bar.tune.seed) heard = [...heard, bar.tune.seed].slice(-50);
     notifyTune();
@@ -144,13 +184,21 @@ export function applyLofiPrefs(prefs: LofiPrefs): void {
   station?.setTexture(prefs.texture);
 }
 
+/** The tune now playing on a station, as a recipe to save: its mood and seed. Null on a
+ *  saved tune (it is already saved) or before the first bar. */
+export function currentLofiRecipe(): LofiLink | null {
+  const mood = lofiMoodOf(stationId);
+  const seed = station?.current?.tune.seed;
+  return mood && seed !== undefined ? { mood, seed } : null;
+}
+
 /** Play `seed` the next time a station starts (a shared link). */
 export function queueLofiSeed(seed: number): void { queued = seed >>> 0; }
 
 // ── shared links ─────────────────────────────────────────────────────────────
 
 /** A shared tune: its station's mood and its seed. */
-export interface LofiLink { mood: LofiMood; seed: number }
+export interface LofiLink { mood: LofiMood; seed: number; /** A music generator track's settings (lib/music-state.ts), for a saved one. */ generator?: string }
 
 /** The `lofi` link parameter's value for a tune: "<mood>.<seed>". */
 export function lofiLinkValue(link: LofiLink): string { return `${link.mood}.${link.seed >>> 0}`; }
@@ -165,9 +213,12 @@ export function parseLofiLink(value: string | null | undefined): LofiLink | null
   return { mood, seed };
 }
 
-/** A link that opens the app and plays the tune now playing. Null when nothing is. */
+/** A link that opens the app and plays the tune now playing (a saved generator track
+ *  opens in the music generator, the one place its settings travel). Null when nothing is. */
 export function lofiShareUrl(origin: string): string | null {
-  const mood = lofiMoodOf(stationId);
+  const generator = savedTunes.get(stationId)?.generator;
+  if (generator && station) return `${origin}/#/music?${generator}`;
+  const mood = savedTunes.get(stationId)?.mood ?? lofiMoodOf(stationId);
   const seed = station?.current?.tune.seed ?? heard[heard.length - 1];
   if (!mood || seed === undefined || !station) return null;
   return `${origin}/#/?lofi=${lofiLinkValue({ mood, seed })}`;

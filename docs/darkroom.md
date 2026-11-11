@@ -4,6 +4,7 @@
 
 Lolly Darkroom grades photos and video: a warm portrait for a speaker card, a black-and-white treatment for a report cover, the same look across every clip in a reel. It works on your device, and a look can leave as a LUT or travel in a share link.
 
+<!--i:eti-sun-->
 ## Grade a photo
 
 Open the **Darkroom** tool and choose an image. The controls run from broad to fine:
@@ -22,9 +23,14 @@ On a phone, each slider is a ruler you drag or flick under a fixed centre mark. 
 
 To keep HDR or wide-gamut originals at full precision, set **Editing range** to **HDR**; see [Wide colour and HDR editing](/info/hdr-editing.html).
 
+<!--i:eti-camera-->
 ## Open a camera raw photo
 
-Lolly Darkroom opens a raw file from your camera like any other photo: choose it, drop it on the page or pick it from **My images**. Lolly develops the file on your device, applies the camera's white balance, orientation and crop, and stores a normal picture at up to 3840 pixels on the long edge. The raw file itself is not kept. Lolly Darkroom then grades the developed picture. It does not re-develop the sensor data.
+Lolly Darkroom opens a raw file from your camera like any other photo: choose it, drop it on the page or pick it from **My images**. Lolly develops the file on your device, applies the camera's white balance, orientation and crop, and stores a normal picture at up to 3840 pixels on the long edge.
+
+::: note Lolly keeps the developed picture, not the raw file
+Lolly Darkroom grades the developed picture. It does not re-develop the sensor data, and HDR editing does not apply to raw photos yet.
+:::
 
 - **DNG** files use the colour matrices stored in the file, so the colour is exact. The import note says "exact colour".
 - **CR2, NEF, ARW, ORF, RW2 and uncompressed RAF** files store no colour matrices. Lolly fits the colour to the JPEG the camera embedded in the same file, and the import note says "approximate colour" and how far the fit is from that JPEG. Pictures with strong local tone mapping, such as Active D-Lighting, can differ most.
@@ -36,9 +42,17 @@ The note appears when the file comes in, with the camera, the size and the colou
 lolly run darkroom --image=IMG_4059.CR2 --output=graded.png
 ```
 
+<!--i:eti-upload-->
 ## Bring in an Adobe photo preset
 
-**Import Adobe photo preset** maps an XMP preset's exposure, contrast, highlights, shadows, saturation, vibrance and dehaze onto Lolly Darkroom's own controls. The result is approximate: profiles, Kelvin white balance, masks and settings Lolly Darkroom has no control for are listed in a report. Settings the preset does not mention keep their current values. Lua `.lrtemplate` files are refused, so export XMP from Adobe first.
+**Import Adobe photo preset** maps an XMP preset's settings onto Lolly Darkroom's own controls:
+
+- exposure, contrast, highlights, shadows, saturation, vibrance and dehaze;
+- temperature and tint, when the preset gives them as relative changes;
+- the colour mixer's eight bands, and black and white;
+- grain, sharpening and a darkening vignette.
+
+The result is approximate. Profiles, masks, a lightening vignette and settings Lolly Darkroom has no control for are listed in a report. A white balance in kelvin is converted only when the preset also records the photo's own white balance; otherwise it is listed too. Settings the preset does not mention keep their current values. Lua `.lrtemplate` files are refused, so export XMP from Adobe first.
 
 The CLI returns the same controls and a Lolly Darkroom link:
 
@@ -46,6 +60,7 @@ The CLI returns the same controls and a Lolly Darkroom link:
 lolly adobe preset look.xmp
 ```
 
+<!--i:eti-repeat-->
 ## Reuse a look
 
 - **Download look as .cube** bakes the current grade into a LUT (choose its size under **Baked LUT size**) for use in another app. A built-in LUT preset can be downloaded on its own too.
@@ -56,6 +71,7 @@ The **Motion looks** templates are starting points for looping clips, each with 
 
 A Lolly Darkroom share link can also go straight into Lolly Design: the **Photo title** motion starter there takes your upload or an edited Lolly Darkroom link (see [Animating](/info/animating.html#start-from-a-motion-starter)).
 
+<!--i:eti-download-->
 ## Export
 
-Lolly Darkroom exports PNG, JPG, WebP, AVIF, TIFF, PDF, SVG and Penpot for stills, MP4 and WebM for video, and OpenEXR and Radiance for high-dynamic-range masters. [Export a file](/info/exporting.html) covers formats, sizes and what travels with each file.
+Lolly Darkroom exports PNG, JPG, WebP, AVIF, TIFF, PDF, SVG and Penpot for stills, MP4 and WebM for video, and OpenEXR and Radiance for high-dynamic-range masters. The export's Content Credentials name the photo you graded as its parent, with what was done to the photo, such as "Adjusted the colours". [Export a file](/info/exporting.html) covers formats, sizes and what travels with each file.

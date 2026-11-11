@@ -24,6 +24,7 @@ Lolly Work can also deliver a file to configured S3, WebDAV and HTTP destination
 Operators set this up with the [organisation delivery guide](/info/work-delivery.html). For queued server renders and batches, see [CLI batch and automation](/info/cli-automation.html#organisation-jobs-with-lolly-work).
 :::
 
+<!--i:eti-cpu-->
 ## How export works
 
 When you export, the tool's canvas is rendered to the format you chose and handed to you as a download, or put on your clipboard.
@@ -39,10 +40,13 @@ The export panel offers these actions. A tool's author picks which appear; the d
 - <!--i:folder--> **Save** keeps the current design in Projects in one click and never downloads a file. **Save as**, beside **Download**, asks where (see [Saving and continuing](/info/using.html#saving-continuing)).
 - <!--i:link--> **Share** opens the Share dialog: a link that reproduces the design, the on-visit toggles (fullscreen, export panel, download or copy on open) and an optional **Shortest link** that packs the whole state into a compact token (see [URL Mode](/info/url-mode.html)).
 
+**Send to**, a card in the export panel, sends the file to a service you connected. After a send to Google Drive, Nextcloud, an S3 bucket, Dropbox or OneDrive, **Create a share link** can make a link there, with no second upload, and the Share dialog's **Share through your cloud** section sends a `.lolly` file and makes its link in one go. Either way, the link panel shows who can open the link, where the file lives and when the link expires, and **Links you've shared**, in the Share dialog, lets you stop sharing. Nextcloud links can have a password and an expiry date; S3 links last 1 to 7 days and cannot be stopped early. Lolly keeps no copy of the file and no sign-in token on a server. [Privacy](/info/privacy.html#every-network-request-the-app-can-make) lists what each service receives.
+
 ![The export panel - format, size and the Copy / Download / Save / Share actions](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&dark=1&filename=export-panel)
 
 When a design embeds another tool's render, such as a Lolly Design image box holding a QR Code link, the nested render is drawn into the parent's export. It stays true vector in SVG and PDF and rasterises crisply in PNG, JPG and WebP. The embedded render gets no watermark and no provenance of its own; only the finished file does. HTML, Markdown and TXT exports cannot hold a composed render.
 
+<!--i:eti-file-->
 ## Pick a format
 
 The file name and the format menu sit together as one `name.format` pair, below **Download**.
@@ -87,6 +91,7 @@ Text in another language follows the fonts you have. When a font in your design 
 | Broadcast captions | **TTML** or **SCC** | IMSC1.1 timed text, or CEA-608 pop-on captions (Captions; see [Broadcast captions](#broadcast-captions)) |
 | A training course | **SCORM (LMS)** | A versioned website, SCORM or xAPI package (see [SCORM](#scorm-course-packages)) |
 | Rich text or an email signature | **HTML** | Pastes formatted into mail clients |
+| An animation that plays in a browser | **HTML** | A player in one file, from Lolly Design's timeline or Snippet (see [Video](#video)) |
 | Plain content | **MD** or **TXT** | Text only |
 | A calendar event | **ICS** | Imports into any calendar app |
 | A contact card | **VCF** | Imports into address books |
@@ -98,6 +103,7 @@ Text in another language follows the fonts you have. When a font in your design 
 
 Tools that support it offer a transparent background toggle, such as **No BG**. PNG, WebP, AVIF, SVG, APNG and Animated WebP keep transparency, and GIF keeps a hard edge. JPG and PDF are always opaque. TIFF flattens onto white, or onto black on the HDR path described under [HDR](#hdr-bright-colours).
 
+<!--i:eti-crop-->
 ## Size and print units
 
 Exports use the tool's native pixel size unless the tool offers **dimensions**. Then you set width, height and a **unit**:
@@ -109,6 +115,7 @@ For a higher-resolution raster, enter a larger width and height, or choose a phy
 
 ![The dimensions row set to 210 by 297 mm, with the DPI field revealed because the unit is physical](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26w%3D210%26h%3D297%26unit%3Dmm%26format%3Dpdf%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-dims&walker=1&dark=1&filename=exp-export-dims)
 
+<!--i:eti-images-->
 ## Stills from a timed composition
 
 A timed composition, such as a [Sequence](/info/sequence-editor.html) timeline in Lolly Design, moves, so a still export has to pick a moment: **the frame at the playhead**. Park the playhead where you want the picture and export.
@@ -126,6 +133,7 @@ Frames: 4 cuts the sequence into four equal slices and takes the middle of each.
 
 Use it for a storyboard, a review contact sheet or a social carousel cut from a video edit. The count is capped at 64, and anything else typed into the field falls back to `1`. Each frame is an ordinary still, so credentials, the Imprint, physical units and DPI behave as they do for one export. An export link, the CLI and MCP ask for the same sheet with `cuts=` (see [Contact sheets](/info/url-export.html#contact-sheets)).
 
+<!--i:eti-copy-->
 ## Many files at once
 
 Lolly has three ways to work at volume, each for a different job:
@@ -139,8 +147,11 @@ A tool with a table input, such as **Battlecards**, turns every row into a page.
 **Lolly Multi-edit** opens several saved sessions side by side for the same touch-up across different designs. See [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
+A tool with several pages, such as Battlecards, Booklet, Print Sheet, Lolly Doc Studio or Lolly Markdown Slides, exports PNG, JPG, WebP, SVG and the other single-image formats as one file per page, in a ZIP when there are several. Print Sheet keeps its full sheet and cut marks at the chosen DPI.
+
 From **Projects**, **Render folder** exports every saved session in a folder and its sub-folders as one nested ZIP, and **Render selection** does the same for any multi-selection; one saved session renders to its own file. A saved session can also be shared again as a tool link from Projects, which reopens it with the same settings.
 
+<!--i:eti-pen-->
 ## Files that stay editable elsewhere
 
 Some formats hand your work to another application as editable content rather than a picture.
@@ -149,10 +160,10 @@ Some formats hand your work to another application as editable content rather th
 
 Lolly Design, Lolly Markdown Slides, Booklet, Lolly Doc Studio, Lolly Chart, Diagrams, Flow Chart and Agenda export a PowerPoint deck, one slide per page. Each page is taken apart into native objects, so a colleague can edit the deck and take assets out of it:
 
-- <!--i:font--> **Text** becomes editable PowerPoint text boxes with the layout's font size, colour, weight, italics and alignment.
+- <!--i:font--> **Text** becomes editable PowerPoint text boxes with the layout's font size, colour, weight, italics and alignment. A Lolly Design deck sets the brand typeface on every run of text, even without a slide master.
 - <!--i:pentool--> **Vectors** such as logos and icons are embedded as SVG pictures; they stay crisp, and PowerPoint can *Convert to Shape* on them.
 - <!--i:photos--> **Images** come through at native resolution as their own pictures. A cropped hero keeps the full image behind the crop, and any filter or blend on it is baked in.
-- <!--i:layers--> **Backgrounds, borders and rules** become rectangle and line shapes.
+- <!--i:layers--> **Backgrounds, borders and rules** become rectangle and line shapes. Circles, ellipses and pills from Lolly Design stay native, editable shapes.
 
 ![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
 
@@ -180,7 +191,7 @@ To open the file, start Penpot, pick a project and choose **Import**. Signed in 
 
 ### Word, OpenDocument and InDesign
 
-**Lolly Doc Studio** exports **Word** (DOCX) and **OpenDocument** (ODT) with real paragraphs and headings.
+**Lolly Doc Studio** exports **Word** (DOCX) and **OpenDocument** (ODT) with real paragraphs and headings. The Word file sets the brand's fonts and text colour through the document's styles, follows the page size you choose and adds a PNG beside an SVG logo for apps that cannot draw SVG.
 
 **Lolly Design** exports **InDesign IDML (static subset)**: text, rectangles, ovals and PNG or JPEG images, one spread per artboard. Supported inline formatting stays editable, images travel in `Links` and coordinates become InDesign points. Relinking, font substitution and changed wrapping may need attention. Effects, animation, composed stories and unsupported geometry stop the export with a report that lists them. IDML does not preserve the original document, so send PDF for finished artwork.
 
@@ -211,7 +222,9 @@ The Captions tool can also export **TTML** and **SCC**. Both are written from th
 - **SCC** carries CEA-608 pop-on captions on channel 1 at 29.97 frames per second with drop-frame timecode. It supports the basic North American characters plus the special and extended ones. If a caption holds a character the set cannot carry, the export stops and tells you which character, so nothing is dropped without notice. Each caption wraps to 32 columns and at most 15 rows. A caption that cannot load before its start time is delayed by a few frames.
 - Roll-up and paint-on captions are not written.
 
+::: note SCC has not been checked in a broadcast tool
 SCC output has not been checked against a real broadcast tool or hardware decoder. Test a file in your own pipeline before delivery.
+:::
 
 ### DXF (cut files)
 
@@ -225,9 +238,10 @@ Street Map is the clearest case. The whole design is already strokes, so every r
 Scroll, and the camera pulls back through the actual geometry: seven paths, no pixels anywhere, every stroke hairline-crisp at any zoom. That is the same file a cutter reads.
 :::
 
+<!--i:eti-stamp-->
 ## Print
 
-**Print PDF** writes CMYK against a named press condition, **Coated FOGRA39** by default. Brand swatches with measured ink values keep those values. Other colours are converted through a press profile: Lolly's own Coated FOGRA39 profile by default, or your own profile when you choose its **Embed** row. Greys and black stay on the black plate alone, so small type cannot misregister. FOGRA51, SWOP and GRACoL use a standard device conversion. **Print TIFF** writes DeviceCMYK pixels for a RIP and records the same press condition in its TIFF metadata. The Colour profile control drives both; [Colour profiles](#colour-profiles) has the detail.
+**Print PDF** writes CMYK against a named press condition, **Coated FOGRA39** by default. Brand swatches with measured ink values keep those values. Other colours are converted through a press profile: Lolly's own Coated FOGRA39 profile by default, or your own profile when you choose its **Embed** row. Greys and black stay on the black plate alone, so small type cannot misregister. FOGRA51, SWOP and GRACoL use a standard device conversion. Black type prints on the black plate only and overprints the colour under it, so a slightly misaligned press leaves no white edge round the letters. **Print TIFF** writes DeviceCMYK pixels for a RIP and records the same press condition in its TIFF metadata. The Colour profile control drives both; [Colour profiles](#colour-profiles) has the detail. Print TIFF and **EPS (CMYK)** separate colours through the same press profile as the Print PDF.
 
 **Print marks & bleed** has its own card on the print formats: the bleed in millimetres plus Crop, Registration, Bleed, Colour bars and Stamp details. Stamp details prints the date, the tool and your name in the margin. A name or tool name in letters the margin font lacks, such as Arabic, Chinese, Cyrillic or an emoji, is drawn as a picture in the same grey, and the export card lists those scripts.
 
@@ -237,6 +251,7 @@ Some tools build a **multi-page PDF**: a cover, content that flows onto as many 
 
 **After you export.** Once the file is ready, Lolly reads it back and compares it with what you chose: format, pixel or page size, clip length, a transparent background, CMYK colour, HDR, Content Credentials and a PDF or ZIP password. Anything that differs is written on the export card. Each measurement comes from the file, never from the setting, and a property the file cannot answer is not counted as a match. The command line writes the full comparison with `--export-report` (see [Render with the CLI](/info/cli-rendering.html)).
 
+::: details PDF accessibility checks from the command line
 **PDF accessibility checks.** For a PDF, the command line also lists 32 accessibility checks in the `--export-report` file, under `pdfAccessibility`. Each check has an id, a plain description, an outcome and where in the file it found a problem:
 
 - **Passed**: the check looked at something and found nothing wrong.
@@ -245,6 +260,7 @@ Some tools build a **multi-page PDF**: a cover, content that flows onto as many 
 - **Needs a person**: six checks cannot be judged by a program (reading order, colour contrast, flashing, scripts, time limits and repeated links).
 
 The list is not a verdict. It does not say a PDF meets PDF/UA or that people who use assistive technology can use it, and a person still needs to check the file with a screen reader. Lolly's own PDFs fail the tagging checks today, because the exporters write no tags yet. The check reads the file on your device and changes nothing. Files that need a password are named as unchecked, not passed. To check a PDF you were sent, drop it into [Lolly Strip Hidden Data](/info/utilities.html), which shows the same list under **PDF accessibility checks**.
+:::
 
 Lolly Design's inspector checks and the brand comparison in Lolly Design System Setup are separate checks: they look at the design, while these two cards look at the file.
 
@@ -263,6 +279,7 @@ When a figure cannot be worked out, the table is withdrawn rather than filled in
 The card is stripped from every export stage, so it never changes the file. It is arithmetic, not a quote; only your printer can quote.
 :::
 
+<!--i:eti-film-->
 ## Motion and sound
 
 ### Video
@@ -277,6 +294,8 @@ Video exports keep their sound. A tool can lay a **music bed** under the clip: a
 
 A Lolly Design deck that stays a click deck can still leave as a video. **Export slides as video** in the Present menu opens the export sheet on MP4. Each slide plays for its own dwell, or for the export sheet's Duration when it has none, and the deck's slide transition plays between them as a dissolve. The document itself does not change.
 
+**HTML** from a timed Lolly Design document, or from Snippet, is a player in one file: play, seeking and sound controls over the animation, with its supported fonts, images and sound embedded, so it plays offline. A Lolly Design film with scenes adds a menu of its scenes. A sequence that holds a video, Lottie or 3D clip cannot export as HTML yet; export it as video.
+
 ### Animated images
 
 **GIF** plays everywhere and suits chat and email; it is larger and has fewer colours than video. **APNG** and **Animated WebP** keep full colour and transparency. **Lottie Ad** also exports **Animated SVG**: vector frames with embedded CSS keyframes, so it scales to any size and loops in a browser tab or an `<img>` with no codec. Its text is outlined, and it uses a lower default frame rate because each frame is heavier than a bitmap. All of these are silent.
@@ -287,6 +306,7 @@ Some tools export sound on its own. **Lolly Voice Recorder** captures a micropho
 
 The asset picker accepts a wide range of audio for a music bed, from MP3 and FLAC to MIDI and tracker modules; [Formats](/info/formats.html) lists them. A [Lolly Rondocode song](/info/rondocode.html) plays at whatever length its clip asks for.
 
+<!--i:eti-palette-->
 ## Colour and HDR
 
 Lolly reads every modern CSS colour, does its colour maths perceptually and writes each file in a space a reader can open: sRGB for screens, CMYK for print and Rec.2100 PQ for HDR. [Colour in the engine](/info/colour-engine.html) explains how. A Lolly Design document set to **Wide colour / HDR** follows its own rules, described in [Wide colour and HDR editing](/info/hdr-editing.html).
@@ -336,9 +356,13 @@ An ordinary export is sRGB: a saturated brand colour is as bright as the screen'
 - **The dials.** **White** (the peak-brightness ceiling, 400 to 2000 nits), **Reach** (how far down the tones the glow spreads), **Dark lift** (how much the darks brighten; `0` keeps them dark) and **Focus** (how much colour richness the boost keeps). They travel as one value: `hdr=1600-60-0-50` is White 1600, Reach 60, Dark lift 0 and Focus 50.
 - **What is written.** PNG gets 16-bit Rec.2100 PQ with a `cICP` chunk. JPG is an ISO 21496-1 gain-map JPEG: an ordinary SDR picture plus an appended gain map. AVIF gets a rewritten `colr` box. TIFF gets PQ pixels with a generated ICC v4 profile carrying a `cicp` tag, and flattens onto black, because white is the 10,000-nit code in PQ and would ring every edge with a halo. The boost follows perceptual (OKLab) lightness and keeps hue, so a brand green gets brighter, not minty.
 - **Where the glow shows.** Colour-managed viewers on an HDR display: Preview, Quick Look and Safari on Apple devices, or Chrome on an HDR monitor. An SDR screen shows a normal image.
-- **Before you ship.** Many platforms re-encode uploads and strip the HDR signal, which can leave the image dark or washed out. Use HDR where you control the destination, such as your own site, a video wall or a deck on a bright panel.
 - **From the terminal.** `--hdr=1` with `--export=png` or `--export=jpg` writes the same PNG and gain-map JPEG on the [CLI](/info/cli.html), from the same engine encoders, with no browser in the path. AVIF and TIFF stay web exports for now.
 
+::: warning Many platforms strip the HDR signal
+Many platforms re-encode uploads and strip the HDR signal, which can leave the image dark or washed out. Use HDR where you control the destination, such as your own site, a video wall or a deck on a bright panel.
+:::
+
+<!--i:eti-badge-check-->
 ## What travels with your file
 
 A finished file can carry several records beside the picture. Some ride beside the pixels and disappear when the file is re-saved or stripped; two marks live in the pixels themselves.
@@ -347,7 +371,7 @@ A finished file can carry several records beside the picture. Some ride beside t
 Where each record lives, whether it is on by default and which link parameter controls each one.
 :::
 
-The export panel folds **Licence**, **Source credits**, *Password protect*, **C2PA Credentials**, the **Lolly Imprint** and the **Durable credential** into one **Content protection** group that shows only the cards the chosen format can use. It opens by itself when a link or document already declares a licence, or when a source needs a decision from you. The **Design system** card stays outside the group, in view on every export.
+The export panel folds **Licence**, **Source credits**, **Password**, **C2PA Credentials**, the **Lolly Imprint** and the **Durable credential** into one **Content protection** group that shows only the cards the chosen format can use. It opens by itself when a link or document already declares a licence, or when a source needs a decision from you. The **Design system** card stays outside the group, in view on every export.
 
 ![The Content protection group opened on a PNG export, showing only the cards that apply to it](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -369,6 +393,7 @@ An export records the design system that made the file: its name, the published 
 
 **The description gives the colourway beside the tool.** With the card ticked, *"Made with https://lolly.tools : Chart"* becomes *"Made with https://lolly.tools : Chart (Beach colourway)"*. The design system's own name stays in the record, not the description. A description with no tool name, or one a tool writes from its own inputs, is left as it is. A tool that ignores colourways through `tokenAxes` records none, and the PDF proof credit (the `prov` print mark) follows the same rule.
 
+::: details Brand skills, brand pages and partner companies in the record
 **Brand skills that guided an agent.** When an agent made the piece and named the [brand skills](/info/brand-skills.html) it read and followed, the record also lists each skill with its revision, such as *Guided by: acme-brand 1.0*. The words mean that the skill guided the work. They are not a check: Lolly does not test the piece against a skill. Only the agent's own statement adds the list, which today means the `brandSkills` argument of the [MCP server](/info/mcp.html)'s `lolly_render`, so a piece made in the app or from a share link carries none. The Content Credential holds the list as `brandSkills`, one JSON value with each skill's id, name, revision and SHA-256 hash. The XMP packet and the SVG metadata hold the same value as `lolly:BrandSkills`, a PDF written from the record gains one keyword per skill and the description stays as it was. An internal skill is recorded by its id, name, revision and hash, never by its text. The same switches leave the list out with the rest of the record: the **Design system** card, `_madewith=0`, `--no-madewith` and `madeWith: false`. When the MCP server draws the file in a browser (a PDF, a JPEG and the other formats its browser-free path cannot write), the file's own metadata holds no list and only a Content Credential can hold one. Pass `c2pa` to keep the record; without a credential the render warns that the brand skills were not recorded.
 
 **The brand page, when its publisher opts in.** A design system's publisher can choose to record the address of its [brand page](/info/brand-page.html#lead-back-from-your-files) on exports. The setting is per design system and off until someone turns it on. The card then adds the address to the same line, such as *Records: Acme · Colourway: Beach · Brand page: https://acme.example/brand/acme/*, and unticking the card takes the address out with the rest. The record holds the address and nothing else about the page. Nothing else in the file changes, and a design system with no address writes the same file it always did.
@@ -376,6 +401,7 @@ An export records the design system that made the file: its name, the published 
 **The address does not travel with a pack.** A record in a signed file reads as the signer's own, so an address must not switch itself on for someone who did not choose it, and a pack must not be able to point other people's files at a page of its choosing. A `.lolly` pack, a copy or fork of a design system, **Try these colours**, a restored backup and a tokens file given for one run all arrive with the setting off. You can turn it on yourself, with an address you type. A managed design system is the one exception: it keeps the address its manager set in the source tokens. [Lead back from your files](/info/brand-page.html#lead-back-from-your-files) has the details.
 
 **The partner company, in a Lolly Work partner programme.** A piece made for a partner company records the company and its programme on the same line, such as *Records: Acme · Colourway: Beach · Partner: Northwind IT (Resellers, EMEA)*, with the revision of the company's details in the file. The record holds no person, contact details, address or currency. With the company's partner kit attached, the line adds the kit's revision, such as *, kit revision 2*, and the credential holds the kit's id and revision, never its colours or rules. Unticking the card leaves the partner out with the rest of the record. A PDF gains the keyword *Partner: Northwind IT*, and [Lolly Verify](/info/what-verify-checks.html#partner) shows the record as **Partner** ([The partner record in files](/info/manage/partner-programmes.html#the-partner-record-in-files)).
+:::
 
 **Reading the record back.** [Lolly Verify](/verify) lists the record as **Design system** in a file's credential details and any brand skills as **Guided by**. A brand page appears on its own, as [the signer's record of an address](/info/what-verify-checks.html#brand-page). *Recreate with these settings* reopens the tool in the recorded version and colourway. The link opens with the recorded design system when this device holds one with the same id and name; otherwise it opens with your active design system.
 
@@ -403,28 +429,33 @@ Exports can carry **Content Credentials**: a signed [C2PA](https://c2pa.org) man
 
 - **On by default.** The **C2PA Credentials** card comes pre-selected for nearly every tool. Untick it for one export, or pass `c2pa=off` in a link. Either way the file holds no credential, and an SVG that inlines credentialed artwork, such as a catalog logo, loses that artwork's credential too. Only the credential goes: the Lolly Imprint and the file's other metadata stay. A tool can opt out in its manifest.
 - **Formats.** PDF (RGB and Print), PNG and APNG, JPG, GIF, SVG and SVGZ, TIFF (RGB and Print), WebP (still and animated), AVIF, MP4, WebM, the audio containers MP3, WAV, M4A, OGG/Opus and FLAC, and HTML, Markdown and CSS. A ZIP stamps each supported member, which is how an Animated SVG gets one. MP4, AVIF and M4A use the standard BMFF binding and MP3 its ID3v2 mapping, so `c2patool` and other readers verify them. WebM and OGG/Opus have no standard mapping yet, so Lolly carries the manifest as a Matroska attachment and an OpusTags field, which Lolly's own verifier checks. An SVGZ is a compressed SVG, and the C2PA specification defines no compressed form, so the credential is written into the SVG before it is compressed: Lolly's verifier reads the file as it is, and `c2patool` reads the same credential once the file is decompressed (`gunzip`). ICO, EPS, EMF, DXF, BMP, PPTX, the Office formats and the other text and data formats have no C2PA container.
-- **What it records.** The tool and app that made the file, the signing time, the shell that exported it, for a Lolly Design page exported as an image, SVG or PDF the renderer that drew it (`route` in the `tools.lolly.export` assertion: `gpu` for the GPU page renderer, `operations` for the drawing operations written as vectors, `compatibility` for the browser's own renderer) and that renderer's version (`renderer`: the GPU recipe, `design-draw-v` and its version, or `dom-to-image` and `dom-walker`; the browser's own version is never recorded), the [design system and colourway](#the-design-system-record) while the **Design system** card is ticked, and the active settings: menu choices, numbers, switches and colours as they are, and anything typed (titles, names, notes, links and dates) only as a fingerprint, so the words are not in the file. Profile-bound fields, inactive controls, browser versions and operating-system details are left out. Your name and email appear as the author only when **Use my details to create** is on under Settings → Preferences → Your details. Sources an export places travel as ingredients: each picture on the page that carries a Content Credential of its own, recorded as a component of the page with that credential and any AI source type it declares, in a PNG, JPEG, WebP, AVIF, TIFF, SVG or PDF alike, and in a GIF, APNG, animated WebP, MP4 or WebM when the picture is drawn in at least one frame of the exported range (the one picture a tool such as Darkroom, Filter or Asset Export changes is recorded as the file's parent instead, opened first and followed by what the tool did to it); [credited works](#source-credits) such as emoji; and [Lolly Rondocode songs](/info/rondocode.html#songs-in-the-credential) in a video or audio export.
+- **What it records.** The tool and app that made the file, the signing time, the shell that exported it, for a Lolly Design page exported as an image, SVG or PDF the renderer that drew it (`route` in the `tools.lolly.export` assertion: `gpu` for the GPU page renderer, `operations` for the drawing operations written as vectors, `compatibility` for the browser's own renderer) and that renderer's version (`renderer`: the GPU recipe, `design-draw-v` and its version, or `dom-to-image` and `dom-walker`; the browser's own version is never recorded), the [design system and colourway](#the-design-system-record) while the **Design system** card is ticked, and the active settings: menu choices, numbers, switches and colours as they are, and anything typed (titles, names, notes, links and dates) only as a fingerprint, so the words are not in the file. Profile-bound fields, inactive controls, browser versions and operating-system details are left out. Your name and email appear as the author only when **Use my details to create** is on under Settings → Preferences → Your details. Sources an export places travel as ingredients: each picture on the page that carries a Content Credential of its own, recorded as a component of the page with that credential and any AI source type it declares, in a PNG, JPEG, WebP, AVIF, TIFF, SVG or PDF alike, and in a GIF, APNG, animated WebP, MP4 or WebM when the picture is drawn in at least one frame of the exported range (the one picture a tool such as Darkroom, Filter or Asset Export changes is recorded as the file's parent instead, opened first and followed by what the tool did to it); [credited works](#source-credits) such as emoji; [Lolly Rondocode songs](/info/rondocode.html#songs-in-the-credential) in a video or audio export; and [saved tunes](/info/generated-music.html#what-a-track-records) in a video or audio export, each with its name, the licence when the tune records one, the SHA-256 of its recipe, the engine version and algorithmic media. A saved tune's maker (the profile name it was saved with) is added only while **Use my details to create** is on, like your own name, and the export panel shows the maker before you export in that case only.
 - **An approval, when one was recorded.** A file approved through [Lolly Work](/info/work-approvals.html#review-an-exported-file) can carry a second, signed record over this credential: the approval id, the date of the decision and the digest of the file reviewed. No names, emails, groups, comments or chain names. It is ticked by default in the request dialog and can be unticked for one request or turned off for an instance. It records that a signer stated a decision. It does not say the work meets any standard.
 - **What it was asked to do, for a file made from an [intent](/info/visual-intent.html#what-goes-in-the-file).** The purpose, surface, tool, language, rules and vocabulary versions and the intent digest. Occasion, audience, region and the prompt are fingerprints only, unless the person or agent running that render asks to record the prompt's words. Only a render that started from an intent carries this, the run says what it recorded, and it can be left out.
 - **What recipients see.** C2PA tools such as Adobe apps, `c2patool` and contentcredentials.org/verify read the manifest and show the claim. Lolly signs with a key made on your device, not a certificate from a trust list, so viewers report an *unverified* credential: the structure and tamper evidence are real, the signer is not vouched for. To change that, enrol a **verified identity** under Settings → Preferences → Content Credentials; see [Content Credentials Identity](/info/content-credentials-identity.html).
 - **Checking a file.** Drop any file on [Lolly Verify](/verify), or run `lolly validate <file>`, for an on-device report that leads with whether Lolly made the file and whether it has changed since. Lolly Verify also looks beyond the credential; see [What Lolly Verify checks](/info/what-verify-checks.html).
-- **Privacy.** The signing key is made for the export and never leaves your device, and the claim holds only what the provenance metadata already carries. Privacy utilities that transform your own files add no credential, and *Lolly Strip Hidden Data* removes a C2PA manifest like any other metadata. The Rondocode utility makes new audio, so it signs what it writes ([Lolly Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility)).
+- **Privacy.** The signing key is made for the export and never leaves your device, and the claim holds only what the provenance metadata already carries. Privacy utilities that transform your own files add no credential, and *Lolly Strip Hidden Data* removes a C2PA manifest like any other metadata. The Rondocode utility makes new audio, so it signs what it writes ([Lolly Rondocode songs](/info/rondocode.html#files-from-the-rondocode-utility)). The music generator signs a WAV or M4A download while its **Content Credentials** switch is ticked, recording that Lolly's music generator made the track ([What a track records](/info/generated-music.html#what-a-track-records)).
 - **Interactions.** A password-protected PDF cannot carry Content Credentials, at either tier. The credential is added last, over the finished bytes, after DPI, EXIF, colour profile, PDF/X metadata and print marks.
 
 ### Source credits
 
 An export that places someone else's work records that source in the credential. An emoji drawn from the chosen emoji set is the everyday case: the work, its creator, the licence, where the exact bytes came from and what changed all travel with the file. Text in a tool whose template is an SVG keeps the system's own emoji, so nothing is credited there. The **Source credits** row says what the sources ask of the delivery before you download, and after the download it reads the delivered bytes back before it says the credits are in the file. A licence that asks you to choose, such as a recoloured CC BY-SA glyph you are about to share, gets a card with the options; the download is never blocked. [Creative rights and credits](/info/creative-rights.html) has the wording, the reviewed licences and what stays yours.
 
+<!--i:eti-lock-->
 ## Password protection
 
-Two kinds of lock, both made on your device. The export panel's *Password protect* card drives both.
+Two kinds of lock, both made on your device. The export panel's **Password** card drives both.
 
-![The Password protect card expanded on a PDF export, with the password field and the two lock tiers](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
+![The Password card expanded on a PDF export, with the password field and the two lock tiers](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
 **A PDF open-password** has two tiers once you type a password:
 
 - **Weak**: 40-bit RC4, a deterrent rather than protection. RGB `pdf` with no print marks or bleed, and plain ASCII passwords: a password with other characters moves to Strong, because readers cannot open a file locked that way at this tier. Only the first 32 characters count.
 - **Strong**: AES-256 (PDF 2.0). It also applies to Print PDFs and to each PDF inside a batch ZIP. A Strong-locked Print PDF keeps its CMYK, marks and output intent but drops the PDF/X-4 claim.
+
+::: warning Weak is a deterrent, not protection
+Use **Strong** for a confidential file.
+:::
 
 **A locked ZIP** covers a ZIP export, a folder download from Projects or a batch, with one password at two tiers: **Weak** (ZipCrypto, a deterrent) or **Strong** (AES-256). The password protects every member, and any PDF inside is also locked with AES-256 on its own, so it stays locked after the ZIP is unpacked. The prompt appears when the download starts; a blank password means no lock.
 
@@ -432,10 +463,12 @@ Two kinds of lock, both made on your device. The export panel's *Password protec
 
 **A password-gated share link** asks the recipient for a password before it opens. The whole link state is encrypted with AES-256 under a key derived from the password (PBKDF2), so only ciphertext travels and decryption happens in the recipient's browser. The server that serves the link never sees the password or the design. Turn it on in the **Share** dialog. An encrypted link opens only in Lolly, never as an embedded image. See [URL Mode](/info/url-mode.html).
 
+<!--i:eti-monitor-->
 ## On a phone
 
 The export controls sit behind the floating **Export** button, which opens the **Export** sheet: the same formats, size, copy, download and share, sized for touch.
 
+<!--i:eti-code-->
 ## Format ids for links and the CLI
 
 These are the values for the URL `format=` parameter and the CLI `--export=` flag (see [URL parameters](/info/url-parameters.html) and [CLI](/info/cli.html)). A tool's menu shows only the formats that tool can make, so it is always shorter than this list.

@@ -2,6 +2,15 @@
 
 This page is for a developer who wants to run the desktop app from source or package it for macOS, Windows or Linux. The desktop app is a Tauri shell around the web app's own code (see [One source, three apps](/info/build-guide.html#one-source-three-apps)), so you need a checkout from [Get the source](/info/contributing-setup.html) plus a Rust toolchain.
 
+**What you'll do**, in three steps:
+
+::: steps
+- <!--i:eti-checklist--> **[Install the toolchain](#prerequisites)** Rust, the Tauri CLI and your platform's build tools.
+- <!--i:eti-code--> **[Run it in development](#development)** A native window over the Vite dev server, with hot reload.
+- <!--i:eti-package--> **[Build for release](#production-build)** One brand per platform, a signed catalog and the installers.
+:::
+
+<!--i:eti-checklist-->
 ## Prerequisites
 
 <!--l:rust-->**Rust toolchain:**
@@ -27,6 +36,7 @@ pnpm -C shells/tauri-desktop install
 
 Tauri keeps the full list at <https://tauri.app/start/prerequisites/>.
 
+<!--i:eti-code-->
 ## Development
 
 ```bash
@@ -35,6 +45,7 @@ pnpm run dev:desktop
 
 Tauri opens a native window with the Vite dev server running behind it, and hot reload works. Storage uses the filesystem override (`bridge-overrides/state.ts`): saved work goes to `<AppData>/saved-state/`, where `<AppData>` is the app's data directory for the identifier `tools.lolly.Desktop`, for example `~/Library/Application Support/tools.lolly.Desktop/` on macOS.
 
+<!--i:eti-package-->
 ## Production build
 
 Each platform's build ships one brand, chosen with `LOLLY_PROFILE`:
@@ -72,20 +83,25 @@ The build runs in this order:
 
 The complete macOS package needs macOS 13.5 or later, the minimum for its bundled Node CLI runtime. Set `APPLE_SIGNING_IDENTITY` for a Developer ID build, then notarise and staple the app and DMG before you distribute them.
 
+::: note Public builds carry a public brand
 Public builds, workflows, download buckets and package services use a public brand: `lolly-demo` for the Mac app and `lolly-start` for Windows and Linux, never the private `suse` pack.
+:::
 
 ::: details A private build from the SUSE pack
 For an authorised private SUSE build, mount `brands/suse` and set `LOLLY_PROFILE=suse` with `LOLLY_EMBED_CATALOG=profile`. Use a separate app identifier, such as `tools.lolly.SUSE.Desktop`, so its state and cached CLI catalog do not share the public edition's directory, and match the Quick Look extension identifiers to it on macOS. RPM source preparation also needs `rpm/make-sources.sh --private --out <private-build-directory>` and CLI resources built for the target Linux architecture. Source archives leave out macOS extended-attribute files. Keep the sources and packages in private storage.
 :::
 
+<!--i:eti-cpu-->
 ## Intel Macs
 
 The Mac app is built for Apple silicon only. Intel Macs are not supported after 1.1.0, the last Intel build, which stays downloadable from the [install page](/info/install.html) and gets no updates.
 
+<!--i:eti-monitor-->
 ## Cross-compilation
 
 Tauri does not cross-compile out of the box, so build each platform on its own operating system. The repository's release path builds the Linux packages in containers with the scripts in `shells/tauri-desktop/release/` (`build-deb.sh`, `build-rpm.sh`, `build-flatpak.sh` and `build-arch.sh`; the README there gives the order). GitHub workflows cover specific targets: `linux-arm64.yml`, `linux-rpm.yml`, `flatpak.yml` and `desktop-extra.yml` (the Windows installers). [Linux packages](/info/build-obs.html) maps each Linux format to its recipe.
 
+<!--i:eti-image-->
 ## Icons
 
 Production icons are committed under `src-tauri/icons/`. To regenerate the fallback sizes from new artwork:

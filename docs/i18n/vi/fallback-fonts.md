@@ -10,18 +10,18 @@ Mười lăm phông, tất cả từ Google Fonts ở một commit đã ghim và
 
 | Hệ chữ | Phông | Phiên bản | Tải xuống |
 |---|---|---|---|
-| Ả Rập, gồm cả chữ Urdu và Ba Tư | Noto Sans Arabic | 2.012 | 206 KB |
+| Ả Rập, gồm cả chữ Urdu và Ba Tư | Noto Sans Arabic | 2.012 | 211 KB |
 | Do Thái | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hindi, Marathi, Nepal) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengali | Noto Sans Bengali | 3.011 | 136 KB |
-| Thái | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrillic | Noto Sans, chữ Cyrillic | 2.015 | 112 KB, nghiêng 129 KB |
-| Hy Lạp | Noto Sans, chữ Hy Lạp | 2.015 | 75 KB, nghiêng 81 KB |
-| Latin, gồm cả tiếng Việt và các chữ có dấu khác | Noto Sans, chữ Latin | 2.015 | 309 KB, nghiêng 342 KB |
-| Chữ Trung giản thể, các ký tự GB 2312 | Noto Sans SC | 2.004 | 1,9 MB |
-| Chữ Trung phồn thể, các ký tự Big5 | Noto Sans TC | 2.004 | 3,6 MB |
-| Tiếng Nhật, các ký tự Shift_JIS | Noto Sans JP | 2.004 | 2,1 MB |
-| Tiếng Hàn, mọi âm tiết Hangul và các ký tự KS X 1001 | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (Hindi, Marathi, Nepal) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengali | Noto Sans Bengali | 3.011 | 139 KB |
+| Thái | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrillic | Noto Sans, chữ Cyrillic | 2.015 | 115 KB, nghiêng 132 KB |
+| Hy Lạp | Noto Sans, chữ Hy Lạp | 2.015 | 77 KB, nghiêng 83 KB |
+| Latin, gồm cả tiếng Việt và các chữ có dấu khác | Noto Sans, chữ Latin | 2.015 | 316 KB, nghiêng 350 KB |
+| Chữ Trung giản thể, các ký tự GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
+| Chữ Trung phồn thể, các ký tự Big5 | Noto Sans TC | 2.004 | 3,8 MB |
+| Tiếng Nhật, các ký tự Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
+| Tiếng Hàn, mọi âm tiết Hangul và các ký tự KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
 
 Trục độ đậm của mỗi phông được giữ nguyên vẹn, nên mọi độ đậm mà một thiết kế yêu cầu vẫn vẽ được, và một tiêu đề Trung, Nhật hay Hàn in đậm vẫn đậm. Trục độ rộng của các phông Noto Sans được cố định ở mức bình thường, giúp giảm một nửa dung lượng mỗi tệp; các phông Trung, Nhật và Hàn không có trục độ rộng. Noto Sans được tách theo hệ chữ, nên một từ Cyrillic chỉ tải các chữ Cyrillic. Các đường bao là đường bao gốc của upstream, không thay đổi.
 
@@ -53,7 +53,7 @@ Trên trang, một canvas có hai trong các ngôn ngữ này liệt kê cả ha
 
 Không có gì được tải cho đến khi một tài liệu có ký tự mà không phông nào của hệ thống thiết kế vẽ được. Một tài liệu tiếng Anh, hoặc bằng bất kỳ ngôn ngữ nào mà hệ thống thiết kế bao phủ, không bao giờ tải phông dự phòng. Một ký hiệu trong dòng tiếng Anh, như ★ hoặc ※, không bao giờ tải phông Trung, Nhật hay Hàn.
 
-Lần đầu một tài liệu cần một phông, Lolly tải đúng phông đó, cho đúng hệ chữ đó, và giữ nó trên thiết bị của bạn. Một tài liệu tiếng Nhật chỉ tải phông Nhật, 2,1 MB, và một tài liệu chữ Trung phồn thể tải phông phồn thể 3,6 MB. Từ đó hệ chữ này được vẽ ngoại tuyến, và phông vẫn ở lại khi danh mục được dọn dẹp. Phông được giữ cùng các tệp riêng của danh mục, không bao giờ nằm trong số các phông bạn đã tải lên, nên nó không xuất hiện trong danh sách phông của thương hiệu bạn.
+Lần đầu một tài liệu cần một phông, Lolly tải đúng phông đó, cho đúng hệ chữ đó, và giữ nó trên thiết bị của bạn. Một tài liệu tiếng Nhật chỉ tải phông Nhật, 2,2 MB, và một tài liệu chữ Trung phồn thể tải phông phồn thể 3,8 MB. Từ đó hệ chữ này được vẽ ngoại tuyến, và phông vẫn ở lại khi danh mục được dọn dẹp. Phông được giữ cùng các tệp riêng của danh mục, không bao giờ nằm trong số các phông bạn đã tải lên, nên nó không xuất hiện trong danh sách phông của thương hiệu bạn.
 
 Dòng lệnh, ứng dụng terminal và máy chủ MCP đọc cùng các tệp đó từ đĩa, nên không cần tải xuống.
 

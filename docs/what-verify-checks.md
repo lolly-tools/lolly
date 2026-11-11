@@ -9,6 +9,7 @@ Every check runs on your device. Two network touches can happen, and neither sen
 - the opt-in deep scan downloads its detector models once, from the web app's own origin or, in the desktop and mobile apps, from Lolly's model host `lolli.li`, never a third party;
 - on a build configured for a managed CA, Lolly Verify fetches that CA's revocation list.
 
+<!--i:eti-watermark-->
 ## The Lolly Imprint
 
 Alongside its Content Credential, Lolly seals an invisible watermark into the pixels themselves: the Lolly Imprint. The credential travels in metadata and is lost to a re-save, a screenshot or a metadata strip. The Imprint rides in the image and survives recompression, so it remains a hint that an image came from Lolly after the credential is gone.
@@ -19,6 +20,7 @@ When Lolly Verify finds it, a green **Lolly Imprint** pip joins the row, marked 
 
 ![The Lolly Imprint switch in the export panel, already on, with the question mark opening what it does and does not promise](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26options%26c2pa%3D90%26imprint%3D1&width=1440&height=900&dpi=192&waitMs=2200&format=svg&css=%23tool-inputs%2C%23sidebar-utils%7Bdisplay%3Anone%7D&cropSelector=.export-imprint&walker=1&dark=1&filename=cc-export-imprint)
 
+<!--i:eti-stamp-->
 ## Approval and intent records
 
 A Content Credential can carry a record of an approval and a record of what the file was made to do. Lolly Verify shows them ahead of **Made from**, so the panels read as the file's story: approved, made for, made from, then its change history. A file with neither record shows neither panel, because an absent record says nothing about a file.
@@ -52,6 +54,7 @@ A file made for a partner company in a [Lolly Work partner programme](/info/mana
 
 The record is the company's, written by whoever signed the file. It holds no person, contact details, address, currency, token or agent, and of a kit only its id and revision. It does not show that the company approved the piece, and Lolly does not check the company's own brand rules.
 
+<!--i:eti-sparkles-->
 ## AI-generated content
 
 When a file declares that its pixels came from a trained model, Lolly Verify raises an **AI-generated content** flag, or **Contains AI-generated content** when only part of it did. The declaration comes from one of two places, and Lolly Verify says which:
@@ -65,14 +68,17 @@ The metadata tag is genuine when present but easy to strip, so its absence never
 
 [AI evidence in Lolly Verify](/info/verify-ai-evidence.html) covers the separate question of whether text or a layout looks machine-written.
 
+<!--i:eti-type-->
 ## Text reworded by Lolly
 
 Lolly's on-device reword model leaves a public statistical watermark in its choice of words. On a build that ships that model, Lolly Verify checks pasted or extracted text for the mark and shows a **Reworded with Lolly** note when it finds one, with the score and how rarely unmarked text matches that strongly. When nothing is found, nothing is shown: most AI-written text was not reworded by Lolly, so "not found" says nothing.
 
+<!--i:eti-tag-->
 ## A maker's own watermark, likely present
 
 The large generators stamp their own invisible watermark into the pixels: Google's **SynthID** (also adopted by OpenAI) and Meta's **Video Seal**. Only the maker's own detector can read those, and Lolly cannot. So when a file's declared maker is one of them, Lolly Verify says the file *very likely carries* that watermark. This is a likelihood inferred from the declaration, never a claim that Lolly read the watermark.
 
+<!--i:eti-search-->
 ## Deep scan: TrustMark and Content Seal
 
 For a real read of two open pixel watermarks, Lolly Verify offers an opt-in deep scan. A banner asks *"Scan for invisible watermarks?"*, and one click downloads the detector models once (about 90 MB). After that, every image in the batch is scanned automatically, on the device.
@@ -82,6 +88,7 @@ For a real read of two open pixel watermarks, Lolly Verify offers an opt-in deep
 
 Lolly can also write a TrustMark durable mark into its own exports. That switch sits in the export panel's Content protection card and is off by default, for the same reason the scan is opt-in: a neural pass plus a one-time model download.
 
+<!--i:eti-lock-->
 ## SEAL signatures
 
 Lolly Verify also checks for a [SEAL](https://github.com/hackerfactor/SEAL) record. Despite the name, SEAL has nothing to do with Meta's Content Seal. It is a cryptographic signature over the file's bytes, designed to have its public key published in DNS.
@@ -95,6 +102,7 @@ So the result depends on where the record keeps its key:
 
 A **Signed by \<domain\> (SEAL)** result needs a key confirmed in DNS, so no Lolly app shows one yet. That result would prove control of the domain, not a CA-verified legal identity, and nothing about the visual content.
 
+<!--i:eti-eye-off-->
 ## Hidden data
 
 Two reads look for data a file is quietly carrying.
@@ -104,6 +112,7 @@ Two reads look for data a file is quietly carrying.
 
 Every file's embedded metadata (EXIF, GPS, IPTC and XMP) is also read out in full and grouped, with values that could identify a person, place or device marked. Beside it, **Cleaned copy** downloads a copy without them, **Hidden Data** opens the tool that strips them and, for JPEG, PNG, WebP, SVG and PDF, **Lolly Redact** opens the redaction tool.
 
+<!--i:eti-map-pin-->
 ## Where each check runs
 
 | Check | Lolly Verify (web, desktop, mobile) | `lolly validate` | MCP `lolly_verify` |

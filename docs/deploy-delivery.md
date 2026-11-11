@@ -2,8 +2,9 @@
 
 This page is for an operator who puts a proxy, CDN or object store in front of Lolly. Done right, signatures still verify, caches serve the right bytes to the right people and nothing private ends up in a shared cache. Lolly needs no third-party CDN; a same-origin web server is enough, on premises or on a sovereign or public cloud, and K3s, RKE2 and a standalone server follow the same rules.
 
-Read it beside [Choose a deployment](/info/deployment.html), [Run on Kubernetes](/info/build-kubernetes.html) and your instance's privacy policy. Source tests and reference configuration do not establish that a particular deployment has passed the checks below.
+Read it beside [Choose a deployment](/info/deployment.html), [Run on Kubernetes](/info/build-kubernetes.html) and your instance's privacy policy. For a managed CDN in front of a Lolly Work instance's own public files, [Put a CDN in front of Lolly Work](/info/work-edge-cdn.html) has the provider settings and checks. Source tests and reference configuration do not establish that a particular deployment has passed the checks below.
 
+<!--i:eti-shield-check-->
 ## Choose the boundary
 
 Serve the shell, the public catalog and the tools through the instance's own origin. Keep private Lolly Work APIs behind their normal authentication and permission checks. A hashed filename does not make a private file public: only the route that resolves the caller and their current access can choose a delivery class.
@@ -12,6 +13,7 @@ Web model downloads default to `/models/` on that origin. A build can set `VITE_
 
 For a managed edge, limit origin access to that edge's maintained network allowlist and require a private origin credential or mTLS. Replace untrusted forwarding headers at the first trusted proxy. A forwarded IP, cache tag or edge name supplied by a client is not proof that a request came through your edge.
 
+<!--i:eti-table-->
 ## Preserve the response policy
 
 `packages/core/src/delivery-v1.ts` defines the headers the app and its adapters share. The status is part of the decision: an error must never inherit a public file's caching policy.
@@ -27,8 +29,13 @@ For a managed edge, limit origin access to that edge's maintained network allowl
 
 The service worker is revalidated separately and never shared-cached. Public validators describe the exact representation, so compressed and identity responses have separate strong ETags. Signed dynamic output uses a weak validator when a fresh signature can change the bytes. A range request needs a strong validator, and an invalid or weak `If-Range` must return the full representation instead.
 
-Never force storage with `proxy_ignore_headers` or a provider's "cache everything" rule. Cookies, Authorization, token queries, `Set-Cookie`, private routes and refusals bypass shared caches. Hide internal purge tags from the browser. Keep CSP, COOP, COEP, CORP and Referrer-Policy through the proxy, on 304 and error responses too. The [edge references](https://github.com/lolly-tools/lolly/tree/main/deploy/edge) show working configurations.
+::: warning Never force a shared cache to store responses
+Do not use `proxy_ignore_headers` or a provider's "cache everything" rule. Cookies, Authorization, token queries, `Set-Cookie`, private routes and refusals bypass shared caches.
+:::
 
+Hide internal purge tags from the browser. Keep CSP, COOP, COEP, CORP and Referrer-Policy through the proxy, on 304 and error responses too. The [edge references](https://github.com/lolly-tools/lolly/tree/main/deploy/edge) show working configurations.
+
+<!--i:eti-package-->
 ## Build and retain actual files
 
 The release pass creates files such as `asset.<sha16>.webp`, signed `/tools/<id>@<sha16>/` directories and `index.<sha16>.json` copies, and rewrites only the extracted release's references. The full hashes stay in the signed envelope and the asset checksums; the suffix is an address, not proof of integrity.
@@ -60,18 +67,28 @@ node scripts/build-delivery.ts --root /path/to/release --previous /path/to/verif
 node scripts/verify-release-catalog.ts --root /path/to/release
 ```
 
+::: details Start a new signing key
 For a new signing key, start from a clean build without the old key's envelope and pass `--min-seq <n>` above the last published sequence. Browsers keep a sequence watermark for the origin across key changes. The signed sequence is the greater of the normal sequence (1, or the verified predecessor's sequence plus 1) and `n`. `LOLLY_CATALOG_MIN_SEQ` supplies the same minimum; the flag takes precedence. Values must be decimal integers from 0 to `Number.MAX_SAFE_INTEGER`. A lower minimum never lowers the normal sequence, and predecessor verification still applies when a previous envelope is present.
+:::
 
-Use your approved signing configuration and pinned key, and never put a private key in these paths or arguments; the normal release wrapper supplies those inputs. The final delivery pass adds compressed siblings and exact ETags without changing the decoded bytes. nginx can serve gzip siblings with `gzip_static`, while Brotli needs a suitable module; Caddy and Lolly Work can negotiate both precompressed forms. Never apply the public static maps to private Lolly Work routes just because their paths look alike.
+Use your approved signing configuration and pinned key, and never put a private key in these paths or arguments; the normal release wrapper supplies those inputs. The final delivery pass adds compressed siblings and exact ETags without changing the decoded bytes. nginx can serve gzip siblings with `gzip_static`, while Brotli needs a suitable module; Caddy and Lolly Work can negotiate both precompressed forms.
 
-A release that only Lolly Work serves can be smaller. `--codings br` writes Brotli siblings alone: Lolly Work sends the `.br` file to a client that accepts Brotli, and any other client gets the original bytes or Lolly Work's own compression, never a missing file. `--no-validator-map` leaves out `.delivery-etags.conf`, which only an nginx host includes. Run the pass before the frontend receipt is signed, as above, so the receipt lists exactly the files you ship. An instance can also build its own docs in fewer languages: `LOLLY_INFO_LOCALES=en` (a comma-separated list of locale codes, set for the web build) writes `/info` in English only, and the docs' language menu and the app's links to another language go to that page on lolly.tools. Leave it unset to build every language.
+::: warning Keep the public maps off private routes
+Never apply the public static maps to private Lolly Work routes just because their paths look alike.
+:::
 
+**A smaller release for Lolly Work.** A release that only Lolly Work serves can be smaller. `--codings br` writes Brotli siblings alone: Lolly Work sends the `.br` file to a client that accepts Brotli, and any other client gets the original bytes or Lolly Work's own compression, never a missing file. `--no-validator-map` leaves out `.delivery-etags.conf`, which only an nginx host includes. Run the pass before the frontend receipt is signed, as above, so the receipt lists exactly the files you ship.
+
+**Docs in fewer languages.** An instance can also build its own docs in fewer languages: `LOLLY_INFO_LOCALES=en` (a comma-separated list of locale codes, set for the web build) writes `/info` in English only, and the docs' language menu and the app's links to another language go to that page on lolly.tools. Leave it unset to build every language.
+
+<!--i:eti-clock-->
 ## Release staleness and purge
 
 Immutable files need no purge, and mutable files revalidate. Public bounded renders can be 86,400 seconds old at an edge after an engine or catalog release, plus a further 604,800 seconds while the edge serves stale responses during revalidation. Changing the release ID in the reference nginx render-cache key starts a fresh key space; alternatively, clear that public render cache during the release.
 
 For a managed CDN, purge the affected release, engine and catalog tags (`r_`, `e_`, `c_`) after the new files are published. The operator or release pipeline runs that step; the open-source project runs no purge service. Never purge retained immutable files to simulate an update. Preview, share-card and documentation image references use hashed files inside revalidated documents, so they need no bounded-render purge.
 
+<!--i:eti-stamp-->
 ## Keep credentials and originals intact
 
 Turn off edge resizing, transcoding, metadata stripping and re-signing. Also turn off script injection, analytics, tag managers, script deferral, email obfuscation, bot challenges that replace app responses, crawler hinting and cached-copy fallback when the origin is down. Compression must decode to the original signed bytes. Compare HTML and images through the edge with their origin copies.
@@ -94,12 +111,18 @@ Principal-bound MCP result downloads are optional and off by default. An operato
 Qualification must show that a result link is bound to the same validated bearer used for its render, refuses another bearer and expires within 300 seconds. Output bytes use private temporary files, with expiry pruning and removal on clean shutdown; the lookup and ownership state stay in memory. Check per-bearer and gateway holding limits, daily CPU and decoded-byte accounting for holds and downloads, restart invalidation and private refusals, as well as successful responses. Require `private, no-store` and `Referrer-Policy: no-referrer`, and do not turn this into an anonymous output cache. Private workspace editing and invited document agents are separate services.
 :::
 
+<!--i:eti-search-->
 ## Check the signed catalog in a browser
 
-**Load the envelope before its indexes.** In DevTools, watch the catalog envelope load before `index.<sha16>.json`. The envelope must cover the exact tool, asset and slim index bytes. Repeat the sync: unchanged responses can return 304, but the saved bytes must still pass their full hashes. In IndexedDB's profile store, `catalog-trust-v1:` records hold the accepted snapshot and its sequence together. A changed index, a forged higher sequence or an older signed envelope must show a refusal and leave that record unchanged. Run those negative cases against a test instance, not a shared production catalog.
+**Load the envelope before its indexes.** In DevTools, watch the catalog envelope load before `index.<sha16>.json`. The envelope must cover the exact tool, asset and slim index bytes. Repeat the sync: unchanged responses can return 304, but the saved bytes must still pass their full hashes. In IndexedDB's profile store, `catalog-trust-v1:` records hold the accepted snapshot and its sequence together. A changed index, a forged higher sequence or an older signed envelope must show a refusal and leave that record unchanged.
+
+::: warning Test refusals on a test instance
+Run those negative cases against a test instance, not a shared production catalog.
+:::
 
 **Verify offline.** Accept a verified catalog, go offline, reload and use a cached tool. The catalog reports its offline verification state. A plain-HTTP context without WebCrypto must say that verification is unavailable rather than claim it verified the signature.
 
+<!--i:eti-checklist-->
 ## Disclose and qualify before enabling an edge
 
 For every browser-facing or server-side delivery hostname, record the processor, its function, the hosting region, the legal jurisdictions, the metadata it receives, its log retention and the transfer arrangements that apply. A same-origin reverse proxy can still be a processor, because it terminates TLS. Regions can differ by hostname and by identity or asset provider, so do not infer a whole deployment's jurisdiction from its VM. Publish those choices in the instance's privacy policy before activation.
@@ -137,7 +160,9 @@ DELIVERY_CATALOG_PUBLIC_KEY_JWK="$(cat catalog-public.jwk)" \
   --catalog --catalog-origins https://your-host.example --out /path/to/receipt.json
 ```
 
+::: note Pass your own shell samples
 Without `--samples`, the probe also checks its built-in shell samples for lolly.tools and lolly.ing. Your receipt would then depend on those hosts, and they would receive your probe's address. A file holding `[]` runs the catalog checks alone.
+:::
 
 The probe verifies the signature first and takes every expected hash from the signed index. It checks the hashed indexes, a daily rotation of hashed tool, preview and asset files with the legacy names they replace, a warm 304 for each and one missing address per hashed family, which must answer 404 without being stored. Requests carry no cookies or bearer tokens. A derived sample replaces one from your list at the same address only when it checks everything that sample does, so a reviewed credential, range, C2PA, CORS or age check still runs. A catalog that refuses anonymous readers or carries an instance scope yields no samples, so private catalogs still need a reviewed sample list.
 

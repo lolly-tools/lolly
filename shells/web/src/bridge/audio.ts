@@ -199,6 +199,16 @@ async function decodeSource(src: AudioSource, seconds?: number): Promise<Decoded
   const named = await namedRondoSong(src);
   if (named) return rondoDecoded(named, seconds);
 
+  // A saved station tune is a recipe (lib/lofi-tune.ts): compose and render it, once
+  // at its own length, or repeating to fill `seconds`.
+  if (isRef(src) && src.format === 'lofi') {
+    const t = await import('../lib/lofi-tune.ts');
+    const recipe = t.lofiTuneFromBytes(new Uint8Array(await audioSourceBytes(src)));
+    if (!recipe) throw new Error('this asset is not a saved tune');
+    const { left, right, sampleRate } = await t.renderLofiTunePcm(recipe, { seconds });
+    return { channels: [left, right], sampleRate, findings: [] };
+  }
+
   // A module is identified by the ref's FORMAT, not by sniffing the bytes: libopenmpt
   // sniffs the real format itself, and an asset's `format` carries the true extension
   // (mod/xm/s3m/…) precisely so the badge and filename stay honest.

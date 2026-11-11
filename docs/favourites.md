@@ -31,6 +31,7 @@ Gallery/filmstrip mode for any automated capture and freezes the cross-fade, so
 no extra flag is needed to avoid Cover Flow here.
 -->
 
+<!--i:eti-pin-->
 ## Starring and unstarring
 
 You star a tool in two places, and both write to the same list:
@@ -47,18 +48,21 @@ lives in the card's right-click menu and the selection bar, so the shot opens th
 
 The same star works on a **utility** card in the Utilities view - Lolly Verify, Lolly Colour Lab, Unpack, Spreadsheet and the rest. They aren't tools (no saved sessions, nothing to keep offline), but the strip treats a starred one exactly the same way: a tile of its own, icon-led since there's no preview to show.
 
-> Not the strip you're after? The **★ Favourites** pill under **View options → Filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
+::: note A plain list instead of the strip
+The **★ Favourites** pill under **View options → Filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
+:::
 
 **One star, two lists.** The star on an **asset** ([Assets](/info/using.html#assets-your-library)) is a separate list: it pins that logo, image or colour to the top of every asset picker. Starring a tool never touches your pinned assets, and pinning an asset never adds a tool.
 
 **The other way back.** Once you have saved work in three different tools, a **Yours** row of chips above the grid leads with your favourites, then the tools you used most recently.
 
+<!--i:eti-images-->
 ## Gallery or Cover Flow
 
 Open **View options** and, under **Favourites**, choose how the strip itself looks:
 
 - **Gallery** - a slow, calm filmstrip that drifts sideways on its own and pauses the moment you touch the strip.
-- **Cover Flow** - the same tiles fanned out in 3-D, one centred and upright, the rest tucked back at an angle; drag or flick through them, then press **Open** on whichever one is centred. A sideways trackpad swipe moves the covers with your fingers, a mouse wheel that scrolls sideways steps one cover per notch, and the arrow keys, Home and End work too.
+- **Cover Flow** - the same tiles fanned out in 3-D, one centred and upright, the rest tucked back at an angle; drag or flick through them, then press **Open** on whichever one is centred. A swipe glides to the cover it was thrown towards and rests in about a third of a second. A sideways trackpad swipe moves the covers exactly as far as your fingers do, a mouse wheel that scrolls sideways steps one cover per notch, and the arrow keys, Home and End work too. On phones that support it, each cover passing the centre gives a light tick, never with Reduce motion on. When the fan comes to rest, a screen reader hears which tool is centred, such as "Chart, 2 of 6".
 
 A new install opens on Cover Flow at every screen width, and the fan works with touch as well as a mouse. Once you pick one yourself, Lolly remembers your choice.
 
@@ -94,6 +98,7 @@ either. Same documented blocker as the gallery's own Cover Flow shots
 (CLAUDE.md, "Docs screenshots are vector"). Prose only for that mode.
 -->
 
+<!--i:eti-home-->
 ## Your favourites stay on your device
 
 Your starred tools are saved on your [profile](/info/profile.html), the same on-device record that holds your name, your headshot and your other preferences.

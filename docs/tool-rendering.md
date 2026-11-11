@@ -2,6 +2,7 @@
 
 The template is the picture. `template.html` is Handlebars markup filled with the current input values, and every export starts from it: the live canvas, the vector and raster files and the print PDF. This page covers writing the template and its styles so each of those exports comes out right, plus the sibling templates that produce data formats such as calendar files.
 
+<!--i:eti-code-->
 ## The template (`template.html`)
 
 Templates are Handlebars and **logic-less by design**, so people who are not programmers can read and change them. Logic goes in `hooks.js`.
@@ -69,16 +70,20 @@ canvas.__lollyFrameRender = function (t, clipSec) { /* … */ };
 canvas.__lollyFrameRender.stillPose = true;
 ```
 
-Certificate declares one, so a print file never catches a moment of its reveal. For a clock with `stillPose`, an SVG, SVGZ, PDF, CMYK PDF, Penpot, EPS (RGB and CMYK), EMF, WMF, DXF, Word, OpenDocument, PowerPoint, HTML, Markdown or plain-text still does two more things:
+Certificate declares one, so a print file never catches a moment of its reveal.
+
+::: details Which stills a still pose holds, and which it does not
+For a clock with `stillPose`, an SVG, SVGZ, PDF, CMYK PDF, Penpot, EPS (RGB and CMYK), EMF, WMF, DXF, Word, OpenDocument, PowerPoint, HTML, Markdown or plain-text still does two more things:
 
 - **It poses your tool first.** The shell sets the flag and calls the clock once, with `t` 0 and no size, before anything else in the export runs, your `beforeExport` hook included, so the hook already sees the finished pose. A capture the shell makes outside a tool's export, such as the docs pipeline's page capture, has no hook to run and makes the same call before it reads the page.
 - **It keeps your tool still until the file is written.** The flag stays set while the export reads the page and is cleared afterwards, so your own loop cannot move a part under the export.
 
-Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and Lolly Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those formats never call the clock or set the flag, and they read the page as your own loop left the page.
-
 **Not held, declared or not:** clips (GIF, APNG, animated WebP, animated SVG, WebM and MP4, which drive the clock frame by frame), sound, Lottie, IDML, Premiere XML and data files (JSON, CSV, calendar, contact, subtitle, stylesheet and palette files, and Markdown from a `template.md`). A ZIP or a Linux package holds each file inside under that file's own format. A sequence stage's still is the frame at its playhead, so the shell leaves the stage alone.
 
 CLI, TUI and MCP renders that go through the web shell get the same treatment.
+:::
+
+Leave `stillPose` off when `t` 0 is not a finished piece. Growth's `t` 0 is the bare seed, and a flat Lolly Chart's is the first frame of its entrance, which would land over the poster its `beforeExport` hook poses for SVG, SVGZ and PDF and over the self-animating SVG the hook builds for a chart with a frame column. Without the declaration those stills never call the clock or set the flag, and they read the page as your own loop left the page. Chart's 3-D scenes do declare the pose: called with `t` 0 and no clip length, their clock draws the finished scene, with every bar grown and the camera at its starting angle, so a still of a chart that rises into view shows the whole chart.
 
 **GPU rendering (WebGL, WebGPU).** Never let the export path read a GPU canvas directly. A WebGPU canvas is cleared as soon as its frame is presented and has no `preserveDrawingBuffer`, so anything read later is blank, and a WebGL canvas only survives the read with `preserveDrawingBuffer: true`, which costs memory and a copy per frame. Render into a detached scratch canvas instead and, inside the same frame callback, draw it onto the visible 2D canvas:
 
@@ -93,6 +98,7 @@ function present() { ctx.clearRect(0, 0, view.width, view.height); ctx.drawImage
 
 Call `present()` at the end of every render, including inside `__lollyFrameRender`. The visible canvas then always holds the last frame, every export reader sees pixels and the tool is free to pick WebGPU or WebGL 2. The web shell needs WebGPU to start, so WebGL 2 is the fallback for a tool that cannot get a working WebGPU device. `3d` does this with three.js's `WebGPURenderer({ forceWebGL })`, falls back when there is no adapter or the device fails to start, and reports its choice as `data-backend` on the canvas. Feature-detect with `navigator.gpu.requestAdapter()`: an adapter that resolves to `null` means no WebGPU, whatever `navigator.gpu` says.
 
+<!--i:eti-palette-->
 ## Styles (`styles.css`)
 
 Styles are scoped automatically. Write top-level selectors for your own classes. Rules for `body` or `html` are rescoped to `#tool-canvas` and will probably not do what you want.
@@ -123,7 +129,9 @@ The rest depend on what the design system holds:
 | `--brand-on-<id>` | The colour that sits on that role, worked out by Lolly unless the token file states one |
 | `--brand-token-<hex>` | Any colour token, by its path |
 
-Always give a fallback, as in `var(--brand-secondary, #444)`. A role the design system does not define is left unset, so the fallback is what draws. The brand residue test (`tests/brand-residue.test.ts`) fails a tool template that reads any of these variables with no fallback.
+::: warning Always give a fallback
+Write each variable with a fallback, as in `var(--brand-secondary, #444)`. A role the design system does not define is left unset, so the fallback is what draws. The brand residue test (`tests/brand-residue.test.ts`) fails a tool template that reads any of these variables with no fallback.
+:::
 
 ::: details Which token paints which variable
 Both shells paint the variables from the same token reads, in the artefact's look and colourway:
@@ -162,7 +170,9 @@ Three places cannot read a CSS variable, and each one needs the font names inste
 - **Text drawn on a canvas.** Read `--font-brand` off the canvas with `getComputedStyle`, and wait for `document.fonts.load()` before the first draw. Otherwise the canvas draws a fallback font.
 - **An SVG drawn as a picture.** An SVG loaded as an image cannot reach the fonts of the page. Put the font into the SVG as a `data:` URL in an `@font-face` rule before you draw the picture. `host.text.fontUrl()` gives the file.
 
-Do not start a font list with a system font such as `system-ui` or `sans-serif`. The page then draws the font of the device, and an export cannot outline that font, so the page and the file disagree even for Latin text.
+::: warning Never start a font list with a system font
+A list that starts with `system-ui`, `sans-serif` or another system font draws the font of the device. An export cannot outline that font, so the page and the file disagree even for Latin text.
+:::
 
 ### What the vector export keeps
 
@@ -207,10 +217,13 @@ is the test to copy):
    other free text - lowercased, cleaned to `[a-z0-9_-]` and refused where they'd collide
    with the app's own namespaces (`lolly-`, `pr-`, `seq-`, `fc-`).
 
-**Custom JS is not offered, and should not be.** Hooks are closure-injected, not sandboxed,
-so a per-document script input would be stored XSS in every shared URL. The escape hatch
-that exists is composition: a `sandbox` tool link placed as a box.
+::: warning Custom JS is not offered, and should not be
+Hooks are closure-injected, not sandboxed, so a per-document script input would be stored
+XSS in every shared URL. The escape hatch that exists is composition: a `sandbox` tool link
+placed as a box.
+:::
 
+<!--i:eti-table-->
 ## Data formats (`json` / `csv` / `ics` / `vcf`)
 
 Some tools export data beside the rendered image: a calendar invite, a contact card, the numbers behind a chart. Data formats come from the **input model**, not the pixels, so they work in every shell, the CLI included, and need no browser.
@@ -243,6 +256,7 @@ Reference wirings: `meeting-planner` and `calendar-ics` for ICS, `timezone` and 
 
 Data formats need no browser anywhere. On the node CLI, a template whose root is an `<svg>` also renders to SVG and the other vector formats with no browser, and resvg draws PNG from that SVG. Vector and raster files from a template built from HTML need a browser engine, and so do JPG, WebP, most PDFs and video: the web shell, the desktop app or the node CLI's browser tier. [Render with the CLI](/info/cli-rendering.html) has the full list. The CMYK formats pair with the **Convert paths** toggle ([The `render` block](/info/tool-manifest.html#the-render-block)) for print files that need no installed fonts; `qr-code` offers both `pdf-cmyk` and `cmyk-tiff`, while `org-chart` and `logo-wall` offer only `pdf-cmyk`.
 
+<!--i:eti-animation-->
 ## Animated HTML
 
 A trusted tool can export a self-contained HTML file with play, replay, seek and fullscreen controls by declaring `render.portable: true`, listing `html` in `render.formats` and shipping `presentation.js`. That runtime marks its stage with `data-lolly-player` and assigns `element.__lollyPlayback`:

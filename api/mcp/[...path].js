@@ -184866,7 +184866,7 @@ function fail(id3, code, message, data) {
 // services/mcp/package.json
 var package_default = {
   name: "@lolly/mcp-server",
-  version: "1.1.3",
+  version: "1.2.0",
   private: true,
   description: "Lolly MCP server - exposes the on-brand tool catalog + render path to AI agents over the Model Context Protocol. Runtime deps: node:http + jsdom + @resvg/resvg-js + playwright-core (Tier B, Chromium via `pnpm run install:browser`) + @lolly/engine.",
   license: "MPL-2.0",

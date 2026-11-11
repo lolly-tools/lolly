@@ -611,7 +611,9 @@ export async function renderAudioExport(
   if (!url) throw new Error(NO_AUDIO_MSG);
 
   const bytes = await (req.fetchBytes ?? defaultFetchBytes)(url);
-  const decoded = await (req.decode ?? decodeAudioBytes)(bytes);
+  // decodeAudioData detaches the buffer it is given, and the pass-through below hands
+  // these very bytes back, so the decoder reads a copy.
+  const decoded = await (req.decode ?? decodeAudioBytes)(bytes.slice(0));
 
   const sampleRate = decoded.sampleRate;
   const totalFrames = decoded.channels[0]?.length ?? 0;

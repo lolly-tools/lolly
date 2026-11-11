@@ -27,14 +27,14 @@ import {
   getNeurospicy, toggleNeurospicyPlay, cycleNeurospicyLoop, setNeurospicyLoop,
   setNeurospicyVolume, setNeurospicyRepeat, seekNeurospicy, getNeurospicyProgress,
   getNeurospicyAnalyser, isNeurospicyPlaying, listLoops, trackCategory,
-  setLofiDrums, setLofiTexture, takeLofiLinkConsent,
+  setLofiDrums, setLofiTexture, takeLofiLinkConsent, saveLofiTune,
   type NeurospicyHost, type NeuroTrack,
 } from './neurospicy.ts';
 import {
-  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl,
-  LOFI_ONLY_MOODS, LOFI_MOOD_LABEL,
+  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl, playsOnStation, savedTuneOf, currentLofiRecipe,
+  LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
 } from './neurospicy-lofi.ts';
-import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from './lofi-names.ts';
 import { applySoundMaster } from './sound-master.ts';
 import {
   ATMOSPHERE_LAYERS, ATMOSPHERE_GROUPS, atmosphereLevel, setAtmosphereLevel,
@@ -86,6 +86,16 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 /** Persisted visualiser prefs (device-local, like the old panel's). */
 const ENABLED_KEY = 'lolly:vizEnabled';
+/** Whether the heavy stations show bars instead of the visualiser (see NeuroDockViz.light). */
+const LIGHT_KEY = 'lolly:vizLightHeavy';
+
+/** A modest device: few cores, little memory, or a phone. Heavy stations start light there. */
+function modestDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  return (nav.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4 || coarse;
+}
 const SCHEME_KEY = 'lolly:vizScheme';
 
 /**
@@ -111,9 +121,12 @@ function trackMood(tags: string[]): string {
   return '';
 }
 
-/** The words the now-playing line uses for a Lofi tune's instruments. */
-const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = { rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck' };
-const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = { vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', none: '' };
+/** A heavy station: a dance genre of the Lolly Sings family, live or a saved tune of one. */
+function heavyStation(id: string): boolean {
+  const mood = lofiMoodOf(id) ?? savedTuneOf(id)?.mood ?? null;
+  return !!mood && isSingsMood(mood) && mood !== 'sings';
+}
+
 
 export interface NeurospicyDockHandle {
   /** The DockHost to hand to createAudioDock. */
@@ -141,6 +154,14 @@ class NeuroDockViz implements DockViz {
   private canvas: HTMLCanvasElement | null = null;
   private mounting: Promise<void> | null = null;
   private vizEnabled: boolean;
+  /**
+   * Light: on a heavy station (the dance genres synthesise many more voices than Lofi),
+   * show the bars instead of the visualiser, so the music has the CPU it needs. On by
+   * default on a modest device, a choice in the station's controls, kept on this device.
+   */
+  private light: boolean;
+  /** Whether a heavy station is what is playing; the host sets this. */
+  heavy: () => boolean = () => false;
   private presetId = '';
   private stock: StockPresetInfo[] = [];
   private brandTint: BrandTint = 'strong';
@@ -171,6 +192,9 @@ class NeuroDockViz implements DockViz {
     let saved = '1';
     try { saved = localStorage.getItem(ENABLED_KEY) ?? '1'; } catch { /* private mode */ }
     this.vizEnabled = saved !== '0';
+    let light: string | null = null;
+    try { light = localStorage.getItem(LIGHT_KEY); } catch { /* private mode */ }
+    this.light = light === null ? modestDevice() : light === '1';
     this.cycleSeconds = loadCycleSeconds();
     this.unsubscribePerf = subscribePerfUi(on => { if (on) this.unmount(); });
   }
@@ -246,8 +270,16 @@ class NeuroDockViz implements DockViz {
   }
 
   // ── on/off ──────────────────────────────────────────────────────────────────
-  enabled(): boolean { return this.vizEnabled; }
+  enabled(): boolean { return this.vizEnabled && !(this.light && this.heavy()); }
+  lightOn(): boolean { return this.light; }
+  setLight(on: boolean): void {
+    this.light = on;
+    try { localStorage.setItem(LIGHT_KEY, on ? '1' : '0'); } catch { /* best-effort */ }
+    if (on && this.heavy()) this.unmount();
+  }
   setEnabled(on: boolean): void {
+    // Asking for the visualiser on a heavy station that is showing bars means "show it here too".
+    if (on && this.light && this.heavy()) this.setLight(false);
     this.vizEnabled = on;
     try { localStorage.setItem(ENABLED_KEY, on ? '1' : '0'); } catch { /* best-effort */ }
     if (!on) this.unmount();
@@ -278,7 +310,7 @@ class NeuroDockViz implements DockViz {
   async mount(canvas: HTMLCanvasElement): Promise<void> {
     // The rich dock visualiser idle-animates off a silent analyser even with nothing
     // playing, so it's an ambient loop - don't start it under reduced motion or perf-ui.
-    if (this.destroyed || !this.vizEnabled || !vizSupported() || prefersReducedMotion() || perfUiOn()) return;
+    if (this.destroyed || !this.enabled() || !vizSupported() || prefersReducedMotion() || perfUiOn()) return;
     // Render IMMEDIATELY, audio or not: use the live analyser when it exists (reactive),
     // else a silent one (idle animation). When the live analyser first appears we remount
     // so the picture starts reacting.
@@ -579,6 +611,7 @@ class NeurospicyDockHost implements DockHost {
 
     // The rich in-dock visualiser (butterchurn) + its preset/theme library.
     this.viz = new NeuroDockViz(nhost);
+    this.viz.heavy = () => heavyStation(getNeurospicy().loopId);
 
     this.repeat = {
       get: () => getNeurospicy().repeat,
@@ -697,17 +730,33 @@ class NeurospicyDockHost implements DockHost {
   }
 
   /** A generated station's own controls: its mood (the three Lofi stations; Lolly Sings
-   *  is a genre of its own, so has none), drums, texture, and a link to the tune now
-   *  playing. Nothing for any other source. */
+   *  is a genre of its own, so has none), drums, texture, a link to the tune now playing
+   *  and a button that saves it to the library. A saved tune keeps drums, texture and
+   *  the link. Nothing for any other source. */
   controls(): DockControl[] {
-    const mood = lofiMoodOf(getNeurospicy().loopId);
-    if (!mood) return [];
-    const moodControl: DockControl[] = mood === 'sings' ? [] : [{
+    const id = getNeurospicy().loopId;
+    const saved = savedTuneOf(id) !== null;
+    const mood = lofiMoodOf(id);
+    if (!mood && !saved) return [];
+    // Lofi stations choose among their three moods here. The Lolly Sings family has too
+    // many styles for a row of tabs, so its styles are picked from the track list.
+    const moodControl: DockControl[] = !mood || isSingsMood(mood) ? [] : [{
       kind: 'choice', id: 'lofi-mood', label: 'Mood',
       options: LOFI_ONLY_MOODS.map((m) => ({ id: m, label: LOFI_MOOD_LABEL[m] })),
       get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
-      set: (m) => this.select(lofiId(m as typeof mood)),
+      set: (m) => this.select(lofiId(m as NonNullable<typeof mood>)),
     }];
+    const saveControl: DockControl[] = saved ? [] : [{
+      kind: 'action', id: 'lofi-save', label: 'Save to library',
+      run: async () => {
+        try { return (await saveLofiTune(this.nhost)) ? 'Saved to your library' : 'Play it first'; } catch { return 'Could not save'; }
+      },
+    }];
+    const lightControl: DockControl[] = heavyStation(id) ? [{
+      kind: 'toggle', id: 'lofi-light-viz', label: 'Light visualiser',
+      get: () => this.viz.lightOn(),
+      set: (on) => { this.viz.setLight(on); this.emitChange(); },
+    }] : [];
     return [
       ...moodControl,
       {
@@ -721,6 +770,16 @@ class NeurospicyDockHost implements DockHost {
         set: (v) => setLofiTexture(this.nhost, v),
       },
       {
+        kind: 'action', id: 'lofi-edit', label: 'Open in the music generator',
+        run: async () => {
+          const recipe = savedTuneOf(getNeurospicy().loopId) ?? currentLofiRecipe();
+          if (!recipe || typeof location === 'undefined') return 'Play it first';
+          // A track saved from the generator opens with everything it was made with.
+          location.hash = 'generator' in recipe && recipe.generator ? `#/music?${recipe.generator}` : `#/music?style=${encodeURIComponent(recipe.mood)}&seed=${recipe.seed >>> 0}`;
+          return 'Opening';
+        },
+      },
+      {
         kind: 'action', id: 'lofi-share', label: 'Share this tune',
         run: async () => {
           const url = typeof location !== 'undefined' ? lofiShareUrl(location.origin) : null;
@@ -728,6 +787,8 @@ class NeurospicyDockHost implements DockHost {
           try { await navigator.clipboard.writeText(url); return 'Link copied'; } catch { return 'Could not copy'; }
         },
       },
+      ...saveControl,
+      ...lightControl,
     ];
   }
 
@@ -750,13 +811,15 @@ class NeurospicyDockHost implements DockHost {
     const t = this.tracks.find((x) => x.id === id);
     if (!t) return { title: 'Select a track', kind: 'music' };
     const radio = trackCategory(t) === 'radio';
-    if (isLofiId(id)) {
+    if (playsOnStation(id)) {
       // The tune itself: its key, tempo and instruments, since every one is different.
       const tune = isNeurospicyPlaying() ? lofiTune() : null;
       const lead = tune ? LOFI_LEAD_NAME[tune.style.lead] : '';
       return {
         title: t.name,
-        subtitle: tune ? `${tune.key} · ${tune.bpm} bpm · ${LOFI_KEYS_NAME[tune.style.keys]}${lead ? `, ${lead}` : ''}` : 'Generated, never the same tune twice',
+        subtitle: tune
+          ? `${tune.key} · ${tune.bpm} bpm · ${(isSingsMood(tune.mood) && !['sings', 'rock', 'spanish'].includes(tune.mood) && LOFI_BASS_NAME[tune.style.bass]) || LOFI_KEYS_NAME[tune.style.keys]}${lead ? `, ${lead}` : ''}`
+          : 'Generated, never the same tune twice',
         kind: 'music',
       };
     }

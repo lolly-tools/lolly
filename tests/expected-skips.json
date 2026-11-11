@@ -1985,7 +1985,28 @@
     },
     {
       "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "the welcome leaves a complete gallery behind it and holds housekeeping until it closes",
+      "fullName": "the classic welcome dialog (#/?welcome=classic) defers tool previews until the gallery is entered",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "the greeting in place lets the gallery's previews load under it",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "the greeting's Bring a file opens the native import picker before loading import handlers",
+      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/gallery-preview.browser.test.ts",
+      "fullName": "the welcome leaves a complete gallery behind it and holds housekeeping only while the mark draws",
       "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
       "capability": "environment",
       "owner": "tests"
@@ -1993,20 +2014,6 @@
     {
       "file": "tests/gallery-preview.browser.test.ts",
       "fullName": "transparent covers switch ink and open targets with the live gallery theme",
-      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "welcome defers tool preview rendering until the user enters the gallery",
-      "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
-      "capability": "environment",
-      "owner": "tests"
-    },
-    {
-      "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "welcome opens the native import picker before loading import handlers",
       "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
       "capability": "environment",
       "owner": "tests"

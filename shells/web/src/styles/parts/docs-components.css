@@ -24,33 +24,73 @@
    screenshots and the column layouts keep the full column. `ch` follows the
    element's own size, so the cap holds under Large text and browser zoom alike. */
 .docs-content > :is(p, ul, ol, dl, blockquote, .doc-note, .doc-details) { max-width: 68ch; }
+/* A disclosure that holds code or a table is mostly that code or table, so it keeps the
+   full column as they do; the prose inside it still stops at the measure. */
+.docs-content > .doc-details:has(> .doc-details-body > :is(.doc-code, .table-wrap)) { max-width: none; }
+.docs-content .doc-details-body > :is(p, ul, ol, .doc-note) { max-width: 68ch; }
 
 .docs-content .doc-visually-hidden {
   position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* ── Admonition: ::: note | warning | check ─────────────────────────────── */
+/* ── Two-tone icons: the Etiquette set (docs/etiquette-icons.ts) ────────────
+   Each icon paints two parts from two properties: --eti-accent, the detail that
+   carries the meaning, and --eti-base, the object around it. Both readers set them
+   here from the theme's roles, so an icon follows Light, Dark, Brand and the
+   colourway the same way on /info and in the app. The base is the ink. The accent
+   is the colourway's action colour, lifted to a mid lightness and some colour where
+   it has less: a light theme's action colour is often a deep one (Spearmint, Ochre,
+   Liquorice) that would sit a shade from the ink, while a dark theme's is light
+   already and keeps its own value. High contrast takes the accent ink for words,
+   which that mode walks to Lc 75 on every surface, so no part of an icon fades. */
+.docs-content,
+.docs-landing {
+  --eti-accent: oklch(from var(--ui-color-action-primary) max(l, .62) clamp(c, c * 2, .16) h);
+  --eti-base: var(--ui-color-text-default);
+}
+html[data-a11y-contrast="high"] :is(.docs-content, .docs-landing) { --eti-accent: var(--ui-color-text-accent); }
+
+/* ── Admonition: ::: note | warning | check ───────────────────────────────
+   A tinted panel led by a large two-tone icon: info, warning or circle-check.
+   Each kind has a tone. A note is neutral, a warning takes the docs' caution ink
+   (--warn: Ochre, Banksia or Honey by theme) and a check the colourway's action
+   colour. The tone tints the panel and paints the icon's detail, so the kind reads
+   before a word does, and the hidden kind word says it to a screen reader. The edge
+   is the faint hairline all round, which darkens whatever tint it sits on: a resting
+   edge never wears the accent, and a stripe on one edge breaks on the rounded corner. */
 .docs-content .doc-note {
+  --doc-note-icon: calc(2.5rem * var(--a11y-fs, 1));
   display: grid;
-  grid-template-columns: calc(20px * var(--a11y-fs, 1)) minmax(0, 1fr);
-  gap: 14px;
-  margin: 20px 0;
-  padding: 14px 18px;
-  border-radius: var(--ui-radius-panel);
+  grid-template-columns: var(--doc-note-icon) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+  margin: 24px 0;
+  padding: 16px 20px 16px 16px;
+  border-radius: var(--ui-radius-card);
   background: var(--ui-color-surface-muted);
+  box-shadow: var(--ui-edge-faint);
   font-size: calc(16px * var(--a11y-fs, 1));
   line-height: 1.55;
 }
-.docs-content .doc-note--check { background: color-mix(in srgb, var(--ui-color-action-primary) 12%, var(--ui-color-surface-muted)); }
+.docs-content .doc-note--check { background: color-mix(in srgb, var(--eti-accent) 14%, var(--ui-color-surface-muted)); }
 /* Tinted into the muted surface rather than the canvas, so the tint still reads on the
    dark grounds (Dark, Brand), where a tint into the canvas all but vanished. */
-.docs-content .doc-note--warning { background: color-mix(in srgb, var(--ui-color-status-danger) 14%, var(--ui-color-surface-muted)); }
-.docs-content .doc-note-glyph { display: flex; margin-block-start: 2px; color: var(--ui-color-text-muted); }
-.docs-content .doc-note--check .doc-note-glyph { color: var(--ui-color-text-accent); }
-.docs-content .doc-note--warning .doc-note-glyph { color: color-mix(in oklab, var(--ui-color-status-danger) 60%, var(--ui-color-text-default)); }
-.docs-content .doc-note-glyph svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); }
-.docs-content .doc-note-title { font-weight: 600; line-height: 1.4; color: var(--ui-color-text-default); }
+.docs-content .doc-note--warning {
+  --doc-note-tone: oklch(from var(--warn, var(--ui-color-status-danger)) max(l, .62) clamp(c, c * 2, .16) h);
+  --eti-accent: var(--doc-note-tone);
+  background: color-mix(in srgb, var(--doc-note-tone) 16%, var(--ui-color-surface-muted));
+}
+html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-tone: var(--warn, var(--ui-color-status-danger)); }
+.docs-content .doc-note-glyph { display: flex; }
+.docs-content .doc-note-glyph svg { width: var(--doc-note-icon); height: var(--doc-note-icon); flex: none; }
+/* Beside a short note the words sit level with the icon; a longer one starts at its top. */
+.docs-content .doc-note-main { align-self: center; min-width: 0; }
+.docs-content .doc-note-title { font-weight: 600; font-size: 1.0625em; line-height: 1.4; color: var(--ui-color-text-default); }
+/* A link on a tinted panel takes the accent ink for words, which each theme walks to
+   4.5:1 on its surfaces and on an accent wash over them. A link elsewhere takes the
+   action colour, a fill, and some colourways' fills read under 4.5:1 on a tint. */
+.docs-content .doc-note a:not([class]) { color: var(--ui-color-text-accent); }
 .docs-content .doc-note-body > :first-child { margin-block-start: 4px; }
 .docs-content .doc-note-body > :last-child { margin-block-end: 0; }
 .docs-content .doc-note-body p { margin: 6px 0 0; }
@@ -160,6 +200,37 @@
 .docs-content .doc-code pre code { font: inherit; background: none; padding: 0; color: inherit; white-space: inherit; overflow-wrap: inherit; }
 .docs-content .doc-code pre:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 
+/* ── Terminal: a shell fence drawn by packages/docs-render/src/shell-highlight.ts ──
+   Every colour is a syntax role (tokens.css), so a design system that sets its own
+   syntax colours sets these too, and Light, Dark and Brand each keep the contrast their
+   roles were chosen for. The command is the one bold word on a line; flags and
+   variables take the accent; the punctuation steps back; a comment is set in italic.
+   Expected output sits on a faint band of its own, upright, so it reads as what the
+   terminal printed rather than as a note about it. A placeholder to fill in is tinted. */
+.docs-content .doc-code .sh-cmd { color: var(--ui-color-syntax-keyword); font-weight: 650; }
+.docs-content .doc-code :is(.sh-flag, .sh-var) { color: var(--ui-color-syntax-type); }
+.docs-content .doc-code .sh-key { color: var(--ui-color-syntax-function); font-weight: 550; }
+.docs-content .doc-code .sh-str { color: var(--ui-color-syntax-string); }
+.docs-content .doc-code :is(.sh-op, .sh-cont, .sh-prompt) { color: var(--ui-color-syntax-operator); }
+.docs-content .doc-code .sh-com { color: var(--ui-color-syntax-comment); font-style: italic; }
+.docs-content .doc-code .sh-out {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: calc(100% + 32px);
+  margin-inline: -16px;
+  padding-inline: 16px;
+  text-indent: 0;
+  background: color-mix(in srgb, var(--ui-color-text-default) 6%, transparent);
+  color: var(--ui-color-text-muted);
+}
+/* The words of a placeholder stay in the ink, so the tint can never cost them contrast. */
+.docs-content .doc-code .sh-ph {
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--ui-color-syntax-type) 16%, transparent);
+  color: var(--ui-color-syntax-string);
+  font-style: italic;
+}
+
 /* Copy, the app's button base under its own name. */
 .docs-content .doc-copy-slot { position: relative; flex: 0 0 auto; }
 .docs-content .doc-copy {
@@ -207,6 +278,152 @@
   font-size: calc(13px * var(--a11y-fs, 1));
 }
 .docs-content .doc-copy-help[hidden] { display: none; }
+
+/* ── Logo strip: ::: logos ────────────────────────────────────────────────
+   The marks a page is about, each with its name. Every mark sits on the same white
+   plate, because these are other people's marks, shipped in their own colours, and a
+   navy or blue mark disappears on a dark page; the plate is the one thing that keeps
+   them unmodified and legible on all three themes. The row wraps on a phone. */
+.docs-content ul.md-logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0 28px;
+  padding: 0;
+  list-style: none;
+}
+.docs-content ul.md-logos > li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 20px 8px 8px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint);
+}
+.docs-content .md-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--ui-radius-panel);
+  background: #ffffff;
+  box-shadow: var(--ui-edge-faint);
+}
+.docs-content .md-logo img {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  max-width: none;
+  margin: 0;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+  background: none;
+}
+.docs-content .md-logo-name {
+  color: var(--ui-color-text-default);
+  font-size: calc(16px * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ── Steps: ::: steps ────────────────────────────────────────────────────
+   The few steps a page walks through, as numbered cards in one row: the cards of
+   ::: cards, read left to right. The icon is a two-tone Etiquette glyph at 3rem; a
+   card whose text opens with a bold link is that link, as a card is. Two columns on
+   a tablet, one on a phone, where the icon moves beside the words. */
+.docs-content .md-steps {
+  container: md-steps / inline-size;
+  margin: 28px 0 36px;
+  padding: 12px;
+  border-radius: calc(var(--ui-radius-card) * 2);
+  background: var(--ui-color-surface-muted);
+}
+.docs-content .md-steps > ol.icon-list {
+  counter-reset: md-step;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11.5rem), 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.docs-content .md-steps > ol.icon-list > li.ic {
+  counter-increment: md-step;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 18px 18px 20px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-edge-faint);
+  color: var(--ui-color-text-muted);
+  font-size: calc(15px * var(--a11y-fs, 1));
+  line-height: 1.5;
+  transition: box-shadow var(--ui-motion-feedback, 150ms);
+}
+/* The step's number, in the card's top corner. */
+.docs-content .md-steps > ol.icon-list > li.ic::after {
+  content: counter(md-step);
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-end: 18px;
+  color: var(--ui-color-text-muted);
+  font-size: calc(13px * var(--a11y-fs, 1));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.docs-content .md-steps .li-icon { width: 3rem; height: 3rem; margin: 0; }
+.docs-content .md-steps li.ic > span:not(.li-icon) { min-width: 0; }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child {
+  display: block;
+  margin-block-end: 4px;
+  color: var(--ui-color-text-default);
+  font-size: calc(17px * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1.3;
+}
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a { color: inherit; text-decoration: none; }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a::after { content: ''; position: absolute; inset: 0; border-radius: var(--ui-radius-card); }
+.docs-content .md-steps li.ic > span:not(.li-icon) > strong:first-child > a:focus-visible { outline: none; }
+.docs-content .md-steps > ol.icon-list > li.ic:has(> span > strong:first-child > a:focus-visible) { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-content .md-steps > ol.icon-list > li.ic:has(> span > strong:first-child > a):hover { box-shadow: var(--ui-edge-strong), var(--ui-elevation-control); }
+
+/* Five steps never leave one card alone on a row. The row fits four cards at the
+   reading width, so five would wrap four and one: they lie three and two instead,
+   the two sharing the second row, or all five across where five fit. In two columns
+   the fifth takes the whole last row. One to four steps keep the row above. */
+@container md-steps (min-width: 23.625rem) and (max-width: 35.74rem) {
+  .docs-content .md-steps > ol.icon-list > li.ic:nth-child(5):last-child { grid-column: 1 / -1; }
+}
+@container md-steps (min-width: 35.75rem) {
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic { grid-column: span 2; }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic:nth-child(n+4) { grid-column: span 3; }
+}
+@container md-steps (min-width: 60rem) {
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .docs-content .md-steps > ol.icon-list:has(> li:nth-child(5):last-child) > li.ic:nth-child(n) { grid-column: auto; }
+}
+
+/* ── Section icon: <!--i:eti-…--> on a line of its own, before a heading ──────
+   A large two-tone icon that opens the section under it, so a long page can be
+   scanned by its pictures as well as its headings. It carries the section's rule, as
+   a row of technology marks does, and the heading follows straight under it. */
+.docs-content .md-section-icon {
+  display: flex;
+  margin: 40px 0 14px;
+  padding-block-start: 32px;
+  border-block-start: 1px solid var(--ui-color-border-default);
+}
+.docs-content .md-section-icon svg { width: 3.5rem; height: 3.5rem; flex: none; }
+.docs-content .md-section-icon + :is(h2, h3) { margin-block-start: 0; padding-block-start: 0; border-block-start: 0; }
 
 /* ── Picture list: a bulleted list whose every item opens with a picture ──────
    Each picture sits on a plate of the same size with its caption underneath, so a
@@ -263,17 +480,36 @@
 .docs-content .md-pictures .shot-cred--asset .shot-cred-btn:hover + .shot-cred-line,
 .docs-content .md-pictures .shot-cred--asset .shot-cred-line:hover { opacity: 1; pointer-events: auto; }
 
+@media (max-width: 600px) {
+  .docs-content .md-steps { padding: 8px; }
+  .docs-content .md-steps > ol.icon-list { gap: 8px; }
+  .docs-content .md-steps > ol.icon-list > li.ic { flex-direction: row; gap: 14px; padding: 14px 40px 14px 14px; }
+  .docs-content .md-steps .li-icon { width: 2.75rem; height: 2.75rem; }
+  .docs-content .md-section-icon { margin-block-start: 32px; padding-block-start: 28px; }
+  .docs-content .md-section-icon svg { width: 3rem; height: 3rem; }
+}
 @media (max-width: 520px) {
   .docs-content ul.md-pictures:not(:has(> li:nth-child(3):last-child)) { --md-pic-cols: 2; }
+  .docs-content ul.md-logos { gap: 8px; }
+  .docs-content ul.md-logos > li { gap: 8px; padding: 5px 12px 5px 5px; }
+  .docs-content .md-logo { width: 3rem; height: 3rem; }
+  .docs-content .md-logo img { width: 2.4rem; height: 2.4rem; }
+  .docs-content .md-logo-name { font-size: calc(15px * var(--a11y-fs, 1)); }
+  /* Code in a disclosure starts at the summary's own edge, not past its icon column,
+     so a command keeps the width a phone has. */
+  :is(.docs-content, .docs-compact-nav) .doc-details-body > .doc-code { margin-inline-start: calc(-20px * var(--a11y-fs, 1) - 14px); }
+  .docs-content .doc-code .sh-out { min-width: calc(100% + 28px); margin-inline: -14px; padding-inline: 14px; }
   :is(.docs-content, .docs-compact-nav) .doc-details > summary { gap: 14px; padding-inline: 14px; }
   :is(.docs-content, .docs-compact-nav) .doc-details-body { padding-inline: calc(14px + 20px * var(--a11y-fs, 1) + 14px) 14px; }
-  .docs-content .doc-note { padding: 14px; gap: 12px; }
+  .docs-content .doc-note { --doc-note-icon: calc(2.25rem * var(--a11y-fs, 1)); padding: 14px; gap: 12px; }
   .docs-content .doc-code pre { padding: 12px 14px; font-size: calc(13px * var(--a11y-fs, 1)); }
 }
 @media (prefers-reduced-motion: reduce) {
   :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
+  .docs-content .md-steps > ol.icon-list > li.ic { transition: none; }
 }
 html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
+html[data-a11y-motion="reduce"] .docs-content .md-steps > ol.icon-list > li.ic { transition: none; }
 @media print {
   .docs-content .doc-copy-slot, .docs-content .doc-copy-help, .docs-content .doc-details-chev { display: none !important; }
   .docs-content .doc-details > .doc-details-body { display: block !important; }
@@ -282,6 +518,9 @@ html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-detai
   .docs-content .doc-note, .docs-content .doc-details { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code { background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
   .docs-content .doc-code pre { white-space: pre-wrap; overflow: visible; }
+  /* Paper keeps the terminal's words and drops its bands: output stays upright. */
+  .docs-content .doc-code .sh-out { display: inline; margin: 0; padding: 0; background: none; }
+  .docs-content .md-steps, .docs-content .md-steps > ol.icon-list > li.ic, .docs-content ul.md-logos > li { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
 }
 
 /* ── Where the page sits, and where reading goes next (plan 354 D3) ─────────

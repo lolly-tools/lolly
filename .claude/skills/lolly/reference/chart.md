@@ -53,7 +53,34 @@ The most useful aliases:
 | `c1`..`c6` | `palette1`..`palette6` | Explicit series colours; blank uses the brand. |
 | `sv` | `showValues` | Print the number on each mark. |
 | `lg` / `lp` | `showLegend` / `legendPosition` | `lp` is `tl,tc,tr,bl,bc,br,…`. |
-| `rm` | `renderMode` | `vector`, `statistical`, `3d`, `cinema`. Switches renderer, keeps the data. |
+| `rm` | `renderMode` | `vector`, `statistical`, `scene` (real 3-D) or `cinematic` (a camera flight). Switches renderer, keeps the data. |
+
+## A 3-D scene by URL
+
+```text
+https://lolly.tools/#/tool/chart?rm=scene&sct=bar3d&d=Region%2CRevenue%0ANorth%2C42%0ASouth%2C58%0AEast%2C33%0AWest%2C71&t=West+leads&shl=max&spo=low&cpr=wide&sfr=close&sst=studio&mat=satin&format=png&export
+```
+
+The scene is framed to the artboard for you, clear of the title and legend, and
+its stage, lights and reflections come from the active colourway. `shl=max`
+picks out the largest bar and quiets the rest; `sfr=close` crops in on it.
+
+| Alias | Input | Values |
+|---|---|---|
+| `sct` | `sceneType` | `bar3d`, `donut3d`, `scatter3d`, `surface3d` |
+| `sly` | `sceneLayout` | bars: `grid`, `grouped`, `stacked`, `ring`; donut: `donut`, `pie`, `towers`, `exploded`; or `auto` |
+| `shl` | `sceneHighlight` | category or series names, comma separated, or `max`, `min`, `last` |
+| `spo` | `scenePose` | `hero` (best three-quarter fit), `low`, `high`, `front`, `side`, `top`, `iso`, `custom` (then `caz`/`cel`) |
+| `cpr` | `cameraProjection` | lens: `perspective` (standard), `wide`, `long`, `orthographic` (flat) |
+| `sfr` | `sceneFraming` | `fit` (fill the frame), `close`, `room` |
+| `sst` | `sceneStage` | `studio`, `floor`, `float`, `plinth`, `night` |
+| `mat` | `sceneMaterial` | `accurate`, `matte`, `satin`, `gloss`, `metal`, `clay`, `glass`, `glow`, `custom` (then `rou`/`met`) |
+| `cb` | `colorBy` | `series`, `category`, or `value` for the colourway's ramp |
+| `mp` | `motionPreset` | `none`, `reveal`, `stagger`, `orbit`, `arc`, `reveal-orbit` |
+
+A 3-D chart paints its stage, so it exports opaque unless you pass
+`transparentBg=true`, which keeps only the shadows. A still export of a moving
+scene shows the finished pose.
 
 ## A structured spec
 
@@ -118,18 +145,23 @@ Generated from `community/chart/tool.json`. Aliases are the `urlKey` column.
 | `barStyle` | `b3` | select | `flat` | Colour & style | Bar look |
 | `pieStyle` | `p3` | select | `flat` | Colour & style | Pie look |
 | `depth3d` | `dp` | number | 0 | Colour & style | 3-D depth (px, 0 = auto) |
-| `cameraProjection` | `cpr` | select | `perspective` | 3-D scene | Camera |
+| `sceneLayout` | `sly` | select | `auto` | 3-D scene | Arrangement |
+| `sceneHighlight` | `shl` | text | `""` | 3-D scene | Highlight |
+| `scenePose` | `spo` | select | `hero` | 3-D scene | Camera |
 | `cameraAzimuth` | `caz` | number | 38 | 3-D scene | Camera angle |
 | `cameraElevation` | `cel` | number | 24 | 3-D scene | Camera elevation |
+| `cameraProjection` | `cpr` | select | `perspective` | 3-D scene | Lens |
+| `sceneFraming` | `sfr` | select | `fit` | 3-D scene | Framing |
+| `sceneStage` | `sst` | select | `studio` | 3-D scene | Stage |
+| `sceneMaterial` | `mat` | select | `matte` | 3-D scene | Finish |
+| `sceneRoughness` | `rou` | number | 0.58 | 3-D scene | Roughness |
+| `sceneMetalness` | `met` | number | 0.04 | 3-D scene | Metalness |
+| `sceneShadows` | `s3s` | boolean | true | 3-D scene | Shadows |
 | `flightSeries` | `cfs` | text | `""` | Cinematic flight | Camera follows |
 | `flightHeight` | `cfh` | number | 0.85 | Cinematic flight | Camera clearance |
 | `flightLookAhead` | `cfla` | number | 1.5 | Cinematic flight | Look ahead |
 | `flightBank` | `cfb` | number | 10 | Cinematic flight | Bank with change |
 | `flightFov` | `cff` | number | 54 | Cinematic flight | Field of view |
-| `sceneMaterial` | `mat` | select | `matte` | 3-D scene | Material |
-| `sceneRoughness` | `rou` | number | 0.58 | 3-D scene | Roughness |
-| `sceneMetalness` | `met` | number | 0.04 | 3-D scene | Metalness |
-| `sceneShadows` | `s3s` | boolean | true | 3-D scene | Scene shadows |
 | `shadow` | `sh` | select | `none` | Colour & style | Shadow / depth |
 | `differentiate` | `df` | select | `auto` | Colour & style | Differentiate series by |
 | `colorOverrides` | `co` | text | `""` | Colour & style | Highlighted values |

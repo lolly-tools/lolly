@@ -4,6 +4,16 @@
 
 Turn a flat logo into a lit, bevelled object for a launch slide, or loop a product model on a turntable for a social post, without learning 3D software. **Lolly 3D Studio** takes SVG artwork, 3D models and words in your design system's font and renders them as stills and loops. Start with **Guided** controls, then choose **Expert** to edit the same scene in more detail.
 
+**A scene**, in four steps:
+
+::: steps
+- <!--i:eti-sparkles--> **[Start](#make-a-first-image)** Artwork, a model or words, fitted to the preview.
+- <!--i:eti-sun--> **[Light the scene](#light-the-scene)** A lighting studio, an environment and the stage behind.
+- <!--i:eti-palette--> **[Give it a finish](#finishes-and-materials)** Matte, metal, chrome, glass, glow and more.
+- <!--i:eti-download--> **[Export](#get-the-file-you-need)** A still or a loop, with or without its background.
+:::
+
+<!--i:eti-sparkles-->
 ## Make a first image
 
 1. Open the **3D Studio** tool and try the two-colour sample badge.
@@ -18,6 +28,7 @@ Turn a flat logo into a lit, bevelled object for a launch slide, or loop a produ
 
 Colour A, colour B, the background and the lights start from your design system's colours, so switching design system or colourway recolours the scene.
 
+<!--i:eti-box-->
 ## What goes in front of the camera
 
 **SVG artwork** is extruded and bevelled. Each visible solid colour becomes its own material slot, with paint order resolved before extrusion so overlapping paths do not flicker. The studio keeps the outline at the sidewall and shrinks a bevel only where a narrow or sharp detail would fold; **Source notes** reports every reduction with the requested and applied sizes, and the saved requested size stays, so changing the source or depth checks it again.
@@ -32,6 +43,7 @@ The faces are contracted for an inward bevel. Before building it, the studio fol
 
 **Several objects together** and **A collection** put more than one thing in the picture; see [Groups and sets](#groups-and-sets).
 
+<!--i:eti-sun-->
 ## Light the scene
 
 The lighting studios include soft, dramatic, cool and warm starting points. **Contrast** balances key and fill light, **Shadow softness** changes the apparent size of the source and **Exposure** sets the final brightness.
@@ -54,6 +66,7 @@ The coloured environments rebuild when the colours change. **Environment brightn
 
 Under **Stage**, choose a background colour, gradient or image, such as a PNG made with Backdrop. A background image does not light the scene.
 
+<!--i:eti-palette-->
 ## Finishes and materials
 
 Beyond matte, satin, enamel and metal:
@@ -66,14 +79,20 @@ Beyond matte, satin, enamel and metal:
 
 The two finish controls alternate across an SVG's colour slots. Turn on **Separate face, bevel and side finishes** to give each region a matte face, a polished bevel or a metallic side. These assignments apply to SVG artwork and the sample badge; imported meshes keep their own surface layout.
 
-Colour A and colour B are material colours, not output pixels: light, finish and exposure change how they render. The stage background passes through the same tone mapping, so it does not export as its exact swatch: at the default exposure of 1.1, a solid `#30ba78` background renders as `#61c992`. It also tints a soft fill light from below while colour A lights from above, so changing the background changes the subject's shading slightly.
+::: note Colours change under light and exposure
+Colour A and colour B are material colours, not output pixels: light, finish and exposure change how they render. The stage background passes through the same tone mapping, so it does not export as its exact swatch: at the default exposure of 1.1, a solid `#30ba78` background renders as `#61c992`.
+:::
 
+The background also tints a soft fill light from below while colour A lights from above, so changing the background changes the subject's shading slightly.
+
+<!--i:eti-camera-->
 ## Depth of field and depth forms
 
 Turn on **Depth of field** to soften objects away from the camera's focus. Choose **Pick focus** and click the subject; **Auto focus** follows the camera target again, and Expert mode takes a focus distance as a number. Higher render sample counts make the blur and shadows smoother.
 
 **Foreground and background forms** adds forms in front of and behind the subject. **Depth forms** chooses copies of the subject, at other sizes and angles, or soft spheres in the brand colours. **Depth spread** keeps them close at 0 and pushes them far out at 1, and Expert mode sets how many there are. The arrangement follows the saved seed, so it reproduces exactly, and the forms appear in scene images only.
 
+<!--i:eti-animation-->
 ## Make it move
 
 **Motion** chooses what the subject does over the loop. **Loop seconds** sets how long one loop takes and the starting clip length; the export panel can record more or less. **Still image**, the default, holds the subject in place.
@@ -116,6 +135,7 @@ An object loop, a camera move and animated lights run over the same loop seconds
 
 Templates open on a finished loop. **Wordmark backdrop** sets your words in the brand font and **Icon backdrop** starts from the sample badge; both combine the dramatic studio, copies of the subject drifting in depth, orbiting lights and a slow camera move. **Logo drop** drops a badge in turning and bounces it to a stop, **Bouncing icon** jumps the sample badge under a soft studio, and **Shatter reveal** breaks the subject into triangles while the camera swings round. Swap in your own words or icon under Start, then export. A brand pack can add models and templates of its own, shown only where that pack is installed.
 
+<!--i:eti-download-->
 ## Get the file you need
 
 **Output** chooses what the image contains, and the format decides how transparency is kept:
@@ -139,6 +159,7 @@ The export panel's size and DPI render the scene again at that pixel size, up to
 **Curve detail** chooses how a curve becomes straight pieces. **Fixed count** uses the **Curve count**, 8 to 64 (24 by default), at every size. **Follow the output size** reads the count from the image being made, keeping the error inside a quarter of a pixel at the **Fit object** framing, up to 64 pieces or the one-million-triangle budget: a 4096-pixel image of a curved ring takes 47 pieces per curve where a 64-pixel thumbnail takes 8. The preview is built at preview size; an export is built at the size it renders, including a link's own size, a batch row's size and each page of a paged set.
 :::
 
+<!--i:eti-shapes-->
 ## Groups and sets
 
 ### Arrange several objects
@@ -155,9 +176,10 @@ Choose **A collection** under **Start with** for a consistent set, such as twelv
 
 **Review collection** opens a contact sheet with fifteen of the shared controls, so one edit refreshes every tile; a **Studio** control applies a saved studio to the whole set. Each tile renders at the saved image size reduced to 512 pixels on the long side, and the footer states both sizes. Failed sources are listed by item and must be fixed before exporting. **Download sheet** saves the sheet as one PNG, with each name under its tile. **Export PNG set** renders every item at **Collection image size** from a snapshot of the current settings, numbering repeated names, with progress, cancellation and download recovery. The sheet and the PNG set show the start of the loop; export the selected item as video for motion.
 
+<!--i:eti-repeat-->
 ## Reuse a look
 
-Save the scene as a session to reopen it, or use **Save as a template** for a starting point. A share link carries settings and asset references; use an editable `.lolly` file when another device also needs your uploads.
+Save the scene as a session to reopen it, or use **Save as a template** for a starting point. Lolly 3D Studio also saves as you work, and earlier versions are under **History** ([Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version)). A share link carries settings and asset references; use an editable `.lolly` file when another device also needs your uploads.
 
 **Save studio** keeps the look of the current document as a reusable studio: the lights and their animation, the environment, materials, finishes and colours, stage, extrusion, depth of field and forms, exposure, render quality, projection, field of view and the motion. It leaves out the subject, the framing, the collection and the output, so one studio photographs many things. **Apply a studio** writes that look into the current document and keeps its subject, orbit, zoom, pan and focus. These actions sit in the sidebar's **Studio** section, and a collection or arrangement takes a studio the same way, keeping each item's own framing, focus and material roles.
 
@@ -179,6 +201,7 @@ Choose **3D scene** from the add menu on Lolly Design's tool rail and drag out a
 
 A studio link placed in another document, or embedded as a tool image, arrives as a picture rendered at export quality.
 
+<!--i:eti-sliders-->
 ## Expert controls
 
 Expert mode exposes object transforms, perspective or orthographic projection, the camera target and focus distance, individual light strengths and colours, reflection settings and the export sample count. Switching back to Guided keeps those values.

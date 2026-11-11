@@ -1,0 +1,237 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/music, the music generator (views/music-studio.ts): one bar of controls, two panels
+   that open under it (the mix, and making the track), a visualiser, and the track editor
+   (lane heads on the left, a horizontally scrolling canvas of sections, chords and notes
+   on the right). The canvas reads its ink and rules from the custom properties set here,
+   and its track and section colours from the brand's palette. Lane heights are set
+   inline by the view, which draws the canvas to the same heights, so the heads and the
+   lanes always line up. No maximum width: a wide monitor shows more of the track. */
+@layer views {
+  .ms-page {
+    --ms-ink: var(--ui-color-text-default);
+    --ms-muted: var(--ui-color-text-muted);
+    --ms-line: color-mix(in srgb, var(--ui-color-text-muted) 22%, transparent);
+    /* The shuffle button's size. */
+    --ms-cap: calc(var(--ui-size-target) * 1.25);
+    position: relative;
+    margin: 0;
+    /* Clear of the back and home buttons, which float over the page's corner. */
+    padding: calc(var(--ui-size-target) + var(--sp-6) * 2) var(--sp-4) var(--sp-4);
+    display: grid;
+    gap: var(--sp-3);
+  }
+
+  .ms-bar, .ms-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--ui-color-border-default);
+    border-radius: var(--radius);
+    background: var(--ui-color-surface-raised);
+  }
+  .ms-bar select, .ms-panel select { width: auto; }
+  .ms-play { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); min-height: var(--ui-size-target); border-radius: var(--radius-pill); }
+  /* Shuffle: a bottle cap in the brand's action colour, beside play on a wide screen and
+     in the bottom corner, under the thumb, on a phone. Every press squashes the cap, pops
+     it with a ring and spins the sparkle; the view restarts .is-popping on each press. */
+  .ms-shuffle {
+    position: relative;
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: var(--ms-cap);
+    height: var(--ms-cap);
+    /* Room either side, so the focus ring clears the clock. */
+    margin-inline: var(--sp-1) var(--sp-2);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-round);
+    background: var(--ui-color-action-primary);
+    color: var(--ui-color-action-on-primary);
+    /* The cap's rim, just inside the edge, and a lift off the bar. */
+    box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--ui-color-action-on-primary) 22%, transparent), var(--ui-elevation-control);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ms-shuffle:hover { filter: brightness(1.08); }
+  .ms-shuffle:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+  /* The pop's ring. Its accent edge is drawn only while the cap pops, never at rest. */
+  .ms-shuffle::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ms-shuffle.is-popping { animation: ms-cap-pop var(--dur-3) var(--ease-out); }
+  .ms-shuffle.is-popping svg { animation: ms-cap-spin var(--dur-3) var(--ease-spring); }
+  .ms-shuffle.is-popping::after { border: 2px solid var(--ui-color-action-primary); animation: ms-cap-ring var(--dur-3) var(--ease-out); }
+  @keyframes ms-cap-pop {
+    0% { transform: scale(1); }
+    20% { transform: scale(1.14, .84); }
+    50% { transform: translateY(-3px) scale(.92, 1.1); }
+    75% { transform: scale(1.04, .97); }
+    100% { transform: scale(1); }
+  }
+  @keyframes ms-cap-spin {
+    0% { transform: rotate(0) scale(.7); }
+    100% { transform: rotate(1turn) scale(1); }
+  }
+  @keyframes ms-cap-ring {
+    0% { transform: scale(1); opacity: .7; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ms-shuffle.is-popping, .ms-shuffle.is-popping svg, .ms-shuffle.is-popping::after { animation: none; }
+  }
+  html[data-a11y-motion="reduce"] .ms-shuffle.is-popping,
+  html[data-a11y-motion="reduce"] .ms-shuffle.is-popping svg,
+  html[data-a11y-motion="reduce"] .ms-shuffle.is-popping::after { animation: none; }
+  .ms-reset { display: inline-flex; align-items: center; gap: var(--sp-1); min-height: var(--ui-size-target); padding-inline: var(--sp-2); }
+
+  .ms-time { font-variant-numeric: tabular-nums; color: var(--ui-color-text-muted); font-size: var(--fs-sm); min-width: 6.5em; }
+  .ms-seed { display: inline-flex; align-items: center; gap: 2px; }
+  .ms-seed-input { width: 8.5em; cursor: ew-resize; touch-action: pan-y; font-variant-numeric: tabular-nums; }
+  .ms-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); padding-inline: var(--sp-1); }
+  .ms-icon[aria-expanded="true"] { color: var(--ui-color-action-primary); }
+  .ms-key { font-variant-numeric: tabular-nums; }
+  /* A key the person chose reads as theirs, as a set tempo does. */
+  .ms-key.is-set { font-weight: 600; color: var(--ui-color-action-primary); }
+  /* The instrument playing now, in its shade of the track's colour. */
+  .ms-inst { display: inline-flex; align-items: center; justify-content: center; flex: none; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+  .ms-inst svg { width: 100%; height: 100%; }
+  .ms-tempo { display: inline-flex; align-items: center; gap: var(--sp-1); }
+  .ms-bpm-input { width: 4.5em; cursor: ew-resize; touch-action: pan-y; font-variant-numeric: tabular-nums; }
+  /* A tempo the person set reads as theirs: the tune's own is plain. */
+  .ms-bpm-input.is-set { font-weight: 600; color: var(--ui-color-action-primary); }
+  .ms-unit { font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+  .ms-tempo .ms-icon[hidden] { display: none; }
+  .ms-meta { font-size: var(--fs-sm); color: var(--ui-color-text-muted); font-variant-numeric: tabular-nums; }
+  .ms-bar-end { margin-inline-start: auto; display: inline-flex; gap: 2px; }
+
+  /* The sound panel: a grid of pill sliders (components/pill-slider.ts), each a whole
+     cell with its name and value written on it, and room between them. */
+  .ms-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(12em, 1fr)); gap: var(--sp-3); font-size: var(--fs-sm); }
+  .ms-panel[hidden] { display: none; }
+  .ms-panel--make { display: flex; }
+  .ms-fx-on { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); }
+  .ms-fx-label { margin-inline-end: var(--sp-1); color: var(--ui-color-text-muted); }
+  .ms-panel--make progress { width: 10em; }
+  /* The Content Credentials switch and the two lines saying what a download and a save
+     will record, read before either is clicked. */
+  .ms-cred { gap: var(--sp-2); }
+  .ms-make-notes { flex-basis: 100%; display: grid; gap: var(--sp-1); }
+  .ms-make-note { margin: 0; color: var(--ui-color-text-muted); }
+
+  .ms-stage { position: relative; height: 96px; border-radius: var(--radius); overflow: hidden; background: var(--ui-color-surface-muted); }
+  .ms-stage.is-off { height: 0; overflow: visible; }
+  .ms-stage.is-off [data-viz-mode] { top: calc(var(--ui-size-target) * -1 - var(--sp-1)); }
+  .ms-viz { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .ms-stage [data-viz-mode] { position: absolute; top: var(--sp-1); right: var(--sp-1); }
+  /* Full screen sits beside the visualiser's own button, and only once a track is rendered. */
+  .ms-stage [data-viz-full] { position: absolute; top: var(--sp-1); right: calc(var(--sp-1) * 2 + var(--ui-size-target)); }
+  .ms-stage [data-viz-full][hidden] { display: none; }
+  /* Full screen: the stage is the whole screen, the visualiser filling it. */
+  .ms-stage:fullscreen { height: 100vh; border-radius: 0; background: #000; }
+  .ms-render-play { flex: none; display: inline-flex; align-items: center; gap: var(--sp-2); }
+
+  .ms-editor {
+    display: grid;
+    grid-template-columns: minmax(200px, 250px) 1fr;
+    border: 1px solid var(--ui-color-border-default);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--ui-color-surface-canvas);
+  }
+  .ms-heads { border-inline-end: 1px solid var(--ui-color-border-default); background: var(--ui-color-surface-raised); }
+  .ms-lane-head {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: 0 var(--sp-2);
+    border-block-end: 1px solid var(--ms-line);
+    font-size: var(--fs-sm);
+  }
+  .ms-zoom { justify-content: flex-start; gap: 0; }
+  .ms-swatch { flex: none; width: 10px; height: 10px; border-radius: var(--radius-pill); background: var(--ui-color-text-muted); }
+  .ms-track-name { font-weight: 600; min-width: 3.6em; }
+  .ms-pick { flex: 1; min-width: 0; }
+  .ms-ms {
+    flex: none;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 4px;
+    border: 1px solid var(--ui-color-border-default);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-surface-canvas);
+    color: var(--ui-color-text-muted);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .ms-ms[aria-pressed="true"] { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); border-color: var(--ui-color-action-primary); }
+
+  .ms-scroll { position: relative; overflow-x: auto; overflow-y: hidden; }
+  .ms-canvas { position: sticky; left: 0; display: block; cursor: pointer; }
+  .ms-spacer { height: 1px; }
+
+  .ms-hint { margin: 0; min-height: 1.4em; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+
+  .ms-pop {
+    position: absolute;
+    z-index: 5;
+    width: 232px;
+    display: grid;
+    gap: var(--sp-1);
+    padding: var(--sp-2);
+    border: 1px solid var(--ui-color-border-default);
+    border-radius: var(--radius);
+    background: var(--ui-color-surface-overlay);
+    box-shadow: var(--shadow-3);
+  }
+  .ms-pop[hidden] { display: none; }
+  .ms-pop-title { margin: 0; font-size: var(--fs-xs); font-weight: 600; color: var(--ui-color-text-muted); }
+  .ms-pop select { width: 100%; }
+
+  @media (max-width: 760px) {
+    .ms-page { padding-inline: var(--sp-2); gap: var(--sp-2); }
+    .ms-bar { padding: var(--sp-1) var(--sp-2); }
+    .ms-meta { display: none; }
+    .ms-seed-input { width: 7em; }
+    .ms-bpm-input { width: 4.2em; margin-inline-start: 2px; }
+    .ms-stage { height: 64px; }
+    .ms-editor { grid-template-columns: 124px 1fr; }
+    .ms-pick, .ms-track [data-solo] { display: none; }
+    .ms-track-name { min-width: 0; font-size: var(--fs-xs); }
+    .ms-zoom .ms-icon { min-width: 0; padding-inline: 2px; }
+    .ms-bar-end { margin-inline-start: 0; }
+    .ms-shuffle {
+      position: fixed;
+      z-index: var(--z-chrome);
+      margin: 0;
+      inset-inline-end: var(--sp-4);
+      inset-block-end: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+      box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--ui-color-action-on-primary) 22%, transparent), var(--ui-elevation-floating);
+    }
+    /* The hint wraps short of the cap. */
+    .ms-hint { padding-inline-end: calc(var(--ms-cap) + var(--sp-4)); }
+  }
+}
+
+/* Render and play's progress card (views/music-studio.ts): the plain .modal card with the
+   shared candy-stripe bar (parts/job-toast.css, which also stops the drift under reduced
+   motion), the share done and the time left, and Cancel. */
+.ms-render-card {
+  width: min(380px, 92vw);
+  --candy-a: var(--job-candy-a);
+  --candy-b: var(--job-candy-b);
+}
+.ms-render-card .modal-title:focus { outline: none; }
+.ms-render-note { margin: 0 0 var(--sp-4); font-size: var(--fs-sm); line-height: 1.5; color: var(--ui-color-text-muted); }
+.ms-render-status { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; color: var(--ui-color-text-muted); }
+.ms-render-card .job-bar { height: 10px; margin: 0 0 18px; }

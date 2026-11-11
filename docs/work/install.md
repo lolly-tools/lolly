@@ -3,20 +3,31 @@
 This guide takes you from a source checkout to a Lolly Work instance running on
 one server, with real sign-in, a database and secrets that survive a restart.
 
+Three other paths have their own pages.
+[Install on Kubernetes](platform-deployment.md) covers Helm, K3s, RKE2 and Rancher.
+The [Lolly appliance](aws-compatible.md#lolly-appliance-preview), a preview disk image,
+boots into Lolly Work on K3s. The [ready-made package](ready-made-package.md) is a
+finished Compose directory with HTTPS and password sign-in. Not sure which fits?
+[Run Lolly Work](self-host.md) has a one-question chooser.
+
 Sections 1 to 4 build the configuration every install uses, on your own computer
 first. Sections 5 and 6 run it on a server with Compose or systemd. Section 7,
 YunoHost, makes all of those settings for you. Sections 8 and 9 come after any
 install: the `lw` command line and your first asset source.
 
-Two other paths have their own pages. The
-[ready-made package](ready-made-package.md) is a finished Compose directory with
-HTTPS and password sign-in. [Install on Kubernetes](platform-deployment.md)
-covers Helm, K3s, RKE2 and Rancher. Not sure which fits?
-[Run Lolly Work](self-host.md) has a one-question chooser.
+**What you'll do**, in four steps:
+
+::: steps
+- <!--i:eti-flask--> **[Try the demo](#1-try-it-on-your-computer)** The local demo, in memory, on your own computer.
+- <!--i:eti-sliders--> **[Make it real](#2-your-first-real-instance)** Sections 2 to 4: your configuration, PostgreSQL and secrets.
+- <!--i:eti-box--> **[Run it on a server](#5-container-compose)** One of Compose, systemd or YunoHost, in sections 5 to 7.
+- <!--i:eti-keyboard--> **[Then connect](#8-the-cli)** The `lw` command line and your first asset source.
+:::
 
 Commands with registry, hostname or file placeholders need your own values before
 you run them.
 
+<!--i:eti-checklist-->
 ## Before you start
 
 Which tools you need depends on the path you pick:
@@ -30,15 +41,21 @@ Which tools you need depends on the path you pick:
 
 Lolly Work's server runs its TypeScript directly on Node, with no build step. Only a
 source install needs Node on the host: the container image brings its own, and the
-YunoHost package installs it for you. The older standalone `docker-compose` is not
-the Compose v2 plugin: without the plugin, `docker compose up --build` fails with
-`unknown flag: --build`.
+YunoHost package installs it for you.
+
+::: warning The older docker-compose is not Compose v2
+The older standalone `docker-compose` is not the Compose v2 plugin: without the plugin,
+`docker compose up --build` fails with `unknown flag: --build`.
+:::
 
 Compose brings PostgreSQL 17. The optional
 [SUSE profile](../deploy/suse/README.md) pins Application Collection PostgreSQL
-18.6, with its own qualification and recovery requirements. Systemd and production
-Kubernetes installs need a database you manage. The local demo and the Helm
-evaluation keep everything in memory and reset on restart.
+18.6, with its own qualification and recovery requirements. Production Kubernetes
+and systemd installs need a database you manage. The Helm evaluation and the local
+demo keep everything in memory and reset on restart.
+
+Each system's setup is below. On Windows, run the shell commands on this page inside
+WSL 2.
 
 ::: details Linux
 For Ubuntu or Debian, install Git, curl and certificate roots with
@@ -92,11 +109,12 @@ For Compose, install [Docker Desktop for Windows](https://docs.docker.com/deskto
 select Linux containers and turn on WSL integration for Ubuntu. Check
 `docker compose version` inside Ubuntu, then continue with section 5.
 
-Docker Desktop is not the deployment path for Windows Server: use a Linux VM or an
-existing Kubernetes platform there. A native Windows service install has not been
+Docker Desktop is not the deployment path for Windows Server: use an existing
+Kubernetes platform or a Linux VM there. A native Windows service install has not been
 qualified for this release.
 :::
 
+<!--i:eti-flask-->
 ## 1. Try it on your computer
 
 Use the published release tag, which keeps the server and the bundled engine matched.
@@ -148,9 +166,10 @@ then commit the licence metadata cache and SBOM. Tests and type checks are in th
 Lolly Work repository's [contributing guide](https://github.com/lolly-tools/lolly-work/blob/main/CONTRIBUTING.md).
 :::
 
+<!--i:eti-sliders-->
 ## 2. Your first real instance
 
-This walk-through teaches the configuration that Compose, systemd and Kubernetes
+This walk-through teaches the configuration that Kubernetes, Compose and systemd
 all read. A platform team can skip running it locally, but should prepare its
 production configuration the same way before [installing on Kubernetes](platform-deployment.md).
 
@@ -301,6 +320,7 @@ setup** in the console, where `not-tested` marks integrations still to verify. P
 checks are cached for at most 60 seconds, so health probes do not run a full
 inspection each time.
 
+<!--i:eti-layers-->
 ## 3. Persistence
 
 Without `DATABASE_URL` the in-memory store runs and everything resets on restart.
@@ -340,11 +360,15 @@ pnpm run migrate:status               # lists pending migrations, exits 1 if any
 pnpm run migrate                      # or just start the server: migrations apply at startup
 ```
 
-A database alone does not keep people signed in: with `DATABASE_URL` but no
-`LW_SESSION_SECRET`, data survives a restart and every session still ends. Set both
-secrets in section 4. On Kubernetes, the chart's migration Job owns the schema
+::: warning A database alone does not keep people signed in
+With `DATABASE_URL` but no `LW_SESSION_SECRET`, data survives a restart and every
+session still ends. Set both secrets in section 4.
+:::
+
+On Kubernetes, the chart's migration Job owns the schema
 instead; see [operations](operations.md#who-applies-migrations).
 
+<!--i:eti-lock-->
 ## 4. Secrets
 
 Secrets never live in the configuration file. Production needs two stable random
@@ -372,6 +396,7 @@ end to end. When you point `instance.pack` at a pack you do not fully control, s
 back to `false` and attach a Chromium render worker instead
 ([deployment](deployment.md#two-ways-to-render)).
 
+<!--i:eti-box-->
 ## 5. Container (Compose)
 
 Three ways run Lolly Work on one Linux server:
@@ -394,9 +419,11 @@ test -f instance.json && echo "using the instance.json you authored in section 2
 # and dev.enabled to the demo values, and no later step notices.
 ```
 
+::: warning A missing instance.json becomes a folder
 If `instance.json` is missing, Docker creates a **folder** at the mount point and the
 server then fails to read a folder as its configuration. That is why the `test -f`
 check comes first.
+:::
 
 ```bash
 cd deploy/compose
@@ -423,12 +450,19 @@ docker compose up --build
 
 All three lines of `.env` matter. The Compose file refuses to start without the two
 `LW_` secrets. `PG_PASSWORD` sets both the server's `DATABASE_URL` and the PostgreSQL
-container's password; changing it after the first start also needs
+container's password.
+
+::: warning Changing PG_PASSWORD later
+After the first start, a new `PG_PASSWORD` also needs
 `alter role lolly password '<new>'` inside the container, or
 `docker compose down -v`, which destroys the data.
+:::
 
-Check it with `curl -s http://localhost:8787/healthz`: the `name` must be **your**
-instance name, not the example's. Then repeat the checks from section 2, signing in
+::: check Your instance answers
+`curl -s http://localhost:8787/healthz` shows **your** instance name, not the example's.
+:::
+
+Then repeat the checks from section 2, signing in
 as an address **your** `dev.users` lists, or through your identity provider once you
 have set `idp.issuer` and switched development sign-in off.
 
@@ -438,8 +472,11 @@ on the same private network. It is off unless you pass `--profile garage`. Add a
 `GARAGE_RPC_SECRET` to `.env`, run the one-time layout, bucket and key commands, set
 `LW_BLOBS_S3_CREDENTIAL` and switch `blobs.driver` to `s3` with the endpoint
 `http://garage:3900`. The exact steps are in `deploy/compose/README.md` of the Lolly Work
-repository. Decide this before the instance stores blobs: changing the driver later does
-not copy blobs already in PostgreSQL.
+repository.
+
+::: warning Choose the blob store before the first upload
+Changing the driver later does not copy blobs already in PostgreSQL.
+:::
 
 The image sets `NODE_ENV=production`, so a missing secret stops it rather than
 falling back quietly. The pack and an optional built web app are mounted
@@ -449,6 +486,7 @@ put nginx or Caddy in front, or end TLS at your load balancer and forward to
 More on how the Compose shape fits together is in
 [deployment](deployment.md#single-server-with-compose).
 
+<!--i:eti-cpu-->
 ## 6. Bare metal (systemd)
 
 The same code with less orchestration, when you would rather not run containers.
@@ -522,16 +560,16 @@ load balancer, and work through [before exposing the server](#before-exposing-th
 
 [YunoHost](https://yunohost.org) packages the systemd shape for you. The Lolly Work
 app installs the service, its PostgreSQL database and the Lolly web app on a domain
-of its own, and signs members in with the host's accounts. Make sure you pick the
-right package: [Run Lolly Work](self-host.md#yunohost-choose-lolly-work) explains
-why it is `lolly-work_ynh` and not the static `lolly_ynh`.
+of its own, and signs members in with the host's accounts. From 1.2.0 it is the only
+Lolly package for YunoHost. The static `lolly_ynh` package is discontinued, and
+[Run Lolly Work](self-host.md#yunohost-choose-lolly-work) says what that means for a
+static install.
 
 The package is the `deploy/yunohost/` folder of the Lolly Work repository, mirrored to
 [`lolly-tools/lolly-work_ynh`](https://github.com/lolly-tools/lolly-work_ynh) at each
-release. For a fresh install, use an exact tagged revision of `lolly-work_ynh`. The
-latest mirrored tag is `v1.1.1-ynh1`, which installs Lolly Work 1.1.1; the 1.1.2 package
-is published but not mirrored yet. Which revisions have passed their checks is
-recorded in [official installation routes](official-installations.md).
+release. For a fresh install, use an exact tagged revision of `lolly-work_ynh`: the
+one [official installation routes](official-installations.md) lists for YunoHost,
+with what each revision has passed.
 
 In YunoHost's custom-app installer, paste the tagged `lolly-work_ynh` URL. The same
 from a terminal, with the tag in place of the placeholder:
@@ -561,6 +599,8 @@ already made:
 - Secrets are generated at install and kept in the app's `.env`. `NODE_ENV` is
   production and `rateLimit.trustedProxyHops` is 1.
 
+![Lolly Work for YunoHost: members sign in at the YunoHost portal, where SSOwat attaches the identity headers, and nginx adds the shared secret before a request reaches the Lolly Work server, which also serves the web app at /. Apps and agents such as lw, MCP and SCIM reach nginx without the portal, because the server authenticates them itself. The server reads groups and roles from the host's LDAP, keeps its records in PostgreSQL and can connect an optional Nextcloud over WebDAV.](/info/diagrams/work-deployment/yunohost-package.svg)
+
 The app's configuration panel changes the access mode, guest links, telemetry level
 and whether hooks run in the in-process renderer; the console at `/admin` does the
 rest. The package keeps the API, share links, render links and the instance card
@@ -568,12 +608,17 @@ reachable for apps that are not browsers (the `lw` command line, MCP, SCIM and a
 Lolly app connecting to this instance), because the server authenticates those
 itself.
 
+::: details Connect a Nextcloud on the same server
 If a Nextcloud app is installed on the same YunoHost, the package finds it
 (`yunohost app list`) and prefills its address under **Configuration > Nextcloud**. The
-connection stays off until you finish it: create a dedicated Nextcloud account, share the
-brand folder with it read-only, create an app password in Nextcloud under Settings >
-Security, and paste the account's login name and that password into the panel. Switching
-it on adds two config-managed entries to `instance.json`: a
+connection stays off until you finish it:
+
+1. Create a dedicated Nextcloud account.
+2. Share the brand folder with it read-only.
+3. Create an app password in Nextcloud under Settings > Security.
+4. Paste the account's login name and that password into the panel.
+
+Switching it on adds two config-managed entries to `instance.json`: a
 [WebDAV catalog source](providers/webdav.md) that reads the brand folder, and a
 [WebDAV delivery destination](delivery.md#configure-a-fixed-webdav-destination) that
 writes approved exports beneath a folder you name, which must already exist. The delivery
@@ -586,12 +631,17 @@ Lolly Work takes a whole domain, so a Nextcloud on the same server lives on anot
 or subdomain. The browser-side WebDAV connection in the Lolly app is a separate feature:
 it runs from the page, so it needs that Nextcloud's CORS rules and a matching entry in the
 page's content policy.
+:::
 
 The package does not set up a Chromium render worker, so the exports on offer depend
 on the installed tool pack and renderer settings. Keep an independent protected copy
-of the YunoHost backup. Before you store team work, test a restore, sign-in, a shared
-uploaded asset and an invited edit.
+of the YunoHost backup.
 
+::: check Before you store team work
+Test a restore, sign-in, a shared uploaded asset and an invited edit.
+:::
+
+<!--i:eti-keyboard-->
 ## 8. The CLI
 
 Every governance action in the console can be scripted. From a checkout:
@@ -623,6 +673,7 @@ LW_SEED_CONFIG=./governance.json npm start       # idempotent
 
 Sessions, `--base` and every command are in the [CLI reference](cli.md).
 
+<!--i:eti-link-->
 ## 9. Connect a source
 
 A new instance serves only what its pack ships. Connecting a catalog source, such as
@@ -700,9 +751,11 @@ that returns to your computer. Which groups see a source, approved-only assets a
 reference or download access are separate decisions on the same record; see
 [catalog](catalog.md).
 
+<!--i:eti-map-pin-->
 ## What next
 
 - **[Customer setup](customer-setup.md)**: generate checked configuration and download a checked sample.
 - **[Enterprise identity](enterprise-identity.md)**: single sign-on, admission, SCIM and sign-out.
 - **[Keep Lolly Work running](operations.md)**: upgrades, backups, monitoring and secret rotation.
 - **[Configuration](configuration.md)**: every key and environment variable.
+- **[Automation API](automation-api.md)**: service tokens, render jobs and the organisation MCP endpoint for agents.

@@ -9,6 +9,7 @@ one origin.
 
 Lolly Work supports [content sovereignty](/info/content-sovereignty.html): the organisation chooses how content is produced, governed, stored and moved. An existing DAM can remain the source of record while Lolly Work connects its selected assets to Lolly tools. Read [Use Lolly with your existing DAM](/info/use-with-dam.html) for that arrangement.
 
+<!--i:eti-folder-move-->
 ## Source, production and delivery responsibilities
 
 The connected path is **source DAM → governed Lolly Work catalog → Lolly production → chosen delivery destination**. Each step has its own authority:
@@ -36,6 +37,7 @@ vector SVG and signed with a C2PA Content Credential by the deployment's own sig
 identity. Hover the imprint in a shot's corner to read what its file claims, then choose
 **Check it yourself** to verify the exact bytes on your machine.
 
+<!--i:eti-code-->
 ## Two codebases, one deployment
 
 | | Lolly (open source, MPL-2.0) | Lolly Work (open source, MPL-2.0) |
@@ -50,6 +52,7 @@ that talk to Lolly Work are additive and dormant by default: a shell with no Lol
 behaves exactly as it does on its own.
 
 <a id="what-work-serves"></a>
+<!--i:eti-globe-->
 ## What Lolly Work serves
 
 | Surface | Path | Who |
@@ -66,6 +69,9 @@ behaves exactly as it does on its own.
 | Agent connections (MCP) | `/api/workspace/mcp` | document and project agents, with a connection key ([document agents](document-agents.md)) |
 | Organisation MCP | `/api/v1/mcp` | automation with a service token ([connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp)) |
 | Instance pack download | `/connect/pack.lolly` | anyone on an `open` instance, otherwise members; `404` when no pack is hosted |
+| Brand context for agents | `/api/v1/context/*` | service tokens only; the same reads as the organisation MCP resources ([what an agent reads](partner-agents.md#what-an-agent-reads)) |
+| Brand pages | `/brand/<id>/` | anyone, once a page is published, even on a gated instance; off by default ([brand pages](design-system-administration.md#host-a-brand-page)) |
+| Render API migration | `/compat/*` | service tokens with the `render` scope; off by default ([move from a hosted render API](move-from-render-api.md)) |
 
 A connected shell polls one document, `/api/v1/org-config`. It says who the person is, which
 tools they see, which inputs are locked, which profile fields are managed and which feature
@@ -75,6 +81,7 @@ shows how to preview it for any set of groups.
 
 <a id="the-trust-model-honestly"></a>
 
+<!--i:eti-shield-check-->
 ## The trust model
 
 - **Renders happen where the content is trusted.** The in-process (jsdom) fast path never
@@ -94,6 +101,7 @@ shows how to preview it for any set of groups.
 - **The audit log is hash-chained**, so edits and truncation are detectable, provided you keep
   a copy of the head outside the deployment.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - Get it running: [install](install.md), then [deployment](deployment.md).

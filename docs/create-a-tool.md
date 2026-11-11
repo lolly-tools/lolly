@@ -10,6 +10,16 @@ The shared `.lolly` contains one reusable tool with its fonts and images.
 Sharing a tool never replaces the Lolly Design document it came from. Save the master with the normal **Save** action, and save it again after publishing, so its rules and publication record are there when you revise the tool.
 :::
 
+**What you'll do**, in four steps:
+
+::: steps
+- <!--i:eti-upload--> **[Bring the design](#bring-the-design)** Build it in Design, or drop a PDF or `.ai` and choose Share with rules.
+- <!--i:eti-sliders--> **[Choose the inputs](#choose-the-inputs)** Make text and images editable. Everything else stays fixed.
+- <!--i:eti-eye--> **[Preview and share](#preview-and-share)** Try real content, then download one `.lolly`.
+- <!--i:eti-package--> **[Hand it over](#use-the-finished-tool)** Recipients install it and change only what you allowed.
+:::
+
+<!--i:eti-upload-->
 ## Bring the design
 
 Open the **Design** tool and build the artwork, or drop a Canva PDF or a PDF-compatible Illustrator `.ai` onto Lolly and choose **Share with rules**. For an existing document, open the File menu and choose **Share with rules**.
@@ -37,6 +47,7 @@ PDF text uses the source character widths to join compatible fragments into whol
 
 For new artwork, choose the design system before you compose, then use its fonts, colour tokens, assets and any templates or imported components in Lolly Design. Once placed, their text and image objects can become inputs like any other. For imported artwork, **Source and fonts → Apply design system** previews replacement fonts and offers an explicit colour-to-token mapping before applying. The published tool captures the finished appearance; it does not add a separate component editor or replace the recipient's design system.
 
+<!--i:eti-sliders-->
 ## Choose the inputs
 
 Select a text or image object and choose **Use as input** from its action menu; the inspector offers the same route for text, images and supported colours. In **Rules**, select an object and choose **Make editable**. All other artwork stays fixed.
@@ -66,6 +77,7 @@ Preview and the recipient view show requested and fitted sizes when text shrinks
 
 <!-- Regenerate this vector UI capture with LOLLY_DESIGN_TOOL_TEST_URL=http://127.0.0.1:5173 LOLLY_DESIGN_TOOL_SHOTS=1 node --test --test-name-pattern='designer UI' tests/design-tool.browser.test.ts. It requires authoring actions before capture. -->
 
+<!--i:eti-users-->
 ## Share common names across assets
 
 Choose **First name**, **Last name** or another **Common input** meaning. The visible label can differ between tools; the meaning keeps the fields connected. Choose **Recipient**, **Presenter** or **Shared person** so two different people are never connected. **Organization** uses text and **Headshot** uses an image.
@@ -76,6 +88,7 @@ For a single full-name object, choose **Build text from first and last name**. P
 
 In Lolly Batch, add the related tools and choose **Shared inputs** to enter values once for that set of assets. The brief controls let you use a different value for one output and relink it later. Each output keeps its own layout limits, so a long value can fit a slide while needing correction on a badge.
 
+<!--i:eti-palette-->
 ## Make themes and layouts
 
 With several artboards, choose **Add layout choice**. One public choice selects an authored artboard and its size. Link the same content input to the matching objects on the other artboards so reader content survives a change of layout.
@@ -92,6 +105,7 @@ For each existing input, choose **Keep recipient content**, **Editable after cho
 
 Return to Lolly Design to change object geometry, and return to Rules to refresh the authored artboards and review their bindings. Changing Lolly's interface theme is separate from choosing a theme inside a published tool.
 
+<!--i:eti-grid-->
 ## Arrange the reader experience
 
 Choose **Sidebar** for a visible form beside the output, or **On-canvas** for a compact **Edit inputs** button where selecting an editable area opens its control. The same ordered form stays available for names, themes and controls with no artwork target.
@@ -113,6 +127,7 @@ Drag input handles to set the order. With a keyboard, focus a handle, press Spac
 Typing, input controls and open dialogs keep their normal shortcuts. To move or resize artwork, switch to Lolly Design.
 :::
 
+<!--i:eti-eye-->
 ## Preview and share
 
 **Preview** runs the actual compiled tool in the same isolated runtime recipients use. Try replacement text, size limits, images and every layout. Samples survive mode changes. **Sample controls** holds **Test limits**, **Reset samples**, **Reset to theme** and **Use as defaults**; only **Use as defaults** changes the master's defaults.
@@ -123,13 +138,20 @@ Approved image credits travel with the package. For a held source, the share dia
 
 After download, **Save Design master** opens the usual save flow; a failed or cancelled save leaves the master open to retry. **Try downloaded file** runs the actual package in a separate preview while the master stays open.
 
-Sharing changed content creates a new version, and an unchanged download reuses the version. Recipients choose when to install a new one. Saved outputs pin their installed revision, and resharing an older saved output carries that revision's tool files. Reusing a version number for different contents is refused. Keep the original `.lolly` if you may need to restore a revision after removing the tool from the device.
+Sharing changed content creates a new version, and an unchanged download reuses the version. Recipients choose when to install a new one. Saved outputs pin their installed revision, and resharing an older saved output carries that revision's tool files. Reusing a version number for different contents is refused.
 
+::: note Keep the original .lolly
+Keep the original `.lolly` if you may need to restore a revision after removing the tool from the device.
+:::
+
+<!--i:eti-package-->
 ## Use the finished tool
 
-Recipients drop the `.lolly` into Lolly, review its trust prompt and install it if they trust its source. They read the instructions and edit the declared inputs. On a phone, **Preview** closes the input sheet and **Edit inputs** brings the fields back. An allowed format sits beside **Download**, and **More** holds export options, saved variants, history and reset controls where available. An input's action menu can reset that field, with Undo. Outputs save as ordinary tool sessions. The installed tool has no Lolly Design layer editor.
+Recipients drop the `.lolly` into Lolly, review its trust prompt and install it if they trust its source. They read the instructions and edit the declared inputs. **Preview**, a small button at the right end of the title row, hides the inputs so the result fills the screen, and **Edit inputs** brings the fields back. An allowed format sits beside **Download**, and **More** holds export options, saved variants, history and reset controls where available. An input's action menu can reset that field, with Undo. Outputs save as ordinary tool sessions. The installed tool has no Lolly Design layer editor.
 
 Once Lolly and the tool are available offline, editing and export use local resources only. The package does not need the sender's account, project or asset cache.
+
+On Lolly Work, a brand team can also publish the `.lolly` to a partner programme from its **Templates** card. Work keeps only the file's data and builds the tool again with its own Lolly Design, so no code from the file runs ([Partner templates](/info/manage/partner-templates.html#publish-a-template)).
 
 ::: details Run a shared tool from the command line
 A reviewed tool can use the same browser export path from the CLI:
@@ -142,6 +164,7 @@ lolly run welcome.lolly --trust-tool --firstname=Sam --lastname=Rivera \
 This needs Lolly's browser renderer and a current web build. `--trust-tool` accepts the packaged tool for this run only, and the renderer still checks the designer's rules.
 :::
 
+<!--i:eti-copy-->
 ## Other starting points
 
 **From a saved session or template.** In **Projects**, open a saved tool session's menu and choose **Share with rules**; the **Templates** collection and the template chooser offer the same action. Lolly opens a separate authoring copy and leaves the saved source as it was. An open tool also offers **Save as → Share with rules → Choose inputs**, the Share dialog offers **Share as a reusable tool** and a single setting's **Input actions** menu offers **Use as a tool input**. Save the authoring session to keep its rules for later revisions.
@@ -171,6 +194,7 @@ Creates a separate tool with your approved inputs only, ready to install.
 Makes the finished asset: a PNG, SVG, PDF or another format.
 :::
 
+<!--i:eti-graduation-cap-->
 ## Use it for training materials
 
 Make a course-cover tool with a course title, presenter names, an image and approved layouts. Training and enablement teams can then produce consistent covers, badges and handouts from those inputs, add the rendered files to a project and assemble the course in Learning.

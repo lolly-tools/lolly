@@ -10,18 +10,18 @@ Labinlimang font, lahat mula sa Google Fonts sa isang naka-pin na commit at laha
 
 | Script | Font | Bersyon | Download |
 |---|---|---|---|
-| Arabic, kasama ang mga letrang Urdu at Persian | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabic, kasama ang mga letrang Urdu at Persian | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebrew | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengali | Noto Sans Bengali | 3.011 | 136 KB |
-| Thai | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrillic | Noto Sans, mga letrang Cyrillic | 2.015 | 112 KB, italic 129 KB |
-| Greek | Noto Sans, mga letrang Greek | 2.015 | 75 KB, italic 81 KB |
-| Latin, kasama ang Vietnamese at iba pang may accent na letra | Noto Sans, mga letrang Latin | 2.015 | 309 KB, italic 342 KB |
-| Simplified Chinese, ang mga karakter ng GB 2312 | Noto Sans SC | 2.004 | 1.9 MB |
-| Traditional Chinese, ang mga karakter ng Big5 | Noto Sans TC | 2.004 | 3.6 MB |
-| Japanese, ang mga karakter ng Shift_JIS | Noto Sans JP | 2.004 | 2.1 MB |
-| Korean, bawat Hangul syllable at ang mga karakter ng KS X 1001 | Noto Sans KR | 2.004 | 2.4 MB |
+| Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengali | Noto Sans Bengali | 3.011 | 139 KB |
+| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrillic | Noto Sans, mga letrang Cyrillic | 2.015 | 115 KB, italic 132 KB |
+| Greek | Noto Sans, mga letrang Greek | 2.015 | 77 KB, italic 83 KB |
+| Latin, kasama ang Vietnamese at iba pang may accent na letra | Noto Sans, mga letrang Latin | 2.015 | 316 KB, italic 350 KB |
+| Simplified Chinese, ang mga karakter ng GB 2312 | Noto Sans SC | 2.004 | 2.0 MB |
+| Traditional Chinese, ang mga karakter ng Big5 | Noto Sans TC | 2.004 | 3.8 MB |
+| Japanese, ang mga karakter ng Shift_JIS | Noto Sans JP | 2.004 | 2.2 MB |
+| Korean, bawat Hangul syllable at ang mga karakter ng KS X 1001 | Noto Sans KR | 2.004 | 2.5 MB |
 
 Buo ang weight axis ng bawat font, kaya gumuguhit pa rin ang bawat weight na hinihingi ng isang design, at bold ang bold na Chinese, Japanese o Korean na heading. Nakapirmi sa normal ang width axis ng mga Noto Sans font, na nagpapaliit sa bawat file nang kalahati; walang width axis ang mga Chinese, Japanese at Korean na font. Hinahati ayon sa script ang Noto Sans, kaya ang salitang Cyrillic ay nagda-download lang ng mga letrang Cyrillic. Ang mga outline ay ang mga upstream na outline, hindi binago.
 
@@ -53,7 +53,7 @@ Sa page, ang canvas na may dalawa sa mga wikang ito ay naglilista ng parehong fo
 
 Walang nagda-download hanggang may karakter ang isang dokumento na hindi kayang iguhit ng alinmang font ng design system nito. Ang dokumentong Ingles, o sa anumang wikang sakop ng design system nito, ay hindi kailanman nagda-download ng fallback font. Ang simbolo sa linyang Ingles, tulad ng ★ o ※, ay hindi kailanman nagda-download ng Chinese, Japanese o Korean na font.
 
-Sa unang beses na kailanganin ng isang dokumento ang isa, dina-download ng Lolly ang isang font na iyon, para sa isang script na iyon, at iniingatan ito sa device mo. Ang Japanese na dokumento ay nagda-download ng Japanese font lang, 2.1 MB, at ang Traditional Chinese naman ay ang 3.6 MB na Traditional font. Mula noon, gumuguhit nang offline ang script, at nananatili ang font kapag nililinis ang catalog. Iniingatan ang font kasama ng sariling mga file ng catalog, hindi kailanman sa mga font na ina-upload mo, kaya hindi ito lumilitaw sa listahan ng font ng brand mo.
+Sa unang beses na kailanganin ng isang dokumento ang isa, dina-download ng Lolly ang isang font na iyon, para sa isang script na iyon, at iniingatan ito sa device mo. Ang Japanese na dokumento ay nagda-download ng Japanese font lang, 2.2 MB, at ang Traditional Chinese naman ay ang 3.8 MB na Traditional font. Mula noon, gumuguhit nang offline ang script, at nananatili ang font kapag nililinis ang catalog. Iniingatan ang font kasama ng sariling mga file ng catalog, hindi kailanman sa mga font na ina-upload mo, kaya hindi ito lumilitaw sa listahan ng font ng brand mo.
 
 Binabasa ng command line, ng terminal app at ng MCP server ang parehong mga file mula sa disk, kaya hindi nila kailangan ng download.
 

@@ -1,0 +1,15 @@
+digraph tune_from_seed {
+  rankdir=TB
+  node [shape=box]
+  station [label="Station\nits genre"]
+  seed [label="Seed\none whole number"]
+  settings [label="Your settings\ndrums, texture, volume"]
+  composer [label="Lolly's composer\nno clock, no dice"]
+  tune [label="The tune\nthe same for everyone"]
+  browser [label="Your browser\nsynthesises the sound"]
+  station -> composer
+  seed -> composer
+  composer -> tune
+  tune -> browser
+  settings -> browser
+}

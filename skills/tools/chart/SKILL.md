@@ -5,7 +5,7 @@ description: "Operate the Lolly Chart tool (chart) using its declared inputs and
 
 # Chart
 
-Tool ID: `chart`. Tool version: `1.28.0`. Engine range: `^1.181.0`.
+Tool ID: `chart`. Tool version: `1.29.0`. Engine range: `^1.181.0`.
 
 Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.
 
@@ -50,18 +50,23 @@ Required host APIs: none. Device capabilities: none.
 | barStyle | select | b3 |
 | pieStyle | select | p3 |
 | depth3d | number | dp |
-| cameraProjection | select | cpr |
+| sceneLayout | select | sly |
+| sceneHighlight | text | shl |
+| scenePose | select | spo |
 | cameraAzimuth | number | caz |
 | cameraElevation | number | cel |
+| cameraProjection | select | cpr |
+| sceneFraming | select | sfr |
+| sceneStage | select | sst |
+| sceneMaterial | select | mat |
+| sceneRoughness | number | rou |
+| sceneMetalness | number | met |
+| sceneShadows | boolean | s3s |
 | flightSeries | text | cfs |
 | flightHeight | number | cfh |
 | flightLookAhead | number | cfla |
 | flightBank | number | cfb |
 | flightFov | number | cff |
-| sceneMaterial | select | mat |
-| sceneRoughness | number | rou |
-| sceneMetalness | number | met |
-| sceneShadows | boolean | s3s |
 | shadow | select | sh |
 | differentiate | select | df |
 | colorOverrides | text | co |

@@ -63,8 +63,9 @@
       "chartStyle": "studio-3d",
       "heading": "Responses by team and wave",
       "data": "Team,First wave,Second wave,Final wave\nDesign,42,51,63\nEngineering,58,66,74\nSales,33,47,59\nSupport,27,39,52",
-      "motionPreset": "reveal-orbit",
-      "cameraProjection": "orthographic"
+      "motionPreset": "reveal",
+      "sceneMaterial": "satin",
+      "sceneStage": "studio"
     }
   },
   {
@@ -76,7 +77,7 @@
       "chartStyle": "glass-3d",
       "heading": "Demand surface",
       "data": "Hour,Monday,Tuesday,Wednesday,Thursday,Friday\n08:00,12,18,14,17,22\n10:00,23,31,28,35,42\n12:00,46,55,61,58,68\n14:00,38,49,53,57,63\n16:00,29,41,47,51,58\n18:00,18,27,33,39,46",
-      "motionPreset": "orbit"
+      "motionPreset": "arc"
     }
   }
 ]

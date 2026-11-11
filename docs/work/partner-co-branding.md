@@ -12,6 +12,7 @@ agents make from a template that takes them. Each file records the company it wa
 This page is part of [Run a partner programme](run-a-partner-programme.md). Your design system
 leads every piece, and the company's mark goes into the artwork as a picture.
 
+<!--i:eti-folder-plus-->
 ## Add a company and its details
 
 Under **Companies** on the programme's page, add each partner organisation. On the company's page,
@@ -36,6 +37,7 @@ minimum size, keep them on the company page's **Partner kit** card.
 The file types, sizes and field lengths are in
 [Company details and logos](partner-programmes.md#company-details-and-logos).
 
+<!--i:eti-pen-->
 ## Contacts who may edit
 
 **Contacts who may edit** is off by default: your team keeps the company's details. Tick **People
@@ -45,6 +47,7 @@ and checks and the two logos; the mark stays with your team. A contact cannot re
 A contact's change applies at once. To review contact changes first, turn on **Changes by contacts
 need approval** ([Partner approvals](partner-approvals.md#changes-by-a-company-s-contacts)).
 
+<!--i:eti-eye-->
 ## What partners see of their company
 
 ![The Northwind IT details sheet: the logo on light and dark backgrounds, then the website, contact, address, currency and tax note](shots/partner-company-sheet.svg)
@@ -60,12 +63,14 @@ the card mentions a rule or a policy.
 A template takes the company's details where its inputs are bound to them, so partners never type
 their own logo or contact line ([Partner templates](partner-templates.md#take-inputs-from-the-company)).
 
+<!--i:eti-history-->
 ## Change a company's details
 
 Change them on the company's page and press **Save details**. Every revision is kept. New pieces
 take the new details, and a file already made keeps the details it was made with, along with the
 revision it records. A contact who may edit makes the same change from their home.
 
+<!--i:eti-palette-->
 ## Keep a company's partner kit
 
 A partner kit holds a company's own logo rules for use inside your work: its logos for light and
@@ -122,12 +127,14 @@ example "Northwind IT's mark is 48 px high; the kit asks for at least 96 px.", w
 for each thing they could not measure. A finding is for review and never blocks an export. The kit
 is never a design system: your brand still leads, and the app's look stays the same.
 
+<!--i:eti-shapes-->
 ## Lockups
 
 Lolly does not generate a lockup from two marks for a "with", "in partnership with" or "by"
 arrangement. Add a finished lockup as a custom mark
 ([Place a partner's mark](/info/partners.html#place-a-partner-s-mark)).
 
+<!--i:eti-badge-check-->
 ## What a co-branded file records
 
 When Rita exports, the export panel's **Design system** card shows what the file records, such as
@@ -151,6 +158,7 @@ partner's agent makes over the API or MCP records the same keys as a file made i
 place the record is written, and who records no company, is in
 [The partner record in files](partner-programmes.md#the-partner-record-in-files).
 
+<!--i:eti-map-pin-->
 ## Worked example: Northwind IT
 
 The worked example on [Run a partner programme](run-a-partner-programme.md#set-up-a-programme)
@@ -202,6 +210,7 @@ and one for dark: the light-surface logo looks faint on the dark preview.
 
 Next: [4. Publish the data sheet](partner-templates.md#4-publish-the-data-sheet).
 
+<!--i:eti-sliders-->
 ## Every option
 
 - Company details, logos and their limits: [Company details and logos](partner-programmes.md#company-details-and-logos)

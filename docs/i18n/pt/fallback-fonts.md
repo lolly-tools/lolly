@@ -10,18 +10,18 @@ Quinze fontes, todas do Google Fonts em um commit fixado e todas sob a SIL Open 
 
 | Escrita | Fonte | Versão | Download |
 |---|---|---|---|
-| Árabe, incluindo as letras do urdu e do persa | Noto Sans Arabic | 2.012 | 206 KB |
+| Árabe, incluindo as letras do urdu e do persa | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebraico | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanágari (hindi, marata, nepalês) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengali | Noto Sans Bengali | 3.011 | 136 KB |
-| Tailandês | Noto Sans Thai | 2.002 | 61 KB |
-| Cirílico | Noto Sans, letras cirílicas | 2.015 | 112 KB, itálico 129 KB |
-| Grego | Noto Sans, letras gregas | 2.015 | 75 KB, itálico 81 KB |
-| Latim, incluindo o vietnamita e outras letras acentuadas | Noto Sans, letras latinas | 2.015 | 309 KB, itálico 342 KB |
-| Chinês simplificado, os caracteres GB 2312 | Noto Sans SC | 2.004 | 1,9 MB |
-| Chinês tradicional, os caracteres Big5 | Noto Sans TC | 2.004 | 3,6 MB |
-| Japonês, os caracteres Shift_JIS | Noto Sans JP | 2.004 | 2,1 MB |
-| Coreano, todas as sílabas hangul e os caracteres KS X 1001 | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanágari (hindi, marata, nepalês) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengali | Noto Sans Bengali | 3.011 | 139 KB |
+| Tailandês | Noto Sans Thai | 2.002 | 62 KB |
+| Cirílico | Noto Sans, letras cirílicas | 2.015 | 115 KB, itálico 132 KB |
+| Grego | Noto Sans, letras gregas | 2.015 | 77 KB, itálico 83 KB |
+| Latim, incluindo o vietnamita e outras letras acentuadas | Noto Sans, letras latinas | 2.015 | 316 KB, itálico 350 KB |
+| Chinês simplificado, os caracteres GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
+| Chinês tradicional, os caracteres Big5 | Noto Sans TC | 2.004 | 3,8 MB |
+| Japonês, os caracteres Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
+| Coreano, todas as sílabas hangul e os caracteres KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
 
 O eixo de peso de cada fonte é mantido inteiro, então todo peso que um design pede continua sendo desenhado, e um título em chinês, japonês ou coreano em negrito sai em negrito. O eixo de largura das fontes Noto Sans é fixado em normal, o que reduz cada arquivo à metade; as fontes chinesa, japonesa e coreana não têm eixo de largura. A Noto Sans é dividida por escrita, então uma palavra em cirílico baixa apenas as letras cirílicas. Os contornos são os contornos originais, sem alteração.
 
@@ -53,7 +53,7 @@ Na página, um canvas que contém dois desses idiomas lista as duas fontes, e o 
 
 Nada é baixado até que um documento contenha um caractere que nenhuma fonte do seu sistema de design consiga desenhar. Um documento em inglês, ou em qualquer idioma que o seu sistema de design cubra, nunca baixa uma fonte de reserva. Um símbolo em uma linha em inglês, como ★ ou ※, nunca baixa uma fonte chinesa, japonesa ou coreana.
 
-Na primeira vez que um documento precisa de uma, o Lolly baixa essa fonte, para essa escrita, e a guarda no seu dispositivo. Um documento em japonês baixa só a fonte japonesa, de 2,1 MB, e um em chinês tradicional baixa a fonte tradicional de 3,6 MB. Dali em diante a escrita é desenhada offline, e a fonte permanece quando o catálogo é limpo. A fonte é guardada junto com os arquivos do próprio catálogo, nunca entre as fontes que você enviou, então não aparece na lista de fontes da sua marca.
+Na primeira vez que um documento precisa de uma, o Lolly baixa essa fonte, para essa escrita, e a guarda no seu dispositivo. Um documento em japonês baixa só a fonte japonesa, de 2,2 MB, e um em chinês tradicional baixa a fonte tradicional de 3,8 MB. Dali em diante a escrita é desenhada offline, e a fonte permanece quando o catálogo é limpo. A fonte é guardada junto com os arquivos do próprio catálogo, nunca entre as fontes que você enviou, então não aparece na lista de fontes da sua marca.
 
 A linha de comando, o app de terminal e o servidor MCP leem os mesmos arquivos do disco, então não precisam de download.
 

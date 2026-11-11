@@ -13,6 +13,7 @@ poll.
 
 ![Tool policy: lock a preset, restrict choices or hide an input entirely, per group](shots/tool-policy.svg)
 
+<!--i:eti-sliders-->
 ## Tool overlays
 
 Each tool has one versioned overlay, saved with `PUT /api/v1/policy/overlays/:toolId` under
@@ -28,7 +29,10 @@ rule whose groups match the person wins, and no match means `editable`.
 People in a partner programme are the exception: for them, order never decides. A rule for their
 company overrides their programme's rule, the stricter result wins across programmes, and a
 programme or company rule beats a rule for everyone. See
-[Partner programmes](partner-programmes.md#input-rules-for-partners).
+[Partner programmes](partner-programmes.md#input-rules-for-partners). A tool's policy can also
+take inputs from a partner company's details, such as its logo or contact line (`bindings`,
+under **Takes from the company**; see [company details in
+templates](partner-programmes.md#company-details-in-templates)).
 
 ::: figure work-governance-rule-order
 Lolly Work reads one input's rules from the top and stops at the first group that matches.
@@ -57,7 +61,9 @@ Lolly Work reads one input's rules from the top and stops at the first group tha
 Enforcement happens on the server, before rendering. A locked input supplied by a caller is a
 `422 INPUT_LOCKED`, and the locked value is used whatever the request said. The same pure
 functions filter the schema the shell sees, so the interface and the enforcement cannot
-disagree.
+disagree. An [open link](sharing.md#signed-links), whose recipients may set the tool's own
+inputs, still refuses a locked, hidden or disallowed one (`INPUT_LOCKED`, `INPUT_HIDDEN`,
+`INPUT_NOT_ALLOWED`).
 
 A person never reads policy notes in Lolly: a locked input shows its value with no line naming
 the rule, and a hidden input is simply absent. Give the overlay a `name` and a rule an optional
@@ -94,8 +100,9 @@ and Preview lists every tool a set of groups would not see.
 | `watermark` | `always` | Enforced: every render carries the [PREVIEW watermark](sharing.md#preview-watermarking). |
 | `watermark` | `never` | Enforced: no render carries the watermark. |
 | `watermark` | `until-approved` | Enforced on server renders: each render carries the watermark until a request for the same inputs is approved. See [follow approval](#a-watermark-that-follows-approval). |
-| `defaults` | input values | Stored, not applied to a tool's initial inputs by org-config or the render paths. Locked presets do enforce values. |
-| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. |
+| `defaults` | input values for groups, as `[{ groups, values }]` | Applied when saved in that shape: new work and server renders start from the values for the person's groups, the most specific group winning, below a template's own values and the person's own entry. Stored in the older flat shape, defaults are not applied to a tool's initial inputs by org-config or the render paths. The policy editor marks them, and saving them again as group rules applies them. Locked presets do enforce values. |
+| `escalation` | a chain id | Enforced for requests: the chain a tool's exports go through, and an export review naming another chain is refused. Pair it with a deny on `export.download` to route a group through review ([review an exported file](approvals.md#review-an-exported-file)). The chain must exist when you save. Otherwise the save answers `400 CHAIN_NOT_BOUND`. |
+| `approvalCovers` | `file` (the default) or `template-variants` | Enforced under `until-approved`: with `template-variants`, one approval of a published template's version covers every partner render from it ([one approval for a template's variants](partner-approvals.md#one-approval-for-a-template-s-variants)). |
 | `c2pa` | | Declared in the overlay type, refused by the write paths. Signing is instance-wide through `render.c2pa` ([Configure Lolly Work export signing](c2pa.md)). |
 
 With no `watermark` rule, a server render carries no mark. The render pipeline can take a request for the preview mark, but no Lolly Work route makes that request today, so a share link or a preview does not ask for the mark.
@@ -121,14 +128,20 @@ cache. An `x-lolly-watermark` header says how each one came out: `Marked until a
 `Approved, not marked`. A durable render's output carries the same words, and its receipt gives the
 id of the approval that matched. The words are in the record, not the artwork.
 
-- **Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
-  already holding the setting starts showing PREVIEW on the first render after the upgrade. Change
-  the rule first if that is not what you want.
-- **What a match rests on.** The match uses the input values the requesting app states. A member
-  could send values that do not match the file they send. The mark is a preview signal for people,
-  not a security boundary.
-- **What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their
-  own device follow **Approval chain for exports** and their `export.download` permission instead.
+::: warning An until-approved rule starts marking after the upgrade
+**Upgrading.** Until this release `until-approved` was stored and not enforced. An instance
+already holding the setting starts showing PREVIEW on the first render after the upgrade. Change
+the rule first if that is not what you want.
+:::
+
+::: note The mark is a preview signal, not a security boundary
+**What a match rests on.** The match uses the input values the requesting app states. A member
+could send values that do not match the file they send. The mark is a preview signal for people,
+not a security boundary.
+:::
+
+**What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their
+own device follow **Approval chain for exports** and their `export.download` permission instead.
 
 ::: details Using the policy editor
 - The console keeps saved format restrictions and input defaults when you edit inputs,
@@ -154,6 +167,7 @@ id of the approval that matched. The words are in the record, not the artwork.
 Before you rely on a rule, preview what a group will see ([Checking your
 work](permissions.md#checking-your-work)).
 
+<!--i:eti-palette-->
 ## Design systems and injectables
 
 Two more tabs in **This Deploy** govern what members work with:
@@ -165,6 +179,7 @@ Two more tabs in **This Deploy** govern what members work with:
 - **Injectables** publishes assets and tools into members' shells, under
   `catalog.injectable.manage`. The routes are in the [API reference](api.md).
 
+<!--i:eti-user-check-->
 ## Profile governance
 
 Identity fields the identity provider owns are managed, not editable. `claimMap` decides which
@@ -172,6 +187,7 @@ claim fills `firstname`, `lastname`, `email` and `title`, and those fields reach
 `mode: locked, source: idp`, which draws the padlocks in the shell's profile view. The person
 keeps every field your organisation has no opinion about.
 
+<!--i:eti-flask-->
 ## Feature flags
 
 Lolly Work governs the shell's per-person feature toggles it knows about, with two settings per
@@ -248,6 +264,7 @@ card with the service's address, its request and fallback counts and its last an
 marks each flag the service decides. [Configuration](configuration.md#featureflags) lists
 what is sent and how failures are handled.
 
+<!--i:eti-code-->
 ## Policy-as-code
 
 One canonical document holds the whole governance state, serialized deterministically so that
@@ -274,6 +291,12 @@ lw apply governance.json                       # apply
 lw apply governance.json --prune               # also delete store-only entries
 ```
 
+::: warning `--prune` deletes what the document leaves out
+Grants, overlays, approval chains, feature flags and the other entries the store holds and the
+document does not are deleted; a catalog provider is pruned only while it is disabled. Run
+`lw apply governance.json --dry-run --prune` first and read the deletes in the diff.
+:::
+
 The diff reports create, update, delete and unchanged per category, and the response carries
 the document hash. Two guards apply:
 
@@ -299,6 +322,7 @@ a provider or stores a credential, because neither is in the document. Seeding b
 deployment up already governed, and makes governance reviewable and promotable between
 environments, for example from version control.
 
+<!--i:eti-link-->
 ## Related
 
 - Who may edit any of this: [Roles and grants](permissions.md)

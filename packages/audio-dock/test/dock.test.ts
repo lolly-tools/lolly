@@ -298,6 +298,36 @@ test('setCapabilities rebuilds the volume sliders a host gained after the dock w
   dock.destroy();
 });
 
+test('the picker follows list changes from sources a host gained after the dock was built', () => {
+  // Same order as the web shell: the dock is built over a host with no sources, a music
+  // source registers later, and the library changes after that (a tune saved, a track
+  // uploaded). The dock subscribed at creation, to nothing, so the new row never showed.
+  let rows: DockSource[] = [{ id: 'a', title: 'Groove Salad', kind: 'music', group: 'Catalog' }];
+  const listeners = new Set<() => void>();
+  const sources = {
+    list: (): DockSource[] => rows,
+    select: () => {},
+    currentId: () => '',
+    onListChange: (l: () => void) => { listeners.add(l); return () => listeners.delete(l); },
+  };
+  let current: typeof sources | undefined;
+  const host = makeHost();
+  Object.defineProperty(host, 'sources', { get: () => current });
+  const dock = createAudioDock({ host, capabilities: {} });
+
+  current = sources;
+  dock.setCapabilities({ music: true });
+  assert.deepEqual([...dock.el.querySelectorAll<HTMLElement>('[data-src-id]')].map((b) => b.dataset.srcId), ['a']);
+
+  rows = [...rows, { id: 'user/tune/1', title: 'Lolly Sings · F major · 98 bpm', kind: 'music', group: 'Lolly Sings' }];
+  for (const l of listeners) l();
+  assert.deepEqual([...dock.el.querySelectorAll<HTMLElement>('[data-src-id]')].map((b) => b.dataset.srcId), ['a', 'user/tune/1'],
+    'the saved tune appears without a reload');
+
+  dock.destroy();
+  assert.equal(listeners.size, 0, 'destroying the dock unsubscribes');
+});
+
 test('searchable picker filters rows and hides empty groups', () => {
   const host = makeHost();
   host.sources!.searchable = true;

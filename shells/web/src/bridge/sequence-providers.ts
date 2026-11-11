@@ -106,6 +106,7 @@ import {
 // Types only: the rondocode client is imported lazily at the point of use, so its
 // worker chunk (QuickJS and the staging bundle) never enters this module's graph.
 import type { RondoRendered, RondoSong } from '../lib/rondo-render.ts';
+import type { LofiTuneRecipe } from '../lib/lofi-tune.ts';
 // The error vocabulary is the plan module's, not a second one invented here.
 // The renderer switches on `SeqErrorCode`, and a provider that minted its own
 // codes would be invisible to it. `toCodedError` is the single normaliser for
@@ -1302,6 +1303,11 @@ export interface ClipAudioOpts {
      * renderer is a QuickJS Worker). Default: `lib/rondo-render.ts`, imported lazily.
      */
     renderRondo?(song: RondoSong, seconds: number): Promise<RondoClipRender>;
+    /**
+     * Render a saved station tune for `seconds`, repeating it to fill. Injected by the
+     * tests (the shipped renderer is Web Audio). Default: `lib/lofi-tune.ts`, lazily.
+     */
+    renderLofi?(recipe: LofiTuneRecipe, seconds: number): Promise<RenderedPcm>;
   };
   /**
    * A user-visible notice line, for what a person should see and not only the log:
@@ -1316,6 +1322,12 @@ export interface ClipAudioOpts {
    * sound reached the file.
    */
   onSong?(song: RondoSong, render: Pick<RondoRendered, 'run' | 'findings'>): void;
+  /**
+   * Told once per clip when a saved tune has rendered into it, with its recipe. The
+   * export mix turns this into the tune's C2PA source ingredient (Andy's approval of
+   * 2026-11-10), so the credential lists only the tunes whose sound reached the file.
+   */
+  onTune?(recipe: LofiTuneRecipe): void;
   /**
    * Length, in seconds, the PROCEDURAL source composes itself to. Only the
    * `zzfxm:` scheme reads it; a decoded file has an intrinsic length and ignores
@@ -1371,6 +1383,16 @@ export async function createClipAudio(src: Blob | string, opts: ClipAudioOpts = 
         log('warn', `sequence audio: ${src.slice(0, 120)} is a rondocode song that could not be read - clip will be silent`);
       }
       return clip;
+    }
+    // A saved station tune by its catalog path (`.lofi.json`) is a recipe, not a container.
+    if (/\.lofi\.json$/i.test(src.split(/[?#]/)[0] ?? '')) {
+      let recipe: LofiTuneRecipe | null = null;
+      try {
+        const bytes = await withTimeout(fetchModuleBytes(src, opts), timeout, 'read (saved tune)');
+        recipe = bytes ? (await import('../lib/lofi-tune.ts')).lofiTuneFromBytes(bytes) : null;
+      } catch { recipe = null; }
+      if (!recipe) log('warn', `sequence audio: ${src.slice(0, 120)} is a saved tune that could not be read - clip will be silent`);
+      return recipe ? lofiClip(recipe, opts) : null;
     }
   }
 
@@ -1602,7 +1624,66 @@ async function openSniffedAudio(src: Blob | string, opts: ClipAudioOpts): Promis
     const song = await readRondoSong(bytes);
     if (song) return rondoClip(song, opts);
   }
+  // A saved station tune uploaded as a user asset: a blob url, recognised by its kind.
+  const tune = (await import('../lib/lofi-tune.ts')).lofiTuneFromBytes(bytes);
+  if (tune) return lofiClip(tune, opts);
   return null;
+}
+
+/**
+ * A `ClipAudio` backed by a saved station tune (lib/lofi-tune.ts): composed from its
+ * recipe and rendered with Web Audio, repeating to fill the window the box occupies.
+ * `durationSec()` is 0, the procedural clip's "composed to fit" answer, like rondoClip.
+ */
+function lofiClip(recipe: LofiTuneRecipe, opts: ClipAudioOpts): ClipAudio {
+  const log = opts.log ?? ((): void => {});
+  const render = opts.deps?.renderLofi
+    ?? (async (r: LofiTuneRecipe, seconds: number) => (await import('../lib/lofi-tune.ts')).renderLofiTunePcm(r, { seconds }));
+  let disposed = false;
+  let cacheKey = -1;
+  let cached: Promise<RenderedPcm> | null = null;
+  let reported = false;
+  return {
+    durationSec: () => 0,
+
+    async pcm(fromSec, toSec, sampleRate) {
+      if (disposed) throw coded(new Error('clip audio disposed'), 'SEQ_ABORTED');
+      const from = Math.max(0, Number.isFinite(fromSec) ? fromSec : 0);
+      const to = Math.max(from, Number.isFinite(toSec) ? toSec : from);
+      // Whole seconds, covering the window's END, so neighbouring windows share one render.
+      const target = Math.max(1, Math.ceil(opts.targetSec ?? to));
+      if (cacheKey !== target) {
+        cacheKey = target;
+        cached = withTimeout(render(recipe, target), opts.timeoutMs ?? 0, 'saved tune render');
+        // A failed render must not be remembered as this target's answer.
+        cached.catch(() => { if (cacheKey === target) { cacheKey = -1; cached = null; } });
+      }
+      let pcm: RenderedPcm;
+      try {
+        pcm = await (cached as Promise<RenderedPcm>);
+      } catch (err) {
+        log('warn', `sequence audio: saved tune ${recipe.mood}.${recipe.seed} could not be rendered - clip will be silent`);
+        throw coded(err as Error, 'SEQ_DECODE_FAILED');
+      }
+      if (disposed) throw coded(new Error('clip audio disposed'), 'SEQ_ABORTED');
+      if (!reported) {
+        reported = true;
+        try { opts.onTune?.(recipe); } catch { /* a listener never breaks the mix */ }
+      }
+      return assemblePcmWindow(
+        [{ channels: [pcm.left, pcm.right], sampleRate: pcm.sampleRate, timestamp: 0 }],
+        from, to, sampleRate,
+      );
+    },
+
+    async dispose() {
+      if (disposed) return;
+      disposed = true;
+      cached = null;
+      cacheKey = -1;
+      await Promise.resolve();
+    },
+  };
 }
 
 /**

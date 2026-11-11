@@ -9,13 +9,16 @@ An existing DAM can remain the source of record throughout this workflow. [Use L
 
 The source stays in charge. Lolly Work reads from it and never edits it, and you decide which groups
 see which files. Optimizely CMP is the one source that can also receive finished exports, and
-only when you turn that on. Penpot is a design-system source: its tokens feed a design system.
+only when you turn that on. Sending finished files to a bucket, a WebDAV folder, Brandfolder or
+Cloudinary is a separate feature with its own credentials:
+[organisation delivery destinations](../delivery.md#how-delivery-differs-from-a-source). Penpot is a design-system source: its tokens feed a design system.
 
 When you want the files in Lolly Work's own storage, the same connection copies them across and
 checks every file. That is the exit, covered in [Leave a DAM](../offboarding.md).
 
 ![A source feeds the Lolly Work catalog as read-only references. Exposure decides which groups see each file in Lolly tools, and materializing copies the files into your own store.](/info/diagrams/work-integrations/source-flow.svg)
 
+<!--i:eti-search-->
 ## Choose a source
 
 WebDAV / Nextcloud and Google Drive have a guided setup in the console. Every other source uses
@@ -53,6 +56,7 @@ How to read the columns:
 
 `mock` is a synthetic source for local development and has no guide.
 
+<!--i:eti-folder-move-->
 ## DAM onboarding and offboarding
 
 Each supported DAM has its own integration page with setup, qualification and exit limits.
@@ -65,7 +69,7 @@ optional and needs separate acceptance checks.
 | [Image Relay](imagerelay.md) | [Select the tenant API](imagerelay.md#onboarding) | [Choose the exit driver](imagerelay.md#off-boarding) |
 | [Canto](canto.md) | [Check access and originals](canto.md#onboarding) | [Qualify the exit](canto.md#off-boarding) |
 | [Acquia DAM / Widen](acquia-dam.md) | [Check statuses and dates](acquia-dam.md#onboarding) | [Rehearse the copy](acquia-dam.md#off-boarding) |
-| [IntelligenceBank](intelligencebank.md) | [Check workflow mappings](intelligencebank.md#onboarding) | [Lolly Verify copied governance](intelligencebank.md#off-boarding) |
+| [IntelligenceBank](intelligencebank.md) | [Check workflow mappings](intelligencebank.md#onboarding) | [Verify copied governance](intelligencebank.md#off-boarding) |
 | [Cloudinary](cloudinary.md) | [Check folders and originals](cloudinary.md#onboarding) | [Conditional exit](cloudinary.md#off-boarding) |
 | [Orange Logic](orange-logic.md) | [Connect permitted renditions](orange-logic.md#onboarding) | [Originals block cutover](orange-logic.md#off-boarding) |
 | [Optimizely CMP](optimizely-cmp.md) | [Connect the web workflow](optimizely-cmp.md#onboarding) | [Retain CMP as the source](optimizely-cmp.md#off-boarding) |
@@ -76,6 +80,7 @@ the separate export-and-upload route to Google Drive, OneDrive / SharePoint or D
 [S3 storage strategy](../offboarding.md#self-host-lolly-work-with-s3-storage) covers the Lolly Work
 server, PostgreSQL, blob storage, backups and the checks before a supported cutover.
 
+<!--i:eti-link-->
 ## Connect a source in four steps
 
 Open **Assets & tools > Providers** at `/admin#/providers` and choose **Connect a source**.
@@ -102,9 +107,11 @@ lw providers sync acme-s3
 lw providers enable acme-s3       # owner-only
 ```
 
+::: note Who can do each step
 Creating, syncing and deleting a source needs `catalog.provider.manage`. Setting a credential
 and enabling a source need `catalog.provider.credential`, which owners hold. An admin can
 prepare and sync a source, then hand the credential and the enable to an owner.
+:::
 
 The [`lw` CLI page](../cli.md#catalog-providers) lists every `lw providers` command.
 
@@ -115,7 +122,7 @@ files from the first page. Then it throws the record away: no source is created,
 option costs you a retry. The credential is prompted hidden, even for a dry run. Press enter
 for a source that needs none, such as a public `git` manifest.
 
-```
+```console
 health ok - canto
 mapped sample: 10 of 100 on the first page
   id                                name                        type      tags                              formats
@@ -138,6 +145,7 @@ drivers whose field names still come from vendor documentation support it: `webd
 link; `imagerelay`, `intelligencebank`, `acquia-dam`, `cloudinary` and `orange-logic` make that
 call. [Check a source on your own tenant](tenant-check.md) explains how to read the report.
 
+<!--i:eti-shield-check-->
 ## Rules every connection follows
 
 - **Credentials are write-only.** They are sealed at rest, and only a fingerprint is ever
@@ -148,9 +156,12 @@ call. [Check a source on your own tenant](tenant-check.md) explains how to read 
 - **Exposure decides what federates,** not the reach of the platform credential.
 - **You bring the tokens and apps.** No client ids or keys ship with Lolly Work.
 
+::: warning A shared credential does not carry each member's permissions
 A shared service credential does not carry each member's own upstream permissions. Set the
 exposure groups for the people who should see the files.
+:::
 
+<!--i:eti-sliders-->
 ## Settings every source shares
 
 Each guide shows its own `options`. These blocks work the same way for every kind:
@@ -173,10 +184,17 @@ creates it at boot and the console shows it read-only ("via instance.json"). Its
 comes from the environment variable its `credentialRef` gives. Change it in your deployment and
 redeploy.
 
+**One folder for a partner programme.** [Provider folders](../partner-programmes.md#provider-folders)
+give one folder of a connected source, and everything inside it, to a programme or one of its
+companies. Each kind reports folders in its own way: S3 and Dropbox by key prefix, WebDAV and
+OneDrive or SharePoint by directory, Brandfolder by section, and Google Drive only with
+`recursive` on.
+
 When a vendor credential expires on a schedule, record the date:
 `lw providers credential <id> --expires 2026-12-01`. From 14 days before that date,
 `lw providers list` and the console's source row show how many days remain.
 
+<!--i:eti-user-check-->
 ## OAuth sources
 
 Every OAuth source here uses an app **you** register on the platform. Lolly Work ships no
@@ -241,6 +259,7 @@ has confirmed no authorize URL for these kinds. From then on everything works as
 kinds: write-only at rest, with access tokens minted per process. A tenant check that confirms
 a kind's authorize and token endpoints moves the kind into the section above.
 
+<!--i:eti-cpu-->
 ## Instance settings two features need
 
 - **The exit** writes copies into the instance's own
@@ -252,6 +271,7 @@ a kind's authorize and token endpoints moves the kind into the section above.
   `LW_C2PA_SIGNING_KEY`, see [c2pa](../c2pa.md)). Without one, exports are unsigned and the
   publish route refuses them.
 
+<!--i:eti-badge-check-->
 ## Leave a platform, or check one first
 
 - [Leave a DAM](../offboarding.md): when to pin, how the cutover moves each file's identity, and

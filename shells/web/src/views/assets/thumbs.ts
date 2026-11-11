@@ -141,9 +141,12 @@ export function thumbHtml(cat: CatCtx, ref: AssetRef, asSpan = false, full = fal
       const mod = isModuleFormat(ref.format);
       // A rondocode song is code: details-rondo.ts renders it in the `vm` class.
       const rondo = ref.format === 'rondo';
+      // A saved station tune is a recipe, which lib/lofi-tune.ts composes and renders.
+      const lofi = ref.format === 'lofi';
       const srcAttr = zz ? `data-zzfxm-url="${escapeText(ref.url)}"`
         : mod ? `data-mod-url="${escapeText(ref.url)}"`
         : rondo ? `data-rondo-url="${escapeText(ref.url)}"`
+        : lofi ? `data-lofi-url="${escapeText(ref.url)}"`
         : `src="${escapeText(ref.url)}"`;
       // A big live level meter above the controls (same bar look + theming as the
       // Neurospicy player's - lib/audio-meter.ts draws both). Wired in openDetails.

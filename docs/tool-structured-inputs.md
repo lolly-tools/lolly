@@ -2,6 +2,7 @@
 
 Some tools need more than a list of fields: a guest list with a row per person, an org chart people drag around, a photo they zoom and straighten in place. Three input patterns cover those jobs. `blocks` repeats a group of fields, a `canvas` object on a `blocks` input turns its rows into boxes on an editor canvas and `vector` groups a few numbers into one control, which is how image framing works.
 
+<!--i:eti-repeat-->
 ## `blocks` - repeating groups
 
 A `blocks` input is a list of repeating records, such as team members with a name and a city each. Declare the fields of one row under `fields`:
@@ -62,6 +63,7 @@ The options are `value`, `label` and `prefix` (the source fields and an ordinal 
 
 `activeWhen` turns tree mode on only while top-level inputs hold the given values (an array value matches by membership); leave it out to always nest. `diagram-builder` is the reference for both `optionsFrom` and `nesting`: org charts and mind maps nest, while process, kanban and layercake diagrams stay flat and refer to rows through the picker.
 
+<!--i:eti-shapes-->
 ## Editor canvas: connectors, grid & fixed size (`canvas.connect` / `grid` / `fixedCanvas`)
 
 A `blocks` input with a `canvas` object is the free-form artboard behind `render.layout: "editor"` ([layouts](/info/tool-manifest.html#layout-and-sidebar)). Its `*Field` keys say which field of each row holds which part of a box's geometry (`xField`, `yField`, `wField`, `hField`, `rotationField`, plus fill, text and image fields). The shell then mounts its select, drag, resize and rotate overlay while the data stays a flat array that fits in a link. It also mounts the whole editor rail, with add, arrange, undo and the main export actions, so the manifest declares geometry fields and nothing else.
@@ -130,6 +132,7 @@ Three optional keys add to that, each on its own:
 
 Two more depth features are values inside existing declarations rather than `canvas` keys. A box `kind` of **`camera`** is an invisible marker that aims and moves the view: it has no footprint on the canvas, is left out of hit-testing, marquee selection, alignment and stacking, is selected from its timeline bar or chip and adds no pixels to the export. And the `shadow` select can offer a **`depth`** option: a drop shadow derived from the box's `zField` value, falling off with depth, instead of an authored offset, blur and colour.
 
+<!--i:eti-sliders-->
 ## `vector` - a group of numbers as one control
 
 Use `vector` when a few numbers belong together: zoom and pan, an x and y offset, padding, margins. Separate `number` inputs would mean one Batch column each. A `vector` is one input, one control and one column: a row of compact number fields whose labels can be dragged to scrub the value or typed into. Declare the numbers under `fields`:
@@ -155,6 +158,7 @@ In links and Batch CSV, each field is its own parameter or column, named `<input
 
 `imageFraming` is a [canonical input](/info/tool-inputs.html#canonical-inputs-reuse-shared-ids): reuse that id and field set exactly for any zoom-and-pan control instead of inventing another name.
 
+<!--i:eti-crop-->
 ## Framing an image: one pattern, every tool
 
 Placing, cropping, straightening and correcting the perspective of an image is one control in every tool. Do not write an `object-position` string by hand, and do not invent a second set of ids for the same job: a different id or range loses the shared Batch column, and a hand-written recipe drifts from what the export paths do.
@@ -199,7 +203,9 @@ With no shell code and no special case in your tool:
 - **Every export** places the image from the same numbers: the SVG walker, the vector PDF path, the raster path and PPTX.
 :::
 
-One caveat before you offer `pitch` and `yaw`. A tilted plane needs a projective transform, which SVG and PDF do not have. Pan, zoom and roll stay fully vector, but a tilted image exports that element as a positioned raster. Leave the two fields out of a tool whose output must stay vector.
+::: warning `pitch` and `yaw` export the image as a raster
+A tilted plane needs a projective transform, which SVG and PDF do not have. Pan, zoom and roll stay fully vector, but a tilted image exports that element as a positioned raster. Leave the two fields out of a tool whose output must stay vector.
+:::
 
 **Tools that draw into a `<canvas>`** call `drawFramed(ctx, source, iw, ih, W, H, framing, fit)` from `community/_shared/framing.js` instead of the helper, and mark the rendered element with `data-framing="imageFraming"` by hand. The maths is the same, and a fixture table keeps the two implementations equal, so a canvas tool and a markup tool place a photo the same way.
 
@@ -211,6 +217,7 @@ One caveat before you offer `pitch` and `yaw`. A tilted plane needs a projective
 
 Whole marks are the exception: `logo-wall` and `snippet`'s title icon offer scale only, because a logo is not cropped.
 
+<!--i:eti-layers-->
 ## Clickable artwork and object menus
 
 The web shell can connect template artwork to the declared inputs. Add `data-canvas-input="title"` to focus one input, `data-canvas-input="nodes:2"` to open the third row of a `blocks` input, or `data-canvas-input="nodes:2:label"` to focus that row's label field. A tool driven by source text should point imported artwork at the visible source editor instead of a hidden row.

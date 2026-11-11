@@ -10,18 +10,18 @@ On beş yazı tipi; hepsi sabitlenmiş bir commit'teki Google Fonts'tan gelir ve
 
 | Yazı sistemi | Yazı tipi | Sürüm | İndirme |
 |---|---|---|---|
-| Arapça, Urduca ve Farsça harfler dahil | Noto Sans Arabic | 2.012 | 206 KB |
+| Arapça, Urduca ve Farsça harfler dahil | Noto Sans Arabic | 2.012 | 211 KB |
 | İbranice | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hintçe, Marathi, Nepalce) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengalce | Noto Sans Bengali | 3.011 | 136 KB |
-| Tayca | Noto Sans Thai | 2.002 | 61 KB |
-| Kiril | Noto Sans, Kiril harfleri | 2.015 | 112 KB, italik 129 KB |
-| Yunanca | Noto Sans, Yunan harfleri | 2.015 | 75 KB, italik 81 KB |
-| Latin, Vietnamca ve diğer aksanlı harfler dahil | Noto Sans, Latin harfleri | 2.015 | 309 KB, italik 342 KB |
-| Basitleştirilmiş Çince, GB 2312 karakterleri | Noto Sans SC | 2.004 | 1.9 MB |
-| Geleneksel Çince, Big5 karakterleri | Noto Sans TC | 2.004 | 3.6 MB |
-| Japonca, Shift_JIS karakterleri | Noto Sans JP | 2.004 | 2.1 MB |
-| Korece, her Hangul hecesi ve KS X 1001 karakterleri | Noto Sans KR | 2.004 | 2.4 MB |
+| Devanagari (Hintçe, Marathi, Nepalce) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengalce | Noto Sans Bengali | 3.011 | 139 KB |
+| Tayca | Noto Sans Thai | 2.002 | 62 KB |
+| Kiril | Noto Sans, Kiril harfleri | 2.015 | 115 KB, italik 132 KB |
+| Yunanca | Noto Sans, Yunan harfleri | 2.015 | 77 KB, italik 83 KB |
+| Latin, Vietnamca ve diğer aksanlı harfler dahil | Noto Sans, Latin harfleri | 2.015 | 316 KB, italik 350 KB |
+| Basitleştirilmiş Çince, GB 2312 karakterleri | Noto Sans SC | 2.004 | 2.0 MB |
+| Geleneksel Çince, Big5 karakterleri | Noto Sans TC | 2.004 | 3.8 MB |
+| Japonca, Shift_JIS karakterleri | Noto Sans JP | 2.004 | 2.2 MB |
+| Korece, her Hangul hecesi ve KS X 1001 karakterleri | Noto Sans KR | 2.004 | 2.5 MB |
 
 Her yazı tipinin ağırlık ekseni bütün olarak korunur; bu yüzden bir tasarımın istediği her ağırlık yine çizilir ve kalın bir Çince, Japonca veya Korece başlık kalın olur. Noto Sans yazı tiplerinin genişlik ekseni normalde sabitlenmiştir, bu da her dosyayı yarıya indirir; Çince, Japonca ve Korece yazı tiplerinin genişlik ekseni yoktur. Noto Sans yazı sistemine göre bölünmüştür; bu yüzden bir Kiril sözcük yalnızca Kiril harflerini indirir. Anahatlar, hiç değiştirilmemiş özgün anahatlardır.
 
@@ -53,7 +53,7 @@ Sayfada, bu dillerden ikisini içeren bir tuval her iki yazı tipini de listeler
 
 Bir belge, tasarım sisteminin hiçbir yazı tipinin çizemediği bir karakter içermedikçe hiçbir şey inmez. İngilizce bir belge veya tasarım sisteminin kapsadığı herhangi bir dildeki belge asla yedek yazı tipi indirmez. İngilizce bir satırdaki ★ veya ※ gibi bir simge asla Çince, Japonca veya Korece bir yazı tipi indirmez.
 
-Bir belge bir yazı tipine ilk kez ihtiyaç duyduğunda Lolly o tek yazı tipini, o tek yazı sistemi için indirir ve cihazında tutar. Japonca bir belge yalnızca Japonca yazı tipini, 2.1 MB, Geleneksel Çince bir belge de 3.6 MB'lık Geleneksel yazı tipini indirir. O andan sonra yazı sistemi çevrimdışı çizilir ve katalog temizlendiğinde yazı tipi kalır. Yazı tipi kataloğun kendi dosyalarının yanında tutulur, asla yüklediğin yazı tiplerinin arasında değil; bu yüzden markanın yazı tipi listesinde görünmez.
+Bir belge bir yazı tipine ilk kez ihtiyaç duyduğunda Lolly o tek yazı tipini, o tek yazı sistemi için indirir ve cihazında tutar. Japonca bir belge yalnızca Japonca yazı tipini, 2.2 MB, Geleneksel Çince bir belge de 3.8 MB'lık Geleneksel yazı tipini indirir. O andan sonra yazı sistemi çevrimdışı çizilir ve katalog temizlendiğinde yazı tipi kalır. Yazı tipi kataloğun kendi dosyalarının yanında tutulur, asla yüklediğin yazı tiplerinin arasında değil; bu yüzden markanın yazı tipi listesinde görünmez.
 
 Komut satırı, terminal uygulaması ve MCP sunucusu aynı dosyaları diskten okur; bu yüzden indirme gerekmez.
 

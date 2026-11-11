@@ -10,18 +10,18 @@ Vijftien lettertypen, allemaal van Google Fonts op een vastgepinde commit en all
 
 | Schrift | Lettertype | Versie | Download |
 |---|---|---|---|
-| Arabisch, inclusief Urdu- en Perzische letters | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabisch, inclusief Urdu- en Perzische letters | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebreeuws | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hindi, Marathi, Nepalees) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengaals | Noto Sans Bengali | 3.011 | 136 KB |
-| Thai | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrillisch | Noto Sans, Cyrillische letters | 2.015 | 112 KB, cursief 129 KB |
-| Grieks | Noto Sans, Griekse letters | 2.015 | 75 KB, cursief 81 KB |
-| Latijn, inclusief Vietnamees en andere letters met accenten | Noto Sans, Latijnse letters | 2.015 | 309 KB, cursief 342 KB |
-| Vereenvoudigd Chinees, de GB 2312-tekens | Noto Sans SC | 2.004 | 1,9 MB |
-| Traditioneel Chinees, de Big5-tekens | Noto Sans TC | 2.004 | 3,6 MB |
-| Japans, de Shift_JIS-tekens | Noto Sans JP | 2.004 | 2,1 MB |
-| Koreaans, elke Hangul-lettergreep en de KS X 1001-tekens | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (Hindi, Marathi, Nepalees) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengaals | Noto Sans Bengali | 3.011 | 139 KB |
+| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrillisch | Noto Sans, Cyrillische letters | 2.015 | 115 KB, cursief 132 KB |
+| Grieks | Noto Sans, Griekse letters | 2.015 | 77 KB, cursief 83 KB |
+| Latijn, inclusief Vietnamees en andere letters met accenten | Noto Sans, Latijnse letters | 2.015 | 316 KB, cursief 350 KB |
+| Vereenvoudigd Chinees, de GB 2312-tekens | Noto Sans SC | 2.004 | 2,0 MB |
+| Traditioneel Chinees, de Big5-tekens | Noto Sans TC | 2.004 | 3,8 MB |
+| Japans, de Shift_JIS-tekens | Noto Sans JP | 2.004 | 2,2 MB |
+| Koreaans, elke Hangul-lettergreep en de KS X 1001-tekens | Noto Sans KR | 2.004 | 2,5 MB |
 
 De gewichtsas van elk lettertype blijft heel, dus elk gewicht dat een ontwerp vraagt, wordt nog steeds getekend en een vette Chinese, Japanse of Koreaanse kop is vet. De breedteas van de Noto Sans-lettertypen is vast op normaal gezet, wat elk bestand halveert; de Chinese, Japanse en Koreaanse lettertypen hebben geen breedteas. Noto Sans is per schrift opgesplitst, dus een Cyrillisch woord downloadt alleen de Cyrillische letters. De contouren zijn de contouren van de bron, ongewijzigd.
 
@@ -53,7 +53,7 @@ Op de pagina noemt een canvas met twee van deze talen beide lettertypen en teken
 
 Er downloadt niets totdat een document een teken bevat dat geen enkel lettertype van zijn design system kan tekenen. Een document in het Engels, of in elke taal die zijn design system dekt, downloadt nooit een reservelettertype. Een symbool in een Engelse regel, zoals ★ of ※, downloadt nooit een Chinees, Japans of Koreaans lettertype.
 
-De eerste keer dat een document er een nodig heeft, downloadt Lolly dat ene lettertype, voor dat ene schrift, en bewaart het op je apparaat. Een Japans document downloadt alleen het Japanse lettertype, 2,1 MB, en een traditioneel Chinees document het traditionele lettertype van 3,6 MB. Vanaf dat moment tekent het schrift offline, en het lettertype blijft staan als de catalogus wordt opgeruimd. Het lettertype wordt bewaard bij de eigen bestanden van de catalogus, nooit bij de lettertypen die je zelf hebt geüpload, dus het verschijnt niet in de lettertypelijst van je merk.
+De eerste keer dat een document er een nodig heeft, downloadt Lolly dat ene lettertype, voor dat ene schrift, en bewaart het op je apparaat. Een Japans document downloadt alleen het Japanse lettertype, 2,2 MB, en een traditioneel Chinees document het traditionele lettertype van 3,8 MB. Vanaf dat moment tekent het schrift offline, en het lettertype blijft staan als de catalogus wordt opgeruimd. Het lettertype wordt bewaard bij de eigen bestanden van de catalogus, nooit bij de lettertypen die je zelf hebt geüpload, dus het verschijnt niet in de lettertypelijst van je merk.
 
 De opdrachtregel, de terminal-app en de MCP-server lezen dezelfde bestanden van schijf, dus ze hebben geen download nodig.
 

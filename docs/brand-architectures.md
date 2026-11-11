@@ -8,6 +8,7 @@ Lolly does not ask you which arrangement you have. It gives you a few building b
 From a branded house, in which the parent is the brand, to a house of brands, in which each brand stands alone. Choose a column to go to its section.
 :::
 
+<!--i:eti-help-->
 ## Which arrangement are you?
 
 Start from the line that sounds most like your work. Most organisations match more than one line: an agency works in white label for its clients and in co-branding at an event, so start from the job in front of you.
@@ -29,6 +30,7 @@ Start from the line that sounds most like your work. Most organisations match mo
 
 Not sure? Start with one design system. [A colourway, a logo identity, or a design system of its own](#a-colourway-a-logo-identity-or-a-design-system-of-its-own) helps you choose the smallest block, and a part can move to a design system of its own later.
 
+<!--i:eti-box-->
 ## The building blocks
 
 | Block | What it holds | Where |
@@ -45,6 +47,7 @@ Not sure? Start with one design system. [A colourway, a logo identity, or a desi
 | **Reusable tools** | A finished Lolly Design document turned into a tool with the inputs you choose. The `.lolly` file carries the resolved colours, fonts and images, so another person's active design system cannot restyle the fixed artwork. | In Lolly Design, **Share with rules**; see [Share a design with rules](/info/create-a-tool.html) |
 | **Theme groups of other kinds** | A design system can declare groups such as `campaign`, `brand` or `expression`. Lolly keeps them and resolves them as plain theme choices today. | The token file; chosen from a list in a tool's **Design system** section. See [What a theme group means](/info/design-tokens.html#what-a-theme-group-means) |
 
+<!--i:eti-table-->
 ## Arrangements at a glance
 
 A common way to group arrangements is by how much of the parent brand the audience sees: the parent **unifies** everything, **subsets** into tailored businesses, **endorses** a brand of its own, or **detaches** from the parent altogether. Three more needs cut across the groups: co-branding, white label, and seasons.
@@ -63,6 +66,7 @@ A common way to group arrangements is by how much of the parent brand the audien
 | Across | White label | One asset re-skinned for each client | A design system per client, switched per job; a reusable tool per client | Keeping clients apart automatically |
 | Across | Seasons and campaigns | A seasonal skin over the core, for a set time | A colourway for a season that changes only the lead colour; a theme group of kind `campaign` with a date window for more, chosen in the tool; a [brand page](/info/brand-page.html) that shows each colourway | Applying the window to new work; scheduling |
 
+<!--i:eti-stamp-->
 ## Unify: one brand, many parts
 
 Every part of the business feeds one brand. This suits an organisation that wants the most awareness from every piece it makes, and it gives new products the parent's reputation from the first day.
@@ -129,6 +133,7 @@ Pieces that show the whole family at once draw on every lead, canonical first: L
 
 **Not yet:** no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. **Until then:** write each row's colourway into the CSV yourself, in turn or by speaker or product. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Rules for a series](/info/colourways.html#rules-for-a-series).
 
+<!--i:eti-building-->
 ## Subset: a parent with tailored businesses
 
 The parent's name leads, and each business tailors its material to its own audience. This suits a group that works in several industries at once. Universities with faculties, federations of local charities and membership bodies with branches often work the same way.
@@ -150,6 +155,7 @@ Driven brands in the wild: Tata, Virgin and Mitsubishi.
 
 **Not yet:** a copy does not stay linked to the parent, so a change to the parent does not reach the businesses by itself. Tailoring by audience beyond colour is not built. **Until then:** when the parent changes, send each business the new **Tokens (.json)** file. In **Tokens → Inspect every token (advanced) → Review an upstream update**, the business gives the earlier file and the new one, reviews what moves and applies. A value the business changed itself comes up as a conflict, with **Keep local** or **Use incoming** to choose, and nothing changes until the business applies ([Review a change](/info/token-workflows.html#review-a-change)). `lolly system sync` does the same in a terminal.
 
+<!--i:eti-award-->
 ## Endorse: the parent stands behind a brand of its own
 
 ### Appended
@@ -191,6 +197,7 @@ Apparent brands in the wild: Microsoft and Sony.
 
 **Not yet:** copies drift apart. Nothing keeps the shared type, grid and motion in step across the brands as the shared start changes. **Until then:** after each change to the shared start, each brand runs **Review an upstream update** with the earlier file and the new one, as in [Driven](#driven).
 
+<!--i:eti-unlink-->
 ## Detach: brands that stand alone
 
 Each brand defines itself, and the parent stays out of sight. This suits consumer markets, where shoppers choose the brand on the shelf. It rarely suits selling to businesses, where buyers want to know which company stands behind a product.
@@ -228,6 +235,7 @@ Discrete brands in the wild: Unilever and Procter & Gamble.
 
 **Not yet:** an artefact does not own its design system, so two brands cannot be open side by side, and a workspace cannot supply a different design system to different groups of people. **Until then:** finish one brand's piece, then switch. In a terminal, each command takes one design system: `lolly system use <id>` switches the terminal, and `--file=<tokens.json>` holds a design system for one Lolly Design run ([Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses)).
 
+<!--i:eti-link-->
 ## Across the groups
 
 ### Co-branding
@@ -277,6 +285,7 @@ A holiday skin, a launch, a yearly conference theme: an overlay on the core for 
 
 **Not yet:** nothing applies the window to new work or schedules a campaign. **Until then:** when a seasonal colourway starts, the people working on the season take the colourway as their own in **Settings → Appearance**, so their new work starts in the season's colours, and choose their usual colourway again when the season ends.
 
+<!--i:eti-tag-->
 ## Product architecture
 
 Product architecture is how an organisation builds its product names. Under one masterbrand, a product's name has up to four parts, always in the same order. Each part narrows the one before.
@@ -302,6 +311,7 @@ When a product line changes owner, the company part of its name usually changes.
 
 **In Lolly:** keep the company logo in the design system and write the rest of the name as text in the template, so every piece sets the name in the same type. Add a finished lockup of logo and name as a **custom mark** when a piece needs the name as artwork. A product with an invented name and a mark of its own can have a **logo identity** in the parent's design system. Tools draw the main logo set, so place a product's own logo by hand, as in [Expanded](#expanded). When the product line may move to another owner, give it a **design system of its own**, which travels as one brand pack file ([Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices)).
 
+<!--i:eti-palette-->
 ## A colourway, a logo identity, or a design system of its own
 
 Choose the smallest block that holds the difference.
@@ -312,10 +322,12 @@ Choose the smallest block that holds the difference.
 
 A part can move down this list as it grows. Moving down means copying material into a new design system; Lolly does not move it for you.
 
+<!--i:eti-info-->
 ## About the logos
 
 The logos on this page are trademarks of their owners. They appear only to show how real organisations arrange their brands, and none of the owners is connected with Lolly. A product name beside a mark is set in this page's type rather than the owner's. The drawings come from [Simple Icons](https://simpleicons.org) and [gilbarbara/logos](https://github.com/gilbarbara/logos), both CC0, and from public-domain files on [Wikimedia Commons](https://commons.wikimedia.org). Each figure's source lists the file behind every logo.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - **[Working with partners](/info/partners.html)**: sharing your brand with a partner, working in a brand you were given and sponsor walls.

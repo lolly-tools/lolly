@@ -4,6 +4,16 @@ You have Lolly open and want to make something, keep it and send it on. This pag
 
 Everything here runs on your device, with no account, and keeps working offline once the tools and assets you need are downloaded. The app needs a browser or app with WebGPU to start; [Supported environments](/info/supported-environments.html) lists the tested ones.
 
+**The loop**, in four steps:
+
+::: steps
+- <!--i:eti-home--> **[Open a tool](#find-your-way-around)** Click a card on the home screen. Controls sit beside a live preview.
+- <!--i:eti-sliders--> **[Change the inputs](#change-what-the-tool-lets-you-change)** Only the inputs the author left open. Click the design to find its control.
+- <!--i:eti-folder-plus--> **[Save your work](#saving-continuing)** **Save** keeps it in My library, and Projects brings it back.
+- <!--i:eti-link--> **[Share the design](#sharing-your-work)** A link that carries every input, or one `.lolly` file.
+:::
+
+<!--i:eti-home-->
 ## Find your way around
 
 ::: figure using-app-map
@@ -12,9 +22,9 @@ The home screen: four tabs along the top and the bar at the foot. A tool, once o
 
 Four tabs run along the top of the home screen: **Tools**, **Utilities**, **Assets** and **Projects**. Tools are what you make with, Utilities are workbenches for jobs such as converting, checking or cleaning up a file, Assets is your library and Projects holds what you saved.
 
-The bar at the foot holds **Open**, **Settings**, a search field, a **Verify** shortcut to Lolly Verify and **What?**. It shows on Tools, Utilities, Assets, Projects, Settings and the guides you read in the app, and steps aside once a tool is open. [Lolly Search](/info/search.html) reaches your tools, saved work, assets and settings from that field. [Ask Lolly](/info/ask.html) answers a typed question with the matching section of these guides.
+The bar at the foot holds **Open**, **Settings**, a search field, a **Verify** shortcut to Lolly Verify and **Docs**, which opens these guides. It shows on Tools, Utilities, Assets, Projects, Settings and the guides you read in the app, and steps aside once a tool is open. [Lolly Search](/info/search.html) reaches your tools, saved work, assets and settings from that field. [Ask Lolly](/info/ask.html) answers a typed question with the matching section of these guides.
 
-Click a card to start something new in that tool. Saved work reopens from **Projects** instead.
+Click a card to start something new in that tool. Saved work reopens from **Projects** instead. A first visit opens on a greeting band at the top of the gallery, with one action to start: **Start making** under Lolly Demo, or **Make it yours** to set up a design system of your own.
 
 ![A gallery card with example navigation and a New action](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
@@ -24,6 +34,7 @@ Each tool is a split view: **controls** on one side and a live **preview** on th
 
 **Lolly Design** is the exception. It opens as a free canvas of boxes you drag, resize and type into, with its own top bar, timeline and deck controls. [Lolly Design: the free canvas](/info/design.html) is its guide.
 
+<!--i:eti-sliders-->
 ## Change what the tool lets you change
 
 A tool shows only the inputs meant to vary. Its author has already fixed the colours, layout, type and logic, so whatever you make keeps to their rules. Inputs include text, sliders, colour pickers, dropdowns, dates, image pickers and repeating row groups, and some sit in folding sections.
@@ -36,7 +47,7 @@ A tool shows only the inputs meant to vary. Its author has already fixed the col
 
 **Design system choices.** When your design system offers more than one colourway, a light and a dark look or another theme choice, a **Design system** section under the controls holds them. A choice appears only when it changes this tool, so a file utility shows no section at all. Each colourway is a dot in its own colours, light and dark are two buttons and any other choice is a list.
 
-The choice belongs to this piece. It travels in the link and the saved session, every colour linked to the design system follows it and the app's own colours stay as they are. Lolly Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway dots. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work.
+The choice belongs to this piece. It travels in the link and the saved session, every colour linked to the design system follows it and the app's own colours stay as they are. Lolly Design shows the same choices in the Inspector's **Canvas** tab. A tool whose colours are its content can stay on the canonical colourway, and then offers no colourway dots. [Lolly Demo in use](/info/lolly-demo-in-use.html#colourways-on-real-work) shows colourways on real work. To take one colourway as your own, for the app and for each new piece, choose it in **Settings → Appearance** ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)).
 
 ### Zoom and pan the preview
 
@@ -68,6 +79,7 @@ In a live [collaboration](/info/collaborate.html) your history stays yours: a ch
 
 The **Filter** tool's effects (Halftone, Scanline, Posterize, Voronoi, Duotone, Stretch, Misprint, Dither, ASCII art and Glitch) show a **Go live** button where a camera is available. Turn it on and the effect follows your webcam frame by frame, and a motion export records the result as a GIF, WebM or MP4. Frames are processed on your device, and the camera is released the moment you stop or leave the tool. Any image picker also has **Take a photo** for a single frame.
 
+<!--i:eti-folder-plus-->
 ## Saving & continuing
 
 To keep your work, press **Save**, the tick beside **Export** on the render pill. New work goes to **My library**, work you saved before is updated where it is and nothing downloads. The export panel has the same **Save** button.
@@ -85,7 +97,11 @@ To choose where it goes, press **Save as**, beside **Download** in the export pa
 
 Items are named after the file name you typed in the export panel, or else after their tool, such as **QR Code**. A file you get with **Download** is a finished copy; to change it later, open the saved item in Projects.
 
-Personal saves stay on this device, in the browser or app you saved from, unless you turn on [Sync](/info/sync.html). If something is not where you expect, [Find and recover your work](/info/find-your-work.html) covers every case, from a closed tab to cleared browser data.
+::: note Saves stay on this device
+Personal saves stay on this device, in the browser or app you saved from, unless you turn on [Sync](/info/sync.html).
+:::
+
+If something is not where you expect, [Find and recover your work](/info/find-your-work.html) covers every case, from a closed tab to cleared browser data.
 
 ::: details Team projects with Lolly Work (optional)
 If your [organisation uses Lolly Work](/info/organisation.html), sign in to its instance and open **Projects → Team projects** for sessions shared with you. The organisation sets access and retention, and its Lolly Work service stores those sessions. A shared session joins its live collab as it opens when your organisation allows live editing; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) explains the steps.
@@ -93,9 +109,10 @@ If your [organisation uses Lolly Work](/info/organisation.html), sign in to its 
 Your personal library stays separate. Signing in on another device gives you team work, while personal saves still need Sync or a backup to move across.
 :::
 
+<!--i:eti-link-->
 ## Sharing your work
 
-A design goes out as a link or as a file. **Share** in the export controls opens a dialog that offers both, and **Share link** on a saved session in Projects opens the same dialog for that session.
+A design goes out as a link or as a file. **Share** in the export controls opens a dialog that offers both, and **Share link** on a saved session in Projects opens the same dialog for that session. After you send a file to Google Drive, Nextcloud, an S3 bucket, Dropbox or OneDrive, the dialog can also make a link through that service ([Export a file](/info/exporting.html#how-export-works)).
 
 ::: cols
 ## A link
@@ -148,7 +165,11 @@ Three things are yours to decide before a file goes:
 
 **Opening one.** In the desktop and mobile apps, double-click or tap a `.lolly`, choose **Open with Lolly** or send it to Lolly from the share sheet. In the web app, press **Open** or drop the file on Lolly. Every route reads the file's manifest first and shows its size, contents and what will happen, before anything is written.
 
-If the file carries a tool you don't have, **Trust this tool?** shows the tool and its author, and says that opening it runs the tool's own code on your device. **Trust & install** goes ahead. Decline and the work is still saved to Projects, waiting for the day you add the tool. A tool whose code ships as a module cannot be installed this way yet, and is turned away the same way.
+::: warning Installing a tool runs its code
+If the file carries a tool you don't have, **Trust this tool?** shows the tool and its author, and says that opening it runs the tool's own code on your device. **Trust & install** goes ahead.
+:::
+
+Decline and the work is still saved to Projects, waiting for the day you add the tool. A tool whose code ships as a module cannot be installed this way yet, and is turned away the same way.
 
 ::: details What a .lolly holds, and how opening one works
 `.lolly` is Lolly's bundle extension, and the `format` in its `manifest.json` says what is inside:
@@ -171,6 +192,7 @@ After you confirm, Lolly inflates and verifies the bundle once. Assets go to you
 
 A link and a file both hand over a snapshot. For live editing, [Working together](/info/collaborate.html) covers private collabs between two devices and optional work collabs through Lolly Work.
 
+<!--i:eti-images-->
 ## Assets - your library
 
 **Lolly Assets** (`#/a`) gathers everything your tools can draw on: brand logos, images, audio and motion, grouped by kind, together with your own files. Your uploads are stored on your device. An organisation using Lolly Work can also supply a shared catalogue under its own access rules; see [Use Lolly at your organisation](/info/organisation.html).
@@ -194,12 +216,15 @@ Each colour is a card like any other asset. Click one to open its details, selec
 
 ![The Swatches panel - the five palette download buttons across the top, then every brand colour as a chip that opens its details](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
 
+::: details Select several colours, or open one colour's details
 Select colours with the dot on each card: Shift-click a second dot for everything between, drag a box through the gaps or press Cmd/Ctrl+A with a card focused. The bar offers **Download as…** in the same six formats, **Copy hex** and **Favourite**. Before you pick a format, the menu lists any colour no format can hold (Transparent has no colour at all), which formats save a wide colour as its sRGB fallback (SCSS and GIMP) and which carry the CMYK and spot values (JSON and .ase). Right-click a card for the same actions on one colour.
 
 A colour's details fill the preview with the colour and fold out **Linked values** (its CMYK build or spot ink, any value authored for a particular space or press and its design token), **Every notation** (hex, OKLCH, Display-P3 and the rest, each with a copy button), **Plotted on a colour space**, **Tones** and **Readability**. The arrow keys step through the palette, **Copy link** shares the colour itself and **Open in Colour Lab** takes it further.
+:::
 
 The **Fonts** panel lists your brand faces with a **download** for each, to install locally or hand to a print shop.
 
+<!--i:eti-grid-->
 ## Make the grid yours
 
 - <!--i:star--> **Favourite what you use.** Right-click a card and choose **Add to favourites**, and it gets a big tile in a strip above the grid. [Your favourites](/info/favourites.html) covers the strip.
@@ -258,6 +283,7 @@ storage-seeding hook.
 
 **View sessions** appears only once something is selected. Right-click a single unselected card instead and it offers **N saved sessions**, a list of that tool's saved sessions where a delete moves the session to the Trash.
 
+<!--i:eti-layers-->
 ## On a phone
 
 On a narrow screen the layout becomes one column:
@@ -267,6 +293,7 @@ On a narrow screen the layout becomes one column:
 
 ![A tool on a phone-width screen - controls as a sheet up top, the generated palette filling the preview below and the render pill floating bottom-centre](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3Df97316%26harmony%3Dadjacent-3%26steps%3D9&width=430&height=900&dpi=192&waitMs=2200&walker=1&format=svg&dark=1&filename=vt-phone-palette)
 
+<!--i:eti-copy-->
 ## Foldables and iPhone Duo
 
 On a foldable, an iPhone Duo or a near-square touch screen, Lolly lays a tool out in two panes, like the pages of a book:
@@ -280,26 +307,29 @@ On a foldable, an iPhone Duo or a near-square touch screen, Lolly lays a tool ou
 
 The outer screen of a foldable keeps the phone layout above, and so does a Lolly window in one half of a split screen.
 
+<!--i:eti-smile-->
 ## Settings, sound and comfort
 
 **Settings**, at the foot of the home screen, holds your details, your design systems, accessibility, storage and offline downloads. [Lolly Settings](/info/dashboard.html) maps every tab.
 
 - **Your details and headshot** fill in any tool built to use them, such as an email signature or a badge. [Profiles](/info/profile.html) covers them.
 - **Accessibility** has four comfort switches: **Reduce motion**, **Hide colourful previews**, **High contrast** and **Large text**. They change the app around your work, never a tool canvas or an export. Beside them, **Dominant hand** chooses which side the controls take in two panes.
-- **Sound** plays gentle assistive sounds for what you do, and **Neurospicy Mode** plays a calm focus track. Both are off until you turn them on, in **Settings → Accessibility** or the profile menu. A slider under the Sound switch moves the sounds from soft, round drops (Bouba) to dry ticks and scratches (Kiki), with Lolly's chimes in the middle. Neurospicy's tracks include Lolly's generated stations, **Lolly Sings** and three **Lofi stations**, which make endless music as they play, with controls for drums and texture (and mood, on Lofi) and a link to share the tune you are hearing.
+- **Sound** plays gentle assistive sounds for what you do, and **Neurospicy Mode** plays a calm focus track. Both are off until you turn them on, in **Settings → Accessibility** or the profile menu. The **Sound shape** slider under the Sound switch moves the sounds from soft, round drops (Bouba) to dry ticks and scratches (Kiki), with Lolly's chimes in the middle. Neurospicy's tracks include Lolly's generated stations: **Lolly Sings** and its genres, and three **Lofi stations**. They make endless music as they play, with controls for drums and texture (and mood, on Lofi), a link to share the tune you are hearing and a button that saves the tune to your assets to play again later. [Generated music](/info/generated-music.html) explains how a tune is made, and **Music generator** under Utilities (`#/music`) lets you shape one.
 - **Available offline** downloads the rest of the app, your tools, the catalogue and the guides before you lose the connection. Lolly is a web app you can install: use your browser's install button, or *Add to Home Screen* on a phone, for a full-screen app that updates itself when you are back online.
+- **Performance UI**, under **Settings → Feature flags**, gives the app a simpler look that is cheaper to draw, while tool canvases and exports stay the same. On a device that struggles, Lolly turns the look on by itself and says why, with **Undo** and **Keep** ([Performance UI](/info/configuration.html#curating-what-people-see)).
 - **Storage** shows what Lolly keeps on this device. [If you clear your browser data](/info/find-your-work.html#if-you-clear-your-browser-data) explains what clearing removes, and the [Privacy Policy](/info/privacy.html) lists everything the app fetches or sends.
 
 ::: note If a view fails to load after an update
 A blank panel or a "failed to fetch" message right after an update usually clears with one reload. Your saved work, sessions and design systems are untouched, because they are stored on your device. Only a picture you added and never saved may need adding again.
 :::
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - **[Lolly Design: the free canvas](/info/design.html)**: the canvas, shapes, the timeline and presenting a deck.
 - **[Batch and Lolly Multi-edit](/info/batch.html)**: many versions of one design, or several saved designs edited together.
 - **[Export a file](/info/exporting.html)**: choosing a format, size, print units, transparency and video.
-- **[Import a design](/info/design-import.html)**: bring a Figma, Penpot, Illustrator or InDesign file into Lolly Design and keep editing.
+- **[Import a design](/info/design-import.html)**: bring a Figma, Penpot, Illustrator, InDesign, Affinity or DXF file into Lolly Design and keep editing.
 - **[Templates](/info/templates.html)**: saved starting points for a tool.
 - **[Wide Colour and HDR](/info/hdr-editing.html)**: keep original image precision in Lolly Design and Lolly Darkroom.
 - **[Find and recover your work](/info/find-your-work.html)**: where everything is, and how to move it to another device.

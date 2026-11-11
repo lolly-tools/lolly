@@ -10,18 +10,18 @@ Quindici font, tutti da Google Fonts a un commit fissato e tutti con licenza SIL
 
 | Scrittura | Font | Versione | Download |
 |---|---|---|---|
-| Arabo, comprese le lettere urdu e persiane | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabo, comprese le lettere urdu e persiane | Noto Sans Arabic | 2.012 | 211 KB |
 | Ebraico | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (hindi, marathi, nepalese) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengalese | Noto Sans Bengali | 3.011 | 136 KB |
-| Thailandese | Noto Sans Thai | 2.002 | 61 KB |
-| Cirillico | Noto Sans, lettere cirilliche | 2.015 | 112 KB, corsivo 129 KB |
-| Greco | Noto Sans, lettere greche | 2.015 | 75 KB, corsivo 81 KB |
-| Latino, compreso il vietnamita e altre lettere accentate | Noto Sans, lettere latine | 2.015 | 309 KB, corsivo 342 KB |
-| Cinese semplificato, i caratteri GB 2312 | Noto Sans SC | 2.004 | 1,9 MB |
-| Cinese tradizionale, i caratteri Big5 | Noto Sans TC | 2.004 | 3,6 MB |
-| Giapponese, i caratteri Shift_JIS | Noto Sans JP | 2.004 | 2,1 MB |
-| Coreano, ogni sillaba hangul e i caratteri KS X 1001 | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (hindi, marathi, nepalese) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengalese | Noto Sans Bengali | 3.011 | 139 KB |
+| Thailandese | Noto Sans Thai | 2.002 | 62 KB |
+| Cirillico | Noto Sans, lettere cirilliche | 2.015 | 115 KB, corsivo 132 KB |
+| Greco | Noto Sans, lettere greche | 2.015 | 77 KB, corsivo 83 KB |
+| Latino, compreso il vietnamita e altre lettere accentate | Noto Sans, lettere latine | 2.015 | 316 KB, corsivo 350 KB |
+| Cinese semplificato, i caratteri GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
+| Cinese tradizionale, i caratteri Big5 | Noto Sans TC | 2.004 | 3,8 MB |
+| Giapponese, i caratteri Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
+| Coreano, ogni sillaba hangul e i caratteri KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
 
 L'asse del peso di ogni font è mantenuto intero, quindi ogni peso richiesto da un design si disegna ancora e un titolo cinese, giapponese o coreano in grassetto resta in grassetto. L'asse della larghezza dei font Noto Sans è fissato su normale, il che dimezza ogni file; i font cinese, giapponese e coreano non hanno un asse della larghezza. Noto Sans è diviso per scrittura, quindi una parola cirillica scarica solo le lettere cirilliche. I contorni sono quelli originali, invariati.
 
@@ -53,7 +53,7 @@ Sulla pagina, una tela che contiene due di queste lingue elenca entrambi i font,
 
 Non si scarica nulla finché un documento non contiene un carattere che nessun font del suo design system sa disegnare. Un documento in inglese, o in qualsiasi lingua che il suo design system copre, non scarica mai un font di riserva. Un simbolo in una riga inglese, come ★ o ※, non scarica mai un font cinese, giapponese o coreano.
 
-La prima volta che un documento ne ha bisogno, Lolly scarica quell'unico font, per quella singola scrittura, e lo conserva sul tuo dispositivo. Un documento giapponese scarica solo il font giapponese, 2,1 MB, e uno in cinese tradizionale il font tradizionale da 3,6 MB. Da quel momento la scrittura si disegna offline, e il font resta anche quando il catalogo viene ripulito. Il font è conservato insieme ai file del catalogo, mai tra i font che hai caricato, quindi non compare nell'elenco dei font del tuo brand.
+La prima volta che un documento ne ha bisogno, Lolly scarica quell'unico font, per quella singola scrittura, e lo conserva sul tuo dispositivo. Un documento giapponese scarica solo il font giapponese, 2,2 MB, e uno in cinese tradizionale il font tradizionale da 3,8 MB. Da quel momento la scrittura si disegna offline, e il font resta anche quando il catalogo viene ripulito. Il font è conservato insieme ai file del catalogo, mai tra i font che hai caricato, quindi non compare nell'elenco dei font del tuo brand.
 
 La riga di comando, l'app da terminale e il server MCP leggono gli stessi file dal disco, quindi non hanno bisogno di scaricare nulla.
 

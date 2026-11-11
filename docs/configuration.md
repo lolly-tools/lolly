@@ -2,6 +2,7 @@
 
 This page is for whoever decides what a Lolly instance is: which brand it wears, which tools it offers, what each tool may do and how people's own switches behave. All of that lives in files you can read and review, not in settings buried in an app. Each section below gives the file and the command that acts on that file.
 
+<!--i:eti-layers-->
 ## Profiles: brand + tool set
 
 A **profile** binds a set of tool packs to a brand catalog. `profiles.json` at the repository root declares them:
@@ -52,6 +53,7 @@ A profile's optional `assets` list mounts **shared asset roots**, which is how o
 One copy is written, because a browser still fetches `/tools/<id>/…` and `/catalog/…` over HTTP. `materializeInto(dest)` writes a real `tools/` and `catalog/` tree, each shared root to `catalog/packs/<name>/` and the merged index to `catalog/assets/index.json`. That tree is what a `dist/` build, an RPM payload or a container image carries. Nothing is written into your working tree, so a tool edit is an edit in its pack, committed there.
 :::
 
+<!--i:eti-package-->
 ## Brand packs
 
 A brand pack is a directory (`brands/<name>/`) with a `catalog/` and, optionally, its own `tools/`. A pack can live in this repository, as `brands/lolly-start/` and `brands/lolly-demo/` do, or be mounted from its own repository as a git submodule. That is how the one private pack, `brands/suse`, stays out of public clones; an instance without it falls back to `lolly-start`. [Get the source](/info/contributing-setup.html#the-private-suse-pack) covers checking one out, and [Brand architectures](/info/brand-architectures.html) covers how parent brands, sub-brands and companions relate.
@@ -76,6 +78,7 @@ A brand's tokens asset can be marked read-only with `brandLock` on its index ent
 
 The lock protects that design system's material. People can still create, select and edit their own local systems or make an editable copy of a locked one. `isLocked()` follows the selected system, and `installUserTokens` refuses edits to locked material while allowing creation and sync writes to a separate record. Tools and exports use the selected design system.
 
+<!--i:eti-palette-->
 ## Supplied and local design systems
 
 **Settings → Design systems** labels the deployment's default system **Managed by this instance** when its tokens asset sets `brandLock` (a desktop app with no instance says **Managed by this app**). People can use a managed system but cannot change its colours, type or logos. Without the lock, the system reads **Came with this app**, or **From this instance** in an app connected to the deployment.
@@ -123,7 +126,11 @@ On Lolly Work, an authenticated administrator can follow **Manage instance desig
 
 ### Removing a catalogue design system
 
-A system imported into the browser is a separate local copy. Removing that copy changes this browser or device only, and cannot delete files on a host. If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalogue assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
+::: note Removing a local copy changes this device only
+A system imported into the browser is a separate local copy. Removing that copy changes this browser or device only, and cannot delete files on a host.
+:::
+
+ If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalogue assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
 
 To change or remove a design system the server supplies:
 
@@ -136,6 +143,7 @@ To change or remove a design system the server supplies:
 
 Assets that saved sessions reference can stay cached for those sessions. An instance's administrator controls the deployment's files; the browser's **Remove** action only manages local copies.
 
+<!--i:eti-cpu-->
 ## Capability gating (per tool)
 
 Each `tool.json` declares the host capabilities it needs (`schemas/tool.schema.json`). The valid flags are:
@@ -152,6 +160,7 @@ Lolly URL Screenshot declares `capture`, which a plain browser cannot provide al
 
 ![The Lolly URL Screenshot tile in the Utilities gallery, carrying an Add-on badge because its capture capability is unmet in a plain browser](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2000&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22url-shot%22%5D&tolerance=0.03&dark=1&filename=fq-capability-addon-badge)
 
+<!--i:eti-sliders-->
 ## Curating what people see
 
 Two mechanisms narrow the catalog without forking the catalog itself.
@@ -182,6 +191,7 @@ Turning a connector off withdraws that destination everywhere it is offered. Nea
 
 **Performance UI** gives the app a simpler look that is cheaper to draw: no background blur, shadows or blend modes in the chrome, no decorative motion, and previews that play only when asked. Tool canvases and exports are identical either way. Lolly can also switch the look on by itself, in two ways.
 
+::: details When Lolly switches the simpler look on by itself, and back
 For a device that struggles to draw the interface, Lolly switches once and for good:
 
 - **At start-up**, when the graphics check finds no hardware acceleration (a software renderer such as SwiftShader, llvmpipe or Microsoft Basic Render Driver). The renderer's name is read on the device and never stored.
@@ -198,11 +208,13 @@ The look switches back after five minutes of calm without a break: pressure fair
 A notice says what happened, with **Undo** and **Keep**. For the temporary kind it says so: "Lolly switched to the simpler, faster look while this device is busy. It switches back when things calm down." **Keep** makes a temporary switch last; letting the notice go by leaves the switch temporary. **Undo** turns the look off and stops that kind of automatic switching on that device, each kind separately: an Undo on a temporary switch stops temporary switching, and an Undo on the other kind stops switching for a slow device. While a first-run prompt is on screen, such as "Add your details to what you make?" or the welcome, the notice waits, and it appears once that prompt is answered or dismissed.
 
 **Settings → Feature flags** shows under the switch whether the look is on for good or for now and why, and which kind of automatic switching an Undo has turned off, with **Allow again**. Allow again clears every Undo but leaves the look as it is: Lolly checks again from the next time it starts. Lolly never switches the look at all once someone has set the switch by hand. The decisions are a preference on that device only (`lolly:perfUiAuto` in local storage), so they do not travel with the profile to another device. They hold what was decided, the reason and when, and never a pressure reading or a battery level.
+:::
 
 An optional organisation control plane, [Lolly Work](/info/work-governance.html), can govern the switches marked Yes. It sets the default used when a person has not chosen, and it can hide the switch entirely; a hidden switch's governed default wins over a stored personal value.
 
 ![Every feature flag as its own switch, with the gallery categories on and Strip metadata off](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
 
+<!--i:eti-watermark-->
 ## Maturity & watermarking
 
 A tool's `status` controls how much trust it signals, enforced by the engine rather than by convention:
@@ -215,14 +227,20 @@ Promote a tool by changing one field in its manifest. Every surface shows the st
 
 ![A gallery tile carrying the Experimental status badge that its manifest sets, the same field that turns the export watermark on by default](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2400&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22voice-recorder%22%5D&tolerance=0.03&dark=1&filename=fq-experimental-badge)
 
-The manifest is the source of truth, and each brand's `catalog/tools/index.json` is generated from the manifests. `validate:catalog` checks the schemas, asset checksums, file existence, `bindToProfile` fields, palette references and `replacedBy` chains, and fails CI when the generated index drifts from the manifests. After any `tool.json` or asset edit, rebuild and validate with the commands in [Publish and localize a tool](/info/tool-publishing.html). Tool and asset ids are permanent contracts: version in the manifest, never rename the path.
+The manifest is the source of truth, and each brand's `catalog/tools/index.json` is generated from the manifests. `validate:catalog` checks the schemas, asset checksums, file existence, `bindToProfile` fields, palette references and `replacedBy` chains, and fails CI when the generated index drifts from the manifests. After any `tool.json` or asset edit, rebuild and validate with the commands in [Publish and localize a tool](/info/tool-publishing.html).
 
+::: warning Ids are permanent
+Tool and asset ids are permanent contracts: version in the manifest, never rename the path.
+:::
+
+<!--i:eti-building-->
 ## Organisation policy with Lolly Work
 
 Content profiles and brand packs configure what a build ships. Optional **Lolly Work** adds policy for the running organisation: OIDC identity and SCIM provisioning, group permissions, managed profile fields, tool-input restrictions, selected feature flags and export settings. It also configures shared catalogs, projects, approvals, delivery and usage reporting. Personal preferences do not override controls labelled **Managed by your organisation**.
 
 Keep that service's configuration in its own deployment. See its [configuration](/info/work-configuration.html) and [governance](/info/work-governance.html) guides, and [Choose a deployment](/info/deployment.html#organisation-services-with-lolly-work) for how it sits beside this app. Static builds keep using the settings on this page without an organisation service.
 
+<!--i:eti-code-->
 ## The services' own config
 
 - **CA service** reads `services/ca/.env` for provider credentials and certificate policy (`CA_CERT_DAYS` default 30, `CA_CERT_MAX_DAYS` default 365 and the allowed day set). Policy stays on the server; see [Content Credentials identity](/info/content-credentials-identity.html).

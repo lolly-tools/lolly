@@ -2,7 +2,7 @@
   "id": "spatial-scatter",
   "name": "Spatial scatter",
   "category": "3-D",
-  "description": "Map four numeric columns to x, y, z and point size in a real scene.",
+  "description": "Map four numeric columns to x, y, z and point size on a floor grid, coloured by height from the colourway's ramp.",
   "values": {
     "renderMode": "scene",
     "chartType": "scatter",
@@ -11,8 +11,10 @@
     "data": "Reach,Engagement,Retention,Audience\n18,42,31,14\n27,55,46,22\n34,38,62,18\n45,71,58,31\n52,64,79,38\n63,82,68,44\n71,73,91,52\n84,89,76,61",
     "heading": "Campaign opportunity space",
     "motionPreset": "orbit",
-    "cameraProjection": "perspective",
-    "showLegend": false
+    "showLegend": false,
+    "colorBy": "value",
+    "sceneStage": "floor",
+    "sceneMaterial": "satin"
   },
   "presets": [
     {

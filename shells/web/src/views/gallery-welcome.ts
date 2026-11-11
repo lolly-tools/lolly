@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /** First-use guidance can resolve before gallery cards and previews load. */
 import { instanceFetch, instancePath } from '../lib/instance.ts';
-import { activeDesignSystemSource } from '../lib/design-system/active.ts';
+import { activeDesignSystemRecord } from '../lib/design-system/active.ts';
 import { decideWelcome } from '../lib/welcome-gate.ts';
 import { viewingAs } from '../org/view-as.ts';
 import { isWorkspaceTemplateRef, listWorkspaceTemplates, workspaceCompany, workspaceCompanySettled, workspaceGoverned, workspaceTemplateOf } from '../lib/workspace-templates.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 // The welcome is first content on a new public visit; fetch its code and CSS with boot.
 import * as welcome from '../components/welcome-dialog.ts';
+import { showWelcomeHero, type WelcomeAudience, type WelcomePrivacy } from '../components/welcome-hero.ts';
+import { ackPrivacyNotice, connectedWorkspace, WORKSPACE_PRIVACY_HREF, workspacePrivacyLine } from './privacy-notice.ts';
+import { docsAppHref, t } from '../i18n.ts';
 import type { GalleryHost } from './gallery.ts';
 import type { PickerHost } from './picker.ts';
 
@@ -35,6 +38,23 @@ export function hasCompany(): boolean {
 
 /** Whether this gallery visit is due the welcome. Exported for tests. */
 export async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => boolean): Promise<boolean> {
+  return (await galleryWelcomeAudience(host, isCurrent)) !== null;
+}
+
+/** The placeholder brand an unbranded install (Lolly Start) runs on until someone makes it theirs. */
+const PLACEHOLDER_TOKENS_ID = 'lolly/tokens/brand';
+
+/**
+ * Who this gallery visit's welcome is for, or null when none is due: 'demo' on a
+ * shipped design system to try (Lolly Demo on lolly.tools), 'blank' on an install
+ * still on the placeholder brand (Lolly Start). Exported for tests.
+ */
+export async function galleryWelcomeAudience(host: GalleryHost, isCurrent: () => boolean): Promise<WelcomeAudience | null> {
+  const due = await welcomeDue(host, isCurrent);
+  return due === false ? null : due;
+}
+
+async function welcomeDue(host: GalleryHost, isCurrent: () => boolean): Promise<WelcomeAudience | false> {
   try {
     if (await host.tokens?.isLocked?.()) return false;
     // Someone the workspace puts in a company opens on its shelf, which their company
@@ -44,7 +64,8 @@ export async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => bo
     await workspaceCompanySettled();
     if (hasCompany()) return false;
     if ((await listWorkspaceTemplates(host)).some((tpl) => !tpl.retired)) return false;
-    const source = await activeDesignSystemSource(host);
+    const record = await activeDesignSystemRecord(host);
+    const source = record?.source.kind ?? null;
     if (source) {
       if (source !== 'shipped') return false;
       // A workspace member's first visit has not synced what is published to them
@@ -54,7 +75,7 @@ export async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => bo
         const response = await instanceFetch(instancePath('/catalog/assets/index.json?paged=1')).catch(() => null);
         if (response?.ok && hasPublishedTemplates(((await response.json()) as { assets?: Array<Partial<AssetRef>> }).assets)) return false;
       }
-      return true;
+      return record?.headId === PLACEHOLDER_TOKENS_ID ? 'blank' : 'demo';
     }
     let tokensId = (await host.assets._findMetaByType('tokens'))?.id;
     if (tokensId === undefined && isCurrent()) {
@@ -66,24 +87,52 @@ export async function galleryNeedsWelcome(host: GalleryHost, isCurrent: () => bo
         tokensId = index.assets?.find(asset => asset.type === 'tokens')?.id;
       }
     }
-    return tokensId === 'lolly/tokens/brand';
+    return tokensId === PLACEHOLDER_TOKENS_ID ? 'blank' : false;
   } catch { return false; }
+}
+
+/** The privacy promise the greeting carries: the notice's own words when a workspace keeps the work. */
+function welcomePrivacy(): WelcomePrivacy {
+  const workspace = connectedWorkspace();
+  if (workspace) return { text: workspacePrivacyLine(workspace), href: WORKSPACE_PRIVACY_HREF };
+  return { text: t('No accounts, no tracking. Your work stays on this device.'), href: docsAppHref('trust/privacy') };
 }
 
 type WelcomeModule = typeof welcome;
 type WelcomeStep =
   | { unbranded: false }
-  | { unbranded: true; welcome: WelcomeModule; closed: Promise<unknown> | null };
+  | { unbranded: true; welcome: WelcomeModule; closed: Promise<unknown> | null; inPlace: boolean };
 
-/** Keep maintenance behind the welcome decision and preserve route teardown. */
-export function galleryWelcomeStep(host: GalleryHost & PickerHost, isCurrent: () => boolean, force = false): Promise<WelcomeStep | null> {
+/**
+ * Keep maintenance behind the welcome decision and preserve route teardown. The
+ * welcome is the greeting in place at the top of the gallery (`root`); the dialog
+ * it replaced opens instead with `classic` (#/?welcome=classic), or when there is
+ * no gallery to greet in.
+ */
+export function galleryWelcomeStep(
+  host: GalleryHost & PickerHost, isCurrent: () => boolean, force = false,
+  opts: { classic?: boolean; root?: () => HTMLElement | null } = {},
+): Promise<WelcomeStep | null> {
   return decideWelcome(async (): Promise<WelcomeStep | null> => {
     // Viewing as a partner: no welcome, even with ?welcome, and nothing is recorded.
     if (viewingAs()) return { unbranded: false };
-    if (!await galleryNeedsWelcome(host, isCurrent)) return { unbranded: false };
+    const audience = await galleryWelcomeAudience(host, isCurrent);
+    if (!audience) return { unbranded: false };
     if (!isCurrent()) return null;
     const due = force || !welcome.isWelcomeDismissed();
-    return { unbranded: true, welcome, closed: due ? welcome.showWelcomeDialog(host.profile, host) : null };
+    // Every caller agrees on the form: the address says when the classic dialog is
+    // asked for. The greeting goes at the top of the gallery, or, when main.ts asks
+    // before the gallery has mounted (a slow first profile read), at the top of the
+    // view, and the gallery's own mount then moves the same element into place.
+    const classic = opts.classic ?? /[?&]welcome=classic(?:&|$)/.test(globalThis.location?.hash ?? '');
+    const root = classic ? null
+      : opts.root?.() ?? document.querySelector<HTMLElement>('.gallery') ?? document.getElementById('view');
+    if (!due) return { unbranded: true, welcome, closed: null, inPlace: !!root };
+    if (root) {
+      const closed = showWelcomeHero(root, { audience, privacy: welcomePrivacy(), ackPrivacy: ackPrivacyNotice, profileApi: host.profile, uploadHost: host });
+      return { unbranded: true, welcome, closed, inPlace: true };
+    }
+    return { unbranded: true, welcome, closed: welcome.showWelcomeDialog(host.profile, host), inPlace: false };
   }, force);
 }
 

@@ -2,17 +2,21 @@
 
 Lolly's web app draws with WebGPU, a graphics feature of current browsers, and checks for it before it opens a tool. This page says where that check has been tested and what to try when your device does not pass.
 
+<!--i:eti-warning-->
 ## If Lolly says it requires WebGPU
 
-The notice reads "Lolly requires WebGPU. Use an up-to-date browser or app with graphics acceleration enabled." Try these in order:
+In a browser with no WebGPU, the card reads "Lolly can't draw in this browser yet" and lists the browsers that work today: Chrome or Edge, kept up to date, Safari 26 or later, and Firefox where WebGPU is turned on. It links to the desktop app and to this page. Try these in order:
 
 1. Update your browser to its current version.
 2. Turn on graphics or hardware acceleration in the browser's settings, then restart the browser.
 3. Open Lolly in one of the tested browsers below.
 4. On a Mac, iPhone or iPad, [install the app](/info/install.html) instead.
 
-The page must be served over HTTPS, or from a local development server on `localhost`: browsers only offer WebGPU to secure pages, and Lolly says so when an instance is served over plain HTTP.
+::: note Serve the page over HTTPS
+Browsers only offer WebGPU to secure pages, so the page must be served over HTTPS, or from a local development server on `localhost`. Lolly says so when an instance is served over plain HTTP.
+:::
 
+<!--i:eti-checklist-->
 ## What has been tested
 
 ::: cols
@@ -33,10 +37,11 @@ The page must be served over HTTPS, or from a local development server on `local
 - The same browsers on Windows, Linux, Android, iOS, Intel Macs or other graphics hardware
 :::
 
-Web releases since 9 October 2026, including 1.1.2 on lolly.tools, rely on the completed Mac browser checks below. These are results on **macOS 27, Apple M4**, with the browser's
+Web releases since 9 October 2026, including 1.2.0 on lolly.tools, rely on the completed Mac browser checks below. These are results on **macOS 27, Apple M4**, with the browser's
 default adapter and graphics settings. They do not establish support for the
 same browsers on Windows, Linux, Android, iOS, Intel Macs or other GPUs.
 
+<!--i:eti-table-->
 ## Qualification results
 
 | Environment | WebGPU result | Versions and platform | Adapter and backend | Evidence |
@@ -52,7 +57,11 @@ same browsers on Windows, Linux, Android, iOS, Intel Macs or other GPUs.
 
 The Mac app needs Apple silicon. Intel Macs are not supported from 1.1.3, so the macOS app row speaks for Apple silicon only.
 
-A pending row means the check has not passed on real hardware, not that the app fails. A packaged app is released only once its own row says supported, which is why the Windows, Linux and Android builds on the [install page](/info/install.html) stay at 1.1.0. The Linux app stays there until a WebKitGTK release carries WebGPU.
+::: note A pending row is not a failure
+A pending row means the check has not passed on real hardware, not that the app fails.
+:::
+
+A packaged app is released only once its own row says supported, which is why the Windows, Linux and Android builds on the [install page](/info/install.html) stay at 1.1.0. The Linux app stays there until a WebKitGTK release carries WebGPU.
 
 ::: details How the checks work
 The browser corpus checks numerical results on the main thread and in a worker, photo baking, cancellation, device recovery and operation chains. Its browser startup measurement covers the device service and tool mount fence, rather than the complete gallery.

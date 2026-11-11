@@ -17,18 +17,26 @@ Three kinds of upload use the same parts:
 
 ![A resumable upload: begin with the size and checksums, send 1 MiB parts in any order, ask what arrived after a drop, send only the missing parts, then finalize, where every byte is checked.](/info/diagrams/work-integrations/upload-parts.svg)
 
+<!--i:eti-sliders-->
 ## Turn scoped uploads on
 
 Project files are on by default wherever the blob store is durable. Catalog submissions and
-automation inputs use **scoped uploads**, which are off until you turn on
-`policy.uploads.enabled`; upgrading leaves them off. Until then, `lw upload --scope` answers
-`uploads are off`.
+automation inputs use **scoped uploads**.
+
+::: note Scoped uploads are off by default
+They stay off until you turn on `policy.uploads.enabled`, and upgrading leaves them off. Until
+then, `lw upload --scope` answers `uploads are off`.
+:::
 
 Scoped uploads have their own instance budget, `policy.uploads.instanceBudgetBytes` (256 MiB by
-default), but they fill the same blob store as project files. Turning them on therefore raises
-what the store may hold by that budget. [Configuration](configuration.md#policy) shows how to
-split one total between the two instead.
+default), but they fill the same blob store as project files.
 
+::: warning Turning them on raises what the store may hold
+The store may then hold that budget on top of the project files. [Configuration](configuration.md#policy)
+shows how to split one total between the two instead.
+:::
+
+<!--i:eti-upload-->
 ## Upload with `lw`
 
 ```bash
@@ -36,16 +44,21 @@ lw upload ./keynote.mp4 --project prj_ab12        # a shared file in a project
 lw upload ./master.tif --scope catalog-submission  # an original to submit to the catalog
 ```
 
-`--scope` takes `catalog-submission`, `automation-input` or `file`. A fourth scope,
-`approval-artifact`, carries the file of an [export review](approvals.md#review-an-exported-file): the
-web app uses it, it follows `policy.approvalArtifacts` rather than `policy.uploads`, only a signed-in
-person with `export.request` can use it, and the request takes the bytes when it is created. A fifth scope,
-`brand-page`, carries a [brand page](design-system-administration.md#host-a-brand-page) bundle: `lw brand-pages publish`
-uses it, and it follows `brandPages.enabled`. `lw upload` reads the file
-one part at a time and keeps each unfinished upload's id under `~/.config/lolly-work/uploads/`.
-If it stops, run the same command again and it carries on. Every option is on the
-[`lw` CLI page](cli.md#resumable-uploads).
+`lw upload` reads the file one part at a time and keeps each unfinished upload's id under
+`~/.config/lolly-work/uploads/`. If it stops, run the same command again and it carries on.
+Every option is on the [`lw` CLI page](cli.md#resumable-uploads).
 
+`--scope` takes `catalog-submission`, `automation-input` or `file`. Two more scopes exist for
+other parts of Lolly Work:
+
+- **`approval-artifact`** carries the file of an [export review](approvals.md#review-an-exported-file).
+  The web app uses it, it follows `policy.approvalArtifacts` rather than `policy.uploads`, only a
+  signed-in person with `export.request` can use it, and the request takes the bytes when it is
+  created.
+- **`brand-page`** carries a [brand page](design-system-administration.md#host-a-brand-page)
+  bundle. `lw brand-pages publish` uses it, and it follows `brandPages.enabled`.
+
+<!--i:eti-code-->
 ## Upload from your own client
 
 1. **Begin.** Declare the size, the whole file's SHA-256 and one SHA-256 per 1 MiB part. Keep the
@@ -63,6 +76,7 @@ The routes are in the [API reference](api.md#project-files). A scoped upload fin
 and a checksum to name it by, for example
 `POST /api/v1/catalog/submit?name=…&uploadId=…&checksum=…`.
 
+<!--i:eti-clock-->
 ## Limits and expiry
 
 | Limit | Default | Notes |
@@ -81,6 +95,7 @@ holds more than it declared, and an expired one counts for nothing.
 An hour after an upload expires, the sweep removes its parts and then its record. The sweep runs
 before each new begin, in `POST /api/v1/retention/run`, and daily on a long-lived server.
 
+<!--i:eti-user-check-->
 ## Who can read what
 
 | Upload | Who may begin | Who may send, resume and finish | Used by |
@@ -103,6 +118,7 @@ service token can no longer name its uploads, which then expire on schedule.
 they own. If any remains, for example because the person is still uploading, the erasure answers
 `409 ERASE_UPLOADS_REMAIN` before it changes the account, and can be run again.
 
+<!--i:eti-history-->
 ## Why parts, not tus
 
 ::: details The decision, recorded on 2026-10-17

@@ -6,6 +6,20 @@ Write a link by hand, or generate one from code, and every input a tool declares
 
 Each section below is one kind of input, with an example link and the render it makes. The same values work on the command line as `--id=value`.
 
+| Input | In a link |
+|---|---|
+| [String, text, longtext, url](#string-text-longtext-url) | The value, URL-encoded |
+| [Select](#select) | The option value, not its label |
+| [Number](#number) | The number |
+| [Boolean](#boolean) | `1` or `true`, `0` or `false` |
+| [Color](#color) | A hex value with its `#` encoded, or a token reference |
+| [Asset](#asset) | A library id, or another tool's embed URL |
+| [Blocks](#blocks) | A JSON array of objects, URL-encoded |
+| [Vector](#vector) | One dotted param per field |
+| [File](#file) | Never in a link; a file path on the CLI |
+| [Table](#table) | One compact param, a `~` between rows |
+| [Keyframe tracks](#keyframe-tracks) | A field inside a blocks input, written by the app |
+
 ### String, text, longtext, url
 
 Pass the value directly. URL-encode spaces and special characters.
@@ -120,7 +134,9 @@ Each object's keys must match the field `id`s defined in the tool's manifest. Fi
 lolly meeting-planner --people='[{"name":"Mei","city":"Nuremberg"},{"name":"Lisa","city":"Sydney"}]'
 ```
 
-> A blocks value has no size cap. A large one packs into the `z` link, and when a link grows too long to pass around, the Share dialog offers a `.lolly` file instead.
+::: note A blocks value has no size cap
+A large one packs into the `z` link, and when a link grows too long to pass around, the Share dialog offers a `.lolly` file instead.
+:::
 
 ### Vector
 
@@ -139,7 +155,7 @@ One readable value per param. Used by tools such as `frame`, `darkroom`, `filter
 A `file` input (the user's own file, processed in memory) is **never** put in a URL - its bytes live only on the device, so there is nothing shareable to encode. On the CLI a file param is a filesystem path, loaded into memory before rendering:
 
 ```bash
-lolly strip-data --source=./photo.jpg --format=jpg --output=clean.jpg
+lolly strip-data --source=./photo.jpg --output=clean.jpg
 ```
 
 In the web shell a `file` input can't be pre-filled from a URL; a link that referenced one resolves as blank, and the recipient picks their own file.

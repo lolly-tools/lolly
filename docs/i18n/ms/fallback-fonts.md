@@ -10,18 +10,18 @@ Lima belas fon, semuanya daripada Google Fonts pada komit yang dipinkan dan semu
 
 | Skrip | Fon | Versi | Muat turun |
 |---|---|---|---|
-| Arab, termasuk huruf Urdu dan Parsi | Noto Sans Arabic | 2.012 | 206 KB |
+| Arab, termasuk huruf Urdu dan Parsi | Noto Sans Arabic | 2.012 | 211 KB |
 | Ibrani | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hindi, Marathi, Nepal) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengali | Noto Sans Bengali | 3.011 | 136 KB |
-| Thai | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrillic | Noto Sans, huruf Cyrillic | 2.015 | 112 KB, condong 129 KB |
-| Yunani | Noto Sans, huruf Yunani | 2.015 | 75 KB, condong 81 KB |
-| Latin, termasuk huruf Vietnam dan huruf beraksen yang lain | Noto Sans, huruf Latin | 2.015 | 309 KB, condong 342 KB |
-| Cina Ringkas, aksara GB 2312 | Noto Sans SC | 2.004 | 1.9 MB |
-| Cina Tradisional, aksara Big5 | Noto Sans TC | 2.004 | 3.6 MB |
-| Jepun, aksara Shift_JIS | Noto Sans JP | 2.004 | 2.1 MB |
-| Korea, setiap suku kata Hangul dan aksara KS X 1001 | Noto Sans KR | 2.004 | 2.4 MB |
+| Devanagari (Hindi, Marathi, Nepal) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengali | Noto Sans Bengali | 3.011 | 139 KB |
+| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrillic | Noto Sans, huruf Cyrillic | 2.015 | 115 KB, condong 132 KB |
+| Yunani | Noto Sans, huruf Yunani | 2.015 | 77 KB, condong 83 KB |
+| Latin, termasuk huruf Vietnam dan huruf beraksen yang lain | Noto Sans, huruf Latin | 2.015 | 316 KB, condong 350 KB |
+| Cina Ringkas, aksara GB 2312 | Noto Sans SC | 2.004 | 2.0 MB |
+| Cina Tradisional, aksara Big5 | Noto Sans TC | 2.004 | 3.8 MB |
+| Jepun, aksara Shift_JIS | Noto Sans JP | 2.004 | 2.2 MB |
+| Korea, setiap suku kata Hangul dan aksara KS X 1001 | Noto Sans KR | 2.004 | 2.5 MB |
 
 Paksi ketebalan setiap fon dikekalkan sepenuhnya, jadi setiap ketebalan yang diminta reka bentuk masih dilukis, dan tajuk Cina, Jepun atau Korea yang tebal kekal tebal. Paksi lebar fon Noto Sans ditetapkan pada normal, yang mengurangkan separuh saiz setiap fail; fon Cina, Jepun dan Korea tidak mempunyai paksi lebar. Noto Sans dipecahkan mengikut skrip, jadi perkataan Cyrillic hanya memuat turun huruf Cyrillic. Kontur ialah kontur asal hulu, tanpa perubahan.
 
@@ -53,7 +53,7 @@ Pada halaman, kanvas yang mengandungi dua bahasa ini menyenaraikan kedua-dua fon
 
 Tiada apa-apa dimuat turun sehingga dokumen mengandungi aksara yang tidak boleh dilukis oleh mana-mana fon sistem reka bentuknya. Dokumen dalam bahasa Inggeris, atau dalam mana-mana bahasa yang diliputi sistem reka bentuknya, tidak pernah memuat turun fon sandaran. Simbol dalam baris bahasa Inggeris, seperti ★ atau ※, tidak pernah memuat turun fon Cina, Jepun atau Korea.
 
-Kali pertama dokumen memerlukannya, Lolly memuat turun satu fon itu, untuk satu skrip itu, dan menyimpannya pada peranti anda. Dokumen Jepun memuat turun fon Jepun sahaja, 2.1 MB, dan dokumen Cina Tradisional memuat turun fon Tradisional 3.6 MB. Selepas itu skrip itu dilukis tanpa talian, dan fon kekal apabila katalog dikemas. Fon disimpan bersama fail katalog sendiri, tidak pernah dalam fon yang anda muat naik, jadi ia tidak muncul dalam senarai fon jenama anda.
+Kali pertama dokumen memerlukannya, Lolly memuat turun satu fon itu, untuk satu skrip itu, dan menyimpannya pada peranti anda. Dokumen Jepun memuat turun fon Jepun sahaja, 2.2 MB, dan dokumen Cina Tradisional memuat turun fon Tradisional 3.8 MB. Selepas itu skrip itu dilukis tanpa talian, dan fon kekal apabila katalog dikemas. Fon disimpan bersama fail katalog sendiri, tidak pernah dalam fon yang anda muat naik, jadi ia tidak muncul dalam senarai fon jenama anda.
 
 Baris perintah, apl terminal dan pelayan MCP membaca fail yang sama daripada cakera, jadi tiada muat turun diperlukan.
 

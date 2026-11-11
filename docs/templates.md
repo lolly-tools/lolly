@@ -30,6 +30,7 @@ A file you hand to someone else ([Sharing your work](/info/using.html#sharing-yo
 
 Your saved templates, and your choices about shipped ones, are kept on your [profile](/info/profile.html), the same on-device record as your name and your starred tools. A profile backup carries them to another device, and [Passing one on](#passing-one-on) covers sharing a single template.
 
+<!--i:eti-file-plus-->
 ## Save one from a tool
 
 ::: timeline
@@ -48,12 +49,14 @@ The quick **Save**, the tick beside **Export** on the render pill, stores the se
 
 A tool with nothing to fill in, such as a file converter, shows no template card.
 
+<!--i:eti-folder-plus-->
 ## Save one from Projects
 
 You do not have to open the tool. In **Projects**, right-click any saved session and choose **Save as a template…**. Tick several tiles first and the same item makes one template out of each, named after each session.
 
 The sessions themselves are untouched, and stay where they were.
 
+<!--i:eti-pin-->
 ## Start with
 
 Each tool remembers one of three answers for a blank open:
@@ -70,6 +73,7 @@ Three things it never changes:
 - A link somebody sends you opens what the link says, and so does a command you type at the terminal. Your own starting point is a preference on this device; it never rewrites what a shared link renders on anyone else's.
 - If the template is deleted or hidden later, the tool quietly goes back to asking. Nothing breaks, and nothing opens on something that is no longer there.
 
+<!--i:eti-sliders-->
 ## Managing them
 
 ### In the chooser
@@ -123,13 +127,17 @@ A design system can arrive with some of its starters hidden already, so a team s
 - **Export as file (.json)** writes the template out in the same file format a tool's own shipped templates use. Drop it into a tool's `templates/` folder, or send it to whoever maintains that tool, and it can ship for everybody.
 - **Share template (.lolly)**, in the Templates collection, wraps it as a file you can send. Opening it on the other device adds it there as a template.
 
+<!--i:eti-crop-->
 ## Sizes and paces
 
 A template that shipped with a tool can offer sizes and paces, such as a poster as a square or a story. Pick one from the chips on its tile. Each opens the same design at that size or pace, so no separate template is needed. A different look is a template of its own, and that is also how you keep a variation: save it as a template and name it for what it is.
 
+<!--i:eti-lock-->
 ## Share a constrained tool
 
 A saved template is a starting point in its original tool. To give recipients only selected inputs, choose **Share with rules** from a template's menu, or from a saved tool session in Projects. This opens a separate authoring copy and leaves the source intact. Lolly Design offers object rules; other supported still tools offer an ordered list of editable inputs over their existing renderer. The resulting `.lolly` installs a separate tool with fixed settings and explicit controls. [Share a design with rules](/info/create-a-tool.html) covers the supported inputs and the preview and checking steps.
+
+On Lolly Work, a brand team can publish a template to a partner programme, and partners see only the inputs it leaves open to them ([Partner templates](/info/manage/partner-templates.html)).
 
 ---
 

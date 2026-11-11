@@ -7,6 +7,7 @@ Two people can edit the same tool session at the same time, each on their own de
 
 ![Two people, one session. On the same network, a private collab. With the same cloud storage connected, a private collab over shared cloud. In an organisation that runs Lolly Work, a work collab.](/info/diagrams/concepts/collab-ways.svg)
 
+<!--i:eti-users-->
 ## Start a private collab
 
 One person invites. The other replies, and the two devices connect. From then on, a change on one device appears on the other.
@@ -15,10 +16,10 @@ One person invites. The other replies, and the two devices connect. From then on
 
 ::: timeline
 - <!--i:people--> **Open the collab.** In the tool, press **Share** in the export controls, open **Private collab** and press **Start a collab**. A tool tile's menu in the gallery offers **Start a collab** too.
-- <!--i:pentool--> **Name yourself** for this collab and press **Create the invite**.
-- <!--i:link--> **Send the invite** to the other device as a link, a QR code or a code.
-- <!--i:convert--> **Get the reply back.** The other device makes a reply, and it has to reach your waiting screen before anything connects.
-- <!--i:hash--> **Compare the plates.** Both screens show the same six characters. Read them out loud.
+- <!--i:pentool--> **[Name yourself](#name-yourself)** for this collab and press **Create the invite**.
+- <!--i:link--> **[Send the invite](#send-the-invite)** to the other device as a link, a QR code or a code.
+- <!--i:convert--> **[Get the reply back](#get-the-reply-back).** The other device makes a reply, and it has to reach your waiting screen before anything connects.
+- <!--i:hash--> **[Compare the plates](#check-the-plates).** Both screens show the same six characters. Read them out loud.
 :::
 
 ![The Share dialog's Private collab section, opened - Start a collab, Join with a code and an info button that says what a private collab is](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1100&height=900&dpi=192&waitMs=2600&drive=click%3A%23render-fab%3Bclick%3A%5Bdata-action%3D%22copy-url%22%5D%3Bclick%3Adetails%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D%3Esummary&cropSelector=details%5Bdata-share-section%3D%22registry%3Ashare-private-collab%22%5D&walker=1&format=svg&dark=1&filename=collab-share-section)
@@ -29,12 +30,15 @@ button sits in it, off screen until the panel opens), then Share, then the Priva
 fold, which starts closed. Widening the frame does not help; the panel is the cause.
 -->
 
-Before you invite anyone, know two things.
+::: warning Anyone holding the invite can join and edit
+Send the invite the way you would send the work itself, and treat a re-sent invite as a re-shared document.
+:::
 
-- **The person who invites owns the session.** The saved session lives on the inviting device, and its History records the other person's changes too. The joining device gets a working copy that it can edit and export, but the copy is not filed in its Projects and ends with the collab. While the collab lasts, its **History** holds checkpoints in memory, and **Open as a copy** on one of them files a separate copy on the joining device.
-- **Anyone holding the invite can join and edit.** Send the invite the way you would send the work itself, and treat a re-sent invite as a re-shared document.
+**The person who invites owns the session.** The saved session lives on the inviting device, and its History records the other person's changes too. The joining device gets a working copy that it can edit and export, but the copy is not filed in its Projects and ends with the collab. While the collab lasts, its **History** holds checkpoints in memory, and **Open as a copy** on one of them files a separate copy on the joining device.
 
-**Both devices need the same tool.** A collab sends values, never code, so the template and the logic come from the catalog on each device. If the joining device does not have the tool, the join is refused as soon as the invite is read. The refusal gives the tool's id, such as `qr-code`.
+::: note Both devices need the same tool
+A collab sends values, never code, so the template and the logic come from the catalog on each device. If the joining device does not have the tool, the join is refused as soon as the invite is read. The refusal gives the tool's id, such as `qr-code`.
+:::
 
 **The feature is on by default.** It carries a **beta** pill in **Settings → Preferences → Feature flags**, where you can also turn it off. An invite link opened on a device where it is off offers to turn it back on.
 
@@ -55,6 +59,7 @@ The name you type here is the only thing about you that crosses the link. On the
 
 Each screen is headed **Step 1 of 3** to **Step 3 of 3** on both devices. You are looking at different screens, so the step numbers are how you tell each other where you are.
 
+<!--i:eti-mail-->
 ## Send the invite
 
 Once the invite is made, your screen shows it in three forms. They carry the same invite, so pick whichever suits the two of you.
@@ -88,6 +93,7 @@ Two more ways skip the copying.
 While you wait, the screen counts down how long the current invite still works. After ten minutes a fresh invite is made automatically and the screen tells you, so send the new one. That happens twice, then the wait stops and tells you nothing came back in time. **Make a new invite** restarts the clock whenever you like.
 :::
 
+<!--i:eti-chat-->
 ## Get the reply back
 
 **An invite on its own connects nothing.** The joining device makes a reply, and the reply has to reach your waiting screen. The joining device shows the reply as a link and a code, each with its own copy button. Send either one back through any channel you both use: a messaging app, email or a direct share between the two devices. There is no QR for the reply, because your waiting screen has no camera to scan one with.
@@ -101,6 +107,7 @@ While you wait, the screen counts down how long the current invite still works. 
 A reply pasted into the invite door is recognised as a reply, and you are told which window it belongs in. A reply link opened on a device where no window is waiting says so and leaves the code on screen to copy. A device with more than one invite waiting says so too, and leaves the code for you to paste into the right one rather than guessing.
 :::
 
+<!--i:eti-shield-check-->
 ## Check the plates
 
 The moment the two devices connect, both screens show the same six characters, in two groups of three, with one sentence under them:
@@ -128,6 +135,7 @@ This is the same idea as the short authentication string in ZRTP (RFC 6189, sect
 - **A screen reader reads it character by character**, spaced, with a pause between the groups. Read as a word, a mismatch could sound like a match.
 :::
 
+<!--i:eti-pen-->
 ## Editing together
 
 Once you are connected, the tool opens on both devices with the session in it, and you both just work.
@@ -165,6 +173,7 @@ which draws no canvas region of its own, so only the sidebar half shows.
 
 **If the two devices run different versions**, you are told. A small difference in the tool says some fields may not match. A larger difference in the collab format makes both devices observers, and the pill says **Observing**. Each keeps seeing the session, and edits from either device are not sent.
 
+<!--i:eti-package-->
 ## Send a session
 
 The connection that carries your edits can also carry things too big to be edits. Lolly calls this a **beam**.
@@ -186,6 +195,7 @@ while the bulk channel is open, so the drill returns quietly when the control is
 
 **Send this session** is the one beam control today, and it appears only while the transfer channel is open. The format can also carry a hand-picked set of files, a whole project or everything under a tag, but the app does not offer those yet.
 
+<!--i:eti-unlink-->
 ## With no internet
 
 Private collab is built for this case.
@@ -206,6 +216,7 @@ Private collab is built for this case.
 
 **Across different networks**, private pairing is limited. Each device offers only the addresses it can see on its own network, and Lolly configures no external address-discovery server. Use one shared network or a hotspot, or a [work collab](#work-collabs-with-lolly-work-optional) if your organisation offers one.
 
+<!--i:eti-help-->
 ## If it does not connect
 
 Each failure screen says what happened and offers the next step.
@@ -228,6 +239,7 @@ table quotes the screen.
 -->
 
 <a id="work-collabs-with-lolly-work-optional"></a>
+<!--i:eti-building-->
 ## Collabs through Lolly Work (optional)
 
 [Lolly Work](/info/organisation.html) is the Lolly project's organisation service. An instance your organisation runs adds shared projects, sign-in and access policies around the same tools. You can use Lolly and private collabs without Lolly Work.

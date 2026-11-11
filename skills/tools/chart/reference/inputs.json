@@ -413,6 +413,10 @@
         "label": "Bars - categories × series"
       },
       {
+        "value": "donut3d",
+        "label": "Donut or pie - parts of a whole"
+      },
+      {
         "value": "scatter3d",
         "label": "Scatter - x / y / z"
       },
@@ -421,7 +425,7 @@
         "label": "Surface - value grid"
       }
     ],
-    "help": "Choose how the same table is interpreted in the real 3-D scene. Bars use a label column plus numeric series; Scatter uses at least three numeric columns; Surface uses the table as a value grid."
+    "help": "Choose how the same table is interpreted in the real 3-D scene. Bars use a label column plus numeric series; a donut uses the first numeric series as slices; Scatter uses at least three numeric columns; Surface uses the table as a value grid."
   },
   {
     "section": "Change chart",
@@ -822,6 +826,13 @@
       {
         "value": "category",
         "label": "Category"
+      },
+      {
+        "value": "value",
+        "label": "Value - colourway ramp",
+        "showIf": {
+          "renderMode": "scene"
+        }
       }
     ],
     "showIf": [
@@ -834,7 +845,11 @@
       },
       {
         "renderMode": "scene",
-        "sceneType": "bar3d"
+        "sceneType": [
+          "bar3d",
+          "donut3d",
+          "scatter3d"
+        ]
       }
     ]
   },
@@ -911,23 +926,138 @@
     }
   },
   {
-    "id": "cameraProjection",
-    "urlKey": "cpr",
+    "id": "sceneLayout",
+    "urlKey": "sly",
+    "label": "Arrangement",
+    "section": "3-D scene",
+    "type": "select",
+    "default": "auto",
+    "options": [
+      {
+        "value": "auto",
+        "label": "Automatic"
+      },
+      {
+        "value": "grid",
+        "label": "Rows - one row per series",
+        "showIf": {
+          "sceneType": "bar3d"
+        }
+      },
+      {
+        "value": "grouped",
+        "label": "Side by side",
+        "showIf": {
+          "sceneType": "bar3d"
+        }
+      },
+      {
+        "value": "stacked",
+        "label": "Stacked towers",
+        "showIf": {
+          "sceneType": "bar3d"
+        }
+      },
+      {
+        "value": "ring",
+        "label": "Ring",
+        "showIf": {
+          "sceneType": "bar3d"
+        }
+      },
+      {
+        "value": "donut",
+        "label": "Donut",
+        "showIf": {
+          "sceneType": "donut3d"
+        }
+      },
+      {
+        "value": "pie",
+        "label": "Pie",
+        "showIf": {
+          "sceneType": "donut3d"
+        }
+      },
+      {
+        "value": "towers",
+        "label": "Towers - height shows the value too",
+        "showIf": {
+          "sceneType": "donut3d"
+        }
+      },
+      {
+        "value": "exploded",
+        "label": "Exploded pie",
+        "showIf": {
+          "sceneType": "donut3d"
+        }
+      }
+    ],
+    "help": "Automatic gives bars one row per series when there are several and a single row for one series, and draws parts of a whole as a donut.",
+    "showIf": {
+      "renderMode": "scene",
+      "sceneType": [
+        "bar3d",
+        "donut3d"
+      ]
+    }
+  },
+  {
+    "id": "sceneHighlight",
+    "urlKey": "shl",
+    "label": "Highlight",
+    "section": "3-D scene",
+    "type": "text",
+    "default": "",
+    "placeholder": "A name, or max, min or last",
+    "help": "Category or series names separated by commas, or max, min or last. Everything else is drawn in a quiet tone of the stage, and Close-up framing centres on the highlight.",
+    "showIf": {
+      "renderMode": "scene"
+    }
+  },
+  {
+    "id": "scenePose",
+    "urlKey": "spo",
     "label": "Camera",
     "section": "3-D scene",
     "type": "select",
-    "default": "perspective",
+    "default": "hero",
     "options": [
       {
-        "value": "perspective",
-        "label": "Perspective - spatial"
+        "value": "hero",
+        "label": "Hero - three-quarter view"
       },
       {
-        "value": "orthographic",
-        "label": "Orthographic - comparable"
+        "value": "low",
+        "label": "Low angle - tall and dramatic"
+      },
+      {
+        "value": "high",
+        "label": "High overview"
+      },
+      {
+        "value": "front",
+        "label": "Straight on"
+      },
+      {
+        "value": "side",
+        "label": "From the side"
+      },
+      {
+        "value": "top",
+        "label": "Top down"
+      },
+      {
+        "value": "iso",
+        "label": "Isometric"
+      },
+      {
+        "value": "custom",
+        "label": "Custom angle"
       }
     ],
-    "help": "Orthographic keeps equally sized values equally sized at every depth; perspective gives a more cinematic scene.",
+    "help": "Hero tries a few three-quarter angles and keeps the one that fills this artboard best, so a tall artboard and a wide one each get a view that suits them. Top down and Isometric have no perspective.",
     "showIf": {
       "renderMode": "scene"
     }
@@ -944,7 +1074,8 @@
     "max": 180,
     "step": 1,
     "showIf": {
-      "renderMode": "scene"
+      "renderMode": "scene",
+      "scenePose": "custom"
     }
   },
   {
@@ -959,7 +1090,224 @@
     "max": 80,
     "step": 1,
     "showIf": {
+      "renderMode": "scene",
+      "scenePose": "custom"
+    }
+  },
+  {
+    "id": "cameraProjection",
+    "urlKey": "cpr",
+    "label": "Lens",
+    "section": "3-D scene",
+    "type": "select",
+    "default": "perspective",
+    "options": [
+      {
+        "value": "perspective",
+        "label": "Standard"
+      },
+      {
+        "value": "wide",
+        "label": "Wide - deep perspective"
+      },
+      {
+        "value": "long",
+        "label": "Long - flattened depth"
+      },
+      {
+        "value": "orthographic",
+        "label": "Flat - no perspective"
+      }
+    ],
+    "help": "Wide exaggerates depth for drama. Long and Flat keep equal values equally sized from front to back.",
+    "showIf": {
+      "renderMode": "scene",
+      "scenePose": [
+        "hero",
+        "low",
+        "high",
+        "front",
+        "side",
+        "custom"
+      ]
+    }
+  },
+  {
+    "id": "sceneFraming",
+    "urlKey": "sfr",
+    "label": "Framing",
+    "section": "3-D scene",
+    "type": "select",
+    "default": "fit",
+    "options": [
+      {
+        "value": "fit",
+        "label": "Fill the frame"
+      },
+      {
+        "value": "close",
+        "label": "Close-up - crop in on the focus"
+      },
+      {
+        "value": "room",
+        "label": "Room to breathe"
+      }
+    ],
+    "help": "Fill the frame sizes the chart and its labels to the artboard, clear of the title and legend. Close-up crops in on the highlight, or on the tallest mark.",
+    "showIf": {
       "renderMode": "scene"
+    }
+  },
+  {
+    "id": "sceneStage",
+    "urlKey": "sst",
+    "label": "Stage",
+    "section": "3-D scene",
+    "type": "select",
+    "default": "studio",
+    "options": [
+      {
+        "value": "studio",
+        "label": "Studio - floor and wall in one colour"
+      },
+      {
+        "value": "floor",
+        "label": "Floor with grid"
+      },
+      {
+        "value": "float",
+        "label": "Floating - no floor"
+      },
+      {
+        "value": "plinth",
+        "label": "Plinth"
+      },
+      {
+        "value": "night",
+        "label": "Night - deep backdrop"
+      }
+    ],
+    "help": "Every stage takes its colours from the active colourway. Night uses the design system's deepest colour unless you choose a background. A 3-D chart paints its stage; tick Transparent background to keep only the shadows.",
+    "showIf": {
+      "renderMode": [
+        "scene",
+        "cinematic"
+      ]
+    }
+  },
+  {
+    "id": "sceneMaterial",
+    "urlKey": "mat",
+    "label": "Finish",
+    "section": "3-D scene",
+    "type": "select",
+    "default": "matte",
+    "options": [
+      {
+        "value": "accurate",
+        "label": "Flat colour - exact swatches"
+      },
+      {
+        "value": "matte",
+        "label": "Matte"
+      },
+      {
+        "value": "satin",
+        "label": "Satin"
+      },
+      {
+        "value": "gloss",
+        "label": "Gloss"
+      },
+      {
+        "value": "metal",
+        "label": "Metal"
+      },
+      {
+        "value": "clay",
+        "label": "Clay"
+      },
+      {
+        "value": "glass",
+        "label": "Glass"
+      },
+      {
+        "value": "glow",
+        "label": "Glow"
+      },
+      {
+        "value": "custom",
+        "label": "Custom - set roughness and metal"
+      }
+    ],
+    "help": "Lit finishes reflect a small studio built from the colourway. Flat colour keeps every mark exactly on its swatch; legends always show the exact colours.",
+    "showIf": {
+      "renderMode": [
+        "scene",
+        "cinematic"
+      ]
+    }
+  },
+  {
+    "id": "sceneRoughness",
+    "urlKey": "rou",
+    "label": "Roughness",
+    "section": "3-D scene",
+    "type": "number",
+    "display": "slider",
+    "default": 0.58,
+    "min": 0,
+    "max": 1,
+    "step": 0.01,
+    "showIf": {
+      "renderMode": [
+        "scene",
+        "cinematic"
+      ],
+      "sceneMaterial": "custom"
+    }
+  },
+  {
+    "id": "sceneMetalness",
+    "urlKey": "met",
+    "label": "Metalness",
+    "section": "3-D scene",
+    "type": "number",
+    "display": "slider",
+    "default": 0.04,
+    "min": 0,
+    "max": 1,
+    "step": 0.01,
+    "showIf": {
+      "renderMode": [
+        "scene",
+        "cinematic"
+      ],
+      "sceneMaterial": "custom"
+    }
+  },
+  {
+    "id": "sceneShadows",
+    "urlKey": "s3s",
+    "label": "Shadows",
+    "section": "3-D scene",
+    "type": "boolean",
+    "default": true,
+    "showIf": {
+      "renderMode": [
+        "scene",
+        "cinematic"
+      ],
+      "sceneMaterial": [
+        "matte",
+        "satin",
+        "gloss",
+        "metal",
+        "clay",
+        "glass",
+        "glow",
+        "custom"
+      ]
     }
   },
   {
@@ -1037,104 +1385,6 @@
     "help": "Lens angle in degrees. A wider view feels faster; a narrower view compresses the scene and reads more analytically.",
     "showIf": {
       "renderMode": "cinematic"
-    }
-  },
-  {
-    "id": "sceneMaterial",
-    "urlKey": "mat",
-    "label": "Material",
-    "section": "3-D scene",
-    "type": "select",
-    "default": "matte",
-    "options": [
-      {
-        "value": "accurate",
-        "label": "Accurate colour - unlit"
-      },
-      {
-        "value": "matte",
-        "label": "Matte"
-      },
-      {
-        "value": "gloss",
-        "label": "Gloss"
-      },
-      {
-        "value": "glass",
-        "label": "Glass"
-      }
-    ],
-    "help": "Accurate colour keeps the scene closest to the design system swatches. Lit materials add depth; legends retain the exact semantic colours.",
-    "showIf": {
-      "renderMode": [
-        "scene",
-        "cinematic"
-      ]
-    }
-  },
-  {
-    "id": "sceneRoughness",
-    "urlKey": "rou",
-    "label": "Roughness",
-    "section": "3-D scene",
-    "type": "number",
-    "display": "slider",
-    "default": 0.58,
-    "min": 0,
-    "max": 1,
-    "step": 0.01,
-    "showIf": {
-      "renderMode": [
-        "scene",
-        "cinematic"
-      ],
-      "sceneMaterial": [
-        "matte",
-        "gloss",
-        "glass"
-      ]
-    }
-  },
-  {
-    "id": "sceneMetalness",
-    "urlKey": "met",
-    "label": "Metalness",
-    "section": "3-D scene",
-    "type": "number",
-    "display": "slider",
-    "default": 0.04,
-    "min": 0,
-    "max": 1,
-    "step": 0.01,
-    "showIf": {
-      "renderMode": [
-        "scene",
-        "cinematic"
-      ],
-      "sceneMaterial": [
-        "matte",
-        "gloss",
-        "glass"
-      ]
-    }
-  },
-  {
-    "id": "sceneShadows",
-    "urlKey": "s3s",
-    "label": "Scene shadows",
-    "section": "3-D scene",
-    "type": "boolean",
-    "default": true,
-    "showIf": {
-      "renderMode": [
-        "scene",
-        "cinematic"
-      ],
-      "sceneMaterial": [
-        "matte",
-        "gloss",
-        "glass"
-      ]
     }
   },
   {
@@ -1492,8 +1742,16 @@
         "label": "Reveal data"
       },
       {
+        "value": "stagger",
+        "label": "Rise one by one"
+      },
+      {
         "value": "orbit",
         "label": "Orbit camera"
+      },
+      {
+        "value": "arc",
+        "label": "Sweep across and back"
       },
       {
         "value": "reveal-orbit",
@@ -1952,14 +2210,25 @@
     "min": 0,
     "max": 0.9,
     "step": 0.01,
-    "showIf": {
-      "renderMode": "vector",
-      "chartType": [
-        "donut",
-        "radial-bar",
-        "gauge"
-      ]
-    }
+    "showIf": [
+      {
+        "renderMode": "vector",
+        "chartType": [
+          "donut",
+          "radial-bar",
+          "gauge"
+        ]
+      },
+      {
+        "renderMode": "scene",
+        "sceneType": "donut3d",
+        "sceneLayout": [
+          "auto",
+          "donut",
+          "towers"
+        ]
+      }
+    ]
   },
   {
     "id": "sliceGap",
@@ -1972,15 +2241,22 @@
     "min": 0,
     "max": 24,
     "step": 1,
-    "showIf": {
-      "chartType": [
-        "pie",
-        "donut",
-        "radial-bar",
-        "treemap",
-        "pack"
-      ]
-    }
+    "showIf": [
+      {
+        "renderMode": "vector",
+        "chartType": [
+          "pie",
+          "donut",
+          "radial-bar",
+          "treemap",
+          "pack"
+        ]
+      },
+      {
+        "renderMode": "scene",
+        "sceneType": "donut3d"
+      }
+    ]
   },
   {
     "id": "cornerRadius",
@@ -2185,6 +2461,10 @@
     ],
     "help": "How long category labels are fitted. Auto wraps them into the label column on horizontal bars, and angles or wraps them on vertical bars when they'd collide - instead of truncating them.",
     "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ],
       "chartType": [
         "bar",
         "bar-horizontal",
@@ -2213,6 +2493,10 @@
     "step": 1,
     "help": "How much of the picture to hand to the category labels - the width of the label column on horizontal bars, or the height of the label strip on vertical bars. 0 fits automatically; raise it to give long labels more room (the bars take the rest).",
     "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ],
       "chartType": [
         "bar",
         "bar-horizontal",
@@ -2241,6 +2525,10 @@
     "step": 1,
     "help": "How many lines a wrapped category label may use before it's trimmed with an ellipsis.",
     "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ],
       "chartType": [
         "bar",
         "bar-horizontal",
@@ -2346,6 +2634,10 @@
       }
     ],
     "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ],
       "chartType": [
         "bar",
         "bar-horizontal",
@@ -2372,6 +2664,10 @@
     "type": "boolean",
     "default": true,
     "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ],
       "chartType": [
         "bar",
         "bar-horizontal",
@@ -2395,28 +2691,38 @@
     "type": "number",
     "default": 0,
     "min": 0,
-    "showIf": {
-      "chartType": [
-        "bar",
-        "bar-horizontal",
-        "line",
-        "area",
-        "scatter",
-        "histogram",
-        "lollipop",
-        "dumbbell",
-        "slope",
-        "gauge",
-        "pareto",
-        "bullet",
-        "range-bar",
-        "radar",
-        "radial-bar",
-        "box",
-        "violin",
-        "beeswarm"
-      ]
-    }
+    "showIf": [
+      {
+        "renderMode": [
+          "vector",
+          "statistical"
+        ],
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "histogram",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "gauge",
+          "pareto",
+          "bullet",
+          "range-bar",
+          "radar",
+          "radial-bar",
+          "box",
+          "violin",
+          "beeswarm"
+        ]
+      },
+      {
+        "renderMode": "scene",
+        "sceneType": "bar3d"
+      }
+    ]
   },
   {
     "id": "showGrid",
@@ -2450,11 +2756,7 @@
         ]
       },
       {
-        "renderMode": [
-          "statistical",
-          "scene",
-          "cinematic"
-        ]
+        "renderMode": "statistical"
       }
     ]
   },
@@ -2466,6 +2768,10 @@
     "type": "boolean",
     "default": true,
     "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ],
       "chartType": [
         "bar",
         "bar-horizontal",
@@ -2504,6 +2810,10 @@
     "max": 12,
     "step": 1,
     "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ],
       "chartType": [
         "bar",
         "bar-horizontal",
@@ -2530,7 +2840,8 @@
     "showIf": {
       "renderMode": [
         "vector",
-        "statistical"
+        "statistical",
+        "scene"
       ]
     },
     "urlKey": "nf",
@@ -2604,11 +2915,11 @@
         ]
       },
       {
-        "renderMode": [
-          "statistical",
-          "scene",
-          "cinematic"
-        ]
+        "renderMode": "statistical"
+      },
+      {
+        "renderMode": "scene",
+        "sceneType": "scatter3d"
       }
     ]
   },
@@ -2643,11 +2954,11 @@
         ]
       },
       {
-        "renderMode": [
-          "statistical",
-          "scene",
-          "cinematic"
-        ]
+        "renderMode": "statistical"
+      },
+      {
+        "renderMode": "scene",
+        "sceneType": "scatter3d"
       }
     ]
   },
@@ -2762,6 +3073,10 @@
     "placeholder": "e.g. Error, StdDev, or 4",
     "help": "Name (or 1-based number) of a column holding the ± error for each value - draws whiskers with end caps around every point/bar. The column is used for the error, not plotted as its own series. Leave blank for none.",
     "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ],
       "chartType": [
         "bar",
         "bar-horizontal",
@@ -2935,12 +3250,22 @@
     "label": "Show data labels",
     "section": "Titles & labels",
     "type": "boolean",
-    "default": true
+    "default": true,
+    "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical",
+        "scene"
+      ]
+    }
   },
   {
     "id": "valueSize",
     "showIf": {
-      "renderMode": "vector",
+      "renderMode": [
+        "vector",
+        "scene"
+      ],
       "showValues": true
     },
     "urlKey": "vsz",
@@ -3058,7 +3383,13 @@
     "min": 0,
     "max": 60,
     "step": 1,
-    "help": "Font size (px) of the x/y axis titles. 0 = auto."
+    "help": "Font size (px) of the x/y axis titles. 0 = auto.",
+    "showIf": {
+      "renderMode": [
+        "vector",
+        "statistical"
+      ]
+    }
   },
   {
     "id": "axisTitleWeight",

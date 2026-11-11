@@ -405,8 +405,9 @@ export function downloadName(ref: AssetRef, ext: string): string {
     .replace(/\.[a-z0-9]+$/i, '')
     .replace(/[^\w.\- ]+/g, '').trim().replace(/\s+/g, '-').toLowerCase() || 'asset';
   // A rondocode song's stored bytes are its canonical JSON, which rondocode itself
-  // opens as `.rondo.json`; a bare `.rondo` would claim rondo-language text.
-  return `${base}.${ext === 'rondo' ? 'rondo.json' : ext}`;
+  // opens as `.rondo.json`; a bare `.rondo` would claim rondo-language text. A saved
+  // station tune is JSON too (lib/lofi-tune.ts).
+  return `${base}.${ext === 'rondo' ? 'rondo.json' : ext === 'lofi' ? 'lofi.json' : ext}`;
 }
 export const svgTextToDataUrl = (svg: string): string => 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 // Read a Blob's bytes as a `data:` URI - a self-contained href for an SVG <image>

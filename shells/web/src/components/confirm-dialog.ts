@@ -85,6 +85,9 @@ export interface ChoiceDialogOpts {
    *  choice/notice/prompt dialogs open elsewhere in the app - e.g. a rapid
    *  second Android share superseding the previous share's still-open chooser. */
   tag?: string;
+  /** The dismiss button's label, for a dialog where "Cancel" would not say what
+   *  dismissing does. It still resolves null, like Escape and the backdrop. */
+  cancelLabel?: string;
 }
 
 /**
@@ -93,14 +96,14 @@ export interface ChoiceDialogOpts {
  * backdrop. Choices render right-to-left as given, with `primary: true` styled
  * as the brand call-to-action; a Cancel button is always prepended.
  */
-export function choiceDialog({ title, message, items, choices = [], tag }: ChoiceDialogOpts): Promise<string | null> {
+export function choiceDialog({ title, message, items, choices = [], tag, cancelLabel }: ChoiceDialogOpts): Promise<string | null> {
   return new Promise((resolve) => {
     const list = items?.length ? `<ul class="modal-items">${items.map(i => `<li>${escape(i)}</li>`).join('')}</ul>` : '';
     const content = `
       <h2 class="modal-title">${escape(title)}</h2>
       <p class="modal-msg">${escape(message)}</p>${list}
       <div class="modal-actions modal-actions--choices">
-        ${actionBtn(t('Cancel'), 'data-act="cancel"', 'cancel')}
+        ${actionBtn(cancelLabel ?? t('Cancel'), 'data-act="cancel"', 'cancel')}
         ${choices.map(c => actionBtn(c.label, `data-choice="${escape(c.id)}"`, c.primary ? 'primary' : 'plain')).join('')}
       </div>`;
     const modal = mountModal<string | null>(content, {

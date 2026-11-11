@@ -2,15 +2,16 @@
 
 Most formats are written on this machine with nothing else installed. The rest need a paint engine, and the CLI finds one for you. This page shows which formats render where, how to size a print page or shape a video and what to do when the browser step fails. Every flag is listed at the end.
 
+<!--i:eti-layers-->
 ## What the CLI can render
 
 ::: figure cli-rendering-tiers
 Each rung adds formats. The CLI takes the lowest rung that can write the format you asked for.
 :::
 
-1. **Nothing extra.** SVG, SVGZ, EMF, WMF, EPS, EPS-CMYK, DXF, HTML and the data formats (JSON, CSV, ICS, VCF, Markdown) are written in Node. So are `penpot` from an `<svg>`-based tool and Lottie, IDML and Premiere XML from a Lolly Design document.
+1. **Nothing extra.** SVG, SVGZ, EMF, WMF, EPS, EPS-CMYK, DXF, HTML and the data formats (JSON, CSV, ICS, VCF, Markdown) are written in Node. So are `penpot` from an `<svg>`-based tool and Lottie, IDML and Premiere XML from a Lolly Design document. So is `pptx` from a Lolly Design document whose frames are built on a slide master, unless it composes text stories, and so are the audio and MIDI files a tool's own export hook writes, such as `lolly rondocode --export=mid`.
 2. **Pixels from a vector tool.** resvg turns an `<svg>`-based tool's own SVG into pixels, still with no browser. PNG, BMP and JPEG XL come from that frame, and so do the HDR stills (`--hdr=1` with `png` or `jpg`) and the float formats EXR and HDR.
-3. **Everything else.** JPG, WebP, PPTX, video, most PDFs, PNG from page-layout tools, `ico` and `txt` need a paint engine: a running Lolly desktop app, an installed one the CLI starts in the background or the CLI's own headless Chromium.
+3. **Everything else.** JPG, WebP, other PPTX, video, most PDFs, PNG from page-layout tools, caption files (`srt`, `vtt`, `ttml`, `scc`), `ico` and `txt` need a paint engine: a running Lolly desktop app, an installed one the CLI starts in the background or the CLI's own headless Chromium.
 
 `lolly list --json` reports which rungs this machine has, and why any is missing ([Discovery, for an agent](/info/cli-reference.html#discovery-for-an-agent)).
 
@@ -36,7 +37,7 @@ Shaping reads `ttf` and `otf` fonts under the content root, from the catalog and
 
 For Chromium, install it once with `lolly install-browser` and build the web shell with `pnpm run build:web`. `LOLLY_BROWSER_PATH` uses a browser binary you already have, `LOLLY_BROWSER_CHANNEL=chrome` uses an installed Chrome or Edge, and `LOLLY_WEB_DIST` or `LOLLY_WEB_BASE` points at a web shell built or served elsewhere.
 
-The web shell needs WebGPU, so Chromium starts with SwiftShader, its software WebGPU adapter, by default. That gives every machine the same GPU results, and it is why a CI runner with no GPU renders the same files as a laptop. The page is also cross-origin isolated, with the same headers production sends, so threaded on-device models run under the same rules as in a browser.
+The web shell needs WebGPU, so Chromium starts with SwiftShader, its software WebGPU adapter, by default. That gives every machine the same GPU results, and it is why a CI runner with no GPU renders the same files as a laptop. Every 2D canvas is drawn on the CPU as well, so a repeat render of the same input draws the same pixels. The page is also cross-origin isolated, with the same headers production sends, so threaded on-device models run under the same rules as in a browser.
 
 <a id="a-design-deck-with-no-browser"></a>
 ### A Lolly Design deck with no browser
@@ -53,13 +54,13 @@ Some documents still take the browser route, with the reason reported: live text
 
 ### Capture a web page
 
-`url-shot` captures a live page from the terminal through the headless Chromium, as PNG, JPG, PDF or SVG. WebP capture needs the desktop app.
+`url-shot` captures a live page from the terminal through the headless Chromium, as PNG, JPG, PDF or SVG. WebP capture needs the desktop app. The SVG is drawn geometry, not a screenshot: the page is walked into vector shapes, text is outlined from the fonts the page loaded, and the result is checked against a screenshot taken at the same moment. Only what has no vector form, such as canvas, video and embedded frames, goes in as a picture.
 
 ### The output extension is a format request
 
 An extension picks a format, so it is checked like one. If the tool does not declare it, the run stops instead of writing the tool's first format under your filename:
 
-```text
+```bash
 $ lolly qr-code --output=qr.csv
 Error: --output=qr.csv asks for ".csv", which "qr-code" does not produce. Supported: svg,
 penpot, png, jpeg, webp, avif, tiff, pdf, pdf-cmyk, cmyk-tiff, eps, eps-cmyk, dxf, emf,
@@ -69,6 +70,7 @@ it under that filename anyway.
 
 Naming the format is how you opt out: `lolly qr-code --export=svg --output=qr.notes` writes SVG under that name and exits `0`. An `--output` with no extension renders the tool's default format.
 
+<!--i:eti-crop-->
 ## Size, units and print
 
 Everything that is not a reserved flag is a tool input, checked against the tool's manifest. Size, units and print settings are reserved flags. An A4 page:
@@ -81,12 +83,15 @@ lolly wordmark --text="Ship today." --width=210 --height=297 --unit=mm --export=
 
 `--press-profile=fogra39` (or `fogra51`, `swop`, `gracol`) **names** the CMYK press condition in the PDF's output intent. The CLI has no profile store, so it cannot embed one, and a named-only intent is not PDF/X-4: the output intent is written, the PDF/X-4 version claim is not. Embedding a profile you loaded is a web-shell feature today.
 
+`--spots=process` prints every spot ink of the design system with the four process inks, the CLI spelling of a link's `_spots=process`. Any other value is a usage error, so a typo never comes back looking like a four-colour file ([Spot inks as process](/info/exporting.html#spot-inks-as-process)).
+
 ::: note --profile means the press condition
 `--profile` is an alias of `--press-profile`, matching URL mode's reserved `profile` parameter, so a pasted link's `profile=fogra51` and a typed `--profile=fogra51` mean the same thing. A user-profile JSON file has its own flag, `--user-profile=<file.json>`.
 :::
 
 `lolly preflight` counts and checks a print job before you render it ([Preflight an export](/info/cli-automation.html#preflight-an-export-lolly-preflight)).
 
+<!--i:eti-stamp-->
 ## Provenance on every file
 
 Like the app, a CLI render carries two marks by default:
@@ -100,6 +105,7 @@ It also records the [design system](/info/exporting.html#the-design-system-recor
 
 A render whose placed sources still need a licence decision writes the file and exits `4`, so a pipeline cannot ship it unnoticed. `--rights=private` says the render stays private, which settles a choice that only matters once a file is shared ([Creative rights and credits](/info/creative-rights.html)). Check any file with `lolly validate` ([Verify a file](/info/cli-reference.html#verify-a-file-lolly-validate)).
 
+<!--i:eti-film-->
 ## Video and timelines
 
 `--export=mp4`, `webm`, `gif`, `apng` or `webp-anim` drives the app's own sequence renderer inside the headless Chromium. Nothing is rebuilt for the terminal: the CLI hands the built web shell the tool's state, the shell records its timeline through WebCodecs and the finished file comes back as bytes. A Lolly Design timeline, a deck's `pptx` and an animated tool's `gif` all take that one path, so the file is the one the export panel would write.
@@ -126,7 +132,9 @@ Measured in September 2026 on one machine (Apple silicon, a built `shells/web/di
 A timeline with an audio box comes back with real sound and a master pass: the peak of that last file sits at the -1 dBTP limiter's ceiling. `tests/cli-tierb-video.test.ts` renders an mp4 and a pptx through the built web shell and reads both back, and skips by name when the web shell or the browser is missing.
 :::
 
-Video bytes are **not** the same run to run, because the browser's paint and encode move. Compare video by rendering and inspecting, never by digest.
+::: warning Video bytes change from run to run
+The browser's paint and encode move between runs, so the bytes of a video are **not** the same twice. Compare video by rendering and inspecting, never by digest.
+:::
 
 ### Review a timed composition
 
@@ -161,6 +169,7 @@ The song's code runs in the `vm` execution class, QuickJS in WebAssembly with no
 
 A mix that holds a song is signed with Content Credentials that record each song as a source: its name, the SHA-256 of its `.rondo.json` and how it was rendered. When the whole file is one song, the credential and the WAV's comment tag also say the music was computed from the song's code with no trained model. The CLI reads the file back and lists the songs its credential records, and `--json` carries the same under `result.credentials`. `--c2pa=off` or `--no-provenance` leaves this out, and `--sign-key`/`--sign-cert` sign with your identity. A mix with no song carries no credential.
 
+<!--i:eti-images-->
 ## Pictures into a list
 
 Some tools take a pile of pictures, one row each. In the app you drop them on the list; Lolly Logo Wall's **Logos** is one such list. The CLI takes the same pictures in three ways, and each file becomes one row with the picture in it and every other field at its default, as a drop does. Each picture is read into memory on this machine and never uploaded.
@@ -220,12 +229,14 @@ A tall 1080 x 1920 wall set to 4 columns has 2 in its top row; a 3:1 banner has 
 
 Four of Lolly Logo Wall's steps read pixels: Balance sizes, Trim margins, Remove white backgrounds and tracing an image logo for Render as vector. They run where the shell has a 2D canvas: the app, and this CLI, the TUI and an MCP server you run yourself when `@napi-rs/canvas` is installed. Without one, as on a serverless deployment of the MCP server, the wall still renders and a warning lists each step that was skipped. Render as vector still recolours an SVG logo there, because that needs no pixels.
 
+<!--i:eti-shapes-->
 ## Composed tools
 
 Some tools place another tool's render as an asset, declared in the manifest (`composes`), with no tool-to-tool imports. No tool in the public catalog declares `composes` today; a brand pack's tool can, for example a badge that places a `qr-code` render. The runtime resolves it on mount, so the outer tool renders with **no extra flags**.
 
 On the CLI an SVG child composes end to end and stays vector. A raster child is left out and the outer tool still renders, without that slot. The app composes a raster child in full.
 
+<!--i:eti-link-->
 ## Run a share link
 
 A pasted `lolly.tools` tool link can be the **first argument**. The CLI splits it into a tool id and its inputs, and any flag after it overrides what the link carried:
@@ -244,16 +255,22 @@ The reverse is `--share` (or `--link`), which prints a link for the inputs you p
 lolly qr-code --url=https://example.com --share
 ```
 
+<!--i:eti-help-->
 ## When the browser tier fails, ask it why (--tier-b-debug)
 
 A failed paint-tier render exits `3` and says which step ran out of time. `--tier-b-debug` (or `LOLLY_TIER_B_DEBUG=1`) keeps the headless page's console, page errors and network log, times every step and **on failure** writes them to `<output>.tier-b-debug.log`, or to `lolly-tier-b-debug-<tool>.<format>.log` in the working directory when there is no `--output`. A run that succeeds writes nothing, and each section stops at 500 lines.
 
-```text
+```bash
 $ lolly wordmark --export=jpg --tier-b-debug --output=fail.jpg
 Error: Cannot export "jpeg". Reason: The web shell produced no "jpeg" file for "wordmark"
 in time … Timed out in step "wait for the jpeg download" after 59.9s.
 Debug log: ./fail.jpg.tier-b-debug.log  No file was written.
+```
 
+::: details What the debug log holds
+The log lists each step with its time, the last one being where the render stopped, then the page's console and network entries:
+
+```bash
 $ cat fail.jpg.tier-b-debug.log
 Lolly Tier-B debug - wordmark.jpeg
 failed: no "jpeg" file (step "wait for the jpeg download" after 60.0s)
@@ -270,7 +287,11 @@ CONSOLE (1)
 NETWORK (1)
   [0.28s] 200 GET http://127.0.0.1:49404/
 ```
+:::
 
+A Lolly Design document reaches the page as a `.lolly` file, and that step has a limit of its own. When the page has not asked for the file within 45 seconds, the error says what the page showed: still loading on a busy machine, part way through opening the file, or stopped at its WebGPU startup check.
+
+<!--i:eti-sliders-->
 ## Flags
 
 Every reserved flag below works on `lolly run` and on the bare `lolly <tool-id>` form. Anything else is a tool input (`--<inputId>=<value>`), and a bare flag with no `=` is true, which suits boolean inputs. Flags that apply to every command, such as `--json` and `--strict`, are in the [CLI reference](/info/cli-reference.html#global-flags).
@@ -284,7 +305,7 @@ Every reserved flag below works on `lolly run` and on the bare `lolly <tool-id>`
 | `--input.<id>=<value>` | Set a tool input whose id is also a reserved flag (`width`, `height`, `format`). Without it the value goes to the export. |
 | `--text=outline\|live` | Vector text as paths or editable text. `svg` defaults to `outline`. `emf` defaults to `live`: real metafile text records, editable in Office and Google Slides, with runs the format cannot express (tracking, feature settings, strokes, skew) outlined per run. `live` cannot apply to `wmf`, `eps` or `dxf`, and an `svg` from the paint tier is outlined, the app's default; both cases warn. `outline` on `emf` reaches the paint tier as `_text=outline`, so a run no font can draw goes in as a picture there, as it does in the app. |
 | `--html-fallback` | Opt in: when the format cannot be produced here, write HTML under a `.html` name instead of failing. Hook, integrity and PDF finishing failures still fail. |
-| `--export-report=<path>` | After the file is written, compare what was asked for with what the file holds, read from its bytes: container, size, page count, resolution, duration and frames, alpha, colour model, HDR signalling, Content Credentials presence, encryption and fonts. The JSON report is bound to the bytes by SHA-256 (`-` writes it to stderr). A value the file cannot supply is a gap, never a pass, and each difference warns, so `--strict` exits `4` when the file is not what was asked for. A credential is reported as present, not verified; run `lolly validate` for that. With `--bleed` or `--marks`, a PDF with a trim box is compared with the trim, one with only a media box with the whole sheet and a CMYK TIFF with the whole sheet's pixels. On-device transforms refuse the flag. |
+| `--export-report=<path>` | After the file is written, compare what was asked for with what the file holds, read from its bytes: container, size, page count, resolution, duration and frames, alpha, colour model, HDR signalling, Content Credentials presence, encryption and fonts. The JSON report is bound to the bytes by SHA-256 (`-` writes it to stderr). A value the file cannot supply is a gap, never a pass, and each difference warns, so `--strict` exits `4` when the file is not what was asked for. A credential is reported as present, not verified; run `lolly validate` for that. For a PDF the report adds 32 accessibility checks, each passed, failed, not applicable or needing a person; it never says a PDF is accessible or compliant. With `--bleed` or `--marks`, a PDF with a trim box is compared with the trim, one with only a media box with the whole sheet and a CMYK TIFF with the whole sheet's pixels. On-device transforms refuse the flag. |
 :::
 
 ::: details Size, print and colour
@@ -295,6 +316,7 @@ Every reserved flag below works on `lolly run` and on the bare `lolly <tool-id>`
 | `--dpi=` | Raster DPI for physical units (default 300). |
 | `--bleed=<dim>`, `--marks=<list>` | Print bleed and marks (`crop`, `reg`, `bleed`, `bars`, `prov`). |
 | `--press-profile=<cond>` | CMYK press condition (`fogra39`, `fogra51`, `swop`, `gracol`), named in the PDF's output intent. `--profile` is its alias. |
+| `--spots=process` | Print the design system's spot inks with the four process inks, as `_spots=process` does on a link. Any other value is a usage error. |
 | `--depth=8\|16\|float`, `--hdr=1` | Bits per channel, and the HDR view transform. A float format over an 8-bit render is refused (exit `4`). With `--hdr=1`, **PNG** is written at 16 bits in Rec.2100 PQ (`--depth=8` is answered rather than obeyed, because 8-bit PQ bands in the shadows) and **JPG** as an ISO 21496-1 gain-map file, an ordinary SDR JPEG that older viewers show unchanged. Both are encoded in this shell, so they match an app export byte for byte, and an `<svg>`-based tool writes a gain-map JPEG with no browser. `avif`, `tiff` and 10-bit `mp4`/`webm` go to the paint tier. `webp` stays 8-bit SDR everywhere. `--hdr` with `--durable` exits `3` (`HDR_DURABLE_UNAVAILABLE`), because the durable mark needs the browser's encoder. |
 | `--lang=<code>` | Content language (`de`, `ja`, `ar`, …). |
 :::
@@ -326,6 +348,7 @@ Every reserved flag below works on `lolly run` and on the bare `lolly <tool-id>`
 | `--share`, `--link` | Print a `lolly.tools` link for these inputs instead of rendering. |
 | `--z=<token>` | Expand a packed link token into the inputs it holds. |
 | `--zx=<token>`, `--link-password=<pw>` | A password-protected link's state, and its password. A missing or wrong password exits `6`, never a render of the tool's defaults. |
+| `--themes=<a,b\|all>` | Export once per theme, to `<stem>-<theme>.<ext>` beside `--output` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)). |
 | `--designv=<slug\|latest>` | The design-system version to render against ([URL parameters](/info/url-parameters.html)). |
 | `--emoji=<set@version>`, `--emojifx=<treatment>`, `--emojistyle=<json>` | The emoji set, its brand treatment and an exact style snapshot ([URL parameters](/info/url-parameters.html)). |
 | `--user-profile=<file.json>` | A user-profile JSON file that pre-fills `bindToProfile` inputs. A path that cannot be read or parsed exits `2`. |

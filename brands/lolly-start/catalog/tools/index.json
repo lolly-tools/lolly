@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-07T14:52:21.763Z",
+  "generatedAt": "2026-11-10T05:12:40.965Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -8591,7 +8591,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.28.0",
+      "version": "1.29.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -8723,8 +8723,9 @@
             "chartStyle": "studio-3d",
             "heading": "Responses by team and wave",
             "data": "Team,First wave,Second wave,Final wave\nDesign,42,51,63\nEngineering,58,66,74\nSales,33,47,59\nSupport,27,39,52",
-            "motionPreset": "reveal-orbit",
-            "cameraProjection": "orthographic"
+            "motionPreset": "reveal",
+            "sceneMaterial": "satin",
+            "sceneStage": "studio"
           }
         },
         {
@@ -8736,7 +8737,7 @@
             "chartStyle": "glass-3d",
             "heading": "Demand surface",
             "data": "Hour,Monday,Tuesday,Wednesday,Thursday,Friday\n08:00,12,18,14,17,22\n10:00,23,31,28,35,42\n12:00,46,55,61,58,68\n14:00,38,49,53,57,63\n16:00,29,41,47,51,58\n18:00,18,27,33,39,46",
-            "motionPreset": "orbit"
+            "motionPreset": "arc"
           }
         }
       ],
@@ -8789,7 +8790,7 @@
           "id": "brand-terrain",
           "name": "Brand terrain",
           "category": "3-D",
-          "description": "A genuine value surface whose height, colour and material come from the data and brand."
+          "description": "A solid value surface whose height and colour come from the data and the colourway's ramp, with the data's own rows drawn on it."
         },
         {
           "id": "branded-presentations-isometric",
@@ -8888,6 +8889,12 @@
           "description": "Paste or replace a table and get an explained, on-brand starting form with editable field mappings."
         },
         {
+          "id": "hero-highlight",
+          "name": "One bar that matters",
+          "category": "3-D",
+          "description": "A low, wide camera crops in on the value you want people to see; every other bar steps back into a quiet tone of the stage."
+        },
+        {
           "id": "hexbin-density-contours",
           "name": "Density contours",
           "category": "Statistical",
@@ -8945,19 +8952,25 @@
           "id": "scene-bars-glass",
           "name": "Glass 3-D bars",
           "category": "3-D",
-          "description": "Use translucent brand-tinted materials."
+          "description": "Translucent bars on a night stage built from the design system's deepest colour, with a slow sweep of the camera."
         },
         {
           "id": "scene-bars",
           "name": "Studio 3-D bars",
           "category": "3-D",
-          "description": "Real depth, lighting and camera motion for a multi-series comparison."
+          "description": "Real depth, light and a framed camera for a multi-series comparison, in a studio coloured by the design system."
         },
         {
           "id": "share-donut",
           "name": "Share donut",
           "category": "Share",
           "description": "A donut splitting a total into five segments."
+        },
+        {
+          "id": "share-towers",
+          "name": "Share towers",
+          "category": "3-D",
+          "description": "A donut whose slices also rise by their value, standing on a plinth in the design system's colours."
         },
         {
           "id": "small-multiple-trends",
@@ -8969,7 +8982,7 @@
           "id": "spatial-scatter",
           "name": "Spatial scatter",
           "category": "3-D",
-          "description": "Map four numeric columns to x, y, z and point size in a real scene."
+          "description": "Map four numeric columns to x, y, z and point size on a floor grid, coloured by height from the colourway's ramp."
         },
         {
           "id": "trend-line",
@@ -8982,6 +8995,12 @@
           "name": "Forecast range",
           "category": "Editorial",
           "description": "Show an expected path inside an honest low-to-high range, with the active brand setting the hierarchy."
+        },
+        {
+          "id": "year-in-the-round",
+          "name": "A year in the round",
+          "category": "3-D",
+          "description": "Twelve months stand in a ring on a night stage, coloured by value from the colourway's ramp while the camera orbits."
         }
       ],
       "i18n": {

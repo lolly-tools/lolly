@@ -12,6 +12,7 @@ Lolly Demo's six colourways in the light look and the dark look: each has a lead
 
 [Brand architectures](/info/brand-architectures.html#rotating-lead-colour) compares a rotating lead with the other ways an organisation arranges its brands, and [Lolly Demo in use](/info/lolly-demo-in-use.html) shows the six at work.
 
+<!--i:eti-palette-->
 ## Choose a colourway for one piece
 
 In a tool, the sidebar's **Design system** section shows the choices the design system offers: one dot per colourway, drawn in its lead and partner for the current look, then **Light** and **Dark**, then a list for any other theme group. In Lolly Design, the Inspector's **Canvas** tab shows the same choices, and the two always agree.
@@ -27,6 +28,7 @@ The choice travels wherever the piece goes:
 - **In a batch,** per row, in the CSV's `_themes` column ([Lolly Batch](/info/batch.html#make-many-versions-of-one-design)).
 - **In the exported file,** as the [design-system record](/info/exporting.html#the-design-system-record), which gives the colourway beside the tool: *Lolly Chart (Beach colourway)*.
 
+<!--i:eti-user-check-->
 ## Make a colourway your own
 
 A team inside a brand, such as a department or a product, often has a colourway of its own. In **Settings → Appearance**, **Your colourway** shows the design system's colourways as dots, drawn in the app's current look, with the canonical one marked as the design system default. Pick a dot and two things change:
@@ -46,19 +48,21 @@ Your choice never changes a piece that already has its colours settled:
 
 An export started in your colourway records that colourway in its [design-system record](/info/exporting.html#the-design-system-record), the same way as a colourway picked in the sidebar.
 
+<!--i:eti-monitor-->
 ## The app follows your colourway
 
 The app's accent, favicon and logo tint follow your colourway, or the canonical colourway when you have not chosen one, whatever the open piece uses: the app belongs to the device, and the canvas belongs to the piece. A Beach poster shows Beach on the canvas and your colourway in the app around the poster. Every other theme group stays on its canonical option for the app, whether or not it declares a kind, except light and dark, which follow the app's appearance setting.
 
 The canonical colourway is the one marked `canonical`, or the first when none is marked. For Lolly Demo it is Spearmint. **Settings → Design system** lists the design system's colourways (`#/settings?dash-colourways`).
 
+<!--i:eti-blend-->
 ## Tools that use every lead
 
 Some tools draw several colours at once, and they draw on the whole family: every colourway's lead in the piece's look, canonical first, read through `host.tokens.family()` ([Host API](/info/host-api.html)).
 
 | Where | What the family changes |
 | --- | --- |
-| Lolly Chart | The leads come first in the categorical palette: ahead of the design system's own spectrum, or ahead of the shipped colours when it has none, so the palette never has fewer colours than with one colourway. They follow Primary and Secondary in the ordered palette and the recolour swatches. Another colourway's lead becomes the second hue of the two-hue sequential and diverging ramps. The **Design system - colour roles first** palette, which you choose, leads with the design system's [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called) in the piece's colourway instead. |
+| Lolly Chart | The leads come first in the categorical palette: ahead of the design system's own spectrum, or ahead of the shipped colours when it has none, so the palette never has fewer colours than with one colourway. They follow Primary and Secondary in the ordered palette and the recolour swatches. Another colourway's lead becomes the second hue of the two-hue sequential and diverging ramps. The **Design system - colour roles first** palette, which you choose, leads with the design system's [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called) in the piece's colourway instead. A 3-D chart builds its stage from the colourway too: the studio floor and wall are the background colour, the night stage is the design system's deepest colour, and the lights and reflections are tinted with the secondary and the primary. A palette colour too close to the stage is left out rather than muddied, so a dark colourway leads with its brighter hues. |
 | Audiogram | The other colourways' leads follow the background in the visualiser's colours. |
 | Mesh Gradient | **Shuffle colours** draws on the leads before the rest of the design system. |
 | The visualiser's colour schemes | One scheme per colourway, in the design system's order and labelled with the colourway's name, with that colourway's partner as the counterpoint. A lead too dark or too grey to carry the picture hands the field to its partner. |
@@ -73,15 +77,21 @@ The family holds one colour per colourway. On a design system with [colour roles
 
 A design system with one colourway, or none, has no family, and each of these tools draws exactly as before. Tool authors reach the family through the canvas variables `--brand-lead-1` onwards and a colour input's `"palette": "colourway-leads"` option; [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) and [Tool inputs](/info/tool-inputs.html) cover both.
 
+<!--i:eti-lock-->
 ## Tools that keep their own colours
 
 A tool whose colours are its content, such as a tonal ramp, can declare `"tokenAxes": { "colourway": "ignore" }` in its manifest ([Tool manifests](/info/tool-manifest.html#colours-that-are-the-content) has the format). That tool renders in the canonical colourway whatever a link, a saved session or the design system's stored choice asks for, and its sidebar offers no colourway. Any other kind works the same way, such as `mode` for a print piece always drawn in the canonical look.
 
 When a link or `--_themes` asks such a tool for another option, `lolly run` prints a `THEME_CHOICE_IGNORED` warning, which `--strict` turns into a failure, and an MCP render adds the same sentence to its warnings.
 
+<!--i:eti-repeat-->
 ## Rules for a series
 
-A series of pieces, such as a week of social posts or the speakers at an event, can take its colourways from a rule. The engine's `pickColourway` function applies five rules. No series or batch flow in the app applies them yet, so for now they are for scripts and tools that call the engine. Until a flow applies a rule, give each row its colourway in a batch CSV's `_themes` column ([Lolly Batch](/info/batch.html#colourways-and-themes-per-row)), or export one piece in several colourways from the command line with `--themes=Spearmint,Beach` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
+A series of pieces, such as a week of social posts or the speakers at an event, can take its colourways from a rule. The engine's `pickColourway` function applies five rules.
+
+::: note Rules are for scripts for now
+No series or batch flow in the app applies them yet, so for now they are for scripts and tools that call the engine. Until a flow applies a rule, give each row its colourway in a batch CSV's `_themes` column ([Lolly Batch](/info/batch.html#colourways-and-themes-per-row)), or export one piece in several colourways from the command line with `--themes=Spearmint,Beach` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
+:::
 
 ::: figure colourways-series
 Eight pieces from Lolly Demo under each rule, picked by the engine itself.
@@ -97,6 +107,7 @@ Eight pieces from Lolly Demo under each rule, picked by the engine itself.
 
 A rule is applied when each piece is made, and the piece stores the colourway it got, never the rule. Adding a colourway later changes what a rule picks for new work and leaves every existing piece as it was. The same seed, key, date and position pick the same colourway on every computer, because the engine supplies no clock and no random source of its own.
 
+<!--i:eti-file-plus-->
 ## Add colourways to a design system
 
 <a id="in-design-system-setup"></a>
@@ -161,8 +172,9 @@ Each function works on a copy, resolves every token under every choice of look a
 
 ### Colour roles in each colourway
 
-A design system with [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called) holds every role's colour in every colourway, for each look, beside the slots. The record at `$extensions["com.suse.lolly"].brandSystem` lists the roles with `"group": "colourway"` in the brand's order, and its bindings say which slot each role fills. Wefthouse, an invented textile brand, trimmed to one colourway and its light look:
+A design system with [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called) holds every role's colour in every colourway, for each look, beside the slots. The record at `$extensions["com.suse.lolly"].brandSystem` lists the roles with `"group": "colourway"` in the brand's order, and its bindings say which slot each role fills. The example is Wefthouse, an invented textile brand, trimmed to one colourway and its light look.
 
+::: details The Wefthouse token file
 ```json
 {
   "$extensions": { "com.suse.lolly": { "brandSystem": {
@@ -194,6 +206,7 @@ A design system with [colour roles](/info/brand-studio.html#colour-roles-what-th
     "supporting": { "$value": "#6c7a89" } } } } }
 }
 ```
+:::
 
 - **Values.** A role's colour lives at `color.colourway.<look>.<id>` in each colourway's set, and `color.semantic.<id>` in each look links to that colour. So `{color.semantic.main}` in a colour field and `--brand-main` on a canvas follow the piece's colourway and look, the same way the lead colour does.
 - **Bindings.** A slot a role fills is an alias to that role inside every colourway's set: here `primary` reads Main and `secondary` reads Accent. Everything that reads a slot keeps working with no change, and moving a binding rewrites those aliases and never a value. A role whose id is a slot's own name, such as `primary`, is that slot and needs no alias.
@@ -202,6 +215,7 @@ A design system with [colour roles](/info/brand-studio.html#colour-roles-what-th
 
 A design system that declares no colour roles holds none of this, and every colourway function writes its file exactly as it did before colour roles existed. Exported files record the design system, its version and the theme choices, and nothing about roles.
 
+<!--i:eti-folder-move-->
 ## Colourways in Penpot
 
 A `.penpot` export keeps the colourway group and its sets, and opens with the canonical colourway turned on so the links resolve. Penpot's theme record has no field for the kind, so the group arrives in Penpot, and comes back from it, as a plain theme group. A design system with colour roles gets the kind back on import, from the group's name, `colourway`, along with its roles' words. [Colour roles in other formats](/info/design-tokens.html#colour-roles-in-other-formats) lists what each format keeps.
