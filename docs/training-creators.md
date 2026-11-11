@@ -12,6 +12,17 @@ A course holds ordered lessons, formatted text, images, slides, video, audio, do
 
 When the course is ready, [Deliver and update a course](/info/training-delivery.html) covers choosing a format, publishing it and releasing new versions.
 
+**What you'll do**, in five steps:
+
+::: steps
+- <!--i:eti-folder-plus--> **[Start from your project](#start-from-your-project)** Choose content from a Projects folder and set the teaching order.
+- <!--i:eti-layers--> **[Arrange the course](#arrange-the-course)** Lessons, sections and what is required for completion.
+- <!--i:eti-images--> **[Add teaching material](#add-designs-slides-and-media)** Text, quizzes, designs, slides, video, audio and handouts.
+- <!--i:eti-eye--> **[Preview the course](#preview-the-learner-experience)** Try the course as a learner, with the real player.
+- <!--i:eti-package--> **[Check and export](#check-and-export-the-course)** Fix what the check finds, then save a version and download the ZIP.
+:::
+
+<!--i:eti-folder-plus-->
 ## Start from your project
 
 1. Open the **Projects** view, then the folder that holds your course material.
@@ -22,10 +33,15 @@ When the course is ready, [Deliver and update a course](/info/training-delivery.
 
 You can also select a mix of project items and choose **Export course**, or choose **Export course** in a supported tool's export controls; the tool saves its current inputs before handing them over. **Create learning module** in Projects starts an empty outline. A course started outside a folder appears with your unfiled work; reopen its **Learning module** tile to carry on editing.
 
-Changes save after a pause in typing, when you leave a field or when you change the outline. Wait for **Saved on this device** before closing the tab, and use **Retry save** when a write fails. If another window has changed the module, keep the current window open and copy your edits before reopening the saved version. **Undo edit** reverses recent draft edits in the current session; it never deletes published versions.
+Changes save after a pause in typing, when you leave a field or when you change the outline. **Undo edit** reverses recent draft edits in the current session; it never deletes published versions.
+
+::: warning Wait for Saved on this device
+Wait for **Saved on this device** before closing the tab, and use **Retry save** when a write fails. If another window has changed the module, keep the current window open and copy your edits before reopening the saved version.
+:::
 
 ![A learning module with an ordered outline, native lesson text, an image and a downloadable resource](/info/shots/training-module-outline.svg)
 
+<!--i:eti-layers-->
 ## Arrange the course
 
 Each lesson holds one or more pieces of content, and the order in the outline is the order learners see. The outline shows each lesson's content count and marks optional lessons; select a lesson to edit the lesson's content. On a phone, open **Lessons** to organise the outline, and choosing a lesson folds it again so you can edit the content.
@@ -43,6 +59,7 @@ With a keyboard, focus a content or lesson grip and press Space or Enter to pick
 
 Keep lessons focused. A pattern that works: a short explanation, a demonstration, then instructions for the learner to try the task. The module needs at least one required lesson, and every lesson needs content.
 
+<!--i:eti-type-->
 ## Format lesson text
 
 Choose **Add text** and write on the canvas. Select text and use the formatting bar for **Bold**, **Italic**, **Underline**, bullet or numbered lists, quotes and links. **Text style** chooses a paragraph, heading or subheading. The usual editing shortcuts work, and Alt+F10 moves focus from the text to its formatting bar.
@@ -51,6 +68,7 @@ In the exported player the text stays selectable, with real headings and lists. 
 
 The active design system supplies the authoring colours, fonts and controls, and the learner preview uses its resolved presentation. Saving a course version captures those styles and the fonts it needs with the content, so later profile edits never restyle a package already shared with a customer.
 
+<!--i:eti-help-->
 ## Add practice quizzes
 
 Choose **Add quiz** after an explanation or demonstration:
@@ -61,10 +79,15 @@ Choose **Add quiz** after an explanation or demonstration:
 4. Open **Answer explanation** to describe the reasoning. The explanation appears after the learner checks an answer.
 5. Use **Preview as learner** to try correct and incorrect responses. **Check answer** gives feedback, and learners can change their choices and try again.
 
-The export check flags empty questions, missing or duplicate answer text and invalid answer keys, and **Fix item** goes straight to the content concerned. Practice answers resume with the saved attempt in a browser or LMS. They never set an LMS score, a pass mark or a completion requirement, and every portable package includes its answer key, so use these questions for learning and rehearsal.
+The export check flags empty questions, missing or duplicate answer text and invalid answer keys, and **Fix item** goes straight to the content concerned.
+
+::: note Practice questions are not assessed
+Practice answers resume with the saved attempt in a browser or LMS. They never set an LMS score, a pass mark or a completion requirement, and every portable package includes its answer key, so use these questions for learning and rehearsal.
+:::
 
 ![The course canvas with formatted teaching text and a practice question](/info/shots/training-course-quiz.svg)
 
+<!--i:eti-images-->
 ## Add designs, slides and media
 
 Choose **Add content** inside the selected lesson. The picker shows the lesson receiving the content and opens its course project when there is one. Browse projects, saved creations, the library or uploads. Each addition updates the item count; choose **Done** when you have what you need. **Create or edit** holds the photo, capture and processing shortcuts available on your device.
@@ -86,12 +109,14 @@ The learner's browser must also support the media encoding, so convert anything 
 
 Still pages carry only their visual appearance, so add equivalent explanations as lesson text and nobody has to read an image to follow the lesson. Interactive elements inside a design become part of the exported visual or video, while the learner navigation and completion buttons stay native controls.
 
+<!--i:eti-refresh-->
 ## Edit or refresh a source
 
 Under **Content options** for a saved tool creation, **Edit source** opens the original editor. Save there to return to the learning module, choose **Update from source** on the content block and review the update in the learner preview.
 
 The module keeps a captured copy of a saved creation's inputs, and editing the original does not replace that copy by itself. Referenced asset bytes and the installed tool are resolved when you prepare a preview or build a version, so check the final output after changing your library or tools. Batch rows are captured as independent content: add a batch row again from Projects to take in later changes. A saved ZIP already contains its own finished files, so later edits to the project, a source creation, the asset library or the module never change a saved package.
 
+<!--i:eti-user-check-->
 ## Make the course understandable and accessible
 
 For images and slides, add a **Description or equivalent explanation**. Use **Decorative image** only when an image adds nothing a learner needs. For a dense diagram, put a fuller explanation in **Add text**.
@@ -107,10 +132,15 @@ Open a terminal and check the system version.
 
 Lolly checks the WebVTT header; preview the timing and wording yourself. Include important sounds and relevant visual information in the written version or the lesson text.
 
-Add any required attribution, licence information and disclosure of synthetic narration as visible lesson text. Check that you have permission to distribute the images, fonts, music, footage and other material in the customer's LMS, because a portable package includes copies of the finished media.
+Add any required attribution, licence information and disclosure of synthetic narration as visible lesson text.
+
+::: warning A package carries copies of your media
+Check that you have permission to distribute the images, fonts, music, footage and other material in the customer's LMS, because a portable package includes copies of the finished media.
+:::
 
 Use keyboard navigation in the preview, and check the reading order, descriptions, caption controls, focus visibility and small-screen layout. Automated checks find missing fields; they cannot certify that a course is accessible or that its teaching is correct.
 
+<!--i:eti-eye-->
 ## Preview the learner experience
 
 Choose **Preview as learner**. Lolly prepares the content with the same compiler and player the downloadable package uses; motion takes longer to prepare than still pages.
@@ -126,6 +156,7 @@ Optional lessons never block **Finish**. Completion is an acknowledgement, not p
 
 In an LMS launch, **Save and exit** saves the learner's place and ends the session. The player also saves during navigation and every so often while it is open. A browser shutdown or network failure can interrupt the last write, so learners should use **Save and exit** and wait for confirmation, then relaunch from the LMS to continue or review.
 
+<!--i:eti-package-->
 ## Check and export the course
 
 Choose **Export course** at the top of the course editor. The dialog walks through three steps:
@@ -149,6 +180,7 @@ After a version is saved, **Download ZIP again** fetches the same finished packa
 Local builds support up to 200 lessons and 512 MB of distinct prepared content. Large videos can exhaust browser memory before that size, so split a large course or shrink its finished media when needed. The destination limit is checked against the final ZIP in decimal MB.
 :::
 
+<!--i:eti-hammer-->
 ## Course materials from your own tools
 
 Covers, badges and handouts for a course can come from a tool you made with [Share with rules](/info/create-a-tool.html#use-it-for-training-materials): teams fill in the approved inputs, and you add the rendered files to the course project.

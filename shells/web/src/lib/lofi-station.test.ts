@@ -71,9 +71,12 @@ class FakeFilter extends FakeNode {
   Q = new FakeParam('filter.Q');
   gain = new FakeParam('filter.gain');
 }
+class FakePanner extends FakeNode { pan = new FakeParam('panner.pan'); }
 class FakeSource extends FakeNode {
   buffer: unknown = null;
   loop = false;
+  playbackRate = new FakeParam('source.playbackRate');
+  detune = new FakeParam('source.detune');
   start(t = 0, offset = 0): void { assert.ok(Number.isFinite(t) && Number.isFinite(offset)); }
   stop(): void { /* ends */ }
 }
@@ -87,6 +90,7 @@ class FakeCtx {
   createGain(): FakeGain { const n = new FakeGain(); this.gains.push(n); return n; }
   createOscillator(): FakeOsc { const n = new FakeOsc(); this.oscs.push(n); return n; }
   createBiquadFilter(): FakeFilter { return new FakeFilter(); }
+  createStereoPanner(): FakePanner { return new FakePanner(); }
   createBufferSource(): FakeSource { const n = new FakeSource(); this.sources.push(n); return n; }
   createBuffer(channels: number, n: number): { getChannelData: (c: number) => Float32Array; length: number } {
     const data = Array.from({ length: channels }, () => new Float32Array(n));
@@ -127,7 +131,9 @@ test('the drums switch takes the kit out and leaves the music', () => {
   const style = { kick: 50, hats: 'hat' as const, snare: 'snare' as const };
   const on = play(21, { ...base, style }, 60);
   const off = play(21, { ...base, drums: false, style }, 60);
-  const kicks = (c: FakeCtx): number => c.oscs.filter(o => o.frequency.events[0]?.[1] === 50 * 2.9).length;
+  // Every kind of kick in the kits (lib/lofi-drums.ts) settles on its tuning: 50 Hz, or a
+  // feathered kick's a little below, or metal's click a little above.
+  const kicks = (c: FakeCtx): number => c.oscs.filter(o => o.frequency.events.some(e => [50, 50 * 0.92, 50 * 1.15].includes(e[1] as number))).length;
   assert.ok(kicks(on) > 0, 'kicks with the drums on');
   assert.equal(kicks(off), 0, 'none with them off');
   assert.ok(off.sources.length < on.sources.length, 'and fewer noise bursts (snare, hats)');

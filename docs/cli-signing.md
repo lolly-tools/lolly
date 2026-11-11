@@ -10,13 +10,16 @@ You need the CLI in a checkout of the Lolly source ([Install](/info/cli.html#ins
 
 Renders submitted to Lolly Work are signed by the organisation's server instead, so nobody copies a personal key to each caller. Its [Content Credentials guide](/info/work-c2pa.html) covers the server identity and trust roots, and [Organisation jobs](/info/cli-automation.html#organisation-jobs-with-lolly-work) explains that separate render path.
 
-::: timeline
-- <!--i:seal--> **Get a certificate.** A P-256 key and its chain, from your organisation's CA or self-signed for testing.
-- <!--i:lock--> **Store the key.** A file only you can read, never a command-line argument.
-- <!--i:pentool--> **Sign.** Point `--sign-key` and `--sign-cert` at the two files.
-- <!--i:check--> **Prove it worked.** `lolly validate` with your root pinned reads Verified.
+**What you'll do**, in four steps:
+
+::: steps
+- <!--i:eti-award--> **[Get a certificate](#get-a-certificate)** A P-256 key and its chain, from your organisation's CA or self-signed for testing.
+- <!--i:eti-lock--> **[Store the key](#store-the-key)** A file only you can read, never a command-line argument.
+- <!--i:eti-pen--> **[Sign](#sign)** Point `--sign-key` and `--sign-cert` at the two files.
+- <!--i:eti-badge-check--> **[Prove it worked](#prove-it-worked)** `lolly validate` with your root pinned reads Verified.
 :::
 
+<!--i:eti-award-->
 ## Get a certificate
 
 You need two things: a **P-256 (prime256v1) private key**, and the **certificate chain** for it, leaf first. Content Credentials are signed with ES256, so P-256 is the only curve that works; an RSA or P-384 key is refused by name.
@@ -49,6 +52,7 @@ chmod 600 signing-key.pem
 
 Keys are read as PKCS#8 PEM, encrypted PKCS#8 PEM, legacy SEC1 EC PEM (what `openssl ecparam` writes) or raw PKCS#8 DER. Chains are one or more `CERTIFICATE` PEM blocks **leaf first**, or a single DER certificate.
 
+<!--i:eti-lock-->
 ## Store the key
 
 ```bash
@@ -59,8 +63,11 @@ chmod 600 ~/.config/lolly/signing-key.pem
 
 `600` means only you can read the key, and `700` stops anyone else listing the directory. On a shared machine, that is the only thing between your identity and every other account on the machine. The certificate chain is public, because it is embedded in every file you sign, so it needs no protection.
 
-**Never pass a key on the command line.** No flag takes key material or a passphrase, only paths. Arguments show in `ps` output to **every user on the machine**, your shell writes them to its history file and CI systems log the command line of every step. A path is not a secret; the file it points at is.
+::: warning Never pass a key on the command line
+No flag takes key material or a passphrase, only paths. Arguments show in `ps` output to **every user on the machine**, your shell writes them to its history file and CI systems log the command line of every step. A path is not a secret; the file it points at is.
+:::
 
+<!--i:eti-pen-->
 ## Sign
 
 ```bash
@@ -109,6 +116,7 @@ Provenance flags work as on any render ([Provenance on every file](/info/cli-ren
 Error: --no-provenance turns every provenance mark off, but --sign-key/--sign-cert asks for a signed credential. Drop one of them.
 ```
 
+<!--i:eti-badge-check-->
 ## Prove it worked
 
 Validate the file with the self-signed certificate pinned as its own root:
@@ -140,7 +148,11 @@ lolly validate ./out.svg --trust-anchor=./signing-cert.pem
   Trust anchors: C2PA known-certificate list (54) · pinned: signing-cert.pem · Lolly CA root
 ```
 
-`signingCredential.trusted` with your address on it is the whole feature. Without the pin, the same file reads untrusted, and the reason says why. Each kind of signer has its own verdict and its own fix:
+::: check Look for `signingCredential.trusted`
+`signingCredential.trusted` with your address on it is the whole feature.
+:::
+
+Without the pin, the same file reads untrusted, and the reason says why. Each kind of signer has its own verdict and its own fix:
 
 ::: figure cli-signing-trust
 What a recipient's `lolly validate` says about each kind of signer, and the fix for each.
@@ -159,6 +171,7 @@ These are the exact lines `validate` printed, with no `--trust-anchor`:
   ℹ signingCredential.untrusted  - signing certificate untrusted - an ephemeral on-device key, not a CA-issued identity
 ```
 
+<!--i:eti-pin-->
 ## Pin your root
 
 By default `validate` trusts the **Lolly CA root** and the **vendored C2PA known-certificate list** (54 roots: Adobe, the camera makers, the big generators), so "Verified" means the same in the app and in a terminal. A stranger's CA is not trusted because it is a CA; only a pin makes an identity verifiable.
@@ -172,6 +185,7 @@ LOLLY_TRUST_ANCHOR=/etc/lolly/corp-root.pem:/etc/lolly/partner-root.pem lolly va
 
 `--no-default-anchors` drops both built-in sets, so only your pins count. That confirms a green verdict came from a root you chose rather than a list you inherited. Every verdict prints the anchor set that produced it, and [Which anchors produced the verdict](/info/cli-reference.html#which-anchors-produced-the-verdict) explains the flags in full.
 
+<!--i:eti-cpu-->
 ## Sign in CI
 
 Two variables carry the PEM **text** instead of a path, for runners with no persistent filesystem:
@@ -190,7 +204,11 @@ The runner's secret store is the right home for a signing key, and it is the onl
 | Use it when | The runner has a filesystem | The runner has no persistent filesystem |
 | How | Write the secret to a file, `chmod 600` it, pass `--sign-key=`, delete it in a cleanup step | `LOLLY_SIGN_KEY_PEM` and `LOLLY_SIGN_CERT_PEM` |
 
-Never echo either: `set -x` in a step prints the whole key. Restrict which branches can read the secret, so a pull request from a fork cannot sign as you. Give the pipeline its own identity (`release-bot@…`) rather than a person's.
+::: warning Never echo the key
+Never echo either: `set -x` in a step prints the whole key.
+:::
+
+Restrict which branches can read the secret, so a pull request from a fork cannot sign as you. Give the pipeline its own identity (`release-bot@…`) rather than a person's.
 
 A release gate should check the identity, not just the signature. `--json` on `validate` carries `result.files[].resolved.trusted` and `.identity`:
 
@@ -203,6 +221,7 @@ Signing uses two of the [usual exit codes](/info/cli-reference.html#exit-codes):
 
 A signed file is never byte-reproducible: a fixed identity removes the fresh certificate, but every credential still carries a fresh timestamp and manifest id. If a pipeline needs identical bytes, render with `--no-provenance` and sign a separate copy. The render itself, the input digest, the exit codes and the JSON envelope's shape are deterministic.
 
+<!--i:eti-sliders-->
 ## The two flags and five variables
 
 | | Meaning |
@@ -217,12 +236,14 @@ A signed file is never byte-reproducible: a fixed identity removes the fresh cer
 
 Lolly expands a leading `~` in either path, as `--trust-anchor` does, because a shell does **not** expand a tilde written after `=`. The flag always wins over the environment. A key without a chain (or the reverse) is refused rather than quietly falling back to the anonymous signer.
 
+<!--i:eti-monitor-->
 ## When a render uses the browser
 
 When a render goes to the paint tier ([what renders where](/info/cli-rendering.html#what-the-cli-can-render)), the web shell normally stamps the credential with its own on-device key. It cannot sign with your identity: the key is a handle that cannot leave this process, and there is no way to hand it to a browser over a URL, nor should there be. So with `--sign-key`, the CLI applies the credential over the finished bytes, with your identity, in place of the web shell's. The web shell's credential is where the pictures placed in the file are recorded, AI-made ones included, so the CLI reads that record first and writes the same ingredients into your credential. On a PDF the web shell's credential comes off before yours goes on, so the file holds one. On a TIFF the web shell writes none. The only other visible difference is that the manifest records the CLI (`surface: cli`) rather than the web shell.
 
 This browser path was run against a real browser in November 2026 (`tests/cli-credential-carry.browser.test.ts`). The other examples on this page use the browser-free path.
 
+<!--i:eti-help-->
 ## Troubleshooting
 
 ::: details Every signing message, and what to do
@@ -248,6 +269,7 @@ Each message is the exact text the CLI prints.
 | `Warning: format "dxf" has no C2PA container - Content Credentials skipped.` | The format cannot carry a credential. Because you asked for one, the skip is a warning. | Export a format that can: `pdf`, `pdf-cmyk`, `png`, `apng`, `jpg`, `jpeg`, `gif`, `svg`, `svgz`, `tiff`, `cmyk-tiff`, `webp`, `avif`, `mp4`, `m4a`, `webm`, `mp3`, `wav`, `ogg`, `opus`, `flac` or the text formats `html`, `js`, `css` and `md`. `webm` (a Matroska part), `ogg`/`opus` (a `C2PA=` comment field) and `flac` (an application metadata block) are Lolly's own homes for the manifest, so only Lolly's verifier reads those back; an `svgz` carries its credential in the compressed SVG, which `c2patool` reads once the file is decompressed. The text formats use the C2PA 2.4 text bindings, and the rest verify in third-party tools. |
 :::
 
+<!--i:eti-shield-check-->
 ## What a signature proves
 
 A credential proves these bytes have not changed since this certificate signed them. It does not prove *when*: there is no trusted timestamp yet, which is also why an expired certificate reads "expired" rather than "verified". It does not prove the content is accurate, and "Made with Lolly" is a claim any fork can make. [Content Credentials identity](/info/content-credentials-identity.html) sets out the trust tiers, and the [Threat Model](/info/threat-model.html) the limits.

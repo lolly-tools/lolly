@@ -6,6 +6,7 @@ Start with the quickest one: drop a file on Lolly Verify. Then go further: watch
 
 These checks cover Lolly on its own. If your organisation runs Lolly Work, it adds sign-in, shared content, configured telemetry and audit records; check those against [Server Surface](/info/server-surface.html) and the [organisation section of the privacy policy](/info/privacy.html#organisation-services-with-lolly-work).
 
+<!--i:eti-clock-->
 ## See it work, in ten seconds
 
 Open [`/verify`](/#/verify) and drop a file on the page. There is no upload, no account and no wait for a server. Here it checks the [generated Queensland storm](/info/ai-stance.html) from Our AI Stance: an image Gemini generated, which Lolly opened, marked and converted. Every badge was worked out on the device, from the file's own bytes.
@@ -25,6 +26,7 @@ The whole history travels with the file. Nine steps survive here: five Google re
 
 That is the demo. The checks below are the guarantees underneath it, and each one is reproducible. [Content Credentials](/info/content-credentials-identity.html) explains every verdict.
 
+<!--i:eti-globe-->
 ## In your browser, no tools required
 
 ::: timeline
@@ -47,6 +49,7 @@ Some features reach the network only when you use them, and each is visible in t
 A tool that declares a network capability may fetch only from the hosts its manifest allowlists, and that check fails closed. No tool shipped today declares one, so the browser-enforced Content-Security-Policy is what holds the list above to its hosts. The [privacy policy](/info/privacy.html) keeps the canonical table of all of these, including managed-instance traffic such as policy refreshes and enabled reporting.
 :::
 
+<!--i:eti-code-->
 ## From a terminal
 
 **6. The render endpoint answers with public data only.** The one server feature that puts typed inputs into a URL, hot-link renders, is live here. The [privacy policy](/info/privacy.html) says what that means for the inputs you put in a link.
@@ -63,6 +66,7 @@ Each deployment chooses (`LOLLY_DISABLE_RENDER_GET=1`): on an instance that sets
 If you run your own instance, [Delivery deployment](/info/deploy-delivery.html) has the release checks for it: model integrity, the edge probe and its sample list, display renditions, the private download gateway and the signed catalog in a browser.
 
 
+<!--i:eti-search-->
 ## In the source
 
 All of the above could still be theatre if the deployed code differed from the public code. So check the code. The deployment builds from [the public repository](https://github.com/lolly-tools/lolly):
@@ -106,6 +110,7 @@ grep -rn logIssuance services/ca api/ca
 
 The CA does keep short-lived working state: rate-limit buckets hold hashed IP and email keys for their window, and a managed deployment's admission store keeps a keyed identifier and request digest for at most ten minutes. [Content Credentials engineering](/info/content-credentials-engineering.html#protocol) has the detail.
 
+<!--i:eti-flask-->
 ## Enforced by tests
 
 The source checks above are not a one-time audit: they are pinned in the test suite, so they cannot quietly rot. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts) checks a longer list of tracker names than the scan above and fails the build if:
@@ -127,12 +132,14 @@ node --test tests/no-trackers.test.ts
 
 The full suite (`pnpm install && pnpm test`) runs several thousand more, including the adversarial cryptography tests described in [Security & Verification](/info/security.html).
 
+<!--i:eti-eye-off-->
 ## What you cannot verify from outside
 
 - **Hosting access logs.** Any server that answers a request can log it: IP address, path and time. An outside probe cannot establish how long logs are kept. The operator controls logging, rotation and exports, and must disclose those choices. Local rendering keeps ordinary edits on your device; optional server rendering and shared workspace services have the separate data flows the privacy policy describes.
 - **That the deployment runs this code.** You can check that the source is clean and that the deployed behaviour matches it, and the checks above do both. Binary-level attestation of a web deployment is not something the web platform offers. The mitigations are the public repository, the enforced tests and the offline check: a tampered deployment that phones home fails checks 1 and 2 at once.
 - **Tool hooks.** A built-in tool's optional logic is reviewed rather than sandboxed: it runs in the page unless the tool opts into a Worker. Every tool on lolly.tools is first-party and reviewed before it ships. The [Threat Model](/info/threat-model.html#trust-boundaries) sets out where hooks run and what limits them.
 
+<!--i:eti-warning-->
 ## If a check fails
 
 A difference between this page and what you observe is a security report. Send it through the private channels on [Security & Verification](/info/security.html#reporting-a-vulnerability). We practise coordinated disclosure and credit reporters.

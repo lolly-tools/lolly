@@ -7,6 +7,7 @@ destination your organisation owns: S3-compatible storage (such as AWS S3, MinIO
 Garage), WebDAV (including Nextcloud and ownCloud), an HMAC-signed HTTPS receiver, Brandfolder
 or Cloudinary.
 
+<!--i:eti-external-link-->
 ## How delivery differs from a source
 
 A catalog provider brings remote assets **into** Lolly, normally read-only. Delivery sends a
@@ -34,6 +35,7 @@ into write authority, so the two keep separate contracts, registries and secrets
 - **No lock-in.** S3 is an open protocol adapter, not a privileged hosted service. You bring your
   own endpoint, bucket and key, and can leave without migrating a Lolly-specific format.
 
+<!--i:eti-grid-->
 ## Pick an adapter
 
 | Adapter | Credential | After writing, Lolly Work checks | Revoke |
@@ -49,6 +51,7 @@ S3 and WebDAV receipts record
 `transformation: "none"` and the delivered digest. Signed HTTPS derives that status from the
 receiver's digest rather than assuming every publisher keeps bytes unchanged.
 
+<!--i:eti-sliders-->
 ## Configure a destination
 
 Destinations live in the instance configuration under `delivery`. Every destination has an
@@ -281,6 +284,7 @@ round trip is needed.
 Raw-body and automation-output sends still need genuine signed Lolly exports; this capability
 does not make arbitrary catalog or device files eligible.
 
+<!--i:eti-upload-->
 ## What happens when you send
 
 A raw body is accepted only when it carries Lolly's C2PA export assertion. Before anything leaves,
@@ -345,6 +349,7 @@ digest, and a final approval sends that exact staged record.
 
 How chains work is on [Approvals](approvals.md).
 
+<!--i:eti-user-check-->
 ## Who may send
 
 `delivery.create` is the right to send to a fixed organisation destination. Members carry it by
@@ -370,6 +375,7 @@ lw grants add group:contractors delivery.create 'destination:campaign-archive' -
 
 Grants in general are on [Roles and grants](permissions.md).
 
+<!--i:eti-code-->
 ## API example
 
 ```bash
@@ -383,6 +389,7 @@ curl -X POST \
 
 Discovery and history routes are in the [API reference](api.md#outbound-delivery).
 
+<!--i:eti-shield-check-->
 ## Check a destination against a live system
 
 The S3 adapter has been checked against a live S3-compatible host. WebDAV and signed HTTPS have
@@ -416,6 +423,7 @@ three requests the receiver must refuse with a 4xx status: a signature from anot
 timestamp a day old and a body that does not match its signed digest.
 :::
 
+<!--i:eti-clock-->
 ## Not built yet
 
 - A versioned small-workflow document and runner above the job-output send.

@@ -4,29 +4,33 @@ A design system's fonts often cover only some of the world's scripts. Lolly Demo
 
 The design system's fonts always come first, in the order the design system lists them. Outfit has no Vietnamese letters, so a Vietnamese heading takes them from SUSE, the next font in Lolly Demo's list. A fallback font draws only the characters that none of those fonts can draw, so a brand font keeps every letter, digit and mark it has, even inside a word in another script. A brand font that has a Chinese character keeps that character too.
 
+<!--i:eti-package-->
 ## What is bundled
 
 Fifteen fonts, all from Google Fonts at a pinned commit and all under the SIL Open Font License 1.1. Each file is shown with its download size.
 
 | Script | Font | Version | Download |
 |---|---|---|---|
-| Arabic, including Urdu and Persian letters | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabic, including Urdu and Persian letters | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebrew | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengali | Noto Sans Bengali | 3.011 | 136 KB |
-| Thai | Noto Sans Thai | 2.002 | 61 KB |
-| Cyrillic | Noto Sans, Cyrillic letters | 2.015 | 112 KB, italic 129 KB |
-| Greek | Noto Sans, Greek letters | 2.015 | 75 KB, italic 81 KB |
-| Latin, including Vietnamese and other accented letters | Noto Sans, Latin letters | 2.015 | 309 KB, italic 342 KB |
-| Simplified Chinese, the GB 2312 characters | Noto Sans SC | 2.004 | 1.9 MB |
-| Traditional Chinese, the Big5 characters | Noto Sans TC | 2.004 | 3.6 MB |
-| Japanese, the Shift_JIS characters | Noto Sans JP | 2.004 | 2.1 MB |
-| Korean, every Hangul syllable and the KS X 1001 characters | Noto Sans KR | 2.004 | 2.4 MB |
+| Devanagari (Hindi, Marathi, Nepali) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengali | Noto Sans Bengali | 3.011 | 139 KB |
+| Thai | Noto Sans Thai | 2.002 | 62 KB |
+| Cyrillic | Noto Sans, Cyrillic letters | 2.015 | 115 KB, italic 132 KB |
+| Greek | Noto Sans, Greek letters | 2.015 | 77 KB, italic 83 KB |
+| Latin, including Vietnamese and other accented letters | Noto Sans, Latin letters | 2.015 | 316 KB, italic 350 KB |
+| Simplified Chinese, the GB 2312 characters | Noto Sans SC | 2.004 | 2.0 MB |
+| Traditional Chinese, the Big5 characters | Noto Sans TC | 2.004 | 3.8 MB |
+| Japanese, the Shift_JIS characters | Noto Sans JP | 2.004 | 2.2 MB |
+| Korean, every Hangul syllable and the KS X 1001 characters | Noto Sans KR | 2.004 | 2.5 MB |
 
 The weight axis of each font is kept whole, so every weight a design asks for still draws, and a bold Chinese, Japanese or Korean heading is bold. The width axis of the Noto Sans fonts is fixed at normal, which halves each file; the Chinese, Japanese and Korean fonts have no width axis. Noto Sans is split by script, so a Cyrillic word downloads only the Cyrillic letters. The outlines are the upstream outlines, unchanged.
 
+::: details Where the fonts live and how they are built
 The fonts live in one shared folder, `community/fallback-fonts`, served to every design system from `/catalog/packs/fallback-fonts/`, the same way the emoji sets are shared. `scripts/import-fallback-fonts.ts` builds the files from the upstream fonts pinned in `scripts/data/fallback-fonts.json`, checks every upstream file against its recorded SHA-256 and writes the licence texts beside the fonts.
+:::
 
+<!--i:eti-globe-->
 ## Chinese, Japanese and Korean
 
 A whole Chinese, Japanese or Korean font is 9.6 MB to 17.8 MB, so each of these fonts is cut to the national character set its readers use every day, plus the punctuation, kana, fullwidth forms and symbols of running text:
@@ -49,14 +53,16 @@ A character the chosen font does not have is never taken from one of the other t
 
 On the page, a canvas holding two of these languages lists both fonts, and the browser draws the shared characters with the first. The export draws each run with its own.
 
+<!--i:eti-download-->
 ## When a font downloads
 
 Nothing downloads until a document holds a character that no font of its design system can draw. A document in English, or in any language its design system covers, never downloads a fallback font. A symbol in an English line, such as ★ or ※, never downloads a Chinese, Japanese or Korean font.
 
-The first time a document needs one, Lolly downloads that one font, for that one script, and keeps it on your device. A Japanese document downloads the Japanese font alone, 2.1 MB, and a Traditional Chinese one the 3.6 MB Traditional font. From then on the script draws offline, and the font stays when the catalog is tidied up. The font is kept with the catalog's own files, never among the fonts you uploaded, so it does not appear in your brand's font list.
+The first time a document needs one, Lolly downloads that one font, for that one script, and keeps it on your device. A Japanese document downloads the Japanese font alone, 2.2 MB, and a Traditional Chinese one the 3.8 MB Traditional font. From then on the script draws offline, and the font stays when the catalog is tidied up. The font is kept with the catalog's own files, never among the fonts you uploaded, so it does not appear in your brand's font list.
 
 The command line, the terminal app and the MCP server read the same files from disk, so they need no download.
 
+<!--i:eti-eye-->
 ## On the page and in the export
 
 The page uses the same fallback font as the export. Without this, a browser draws such letters in a system font while the export uses Noto, and a line that holds them changes width between the two. Lolly adds the fallback font to the end of the design system's font list on that canvas only, after the design system's own fonts and before any system font. A tool that sets its own font list, in its styles or on its elements, gets the fallback font in the same place: after the fonts the list gives and before any system font. A canvas the design system covers keeps its font list exactly as before.
@@ -69,20 +75,27 @@ In a PDF the words become outlines drawn with the fallback font, whichever text 
 
 The command line prints the same sentence as a note.
 
+<!--i:eti-image-->
 ## What stays a picture
 
 A character outside the four national sets has no fallback font. Rare characters such as 𠮷, the characters added for Hong Kong by its supplementary set, and scripts without a fallback font, such as Tamil, Ethiopic or Syriac, are all treated the same way. In a PDF the line that holds one goes in as a 300 dpi picture, and the export panel lists the scripts. In an SVG the run stays live text, which the reader's own fonts draw.
 
+::: details In EPS, WMF and EMF exports
 An EPS or WMF has no live text to fall back on, and neither has an EMF with **Outline fonts** on, so the run goes in as a 300 dpi picture too. The picture paints the text's colour only where the letters are, so the background under the words shows through. The export panel lists the scripts, as it does for a PDF. A picture is drawn upright only, so a turned or slanted run stops the export with a message that quotes the run. In a WMF or EMF the picture is a mask and paint pair of bitmap operations, which Microsoft Office and LibreOffice draw as intended; an app that ignores them, such as Inkscape, shows the words on a white box.
 
 An EMF with **Outline fonts** off keeps such a run as live text, which the reader's own fonts draw. The exception is a run that live EMF text cannot carry, such as text with letter spacing: Lolly outlines that run, so a run no font can draw goes in as a picture there as well.
+:::
 
-A DXF goes to cutting machines and CAD software, which need outlines, so a run no font can draw stops a DXF export. The message quotes the run and gives its script, so you can add a font with those letters or export SVG or PDF. Before, these formats drew an empty box for each such letter.
+::: warning A DXF export stops at text no font can draw
+A DXF goes to cutting machines and CAD software, which need outlines, so a run no font can draw stops a DXF export. The message quotes the run and gives its script, so you can add a font with those letters or export SVG or PDF. Before, EPS, WMF, EMF and DXF exports drew an empty box for each such letter.
+:::
 
+<!--i:eti-checklist-->
 ## The check before you export
 
 Lolly Design's **Before you export** card, and the `render` checks of `lolly check`, report text that no font can draw. They count the fallback fonts the way an export does, from the same lists of the characters each font has, so text a fallback font draws is not reported. A script with no fallback font, such as Tamil, and a Chinese, Japanese or Korean character outside the national sets are still reported, because the export draws them as a picture or as live text, and a DXF export stops at them. The check reads those lists from the catalog and downloads no font.
 
+<!--i:eti-stamp-->
 ## Licences and credits
 
 Every fallback font is under the SIL Open Font License 1.1, and each catalog entry records that licence with a hash of the licence text, so the rights rules in [Creative rights and credits](/info/creative-rights.html) read the licence like any other font's. The licence texts sit beside the fonts. The Noto Sans files declare no Reserved Font Name. The Chinese, Japanese and Korean fonts are Adobe's, and reserve the name Source; the cut files keep their Noto names, which do not use that name.

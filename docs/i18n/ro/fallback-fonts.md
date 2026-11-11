@@ -10,18 +10,18 @@ Cincisprezece fonturi, toate din Google Fonts la un commit fixat și toate sub S
 
 | Scriere | Font | Versiune | Descărcare |
 |---|---|---|---|
-| Arabă, inclusiv literele urdu și persane | Noto Sans Arabic | 2.012 | 206 KB |
+| Arabă, inclusiv literele urdu și persane | Noto Sans Arabic | 2.012 | 211 KB |
 | Ebraică | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (hindi, marathi, nepaleză) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengaleză | Noto Sans Bengali | 3.011 | 136 KB |
-| Thailandeză | Noto Sans Thai | 2.002 | 61 KB |
-| Chirilică | Noto Sans, litere chirilice | 2.015 | 112 KB, cursiv 129 KB |
-| Greacă | Noto Sans, litere grecești | 2.015 | 75 KB, cursiv 81 KB |
-| Latină, inclusiv vietnameza și alte litere cu accente | Noto Sans, litere latine | 2.015 | 309 KB, cursiv 342 KB |
-| Chineza simplificată, caracterele GB 2312 | Noto Sans SC | 2.004 | 1.9 MB |
-| Chineza tradițională, caracterele Big5 | Noto Sans TC | 2.004 | 3.6 MB |
-| Japoneza, caracterele Shift_JIS | Noto Sans JP | 2.004 | 2.1 MB |
-| Coreeana, fiecare silabă Hangul și caracterele KS X 1001 | Noto Sans KR | 2.004 | 2.4 MB |
+| Devanagari (hindi, marathi, nepaleză) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengaleză | Noto Sans Bengali | 3.011 | 139 KB |
+| Thailandeză | Noto Sans Thai | 2.002 | 62 KB |
+| Chirilică | Noto Sans, litere chirilice | 2.015 | 115 KB, cursiv 132 KB |
+| Greacă | Noto Sans, litere grecești | 2.015 | 77 KB, cursiv 83 KB |
+| Latină, inclusiv vietnameza și alte litere cu accente | Noto Sans, litere latine | 2.015 | 316 KB, cursiv 350 KB |
+| Chineza simplificată, caracterele GB 2312 | Noto Sans SC | 2.004 | 2.0 MB |
+| Chineza tradițională, caracterele Big5 | Noto Sans TC | 2.004 | 3.8 MB |
+| Japoneza, caracterele Shift_JIS | Noto Sans JP | 2.004 | 2.2 MB |
+| Coreeana, fiecare silabă Hangul și caracterele KS X 1001 | Noto Sans KR | 2.004 | 2.5 MB |
 
 Axa grosimii fiecărui font este păstrată întreagă, deci fiecare grosime cerută de un design se desenează în continuare, iar un titlu îngroșat în chineză, japoneză sau coreeană rămâne îngroșat. Axa lățimii fonturilor Noto Sans este fixată la normal, ceea ce reduce la jumătate fiecare fișier; fonturile chinezești, japoneze și coreene nu au axă a lățimii. Noto Sans este împărțit pe scrieri, deci un cuvânt chirilic descarcă doar literele chirilice. Contururile sunt cele originale din amonte, neschimbate.
 
@@ -53,7 +53,7 @@ Pe pagină, un canvas care conține două dintre aceste limbi listează ambele f
 
 Nimic nu se descarcă până când un document conține un caracter pe care niciun font al sistemului său de design nu îl poate desena. Un document în engleză sau în orice limbă pe care o acoperă sistemul său de design nu descarcă niciodată un font de rezervă. Un simbol într-o linie în engleză, precum ★ sau ※, nu descarcă niciodată un font chinezesc, japonez sau coreean.
 
-Prima dată când un document are nevoie de unul, Lolly descarcă acel font, pentru acea scriere, și îl păstrează pe dispozitivul tău. Un document japonez descarcă doar fontul japonez, 2.1 MB, iar unul în chineza tradițională fontul tradițional de 3.6 MB. De atunci scrierea se desenează offline, iar fontul rămâne când catalogul este curățat. Fontul este păstrat laolaltă cu fișierele proprii ale catalogului, niciodată printre fonturile pe care le-ai încărcat, deci nu apare în lista de fonturi a brandului tău.
+Prima dată când un document are nevoie de unul, Lolly descarcă acel font, pentru acea scriere, și îl păstrează pe dispozitivul tău. Un document japonez descarcă doar fontul japonez, 2.2 MB, iar unul în chineza tradițională fontul tradițional de 3.8 MB. De atunci scrierea se desenează offline, iar fontul rămâne când catalogul este curățat. Fontul este păstrat laolaltă cu fișierele proprii ale catalogului, niciodată printre fonturile pe care le-ai încărcat, deci nu apare în lista de fonturi a brandului tău.
 
 Linia de comandă, aplicația de terminal și serverul MCP citesc aceleași fișiere de pe disc, deci nu au nevoie de descărcare.
 

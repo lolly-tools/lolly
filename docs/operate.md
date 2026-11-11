@@ -4,7 +4,10 @@ Hosting the Lolly web app, handing out the packaged app and running a Lolly Work
 
 ## Choose and install
 
-- [Run Lolly Work](/info/work-self-host.html): the path that matches what you have, from the public demo to Kubernetes, with downloads and checksums.
+- [Run Lolly Work](/info/work-self-host.html): the path that matches what you have, from Kubernetes to the public demo, with downloads and checksums.
+- [Install on Kubernetes](/info/work-platform-deployment.html): the Helm chart on K3s, RKE2 or Rancher, with your own PostgreSQL and identity provider.
+- [Install Lolly Work](/info/work-install.html): from a source checkout to one server with Compose, systemd or YunoHost.
+- [Install the ready-made package](/info/work-ready-made-package.html): a finished Compose directory with HTTPS and password sign-in.
 - [How a Lolly Work deployment fits together](/info/work-deployment.html): the parts every Lolly Work deployment runs and the ones you can leave out.
 - [Official installation routes](/info/work-official-installations.html): which packages exist, what each has passed and how to check a download.
 
@@ -20,6 +23,8 @@ Hosting the Lolly web app, handing out the packaged app and running a Lolly Work
 
 - [Operations runbook](/info/work-operations.html): backups, restores, upgrades and recovery.
 - [Telemetry and dashboards](/info/work-telemetry.html): what the server measures and where you see the numbers.
+- [Metrics and alerts](/info/work-metrics.html): Prometheus scraping, suggested alerts and a dashboard.
+- [Put a CDN in front of Lolly Work](/info/work-edge-cdn.html): which public files an edge may cache, and the checks before you turn one on.
 - [Audit log](/info/work-audit.html): the record of governed actions.
 
 ## Build and package
@@ -27,4 +32,6 @@ Hosting the Lolly web app, handing out the packaged app and running a Lolly Work
 - [Build Guide](/info/build-guide.html): build the web app, the desktop and mobile apps and the terminal tools yourself.
 - [Build the web container and Helm chart](/info/build-kubernetes.html): run Lolly on Kubernetes.
 
+::: warning A recipe is not your server
 An installation recipe describes a supported way to deploy, not your server. Before you update an instance that is already running, check the record of how that instance was deployed: its host, cluster, secrets, volumes and pinned release. A generic recipe cannot tell which server is your production one.
+:::

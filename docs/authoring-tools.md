@@ -10,6 +10,16 @@ You do not need code to make a tool. If you already have a finished design, [Sha
 
 This guide is for writing the folder yourself. Start with the two-file tool below, then use the reference pages for each part.
 
+**What you'll do**, in four steps:
+
+::: steps
+- <!--i:eti-file-plus--> **[Write two files](#your-first-tool)** `tool.json` lists the inputs and `template.html` draws them.
+- <!--i:eti-folder-plus--> **[Add what the tool needs](#what-each-file-does)** Styles, hooks, data templates, an icon and translations, each optional.
+- <!--i:eti-palette--> **[Use the design system's colours](#draw-in-the-design-system-s-colours)** Seven CSS variables, each with a fallback.
+- <!--i:eti-search--> **[Find the guide for each part](#find-the-part-you-need)** One page per part, each with a reference tool to read.
+:::
+
+<!--i:eti-file-plus-->
 ## Your first tool
 
 A working tool needs two files. This one makes a social card with a heading and a background colour.
@@ -67,8 +77,11 @@ Try the folder in one of two ways:
 - <!--i:code--> **In a clone, from the terminal.** Put the folder at `community/hello-card/` and run `pnpm run cli hello-card --heading="Hello, Lolly" --output=hello.svg`. Run `pnpm run cli hello-card` alone to list its inputs.
 :::
 
+::: note An HTML template needs the browser tier on the command line
 The template's root is an `<svg>`, so the command line renders it with no browser. A template built from HTML renders the same way in the web and desktop apps, and needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
+:::
 
+<!--i:eti-folder-plus-->
 ## What each file does
 
 Only `tool.json` and `template.html` are required. Add the others when the tool needs them.
@@ -90,6 +103,7 @@ Only `tool.json` and `template.html` are required. Add the others when the tool 
 | `lib/` | Vendored scripts and data the tool loads. | |
 | `assets/` | Tool-local images and fonts. | [Assets and file utilities](/info/tool-files.html) |
 
+<!--i:eti-palette-->
 ## Draw in the design system's colours
 
 A tool written for any design system takes its colours from seven CSS variables on the canvas, each with a fallback for a design system that leaves one out: `var(--brand-primary, #2a1a5e)` for the lead colour, then `--brand-on-primary`, `--brand-secondary`, `--brand-surface`, `--brand-text`, `--brand-muted` and `--brand-edge`. Lolly fills them from the design system the person has open, in the piece's look and colourway, in the web app, the desktop apps and the command line alike.
@@ -98,6 +112,7 @@ Some design systems call their colours by their own words, such as a textile bra
 
 [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) lists every variable, including each role's own `--brand-<id>`, and which token paints each one.
 
+<!--i:eti-search-->
 ## Find the part you need
 
 Each guide below has a public reference tool in `community/` that you can open in Lolly and read in the repository.
@@ -115,6 +130,7 @@ Each guide below has a public reference tool in `community/` that you can open i
 | Test, share, publish and translate | [Publish and localize a tool](/info/tool-publishing.html) | `qr-code` |
 | Help agents use the tool | [Tool skills](/info/tool-skills.html) | `design`, `diagram-builder` |
 
+<!--i:eti-sparkles-->
 ## Build with an agent
 
 An AI agent can write the folder for you. Give it the intended output, a few representative input values, the design system and any source artwork. Ask it to build ordinary tool data against the manifest and host contracts, then to validate and render the result with the CLI. The guides above are what you review its work against. [AI agents](/info/ai-agents.html) covers connecting an agent to Lolly, and [Tool skills](/info/tool-skills.html) covers the guidance a tool gives the agents that use the tool.

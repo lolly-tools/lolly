@@ -6,6 +6,7 @@ This page is for people changing Lolly's code: how the engine, the shells and th
 
 Two companions go deeper. [`engine/README.md`](../engine/README.md) is the module-by-module map of the engine, generated from the code. [Threat Model & Trust Boundaries](/info/threat-model.html) reads the same architecture as trust boundaries, and it is the page for any question about what the engine treats as untrusted.
 
+<!--i:eti-layers-->
 ## The big picture
 
 Tools are data at the top. The engine in the middle knows nothing of any platform. The shells at the bottom implement one contract, and the catalogs supply the content.
@@ -14,6 +15,7 @@ Tools are data at the top. The engine in the middle knows nothing of any platfor
 
 If you can describe it in pure data and Handlebars, it belongs in the **engine**. If it touches the DOM, the filesystem, the network or any browser or operating-system API, it belongs in the **host**, the shell's side of the bridge. The engine is open source, and nothing that knows about a particular brand or platform goes into the engine.
 
+<!--i:eti-folder-shared-->
 ## Repository layout
 
 Lolly is one repository. Every directory below is a plain directory in it, except `brands/suse`, a **private** git submodule holding the SUSE tool pack and catalog, which a public clone does not fetch. Which packs a build reads is a content profile (`profiles.json`), resolved per process rather than switched globally. [Build Guide](/info/build-guide.html) has the clone command and how a change inside the private pack is committed.
@@ -55,8 +57,11 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 ```
 :::
 
-There is no repository-root `tools/` or `catalog/` directory. `packages/node-shell/src/content-roots.ts` answers "where does tool `<id>` live" and "where is the catalog" from `profiles.json` when asked. A real `tools/` and `catalog/` pair is written only into a build output, such as `dist/`, an RPM payload or a container image, because a browser fetches those two paths over HTTP.
+::: note There is no repository-root `tools/` or `catalog/` directory
+`packages/node-shell/src/content-roots.ts` answers "where does tool `<id>` live" and "where is the catalog" from `profiles.json` when asked. A real `tools/` and `catalog/` pair is written only into a build output, such as `dist/`, an RPM payload or a container image, because a browser fetches those two paths over HTTP.
+:::
 
+<!--i:eti-monitor-->
 ## Where Lolly runs
 
 Every surface uses the same engine and the same tool files.
@@ -76,6 +81,7 @@ The web app also ships **Batch** (`#/batch`, `shells/web/src/pro/`), a spreadshe
 
 ![Batch on a fresh install: one empty row waiting for a tool, with the spreadsheet surface and its Render button in place before any data arrives](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
+<!--i:eti-lock-->
 ## Architectural commitments
 
 These decisions are settled. Changing any of them is a major undertaking, because they shape every other decision in the codebase.
@@ -151,6 +157,7 @@ Templates are Handlebars, chosen so non-developers can write them: `{{x}}` escap
 
 A tool can embed another tool's render with no tool-to-tool imports; the engine resolves the composition. A manifest can declare `composes: [{ id, tool, inputs }]` and place the child with `{{asset <id>}}`, and a portable embed URL (`https://lolly.tools/tool/<id>.svg?…`) renders the child locally, which is how Lolly Design places a live QR code or chart. An SVG child stays vector in an SVG or PDF parent. Children are intermediates, never watermarked or stamped, and a shell that cannot render one leaves the slot empty while the parent still renders. [Composition and brand overlays](/info/tool-composition.html) has the details.
 
+<!--i:eti-scissors-->
 ## What we chose not to do
 
 - **No arbitrary JavaScript in templates.** Logic lives in `hooks.js`.
@@ -159,6 +166,7 @@ A tool can embed another tool's render with no tool-to-tool imports; the engine 
 - **No central database.** User state lives on each device, and optional Sync copies it to storage the person chooses, never to a Lolly database.
 - **No shared code path between tools and the engine.** The engine and the community tools are open source, and a brand pack such as the private `brands/suse/` carries its own tools and catalog under its own terms. No tool imports from `engine/`, so the split stays clean.
 
+<!--i:eti-refresh-->
 ## The lifecycle of one render
 
 Someone opens `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`:
@@ -176,6 +184,7 @@ Someone opens `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`:
 
 The same lifecycle runs in Tauri, and in the CLI with a headless DOM, where the output goes to a file or stdout.
 
+<!--i:eti-stamp-->
 ## Licences
 
 Code, including `engine/`, `shells/`, `services/`, `schemas/` and the documentation generator, is MPL-2.0, in one public repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly). Documentation prose is CC BY-SA 4.0. Brand packs carry their own terms in each pack's `NOTICE.md`: the community tools are MPL-2.0, and the private SUSE pack is proprietary to SUSE. [About](/info/about.html) has the full licensing note.

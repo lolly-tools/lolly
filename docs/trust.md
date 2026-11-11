@@ -8,6 +8,7 @@ Most software asks for your trust. This section does the opposite: every claim L
 
 [Content sovereignty](/info/content-sovereignty.html) connects these controls: how your content is created, governed, stored and moved across chosen systems. An existing DAM can remain the source of record; [the connected workflow](/info/use-with-dam.html) explains the responsibilities.
 
+<!--i:eti-stamp-->
 ## Where did this content come from?
 
 The media Lolly renders carries [Content Credentials](/info/content-credentials-identity.html) by default. When a file arrives with a history already attached, Lolly keeps it rather than flattening it, so the chain survives an edit. Drop any file on [Lolly Verify](/#/verify) and the record comes back, worked out on your device:
@@ -20,6 +21,7 @@ The media Lolly renders carries [Content Credentials](/info/content-credentials-
 - <!--i:people--> [**Creative rights and credits**](/info/creative-rights.html): how a source's licence is recorded, what it asks of your use and how the credit travels in the file.
 - <!--i:cpu--> [**Content Credentials engineering**](/info/content-credentials-engineering.html): the signing architecture, the engine contracts and the CA service.
 
+<!--i:eti-search-->
 ## Can I check that for myself?
 
 You can, and you should: the point of provenance is that it does not need our word.
@@ -30,6 +32,7 @@ You can, and you should: the point of provenance is that it does not need our wo
 - <!--i:code--> [**Parser Inventory**](/info/parser-inventory.html): every format Lolly parses, because parsers are where untrusted input meets your device.
 - <!--i:server--> [**Server Surface**](/info/server-surface.html): everything a server can see.
 
+<!--i:eti-lock-->
 ## What happens to my data?
 
 Lolly renders on your device. That is not a privacy setting added afterwards: it is the architecture, and it is why most of the usual questions have short answers.
@@ -37,6 +40,7 @@ Lolly renders on your device. That is not a privacy setting added afterwards: it
 - <!--i:eyeoff--> [**Privacy Policy**](/info/privacy.html): what is collected, what is not and what leaves your device.
 - <!--i:convert--> [**Data transfer**](/info/data-transfer.html): moving your work in and out, with nothing held hostage.
 
+<!--i:eti-pin-->
 ## Where we stand
 
 - <!--i:convert--> [**The trade we never agreed to**](/info/status-quo.html): the frictions we learned to accept, and what replaces them.
@@ -47,6 +51,7 @@ Lolly renders on your device. That is not a privacy setting added afterwards: it
 - <!--i:people--> [**Inclusive Design**](/info/inclusive-design.html): who the software is built to work for, and the tests that hold it there.
 - <!--i:star--> [**Tenets**](/info/tenets.html), [**Beatrice Warde**](/info/beatrice-warde.html) and [**Shoulders of giants**](/info/shoulders-of-giants.html): what we believe, the typographer whose words we adapted and everyone Lolly is built from.
 
+<!--i:eti-shield-check-->
 ## The refusal, and why it is free
 
 Nothing to sell you, nothing to take. Four commitments, stated once and checkable:
@@ -56,7 +61,7 @@ Nothing to sell you, nothing to take. Four commitments, stated once and checkabl
 - <!--i:eyeoff--> **Blind by design.** The Lolly app sends no analytics, usage reports or crash reports, so nobody, the makers included, can see what you make or how you use the app; see the [Privacy Policy](/info/privacy.html). A tool that cannot see you has nothing to sell about you.
 - <!--i:checklist--> **Your vote, visible.** Anything that touches the internet happens because you chose it, at the moment you chose it, and the code that keeps that promise is open.
 
-A Lolly Work server, which an organisation runs for its members, is different. When your app is connected to one, the server keeps an audit log of sign-ins and other governed actions such as approvals. It records which app versions connect to it and, while you are signed in, from which devices. It can also store usage events made of labels such as a tool id, never your inputs, at a level the organisation sets. See [Telemetry and dashboards](/info/work-telemetry.html).
+A Lolly Work server, which an organisation runs for its members, is different. When your app is connected to one, the server keeps an audit log of sign-ins and other governed actions such as approvals. It records which app versions connect to it and, while you are signed in, from which devices. It can also store usage events made of labels such as a tool id, never your inputs, at a level the organisation sets, from a client that sends them. Lolly's own apps send none today. See [Telemetry and dashboards](/info/work-telemetry.html).
 
 **We built Lolly for ourselves.** SUSE needed thousands of on-brand files, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.
 

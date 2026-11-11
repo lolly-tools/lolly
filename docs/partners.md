@@ -4,6 +4,7 @@ A sponsor's logo on an event poster, a reseller's offer under the maker's name, 
 
 Two words mean the same thing everywhere on this page. The **lead brand** is the brand whose design system a piece is made in, and the **partner** is the other brand on the piece. Either side can make the piece. [Brand architectures](/info/brand-architectures.html#co-branding) shows how co-branding relates to the other ways organisations arrange their brands.
 
+<!--i:eti-info-->
 ## How Lolly handles two brands today
 
 - **One design system draws each piece.** The lead brand's colours, type and house rules apply. The partner's mark goes in as artwork: a picture from Assets, or a custom mark kept in a design system.
@@ -12,6 +13,7 @@ Two words mean the same thing everywhere on this page. The **lead brand** is the
 - **Lolly checks the lead brand's rules only.** It does not know the partner's rules, such as clear space or minimum size, so check those against the partner's own guidelines. In a Lolly Work partner programme, a company's partner kit holds its rules, and Lolly Design checks the company's marks against the kit.
 - **A whole programme of partners runs on Lolly Work.** When resellers, distributors or other partners make pieces in your brand on your own Lolly Work, a partner programme gives each partner company only the tools, files and templates you choose, keeps the company's logos and details, fills them into your templates and records the company in each file. [Run a partner programme](/info/manage/run-a-partner-programme.html) is the guide for the team that runs one.
 
+<!--i:eti-folder-shared-->
 ## Share your brand with a partner
 
 ### Choose what to send
@@ -26,7 +28,11 @@ Two words mean the same thing everywhere on this page. The **lead brand** is the
 
 ![Lolly Design System Setup on Lolly Demo, open at the Skills room: Export in the bar, the More menu open on Tokens (.json), and Download skill (.zip) and Copy as one file beside the chosen skill](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
 
-Fonts you added travel inside a design-system file, so check that their licences let you pass the files on. A reusable tool asks you to confirm before it includes an image whose licence holds it back ([Preview and share](/info/create-a-tool.html#preview-and-share)).
+::: warning Your fonts travel in the file
+Fonts you added travel inside a design-system file, so check that their licences let you pass the files on.
+:::
+
+A reusable tool asks you to confirm before it includes an image whose licence holds it back ([Preview and share](/info/create-a-tool.html#preview-and-share)).
 
 ### Make a co-branded template
 
@@ -52,9 +58,10 @@ Skills are guidance for people and agents; the house rules are what Lolly checks
 - A design system without skills of its own has a baseline that Lolly writes from its tokens and house rules, and the room lists the baseline too.
 - A copy does not update itself. When you publish a new revision of a skill, send the folder again.
 
+<!--i:eti-download-->
 ## Work in a brand you were given
 
-For the partner who receives a design-system file.
+For the partner who receives a design-system file. When the lead brand runs a partner programme on its own Lolly Work, you sign in there instead: your home opens on your company card and the templates published to you ([What partners see](/info/manage/run-a-partner-programme.html#what-partners-see)).
 
 1. **Open the file.** Drop the file on Lolly or press **Open**; **Add from…** in Lolly Design System Setup takes the file too. The preview lists what the file holds before anything is written. A design-system file adds a separate design system under the lead brand's name and makes it active, and your own design system stays on the device. A file that instead connects the app to the lead brand's own Lolly lists the effects on your whole device first; [Use Lolly at your organisation](/info/organisation.html) covers that kind of file.
 2. **Look round the brand.** In Lolly Design System Setup, the **Board** shows what the design system holds, **Logos** has its marks and **Rules** lists the house rules Lolly checks. **Skills** shows the baseline Lolly writes from the tokens and rules; the lead brand's own skills arrive as separate files, if they send them.
@@ -63,10 +70,15 @@ For the partner who receives a design-system file.
 5. **Check before you export.** In Lolly Design, the export panel's **Before you export** card lists findings against the lead brand's house rules, layer by layer ([Before you export](/info/design.html#before-you-export)). The **Design system** card shows the design system the file records.
 6. **Send the work back.** Send the exported file, or the editable design as a `.lolly` ([Sharing your work](/info/using.html#sharing-your-work)). A design opens in whichever design system is active, so the lead brand opens yours with their own design system active.
 
-A design-system file is a copy of the brand as it was on the day it was exported, and nothing updates the copy. When the lead brand sends a newer file, open the new file the same way. Then check which design system is active in **Settings → Preferences → Design systems**, and remove the older copy there when you have finished with the older one.
+::: note A design-system file does not update
+A design-system file is a copy of the brand as it was on the day it was exported, and nothing updates the copy.
+:::
+
+When the lead brand sends a newer file, open the new file the same way. Then check which design system is active in **Settings → Preferences → Design systems**, and remove the older copy there when you have finished with the older one.
 
 ![Design systems in Settings: Lolly Demo is active, Lolly Starter has a Use button that switches the whole device, and Open or import a file takes a design-system file](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddesign-systems-section&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23design-systems-section&format=svg&walker=1&dark=1&filename=partners-design-systems)
 
+<!--i:eti-image-->
 ## Place a partner's mark
 
 | Way | Steps | Best for |
@@ -75,14 +87,14 @@ A design-system file is a copy of the brand as it was on the day it was exported
 | A custom mark | **Logos** room, **Custom marks**: type a name for the mark, then **Choose file…** | A partner you work with often. The mark belongs to the design system and travels in its file |
 | A finished lockup | Make the lockup from both marks in your drawing tool, then add it as a custom mark | A "with" or "in partnership with" lockup used again and again |
 
-Before you export, check the mark:
-
+::: check Before you export, check the mark
 - **The right file.** Use the file the partner supplied, an SVG where there is one. A logo copied from a web page or a slide blurs when printed.
 - **The right version for the background.** Use a reverse or a one-colour version on a dark or busy background, when the partner's guidelines offer one.
 - **Proportions.** Set the image box's **Image fit** to **Contain (fit inside)**, and the mark is never stretched.
 - **Clear space and size.** Leave the space the partner's guidelines ask for around the mark, and keep the mark above their minimum size. Lolly measures neither.
 - **Which brand leads.** Size the two marks to follow both brands' guidelines on which one leads.
 - **Rights.** Lolly shows the licence recorded for a catalogue asset. A file you upload yourself has no licence record, and its details read *Licence not recorded*, so keep the partner's permission to use their mark with your own records ([Creative rights and credits](/info/creative-rights.html)).
+:::
 
 ![Before you export on a co-branded card: the design system is Lolly Demo, the partner's logo is noted as an image outside the design system's assets, and the four house rules have nothing to note](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%255B%257B%2522id%2522%253A%2522board%2522%252C%2522name%2522%253A%2522Build%2520day%2520card%2522%252C%2522kind%2522%253A%2522frame%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A0%252C%2522w%2522%253A1600%252C%2522h%2522%253A900%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.sugar%257D%2522%252C%2522clipChildren%2522%253Atrue%257D%252C%257B%2522id%2522%253A%2522dot-large%2522%252C%2522name%2522%253A%2522Large%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1040%252C%2522y%2522%253A70%252C%2522w%2522%253A480%252C%2522h%2522%253A480%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.pandanus%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522dot-small%2522%252C%2522name%2522%253A%2522Small%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1330%252C%2522y%2522%253A380%252C%2522w%2522%253A240%252C%2522h%2522%253A240%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.green-apple%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522band%2522%252C%2522name%2522%253A%2522Partner%2520band%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A680%252C%2522w%2522%253A1600%252C%2522h%2522%253A220%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.avocado%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522lolly%2522%252C%2522name%2522%253A%2522Lolly%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A96%252C%2522w%2522%253A260%252C%2522h%2522%253A90%252C%2522image%2522%253A%2522lolly%2Flogo%2Fhorizontal%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522imgpos%2522%253A%2522left%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522headline%2522%252C%2522name%2522%253A%2522Headline%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A260%252C%2522w%2522%253A880%252C%2522h%2522%253A180%252C%2522text%2522%253A%2522Build%2520day%25202026%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.liquorice%257D%2522%252C%2522fontSize%2522%253A120%252C%2522weight%2522%253A%2522700%2522%252C%2522font%2522%253A%2522display%2522%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522sub%2522%252C%2522name%2522%253A%2522Subtitle%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A450%252C%2522w%2522%253A880%252C%2522h%2522%253A90%252C%2522text%2522%253A%2522Twelve%2520hours%2520of%2520making%252C%2520with%2520friends%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A48%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522with%2522%252C%2522name%2522%253A%2522In%2520partnership%2520with%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A750%252C%2522w%2522%253A400%252C%2522h%2522%253A80%252C%2522text%2522%253A%2522In%2520partnership%2520with%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A34%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522partner%2522%252C%2522name%2522%253A%2522Partner%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A500%252C%2522y%2522%253A735%252C%2522w%2522%253A480%252C%2522h%2522%253A110%252C%2522image%2522%253A%2522%2Ftools%2Flogo-wall%2Fassets%2Fpartner-name.svg%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522frame%2522%253A%2522board%2522%257D%255D%26w%3D1600%26h%3D900&width=1440&height=1000&dpi=192&waitMs=3000&drive=click%3A.edge-dock-tab%3Ahas-text%28%22Export%22%29%3Bwait%3A2500%3Bclick%3A%5Bdata-action%3D%22preflight-open%22%5D%3Bwait%3A1200&cropSelector=.preflight-modal&format=svg&walker=1&dark=1&filename=partners-before-export)
 
@@ -92,6 +104,7 @@ An export's [design-system record](/info/exporting.html#the-design-system-record
 
 When an agent does the work, give the agent the lead brand's skills and the partner's skills as they are, and tell the agent which brand leads. Each brand's skills keep their own names and ids. Lolly does not merge two brands' skills or decide which brand wins, and it checks only the lead brand's house rules.
 
+<!--i:eti-grid-->
 ## Sponsor and event logo walls
 
 The [Lolly Logo Wall](/#/tool/logo-wall) tool arranges a pile of logos into an even grid, for a sponsor board, a partner slide or a press backdrop. At an event the host is usually the lead brand: the wall is made in the host's design system, and each sponsor's logo sits on the wall as artwork.
@@ -115,6 +128,7 @@ When a sponsor publishes a [brand page](/info/brand-page.html), `lolly run logo-
 
 Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes relative to each other, not a sponsor's minimum size, and nothing checks the clear space between neighbours. Check the finished wall against each sponsor's guidelines at the size it will be printed or shown.
 
+<!--i:eti-hammer-->
 ## What Lolly does not do yet
 
 - A piece is drawn in one design system. The partner's colours, type and rules are not a design system inside the piece, and the partner's mark is a picture.
@@ -127,6 +141,7 @@ Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes 
 - A logo taken from a brand page is a picture in its row, and the row does not remember the page. Nothing shows who published a page, so check the address yourself.
 - The hosted web app cannot fetch another brand's page, because its Content Security Policy allows named hosts only. Take the logo in a terminal, or save the file and add the file in **Assets**.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 - **[Brand architectures](/info/brand-architectures.html)**: co-branding, white label and the other arrangements, with what to do in Lolly for each.

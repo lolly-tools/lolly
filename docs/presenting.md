@@ -8,6 +8,7 @@ Presentation media stays on your device until you share it in a call or choose t
 The audience window is what you share in the call; the private window stays on your side.
 :::
 
+<!--i:eti-monitor-->
 ## Start a presentation
 
 ::: timeline
@@ -15,7 +16,11 @@ The audience window is what you share in the call; the private window stays on y
 - <!--i:layers--> Allow the private controls window to open. The original window becomes the audience output. Keep both windows open.
 - <!--i:clock--> In **Camera**, choose a **Camera device**, then **Start camera**, and allow camera access if asked. The camera stays off until you choose Start camera.
 - <!--i:sliders--> Set up the layout and graphics below, then choose **Apply scene**.
-- <!--i:link--> In your call, share the audience tab or window and check the share preview. Sharing a whole display can include your private controls.
+- <!--i:link--> In your call, share the audience tab or window and check the share preview.
+:::
+
+::: warning Share the audience tab, not a whole display
+Sharing a whole display can include your private controls.
 :::
 
 Keep your microphone selected in the call application; starting the presentation camera does not start a microphone. Lolly cannot tell whether the call is receiving your picture, so check the picture from another participant's view before relying on it in a talk.
@@ -26,6 +31,7 @@ The audience picture is 1280 × 720 at 30 fps. Browser or system borders can rem
 Layout, framing, logo and caption edits stay private until you choose **Apply scene**, and so does **Remove logo**. Advancing a slide, starting or stopping the camera and showing or hiding the lower third happen at once. Applying a saved layout does not restart a stopped camera.
 :::
 
+<!--i:eti-camera-->
 ## Set up the picture
 
 **Prepared scene** chooses one of five layouts:
@@ -70,6 +76,7 @@ Choose **New scene** before saving another arrangement. To update one, select it
 
 Scenes store the layout, camera framing, logo reference and caption text, but not a slide number or a Countdown duration. Save the document as usual afterwards. Reopening it restores the applied arrangement and saved scenes with the camera off and the lower third hidden.
 
+<!--i:eti-speak-->
 ## During the talk
 
 The private window shows the current slide, the next slide and speaker notes when the deck has them. Lolly Countdown shows its duration, start, pause and reset controls instead.
@@ -84,6 +91,7 @@ The private window shows the current slide, the next slide and speaker notes whe
 
 Closing the private window, or pressing Escape or S there outside an input, puts the audience on black, stops the camera, pauses Countdown and finishes any recording. Reopening the controls never starts the camera by itself. If the browser uses Escape to leave full screen, it may take that key first.
 
+<!--i:eti-film-->
 ## Record what the audience sees
 
 Recording needs a browser that can capture a region of its own tab, and the control tells you when that is unavailable. The macOS desktop app cannot record this way, though its audience window can still be shared.
@@ -94,7 +102,11 @@ Recording needs a browser that can capture a region of its own tab, and the cont
 4. Present as normal. The recording follows the applied scene, including camera crop, logo and lower-third cues.
 5. Press **R** again in the audience window, or choose **Stop recording**, and let the file finish saving.
 
-A take stops at 30 minutes or 512 MiB, whichever comes first. Lolly uses temporary local storage where it can and reports a failure if it cannot finish. Tool audio, call audio and virtual microphones are not mixed in. If saving fails, keep the presentation open and choose **Save recording** to try again; closing or reloading can lose the take.
+A take stops at 30 minutes or 512 MiB, whichever comes first. Lolly uses temporary local storage where it can and reports a failure if it cannot finish. Tool audio, call audio and virtual microphones are not mixed in.
+
+::: warning Closing or reloading can lose a take
+If saving fails, keep the presentation open and choose **Save recording** to try again.
+:::
 
 ::: details Use OBS Studio as a virtual camera (experimental)
 Lolly does not install a virtual camera of its own, and a trial from OBS Studio into a call has not been completed for Lolly yet.

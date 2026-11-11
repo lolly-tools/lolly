@@ -6,17 +6,20 @@ The accepted image, engine pin, pack and public key stay as they are; only the w
 moves forward. The deployment is resumable, so an interrupted run picks up where it
 stopped without repeating a change it already made.
 
-::: timeline
-- <!--i:checklist--> **Qualify.** The exact Lolly main commit passes CI.
-- <!--i:document--> **Request.** A workflow, or the local command, turns that CI attempt into a deployment request.
-- <!--i:layers--> **Prepare.** Build once, assemble the private inputs and qualify the candidate.
-- <!--i:upload--> **Deploy.** One resumable command stages, publishes and observes the new web app.
+**What you'll do**, in four steps:
+
+::: steps
+- <!--i:eti-badge-check--> **[Qualify](#qualification-policy)** The exact Lolly main commit passes CI.
+- <!--i:eti-file-plus--> **[Request](#prepare-the-request)** A workflow, or the local command, turns that CI attempt into a deployment request.
+- <!--i:eti-package--> **[Prepare](#prepare-and-deploy)** Build once, assemble the private inputs and qualify the candidate.
+- <!--i:eti-upload--> **[Deploy](#prepare-and-deploy)** One resumable command stages, publishes and observes the new web app.
 :::
 
 The detailed release-engineering runbooks behind this page, for the public web app's
 update lanes, release classification and model checks, live in the Lolly repository's
 [scripts guide](https://github.com/lolly-tools/lolly/blob/main/scripts/README.md#hosted-web-app-releases).
 
+<!--i:eti-file-plus-->
 ## Prepare the request
 
 Use Lolly's **Prepare shell deployment request** GitHub workflow after its exact
@@ -28,14 +31,20 @@ refuses the request even if an earlier public-ready artifact exists.
 
 Qualification binds one exact CI attempt. To retry CI, rerun the entire workflow
 with GitHub's **Re-run all jobs**, then prepare a request for that new attempt.
+
+::: warning Re-run all jobs, not only the failed ones
 Re-running only failed jobs leaves results from different attempts and cannot
 qualify publication. Mixed-attempt results and pull-request artifacts cannot
 authorize publication.
+:::
 
 The workflow carries public provenance only. Private packs, credentials, signed
 catalogues and deployment profiles stay with the private operator. GitHub-hosted
-runners do not have production access. This workflow prepares a request; a green
-workflow does not mean the site was published.
+runners do not have production access.
+
+::: note A green workflow is not a publication
+This workflow prepares a request; a green workflow does not mean the site was published.
+:::
 
 The caller lives in Lolly so its temporary read token can read Lolly's CI artifact.
 It calls Lolly Work's reusable workflow and checks out the helper at the same pinned
@@ -50,6 +59,7 @@ python3 -B scripts/verify-shell-qualification.py \
   --tier public-ready --out "$PRIVATE_RELEASE/request"
 ```
 
+<!--i:eti-upload-->
 ## Prepare and deploy
 
 Build once with `prepare-shell-update.ts`, assemble with
@@ -78,13 +88,16 @@ referenced file's actual bytes:
 }
 ```
 
-Create the lock directory with mode `0700`. All operators for the same cluster
+**Locking.** Create the lock directory with mode `0700`. All operators for the same cluster
 and Lolly Work Deployment must use the same directory. The lock identity uses the
 cluster UID, namespace and Deployment UID, so changing profile files cannot
 create a second publication owner. The lock is released automatically when the
-process exits; an interrupted process does not leave a stale PID lock. This is a
-host-local lock. A second operator host needs external publication coordination;
+process exits; an interrupted process does not leave a stale PID lock.
+
+::: warning The lock covers one host
+This is a host-local lock. A second operator host needs external publication coordination;
 it does not participate in this filesystem lock.
+:::
 
 ```sh
 python3 -B scripts/deploy-private-shell.py \
@@ -98,7 +111,7 @@ production mutation. CI is read again after the apply guards and immediately
 before the final normal target preflight and patch. If main has
 advanced, prepare the newer request; the older candidate is not silently shipped.
 
-Run the identical command to resume. Successful original stage phases are reused;
+**Resuming.** Run the identical command to resume. Successful original stage phases are reused;
 completed copy, qualification and retirement phases are not repeated. Read-only
 preparation can retry in a new evidence directory. A started mutation without its
 original accepted result, or any uncertain mutation, refuses automatic replay.
@@ -111,6 +124,7 @@ the next instance profile and distinguishes runtime acceptance from the remainin
 authenticated export, document-agent, reconnect and visual checks. Preserve the
 current and immediate rollback artifacts until the normal retention review.
 
+<!--i:eti-badge-check-->
 ## Qualification policy
 
 Public-ready requires the focused UI suite, scope classification, build and bundle
@@ -125,6 +139,7 @@ web app cannot carry a dependency change, and the fast CI check does not overrid
 compatibility.
 
 <a id="publishing-without-a-work-restart"></a>
+<!--i:eti-refresh-->
 ## Publishing without a Lolly Work restart
 
 The [immutable shell-pointer mode](../deploy/helm/IMMUTABLE-SHELL-RELEASES.md) is a

@@ -253,11 +253,12 @@ const isTyping = (): boolean => isTypingTarget();
 /**
  * Touch pinch-to-zoom + pan for the canvas stage.
  *
- * The page's native pinch-zoom is disabled (viewport user-scalable=no) so the
- * sticky sidebar header can't be stranded off-screen on mobile. To compensate,
- * the canvas preview gets gesture zoom here. It applies a transform to the OUTER
- * wrapper - fitCanvas only ever touches the inner canvas's width/height/transform,
- * so the two layers compose cleanly (fit-to-screen, then pinch on top of that).
+ * The page itself can be pinch-zoomed in every shell (WCAG 1.4.4), so the stage
+ * keeps the pinch for the canvas on its own element: touch-action: none, and on
+ * touch WebKit its gesture events refused there. Elsewhere a pinch zooms the page.
+ * The canvas zoom applies a transform to the OUTER wrapper - fitCanvas only ever
+ * touches the inner canvas's width/height/transform, so the two layers compose
+ * cleanly (fit-to-screen, then pinch on top of that).
  *
  * Returns { reset } so callers can snap back to the fitted view.
  */
@@ -849,9 +850,12 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   // Suppress native scroll/zoom on the stage so the gestures above own the touch.
   // Scoped here (not in CSS) so scrollable no-canvas tools keep normal touch scroll.
   stageEl.style.touchAction = 'none';
+  // Touch WebKit also sends a pinch as gesture events, and the page itself may zoom, so
+  // those are refused on the stage too. A fine pointer's are answered in the block below.
+  const isTouch = window.matchMedia('(pointer: coarse)').matches;
+  if (isTouch) for (const type of ['gesturestart', 'gesturechange'] as const) stageEl.addEventListener(type, e => e.preventDefault());
 
   // ── Desktop: trackpad-native zoom/pan + a Fit/% HUD + keyboard shortcuts ──────
-  const isTouch = window.matchMedia('(pointer: coarse)').matches;
   let hud: ZoomHud | null = null;
 
   // The HUD's "zoomed" state is what it says on the tin - the view is somewhere the USER

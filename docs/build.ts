@@ -316,6 +316,7 @@ const pages: Page[] = [
   { slug: 'agenda', title: 'Agenda screens and programmes', src: 'agenda.md', pathway: 'creators', canonicalPath: 'create/agenda', contentLicense: 'CC-BY-SA-4.0', description: 'Turn an event programme into branded screens, an interactive page, video, calendars and PowerPoint slides.' },
   { slug: 'animating', title: 'Animating: keyframes, depth and a camera', src: 'animating.md', pathway: 'creators', canonicalPath: 'create/animating', contentLicense: 'CC-BY-SA-4.0', description: 'Pose a box at one moment, lift it off the page, and fly a camera over the result - keyframes, depth, the scene camera and Lift layers, all on your device.' },
   { slug: 'rondocode', title: 'Lolly Rondocode songs', src: 'rondocode.md', pathway: 'creators', canonicalPath: 'create/rondocode', contentLicense: 'CC-BY-SA-4.0', description: 'Play music written as code under a video, write and export a song, and see what its Content Credentials record.' },
+  { slug: 'generated-music', title: 'Generated music', src: 'generated-music.md', pathway: 'creators', canonicalPath: 'create/generated-music', contentLicense: 'CC-BY-SA-4.0', description: 'How the Neurospicy player\'s Lofi and Lolly Sings stations compose their music, and why a seed always plays the same tune.' },
   { slug: 'collaborate', title: 'Working together', src: 'collaborate.md', pathway: 'creators', canonicalPath: 'create/collaborate', contentLicense: 'CC-BY-SA-4.0', description: 'Edit a tool session with someone else: a private collab between two devices with no account or server, or a work collab through your organisation\'s Lolly Work.' },
   { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'creators', canonicalPath: 'create/project-asset-transfers', contentLicense: 'CC-BY-SA-4.0', description: 'With Lolly Work, browse shared project folders, copy files between projects, offer originals to the organisation library and send files to connected services.' },
   { slug: 'utilities', title: 'Utilities', src: 'utilities.md', pathway: 'creators', canonicalPath: 'create/utilities', contentLicense: 'CC-BY-SA-4.0', description: 'Fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour, with every utility in the Utilities tab.' },
@@ -379,7 +380,7 @@ const pages: Page[] = [
   { slug: 'ios-build', title: 'Building for iOS', src: 'ios-build.md', pathway: 'builders', canonicalPath: 'build/ios-build', contentLicense: 'CC-BY-SA-4.0', description: 'Run Lolly in the iPhone Simulator, sign a build for a device or TestFlight, and release through the protected App Store workflow.' },
   { slug: 'catalog-resource-reading', title: 'Read verified catalog resources', src: 'catalog-resource-reading.md', pathway: 'operators', canonicalPath: 'operate/catalog-resource-reading', contentLicense: 'CC-BY-SA-4.0', description: 'How a client verifies signed catalog resources before use, the read limits, and how exact source reads stay fixed in History.' },
   { slug: 'connector-origins', title: 'Configure connector origins', src: 'connector-origins.md', pathway: 'operators', canonicalPath: 'operate/connector-origins', contentLicense: 'CC-BY-SA-4.0', description: 'Exact HTTPS connector origins, deployment headers and native request policy.' },
-  { slug: 'deployment', title: 'Choose a deployment', src: 'deployment.md', pathway: 'operators', canonicalPath: 'operate/deployment', contentLicense: 'CC-BY-SA-4.0', description: 'Pick how Lolly reaches people: hand out the apps, host the web app on any static server or Kubernetes, or add Lolly Work. The routes and headers a host must serve.' },
+  { slug: 'deployment', title: 'Choose a deployment', src: 'deployment.md', pathway: 'operators', canonicalPath: 'operate/deployment', contentLicense: 'CC-BY-SA-4.0', description: 'Pick how Lolly reaches people: hand out the apps, host the web app on Kubernetes or any static server, or add Lolly Work. The routes and headers a host must serve.' },
   { slug: 'build-kubernetes', title: 'Run on Kubernetes', src: 'build-kubernetes.md', pathway: 'operators', canonicalPath: 'operate/build-kubernetes', contentLicense: 'CC-BY-SA-4.0', description: 'Install Lolly on your own cluster from the published images and Helm chart, turn on MCP or CA, build your own image, and use the lean and sovereign profiles.' },
   { slug: 'deploy-delivery', title: 'Delivery deployment', src: 'deploy-delivery.md', pathway: 'operators', canonicalPath: 'operate/deploy-delivery', contentLicense: 'CC-BY-SA-4.0', description: 'Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.' },
   { slug: 'configuration', title: 'Profiles, brands and tool configuration', src: 'configuration.md', pathway: 'managers', canonicalPath: 'manage/profiles-and-brands', contentLicense: 'CC-BY-SA-4.0', description: 'Everything that shapes a Lolly instance: which brand it wears, which tools it exposes, and what each tool may do on the device it runs on.' },
@@ -408,14 +409,15 @@ const pages: Page[] = [
   { slug: 'beatrice-warde', title: 'Beatrice Warde', src: 'beatrice-warde.md', pathway: 'trust', canonicalPath: 'trust/beatrice-warde', contentLicense: 'CC-BY-SA-4.0', description: 'The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely.', register: 'stage' },
   { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', canonicalPath: 'trust/shoulders-of-giants', contentLicense: 'CC-BY-SA-4.0', description: 'The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.', pdf: 'shoulders-of-giants.pdf', register: 'stage' },
   { slug: 'operate', title: 'Deploy', src: 'operate.md', pathway: 'operators', canonicalPath: 'operate/index', contentLicense: 'CC-BY-SA-4.0', headingId: 'deploy-operate', isHub: true },
-  { slug: 'work-self-host', title: 'Run Lolly Work', src: 'work/self-host.md', pathway: 'operators', canonicalPath: 'operate/run-your-own-server', contentLicense: 'MPL-2.0', description: 'Pick the path that matches what you have: the public demo, a trial on your computer, one Linux server, YunoHost or Kubernetes. Downloads and checksums for the current release.' },
-  { slug: 'work-release-1-1-3', title: 'Release 1.1.3', src: 'work/release-1-1-3.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-3', contentLicense: 'MPL-2.0', description: 'The current release: Lolly Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Lolly Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.' },
+  { slug: 'work-self-host', title: 'Run Lolly Work', src: 'work/self-host.md', pathway: 'operators', canonicalPath: 'operate/run-your-own-server', contentLicense: 'MPL-2.0', description: 'Pick the path that matches what you have: Kubernetes, the public demo, a trial on your computer, one Linux server or YunoHost. Downloads and checksums for the current release.' },
+  { slug: 'work-release-1-2-0', title: 'Release 1.2.0', src: 'work/release-1-2-0.md', pathway: 'operators', canonicalPath: 'operate/release-1-2-0', contentLicense: 'MPL-2.0', description: 'The current release: Lolly Work 1.2.0 paired with Lolly 1.2.0, what Lolly 1.2.0 needs from Lolly Work, partner programmes, changes since 1.1.3, migrations and YunoHost packaging.' },
+  { slug: 'work-release-1-1-3', title: 'Release 1.1.3', src: 'work/release-1-1-3.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-3', contentLicense: 'MPL-2.0', description: 'Lolly Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Lolly Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.' },
   { slug: 'work-release-1-1-2', title: 'Release 1.1.2', src: 'work/release-1-1-2.md', pathway: 'operators', canonicalPath: 'operate/release-1-1-2', contentLicense: 'MPL-2.0', description: 'Lolly Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Lolly Work, changes since 1.1.1, migrations, images and YunoHost packaging.' },
   { slug: 'work-past-releases', title: 'Past releases', src: 'work/past-releases.md', pathway: 'operators', canonicalPath: 'operate/past-releases', contentLicense: 'MPL-2.0', description: 'Lolly Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.' },
   { slug: 'work-overview', title: 'Lolly Work architecture', src: 'work/overview.md', pathway: 'operators', canonicalPath: 'operate/work-architecture', contentLicense: 'MPL-2.0', description: 'Lolly Work in one page: what stays on the device, what the server holds and serves, the two codebases and the trust model.' },
+  { slug: 'work-platform-deployment', title: 'Install on Kubernetes', src: 'work/platform-deployment.md', pathway: 'operators', canonicalPath: 'operate/platform-deployment', contentLicense: 'MPL-2.0', description: 'Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.' },
   { slug: 'work-install', title: 'Install Lolly Work', src: 'work/install.md', pathway: 'operators', canonicalPath: 'operate/install-work', contentLicense: 'MPL-2.0', description: 'From a source checkout to a running instance on one server: try it locally, make it yours, add PostgreSQL and secrets, then run it with Compose, systemd or YunoHost.' },
   { slug: 'work-ready-made-package', title: 'Install the ready-made package', src: 'work/ready-made-package.md', pathway: 'operators', canonicalPath: 'operate/ready-made-package', contentLicense: 'MPL-2.0', description: 'One Docker Compose folder with Lolly Work, PostgreSQL, the matching web app and automatic HTTPS, for a fresh VM, UpCloud, Dokploy or Coolify, with backup, restore and update steps.' },
-  { slug: 'work-platform-deployment', title: 'Install on Kubernetes', src: 'work/platform-deployment.md', pathway: 'operators', canonicalPath: 'operate/platform-deployment', contentLicense: 'MPL-2.0', description: 'Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.' },
   { slug: 'work-official-installations', title: 'Official installation routes', src: 'work/official-installations.md', pathway: 'operators', canonicalPath: 'operate/official-installations', contentLicense: 'MPL-2.0', description: 'Which project packages exist, what each has passed, how to verify release signatures, and how to mirror every download for a restricted network.' },
   { slug: 'work-enterprise-identity', title: 'Set up enterprise identity', src: 'work/enterprise-identity.md', pathway: 'operators', canonicalPath: 'operate/enterprise-identity', contentLicense: 'MPL-2.0', description: 'Connect an enterprise identity provider with logout and optional assurance, qualify it, operate it, and mint SCIM and service tokens.' },
   { slug: 'work-identity-providers', title: 'Sign-in provider recipes', src: 'work/identity-providers.md', pathway: 'operators', canonicalPath: 'operate/sign-in-provider-recipes', contentLicense: 'MPL-2.0', description: 'Configure Google, Entra ID, Okta, Keycloak, Auth0, GitHub or a SAML broker, several providers at once, and reverse-proxy sign-in.' },
@@ -423,7 +425,7 @@ const pages: Page[] = [
   { slug: 'work-deployment', title: 'How a Lolly Work deployment fits together', src: 'work/deployment.md', pathway: 'operators', canonicalPath: 'operate/work-deployment-options', contentLicense: 'MPL-2.0', description: 'The parts every Lolly Work deployment runs, which ones you can leave out, the two ways to render, the Helm values to know and offline operation.' },
   { slug: 'work-cloud-deployment', title: 'Run Lolly Work on UpCloud or Evroc', src: 'work/cloud-deployment.md', pathway: 'operators', canonicalPath: 'operate/cloud-deployment', contentLicense: 'MPL-2.0', description: 'What the OpenTofu and Terraform modules create, how the two providers differ, moving a PostgreSQL database safely, and capacity and recovery checks.' },
   { slug: 'work-edge-cdn', title: 'Put a CDN in front of Lolly Work', src: 'work/edge-cdn.md', pathway: 'operators', canonicalPath: 'operate/edge-cdn', contentLicense: 'MPL-2.0', description: 'Serve Lolly Work\'s public files through Bunny or Cloudflare: the per-hostname jurisdiction rule, configuration and credentials, the settings that must stay off, purges and the probe.' },
-  { slug: 'work-aws-compatible', title: 'Run Lolly Work on AWS or MulgaDC Spinifex', src: 'work/aws-compatible.md', pathway: 'operators', canonicalPath: 'operate/aws-compatible', contentLicense: 'MPL-2.0', description: 'Run Lolly Work on AWS or on MulgaDC Spinifex: one VM, managed PostgreSQL and S3, EKS with the chart or the Lolly appliance, behind a load balancer if you like, with the issues two Spinifex test runs found.' },
+  { slug: 'work-aws-compatible', title: 'Run Lolly Work on AWS or MulgaDC Spinifex', src: 'work/aws-compatible.md', pathway: 'operators', canonicalPath: 'operate/aws-compatible', contentLicense: 'MPL-2.0', description: 'Run Lolly Work on AWS or on MulgaDC Spinifex: EKS with the chart, the Lolly appliance, one VM or managed PostgreSQL and S3, behind a load balancer if you like, with the issues two Spinifex test runs found.' },
   { slug: 'work-wasm-deployment', title: 'WebAssembly and Kubewarden choices', src: 'work/wasm-deployment.md', pathway: 'operators', canonicalPath: 'operate/wasm-deployment', contentLicense: 'MPL-2.0', description: 'Optional WebAssembly tracks: evaluating Kubewarden admission policies and preparing a component host. A normal install needs neither.' },
   { slug: 'work-admission-policy', title: 'Admission policy with Kubewarden', src: 'work/admission-policy.md', pathway: 'operators', canonicalPath: 'operate/admission-policy', contentLicense: 'MPL-2.0', description: 'What Lolly Work pods need from an admission policy, a ready Kubewarden policy set pinned by digest, a preflight check and how the set was qualified.' },
   { slug: 'work-security-platform', title: 'Lolly Work security overview', src: 'work/security-platform.md', pathway: 'trust', canonicalPath: 'trust/security-platform', contentLicense: 'MPL-2.0', description: 'Local work, connected services and the boundaries operators control.' },
@@ -753,6 +755,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'agenda', label: 'Agenda screens and programmes' },
       { slug: 'animating', label: 'Animating: keyframes, depth and a camera' },
       { slug: 'rondocode', label: 'Lolly Rondocode songs' },
+      { slug: 'generated-music', label: 'Generated music' },
     ] },
     { label: 'Team playbooks and comparisons', items: [
       { slug: 'positioning', label: 'How Lolly compares' },
@@ -914,6 +917,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
     { label: 'Updates, qualification and release history', items: [
       { slug: 'catalog-resource-reading', label: 'Read verified catalog resources' },
       { slug: 'deploy-delivery', label: 'Delivery deployment' },
+      { slug: 'work-release-1-2-0', label: 'Release 1.2.0' },
       { slug: 'work-release-1-1-3', label: 'Release 1.1.3' },
       { slug: 'work-release-1-1-2', label: 'Release 1.1.2' },
       { slug: 'work-past-releases', label: 'Past releases' },
@@ -935,9 +939,9 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'operate', label: 'Deploy' },
       { slug: 'work-self-host', label: 'Run Lolly Work' },
       { slug: 'work-overview', label: 'Lolly Work architecture' },
+      { slug: 'work-platform-deployment', label: 'Install on Kubernetes' },
       { slug: 'work-install', label: 'Install Lolly Work' },
       { slug: 'work-ready-made-package', label: 'Install the ready-made package' },
-      { slug: 'work-platform-deployment', label: 'Install on Kubernetes' },
       { slug: 'work-official-installations', label: 'Official installation routes' },
       { slug: 'work-deployment', label: 'How a Lolly Work deployment fits together' },
       { slug: 'work-cloud-deployment', label: 'Run Lolly Work on UpCloud or Evroc' },
@@ -1710,10 +1714,8 @@ DOC_ICONS.puzzle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M15.39 4.39a
 // AI-generated content, so the same idea wears the same glyph in both places.
 DOC_ICONS.sparkle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg>`;
 // The reading components' glyphs (packages/docs-render/src/components.ts), taken from
-// the app's registry so a note, a disclosure and Copy look the same in both readers.
-DOC_ICONS['adm-info'] = appIcon('info');
-DOC_ICONS['adm-alert'] = appIcon('alert');
-DOC_ICONS['adm-check'] = appIcon('circleCheck');
+// the app's registry so a disclosure and Copy look the same in both readers. A note,
+// warning or check draws a two-tone Etiquette icon instead, registered below.
 DOC_ICONS['adm-chevron'] = appIcon('chevronRight');
 DOC_ICONS['adm-more'] = appIcon('textL');
 DOC_ICONS['adm-clipboard'] = appIcon('clipboard');
@@ -1729,8 +1731,9 @@ DOC_ICONS['chrome-external'] = appIcon('externalLink');
 DOC_ICONS['chrome-back'] = appIcon('arrowLeft');
 DOC_ICONS['chrome-settings'] = appIcon('sliders');
 // Lolly Demo's two-tone Etiquette icons, as `eti-<slug>` (docs/etiquette-icons.ts): the
-// partner pages' cards and subject openings. Painted from --eti-accent and --eti-base,
-// which the stylesheet sets per theme, so they follow light, dark and brand.
+// partner pages' cards and subject openings, and the admonitions. Painted from
+// --eti-accent and --eti-base, which the shared reading stylesheet (docs-components.css)
+// sets from the theme's roles, so they follow light, dark, brand and High contrast.
 Object.assign(DOC_ICONS, etiquetteDocIcons());
 const DOC_ICON_SPRITE = createIconSprite(DOC_ICONS);
 function docIcon(key: string): string {
@@ -3273,14 +3276,17 @@ const APP_TOKENS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/tokens.
 // only; tokens.css and the app's themes are untouched, and the in-app reader keeps
 // following the active brand. Spearmint is the light primary and the band, Green
 // Apple the green for light on dark, Avocado washes the light surfaces, Pandanus draws
-// the light hairlines and Liquorice is the ink and the dark ground. Each block sets
+// the light hairlines and Liquorice is the ink and the dark ground. The accent for words
+// (--primary-text) reads 4.5:1 on each theme's surfaces and on an accent wash over them:
+// the primary in light and dark (Spearmint, Green Apple), and Pandanus on Brand's
+// Spearmint ground, where Green Apple on a green wash falls under. Each block sets
 // the same slots, so a later block never leaves an earlier one's value behind (:root
 // also matches a dark document at equal specificity). --muted and --border are left
 // out because the bridge below shadows both, and the High contrast blocks in
 // APP_TOKENS out-specify all three blocks, so High contrast keeps the app's values.
-const INFO_OPAL_TOKENS = `:root,[data-theme="light"]{--background:0 0% 100%;--foreground:201.2 48.6% 6.9%;--card:0 0% 100%;--card-foreground:201.2 48.6% 6.9%;--popover:0 0% 100%;--popover-foreground:201.2 48.6% 6.9%;--primary:176.5 89.5% 11.2%;--primary-foreground:0 0% 100%;--secondary:84.5 55% 92.2%;--secondary-foreground:201.2 48.6% 6.9%;--accent:121.1 46.9% 77.8%;--accent-foreground:201.2 48.6% 6.9%;--muted-foreground:207.7 10.6% 24.1%;--input:121.1 46.9% 77.8%;--ring:176.5 89.5% 11.2%;--warn:#72251c;--lolly-coin-glow:#edf6e0}
-[data-theme="dark"]{--background:201.2 48.6% 6.9%;--foreground:0 0% 100%;--card:203.3 33.3% 10.6%;--card-foreground:0 0% 100%;--popover:203.3 33.3% 10.6%;--popover-foreground:0 0% 100%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:202.1 25.3% 14.7%;--secondary-foreground:0 0% 100%;--accent:207.7 10.6% 24.1%;--accent-foreground:0 0% 100%;--muted-foreground:201.8 5.7% 62.2%;--input:207.7 10.6% 24.1%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#121d24}
-[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#fac044;--lolly-coin-glow:#0b413e}`;
+const INFO_OPAL_TOKENS = `:root,[data-theme="light"]{--background:0 0% 100%;--foreground:201.2 48.6% 6.9%;--card:0 0% 100%;--card-foreground:201.2 48.6% 6.9%;--popover:0 0% 100%;--popover-foreground:201.2 48.6% 6.9%;--primary:176.5 89.5% 11.2%;--primary-foreground:0 0% 100%;--primary-text:176.5 89.5% 11.2%;--secondary:84.5 55% 92.2%;--secondary-foreground:201.2 48.6% 6.9%;--accent:121.1 46.9% 77.8%;--accent-foreground:201.2 48.6% 6.9%;--muted-foreground:207.7 10.6% 24.1%;--input:121.1 46.9% 77.8%;--ring:176.5 89.5% 11.2%;--warn:#72251c;--lolly-coin-glow:#edf6e0}
+[data-theme="dark"]{--background:201.2 48.6% 6.9%;--foreground:0 0% 100%;--card:203.3 33.3% 10.6%;--card-foreground:0 0% 100%;--popover:203.3 33.3% 10.6%;--popover-foreground:0 0% 100%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--primary-text:133 48.9% 53.9%;--secondary:202.1 25.3% 14.7%;--secondary-foreground:0 0% 100%;--accent:207.7 10.6% 24.1%;--accent-foreground:0 0% 100%;--muted-foreground:201.8 5.7% 62.2%;--input:207.7 10.6% 24.1%;--ring:133 48.9% 53.9%;--warn:#ee9138;--lolly-coin-glow:#121d24}
+[data-theme="brand"]{--background:176.5 89.5% 11.2%;--foreground:84.5 55% 92.2%;--card:176.5 70% 15%;--card-foreground:84.5 55% 92.2%;--popover:176.5 70% 15%;--popover-foreground:84.5 55% 92.2%;--primary:133 48.9% 53.9%;--primary-foreground:201.2 48.6% 6.9%;--primary-text:121.1 46.9% 77.8%;--secondary:176.5 60% 18%;--secondary-foreground:84.5 55% 92.2%;--accent:176.5 55% 21%;--accent-foreground:84.5 55% 92.2%;--muted-foreground:121.1 46.9% 77.8%;--input:176.5 35% 30%;--ring:133 48.9% 53.9%;--warn:#fac044;--lolly-coin-glow:#0b413e}`;
 
 // The landing bands, single-sourced as a real stylesheet: the static front door
 // below and the in-app docs reader (plans/123 decision D2) both render the same
@@ -3872,12 +3878,15 @@ html[data-a11y-motion="reduce"] .sidebar-chev{transition:none}
   .md-timeline .icon-list>li.ic:not(:last-child)::before{left:.875rem;top:1.75rem}}
 .li-icon{flex-shrink:0;width:1.35rem;height:1.35rem;margin-top:.2rem;color:var(--green)}
 .li-icon svg{width:100%;height:100%;display:block}
-/* Etiquette icons (eti-<slug>, docs/etiquette-icons.ts): Lolly Demo's two-tone glyphs,
-   painted from two custom properties so they follow the theme. Light keeps the icons'
-   own pairing, Green Apple on Spearmint; dark and brand paint the base in the page's ink
-   and the accent in the theme's green, the pairing the brand's dark surfaces use. */
-:root,[data-theme="light"]{--eti-accent:#50c369;--eti-base:hsl(var(--primary))}
-[data-theme="dark"],[data-theme="brand"]{--eti-accent:hsl(var(--primary));--eti-base:hsl(var(--foreground))}
+/* Etiquette icons (eti-<slug>, docs/etiquette-icons.ts) take their two colours from the
+   reading stylesheet (docs-components.css), which both readers share, so an icon on /info
+   and the same icon in the app follow the theme the same way. */
+/* The terminal's colours (docs-components.css) read the app's syntax roles. On Opal's light
+   theme the primary is Spearmint, which on the Avocado code panel sits a shade from the ink,
+   so flags, variables and placeholder tints take Spearmint lifted toward Green Apple (5.3:1
+   on the panel) and comments and punctuation a lighter grey (5.1:1). The command keeps
+   Spearmint, in bold. Dark and Brand keep their roles, and High contrast keeps the app's. */
+html:not([data-theme="dark"]):not([data-theme="brand"]):not([data-a11y-contrast="high"]){--ui-color-syntax-type:color-mix(in oklab,hsl(var(--primary)) 55%,hsl(var(--band-accent)));--ui-color-syntax-number:var(--ui-color-syntax-type);--ui-color-syntax-comment:color-mix(in oklab,var(--muted) 75%,var(--pale));--ui-color-syntax-operator:var(--ui-color-syntax-comment)}
 /* ::: cards: an icon list drawn as cards on a pale panel, the way the banked figures
    lay out their parts. A card whose text opens with a bold link IS that link: the
    link's ::after covers the card, so the whole card is one target with one name. */
@@ -6044,7 +6053,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'creators', label: 'Design and templates', slugs: ['using', 'design', 'create-a-tool', 'training-creators', 'training-delivery', 'templates', 'batch', 'brand-studio', 'brand-architectures', 'brand-page', 'colourways', 'partners', '3d-studio', 'design-import', 'design-layout', 'darkroom', 'rebrand', 'text-composition', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Find and keep your work', slugs: ['find-your-work', 'sync', 'search', 'dashboard', 'profile', 'ask', 'favourites'] },
   { hub: 'creators', label: 'Collaborate and export', slugs: ['formats', 'fallback-fonts', 'collaborate', 'project-asset-transfers', 'exporting'] },
-  { hub: 'creators', label: 'Motion and presenting', slugs: ['hdr-editing', 'sequence-editor', 'presenting', 'interactive-pages', 'agenda', 'animating', 'rondocode'] },
+  { hub: 'creators', label: 'Motion and presenting', slugs: ['hdr-editing', 'sequence-editor', 'presenting', 'interactive-pages', 'agenda', 'animating', 'rondocode', 'generated-music'] },
   { hub: 'creators', label: 'Team playbooks and comparisons', slugs: ['positioning', 'compare', 'compare-canva', 'compare-adobe', 'compare-figma', 'compare-render-apis', 'compare-converters', 'compare-penpot', 'compare-brand-portals', 'dam-production', 'sales', 'press', 'marketing', 'legal'] },
   { hub: 'builders', label: 'Architecture and contracts', slugs: ['design-tool-contract', 'text-composition-engine', 'colour-engine', 'overview', 'document-model', 'constraints', 'determinism', 'reproducibility', 'host-api', 'data-transfer'] },
   { hub: 'builders', label: 'Agents, APIs and integrations', slugs: ['ai-agents', 'learning-integration', 'tool-skills', 'mcp', 'open-document-agents', 'work-document-agents', 'work-automation-api', 'work-api', 'work-resumable-uploads'] },
@@ -6056,9 +6065,9 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'managers', label: 'People and access', slugs: ['work-identity', 'work-account-lifecycle', 'work-invitations', 'work-permissions'] },
   { hub: 'managers', label: 'Partners', slugs: ['work-run-a-partner-programme', 'work-partner-co-branding', 'work-partner-templates', 'work-partner-approvals', 'work-partner-shared-assets', 'work-partner-agents', 'work-partner-people', 'work-partner-programmes'] },
   { hub: 'managers', label: 'Jobs, sharing and delivery', slugs: ['work-sharing', 'work-team-projects', 'work-move-from-render-api', 'work-renders', 'work-delivery', 'work-project-portability'] },
-  { hub: 'operators', label: 'Updates, qualification and release history', slugs: ['catalog-resource-reading', 'deploy-delivery', 'work-release-1-1-3', 'work-release-1-1-2', 'work-past-releases', 'work-instance-pack-production', 'work-shell-deployment-workflow'] },
+  { hub: 'operators', label: 'Updates, qualification and release history', slugs: ['catalog-resource-reading', 'deploy-delivery', 'work-release-1-2-0', 'work-release-1-1-3', 'work-release-1-1-2', 'work-past-releases', 'work-instance-pack-production', 'work-shell-deployment-workflow'] },
   { hub: 'operators', label: 'Instance configuration, SSO and signing', slugs: ['connector-origins', 'work-enterprise-identity', 'work-identity-providers', 'work-customer-setup', 'work-configuration', 'work-c2pa'] },
-  { hub: 'operators', label: 'Hosting and installation', slugs: ['deployment', 'build-kubernetes', 'sovereign-production', 'work-self-host', 'work-overview', 'work-install', 'work-ready-made-package', 'work-platform-deployment', 'work-official-installations', 'work-deployment', 'work-cloud-deployment', 'work-edge-cdn', 'work-aws-compatible', 'work-wasm-deployment', 'work-admission-policy'] },
+  { hub: 'operators', label: 'Hosting and installation', slugs: ['deployment', 'build-kubernetes', 'sovereign-production', 'work-self-host', 'work-overview', 'work-platform-deployment', 'work-install', 'work-ready-made-package', 'work-official-installations', 'work-deployment', 'work-cloud-deployment', 'work-edge-cdn', 'work-aws-compatible', 'work-wasm-deployment', 'work-admission-policy'] },
   { hub: 'operators', label: 'Operations, monitoring and recovery', slugs: ['work-operations', 'work-metrics', 'work-production-readiness', 'work-telemetry', 'work-audit'] },
   { hub: 'trust', label: 'Principles, rights and AI', slugs: ['status-quo', 'tenets', 'input-not-impersonation', 'creative-rights', 'inclusive-design', 'ai-stance', 'ai-features', 'eu-ai-act', 'beatrice-warde', 'shoulders-of-giants'] },
   { hub: 'trust', label: 'Credentials and verification', slugs: ['content-credentials-identity', 'what-verify-checks', 'verify-ai-evidence', 'content-credentials-engineering', 'security', 'verify-yourself'] },
@@ -6220,6 +6229,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'agenda': 'checklist',
   'animating': 'layers',
   'rondocode': 'clock',
+  'generated-music': 'neurobeat',
   'collaborate': 'people',
   'project-asset-transfers': 'folder',
   'utilities': 'wrench',
@@ -6313,13 +6323,14 @@ const SIDEBAR_ICON: Record<string, string> = {
   'shoulders-of-giants': 'people',
   'operate': 'server',
   'work-self-host': 'server',
+  'work-release-1-2-0': 'document',
   'work-release-1-1-3': 'document',
   'work-release-1-1-2': 'document',
   'work-past-releases': 'document',
   'work-overview': 'server',
+  'work-platform-deployment': 'document',
   'work-install': 'server',
   'work-ready-made-package': 'server',
-  'work-platform-deployment': 'document',
   'work-official-installations': 'document',
   'work-enterprise-identity': 'usercheck',
   'work-identity-providers': 'usercheck',

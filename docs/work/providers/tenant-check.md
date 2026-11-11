@@ -5,6 +5,7 @@ against. Before you rely on one, run a short check on your own tenant. It confir
 reads the fields it expects, that the files it serves are the real originals and that only the
 right people see them. Nothing in the check writes to the source. Allow about half an hour.
 
+<!--i:eti-search-->
 ## Which sources need a check
 
 | Source | What is not yet confirmed | Shape report |
@@ -24,6 +25,7 @@ right people see them. Nothing in the check writes to the source. Allow about ha
 [acceptance check](#google-drive) to run before go-live. The other sources (S3, git, Dropbox and
 Microsoft 365) carry no checklist in their drivers.
 
+<!--i:eti-checklist-->
 ## Before you start
 
 - A tenant you may test against under your own contract, and its credential.
@@ -33,6 +35,7 @@ Microsoft 365) carry no checklist in their drivers.
   drift and `catalog.provider.credential` (owners) to seal the credential, enable the source and
   disable it again.
 
+<!--i:eti-flask-->
 ## How a check works
 
 ::: timeline
@@ -94,10 +97,22 @@ curl -sS -b "$(cat ~/.config/lolly-work/session)" \
 shasum -a 256 /tmp/work-copy.bin
 ```
 
+An unattended check can send a member service token instead of the session cookie:
+`Authorization: Bearer lwt_…` reads `/catalog/*` ([service tokens](../api.md#service-tokens)).
+
 Download the same file from the source's own interface as the original and checksum that too.
-A match means Lolly Work serves the true original. A smaller file, other pixel dimensions or missing
+
+::: check The two checksums match
+A match means Lolly Work serves the true original.
+:::
+
+::: warning Materialize stores whatever it is given
+A smaller file, other pixel dimensions or missing
 EXIF or ICC data means the link served a rendition: report it, because materialize stores
-whatever it is given. A failure on this route shows as `502 PROVIDER_UNAVAILABLE`; the reason is
+whatever it is given.
+:::
+
+A failure on this route shows as `502 PROVIDER_UNAVAILABLE`; the reason is
 in the materialize output.
 
 ### Read drift
@@ -127,6 +142,7 @@ corrected, open an issue on the
 [Lolly Work repository](https://github.com/lolly-tools/lolly-work/issues) with the shape report,
 the exact text of any error and the product version.
 
+<!--i:eti-badge-check-->
 ## What to check for each source
 
 ::: details WebDAV / Nextcloud
@@ -274,6 +290,7 @@ the exact text of any error and the product version.
   window appears for it in Lolly Work.
 :::
 
+<!--i:eti-award-->
 ## Qualifying a source for a new kind of task
 
 The check above covers reading files. Using a source for something new, such as exact historical

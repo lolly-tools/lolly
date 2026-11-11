@@ -11,6 +11,7 @@ A request moves through each step in order. The submitter can never approve thei
 
 ![The approvals inbox: requests routed to your groups, and the ones you raised](shots/approvals-inbox.svg)
 
+<!--i:eti-link-->
 ## Build a chain
 
 ```
@@ -37,9 +38,19 @@ PUT /api/v1/chains/:id        # policy.edit
 | `{ quorum: n }` | `n` **distinct** approvers approve |
 | `all` | every **nominee named at submit** has approved; with no nominees it behaves as `any` |
 
-Chains apply to work in three places today. Catalog submissions go through the chain that
-`policy.submit.chain` gives ([catalog](catalog.md#submitting-an-asset)). A tool's exports go through
-the chain its policy names in `enforce.escalation` ([review an exported file](#review-an-exported-file)).
+Chains apply to work in these places:
+
+- **Catalog submissions** go through the chain that `policy.submit.chain` gives
+  ([catalog](catalog.md#submitting-an-asset)).
+- **A tool's exports** go through the chain its policy names in `enforce.escalation`
+  ([review an exported file](#review-an-exported-file)).
+- **Brand page revisions** wait on the chain `brandPages.approvalChain` gives
+  ([host a brand page](design-system-administration.md#who-may-publish)).
+- **Studio edits to this instance's design system** wait on the chain chosen under **Edits need
+  approval before they go live** ([the two switches](design-system-administration.md#the-two-switches)).
+- **Partner programmes** can send a company's contact edits, its kit changes and its agents'
+  requests to a chain ([Partner approvals](partner-approvals.md)).
+
 Any other approval sets its `chainId` when it is raised.
 
 ### Edit chains in the console
@@ -60,6 +71,7 @@ members have only the member role needs an explicit allow grant, for example `ap
 `chain:brand-review`, and a deny still wins ([Roles and grants](permissions.md)). Nomination
 choices, new nominations, notifications and the generic inbox also respect these permissions.
 
+<!--i:eti-stamp-->
 ## Raise and act
 
 ```
@@ -73,7 +85,9 @@ GET  /api/v1/approvals/:id/artifact # the file an export review carries
 
 You can raise approvals with the subjects `asset`, `tool-change`, `config`, `guest-link`,
 `source-review` or `export-review`. The server also raises `delivery` approvals for a destination with an approval
-chain ([delivery](delivery.md#optional-human-approval)). One engine handles every kind.
+chain ([delivery](delivery.md#optional-human-approval)), `brand-page` and `brand-edit` approvals for a
+brand page revision or a studio edit, and `company-profile` and `partner-kit` approvals for a partner
+company's contact edits and kit changes. One engine handles every kind.
 
 The chain is **snapshotted at submit**: an approval is judged by the rules it was raised under,
 so editing a chain never rewrites decisions already in progress.
@@ -81,6 +95,7 @@ so editing a chain never rewrites decisions already in progress.
 States run `in_review`, then `approved`, `rejected` or `withdrawn`. A chain with no steps
 approves at once.
 
+<!--i:eti-shield-check-->
 ## Rules the engine enforces
 
 These are enforced in code and covered by tests:
@@ -95,12 +110,14 @@ These are enforced in code and covered by tests:
 - **A reject is terminal.** `onReject: 'return-to-submitter'` means the submitter opens a
   *new* approval; there is no resume.
 
+<!--i:eti-mail-->
 ## Notification
 
 Acting on an approval writes to the per-person inbox, so the approver's next shell poll, and
 the console's Approvals view, shows what needs them. The console's overview shows "what needs
 me" from the same source. Inbox targeting is described in the [API reference](api.md).
 
+<!--i:eti-file-->
 ## Review an exported file
 
 An export review is an approval of one exact file. A reviewer sees the file, and the approved
@@ -109,8 +126,12 @@ download is that file, with a signed record of the approval added when the reque
 **Set it up.** Choose an approval chain for the tool in its policy (**Approval chain for exports**
 in the console, or `enforce.escalation`). To route a group's exports through review, deny them
 `export.download`; a member who holds `export.request` then sees **Request approval** in place of
-Download. On this path the app is cooperating with your policy: the file is made on the person's
-own device, so this guides how work moves and does not stop someone copying what is on their screen.
+Download.
+
+::: note Review guides the work and does not contain it
+On this path the app is cooperating with your policy: the file is made on the person's own device,
+so this guides how work moves and does not stop someone copying what is on their screen.
+:::
 
 **Ask for a review.** **Request approval** runs the same export as Download, with the settings on
 the export bar. The dialog shows the file, its format, size and digest, and sends it to Work.
@@ -126,13 +147,14 @@ A rejected or withdrawn request never releases the file to the requester.
 
 **In the app.** The export bar shows where the current inputs stand, in the control Download would
 hold: **Request approval**, then **In review**, then **Download approved file**, with a line below
-that gives the file, such as "Approved Nov 5, 2026. SVG, 600 × 600." An approval covers one exact
-file. Change an input, the format, the width or the height and the control goes back to **Request
-approval**, and the line below reads "Changed since approval." with **See request**, which still
-holds the approved file. A new request at the new size shows **In review**, and going back to the
-approved size offers that file again. A rejected request says "Not approved." with **See why**.
-Download approved file fetches the stored bytes and runs no export, so the file is the one that was
-reviewed.
+that gives the file, such as "Approved Nov 5, 2026. SVG, 600 × 600."
+
+An approval covers one exact file. Change an input, the format, the width or the height and the
+control goes back to **Request approval**, and the line below reads "Changed since approval." with
+**See request**, which still holds the approved file. A new request at the new size shows **In
+review**, and going back to the approved size offers that file again. A rejected request says "Not
+approved." with **See why**. Download approved file fetches the stored bytes and runs no export, so
+the file is the one that was reviewed.
 
 The app can compare only what a file records: its format, width and height. Marks, bleed,
 transparency, text handling and other export settings are not on the record, so changing one of
@@ -169,6 +191,7 @@ every byte of the approved file matches the reviewed file.
 
 The record is written only when all of these hold, and the card says which one did not:
 
+::: details Every reason the card can give
 | Reason on the card | What it means |
 |---|---|
 | `opted-out` | the requester unticked the box |
@@ -180,6 +203,7 @@ The record is written only when all of these hold, and the card says which one d
 | `no-route` | the format has no update route. PNG, JPEG, SVG and PDF do |
 | `no-credential` | the reviewed file has no Content Credentials to update, and it is not given a first one |
 | `write-failed`, `readback-failed`, `artwork-changed` | the update did not pass its own checks, so it was discarded |
+:::
 
 Work says **recorded** only after reading the update back: the credential is intact, the record says
 what was asked and the bytes outside the credential match the reviewed file. In every other case the
@@ -202,8 +226,7 @@ file holds what the export wrote, including any Content Credentials or Lolly Imp
 export bar, and Work adds no watermark. An experimental tool keeps its usual mark, so the reviewer
 sees the artwork as it will leave.
 
-**Limits.**
-
+::: note Limits of an approval
 - An approval says a person approved this file. It does not establish that the file meets a brand
   rule, a licence or a law. The record in the file says the same and no more: a signer recorded a
   decision, and a viewer still has to trust that signer.
@@ -214,6 +237,7 @@ sees the artwork as it will leave.
   and optional approval.
 - Older shells still send a request with the tool's id and no file. It stays valid, and its card
   says no file is attached.
+:::
 
 **Reading the record.** [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records)
 shows a file's record as an **Approved** panel, and [Assets](/info/authoring-assets.html#approval-and-intent-in-details)
@@ -226,8 +250,7 @@ decided request keeps its file ([configuration](configuration.md#files-and-uploa
 removes the file at once. The record and digest stay after the file goes, and `GET .../artifact`
 answers `410`.
 
-**Refusals.**
-
+::: details Refusals, with their codes and statuses
 | Code | Status | Meaning |
 |---|---|---|
 | `ARTIFACT_NOT_RELEASED` | 403 | the requester asked for the file before approval |
@@ -237,7 +260,9 @@ answers `410`.
 | `ARTIFACT_FORMAT_MISMATCH` | 422 | the file's opening bytes contradict its named format |
 | `APPROVAL_ARTIFACT_BUDGET` | 413 | the instance has no room for another request file |
 | `CHAIN_NOT_BOUND` | 400 | the tool's policy gives a different chain |
+:::
 
+<!--i:eti-images-->
 ## Review a set of source files
 
 A source review records an approval of an exact set of original files, for one stated purpose
@@ -260,21 +285,22 @@ provider files and previews need their own qualification and are refused.
   hidden member hides the whole review, including its count. Review history also follows its
   requester and reviewer audience, and no decision widens a source grant.
 
-An action must echo the `sourceFingerprint` from the review on screen. Older clients that
-cannot display and confirm the frozen subject are refused before a decision is recorded; the
-updated console supplies the fingerprint for approve and reject. The version-history response
-advertises `sourceReviewCapability` only for this supported path: at most 64 MiB per file and
-128 MiB for the whole subject. Clients without that capability keep ordinary history and do
-not offer a source review.
+**Confirming the subject.** An action must echo the `sourceFingerprint` from the review on screen.
+Older clients that cannot display and confirm the frozen subject are refused before a decision is
+recorded; the updated console supplies the fingerprint for approve and reject. The version-history
+response advertises `sourceReviewCapability` only for this supported path: at most 64 MiB per file
+and 128 MiB for the whole subject. Clients without that capability keep ordinary history and do not
+offer a source review.
 
-Replacing a file does not carry the review to its replacement, and changing the purpose,
-target or membership creates a different subject. An approval is historical evidence about the
-exact reviewed source set. Catalog admission, conformance, processing authority and approval of
-final delivery bytes stay separate, and source attribute history stays `not-recorded` even when
-old original bytes exist. The version-history response includes visible `sourceReviews`
-without claiming that the current version was reviewed. The Assets source-history form requests
-a review of one selected instance file; the API supports bounded sets.
+**What a review does not carry.** Replacing a file does not carry the review to its replacement, and
+changing the purpose, target or membership creates a different subject. An approval is historical
+evidence about the exact reviewed source set. Catalog admission, conformance, processing authority
+and approval of final delivery bytes stay separate, and source attribute history stays
+`not-recorded` even when old original bytes exist. The version-history response includes visible
+`sourceReviews` without claiming that the current version was reviewed. The Assets source-history
+form requests a review of one selected instance file; the API supports bounded sets.
 
+<!--i:eti-watermark-->
 ## Watermarking preview output
 
 An overlay can set `enforce.watermark: 'until-approved'` and pair it with a chain. Server renders of
@@ -283,6 +309,7 @@ values is approved. An approved match lifts the pattern everywhere, including sh
 no PREVIEW pattern to the file under review itself, because that is the file being approved. [A watermark that follows approval](governance.md#a-watermark-that-follows-approval)
 has the rule and its limits.
 
+<!--i:eti-search-->
 ## Check the state of a request
 
 `POST /api/v1/approvals/match` tells a signed-in person the state of a tool, a format and a set of
@@ -303,8 +330,12 @@ covers your own requests and those you may read as a reviewer or someone who act
 approved request that you may not read answers `none`, even though a server render of those inputs
 is unmarked. The route needs a person's session.
 
+<!--i:eti-map-pin-->
 ## Related
 
 - Who can approve: [Roles and grants](permissions.md)
 - Binding a chain to a tool: [governance](governance.md)
 - Exporting chains as code: [governance](governance.md#policy-as-code)
+- One approval for a published template's variants:
+  [Partner approvals](partner-approvals.md#one-approval-for-a-template-s-variants)
+- Partners' agents that ask for review: [Partner approvals](partner-approvals.md#requests-from-partners-agents)

@@ -8,6 +8,7 @@ saved on a laptop opens on a phone after sign-in.
 By the end you will know who sees a project, what each project role allows, how saving and
 shared files work and what happens when two people save at once.
 
+<!--i:eti-eye-->
 ## Who sees a project
 
 Each project is either **private** (its owner and the people added to it) or shared with one
@@ -16,6 +17,7 @@ with any group they belong to. Admins and owners see every project. Group member
 member's effective set: groups from the identity provider plus local groups added in the
 console.
 
+::: details Which groups Lolly offers when you share a project
 When Lolly offers a visibility choice, it reads the list from `sharing.groups` in
 `GET /api/v1/org-config`. That list holds the member's own groups, sorted, minus the groups
 that make someone an admin or owner: the names under `admin` and `owner` in `idp.roleGroups`,
@@ -25,6 +27,7 @@ list: approvers, authors, members and viewers see a team project only through it
 project shared with the author group reaches every author. An empty list means the member can
 only make private projects. `can['project.create']` in the same document says whether to offer
 **New project** at all. Both are hints for the interface; the routes below still decide.
+:::
 
 **Archiving.** Archiving a project hides it from `GET /api/v1/projects`, so it drops out of
 Lolly's team list and save picker. The console's Projects view asks with `?archived=1`, lists
@@ -36,8 +39,11 @@ manager of the project.
 `project.manage`. The previous owner stays on the project as a manager, audited as
 `project.member.add` with `via: 'transfer'`, so they can still work there, leave or be
 removed. A previous owner whose account is disabled is not kept, so offboarding (disable, then
-transfer) leaves no row that re-enabling the account would bring back.
+transfer) leaves no row that re-enabling the account would bring back. Ending a partner
+programme can move its people's projects to the programme's owning team, archived and read-only
+([End a partnership](partner-people.md#end-a-partnership)).
 
+<!--i:eti-users-->
 ## People and roles
 
 Everyone who can see a project has one role on it, and the highest that applies wins.
@@ -120,6 +126,7 @@ the transfer applies: the project's owner, or a holder of `project.manage`. Loll
 **Make owner** only then, so an admin denied `project.manage` is not offered it and a member
 granted it is.
 
+<!--i:eti-folder-plus-->
 ## Saving from Lolly
 
 Signed in to an instance, the Share dialog offers a **Team** section:
@@ -131,10 +138,14 @@ Signed in to an instance, the Share dialog offers a **Team** section:
 - **Copy team link** copies the session's [team link](#team-links).
 
 A session body may be up to 4 MiB, enough for a large Lolly Design document; a larger one is refused
-with `413`. Images uploaded on one device are stored on that device. Where shared files are on,
+with `413`.
+
+::: note Without shared files, a session's images stay on one device
+Images uploaded on one device are stored on that device. Where shared files are on,
 saving to a team project copies the images a session uses into the project's files, so the
 session opens elsewhere with them. Where they are off, the session opens elsewhere without
 those images, and Lolly warns about that when you save.
+:::
 
 | To | You need |
 |---|---|
@@ -156,6 +167,7 @@ both survive. Every refused save is recorded as `session.conflict` in the audit 
 revisions only, never input values). The routes are in the [API
 reference](api.md#projects-and-sessions).
 
+<!--i:eti-folder-shared-->
 ## Shared files
 
 A project can hold files: the images and other uploads its sessions use, kept by the instance
@@ -175,6 +187,7 @@ while files are off every file route answers `404`.
 | the person who uploaded the file | delete it, or cancel their own unfinished upload |
 | manager and up (owner, manager member, `project.manage`) | delete any file in the project |
 
+::: details How an upload works
 **How an upload works.** An upload is reserved first, then sent in parts of 1 MiB, then
 finished. Each part is checked against the digest declared at the start, and the whole file is
 checked before it is listed. Only finished files are listed, newest first, and only the
@@ -184,6 +197,7 @@ starts or after its last accepted part, and at the latest 24 hours after it star
 room within minutes. Once it is an hour past its expiry it is removed with its parts, when
 someone next starts an upload or when retention runs. The protocol is in [Resumable
 uploads](resumable-uploads.md).
+:::
 
 **Limits**, from `policy.projectFiles` ([configuration](configuration.md#policy)):
 
@@ -214,6 +228,7 @@ between them. A move changes only the folder listing, so open documents, their l
 assets they use keep working. Personal folders stay on the person's device until they choose
 to share them.
 
+<!--i:eti-history-->
 ## Who changed what
 
 Project rows in `GET /api/v1/projects` carry `updatedAt` and `updatedByName`: the newest of the
@@ -222,6 +237,7 @@ who made it (`null` when nobody has changed the project since it was created). S
 `GET /api/v1/projects/:id/sessions` carry `updatedByName` beside `updatedBy`. Lolly shows these
 in its lists, so a team working one after another can see who saved last.
 
+<!--i:eti-link-->
 ## Team links
 
 A team project opens at `<app>/#/team/project/<projectId>`, which shows Lolly's Team projects

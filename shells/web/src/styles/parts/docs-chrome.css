@@ -194,12 +194,25 @@ html[data-a11y-motion="reduce"] .site-fab:active { transform: none; }
    sheet with the sections, this page's headings and this section's pages. Sticky,
    on the canvas at most of its strength with one hairline under it, so the article
    passes beneath it. Each surface decides where it sits and below which width it
-   shows (docs.css, the site stylesheet in docs/build.ts). */
+   shows (docs.css, the site stylesheet in docs/build.ts).
+   The ground is drawn by ::before, as the site bar's is, so the bar sets no backdrop
+   filter of its own. With the filter on the bar, iOS Safari let the open sheet show
+   but not take taps: the pages further down its scrolling list did nothing when
+   pressed. The sheet hangs below the bar, so it must not sit inside a filtered box. */
 .doc-pagebar {
   position: sticky;
   z-index: 40;
   box-sizing: border-box;
   padding: var(--sp-3) 0;
+  /* Holds the hairline's place, so the bar keeps its height; ::before draws the line. */
+  border-bottom: 1px solid transparent;
+}
+.doc-pagebar::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -1px;
+  z-index: -1;
+  pointer-events: none;
   background: color-mix(in srgb, var(--ui-color-surface-canvas) 92%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);

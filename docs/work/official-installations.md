@@ -10,16 +10,17 @@ commission or usage payment. You provide and run the hosting, domains, identity 
 backups. Forks may redistribute Lolly; the source links and release signatures
 identify the upstream packages.
 
+<!--i:eti-badge-check-->
 ## What each route has passed
 
 | Route | Upstream source | Current state |
 |---|---|---|
-| Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed %work{version} images (current), 1.1.2 and 1.1.1 images are published for amd64 and arm64. The ready-made package's 1.1.3 server passes container qualification in CI on amd64 and arm64. The render worker's arm64 image has no runtime qualification |
-| Helm and Rancher | [Lolly Work chart](https://github.com/lolly-tools/lolly-work/tree/main/deploy/helm) | The chart carries the release version, the same number as Lolly Work and the Lolly apps. Lolly Chart 1.1.3 is published in the chart repository and listed on Artifact Hub, where the project is a verified publisher |
+| Helm and Rancher | [Lolly Work chart](https://github.com/lolly-tools/lolly-work/tree/main/deploy/helm) | The chart carries the release version, the same number as Lolly Work and the Lolly apps. Lolly Chart %work{chart} is published in the chart repository and listed on Artifact Hub, where the project is a verified publisher |
+| Server and optional worker | Public `ghcr.io/lolly-tools/lolly-work-server` and `lolly-work-render-worker` | Signed %work{version} images (current), 1.1.3, 1.1.2 and 1.1.1 images are published for amd64 and arm64. The ready-made package's 1.1.3 server passes container qualification in CI on amd64 and arm64. The render worker's arm64 image has no runtime qualification |
 | Ready-made package (VM or private server) | [Shared distribution package](https://github.com/lolly-tools/lolly-work/tree/main/deploy/marketplaces) | Pins the 1.1.3 server, the complete matching neutral web app and PostgreSQL. The 1.1.3 web app takes the installation's catalogue key from the server that serves it, so a signed-in browser lists the tools; [a browser check of the 1.1.3 package](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md) passed on MulgaDC Spinifex, as a new installation and as an update from the 1.1.1 package. Record a fresh acceptance for each target |
 | UpCloud | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/upcloud) plus the ready-made package | [Ubuntu 24.04 amd64 reference for 1.1.1](https://github.com/lolly-tools/lolly-work/blob/main/deploy/marketplaces/QUALIFICATION.md#upcloud-reference-for-111): fresh install, public HTTPS, built-in owner and member sign-in, a checked SVG, reboot and an independent application restore passed. An upgrade across versions and recovery on a second host are open. **Not ready as a module:** no recorded acceptance has used the infrastructure module to create the machine; its own checks validate the configuration only |
 | Evroc | [Infrastructure module](https://github.com/lolly-tools/lolly-work/tree/main/deploy/evroc) | **Not ready.** A separate European foundation that passes the provider's schema checks but has not been boot-tested on Evroc. Boot and runtime acceptance stay specific to each target |
-| YunoHost | [Project package](https://github.com/lolly-tools/lolly-work_ynh/tree/v1.1.3-ynh2) | 1.1.3~ynh2 beta. On amd64, YunoHost package_check passes install, backup and restore, upgrade from 1.1.0~ynh3 and change URL on YunoHost 12.1 and 13.0, and a signed-in browser on a fresh YunoHost 13 install lists the tools. Each installation makes its own catalogue signing key. The overall run reports level 0 only because the package is not yet in YunoHost's catalogue; catalogue registration and arm64 acceptance are pending |
+| YunoHost | [Project package](https://github.com/lolly-tools/lolly-work_ynh/tree/v1.2.0-ynh2) | The only Lolly package for YunoHost from 1.2.0; the static `lolly_ynh` package is discontinued. 1.2.0~ynh2 beta, which fixes sign-in, invitation joins and password-protected share links in 1.2.0~ynh1. YunoHost package_check of 1.2.0 is pending. For 1.1.3~ynh2, on amd64, package_check passed install, backup and restore, upgrade from 1.1.0~ynh3 and change URL on YunoHost 12.1 and 13.0, and a signed-in browser on a fresh YunoHost 13 install lists the tools. Each installation makes its own catalogue signing key. The overall run reports level 0 only because the package is not yet in YunoHost's catalogue; catalogue registration and arm64 acceptance are pending |
 | Coolify | [Project Compose recipe](https://github.com/lolly-tools/lolly-work/tree/main/deploy/coolify) | **Not ready.** The recipe is generated for Coolify's "Docker Compose Empty" import, with the proxy, generated secrets and domain variable wired, but it has not been imported into a running Coolify. It is not in Coolify's one-click catalogue, which this project does not yet qualify for |
 | Dokploy | [Upstream blueprint](https://github.com/lolly-tools/lolly-work/tree/main/deploy/dokploy) | **Not ready.** The blueprint is generated and ready to import, but it has not been imported into a running Dokploy. Runtime acceptance on a target and admission to the public catalogue are pending |
 
@@ -60,13 +61,15 @@ The repository workflow blocks static code errors and reports catalogue registra
 and working-state metadata separately. Those publication checks stay pending until the
 mirrored package is registered and qualified.
 
+<!--i:eti-shield-check-->
 ## Release verification
 
 Each Lolly Work release publishes receipts for its images, source and signatures: the current
 [Lolly Work %work{version} release](https://github.com/lolly-tools/lolly-work/releases/tag/v%work{version})
-and the earlier [Lolly Work 1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2) and
+and the earlier [Lolly Work 1.1.3](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.3),
+[Lolly Work 1.1.2](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.2) and
 [Lolly Work 1.1.1](https://github.com/lolly-tools/lolly-work/releases/tag/v1.1.1) releases.
-The ready-made package reuses the 1.1.1 release and its checksum-verified, signed Lolly
+The ready-made package reuses the 1.1.3 release and its checksum-verified, signed Lolly
 web archive. It downloads that archive from `lolli.li` on first installation and fetches
 models from the same place when someone uses them, so it needs network access;
 [external services and mirrors](#external-services-and-mirrors) shows how to replace
@@ -78,15 +81,18 @@ each source with your own copy.
 
 | Release | Image | Signing identity |
 |---|---|---|
+| 1.2.0 | server and worker | `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.2.0` |
 | 1.1.3 | server and worker | `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.1.3` |
 | 1.1.2 | server and worker | `https://github.com/lolly-tools/lolly-work/.github/workflows/release.yml@refs/tags/v1.1.2` |
 | 1.1.1 | server | the same workflow at `refs/heads/main` |
 | 1.1.1 | worker | the same workflow at `refs/tags/v1.1.1` |
 
+::: note A published image is not a qualified device
 A successful build or multi-architecture manifest does not make every device
 qualified.
+:::
 
-**The Helm chart**, once published: download its `.tgz`, `SHA256SUMS`,
+**The Helm chart**: download its `.tgz`, `SHA256SUMS`,
 `chart-release.json` and `.tgz.sigstore.json` from the exact chart release. Check the
 sums, then verify the archive with `cosign verify-blob`, its bundle, the same OIDC issuer
 and the identity
@@ -100,6 +106,7 @@ starts with telemetry off. Loading a model contacts `lolli.li`, but that is not 
 Lolly Work stores projects. [Server surface](/info/trust/server-surface.html) lists what each
 server receives and keeps.
 
+<!--i:eti-globe-->
 ## External services and mirrors
 
 The official packages download from the public services below. The general
@@ -108,13 +115,13 @@ requirements for an offline deployment are in
 
 | Source | Used for | When it is contacted | Your own copy |
 |---|---|---|---|
-| `ghcr.io/lolly-tools` | The Lolly Work server image for the ready-made package (including UpCloud), Dokploy and Helm; the optional render worker image. YunoHost uses the `lolli.li` Lolly Work archive instead | Image pull at installation and update. Kubernetes also pulls on any node without the image | Copy each multi-platform image by digest into your registry |
+| `ghcr.io/lolly-tools` | The Lolly Work server image for Helm, the ready-made package (including UpCloud) and Dokploy; the optional render worker image. YunoHost uses the `lolli.li` Lolly Work archive instead | Image pull at installation and update. Kubernetes also pulls on any node without the image | Copy each multi-platform image by digest into your registry |
 | `docker.io/library` (Docker Hub) | PostgreSQL 17 and Caddy images in the ready-made package; PostgreSQL in the Dokploy blueprint | Image pull at installation and update | Copy by digest. The same digests are also at `public.ecr.aws/docker/library/postgres` and `public.ecr.aws/docker/library/caddy` |
 | `lolli.li`, release archives | The matching neutral web app archive (ready-made package, Dokploy, YunoHost); the YunoHost Lolly Work archive | First start of each release; restarts reuse the extracted content | Serve the checksum-verified archive from your own HTTPS server and set `LW_SHELL_URL` |
 | `lolli.li`, model files | On-device model files the web app fetches in the browser | In each person's browser, the first time they use a model feature | No mirror setting: the address is built into the 1.1.1 web app archive. See [model files](#model-files) |
-| Public ACME certificate authorities | Caddy's automatic HTTPS in the ready-made package; Dokploy's proxy; cert-manager when you configure it | At first start and before every renewal. The authority must also reach the host on TCP 80 or 443 | An internal ACME server or a certificate you supply; see [certificates](#certificates-without-public-acme) |
+| Public ACME certificate authorities | cert-manager when you configure it; Caddy's automatic HTTPS in the ready-made package; Dokploy's proxy | At first start and before every renewal. The authority must also reach the host on TCP 80 or 443 | An internal ACME server or a certificate you supply; see [certificates](#certificates-without-public-acme) |
 | Your OIDC provider, when used | Single sign-on with `LOLLY_AUTH_MODE=oidc` | Every sign-in, from the server and the browser | A provider inside your network, or built-in email and password sign-in |
-| GitHub and the npm registry | Source checkout and `pnpm install` for `prepare-marketplace-instance.ts`; chart releases; the YunoHost server install | Once per preparation, on the machine that writes the installation folder. YunoHost uses them on the host itself | Prepare on a connected workstation and copy the folder to the host |
+| GitHub and the npm registry | Chart releases; source checkout and `pnpm install` for `prepare-marketplace-instance.ts`; the YunoHost server install | Once per preparation, on the machine that writes the installation folder. YunoHost uses them on the host itself | Prepare on a connected workstation and copy the folder to the host |
 | Optional browser services | Font picker, cloud-storage connectors, media embeds and a few public data sources the web app's browser policy allows | Only when someone uses that feature | None; the feature does not work without access. The list is in [`shell-headers.ts`](https://github.com/lolly-tools/lolly-work/blob/main/server/src/api/shell-headers.ts) |
 
 Beyond this list, the server connects out only for features an operator turns on, such
@@ -201,6 +208,9 @@ the previous release's mirrored images and archive until you no longer need them
 :::
 
 ::: details Certificates without public ACME
+On Kubernetes, set `ingress.tls` to a Secret you manage, or point cert-manager at an
+internal issuer. Dokploy's proxy has its own certificate settings.
+
 Caddy in the ready-made package asks a public ACME certificate authority, such as
 Let's Encrypt, for its certificate. The host name must resolve to the host from the
 internet, and the authority must reach it on TCP 80 or 443 at first start and again
@@ -229,9 +239,6 @@ files before they expire and run
 `docker compose --project-name lolly-work restart caddy`. With an internal authority,
 every person's device must trust its root. An update must keep the edited `Caddyfile`
 when you compare the new package files.
-
-On Kubernetes, set `ingress.tls` to a Secret you manage, or point cert-manager at an
-internal issuer. Dokploy's proxy has its own certificate settings.
 :::
 
 ::: details Mirrors for Helm, Dokploy and YunoHost
@@ -240,8 +247,7 @@ internal issuer. Dokploy's proxy has its own certificate settings.
   [`values-official-release.yaml`](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/values-official-release.yaml),
   and do the same for `renderWorker.image` when the worker is on. Add
   `imagePullSecrets` if the registry needs credentials. Copy the verified chart package
-  into your own chart repository; until the first publication, package the reviewed
-  `deploy/helm` source instead. The chart downloads no web app and includes no
+  into your own chart repository. The chart downloads no web app and includes no
   database: supply PostgreSQL from your registry, and the verified web app through the
   chart's web app volume or `shell.image`. Kubernetes pulls on any node that lacks an
   image, so keep the registry available while the cluster runs. If admission control
@@ -280,6 +286,7 @@ request to `instance.modelOrigin` (default `https://lolli.li`, see
 the Lolly Work server talks to the model host. Set `modelOrigin` to `null` when the web app
 carries its own models or the installation offers none.
 
+<!--i:eti-help-->
 ## Operation and support
 
 The packages share the single collaboration owner every Lolly Work deployment has; more
@@ -296,6 +303,10 @@ forward repair; an image downgrade alone is not a recovery procedure.
 
 Support is through [upstream issues](https://github.com/lolly-tools/lolly-work/issues),
 with best-effort community maintenance. Report vulnerabilities through the
-repository's `SECURITY.md` route. A provider's certification applies only to its own
-qualified offering, and a listing does not certify Lolly for regulated workloads. These
-packages come with no support contract or certification.
+repository's `SECURITY.md` route.
+
+::: note No support contract or certification
+A provider's certification applies only to its own qualified offering, and a listing does
+not certify Lolly for regulated workloads. These packages come with no support contract or
+certification.
+:::

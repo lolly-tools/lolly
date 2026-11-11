@@ -10,18 +10,18 @@ Quince tipografías, todas de Google Fonts en un commit fijado y todas con la li
 
 | Escritura | Tipografía | Versión | Descarga |
 |---|---|---|---|
-| Árabe, con las letras del urdu y del persa | Noto Sans Arabic | 2.012 | 206 KB |
+| Árabe, con las letras del urdu y del persa | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebreo | Noto Sans Hebrew | 3.001 | 37 KB |
-| Devanagari (hindi, maratí, nepalí) | Noto Sans Devanagari | 2.007 | 147 KB |
-| Bengalí | Noto Sans Bengali | 3.011 | 136 KB |
-| Tailandés | Noto Sans Thai | 2.002 | 61 KB |
-| Cirílico | Noto Sans, letras cirílicas | 2.015 | 112 KB, cursiva 129 KB |
-| Griego | Noto Sans, letras griegas | 2.015 | 75 KB, cursiva 81 KB |
-| Latino, con el vietnamita y otras letras acentuadas | Noto Sans, letras latinas | 2.015 | 309 KB, cursiva 342 KB |
-| Chino simplificado, los caracteres GB 2312 | Noto Sans SC | 2.004 | 1,9 MB |
-| Chino tradicional, los caracteres Big5 | Noto Sans TC | 2.004 | 3,6 MB |
-| Japonés, los caracteres Shift_JIS | Noto Sans JP | 2.004 | 2,1 MB |
-| Coreano, todas las sílabas hangul y los caracteres KS X 1001 | Noto Sans KR | 2.004 | 2,4 MB |
+| Devanagari (hindi, maratí, nepalí) | Noto Sans Devanagari | 2.007 | 151 KB |
+| Bengalí | Noto Sans Bengali | 3.011 | 139 KB |
+| Tailandés | Noto Sans Thai | 2.002 | 62 KB |
+| Cirílico | Noto Sans, letras cirílicas | 2.015 | 115 KB, cursiva 132 KB |
+| Griego | Noto Sans, letras griegas | 2.015 | 77 KB, cursiva 83 KB |
+| Latino, con el vietnamita y otras letras acentuadas | Noto Sans, letras latinas | 2.015 | 316 KB, cursiva 350 KB |
+| Chino simplificado, los caracteres GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
+| Chino tradicional, los caracteres Big5 | Noto Sans TC | 2.004 | 3,8 MB |
+| Japonés, los caracteres Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
+| Coreano, todas las sílabas hangul y los caracteres KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
 
 El eje de peso de cada tipografía se conserva entero, así que cada peso que pide un diseño se dibuja y un título en negrita en chino, japonés o coreano sale en negrita. El eje de ancho de las tipografías Noto Sans está fijado en normal, lo que reduce a la mitad cada archivo; las tipografías de chino, japonés y coreano no tienen eje de ancho. Noto Sans está dividida por escritura, así que una palabra en cirílico descarga solo las letras cirílicas. Los contornos son los originales, sin cambios.
 
@@ -53,7 +53,7 @@ En la página, un lienzo que contiene dos de estos idiomas enumera ambas tipogra
 
 No se descarga nada hasta que un documento contiene un carácter que ninguna tipografía de su design system puede dibujar. Un documento en inglés, o en cualquier idioma que su design system cubra, nunca descarga una tipografía de respaldo. Un símbolo en una línea en inglés, como ★ o ※, nunca descarga una tipografía de chino, japonés o coreano.
 
-La primera vez que un documento necesita una, Lolly descarga esa tipografía, para esa escritura, y la guarda en tu dispositivo. Un documento japonés descarga solo la tipografía japonesa, 2,1 MB, y uno en chino tradicional la tipografía tradicional de 3,6 MB. A partir de entonces la escritura se dibuja sin conexión, y la tipografía se queda cuando se limpia el catálogo. La tipografía se guarda con los archivos propios del catálogo, nunca entre las tipografías que subiste, así que no aparece en la lista de tipografías de tu marca.
+La primera vez que un documento necesita una, Lolly descarga esa tipografía, para esa escritura, y la guarda en tu dispositivo. Un documento japonés descarga solo la tipografía japonesa, 2,2 MB, y uno en chino tradicional la tipografía tradicional de 3,8 MB. A partir de entonces la escritura se dibuja sin conexión, y la tipografía se queda cuando se limpia el catálogo. La tipografía se guarda con los archivos propios del catálogo, nunca entre las tipografías que subiste, así que no aparece en la lista de tipografías de tu marca.
 
 La línea de comandos, la aplicación de terminal y el servidor MCP leen los mismos archivos del disco, así que no necesitan descarga.
 

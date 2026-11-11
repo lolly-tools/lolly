@@ -715,7 +715,7 @@ const NEUTRAL_PROBE = `(() => {
   if (jelly) bad.push('jelly elements in the DOM (<' + jelly.tagName.toLowerCase() + '>)');
   if (document.documentElement.hasAttribute('data-jelly-nav')) bad.push('data-jelly-nav stamped on <html>');
   if (document.querySelector('.privacy-notice')) bad.push('privacy notice showing');
-  if (document.querySelector('.welcome-dialog')) bad.push('welcome dialog open');
+  if (document.querySelector('.welcome-dialog, .welcome-hero')) bad.push('welcome open');
   if (document.querySelector('.brand-tips')) bad.push('tips strip showing');
   if (document.querySelector('.tool-guide-steps')) bad.push('tool guide auto-opened');
   // Asked of the RENDERED page, not of a flag: flagEnabledSync consults an

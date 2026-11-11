@@ -124,10 +124,10 @@ test('cold catalog and welcome progress while the local profile read is pending'
     await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => (window as unknown as { profileReadWaiting(): boolean }).profileReadWaiting());
     await assets;
-    await page.locator('.welcome-dialog').waitFor();
+    await page.locator('.welcome-hero').waitFor();
     await page.evaluate(() => (window as unknown as { releaseProfileRead(): void }).releaseProfileRead());
     await page.locator('.gallery').waitFor({ state: 'attached' });
-    assert.equal(await page.locator('.welcome-dialog').count(), 1);
+    assert.equal(await page.locator('.welcome-hero').count(), 1);
   } finally { await browser.close(); }
 });
 

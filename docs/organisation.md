@@ -8,6 +8,7 @@ If you are planning the organisation's setup, [Use Lolly with your existing DAM]
 The web address of its Lolly, or a `.lolly` setup file your organisation made. lolly.tools on its own does not connect to an organisation.
 :::
 
+<!--i:eti-globe-->
 ## In a browser
 
 Open the address your organisation gave you. If the page asks you to sign in, press **Sign in** and follow the sign-in page it opens. After that it works like any Lolly, with your organisation's tools and design systems.
@@ -16,6 +17,7 @@ You can also start from lolly.tools: open the **Settings** view, and on the **Lo
 
 ![The Lolly instance card in Settings, where you open your organisation's workspace or change where the app gets its tools](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
+<!--i:eti-monitor-->
 ## In the desktop or mobile app
 
 The app starts with its bundled tools. To connect, open the **Settings** view and press **Change** on the **Lolly instance** card. The sheet asks **Where should Lolly get its tools?**
@@ -33,13 +35,15 @@ To switch later, use **Change** again, or **Leave** on the same card.
 
 In the desktop and mobile apps, the sign-in screen also offers a short code, when your organisation's Lolly supports code sign-in. Press **Open sign-in in browser**, sign in and approve the code there. Or open the address it shows on a phone or computer where you are already signed in, and enter the code. The code lasts about ten minutes.
 
+<!--i:eti-sliders-->
 ## What is different there
 
-- **Some controls are set for you.** A control your organisation governs shows **Managed by** and the organisation's name, or **Managed by your organisation**. A fixed control cannot be changed, a menu may offer only some of its choices, and a line starting **Set by** can say which rule applies and why. Some controls are not shown at all.
+- **Some controls are set for you.** A control your organisation governs shows **Managed by** and the organisation's name, or **Managed by your organisation**. A fixed control cannot be changed, and a menu may offer only some of its choices. Some controls are not shown at all. Which rule fixed a control, and why, is in your organisation's console; ask whoever runs your organisation's Lolly.
 - **Some design systems are locked.** A design system your organisation supplies shows a lock and stays read-only. To try changes, make an editable copy in **Settings → Preferences → Design systems**.
 - **Only its tools are listed.** A tool your organisation does not offer is not shown at all.
 - **Shared projects.** If your organisation shares projects with you, **Projects** shows a **Team projects** tile. These sessions live on the organisation's server. Open one to work on it, or start a [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) from **Share** when available.
 - **Some exports may need approval.** Where your organisation asks for approval, **Request approval** takes the place of **Download**, and a tool may offer fewer formats.
+- **Your home may open on templates.** If your organisation publishes templates to you, as it might for a partner company, your home opens on them instead of the first-visit greeting. Each template is one card, with **Your copy** to carry on and **New version** when the template changes. See [Partner templates](/info/work-partner-templates.html).
 
 ### What stays where
 
@@ -56,11 +60,12 @@ In the desktop and mobile apps, the sign-in screen also offers a short code, whe
 - Team projects, shared sessions and live edits in a work collab
 - Assets you upload to the shared library
 - Approval requests and approved deliveries
-- Usage events, where your organisation turns them on
+- A log of your sign-ins and what you do there
 :::
 
-[Privacy](/info/privacy.html#organisation-services-with-lolly-work) lists what the server stores and who controls that data.
+With a workspace connected, the privacy line on the app's first screen says the same: the workspace keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Lolly's own apps send it no usage events. [Privacy](/info/privacy.html#organisation-services-with-lolly-work) lists what the server stores and who controls that data.
 
+<!--i:eti-building-->
 ## What Lolly Work adds
 
 Your organisation's server runs **Lolly Work**, the organisation software of the same open-source project. The app needs neither a work account nor Lolly Work when you use it on your own.
@@ -72,21 +77,24 @@ Your organisation hosts [Lolly Work](https://github.com/lolly-tools/lolly-work) 
 - **Shared work.** Team projects, shared sessions and [work collabs](/info/collaborate.html#work-collabs-with-lolly-work-optional), with live editing through the organisation's server.
 - **A shared asset library.** Uploaded assets, collections and connected libraries, with access rules, versions and review.
 - **Review and delivery.** Approval steps, managed links with expiry or revocation, and delivery to destinations the organisation permits.
-- **Administration.** Usage reporting under the instance's telemetry policy, plus an audit record of governed actions.
-
-If you are setting up the service, start with [Deployment](/info/deployment.html#organisation-services-with-lolly-work). The public demo at [lolly.work](https://lolly.work) is a sandbox; use your organisation's own address for work you need to keep.
+- **Administration.** An audit record of governed actions, and usage reporting under the instance's telemetry policy for clients that send usage events. Lolly's own apps send none today.
 :::
 
+If you are setting up the service, start with [Deployment](/info/deployment.html#organisation-services-with-lolly-work). The public demo at [lolly.work](https://lolly.work) is a sandbox; use your organisation's own address for work you need to keep.
+
+<!--i:eti-palette-->
 ## Another organisation's brand
 
 A partner, client or sponsor may send you their brand as a design-system file (`.lolly`) rather than an address. Opening that kind of file connects the app to nothing: it adds their design system beside your own on this device. A setup file from your own organisation is different, because it connects the app to the organisation's Lolly, and the preview shows what opening a file will do before anything changes. [Working with partners](/info/partners.html) covers both sides of working in another organisation's brand.
 
+<!--i:eti-unlink-->
 ## Leaving
 
-**Leave**, on the **Lolly instance** card in **Settings**, removes your organisation's design system, tools and catalogue. Your own work stays. Anything you made with its tools will not open again until you reconnect.
+**Leave**, on the **Lolly instance** card in **Settings**, removes your organisation's design system, tools and catalogue. Your own work stays. Anything you made with its tools will not open again until you reconnect. Where your organisation's Lolly offers it, **Sign out everywhere** on the same card ends your sessions on every device, this one included.
 
 Anything you saved to the organisation stays with the organisation, under its access and retention policies. Leaving or clearing this device does not delete that server copy. In a browser at your organisation's own address there is nothing to leave: open a different address instead.
 
+<!--i:eti-help-->
 ## Who to ask
 
 What reaches your organisation's server, who can see its shared projects and which settings are fixed are your organisation's decisions. Ask whoever runs your organisation's Lolly. [Privacy](/info/privacy.html) covers what Lolly itself does with your data.

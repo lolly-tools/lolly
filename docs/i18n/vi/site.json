@@ -510,7 +510,7 @@
   "Adoption and governance": "Triển khai và quản trị",
   "Governance": "Quản trị",
   "Host Lolly": "Tự lưu trữ Lolly",
-  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on one machine, on Kubernetes or with your platform team.": "Một máy chủ web tĩnh là cách dễ nhất, và mạng cách ly (air-gapped) cũng cài theo cách tương tự. Lolly Work, máy chủ cho tổ chức, cũng là mã nguồn mở: chạy trên một máy, trên Kubernetes hoặc cùng đội nền tảng của bạn.",
+  "A static web host is the easy path, and an air-gapped network takes the same install. Lolly Work, the organisation server, is open source too: run it on Kubernetes, on one machine or with your platform team.": "Một máy chủ web tĩnh là cách dễ nhất, và mạng cách ly (air-gapped) cũng cài theo cách tương tự. Lolly Work, máy chủ cho tổ chức, cũng là mã nguồn mở: chạy trên Kubernetes, trên một máy hoặc cùng đội nền tảng của bạn.",
   "Deployment": "Triển khai",
   "Privacy": "Quyền riêng tư",
   "The utilities": "Các tiện ích",

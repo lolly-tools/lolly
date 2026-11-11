@@ -12,6 +12,7 @@ Settings is where you change how Lolly works for you: your details, the design s
 
 Each tab has its own address, and old `#/profile` and `#/d` links still open the right place, down to individual settings.
 
+<!--i:eti-sliders-->
 ## Preferences
 
 Preferences is one long page with a **settings rail** down the side and a **Search settings** field above the rail that filters it as you type. Every section opens directly from a link of the form `#/settings?focus=<section-id>`, for example `#/settings?focus=storage-section`.
@@ -29,7 +30,7 @@ Preferences is one long page with a **settings rail** down the side and a **Sear
 - <!--i:cpu--> **Available offline** - download what you need before you lose the connection. See [Available offline](#available-offline).
 - <!--i:folder--> **Hot folder** - in the desktop app, watch one folder and pull anything dropped into it into Lolly, through the same chooser a drag-and-drop gets.
 - <!--i:clock--> **Your activity** - what you have made on this device, counted locally.
-- <!--i:sliders--> **Feature flags** - turn parts of the app on or off, such as **Print preflight** or **Strip metadata from uploads**.
+- <!--i:sliders--> **Feature flags** - turn parts of the app on or off, such as **Print preflight** or **Strip metadata from uploads**. **Performance UI** gives the app a simpler look that is cheaper to draw. Lolly can turn it on by itself on a device that struggles, and the line under the switch says when and why, with **Allow again** ([how it decides](/info/configuration.html#curating-what-people-see)).
 - <!--i:server--> **Lolly instance** - where this install gets its tools and catalogue. See [Lolly instance](#lolly-instance).
 
 The theme cards are live previews and apply the moment you pick one, on this device only.
@@ -45,13 +46,26 @@ The theme cards are live previews and apply the moment you pick one, on this dev
 - <!--i:sliders--> **High contrast** strengthens the app's borders, text and focus rings. Your brand colours and the canvas stay as you set them.
 - <!--i:font--> **Large text** enlarges the app's labels, menus and button text. Type inside your designs is untouched, so nothing you export reflows.
 
+**Dominant hand** (Right or Left) sets which side the controls take when Lolly shows two panes, on a foldable or a near-square tablet. **Swap sides** in a pane's header changes this too.
+
 These settings live on your profile, so they travel in a profile export and arrive on the next install with your name and sessions. A small device-only copy applies them before the first paint.
 
 The same card holds **Sound**, a gentle layer of assistive sounds for what you do (arriving in the gallery, a Content Credentials result, closing a panel), and **Neurospicy Mode**, a calm focus track. Turning Neurospicy on opens a small player in the corner that follows you across the app. There you pick a track, skip, set the volume and minimise or close the player. Tracks include Lolly's own generated stations, ambient loops and beats, your own audio and internet radio stations, which need a connection. Both are off by default and remembered, and turning Sound off mutes the focus track too. The profile menu and **This device** carry the same switch.
 
 Under the Sound switch, a slider sets what those sounds are made of. Toward the round **Bouba** blob they become soft drops, bubbles and a little bass; toward the spiky **Kiki** star they become dry ticks, scratches and metal; the middle keeps Lolly's chimes and notes. If wet, bubbly sounds or sharp, scratchy ones are hard for you to bear, move toward the other end. The slider works while Sound is off, so you can choose before anything plays, and letting go of the slider plays a short sample.
 
-The generated stations make their music as they play, with no samples and no voices, each tune with its own instruments, groove and running order. **Lolly Sings** is the bright, melodic one: major keys, a lead that carries every tune, and bossa, shuffle and chiptune colours. The **Lofi stations** (Warm, Late night and Rainy) are endless lo-fi beats. On a generated station, next and previous move between tunes rather than tracks. Under the transport, **Mood** switches between the Lofi stations, **Drums** takes the kit out, **Texture** runs from clean to a dusty record, **Share this tune** copies a link that plays the same tune for anyone who opens the link, and **Save to library** keeps the tune in your assets. A saved tune is listed with its station's group, by key and tempo, and plays the same tune again whenever you pick it, repeating like any track or moving on in forward mode. It stores only the station and the tune's number, a few bytes, and the music is made again as it plays. You can rename or delete a saved tune in your assets, and use it as a video's music bed. The starter brands also come with a few preset tunes from the stations. The visualizer listens to every track at a steady level, so a quiet track moves the picture as much as a loud one, whatever the volume.
+::: details The generated stations
+The generated stations make their music as they play, with no samples and no recorded voices, each tune with its own instruments, groove and running order.
+
+- **Lolly Sings** is a family of stations. The original Lolly Sings is the bright, melodic one: major keys, a lead that carries every tune, and bossa, shuffle and chiptune colours. Each genre also has a station of its own, from Sugar and K-pop to Country, Jazz, Metal and D&B.
+- The **Lofi stations** (Warm, Late night and Rainy) are endless lo-fi beats.
+
+On a generated station, next and previous move between tunes rather than tracks, and every tune comes from a seed, so it plays the same wherever you share or save it (see [Generated music](generated-music.md)). Under the transport, **Mood** switches between the Lofi stations, **Drums** takes the kit out, **Texture** runs from clean to a dusty record, **Share this tune** copies a link that plays the same tune for anyone who opens the link, and **Save to library** keeps the tune in your assets. **Open in the music generator** opens the tune at `#/music`, where you can change its instruments section by section.
+
+A saved tune is listed with its station's group, by key and tempo, and plays the same tune again whenever you pick it, repeating like any track or moving on in forward mode. It stores only the station and the tune's number, a few bytes, and the music is made again as it plays. You can rename or delete a saved tune in your assets, and use it as a video's music bed. Lolly Demo and Lolly Start each come with six saved tunes from the stations.
+
+The visualiser listens to every track at a steady level, so a quiet track moves the picture as much as a loud one, whatever the volume. Each Lolly Sings genre, and a saved tune from one, offers **Light visualiser**, which shows simple level bars so the music has the processing time it needs. It starts on for touch screens and for devices with four cores or fewer or 4 GB of memory or less.
+:::
 
 The interface is keyboard-navigable, custom controls carry labels for screen readers and each tool's live preview is exposed as one labelled image describing what it shows.
 
@@ -90,12 +104,14 @@ Downloads resume where they stopped if you cancel or lose the connection, and re
 - **Leave** removes the instance's design system, tools and catalogue, and your own work stays. See [Use Lolly at your organisation](/info/organisation.html#leaving).
 - When you are signed in to an organisation, **Sign out** ends this session and **Sign out everywhere** ends your sessions on every device, this one included.
 
+<!--i:eti-monitor-->
 ## This device
 
 - <!--i:monitor--> **This Machine** - screen, input, graphics, memory, codecs, storage backend and more, read live from this session. Nothing is stored and nothing is sent. It opens by itself on a wide screen, where the tab lays out in two columns.
 - <!--i:neurobeat--> **Sound** - the interface sounds and the Neurospicy focus loops, the one switch on this tab that writes anything.
 - <!--i:database--> **Storage** - a read-only view of the meter in [Preferences](#storage), which is where you clear or carry your data.
 
+<!--i:eti-palette-->
 ## Design system
 
 The active design system, set out to read. When this browser holds two or more design systems, a strip of small covers at the top lists them: choose one to make it active, and **Undo** in the notice that follows puts the previous one back.
@@ -113,6 +129,7 @@ The tab opens on a cover painted in the system's own colours, with its logo, its
 
 Switching is the only change this tab makes. You edit a design system in [Lolly Design System Setup](/info/brand-studio.html) at `#/start`, which the cover links to. A read-only system says so on its cover; local systems you create stay editable. `/b` and `/brand` are shortlinks straight to this tab.
 
+<!--i:eti-grid-->
 ## Capabilities
 
 Every part of the platform is written up as a card, in twelve groups: Experiences, Platforms & runtimes, Accessibility & languages, Export formats, Import formats, Print production, Automation & AI, Determinism & reproducibility, Brand & design system, Privacy & data ownership, Security & access control and Architecture (for builders). Each group folds and shows its card count. A card opens into a dialog with that capability's features and, for about half of them, the screenshot this documentation uses.
@@ -121,12 +138,14 @@ The search field above the groups filters the cards as you type and opens whiche
 
 This tab is written documentation of what Lolly can do, kept in step with these guides. It does not probe the machine you are on; **This device** does that.
 
+<!--i:eti-gauge-->
 ## Activity & stats
 
 The build first: how many tools are loaded, how many export formats exist, how many surfaces the platform runs on and how many brand assets the catalogue carries, with a **Catalogue** panel breaking down what ships in this build.
 
 Then your own side: **Your activity** counts what you have made on this device, and **Recent creations** and **Latest exports** are stacks you can swipe through, each appearing once there is something to show. Both open an item as it was. These counters stay on the device; an optional Lolly Work instance keeps its own [organisation telemetry and audit records](/info/privacy.html#organisation-services-with-lolly-work).
 
+<!--i:eti-link-->
 ## Deep links
 
 Every tab and section of Settings has its own link, which you can bookmark or paste. [Lolly Search](/info/search.html) points its **Settings** results at the same registry Settings renders from, so a section cannot be renamed out from under a search result.

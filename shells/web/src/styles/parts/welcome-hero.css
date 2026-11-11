@@ -1,0 +1,165 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this lazy sheet sits in the `views` layer (order declared once in
+   styles/app.css), so its rules keep a fixed priority whenever Vite injects it. */
+@layer views {
+/*
+ * The first-visit greeting in place (components/welcome-hero.ts): the gallery's
+ * opening frame. On a desk, one band: the mark and the sentence, then the one action
+ * with the lorikeet watching the action, then a quiet line. On a phone the band
+ * is the first screen, with the mark and the sentence at the top and the action at
+ * the bottom, in reach of a thumb.
+ *
+ * The mark draws in three strokes and then fills (the timings below add up to
+ * 1.2 s), once, when components/welcome-hero.ts marks the band .is-drawing on first
+ * sight. Until then the mark waits unseen; .is-settled is the finished mark (a later
+ * visit, Reduce motion, or once drawn). Either Reduce motion switch stops the drawing.
+ */
+.welcome-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "lead lead act" "quiet quiet quiet";
+  align-items: center;
+  gap: var(--sp-3) var(--sp-6);
+  /* Clear of the floating navigation over the top of the gallery. */
+  margin: calc(var(--ui-size-target) + var(--sp-6)) var(--sp-4) var(--sp-2);
+  /* The inline end leaves the close button its own corner. */
+  padding: var(--sp-6) calc(var(--ui-size-target) + var(--sp-4)) var(--sp-4) calc(var(--sp-6) * 1.5);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+}
+.welcome-hero-lead { grid-area: lead; display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
+.welcome-hero-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 1.1rem + 1.8vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.welcome-hero-act { grid-area: act; display: grid; justify-items: end; gap: var(--sp-2); }
+.welcome-hero-perch { display: flex; align-items: flex-end; gap: var(--sp-2); }
+.welcome-hero-bird { inline-size: 72px; block-size: 72px; color: var(--ui-color-text-default); }
+.welcome-hero-go { display: inline-grid; justify-items: start; min-height: var(--ui-size-target); padding-inline: var(--sp-6); font-size: var(--fs-md, 1rem); }
+.welcome-hero-go-sub { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
+.welcome-hero-more { margin: 0; display: flex; gap: var(--sp-2); align-items: center; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.welcome-hero-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.welcome-hero-quiet {
+  grid-area: quiet;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+  font-size: var(--fs-xs);
+  color: var(--ui-color-text-muted);
+}
+.welcome-hero-quiet a { color: inherit; }
+.welcome-hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 2px var(--sp-2);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  font: inherit;
+  cursor: pointer;
+}
+.welcome-hero-chip svg { inline-size: 14px; block-size: 14px; }
+.welcome-hero-chip.is-active { border-color: var(--ui-color-action-primary); }
+.welcome-hero-dim { color: var(--ui-color-text-muted); }
+.welcome-hero-langs { display: inline-flex; flex-wrap: wrap; gap: var(--sp-1); }
+.welcome-hero-close {
+  position: absolute;
+  inset-block-start: var(--sp-2);
+  inset-inline-end: var(--sp-2);
+  display: inline-grid;
+  place-items: center;
+  inline-size: var(--ui-size-target);
+  block-size: var(--ui-size-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+
+/* The mark, finished: the candy filled with the brand's action colour, the swirl
+   over it in the colour that reads on that fill, the stick in ink. */
+.welcome-hero-mark { flex: none; inline-size: 88px; block-size: 88px; overflow: visible; }
+.welcome-hero-mark * { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.welcome-hero-mark .whm-candy { fill: var(--ui-color-action-primary); stroke: var(--ui-color-action-primary); }
+.welcome-hero-mark .whm-swirl { stroke: var(--ui-color-action-on-primary); stroke-width: 5; }
+.welcome-hero-mark .whm-stick { stroke: var(--ui-color-text-default); stroke-width: 6; }
+
+/* Waiting to be seen: the mark is drawn from nothing, so nothing shows before. */
+.welcome-hero:not(.is-settled):not(.is-drawing) .welcome-hero-mark { opacity: 0; }
+
+@keyframes whm-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes whm-fill { from { fill-opacity: 0; } to { fill-opacity: 1; } }
+@keyframes whm-ink { from { stroke: var(--ui-color-text-default); } to { stroke: var(--ui-color-action-on-primary); } }
+@keyframes whm-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* The drawing: the swirl from its centre out, the candy's edge closing round it, then
+   the fill and the stick together, then the sentence. */
+.welcome-hero.is-drawing .whm-swirl {
+  animation: whm-draw calc(var(--dur-3) * 2.5) var(--ease-out) both, whm-ink var(--dur-3) var(--ease-out) calc(var(--dur-3) * 3) both;
+}
+.welcome-hero.is-drawing .whm-candy {
+  animation: whm-draw calc(var(--dur-3) * 2) var(--ease-out) var(--dur-3) both, whm-fill var(--dur-3) var(--ease-out) calc(var(--dur-3) * 3) both;
+}
+.welcome-hero.is-drawing .whm-stick {
+  animation: whm-draw var(--dur-3) var(--ease-out) calc(var(--dur-3) * 3) both;
+}
+.welcome-hero.is-drawing .welcome-hero-title,
+.welcome-hero.is-drawing .welcome-hero-act {
+  animation: whm-rise var(--dur-3) var(--ease-out) calc(var(--dur-3) * 2) both;
+}
+/* Reduce motion, by either switch: the finished mark, nothing moving. (The greeting
+   does not start a drawing then either; these hold if a switch changes mid-way.) */
+@media (prefers-reduced-motion: reduce) {
+  .welcome-hero.is-drawing .whm-swirl,
+  .welcome-hero.is-drawing .whm-candy,
+  .welcome-hero.is-drawing .whm-stick,
+  .welcome-hero.is-drawing .welcome-hero-title,
+  .welcome-hero.is-drawing .welcome-hero-act { animation: none; }
+}
+html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-swirl,
+html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-candy,
+html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-stick,
+html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .welcome-hero-title,
+html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .welcome-hero-act { animation: none; }
+
+/* A phone: the greeting is the first screen. The mark and the sentence at the top,
+   the action at the bottom where a thumb is, the quiet line under it. */
+@media (max-width: 760px) {
+  .welcome-hero {
+    grid-template-columns: 1fr;
+    grid-template-areas: "lead" "act" "quiet";
+    align-content: space-between;
+    min-block-size: calc(100svh - var(--ui-size-target) * 4);
+    margin: calc(var(--ui-size-target) + var(--sp-4)) var(--sp-2) var(--sp-2);
+    padding: calc(var(--sp-6) * 1.5) var(--sp-4) var(--sp-4);
+  }
+  .welcome-hero-lead { flex-direction: column; align-items: flex-start; }
+  .welcome-hero-mark { inline-size: 104px; block-size: 104px; }
+  .welcome-hero-act { justify-items: stretch; }
+  .welcome-hero-perch { justify-content: flex-end; }
+  .welcome-hero-go { flex: 1; justify-items: center; }
+  .welcome-hero-more { justify-content: center; }
+  .welcome-hero-quiet { justify-content: center; text-align: center; }
+}
+}

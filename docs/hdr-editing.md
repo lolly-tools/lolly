@@ -2,8 +2,11 @@
 
 You shot a sunset in HDR, or your brand green only looks right on a wide-gamut screen, and you do not want an 8-bit editing step to flatten either. **Wide colour** means a wider range of colours than ordinary sRGB, such as Display P3 or Rec.2020. **HDR** also allows brightness above ordinary white. Lolly can keep both through editing in Lolly Design, Lolly Darkroom and Sequence, then write an HDR file or an ordinary SDR copy from the same document.
 
-This is not the export panel's **HDR** card, which brightens ordinary artwork for HDR screens; that card is described in [Export a file](/info/exporting.html#hdr-bright-colours).
+::: note This is not the export panel's HDR card
+That card brightens ordinary artwork for HDR screens, and [Export a file](/info/exporting.html#hdr-bright-colours) describes the card.
+:::
 
+<!--i:eti-sliders-->
 ## Turn it on
 
 - **Lolly Design**: open **Canvas size** or **Artboard size** and set **Colour** to **Wide colour / HDR**.
@@ -13,6 +16,7 @@ Standard editing stays the default. The choice is saved with the document, and S
 
 A brand swatch can hold an sRGB face and a Display P3 or Rec.2020 face. A standard document uses the sRGB face and a wide colour document the wider one; new swatch picks keep their token reference, so switching the document's range picks the right face. A compatible display shows the P3 colours, but your display never changes the saved colour or the exported master.
 
+<!--i:eti-image-upload-->
 ## Bring in originals
 
 Choose an image through the image picker. PNG, JPEG XL, TIFF, OpenEXR and Radiance originals keep their source bytes. TIFF, EXR and Radiance files get a display PNG while the editor decodes the original into linear floating-point pixels. A generic library HDR import can still serve as a 3D environment; choose an image slot to bring an HDR file in as a 2D image.
@@ -23,8 +27,13 @@ What each part edits in float:
 - **Lolly Design** composes flat layers, text, vectors, original images and supported blend modes.
 - **Sequence** reads decoded video planes directly, including PQ and HLG sources, and applies clip timing and composition before encoding.
 
-Internal diffuse white is 203 nits, and HLG uses a 1,000-nit display interpretation. The image preview and histogram are tone-mapped SDR views, so they do not prove what an HDR monitor will show.
+Internal diffuse white is 203 nits, and HLG uses a 1,000-nit display interpretation.
 
+::: note The preview is tone-mapped to SDR
+The image preview and histogram are tone-mapped SDR views, so they do not prove what an HDR monitor will show.
+:::
+
+<!--i:eti-download-->
 ## Export: HDR or an SDR copy
 
 The editing range and the output range are separate choices:
@@ -52,6 +61,7 @@ Float images and video frames are limited to 8,388,608 pixels, including UHD, wi
 - **TIFF**: classic chunky RGB or gray strips, uncompressed or Deflate, 8 or 16-bit integers or 32-bit float. Tiled, multipage and BigTIFF files need converting.
 - **EXR**: single-part scanline RGB(A), HALF, FLOAT or UINT, NONE, ZIPS or ZIP compression, and known sRGB, P3 or Rec.2020 chromaticities.
 - **SDR JPEG and SVG** are accepted. JPEG gain maps and other source formats need converting to a supported HDR original.
+- **Camera raw photos** are stored as a developed picture, not the raw file, and HDR editing does not apply to them yet.
 :::
 
 ::: details What the float path refuses

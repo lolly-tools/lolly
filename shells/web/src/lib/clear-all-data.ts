@@ -135,6 +135,44 @@ export interface ClearAllReport {
   tabs: { seen: number; ready: number };
   /** One line per step that did not finish; the rest still ran. */
   errors: string[];
+  /** The label of each step that reported an error, in the order the steps ran:
+   *  'tabs', 'sync', 'pack-store', 'state', a shell clearer's name, 'indexeddb',
+   *  'databases', 'serviceWorkers', 'caches', 'opfs', 'localStorage', 'sessionStorage'. */
+  failedSteps: string[];
+}
+
+/** What a person is told is still on the device after a clear that did not finish. */
+export type UnclearedPart = 'app-files' | 'database' | 'offline' | 'files' | 'preferences';
+
+const PART_OF_STEP: Readonly<Record<string, UnclearedPart | null>> = {
+  // Nothing stays behind for these two. A tab that did not confirm it stopped is
+  // refused every later write all the same (lib/clear-signal.ts reads the marker
+  // before each one), and Sync's settings live in the app database, so a Sync step
+  // that failed leaves something only when the database step fails too.
+  tabs: null,
+  sync: null,
+  'pack-store': 'database',
+  indexeddb: 'database',
+  databases: 'database',
+  serviceWorkers: 'offline',
+  caches: 'offline',
+  opfs: 'files',
+  localStorage: 'preferences',
+  sessionStorage: 'preferences',
+};
+
+/**
+ * The parts of the device a clear left behind, once each, in the order it runs. Any
+ * step not listed above is 'state' or a shell's own clearer (lib/device-data-clearers.ts),
+ * which empty the files an app keeps outside the browser's storage.
+ */
+export function unclearedParts(report: Pick<ClearAllReport, 'failedSteps'>): UnclearedPart[] {
+  const parts: UnclearedPart[] = [];
+  for (const label of report.failedSteps) {
+    const part = Object.hasOwn(PART_OF_STEP, label) ? PART_OF_STEP[label] : 'app-files';
+    if (part && !parts.includes(part)) parts.push(part);
+  }
+  return parts;
 }
 
 /** Anything that may clear the state bridge's own saved sessions (the Tauri files). */
@@ -251,9 +289,11 @@ async function clearAppDatabase(db: ClearableDb, errors: string[]): Promise<stri
  */
 export async function clearAllLollyData(opts: { state?: ClearableState; env?: Partial<ClearAllEnv> } = {}): Promise<ClearAllReport> {
   const env: ClearAllEnv = { ...browserEnv(), ...opts.env };
-  const report: ClearAllReport = { stores: [], databases: [], serviceWorkers: [], caches: [], files: [], localKeys: 0, sessionKeys: 0, cleared: [], tabs: { seen: 0, ready: 0 }, errors: [] };
+  const report: ClearAllReport = { stores: [], databases: [], serviceWorkers: [], caches: [], files: [], localKeys: 0, sessionKeys: 0, cleared: [], tabs: { seen: 0, ready: 0 }, errors: [], failedSteps: [] };
   const step = async (label: string, run: () => Promise<void>): Promise<void> => {
+    const before = report.errors.length;
     try { await run(); } catch (error) { report.errors.push(`${label}: ${String((error as Error)?.message ?? error)}`); }
+    if (report.errors.length > before) report.failedSteps.push(label);
   };
 
   // 0. Every other tab stops writing, and writes under way finish, before anything

@@ -11,6 +11,7 @@ company it was made for.
 **Start here:** [Set up a programme](#set-up-a-programme) · [What partners see](#what-partners-see)
 · [Every option, route and audit event](partner-programmes.md)
 
+<!--i:eti-package-->
 ## What partners get
 
 Partners start with nothing internal. They get what you give their programme and their company,
@@ -42,6 +43,7 @@ unaffected, and admins and owners are never narrowed.
 | **When they leave** | Access ends at once, or on a date you choose with a notice before. Links they made stop working. | **End this partnership** |
 :::
 
+<!--i:eti-type-->
 ## Four words
 
 - A **programme** is your own name for one kind of partner, such as *Resellers, EMEA*. Lolly
@@ -51,6 +53,7 @@ unaffected, and admins and owners are never narrowed.
 - A **template** is a ready piece you publish to a programme, such as a product data sheet where a
   reseller adds only their price.
 
+<!--i:eti-layers-->
 ## How a programme fits together
 
 ![How a programme fits together: your design system reaches the programme, the programme gives its tools, assets and templates to each company, each company adds its details, logos and kit, its people and its agent tokens make pieces, and the finished files record the company.](/info/diagrams/work-partners/programme-structure.svg)
@@ -64,6 +67,7 @@ A programme is co-branding: your design system leads, and the partner's mark goe
 as a picture. [Brand architectures](/info/brand-architectures.html#co-branding) shows how
 co-branding relates to the other ways organisations arrange their brands.
 
+<!--i:eti-graduation-cap-->
 ## Guides by subject
 
 ::: cards
@@ -75,6 +79,7 @@ co-branding relates to the other ways organisations arrange their brands.
 - <!--i:eti-users--> **[People and the partnership](partner-people.md)** Create a programme, check what partners get, invite people, then end a partnership on a date and reopen an end.
 :::
 
+<!--i:eti-eye-->
 ## What partners see
 
 Rita works at Northwind IT, a company in Resellers, EMEA.
@@ -104,6 +109,7 @@ A phone shows the same home in the same order. What she sees inside a template i
 [Partner templates](partner-templates.md#what-a-partner-sees-in-a-template), and what her exports
 record is on [Co-branding and partner kits](partner-co-branding.md#what-a-co-branded-file-records).
 
+<!--i:eti-checklist-->
 ## Set up a programme
 
 <a id="worked-example-northwind-it"></a>
@@ -127,6 +133,7 @@ Example ids such as `resellers-emea` are yours to choose.
 - <!--i:eti-calendar--> **8. End the partnership on a date.** Northwind IT alone, on 30 June 2027, with a notice. [People and the partnership →](partner-people.md#end-on-a-date)
 :::
 
+<!--i:eti-clock-->
 ## Day to day
 
 - <!--i:eti-file-plus--> **A new version of a template, or retiring one:** [New versions and retiring](partner-templates.md#new-versions-and-retiring).
@@ -136,6 +143,7 @@ Example ids such as `resellers-emea` are yours to choose.
 - <!--i:eti-gauge--> **Checking a limit:** [Limits and quotas](partner-people.md#limits-and-quotas).
 - <!--i:eti-calendar--> **Ending a partnership, ending on a date or undoing an end:** [End a partnership](partner-people.md#end-a-partnership).
 
+<!--i:eti-link-->
 ## Related
 
 - Every option, route and audit event: [Partner programmes](partner-programmes.md)

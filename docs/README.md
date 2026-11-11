@@ -68,6 +68,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Agenda screens and programmes | [agenda.md](agenda.md) |
 | Animating: keyframes, depth and a camera | [animating.md](animating.md) |
 | Lolly Rondocode songs | [rondocode.md](rondocode.md) |
+| Generated music | [generated-music.md](generated-music.md) |
 | Working together | [collaborate.md](collaborate.md) |
 | Shared project assets | [project-asset-transfers.md](project-asset-transfers.md) |
 | Utilities | [utilities.md](utilities.md) |
@@ -215,13 +216,14 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Sovereign creative production | [sovereign-production.md](sovereign-production.md) |
 | Deploy | [operate.md](operate.md) |
 | Run Lolly Work | [work/self-host.md](work/self-host.md) |
+| Release 1.2.0 | [work/release-1-2-0.md](work/release-1-2-0.md) |
 | Release 1.1.3 | [work/release-1-1-3.md](work/release-1-1-3.md) |
 | Release 1.1.2 | [work/release-1-1-2.md](work/release-1-1-2.md) |
 | Past releases | [work/past-releases.md](work/past-releases.md) |
 | Lolly Work architecture | [work/overview.md](work/overview.md) |
+| Install on Kubernetes | [work/platform-deployment.md](work/platform-deployment.md) |
 | Install Lolly Work | [work/install.md](work/install.md) |
 | Install the ready-made package | [work/ready-made-package.md](work/ready-made-package.md) |
-| Install on Kubernetes | [work/platform-deployment.md](work/platform-deployment.md) |
 | Official installation routes | [work/official-installations.md](work/official-installations.md) |
 | Set up enterprise identity | [work/enterprise-identity.md](work/enterprise-identity.md) |
 | Sign-in provider recipes | [work/identity-providers.md](work/identity-providers.md) |

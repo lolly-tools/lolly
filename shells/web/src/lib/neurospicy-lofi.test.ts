@@ -32,7 +32,9 @@ test('four stations whose ids round-trip to their mood', () => {
   }
   assert.equal(lofiMoodOf('lofi:sunny'), null, 'an unknown mood is not a station');
   assert.equal(isLofiId('lolly/songs/amber-glow'), false);
-  assert.deepEqual(lofiTracks().map(t => t.name), ['Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy', 'Lolly Sings']);
+  assert.deepEqual(lofiTracks().map(t => t.name), [
+    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Sherbert', 'Lolly Sings · K-pop', 'Lolly Sings · Straya', 'Lolly Sings · Persian', 'Lolly Sings · Guzheng', 'Lolly Sings · Koto', 'Lolly Sings · Kora', 'Lolly Sings · Afrobeat', 'Lolly Sings · Amapiano', 'Lolly Sings · Chiptune', 'Lolly Sings · City pop', 'Lolly Sings · Funk', 'Lolly Sings · Soul', 'Lolly Sings · R&B', 'Lolly Sings · Nu-disco', 'Lolly Sings · Hip hop', 'Lolly Sings · Trip hop', 'Lolly Sings · Reggae', 'Lolly Sings · Ska', 'Lolly Sings · Spanish guitar', 'Lolly Sings · Rock', 'Lolly Sings · Punk', 'Lolly Sings · Grunge', 'Lolly Sings · Stoner rock', 'Lolly Sings · Metal', 'Lolly Sings · Country', 'Lolly Sings · Blues', 'Lolly Sings · Jazz', 'Lolly Sings · Swing', 'Lolly Sings · Fantasy', 'Lolly Sings · Dreamscape', 'Lolly Sings · Shoegaze', 'Lolly Sings · Synthwave', 'Lolly Sings · Acid', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep', 'Lolly Sings · Brostep', 'Lolly Sings · D&B', 'Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy',
+  ]);
 });
 
 test('a retired catalog track hands over to the nearest station', () => {
@@ -67,12 +69,15 @@ const emptyHost: NeurospicyHost = {
   profile: { get: async () => ({}), set: async () => ({}) },
 };
 
-test('the stations are always in the track list: Lolly Sings in its group, the Lofi moods in theirs', async () => {
+test('the stations are always in the track list, all in the Lolly Sings group', async () => {
   invalidateNeurospicyTracks();
   const loops = await listLoops(emptyHost);   // no catalog at all: a cold or offline boot
-  assert.deepEqual(loops.filter(t => isLofiId(t.id)).map(t => t.id), ['lofi:sings', 'lofi:warm', 'lofi:lateNight', 'lofi:rainy']);
-  assert.deepEqual(loops.filter(t => trackCategory(t) === 'lolly').map(t => t.name), ['Lolly Sings']);
-  assert.deepEqual(loops.filter(t => trackCategory(t) === 'lofi').map(t => t.id), ['warm', 'lateNight', 'rainy'].map(m => lofiId(m as 'warm')));
+  assert.deepEqual(loops.filter(t => isLofiId(t.id)).map(t => t.id), [
+    'lofi:sings', 'lofi:sugar', 'lofi:sherbert', 'lofi:kpop', 'lofi:straya', 'lofi:persian', 'lofi:guzheng', 'lofi:koto', 'lofi:kora', 'lofi:afrobeat', 'lofi:amapiano', 'lofi:chiptune', 'lofi:citypop', 'lofi:funk', 'lofi:soul', 'lofi:rnb', 'lofi:nudisco', 'lofi:hiphop', 'lofi:triphop', 'lofi:reggae', 'lofi:ska', 'lofi:spanish', 'lofi:rock', 'lofi:punk', 'lofi:grunge', 'lofi:stoner', 'lofi:metal', 'lofi:country', 'lofi:blues', 'lofi:jazz', 'lofi:swing', 'lofi:fantasy', 'lofi:dream', 'lofi:shoegaze', 'lofi:synthwave', 'lofi:acid', 'lofi:electro', 'lofi:dubstep', 'lofi:brostep', 'lofi:dnb', 'lofi:warm', 'lofi:lateNight', 'lofi:rainy',
+  ]);
+  assert.deepEqual(loops.filter(t => trackCategory(t) === 'lolly').map(t => t.name), [
+    'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Sherbert', 'Lolly Sings · K-pop', 'Lolly Sings · Straya', 'Lolly Sings · Persian', 'Lolly Sings · Guzheng', 'Lolly Sings · Koto', 'Lolly Sings · Kora', 'Lolly Sings · Afrobeat', 'Lolly Sings · Amapiano', 'Lolly Sings · Chiptune', 'Lolly Sings · City pop', 'Lolly Sings · Funk', 'Lolly Sings · Soul', 'Lolly Sings · R&B', 'Lolly Sings · Nu-disco', 'Lolly Sings · Hip hop', 'Lolly Sings · Trip hop', 'Lolly Sings · Reggae', 'Lolly Sings · Ska', 'Lolly Sings · Spanish guitar', 'Lolly Sings · Rock', 'Lolly Sings · Punk', 'Lolly Sings · Grunge', 'Lolly Sings · Stoner rock', 'Lolly Sings · Metal', 'Lolly Sings · Country', 'Lolly Sings · Blues', 'Lolly Sings · Jazz', 'Lolly Sings · Swing', 'Lolly Sings · Fantasy', 'Lolly Sings · Dreamscape', 'Lolly Sings · Shoegaze', 'Lolly Sings · Synthwave', 'Lolly Sings · Acid', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep', 'Lolly Sings · Brostep', 'Lolly Sings · D&B', 'Lofi · Warm', 'Lofi · Late night', 'Lofi · Rainy',
+  ], 'the family genres first, then the Lofi moods');
 });
 
 test('the visualizer feed lifts a quiet track, caps a loud one, and holds through silence', () => {

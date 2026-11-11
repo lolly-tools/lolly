@@ -8,6 +8,7 @@ A web page cannot read the pixels of another website, so the Lolly web app needs
 
 You approve every request, and the desktop app does the same jobs without the extension.
 
+<!--i:eti-checklist-->
 ## Before you install
 
 Until the extension is installed, **Lolly URL Screenshot** still opens, so you can compose a shot. A note at the top of the tool's controls says what is missing.
@@ -18,6 +19,7 @@ Every control works while you wait: the target URL, the scroll depth, the settle
 
 ![The Lolly URL Screenshot controls with a target URL, scroll depth, settle delay and crop insets, all usable before the extension exists](/t/url-shot?url=%2F%23%2Ftool%2Furl-shot%3Furl%3Dhttps%3A%2F%2Flolly.tools%26scrollDepth%3D0.3%26waitMs%3D1200&width=1440&height=2200&dpi=192&waitMs=2400&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&walker=1&dark=1&filename=fq-url-shot-controls)
 
+<!--i:eti-download-->
 ## Install
 
 **From the Chrome Web Store:** coming soon. Once the extension is published, you install it in one click.
@@ -30,10 +32,13 @@ Every control works while you wait: the target URL, the scroll depth, the settle
 4. Click **Load unpacked** and choose the `dist/chrome-extension/` folder.
 5. Reload the Lolly tab. Detection happens when the page loads, so the "Get the extension" prompt disappears. **Lolly URL Screenshot** (under Utilities) can then save captures to a file and becomes available in Lolly Batch mode.
 
+::: details For a local development server, or the source folder
 For a local development server, run `pnpm run pack:chrome-extension:dev` and load `dist/chrome-extension-dev` instead. That package also accepts `http://localhost:5173` and has **Development** in its name.
 
 Loading the `shells/chrome-extension/` folder itself also works, for PNG screenshots. That folder has no page walk (the packaging step builds one in), so an SVG from it holds a screenshot rather than shapes.
+:::
 
+<!--i:eti-user-check-->
 ## What happens when Lolly asks
 
 ![The Lolly tab asks for one page and you press Approve once in the extension's approval window. A background tab opens, reads the page and closes. Then the Lolly tab gets the result.](/info/diagrams/concepts/extension-request.svg)
@@ -43,17 +48,24 @@ Loading the `shells/chrome-extension/` folder itself also works, for PNG screens
 3. **Chrome asks once per site.** The first time you approve a request for a site, Chrome also asks whether the extension may access that site. Chrome keeps that access once you allow it, but every later request still needs its own **Approve once**.
 4. **The page is read in a background tab.** The extension opens the target page in a background tab, captures it through the DevTools Protocol (the same `Page.captureScreenshot` the desktop app uses), closes the tab and hands the result back to the Lolly tab that asked.
 
+::: details How an SVG capture works
 For an **SVG**, the extension walks the page rather than taking a picture of the screen. A script packaged with the extension reads the page's layout in that background tab and turns the page into shapes and outlined text, so the file stays sharp at any size and every part stays editable. Pictures on the page come across as the pictures they are, and what the page draws with a canvas, a video or an effect SVG has no form for is copied from a screenshot of the same moment. Lolly checks the result against that screenshot, and when the two differ too much the SVG holds the screenshot instead.
 
 To outline the text in the page's own typeface, the extension hands Lolly the font files the page loaded. Chrome does not keep a font's bytes where an extension can read them, so the extension asks the page for each font again. Your browser usually answers from its cache, and the page's own security policy still applies to that request.
+:::
 
 An approval covers one request and expires after 30 seconds. Only one request can wait or run at a time, and an approved request stops after 55 seconds. If the Lolly page closes or changes, or the target page moves to another site, the request is cancelled.
 
-The capture runs in your browser, on your network, so `localhost` and internal sites work. The page loads with your browser session, so a page you are signed in to can show private information in the result. The capture is not uploaded: the only network traffic is your own browser loading the page you asked for, plus, for an SVG, that page's font files a second time.
+::: warning Captures use your browser session
+The page loads with your browser session, so a page you are signed in to can show private information in the result.
+:::
+
+The capture runs in your browser, on your network, so `localhost` and internal sites work. The capture is not uploaded: the only network traffic is your own browser loading the page you asked for, plus, for an SVG, that page's font files a second time.
 
 While a capture runs you may briefly see a *"…started debugging this browser"* banner on the temporary tab. That is the DevTools Protocol at work, and the banner clears when the shot is done.
 
 <a id="reading-a-site-for-design-system-setup"></a>
+<!--i:eti-globe-->
 ## Reading a site for Lolly Design System Setup
 
 The **Website** source in Lolly Design System Setup starts a design system from a site you already have. In a Chromium browser the extension reads the page. In the desktop app, the app fetches the page itself. In a browser with no extension, the Website tile is not offered.
@@ -65,6 +77,7 @@ The **Website** source in Lolly Design System Setup starts a design system from 
 
 Pasting an address only fills in the field. Nothing is read until you start the reading and press **Approve once**.
 
+<!--i:eti-lock-->
 ## Permissions
 
 The extension's `manifest.json` declares four permissions, plus site access that it asks for one site at a time. It sets `minimum_chrome_version: 111`, and the current version is 0.5.0.
@@ -79,6 +92,7 @@ The extension's `manifest.json` declares four permissions, plus site access that
 
 The extension reads only the single page you approve. It does not read or send your browsing data, and nothing is uploaded.
 
+<!--i:eti-help-->
 ## Troubleshooting
 
 - **Still seeing "Get the extension"?** Reload the Lolly tab.

@@ -6,6 +6,7 @@ A design token is one named brand value, such as a colour, a radius or a typefac
 
 Lolly stores tokens in the [W3C Design Tokens (DTCG)](https://www.designtokens.org/TR/drafts/format/) format, the same format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/), so a brand defined in Lolly round-trips with Penpot and Tokens Studio. Tokens carry the brand's values both ways. A finished Figma or Penpot file comes in through Lolly Design's [Import a design](/info/design-import.html) instead.
 
+<!--i:eti-package-->
 ## Where your tokens come from
 
 **Lolly Design System Setup** (`#/start`) is where you make and edit tokens. Its Colours, Type and Tokens rooms write colour, typography and dimension tokens (radius, spacing, sizing, stroke, opacity, rotation and shadows), and its import reads W3C DTCG, Tokens Studio and Penpot files. You can also hydrate a pack from a token file with [`ingest:brand`](/info/configuration.html#brand-packs).
@@ -26,6 +27,7 @@ The corner radius is the plainest dimension token: one slider writes one `shape.
 
 ![The Rounded corners control in the Tokens room - a live preview square, a slider and the value it writes, all standing for a single dimension token](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=900&dpi=192&waitMs=1800&css=.tk-dial%7Bpadding%3A14px%2016px%7D&walker=1&format=svg&cropSelector=.tk-dial%3Ahas%28%5Bdata-be-radius-slider%5D%29&dark=1&filename=at2-token-radius-dimension)
 
+<!--i:eti-code-->
 ## The format (a DTCG profile)
 
 A token document is DTCG JSON. A **token** is an object with `$value` (required) and `$type`. **Groups** are objects without `$value`, and they pass their `$type` down to the tokens inside. One token refers to another with a curly-brace alias, `{dotted.path}`.
@@ -109,6 +111,7 @@ DTCG has no spring type, so a spring is any token that carries `spring` under th
 
 A keyframe follows a curve or spring by its token path, so the path has to fit in a link: letters, digits and hyphens between dots, at most 64 characters. A token with any other path is left out of the list. [Animating](/info/animating.html#follow-the-design-system) covers following a token from the Keyframes popup.
 
+<!--i:eti-sliders-->
 ## How tools use tokens
 
 Tools reach tokens three ways:
@@ -117,7 +120,11 @@ Tools reach tokens three ways:
 - **Hooks, through `host.tokens`.** A hook can read the token set, resolve a reference or list every colourway's lead with `family()`. Lolly Chart, Mesh Gradient, Filter and Wordmark are among the community tools that do. When the document's theme or colourway changes, the runtime runs `onInput` once with the id `__tokens`, so a hook that keeps colours it read can read them again.
 - **Templates and styles, through canvas variables.** The canvas carries the design system's semantic colours as CSS custom properties (`--brand-primary` and the rest), plus `--brand-lead-1` onwards when the design system has two or more colourways. [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) lists them.
 
-Handing the resolved token tree to a template's context, through the `extras` mechanism and opted into from the manifest, is not built yet. Fields other than colour link through each field's **Input actions** menu; [Token workflows](/info/token-workflows.html#link-a-field-to-a-token) covers that.
+::: note The token tree does not reach a template yet
+Handing the resolved token tree to a template's context, through the `extras` mechanism and opted into from the manifest, is not built yet.
+:::
+
+Fields other than colour link through each field's **Input actions** menu; [Token workflows](/info/token-workflows.html#link-a-field-to-a-token) covers that.
 
 ### The value model: reference + cached value
 
@@ -142,6 +149,7 @@ The link behind the next picture holds no colour values at all. Its three colour
 
 ![A mesh gradient whose green, turquoise and gold all arrived as token references in the link rather than as hex values](/t/url-shot?url=%2F%23%2Ftool%2Fgradient%3Fcount%3D3%26color1%3D%257Bcolor.spectrum.green-apple%257D%26color2%3D%257Bcolor.spectrum.reef%257D%26color3%3D%257Bcolor.spectrum.honey%257D%26full&width=880&height=560&dpi=96&waitMs=2400&walker=1&format=svg&dark=1&filename=at2-token-refs-in-url)
 
+<!--i:eti-repeat-->
 ## Round-trip with Penpot
 
 ::: timeline
@@ -155,6 +163,7 @@ The link behind the next picture holds no colour values at all. Its three colour
 
 CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignores it, as the standard intends. Two more paths go beyond the token file. Once Penpot is connected under **Settings → Connected services**, a finished render can be sent from Lolly into a Penpot project as an image. And the Lolly bridge plugin for Penpot, installed by URL from a Lolly instance, can place a working Lolly session on the Penpot canvas as editable shapes.
 
+<!--i:eti-file-->
 ## DESIGN.md
 
 [DESIGN.md](https://github.com/google-labs-code/design.md) is a format for describing a visual identity to coding agents, with YAML tokens and a Markdown body. It is at version `alpha`, and Lolly targets that version.
@@ -165,6 +174,7 @@ CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignor
 
 A design system that declares [colour roles](/info/colourways.html) adds its own words: each role's name, what it is for and what Lolly reads it as, in the format's own bullet form under **Colors**. A subsection, **Colour roles**, adds a table of both looks and a fenced `json` block holding the same facts. The tokens above the block stay complete, so a reader that does not know the block loses nothing it asked for. When Lolly reads the file back, the block is what restores the roles.
 
+<!--i:eti-tag-->
 ## Colour roles in other formats
 
 A design system can name its colours in its own words, with a role per word. Each format below has a different amount of room for those words. A design system with no declared roles writes exactly the bytes it wrote before, on every route.
@@ -179,6 +189,7 @@ A design system can name its colours in its own words, with a role per word. Eac
 
 The words are someone's text in every format. A name or description that speaks about permissions or running code stays out, and everything else is drawn as plain text.
 
+<!--i:eti-palette-->
 ## Theme the app itself
 
 Your design system describes your brand. It can also dress Lolly's own interface, in two ways: `lolly.ui.*` roles that hold one value in every theme, and a `color.chrome` group that sets the app's surfaces separately for light and dark.
@@ -286,6 +297,7 @@ Each applied theme also restates the error text colour, adjusted until it reads 
 **Unsaved work.** When any theme states `unsaved`, the colour moves out of the app's automatic pick into a block for each theme. The brand theme takes the brand set's colour, else the dark set's, and a theme that states none takes the automatic pick. That pick is the colour in the pack nearest red to yellow, and when the pack has none Lolly's own amber stays. The label on it is black or white, whichever reads better.
 :::
 
+<!--i:eti-layers-->
 ## How the token engine is built
 
 Four layers carry a token from a file to a tool:
@@ -299,6 +311,7 @@ Four layers carry a token from a file to a tool:
 
 [Token workflows](/info/token-workflows.html) covers inspecting tokens, choosing themes for one document, linking fields and reviewing changes.
 
+<!--i:eti-clipboard-->
 ## Reference
 
 - Engine model: [`engine/src/tokens.ts`](../engine/src/tokens.ts): `createTokenSet`, `resolveColorValue`, `colorToHex`, `isAlias`, `isTokenValue`, `TOKEN_EXT`. The format contract is pinned by [`tests/tokens.test.ts`](../tests/tokens.test.ts).

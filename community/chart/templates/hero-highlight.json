@@ -1,0 +1,23 @@
+{
+  "id": "hero-highlight",
+  "name": "One bar that matters",
+  "category": "3-D",
+  "description": "A low, wide camera crops in on the value you want people to see; every other bar steps back into a quiet tone of the stage.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "bar",
+    "sceneType": "bar3d",
+    "data": "Region,Revenue\nNorth,42\nSouth,58\nEast,33\nWest,71\nCentral,49\nIslands,27",
+    "heading": "West leads the year",
+    "subheading": "Revenue by region, in millions",
+    "sceneHighlight": "max",
+    "scenePose": "low",
+    "cameraProjection": "wide",
+    "sceneFraming": "close",
+    "sceneStage": "studio",
+    "sceneMaterial": "satin",
+    "motionPreset": "stagger",
+    "showLegend": false
+  },
+  "presets": []
+}

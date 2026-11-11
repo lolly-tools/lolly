@@ -11,6 +11,7 @@ you a personal link and a ready-to-send message, and you send them yourself by c
 - <!--i:check--> **They sign in with that address.** Lolly Work accepts the invitation and opens the project, or the workspace.
 :::
 
+<!--i:eti-grid-->
 ## Two ways to invite
 
 | | Workspace invitation | Project invite |
@@ -23,6 +24,11 @@ you a personal link and a ready-to-send message, and you send them yourself by c
 Both write one invitation per address. An address has at most one active invitation, and
 every project that invites it is added to that same invitation.
 
+**People from a partner company** join through a partner programme instead: its **Add people**
+takes a pasted list or a CSV, and **Domains** admits people with a verified address at a
+partner's proved domain, without an invitation each
+([Partner programmes](partner-programmes.md#add-people)).
+
 **Which account holds an address.** Lolly Work treats an address as an account's only when the
 account has shown it holds the address: a sign-in whose provider verified it, a source the operator
 vouches for (the reverse proxy, or a provider set to `emailVerification: "trusted"`), or an
@@ -30,6 +36,7 @@ accepted invitation for that address. A project invite also counts an account pr
 sign-in yet. An account whose sign-in only claimed the address is treated as if the address
 had no account: it gets an invitation, which a verified sign-in has to accept.
 
+<!--i:eti-building-->
 ## Invite people to the workspace
 
 An invitation identifies one address, stored lowercased, plus optional local groups and an
@@ -50,11 +57,14 @@ active invitation for the email:
   when the invitation was written keeps its groups, and the acceptance records
   `groupsNotApplied: "existing-account"`.
 - An accepted invitation keeps admitting that email until someone revokes the invitation. Revoking blocks
-  the person's next sign-in unless `emails` or `domains` admit them. A session already open
-  stays open; disable the person to end that session.
+  the person's next sign-in unless `emails` or `domains` admit them.
 - An unverified email never takes an invitation.
 - With no `idp.admission` block everyone is admitted anyway, and a verified invited email
   still gets its invitation's groups at the first sign-in.
+
+::: warning Revoking an invitation does not end an open session
+A session already open stays open; disable the person to end that session.
+:::
 
 Attaching groups to an invitation assigns groups, so it carries the same controls as editing
 a person's local groups:
@@ -74,6 +84,7 @@ a person's local groups:
 Erasing an account deletes the invitation it accepted, and any other invitation for that
 address when no other account carries it, so nothing keeps admitting the erased address.
 
+<!--i:eti-folder-shared-->
 ## Invite people to a project
 
 In Lolly, **People with access** lists the people on a project and **Invite by email** adds
@@ -142,6 +153,7 @@ through that invitation. An invitation made in the console only loses the projec
 the person is an admin's decision in People. An invitation accepted in the meantime is never
 revoked by this route.
 
+::: details When a pending invitation leaves a project's list
 **No one is listed twice.** When a person becomes a member or the owner of a project, by an
 invite, by accepting an invitation for another of their addresses or by a transfer, the
 project comes off any pending invitation for an address they hold. A project-made invitation
@@ -155,7 +167,9 @@ adding a sign-in for that address from their profile. The members list leaves su
 invitation out only while accepting it would change nothing. When it carries a higher role
 than the person has on the project, it stays listed, because their next sign-in with that
 address raises them to that role. A manager who does not want that withdraws the invitation.
+:::
 
+<!--i:eti-link-->
 ## Invite links
 
 Every pending invitation has a personal link, `<baseUrl>/l/invite/<token>`, and each project
@@ -197,6 +211,7 @@ tags, so a link pasted into a chat previews as nothing in particular. Reading th
 nothing: a link preview or a mail scanner that fetches it does not mark the invitation
 opened. It is marked opened when someone presses a sign-in button.
 
+::: details What the invite page shows in each state
 | State | Status | The page |
 |---|---|---|
 | Pending, signed out | 200 | the invite page above |
@@ -206,6 +221,7 @@ opened. It is marked opened when someone presses a sign-in button.
 | Accepted by someone else, or signed out | 200 | "This invitation was already used", with **Sign in** |
 | Ended (pending past its end date) | 410 | "This invitation has ended. … Ask Ana for a new link." |
 | Unknown, malformed, revoked or replaced | 410 | "This link no longer works", the same page for every cause |
+:::
 
 **Signing in from the page.** A sign-in button posts to `POST /api/auth/invite`. The server
 records the first opening (`invite.open`), then starts that sign-in with the invitation
@@ -286,6 +302,7 @@ address stored on the account, and joining an existing person by email. A second
 at a listed domain does not admit anyone. An account admitted through a secondary address
 stays admitted, device sign-ins included, while the invitation it accepted is not revoked.
 
+<!--i:eti-sliders-->
 ## Invite policy
 
 `policy.invites` decides who may invite **new** people and on what terms. The keys and their
@@ -308,10 +325,14 @@ has an account, or giving their account groups in the console, needs manager on 
 
 Lolly reads `can['user.invite']` and `invites` (`domains`, `maxTtlHours`, `projectRoles`,
 `passwordSetup` and `passwordDomains`) from `GET /api/v1/org-config`, so it offers only what
-the server accepts. Older servers send neither, and Lolly then hides inviting. The policy is
-part of the instance configuration, so changing it means editing the configuration and
-redeploying.
+the server accepts. Older servers send neither, and Lolly then hides inviting.
 
+::: note The invite policy changes with a redeploy
+The policy is part of the instance configuration, so changing it means editing the
+configuration and redeploying.
+:::
+
+<!--i:eti-chat-->
 ## Requests
 
 People can ask for a way in. Every request reaches the right people as an inbox notice, and
@@ -416,6 +437,7 @@ list and answer, against the project stored on the request.
 - **Limits.** One open request per person and project, and 20 requests a day per requester
   (`429 RATE_LIMITED` past that).
 
+<!--i:eti-megaphone-->
 ## Notices
 
 Every step above reaches people through their inbox. The server writes these notices in one
@@ -448,12 +470,14 @@ message never lingers there. It is shown only while the person can still open th
 read its comments. Dismissing it removes it until the next reply, and reading the thread in
 Lolly removes it too. The [API reference](api.md#approvals-and-inbox) has the details.
 
+::: details How Lolly fetches and shows notices
 **How Lolly shows them.** `GET /api/v1/inbox` answers with an `ETag` and an `unread` count, and
 `304` when nothing changed. Lolly checks it when the tab comes back into view (at most once a
 minute) and every 60 seconds while it is visible. The banner shows one message at a time, and
 the next after a dismiss. **View all** opens the inbox, where project requests have **Approve**
 (with a role) and **Decline**. Requests to join and to use another account are answered in the
 console.
+:::
 
 Notices are not emailed yet. `notify.people.email` is the switch for that, off by default, and
 this release sends no people email even with it on ([emailing people

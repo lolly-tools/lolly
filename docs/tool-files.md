@@ -2,11 +2,12 @@
 
 A tool takes pictures and files in two ways. An `asset` input lets people pick from the design system's library or their own uploads, for logos, photos and other brand imagery. A `file` input takes a person's own file into memory so a utility can transform the bytes and hand them straight back, the way a converter or a metadata stripper works.
 
+<!--i:eti-images-->
 ## `asset` - library or device upload
 
 An `asset` input opens the host's asset picker and stores the chosen `AssetRef`, in the same form whether the asset came from the catalog or the person's device:
 
-```json
+```jsonc
 {
   "id": "logo",
   "type": "asset",
@@ -29,6 +30,8 @@ An `asset` input opens the host's asset picker and stores the chosen `AssetRef`,
 
 `filter` narrows the picker further: `{ "tags": [...], "namespace": "..." }` is passed to `host.assets.query()`.
 
+**Pictures the tool ships.** An `asset` value, such as one an example look sets, can also name a picture in the tool's own `assets/` folder by the path the site serves it at: `/tools/<tool-id>/assets/<file>`. The file must sit directly in that folder and end in `.svg`, `.png`, `.jpg` or `.webp`. The web shell reads it through its verified catalog fetch, and the CLI, the TUI and the MCP server read it from the tool's folder. [Example looks](/info/tool-manifest.html#example-looks-examples) shows the value to write.
+
 ![The Image row in the Filter tool - a thumbnail slot and a Choose asset button that opens the host's picker, with nothing about pickers in the manifest](/t/url-shot?url=%2F%23%2Ftool%2Ffilter&width=1440&height=900&dpi=192&waitMs=2000&css=%23tool-canvas%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.input-row%3Ahas%28.asset-picker-trigger%5Bdata-input-id%3D%22image%22%5D%29&dark=1&filename=at2-input-asset-picker)
 
 ### Uploads from the person's device
@@ -45,6 +48,7 @@ Every `asset` input also accepts a **Lolly tool link** pasted into the picker's 
 
 The picker offers SVG and bitmap render formats for any image slot. SVG is the default, because it stays crisp, goes into SVG and PDF exports as true vector and rasterises cleanly for PNG; a `vector` slot offers SVG only. The asset's identity is the canonical embed URL, so it is kept in saved sessions and share links and renders again on load, like a library id. The picker offers this wherever the shell can compose; the `compose` capability gates only authored `composes`.
 
+<!--i:eti-file-->
 ## `file` - the user's own file (on-device utilities)
 
 A `file` input takes a file the person picks into memory and hands its raw bytes to the tool. It suits content-transform utilities, the file jobs people would otherwise hand to a stranger's website: strip metadata, crop, compress, convert. An `asset` is brand imagery that goes through the library; a `file` is the person's own content, processed and handed straight back.
@@ -73,6 +77,7 @@ With `layout: "canvas"` ([layouts](/info/tool-manifest.html#layout-and-sidebar))
 
 The value is a **`FileRef`**: `{ __file: true, name, mime, size, bytes, url }`. `bytes` is a `Uint8Array` the hook reads directly, with no `host.*` call, because the portable `host.*` surface has no file-read API. On the CLI a file parameter is a path the runner loads: `--photo=./pic.jpg`.
 
+<!--i:eti-shield-check-->
 ## Producing output: the `exportFile` hook + `privacy: "on-device"`
 
 A content-transform utility does not draw the canvas into an image. It produces a transformed file:

@@ -2,6 +2,7 @@
 
 You have built a course and downloaded its ZIP from **Export course**. This page covers what comes next: choosing the right format for each customer, publishing on your own website or in an LMS, testing the package before real learners see it, releasing a new version and fixing the problems people most often meet. [Build a course](/info/training-creators.html) covers making the course itself.
 
+<!--i:eti-file-->
 ## Choose a format for each customer
 
 Each format is a separate package of the same course. Ask the people who run the receiving LMS which format and edition they accept, their package size limit and which learner browsers they support.
@@ -28,7 +29,11 @@ Experimental. For an LMS with a compatible Tin Can launch, which must supply the
 Experimental. For a cmi5 LMS, using the cmi5 launch and authorization process. Do not assume it is interchangeable with Tin Can.
 :::
 
-An LMS's published list of formats does not settle the settings or conventions of a particular tenant. Litmos, for example, lists SCORM 1.2, SCORM 2004 and xAPI/Tin Can support ([Litmos content support](https://www.litmos.com/platform/content-authoring/)), and Moodle documents SCORM 1.2 support without native SCORM 2004 support ([Moodle SCORM FAQ](https://docs.moodle.org/502/en/SCORM_FAQ)). Lolly's generated packages have not yet completed acceptance testing in a real LMS tenant.
+An LMS's published list of formats does not settle the settings or conventions of a particular tenant. Litmos, for example, lists SCORM 1.2, SCORM 2004 and xAPI/Tin Can support ([Litmos content support](https://www.litmos.com/platform/content-authoring/)), and Moodle documents SCORM 1.2 support without native SCORM 2004 support ([Moodle SCORM FAQ](https://docs.moodle.org/502/en/SCORM_FAQ)).
+
+::: note Not yet tested in a real LMS
+Lolly's generated packages have not yet completed acceptance testing in a real LMS tenant.
+:::
 
 You never enter LRS credentials in the authoring screen. An xAPI package expects the customer's LMS to provide the launch authorization, so a standalone xAPI ZIP opened outside that launch creates no learning record. If the connection drops, the learner's browser keeps unsent progress where storage allows, and the next LMS launch of the same attempt delivers it unless the LMS already has newer progress. [Learning integration](/info/learning-integration.html#experimental-xapi-recovery) has the recovery rules.
 
@@ -40,6 +45,7 @@ The destination shows **Standard target**, with "This LMS has not been tested", 
 When a preset records a confirmed upload limit, the package check uses it unless you enter your own. Presets never hold credentials, tenant addresses or learner details.
 :::
 
+<!--i:eti-globe-->
 ## Publish on your own website
 
 Choose **Website** as the delivery format. Extract the ZIP and upload all its files together to a static HTTP(S) site, keeping the relative paths, then link to its `index.html`. A site builder can embed that URL:
@@ -53,8 +59,15 @@ Test the hosted URL: images, media, resources, small screens, completion and reo
 
 Progress is kept in the learner's browser, for this course version, URL path and browser profile. It does not follow the learner to another device, clearing site data removes it and people who share a browser profile share it too. If browser storage cannot open, the player says that progress lasts only while the page stays open. Embedding the course on a different origin may restrict browser storage, so test on the real host page.
 
-This is convenient local progress, not an authenticated training record. Keep existing versions at their existing paths when keeping learners' browser progress matters, because a new release starts fresh. [Learning integration](/info/learning-integration.html) covers the progress event a host page can listen for and what a receiving platform is responsible for.
+This is convenient local progress, not an authenticated training record.
 
+::: warning A new release starts progress afresh
+Keep existing versions at their existing paths when keeping learners' browser progress matters, because a new release starts fresh.
+:::
+
+[Learning integration](/info/learning-integration.html) covers the progress event a host page can listen for and what a receiving platform is responsible for.
+
+<!--i:eti-flask-->
 ## Test in your LMS
 
 Import the ZIP into a test course before you assign real learners, and use the same downloaded file for every repeat of the checks.
@@ -71,6 +84,7 @@ Import the ZIP into a test course before you assign real learners, and use the s
 
 Record the package checksum, the LMS name and edition, the browser, the date and the results. A successful preview is not evidence that an LMS launch, import or tracking integration works.
 
+<!--i:eti-refresh-->
 ## Update a course without changing an existing release
 
 Edit the draft, preview it, add version notes, choose **Export course**, run the checks and save a new version. The new ZIP becomes another saved version. Your customer decides when and how to replace the package in their LMS; Lolly never updates an imported course by itself.
@@ -81,8 +95,13 @@ To supply an existing version in another format, choose **Export this version fo
 
 Test a replacement with the LMS administrator before applying it to an active course. Progress belongs to the release that created it: the player starts fresh when it receives saved state from a different release, and an LMS may reset or keep its own course status according to its replacement policy.
 
-Use Lolly's device backup before clearing site data or moving to another device, and keep a separate copy of each delivered ZIP and its version notes. Team storage, shared review and approval in Lolly Work are not part of this local workflow yet.
+::: warning Saved versions live on this device
+Use Lolly's device backup before clearing site data or moving to another device, and keep a separate copy of each delivered ZIP and its version notes.
+:::
 
+Team storage, shared review and approval in Lolly Work are not part of this local workflow yet.
+
+<!--i:eti-help-->
 ## When something goes wrong
 
 | Message or symptom | Next step |

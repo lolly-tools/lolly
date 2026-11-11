@@ -2,7 +2,7 @@
   "$comment": "Instance-pack recipe for Lolly Demo, Lolly's own public design system. Asset families are permanent id prefixes, classified once as included or excluded. The design-system essentials travel: tokens, palettes, logos, icons, slide structures, skills, the font assets and the sample- assets that tool defaults and gallery covers use (the mascots and lolly/demo/sample-photo). Media stays out: audio (loops, songs and tracker modules; the builder refuses audio anyway), LUTs, 3D models, the lorikeet photo (the same bytes as lolly/demo/sample-photo, under its own id) and the screen captures. The Lolly name and marks belong to Andy Fitzsimon; their owner record travels with each logo row.",
   "name": "Lolly Demo",
   "publisher": "Lolly",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "instance": "https://lolly.tools",
   "tokensAsset": "lolly/tokens/demo",
   "fonts": {

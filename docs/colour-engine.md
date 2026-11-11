@@ -4,6 +4,7 @@ This page is for tool authors and anyone checking why an exported colour looks t
 
 One module, `engine/src/css-color.ts`, parses, converts, gamut-maps and writes colour for the whole platform, so the browser preview and every export walker agree on what a colour string means.
 
+<!--i:eti-eye-->
 ## Reading
 
 Wherever a colour is written (a tool's stylesheet, an imported SVG's paint, a design token's value, a shadow or gradient inside a CSS shorthand), Lolly reads the full **CSS Color 4** vocabulary:
@@ -14,6 +15,7 @@ Wherever a colour is written (a tool's stylesheet, an imported SVG's paint, a de
 
 This matters because a browser resolves modern CSS into modern CSS. A `color-mix(in oklab, …)` computes to `oklab(…)`, and a brand token stored as `oklch()` reaches the export walker in that form. Both are read as colours rather than dropped. A value the parser cannot read returns "no colour" instead of failing the render, because imported documents are untrusted input.
 
+<!--i:eti-blend-->
 ## Thinking
 
 Colour maths happens perceptually rather than in raw channels.
@@ -25,6 +27,7 @@ Colour maths happens perceptually rather than in raw channels.
 
 One interpolator serves the preview and the export walkers, so a gradient is blended the same way on screen and in the file.
 
+<!--i:eti-pen-->
 ## Writing
 
 The output is narrower than the input, because a file has to be readable by any app that opens the file. A space is declared on output only when the numbers were really converted into that space.
@@ -35,10 +38,13 @@ The output is narrower than the input, because a file has to be readable by any 
 | Print formats | **CMYK** against a named press condition |
 | The export panel's HDR card | **Rec.2100 PQ** |
 
+Print colour separates through the press profile. An exact grey or black separates to the black plate alone, so black type and fine rules cannot misregister, and the Print PDF sets pure black (no cyan, magenta or yellow, and at least 99% K) to overprint. A design system can also give a colour a spot ink, which the Print PDF prints on a plate of its own; `_spots=process` prints each spot ink as its CMYK build instead ([Spot inks as process](/info/exporting.html#spot-inks-as-process)).
+
 A wide-gamut colour that reaches an ordinary export is mapped into sRGB rather than mislabelled. A Lolly Design document set to **Wide colour / HDR** works differently: it keeps its wider swatches and float pixels through its own raster and video exports, as [Wide colour and HDR editing](/info/hdr-editing.html) describes.
 
 A gradient authored in OKLab is baked into plain sRGB stops on the way out. Extra stops are inserted only where sRGB would visibly drift from the perceptual curve, because an SVG `<linearGradient>` and a PDF axial shading have no setting for the interpolation space. One authored value gives the same gradient in the preview, the SVG and the PDF.
 
+<!--i:eti-code-->
 ## Where to look in the code
 
 | Concern | Module |

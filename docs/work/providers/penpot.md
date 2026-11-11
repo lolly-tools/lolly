@@ -17,6 +17,7 @@ ones worth keeping. Penpot remains the source of truth, and Lolly Work never wri
 [Design-system administration](../design-system-administration.md#sources-and-storage) covers
 how token sources combine with the active design system.
 
+<!--i:eti-clipboard-->
 ## What you need from Penpot
 
 - **Your instance URL**, such as `https://design.your-host.example` (the `baseUrl` option). The
@@ -28,6 +29,7 @@ how token sources combine with the active design system.
   you want.
 - Optionally, a **team**, a **project** or explicit **file ids** to limit which files are read.
 
+<!--i:eti-lock-->
 ## Credential shape
 
 A single sealed string: the Penpot personal access token, sent as `Authorization: Token …`.
@@ -36,6 +38,7 @@ A single sealed string: the Penpot personal access token, sent as `Authorization
 lw providers credential design-penpot     # prompts; never argv, never shell history
 ```
 
+<!--i:eti-code-->
 ## instance.json / `lw providers add`
 
 ```json
@@ -49,6 +52,7 @@ lw providers credential design-penpot     # prompts; never argv, never shell his
 }
 ```
 
+::: details Options and mapping
 | Setting | What it does |
 |---|---|
 | `options.baseUrl` (required) | Your Penpot origin. Every call is pinned to this origin. |
@@ -58,7 +62,9 @@ lw providers credential design-penpot     # prompts; never argv, never shell his
 | `options.scale` | The render scale for imported boards, default `1`. |
 | `options.exporterUrl` | The exporter's origin, when it differs from `baseUrl`. |
 | `mapping.typeMap` (required) | Maps Penpot's two types into the catalog: `tokens` to `tokens` (the design-system feed) and `board` to `image` (imported media). The console's Penpot card fills this in. |
+:::
 
+<!--i:eti-shield-check-->
 ## Verify
 ```bash
 lw providers preview --kind penpot --options '{"baseUrl":"https://design.your-host.example"}'
@@ -66,10 +72,15 @@ lw providers health design-penpot
 ```
 
 A `penpot rpc get-profile <status>` error means the instance URL or token is wrong, or the
-`access-tokens` flag is off. The RPC command and field names come from Penpot's documentation and
+`access-tokens` flag is off.
+
+::: note Not yet confirmed live
+The RPC command and field names come from Penpot's documentation and
 are not yet confirmed against a live instance; a failed call reports the command
 (`penpot rpc <cmd> <status>`).
+:::
 
+<!--i:eti-info-->
 ## Notes / limits
 
 - **Self-hosted.** The connector uses Penpot's token-authenticated RPC against an origin you run.

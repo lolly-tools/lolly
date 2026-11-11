@@ -11,6 +11,16 @@ From the terminal you can:
 
 Every flag is a URL parameter by another name. `--url=https://example.com` is `?url=https://example.com` in a share link, which is why a link copied from the app renders the same here ([URL Mode](/info/url-mode.html)). To browse with the keyboard instead, run `lolly tui` ([TUI](/info/tui.html)).
 
+**Get started**, in four steps:
+
+::: steps
+- <!--i:eti-download--> **[Install](#install)** The desktop app, or a checkout that runs `pnpm run cli` in place of `lolly`.
+- <!--i:eti-file-plus--> **[Make your first file](#make-your-first-file)** One command writes `qr.svg`, or streams the bytes to stdout.
+- <!--i:eti-search--> **[Find tools, inputs and assets](#find-tools-inputs-and-assets)** `list`, `describe` and `assets` show what you can use.
+- <!--i:eti-palette--> **[Bring your design system](#bring-your-design-system)** The colours, type and logos every render then uses.
+:::
+
+<!--i:eti-download-->
 ## Install
 
 There are two routes to the same program.
@@ -42,13 +52,15 @@ A `LOLLY_ROOT` that holds neither is ignored, and the CLI falls back to looking 
 
 `lolly system import <pack.lolly>` is a different thing: it imports **your design system**, and it adds no tools, so it needs a root as well. Run a command that needs content without any, and the CLI lists these routes and exits `3`. It never downloads anything on its own.
 
+<!--i:eti-file-plus-->
 ## Make your first file
 
 ```bash wrap
 lolly qr-code --url=https://example.com --output=qr.svg
 ```
 
-The CLI says which design system it recorded in the file, then ends with a line that starts `✓ Wrote`:
+::: check The CLI reports the file it wrote
+It says which design system it recorded in the file, then ends with a line that starts `✓ Wrote`:
 
 ```text
 Recorded the design system: Lolly Starter. Pass --no-madewith to leave the record out.
@@ -56,6 +68,7 @@ Recorded the design system: Lolly Starter. Pass --no-madewith to leave the recor
 ```
 
 In a checkout, a note that the catalog is unsigned comes first. That is expected for a local catalog.
+:::
 
 `qr.svg` is written to the current directory, replacing any file of that name. If your own address contains `?` or `&`, put it in quotes.
 
@@ -71,6 +84,7 @@ Use `pnpm --silent run cli` whenever you redirect or pipe. pnpm can print a warn
 
 The `--output` extension asks for a format, so a tool that cannot write it stops instead of writing other bytes under your name. [Render with the CLI](/info/cli-rendering.html#the-output-extension-is-a-format-request) explains that check, along with sizes, print options and video.
 
+<!--i:eti-search-->
 ## Find tools, inputs and assets
 
 ```bash
@@ -87,7 +101,7 @@ lolly assets --type=raster
 
 `list --q=<words>` matches tool ids, names, descriptions, categories and formats, and `--limit=1..100` keeps an agent's answer short. With `--json`, either option adds `query`, `limit` and `total` to the result. `assets --type=` is checked against the catalog, so a typo is an error that lists the real types rather than an empty list:
 
-```text
+```bash
 $ lolly assets --type=rastor
 Error: No catalog asset has type "rastor". This catalog has: audio, data, lut, model, palette, raster, tokens, vector.
 ```
@@ -101,6 +115,7 @@ lolly asset-export --src='https://lolly.tools/tool/qr-code.svg?url=x' --output=q
 
 `lolly --help` prints every command, flag and exit code, and each document verb has its own help, such as `lolly check --help`.
 
+<!--i:eti-palette-->
 ## Bring your design system
 
 Run `lolly` on its own in a terminal and it starts here:
@@ -125,6 +140,7 @@ A terminal design system is the colours, type and logos every render then uses. 
 
 The CLI and the TUI share one store, so a system set up in one is active in the other. [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live) says which directory holds the store. [Token workflows](/info/token-workflows.html) covers `system inspect`, `diff`, `generate` and `sync`.
 
+<!--i:eti-map-pin-->
 ## Where to go next
 
 | You want to | Read |
@@ -142,6 +158,7 @@ The CLI and the TUI share one store, so a system set up in one is active in the 
 
 The **Batch** view in the app (`#/batch`) is the interactive counterpart to `lolly batch`: a spreadsheet grid with CSV round-trip and per-row output.
 
+<!--i:eti-keyboard-->
 ## Every command
 
 The first argument is either a **verb** or a **tool id**, and verbs win. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous spellings; a bare `lolly <tool-id>` renders when flags follow and describes when none do. A pasted `lolly.tools` link can be the first argument too ([Run a share link](/info/cli-rendering.html#run-a-share-link)).
@@ -149,12 +166,13 @@ The first argument is either a **verb** or a **tool id**, and verbs win. `lolly 
 ::: details Every verb, grouped
 | Group | Verbs |
 | --- | --- |
-| Make files | `run`, `batch`, `smoke`, `preflight`, `install-browser` |
+| Make files | `run`, `batch`, `smoke`, `preflight`, `intent`, `install-browser` ([Start from what the piece has to do](/info/cli-reference.html#start-from-what-the-piece-has-to-do)) |
 | Find things | `list`, `describe`, `assets`, `start`, `help`, `version`, `completion`, `tui` |
 | Design systems | `system` (`init`, `import`, `add`, `use`, `list`, `status`, `export`, `context`, `check`, `inspect`, `diff`, `generate`, `sync`) |
 | Decks | `rebrand`, `read`, `check`, `compose`, `measure`, `package` ([Rebuild a deck from the terminal](/info/cli-decks.html)) |
 | Documents and pictures | `schema`, `compile`, `validate`, `inspect`, `diff`, `optimize`, `look`, `sample`, `trace` ([CLI reference](/info/cli-reference.html#document-verbs)) |
-| Your own files | `prepare`, `files`, `adobe` ([CLI file and media utilities](/info/cli-files.html), [Import a design](/info/design-import.html)) |
+| Your own files | `prepare`, `files`, `adobe`, `affinity`, `dxf`, `import` ([CLI file and media utilities](/info/cli-files.html), [Import a design](/info/design-import.html)) |
+| Saved work and reports | `projects`, `reports` ([CLI batch and automation](/info/cli-automation.html#private-inputs-and-saved-projects)) |
 | Sound and on-device models | `speak`, `transcribe`, `mix`, `models`, `upscale`, `matte`, `ocr`, `detect-ai`, `reword`, `depth` |
 | Courses | `learning` ([Training courses](/info/training-creators.html)) |
 | Linux packaging | `icons` (a hicolor icon RPM), `pack` (a font RPM) |

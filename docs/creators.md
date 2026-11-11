@@ -4,18 +4,22 @@ You fill in a few fields and a finished file comes out, with the fonts, the colo
 
 New here? Start with **[Make your first file](/info/make-something.html)**. [How Lolly works](/info/how-lolly-works.html) shows how a tool you use can also run from a script or a colleague's phone, and [Questions & answers](/info/faq.html) covers what people ask before they trust a free tool.
 
+<!--i:eti-pen-tool-->
 ## Make
 
 Pick a tool and fill it in, or lay a page out freely on the Lolly Design canvas.
 
 - **[Make your first file](/info/make-something.html)** - one short lesson with nothing to set up: a QR code, downloaded and saved as an editable copy.
 - **[Using Lolly](/info/using.html)** - the canvas, the controls, saving, Projects and phone use: how the app itself behaves.
+- **[Lolly Design](/info/design.html)** - the free canvas, for layouts no template covers: a poster, a deck, a motion piece.
 - **[Templates](/info/templates.html)** - start from a saved layout instead of a blank tool.
 - **[Text in Lolly Design](/info/text-composition.html)** - headings, flowing text and type that fits its box.
 - **[Lolly 3D Studio](/info/3d-studio.html)** - SVG artwork and 3D models arranged, lit and rendered as one scene.
+- **[Lolly Darkroom](/info/darkroom.html)** - grade photos and video, and keep a look as a LUT.
 - **[Lolly Utilities](/info/utilities.html)** - fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour.
 - **[Browser extension](/info/extension.html)** - screenshot a live web page from the web app, or read a site to start a design system.
 
+<!--i:eti-palette-->
 ## Make it yours
 
 Your design system decides what every tool looks like.
@@ -28,6 +32,7 @@ Your design system decides what every tool looks like.
 - **[Rebrand a deck](/info/rebrand.html)** - a PowerPoint deck moved onto your design system, charts and animations intact.
 - **[Share a design with rules](/info/create-a-tool.html)** - turn a layout into a tool other people fill in.
 
+<!--i:eti-search-->
 ## Find and keep your work
 
 - **[Find and recover your work](/info/find-your-work.html)** - where a saved, downloaded or unsaved file went.
@@ -36,6 +41,7 @@ Your design system decides what every tool looks like.
 - **[Your favourites](/info/favourites.html)** and **[Profiles](/info/profile.html)** - starred tools, the details tools pre-fill from and the accessibility switches.
 - **[Sync your devices](/info/sync.html)** - the same work on your computer and your phone, through storage you choose.
 
+<!--i:eti-animation-->
 ## Animate
 
 Text that moves, scenes on a timeline and motion that stays on-brand. A motion export is drawn frame by frame from a driven clock rather than recorded off the screen, so the same link makes the same clip.
@@ -44,15 +50,18 @@ Text that moves, scenes on a timeline and motion that stays on-brand. A motion e
 - **[The sequence editor](/info/sequence-editor.html)** - clips, overlay lanes, trim and split, transitions and the audio mix.
 - **[Wide Colour and HDR](/info/hdr-editing.html)** - colour beyond the usual range, on screens and in formats that can show the extra range.
 
+<!--i:eti-mic-->
 ## Record and present
 
 Record a clean take with a count-in and a level meter, or put yourself in front of your slides.
 
 - **[The Lolly Design timeline](/info/design.html#timeline-sequence)** - recording a voiceover straight onto the timeline.
 - **[Make your first file](/info/make-something.html#other-first-projects)** - the audiogram, for when you would rather be heard than seen.
+- **[Generated music](/info/generated-music.html)** - stations that compose as they play, and the music generator for a track of your own.
 - **[Presenting with camera](/info/presenting.html)** - your camera, logo and name over a deck or Countdown, with private controls in a separate window.
 - **[Live pages that take the clicker](/info/interactive-pages.html)** and **[Agenda screens](/info/agenda.html)** - pages and programmes for the room.
 
+<!--i:eti-users-->
 ## Collaborate
 
 Two people, two devices, one design, edited live, with no account and no server in the middle.
@@ -61,6 +70,7 @@ Two people, two devices, one design, edited live, with no account and no server 
 - **[Using Lolly](/info/using.html#sharing-your-work)** - a share link that carries the whole state, or one `.lolly` file.
 - **[Use Lolly at your organisation](/info/organisation.html)** - sign-in, team projects and managed settings, when your organisation runs Lolly Work.
 
+<!--i:eti-download-->
 ## Post
 
 Send it where it was asked for: a link, a print-true PDF, a video, a deck or a folder of variants, all from the same source.
@@ -69,6 +79,7 @@ Send it where it was asked for: a link, a print-true PDF, a video, a deck or a f
 - **[Every format Lolly can open and make](/info/formats.html)** - the full in-and-out list.
 - **[Creative rights and credits](/info/creative-rights.html)** - the licences of what you used, and the credits that travel with the file.
 
+<!--i:eti-clipboard-->
 ## Team playbooks and comparisons
 
 - **For your team:** [sales](/info/sales.html), [marketing](/info/marketing.html), [the newsroom](/info/press.html) and [legal](/info/legal.html).

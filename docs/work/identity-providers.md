@@ -10,6 +10,7 @@ Every recipe uses one redirect URI: `<instance.baseUrl>/api/auth/callback`. Secr
 environment variables, never in the configuration file: `LW_IDP_CLIENT_SECRET` for the
 primary provider, and the variable that `clientSecretRef` points at for an additional one.
 
+<!--i:eti-user-check-->
 ## OpenID Connect sign-in
 
 Nothing in the code knows your provider. Set:
@@ -53,6 +54,7 @@ Per provider, `scopes` replaces the default `openid profile email` and must incl
 sent as `hd`, so Google's account picker offers the right account first. A sign-in link may
 add `prompt=select_account` or `prompt=login`; no other query parameter reaches the provider.
 
+<!--i:eti-users-->
 ## More than one IdP
 
 A migration in progress, or a subsidiary with its own directory: `idp.additional` lists
@@ -81,6 +83,7 @@ further issuers beside the primary.
   handing out the same bare subject never collide in one account. The primary's subjects stay
   raw, so existing accounts and the SCIM `externalId` link are untouched.
 
+<!--i:eti-calendar-->
 ## Planned sign-ins
 
 `idp.pending` lists providers that appear as disabled choices on the sign-in and invitation
@@ -93,6 +96,7 @@ followed by `/api/auth/callback`), and store its secret in the environment varia
 `clientSecretRef` gives. The discovery URL is specific to the app registration. The usual
 admission, invitation and email-verification checks apply to this provider too.
 
+<!--i:eti-clipboard-->
 ## Provider recipes
 
 ### Google
@@ -107,10 +111,13 @@ Credentials, OAuth client ID, type Web application, with the redirect URI above.
 ```
 
 Omit `hostedDomain` to accept personal Google accounts as well, and then admit people by
-exact `emails` or by invitation only. Domain admission on Google needs `hostedDomain`: Google
-reports `email_verified: true` for a personal Google account registered with a non-Gmail
+exact `emails` or by invitation only.
+
+::: warning Domain admission on Google needs `hostedDomain`
+Google reports `email_verified: true` for a personal Google account registered with a non-Gmail
 address, and that account outlives the mailbox. A departed employee's personal account for
 `alex@example.com` would still match `domains: ["example.com"]`.
+:::
 
 Google sends no groups, so use `bootstrapOwners` for the first owner and local groups after
 that ([bootstrap owners](identity.md#bootstrap-owners)).
@@ -223,6 +230,7 @@ SAML is a different protocol and does not connect directly. Put a broker in fron
 Auth0 SAML enterprise connection or a Keycloak SAML identity provider in your realm. Lolly Work then
 talks OpenID Connect to the broker as in the recipes above.
 
+<!--i:eti-shield-check-->
 ## Reverse-proxy sign-in
 
 Some hosts already sign people in before a request reaches the instance: YunoHost's SSOwat,
@@ -312,8 +320,12 @@ the next sign-in. The YunoHost package sets all of this up, including the nginx 
 adds the secret.
 :::
 
+<!--i:eti-code-->
 ## The dev provider
 
 `dev.enabled: true` with a `dev.users` list enables `GET /api/auth/dev?email=…`: a
-passwordless local sign-in for development, demos and tests. It bypasses OpenID Connect
-entirely, so keep it off in production. The Helm values ship it disabled.
+passwordless local sign-in for development, demos and tests. The Helm values ship it disabled.
+
+::: warning Keep the dev provider off in production
+It bypasses OpenID Connect entirely, and setting an issuer does not turn it off.
+:::

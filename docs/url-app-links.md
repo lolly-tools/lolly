@@ -2,6 +2,7 @@
 
 Tool links open a tool. The rest of the app answers to links too: a shelf of Assets, a Projects folder, a room of Lolly Design System Setup or one card in Settings. Use these links in a launcher, a bookmark, a bug report or an automation that has to find the app in a known state with no clicking. Every screenshot in these docs is a Lolly link handed to `url-shot`.
 
+<!--i:eti-link-->
 ## The `lolly://` scheme
 
 The installed apps register `lolly://` as their own URL scheme, so anything that can open a URL can open Lolly at an exact place. That includes a launcher's "open URL" action (Raycast, Alfred, PowerToys Run), a macOS Shortcut, a `.desktop` Action, a GNOME Shell or KRunner result, a link in a note, a QR code on a slide and a terminal.
@@ -44,6 +45,7 @@ The macOS and Windows installers and the Linux `.desktop` entries declare the sc
 The MCP server's resource URIs (`lolly://catalog`, `lolly://tool/{id}`) share the prefix but are a different namespace: resources an agent reads, not routes the app opens.
 :::
 
+<!--i:eti-package-->
 ## What a link carries
 
 The address bar and **Share** make two different links.
@@ -69,18 +71,24 @@ Either way, an explicit off value or a cleared field reopens as you left it, and
 - Your design system choice (`ds`, `designv`), drafts in Settings forms, file-picker selections and live camera or microphone streams
 :::
 
-**Personal values need your say.** A generated link leaves out inputs bound to your profile and inputs a tool declares with `sharePrivacy: "personal"`, such as recorded speech and caption text. The Share dialog shows those values on your device and asks you to include each one separately. The address bar leaves them out as well. A shortened link still holds its values in readable form once unpacked; password protection is a separate choice.
+**Personal values need your say.** A generated link leaves out inputs bound to your profile and inputs a tool declares with `sharePrivacy: "personal"`, such as recorded speech and caption text. The Share dialog shows those values on your device and asks you to include each one separately. The address bar leaves them out as well.
 
 These rules change only what a generated link holds. A link that sets a personal input explicitly still loads it, the CLI still accepts every input, and your own saved sessions keep the original values.
 
+::: warning A shortened link is not a locked one
+A shortened link still holds its values in readable form once unpacked; password protection is a separate choice ([Encrypted links](/info/url-mode.html#encrypted-links-zx)).
+:::
+
 **When the bytes must travel, send a file.** Share reports the local dependencies a link leaves out. A `.lolly` file carries the saved design to another device, with the files Lolly can include, such as your uploaded images. It carries the design separately from the generated link, so review the file before you send it on.
 
+<!--i:eti-checklist-->
 ## Three rules for every app link
 
 1. **The address is live.** A view reads its parameters when it opens and writes them as they change. Input edits and filters replace the current history entry; moving between views adds a Back stop. Pasting another query for the same view applies that query too.
 2. **A link does not change your preferences.** A link's sort order, view mode, open cards or appearance applies to that visit only. Opening the link does not save the choice; changing a control yourself still can.
 3. **Unknown values are ignored.** A parameter that points at nothing, such as a retired category or a mistyped section, is dropped and the view opens as usual. Links do not break; they stop steering.
 
+<!--i:eti-grid-->
 ## App views
 
 ### App-wide
@@ -111,6 +119,7 @@ The server paths `/a` and `/assets` open the same view. The earlier addresses, `
 | Param | Description |
 |---|---|
 | `asset=<id>` | Scrolls to and highlights that asset. |
+| `swatch=<label>` | Opens that brand swatch's details, the link a swatch's **Copy link** writes. `asset` wins when both are given. |
 | `section=<key>[,<key>…]` | Opens with those sections expanded and scrolls the first into view. An empty `section=` closes every section. |
 | `q` | Fills in the search field. |
 | `type` | Filetype filter: `all`, `image`, `vector`, `motion`, `audio` or `text`. Falls back to `all` when that group is empty on this install. |

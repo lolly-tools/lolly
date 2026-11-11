@@ -145,7 +145,7 @@ onWindowLoad(() => { void welcomeSettled().then(() => import('./lib/tooltips.ts'
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'extract' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
+type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'music' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'extract' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply' | 'team' | 'open';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -157,6 +157,7 @@ type Route =
   | { name: 'prepare' }
   | { name: 'rebrand'; params?: string }
   | { name: 'compare'; params?: string }
+  | { name: 'music'; params?: string }
   | { name: 'data'; params?: string }
   | { name: 'pro'; params?: string }
   | { name: 'learning'; params?: string }
@@ -280,6 +281,7 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   verify: { label: 'Verify', viewClasses: ['verify-view'], footer: 'none' },
   convert: { label: 'Convert', viewClasses: ['convert-view'], footer: 'none' },
   compare: { label: 'Compare', viewClasses: ['compare-view'], footer: 'none' },
+  music: { label: 'Music generator', viewClasses: ['music-view'], footer: 'none' },
   prepare: { label: 'Prepare for sharing', viewClasses: ['prepare-view'], footer: 'none' },
   // Rebrand (plan 274): keyed on params, so a dropped .lolly that names a different
   // project (`?project=<id>`) re-mounts rather than deduping onto the open one.
@@ -679,6 +681,12 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     case 'compare': {
       const { mountCompare } = await navigationModule(import('./views/compare.ts'), navigation);
       mountCompare(view, host, route.params);
+      break;
+    }
+    // #/music - the music generator: Lolly Sings as a track editor (views/music-studio.ts).
+    case 'music': {
+      const { mountMusicStudio } = await navigationModule(import('./views/music-studio.ts'), navigation);
+      mountMusicStudio(view, host, route.params);
       break;
     }
     case 'prepare': {
@@ -1098,36 +1106,36 @@ function trackVisualViewport(): void {
 /**
  * Mobile-app platform fit (plans/132, device-verified fixes 2026-08-22).
  * Tauri MOBILE webviews only - the browser PWA and the desktop shells are
- * untouched. Three corrections, each earned on a real phone:
+ * untouched. Two corrections, each earned on a real phone, both iOS:
  *
- * 1) Page pinch-zoom is disabled (Andy: it breaks the fixed chrome; zooming
- *    belongs to the surfaces that own it - the catalog preview and the canvas
- *    gestures). WKWebView honours user-scalable=no; Safari-the-browser ignores
- *    it for accessibility, but this is an app, whose text-size story is (3).
- * 2) env(safe-area-inset-*) fallback: the iOS 27 beta's WKWebView resolves the
+ * 1) env(safe-area-inset-*) fallback: the iOS 27 beta's WKWebView resolves the
  *    envs to 0 while drawing full-bleed, which put the back pill on top of the
  *    status clock. Probe env() through a live element; when it reads 0 on a
  *    notched iPhone, feed tokens.css's --safe-*-fb from the screen class
  *    (erring a few px generous - chrome sits a hair lower, never under glass).
- * 3) OS text size: iOS Dynamic Type does not reach web content, so probe the
+ * 2) OS text size: iOS Dynamic Type does not reach web content, so probe the
  *    `-apple-system-body` font continuously and feed its full ratio (smaller
  *    and larger settings) into the existing --a11y-fs type/icon/control tokens.
  *    The in-app Large text preference composes with that live OS value.
+ *
+ * Page pinch-zoom is no longer turned off here. This used to rewrite the
+ * viewport to user-scalable=no, because zooming strands the fixed chrome, but
+ * that fails WCAG 1.4.4 (Resize text) and docs/inclusive-design.md's promise.
+ * The app now zooms as the web app does in a phone's browser: the fixed chrome
+ * follows the visual viewport through --vv-* (trackVisualViewport above), and
+ * each surface with a pinch of its own keeps the gesture on its own element
+ * (touch-action and preventDefault on the tool stage, Design's selection,
+ * the timeline, the headshot cropper and the docs lightbox). Android's WebView
+ * pinches only with its built-in zoom on, which MainActivity.kt turns on.
  */
 function initMobilePlatformFit(): void {
   if (!('__TAURI_INTERNALS__' in window)) return;
+  // iPad can have a fine primary pointer when a trackpad is attached, so this
+  // reads the device, not the pointer.
   const ios = /iP(hone|ad|od)/.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  // iPad can have a fine primary pointer when a trackpad is attached.
-  if (!ios && !matchMedia('(pointer: coarse)').matches) return;
-  const root = document.documentElement;
-
-  document.querySelector('meta[name="viewport"]')?.setAttribute(
-    'content',
-    'width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no',
-  );
-
   if (!ios) return;
+  const root = document.documentElement;
 
   const probe = document.createElement('div');
   probe.style.cssText =
@@ -2189,6 +2197,7 @@ function parseRoute(): Route {
     if (parts[0] === 'verify' || parts[0] === 'valid' || parts[0] === 'v') return { name: 'verify', params: query || '' };
     if (parts[0] === 'convert') return { name: 'convert', params: query || '' }; // on-device file converter
     if (parts[0] === 'compare') return { name: 'compare', params: query || '' };
+    if (parts[0] === 'music') return { name: 'music', params: query || '' }; // the music generator
     if (parts[0] === 'prepare') return { name: 'prepare' };
     if (parts[0] === 'rebrand') return { name: 'rebrand', params: query || '' }; // renovate a deck (plan 274)
     if (parts[0] === 'data') return { name: 'data', params: query || '' }; // on-device spreadsheet viewer/editor

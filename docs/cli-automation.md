@@ -2,6 +2,7 @@
 
 Put Lolly in a pipeline: render a spreadsheet of files, gate a whole catalog in CI, preflight a print job and check documents before they ship. Every command answers with an exit code a script can branch on, listed in the [CLI reference](/info/cli-reference.html#exit-codes) with the `--json` envelope.
 
+<!--i:eti-table-->
 ## Render many files from a spreadsheet (lolly batch)
 
 A batch is **many URL-mode rows in one file**: each row is a render, with its inputs as cells. Write a starter grid for one or more tools, with their input columns and the output columns:
@@ -39,16 +40,20 @@ Use an `input.<id>` column when an input shares a reserved name: `input.width` s
 
 **A transform tool runs from a batch too** (a file in, bytes out, such as `strip-data`). Put the input file's path in the tool's own file column; it resolves against the working directory, as on `lolly run`. Leave that row's `format`, `width`, `height`, `unit` and `dpi` blank, because the output follows the input file, and `--template=` warns which columns those are. The output is named from the row's `filename` or the input file, with the extension of the bytes the tool produced.
 
-**`batch` renders bare.** A row carries no Content Credentials and no Imprint unless it asks, because a regenerated folder should not differ from the last one in every file. A `c2pa`, `imprint` or `durable` column opts a row back in, read exactly as `?c2pa=` is.
+::: note A batch renders bare
+A row carries no Content Credentials and no Imprint unless it asks, because a regenerated folder should not differ from the last one in every file. A `c2pa`, `imprint` or `durable` column opts a row back in, read exactly as `?c2pa=` is.
+:::
 
 A batch stops at a failing row unless you pass `--keep-going`. Either way, its exit code is the **worst row's**, and `--json` gives one document with a per-row `exit`, so a pipeline can retry just the exit-`3` rows on a runner that has a browser. A batch writes a folder rather than one archive, so you choose your own `zip` or `tar`; the TUI's batch packs a ZIP instead. `--output` is refused, because one path cannot name many files; use `--out-dir`.
 
 The app's **Batch** view (`#/batch`) is the same idea as an interactive grid.
 
+<!--i:eti-clipboard-->
 ## Plan, resume and watch production batches
 
-These production controls are available in the current checkout. A standalone CLI
-package needs a build that includes these changes.
+::: note Needs Lolly 1.2.0
+These production controls arrived in Lolly 1.2.0. A standalone CLI from an earlier release does not have them.
+:::
 
 ```bash
 lolly batch rows.csv --dry-run --json --out-dir=./out
@@ -58,12 +63,11 @@ lolly batch rows.csv --resume --jobs=2 --out-dir=./out
 lolly batch rows.csv --watch --jobs=2 --out-dir=./out
 ```
 
-Dry run reports planned paths and dependency readiness without exporting. Preflight
-checks row content; renderer readiness is a separate report. Workers run in separate
-processes, with a maximum of eight, so tool DOM/global state cannot cross jobs.
-`lolly preflight --batch=rows.csv` also checks a batch.
+**Plan before you run.** Dry run reports planned paths and dependency readiness without exporting. Preflight
+checks row content; renderer readiness is a separate report. `lolly preflight --batch=rows.csv` also checks a batch.
+Workers run in separate processes, with a maximum of eight, so tool DOM/global state cannot cross jobs.
 
-The default receipt is `out/.lolly-batch.json`; `--journal=path` chooses another.
+**Receipts and resume.** The default receipt is `out/.lolly-batch.json`; `--journal=path` chooses another.
 Resume reuses a successful output only when the row, source/content snapshot and
 output hash still match. Changed files, tools, tokens or assets invalidate reuse.
 Network, live media, model, composition, external assets and unqualified hook paths
@@ -71,19 +75,20 @@ are conservative reruns. Renderer-dependent raster/PDF jobs are also rerun until
 renderer inputs have a qualified snapshot; native-format jobs can be reused. A source change during a run makes its rows ineligible for reuse. Receipts
 record reused versus newly rendered rows; failed rows are retried.
 
-`--rows=1,3` selects original 1-based rows. A dry run returns a `planId`;
+**Rows, plans and locks.** `--rows=1,3` selects original 1-based rows. A dry run returns a `planId`;
 `--expect-plan=<id>` refuses a changed review before starting workers. The TUI queue
 uses these same controls. An output-directory lock prevents overlapping runs; after
 a crash, resume recovers a same-user lock only when its PID is dead and the lock has
 not changed during the check. Live, malformed and replaced locks are retained.
 
-Watch monitors the named CSV and its file-input paths, with debounce. It does not
+**Watch.** Watch monitors the named CSV and its file-input paths, with debounce. It does not
 watch every catalog/model directory. Output changes do not trigger another run.
 Watch uses terminal progress; `--watch --json` refuses because ordinary JSON mode
 produces one result per invocation. Run separate JSON jobs for machine consumers.
 Interrupting stops queued jobs and workers, records completed results and preserves
 finished outputs for resume.
 
+<!--i:eti-lock-->
 ## Private inputs and saved projects
 
 ```bash
@@ -104,6 +109,7 @@ in the TUI. Projects are read from the device's shared session directory.
 stderr. `--include-personal` explicitly includes those fields after review. Requested
 size and format travel with the link. Export passwords do not travel with that link.
 
+<!--i:eti-file-->
 ## Convert check results for local automation
 
 Save a command's normal JSON envelope, then convert that result without rerunning the check:
@@ -118,22 +124,23 @@ lolly projects list --query=conference --null | xargs -0 -I '{}' lolly projects 
 lolly projects list --null --paths
 ```
 
-`reports` accepts check/preflight/learning findings and production batch receipts. JSONL
+**What `reports` reads.** `reports` accepts check/preflight/learning findings and production batch receipts. JSONL
 input holds one original report per line; `--input-format=jsonl` selects that input on
 stdin. JSONL output holds one normalized finding or row outcome per line. This is report
 transport; ordinary batch rendering still takes its existing CSV/TSV transport.
 
-JUnit retains failures and skipped/unavailable coverage. SARIF retains document pointers,
+**JUnit and SARIF.** JUnit retains failures and skipped/unavailable coverage. SARIF retains document pointers,
 layer/page/theme context and stable finding fingerprints. A physical source location appears
 only when the original finding supplied a file and line; document coordinates do not become
 invented source lines. Unknown report shapes refuse. Existing output files are refused.
 Conversion success means the report was written; the original command's verdict still
 belongs to its saved envelope. Nothing is uploaded and no CI job starts.
 
-Project `--null` output carries stable slot IDs, including names with spaces or newlines.
+**Project lists for scripts.** Project `--null` output carries stable slot IDs, including names with spaces or newlines.
 `--paths` selects the actual session files instead. `--json` and `--null` are separate output
 choices; default project discovery keeps its existing JSON shape.
 
+<!--i:eti-flask-->
 ## Render-check the catalog (lolly smoke)
 
 ```bash
@@ -158,6 +165,7 @@ A tool is skipped, with the reason, when:
 The fixtures live in the checkout's `tests/fixtures`, so an installed CLI with no checkout skips every transform and says why.
 :::
 
+<!--i:eti-checklist-->
 ## Preflight an export (lolly preflight)
 
 ```bash
@@ -199,6 +207,7 @@ LOLLY_PROFILE=lolly-demo lolly run design --boxes-data=slides.json --export=pdf-
 A finish is not an ink, so it keeps its own plate with `--spots=process`. Printing a finish in process would put its black mask on the page. The CMYK TIFF and `eps-cmyk` print every ink in process already, so the flag does not change them. It is off by default, the same choice as `_spots=process` in a link and **Print spot inks as process** in the app, and the file records nothing about the choice. Any value other than `process` is refused with exit `2`. `lolly preflight` takes the flag too, and then counts the four process plates and any finish plates, with no spot plates, because the file will have none.
 
 <a id="check-a-design-document-in-ci-lolly-check"></a>
+<!--i:eti-badge-check-->
 ## Check a Lolly Design document in CI (lolly check)
 
 `lolly check` gives one findings list for a Lolly Design document, a `.lolly` or an export, and its exit code is the branch:
@@ -209,6 +218,9 @@ lolly check slides.lolly --source=old.inventory.json --json > check.json
 
 It exits `0` when there is nothing to fix, `5` when there are findings to review and none are errors, `4` on an error finding (or any warning under `--strict`), `3` with `--browser=require` on a runner with no paint tier, `2` on a usage error and `1` when a family failed to run. A runner with no browser reports the render family as `unavailable` and still runs the rest, so pass `--browser=require` where those checks must run. Text recognition is off unless you pass `--ocr`, so every runner gives the same answer. Read the findings at `.result.findings`, each with a stable `code`, its `severity` and the `layerId` it points at. [Check the recreation](/info/cli-decks.html#check-the-recreation) describes each family.
 
+`--kit=<partner-kit.json>` adds a partner kit's minimum size, clear space and treatment checks. Each is a brand review, never an error ([the other check flags](/info/cli-decks.html#the-other-check-flags)).
+
+<!--i:eti-code-->
 ## Scripting & CI
 
 The same inputs give the same **render** every time, which makes a tool a build step rather than a generator. Run the CLI wherever you make other build outputs:
@@ -252,7 +264,7 @@ Measured in August 2026 on one machine (Apple silicon, Node tier, five runs per 
 
 A default render is **not** byte-reproducible. A credential is signed with a fresh key and a fresh timestamp every time, and the Imprint moves the pixels. Pass `--no-provenance` for a bare render:
 
-```text
+```bash
 $ lolly qr-code --url=https://example.com --export=svg --output=d1.svg   # twice, defaults
 $ lolly qr-code --url=https://example.com --export=svg --output=d2.svg
 DIFFER
@@ -274,10 +286,21 @@ Even bare, only some formats repeat byte for byte. Measured by hashing two conse
 | **Video** (`gif`, `apng`, `webm`, `mp4`) and **PPTX** | **No**, for the same reason plus a frame-timed capture. They render here ([Video and timelines](/info/cli-rendering.html#video-and-timelines)); it is their byte identity that does not hold. | `design --export=mp4`, `design --export=webm`, `deck-studio --export=pptx` |
 | Anything with `--c2pa`, `--durable` or `--imprint`, **which is the default** | **No.** Each credential has a fresh timestamp, and the Imprint moves the pixels. | `qr-code --export=svg` (defaults) |
 
+::: note Lolly 1.2.0 draws headless canvases on the CPU
+From Lolly 1.2.0, the browser that the CLI and the terminal app launch, and the MCP renderer, draw export canvases on the CPU, so the same render draws the same pixels. A running desktop app, which `LOLLY_RENDERER=auto` tries first, is not covered. The table above was measured before that change, and its paint-tier rows have not been measured again.
+:::
+
 Two limits the table cannot show. Format-level reproducibility is not tool-level: a tool that draws the current time or the weather gives different bytes in any format, and that is the tool doing its job. And these runs were on one machine, back to back; a different OS, font set or engine version moves the bytes of anything that shapes text.
 
-So check the hash of an SVG rendered with `--no-provenance` into a lockfile if you like. Do **not** build a CI gate on the hash of a PDF, an ICS, a JPEG, a paint-tier PNG or anything signed: compare those by rendering and inspecting. [Determinism](/info/determinism.html) explains why the same inputs give the same render.
+So check the hash of an SVG rendered with `--no-provenance` into a lockfile if you like. [Determinism](/info/determinism.html) explains why the same inputs give the same render.
 
+::: warning Do not gate CI on these hashes
+Do **not** build a CI gate on the hash of a PDF, an ICS, a JPEG, a paint-tier PNG or anything signed: compare those by rendering and inspecting.
+:::
+
+**Check the file a render wrote.** `--export-report=<path>` compares what a render asked for with what the file holds, read from its bytes, and each difference warns, so `--strict` exits `4` when the file is not what was asked for. For a PDF the report also lists the accessibility checks, each passed, failed, not applicable or needing a person to look; it never claims that a PDF is accessible. [The render flags](/info/cli-rendering.html#flags) list what it reads.
+
+<!--i:eti-package-->
 ## The GitHub Action
 
 The repository carries a GitHub Action, in the `action/` folder of the source, that runs this CLI inside a GitHub job: one render, or one file for each row of a CSV or TSV. The flags it passes are the same `--key=value` flags you type at a desk. Until the action has a release of its own, pin it to a commit:
@@ -294,10 +317,11 @@ The repository carries a GitHub Action, in the `action/` folder of the source, t
 
 `rows` takes the path of a batch sheet instead of `tool`, and `browser: 'true'` installs the scoped browser for raster, PDF and video from tools that lay out in HTML. [The action's README](https://github.com/lolly-tools/lolly/tree/main/action) lists every input and output, with a pinned commit and worked examples.
 
+<!--i:eti-building-->
 ## Organisation jobs with Lolly Work
 
 The `lolly` CLI renders on the machine that runs the command. When an organisation needs jobs it can keep, inspect, retry or deliver centrally, the optional Lolly Work control plane offers a separate `lw` client and authenticated APIs at `/api/v1/renders` and `/api/v1/render-batches`.
 
-Those jobs run on the organisation's server, under its tool permissions and policy. Requests support idempotency keys, status, cancellation, retries and retained output; recovery after a restart needs a persistent deployment. Formats that need a browser need the configured render worker. Automation can sign in with a scoped service token, and governed delivery can use finished render output without uploading the bytes again.
+Those jobs run on the organisation's server, under its tool permissions and policy. Requests support idempotency keys, status, cancellation, retries and retained output; recovery after a restart needs a persistent deployment. From Lolly Work 1.2.0 a job can also [call back a URL when it finishes](/info/work-renders.html#be-told-when-a-render-finishes), and a batch can [fill its rows from a data source](/info/work-renders.html#fill-the-rows-from-a-data-source) and [download as one ZIP](/info/work-renders.html#download-a-batch-as-one-zip). Formats that need a browser need the configured render worker. Automation can sign in with a scoped service token, and governed delivery can use finished render output without uploading the bytes again.
 
 The Lolly Work [render jobs](/info/work-renders.html), [lw CLI](/info/work-cli.html) and [delivery](/info/work-delivery.html) guides give the request formats and commands. The local batch and CI examples on this page keep working without Lolly Work.

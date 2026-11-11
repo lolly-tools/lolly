@@ -4,13 +4,16 @@ Type a question and Ask Lolly answers with the section of these guides that cove
 
 Under the quoted section sit the places in the app that match the same question: a tool, a utility, a saved project, a catalogue asset, a setting or a page of the app. Each row only navigates. Nothing in an answer changes a setting, opens a file or acts for you, the same rule [Lolly Search](/info/search.html) follows.
 
+<!--i:eti-chat-->
 ## Asking a question
 
 Type into the question field at the foot of the view and press Enter. Anything shorter than two characters is ignored. Answers stack up above the field, newest last, and you can keep asking.
 
 ![Ask Lolly, open and empty: the question field at the foot of the view, with the note that answers come from the docs](/t/url-shot?url=%2F%23%2Fask&width=1200&height=820&waitMs=2200&format=svg&walker=1&filename=ask-view)
 
-Each question is answered on its own: earlier questions carry no context forward, so "what about PDF?" after a question about exporting is read as a question about PDF and nothing else. Ask the whole question each time.
+::: note Each question stands alone
+Earlier questions carry no context forward, so "what about PDF?" after a question about exporting is read as a question about PDF and nothing else. Ask the whole question each time.
+:::
 
 The first word of your question decides what leads the answer:
 
@@ -26,6 +29,7 @@ Matching drops the common question words (*how*, *do*, *I*, *the*, *my*) and ran
 
 **Better matching** is optional. After your first answer, Ask can offer a small matching model, with its download size, that helps match a question to a guide that uses different words for the same thing. It downloads only when you agree, runs on this device and only changes which sections rank first: the answer is still the documentation's own words. You can also download it from **Settings → Preferences → Available offline**, where it is listed as **Ask matching model** ([Available offline](/info/dashboard.html#available-offline)).
 
+<!--i:eti-clipboard-->
 ## What comes back
 
 An answer card is assembled in a fixed order:
@@ -37,6 +41,7 @@ An answer card is assembled in a fixed order:
 
 The full text comes from the plain-markdown twin each documentation page publishes at `/info/<slug>.md`, and those twins are English only. In another language - and on the handful of pages not built from markdown - the answer falls back to the short extract held in the search index instead of the whole section. The citation and the **Open in docs** link are there either way, pointing at the page in your own language.
 
+<!--i:eti-map-pin-->
 ## Where it lives
 
 The route is `#/ask`. It has no tab and no tile in the Utilities grid; the ways in are the search bar and the address itself.
@@ -48,12 +53,14 @@ The search bar steps aside inside this view, since the question field takes Ente
 
 The answers on screen last for this session: they are still there if you navigate away and come back, and a reload clears them. Nothing is written to storage, so there is no history to manage.
 
+<!--i:eti-download-->
 ## Offline
 
 Answers are assembled from two static files the documentation site already publishes: the per-language search index and the page's markdown twin. Both are fetched by name, so Ask keeps working with no connection once they are cached. Reading the guides in the app caches them as you go, and **Guides & docs** under [Available offline](/info/dashboard.html#available-offline) takes the whole site, screenshots included, in one download.
 
 Without them the documentation half of an answer simply does not appear, with no error. The in-app rows still do, because those are matched against data already on the device.
 
+<!--i:eti-lock-->
 ## Privacy
 
 Your question never leaves the device. Matching runs locally against files fetched by name, so what you typed is not part of any request; there is no server that sees it, no account it is attached to and no record of it after you reload. See the [Privacy Policy](/info/privacy.html) for the complete list of what the app ever fetches or sends.

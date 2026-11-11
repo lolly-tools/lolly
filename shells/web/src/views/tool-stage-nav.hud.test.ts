@@ -480,6 +480,28 @@ test('a clicking wheel is told apart from a pinch, and keeps the step it always 
   assert.ok(Math.abs(NAV.notchLogZoom({ deltaMode: 0, deltaY: 100 }) + 0.15) < 1e-12, 'a 100px click out is the old exp(-0.15)');
 });
 
+test('on a touch screen the page can zoom, but not under the stage: touch WebKit\'s pinch events are refused there and do not zoom the canvas', () => {
+  // The mobile app no longer turns page zoom off (WCAG 1.4.4), so the stage itself has to
+  // keep a pinch that starts on it: touch-action for the pointers, and WebKit's own
+  // gesture events refused. Only the pointer handlers zoom the canvas on touch.
+  const win = dom.window as unknown as { matchMedia: (q: string) => { matches: boolean } };
+  const real = win.matchMedia;
+  win.matchMedia = (q: string) => ({ matches: q === '(pointer: coarse)' });
+  const h = mount({ hud: false });
+  try {
+    assert.equal(h.stage.style.touchAction, 'none');
+    for (const type of ['gesturestart', 'gesturechange']) {
+      const e = Object.assign(new dom.window.Event(type, { bubbles: true, cancelable: true }), { scale: 2, clientX: 0, clientY: 0 });
+      h.stage.dispatchEvent(e);
+      assert.equal(e.defaultPrevented, true, `${type} does not zoom the page under the stage`);
+    }
+    assert.equal(scaleOf(h.outer), 1, 'and does not zoom the canvas a second time beside the pointers');
+    const outside = new dom.window.Event('gesturestart', { bubbles: true, cancelable: true });
+    document.body.dispatchEvent(outside);
+    assert.equal(outside.defaultPrevented, false, 'a pinch elsewhere is still the page\'s');
+  } finally { h.teardown(); win.matchMedia = real; }
+});
+
 test('on the stage: a click keeps its old step, a pinch follows the curve, Safari gestures zoom the canvas', () => {
   const h = mount({ hud: false });
   try {
