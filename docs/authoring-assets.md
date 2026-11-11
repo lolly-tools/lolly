@@ -192,7 +192,7 @@ An icon tagged `themable` is an SVG that sets its two colours only through class
 ```
 
 - `.c1` is the **accent** and `.c2` the **base**. The defaults are plain class rules, so a page or tool that inlines the SVG can override them: `.c1 { fill: … !important }` wins.
-- The colour pairings the picker offers come from a palette asset tagged `icon-themes` (`lolly/palette/opal-icon-themes` in the Lolly Demo pack). Its first pairing must match the defaults in the icons.
+- The colour pairings Assets and the picker offer come from the design system's [colourways](/info/colourways.html#tools-that-use-every-lead): **Original** keeps the icon's own colours, then one pairing per colourway, named as the colourway is. A design system with no colourways offers none. Give the icons the canonical colourway's colours as their defaults, so **Original** and the canonical colourway agree. An icon written as `example/icons/chat?theme=auto` takes the piece's colourway, in its pairing for the ground under the icon. Packs no longer ship an `icon-themes` palette; one an older catalog still carries is not offered, and the ids it declares still resolve.
 - A pairing chosen in the picker travels **inside the asset id**, as `example/icons/chat?theme=green`, because an asset value is kept as its id alone. Both shell bridges read that suffix (`parseThemedAssetId`) and apply the pairing when the asset resolves (`applyIconTheme` removes the style block and writes the fills as attributes), so two copies in different themes never fight over class rules inside one exported SVG or PDF.
 - The validator checks the contract for every `themable` SVG: exactly one default style block, only the classes `c1` and `c2` and no inline styles or strokes.
 

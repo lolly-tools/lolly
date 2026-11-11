@@ -125,12 +125,16 @@ export interface BrandCatalogHost {
     query?(filter: AssetQuery): Promise<Pick<AssetRef, 'id'>[]>;
     _iconThemes?(): Promise<unknown[]>;
     _photoTreatments?(): Promise<unknown[]>;
+    /** Every id that still resolves: the colourway looks, then the catalog palettes' own. */
+    _knownIconThemes?(): Promise<unknown[]>;
+    _knownPhotoTreatments?(): Promise<unknown[]>;
   };
 }
 
 /**
  * The catalog facts `lolly check` gives the brand check, read from the web host: every
- * catalog asset id, and the icon themes and photo treatments its palette assets declare.
+ * catalog asset id, and every icon theme and photo treatment an id can still name (the
+ * design system's colourway looks, then the ones its palette assets declare).
  * A catalog icon (`suse/icons/brain?theme=ember`) is then a known asset here as it is in
  * the CLI. A part the host cannot answer is left out, so its modifiers are not judged.
  */
@@ -142,8 +146,8 @@ export async function hostBrandCatalog(host: BrandCatalogHost | undefined): Prom
   };
   const [refs, themes, treatments] = await Promise.all([
     safe(assets?.query ? () => assets.query!({ includeDeprecated: true }) : undefined),
-    safe(assets?._iconThemes ? () => assets._iconThemes!() : undefined),
-    safe(assets?._photoTreatments ? () => assets._photoTreatments!() : undefined),
+    safe(assets?._knownIconThemes ? () => assets._knownIconThemes!() : assets?._iconThemes ? () => assets._iconThemes!() : undefined),
+    safe(assets?._knownPhotoTreatments ? () => assets._knownPhotoTreatments!() : assets?._photoTreatments ? () => assets._photoTreatments!() : undefined),
   ]);
   return brandCheckCatalog({
     assets: refs.filter((r) => typeof r?.id === 'string').map((r) => ({ id: r.id })),

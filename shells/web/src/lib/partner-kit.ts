@@ -130,7 +130,11 @@ export function releasePieceKit(runtime: object): void {
 
 /** The web host's catalog reads the checks use when it has them. */
 interface CheckHost extends Pick<HostV1, 'assets'> {
-  assets: HostV1['assets'] & { _iconThemes?(): Promise<unknown[]>; _photoTreatments?(): Promise<unknown[]> };
+  assets: HostV1['assets'] & {
+    _iconThemes?(): Promise<unknown[]>; _photoTreatments?(): Promise<unknown[]>;
+    /** Every id that still resolves, colourway looks first (bridge/assets.ts). */
+    _knownIconThemes?(): Promise<unknown[]>; _knownPhotoTreatments?(): Promise<unknown[]>;
+  };
 }
 
 /**
@@ -144,8 +148,8 @@ export async function partnerCheckInput(runtime: { getModel(): ReadonlyArray<{ i
   if (!base) return null;
   const safe = async <T>(read: () => Promise<T>, fallback: T): Promise<T> => { try { return await read(); } catch { return fallback; } };
   const [themes, treatments, refs] = await Promise.all([
-    safe(async () => (await host.assets._iconThemes?.()) ?? [], [] as unknown[]),
-    safe(async () => (await host.assets._photoTreatments?.()) ?? [], [] as unknown[]),
+    safe(async () => (await (host.assets._knownIconThemes ?? host.assets._iconThemes)?.call(host.assets)) ?? [], [] as unknown[]),
+    safe(async () => (await (host.assets._knownPhotoTreatments ?? host.assets._photoTreatments)?.call(host.assets)) ?? [], [] as unknown[]),
     Promise.all(partnerKitLogoIds(base.kit).map((id) => safe<readonly [string, unknown]>(async () => [id, await host.assets.get(id)], [id, null]))),
   ]);
   // Each logo's own size, which gives its proportions too: a fit Design draws at the logo's own size needs the size.

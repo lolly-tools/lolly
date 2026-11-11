@@ -466,12 +466,11 @@ async function render(
 
   // ── Icon colour themes ──────────────────────────────────────────────────────
   // Themable two-colour icons (assets tagged "themable") can take a colour
-  // pairing chosen here. The pairings come from the catalog's icon-themes
-  // palette asset via host.assets._iconThemes(); the strip mounts only when the
-  // library actually contains themable icons. The first pairing is the default
-  // (identical to the fills baked into every icon) - choosing it keeps the plain
-  // asset id, so default picks stay class-overridable when inlined.
-  // A non-default choice is carried in the picked id (`<id>?theme=<themeId>`).
+  // pairing chosen here: one per colourway of the design system, through
+  // host.assets._iconThemes(). The strip mounts only when the library contains
+  // themable icons and the system has colourways. "Original" keeps the icon's own
+  // colours and the plain asset id, so such a pick stays class-overridable when
+  // inlined; a colourway is carried in the picked id (`<id>?theme=<themeId>`).
   let iconThemes: IconTheme[] = [];
   const currentBaseId = stripAssetModifiers(String(opts.current ?? ''));
   const { theme: currentTheme } = parseThemedAssetId(String(opts.current ?? ''));
@@ -486,9 +485,9 @@ async function render(
 
   // ── Photo colour treatments ─────────────────────────────────────────────────
   // The raster analogue of the icon colour strip: a raster photo can take a
-  // greyscale or duotone-wash treatment chosen here. The treatments come from the
-  // catalog's photo-treatments palette via host.assets._photoTreatments(); the
-  // strip mounts only on groups that hold raster photos. "None" is the plain
+  // gradient-map wash chosen here, one per colourway of the design system, through
+  // host.assets._photoTreatments(); the strip mounts only on groups that hold raster
+  // photos, and only when the system has colourways. "None" is the plain
   // photo (no suffix); a treatment choice rides in the picked id
   // (`<id>?treatment=<treatmentId>`).
   let photoTreatments: PhotoTreatment[] = [];
@@ -882,8 +881,8 @@ async function render(
     // so it's handled by delegation rather than a per-render listener.
     const theme = (e.target as HTMLElement).closest<HTMLElement>('[data-theme-id]');
     if (theme) {
-      // The first pairing is the icons' baked default → no id suffix in the pick.
-      activeTheme = theme.dataset.themeId === iconThemes[0]?.id ? null : theme.dataset.themeId;
+      // "Original" (an empty id) is the icon's own colours → no id suffix in the pick.
+      activeTheme = theme.dataset.themeId || null;
       libraryEl.querySelectorAll<HTMLElement>('[data-theme-id]').forEach(b => {
         const on = b === theme;
         b.classList.toggle('is-active', on);
@@ -1634,7 +1633,7 @@ async function render(
     // A group carries a colour strip in its header: the icon pairing strip when
     // it holds themable icons, or the photo treatment strip when it holds raster
     // photos. A group is one or the other, never both.
-    const themableOf = (items: AssetRef[]) => iconThemes.length > 1 && items.some(isThemableRef);
+    const themableOf = (items: AssetRef[]) => iconThemes.length > 0 && items.some(isThemableRef);
     const treatableOf = (items: AssetRef[]) => photoTreatments.length > 0 && items.some(isTreatableRef);
     // Every picker gets the same section chrome - even a single-category one
     // (e.g. a raster-only field) - so a narrow slot's picker matches the full
@@ -1705,7 +1704,7 @@ async function render(
       const img = cardEl.querySelector<HTMLImageElement>('img.asset-picker-thumb');
       if (!img) continue;
       if (!def) { img.src = ref.url; img.style.background = ''; continue; }
-      const cached = themedThumbCache.get(`${ref.id}:${def.id}`);
+      const cached = themedThumbCache.get(`${ref.id}:${def.id}:${def.c1},${def.c2}`);
       if (cached) { img.src = cached; img.style.background = def.previewBg ?? ''; continue; }
       let textP = iconSvgTextCache.get(ref.id);
       if (!textP) {
@@ -1716,7 +1715,7 @@ async function render(
         const restyled = text ? restyleIconTheme(text, def) : null;
         if (!restyled) return;
         const src = svgDataUrl(restyled);
-        themedThumbCache.set(`${ref.id}:${def.id}`, src);
+        themedThumbCache.set(`${ref.id}:${def.id}:${def.c1},${def.c2}`, src);
         if (seq !== retintSeq) return; // superseded by a newer theme choice
         img.src = src;
         img.style.background = def.previewBg ?? '';
@@ -2286,7 +2285,7 @@ async function render(
     if (candidates.some(isThemableRef) && typeof host.assets._iconThemes === 'function') {
       iconThemes = await host.assets._iconThemes().catch(() => []);
       if (activeTheme && !iconThemes.some(t => t.id === activeTheme)) activeTheme = null;
-      // renderLibrary renders the strip inside the Icons group when iconThemes.length > 1.
+      // renderLibrary renders the strip inside the Icons group when the system has colourways.
     }
 
     // Colour treatments for raster photos - mounted only when this library holds

@@ -81,6 +81,7 @@ import { entryFromManifest, slimEntry } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+import { colourwaySurfaceIconThemes } from '../engine/src/brand-treatments.ts';
 import { checkToolIntents, parseToolIntents } from '../engine/src/intent.ts';
 import { TOOL_INTENTS_FILE } from '../packages/core/src/intent-v1.ts';
 // The head-vs-version asset rule and the reserved head slug (plans/97 section 6a). Imported
@@ -1532,7 +1533,10 @@ for (const [toolId, manifest] of toolManifests) {
 
 const seenAssetIds = new Set<string>();
 const assetById = new Map<string, any>();
-const iconThemePalettes: { assetId: string; themes: ReturnType<typeof parseIconThemesDoc> }[] = [];     // { assetId, themes } per icon-themes palette
+const iconThemePalettes: { assetId: string; themes: ReturnType<typeof parseIconThemesDoc> }[] = [];
+// The icon pairing ids each design system's colourways make (engine brand-treatments.ts),
+// the ids a pack offers now that colour pairings come from colourways.
+const colourwayThemeIds = new Set<string>();     // { assetId, themes } per icon-themes palette
 const themableIconDefaults: { assetId: string; c1: string; c2: string }[] = [];  // { assetId, c1, c2 } per themable icon
 
 for (const asset of assetsIndex.assets) {
@@ -1617,6 +1621,11 @@ for (const asset of assetsIndex.assets) {
           // link. A non-confidential catalog card would leak the rates.
           errors.push(`[asset ${asset.id}] rate card "${fmt.url}" is a catalog asset but is not confidential:true - a shipped house card must set confidential:true so its rates are protected`);
         }
+      }
+
+      // A design system's colourways make icon pairings of their own: a reference may name one.
+      if (asset.type === 'tokens' && fmt.format === 'json') {
+        try { for (const theme of colourwaySurfaceIconThemes(JSON.parse(bytes.toString('utf8')))) colourwayThemeIds.add(theme.id); } catch { /* the tokens checks below report a bad document */ }
       }
 
       // Icon-themes palettes: the colour pairings the shells offer for themable
@@ -2128,8 +2137,8 @@ for (const [toolId, manifest] of toolManifests) {
         errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);
       } else if (!assetById.has(baseId)) {
         errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" not in catalog`);
-      } else if (theme && theme !== 'auto' && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
-        errors.push(`[${toolId}] input "${input.id}" default asset theme "${theme}" not in any icon-themes palette`);
+      } else if (theme && theme !== 'auto' && !colourwayThemeIds.has(theme) && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
+        errors.push(`[${toolId}] input "${input.id}" default asset theme "${theme}" is not a colourway's pairing or in any icon-themes palette`);
       }
     }
     // Color palette refs must resolve. `colourway-leads` is not an asset: it asks
@@ -2187,8 +2196,8 @@ for (const [toolId, manifest] of toolManifests) {
       errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);
     } else if (!assetById.has(baseId)) {
       errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") not in catalog`);
-    } else if (theme && theme !== 'auto' && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
-      errors.push(`[${toolId}] ${at}: asset theme "${theme}" (input "${spec.id}") not in any icon-themes palette`);
+    } else if (theme && theme !== 'auto' && !colourwayThemeIds.has(theme) && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
+      errors.push(`[${toolId}] ${at}: asset theme "${theme}" (input "${spec.id}") is not a colourway's pairing or in any icon-themes palette`);
     }
   };
 

@@ -34,11 +34,11 @@
  * lands verbatim at catalog/assets/<name>/tokens/brand.json, indexed as the
  * pack's core-tier `tokens` asset (the web shell's token bridge discovers the
  * first `type:"tokens"` asset generically, so the colour picker lights up with
- * the brand's palette as soon as the profile is active). Photo-treatment and
- * icon-theme palette docs are DERIVED from the same document (engine
- * brand-treatments.ts) and written under catalog/assets/<name>/palette/, so
- * uploaded photos and themable icons get one-tap on-brand washes/pairings out
- * of the box - the icon-themes doc is skipped when the palette has no accent.
+ * the brand's palette as soon as the profile is active). No icon-theme or
+ * photo-treatment palette is written: the icon colours and photo washes a design
+ * system offers come from its colourways (engine brand-treatments.ts
+ * colourwayIconThemes), so a brand that adds colourways gets them, and one without
+ * colourways offers none.
  * catalog/tools/index.json is NOT written here - `pnpm run build:catalog`
  * generates it once the profile is active.
  *
@@ -60,7 +60,6 @@ import {
   assembleTokenSetFiles, coerceTokensDoc, extractPenpotProject, summarizeTokensDoc,
 } from '../engine/src/brand-import.ts';
 import type { TokensExtraction } from '../engine/src/brand-import.ts';
-import { deriveIconThemesDoc, derivePhotoTreatmentsDoc } from '../engine/src/brand-treatments.ts';
 // The version ledger (plans/97 section 6a) is read and rewritten through the ONE shared
 // model, never by hand: a pack's published versions have to mean the same thing
 // here as they do in the shell that exported them.
@@ -578,44 +577,6 @@ function emitPack(
     }
   }
 
-  // Derived palette docs (engine brand-treatments.ts): photo treatments always
-  // (greyscale survives even an accent-free palette); icon themes only when the
-  // palette yields at least one pairing (the validator rejects an empty
-  // themes[] doc). Written + indexed exactly like a hand-authored catalog's.
-  const paletteDir = join(out, 'catalog/assets', args.ns, 'palette');
-  const paletteDocs: [slug: string, payload: { name: string; description: string } | null, blurb: string][] = [
-    ['photo-treatments', derivePhotoTreatmentsDoc(doc),
-      'Colour treatments for photo assets, derived from the brand tokens: greyscale + soft duotone washes.'],
-    [
-      'icon-themes',
-      (() => { const d = deriveIconThemesDoc(doc); return d.themes.length ? d : null; })(),
-      'Colour pairings for themable two-colour icons (c1 accent / c2 base), derived from the brand tokens.',
-    ],
-  ];
-  const derivedSlugs: string[] = [];
-  for (const [slug, payload, blurb] of paletteDocs) {
-    if (!payload) continue;
-    derivedSlugs.push(slug);
-    mkdirSync(paletteDir, { recursive: true });
-    const bytes = Buffer.from(JSON.stringify(payload, null, 2) + '\n');
-    writeFileSync(join(paletteDir, `${slug}.json`), bytes);
-    assets.push({
-      id: `${args.ns}/palette/${slug}`,
-      name: payload.name,
-      description: blurb,
-      type: 'palette',
-      version: '1.0.0',
-      tier: 'on-demand',
-      tags: ['palette', slug],
-      formats: [{
-        format: 'json',
-        url: `/catalog/assets/${args.ns}/palette/${slug}.json`,
-        checksum: `sha256-${createHash('sha256').update(bytes).digest('base64')}`,
-        size: bytes.length,
-      }],
-    });
-  }
-
   const index = {
     version: '1',
     generatedAt: new Date().toISOString(),
@@ -654,11 +615,10 @@ hand-edit and bump the asset version in \`catalog/assets/index.json\`.
    \`pnpm run previews\`.
 `);
 
-  const derived = derivedSlugs.join(' + ') || 'none';
   const published_ = published.versions.length
     ? `; ${published.versions.length} version${published.versions.length === 1 ? '' : 's'}, ${published.frozen.length} preserved file${published.frozen.length === 1 ? '' : 's'}`
     : '';
-  console.log(`✓ brand pack written to ${args.out} (brand.json ${brandBytes.length} bytes, ${checksum}; derived palette docs: ${derived}${published_})`);
+  console.log(`✓ brand pack written to ${args.out} (brand.json ${brandBytes.length} bytes, ${checksum}${published_})`);
 }
 
 interface ProfilesFile {
