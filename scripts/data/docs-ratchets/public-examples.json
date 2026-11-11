@@ -76,9 +76,6 @@
       "docs/work/catalog.md",
       "docs/work/cli.md"
     ],
-    "suse/palette/icon-themes": [
-      "docs/authoring-assets.md"
-    ],
     "suse/tokens/brand": [
       "docs/authoring-assets.md",
       "docs/design-tokens.md",

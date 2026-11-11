@@ -306,10 +306,8 @@ export function readAsset(dt: DetailsCtx): void {
   // one-click default; conversion controls only appear after opening the dialog.
   const configurable = isVector(ref) || isThemable(ref) || (ref.type === 'raster' && !ref.meta?.animated)
     || ref.type === 'audio' || ref.type === 'video'; dt.configurable = configurable;
-  // Honour a theme from a shared link (initialTheme) if it's valid, else the first pairing.
-  dt.dTheme = themable
-    ? ((initialTheme && cat.iconThemes.some(t => t.id === initialTheme) ? initialTheme : cat.iconThemes[0]?.id) ?? null)
-    : null;
+  // Honour a colourway from a shared link (initialTheme) if the system offers it, else Original.
+  dt.dTheme = themable && initialTheme && cat.iconThemes.some(t => t.id === initialTheme) ? initialTheme : null;
   // Photo treatment: honour a valid initial (shared link / category selection), else Original.
   dt.dTreatment = treatable && initialTreatment && cat.photoTreatments.some(t => t.id === initialTreatment)
     ? initialTreatment
@@ -853,15 +851,15 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // Colour swatch (themable icons): recolour the preview in place, keep the modal open.
     const sw = target.closest<HTMLElement>('.cat-dl-theme');
     if (sw && themable) {
-      dt.dTheme = sw.dataset.theme ?? dt.dTheme;
+      dt.dTheme = sw.dataset.theme || null;   // "Original" is the empty id
       dlg.querySelectorAll<HTMLElement>('.cat-dl-theme').forEach(b => {
         const on = b === sw; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', String(on));
       });
       try {
         if (!dt.dBaseSvg) dt.dBaseSvg = await (await fetch(ref.url)).text();
-        const th = cat.iconThemes.find(x => x.id === dt.dTheme);
+        const th = dt.dTheme ? cat.iconThemes.find(x => x.id === dt.dTheme) : null;
         const img = dlg.querySelector<HTMLImageElement>('.cat-thumb');
-        if (img && th) img.src = svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg);
+        if (img) img.src = th ? svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg) : ref.url;
       } catch { /* recolour is best-effort - leaves the base preview */ }
       return;
     }

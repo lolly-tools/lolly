@@ -85,7 +85,7 @@
     },
     "shells/web/src/views/picker.ts": {
       "lines": 2389,
-      "largestFunctionLines": 2042,
+      "largestFunctionLines": 2041,
       "importFanIn": 34,
       "importFanOut": 72,
       "typeEscapes": 3

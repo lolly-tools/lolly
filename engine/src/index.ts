@@ -922,6 +922,9 @@ export { PHOTO_LOOK_RECIPE, applyPhotoLook, photoLookCacheKey, photoLookThemeKey
 export type { PhotoLookOptions } from './photo-look.ts';
 export type { PhotoTreatmentStop, PhotoTreatmentVariant } from './photo-treatment.ts';
 export { derivePhotoTreatmentsDoc, deriveIconThemesDoc } from './brand-treatments.ts';
+// The icon colours and photo washes a design system offers, one per colourway (1.344).
+export { colourwayIconThemes, colourwaySurfaceIconThemes, colourwayPhotoTreatments, colourwayInks, withColourwayLooks, isColourwayLookId, COLOURWAY_LOOK_PREFIX, ON_DARK_SUFFIX } from './brand-treatments.ts';
+export type { ColourwayInks } from './brand-treatments.ts';
 export {
   hashR6, preparePassword, buildEncryptDictValues, encryptObjectBytes,
 } from './pdf-crypto-r6.ts';

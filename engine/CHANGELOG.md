@@ -6,6 +6,13 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.344.0
+
+- A design system's colourways now drive the icon colours and photo washes it offers, in place of hand-written catalog palettes. `colourwayIconThemes(doc)` gives one two-colour icon pairing per colourway, and `colourwayPhotoTreatments(doc)` one gradient map (a three-stop duotone), canonical first and named as the colourway is. A system with no colourways offers none. Both read the colourway's leads, partner, text and surface (`colourwayInks`). When the deeper lead holds as an outline on the surface (4.5:1) and stands apart from the lighter one (2:1), the lighter lead is the accent and the deeper one the base; otherwise the more vivid lead is the accent and the text colour the base. The photo map runs from the deeper lead, or the text colour when that lead is not dark, through the vivid lead (its partner when the vivid lead is the shadow) to a pale tint on the surface. The tint is mixed in whole 8-bit steps, so every host gives the same bytes. The canonical colourways reproduce the colours the Lolly Demo and SUSE icons carry.
+- Each colourway also has a pairing for a dark ground or a photograph, `<id>--on-dark` (`ON_DARK_SUFFIX`): the dark look's lead as the outline, with the colourway's partner or text colour as the accent. `colourwaySurfaceIconThemes(doc, first)` lists both pairings with their `surfaces`, the named colourway first, and an icon written as `?theme=auto` now takes the piece's own colourway (`activeColourwayOf` reads it from the render selection) in the pairing for the ground under it.
+- Ids are `colourway-<option>` (`COLOURWAY_LOOK_PREFIX`, `isColourwayLookId`); a slug never holds two hyphens together, so the dark suffix cannot meet one. The shipped packs no longer carry `icon-themes` or `photo-treatments` palettes, and `scripts/ingest-brand.ts` writes none. Hosts still resolve the ids of a palette an older catalog ships, after the colourway looks, and `withColourwayLooks(catalog, doc)` puts the colourway looks in front of such a catalog's own for `brandCheckCatalog` and `guestRecolourFrom`.
+- The design brief lists the colourway pairings, dark ones included, then any palette's own (`themesFrom`/`treatmentsFrom` read `derived` when only colourways supply them).
+
 ## 1.343.0
 
 - The partner record gains the piece's attached kit (Lolly Work plan 82, M8, L-M8-5). `ExportPartner.kit` (SDK 1.8.0) holds the kit asset's catalog id and attached revision, only beside a valid company. The web shell sets the record at mount and follows Attach and Detach, with a kit recorded only when its company id matches the workspace partner company.

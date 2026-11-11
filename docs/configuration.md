@@ -109,7 +109,7 @@ Add a new profile rather than changing the one you run, and name what to bring:
     "label": "Lolly Demo",
     "catalog": "brands/lolly-demo/catalog",
     "tokens": "lolly/tokens/demo",
-    "assets": ["lolly/tokens/demo", "lolly/logo/", "lolly/icons/", "lolly/font/", "lolly/palette/opal-icon-themes", "lolly/palette/opal-photo-treatments"]
+    "assets": ["lolly/tokens/demo", "lolly/logo/", "lolly/icons/", "lolly/font/"]
   }]
 }
 ```
@@ -178,6 +178,7 @@ Two mechanisms narrow the catalog without forking the catalog itself.
 | Jelly effects | Off | Yes |
 | Wobbly windows, and its mesh curve | Off | Yes |
 | Strip metadata from uploads | Off | Yes |
+| Colourway asset treatments (`colourway-asset-treatments`): one colour choice per colourway for two-colour icons and photos in Assets and the picker | On | Yes |
 | Print preflight (`export-preflight`) | Off | Yes |
 | Performance UI and Performance HUD | Off | No |
 | Training and courses | Off | No |

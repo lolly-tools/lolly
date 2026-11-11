@@ -2813,8 +2813,24 @@ async function surfaceContext(host: HostV1): Promise<SurfaceRuntimeContext> {
   let set: TokenSet | undefined;
   try { set = await host.tokens?.get(); } catch { /* no token set: the table answers from what is left */ }
   let doc: unknown = null;
-  try { doc = (await host.tokens?.snapshot?.())?.document ?? null; } catch { doc = null; }
-  let iconThemes = await readIconThemesPalette(host);
+  let selection: TokensSnapshot['selection'] | null = null;
+  try {
+    const snap = await host.tokens?.snapshot?.();
+    doc = snap?.document ?? null;
+    selection = snap?.selection ?? null;
+  } catch { doc = null; }
+  // An auto icon takes the piece's own colourway: its pairing for a light ground, and for
+  // a dark ground or a photograph its dark pairing (brand-treatments.ts). A design system
+  // with no colourways falls back to a catalog palette, then to one derived from the palette.
+  let iconThemes: unknown = null;
+  if (doc) {
+    try {
+      const looks = await import('./brand-treatments.ts');
+      const themes = looks.colourwaySurfaceIconThemes(doc, looks.activeColourwayOf(doc, selection));
+      if (themes.length) iconThemes = { themes };
+    } catch { iconThemes = null; }
+  }
+  iconThemes ??= await readIconThemesPalette(host);
   if (!iconThemes && doc) {
     try { iconThemes = (await import('./brand-treatments.ts')).deriveIconThemesDoc(doc); } catch { iconThemes = null; }
   }

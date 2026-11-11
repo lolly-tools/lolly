@@ -15,6 +15,7 @@ import { checkBrandDesign } from '../engine/src/brand-check.ts';
 import { brandCheckCatalog, designBrief } from '../engine/src/design-brief.ts';
 import { DESIGN_HOUSE_RULE_KINDS, checkDesignHouseRules } from '../engine/src/design-house-rules.ts';
 import { parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+import { colourwaySurfaceIconThemes, withColourwayLooks } from '../engine/src/brand-treatments.ts';
 import { seedFrame } from '../engine/src/slide-master.ts';
 import { createTokenSet } from '../engine/src/tokens.ts';
 import { readProfileBriefCatalog } from '../packages/node-shell/src/design-brief.ts';
@@ -45,14 +46,17 @@ test('the SUSE brand system lists no asset resources, so a SUSE brand export kee
   assert.deepEqual(logoRule.roleIds, []);
 });
 
-test('every SUSE icon theme states the surfaces it suits', (t) => {
+test('every SUSE colourway gives an icon pairing for each ground it suits', (t) => {
   if (!present()) { t.skip(SKIP); return; }
-  const themes = parseIconThemesDoc(JSON.parse(readFileSync(new URL('palette/icon-themes.json', SUSE), 'utf8')));
+  // Jungle, Persimmon, Waterhole and EU policy, each with a light and a dark pairing.
+  const themes = colourwaySurfaceIconThemes(tokens());
   assert.equal(themes.length, 8);
+  assert.deepEqual(parseIconThemesDoc({ themes }).map((x) => x.id), themes.map((x) => x.id), 'every pairing survives the runtime reader');
   for (const theme of themes) {
-    const surfaces = (theme as unknown as { surfaces?: unknown }).surfaces;
-    assert.ok(Array.isArray(surfaces) && surfaces.length > 0 && surfaces.every((s) => s === 'light' || s === 'dark'), theme.id);
+    assert.ok(theme.surfaces.length > 0 && theme.surfaces.every((s) => s === 'light' || s === 'dark' || s === 'photo'), theme.id);
   }
+  assert.deepEqual(themes.find((x) => x.id === 'colourway-eu-policy'), { id: 'colourway-eu-policy', label: 'EU policy', c1: '#90ebcd', c2: '#192072', surfaces: ['light'] },
+    'EU policy: Mint on Midnight, with no green');
 });
 
 test('the SUSE brief declares pairings, icons, media, the master and the house rules', (t) => {
@@ -60,9 +64,11 @@ test('the SUSE brief declares pairings, icons, media, the master and the house r
   const catalog = readProfileBriefCatalog({ profile: 'suse' });
   assert.ok(catalog);
   const brief = designBrief(tokens(), catalog, { name: catalog.label });
-  for (const key of ['combinations', 'icons', 'iconThemes', 'media', 'treatments', 'master', 'houseRules', 'logos'] as const) {
+  for (const key of ['combinations', 'icons', 'media', 'master', 'houseRules', 'logos'] as const) {
     assert.equal(brief.coverage[key], 'declared', key);
   }
+  // The icon pairings and photo washes come from the colourways, not a declared palette.
+  for (const key of ['iconThemes', 'treatments'] as const) assert.equal(brief.coverage[key], 'derived', key);
   assert.equal(brief.logos.onLight, 'suse/logo/hor-pos-green');
   assert.ok(brief.icons.count > 100);
   const white = (brief.combinations.pairs as Array<{ background: { path: string }; text: Array<{ path: string }>; graphicOnly: Array<{ path: string }> }>)
@@ -77,14 +83,16 @@ test('the SUSE check knows themed icons and reports the four house-rule traps', 
   const catalog = readProfileBriefCatalog({ profile: 'suse' })!;
   const boxes = [
     { id: 'a1', kind: 'frame', x: 0, y: 0, w: 1920, h: 1080, bg: '#ffffff' },
-    { id: 'icon', kind: 'image', frame: 'a1', x: 1700, y: 40, w: 120, h: 120, image: 'suse/icons/brain?theme=ember' },
+    { id: 'icon', kind: 'image', frame: 'a1', x: 1700, y: 40, w: 120, h: 120, image: 'suse/icons/brain?theme=colourway-persimmon' },
+    { id: 'icon-dark', kind: 'image', frame: 'a1', x: 1300, y: 40, w: 120, h: 120, image: 'suse/icons/brain?theme=colourway-eu-policy--on-dark' },
     { id: 'icon-bad', kind: 'image', frame: 'a1', x: 1500, y: 40, w: 120, h: 120, image: 'suse/icons/brain?theme=lava' },
     { id: 'jungle', kind: 'text', frame: 'a1', x: 120, y: 900, w: 600, h: 60, text: 'Jungle on white', fontSize: 28, weight: '400', align: 'left', fg: '#30ba78', font: 'SUSE' },
     { id: 'heavy', kind: 'text', frame: 'a1', x: 120, y: 200, w: 1500, h: 150, text: 'A heavy headline', fontSize: 110, weight: '700', align: 'left', fg: '#0c322c', font: 'SUSE' },
     { id: 'centred', kind: 'text', frame: 'a1', x: 800, y: 900, w: 600, h: 60, text: 'Centred words', fontSize: 28, weight: '400', align: 'center', fg: '#0c322c', font: 'SUSE' },
     { id: 'card', kind: 'box', frame: 'a1', x: 1300, y: 600, w: 300, h: 200, shape: 'rounded', radius: 16, bg: '#ffffff', stroke: '#30ba78', strokeW: 2 },
   ];
-  const brand = checkBrandDesign(boxes, doc, brandCheckCatalog(catalog));
+  // The catalog facts with the colourway pairings in front, as `lolly check` builds them.
+  const brand = checkBrandDesign(boxes, doc, brandCheckCatalog(withColourwayLooks(catalog, doc)));
   assert.deepEqual(brand.findings.map((f) => [f.layerId, f.kind]), [['icon-bad', 'reference']]);
   const house = checkDesignHouseRules(boxes, brandSystemOf(doc)!.rules, doc, { catalog });
   assert.deepEqual(house.findings.map((f) => `${f.ruleId}:${f.layerId}`).sort(),

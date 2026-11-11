@@ -24,7 +24,7 @@ test('the lolly-start profile answers with its head tokens asset and label', () 
   assert.ok(tokens.doc && typeof tokens.doc === 'object');
 });
 
-test('the catalog facts carry the listing, the master, its logos and the palettes the pack ships', () => {
+test('the catalog facts carry the listing, the master and its logos, and no colour palette', () => {
   const catalog = readProfileBriefCatalog({ profile: 'lolly-start' });
   assert.ok(catalog);
   assert.equal(catalog.profile, 'lolly-start');
@@ -34,7 +34,9 @@ test('the catalog facts carry the listing, the master, its logos and the palette
   assert.equal(catalog.master?.id, 'lolly/slides/neutral');
   assert.equal(catalog.masterAsset, 'lolly/slides/masters');
   assert.equal(catalog.logos?.onLight, 'lolly/logo/primary');
-  assert.ok(catalog.photoTreatments, 'lolly-start ships a photo-treatments palette');
+  // Icon colours and photo washes come from a design system's colourways now, so a pack
+  // ships neither palette (engine brand-treatments.ts colourwayIconThemes).
+  assert.equal(catalog.photoTreatments, undefined, 'lolly-start ships no photo-treatments palette');
   assert.equal(catalog.iconThemes, undefined, 'lolly-start ships no icon themes');
 });
 
