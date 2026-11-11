@@ -213,11 +213,13 @@
       materialCache[cacheKey] = m; disposables.push(m); return m;
     }
     var unitSphere = keep(new THREE.SphereGeometry(1, 28, 18));
-    var grow = [];
+    var grow = [], keyed = [];
     function addMesh(geometry, mat, mark) {
       var mesh = new THREE.Mesh(geometry, mat);
       mesh.castShadow = shadows && (mark.o == null || mark.o > .5); mesh.receiveShadow = shadows;
-      scene.add(mesh); return mesh;
+      scene.add(mesh);
+      if (mark.k != null) { mesh.userData.k = String(mark.k); mesh.userData.mat = mat; keyed.push(mesh); }
+      return mesh;
     }
     var boxCount = plan.marks.filter(function (m) { return m.t === 'box'; }).length;
     plan.marks.forEach(function (m) {
@@ -245,6 +247,9 @@
         var pmat = material(m.c, m.o, m.q);
         if (m.k === 'ribbon') { pmat.side = THREE.DoubleSide; mesh = addMesh(keep(ribbonGeometry(curve, m.r, pts.length)), pmat, m); }
         else mesh = addMesh(keep(new THREE.TubeGeometry(curve, Math.max(24, pts.length * 12), m.r, 10, false)), pmat, m);
+      } else if (m.t === 'mesh') {
+        mesh = addMesh(keep(meshGeometry(m)), material(m.c, m.o, m.q), m);
+        grow.push({ mesh: mesh, y: 0, g: m.g || 0, kind: 'mesh' });
       } else if (m.t === 'surface') {
         mesh = addMesh(keep(surfaceGeometry(m)), material('#ffffff', 1, false, 'vertex'), m);
         if (m.skirt) addMesh(keep(skirtGeometry(m)), material('#ffffff', 1, false, 'vertex'), m);
@@ -255,6 +260,25 @@
       }
     });
 
+    // A solid given as flat faces. Each triangle is wound to face its stated
+    // normal, so the plan need not care about vertex order; a face with corner
+    // normals shades as part of a curve.
+    function meshGeometry(m) {
+      var P = [], N = [];
+      m.f.forEach(function (f) {
+        var v = f.v, n = f.n, vn = f.vn;
+        for (var i = 1; i < v.length - 1; i++) {
+          var ia = 0, ib = i, ic = i + 1, a = v[ia], b = v[ib], c = v[ic];
+          var ux = b[0] - a[0], uy = b[1] - a[1], uz = b[2] - a[2], wx = c[0] - a[0], wy = c[1] - a[1], wz = c[2] - a[2];
+          if ((uy * wz - uz * wy) * n[0] + (uz * wx - ux * wz) * n[1] + (ux * wy - uy * wx) * n[2] < 0) { var t = ib; ib = ic; ic = t; }
+          [ia, ib, ic].forEach(function (k) { var p = v[k], q = vn ? vn[k] : n; P.push(p[0], p[1], p[2]); N.push(q[0], q[1], q[2]); });
+        }
+      });
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+      g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+      return g;
+    }
     function sectorGeometry(m) {
       var n = Math.max(8, Math.ceil((m.a1 - m.a0) / .045)), P = [], N = [];
       function tri(a, b, c, na, nb, nc) { P.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]); N.push(na[0], na[1], na[2], nb[0], nb[1], nb[2], nc[0], nc[1], nc[2]); }
@@ -332,18 +356,27 @@
     var aspect = W / H, camera;
     if (cam.ortho) camera = new THREE.OrthographicCamera(-cam.half * aspect, cam.half * aspect, cam.half, -cam.half, cam.near, cam.far);
     else camera = new THREE.PerspectiveCamera(cam.fov, aspect, cam.near, cam.far);
+    // The view: the plan's camera, which a hand on the canvas can turn, zoom
+    // and pan before the result is saved as an adjustment to that camera.
+    var V = { az: cam.az, el: cam.el, dist: cam.dist, half: cam.half, shift: cam.shift.slice() };
+    function shiftLens(c, sx, sy, ortho) {
+      // The lens shift centres the framed chart in the safe area.
+      var e = c.projectionMatrix.elements;
+      if (ortho) { e[12] += sx; e[13] += sy; } else { e[8] -= sx; e[9] -= sy; }
+      c.projectionMatrixInverse.copy(c.projectionMatrix).invert();
+    }
     function setLens(fov) {
-      if (!cam.ortho && fov) camera.fov = fov;
+      if (cam.ortho) { camera.left = -V.half * aspect; camera.right = V.half * aspect; camera.top = V.half; camera.bottom = -V.half; }
+      else if (fov) camera.fov = fov;
+      camera.far = Math.max(cam.far, (cam.ortho ? cam.dist : V.dist) + radius * 6 + 60);
       camera.updateProjectionMatrix();
-      // The plan's lens shift centres the framed chart in the safe area.
-      var e = camera.projectionMatrix.elements, sx = cam.shift[0], sy = cam.shift[1];
-      if (cam.ortho) { e[12] += sx; e[13] += sy; } else { e[8] -= sx; e[9] -= sy; }
-      camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+      shiftLens(camera, V.shift[0], V.shift[1], cam.ortho);
+      if (scene.fog && !cam.ortho) { scene.fog.near = V.dist + radius * .9; scene.fog.far = V.dist * 2.6 + radius * 3; }
     }
     setLens();
     function placeCamera(azDeg) {
-      var a = azDeg * Math.PI / 180, e = cam.el * Math.PI / 180;
-      camera.position.set(T.x + Math.sin(a) * Math.cos(e) * cam.dist, T.y + Math.sin(e) * cam.dist, T.z + Math.cos(a) * Math.cos(e) * cam.dist);
+      var a = azDeg * Math.PI / 180, e = V.el * Math.PI / 180, d = cam.ortho ? cam.dist : V.dist;
+      camera.position.set(T.x + Math.sin(a) * Math.cos(e) * d, T.y + Math.sin(e) * d, T.z + Math.cos(a) * Math.cos(e) * d);
       camera.up.set(0, 1, 0); camera.lookAt(T);
       camera.updateMatrixWorld(true);
     }
@@ -394,6 +427,77 @@
       flightCam = new THREE.PerspectiveCamera(clamp(Number(flightCfg.flightFov) || 54, 28, 82), aspect, .01, Math.max(120, radius * 16));
     }
 
+    // ── directed shots ──
+    // The plan lists beats: poses the camera reaches at t0 and holds until t1.
+    // Between beats it eases, turning the short way round, and a beat's focus
+    // puts every other mark in the stage's quiet tone.
+    var shots = plan.shots && plan.shots.beats && plan.shots.beats.length ? plan.shots : null, shotCam = null, quietMat = null, focusKey = null;
+    if (shots) {
+      shotCam = new THREE.PerspectiveCamera(shots.beats[0].fov || 34, aspect, .02, Math.max(cam.far, radius * 16, 120));
+      quietMat = material(C.quiet || '#bbbbbb', 1, true);
+    }
+    function smooth(x) { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); }
+    function shotAt(u) {
+      var B = shots.beats, i = 0;
+      while (i < B.length - 1 && u > B[i].t1) i++;
+      var b = B[i];
+      if (u >= b.t0 || i === 0) return { az: b.az, el: b.el, dist: b.dist, look: b.look, fov: b.fov, shift: b.shift, beat: i, hold: u >= b.t0 && u <= b.t1, focus: b.focus };
+      var a = B[i - 1], s = smooth((u - a.t1) / Math.max(1e-6, b.t0 - a.t1)), d = ((b.az - a.az + 540) % 360) - 180;
+      function mix(x, y) { return x + (y - x) * s; }
+      return {
+        az: a.az + d * s, el: mix(a.el, b.el), dist: Math.exp(mix(Math.log(a.dist), Math.log(b.dist))),
+        look: [mix(a.look[0], b.look[0]), mix(a.look[1], b.look[1]), mix(a.look[2], b.look[2])], fov: mix(a.fov, b.fov),
+        shift: [mix(a.shift[0], b.shift[0]), mix(a.shift[1], b.shift[1])], beat: i, hold: false, focus: s < .35 ? a.focus : b.focus,
+      };
+    }
+    function aimShot(p) {
+      var az = p.az * Math.PI / 180, el = p.el * Math.PI / 180;
+      shotCam.fov = p.fov || 34; shotCam.updateProjectionMatrix();
+      shiftLens(shotCam, p.shift[0], p.shift[1], false);
+      shotCam.position.set(p.look[0] + Math.sin(az) * Math.cos(el) * p.dist, p.look[1] + Math.sin(el) * p.dist, p.look[2] + Math.cos(az) * Math.cos(el) * p.dist);
+      shotCam.up.set(0, 1, 0); shotCam.lookAt(p.look[0], p.look[1], p.look[2]);
+      shotCam.updateMatrixWorld(true);
+    }
+    function applyFocus(list) {
+      var key = list && list.length ? list.join('|') : '';
+      if (key === focusKey) return;
+      focusKey = key;
+      var on = {}; (list || []).forEach(function (k) { on[String(k)] = 1; });
+      keyed.forEach(function (mesh) { mesh.material = !key || on[mesh.userData.k] ? mesh.userData.mat : quietMat; });
+    }
+    // A caption for the beat being held, painted with the frame: the subject's
+    // name, then its value and why the camera stopped there.
+    function paintCaption(p, u) {
+      var pad = plan.overlay.pad, y = H - pad - 54;
+      out.save();
+      out.globalAlpha = .5; out.strokeStyle = C.grid; out.lineWidth = 3; out.lineCap = 'round';
+      out.beginPath(); out.moveTo(pad, H - pad + 2); out.lineTo(W - pad, H - pad + 2); out.stroke();
+      out.globalAlpha = 1; out.strokeStyle = C.accent || C.text; out.lineWidth = 5;
+      out.beginPath(); out.moveTo(pad, H - pad + 2); out.lineTo(pad + (W - 2 * pad) * u, H - pad + 2); out.stroke();
+      var b = shots.beats[p.beat], cap = p.hold && b && b.cap;
+      if (cap) {
+        var span = Math.max(1e-6, b.t1 - b.t0), f = Math.min(.04, span / 3);
+        var alpha = clamp(Math.min((u - b.t0) / f, (b.t1 - u) / f, 1), 0, 1);
+        var big = clamp((flightCfg.labelSize || 18) * 1.25, 18, 34), small = clamp(flightCfg.labelSize || 18, 14, 24);
+        out.font = '700 ' + big + 'px ' + fontFamily;
+        var w1 = out.measureText(String(cap.title || '')).width;
+        out.font = '750 ' + small + 'px ' + fontFamily;
+        var line2 = String(cap.value || '') + (cap.sub ? '   ' + cap.sub : ''), w2 = out.measureText(line2).width;
+        var cw = Math.min(W - pad * 2, Math.max(w1, w2) + 32);
+        out.globalAlpha = alpha * .88; out.fillStyle = C.backdrop;
+        if (out.roundRect) { out.beginPath(); out.roundRect(pad - 14, y - big - 6, cw, big + small + 34, 12); out.fill(); }
+        else out.fillRect(pad - 14, y - big - 6, cw, big + small + 34);
+        out.globalAlpha = alpha; out.fillStyle = C.text; out.textAlign = 'left';
+        out.font = '700 ' + big + 'px ' + fontFamily; out.fillText(String(cap.title || ''), pad, y);
+        out.font = '750 ' + small + 'px ' + fontFamily; out.fillStyle = C.accent || C.text; out.fillText(String(cap.value || ''), pad, y + small + 8);
+        if (cap.sub) {
+          var vw = out.measureText(String(cap.value || '') + '   ').width;
+          out.font = '500 ' + small + 'px ' + fontFamily; out.fillStyle = C.text; out.globalAlpha = alpha * .7; out.fillText(String(cap.sub), pad + vw, y + small + 8);
+        }
+      }
+      out.restore();
+    }
+
     // ── overlay ──
     // Title, legend and the labels for a still camera arrive ready-drawn from
     // the hooks (the same SVG the vector export uses). A moving camera
@@ -425,7 +529,7 @@
         }
         if (!box) return;
         boxes.push(box);
-        placed.push({ x: x, y: y, anchor: anchor, text: text, sub: l.sub || '', size: size, weight: l.weight || 500, kind: l.kind, colour: l.colour || null });
+        placed.push({ x: x, y: y, anchor: anchor, text: text, sub: l.sub || '', size: size, weight: l.weight || 500, kind: l.kind, colour: l.colour || null, k: l.k == null ? null : String(l.k) });
       });
       return placed;
     }
@@ -497,16 +601,18 @@
 
     // ── motion ──
     var motion = cam.motion || 'none', disposed = false, raf = 0;
-    var moving = motion === 'orbit' || motion === 'reveal-orbit' || motion === 'arc' || !!flightCam;
+    var moving = motion === 'orbit' || motion === 'reveal-orbit' || motion === 'arc' || !!flightCam || !!shotCam;
     var speed = Number((state.cfg || {}).animSpeed) || 1.5;
-    var loopMs = flightCam ? Math.max(3000, (flight.categories.length) * speed * 1000) : Math.max(2000, speed * 4000);
+    var loopMs = flightCam ? Math.max(3000, (flight.categories.length) * speed * 1000)
+      : shotCam ? Math.max(4000, (Number(shots.seconds) || 8) * 1000 * speed / 1.5) : Math.max(2000, speed * 4000);
     function growAt(t) {
+      if (shotCam && shots.grows) return function (g) { return ease(clamp((t - g + .035) / .035, 0, 1)); };
       if (motion === 'reveal' || motion === 'reveal-orbit') { var s = ease(Math.min(1, t * (motion === 'reveal' ? 1.8 : 2.2))); return function () { return s; }; }
       if (motion === 'stagger') return function (g) { return ease(clamp((t - g * .6) / .3, 0, 1)); };
       return null;
     }
     // The DOM changes only when something in it really changes.
-    var shown = false, valuesShown = null;
+    var shown = false, valuesShown = null, lastT = plan.poster || 0;
     function showOnce() {
       if (shown) return; shown = true;
       if (fallback) fallback.style.display = 'none';
@@ -533,17 +639,27 @@
         if (it.kind === 'sphere') it.mesh.scale.setScalar(it.r * s);
         else { it.mesh.scale.y = s; it.mesh.position.y = it.y * s; }
       });
-      var activeCam = camera;
+      var activeCam = camera, shot = null;
+      lastT = t;
       if (flightCam) { activeCam = flightCam; updateFlightHud(cameraAlongData(t)); }
-      else if (motion === 'orbit' || motion === 'reveal-orbit') placeCamera(cam.az + t * 360);
-      else if (motion === 'arc') placeCamera(cam.az + Math.sin(t * Math.PI * 2) * (cam.arc || 26));
-      else placeCamera(cam.az);
+      else if (shotCam) {
+        activeCam = shotCam; shot = shotAt(t); aimShot(shot); applyFocus(shot.focus);
+        // A countdown names each value in its caption until the closing shot.
+        if (shots.grows) grown = t >= shots.beats[shots.beats.length - 1].t0 - .01 ? 1 : 0;
+      }
+      else if (motion === 'orbit' || motion === 'reveal-orbit') placeCamera(V.az + t * 360);
+      else if (motion === 'arc') placeCamera(V.az + Math.sin(t * Math.PI * 2) * (cam.arc || 26));
+      else placeCamera(V.az);
       renderer.render(scene, activeCam);
       out.clearRect(0, 0, W, H); out.drawImage(gpu, 0, 0, W, H);
       // Values wait until their marks have grown; a moving camera re-places labels.
-      if (moving) paintLabels(placeLabels(projectWith(activeCam)).filter(function (l) { return grown > .98 || l.kind !== 'value'; }));
+      // While a shot is on one mark, the other marks' values stand back too.
+      var inFocus = {}; ((shot && shot.focus) || []).forEach(function (k) { inFocus[String(k)] = 1; });
+      var focusing = !!(shot && shot.focus && shot.focus.length);
+      if (moving) paintLabels(placeLabels(projectWith(activeCam)).filter(function (l) { return (grown > .98 || l.kind !== 'value') && !(focusing && l.k && !inFocus[l.k]); }));
       else showValues(grown > .98);
       paintProgress();
+      if (shot) paintCaption(shot, t);
       showOnce();
       if (global.__lollyAnim && global.__lollyAnim.owner === root) global.__lollyAnim.curT = t;
     }
@@ -578,11 +694,137 @@
       raf = requestAnimationFrame(tick);
     }
 
+    // ── a hand on the canvas ──
+    // In the editor the still camera can be handled the way 3D Studio's is:
+    // drag to turn, Shift-drag or two fingers to pan, scroll or pinch to zoom,
+    // arrow keys to turn, double-click to go back to the chosen camera. The
+    // view moves live on the canvas and is saved once, as an adjustment to the
+    // chosen camera, when the hand lets go. A cinematic camera follows its own
+    // path and is not handled.
+    var commit = typeof opts.commit === 'function' ? opts.commit : null;
+    var handle = !!commit && plan.kind !== 'flight' && !shotCam;
+    var hint = null, saveTimer = 0;
+    if (handle) wireView();
+    function wireView() {
+      var vb = cam.view || { az: cam.az, el: cam.el, dist: cam.dist, half: cam.half, shift: cam.shift };
+      var plain = { az: 0, el: 0, zoom: 1, x: 0, y: 0 };
+      var pointers = {}, gesture = null, live = false, swallow = false;
+      canvas.tabIndex = 0;
+      canvas.style.touchAction = 'none';
+      canvas.style.cursor = 'grab';
+      canvas.setAttribute('aria-label', 'Chart view. Drag to turn, Shift-drag to pan, scroll to zoom, arrow keys to turn, double-click to reset.');
+      hint = document.createElement('div');
+      hint.setAttribute('data-export-hide', '');
+      hint.setAttribute('aria-hidden', 'true');
+      hint.textContent = 'Drag to turn · Shift-drag to pan · Scroll to zoom · Double-click to reset';
+      hint.style.cssText = 'position:absolute;right:10px;bottom:10px;padding:5px 10px;border-radius:999px;font:500 12px/1.3 ' + fontFamily + ';color:' + C.text + ';background:' + C.backdrop + ';opacity:0;transition:opacity .2s;pointer-events:none;box-shadow:0 0 0 1px ' + C.grid + ';';
+      root.appendChild(hint);
+      root.addEventListener('pointerenter', function () { if (hint) hint.style.opacity = '.92'; });
+      root.addEventListener('pointerleave', function () { if (hint && !gesture) hint.style.opacity = '0'; });
+      function goLive() {
+        if (live) return;
+        live = true; moving = true;
+        if (staticLabels) staticLabels.style.display = 'none';
+      }
+      function redraw() { goLive(); setLens(); renderAt(lastT); }
+      function r(n, k) { var f = Math.pow(10, k); return Math.round(n * f) / f; }
+      function viewValue() {
+        var az = ((((V.az - vb.az + 180) % 360) + 360) % 360) - 180;
+        return { az: r(az, 1), el: r(V.el - vb.el, 1), zoom: r(cam.ortho ? vb.half / V.half : vb.dist / V.dist, 3), x: r(V.shift[0] - vb.shift[0], 3), y: r(V.shift[1] - vb.shift[1], 3) };
+      }
+      function save(delay) {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(function () { if (!disposed) commit('sceneView', viewValue()); }, delay || 0);
+      }
+      function zoomBy(f) {
+        if (cam.ortho) V.half = clamp(V.half / f, vb.half / 8, vb.half / .2);
+        else V.dist = clamp(V.dist / f, vb.dist / 8, vb.dist / .2);
+      }
+      function turn(daz, del) { V.az = V.az + daz; V.el = clamp(V.el + del, -10, 85); }
+      function pan(dx, dy) { V.shift = [clamp(V.shift[0] + dx, vb.shift[0] - 1.5, vb.shift[0] + 1.5), clamp(V.shift[1] + dy, vb.shift[1] - 1.5, vb.shift[1] + 1.5)]; }
+      function list() { return Object.keys(pointers).map(function (k) { return pointers[k]; }); }
+      function begin() {
+        var ps = list(), box = canvas.getBoundingClientRect();
+        if (ps.length >= 2) {
+          var a = ps[0], b = ps[1];
+          gesture = { mode: 'pinch', d: Math.hypot(a.x - b.x, a.y - b.y) || 1, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, box: box, moved: gesture ? gesture.moved : false };
+        } else if (ps.length === 1) {
+          gesture = { mode: ps[0].shift ? 'pan' : 'turn', x: ps[0].x, y: ps[0].y, box: box, moved: gesture ? gesture.moved : false };
+        } else gesture = null;
+      }
+      canvas.addEventListener('pointerdown', function (e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        clearTimeout(saveTimer);
+        pointers[e.pointerId] = { x: e.clientX, y: e.clientY, shift: e.shiftKey };
+        try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+        canvas.focus({ preventScroll: true });
+        canvas.style.cursor = 'grabbing';
+        begin();
+        e.preventDefault();
+      });
+      canvas.addEventListener('pointermove', function (e) {
+        var p = pointers[e.pointerId];
+        if (!p || !gesture) return;
+        p.x = e.clientX; p.y = e.clientY;
+        var g = gesture, bw = Math.max(1, g.box.width), bh = Math.max(1, g.box.height);
+        if (g.mode === 'pinch') {
+          var ps = list(), a = ps[0], b = ps[1], d = Math.hypot(a.x - b.x, a.y - b.y) || 1, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+          zoomBy(d / g.d); pan((mx - g.mx) / bw * 2, -(my - g.my) / bh * 2);
+          g.d = d; g.mx = mx; g.my = my; g.moved = true;
+        } else {
+          var dx = e.clientX - g.x, dy = e.clientY - g.y;
+          if (!g.moved && Math.hypot(dx, dy) < 3) return;
+          g.moved = true; g.x = e.clientX; g.y = e.clientY;
+          if (g.mode === 'pan' || e.shiftKey) pan(dx / bw * 2, -dy / bh * 2);
+          else turn(-dx * .3, dy * .2);
+        }
+        redraw();
+      });
+      function end(e) {
+        if (!pointers[e.pointerId]) return;
+        delete pointers[e.pointerId];
+        try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+        var moved = gesture && gesture.moved;
+        if (list().length) { begin(); return; }
+        gesture = null;
+        canvas.style.cursor = 'grab';
+        if (moved) { swallow = true; setTimeout(function () { swallow = false; }, 350); save(0); }
+      }
+      canvas.addEventListener('pointerup', end);
+      canvas.addEventListener('pointercancel', end);
+      // A drag is not also a click on whatever the shell maps the canvas to.
+      canvas.addEventListener('click', function (e) { if (swallow) { e.stopPropagation(); e.preventDefault(); } }, true);
+      canvas.addEventListener('wheel', function (e) {
+        // A pinch on a trackpad arrives with Ctrl held; that zoom is the page's.
+        if (e.ctrlKey || e.metaKey) return;
+        e.preventDefault();
+        var step = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+        zoomBy(Math.exp(-clamp(step, -120, 120) * .0016));
+        redraw(); save(400);
+      }, { passive: false });
+      canvas.addEventListener('dblclick', function (e) { e.preventDefault(); clearTimeout(saveTimer); commit('sceneView', plain); });
+      canvas.addEventListener('keydown', function (e) {
+        var step = e.shiftKey ? 15 : 5, used = true;
+        if (e.key === 'ArrowLeft') turn(step, 0);
+        else if (e.key === 'ArrowRight') turn(-step, 0);
+        else if (e.key === 'ArrowUp') turn(0, step);
+        else if (e.key === 'ArrowDown') turn(0, -step);
+        else if (e.key === '+' || e.key === '=') zoomBy(1.15);
+        else if (e.key === '-' || e.key === '_') zoomBy(1 / 1.15);
+        else if (e.key === '0') { e.preventDefault(); clearTimeout(saveTimer); commit('sceneView', plain); return; }
+        else used = false;
+        if (!used) return;
+        e.preventDefault(); e.stopPropagation();
+        redraw(); save(450);
+      });
+    }
+
     var api = {
       renderAt:clock,
       inspect:function(){return state.report||null;},
       dispose:function(){
-        if (disposed) return; disposed = true; if (raf) cancelAnimationFrame(raf); delete canvas.__lollyFrameRender;
+        if (disposed) return; disposed = true; if (raf) cancelAnimationFrame(raf); clearTimeout(saveTimer); delete canvas.__lollyFrameRender;
+        if (hint && hint.parentNode) hint.parentNode.removeChild(hint);
         if (global.__lollyAnim && global.__lollyAnim.owner === root) global.__lollyAnim.active = false;
         scene.traverse(function (o) { if (o.geometry && o.geometry.dispose) try { o.geometry.dispose(); } catch (e) {} });
         disposables.forEach(function (o) { if (o && o.dispose) try { o.dispose(); } catch (e) {} });

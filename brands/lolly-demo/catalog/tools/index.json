@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-11T17:58:04.565Z",
+  "generatedAt": "2026-11-11T18:21:27.794Z",
   "tools": [
     {
       "id": "3d",
@@ -2389,7 +2389,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.29.0",
+      "version": "1.30.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -2609,6 +2609,12 @@
           "description": "A quiet comparison that inherits the active brand's type, colours and surface."
         },
         {
+          "id": "bubble-pack",
+          "name": "Packed bubbles",
+          "category": "3-D",
+          "description": "One sphere for each category, its size the value, packed together on the floor."
+        },
+        {
           "id": "bullet-targets",
           "name": "Performance against target",
           "category": "Comparison",
@@ -2619,6 +2625,12 @@
           "name": "Candlestick series",
           "category": "Financial",
           "description": "An honest OHLC view with brand-derived up/down colours and exact source values in the accessible table."
+        },
+        {
+          "id": "city-of-values",
+          "name": "A city of values",
+          "category": "3-D",
+          "description": "A treemap raised into buildings: area and height both show the value, so the largest parts stand over the rest."
         },
         {
           "id": "comparison-columns-lollipop",
@@ -2651,6 +2663,18 @@
           "description": "Separate ordinary variation from observations that deserve investigation."
         },
         {
+          "id": "conversion-funnel",
+          "name": "Conversion funnel",
+          "category": "3-D",
+          "description": "Each stage of the journey is a ring of the funnel, as wide as the people who reached it, with the share that stayed."
+        },
+        {
+          "id": "countdown-ranking",
+          "name": "Countdown to number one",
+          "category": "Cinematic",
+          "description": "The bars stand in rank order and rise one by one as the camera counts down to the largest."
+        },
+        {
           "id": "data-flight",
           "name": "Fly through the values",
           "category": "Cinematic",
@@ -2681,10 +2705,22 @@
           "description": "A low-ink comparison that keeps every value visible and uses position, colour and symbol together."
         },
         {
+          "id": "gate-tunnel",
+          "name": "Gate tunnel",
+          "category": "Cinematic",
+          "description": "A ring for each category, sized by its value, all on one axis; the camera flies through them in order, with a caption for each ring."
+        },
+        {
           "id": "guided-chart",
           "name": "Let Chart recommend",
           "category": "Start here",
           "description": "Paste or replace a table and get an explained, on-brand starting form with editable field mappings."
+        },
+        {
+          "id": "heat-tiles",
+          "name": "A heat map in relief",
+          "category": "3-D",
+          "description": "Each cell stands as a tile whose height and colour both carry the value, so the busy hours rise out of the week."
         },
         {
           "id": "hero-highlight",
@@ -2717,6 +2753,12 @@
           "description": "Rank the biggest causes and see when their cumulative share reaches 80%."
         },
         {
+          "id": "pull-back-reveal",
+          "name": "Pull-back reveal",
+          "category": "Cinematic",
+          "description": "Open tight on one value, then pull back to show it among all the rest. Highlight chooses the value; without it the largest leads."
+        },
+        {
           "id": "quarterly-bars-stacked",
           "name": "Stacked quarters",
           "category": "Bars",
@@ -2745,6 +2787,18 @@
           "name": "Ribbon canyon",
           "category": "Cinematic",
           "description": "Compare several branded trajectories as spatial ribbons while the camera follows one chosen route."
+        },
+        {
+          "id": "ribbon-walls",
+          "name": "Series as solid walls",
+          "category": "3-D",
+          "description": "Each series becomes a solid wall under its line, the smallest in front, so three trends compare without hiding each other."
+        },
+        {
+          "id": "rose-wedges",
+          "name": "Wedges sized by value",
+          "category": "3-D",
+          "description": "Equal wedges whose reach shows the value, measured so the area stays honest, around a small hub."
         },
         {
           "id": "scene-bars-glass",
@@ -2783,6 +2837,18 @@
           "description": "Map four numeric columns to x, y, z and point size on a floor grid, coloured by height from the colourway's ramp."
         },
         {
+          "id": "spotlight-tour",
+          "name": "Spotlight tour",
+          "category": "Cinematic",
+          "description": "The camera opens on the whole chart, stops on the highest, lowest and latest values with a caption for each, then pulls back."
+        },
+        {
+          "id": "terrain-flight",
+          "name": "Fly over the data",
+          "category": "Cinematic",
+          "description": "The table becomes a landscape; the camera crosses it, stops over the peak and the low ground, then climbs out to the whole map."
+        },
+        {
           "id": "trend-line",
           "name": "Trend line",
           "category": "Lines",
@@ -2795,10 +2861,28 @@
           "description": "Show an expected path inside an honest low-to-high range, with the active brand setting the hierarchy."
         },
         {
+          "id": "unit-blocks",
+          "name": "Count it in blocks",
+          "category": "3-D",
+          "description": "One cube for each round unit, stacked per category and coloured by series, so a total can be counted as well as compared."
+        },
+        {
+          "id": "waterfall-bridge",
+          "name": "From last year to this",
+          "category": "3-D",
+          "description": "Each change steps up or down from the running total, and the closing column shows where the year ended."
+        },
+        {
           "id": "year-in-the-round",
           "name": "A year in the round",
           "category": "3-D",
           "description": "Twelve months stand in a ring on a night stage, coloured by value from the colourway's ramp while the camera orbits."
+        },
+        {
+          "id": "year-spiral",
+          "name": "A long series, coiled",
+          "category": "3-D",
+          "description": "Months coil out from the centre, one bar each, so several years read as one compact disc."
         }
       ],
       "i18n": {
