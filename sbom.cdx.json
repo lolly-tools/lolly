@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:02316a0e-841c-4e80-8a14-764f9ac9c657",
+  "serialNumber": "urn:uuid:633d6872-c6bd-4786-8d8b-526c8f6a9b69",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-09T14:08:01.509Z",
+    "timestamp": "2026-11-11T18:26:55.490Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -4962,33 +4962,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/fsevent-sys@4.1.0",
-      "name": "fsevent-sys",
-      "version": "4.1.0",
-      "purl": "pkg:cargo/fsevent-sys@4.1.0",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "76ee7a02da4d231650c7cea31349b889be2f45ddb3ef3032d2ec8185f6313fd2"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/futures-channel@0.3.32",
       "name": "futures-channel",
       "version": "0.3.32",
@@ -9305,10 +9278,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/notify@8.2.0",
+      "bom-ref": "pkg:cargo/notify@8.2.1",
       "name": "notify",
-      "version": "8.2.0",
-      "purl": "pkg:cargo/notify@8.2.0",
+      "version": "8.2.1",
+      "purl": "pkg:cargo/notify@8.2.1",
       "scope": "required",
       "licenses": [
         {
@@ -9320,7 +9293,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d3d07927151ff8575b7087f245456e549fea62edf0ec4e565a5ee50c8402bc3"
+          "content": "82f812702fbc75d35416d3f884e04925be7e9498f4eceea2e24ba34559284674"
         }
       ],
       "properties": [
@@ -9646,6 +9619,31 @@
         {
           "alg": "SHA-256",
           "content": "ca347214e24bc973fc025fd0d36ebb179ff30536ed1f80252706db19ee452009"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:cargo/objc2-core-services@0.3.2",
+      "name": "objc2-core-services",
+      "version": "0.3.2",
+      "purl": "pkg:cargo/objc2-core-services@0.3.2",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Zlib OR Apache-2.0 OR MIT"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "583300ad934cba24ff5292aee751ecc070f7ca6b39a574cc21b7b5e588e06a0b"
         }
       ],
       "properties": [
@@ -12540,10 +12538,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/rfd@0.16.0",
+      "bom-ref": "pkg:cargo/rfd@0.17.2",
       "name": "rfd",
-      "version": "0.16.0",
-      "purl": "pkg:cargo/rfd@0.16.0",
+      "version": "0.17.2",
+      "purl": "pkg:cargo/rfd@0.17.2",
       "scope": "required",
       "licenses": [
         {
@@ -12555,7 +12553,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a15ad77d9e70a92437d8f74c35d99b4e4691128df018833e99f90bcd36152672"
+          "content": "20dafead71c16a34e1ff357ddefc8afc11e7d51d6d2b9fbd07eaa48e3e540220"
         }
       ],
       "properties": [
@@ -15213,10 +15211,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-plugin-deep-link@2.6.2",
+      "bom-ref": "pkg:cargo/tauri-plugin-deep-link@2.6.3",
       "name": "tauri-plugin-deep-link",
-      "version": "2.6.2",
-      "purl": "pkg:cargo/tauri-plugin-deep-link@2.6.2",
+      "version": "2.6.3",
+      "purl": "pkg:cargo/tauri-plugin-deep-link@2.6.3",
       "scope": "required",
       "licenses": [
         {
@@ -15226,7 +15224,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b3c64e24ebcbc63aaa2d88a9c51e2507084b46620baf39ecb0baa0738a08bb4"
+          "content": "ab551d9bec27bb79d1c7fe5ed38c5cfd1cebb86efa745acc65f5853f345f6e56"
         }
       ],
       "properties": [
@@ -15238,10 +15236,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-plugin-dialog@2.8.3",
+      "bom-ref": "pkg:cargo/tauri-plugin-dialog@2.8.4",
       "name": "tauri-plugin-dialog",
-      "version": "2.8.3",
-      "purl": "pkg:cargo/tauri-plugin-dialog@2.8.3",
+      "version": "2.8.4",
+      "purl": "pkg:cargo/tauri-plugin-dialog@2.8.4",
       "scope": "required",
       "licenses": [
         {
@@ -15251,7 +15249,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b7461aaacf1901915ea7b9f5cd74f8224a351ed96af0a62c07fce934003cb34b"
+          "content": "ce0fb9c2b6d34a9720627ed930ebc8af26f61e648695aecaeb03d5c33c5896f5"
         }
       ],
       "properties": [
@@ -15330,10 +15328,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-plugin-notification@2.7.0",
+      "bom-ref": "pkg:cargo/tauri-plugin-notification@2.8.0",
       "name": "tauri-plugin-notification",
-      "version": "2.7.0",
-      "purl": "pkg:cargo/tauri-plugin-notification@2.7.0",
+      "version": "2.8.0",
+      "purl": "pkg:cargo/tauri-plugin-notification@2.8.0",
       "scope": "required",
       "licenses": [
         {
@@ -15343,7 +15341,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b939d7b19c8af1381a72ef8474b3aba2b56c1ddac2c23f0c8e96abbcf86b198b"
+          "content": "5bc6c194a95a535abdfbe3bc1af9a43935b8b9b29c216b8e71af8b59132703cf"
         }
       ],
       "properties": [
@@ -15380,10 +15378,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-plugin-single-instance@2.5.4",
+      "bom-ref": "pkg:cargo/tauri-plugin-single-instance@2.5.5",
       "name": "tauri-plugin-single-instance",
-      "version": "2.5.4",
-      "purl": "pkg:cargo/tauri-plugin-single-instance@2.5.4",
+      "version": "2.5.5",
+      "purl": "pkg:cargo/tauri-plugin-single-instance@2.5.5",
       "scope": "required",
       "licenses": [
         {
@@ -15393,7 +15391,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "561cd99484561bc39c954768e7b41a66cebbe1ac3d9d081c34361f740c489e2c"
+          "content": "726b6da0dd5bd1344f84f4108a622c07d01923baacb5c803a605189672c5352f"
         }
       ],
       "properties": [
@@ -26160,20 +26158,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-notification@2.7.0",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-notification@2.8.0",
       "name": "@tauri-apps/plugin-notification",
-      "version": "2.7.0",
-      "purl": "pkg:npm/%40tauri-apps/plugin-notification@2.7.0",
+      "version": "2.8.0",
+      "purl": "pkg:npm/%40tauri-apps/plugin-notification@2.8.0",
       "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "92074708f498ff71888b88125ae2df777cb9e79534930ccfd0f9a75234feb068603bb45d00cea0a058c3a9ac9168a0bcc80e681188bbc36367037a10c488e577"
+          "content": "041f4a9367a688d1f2323210af793fc9ef11283d9125e38f0a33393992c5fb8fe93ba29f8e5f51b645f885509ed6faa06c0c791e31d78dfd0ef2bb5d5b617677"
         }
       ]
     },
