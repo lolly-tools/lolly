@@ -37,6 +37,7 @@ import * as W from './lofi-world-voices.ts';
 import * as G from './lofi-guitars.ts';
 import { perform } from './lofi-perform.ts';
 import * as BL from './lofi-bass-layers.ts';
+import * as R from './lofi-winds.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -644,7 +645,8 @@ export class LofiStation {
         const play = (v: LofiStyle['lead'], level: number, shift = 0, late = 0, pan = 0): void => {
           const seat = this.leadSeat(lanes.lead, bar.tune.mood, v, pan);
           const at = lt + late;
-          if (W.WORLD_LEADS.has(v)) W.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0);
+          if (R.REED_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
+          else if (W.WORLD_LEADS.has(v)) W.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0);
           else V.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
         };
         // A horn section: in the styles built on one, a horn's line is played by the

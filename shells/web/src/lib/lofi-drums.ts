@@ -214,7 +214,7 @@ function hit(k: VoiceKit, out: AudioNode, t: number, p: { buf: AudioBuffer; scal
 /** Each piece's place across the speakers, from the drummer's side: hats left, ride right. */
 const PAN = { hat: -0.32, ride: 0.36, crash: -0.22, snare: 0.04, kick: 0 } as const;
 /** Each piece's level against the synthesised voices it replaces, so the mix holds. */
-const LEVEL = { hat: 0.113, open: 0.168, ride: 0.077, crash: 0.23, snare: 0.505, tom: 0.297, kick: 0.64 } as const;
+const LEVEL = { hat: 0.113, open: 0.168, ride: 0.077, crash: 0.23, snare: 0.505, tom: 0.345, kick: 0.64 } as const;
 
 /** The cymbal a crash note plays, by the kit, with its brightness and length. */
 function crashSpec(kit: DrumKit): K.CymbalSpec {
