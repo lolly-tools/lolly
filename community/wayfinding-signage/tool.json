@@ -13,6 +13,7 @@
     "blurb": "Directional event signs, print-ready"
   },
   "render": {
+    "sectionIcons": { "Treatment": "paintbrush" },
     "width": 1240,
     "height": 1754,
     "formats": ["pdf", "pdf-cmyk", "svg", "penpot", "dxf", "png", "jpg", "webp", "avif", "tiff", "cmyk-tiff", "emf"],

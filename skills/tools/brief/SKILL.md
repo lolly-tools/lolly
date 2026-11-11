@@ -5,13 +5,13 @@ description: "Operate the Lolly Brief tool (brief) using its declared inputs and
 
 # Brief
 
-Tool ID: `brief`. Tool version: `1.0.0`. Engine range: `^1.82.0`.
+Tool ID: `brief`. Tool version: `1.1.0`. Engine range: `^1.343.0`.
 
 A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
-Declared output formats: pdf, png, svg, jpeg, webp, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
+Declared output formats: pdf, png, svg, jpeg, webp, mp4, webm, gif, html, svgz, bmp, jxl, jxl-lossless. The connected surface may support a subset; check its capabilities.
 
 Required host APIs: none. Device capabilities: none.
 
@@ -25,6 +25,10 @@ Required host APIs: none. Device capabilities: none.
 | accent | color |  |
 | background | color |  |
 | ink | color |  |
+| ground | select |  |
+| density | select |  |
+| layout | select |  |
+| motion | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

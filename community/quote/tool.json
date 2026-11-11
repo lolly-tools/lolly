@@ -13,7 +13,7 @@
     "height": 1000,
     "formats": ["pdf", "png", "svg", "jpeg", "webp"],
     "actions": ["copy", "download", "save"],
-    "sectionIcons": { "Totals": "hash", "Style": "palette" }
+    "sectionIcons": { "Treatment": "paintbrush", "Totals": "hash", "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
   "inputs": [

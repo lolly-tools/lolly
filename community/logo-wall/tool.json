@@ -24,6 +24,7 @@
   "a11yLabel": "A grid of {{logos.length}} logos",
   "render": {
     "sectionIcons": {
+      "Treatment": "paintbrush",
       "Layout": "grid",
       "Vector ink": "droplet",
       "Step & repeat": "repeat",

@@ -15,7 +15,7 @@
     "height": 1000,
     "formats": ["png", "svg", "pdf", "jpeg", "webp", "mp4", "webm", "gif", "html"],
     "actions": ["copy", "download", "save"],
-    "sectionIcons": { "Week": "calendar", "Style": "palette" }
+    "sectionIcons": { "Treatment": "paintbrush", "Week": "calendar", "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
   "inputs": [

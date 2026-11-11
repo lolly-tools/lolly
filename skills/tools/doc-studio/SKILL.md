@@ -5,7 +5,7 @@ description: "Operate the Lolly Doc Studio tool (doc-studio) using its declared 
 
 # Doc Studio
 
-Tool ID: `doc-studio`. Tool version: `1.3.0`. Engine range: `^1.0.0`.
+Tool ID: `doc-studio`. Tool version: `1.4.0`. Engine range: `^1.0.0`.
 
 Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.
 
@@ -30,6 +30,8 @@ Required host APIs: none. Device capabilities: none.
 | content | longtext |  |
 | width | number |  |
 | height | number |  |
+| ground | select |  |
+| density | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

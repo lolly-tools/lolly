@@ -23,6 +23,7 @@
     "compose"
   ],
   "render": {
+    "sectionIcons": { "Treatment": "paintbrush" },
     "width": 794,
     "height": 1123,
     "formats": ["pdf", "pptx", "svg", "penpot", "md", "docx", "odt", "html"],

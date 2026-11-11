@@ -109,6 +109,7 @@
     "portable": true,
     "video": { "duration": 4, "wait": 0 },
     "sectionIcons": {
+      "Treatment": "paintbrush",
       "Text": "font",
       "Highlight": "star",
       "Look": "paintbrush"

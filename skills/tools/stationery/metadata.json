@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "stationery",
-  "toolVersion": "1.0.4",
-  "toolVersionRange": "1.0.4",
+  "toolVersion": "1.1.0",
+  "toolVersionRange": "1.1.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,12 +11,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "2995128e9878dec06d714f48235f482d8088e6995cb6306ccf486f0c584f67f6",
-      "bytes": 1990
+      "sha256": "8fa64638bd97a51dbc7d309fe2d3908306049a8fe9a51c7ad9f3743d21c128a9",
+      "bytes": 2060
     },
     "reference/inputs.json": {
-      "sha256": "8af57514544afca05b09bc6343c71228838bfcdb05e69097e0d60633a7669d09",
-      "bytes": 4005
+      "sha256": "cd73ebccba2f38a16d58d2e261bf55ff5d4e3e44bdc5fa53290d535ddb404bc7",
+      "bytes": 5441
     },
     "reference/examples.json": {
       "sha256": "b6f7cc1ad3b9c93aa0e660bc1e0340d19ba31f2a98b70bf5176f2b8cb8c95f62",

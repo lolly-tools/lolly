@@ -9,6 +9,7 @@
   "tags": ["calendar", "ics", "event", "ical", "invite", "meeting", "schedule", "month", "print"],
   "render": {
     "sectionIcons": {
+      "Treatment": "paintbrush",
       "Calendar": "calendar"
     },
     "width": 760,

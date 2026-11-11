@@ -67,8 +67,12 @@
     "id": "theme",
     "label": "Theme",
     "type": "select",
-    "default": "light",
+    "default": "brand",
     "options": [
+      {
+        "value": "brand",
+        "label": "Brand tint"
+      },
       {
         "value": "dark",
         "label": "Dark"

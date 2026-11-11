@@ -20,6 +20,7 @@
     "portable": true,
     "video": { "duration": 4, "wait": 0 },
     "sectionIcons": {
+      "Treatment": "paintbrush",
       "Look": "paintbrush"
     },
     "width": 1200,

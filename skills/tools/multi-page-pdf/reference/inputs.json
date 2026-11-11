@@ -41,9 +41,13 @@
     "display": "segmented",
     "label": "Light / dark style",
     "type": "select",
-    "default": "light",
-    "help": "Sets the light or dark treatment (text and logo) for both the cover and the back page.",
+    "default": "system",
+    "help": "Design system follows the colourway and treatment for this piece.",
     "options": [
+      {
+        "value": "system",
+        "label": "Design system"
+      },
       {
         "value": "light",
         "label": "Light"
@@ -588,5 +592,56 @@
     "min": 100,
     "max": 8000,
     "group": "export"
+  },
+  {
+    "id": "ground",
+    "label": "Colour treatment",
+    "type": "select",
+    "default": "tint",
+    "options": [
+      {
+        "value": "tint",
+        "label": "Brand tint"
+      },
+      {
+        "value": "lead",
+        "label": "Lead colour"
+      },
+      {
+        "value": "ink",
+        "label": "Ink"
+      },
+      {
+        "value": "surface",
+        "label": "Surface"
+      }
+    ],
+    "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+    "section": "Treatment"
+  },
+  {
+    "id": "density",
+    "label": "Spacing",
+    "type": "select",
+    "default": "auto",
+    "options": [
+      {
+        "value": "auto",
+        "label": "Fit content"
+      },
+      {
+        "value": "compact",
+        "label": "Compact"
+      },
+      {
+        "value": "comfortable",
+        "label": "Comfortable"
+      },
+      {
+        "value": "spacious",
+        "label": "Spacious"
+      }
+    ],
+    "section": "Treatment"
   }
 ]

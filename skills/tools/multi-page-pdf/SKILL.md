@@ -5,7 +5,7 @@ description: "Operate the Lolly Booklet tool (multi-page-pdf) using its declared
 
 # Booklet
 
-Tool ID: `multi-page-pdf`. Tool version: `1.1.4`. Engine range: `^1.0.0`.
+Tool ID: `multi-page-pdf`. Tool version: `1.2.0`. Engine range: `^1.0.0`.
 
 Build a multi-page PDF - a cover, flowing content blocks, and a back page.
 
@@ -48,6 +48,8 @@ Required host APIs: none. Device capabilities: none.
 | backLogoSize | select |  |
 | width | number |  |
 | height | number |  |
+| ground | select |  |
+| density | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

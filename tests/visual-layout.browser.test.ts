@@ -398,26 +398,61 @@ test('a change to the phone layout leaves the closed export sheet out of sight a
 });
 
 test('Calendar event cards follow document colourways and modes even with a different OS appearance', { timeout: 120_000 }, async () => {
+  // The calendar draws on a treatment worked out from the colourway: the card
+  // on a ground tinted with a tenth of the primary, the chip in the primary or,
+  // where that would not read on the ground, the primary darkened until it
+  // does. So the check is that the treatment follows every colourway and mode,
+  // not that the card repeats the swatches.
+  const rgb = (hex: string): number[] => [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16));
+  const luminance = (hex: string): number => {
+    const [r, g, b] = rgb(hex).map((c) => { const v = c / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }) as [number, number, number];
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const contrast = (a: string, b: string): number => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, colorScheme: 'dark', serviceWorkers: 'block', reducedMotion: 'reduce' });
   await context.addInitScript(doc => { (window as unknown as Record<string, unknown>).__lollyAutomationDesignSystem = doc; }, designSystem);
   try {
     const page = await context.newPage();
     await open(page, 'tool/calendar-ics?eventName=Sample&meetingTime=2026-11-04T10%3A00&_themes=%7B%22%22%3A%22light%22%7D');
+    let previous = '';
     for (const mode of ['light', 'dark']) {
       if (mode === 'dark') await page.locator('#theme-section .badge-select-opt').filter({ hasText: /^Dark$/ }).click();
       for (const colourway of ['spearmint', 'morning', 'spring', 'beach', 'afternoon', 'midnight']) {
         const colours = createTokenSet(designSystem, { selection: { '': mode, colourway } }).colors();
-        const primary = colours.find(c => c.path === 'color.semantic.primary')!.value;
+        const token = (path: string): string => String(colours.find(c => c.path === path)!.value).slice(0, 7).toLowerCase();
+        const primary = token('color.semantic.primary'), surface = token('color.semantic.surface');
         await page.getByRole('radio', { name: new RegExp(`^${colourway}$`, 'i') }).click();
-        await page.waitForFunction(want => document.querySelector('.cal-meta svg')?.getAttribute('stroke') === want, primary);
-        const follows = await page.evaluate(() => {
-          const canvas = getComputedStyle(document.querySelector('#tool-canvas')!);
+        // The treatment is redrawn for this colourway, and the clock icon takes its accent.
+        await page.waitForFunction(last => {
+          const el = document.querySelector('[data-content-surface]');
+          const accent = el && getComputedStyle(el).getPropertyValue('--brand-primary').trim();
+          return !!el && el.getAttribute('style') !== last && document.querySelector('.cal-meta svg')?.getAttribute('stroke') === accent;
+        }, previous);
+        const seen = await page.evaluate(() => {
+          const el = document.querySelector('[data-content-surface]')!;
+          const vars = getComputedStyle(el);
           const chip = getComputedStyle(document.querySelector('.cal-chip')!);
           const card = getComputedStyle(document.querySelector('.cal-card')!);
-          const asRgb = (colour: string): string => { const el = document.createElement('span'); el.style.color = colour; document.body.append(el); const value = getComputedStyle(el).color; el.remove(); return value; };
-          return chip.backgroundColor === asRgb(canvas.getPropertyValue('--brand-primary')) && chip.color === asRgb(canvas.getPropertyValue('--brand-on-primary')) && card.backgroundColor === asRgb(canvas.getPropertyValue('--brand-surface'));
+          const asRgb = (colour: string): string => { const probe = document.createElement('span'); probe.style.color = colour; document.body.append(probe); const value = getComputedStyle(probe).color; probe.remove(); return value; };
+          const read = (name: string): string => vars.getPropertyValue(name).trim().toLowerCase();
+          return {
+            style: el.getAttribute('style') || '',
+            accent: read('--brand-primary'), onAccent: read('--brand-on-primary'), ground: read('--brand-surface'),
+            drawn: chip.backgroundColor === asRgb(read('--brand-primary')) && chip.color === asRgb(read('--brand-on-primary')) && card.backgroundColor === asRgb(read('--brand-surface')),
+          };
         });
-        assert.ok(follows, `${mode} ${colourway}`);
+        const where = `${mode} ${colourway}`;
+        previous = seen.style;
+        assert.ok(seen.drawn, `${where}: the chip and card are drawn in the treatment's colours`);
+        // The ground is the colourway's surface tinted towards its primary.
+        rgb(seen.ground).forEach((c, i) => {
+          const s = rgb(surface)[i]!, p = rgb(primary)[i]!;
+          assert.ok(c >= Math.min(s, p) - 3 && c <= Math.max(s, p) + 3 && Math.abs(c - s) <= Math.abs(p - s) * 0.25 + 3, `${where}: the ground ${seen.ground} is the surface ${surface} tinted with ${primary}`);
+        });
+        // The accent is the primary, unless the primary would not read on the ground.
+        if (contrast(primary, seen.ground) >= 4.5) assert.equal(seen.accent, primary, `${where}: the chip is the colourway's primary`);
+        else assert.ok(contrast(seen.accent, seen.ground) >= 4.5, `${where}: the chip's accent reads on the ground`);
+        assert.ok(contrast(seen.onAccent, seen.accent) >= 4.5, `${where}: the chip's text reads on the chip`);
       }
     }
   } finally { await context.close(); }

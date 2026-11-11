@@ -16,6 +16,7 @@
   ],
   "render": {
     "sectionIcons": {
+      "Treatment": "paintbrush",
       "Organisation": "building",
       "Look": "paintbrush"
     },

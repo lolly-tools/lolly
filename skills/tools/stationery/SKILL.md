@@ -5,7 +5,7 @@ description: "Operate the Lolly Stationery tool (stationery) using its declared 
 
 # Stationery
 
-Tool ID: `stationery`. Tool version: `1.0.4`. Engine range: `^1.0.0`.
+Tool ID: `stationery`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
 
 Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF.
 
@@ -34,6 +34,9 @@ Required host APIs: none. Device capabilities: none.
 | color | color |  |
 | background | color |  |
 | accent | color |  |
+| ground | select |  |
+| density | select |  |
+| layout | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

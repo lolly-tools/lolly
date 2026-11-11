@@ -15,7 +15,7 @@
     "height": 1000,
     "formats": ["png", "svg", "pdf", "jpeg", "webp", "mp4", "webm", "gif", "html"],
     "actions": ["copy", "download", "save"],
-    "sectionIcons": { "Scores": "sliders", "Style": "palette" }
+    "sectionIcons": { "Treatment": "paintbrush", "Scores": "sliders", "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
   "inputs": [

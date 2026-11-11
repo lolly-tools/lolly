@@ -15,7 +15,7 @@
     "height": 1000,
     "formats": ["pdf", "png", "svg", "jpeg", "webp", "mp4", "webm", "gif", "html"],
     "actions": ["copy", "download", "save"],
-    "sectionIcons": { "Style": "palette" }
+    "sectionIcons": { "Treatment": "paintbrush", "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
   "inputs": [

@@ -14,6 +14,7 @@
   },
   "render": {
     "sectionIcons": {
+      "Treatment": "paintbrush",
       "Typography": "font",
       "Cover": "document",
       "Back page": "document"

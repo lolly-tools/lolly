@@ -9,6 +9,7 @@
   "category": "everyone",
   "tags": ["battlecard", "sales", "competitive", "table", "cards", "pdf", "pages", "batch"],
   "render": {
+    "sectionIcons": { "Treatment": "paintbrush" },
     "width": 1200,
     "height": 900,
     "formats": ["pdf", "svg", "penpot", "pdf-cmyk", "emf", "png", "webp", "avif", "jpeg", "tiff", "cmyk-tiff"],
