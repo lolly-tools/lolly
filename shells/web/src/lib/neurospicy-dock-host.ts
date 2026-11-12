@@ -31,7 +31,7 @@ import {
   type NeurospicyHost, type NeuroTrack,
 } from './neurospicy.ts';
 import {
-  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiShareUrl, playsOnStation, savedTuneOf, currentLofiRecipe,
+  isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiLinkValue, currentLofiBar, playsOnStation, savedTuneOf, currentLofiRecipe,
   LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
 } from './neurospicy-lofi.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from './lofi-names.ts';
@@ -57,6 +57,10 @@ import {
 } from './viz-stock.ts';
 import { vizSchemes, vizSchemeById, type VizScheme } from './viz-schemes.ts';
 import { CYCLE_CHOICES, loadCycleSeconds, saveCycleSeconds } from './viz-cycle.ts';
+import { linkTo, momentParts, shareRoute, shareableId, type SharedViz } from './neuro-share.ts';
+import { shareOrigin } from './share-url.ts';
+import { appPathname } from './any-site.ts';
+import type { NeuroShareOffer } from '../components/neuro-share-card.ts';
 import type { VizPalette, VizPaletteHost } from './viz-palette.ts';
 import type {
   DockHost, DockNowPlaying, DockSource, DockSources, DockAtmosphere, DockViz, DockControl,
@@ -134,12 +138,14 @@ export interface NeurospicyDockHandle {
   /** Drop the document-event subscriptions AND release the visualiser (WebGL). The
    *  neurospicy ENGINE keeps running (audio, persistence). */
   destroy(): void;
+  /** Show a shared moment's visualiser look, for this visit only (lib/neuro-share.ts). */
+  applySharedLook(v: SharedViz): Promise<void>;
 }
 
 /** Build a music `DockHost` over the neurospicy engine for the given app host. */
 export function createNeurospicyDockHost(nhost: MusicHost): NeurospicyDockHandle {
   const host = new NeurospicyDockHost(nhost);
-  return { host, destroy: () => host.destroy() };
+  return { host, destroy: () => host.destroy(), applySharedLook: (v) => host.viz.applyShared(v) };
 }
 
 /**
@@ -468,6 +474,29 @@ class NeuroDockViz implements DockViz {
     if (this.isStock(this.presetId)) void this.applyStock(this.presetId);
   }
 
+  // ── a shared moment's look ──────────────────────────────────────────────────
+  /**
+   * Show a moment someone shared (lib/neuro-share.ts) as they were seeing it: their preset,
+   * colours, brand tint and preset cycle, for this visit only. Nothing is saved over the
+   * listener's own settings; a preset or colours this app does not have are left as they are.
+   */
+  async applyShared(v: SharedViz): Promise<void> {
+    await this.ensureData();
+    const tint = BRAND_TINTS.find((x) => x === v.tint);
+    if (tint) this.brandTint = tint;
+    if (v.scheme && this.schemes.some((x) => x.id === v.scheme)) {
+      this.schemeId = v.scheme;
+      this.handle?.setPalette(vizSchemeById(this.schemes, v.scheme).palette);
+    }
+    if (v.cycle !== undefined && (CYCLE_CHOICES as readonly number[]).includes(v.cycle)) { this.cycleSeconds = v.cycle; this.startCycle(); }
+    if (v.preset && (VIZ_PRESETS.some((d) => d.id === v.preset) || this.isStock(v.preset))) this.selectPreset(v.preset);
+    else if (tint && this.isStock(this.presetId)) void this.applyStock(this.presetId);
+  }
+  /** The look on screen now, for a shared moment. */
+  sharedLook(): SharedViz {
+    return { preset: this.presetId, scheme: this.schemeId, tint: this.brandTint, cycle: this.cycleSeconds };
+  }
+
   // ── transitions (preset auto-cycle timing) ──────────────────────────────────
   transitions(): DockVizTransition[] {
     return CYCLE_CHOICES.map((sec) => ({ id: String(sec), name: sec === 0 ? 'Off' : `${sec}s` }));
@@ -737,7 +766,16 @@ class NeurospicyDockHost implements DockHost {
     const id = getNeurospicy().loopId;
     const saved = savedTuneOf(id) !== null;
     const mood = lofiMoodOf(id);
-    if (!mood && !saved) return [];
+    // One share card for every kind of track: this tune, or this moment.
+    const share: DockControl = {
+      kind: 'action', id: 'share', label: 'Share',
+      run: async () => {
+        const [offer, card] = await Promise.all([this.shareOffer(), import('../components/neuro-share-card.ts')]);
+        card.openNeuroShare(offer);
+        return undefined;
+      },
+    };
+    if (!mood && !saved) return id ? [share] : [];
     // Lofi stations choose among their three moods here. The Lolly Sings family has too
     // many styles for a row of tabs, so its styles are picked from the track list.
     const moodControl: DockControl[] = !mood || isSingsMood(mood) ? [] : [{
@@ -779,17 +817,58 @@ class NeurospicyDockHost implements DockHost {
           return 'Opening';
         },
       },
-      {
-        kind: 'action', id: 'lofi-share', label: 'Share this tune',
-        run: async () => {
-          const url = typeof location !== 'undefined' ? lofiShareUrl(location.origin) : null;
-          if (!url) return 'Play it first';
-          try { await navigator.clipboard.writeText(url); return 'Link copied'; } catch { return 'Could not copy'; }
-        },
-      },
+      share,
       ...saveControl,
       ...lightControl,
     ];
+  }
+
+  /**
+   * What the share card can offer for the track now playing: a link to the tune, and a link
+   * to this moment (where it has got to, and the visualiser's look). A generated tune travels
+   * as its style and seed, a generator track as its generator link, radio and catalog tracks
+   * by their ids; a device-only upload cannot travel at all.
+   */
+  private async shareOffer(): Promise<NeuroShareOffer> {
+    const id = getNeurospicy().loopId;
+    const track = this.tracks.find((x) => x.id === id);
+    const name = track?.name ?? 'This track';
+    const origin = shareOrigin();
+    const path = appPathname();
+    const route = shareRoute(typeof location === 'undefined' ? '#/' : location.hash);
+    const look = this.viz.sharedLook();
+    const [presets, themes] = await Promise.all([this.viz.presets(), this.viz.themes()]);
+    const lookName = [presets.find((p) => p.id === look.preset)?.name, themes.find((x) => x.id === look.scheme)?.name ? `${themes.find((x) => x.id === look.scheme)!.name} colours` : '']
+      .filter(Boolean).join(', ') || 'its preset and colours';
+    const recipe = savedTuneOf(id) ?? currentLofiRecipe();
+    if (playsOnStation(id) || savedTuneOf(id)) {
+      if (!recipe) return { track: name, tune: null, moment: null, where: '', look: lookName, reason: 'Play the tune first, then share it.' };
+      if ('generator' in recipe && recipe.generator) {
+        return { track: name, tune: `${origin}${path}#/music?${recipe.generator}`, moment: null, where: '', look: lookName, momentReason: 'A track from the music generator shares as a link to the generator, which plays it from the start.' };
+      }
+      const tuneParts = [`lofi=${lofiLinkValue(recipe)}`];
+      const bar = currentLofiBar();
+      return {
+        track: name, look: lookName,
+        tune: linkTo(origin, path, route, tuneParts),
+        moment: linkTo(origin, path, route, [...tuneParts, ...momentParts({ ...(bar !== null ? { bar } : {}), viz: look })]),
+        where: bar !== null && bar > 0 ? `bar ${bar + 1}` : 'the start',
+      };
+    }
+    if (!shareableId(id)) {
+      return { track: name, tune: null, moment: null, where: '', look: lookName, reason: 'This track is only on your device, so a link would not play for anyone else.' };
+    }
+    const listen = `listen=${encodeURIComponent(id)}`;
+    const progress = getNeurospicyProgress();
+    const radio = track ? trackCategory(track) === 'radio' : id.startsWith('radio/');
+    const at = progress && !radio ? progress.position : undefined;
+    const clock = (s: number): string => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+    return {
+      track: name, look: lookName,
+      tune: linkTo(origin, path, route, [listen]),
+      moment: linkTo(origin, path, route, [listen, ...momentParts({ ...(at !== undefined ? { seconds: at } : {}), viz: look })]),
+      where: radio ? 'the live broadcast' : at !== undefined && at >= 1 ? clock(at) : 'the start',
+    };
   }
 
   // getNeurospicyProgress() is null for radio / while nothing local sounds → duration 0

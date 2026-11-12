@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { copyText, shareOrigin } from '../lib/share-url.ts';
 import { partitionShareParts, type PersonalShareField, type SharePrivacyInput } from '../lib/share-privacy.ts';
 /**
  * The Share-link dialog - a ready-to-copy link plus toggles for the on-visit behaviour
@@ -63,24 +64,6 @@ export interface ShareDialogLolly {
 const SHARE_BITMAP_FORMATS = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif']);
 const SHARE_TEXT_FORMATS   = new Set(['txt', 'md', 'markdown', 'html']);
 
-async function copyToClipboard(text: string): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    const previousFocus = document.activeElement as HTMLElement | null;
-    const ta = Object.assign(document.createElement('textarea'), { value: text });
-    Object.assign(ta.style, { position: 'fixed', opacity: '0', pointerEvents: 'none' });
-    document.body.appendChild(ta);
-    try {
-      ta.select();
-      if (!document.execCommand?.('copy')) throw new Error(t('Could not copy to the clipboard.'));
-    } finally {
-      ta.remove();
-      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
-    }
-  }
-}
-
 // Assemble a full shareable URL from query parts. For a tool we emit the crawler-visible
 // PATH form (/t/<id>) - the fragment is never sent to the server, so social crawlers only
 // ever saw the generic og.png; /t/<id> is the per-tool OG stub that redirects a human back
@@ -90,12 +73,9 @@ async function copyToClipboard(text: string): Promise<void> {
 function shareUrlFromParts(parts: readonly string[], toolId?: string): string {
   const qs = parts.join('&');
   const query = qs ? '?' + qs : '';
-  // A packaged Tauri page lives at http://tauri.localhost, which is an internal
-  // WebView origin and not a link another person can open. Native Lolly shares
-  // use the public address; the installed-app toggle below can then map that
-  // canonical address to lolly:// without maintaining a second URL grammar.
-  const native = !!(window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__;
-  const origin = native ? 'https://lolly.tools' : window.location.origin;
+  // A desktop app shares the public address (lib/share-url.ts); the installed-app toggle
+  // below can then map that canonical address to lolly:// without a second URL grammar.
+  const origin = shareOrigin();
   const id = toolId
     ?? window.location.pathname.match(/^\/t\/([^/?]+)/)?.[1]
     ?? window.location.hash.match(/^#\/tool\/([^/?]+)/)?.[1];
@@ -617,7 +597,7 @@ function renderShareSurface(
     // The address bar says what the copied link says: a write still settling goes out now.
     flushAddressWrites();
     const prev = this.textContent;
-    try { await copyToClipboard(field.value); }
+    try { await copyText(field.value); }
     catch {
       this.textContent = t('Could not copy');
       announce(t('Could not copy to the clipboard.'), { assertive: true });
@@ -657,7 +637,7 @@ function renderShareSurface(
   // posted - the credit travels BESIDE the artwork, opt-in, one click.
   dialog.querySelector<HTMLButtonElement>('.share-credit-btn')?.addEventListener('click', async function (this: HTMLButtonElement) {
     const prev = this.textContent;
-    try { await copyToClipboard(`Made with Lolly · lolly.tools\n${field.value}`); }
+    try { await copyText(`Made with Lolly · lolly.tools\n${field.value}`); }
     catch {
       this.textContent = t('Could not copy');
       announce(t('Could not copy to the clipboard.'), { assertive: true });
@@ -706,7 +686,7 @@ function renderShareSurface(
   if (autofocus) { field.focus(); field.select(); }
   else dialog.querySelector<HTMLElement>('.share-dialog-actions')!.hidden = true;
 
-  mountRegisteredSections(dialog, { toolId, baseParts, currentFormat: currentFmt, copy: copyToClipboard, close: () => modal.close(), ...(readDocument ? { document: readDocument } : {}), ...(lolly ? { file: async () => { const built = await lolly.build(); return { blob: built.blob, filename: built.filename }; } } : {}) }, states);
+  mountRegisteredSections(dialog, { toolId, baseParts, currentFormat: currentFmt, copy: copyText, close: () => modal.close(), ...(readDocument ? { document: readDocument } : {}), ...(lolly ? { file: async () => { const built = await lolly.build(); return { blob: built.blob, filename: built.filename }; } } : {}) }, states);
 
   return dialog;
 }

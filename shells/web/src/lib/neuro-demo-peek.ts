@@ -44,3 +44,12 @@ export function peekLofiLinked(): boolean {
   const hashQuery = window.location.hash.split('?')[1] ?? '';
   return new URLSearchParams(hashQuery).has('lofi') || new URLSearchParams(window.location.search).has('lofi');
 }
+
+/** Was this page opened from a shared track or moment (`listen=…`, `ns.…`)? Presence only:
+ *  lib/neuro-share.ts reads and checks the link, loaded only when this is true. */
+export function peekNeuroShared(): boolean {
+  if (typeof window === 'undefined') return false;
+  const hashQuery = window.location.hash.split('?')[1] ?? '';
+  const has = (q: URLSearchParams): boolean => q.has('listen') || [...q.keys()].some((k) => k.startsWith('ns.'));
+  return has(new URLSearchParams(hashQuery)) || has(new URLSearchParams(window.location.search));
+}
