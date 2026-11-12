@@ -806,6 +806,42 @@ test('controls: the current source brings its own choice, switch, slider and act
   dock.destroy();
 });
 
+test('icon controls: a switch and an action with an icon are small buttons named by their tooltip, in one row', async () => {
+  const st = { light: false, shared: 0 };
+  const glyph = '<svg viewBox="0 0 24 24"><path d="M0 0h24"/></svg>';
+  const host = makeHost({
+    controls: () => [
+      { kind: 'toggle', id: 'drums', label: 'Drums', get: () => true, set: () => {} },
+      { kind: 'toggle', id: 'light', label: 'Light visualiser', icon: glyph, get: () => st.light, set: (v) => { st.light = v; } },
+      { kind: 'action', id: 'share', label: 'Share this tune or moment', icon: glyph, run: () => { st.shared++; return 'Link copied'; } },
+    ],
+  });
+  const dock = createAudioDock({ host, capabilities: { music: true }, mount: document.body });
+  const block = dock.el.querySelector<HTMLElement>('[data-controls]')!;
+  const row = block.querySelector<HTMLElement>('.audio-dock-icons')!;
+  assert.ok(row, 'the icon controls sit in one row');
+  assert.equal(row.querySelectorAll('[data-ctl]').length, 2, 'both icon controls, and only those, are in the row');
+  assert.ok(!row.querySelector('[data-ctl="drums"]'), 'a control without an icon keeps its labelled pill');
+  const share = row.querySelector<HTMLButtonElement>('[data-ctl="share"]')!;
+  for (const attr of ['aria-label', 'title', 'data-tip']) assert.equal(share.getAttribute(attr), 'Share this tune or moment', `named by ${attr}`);
+  assert.equal(share.textContent, '', 'no visible text, only the icon');
+  assert.ok(share.querySelector('svg'), 'the icon');
+
+  const light = row.querySelector<HTMLButtonElement>('[data-ctl="light"]')!;
+  assert.equal(light.getAttribute('aria-pressed'), 'false');
+  light.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.light, true, 'an icon switch flips');
+  assert.equal(light.getAttribute('aria-pressed'), 'true', 'and shows it is on');
+
+  share.click();
+  await new Promise((r) => setTimeout(r, 0));
+  assert.equal(st.shared, 1, 'an icon action runs');
+  assert.ok(share.querySelector('svg'), 'and keeps its icon');
+  assert.equal(row.querySelector('[data-said]')!.textContent, 'Link copied', 'what it said shows beside the row');
+  dock.destroy();
+});
+
 test('a visualizer canvas whose WebGL context is lost is swapped for a fresh one and mounted again', async () => {
   const mounted: HTMLCanvasElement[] = [];
   let unmounts = 0;

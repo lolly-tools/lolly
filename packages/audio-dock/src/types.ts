@@ -72,12 +72,17 @@ export interface DockAttribution { text: string; href: string; linkText: string 
  * the transport and re-reads it on every refresh, so the controls can change with the
  * source. An action's `run` may return a short message (e.g. "Link copied") that the
  * button shows for a moment.
+ *
+ * A switch or an action with an `icon` (inline SVG markup the host supplies, inserted as
+ * it is, like an atmosphere layer's glyph) is drawn as a small icon button instead of a
+ * labelled pill: its label is the button's accessible name and its tooltip, and
+ * the icon buttons sit together in one row. An icon action's message shows beside the row.
  */
 export type DockControl =
   | { kind: 'choice'; id: string; label: string; options: ReadonlyArray<{ id: string; label: string }>; get(): string; set(id: string): void | Promise<void> }
-  | { kind: 'toggle'; id: string; label: string; get(): boolean; set(on: boolean): void | Promise<void> }
+  | { kind: 'toggle'; id: string; label: string; icon?: string; get(): boolean; set(on: boolean): void | Promise<void> }
   | { kind: 'range'; id: string; label: string; min: number; max: number; step: number; get(): number; set(v: number): void; commit?(v: number): void }
-  | { kind: 'action'; id: string; label: string; run(): string | undefined | Promise<string | undefined> };
+  | { kind: 'action'; id: string; label: string; icon?: string; run(): string | undefined | Promise<string | undefined> };
 
 /** The music/radio adapter. Present only for a host that offers a picker.
  *  Narration hosts omit it entirely (they page with prev/next, not a dropdown). */

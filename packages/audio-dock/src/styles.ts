@@ -242,6 +242,14 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock-choice button[aria-pressed="true"] { background: var(--dock-accent); color: var(--dock-accent-fg); }
 .audio-dock-choice button:focus-visible { outline: 2px solid var(--dock-accent); outline-offset: 1px; }
 .audio-dock-action { margin-left: auto; }
+/* the icon actions and switches: one row at the end, each named by its tooltip */
+.audio-dock-icons { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.audio-dock-icon-ctl { width: 32px; height: 32px; color: var(--dock-muted); }
+.audio-dock-icon-ctl:hover { color: var(--dock-fg); }
+.audio-dock-icon-ctl[aria-pressed="true"] { background: var(--dock-accent); color: var(--dock-accent-fg); }
+.audio-dock-icon-ctl svg { width: 17px; height: 17px; }
+.audio-dock-said { font-size: .72rem; color: var(--dock-muted); margin-right: 4px; white-space: nowrap; }
+.audio-dock-said:empty { display: none; }
 
 /* volume sliders (music host: Music + interface Effects) */
 .audio-dock-volumes { display: flex; flex-direction: column; gap: 7px; padding: 2px 14px 8px; }
