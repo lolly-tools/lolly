@@ -122,4 +122,4 @@ Every file's embedded metadata (EXIF, GPS, IPTC and XMP) is also read out in ful
 | Deep scan (TrustMark, Content Seal) | Opt-in | With `--deep`, which drives the same Verify view in a local browser | No |
 | Lolly Imprint, LSB steganalysis, SEAL | Yes | No | No |
 
-Every check runs on your machine, except over MCP, where the MCP server reads the file you send to that server. How the checks are built, module by module, is in [Content Credentials engineering](/info/content-credentials-engineering.html#beyond-c2pa-pixel-and-byte-level-verify-reads).
+Every check runs on your machine, except over MCP, where the MCP server reads the file you send to that server. How the checks are built, module by module, is in [Content Credentials engineering](/info/content-credentials-engineering.html#beyond-c2pa-pixel-and-byte-level-lolly-verify-reads).

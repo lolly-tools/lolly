@@ -38,7 +38,7 @@ Ca să comuți mai târziu, folosește din nou **Change** sau **Leave** pe acela
 - **Unele controale sunt setate pentru tine.** Un control guvernat de organizația ta arată **Managed by** și numele organizației sau **Managed by your organisation**. Un control fix nu poate fi schimbat, un meniu poate oferi doar o parte din alegeri, iar o linie care începe cu **Set by** poate spune ce regulă se aplică și de ce. Unele controale nu sunt afișate deloc.
 - **Unele sisteme de design sunt blocate.** Un sistem de design furnizat de organizația ta arată un lacăt și rămâne doar pentru citire. Ca să încerci modificări, fă o copie editabilă în **Settings → Preferences → Design systems**.
 - **Sunt listate doar instrumentele ei.** Un instrument pe care organizația ta nu îl oferă nu este afișat deloc.
-- **Proiecte comune.** Dacă organizația ta partajează proiecte cu tine, **Projects** arată o tilă **Team projects**. Aceste sesiuni trăiesc pe serverul organizației. Deschide una ca să lucrezi la ea sau pornește un [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) din **Share** când este disponibil.
+- **Proiecte comune.** Dacă organizația ta partajează proiecte cu tine, **Projects** arată o tilă **Team projects**. Aceste sesiuni trăiesc pe serverul organizației. Deschide una ca să lucrezi la ea sau pornește un [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) din **Share** când este disponibil.
 - **Unele exporturi pot necesita aprobare.** Unde organizația ta cere aprobare, **Request approval** ia locul lui **Download**, iar un instrument poate oferi mai puține formate.
 
 ### Ce rămâne unde
@@ -69,7 +69,7 @@ Serverul organizației tale rulează **Lolly Work**, software-ul pentru organiza
 Organizația ta găzduiește [Lolly Work](https://github.com/lolly-tools/lolly-work) alături de Lolly și alege ce funcții activează:
 
 - **Autentificare și acces.** Single sign-on al organizației, permisiuni bazate pe grupuri și câmpuri de profil administrate. Administratorii pot proviziona și dezactiva conturi prin SCIM.
-- **Muncă comună.** Proiecte de echipă, sesiuni comune și [work collab-uri](/info/collaborate.html#work-collabs-with-lolly-work-optional), cu editare live prin serverul organizației.
+- **Muncă comună.** Proiecte de echipă, sesiuni comune și [work collab-uri](/info/collaborate.html#collabs-through-lolly-work-optional), cu editare live prin serverul organizației.
 - **O bibliotecă comună de resurse.** Resurse încărcate, colecții și biblioteci conectate, cu reguli de acces, versiuni și revizuire.
 - **Revizuire și livrare.** Pași de aprobare, linkuri administrate cu expirare sau revocare și livrare către destinațiile permise de organizație.
 - **Administrare.** Raportarea utilizării sub politica de telemetrie a instanței, plus o înregistrare de audit a acțiunilor guvernate.

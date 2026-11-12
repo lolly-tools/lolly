@@ -168,7 +168,7 @@ Un cuadro puede contener más que una imagen. Los dos tipos de abajo conservan u
 
 ### Escenas 3D
 
-Elige **3D scene** en el menú de añadir del carril y arrastra un marco: 3D Studio se abre sobre el nuevo cuadro, y lo que definas allí vuelve al lienzo. Después, **Edit in 3D Studio** en la sección **3D scene** del Inspector reabre el estudio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) cubre pósteres, la línea de tiempo, la exportación y el compartir.
+Elige **3D scene** en el menú de añadir del carril y arrastra un marco: 3D Studio se abre sobre el nuevo cuadro, y lo que definas allí vuelve al lienzo. Después, **Edit in 3D Studio** en la sección **3D scene** del Inspector reabre el estudio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) cubre pósteres, la línea de tiempo, la exportación y el compartir.
 
 ### Herramientas dentro de un diseño
 

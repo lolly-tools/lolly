@@ -175,7 +175,7 @@ A box can hold more than a picture. Both kinds below keep a recipe rather than a
 
 ### 3D scenes
 
-Choose **3D scene** from the rail's add menu and drag out a frame: Lolly 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, **Edit in 3D Studio** in the Inspector's **3D scene** section reopens the studio. [Place a scene in Lolly Design](/info/3d-studio.html#place-a-scene-in-design) covers posters, the timeline, export and sharing.
+Choose **3D scene** from the rail's add menu and drag out a frame: Lolly 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, **Edit in 3D Studio** in the Inspector's **3D scene** section reopens the studio. [Place a scene in Lolly Design](/info/3d-studio.html#place-a-scene-in-lolly-design) covers posters, the timeline, export and sharing.
 
 ### Tools inside a design
 

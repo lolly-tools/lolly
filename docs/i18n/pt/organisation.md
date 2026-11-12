@@ -38,7 +38,7 @@ Nos apps desktop e mobile, a tela de login também oferece um código curto, qua
 - **Alguns controles já vêm definidos.** Um controle que a sua organização governa mostra **Managed by** e o nome da organização, ou **Managed by your organisation**. Um controle fixo não pode ser alterado, um menu pode oferecer apenas algumas de suas opções, e uma linha iniciada por **Set by** pode dizer qual regra se aplica e por quê. Alguns controles nem aparecem.
 - **Alguns sistemas de design são bloqueados.** Um sistema de design fornecido pela sua organização mostra um cadeado e fica somente leitura. Para testar alterações, crie uma cópia editável em **Settings → Preferences → Design systems**.
 - **Só as ferramentas dela são listadas.** Uma ferramenta que a sua organização não oferece não aparece de forma alguma.
-- **Projetos compartilhados.** Se a sua organização compartilha projetos com você, **Projects** mostra um bloco **Team projects**. Essas sessões ficam no servidor da organização. Abra uma para trabalhar nela ou inicie um [collab de trabalho](/info/collaborate.html#work-collabs-with-lolly-work-optional) em **Share**, quando disponível.
+- **Projetos compartilhados.** Se a sua organização compartilha projetos com você, **Projects** mostra um bloco **Team projects**. Essas sessões ficam no servidor da organização. Abra uma para trabalhar nela ou inicie um [collab de trabalho](/info/collaborate.html#collabs-through-lolly-work-optional) em **Share**, quando disponível.
 - **Algumas exportações podem exigir aprovação.** Onde a sua organização pede aprovação, **Request approval** substitui **Download**, e uma ferramenta pode oferecer menos formatos.
 
 ### O que fica onde
@@ -69,7 +69,7 @@ O servidor da sua organização executa o **Lolly Work**, o software de organiza
 Sua organização hospeda o [Lolly Work](https://github.com/lolly-tools/lolly-work) junto com o Lolly e escolhe quais recursos ativar:
 
 - **Login e acesso.** Single sign-on da organização, permissões baseadas em grupos e campos de perfil gerenciados. Administradores podem provisionar e desativar contas pelo SCIM.
-- **Trabalho compartilhado.** Projetos de equipe, sessões compartilhadas e [collabs de trabalho](/info/collaborate.html#work-collabs-with-lolly-work-optional), com edição ao vivo pelo servidor da organização.
+- **Trabalho compartilhado.** Projetos de equipe, sessões compartilhadas e [collabs de trabalho](/info/collaborate.html#collabs-through-lolly-work-optional), com edição ao vivo pelo servidor da organização.
 - **Uma biblioteca de recursos compartilhada.** Recursos enviados, coleções e bibliotecas conectadas, com regras de acesso, versões e revisão.
 - **Revisão e entrega.** Etapas de aprovação, links gerenciados com expiração ou revogação e entrega aos destinos que a organização permite.
 - **Administração.** Relatório de uso sob a política de telemetria da instância, além de um registro de auditoria das ações governadas.

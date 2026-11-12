@@ -168,7 +168,7 @@ En boks kan holde mer enn et bilde. Begge typene nedenfor beholder en oppskrift 
 
 ### 3D-scener
 
-Velg **3D scene** fra tilleggsmenyen på linjen og dra ut en ramme: 3D Studio åpnes på den nye boksen, og det du setter der, kommer tilbake til lerretet. Etterpå åpner **Edit in 3D Studio** i delen **3D scene** i Inspector studioet igjen. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) dekker plakater, tidslinjen, eksport og deling.
+Velg **3D scene** fra tilleggsmenyen på linjen og dra ut en ramme: 3D Studio åpnes på den nye boksen, og det du setter der, kommer tilbake til lerretet. Etterpå åpner **Edit in 3D Studio** i delen **3D scene** i Inspector studioet igjen. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) dekker plakater, tidslinjen, eksport og deling.
 
 ### Verktøy inne i et design
 

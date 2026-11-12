@@ -168,7 +168,7 @@ Uma caixa pode conter mais do que uma imagem. Os dois tipos abaixo guardam uma r
 
 ### Cenas 3D
 
-Escolha **3D scene** no menu de adicionar da barra e arraste um quadro: o 3D Studio abre na nova caixa, e o que você definir lá volta ao canvas. Depois, **Edit in 3D Studio** na seção **3D scene** do Inspector reabre o estúdio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) cobre pôsteres, a linha do tempo, a exportação e o compartilhamento.
+Escolha **3D scene** no menu de adicionar da barra e arraste um quadro: o 3D Studio abre na nova caixa, e o que você definir lá volta ao canvas. Depois, **Edit in 3D Studio** na seção **3D scene** do Inspector reabre o estúdio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) cobre pôsteres, a linha do tempo, a exportação e o compartilhamento.
 
 ### Ferramentas dentro de um design
 

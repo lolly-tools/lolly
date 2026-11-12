@@ -38,7 +38,7 @@ lolly.tools에서 시작할 수도 있어요. **Settings** 보기를 열고 **Lo
 - **일부 컨트롤은 미리 설정돼 있어요.** 조직이 관리하는 컨트롤에는 **Managed by**와 조직 이름, 또는 **Managed by your organisation**이 표시돼요. 고정된 컨트롤은 바꿀 수 없고, 메뉴는 선택지 일부만 제공할 수 있으며, **Set by**로 시작하는 줄은 어떤 규칙이 왜 적용되는지 알려줄 수 있어요. 일부 컨트롤은 아예 표시되지 않아요.
 - **일부 디자인 시스템은 잠겨 있어요.** 조직이 제공하는 디자인 시스템에는 잠금이 표시되고 읽기 전용으로 유지돼요. 변경을 시험하려면 **Settings → Preferences → Design systems**에서 편집 가능한 사본을 만드세요.
 - **조직의 도구만 나열돼요.** 조직이 제공하지 않는 도구는 전혀 표시되지 않아요.
-- **공유 프로젝트.** 조직이 프로젝트를 공유하면 **Projects**에 **Team projects** 타일이 표시돼요. 이 세션은 조직의 서버에 있어요. 하나를 열어 작업하거나, 가능하면 **Share**에서 [업무 collab](/info/collaborate.html#work-collabs-with-lolly-work-optional)을 시작하세요.
+- **공유 프로젝트.** 조직이 프로젝트를 공유하면 **Projects**에 **Team projects** 타일이 표시돼요. 이 세션은 조직의 서버에 있어요. 하나를 열어 작업하거나, 가능하면 **Share**에서 [업무 collab](/info/collaborate.html#collabs-through-lolly-work-optional)을 시작하세요.
 - **일부 내보내기는 승인이 필요할 수 있어요.** 조직이 승인을 요구하는 곳에서는 **Request approval**이 **Download**를 대신하며, 도구가 제공하는 형식이 줄어들 수 있어요.
 
 ### 어디에 무엇이 남는가
@@ -69,7 +69,7 @@ lolly.tools에서 시작할 수도 있어요. **Settings** 보기를 열고 **Lo
 조직이 Lolly와 함께 [Lolly Work](https://github.com/lolly-tools/lolly-work)를 호스팅하며 켤 기능을 선택해요.
 
 - **로그인과 접근.** 조직 싱글 사인온, 그룹 기반 권한, 관리형 프로필 필드. 관리자는 SCIM으로 계정을 프로비저닝하고 비활성화할 수 있어요.
-- **공유 작업.** 팀 프로젝트, 공유 세션, 조직의 서버를 통한 실시간 편집이 가능한 [업무 collab](/info/collaborate.html#work-collabs-with-lolly-work-optional).
+- **공유 작업.** 팀 프로젝트, 공유 세션, 조직의 서버를 통한 실시간 편집이 가능한 [업무 collab](/info/collaborate.html#collabs-through-lolly-work-optional).
 - **공유 에셋 라이브러리.** 접근 규칙, 버전, 검토가 있는 업로드된 에셋, 컬렉션, 연결된 라이브러리.
 - **검토와 전달.** 승인 단계, 만료 또는 폐기가 가능한 관리형 링크, 조직이 허용한 목적지로의 전달.
 - **관리.** 인스턴스의 원격 측정 정책에 따른 사용량 보고와 관리되는 동작의 감사 기록.

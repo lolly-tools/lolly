@@ -2,7 +2,7 @@
 
 Last year's poster is in Figma and this year's dates are in your inbox. **Import a design** opens that file in Lolly Design as layers you can edit: text stays text, shapes stay shapes and pictures go into **My images**. The file is read on your device and nothing is uploaded.
 
-In [Lolly Design](/info/using.html), open the **Lolly menu** (the Lolly mark), choose **Import a design**, pick how the file arrives under **Import as**, then choose the file.
+In [Lolly Design](/info/design.html), open the **Lolly menu** (the Lolly mark), choose **Import a design**, pick how the file arrives under **Import as**, then choose the file.
 
 ::: cols
 ## Replace the board

@@ -38,7 +38,7 @@ I skrivebords- og mobilappene tilbyr påloggingsskjermen også en kort kode, nå
 - **Noen kontroller er satt for deg.** En kontroll organisasjonen din styrer, viser **Managed by** og organisasjonens navn, eller **Managed by your organisation**. En fast kontroll kan ikke endres, en meny kan bare tilby noen av valgene sine, og en linje som begynner med **Set by** kan si hvilken regel som gjelder og hvorfor. Noen kontroller vises ikke i det hele tatt.
 - **Noen designsystemer er låst.** Et designsystem organisasjonen din leverer, viser en lås og forblir skrivebeskyttet. For å prøve endringer, lag en redigerbar kopi i **Settings → Preferences → Design systems**.
 - **Bare verktøyene dens listes.** Et verktøy organisasjonen din ikke tilbyr, vises ikke i det hele tatt.
-- **Delte prosjekter.** Hvis organisasjonen din deler prosjekter med deg, viser **Projects** en **Team projects**-flis. Disse øktene ligger på organisasjonens server. Åpne en for å arbeide på den, eller start en [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) fra **Share** når det er tilgjengelig.
+- **Delte prosjekter.** Hvis organisasjonen din deler prosjekter med deg, viser **Projects** en **Team projects**-flis. Disse øktene ligger på organisasjonens server. Åpne en for å arbeide på den, eller start en [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) fra **Share** når det er tilgjengelig.
 - **Noen eksporter kan trenge godkjenning.** Der organisasjonen din ber om godkjenning, tar **Request approval** plassen til **Download**, og et verktøy kan tilby færre formater.
 
 ### Hva som blir hvor
@@ -69,7 +69,7 @@ Organisasjonens server kjører **Lolly Work**, organisasjonsprogramvaren fra det
 Organisasjonen din huser [Lolly Work](https://github.com/lolly-tools/lolly-work) ved siden av Lolly og velger hvilke funksjoner som slås på:
 
 - **Pålogging og tilgang.** Enkel pålogging for organisasjonen, gruppebaserte tillatelser og administrerte profilfelt. Administratorer kan klargjøre og deaktivere kontoer gjennom SCIM.
-- **Delt arbeid.** Teamprosjekter, delte økter og [work collabs](/info/collaborate.html#work-collabs-with-lolly-work-optional), med redigering i sanntid gjennom organisasjonens server.
+- **Delt arbeid.** Teamprosjekter, delte økter og [work collabs](/info/collaborate.html#collabs-through-lolly-work-optional), med redigering i sanntid gjennom organisasjonens server.
 - **Et delt ressursbibliotek.** Opplastede ressurser, samlinger og tilkoblede biblioteker, med tilgangsregler, versjoner og gjennomgang.
 - **Gjennomgang og levering.** Godkjenningstrinn, administrerte lenker med utløp eller tilbakekalling, og levering til destinasjoner organisasjonen tillater.
 - **Administrasjon.** Bruksrapportering under instansens telemetripolicy, pluss en revisjonspost over styrte handlinger.

@@ -38,7 +38,7 @@ Di aplikasi desktop dan seluler, layar login juga menawarkan kode singkat, bila 
 - **Beberapa kontrol sudah diatur untuk Anda.** Kontrol yang diatur organisasi Anda menampilkan **Managed by** dan nama organisasi, atau **Managed by your organisation**. Kontrol yang dikunci tidak dapat diubah, menu mungkin hanya menawarkan sebagian pilihannya, dan baris yang diawali **Set by** dapat menyebut aturan mana yang berlaku dan alasannya. Beberapa kontrol tidak ditampilkan sama sekali.
 - **Beberapa design system dikunci.** Design system yang disediakan organisasi Anda menampilkan kunci dan tetap hanya-baca. Untuk mencoba perubahan, buat salinan yang dapat disunting di **Settings → Preferences → Design systems**.
 - **Hanya alat miliknya yang dicantumkan.** Alat yang tidak ditawarkan organisasi Anda tidak ditampilkan sama sekali.
-- **Proyek bersama.** Jika organisasi Anda membagikan proyek kepada Anda, **Projects** menampilkan ubin **Team projects**. Sesi-sesi ini berada di server organisasi. Buka satu untuk mengerjakannya, atau mulai [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) dari **Share** bila tersedia.
+- **Proyek bersama.** Jika organisasi Anda membagikan proyek kepada Anda, **Projects** menampilkan ubin **Team projects**. Sesi-sesi ini berada di server organisasi. Buka satu untuk mengerjakannya, atau mulai [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) dari **Share** bila tersedia.
 - **Beberapa ekspor mungkin memerlukan persetujuan.** Bila organisasi Anda meminta persetujuan, **Request approval** menggantikan **Download**, dan sebuah alat mungkin menawarkan lebih sedikit format.
 
 ### Apa yang tetap di mana
@@ -69,7 +69,7 @@ Server organisasi Anda menjalankan **Lolly Work**, perangkat lunak organisasi da
 Organisasi Anda meng-host [Lolly Work](https://github.com/lolly-tools/lolly-work) bersama Lolly dan memilih fitur mana yang diaktifkan:
 
 - **Login dan akses.** Single sign-on organisasi, izin berbasis grup, dan field profil terkelola. Administrator dapat menyediakan dan menonaktifkan akun melalui SCIM.
-- **Pekerjaan bersama.** Proyek tim, sesi bersama, dan [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), dengan penyuntingan langsung melalui server organisasi.
+- **Pekerjaan bersama.** Proyek tim, sesi bersama, dan [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), dengan penyuntingan langsung melalui server organisasi.
 - **Pustaka aset bersama.** Aset yang diunggah, koleksi, dan pustaka terhubung, dengan aturan akses, versi, dan tinjauan.
 - **Tinjauan dan pengiriman.** Langkah persetujuan, tautan terkelola dengan masa berlaku atau pencabutan, dan pengiriman ke tujuan yang diizinkan organisasi.
 - **Administrasi.** Pelaporan penggunaan di bawah kebijakan telemetri instans, ditambah catatan audit untuk aksi yang diatur.

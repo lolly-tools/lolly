@@ -19,7 +19,7 @@ Où vit ton travail : le stockage propre du navigateur contient Projects, Histor
 ::: details Retrouver le travail partagé dans Lolly Work (facultatif)
 Ouvre le Lolly de ton organisation et connecte-toi, puis regarde dans **Projects → Team projects**. Les sessions partagées sont détenues par cette instance et apparaissent selon ton accès. Se connecter peut rétablir l'accès à ces sessions sur un autre appareil ; cela ne restaure ni ta bibliothèque personnelle ni la sauvegarde de l'appareil.
 
-Dans une [collab de travail](/info/collaborate.html#work-collabs-with-lolly-work-optional), attends **Saved to work** avant de partir. Si un projet partagé manque, vérifie que tu es connecté à la bonne instance et demande à son opérateur au sujet de l'accès ou de la conservation. Effacer les données du navigateur supprime les copies locales, pas la copie du serveur de l'organisation. Voir [Use Lolly at your organisation](/info/organisation.html).
+Dans une [collab de travail](/info/collaborate.html#collabs-through-lolly-work-optional), attends **Saved to work** avant de partir. Si un projet partagé manque, vérifie que tu es connecté à la bonne instance et demande à son opérateur au sujet de l'accès ou de la conservation. Effacer les données du navigateur supprime les copies locales, pas la copie du serveur de l'organisation. Voir [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Retrouver quelque chose que tu as enregistré

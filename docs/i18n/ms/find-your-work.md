@@ -19,7 +19,7 @@ Di mana kerja anda berada: storan pelayar sendiri memegang Projects, History dan
 ::: details Cari kerja dikongsi dalam Lolly Work (pilihan)
 Buka Lolly organisasi anda dan log masuk, kemudian lihat dalam **Projects → Team projects**. Sesi dikongsi dipegang oleh instans itu dan muncul mengikut akses anda. Log masuk boleh memulihkan akses kepada sesi tersebut pada peranti lain; ia tidak memulihkan pustaka peribadi atau sandaran peranti anda.
 
-Dalam [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), tunggu **Saved to work** sebelum pergi. Jika projek dikongsi hilang, semak bahawa anda disambungkan ke instans yang betul dan tanya pengendalinya tentang akses atau pengekalan. Mengosongkan data pelayar membuang salinan setempat, bukan salinan pelayan organisasi. Lihat [Use Lolly at your organisation](/info/organisation.html).
+Dalam [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), tunggu **Saved to work** sebelum pergi. Jika projek dikongsi hilang, semak bahawa anda disambungkan ke instans yang betul dan tanya pengendalinya tentang akses atau pengekalan. Mengosongkan data pelayar membuang salinan setempat, bukan salinan pelayan organisasi. Lihat [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Cari sesuatu yang anda simpan

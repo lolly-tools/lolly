@@ -168,7 +168,7 @@ Kotak boleh memegang lebih daripada gambar. Kedua-dua jenis di bawah menyimpan r
 
 ### Adegan 3D
 
-Pilih **3D scene** daripada menu tambah pada rel dan seret keluar bingkai: 3D Studio dibuka pada kotak baharu, dan apa yang anda tetapkan di situ kembali ke kanvas. Selepas itu, **Edit in 3D Studio** dalam bahagian **3D scene** Inspector membuka semula studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) meliputi poster, garis masa, eksport dan perkongsian.
+Pilih **3D scene** daripada menu tambah pada rel dan seret keluar bingkai: 3D Studio dibuka pada kotak baharu, dan apa yang anda tetapkan di situ kembali ke kanvas. Selepas itu, **Edit in 3D Studio** dalam bahagian **3D scene** Inspector membuka semula studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) meliputi poster, garis masa, eksport dan perkongsian.
 
 ### Alat dalam reka bentuk
 

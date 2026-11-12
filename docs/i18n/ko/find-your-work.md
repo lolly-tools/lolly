@@ -19,7 +19,7 @@
 ::: details Lolly Work에서 공유 작업 찾기(선택 사항)
 조직의 Lolly를 열고 로그인한 다음 **Projects → Team projects**를 살펴보세요. 공유 세션은 해당 인스턴스가 보관하며 사용자의 접근 권한에 따라 나타나요. 로그인하면 다른 기기에서도 그 세션에 대한 접근을 복구할 수 있지만, 개인 라이브러리나 기기 백업은 복구되지 않아요.
 
-[업무 collab](/info/collaborate.html#work-collabs-with-lolly-work-optional)에서는 떠나기 전에 **Saved to work**가 표시될 때까지 기다리세요. 공유 프로젝트가 없다면 올바른 인스턴스에 연결되어 있는지 확인하고, 접근이나 보관에 대해서는 운영자에게 문의하세요. 브라우저 데이터를 지우면 로컬 사본만 제거되고 조직 서버의 사본은 그대로예요. [조직에서 Lolly 사용하기](/info/organisation.html)를 참고하세요.
+[업무 collab](/info/collaborate.html#collabs-through-lolly-work-optional)에서는 떠나기 전에 **Saved to work**가 표시될 때까지 기다리세요. 공유 프로젝트가 없다면 올바른 인스턴스에 연결되어 있는지 확인하고, 접근이나 보관에 대해서는 운영자에게 문의하세요. 브라우저 데이터를 지우면 로컬 사본만 제거되고 조직 서버의 사본은 그대로예요. [조직에서 Lolly 사용하기](/info/organisation.html)를 참고하세요.
 :::
 
 ## 저장한 것 찾기

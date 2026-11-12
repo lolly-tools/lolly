@@ -168,7 +168,7 @@ Kotak dapat memuat lebih dari sekadar gambar. Kedua jenis di bawah menyimpan res
 
 ### Scene 3D
 
-Pilih **3D scene** dari menu tambah di rel dan seret keluar sebuah bingkai: 3D Studio terbuka pada kotak baru, dan apa yang Anda atur di sana kembali ke kanvas. Sesudahnya, **Edit in 3D Studio** di bagian **3D scene** pada Inspector membuka kembali studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) membahas poster, garis waktu, ekspor, dan berbagi.
+Pilih **3D scene** dari menu tambah di rel dan seret keluar sebuah bingkai: 3D Studio terbuka pada kotak baru, dan apa yang Anda atur di sana kembali ke kanvas. Sesudahnya, **Edit in 3D Studio** di bagian **3D scene** pada Inspector membuka kembali studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) membahas poster, garis waktu, ekspor, dan berbagi.
 
 ### Alat di dalam desain
 

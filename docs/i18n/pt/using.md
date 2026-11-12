@@ -88,7 +88,7 @@ Os itens recebem o nome do arquivo que você digitou no painel de exportação o
 Os salvamentos pessoais ficam neste dispositivo, no navegador ou app em que você salvou, a menos que você ative o [Sync](/info/sync.html). Se algo não estiver onde você espera, [Find and recover your work](/info/find-your-work.html) cobre todos os casos, de uma aba fechada a dados de navegador apagados.
 
 ::: details Projetos de equipe com o Lolly Work (opcional)
-Se a sua [organização usa o Lolly Work](/info/organisation.html), faça login na instância dela e abra **Projects → Team projects** para ver as sessões compartilhadas com você. A organização define o acesso e a retenção, e o serviço Lolly Work dela armazena essas sessões. Uma sessão compartilhada entra no collab ao vivo dela quando é aberta, se a sua organização permitir a edição ao vivo; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) explica as etapas.
+Se a sua [organização usa o Lolly Work](/info/organisation.html), faça login na instância dela e abra **Projects → Team projects** para ver as sessões compartilhadas com você. A organização define o acesso e a retenção, e o serviço Lolly Work dela armazena essas sessões. Uma sessão compartilhada entra no collab ao vivo dela quando é aberta, se a sua organização permitir a edição ao vivo; [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) explica as etapas.
 
 Sua biblioteca pessoal continua separada. Fazer login em outro dispositivo traz o trabalho da equipe, mas os salvamentos pessoais ainda precisam do Sync ou de um backup para passar de um dispositivo a outro.
 :::

@@ -168,7 +168,7 @@ O casetă poate conține mai mult decât o imagine. Ambele feluri de mai jos pă
 
 ### Scene 3D
 
-Alege **3D scene** din meniul de adăugare al barei și trage un cadru: 3D Studio se deschide pe noua casetă, iar ce setezi acolo revine pe canvas. Apoi, **Edit in 3D Studio** din secțiunea **3D scene** a Inspectorului redeschide studioul. [Plasează o scenă în Design](/info/3d-studio.html#place-a-scene-in-design) acoperă afișele, cronologia, exportul și partajarea.
+Alege **3D scene** din meniul de adăugare al barei și trage un cadru: 3D Studio se deschide pe noua casetă, iar ce setezi acolo revine pe canvas. Apoi, **Edit in 3D Studio** din secțiunea **3D scene** a Inspectorului redeschide studioul. [Plasează o scenă în Design](/info/3d-studio.html#place-a-scene-in-lolly-design) acoperă afișele, cronologia, exportul și partajarea.
 
 ### Instrumente în interiorul unui design
 

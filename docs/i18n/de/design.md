@@ -168,7 +168,7 @@ Eine Box kann mehr als ein Bild enthalten. Beide Arten unten behalten ein Rezept
 
 ### 3D-Szenen
 
-Wählen Sie **3D scene** im Hinzufügen-Menü der Leiste und ziehen Sie einen Rahmen auf: 3D Studio öffnet sich auf der neuen Box, und was Sie dort festlegen, kommt auf die Arbeitsfläche zurück. Danach öffnet **Edit in 3D Studio** im Abschnitt **3D scene** des Inspektors das Studio erneut. [Eine Szene in Design platzieren](/info/3d-studio.html#place-a-scene-in-design) behandelt Poster, die Zeitleiste, Export und Teilen.
+Wählen Sie **3D scene** im Hinzufügen-Menü der Leiste und ziehen Sie einen Rahmen auf: 3D Studio öffnet sich auf der neuen Box, und was Sie dort festlegen, kommt auf die Arbeitsfläche zurück. Danach öffnet **Edit in 3D Studio** im Abschnitt **3D scene** des Inspektors das Studio erneut. [Eine Szene in Design platzieren](/info/3d-studio.html#place-a-scene-in-lolly-design) behandelt Poster, die Zeitleiste, Export und Teilen.
 
 ### Tools in einem Design
 

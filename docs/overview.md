@@ -4,7 +4,7 @@
 
 This page is for people changing Lolly's code: how the engine, the shells and the tool packs fit together, where each lives in the repository, and the commitments that constrain every change. If you want to know what Lolly does and who uses it, read [How Lolly works](/info/how-lolly-works.html) first.
 
-Two companions go deeper. [`engine/README.md`](../engine/README.md) is the module-by-module map of the engine, generated from the code. [Threat Model & Trust Boundaries](/info/threat-model.html) reads the same architecture as trust boundaries, and it is the page for any question about what the engine treats as untrusted.
+Two companions go deeper. [`engine/README.md`](https://github.com/lolly-tools/lolly/blob/main/engine/README.md) is the module-by-module map of the engine, generated from the code. [Threat Model & Trust Boundaries](/info/threat-model.html) reads the same architecture as trust boundaries, and it is the page for any question about what the engine treats as untrusted.
 
 <!--i:eti-layers-->
 ## The big picture

@@ -231,7 +231,7 @@ test('the markdown twin carries no logo markers', { skip: built }, () => {
   assert.ok(!/<!--lb:/.test(twin), 'the twin ships a block marker');
   // …and the prose the marker sat in survives it.
   assert.match(twin, /Node\.js/);
-  assert.match(twin, /k3s/);
+  assert.match(twin, /k3s/i);
 });
 
 // ─── the page's contents (rail + page bar) ───────────────────────────────────

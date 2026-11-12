@@ -168,7 +168,7 @@ En ruta kan hålla mer än en bild. Båda sorterna nedan behåller ett recept i 
 
 ### 3D-scener
 
-Välj **3D scene** i verktygsfältets tilläggsmeny och dra ut en ram: 3D Studio öppnas på den nya rutan, och det du ställer in där kommer tillbaka till ytan. Därefter öppnar **Edit in 3D Studio** i avsnittet **3D scene** i Inspector studion igen. [Placera en scen i Design](/info/3d-studio.html#place-a-scene-in-design) beskriver affischer, tidslinjen, export och delning.
+Välj **3D scene** i verktygsfältets tilläggsmeny och dra ut en ram: 3D Studio öppnas på den nya rutan, och det du ställer in där kommer tillbaka till ytan. Därefter öppnar **Edit in 3D Studio** i avsnittet **3D scene** i Inspector studion igen. [Placera en scen i Design](/info/3d-studio.html#place-a-scene-in-lolly-design) beskriver affischer, tidslinjen, export och delning.
 
 ### Verktyg i en design
 

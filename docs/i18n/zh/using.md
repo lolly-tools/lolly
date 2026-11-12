@@ -88,7 +88,7 @@
 个人保存的内容留在这台设备上，也就是你保存时所用的浏览器或应用中，除非你开启[同步](/info/sync.html)。如果某样东西不在你预期的位置，[查找和恢复你的作品](/info/find-your-work.html)涵盖了所有情况，从关闭的标签页到被清除的浏览器数据。
 
 ::: details 使用 Lolly Work 的团队项目（可选）
-如果你的[组织使用 Lolly Work](/info/organisation.html)，请登录其实例，打开 **Projects → Team projects** 查看与你共享的会话。访问和保留由组织设定，其 Lolly Work 服务存储这些会话。当你的组织允许实时编辑时，共享会话在打开时就会加入其实时协作；[一起工作](/info/collaborate.html#work-collabs-with-lolly-work-optional)说明了具体步骤。
+如果你的[组织使用 Lolly Work](/info/organisation.html)，请登录其实例，打开 **Projects → Team projects** 查看与你共享的会话。访问和保留由组织设定，其 Lolly Work 服务存储这些会话。当你的组织允许实时编辑时，共享会话在打开时就会加入其实时协作；[一起工作](/info/collaborate.html#collabs-through-lolly-work-optional)说明了具体步骤。
 
 你的个人库保持独立。在另一台设备上登录能让你得到团队的作品，而个人保存的内容仍需要同步或备份才能跨设备移动。
 :::

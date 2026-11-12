@@ -38,7 +38,7 @@ V desktopových a mobilních aplikacích nabízí přihlašovací obrazovka tak�
 - **Některé ovládací prvky jsou nastaveny za tebe.** Ovládací prvek, který tvá organizace řídí, ukazuje **Managed by** a název organizace, nebo **Managed by your organisation**. Pevný prvek nelze měnit, nabídka může obsahovat jen některé své volby a řádek začínající **Set by** může říct, které pravidlo platí a proč. Některé prvky se nezobrazují vůbec.
 - **Některé designové systémy jsou zamčené.** Designový systém, který dodává tvá organizace, ukazuje zámek a zůstává jen pro čtení. Chceš-li zkusit změny, vytvoř upravitelnou kopii v **Settings → Preferences → Design systems**.
 - **Uvedeny jsou jen její nástroje.** Nástroj, který tvá organizace nenabízí, se nezobrazuje vůbec.
-- **Sdílené projekty.** Pokud s tebou organizace sdílí projekty, **Projects** ukáže dlaždici **Team projects**. Tyto relace žijí na serveru organizace. Otevři jednu a pracuj na ní, nebo z **Share** zahaj [pracovní kolaboraci](/info/collaborate.html#work-collabs-with-lolly-work-optional), když je k dispozici.
+- **Sdílené projekty.** Pokud s tebou organizace sdílí projekty, **Projects** ukáže dlaždici **Team projects**. Tyto relace žijí na serveru organizace. Otevři jednu a pracuj na ní, nebo z **Share** zahaj [pracovní kolaboraci](/info/collaborate.html#collabs-through-lolly-work-optional), když je k dispozici.
 - **Některé exporty mohou vyžadovat schválení.** Kde organizace schválení vyžaduje, **Request approval** nahradí **Download** a nástroj může nabízet méně formátů.
 
 ### Co zůstává kde
@@ -69,7 +69,7 @@ Server tvé organizace provozuje **Lolly Work**, organizační software téhož 
 Tvá organizace hostuje [Lolly Work](https://github.com/lolly-tools/lolly-work) vedle Lolly a vybírá, které funkce zapne:
 
 - **Přihlášení a přístup.** Jednotné přihlášení organizace, oprávnění podle skupin a spravovaná pole profilu. Správci mohou účty zřizovat a deaktivovat přes SCIM.
-- **Sdílená práce.** Týmové projekty, sdílené relace a [pracovní kolaborace](/info/collaborate.html#work-collabs-with-lolly-work-optional) s živými úpravami přes server organizace.
+- **Sdílená práce.** Týmové projekty, sdílené relace a [pracovní kolaborace](/info/collaborate.html#collabs-through-lolly-work-optional) s živými úpravami přes server organizace.
 - **Sdílená knihovna assetů.** Nahrané assety, kolekce a připojené knihovny s pravidly přístupu, verzemi a revizí.
 - **Revize a doručení.** Kroky schvalování, spravované odkazy s platností nebo odvoláním a doručení do cílů, které organizace povolí.
 - **Správa.** Hlášení používání podle politiky telemetrie instance plus auditní záznam řízených akcí.

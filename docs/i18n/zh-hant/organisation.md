@@ -38,7 +38,7 @@
 - **有些控制項已為你設定。** 由你的組織管轄的控制項會顯示 **Managed by** 與組織名稱，或 **Managed by your organisation**。固定的控制項無法更改，選單可能只提供部分選項，而以 **Set by** 開頭的一行可以說明適用哪條規則及原因。有些控制項則完全不顯示。
 - **有些設計系統已鎖定。** 由你的組織提供的設計系統會顯示鎖頭並保持唯讀。若要嘗試變更，請在 **Settings → Preferences → Design systems** 建立一份可編輯的副本。
 - **只列出它的工具。** 你的組織未提供的工具完全不會顯示。
-- **共用專案。** 如果你的組織與你共用專案，**Projects** 會顯示 **Team projects** 方塊。這些工作階段存放在組織的伺服器上。開啟其中一個即可進行工作，或在可用時從 **Share** 開始[工作協作](/info/collaborate.html#work-collabs-with-lolly-work-optional)。
+- **共用專案。** 如果你的組織與你共用專案，**Projects** 會顯示 **Team projects** 方塊。這些工作階段存放在組織的伺服器上。開啟其中一個即可進行工作，或在可用時從 **Share** 開始[工作協作](/info/collaborate.html#collabs-through-lolly-work-optional)。
 - **有些匯出可能需要核准。** 在你的組織要求核准之處，**Request approval** 會取代 **Download**，工具提供的格式也可能較少。
 
 ### 什麼存在哪裡
@@ -69,7 +69,7 @@
 你的組織會在 Lolly 旁邊託管 [Lolly Work](https://github.com/lolly-tools/lolly-work)，並選擇開啟哪些功能：
 
 - **登入與存取。** 組織單一登入、以群組為基礎的權限，以及受管理的個人資料欄位。管理員可以透過 SCIM 佈建與停用帳號。
-- **共用工作。** 團隊專案、共用工作階段與[工作協作](/info/collaborate.html#work-collabs-with-lolly-work-optional)，經由組織的伺服器即時編輯。
+- **共用工作。** 團隊專案、共用工作階段與[工作協作](/info/collaborate.html#collabs-through-lolly-work-optional)，經由組織的伺服器即時編輯。
 - **共用素材庫。** 上傳的素材、集合與已連接的資料庫，附有存取規則、版本與審閱。
 - **審閱與交付。** 核准步驟、可設定到期或撤銷的受管理連結，以及交付到組織允許的目的地。
 - **管理。** 依實例遙測政策的使用情況回報，以及受管轄動作的稽核記錄。

@@ -2,7 +2,7 @@
 
 This page is for a platform engineer who wants Lolly's web app on their own cluster: air-gapped, on premises or beside the rest of a platform. At the end, the web app answers on your hostname with TLS, and the optional MCP and CA services are one setting away. For the Lolly Work server, with sign-in and shared projects, follow [Install Lolly Work on Kubernetes](/info/work-platform-deployment.html) instead.
 
-The chart is plain Kubernetes, so it deploys on any conformant distribution, including RKE2 and <!--l:k3s-->k3s, and on any managed service. Any static web server can host the web build too; [Choose a deployment](/info/deployment.html#host-the-web-app) covers that path and the routes and headers every host needs. The image described here already sends those headers.
+The chart is plain Kubernetes, so it deploys on Rancher, on RKE2 and <!--l:k3s-->K3s, on any other conformant distribution and on any managed service. Any static web server can host the web build too; [Choose a deployment](/info/deployment.html#host-the-web-app) covers that path and the routes and headers every host needs. The image described here already sends those headers.
 
 **What you'll do**, in four steps:
 
@@ -75,6 +75,7 @@ helm upgrade --install lolly ./deploy/helm -n lolly \
 Every pod gets the same secure defaults:
 
 - runs as non-root under `RuntimeDefault` seccomp, with all capabilities dropped and no privilege escalation;
+- no SELinux or AppArmor setting of its own, so the node's policy applies. Run SELinux nodes, such as SLES 16 or openSUSE Leap 16, where you can: the browser sandbox profile below leaves SELinux on. Lolly Work's render worker carries an opt-in AppArmor profile for nodes that still run AppArmor ([admission policy](/info/work-admission-policy.html));
 - a read-only root filesystem, with writable `emptyDir` volumes only where nginx needs them;
 - no ServiceAccount token mounted, because none of the components talk to the Kubernetes API;
 - soft pod anti-affinity, which spreads replicas without blocking a single-node cluster;

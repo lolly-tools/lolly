@@ -88,7 +88,7 @@ Gli elementi prendono il nome dal nome file che hai digitato nel pannello di esp
 I salvataggi personali restano su questo dispositivo, nel browser o nell'app da cui hai salvato, a meno che tu non attivi [Sync](/info/sync.html). Se qualcosa non è dove te lo aspetti, [Find and recover your work](/info/find-your-work.html) tratta ogni caso, da una scheda chiusa ai dati del browser cancellati.
 
 ::: details Progetti di team con Lolly Work (facoltativo)
-Se la tua [organizzazione usa Lolly Work](/info/organisation.html), accedi alla sua istanza e apri **Projects → Team projects** per le sessioni condivise con te. L'organizzazione imposta accesso e conservazione, e il suo servizio Lolly Work conserva quelle sessioni. Una sessione condivisa entra nella sua collab live all'apertura quando la tua organizzazione consente la modifica live; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) spiega i passaggi.
+Se la tua [organizzazione usa Lolly Work](/info/organisation.html), accedi alla sua istanza e apri **Projects → Team projects** per le sessioni condivise con te. L'organizzazione imposta accesso e conservazione, e il suo servizio Lolly Work conserva quelle sessioni. Una sessione condivisa entra nella sua collab live all'apertura quando la tua organizzazione consente la modifica live; [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) spiega i passaggi.
 
 La tua libreria personale resta separata. Accedere su un altro dispositivo ti dà il lavoro di team, mentre i salvataggi personali richiedono comunque Sync o un backup per spostarsi.
 :::

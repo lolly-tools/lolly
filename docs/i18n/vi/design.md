@@ -168,7 +168,7 @@ Một hộp có thể chứa nhiều hơn một bức ảnh. Cả hai loại dư
 
 ### Các cảnh 3D
 
-Chọn **3D scene** từ menu thêm của thanh công cụ và kéo một khung: 3D Studio mở trên hộp mới, và những gì bạn đặt ở đó quay về canvas. Sau đó, **Edit in 3D Studio** trong phần **3D scene** của Inspector mở lại studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) đề cập áp phích, dòng thời gian, xuất và chia sẻ.
+Chọn **3D scene** từ menu thêm của thanh công cụ và kéo một khung: 3D Studio mở trên hộp mới, và những gì bạn đặt ở đó quay về canvas. Sau đó, **Edit in 3D Studio** trong phần **3D scene** của Inspector mở lại studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) đề cập áp phích, dòng thời gian, xuất và chia sẻ.
 
 ### Công cụ trong một thiết kế
 

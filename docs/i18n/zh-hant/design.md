@@ -168,7 +168,7 @@ Design 是用於沒有範本涵蓋之版面的工具：從零開始的海報、�
 
 ### 3D 場景
 
-從工具列的新增選單中選擇 **3D scene** 並拖出一個框架：3D Studio 會在新的方塊上開啟，你在那裡設定的內容會回到畫布。之後，Inspector 的 **3D scene** 區段中的 **Edit in 3D Studio** 會重新開啟工作室。[在 Design 中放置場景](/info/3d-studio.html#place-a-scene-in-design)涵蓋海報、時間軸、匯出與分享。
+從工具列的新增選單中選擇 **3D scene** 並拖出一個框架：3D Studio 會在新的方塊上開啟，你在那裡設定的內容會回到畫布。之後，Inspector 的 **3D scene** 區段中的 **Edit in 3D Studio** 會重新開啟工作室。[在 Design 中放置場景](/info/3d-studio.html#place-a-scene-in-lolly-design)涵蓋海報、時間軸、匯出與分享。
 
 ### 設計中的工具
 

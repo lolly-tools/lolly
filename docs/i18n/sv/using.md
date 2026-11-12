@@ -88,7 +88,7 @@ Objekt får namn efter filnamnet du skrev i exportpanelen, annars efter sitt ver
 Personliga sparade filer stannar på den här enheten, i webbläsaren eller appen du sparade från, om du inte slår på [Sync](/info/sync.html). Om något inte finns där du väntar dig tar [Hitta och återställ ditt arbete](/info/find-your-work.html) upp alla fall, från en stängd flik till rensad webbläsardata.
 
 ::: details Teamprojekt med Lolly Work (valfritt)
-Om din [organisation använder Lolly Work](/info/organisation.html) loggar du in på dess instans och öppnar **Projects → Team projects** för sessioner som delas med dig. Organisationen sätter åtkomst och lagring, och dess Lolly Work-tjänst lagrar de sessionerna. En delad session går med i sin levande collab när den öppnas, om din organisation tillåter redigering i realtid; [Arbeta tillsammans](/info/collaborate.html#work-collabs-with-lolly-work-optional) förklarar stegen.
+Om din [organisation använder Lolly Work](/info/organisation.html) loggar du in på dess instans och öppnar **Projects → Team projects** för sessioner som delas med dig. Organisationen sätter åtkomst och lagring, och dess Lolly Work-tjänst lagrar de sessionerna. En delad session går med i sin levande collab när den öppnas, om din organisation tillåter redigering i realtid; [Arbeta tillsammans](/info/collaborate.html#collabs-through-lolly-work-optional) förklarar stegen.
 
 Ditt personliga bibliotek förblir separat. Att logga in på en annan enhet ger dig teamarbete, medan personliga sparade filer fortfarande behöver Sync eller en säkerhetskopia för att flyttas över.
 :::

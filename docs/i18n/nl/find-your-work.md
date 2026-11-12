@@ -19,7 +19,7 @@ Waar je werk staat: de eigen opslag van de browser bevat Projects, History en Tr
 ::: details Gedeeld werk vinden in Lolly Work (optioneel)
 Open de Lolly van je organisatie en meld je aan, kijk dan in **Projects → Team projects**. Gedeelde sessies worden door die instantie bewaard en verschijnen volgens je toegang. Aanmelden kan de toegang tot die sessies op een ander apparaat herstellen; het herstelt je persoonlijke bibliotheek of apparaatback-up niet.
 
-Wacht in een [werkcollab](/info/collaborate.html#work-collabs-with-lolly-work-optional) op **Saved to work** voordat je weggaat. Als een gedeeld project ontbreekt, controleer dan of je bent verbonden met de juiste instantie en vraag de beheerder naar toegang of bewaartermijn. Browsergegevens wissen verwijdert lokale kopieën, niet de serverkopie van de organisatie. Zie [Lolly gebruiken bij je organisatie](/info/organisation.html).
+Wacht in een [werkcollab](/info/collaborate.html#collabs-through-lolly-work-optional) op **Saved to work** voordat je weggaat. Als een gedeeld project ontbreekt, controleer dan of je bent verbonden met de juiste instantie en vraag de beheerder naar toegang of bewaartermijn. Browsergegevens wissen verwijdert lokale kopieën, niet de serverkopie van de organisatie. Zie [Lolly gebruiken bij je organisatie](/info/organisation.html).
 :::
 
 ## Iets vinden dat je hebt opgeslagen

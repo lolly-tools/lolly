@@ -168,7 +168,7 @@ Een vak kan meer bevatten dan een afbeelding. Beide soorten hieronder bewaren ee
 
 ### 3D-scènes
 
-Kies **3D scene** in het toevoegmenu van de balk en sleep een kader uit: 3D Studio opent op het nieuwe vak, en wat je daar instelt komt terug op het canvas. Daarna opent **Edit in 3D Studio** in het gedeelte **3D scene** van de Inspector de studio opnieuw. [Een scène in Design plaatsen](/info/3d-studio.html#place-a-scene-in-design) behandelt posters, de tijdlijn, export en delen.
+Kies **3D scene** in het toevoegmenu van de balk en sleep een kader uit: 3D Studio opent op het nieuwe vak, en wat je daar instelt komt terug op het canvas. Daarna opent **Edit in 3D Studio** in het gedeelte **3D scene** van de Inspector de studio opnieuw. [Een scène in Design plaatsen](/info/3d-studio.html#place-a-scene-in-lolly-design) behandelt posters, de tijdlijn, export en delen.
 
 ### Tools in een ontwerp
 

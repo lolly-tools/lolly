@@ -168,7 +168,7 @@ Box może zawierać więcej niż obraz. Oba poniższe rodzaje zachowują przepis
 
 ### Sceny 3D
 
-Wybierz **3D scene** z menu dodawania na szynie i przeciągnij ramkę: 3D Studio otwiera się na nowym boksie, a to, co tam ustawisz, wraca na kanwę. Potem **Edit in 3D Studio** w sekcji **3D scene** Inspectora ponownie otwiera studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) opisuje plakaty, oś czasu, eksport i udostępnianie.
+Wybierz **3D scene** z menu dodawania na szynie i przeciągnij ramkę: 3D Studio otwiera się na nowym boksie, a to, co tam ustawisz, wraca na kanwę. Potem **Edit in 3D Studio** w sekcji **3D scene** Inspectora ponownie otwiera studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) opisuje plakaty, oś czasu, eksport i udostępnianie.
 
 ### Narzędzia wewnątrz projektu
 

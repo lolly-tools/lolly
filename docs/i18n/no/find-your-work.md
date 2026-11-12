@@ -19,7 +19,7 @@ Hvor arbeidet ditt ligger: nettleserens egen lagring holder Projects, History og
 ::: details Finn delt arbeid i Lolly Work (valgfritt)
 Åpne organisasjonens Lolly og logg på, og se deretter i **Projects → Team projects**. Delte økter holdes av den instansen og vises etter tilgangen din. Å logge på kan gjenopprette tilgang til de øktene på en annen enhet; det gjenoppretter ikke ditt personlige bibliotek eller enhetens sikkerhetskopi.
 
-I en [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), vent på **Saved to work** før du forlater den. Hvis et delt prosjekt mangler, sjekk at du er koblet til riktig instans og spør driftsansvarlig om tilgang eller oppbevaring. Å tømme nettleserdata fjerner lokale kopier, ikke organisasjonens serverkopi. Se [Use Lolly at your organisation](/info/organisation.html).
+I en [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), vent på **Saved to work** før du forlater den. Hvis et delt prosjekt mangler, sjekk at du er koblet til riktig instans og spør driftsansvarlig om tilgang eller oppbevaring. Å tømme nettleserdata fjerner lokale kopier, ikke organisasjonens serverkopi. Se [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Finn noe du har lagret

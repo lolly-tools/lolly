@@ -12,15 +12,10 @@ Pick per team, not per organisation; a hybrid of the first two, pointed at the s
 
 People who use the hosted web app need a browser with WebGPU. Check [Supported environments](/info/supported-environments.html) before you roll it out.
 
-<!--i:eti-download-->
-## Hand out the app
-
-The desktop and mobile apps wrap the same engine and web code in a native binary. Build them with the guides for [desktop](/info/build-desktop.html), [Android](/info/build-mobile.html) and [iOS](/info/ios-build.html), which cover signing, notarisation and store steps, or take the published installers from [Install Lolly](/info/install.html). Distribute the binaries through your device management like any other managed app.
-
 <!--i:eti-hexagon-->
 ## Run it on Kubernetes
 
-The repository ships signed container images and a Helm chart, so running Lolly on your own cluster is a supported way to host the web app, not a recipe to rebuild. A minimal install pins the published web image by digest:
+The repository ships signed container images and a Helm chart, so running Lolly on your own cluster, on Rancher, RKE2 or K3s or any conformant distribution, is a supported way to host the web app, not a recipe to rebuild. A minimal install pins the published web image by digest:
 
 ```bash
 helm install lolly deploy/helm --set web.image.digest=sha256:<digest>
@@ -41,7 +36,7 @@ LOLLY_PROFILE=lolly-demo pnpm run build:web    # output: shells/web/dist/
 
 ### Any static host, including air-gapped
 
-Once loaded, the web app keeps working offline. **Settings → Available offline** turns that best-effort caching into a guarantee: people download the whole app, their tools, the catalogue (whole or by tag) and the docs ahead of a disconnection, with a progress bar and per-part sizes.
+Once loaded, the web app keeps working offline. **Settings → Available offline** turns that best-effort caching into a guarantee: people download the whole app, their tools, the catalog (whole or by tag) and the docs ahead of a disconnection, with a progress bar and per-part sizes.
 
 That makes this the air-gapped path too. Put the static bundle behind your firewall, or into an app your device management delivers, and nothing phones home. The build writes `dist/precache.json`, the app's own file list, and `/info/manifest.json`, the docs site's. The download manager reads both, so keep them in the deployed bundle.
 
@@ -98,6 +93,11 @@ To let the app reach your own storage, such as SharePoint or S3, add those origi
 Set `LOLLY_PROFILE=<name>` on the build so the deployment carries the brand you mean, not whichever profile the resolver would pick; a private pack that is not in the clone can never ship. `pnpm run build:web` writes a real `tools/` and `catalog/` tree into `dist/` from that profile, so the deployed site serves both as plain files and nothing resolves a profile to answer a request. A smaller instance build can carry its `/info` guides in English only with `LOLLY_INFO_LOCALES=en`; [Delivery deployment](/info/deploy-delivery.html#build-and-retain-actual-files) covers that and the other size options.
 
 A service that does read tool source at request time, such as the MCP service's `/tool/<id>.<ext>` render route, needs the packs in its image and the same `LOLLY_PROFILE` in its runtime environment, not only at build time. [Profiles, brands and tool configuration](/info/configuration.html) covers the resolver, and how to change or remove a design system the deployment supplies (see [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system)).
+
+<!--i:eti-download-->
+## Hand out the app
+
+The desktop and mobile apps wrap the same engine and web code in a native binary. Build them with the guides for [desktop](/info/build-desktop.html), [Android](/info/build-mobile.html) and [iOS](/info/ios-build.html), which cover signing, notarisation and store steps, or take the published installers from [Install Lolly](/info/install.html). Distribute the binaries through your device management like any other managed app.
 
 <!--i:eti-layers-->
 ## Add the optional services
