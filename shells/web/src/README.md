@@ -10,18 +10,18 @@ Roughly 896,000 lines of TypeScript, tests included, and 67,000 lines of CSS.
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
 | `views/` | 612 files, 227,176 lines | 331 files, 102,730 lines | 12 files, 1,686 lines |
-| `lib/` | 960 files, 203,404 lines | 593 files, 113,667 lines | 13 files, 1,856 lines |
+| `lib/` | 962 files, 203,682 lines | 594 files, 113,714 lines | 13 files, 1,856 lines |
 | `bridge/` | 272 files, 60,073 lines | 156 files, 32,706 lines | none |
-| `components/` | 138 files, 32,298 lines | 70 files, 17,211 lines | 24 files, 1,641 lines |
+| `components/` | 139 files, 32,374 lines | 70 files, 17,211 lines | 24 files, 1,641 lines |
 | `org/` | 88 files, 22,038 lines | 62 files, 18,307 lines | none |
 | `collab/` | 20 files, 13,570 lines | 22 files, 14,247 lines | none |
 | `pro/` | 32 files, 9,431 lines | 16 files, 2,310 lines | 3 files, 1,256 lines |
 | `catalog/` | 12 files, 2,121 lines | 10 files, 1,275 lines | none |
 | `capture/` | 6 files, 798 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 12 files, 2,184 lines | 150 files, 60,877 lines |
+| `styles/` | none | 12 files, 2,184 lines | 150 files, 60,903 lines |
 
-Plus 53 `.ts`/`.js` files at the top level of `src/`, 20,208 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,486 of that.
+Plus 53 `.ts`/`.js` files at the top level of `src/`, 20,222 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,500 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -76,7 +76,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,615 | `views/timeline-math.ts` | yes |
 | 2,527 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 2,505 | `components/color-field.ts` | yes |
-| 2,486 | `main.ts` | yes |
+| 2,500 | `main.ts` | yes |
 | 2,448 | `views/free-canvas-math.ts` | yes |
 | 2,291 | `lib/drop-router.ts` | yes |
 <!-- web-src-largest:end -->
