@@ -52,8 +52,28 @@ test('the same note blows the same; a slurred note glides in without starting ag
   assert.deepEqual(blowReed(note('cone', 60, 0.7), seeded(3)), blowReed(note('cone', 60, 0.7), seeded(3)));
   const slur = blowReed({ ...note('cone', 62, 0.7), from: mtof(60) }, seeded(4));
   const fresh = blowReed(note('cone', 62, 0.7), seeded(4));
-  // Both start with the bore ringing (the tongue), but a slur's breath is already full while
-  // a fresh note's is still swelling in over its attack.
-  const early = (x: Float32Array) => { let s = 0; for (let i = Math.floor(0.015 * SR); i < Math.floor(0.03 * SR); i++) s += x[i]! * x[i]!; return s; };
-  assert.ok(early(slur) > early(fresh) * 3, 'a slur is at full breath by 15 ms; a fresh note is still swelling in');
+  // A slur's breath is already full, while a fresh note speaks over its first 30 ms, as a
+  // recorded alto's tongued notes do (from 20 dB down to full).
+  const early = (x: Float32Array) => { let s = 0; for (let i = Math.floor(0.002 * SR); i < Math.floor(0.012 * SR); i++) s += x[i]! * x[i]!; return s; };
+  assert.ok(early(slur) > early(fresh) * 3, 'a slur sounds at once; a fresh note is still speaking');
+});
+
+test('a tongued sax note speaks as a recorded alto does: full in tens of milliseconds, its 4th harmonic in the tone', () => {
+  // Measured on an alto's held notes: 10 to 90 per cent of the held level in 16 to 52 ms, and
+  // the 3rd, 4th and 5th harmonics about level with one another.
+  for (const midi of [55, 64, 69]) {
+    const x = blowReed({ ...note('cone', midi, 0.7), dur: 1, seconds: 1.1 }, seeded(midi));
+    const rms = (a: number, b: number) => { let s = 0; for (let i = Math.floor(a * SR); i < Math.floor(b * SR); i++) s += x[i]! * x[i]!; return Math.sqrt(s / ((b - a) * SR)); };
+    const held = rms(0.4, 0.8);
+    let t10 = -1, t90 = -1;
+    for (let t = 0; t < 0.3; t += 0.002) {
+      const now = rms(t, t + 0.002);
+      if (t10 < 0 && now > held * 0.1) t10 = t;
+      if (t90 < 0 && now > held * 0.9) { t90 = t; break; }
+    }
+    assert.ok(t90 > 0 && t90 - t10 < 0.04, `${midi}: from 10 to 90 per cent in ${((t90 - t10) * 1000).toFixed(0)} ms`);
+    const f = mtof(midi);
+    const fourth = harmonic(x, f, 4), around = (harmonic(x, f, 3) + harmonic(x, f, 5)) / 2;
+    assert.ok(fourth > around - 8, `${midi}: the 4th harmonic ${(fourth - around).toFixed(1)} dB against the 3rd and 5th`);
+  }
 });
