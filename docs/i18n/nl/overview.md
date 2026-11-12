@@ -70,7 +70,7 @@ Elk oppervlak gebruikt dezelfde engine en dezelfde toolbestanden.
 
 Dezelfde tool op telefoonbreedte heeft geen tweede lay-out nodig: de bediening wordt een paneel bovenaan en het voorbeeld houdt het scherm.
 
-![Een audiogram op een scherm van 430 px breed: het bedieningspaneel erboven, het afgeronde vierkante artwork eronder en de zwevende exportpil](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Een audiogram op een scherm van 430 px breed: het bedieningspaneel erboven, het afgeronde vierkante artwork eronder en de zwevende exportpil](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 De webapp levert ook **Batch** (`#/batch`, `shells/web/src/pro/`), een raster in spreadsheetstijl dat veel rijen tegelijk rendert over één of meerdere tools; [Batch en Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) behandelt Batch. **Settings → Capabilities** brengt in kaart wat het platform zegt te kunnen.
 

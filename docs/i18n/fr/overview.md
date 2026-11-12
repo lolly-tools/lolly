@@ -70,7 +70,7 @@ Chaque surface utilise le même moteur et les mêmes fichiers d'outils.
 
 Le même outil à la largeur d'un téléphone n'a pas besoin d'une seconde mise en page : les contrôles deviennent une feuille en haut et l'aperçu occupe l'écran.
 
-![Un audiogramme sur un écran de 430 px de large : la feuille de contrôles au-dessus, l'illustration carrée terminée en dessous et la pastille d'export flottante](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Un audiogramme sur un écran de 430 px de large : la feuille de contrôles au-dessus, l'illustration carrée terminée en dessous et la pastille d'export flottante](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 L'application web inclut aussi **Batch** (`#/batch`, `shells/web/src/pro/`), une grille de type tableur qui rend beaucoup de lignes à la fois pour un ou plusieurs outils ; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) couvre Batch. **Settings → Capabilities** cartographie tout ce que la plateforme déclare pouvoir faire.
 

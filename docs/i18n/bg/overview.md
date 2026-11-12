@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 Същият инструмент при ширина на телефон не се нуждае от второ оформление: контролите стават лист най-горе, а прегледът държи екрана.
 
-![Аудиограма на екран с ширина 430px: листът с контроли отгоре, готовата квадратна графика отдолу и плаващата таблетка за експорт](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Аудиограма на екран с ширина 430px: листът с контроли отгоре, готовата квадратна графика отдолу и плаващата таблетка за експорт](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 Уеб приложението доставя и **Batch** (`#/batch`, `shells/web/src/pro/`), мрежа като електронна таблица, която рендерира много редове наведнъж през един или много инструменти; [Batch и Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) обхваща Batch. **Settings → Capabilities** очертава всичко, което платформата декларира, че може да прави.
 

@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 لا تحتاج الأداة نفسها بعرض هاتف إلى تخطيط ثانٍ: تصبح عناصر التحكم ورقة في الأعلى وتحتل المعاينة الشاشة.
 
-![مقطع صوتي مصوّر (audiogram) على شاشة بعرض 430px: ورقة عناصر التحكم فوق، والعمل المربع المنجز تحت، وحبة التصدير العائمة](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![مقطع صوتي مصوّر (audiogram) على شاشة بعرض 430px: ورقة عناصر التحكم فوق، والعمل المربع المنجز تحت، وحبة التصدير العائمة](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 يأتي تطبيق الويب أيضا مع **Batch** (`#/batch`، `shells/web/src/pro/`)، وهو شبكة بأسلوب جدول بيانات تعرض صفوفا كثيرة دفعة واحدة عبر أداة واحدة أو أدوات كثيرة؛ ويغطي [Batch وLolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch. ويرسم **Settings → Capabilities** خريطة كل ما تعلن المنصة أنها تستطيع فعله.
 

@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 فون کی چوڑائی پر وہی ٹول دوسرے لے آؤٹ کا محتاج نہیں: کنٹرولز اوپر شیٹ بن جاتے ہیں اور پری ویو اسکرین سنبھالتا ہے۔
 
-![430px چوڑی اسکرین پر آڈیوگرام: اوپر کنٹرولز شیٹ، نیچے مکمل چوکور آرٹ ورک اور تیرتا ایکسپورٹ pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![430px چوڑی اسکرین پر آڈیوگرام: اوپر کنٹرولز شیٹ، نیچے مکمل چوکور آرٹ ورک اور تیرتا ایکسپورٹ pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 ویب ایپ **Batch** (`#/batch`، `shells/web/src/pro/`) بھی ساتھ لاتی ہے، اسپریڈ شیٹ طرز کا گرڈ جو ایک یا کئی ٹولز میں بہت سی قطاریں ایک ساتھ رینڈر کرتا ہے؛ [Batch اور Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch کا احاطہ کرتا ہے۔ **Settings → Capabilities** وہ سب دکھاتا ہے جو پلیٹ فارم اپنے کرنے کے قابل بتاتا ہے۔
 

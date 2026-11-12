@@ -70,7 +70,7 @@ Ginagamit ng bawat surface ang parehong engine at parehong mga tool file.
 
 Ang parehong tool sa lapad ng phone ay hindi nangangailangan ng ikalawang layout: nagiging sheet sa itaas ang mga kontrol at hawak ng preview ang screen.
 
-![Isang audiogram sa 430px-ang-lapad na screen: ang controls sheet sa itaas, ang tapos na parisukat na artwork sa ibaba at ang lumulutang na export pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Isang audiogram sa 430px-ang-lapad na screen: ang controls sheet sa itaas, ang tapos na parisukat na artwork sa ibaba at ang lumulutang na export pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 Kasama rin sa web app ang **Batch** (`#/batch`, `shells/web/src/pro/`), isang spreadsheet-style na grid na nagre-render ng maraming row nang sabay sa isa o maraming tool; sinasaklaw ng [Batch at Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) ang Batch. Ang **Settings → Capabilities** ay nagmamapa ng lahat ng idineklara ng platform na kaya nitong gawin.
 

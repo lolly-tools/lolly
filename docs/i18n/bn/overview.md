@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 ফোনের প্রস্থে একই টুলের জন্য দ্বিতীয় লেআউট লাগে না: কন্ট্রোল ওপরে শিট হয়ে যায় এবং প্রিভিউ পর্দা ধরে।
 
-![430px-চওড়া পর্দায় একটি অডিওগ্রাম: ওপরে কন্ট্রোল শিট, নিচে সম্পন্ন চৌকো শিল্পকর্ম এবং ভাসমান এক্সপোর্ট পিল](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![430px-চওড়া পর্দায় একটি অডিওগ্রাম: ওপরে কন্ট্রোল শিট, নিচে সম্পন্ন চৌকো শিল্পকর্ম এবং ভাসমান এক্সপোর্ট পিল](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 ওয়েব অ্যাপে **Batch**ও আছে (`#/batch`, `shells/web/src/pro/`), একটি স্প্রেডশিট-ধাঁচের গ্রিড যা এক বা অনেক টুল জুড়ে একসঙ্গে অনেক সারি রেন্ডার করে; Batch [Batch ও Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)-এ আছে। **Settings → Capabilities** প্ল্যাটফর্ম যা যা করতে পারে বলে ঘোষণা করে তার মানচিত্র দেয়।
 

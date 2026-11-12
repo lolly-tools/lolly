@@ -70,7 +70,7 @@ Każda powierzchnia używa tego samego silnika i tych samych plików narzędzi.
 
 To samo narzędzie przy szerokości telefonu nie potrzebuje drugiego układu: kontrolki stają się arkuszem u góry, a podgląd zajmuje ekran.
 
-![Audiogram na ekranie o szerokości 430 px: arkusz kontrolek u góry, gotowa kwadratowa grafika poniżej i pływająca pigułka eksportu](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Audiogram na ekranie o szerokości 430 px: arkusz kontrolek u góry, gotowa kwadratowa grafika poniżej i pływająca pigułka eksportu](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 Aplikacja internetowa zawiera też **Batch** (`#/batch`, `shells/web/src/pro/`), siatkę w stylu arkusza kalkulacyjnego, która renderuje wiele wierszy naraz dla jednego lub wielu narzędzi; [Batch i Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) opisuje Batch. **Settings → Capabilities** mapuje wszystko, co platforma deklaruje, że potrafi.
 

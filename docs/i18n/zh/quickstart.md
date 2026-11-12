@@ -77,7 +77,7 @@ pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 
 链接就是一个完整的请求。下面的图表不是任何人画的：它的类型、标题和整张数据表都是输入在地址栏里的，同一个链接在任何设备上都会画出同样的图表。
 
-![月度注册量面积图,图中的每个数值都以查询参数的形式传入,而非通过点击生成](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
+![按渠道统计的月度注册量柱状图,采用设计系统的配色,图中的每个数值都以查询参数的形式传入,而非通过点击生成](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## 接下来去哪里
 

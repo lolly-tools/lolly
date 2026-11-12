@@ -9,4 +9,4 @@ You publish on a deadline, in a house style readers recognise. Build each graphi
 
 Every finished graphic is also a link that re-renders from its own inputs, so the desk can regenerate last night's chart with this morning's numbers. Nobody drew the chart below: its type, heading and data all arrived in the link. See [URL Mode](/info/url-mode.html).
 
-![An area chart of monthly signups whose every value arrived as a query parameter rather than a click](/info/shots/vt-d3-url-chart.svg)
+![A bar chart of monthly signups by channel in the design system's colours, whose every value arrived as a query parameter rather than a click](/info/shots/vt-d3-url-chart.svg)

@@ -70,7 +70,7 @@ Hver flate bruker den samme motoren og de samme verktøyfilene.
 
 Det samme verktøyet i telefonbredde trenger ingen andre layout: kontrollene blir et ark øverst, og forhåndsvisningen holder skjermen.
 
-![Et audiogram på en 430 px bred skjerm: kontrollarket over, det ferdige kvadratiske bildet under og den flytende eksportpillen](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Et audiogram på en 430 px bred skjerm: kontrollarket over, det ferdige kvadratiske bildet under og den flytende eksportpillen](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 Nettappen leveres også med **Batch** (`#/batch`, `shells/web/src/pro/`), et regnearklignende rutenett som gjengir mange rader samtidig på tvers av ett eller flere verktøy; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) dekker Batch. **Settings → Capabilities** kartlegger alt plattformen oppgir at den kan gjøre.
 

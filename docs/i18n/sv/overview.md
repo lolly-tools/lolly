@@ -70,7 +70,7 @@ Varje yta använder samma motor och samma verktygsfiler.
 
 Samma verktyg i telefonbredd behöver ingen annan layout: kontrollerna blir ett blad överst och förhandsvisningen håller skärmen.
 
-![Ett audiogram på en 430 px bred skärm: kontrollbladet ovanför, det färdiga kvadratiska verket under och den flytande exportpillen](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Ett audiogram på en 430 px bred skärm: kontrollbladet ovanför, det färdiga kvadratiska verket under och den flytande exportpillen](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 Webbappen levereras också med **Batch** (`#/batch`, `shells/web/src/pro/`), ett rutnät i kalkylbladsstil som renderar många rader på en gång över ett eller många verktyg; [Batch och Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) beskriver Batch. **Settings → Capabilities** kartlägger allt plattformen deklarerar att den kan göra.
 

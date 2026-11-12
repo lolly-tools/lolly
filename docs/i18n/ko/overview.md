@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 같은 도구가 휴대폰 너비에서도 두 번째 레이아웃이 필요 없어요. 컨트롤은 위쪽 시트가 되고 미리보기가 화면을 차지해요.
 
-![430px 너비 화면의 오디오그램: 위쪽에 컨트롤 시트, 아래에 완성된 정사각형 아트워크, 떠 있는 내보내기 알약](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![430px 너비 화면의 오디오그램: 위쪽에 컨트롤 시트, 아래에 완성된 정사각형 아트워크, 떠 있는 내보내기 알약](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 웹 앱에는 **Batch**(`#/batch`, `shells/web/src/pro/`)도 포함돼요. 하나 또는 여러 도구에 걸쳐 많은 행을 한꺼번에 렌더링하는 스프레드시트식 그리드이며, [Batch와 Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)이 Batch를 다뤄요. **Settings → Capabilities**는 플랫폼이 할 수 있다고 선언하는 모든 것을 정리해요.
 
