@@ -717,10 +717,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
           + c.options.map((o) => `<button type="button" aria-pressed="false" data-ctl="${id}" data-ctl-opt="${esc(o.id)}">${esc(o.label)}</button>`).join('')
           + `</div>`;
       case 'toggle':
+        if (c.icon) return `<button type="button" class="audio-dock-btn audio-dock-icon-ctl" aria-pressed="false" data-ctl="${id}" aria-label="${esc(c.label)}" title="${esc(c.label)}" data-tip="${esc(c.label)}">${c.icon}</button>`;
         return `<button type="button" class="audio-dock-toggle" aria-pressed="false" data-ctl="${id}">${esc(c.label)}</button>`;
       case 'range':
         return `<label class="audio-dock-vol"><span>${esc(c.label)}</span><input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.get()}" data-ctl="${id}" aria-label="${esc(c.label)}"></label>`;
       case 'action':
+        if (c.icon) return `<button type="button" class="audio-dock-btn audio-dock-icon-ctl" data-ctl="${id}" aria-label="${esc(c.label)}" title="${esc(c.label)}" data-tip="${esc(c.label)}">${c.icon}</button>`;
         return `<button type="button" class="audio-dock-toggle audio-dock-action" data-ctl="${id}">${esc(c.label)}</button>`;
       default:
         return '';
@@ -728,10 +730,14 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   }
   function renderControls(): void {
     const list = controlList();
-    const sig = list.map((c) => `${c.kind}:${c.id}:${c.label}${c.kind === 'choice' ? `:${c.options.map((o) => `${o.id}=${o.label}`).join(',')}` : ''}`).join('|');
+    const iconOf = (c: DockControl): string | undefined => (c.kind === 'toggle' || c.kind === 'action' ? c.icon : undefined);
+    const sig = list.map((c) => `${c.kind}:${c.id}:${c.label}${iconOf(c) ? ':icon' : ''}${c.kind === 'choice' ? `:${c.options.map((o) => `${o.id}=${o.label}`).join(',')}` : ''}`).join('|');
     if (sig !== controlsSig) {
       controlsSig = sig;
-      controlsEl.innerHTML = list.map(controlHtml).join('');
+      // The icon buttons together in one row at the end, with a line for what an action says.
+      const icons = list.filter((c) => iconOf(c));
+      controlsEl.innerHTML = list.filter((c) => !iconOf(c)).map(controlHtml).join('')
+        + (icons.length ? `<div class="audio-dock-icons" role="group" aria-label="Actions"><span class="audio-dock-said" role="status" aria-live="polite" data-said></span>${icons.map(controlHtml).join('')}</div>` : '');
     }
     const active = doc.activeElement;
     for (const el of controlsEl.querySelectorAll<HTMLElement>('[data-ctl]')) {
@@ -1437,8 +1443,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     else if (c.kind === 'action') {
       void Promise.resolve(c.run()).then((said) => {
         if (!said || !el.isConnected) return;
-        el.textContent = said;
-        setTimeout(() => { if (el.isConnected) el.textContent = c.label; }, 1600);
+        // An icon button keeps its icon; what it said shows beside the row instead.
+        const line = c.icon ? controlsEl.querySelector<HTMLElement>('[data-said]') : null;
+        const target = line ?? el;
+        target.textContent = said;
+        setTimeout(() => { if (target.isConnected) target.textContent = line ? '' : c.label; }, 1600);
       });
     }
     refresh();

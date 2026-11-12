@@ -768,7 +768,7 @@ class NeurospicyDockHost implements DockHost {
     const mood = lofiMoodOf(id);
     // One share card for every kind of track: this tune, or this moment.
     const share: DockControl = {
-      kind: 'action', id: 'share', label: 'Share',
+      kind: 'action', id: 'share', label: 'Share this tune or moment', icon: icon('share', { size: 17 }),
       run: async () => {
         const [offer, card] = await Promise.all([this.shareOffer(), import('../components/neuro-share-card.ts')]);
         card.openNeuroShare(offer);
@@ -785,13 +785,13 @@ class NeurospicyDockHost implements DockHost {
       set: (m) => this.select(lofiId(m as NonNullable<typeof mood>)),
     }];
     const saveControl: DockControl[] = saved ? [] : [{
-      kind: 'action', id: 'lofi-save', label: 'Save to library',
+      kind: 'action', id: 'lofi-save', label: 'Save to library', icon: icon('folderPlus', { size: 17 }),
       run: async () => {
         try { return (await saveLofiTune(this.nhost)) ? 'Saved to your library' : 'Play it first'; } catch { return 'Could not save'; }
       },
     }];
     const lightControl: DockControl[] = heavyStation(id) ? [{
-      kind: 'toggle', id: 'lofi-light-viz', label: 'Light visualiser',
+      kind: 'toggle', id: 'lofi-light-viz', label: 'Light visualiser', icon: icon('zap', { size: 17 }),
       get: () => this.viz.lightOn(),
       set: (on) => { this.viz.setLight(on); this.emitChange(); },
     }] : [];
@@ -808,7 +808,7 @@ class NeurospicyDockHost implements DockHost {
         set: (v) => setLofiTexture(this.nhost, v),
       },
       {
-        kind: 'action', id: 'lofi-edit', label: 'Open in the music generator',
+        kind: 'action', id: 'lofi-edit', label: 'Open in the music generator', icon: icon('music', { size: 17 }),
         run: async () => {
           const recipe = savedTuneOf(getNeurospicy().loopId) ?? currentLofiRecipe();
           if (!recipe || typeof location === 'undefined') return 'Play it first';
