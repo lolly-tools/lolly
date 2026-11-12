@@ -162,9 +162,9 @@
     {
       "id": "delivery.share-link",
       "kind": "delivery",
-      "title": "Share a link to a tool or asset",
+      "title": "Share a link to a tool, an asset or what the player is playing",
       "status": "raw-utility",
-      "code": ["shells/web/src/views/gallery-strip-menu.ts"],
+      "code": ["shells/web/src/views/gallery-strip-menu.ts", "shells/web/src/components/neuro-share-card.ts"],
       "note": "Shares a URL, not bytes. The page the link opens is its own delivery."
     },
     {
