@@ -3,7 +3,7 @@
   "name": "Doc Studio",
   "description": "Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.",
   "a11yLabel": "{{default docTitle \"Untitled\"}} - multi-page document",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -23,6 +23,7 @@
     "compose"
   ],
   "render": {
+    "sectionIcons": { "Treatment": "paintbrush" },
     "width": 794,
     "height": 1123,
     "formats": ["pdf", "pptx", "svg", "penpot", "md", "docx", "odt", "html"],
@@ -117,17 +118,12 @@
       "id": "theme",
       "label": "Paper",
       "type": "select",
-      "default": "light",
-      "help": "Light paper (dark ink) or dark paper (light ink).",
+      "default": "system",
+      "help": "Design system follows the colourway and treatment for this piece.",
       "options": [
-        {
-          "value": "light",
-          "label": "Light"
-        },
-        {
-          "value": "dark",
-          "label": "Dark"
-        }
+        {"value": "system", "label": "Design system"},
+        {"value": "light", "label": "Light"},
+        {"value": "dark", "label": "Dark"}
       ]
     },
     {
@@ -183,6 +179,34 @@
       "min": 100,
       "max": 8000,
       "group": "export"
+    },
+    {
+      "id": "ground",
+      "showIf": { "theme": "system" },
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
+    },
+    {
+      "id": "density",
+      "label": "Spacing",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Fit content"},
+        {"value": "compact", "label": "Compact"},
+        {"value": "comfortable", "label": "Comfortable"},
+        {"value": "spacious", "label": "Spacious"}
+      ],
+      "section": "Treatment"
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-11T17:46:45.542Z",
+  "generatedAt": "2026-11-11T18:21:27.794Z",
   "tools": [
     {
       "id": "3d",
@@ -1484,7 +1484,7 @@
       "id": "battlecards",
       "name": "Battlecards",
       "description": "Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
-      "version": "1.3.3",
+      "version": "1.4.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -1786,7 +1786,7 @@
       "id": "calendar-ics",
       "name": "Calendar",
       "description": "Turn event details into a calendar (.ics) file for any calendar app.",
-      "version": "1.2.4",
+      "version": "1.3.0",
       "status": "official",
       "category": "event",
       "tags": [
@@ -5704,7 +5704,7 @@
       "id": "doc-studio",
       "name": "Doc Studio",
       "description": "Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -7899,7 +7899,7 @@
       "id": "link-card",
       "name": "Link Card",
       "description": "Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
-      "version": "1.0.4",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -7920,7 +7920,11 @@
         "penpot",
         "pdf",
         "avif",
-        "tiff"
+        "tiff",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
       ],
       "width": 1200,
       "height": 630,
@@ -8101,7 +8105,7 @@
       "id": "logo-wall",
       "name": "Logo Wall",
       "description": "Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall.",
-      "version": "1.8.1",
+      "version": "1.9.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -8525,7 +8529,7 @@
       "id": "meeting-planner",
       "name": "Meeting Planner",
       "description": "Plan a global meeting and see the time for every teammate's timezone.",
-      "version": "1.2.4",
+      "version": "1.3.0",
       "status": "official",
       "category": "event",
       "tags": [
@@ -8669,7 +8673,7 @@
       "id": "multi-page-pdf",
       "name": "Booklet",
       "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
-      "version": "1.1.4",
+      "version": "1.2.0",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -9168,7 +9172,7 @@
       "id": "pricing-table",
       "name": "Pricing",
       "description": "Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.",
-      "version": "1.1.2",
+      "version": "1.2.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -9189,7 +9193,11 @@
         "json",
         "jpg",
         "webp",
-        "avif"
+        "avif",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
       ],
       "width": 1600,
       "height": 1000,
@@ -12191,7 +12199,7 @@
       "id": "stationery",
       "name": "Stationery",
       "description": "Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF.",
-      "version": "1.0.4",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14042,7 +14050,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding",
       "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
-      "version": "1.2.5",
+      "version": "1.3.0",
       "status": "official",
       "category": "event",
       "tags": [
@@ -14655,7 +14663,7 @@
       "id": "quote",
       "name": "Sales Quote",
       "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14694,7 +14702,7 @@
       "id": "brief",
       "name": "Brief",
       "description": "A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14712,7 +14720,11 @@
         "png",
         "svg",
         "jpeg",
-        "webp"
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
       ],
       "width": 1600,
       "height": 1000,
@@ -14724,7 +14736,7 @@
       "id": "email",
       "name": "Email",
       "description": "An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments, as received, a draft or sent. For mock-ups, slides and walkthroughs.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14741,7 +14753,11 @@
         "svg",
         "pdf",
         "jpeg",
-        "webp"
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
       ],
       "width": 1600,
       "height": 1000,
@@ -14753,7 +14769,7 @@
       "id": "scorecard",
       "name": "Scorecard",
       "description": "Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence behind it, and an overall score. Paste the rows from a spreadsheet, such as MEDDPICC for a deal.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14771,7 +14787,11 @@
         "svg",
         "pdf",
         "jpeg",
-        "webp"
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
       ],
       "width": 1600,
       "height": 1000,
@@ -14783,7 +14803,7 @@
       "id": "week",
       "name": "Week",
       "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -14800,7 +14820,11 @@
         "svg",
         "pdf",
         "jpeg",
-        "webp"
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
       ],
       "width": 1600,
       "height": 1000,

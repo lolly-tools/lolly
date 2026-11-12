@@ -3,7 +3,7 @@
   "name": "Booklet",
   "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
   "a11yLabel": "{{default coverTitle \"Untitled\"}} - multi-page PDF document",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -14,6 +14,7 @@
   },
   "render": {
     "sectionIcons": {
+      "Treatment": "paintbrush",
       "Typography": "font",
       "Cover": "document",
       "Back page": "document"
@@ -59,11 +60,12 @@
       "display": "segmented",
       "label": "Light / dark style",
       "type": "select",
-      "default": "light",
-      "help": "Sets the light or dark treatment (text and logo) for both the cover and the back page.",
+      "default": "system",
+      "help": "Design system follows the colourway and treatment for this piece.",
       "options": [
-        { "value": "light", "label": "Light" },
-        { "value": "dark", "label": "Dark" }
+        {"value": "system", "label": "Design system"},
+        {"value": "light", "label": "Light"},
+        {"value": "dark", "label": "Dark"}
       ]
     },
     {
@@ -358,6 +360,33 @@
     },
 
     { "id": "width", "label": "Page width", "type": "number", "default": 794, "min": 100, "max": 8000, "group": "export" },
-    { "id": "height", "label": "Page height", "type": "number", "default": 1123, "min": 100, "max": 8000, "group": "export" }
+    { "id": "height", "label": "Page height", "type": "number", "default": 1123, "min": 100, "max": 8000, "group": "export" },
+    {
+      "id": "ground",
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
+    },
+    {
+      "id": "density",
+      "label": "Spacing",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Fit content"},
+        {"value": "compact", "label": "Compact"},
+        {"value": "comfortable", "label": "Comfortable"},
+        {"value": "spacious", "label": "Spacious"}
+      ],
+      "section": "Treatment"
+    }
   ]
 }

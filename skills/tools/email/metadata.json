@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "email",
-  "toolVersion": "1.0.0",
-  "toolVersionRange": "1.0.0",
+  "toolVersion": "1.1.0",
+  "toolVersionRange": "1.1.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,12 +10,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "017fe85ce798cd41150190d4d98ec90660df5827e3a5e40498fea348cb67473b",
-      "bytes": 1763
+      "sha256": "0fef01adde5fb79d9f2c2e366d8fa5d328d0f094fd992122acbfbac754b2601b",
+      "bytes": 1879
     },
     "reference/inputs.json": {
-      "sha256": "37436795092e13521a71dd692b45332e54be02f7752ba5ff1d7c62bef3987d19",
-      "bytes": 2700
+      "sha256": "77e169d5a01a0566886936bbb24b90d180754cade937cc84e3ee32418b4a0e8f",
+      "bytes": 4522
     }
   }
 }

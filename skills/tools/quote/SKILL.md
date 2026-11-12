@@ -5,7 +5,7 @@ description: "Operate the Lolly Sales Quote tool (quote) using its declared inpu
 
 # Sales Quote
 
-Tool ID: `quote`. Tool version: `1.0.1`. Engine range: `^1.82.0`.
+Tool ID: `quote`. Tool version: `1.1.0`. Engine range: `^1.82.0`.
 
 A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.
 
@@ -35,6 +35,9 @@ Required host APIs: none. Device capabilities: none.
 | accent | color |  |
 | background | color |  |
 | ink | color |  |
+| ground | select |  |
+| density | select |  |
+| layout | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

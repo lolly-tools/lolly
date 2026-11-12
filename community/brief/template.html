@@ -1,6 +1,6 @@
-<div class="qb-page" style="--qb-accent: {{default accent "#2563eb"}}; --qb-bg: {{default background "#ffffff"}}; --qb-ink: {{default ink "#111827"}}; --qb-scale: {{default scale "1"}}; --qb-cols: {{default wideCols "3"}};">
-  <div class="qb-sheet">
-    <header class="qb-head">
+<div class="qb-page" data-content-surface data-ground="{{ground}}" data-density="{{density}}" data-layout="{{layout}}" data-motion="{{motion}}" data-enter-seconds="{{surfaceEnterSeconds}}" data-curve="{{surfaceCurve}}" style="--content-space:{{surfaceSpacing}}; --qb-on-accent:{{surfaceOnAccent}}; --qb-accent: {{surfaceAccent}}; --qb-bg: {{surfaceGround}}; --qb-ink: {{surfaceInk}}; --qb-scale: {{default scale "1"}}; --qb-cols: {{default wideCols "3"}};">
+  <div class="qb-sheet" data-content-fit>
+    <header class="qb-head" data-reveal>
       {{#if subheading}}<span class="qb-kicker">{{subheading}}</span>{{/if}}
       {{#if briefTitle}}<h1 class="qb-title">{{briefTitle}}</h1>{{/if}}
       {{#if briefMeta}}<p class="qb-meta">{{briefMeta}}</p>{{/if}}
@@ -8,11 +8,11 @@
 
     {{!-- Every piece of text is Markdown from hooks.js, rendered (and escaped)
           by the markdown helper. --}}
-    {{#each intro}}<div class="qb-intro">{{markdown this}}</div>{{/each}}
+    {{#each intro}}<div class="qb-intro" data-reveal>{{markdown this}}</div>{{/each}}
 
     <div class="qb-points">
       {{#each points}}
-      <section class="qb-point">
+      <section class="qb-point" data-reveal>
         {{#if label}}<h2 class="qb-label">{{label}}</h2>{{/if}}
         <div class="qb-text">{{markdown text}}</div>
       </section>
@@ -20,9 +20,12 @@
     </div>
 
     {{#if hasNotes}}
-    <footer class="qb-notes">
+    <footer class="qb-notes" data-reveal>
       {{#each notes}}<div class="qb-note">{{#if label}}<b>{{label}}:</b> {{/if}}{{markdown text}}</div>{{/each}}
     </footer>
     {{/if}}
   </div>
+  {{#unless (eq motion "none")}}<button type="button" data-content-play data-export-hide>Play motion</button>{{/unless}}
+  <p data-content-fit-warning data-export-hide hidden role="status">This content needs more room. Choose a larger size, fewer columns or shorter text.</p>
+  <canvas data-content-clock width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none"></canvas>
 </div>

@@ -3,7 +3,7 @@
   "name": "Sales Quote",
   "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
   "a11yLabel": "Quote for {{default customer \"a customer\"}}",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "engineVersion": "^1.82.0",
   "status": "community",
   "category": "everyone",
@@ -13,7 +13,7 @@
     "height": 1000,
     "formats": ["pdf", "png", "svg", "jpeg", "webp"],
     "actions": ["copy", "download", "save"],
-    "sectionIcons": { "Totals": "hash", "Style": "palette" }
+    "sectionIcons": { "Treatment": "paintbrush", "Totals": "hash", "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
   "inputs": [
@@ -83,6 +83,45 @@
     },
     { "id": "accent", "label": "Accent", "type": "color", "default": "{color.semantic.primary}", "section": "Style" },
     { "id": "background", "label": "Background", "type": "color", "default": "{color.semantic.surface}", "section": "Style" },
-    { "id": "ink", "label": "Text colour", "type": "color", "default": "{color.semantic.text}", "section": "Style" }
+    { "id": "ink", "label": "Text colour", "type": "color", "default": "{color.semantic.text}", "section": "Style" },
+    {
+      "id": "ground",
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
+    },
+    {
+      "id": "density",
+      "label": "Spacing",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Fit content"},
+        {"value": "compact", "label": "Compact"},
+        {"value": "comfortable", "label": "Comfortable"},
+        {"value": "spacious", "label": "Spacious"}
+      ],
+      "section": "Treatment"
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Responsive"},
+        {"value": "page", "label": "Page"},
+        {"value": "summary", "label": "Summary"}
+      ],
+      "section": "Treatment"
+    }
   ]
 }

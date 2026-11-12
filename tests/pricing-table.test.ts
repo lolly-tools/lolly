@@ -419,7 +419,10 @@ test('the template reads only ids and extras the tool actually supplies', { skip
   const supplied = new Set<string>(manifest.inputs.map((i: { id: string }) => i.id));
   for (const key of ['error', 'ctaText', 'hasButtons', 'gridCols', 'tiers', 'rows',
     'inkColor', 'paperColor', 'accentColor', 'onAccentColor',
-    'cardColor', 'edgeColor', 'mutedColor', 'tintColor']) supplied.add(key);
+    'cardColor', 'edgeColor', 'mutedColor', 'tintColor', 'surfaceSpacing',
+    'surfaceInk', 'surfaceGround', 'surfaceAccent', 'surfaceOnAccent',
+    'surfacePanel', 'surfaceEdge', 'surfaceMuted', 'surfaceTint',
+    'surfaceEnterSeconds', 'surfaceCurve']) supplied.add(key);
   for (const name of roots) {
     assert.ok(supplied.has(name), `template reads {{${name}}}, which no input or hook extra supplies`);
     // `error` is the one reference that is deliberately empty on a good table.
@@ -434,7 +437,7 @@ test('the render never depends on script, a network fetch or a bare colour', { s
   const css = await readFile(join(PKG, 'styles.css'), 'utf8');
   const { html } = await mount();
 
-  assert.ok(!/<script|on[a-z]+\s*=/i.test(template), 'the sheet must render with no script');
+  assert.ok(!/<script|\son[a-z]+\s*=/i.test(template), 'the sheet must render with no script');
   for (const [what, src] of [['template', template], ['styles', css], ['render', html]] as const) {
     assert.ok(!/https?:\/\/|@import|url\(/i.test(src), `${what} must not reach off-device`);
   }

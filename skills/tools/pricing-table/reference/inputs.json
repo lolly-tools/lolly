@@ -143,5 +143,78 @@
     ],
     "help": "Cards gives each plan its own panel. Comparison grid is flat, with a hairline under every feature row.",
     "section": "Look"
+  },
+  {
+    "id": "ground",
+    "label": "Colour treatment",
+    "type": "select",
+    "default": "tint",
+    "options": [
+      {
+        "value": "tint",
+        "label": "Brand tint"
+      },
+      {
+        "value": "lead",
+        "label": "Lead colour"
+      },
+      {
+        "value": "ink",
+        "label": "Ink"
+      },
+      {
+        "value": "surface",
+        "label": "Surface"
+      }
+    ],
+    "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+    "section": "Treatment"
+  },
+  {
+    "id": "density",
+    "label": "Spacing",
+    "type": "select",
+    "default": "auto",
+    "options": [
+      {
+        "value": "auto",
+        "label": "Fit content"
+      },
+      {
+        "value": "compact",
+        "label": "Compact"
+      },
+      {
+        "value": "comfortable",
+        "label": "Comfortable"
+      },
+      {
+        "value": "spacious",
+        "label": "Spacious"
+      }
+    ],
+    "section": "Treatment"
+  },
+  {
+    "id": "motion",
+    "label": "Motion",
+    "type": "select",
+    "default": "none",
+    "options": [
+      {
+        "value": "none",
+        "label": "Still"
+      },
+      {
+        "value": "fade",
+        "label": "Fade in order"
+      },
+      {
+        "value": "rise",
+        "label": "Rise in order"
+      }
+    ],
+    "help": "Reveals the content in reading order. Still exports always show the complete piece.",
+    "section": "Treatment"
   }
 ]

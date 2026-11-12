@@ -3,17 +3,19 @@
   "name": "Week",
   "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.",
   "a11yLabel": "Week calendar: {{default heading \"a week\"}}",
-  "version": "1.0.0",
-  "engineVersion": "^1.82.0",
+  "version": "1.1.0",
+  "engineVersion": "^1.343.0",
   "status": "community",
   "category": "everyone",
   "tags": ["calendar", "week", "schedule", "meeting", "availability", "slots", "planner"],
   "render": {
+    "portable": true,
+    "video": { "duration": 4, "wait": 0 },
     "width": 1600,
     "height": 1000,
-    "formats": ["png", "svg", "pdf", "jpeg", "webp"],
+    "formats": ["png", "svg", "pdf", "jpeg", "webp", "mp4", "webm", "gif", "html"],
     "actions": ["copy", "download", "save"],
-    "sectionIcons": { "Week": "calendar", "Style": "palette" }
+    "sectionIcons": { "Treatment": "paintbrush", "Week": "calendar", "Style": "palette" }
   },
   "hooks": { "onInit": true, "onInput": true },
   "inputs": [
@@ -67,6 +69,57 @@
     },
     { "id": "accent", "label": "Accent", "type": "color", "default": "{color.semantic.primary}", "section": "Style" },
     { "id": "background", "label": "Background", "type": "color", "default": "{color.semantic.surface}", "section": "Style" },
-    { "id": "ink", "label": "Text colour", "type": "color", "default": "{color.semantic.text}", "section": "Style" }
+    { "id": "ink", "label": "Text colour", "type": "color", "default": "{color.semantic.text}", "section": "Style" },
+    {
+      "id": "ground",
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
+    },
+    {
+      "id": "density",
+      "label": "Spacing",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Fit content"},
+        {"value": "compact", "label": "Compact"},
+        {"value": "comfortable", "label": "Comfortable"},
+        {"value": "spacious", "label": "Spacious"}
+      ],
+      "section": "Treatment"
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Timetable"},
+        {"value": "agenda", "label": "Agenda"}
+      ],
+      "section": "Treatment"
+    },
+    {
+      "id": "motion",
+      "label": "Motion",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {"value": "none", "label": "Still"},
+        {"value": "fade", "label": "Fade in order"},
+        {"value": "rise", "label": "Rise in order"}
+      ],
+      "help": "Reveals the content in reading order. Still exports always show the complete piece.",
+      "section": "Treatment"
+    }
   ]
 }

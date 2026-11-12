@@ -1,7 +1,7 @@
-<div class="pt-root pt-{{default layout "cards"}}{{#if hasButtons}} pt-hascta{{/if}}" style="--pt-ink:{{inkColor}};--pt-paper:{{paperColor}};--pt-accent:{{accentColor}};--pt-on-accent:{{onAccentColor}};--pt-card:{{cardColor}};--pt-edge:{{edgeColor}};--pt-muted:{{mutedColor}};--pt-tint:{{tintColor}}">
-  <div class="pt-stage">
+<div class="pt-root pt-{{default layout "cards"}}{{#if hasButtons}} pt-hascta{{/if}}" data-content-surface data-ground="{{ground}}" data-density="{{density}}" data-layout="{{layout}}" data-motion="{{motion}}" data-enter-seconds="{{surfaceEnterSeconds}}" data-curve="{{surfaceCurve}}" style="--content-space:{{surfaceSpacing}};--pt-ink:{{surfaceInk}};--pt-paper:{{surfaceGround}};--pt-accent:{{surfaceAccent}};--pt-on-accent:{{surfaceOnAccent}};--pt-card:{{surfacePanel}};--pt-edge:{{surfaceEdge}};--pt-muted:{{surfaceMuted}};--pt-tint:{{surfaceTint}}">
+  <div class="pt-stage" data-content-fit>
 
-    <header class="pt-head">
+    <header class="pt-head" data-reveal>
       <h1 class="pt-heading">{{heading}}</h1>
       {{#if subheading}}<p class="pt-sub">{{subheading}}</p>{{/if}}
     </header>
@@ -13,7 +13,7 @@
 
       <div class="pt-corner"></div>
       {{#each tiers}}
-      <div class="pt-tier{{#if highlighted}} pt-on{{/if}}">
+      <div data-reveal class="pt-tier{{#if highlighted}} pt-on{{/if}}">
         {{#if badge}}<span class="pt-badge">{{badge}}</span>{{/if}}
         <span class="pt-name">{{name}}</span>
         <span class="pt-price">{{price}}</span>
@@ -24,18 +24,18 @@
       {{#if hasButtons}}
       <div class="pt-corner"></div>
       {{#each tiers}}
-      <div class="pt-act{{#if highlighted}} pt-on{{/if}}">
+      <div data-reveal class="pt-act{{#if highlighted}} pt-on{{/if}}">
         {{#if ctaLabel}}{{#if href}}<a class="pt-cta" href="{{href}}" target="_blank" rel="noopener noreferrer">{{arrow ctaLabel}}</a>{{else}}<span class="pt-cta">{{arrow ctaLabel}}</span>{{/if}}{{/if}}
       </div>
       {{/each}}
       {{/if}}
 
       {{#each rows}}
-      <div class="pt-feature{{#if first}} pt-first{{/if}}{{#if last}} pt-last{{/if}}">{{arrow name}}</div>
+      <div data-reveal class="pt-feature{{#if first}} pt-first{{/if}}{{#if last}} pt-last{{/if}}">{{arrow name}}</div>
       {{#each cells}}
-      <div class="pt-cell{{#if highlighted}} pt-on{{/if}}{{#if first}} pt-first{{/if}}{{#if last}} pt-last{{/if}}">
-        {{#if tick}}<svg class="pt-glyph" viewBox="0 0 20 20" width="22" height="22" fill="none" stroke="{{glyph}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Included"><path d="M4 10.6 8.2 14.8 16 6.2"/></svg>{{/if}}
-        {{#if cross}}<svg class="pt-glyph" viewBox="0 0 20 20" width="22" height="22" fill="none" stroke="{{glyph}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Not included"><path d="M5.6 5.6 14.4 14.4"/><path d="M14.4 5.6 5.6 14.4"/></svg>{{/if}}
+      <div data-reveal class="pt-cell{{#if highlighted}} pt-on{{/if}}{{#if first}} pt-first{{/if}}{{#if last}} pt-last{{/if}}">
+        {{#if tick}}<svg class="pt-glyph" viewBox="0 0 20 20" width="22" height="22" fill="none" stroke="{{@root.surfaceAccent}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Included"><path d="M4 10.6 8.2 14.8 16 6.2"/></svg>{{/if}}
+        {{#if cross}}<svg class="pt-glyph" viewBox="0 0 20 20" width="22" height="22" fill="none" stroke="{{@root.surfaceMuted}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Not included"><path d="M5.6 5.6 14.4 14.4"/><path d="M14.4 5.6 5.6 14.4"/></svg>{{/if}}
         {{#if isText}}<span class="pt-text">{{arrow text}}</span>{{/if}}
       </div>
       {{/each}}
@@ -45,4 +45,7 @@
     {{/if}}
 
   </div>
+  {{#unless (eq motion "none")}}<button type="button" data-content-play data-export-hide>Play motion</button>{{/unless}}
+  <p data-content-fit-warning data-export-hide hidden role="status">This content needs more room. Choose a larger size, fewer columns or shorter text.</p>
+  <canvas data-content-clock width="0" height="0" aria-hidden="true" style="position:absolute;pointer-events:none"></canvas>
 </div>

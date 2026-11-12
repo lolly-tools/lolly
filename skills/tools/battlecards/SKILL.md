@@ -5,7 +5,7 @@ description: "Operate the Lolly Battlecards tool (battlecards) using its declare
 
 # Battlecards
 
-Tool ID: `battlecards`. Tool version: `1.3.3`. Engine range: `^1.82.0`.
+Tool ID: `battlecards`. Tool version: `1.4.0`. Engine range: `^1.82.0`.
 
 Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.
 
@@ -26,6 +26,9 @@ Required host APIs: none. Device capabilities: none.
 | bg | color |  |
 | ink | color |  |
 | footer | text |  |
+| ground | select |  |
+| density | select |  |
+| layout | select |  |
 
 Read [the full input definitions](reference/inputs.json) for choices, defaults, limits, nested fields and conditional controls. These definitions come from this tool version.
 

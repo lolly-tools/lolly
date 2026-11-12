@@ -3,7 +3,7 @@
   "name": "Wayfinding",
   "description": "Directional event signs - destinations, each with an arrow. Print-ready.",
   "a11yLabel": "Wayfinding sign for {{default eventName \"the event\"}}{{#if heading}} - {{heading}}{{/if}}",
-  "version": "1.2.5",
+  "version": "1.3.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "event",
@@ -13,6 +13,7 @@
     "blurb": "Directional event signs, print-ready"
   },
   "render": {
+    "sectionIcons": { "Treatment": "paintbrush" },
     "width": 1240,
     "height": 1754,
     "formats": ["pdf", "pdf-cmyk", "svg", "penpot", "dxf", "png", "jpg", "webp", "avif", "tiff", "cmyk-tiff", "emf"],
@@ -131,6 +132,44 @@
       "type": "color",
       "default": "{color.semantic.secondary}",
       "help": "Default colour for arrows and rules. A row with its own colour overrides it."
+    },
+    {
+      "id": "ground",
+      "label": "Colour treatment",
+      "type": "select",
+      "default": "tint",
+      "options": [
+        {"value": "tint", "label": "Brand tint"},
+        {"value": "lead", "label": "Lead colour"},
+        {"value": "ink", "label": "Ink"},
+        {"value": "surface", "label": "Surface"}
+      ],
+      "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+      "section": "Treatment"
+    },
+    {
+      "id": "density",
+      "label": "Spacing",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {"value": "auto", "label": "Fit content"},
+        {"value": "compact", "label": "Compact"},
+        {"value": "comfortable", "label": "Comfortable"},
+        {"value": "spacious", "label": "Spacious"}
+      ],
+      "section": "Treatment"
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "list",
+      "options": [
+        {"value": "list", "label": "List"},
+        {"value": "grid", "label": "Two columns"}
+      ],
+      "section": "Treatment"
     }
   ]
 }

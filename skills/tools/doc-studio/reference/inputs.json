@@ -72,9 +72,13 @@
     "id": "theme",
     "label": "Paper",
     "type": "select",
-    "default": "light",
-    "help": "Light paper (dark ink) or dark paper (light ink).",
+    "default": "system",
+    "help": "Design system follows the colourway and treatment for this piece.",
     "options": [
+      {
+        "value": "system",
+        "label": "Design system"
+      },
       {
         "value": "light",
         "label": "Light"
@@ -138,5 +142,59 @@
     "min": 100,
     "max": 8000,
     "group": "export"
+  },
+  {
+    "id": "ground",
+    "showIf": {
+      "theme": "system"
+    },
+    "label": "Colour treatment",
+    "type": "select",
+    "default": "tint",
+    "options": [
+      {
+        "value": "tint",
+        "label": "Brand tint"
+      },
+      {
+        "value": "lead",
+        "label": "Lead colour"
+      },
+      {
+        "value": "ink",
+        "label": "Ink"
+      },
+      {
+        "value": "surface",
+        "label": "Surface"
+      }
+    ],
+    "help": "Follows this piece’s design system and colourway. Surface uses your background and text colours.",
+    "section": "Treatment"
+  },
+  {
+    "id": "density",
+    "label": "Spacing",
+    "type": "select",
+    "default": "auto",
+    "options": [
+      {
+        "value": "auto",
+        "label": "Fit content"
+      },
+      {
+        "value": "compact",
+        "label": "Compact"
+      },
+      {
+        "value": "comfortable",
+        "label": "Comfortable"
+      },
+      {
+        "value": "spacious",
+        "label": "Spacious"
+      }
+    ],
+    "section": "Treatment"
   }
 ]

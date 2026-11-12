@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "logo-wall",
-  "toolVersion": "1.8.1",
-  "toolVersionRange": "1.8.1",
+  "toolVersion": "1.9.0",
+  "toolVersionRange": "1.9.0",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,12 +11,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "cfd81049d3d7bc58e97208de625164d9668044545cc5211a75815ea0d8157a6c",
-      "bytes": 2136
+      "sha256": "11c650c88abb108d85c677c6d412edcb9ca9afd27408e21af655c76b1d4f1720",
+      "bytes": 2159
     },
     "reference/inputs.json": {
-      "sha256": "342c501368a8c83f391e5c5b1f508e864a793ce1ec9ddf7695d7d8429353243e",
-      "bytes": 10462
+      "sha256": "c828b90d3c630f1feb2c419e24c27559594b51460d885f0c05fa7c2dfceaa12f",
+      "bytes": 11014
     },
     "reference/examples.json": {
       "sha256": "571070ba28cc5d80bf5929d2c2b97f73126c0701def32bb72c3a8a2fc87166ee",
