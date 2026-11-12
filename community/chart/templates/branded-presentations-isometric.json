@@ -1,12 +1,12 @@
 {
   "id": "branded-presentations-isometric",
-  "name": "Isometric comparison",
+  "name": "Isometric bars",
   "category": "Styles",
-  "description": "Projected vector depth that remains editable in SVG.",
+  "description": "Three years side by side with projected vector depth that stays editable in SVG.",
   "values": {
     "chartType": "bar",
     "chartStyle": "iso-vector",
-    "data": "Market,Current year,Previous year\nNorth,82,71\nSouth,68,64\nEast,91,76\nWest,74,69",
+    "data": "Market,This year,Last year,Two years ago\nNorth,82,71,63\nSouth,68,64,58\nEast,91,76,66\nWest,74,69,61",
     "heading": "Performance by market",
     "showValues": true,
     "showLegend": true

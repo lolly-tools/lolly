@@ -1,0 +1,17 @@
+{
+  "id": "sunburst-mix",
+  "name": "Sunburst",
+  "category": "Share",
+  "description": "Two levels in one ring: regions inside, their products outside, each in the design system's colours.",
+  "values": {
+    "renderMode": "vector",
+    "chartType": "sunburst",
+    "data": "Region,Platform,Services,Support\nEurope,42,24,12\nAmericas,55,31,18\nAsia,28,14,9",
+    "colorBy": "category",
+    "heading": "Revenue by region and product",
+    "subheading": "In millions",
+    "showValues": true,
+    "showLegend": false
+  },
+  "presets": []
+}

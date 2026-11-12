@@ -1,0 +1,16 @@
+{
+  "id": "stream-layers",
+  "name": "Stream",
+  "category": "Lines",
+  "description": "Series flow as stacked layers that swell and thin over time, centred on a moving baseline.",
+  "values": {
+    "renderMode": "vector",
+    "chartType": "stream",
+    "data": "Month,Video,Audio,Text,Images\nJan,12,8,20,10\nFeb,15,9,19,12\nMar,19,11,18,15\nApr,25,12,17,18\nMay,31,15,16,20\nJun,38,17,15,24\nJul,44,20,14,26",
+    "colorBy": "series",
+    "heading": "What people share",
+    "subheading": "Posts per day, in thousands",
+    "showLegend": true
+  },
+  "presets": []
+}

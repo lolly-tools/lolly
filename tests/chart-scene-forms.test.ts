@@ -104,6 +104,9 @@ test('each scene type reads the table the way its name says', async () => {
   const blocks = await plan('blocks3d', BARS);
   assert.match(blocks.legend.items.at(-1).label, /^Each block is \d+/);
   assert.equal(blocks.legend.items.at(-1).colour, null);
+  // Whole counts are never split into part blocks, however small the numbers.
+  const people = await plan('blocks3d', 'Team,Hired,Transferred\nDesign,12,4\nEngineering,21,6\nSales,9,7\nSupport,6,3');
+  assert.equal(people.legend.items.at(-1).label, 'Each block is 1');
   // Waterfall: each step starts where the last ended, and a total closes the walk.
   const fall = await plan('waterfall3d', CHANGES);
   assert.equal(fall.marks.length, 7);

@@ -2,7 +2,7 @@
   "id": "brand-terrain",
   "name": "Brand terrain",
   "category": "3-D",
-  "description": "A solid value surface whose height and colour come from the data and the colourway's ramp, with the data's own rows drawn on it.",
+  "description": "A solid value surface whose height and colour come from the data and the colourway's ramp, with the data's own rows drawn across the surface.",
   "values": {
     "renderMode": "scene",
     "chartType": "heatmap",

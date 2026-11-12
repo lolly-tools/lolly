@@ -325,8 +325,8 @@
     {
       "version": 1,
       "toolId": "chart",
-      "toolVersion": "1.30.0",
-      "toolVersionRange": "1.30.0",
+      "toolVersion": "1.30.1",
+      "toolVersionRange": "1.30.1",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -335,7 +335,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "6e7eae68fe2dd79ba2c0981866eb7964b3a4baea80e25c2be0c11bf9b2748a76",
+          "sha256": "05ba85768bca35a4f87d8227f16ec9406c9e73cfa3927af27030303290897227",
           "bytes": 6052
         },
         "reference/inputs.json": {

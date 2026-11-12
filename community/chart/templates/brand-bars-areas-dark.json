@@ -1,14 +1,14 @@
 {
   "id": "brand-bars-areas-dark",
-  "name": "Brand area, dark",
+  "name": "Brand layers, dark",
   "category": "Brand",
-  "description": "The same area for a dark ground: it takes a colour that shows on it.",
+  "description": "The same layers for a dark ground: the first layer takes a colour that shows on it, and the second takes the surface colour.",
   "values": {
     "renderMode": "vector",
     "chartType": "area",
     "chartStyle": "technical",
-    "data": "Category,Value\nA,36\nB,58\nC,45\nD,82\nE,68\nF,95",
-    "colorBy": "category",
+    "data": "Month,Web,Store,Partners\nJan,24,16,9\nFeb,30,18,12\nMar,27,22,15\nApr,38,25,17\nMay,44,24,22\nJun,52,29,26",
+    "colorBy": "series",
     "palette": "suse",
     "heading": "",
     "subheading": "",
@@ -20,7 +20,10 @@
     "cornerRadius": 6,
     "differentiate": "colour",
     "showPoints": false,
-    "palette1": "{color.semantic.secondary}"
+    "palette1": "{color.semantic.secondary}",
+    "stackMode": "stacked",
+    "curve": "monotone",
+    "palette2": "{color.semantic.surface}"
   },
   "galleryTheme": "dark"
 }

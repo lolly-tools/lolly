@@ -2,7 +2,7 @@
   "id": "brand-bars-donut-dark",
   "name": "Brand donut, dark",
   "category": "Brand",
-  "description": "The same donut for a dark ground: the first slices take colours that show on it.",
+  "description": "The same donut for a dark ground, with the first slices in colours that show up on dark.",
   "values": {
     "renderMode": "vector",
     "chartType": "donut",

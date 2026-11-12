@@ -1,0 +1,17 @@
+{
+  "id": "radial-share",
+  "name": "Radial share",
+  "category": "Share",
+  "description": "Each channel is an arc sized by its value, around one centre, with the names and numbers beside the arcs.",
+  "values": {
+    "renderMode": "vector",
+    "chartType": "radial-bar",
+    "data": "Channel,Visitors\nSearch,4200\nSocial,2800\nEmail,1800\nDirect,1500\nPartners,1100\nEvents,700",
+    "colorBy": "category",
+    "heading": "Where visitors come from",
+    "subheading": "Sessions this quarter",
+    "showValues": true,
+    "showLegend": true
+  },
+  "presets": []
+}

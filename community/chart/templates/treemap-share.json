@@ -1,0 +1,17 @@
+{
+  "id": "treemap-share",
+  "name": "Treemap",
+  "category": "Share",
+  "description": "Rectangles sized by value fill the frame, so the largest parts of the whole stand out at a glance.",
+  "values": {
+    "renderMode": "vector",
+    "chartType": "treemap",
+    "data": "Product,Revenue\nPlatform,88\nServices,64\nSupport,42\nTraining,27\nMarketplace,22\nHardware,15\nLicences,11",
+    "colorBy": "category",
+    "heading": "Where the revenue comes from",
+    "subheading": "In millions",
+    "showValues": true,
+    "showLegend": false
+  },
+  "presets": []
+}

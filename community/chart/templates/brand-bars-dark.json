@@ -2,7 +2,7 @@
   "id": "brand-bars-dark",
   "name": "Brand bars, dark",
   "category": "Brand",
-  "description": "The same bars for a dark ground: the first bar takes a colour that shows on it.",
+  "description": "The same bars for a dark ground, with the first bar in a colour that shows up on dark.",
   "values": {
     "renderMode": "vector",
     "chartType": "bar",

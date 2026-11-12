@@ -1,14 +1,14 @@
 {
   "id": "brand-bars-areas",
-  "name": "Brand area",
+  "name": "Brand layers",
   "category": "Brand",
-  "description": "A clean palette study: colourful bars on transparency, ready for your data.",
+  "description": "Three channels stacked as smooth layers of the design system's colours, on transparency.",
   "values": {
     "renderMode": "vector",
     "chartType": "area",
     "chartStyle": "technical",
-    "data": "Category,Value\nA,36\nB,58\nC,45\nD,82\nE,68\nF,95",
-    "colorBy": "category",
+    "data": "Month,Web,Store,Partners\nJan,24,16,9\nFeb,30,18,12\nMar,27,22,15\nApr,38,25,17\nMay,44,24,22\nJun,52,29,26",
+    "colorBy": "series",
     "palette": "ordered",
     "heading": "",
     "subheading": "",
@@ -19,7 +19,9 @@
     "transparentBg": true,
     "cornerRadius": 6,
     "differentiate": "colour",
-    "showPoints": false
+    "showPoints": false,
+    "stackMode": "stacked",
+    "curve": "monotone"
   },
   "galleryTheme": "light"
 }
