@@ -12,7 +12,8 @@
     "subheading": "Tickets opened per hour",
     "sceneStage": "floor",
     "sceneMaterial": "matte",
-    "showLegend": true
+    "showLegend": true,
+    "palette": "cool"
   },
   "presets": []
 }

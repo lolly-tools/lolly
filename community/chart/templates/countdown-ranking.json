@@ -13,7 +13,8 @@
     "sceneStage": "night",
     "sceneMaterial": "glow",
     "animSpeed": 1.5,
-    "showLegend": false
+    "showLegend": false,
+    "colorBy": "category"
   },
   "presets": []
 }

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-11T18:21:27.794Z",
+  "generatedAt": "2026-11-12T11:02:28.504Z",
   "tools": [
     {
       "id": "3d",
@@ -2389,7 +2389,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.30.0",
+      "version": "1.30.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -2542,23 +2542,23 @@
       "templates": [
         {
           "id": "brand-bars-areas-dark",
-          "name": "Brand area, dark",
+          "name": "Brand layers, dark",
           "category": "Brand",
-          "description": "The same area for a dark ground: it takes a colour that shows on it.",
+          "description": "The same layers for a dark ground: the first layer takes a colour that shows on it, and the second takes the surface colour.",
           "galleryTheme": "dark"
         },
         {
           "id": "brand-bars-areas",
-          "name": "Brand area",
+          "name": "Brand layers",
           "category": "Brand",
-          "description": "A clean palette study: colourful bars on transparency, ready for your data.",
+          "description": "Three channels stacked as smooth layers of the design system's colours, on transparency.",
           "galleryTheme": "light"
         },
         {
           "id": "brand-bars-dark",
           "name": "Brand bars, dark",
           "category": "Brand",
-          "description": "The same bars for a dark ground: the first bar takes a colour that shows on it.",
+          "description": "The same bars for a dark ground, with the first bar in a colour that shows up on dark.",
           "galleryCover": true,
           "galleryTheme": "dark"
         },
@@ -2566,7 +2566,7 @@
           "id": "brand-bars-donut-dark",
           "name": "Brand donut, dark",
           "category": "Brand",
-          "description": "The same donut for a dark ground: the first slices take colours that show on it.",
+          "description": "The same donut for a dark ground, with the first slices in colours that show up on dark.",
           "galleryTheme": "dark"
         },
         {
@@ -2588,37 +2588,19 @@
           "id": "brand-terrain",
           "name": "Brand terrain",
           "category": "3-D",
-          "description": "A solid value surface whose height and colour come from the data and the colourway's ramp, with the data's own rows drawn on it."
+          "description": "A solid value surface whose height and colour come from the data and the colourway's ramp, with the data's own rows drawn across the surface."
         },
         {
           "id": "branded-presentations-isometric",
-          "name": "Isometric comparison",
+          "name": "Isometric bars",
           "category": "Styles",
-          "description": "Projected vector depth that remains editable in SVG."
-        },
-        {
-          "id": "branded-presentations-poster",
-          "name": "Poster comparison",
-          "category": "Styles",
-          "description": "Bold type and direct labels for a presentation graphic."
-        },
-        {
-          "id": "branded-presentations",
-          "name": "Editorial comparison",
-          "category": "Styles",
-          "description": "A quiet comparison that inherits the active brand's type, colours and surface."
+          "description": "Three years side by side with projected vector depth that stays editable in SVG."
         },
         {
           "id": "bubble-pack",
           "name": "Packed bubbles",
           "category": "3-D",
           "description": "One sphere for each category, its size the value, packed together on the floor."
-        },
-        {
-          "id": "bullet-targets",
-          "name": "Performance against target",
-          "category": "Comparison",
-          "description": "Actual bars, explicit target ticks and optional target bands on a shared scale."
         },
         {
           "id": "candlestick-series",
@@ -2633,18 +2615,6 @@
           "description": "A treemap raised into buildings: area and height both show the value, so the largest parts stand over the rest."
         },
         {
-          "id": "comparison-columns-lollipop",
-          "name": "Lollipop comparison",
-          "category": "Bars",
-          "description": "A lighter lollipop look for the same ranking."
-        },
-        {
-          "id": "comparison-columns-ranked-horizontal",
-          "name": "Ranked bars",
-          "category": "Bars",
-          "description": "Sideways bars sorted from highest to lowest."
-        },
-        {
           "id": "comparison-columns",
           "name": "Comparison columns",
           "category": "Bars",
@@ -2655,12 +2625,6 @@
           "name": "Constellation tour",
           "category": "Cinematic",
           "description": "Make every observation a spatial beacon connected by an exact data path."
-        },
-        {
-          "id": "control-band",
-          "name": "Process control band",
-          "category": "Statistical",
-          "description": "Separate ordinary variation from observations that deserve investigation."
         },
         {
           "id": "conversion-funnel",
@@ -2687,24 +2651,6 @@
           "description": "Build a branded skyline from the values, then travel alongside the series that matters most."
         },
         {
-          "id": "distribution-lab-ridges",
-          "name": "Density ridges",
-          "category": "Statistical",
-          "description": "Compare smooth distribution shapes in aligned small multiples."
-        },
-        {
-          "id": "distribution-lab",
-          "name": "Distribution explorer",
-          "category": "Statistical",
-          "description": "Start with observations and switch among boxes, rugs, histograms, density ridges and cumulative distributions without repasting data."
-        },
-        {
-          "id": "editorial-dots",
-          "name": "Editorial dot comparison",
-          "category": "Editorial",
-          "description": "A low-ink comparison that keeps every value visible and uses position, colour and symbol together."
-        },
-        {
           "id": "gate-tunnel",
           "name": "Gate tunnel",
           "category": "Cinematic",
@@ -2729,28 +2675,16 @@
           "description": "A low, wide camera crops in on the value you want people to see; every other bar steps back into a quiet tone of the stage."
         },
         {
-          "id": "hexbin-density-contours",
-          "name": "Density contours",
-          "category": "Statistical",
-          "description": "Use a smoothed density field with source observations underneath."
-        },
-        {
-          "id": "hexbin-density",
-          "name": "Hexbin density",
-          "category": "Statistical",
-          "description": "Aggregate overlapping observations into a perceptual brand ramp instead of painting an unreadable point cloud."
-        },
-        {
           "id": "indexed-growth",
           "name": "Indexed growth",
           "category": "Editorial",
           "description": "Compare differently sized series from a shared starting point of 100."
         },
         {
-          "id": "pareto-priorities",
-          "name": "Where to focus first",
+          "id": "marimekko-mix",
+          "name": "Marimekko",
           "category": "Comparison",
-          "description": "Rank the biggest causes and see when their cumulative share reaches 80%."
+          "description": "Column widths show each region's size and the bands inside show its mix, so share and scale read together."
         },
         {
           "id": "pull-back-reveal",
@@ -2765,22 +2699,10 @@
           "description": "Stack the series to show the quarterly total."
         },
         {
-          "id": "quarterly-bars",
-          "name": "Quarterly bars",
-          "category": "Bars",
-          "description": "Grouped bars comparing three product lines across four quarters."
-        },
-        {
-          "id": "range-comparison",
-          "name": "Compare low–high ranges",
-          "category": "Comparison",
-          "description": "Floating bars show the full interval with optional arithmetic midpoint ticks."
-        },
-        {
-          "id": "regression-story",
-          "name": "Regression story",
-          "category": "Statistical",
-          "description": "Show the observations, fitted relationship and uncertainty without surrendering brand styling."
+          "id": "radial-share",
+          "name": "Radial share",
+          "category": "Share",
+          "description": "Each channel is an arc sized by its value, around one centre, with the names and numbers beside the arcs."
         },
         {
           "id": "ribbon-canyon",
@@ -2825,12 +2747,6 @@
           "description": "A donut whose slices also rise by their value, standing on a plinth in the design system's colours."
         },
         {
-          "id": "small-multiple-trends",
-          "name": "Small multiple trends",
-          "category": "Statistical",
-          "description": "Give every series its own aligned panel so crossings and different baselines remain legible."
-        },
-        {
           "id": "spatial-scatter",
           "name": "Spatial scatter",
           "category": "3-D",
@@ -2843,22 +2759,34 @@
           "description": "The camera opens on the whole chart, stops on the highest, lowest and latest values with a caption for each, then pulls back."
         },
         {
+          "id": "stream-layers",
+          "name": "Stream",
+          "category": "Lines",
+          "description": "Series flow as stacked layers that swell and thin over time, centred on a moving baseline."
+        },
+        {
+          "id": "sunburst-mix",
+          "name": "Sunburst",
+          "category": "Share",
+          "description": "Two levels in one ring: regions inside, their products outside, each in the design system's colours."
+        },
+        {
           "id": "terrain-flight",
           "name": "Fly over the data",
           "category": "Cinematic",
           "description": "The table becomes a landscape; the camera crosses it, stops over the peak and the low ground, then climbs out to the whole map."
         },
         {
+          "id": "treemap-share",
+          "name": "Treemap",
+          "category": "Share",
+          "description": "Rectangles sized by value fill the frame, so the largest parts of the whole stand out at a glance."
+        },
+        {
           "id": "trend-line",
           "name": "Trend line",
           "category": "Lines",
           "description": "A 12 month line comparing this year with last year."
-        },
-        {
-          "id": "uncertainty-band",
-          "name": "Forecast range",
-          "category": "Editorial",
-          "description": "Show an expected path inside an honest low-to-high range, with the active brand setting the hierarchy."
         },
         {
           "id": "unit-blocks",
@@ -2873,16 +2801,10 @@
           "description": "Each change steps up or down from the running total, and the closing column shows where the year ended."
         },
         {
-          "id": "year-in-the-round",
-          "name": "A year in the round",
-          "category": "3-D",
-          "description": "Twelve months stand in a ring on a night stage, coloured by value from the colourway's ramp while the camera orbits."
-        },
-        {
           "id": "year-spiral",
           "name": "A long series, coiled",
           "category": "3-D",
-          "description": "Months coil out from the centre, one bar each, so several years read as one compact disc."
+          "description": "Months coil out from the centre, one bar each, coloured from the low months to the high ones, so several years read as one compact disc."
         }
       ],
       "i18n": {

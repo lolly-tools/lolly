@@ -2,7 +2,7 @@
   "id": "year-spiral",
   "name": "A long series, coiled",
   "category": "3-D",
-  "description": "Months coil out from the centre, one bar each, so several years read as one compact disc.",
+  "description": "Months coil out from the centre, one bar each, coloured from the low months to the high ones, so several years read as one compact disc.",
   "values": {
     "renderMode": "scene",
     "chartType": "bar",
@@ -12,8 +12,8 @@
     "subheading": "Thousands each month",
     "sceneStage": "night",
     "sceneMaterial": "satin",
-    "colorBy": "value",
-    "showLegend": true
+    "showLegend": true,
+    "palette": "diverging"
   },
   "presets": []
 }

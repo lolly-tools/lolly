@@ -1,0 +1,17 @@
+{
+  "id": "marimekko-mix",
+  "name": "Marimekko",
+  "category": "Comparison",
+  "description": "Column widths show each region's size and the bands inside show its mix, so share and scale read together.",
+  "values": {
+    "renderMode": "vector",
+    "chartType": "marimekko",
+    "data": "Region,Enterprise,Mid-market,Small business\nNorth,40,25,15\nSouth,22,30,18\nEast,30,20,25\nWest,15,28,32",
+    "colorBy": "series",
+    "heading": "Customers by region and size",
+    "subheading": "Accounts, in hundreds",
+    "showValues": true,
+    "showLegend": true
+  },
+  "presets": []
+}

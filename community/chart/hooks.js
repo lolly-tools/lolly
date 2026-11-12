@@ -2664,6 +2664,9 @@ function planBlocks(data, cfg, ctx) {
   for (let c = 0; c < nx; c++) { let t = 0; series.forEach((s) => { const v = +s.values[c]; if (Number.isFinite(v) && v > 0) t += v; }); maxTotal = Math.max(maxTotal, t); }
   const foot = maxTotal / niceUnit(maxTotal / 60) > 40 ? 3 : 2;
   let unit = niceUnit(maxTotal / (foot * foot * 9));
+  // Whole counts (people, orders, tickets) are never split into part blocks.
+  const whole = series.every((s) => s.values.every((v) => !Number.isFinite(+v) || Number.isInteger(+v)));
+  if (whole && unit < 1) unit = 1;
   let total = 0; for (let c = 0; c < nx; c++) series.forEach((s) => { const v = +s.values[c]; if (Number.isFinite(v) && v > 0) total += Math.ceil(v / unit); });
   while (total > 1400) { unit = niceUnit(unit * 1.5); total = 0; for (let c = 0; c < nx; c++) series.forEach((s) => { const v = +s.values[c]; if (Number.isFinite(v) && v > 0) total += Math.ceil(v / unit); }); }
   const cube = 0.26, gapC = 0.035, pitch = foot * (cube + gapC) + 0.5, xs0 = ctx.camRight[0] >= 0 ? 1 : -1, zs = ctx.camDir[2] >= 0 ? 1 : -1;
