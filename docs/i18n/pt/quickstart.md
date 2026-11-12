@@ -77,7 +77,7 @@ Um layout importado é uma sessão comum do Design. **Share with rules** o trans
 
 Um link é uma solicitação completa. Ninguém desenhou o gráfico abaixo: o tipo, o título e toda a tabela de dados foram digitados na barra de endereços, e o mesmo link desenha o mesmo gráfico em qualquer dispositivo.
 
-![Um gráfico de área dos cadastros mensais, cujo cada valor chegou como um parâmetro de query em vez de um clique](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
+![Um gráfico de barras dos cadastros mensais por canal nas cores do sistema de design, cujo cada valor chegou como um parâmetro de query em vez de um clique](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 ## Para onde ir agora
 

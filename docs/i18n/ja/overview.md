@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 同じツールをスマートフォンの幅で表示しても、別のレイアウトは要りません。コントロールが上部のシートになり、プレビューが画面を占めます。
 
-![幅430pxの画面のオーディオグラム: 上にコントロールのシート、下に完成した正方形のアートワーク、そしてフローティングの書き出しピル](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![幅430pxの画面のオーディオグラム: 上にコントロールのシート、下に完成した正方形のアートワーク、そしてフローティングの書き出しピル](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 Webアプリには、**Batch**(`#/batch`、`shells/web/src/pro/`)も同梱されています。1つまたは複数のツールにわたって多数の行を一度にレンダリングする、スプレッドシート形式のグリッドで、Batchについては[BatchとLolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)で扱っています。**Settings → Capabilities**には、プラットフォームができると宣言しているすべてのことの地図があります。
 

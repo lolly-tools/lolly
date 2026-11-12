@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 同一个工具在手机宽度下不需要第二套布局：控制项变成顶部的面板，预览占据屏幕。
 
-![430px 宽屏幕上的音频图：上方是控制项面板，下方是完成的方形作品，以及浮动的导出按钮](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![430px 宽屏幕上的音频图：上方是控制项面板，下方是完成的方形作品，以及浮动的导出按钮](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 网页应用还附带 **Batch**（`#/batch`，`shells/web/src/pro/`），一个电子表格式的网格，可以跨一个或多个工具一次渲染多行；[批量生成与 Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)介绍了 Batch。**Settings → Capabilities** 梳理了平台声明自己能做的一切。
 

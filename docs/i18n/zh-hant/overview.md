@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 同一個工具在手機寬度下不需要第二套版面：控制項變成頂端的面板，預覽佔滿螢幕。
 
-![430px 寬螢幕上的音訊可視化：上方是控制項面板，下方是完成的方形作品，以及浮動的匯出膠囊](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![430px 寬螢幕上的音訊可視化：上方是控制項面板，下方是完成的方形作品，以及浮動的匯出膠囊](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 網頁應用程式也附有 **Batch**（`#/batch`、`shells/web/src/pro/`），這是試算表風格的格線，可跨一個或多個工具一次渲染許多列；[Batch 與 Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design)涵蓋 Batch。**Settings → Capabilities** 對應平台宣告它能做的一切。
 
