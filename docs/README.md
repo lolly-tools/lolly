@@ -47,6 +47,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Colourways | [colourways.md](colourways.md) |
 | Working with partners | [partners.md](partners.md) |
 | Lolly 3D Studio | [3d-studio.md](3d-studio.md) |
+| Lolly Chart | [chart.md](chart.md) |
 | Find and recover your work | [find-your-work.md](find-your-work.md) |
 | Sync your devices | [sync.md](sync.md) |
 | Lolly Search | [search.md](search.md) |

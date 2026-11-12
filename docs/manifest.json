@@ -561,6 +561,21 @@
       "group": "Design and templates"
     },
     {
+      "slug": "chart",
+      "title": "Lolly Chart",
+      "src": "chart.md",
+      "description": "Paste a table and draw it four ways in your design system: vector charts, statistical plots, lit 3-D scenes and cinematic flights, from 43 templates to 20 export formats.",
+      "section": "create",
+      "path": "create/chart",
+      "icon": "chart",
+      "aliases": [],
+      "tools": [
+        "chart"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
       "slug": "find-your-work",
       "title": "Find and recover your work",
       "src": "find-your-work.md",

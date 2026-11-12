@@ -479,6 +479,15 @@ html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-to
 .docs-content .md-pictures .shot-cred--asset:is(:focus-within, [data-open]) .shot-cred-line,
 .docs-content .md-pictures .shot-cred--asset .shot-cred-btn:hover + .shot-cred-line,
 .docs-content .md-pictures .shot-cred--asset .shot-cred-line:hover { opacity: 1; pointer-events: auto; }
+/* A picture list of screenshots (docs/chart.md's renderers and templates) is a gallery of
+   wide frames, not a row of marks: two to a row, one on a phone. Each plate is as tall as
+   its picture, the picture runs edge to edge and its "Try it" link sits under it, inside
+   the plate. The gallery takes the whole column rather than the 68ch reading measure. Declared
+   after the count rules above so the column count wins at any length. */
+.docs-content ul.md-pictures:has(> li > .md-pic > .shot) { --md-pic-cols: 2; max-width: none; }
+.docs-content .md-pictures .md-pic:has(> .shot) { aspect-ratio: auto; overflow: hidden; padding-block-end: 8px; }
+.docs-content .md-pictures .md-pic > .shot { width: 100%; margin: 0; }
+.docs-content .md-pictures .md-pic > .shot > img { width: 100%; height: auto; }
 
 @media (max-width: 600px) {
   .docs-content .md-steps { padding: 8px; }
@@ -503,6 +512,10 @@ html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-to
   :is(.docs-content, .docs-compact-nav) .doc-details-body { padding-inline: calc(14px + 20px * var(--a11y-fs, 1) + 14px) 14px; }
   .docs-content .doc-note { --doc-note-icon: calc(2.25rem * var(--a11y-fs, 1)); padding: 14px; gap: 12px; }
   .docs-content .doc-code pre { padding: 12px 14px; font-size: calc(13px * var(--a11y-fs, 1)); }
+}
+/* After the phone rule above, which it overrides at equal specificity: one screenshot a row. */
+@media (max-width: 600px) {
+  .docs-content ul.md-pictures:has(> li > .md-pic > .shot) { --md-pic-cols: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
