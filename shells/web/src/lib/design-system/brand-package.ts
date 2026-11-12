@@ -49,7 +49,7 @@ export interface PreparedBrandContent { payload: LollyFileContents; tools: Lolly
 export async function buildBrandPackage(
   host: BrandPackageHost, system: string, selection: BrandSelection,
   opts: { resolveTool?: (id: string) => Promise<LollyToolBundle | null>; progress?: (label: string) => void } = {},
-): Promise<{ blob: Blob; filename: string; references: number }> {
+): Promise<{ blob: Blob; filename: string; references: number; unrecorded: string[] }> {
   opts.progress?.('Preparing the brand…');
   const record = await host.designSystems?.get(system);
   if (!record) throw new Error('This design system is no longer on this device.');
@@ -58,7 +58,7 @@ export async function buildBrandPackage(
     setItem() {},
   } }, { system });
   if (!brand.summary.tokens) throw new Error('This design system has no readable tokens to export.');
-  if (!selection.sessions.length && !selection.assets.length && !selection.tools.length) return { ...brand, references: 0 };
+  if (!selection.sessions.length && !selection.assets.length && !selection.tools.length) return { ...brand, references: 0, unrecorded: [] };
 
   const sessions: PackedSession[] = [];
   const rows = await host.state.list();
