@@ -19,7 +19,7 @@ export interface LollyAssetsSlice {
 }
 
 export { redistribution, type Redistribution } from '../lib/redistribution.ts';
-import { packRights } from '../lib/redistribution.ts';
+import { packRights, UNREADABLE_RECORD } from '../lib/redistribution.ts';
 
 /**
  * Build the `.lolly` download vehicle for the Share dialog, or undefined when the tool
@@ -71,7 +71,7 @@ export function lollyLibraryResolver(assets: LollyAssetsSlice): (id: string) => 
         type: ref?.type ?? 'raster',
         format: ref?.format ?? '',
         label: typeof meta.name === 'string' ? meta.name : id,
-        ...packRights(meta),
+        ...(ref ? packRights(meta) : UNREADABLE_RECORD),
       };
     } catch {
       return null;

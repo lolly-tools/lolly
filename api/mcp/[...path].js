@@ -98143,7 +98143,11 @@ function redistribution(meta) {
       return { travels: false, kind: "unknown", reason: "the own-work record is missing its owner, its terms or its licence declaration", licence, notices };
     }
   }
-  if (!declared) return { travels: false, kind: "unknown", reason: "licence not recorded", licence, notices };
+  if (!declared) {
+    const named = typeof meta.attribution === "string" && meta.attribution.trim() !== "";
+    const nothingRecorded = meta.rights === void 0 || meta.rights === null ? !named : false;
+    return { travels: false, kind: "unknown", reason: "licence not recorded", licence, notices, ...nothingRecorded ? { unrecorded: true } : {} };
+  }
   if (!profile2?.reviewed) {
     return {
       travels: false,
@@ -98169,6 +98173,7 @@ function packCreditsText(carried, heldBack) {
       lines.push(`  licence: ${entry2.licence || "not recorded"}`);
       if (entry2.credit) lines.push(`  credit:  ${entry2.credit}`);
       if (entry2.includedByChoice) lines.push("  included by the sender, who chose to carry bytes held back by default");
+      if (entry2.unrecorded) lines.push(`  check:   ${entry2.unrecorded}; check the terms before you reuse or publish this work`);
       for (const notice of entry2.notices ?? []) lines.push(`  notice:  ${notice}`);
       lines.push("");
     }

@@ -167,6 +167,14 @@ export interface Redistribution {
   licence: string;
   /** Notice texts the licence asks to travel with the bytes. */
   notices: string[];
+  /**
+   * True when nothing about the work's rights is recorded at all: no licence, no
+   * rights record (not even one that cannot be read) and no attribution naming a
+   * rights holder. A `.lolly` lets such a work travel with a warning
+   * (lib/redistribution.ts packRights). Anything recorded, even partly, keeps the
+   * hold, because its terms or its owner exist and may forbid passing the work on.
+   */
+  unrecorded?: true;
   /** Present when the bytes travel under `owner-published-v1`. `kind` stays `licence`, because it only sorts what holds bytes back. */
   owner?: OwnerPublishedV1;
 }
@@ -207,7 +215,11 @@ export function redistribution(meta: Record<string, unknown>): Redistribution {
       return { travels: false, kind: 'unknown', reason: 'the own-work record is missing its owner, its terms or its licence declaration', licence, notices };
     }
   }
-  if (!declared) return { travels: false, kind: 'unknown', reason: 'licence not recorded', licence, notices };
+  if (!declared) {
+    const named = typeof meta.attribution === 'string' && meta.attribution.trim() !== '';
+    const nothingRecorded = meta.rights === undefined || meta.rights === null ? !named : false;
+    return { travels: false, kind: 'unknown', reason: 'licence not recorded', licence, notices, ...(nothingRecorded ? { unrecorded: true as const } : {}) };
+  }
   if (!profile?.reviewed) {
     return {
       travels: false,
@@ -236,6 +248,8 @@ export interface PackCreditEntry {
   notices?: string[];
   /** True when the sender chose to include bytes that were held back by default. */
   includedByChoice?: true;
+  /** No licence is recorded (the reason in words); the bytes travelled with a warning. */
+  unrecorded?: string;
 }
 
 /** One catalog work whose bytes did NOT travel, and the reason. */
@@ -280,6 +294,7 @@ export function packCreditsText(carried: readonly PackCreditEntry[], heldBack: r
       lines.push(`  licence: ${entry.licence || 'not recorded'}`);
       if (entry.credit) lines.push(`  credit:  ${entry.credit}`);
       if (entry.includedByChoice) lines.push('  included by the sender, who chose to carry bytes held back by default');
+      if (entry.unrecorded) lines.push(`  check:   ${entry.unrecorded}; check the terms before you reuse or publish this work`);
       for (const notice of entry.notices ?? []) lines.push(`  notice:  ${notice}`);
       lines.push('');
     }

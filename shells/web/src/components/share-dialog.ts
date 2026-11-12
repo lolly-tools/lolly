@@ -31,6 +31,7 @@ import { AUTO_PACK_MIN, SHARE_WARN_LEN, BROWSER_HARD_CAP, LINK_CONTENT_MAX, type
 import { toLollyAppLink } from '../lib/deep-link.ts';
 import { appPathname } from '../lib/any-site.ts';
 import { flushAddressWrites } from '../lib/url-state.ts';
+import { unrecordedWarning } from '../lib/unrecorded-notice.ts';
 
 /** The `.lolly` download vehicle (plans/114 Wave 2). Supplied by the tool view, which
  *  has the host + session the link builder never sees. `build(includeLicensed)` returns
@@ -318,6 +319,7 @@ function renderShareSurface(
           ${fileTip.button}${fileTip.pop}
         </div>
         <span class="share-file-note" data-lolly-summary hidden></span>
+        <p class="share-file-warn" data-lolly-unrecorded role="status" hidden></p>
         ${lolly.toolOffer ? shareOption('Include the tool', '<input type="checkbox" class="field-check" data-lolly-tool>', 'Lets the file open on devices without this tool or its catalog.', 'data-lolly-tool-wrap hidden') : ''}
         <div class="share-file-licensed" data-lolly-licensed hidden></div>
       </div>`, 'data-share-file') : ''}
@@ -800,6 +802,13 @@ function wireLollyDelivery(
     ];
     summaryEl.textContent = bits.join(' · ');
     summaryEl.hidden = false;
+    // Works whose licence is unrecorded travel with a warning, not a hold (Andy, 2026-11-12):
+    // the sender is told which ones, and CREDITS.txt asks the recipient to check the terms.
+    const warnEl = summaryEl.parentElement?.querySelector<HTMLElement>('[data-lolly-unrecorded]');
+    if (!warnEl) return;
+    const warning = unrecordedWarning(s.unrecorded);
+    warnEl.hidden = !warning;
+    warnEl.textContent = warning;
   };
 
   btn.addEventListener('click', async () => {

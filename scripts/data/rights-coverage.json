@@ -284,7 +284,7 @@
         { "file": "tests/asset-rights.test.ts", "test": "the credits file lists what travelled, what did not, and the reason for each" },
         { "file": "shells/web/src/views/projects-team-download.test.ts", "test": "the file is built from this session alone, with licensed catalog bytes held back" }
       ],
-      "note": "Catalog bytes travel only under a reviewed licence that permits passing them on; CREDITS.txt lists what travelled, what was held back and why, and records an inclusion the sender chose. No receipt is measured from the finished file."
+      "note": "Catalog bytes travel under a reviewed licence that permits passing them on, under the owner's own terms, or, with a warning to the sender, when no licence is recorded at all; a recorded licence not yet interpreted is held back. CREDITS.txt lists what travelled, asks the recipient to check each work without a recorded licence, lists what was held back and why, and records an inclusion the sender chose. No receipt is measured from the finished file."
     },
     {
       "id": "delivery.design-tool-share",
