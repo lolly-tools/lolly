@@ -3300,6 +3300,55 @@
       "owner": "tests"
     },
     {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "brief: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "scorecard: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "email: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "week: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "pricing-table: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "link-card: responsive layouts fit and motion seeks deterministically",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/tool-treatments.browser.test.ts",
+      "fullName": "longer copy and denser tables fit without silently clipping the message",
+      "reason": "set LOLLY_TOOL_LAYOUT_TEST=1",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
       "file": "tests/wmf.test.ts",
       "fullName": "ImageMagick cross-check (skipped unless a WMF delegate is present)",
       "reason": "no ImageMagick binary",
