@@ -237,6 +237,8 @@ export interface LollyAssetEntry {
   licensed?: boolean;
   /** Why the bytes were held back, in plain words (plan 253). */
   holdReason?: string;
+  /** The bytes travelled with no licence recorded; the reason in words. */
+  unrecorded?: string;
   /** Whether a deployment rule or a licence condition held the bytes back. */
   holdKind?: 'policy' | 'licence' | 'unknown';
   /** The canonical licence name, when one was recorded. */
@@ -422,6 +424,12 @@ export interface LollyLibraryAsset {
   holdReason?: string;
   /** Whether a deployment rule or a licence condition held it back. */
   holdKind?: 'policy' | 'licence' | 'unknown';
+  /**
+   * No licence is recorded, and the reason in words: the bytes travel anyway, with a
+   * warning to the sender and a line in CREDITS.txt asking whoever opens the file to
+   * check the terms (see lib/redistribution.ts packRights).
+   */
+  unrecorded?: string;
   /** The canonical licence name, when one was recorded. */
   licence?: string;
   /** The readable credit the source asks for, when one was recorded. */
@@ -442,6 +450,8 @@ export interface LollySummary {
   hasLicensed: boolean;
   /** Held-back assets left out because `includeLicensed` was false. */
   licensedExcluded: number;
+  /** Catalog works that travelled with no licence recorded, by label: the sender is told. */
+  unrecorded?: string[];
   /** True when the file carries CREDITS.txt (any catalog work was involved). */
   credits: boolean;
   /** The creator name embedded, if any (drives the "includes your name" line). */
@@ -672,6 +682,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   // travelled, one per work that did not, each with the reason.
   const carried: PackCreditEntry[] = [];
   const heldBack: PackHoldEntry[] = [];
+  const unrecorded: string[] = [];
   // Full lowercased zip paths already used, so two same-named assets never collide.
   const takenPaths = new Set<string>();
 
@@ -732,12 +743,15 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
       ...(lib.credit ? { credit: lib.credit } : {}),
       ...(lib.notices?.length ? { notices: [...lib.notices] } : {}),
       ...(lib.licensed ? { includedByChoice: true as const } : {}),
+      ...(lib.unrecorded ? { unrecorded: lib.unrecorded } : {}),
     });
+    if (lib.unrecorded) unrecorded.push(lib.label ?? id);
     assets.push({
       kind: 'asset', id, source: 'library', path, bytes: bytes.length,
       label: lib.label ?? id, type: lib.type, format: lib.format, mime: lib.mime,
       ...(lib.licensed ? { licensed: true } : {}),
       ...(lib.holdReason ? { holdReason: lib.holdReason } : {}),
+      ...(lib.unrecorded ? { unrecorded: lib.unrecorded } : {}),
       ...(lib.licence ? { licence: lib.licence } : {}),
       ...(lib.credit ? { credit: lib.credit } : {}),
       ...(lib.meta ? { meta: lib.meta } : {}),
@@ -844,6 +858,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     totalBytes,
     hasLicensed,
     licensedExcluded,
+    unrecorded,
     credits: Boolean(credits || input.toolCredits),
     ...(input.creator?.name ? { creatorName: input.creator.name } : {}),
     toolFiles: bundledTool?.files.length ?? 0,

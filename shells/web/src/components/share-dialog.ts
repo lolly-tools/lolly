@@ -318,6 +318,7 @@ function renderShareSurface(
           ${fileTip.button}${fileTip.pop}
         </div>
         <span class="share-file-note" data-lolly-summary hidden></span>
+        <p class="share-file-warn" data-lolly-unrecorded role="status" hidden></p>
         ${lolly.toolOffer ? shareOption('Include the tool', '<input type="checkbox" class="field-check" data-lolly-tool>', 'Lets the file open on devices without this tool or its catalog.', 'data-lolly-tool-wrap hidden') : ''}
         <div class="share-file-licensed" data-lolly-licensed hidden></div>
       </div>`, 'data-share-file') : ''}
@@ -800,6 +801,16 @@ function wireLollyDelivery(
     ];
     summaryEl.textContent = bits.join(' · ');
     summaryEl.hidden = false;
+    // Works whose licence is unrecorded travel with a warning, not a hold (Andy, 2026-11-12):
+    // the sender is told which ones, and CREDITS.txt asks the recipient to check the terms.
+    const warnEl = summaryEl.parentElement?.querySelector<HTMLElement>('[data-lolly-unrecorded]');
+    if (!warnEl) return;
+    const names = s.unrecorded ?? [];
+    warnEl.hidden = names.length === 0;
+    warnEl.textContent = names.length === 0 ? ''
+      : names.length === 1
+        ? `"${names[0]}" travels in this file, but its licence is not on record. CREDITS.txt asks whoever opens the file to check the terms before reusing it.`
+        : `${names.length} catalog works travel in this file without a recorded licence: ${names.slice(0, 3).map(n => `"${n}"`).join(', ')}${names.length > 3 ? ` and ${names.length - 3} more` : ''}. CREDITS.txt asks whoever opens the file to check their terms before reusing them.`;
   };
 
   btn.addEventListener('click', async () => {
