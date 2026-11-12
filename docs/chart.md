@@ -53,6 +53,8 @@ The template chooser opens when you open Chart without a link. To open on one te
 5. When the table has more columns than the chart needs, **Field mapping** sets which column is the category (X), which are values (Y), and for some forms which column sets depth, size or the animation frame.
 6. Add a **Title** and a **Subtitle / source**, then export.
 
+![Lolly Chart with the orders table in the Data field and the same table drawn as 3-D bars on the canvas](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Ft%3DOrders%2520by%2520channel%26st%3DThousands%252C%2520first%2520half%26d%3DMonth%252CWeb%252CStore%252CPartners%252CEvents%250AJan%252C42%252C30%252C18%252C6%250AFeb%252C48%252C31%252C21%252C9%250AMar%252C55%252C29%252C25%252C14%250AApr%252C61%252C33%252C30%252C12%250AMay%252C70%252C35%252C34%252C19%250AJun%252C82%252C36%252C41%252C24%26rm%3Dscene%26sct%3Dbar3d&width=1120&height=700&dpi=96&waitMs=9000&walker=1&format=svg&rasterDpi=192&dark=1&filename=chart-app-data&try=1)
+
 <!--i:eti-palette-->
 ## Colour and style
 
@@ -73,6 +75,8 @@ The 3-D renderer builds a real scene: bars by category and series, series as sol
 - **Framing** fills the frame, closes in on the focus or leaves room to breathe.
 - **Scene motion** adds a loop for video: reveal the data, rise one by one, orbit the camera, sweep across and back, or reveal and orbit.
 
+![The 3-D scene controls open beside the chart: camera, lens, adjust view and framing](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Ft%3DOrders%2520by%2520channel%26st%3DThousands%252C%2520first%2520half%26d%3DMonth%252CWeb%252CStore%252CPartners%252CEvents%250AJan%252C42%252C30%252C18%252C6%250AFeb%252C48%252C31%252C21%252C9%250AMar%252C55%252C29%252C25%252C14%250AApr%252C61%252C33%252C30%252C12%250AMay%252C70%252C35%252C34%252C19%250AJun%252C82%252C36%252C41%252C24%26rm%3Dscene%26sct%3Dbar3d&width=1120&height=700&dpi=96&waitMs=9000&walker=1&format=svg&rasterDpi=192&dark=1&filename=chart-app-3d&try=1&drive=click%3Asummary.input-section-summary%3Ahas-text%28%223-D%20scene%22%29%3Bwait%3A800%3Bhover%3A%5Bdata-input-id%3D%22sceneFraming%22%5D%3Bwait%3A500)
+
 <!--i:eti-film-->
 ## Cinematic flights
 
@@ -88,12 +92,17 @@ Cinema moves a camera through the data, so a chart becomes a short film for a la
 - **Constellation** tours the observations.
 - **Data skyline** flies past the values.
 
+![The finished pose of a spotlight tour: the regions as 3-D bars, each in its own colour](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Ftemplate%3Dspotlight-tour%26full&width=1440&height=900&dpi=96&waitMs=9000&walker=1&format=svg&cropSelector=%23tool-canvas&rasterDpi=192&filename=chart-tpl-spotlight&try=1)
+
 Export a flight as MP4, WebM, GIF, animated WebP or APNG. A still export takes the finished pose, so a PNG or a slide shows the whole chart, never the empty first frame.
 
 <!--i:eti-flask-->
 ## Statistical forms
 
 Stats draws the forms analysts reach for: an editorial dot plot, intervals and range bands, the difference between two series, indexed change from a base of 100, a box with its observations, a histogram with a rug, small multiples, distribution facets and density ridges, a cumulative distribution, a control band, hexbin density, density contours, a scatter with its regression line and a candlestick chart for open, high, low and close.
+
+- <!--g:light--> ![The orders table as an editorial dot plot, one row a month and one mark for each channel](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Ft%3DOrders%2520by%2520channel%26st%3DThousands%252C%2520first%2520half%26d%3DMonth%252CWeb%252CStore%252CPartners%252CEvents%250AJan%252C42%252C30%252C18%252C6%250AFeb%252C48%252C31%252C21%252C9%250AMar%252C55%252C29%252C25%252C14%250AApr%252C61%252C33%252C30%252C12%250AMay%252C70%252C35%252C34%252C19%250AJun%252C82%252C36%252C41%252C24%26rm%3Dstatistical%26pf%3Ddot-strip%26full&width=1440&height=900&dpi=96&waitMs=5000&walker=1&format=svg&cropSelector=%23tool-canvas&rasterDpi=192&filename=chart-stats-dots&try=1) **Editorial dot plot.** Every channel in every month on one line.
+- <!--g:light--> ![The gap between web and store orders filled as a difference area](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Ft%3DOrders%2520by%2520channel%26st%3DThousands%252C%2520first%2520half%26d%3DMonth%252CWeb%252CStore%252CPartners%252CEvents%250AJan%252C42%252C30%252C18%252C6%250AFeb%252C48%252C31%252C21%252C9%250AMar%252C55%252C29%252C25%252C14%250AApr%252C61%252C33%252C30%252C12%250AMay%252C70%252C35%252C34%252C19%250AJun%252C82%252C36%252C41%252C24%26rm%3Dstatistical%26pf%3Ddifference-area%26full&width=1440&height=900&dpi=96&waitMs=5000&walker=1&format=svg&cropSelector=%23tool-canvas&rasterDpi=192&filename=chart-stats-difference&try=1) **Difference between series.** The gap between web and store, filled.
 
 <!--i:eti-eye-->
 ## Charts people can read
@@ -105,7 +114,7 @@ Every chart carries a written description and a table of its values. The descrip
 
 Chart exports to PNG, SVG, PDF, a print-ready CMYK PDF or TIFF, PowerPoint, Penpot, EMF, WebP, JPG and AVIF, and as motion to MP4, WebM, GIF, animated WebP and APNG. **CSV**, **JSON** and **Markdown** export the data. Vector exports keep the text as outlines, so the fonts travel with the file. [Exporting](/info/exporting.html) covers sizes, print and video settings.
 
-Every setting fits in a link. This one opens the table above as 3-D bars, ready to edit or export:
+Every setting fits in a link. This one opens two months of web and store orders as 3-D bars, ready to edit or export ([open the example](/#/tool/chart?rm=scene&sct=bar3d&t=Orders%20by%20channel&d=Month,Web,Store%0AJan,42,30%0AFeb,48,31)):
 
 ```text
 /#/tool/chart?rm=scene&sct=bar3d&t=Orders%20by%20channel&d=Month,Web,Store%0AJan,42,30%0AFeb,48,31

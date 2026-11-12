@@ -482,8 +482,9 @@ html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-to
 /* A picture list of screenshots (docs/chart.md's renderers and templates) is a gallery of
    wide frames, not a row of marks: two to a row, one on a phone. Each plate is as tall as
    its picture, the picture runs edge to edge and its "Try it" link sits under it, inside
-   the plate. Declared after the count rules above so the column count wins at any length. */
-.docs-content ul.md-pictures:has(> li > .md-pic > .shot) { --md-pic-cols: 2; }
+   the plate. The gallery takes the whole column rather than the 68ch reading measure. Declared
+   after the count rules above so the column count wins at any length. */
+.docs-content ul.md-pictures:has(> li > .md-pic > .shot) { --md-pic-cols: 2; max-width: none; }
 .docs-content .md-pictures .md-pic:has(> .shot) { aspect-ratio: auto; overflow: hidden; padding-block-end: 8px; }
 .docs-content .md-pictures .md-pic > .shot { width: 100%; margin: 0; }
 .docs-content .md-pictures .md-pic > .shot > img { width: 100%; height: auto; }
