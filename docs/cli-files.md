@@ -41,7 +41,7 @@ Most utilities run in the headless DOM. `redact` also repaints an image on a can
 
 A redacted page is a picture of the original, so one gap matters. Text, vector shapes and embedded images all come through, but shadings, tiling patterns and soft masks do not, because their decoders live in the web shell; a gradient paints as its flat fallback colour. Text and shapes, which are what a redaction covers, are complete.
 
-A PDF can also be redacted with `--keepText=true`, which removes only what sits under the bars and keeps the rest of each page as text. The CLI checks the result before it writes the file. See [Lolly Utilities](/info/utilities.html#strip-hidden-data-and-redact).
+A PDF can also be redacted with `--keepText=true`, which removes only what sits under the bars and keeps the rest of each page as text. The CLI checks the result before it writes the file. See [Lolly Utilities](/info/utilities.html#lolly-strip-hidden-data-and-redact).
 
 If that canvas is not installed, or a tool needs something only a browser can do, the CLI runs the same export in the headless Chromium ([the paint tier](/info/cli-rendering.html#what-the-cli-can-render)) and prints a note on stderr. If the browser or the built web shell is missing, it stops and says what to install. It never writes a file that was not actually redacted.
 

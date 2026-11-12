@@ -19,7 +19,7 @@ Kişisel iş, [Sync](/info/sync.html) açmadıkça yaptığın tarayıcıda veya
 ::: details Lolly Work'te paylaşılan işi bul (isteğe bağlı)
 Kuruluşunun Lolly'sini aç ve giriş yap, sonra **Projects → Team projects** içine bak. Paylaşılan oturumlar o örnek tarafından tutulur ve erişimine göre görünür. Giriş yapmak, başka bir cihazda o oturumlara erişimi geri getirebilir; kişisel kitaplığını veya cihaz yedeğini geri getirmez.
 
-Bir [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) içinde ayrılmadan önce **Saved to work** göstergesini bekle. Paylaşılan bir proje eksikse doğru örneğe bağlı olduğunu denetle ve erişim veya saklama için işletmesine sor. Tarayıcı verisini temizlemek yerel kopyaları kaldırır, kuruluşun sunucu kopyasını değil. Bkz. [Use Lolly at your organisation](/info/organisation.html).
+Bir [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) içinde ayrılmadan önce **Saved to work** göstergesini bekle. Paylaşılan bir proje eksikse doğru örneğe bağlı olduğunu denetle ve erişim veya saklama için işletmesine sor. Tarayıcı verisini temizlemek yerel kopyaları kaldırır, kuruluşun sunucu kopyasını değil. Bkz. [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Kaydettiğin bir şeyi bul

@@ -18,7 +18,7 @@ Each of these was made by filling in a tool's fields, or by typing them into a l
 
 ## A chart
 
-![An area chart of monthly signups whose every value arrived in the link](/info/shots/vt-d3-url-chart.svg)
+![A bar chart of monthly signups by channel in the design system's colours, whose every value arrived in the link](/info/shots/vt-d3-url-chart.svg)
 :::
 
 The gallery holds many more: QR codes, certificates, diagrams, decks, audiograms, motion, generated music and the utilities that clean or convert a file you already have. [Make your first file](/info/make-something.html) walks you through a QR code.

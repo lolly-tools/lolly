@@ -19,7 +19,7 @@ Công việc của bạn nằm ở đâu: bộ nhớ riêng của trình duyệt
 ::: details Tìm công việc chung trong Lolly Work (tùy chọn)
 Mở Lolly của tổ chức bạn và đăng nhập, rồi tìm trong **Projects → Team projects**. Các phiên chung do phiên bản đó giữ và xuất hiện theo quyền truy cập của bạn. Đăng nhập có thể khôi phục quyền truy cập các phiên đó trên thiết bị khác; nó không khôi phục thư viện cá nhân hay bản sao lưu thiết bị của bạn.
 
-Trong một [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), hãy đợi **Saved to work** trước khi rời đi. Nếu một dự án chung bị thiếu, hãy kiểm tra bạn đang kết nối đúng phiên bản và hỏi đơn vị vận hành về quyền truy cập hoặc thời hạn lưu giữ. Xóa dữ liệu trình duyệt gỡ các bản sao cục bộ, không gỡ bản sao trên máy chủ của tổ chức. Xem [Use Lolly at your organisation](/info/organisation.html).
+Trong một [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), hãy đợi **Saved to work** trước khi rời đi. Nếu một dự án chung bị thiếu, hãy kiểm tra bạn đang kết nối đúng phiên bản và hỏi đơn vị vận hành về quyền truy cập hoặc thời hạn lưu giữ. Xóa dữ liệu trình duyệt gỡ các bản sao cục bộ, không gỡ bản sao trên máy chủ của tổ chức. Xem [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Tìm lại thứ bạn đã lưu

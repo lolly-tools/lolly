@@ -19,7 +19,7 @@ Unde trăiește munca ta: stocarea proprie a browserului conține Projects, Hist
 ::: details Găsește munca comună în Lolly Work (opțional)
 Deschide Lolly-ul organizației tale și autentifică-te, apoi uită-te în **Projects → Team projects**. Sesiunile comune sunt ținute de acea instanță și apar după accesul tău. Autentificarea poate restaura accesul la acele sesiuni pe alt dispozitiv; nu restaurează biblioteca ta personală sau backup-ul dispozitivului.
 
-Într-un [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), așteaptă **Saved to work** înainte să pleci. Dacă lipsește un proiect comun, verifică dacă ești conectat la instanța potrivită și întreabă operatorul ei despre acces sau păstrare. Ștergerea datelor browserului elimină copiile locale, nu copia de pe serverul organizației. Vezi [Folosește Lolly în organizația ta](/info/organisation.html).
+Într-un [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), așteaptă **Saved to work** înainte să pleci. Dacă lipsește un proiect comun, verifică dacă ești conectat la instanța potrivită și întreabă operatorul ei despre acces sau păstrare. Ștergerea datelor browserului elimină copiile locale, nu copia de pe serverul organizației. Vezi [Folosește Lolly în organizația ta](/info/organisation.html).
 :::
 
 ## Găsește ceva ce ai salvat

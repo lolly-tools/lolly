@@ -60,7 +60,7 @@ The generated stations make their music as they play, with no samples and no rec
 - **Lolly Sings** is a family of stations. The original Lolly Sings is the bright, melodic one: major keys, a lead that carries every tune, and bossa, shuffle and chiptune colours. Each genre also has a station of its own, from Sugar and K-pop to Country, Jazz, Metal and D&B.
 - The **Lofi stations** (Warm, Late night and Rainy) are endless lo-fi beats.
 
-On a generated station, next and previous move between tunes rather than tracks, and every tune comes from a seed, so it plays the same wherever you share or save it (see [Generated music](generated-music.md)). Under the transport, **Mood** switches between the Lofi stations, **Drums** takes the kit out and **Texture** runs from clean to a dusty record. A row of small icon buttons follows, each named in a tooltip on hover or a long press:
+On a generated station, next and previous move between tunes rather than tracks, and every tune comes from a seed, so it plays the same wherever you share or save it (see [Generated music](/info/generated-music.html)). Under the transport, **Mood** switches between the Lofi stations, **Drums** takes the kit out and **Texture** runs from clean to a dusty record. A row of small icon buttons follows, each named in a tooltip on hover or a long press:
 
 - The music note, **Open in the music generator**, opens the tune at `#/music`, where you can change its instruments section by section.
 - The link, **Share this tune or moment**, offers a link that plays the same tune for anyone who opens the link, or one that also starts where you are and shows the visualiser with your current preset and colours.

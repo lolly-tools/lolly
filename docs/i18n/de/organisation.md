@@ -38,7 +38,7 @@ In den Desktop- und Mobil-Apps bietet der Anmeldebildschirm auch einen kurzen Co
 - **Manche Steuerelemente sind für Sie festgelegt.** Ein Steuerelement, das Ihre Organisation regelt, zeigt **Managed by** und den Namen der Organisation oder **Managed by your organisation**. Ein festes Steuerelement lässt sich nicht ändern, ein Menü bietet eventuell nur einen Teil seiner Auswahl, und eine Zeile, die mit **Set by** beginnt, kann sagen, welche Regel gilt und warum. Manche Steuerelemente werden gar nicht angezeigt.
 - **Manche Designsysteme sind gesperrt.** Ein Designsystem, das Ihre Organisation liefert, zeigt ein Schloss und bleibt schreibgeschützt. Um Änderungen auszuprobieren, erstellen Sie unter **Settings → Preferences → Design systems** eine bearbeitbare Kopie.
 - **Nur ihre Tools sind aufgelistet.** Ein Tool, das Ihre Organisation nicht anbietet, wird gar nicht angezeigt.
-- **Gemeinsame Projekte.** Wenn Ihre Organisation Projekte mit Ihnen teilt, zeigt **Projects** eine Kachel **Team projects**. Diese Sitzungen liegen auf dem Server der Organisation. Öffnen Sie eine, um daran zu arbeiten, oder starten Sie, wenn verfügbar, über **Share** eine [Lolly Work-Collab](/info/collaborate.html#work-collabs-with-lolly-work-optional).
+- **Gemeinsame Projekte.** Wenn Ihre Organisation Projekte mit Ihnen teilt, zeigt **Projects** eine Kachel **Team projects**. Diese Sitzungen liegen auf dem Server der Organisation. Öffnen Sie eine, um daran zu arbeiten, oder starten Sie, wenn verfügbar, über **Share** eine [Lolly Work-Collab](/info/collaborate.html#collabs-through-lolly-work-optional).
 - **Manche Exporte brauchen eventuell eine Freigabe.** Wo Ihre Organisation eine Freigabe verlangt, tritt **Request approval** an die Stelle von **Download**, und ein Tool bietet eventuell weniger Formate.
 
 ### Was wo bleibt
@@ -69,7 +69,7 @@ Der Server Ihrer Organisation betreibt **Lolly Work**, die Organisationssoftware
 Ihre Organisation hostet [Lolly Work](https://github.com/lolly-tools/lolly-work) neben Lolly und wählt, welche Funktionen sie einschaltet:
 
 - **Anmeldung und Zugriff.** Single Sign-on der Organisation, gruppenbasierte Berechtigungen und verwaltete Profilfelder. Administratoren können Konten über SCIM bereitstellen und deaktivieren.
-- **Gemeinsame Arbeit.** Team-Projekte, gemeinsame Sitzungen und [Lolly Work-Collabs](/info/collaborate.html#work-collabs-with-lolly-work-optional), mit Live-Bearbeitung über den Server der Organisation.
+- **Gemeinsame Arbeit.** Team-Projekte, gemeinsame Sitzungen und [Lolly Work-Collabs](/info/collaborate.html#collabs-through-lolly-work-optional), mit Live-Bearbeitung über den Server der Organisation.
 - **Eine gemeinsame Asset-Bibliothek.** Hochgeladene Assets, Sammlungen und verbundene Bibliotheken, mit Zugriffsregeln, Versionen und Prüfung.
 - **Prüfung und Lieferung.** Freigabeschritte, verwaltete Links mit Ablauf oder Widerruf und Lieferung an Ziele, die die Organisation zulässt.
 - **Administration.** Nutzungsberichte nach der Telemetrie-Richtlinie der Instanz sowie ein Audit-Protokoll gesteuerter Aktionen.

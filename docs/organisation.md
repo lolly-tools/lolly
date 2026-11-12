@@ -41,7 +41,7 @@ In the desktop and mobile apps, the sign-in screen also offers a short code, whe
 - **Some controls are set for you.** A control your organisation governs shows **Managed by** and the organisation's name, or **Managed by your organisation**. A fixed control cannot be changed, and a menu may offer only some of its choices. Some controls are not shown at all. Which rule fixed a control, and why, is in your organisation's console; ask whoever runs your organisation's Lolly.
 - **Some design systems are locked.** A design system your organisation supplies shows a lock and stays read-only. To try changes, make an editable copy in **Settings → Preferences → Design systems**.
 - **Only its tools are listed.** A tool your organisation does not offer is not shown at all.
-- **Shared projects.** If your organisation shares projects with you, **Projects** shows a **Team projects** tile. These sessions live on the organisation's server. Open one to work on it, or start a [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) from **Share** when available.
+- **Shared projects.** If your organisation shares projects with you, **Projects** shows a **Team projects** tile. These sessions live on the organisation's server. Open one to work on it, or start a [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) from **Share** when available.
 - **Some exports may need approval.** Where your organisation asks for approval, **Request approval** takes the place of **Download**, and a tool may offer fewer formats.
 - **Your home may open on templates.** If your organisation publishes templates to you, as it might for a partner company, your home opens on them instead of the first-visit greeting. Each template is one card, with **Your copy** to carry on and **New version** when the template changes. See [Partner templates](/info/work-partner-templates.html).
 
@@ -74,7 +74,7 @@ Your organisation's server runs **Lolly Work**, the organisation software of the
 Your organisation hosts [Lolly Work](https://github.com/lolly-tools/lolly-work) alongside Lolly and chooses which features to turn on:
 
 - **Sign-in and access.** Organisation single sign-on, group-based permissions and managed profile fields. Administrators can provision and deactivate accounts through SCIM.
-- **Shared work.** Team projects, shared sessions and [work collabs](/info/collaborate.html#work-collabs-with-lolly-work-optional), with live editing through the organisation's server.
+- **Shared work.** Team projects, shared sessions and [work collabs](/info/collaborate.html#collabs-through-lolly-work-optional), with live editing through the organisation's server.
 - **A shared asset library.** Uploaded assets, collections and connected libraries, with access rules, versions and review.
 - **Review and delivery.** Approval steps, managed links with expiry or revocation, and delivery to destinations the organisation permits.
 - **Administration.** An audit record of governed actions, and usage reporting under the instance's telemetry policy for clients that send usage events. Lolly's own apps send none today.

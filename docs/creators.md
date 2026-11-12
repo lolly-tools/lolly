@@ -14,6 +14,7 @@ Pick a tool and fill it in, or lay a page out freely on the Lolly Design canvas.
 - **[Lolly Design](/info/design.html)** - the free canvas, for layouts no template covers: a poster, a deck, a motion piece.
 - **[Templates](/info/templates.html)** - start from a saved layout instead of a blank tool.
 - **[Text in Lolly Design](/info/text-composition.html)** - headings, flowing text and type that fits its box.
+- **[Lolly Chart](/info/chart.html)** - a pasted table drawn as a vector chart, a statistical plot, a 3-D scene or a cinematic flight.
 - **[Lolly 3D Studio](/info/3d-studio.html)** - SVG artwork and 3D models arranged, lit and rendered as one scene.
 - **[Lolly Darkroom](/info/darkroom.html)** - grade photos and video, and keep a look as a LUT.
 - **[Lolly Utilities](/info/utilities.html)** - fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour.
@@ -28,7 +29,7 @@ Your design system decides what every tool looks like.
 - **[Lolly Demo in use](/info/lolly-demo-in-use.html)** - colourways on real work, and switching to your own design system.
 - **[Brand architectures](/info/brand-architectures.html)** - several design systems, or one with several colourways, for one organisation.
 - **[Working with partners](/info/partners.html)** - share your brand with a partner, work in a brand you were given and make a sponsor wall.
-- **[Import a design](/info/design-import.html)** - a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file opened as an editable layout rather than a flat picture.
+- **[Import a design](/info/design-import.html)** - a Figma, Penpot, Illustrator, InDesign, Affinity, Photoshop, PowerPoint or SVG file opened as an editable layout rather than a flat picture ([every format](/info/design-import.html#what-comes-in-from-each-app)).
 - **[Rebrand a deck](/info/rebrand.html)** - a PowerPoint deck moved onto your design system, charts and animations intact.
 - **[Share a design with rules](/info/create-a-tool.html)** - turn a layout into a tool other people fill in.
 

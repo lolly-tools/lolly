@@ -70,7 +70,7 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 
 फ़ोन की चौड़ाई पर वही टूल दूसरे लेआउट की माँग नहीं करता: नियंत्रण ऊपर शीट बन जाते हैं और प्रीव्यू स्क्रीन थामे रहता है।
 
-![430px चौड़ी स्क्रीन पर ऑडियोग्राम: ऊपर नियंत्रण शीट, नीचे तैयार वर्गाकार आर्टवर्क और तैरती एक्सपोर्ट पिल](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![430px चौड़ी स्क्रीन पर ऑडियोग्राम: ऊपर नियंत्रण शीट, नीचे तैयार वर्गाकार आर्टवर्क और तैरती एक्सपोर्ट पिल](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 वेब ऐप **Batch** (`#/batch`, `shells/web/src/pro/`) भी देता है, स्प्रेडशीट-शैली ग्रिड जो एक या कई टूल में एक साथ कई पंक्तियाँ रेंडर करता है; [Batch and Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) Batch को कवर करता है। **Settings → Capabilities** वह सब दिखाता है जो प्लेटफ़ॉर्म घोषित करता है कि कर सकता है।
 

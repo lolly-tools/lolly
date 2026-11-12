@@ -88,7 +88,7 @@ Les éléments portent le nom de fichier que tu as saisi dans le panneau d'expor
 Les enregistrements personnels restent sur cet appareil, dans le navigateur ou l'application d'où tu les as enregistrés, sauf si tu actives [Sync](/info/sync.html). Si quelque chose n'est pas là où tu l'attends, [Find and recover your work](/info/find-your-work.html) couvre tous les cas, de l'onglet fermé aux données de navigateur effacées.
 
 ::: details Projets d'équipe avec Lolly Work (facultatif)
-Si [ton organisation utilise Lolly Work](/info/organisation.html), connecte-toi à son instance et ouvre **Projects → Team projects** pour les sessions partagées avec toi. L'organisation définit l'accès et la conservation, et son service Lolly Work stocke ces sessions. Une session partagée rejoint sa collab en direct à l'ouverture quand ton organisation autorise l'édition en direct ; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) explique les étapes.
+Si [ton organisation utilise Lolly Work](/info/organisation.html), connecte-toi à son instance et ouvre **Projects → Team projects** pour les sessions partagées avec toi. L'organisation définit l'accès et la conservation, et son service Lolly Work stocke ces sessions. Une session partagée rejoint sa collab en direct à l'ouverture quand ton organisation autorise l'édition en direct ; [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) explique les étapes.
 
 Ta bibliothèque personnelle reste séparée. Te connecter sur un autre appareil te donne le travail d'équipe, alors que les enregistrements personnels ont encore besoin de Sync ou d'une sauvegarde pour passer d'un appareil à l'autre.
 :::

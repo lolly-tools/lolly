@@ -88,7 +88,7 @@ Elementele sunt denumite după numele de fișier tastat în panoul de export sau
 Salvările personale rămân pe acest dispozitiv, în browserul sau aplicația din care ai salvat, dacă nu activezi [Sync](/info/sync.html). Dacă ceva nu este unde te aștepți, [Găsește și recuperează-ți munca](/info/find-your-work.html) acoperă fiecare caz, de la o filă închisă la date de browser șterse.
 
 ::: details Proiecte de echipă cu Lolly Work (opțional)
-Dacă [organizația ta folosește Lolly Work](/info/organisation.html), autentifică-te în instanța ei și deschide **Projects → Team projects** pentru sesiunile partajate cu tine. Organizația stabilește accesul și păstrarea, iar serviciul ei Lolly Work stochează acele sesiuni. O sesiune partajată se alătură collab-ului ei live pe măsură ce se deschide, când organizația ta permite editarea live; [Lucrul împreună](/info/collaborate.html#work-collabs-with-lolly-work-optional) explică pașii.
+Dacă [organizația ta folosește Lolly Work](/info/organisation.html), autentifică-te în instanța ei și deschide **Projects → Team projects** pentru sesiunile partajate cu tine. Organizația stabilește accesul și păstrarea, iar serviciul ei Lolly Work stochează acele sesiuni. O sesiune partajată se alătură collab-ului ei live pe măsură ce se deschide, când organizația ta permite editarea live; [Lucrul împreună](/info/collaborate.html#collabs-through-lolly-work-optional) explică pașii.
 
 Biblioteca ta personală rămâne separată. Autentificarea pe alt dispozitiv îți dă munca de echipă, în timp ce salvările personale au în continuare nevoie de Sync sau de o copie de siguranță ca să treacă dintr-un loc în altul.
 :::

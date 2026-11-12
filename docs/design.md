@@ -175,7 +175,7 @@ A box can hold more than a picture. Both kinds below keep a recipe rather than a
 
 ### 3D scenes
 
-Choose **3D scene** from the rail's add menu and drag out a frame: Lolly 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, **Edit in 3D Studio** in the Inspector's **3D scene** section reopens the studio. [Place a scene in Lolly Design](/info/3d-studio.html#place-a-scene-in-design) covers posters, the timeline, export and sharing.
+Choose **3D scene** from the rail's add menu and drag out a frame: Lolly 3D Studio opens on the new box, and what you set there comes back to the canvas. Afterwards, **Edit in 3D Studio** in the Inspector's **3D scene** section reopens the studio. [Place a scene in Lolly Design](/info/3d-studio.html#place-a-scene-in-lolly-design) covers posters, the timeline, export and sharing.
 
 ### Tools inside a design
 
@@ -273,6 +273,7 @@ The deck is a link too. `?present` opens straight into it and `s=` picks the sli
 
 - **[Text in Lolly Design](/info/text-composition.html)**: editing text on the canvas, flowing articles through frames and typography.
 - **[Animating](/info/animating.html)**: keyframes, depth, the scene camera and Lift layers.
+- **[Lolly Chart](/info/chart.html)**: a table drawn as a vector, statistical, 3-D or cinematic chart, which a box holds like any other tool.
 - **[Import a design](/info/design-import.html)**: open Figma, Penpot, Illustrator, InDesign, Affinity and DXF files as editable boxes, and editing timelines as a sequence.
 - **[Share a design with rules](/info/create-a-tool.html)**: turn a Lolly Design document into a tool with only the inputs you choose.
 - **[Export a file](/info/exporting.html)**: formats, sizes, print units and video.

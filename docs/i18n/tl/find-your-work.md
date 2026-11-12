@@ -19,7 +19,7 @@ Kung saan nakatira ang gawa mo: ang sariling storage ng browser ang may hawak ng
 ::: details Hanapin ang shared na gawa sa Lolly Work (opsyonal)
 Buksan ang Lolly ng organisasyon mo at mag-sign in, saka tumingin sa **Projects → Team projects**. Hawak ng instance na iyon ang mga shared session at lumilitaw ayon sa access mo. Ang pag-sign in ay maaaring magbalik ng access sa mga session na iyon sa ibang device; hindi nito ibinabalik ang personal mong library o device backup.
 
-Sa [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), hintaying lumabas ang **Saved to work** bago umalis. Kung nawawala ang shared project, i-check na nakakonekta ka sa tamang instance at itanong sa operator nito ang tungkol sa access o retention. Ang pag-clear ng browser data ay nag-aalis ng mga lokal na kopya, hindi ng kopya ng server ng organisasyon. Tingnan ang [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html).
+Sa [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), hintaying lumabas ang **Saved to work** bago umalis. Kung nawawala ang shared project, i-check na nakakonekta ka sa tamang instance at itanong sa operator nito ang tungkol sa access o retention. Ang pag-clear ng browser data ay nag-aalis ng mga lokal na kopya, hindi ng kopya ng server ng organisasyon. Tingnan ang [Gamitin ang Lolly sa organisasyon mo](/info/organisation.html).
 :::
 
 ## Hanapin ang na-save mong gawa

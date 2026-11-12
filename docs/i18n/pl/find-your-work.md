@@ -19,7 +19,7 @@ Gdzie żyje Twoja praca: własna pamięć przeglądarki przechowuje Projects, Hi
 ::: details Znajdź wspólną pracę w Lolly Work (opcjonalnie)
 Otwórz Lolly swojej organizacji i zaloguj się, a potem zajrzyj do **Projects → Team projects**. Wspólne sesje są przechowywane przez tę instancję i pojawiają się według Twojego dostępu. Zalogowanie może przywrócić dostęp do tych sesji na innym urządzeniu; nie przywraca Twojej osobistej biblioteki ani kopii zapasowej urządzenia.
 
-W [collabie roboczym](/info/collaborate.html#work-collabs-with-lolly-work-optional) poczekaj na **Saved to work** przed wyjściem. Jeśli brakuje wspólnego projektu, sprawdź, czy jesteś połączony z właściwą instancją, i zapytaj jej operatora o dostęp lub retencję. Wyczyszczenie danych przeglądarki usuwa kopie lokalne, a nie kopię organizacji na serwerze. Zobacz [Use Lolly at your organisation](/info/organisation.html).
+W [collabie roboczym](/info/collaborate.html#collabs-through-lolly-work-optional) poczekaj na **Saved to work** przed wyjściem. Jeśli brakuje wspólnego projektu, sprawdź, czy jesteś połączony z właściwą instancją, i zapytaj jej operatora o dostęp lub retencję. Wyczyszczenie danych przeglądarki usuwa kopie lokalne, a nie kopię organizacji na serwerze. Zobacz [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Znajdź to, co zapisałeś

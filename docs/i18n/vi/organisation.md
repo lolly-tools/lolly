@@ -38,7 +38,7 @@ Trong ứng dụng máy tính và di động, màn hình đăng nhập còn đư
 - **Một số điều khiển được đặt sẵn cho bạn.** Một điều khiển do tổ chức bạn quản trị hiện **Managed by** và tên tổ chức, hoặc **Managed by your organisation**. Điều khiển cố định không thể đổi, một menu có thể chỉ đưa ra một số lựa chọn, và dòng bắt đầu bằng **Set by** có thể cho biết quy tắc nào áp dụng và vì sao. Một số điều khiển không hiện ra.
 - **Một số hệ thống thiết kế bị khóa.** Hệ thống thiết kế do tổ chức bạn cung cấp hiện một khóa và chỉ đọc. Để thử thay đổi, hãy tạo bản sao có thể chỉnh sửa trong **Settings → Preferences → Design systems**.
 - **Chỉ các công cụ của tổ chức được liệt kê.** Công cụ mà tổ chức bạn không cung cấp hoàn toàn không hiện ra.
-- **Dự án chung.** Nếu tổ chức chia sẻ dự án với bạn, **Projects** hiện một ô **Team projects**. Các phiên này nằm trên máy chủ của tổ chức. Mở một phiên để làm việc, hoặc bắt đầu một [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) từ **Share** khi có.
+- **Dự án chung.** Nếu tổ chức chia sẻ dự án với bạn, **Projects** hiện một ô **Team projects**. Các phiên này nằm trên máy chủ của tổ chức. Mở một phiên để làm việc, hoặc bắt đầu một [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) từ **Share** khi có.
 - **Một số bản xuất có thể cần phê duyệt.** Nơi tổ chức yêu cầu phê duyệt, **Request approval** thay cho **Download**, và một công cụ có thể cung cấp ít định dạng hơn.
 
 ### Cái gì ở đâu
@@ -69,7 +69,7 @@ Máy chủ của tổ chức bạn chạy **Lolly Work**, phần mềm tổ ch�
 Tổ chức của bạn lưu trữ [Lolly Work](https://github.com/lolly-tools/lolly-work) cùng với Lolly và chọn tính năng nào được bật:
 
 - **Đăng nhập và truy cập.** Đăng nhập một lần của tổ chức, quyền theo nhóm và các trường hồ sơ được quản lý. Quản trị viên có thể cấp và vô hiệu hóa tài khoản qua SCIM.
-- **Công việc chung.** Dự án nhóm, phiên chung và [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), với chỉnh sửa trực tiếp qua máy chủ của tổ chức.
+- **Công việc chung.** Dự án nhóm, phiên chung và [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), với chỉnh sửa trực tiếp qua máy chủ của tổ chức.
 - **Thư viện tài nguyên chung.** Tài nguyên đã tải lên, bộ sưu tập và thư viện đã kết nối, với quy tắc truy cập, phiên bản và xem xét.
 - **Xem xét và bàn giao.** Các bước phê duyệt, liên kết được quản lý có hạn hoặc thu hồi được, và bàn giao tới các đích mà tổ chức cho phép.
 - **Quản trị.** Báo cáo sử dụng theo chính sách telemetry của phiên bản, cùng bản ghi kiểm toán các hành động được quản trị.

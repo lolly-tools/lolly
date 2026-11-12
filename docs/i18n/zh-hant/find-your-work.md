@@ -19,7 +19,7 @@
 ::: details 在 Lolly Work 中尋找共用的作品（選用）
 開啟你組織的 Lolly 並登入，然後查看 **Projects → Team projects**。共用的工作階段由該實例保存，並依你的存取權限出現。登入可以在另一部裝置上恢復對這些工作階段的存取；它不會恢復你的個人資料庫或裝置備份。
 
-在[工作協作](/info/collaborate.html#work-collabs-with-lolly-work-optional)中，離開前請等待 **Saved to work**。如果共用專案不見了，請檢查你是否連到正確的實例，並向其營運者詢問存取或保留問題。清除瀏覽器資料會移除本機副本，而不是組織的伺服器副本。請見[在你的組織使用 Lolly](/info/organisation.html)。
+在[工作協作](/info/collaborate.html#collabs-through-lolly-work-optional)中，離開前請等待 **Saved to work**。如果共用專案不見了，請檢查你是否連到正確的實例，並向其營運者詢問存取或保留問題。清除瀏覽器資料會移除本機副本，而不是組織的伺服器副本。請見[在你的組織使用 Lolly](/info/organisation.html)。
 :::
 
 ## 找到你儲存的內容

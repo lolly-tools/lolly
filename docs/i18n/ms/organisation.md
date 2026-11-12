@@ -38,7 +38,7 @@ Dalam apl desktop dan mudah alih, skrin log masuk juga menawarkan kod pendek, ap
 - **Sesetengah kawalan ditetapkan untuk anda.** Kawalan yang ditadbir organisasi anda menunjukkan **Managed by** dan nama organisasi, atau **Managed by your organisation**. Kawalan tetap tidak boleh diubah, menu mungkin menawarkan hanya sebahagian pilihannya, dan baris yang bermula dengan **Set by** boleh menyatakan peraturan mana yang terpakai dan sebabnya. Sesetengah kawalan tidak ditunjukkan langsung.
 - **Sesetengah sistem reka bentuk dikunci.** Sistem reka bentuk yang dibekalkan organisasi anda menunjukkan kunci dan kekal baca sahaja. Untuk mencuba perubahan, buat salinan boleh sunting dalam **Settings → Preferences → Design systems**.
 - **Hanya alatnya disenaraikan.** Alat yang tidak ditawarkan organisasi anda tidak ditunjukkan langsung.
-- **Projek dikongsi.** Jika organisasi anda berkongsi projek dengan anda, **Projects** menunjukkan jubin **Team projects**. Sesi ini berada pada pelayan organisasi. Buka satu untuk mengusahakannya, atau mulakan [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) daripada **Share** apabila tersedia.
+- **Projek dikongsi.** Jika organisasi anda berkongsi projek dengan anda, **Projects** menunjukkan jubin **Team projects**. Sesi ini berada pada pelayan organisasi. Buka satu untuk mengusahakannya, atau mulakan [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) daripada **Share** apabila tersedia.
 - **Sesetengah eksport mungkin memerlukan kelulusan.** Di mana organisasi anda meminta kelulusan, **Request approval** menggantikan **Download**, dan alat mungkin menawarkan lebih sedikit format.
 
 ### Apa yang kekal di mana
@@ -69,7 +69,7 @@ Pelayan organisasi anda menjalankan **Lolly Work**, perisian organisasi daripada
 Organisasi anda menghoskan [Lolly Work](https://github.com/lolly-tools/lolly-work) bersama Lolly dan memilih ciri yang hendak dihidupkan:
 
 - **Log masuk dan akses.** Log masuk tunggal organisasi, kebenaran berasaskan kumpulan dan medan profil terurus. Pentadbir boleh menyediakan dan menyahaktifkan akaun melalui SCIM.
-- **Kerja dikongsi.** Projek pasukan, sesi dikongsi dan [work collabs](/info/collaborate.html#work-collabs-with-lolly-work-optional), dengan penyuntingan langsung melalui pelayan organisasi.
+- **Kerja dikongsi.** Projek pasukan, sesi dikongsi dan [work collabs](/info/collaborate.html#collabs-through-lolly-work-optional), dengan penyuntingan langsung melalui pelayan organisasi.
 - **Pustaka aset dikongsi.** Aset yang dimuat naik, koleksi dan pustaka bersambung, dengan peraturan akses, versi dan semakan.
 - **Semakan dan penghantaran.** Langkah kelulusan, pautan terurus dengan tamat tempoh atau pembatalan, dan penghantaran ke destinasi yang dibenarkan organisasi.
 - **Pentadbiran.** Pelaporan penggunaan di bawah dasar telemetri instans, serta rekod audit tindakan yang ditadbir.

@@ -20,7 +20,7 @@ Choose the route that matches what you have:
 
 - <!--i:palette--> **One colour.** Open the **Design System Setup** view (`#/start`), give your design system a name and pick a primary colour. Lolly derives a complete, accessible palette from it, with light and dark surfaces, text and accents. Pick a font and you have a working brand.
 - <!--i:upload--> **A tokens file.** **Add from…**, in the bar at the top of Lolly Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills. While the design system is still empty, **Start from a reference** on the Board opens the same picker.
-- <!--i:pentool--> **A finished design.** In Lolly Design, choose **Import a design** and drop a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file. See [Bring in what you already have](#bring-in-what-you-already-have) below.
+- <!--i:pentool--> **A finished design.** In Lolly Design, choose **Import a design** and drop a Figma, Penpot, Illustrator, InDesign, Affinity, Photoshop, PowerPoint or SVG file ([every format](/info/design-import.html#what-comes-in-from-each-app)). See [Bring in what you already have](#bring-in-what-you-already-have) below.
 
 The first time you open the gallery, a greeting at the top of the page offers one next step. On lolly.tools, **Start making** opens Lolly Design on the Launch poster; on a new install, **Make it yours** opens Lolly Design System Setup. Under it, **Bring a file** opens a file picker for a design, the other of those two choices is a link, and the close button puts the greeting away. Any of them settles the greeting for good.
 
@@ -81,7 +81,7 @@ An imported layout is an ordinary Lolly Design session. **Share with rules** tur
 
 A link is a complete request. Nobody drew the chart below: its type, its heading and its whole data table were typed into the address bar, and the same link draws the same chart on any device.
 
-![An area chart of monthly signups, every value of which arrived as a query parameter rather than a click](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Darea%26d%3DMonth%2CSignups%250AJan%2C120%250AFeb%2C180%250AMar%2C265%250AApr%2C340%250AMay%2C455%26t%3DSignups%2520this%2520year%26full&width=1440&height=900&dpi=192&waitMs=2600&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
+![A bar chart of monthly signups by channel in the design system's colours, every value of which arrived as a query parameter rather than a click](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3Fct%3Dbar%26sty%3Dposter%26pl%3Droles%26transparentBg%3Dfalse%26d%3DMonth%2CWeb%2CApp%2CPartners%250AJan%2C120%2C60%2C25%250AFeb%2C180%2C95%2C40%250AMar%2C265%2C150%2C70%250AApr%2C340%2C210%2C110%250AMay%2C455%2C290%2C160%250AJun%2C560%2C380%2C230%26t%3DSignups%2520this%2520year%26st%3DBy%2520channel%252C%2520January%2520to%2520June%26full&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=vt-d3-url-chart)
 
 <!--i:eti-map-pin-->
 ## Where to go next

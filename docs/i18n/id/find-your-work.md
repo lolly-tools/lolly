@@ -19,7 +19,7 @@ Di mana pekerjaan Anda berada: penyimpanan browser sendiri menyimpan Projects, H
 ::: details Temukan pekerjaan bersama di Lolly Work (opsional)
 Buka Lolly organisasi Anda dan login, lalu lihat di **Projects → Team projects**. Sesi bersama disimpan oleh instans itu dan muncul sesuai akses Anda. Login dapat memulihkan akses ke sesi tersebut di perangkat lain; ia tidak memulihkan pustaka pribadi atau cadangan perangkat Anda.
 
-Dalam [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), tunggu **Saved to work** sebelum pergi. Jika proyek bersama hilang, periksa bahwa Anda terhubung ke instans yang benar dan tanyakan kepada operatornya tentang akses atau retensi. Membersihkan data browser menghapus salinan lokal, bukan salinan server organisasi. Lihat [Use Lolly at your organisation](/info/organisation.html).
+Dalam [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), tunggu **Saved to work** sebelum pergi. Jika proyek bersama hilang, periksa bahwa Anda terhubung ke instans yang benar dan tanyakan kepada operatornya tentang akses atau retensi. Membersihkan data browser menghapus salinan lokal, bukan salinan server organisasi. Lihat [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Temukan sesuatu yang Anda simpan

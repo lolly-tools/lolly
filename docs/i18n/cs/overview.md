@@ -70,7 +70,7 @@ Každý povrch používá stejný engine a stejné soubory nástrojů.
 
 Stejný nástroj v šířce telefonu nepotřebuje druhé rozvržení: ovládací prvky se stanou listem nahoře a náhled drží obrazovku.
 
-![Audiogram na obrazovce široké 430 px: list ovládání nahoře, hotové čtvercové dílo dole a plovoucí pilulka exportu](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dlolly%2Floops%2Ffireplace-loop%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Audiogram na obrazovce široké 430 px: list ovládání nahoře, hotové čtvercové dílo dole a plovoucí pilulka exportu](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
 Webová aplikace také obsahuje **Batch** (`#/batch`, `shells/web/src/pro/`), mřížku ve stylu tabulky, která vykresluje mnoho řádků najednou napříč jedním nebo více nástroji; Batch pokrývá [Batch a Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design). **Settings → Capabilities** mapuje vše, co platforma deklaruje, že umí.
 

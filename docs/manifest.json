@@ -561,6 +561,21 @@
       "group": "Design and templates"
     },
     {
+      "slug": "chart",
+      "title": "Lolly Chart",
+      "src": "chart.md",
+      "description": "Paste a table and draw it four ways in your design system: vector charts, statistical plots, lit 3-D scenes and cinematic flights, from 43 templates to 20 export formats.",
+      "section": "create",
+      "path": "create/chart",
+      "icon": "chart",
+      "aliases": [],
+      "tools": [
+        "chart"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Design and templates"
+    },
+    {
       "slug": "find-your-work",
       "title": "Find and recover your work",
       "src": "find-your-work.md",
@@ -1657,42 +1672,17 @@
       "description": "Run Lolly in the iPhone Simulator, sign a build for a device or TestFlight, and release through the protected App Store workflow."
     },
     {
-      "slug": "catalog-resource-reading",
-      "title": "Read verified catalog resources",
-      "src": "catalog-resource-reading.md",
-      "description": "How a client verifies signed catalog resources before use, the read limits, and how exact source reads stay fixed in History.",
+      "slug": "operate",
+      "title": "Deploy",
+      "src": "operate.md",
       "section": "operate",
-      "path": "operate/catalog-resource-reading",
-      "icon": "shieldcheck",
-      "aliases": [
-        "build/catalog-resource-reading"
-      ],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Updates, qualification and release history"
-    },
-    {
-      "slug": "connector-origins",
-      "title": "Configure connector origins",
-      "src": "connector-origins.md",
-      "description": "Exact HTTPS connector origins, deployment headers and native request policy.",
-      "section": "operate",
-      "path": "operate/connector-origins",
-      "icon": "globe",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Instance configuration, SSO and signing"
-    },
-    {
-      "slug": "deployment",
-      "title": "Choose a deployment",
-      "src": "deployment.md",
-      "section": "operate",
-      "path": "operate/deployment",
-      "icon": "upload",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
       "group": "Hosting and installation",
-      "description": "Pick how Lolly reaches people: hand out the apps, host the web app on Kubernetes or any static server, or add Lolly Work. The routes and headers a host must serve."
+      "path": "operate/index",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "isHub": true,
+      "headingId": "deploy-operate"
     },
     {
       "slug": "build-kubernetes",
@@ -1709,16 +1699,46 @@
       "group": "Hosting and installation"
     },
     {
-      "slug": "deploy-delivery",
-      "title": "Delivery deployment",
-      "src": "deploy-delivery.md",
-      "description": "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.",
+      "slug": "work-platform-deployment",
+      "title": "Install on Kubernetes",
+      "src": "work/platform-deployment.md",
       "section": "operate",
-      "path": "operate/deploy-delivery",
-      "icon": "download",
+      "group": "Hosting and installation",
+      "path": "operate/platform-deployment",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.",
+      "work": {
+        "slug": "platform-deployment",
+        "path": "platform-deployment.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "deployment",
+      "title": "Choose a deployment",
+      "src": "deployment.md",
+      "section": "operate",
+      "path": "operate/deployment",
+      "icon": "upload",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Updates, qualification and release history"
+      "group": "Hosting and installation",
+      "description": "Pick how Lolly reaches people: hand out the apps, host the web app on Kubernetes or any static server, or add Lolly Work. The routes and headers a host must serve."
+    },
+    {
+      "slug": "sovereign-production",
+      "title": "Sovereign creative production",
+      "src": "sovereign-production.md",
+      "register": "stage",
+      "description": "Make, sign and verify files locally as one part of content sovereignty. Inspect the dependencies, optional network services and limits of the workflow.",
+      "section": "operate",
+      "path": "operate/sovereign-production",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Hosting and installation"
     },
     {
       "slug": "configuration",
@@ -1865,17 +1885,21 @@
       "group": "Administration, policy and approvals"
     },
     {
-      "slug": "sovereign-production",
-      "title": "Sovereign creative production",
-      "src": "sovereign-production.md",
-      "register": "stage",
-      "description": "Make, sign and verify files locally as one part of content sovereignty. Inspect the dependencies, optional network services and limits of the workflow.",
+      "slug": "work-self-host",
+      "title": "Run Lolly Work",
+      "src": "work/self-host.md",
       "section": "operate",
-      "path": "operate/sovereign-production",
+      "group": "Hosting and installation",
+      "path": "operate/run-your-own-server",
       "icon": "server",
       "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "group": "Hosting and installation"
+      "contentLicense": "MPL-2.0",
+      "description": "Pick the path that matches what you have: Kubernetes, the public demo, a trial on your computer, one Linux server or YunoHost. Downloads and checksums for the current release.",
+      "work": {
+        "slug": "self-host",
+        "path": "self-host.md",
+        "icon": "overview"
+      }
     },
     {
       "slug": "security",
@@ -2038,109 +2062,6 @@
       "group": "Principles, rights and AI"
     },
     {
-      "slug": "operate",
-      "title": "Deploy",
-      "src": "operate.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/index",
-      "icon": "server",
-      "aliases": [],
-      "contentLicense": "CC-BY-SA-4.0",
-      "isHub": true,
-      "headingId": "deploy-operate"
-    },
-    {
-      "slug": "work-self-host",
-      "title": "Run Lolly Work",
-      "src": "work/self-host.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/run-your-own-server",
-      "icon": "server",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Pick the path that matches what you have: Kubernetes, the public demo, a trial on your computer, one Linux server or YunoHost. Downloads and checksums for the current release.",
-      "work": {
-        "slug": "self-host",
-        "path": "self-host.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-release-1-2-0",
-      "title": "Release 1.2.0",
-      "src": "work/release-1-2-0.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/release-1-2-0",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The current release: Lolly Work 1.2.0 paired with Lolly 1.2.0, what Lolly 1.2.0 needs from Lolly Work, partner programmes, changes since 1.1.3, migrations and YunoHost packaging.",
-      "work": {
-        "slug": "release-1-2-0",
-        "path": "release-1-2-0.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-release-1-1-3",
-      "title": "Release 1.1.3",
-      "src": "work/release-1-1-3.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/release-1-1-3",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Lolly Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Lolly Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.",
-      "work": {
-        "slug": "release-1-1-3",
-        "path": "release-1-1-3.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-release-1-1-2",
-      "title": "Release 1.1.2",
-      "src": "work/release-1-1-2.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/release-1-1-2",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Lolly Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Lolly Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
-      "work": {
-        "slug": "release-1-1-2",
-        "path": "release-1-1-2.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-past-releases",
-      "title": "Past releases",
-      "src": "work/past-releases.md",
-      "section": "operate",
-      "group": "Updates, qualification and release history",
-      "path": "operate/past-releases",
-      "icon": "document",
-      "aliases": [
-        "work-release-1-1-1",
-        "work-release-1-1-0",
-        "operate/release-1-1-1",
-        "operate/release-1-1-0"
-      ],
-      "contentLicense": "MPL-2.0",
-      "description": "Lolly Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.",
-      "work": {
-        "slug": "past-releases",
-        "path": "past-releases.md",
-        "icon": "overview"
-      }
-    },
-    {
       "slug": "work-overview",
       "title": "Lolly Work architecture",
       "src": "work/overview.md",
@@ -2154,23 +2075,6 @@
       "work": {
         "slug": "overview",
         "path": "overview.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-platform-deployment",
-      "title": "Install on Kubernetes",
-      "src": "work/platform-deployment.md",
-      "section": "operate",
-      "group": "Hosting and installation",
-      "path": "operate/platform-deployment",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Try Lolly Work on a cluster in one command, then install it for production with Helm on K3s, RKE2 or Rancher, and prepare new SLES or openSUSE Leap hosts.",
-      "work": {
-        "slug": "platform-deployment",
-        "path": "platform-deployment.md",
         "icon": "overview"
       }
     },
@@ -2222,60 +2126,6 @@
       "work": {
         "slug": "official-installations",
         "path": "official-installations.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-enterprise-identity",
-      "title": "Set up enterprise identity",
-      "src": "work/enterprise-identity.md",
-      "section": "operate",
-      "group": "Instance configuration, SSO and signing",
-      "path": "operate/enterprise-identity",
-      "icon": "usercheck",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Connect an enterprise identity provider with logout and optional assurance, qualify it, operate it, and mint SCIM and service tokens.",
-      "work": {
-        "slug": "enterprise-identity",
-        "path": "enterprise-identity.md",
-        "icon": "overview"
-      }
-    },
-    {
-      "slug": "work-identity-providers",
-      "title": "Sign-in provider recipes",
-      "src": "work/identity-providers.md",
-      "section": "operate",
-      "group": "Instance configuration, SSO and signing",
-      "path": "operate/sign-in-provider-recipes",
-      "icon": "usercheck",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Configure Google, Entra ID, Okta, Keycloak, Auth0, GitHub or a SAML broker, several providers at once, and reverse-proxy sign-in.",
-      "work": {
-        "slug": "identity-providers",
-        "path": "identity-providers.md",
-        "icon": "instance"
-      },
-      "secondarySections": [
-        "manage"
-      ]
-    },
-    {
-      "slug": "work-customer-setup",
-      "title": "Configure your first Lolly Work instance",
-      "src": "work/customer-setup.md",
-      "section": "operate",
-      "group": "Instance configuration, SSO and signing",
-      "path": "operate/customer-setup",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "A six-step walk through Customer setup: deployment, owner identity, SCIM, assets and a checked sample, then applying the generated configuration.",
-      "work": {
-        "slug": "customer-setup",
-        "path": "customer-setup.md",
         "icon": "overview"
       }
     },
@@ -2382,20 +2232,69 @@
       }
     },
     {
-      "slug": "work-security-platform",
-      "title": "Lolly Work security overview",
-      "src": "work/security-platform.md",
-      "section": "trust",
-      "group": "Privacy, data and trust boundaries",
-      "path": "trust/security-platform",
+      "slug": "connector-origins",
+      "title": "Configure connector origins",
+      "src": "connector-origins.md",
+      "description": "Exact HTTPS connector origins, deployment headers and native request policy.",
+      "section": "operate",
+      "path": "operate/connector-origins",
+      "icon": "globe",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Instance configuration, SSO and signing"
+    },
+    {
+      "slug": "work-enterprise-identity",
+      "title": "Set up enterprise identity",
+      "src": "work/enterprise-identity.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/enterprise-identity",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Connect an enterprise identity provider with logout and optional assurance, qualify it, operate it, and mint SCIM and service tokens.",
+      "work": {
+        "slug": "enterprise-identity",
+        "path": "enterprise-identity.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-identity-providers",
+      "title": "Sign-in provider recipes",
+      "src": "work/identity-providers.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/sign-in-provider-recipes",
+      "icon": "usercheck",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Configure Google, Entra ID, Okta, Keycloak, Auth0, GitHub or a SAML broker, several providers at once, and reverse-proxy sign-in.",
+      "work": {
+        "slug": "identity-providers",
+        "path": "identity-providers.md",
+        "icon": "instance"
+      },
+      "secondarySections": [
+        "manage"
+      ]
+    },
+    {
+      "slug": "work-customer-setup",
+      "title": "Configure your first Lolly Work instance",
+      "src": "work/customer-setup.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/customer-setup",
       "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Local work, connected services and the boundaries operators control.",
+      "description": "A six-step walk through Customer setup: deployment, owner identity, SCIM, assets and a checked sample, then applying the generated configuration.",
       "work": {
-        "slug": "security-platform",
-        "path": "security-platform.md",
-        "icon": "instance"
+        "slug": "customer-setup",
+        "path": "customer-setup.md",
+        "icon": "overview"
       }
     },
     {
@@ -2414,6 +2313,135 @@
         "path": "configuration.md",
         "icon": "instance"
       }
+    },
+    {
+      "slug": "work-c2pa",
+      "title": "Configure Lolly Work export signing",
+      "src": "work/c2pa.md",
+      "section": "operate",
+      "group": "Instance configuration, SSO and signing",
+      "path": "operate/work-export-signing",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Give a deployment a signing identity so server exports carry a verifiable Content Credential: a self-made root in one command, or your organisation's CA.",
+      "work": {
+        "slug": "c2pa",
+        "path": "c2pa.md",
+        "icon": "grants"
+      },
+      "secondarySections": [
+        "trust"
+      ]
+    },
+    {
+      "slug": "work-operations",
+      "title": "Keep Lolly Work running",
+      "src": "work/operations.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/operations",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Upgrades, backups and restores, secret rotation, health and storage alerts, rate limits, scan hooks, notifications and SIEM forwarding, in the order the jobs come round.",
+      "work": {
+        "slug": "operations",
+        "path": "operations.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-metrics",
+      "title": "Metrics and alerts",
+      "src": "work/metrics.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/metrics",
+      "icon": "server",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Every metric Lolly Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.",
+      "work": {
+        "slug": "metrics",
+        "path": "metrics.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-production-readiness",
+      "title": "Check a deployment before production",
+      "src": "work/production-readiness.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/production-readiness",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Run the read-only checker against your configuration or rendered manifests, read its results, and add the evidence only you can supply.",
+      "work": {
+        "slug": "production-readiness",
+        "path": "production-readiness.md",
+        "icon": "audit"
+      }
+    },
+    {
+      "slug": "work-telemetry",
+      "title": "Telemetry and dashboards",
+      "src": "work/telemetry.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/telemetry",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "What is recorded, what never is, and how attribution consent works.",
+      "work": {
+        "slug": "telemetry",
+        "path": "telemetry.md",
+        "icon": "audit"
+      },
+      "secondarySections": [
+        "trust"
+      ]
+    },
+    {
+      "slug": "work-security-platform",
+      "title": "Lolly Work security overview",
+      "src": "work/security-platform.md",
+      "section": "trust",
+      "group": "Privacy, data and trust boundaries",
+      "path": "trust/security-platform",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Local work, connected services and the boundaries operators control.",
+      "work": {
+        "slug": "security-platform",
+        "path": "security-platform.md",
+        "icon": "instance"
+      }
+    },
+    {
+      "slug": "work-audit",
+      "title": "Audit log",
+      "src": "work/audit.md",
+      "section": "operate",
+      "group": "Operations, monitoring and recovery",
+      "path": "operate/audit",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "The hash-chained record, verification, and anchoring the head off-box.",
+      "work": {
+        "slug": "audit",
+        "path": "audit.md",
+        "icon": "audit"
+      },
+      "secondarySections": [
+        "trust",
+        "manage"
+      ]
     },
     {
       "slug": "work-identity",
@@ -2842,24 +2870,18 @@
       }
     },
     {
-      "slug": "work-c2pa",
-      "title": "Configure Lolly Work export signing",
-      "src": "work/c2pa.md",
+      "slug": "catalog-resource-reading",
+      "title": "Read verified catalog resources",
+      "src": "catalog-resource-reading.md",
+      "description": "How a client verifies signed catalog resources before use, the read limits, and how exact source reads stay fixed in History.",
       "section": "operate",
-      "group": "Instance configuration, SSO and signing",
-      "path": "operate/work-export-signing",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Give a deployment a signing identity so server exports carry a verifiable Content Credential: a self-made root in one command, or your organisation's CA.",
-      "work": {
-        "slug": "c2pa",
-        "path": "c2pa.md",
-        "icon": "grants"
-      },
-      "secondarySections": [
-        "trust"
-      ]
+      "path": "operate/catalog-resource-reading",
+      "icon": "shieldcheck",
+      "aliases": [
+        "build/catalog-resource-reading"
+      ],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Updates, qualification and release history"
     },
     {
       "slug": "work-ai-policy",
@@ -3223,37 +3245,88 @@
       }
     },
     {
-      "slug": "work-operations",
-      "title": "Keep Lolly Work running",
-      "src": "work/operations.md",
+      "slug": "deploy-delivery",
+      "title": "Delivery deployment",
+      "src": "deploy-delivery.md",
+      "description": "Serve public files and private workspace responses safely: signed catalog updates, retained hashed files, model integrity, optional edges and release checks.",
       "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/operations",
-      "icon": "server",
+      "path": "operate/deploy-delivery",
+      "icon": "download",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Updates, qualification and release history"
+    },
+    {
+      "slug": "work-release-1-2-0",
+      "title": "Release 1.2.0",
+      "src": "work/release-1-2-0.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-2-0",
+      "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Upgrades, backups and restores, secret rotation, health and storage alerts, rate limits, scan hooks, notifications and SIEM forwarding, in the order the jobs come round.",
+      "description": "The current release: Lolly Work 1.2.0 paired with Lolly 1.2.0, what Lolly 1.2.0 needs from Lolly Work, partner programmes, changes since 1.1.3, migrations and YunoHost packaging.",
       "work": {
-        "slug": "operations",
-        "path": "operations.md",
-        "icon": "audit"
+        "slug": "release-1-2-0",
+        "path": "release-1-2-0.md",
+        "icon": "overview"
       }
     },
     {
-      "slug": "work-metrics",
-      "title": "Metrics and alerts",
-      "src": "work/metrics.md",
+      "slug": "work-release-1-1-3",
+      "title": "Release 1.1.3",
+      "src": "work/release-1-1-3.md",
       "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/metrics",
-      "icon": "server",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-1-3",
+      "icon": "document",
       "aliases": [],
       "contentLicense": "MPL-2.0",
-      "description": "Every metric Lolly Work exports on /metrics with its type and labels, the suggested Prometheus alerts and the Grafana dashboard the Helm chart can install.",
+      "description": "Lolly Work 1.1.3 paired with Lolly 1.1.3, what Lolly 1.1.3 needs from Lolly Work, changes since 1.1.2, migrations, the first published chart and YunoHost packaging.",
       "work": {
-        "slug": "metrics",
-        "path": "metrics.md",
-        "icon": "audit"
+        "slug": "release-1-1-3",
+        "path": "release-1-1-3.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-release-1-1-2",
+      "title": "Release 1.1.2",
+      "src": "work/release-1-1-2.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/release-1-1-2",
+      "icon": "document",
+      "aliases": [],
+      "contentLicense": "MPL-2.0",
+      "description": "Lolly Work 1.1.2 paired with Lolly 1.1.2, what Lolly 1.1.2 needs from Lolly Work, changes since 1.1.1, migrations, images and YunoHost packaging.",
+      "work": {
+        "slug": "release-1-1-2",
+        "path": "release-1-1-2.md",
+        "icon": "overview"
+      }
+    },
+    {
+      "slug": "work-past-releases",
+      "title": "Past releases",
+      "src": "work/past-releases.md",
+      "section": "operate",
+      "group": "Updates, qualification and release history",
+      "path": "operate/past-releases",
+      "icon": "document",
+      "aliases": [
+        "work-release-1-1-1",
+        "work-release-1-1-0",
+        "operate/release-1-1-1",
+        "operate/release-1-1-0"
+      ],
+      "contentLicense": "MPL-2.0",
+      "description": "Lolly Work 1.1.1 and 1.1.0 kept as a record: matched components, changes, migrations, image digests and YunoHost packaging.",
+      "work": {
+        "slug": "past-releases",
+        "path": "past-releases.md",
+        "icon": "overview"
       }
     },
     {
@@ -3270,23 +3343,6 @@
       "work": {
         "slug": "instance-pack-production",
         "path": "instance-pack-production.md",
-        "icon": "audit"
-      }
-    },
-    {
-      "slug": "work-production-readiness",
-      "title": "Check a deployment before production",
-      "src": "work/production-readiness.md",
-      "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/production-readiness",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "Run the read-only checker against your configuration or rendered manifests, read its results, and add the evidence only you can supply.",
-      "work": {
-        "slug": "production-readiness",
-        "path": "production-readiness.md",
         "icon": "audit"
       }
     },
@@ -3313,47 +3369,6 @@
         "path": "shell-deployment-workflow.md",
         "icon": "audit"
       }
-    },
-    {
-      "slug": "work-telemetry",
-      "title": "Telemetry and dashboards",
-      "src": "work/telemetry.md",
-      "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/telemetry",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "What is recorded, what never is, and how attribution consent works.",
-      "work": {
-        "slug": "telemetry",
-        "path": "telemetry.md",
-        "icon": "audit"
-      },
-      "secondarySections": [
-        "trust"
-      ]
-    },
-    {
-      "slug": "work-audit",
-      "title": "Audit log",
-      "src": "work/audit.md",
-      "section": "operate",
-      "group": "Operations, monitoring and recovery",
-      "path": "operate/audit",
-      "icon": "document",
-      "aliases": [],
-      "contentLicense": "MPL-2.0",
-      "description": "The hash-chained record, verification, and anchoring the head off-box.",
-      "work": {
-        "slug": "audit",
-        "path": "audit.md",
-        "icon": "audit"
-      },
-      "secondarySections": [
-        "trust",
-        "manage"
-      ]
     },
     {
       "slug": "work-project-portability",

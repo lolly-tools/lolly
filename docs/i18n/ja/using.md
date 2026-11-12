@@ -88,7 +88,7 @@ Lolly Designの**Fit all**は、アートボードと独立したレイヤーを
 個人の保存内容は、[同期](/info/sync.html)をオンにしないかぎり、保存したブラウザまたはアプリのこのデバイス上にとどまります。思った場所にない場合は、閉じたタブからブラウザデータの消去まですべてのケースを[作品を探して復元する](/info/find-your-work.html)で扱っています。
 
 ::: details Lolly Workのチームプロジェクト(任意)
-[組織がLolly Workを使っている](/info/organisation.html)場合は、そのインスタンスにサインインし、**Projects → Team projects**を開くと、共有されたセッションがあります。アクセスと保持は組織が設定し、それらのセッションはLolly Workサービスが保存します。組織がライブ編集を許可している場合、共有セッションは開くと同時にそのライブコラボに参加します。手順は[一緒に作業する](/info/collaborate.html#work-collabs-with-lolly-work-optional)で説明しています。
+[組織がLolly Workを使っている](/info/organisation.html)場合は、そのインスタンスにサインインし、**Projects → Team projects**を開くと、共有されたセッションがあります。アクセスと保持は組織が設定し、それらのセッションはLolly Workサービスが保存します。組織がライブ編集を許可している場合、共有セッションは開くと同時にそのライブコラボに参加します。手順は[一緒に作業する](/info/collaborate.html#collabs-through-lolly-work-optional)で説明しています。
 
 個人のライブラリは別のままです。別のデバイスでサインインするとチームの作業は手に入りますが、個人の保存内容を移すには、引き続き同期かバックアップが必要です。
 :::

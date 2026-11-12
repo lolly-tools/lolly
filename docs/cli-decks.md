@@ -297,7 +297,7 @@ A check never reads as clean on what it did not read. An export page with no tex
 - On a standalone CLI with no design system, the brand family is `unavailable`. With `--kit` the brand family still runs, on the partner kit alone.
 :::
 
-[CLI batch and automation](/info/cli-automation.html#check-a-design-document-in-ci-lolly-check) shows `check` as a CI gate.
+[CLI batch and automation](/info/cli-automation.html#check-a-lolly-design-document-in-ci-lolly-check) shows `check` as a CI gate.
 
 <!--i:eti-code-->
 ## The same verbs over MCP

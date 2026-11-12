@@ -88,7 +88,7 @@ Lolly Design의 **Fit all**은 아트보드와 독립된 레이어를 포함해�
 개인 저장물은 [Sync](/info/sync.html)를 켜지 않는 한 저장한 브라우저나 앱의 이 기기에 남아요. 예상한 곳에 없다면 [작업물 찾기와 복구](/info/find-your-work.html)가 닫힌 탭부터 지워진 브라우저 데이터까지 모든 경우를 다뤄요.
 
 ::: details Lolly Work의 팀 프로젝트(선택 사항)
-[조직이 Lolly Work를 사용한다면](/info/organisation.html) 그 인스턴스에 로그인하고 **Projects → Team projects**를 열어 공유받은 세션을 확인하세요. 접근과 보관은 조직이 정하며, 해당 세션은 조직의 Lolly Work 서비스가 저장해요. 조직이 실시간 편집을 허용하면 공유 세션은 열릴 때 실시간 collab에 합류해요. [함께 작업하기](/info/collaborate.html#work-collabs-with-lolly-work-optional)에서 단계를 설명해요.
+[조직이 Lolly Work를 사용한다면](/info/organisation.html) 그 인스턴스에 로그인하고 **Projects → Team projects**를 열어 공유받은 세션을 확인하세요. 접근과 보관은 조직이 정하며, 해당 세션은 조직의 Lolly Work 서비스가 저장해요. 조직이 실시간 편집을 허용하면 공유 세션은 열릴 때 실시간 collab에 합류해요. [함께 작업하기](/info/collaborate.html#collabs-through-lolly-work-optional)에서 단계를 설명해요.
 
 개인 라이브러리는 별개로 유지돼요. 다른 기기에서 로그인하면 팀 작업은 오지만, 개인 저장물은 Sync나 백업이 있어야 옮겨져요.
 :::

@@ -12,7 +12,7 @@ Each ring scores how completely a product class delivers a capability, with ever
 ::: note How to read the scores
 The scores use Lolly's preference for control without an account or cloud requirement. They are a comparison under those criteria, not a neutral ranking of product completeness or an enterprise procurement score. Read the capability, deployment and evidence limits separately when evaluating a specific workflow.
 
-Available features and production maturity are separate. Lolly is released: version 1.0 shipped as open source on 30 August 2026, its security has not yet had an independent audit and its adoption evidence is a few months old ([Adoption & Governance](/info/adoption-governance.html#status) has the current state).
+Available features and production maturity are separate. Lolly is released: version 1.0.1 shipped as open source on 30 August 2026, its security has not yet had an independent audit and its adoption evidence is a few months old ([Adoption & Governance](/info/adoption-governance.html#status) has the current state).
 :::
 
 ::: figure positioning-comparison

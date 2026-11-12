@@ -131,7 +131,7 @@ lolly validate ./out.svg --trust-anchor=./signing-cert.pem
   Title       QR Code
   Identity    release-bot@example.org - verified by release-bot@example.org
   Tool        QR Code
-  Made with   Lolly 1.281.0
+  Made with   Lolly 1.344.0
   Signed      2026-10-22T13:08:18Z
   Where       cli
   Signer      release-bot@example.org

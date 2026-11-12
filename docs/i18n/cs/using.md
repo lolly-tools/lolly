@@ -88,7 +88,7 @@ Položky se jmenují podle názvu souboru, který jsi napsal do panelu exportu, 
 Osobní uložení zůstávají na tomto zařízení, v prohlížeči nebo aplikaci, odkud jsi ukládal, pokud nezapneš [Sync](/info/sync.html). Pokud něco není tam, kde to čekáš, [Najdi a obnov svou práci](/info/find-your-work.html) pokrývá každý případ, od zavřené karty po smazaná data prohlížeče.
 
 ::: details Týmové projekty s Lolly Work (volitelné)
-Pokud [tvá organizace používá Lolly Work](/info/organisation.html), přihlas se k její instanci a otevři **Projects → Team projects** pro relace sdílené s tebou. Přístup a uchovávání nastavuje organizace a relace ukládá její služba Lolly Work. Sdílená relace se při otevření připojí ke své živé kolaboraci, když to tvá organizace povoluje; kroky vysvětluje [Spolupráce](/info/collaborate.html#work-collabs-with-lolly-work-optional).
+Pokud [tvá organizace používá Lolly Work](/info/organisation.html), přihlas se k její instanci a otevři **Projects → Team projects** pro relace sdílené s tebou. Přístup a uchovávání nastavuje organizace a relace ukládá její služba Lolly Work. Sdílená relace se při otevření připojí ke své živé kolaboraci, když to tvá organizace povoluje; kroky vysvětluje [Spolupráce](/info/collaborate.html#collabs-through-lolly-work-optional).
 
 Tvá osobní knihovna zůstává oddělená. Přihlášení na jiném zařízení ti dá týmovou práci, ale osobní uložení potřebují k přenosu Sync nebo zálohu.
 :::

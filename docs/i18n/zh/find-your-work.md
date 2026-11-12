@@ -19,7 +19,7 @@
 ::: details 在 Lolly Work 中查找共享作品（可选）
 打开你所在组织的 Lolly 并登录，然后查看 **Projects → Team projects**。共享会话由该实例保存，并按你的访问权限显示。登录可以在另一台设备上恢复对这些会话的访问；它不会恢复你的个人库或设备备份。
 
-在[工作协作](/info/collaborate.html#work-collabs-with-lolly-work-optional)中，离开前请等待 **Saved to work**。如果共享项目不见了，请检查你是否连接到了正确的实例，并向其运营方询问访问或保留情况。清除浏览器数据会移除本地副本，而不是组织服务器上的副本。参见[在你的组织中使用 Lolly](/info/organisation.html)。
+在[工作协作](/info/collaborate.html#collabs-through-lolly-work-optional)中，离开前请等待 **Saved to work**。如果共享项目不见了，请检查你是否连接到了正确的实例，并向其运营方询问访问或保留情况。清除浏览器数据会移除本地副本，而不是组织服务器上的副本。参见[在你的组织中使用 Lolly](/info/organisation.html)。
 :::
 
 ## 找到你保存的内容

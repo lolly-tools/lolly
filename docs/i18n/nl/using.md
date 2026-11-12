@@ -88,7 +88,7 @@ Items krijgen de naam van de bestandsnaam die je in het exportpaneel typte, of a
 Persoonlijke opslagen blijven op dit apparaat, in de browser of app waarmee je opsloeg, tenzij je [Sync](/info/sync.html) aanzet. Als iets niet staat waar je het verwacht, behandelt [Je werk vinden en terughalen](/info/find-your-work.html) elk geval, van een gesloten tabblad tot gewiste browsergegevens.
 
 ::: details Teamprojecten met Lolly Work (optioneel)
-Als je [organisatie Lolly Work gebruikt](/info/organisation.html), meld je dan aan bij de instantie en open **Projects → Team projects** voor sessies die met je gedeeld zijn. De organisatie stelt toegang en bewaartermijn in, en haar Lolly Work-dienst slaat die sessies op. Een gedeelde sessie sluit bij het openen aan bij zijn live collab wanneer je organisatie live bewerken toestaat; [Samenwerken](/info/collaborate.html#work-collabs-with-lolly-work-optional) legt de stappen uit.
+Als je [organisatie Lolly Work gebruikt](/info/organisation.html), meld je dan aan bij de instantie en open **Projects → Team projects** voor sessies die met je gedeeld zijn. De organisatie stelt toegang en bewaartermijn in, en haar Lolly Work-dienst slaat die sessies op. Een gedeelde sessie sluit bij het openen aan bij zijn live collab wanneer je organisatie live bewerken toestaat; [Samenwerken](/info/collaborate.html#collabs-through-lolly-work-optional) legt de stappen uit.
 
 Je persoonlijke bibliotheek blijft gescheiden. Aanmelden op een ander apparaat geeft je teamwerk, terwijl persoonlijke opslagen nog steeds Sync of een back-up nodig hebben om mee te verhuizen.
 :::
