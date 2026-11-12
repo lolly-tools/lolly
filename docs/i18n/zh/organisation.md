@@ -38,7 +38,7 @@
 - **有些控制项已为你设定。** 由你所在组织管控的控制项会显示 **Managed by** 和组织名称，或 **Managed by your organisation**。固定的控制项不能更改，菜单可能只提供其部分选项，以 **Set by** 开头的一行可以说明适用哪条规则及原因。有些控制项根本不显示。
 - **有些设计系统被锁定。** 由你所在组织提供的设计系统会显示一把锁并保持只读。要尝试更改，请在 **Settings → Preferences → Design systems** 中创建一个可编辑的副本。
 - **只列出它的工具。** 你所在组织不提供的工具根本不显示。
-- **共享项目。** 如果你所在组织与你共享项目，**Projects** 会显示一个 **Team projects** 方块。这些会话存放在组织的服务器上。打开其中一个即可在上面工作，或在可用时从 **Share** 发起一个[工作协作](/info/collaborate.html#work-collabs-with-lolly-work-optional)。
+- **共享项目。** 如果你所在组织与你共享项目，**Projects** 会显示一个 **Team projects** 方块。这些会话存放在组织的服务器上。打开其中一个即可在上面工作，或在可用时从 **Share** 发起一个[工作协作](/info/collaborate.html#collabs-through-lolly-work-optional)。
 - **有些导出可能需要批准。** 在你所在组织要求批准的地方，**Request approval** 会取代 **Download**，工具提供的格式也可能更少。
 
 ### 什么留在哪里
@@ -69,7 +69,7 @@
 你的组织在 Lolly 旁边托管 [Lolly Work](https://github.com/lolly-tools/lolly-work)，并选择开启哪些功能：
 
 - **登录与访问。** 组织单点登录、基于组的权限和受管理的个人资料字段。管理员可以通过 SCIM 开通和停用账号。
-- **共享作品。** 团队项目、共享会话和[工作协作](/info/collaborate.html#work-collabs-with-lolly-work-optional)，通过组织的服务器进行实时编辑。
+- **共享作品。** 团队项目、共享会话和[工作协作](/info/collaborate.html#collabs-through-lolly-work-optional)，通过组织的服务器进行实时编辑。
 - **共享素材库。** 上传的素材、集合和已连接的库，带有访问规则、版本和审阅。
 - **审阅与交付。** 审批步骤、带有效期或可撤销的受管理链接，以及交付到组织允许的目的地。
 - **管理。** 按实例的遥测政策进行使用情况报告，外加受管控操作的审计记录。

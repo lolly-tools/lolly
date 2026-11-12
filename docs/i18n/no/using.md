@@ -88,7 +88,7 @@ Elementer får navn etter filnavnet du skrev i eksportpanelet, eller ellers ette
 Personlige lagringer blir på denne enheten, i nettleseren eller appen du lagret fra, med mindre du slår på [Sync](/info/sync.html). Hvis noe ikke ligger der du forventer, dekker [Find and recover your work](/info/find-your-work.html) alle tilfeller, fra en lukket fane til tømte nettleserdata.
 
 ::: details Teamprosjekter med Lolly Work (valgfritt)
-Hvis [organisasjonen din bruker Lolly Work](/info/organisation.html), logg på instansen dens og åpne **Projects → Team projects** for økter som er delt med deg. Organisasjonen setter tilgang og oppbevaring, og Lolly Work-tjenesten dens lagrer disse øktene. En delt økt går inn i sin levende collab når den åpnes, hvis organisasjonen din tillater redigering i sanntid; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) forklarer trinnene.
+Hvis [organisasjonen din bruker Lolly Work](/info/organisation.html), logg på instansen dens og åpne **Projects → Team projects** for økter som er delt med deg. Organisasjonen setter tilgang og oppbevaring, og Lolly Work-tjenesten dens lagrer disse øktene. En delt økt går inn i sin levende collab når den åpnes, hvis organisasjonen din tillater redigering i sanntid; [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) forklarer trinnene.
 
 Det personlige biblioteket ditt forblir adskilt. Å logge på på en annen enhet gir deg teamarbeid, mens personlige lagringer fortsatt trenger Sync eller en sikkerhetskopi for å flyttes over.
 :::

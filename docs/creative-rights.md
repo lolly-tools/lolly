@@ -9,7 +9,7 @@ None of it is a ruling about your project either. Lolly records facts, applies a
 <!--i:eti-smile-->
 ## Where you meet this
 
-The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with the artwork credited and nothing left for you to do. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Fluent (MIT), Noto and Blobmoji (both Apache 2.0) are registered too, and each resolves under its own reviewed licence.
+The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with a source credit for the artwork. The credit counts once Lolly reads the delivered file back and finds the credit there. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Fluent (MIT), Noto and Blobmoji (both Apache 2.0) are registered too, and each resolves under its own reviewed licence.
 
 Choosing a set is never blocked, and the set control shows the licence where you choose. The same rules answer for a catalog illustration, a LUT, a font and any other recorded work.
 
@@ -42,7 +42,7 @@ The same words appear in the export panel, Lolly Verify, the command line and th
 | Two licence declarations disagree. | Two records name different licences and nothing has selected which grant applies. |
 | The credits are not in the file that was delivered. | A credit was promised, the readback did not find it and the file is still yours. Export again, or use the credit text by hand. |
 
-Lolly never says "copyright verified", "legally safe", "fully cleared" or "rights cleared", and there is no single green licence badge anywhere in the product. Those words would claim something no program can check.
+Lolly never tells you that a work is free of claims or safe to use in law, and there is no single green licence badge anywhere in the product. No program can check either of those things.
 
 <!--i:eti-user-check-->
 ## What stays yours

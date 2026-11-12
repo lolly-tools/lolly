@@ -38,7 +38,7 @@ In de desktop- en mobiele apps biedt het aanmeldscherm ook een korte code, wanne
 - **Sommige bedieningselementen zijn voor je ingesteld.** Een element dat je organisatie beheert toont **Managed by** en de naam van de organisatie, of **Managed by your organisation**. Een vast element kan niet worden gewijzigd, een menu kan maar een deel van zijn keuzes bieden, en een regel die begint met **Set by** kan zeggen welke regel van toepassing is en waarom. Sommige elementen worden helemaal niet getoond.
 - **Sommige design systems zijn vergrendeld.** Een design system dat je organisatie levert toont een slot en blijft alleen-lezen. Om wijzigingen te proberen, maak je een bewerkbare kopie in **Settings → Preferences → Design systems**.
 - **Alleen de tools van de organisatie staan in de lijst.** Een tool die je organisatie niet aanbiedt, wordt helemaal niet getoond.
-- **Gedeelde projecten.** Als je organisatie projecten met je deelt, toont **Projects** een tegel **Team projects**. Deze sessies staan op de server van de organisatie. Open er een om eraan te werken, of start vanuit **Share** een [werkcollab](/info/collaborate.html#work-collabs-with-lolly-work-optional) wanneer dat beschikbaar is.
+- **Gedeelde projecten.** Als je organisatie projecten met je deelt, toont **Projects** een tegel **Team projects**. Deze sessies staan op de server van de organisatie. Open er een om eraan te werken, of start vanuit **Share** een [werkcollab](/info/collaborate.html#collabs-through-lolly-work-optional) wanneer dat beschikbaar is.
 - **Sommige exports hebben mogelijk goedkeuring nodig.** Waar je organisatie om goedkeuring vraagt, komt **Request approval** in de plaats van **Download**, en een tool kan minder formaten bieden.
 
 ### Wat waar blijft
@@ -69,7 +69,7 @@ De server van je organisatie draait **Lolly Work**, de organisatiesoftware van h
 Je organisatie host [Lolly Work](https://github.com/lolly-tools/lolly-work) naast Lolly en kiest welke functies ze aanzet:
 
 - **Aanmelden en toegang.** Single sign-on van de organisatie, groepsgebaseerde rechten en beheerde profielvelden. Beheerders kunnen accounts via SCIM aanmaken en deactiveren.
-- **Gedeeld werk.** Teamprojecten, gedeelde sessies en [werkcollabs](/info/collaborate.html#work-collabs-with-lolly-work-optional), met live bewerken via de server van de organisatie.
+- **Gedeeld werk.** Teamprojecten, gedeelde sessies en [werkcollabs](/info/collaborate.html#collabs-through-lolly-work-optional), met live bewerken via de server van de organisatie.
 - **Een gedeelde assetbibliotheek.** Geüploade assets, collecties en gekoppelde bibliotheken, met toegangsregels, versies en review.
 - **Review en bezorging.** Goedkeuringsstappen, beheerde links met verloop of intrekking, en bezorging naar bestemmingen die de organisatie toestaat.
 - **Beheer.** Gebruiksrapportage onder het telemetriebeleid van de instantie, plus een auditrecord van beheerde acties.

@@ -38,7 +38,7 @@ W aplikacjach komputerowych i mobilnych ekran logowania oferuje też krótki kod
 - **Niektóre kontrolki są ustawione za Ciebie.** Kontrolka objęta nadzorem organizacji pokazuje **Managed by** i nazwę organizacji albo **Managed by your organisation**. Stałej kontrolki nie można zmienić, menu może oferować tylko część wyborów, a linia zaczynająca się od **Set by** może podać, jaka reguła obowiązuje i dlaczego. Niektóre kontrolki w ogóle nie są pokazywane.
 - **Niektóre systemy projektowe są zablokowane.** System projektowy dostarczony przez organizację pokazuje kłódkę i pozostaje tylko do odczytu. Aby wypróbować zmiany, utwórz edytowalną kopię w **Settings → Preferences → Design systems**.
 - **Wymienione są tylko jej narzędzia.** Narzędzie, którego organizacja nie oferuje, w ogóle nie jest pokazywane.
-- **Wspólne projekty.** Jeśli organizacja udostępnia Ci projekty, **Projects** pokazuje kafelek **Team projects**. Te sesje żyją na serwerze organizacji. Otwórz jedną, aby nad nią pracować, lub rozpocznij [collab roboczy](/info/collaborate.html#work-collabs-with-lolly-work-optional) z **Share**, gdy jest dostępny.
+- **Wspólne projekty.** Jeśli organizacja udostępnia Ci projekty, **Projects** pokazuje kafelek **Team projects**. Te sesje żyją na serwerze organizacji. Otwórz jedną, aby nad nią pracować, lub rozpocznij [collab roboczy](/info/collaborate.html#collabs-through-lolly-work-optional) z **Share**, gdy jest dostępny.
 - **Niektóre eksporty mogą wymagać zatwierdzenia.** Tam, gdzie organizacja wymaga zatwierdzenia, **Request approval** zajmuje miejsce **Download**, a narzędzie może oferować mniej formatów.
 
 ### Co gdzie zostaje
@@ -69,7 +69,7 @@ Serwer Twojej organizacji uruchamia **Lolly Work**, oprogramowanie organizacyjne
 Twoja organizacja hostuje [Lolly Work](https://github.com/lolly-tools/lolly-work) obok Lolly i wybiera, które funkcje włączyć:
 
 - **Logowanie i dostęp.** Jednokrotne logowanie organizacji, uprawnienia oparte na grupach i zarządzane pola profilu. Administratorzy mogą tworzyć i dezaktywować konta przez SCIM.
-- **Wspólna praca.** Wspólne projekty, współdzielone sesje i [collaby robocze](/info/collaborate.html#work-collabs-with-lolly-work-optional), z edycją na żywo przez serwer organizacji.
+- **Wspólna praca.** Wspólne projekty, współdzielone sesje i [collaby robocze](/info/collaborate.html#collabs-through-lolly-work-optional), z edycją na żywo przez serwer organizacji.
 - **Wspólna biblioteka zasobów.** Wgrane zasoby, kolekcje i połączone biblioteki, z regułami dostępu, wersjami i przeglądem.
 - **Przegląd i dostarczanie.** Kroki zatwierdzania, zarządzane linki z wygaśnięciem lub unieważnieniem oraz dostarczanie do miejsc dozwolonych przez organizację.
 - **Administracja.** Raportowanie użycia według polityki telemetrii instancji oraz zapis audytu działań objętych nadzorem.

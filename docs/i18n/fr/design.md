@@ -168,7 +168,7 @@ Un bloc peut contenir plus qu'une image. Les deux types ci-dessous gardent une r
 
 ### Scènes 3D
 
-Choisis **3D scene** dans le menu d'ajout du rail et trace un cadre : 3D Studio s'ouvre sur le nouveau bloc, et ce que tu y règles revient sur le canevas. Ensuite, **Edit in 3D Studio** dans la section **3D scene** de l'Inspector rouvre le studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) couvre les affiches, la timeline, l'export et le partage.
+Choisis **3D scene** dans le menu d'ajout du rail et trace un cadre : 3D Studio s'ouvre sur le nouveau bloc, et ce que tu y règles revient sur le canevas. Ensuite, **Edit in 3D Studio** dans la section **3D scene** de l'Inspector rouvre le studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) couvre les affiches, la timeline, l'export et le partage.
 
 ### Outils dans un design
 

@@ -19,7 +19,7 @@ Where your work lives: the browser's own storage holds Projects, History and Tra
 ::: details Find shared work in Lolly Work (optional)
 Open your organisation's Lolly and sign in, then look in **Projects → Team projects**. Shared sessions are held by that instance and appear according to your access. Signing in can restore access to those sessions on another device; it does not restore your personal library or device backup.
 
-In a [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), wait for **Saved to work** before leaving. If a shared project is missing, check that you are connected to the right instance and ask its operator about access or retention. Clearing browser data removes local copies, not the organisation's server copy. See [Use Lolly at your organisation](/info/organisation.html).
+In a [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), wait for **Saved to work** before leaving. If a shared project is missing, check that you are connected to the right instance and ask its operator about access or retention. Clearing browser data removes local copies, not the organisation's server copy. See [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 <!--i:eti-search-->

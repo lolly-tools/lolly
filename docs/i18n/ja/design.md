@@ -168,7 +168,7 @@ Designは、どのテンプレートにも当てはまらないレイアウト�
 
 ### 3D シーン
 
-レールの追加メニューから**3D scene**を選び、フレームをドラッグして作ると、新しいボックスで3D Studioが開き、そこで設定したことがキャンバスに戻ります。その後は、Inspectorの**3D scene**セクションの**Edit in 3D Studio**でスタジオを開き直せます。ポスター、タイムライン、書き出し、共有は[Designにシーンを配置する](/info/3d-studio.html#place-a-scene-in-design)で説明しています。
+レールの追加メニューから**3D scene**を選び、フレームをドラッグして作ると、新しいボックスで3D Studioが開き、そこで設定したことがキャンバスに戻ります。その後は、Inspectorの**3D scene**セクションの**Edit in 3D Studio**でスタジオを開き直せます。ポスター、タイムライン、書き出し、共有は[Designにシーンを配置する](/info/3d-studio.html#place-a-scene-in-lolly-design)で説明しています。
 
 ### デザインの中のツール
 

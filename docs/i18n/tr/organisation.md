@@ -38,7 +38,7 @@ Masaüstü ve mobil uygulamalarda, kuruluşunun Lolly'si kodla girişi destekliy
 - **Bazı denetimler senin için ayarlanır.** Kuruluşunun yönettiği bir denetim **Managed by** ve kuruluşun adını ya da **Managed by your organisation** gösterir. Sabit bir denetim değiştirilemez, bir menü seçeneklerinin yalnızca bir kısmını sunabilir ve **Set by** ile başlayan bir satır hangi kuralın neden geçerli olduğunu söyleyebilir. Bazı denetimler hiç gösterilmez.
 - **Bazı tasarım sistemleri kilitlidir.** Kuruluşunun sağladığı bir tasarım sistemi kilit gösterir ve salt okunur kalır. Değişiklik denemek için **Settings → Preferences → Design systems** içinde düzenlenebilir bir kopya yap.
 - **Yalnızca onun araçları listelenir.** Kuruluşunun sunmadığı bir araç hiç gösterilmez.
-- **Paylaşılan projeler.** Kuruluşun seninle proje paylaşıyorsa **Projects** bir **Team projects** karosu gösterir. Bu oturumlar kuruluşun sunucusunda yaşar. Üzerinde çalışmak için birini aç ya da mümkünse **Share** üzerinden bir [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) başlat.
+- **Paylaşılan projeler.** Kuruluşun seninle proje paylaşıyorsa **Projects** bir **Team projects** karosu gösterir. Bu oturumlar kuruluşun sunucusunda yaşar. Üzerinde çalışmak için birini aç ya da mümkünse **Share** üzerinden bir [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) başlat.
 - **Bazı dışa aktarmalar onay gerektirebilir.** Kuruluşun onay istediğinde **Request approval**, **Download** düğmesinin yerini alır ve bir araç daha az biçim sunabilir.
 
 ### Ne nerede kalır
@@ -69,7 +69,7 @@ Kuruluşunun sunucusu, aynı açık kaynak projesinin kuruluş yazılımı olan 
 Kuruluşun [Lolly Work](https://github.com/lolly-tools/lolly-work)'ü Lolly'nin yanında barındırır ve hangi özelliklerin açılacağını seçer:
 
 - **Giriş ve erişim.** Kuruluş çapında çoklu oturum açma (SSO), grup tabanlı izinler ve yönetilen profil alanları. Yöneticiler SCIM ile hesap sağlayıp devre dışı bırakabilir.
-- **Paylaşılan iş.** Team projects, paylaşılan oturumlar ve kuruluşun sunucusu üzerinden canlı düzenlemeli [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional)'lar.
+- **Paylaşılan iş.** Team projects, paylaşılan oturumlar ve kuruluşun sunucusu üzerinden canlı düzenlemeli [work collab](/info/collaborate.html#collabs-through-lolly-work-optional)'lar.
 - **Paylaşılan bir varlık kitaplığı.** Erişim kuralları, sürümler ve incelemeyle yüklenen varlıklar, koleksiyonlar ve bağlı kitaplıklar.
 - **İnceleme ve teslimat.** Onay adımları, süresi dolan veya iptal edilebilen yönetilen bağlantılar ve kuruluşun izin verdiği hedeflere teslimat.
 - **Yönetim.** Örneğin telemetri politikası altında kullanım raporlama ve yönetilen eylemlerin denetim kaydı.

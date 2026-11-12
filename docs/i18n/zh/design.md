@@ -168,7 +168,7 @@ Design 是用于没有模板可套用的版面的工具：从零开始的海报�
 
 ### 3D 场景
 
-从工具栏的添加菜单中选择 **3D scene** 并拖出一个框：3D Studio 会在新方框上打开，你在那里的设置会回到画布。之后，Inspector 的 **3D scene** 部分中的 **Edit in 3D Studio** 会重新打开工作室。[在 Design 中放置场景](/info/3d-studio.html#place-a-scene-in-design)介绍了海报、时间线、导出和分享。
+从工具栏的添加菜单中选择 **3D scene** 并拖出一个框：3D Studio 会在新方框上打开，你在那里的设置会回到画布。之后，Inspector 的 **3D scene** 部分中的 **Edit in 3D Studio** 会重新打开工作室。[在 Design 中放置场景](/info/3d-studio.html#place-a-scene-in-lolly-design)介绍了海报、时间线、导出和分享。
 
 ### 设计中的工具
 

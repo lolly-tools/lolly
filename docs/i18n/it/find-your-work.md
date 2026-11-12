@@ -19,7 +19,7 @@ Dove vive il tuo lavoro: l'archiviazione del browser contiene Projects, History 
 ::: details Trovare il lavoro condiviso in Lolly Work (facoltativo)
 Apri il Lolly della tua organizzazione e accedi, poi guarda in **Projects → Team projects**. Le sessioni condivise sono conservate da quell'istanza e compaiono in base al tuo accesso. Accedere può ripristinare l'accesso a quelle sessioni su un altro dispositivo; non ripristina la tua libreria personale né il backup del dispositivo.
 
-In una [collab di lavoro](/info/collaborate.html#work-collabs-with-lolly-work-optional), attendi **Saved to work** prima di uscire. Se manca un progetto condiviso, verifica di essere collegato all'istanza giusta e chiedi al suo operatore informazioni su accesso o conservazione. Cancellare i dati del browser rimuove le copie locali, non la copia sul server dell'organizzazione. Vedi [Use Lolly at your organisation](/info/organisation.html).
+In una [collab di lavoro](/info/collaborate.html#collabs-through-lolly-work-optional), attendi **Saved to work** prima di uscire. Se manca un progetto condiviso, verifica di essere collegato all'istanza giusta e chiedi al suo operatore informazioni su accesso o conservazione. Cancellare i dati del browser rimuove le copie locali, non la copia sul server dell'organizzazione. Vedi [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Trova qualcosa che hai salvato

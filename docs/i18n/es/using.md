@@ -88,7 +88,7 @@ Los elementos se nombran según el nombre de archivo que escribiste en el panel 
 Los guardados personales permanecen en este dispositivo, en el navegador o la aplicación desde la que guardaste, a menos que actives [Sync](/info/sync.html). Si algo no está donde esperas, [Find and recover your work](/info/find-your-work.html) cubre todos los casos, desde una pestaña cerrada hasta datos del navegador borrados.
 
 ::: details Proyectos de equipo con Lolly Work (opcional)
-Si tu [organización usa Lolly Work](/info/organisation.html), inicia sesión en su instancia y abre **Projects → Team projects** para ver las sesiones compartidas contigo. La organización fija el acceso y la conservación, y su servicio Lolly Work almacena esas sesiones. Una sesión compartida se une a su collab en vivo al abrirse cuando tu organización permite la edición en vivo; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) explica los pasos.
+Si tu [organización usa Lolly Work](/info/organisation.html), inicia sesión en su instancia y abre **Projects → Team projects** para ver las sesiones compartidas contigo. La organización fija el acceso y la conservación, y su servicio Lolly Work almacena esas sesiones. Una sesión compartida se une a su collab en vivo al abrirse cuando tu organización permite la edición en vivo; [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) explica los pasos.
 
 Tu biblioteca personal sigue siendo aparte. Iniciar sesión en otro dispositivo te da el trabajo de equipo, mientras que los guardados personales siguen necesitando Sync o una copia de seguridad para pasar de un dispositivo a otro.
 :::

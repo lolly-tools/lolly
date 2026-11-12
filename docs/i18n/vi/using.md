@@ -88,7 +88,7 @@ Các mục được đặt tên theo tên tệp bạn gõ trong bảng xuất, h
 Các bản lưu cá nhân ở lại trên thiết bị này, trong trình duyệt hoặc ứng dụng bạn đã lưu, trừ khi bạn bật [Sync](/info/sync.html). Nếu thứ gì không ở chỗ bạn mong đợi, [Find and recover your work](/info/find-your-work.html) đề cập mọi trường hợp, từ thẻ đã đóng đến dữ liệu trình duyệt bị xóa.
 
 ::: details Dự án nhóm với Lolly Work (tùy chọn)
-Nếu [tổ chức bạn dùng Lolly Work](/info/organisation.html), hãy đăng nhập phiên bản của nó và mở **Projects → Team projects** để xem các phiên chia sẻ với bạn. Tổ chức đặt quyền truy cập và thời hạn lưu giữ, và dịch vụ Lolly Work của họ lưu các phiên đó. Một phiên chung tham gia work collab trực tiếp của nó khi mở nếu tổ chức cho phép chỉnh sửa trực tiếp; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) giải thích các bước.
+Nếu [tổ chức bạn dùng Lolly Work](/info/organisation.html), hãy đăng nhập phiên bản của nó và mở **Projects → Team projects** để xem các phiên chia sẻ với bạn. Tổ chức đặt quyền truy cập và thời hạn lưu giữ, và dịch vụ Lolly Work của họ lưu các phiên đó. Một phiên chung tham gia work collab trực tiếp của nó khi mở nếu tổ chức cho phép chỉnh sửa trực tiếp; [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) giải thích các bước.
 
 Thư viện cá nhân của bạn vẫn tách biệt. Đăng nhập trên thiết bị khác cho bạn công việc nhóm, còn các bản lưu cá nhân vẫn cần Sync hoặc bản sao lưu để chuyển sang.
 :::

@@ -168,7 +168,7 @@ Design은 어떤 템플릿으로도 다룰 수 없는 레이아웃을 위한 도
 
 ### 3D 장면
 
-레일의 추가 메뉴에서 **3D scene**을 선택하고 프레임을 끌어 그리면 3D Studio가 새 박스에서 열리고, 거기서 설정한 것이 캔버스로 돌아와요. 이후 Inspector의 **3D scene** 섹션에 있는 **Edit in 3D Studio**로 스튜디오를 다시 열 수 있어요. [Design에 장면 배치하기](/info/3d-studio.html#place-a-scene-in-design)에서 포스터, 타임라인, 내보내기, 공유를 다뤄요.
+레일의 추가 메뉴에서 **3D scene**을 선택하고 프레임을 끌어 그리면 3D Studio가 새 박스에서 열리고, 거기서 설정한 것이 캔버스로 돌아와요. 이후 Inspector의 **3D scene** 섹션에 있는 **Edit in 3D Studio**로 스튜디오를 다시 열 수 있어요. [Design에 장면 배치하기](/info/3d-studio.html#place-a-scene-in-lolly-design)에서 포스터, 타임라인, 내보내기, 공유를 다뤄요.
 
 ### 디자인 안의 도구
 

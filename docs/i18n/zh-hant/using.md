@@ -88,7 +88,7 @@
 個人儲存的內容會留在這部裝置上，也就是你儲存時所用的瀏覽器或應用程式，除非你開啟[同步](/info/sync.html)。如果某樣東西不在你預期的位置，[尋找並復原你的作品](/info/find-your-work.html)涵蓋每一種情況，從關閉的分頁到清除的瀏覽器資料。
 
 ::: details 使用 Lolly Work 的團隊專案（選用）
-如果你的[組織使用 Lolly Work](/info/organisation.html)，請登入其實例，並開啟 **Projects → Team projects** 查看與你共用的工作階段。組織設定存取與保留，其 Lolly Work 服務儲存這些工作階段。當你的組織允許即時編輯時，共用的工作階段在開啟時會加入其即時協作；[一起協作](/info/collaborate.html#work-collabs-with-lolly-work-optional)說明了步驟。
+如果你的[組織使用 Lolly Work](/info/organisation.html)，請登入其實例，並開啟 **Projects → Team projects** 查看與你共用的工作階段。組織設定存取與保留，其 Lolly Work 服務儲存這些工作階段。當你的組織允許即時編輯時，共用的工作階段在開啟時會加入其即時協作；[一起協作](/info/collaborate.html#collabs-through-lolly-work-optional)說明了步驟。
 
 你的個人資料庫維持獨立。在另一部裝置上登入會讓你取得團隊的工作，而個人儲存的內容仍需要同步或備份才能移到另一部裝置。
 :::

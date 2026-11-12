@@ -168,7 +168,7 @@ Pole může obsahovat víc než obrázek. Oba níže uvedené druhy drží recep
 
 ### 3D scény
 
-Zvol **3D scene** v nabídce přidání na liště a táhni rám: 3D Studio se otevře na novém poli a to, co tam nastavíš, se vrátí na plátno. Poté **Edit in 3D Studio** v sekci **3D scene** Inspectoru studio znovu otevře. [Umístění scény v Design](/info/3d-studio.html#place-a-scene-in-design) pokrývá plakáty, časovou osu, export a sdílení.
+Zvol **3D scene** v nabídce přidání na liště a táhni rám: 3D Studio se otevře na novém poli a to, co tam nastavíš, se vrátí na plátno. Poté **Edit in 3D Studio** v sekci **3D scene** Inspectoru studio znovu otevře. [Umístění scény v Design](/info/3d-studio.html#place-a-scene-in-lolly-design) pokrývá plakáty, časovou osu, export a sdílení.
 
 ### Nástroje uvnitř návrhu
 

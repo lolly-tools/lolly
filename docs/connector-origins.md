@@ -40,8 +40,8 @@ Choosing an endpoint in Settings does not approve its origin; only this list doe
 
 Each deployment shape takes the list its own way:
 
-- **Web container:** pass `VITE_CONNECTOR_ORIGINS` as a public build argument; the image renders nginx in its isolated verification stage.
 - **Sovereign Helm profile:** set `connectorOrigins`, an array of exact HTTPS DNS origins. The rendered policy is part of the workload configuration checksum.
+- **Web container:** pass `VITE_CONNECTOR_ORIGINS` as a public build argument; the image renders nginx in its isolated verification stage.
 - **YunoHost:** the `csp_extra_connect_src` setting belonged to the discontinued static `lolly_ynh` package. [Lolly Work for YunoHost](/info/work-install.html#7-yunohost), the YunoHost package from 1.2.0, serves the app under a fixed policy and has no setting for extra connector origins.
 - **Lolly Work:** where the ingress in front of an instance cannot replace response headers, list the same origins in `instance.connectorOrigins` ([configuration](/info/work-configuration.html#instance)). The served app's `connect-src` gains them, and nothing else changes.
 - **RPM or public VM:** install the rendered nginx file through the deployment's normal configuration process, and validate nginx before reloading.

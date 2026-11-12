@@ -19,7 +19,7 @@ Var ditt arbete finns: webbläsarens egen lagring håller Projects, History och 
 ::: details Hitta delat arbete i Lolly Work (valfritt)
 Öppna din organisations Lolly och logga in, titta sedan i **Projects → Team projects**. Delade sessioner hålls av den instansen och visas enligt din åtkomst. Att logga in kan återställa åtkomsten till de sessionerna på en annan enhet; det återställer inte ditt personliga bibliotek eller din enhetssäkerhetskopia.
 
-I en [arbetscollab](/info/collaborate.html#work-collabs-with-lolly-work-optional), vänta på **Saved to work** innan du lämnar. Om ett delat projekt saknas, kontrollera att du är ansluten till rätt instans och fråga dess operatör om åtkomst eller lagring. Att rensa webbläsardata tar bort lokala kopior, inte organisationens kopia på servern. Se [Använd Lolly i din organisation](/info/organisation.html).
+I en [arbetscollab](/info/collaborate.html#collabs-through-lolly-work-optional), vänta på **Saved to work** innan du lämnar. Om ett delat projekt saknas, kontrollera att du är ansluten till rätt instans och fråga dess operatör om åtkomst eller lagring. Att rensa webbläsardata tar bort lokala kopior, inte organisationens kopia på servern. Se [Använd Lolly i din organisation](/info/organisation.html).
 :::
 
 ## Hitta något du sparat

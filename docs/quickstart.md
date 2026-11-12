@@ -20,7 +20,7 @@ Choose the route that matches what you have:
 
 - <!--i:palette--> **One colour.** Open the **Design System Setup** view (`#/start`), give your design system a name and pick a primary colour. Lolly derives a complete, accessible palette from it, with light and dark surfaces, text and accents. Pick a font and you have a working brand.
 - <!--i:upload--> **A tokens file.** **Add from…**, in the bar at the top of Lolly Design System Setup, takes a DTCG, Tokens Studio or Penpot tokens file, an SVG or a `LollyBrand` pack. Drop it in and the palette fills. While the design system is still empty, **Start from a reference** on the Board opens the same picker.
-- <!--i:pentool--> **A finished design.** In Lolly Design, choose **Import a design** and drop a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file. See [Bring in what you already have](#bring-in-what-you-already-have) below.
+- <!--i:pentool--> **A finished design.** In Lolly Design, choose **Import a design** and drop a Figma, Penpot, Illustrator, InDesign, Affinity, Photoshop, PowerPoint or SVG file ([every format](/info/design-import.html#what-comes-in-from-each-app)). See [Bring in what you already have](#bring-in-what-you-already-have) below.
 
 The first time you open the gallery, a greeting at the top of the page offers one next step. On lolly.tools, **Start making** opens Lolly Design on the Launch poster; on a new install, **Make it yours** opens Lolly Design System Setup. Under it, **Bring a file** opens a file picker for a design, the other of those two choices is a link, and the close button puts the greeting away. Any of them settles the greeting for good.
 

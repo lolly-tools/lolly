@@ -19,7 +19,7 @@ Onde seu trabalho fica: o armazenamento do próprio navegador guarda Projects, H
 ::: details Encontre trabalho compartilhado no Lolly Work (opcional)
 Abra o Lolly da sua organização e faça login, depois procure em **Projects → Team projects**. As sessões compartilhadas ficam na instância e aparecem conforme o seu acesso. Fazer login pode restaurar o acesso a essas sessões em outro dispositivo; não restaura a sua biblioteca pessoal nem o backup do dispositivo.
 
-Em um [collab de trabalho](/info/collaborate.html#work-collabs-with-lolly-work-optional), espere por **Saved to work** antes de sair. Se um projeto compartilhado sumiu, confira se você está conectado à instância certa e pergunte ao operador dela sobre acesso ou retenção. Limpar os dados do navegador remove as cópias locais, não a cópia da organização no servidor. Veja [Use Lolly at your organisation](/info/organisation.html).
+Em um [collab de trabalho](/info/collaborate.html#collabs-through-lolly-work-optional), espere por **Saved to work** antes de sair. Se um projeto compartilhado sumiu, confira se você está conectado à instância certa e pergunte ao operador dela sobre acesso ou retenção. Limpar os dados do navegador remove as cópias locais, não a cópia da organização no servidor. Veja [Use Lolly at your organisation](/info/organisation.html).
 :::
 
 ## Encontre algo que você salvou

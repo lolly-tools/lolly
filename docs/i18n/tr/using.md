@@ -88,7 +88,7 @@ Nereye gideceğini seçmek için dışa aktarma panelinde **Download** yanındak
 Kişisel kayıtlar, [Sync](/info/sync.html) açmadıkça bu cihazda, kaydettiğin tarayıcıda veya uygulamada kalır. Bir şey beklediğin yerde değilse [Find and recover your work](/info/find-your-work.html), kapatılmış bir sekmeden temizlenmiş tarayıcı verisine kadar her durumu kapsar.
 
 ::: details Lolly Work ile team projects (isteğe bağlı)
-[Kuruluşun Lolly Work kullanıyorsa](/info/organisation.html) örneğine giriş yap ve seninle paylaşılan oturumlar için **Projects → Team projects** bölümünü aç. Erişimi ve saklamayı kuruluş belirler ve bu oturumları onun Lolly Work hizmeti saklar. Kuruluşun canlı düzenlemeye izin veriyorsa paylaşılan bir oturum açılırken canlı collab'ına katılır; adımları [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) açıklar.
+[Kuruluşun Lolly Work kullanıyorsa](/info/organisation.html) örneğine giriş yap ve seninle paylaşılan oturumlar için **Projects → Team projects** bölümünü aç. Erişimi ve saklamayı kuruluş belirler ve bu oturumları onun Lolly Work hizmeti saklar. Kuruluşun canlı düzenlemeye izin veriyorsa paylaşılan bir oturum açılırken canlı collab'ına katılır; adımları [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) açıklar.
 
 Kişisel kitaplığın ayrı kalır. Başka bir cihazda giriş yapmak sana ekip işini getirir; kişisel kayıtların cihazlar arasında taşınması için yine Sync veya bir yedek gerekir.
 :::

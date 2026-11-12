@@ -11,14 +11,15 @@ A **profile** binds a set of tool packs to a brand catalog. `profiles.json` at t
 {
   "default": "suse",
   "profiles": {
-    "suse":        { "label": "SUSE",  "tools": ["community", "brands/suse/tools"], "exclude": ["rebrand-deck", "street-map"], "assets": ["community/emoji-packs"], "catalog": "brands/suse/catalog" },
-    "lolly-start": { "label": "Lolly Start (blank brand)", "tools": ["community", "brands/lolly-start/tools"], "assets": ["community/emoji-packs"], "catalog": "brands/lolly-start/catalog" },
-    "lolly-demo":  { "label": "Lolly Demo", "tools": ["community", "brands/lolly-demo/tools"], "assets": ["community/emoji-packs"], "catalog": "brands/lolly-demo/catalog" }
+    "suse":        { "label": "SUSE", "tools": ["community", "brands/suse/tools"], "exclude": ["rebrand-deck", "street-map", "quote-card"], "assets": ["community/emoji-packs", "community/fallback-fonts"], "catalog": "brands/suse/catalog" },
+    "lolly-start": { "label": "Lolly Start (blank brand)", "tools": ["community", "brands/lolly-start/tools"], "assets": ["community/emoji-packs", "community/fallback-fonts"], "catalog": "brands/lolly-start/catalog" },
+    "lolly-demo":  { "label": "Lolly Demo", "tools": ["community", "brands/lolly-demo/tools"], "assets": ["community/emoji-packs", "community/fallback-fonts"], "catalog": "brands/lolly-demo/catalog" },
+    "suse-with-demo": { "label": "SUSE, with Lolly Demo beside it", "catalog": "brands/suse/catalog", "companions": [{ "label": "Lolly Demo", "catalog": "brands/lolly-demo/catalog" }] }
   }
 }
 ```
 
-`lolly-demo` is [Lolly Demo](/info/lolly-demo.html), the brand lolly.tools and the published images ship. `lolly-start` is the blank starter, and the one a public clone and CI use. `suse` needs the private pack, which a public clone does not have.
+`lolly-demo` is [Lolly Demo](/info/lolly-demo.html), the brand lolly.tools and the published images ship. `lolly-start` is the blank starter, and the one a public clone and CI use. `suse` needs the private pack, which a public clone does not have. `suse-with-demo` is the SUSE profile with Lolly Demo offered as a second design system next to SUSE's own: its `companions` entry copies only the listed Lolly Demo assets into the served index. The file itself holds the full entries.
 
 A profile is chosen per command, not switched globally. Content lives in the packs and nowhere else, so there is no `tools/` or `catalog/` directory at the repository root to switch:
 
@@ -46,7 +47,7 @@ The resolver then answers "where does tool `<id>` live" (`toolFile`, `listToolFi
 ::: details Shared asset roots, and the one copy a build writes
 A profile's optional `assets` list mounts **shared asset roots**, which is how one file belongs to every brand at once. A shared root is a directory holding its own `index.json` plus its files. Its entries are appended to the brand's asset index, and their addresses are the profile-independent `/catalog/packs/<rootName>/<file>`.
 
-`community/emoji-packs/` is the one this repository ships. It holds seven emoji sets (Twemoji Color, OpenMoji Color and Black, Fluent Flat and High Contrast, Noto Color and Blobmoji Color), each as one on-demand bundle. All three profiles list it, so every brand serves the same files with no copy in any catalog.
+This repository ships two. `community/emoji-packs/` holds seven emoji sets (Twemoji Color, OpenMoji Color and Black, Fluent Flat and High Contrast, Noto Color and Blobmoji Color), each as one on-demand bundle. `community/fallback-fonts/` holds the [fallback fonts](/info/fallback-fonts.html) for the scripts a design system's own fonts do not cover. Every profile lists both, so every brand serves the same files with no copy in any catalog.
 
 `readAssetIndex()` is the merged index every Node reader asks for, and the dev server assembles the same merge per request. Shared roots are additive: an asset id claimed by two roots is refused rather than settled by order, and a root that is not on disk is skipped rather than treated as a missing pack, so a build without a shared root still resolves everything else.
 
@@ -85,13 +86,13 @@ The lock protects that design system's material. People can still create, select
 
 Expand **Catalogue source** to see the supplied tokens asset, its namespace, the last-known origin and the known version or checksum. Cached or unavailable material is labelled. **Lolly instance → Design-system source** opens the same explanation.
 
-A catalogue can offer design systems beside its own. List them as `companionDesignSystems` in its `assets/index.json`, each with a `tokens` asset id and a `label`:
+A catalog can offer design systems beside its own. List them as `companionDesignSystems` in its `assets/index.json`, each with a `tokens` asset id and a `label`:
 
 ```json
 "companionDesignSystems": [{ "tokens": "lolly/tokens/brand", "label": "Lolly Starter" }]
 ```
 
-Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as a local system the person can edit, reset to the original or remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A brand lock does not stop a list: the catalogue's own system stays read-only and the companions sit beside it, so a locked catalogue with no list simply offers none.
+Each entry must be a tokens asset in the same index, or `lolly/tokens/brand`, the blank starter every web build carries. `validate:catalog` checks the list. A browser gets each companion once, as a local system the person can edit, reset to the original or remove, and the active system does not change. lolly.tools offers Lolly Starter beside Lolly Demo this way. A brand lock does not stop a list: the catalog's own system stays read-only and the companions sit beside it, so a locked catalog with no list simply offers none.
 
 ### Offer a second design system on an instance
 
@@ -122,7 +123,7 @@ Check it with `node scripts/validate-catalog.ts --profile=acme-with-demo`, then 
 
 Lists follow the active design system by namespace, in the Assets view, the asset picker and search. A row a companion names belongs to it, a row in the namespace of the instance's tokens belongs to the instance's system, and anything else (a sample both use, an emoji set, a shared asset) is always listed. **All design systems** in the Assets toolbar shows everything. A saved session keeps drawing whichever system is active, because an asset is still found by its id.
 
-On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a change of default or a retirement. Stopping a connect download leaves the mounted catalogue available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or an editable local copy gets a notice and keeps its work. Older servers keep their existing refresh behaviour.
+On Lolly Work, an authenticated administrator can follow **Manage instance design systems** to inspect server sources and preview a change of default or a retirement. Stopping a connect download leaves the mounted catalog available. A newer server advertises revisions: safe views refresh on focus or reconnect, while an open tool or an editable local copy gets a notice and keeps its work. Older servers keep their existing refresh behaviour.
 
 ### Removing a catalogue design system
 
@@ -130,15 +131,15 @@ On Lolly Work, an authenticated administrator can follow **Manage instance desig
 A system imported into the browser is a separate local copy. Removing that copy changes this browser or device only, and cannot delete files on a host.
 :::
 
- If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalogue assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
+ If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalog assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
 
 To change or remove a design system the server supplies:
 
 ::: timeline
-- <!--i:folder--> **Change the source.** Update the content profile in `profiles.json` and its brand pack. For a neutral instance, select `lolly-start`. For a custom catalogue, remove the unwanted asset entries and files from the pack and replace any token or tool references that still need them. Keep permanent asset ids assigned to their original assets.
+- <!--i:folder--> **Change the source.** Update the content profile in `profiles.json` and its brand pack. For a neutral instance, select `lolly-start`. For a custom catalog, remove the unwanted asset entries and files from the pack and replace any token or tool references that still need them. Keep permanent asset ids assigned to their original assets.
 - <!--i:checklist--> **Rebuild and validate every profile** with `pnpm run build:catalog:all` and `pnpm run validate:catalog:all`.
-- <!--i:upload--> **Rebuild and redeploy** with the intended `LOLLY_PROFILE`, and deploy the complete output, catalogue included. Replace the old deployment files so removed assets are no longer served.
-- <!--i:globe--> **Purge and reload.** Purge any host or CDN cache for the changed catalogue files, then reload Lolly while online so it fetches the new catalogue. Check the supplied system's name and **Catalogue source** again, and refresh any downloaded offline copy before testing offline.
+- <!--i:upload--> **Rebuild and redeploy** with the intended `LOLLY_PROFILE`, and deploy the complete output, catalog included. Replace the old deployment files so removed assets are no longer served.
+- <!--i:globe--> **Purge and reload.** Purge any host or CDN cache for the changed catalog files, then reload Lolly while online so it fetches the new catalog. Check the supplied system's name and **Catalogue source** again, and refresh any downloaded offline copy before testing offline.
 :::
 
 Assets that saved sessions reference can stay cached for those sessions. An instance's administrator controls the deployment's files; the browser's **Remove** action only manages local copies.

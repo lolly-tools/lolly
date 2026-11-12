@@ -168,7 +168,7 @@ Un box può contenere più di un'immagine. Entrambi i tipi qui sotto conservano 
 
 ### Scene 3D
 
-Scegli **3D scene** dal menu di aggiunta della barra e trascina un riquadro: 3D Studio si apre sul nuovo box, e ciò che imposti lì torna sulla tela. In seguito, **Edit in 3D Studio** nella sezione **3D scene** dell'Inspector riapre lo studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) tratta poster, timeline, esportazione e condivisione.
+Scegli **3D scene** dal menu di aggiunta della barra e trascina un riquadro: 3D Studio si apre sul nuovo box, e ciò che imposti lì torna sulla tela. In seguito, **Edit in 3D Studio** nella sezione **3D scene** dell'Inspector riapre lo studio. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) tratta poster, timeline, esportazione e condivisione.
 
 ### Strumenti dentro un design
 

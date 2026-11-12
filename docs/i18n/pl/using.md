@@ -88,7 +88,7 @@ Elementy są nazywane według nazwy pliku wpisanej w panelu eksportu albo, w raz
 Osobiste zapisy zostają na tym urządzeniu, w przeglądarce lub aplikacji, z której zapisałeś, chyba że włączysz [Sync](/info/sync.html). Jeśli czegoś nie ma tam, gdzie oczekujesz, [Find and recover your work](/info/find-your-work.html) omawia każdy przypadek, od zamkniętej karty po wyczyszczone dane przeglądarki.
 
 ::: details Wspólne projekty z Lolly Work (opcjonalnie)
-Jeśli Twoja [organizacja używa Lolly Work](/info/organisation.html), zaloguj się do jej instancji i otwórz **Projects → Team projects**, aby zobaczyć udostępnione Ci sesje. Organizacja ustala dostęp i retencję, a jej usługa Lolly Work przechowuje te sesje. Udostępniona sesja dołącza do swojego collabu na żywo przy otwarciu, gdy organizacja zezwala na edycję na żywo; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) wyjaśnia kroki.
+Jeśli Twoja [organizacja używa Lolly Work](/info/organisation.html), zaloguj się do jej instancji i otwórz **Projects → Team projects**, aby zobaczyć udostępnione Ci sesje. Organizacja ustala dostęp i retencję, a jej usługa Lolly Work przechowuje te sesje. Udostępniona sesja dołącza do swojego collabu na żywo przy otwarciu, gdy organizacja zezwala na edycję na żywo; [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) wyjaśnia kroki.
 
 Twoja osobista biblioteka pozostaje oddzielna. Zalogowanie na innym urządzeniu daje pracę zespołową, ale osobiste zapisy nadal wymagają Sync lub kopii zapasowej, by się przenieść.
 :::

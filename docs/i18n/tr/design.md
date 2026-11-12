@@ -168,7 +168,7 @@ Bir kutu bir resimden fazlasını tutabilir. Aşağıdaki iki tür de render edi
 
 ### 3D sahneler
 
-Raydaki ekleme menüsünden **3D scene** seç ve bir çerçeve sürükle: 3D Studio yeni kutuda açılır ve orada ayarladığın şey tuvale geri gelir. Sonrasında Inspector'ın **3D scene** bölümündeki **Edit in 3D Studio** stüdyoyu yeniden açar. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) posterleri, zaman çizelgesini, dışa aktarmayı ve paylaşımı kapsar.
+Raydaki ekleme menüsünden **3D scene** seç ve bir çerçeve sürükle: 3D Studio yeni kutuda açılır ve orada ayarladığın şey tuvale geri gelir. Sonrasında Inspector'ın **3D scene** bölümündeki **Edit in 3D Studio** stüdyoyu yeniden açar. [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) posterleri, zaman çizelgesini, dışa aktarmayı ve paylaşımı kapsar.
 
 ### Bir tasarımın içindeki araçlar
 

@@ -168,7 +168,7 @@ Maaaring maglaman ang kahon ng higit sa larawan. Parehong uri sa ibaba ay nag-ii
 
 ### Mga 3D scene
 
-Piliin ang **3D scene** sa add menu ng rail at mag-drag ng frame: bubukas ang 3D Studio sa bagong kahon, at ang itinakda mo roon ay bumabalik sa canvas. Pagkatapos, ang **Edit in 3D Studio** sa **3D scene** section ng Inspector ay muling bubuksan ang studio. Sinasaklaw ng [Maglagay ng scene sa Design](/info/3d-studio.html#place-a-scene-in-design) ang mga poster, ang timeline, export at pagbabahagi.
+Piliin ang **3D scene** sa add menu ng rail at mag-drag ng frame: bubukas ang 3D Studio sa bagong kahon, at ang itinakda mo roon ay bumabalik sa canvas. Pagkatapos, ang **Edit in 3D Studio** sa **3D scene** section ng Inspector ay muling bubuksan ang studio. Sinasaklaw ng [Maglagay ng scene sa Design](/info/3d-studio.html#place-a-scene-in-lolly-design) ang mga poster, ang timeline, export at pagbabahagi.
 
 ### Mga tool sa loob ng design
 

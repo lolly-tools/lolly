@@ -129,7 +129,7 @@ Lolly Demo, Lolly's own demonstration design system, has six colourways. Spearmi
 3. For a series, give each [Lolly batch](/info/batch.html#colourways-and-themes-per-row) row its colourway in the CSV's `_themes` column, such as `{"colourway":"beach"}`. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Lolly Design document export.
 4. To export one piece in several colourways from the command line, list them on a `lolly run` command: `--themes=Spearmint,Beach --output=post.png` writes `post-Spearmint.png` and `post-Beach.png` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
 
-Pieces that show the whole family at once draw on every lead, canonical first: Lolly Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles)). [Lolly Verify](/verify) reads back which colourway drew each piece, from the record an export carries while its **Design system** card is ticked.
+Pieces that show the whole family at once draw on every lead, canonical first: Lolly Chart's series and palettes, Mesh Gradient's shuffle, the Audiogram visualiser's colours and the audio and text covers in Assets. Template authors reach the same leads as `--brand-lead-1` onwards ([Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles)). [Lolly Verify](/#/verify) reads back which colourway drew each piece, from the record an export carries while its **Design system** card is ticked.
 
 **Not yet:** no series, batch or copy flow picks colourways by a rule, and the batch grid has no control for a row's colourway. **Until then:** write each row's colourway into the CSV yourself, in turn or by speaker or product. The engine's rules (cycle, by key, shuffle, by date) exist for scripts; see [Rules for a series](/info/colourways.html#rules-for-a-series).
 
@@ -175,7 +175,7 @@ Appended brands in the wild: Broadcom and Meta.
 3. **Publish a version** while the endorsement runs, and give the version the period in its name, such as *Ferro by Halcyon, 2026 to 2027*.
 4. When the endorsement ends, replace the custom mark and publish a new version.
 
-An export drawn from a published version records that version, and *Recreate with these settings* in [Lolly Verify](/verify) reopens the tool in the same version. A link that you write with `designv` draws in that version on a device that holds the version; Lolly never writes `designv` into a share link ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)).
+An export drawn from a published version records that version, and *Recreate with these settings* in [Lolly Verify](/#/verify) reopens the tool in the same version. A link that you write with `designv` draws in that version on a device that holds the version; Lolly never writes `designv` into a share link ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)).
 
 **Not yet:** Lolly does not generate an endorsement lockup from the two marks, and a design system cannot carry the date an endorsement ends. **Until then:** the version's name records the period, and replacing the custom mark ends the endorsement for new work.
 

@@ -88,7 +88,7 @@ Item dinamai sesuai nama file yang Anda ketik di panel ekspor, atau sesuai alatn
 Simpanan pribadi tetap di perangkat ini, di browser atau aplikasi tempat Anda menyimpan, kecuali Anda mengaktifkan [Sync](/info/sync.html). Jika sesuatu tidak ada di tempat yang Anda harapkan, [Find and recover your work](/info/find-your-work.html) membahas setiap kasus, dari tab yang tertutup hingga data browser yang dibersihkan.
 
 ::: details Proyek tim dengan Lolly Work (opsional)
-Jika [organisasi Anda memakai Lolly Work](/info/organisation.html), login ke instansnya dan buka **Projects → Team projects** untuk sesi yang dibagikan kepada Anda. Organisasi menetapkan akses dan retensi, dan layanan Lolly Work-nya menyimpan sesi tersebut. Sesi bersama bergabung ke collab langsungnya saat dibuka bila organisasi Anda mengizinkan penyuntingan langsung; [Working together](/info/collaborate.html#work-collabs-with-lolly-work-optional) menjelaskan langkahnya.
+Jika [organisasi Anda memakai Lolly Work](/info/organisation.html), login ke instansnya dan buka **Projects → Team projects** untuk sesi yang dibagikan kepada Anda. Organisasi menetapkan akses dan retensi, dan layanan Lolly Work-nya menyimpan sesi tersebut. Sesi bersama bergabung ke collab langsungnya saat dibuka bila organisasi Anda mengizinkan penyuntingan langsung; [Working together](/info/collaborate.html#collabs-through-lolly-work-optional) menjelaskan langkahnya.
 
 Pustaka pribadi Anda tetap terpisah. Login di perangkat lain memberi Anda pekerjaan tim, sedangkan simpanan pribadi tetap memerlukan Sync atau cadangan untuk berpindah.
 :::

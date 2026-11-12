@@ -19,7 +19,7 @@ Kde žije tvá práce: úložiště samotného prohlížeče drží Projects, Hi
 ::: details Najdi sdílenou práci v Lolly Work (volitelné)
 Otevři Lolly své organizace a přihlas se, pak se podívej do **Projects → Team projects**. Sdílené relace drží ta instance a zobrazují se podle tvého přístupu. Přihlášení může obnovit přístup k těm relacím na jiném zařízení; neobnoví tvou osobní knihovnu ani zálohu zařízení.
 
-V [pracovní kolaboraci](/info/collaborate.html#work-collabs-with-lolly-work-optional) počkej na **Saved to work**, než odejdeš. Pokud sdílený projekt chybí, zkontroluj, že jsi připojen ke správné instanci, a zeptej se jejího provozovatele na přístup nebo uchovávání. Vymazání dat prohlížeče odstraní místní kopie, ne kopii organizace na serveru. Viz [Používej Lolly ve své organizaci](/info/organisation.html).
+V [pracovní kolaboraci](/info/collaborate.html#collabs-through-lolly-work-optional) počkej na **Saved to work**, než odejdeš. Pokud sdílený projekt chybí, zkontroluj, že jsi připojen ke správné instanci, a zeptej se jejího provozovatele na přístup nebo uchovávání. Vymazání dat prohlížeče odstraní místní kopie, ne kopii organizace na serveru. Viz [Používej Lolly ve své organizaci](/info/organisation.html).
 :::
 
 ## Najdi něco, co jsi uložil/a

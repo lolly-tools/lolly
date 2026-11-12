@@ -168,7 +168,7 @@ Scale चालू या बंद करने के लिए `K` दबा�
 
 ### 3D सीन
 
-रेल के add मेनू से **3D scene** चुनें और फ़्रेम खींचें: नए बॉक्स पर 3D Studio खुलता है, और वहाँ आप जो सेट करते हैं वह कैनवास पर लौट आता है। बाद में Inspector के **3D scene** खंड में **Edit in 3D Studio** स्टूडियो को दोबारा खोलता है। [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-design) पोस्टर, टाइमलाइन, एक्सपोर्ट और साझा करना कवर करता है।
+रेल के add मेनू से **3D scene** चुनें और फ़्रेम खींचें: नए बॉक्स पर 3D Studio खुलता है, और वहाँ आप जो सेट करते हैं वह कैनवास पर लौट आता है। बाद में Inspector के **3D scene** खंड में **Edit in 3D Studio** स्टूडियो को दोबारा खोलता है। [Place a scene in Design](/info/3d-studio.html#place-a-scene-in-lolly-design) पोस्टर, टाइमलाइन, एक्सपोर्ट और साझा करना कवर करता है।
 
 ### डिज़ाइन के भीतर टूल
 

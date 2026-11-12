@@ -38,7 +38,7 @@ Sa mga desktop at mobile app, nag-aalok din ang sign-in screen ng maikling code,
 - **May mga kontrol na itinakda para sa iyo.** Ang kontrol na pinamamahalaan ng organisasyon mo ay nagpapakita ng **Managed by** at ang pangalan ng organisasyon, o **Managed by your organisation**. Hindi mababago ang nakapirming kontrol, ang menu ay puwedeng mag-alok lang ng ilan sa mga pagpipilian nito, at ang linyang nagsisimula sa **Set by** ay puwedeng magsabi kung aling patakaran ang umiiral at bakit. May mga kontrol na hindi ipinapakita.
 - **May mga naka-lock na design system.** Ang design system na ibinibigay ng organisasyon mo ay may lock at nananatiling read-only. Para subukan ang mga pagbabago, gumawa ng mae-edit na kopya sa **Settings → Preferences → Design systems**.
 - **Ang mga tool lang nito ang nakalista.** Ang tool na hindi iniaalok ng organisasyon mo ay hindi ipinapakita.
-- **Mga shared project.** Kung nagbabahagi ng mga project sa iyo ang organisasyon mo, nagpapakita ang **Projects** ng **Team projects** tile. Nasa server ng organisasyon ang mga session na ito. Magbukas ng isa para gumawa rito, o magsimula ng [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional) mula sa **Share** kapag available.
+- **Mga shared project.** Kung nagbabahagi ng mga project sa iyo ang organisasyon mo, nagpapakita ang **Projects** ng **Team projects** tile. Nasa server ng organisasyon ang mga session na ito. Magbukas ng isa para gumawa rito, o magsimula ng [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) mula sa **Share** kapag available.
 - **Ang ilang export ay maaaring mangailangan ng pag-apruba.** Kung humihingi ng pag-apruba ang organisasyon mo, pumapalit ang **Request approval** sa **Download**, at ang tool ay puwedeng mag-alok ng mas kaunting format.
 
 ### Ano ang nananatili saan
@@ -69,7 +69,7 @@ Pinapatakbo ng server ng organisasyon mo ang **Lolly Work**, ang organisation so
 Ino-host ng organisasyon mo ang [Lolly Work](https://github.com/lolly-tools/lolly-work) kasabay ng Lolly at pinipili kung aling mga feature ang bubuksan:
 
 - **Sign-in at access.** Organisation single sign-on, mga permission batay sa group at managed na profile field. Puwedeng mag-provision at mag-deactivate ng account ang mga administrator sa pamamagitan ng SCIM.
-- **Shared na gawa.** Mga team project, shared session at [work collab](/info/collaborate.html#work-collabs-with-lolly-work-optional), na may live editing sa pamamagitan ng server ng organisasyon.
+- **Shared na gawa.** Mga team project, shared session at [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), na may live editing sa pamamagitan ng server ng organisasyon.
 - **Shared na asset library.** Mga na-upload na asset, collection at konektadong library, na may access rule, bersyon at review.
 - **Review at delivery.** Mga hakbang sa pag-apruba, managed link na may expiry o revocation, at delivery sa mga destinasyong pinapayagan ng organisasyon.
 - **Administrasyon.** Usage reporting sa ilalim ng telemetry policy ng instance, kasama ang audit record ng mga governed na aksyon.
