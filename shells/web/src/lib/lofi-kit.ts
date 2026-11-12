@@ -248,70 +248,121 @@ export function snareStroke(sr: number, f0: number, vel: number, wires: number, 
 }
 
 /**
- * A tom's modes, as ratios to its fundamental, how strongly a stick a third of the way in
- * from the rim sets each going, and each one's life against the fundamental's. The air
- * inside the drum pulls the membrane's Bessel ratios (1, 1.59, 2.14, 2.30 ...) closer
- * together, and the resonant head underneath, tuned a hair from the batter head, rings its
- * fundamental alongside the batter head's: the two beating a few times a second is the tom's bloom.
+ * A drum head's upper modes as ratios to its fundamental: the ideal membrane's (the zeros
+ * of the Bessel functions, j_mn / j_01). A recorded tom's spectrum, once its pitch has come
+ * down, follows them closely (measured on an acoustic kit: 1.6, 2.3, 2.92, 3.16, 3.5, 4.1),
+ * the (1,1) mode a little sharp of 1.594 from the head's stiffness.
  */
-const TOM_MODES: ReadonlyArray<readonly [number, number, number]> = [
-  [1, 1, 1], [1.012, 0.45, 1.35], [1.5, 0.62, 0.5], [1.97, 0.4, 0.38], [2.42, 0.28, 0.3], [2.86, 0.2, 0.24], [3.3, 0.13, 0.2], [3.75, 0.09, 0.17],
-];
-/** The shell's own short rings (ratios to the fundamental) and their level. */
-const SHELL_MODES = [2.7, 4.1, 5.9] as const;
+const MEMBRANE = [1.62, 2.136, 2.296, 2.653, 2.917, 3.155, 3.5, 3.598, 3.647, 4.059, 4.132, 4.23, 4.601, 4.832, 4.903, 5.084, 5.131, 5.412, 5.54, 5.651, 5.977, 6.153, 6.209] as const;
 
 /**
- * Add a resonator's ring into `out`: a two-pole resonator at `f` (Hz) with life `tau` (s),
- * driven by `drive`, its pitch `glide` sharp at first and falling back as the square of
- * its own amplitude does (a membrane's tension rises with how far it swings), the
- * coefficients worked out afresh every 16 samples.
+ * How strongly a stick's push, on the head for `contact` seconds, sets going a mode at `f`
+ * Hz: the spectrum of a half-sine push, about even up to 1 / (2 * contact) and falling as
+ * the square of the frequency above, smoothed over its notches. A hard stroke's short
+ * contact reaches far up the head's modes; a soft one's long contact does not.
  */
-function resonate(out: Float32Array, drive: Float32Array, sr: number, f: number, tau: number, level: number, glide: number): void {
-  const r = Math.exp(-1 / (tau * sr));
-  const fall = Math.exp(-2 / (tau * sr));
-  const len = Math.min(out.length, Math.ceil(tau * 8 * sr));
-  let y1 = 0, y2 = 0, bend = glide, c = 0, gain = 0;
-  for (let n = 0; n < len; n++) {
-    if ((n & 15) === 0) {
-      const w = (2 * Math.PI * Math.min(f * (1 + bend), sr * 0.45)) / sr;
-      c = 2 * r * Math.cos(w);
-      gain = Math.sin(w) * level;
+function pushAt(f: number, contact: number): number {
+  const u = 2 * f * contact;
+  return 1 / Math.sqrt(1 + 0.45 * u ** 4);
+}
+
+/**
+ * Add one of the head's modes into `out`: a sine at `f` (Hz) starting from rest, `level`
+ * high, falling by e in `tau` (s), its first `fast` share falling by e in `fastTau` (s)
+ * instead. Its pitch starts `glide` sharp (a share: 0.4 is 40 per cent) and settles by e in
+ * `settle` (s). It swells in over `rise` (s): the stick's contact for the batter head,
+ * longer for the resonant head, which the air inside sets going. The phase turns at the
+ * pitch of the moment, worked out once every 16 samples (the pitch moves far more slowly)
+ * as a rotating phasor, so there is no sine to work out for every sample.
+ */
+function headMode(out: Float32Array, sr: number, f: number, level: number, tau: number, glide: number, settle: number, rise: number, fast = 0, fastTau = 1): void {
+  if (f * (1 + glide) >= sr * 0.45 || level < 0.003) return;
+  // Rendered until it is 74 dB under the fundamental's start (a level of 1), and no longer.
+  const slowFor = level * (1 - fast) > 2e-4 ? tau * Math.log((level * (1 - fast)) / 2e-4) : 0;
+  const fastFor = level * fast > 2e-4 ? fastTau * Math.log((level * fast) / 2e-4) : 0;
+  const len = Math.min(out.length, Math.ceil(Math.max(slowFor, fastFor, rise) * sr));
+  const fall = Math.exp(-1 / (tau * sr));
+  const fastFall = Math.exp(-1 / (fastTau * sr));
+  const up = Math.max(1, rise * sr);
+  let slowEnv = level * (1 - fast), fastEnv = level * fast;
+  let re = 1, im = 0;
+  for (let b = 0; b < len; b += 16) {
+    const step = (2 * Math.PI * f * (1 + glide * Math.exp(-(b + 8) / sr / settle))) / sr;
+    const c = Math.cos(step), s = Math.sin(step);
+    const end = Math.min(len, b + 16);
+    for (let n = b; n < end; n++) {
+      const swell = n < up ? 0.5 - 0.5 * Math.cos((Math.PI * n) / up) : 1;
+      out[n] = out[n]! + (slowEnv + fastEnv) * swell * im;
+      const turned = re * c - im * s;
+      im = re * s + im * c;
+      re = turned;
+      slowEnv *= fall;
+      fastEnv *= fastFall;
     }
-    const y = c * y1 - r * r * y2 + gain * (drive[n] ?? 0);
-    y2 = y1;
-    y1 = y;
-    out[n] = out[n]! + y;
-    bend *= fall;
+    const norm = 1 / Math.hypot(re, im);
+    re *= norm;
+    im *= norm;
   }
 }
 
 /**
- * A tom stroke at `f0`, from the stick's contact. The stick meets the head for a moment, a
- * millisecond for a hard stroke and a few for a soft one, so a hard stroke carries further
- * up the spectrum and sets the high modes ringing. That push, with a breath of the skin's
- * noise, drives every mode of the head (TOM_MODES) and the shell's short rings, and the
- * head's pitch starts sharp and falls back as its swing dies. A lower tom rings longer.
+ * A tom stroke at `f0`, measured against an acoustic kit's recorded toms (four toms, 62 to
+ * 116 Hz, at every strength).
+ * - The pitch: struck hard, the head swings so far that its tension, and so every mode's
+ *   pitch, rises: a hard stroke starts up to 40 per cent sharp (a medium one about 20, a
+ *   soft one a few) and comes down over a few tenths of a second, a floor tom more slowly.
+ *   That falling "doom" is most of what makes a tom sound like one.
+ * - The ring: the fundamental falls fast for its first tens of milliseconds and then rings
+ *   on, 60 dB down in 2 to 3 s (a lower tom longer); the resonant head underneath, tuned a
+ *   third to a fourth higher, rings its own fundamental, and the head's upper modes
+ *   (MEMBRANE) die sooner the higher they are.
+ * - The attack: the stick's push sets the modes going as far up as its contact time
+ *   allows, the head's countless higher modes are heard as a short thud of noise, and the
+ *   stick itself clicks. In the first 60 ms a hard stroke carries energy up to 5 kHz.
  */
 export function tomStroke(sr: number, f0: number, vel: number, rand: Rand): Float32Array {
-  const life = 0.32 + Math.max(0, 220 - f0) * 0.0032;
-  const out = new Float32Array(Math.ceil(Math.min(2.6, life * 6) * sr));
-  // The push: a half-sine as long as the stick stays on the head, and the skin's noise beneath.
-  const contact = 0.0036 - 0.0026 * vel;
-  const push = new Float32Array(Math.ceil((contact + 0.006) * sr));
-  const cn = Math.max(2, Math.round(contact * sr));
-  for (let n = 0; n < cn; n++) push[n] = Math.sin((Math.PI * n) / cn) * (0.5 + 0.5 * vel);
-  let lp = 0;
-  for (let n = 0; n < push.length; n++) { lp += 0.25 * ((rand() * 2 - 1) - lp); push[n] = push[n]! + lp * 0.18 * vel * Math.exp(-n / (0.002 * sr)); }
-  const drive = new Float32Array(out.length);
-  drive.set(push);
-  const glide = 0.012 + 0.05 * vel * vel;
-  for (const [ratio, weight, lifeOf] of TOM_MODES) {
-    const tau = life * lifeOf * (0.9 + rand() * 0.2);
-    resonate(out, drive, sr, f0 * ratio * (1 + (rand() - 0.5) * 0.006), tau, weight, glide * (ratio === 1 ? 1 : 0.6));
+  const t60 = 2.2 + Math.max(0, 150 - f0) * 0.01;
+  const tau = t60 / 6.91;
+  const out = new Float32Array(Math.ceil(Math.min(3, t60) * sr));
+  const contact = 0.002 - 0.0013 * vel;
+  const glide = 0.4 * vel ** 0.6;
+  const settle = 0.1 + Math.max(0, 110 - f0) * 0.0012;
+  // The batter head's fundamental: a fast fall in its first tens of milliseconds, then the long ring.
+  headMode(out, sr, f0, 1, tau, glide, settle, contact, 0.6, 0.05 + Math.max(0, 110 - f0) * 0.0004);
+  // The resonant head, a third to a fourth above, set going through the air inside, so it swells
+  // in over a few milliseconds and glides less; and a near neighbour of the batter fundamental, beating slowly against the batter head.
+  const reso = 1.2 + rand() * 0.14;
+  headMode(out, sr, f0 * reso, 0.08 * (0.7 + rand() * 0.6), tau * 0.9, glide * 0.35, settle, 0.006);
+  headMode(out, sr, f0 * 1.03, 0.025, tau, glide, settle, contact);
+  // The batter head's upper modes, as the stick's push reaches them; the higher, the sooner
+  // gone. A bigger, lower tom's are stronger against its fundamental (a recorded floor tom's
+  // first 60 ms are loudest an octave above its fundamental).
+  const big = Math.min(1.25, Math.max(1, (110 / f0) ** 0.4));
+  for (const ratio of MEMBRANE) {
+    const f = f0 * ratio;
+    const level = 0.5 * big * ratio ** -0.5 * (0.45 + rand() * 0.8) * pushAt(f, contact);
+    const life = tau * Math.min(1, Math.max(0.12, 1.6 / ratio)) * (0.7 + rand() * 0.6);
+    headMode(out, sr, f * (1 + (rand() - 0.5) * 0.008), level, life, glide, settle, contact, 0.85, 0.03);
   }
-  for (const ratio of SHELL_MODES) resonate(out, drive, sr, f0 * ratio, 0.03 + rand() * 0.02, 0.12, 0);
-  noiseBand(out, sr, rand, 4200, 0.8, 0.3 * vel * vel, 0.0003, 0.003);   // the stick's tick
-  noiseBand(out, sr, rand, 5200, 0.6, 0.05 * vel, 0.004, 0.06);   // the snare's wires, answering in sympathy
+  // The shell's own short rings.
+  for (const ratio of [2.7, 4.1, 5.9]) headMode(out, sr, f0 * ratio, 0.05 * pushAt(f0 * ratio, contact), 0.035 + rand() * 0.02, 0, 1, contact);
+  // The head's countless higher modes, heard as a short thud, and the stick's click, darker
+  // above 5 kHz as the head and the stick are (a bigger tom's darker still); then the snare's
+  // wires answering in sympathy.
+  const attack = new Float32Array(Math.min(out.length, Math.ceil(0.25 * sr)));
+  const size = Math.min(1.3, Math.max(0.6, Math.sqrt(f0 / 110)));
+  noiseBand(attack, sr, rand, 700, 0.5, 1.5 * vel * pushAt(700, contact), contact, 0.03);
+  noiseBand(attack, sr, rand, 1800, 0.7, 2.3 * vel * size, contact, 0.022);
+  noiseBand(attack, sr, rand, 3300, 1.2, 0.8 * vel * size, contact, 0.012);
+  noiseBand(attack, sr, rand, 3000 + 1000 * vel, 1.4, 2.2 * vel ** 1.2 * size, 0.0002, 0.0018);
+  const dark = 1 - Math.exp((-2 * Math.PI * 5000) / sr);
+  let lp1 = 0, lp2 = 0;
+  for (let n = 0; n < attack.length; n++) {
+    lp1 += dark * (attack[n]! - lp1);
+    lp2 += dark * (lp1 - lp2);
+    out[n] = out[n]! + lp2;
+  }
+  noiseBand(out, sr, rand, 5200, 0.6, 0.06 * vel, 0.004, 0.06);
   return normalise(out, 0.9);
 }
 

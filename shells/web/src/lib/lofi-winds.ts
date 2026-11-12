@@ -28,7 +28,7 @@ export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi
   const held = Math.max(0.06, dur);
   const data = blowReed({
     sr: ctx.sampleRate, f: mtof(midi), from: from === undefined ? undefined : mtof(from), vel, dur: held, seconds: held + 0.12,
-    bore: sax ? 'cone' : 'cylinder', vibrato: sax ? 22 : 6, rate: 5.1 + k.rng() * 0.6, scoop: art === 1 ? 1 : 0, attack: sax ? 0.035 : 0.045,
+    bore: sax ? 'cone' : 'cylinder', vibrato: sax ? 22 : 6, rate: 5.1 + k.rng() * 0.6, scoop: art === 1 ? 1 : 0, attack: sax ? 0.012 : 0.045,
   }, seeded(k));
   const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
   buf.getChannelData(0).set(data);

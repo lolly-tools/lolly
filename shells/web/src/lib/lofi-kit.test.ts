@@ -108,18 +108,34 @@ test('a cymbal is mostly dense modes, not a few ringing lines: a crash nearly no
   }
 });
 
-test('a tom struck hard starts sharp and falls back into pitch', () => {
-  const tom = K.tomStroke(SR, 196, 0.95, seeded(22));
-  const pitchAt = (at: number): number => {
+test('a tom struck hard starts well sharp and falls back into pitch, as a recorded tom does', () => {
+  // Measured on an acoustic kit's toms: a hard stroke averages 30 to 44 per cent sharp over its
+  // first 50 ms, a soft one a few per cent, and both are back within a few per cent by 0.4 s.
+  const pitchOf = (x: Float32Array, at: number, lo: number, hi: number): number => {
     let best = 0, bf = 0;
-    for (let f = 180; f <= 230; f += 0.5) {
+    for (let f = lo; f <= hi; f += 0.5) {
       const w = (2 * Math.PI * f) / SR; let re = 0, im = 0;
-      for (let i = Math.floor(at * SR); i < Math.floor((at + 0.04) * SR); i++) { re += tom[i]! * Math.cos(w * i); im += tom[i]! * Math.sin(w * i); }
+      for (let i = Math.floor(at * SR); i < Math.floor((at + 0.04) * SR); i++) { re += x[i]! * Math.cos(w * i); im += x[i]! * Math.sin(w * i); }
       if (re * re + im * im > best) { best = re * re + im * im; bf = f; }
     }
     return bf;
   };
-  const early = pitchAt(0.002), late = pitchAt(0.3);
-  // A real tom falls a few per cent; the 40 ms window here averages the very start.
-  assert.ok(early > late * 1.025, `from ${early} Hz down to ${late} Hz`);
+  const hard = K.tomStroke(SR, 110, 0.95, seeded(22));
+  const soft = K.tomStroke(SR, 110, 0.3, seeded(22));
+  const sharp = (x: Float32Array) => pitchOf(x, 0.002, 100, 170) / 110 - 1;
+  assert.ok(sharp(hard) > 0.15, `a hard stroke starts ${(sharp(hard) * 100).toFixed(1)} per cent sharp`);
+  assert.ok(sharp(soft) < sharp(hard) * 0.75, `a soft one less: ${(sharp(soft) * 100).toFixed(1)} per cent`);
+  const settled = pitchOf(hard, 0.4, 100, 130);
+  assert.ok(Math.abs(settled / 110 - 1) < 0.03, `settled at ${settled} Hz`);
+});
+
+test('a tom has a stick attack above 1 kHz, more for a hard stroke, and a low ring after', () => {
+  const hard = K.tomStroke(SR, 110, 0.95, seeded(23));
+  const soft = K.tomStroke(SR, 110, 0.3, seeded(23));
+  const early = (x: Float32Array) => highShare(x.subarray(0, Math.floor(0.03 * SR)), 1000);
+  assert.ok(early(hard) > 0.03, `${(early(hard) * 100).toFixed(1)} per cent of a hard stroke's first 30 ms is above 1 kHz`);
+  assert.ok(early(soft) < early(hard) * 0.5, `a soft stroke's is less: ${(early(soft) * 100).toFixed(1)} per cent`);
+  // The one-pole high-pass lets the 110 Hz ring through at about 1 per cent, so the late share is set against the attack's.
+  const late = highShare(hard.subarray(Math.floor(0.3 * SR), Math.floor(0.6 * SR)), 1000);
+  assert.ok(late < early(hard) * 0.2, `after a few tenths of a second only the low ring is left (${(late * 100).toFixed(1)} per cent)`);
 });
