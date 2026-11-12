@@ -262,7 +262,6 @@
     "shells/web/src/components/instance-sheet.ts": 2,
     "shells/web/src/components/profile-menu.ts": 2,
     "shells/web/src/components/profiles-manager.ts": 2,
-    "shells/web/src/components/share-dialog.ts": 1,
     "shells/web/src/components/sound-toggle.ts": 1,
     "shells/web/src/ext/host.ts": 3,
     "shells/web/src/folder-overlay.ts": 1,

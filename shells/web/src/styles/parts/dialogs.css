@@ -788,3 +788,29 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
 /* The notice a tab shows when another tab's "Clear all my data" stops it
    (lib/clear-elsewhere.ts): nothing sits below the message, so no gap for actions. */
 .clear-elsewhere .modal-msg { margin-bottom: 0; }
+
+/* ─── The Neurospicy player's share card (components/neuro-share-card.ts) ────
+   The plain .modal card: the track, a choice between this tune and this moment
+   (a choice that cannot travel is greyed with its reason), the link it will
+   share, and Copy (plus the device's share sheet where there is one). */
+.neuro-share { width: min(420px, 92vw); }
+.neuro-share .modal-title:focus { outline: none; }
+.neuro-share-track { margin: 0 0 var(--sp-4); font-size: var(--fs-md); color: var(--ui-color-text-muted); overflow-wrap: anywhere; }
+.neuro-share-choices { display: grid; gap: var(--sp-2); margin: 0 0 var(--sp-4); padding: 0; border: 0; }
+.neuro-share-legend { padding: 0; margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-weight: 600; }
+.neuro-share-choice {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  cursor: pointer;
+}
+.neuro-share-choice:has(input:checked) { background: color-mix(in srgb, var(--ui-color-action-primary) 10%, transparent); }
+.neuro-share-choice.is-unavailable { cursor: default; opacity: 0.6; }
+.neuro-share-choice input { margin: 3px 0 0; accent-color: var(--ui-color-action-primary); }
+.neuro-share-choice-text { display: grid; gap: 2px; }
+.neuro-share-choice-label { font-weight: 600; }
+.neuro-share-choice-detail { font-size: var(--fs-sm); line-height: 1.45; color: var(--ui-color-text-muted); }
+.neuro-share-link { width: 100%; font-size: var(--fs-sm); }
+.neuro-share-status { min-height: 1.4em; margin: var(--sp-2) 0 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.neuro-share-reason { margin: 0 0 var(--sp-4); line-height: 1.5; }

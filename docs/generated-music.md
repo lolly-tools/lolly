@@ -14,7 +14,7 @@ A tune comes from two things: its station and a **seed**, a whole number from 0 
 
 That is what makes the music deterministic, and everything below follows from that rule:
 
-- **A shared link plays the same tune.** **Share this tune** copies a link such as `#/?lofi=sugar.2024`. Whoever opens the link hears the tune you heard.
+- **A shared link plays the same tune.** **Share** in the player offers two links. **This tune** plays the tune from its start, with a link such as `#/?lofi=sugar.2024`. **This moment** also starts from the bar the tune had reached and shows the visualiser as you were seeing it, with its preset, colours, brand tint and preset cycle, for example `#/?lofi=sugar.2024&ns.at=11&ns.viz=pulse`. Whoever opens either link hears the tune you heard, on the gallery, utilities or assets view the link names. The visualiser look is theirs for that visit only and replaces none of their own settings. Internet radio and catalog tracks share the same way by their ids (`listen=…`), from the second you had reached. A track you uploaded stays on your device, so the card says so instead of offering a link.
 - **A saved tune is a few bytes.** **Save to library** keeps the station and the seed as an asset in your library, about 70 bytes, not a recording. Playing the tune later composes the same music again. Lolly Demo and Lolly Start each ship six saved tunes.
 - **A music bed renders the same audio.** A saved tune used as a video's music bed is rendered from the seed when the video is made, repeating to fill the video.
 - **Next and Previous move between seeds.** Next starts a new tune with a fresh seed. Previous goes back to the seed before, so a tune you skipped past is never lost.

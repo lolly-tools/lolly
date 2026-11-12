@@ -732,6 +732,7 @@ async function play(host: NeurospicyHost): Promise<void> {
   a.gain.gain.value = state.volume; s.start();
   src = s; playingId = id;
   srcStartedAt = a.ctx.currentTime; srcOffset = 0;
+  if (pendingSeek?.id === id) { const at = pendingSeek.seconds; pendingSeek = null; seekNeurospicy(at); }
   notifyPlaying();
 }
 
@@ -769,8 +770,8 @@ export function setLofiTexture(host: NeurospicyHost, texture: number): void {
  * button turns sound on (see lib/neurospicy-dock-host.ts), since pressing play on a tune
  * someone sent is the listener asking to hear the tune.
  */
-export async function openLofiLink(host: Pick<NeurospicyHost, 'profile'>, link: LofiLink): Promise<void> {
-  queueLofiSeed(link.seed);
+export async function openLofiLink(host: Pick<NeurospicyHost, 'profile'>, link: LofiLink, bar = 0): Promise<void> {
+  queueLofiSeed(link.seed, bar);
   lofiLinkOpened = true;
   stopSource();
   state.loopId = lofiId(link.mood);
@@ -780,6 +781,28 @@ export async function openLofiLink(host: Pick<NeurospicyHost, 'profile'>, link: 
   persistLocal(); void persistProfile(host);
 }
 let lofiLinkOpened = false;
+
+/**
+ * Open a shared track that is not a generated tune: an internet radio station or a
+ * catalog track, by its id (lib/neuro-share.ts), from `seconds` in when the link carries a
+ * moment. Like a shared tune, it plays on the listener's next gesture, and the first press
+ * of play turns sound on. An id this app does not have is left alone.
+ */
+export async function openListenLink(host: NeurospicyHost, id: string, seconds?: number): Promise<boolean> {
+  const known = (await listLoops(host)).some((t) => t.id === id);
+  if (!known) return false;
+  lofiLinkOpened = true;
+  stopSource();
+  state.loopId = id;
+  state.enabled = true;
+  paused = false;
+  pendingSeek = seconds && seconds > 0 ? { id, seconds } : null;
+  notifyEnabledChanged();
+  persistLocal(); void persistProfile(host);
+  return true;
+}
+/** Where a shared moment's track should start, once its file has loaded. */
+let pendingSeek: { id: string; seconds: number } | null = null;
 /** Whether this page was opened from a shared Lofi tune that has not played yet. Asking clears the answer. */
 export function takeLofiLinkConsent(): boolean { const was = lofiLinkOpened; lofiLinkOpened = false; return was; }
 

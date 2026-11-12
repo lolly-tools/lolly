@@ -120,7 +120,9 @@ export async function startLofi(ctx: AudioContext, dest: AudioNode, id: string, 
   const { LofiStation } = await import('./lofi-station.ts');
   stopLofi();
   const seed = saved?.seed ?? queued ?? (resume?.id === id ? resume.seed : freshSeed());
-  if (!saved) queued = null;
+  // A shared moment starts its tune from the bar it had reached.
+  const startBar = !saved && queued !== null ? queuedBar : 0;
+  if (!saved) { queued = null; queuedBar = 0; }
   if (stationId !== id || heard[heard.length - 1] !== seed) heard = [...(stationId === id ? heard : []), seed].slice(-50);
   stationId = id;
   // A track saved from the music generator plays exactly as it was made (its instruments,
@@ -129,7 +131,7 @@ export async function startLofi(ctx: AudioContext, dest: AudioNode, id: string, 
   const state = track && saved?.generator ? track.parseMusicState(saved.generator) : null;
   const s = state && track
     ? new LofiStation(ctx, dest, state.seed, { ...track.trackSettings(state), drums: prefs.drums && state.drums, repeat: true }, state.mix)
-    : new LofiStation(ctx, dest, seed, { mood, drums: prefs.drums, texture: prefs.texture, repeat: Boolean(saved) });
+    : new LofiStation(ctx, dest, seed, { mood, drums: prefs.drums, texture: prefs.texture, repeat: Boolean(saved), ...(startBar ? { startBar } : {}) });
   s.setVolume(1);
   let rounds = 0;
   s.onBar = (bar) => {
@@ -192,8 +194,12 @@ export function currentLofiRecipe(): LofiLink | null {
   return mood && seed !== undefined ? { mood, seed } : null;
 }
 
-/** Play `seed` the next time a station starts (a shared link). */
-export function queueLofiSeed(seed: number): void { queued = seed >>> 0; }
+/** Play `seed` the next time a station starts (a shared link), from bar `bar` of the tune (a shared moment). */
+export function queueLofiSeed(seed: number, bar = 0): void { queued = seed >>> 0; queuedBar = Math.max(0, Math.floor(bar)); }
+let queuedBar = 0;
+
+/** The bar the station's tune has reached (0 is its first), for a shared moment; null when nothing is sounding. */
+export function currentLofiBar(): number | null { return station?.current?.index ?? null; }
 
 // ── shared links ─────────────────────────────────────────────────────────────
 

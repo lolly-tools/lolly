@@ -52,7 +52,7 @@ import { initSpotlightBoot } from './components/spotlight-boot.ts';
 import { ensureJelly, jellyEnabled } from './lib/jelly.ts';
 import { applyCaptureNeutral, ROUTE_MOUNTING_ATTR } from './lib/capture-neutral.ts';
 import { wireViewPrewarmIntent } from './lib/view-prewarm-intent.ts';
-import { peekNeuroDemo, peekLofiLinked } from './lib/neuro-demo-peek.ts';
+import { peekNeuroDemo, peekLofiLinked, peekNeuroShared } from './lib/neuro-demo-peek.ts';
 import { syncJellyNavToggle, UTILITIES_FLAG_ID, type ViewToggleKey } from './components/view-toggle.ts';
 import { installGlobalReveal } from './lib/reveal.ts';
 import { installFoldSettle } from './lib/disclosure-motion.ts';
@@ -1622,21 +1622,31 @@ async function boot(): Promise<void> {
   // A shared Lofi tune (#/?lofi=warm.123456) opens the player on that tune, so it counts
   // as Neurospicy state even for someone who has never turned the mode on.
   const lofiLinked = peekLofiLinked();
+  // A shared track or moment (#/?listen=radio/…, ns.at=12, ns.viz=…) does the same.
+  const neuroShared = peekNeuroShared();
   const neuroState = (profile as { neurospicy?: unknown }).neurospicy !== undefined
     || (profile as { atmosphere?: unknown }).atmosphere !== undefined;
-  if ((neuroState || neuroDemo || lofiLinked) && !isIframeMode()) {
+  if ((neuroState || neuroDemo || lofiLinked || neuroShared) && !isIframeMode()) {
     void Promise.all([import('./lib/neurospicy.ts'), import('./lib/atmosphere.ts')]).then(async ([neuro, atmo]) => {
       neuro.hydrateNeurospicy((profile as { neurospicy?: unknown }).neurospicy);
       atmo.hydrateAtmosphere((profile as { atmosphere?: unknown }).atmosphere);
       // The runtime host is the full WebHost, whose profile can also be written.
       const neuroHost = host as unknown as Parameters<typeof neuro.armNeurospicy>[0];
       if (neuroDemo) void import('./lib/neuro-demo.ts').then(d => d.applyNeuroDemo(host as unknown as Parameters<typeof d.applyNeuroDemo>[0], neuroDemo));
+      // A shared moment: where the tune had got to, and the sharer's visualiser look.
+      const shared = (lofiLinked || neuroShared) && flagEnabledSync('neurospicy')
+        ? (await import('./lib/neuro-share.ts')).readNeuroShare(window.location) : null;
       if (lofiLinked && flagEnabledSync('neurospicy')) {
         const lofi = await import('./lib/neurospicy-lofi.ts');
         const link = lofi.readLofiLink(window.location);
-        if (link) await neuro.openLofiLink(neuroHost, link);
+        if (link) await neuro.openLofiLink(neuroHost, link, shared?.moment.bar ?? 0);
         // Take the tune out of the address, so a reload does not queue it again.
         history.replaceState(history.state, '', lofi.withoutLofiLink(window.location));
+      }
+      if (shared?.listen) await neuro.openListenLink(neuroHost, shared.listen, shared.moment.seconds);
+      if (neuroShared && flagEnabledSync('neurospicy')) {
+        const share = await import('./lib/neuro-share.ts');
+        history.replaceState(history.state, '', share.withoutNeuroShare(window.location));
       }
       if (flagEnabledSync('neurospicy')) {
         neuro.armNeurospicy(neuroHost);
@@ -1645,7 +1655,11 @@ async function boot(): Promise<void> {
         // player inside it) is dynamic-imported and only when the mode is actually enabled.
         if (neuro.getNeurospicy().enabled) {
           void import('./components/neuro-dock.ts')
-            .then(m => m.syncNeuroDock(neuroHost));
+            .then(m => {
+              m.syncNeuroDock(neuroHost);
+              // Someone shared a moment: open the player large, looking as the sharer saw the picture.
+              if (shared) m.showSharedMoment(neuroHost, shared.moment.viz);
+            });
         }
       }
     });
