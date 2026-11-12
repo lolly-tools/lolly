@@ -43,6 +43,8 @@ The faces are contracted for an inward bevel. Before building it, the studio fol
 
 **Several objects together** and **A collection** put more than one thing in the picture; see [Groups and sets](#groups-and-sets).
 
+**A table of numbers** belongs in [Lolly Chart](/info/chart.html), whose 3-D renderer draws data as bars, tiles, a city of values or a spiral, with a camera you can drag.
+
 <!--i:eti-sun-->
 ## Light the scene
 

@@ -12,7 +12,7 @@ export and sharing routes described below.
 
 # Templates
 
-A template is a saved starting point for a tool. Open the tool on one and every control arrives already filled in, ready for you to change a few words. Some templates ship with the tool; the rest are ones you saved yourself, out of a design you had already got right.
+A template is a saved starting point for a tool. Open the tool on one and every control arrives already filled in, ready for you to change a few words. Some templates ship with the tool, such as the 43 that come with [Lolly Chart](/info/chart.html#start-from-a-template); the rest are ones you saved yourself, out of a design you had already got right.
 
 ::: cols
 ## A saved session

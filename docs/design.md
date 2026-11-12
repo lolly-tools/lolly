@@ -273,6 +273,7 @@ The deck is a link too. `?present` opens straight into it and `s=` picks the sli
 
 - **[Text in Lolly Design](/info/text-composition.html)**: editing text on the canvas, flowing articles through frames and typography.
 - **[Animating](/info/animating.html)**: keyframes, depth, the scene camera and Lift layers.
+- **[Lolly Chart](/info/chart.html)**: a table drawn as a vector, statistical, 3-D or cinematic chart, which a box holds like any other tool.
 - **[Import a design](/info/design-import.html)**: open Figma, Penpot, Illustrator, InDesign, Affinity and DXF files as editable boxes, and editing timelines as a sequence.
 - **[Share a design with rules](/info/create-a-tool.html)**: turn a Lolly Design document into a tool with only the inputs you choose.
 - **[Export a file](/info/exporting.html)**: formats, sizes, print units and video.

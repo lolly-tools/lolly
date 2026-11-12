@@ -14,6 +14,7 @@ Pick a tool and fill it in, or lay a page out freely on the Lolly Design canvas.
 - **[Lolly Design](/info/design.html)** - the free canvas, for layouts no template covers: a poster, a deck, a motion piece.
 - **[Templates](/info/templates.html)** - start from a saved layout instead of a blank tool.
 - **[Text in Lolly Design](/info/text-composition.html)** - headings, flowing text and type that fits its box.
+- **[Lolly Chart](/info/chart.html)** - a pasted table drawn as a vector chart, a statistical plot, a 3-D scene or a cinematic flight.
 - **[Lolly 3D Studio](/info/3d-studio.html)** - SVG artwork and 3D models arranged, lit and rendered as one scene.
 - **[Lolly Darkroom](/info/darkroom.html)** - grade photos and video, and keep a look as a LUT.
 - **[Lolly Utilities](/info/utilities.html)** - fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour.
