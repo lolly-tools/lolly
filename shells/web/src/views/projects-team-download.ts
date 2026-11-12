@@ -9,7 +9,8 @@
  * only the uploads the session refers to are handed to the builder. Catalog bytes go
  * through the same redistribution answer as the Share dialog's file
  * (views/tool-lolly-vehicle.ts lollyLibraryResolver), with nothing licensed included:
- * a held-back work travels as a reference and CREDITS.txt says why.
+ * a held-back work travels as a reference and CREDITS.txt says why, and a work with no
+ * licence recorded travels with a notice to the sender (lib/unrecorded-notice.ts).
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { ENGINE_VERSION, decodeAssetVersion } from '@lolly/engine';
@@ -66,6 +67,9 @@ export async function downloadTeamSessionFile(host: HostV1, sessionId: string, n
   const input = await teamSessionLollyInput(host, sessionId, name);
   if (!current()) return;
   const { buildLollyFile } = await import('../lib/lolly-pack.ts');
-  const { blob, filename } = await buildLollyFile(input);
-  if (current()) await host.export.download(blob, filename);
+  const { blob, filename, summary } = await buildLollyFile(input);
+  if (!current()) return;
+  await host.export.download(blob, filename);
+  const { noticeUnrecorded } = await import('../lib/unrecorded-notice.ts');
+  void noticeUnrecorded(summary.unrecorded);
 }

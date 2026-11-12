@@ -4,6 +4,7 @@ import { escape as escapeHtml } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { icon } from '../icons.ts';
 import { buildBrandPackage, emptyBrandSelection, listBrandContent, type BrandPackageHost, type BrandSelection, type ContentChoice, type ContentKind } from './brand-package.ts';
+import { unrecordedWarning } from '../unrecorded-notice.ts';
 
 const GROUPS: Array<{ kind: ContentKind; label: string }> = [
   { kind: 'sessions', label: 'Saved sessions' }, { kind: 'assets', label: 'Catalogue & uploads' }, { kind: 'tools', label: 'Tools' },
@@ -120,6 +121,8 @@ export async function openBrandDownload(host: BrandPackageHost, system: string):
           if (!alive) return;
           await host.export.download(result.blob, result.filename);
           status.textContent = result.references ? t('Downloaded. {n} unavailable or licensed dependencies remain external references.', { n: result.references }) : t('Downloaded. Open the .lolly file in Lolly to import it.');
+          const warning = unrecordedWarning(result.unrecorded);
+          if (warning) status.textContent = `${status.textContent} ${warning}`;
         }).catch(error => { if (alive) status.textContent = `${t('Download failed.')} ${error instanceof Error ? error.message : String(error)}`; }).finally(() => {
           busy = false;
           if (!alive) return;

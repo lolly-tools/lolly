@@ -197,7 +197,7 @@ export async function downloadProject(view: ProjectDownloadView, id: string, sha
       ...(f.emoji ? { emoji: f.emoji } : {}),
       ...(f.tags?.length ? { tags: f.tags } : {}),
     }));
-    const { blob, filename } = await lp.buildLollyFile({
+    const { blob, filename, summary } = await lp.buildLollyFile({
       kind: 'project', toolId: lp.LOLLY_PROJECT_TOOL_ID, session: null, name: root.name,
       project: { name: root.name, folders: projectFolders, sessions },
       userAssets, resolveLibrary: lollyLibraryResolver(host.assets),
@@ -207,6 +207,8 @@ export async function downloadProject(view: ProjectDownloadView, id: string, sha
     if (share) await shareFile(host.export, blob, filename);
     else await host.export.file(blob, { filename });
     if (skipped) announce(tn('1 file could not be packed and was left out', '{n} files could not be packed and were left out', { n: skipped }));
+    const { noticeUnrecorded } = await import('../lib/unrecorded-notice.ts');
+    void noticeUnrecorded(summary.unrecorded);
     return { zipName: filename };
   });
 }

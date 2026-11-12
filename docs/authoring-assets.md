@@ -118,7 +118,7 @@ A missing record means "not recorded", never permission.
 - `rights` - a structured creative-rights record (`CreativeWorkRecordV1` in `@lolly-tools/core`), kept beside the `license` and `attribution` strings.
 - `aiGenerated` - `full` or `partial` for an asset made wholly or partly with a generative model; Assets then shows a GEN AI label. Leave it out for work made by people.
 
-A `.lolly` pack carries a catalog file with no licence recorded, but warns the sender and asks whoever opens the pack to check the terms. A file whose recorded licence is not yet interpreted is held back unless the sender chooses to include the file. So record `license` and `rights` on anything meant to travel. [Creative rights and credits](/info/creative-rights.html) explains the rest.
+A `.lolly` pack carries a catalog file that records nothing about its rights (no licence, no rights record, no attribution), but warns the sender and asks whoever opens the pack to check the terms. A file whose recorded licence is not yet interpreted is held back unless the sender chooses to include the file. So record `license` and `rights` on anything meant to travel. [Creative rights and credits](/info/creative-rights.html) explains the rest.
 
 <!--i:eti-stamp-->
 ## Approval and intent in Details

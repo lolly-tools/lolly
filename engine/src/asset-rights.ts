@@ -168,10 +168,11 @@ export interface Redistribution {
   /** Notice texts the licence asks to travel with the bytes. */
   notices: string[];
   /**
-   * True when the hold is only that no licence is recorded at all: no declaration
-   * and no own-work claim. A `.lolly` lets such a work travel with a warning
-   * (lib/redistribution.ts packRights); a recorded licence that is not yet
-   * interpreted is not this, because its terms exist and may forbid passing it on.
+   * True when nothing about the work's rights is recorded at all: no licence, no
+   * rights record (not even one that cannot be read) and no attribution naming a
+   * rights holder. A `.lolly` lets such a work travel with a warning
+   * (lib/redistribution.ts packRights). Anything recorded, even partly, keeps the
+   * hold, because its terms or its owner exist and may forbid passing the work on.
    */
   unrecorded?: true;
   /** Present when the bytes travel under `owner-published-v1`. `kind` stays `licence`, because it only sorts what holds bytes back. */
@@ -214,7 +215,11 @@ export function redistribution(meta: Record<string, unknown>): Redistribution {
       return { travels: false, kind: 'unknown', reason: 'the own-work record is missing its owner, its terms or its licence declaration', licence, notices };
     }
   }
-  if (!declared) return { travels: false, kind: 'unknown', reason: 'licence not recorded', licence, notices, unrecorded: true };
+  if (!declared) {
+    const named = typeof meta.attribution === 'string' && meta.attribution.trim() !== '';
+    const nothingRecorded = meta.rights === undefined || meta.rights === null ? !named : false;
+    return { travels: false, kind: 'unknown', reason: 'licence not recorded', licence, notices, ...(nothingRecorded ? { unrecorded: true as const } : {}) };
+  }
   if (!profile?.reviewed) {
     return {
       travels: false,

@@ -122,7 +122,7 @@ export async function buildBrandPackage(
   entries[README_NAME] = strToU8(new TextDecoder().decode(original[README_NAME]) + `\nSelected local content: ${counts.sessions} sessions, ${counts.assets} files, ${counts.tools} tools.\nRequired session assets travel inside content/collection.lolly. ${counts.references} assets remain external references.\n${payload.summary.credits ? 'CREDITS.txt inside content/collection.lolly lists the catalogue works it uses, what was held back and why.\n' : ''}Import this .lolly in Lolly to add the brand and selected content. Existing sessions are never replaced; tools retain their normal trust prompt.\n`);
   const integrity = await buildIntegrity(entries);
   const zip = await zipAsync({ 'manifest.json': strToU8(JSON.stringify({ ...manifest, formatVersion: 4, minReader: Math.max(2, Number(manifest.minReader) || 1), contents: counts, integrity })), ...entries });
-  return { blob: new Blob([zip as BlobPart], { type: brand.blob.type }), filename: brand.filename, references: counts.references };
+  return { blob: new Blob([zip as BlobPart], { type: brand.blob.type }), filename: brand.filename, references: counts.references, unrecorded: payload.summary.unrecorded ?? [] };
 }
 
 /** Verify every nested payload before the brand importer writes anything. */

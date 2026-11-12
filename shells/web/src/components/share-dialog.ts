@@ -31,6 +31,7 @@ import { AUTO_PACK_MIN, SHARE_WARN_LEN, BROWSER_HARD_CAP, LINK_CONTENT_MAX, type
 import { toLollyAppLink } from '../lib/deep-link.ts';
 import { appPathname } from '../lib/any-site.ts';
 import { flushAddressWrites } from '../lib/url-state.ts';
+import { unrecordedWarning } from '../lib/unrecorded-notice.ts';
 
 /** The `.lolly` download vehicle (plans/114 Wave 2). Supplied by the tool view, which
  *  has the host + session the link builder never sees. `build(includeLicensed)` returns
@@ -805,12 +806,9 @@ function wireLollyDelivery(
     // the sender is told which ones, and CREDITS.txt asks the recipient to check the terms.
     const warnEl = summaryEl.parentElement?.querySelector<HTMLElement>('[data-lolly-unrecorded]');
     if (!warnEl) return;
-    const names = s.unrecorded ?? [];
-    warnEl.hidden = names.length === 0;
-    warnEl.textContent = names.length === 0 ? ''
-      : names.length === 1
-        ? `"${names[0]}" travels in this file, but its licence is not on record. CREDITS.txt asks whoever opens the file to check the terms before reusing it.`
-        : `${names.length} catalog works travel in this file without a recorded licence: ${names.slice(0, 3).map(n => `"${n}"`).join(', ')}${names.length > 3 ? ` and ${names.length - 3} more` : ''}. CREDITS.txt asks whoever opens the file to check their terms before reusing them.`;
+    const warning = unrecordedWarning(s.unrecorded);
+    warnEl.hidden = !warning;
+    warnEl.textContent = warning;
   };
 
   btn.addEventListener('click', async () => {

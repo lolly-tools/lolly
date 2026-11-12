@@ -27,6 +27,13 @@ export type PackRights = Pick<LollyLibraryAsset, 'licensed' | 'holdReason' | 'ho
  * permit passing the file on. Brand pages and brand skill folders, which publish rather than hand a
  * file to someone, read `redistribution()` itself and keep holding all of these back.
  */
+/**
+ * The answer when a work's catalog record could not be read: held back, because a
+ * missing record is not the same as one that records nothing, and the real record
+ * may carry a brand lock or a licence that forbids passing the work on.
+ */
+export const UNREADABLE_RECORD: PackRights = { licensed: true, holdReason: 'its catalog record could not be read', holdKind: 'unknown' };
+
 export function packRights(meta: Record<string, unknown>): PackRights {
   const permission = redistribution(meta);
   const credit = typeof meta.attribution === 'string' && meta.attribution.trim() ? { credit: meta.attribution.trim() } : {};
