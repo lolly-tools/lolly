@@ -10,10 +10,17 @@
  * instrument of their own. The mix moves a little either side of the designed level, and
  * brightness and drive stay near the style's own. The tempo stays the tune's own and the
  * length stays the person's, so neither is drawn here.
+ *
+ * A person's instrument preferences (lib/music-prefs.ts) steer the draw: an instrument
+ * they blocked is never drawn, and a favourite the style plays is drawn more often, and
+ * makes the shuffle choose that part's instrument more often too. A part whose tune
+ * would open on a blocked instrument always gets one drawn. With no preferences, the
+ * draws are exactly as they were.
  */
-import { lofiStream, type LofiBar, type LofiMood, type LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { lofiStream, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood, type LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_MIX, type LofiMix } from './lofi-station.ts';
 import { LOFI_STATION_MOODS } from './neurospicy-lofi.ts';
+import { isBlocked, isFavourite, styleInstruments, type MusicPrefs } from './music-prefs.ts';
 
 const PARTS = ['keys', 'lead', 'bass'] as const;
 type Part = typeof PARTS[number];
@@ -52,6 +59,10 @@ export const SHUFFLE_RANGES = {
 
 /** How often a part gets its own instrument, a section gets a change and the tone is nudged. */
 const PICK_CHANCE = 0.45;
+/** How often a part gets its own instrument when the style plays one of the person's favourites. */
+const FAVOURITE_PICK_CHANCE = 0.75;
+/** How many more times a favourite goes in the pool than the style's draws put it there. */
+const FAVOURITE_WEIGHT = 3;
 const SECTION_CHANCE = 0.35;
 const SECOND_SECTION_CHANCE = 0.3;
 const TONE_CHANCE = 0.5;
@@ -67,16 +78,31 @@ const snap = (v: number, per: number): number => Math.round(v * per) / per;
 const within = (rand: () => number, [lo, hi]: readonly [number, number], per: number): number => snap(lo + rand() * (hi - lo), per);
 const clamp = (v: number, [lo, hi]: readonly [number, number]): number => Math.min(hi, Math.max(lo, v));
 
-/** The instruments the style plays on a few other seeds: what a pick may be, weighted as the style weights them. */
-function stylePool(rand: () => number, mood: LofiMood): Pool {
+/**
+ * The instruments the style plays on a few other seeds: what a pick may be, weighted as
+ * the style weights them. Blocked instruments are taken out, and each favourite the
+ * style plays is put in a few more times.
+ */
+function stylePool(rand: () => number, mood: LofiMood, prefs?: MusicPrefs): Pool {
   const pool: Pool = { keys: [], lead: [], bass: [] };
-  const add = <P extends Part>(part: P, v: LofiStyle[P]): void => { if (v !== 'none') pool[part].push(v); };
+  const add = <P extends Part>(part: P, v: LofiStyle[P]): void => { if (v !== 'none' && !(prefs && isBlocked(prefs, part, v))) pool[part].push(v); };
   for (let i = 0; i < POOL_SEEDS; i++) {
     const style = lofiStream(seedFrom(rand), { mood }).next().tune.style;
     for (const part of PARTS) add(part, style[part]);
   }
+  if (prefs?.favourites.size) {
+    for (const part of PARTS) {
+      for (const id of styleInstruments(mood, part)) {
+        if (!isFavourite(prefs, part, id)) continue;
+        const v = pool[part].find(x => x === id) ?? ALL[part].find(x => x === id);
+        for (let n = 0; v && n < FAVOURITE_WEIGHT; n++) add(part, v);
+      }
+    }
+  }
   return pool;
 }
+/** Every instrument of each part, to turn a favourite's name back into the part's own type. */
+const ALL: { [P in Part]: readonly LofiStyle[P][] } = { keys: LOFI_KEYS, lead: LOFI_LEADS, bass: LOFI_BASSES };
 
 const voicesFor = <P extends Part>(part: P, v: LofiStyle[P]): Voices => {
   const out: Voices = {};
@@ -113,17 +139,21 @@ function sectionChanges(rand: () => number, track: readonly LofiBar[], pool: Poo
  * A shuffled track: any style but `after` (the one playing now), a new seed, and
  * instruments, a mix and a tone to suit them. `bars` is the track's length, which says
  * which kinds of section it reaches. With `keep`, the style and seed stay as given and
- * only the sound is drawn (the generator's Shift-shuffle).
+ * only the sound is drawn (the generator's Shift-shuffle). `prefs` are the person's
+ * favourite and blocked instruments.
  */
-export function shuffleMusic(rand: () => number, opts: { bars?: number; after?: LofiMood; keep?: { mood: LofiMood; seed: number } } = {}): MusicShuffle {
+export function shuffleMusic(rand: () => number, opts: { bars?: number; after?: LofiMood; keep?: { mood: LofiMood; seed: number }; prefs?: MusicPrefs } = {}): MusicShuffle {
   const moods = LOFI_STATION_MOODS.filter(m => m !== opts.after);
   const mood = opts.keep?.mood ?? choose(rand, moods) ?? LOFI_STATION_MOODS[0]!;
   const seed = opts.keep ? opts.keep.seed >>> 0 : seedFrom(rand);
   const own = lofiStream(seed, { mood }).next().tune.style;
-  const pool = stylePool(rand, mood);
+  const prefs = opts.prefs;
+  const pool = stylePool(rand, mood, prefs);
   const picks: Voices = {};
   for (const part of PARTS) {
-    if (rand() >= PICK_CHANCE) continue;
+    const favoured = !!prefs && pool[part].some(x => isFavourite(prefs, part, x));
+    const mustPick = !!prefs && own[part] !== 'none' && isBlocked(prefs, part, own[part]);
+    if (rand() >= (favoured ? FAVOURITE_PICK_CHANCE : PICK_CHANCE) && !mustPick) continue;
     const v = choose(rand, pool[part].filter(x => x !== own[part]));
     if (v) Object.assign(picks, voicesFor(part, v));
   }
