@@ -55,7 +55,7 @@ export interface DrumKit {
 
 /** The kinds of music, by how their drums are played. */
 const JAZZ = new Set<LofiMood>(['jazz', 'swing']);
-const BAND = new Set<LofiMood>(['blues', 'country', 'rock', 'metal', 'soul', 'funk', 'reggae', 'spanish', 'straya', 'afrobeat', 'kora', 'persian', 'guzheng', 'koto', 'citypop', 'fantasy', 'grunge', 'stoner', 'shoegaze']);
+const BAND = new Set<LofiMood>(['blues', 'country', 'rock', 'punk', 'ska', 'metal', 'soul', 'funk', 'reggae', 'spanish', 'straya', 'afrobeat', 'kora', 'persian', 'guzheng', 'koto', 'citypop', 'fantasy', 'grunge', 'stoner', 'shoegaze']);
 const DUSTY = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'triphop', 'dream', 'lofiHouse']);
 const SUBS = new Set<LofiMood>(['dubstep', 'brostep', 'dnb', 'amapiano']);
 /** The styles whose sound is the electronic kit's own synthesised metal. */

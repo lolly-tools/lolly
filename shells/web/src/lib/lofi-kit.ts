@@ -465,65 +465,95 @@ export function snareStroke(sr: number, f0: number, vel: number, wires: number, 
 const SNARE_MODES: ReadonlyArray<readonly [number, number, number]> = [[1.52, -14, 0.36], [2.18, -16.5, 0.18], [2.91, -18.5, 0.17], [3.62, -20.5, 0.17], [4.48, -24.5, 0.1], [1.33, -28, 0.22]];
 
 /**
- * A drum head's upper modes as ratios to its fundamental: the ideal membrane's (the zeros
- * of the Bessel functions, j_mn / j_01). A recorded tom's spectrum, once its pitch has come
- * down, follows them closely (measured on an acoustic kit: 1.6, 2.3, 2.92, 3.16, 3.5, 4.1),
- * the (1,1) mode a little sharp of 1.594 from the head's stiffness.
+ * A tom's measured character (the FW kit's recorded toms, against the model rendered at their
+ * tunings: high 129 Hz, mid 98 Hz, floor 70 Hz). Times are T60s (s, 60 dB down); levels are
+ * against the fundamental's at the strike.
+ * - t60, t60Low: the fundamental's ring, longer by t60Low a hertz under 130 Hz (recorded
+ *   0.8 to 1.6 s; the old model rang 2.5 s).
+ * - glide, glideExp, settle: how far sharp a stroke starts (glide times vel to glideExp: a
+ *   medium stroke 12 per cent, as recorded, a hard one about 30) and how fast it settles (s).
+ * - swell, bigSwell: how long the fundamental takes to swell in, longer on a bigger drum.
+ * - second, secondRatio, secondT60: the mode near twice the fundamental on a rack tom;
+ *   bigSecond, bigSecondT60 the same on a bigger one, where it leads the strike.
+ * - cluster, clusterT60: a bigger tom's modes at 2.25 and 2.43 times; long18, long18T60 its
+ *   quiet, long mode at 1.81 times; mids, midsT60 its modes at 2.65, 3.0 and 3.6 times.
+ * - floorFund, floor15, floor15T60, floorThud: a floor tom's weaker fundamental, its long
+ *   mode at 1.53 times, and its brighter strike.
+ * - third, thirdT60, highs, highT60: the mode near 2.85 times, and the shell's and head's
+ *   higher modes (TOM_HIGH).
+ * - reso: the resonant head's fundamental, faintly; thud and bigThud: the strike's noise;
+ *   wires, wiresFall: the snare's wires and the shell answering in sympathy.
  */
-const MEMBRANE = [1.62, 2.136, 2.296, 2.653, 2.917, 3.155, 3.5, 3.598, 3.647, 4.059, 4.132, 4.23, 4.601, 4.832, 4.903, 5.084, 5.131, 5.412, 5.54, 5.651, 5.977, 6.153, 6.209] as const;
+const TOM = { floorFund: 0.7, floor15: 0.35, floor15T60: 2.5, floorThud: 1.5, swell: 0.004, bigSwell: 0.008, mids: 0.12, midsT60: 0.45, bigSecond: 1.1, bigSecondT60: 0.3, cluster: 0.5, clusterT60: 0.42, long18: 0.2, long18T60: 2.5, bigThud: 1, t60: 1.35, t60Low: 0.004, glide: 0.32, glideExp: 1.6, settle: 0.08, second: 0.2, secondRatio: 2.08, secondT60: 0.9, third: 0.056, thirdT60: 0.66, highs: 0.06, highT60: 0.6, reso: 0.06, thud: 0.5, wires: 0.04, wiresFall: 0.25 } as const;
+
+/** A tom's shell and head modes high above the fundamental, as ratios to it: heard faintly and briefly after the strike. */
+const TOM_HIGH = [4.6, 5.5, 5.8, 6.6, 7.2] as const;
 
 /**
- * A tom stroke at `f0`, measured against an acoustic kit's recorded toms (four toms, 62 to
- * 116 Hz, at every strength).
- * - The pitch: struck hard, the head swings so far that its tension, and so every mode's
- *   pitch, rises: a hard stroke starts up to 40 per cent sharp (a medium one about 20, a
- *   soft one a few) and comes down over a few tenths of a second, a floor tom more slowly.
- *   That falling "doom" is most of what makes a tom sound like one.
- * - The ring: the fundamental falls fast for its first tens of milliseconds and then rings
- *   on, 60 dB down in 2 to 3 s (a lower tom longer); the resonant head underneath, tuned a
- *   third to a fourth higher, rings its own fundamental, and the head's upper modes
- *   (MEMBRANE) die sooner the higher they are.
- * - The attack: the stick's push sets the modes going as far up as its contact time
- *   allows, the head's countless higher modes are heard as a short thud of noise, and the
- *   stick itself clicks. In the first 60 ms a hard stroke carries energy up to 5 kHz.
+ * A tom stroke at `f0`, measured against two acoustic kits' recorded toms (the FW kit's high,
+ * mid and floor toms at 129, 98 and 105 Hz; earlier the Muldjord kit's four, 62 to 116 Hz).
+ * - The pitch: struck harder, the head swings further and its tension, and so every mode's
+ *   pitch, rises: a medium stroke starts about 12 per cent sharp (the FW toms: 146 to 129 Hz,
+ *   113 to 98 Hz), a hard one up to 25 to 40, a soft one a few, and comes down over about a
+ *   tenth of a second. That falling "doom" is most of what makes a tom sound like one.
+ * - The ring: the fundamental is 60 dB down in 0.8 to 1.6 s (the FW toms; a lower tom a
+ *   little longer). The resonant head underneath rings its own fundamental faintly.
+ * - One upper mode stands out: near twice the fundamental (2.0 on the FW high tom, 2.2 on
+ *   the mid), 13 to 16 dB under it at the strike and 60 dB down in 0.7 to 0.95 s. A mode near
+ *   2.85 sits 25 dB down; the shell's and head's higher modes (4.6 to 7.2 times) 17 to 30 dB
+ *   down, gone in about half a second.
+ * - The attack: the stick's push, a short thud of the head's countless higher modes, and the
+ *   stick's click; then the snare's wires and the shell answer in sympathy, a faint top end
+ *   that lasts a quarter of a second (the recorded toms keep 1 to 8 kHz well into their ring).
  */
 export function tomStroke(sr: number, f0: number, vel: number, rand: Rand): Float32Array {
-  const t60 = 2.2 + Math.max(0, 150 - f0) * 0.01;
+  const t60 = TOM.t60 + Math.max(0, 130 - f0) * TOM.t60Low;
   const tau = t60 / 6.91;
-  const out = new Float32Array(Math.ceil(Math.min(3, t60) * sr));
+  const out = new Float32Array(Math.ceil(Math.min(2.5, t60 * 1.2) * sr));
   const contact = 0.002 - 0.0013 * vel;
-  const glide = 0.4 * vel ** 0.6;
-  const settle = 0.1 + Math.max(0, 110 - f0) * 0.0012;
-  // The batter head's fundamental: a fast fall in its first tens of milliseconds, then the long ring.
-  headMode(out, sr, f0, 1, tau, glide, settle, contact, 0.6, 0.05 + Math.max(0, 110 - f0) * 0.0004);
-  // The resonant head, a third to a fourth above, set going through the air inside, so it swells
-  // in over a few milliseconds and glides less; and a near neighbour of the batter fundamental, beating slowly against the batter head.
-  const reso = 1.2 + rand() * 0.14;
-  headMode(out, sr, f0 * reso, 0.08 * (0.7 + rand() * 0.6), tau * 0.9, glide * 0.35, settle, 0.006);
-  headMode(out, sr, f0 * 1.03, 0.025, tau, glide, settle, contact);
-  // The batter head's upper modes, as the stick's push reaches them; the higher, the sooner
-  // gone. A bigger, lower tom's are stronger against its fundamental (a recorded floor tom's
-  // first 60 ms are loudest an octave above its fundamental).
-  const big = Math.min(1.25, Math.max(1, (110 / f0) ** 0.4));
-  for (const ratio of MEMBRANE) {
-    const f = f0 * ratio;
-    const level = 0.5 * big * ratio ** -0.5 * (0.45 + rand() * 0.8) * pushAt(f, contact);
-    const life = tau * Math.min(1, Math.max(0.12, 1.6 / ratio)) * (0.7 + rand() * 0.6);
-    headMode(out, sr, f * (1 + (rand() - 0.5) * 0.008), level, life, glide, settle, contact, 0.85, 0.03);
+  const glide = TOM.glide * vel ** TOM.glideExp;
+  const settle = TOM.settle + Math.max(0, 110 - f0) * 0.0006;
+  // How big the drum is, from its tuning: 0 for a rack tom near 130 Hz, 1 for a bigger one
+  // near 100 Hz and below. A bigger drum struck throws much more of its energy into the modes
+  // near twice the fundamental (the recorded mid tom's mode at 2.0 times is 11 dB OVER its
+  // fundamental at 30 ms, gone in a quarter of a second; the high tom's 13 dB under it), and
+  // its fundamental takes longer to swell in, moving the air inside.
+  const big = Math.max(0, Math.min(1, (130 - f0) / 30));
+  const lerp = (a: number, b: number): number => a + (b - a) * big;
+  // A floor tom (100 Hz down to 70): its fundamental is weak where the stick's side hears it
+  // (the recorded floor tom's, at 69 Hz, is 27 dB under its loudest mode at 30 ms); a mode
+  // at 1.53 times rings longest, and the strike is brighter.
+  const floor = Math.max(0, Math.min(1, (100 - f0) / 30));
+  // The batter head's fundamental, swelling in over a few milliseconds, and the resonant head underneath, faintly.
+  headMode(out, sr, f0, 1 - TOM.floorFund * floor, tau, glide, settle, TOM.swell + big * TOM.bigSwell, 0.35, 0.05);
+  if (floor > 0) headMode(out, sr, f0 * 1.53, floor * TOM.floor15, TOM.floor15T60 / 6.91, glide * 0.5, settle, TOM.swell + big * TOM.bigSwell);
+  headMode(out, sr, f0 * (1.2 + rand() * 0.14), TOM.reso * (0.7 + rand() * 0.6), tau * 0.8, glide * 0.35, settle, 0.006);
+  // The mode that stands out, near twice the fundamental, and a weaker one near 2.85.
+  const second = f0 * (TOM.secondRatio + (rand() - 0.5) * 0.16);
+  headMode(out, sr, second, lerp(TOM.second, TOM.bigSecond) * (0.8 + rand() * 0.4) * pushAt(second, contact) / pushAt(f0, contact), lerp(TOM.secondT60, TOM.bigSecondT60) / 6.91, glide, settle, contact);
+  // A bigger tom's cluster around it (2.25 and 2.43 times, short) and a quiet mode at 1.8 times that rings long.
+  if (big > 0) {
+    for (const [ratio, share] of [[2.25, 1], [2.43, 0.9]] as const) headMode(out, sr, f0 * ratio * (1 + (rand() - 0.5) * 0.02), big * TOM.cluster * share * pushAt(f0 * ratio, contact) / pushAt(f0, contact), (TOM.clusterT60 / 6.91) * (1 + floor * 0.8) * (0.8 + rand() * 0.4), glide, settle, contact);
+    headMode(out, sr, f0 * 1.81, big * TOM.long18, TOM.long18T60 / 6.91, glide * 0.5, settle, contact);
+    for (const ratio of [2.65, 3.0, 3.6]) headMode(out, sr, f0 * ratio * (1 + (rand() - 0.5) * 0.02), big * TOM.mids * (0.6 + rand() * 0.8) * pushAt(f0 * ratio, contact) / pushAt(f0, contact), (TOM.midsT60 / 6.91) * (1 + floor * 0.8) * (0.8 + rand() * 0.4), glide, settle, contact);
   }
-  // The shell's own short rings.
-  for (const ratio of [2.7, 4.1, 5.9]) headMode(out, sr, f0 * ratio, 0.05 * pushAt(f0 * ratio, contact), 0.035 + rand() * 0.02, 0, 1, contact);
-  // The head's countless higher modes, heard as a short thud, and the stick's click, darker
-  // above 5 kHz as the head and the stick are (a bigger tom's darker still); then the snare's
-  // wires answering in sympathy.
+  headMode(out, sr, f0 * (2.85 + (rand() - 0.5) * 0.1), TOM.third * pushAt(f0 * 2.85, contact) / pushAt(f0, contact), TOM.thirdT60 / 6.91, glide, settle, contact);
+  // The higher modes of the shell and the head, faint and soon gone.
+  for (const ratio of TOM_HIGH) {
+    const f = f0 * ratio * (1 + (rand() - 0.5) * 0.02);
+    headMode(out, sr, f, TOM.highs * (0.5 + rand()) * pushAt(f, contact) / pushAt(f0, contact), (TOM.highT60 / 6.91) * (0.7 + rand() * 0.6), glide * 0.5, settle, contact);
+  }
+  // The head's countless higher modes as a short thud, and the stick's click, darker above
+  // 5 kHz as the head and the stick are (a bigger tom's darker still).
   const size = Math.min(1.3, Math.max(0.6, Math.sqrt(f0 / 110)));
   thud(out, sr, rand, [
-    [700, 0.5, 1.5 * vel * pushAt(700, contact), contact, 0.03],
-    [1800, 0.7, 2.3 * vel * size, contact, 0.022],
-    [3300, 1.2, 0.8 * vel * size, contact, 0.012],
+    [700, 0.5, 1.5 * TOM.thud * vel * pushAt(700, contact), contact, 0.03],
+    [1800, 0.7, 2.3 * TOM.thud * (1 + big * TOM.bigThud + floor * TOM.floorThud) * vel * size, contact, 0.022],
+    [3300, 1.2, 0.8 * (1 + big * TOM.bigThud + floor * TOM.floorThud) * vel * size, contact, 0.012],
     [3000 + 1000 * vel, 1.4, 2.2 * vel ** 1.2 * size, 0.0002, 0.0018],
   ], 5000, 0.25);
-  noiseBand(out, sr, rand, 5200, 0.6, 0.06 * vel, 0.004, 0.06);
+  // The snare's wires and the shell answering: a faint top end through the first quarter second.
+  thud(out, sr, rand, [[5200, 0.6, TOM.wires * vel, 0.004, TOM.wiresFall], [2400, 0.8, TOM.wires * 0.6 * vel, 0.004, TOM.wiresFall * 0.8]], 9000, Math.min(out.length / sr, TOM.wiresFall * 5), 800);
   return normalise(out, 0.9);
 }
 
