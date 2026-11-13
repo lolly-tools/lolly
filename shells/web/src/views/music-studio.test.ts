@@ -46,6 +46,17 @@ test('the track has about the bars asked for, ends with its outro, and a locked 
   assert.deepEqual(bars.map(b => b.chord), free.map(b => b.chord));
 });
 
+test('a lofi house track travels in a link with its deep-house bass, chosen for the whole track or a kind of section', () => {
+  const s = parseMusicState('style=lofiHouse&seed=7&bars=64&bass=deep&drop.bass=deep&break.bass=round');
+  assert.equal(s.mood, 'lofiHouse');
+  assert.equal(s.bass, 'deep');
+  assert.deepEqual(s.sections, { drop: { bass: 'deep' }, break: { bass: 'round' } });
+  assert.deepEqual(parseMusicState(musicStateParams(s)), s, 'and reads back the same');
+  const bars = composeTrack(s);
+  assert.ok(bars.filter(b => b.section === 'drop').every(b => (b.voices?.bass ?? b.tune.style.bass) === 'deep'), 'every drop plays the deep bass');
+  assert.ok(bars.filter(b => b.section === 'break').every(b => b.voices?.bass === 'round'), 'the breakdown the one chosen for it');
+});
+
 test('instruments chosen for a kind of section apply to every bar of it, and travel in the link', () => {
   const s = parseMusicState('style=sugar&seed=7&bars=96&drop.lead=metal&build.keys=pad');
   assert.deepEqual(s.sections, { build: { keys: 'pad' }, drop: { lead: 'metal' } });

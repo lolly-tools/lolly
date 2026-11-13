@@ -99,6 +99,10 @@ test('a music generator track saves as a tune that keeps everything it was made 
   assert.deepEqual(lofiTuneFromMeta({ mood: 'sherbert', seed: 4, generator }), recipe, 'and so does the asset\'s meta');
   assert.deepEqual(lofiTuneFromMeta({ mood: 'sherbert', seed: 4, generator: 'x'.repeat(5000) }), { mood: 'sherbert', seed: 4 }, 'an oversized setting string is ignored');
   assert.equal(JSON.parse(new TextDecoder().decode(lofiTuneBytes({ mood: 'warm', seed: 9 }))).version, 1, 'a station tune stays version 1');
+  const house = { mood: 'lofiHouse' as const, seed: 7, generator: 'style=lofiHouse&seed=7&bars=32&drop.bass=deep' };
+  assert.deepEqual(lofiTuneFromBytes(lofiTuneBytes(house)), house, 'a lofi house track saves with its settings');
+  assert.deepEqual(lofiTuneFromMeta(house), house);
+  assert.deepEqual(lofiTuneFromBytes(lofiTuneBytes({ mood: 'lofiHouse', seed: 7 })), { mood: 'lofiHouse', seed: 7 }, 'and a lofi house station tune');
   // The settings the player and the renderer read back are the generator's own.
   const { parseMusicState, trackSettings, trackSeconds } = await import('./music-state.ts');
   const state = parseMusicState(generator);
