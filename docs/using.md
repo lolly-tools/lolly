@@ -51,8 +51,6 @@ The choice belongs to this piece. It travels in the link and the saved session, 
 
 ### Zoom and pan the preview
 
-The preview always shows exactly what will export.
-
 - **Zoom:** Cmd/Ctrl-scroll or pinch on a trackpad, centred on your pointer. On the keyboard, `0` or `Shift+1` fits all, `1` or `Shift+0` is 100%, and `Shift+2` fits the selection. `+` / `−` zoom about the pointer when it is over the stage, or about the centre otherwise.
 - **Pan:** hold **Space** and drag, or drag with the middle mouse button. Plain clicks stay free for clicking parts of the design.
 - **Touch:** pinch to zoom, drag to pan and double-tap to fit.
@@ -141,7 +139,7 @@ The ready-to-copy link sits at the top of the dialog, with **Copy** and a **QR**
 
 When a tool holds personal fields, such as your name, **Review personal fields** keeps each one out of the link until you tick that field. [URL mode](/info/url-mode.html) covers everything a link can carry.
 
-**The dialog says what a link cannot carry.** An image or file you added from this device, a very long text value and a very large list do not fit in an address. Each is counted as the link is built. If anything had to be dropped, the dialog lists it and points you at the file option, rather than handing you a link that opens with a picture missing. A link that is only long gets a milder note with its character count.
+**The dialog says what a link cannot carry.** Anything that does not fit in an address is counted as the link is built. If anything had to be dropped, the dialog lists it and points you at the file option, rather than handing you a link that opens with a picture missing. A link that is only long gets a milder note with its character count.
 
 **Some tools make the link the whole product.** Jump Page gathers your links into one page to hand out: a bio link, a talk, a shop front. Nothing is hosted and no account sits behind the page, because the page is the link. A visitor gets it full width, one link per scene as they scroll.
 
@@ -153,14 +151,14 @@ For sharing that needs an expiry, revocation or a password, Lolly Work offers ma
 
 ### The .lolly file
 
-**Download .lolly**, in the Share dialog's **Editable file** section, writes the current design as one file. It carries the saved session with the images and files on this device, and ordinary catalogue art rides along too. A stale or unavailable file stays an external reference rather than disappearing. Before it saves, the dialog shows the file's size, how many files it embeds, how many it references and whether the tool is included. Where your device has a share sheet, **Send to…** hands the file straight to it (AirDrop, an Android share).
+**Download .lolly**, in the Share dialog's **Editable file** section, writes the current design as one file. Ordinary catalogue art rides along with the images and files from this device. A stale or unavailable file stays an external reference rather than disappearing. Before it saves, the dialog shows the file's size, how many files it embeds, how many it references and whether the tool is included. Where your device has a share sheet, **Send to…** hands the file straight to it (AirDrop, an Android share).
 
 **Download project (.lolly)**, in a folder's menu in **Projects**, writes a whole folder, so someone else can carry on with every session in the folder. Batch sessions stay behind, and the notice says how many. **Download originals**, in the same menu, writes a plain zip of each item as its own file.
 
 Three things are yours to decide before a file goes:
 
 - **Whether your name goes in.** Your name, email and organisation are written only when **Use my details to create** is on in [your profile](/info/profile.html). With it off, the file records only that it was made with Lolly, and when.
-- **Whether held-back art goes in.** Licensed art, brand-locked art and catalogue works whose licence was never recorded stay out by default. If the design uses any, the dialog says how many and offers *Download without them* or *Include and download*, because including them hands the files to whoever opens the `.lolly`. The file's `CREDITS.txt` lists what travelled and what did not, with the reason; [Creative rights and credits](/info/creative-rights.html) explains the rules.
+- **Whether held-back art goes in.** Licensed art and brand-locked art stay out by default, and so does a catalogue work whose recorded licence Lolly cannot read yet. If the design uses any, the dialog says how many and offers *Download without them* or *Include and download*, because including them hands the files to whoever opens the `.lolly`. A catalogue work with nothing recorded about its rights travels, and the dialog lists each one so you can check before you send. The file's `CREDITS.txt` lists what travelled and what did not, with the reason; [Creative rights and credits](/info/creative-rights.html) explains the rules.
 - **Whether the tool goes in.** **Include the tool** packs the tool's own files, so the design opens on a device without that tool. It starts ticked for a custom tool, such as a fork, and unticked for a tool the signed catalogue lists. On a build with no signed catalogue, every tool counts as custom.
 
 **Opening one.** In the desktop and mobile apps, double-click or tap a `.lolly`, choose **Open with Lolly** or send it to Lolly from the share sheet. In the web app, press **Open** or drop the file on Lolly. Every route reads the file's manifest first and shows its size, contents and what will happen, before anything is written.

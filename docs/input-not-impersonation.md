@@ -17,7 +17,7 @@ The picture above is not that painting. It is a synthetic pastiche made in 2026,
 
 Tap the mark in its corner, or [check it yourself](/#/verify?src=%2Finfo%2Fnot-a-pipe.webp): the credential says AI generated, and **Delivered by Lolly**. The on-device certificate from the first export lapsed in September 2026, so in October Lolly re-signed the file under its verified identity. The pixels did not change, and the earlier record is still inside the file.
 
-That restraint is the point. A file that told you it was a pipe would be lying, so it tells you only what it is. Pixels can imitate anything: a brand, a style, a dead painter's joke. What has to travel honestly beside them is the account of what made them. Magritte refused to write the lie. Lolly writes the truth by default, and hands you the means to check the record.
+That restraint is the point. Pixels can imitate anything: a brand, a style, a dead painter's joke. What has to travel honestly beside them is the account of what made them. Magritte refused to write the lie. Lolly writes the truth by default, and hands you the means to check the record.
 
 Magritte's other lesson is about accountability. You cannot stuff the painted pipe, and you cannot hold the picture to account as though it had been smoked. Neither can you hold a model to account as though it were a person. Accountability, like the pipe you can actually smoke, lives elsewhere: with the person the record leads back to. Provenance is how the record gets there.
 
@@ -36,7 +36,7 @@ Everything an agent can legitimately supply: the words, the source image, the co
 Claiming to be someone. Not "this looks like their brand", but "this came from them". The claim, not the pixels. A claim of identity is cryptographic, and you cannot approximate a signature: you either hold the key or you do not.
 :::
 
-When an agent supplies an input, it is carrying a decision, and the decision was triggered somewhere by a person, no matter how many systems or left turns it took to arrive. An agent can carry a decision a long way and render it beautifully, but it did not originate the decision and it cannot answer for one. Automation moves decisions; it does not originate them. That is why an agent filling in a tool is unremarkable, and an agent asserting an identity is not.
+When an agent supplies an input, it is carrying a decision, and the decision was triggered somewhere by a person, no matter how many systems or left turns it took to arrive. An agent can carry a decision a long way and render it beautifully, but it did not originate the decision and it cannot answer for one. That is why an agent filling in a tool is unremarkable, and an agent asserting an identity is not.
 
 The distinction holds up because inputs and identity are two different things travelling in a file. The pixels are output, and anyone with an image editor can approximate a brand's output. The identity is a signature over those pixels.
 

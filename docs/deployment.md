@@ -32,7 +32,7 @@ The web build is plain static files, which makes this the simplest and most port
 LOLLY_PROFILE=lolly-demo pnpm run build:web    # output: shells/web/dist/
 ```
 
-[Build Guide](/info/build-guide.html#build-the-web-app) explains what `build:web` runs. Then serve `shells/web/dist/` from any static host, CDN or internal file server, with three things in place: the routes, the headers and the brand. Without the optional services, those three are all the host needs.
+[Build Guide](/info/build-guide.html#build-the-web-app) explains what `build:web` runs. Then serve `shells/web/dist/` from any static host, CDN or internal file server. Without the optional services, the host needs only three things in place: the routes, the headers and the brand.
 
 ### Any static host, including air-gapped
 
@@ -67,7 +67,7 @@ A static host sends only the headers you configure, so these six are yours to ad
 The two `Cross-Origin-*` headers keep the app cross-origin isolated. Browsers give shared memory (`SharedArrayBuffer`) only to an isolated page, and some of the app's on-device models use that memory to run WebAssembly on several threads.
 
 ::: warning Check for the isolation headers yourself
-The app still loads without the two `Cross-Origin-*` headers, so a missing pair does not show at a glance. Check for both explicitly.
+The app still loads without the two `Cross-Origin-*` headers, so a missing pair does not show at a glance.
 :::
 
 The CSP matters most, and not for the reason you might expect. Tool hooks run through `new Function` by design, so `script-src` keeps `'unsafe-eval'`; removing it would break shipping tools, and that is a documented, accepted residual. The directive doing the work is `connect-src`: script that can run still cannot send data to a host outside a fixed allowlist. `tests/security-headers.test.ts` pins the policy across every shipped copy of the configuration and fails the build if they drift. [Threat model](/info/threat-model.html) sets out what the policy does and does not contain.
@@ -142,6 +142,6 @@ The static `lolly_ynh` package, which served only the app, gets no further relea
 <!--i:eti-sparkles-->
 ## Ship new tools without redeploying
 
-Tools are data, not code: a manifest, a template and optional hooks in a directory. Shipping a tool never redeploys the app. Merge it into the directory your instance reads, rebuild the catalog with the `:all` commands in [Publish and localize a tool](/info/tool-publishing.html), and clients pick it up on their next sync.
+Tools are data, not code: a manifest, a template and optional hooks in a directory. To ship one, merge it into the directory your instance reads, rebuild the catalog with the `:all` commands in [Publish and localize a tool](/info/tool-publishing.html), and clients pick it up on their next sync.
 
 Most people never need that step: they save their work as a session and share it as a link, a backup or a collab. Which tools an instance exposes is [configuration](/info/configuration.html), and how a team decides what becomes a shared template is in [Adoption and governance](/info/adoption-governance.html#governance-when-a-team-wants-a-process).

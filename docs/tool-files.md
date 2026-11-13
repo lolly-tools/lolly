@@ -51,7 +51,7 @@ The picker offers SVG and bitmap render formats for any image slot. SVG is the d
 <!--i:eti-file-->
 ## `file` - the user's own file (on-device utilities)
 
-A `file` input takes a file the person picks into memory and hands its raw bytes to the tool. It suits content-transform utilities, the file jobs people would otherwise hand to a stranger's website: strip metadata, crop, compress, convert. An `asset` is brand imagery that goes through the library; a `file` is the person's own content, processed and handed straight back.
+A `file` input takes a file the person picks into memory and hands its raw bytes to the tool. It suits content-transform utilities, the file jobs people would otherwise hand to a stranger's website: strip metadata, crop, compress, convert.
 
 ::: note Nothing is stored or uploaded
 A `file` value lives only in memory on the device. It is never written into a link, because binary data has no shareable form, never saved with a session and never uploaded. That is the privacy promise of an on-device utility, and the rules below keep that promise.

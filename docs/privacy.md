@@ -68,7 +68,7 @@ The **Music generator** also makes new audio. A WAV or M4A you download from it 
 
 <a id="how-prepare-for-sharing-and-compare-handle-your-files"></a>
 ::: details How Prepare for sharing and Lolly Compare handle your files
-**Prepare for sharing** holds working inputs, private findings and replacement maps in memory, without adding them to history, links, backups or Sync. Inspection and replacement send no file contents to a server and check no credentials online. You choose whether to copy, download, send or save a result to your library; a saved result then follows your library's backup and Sync settings. Recipe files leave out earlier content and literal mappings, and summary reports contain counts, scope IDs and file hashes. The CLI saves a private review file with the original values only when asked to with `--review-file`. Leaving a preparation view releases its working state, which is not a promise of forensic erasure from browser or operating-system memory.
+**Prepare for sharing** holds its working inputs, private findings and replacement maps in memory, and checks no credentials online. You choose whether to copy, download, send or save a result to your library; a saved result then follows your library's backup and Sync settings. Recipe files leave out earlier content and literal mappings, and summary reports contain counts, scope IDs and file hashes. The CLI saves a private review file with the original values only when asked to with `--review-file`. Leaving a preparation view releases its working state, which is not a promise of forensic erasure from browser or operating-system memory.
 
 Prepared copies and finished file operations share the Lolly Compare controls. Removed values start collapsed, and comparison reports leave out source names, paths and values unless you choose to include them. File history saves the copy, so comparing after a reload means selecting the original again, matched by its recorded SHA-256. Selecting it does not save or upload the file.
 :::
@@ -194,7 +194,7 @@ Every `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` URL renders for real, 
 
 - <!--i:usercheck--> **No accounts, no cookies, no state.** The route asks for no sign-in, and nothing on your device is read. Your documents, sessions and uploads never leave your browser and cannot appear in these links.
 - <!--i:document--> **The URL itself is recorded.** A URL's query string is part of the request, so it appears in the hosting platform's ordinary access logs like any requested path. If a link's inputs contain someone's name or email address, as a name badge or an email signature might, **that text sits in those logs**. Give a render link only what you would put on a public page.
-- <!--i:globe--> **The inputs are public anyway.** They are whatever the link's author typed into the URL, readable by anyone the link reaches. Do not put secrets in a shared link; Lolly offers link encryption for sensitive content.
+- <!--i:globe--> **The inputs are public anyway.** They are whatever the link's author typed into the URL, readable by anyone the link reaches. For sensitive content, Lolly offers link encryption.
 - <!--i:eyeoff--> **Cached, limited and not indexed.** Responses are cached and rate-limited like any public image, and marked `noindex` so search engines leave your renders out.
 
 A self-hosted deployment that wants no public render route sets `LOLLY_DISABLE_RENDER_GET=1`, and every one of these URLs returns 404.

@@ -126,8 +126,7 @@ requirements for an offline deployment are in
 
 Beyond this list, the server connects out only for features an operator turns on, such
 as catalogue sources, delivery destinations and AI providers. Pages in the optional
-render worker may also reach public addresses that a tool requests. Telemetry is off in
-the ready-made package.
+render worker may also reach public addresses that a tool requests.
 
 **Rate limits on public registries.** Docker Hub, GHCR and ECR Public each limit
 anonymous pulls, and ECR Public also limits how much one address can download. Shared
@@ -252,7 +251,7 @@ when you compare the new package files.
   chart's web app volume or `shell.image`. Kubernetes pulls on any node that lacks an
   image, so keep the registry available while the cluster runs. If admission control
   checks image signatures, copy the signatures too and test that check against your
-  registry before relying on that check.
+  registry first.
 - **Coolify.** The recipe uses the same images and archive address as the Dokploy
   blueprint; edit them in the service's Source Compose. Coolify's own proxy has its
   certificate settings.
@@ -307,6 +306,5 @@ repository's `SECURITY.md` route.
 
 ::: note No support contract or certification
 A provider's certification applies only to its own qualified offering, and a listing does
-not certify Lolly for regulated workloads. These packages come with no support contract or
-certification.
+not certify Lolly for regulated workloads.
 :::

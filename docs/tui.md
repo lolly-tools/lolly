@@ -22,7 +22,7 @@ The TUI needs a real interactive terminal (a TTY); with its output piped, it say
 The first time it runs, the TUI opens on Start. Every later session opens on Tools, with the five views on the number keys.
 :::
 
-The first time it runs, the TUI opens on a **Start** screen with five choices: **Make a QR code**, **One colour**, **Bring a file**, **Mix resources** and **Explore tools first**. Pick one with its number or `Enter`. None of them is a required step, and once you have chosen, later runs open on Tools.
+**Start** offers five choices: **Make a QR code**, **One colour**, **Bring a file**, **Mix resources** and **Explore tools first**. Pick one with its number or `Enter`. None of them is a required step.
 
 <!--i:eti-keyboard-->
 ## A first session
@@ -115,9 +115,9 @@ These actions arrived in Lolly 1.2.0. A packaged TUI from an earlier release doe
 **Saving.** An opened project's `s` updates its saved slot; `S` makes a copy. Leaving changed
 inputs/export settings asks you to save or discard. If another app changed the record,
 reopen that record or use Save as. Export passwords stay out of saved/share queries.
-The Export panel's **Password** locks a `pdf` or a `zip`, and the file is read back before
-it is written. Any other format, or a `pdf` with bleed or print marks, reports why in the
-status line and writes no file.
+A password-locked `pdf` or `zip` is read back before it is written. A password on any other
+format, or on a `pdf` with bleed or print marks, reports why in the status line and writes
+no file.
 Loaded binary file inputs cannot be saved as JSON projects here; use the original
 file path with the CLI or export the transformed result. This avoids expanding bytes
 into a broken JSON representation.
@@ -206,9 +206,8 @@ A batch shows no **Design system** row, so its files carry no [design-system rec
 
 The Profile view's **back up and render everything** (`b`) writes two zips with a live progress panel: a portable data backup, and every saved project rendered out. Both land on your Desktop, or in your home directory if there is no Desktop folder.
 
-Exports keep the selected format or show a failure. Choose HTML explicitly when
-you want an HTML file. The dependency report in Actions is separate from content
-preflight; an installed renderer is not a guarantee that every document will render.
+The dependency report in Actions is separate from content preflight; an installed
+renderer is not a guarantee that every document will render.
 
 <!--i:eti-folder-shared-->
 ## Where your work is saved
@@ -244,7 +243,7 @@ If you can express a job as a URL, prefer the CLI: it is reproducible and pipeab
 <!--i:eti-link-->
 ## Related
 
-- [CLI](/info/cli.html): the one-shot, scriptable counterpart. Same engine, same output.
+- [CLI](/info/cli.html): the one-shot, scriptable counterpart.
 - [URL Mode](/info/url-mode.html): the parameter model both terminal shells share with the web app.
 - [Export a file](/info/exporting.html): what each format is for and which shells produce each one.
 - [Lolly architecture](/info/overview.html): how the shells sit on top of one shared engine.

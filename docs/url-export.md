@@ -25,7 +25,7 @@ Without `format`, the download uses the first format the tool lists. Without `fi
 `format=` takes any value in the tool's `render.formats`. A format the tool does not list falls back gracefully. [Every format Lolly can open and make](/info/formats.html) says what each format is for, and the fold below gives the value to write in a link.
 
 ::: details Every format value
-Not every tool offers every format: a link can ask only for one the tool lists in `render.formats`. The `render.formats` list in `schemas/tool.schema.json` is the authority on the whole set.
+Not every tool offers every format. The `render.formats` list in `schemas/tool.schema.json` is the authority on the whole set.
 
 | Value | What you get |
 |---|---|

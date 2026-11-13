@@ -126,9 +126,7 @@ account nor creates folders; it writes only beneath the fixed collection URL.
 
 Set `LW_DESTINATION_TEAM_FILES='<username>:<app-password>'`, or `bearer:<token>` for a
 token-fronted DAV server. For Nextcloud, use a revocable app password, not the account password.
-A predictable flat filename makes a retry overwrite the same resource. A successful `PUT` is
-followed by authenticated `HEAD` and bounded `GET` checks of size and SHA-256 before the receipt
-claims the bytes arrived unchanged. `publicBaseUrl` is optional and separate from the
+A predictable flat filename makes a retry overwrite the same resource. `publicBaseUrl` is optional and separate from the
 credentialed collection URL.
 
 ### Configure a signed-HTTPS destination
@@ -192,7 +190,7 @@ per destination:
 - The referenced variable holds the Brandfolder API token. Bearer credentials go only to
   `https://brandfolder.com/api/v4`, never to storage.
 - Supply the exact HTTPS storage origins you observed and checked for your tenant; the example
-  origins are placeholders. API and upload redirects are refused. Reading the original back
+  origins are placeholders. Reading the original back
   follows at most three redirects, checking the exact download origin at every hop, without API
   credentials.
 - `visibility` declares the existing Brandfolder's access policy; it does not change that policy.
@@ -280,9 +278,6 @@ round trip is needed.
   approval. Service tokens cannot choose project originals.
 - The destination's own access rules apply. Sending an original does not copy its project
   permissions or approval state.
-
-Raw-body and automation-output sends still need genuine signed Lolly exports; this capability
-does not make arbitrary catalog or device files eligible.
 
 <!--i:eti-upload-->
 ## What happens when you send

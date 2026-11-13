@@ -23,7 +23,7 @@ That line is drawn in the licence, not in a promise: anything that runs locally 
 
 The engine, the shells, the schemas and the brand-agnostic tools are open source. SUSE's trademarks and branded tools are the part that stays private, and they are already separated out. The public instance at [lolly.tools](https://lolly.tools) runs [Lolly Demo](/info/lolly-demo.html), Lolly's own design system.
 
-Nothing here rests on a promise: every released version stays open source, and the only thing held back is the trademark. When another company closed its enterprise Linux sources in 2023, SUSE co-founded [OpenELA](https://openela.org) to keep that code open, the same posture this project inherits.
+Nothing here rests on a promise: every released version stays open source. When another company closed its enterprise Linux sources in 2023, SUSE co-founded [OpenELA](https://openela.org) to keep that code open, the same posture this project inherits.
 
 Full disclosure: SUSE *is* building internal tooling to connect Lolly to its own IT systems. That is SUSE's internal set-up, not a split between public and private development. Lolly also aims to be built through [Open Build Service](https://openbuildservice.org/), with secure supply-chain artifacts delivered by the [SUSE Application Collection](https://apps.rancher.io/applications).
 
@@ -59,7 +59,7 @@ You decide how much travels. Your name and details go in only if your profile op
 
 ## What do my profile details do?
 
-Your details in **Settings** pre-fill the tools that ask for them, such as a name on a badge. They stay on this device. If you also turn on the opt-in, the details you pick are sealed into what you make, naming you as the source. Nothing is included unless you choose to include your details.
+Your details in **Settings** pre-fill the tools that ask for them, such as a name on a badge. They stay on this device. Nothing goes into what you make unless you turn on the opt-in; then the details you pick are sealed in, naming you as the source.
 
 Sharing and Sync send only the content you choose. On an organisation's Lolly Work instance, shared sessions and governed work also go to that server. See [Privacy](/info/privacy.html).
 

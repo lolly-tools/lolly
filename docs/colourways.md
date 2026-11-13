@@ -31,7 +31,7 @@ The choice travels wherever the piece goes:
 <!--i:eti-user-check-->
 ## Make a colourway your own
 
-A team inside a brand, such as a department or a product, often has a colourway of its own. In **Settings → Appearance**, **Your colourway** shows the design system's colourways as dots, drawn in the app's current look, with the canonical one marked as the design system default. Pick a dot and two things change:
+In **Settings → Appearance**, **Your colourway** shows the design system's colourways as dots, drawn in the app's current look, with the canonical one marked as the design system default. Pick a dot and two things change:
 
 - The app's accent, favicon and logo tint take your colourway on this device, in light and in dark.
 - Each new piece you start is drawn in your colourway and stores that choice, exactly as if you had picked the dot in the tool's sidebar. A tool opened fresh, a new Lolly Design document and a template all start this way. When you choose another colourway later, a piece you already started keeps its own.
@@ -90,7 +90,7 @@ When a link or `--_themes` asks such a tool for another option, `lolly run` prin
 A series of pieces, such as a week of social posts or the speakers at an event, can take its colourways from a rule. The engine's `pickColourway` function applies five rules.
 
 ::: note Rules are for scripts for now
-No series or batch flow in the app applies them yet, so for now they are for scripts and tools that call the engine. Until a flow applies a rule, give each row its colourway in a batch CSV's `_themes` column ([Lolly Batch](/info/batch.html#colourways-and-themes-per-row)), or export one piece in several colourways from the command line with `--themes=Spearmint,Beach` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
+No series or batch flow in the app applies them yet: they are for scripts and tools that call the engine. Meanwhile, give each row its colourway in a batch CSV's `_themes` column ([Lolly Batch](/info/batch.html#colourways-and-themes-per-row)), or export one piece in several colourways from the command line with `--themes=Spearmint,Beach` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
 :::
 
 ::: figure colourways-series

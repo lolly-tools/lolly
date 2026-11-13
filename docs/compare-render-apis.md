@@ -2,12 +2,12 @@
 
 _Last checked: 5 November 2026._
 
-If you generate images from templates through an API today, this page says what changes if you run that production yourself: on your own device, in CI, or on a server you control. [Move from a hosted render API](/info/work-move-from-render-api.html) is the how.
+If you generate images from templates through an API today, this page says what changes if you run that production yourself: on your own device, in CI or on a server you control. [Move from a hosted render API](/info/work-move-from-render-api.html) is the how.
 
 <!--i:eti-award-->
 ## What hosted rendering APIs do better
 
-[Bannerbear](https://www.bannerbear.com/) and [Placid](https://placid.app/) are managed services, and that is a real advantage. You send a request and someone else runs the servers, keeps them up and handles the load.
+[Bannerbear](https://www.bannerbear.com/) and [Placid](https://placid.app/) are managed services: you send a request and someone else runs the servers.
 
 - **Nothing to operate.** No server, database, storage, updates or capacity planning.
 - **A hosted template editor** with templates ready to adapt.

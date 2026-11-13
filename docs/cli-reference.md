@@ -295,7 +295,7 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 
 **What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A logo whose rights record says `own-work`, with its owner and terms, travels as "Owner-published, not an open licence" ([Publish your own marks](/info/brand-page.html#publish-your-own-marks)). A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.
 
-**What is checked.** `checks.json` holds contrast measurements of the colour pairs in every colourway and mode, and house rule checks on example documents. These measure token pairs and examples. They do not judge a finished piece.
+**What is checked.** `checks.json` holds contrast measurements of the colour pairs in every colourway and mode, and house rule checks on example documents. They do not judge a finished piece.
 
 The same input gives the same bytes, so you can build twice and compare the folders.
 
@@ -311,5 +311,5 @@ lolly completion fish > ~/.config/fish/completions/lolly.fish
 ```
 
 ::: note The tool list is a snapshot
-The tool-id list is a snapshot taken when the script is generated. After installing new tools, run `lolly completion <shell>` again.
+The list is taken when the script is generated, so run `lolly completion <shell>` again after installing new tools.
 :::

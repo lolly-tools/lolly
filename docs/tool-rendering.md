@@ -138,7 +138,7 @@ Both shells paint the variables from the same token reads, in the artefact's loo
 
 - Every colour token at `color.semantic.<name>`, where the name is lowercase letters and hyphens, paints `--brand-<name>`. That covers the seven slots, each declared colour role and its `on-<id>` colour, and a `color.semantic` colour written by hand and never declared as a role. A name with a digit or a capital letter paints no `--brand-<name>`.
 - Every colour token, whatever its path, also paints `--brand-token-` followed by the hex of the path's UTF-8 bytes, so `color.semantic.accent` paints `--brand-token-636f6c6f722e73656d616e7469632e616363656e74`. The name cannot collide with any other variable. Lolly Design writes a linked colour in this form, with the colour it had as the fallback; a tool rarely needs one.
-- The lead variables come from `host.tokens.family()`, and exist only on a design system with two or more colourways.
+- The lead variables come from `host.tokens.family()`.
 
 A colour role's id is permanent, and renaming the role changes only its words: `--brand-<id>` keeps the same name. Ids that would clash with a variable Lolly paints for itself cannot be role ids: `on-` and `token-` names, `lead-count`, `warn` and `warn-ink`. A slot a role fills keeps its own variable, so on a design system whose role Main fills the lead colour, `--brand-primary` and `--brand-main` hold the same colour.
 :::
@@ -254,7 +254,7 @@ END:VCALENDAR
 
 Reference wirings: `meeting-planner` and `calendar-ics` for ICS, `timezone` and `pricing-table` for CSV and `captions` for SRT and VTT. No public tool ships a `template.vcf` yet.
 
-Data formats need no browser anywhere. On the node CLI, a template whose root is an `<svg>` also renders to SVG and the other vector formats with no browser, and resvg draws PNG from that SVG. Vector and raster files from a template built from HTML need a browser engine, and so do JPG, WebP, most PDFs and video: the web shell, the desktop app or the node CLI's browser tier. [Render with the CLI](/info/cli-rendering.html) has the full list. The CMYK formats pair with the **Convert paths** toggle ([The `render` block](/info/tool-manifest.html#the-render-block)) for print files that need no installed fonts; `qr-code` offers both `pdf-cmyk` and `cmyk-tiff`, while `org-chart` and `logo-wall` offer only `pdf-cmyk`.
+On the node CLI, a template whose root is an `<svg>` also renders to SVG and the other vector formats with no browser, and resvg draws PNG from that SVG. Vector and raster files from a template built from HTML need a browser engine, and so do JPG, WebP, most PDFs and video: the web shell, the desktop app or the node CLI's browser tier. [Render with the CLI](/info/cli-rendering.html) has the full list. The CMYK formats pair with the **Convert paths** toggle ([The `render` block](/info/tool-manifest.html#the-render-block)) for print files that need no installed fonts; `qr-code` offers both `pdf-cmyk` and `cmyk-tiff`, while `org-chart` and `logo-wall` offer only `pdf-cmyk`.
 
 <!--i:eti-animation-->
 ## Animated HTML

@@ -66,7 +66,7 @@ file.
 ## Notes / limits
 
 - **No server-side search and no expiring links.** Each file is fetched over raw HTTP and
-  streamed on request, pinned to the `rawBase` host.
+  streamed on request.
 - **The exit works,** though a catalog kept in git is usually kept there.
 
 <!--i:eti-folder-move-->

@@ -111,8 +111,7 @@ mode-0600 `.env` with fresh database, session, link and credential secrets.
 - Keep the folder name and Compose project name the same from now on.
 
 ::: warning Never write a new `.env` over an installed instance
-The `.env` holds the database, session, link and credential secrets the instance already
-uses. Keep the one you installed with.
+It holds the secrets the instance already uses. Keep the one you installed with.
 :::
 
 <!--i:eti-package-->
@@ -148,8 +147,7 @@ Give the link to the owner privately. They set their password before signing in.
 The link works once, expires after seven days and sends no email.
 
 ::: note The link does not prove the mailbox
-It is an operator-authorised account: the link does not prove the owner controls that
-mailbox.
+It is an operator-authorised account, not a check that the owner controls that mailbox.
 :::
  Other members get invitations and password links through **People**. See
 [identity](identity.md) for setup, recovery and optional single sign-on.

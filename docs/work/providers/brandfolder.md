@@ -10,12 +10,12 @@ someone uses them.
 
 Successful Brandfolder integration at SUSE is reported in [How SUSE connected Brandfolder to Lolly](/info/suse-brandfolder.html), recorded from the Lolly maintainer's account on 31 October 2026. The connection helped inherit an existing system and supported administrator change management for content approvals. Migration is planned for the end of December 2026, not reported complete.
 
-That account confirms use of the integration, not every optional mapping. The two availability field names below retain their separate live-check requirement. Brandfolder outbound delivery is a different adapter and remains subject to its own [destination qualification](../delivery.md).
+That account confirms use of the integration, not every optional mapping: the two availability field names below still need their own live check. Brandfolder outbound delivery is a different adapter and remains subject to its own [destination qualification](../delivery.md).
 
 <!--i:eti-checklist-->
 ## Onboarding
 
-1. **Scope.** Choose the Brandfolder, sections and Lolly Work groups for one production task. The API key can see more than those members should, so set explicit exposure groups and decide whether to require the native approval flag.
+1. **Scope.** Choose the Brandfolder, sections and Lolly Work groups for one production task. Decide whether to require the native approval flag.
 2. **Connection.** Follow the [four-step connection](README.md#connect-a-source-in-four-steps) using the key and Brandfolder id below. Sync and inspect the mapped sample before an owner enables the source.
 3. **Tenant check.** Check several attachments, originals and thumbnails, then test allowed and refused member access in a Lolly tool. Qualify the availability field names on your tenant before relying on release or expiry dates; see the [tenant check](tenant-check.md).
 
@@ -68,8 +68,7 @@ lw providers health acme-bf
 ```
 
 ::: check A good preview
-A good preview prints `health ok - brandfolder` and a mapped sample (`health.ok: true` with
-`--json`).
+You see `health ok - brandfolder` and a mapped sample (`health.ok: true` with `--json`).
 :::
 
 `401` or `403` means the key is wrong or lacks access. An empty sample with

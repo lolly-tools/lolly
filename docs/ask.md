@@ -58,7 +58,7 @@ The answers on screen last for this session: they are still there if you navigat
 
 Answers are assembled from two static files the documentation site already publishes: the per-language search index and the page's markdown twin. Both are fetched by name, so Ask keeps working with no connection once they are cached. Reading the guides in the app caches them as you go, and **Guides & docs** under [Available offline](/info/dashboard.html#available-offline) takes the whole site, screenshots included, in one download.
 
-Without them the documentation half of an answer simply does not appear, with no error. The in-app rows still do, because those are matched against data already on the device.
+Without them the documentation half of an answer does not appear, with no error. The in-app rows still do, because those are matched against data already on the device.
 
 <!--i:eti-lock-->
 ## Privacy

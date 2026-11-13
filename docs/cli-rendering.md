@@ -133,7 +133,7 @@ A timeline with an audio box comes back with real sound and a master pass: the p
 :::
 
 ::: warning Video bytes change from run to run
-The browser's paint and encode move between runs, so the bytes of a video are **not** the same twice. Compare video by rendering and inspecting, never by digest.
+The browser's paint and encode move between runs. Compare video by rendering and inspecting, never by digest.
 :::
 
 ### Review a timed composition

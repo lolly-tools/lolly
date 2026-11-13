@@ -50,7 +50,7 @@ catalog/assets/
 - <!--i:upload--> **Merge, build the catalog and deploy.** Clients pick the asset up at their next sync.
 :::
 
-A reviewed Git flow suits a shared, governed catalog where each change should be reviewed. It is one option for that case, not how the app works day to day.
+A reviewed Git flow suits a shared, governed catalog. It is one option for that case, not how the app works day to day.
 
 <!--i:eti-code-->
 ## The asset entry (in `index.json`)
@@ -110,7 +110,7 @@ A tool that embeds another tool's output through `composes` ([Composition and br
 Record where each asset comes from.
 
 ::: note A missing record is not permission
-A missing record means "not recorded", never permission.
+It means "not recorded".
 :::
 
 - `license` - the declared licence, such as `cc-by-4.0` or `all-rights-reserved`.

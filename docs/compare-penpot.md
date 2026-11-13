@@ -24,6 +24,6 @@ The Lolly Design canvas makes editable assets and can turn a layout into a [tool
 
 Lolly Work adds single sign-on, SCIM provisioning, shared catalogues and projects, roles, approvals, audit records, work collabs and server rendering. Both repositories are MPL-2.0 and an organisation can run both. [What runs where](/info/compare.html#what-runs-where) sets the two parts side by side.
 
-You can use both: Penpot for interface design and prototyping, Lolly for repeatable files, joined by shared tokens and imported designs.
+You can use both: Penpot for interface design and prototyping, Lolly for repeatable files.
 
 Penpot is a trademark of its owner. This page describes where the two products overlap and is not affiliated with Penpot.

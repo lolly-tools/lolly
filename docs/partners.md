@@ -1,6 +1,6 @@
 # Working with partners
 
-A sponsor's logo on an event poster, a reseller's offer under the maker's name, a joint announcement, a case study written with a supplier: many pieces carry two brands. This page is for both sides. It covers what to send when you share your brand with a partner, how to work in a brand someone sent you, how to place a partner's mark, how to make a sponsor or event logo wall and what Lolly does not do yet.
+A sponsor's logo on an event poster, a reseller's offer under the maker's name, a joint announcement, a case study written with a supplier: many pieces carry two brands. This page is for both sides.
 
 Two words mean the same thing everywhere on this page. The **lead brand** is the brand whose design system a piece is made in, and the **partner** is the other brand on the piece. Either side can make the piece. [Brand architectures](/info/brand-architectures.html#co-branding) shows how co-branding relates to the other ways organisations arrange their brands.
 
@@ -102,7 +102,7 @@ An export's [design-system record](/info/exporting.html#the-design-system-record
 
 ### Give each brand's skills to an agent
 
-When an agent does the work, give the agent the lead brand's skills and the partner's skills as they are, and tell the agent which brand leads. Each brand's skills keep their own names and ids. Lolly does not merge two brands' skills or decide which brand wins, and it checks only the lead brand's house rules.
+When an agent does the work, give the agent the lead brand's skills and the partner's skills as they are, and tell the agent which brand leads. Each brand's skills keep their own names and ids. Lolly does not merge two brands' skills or decide which brand wins.
 
 <!--i:eti-grid-->
 ## Sponsor and event logo walls
@@ -132,12 +132,11 @@ Lolly Logo Wall does not know any sponsor's rules. Tiers and Presence set sizes 
 ## What Lolly does not do yet
 
 - A piece is drawn in one design system. The partner's colours, type and rules are not a design system inside the piece, and the partner's mark is a picture.
-- Outside a Lolly Work partner programme, partner rules are not held or checked in the app: clear space, minimum size and allowed treatments such as one colour or reverse. Lolly checks the lead brand's house rules only.
-- A partner kit, a light pack that holds a partner's logos, colours and rules for use inside another brand's work, reaches the app only through a Lolly Work partner programme. Elsewhere, the kit's check runs from a terminal: `lolly check --kit=<file>` measures a Lolly Design document's partner marks from a terminal ([Check the recreation](/info/cli-decks.html#check-the-recreation)).
+- Outside a Lolly Work partner programme, partner rules are not held or checked in the app: clear space, minimum size and allowed treatments such as one colour or reverse.
+- A partner kit, a light pack that holds a partner's logos, colours and rules for use inside another brand's work, reaches the app only through a Lolly Work partner programme. Elsewhere, the kit's check runs from a terminal: `lolly check --kit=<file>` measures a Lolly Design document's partner marks ([Check the recreation](/info/cli-decks.html#check-the-recreation)).
 - Lolly does not generate a lockup from two marks for a "with", "in partnership with" or "by" arrangement. Add a finished lockup as a custom mark.
 - One design system is active for the whole device, so two brands cannot be open side by side.
-- A design-system file is a copy of the brand as it was exported, and nothing updates the copy. A design-system file exported from the app does not carry brand skills, so send those as files of their own.
-- Outside a Lolly Work partner programme, an export records the lead brand's design system and colourway, not the partner's brand.
+- A design-system file exported from the app does not carry brand skills, so send those as files of their own.
 - A logo taken from a brand page is a picture in its row, and the row does not remember the page. Nothing shows who published a page, so check the address yourself.
 - The hosted web app cannot fetch another brand's page, because its Content Security Policy allows named hosts only. Take the logo in a terminal, or save the file and add the file in **Assets**.
 

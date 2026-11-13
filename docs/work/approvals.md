@@ -130,7 +130,7 @@ Download.
 
 ::: note Review guides the work and does not contain it
 On this path the app is cooperating with your policy: the file is made on the person's own device,
-so this guides how work moves and does not stop someone copying what is on their screen.
+so nothing stops someone copying what is on their screen.
 :::
 
 **Ask for a review.** **Request approval** runs the same export as Download, with the settings on
@@ -149,8 +149,7 @@ A rejected or withdrawn request never releases the file to the requester.
 hold: **Request approval**, then **In review**, then **Download approved file**, with a line below
 that gives the file, such as "Approved Nov 5, 2026. SVG, 600 × 600."
 
-An approval covers one exact file. Change an input, the format, the width or the height and the
-control goes back to **Request approval**, and the line below reads "Changed since approval." with
+Change an input, the format, the width or the height and the control goes back to **Request approval**, and the line below reads "Changed since approval." with
 **See request**, which still holds the approved file. A new request at the new size shows **In
 review**, and going back to the approved size offers that file again. A rejected request says "Not
 approved." with **See why**. Download approved file fetches the stored bytes and runs no export, so
@@ -180,8 +179,7 @@ frozen. When the request is approved, the approved file is those bytes plus a si
 update, with the reviewed file's credential as its parent. The update records three facts: the
 approval id, the date of the decision and the reviewed file's SHA-256. It holds no names, emails,
 groups, comments or chain names. Like any credential, it also states the signer, the signing time
-and the steps opened and published. The artwork does not change: Work compares the bytes outside
-the credential before it keeps the update.
+and the steps opened and published. The artwork does not change.
 
 Both digests stay on the record, and anyone who may read the file can still get the reviewed bytes
 with `?file=reviewed` or `lw approvals artifact <id> --out <file> --reviewed`. The update is made

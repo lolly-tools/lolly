@@ -32,7 +32,7 @@ Open the **Rebrand** view from **Utilities**. The first screen asks for a deck, 
 
 ![The Lolly Rebrand screen before a deck is chosen: the mode, the drop area with Choose a deck, and the link to the sample deck.](/t/url-shot?url=%2F%23%2Frebrand&width=1440&height=900&dpi=96&waitMs=600&format=svg&walker=1&rasterDpi=96&filename=rebrand-intake&waitSelector=.rb-drop&cropSelector=.rb-intake-inner&css=.float-cluster%7Bdisplay%3Anone%21important%7D)
 
-No deck to hand? Choose **No deck to hand? Try the sample deck**. It opens a made-up deck, a night market's review of its season, in its own old colours, fonts and lantern logo. The screenshots on this page all use it, so you can follow along step by step.
+Without a deck of your own, choose **No deck to hand? Try the sample deck**. It opens a made-up deck, a night market's review of its season, in its own old colours, fonts and lantern logo. The screenshots on this page all use it, so you can follow along step by step.
 
 <!--i:eti-upload-->
 ## Open your own deck
@@ -183,7 +183,7 @@ A PDF or a Photoshop document cannot take this path, so open it with Renovate th
 
 Some decks are pictures of slides rather than slides: a scanned PDF, or a PowerPoint file with one picture per slide. Lolly Rebrand tells you ("All 15 slides are pictures") and offers **Read the text**, which recognises the text on each picture and rebuilds the slide from it, or **Keep as pictures**.
 
-Reading the text uses a text recognition model on your device. The first time, Lolly Rebrand offers to download it and says how large it is; the download sends nothing from your deck. The review list then holds a card such as "Rebuilt 15 slides from pictures", marked "Check each before Lolly Design", so you can check each rebuilt slide before it goes to Lolly Design.
+Reading the text uses a text recognition model on your device. The first time, Lolly Rebrand offers to download it and says how large it is; the download sends nothing from your deck. The review list then holds a card such as "Rebuilt 15 slides from pictures", marked "Check each before Lolly Design".
 
 <!--i:eti-folder-plus-->
 ## Your projects
@@ -211,4 +211,4 @@ The same stages run from the command line and from AI agents: `lolly rebrand pla
 <!--i:eti-info-->
 ## Good to know
 
-Lolly Rebrand's suggestions, layout matches and recognised text are its best reading of the deck, not a guarantee. The review is there so you can check them, the report shows every outcome, and the original file is never changed. A deck from Keynote or Google Slides works once it is exported as PowerPoint. In a Photoshop document, layer effects and adjustment layers are not carried, and the report lists each one.
+Lolly Rebrand's suggestions, layout matches and recognised text are its best reading of the deck, not a guarantee. The review is there so you can check them, and the report shows every outcome. A deck from Keynote or Google Slides works once it is exported as PowerPoint. In a Photoshop document, layer effects and adjustment layers are not carried, and the report lists each one.

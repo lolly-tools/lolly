@@ -130,7 +130,7 @@ Six utilities run the same models the app does. Each is a thin wrapper over the 
 | `lolly reword "<sentence>"` | Shorter, plainer rewrites, one per line | 372.0 MB | no candidate passed the gate |
 | `lolly depth <image>` | Greyscale depth map, white nearest | Depth Anything V2 small, 26.0 MB, Apache-2.0 | |
 
-A missing model is refused with the model's name and exit `3`; nothing downloads on its own ([Download the models](#download-the-models)). Exit `5` is a legitimate negative answer, not a failure.
+A missing model is refused, and nothing downloads on its own ([Download the models](#download-the-models)). Exit `5` is a legitimate negative answer, not a failure.
 
 ::: details Flags for each command
 - **`lolly upscale <image> [--scale=2|4] [--model=<id>] [--max-edge=N] [--out=<file.png>] [--models]`.** Per-tile progress on stderr. The models are natively x4, and `--scale=2` trims the result. `--models` prints the roster with sizes and licences: `realesr-general-x4v3` (fast), `realesrgan-x4plus` (quality), `realesrgan-x4plus-anime` (illustration) and `gfpgan-v1.4` (face restore, flagged "can invent face details"). An image the model cannot run over is refused with the reason (exit `4`), not attempted and cut short.

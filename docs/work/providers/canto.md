@@ -117,7 +117,7 @@ lw providers health acme-canto
 <!--i:eti-folder-move-->
 ## Off-boarding
 
-Canto is an exit target subject to [tenant qualification](tenant-check.md#canto): the driver has not yet been confirmed against a live tenant, including whether each scheme's download is the true original. A stored checksum alone does not prove that the source supplied an original.
+Canto is an exit target subject to [tenant qualification](tenant-check.md#canto), including whether each scheme's download is the true original. A stored checksum alone does not prove that the source supplied an original.
 
 Prepare the destination through the [self-hosting strategy with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage), then rehearse materialize, drift and cutover with [Leave a DAM](../offboarding.md). Verify approval and mapped expiry, keep required rights and history exports separately, and test old references after cutover. For former Image Relay tenants, choose the driver that serves the files today.
 

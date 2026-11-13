@@ -146,8 +146,7 @@ inventory.
 <!--i:eti-info-->
 ## Notes / limits
 
-- **One folder, unless you turn on `recursive`.** Subfolders are walked only with `recursive` on,
-  and native Docs, Sheets and Slides are skipped.
+- **One folder, unless you turn on `recursive`.** Native Docs, Sheets and Slides are skipped.
   Shared drive folders work; the request flags follow Google's
   [shared drive guidance](https://developers.google.com/workspace/drive/api/guides/enable-shareddrives).
 - **No approval status or availability dates.** Expose a curated folder of approved files.
@@ -158,6 +157,6 @@ inventory.
 <!--i:eti-folder-move-->
 ## Use as an offboarding destination
 
-Export the permitted DAM originals and supporting records, upload ordinary files with Google Drive's own tools, then connect the selected folder using this guide. Lolly Work reads this source and does not copy a DAM library into Drive. Keep files directly in the selected folder, or turn on `recursive`: native Google documents are skipped, and so are subfolders unless `recursive` is on. Rebuild access, approval and expiry controls as needed and update references for the new identities.
+Export the permitted DAM originals and supporting records, upload ordinary files with Google Drive's own tools, then connect the selected folder using this guide. Lolly Work reads this source and does not copy a DAM library into Drive. Keep files directly in the selected folder, or turn on `recursive`. Native Google documents are skipped. Rebuild access, approval and expiry controls as needed and update references for the new identities.
 
 The [path chooser](../offboarding.md#choose-your-offboarding-path) compares this route with self-hosted Lolly Work storage and other destinations, with open-source options first.

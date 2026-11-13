@@ -78,7 +78,7 @@ Any input can declare `bindToProfile: "firstname"` (or `email`, `headshot` and t
 Every input needs `id` and `type`.
 
 ::: note An input id is permanent
-The `id` is the template variable and the URL parameter, and never changes once published. A `urlKey` is permanent in the same way: links carry it forever.
+The `id` is the template variable and the URL parameter, and never changes once published. The same goes for a `urlKey`.
 :::
 
 Any input can also carry these:
@@ -126,7 +126,7 @@ The property does not encrypt an input, change an export or clean its content.
 <!--i:eti-table-->
 ## Canonical inputs (reuse shared ids)
 
-**Batch** (`#/batch`) is a spreadsheet grid that renders many rows at once across one or many tools: CSV or TSV and spreadsheet paste in, a `.zip` of one output per row out, with collapsible export columns and saved batch sessions. It lays every selected tool's inputs out as columns, so the ids you choose shape that grid.
+**Batch** (`#/batch`) is a spreadsheet grid that renders many rows at once across one or many tools: CSV or TSV and spreadsheet paste in, a `.zip` of one output per row out, with collapsible export columns and saved batch sessions. It lays every selected tool's inputs out as columns.
 
 Batch keys each column by input `id`. Two tools that use the same id for the same idea share **one** column. If they also agree on type and constraints (number `min`, `max` and `step`, select options, colour palette), that column becomes bulk-writable: a person types one value and it fills every row. A different id, or different constraints, gives a separate column filled cell by cell. Picking a shared id is a decision about how Batch works for people, not a matter of style.
 

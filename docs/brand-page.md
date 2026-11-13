@@ -47,13 +47,13 @@ Either route writes a folder, and nothing goes public until you put the folder o
 lolly system publish --out=./brand-page --origin=https://example.com/brand/acme
 ```
 
-The source is `--file=<tokens>`, then a content profile you name with `--profile=<name>`, then the active design system in the terminal. The command lists what it wrote and what it held back, then stops. Nothing goes public until you put the folder on a host. [The CLI reference](/info/cli-reference.html#publish-a-brand-page) lists every flag.
+The source is `--file=<tokens>`, then a content profile you name with `--profile=<name>`, then the active design system in the terminal. The command lists what it wrote and what it held back, then stops. [The CLI reference](/info/cli-reference.html#publish-a-brand-page) lists every flag.
 
 ::: note Read the folder first
-Read the folder before you host the folder. `index.html` opens from disk, and "Not published here" at the foot of the page lists everything left out, with the reason.
+`index.html` opens from disk, and "Not published here" at the foot of the page lists everything left out, with the reason.
 :::
 
-The same design system and options always give the same bytes, because nothing in the folder records a clock or a random id. A second publish with no changes gives an identical folder, so a version-control diff shows only what really changed.
+The same design system and options always give the same bytes, because nothing in the folder records a clock or a random id, so a version-control diff shows only what really changed.
 
 ### Host the folder
 
@@ -121,7 +121,7 @@ This reads what your catalog states. Lolly does not check that you own a mark, a
 <!--i:eti-link-->
 ## Lead back from your files
 
-Your exports can name your page, so a file someone finds later leads back to the source. This is off until you turn it on, per design system. It records one thing, the page's address, in the [design-system record](/info/exporting.html#the-design-system-record). Nothing else in the file changes.
+Your exports can record your page's address, so a file someone finds later leads back to the source. This is off until you turn it on, per design system. The setting adds one thing, the address, to the [design-system record](/info/exporting.html#the-design-system-record). Nothing else in the file changes.
 
 **In the app.** **On exports**, in the same sheet, has a switch: *Record the page address in exports*. For a folder you host yourself, type the address under *Where it will live*, then turn the switch on once the page is live there. For an instance that serves pages, the switch opens after you publish, and it uses the address the instance gives back. Turn the switch off and later exports hold no address.
 

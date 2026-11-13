@@ -57,7 +57,7 @@ Lolly renders on your device. That is not a privacy setting added afterwards: it
 Nothing to sell you, nothing to take. Four commitments, stated once and checkable:
 
 - <!--i:check--> **Free, and it stays free.** A version that has been released is licensed so it can never be taken back. The free Lolly always exists, whatever happens next; the exact mechanism is on [How Lolly compares](/info/positioning.html).
-- <!--i:code--> **Open source.** Read it, run it, fork it, keep a copy. The code is public, so every claim here can be checked.
+- <!--i:code--> **Open source.** Read it, run it, fork it, keep a copy.
 - <!--i:eyeoff--> **Blind by design.** The Lolly app sends no analytics, usage reports or crash reports, so nobody, the makers included, can see what you make or how you use the app; see the [Privacy Policy](/info/privacy.html). A tool that cannot see you has nothing to sell about you.
 - <!--i:checklist--> **Your vote, visible.** Anything that touches the internet happens because you chose it, at the moment you chose it, and the code that keeps that promise is open.
 

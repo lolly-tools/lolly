@@ -55,10 +55,10 @@ same browsers on Windows, Linux, Android, iOS, Intel Macs or other GPUs.
 | Linux app (WebKitGTK) | Not supported: WebKitGTK has no WebGPU | WebKitGTK 2.52.6, the version Ubuntu 24.04 ships; the release notes for 2.52.6, 2.54.0 and 2.54.2 do not mention WebGPU | None: the WebGPU API is absent | 8 and 29 October 2026: the Tauri web view has no WebGPU API at all. The library lacks the API, so the result does not depend on the GPU or the machine |
 | Android app (WebView) | Pending: physical runtime not qualified | Android 11 on a device; Android 16 (API 36) in the emulator (see Recorded evidence) | No adapter on either | 15 October 2026: Android 11 has no adapter. 29 October 2026: the emulator's WebView 133 has the API and no adapter. Android 12 or later on a real device has not been checked |
 
-The Mac app needs Apple silicon. Intel Macs are not supported from 1.1.3, so the macOS app row speaks for Apple silicon only.
+The macOS app row speaks for Apple silicon only.
 
 ::: note A pending row is not a failure
-A pending row means the check has not passed on real hardware, not that the app fails.
+It means the check has not yet passed on real hardware.
 :::
 
 A packaged app is released only once its own row says supported, which is why the Windows, Linux and Android builds on the [install page](/info/install.html) stay at 1.1.0. The Linux app stays there until a WebKitGTK release carries WebGPU.

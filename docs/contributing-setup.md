@@ -88,7 +88,7 @@ That is the blank brand, which is also the profile CI builds against. lolly.tool
 
 Before you push a change, `pnpm run ci:local` runs the checks CI runs for a pull request, in the same order. `--changed` keeps to the lanes your diff against `origin/main` touches, and `--list` prints the lanes without running them.
 
-You do not need the desktop or mobile apps' own dependencies unless you work on those apps. They are separate pnpm projects (`pnpm -C shells/tauri-desktop install`, `pnpm -C shells/tauri-mobile install`), so skip them until you need them.
+The desktop and mobile apps are separate pnpm projects (`pnpm -C shells/tauri-desktop install`, `pnpm -C shells/tauri-mobile install`). Install their dependencies only when you work on those apps.
 
 <!--i:eti-layers-->
 ## Check the print plates
@@ -155,7 +155,7 @@ In a locale catalog (`shells/web/src/locales/<lang>.json`), the value for the `o
 
 - **`pnpm install` stops with a syntax error in a `.ts` file.** Your Node is too old for type stripping. Check `node -v` against 22.18 or 24. With Homebrew, `node@22` is keg-only: add `export PATH="$(brew --prefix node@22)/bin:$PATH"` to your shell profile.
 - **`brands/suse` will not clone.** The pack is private. Drop `--suse`; you land on `lolly-start` and everything still builds and runs.
-- **A SUSE tool edit does not show up.** `brands/suse` is a separate repository, so the edit needs a commit inside it and a pointer commit here (see [the private pack](#the-private-suse-pack)). A community tool is a plain directory in this repository and needs one commit.
+- **A SUSE tool edit does not show up.** `brands/suse` is a separate repository, so the edit needs a commit inside it and a pointer commit here (see [the private pack](#the-private-suse-pack)).
 - **Anything else.** Run `pnpm run doctor`. It checks the checkout without changing it and prints the exact command for each repair.
 
 After you edit a community tool's `tool.json`, rebuild every profile's catalog with the `:all` commands in [Publish and localize a tool](/info/tool-publishing.html).

@@ -21,7 +21,7 @@ unaffected, and admins and owners are never narrowed.
 ::: cards
 - <!--i:eti-palette--> **[Your brand](partner-shared-assets.md#what-reaches-a-partner)** Your design system's colours, type and palettes, so every tool draws in your brand.
 - <!--i:eti-grid--> **[Tools](partner-shared-assets.md#choose-its-tools-and-share-its-assets)** Only the tools their programme includes: in the gallery, in search, in server renders and for their agents.
-- <!--i:eti-folder-shared--> **[Shared assets](partner-shared-assets.md)** Only the files shared with their programme or their company. A file shared with everyone does not reach them.
+- <!--i:eti-folder-shared--> **[Shared assets](partner-shared-assets.md)** Only the files shared with their programme or their company.
 - <!--i:eti-file-plus--> **[Templates](partner-templates.md)** The templates published to them, on their home and in the tool's **Start** chooser. They change only what you left open.
 - <!--i:eti-building--> **[Their company](partner-co-branding.md)** A card for their company at the top of their home, with its logos and details, which fill in every template that takes them.
 - <!--i:eti-sparkles--> **[Their agents](partner-agents.md)** A token you issue sees what the company's people see, within limits you set.

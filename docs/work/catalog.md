@@ -531,8 +531,8 @@ PUT /api/v1/catalog/lifecycle/<assetId>     # catalog.expire (holds: catalog.hol
 | `onExpiry` | `hide` (default) or `warn` |
 
 ::: warning Revoking an asset is for good
-`revokedAt` wins over every date, so a revoked asset never serves again. To take an asset out of
-use for a while, end its window with `validUntil` instead.
+A revoked asset never serves again. To take an asset out of use for a while, end its window
+with `validUntil` instead.
 :::
 
 ::: figure work-catalog-lifecycle
@@ -568,7 +568,7 @@ hold note travels with the refusal. Release the hold first; that friction is the
 that remove nothing (scheduling a *future* expiry, extending a window) still go through, and a
 hold never blocks *serving*. Setting and releasing needs `catalog.hold` (admin, grantable to a
 group or a person), and is audited as `catalog.hold` and `catalog.hold.release`. An owner is
-not required, because a hold can only keep something available.
+not required.
 
 A hold on a **federated** `ext/*` asset implies a pin: its bytes are copied into the instance's
 own store ([leaving a DAM](#leaving-a-dam)) while the identity stays `ext/*`, and the row reports

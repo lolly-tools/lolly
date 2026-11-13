@@ -32,7 +32,7 @@ Lolly and Lolly Work are open source under MPL-2.0. A partner can evaluate and o
 The [provider directory](/info/work-provider-guides.html) lists implemented sources and open live checks. Supported sources are normally read-only; [organisation delivery](/info/work-delivery.html) has separate adapters.
 
 ::: note A provider entry is not an endorsement
-A provider entry is not a certification or an announced commercial partnership.
+Nor is it a certification or an announced commercial partnership.
 :::
 
 Brandfolder has successful use reported at SUSE, documented in the [deployment account](/info/suse-brandfolder.html); that evidence does not qualify unrelated tenants or operations.
@@ -47,6 +47,6 @@ Run the [source qualification checks](/info/work-provider-tenant-check.html), de
 <!--i:eti-folder-move-->
 ## Does the customer have to stay with the DAM?
 
-The customer chooses. The integration can remain in place, and supported migration paths are available when the customer decides to move. Portability remains part of the product's purpose. It should be discussed openly in the integration agreement, with no assumption that read access grants permission to copy or redistribute every source.
+The customer chooses. The integration can stay in place, and supported migration paths are there when the customer decides to move. Portability is part of the product's purpose, so discuss it openly in the integration agreement. Do not assume that read access grants permission to copy or redistribute every source.
 
 Start with [Use Lolly with your existing DAM](/info/use-with-dam.html). For technical evaluation, continue to [Lolly Work architecture](/info/work-overview.html) and [What Lolly Work does today](/info/work-status.html).

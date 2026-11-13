@@ -34,14 +34,13 @@ Music computed from a song's code is marked as algorithmic media, so Lolly Verif
 <!--i:eti-file-->
 ## Files from the Rondocode utility
 
-Most on-device utilities write no credential, because they transform a file you already own. Lolly Rondocode makes new audio, so every audio file it writes carries Content Credentials that record the song as its source: its name, the SHA-256 of its `.rondo.json` file and where its code ran. That covers WAV, MP3, M4A, Opus, FLAC, each stem in a stems ZIP and a recording of what is playing.
+Most on-device utilities write no credential, because they transform a file you already own. Lolly Rondocode makes new audio, so every audio file it writes carries Content Credentials that record the song as its source. That covers WAV, MP3, M4A, Opus, FLAC, each stem in a stems ZIP and a recording of what is playing.
 
 - The editor's own renders run in its private frame (the `frame` execution class) and record the editor's version.
 - A render made by the CLI or a share link runs in the `vm` class and records the renderer's version and seed.
 - A WAV also states the same in its RIFF comment.
-- Music computed from the song's code is algorithmic media and is not marked as AI.
 
-When a song sings, the file declares that singing AI-generated in a machine-readable form. The credential's digital source type is composite media made with trained models, the record lists the sung parts, and one C2PA AI disclosure per model identifies each model the singing passed through: Supertonic-3 text to speech, the wav2vec 2.0 phoneme aligner, the ContentVec encoder and the RVC voice, with the repository and commit Lolly hosts it from. A file that holds synthesised singing is never saved without that declaration.
+When a song sings, the AI declaration is machine-readable. The credential's digital source type is composite media made with trained models, the record lists the sung parts, and one C2PA AI disclosure per model identifies each model the singing passed through: Supertonic-3 text to speech, the wav2vec 2.0 phoneme aligner, the ContentVec encoder and the RVC voice, with the repository and commit Lolly hosts it from.
 
 ### What the MIDI file holds
 

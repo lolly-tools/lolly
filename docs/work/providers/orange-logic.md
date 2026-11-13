@@ -20,7 +20,7 @@ connection does not use yet.
 <!--i:eti-checklist-->
 ## Onboarding
 
-1. **Scope.** Agree the exact tenant and storage origins, administrator query, rendition codes and Lolly Work groups. Label this pilot as rendition access: it does not provide protected originals.
+1. **Scope.** Agree the exact tenant and storage origins, administrator query, rendition codes and Lolly Work groups. Label this pilot as rendition access.
 2. **Connection.** Seal the application credential or bearer token described below, map your tenant's approval and date fields, and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
 3. **Tenant check.** Run the [Orange Logic tenant check](tenant-check.md#orange-logic). Check rendition labels and bytes, refusal of substituted files, mapped governance and group access in a real Lolly task before widening the source.
 
@@ -112,7 +112,7 @@ lw providers enable orange-media
 ```
 
 ::: check Before you enable the source
-Check the sample, metadata, rendition labels and group access before enabling, then run the
+Check the sample, metadata, rendition labels and group access, then run the
 [Orange Logic check](tenant-check.md#orange-logic). A successful HTTP call proves neither the
 file's fidelity nor an upstream rights clearance.
 :::
@@ -143,7 +143,7 @@ Contributors changing the driver follow its
   agreed freshness bound.
 - **Rate limits.** A `429` is passed back without retries. Request budgets, exact fields, token
   responses, proxies and storage origins all need checking on your tenant. An approval mapping
-  grants no AI processing authority and is not a full rights policy.
+  grants no AI processing authority.
 
 <!--i:eti-folder-move-->
 ## Off-boarding

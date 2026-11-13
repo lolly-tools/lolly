@@ -12,8 +12,8 @@ Run `lw` from a Lolly Work checkout as `pnpm run cli <args>` or `node cli/lw.ts`
 once in the checkout to get the plain `lw` the examples use.
 
 ::: note Run `lw` from a checkout
-`lw` is not in the container image or the Helm pod, so you drive a deployment from a checkout,
-not from inside the deployment.
+`lw` is not in the container image or the Helm pod, so you cannot run `lw` from inside the
+deployment.
 :::
 
 ```bash
@@ -549,7 +549,7 @@ time with its zone (`Z` or an offset), so the moment is the same wherever `lw` r
 `--ends` in the past, and one that is not later than `--starts`.
 
 ::: warning A sent message cannot be ended
-A message cannot be ended once it is sent, so `--ends` is how a message gets its last day.
+Set `--ends` to give a message its last day.
 :::
 
 <!--i:eti-palette-->

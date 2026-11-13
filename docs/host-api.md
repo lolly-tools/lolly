@@ -8,7 +8,7 @@ The same hook runs unchanged in the web app, the desktop and mobile apps, the CL
 A tool hands every outside job to `host`. Six members exist on every shell; the rest are optional and grouped by job below. Each shell implements the same contract its own way.
 :::
 
-Every shell provides six members: `profile`, `assets`, `state`, `clipboard`, `export` and `log`. The rest are optional. Check for an optional API before you call it, or list the ones your hooks cannot do without in the manifest's `requires`, and a shell that lacks one refuses to open the tool instead of failing halfway.
+Every shell provides six members: `profile`, `assets`, `state`, `clipboard`, `export` and `log`. The rest are optional.
 
 Unless a section says otherwise, an API works on the device and sends nothing anywhere. Where the engine does the work, as it does for colour, geometry, connectors, codecs, audio analysis and layout, every shell runs the same engine code, so the web app and the CLI get the same numbers and the same bytes.
 
@@ -509,7 +509,7 @@ PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips 
 | `table({ columns, rows }, { clock? })` | `Promise<CalcTableResultV1>` | Work out a `table` input. The heading row is row 1, so the first data row is row 2 and `=B2*C2` multiplies that row's second and third cells. A lone `=` is text. Cells that read as plain numbers count as numbers. Returns the table with each formula replaced by its value as text (numbers to 15 digits, as Excel's General format shows them), the raw `values`, the cells that gave an `errors` entry, and how many `formulas` there were |
 | `functions()` | `Promise<CalcFunctionV1[]>` | Every function the engine knows, with its argument counts, category and a `volatile` mark |
 
-**Volatile functions.** `NOW`, `TODAY`, `RAND`, `RANDBETWEEN` and `RANDARRAY` change from one calculation to the next, and `OFFSET`, `INDIRECT`, `INFO` and `CELL` are treated the same way. They stay live while a person edits: a call without a `clock` reads the current time and a fresh random seed. They are frozen at export. Every result carries the `clock` (`{ now, seed }`) it read, and `volatile` says whether any formula needed one. The module imports nothing and reads neither the time nor a random source, so the same request with the same clock always returns the same values. A tool keeps what it computed and exports those values. It never evaluates again at export time, which would read a different moment. The runtime backs this up: hooks run when an input changes, and an export draws the page those hooks last produced.
+**Volatile functions.** `NOW`, `TODAY`, `RAND`, `RANDBETWEEN` and `RANDARRAY` change from one calculation to the next, and `OFFSET`, `INDIRECT`, `INFO` and `CELL` are treated the same way. They stay live while a person edits: a call without a `clock` reads the current time and a fresh random seed. Every result carries the `clock` (`{ now, seed }`) it read, and `volatile` says whether any formula needed one. The module imports nothing and reads neither the time nor a random source, so the same request with the same clock always returns the same values. At export the values are frozen: a tool exports what it last computed and never evaluates again, which would read a different moment. The runtime backs this up: hooks run when an input changes, and an export draws the page those hooks last produced.
 
 ```js
 async function onInput({ model }) {
@@ -614,7 +614,7 @@ An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0.
 
 `AudioFrames` is **struct-of-arrays**, indexed by frame (a minute at 60fps is 3,600 frames, and a draw loop wants flat typed arrays, not 3,600 objects): `count`, `bands`, `samples`, then `t`, `rms`, `peak`, `bass`, `mid`, `treb`, `centroid` and `flux` (one entry per frame) and `magnitude`, `wave`, `waveL` and `waveR` (`count` consecutive rows; row *i* of the spectrum starts at `i * bands`).
 
-Lolly Design around three behaviours:
+Design around three behaviours:
 
 - Everything is normalised `0..1` across the analysed window **except `peak`**, which stays absolute so you can still tell that a source clipped. Normalisation is what lets a quiet voice memo and a mastered single both fill the frame.
 - `bass` / `mid` / `treb` share **one** scale, so they read as a balance. Normalised separately, a bass-only clip would report treble pinned at 1.0.
@@ -778,7 +778,7 @@ Two models tier the picker: `u2netp` (U²-Net lite, ~4.5 MB, the default and the
 
 ### `host.ocr`
 
-*Optional, v1.127.* Read the text in an image: a plain RGBA frame goes in, and lines of text with boxes and confidences come out. Recognition is a best-effort read, so show the text as a draft the person can correct. OCR reads pixels, so signals carried by digital text (invisible characters, homoglyphs, a text watermark) do not survive the trip through pixels. The web and desktop shells provide the API.
+*Optional, v1.127.* Read the text in an image: a plain RGBA frame goes in, and lines of text with boxes and confidences come out. Recognition is a best-effort read, so show the text as a draft the person can correct. OCR reads pixels, so signals carried by digital text (invisible characters, homoglyphs, a text watermark) do not survive. The web and desktop shells provide the API.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -819,6 +819,6 @@ Hooks can also run in a Worker:
 - **On the CLI**, `LOLLY_HOOK_WORKER=1` runs every tool's hooks in a `worker_threads` Worker.
 - **Sideloaded and remote tools**, in the web shell, always run in a strict Worker that fails closed rather than falling back, with an allowlisted `host` facade and no network or storage globals. A strict Worker is terminated when a hook overruns its budget.
 
-Sideloaded and remote code never reaches the page realm. Verified built-ins and visibly unsigned development tools still can, and for verified built-ins the signed catalog is the trust boundary. See the [Threat model](/info/threat-model.html#trust-boundaries).
+Verified built-ins and visibly unsigned development tools can still reach the page realm, and for verified built-ins the signed catalog is the trust boundary. See the [Threat model](/info/threat-model.html#trust-boundaries).
 
 Async hook results are time-boxed, and a late `onInit` or `onInput` result can still apply. [Tool hooks](/info/tool-hooks.html) owns the budgets, the late-result rule and how export hooks fail. `afterExport`, the cleanup guarantee, is always awaited and its errors are only logged. `onFrame` and `onLevel` run once per frame or level sample and are not time-boxed; the runtime drops a sample if the previous one is still rendering.

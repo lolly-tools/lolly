@@ -204,8 +204,8 @@ checks are in [email and password](identity.md#email-and-password).
 
 ## `policy`
 
-What members may do, how long things last and how much they may store. The tables group the keys
-by job. Lolly reads the limits it needs from org-config.
+What members may do, how long things last and how much they may store. Lolly reads the limits it
+needs from org-config.
 
 ### Access, sessions and AI
 
@@ -325,8 +325,7 @@ The defaults are sized for a small hosted Postgres that also holds the file byte
 blob driver); a small hosted plan can stop accepting writes once its storage allowance is used.
 Raise them only with the storage to match.
 
-Scoped uploads are off until `policy.uploads.enabled` is `true`, and an upgrade does not turn
-them on. Their bytes live in the same blob store as project files, under a separate instance
+Scoped uploads live in the same blob store as project files, under a separate instance
 budget, so the two instance budgets add up: with both defaults the blob store may hold 512 MiB
 of uploads instead of 256 MiB. A begin needs `tool.use` or `catalog.submit`, and members hold
 `tool.use` by default, so most members and service tokens can use that room. Size both budgets
@@ -370,13 +369,12 @@ Room for a 500 MiB recording in a project, lifting the file cap and its budgets 
 | `catalog.versionKeep` | `0` | how many versions of one instance asset to keep, head included. `0` keeps every version; a positive number trims oldest-first and deletes the trimmed bytes. The served version is never trimmed, and a held asset is never trimmed at all |
 | `catalog.partnerRights` | *decided once* | `gate` or `report`: whether the licence each file records decides what reaches people in a partner programme. Absent, the instance decides at its first start on the release that added the setting: `gate` with no accounts yet, `report` when upgraded with accounts. The setting always wins. See [partner programmes](partner-programmes.md#licences) |
 
-Submit is **open to authors** by default: anyone holding `catalog.submit` submits and the
-asset goes live immediately. Name a `submit.chain` when the org wants review. Quota scopes are
+Submit is **open to authors** by default: anyone holding `catalog.submit` may submit. Name a
+`submit.chain` when the org wants review. Quota scopes are
 group names, and a submission is charged to every group its submitter belongs to, so extra
 memberships only tighten a member's budget. See [catalog](catalog.md#submitting-an-asset).
 
-`catalog.versionKeep` keeps everything by default; set a ceiling only when you
-want to bound blob growth - see
+Set a `catalog.versionKeep` ceiling only when you want to bound blob growth - see
 [operations](operations.md#blob-growth-and-version-retention) and
 [catalog](catalog.md#versions).
 
@@ -421,8 +419,8 @@ need their own deployment qualification.
 
 **Hooks in the demo pack.** Every tool in the committed `packs/demo` ships hooks, so `instance.example.json` and
 `values-eval.yaml` both set `allowHooksInFastPath: true`: that pack is curated in the Lolly Work
-repository end to end. Point `instance.pack` at a pack you do not fully control and set it back
-to `false`, with a Chromium worker for the hooked tools.
+repository end to end. If you point `instance.pack` at a pack you do not fully control, set it
+back to `false` and add a Chromium worker for the hooked tools.
 
 **The browser sandbox.** The Chromium worker always runs its browser sandbox. A bounded launch begins at startup, and the
 worker's `/readyz` stays unavailable until the browser connects; failed startup or recovery
@@ -706,8 +704,7 @@ relay never fails or slows a request. What gets sent, and to whom, is written up
 
 ### Emailing people notices
 
-People notices are access requests and their answers, accepted invitations, and invitations and
-approved requests to join for addresses with no account yet. They go through one function
+People notices, listed under `people.email` above, go through one function
 (`server/src/notify/people.ts`), which writes the inbox message and, once email is on, also
 mails each recipient's verified address, or the address of an invitee or a person asking to join
 who has no account yet.
@@ -900,10 +897,8 @@ described for other service connections.
 **Redirects and limits.** Cross-origin redirects require `redirectOrigins`, and only GET/HEAD reads may
 follow them. Credential and custom headers are removed on a cross-origin hop.
 Every hop is checked again, with at most three redirects. Explicit error/manual
-redirect modes retain their stricter caller behavior. The default private and
-cross-origin redirect lists are empty. `maxBytes` defaults to 64 MiB per request
-and decoded response, and accepts 1 to 1 GiB; review the required media sizes before
-changing that limit. Requests have a 30-second budget. These controls apply to
+redirect modes retain their stricter caller behavior. Review the required media
+sizes before changing `maxBytes`. Requests have a 30-second budget. These controls apply to
 catalog federation, setup/consent checks, preview, hosted catalog bytes and publish
 requests. They do not define the identity provider or delivery destination policy.
 
@@ -1015,9 +1010,6 @@ set. The full list, what is sent and what never is are in
 | `OTEL_SDK_DISABLED` | `false` | `true` turns every signal off |
 
 ### Serverless entrypoint
-
-The serverless function entrypoint (`api/_lib/bootstrap.ts`) reads these; the standalone server
-ignores them.
 
 | Var | Default | What |
 |---|---|---|

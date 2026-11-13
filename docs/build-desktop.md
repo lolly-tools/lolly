@@ -84,7 +84,7 @@ The build runs in this order:
 The complete macOS package needs macOS 13.5 or later, the minimum for its bundled Node CLI runtime. Set `APPLE_SIGNING_IDENTITY` for a Developer ID build, then notarise and staple the app and DMG before you distribute them.
 
 ::: note Public builds carry a public brand
-Public builds, workflows, download buckets and package services use a public brand: `lolly-demo` for the Mac app and `lolly-start` for Windows and Linux, never the private `suse` pack.
+Public builds, workflows, download buckets and package services use the public brands in the table above, never the private `suse` pack.
 :::
 
 ::: details A private build from the SUSE pack

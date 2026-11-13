@@ -51,8 +51,6 @@ Enrol once in **Settings**, with a sign-in provider your deployment offers (for 
 While you are enrolled, your email address is written into every file you export. It stays in every copy you share and cannot be removed later, even after the certificate expires. For a team, consider enrolling a shared role address rather than a personal mailbox.
 :::
 
-Enrolment is optional. Skip it and you still get tamper evidence from an anonymous on-device signer.
-
 The keys stay on your device either way. Before you enrol, each export gets a fresh keypair that is discarded after that export. Enrolling replaces that with one lasting device key, generated **non-extractable**, so even Lolly's own code can only ask it to sign and never read the key. Neither key is ever transmitted. Only issuing the certificate touches the network, and only when you choose to enrol.
 
 <!--i:eti-clock-->

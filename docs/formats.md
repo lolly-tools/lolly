@@ -34,9 +34,9 @@ Every file is read on your device, and nothing is uploaded.
 | **Editing timelines** | Premiere XML, CMX 3600 EDL, OpenTimelineIO and Final Cut Pro XML open in Sequence with their clips, gaps and timecode. Point Lolly at the media files, or carry on with labelled placeholders. See [The sequence editor](/info/sequence-editor.html#premiere-xml-exchange). |
 | **CSV and JSON** | Pasted or dropped, a table fills a tool's repeating blocks, up to 1,000 rows. CSV follows RFC 4180; JSON can be an array of row objects, plain arrays, or a `data` or `rows` wrapper. |
 | **Lottie and dotLottie** | Checked and placed as live vector animations (see [Lottie animations](/info/sequence-editor.html#lottie-animations)). |
-| **MP4, MOV and WebM** | Kept byte for byte, never re-encoded; dimensions are read on your device. |
-| **MXF, ProRes and DNx** | Identified, decoded by the device where available. Lolly reads the file header, says which codec it holds and keeps the original. See [Professional video](#professional-video). |
-| **MP3, WAV, OGG and Opus, M4A and AAC, FLAC** | Kept byte for byte and decoded on your device, ready as a music bed under a video. |
+| **MP4, MOV and WebM** | Kept byte for byte, never re-encoded, with the dimensions read from the file. |
+| **MXF, ProRes and DNx** | Lolly reads the file header, says which codec it holds and keeps the original. Your device's own decoder opens it where it can. See [Professional video](#professional-video). |
+| **MP3, WAV, OGG and Opus, M4A and AAC, FLAC** | Kept byte for byte and decoded, ready as a music bed under a video. |
 | **MIDI and tracker modules** | A `.mid` file becomes a small on-device synth track, with each note's velocity kept as its loudness; Lolly Rondocode also writes a song as a `.mid`. MOD, XM, IT, S3M, STM and MTM modules play through a bundled player. A [Lolly Rondocode song](/info/rondocode.html) plays at any length. |
 
 Lolly also reads and checks the Content Credentials in PDF, PNG and APNG, JPG, GIF, SVG, TIFF, WebP, AVIF, MP4, WebM and MKV, MP3, WAV, M4A and OGG/Opus files; see [Lolly Verify](/#/verify). The **Strip Hidden Data** utility reads embedded metadata in order to remove the data.
@@ -49,7 +49,7 @@ Cameras and editing apps often write ProRes or DNxHD and DNxHR, in a MOV or an M
 Lolly does not bundle a ProRes, DNx, H.264, HEVC, AAC or AC-3 decoder. It asks your device whether its own decoder can open the file, and uses it if so:
 
 - **Your device can open the file.** Preview, trim and transcode run through that decoder, as they do for any other clip. Safari, and the Lolly desktop app on a Mac, open ProRes with Apple's own decoder.
-- **Your device cannot open the file.** Lolly says which codec the file uses and how to get a copy that opens: export an H.264, HEVC or AV1 copy from your editing app, or open the file in the desktop app on a Mac if it is ProRes. No browser plays MXF, so an MXF always asks for a copy. The original file stays in your library untouched either way.
+- **Your device cannot open the file.** Lolly tells you how to get a copy that opens: export an H.264, HEVC or AV1 copy from your editing app, or open the file in the desktop app on a Mac if it is ProRes. No browser plays MXF, so an MXF always asks for a copy. The original file stays in your library untouched either way.
 
 Only the header is read, never the pictures, so a large file is identified at once. A damaged or cut-off header is refused with a plain message instead of being guessed at.
 

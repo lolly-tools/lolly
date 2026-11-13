@@ -77,9 +77,9 @@ Use your approved signing configuration and pinned key, and never put a private 
 Never apply the public static maps to private Lolly Work routes just because their paths look alike.
 :::
 
-**A smaller release for Lolly Work.** A release that only Lolly Work serves can be smaller. `--codings br` writes Brotli siblings alone: Lolly Work sends the `.br` file to a client that accepts Brotli, and any other client gets the original bytes or Lolly Work's own compression, never a missing file. `--no-validator-map` leaves out `.delivery-etags.conf`, which only an nginx host includes. Run the pass before the frontend receipt is signed, as above, so the receipt lists exactly the files you ship.
+**A smaller release for Lolly Work.** For a release that only Lolly Work serves, `--codings br` writes Brotli siblings alone: Lolly Work sends the `.br` file to a client that accepts Brotli, and any other client gets the original bytes or Lolly Work's own compression, never a missing file. `--no-validator-map` leaves out `.delivery-etags.conf`, which only an nginx host includes. Run the pass before the frontend receipt is signed, as above, so the receipt lists exactly the files you ship.
 
-**Docs in fewer languages.** An instance can also build its own docs in fewer languages: `LOLLY_INFO_LOCALES=en` (a comma-separated list of locale codes, set for the web build) writes `/info` in English only, and the docs' language menu and the app's links to another language go to that page on lolly.tools. Leave it unset to build every language.
+**Docs in fewer languages.** `LOLLY_INFO_LOCALES=en` (a comma-separated list of locale codes, set for the web build) writes the instance's own `/info` in English only, and the docs' language menu and the app's links to another language go to that page on lolly.tools. Leave it unset to build every language.
 
 <!--i:eti-clock-->
 ## Release staleness and purge
@@ -150,7 +150,7 @@ Each sample in the list gives the expected full hash, taken from the release man
 ]
 ```
 
-Replace the illustrative path and hash with the real release values. For private resources, add samples for two readers with separate `credentialEnv` names and `credentialType: "cookie"` or `"bearer"`, using resources expected to differ between them, so a response shared by mistake shows up. Keep the credentials in the environment, never in the sample URL.
+Replace the illustrative path and hash with the real release values. For private resources, add samples for two readers with separate `credentialEnv` names and `credentialType: "cookie"` or `"bearer"`, using resources expected to differ between them, so a response shared by mistake shows up.
 
 For a public catalog, `--catalog` derives samples from the live signed index instead of a hand-written list. Pin the catalog public key in the environment and pass your own shell samples:
 

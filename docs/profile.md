@@ -13,7 +13,7 @@ Your profile also holds what you build up while you work: saved sessions, upload
 | **Contact** | Email and phone. |
 | **Location** | City and country. |
 | **Headshot** | An optional photo, cropped to a square and kept as a local image, for tools such as email signatures, quote cards and org charts. |
-| **Use my details to create** | One opt-in switch (it reads **Using my details** once on). It decides whether your details travel as the author credit in exported files and on Lolly Batch runs. It does not affect pre-fill; see [How tools use your profile](#how-tools-use-your-profile). |
+| **Use my details to create** | One opt-in switch (it reads **Using my details** once on). It decides whether your details travel as the author credit in exported files and on Lolly Batch runs; see [How tools use your profile](#how-tools-use-your-profile). |
 | **Preferences** | Your theme, your colourway in each design system, your accessibility settings and which parts of the app you turned on in **Feature flags**. |
 | **Your work** | Saved sessions with their thumbnails, organised in [Lolly Projects](/info/find-your-work.html), your uploaded images and your local activity stats. |
 
@@ -94,8 +94,6 @@ Three things sit near each other in Settings and are easy to confuse:
 - <!--i:people--> **Profile** - you, your team or the role you are in: name, contact, headshot and saved work. Personal, kept on the device and portable as a file.
 - <!--i:palette--> **Design system** - the brand: colours, fonts and settings every tool renders with. Shared and consistent rather than personal; see [Lolly Design System Setup](/info/brand-studio.html).
 - <!--i:sliders--> **Capabilities** - what the app can do: the features and tools available to you.
-
-A profile changes who a file is from; the design system changes how the file looks; capabilities are what you can make.
 
 The word has three other meanings in Lolly. A **content profile** is a build setting that chooses which tools and catalogue a deployment ships; the [Glossary](/info/glossary.html) defines the term. The `profile` link parameter picks a colour profile for an export, such as a CMYK press condition; see [Reserved URL parameters](/info/url-parameters.html#print). A **verified identity** is the optional signing certificate that ties your email to your signed exports, separate from these details, though **Use my details to create** governs whether either is embedded; see [Content Credentials](/info/content-credentials-identity.html).
 

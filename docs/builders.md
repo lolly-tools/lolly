@@ -1,6 +1,6 @@
 # Automate
 
-Build a tool once and the request stops coming back to you: the job becomes a template other people fill in themselves, correctly, without you in the loop. Your work is plain HTML, CSS and JavaScript, version-controlled and reviewable, on an open engine, so it stays yours.
+Build a tool once and the job becomes a template other people fill in themselves, correctly, without you in the loop. Your work is plain HTML, CSS and JavaScript, version-controlled and reviewable, on an open engine, so it stays yours.
 
 New here? **[Start](/info/quickstart.html)** puts a design system and your first file in place, and [How Lolly works](/info/how-lolly-works.html) shows how a script or an agent uses the same tools as a person. The [Glossary](/info/glossary.html) defines engine, shell, bridge and tool.
 

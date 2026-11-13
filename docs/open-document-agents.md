@@ -28,7 +28,7 @@ On an instance with an agent relay, the person who has the document open hands t
 - <!--i:check--> **Watch it work.** The agent appears in People, and each change it makes arrives as one undo step labelled with its name.
 :::
 
-The invitation works for ten minutes before an agent joins. A joined connection closes after thirty minutes without a request, and ends when the inviting editor closes. A new invitation starts another connection, and **End agent invitations** in Share ends them all.
+The invitation works for ten minutes before an agent joins. A joined connection closes after thirty minutes without a request, and ends when the inviting editor closes. A new invitation starts another connection.
 
 How the agent connects depends on what it runs in:
 
@@ -61,7 +61,7 @@ On a managed instance the organisation's AI policy decides whether **Ask an agen
 <!--i:eti-monitor-->
 ## In the desktop app
 
-Open Lolly Design, choose **Connect an AI agent** in the Lolly menu and turn on **Allow AI control on this device**. The setting is off until you turn it on. While it is on, the app listens on this computer only, and an agent using Lolly's local MCP server finds the app with no code: `lolly_live_connect` connects at once.
+Open Lolly Design, choose **Connect an AI agent** in the Lolly menu and turn on **Allow AI control on this device**, which is off by default. While it is on, the app listens on this computer only, and an agent using Lolly's local MCP server finds the app with no code: `lolly_live_connect` connects at once.
 
 <!--i:eti-keyboard-->
 ## In a browser with a pairing code
@@ -128,9 +128,9 @@ Start with `lolly_read_context` to learn the active project, tool, design system
 
 In a mounted Lolly Design editor, `lolly_read_document` and `lolly_find_layers` return stable layer ids, selection, canvas size and revision, and `lolly_read_document_context` gives the exact layer field definitions and supported authoring operations. `lolly_apply_document_changes` requires `documentId`, `ifRevision`, `transactionId` and a history `label`; keep the same transaction id and arguments when retrying. Changes use the live editor's validation and become one undo step. `lolly_preview_document` returns the rendered SVG, and `lolly_undo_document_changes` takes back only the browser agent's newest step.
 
-Each applied change also returns `feedback`, the same creation feedback a person sees in Lolly Design's **Before you export** card: a short summary, the writing score and band (with the ones before the change) and the house-rule findings that are new or changed on the layers the change touched, each with its layer id. `lolly_check_document` reads the whole report without changing anything. The report holds every house-rule finding, the writing score for the visible text with its strongest flagged phrases (each with its layer id) and the count of hidden layers left out. The writing score is a signal, not a verdict. The feedback is guidance to act on, not a gate: read it, revise the named layers where it applies and check again. No change is refused because of the feedback.
+Each applied change also returns `feedback`, the same creation feedback a person sees in Lolly Design's **Before you export** card: a short summary, the writing score and band (with the ones before the change) and the house-rule findings that are new or changed on the layers the change touched, each with its layer id. `lolly_check_document` reads the whole report without changing anything. The report holds every house-rule finding, the writing score for the visible text with its strongest flagged phrases (each with its layer id) and the count of hidden layers left out. The writing score is a signal, not a verdict. The feedback is guidance to act on: read it, revise the named layers where it applies and check again. No change is refused because of the feedback.
 
-The browser agent appears in People on its first document action, where the person can pause or disconnect the agent. A paused agent can read and cannot edit. Leaving the document closes its agent session, and late requests cannot act in the next view. Other tools support discovery and inspection through these site tools; their inputs stay editable through the ordinary interface.
+The browser agent appears in People on its first document action, where the person can pause or disconnect the agent. Leaving the document closes its agent session, and late requests cannot act in the next view. Other tools support discovery and inspection through these site tools; their inputs stay editable through the ordinary interface.
 
 ::: details Projects and assets through site tools
 `lolly_read_project` returns paged folders, session summaries and asset ids for the current project. At the Projects root it lists local project folders. `lolly_search_assets` and `lolly_describe_asset` need an explicit `scope`: `project`, `uploads` or `catalog`. Project scope includes local subfolders or the current shared project's ready files. Shared project caches do not appear in uploads scope. Describing a shared file verifies its checksum and prepares the ordinary local asset reference for placement.

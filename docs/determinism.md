@@ -23,7 +23,7 @@ And as a link:
 https://lolly.tools/t/qr-code?url=https://example.com&format=svg&export
 ```
 
-Tools sync to clients as data, ahead of the app that runs them, so the pairing is checked rather than hoped for. Every manifest declares an `engineVersion` range, and `loadTool` refuses a tool whose range excludes the running engine before it fetches the template. A tool never half-loads against an engine that lacks what it was written for.
+Tools sync to clients as data, ahead of the app that runs them, so the pairing is checked rather than hoped for. Every manifest declares an `engineVersion` range, and `loadTool` refuses a tool whose range excludes the running engine before it fetches the template.
 
 Inside one shell, slow work settles on the same result. Hook results are time-boxed rather than awaited forever (`HOOK_BUDGET_MS` in `engine/src/runtime.ts`). A slow `onInit` or `onInput` result still applies when it arrives, unless a newer run has started since, in which case it is dropped. So the final state follows the latest inputs, and a slow network or machine changes how long a render takes to settle, not what it settles on. An export taken before a slow hook has settled can differ, and an export hook that overruns its budget fails that export instead of applying late. [Hooks](/info/tool-hooks.html) gives the budgets.
 
@@ -53,7 +53,7 @@ Content Credentials and the Lolly Imprint are on by default, in the app and the 
 
 Rendered bare, the vector formats (SVG, EMF, EPS, DXF), the data formats (JSON, CSV, VCF, MD) and PNG from an `<svg>`-based tool come out byte-identical run to run. ICS, PDF and everything the headless browser draws do not, because they carry a clock or the browser's own encode. [CLI batch and automation](/info/cli-automation.html#how-far-byte-identical-output-goes) holds the measured table, format by format, with the commands used.
 
-Two caveats travel with the table. A tool that renders the current time produces different bytes in every format, correctly. And the measurements are one machine, back to back: a different OS, font set or engine version moves the bytes of anything that shapes text.
+One caveat travels with the table: the measurements are one machine, back to back. A different OS, font set or engine version moves the bytes of anything that shapes text.
 
 <!--i:eti-flask-->
 ## Check the claim yourself
@@ -73,7 +73,7 @@ shasum -a 256 c.svg d.svg     # different: each carries its own fresh credential
 
 A machine can act on determinism only if it can branch on the result. Every CLI command returns one exit code per outcome, frozen at general availability, and `--json` puts one document on stdout and moves every human line to stderr ([Exit codes](/info/cli-reference.html#exit-codes)).
 
-That gives a build step three options: render a vector format bare and compare hashes; render a raster format and compare it visually; or verify the credential and compare provenance. None of them asks you to trust that a hosted service returned the same thing it returned last week. In practice: commit the hash of an SVG rendered with `--no-provenance` if you want a lockfile entry, and compare a PDF, an ICS, a JPEG or anything signed by rendering and inspecting rather than by digest.
+That gives a build step three options: render a vector format bare and compare hashes, such as the hash of an SVG rendered with `--no-provenance` committed as a lockfile entry; render a raster format, a PDF, an ICS or anything signed and inspect the result rather than compare a digest; or verify the credential and compare provenance. None of them asks you to trust that a hosted service returned the same thing it returned last week.
 
 <!--i:eti-clipboard-->
 ## The receipts
@@ -97,7 +97,7 @@ That gives a build step three options: render a vector format bare and compare h
 - **Live-data lookups.** One shipping tool crosses the network for a value. The Meeting Planner asks `geocoding-api.open-meteo.com` to turn a city name into coordinates and a time zone. The input itself discloses this (the `notice` field in its `tool.json`) and sends only the name. The `geocode()` function in the tool's `template.html` caches the answer on the device for each city. So the first render of a new city depends on an outside service, and every later render of that city is offline and identical. The [privacy policy's network table](/info/privacy.html) lists this crossing with every other one.
 - **Fonts.** Vector export turns text into real outlines, so the bytes depend on which font file was resolved. `shells/web/src/bridge/font-registry.ts` pins that with an ordered chain: brand catalog faces first, then your own uploaded fonts, then the faces the app serves, rather than whatever the operating system has. The CLI resolves sfnt faces under the repository root and refuses a browser-only woff2 with a clear error rather than shaping blanks. A machine with a different font set makes a different render, and the chain exists to make that failure visible.
 - **Provenance marks are on by default.** A credential carries a fresh signature and timestamp, and the Imprint moves pixels. Both are wanted, and both make a default export differ from run to run.
-- **The characterisation check is local.** It proves that a refactor did not change what a build draws on your machine. It is not a cross-machine byte guarantee, and nothing in the repository claims one for the browser-tier formats.
+- **The characterisation check is local.** It proves that a refactor did not change what a build draws on your machine, and nothing in the repository claims a cross-machine byte guarantee for the browser-tier formats.
 
 <!--i:eti-link-->
 ## Related

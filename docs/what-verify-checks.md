@@ -83,7 +83,7 @@ The large generators stamp their own invisible watermark into the pixels: Google
 
 For a real read of two open pixel watermarks, Lolly Verify offers an opt-in deep scan. A banner asks *"Scan for invisible watermarks?"*, and one click downloads the detector models once (about 90 MB). After that, every image in the batch is scanned automatically, on the device.
 
-- **Adobe TrustMark** is a genuine decode, checked by error correction. When the recovered payload passes that check, Lolly Verify shows **Adobe TrustMark detected** with the recovered bytes. It is a real read, so it earns a green pip. The scan also recognises Lolly's own durable mark.
+- **Adobe TrustMark** is a genuine decode, checked by error correction. When the recovered payload passes that check, Lolly Verify shows **Adobe TrustMark detected** with the recovered bytes, as a green pip. The scan also recognises Lolly's own durable mark.
 - **Meta Content Seal** is a read of Meta's *open* Pixel Seal and Video Seal watermark. It has no error-correcting check, so a decode that stays consistent across several re-encodings is reported as an amber **Meta Content Seal likely**: a statistical match, not a certainty. A flat or low-detail image can read as a false positive. Meta's production "Muse" image pipeline uses a separate proprietary variant that Lolly cannot read, so a hit never means "Meta AI", and absence rules nothing out.
 
 Lolly can also write a TrustMark durable mark into its own exports. That switch sits in the export panel's Content protection card and is off by default, for the same reason the scan is opt-in: a neural pass plus a one-time model download.

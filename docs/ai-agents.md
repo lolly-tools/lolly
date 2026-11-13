@@ -87,7 +87,7 @@ Use the smallest path that answers the task:
 
 1. Read the instance's discovery record, then ask only for the tool or format you need.
 2. Describe the chosen tool or template and fill its declared inputs.
-3. Render. `lolly_render` checks the inputs itself, so call `lolly_validate` separately only before you hand out a URL you built by hand.
+3. Render. `lolly_render` checks the inputs itself.
 4. Return the file, the editable link, the checks that ran and one next step.
 
 For a known recipe, skip listing the whole catalog. For a revision, send the changed inputs or stable layer patches, not the whole document.

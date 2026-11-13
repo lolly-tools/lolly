@@ -14,7 +14,7 @@ The person making the hundredth file only types the words. How you check the wor
 <!--i:eti-users-->
 ## Who touches a tool
 
-Follow one campaign card through an organisation and three pairs of hands appear. Each one builds on the last.
+Follow one campaign card through an organisation and three pairs of hands appear.
 
 ![A designer sets the rules once in a tool; a developer runs it from a script and anyone can fill in its fields; both make finished files](/info/diagrams/concepts/asset-relay.svg)
 

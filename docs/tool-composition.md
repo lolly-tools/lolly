@@ -83,5 +83,5 @@ and keep **only the files that differ** in the overlay folder. The content resol
 - Overlay and base **share one tool id**, because ids are permanent and the URL `tools/<id>/` never changes. The overlay's `tool.json` carries the `extends` marker even when it is otherwise identical to the base's.
 
 ::: warning A broken overlay stops with an error
-An overlay whose base is missing (no `community/<id>/tool.json`), an `extends` value other than `"community"` (the only base pack in v1) or an `extends` on a community tool itself fails loudly the first time anything resolves that profile, and `pnpm run validate:catalog` rejects it too. You never get a silently partial tool. The combined result is validated like any other tool, because the validator asks the same resolver every shell asks.
+An overlay whose base is missing (no `community/<id>/tool.json`), an `extends` value other than `"community"` (the only base pack in v1) or an `extends` on a community tool itself fails loudly the first time anything resolves that profile, and `pnpm run validate:catalog` rejects it too. The combined result is validated like any other tool, because the validator asks the same resolver every shell asks.
 :::

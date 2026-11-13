@@ -49,13 +49,13 @@ storage-seeding hook.
 -->
 
 - <!--i:folder--> **Folders that nest.** Group saved sessions into folders, and folders inside folders, as deep as you like. Create a folder, rename it or drag a tile onto another folder to move it; a breadcrumb walks you back up. Sessions saved without a folder appear directly at the **Projects** root.
-- <!--i:clock--> **Sort your own way.** **View options**, the sliders button at the top right, offers **Grid** or **List** and sorts by **Name**, **Date added**, **Last modified** (the default), **Size** and, inside a folder, **By tool**. Folders always come first regardless of which sort is active - the sort only orders the sessions and folders within their own group.
+- <!--i:clock--> **Sort your own way.** **View options**, the sliders button at the top right, offers **Grid** or **List** and sorts by **Name**, **Date added**, **Last modified** (the default), **Size** and, inside a folder, **By tool**. Folders always come first; the sort orders sessions and folders within their own group.
 - <!--i:document--> **File new work straight in.** **New asset** opens the shared picker. Choose **Templates** to start from a saved template: open it to edit, or use **+ Add** to save a new creation immediately.
 - <!--i:checklist--> **Multi-select (desktop).** Tick a tile's checkbox, drag a selection box across empty space or **Shift/Cmd-click**; **right-click** a tile for its context menu. The selection bar then offers **Render selection**, **Move to…**, **New folder**, **Delete** (which moves to Trash), **Edit together** for two to eight single-tool sessions, side by side under one sidebar, and **Edit as sheet**, which opens a selection of any size or mix as rows in the batch grid.
 - <!--i:download--> **Render a whole folder or selection.** **Render folder** exports every saved session in a folder - including its sub-folders - as one nested `.zip`. **Render selection** does the same for any multi-selection, and a single session renders straight to its own file.
 - <!--i:link--> **Jump straight to a tool's saved work.** Tick one or more tools on the Tools gallery and choose **View sessions** from the selection bar - Projects opens showing only the sessions made with those tools, with a **Clear** to get back to the full view.
 - <!--i:link--> **Share a saved session.** Right-click a session (on a phone, press the **•••** on its tile) → **Share link** to copy a link that reopens it with the same settings; pictures from your device do not travel with a link (the full Share dialog: see [Sharing your work](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Rename or copy one.** Right-click a session (on a phone, press the **•••** on its tile) for **Rename**, **Duplicate** (a copy in the same folder) and **Move to…**.
+- <!--i:pentool--> **Rename or copy one.** The same menu has **Rename**, **Duplicate** (a copy in the same folder) and **Move to…**.
 
 ![The View options popover in Projects: Layout with Grid and List, and Sort by set to Last modified, beside a button that reverses the order](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
@@ -90,7 +90,7 @@ What comes back depends on how you left and which tool you used:
 - **You pressed Home, or the back button at the top left.** If you changed something since you last saved, downloaded or copied, an **Unsaved edits** dialog asks whether to save first. **Save & leave** saves the work and takes you to **Projects**, or back to the project folder you opened the work from. **Leave anyway** discards your changes: a saved item goes back to how you last saved it, and a creation you never saved leaves **Projects**. **Cancel** keeps you in the tool.
 
 ::: warning Closing the tab does not ask first
-Lolly asks only when you press **Home** or the back button in a tool. Closing the tab, reloading and your browser's own Back button never ask. To be sure, press **Save as**, or **Save** in the export panel, before you leave a tool.
+Closing the tab, reloading and your browser's own Back button never ask. To be sure, press **Save as**, or **Save** in the export panel, before you leave a tool.
 :::
 
 When automatic recovery is unavailable, a note beside the editing controls says what to keep:
@@ -101,7 +101,7 @@ When automatic recovery is unavailable, a note beside the editing controls says 
 - In a private collaboration, the person who invited keeps the document and its history, including the other person's changes. The person who joined works on a temporary copy and should save a separate copy before the session ends.
 
 ::: note Left without saving by mistake?
-In tools that save as you work, History keeps a copy of the discarded edits. Open the **History** page, find them under **Changes** and press **Open as a copy**. In other tools the changes are gone.
+In tools that save as you work, History keeps a copy of the discarded edits for 30 days. Open the **History** page, find them under **Changes** and press **Open as a copy**. In other tools the changes are gone.
 :::
 
 ::: details Which tools save as you work
@@ -113,7 +113,7 @@ In the web app, every tool that makes a document saves as you work: Lolly Design
 
 In the other tools, your first change files the work in **Projects** as if you had saved, and later changes are kept as you work once the tool has finished drawing. An unsaved creation is still in Projects after you close the tab, and reopens with its changes marked unsaved.
 
-**Leave anyway** still discards those changes, and History keeps a copy of the discarded edits for 30 days. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
+**Leave anyway** still discards those changes. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
 
 3D and Lolly Darkroom save as you work, but they do not keep a file you load into them, such as a 3D model or a LUT. History and **Save** keep the file's name, type and size, not the file. When you open the work again, a note says which file it was, and the tool works without it until you load it again. Keep your original files.
 
@@ -134,7 +134,7 @@ If no file appeared, look in the export panel while you are still in the tool. U
 Lolly also keeps two things after each download:
 
 - **A copy of the file**, in **Assets** under **Your uploads**, while **Save my renders to my library** is on under **Settings → Your renders** (**Settings** is at the foot of the home screen). The setting starts on. A video, or a file over 50 MB, asks first, and a zip is not copied.
-- **The settings you used**, for your last 24 downloads. **Recent exports**, below your saved work in **Projects**, reopens the tool with those settings so you can make the file again, though pictures and files you added from your device are not included. The same list is under **Settings → Activity & stats → Latest exports** and on the **Changes** tab of **History**. This list keeps settings, not the files.
+- **The settings you used**, for your last 24 downloads. **Recent exports**, below your saved work in **Projects**, reopens the tool with those settings so you can make the file again, though pictures and files you added from your device are not included. The same list is under **Settings → Activity & stats → Latest exports** and on the **Changes** tab of **History**.
 
 ::: details In the desktop and mobile apps
 - **Desktop app:** **Download** saves straight into a **Lolly** folder inside your **Downloads** folder, without a dialog. The line under **Download** says where it went, such as "Saved to Downloads/Lolly", with **Show in folder**. **Open Exports Folder**, in the **Window** or **Exports** menu, opens the folder at any time. A file with the same name as an earlier one is saved as "name (1)".

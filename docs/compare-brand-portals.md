@@ -9,7 +9,7 @@ If your organisation keeps its approved assets in Bynder, Frontify, Marq or Bran
 
 An existing DAM can stay the source of record. Lolly Work's catalog connectors make a selected part of its library available in Lolly, where people make new files under the organisation's rules. The DAM's supported source constraints and Lolly Work's exposure rules govern access; final output review is a separate decision.
 
-[Use Lolly with your existing DAM](/info/use-with-dam.html) explains the responsibilities and limits. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful integration that supported administrator change management before a planned migration. Keeping the source connected remains a supported choice.
+[Use Lolly with your existing DAM](/info/use-with-dam.html) explains the responsibilities and limits. [SUSE's Brandfolder experience](/info/suse-brandfolder.html) records successful integration that supported administrator change management before a planned migration.
 
 Lolly's purpose is [content sovereignty](/info/content-sovereignty.html), including control over production and the freedom to choose systems. Its own library and approvals support organisations that choose to operate those capabilities themselves. [Lolly for DAM vendors and implementation partners](/info/dam-partners.html) describes how the connected workflow can add value to an existing system of record.
 

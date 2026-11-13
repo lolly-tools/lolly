@@ -18,7 +18,7 @@ You get evidence, not a verdict. The checks run on your device, in the app and i
 
 - An AI percentage. No released calibration supports one yet, so the view says **Unestimated**.
 - A verdict of human authorship. Missing metadata, unavailable models and unread text never count either way.
-- A guess at which model did the writing. Invisible characters and product names in the text do not identify a generator.
+- A guess at which model did the writing.
 :::
 
 Careful human writing can trip the same patterns. Useful categories, ordered procedures, quoted examples and brand requirements explain many of them, and the view lists those alternatives beside each finding.
@@ -80,7 +80,7 @@ JSON and readable exports contain the recovered text, locations, coverage, versi
 | DOCX | Available text extraction. Rendered page geometry is unavailable. |
 | Video and audio | Existing verification stays available; judging authorship over time is not supported. |
 
-Local OCR and the text classifier run when they are cached. **OCR**, under **More**, uses the usual model download offer. Eligible text without a cached classifier gets **Download** and **Skip** in the toolbar: Download opens the standard consent and size offer, and Skip keeps the assessment with that check marked unavailable. Inspection adds no file upload and keeps no file automatically.
+Local OCR and the text classifier run when they are cached. **OCR**, under **More**, uses the usual model download offer. Eligible text without a cached classifier gets **Download** and **Skip** in the toolbar: Download opens the standard consent and size offer, and Skip keeps the assessment with that check marked unavailable. Inspection keeps no file automatically.
 
 The floating toolbar follows the file you are reading and keeps the file, text, URL, inspection and report actions together. On a phone, more actions are under **More**.
 

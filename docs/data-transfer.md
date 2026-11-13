@@ -106,7 +106,7 @@ When `manifest.integrity` is present, a reader checks each listed part's SHA-256
 
 Integrity is best effort. It is written only where Web Crypto is available (every secure browser context and modern Node), and checked only when both the map and Web Crypto are present. A bundle without the map, such as one from before integrity existed, imports unchanged: "cannot verify" never counts as "corrupt".
 
-The manifest lists neither itself nor the regenerated `lolly.txt`. The digests cover the parts the manifest vouches for.
+The manifest lists neither itself nor the regenerated `lolly.txt`.
 
 <!--i:eti-download-->
 ## Import rules
@@ -116,7 +116,7 @@ An import runs in one of two modes.
 - **Merge** is what **Import data…** does, and what sync's first join, **Bring it to this device**, does. Data on the target stays, and nothing that was not in the bundle is touched: a session the target had and the bundle did not survives the import.
 - **Replace** is what device sync uses to keep devices in step: it takes the synced copy's profile record, preferences, sessions, images and choice of active design system, and removes only items another device deleted since the last sync. Restoring an earlier copy goes further and makes the device match that copy, removing everything the copy does not hold, after saving the device first. [Sync your devices](/info/sync.html) covers what a person sees.
 
-In a merge, anything only on the target is kept, and each kind of data in the bundle meets the target like this:
+In a merge, each kind of data in the bundle meets the target like this:
 
 | Data | Already on the target | Only in the bundle |
 |---|---|---|
@@ -185,8 +185,6 @@ Two names are reserved for data that does not travel yet:
 
 - **`tokens.json`** would carry a whole [W3C DTCG](https://tr.designtokens.org/format/) design-tokens document with its groups, sets and themes, the format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/). A user's own brand tokens already travel as the `user/tokens/brand` asset in `assets.json`, and a design system's tokens travel with its record.
 - **`penpot/`** is reserved for an ingested Penpot file, or its Lolly-relevant subset, surfaced as a tool.
-
-Today's readers know neither name yet. Like anything else outside the parts above, each is an unknown part to them: left untouched and counted in `skipped`.
 
 <!--i:eti-history-->
 ## History parts

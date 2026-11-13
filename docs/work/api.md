@@ -77,7 +77,7 @@ while a person works.
 | `PUT /api/v1/instance-pack` | `instance.config` (**owner**) | host a pack cut by the OSS builder; refused unless its instance base is this deployment |
 | `DELETE /api/v1/instance-pack` | `instance.config` (**owner**) | stop hosting |
 
-The manifest is what a downloaded app learns about this deployment before anyone signs in:
+The manifest's shape is
 `{ name, accessMode, provider, providerName, loginPath, engineVersion, capabilities, providers,
 brand, branding, connect? }`.
 
@@ -1409,8 +1409,8 @@ or a live-collab invite once they cannot see the project, an invite also once it
 is deleted, and an access request for a project once they no longer manage the project. Hidden is
 not deleted: the message comes back if the access does.
 
-Comment notices appear in the same list. There is one per person
-per thread, updated as replies arrive, and it is built when the inbox is read.
+There is one comment notice per person per thread, updated as replies arrive, and it is
+built when the inbox is read.
 
 ::: details How a comment notice reads
 ```json

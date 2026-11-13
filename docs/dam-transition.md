@@ -59,7 +59,7 @@ Agree acceptance checks before setting a final date. These should include requir
 Supported Lolly Work cutover moves copied identities and creates aliases for old source addresses.
 
 ::: warning Cutover is not an undo button
-Cutover changes authority and disables a database-managed source; it is not a universal undo button. Preserve the source, storage backups and the mapping evidence until the organisation has accepted the result and agreed its recovery procedure.
+Cutover changes authority and disables a database-managed source. Preserve the source, storage backups and the mapping evidence until the organisation has accepted the result and agreed its recovery procedure.
 :::
 
 After cutover, check old references, representative originals, permissions and approval operations again. Retire the old service only after its retention, contract and recovery requirements have been addressed. If the organisation instead keeps the DAM, [the connected production workflow](/info/use-with-dam.html) remains a supported destination for the project.

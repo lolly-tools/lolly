@@ -129,8 +129,8 @@ its place could not ask which parts had arrived, and migration 0041 capped a pro
 
 The constraints that decided the protocol:
 
-- Request bodies are capped in front of Lolly Work: a serverless function host can cap a request at
-  4.5 MB, nginx defaults to 1 MB and ingress controllers set their own limits.
+- Request bodies are capped in front of Lolly Work: ingress controllers set their own limits,
+  nginx defaults to 1 MB and a serverless function host can cap a request at 4.5 MB.
 - Every blob store driver stores whole objects by id (a Postgres row per blob, an S3 object per
   key). None can append, and S3 multipart parts must be at least 5 MiB except the last.
 - Replicas share the database and the blob store, not memory.
@@ -157,7 +157,7 @@ apply: a declared length and metadata at the begin, an offset to carry on from (
 tus calls `Upload-Offset`), a readable expiry (`expiresAt`, like `Upload-Expires`) and
 termination by `DELETE`. Only bytes that match a declared checksum are stored, the unit stored is
 the unit checked, and no driver needs to append. A 1 MiB part is under every request cap above,
-so one client works on a serverless host, behind nginx and on Kubernetes. Migration 0075 replaced
+so one client works on Kubernetes, behind nginx and on a serverless host. Migration 0075 replaced
 0041's 256 MiB check with the 4 GiB ceiling for both tables.
 
 `server/src/uploads/parts.ts` is the shared primitive: the manifest rules, storing a verified

@@ -107,7 +107,7 @@ Stats draws the forms analysts reach for: an editorial dot plot, intervals and r
 <!--i:eti-eye-->
 ## Charts people can read
 
-Every chart carries a written description and a table of its values. The description is part of the chart, so a screen reader reads out the title and how many rows and series the chart holds, and the accessible table gives the numbers. The colours come from your design system, and **Colour by** and **Palette** let you choose a set that reads apart.
+Every chart carries a written description and a table of its values. The description is part of the chart, so a screen reader reads out the title and how many rows and series the chart holds, and the accessible table gives the numbers. **Colour by** and **Palette** let you choose design system colours that read apart.
 
 <!--i:eti-download-->
 ## Export and share

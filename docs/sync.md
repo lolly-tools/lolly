@@ -73,7 +73,7 @@ The rules for how a copy meets the work already on a device are in [Data transfe
 <!--i:eti-lock-->
 ## Encryption is optional
 
-Encryption is off unless you turn it on. Use it when you do not trust the place you sync to.
+Turn on encryption when you do not trust the place you sync to.
 
 - Enter a passphrase under **Sync across devices**. Your work is then encrypted on your device before it is uploaded, and your storage only holds data it cannot read.
 - Every device needs the same passphrase.

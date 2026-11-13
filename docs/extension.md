@@ -90,7 +90,7 @@ The extension's `manifest.json` declares four permissions, plus site access that
 | `storage` | Notes the id of a tab it opened, in session storage only, so the tab still closes if the browser suspends the extension mid-read. Cleared on the next start; nothing about you is stored. | At install |
 | `optional_host_permissions: ["http://*/*", "https://*/*"]` | Site access, not granted at install. When you press **Approve once**, the extension asks Chrome for access to the one site in that request. | The first time you approve a request for that site, after Chrome asks you |
 
-The extension reads only the single page you approve. It does not read or send your browsing data, and nothing is uploaded.
+The extension reads only the single page you approve, and does not read or send your browsing data.
 
 <!--i:eti-help-->
 ## Troubleshooting

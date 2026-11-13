@@ -52,7 +52,7 @@ Every stage reads the content profile's design system (`LOLLY_PROFILE`) and touc
 <!--i:eti-hammer-->
 ## Rebuild in Lolly Design: the seven commands
 
-These commands take an old deck to a checked, exported PowerPoint file. The sections below explain each step.
+These commands take an old deck to a checked, exported PowerPoint file.
 
 ```bash
 lolly read old.pptx --json --media=./media > old.inventory.json
@@ -288,7 +288,7 @@ A check never reads as clean on what it did not read. An export page with no tex
 `check` exits `0` when nothing needs attention (notes are allowed), `5` when there are warnings to review, `4` on an error finding, `3` with `--browser=require` when a document has no browser tier to render it, `2` on a usage error and `1` when a family itself failed or no page of an export could be decoded. An export has no render family, so `--browser=require` does not apply to one, and one command line can check documents and their PDF exports together. The writing score never changes the exit code, with `--strict` or without: a document whose only warning is a strong writing score exits `0`. Read the house-rule findings and the writing score as feedback, revise the layers they name and check again.
 
 ::: details The other check flags
-- `--strict` turns weak Lolly Verify clues into errors and refuses on any warning. The writing score stays a note or a warning and is never counted.
+- `--strict` turns weak Lolly Verify clues into errors and refuses on any warning other than the writing score.
 - `--browser=off` skips the render family.
 - `--theme=<name>` is the token theme the document is checked in; a theme the design system does not declare is a usage error.
 - `--themes=<a,b|all>` checks in several themes in one report. The render, brand and Lolly Verify families run once per theme and each finding carries `theme`. Structure and fidelity run once. A link that does not resolve in a theme is `brand.token-link.unresolved`. `--theme` and `--themes` together are refused.

@@ -13,7 +13,7 @@ Tools are data at the top. The engine in the middle knows nothing of any platfor
 
 ![Tools supply a manifest, template and hooks to the shared engine. Web, Tauri and terminal shells implement the HostV1 capability bridge and read tools and assets from catalogs.](/info/diagrams/concepts/platform-layers.svg)
 
-If you can describe it in pure data and Handlebars, it belongs in the **engine**. If it touches the DOM, the filesystem, the network or any browser or operating-system API, it belongs in the **host**, the shell's side of the bridge. The engine is open source, and nothing that knows about a particular brand or platform goes into the engine.
+If you can describe it in pure data and Handlebars, it belongs in the **engine**. If it touches the DOM, the filesystem, the network or any browser or operating-system API, it belongs in the **host**, the shell's side of the bridge. The engine is open source, and nothing that knows about a particular brand goes into the engine.
 
 <!--i:eti-folder-shared-->
 ## Repository layout

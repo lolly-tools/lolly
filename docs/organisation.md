@@ -63,7 +63,7 @@ In the desktop and mobile apps, the sign-in screen also offers a short code, whe
 - A log of your sign-ins and what you do there
 :::
 
-With a workspace connected, the privacy line on the app's first screen says the same: the workspace keeps what you save to its projects or share through it, and a log of your sign-ins and what you do there. Lolly's own apps send it no usage events. [Privacy](/info/privacy.html#organisation-services-with-lolly-work) lists what the server stores and who controls that data.
+With a workspace connected, the privacy line on the app's first screen says the same. Lolly's own apps send the workspace no usage events. [Privacy](/info/privacy.html#organisation-services-with-lolly-work) lists what the server stores and who controls that data.
 
 <!--i:eti-building-->
 ## What Lolly Work adds

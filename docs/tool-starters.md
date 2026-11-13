@@ -54,7 +54,7 @@ After changing a cover, run `pnpm run build:gallery-covers --url=<your dev serve
 People can save their own templates from your tool, through the editor's Save dialog or from a session tile in Projects. A saved template has the same fields as one you ship and joins yours in the chooser under **Yours**, but it lives on that person's profile, never in the catalog. [Templates](/info/templates.html) covers saving, renaming, hiding and deleting from the person's side. Two things follow for you as the author:
 
 - **The seed is the session, minus what cannot travel.** It keeps the session's export settings (format, size, unit and DPI) and drops every `file` input, whose bytes are the person's own file rather than a value. A tool whose inputs are all `file` inputs cannot be saved as a template, and the app does not offer to.
-- **A saved template can become a shipped one.** **Export as file** writes `{ id, name, description, values }` in exactly the format above. Put that file in your tool's `templates/` folder, rebuild the catalog and it is a starter like the rest. That is the route from something one person made to something the tool ships, and what a pull request against `lolly-tools/lolly` should carry.
+- **A saved template can become a shipped one.** **Export as file** writes `{ id, name, description, values }` in exactly the format above. Put that file in your tool's `templates/` folder, rebuild the catalog and it is a starter like the rest. That file is what a pull request against `lolly-tools/lolly` should carry.
 
 Who owns a template decides what can be done to the template. A template someone saved is theirs to delete. A template you ship can be hidden and restored but never deleted, whether or not the brand is locked.
 

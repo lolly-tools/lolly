@@ -23,7 +23,7 @@ Every frame becomes a scene on the timeline, ready for timing, music and a voice
 | **`.fig`** | Figma: *File → Save local copy* | Decoded in the browser, with no Figma account, plugin or API key. |
 | **`.penpot`** or **`.zip`** | Penpot's export | Boards, layers, pages and groups; a native `.penpot` file also keeps its layouts (see [Penpot layouts](#penpot-layouts-kept-or-fixed)). |
 | **`.ai`** or **`.pdf`** | Illustrator, saved with the default *PDF-compatible* option, or any PDF | Vector paint, text and images read straight from the page. |
-| **`.idml`** | InDesign: *File → Export → InDesign Markup* | Every spread and its margins, as artboards or scenes; **Replace the board** opens the first spread. |
+| **`.idml`** | InDesign: *File → Export → InDesign Markup* | Every spread and its margins, as artboards or scenes. |
 | **`.indd`** or **`.indt`** | InDesign, saved as a document or a template (a preview) | Converted to IDML on your device, then read like an `.idml` (see [InDesign files](#indesign-files)). |
 | **`.dxf`** | AutoCAD, or any CAD or floor-plan program that saves DXF | Layers become groups of line and curve paths, with text as text boxes (see [DXF drawings](#dxf-drawings-and-floor-plans)). |
 | **`.af`**, **`.afdesign`**, **`.afphoto`**, **`.afpub`** or **`.aftemplate`** | Affinity, saved as a document or a template | Artboards or pages become frames; shapes, curves, text and pictures become editable layers (see [Affinity files](#affinity-files)). |
@@ -39,7 +39,7 @@ SVG is the widest door: almost any design app can export SVG, so almost any desi
 <!--i:eti-file-->
 ## InDesign files
 
-A native `.indd` or `.indt` is converted to IDML on your device with a bundled WebAssembly module, and the result goes down the same path as an exported `.idml`. Nothing is uploaded and InDesign is not needed. The converter reads files saved by InDesign 2.0 and later.
+A native `.indd` or `.indt` is converted to IDML on your device with a bundled WebAssembly module, and the result goes down the same path as an exported `.idml`. InDesign is not needed. The converter reads files saved by InDesign 2.0 and later.
 
 In the web app the conversion runs in the background, with a **Cancel** button, so the page stays responsive.
 
@@ -50,12 +50,12 @@ The converter does not yet write every attribute InDesign writes, so spacing, st
 The converter was written from observation of sample files and not from Adobe's documentation, and its [source and caveats](https://github.com/lolly-tools/lolly/tree/main/packages/node-shell/wasm/indd/vendor/indd-utils) are published beside the module.
 
 ::: details InDesign limits and the command line
-The file can be up to 128 MB, the converted package up to 128 MB and the converter's memory 1 GB. A file over a limit, an InDesign 1.x file, a file cut short and a file that is not an InDesign document each stop with a plain message. In the command line, `lolly adobe indd document.indd --output=document.idml` writes the package and prints the converter's warnings, and `lolly adobe idml document.indd` reports what Lolly Design would import.
+The file can be up to 128 MB, the converted package up to 128 MB and the converter's memory 1 GB. A file over a limit, an InDesign 1.x file, a file cut short and a file that is not an InDesign document each stop with a plain message. In the command line, `lolly adobe indd document.indd --output=document.idml` writes the package and prints the converter's warnings, and `lolly adobe idml document.indd` lists every spread with the Lolly Design inputs it maps to, with no profile or download needed. The same command reads an exported `.idml`.
 :::
 
 ### What an IDML import carries
 
-Each spread becomes a Lolly Design page set, and the import report lists what was approximated or dropped. It does not claim to match InDesign, so compare the result with your original before sharing.
+Each spread becomes a Lolly Design page set, and the import report lists what was approximated or dropped. Bundled images enter the library, and an image the file only links to needs supplying, or it stays a labelled placeholder. The import does not claim to match InDesign, so compare the result with your original before sharing.
 
 | From InDesign | In Lolly Design |
 |---|---|
@@ -74,7 +74,7 @@ Each spread becomes a Lolly Design page set, and the import report lists what wa
 <!--i:eti-building-->
 ## DXF drawings and floor plans
 
-A `.dxf` file, ASCII or binary and saved by AutoCAD R12 through 2018, opens as a drawing. Each DXF layer becomes a group in Lolly Design. Inside a group, each colour is one or more path boxes (lines, polylines with arcs, circles, arcs, ellipses and splines) and each piece of text is a text box. Blocks are expanded to eight levels, array inserts are repeated, and a dimension is drawn through the lines and text of its own block. The drawing is read on your device with a bundled WebAssembly module and nothing is uploaded.
+A `.dxf` file, ASCII or binary and saved by AutoCAD R12 through 2018, opens as a drawing. Each DXF layer becomes a group in Lolly Design. Inside a group, each colour is one or more path boxes (lines, polylines with arcs, circles, arcs, ellipses and splines) and each piece of text is a text box. Blocks are expanded to eight levels, array inserts are repeated, and a dimension is drawn through the lines and text of its own block. The drawing is read on your device with a bundled WebAssembly module.
 
 The drawing is scaled to fit about 2,400 pixels on its long side. The import report gives the real scale as "one pixel is N mm", read from the file's `$INSUNITS` setting. A file that states no units is read as millimetres, and the report says that was assumed.
 
@@ -89,7 +89,7 @@ The file can be up to 32 MB, with up to 2 million group codes, 250,000 entities 
 <!--i:eti-pen-tool-->
 ## Affinity files
 
-A native Affinity file is read on your device with a bundled WebAssembly module. Nothing is uploaded and Affinity is not needed. Files from Affinity 1, 2 and 3 open: `.af` is the Affinity 3 document, and `.afdesign`, `.afphoto` and `.afpub` come from the earlier versions. An `.aftemplate` template opens the same way.
+A native Affinity file is read on your device with a bundled WebAssembly module, and Affinity is not needed. Files from Affinity 1, 2 and 3 open: `.af` is the Affinity 3 document, and `.afdesign`, `.afphoto` and `.afpub` come from the earlier versions. An `.aftemplate` template opens the same way.
 
 What comes in as editable layers:
 
@@ -139,10 +139,10 @@ The importer maps layers onto Lolly Design's boxes and keeps as much editable as
 - **Text stays text.** Type becomes real text boxes with content, size, alignment, weight, line height and per-run colours, so you retype a headline instead of repainting one.
 - **Shapes stay shapes.** Rectangles, rounded rectangles, ellipses and pills become native shape boxes with their fills, opacity, rotation and corner radii.
 - **Images are extracted.** Bitmaps go into **My images**, your on-device library, and are placed as image boxes.
-- **Complex vector art is kept as a picture.** Paths, gradients and other paint the box model cannot express become crisp SVG image boxes, so the look holds where editing cannot.
+- **Complex vector art is kept as a picture.** Paths, gradients, complex blend stacks, unusual strokes and other paint the box model cannot express become crisp SVG image boxes, so the look holds where editing cannot.
 - **Geometry follows the source.** SVG positions, sizes and rotations use browser geometry. PDF imports read page coordinates and character advances.
 
-A PDF import keeps clipping and supported effects inside transparent SVG artwork. Text fragments that belong together are joined; separate styles and distant columns stay apart. Cropped text, missing fonts, approximate CMYK colours and unsupported effects need review, so compare the import with the original before you share the result. IDML brings supported named styles and character formatting into Lolly Design text; bundled images enter the library, and an external link needs its image supplied or it stays a labelled placeholder. From the terminal, `lolly adobe idml layout.idml` lists every spread with the Lolly Design inputs it maps to, with no profile or download needed.
+A PDF import keeps clipping and supported effects inside transparent SVG artwork. Text fragments that belong together are joined; separate styles and distant columns stay apart. Cropped text, missing fonts, approximate CMYK colours and unsupported effects need review, so compare the import with the original before you share the result.
 
 <!--i:eti-palette-->
 ## Fonts and colours on your design system
@@ -198,6 +198,5 @@ An imported layout is an ordinary Lolly Design session, so it can do everything 
 - Imported SVG is treated as untrusted: scripts, event handlers and foreign objects are removed before parsing, and anything kept as an image is cleaned again when it is stored. Nothing runs and nothing leaves the device.
 - SVG artwork, including a Penpot export read as SVG pages, is capped at **2,000 elements**; anything past that is dropped with a warning rather than locking the tab.
 - A Lolly Design document holds up to 20,000 layers and 256 pages, and a file over 100 MB is refused.
-- Effects outside the box model, such as complex blend stacks or unusual strokes, become an image rather than editable properties.
 
 Every other file Lolly opens, from photos to audio, is listed in [Formats](/info/formats.html). For newly written text, see [Text in Lolly Design](/info/text-composition.html).

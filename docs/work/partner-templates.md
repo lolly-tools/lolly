@@ -4,7 +4,7 @@
 A template gives a programme a ready piece to finish, such as a product data sheet where a
 reseller adds only their price. Partners find it on their home, under **From** and your
 workspace's name, and in the tool's **Start** chooser, and **Use** opens the template. Only what
-the template leaves open is offered; everything else is simply not there, with no note about why.
+the template leaves open is offered; everything else is not there, with no note about why.
 :::
 
 ![The Templates card for Resellers, EMEA: the Partner data sheet with its logo and details line taken from the company, a Pricing template and the switch that keeps Pricing to its templates](shots/partner-programme-templates.svg)
@@ -22,8 +22,7 @@ the programme. There are two kinds:
 - **A template of one of your tools.** Save a template in the tool and submit it to the catalog,
   then choose it under **Publish a template**. Submitting needs `catalog.submit`, which authors and
   admins have; a programme manager without it asks a colleague on the brand team to submit the
-  template, then publishes it from the card. Untick what partners may not change. The card
-  counts what stays open, for example "Partners can change 1 of 9 inputs". With every input ticked
+  template, then publishes it from the card. The card counts what stays open, for example "Partners can change 1 of 9 inputs". With every input ticked
   there are no rules and partners can change everything. **Colourway and mode** sits below the
   inputs and starts ticked: partners may pick another of your brand's colourways and switch
   between light and dark, which moves every colour the tool takes from the design system. Untick
