@@ -57,7 +57,7 @@ test('the greeting opens at the top of the gallery, one sentence and one action'
   assert.equal(hero()!.querySelector('h2')!.textContent, 'Make the next thing beautiful.');
   assert.equal(hero()!.querySelectorAll('.welcome-hero-go').length, 1, 'one primary action');
   assert.equal(hero()!.querySelector('.welcome-hero-go')!.getAttribute('data-choice'), 'make');
-  assert.ok(hero()!.querySelector('.fauna-slot[data-fauna="lorikeet"][data-fauna-watch=".welcome-hero-go"]'), 'the lorikeet watches the action');
+  assert.equal(hero()!.querySelector('.fauna-slot'), null, 'one thing to look at: the mark, no drawing beside the action');
   assert.equal(document.querySelector('dialog'), null, 'no modal');
   closeWelcomeHero();
   await done;
@@ -94,6 +94,19 @@ test('the close button and Escape dismiss for good', async () => {
   document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
   assert.equal(await done, 'dismiss');
   assert.equal(isWelcomeDismissed(), true);
+});
+
+test('dismissing animates the card away, then takes it out of the page', async () => {
+  await fresh();
+  const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });
+  click('[data-choice="dismiss"]');
+  assert.equal(await done, 'dismiss');
+  assert.equal(hero(), null, 'the greeting counts as gone at once');
+  const leaving = document.querySelector<HTMLElement>('.welcome-hero-leaving');
+  assert.ok(leaving, 'the card is still leaving');
+  assert.match(leaving.style.getPropertyValue('--wh-h'), /px$/, 'the space it held is measured, so it can close');
+  await new Promise(r => setTimeout(r, 1000));
+  assert.equal(document.querySelector('.welcome-hero-leaving'), null, 'gone once the animation has had its time');
 });
 
 test('a route change takes the greeting down without settling anything', async () => {
