@@ -17,8 +17,9 @@
  *   frets, the open strings a folk player lets ring, the nearest shape to the last chord)
  *   and strums it: a downstroke from the low strings on the beat and the eighths, an
  *   upstroke across the treble strings on the sixteenths between, faster when it is harder.
- * - A lead guitarist bends some long notes up into pitch, slides into some from the note
- *   before, and plays the rest as they are written.
+ * - A lead guitarist finds a place on the neck for each bar, bends some long notes up into
+ *   pitch, slides into some from the note before, and plays the rest as they are written,
+ *   each note on the fret the hand reaches it at.
  * - A producer chops the vocal (lib/lofi-chop.ts): each note's slice, its scoops, slides,
  *   flips, falls, gates and stutters, and the odd reversed swell into a phrase.
  * - A harpist, an acoustic guitarist or a tar player takes the lead (lib/lofi-lead-art.ts):
@@ -128,7 +129,7 @@ function drummer(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => numbe
 export const STRUMMED = new Set<string>(['steel', 'jazzbox', 'clean', 'wall', 'electric']);
 const OPEN_STRINGS = new Set<string>(['steel', 'wall']);
 /** Standard tuning, low E to high E. */
-const TUNING = [40, 45, 50, 55, 59, 64] as const;
+export const TUNING = [40, 45, 50, 55, 59, 64] as const;
 
 /** A chord fingered on the fretboard: the sounding pitch on each string, low to high, or null for a string not played. */
 type Shape = Array<number | null>;
@@ -347,22 +348,51 @@ export function fretFor(midi: number, near: number): number {
 
 /** The lead guitars, which bend and slide. */
 export const GUITAR_LEADS = new Set<string>(['guitar', 'overdrive', 'riff', 'metal', 'twang']);
-/** A lead guitar note's articulation, carried in `mod`: plain, bent up into pitch, or slid into from the last note. */
+/** The lead guitars that sound an octave below the written line. */
+const LOW_LEADS = new Set<string>(['riff', 'twang']);
+/** A lead guitar note's articulation, carried in `mod`: plain, bent up into pitch, or slid into from the last note. The performer adds the fret, times ELECTRIC_FRET. */
 export const LEAD_PLAIN = 0, LEAD_BEND = 1, LEAD_SLIDE = 2;
+
+/**
+ * Where a lead guitarist's hand sits for a bar: the position (the fret under the first
+ * finger, the hand covering it and the three above) that reaches the bar's notes with the
+ * fewest stretches, a lead player's home between the fifth and the twelfth frets preferred.
+ */
+export function leadPosition(pitches: readonly number[]): number {
+  let best = 7, bestCost = Infinity;
+  for (let pos = 1; pos <= 15; pos++) {
+    let cost = Math.abs(pos - 7) * 0.15;
+    for (const p of pitches) {
+      let reach = Infinity;
+      for (const open of TUNING) {
+        const f = Math.round(p) - open;
+        if (f < 0 || f > 20) continue;
+        reach = Math.min(reach, f === 0 ? 0.5 : f < pos ? pos - f : f > pos + 3 ? f - pos - 3 : 0);
+      }
+      cost += reach;
+    }
+    if (cost < bestCost) { bestCost = cost; best = pos; }
+  }
+  return best;
+}
 
 /**
  * A lead guitarist's choices: a long note on a strong beat is often bent up a tone (or a
  * semitone) into pitch; a note a few semitones from the one before, played straight
- * after it, is sometimes slid into; the rest are picked as written.
+ * after it, is sometimes slid into; the rest are picked as written. Each note is fingered
+ * at the hand's place for the bar, on the string that keeps the note nearest.
  */
-function leadGuitarist(notes: LofiNote[], rand: () => number): void {
+function leadGuitarist(notes: LofiNote[], lead: string, rand: () => number): void {
+  const shift = LOW_LEADS.has(lead) ? -12 : 0;
+  const pos = leadPosition(notes.filter(n => n.voice === 'lead').map(n => n.midi + shift));
   let last: LofiNote | undefined;
   for (const [i, n] of notes.entries()) {
     if (n.voice !== 'lead') continue;
     const strong = Math.abs(n.beat - Math.round(n.beat)) < 0.02;
     const near = last && Math.abs(n.midi - last.midi) <= 4 && n.midi !== last.midi && n.beat - (last.beat + last.dur) < 0.15;
     const art = n.dur >= 0.75 && strong && rand() < 0.45 ? LEAD_BEND : near && rand() < 0.3 ? LEAD_SLIDE : LEAD_PLAIN;
-    if (art !== LEAD_PLAIN && !n.mod) notes[i] = { ...n, mod: art };
+    const fret = fretFor(Math.round(n.midi + shift), pos + 1.5);
+    notes[i] = { ...n, mod: (n.mod ? n.mod % ELECTRIC_FRET : art) + ELECTRIC_FRET * fret };
     last = n;
   }
 }
@@ -377,7 +407,7 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   let notes = strokes([...bar.notes], bar);
   drummer(notes, bar, spb, rand);
   if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
-  if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, rand);
+  if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
   return notes;

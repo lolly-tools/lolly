@@ -17,6 +17,9 @@
  *   node there, but never quite taking them out: the pick has a width), seen by the two
  *   pickups at their places along the sounding length (a fretted note moves both), the
  *   pick's own roll-off (softer for a gentle stroke), and the strike's small burst of noise.
+ *   The bridge pickup alone (a lead's, or a high-gain part's) sees the string nearer the
+ *   saddle, so more of its top: it is slanted, about 52 mm from the saddle under the low E
+ *   and 41 under the high E.
  * - Decay: each partial loses 3.5 + 0.6 log2(f0 / 110) + 4.8 f decibels a second (f in
  *   kHz), fitted to 458 partials over one to five seconds into the measured notes (a low
  *   partial rings for about fifteen seconds, one at 4 kHz for under three).
@@ -62,10 +65,28 @@ export interface ElectricSpec {
   lead?: number;
   /** When the note is stopped (s after it sounds), and how: choked (the fretting hand lets the string off the fret) or lifted (a ringing note let go). */
   end?: number; endDamp?: 'choke' | 'lift' | 'mute';
+  /** Which pickups hear it: the neck and middle together (as measured), or the bridge pickup alone (a lead or a high-gain part). */
+  pickup?: 'neck-middle' | 'bridge';
 }
 
 /** The scale length and the two pickups' places, mm from the bridge (the instrument's published geometry). */
 const SCALE = 648, NECK = 160, MIDDLE = 99;
+/**
+ * The bridge pickup is slanted: nearer the saddle under the treble strings than the bass
+ * (mm from the bridge, the low E's and the high E's), so a low string's bridge tone is a
+ * little fuller than a high one's.
+ */
+const BRIDGE_BASS = 52, BRIDGE_TREBLE = 41;
+/** The open strings (Hz), low E to high E: a note's pitch and fret give the string it is played on, and so the slanted bridge pickup's place under that string. */
+const OPEN = [82.41, 110, 146.83, 196, 246.94, 329.63] as const;
+
+/** The bridge pickup's place under the string a note is played on (mm from the bridge). */
+export function bridgeAt(f: number, fret: number): number {
+  const open = f * 2 ** (-fret / 12);
+  let s = 0;
+  for (let i = 1; i < OPEN.length; i++) if (Math.abs(Math.log(open / OPEN[i]!)) < Math.abs(Math.log(open / OPEN[s]!))) s = i;
+  return BRIDGE_BASS + ((BRIDGE_TREBLE - BRIDGE_BASS) * s) / (OPEN.length - 1);
+}
 /**
  * The middle pickup's level against the neck's, the two wired in parallel. They are
  * added as powers, not as signed amplitudes: two point pickups' sum would cut notches the
@@ -130,7 +151,9 @@ export function partialsOf(spec: ElectricSpec, rand: () => number): Partial[] {
   const { f, sr } = spec;
   const length = SCALE * 2 ** (-spec.fret / 12);
   const q = Math.min(0.45, Math.max(0.02, spec.pick));
-  const pn = NECK / length, pm = MIDDLE / length;
+  const bridge = spec.pickup === 'bridge';
+  // The neck and middle pickups wired together, or the bridge pickup alone (pm unused).
+  const pn = (bridge ? bridgeAt(f, spec.fret) : NECK) / length, pm = MIDDLE / length;
   const B = STIFF * (107 / f) ** STIFF_EXP;
   const top = Math.min(TOP, sr * 0.45);
   // The wave's speed along the string (m/s) sets where the pick's roll-off falls.
@@ -144,7 +167,7 @@ export function partialsOf(spec: ElectricSpec, rand: () => number): Partial[] {
     if (hz > top) break;
     const sq = Math.sin(n * Math.PI * q);
     const shape = Math.sqrt(sq * sq + PICK_FILL * PICK_FILL) / n;
-    const sn = Math.sin(n * Math.PI * pn), sm = MIDDLE_GAIN * Math.sin(n * Math.PI * pm);
+    const sn = Math.sin(n * Math.PI * pn), sm = bridge ? 0 : MIDDLE_GAIN * Math.sin(n * Math.PI * pm);
     const pickups = Math.sqrt(sn * sn + sm * sm);
     const amp = (shape * pickups) / Math.sqrt(1 + (hz / pickTop) ** 2);
     const alpha = (decayRate(f, hz, spec.damp) * Math.LN10) / 20;
