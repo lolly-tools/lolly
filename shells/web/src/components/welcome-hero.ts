@@ -32,6 +32,11 @@
  * than MAX_HOLD_MS: a greeting in place can stay on the page for a whole visit, and
  * background work must not wait that long. The gallery's previews do not wait at all.
  *
+ * The greeting is a card that floats over the top of the gallery (Andy, 2026-11-13:
+ * floating, easy to dismiss, lit like an object). Three ways put it away: the close
+ * button, Escape, and on a touch screen a sideways swipe. When it goes, it fades and
+ * the space it held closes, so the gallery slides up rather than jumping.
+ *
  * Singleton, like the dialog: the gallery re-mounts after a catalog sync, and a
  * second call while the greeting is up moves the same element into the new gallery
  * and hands back the same promise, so the mark does not draw twice.
@@ -59,6 +64,12 @@ const DRAWN_KEY = 'lolly-welcome-mark-drawn';
 const INTRO_MS = 1600;
 /** The longest maintenance waits for the greeting, whether or not the band came into view. */
 const MAX_HOLD_MS = 4000;
+/** The longest a leaving card stays in the page if its animation never reports an end. */
+const LEAVE_MAX_MS = 900;
+/** How far a swipe travels, as a share of the card's width, before letting go dismisses. */
+const SWIPE_SHARE = 0.3;
+/** A quicker flick than this (pixels per millisecond) dismisses however short it was. */
+const SWIPE_FLICK = 0.6;
 
 let openPromise: Promise<HeroChoice> | null = null;
 let current: { el: HTMLElement; close: (choice: HeroChoice | null) => void; settle: () => void } | null = null;
@@ -139,6 +150,77 @@ function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: b
 }
 
 /**
+ * Take the card out of the page. With motion on, the card fades first and then the
+ * space it held closes; the class changes at once, so the greeting counts as gone
+ * (a query for `.welcome-hero` finds nothing) while the card animates away.
+ */
+function leave(el: HTMLElement, animate: boolean): void {
+  if (!animate || !el.isConnected || prefersReducedMotion()) { el.remove(); return; }
+  el.style.setProperty('--wh-h', `${el.offsetHeight}px`);
+  el.className = 'welcome-hero-leaving';
+  const done = (): void => { clearTimeout(timer); el.remove(); };
+  const timer = setTimeout(done, LEAVE_MAX_MS);
+  el.addEventListener('animationend', (e) => { if (e.target === el) done(); });
+}
+
+/**
+ * A sideways swipe on a touch screen puts the card away. The card follows the
+ * finger and fades as it goes; let go past a third of its width, or with a flick,
+ * and it leaves that way; anything less and it settles back. Taps still reach the
+ * buttons: the card only takes the gesture once it is clearly sideways.
+ */
+function wireSwipe(card: HTMLElement, dismiss: () => void): void {
+  let id: number | null = null;
+  let x0 = 0; let y0 = 0; let t0 = 0; let dx = 0; let dragging = false;
+  const reset = (): void => { id = null; dragging = false; dx = 0; };
+  card.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' || id !== null) return;
+    id = e.pointerId; x0 = e.clientX; y0 = e.clientY; t0 = e.timeStamp; dx = 0; dragging = false;
+  });
+  card.addEventListener('pointermove', (e) => {
+    if (e.pointerId !== id) return;
+    const mx = e.clientX - x0; const my = e.clientY - y0;
+    if (!dragging) {
+      if (Math.abs(my) > 10 && Math.abs(my) > Math.abs(mx)) { reset(); return; }
+      if (Math.abs(mx) < 10) return;
+      dragging = true;
+      card.classList.remove('is-settling');
+      card.setPointerCapture(e.pointerId);
+    }
+    dx = mx;
+    card.style.translate = `${dx}px 0`;
+    card.style.opacity = String(Math.max(0.2, 1 - Math.abs(dx) / card.offsetWidth));
+  });
+  const end = (e: PointerEvent): void => {
+    if (e.pointerId !== id) return;
+    const wasDragging = dragging;
+    const speed = Math.abs(dx) / Math.max(1, e.timeStamp - t0);
+    const out = wasDragging && e.type === 'pointerup'
+      && (Math.abs(dx) > card.offsetWidth * SWIPE_SHARE || speed > SWIPE_FLICK);
+    const sign = Math.sign(dx) || 1;
+    reset();
+    if (!wasDragging) return;
+    // The click that ends a drag is not a tap on whatever was under the finger.
+    // The browser sends it straight after pointerup, so the guard comes off on the next task.
+    const swallow = (c: Event): void => { c.stopPropagation(); c.preventDefault(); };
+    card.addEventListener('click', swallow, { capture: true, once: true });
+    setTimeout(() => card.removeEventListener('click', swallow, { capture: true }), 0);
+    card.classList.add('is-settling');
+    if (out) {
+      card.classList.add('is-flung');
+      card.style.translate = `${sign * 110}% 0`;
+      card.style.opacity = '0';
+      dismiss();
+    } else {
+      card.style.translate = '';
+      card.style.opacity = '';
+    }
+  };
+  card.addEventListener('pointerup', end);
+  card.addEventListener('pointercancel', end);
+}
+
+/**
  * Show the greeting at the top of `root` (the gallery), or move the one already up
  * there. Resolves with how it ended; a route change resolves 'dismiss' without
  * settling anything, as the dialog does.
@@ -163,6 +245,15 @@ export function showWelcomeHero(
     const el = document.createElement('section');
     el.className = 'welcome-hero';
     el.setAttribute('aria-labelledby', 'welcome-hero-title');
+    // The section places the card; the card is the floating surface, painted in place.
+    const card = document.createElement('div');
+    card.className = 'welcome-hero-card';
+    el.append(card);
+    // The card rises in once. Moving the element to a re-mounted gallery would
+    // restart that, so once it has arrived it stays arrived.
+    card.addEventListener('animationend', (e) => {
+      if (e.target === card && e.animationName === 'wh-arrive') el.classList.add('is-arrived');
+    });
     let drawn = false;
     try { drawn = localStorage.getItem(DRAWN_KEY) === '1'; } catch { drawn = true; }
     // The mark draws once, when the band is first in view: a finished mark from the
@@ -179,9 +270,9 @@ export function showWelcomeHero(
       releaseGate();
     };
     const paint = (focus?: string): void => {
-      el.innerHTML = heroMarkup(opts.audience, !!opts.uploadHost, langsOpen, opts.privacy);
-      hydrateFauna(el, { only: APPROVED_FAUNA });
-      if (focus) el.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
+      card.innerHTML = heroMarkup(opts.audience, !!opts.uploadHost, langsOpen, opts.privacy);
+      hydrateFauna(card, { only: APPROVED_FAUNA });
+      if (focus) card.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
     };
     paint();
     root.prepend(el);
@@ -210,7 +301,9 @@ export function showWelcomeHero(
       // Every explicit choice settles the welcome, and the band carried the privacy
       // promise, so each also acknowledges the notice. A route change does neither.
       if (choice) { markWelcomeDismissed(); opts.ackPrivacy(); }
-      el.remove();
+      // A choice that stays on the gallery animates away; one that navigates, or a
+      // route change, goes at once, since the gallery is leaving too.
+      leave(el, choice === 'dismiss' || choice === 'import' || choice === 'explore');
       resolve(choice ?? 'dismiss');
     };
     current = { el, close, settle };
@@ -221,6 +314,7 @@ export function showWelcomeHero(
     };
     for (const ev of NAV_EVENTS) window.addEventListener(ev, onNav);
     document.addEventListener('keydown', onKey);
+    wireSwipe(card, () => close('dismiss'));
 
     el.addEventListener('click', (e) => {
       const target = e.target instanceof Element ? e.target : null;
@@ -270,6 +364,7 @@ export function showWelcomeHero(
 export function adoptWelcomeHero(root: HTMLElement | null): void {
   if (!root || !current || current.el.parentElement === root) return;
   if (current.el.classList.contains('is-drawing')) current.settle();
+  current.el.classList.add('is-arrived');
   root.prepend(current.el);
 }
 
