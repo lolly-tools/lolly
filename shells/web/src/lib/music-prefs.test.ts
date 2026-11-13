@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import {
   INSTRUMENT_FAMILIES, MUSIC_PARTS, NO_PREFS, avoidBlocked, clearSwaps, familyOf, heardBySection, instrumentsOf,
-  isBlocked, loadMusicPrefs, setMusicPref, styleInstruments, swapKey, type MusicPart, type MusicPrefs,
+  isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, styleInstruments, swapKey, type MusicPart, type MusicPrefs,
 } from './music-prefs.ts';
 import { shuffleMusic } from './music-shuffle.ts';
 import { composeTrack, musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
@@ -173,4 +173,32 @@ test('a shuffle with no preferences draws exactly what it drew before', () => {
   for (let i = 0; i < 20; i++) {
     assert.deepEqual(shuffleMusic(seeded(70 + i), { bars: 64 }), shuffleMusic(seeded(70 + i), { bars: 64, prefs: NO_PREFS }));
   }
+});
+
+test('"Shuffle genres" is on unless turned off, and lives beside the instrument preferences', () => {
+  const profile: Profile = {};
+  assert.equal(loadShuffleGenres(profile), true, 'on by default');
+  assert.equal(loadShuffleGenres(null), true);
+  setMusicPref(profile, 'lead', 'flute', 'favourite', true);
+  setShuffleGenres(profile, false);
+  assert.deepEqual(profile.music, { favourites: ['lead:flute'], shuffleGenres: false });
+  assert.equal(loadShuffleGenres(profile), false);
+  setMusicPref(profile, 'bass', 'eight', 'blocked', true);
+  assert.equal(profile.music?.shuffleGenres, false, 'a star or a block keeps the switch');
+  setShuffleGenres(profile, true);
+  assert.deepEqual(profile.music, { favourites: ['lead:flute'], blocked: ['bass:eight'] }, 'on is the default, so nothing is stored');
+  setMusicPref(profile, 'lead', 'flute', 'favourite', false);
+  setMusicPref(profile, 'bass', 'eight', 'blocked', false);
+  assert.equal(profile.music, undefined);
+});
+
+test('with a genre given, a shuffle keeps the genre and draws a new seed and sound', () => {
+  const seeds = new Set<number>();
+  for (let i = 0; i < 12; i++) {
+    const s = shuffleMusic(seeded(300 + i), { bars: 32, after: 'ska', genre: 'ska' });
+    assert.equal(s.mood, 'ska');
+    seeds.add(s.seed);
+  }
+  assert.ok(seeds.size >= 11, `new seeds each time (${seeds.size} of 12)`);
+  assert.notEqual(shuffleMusic(seeded(1), { bars: 32, after: 'ska' }).mood, 'ska', 'without one, the genre changes');
 });

@@ -8,7 +8,7 @@
    lanes always line up. No maximum width: a wide monitor shows more of the track.
 
    On a phone the bar gives way to a dock at the bottom (a big play button, the time and
-   the shuffle cap under the thumb), the styles become a strip of chips, the tracks are
+   the shuffle cap under the thumb), the genre button spans the bar, the tracks are
    rows of their own (the instruments they play, mute and solo), and the visualiser's band
    opens only while something plays. The timeline stays below the rows. The instrument
    browser that a row or a lane opens has its own sheet (parts/music-browser.css). */
@@ -134,6 +134,28 @@
   /* The Content Credentials switch and the two lines saying what a download and a save
      will record, read before either is clicked. */
   .ms-cred { gap: var(--sp-2); }
+  /* Download and Save to library say what they are doing (views/music-studio/action-button.ts):
+     a turning ring and "Saving…" while busy, a tick and "Saved" when done, and when the
+     work fails, an alert glyph and a plain sentence beside the button. */
+  .ms-act { display: inline-flex; align-items: center; gap: var(--sp-1); }
+  .ms-act-icon { display: inline-grid; place-items: center; width: 16px; height: 16px; }
+  .ms-act-icon[hidden] { display: none; }
+  .ms-act-icon svg { width: 16px; height: 16px; }
+  .ms-act-ring {
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: var(--radius-round);
+    animation: ms-act-turn calc(var(--dur-3) * 3) linear infinite;
+  }
+  @keyframes ms-act-turn { to { transform: rotate(1turn); } }
+  @media (prefers-reduced-motion: reduce) { .ms-act-ring { animation: none; } }
+  html[data-a11y-motion="reduce"] .ms-act-ring { animation: none; }
+  .ms-act[data-state="done"] { color: var(--ui-color-action-primary); }
+  .ms-act[data-state="failed"] { color: var(--ui-color-status-danger); }
+  .ms-act-error { color: var(--ui-color-status-danger); font-size: var(--fs-sm); }
+  .ms-act-error[hidden] { display: none; }
   .ms-make-notes { flex-basis: 100%; display: grid; gap: var(--sp-1); }
   .ms-make-note { margin: 0; color: var(--ui-color-text-muted); }
 
@@ -175,7 +197,11 @@
   .ms-browse { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; cursor: pointer; }
   /* An instrument the person chose for the whole track reads as theirs, as a set key does. */
   .ms-browse.is-set { font-weight: 600; color: var(--ui-color-action-primary); }
-  .ms-styles, .ms-rows { display: none; }
+  .ms-rows { display: none; }
+  /* The genre button: the genre's icon and name, opening the genre picker (views/music-studio/genre-picker.ts). */
+  .ms-genre { display: inline-flex; align-items: center; gap: var(--sp-2); width: auto; min-width: 10em; text-align: start; cursor: pointer; }
+  .ms-genre-icon { flex: none; display: inline-grid; place-items: center; color: var(--ui-color-action-primary); }
+  .ms-genre-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* The instrument browser's panel sits down the right side (parts/music-browser.css): the page makes room. */
   @media (min-width: 761px) {
     .ms-page.has-browser { padding-inline-end: calc(min(400px, 42vw) + var(--sp-4) * 2); }
@@ -236,32 +262,8 @@
     .ms-transport .ms-time { order: 1; flex: 1; min-width: 0; text-align: center; font-size: var(--fs-md); }
     .ms-shuffle { order: 2; margin: 0; }
 
-    /* The styles as a strip of chips across the top of the bar, the chosen one in view. */
-    .ms-style-pick { display: none; }
-    .ms-styles {
-      order: -1;
-      flex-basis: 100%;
-      display: flex;
-      gap: var(--sp-1);
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding-block: 2px;
-    }
-    .ms-styles::-webkit-scrollbar { display: none; }
-    .ms-style {
-      flex: none;
-      min-height: 36px;
-      padding: 0 var(--sp-3);
-      border: 1px solid var(--ui-color-border-default);
-      border-radius: var(--radius-pill);
-      background: var(--ui-color-surface-canvas);
-      color: var(--ui-color-text-default);
-      font: inherit;
-      font-size: var(--fs-sm);
-      cursor: pointer;
-    }
-    .ms-style[aria-pressed="true"] { background: var(--ui-color-action-primary); border-color: transparent; color: var(--ui-color-action-on-primary); }
-    .ms-style:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+    /* The genre button across the top of the bar, at full size for a thumb. */
+    .ms-genre { order: -1; flex-basis: 100%; min-height: var(--ui-size-target); font-size: var(--fs-md); }
 
     /* The tracks as rows: the track and what it plays (a tap opens its instruments),
        then mute and solo at full size for a thumb. */

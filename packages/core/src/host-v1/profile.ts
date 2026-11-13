@@ -103,6 +103,9 @@ export interface Profile {
   music?: {
     favourites?: string[];
     blocked?: string[];
+    /** "Shuffle genres": absent or true, a shuffle draws a new genre; false keeps the
+     *  genre and draws a new seed and sound. */
+    shuffleGenres?: boolean;
   };
   /** How the app itself dresses - the shell's OWN use of the design system,
    *  which is secondary to what a design system is for (tools and exports).

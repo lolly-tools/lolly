@@ -80,12 +80,30 @@ export function setMusicPref(profile: Profile, part: MusicPart, id: string, kind
   const favourites = entries(profile.music?.favourites).filter(k => k !== key);
   const blocked = entries(profile.music?.blocked).filter(k => k !== key);
   if (on) (kind === 'favourite' ? favourites : blocked).push(key);
-  const music: NonNullable<Profile['music']> = {};
+  const music: NonNullable<Profile['music']> = { ...profile.music };
+  delete music.favourites;
+  delete music.blocked;
   if (favourites.length) music.favourites = favourites;
   if (blocked.length) music.blocked = blocked;
+  keepMusic(profile, music);
+  return { favourites: new Set(favourites), blocked: new Set(blocked) };
+}
+
+/** Write the music record back, leaving no field when the record is empty. */
+function keepMusic(profile: Profile, music: NonNullable<Profile['music']>): void {
   if (Object.keys(music).length) profile.music = music;
   else delete profile.music;
-  return { favourites: new Set(favourites), blocked: new Set(blocked) };
+}
+
+/** Whether a shuffle draws a new genre. On unless the person turned it off. */
+export const loadShuffleGenres = (profile: Profile | null | undefined): boolean => profile?.music?.shuffleGenres !== false;
+
+/** Turn "Shuffle genres" on or off on the profile record (the caller saves the record). On is the
+ *  default, so it leaves no field; only off is stored. */
+export function setShuffleGenres(profile: Profile, on: boolean): void {
+  const music: NonNullable<Profile['music']> = { ...profile.music };
+  if (on) delete music.shuffleGenres; else music.shuffleGenres = false;
+  keepMusic(profile, music);
 }
 
 // ── what a style plays ───────────────────────────────────────────────────────

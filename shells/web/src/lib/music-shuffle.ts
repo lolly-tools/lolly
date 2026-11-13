@@ -139,12 +139,13 @@ function sectionChanges(rand: () => number, track: readonly LofiBar[], pool: Poo
  * A shuffled track: any style but `after` (the one playing now), a new seed, and
  * instruments, a mix and a tone to suit them. `bars` is the track's length, which says
  * which kinds of section it reaches. With `keep`, the style and seed stay as given and
- * only the sound is drawn (the generator's Shift-shuffle). `prefs` are the person's
- * favourite and blocked instruments.
+ * only the sound is drawn (the generator's Shift-shuffle). With `genre`, the genre stays
+ * and the seed and the sound are drawn (the generator's shuffle with "Shuffle genres"
+ * off). `prefs` are the person's favourite and blocked instruments.
  */
-export function shuffleMusic(rand: () => number, opts: { bars?: number; after?: LofiMood; keep?: { mood: LofiMood; seed: number }; prefs?: MusicPrefs } = {}): MusicShuffle {
+export function shuffleMusic(rand: () => number, opts: { bars?: number; after?: LofiMood; keep?: { mood: LofiMood; seed: number }; genre?: LofiMood; prefs?: MusicPrefs } = {}): MusicShuffle {
   const moods = LOFI_STATION_MOODS.filter(m => m !== opts.after);
-  const mood = opts.keep?.mood ?? choose(rand, moods) ?? LOFI_STATION_MOODS[0]!;
+  const mood = opts.keep?.mood ?? opts.genre ?? choose(rand, moods) ?? LOFI_STATION_MOODS[0]!;
   const seed = opts.keep ? opts.keep.seed >>> 0 : seedFrom(rand);
   const own = lofiStream(seed, { mood }).next().tune.style;
   const prefs = opts.prefs;
