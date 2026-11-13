@@ -93,6 +93,17 @@ export interface Profile {
    *  Chrome only, like `a11y`: a tool's render never reads the field. Shells mirror it
    *  to their own device storage for the pre-paint restore. */
   hand?: 'left' | 'right';
+  /** The music generator's instrument preferences (the web shell's #/music). Each
+   *  entry is `<part>:<instrument>`, for example `lead:flute`. A shuffle draws a
+   *  favourite more often and never draws a blocked instrument, and a new tune puts
+   *  another instrument in place of a blocked one the composer drew, writing that
+   *  choice into the track's link so the link plays the same for everyone. A link
+   *  that sets a blocked instrument still plays that instrument. Optional: absent
+   *  means no preferences. Chrome only, like `a11y`: a tool's render never reads the field. */
+  music?: {
+    favourites?: string[];
+    blocked?: string[];
+  };
   /** How the app itself dresses - the shell's OWN use of the design system,
    *  which is secondary to what a design system is for (tools and exports).
    *  Additive + optional: absent means the defaults below, so a profile without

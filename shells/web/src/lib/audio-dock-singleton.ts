@@ -29,6 +29,8 @@ import {
   type DockVolume,
   type DockControl,
   type DockPlacement,
+  type DockSeekGrid,
+  type DockPositionText,
 } from '@lolly-tools/audio-dock';
 import { isNeuroDockCollapsed, setNeuroDockCollapsed } from './neuro-dock-pref.ts';
 import { neuroDemoActive } from './neuro-demo.ts';
@@ -127,6 +129,9 @@ class ComposedHost implements DockHost {
   duration(): number { return this.musicSrc?.duration?.() ?? 0; }
   seekable(): boolean { return this.musicSrc?.seekable?.() ?? false; }
   seek(seconds: number): void { this.musicSrc?.seek?.(seconds); }
+  /** A generated tune's bars, which the scrub snaps to, and the words for where it is. */
+  seekGrid(): DockSeekGrid | null { return this.musicSrc?.seekGrid?.() ?? null; }
+  describePosition(seconds: number): DockPositionText { return this.musicSrc?.describePosition?.(seconds) ?? {}; }
   nowPlaying(): DockNowPlaying { return this.musicSrc?.nowPlaying() ?? { title: '' }; }
   onChange(listener: () => void): () => void {
     this.listeners.add(listener);

@@ -12,7 +12,7 @@
  */
 import { ampInput, pluckLevel, strings, stringBuffer, mtof, EPS, type Amp, type VoiceKit } from './lofi-voices.ts';
 import { electricString, ENDS, leadOf, type ElectricSpec } from './lofi-electric.ts';
-import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PALM } from '../../../../engine/src/lofi-compose.ts';
+import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PALM, ELECTRIC_SLIDE } from '../../../../engine/src/lofi-compose.ts';
 
 export const GUITAR_KEYS = new Set<string>(['clean', 'fuzz', 'wall', 'electric']);
 
@@ -248,9 +248,12 @@ export function electricNote(k: VoiceKit, out: AudioNode, t: number, midi: numbe
   const src = ctx.createBufferSource();
   src.buffer = electricBuffer(ctx, { f: mtof(midi), seconds, fret, pick: Math.round(pick * 200) / 200, layer, damp: damp === 'dead' ? 'ring' : damp, lead, end, endDamp }, variant);
   src.detune.value = (k.rng() - 0.5) * 4;
+  // The pick touches the string `lead` before it sounds; a stroke due sooner than that starts part way in.
+  const at = t - lead, now = ctx.currentTime;
   if (o.bend) {
+    // Held below from the pick's touch, then up into the note.
     const from = 2 ** (-o.bend / 12);
-    src.playbackRate.setValueAtTime(from, t);
+    src.playbackRate.setValueAtTime(from, Math.max(at, now));
     src.playbackRate.setValueAtTime(from, t + 0.02);
     src.playbackRate.exponentialRampToValueAtTime(1, t + 0.02 + (o.bendTime ?? 0.15));
   }
@@ -268,8 +271,6 @@ export function electricNote(k: VoiceKit, out: AudioNode, t: number, midi: numbe
   const g = ctx.createGain();
   g.gain.value = ELECTRIC_LEVEL * pluckLevel(vel) ** VEL_CURVE;
   src.connect(g).connect(valveInput(k, out));
-  // The pick touches the string `lead` before it sounds; a stroke due sooner than that starts part way in.
-  const at = t - lead, now = ctx.currentTime;
   if (at >= now) src.start(at);
   else src.start(now, now - at);
   src.stop(Math.max(at, now) + Math.min(seconds, lead + end + tail));
@@ -285,5 +286,7 @@ function electricKeys(k: VoiceKit, out: AudioNode, t: number, midi: number, vel:
     fret,
     damp: flags & ELECTRIC_DEAD ? 'dead' : flags & ELECTRIC_PALM ? 'palm' : 'ring',
     choke: (flags & ELECTRIC_CHOKE) !== 0,
+    // A slide from the fret below: quick, the finger already moving as the pick strikes.
+    ...(flags & ELECTRIC_SLIDE ? { bend: 1, bendTime: 0.035 } : {}),
   });
 }

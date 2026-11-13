@@ -75,8 +75,33 @@ type Percussion = typeof LOFI_PERCUSSION[number];
  *  a bounce (a spring's boing), a blip (a menu's two quick notes), a laser (a falling pew)
  *  and a warp (sliding down and up and down). 16 more plays it in a minor key. */
 export const LOFI_GAME_SOUNDS = ['jump', 'powerup', 'powerdown', 'bonus', 'bounce', 'blip', 'laser', 'warp', 'levelup', 'shrink', 'grow', 'oneup', 'gem'] as const;
-/** The shouts a `hey` note can call, by its `mod`. Synthesised from vowels: no recording, no words beyond the call. */
-export const LOFI_SHOUTS = ['hey', 'yeah', 'woo', 'oh', 'ayy', 'uh', 'ugh', 'whoa', 'yo'] as const;
+/**
+ * The shouts a `hey` note can call, by its `mod`. Synthesised, never recorded. The first
+ * nine are a vowel or two each. From LOFI_SHOUT_PHRASES on they are the band's phrases,
+ * "pick it up", "let's go" and "go", said with their consonants by the formant voice
+ * (lib/lofi-voice.ts); a phrase's `mod` plus LOFI_SHOUT_CROWD is a few voices shouting it
+ * together.
+ */
+export const LOFI_SHOUTS = ['hey', 'yeah', 'woo', 'oh', 'ayy', 'uh', 'ugh', 'whoa', 'yo', 'pickitup', 'letsgo', 'go'] as const;
+/** The first of the band's phrases in LOFI_SHOUTS. */
+export const LOFI_SHOUT_PHRASES = 9;
+/** Added to a phrase's `mod`: the crowd shouts the phrase back, not one voice. */
+export const LOFI_SHOUT_CROWD = 16;
+/**
+ * The beat a shouted phrase's syllables keep, in seconds, at `spb` seconds a beat: the
+ * division of the beat (a sixteenth, an eighth, a dotted eighth or the beat) nearest the
+ * pace the phrase is said at, and no quicker than it can be said. "Pick it up" falls on
+ * eighths at ska's tempo; the "let's" of "let's go" comes a dotted eighth or a beat before the "go".
+ */
+export function lofiShoutStep(phrase: 'pickitup' | 'letsgo', spb: number): number {
+  const [natural, least] = phrase === 'pickitup' ? [0.18, 0.14] : [0.27, 0.21];
+  let best = spb;
+  for (const d of [0.25, 0.5, 0.75]) {
+    const s = spb * d;
+    if (s >= least && Math.abs(s - natural) < Math.abs(best - natural)) best = s;
+  }
+  return best;
+}
 /**
  * The producer's tag: a voice saying "Lolly" (a `tag` note, `mod` its index here), the
  * way a producer signs a track. Spoken, shouted, a crowd shouting, sung on the key,
@@ -155,8 +180,10 @@ export interface LofiNote {
    * how many times the chord's level and filter swing each beat (0 holds it), plus 16
    * when the chord bends up into its pitch. On the electric guitar (keys `electric`), how
    * the chord is played, as ELECTRIC_* flags: an upstroke, choked (the fretting hand lets
-   * go as it ends), dead (the strings muted by the fretting hand: a scratch) or
-   * palm-muted; the performer adds the fret each note is fingered at. On a snare, how many semitones it is tuned
+   * go as it ends), dead (the strings muted by the fretting hand: a scratch), palm-muted,
+   * slid into from a fret below, or a chord held and picked string by string (the
+   * performer chooses the strings and when); the performer adds the fret each note is
+   * fingered at. On a snare, how many semitones it is tuned
    * up (a build's roll climbing). On a hat, 1 is a light one: the hiss without the metal.
    */
   mod?: number;
@@ -586,9 +613,9 @@ export function nextLofiSeed(seed: number): number {
   return Math.floor(mulberry32(seed ^ 0x9e3779b9)() * 4294967296) >>> 0;
 }
 
-/** Build one tune's bars, signed with the producer's tag when the tune has one (see withTag). */
+/** Build one tune's bars, signed with the producer's tag when the tune has one (see withTag), with the band's shouts (see withBandShouts). */
 export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiBar[] {
-  return withTag(composeTuneBars(seed, mood, fixed), seed, mood);
+  return withBandShouts(withTag(composeTuneBars(seed, mood, fixed), seed, mood), seed, mood);
 }
 
 /** How softly a quiet verse is played, against its chorus. */
@@ -671,12 +698,9 @@ function tagWeights(mood: LofiMood): Array<readonly [Tag, number]> {
  * stream of the tune's own, so adding the tag moved no other note of any tune.
  */
 function withTag(bars: LofiBar[], seed: number, mood: LofiMood): LofiBar[] {
-  // Scrambled first (MurmurHash3's finish), so neighbouring seeds, which people type, draw
-  // unrelated tags: mulberry32's first draws from seeds a step apart are alike.
-  let h = (seed ^ 0x7a6c1) >>> 0;
-  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
-  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
-  const rng = mulberry32((h ^ (h >>> 16)) >>> 0);
+  // Scrambled first, so neighbouring seeds, which people type, draw unrelated tags:
+  // mulberry32's first draws from seeds a step apart are alike.
+  const rng = layerStream(seed, 0x7a6c1);
   if (rng() >= TAG_CHANCE || bars.length < 4) return bars;
   const weights = tagWeights(mood);
   let roll = rng() * weights.reduce((sum, [, w]) => sum + w, 0);
@@ -695,6 +719,197 @@ function withTag(bars: LofiBar[], seed: number, mood: LofiMood): LofiBar[] {
   const root = bars[at]!.tones[0] ?? bars.find(b => b.tones.length)?.tones[0] ?? 0;
   const note: LofiNote = { voice: 'tag', midi: placeIn(root, 55, 66), beat, dur: 1.5, vel: 0.85, mod: LOFI_TAGS.indexOf(delivery) };
   return bars.map((b, i) => (i === at ? { ...b, notes: [...b.notes, note] } : b));
+}
+
+/** A tune's own random stream for one layer: the seed scrambled first (MurmurHash3's finish), so neighbouring seeds draw unrelated choices. */
+function layerStream(seed: number, salt: number): () => number {
+  let h = (seed ^ salt) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  return mulberry32((h ^ (h >>> 16)) >>> 0);
+}
+
+type GoSpot = 'top' | 'into' | 'into2' | 'verse';
+/**
+ * Where a style's band or MC shouts "let's go" (or just "go!"), and how often: `chance` a
+ * tune does at all, the `spots` it is drawn to (the top of the tune, into the first or the
+ * second chorus or drop, or from the intro into the first verse), how often it is the one
+ * word, how often the crowd shouts it, the beat the "go" falls on in the bar before a drop
+ * (Sherbert's builds keep their breath before the drop, so there it falls on three), and the
+ * chances of a second shout into the other drop and of a "go!" calling in the solo.
+ */
+interface GoPlan { chance: number; spots: Weights<GoSpot>; go: number; crowd: number; goBeat: number; again: number; solo: number }
+const MC: GoPlan = { chance: 0.7, spots: [['into', 3], ['into2', 2]], go: 0.35, crowd: 0, goBeat: 3, again: 0.3, solo: 0 };
+const GO_STYLES: Partial<Record<LofiMood, GoPlan>> = {
+  ska: { chance: 0.7, spots: [['top', 2], ['into', 3]], go: 0, crowd: 0.5, goBeat: 3, again: 0, solo: 0 },
+  punk: { chance: 0.75, spots: [['top', 2], ['into', 3]], go: 0.2, crowd: 0.6, goBeat: 2, again: 0, solo: 0.35 },
+  rock: { chance: 0.55, spots: [['top', 1], ['into', 2], ['into2', 1]], go: 0.25, crowd: 0.3, goBeat: 3, again: 0.15, solo: 0.4 },
+  metal: { chance: 0.5, spots: [['top', 1], ['into', 1]], go: 0.3, crowd: 0.3, goBeat: 3, again: 0, solo: 0.3 },
+  funk: { chance: 0.5, spots: [['top', 2], ['into', 1]], go: 0.3, crowd: 0.2, goBeat: 3, again: 0, solo: 0.35 },
+  soul: { chance: 0.35, spots: [['top', 1], ['into', 2]], go: 0.2, crowd: 0.3, goBeat: 3, again: 0, solo: 0.2 },
+  hiphop: { chance: 0.6, spots: [['top', 1], ['verse', 1]], go: 0.15, crowd: 0, goBeat: 3, again: 0, solo: 0 },
+  kpop: { chance: 0.5, spots: [['into', 1], ['into2', 1]], go: 0.2, crowd: 0.8, goBeat: 3, again: 0, solo: 0 },
+  electro: { ...MC, chance: 0.5, again: 0 },
+  dnb: MC, dubstep: MC, brostep: MC,
+  sherbert: { chance: 0.55, spots: [['into', 1], ['into2', 1]], go: 0.3, crowd: 0, goBeat: 2, again: 0, solo: 0 },
+};
+/** How ska's band calls "pick it up!": once, twice, called and answered by the crowd, or both twice over two bars. */
+const PICK_FORMS: Weights<'once' | 'twice' | 'answer' | 'answer2'> = [['once', 3], ['twice', 3], ['answer', 4], ['answer2', 2]];
+
+/**
+ * The band's shouted phrases (Andy, 2026-11-13: 'ska also needs "pickitup" "woo" and "lets
+ * go"', and "go" and "let's go" for the other styles a band or an MC would shout them in).
+ * Knowing when is the point, so each is placed where a band would put it and a tune gets
+ * only a few. Ska's band calls "pick it up!" over the skank in the intro or as a chorus
+ * opens, often answered by the crowd; "let's go!" comes at the top or into the first
+ * chorus, and one or two of a chorus's offbeat heys become a "woo". Elsewhere "let's go!"
+ * or "go!" comes at the top, into a chorus or a drop, from the intro into the first verse,
+ * or calls in the solo. The calm styles get none. A shout never falls on the producer's
+ * tag or on another shout: it moves to its style's next spot, or the tune goes without.
+ * Drawn from a stream of the tune's own, so the shouts moved no other note, and every
+ * tune of a style without them composes as it did.
+ */
+function withBandShouts(bars: LofiBar[], seed: number, mood: LofiMood): LofiBar[] {
+  const plan = GO_STYLES[mood];
+  if (!plan || bars.length < 8) return bars;
+  const rng = layerStream(seed, 0x5407a);
+  const spb = 60 / bars[0]!.tune.bpm;
+  // Every draw up front, in a fixed order, so one choice never shifts the next.
+  const draw: ShoutDraws = { go: rng(), spot: rng(), word: rng(), crowd: rng(), again: rng(), solo: rng(), pick: rng(), pickForm: rng(), pickWhere: rng(), woo: rng(), woo2: rng(), wooAt: rng(), wooAt2: rng() };
+  const out = bars.map(b => ({ ...b, notes: [...b.notes] }));
+  const shout = shouter(out, spb);
+  const runs = (section: LofiSection): number[] => out.flatMap((b, i) => (b.section === section && out[i - 1]?.section !== section ? [i] : []));
+  const drops = runs('drop');
+  const verse = runs('verse')[0] ?? -1;
+  // Each spot's bar and beat for the "go" ("let's" comes before it), and the next to try.
+  const spotAt = (spot: GoSpot): Array<[number, number]> => {
+    if (spot === 'top') return [[0, 1], [0, 2]];
+    const into = spot === 'verse' ? verse : drops[spot === 'into' ? 0 : 1] ?? -1;
+    return into < 1 ? [] : [[into - 1, plan.goBeat], [into - 1, plan.goBeat - 1]];
+  };
+  const tryAt = (spots: Array<[number, number]>, word: Shout, crowd: boolean): number => {
+    for (const [bar, beat] of spots) if (shout(bar, beat, word, crowd)) return bar;
+    return -1;
+  };
+  let into = -1;
+  if (draw.go < plan.chance) {
+    const first = weightedPick(() => draw.spot, plan.spots);
+    const crowd = draw.crowd < plan.crowd;
+    // The drawn spot first, then the style's others, so a tag in the way moves the shout rather than losing the shout.
+    for (const spot of [first, ...plan.spots.map(([s]) => s).filter(s => s !== first)]) {
+      // The top of a tune is "let's go!"; going into a section it may be the one word.
+      const word: Shout = spot !== 'top' && draw.word < plan.go ? 'go' : 'letsgo';
+      const bar = tryAt(spotAt(spot), word, crowd);
+      if (bar < 0) continue;
+      into = spot === 'into' || spot === 'into2' ? bar + 1 : -1;
+      // The bass genres' MC calls again into the other drop, the other way.
+      const other = drops.find(d => d !== into);
+      if (into >= 0 && other !== undefined && draw.again < plan.again) tryAt([[other - 1, plan.goBeat], [other - 1, plan.goBeat - 1]], word === 'go' ? 'letsgo' : 'go', false);
+      break;
+    }
+  }
+  // "Go!" calls the soloist in, on the last beat but one before a solo.
+  const solo = runs('break')[0] ?? -1;
+  if (solo > 0 && draw.solo < plan.solo && out[solo]!.notes.some(n => n.voice === 'lead')) tryAt([[solo - 1, 3], [solo - 1, 2.5]], 'go', draw.crowd < 0.5);
+  if (mood === 'ska') skaCalls(out, draw, drops, into, shout);
+  for (const b of out) b.notes.sort((a, c) => a.beat - c.beat);
+  return out;
+}
+
+type Shout = typeof LOFI_SHOUTS[number];
+interface ShoutDraws { go: number; spot: number; word: number; crowd: number; again: number; solo: number; pick: number; pickForm: number; pickWhere: number; woo: number; woo2: number; wooAt: number; wooAt2: number }
+type Shouter = (bar: number, beat: number, which: Shout, crowd: boolean) => boolean;
+
+/**
+ * Shouts `which` in bar `bar` at `beat` (for "let's go", where the "go" falls), unless it
+ * would sound over the producer's tag or another shout, before the tune starts, or in the
+ * bar that holds the tag.
+ * Returns whether it was placed.
+ */
+function shouter(out: LofiBar[], spb: number): Shouter {
+  return (bar, beat, which, crowd) => {
+    const b = out[bar];
+    // The tag has its bar to itself: a shout beside it would crowd the moment.
+    if (!b?.tones.length || b.notes.some(n => n.voice === 'tag')) return false;
+    const phrase = SHOUT(which) >= LOFI_SHOUT_PHRASES;
+    const note: LofiNote = { voice: 'hey', midi: placeIn(b.tones[0]!, 55, 66), beat, dur: which === 'pickitup' ? 2 : phrase ? 1 : 0.4, vel: crowd ? 0.8 : 0.86, mod: SHOUT(which) + (crowd ? LOFI_SHOUT_CROWD : 0) };
+    const [from, to] = shoutSpan(bar, note, spb);
+    if (from < 0) return false;
+    for (let i = Math.max(0, bar - 2); i <= Math.min(out.length - 1, bar + 2); i++) {
+      for (const n of out[i]!.notes) {
+        if (n.voice !== 'hey' && n.voice !== 'tag') continue;
+        const at = (i * 4 + n.beat) * spb;
+        const [a, z] = n.voice === 'tag' ? [at - 0.05, at + 1.05 + 1.5 * spb] : shoutSpan(i, n, spb);
+        if (to > a && from < z) return false;
+      }
+    }
+    b.notes.push(note);
+    return true;
+  };
+}
+
+/**
+ * Ska's own calls: "pick it up!" in the intro (over the band, or bringing it in when the
+ * keys play the intro alone) or as a chorus opens (the chorus that "let's go!" did not
+ * lead into), once, twice, or called by one voice and shouted back by the crowd; and one or two of a chorus's offbeat heys turned into a
+ * "woo", just after the backbeat. A "pick it up!" that opens a chorus takes the place of
+ * the heys it would sound over.
+ */
+function skaCalls(out: LofiBar[], draw: ShoutDraws, drops: number[], into: number, shout: Shouter): void {
+  if (draw.pick < 0.85) {
+    const form = weightedPick(() => draw.pickForm, PICK_FORMS);
+    // [bar offset, beat, crowd] for each call of the form.
+    const calls: Array<[number, number, boolean]> = form === 'once' ? [[0, 0, false]]
+      : form === 'twice' ? [[0, 0, false], [0, 2, false]]
+        : form === 'answer' ? [[0, 0, false], [0, 2, true]]
+          : [[0, 0, false], [0, 2, false], [1, 0, true], [1, 2, true]];
+    const intro = out.findIndex(b => b.section !== 'intro');
+    const chorus = drops.filter(d => d !== into);
+    // Over the skank when the band plays the intro; when the keys play it alone, the call
+    // comes in its last bar, bringing the band in.
+    const span = calls[calls.length - 1]![0];
+    const band = out[1]?.layers.includes('bass') ?? false;
+    const inIntro = band ? [1, 2] : [intro - 1 - span];
+    const starts = draw.pickWhere < 0.5 ? [...inIntro, ...chorus] : [...chorus, ...inIntro];
+    for (const at of starts) {
+      if (at < 1 || (at < intro && at + span >= intro)) continue;
+      // Opening a chorus, the calls take the place of the plain heys they would sound over.
+      const kept = calls.map(([offset]) => out[at + offset]?.notes.slice() ?? []);
+      if (at >= intro) {
+        for (const [offset, beat] of calls) {
+          const bar = out[at + offset];
+          if (bar) bar.notes = bar.notes.filter(n => !(n.voice === 'hey' && (n.mod ?? 0) === 0 && n.beat >= beat - 0.25 && n.beat < beat + 2));
+        }
+      }
+      if (calls.every(([offset, beat, crowd]) => shout(at + offset, beat, 'pickitup', crowd))) break;
+      // Not room for the whole call here: the bars go back as they were, and the next place is tried.
+      calls.forEach(([offset], k) => { const bar = out[at + offset]; if (bar) bar.notes = kept[k]!; });
+    }
+  }
+  // The woo: an offbeat hey just after the backbeat, in a chorus but not its opening bar.
+  const wants = draw.woo < 0.9 ? (draw.woo2 < 0.4 ? 2 : 1) : 0;
+  for (const pick of [draw.wooAt, draw.wooAt2].slice(0, wants)) {
+    const heys = out.flatMap((b, i) => (b.section === 'drop' && out[i - 1]?.section === 'drop'
+      ? b.notes.filter(n => n.voice === 'hey' && (n.mod ?? 0) === 0 && (n.beat === 1.5 || n.beat === 3.5)).map(n => [b, n] as const) : []));
+    if (heys.length) {
+      const [b, n] = heys[Math.floor(pick * heys.length)]!;
+      b.notes[b.notes.indexOf(n)] = { ...n, mod: SHOUT('woo') };
+      continue;
+    }
+    let last = -1;
+    for (let i = 0; i < out.length; i++) if (out[i]!.section === 'drop') last = i;
+    if (last > 0) shout(last, 3.5, 'woo', false);
+  }
+}
+
+/** Where a shout sounds, in seconds from the top: a phrase from its first consonant to its last vowel's end, a word from its start. */
+function shoutSpan(bar: number, n: LofiNote, spb: number): [number, number] {
+  const at = (bar * 4 + n.beat) * spb;
+  const which = LOFI_SHOUTS[(n.mod ?? 0) % LOFI_SHOUT_CROWD];
+  if (which === 'pickitup') return [at - 0.07, at + 2 * lofiShoutStep('pickitup', spb) + 0.24];
+  if (which === 'letsgo') return [at - lofiShoutStep('letsgo', spb) - 0.08, at + 0.4];
+  if (which === 'go') return [at - 0.06, at + 0.4];
+  return [at - 0.03, at + 0.45];
 }
 
 /** Build one tune's bars, before the tag. */
@@ -938,7 +1153,9 @@ function retag(bars: LofiBar[], choice: LofiTagChoice): LofiBar[] {
     if (b.notes.some(n => n.voice === 'tag')) return { ...b, notes: b.notes.map(n => (n.voice === 'tag' ? { ...n, mod } : n)) };
     if (has || i !== 0) return b;
     const root = b.tones[0] ?? bars.find(x => x.tones.length)?.tones[0] ?? 0;
-    return { ...b, notes: [...b.notes, { voice: 'tag', midi: placeIn(root, 55, 66), beat: 0, dur: 1.5, vel: 0.85, mod }] };
+    // The tag takes the top of the track: a "let's go!" the band shouted there gives way.
+    const notes = b.notes.filter(n => !(n.voice === 'hey' && (n.mod ?? 0) % LOFI_SHOUT_CROWD >= LOFI_SHOUT_PHRASES && n.beat < 3));
+    return { ...b, notes: [...notes, { voice: 'tag', midi: placeIn(root, 55, 66), beat: 0, dur: 1.5, vel: 0.85, mod }] };
   });
 }
 
@@ -2563,7 +2780,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           }
         } else if (keysV === 'electric') {
           // The electric guitar, played as the style plays it (see electricBar).
-          notes.push(...electricBar(mood, part.section, build, lastOfBuild, voicing, sb, rng));
+          notes.push(...electricBar(mood, part.section, build, lastOfBuild, voicing, chord, i, sb, rng));
         } else if (keysV === 'wah') {
           // Funk guitar: chanks on the sixteenths, the top of the chord with a wah on each,
           // muted scratches between.
@@ -3039,7 +3256,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
 // ── the electric guitar's parts ────────────────────────────────────────────
 
 /** How an electric guitar's chord is played, in its notes' `mod`: see LofiNote. The performer adds the fret, times ELECTRIC_FRET. */
-export const ELECTRIC_UP = 1, ELECTRIC_CHOKE = 2, ELECTRIC_DEAD = 4, ELECTRIC_PALM = 8, ELECTRIC_FRET = 16;
+export const ELECTRIC_UP = 1, ELECTRIC_CHOKE = 2, ELECTRIC_DEAD = 4, ELECTRIC_PALM = 8, ELECTRIC_SLIDE = 16, ELECTRIC_PICK = 32, ELECTRIC_FRET = 64;
 /** Funk's two bars of chicken scratch: the sixteenths where the chord rings out (choked short); every other sixteenth is a muted scratch or a miss. */
 const SCRATCH_CHANKS: ReadonlyArray<readonly number[]> = [[0, 3, 6, 10, 13], [2, 6, 7, 10, 14], [0, 6, 9, 12, 14], [3, 6, 10, 11, 14]];
 /** City pop's cutting: the offbeats choked short, one pushed a sixteenth. */
@@ -3052,14 +3269,18 @@ const CUTS: ReadonlyArray<readonly number[]> = [[2, 6, 10, 14], [2, 7, 10, 14], 
  * - reggae: the chop on two and four (the one drop's tempo is half ska's), shorter still,
  *   on the top three strings; a chorus sometimes doubles the four;
  * - funk: the chicken scratch, sixteenths strummed all bar with the strings muted (a
- *   scratch) and the chord let ring and choked on two bars of syncopated chanks;
+ *   scratch) and the chord let ring and choked on two bars of syncopated chanks; at the
+ *   end of a phrase (the second bar of two, more often the fourth of four) the back half
+ *   of the bar is a lick instead (funkLick);
  * - city pop's chorus: the offbeats cut short, a muted scratch now and then between;
- * - every quiet part, and rock's clean intro and breakdown: the chord picked as an
- *   arpeggio in eighths, each string left to ring.
+ * - every quiet part, and rock's clean intro and breakdown: the chord held and picked
+ *   string by string, each string left to ring, as a guitarist plays it: written as one
+ *   held chord for the performer to finger and pick (lib/lofi-perform.ts), not as a
+ *   keyboard's arpeggio up and down the chord's tones.
  * The voicing's top three or four notes make a funk or a skank chord; the performer
- * fingers and strums them (lib/lofi-perform.ts).
+ * fingers and strums them.
  */
-function electricBar(mood: DanceMood, section: LofiSection, build: boolean, lastOfBuild: boolean, voicing: readonly number[], sb: (step: number) => number, rng: () => number): LofiNote[] {
+function electricBar(mood: DanceMood, section: LofiSection, build: boolean, lastOfBuild: boolean, voicing: readonly number[], harmony: Chord, inPart: number, sb: (step: number) => number, rng: () => number): LofiNote[] {
   const out: LofiNote[] = [];
   const chord = (step: number, dur: number, vel: number, mod: number, tones: readonly number[] = voicing): void => {
     if (lastOfBuild && step >= 14) return;
@@ -3082,10 +3303,13 @@ function electricBar(mood: DanceMood, section: LofiSection, build: boolean, last
   if (mood === 'funk' && !quiet) {
     const top = voicing.slice(-3);
     const chanks = SCRATCH_CHANKS[Math.floor(rng() * SCRATCH_CHANKS.length)]!;
-    for (let s = 0; s < 16; s++) {
+    // The end of a phrase: the fourth bar of four nearly always, the second of two often.
+    const lick = !lastOfBuild && (inPart % 4 === 3 ? rng() < 0.85 : inPart % 2 === 1 && rng() < 0.45);
+    for (let s = 0; s < (lick ? 8 : 16); s++) {
       if (chanks.includes(s)) chord(s, 0.18, s % 4 === 0 ? 0.68 : 0.62, ELECTRIC_CHOKE, top);
       else if (rng() < 0.75) chord(s, 0.06, s % 2 ? 0.34 : 0.42, ELECTRIC_DEAD, top);
     }
+    if (lick) out.push(...funkLick(harmony, sb, rng));
     return out;
   }
   if (section === 'drop') {
@@ -3095,15 +3319,62 @@ function electricBar(mood: DanceMood, section: LofiSection, build: boolean, last
     for (const s of [5, 13]) if (rng() < 0.4) chord(s, 0.06, 0.32, ELECTRIC_DEAD, top);
     return out;
   }
-  // The arpeggio: the chord's tones up and down in eighths, each left to ring.
-  const strings = [...new Set([...voicing, ...voicing.map(p => p + 12)].filter(p => p <= 76))].sort((x, y) => x - y);
-  const up = [...strings, ...[...strings].reverse().slice(1, -1)];
-  for (let st = 0; st < 16; st += 2) {
-    if (lastOfBuild && st >= 14) break;
-    out.push({ voice: 'keys', midi: up[(st / 2) % up.length]!, beat: sb(st), dur: 1.1, vel: clamp01((st % 8 === 0 ? 0.5 : 0.42) + (rng() - 0.5) * 0.05) });
-  }
+  // The chord held and picked: one chord the length of the bar, for the performer to finger and pick.
+  chord(0, lastOfBuild ? 3.5 : 4, 0.5, ELECTRIC_PICK);
   return out;
 }
+
+/**
+ * A funk guitarist's lick for the back half of a bar (sixteenths 8 to 15), one of three:
+ * - a double-stop (the chord's third and its seventh or fifth, high on the neck) slid into
+ *   from a fret below, choked, and answered a little later;
+ * - a run through the chord's own tones, up or down, slid into its first note (the slide
+ *   is the chromatic approach), a muted ghost note in it, ending on the root or the fifth;
+ * - octaves: the root doubled twelve semitones up, syncopated and choked.
+ * Each note is short and stopped, so the lick snaps against the scratch around it, and
+ * every note stays a chord tone inside the keys' range (KEYS_LO to KEYS_HI).
+ */
+function funkLick(harmony: Chord, sb: (step: number) => number, rng: () => number): LofiNote[] {
+  const out: LofiNote[] = [];
+  const note = (step: number, midi: number, dur: number, vel: number, mod: number): void => {
+    out.push({ voice: 'keys', midi, beat: sb(step), dur, vel: clamp01(vel + (rng() - 0.5) * 0.06), mod });
+  };
+  const root = harmony.root;
+  const kind = rng();
+  if (kind < 0.34) {
+    const third = harmony.tones[1] ?? (root + 4) % 12;
+    const top = harmony.tones[3] ?? harmony.tones[2] ?? (root + 7) % 12;
+    const low = placeIn(third, 60, 67), high = Math.min(KEYS_HI, placeIn(top, low + 3, low + 9));
+    const at = rng() < 0.5 ? 10 : 8;
+    for (const p of [low, high]) note(at, p, 0.4, 0.72, ELECTRIC_SLIDE | ELECTRIC_CHOKE);
+    for (const p of [low, high]) note(at + 3, p, 0.16, 0.6, ELECTRIC_CHOKE);
+    if (at === 8) for (const p of [low, high]) note(14, p, 0.2, 0.64, ELECTRIC_CHOKE);
+    return out;
+  }
+  if (kind < 0.72) {
+    const base = placeIn(root, 55, 64);
+    const ladder: number[] = [];
+    for (let p = base; p <= Math.min(KEYS_HI, base + 14); p++) if (harmony.tones.includes(p % 12)) ladder.push(p);
+    const rhythm = FUNK_RUNS[Math.floor(rng() * FUNK_RUNS.length)]!;
+    const down = rng() < 0.5;
+    let at = down ? ladder.length - 1 - Math.floor(rng() * 2) : Math.floor(rng() * 2);
+    const ghost = 1 + Math.floor(rng() * (rhythm.length - 2));
+    rhythm.forEach((step, k) => {
+      const last = k === rhythm.length - 1;
+      const pitch = last ? placeIn(rng() < 0.6 ? root : harmony.tones[2] ?? root, ladder[0]!, ladder[0]! + 11) : ladder[Math.max(0, Math.min(ladder.length - 1, at))]!;
+      if (k === ghost) note(step, pitch, 0.08, 0.4, ELECTRIC_DEAD);
+      else note(step, pitch, last ? 0.5 : 0.22, k === 0 ? 0.74 : 0.66, (k === 0 ? ELECTRIC_SLIDE : 0) | ELECTRIC_CHOKE);
+      at += down ? -1 : 1;
+    });
+    return out;
+  }
+  const r = placeIn(root, 52, 63);
+  const steps = rng() < 0.5 ? [8, 11, 14] : [10, 12, 15];
+  steps.forEach((step, k) => { for (const p of [r, r + 12]) note(step, p, 0.2, k === 0 ? 0.72 : 0.64, (k === 0 ? ELECTRIC_SLIDE : 0) | ELECTRIC_CHOKE); });
+  return out;
+}
+/** The rhythms of a funk run, in sixteenths of the bar's back half. */
+const FUNK_RUNS: ReadonlyArray<readonly number[]> = [[8, 10, 11, 13, 14], [9, 10, 12, 14, 15], [8, 9, 11, 12, 14], [10, 11, 13, 14, 15]];
 
 // ── the world styles ──────────────────────────────────────────────────────
 

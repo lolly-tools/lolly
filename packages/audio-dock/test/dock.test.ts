@@ -861,3 +861,122 @@ test('a visualizer canvas whose WebGL context is lost is swapped for a fresh one
   assert.equal(mounted.at(-1), after, 'and the renderer mounts again on the fresh canvas');
   dock.destroy();
 });
+
+// ── the music scrub: a slider over the host's position ─────────────────────────
+// A host whose track is 40 seconds long. With a grid it is a generated tune of twenty
+// two-second bars whose parts change at 8 s and 24 s.
+function scrubHost(grid: boolean, over: Partial<DockHost> = {}) {
+  let at = 5;
+  const seeks: number[] = [];
+  const points = Array.from({ length: 20 }, (_, i) => i * 2);
+  const marks = [8, 24];
+  const host = makeHost({
+    currentTime: () => at,
+    duration: () => 40,
+    seekable: () => true,
+    seek: (s: number) => { seeks.push(s); at = s; },
+    ...(grid ? {
+      seekGrid: () => ({ points, marks }),
+      describePosition: (s: number) => ({ label: `Bar ${Math.floor(s / 2) + 1} of 20`, spoken: `Bar ${Math.floor(s / 2) + 1} of 20, ${s} seconds` }),
+    } : {}),
+    ...over,
+  });
+  const dock = createAudioDock({ host, capabilities: { music: true } });
+  const scrub = dock.el.querySelector<HTMLElement>('[data-scrub]')!;
+  scrub.getBoundingClientRect = () => ({ left: 0, top: 0, right: 200, bottom: 18, width: 200, height: 18, x: 0, y: 0, toJSON: () => ({}) });
+  const key = (k: string): boolean => {
+    const e = new dom.window.KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+    scrub.dispatchEvent(e);
+    return e.defaultPrevented;
+  };
+  const pointer = (type: string, clientX: number): void => {
+    scrub.dispatchEvent(new dom.window.MouseEvent(type, { clientX, button: 0, bubbles: true, cancelable: true }));
+  };
+  return { host, dock, scrub, seeks, key, pointer, setAt: (s: number) => { at = s; } };
+}
+
+test('the music scrub is a slider a screen reader can read, with the bar and part beside the times', () => {
+  const { dock, scrub } = scrubHost(true);
+  const root = dock.el;
+  assert.equal(root.getAttribute('data-seekable'), 'true');
+  assert.equal(scrub.getAttribute('role'), 'slider');
+  assert.equal(scrub.tabIndex, 0, 'reachable with Tab');
+  assert.equal(scrub.getAttribute('aria-label'), 'Seek within track');
+  assert.equal(scrub.getAttribute('aria-valuemin'), '0');
+  assert.equal(scrub.getAttribute('aria-valuemax'), '40');
+  assert.equal(scrub.getAttribute('aria-valuenow'), '5');
+  assert.equal(scrub.getAttribute('aria-valuetext'), 'Bar 3 of 20, 5 seconds', 'the host words what a screen reader hears');
+  assert.equal(root.querySelector('[data-time-pos]')!.textContent, 'Bar 3 of 20', 'the label between the times');
+  assert.equal(root.querySelector('[data-time-cur]')!.textContent, '0:05');
+  assert.equal(root.querySelector('[data-time-dur]')!.textContent, '0:40');
+  const marks = [...root.querySelectorAll<HTMLElement>('.audio-dock-seek-mark')].map((m) => m.style.left);
+  assert.deepEqual(marks, ['20%', '60%'], 'a tick where each part starts');
+  assert.equal(root.querySelector<HTMLElement>('[data-scrub-fill]')!.style.width, '12.5%');
+  dock.destroy();
+});
+
+test('the arrow keys step one bar, Page Up and Page Down one part, Home and End go to the ends', () => {
+  const { dock, seeks, key, setAt } = scrubHost(true);
+  assert.equal(key('ArrowRight'), true, 'the key is the slider\'s');
+  assert.deepEqual(seeks, [6], 'from 5 s, in the bar that starts at 4 s, on to the next bar');
+  setAt(6.5);
+  key('ArrowLeft');
+  assert.equal(seeks.at(-1), 4, 'back to the bar before the one playing');
+  key('Home');
+  assert.equal(seeks.at(-1), 0);
+  key('End');
+  assert.equal(seeks.at(-1), 38, 'the last bar');
+  setAt(0);
+  key('PageUp');
+  assert.equal(seeks.at(-1), 8, 'the next part');
+  key('PageUp');
+  assert.equal(seeks.at(-1), 24);
+  key('PageDown');
+  assert.equal(seeks.at(-1), 8, 'the part before');
+  assert.equal(key('a'), false, 'any other key is left alone');
+  dock.destroy();
+});
+
+test('a press or a drag snaps to the nearest bar, and seeks only when it lets go', () => {
+  const { dock, seeks, pointer } = scrubHost(true);
+  const root = dock.el;
+  pointer('pointerdown', 33);   // 6.6 s: the bar at 6 s is nearest
+  assert.deepEqual(seeks, [], 'nothing seeks while the pointer is down');
+  assert.equal(root.querySelector('[data-time-pos]')!.textContent, 'Bar 4 of 20', 'the label shows where it will land');
+  assert.equal(root.querySelector('[data-time-cur]')!.textContent, '0:06');
+  pointer('pointermove', 101);  // 20.2 s
+  pointer('pointerup', 101);
+  assert.deepEqual(seeks, [20], 'lets go on the bar at 20 s');
+  pointer('pointerdown', 150);
+  pointer('pointercancel', 150);
+  assert.deepEqual(seeks, [20], 'a cancelled drag does not seek');
+  dock.destroy();
+});
+
+test('a recorded track seeks anywhere: the arrows move 5 seconds and End stops short of the end', () => {
+  const { dock, scrub, seeks, key, pointer, setAt } = scrubHost(false);
+  assert.equal(scrub.getAttribute('aria-valuetext'), '0:05 of 0:40', 'the times, when the host has no words of its own');
+  assert.equal(dock.el.querySelector('[data-time-pos]')!.textContent, '');
+  assert.equal(dock.el.querySelectorAll('.audio-dock-seek-mark').length, 0);
+  key('ArrowRight');
+  assert.deepEqual(seeks, [10]);
+  key('End');
+  assert.equal(seeks.at(-1), 39, 'a looping track would start again from the top at 40');
+  setAt(10);
+  pointer('pointerdown', 101);
+  pointer('pointerup', 101);
+  assert.ok(Math.abs(seeks.at(-1)! - 20.2) < 1e-9, 'where it let go, not snapped');
+  dock.destroy();
+});
+
+test('the Mini size shows how far through the track it is, and nothing for a live stream', () => {
+  const { dock } = scrubHost(true);
+  dock.setCollapse('mini');
+  const line = dock.el.querySelector<HTMLElement>('[data-mini-progress]')!;
+  assert.equal(line.getAttribute('aria-hidden'), 'true', 'to look at; the scrub is the control');
+  assert.equal(line.style.getPropertyValue('--dock-progress'), '0.1250');
+  dock.destroy();
+  const radio = scrubHost(false, { seekable: () => false, duration: () => 0 });
+  assert.equal(radio.dock.el.getAttribute('data-seekable'), 'false', 'no scrub and no line for radio');
+  radio.dock.destroy();
+});

@@ -2,8 +2,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { decayRate, electricString, leadOf, partialsOf, type ElectricSpec } from './lofi-electric.ts';
-import { fretFor } from './lofi-perform.ts';
-import { composeLofiTune, ELECTRIC_CHOKE, ELECTRIC_FRET, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
+import { fretFor, perform } from './lofi-perform.ts';
+import { composeLofiTune, ELECTRIC_CHOKE, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_SLIDE, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
 
 const SR = 44100;
 function seeded(a: number): () => number {
@@ -95,4 +95,40 @@ test('ska skanks the electric on the offbeats; reggae chops it on two and four',
     assert.ok([4, 12, 13].includes(sixteenth), `reggae keys note at sixteenth ${sixteenth}`);
     assert.ok((n.mod ?? 0) & ELECTRIC_CHOKE);
   }
+});
+
+test('a quiet part holds the chord and picks it string by string, as a guitarist does, not a keyboard arpeggio', () => {
+  for (const seed of [3, 5, 11]) {
+    const bars = composeLofiTune(seed, 'citypop', { keys: 'electric' }).filter(b => b.section === 'verse' && (b.voices?.keys ?? b.tune.style.keys) === 'electric');
+    assert.ok(bars.length > 0, `seed ${seed}: an electric verse`);
+    const bar = bars[0]!;
+    const written = bar.notes.filter(n => n.voice === 'keys');
+    assert.ok(written.length >= 3 && written.every(n => ((n.mod ?? 0) % ELECTRIC_FRET) & ELECTRIC_PICK), 'written as one held chord to pick');
+    assert.ok(new Set(written.map(n => n.beat)).size === 1, 'held from one moment');
+    const played = perform(bar, 60 / bar.tune.bpm, 'electric', bar.tune.style.lead).filter(n => n.voice === 'keys');
+    const starts = new Set(played.map(n => Math.round(n.beat * 4)));
+    assert.ok(starts.size >= 6, `seed ${seed}: picked across the bar (${starts.size} picks)`);
+    assert.ok(new Set(played.map(n => n.midi)).size >= 3, 'several strings');
+    assert.ok(played.every(n => ((n.mod ?? 0) % ELECTRIC_FRET & ELECTRIC_PICK) === 0), 'the performer has turned the held chord into picks');
+    // The bass string comes first, as a fingerpicker starts a chord on its root.
+    const first = played.reduce((a, b) => (b.beat < a.beat ? b : a));
+    assert.equal(first.midi, Math.min(...played.map(n => n.midi)));
+  }
+});
+
+test('funk ends its phrases with a lick: slides, single notes or double-stops in the back half of the bar', () => {
+  let licks = 0, bars = 0;
+  for (const seed of [2, 4, 9, 13]) {
+    for (const bar of composeLofiTune(seed, 'funk', { keys: 'electric' })) {
+      if (bar.section !== 'drop' && bar.section !== 'verse') continue;
+      bars++;
+      const keys = bar.notes.filter(n => n.voice === 'keys');
+      const slid = keys.filter(n => ((n.mod ?? 0) % ELECTRIC_FRET) & ELECTRIC_SLIDE);
+      if (slid.length) {
+        licks++;
+        assert.ok(slid.every(n => n.beat >= 1.9), 'a lick sits in the back half of its bar');
+      }
+    }
+  }
+  assert.ok(licks >= bars * 0.2 && licks <= bars * 0.65, `${licks} licks in ${bars} bars`);
 });

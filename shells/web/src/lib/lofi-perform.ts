@@ -23,7 +23,7 @@
  * Pure and deterministic: every choice comes from a source seeded by the tune and the bar,
  * so a tune plays the same every time. Times are moved in beats, so the caller's tempo holds.
  */
-import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
+import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 /** A seeded source for one bar of one tune. */
@@ -216,6 +216,18 @@ function guitarist(notes: LofiNote[], bar: LofiBar, voice: string, spb: number, 
   }
   const electric = voice === 'electric';
   for (const group of strokes) {
+    const marks = electric ? (group[0]!.mod ?? 0) % ELECTRIC_FRET : 0;
+    if (marks & ELECTRIC_PICK && bar.tones.length) {
+      const near = HANDS.get(bar.tune) ?? 5;
+      const shape = shapeFor(bar.tones, voice, near);
+      if (shape) { out.push(...picked(shape, group, bar, spb, rand)); continue; }
+    }
+    // A double-stop or an octave is played as written, the two strings a breath apart.
+    if (electric && group.length === 2 && !(marks & ELECTRIC_PICK)) {
+      const near = HANDS.get(bar.tune) ?? 5;
+      group.forEach((n, i) => { out.push({ ...n, beat: n.beat + (i * (0.002 + rand() * 0.002)) / spb, mod: marks + ELECTRIC_FRET * fretFor(n.midi, near) }); });
+      continue;
+    }
     if (group.length < 2 || !bar.tones.length) {
       for (const n of group) out.push(electric ? { ...n, mod: (n.mod ?? 0) % ELECTRIC_FRET + ELECTRIC_FRET * fretFor(n.midi, HANDS.get(bar.tune) ?? 5) } : n);
       continue;
@@ -250,6 +262,56 @@ function guitarist(notes: LofiNote[], bar: LofiBar, voice: string, spb: number, 
     });
   }
   return out.sort((a, b) => a.beat - b.beat);
+}
+
+/**
+ * How a held chord is picked, string by string, on each sixteenth of the bar: B the bass
+ * (the lowest string of the shape), A the next string up (an alternating bass), and 1, 2,
+ * 3 the top three strings, highest first; '.' rests. A tune keeps one pattern, as a
+ * player keeps a part, and plays it over every held chord.
+ */
+const PICKING: readonly string[] = [
+  'B.3.2.1.A.3.2.1.',   // up the treble strings from the bass, twice: the plainest
+  'B.31.2.A.21.3.2.',   // sixteenths in it: a city pop shimmer
+  'B.1.A.2.B.1.A.2.',   // an alternating bass under the top strings, as a fingerpicker plays
+  'B..2.1..A..2.31.',   // syncopated, leaving room
+];
+
+/**
+ * A held chord picked on its fingered shape: each string sounds when its turn comes and
+ * rings until it is picked again or the chord ends (a string sounds one note at a time).
+ * The bass a little stronger than the treble, and each pick a few milliseconds either
+ * side of the grid.
+ */
+function picked(shape: Shape, group: LofiNote[], bar: LofiBar, spb: number, rand: () => number): LofiNote[] {
+  const played = shape.flatMap((p, s) => (p === null ? [] : [{ p, s }]));
+  const fretted = played.filter(x => x.p !== TUNING[x.s]).map(x => x.p - TUNING[x.s]!);
+  if (fretted.length) HANDS.set(bar.tune, fretted.reduce((a, b) => a + b, 0) / fretted.length);
+  const start = group[0]!.beat, length = Math.max(...group.map(n => n.dur));
+  const vel = Math.max(...group.map(n => n.vel));
+  const pattern = PICKING[(bar.tune.seed >>> 0) % PICKING.length]!;
+  const role = (c: string): { p: number; s: number } | undefined => {
+    if (c === 'B') return played[0];
+    if (c === 'A') return played[1];
+    const k = Number(c);
+    return k >= 1 && k <= 3 ? played[Math.max(0, played.length - k)] : undefined;
+  };
+  const picks: Array<{ at: number; p: number; s: number; bass: boolean }> = [];
+  for (let i = 0; i < 16; i++) {
+    const at = i / 4;
+    if (at >= length - 0.05) break;
+    const string = role(pattern[i]!);
+    if (string) picks.push({ at, ...string, bass: pattern[i] === 'B' || pattern[i] === 'A' });
+  }
+  return picks.map((k, i) => {
+    const next = picks.slice(i + 1).find(o => o.s === k.s);
+    const until = next ? next.at : length;
+    return {
+      voice: 'keys', midi: k.p, beat: start + k.at + ((rand() - 0.5) * 0.012) / spb,
+      dur: Math.max(0.1, until - k.at), vel: Math.max(0.05, vel * (k.bass ? 1.04 : 0.9) * (0.94 + rand() * 0.12)),
+      mod: ELECTRIC_FRET * (k.p - TUNING[k.s]!),
+    };
+  });
 }
 
 /**

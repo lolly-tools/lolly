@@ -2,9 +2,11 @@
 /**
  * The producer's tag played: a voice saying "Lolly" (lib/lofi-voice.ts), rendered once per
  * tune and delivery, then played back. The echo delivery, and a little of the sung one,
- * also feed the station's echo, so the word repeats in time.
+ * also feed the station's echo, so the word repeats in time. The band's shouted phrases
+ * ("pick it up", "let's go", "go") are played the same way, each call rendered once.
  */
-import { sayLolly, TAG_DELIVERIES } from './lofi-voice.ts';
+import { LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES } from '../../../../engine/src/lofi-compose.ts';
+import { sayLolly, sayShout, SHOUT_PHRASES, TAG_DELIVERIES } from './lofi-voice.ts';
 import type { VoiceKit } from './lofi-voices.ts';
 
 /** The tags rendered so far, per context. */
@@ -56,3 +58,49 @@ export function lollyTag(k: VoiceKit, out: AudioNode, t: number, midi: number, v
 }
 /** The tag's level on the effects lane, about a lead's. */
 const TAG_LEVEL = 0.5;
+
+/** The shouted phrases rendered so far, per context. */
+const SHOUTS = new WeakMap<BaseAudioContext, Map<string, { buf: AudioBuffer; at: number }>>();
+
+/** Whether a `hey` note's `mod` is one of the band's phrases (said by the formant voice) rather than a one-vowel shout. */
+export function isShoutPhrase(mod: number): boolean {
+  return mod % LOFI_SHOUT_CROWD >= LOFI_SHOUT_PHRASES && SHOUT_PHRASES[(mod % LOFI_SHOUT_CROWD) - LOFI_SHOUT_PHRASES] !== undefined;
+}
+
+/**
+ * Shout a band's phrase with its stressed vowel on `t`: `mod` is the `hey` note's (the
+ * phrase, plus LOFI_SHOUT_CROWD for the crowd), `midi` the note it is pitched to and `beat`
+ * the tune's beat (s). `voice` is the tune's identity, which draws the caller and the
+ * crowd; `take` tells this call from the tune's others, so each is said a little differently.
+ */
+export function bandShout(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, mod: number, beat: number, voice: string, take: string): void {
+  const phrase = SHOUT_PHRASES[(mod % LOFI_SHOUT_CROWD) - LOFI_SHOUT_PHRASES];
+  if (!phrase) return;
+  const crowd = mod >= LOFI_SHOUT_CROWD;
+  const { ctx } = k;
+  let cache = SHOUTS.get(ctx);
+  if (!cache) { cache = new Map(); SHOUTS.set(ctx, cache); }
+  const key = `${voice}|${phrase}|${crowd ? 'crowd' : 'one'}|${midi}|${beat.toFixed(3)}|${take}`;
+  let said = cache.get(key);
+  if (!said) {
+    if (cache.size > 48) cache.clear();
+    const { audio: [left, right], at } = sayShout(ctx.sampleRate, phrase, { midi, beat, crowd }, seeded(`${voice}|shouts`), seeded(key));
+    const buf = ctx.createBuffer(2, left.length, ctx.sampleRate);
+    buf.getChannelData(0).set(left);
+    buf.getChannelData(1).set(right);
+    said = { buf, at };
+    cache.set(key, said);
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = said.buf;
+  const g = ctx.createGain();
+  g.gain.value = SHOUT_LEVEL * vel;
+  src.connect(g).connect(out);
+  // The stressed vowel falls on the beat; whatever comes before the vowel ("let's") starts early.
+  // Too late to start it whole (a stalled page, or the very top of a render), it starts in step, clipped.
+  const start = t - said.at, now = ctx.currentTime;
+  if (start >= now) src.start(start);
+  else src.start(now, now - start);
+}
+/** The shouts' level on the effects lane: set against the band from the stems (see the station's notes). */
+const SHOUT_LEVEL = 0.26;

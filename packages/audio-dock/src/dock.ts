@@ -25,6 +25,8 @@ import type {
   DockNarrationPlayer,
   DockNowPlaying,
   DockPlacement,
+  DockPositionText,
+  DockSeekGrid,
   DockSectionId,
   DockSource,
   DockSources,
@@ -99,6 +101,43 @@ function fmtTime(s: number): string {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 }
 
+/** The furthest a continuous seek goes: a second short of the end, so a looping track
+ *  does not wrap round to its start. */
+function lastSecond(dur: number): number { return Math.max(0, dur - 1); }
+
+/** The point nearest `seconds` (`points` ascending); halfway goes to the later point. */
+function nearestPoint(points: readonly number[], seconds: number): number {
+  let best = 0;
+  for (let i = 1; i < points.length; i++) {
+    if (Math.abs(points[i]! - seconds) <= Math.abs(points[best]! - seconds)) best = i;
+    else break;   // past the nearest point, every later one is further away
+  }
+  return best;
+}
+
+/** The last point at or before `seconds`. */
+function pointBefore(points: readonly number[], seconds: number): number {
+  let i = 0;
+  while (i + 1 < points.length && points[i + 1]! <= seconds + 1e-3) i++;
+  return i;
+}
+
+/** One arrow-key step from `cur`: the next or previous grid point, or 5 seconds. */
+function stepFrom(cur: number, dir: 1 | -1, grid: DockSeekGrid | null, dur: number): number {
+  if (!grid) return Math.min(lastSecond(dur), Math.max(0, cur + dir * 5));
+  const i = pointBefore(grid.points, cur) + dir;
+  return grid.points[Math.min(grid.points.length - 1, Math.max(0, i))]!;
+}
+
+/** A Page Up or Page Down from `cur`: the next or previous part (four points when the grid
+ *  marks none), or 30 seconds. */
+function leapFrom(cur: number, dir: 1 | -1, grid: DockSeekGrid | null, dur: number): number {
+  if (!grid) return Math.min(lastSecond(dur), Math.max(0, cur + dir * 30));
+  const stops = grid.marks?.length ? [0, ...grid.marks] : grid.points.filter((_, i) => i % 4 === 0);
+  const i = pointBefore(stops, cur) + dir;
+  return stops[Math.min(stops.length - 1, Math.max(0, i))]!;
+}
+
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] ?? c));
 
@@ -127,7 +166,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   };
 
   let destroyed = false;
-  let seeking = false;        // main (music) scrub
+  let dragging = false;       // main (music) scrub, mid-drag
   let narrSeeking = false;    // narration scrub
   let vizRaf = 0;
   let tickRaf = 0;
@@ -199,6 +238,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
           <span class="audio-dock-sub" data-mini-sub></span>
         </button>
         <button type="button" class="audio-dock-btn audio-dock-play" data-play-mini aria-label="Play">${ICON.play}</button>
+        <span class="audio-dock-mini-progress" data-mini-progress aria-hidden="true"></span>
       </div>
       <div class="audio-dock-main">
         <div class="audio-dock-head" data-drag-head>
@@ -247,8 +287,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
             <button type="button" class="audio-dock-btn audio-dock-repeat" data-repeat aria-label="Repeat this track" aria-pressed="false" hidden>${ICON.repeat}</button>
           </div>
           <div class="audio-dock-scrub">
-            <input type="range" data-scrub min="0" max="1000" step="1" value="0" aria-label="Seek within track">
-            <div class="audio-dock-time"><span data-time-cur>0:00</span><span data-time-dur>0:00</span></div>
+            <div class="audio-dock-seek" data-scrub role="slider" tabindex="0" aria-label="Seek within track" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+              <span class="audio-dock-seek-track"><span class="audio-dock-seek-fill" data-scrub-fill></span><span data-scrub-marks></span></span>
+              <span class="audio-dock-seek-thumb" data-scrub-thumb></span>
+            </div>
+            <div class="audio-dock-time"><span data-time-cur>0:00</span><span class="audio-dock-time-pos" data-time-pos></span><span data-time-dur>0:00</span></div>
           </div>
           <div class="audio-dock-controls" data-controls></div>
           <div class="audio-dock-volumes" data-volumes></div>
@@ -321,7 +364,11 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   const q = <T extends Element = HTMLElement>(sel: string): T | null => root.querySelector<T>(sel);
   const setText = (sel: string, text: string): void => { const el = q<HTMLElement>(sel); if (el) el.textContent = text; };
   let vizCanvas = q<HTMLCanvasElement>('[data-viz-canvas]')!;
-  const scrub = q<HTMLInputElement>('[data-scrub]')!;
+  const scrub = q<HTMLElement>('[data-scrub]')!;
+  const scrubFill = q<HTMLElement>('[data-scrub-fill]')!;
+  const scrubThumb = q<HTMLElement>('[data-scrub-thumb]')!;
+  const scrubMarks = q<HTMLElement>('[data-scrub-marks]')!;
+  const miniProgress = q<HTMLElement>('[data-mini-progress]')!;
   const speedSel = q<HTMLSelectElement>('[data-speed]')!;
   const srcList = q<HTMLUListElement>('[data-src-list]')!;
   const srcSearch = q<HTMLInputElement>('[data-src-search]')!;
@@ -1173,23 +1220,82 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (hostVizActive) { try { host.viz?.unmount?.(); } catch { /* ignore */ } hostVizActive = false; }
   }
 
+  // ── the scrub: a slider over the host's position, snapping to its seek grid ─────────
+  // A slider of the dock's own rather than a native range: a tap on a native range's track
+  // does nothing on iOS, and a generated tune seeks by bar, so a drag, a tap and the keys
+  // all land on the host's grid. The fill, the thumb and the mini line follow the position;
+  // the labels say where it is; the ARIA value says it to a screen reader.
+  function hostDuration(): number {
+    const d = host.duration ? host.duration() : 0;
+    return Number.isFinite(d) && d > 0 ? d : 0;
+  }
+  function seekGrid(): DockSeekGrid | null {
+    try { const g = host.seekGrid?.(); return g?.points.length ? g : null; } catch { return null; }
+  }
+  /** `seconds` on the host's grid (its nearest point), or within the track on a continuous one. */
+  function snap(seconds: number, grid: DockSeekGrid | null, dur: number): number {
+    if (grid) return grid.points[nearestPoint(grid.points, seconds)]!;
+    return Math.min(lastSecond(dur), Math.max(0, seconds));
+  }
+  function describe(seconds: number): DockPositionText {
+    try { return host.describePosition?.(seconds) ?? {}; } catch { return {}; }
+  }
+  /** Write `text` only when it changed: this runs every frame while the music plays. */
+  function putText(sel: string, text: string): void {
+    const el = q<HTMLElement>(sel);
+    if (el && el.textContent !== text) el.textContent = text;
+  }
+  function putAttr(el: Element, name: string, value: string): void {
+    if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+  }
+  /** Show the scrub at `seconds` of `dur`; `aria` also updates what a screen reader hears. */
+  function paintScrub(seconds: number, dur: number, aria: boolean): void {
+    const frac = dur > 0 ? Math.min(1, Math.max(0, seconds / dur)) : 0;
+    const pct = `${(frac * 100).toFixed(2)}%`;
+    scrubFill.style.width = pct;
+    scrubThumb.style.left = pct;
+    miniProgress.style.setProperty('--dock-progress', frac.toFixed(4));
+    const words = describe(seconds);
+    putText('[data-time-pos]', words.label ?? '');
+    if (host.showScrubTime !== false) {
+      putText('[data-time-dur]', fmtTime(dur));
+      putText('[data-time-cur]', fmtTime(seconds));
+    }
+    if (!aria) return;
+    putAttr(scrub, 'aria-valuemax', String(Math.round(dur)));
+    putAttr(scrub, 'aria-valuenow', String(Math.min(Math.round(dur), Math.round(seconds))));
+    putAttr(scrub, 'aria-valuetext', words.spoken ?? `${fmtTime(seconds)} of ${fmtTime(dur)}`);
+  }
+  /** The part ticks on the scrub, redrawn only when the host hands over other marks. */
+  let marksDrawn: { marks: readonly number[] | undefined; dur: number } = { marks: undefined, dur: 0 };
+  function paintMarks(grid: DockSeekGrid | null, dur: number): void {
+    const marks = grid?.marks;
+    if (marksDrawn.marks === marks && marksDrawn.dur === dur) return;
+    marksDrawn = { marks, dur };
+    scrubMarks.replaceChildren(...(marks ?? []).filter((m) => m > 0 && m < dur).map((m) => {
+      const tick = doc.createElement('span');
+      tick.className = 'audio-dock-seek-mark';
+      tick.style.left = `${((m / dur) * 100).toFixed(3)}%`;
+      return tick;
+    }));
+  }
+
   // ── progress tick (advance both scrubs while EITHER player is sounding) ─────────
   function updateScrub(): void {
     const seekable = host.seekable ? host.seekable() : typeof host.seek === 'function';
-    const dur = host.duration ? host.duration() : 0;
-    const finite = Number.isFinite(dur) && dur > 0;
-    root.setAttribute('data-seekable', String(seekable && finite));
-    if (!finite) return;
-    const cur = host.currentTime ? host.currentTime() : 0;
-    if (!seeking) { scrub.value = String(Math.round((cur / dur) * 1000)); setFill(scrub); }
+    const dur = hostDuration();
+    putAttr(root, 'data-seekable', String(seekable && dur > 0));
+    if (!dur) return;
+    paintMarks(seekGrid(), dur);
     // A block-based narration keeps the position BAR but hides the M:SS labels: it has
     // no clock, so a time readout would be dishonest.
-    const showTime = host.showScrubTime !== false;
     const timeEl = q<HTMLElement>('.audio-dock-musicblock .audio-dock-time');
-    if (timeEl) timeEl.hidden = !showTime;
-    if (!showTime) return;
-    setText('[data-time-dur]', fmtTime(dur));
-    if (!seeking) setText('[data-time-cur]', fmtTime(cur));
+    if (timeEl) timeEl.hidden = host.showScrubTime === false;
+    if (dragging) return;   // a drag shows where it will land until it lets go
+    const cur = host.currentTime ? host.currentTime() : 0;
+    // While the scrub has focus its value holds still between key presses: a focused
+    // slider announces every change, and the playing music would change it all the time.
+    paintScrub(cur, dur, doc.activeElement !== scrub);
   }
   function anyPlaying(): boolean {
     return host.isPlaying() || (host.narrationBlock?.isPlaying() ?? false);
@@ -1475,16 +1581,62 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     host.volumes?.find((v) => v.id === range.dataset.volId)?.commit?.(Number(range.value));
   });
 
-  // main (music) scrub
-  scrub.addEventListener('pointerdown', () => { seeking = true; });
-  scrub.addEventListener('change', () => {
-    const dur = host.duration ? host.duration() : 0;
-    if (Number.isFinite(dur) && dur > 0 && typeof host.seek === 'function') host.seek((Number(scrub.value) / 1000) * dur);
-    seeking = false;
+  // main (music) scrub: a press or a drag snaps to the grid and seeks when it lets go;
+  // the keys seek at once.
+  function seekTo(seconds: number): void {
+    const dur = hostDuration();
+    if (!dur || typeof host.seek !== 'function') return;
+    const at = snap(seconds, seekGrid(), dur);
+    host.seek(at);
+    paintScrub(at, dur, true);
+  }
+  function scrubSecondsAt(clientX: number, dur: number): number {
+    const r = scrub.getBoundingClientRect();
+    return r.width > 0 ? Math.min(1, Math.max(0, (clientX - r.left) / r.width)) * dur : 0;
+  }
+  let dragAt = 0;
+  function dragTo(clientX: number): void {
+    const dur = hostDuration();
+    if (!dur) return;
+    dragAt = snap(scrubSecondsAt(clientX, dur), seekGrid(), dur);
+    paintScrub(dragAt, dur, true);
+  }
+  scrub.addEventListener('pointerdown', (e) => {
+    if ((e.pointerType === 'mouse' && e.button !== 0) || !hostDuration()) return;
+    try { scrub.setPointerCapture(e.pointerId); } catch { /* not a live pointer */ }
+    dragging = true;
+    scrub.classList.add('is-dragging');
+    dragTo(e.clientX);
   });
-  scrub.addEventListener('input', () => {
-    const dur = host.duration ? host.duration() : 0;
-    if (Number.isFinite(dur)) setText('[data-time-cur]', fmtTime((Number(scrub.value) / 1000) * dur));
+  scrub.addEventListener('pointermove', (e) => { if (dragging) dragTo(e.clientX); });
+  const endDrag = (commit: boolean) => (): void => {
+    if (!dragging) return;
+    dragging = false;
+    scrub.classList.remove('is-dragging');
+    if (commit) seekTo(dragAt);
+    else updateScrub();
+  };
+  scrub.addEventListener('pointerup', endDrag(true));
+  scrub.addEventListener('pointercancel', endDrag(false));
+  scrub.addEventListener('lostpointercapture', endDrag(false));
+  scrub.addEventListener('keydown', (e) => {
+    const dur = hostDuration();
+    if (!dur) return;
+    const grid = seekGrid();
+    const cur = dragging ? dragAt : (host.currentTime ? host.currentTime() : 0);
+    let to: number;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowUp': to = stepFrom(cur, 1, grid, dur); break;
+      case 'ArrowLeft': case 'ArrowDown': to = stepFrom(cur, -1, grid, dur); break;
+      case 'PageUp': to = leapFrom(cur, 1, grid, dur); break;
+      case 'PageDown': to = leapFrom(cur, -1, grid, dur); break;
+      case 'Home': to = 0; break;
+      case 'End': to = grid ? grid.points[grid.points.length - 1]! : lastSecond(dur); break;
+      default: return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    seekTo(to);
   });
 
   // narration block: collapse from its header, play / scrub / follow / speed

@@ -26,7 +26,7 @@
  *
  * Every exported function takes the shared `start: StartCtx` first (see context.ts).
  */
-import { mountBodyPopover } from '../../components/body-popover.ts';
+import { mountBodyPopover, type BodyPopoverHandle } from '../../components/body-popover.ts';
 import { t } from '../../i18n.ts';
 import { watchScrollCue } from '../../lib/scroll-cue.ts';
 import { bindOp, type StartCtx } from './context.ts';
@@ -57,7 +57,8 @@ export function overflowItems(start: StartCtx): OverflowItem[] {
 export function wireMoreMenu(start: StartCtx): void {
   const trigger = start.shell.querySelector<HTMLButtonElement>('[data-ds-more]');
   if (!trigger) return;
-  const menu = mountBodyPopover(trigger, (el, popover) => {
+  /** Draw the rows for what applies right now into `el`; the first row, for focus. */
+  const fill = (el: HTMLElement, popover: BodyPopoverHandle): HTMLElement | null => {
     el.replaceChildren();
     let first: HTMLElement | null = null;
     for (const item of overflowItems(start)) {
@@ -73,12 +74,29 @@ export function wireMoreMenu(start: StartCtx): void {
       first ??= row;
     }
     return first;
-  }, { className: 'profile-menu ds-bar-menu', role: 'menu', ariaLabel: t('More actions'), menuNavigation: true });
+  };
+  let drawn: HTMLElement | null = null;
+  const menu = mountBodyPopover(trigger, (el, popover) => { drawn = el; return fill(el, popover); },
+    { className: 'profile-menu ds-bar-menu', role: 'menu', ariaLabel: t('More actions'), menuNavigation: true });
   start.moreMenu = menu;
+  // An action can come to apply while the menu is open: Restore brand settings shows
+  // once the studio's checkpoints have loaded, a moment after the page settles. The open
+  // menu is redrawn when an overflow action is shown or hidden, keeping the row that had
+  // focus (or the first row, when that one has gone).
+  const holder = start.shell.querySelector<HTMLElement>('[data-ds-overflow]');
+  const watch = holder ? new MutationObserver(() => {
+    if (!menu.isOpen() || !drawn?.isConnected) return;
+    const focused = document.activeElement instanceof HTMLElement && drawn.contains(document.activeElement) ? document.activeElement.textContent : null;
+    const first = fill(drawn, menu);
+    if (focused === null) return;
+    const same = [...drawn.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(row => row.textContent === focused);
+    (same ?? first)?.focus();
+  }) : null;
+  if (holder && watch) watch.observe(holder, { subtree: true, attributes: true, attributeFilter: ['hidden'] });
   const onClick = (): void => { if (menu.isOpen()) menu.close(true); else menu.open(); };
   trigger.addEventListener('click', onClick);
   const prev = start.unsubBar;
-  start.unsubBar = () => { prev?.(); trigger.removeEventListener('click', onClick); menu.close(); start.moreMenu = null; };
+  start.unsubBar = () => { prev?.(); watch?.disconnect(); trigger.removeEventListener('click', onClick); menu.close(); start.moreMenu = null; };
 }
 
 /** The first moves "Make it yours" offers, in the order the Board's Start here

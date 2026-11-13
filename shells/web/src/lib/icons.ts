@@ -194,6 +194,8 @@ const PATHS = {
   // The struck-through eye: a HIDDEN layer in the Design navigator, and the state its
   // own toggle shows. Same 24-grid and stroke weight as `eye`, so the two swap in place.
   eyeOff: '<path d="M3 3 21 21"/><path d="M10.2 5.2A11 11 0 0 1 12 5c7 0 11 7 11 7a19 19 0 0 1-3.4 4.3"/><path d="M6.9 7A19 19 0 0 0 1 12s4 7 11 7a11 11 0 0 0 4.4-.9"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  // Lucide "ban" - leave something out (the music generator's "Block from shuffle").
+  ban: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
   heart: '<path d="M12 20.3 4.2 12.5a4.6 4.6 0 0 1 6.5-6.5l1.3 1.3 1.3-1.3a4.6 4.6 0 0 1 6.5 6.5z"/>',
   link: '<path d="M9 15 15 9"/><path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3.5 2"/>',
