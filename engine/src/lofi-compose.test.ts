@@ -282,7 +282,11 @@ test('the band styles: a song with verses and choruses, a fill into each chorus 
       const first = bars[0]!;
       assert.ok(['kick', 'rim', 'keys', 'bass'].every(v => first.notes.some(n => n.voice === v)), `${where}: straight into the groove`);
       assert.deepEqual(verse.notes.filter(n => n.voice === 'kick').map(n => n.beat).filter(b => b < 3), [2], `${where}: the one drop`);
-      assert.ok(verse.notes.filter(n => n.voice === 'keys').every(n => Math.round(n.beat * 4) % 2 === 0 && Math.round(n.beat * 4) % 4 !== 0), `${where}: the skank on the offbeats`);
+      // The keys bubble on the offbeats; an electric guitar chops on two and four instead
+      // (the one drop's backbeat), now and then doubling the four a sixteenth later.
+      const keys = verse.notes.filter(n => n.voice === 'keys').map(n => Math.round(n.beat * 4));
+      if ((verse.voices?.keys ?? st.keys) === 'electric') assert.ok(keys.length > 0 && keys.every(s => [4, 12, 13].includes(s)), `${where}: the chop on two and four`);
+      else assert.ok(keys.every(s => s % 2 === 0 && s % 4 !== 0), `${where}: the skank on the offbeats`);
       assert.ok(bars.some(b => b.notes.some(n => n.voice === 'hey')), `${where}: a hey`);
     } else if (mood === 'rock') {
       assert.equal(st.keys, 'crunch');
