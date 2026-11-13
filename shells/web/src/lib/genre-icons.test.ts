@@ -2,13 +2,14 @@
 /**
  * The genre picker's genres (lib/genre-icons.ts): every genre the generator plays has an
  * icon and a title, the titles drop the station's family ("Ska", not "Lolly Sings · Ska"),
- * and the two groups list every genre once.
+ * every genre is in exactly one of the four categories, and each category lists its
+ * genres A to Z.
  *
  * Run directly: node --import ./tests/css-stub.mjs --test shells/web/src/lib/genre-icons.test.ts
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { GENRE_GROUPS, GENRE_ICON, genreIconSvg, genreTitle, shuffleIconSvg } from './genre-icons.ts';
+import { GENRE_CATEGORIES, GENRE_CATEGORY, GENRE_GROUPS, GENRE_ICON, genreIconSvg, genreTitle, shuffleIconSvg } from './genre-icons.ts';
 import { LOFI_STATION_MOODS, lofiStationName } from './neurospicy-lofi.ts';
 
 test('every genre has an icon with shapes in it, and a title', () => {
@@ -26,12 +27,22 @@ test('every genre has an icon with shapes in it, and a title', () => {
   assert.equal(lofiStationName('ska'), 'Lolly Sings · Ska', 'station names elsewhere keep their family');
 });
 
-test('the groups list every genre once, Lolly Sings first', () => {
+test('every genre is in exactly one category, and the categories come in their order', () => {
+  for (const mood of LOFI_STATION_MOODS) assert.ok(GENRE_CATEGORIES.includes(GENRE_CATEGORY[mood]), `${mood} has a category`);
+  assert.deepEqual(Object.keys(GENRE_CATEGORY).sort(), [...LOFI_STATION_MOODS].sort(), 'no category lists a genre the generator does not play');
   const listed = GENRE_GROUPS.flatMap(g => g.moods);
   assert.deepEqual([...listed].sort(), [...LOFI_STATION_MOODS].sort());
-  assert.equal(new Set(listed).size, listed.length);
-  assert.deepEqual(GENRE_GROUPS.map(g => g.title), ['Lolly Sings', 'Lofi']);
-  assert.deepEqual(GENRE_GROUPS[1]!.moods, ['warm', 'lateNight', 'rainy']);
+  assert.equal(new Set(listed).size, listed.length, 'each genre once');
+  assert.deepEqual(GENRE_GROUPS.map(g => g.id), ['chill', 'electronic', 'classic', 'international']);
+  for (const lofi of ['warm', 'lateNight', 'rainy'] as const) assert.equal(GENRE_CATEGORY[lofi], 'chill', 'the Lofi stations are chill');
+});
+
+test('each category lists its genres A to Z by title', () => {
+  for (const g of GENRE_GROUPS) {
+    const titles = g.moods.map(genreTitle);
+    assert.deepEqual(titles, [...titles].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })), g.id);
+  }
+  assert.deepEqual(GENRE_GROUPS[0]!.moods.map(genreTitle), ['City pop', 'Dreamscape', 'Fantasy', 'Late night', 'Lofi house', 'Lolly Sings', 'Rainy', 'Trip hop', 'Warm']);
 });
 
 test('genres next to each other in the grid do not share an icon', () => {

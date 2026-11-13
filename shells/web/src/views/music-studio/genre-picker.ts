@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The music generator's genre picker (#/music): the genre button opens a grid of every
- * genre as a card with its icon and title (lib/genre-icons.ts), grouped under Lolly Sings
- * and Lofi, the genre playing now marked. A card picks its genre. The header holds the
+ * genre as a card with its icon and title (lib/genre-icons.ts), grouped by category (chill,
+ * electronic, classic and international) and A to Z in each, the genre playing now marked. A card picks its genre. The header holds the
  * "Shuffle genres" switch: on, the shuffle button draws a new genre; off, the shuffle
  * keeps the genre and draws a new seed and sound.
  *
@@ -17,7 +17,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
 import { mountModal } from '../../components/modal.ts';
-import { GENRE_GROUPS, genreIconSvg, genreTitle } from '../../lib/genre-icons.ts';
+import { GENRE_GROUPS, genreIconSvg, genreTitle, type GenreCategory } from '../../lib/genre-icons.ts';
 import type { LofiMood } from '../../../../../engine/src/lofi-compose.ts';
 import '../../styles/parts/music-browser.css';
 
@@ -34,6 +34,9 @@ export interface GenrePickerHost {
 /** The picker opens as a centred panel from this width, as a sheet below it (the view's breakpoint). */
 const WIDE = '(min-width: 761px)';
 let opened = 0;
+
+/** Each category's heading. */
+const CATEGORY_TITLE = (): Record<GenreCategory, string> => ({ chill: t('Chill'), electronic: t('Electronic'), classic: t('Classic'), international: t('International') });
 
 /** What the switch does, said under the title. */
 const switchNote = (on: boolean, mood: LofiMood): string => (on
@@ -74,9 +77,10 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
   const wide = window.matchMedia(WIDE).matches;
   const now = h.current();
   const titleId = `msg-title-${n}`;
+  const titles = CATEGORY_TITLE();
   const groups = GENRE_GROUPS.map(g => `
     <section class="msg-group" aria-labelledby="msg-g-${n}-${g.id}">
-      <h3 class="msb-family-title" id="msg-g-${n}-${g.id}">${escapeHtml(g.title)}</h3>
+      <h3 class="msb-family-title" id="msg-g-${n}-${g.id}">${escapeHtml(titles[g.id])}</h3>
       <div class="msg-grid">${g.moods.map(m => `
         <button type="button" class="msg-card" data-genre-card="${m}" aria-pressed="${m === now}" tabindex="${m === now ? 0 : -1}">
           <span class="msg-icon" aria-hidden="true">${genreIconSvg(m, 26)}</span>
