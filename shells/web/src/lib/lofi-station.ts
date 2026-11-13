@@ -668,12 +668,12 @@ export class LofiStation {
         const gap = lt - prev.end;
         const from = prev.voice === leadV && gap > -0.25 && gap < SLUR_GAP && prev.midi !== note.midi ? prev.midi : undefined;
         this.lastLead = { end: lt + len, midi: note.midi, voice: leadV };
-        const play = (v: string, level: number, shift = 0, late = 0, pan = 0, how?: R.BrassPlay): void => {
+        const play = (v: string, level: number, shift = 0, late = 0, pan = 0, how?: R.BrassPlay & LG.TakeHow): void => {
           const seat = this.leadSeat(lanes.lead, bar.tune.mood, v, pan);
           const at = lt + late;
           if (v === 'chop') C.chop(k, seat, at, note.midi + shift, level, len, note.mod ?? 0, spb, bar.tune.seed, bar.index * 1000 + Math.round(note.beat * 48));
           else if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift, how);
-          else if (LG.LEAD_GUITARS.has(v)) LG.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
+          else if (LG.LEAD_GUITARS.has(v)) LG.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift, how);
           else if (W.WORLD_LEADS.has(v as LofiStyle['lead'])) W.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, note.mod ?? 0);
           else V.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
         };
@@ -687,6 +687,10 @@ export class LofiStation {
           // ska or soul section does (the saxophone leading holds its note).
           const fall = bar.index % 8 === 7 && note.beat + note.dur >= 3.4 && note.dur >= 0.5 ? SECTION_FALL : 0;
           for (const p of R.hornSection(leadV, k)) play(p.voice, vel * (p.voice === leadV ? VARIANT.lead[leadV] : 1) * lift, p.shift, p.late, p.pan, { detune: p.detune, straight: true, gain: p.level, fall });
+        } else if (LG.DOUBLED.has(leadV)) {
+          // A double-tracked guitar (lib/lofi-lead-guitars.ts): the part played twice, a take
+          // on each side, each with its own timing, tuning, picking and amp.
+          for (const p of LG.doubleTrack(leadV, k)) play(p.voice, vel * p.strength * VARIANT.lead[leadV] * lift, p.shift, p.late, p.pan, { detune: p.detune, gain: p.level, second: p.second });
         } else play(leadV, vel * VARIANT.lead[leadV] * lift);
         // An echo throw: a phrase's last lead note (the fourth bar's, held at least half a
         // beat) thrown into the echo in the styles that throw, the send closing after the note.

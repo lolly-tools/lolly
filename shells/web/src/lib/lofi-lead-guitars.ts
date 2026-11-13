@@ -8,7 +8,9 @@
  * - twang: the same guitar an octave down on its bridge pickup, through the amp's tremolo;
  * - overdrive, riff and metal: the bridge pickup into a valve amp turned up, three settings
  *   of one amp (below): a cranked amp for the overdrive solo, a mid-forward crunch an
- *   octave down for the riff, and a high-gain lead for metal.
+ *   octave down for the riff, and a high-gain lead for metal, which is double-tracked: the
+ *   part played twice, one take on each side, the second through another amp (doubleTrack).
+ *   The overdrive's solo stays a single take, as every recorded solo measured here was one.
  *
  * The high-gain amp is built as one is: gain stages in a row, each a triode's curve (the
  * top of the swing clipping before the bottom, its even harmonics) with a coupling
@@ -35,6 +37,7 @@
  */
 import { electricNote, valveInput } from './lofi-guitars.ts';
 import type { VoiceKit } from './lofi-voices.ts';
+import type { SectionPart } from './lofi-winds.ts';
 import { fretFor, LEAD_BEND, LEAD_SLIDE, TUNING } from './lofi-perform.ts';
 import { ELECTRIC_FRET } from '../../../../engine/src/lofi-compose.ts';
 
@@ -159,6 +162,20 @@ export const CRUNCH: Voicing = {
   level: 0.1,
 };
 
+/**
+ * Metal's second take goes through another amp, as a doubled part is tracked: the same
+ * family of high-gain amp, set a little differently (less of the second stage, the scoop
+ * lower and shallower, more presence), so the two sides differ in tone as well as in
+ * playing.
+ */
+export const METAL_B: Voicing = {
+  input: 80, bright: [2500, 3], pickup: [3200, 3],
+  stages: [{ gain: 5.5, lean: 0.4, hp: 180, lp: 9000 }, { gain: 24, lean: 0.6, hp: 86, lp: 7000 }, { gain: 4, lean: 0.3, hp: 60, lp: 5400 }],
+  bass: [120, 0], mid: [900, -12, 0.7], treble: [3000, 2],
+  power: 0.5, presence: [3500, 3], resonance: [110, 3],
+  level: 0.069,
+};
+
 // ── the lead guitarist's voices ────────────────────────────────────────────────
 
 /** How each lead guitar is played. */
@@ -189,6 +206,57 @@ export const LEADS: Record<string, LeadStyle> = {
   metal: { shift: 0, pickup: 'bridge', dig: 1.3, vibrato: 55, vibratoFrom: 0.3, choke: true, amp: METAL, level: 2.36 },
 };
 
+// ── double-tracking ──────────────────────────────────────────────────────────
+
+/** The lead guitars played twice, one take on each side. */
+export const DOUBLED = new Set<string>(['metal']);
+/** How a take is played, from the station (the shape lib/lofi-winds.ts's section players take): its tuning (cents), its level and whether it is the second take, through the second amp. */
+export interface TakeHow { detune?: number; gain?: number; second?: boolean }
+/** One take of a double-tracked part: a section part with how hard it is picked (against the line's velocity) and whether it is the second. */
+export interface GuitarTake extends SectionPart { strength: number; second: boolean }
+
+/**
+ * Double-tracking, measured on a heavy rhythm part recorded twice, once for each side (two
+ * takes, not a copy: the sides' correlation 0.07 over a minute, though each frame matches
+ * the other side to 0.69 at its best lag). The right take came in 17 ms after the left on
+ * average, wandering 2 to 3 ms either way note to note, and sat 6 cents from it (the median;
+ * 11 cents flat to 14 sharp from one fifth of a second to the next). A copy delayed by a
+ * fixed time correlates to 0.95 at that delay and combs, which is why each take here is
+ * played, not copied: each its own pick, timing, tuning, vibrato and amp.
+ */
+export const TAKES = {
+  /** Where the takes sit, either side (a stereo panner's place). */
+  pan: 0.9,
+  /** The second take's lateness against the first (s, its mean and its spread note to note), and the first's own small spread. */
+  late: 0.015, lateSpread: 0.003, firstLate: 0.002,
+  /** Each guitar's tuning from the note (cents): the two a few cents either side, and each note's own wander. */
+  tuning: 1.5, wander: 2,
+  /** How much each take's picking strength varies (a share of the velocity). */
+  strength: 0.06,
+  /**
+   * Each take's level, set so the pair measures as loud as the single take did (soloed in
+   * four metal tunes, K-weighted, both channels summed: within 0.15 dB in each), and the
+   * genres' seats for the lead hold. Two takes add their power, but a single take in the
+   * middle reaches both speakers whole, where a panned take shares its power between them:
+   * the two nearly balance, and each take sits only a quarter of a decibel down.
+   */
+  level: 0.97,
+};
+
+/** The two takes of a doubled part's note, drawn for every note from the station's seeded source. */
+export function doubleTrack(style: string, k: VoiceKit): GuitarTake[] {
+  const g = (): number => Math.sqrt(-2 * Math.log(1 - k.rng())) * Math.cos(2 * Math.PI * k.rng());
+  const T = TAKES;
+  const first = T.firstLate * Math.abs(g());
+  const second = first + Math.max(0.004, T.late + T.lateSpread * g());
+  const take = (late: number, pan: number, tuning: number, isSecond: boolean): GuitarTake => ({
+    voice: style, level: T.level, shift: 0, late, pan, detune: tuning + T.wander * g(),
+    strength: 1 + T.strength * g(), second: isSecond,
+  });
+  // The first take on the left; the second, through the other amp, on the right.
+  return [take(first, -T.pan, -T.tuning, false), take(second, T.pan, T.tuning, true)];
+}
+
 /** A tremolo per output (twang's): the amp's level swaying at 6.5 Hz, a quarter either way. */
 const TREMOLOS = new WeakMap<AudioNode, GainNode>();
 function tremoloOut(k: VoiceKit, out: AudioNode): GainNode {
@@ -212,8 +280,9 @@ const LEVELS = new WeakMap<AudioNode, Map<string, GainNode>>();
 function levelOut(k: VoiceKit, out: AudioNode, style: string, level: number): GainNode {
   let byStyle = LEVELS.get(out);
   if (!byStyle) { byStyle = new Map(); LEVELS.set(out, byStyle); }
-  let g = byStyle.get(style);
-  if (!g) { g = k.ctx.createGain(); g.gain.value = level; g.connect(out); byStyle.set(style, g); }
+  const key = `${style}:${level}`;
+  let g = byStyle.get(key);
+  if (!g) { g = k.ctx.createGain(); g.gain.value = level; g.connect(out); byStyle.set(key, g); }
   return g;
 }
 
@@ -225,9 +294,10 @@ const BEND_TIME = 0.22;
 /**
  * One note of a lead guitar. `mod` is the performer's (lib/lofi-perform.ts): the
  * articulation (bent, slid or picked), plus the fret times ELECTRIC_FRET. `from` is the
- * note before when this one follows straight on from it: a slide starts there.
+ * note before when this one follows straight on from it: a slide starts there. `how` is a
+ * take's, when the part is double-tracked (doubleTrack).
  */
-export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod = 0, from?: number): void {
+export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod = 0, from?: number, how: TakeHow = {}): void {
   const s = LEADS[style];
   if (!s) return;
   const art = mod % ELECTRIC_FRET;
@@ -235,9 +305,10 @@ export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi
   // The fret the performer chose, if the note can be played there; otherwise the nearest the middle of the neck.
   const marked = Math.floor(mod / ELECTRIC_FRET);
   const fret = (TUNING as readonly number[]).includes(Math.round(pitch) - marked) ? marked : fretFor(Math.round(pitch), 7);
-  let into = levelOut(k, out, style, s.level);
+  let into = levelOut(k, out, style, s.level * (how.gain ?? 1));
   if (style === 'twang') into = tremoloOut(k, into);
-  const amp = s.amp ? driveInput(k, into, s.amp) : valveInput(k, into);
+  const voicing = how.second && s.amp === METAL ? METAL_B : s.amp;
+  const amp = voicing ? driveInput(k, into, voicing) : valveInput(k, into);
   // A slide comes from the note before (or two frets below), fret by fret; a bend pushes up a tone.
   const slide = art === LEAD_SLIDE ? Math.max(-5, Math.min(5, from === undefined || from === midi ? 2 : midi - from)) : 0;
   const bend = art === LEAD_BEND && fret >= 2 ? 2 : 0;
@@ -246,6 +317,7 @@ export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi
     pickup: s.pickup,
     choke: s.choke,
     into: amp,
+    detune: how.detune ?? 0,
     ...(bend ? { bend, bendTime: BEND_TIME, how: 'bend' as const } : slide ? { bend: slide, bendTime: SLIDE_FRET * Math.abs(slide), how: 'slide' as const } : {}),
     ...(s.vibrato && dur >= s.vibratoFrom ? { vibrato: s.vibrato * (0.8 + k.rng() * 0.4), vibratoAt: bend ? BEND_TIME + 0.05 : Math.min(0.3, dur * 0.35) } : {}),
   });
