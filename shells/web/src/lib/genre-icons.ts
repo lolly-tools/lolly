@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The music generator's genres as a person picks them (#/music): each genre's title
- * without its station's family ("Ska", not "Lolly Sings · Ska"), the group the picker
- * lists it under (Lolly Sings or Lofi), and an icon. Most icons come from the shared set
+ * without its station's family ("Ska", not "Lolly Sings · Ska"), the category the picker
+ * lists it under (chill, electronic, classic or international), and an icon. Most icons come from the shared set
  * (lib/icons.ts) or the instrument icons (lib/instrument-icons.ts). The few that only the
  * genre picker draws live here, in the same 24-unit stroke style, so a page that never
  * opens the generator never loads them. The shuffle button's crossing arrows are here
@@ -12,7 +12,7 @@
 import type { LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { icon, type IconName } from './icons.ts';
 import { musicIconBody, strokeSvg, strokeSvgNode, type InstrumentIcon } from './instrument-icons.ts';
-import { LOFI_MOOD_LABEL, LOFI_STATION_MOODS, isSingsMood } from './neurospicy-lofi.ts';
+import { LOFI_MOOD_LABEL } from './neurospicy-lofi.ts';
 
 /** Glyphs only the generator draws. Lucide (ISC): shuffle, disc-3, headphones,
  *  ice-cream-cone, flower, mountain, radio, speaker and castle. Lolly's own: a wrapped sweet. */
@@ -66,8 +66,24 @@ export const shuffleIconSvg = (size: number): string => strokeSvg(OWN.shuffle, s
 /** A genre's title in the picker: the style alone, the station's family left to the group heading. */
 export const genreTitle = (mood: LofiMood): string => (mood === 'sings' ? 'Lolly Sings' : LOFI_MOOD_LABEL[mood]);
 
-/** The picker's groups, in the order the player lists the stations. */
-export const GENRE_GROUPS: ReadonlyArray<{ id: 'sings' | 'lofi'; title: string; moods: readonly LofiMood[] }> = [
-  { id: 'sings', title: 'Lolly Sings', moods: LOFI_STATION_MOODS.filter(isSingsMood) },
-  { id: 'lofi', title: 'Lofi', moods: LOFI_STATION_MOODS.filter(m => !isSingsMood(m)) },
-];
+/** The picker's categories, in the order it shows them. */
+export const GENRE_CATEGORIES = ['chill', 'electronic', 'classic', 'international'] as const;
+export type GenreCategory = typeof GENRE_CATEGORIES[number];
+
+/** Which category each genre is listed under: the Lofi stations and the calm styles are
+ *  chill, the club and synth styles electronic, the band and groove styles classic, and
+ *  the styles of one tradition or place international. */
+export const GENRE_CATEGORY: Record<LofiMood, GenreCategory> = {
+  warm: 'chill', lateNight: 'chill', rainy: 'chill', lofiHouse: 'chill', triphop: 'chill', dream: 'chill', citypop: 'chill', sings: 'chill', fantasy: 'chill',
+  sugar: 'electronic', sherbert: 'electronic', synthwave: 'electronic', chiptune: 'electronic', acid: 'electronic', electro: 'electronic', dubstep: 'electronic', brostep: 'electronic', dnb: 'electronic', nudisco: 'electronic',
+  rock: 'classic', punk: 'classic', grunge: 'classic', stoner: 'classic', metal: 'classic', shoegaze: 'classic', blues: 'classic', jazz: 'classic', swing: 'classic', soul: 'classic', funk: 'classic', rnb: 'classic', country: 'classic', ska: 'classic', reggae: 'classic', hiphop: 'classic',
+  persian: 'international', guzheng: 'international', koto: 'international', kora: 'international', afrobeat: 'international', amapiano: 'international', spanish: 'international', straya: 'international', kpop: 'international',
+};
+
+/** The picker's groups: each category's genres, A to Z by title. */
+export const GENRE_GROUPS: ReadonlyArray<{ id: GenreCategory; moods: readonly LofiMood[] }> = GENRE_CATEGORIES.map(id => ({
+  id,
+  moods: (Object.keys(GENRE_CATEGORY) as LofiMood[])
+    .filter(m => GENRE_CATEGORY[m] === id)
+    .sort((a, b) => genreTitle(a).localeCompare(genreTitle(b), 'en', { sensitivity: 'base' })),
+}));
