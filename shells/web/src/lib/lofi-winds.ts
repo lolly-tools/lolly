@@ -18,7 +18,7 @@
  */
 import { bowString } from './lofi-bowed.ts';
 import { blowLips, type Horn } from './lofi-brass.ts';
-import { blowFlute, type Pipe } from './lofi-flutes.ts';
+import { blowFlute, inhale, FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, type Pipe } from './lofi-flutes.ts';
 import { blowReed } from './lofi-reeds.ts';
 import { EPS, mtof, type VoiceKit } from './lofi-voices.ts';
 
@@ -123,7 +123,7 @@ function heldLevel(data: Float32Array, sr: number, held: number, expected: numbe
  * the breath vibrato's depth (cents) at no strength and how much it deepens to full.
  */
 const FLUTES: Record<Pipe, { level: number; raw: readonly [number, number, number]; vibrato: number; vibratoGrow: number; rate: number }> = {
-  open: { level: 0.037, raw: [25.2, 7.3, -0.48], vibrato: 1, vibratoGrow: 21, rate: 4.6 },
+  open: { level: 0.0366, raw: [25.2, 7.3, -0.48], vibrato: 1, vibratoGrow: 21, rate: 4.9 },
   stopped: { level: 0.037, raw: [24.6, 5.6, -0.39], vibrato: 3, vibratoGrow: 4, rate: 5.4 },
 };
 /** How much of a note's own loudness against the measured trend a player keeps. */
@@ -137,6 +137,7 @@ const FLUTE_VIBRATO_FROM = 0.35;
  * 4.6 to 5.4 a second); the pan flute's is slight. `art` 1 scoops up into the note.
  */
 function flute(pipe: Pipe, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined): void {
+  if (pipe === 'open') { flautist(k, out, t, midi, vel, dur, art, from); return; }
   const { ctx } = k;
   const p = FLUTES[pipe];
   const held = Math.max(0.05, dur);
@@ -147,6 +148,60 @@ function flute(pipe: Pipe, k: VoiceKit, out: AudioNode, t: number, midi: number,
   }, seeded(k));
   const expected = p.raw[0] + p.raw[1] * (strength - 0.5) + p.raw[2] * (midi - 72);
   playBuffer(k, data, out, t, p.level * (0.55 + 0.45 * strength) * heldLevel(data, ctx.sampleRate, held, expected, NOTE_KEPT), []);
+}
+
+/**
+ * How a flautist's choices sound (lib/lofi-perform.ts makes them): a half-tongued "du" lets
+ * less of the chiff and the push through; a ghosted note is barely blown, breathy, with no
+ * vibrato; a swell rises 3 dB over the note, a taper falls 4, and a messa di voce rises 3 in
+ * the middle; each held note's vibrato is its own, a little deeper or shallower; and a
+ * breath after a phrase's last note is drawn in the rest, as a recorded player's is (19 to
+ * 29 dB under the notes).
+ */
+const FLUTE_SOFT_TONGUE = 0.4, FLUTE_GHOST_TONGUE = 0.3, FLUTE_GHOST_BLOW = 0.75, FLUTE_GHOST_LEVEL = 0.6;
+const FLUTE_SWELL_DB = 3, FLUTE_TAPER_DB = -4, FLUTE_ARCH_DB = 3;
+/** How far the flautist's vibrato rate spreads note to note (Hz, over FLUTES.open's): recorded players 4.6 to 6.6. */
+const FLUTE_RATE_SPREAD = 1;
+/** The breath's length short and deep (s), how long after the note it starts (s), and its level against the notes (dB). */
+const FLUTE_BREATH_S = 0.2, FLUTE_DEEP_S = 0.34, FLUTE_BREATH_AFTER = 0.07, FLUTE_BREATH_DB = -28, FLUTE_DEEP_DB = -25;
+
+function flautist(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined): void {
+  const { ctx } = k;
+  const p = FLUTES.open;
+  const flags = art & FLUTE_PLAYED ? art : art === 1 ? FLUTE_SCOOP : 0;
+  const ghost = (flags & FLUTE_GHOST) !== 0;
+  const held = Math.max(0.05, dur);
+  const strength = Math.min(1, Math.max(0, vel)) * (ghost ? FLUTE_GHOST_BLOW : 1);
+  const swell = (flags & FLUTE_SWELL) !== 0, taper = (flags & FLUTE_TAPER) !== 0;
+  const rate = p.rate + k.rng() * FLUTE_RATE_SPREAD;
+  const depth = (p.vibrato + p.vibratoGrow * strength) * (0.7 + 0.6 * k.rng());
+  const data = blowFlute({
+    sr: ctx.sampleRate, f: mtof(midi), from: from === undefined ? undefined : mtof(from), vel: strength, dur: held, seconds: held + 0.3, pipe: 'open',
+    vibrato: !ghost && held > FLUTE_VIBRATO_FROM ? depth : 0, rate, scoop: flags & FLUTE_SCOOP ? 1 : 0,
+    tongue: ghost ? FLUTE_GHOST_TONGUE : flags & FLUTE_SOFT ? FLUTE_SOFT_TONGUE : 1,
+    contour: swell && taper ? 0 : swell ? FLUTE_SWELL_DB : taper ? FLUTE_TAPER_DB : 0, arch: swell && taper ? FLUTE_ARCH_DB : 0,
+    stop: (flags & FLUTE_STOP) !== 0,
+  }, seeded(k));
+  const expected = p.raw[0] + p.raw[1] * (strength - 0.5) + p.raw[2] * (midi - 72);
+  const level = p.level * (0.55 + 0.45 * strength) * (ghost ? FLUTE_GHOST_LEVEL : 1);
+  playBuffer(k, data, out, t, level * heldLevel(data, ctx.sampleRate, held, expected, NOTE_KEPT), []);
+  if (flags & FLUTE_BREATH) {
+    const deep = (flags & FLUTE_DEEP) !== 0;
+    const air = inhale(ctx.sampleRate, deep ? FLUTE_DEEP_S : FLUTE_BREATH_S, seeded(k));
+    playBuffer(k, air, out, t + held + FLUTE_BREATH_AFTER, level * 10 ** ((deep ? FLUTE_DEEP_DB : FLUTE_BREATH_DB) / 20) / loudest(air, ctx.sampleRate), []);
+  }
+}
+
+/** The RMS of a buffer's loudest 50 ms. */
+function loudest(data: Float32Array, sr: number): number {
+  const w = Math.max(1, Math.round(0.05 * sr));
+  let best = 0;
+  for (let a = 0; a + w <= data.length; a += Math.round(w / 2)) {
+    let s = 0;
+    for (let i = a; i < a + w; i++) s += data[i]! * data[i]!;
+    best = Math.max(best, s / w);
+  }
+  return Math.sqrt(best) || 1;
 }
 
 /** The fiddle's level against the voice it replaced, and how loud it comes out of the model (as FLUTES' raw). */

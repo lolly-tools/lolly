@@ -42,6 +42,7 @@ import * as R from './lofi-winds.ts';
 import * as H from './lofi-house.ts';
 import * as C from './lofi-chop.ts';
 import { ownOnly } from './lofi-lead-art.ts';
+import { composerMod } from './lofi-flutes.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -671,11 +672,13 @@ export class LofiStation {
         const play = (v: string, level: number, shift = 0, late = 0, pan = 0, how?: R.BrassPlay & LG.TakeHow): void => {
           const seat = this.leadSeat(lanes.lead, bar.tune.mood, v, pan);
           const at = lt + late;
-          if (v === 'chop') C.chop(k, seat, at, note.midi + shift, level, len, note.mod ?? 0, spb, bar.tune.seed, bar.index * 1000 + Math.round(note.beat * 48));
-          else if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift, how);
-          else if (LG.LEAD_GUITARS.has(v)) LG.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift, how);
-          else if (W.WORLD_LEADS.has(v as LofiStyle['lead'])) W.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, note.mod ?? 0);
-          else V.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
+          // A flautist's flags are the flute's own: an instrument doubling it reads the composer's articulation.
+          const mod = v === leadV ? note.mod ?? 0 : composerMod(note.mod);
+          if (v === 'chop') C.chop(k, seat, at, note.midi + shift, level, len, mod, spb, bar.tune.seed, bar.index * 1000 + Math.round(note.beat * 48));
+          else if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
+          else if (LG.LEAD_GUITARS.has(v)) LG.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
+          else if (W.WORLD_LEADS.has(v as LofiStyle['lead'])) W.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, mod);
+          else V.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift);
         };
         // A horn section: in the styles built on one, a horn's line is played by the
         // section (lib/lofi-winds.ts): a second horn in unison and a trombone an octave
