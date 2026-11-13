@@ -14,10 +14,12 @@
  * Brass also plays as a section here: a horn line doubled by a second player and a
  * trombone an octave under (hornSection), and the swing band's chords, one player to a
  * chord tone (keys). Every player is a little out of tune with the others and a little
- * late or early, by the amounts measured on recorded sections.
+ * late or early, by the amounts measured on recorded sections. A trumpet soloist plays
+ * one note at a time and chooses how to play each (soloist): which notes to lip up into,
+ * a vibrato that grows on some held notes, and a taper, as recorded soloists do.
  */
 import { bowString } from './lofi-bowed.ts';
-import { blowLips, type Horn } from './lofi-brass.ts';
+import { blowLips, heardSolo, type Horn } from './lofi-brass.ts';
 import { blowFlute, inhale, FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, type Pipe } from './lofi-flutes.ts';
 import { blowReed } from './lofi-reeds.ts';
 import { EPS, mtof, type VoiceKit } from './lofi-voices.ts';
@@ -36,8 +38,8 @@ function seeded(k: VoiceKit): () => number {
   };
 }
 
-/** A rendered note into the graph at `t`, at `level`, through `chain` (the last node is connected to `out`). */
-function playBuffer(k: VoiceKit, data: Float32Array, out: AudioNode, t: number, level: number, chain: AudioNode[]): void {
+/** A rendered note into the graph at `t`, at `level`, through `chain` (the last node is connected to `out`); its level's gain. */
+function playBuffer(k: VoiceKit, data: Float32Array, out: AudioNode, t: number, level: number, chain: AudioNode[]): GainNode {
   const { ctx } = k;
   const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
   buf.getChannelData(0).set(data);
@@ -49,6 +51,7 @@ function playBuffer(k: VoiceKit, data: Float32Array, out: AudioNode, t: number, 
   for (const c of chain) { node.connect(c); node = c; }
   node.connect(g).connect(out);
   src.start(t);
+  return g;
 }
 
 /** How a brass note is played: a section player's straight tone, or a soloist's, which may sing a little. */
@@ -229,27 +232,110 @@ function fiddle(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
 const REGISTER_KEPT = 0.35;
 /** The brass leads' levels against the voices they replaced. */
 const BRASS_LEVEL: Record<Horn, number> = { trumpet: 0.019, trombone: 0.019 };
-/** How far a soloist's held note sings (cents); a section plays straight. */
-const SOLO_VIBRATO = 7;
+/** A soloist's level against a section player's at the same strength (dB): what keeps the solo trumpet as loud as before it was heard darker (K-weighted). */
+const SOLO_LEVEL = 2.86;
+
+/**
+ * A soloist's choices, measured note by note on recorded solo trumpet phrases (a blues
+ * player and a jazz improviser, CC0 recordings from Freesound). About a quarter of the
+ * notes they tongue start 25 cents or more under the note and lip up into it, more often
+ * on the notes a phrase leans on (the composer's art 1): those start a median 45 cents
+ * flat and settle within about 55 ms. The rest start within a few cents of it, a little
+ * under more often than over, in every register. A section scoops a whole semitone,
+ * together, which a soloist does not do on every long note.
+ */
+const SCOOP_MARKED = 0.4;
+const SCOOP_OTHER = 0.22;
+/** Where a soloist aims a note's start, 10 to 20 ms in (cents against the note, the least and the most): a lifted note well under, the rest near. */
+const LIFT_AIM: readonly [number, number] = [-60, -32];
+const PLAIN_AIM: readonly [number, number] = [-22, 22];
+/**
+ * The model's lips, left to themselves, start a tongued note sharp for its first 20 ms or
+ * so: about ONSET_SHARP cents at E4 and ONSET_SHARP_FALL less each semitone up, none by
+ * C6. The player hears that and aims under by as much more. A lift rises over SCOOP_TIME
+ * s and the plainer lip-in over LIP_TIME s, and the loop lags both: 10 to 20 ms in, it has
+ * moved by LIFT_SHOWS and LIP_SHOWS of the lift's depth.
+ */
+const ONSET_SHARP = 36;
+const ONSET_SHARP_FALL = 1.75;
+const SCOOP_TIME = 0.09;
+const LIP_TIME = 0.05;
+const LIFT_SHOWS = 0.82;
+const LIP_SHOWS = 0.57;
+/**
+ * The vibrato on a held note: recorded soloists hold the first part of a long note nearly
+ * straight (2 to 3 cents of wander) and let a vibrato grow towards its end, to about 8
+ * cents in its last fifth of a second, at about 4 to 4.8 a second, on about half their long
+ * notes. It comes in at SOLO_VIBRATO_FROM s and reaches SOLO_VIBRATO cents as the breath
+ * stops, on notes held at least SOLO_VIBRATO_HELD s.
+ */
+const SOLO_VIBRATO = 9;
+const SOLO_VIBRATO_FROM = 0.35;
+const SOLO_VIBRATO_HELD = 0.5;
+const SOLO_VIBRATO_CHANCE = 0.55;
+const SOLO_RATE = 4.2;
+/**
+ * A held note tapers: recorded soloists' notes of 0.4 s or more end 2.5 dB (the blues
+ * player) to 7 dB (the jazz improviser) under their middle; a share of the breath eased
+ * by the end, the least and the most, gives about 2.5.
+ */
+const TAPER_HELD = 0.4;
+const TAPER_LEAST = 0.25;
+const TAPER_MOST = 0.55;
+/**
+ * A trumpet plays one note at a time: the tongue stops the note before as it starts the
+ * next, and on a slur the old pitch dies away as the new one comes in (a time constant,
+ * s). Recorded slurs dip 4.5 to 10 dB as the pitch moves, over 25 to 50 ms; with the old
+ * note stopped this way the model's slurs dip 5 dB over 35 ms, where its two notes used to
+ * sound together through the change.
+ */
+const NOTE_STOP = 0.004;
+/** The soloist's note still sounding on each seat: its gain, when it started and when its sound ends (s). */
+const SOUNDING = new WeakMap<AudioNode, { gate: GainNode; from: number; until: number }>();
+
+/** How a soloist plays a note: the lift into it (semitones, and over how long), the vibrato (cents by the end, and when it comes in) and the taper. */
+export interface SoloNote { scoop: number; scoopTime: number; vibrato: number; vibratoFrom: number; taper: number }
+
+/** A soloist's choices for one note (see SCOOP_MARKED and the vibrato and taper above), drawn from the note's own seeded source. */
+export function soloist(midi: number, held: number, art: number, slurred: boolean, rand: () => number): SoloNote {
+  const lifts = rand() < (art === 1 ? SCOOP_MARKED : SCOOP_OTHER);
+  const [least, most] = lifts ? LIFT_AIM : PLAIN_AIM;
+  const aim = least + rand() * (most - least);
+  const sharp = Math.max(0, ONSET_SHARP - ONSET_SHARP_FALL * (midi - 64));
+  const scoop = slurred ? 0 : Math.max(0, sharp - aim) / (lifts ? LIFT_SHOWS : LIP_SHOWS) / 100;
+  const sings = held >= SOLO_VIBRATO_HELD && rand() < SOLO_VIBRATO_CHANCE;
+  const taper = held >= TAPER_HELD ? TAPER_LEAST + rand() * (TAPER_MOST - TAPER_LEAST) : 0;
+  return { scoop, scoopTime: lifts ? SCOOP_TIME : LIP_TIME, vibrato: sings ? SOLO_VIBRATO : 0, vibratoFrom: Math.min(SOLO_VIBRATO_FROM, held * 0.45), taper };
+}
 
 function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined, how: BrassPlay): void {
   const { ctx } = k;
   const held = Math.max(0.05, dur);
   const strength = Math.min(1, Math.max(0, vel));
   const fall = how.fall ?? 0;
+  const solo = !how.straight;
+  const rate = solo ? SOLO_RATE + k.rng() * 0.6 : 5 + k.rng() * 0.7;
+  const rand = seeded(k);
+  const play: Partial<SoloNote> = solo ? soloist(midi, held, art, from !== undefined, rand) : { scoop: art === 1 ? 1 : 0, vibrato: 0 };
   const data = blowLips({
     sr: ctx.sampleRate, f: mtof(midi) * 2 ** ((how.detune ?? 0) / 1200), from: from === undefined ? undefined : mtof(from),
     vel: strength, dur: held, seconds: held + (fall ? 0.4 : 0.15), horn,
-    scoop: art === 1 ? 1 : 0, fall, vibrato: how.straight ? 0 : SOLO_VIBRATO, rate: 5 + k.rng() * 0.7,
-  }, seeded(k));
+    scoop: play.scoop ?? 0, scoopTime: play.scoopTime, fall, vibrato: play.vibrato ?? 0, rate, vibratoFrom: play.vibratoFrom, taper: play.taper,
+  }, rand);
+  if (solo) heardSolo(data, ctx.sampleRate, strength);
   const at = horn === 'trumpet' ? 70 : 58;
-  const level = BRASS_LEVEL[horn] * (0.55 + 0.45 * strength) * 10 ** ((-rawLevel(horn, strength, midi) + REGISTER_KEPT * 0.32 * (midi - at)) / 20);
+  const level = BRASS_LEVEL[horn] * (0.55 + 0.45 * strength) * 10 ** ((-rawLevel(horn, strength, midi) + REGISTER_KEPT * 0.32 * (midi - at) + (solo ? SOLO_LEVEL : 0)) / 20);
   // The top past what a horn sends out, where the model's steepened wave would only alias.
   const top = ctx.createBiquadFilter();
   top.type = 'lowpass';
   top.frequency.value = 14000;
   top.Q.value = 0.5;
-  playBuffer(k, data, out, t, level * (how.gain ?? 1), [top]);
+  const gate = playBuffer(k, data, out, t, level * (how.gain ?? 1), [top]);
+  if (!solo) return;
+  // One note at a time: the note before stops as this one starts.
+  const last = SOUNDING.get(out);
+  if (last && t > last.from + 0.02 && t < last.until) last.gate.gain.setTargetAtTime(0, t, NOTE_STOP);
+  SOUNDING.set(out, { gate, from: t, until: t + data.length / ctx.sampleRate });
 }
 
 /** A player in a horn section: what they play against the line, how loud, how late (s) and where they sit (pan). */
