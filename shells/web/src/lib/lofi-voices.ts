@@ -53,6 +53,7 @@
  * end; nothing is kept. Levels sit low, and lofi-station.ts evens the variants out.
  */
 import { pluckString, type StringSpec } from './lofi-strings.ts';
+import { acousticNote } from './lofi-acoustic.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export interface VoiceKit {
@@ -475,21 +476,24 @@ function bells(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 
 // ── the roots instruments ───────────────────────────────────────────────────
 
-/** A steel-string acoustic: brighter and longer-ringing than nylon, with the body's jangle. */
+/** A steel-string acoustic, strummed: the measured flat-top of ./lofi-acoustic.ts, picked over the sound hole. */
 function steel(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.1, bright: 20, mellow: 4.5, ring: 1.5, body: 2600, level: 0.08 });
+  acousticNote(k, out, t, midi, vel, dur, STEEL_KEYS * pluckLevel(vel), { keys: true });
 }
 
 /**
- * The steel-string acoustic as the lead: single notes flatpicked a little nearer the
- * sound hole than its strum, so rounder. `art` 2 slides into the note from a tone below;
- * 3 hammers it on (the tone below picked, the finger coming down on the fret a moment
- * later); a held note gets a light vibrato.
+ * The steel-string acoustic as the lead (./lofi-acoustic.ts): single notes flatpicked
+ * nearer the bridge than its strum. `art` 2 slides into the note from a tone below (the
+ * finger squeaking on a wound string); 3 hammers it on (the tone below picked, the finger
+ * coming down on the fret a moment later); 4 is a muted string raked on the way in; a
+ * held note gets a light vibrato.
  */
 function steelLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
-  const how = art === 2 ? { slide: -2, slideTime: 0.06 } : art === 3 ? { slide: -2, slideTime: 0.012, slideHold: Math.min(0.07, dur * 0.3) } : {};
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.13, bright: 17, mellow: 4, ring: 1.4, body: 2300, level: 0.1, ...how, ...(dur > 0.6 ? { wobble: 8 } : {}) });
+  // The articulation is in the low bits; a lead's own ornament (a strum's string, a rake) carries a flag above them.
+  acousticNote(k, out, t, midi, vel, dur, STEEL_LEAD * pluckLevel(vel), { art: art & 7 });
 }
+/** The acoustic's levels, strummed and as the lead, against the other plucked voices. */
+const STEEL_KEYS = 0.138, STEEL_LEAD = 0.19;
 
 /**
  * A banjo: a bright, short pluck through a high-pass (a banjo has no low body), and the
