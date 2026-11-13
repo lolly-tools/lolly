@@ -22,11 +22,14 @@
  * over a few tens of milliseconds (the accent at the front of a played note), and a
  * little noise from the air rushing through the lips before they lock onto the bore. A
  * held note wanders a few cents, as a player's does. The note can be scooped up into,
- * slurred from the one before, and fall off (or rise off, a doit) at its end.
+ * slurred from the one before, and fall off (or rise off, a doit) at its end. A soloist's
+ * held note can also grow a vibrato towards its end and taper as the breath eases.
  *
  * The constants were set by measuring the model against recorded brass sections: the
  * steady spectrum and how it brightens with loudness, the attack and its accent, the
- * release, the pitch's movement and the section's spread.
+ * release, the pitch's movement and the section's spread. A section is miked close to
+ * its bells; a soloist is heard off the bell's axis, and heardSolo gives that sound, set
+ * against recorded solo trumpets.
  *
  * Pure: no DOM, no Web Audio; deterministic for the same note and seed.
  */
@@ -40,12 +43,18 @@ export interface LipNote {
   /** How hard it is blown (0 to 1), how long it is held (s), and how long to render (s). */
   vel: number; dur: number; seconds: number;
   horn: Horn;
-  /** A scoop up into the note (how many semitones under the note it starts, 0 none). */
-  scoop: number;
+  /** A scoop up into the note (how many semitones under the note it starts, 0 none), and how long it takes to rise (s, 0.12 by default). */
+  scoop: number; scoopTime?: number;
   /** How far the note falls off as it ends (semitones; negative rises, a doit; 0 neither). */
   fall: number;
-  /** The player's vibrato (cents) and its rate (Hz); a section plays straight (0). */
-  vibrato: number; rate: number;
+  /**
+   * The player's vibrato: how deep it has grown by the time the breath stops (cents), its
+   * rate (Hz), and when it comes in (s into the note; by default 0.3 s, or halfway through
+   * a shorter note). It deepens steadily from there. A section plays straight (0).
+   */
+  vibrato: number; rate: number; vibratoFrom?: number;
+  /** How far the breath eases off by the end of the note (a share of it, 0 none). */
+  taper?: number;
 }
 
 /** An instrument: its bell, its lips, and how hard its players blow. */
@@ -119,6 +128,12 @@ const ROUGH_TIME = 0.03;
 const WANDER = 2.4;
 /** How long a fall or a doit takes (s), from the end of the note. */
 const FALL_TIME = 0.22;
+/**
+ * A lip vibrato moves the breath with the pitch: the level swings about a third of a dB
+ * with a 5 cent vibrato on recorded trumpets (University of Iowa samples: 0.15 to 0.5 dB
+ * with vibrato, about 0.1 without). A share of the breath per cent of depth.
+ */
+const VIBRATO_BREATH = 0.005;
 
 /** A fractional delay line with linear interpolation. */
 class Line {
@@ -167,6 +182,35 @@ export function pressure(horn: Horn, vel: number): number {
   return b.soft * (b.loud / b.soft) ** Math.min(1, Math.max(0, vel));
 }
 
+/** The solo's cutoff (Hz) from SOLO_FULL strength up, and how many octaves it falls per unit of strength under that. */
+const SOLO_TOP = 3600;
+const SOLO_FULL = 0.55;
+const SOLO_SOFT = 3.9;
+
+/**
+ * A solo trumpet as a listener hears it, rather than as a horn section is miked. The bell
+ * sends its top octaves forward in a narrow beam, so off its axis, as a soloist is heard
+ * and recorded, the sound above about 3 kHz falls away; and blown softly the lips never
+ * quite shut, so the pulse they let through is rounder still. Measured against recorded
+ * solo trumpets (University of Iowa and Philharmonia single notes, and solo phrases) in
+ * the lead's range: at a mezzo-forte the third-octaves at 4, 6.3 and 10 kHz sit about 20,
+ * 31 and 47 dB under the strongest, where the model as a section is miked gives 12, 21
+ * and 27. Two gentle low-passes at SOLO_TOP, lower by SOLO_SOFT octaves for each unit of
+ * strength under SOLO_FULL, bring it to 20, 33 and 45, and blown softly near the recorded
+ * pianissimo (40, 55 and 67 at a strength of 0.15; recorded 37 to 51, 55 to 66, 72 to 75).
+ * In place, on a rendered note.
+ */
+export function heardSolo(x: Float32Array, sr: number, vel: number): void {
+  const fc = Math.min(0.45 * sr, SOLO_TOP * 2 ** (SOLO_SOFT * Math.min(0, vel - SOLO_FULL)));
+  const a = Math.exp((-2 * Math.PI * fc) / sr), b = 1 - a;
+  let y1 = 0, y2 = 0;
+  for (let i = 0; i < x.length; i++) {
+    y1 = b * x[i]! + a * y1;
+    y2 = b * y1 + a * y2;
+    x[i] = y2;
+  }
+}
+
 /** Blow one note. */
 export function blowLips(n: LipNote, rand: () => number): Float32Array {
   const { sr } = n;
@@ -191,10 +235,12 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
   const attack = (n.from ? SLUR_ATTACK : ATTACK) * sr;
   let rough = n.from ? 0 : ROUGH;
   const roughFall = Math.exp(-1 / (ROUGH_TIME * sr));
-  const glide = n.from ? 0.05 * sr : n.scoop ? 0.12 * sr : 0;
+  const glide = n.from ? 0.05 * sr : n.scoop ? (n.scoopTime ?? 0.12) * sr : 0;
   const start = n.from ?? (n.scoop ? n.f * 2 ** (-n.scoop / 12) : n.f);
   const fallLen = FALL_TIME * sr;
-  const vibratoFrom = Math.min(0.3, n.dur * 0.5) * sr;
+  const vibratoFrom = (n.vibratoFrom ?? Math.min(0.3, n.dur * 0.5)) * sr;
+  const vibratoSpan = Math.max(0.05 * sr, release - vibratoFrom);
+  const taper = n.taper ?? 0;
   // Filter and lip state.
   let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
   let o1 = 0, o2 = 0, p1 = 0, p2 = 0;
@@ -221,9 +267,13 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
     let f = start * (n.f / start) ** (into * into * (3 - 2 * into));
     wander = drift * wander + (1 - drift) * (rand() * 2 - 1);
     let cents = wander * driftScale;
+    // The vibrato, deepening from where it comes in to where the breath stops, as a
+    // soloist's does on a held note, and swinging the breath a little with the pitch.
+    let swing = 0;
     if (n.vibrato && i > vibratoFrom) {
       phase += (2 * Math.PI * n.rate) / sr;
-      cents += n.vibrato * Math.min(1, (i - vibratoFrom) / (0.25 * sr)) * Math.sin(phase);
+      swing = n.vibrato * Math.min(1, (i - vibratoFrom) / vibratoSpan) * Math.sin(phase);
+      cents += swing;
     }
     if (n.fall && i > release - fallLen * 0.3) {
       const u = Math.min(1, (i - (release - fallLen * 0.3)) / fallLen);
@@ -234,7 +284,8 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
     const swell = Math.min(1, i / attack);
     const letGo = n.fall ? fallLen * 0.8 : releaseLen;
     const gone = i < release ? 1 : Math.max(0, 1 - (i - release) / letGo);
-    const air = pm * (1 + push) * swell * gone * gone;
+    const ease = taper ? 1 - taper * Math.min(1, i / Math.max(1, release)) ** 2 : 1;
+    const air = pm * (1 + push) * swell * gone * gone * ease * (1 + VIBRATO_BREATH * swing);
     push *= pushFall;
     // The wave coming back from the bell, with the bell's low-pass and the open bore's dc block.
     const back = bore.read((sr / f) * 2 ** ((set + sharp(air) * 0.5) / 1200) - lag);
