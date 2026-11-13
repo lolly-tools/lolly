@@ -184897,13 +184897,13 @@ var package_default = {
     jsdom: "26.1.0",
     "@lolly-tools/core": "workspace:*",
     "@lolly-tools/node-shell": "workspace:*",
-    ws: "^8.22.0"
+    ws: "^8.22.1"
   },
   optionalDependencies: {
     "playwright-core": "^1.49.0"
   },
   devDependencies: {
-    "@modelcontextprotocol/inspector": "^2.12.0"
+    "@modelcontextprotocol/inspector": "^2.14.0"
   }
 };
 
