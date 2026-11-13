@@ -92,7 +92,7 @@ export const LOFI_BASS_SHOTS = ['bwah', 'yoi', 'throat', 'wub'] as const;
 const GAME = (name: typeof LOFI_GAME_SOUNDS[number]): number => LOFI_GAME_SOUNDS.indexOf(name);
 const SHOUT = (name: typeof LOFI_SHOUTS[number]): number => LOFI_SHOUTS.indexOf(name);
 
-export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall'] as const;
+export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric'] as const;
 export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'none'] as const;
 export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'yidaki', 'log', 'deep'] as const;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap', 'stack', 'snap'] as const;
@@ -153,7 +153,10 @@ export interface LofiNote {
    * 3 popped and bent up a tone and back, 4 a dead note (a muted, percussive tick); on an
    * acid bass, 1 is an accent and 2 a slide. On the future-bass chords (keys `future`),
    * how many times the chord's level and filter swing each beat (0 holds it), plus 16
-   * when the chord bends up into its pitch. On a snare, how many semitones it is tuned
+   * when the chord bends up into its pitch. On the electric guitar (keys `electric`), how
+   * the chord is played, as ELECTRIC_* flags: an upstroke, choked (the fretting hand lets
+   * go as it ends), dead (the strings muted by the fretting hand: a scratch) or
+   * palm-muted; the performer adds the fret each note is fingered at. On a snare, how many semitones it is tuned
    * up (a build's roll climbing). On a hat, 1 is a light one: the hiss without the metal.
    */
   mod?: number;
@@ -1085,7 +1088,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // the floor, bright major-ninth chords.
   citypop: {
     bpm: [108, 124], minor: 0.2, groove: 'disco', chordBars: 1,
-    keys: [['rhodes', 3], ['wurli', 1], ['pad', 1]], lead: [['soft', 3], ['vibes', 2], ['synthwave', 2], ['guitar', 2]],
+    keys: [['rhodes', 3], ['electric', 2], ['wurli', 1], ['pad', 1]], lead: [['soft', 3], ['vibes', 2], ['synthwave', 2], ['guitar', 2]],
     bass: [['slap', 3], ['motown', 1]], snare: [['snare', 2], ['clap', 1]], kick: [52, 58], kickLen: [0.3, 0.4], duck: [0.6, 0.9], crunch: 0,
     swing: 0.52, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.75, band: true,
     softKeys: [['felt', 1], ['pluck', 1]], verseBass: [['slap', 2], ['motown', 1]], switchBass: [['slap', 1]],
@@ -1112,7 +1115,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // drums with ghost notes, and the jazz-funk chords.
   funk: {
     bpm: [98, 114], minor: 0.6, groove: 'funk', chordBars: 2,
-    keys: [['wah', 3], ['pluck', 1], ['rhodes', 1]], lead: [['soft', 3], ['guitar', 2], ['synthwave', 1], ['flute', 1], ['vibes', 1]],
+    keys: [['electric', 3], ['wah', 3], ['pluck', 1], ['rhodes', 1]], lead: [['soft', 3], ['guitar', 2], ['synthwave', 1], ['flute', 1], ['vibes', 1]],
     bass: [['slap', 1]], snare: [['snare', 1]], kick: [52, 60], kickLen: [0.25, 0.35], duck: [0.6, 0.9], crunch: 0.2,
     swing: 0.54, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.8, band: true,
     softKeys: [['rhodes', 2], ['felt', 1]], verseBass: [['slap', 1]], switchBass: [['slap', 1]],
@@ -1139,7 +1142,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // melodic bass that leaves space, and a horn-like or flute lead.
   reggae: {
     bpm: [70, 84], minor: 0.5, groove: 'oneDrop', chordBars: 1,
-    keys: [['wurli', 3], ['rhodes', 2], ['pluck', 1]], lead: [['soft', 3], ['flute', 2], ['vibes', 2], ['kalimba', 1], ['guitar', 1]],
+    keys: [['electric', 3], ['wurli', 3], ['rhodes', 2], ['pluck', 1]], lead: [['soft', 3], ['flute', 2], ['vibes', 2], ['kalimba', 1], ['guitar', 1]],
     bass: [['round', 1]], snare: [['rim', 1]], kick: [46, 54], kickLen: [0.35, 0.5], duck: [0.5, 0.8], crunch: 0,
     swing: 0.58, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.6, band: true,
     softKeys: [['felt', 2], ['pad', 1]], verseBass: [['round', 1]], switchBass: [['round', 1]],
@@ -1169,7 +1172,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
     keys: [['crunch', 1]], lead: [['overdrive', 3], ['riff', 3], ['twang', 2], ['guitar', 2], ['metal', 1], ['synthwave', 1]],
     bass: [['picked', 1]], snare: [['snare', 1]], kick: [52, 60], kickLen: [0.3, 0.4], duck: [0.6, 0.9], crunch: 0.3,
     swing: 0.5, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'rock', singingDrop: true, busy: 0.75, band: true,
-    softKeys: [['nylon', 2], ['rhodes', 1]], verseBass: [['picked', 1]], switchBass: [['picked', 1]],
+    softKeys: [['nylon', 2], ['electric', 2], ['rhodes', 1]], verseBass: [['picked', 1]], switchBass: [['picked', 1]],
   },
   // Country: an acoustic strumming boom-chick or a honky-tonk piano, the train beat on
   // the snare, a bass walking root to fifth, and a twanging Telecaster, a pedal steel, a
@@ -1254,7 +1257,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // the offbeats, and the horns (trumpet, sax, clarinet) on the tune.
   ska: {
     bpm: [150, 184], minor: 0.25, groove: 'rock', chordBars: 1,
-    keys: [['jazzbox', 2], ['organ', 2], ['pluck', 1]], lead: [['trumpet', 3], ['sax', 3], ['clarinet', 1], ['harmonica', 1]],
+    keys: [['electric', 5], ['organ', 2], ['jazzbox', 1], ['pluck', 1]], lead: [['trumpet', 3], ['sax', 3], ['clarinet', 1], ['harmonica', 1]],
     bass: [['round', 2], ['upright', 1]], snare: [['snare', 2], ['rim', 1]], kick: [50, 58], kickLen: [0.25, 0.35], duck: [0.4, 0.7], crunch: 0,
     swing: 0.5, swing8: 0.5, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.75, band: true,
     softKeys: [['organ', 2], ['jazzbox', 1]], verseBass: [['round', 1]], switchBass: [['round', 1], ['upright', 1]], dust: 0.25,
@@ -2558,6 +2561,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
             if (lastOfBuild && step >= 12) break;
             strike(sb(step), len / 4 - 0.04, (step === pattern[0]![0] ? 0.58 : 0.5) * (part.section === 'intro' ? 0.85 : 1));
           }
+        } else if (keysV === 'electric') {
+          // The electric guitar, played as the style plays it (see electricBar).
+          notes.push(...electricBar(mood, part.section, build, lastOfBuild, voicing, sb, rng));
         } else if (keysV === 'wah') {
           // Funk guitar: chanks on the sixteenths, the top of the chord with a wah on each,
           // muted scratches between.
@@ -3028,6 +3034,75 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   }
   bars.push({ tune: info, index, section: 'rest', layers: [], chord: '', tones: [], notes: [], open: 0.3, level: 0 });
   return bars;
+}
+
+// ── the electric guitar's parts ────────────────────────────────────────────
+
+/** How an electric guitar's chord is played, in its notes' `mod`: see LofiNote. The performer adds the fret, times ELECTRIC_FRET. */
+export const ELECTRIC_UP = 1, ELECTRIC_CHOKE = 2, ELECTRIC_DEAD = 4, ELECTRIC_PALM = 8, ELECTRIC_FRET = 16;
+/** Funk's two bars of chicken scratch: the sixteenths where the chord rings out (choked short); every other sixteenth is a muted scratch or a miss. */
+const SCRATCH_CHANKS: ReadonlyArray<readonly number[]> = [[0, 3, 6, 10, 13], [2, 6, 7, 10, 14], [0, 6, 9, 12, 14], [3, 6, 10, 11, 14]];
+/** City pop's cutting: the offbeats choked short, one pushed a sixteenth. */
+const CUTS: ReadonlyArray<readonly number[]> = [[2, 6, 10, 14], [2, 7, 10, 14], [2, 6, 11, 14], [3, 6, 10, 14]];
+
+/**
+ * The electric guitar's part for a bar, by style:
+ * - ska: the skank, a short upstroke chord on every offbeat, choked as the fretting hand
+ *   lets go;
+ * - reggae: the chop on two and four (the one drop's tempo is half ska's), shorter still,
+ *   on the top three strings; a chorus sometimes doubles the four;
+ * - funk: the chicken scratch, sixteenths strummed all bar with the strings muted (a
+ *   scratch) and the chord let ring and choked on two bars of syncopated chanks;
+ * - city pop's chorus: the offbeats cut short, a muted scratch now and then between;
+ * - every quiet part, and rock's clean intro and breakdown: the chord picked as an
+ *   arpeggio in eighths, each string left to ring.
+ * The voicing's top three or four notes make a funk or a skank chord; the performer
+ * fingers and strums them (lib/lofi-perform.ts).
+ */
+function electricBar(mood: DanceMood, section: LofiSection, build: boolean, lastOfBuild: boolean, voicing: readonly number[], sb: (step: number) => number, rng: () => number): LofiNote[] {
+  const out: LofiNote[] = [];
+  const chord = (step: number, dur: number, vel: number, mod: number, tones: readonly number[] = voicing): void => {
+    if (lastOfBuild && step >= 14) return;
+    for (const p of tones) out.push({ voice: 'keys', midi: p, beat: sb(step), dur, vel: clamp01(vel + (rng() - 0.5) * 0.06), mod });
+  };
+  if (mood === 'ska') {
+    for (const s of [2, 6, 10, 14]) chord(s, 0.3, build ? 0.6 : 0.58, ELECTRIC_UP | ELECTRIC_CHOKE);
+    return out;
+  }
+  if (mood === 'reggae') {
+    // Over a one drop at half ska's tempo, the chop is on two and four, down on the top
+    // strings and stopped at once; a chorus sometimes doubles the four with an upstroke a
+    // sixteenth after the four.
+    const top = voicing.slice(-3);
+    for (const s of [4, 12]) chord(s, 0.15, build ? 0.6 : 0.58, ELECTRIC_CHOKE, top);
+    if (section === 'drop' && rng() < 0.35) chord(13, 0.1, 0.45, ELECTRIC_UP | ELECTRIC_CHOKE, top);
+    return out;
+  }
+  const quiet = section === 'intro' || section === 'outro' || section === 'break';
+  if (mood === 'funk' && !quiet) {
+    const top = voicing.slice(-3);
+    const chanks = SCRATCH_CHANKS[Math.floor(rng() * SCRATCH_CHANKS.length)]!;
+    for (let s = 0; s < 16; s++) {
+      if (chanks.includes(s)) chord(s, 0.18, s % 4 === 0 ? 0.68 : 0.62, ELECTRIC_CHOKE, top);
+      else if (rng() < 0.75) chord(s, 0.06, s % 2 ? 0.34 : 0.42, ELECTRIC_DEAD, top);
+    }
+    return out;
+  }
+  if (section === 'drop') {
+    const top = voicing.slice(-4);
+    const cuts = CUTS[Math.floor(rng() * CUTS.length)]!;
+    for (const s of cuts) chord(s, 0.22, 0.55, ELECTRIC_CHOKE, top);
+    for (const s of [5, 13]) if (rng() < 0.4) chord(s, 0.06, 0.32, ELECTRIC_DEAD, top);
+    return out;
+  }
+  // The arpeggio: the chord's tones up and down in eighths, each left to ring.
+  const strings = [...new Set([...voicing, ...voicing.map(p => p + 12)].filter(p => p <= 76))].sort((x, y) => x - y);
+  const up = [...strings, ...[...strings].reverse().slice(1, -1)];
+  for (let st = 0; st < 16; st += 2) {
+    if (lastOfBuild && st >= 14) break;
+    out.push({ voice: 'keys', midi: up[(st / 2) % up.length]!, beat: sb(st), dur: 1.1, vel: clamp01((st % 8 === 0 ? 0.5 : 0.42) + (rng() - 0.5) * 0.05) });
+  }
+  return out;
 }
 
 // ── the world styles ──────────────────────────────────────────────────────

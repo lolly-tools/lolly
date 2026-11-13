@@ -23,6 +23,7 @@
  * Pure and deterministic: every choice comes from a source seeded by the tune and the bar,
  * so a tune plays the same every time. Times are moved in beats, so the caller's tempo holds.
  */
+import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 /** A seeded source for one bar of one tune. */
@@ -118,7 +119,7 @@ function drummer(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => numbe
 // ── the rhythm guitarist ────────────────────────────────────────────────────────
 
 /** The guitars that strum their chords, and those whose player lets the open strings ring. */
-export const STRUMMED = new Set<string>(['steel', 'jazzbox', 'clean', 'wall']);
+export const STRUMMED = new Set<string>(['steel', 'jazzbox', 'clean', 'wall', 'electric']);
 const OPEN_STRINGS = new Set<string>(['steel', 'wall']);
 /** Standard tuning, low E to high E. */
 const TUNING = [40, 45, 50, 55, 59, 64] as const;
@@ -213,9 +214,13 @@ function guitarist(notes: LofiNote[], bar: LofiBar, voice: string, spb: number, 
     if (last && n.beat - last[0]!.beat < STROKE) last.push(n);
     else strokes.push([n]);
   }
+  const electric = voice === 'electric';
   for (const group of strokes) {
-    if (group.length < 2 || !bar.tones.length) { out.push(...group); continue; }
-    const near = HANDS.get(bar.tune) ?? (voice === 'jazzbox' ? 5 : 2);
+    if (group.length < 2 || !bar.tones.length) {
+      for (const n of group) out.push(electric ? { ...n, mod: (n.mod ?? 0) % ELECTRIC_FRET + ELECTRIC_FRET * fretFor(n.midi, HANDS.get(bar.tune) ?? 5) } : n);
+      continue;
+    }
+    const near = HANDS.get(bar.tune) ?? (voice === 'jazzbox' || electric ? 5 : 2);
     const shape = shapeFor(bar.tones, voice, near);
     if (!shape) { out.push(...group); continue; }
     const fretted = shape.flatMap((p, s) => (p === null || p === TUNING[s] ? [] : [p - TUNING[s]!]));
@@ -225,7 +230,8 @@ function guitarist(notes: LofiNote[], bar: LofiBar, voice: string, spb: number, 
     const vel = Math.max(...group.map(n => n.vel));
     // A roll written high to low is an upstroke; stacked notes take the stroke the beat asks for.
     const written = group.length > 1 && group[group.length - 1]!.beat > group[0]!.beat;
-    const up = written ? group[group.length - 1]!.midi < group[0]!.midi : Math.round(beat * 4) % 2 === 1;
+    const flags = electric ? (group[0]!.mod ?? 0) % ELECTRIC_FRET : 0;
+    const up = flags & ELECTRIC_UP ? true : written ? group[group.length - 1]!.midi < group[0]!.midi : Math.round(beat * 4) % 2 === 1;
     // The stroke keeps to the register written: a boom-chick's chick takes the treble strings
     // (its bass note is the boom), a full strum every string; an upstroke never the two lowest.
     const floor = Math.min(...group.map(n => n.midi)) - 5;
@@ -233,14 +239,40 @@ function guitarist(notes: LofiNote[], bar: LofiBar, voice: string, spb: number, 
     const high = strings.filter(x => x.p >= floor);
     strings = high.length >= 3 ? high : strings.slice(-3);
     const stroke = up ? strings.filter(x => x.s >= 2).reverse() : strings;
-    // A full strum takes 12 to 30 ms, faster the harder, a jazz comp the quickest.
-    const across = (voice === 'jazzbox' ? 0.012 : 0.03 - vel * 0.016) * (0.85 + rand() * 0.3);
-    stroke.forEach(({ p }, i) => {
+    // A full strum takes 12 to 30 ms, faster the harder, a jazz comp the quickest; an
+    // electric's skank 3 to 5 ms a string and a scratch 2 to 3 (electricStroke).
+    const perString = electric ? electricStroke(flags, rand) : 0;
+    const across = perString ? perString * (stroke.length - 1) : (voice === 'jazzbox' ? 0.012 : 0.03 - vel * 0.016) * (0.85 + rand() * 0.3);
+    stroke.forEach(({ p, s }, i) => {
       const lag = (across * i) / Math.max(1, stroke.length - 1);
-      out.push({ voice: 'keys', midi: p, beat: beat + lag / spb, dur, vel: Math.max(0.05, vel * (up ? 0.82 : 1) * (1 - i * 0.035)) });
+      const mod = electric ? flags + ELECTRIC_FRET * (p - TUNING[s]!) : undefined;
+      out.push({ voice: 'keys', midi: p, beat: beat + lag / spb, dur, vel: Math.max(0.05, vel * (up && !electric ? 0.82 : 1) * (1 - i * 0.035)), ...(mod === undefined ? {} : { mod }) });
     });
   }
   return out.sort((a, b) => a.beat - b.beat);
+}
+
+/**
+ * Seconds a string between an electric stroke's strings: a skank's upstroke is a flick of
+ * the wrist, 3 to 5 ms a string; a scratch's rake over muted strings 2 to 3; a chord let
+ * ring, 5 to 8.
+ */
+export function electricStroke(flags: number, rand: () => number): number {
+  if (flags & ELECTRIC_DEAD) return 0.002 + rand() * 0.001;
+  if (flags & (ELECTRIC_UP | ELECTRIC_CHOKE)) return 0.003 + rand() * 0.002;
+  return 0.005 + rand() * 0.003;
+}
+
+/** The fret a single note is played at: on the string that puts it nearest the hand's place on the neck. */
+export function fretFor(midi: number, near: number): number {
+  let best = Math.max(0, midi - TUNING[5]), score = Infinity;
+  for (const open of TUNING) {
+    const fret = midi - open;
+    if (fret < 0 || fret > 20) continue;
+    const d = Math.abs(fret - near);
+    if (d < score) { score = d; best = fret; }
+  }
+  return best;
 }
 
 // ── the lead guitarist ─────────────────────────────────────────────────────────
