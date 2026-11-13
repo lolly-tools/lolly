@@ -7,7 +7,7 @@ The design system's fonts always come first, in the order the design system list
 <!--i:eti-package-->
 ## What is bundled
 
-Fifteen fonts, all from Google Fonts at a pinned commit and all under the SIL Open Font License 1.1. Each file is shown with its download size.
+Fifteen fonts, all from Google Fonts at a pinned commit. Each file is shown with its download size.
 
 | Script | Font | Version | Download |
 |---|---|---|---|
@@ -56,7 +56,7 @@ On the page, a canvas holding two of these languages lists both fonts, and the b
 <!--i:eti-download-->
 ## When a font downloads
 
-Nothing downloads until a document holds a character that no font of its design system can draw. A document in English, or in any language its design system covers, never downloads a fallback font. A symbol in an English line, such as ★ or ※, never downloads a Chinese, Japanese or Korean font.
+Nothing downloads until a document holds a character that no font of its design system can draw. A symbol in an English line, such as ★ or ※, never downloads a Chinese, Japanese or Korean font.
 
 The first time a document needs one, Lolly downloads that one font, for that one script, and keeps it on your device. A Japanese document downloads the Japanese font alone, 2.2 MB, and a Traditional Chinese one the 3.8 MB Traditional font. From then on the script draws offline, and the font stays when the catalog is tidied up. The font is kept with the catalog's own files, never among the fonts you uploaded, so it does not appear in your brand's font list.
 

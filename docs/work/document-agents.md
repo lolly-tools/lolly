@@ -2,7 +2,7 @@
 
 You can let an AI agent read or edit a shared Lolly Design document, or a whole shared project, on
 your behalf. The agent works with your permissions for a period you choose, from one hour to
-seven days, and you can revoke it at any time. It never gets an account of its own.
+seven days, and you can revoke it at any time.
 
 Everyone in the document sees the agent's name next to yours, and Lolly Work records every call
 it makes. Admins can review all agent activity under **Agents** in the console.
@@ -51,8 +51,7 @@ organisation endpoint can render and send a finished file to a destination.
 Closing the dialog clears the key from the page, and Lolly Work cannot show the key again.
 :::
 
-**Agents with access** lists every invitation, and you or a project manager can revoke one there. An editor
-invitation can never exceed your own current permissions.
+**Agents with access** lists every invitation, and you or a project manager can revoke one there.
 
 <!--i:eti-folder-shared-->
 ## Invite an agent to a project
@@ -65,9 +64,7 @@ invitation can never exceed your own current permissions.
 
 A project invitation covers the project and all its subfolders. A viewer browses sessions and
 verified asset files. An editor can also create sessions, edit shared Lolly Design documents, upload
-files and organise outputs in folders. Each invitation acts under its inviter's current
-account, project access and permissions, and it cannot change membership or reach another
-project.
+files and organise outputs in folders.
 
 The list shows each invitation's inviter, expiry and whether any document connection is live.
 The inviter or a project manager can revoke an invitation, which also closes its document

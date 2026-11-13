@@ -11,7 +11,7 @@ first.
 <!--i:eti-checklist-->
 ## Onboarding
 
-1. **Scope.** Confirm that the tenant still uses Image Relay's API. If it now lives on Canto, use the [Canto guide](canto.md). Select a curated folder and Lolly Work groups; this driver has no upstream approval signal, so leave `requireApproved` off.
+1. **Scope.** Confirm that the tenant still uses Image Relay's API. Select a curated folder and Lolly Work groups.
 2. **Connection.** Register your app, obtain the sealed OAuth credential described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). Map your expiry field if you use one.
 3. **Tenant check.** Run the [Image Relay tenant check](tenant-check.md#image-relay), compare required originals and test group access and expiry in a real Lolly task before expanding the source.
 

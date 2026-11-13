@@ -4,7 +4,7 @@ A design token is one named brand value, such as a colour, a radius or a typefac
 
 ![One colour token feeds a tool's render, the swatches in the colour picker and a Penpot export, so a single edit reaches all three.](/info/diagrams/concepts/token-three-places.svg)
 
-Lolly stores tokens in the [W3C Design Tokens (DTCG)](https://www.designtokens.org/TR/drafts/format/) format, the same format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/), so a brand defined in Lolly round-trips with Penpot and Tokens Studio. Tokens carry the brand's values both ways. A finished Figma or Penpot file comes in through Lolly Design's [Import a design](/info/design-import.html) instead.
+Lolly stores tokens in the [W3C Design Tokens (DTCG)](https://www.designtokens.org/TR/drafts/format/) format, the same format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/), so a brand defined in Lolly round-trips with Penpot and Tokens Studio. A token file carries the brand's values; a finished Figma or Penpot file comes in through Lolly Design's [Import a design](/info/design-import.html) instead.
 
 <!--i:eti-package-->
 ## Where your tokens come from
@@ -59,7 +59,7 @@ Two choices keep Lolly compatible with Penpot while serving print:
 
 Top-level keys can be token **sets**. A `$themes` array selects and orders sets for each theme, with later sets overriding earlier ones in the Tokens Studio way, and `$metadata.tokenSetOrder` fixes the order. A document with no `$themes` is one implicit set, and its paths keep their `color.brand.x` shape.
 
-Themes with the same `group` are one choice, and a piece picks one option per group. A group can say what kind of choice it is, such as light and dark (`mode`) or a choice of lead colour (`colourway`). [Colourways](/info/colourways.html) covers several lead colours in one design system.
+Themes with the same `group` are one choice, and a piece picks one option per group. [Colourways](/info/colourways.html) covers several lead colours in one design system.
 
 ### What a theme group means
 
@@ -116,7 +116,7 @@ A keyframe follows a curve or spring by its token path, so the path has to fit i
 
 Tools reach tokens three ways:
 
-- **Inputs, through the platform.** The colour field takes its swatches from `host.tokens.colors()` for the active theme, labelled and grouped by token. Choosing a token swatch stores a reference, not a frozen hex, so a later token edit reaches every linked value.
+- **Inputs, through the platform.** The colour field takes its swatches from `host.tokens.colors()` for the active theme, labelled and grouped by token. Choosing a token swatch stores a reference, not a frozen hex.
 - **Hooks, through `host.tokens`.** A hook can read the token set, resolve a reference or list every colourway's lead with `family()`. Lolly Chart, Mesh Gradient, Filter and Wordmark are among the community tools that do. When the document's theme or colourway changes, the runtime runs `onInput` once with the id `__tokens`, so a hook that keeps colours it read can read them again.
 - **Templates and styles, through canvas variables.** The canvas carries the design system's semantic colours as CSS custom properties (`--brand-primary` and the rest), plus `--brand-lead-1` onwards when the design system has two or more colourways. [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) lists them.
 
@@ -170,7 +170,7 @@ CMYK survives Lolly-to-Lolly round trips through `$extensions`, and Penpot ignor
 
 **In.** `lolly system import DESIGN.md` reads the tokens into a new design system and keeps the file beside the system. `--dry-run` reads the file and changes nothing. Colours, type families, sizes, radii and spacing map to tokens. The format's component entries have no token form in Lolly, so they stay out of the tokens. The reader refuses a file it cannot read, such as one with anchors, a repeated key or no tokens, and it reports a single value it cannot read and leaves that value out. Prose stays text: nothing in the file is acted on.
 
-**Out.** A [brand page](/info/brand-page.html) holds one `DESIGN.md` per colourway and mode, because the format has no theme or mode of its own. Named colours sit in a table in the body, since the format's linter treats a token no component uses as a mistake.
+**Out.** A [brand page](/info/brand-page.html) holds one `DESIGN.md` per colourway and mode, because the format has no theme or mode of its own. Named colours sit in a table in the body.
 
 A design system that declares [colour roles](/info/colourways.html) adds its own words: each role's name, what it is for and what Lolly reads it as, in the format's own bullet form under **Colors**. A subsection, **Colour roles**, adds a table of both looks and a fenced `json` block holding the same facts. The tokens above the block stay complete, so a reader that does not know the block loses nothing it asked for. When Lolly reads the file back, the block is what restores the roles.
 
@@ -263,7 +263,7 @@ The slots set the same properties Lolly's own `tokens.css` sets, so everything i
 - the destructive fills;
 - the radius and spacing.
 
-**When to use `lolly.ui.*` instead.** The `lolly.ui.color.*` roles hold one value in every theme and set the app's `--ui-color-*` properties directly on the page, so High contrast does not undo them. They suit one fixed colour, such as a single canvas or border colour. Use `color.chrome.*` when the pack has a light room and a dark room, since each theme reads its own set, and when High contrast should still bring back Lolly's measured room.
+**When to use `lolly.ui.*` instead.** The `lolly.ui.color.*` roles set the app's `--ui-color-*` properties directly on the page, so High contrast does not undo them. They suit one fixed colour, such as a single canvas or border colour. Use `color.chrome.*` when the pack has a light room and a dark room, and when High contrast should still bring back Lolly's measured room.
 
 ::: details Slots you leave out
 State a `page` and Lolly works the other surfaces out from it, in the page's hue. The steps are lightness in OKLCH, measured from the page:
@@ -314,7 +314,7 @@ Four layers carry a token from a file to a tool:
 <!--i:eti-clipboard-->
 ## Reference
 
-- Engine model: [`engine/src/tokens.ts`](../engine/src/tokens.ts): `createTokenSet`, `resolveColorValue`, `colorToHex`, `isAlias`, `isTokenValue`, `TOKEN_EXT`. The format contract is pinned by [`tests/tokens.test.ts`](../tests/tokens.test.ts).
-- Tests: [`tests/tokens.test.ts`](../tests/tokens.test.ts) (model) and [`tests/tokens-value-path.test.ts`](../tests/tokens-value-path.test.ts) (URL and hydration round trip).
+- Engine model: [`engine/src/tokens.ts`](../engine/src/tokens.ts): `createTokenSet`, `resolveColorValue`, `colorToHex`, `isAlias`, `isTokenValue`, `TOKEN_EXT`.
+- Tests: [`tests/tokens.test.ts`](../tests/tokens.test.ts) (model and format contract) and [`tests/tokens-value-path.test.ts`](../tests/tokens-value-path.test.ts) (URL and hydration round trip).
 - Schema: [`schemas/tokens.schema.json`](../schemas/tokens.schema.json). The SUSE pack's document is generated by [`scripts/build-brand-tokens.ts`](../scripts/build-brand-tokens.ts).
 - Bridge contract: `TokensAPI` in [`packages/core/src/host-v1/tokens.ts`](../packages/core/src/host-v1/tokens.ts), re-exported through `engine/src/bridge/host-v1.ts`. Web implementation: [`shells/web/src/bridge/tokens.ts`](../shells/web/src/bridge/tokens.ts).

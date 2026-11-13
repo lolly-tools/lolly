@@ -26,7 +26,7 @@ Add the folder to a catalog that many people sync, such as this repository's `co
 You do not need the full clone to run a tool you wrote. Zip the tool folder and drop the zip on [lolly.tools](https://lolly.tools) or any Lolly instance. The drop sheet offers **Install this tool**; take it and the tool installs on that device and opens. Zipping the folder and zipping its contents both work, because a single top-level folder is stripped. Nothing is uploaded: the zip is read in the page, and the files go to the same device-local store a `.lolly`'s carried tool uses.
 
 ::: warning Read a stranger's tool before you trust it
-Your `hooks.js` is executable code, so the install asks the same **Trust this tool?** question a `.lolly` asks. Read a stranger's tool before you accept the prompt.
+Your `hooks.js` is executable code, so the install asks the same **Trust this tool?** question a `.lolly` asks.
 :::
 
 Drop an edited zip again and Lolly offers to replace your copy, which is the loop to use while you iterate. An id the catalogue already lists is refused rather than installed, because an installed tool never replaces a catalogue one, so give yours its own id.

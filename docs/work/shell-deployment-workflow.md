@@ -33,9 +33,8 @@ Qualification binds one exact CI attempt. To retry CI, rerun the entire workflow
 with GitHub's **Re-run all jobs**, then prepare a request for that new attempt.
 
 ::: warning Re-run all jobs, not only the failed ones
-Re-running only failed jobs leaves results from different attempts and cannot
-qualify publication. Mixed-attempt results and pull-request artifacts cannot
-authorize publication.
+Re-running only failed jobs mixes results from different attempts. Mixed-attempt
+results and pull-request artifacts cannot authorize publication.
 :::
 
 The workflow carries public provenance only. Private packs, credentials, signed
@@ -43,7 +42,7 @@ catalogues and deployment profiles stay with the private operator. GitHub-hosted
 runners do not have production access.
 
 ::: note A green workflow is not a publication
-This workflow prepares a request; a green workflow does not mean the site was published.
+This workflow only prepares a request.
 :::
 
 The caller lives in Lolly so its temporary read token can read Lolly's CI artifact.
@@ -64,8 +63,7 @@ python3 -B scripts/verify-shell-qualification.py \
 
 Build once with `prepare-shell-update.ts`, assemble with
 `assemble-private-shell-input.py` and qualify with `prepare-private-shell.py`.
-These maintained commands retain the accepted image, engine pin, pack and public
-key. Their output remains bound to the complete manifest and source custody.
+Their output stays bound to the complete manifest and source custody.
 If the source is unchanged, an already prepared artifact can be reused after a
 full-workflow CI retry without another build; the publication request must bind
 the newly qualified attempt. Do not replace the candidate, its receipt, source
@@ -95,8 +93,8 @@ create a second publication owner. The lock is released automatically when the
 process exits; an interrupted process does not leave a stale PID lock.
 
 ::: warning The lock covers one host
-This is a host-local lock. A second operator host needs external publication coordination;
-it does not participate in this filesystem lock.
+A second operator host does not take part in this filesystem lock and needs external
+publication coordination.
 :::
 
 ```sh

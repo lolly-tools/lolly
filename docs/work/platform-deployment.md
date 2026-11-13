@@ -51,8 +51,7 @@ Collection subscription is required.
   choices.
 
 ::: details Build the image for your own registry or a disconnected mirror
-To run your own registry or a disconnected mirror, build the image yourself only when
-you need to:
+Build the image yourself only when you need to:
 
 ```bash
 docker build -f deploy/compose/Dockerfile -t <registry>/lolly-work-server:%work{version} .
@@ -151,16 +150,14 @@ automatic memory-to-PostgreSQL migration.
 
 Do not use `values-eval.yaml` for a real team. Even with a database it keeps
 passwordless sample people, known evaluation signing secrets and evaluation mode.
-Prepare a separate production release from the chart defaults with fresh, reviewed
-values, as below. An existing evaluation namespace or release needs a reviewed
-transition, not a database-only upgrade with the evaluation values reused.
+Prepare a separate production release with fresh, reviewed values, as below. An
+existing evaluation namespace or release needs a reviewed transition, not a database-only upgrade with the evaluation values reused.
 
 <!--i:eti-package-->
 ## Install for production
 
 Start from the chart defaults and keep your changes in a reviewed environment file;
-do not edit or merge `values-eval.yaml`. Existing K3s, RKE2 and Rancher platforms
-keep their normal cluster lifecycle.
+do not edit or merge `values-eval.yaml`.
 
 ![A production install: people and agents reach the Lolly Work server through your ingress and TLS. The server runs as one writable replica, takes sign-in from your identity provider and keeps records and jobs in PostgreSQL. An S3-compatible object store, render workers and an admission policy for its pods are optional.](/info/diagrams/work-deployment/production-architecture.svg)
 
@@ -197,9 +194,8 @@ an optional Chromium render-worker tier; the values that matter are in
 [how a deployment fits together](deployment.md#helm-values-to-know).
 
 ::: details What your reviewed environment file supplies
-Your reviewed environment file supplies ingress and TLS, image-pull credentials and
-the pack and web app delivery for a full workspace, or leaves them out for an instance
-that serves only the console and API. The
+Supply ingress and TLS, image-pull credentials and the pack and web app delivery for a
+full workspace, or leave them out for an instance that serves only the console and API. The
 [small SUSE profile](../deploy/helm/SMALL-SUSE.md) sets bounded resource defaults; it
 is not a complete identity, database or content configuration. Provide credentials
 through your platform's Secret provisioning, and keep Secret values out of
@@ -253,9 +249,7 @@ database migrations, infrastructure and content changes stay separate operations
 The commands on this page install from the published chart repository,
 `https://github.com/lolly-tools/lolly-work/releases/download/helm-index`. Each chart
 version is an immutable `chart-v*` release on GitHub with a Sigstore bundle and a source
-record, and the chart is listed on
-[Artifact Hub](https://artifacthub.io/packages/helm/lolly-work/lolly-work). Pick an exact
-chart version and read what it holds:
+record. Pick an exact chart version and read what it holds:
 
 ```bash
 helm repo add lolly-work https://github.com/lolly-tools/lolly-work/releases/download/helm-index
@@ -330,8 +324,7 @@ reconnect once. With `migrate.enabled: false` there is no migration Job.
 
 ### Check the chart signature
 
-Each chart version is an immutable `chart-v<version>` release with a Sigstore bundle, signed by
-the publishing workflow, the same identity the [Lolly appliance](https://github.com/lolly-tools/lolly-work/blob/main/deploy/appliance/README.md#updates)
+The Sigstore bundle is signed by the publishing workflow, the same identity the [Lolly appliance](https://github.com/lolly-tools/lolly-work/blob/main/deploy/appliance/README.md#updates)
 checks before it applies a chart:
 
 ```bash

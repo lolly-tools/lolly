@@ -9,7 +9,7 @@ This account records the Lolly maintainer's deployment experience, reported on *
 
 Introducing a creative platform also introduces decisions about who curates assets, which content needs approval and where people go to make the next version. An existing DAM contains both files and established administrative responsibilities.
 
-At SUSE, the Brandfolder integration helped Lolly inherit that existing system during adoption. Administrators could work through the changes to their content-approval responsibilities while the connection supplied continuity. The value was the time and continuity available for change management, alongside access to the library.
+At SUSE, the Brandfolder integration helped Lolly inherit that existing system during adoption. While the connection supplied continuity and access to the library, administrators had time to work through the changes to their content-approval responsibilities.
 
 <!--i:eti-link-->
 ## What the connector provides

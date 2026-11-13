@@ -410,10 +410,8 @@ Team and from the People panel. Both file a request of kind `project`, with
 `POST /api/v1/sessions/:id/access-requests` ([the
 API](api.md#invite-links-and-access-requests)).
 
-Filing never tells the requester anything about the project. The answer is the same `202`
-whether the project exists, is archived, the person already has that access, a request is
-already open or requests are switched off. The requester never learns who manages a project
-until someone approves.
+Filing always answers with the same `202`, whether the project exists, is archived, the person
+already has that access, a request is already open or requests are switched off.
 
 **Who answers.** The project's owner and its managers, when at least one of them is an enabled
 account. Otherwise, everyone who manages the project through `project.manage` (admins and
@@ -471,7 +469,7 @@ read its comments. Dismissing it removes it until the next reply, and reading th
 Lolly removes it too. The [API reference](api.md#approvals-and-inbox) has the details.
 
 ::: details How Lolly fetches and shows notices
-**How Lolly shows them.** `GET /api/v1/inbox` answers with an `ETag` and an `unread` count, and
+`GET /api/v1/inbox` answers with an `ETag` and an `unread` count, and
 `304` when nothing changed. Lolly checks it when the tab comes back into view (at most once a
 minute) and every 60 seconds while it is visible. The banner shows one message at a time, and
 the next after a dismiss. **View all** opens the inbox, where project requests have **Approve**
@@ -481,8 +479,7 @@ console.
 
 Notices are not emailed yet. `notify.people.email` is the switch for that, off by default, and
 this release sends no people email even with it on ([emailing people
-notices](configuration.md#emailing-people-notices)). Until then, copy invite messages and
-links and send them yourself.
+notices](configuration.md#emailing-people-notices)).
 
 ::: details Audit actions for invitations and requests
 - `invite.create`: payload `email`, `groups`, `expiresAt`, `via` (`console`, `project`,

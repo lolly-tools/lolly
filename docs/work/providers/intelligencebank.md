@@ -8,8 +8,8 @@ never writes back.
 <!--i:eti-checklist-->
 ## Onboarding
 
-1. **Scope.** Choose the supported platform URL, folder and Lolly Work groups. Explicitly configure the workflow states that should count as approved; without that list every asset federates as approved.
-2. **Connection.** Obtain the tenant API key described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps). The driver discovers its v3 API address through the login handshake.
+1. **Scope.** Choose the supported platform URL, folder and Lolly Work groups. Explicitly configure the workflow states that should count as approved.
+2. **Connection.** Obtain the tenant API key described below and follow the [four-step connection](README.md#connect-a-source-in-four-steps).
 3. **Tenant check.** Run the [IntelligenceBank tenant check](tenant-check.md#intelligencebank). Verify the login response, download bytes, publish, expiry and review dates, then test member access and a real production task before broadening the source.
 
 ::: note Not yet confirmed live
@@ -29,8 +29,7 @@ Contributors changing the driver follow its
 - **An API key** for that tenant with read access to what you want to federate. The driver logs
   in with it through IntelligenceBank's documented handshake and finds the tenant's v3 API
   address itself, so you never configure that address.
-- **Which workflow states count as approved** in your tenant, for `approvedStates`. They differ
-  per tenant.
+- **Which workflow states count as approved** in your tenant, for `approvedStates`.
 
 <!--i:eti-lock-->
 ## Credential shape

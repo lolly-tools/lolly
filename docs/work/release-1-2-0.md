@@ -115,8 +115,7 @@ Share with rules file, and the DESIGN.md writer. Core 1.8.0 carries the `partner
   profile revision, logos, website, contact, address, currency and tax note, plus
   `partner.accessEndsAt` and `partner.accessEndsThrough` when an end is due. A tool with company
   bindings gets `tools[<id>].defaults` and `tools[<id>].bindings`, and a bound input the rules
-  lock arrives as `access: { level: 'locked', value }`. No input in org-config carries a rule's
-  name or reason.
+  lock arrives as `access: { level: 'locked', value }`.
 - **View as partner.** `POST /api/v1/programmes/:id/view-as`, with an optional `company`,
   returns a one-hour token bound to the admin's session. The app sends it from one tab in
   `x-lw-view-as`. Only a partner's reads answer, as the partner and limited to what the admin may

@@ -15,7 +15,7 @@ You may not need to install anything: [lolly.tools](/) runs in a current browser
 | Linux | [Flatpak, RPM, `.deb`, Arch or AppImage](#linux) | 1.1.0 |
 | Your own server | [YunoHost](#yunohost) or [a container image](#a-container-image) | %download{yunohost} |
 
-lolly.tools always has the newest version. The 1.1.0 builds stay at 1.1.0 until each platform's web view passes the WebGPU check that later versions need. Intel Macs are not supported after 1.1.0, so the Intel build stays at 1.1.0 for good. Every file links straight to `lolli.li`: a `lolly-latest.*` link always points at the newest build, and versioned files beside it never change. You can [check any file](#checking-what-you-downloaded) against the published checksums.
+lolly.tools always has the newest version. The 1.1.0 builds stay at 1.1.0 until each platform's web view passes the WebGPU check that later versions need. Every file links straight to `lolli.li`: a `lolly-latest.*` link always points at the newest build, and versioned files beside it never change. You can [check any file](#checking-what-you-downloaded) against the published checksums.
 
 ::: note Updates
 Signed system repositories (openSUSE OBS, Flathub) are planned. Until they land, a direct `.rpm`, `.deb`, `.flatpak` bundle or AppImage does not update itself, so check back here for a newer build. The Arch repository updates through pacman, and the App Store keeps the iPhone and iPad app current.

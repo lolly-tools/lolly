@@ -27,8 +27,6 @@ Operators set this up with the [organisation delivery guide](/info/work-delivery
 <!--i:eti-cpu-->
 ## How export works
 
-When you export, the tool's canvas is rendered to the format you chose and handed to you as a download, or put on your clipboard.
-
 Three paths produce a file. Most tools **render the canvas**. Text and data formats (HTML, Markdown, TXT, JSON, CSV, ICS, VCF) are **generated from the tool's content** rather than drawn from the picture. Privacy utilities such as *Lolly Strip Hidden Data* **transform the file you picked**, on your device, and hand it back with no canvas, watermark or added metadata, because it is already your own file.
 
 ![Three export paths converge on a finished file: render the canvas, generate text or data from content, or transform a picked file on device.](/info/diagrams/concepts/three-export-paths.svg)
@@ -53,7 +51,7 @@ The file name and the format menu sit together as one `name.format` pair, below 
 
 ![The filename field fused to the format picker, so the export reads as one name.format pair](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-Start from where the file is going. Each card lists the formats that suit that destination; a tool shows only the ones it can make.
+Start from where the file is going. Each card lists the formats that suit that destination.
 
 ::: figure exporting-format-chooser
 Six destinations and the formats that suit each one.
@@ -61,7 +59,7 @@ Six destinations and the formats that suit each one.
 
 A wordmark set in your design system's face exports as SVG with every letter as an outlined path, so one file stays crisp at business-card size and at building-wrap size.
 
-Text in another language follows the fonts you have. When a font in your design system has the letters, SVG and PDF draw them as outlines, shaped and in reading order, including right-to-left lines. When none does, Lolly draws those letters with a [fallback font](/info/fallback-fonts.html), and the export card says which font drew them. Text that no fallback font covers stays live text in an SVG, which the viewer's own fonts draw, and becomes pictures in a PDF, EPS or WMF, and in an EMF with **Outline fonts** on, because those files have nothing else to fall back on. A DXF export stops at such text and quotes it, because a cutter needs outlines. Those words look as they do on the page but cannot be selected or searched, and the export card tells you which scripts went that way. Add a font with those letters to keep them as vector text.
+Text in another language follows the fonts you have. When a font in your design system has the letters, SVG and PDF draw them as outlines, shaped and in reading order, including right-to-left lines. When none does, Lolly draws those letters with a [fallback font](/info/fallback-fonts.html), and the export card says which font drew them. Text that no fallback font covers stays live text in an SVG, which the viewer's own fonts draw, and becomes pictures in a PDF, EPS or WMF, and in an EMF with **Outline fonts** on, because those files have nothing else to fall back on. Those words look as they do on the page but cannot be selected or searched, and the export card tells you which scripts went that way. Add a font with those letters to keep them as vector text.
 
 ![A hairline wide-tracked wordmark reading Aurora, the kind of pure vector artwork the SVG row of the table is about](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DAurora%26weight%3D200%26tracking%3D16%26size%3D200%26full&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=%23tool-canvas&walker=1&format=svg&filename=vt-wordmark-vector)
 
@@ -183,7 +181,7 @@ Most tools that export SVG also export a **Penpot file** (`.penpot`), ready to k
 | The whole design | A reusable component in the Assets panel |
 | A complex illustration or live canvas | Embedded on its own as an image, the editable content around it untouched |
 
-From Lolly Design, each frame becomes a Penpot board. The design system's colours and typographies land in the Assets panel and its full token set in the Tokens panel. Penpot keeps its own copy from there: a token edited in Penpot comes back through the import in [Lolly Design System Setup](/info/brand-studio.html).
+From Lolly Design, each frame becomes a Penpot board. The design system's colours and typographies go into the Assets panel and its full token set in the Tokens panel. Penpot keeps its own copy from there: a token edited in Penpot comes back through the import in [Lolly Design System Setup](/info/brand-studio.html).
 
 ![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
@@ -223,12 +221,12 @@ The Captions tool can also export **TTML** and **SCC**. Both are written from th
 - Roll-up and paint-on captions are not written.
 
 ::: note SCC has not been checked in a broadcast tool
-SCC output has not been checked against a real broadcast tool or hardware decoder. Test a file in your own pipeline before delivery.
+Nor has it been tried on a hardware decoder. Test a file in your own pipeline before delivery.
 :::
 
 ### DXF (cut files)
 
-Lolly Asset Export, Diagrams, Growth, Lolly Logo Wall, QR Code, Street Map, Wayfinding and Wordmark export **DXF**, the AutoCAD R12 interchange format that laser cutters, vinyl plotters and CNC software read. Geometry is written as outline paths in millimetres, text is outlined and colour maps to the nearest AutoCAD Color Index, which usually drives the cutter's operation. DXF is line art only: a photographic or filtered region has no cut path and is dropped, with a warning. Use SVG or PDF to keep raster content. Text in letters no font here has, with no [fallback font](/info/fallback-fonts.html) either, stops the export with a message that quotes the text, because a cutter cannot follow a box or a picture.
+Lolly Asset Export, Diagrams, Growth, Lolly Logo Wall, QR Code, Street Map, Wayfinding and Wordmark export **DXF**, the AutoCAD R12 interchange format that laser cutters, vinyl plotters and CNC software read. Geometry is written as outline paths in millimetres, text is outlined and colour maps to the nearest AutoCAD Color Index, which usually drives the cutter's operation. DXF is line art only: a photographic or filtered region has no cut path and is dropped, with a warning. Use SVG or PDF to keep raster content. Text that no font here covers, not even a [fallback font](/info/fallback-fonts.html), stops the export with a message that quotes the text, because a cutter cannot follow a box or a picture.
 
 Street Map is the clearest case. The whole design is already strokes, so every road and canal becomes a cut path.
 
@@ -241,7 +239,7 @@ Scroll, and the camera pulls back through the actual geometry: seven paths, no p
 <!--i:eti-stamp-->
 ## Print
 
-**Print PDF** writes CMYK against a named press condition, **Coated FOGRA39** by default. Brand swatches with measured ink values keep those values. Other colours are converted through a press profile: Lolly's own Coated FOGRA39 profile by default, or your own profile when you choose its **Embed** row. Greys and black stay on the black plate alone, so small type cannot misregister. FOGRA51, SWOP and GRACoL use a standard device conversion. Black type prints on the black plate only and overprints the colour under it, so a slightly misaligned press leaves no white edge round the letters. **Print TIFF** writes DeviceCMYK pixels for a RIP and records the same press condition in its TIFF metadata. The Colour profile control drives both; [Colour profiles](#colour-profiles) has the detail. Print TIFF and **EPS (CMYK)** separate colours through the same press profile as the Print PDF.
+**Print PDF** writes CMYK against a named press condition, **Coated FOGRA39** by default. Brand swatches with measured ink values keep those values. Other colours are converted through a press profile: Lolly's own Coated FOGRA39 profile by default, or your own profile when you choose its **Embed** row. Greys and black stay on the black plate alone, so small type cannot misregister. FOGRA51, SWOP and GRACoL use a standard device conversion. Black type also overprints the colour under it, so a slightly misaligned press leaves no white edge round the letters. **Print TIFF** writes DeviceCMYK pixels for a RIP. The Colour profile control drives both; [Colour profiles](#colour-profiles) has the detail. Print TIFF and **EPS (CMYK)** separate colours through the same press profile as the Print PDF.
 
 **Print marks & bleed** has its own card on the print formats: the bleed in millimetres plus Crop, Registration, Bleed, Colour bars and Stamp details. Stamp details prints the date, the tool and your name in the margin. A name or tool name in letters the margin font lacks, such as Arabic, Chinese, Cyrillic or an emoji, is drawn as a picture in the same grey, and the export card lists those scripts.
 
@@ -265,7 +263,7 @@ The list is not a verdict. It does not say a PDF meets PDF/UA or that people who
 Lolly Design's inspector checks and the brand comparison in Lolly Design System Setup are separate checks: they look at the design, while these two cards look at the file.
 
 ::: details Cost from a rate card
-Below preflight, a cost card turns the same counts into money, using only prices someone supplied. It reads those counts even when the preflight card itself is off. It needs two things: a job a price list can price (plates, sheets, area, pages, variant rows or output files, so a plain logo PNG never shows it) and a **rate card**, a JSON price list from your printer. A default build carries none and has no in-app way to load one. A rate card arrives as a catalogue asset a deployment ships, or through the optional rate-card extension a self-hoster or control plane switches on. With no rate card, nothing is shown.
+Below preflight, a cost card turns the same counts into money. It reads those counts even when the preflight card itself is off. It needs two things: a job a price list can price (plates, sheets, area, pages, variant rows or output files, so a plain logo PNG never shows it) and a **rate card**, a JSON price list from your printer. A default build carries none and has no in-app way to load one. A rate card arrives as a catalogue asset a deployment ships, or through the optional rate-card extension a self-hoster or control plane switches on. With no rate card, nothing is shown.
 
 Every figure is a rate you supplied times a quantity Lolly counted, such as `4 plate × €35.00`, and the total carries its source: the issuer on the card and the date its rates are from. There is no default currency and no placeholder price. What the file says about itself stays reported speech: *"The file says: … Lolly has not verified this."*
 
@@ -284,7 +282,7 @@ The card is stripped from every export stage, so it never changes the file. It i
 
 ### Video
 
-Animated tools export **MP4** and **WebM**. The picker shows only the containers this browser can make, and a shared `?format=` link that asks for one it cannot make falls back to the other, with a matching file name. Animated tools also offer **Start after**, which holds the canvas still for a moment so animations and fonts settle before recording, and **Duration**, the length of the finished clip. **Motion blur** (Off, Draft quality, Standard or High, with a **Shutter angle**) blurs fast movement at the cost of render time. Where the browser supports it, **Record live** records the on-screen preview in real time through a screen share instead.
+Animated tools export **MP4** and **WebM**. A shared `?format=` link that asks for a container this browser cannot make falls back to the other, with a matching file name. Animated tools also offer **Start after**, which holds the canvas still for a moment so animations and fonts settle before recording, and **Duration**, the length of the finished clip. **Motion blur** (Off, Draft quality, Standard or High, with a **Shutter angle**) blurs fast movement at the cost of render time. Where the browser supports it, **Record live** records the on-screen preview in real time through a screen share instead.
 
 ![The timing settings for an animated export: Start after, Duration, Motion blur with its Shutter angle, and Record live](/t/url-shot?url=%2F%23%2Ftool%2Flottie-digi-ad%3Fformat%3Dmp4%26options&width=1440&height=900&dpi=192&waitMs=2500&cropSelector=.video-params&walker=1&format=svg&dark=1&filename=exp-video-settings)
 
@@ -318,7 +316,7 @@ Exports are tagged with a colour profile, so colour-managed apps such as print s
 - **PNG and JPG** carry an embedded **sRGB** ICC profile, the space the preview is drawn in. The pixels are tagged, not re-encoded.
 - **Print PDF (CMYK)** declares its press condition in its *OutputIntent*, telling a print shop how its CMYK inks are meant to be read.
 - **Print TIFF (CMYK)** writes untagged DeviceCMYK pixels and records the press condition in its TIFF metadata. A TIFF cannot embed a press profile, so an **Embed** row records only that profile's name.
-- **TIFF (RGB)** is the uncompressed sRGB sibling for archive or an editor round trip. It flattens transparency onto white. Both TIFFs are desktop-only, because browsers cannot preview a TIFF.
+- **TIFF (RGB)** is the uncompressed sRGB sibling for archive or an editor round trip. Both TIFFs are desktop-only, because browsers cannot preview a TIFF.
 - **SVG**, **EMF**, **EPS** and **DXF** are vectors with no embedded profile: SVG's colours are sRGB, EMF and EPS use device RGB, **EPS (CMYK)** writes DeviceCMYK and DXF uses the AutoCAD Color Index. SVG, EPS and DXF outline text to paths. EMF keeps text live and editable in Office and Google Slides, falling back to outlines only for runs the format cannot express; the export panel's **Outline fonts** option forces paths everywhere, the same as `_text=outline` in a link and `--text=outline` on the command line. SVG also reproduces CSS box shadows, inside and out.
 
 ::: details PDF/X-4 and your own press profile
@@ -359,13 +357,13 @@ An ordinary export is sRGB: a saturated brand colour is as bright as the screen'
 - **From the terminal.** `--hdr=1` with `--export=png` or `--export=jpg` writes the same PNG and gain-map JPEG on the [CLI](/info/cli.html), from the same engine encoders, with no browser in the path. AVIF and TIFF stay web exports for now.
 
 ::: warning Many platforms strip the HDR signal
-Many platforms re-encode uploads and strip the HDR signal, which can leave the image dark or washed out. Use HDR where you control the destination, such as your own site, a video wall or a deck on a bright panel.
+A platform that re-encodes uploads can leave the image dark or washed out. Use HDR where you control the destination, such as your own site, a video wall or a deck on a bright panel.
 :::
 
 <!--i:eti-badge-check-->
 ## What travels with your file
 
-A finished file can carry several records beside the picture. Some ride beside the pixels and disappear when the file is re-saved or stripped; two marks live in the pixels themselves.
+A finished file can carry several records beside the picture. Some ride beside the pixels and disappear when the file is re-saved, screenshotted or stripped; two marks live in the pixels themselves.
 
 ::: figure exporting-what-travels
 Where each record lives, whether it is on by default and which link parameter controls each one.
@@ -379,7 +377,7 @@ The export panel folds **Licence**, **Source credits**, **Password**, **C2PA Cre
 
 Where the format has the fields, exports carry **provenance metadata**: the software, the source, the tool's name and your profile credit line, written into PNG iTXt, JPEG EXIF, PDF info, SVG `<metadata>` or a GIF comment. It records authorship only, and nothing is uploaded. **Experimental** tools also stamp a visible watermark, applied by the host so editing the tool cannot remove the mark.
 
-**The Lolly Imprint** is an invisible pixel watermark, **on by default**. The credential and metadata travel beside the pixels and are lost to a re-save, a screenshot or a metadata strip. The Imprint lives in the pixels and outlasts recompression, so a copy can still be recognised as Lolly-made. It is a hint rather than a cryptographic guarantee, and it carries no personal data. It rides in JPEG XL, PNG, JPG, WebP, AVIF, TIFF and BMP, and in the rasters Lolly renders into a PDF or PPTX, never in an image you embedded. Untick **Lolly Imprint** or pass `imprint=0` to leave the Imprint out. AVIF survival through re-encoding is not calibrated yet. [Lolly Verify](/#/verify) detects it on your device; see [The Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
+**The Lolly Imprint** is an invisible pixel watermark, **on by default**. It lives in the pixels and outlasts recompression, so a copy can still be recognised as Lolly-made. It is a hint rather than a cryptographic guarantee, and it carries no personal data. It rides in JPEG XL, PNG, JPG, WebP, AVIF, TIFF and BMP, and in the rasters Lolly renders into a PDF or PPTX, never in an image you embedded. Untick **Lolly Imprint** or pass `imprint=0` to leave the Imprint out. AVIF survival through re-encoding is not calibrated yet. [Lolly Verify](/#/verify) detects it on your device; see [The Lolly Imprint](/info/what-verify-checks.html#the-lolly-imprint).
 
 **The Durable credential** writes Lolly's id into the pixels with an on-device neural model in the TrustMark format, so the "made with Lolly" link outlasts a metadata strip and a re-encode and can be read by TrustMark-aware tools. It is **off by default**, because it costs a neural pass per export and a one-time model download. It covers PNG, JPG, WebP, AVIF and TIFF; tick it in the panel or pass `durable=1`. The desktop and mobile apps hide the card, because they have no origin to fetch the model from offline.
 
@@ -450,7 +448,7 @@ Two kinds of lock, both made on your device. The export panel's **Password** car
 
 **A PDF open-password** has two tiers once you type a password:
 
-- **Weak**: 40-bit RC4, a deterrent rather than protection. RGB `pdf` with no print marks or bleed, and plain ASCII passwords: a password with other characters moves to Strong, because readers cannot open a file locked that way at this tier. Only the first 32 characters count.
+- **Weak**: 40-bit RC4. RGB `pdf` with no print marks or bleed, and plain ASCII passwords: a password with other characters moves to Strong, because readers cannot open a file locked that way at this tier. Only the first 32 characters count.
 - **Strong**: AES-256 (PDF 2.0). It also applies to Print PDFs and to each PDF inside a batch ZIP. A Strong-locked Print PDF keeps its CMYK, marks and output intent but drops the PDF/X-4 claim.
 
 ::: warning Weak is a deterrent, not protection

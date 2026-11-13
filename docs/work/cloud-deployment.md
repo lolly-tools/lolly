@@ -125,8 +125,7 @@ PGSERVICE=lolly-target deploy/vm/postgres-backup.sh restore /private/backups/lol
 
 The helper refuses an existing destination file and removes unfinished temporary files
 after a failed dump. Restore checks the name of the database it is actually connected
-to, refuses existing user schemas or objects, restores in one transaction and never
-drops anything. The database name may contain letters, digits, underscores or hyphens.
+to, restores in one transaction and never drops anything. The database name may contain letters, digits, underscores or hyphens.
 The checksum detects corruption, so store the archive and checksum together in
 protected, independent storage. This is a logical database backup, not a backup of the
 host or of outside object storage. See PostgreSQL's

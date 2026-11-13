@@ -51,7 +51,7 @@ Choose where the bytes will live before the first materialize. Changing `blobs.d
 not transfer existing blobs; plan an explicit storage migration if the instance already holds files.
 :::
 
-PostgreSQL is the default blob
+PostgreSQL (`pg`) is the default blob
 store and needs no separate object-storage service. For larger libraries, Ceph RGW or MinIO
 lets the organisation run the object store too. A hosted S3-compatible service, including
 AWS S3, is another option. Set this block in the destination instance's configuration:
@@ -97,8 +97,7 @@ A bucket alone cannot reconstruct the catalog, grants or old-address aliases.
 Agree a final source freeze, re-run materialize and inspect drift alongside direct file checks.
 Drift is limited by the source timestamps it receives, so a quiet report alone is insufficient.
 Run the supported cutover only after acceptance, then test old references and everyday review
-and delivery work. Keep the source and recovery evidence until the organisation accepts the
-result. [Plan a DAM transition](/info/dam-transition.html) covers ownership and team adoption.
+and delivery work. [Plan a DAM transition](/info/dam-transition.html) covers ownership and team adoption.
 
 <!--i:eti-folder-shared-->
 ## Move to Nextcloud or another WebDAV server
@@ -159,8 +158,6 @@ Lolly Work cutover's old-address aliases do not apply to this separate transfer.
 <!--i:eti-clock-->
 ## When to start
 
-Copy the files as soon as federation works:
-
 - **Pin as soon as `lw providers sync` returns what you expect.** Bytes in your own store survive
   vendor migrations, tenant renames, plan downgrades and API sunsets.
 - **Do not rely on holds to keep originals.** A hold on a federated asset copies its bytes while
@@ -178,9 +175,6 @@ Copy the files as soon as federation works:
   cutover. Weekly suits an active exit.
 - **If `lw providers health` starts failing for the whole tenant, copy everything at once.**
   That is the deadline arriving, not the moment to start planning.
-
-Set `blobs.driver` before the first copy, not after: `pg` by default, or `s3` for MinIO, Ceph or
-any S3-compatible store ([where instance bytes live](catalog.md#where-instance-bytes-live)).
 
 <!--i:eti-help-->
 ## Canto and Image Relay: which driver do you exit through?
@@ -217,8 +211,7 @@ exit schedule.
 `intelligencebank` are exit targets, and `cloudinary` is a conditional one.
 
 ::: warning Optimizely CMP and Orange Logic are not exits
-`optimizely-cmp` is not an exit target: the CMS owns these assets, so do not run `cutover`
-against that provider. `orange-logic` refuses cutover, because copied renditions do not preserve originals.
+The CMS owns `optimizely-cmp` assets, so do not run `cutover` against that provider. `orange-logic` refuses cutover, because copied renditions do not preserve originals.
 :::
 
 | Kind | Driver | What imports | Original bytes out | Exit verdict |

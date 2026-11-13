@@ -147,7 +147,7 @@ has open keeps their work and shows a notice, and the new colours appear the nex
 after that sync. Server renders use the edit at once.
 
 **What does not change until the next image.** Previews and social cards are pictures made when the
-release was built, so they keep their old colours until the next image.
+release was built, so they keep their old colours.
 
 ### The two switches
 
@@ -323,8 +323,8 @@ download blob store, and mount the same source contents.
 Production changes need PostgreSQL. An in-memory production instance shows the inventory and an
 operator explanation, with changes blocked. Development mode allows temporary changes and labels
 their lifetime in the console. A configured download can still seed a fresh read-only deployment,
-but an ordinary restart cannot clear a durable suppression decision. PostgreSQL and shared blob
-storage keep decisions across replicas, and the additive rules record needs no new migration.
+but an ordinary restart cannot clear a durable suppression decision. The additive rules record
+needs no new migration.
 
 ### Choose a tokens head
 
@@ -378,7 +378,7 @@ The page is then at `/brand/<id>/`, where `<id>` is the `id` in `brand.json`. **
 console lists each page, with a preview, its history and a button to unpublish.
 
 ::: warning A published page is public, even on a sign-in gated instance
-This is a deliberate exception that you choose when you turn the feature on, because a press kit behind a sign-in
+This is an exception you choose when you turn the feature on, because a press kit behind a sign-in
 cannot do its job. Everything else on the instance stays gated. Nothing is public until someone with the
 `brand.page.publish` permission publishes a page.
 :::

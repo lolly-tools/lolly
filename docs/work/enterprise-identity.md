@@ -125,8 +125,8 @@ example, after checking your issuer's actual claim vocabulary:
   do not enforce MFA.
 
 ::: note Assurance covers one provider's new sign-ins
-The policy governs that provider's new sign-ins. It does not impose MFA on other providers,
-password, proxy or passkey sign-ins, and it does not invalidate cookies already issued.
+The policy does not impose MFA on other providers, password, proxy or passkey sign-ins, and
+it does not invalidate cookies already issued.
 Review those paths separately before claiming an organisation-wide MFA requirement.
 :::
 
@@ -243,15 +243,15 @@ does not show that discovery, credentials, claims or SCIM work.
 
 Two kinds of standing bearer credential sign machines in: a SCIM token for your provider's
 provisioning connector, and a service token for automation. Only an owner mints either
-(`scim.manage` and `token.manage`). Each secret is shown once and stored as its SHA-256
-hash, so a leaked database yields hashes, not usable tokens.
+(`scim.manage` and `token.manage`). Each secret is stored as its SHA-256 hash, so a leaked
+database yields hashes, not usable tokens.
 
 The console's **Provisioning and service tokens** page creates, lists and revokes both. Last-use
 metadata helps identify unused credentials.
 
 ::: warning A new secret is shown once
-A new secret displays once and is cleared when acknowledged. It is never placed in the URL,
-browser storage or token metadata, so record it before leaving.
+The secret is cleared once acknowledged. It is never placed in the URL, browser storage or
+token metadata, so record it before leaving.
 :::
 
 ### SCIM provisioning

@@ -131,7 +131,7 @@ A stop exits with the CLI's usual codes: 2 when only a change to the module can 
 A saved session can draw on work that asks for a credit, such as an emoji set under CC BY. The build still writes the package, prints a Rights block with the credit text for each such session and exits with 4. With `--json`, `ok` is `false` and `result.rightsDecisionsRequired` lists the content blocks.
 
 ::: warning The credit is not in the package
-Because these renders carry no Content Credentials, the credit is not in the file. Add each credit where the course shows that content before you share the course.
+These renders carry no Content Credentials, so add each credit where the course shows that content before you share the course.
 :::
 
 <!--i:eti-link-->

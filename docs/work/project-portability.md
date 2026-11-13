@@ -2,8 +2,7 @@
 
 See everything a move would involve, without changing anything. This page is for the project
 manager preparing to move a project to another Lolly Work instance. The preview lists the
-project's folders, current sessions, ready shared files and explicit memberships, and makes no
-changes to the project or its collaborators.
+project's folders, current sessions, ready shared files and explicit memberships.
 
 ::: note This preview moves nothing
 Export, import and moving a project are not built. A saved preview cannot restore a project or
@@ -78,7 +77,7 @@ History has two separate stores. Earlier `session_revisions` keeps the newest 20
 session versions have their own paged history, retention rules and space limits, and the preview
 samples at most 100 version summaries per visible session, so a full sample may have more rows
 than it shows. Live collaboration also keeps a compacted checkpoint and recovery journal, which is not
-a complete edit history. The preview transfers none of these stores.
+a complete edit history.
 
 <!--i:eti-gauge-->
 ## Limits and interpretation
@@ -105,7 +104,7 @@ Warnings such as `NON_SNAPSHOT`, `ASSET_DEPENDENCIES_NOT_INSPECTED`, `HISTORY_IN
 preview with no active lease needs a coordinated migration: presence, editing claims and
 uncommitted gestures do not become transferable records.
 
-Before a move, decide who will own the moved project and how you would undo the move, and test the
+Before a move, decide how you would undo the move and test the
 destination's own recovery. Related contracts are in [Team projects](team-projects.md),
 [Roles and grants](permissions.md), [data lifecycle](data-lifecycle.md) and
 [deployment](deployment.md).

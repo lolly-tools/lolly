@@ -29,8 +29,7 @@ The flow is discovery, then Authorization Code with PKCE (S256), then the `id_to
 against the provider's JWKS (RS256 by default) **before any claim is believed**. Verified
 claims fill the person's account through `claimMap`.
 
-- The redirect URI is `<instance.baseUrl>/api/auth/callback`. `baseUrl` must match the URL
-  the deployment actually answers on.
+- `baseUrl` must match the URL the deployment actually answers on.
 - Set `LW_IDP_CLIENT_SECRET` only when your provider issues a confidential client.
 - `displayName` is what the sign-in button and the "managed by …" copy say. Any compliant
   issuer that matches the supported token and logout profile works.
@@ -71,8 +70,8 @@ further issuers beside the primary.
 ```
 
 - Each entry has its own client and display name, and optionally its own `groupsClaim` and
-  `claimMap`; unset ones inherit the primary's. A confidential secret comes from the
-  environment variable that `clientSecretRef` gives. Omit it for a public PKCE client.
+  `claimMap`; unset ones inherit the primary's. Omit `clientSecretRef` for a public PKCE
+  client.
 - With several providers configured, plain `/api/auth/login` serves a chooser page with no
   script, so every existing sign-in link (the console gate, Lolly's own sign-in gate) gains
   the buttons with no client change. `?idp=<id>` picks one directly, and `/api/auth/config`
@@ -188,7 +187,7 @@ GitHub sign-in is OAuth 2.0, not OpenID Connect, so it has its own adapter: an a
 provider with `kind: "github"`. In GitHub, open Settings, Developer settings, OAuth Apps, New
 OAuth App (for an organisation, the organisation's own Developer settings). Set the Homepage
 URL to `instance.baseUrl` and the Authorization callback URL to
-`<instance.baseUrl>/api/auth/callback`, the same callback every provider uses. Generate a
+`<instance.baseUrl>/api/auth/callback`. Generate a
 client secret and put it in the environment variable that `clientSecretRef` gives. Leave
 device flow off.
 

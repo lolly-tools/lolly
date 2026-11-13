@@ -21,9 +21,7 @@ checks every file. That is the exit, covered in [Leave a DAM](../offboarding.md)
 <!--i:eti-search-->
 ## Choose a source
 
-WebDAV / Nextcloud and Google Drive have a guided setup in the console. Every other source uses
-the advanced form or the `lw` command line, following its own guide. Open sources lead the
-table, then the cloud drives, then the DAMs.
+Open sources lead the table, then the cloud drives, then the DAMs.
 
 | Source | Kind | Credential | Setup | Search | Approval | Availability dates | Exit | Unconfirmed live |
 |---|---|---|---|---|---|---|---|---|
@@ -93,8 +91,7 @@ steps run through the `lw` command line.
   maps a sample of files. Nothing is saved.
 - **Create the source, disabled.** **Create source** (or `lw providers add`) saves the settings.
   Nothing reaches the catalog yet.
-- **Seal the credential.** An owner chooses **Set key** (or `lw providers credential`). The
-  secret is sealed at rest and only its fingerprint is ever shown again.
+- **Seal the credential.** An owner chooses **Set key** (or `lw providers credential`).
 - **Sync, check, then enable.** **Sync** (or `lw providers sync`) fetches the listing. Check the
   count and the notes, then an owner chooses **Enable** (or `lw providers enable`).
 :::
@@ -157,8 +154,7 @@ call. [Check a source on your own tenant](tenant-check.md) explains how to read 
 - **You bring the tokens and apps.** No client ids or keys ship with Lolly Work.
 
 ::: warning A shared credential does not carry each member's permissions
-A shared service credential does not carry each member's own upstream permissions. Set the
-exposure groups for the people who should see the files.
+Set the exposure groups for the people who should see the files.
 :::
 
 <!--i:eti-sliders-->
@@ -197,8 +193,8 @@ When a vendor credential expires on a schedule, record the date:
 <!--i:eti-user-check-->
 ## OAuth sources
 
-Every OAuth source here uses an app **you** register on the platform. Lolly Work ships no
-client ids. The sealed credential is the same JSON for every OAuth kind:
+Every OAuth source here uses an app **you** register on the platform. The sealed credential is
+the same JSON for every OAuth kind:
 
 ```json
 { "clientId": "…", "clientSecret": "…", "refreshToken": "…" }
@@ -254,9 +250,8 @@ once by hand against the app you registered:
 3. Exchange that code for a **refresh token** at the vendor's documented token endpoint.
 4. Paste `clientId`, `clientSecret` and `refreshToken` into `lw providers credential <id>`.
 
-The vendor's API documentation is the source of record for steps 2 and 3, because Lolly Work
-has confirmed no authorize URL for these kinds. From then on everything works as for the flow
-kinds: write-only at rest, with access tokens minted per process. A tenant check that confirms
+The vendor's API documentation is the source of record for steps 2 and 3. From then on
+everything works as for the flow kinds. A tenant check that confirms
 a kind's authorize and token endpoints moves the kind into the section above.
 
 <!--i:eti-cpu-->

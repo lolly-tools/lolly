@@ -102,7 +102,7 @@ A child draws in the theme and [colourway](/info/colourways.html) of the documen
 Lolly Design uses this path: a tool placed in a Lolly Design document is an embed URL rendered this way. Both this form and the declarative `composes` block in a manifest need the tool to declare the `compose` capability; [Composition and brand overlays](/info/tool-composition.html) covers the declarative form.
 
 ::: details How a child's theme choices combine with the document's
-A link that carries `_themes` of its own keeps its choice for the groups it names, and the document's choices fill in the rest: `_themes={"":"light"}` inside a dark Beach document draws the child light, in Beach. A document that made no choice of its own draws in the choices its design system is set to, so those fill in the rest instead.
+The document's choices fill in the groups the link does not name: `_themes={"":"light"}` inside a dark Beach document draws the child light, in Beach. A document that made no choice of its own draws in the choices its design system is set to, so those fill in the rest instead.
 
 In the web app this holds in the tool view, a framed tool, a multi-edit card, a batch row and a document export alike. A pasted tool link keeps its `_themes` in the canonical id it is stored under, so it reopens in the same choice; choices inherited from the document never enter the id. The CLI writes the same id, so a link it writes back keeps the child's `_themes`, but the CLI does not yet draw the child in those choices.
 :::

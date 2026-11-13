@@ -1,6 +1,6 @@
 # Deliver and update a course
 
-You have built a course and downloaded its ZIP from **Export course**. This page covers what comes next: choosing the right format for each customer, publishing on your own website or in an LMS, testing the package before real learners see it, releasing a new version and fixing the problems people most often meet. [Build a course](/info/training-creators.html) covers making the course itself.
+You have built a course and downloaded its ZIP from **Export course**. This page covers what comes next. [Build a course](/info/training-creators.html) covers making the course itself.
 
 <!--i:eti-file-->
 ## Choose a format for each customer
@@ -62,7 +62,7 @@ Progress is kept in the learner's browser, for this course version, URL path and
 This is convenient local progress, not an authenticated training record.
 
 ::: warning A new release starts progress afresh
-Keep existing versions at their existing paths when keeping learners' browser progress matters, because a new release starts fresh.
+Keep existing versions at their existing paths when learners' browser progress matters.
 :::
 
 [Learning integration](/info/learning-integration.html) covers the progress event a host page can listen for and what a receiving platform is responsible for.

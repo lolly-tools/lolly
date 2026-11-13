@@ -10,11 +10,6 @@ boots into Lolly Work on K3s. The [ready-made package](ready-made-package.md) is
 finished Compose directory with HTTPS and password sign-in. Not sure which fits?
 [Run Lolly Work](self-host.md) has a one-question chooser.
 
-Sections 1 to 4 build the configuration every install uses, on your own computer
-first. Sections 5 and 6 run it on a server with Compose or systemd. Section 7,
-YunoHost, makes all of those settings for you. Sections 8 and 9 come after any
-install: the `lw` command line and your first asset source.
-
 **What you'll do**, in four steps:
 
 ::: steps
@@ -44,8 +39,8 @@ source install needs Node on the host: the container image brings its own, and t
 YunoHost package installs it for you.
 
 ::: warning The older docker-compose is not Compose v2
-The older standalone `docker-compose` is not the Compose v2 plugin: without the plugin,
-`docker compose up --build` fails with `unknown flag: --build`.
+Without the Compose v2 plugin, `docker compose up --build` fails with
+`unknown flag: --build`.
 :::
 
 Compose brings PostgreSQL 17. The optional
@@ -68,8 +63,8 @@ and architecture. Check `node --version` and `npm --version` before you continue
 a distribution's unversioned `nodejs` package may be older than Lolly Work needs.
 
 For containers, follow [Docker Engine's platform guide](https://docs.docker.com/engine/install/)
-and install the Compose v2 plugin. The container supplies Node, so skip host Node
-and pnpm unless you also run Lolly Work from source.
+and install the Compose v2 plugin. Skip host Node and pnpm unless you also run
+Lolly Work from source.
 :::
 
 ::: details macOS
@@ -93,8 +88,8 @@ is the app people use, not the Lolly Work server.
 :::
 
 ::: details Windows
-Use **WSL 2** for the Linux shell commands on this page. In an administrator
-PowerShell window, follow [Microsoft's WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install):
+In an administrator PowerShell window, install **WSL 2** by following
+[Microsoft's WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install):
 
 ```powershell
 wsl --install -d Ubuntu
@@ -290,8 +285,7 @@ anyone else can reach the instance.
    per-address rate limits only ever see the proxy.
 5. Choose the database password. The Compose file falls back to the literal
    `lolly`, so an instance that started without one still uses that password. Set
-   `PG_PASSWORD` in `.env` (section 5); after the first start the `pgdata` volume
-   keeps the old password, so changing it also needs `alter role`.
+   `PG_PASSWORD` in `.env` (section 5).
 
 ### Validate the selected pack and deployment
 
@@ -453,8 +447,8 @@ All three lines of `.env` matter. The Compose file refuses to start without the 
 container's password.
 
 ::: warning Changing PG_PASSWORD later
-After the first start, a new `PG_PASSWORD` also needs
-`alter role lolly password '<new>'` inside the container, or
+After the first start, the `pgdata` volume keeps the old password, so a new
+`PG_PASSWORD` also needs `alter role lolly password '<new>'` inside the container, or
 `docker compose down -v`, which destroys the data.
 :::
 

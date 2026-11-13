@@ -2,7 +2,7 @@
 
 Two people can edit the same tool session at the same time, each on their own device. There are two ways to do this, and the right one depends on where you both are.
 
-- **A private collab** connects two devices directly. Use it at the same table or on the same network, even with no internet. You need no account, and your edits go straight between the two devices.
+- **A private collab** connects two devices directly, with no account. Use it at the same table or on the same network, even with no internet.
 - **A work collab** runs through your organisation's Lolly Work instance. Use it when your organisation offers one and you are on different networks. It has its own section: [Collabs through Lolly Work](#work-collabs-with-lolly-work-optional).
 
 ![Two people, one session. On the same network, a private collab. With the same cloud storage connected, a private collab over shared cloud. In an organisation that runs Lolly Work, a work collab.](/info/diagrams/concepts/collab-ways.svg)

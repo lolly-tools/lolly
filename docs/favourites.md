@@ -49,7 +49,7 @@ lives in the card's right-click menu and the selection bar, so the shot opens th
 The same star works on a **utility** card in the Utilities view - Lolly Verify, Lolly Colour Lab, Unpack, Spreadsheet and the rest. They aren't tools (no saved sessions, nothing to keep offline), but the strip treats a starred one exactly the same way: a tile of its own, icon-led since there's no preview to show.
 
 ::: note A plain list instead of the strip
-The **★ Favourites** pill under **View options → Filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
+The **★ Favourites** pill under **View options → Filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top.
 :::
 
 **One star, two lists.** The star on an **asset** ([Assets](/info/using.html#assets-your-library)) is a separate list: it pins that logo, image or colour to the top of every asset picker. Starring a tool never touches your pinned assets, and pinning an asset never adds a tool.

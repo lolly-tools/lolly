@@ -27,9 +27,8 @@ This page is part of [Run a partner programme](run-a-partner-programme.md).
 <!--i:eti-grid-->
 ## Choose its tools and share its assets
 
-Open **Choose what they get** and tick the tools and the collections. A programme receives only the
-files you share with the programme, so share the logos and pictures your templates use, for
-example as a logos collection. Without them, a template is incomplete for partners, and, with the
+Open **Choose what they get** and tick the tools and the collections. Share the logos and pictures
+your templates use, for example as a logos collection. Without them, a template is incomplete for partners, and, with the
 licence gate on, a render that uses a missing file is refused.
 
 - **Tools.** Each tick is a `tool.use` allow grant for the programme's group, listed in **Grants**
@@ -87,7 +86,7 @@ because every tool needs them or because they are yours by nature: tokens, fonts
 templates, rules tools, user tools and brand skills, plus a company's own files for that company.
 
 ::: note Partners are not told what is held back
-A held file is simply absent for partners, and nothing tells a partner that more may come.
+A held file is absent for partners, with no hint that more may come.
 :::
 
 <!--i:eti-stamp-->

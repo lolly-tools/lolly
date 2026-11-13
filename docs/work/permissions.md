@@ -111,8 +111,8 @@ when it is made. [Partner programmes](partner-programmes.md#what-partners-can-ne
 actions.
 
 ::: details How evaluation works
-`server/src/rbac/evaluate.ts` makes every decision, in a fixed order: any matching deny wins,
-then any matching allow, then the role default. It never looks anything up itself. A resource
+`server/src/rbac/evaluate.ts` makes every decision, in the fixed order the figure shows. It never
+looks anything up itself. A resource
 arrives as the set of selectors it satisfies, for example `['tool:qr-code', '*']`.
 :::
 
@@ -172,7 +172,7 @@ offers **Request approval** or nothing in place of **Download** for that tool on
 the same answer beside the tool. Lolly versions from before this answer existed read only the
 deployment-wide bit, so the per-tool deny needs a current app.
 
-Add the same pair for each tool the rule covers. Tag selectors are not checked.
+Add the same pair for each tool the rule covers.
 
 ### Let a team contribute assets
 
@@ -266,8 +266,7 @@ their own authority:
 | `token.manage` | mint a service token for automation |
 
 An admin can still shape a catalog provider and copy its files into the instance's own store.
-An owner can grant any of these actions to a group or a person, but an admin cannot grant one
-to themselves.
+An owner can grant any of these actions to a group or a person.
 
 ### The escalation guard
 

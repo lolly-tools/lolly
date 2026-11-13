@@ -3647,7 +3647,7 @@ ${LANDING_CSS}
 .hero-wrap{--green:hsl(var(--band-accent));--hero-cta-ink:#09141a}
 
 /* Docs layout */
-.docs-wrap{display:grid;grid-template-columns:220px 1fr;max-width:1180px;margin:0 auto;min-height:calc(100vh - 3.5rem - 60px)}
+.docs-wrap{display:grid;grid-template-columns:13.75rem 1fr;max-width:73.75rem;margin:0 auto;min-height:calc(100vh - 3.5rem - 60px)}
 .docs-sidebar{padding:2rem 1.25rem;border-right:1px solid var(--border);position:sticky;top:var(--site-bar-h);height:calc(100vh - var(--site-bar-h));overflow-y:auto}
 /* Format / convert side-door pages (plan 116 workstream A). */
 .sidedoor-eyebrow{display:flex;align-items:center;gap:.5rem;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--green);margin-bottom:.75rem}
@@ -3947,7 +3947,7 @@ html[data-a11y-motion="reduce"] .docs-content .md-cards ul.icon-list>li.ic:hover
 /* Same box as .docs-wrap, then indented past the rail: the h1 starts exactly where
    the article's text will. Below 768px the rail is gone and so is the indent. It
    holds two rows (plan 277 step 3c): the pathways strip, then the title row. */
-.docs-mast-inner{position:relative;z-index:2;max-width:1180px;width:100%;margin:0 auto;padding-inline:calc(220px + 3.5rem) 3.5rem;display:flex;flex-direction:column;gap:1.4rem}
+.docs-mast-inner{position:relative;z-index:2;max-width:73.75rem;width:100%;margin:0 auto;padding-inline:calc(13.75rem + 3.5rem) 3.5rem;display:flex;flex-direction:column;gap:1.4rem}
 /* Banked art fades in only below the bar and the pathways strip, which carry words.
    --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
    foot, which moves with the band's height and the title's length; the values here
@@ -4432,6 +4432,46 @@ html[data-a11y-motion="reduce"] .showcase-art [data-sc-i]{opacity:1}
 .docs-content img[src*="the-flood"]{width:100%;max-width:100%;border-radius:1.2em;box-shadow:0 3px 6px #0002, 0 6px 2em #0001}
 .docs-content{font-size:calc(1rem * var(--a11y-fs))}
 html[data-a11y-text="large"]{--a11y-fs:1.2}
+/* ── Reading at every size ──────────────────────────────────────────────────
+   A wide screen reads the same page larger rather than as a small island in the
+   middle: from 1600px the root size steps up with the window, so the type, the
+   rail, the contents and the grid's own widths (all in rem) grow together, up to
+   1.45 times on the widest. Each step also asks for half its width in height, so
+   a short ultrawide (3440 by 1440) stops where its height does and a line never
+   outgrows what fits on screen. Steps of 160px read as one smooth curve. The
+   breakpoints below are in em, which media queries take from the browser's own
+   size, so they do not move with the zoom. Large text multiplies on top. */
+:root{--docs-zoom:1}
+@media(min-width:1600px) and (min-height:800px){:root{--docs-zoom:1.04}}
+@media(min-width:1760px) and (min-height:880px){:root{--docs-zoom:1.09}}
+@media(min-width:1920px) and (min-height:960px){:root{--docs-zoom:1.13}}
+@media(min-width:2080px) and (min-height:1040px){:root{--docs-zoom:1.17}}
+@media(min-width:2240px) and (min-height:1120px){:root{--docs-zoom:1.21}}
+@media(min-width:2400px) and (min-height:1200px){:root{--docs-zoom:1.26}}
+@media(min-width:2560px) and (min-height:1280px){:root{--docs-zoom:1.3}}
+@media(min-width:2720px) and (min-height:1360px){:root{--docs-zoom:1.34}}
+@media(min-width:2880px) and (min-height:1440px){:root{--docs-zoom:1.39}}
+@media(min-width:3040px) and (min-height:1520px){:root{--docs-zoom:1.43}}
+@media(min-width:3200px) and (min-height:1600px){:root{--docs-zoom:1.45}}
+html{font-size:calc(100% * var(--docs-zoom))}
+/* The app's chrome sizes are pixels (tokens.css); on the site they are the same
+   sizes in rem, so the bar, the rail and the menus grow with the page. */
+:root{--fs-2xs:calc(.625rem * var(--a11y-fs));--fs-xs:calc(.6875rem * var(--a11y-fs));--fs-sm:calc(.75rem * var(--a11y-fs));--fs-md:calc(.8125rem * var(--a11y-fs));--fs-lg:calc(.875rem * var(--a11y-fs));--fs-xl:calc(1rem * var(--a11y-fs))}
+/* One centre line. Running text keeps its measure (68ch, docs-components.css), and
+   the rest of the reading flow (headings and their icons, notes, disclosures, steps,
+   the pager) takes the same measure, centred in the column, so every line of the
+   page starts and ends on the same two edges instead of the text hugging the left
+   of a wider column. The wide pieces (tables, code, figures, screenshots, the
+   column, card, picture and logo layouts) take the whole column, centred on the
+   same line. Doubled class for weight over the components' own margin shorthands. */
+:root{--measure:calc(40.8rem * var(--a11y-fs))}
+main.docs-content.docs-content>*{margin-inline:max(0px,calc((100% - var(--measure)) / 2))}
+main.docs-content.docs-content>:is(.table-wrap,.doc-code,pre,figure,.md-cols,.md-cards,.md-pictures,.md-logos,.md-img,.fl-figure,.fmt-reference,section,article,.doc-details:has(>.doc-details-body>:is(.doc-code,.table-wrap))),
+main.docs-content.docs-content>p:has(>img,>a>img,>picture){margin-inline:0;max-width:none}
+/* The band over the article (the eyebrow, the title, the pathways strip) is as wide as
+   the article's own box at every size, so the same margins put its words on the
+   same left edge as the text under it. */
+.docs-masthead .docs-mast-inner>*,.docs-strip-band .docs-mast-inner>*{margin-inline:max(0px,calc((100% - var(--measure)) / 2))}
 .docs-content h2{font-size:calc(1.75rem * var(--a11y-fs));font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
 .docs-content h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .docs-content h3{font-size:calc(1.15rem * var(--a11y-fs));margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
@@ -4466,10 +4506,10 @@ html[data-a11y-text="large"]{--a11y-fs:1.2}
 }
 @media(min-width:1100px){
   .doc-pagebar{display:none}
-  .docs-wrap--rail{grid-template-columns:220px minmax(0,1fr) 14rem;max-width:calc(1180px + 14rem)}
+  .docs-wrap--rail{grid-template-columns:13.75rem minmax(0,1fr) 14rem;max-width:calc(73.75rem + 14rem)}
   .docs-wrap--rail .docs-content{padding-inline-end:2rem}
   .docs-wrap--rail .docs-onpage{display:block;position:sticky;top:var(--site-bar-h);align-self:start;max-height:calc(100vh - var(--site-bar-h));max-height:calc(100dvh - var(--site-bar-h));overflow-y:auto;overscroll-behavior:contain;padding:2.75rem 1.25rem 2rem 0;box-sizing:border-box}
-  .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(1180px + 14rem);padding-inline-end:calc(14rem + 2rem)}
+  .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(73.75rem + 14rem);padding-inline-end:calc(14rem + 2rem)}
 }
 @media print{.doc-pagebar,.docs-onpage{display:none!important}}
 .docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
@@ -4517,7 +4557,7 @@ footer a:hover{color:var(--dark)}
 footer .founded-badge{margin-top:.5rem}
 .docs-license{margin:.5rem 0 0;font-size:.6875rem;font-weight:300;line-height:1.6}
 /* Shared site map layout and controls live in docs-chrome.css. */
-.footer-sitemap{max-width:1180px;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
+.footer-sitemap{max-width:73.75rem;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
 
 /* Mobile */
 @media(max-width:900px){

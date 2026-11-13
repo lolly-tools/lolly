@@ -41,7 +41,7 @@ Prepare for sharing (`#/prepare`) looks through text, JSON, YAML, HAR and ZIP fi
 Suggestions cover credential fields and common token shapes, email, payment-card, bank-account, phone, date, postcode, address and possible name patterns.
 
 ::: warning Suggestions can be wrong or miss things
-They can be wrong, and they can miss confidential information. Review each copy beside its original before you share the copy.
+Review each copy beside its original before you share the copy.
 :::
 
 **Keep all** and **Continue unchanged** stay available. Add a missed exact value or a sensitive field name, edit a replacement or choose individual occurrences. Identical values share one replacement across every file in the job.
@@ -252,7 +252,7 @@ Rotating a single PDF edits that file, and a digital signature in it no longer v
 :::
 
 ::: details What changes in the PDF
-Rotating a single PDF edits that file, so everything keeps working except a digital signature, which no longer verifies once the file is saved again. Every other operation builds a new PDF from copies of the pages. Comments and other annotations travel with their pages, but bookmarks are not carried over, links to other pages stop working, form fields can no longer be filled in and the new PDF is unsigned. A page you delete or leave out does not come along through a link or form field that pointed to it, and the signer's name, date and certificate are left out with the signature.
+Rotating a single PDF keeps everything but the signature working. When an operation builds a new PDF, comments and other annotations travel with their pages. A page you delete or leave out does not come along through a link or form field that pointed to it, and the signer's name, date and certificate are left out with the signature.
 :::
 
 **[Lolly Sign](/t/sign)** places a transparent signature on a chosen PDF page, in PDF-point coordinates: drag it on the page or enter the numbers. Initials and today's date are optional. A Content Credential is on by default and records the profile signer only when **Use my details** is on. A password lock is available at download time, but not together with that credential, because encrypting afterwards would break the credential.
@@ -279,7 +279,7 @@ In an MP4 or MOV, **Exact** copies from the key frame before your start and mark
 ::: details Exact, Re-encode and Fast cuts
 Lolly Trim copies packets when the chosen boundary and container allow, but a copy can only begin on a key frame, so **Cut** offers three modes:
 
-- **Exact**, the default, copies an MP4 or MOV from the key frame before your start and marks the earlier frames for players to skip (some editors and upload sites still show them). It re-encodes the picture of a WebM or MKV.
+- **Exact**, the default, starts an MP4 or MOV copy at the key frame before your start, and re-encodes the picture of a WebM or MKV.
 - **Re-encode** always re-encodes the picture, so nothing before the start is kept.
 - **Fast** keeps the original packets and may start a little early.
 :::

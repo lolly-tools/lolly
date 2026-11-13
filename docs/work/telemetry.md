@@ -1,9 +1,8 @@
 # Telemetry and dashboards
 
 Lolly Work can count what people do in Lolly so admins can see which tools are used and what gets
-exported. It never records what anyone typed or made. Each event carries a short, fixed list of
-labels, such as a tool id or a file format. Anything else is dropped before it is stored, and so
-is any label longer than 200 characters.
+exported. It never records what anyone typed or made: each event carries a short, fixed list of
+labels, such as a tool id or a file format.
 
 ::: note Lolly's own apps do not send these events today
 Lolly Work accepts them, checks them and charts them, and the consent route exists. But the web
@@ -52,7 +51,7 @@ would already have stored the data:
 
 Consent is per person, through `POST /api/v1/telemetry/consent`. Lolly Work stores the answer and
 honours it when an event arrives. A client that sends events must ask the person itself and pass
-the answer on, because Lolly's own apps do not ask today. Both keys are in
+the answer on. Both keys are in
 [configuration](configuration.md#telemetry-activity-and-retention).
 
 <!--i:eti-checklist-->
@@ -73,7 +72,7 @@ the answer on, because Lolly's own apps do not ask today. Both keys are in
 | `session.tool` | `toolId`, `seconds` |
 | `session.shell` | `shell`, `seconds` |
 
-An unknown event id is dropped, not stored and ignored. `seconds` is a numeric label for
+An unknown event id is dropped. `seconds` is a numeric label for
 seat-utility rollups. No label anywhere in the list holds free text, so the first rule holds
 without anyone having to review what is sent.
 
@@ -83,8 +82,7 @@ capacity 120, refill 4 a second).
 <!--i:eti-gauge-->
 ## Dashboards
 
-The console turns these events, and the audit log, into four views. The Overview figures and the
-telemetry half of the activity feed stay empty until a client sends events. The routes behind them are
+The console turns these events, and the audit log, into four views. The routes behind them are
 in the [API reference](api.md#telemetry-activity-audit-fleet-and-setup).
 
 | View | Route | Action |
@@ -124,10 +122,10 @@ Since Lolly 1.2.0, when a Lolly Work workspace is connected, the app's first-run
 says what the workspace keeps: what a person saves to its projects or shares through it, and a
 log of their sign-ins and what they do there. Without a workspace, nothing changes.
 
-Downloads are measured per item, for a client that sends them. That client sends
+Downloads are measured per item: a client sends
 `catalog.asset-download` when a catalog asset leaves as a file, with a coarse `via` label
 (`direct`, `link` or `zip`) and no file name. The Overview shows "Most-downloaded catalog items"
-beside "Most-used" (assets opened or placed), and both stay empty until events arrive.
+beside "Most-used" (assets opened or placed).
 Downloads follow the same attribution rule as every other event. Transforms and crops count as
 tool activity, not a separate event, and the console says that on the page.
 

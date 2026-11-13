@@ -1,6 +1,6 @@
 # Build the mobile apps
 
-This page is for a developer who wants to run the Android app on an emulator or a phone, or build a signed APK and AAB. One mobile shell, `shells/tauri-mobile`, serves Android and iOS; iOS has its own page, [Building for iOS](/info/ios-build.html), because it needs a Mac and Apple signing.
+This page is for a developer who wants to run the Android app on an emulator or a phone, or build a signed APK and AAB. One mobile shell, `shells/tauri-mobile`, serves Android and iOS; iOS has its own page, [Building for iOS](/info/ios-build.html).
 
 You need a checkout from [Get the source](/info/contributing-setup.html), plus the Rust toolchain and Tauri CLI from [Build the desktop app](/info/build-desktop.html#prerequisites).
 
@@ -92,7 +92,7 @@ export ANDROID_KEY_PASSWORD=...
 ```
 
 ::: warning Sign every release with the established key
-Release APK and AAB files must use the established application key, so that installed copies can update. Keep the keystore and passwords outside the checkout.
+Installed copies can update only when every release APK and AAB uses that same application key. Keep the keystore and passwords outside the checkout.
 :::
 
 <!--i:eti-image-->

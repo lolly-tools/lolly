@@ -19,7 +19,7 @@ Everything runs on your device, and what plays in the timeline is what the expor
 - <!--i:eti-download--> **Export** Choose MP4 or WebM in Export, or [mark a range](#markers-ranges-and-frame-rate) first.
 :::
 
-Each of these is one undo step. The sections below cover each one in detail. For a recording, **Add** offers **Record a video**, **Record screen**, **Record a voiceover** and **Script a voiceover**.
+Each of these is one undo step. For a recording, **Add** offers **Record a video**, **Record screen**, **Record a voiceover** and **Script a voiceover**.
 
 <!--i:eti-scissors-->
 ## Splitting a clip

@@ -67,7 +67,7 @@ Lolly is a Production Studio
 
 %file{warde-production-studio.mp4} %entity{Lolly} %act{produced and signed} the audiogram %detail{a waveform drawn from the audio, its full history sealed inside the file, the voice within declared as AI-generated} %entity{Google AI Studio} %act{generated} the voice %detail{Gemini text-to-speech, voice Sulafat, Australian accent, energetic read - generated audio, not a human reader} %sig{signed by %entity{Lolly}}
 
-The words are Warde's; the reading is a 2026 Australian one, and the voice is a model. Lawrence Lessig said creativity always builds on the past. It does, but the debt runs both ways: the future owes the present the plain truth of what it borrowed and how it was made. So the voice is labelled as generated, even while a machine still sounds like one ([why we mark it now](/info/ai-features.html#what-gets-marked)). The proof rides inside the file, the AI origin declared in its credential, and you can [verify it yourself](/info/verify-yourself.html). Fixed in time, having been verified in proof.
+The words are Warde's; the reading is a 2026 Australian one, and the voice is a model. Lawrence Lessig said creativity always builds on the past. It does, but the debt runs both ways: the future owes the present the plain truth of what it borrowed and how it was made. So the voice is labelled as generated, even while a machine still sounds like one ([why we mark it now](/info/ai-features.html#what-gets-marked)). The proof rides inside the file, the AI origin declared in its credential, and you can [verify it yourself](/info/verify-yourself.html).
 
 Three changes and one addition, and we would rather list them than let you find them:
 
@@ -106,9 +106,9 @@ She died in Epsom, Surrey, England on 16 September 1969.
 
 - <!--i:star--> **Quality.** Her argument in the crystal goblet essay is that the craft succeeds by disappearing: you should see the wine, not the glass. Constraint-first tooling is the same bet. The template holds the brand so the person using it can think about the message instead of the margins.
 - <!--i:check--> **Correctness.** She checked. The whole trade had been calling a typeface by the wrong name for three centuries because nobody had. So every claim on this site can be checked.
-- <!--i:people--> **Fairness.** She had to invent a man in order to be read - a false name and a false biography, the whole apparatus of a person who did not exist, because that was the price of being printed, and later she had to claim the work back as her own. It was what the field cost her. Her story is familiar to anyone who has had to mask who they are, or reinvent themselves, to be taken seriously in a room that was not built for them - which is why [who gets to make things](/info/inclusive-design.html) is a design decision here rather than a footnote.
+- <!--i:people--> **Fairness.** She had to invent a man in order to be read, because that was the price of being printed, and later she had to claim the work back as her own. It was what the field cost her. Her story is familiar to anyone who has had to mask who they are, or reinvent themselves, to be taken seriously in a room that was not built for them - which is why [who gets to make things](/info/inclusive-design.html) is a design decision here rather than a footnote.
 - <!--i:shieldcheck--> **Attribution.** This is the one she is owed. A work's history travels with it here, ingredients as well as edits, instead of being reconstructed by a stranger later. We adapted her in public and listed our changes.
 
 ---
 
-Adapted from Beatrice L. Warde's "This is a Printing Office", first printed in 1932 by the Monotype Corporation, Salfords, Surrey. Reproduced and adapted here with attribution, in the tradition of a text the printing trade has reprinted, translated and reset ever since. First printed in 1932, not yet out of date.
+Adapted from Beatrice L. Warde's "This is a Printing Office", first printed in 1932 by the Monotype Corporation, Salfords, Surrey. Reproduced and adapted here with attribution, in the tradition of a text the printing trade has reprinted, translated and reset ever since, and not yet out of date.

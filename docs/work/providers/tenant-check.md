@@ -108,8 +108,7 @@ A match means Lolly Work serves the true original.
 
 ::: warning Materialize stores whatever it is given
 A smaller file, other pixel dimensions or missing
-EXIF or ICC data means the link served a rendition: report it, because materialize stores
-whatever it is given.
+EXIF or ICC data means the link served a rendition. Report the mismatch.
 :::
 
 A failure on this route shows as `502 PROVIDER_UNAVAILABLE`; the reason is

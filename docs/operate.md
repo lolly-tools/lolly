@@ -33,5 +33,5 @@ Hosting the Lolly web app, handing out the packaged app and running a Lolly Work
 - [Build the web container and Helm chart](/info/build-kubernetes.html): run Lolly on Kubernetes.
 
 ::: warning A recipe is not your server
-An installation recipe describes a supported way to deploy, not your server. Before you update an instance that is already running, check the record of how that instance was deployed: its host, cluster, secrets, volumes and pinned release. A generic recipe cannot tell which server is your production one.
+An installation recipe describes a supported way to deploy. Before you update an instance that is already running, check the record of how that instance was deployed: its host, cluster, secrets, volumes and pinned release. A generic recipe cannot tell which server is your production one.
 :::

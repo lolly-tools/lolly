@@ -71,7 +71,7 @@ Three things it never changes:
 
 - **+ New** on a tool card always asks. It is the way back to the chooser when you have set a template and want something else this once.
 - A link somebody sends you opens what the link says, and so does a command you type at the terminal. Your own starting point is a preference on this device; it never rewrites what a shared link renders on anyone else's.
-- If the template is deleted or hidden later, the tool quietly goes back to asking. Nothing breaks, and nothing opens on something that is no longer there.
+- If the template is deleted or hidden later, the tool quietly goes back to asking.
 
 <!--i:eti-sliders-->
 ## Managing them
@@ -120,7 +120,7 @@ What shipped with a tool, you **hide**. A shipped template is a file that comes 
 
 To change a shipped starter rather than lose it, use **Make a copy**. The copy is yours to rename, edit and delete, and you can hide the original afterwards so only your version shows.
 
-A design system can arrive with some of its starters hidden already, so a team sees a curated set on day one. Nothing is missing, and **Hidden (N)** brings any of them back for you.
+A design system can arrive with some of its starters hidden already, so a team sees a curated set on day one; **Hidden (N)** brings any of them back.
 
 ### Passing one on
 

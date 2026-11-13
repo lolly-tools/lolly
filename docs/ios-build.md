@@ -4,7 +4,7 @@ This page is for a developer who wants Lolly running in the iPhone Simulator, on
 
 The iOS app is the same Lolly as the web and desktop apps. A Tauri 2 shell (`shells/tauri-mobile`, identifier `tools.lolly.mobile`) wraps the web app's code and saves work as files instead of in browser storage. It leaves out what a phone cannot do, such as screen capture. Android uses the same shell; only the toolchain and signing differ (see [Build the mobile apps](/info/build-mobile.html)). The app runs on iOS and iPadOS 26.0 or later.
 
-The Xcode project is already in the repository, with the camera and microphone permission text in place, so there is nothing to generate. Install the prerequisites, then `pnpm run dev:ios` opens Lolly in the Simulator.
+The Xcode project is already in the repository, with the camera and microphone permission text in place, so there is nothing to generate.
 
 **What you'll do**, in four steps:
 

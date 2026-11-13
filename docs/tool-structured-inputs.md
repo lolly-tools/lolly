@@ -156,7 +156,7 @@ The value is an object keyed by field id, so the template reads each part with a
 
 In links and Batch CSV, each field is its own parameter or column, named `<inputId>.<fieldId>`: `?imageFraming.zoom=200&imageFraming.x=30&imageFraming.y=70`, or the CSV columns `imageFraming.zoom`, `imageFraming.x` and `imageFraming.y`. A vector has no `urlKey`. `frame` is the reference; the `filter` tool carries the same control for each raster effect, with its own prefix (`du_imageFraming`).
 
-`imageFraming` is a [canonical input](/info/tool-inputs.html#canonical-inputs-reuse-shared-ids): reuse that id and field set exactly for any zoom-and-pan control instead of inventing another name.
+`imageFraming` is the [canonical input](/info/tool-inputs.html#canonical-inputs-reuse-shared-ids) for any zoom-and-pan control.
 
 <!--i:eti-crop-->
 ## Framing an image: one pattern, every tool
@@ -207,7 +207,7 @@ With no shell code and no special case in your tool:
 A tilted plane needs a projective transform, which SVG and PDF do not have. Pan, zoom and roll stay fully vector, but a tilted image exports that element as a positioned raster. Leave the two fields out of a tool whose output must stay vector.
 :::
 
-**Tools that draw into a `<canvas>`** call `drawFramed(ctx, source, iw, ih, W, H, framing, fit)` from `community/_shared/framing.js` instead of the helper, and mark the rendered element with `data-framing="imageFraming"` by hand. The maths is the same, and a fixture table keeps the two implementations equal, so a canvas tool and a markup tool place a photo the same way.
+**Tools that draw into a `<canvas>`** call `drawFramed(ctx, source, iw, ih, W, H, framing, fit)` from `community/_shared/framing.js` instead of the helper, and mark the rendered element with `data-framing="imageFraming"` by hand. A fixture table keeps the two implementations equal, so a canvas tool and a markup tool place a photo the same way.
 
 **Inside a `blocks` row** a field cannot be a `vector`, so the same values live as sibling numbers: `<prefix>Zoom`, `<prefix>X`, `<prefix>Y`, `<prefix>Rotate`, `<prefix>Pitch` and `<prefix>Yaw`. Put `framingFor: "<prefix>"` on the row's asset field and use the helper's block mode:
 

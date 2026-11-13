@@ -170,7 +170,7 @@ Choose **Export course** at the top of the course editor. The dialog walks throu
 
 Keep the ZIP and the **Download handoff report** with your delivery record. The report holds the version, checksum, destination, LMS preset, size and any remaining review items.
 
-The ZIP contains a launch page, the learner player and the finished content; LMS targets also contain the chosen manifest. Learners need no Lolly account, and no authoring credentials are included.
+The ZIP contains a launch page, the learner player and the finished content; LMS targets also contain the chosen manifest. No authoring credentials are included.
 
 ::: details Checking, cancelling and the size limits
 The progress job can be cancelled. **Continue editing** closes the dialog while the check carries on, and changing the draft invalidates and cancels that check. Leaving the module cancels an unfinished check; reopen **Export course** to see a completed one. Changing the content, format or destination needs another check, and cancelling never creates a partial package.

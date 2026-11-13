@@ -1,18 +1,16 @@
 # How a Lolly Work deployment fits together
 
 This page is for whoever runs Lolly Work once it is installed. It explains the
-parts and which ones you can leave out. It also shows what changes between Kubernetes,
-Compose, systemd and YunoHost. The commands are in the install guides; start at
+parts, which ones you can leave out and what changes between Kubernetes, Compose,
+systemd and YunoHost. The commands are in the install guides; start at
 [Run Lolly Work](self-host.md).
 
 Every deployment runs the same server. It answers the console at `/admin`, the API
-and share links, and, when you mount one, the Lolly web app at `/`. One server
-process owns live collaboration, so you run one application replica. PostgreSQL
+and share links, and, when you mount one, the Lolly web app at `/`. PostgreSQL
 keeps everything that must survive a restart.
 
 Two parts are optional. A Chromium render worker adds JPG and PDF exports and tools
-with scripts; without it, the server still renders SVG and PNG itself and tells
-connected apps which formats it can make. A design-system pack and the web app turn
+with scripts; without it, the server still renders SVG and PNG itself. A design-system pack and the web app turn
 the console into a full workspace; leave them out for an instance that serves only
 the console and API.
 
@@ -23,8 +21,7 @@ One server and one database, with optional parts around them. Every install shap
 <!--i:eti-layers-->
 ## The install shapes
 
-The shapes run the same application code. They differ in three ways: how
-configuration and secrets arrive, who applies database migrations and whether the
+The shapes differ in three ways: how configuration and secrets arrive, who applies database migrations and whether the
 pack, web app, collaboration gateway and render worker are present.
 
 | Shape | Use it for | Who applies migrations | Pack and web app |
@@ -118,8 +115,7 @@ wins if it disagrees with this page. The install commands are in
 Out of the box the chart gives you one application replica; non-root, read-only
 root filesystem pods with dropped capabilities; `/healthz` liveness and `/readyz`
 readiness; an Ingress template; an optional ServiceMonitor and NetworkPolicy; a pack
-volume, a web app volume, an optional Chromium render-worker tier; and a migrate Job
-that owns the schema.
+volume, a web app volume, an optional Chromium render-worker tier; and a migrate Job.
 
 - **Official release images are public.** The `lolly-tools` server and worker
   packages need no GHCR credentials. Select qualified immutable digests from the
@@ -289,7 +285,7 @@ workload. Its limits are operational:
 ## Hosting and operating-system choices
 
 On a SUSE stack, Lolly Work runs on SLES with Rancher Prime or on openSUSE Leap with
-Rancher Community. Any conformant cluster works too.
+Rancher Community.
 Helm keeps the application and render worker in your chosen cluster; Compose and
 systemd are the smaller shapes. UpCloud and Evroc are supported foundations for these
 operator-managed releases, and
@@ -299,8 +295,8 @@ operating system needs equivalent host preparation.
 
 Choose jurisdiction, support lifecycle, images, dependencies and recovery policy for
 your own requirements. A provider's or an operating system's brand does not by itself
-make an instance compliant or reproducible. The engine is bundled and hash-checked,
-and the console serves its own assets. Optional DAM, identity, email, model and proxy
+make an instance compliant or reproducible. The engine is bundled and hash-checked.
+Optional DAM, identity, email, model and proxy
 integrations can still reach outside services, so list those paths before you claim
 sovereign or offline operation.
 

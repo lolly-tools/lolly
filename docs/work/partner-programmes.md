@@ -97,7 +97,7 @@ Open a programme with **Choose what they get**:
 
 ::: note Share a template's files before you publish the template
 A programme receives only the files you share with the programme. Share the logos and pictures
-its templates use, for example as a logos collection ticked here, before you publish the templates. A template
+its templates use, for example as a logos collection ticked here. A template
 that uses a file the programme was not given is incomplete for its partners, and with the
 [licence gate](#licences) on, a server render that uses the file answers `422 ASSET_HELD`. The
 programme's licence report lists each published template that uses a file one of its audiences
@@ -483,11 +483,9 @@ dark surfaces and its mark, up to 12 colours in named roles, and optional rules 
 minimum size and allowed treatments. Lolly Work keeps one kit for each company, as a file only that
 company's people and agents receive; a change is a new revision.
 
-- **Import** a starting point from the company's tokens file (DTCG, Tokens Studio or Penpot), from
-  a `.lolly` share, or from the inks of the company's SVG logos. An import proposes logos and
-  colours only and stores nothing: Lolly does not know a partner's rules, so a person types clear
-  space, minimum size and treatments. Whether your brand team or the partner's own designer does
-  that depends on how you work together.
+- **Import** reads a tokens file in DTCG, Tokens Studio or Penpot format. An import proposes logos
+  and colours only, because Lolly does not know a partner's rules. Whether your brand team or the
+  partner's own designer types those rules depends on how you work together.
 - **The logos** a kit pins must be the company's own logos from its page.
 - **Who edits.** Anyone with `programme.manage`, and a contact who may edit the company's details.
   While contact changes need approval, a contact may change the kit only when kit review is on.
@@ -720,8 +718,7 @@ that company alone, or `POST /api/v1/programmes/exit` with a programme, a compan
 list of addresses, first shows what ending does, one table per kind: the people, with who stays
 through another programme and who cannot be ended; their projects, share links and agent tokens;
 the templates to retire; the folders, domain rules and licence choices to withdraw; and the open
-invitations. Below the tables it says what ending does, how long Reopen is offered and who is
-told when. Choose what happens to their projects:
+invitations. Below the tables it says how long Reopen is offered and who is told when. Choose what happens to their projects:
 
 - **Move their projects to the owning team, read-only** (the default when the programme has an
   owning team): the person who made the programme becomes the owner (you, when that account
@@ -861,7 +858,7 @@ northwind --label "Rita's agent"`, or `POST /api/v1/programmes/:id/tokens`. A gr
 for that programme only: its tokens, its usage report, View as for the programme and its
 companies, and the review of a template published into the programme. Every other programme
 route needs `programme.manage` on `*`. The server sets what the request cannot: the `automation`
-role, the programme's and company's groups and the `partner` group. The secret appears once.
+role, the programme's and company's groups and the `partner` group.
 
 - **Scopes.** `render` and `catalog.read` by default; `documents` and `files` may be added, and so
   may `approvals.request` ([Approvals for agents](#approvals-for-agents)). `delivery` and

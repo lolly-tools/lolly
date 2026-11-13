@@ -81,4 +81,4 @@ Set `LOLLY_ROOT` to a Lolly checkout or a materialised public content bundle; th
 
 The package's version is independent of the desktop app's version.
 
-Both forms include the TUI. Start it with `lolly tui` in a real terminal.
+In either form, start the TUI with `lolly tui` in a real terminal.

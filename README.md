@@ -8,8 +8,6 @@ Lolly is an open-source creative platform. Pick a tool, add your words, images o
 
 Its purpose is **content sovereignty**: control over how your content is created, governed, stored and moved across the systems you choose. Keep making and editing your work, use your own infrastructure where needed, and connect an existing asset library. [What content sovereignty means](docs/content-sovereignty.md) explains the controls and their limits.
 
-Build a layout once, choose what other people can change, and share it as a tool. They fill in the fields; the tool handles the layout and design rules.
-
 [Open Lolly](https://lolly.tools) · [Make your first file](https://lolly.tools/info/start/make-something.html) · [Downloads](https://github.com/lolly-tools/lolly/releases) · [Documentation](https://lolly.tools/info/)
 
 ## What can I make?
@@ -25,11 +23,11 @@ Start with a focused tool, or arrange your own text, images and shapes on the Lo
 | Build a layout I can reuse | [Lolly Design](https://lolly.tools/t/design) |
 | Remove hidden metadata or shrink a PDF locally | [Lolly Strip Hidden Data](https://lolly.tools/t/strip-data) or [Lolly Compress](https://lolly.tools/t/compress-pdf) |
 
-Choose a tool, change its inputs, then use **Export** to download. The public app needs no account. [Make your first file](docs/make-something.md) walks you through a QR code.
+The public app needs no account. [Make your first file](docs/make-something.md) walks you through a QR code.
 
 ## Why Lolly?
 
-- **Set the design rules once.** Keep the layout and permitted choices consistent while people make the next version.
+- **Set the design rules once.** Build a layout, choose what other people can change and share it as a tool. They fill in the fields; the tool keeps the layout and design rules.
 - **Work on your device.** Edit, render and transform files locally. Download the resources a tool needs, then render and export offline.
 - **Keep the inputs as well as the file.** Save your work to edit later, or share a link that reopens its settings. Local uploads need to travel separately from a plain link.
 - **Make one or make many.** Use the app for a single file, a table of values for a batch, or the command line for a repeatable workflow.

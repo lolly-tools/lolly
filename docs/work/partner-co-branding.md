@@ -18,9 +18,7 @@ leads every piece, and the company's mark goes into the artwork as a picture.
 Under **Companies** on the programme's page, add each partner organisation. On the company's page,
 fill in its details (website, contact, address, currency and a tax note) and upload its logo for
 light surfaces, its logo for dark surfaces and an optional square mark. Lolly Work checks each logo
-and flags one that is hard to see on your design system's surfaces. You can let named contacts at
-the company edit the details themselves, and you can ask for approval of their changes. Both are
-off by default. When the company has rules of its own for its logo, such as clear space and a
+and flags one that is hard to see on your design system's surfaces. When the company has rules of its own for its logo, such as clear space and a
 minimum size, keep them on the company page's **Partner kit** card.
 
 - **Details.** **Save details** saves them as a numbered revision, and **Revision history** keeps
@@ -66,7 +64,7 @@ their own logo or contact line ([Partner templates](partner-templates.md#take-in
 <!--i:eti-history-->
 ## Change a company's details
 
-Change them on the company's page and press **Save details**. Every revision is kept. New pieces
+Change them on the company's page and press **Save details**. New pieces
 take the new details, and a file already made keeps the details it was made with, along with the
 revision it records. A contact who may edit makes the same change from their home.
 
@@ -85,11 +83,9 @@ reads colours from the company's SVG logos. An import is a proposal, and nothing
 space in mark heights, a minimum size in px and mm, and the allowed treatments. Lolly offers no
 defaults, and an empty field stores no rule. The logo pins are read only.
 
-- **Import** a starting point from the company's tokens file (DTCG, Tokens Studio or Penpot), from
-  a `.lolly` share, or from the inks of the company's SVG logos. An import proposes logos and
-  colours only and stores nothing: Lolly does not know a partner's rules, so a person types clear
-  space, minimum size and treatments. Whether your brand team or the partner's own designer does
-  that depends on how you work together.
+- **Import** reads a tokens file in DTCG, Tokens Studio or Penpot format. An import proposes logos
+  and colours only, because Lolly does not know a partner's rules. Whether your brand team or the
+  partner's own designer types those rules depends on how you work together.
 - **Roles and treatments.** A colour's role is primary, secondary, accent, text or surface. The
   treatments are colour, mono, reverse and on-photo, and Lolly does not measure reverse.
 - **The logos** a kit pins must be the company's own logos from its page, pinned by version.
@@ -137,10 +133,9 @@ arrangement. Add a finished lockup as a custom mark
 <!--i:eti-badge-check-->
 ## What a co-branded file records
 
-When Rita exports, the export panel's **Design system** card shows what the file records, such as
-"Records: Lolly Demo · Colourway: Spearmint · Partner: Northwind IT (Resellers, EMEA)". Anyone who
-checks the file in [Lolly Verify](/info/what-verify-checks.html#partner) reads "Northwind IT,
-Resellers, EMEA programme, details revision 3" as its **Partner** fact. The partner record is
+When Rita exports, the export panel's **Design system** card shows what the file records, and
+anyone who checks the file in [Lolly Verify](/info/what-verify-checks.html#partner) reads the same
+company as its **Partner** fact. The partner record is
 about the company, never Rita: it holds no person, contact details, address or currency.
 
 ![The export panel's Design system card, reading Records: Lolly Demo, Colourway: Spearmint, Partner: Northwind IT (Resellers, EMEA)](shots/partner-export-record.svg)
@@ -204,8 +199,6 @@ the `logos` and the `limits` the server enforces. Each logo goes up on its own,
 next revision, so the three logos bring Northwind IT to revision 4.
 :::
 
-Each logo is previewed on both surfaces, which is why Northwind IT sends one for light surfaces
-and one for dark: the light-surface logo looks faint on the dark preview.
 **Rita** still sees nothing, but every piece she makes from now on can carry these details.
 
 Next: [4. Publish the data sheet](partner-templates.md#4-publish-the-data-sheet).

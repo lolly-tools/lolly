@@ -150,7 +150,7 @@ Rows opened from saved sessions keep the session's theme choices and links, and 
 - <!--i:check--> **Apply or discard.** **Apply reviewed change** commits it through the usual saving and undo. **Discard preview** writes nothing.
 :::
 
-Source edits, generated scales and upstream comparisons capture the document as it is. The review shows the changes you wrote and the resolved values that change because of them.
+Source edits, generated scales and upstream comparisons capture the document as it is.
 
 ::: note A change in the meantime blocks Apply
 A token edit, a system switch or a change to a referenced resource in the meantime makes **Apply** unavailable.

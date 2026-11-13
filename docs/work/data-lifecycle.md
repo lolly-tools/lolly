@@ -52,7 +52,7 @@ The preview does not change the account or approve erasure. Its response gives i
 <!--i:eti-trash-->
 ## How erasure works
 
-`lw users erase USER_ID` removes the identity row, clears the user id from telemetry and clears the fleet install rows naming that account, in one transaction. Migration `0069_fleet_attribution.sql` also cleared fleet associations whose account row had already been removed. Shared content is never deleted to make removal succeed.
+`lw users erase USER_ID` removes the identity row, clears the user id from telemetry and clears the fleet install rows naming that account. Migration `0069_fleet_attribution.sql` also cleared fleet associations whose account row had already been removed.
 
 Uploads go first. The account's unfinished project-file uploads are removed, parts and then rows, before the identity row, while its finished project files block the removal as its sessions do. Every scoped upload it owns, finished or not, is removed the same way. The `uploads` table has no foreign key to the account, so the route checks instead: if any upload remains, for example because the person is still uploading, the removal answers `409 ERASE_UPLOADS_REMAIN` and changes no identity or telemetry, so it can run again.
 
@@ -166,7 +166,7 @@ Deleting a document hides it at once and deletes its saved versions in the same 
 - <!--i:trash--> **Purged.** Once a document has been deleted for longer than the window, the retention run deletes its row and everything listed above, in batches of 100: at start-up and daily on the long-lived server, and in `POST /api/v1/retention/run`.
 :::
 
-Until the purge, a tombstone still counts in the erasure preview for the people who created or last saved the document. Projects can be archived but not deleted. Audit rows about a purged document follow the audit retention below, and copies in backups follow your backup lifecycle.
+Until the purge, a tombstone still counts in the erasure preview for the people who created or last saved the document. Audit rows about a purged document follow the audit retention below, and copies in backups follow your backup lifecycle.
 
 ### Audit and telemetry
 
@@ -186,7 +186,7 @@ Retention, applied whenever a version is written:
 - named versions: up to 20 per person and 100 per document, kept until a project manager deletes them. A version someone names or pins later is kept the same way and counts against those limits for that person, until its name and pin are removed; it then follows the rules for its kind again;
 - space: one document's versions may hold at most 100 MiB of distinct content, and the instance's at most `policy.versions.maxBytes` (1 GiB by default). When a new version would pass either cap, the oldest automatic versions that nobody named or pinned go first; if that is not enough, a named save or a restore is refused (`409 VERSION_SPACE`) and an automatic version is skipped.
 
-Content no version uses any more is deleted with the last version that used that content. Deleting a document deletes all its versions and their content in the same request, because a deleted document cannot be restored. The rest of a deleted document is removed by the [deleted-document purge](#deleted-documents). A project manager can delete one version (and its restore pair) at any time, and the deletion is audited with the version's id and kind.
+Content no version uses any more is deleted with the last version that used that content. Deleting a document deletes all its versions and their content in the same request. The rest of a deleted document is removed by the [deleted-document purge](#deleted-documents). A project manager can delete one version (and its restore pair) at any time, and the deletion is audited with the version's id and kind.
 
 [History across documents](api.md#history-across-documents) lists one person's readable versions from many documents at once, without their content. It stores nothing new: an index on the version time (migration 0076) serves its order.
 

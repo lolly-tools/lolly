@@ -45,8 +45,8 @@ Then, for every release:
 
 ::: warning Do not replay an old plan
 A failed or unclear update needs a look at the current resources, then a fresh,
-reviewed forward fix or application rollback. Do not replay an old plan, and do not
-restore an older database over new writes.
+reviewed forward fix or application rollback. Do not restore an older database over
+new writes either.
 :::
 
 ### Who applies migrations
@@ -130,8 +130,8 @@ catalogue signed with that key. Nothing in the web app is patched or rebuilt.
 - **Same address only.** The web app takes the instance key only from the address that
   served its own code. Whoever runs that address already decides which code the web app
   runs, so believing that address about its catalogue key trusts nobody new. A web app on
-  lolly.tools, on any other static host, or inside the desktop and mobile apps never asks
-  for the key and keeps the key built into its release.
+  lolly.tools or on any other static host never asks for the key and keeps the key built
+  into its release.
 - **Only for that key.** The instance key verifies only a catalogue that carries its key
   ID. A catalogue signed by any other key, or not signed at all, is refused as before.
 - **One operator per address.** A proxy that sends this address's `/api/` paths to a
@@ -143,8 +143,7 @@ catalogue signed with that key. Nothing in the web app is patched or rebuilt.
 
 **Rotating the key.** Set a new `LW_CATALOG_SIGNING_KEY` and restart. A web app reads the
 public key again each time the catalogue syncs, so it takes the new key at its next sync,
-and from then on a catalogue signed with the old key is refused. A browser that has not
-synced since the restart keeps the old key until its next sync.
+and from then on a catalogue signed with the old key is refused.
 
 **Offline.** Each browser saves the last key it read for this address beside the
 catalogue it accepted. Offline, or while the route gives no answer, the browser checks
@@ -298,9 +297,8 @@ by default.
 
 A platform team that runs its own observability stack can have Lolly Work push traces,
 metrics and logs to an OpenTelemetry Collector or any backend that accepts OTLP.
-Export is off until you set an endpoint. With no endpoint, Lolly Work starts no timer,
-opens no connection and sends nothing; an instance nobody configured behaves exactly
-as it did before.
+Export is off until you set an endpoint. Without one, Lolly Work starts no timer, opens
+no connection and sends nothing.
 
 Lolly Work speaks OTLP over HTTP. Point it at the collector's HTTP port, usually 4318:
 
@@ -518,8 +516,8 @@ are not throttled.
 
 ::: note No scanner ships, and none runs by default
 An unconfigured instance stores whatever a member with `catalog.submit` sends, exactly as it
-stores whatever a federated source hands back. The project ships the hook, never a scanner:
-wiring one up, and keeping it current, is yours.
+stores whatever a federated source hands back. The project ships only the hook: wiring a
+scanner up, and keeping it current, is yours.
 :::
 
 Wire one in `instance.json` under `submit.scanHook`. It is **instance configuration,
@@ -584,8 +582,7 @@ people where they work:
 | Broadcast message sent | *(nobody: mail would duplicate the inbox)* | `message.sent` |
 | Blob offload threshold reached | administrators (admin and owner roles), once a month per threshold | `blob.offload.threshold` |
 
-Broadcast messages, which admins write in the console, reach people through the inbox
-and the `message.sent` webhook only:
+Admins write broadcast messages in the console:
 
 ![Broadcast messages: announcements and notices targeted by group, shell and engine version](shots/broadcast-messages.svg)
 
@@ -693,9 +690,8 @@ cookie also works for the private catalog and the collaboration sockets.
 
 - **Desktop and mobile apps need no CORS from this server.** They send instance traffic
   through their own HTTP client, so an instance on another address works straight away.
-  The open-source web app refuses to switch instance in a browser, so browser users are
-  served from the same address (the web app at `/`, the API on the same address), and no CORS
-  opening is needed or offered.
+  The open-source web app refuses to switch instance in a browser, so browser users get the
+  web app at `/` and the API from the same address, and no CORS opening is needed or offered.
 - **Live sessions in the apps use a ticket.** The apps ask for
   `POST /api/v1/collab/sessions/:id/socket-ticket`. Each ticket lasts 30 seconds, works
   for one room and can be used once. The ticket request and the WebSocket upgrade must

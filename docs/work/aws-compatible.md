@@ -288,8 +288,8 @@ than the server.
    production mode with the image's demo pack, `catalogPublicationGeneration: 1` and a
    catalogue signing key in `LW_CATALOG_SIGNING_KEY` was ready 35 seconds after
    `helm install` started.
-5. **Check readiness.** `kubectl -n lolly get pods` should show Lolly Work ready. If Lolly Work is not
-   ready, `/readyz` answers with `checks` that say which condition is holding readiness back.
+5. **Check readiness.** `kubectl -n lolly get pods` should show Lolly Work ready. If it is not,
+   `/readyz` answers with `checks` that say which condition is holding readiness back.
 
 <!--i:eti-package-->
 ## Lolly appliance (preview)
@@ -338,7 +338,7 @@ a volume and a snapshot:
 
    [Configure the first boot](https://github.com/lolly-tools/lolly-work/tree/main/deploy/appliance#configure-the-first-boot)
    has an example script and the options.
-4. **Snapshot, register and launch.** Detach the volume, snapshot the volume, and register the
+4. **Snapshot, register and launch.** Detach the volume, snapshot it, and register the
    snapshot with `aws ec2 register-image --boot-mode uefi --architecture x86_64
    --root-device-name /dev/sda1 --virtualization-type hvm` and the snapshot as the root
    device. Set the disk size when you register or when you launch, for example 40 GB on a

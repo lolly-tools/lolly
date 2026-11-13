@@ -34,7 +34,7 @@ Individuals shape the earth and our history. Their choices, made one at a time, 
 
 So we empower human decision and never compromise on that. The right to choose. Agency. Autonomy. The ability to decide and to act, and for that act to be yours.
 
-Tools here scale what a person decided. They do not decide instead of them, and they never quietly stand in for them. Where a decision is carried by automation, the record still leads back to the person who triggered it, however many systems and left turns it passed through on the way.
+Tools here scale what a person decided and never quietly decide instead of them. Where a decision is carried by automation, the record still leads back to the person who triggered it, however many systems and left turns it passed through on the way.
 
 We honour that end to end, and we record it: for history, for accountability, for trust and for tomorrow.
 

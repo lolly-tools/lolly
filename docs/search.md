@@ -73,7 +73,7 @@ Every result is an ordinary link you can bookmark or paste: a tool opens at `#/t
 <!--i:eti-keyboard-->
 ## Keyboard
 
-- **Ctrl-Space** jumps to the field from any screen that shows the bar. A small `⌃␣` chip in the empty field is the reminder, on a wide screen with a mouse or trackpad. Cmd-Space also works where the system lets it through, but macOS keeps it for Spotlight, so Ctrl-Space is the one to learn.
+- **Ctrl-Space** jumps to the field. A small `⌃␣` chip in the empty field is the reminder, on a wide screen with a mouse or trackpad. Cmd-Space also works where the system lets it through, but macOS keeps it for Spotlight, so Ctrl-Space is the one to learn.
 - The **arrow keys** walk every row across every group.
 - **Enter** opens the highlighted row, and **Cmd/Ctrl-Enter** opens it in a new tab.
 - **Escape** backs out a step at a time: it closes the panel, then clears what you typed, then leaves the field.
@@ -84,8 +84,8 @@ Every result is an ordinary link you can bookmark or paste: a tool opens at `#/t
 - It searches names, labels and tags, never contents.
 - Results only navigate. Nothing in the panel deletes, renames or changes a setting for you.
 - It keeps no history and shows nothing before you type. Below two characters the panel stays closed.
-- Matching is exact substrings, folded for case and accents. It does not correct a typo.
-- It runs on your device, from data already there. The exception is **Docs**: the first search fetches this site's search index, the same file the site's own search uses, and what you type is never part of that request. Offline, the Docs group is simply missing.
+- Matching is by exact substring, and it does not correct a typo.
+- It runs on your device, from data already there. The exception is **Docs**: the first search fetches this site's search index, the same file the site's own search uses, and what you type is never part of that request. Offline, the Docs group is missing.
 
 ---
 

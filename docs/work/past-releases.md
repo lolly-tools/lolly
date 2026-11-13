@@ -294,6 +294,5 @@ sudo yunohost app install https://github.com/lolly-tools/lolly-work_ynh/tree/583
 ```
 
 Keep a verified backup and complete an independent restore before upgrading an existing
-instance. The six passing checks do not qualify the historical upgrade path or every
-deployment platform.
+instance.
 :::

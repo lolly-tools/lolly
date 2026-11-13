@@ -9,7 +9,7 @@ None of it is a ruling about your project either. Lolly records facts, applies a
 <!--i:eti-smile-->
 ## Where you meet this
 
-The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with a source credit for the artwork. The credit counts once Lolly reads the delivered file back and finds the credit there. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Fluent (MIT), Noto and Blobmoji (both Apache 2.0) are registered too, and each resolves under its own reviewed licence.
+The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with a source credit for the artwork. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Fluent (MIT), Noto and Blobmoji (both Apache 2.0) are registered too, and each resolves under its own reviewed licence.
 
 Choosing a set is never blocked, and the set control shows the licence where you choose. The same rules answer for a catalog illustration, a LUT, a font and any other recorded work.
 
@@ -19,7 +19,7 @@ Choosing a set is never blocked, and the set control shows the licence where you
 "CC BY 4.0", "this use needs a credit" and "the credit is in the file you just downloaded" are three different statements, and Lolly keeps them apart:
 
 - **Evidence** is what a source declared, recorded as it was found, with who said it and where it was read. A later import never overwrites an earlier record.
-- **Obligation** is what the reviewed rules make of that evidence for one use, one delivery route and one audience. Conditions that apply on sharing stay conditional while you work privately.
+- **Obligation** is what the reviewed rules make of that evidence for one use, one delivery route and one audience.
 - **Delivery** is what the finished bytes actually carry, measured by reading them back. Lolly says credits are included only after a reader has found them in the delivered file.
 
 ![Recorded source evidence and the chosen use feed reviewed rules. Export prepares the credits, then a delivery check reads the finished bytes to report which credits were found or are still needed.](/info/diagrams/concepts/rights-evidence-to-delivery.svg)
@@ -101,7 +101,7 @@ Rights: actions-required
   "water wave (OpenMoji Color 17.0.0)" by Vanessa Boutzikoudi (OpenMoji), CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/, source https://raw.githubusercontent.com/hfg-gmuend/openmoji/f9fc506a3f913be9897ab0181d611d4c910a4104/color/svg/1F30A.svg, changes: recoloured.
 ```
 
-Here the credit is in the file, and a licence decision is still owed before the file is shared. The file is written either way.
+Here the credit is in the file, and a licence decision is still owed before the file is shared.
 
 | Status | Meaning | Exit |
 |---|---|---|

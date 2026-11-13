@@ -11,7 +11,7 @@ From a branded house, in which the parent is the brand, to a house of brands, in
 <!--i:eti-help-->
 ## Which arrangement are you?
 
-Start from the line that sounds most like your work. Most organisations match more than one line: an agency works in white label for its clients and in co-branding at an event, so start from the job in front of you.
+Find the line that sounds most like your work. Most organisations match more than one line: an agency works in white label for its clients and in co-branding at an event, so start from the job in front of you.
 
 | If this sounds like you | Start with |
 | --- | --- |
@@ -37,7 +37,7 @@ Not sure? Start with one design system. [A colourway, a logo identity, or a desi
 | --- | --- | --- |
 | **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [Lolly Design System Setup](/info/brand-studio.html), and **Settings → Preferences → Design systems** to switch or remove |
 | **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and the open tool redraws with no reload |
-| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour, chosen per artefact. One is canonical. Each person can take a colourway as their own, which colours the app around them and starts their new work in that colourway; without a choice the app uses the canonical one. Tools that draw several colours at once, such as Lolly Chart and Mesh Gradient, draw on every lead together. | Made and edited in the **Colours** room: open **Colour roles**, then the **Colourways** row. Chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload, and taken as your own in **Settings → Appearance**. Rebuilding the palette keeps every colourway. See [Colourways](/info/colourways.html) |
+| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour. One is canonical. Each person can take a colourway as their own, which colours the app around them and starts their new work in that colourway; without a choice the app uses the canonical one. Tools that draw several colours at once, such as Lolly Chart and Mesh Gradient, draw on every lead together. | Made and edited in the **Colours** room: open **Colour roles**, then the **Colourways** row. Chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload, and taken as your own in **Settings → Appearance**. Rebuilding the palette keeps every colourway. See [Colourways](/info/colourways.html) |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup, a partner's logo you use often. They belong to the design system and travel in its file. | **Logos** room, **Custom marks** |
 | **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | Written in the token file and listed in the studio's **Rules** room, where **Add rule** adds rules for the example pieces. `lolly check` checks house rules on a saved Lolly Design document; see [Rules](/info/brand-studio.html#rules) |
@@ -50,7 +50,7 @@ Not sure? Start with one design system. [A colourway, a logo identity, or a desi
 <!--i:eti-table-->
 ## Arrangements at a glance
 
-A common way to group arrangements is by how much of the parent brand the audience sees: the parent **unifies** everything, **subsets** into tailored businesses, **endorses** a brand of its own, or **detaches** from the parent altogether. Three more needs cut across the groups: co-branding, white label, and seasons.
+A common way to group arrangements is by how much of the parent brand the audience sees: the parent **unifies** everything, **subsets** into tailored businesses, **endorses** a brand of its own, or **detaches** from the parent altogether. Three more needs cut across the groups: co-branding, white label and seasons.
 
 | Group | Arrangement | What the audience sees | Use in Lolly today | Not yet |
 | --- | --- | --- | --- | --- |
@@ -85,7 +85,7 @@ Monolithic brands in the wild: FedEx, GE, Intel and Apple.
 
 1. Make **one design system** for Northwind in [Lolly Design System Setup](/info/brand-studio.html).
 2. Give each division a **colourway**. In the **Colours** room, open **Colour roles**, press **+ Add** in the **Colourways** row and choose the division's colour from the palette's colours. Choose a colourway's chip to set its roles, and press **Make default** on the colourway most work should start in.
-3. People in Freight take the Freight colourway as their own under **Settings → Appearance**. The app they work in takes on the Freight teal, and every piece they start begins in Freight. One design system still serves every division ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)).
+3. People in Freight take the Freight colourway as their own under **Settings → Appearance**. The app they work in takes on the Freight teal, and every piece they start begins in Freight ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)).
 4. For one piece in another division's colour, pick that colourway's dot in the tool's **Design system** section, which shows the colourway dots in every tool that draws the lead colour.
 5. Write each descriptor as text in the template, or add the finished descriptor lockup as a **custom mark** per division.
 6. Use **house rules** to approve the division colours.
@@ -181,13 +181,13 @@ An export drawn from a published version records that version, and *Recreate wit
 
 ### Apparent
 
-Distinct brands whose parent is so widely known that it does not need to appear. This only works when almost everyone in the audience already knows the parent.
+Distinct brands whose parent does not need to appear. This only works when almost everyone in the audience already knows the parent.
 
 ::: figure brand-architectures-apparent
 Apparent brands in the wild: Microsoft and Sony.
 :::
 
-**In Lolly:** Halcyon Tidal and Halcyon Bloom have distinct marks and colours but share type, grid and motion, and the parent is well known without being shown.
+**In Lolly:** Halcyon Tidal and Halcyon Bloom have distinct marks and colours but share type, grid and motion.
 
 **What to do today:**
 
@@ -263,7 +263,7 @@ One set of assets re-skinned for each client, where no client may see another cl
 **What to do today:**
 
 1. Make a **design system per client** and switch per job, as in [Discrete](#discrete).
-2. Add each client's logos and fonts in that client's design system, in the **Logos** and **Type** rooms, where they stay with that design system. Files you upload to **Assets** belong to the device and are offered whichever design system is active, so a client's marks belong in the Logos room rather than in Assets.
+2. Add each client's logos and fonts in that client's design system, in the **Logos** and **Type** rooms, where they stay with that design system. Keep them out of **Assets**: files you upload there belong to the device and are offered whichever design system is active.
 3. Keep each client's work in a Projects folder of its own.
 4. Give each client their own design-system file, or a reusable tool made with [Share with rules](/info/create-a-tool.html), which carries the client's resolved colours, fonts and images.
 5. Check what an export says about how it was made before you send the file ([Exporting](/info/exporting.html)). An export from a tool records the name of the client's design system: the export panel's **Design system** card shows that name before the file is written; untick the card when a file must not carry the name. Batch and folder exports show no card, so their files carry no name.

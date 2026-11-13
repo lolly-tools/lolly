@@ -27,7 +27,7 @@ You need two things: a **P-256 (prime256v1) private key**, and the **certificate
 There are three ways to get them:
 
 1. **Your organisation's CA.** If your organisation runs one, ask for an S/MIME-style certificate: EC P-256, `keyUsage: digitalSignature`, `extendedKeyUsage: emailProtection` and your address in the subjectAltName. That is the C2PA certificate profile.
-2. **Lolly's own CA.** Enrolment (`services/ca`) issues short-lived certificates bound to an OIDC-verified email, through a **browser flow**: the device key is made non-extractable in the browser and never leaves the browser. That is what keeps the key safe there, and why it cannot reach the CLI. **There is no CLI enrolment**, and a browser-enrolled key cannot be exported to a file ([Content Credentials identity](/info/content-credentials-identity.html)).
+2. **Lolly's own CA.** Enrolment (`services/ca`) issues short-lived certificates bound to an OIDC-verified email, through a **browser flow**: the device key is made non-extractable in the browser, which keeps the key safe there and means it cannot be exported to a file for the CLI. **There is no CLI enrolment** ([Content Credentials identity](/info/content-credentials-identity.html)).
 3. **Self-signed**, for testing the setup and for closed groups where you hand out your own root. You can run this now:
 
 ```bash
@@ -205,7 +205,7 @@ The runner's secret store is the right home for a signing key, and it is the onl
 | How | Write the secret to a file, `chmod 600` it, pass `--sign-key=`, delete it in a cleanup step | `LOLLY_SIGN_KEY_PEM` and `LOLLY_SIGN_CERT_PEM` |
 
 ::: warning Never echo the key
-Never echo either: `set -x` in a step prints the whole key.
+That goes for both variables: `set -x` in a step prints the whole key.
 :::
 
 Restrict which branches can read the secret, so a pull request from a fork cannot sign as you. Give the pipeline its own identity (`release-bot@…`) rather than a person's.
@@ -234,7 +234,7 @@ A signed file is never byte-reproducible: a fixed identity removes the fresh cer
 | `$LOLLY_SIGN_CERT_PEM` | The chain's PEM text itself. |
 | `$LOLLY_SIGN_KEY_PASSWORD` | Passphrase for an encrypted key. |
 
-Lolly expands a leading `~` in either path, as `--trust-anchor` does, because a shell does **not** expand a tilde written after `=`. The flag always wins over the environment. A key without a chain (or the reverse) is refused rather than quietly falling back to the anonymous signer.
+Lolly expands a leading `~` in either path, as `--trust-anchor` does, because a shell does **not** expand a tilde written after `=`. A key without a chain (or the reverse) is refused rather than quietly falling back to the anonymous signer.
 
 <!--i:eti-monitor-->
 ## When a render uses the browser
@@ -276,7 +276,7 @@ A credential proves these bytes have not changed since this certificate signed t
 
 **A shared key is shared accountability.** A key on a CI runner signs as whoever the certificate names, and every file it makes is attributable to them. If several people can start that pipeline, the credential proves the pipeline signed and nothing about who pressed the button. It is not an audit log.
 
-**If a key is compromised, treat everything it signed as suspect**, not just what was signed after the theft, because with no trusted timestamp there is no way to prove *when* anything was signed. Stop using it and get a new one; if you run your own root, rotate the root and re-issue, because un-pinning is the only lever you have.
+**If a key is compromised, treat everything it signed as suspect**, not just what was signed after the theft, because nothing proves *when* a file was signed. Stop using it and get a new one; if you run your own root, rotate the root and re-issue, because un-pinning is the only lever you have.
 
 **Revocation.** In its default mode the Lolly CA keeps no record of whom it issued to and publishes no CRL or OCSP responder, a privacy choice that leaves nothing personal on a server. There, expiry is the only revocation, which is why certificates are short-lived (7, 30, 90 or 365 days): a 7-day certificate is a 7-day incident, and a 365-day one lasts a year, so choose the shortest lifetime your work allows. A CA deployed in managed mode hands issuance to Vault PKI, which publishes CRL status and can revoke a certificate; see the [CA service guide](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md#managed-intermediate-enrollment).
 

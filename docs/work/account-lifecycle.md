@@ -67,8 +67,7 @@ retained records.
 **Erase.** Inspect `lw users erase-preview USER_ID` before any separately authorised account
 erasure. The erasure API removes only the account identity and attribution scope it reports,
 and it refuses while retained references remain. Shared content, original audit records,
-external copies and backup restoration need separate handling. An account-row deletion is not
-a complete personal-data erasure or a full subject export.
+external copies and backup restoration need separate handling.
 
 **Partners.** To end access for everyone at a partner company, in a programme or at a partner
 domain, use **End this partnership** instead. It offboards each partner account the same way,

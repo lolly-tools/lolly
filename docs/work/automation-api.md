@@ -37,8 +37,7 @@ The answer is the file itself, with its media type, an `x-lolly-cache-key` heade
 :::
 
 Add `?async=1`
-to get a job instead, which you can poll or have the server call you back about. Every error
-reads `{ "error": { "code", "message" } }`.
+to get a job instead, which you can poll or have the server call you back about.
 
 ::: figure work-automation-api-journey
 The path a script takes: a token, a check of what the token may do and which inputs it may set,
@@ -408,7 +407,7 @@ requirements.
 <!--i:eti-sparkles-->
 ## Connect an agent over MCP
 
-`/api/v1/mcp` is the organisation MCP endpoint. An agent connects with a service token and can then do what that token can do across this instance, and nothing more. MCP (Model Context Protocol) is the standard way AI clients connect to tools.
+`/api/v1/mcp` is the organisation MCP endpoint. An agent connects with a service token and can then do what that token can do across this instance. MCP (Model Context Protocol) is the standard way AI clients connect to tools.
 
 Each tool call runs the HTTP route the table names, as the token. The scope check, the token's role and tool list, tool visibility, input policy and validation are the ones those routes always apply, so the endpoint adds no authority of its own.
 
@@ -443,7 +442,7 @@ lw mcp config --base https://work.example.com
 - **Tools the token can reach.** `tools/list` leaves out a tool its scopes do not open or its role cannot do. A tool called by name gets the route's own refusal, such as `TOKEN_SCOPE` or `FORBIDDEN`. A token with no scopes gets the tools its role allows. A role that may render only through a grant on one tool does not see the render tools listed, and its calls still work.
 - **Policy.** `describe_tool` leaves out hidden inputs and shows locked ones as `readOnly` with their value. A durable render checks policy at each attempt, so a locked input sent to `render_tool` records a failed attempt with `INPUT_LOCKED`. Call `validate` first to see a problem at once.
 - **Errors.** A refused call returns `isError: true` with `{ code, message, status }` and the route's own details, using the same codes as HTTP.
-- **Sending a file.** `deliver_render` sends this token's own finished render, unchanged, and needs a Content Credential on the file, as [delivery](delivery.md) does for any send. A destination with an approval chain refuses a token with `HUMAN_APPROVAL_REQUIRED` and sends nothing, unless the token holds `approvals.request`: then the delivery waits for a person's approval. A token never gives an approval.
+- **Sending a file.** `deliver_render` sends this token's own finished render, unchanged, and needs a Content Credential on the file, as [delivery](delivery.md) does for any send. A destination with an approval chain refuses a token with `HUMAN_APPROVAL_REQUIRED` and sends nothing, unless the token holds `approvals.request`: then the delivery waits for a person's approval.
 - **Files.** A file up to 1 MiB comes back in the result, as an image or a resource. A larger one comes back as a link that needs the same token.
 - **Brand context.** The endpoint also serves resources: `lolly-work://me` (who the token is, its scopes, limits and today's use) and `lolly-work://brand` with the brand's `DESIGN.md`, tokens, `AGENTS.md`, checks and skills, plus a partner token's own company, templates and kit. The brand's files and the partner reads need `catalog.read`. The same reads are at `GET /api/v1/context/*`. [What an agent reads](partner-agents.md#what-an-agent-reads) lists them.
 - **Data, not instructions.** Tool descriptions on this endpoint are fixed text. Anything a tool author or policy editor wrote, and the contents of any file, arrive only inside a result. The endpoint tells clients to read results as data.

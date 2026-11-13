@@ -31,7 +31,7 @@ tokens, cookies, response bodies or parser exception messages.
 
 ::: warning Not a secret scanner
 Treat the input and evidence as internal operational material even when the checker finds no
-recognised secret field. The checker is not a general secret scanner.
+recognised secret field.
 :::
 
 **What it checks.** The checker distinguishes configuration from proof. A configured OIDC issuer
@@ -87,7 +87,7 @@ of evidence, not a sign-off.
 operations and change, plus a combined privacy and AI item. They were written for the maintainers'
 own rollout, and their wording refers to checks and records from that
 environment. Use your own checklist in their place. The report still lists
-them, and the checker verifies none of them. Useful evidence includes:
+them. Useful evidence includes:
 
 - the exact release and its scan results;
 - sign-in and offboarding tests with test accounts;

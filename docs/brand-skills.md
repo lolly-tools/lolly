@@ -2,7 +2,7 @@
 
 A brand skill is a brand's standards for one discipline, written as an Agent Skill and carried with the design system. An Agent Skill is a Markdown file, with optional text references, in the open [Agent Skills](https://agentskills.io) format. Lolly keeps the brand's text as written and hands the skill to the agent doing the work: through Lolly's MCP server, or as a folder for an agent tool on your own machine.
 
-This page is for brand owners who write standards and for people who connect agents to Lolly. A brand skill guides. A skill never gives a pass or a fail: the design system's house rules are what Lolly checks.
+This page is for brand owners who write standards and for people who connect agents to Lolly. A brand skill guides and never gives a pass or a fail: Lolly checks work against the design system's house rules.
 
 <!--i:eti-layers-->
 ## Three layers of guidance
@@ -195,7 +195,7 @@ How to read the map:
 The same report carries the owner lint: missing frontmatter, a long body, a repeated heading, an unclosed code fence, the external sites the skill links to and the scope hints listed under [Write a skill Lolly carries well](#write-a-skill-lolly-carries-well).
 
 ::: note The coverage map is not a check
-A skill is guidance. `lolly check`, `lolly system check` and the MCP tool `lolly_check` apply the house rules. Nothing in the coverage map is a check result, and a map where every row reads `agree` does not mean Lolly approved the skill or the work made with the skill.
+`lolly check`, `lolly system check` and the MCP tool `lolly_check` apply the house rules. Nothing in the coverage map is a check result, and a map where every row reads `agree` does not mean Lolly approved the skill or the work made with the skill.
 :::
 
 <!--i:eti-sparkles-->
@@ -267,7 +267,7 @@ lolly system skill check ./skills/lolly-demo-photography
 # Up to date: revision 1.0.
 ```
 
-The check compares the copy's SHA-256, or its catalog version when either side lacks a checksum, with the design system's current skill. It answers `Up to date: revision 1.0.`, or gives both revisions when the copy is behind. For a copy with no `lolly-asset` key, the check reports that Lolly cannot tell where the copy came from.
+The check compares the copy's SHA-256, or its catalog version when either side lacks a checksum, with the design system's current skill, and gives both revisions when the copy is behind. For a copy with no `lolly-asset` key, the check reports that Lolly cannot tell where the copy came from.
 
 <!--i:eti-gauge-->
 ## Limits
@@ -277,7 +277,7 @@ The check compares the copy's SHA-256, or its catalog version when either side l
 - **Lolly does not edit the brand's text.** It never rewrites the stored bytes, never fetches an external link and never corrects wording. Lint findings go to the owner.
 - **The coverage map is narrow.** It compares 3- and 6-digit hex values, declared font family names and a short list of statement kinds. A colour written as RGB, CMYK, a Pantone number or a name alone is not compared.
 - **The CLI and MCP server read the content profile.** `lolly system skills` lists the active content profile's skills, whichever terminal design system is active. Both list `appliesTo` and leave the choice of skills to the agent.
-- **Internal skills have no signed-in route yet.** A hosted server never serves them, and no server serves them to signed-in callers yet.
+- **Internal skills have no signed-in route yet.** A hosted server never serves them, even to a signed-in caller.
 - **A copy is a snapshot.** Freshness metadata helps only when something reads the metadata.
 
 <!--i:eti-map-pin-->

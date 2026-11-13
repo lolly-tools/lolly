@@ -12,7 +12,7 @@ ones worth keeping. Penpot remains the source of truth, and Lolly Work never wri
 - **Boards arrive only when chosen.** They appear in the **Search & import** panel on the
   console's **Providers** page; a search matches file names and returns those files' boards.
   Importing one saves the board, rendered by Penpot's exporter, as an instance-owned catalog
-  asset. Drafts stay in Penpot.
+  asset.
 
 [Design-system administration](../design-system-administration.md#sources-and-storage) covers
 how token sources combine with the active design system.
@@ -83,10 +83,10 @@ are not yet confirmed against a live instance; a failed call reports the command
 <!--i:eti-info-->
 ## Notes / limits
 
-- **Self-hosted.** The connector uses Penpot's token-authenticated RPC against an origin you run.
-  Penpot is published under MPL-2.0, so no vendor terms of service apply to the connector.
+- **Self-hosted.** The connector uses Penpot's token-authenticated RPC against an origin you run,
+  and every call goes only to that origin. Penpot is published under MPL-2.0, so no vendor terms
+  of service apply to the connector.
 - **Up to 200 files.** One sync or search reads at most 200 files, so a very large instance
   cannot stall a request.
 - **Board renders need the exporter.** Penpot's exporter must be reachable at `exporterUrl`, or
   at `baseUrl` when that is not set.
-- **Pinned to your origin.** Every call goes only to the configured origin.

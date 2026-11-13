@@ -209,7 +209,7 @@ A tool ships one gallery preview, but `examples` lets its tile show range: an ar
 ]
 ```
 
-- **Key `values` by input `id`, never by `urlKey`.** Example values seed the runtime the way batch rows do, by input id only. A `urlKey` belongs to URL transport, so a value keyed by one would render the tool's default look, and the validator reports an error. When you copy a compact share link into an example, translate each short key back to its input id.
+- **Key `values` by input `id`, never by `urlKey`.** Example values seed the runtime the way batch rows do, by input id only. A `urlKey` belongs to URL transport, so a value keyed by one would render the tool's default look. When you copy a compact share link into an example, translate each short key back to its input id.
 - `label` records the look's intent and is not shown to people. `theme` (`light` or `dark`) is only for looks that draw ink on a **transparent** background, such as a reverse logo; the clashing theme leaves that look out of the strip. Leave it out when the look draws its own background.
 - `width` and `height` in `values` set that example's preview size, even when the tool declares no such inputs.
 - An `asset` value must be a **reference object**, never a bare string: `{ "source": "library", "id": "your/asset/id", "_unresolved": true }`, optionally with a `?theme=` suffix on a themable icon id. A `blocks` value is an array of row objects keyed by the block's field ids.

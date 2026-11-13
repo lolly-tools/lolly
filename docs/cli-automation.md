@@ -52,7 +52,7 @@ The app's **Batch** view (`#/batch`) is the same idea as an interactive grid.
 ## Plan, resume and watch production batches
 
 ::: note Needs Lolly 1.2.0
-These production controls arrived in Lolly 1.2.0. A standalone CLI from an earlier release does not have them.
+A standalone CLI from an earlier release does not have these production controls.
 :::
 
 ```bash
@@ -64,7 +64,7 @@ lolly batch rows.csv --watch --jobs=2 --out-dir=./out
 ```
 
 **Plan before you run.** Dry run reports planned paths and dependency readiness without exporting. Preflight
-checks row content; renderer readiness is a separate report. `lolly preflight --batch=rows.csv` also checks a batch.
+checks row content; renderer readiness is a separate report.
 Workers run in separate processes, with a maximum of eight, so tool DOM/global state cannot cross jobs.
 
 **Receipts and resume.** The default receipt is `out/.lolly-batch.json`; `--journal=path` chooses another.
@@ -230,7 +230,7 @@ The same inputs give the same **render** every time, which makes a tool a build 
 lolly link-card --url=https://example.com --heading="Ship today." --export=png --output=./public/og.png
 ```
 
-The same render is not always the same bytes. A default render is signed, and the signature alone moves the bytes; the next two sections measure what that costs and which formats can repeat byte for byte.
+The same render is not always the same bytes, because a default render is signed.
 
 ### What provenance costs
 
@@ -243,7 +243,7 @@ Content Credentials and the Imprint are on by default, as in the app. They cost 
 How much bigger a QR code file gets than its bare render, for each mark.
 :::
 
-Leaving both on means the file carries a statement of where it came from that any C2PA reader can check, naming you if you have [set up an identity](/info/cli-signing.html), plus a mark that survives a re-encode or a screenshot, which a metadata credential does not. Turning them off with `--no-provenance` gives byte-identical output and the "bare" sizes below. `smoke` and `batch` already render bare.
+Leaving both on means the file carries a statement of where it came from that any C2PA reader can check, naming you if you have [set up an identity](/info/cli-signing.html), plus a mark that survives a re-encode or a screenshot, which a metadata credential does not. Turning them off with `--no-provenance` gives the "bare" sizes below.
 
 ::: details The measurements
 Measured in August 2026 on one machine (Apple silicon, Node tier, five runs per case, best to worst shown). Your numbers will differ; the pattern will not.
@@ -295,7 +295,7 @@ Two limits the table cannot show. Format-level reproducibility is not tool-level
 So check the hash of an SVG rendered with `--no-provenance` into a lockfile if you like. [Determinism](/info/determinism.html) explains why the same inputs give the same render.
 
 ::: warning Do not gate CI on these hashes
-Do **not** build a CI gate on the hash of a PDF, an ICS, a JPEG, a paint-tier PNG or anything signed: compare those by rendering and inspecting.
+For a PDF, an ICS, a JPEG, a paint-tier PNG or anything signed, compare by rendering and inspecting instead.
 :::
 
 **Check the file a render wrote.** `--export-report=<path>` compares what a render asked for with what the file holds, read from its bytes, and each difference warns, so `--strict` exits `4` when the file is not what was asked for. For a PDF the report also lists the accessibility checks, each passed, failed, not applicable or needing a person to look; it never claims that a PDF is accessible. [The render flags](/info/cli-rendering.html#flags) list what it reads.

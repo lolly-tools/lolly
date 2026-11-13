@@ -49,9 +49,8 @@ may change the kit only when kit review is on
 <!--i:eti-sparkles-->
 ## Requests from partners' agents
 
-Approvals stay off for agents unless you turn them on. Give a programme token the
-`approvals.request` scope and it may ask for review of one of its own finished renders, read its own
-requests and withdraw them. Deciding stays with people. The request goes to the tool's bound
+Give a programme token the `approvals.request` scope and it may ask for review of one of its own
+finished renders, read its own requests and withdraw them. The request goes to the tool's bound
 escalation chain, or else to a chain the programme lists (`approvalChains` on `PUT
 /api/v1/programmes/:id`, with the programme's `name`); a partner's agent never reaches an internal
 chain by name. A delivery to a destination that needs approval waits for the approval when the token

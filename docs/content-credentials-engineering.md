@@ -5,7 +5,7 @@ This page is for engineers and operators who integrate, audit or deploy Lolly's 
 For what a reader sees, start with [Content Credentials](/info/content-credentials-identity.html) and [What Lolly Verify checks](/info/what-verify-checks.html). To deploy the CA, the canonical runbook is the [CA README](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md).
 
 ::: note Versions and line numbers
-CA-issued signing first shipped at engine 1.11, and the capability bridge only grows, so everything here still holds. The verifier reads C2PA 1.x and 2.x claims, Lolly writes 2.x by default, and the trust list bundles the public C2PA and CAI anchors beside the Lolly root. Read the live `ENGINE_VERSION` in `engine/src/version.ts` and `engine/CHANGELOG.md` rather than a number pinned here. Source line numbers are left out because they drift: search for the named symbol.
+CA-issued signing first shipped at engine 1.11, and the capability bridge only grows, so everything here still holds. The verifier reads C2PA 1.x and 2.x claims, and Lolly writes 2.x by default. Read the live `ENGINE_VERSION` in `engine/src/version.ts` and `engine/CHANGELOG.md` rather than a number pinned here. Source line numbers are left out because they drift: search for the named symbol.
 :::
 
 <!--i:eti-layers-->
@@ -224,7 +224,7 @@ Everything below appears as one card in the export panel: the C2PA switch with i
 - **Settings** has a **Content Credentials** section (the old `/profile` route still opens the section). It shows the enrolment status ("Signing as andy@… via GitHub - renews Jul 10"), a button for each provider the deployment configures, Renew, Forget this device and, on a managed deployment, Revoke certificate.
 - `/verify` passes the pinned root and the bundled public anchors as `trustAnchors` and renders the trusted state: the shield turns green with an identity, and the facts show the verified email and issuer.
 
-The enrolment card is where the certificate lifetime is chosen, before any popup opens. Its provider buttons come from `/api/ca/health.configured`, so a deployment with no OIDC app says so.
+The enrolment card is where the certificate lifetime is chosen, before any popup opens.
 
 ![The Content Credentials section of Settings, expanded from the link, on a deployment with no OIDC app wired up: one line says so in place of the lifetime picker and the provider buttons](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Didentity-section&width=1440&height=1400&dpi=192&waitMs=2600&format=svg&cropSelector=%23identity-section&walker=1&dark=1&filename=ce-identity-enrolment)
 

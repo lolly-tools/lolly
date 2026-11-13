@@ -8,7 +8,7 @@ From that folder Lolly builds the sidebar, draws the canvas and offers the expor
 
 You do not need code to make a tool. If you already have a finished design, [Share with rules](/info/create-a-tool.html) turns a Lolly Design document into a tool when you choose the parts people may edit. Those tools are ordinary tool folders too, compiled for you and run by the strict sideload runtime; [Design tool contract](/info/design-tool-contract.html) covers how.
 
-This guide is for writing the folder yourself. Start with the two-file tool below, then use the reference pages for each part.
+This guide is for writing the folder yourself.
 
 **What you'll do**, in four steps:
 

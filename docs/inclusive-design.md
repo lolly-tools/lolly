@@ -16,8 +16,6 @@
 - <!--i:eti-globe--> **[Your language](#your-language)** More than 25 languages, right-to-left layouts and every language listed in its own script.
 :::
 
-To change a setting now, [open your Accessibility settings](/#/settings?focus=a11y-section).
-
 <!--i:eti-pen-tool-->
 ## Your work stays yours
 
@@ -32,7 +30,7 @@ Lolly follows the platform's own signals, such as system dark mode and the reduc
 
 - <!--i:pause--> **Reduce motion** turns off transitions, slides and animated flourishes in the app. It works beside your operating system's reduced-motion setting and never overrides it: either one is enough to calm the app, and turning Lolly's switch off hands the choice back to the system setting. With it on, a swipe in present mode still changes the slide, without the slide following your finger. Animated exports keep moving exactly as designed.
 - <!--i:sunburst--> **High contrast** strengthens borders, text and focus rings around your work. Words drawn in your design system's main colour reach APCA Lc 75, and the keyboard focus ring grows to 3px with a band of page colour on each side. Your brand colours and canvas stay exactly as you set them.
-- <!--i:font--> **Large text** grows the app's type and icon glyphs by a fifth, and the top row and standard controls grow to hold them. It never touches your designs: its styles stop at the canvas edge. The docs follow it too, in the app and at lolly.tools/info. On an iPhone or iPad with a larger system text size, the larger of the two applies.
+- <!--i:font--> **Large text** grows the app's type and icon glyphs by a fifth, and the top row and standard controls grow to hold them. The docs follow it too, in the app and at lolly.tools/info. On an iPhone or iPad with a larger system text size, the larger of the two applies.
 - <!--i:eyeoff--> **Hide colourful previews** swaps the gallery's preview artwork for calm icon and text cards, and softens project thumbnails by halving their colour and contrast, so they stay recognisable without the colour noise. Full colour returns the moment you step inside a tool, so high-stimulus imagery appears only in the place you chose to work.
 
 ![The Accessibility card in Settings: four plain switches - Reduce motion, Hide colourful previews, High contrast and Large text - each with a help tip, then the Dominant hand choice of Right or Left and the Sound switch with its Sound shape slider](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Da11y-section&width=430&height=900&dpi=192&waitMs=2000&scrollDepth=1300&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.profile-card--a11y&dark=1&filename=incl-a11y-card)
@@ -48,8 +46,6 @@ Under Reduce motion, whether it comes from the system or from Lolly's own switch
 - the music generator's shuffle button no longer spins;
 - Jelly effects and Wobbly windows, when you turn them on, follow the same setting;
 - the docs pages read the same switch.
-
-Your tool canvas and every animated export keep moving exactly as designed.
 :::
 
 The same card holds **Dominant hand**. On a foldable, an iPhone Duo or a near-square touch screen, where Lolly shows a tool in two panes, the controls sit on the side away from the hand you draw with ([Foldables and iPhone Duo](/info/using.html#foldables-and-iphone-duo)).
@@ -110,7 +106,7 @@ The web app needs WebGPU to start: a browser that can create a WebGPU adapter an
 <!--i:eti-shield-check-->
 ## Ethical commitments
 
-- <!--i:lock--> **Privacy by architecture.** Your work stays on your device, there are no trackers or analytics in the codebase, and the few network touchpoints are listed in the [Privacy Policy](/info/privacy.html). Accessibility and language preferences are stored on your own device, and are copied only into a backup or Sync copy you make yourself: a person's disability or language is never telemetry. The app does fetch the translation for your language from its own address, like any other part of the app. The Lolly app sends no telemetry.
+- <!--i:lock--> **Privacy by architecture.** Your work stays on your device, there are no trackers or analytics in the codebase, and the few network touchpoints are listed in the [Privacy Policy](/info/privacy.html). Accessibility and language preferences are stored on your own device, and are copied only into a backup or Sync copy you make yourself: a person's disability or language is never telemetry. The app does fetch the translation for your language from its own address, like any other part of the app.
 - <!--i:server--> **Organisation servers are separate.** A Lolly Work server, which an organisation runs for its members, can store usage events made of labels such as a tool id, at a level the organisation sets, from a client the organisation connects. Lolly's own apps send it none today, and those events never carry accessibility or language settings; see [Telemetry and dashboards](/info/work-telemetry.html).
 - <!--i:shieldcheck--> **Honest provenance.** Exports can carry Content Credentials, and AI-generated content is labelled as such. Audiences deserve to know how media was made, and creators deserve tools that can prove their work is theirs. See [Our AI Stance](/info/ai-stance.html).
 - <!--i:check--> **No dark patterns.** Preferences are plain switches that do what they say, they stay dormant until you choose them and platform conventions (native scrolling, browser shortcuts, standard dialogs) are respected rather than hijacked.

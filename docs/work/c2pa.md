@@ -92,8 +92,7 @@ and skip `lw c2pa init`. The C2PA profile wants an ECDSA P-256 key and the
 - Set `render.c2pa.certFile` to the chain PEM, **leaf and intermediates**, leaf first.
 - Set `LW_C2PA_SIGNING_KEY` to the leaf's **PKCS#8** private key PEM.
 
-Because the chain ends at a root your verifiers already trust, signatures check as
-**trusted** with no trust list to hand out. If your key is not PKCS#8 yet, convert an EC
+There is no trust list to hand out. If your key is not PKCS#8 yet, convert an EC
 key with `openssl pkcs8 -topk8 -nocrypt -in leaf-key.pem -out leaf-key.pkcs8.pem`.
 
 <!--i:eti-layers-->
@@ -161,6 +160,4 @@ API, for one, says nothing about C2PA. The catalog can **detect** that.
   `{ kind: 'embedded' }` for any used asset with an embedded detection, so the export can
   tell "the source said nothing" apart from "the source carries a credential".
 
-Detection and signing are independent: detection reads what imported bytes already
-carry, and signing is what this deployment stamps on what it makes. For what a verifier
-reports and why, see [Content Credentials](/info/trust/content-credentials-identity.html).
+For what a verifier reports and why, see [Content Credentials](/info/trust/content-credentials-identity.html).

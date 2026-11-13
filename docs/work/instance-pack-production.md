@@ -16,7 +16,7 @@ source resolver instead can produce different indexes and tool bytes.
 
 ::: note Studio edits need no new pack
 An [edit from the studio](design-system-administration.md#edit-this-instance-from-the-studio) is not
-in the pack, and needs no new pack. The mounted files stay exactly as this page builds them. Lolly Work
+in the pack. The mounted files stay exactly as this page builds them. Lolly Work
 serves the edited tokens from its own storage at a new address, and the catalogue it signs gives those
 tokens' checksum. So the chain a web app checks still holds: signature, then asset index, then tokens
 file. The signature on an edit is this instance's, not the release's. The console shows when an instance
@@ -107,8 +107,7 @@ Lolly Work creates its caller-specific catalogue signature when serving the pack
 the build envelope would not describe that filtered response.
 
 ::: warning Exclude files before the catalogue is signed
-Release mode refuses `--exclude`, `--allow-dirty` and nonempty output directories. Any desired
-exclusions must happen before the frontend catalogue is signed. Signed indexes
+Release mode refuses `--exclude`, `--allow-dirty` and nonempty output directories. Signed indexes
 are never pruned or reserialized by this mode.
 :::
 

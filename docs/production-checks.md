@@ -32,7 +32,7 @@ A requirements file (a contract) states its profile, its own revision and the ou
 ```
 
 ::: warning Do not copy measurements from the file
-Use the dimensions, format and content agreed before production. Do not copy measurements from the file you are checking just to make it pass.
+Use the dimensions, format and content agreed before production, not measurements taken from the file you are checking.
 :::
 
 - **Size.** Dimensions are pixels, and every page must have the requested size. PDF page sizes are converted from points at 96 pixels per inch.
@@ -242,10 +242,10 @@ These observations come from the runtime at its export boundary, after export ho
 
 A measurement report binds its checks to the file and contract digests, with source and context digests where they were observed. A local review record is separate and binds the exact report and finding fingerprints. Only a failed appearance check can carry a reasoned local exception; unknown coverage and structural or protected-content failures cannot be excepted.
 
-A local review records one person's decision. It does not turn a missing measurement into a pass, and it is not an organisation's approval. In Lolly Work, decisions go through its authority adapter and its own approval policy, and a review supplied by a client does not grant governed delivery rights. A C2PA signature is not design approval either.
+A local review records one person's decision, not an organisation's approval. In Lolly Work, decisions go through its authority adapter and its own approval policy, and a review supplied by a client does not grant governed delivery rights. A C2PA signature is not design approval either.
 
 The exact file, the reference and the contract are enough to check again offline. A Lolly Work execution receipt stays partial, even with signed worker network observations: it is not a complete dependency lock or a promise to reproduce a render against a changed catalogue, and old source or resource identities that are no longer available fail or stay unknown. Portable tools remain the way to package editable source and its dependencies; this feature adds no new document or archive format.
 
 The maintained test fixtures cover native comparison, missing critical content, alpha changes, byte and rule substitution, PDF metadata-only differences, permitted layout repair, stale patches, local exceptions and browser and Node parity. They show how this profile behaves; they are not a product benchmark or a human approval of creative output.
 
-Missing collectors, stale references, incomplete coverage and exhausted budgets all block a verified result, and the report stays available to explain why. However a check is run, a missing measurement never becomes a pass.
+Missing collectors, stale references, incomplete coverage and exhausted budgets all block a verified result, and the report stays available to explain why.

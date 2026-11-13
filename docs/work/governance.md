@@ -5,7 +5,7 @@ which tools each group sees, which inputs they may change, which shell features 
 how to keep all of it as one reviewable document. A typical rule: sales can change the
 headline, but not the logo.
 
-Governance is data, held on the server, edited live and exportable as one document. It never
+Governance is data, held on the server and exportable as one document. It never
 forks the pack's `tool.json`: the open-source tool definition stays untouched, and Lolly Work lays
 its rules over that definition. Everything here is live-editable in the console (**This Deploy → Tools**,
 **This Deploy → Feature flags** and **Grants**) and reaches connected shells on their next
@@ -66,7 +66,7 @@ inputs, still refuses a locked, hidden or disallowed one (`INPUT_LOCKED`, `INPUT
 `INPUT_NOT_ALLOWED`).
 
 A person never reads policy notes in Lolly: a locked input shows its value with no line naming
-the rule, and a hidden input is simply absent. Give the overlay a `name` and a rule an optional
+the rule, and a hidden input is simply absent. Give the overlay a `name` and a rule a
 `reason` for the people who govern and the agents that render. The console's policy editor and
 Preview show both, and the `422` body carries them as
 `{ "error": { "code": "INPUT_LOCKED", "input": "bg", "by": "...", "reason": "..." } }`, so an
@@ -136,8 +136,7 @@ the rule first if that is not what you want.
 
 ::: note The mark is a preview signal, not a security boundary
 **What a match rests on.** The match uses the input values the requesting app states. A member
-could send values that do not match the file they send. The mark is a preview signal for people,
-not a security boundary.
+could send values that do not match the file they send.
 :::
 
 **What it covers.** The rule applies to renders Lolly Work makes. Exports a person makes on their

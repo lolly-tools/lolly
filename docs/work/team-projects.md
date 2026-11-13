@@ -60,8 +60,7 @@ Each project role adds to the one below it; the workspace role and deny grants s
 | commenter | added as commenter; a group, or everyone signed in to the workspace, given Commenter | everything a viewer may, and comment even where viewers may not; never changes artwork |
 | viewer | added as viewer | open the project and its sessions, read revisions and comment unless the project turns off viewer comments |
 
-A member of a project's group acts as an editor. Adding someone gives them a role even on a
-private project. The workspace role still applies on top: an account with the workspace
+Adding someone gives them a role even on a private project. The workspace role still applies on top: an account with the workspace
 `viewer` role cannot save, whatever its project role, and a deny grant on `session.edit` or
 `project.manage` holds here as anywhere else ([Roles and grants](permissions.md)). A viewer who
 tries to save gets `403 READ_ONLY`; someone who cannot see the project gets `403 FORBIDDEN`.
@@ -154,8 +153,7 @@ those images, and Lolly warns about that when you save.
 | Delete a session | `session.delete`, editor on the project and either to be the person who created it or a manager of the project |
 
 Admins and owners hold `project.manage` by default, so a deny grant on it also stops them
-deleting a colleague's session. Being able to see and edit a team project is not enough on its
-own, so a colleague's session stays put. Deletion leaves a tombstone, so a stale copy cannot
+deleting a colleague's session. Deletion leaves a tombstone, so a stale copy cannot
 bring the session back.
 
 ### When two people save the same session
@@ -188,7 +186,7 @@ while files are off every file route answers `404`.
 | manager and up (owner, manager member, `project.manage`) | delete any file in the project |
 
 ::: details How an upload works
-**How an upload works.** An upload is reserved first, then sent in parts of 1 MiB, then
+An upload is reserved first, then sent in parts of 1 MiB, then
 finished. Each part is checked against the digest declared at the start, and the whole file is
 checked before it is listed. Only finished files are listed, newest first, and only the
 uploader can send parts or finish an upload. An unfinished upload expires 15 minutes after it

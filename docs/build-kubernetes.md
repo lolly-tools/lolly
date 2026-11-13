@@ -135,7 +135,7 @@ deploy/helm/
 <!--i:eti-sliders-->
 ## Turn on MCP or CA
 
-Both stay off until you ask for them, and both are stateless by default.
+Both are stateless by default.
 
 **MCP** (`--set mcp.enabled=true`) offers the tool catalog to AI agents over Streamable HTTP on port 8790. Its brand content is fixed when its image is built, exactly like the web image. The default `lolly-mcp` image ships no Chromium: SVG, data and resvg PNG work without a browser, and browser-tier formats are refused. For PNG, JPEG, PDF and video through Chromium, set `mcp.image.repository=ghcr.io/lolly-tools/lolly-mcp-browser` and point it at your web app with `--set mcp.webBase=https://lolly.example.com`. Liveness is a TCP socket check; readiness polls `/readyz`, which turns 503 while the server drains. The optional private result files (`mcp.privateFiles.enabled`) live in one process and expire on restart, so that mode needs `mcp.replicaCount: 1`.
 
@@ -182,7 +182,7 @@ The content profile (`lolly-demo`, `lolly-start` or `suse` with the private pack
 
 ### What the nginx config already handles
 
-The web app is a single-page app, so the server has real work to do. Link deep links (`/?tool=qr-code`) must fall back to `index.html`, the service worker must never be cached, hashed files should be immutable, the HarfBuzz `.wasm` and the `.webmanifest` need correct MIME types, and the security headers belong on every response. `deploy/docker/nginx.conf` does all of that, and `tests/security-headers.test.ts` pins its CSP against the other shipped copies, so edit the file rather than writing a fresh one.
+The web app is a single-page app, so the server has real work to do. Deep links (`/?tool=qr-code`) must fall back to `index.html`, the service worker must never be cached, hashed files should be immutable, the HarfBuzz `.wasm` and the `.webmanifest` need correct MIME types, and the security headers belong on every response. `deploy/docker/nginx.conf` does all of that, and `tests/security-headers.test.ts` pins its CSP against the other shipped copies, so edit the file rather than writing a fresh one.
 
 - **Two servers.** The public server listens on port 8080 and proxies to an internal static server on `127.0.0.1:8081`, setting the content ETag that browsers revalidate against.
 - **Real files, then the app.** The internal server serves `/usr/share/nginx/html`. `/info/`, `/t/`, `/view/`, `/tools/` and `/catalog/` serve real files and return 404 when one is missing. `/api/`, `/live/` and `/tool/` return 404, because separate services own them. Everything else tries the file, its `.html` twin and a directory index before falling back to `index.html`.
@@ -259,11 +259,11 @@ With all three components on, requests total 100 millicores, 224 MiB of memory a
 K3s and RKE2 can share qualified node capacity between services. Cloud worker nodes may still be VMs, and containers do not remove their compute charges. The [Lolly Work SUSE deployment runbook](https://github.com/lolly-tools/lolly-work/blob/main/deploy/suse/README.md) covers operating-system support, resource profiles, UpCloud and Evroc storage drivers and Longhorn. Durable PostgreSQL storage and independently tested backups have a different lifecycle from reproducible shell and pack copies.
 
 ::: details Base images and dependencies for a K3s or RKE2 platform
-Prefer `registry.suse.com` BCI bases and [Application Collection](https://apps.rancher.io) dependencies when their versions meet the release requirements. Collection content comes from `dp.apps.rancher.io` and needs registry authentication and the account's entitlements. Build Lolly into the chosen base and test each architecture; a Node or nginx base alone does not contain the application. The optional Lolly Work BCI Node 24 Dockerfile is a candidate with its own build and boot checks. The public web, MCP and CA images keep their existing bases until another variant is qualified.
+Prefer `registry.suse.com` BCI bases and [Application Collection](https://apps.rancher.io) dependencies when their versions meet the release requirements. Build Lolly into the chosen base and test each architecture; a Node or nginx base alone does not contain the application. The optional Lolly Work BCI Node 24 Dockerfile is a candidate with its own build and boot checks. The public web, MCP and CA images keep their existing bases until another variant is qualified.
 
 Following the Collection's Penpot dependency model, Lolly Work can use a separately managed Collection PostgreSQL 18 release once it passes schema, version-compatibility and backup-and-restore checks. Its durable jobs already use PostgreSQL, so this adds no Redis requirement. A Redis TCP endpoint also cannot replace the public services' current REST admission adapter without an integration change.
 
-The original public chart does not install Lolly Work, its relay, Penpot or model hosting. The sovereign profile below adds the public routes and edge while leaving the private services to their own owners. Qualify every existing API route, authentication, shared editing, recovery and capacity before a public or private production cutover.
+The original public chart does not install Lolly Work, its relay, Penpot or model hosting. Qualify every existing API route, authentication, shared editing, recovery and capacity before a public or private production cutover.
 :::
 
 <!--i:eti-shield-check-->

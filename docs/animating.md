@@ -45,7 +45,7 @@ The Keyframes group says which one you are in: its first line reads **No keyfram
 
 Scrubbing **latches onto diamonds**: drag the playhead near one and it snaps to it, so "edit the pose I can see" is the easy thing to do. Hold **Alt** to park between them.
 
-Closing the timeline turns all of this off. The playhead is the arm, so the arm has to be visible.
+Closing the timeline turns all of this off, because the arm has to be visible.
 
 <!--i:eti-sliders-->
 ## The Keyframes popup

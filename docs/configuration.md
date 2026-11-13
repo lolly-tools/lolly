@@ -128,10 +128,10 @@ On Lolly Work, an authenticated administrator can follow **Manage instance desig
 ### Removing a catalogue design system
 
 ::: note Removing a local copy changes this device only
-A system imported into the browser is a separate local copy. Removing that copy changes this browser or device only, and cannot delete files on a host.
+A system imported into the browser is a separate local copy. Removing the copy cannot delete files on a host.
 :::
 
- If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalog assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
+If the copy was active, the supplied system becomes active again; the removal dialog says which one before you confirm. Catalog assets, personal sessions and uploads remain, and the supplied system's colours, type and logos can stay visible after the local copy has gone.
 
 To change or remove a design system the server supplies:
 
@@ -142,7 +142,7 @@ To change or remove a design system the server supplies:
 - <!--i:globe--> **Purge and reload.** Purge any host or CDN cache for the changed catalog files, then reload Lolly while online so it fetches the new catalog. Check the supplied system's name and **Catalogue source** again, and refresh any downloaded offline copy before testing offline.
 :::
 
-Assets that saved sessions reference can stay cached for those sessions. An instance's administrator controls the deployment's files; the browser's **Remove** action only manages local copies.
+Assets that saved sessions reference can stay cached for those sessions.
 
 <!--i:eti-cpu-->
 ## Capability gating (per tool)

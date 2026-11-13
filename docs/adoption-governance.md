@@ -11,9 +11,7 @@ One question decides whether a rollout is working: does a person who is not a de
 
 - **Lolly is public.** The engine, every app, the schemas and the docs shipped under MPL-2.0 with the first public release, 1.0.1, on 30 August 2026. The current release is 1.2.0. Lolly has installers for macOS, Windows, Linux and Android, and the hosted app at lolly.tools. SUSE runs the same code as an internal deployment and shares no usage data. Features, defaults and the tool catalog still move between releases as we learn.
 - **Its security is strong by design and not yet independently audited.** The C2PA provenance seals, the X.509 identity handling and the on-device PDF, ZIP and link encryption are built on standard algorithms, covered by fuzz targets and a written [threat model](/info/threat-model.html). No independent party has audited or certified them. Where a contract requires that assurance, it does not exist yet.
-- **The engine is settled; the adoption record is not.** The engine is deterministic: the same inputs give the same render, and with provenance off many formats reproduce byte for byte ([how far that goes](/info/determinism.html#how-far-byte-identical-renders-go)). There is no public adoption evidence yet. That is deliberate: we collect stories people choose to share, never data gathered invisibly. [We need your story](#we-need-your-story) says how to help.
-
-Judge Lolly as a platform proving one change in behaviour: routine asset creation, done safely and professionally, by the person who needs the file. That gives it a clear job and a clear measure of success.
+- **The engine is settled; the adoption record is not.** The engine is deterministic: the same inputs give the same render, and with provenance off many formats reproduce byte for byte ([how far that goes](/info/determinism.html#how-far-byte-identical-renders-go)). There is no public adoption evidence yet, because we collect only the stories people choose to share. [We need your story](#we-need-your-story) says how to help.
 
 <!--i:eti-users-->
 ## Who Lolly is for
@@ -43,7 +41,7 @@ One producer case is easy to miss because it is not marketing at all: **critical
 - <!--i:folder--> **Save your work.** Reopen it later as a session, file it into a project or turn it into your own template to start from next time. No git, no waiting.
 :::
 
-The third step carries the pilot. A tool opens with the brand already on it, so the only thing left to decide is the words.
+The third step carries the pilot: the tool opens with the brand already on it, so the only thing left to decide is the words.
 
 ![Deck Studio's first slide opened cold, already carrying the brand's type, colour and title layout before a single field is filled in](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&css=%23tool-canvas%20.ds-slide~.ds-slide%7Bdisplay%3Anone%7D&cropSelector=%23tool-canvas%20.ds-slide&dark=1&filename=ce-deck-studio-cold)
 
@@ -109,11 +107,9 @@ Adoption runs on a 90-day feedback loop, which sets how often you check whether 
 <!--i:eti-shield-check-->
 ## Governance, when a team wants a process
 
-Most people just make things: they work in the app, save what they make as a **session** and pass it on as a share link, a backup or a live collaboration, with no git and nothing to wait for.
+Most people just make things: they work in the app, save what they make as a **session** and pass it on as a share link, a backup or a live collaboration.
 
 They can go further without touching git. From any tool, **Save** offers *Save as a template*: the current document becomes a named starting point in that tool's "New from template" chooser the next time it opens, kept with your profile. No deployment owner, no commit, no pull request. To hand one to a colleague, share it as a **`.lolly` file**, a self-contained bundle anyone can import, or submit it for catalog inclusion. A marketing team can build, name and circulate its own templates entirely inside the app.
-
-Brand governance lives inside the tool itself: the rules are part of the instrument, so staying on-brand costs a producer nothing to learn and nothing to wait for.
 
 A **git-backed catalog** gives an organisation a reviewable source of truth. Its maintainer records template values in the brand pack and commits them, and clients then see that template in the chooser and through `?template=<id>`. Creators can submit their work without using git themselves. This is one way to manage a shared catalog; shipping a tool never redeploys the app ([Choose a deployment](/info/deployment.html#ship-new-tools-without-redeploying)).
 

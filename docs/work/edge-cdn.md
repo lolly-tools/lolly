@@ -9,8 +9,7 @@ air-gapped included.
 
 A CDN sees more than it stores. It answers every request on the hostname it fronts, so it decrypts
 sign-ins, session cookies, tokens and private files on their way through, even when it caches
-none of them. Lolly Work therefore decides which provider may front which hostname before anything else,
-and refuses to start when a configuration breaks that rule.
+none of them. Lolly Work therefore decides which provider may front which hostname before anything else.
 
 **What you'll do**, in four steps:
 
@@ -38,7 +37,7 @@ and every answer to a signed-in person. Those responses say `Cache-Control: priv
 and `CDN-Cache-Control: no-store`, whatever the CDN's own defaults are.
 
 ::: note Public files only
-Lolly Work 1.2.0, the first release with edge support, covers public classes only. Edge tokens
+Lolly Work 1.2.0 is the first release with edge support. Edge tokens
 for private catalog bytes (`/e/`) and presigned downloads from object storage (`/o/`) are not
 built, so no CDN setting here makes a private file cacheable.
 :::
@@ -46,8 +45,7 @@ built, so no CDN setting here makes a private file cacheable.
 <!--i:eti-globe-->
 ## The jurisdiction rule
 
-Jurisdiction is decided per hostname, never per route, because the CDN terminates TLS for every
-route on a hostname. `edge.jurisdiction` is `"eu-only"` unless you choose `"any"`.
+Jurisdiction is decided per hostname, never per route. `edge.jurisdiction` is `"eu-only"` unless you choose `"any"`.
 
 Under `"eu-only"`, a provider may front a hostname that serves anything private only when its
 company, its edge locations and its logs are all in the EU (or self-hosted):

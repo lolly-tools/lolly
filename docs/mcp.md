@@ -278,7 +278,7 @@ Use `layerOperations` to change the layer set itself. It supports strict stable-
 On `mcp.lolly.tools` and `lolly.tools/api/mcp`, calling `lolly_rebrand` uploads your deck to Lolly's server. It is processed in memory for that call only and not kept. `lolly_read`, `lolly_check` and `lolly_compose` also send a deck you pass them to the server.
 :::
 
-Each endpoint takes a deck of up to about 3.2 MiB, because the deck and its base64 encoding must fit one request of up to 4.5 MB (`LOLLY_MCP_REQUEST_MAX_BYTES`). For a larger deck, run `lolly rebrand` on the CLI or point an agent at a local MCP server.
+Each endpoint takes a deck of up to about 3.2 MiB. For a larger deck, run `lolly rebrand` on the CLI or point an agent at a local MCP server.
 
 ::: timeline
 - **`{stage: 'capabilities'}`** first, on a server you have not used. It states in a plain sentence where the file goes. A local server (stdio, or an HTTP server on a developer's own machine) keeps it in that process. A hosted server says that calling the tool sends the file there, processed in memory for that call with nothing kept, and gives its byte and slide limits and the request and answer sizes it takes. `ocr` is `false` on every server: this pipeline reads no text out of pictures.
@@ -304,7 +304,7 @@ When an agent rebuilds a deck in Lolly Design rather than renovating it with `lo
 
 `lolly_check` returns the same report `lolly check --json` writes (schema `check-report-v1`): five families (`structure`, `render`, `brand`, `verify`, `fidelity`), each `ran`, `skipped`, `unavailable` or `failed` with a reason, and one findings list. Each finding has a stable `code`, a `severity`, the `layerId` where there is one, the message the app shows and a `fix` where one is safe. Findings are data, so the call is a tool error only when the request or the file cannot be read.
 
-For a Lolly Design document or a `.lolly`, the `verify` family also carries one `verify.writing-score` finding: the writing score Lolly Verify shows for the document's visible text, with hidden layers left out. It is `info` below the strong band and `warn` at it, never `error`, and its evidence gives the score, the band and the layers that hold the strongest flagged phrases. The score is a signal, not a verdict, and it never changes `exitCode`, with `strict` or without. Read it with the house-rule findings in the `brand` family as creation feedback: revise the layers they name and check again. The feedback informs and never blocks a render.
+For a Lolly Design document or a `.lolly`, the `verify` family also carries one `verify.writing-score` finding: the writing score Lolly Verify shows for the document's visible text, with hidden layers left out. It is `info` below the strong band and `warn` at it, never `error`, and its evidence gives the score, the band and the layers that hold the strongest flagged phrases. The score is a signal, not a verdict. Read it with the house-rule findings in the `brand` family as creation feedback: revise the layers they name and check again. The feedback informs and never blocks a render.
 
 The render family (clipped text, contrast and font coverage on the painted page, with the document's pictures painted) needs the browser tier. A hosted server runs it only where it has a browser and a web shell to drive: the browser image with `LOLLY_WEB_BASE` set. On `lolly.tools/api/mcp`, which has no browser, it reports `unavailable` and the other families still run. Lolly Verify runs with text recognition off on every server. On a hosted server the file and the source travel in one request, so pass the `lolly_read` inventory rather than the source deck there.
 
@@ -325,7 +325,7 @@ Add `source` (a deck) or `inventory` (what `lolly_read` returned, or the whole `
 | `3` | `browser: "require"` and no browser is available to render the document. An export has no render family, so the requirement does not apply to an export |
 | `1` | A family that failed, or an export with no page that could be decoded |
 
-`verify.writing-score` never counts toward the code: a document whose only warning is a strong writing score still exits `0`.
+`verify.writing-score` never counts toward the code, with `strict` or without: a document whose only warning is a strong writing score still exits `0`.
 :::
 
 <a id="compose-measure-and-package-a-design-document"></a>

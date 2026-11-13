@@ -17,7 +17,7 @@ credential: [Configure Cloudinary writes](../delivery.md#configure-cloudinary-wr
 <!--i:eti-checklist-->
 ## Onboarding
 
-1. **Scope.** Select the product environment, API region, exact dynamic folder and Lolly Work groups. Agree an approval tag and availability fields if required; the tag represents your own convention rather than a moderation decision.
+1. **Scope.** Select the product environment, API region, exact dynamic folder and Lolly Work groups. Agree an approval tag and availability fields if required.
 2. **Connection.** Seal the API key and secret, then follow the [four-step connection](README.md#connect-a-source-in-four-steps) and the commands in [Verify](#verify). Budget for API calls and file reads during the pilot.
 3. **Tenant check.** Run the [Cloudinary tenant check](tenant-check.md#cloudinary), including private and authenticated files, observed versions and original checksums. Test group restrictions and metadata dates before exposing a wider library.
 
@@ -112,8 +112,8 @@ lw providers enable cloud-media
 The credential prompt is hidden. Shape reports hold field names and types, never values.
 
 ::: check Before you enable the source
-Check the mapped sample, groups and source scope before enabling, then run the
-[Cloudinary check](tenant-check.md#cloudinary), including original checksums and private files.
+Check the mapped sample, groups and source scope, and finish the tenant check from Onboarding
+step 3.
 :::
 
 Contributors changing the driver follow its [maintainer runbook](https://github.com/lolly-tools/lolly-work/blob/main/server/src/catalog/providers/live-verify/cloudinary.md) in

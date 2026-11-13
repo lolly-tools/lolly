@@ -6,7 +6,7 @@ Does Lolly upload my work? Not to make something: the apps edit, render, export 
 What leaves your device in ordinary use, when you call an optional service and when you work in your organisation's Lolly Work instance.
 :::
 
-In ordinary use nothing you make leaves the device. The app's own **Verify** view checks a dropped file where it is; calling the separate MCP `lolly_verify` tool sends the file to that MCP server. Standalone use needs no account and no usage-reporting backend, and `tests/no-trackers.test.ts` checks that no third-party tracking SDK is present. That test does not cover a Lolly Work instance, which can record usage telemetry. Personal [Sync](/info/sync.html) goes to storage you choose and is separate from Lolly Work.
+The app's own **Verify** view checks a dropped file where it is; calling the separate MCP `lolly_verify` tool sends the file to that MCP server. Standalone use needs no account and no usage-reporting backend, and `tests/no-trackers.test.ts` checks that no third-party tracking SDK is present. That test does not cover a Lolly Work instance, which can record usage telemetry. Personal [Sync](/info/sync.html) goes to storage you choose and is separate from Lolly Work.
 
 This page owns what each server receives and keeps. [Privacy Policy](/info/privacy.html) says what that means for you, and [Threat Model & Trust Boundaries](/info/threat-model.html) gives the checks each service enforces.
 

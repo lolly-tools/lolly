@@ -45,7 +45,7 @@ Async results are time-boxed. The budget in each step below is how long the runt
 
 When a hook overruns, the runtime applies nothing at first, but the hook keeps running. A late `onInit` or `onInput` result **still applies when it arrives**, unless a newer `onInit` or `onInput` run has started since. Export hooks never apply late: a `beforeExport`, `exportFile` or `exportStill` overrun or error fails that export where people can see the failure. `afterExport` runs even when the render fails, so cleanup always happens; its overruns and errors are only logged. Errors in `onInit` and `onInput` are logged, never fatal. A synchronous overrun cannot be interrupted in the page, so it is measured and logged as a warning; in a Worker, an overrunning hook is stopped.
 
-`onFrame` and `onLevel` run once per camera frame or audio sample, are **not** time-boxed and drop a sample while the previous one is still rendering. They are under [Live input](#live-input) below.
+`onFrame` and `onLevel` run once per camera frame or audio sample and are **not** time-boxed. They are under [Live input](#live-input) below.
 
 ### What every hook receives
 
@@ -257,7 +257,7 @@ Keep fetches inside the hook budgets above, return extras the template can print
 
 `host.*` is the only surface every shell guarantees, so build on `host.*`.
 
-- **Stay away from `window`, `document`, `fetch` and `localStorage`.** Hooks are loaded with `new Function` and `host` injected as closure scope, so in a browser shell those globals are technically reachable. Using them ties your tool to browser shells, breaks headless rendering in the CLI and rules out strict Worker execution; sideloaded tools already run strictly isolated. The `onFrame` canvas pattern above is a deliberate browser-only exception. That this injection is a portability rule and not a security sandbox is set out in the [Threat Model](/info/threat-model.html#trust-boundaries).
+- **Stay away from `window`, `document`, `fetch` and `localStorage`.** Hooks are loaded with `new Function` and `host` injected as closure scope, so in a browser shell those globals are technically reachable. Using them ties your tool to browser shells, breaks headless rendering in the CLI and rules out strict Worker execution. The `onFrame` canvas pattern above is a deliberate browser-only exception. That this injection is a portability rule and not a security sandbox is set out in the [Threat Model](/info/threat-model.html#trust-boundaries).
 - **No module imports.** Hooks are loaded as one source string, so `import` does not work.
 
 ### Run hooks in a Worker (`isolate`)
@@ -291,7 +291,7 @@ The bridge grows by addition: new `host.*` APIs arrive in minor engine versions,
 - [`host.calc`](/info/host-api.html#host-calc) - work out spreadsheet formulas on the device, with `evaluate`, `table` and `functions`. Sales Quote (`quote`) is the reference tool.
 - [`host.audio.loudness`](/info/host-api.html#host-audio) and `host.audio.align` - EBU R128 loudness of a clip, and the offset between two recordings of one event. Both are optional members of `host.audio`, so check for each one.
 
-The pattern for any of them is to check, try and render something sensible either way. With `host.geom`:
+For example, with `host.geom`:
 
 ```js
 function onInput({ model, host }) {

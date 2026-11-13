@@ -101,8 +101,8 @@ their lease expires, because they cannot receive an instant remote command.
 ## What it does not control
 
 ::: note Enforcement inside the supported app, not a sandbox
-This is enforcement inside the supported application, not a sandbox for arbitrary JavaScript, a
-modified client, an independent CLI or a copied model. Endpoint controls, trusted releases and
+It does not sandbox arbitrary JavaScript, a modified client, an independent CLI or a copied
+model. Endpoint controls, trusted releases and
 suitable network restrictions are still needed.
 :::
 
@@ -121,11 +121,10 @@ suitable network restrictions are still needed.
 
 Policy changes are audited without prompts or media, and this control adds no logging of
 inference content. Model-specific policy, broader AI execution receipts and approval of an
-AI-enabled service are not built, and a first release can keep AI off.
+AI-enabled service are not built.
 
 ::: note Before you turn AI on in production
-Before turning AI on in production, confirm that these audit events reach your central log, and
-complete whatever review, model inventory and assessments your organisation requires.
+Confirm that these audit events reach your central log, and complete whatever review, model inventory and assessments your organisation requires.
 :::
 
 ::: details Build and release notes for operators

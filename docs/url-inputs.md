@@ -158,7 +158,7 @@ A `file` input (the user's own file, processed in memory) is **never** put in a 
 lolly strip-data --source=./photo.jpg --output=clean.jpg
 ```
 
-In the web shell a `file` input can't be pre-filled from a URL; a link that referenced one resolves as blank, and the recipient picks their own file.
+In the web shell, a link that references a `file` input resolves as blank, and the recipient picks their own file.
 
 ### Table
 

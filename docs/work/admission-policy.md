@@ -113,9 +113,8 @@ others only admit or refuse.
 ## Apply the set
 
 ::: warning The set applies to every pod in the namespace
-The policies apply to every Pod in a labelled namespace, so keep PostgreSQL and other
-workloads in a namespace of their own, and let only cluster administrators change
-namespace labels.
+Keep PostgreSQL and other workloads in a namespace of their own, and let only cluster
+administrators change namespace labels.
 :::
 
 Label the namespace Lolly Work runs in, apply the policies and wait for them:

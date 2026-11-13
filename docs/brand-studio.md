@@ -123,7 +123,7 @@ Your colours sit beside an **In context** preview on a wide screen, and above it
 
 ### Colour roles: what the colours are called
 
-The design system says what its colours are called and what each is for, and Lolly reads that. **Colour roles** sits at the head of the Colours room. On a wide screen **In context** shares the view, so a change shows on the poster, chart and interface card as you make the change.
+The design system says what its colours are called and what each is for, and Lolly reads that. **Colour roles** sits at the head of the Colours room, and a change shows in **In context** as you make the change.
 
 ![The Colour roles table on Wefthouse, an invented textile brand, in its own words: the colourway chips Indigo, Madder and Weld, then Main, Accent, Supporting and Tertiary, each with its light and dark colour, read as the lead colour, the partner colour and by name only, and Background, Text, Quiet text and Hairlines listed under the table as the readings no role fills](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
 
@@ -181,7 +181,7 @@ The app's own accent follows the design system by default. That is the **Interfa
 
 ### Find more colours
 
-Three tools build on your primary. The first two only suggest, and the third replaces the palette after you review the change.
+Three tools build on your primary. The first two only suggest; the third replaces the palette.
 
 ::: cols
 ## Explore shades & harmonies
@@ -194,7 +194,7 @@ Pick a **Harmony**: Complementary, Adjacent, Triad, Tetrad or Analogous (with **
 
 ## Rebuild the whole palette
 
-Replaces the palette from one starting colour, after a review of what changes and what stays. A checkpoint is taken first, and **Undo** is offered afterwards.
+Replaces the palette from one starting colour, after a review of what changes and what stays.
 :::
 
 All three use the same perceptual colour maths (OKLCH) as the engine. In **Explore shades & harmonies**, the **Primary**, **Neutral** and **Secondary** rows show the suggested shades, and **Theme preview** shows light and dark examples with their contrast readings.
@@ -356,7 +356,7 @@ A build that ships with a fixed brand shows the same rules and examples read-onl
 - **Logo or screenshot**: an image becomes a suggested palette, read on this device. It reads colours, not the typeface or layout.
 - **Saved web page**: one HTML file and its CSS files, or pasted HTML or CSS, up to 20 files and 2 MB. Only the text you supply is read: linked resources are not fetched and scripts do not run.
 - **Font file**: TTF, OTF or WOFF. Opens the Type room, where the face installs.
-- **Website**: one page, read for its colours and type. This tile appears only on a device that can read a page, and says which reader it uses: the app on this device, or the browser extension in a background tab, signed in as you. Naming a URL only fills in the field; pressing fetch is the consent.
+- **Website**: one page, read for its colours and type. This tile appears only on a device that can read a page, and says which reader it uses: the app on this device, or the browser extension in a background tab, signed in as you. Typing a URL only fills in the field; pressing fetch is the consent.
 
 Choose the design-file source and the next card lists the accepted formats as icon tiles, with the whole card as one drop target. You can also drop a file straight onto the studio.
 
