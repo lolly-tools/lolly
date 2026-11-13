@@ -127,6 +127,15 @@ test('every mood, instrument, kit and groove schedules only sound values', () =>
   for (const texture of [0, 1]) play(18, { ...base, texture, style: { crunch: true } });
 });
 
+test('lofi house plays its deep-house bass: a sine and a saw on each note, each settling into its pitch', () => {
+  const ctx = play(61, { ...base, mood: 'lofiHouse' }, 90);
+  // A bass note starts 1.2 per cent sharp and settles on its pitch, a bass's register (under 140 Hz).
+  const settling = (type: string) => ctx.oscs.filter(o => o.type === type && o.frequency.events.length >= 2
+    && o.frequency.events[1]![0] === 'exp' && o.frequency.events[1]![1] < 140 && Math.abs(o.frequency.events[0]![1] / o.frequency.events[1]![1] - 1.012) < 1e-6).length;
+  assert.ok(settling('sine') > 20, `sines under the bass notes (${settling('sine')})`);
+  assert.equal(settling('sawtooth'), settling('sine'), 'and a saw with each');
+});
+
 test('the drums switch takes the kit out and leaves the music', () => {
   const style = { kick: 50, hats: 'hat' as const, snare: 'snare' as const };
   const on = play(21, { ...base, style }, 60);

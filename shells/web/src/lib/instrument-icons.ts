@@ -49,7 +49,7 @@ const LEADS: Record<LofiStyle['lead'], InstrumentIcon> = {
   none: 'audioWaveform',
 };
 const BASSES: Record<LofiStyle['bass'], InstrumentIcon> = {
-  round: 'audioWaveform', synth: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
+  round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
   upright: 'bowed', slap: 'guitar', picked: 'guitar', croak: 'guitar', motown: 'guitar',
   pulse: 'gamepad', eight: 'drum', log: 'drum', yidaki: 'wind',
 };

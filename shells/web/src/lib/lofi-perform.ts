@@ -55,6 +55,8 @@ const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   hiphop: { snare: 14, hat: 4 }, rnb: { snare: 10 }, soul: { snare: 8 }, triphop: { snare: 12 },
   warm: { snare: 12, hat: 5 }, lateNight: { snare: 14, hat: 6 }, rainy: { snare: 12, hat: 5 }, sings: { snare: 8 },
   jazz: { hat: -3 }, swing: { hat: -3 }, punk: { hat: -4 }, metal: { hat: -2 }, rock: { hat: -2 }, grunge: { snare: 6 }, stoner: { snare: 10 },
+  // Lofi house is a sampler played by hand and left unquantised: a lazy clap and hats a little late.
+  lofiHouse: { snare: 8, hat: 5 },
 };
 
 /** The drums of a bar, played: moved off the grid by the instrument's looseness and the style's pocket, each stroke a little different. */
