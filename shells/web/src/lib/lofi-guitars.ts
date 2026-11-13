@@ -11,7 +11,7 @@
  *   with the tremolo arm, so the chord blurs into one wash that the room then smears.
  */
 import { ampInput, pluckLevel, strings, stringBuffer, mtof, EPS, type Amp, type VoiceKit } from './lofi-voices.ts';
-import { electricString, type ElectricSpec } from './lofi-electric.ts';
+import { electricString, ENDS, leadOf, type ElectricSpec } from './lofi-electric.ts';
 import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PALM } from '../../../../engine/src/lofi-compose.ts';
 
 export const GUITAR_KEYS = new Set<string>(['clean', 'fuzz', 'wall', 'electric']);
@@ -101,7 +101,7 @@ const ELECTRIC = new WeakMap<BaseAudioContext, Map<string, AudioBuffer>>();
 export function electricBuffer(ctx: BaseAudioContext, spec: Omit<ElectricSpec, 'sr'>, variant: number): AudioBuffer {
   let cache = ELECTRIC.get(ctx);
   if (!cache) { cache = new Map(); ELECTRIC.set(ctx, cache); }
-  const key = `${spec.f.toFixed(2)}|${spec.fret}|${spec.pick}|${spec.layer}|${spec.damp ?? 'ring'}|${spec.seconds}|${variant}`;
+  const key = `${spec.f.toFixed(2)}|${spec.fret}|${spec.pick}|${spec.layer}|${spec.damp ?? "ring"}|${spec.seconds}|${spec.lead ?? 0}|${spec.end ?? "-"}|${spec.endDamp ?? "-"}|${variant}`;
   let buf = cache.get(key);
   if (!buf) {
     if (cache.size > 400) cache.clear();
@@ -168,17 +168,19 @@ const CAB: readonly Biquad[] = [
   { type: 'peaking', hz: 7600, q: 0.9, db: -10 },
 ];
 /**
- * How hard a note's strings drive the amp (fitted: driven this hard, a hard stroke keeps 5
- * to 8 dB more of its level a few seconds in than a gentle one, as recorded), and the amp's
- * level out, set against the drive so a quiet note comes out as loud whatever the drive.
+ * How hard a note's strings drive the amp, and the amp's level out, set against the drive
+ * so a quiet note comes out as loud whatever the drive. Fitted on chords as well as single
+ * notes: driven harder (6), a three-string skank carried 9 to 11 dB more under 200 Hz than
+ * the recorded notes playing the same part (the strings' difference tones), and at 3.5 the
+ * chord's low end matched while the single notes matched better than before.
  * The level puts the electric's part with the keys it shares its styles with, measured
  * soloed and K-weighted over the loudest fifth of a tune: a skank within a decibel or two
  * of the organ and the jazz guitar, funk's scratch of the Rhodes. It is set here, not as
  * the keys' VARIANT, because this guitar's velocity chooses how hard it is picked.
  */
-const VALVE_DRIVE = 6, VALVE_LEVEL = 0.67 / VALVE_DRIVE;
+const VALVE_DRIVE = 3.5, VALVE_LEVEL = 0.67 / VALVE_DRIVE;
 /** How a stroke's velocity sets its level into the amp: pluckLevel to this power (fitted to the three recorded strengths' spread). */
-const VEL_CURVE = 2.2;
+const VEL_CURVE = 1.9;
 /** Where the pick strikes (mm from the bridge): PICK_AT, or PICK_STEP or twice it further along, a little different each stroke. */
 const PICK_AT = 75, PICK_STEP = 10;
 
@@ -222,18 +224,29 @@ export interface ElectricStroke {
   bend?: number; bendTime?: number; vibrato?: number;
 }
 
+/** How long a scratch sounds before the fretting hand stops it (s): as the recorded notes stopped this soon sound crisp. */
+const SCRATCH = 0.03;
+
 /** One stroke of a single-coil electric into the valve amp. */
 export function electricNote(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, o: ElectricStroke): void {
   const { ctx } = k;
   const damp = o.damp ?? 'ring';
-  const hold = Math.max(0.03, dur);
-  const tail = o.choke ? 0.06 : damp === 'ring' ? 0.25 : 0.1;
-  const need = damp === 'dead' ? 0.25 : damp === 'palm' ? 0.8 : hold + tail;
-  const seconds = LENGTHS.find(s => s >= need) ?? LENGTHS[LENGTHS.length - 1]!;
+  const layer = layerOf(vel);
+  const variant = k.rng() < 0.5 ? 0 : 1;
+  // The pick's contact before the string sounds at `t`, a little different in the two variants; a scratch has none.
+  const lead = damp === 'dead' ? 0 : leadOf(layer, variant);
+  // How the note is stopped, and when (to 5 ms, so strokes of one length share a recording):
+  // a scratch sounds for a moment and the fretting hand kills it, a choked chord as the
+  // fingers let go, a ringing note lifted off when its time is up.
+  const hold = damp === 'dead' ? SCRATCH : Math.max(0.03, dur);
+  const endDamp = damp === 'dead' ? 'mute' as const : o.choke ? 'choke' as const : 'lift' as const;
+  const end = Math.round(hold / 0.005) * 0.005;
+  const tail = 60 / ENDS[endDamp][0];
+  const seconds = LENGTHS.find(s => s >= lead + end + tail) ?? LENGTHS[LENGTHS.length - 1]!;
   const fret = Math.max(0, Math.min(20, Math.round(o.fret)));
   const pick = o.pick ?? (PICK_AT + Math.round(k.rng() * 2) * PICK_STEP) / (648 * 2 ** (-fret / 12));
   const src = ctx.createBufferSource();
-  src.buffer = electricBuffer(ctx, { f: mtof(midi), seconds, fret, pick: Math.round(pick * 200) / 200, layer: layerOf(vel), damp }, k.rng() < 0.5 ? 0 : 1);
+  src.buffer = electricBuffer(ctx, { f: mtof(midi), seconds, fret, pick: Math.round(pick * 200) / 200, layer, damp: damp === 'dead' ? 'ring' : damp, lead, end, endDamp }, variant);
   src.detune.value = (k.rng() - 0.5) * 4;
   if (o.bend) {
     const from = 2 ** (-o.bend / 12);
@@ -253,24 +266,13 @@ export function electricNote(k: VoiceKit, out: AudioNode, t: number, midi: numbe
     lfo.stop(t + hold + tail + 0.05);
   }
   const g = ctx.createGain();
-  g.gain.setValueAtTime(ELECTRIC_LEVEL * pluckLevel(vel) ** VEL_CURVE, t);
-  let into: AudioNode = g;
-  if (o.choke) {
-    // Letting go: the fingertips lift and touch the strings, the top dying first.
-    const lp = ctx.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.setValueAtTime(9000, t);
-    lp.frequency.setTargetAtTime(700, t + hold, 0.012);
-    g.gain.setTargetAtTime(EPS, t + hold, 0.016);
-    g.connect(lp);
-    into = lp;
-  } else {
-    g.gain.setTargetAtTime(EPS, t + hold, damp === 'ring' ? 0.06 : 0.03);
-  }
-  src.connect(g);
-  into.connect(valveInput(k, out));
-  src.start(t);
-  src.stop(t + Math.min(seconds, hold + tail + 0.05));
+  g.gain.value = ELECTRIC_LEVEL * pluckLevel(vel) ** VEL_CURVE;
+  src.connect(g).connect(valveInput(k, out));
+  // The pick touches the string `lead` before it sounds; a stroke due sooner than that starts part way in.
+  const at = t - lead, now = ctx.currentTime;
+  if (at >= now) src.start(at);
+  else src.start(now, now - at);
+  src.stop(Math.max(at, now) + Math.min(seconds, lead + end + tail));
 }
 /** The electric's level into its amp. */
 const ELECTRIC_LEVEL = 1;

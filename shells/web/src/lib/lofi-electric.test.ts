@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decayRate, electricString, partialsOf, type ElectricSpec } from './lofi-electric.ts';
+import { decayRate, electricString, leadOf, partialsOf, type ElectricSpec } from './lofi-electric.ts';
 import { fretFor } from './lofi-perform.ts';
 import { composeLofiTune, ELECTRIC_CHOKE, ELECTRIC_FRET, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
 
@@ -34,6 +34,23 @@ test('the partials decay as measured: a low partial rings far longer than one at
   const ring = electricString(A2, seeded(3));
   const palm = electricString({ ...A2, damp: 'palm' }, seeded(3));
   assert.ok(rms(palm, 0.4, 0.6) < rms(ring, 0.4, 0.6) - 30, 'a palm-muted note is gone by half a second');
+});
+
+test('a note is stopped in the string: choked, it is gone 30 dB within a fifth of a second; left alone, it rings on', () => {
+  const ringing = electricString(A2, seeded(6));
+  const choked = electricString({ ...A2, end: 0.1, endDamp: 'choke' }, seeded(6));
+  assert.ok(rms(choked, 0.25, 0.3) < rms(choked, 0.05, 0.09) - 30, 'choked');
+  assert.ok(rms(ringing, 0.25, 0.3) > rms(ringing, 0.05, 0.09) - 8, 'ringing');
+  // Before the stop the two are the same note.
+  assert.ok(Math.abs(rms(choked, 0.05, 0.09) - rms(ringing, 0.05, 0.09)) < 0.5);
+});
+
+test('the pick touches the string before the note sounds: a quiet lead-in, longer for a gentle stroke', () => {
+  assert.ok(leadOf(0, 0) > leadOf(2, 0) && leadOf(0, 1) > leadOf(0, 0));
+  const lead = 0.01;
+  const x = electricString({ ...A2, layer: 0, lead }, seeded(7));
+  assert.ok(rms(x, 0, lead - 0.001) < rms(x, lead + 0.005, lead + 0.03) - 15, 'the push is well under the note');
+  assert.ok(rms(x, 0, lead - 0.001) > -90, 'but it is there');
 });
 
 test('the string is stiff: its partials run sharp of whole multiples, more so on a low string', () => {
