@@ -1,15 +1,24 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The reed leads played: the saxophone and the clarinet blown in their waveguides
- * (lib/lofi-reeds.ts), one note at a time as it comes, then through the instrument's body:
- * the sax's bell, which rolls off its top and warms its middle, and the clarinet's darker
- * wood. A note slurred from the one before glides there inside the bore, so it has no new
- * attack, and a bent note (the composer's art 1) is scooped up from a semitone below.
+ * The winds played. The saxophone and the clarinet are blown in their waveguides
+ * (lib/lofi-reeds.ts) and then through the instrument's body: the sax's bell, which rolls
+ * off its top and warms its middle, and the clarinet's darker wood. The trumpet and the
+ * trombone are blown through their lips and bores (lib/lofi-brass.ts), whose bells are
+ * part of the model. Each note is worked out whole as it comes. A note slurred from the one
+ * before glides there inside the bore, so it has no new attack, and a bent note (the
+ * composer's art 1) is scooped up from below.
+ *
+ * Brass also plays as a section here: a horn line doubled by a second player and a
+ * trombone an octave under (hornSection), and the swing band's chords, one player to a
+ * chord tone (keys). Every player is a little out of tune with the others and a little
+ * late or early, by the amounts measured on recorded sections.
  */
+import { blowLips, type Horn } from './lofi-brass.ts';
 import { blowReed } from './lofi-reeds.ts';
 import { EPS, mtof, type VoiceKit } from './lofi-voices.ts';
 
-export const REED_LEADS = new Set<string>(['sax', 'clarinet']);
+/** The leads this module plays. */
+export const WIND_LEADS = new Set<string>(['sax', 'clarinet', 'trumpet', 'trombone']);
 
 /** A small seeded source, from the station's own, so a tune's notes are the same each time. */
 function seeded(k: VoiceKit): () => number {
@@ -22,7 +31,35 @@ function seeded(k: VoiceKit): () => number {
   };
 }
 
-export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0, from?: number): void {
+/** A rendered note into the graph at `t`, at `level`, through `chain` (the last node is connected to `out`). */
+function playBuffer(k: VoiceKit, data: Float32Array, out: AudioNode, t: number, level: number, chain: AudioNode[]): void {
+  const { ctx } = k;
+  const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
+  buf.getChannelData(0).set(data);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = level;
+  let node: AudioNode = src;
+  for (const c of chain) { node.connect(c); node = c; }
+  node.connect(g).connect(out);
+  src.start(t);
+}
+
+/** How a brass note is played: a section player's straight tone, or a soloist's, which may sing a little. */
+export interface BrassPlay {
+  /** The player's own tuning against the note (cents). */
+  detune?: number;
+  /** Semitones the note falls off at its end (negative rises, a doit). */
+  fall?: number;
+  /** A section player: no vibrato. */
+  straight?: boolean;
+  /** The part's level in the section (1 the line's own): a section's players blow as hard as each other, only some sit further back. */
+  gain?: number;
+}
+
+export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0, from?: number, how: BrassPlay = {}): void {
+  if (style === 'trumpet' || style === 'trombone') { brass(style, k, out, t, midi, vel, dur, art, from, how); return; }
   const { ctx } = k;
   const sax = style === 'sax';
   const held = Math.max(0.06, dur);
@@ -30,10 +67,6 @@ export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi
     sr: ctx.sampleRate, f: mtof(midi), from: from === undefined ? undefined : mtof(from), vel, dur: held, seconds: held + 0.12,
     bore: sax ? 'cone' : 'cylinder', vibrato: sax ? 22 : 6, rate: 5.1 + k.rng() * 0.6, scoop: art === 1 ? 1 : 0, attack: sax ? 0.012 : 0.045,
   }, seeded(k));
-  const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
-  buf.getChannelData(0).set(data);
-  const src = ctx.createBufferSource();
-  src.buffer = buf;
   // The body: a sax's bell warms the middle and rolls the top off; a clarinet's wood is darker still.
   const warm = ctx.createBiquadFilter();
   warm.type = 'peaking';
@@ -45,11 +78,108 @@ export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi
   top.frequency.value = sax ? 5200 : 4200;
   top.Q.value = 0.6;
   const g = ctx.createGain();
-  g.gain.setValueAtTime(sax ? SAX_LEVEL : CLARINET_LEVEL, t);
+  g.gain.setValueAtTime(1, t);
   g.gain.setTargetAtTime(EPS, t + held + 0.08, 0.02);
-  src.connect(warm).connect(top).connect(g).connect(out);
-  src.start(t);
+  playBuffer(k, data, out, t, (sax ? SAX_LEVEL : CLARINET_LEVEL) * (how.gain ?? 1), [warm, top, g]);
 }
 /** The blown reeds' levels against the voices they replaced. */
 const SAX_LEVEL = 0.044;
 const CLARINET_LEVEL = 0.065;
+
+/**
+ * How loud a brass note comes out of the model at a strength and pitch (dB), measured: it
+ * climbs about 33 dB from the softest breath to the hardest and a third of a dB a semitone
+ * up the range. The station sets its own dynamics (the note's level follows its velocity
+ * gently, as every voice's does), so a note is brought to that level and the strength is
+ * left to do what it does on a real horn: change the tone.
+ */
+function rawLevel(horn: Horn, vel: number, midi: number): number {
+  const at = horn === 'trumpet' ? 70 : 58;
+  return -21.4 + 33 * (vel - 0.5) + 0.32 * (midi - at);
+}
+/** How much of the register's own rise in loudness a player keeps (the top of a horn is louder). */
+const REGISTER_KEPT = 0.35;
+/** The brass leads' levels against the voices they replaced. */
+const BRASS_LEVEL: Record<Horn, number> = { trumpet: 0.019, trombone: 0.019 };
+/** How far a soloist's held note sings (cents); a section plays straight. */
+const SOLO_VIBRATO = 7;
+
+function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined, how: BrassPlay): void {
+  const { ctx } = k;
+  const held = Math.max(0.05, dur);
+  const strength = Math.min(1, Math.max(0, vel));
+  const fall = how.fall ?? 0;
+  const data = blowLips({
+    sr: ctx.sampleRate, f: mtof(midi) * 2 ** ((how.detune ?? 0) / 1200), from: from === undefined ? undefined : mtof(from),
+    vel: strength, dur: held, seconds: held + (fall ? 0.4 : 0.15), horn,
+    scoop: art === 1 ? 1 : 0, fall, vibrato: how.straight ? 0 : SOLO_VIBRATO, rate: 5 + k.rng() * 0.7,
+  }, seeded(k));
+  const at = horn === 'trumpet' ? 70 : 58;
+  const level = BRASS_LEVEL[horn] * (0.55 + 0.45 * strength) * 10 ** ((-rawLevel(horn, strength, midi) + REGISTER_KEPT * 0.32 * (midi - at)) / 20);
+  // The top past what a horn sends out, where the model's steepened wave would only alias.
+  const top = ctx.createBiquadFilter();
+  top.type = 'lowpass';
+  top.frequency.value = 14000;
+  top.Q.value = 0.5;
+  playBuffer(k, data, out, t, level * (how.gain ?? 1), [top]);
+}
+
+/** A player in a horn section: what they play against the line, how loud, how late (s) and where they sit (pan). */
+export interface SectionPart { voice: string; level: number; shift: number; late: number; pan: number; detune: number }
+
+/**
+ * A recorded section's unison spreads every harmonic by about 4 to 5 cents (standard
+ * deviation, the same in cents from the 2nd harmonic to the 12th: players out of tune
+ * with each other, not vibrato). Two players give that spread when they sit about 8 cents
+ * apart, so the second horn is drawn that far from the lead, sharp or flat, and every
+ * player is a little out from the note (SECTION_SPREAD, cents). They come in within about
+ * 10 to 20 ms of each other (SECTION_LATE, s).
+ */
+const SECTION_PAIR = 8;
+const SECTION_SPREAD = 4.5;
+const SECTION_LATE = 0.012;
+/** Each part's level against the line's (the lead's own is the station's). */
+const SECTION_LEVELS = { lead: 1.1, unison: 0.85, octave: 0.55 };
+
+/**
+ * A horn section playing a line: the lead, a second horn in unison (a trumpet, or with a
+ * trumpet leading, a second trumpet) and a trombone an octave under, placed across the
+ * stage. Each part has its own tuning and its own small lateness, drawn for every note.
+ */
+export function hornSection(lead0: string, k: VoiceKit): SectionPart[] {
+  const late = (): number => Math.max(0, SECTION_LATE * (0.6 + gauss(k)));
+  const lead = SECTION_SPREAD * 0.4 * gauss(k);
+  const apart = (k.rng() < 0.5 ? -1 : 1) * Math.max(3, SECTION_PAIR + 2 * gauss(k));
+  return [
+    { voice: lead0, level: SECTION_LEVELS.lead, shift: 0, late: 0, pan: -0.15, detune: lead },
+    { voice: 'trumpet', level: SECTION_LEVELS.unison, shift: 0, late: late(), pan: 0.45, detune: lead + apart },
+    { voice: 'trombone', level: SECTION_LEVELS.octave, shift: -12, late: late(), pan: -0.4, detune: SECTION_SPREAD * gauss(k) },
+  ];
+}
+/** A standard normal draw (Box-Muller), from the station's seeded source. */
+function gauss(k: VoiceKit): number {
+  return Math.sqrt(-2 * Math.log(1 - k.rng())) * Math.cos(2 * Math.PI * k.rng());
+}
+
+/** Below this a chord tone is the trombones'; from here up, the trumpets'. */
+const TROMBONE_TOP = 60;
+/** The brass section's chords' level, and how far apart its players sit (pan, trombones left, trumpets right). */
+const CHORD_LEVEL = 1.6;
+const CHORD_PAN = 0.25;
+
+/**
+ * The swing band's brass (the keys' 'brass'): each chord tone played by its own player,
+ * the trombones under middle C and the trumpets from middle C up, each a little out of tune and
+ * a little late, short stabs and long chords alike.
+ */
+export function keys(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, gain = 1): void {
+  const horn: Horn = midi < TROMBONE_TOP ? 'trombone' : 'trumpet';
+  const pan = k.ctx.createStereoPanner();
+  pan.pan.value = (horn === 'trombone' ? -1 : 1) * CHORD_PAN * (0.5 + 0.5 * k.rng());
+  pan.connect(out);
+  const g = k.ctx.createGain();
+  g.gain.value = CHORD_LEVEL * gain;
+  g.connect(pan);
+  const late = Math.max(0, SECTION_LATE * (0.6 + gauss(k)));
+  brass(horn, k, g, t + late, midi, vel, dur, 0, undefined, { detune: SECTION_SPREAD * gauss(k), straight: true });
+}

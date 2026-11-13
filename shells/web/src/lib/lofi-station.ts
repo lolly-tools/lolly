@@ -149,11 +149,10 @@ const LEAD_TRIM: Partial<Record<LofiStyle['lead'], number>> = { angel: -0.2, bal
 const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5 };
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. */
 const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5 };
-/** The styles whose horn lines are a section's (see the lead), and the section's levels: together about as loud as the one horn was. */
+/** The styles whose horn lines are a section's (see the lead and lib/lofi-winds.ts's hornSection). */
 const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
-const SECTION_LEAD = 0.75;
-const SECTION_UNISON = 0.5;
-const SECTION_TENOR = 0.45;
+/** How far a section's brass falls off a phrase's last long note (semitones). */
+const SECTION_FALL = 5;
 /** The style a station starts from, until its first tune's arrives. */
 const PLAIN: Pick<LofiStyle, 'wow' | 'room' | 'tone' | 'duck' | 'crunch' | 'dust'> = { wow: 1, room: 1, tone: 1, duck: 1, crunch: false, dust: 1 };
 /** How far the texture control reaches into the chain's range: past this it stops sounding like a record. */
@@ -454,14 +453,14 @@ export class LofiStation {
 
   /** One gain per lead instrument on a tune's lead lane, set to the instrument's trim and the genre's seat. */
   private readonly seats = new WeakMap<GainNode, Map<string, GainNode>>();
-  private leadSeat(lane: GainNode, mood: LofiMood, voice: LofiStyle['lead'], pan = 0): GainNode {
+  private leadSeat(lane: GainNode, mood: LofiMood, voice: string, pan = 0): GainNode {
     let byVoice = this.seats.get(lane);
     if (!byVoice) { byVoice = new Map(); this.seats.set(lane, byVoice); }
     const key = `${voice}:${pan}`;
     let seat = byVoice.get(key);
     if (!seat) {
       seat = this.ctx.createGain();
-      seat.gain.value = 10 ** (((LEAD_TRIM[voice] ?? 0) + (LEAD_SEAT[mood] ?? 0)) / 20);
+      seat.gain.value = 10 ** (((LEAD_TRIM[voice as LofiStyle['lead']] ?? 0) + (LEAD_SEAT[mood] ?? 0)) / 20);
       if (pan) {
         const place = this.ctx.createStereoPanner();
         place.pan.value = pan;
@@ -622,6 +621,8 @@ export class LofiStation {
         const m = note.mod ?? 0;
         if (G.GUITAR_KEYS.has(keysV)) G.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, m);
         else if (W.WORLD_KEYS.has(keysV)) W.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
+        // The brass section blows each chord as hard as the tune says; its variant level is only a level.
+        else if (keysV === 'brass') R.keys(k, lanes.keys, t, note.midi, vel, len, VARIANT.keys[keysV]);
         else V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
         break;
       }
@@ -652,22 +653,24 @@ export class LofiStation {
         const gap = lt - prev.end;
         const from = prev.voice === leadV && gap > -0.25 && gap < SLUR_GAP && prev.midi !== note.midi ? prev.midi : undefined;
         this.lastLead = { end: lt + len, midi: note.midi, voice: leadV };
-        const play = (v: LofiStyle['lead'], level: number, shift = 0, late = 0, pan = 0): void => {
+        const play = (v: string, level: number, shift = 0, late = 0, pan = 0, how?: R.BrassPlay): void => {
           const seat = this.leadSeat(lanes.lead, bar.tune.mood, v, pan);
           const at = lt + late;
-          if (R.REED_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
-          else if (W.WORLD_LEADS.has(v)) W.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0);
-          else V.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
+          if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift, how);
+          else if (W.WORLD_LEADS.has(v as LofiStyle['lead'])) W.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, note.mod ?? 0);
+          else V.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, note.mod ?? 0, from === undefined ? undefined : from + shift);
         };
         // A horn section: in the styles built on one, a horn's line is played by the
-        // section, a second horn in unison and a tenor an octave under, each a few
-        // milliseconds apart and placed across the stage, as a ska or soul section plays.
+        // section (lib/lofi-winds.ts): a second horn in unison and a trombone an octave
+        // under, each player a little out of tune and a little late, placed across the
+        // stage, as a ska or soul section plays.
         const section = HORN_SECTION.has(bar.tune.mood) && (leadV === 'trumpet' || leadV === 'sax');
-        play(leadV, vel * VARIANT.lead[leadV] * lift * (section ? SECTION_LEAD : 1));
         if (section) {
-          play(leadV === 'trumpet' ? 'sax' : 'trumpet', vel * SECTION_UNISON * lift, 0, 0.007, 0.35);
-          play('sax', vel * SECTION_TENOR * lift, -12, 0.004, -0.35);
-        }
+          // The section's brass falls off the long note that ends an eight-bar phrase, as a
+          // ska or soul section does (the saxophone leading holds its note).
+          const fall = bar.index % 8 === 7 && note.beat + note.dur >= 3.4 && note.dur >= 0.5 ? SECTION_FALL : 0;
+          for (const p of R.hornSection(leadV, k)) play(p.voice, vel * (p.voice === leadV ? VARIANT.lead[leadV] : 1) * lift, p.shift, p.late, p.pan, { detune: p.detune, straight: true, gain: p.level, fall });
+        } else play(leadV, vel * VARIANT.lead[leadV] * lift);
         // An echo throw: a phrase's last lead note (the fourth bar's, held at least half a
         // beat) thrown into the echo in the styles that throw, the send closing after the note.
         if (THROWS.has(bar.tune.mood) && bar.index % 4 === 3 && note.beat + note.dur >= 3.4 && note.dur >= 0.5 && bar.section !== 'intro') {
