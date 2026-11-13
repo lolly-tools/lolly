@@ -359,7 +359,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** Grow the lanes so the editor reaches the bottom of the screen, on a phone as on a monitor. */
   function fitHeight(): void {
     const top = q<HTMLElement>('.ms-editor').getBoundingClientRect().top + window.scrollY;
-    const room = window.innerHeight - top - 56;
+    // On a phone the play and shuffle dock covers the bottom of the screen: leave its room too.
+    const dock = q<HTMLElement>('.ms-transport');
+    const docked = getComputedStyle(dock).position === 'fixed' ? window.innerHeight - dock.getBoundingClientRect().top : 0;
+    const room = window.innerHeight - top - 56 - docked;
     const base = TRACKS.reduce((h, tr) => h + LANE[tr], 0);
     const scale = Math.max(0.85, Math.min(2.2, (room - RULER - CHORDS) / base));
     for (const tr of TRACKS) {

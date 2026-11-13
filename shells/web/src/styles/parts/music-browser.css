@@ -7,6 +7,9 @@
 @layer views {
   .msb {
     --msb-gutter: var(--sp-4);
+    /* The hairline between the head, the list and the foot: the faint edge's colour
+       (tokens.css --edge-faint), neutral in every theme rather than the brand's border hue. */
+    --msb-divider: hsl(var(--foreground) / .1);
     box-sizing: border-box;
     flex-direction: column;
     padding: 0;
@@ -51,9 +54,9 @@
     display: grid;
     gap: var(--sp-2);
     padding: var(--sp-2) var(--msb-gutter) var(--sp-3);
-    border-block-end: 1px solid var(--ui-color-border-default);
+    border-block-end: 1px solid var(--msb-divider);
   }
-  .msb-grip { justify-self: center; width: 36px; height: 4px; border-radius: var(--radius-pill); background: var(--ui-color-border-default); }
+  .msb-grip { justify-self: center; width: 36px; height: 4px; border-radius: var(--radius-pill); background: var(--msb-divider); }
   .msb--panel .msb-grip { display: none; }
   .msb--panel .msb-head { padding-block-start: var(--sp-3); }
   .msb-title-row { display: flex; align-items: center; gap: var(--sp-2); }
@@ -171,7 +174,7 @@
     display: grid;
     gap: var(--sp-2);
     padding: var(--sp-3) var(--msb-gutter);
-    border-block-start: 1px solid var(--ui-color-border-default);
+    border-block-start: 1px solid var(--msb-divider);
   }
   .msb-pick { margin: 0; min-height: 1.4em; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
   .msb-actions { display: flex; gap: var(--sp-2); }

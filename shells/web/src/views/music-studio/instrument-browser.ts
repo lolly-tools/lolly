@@ -403,11 +403,18 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
 
   paintSections();
   paint();
-  // The list opens on the instrument playing in this section (else the composer's card),
-  // focused and in view, so the person starts where the music is.
-  const current = q<HTMLElement>('.msb-card.is-current:not([data-card=""]) .msb-main') ?? q<HTMLElement>('.msb-main');
-  current?.focus({ preventScroll: true });
-  current?.scrollIntoView({ block: 'center' });
+  // A phone's sheet opens at the top of the list, on the composer's card, every row of
+  // the first screen in full. The side panel, which has the height, opens on the
+  // instrument playing in this section, scrolled into view only when it is below the fold.
+  const body = q<HTMLElement>('.msb-body');
+  const current = wide ? q<HTMLElement>('.msb-card.is-current:not([data-card=""])') : null;
+  (current?.querySelector<HTMLElement>('.msb-main') ?? q<HTMLElement>('.msb-main'))?.focus({ preventScroll: true });
+  if (body) {
+    body.scrollTop = 0;
+    const card = current?.getBoundingClientRect();
+    const view = body.getBoundingClientRect();
+    if (card && card.bottom > view.bottom) body.scrollTop = card.top - view.top - (body.clientHeight - card.height) / 2;
+  }
   if (track !== 'drums' && !sections.length) say(t('This part has no notes in the track.'));
 
   return { track, setSection, refresh, stopPreview, close: () => modal.close() };

@@ -205,8 +205,11 @@
     .ms-page {
       padding-inline: var(--sp-2);
       gap: var(--sp-2);
-      /* Room under the last of the page for the dock. */
-      padding-block-end: calc(var(--ms-cap) + var(--sp-8) + env(safe-area-inset-bottom, 0px));
+      /* The dock's height (the cap and the dock's padding), its gap from the screen's
+         edge and the home indicator's inset, and a little room above, so the last line of
+         the page (the hint) scrolls clear of the dock. */
+      --ms-dock: calc(var(--ms-cap) + var(--sp-2) * 2);
+      padding-block-end: calc(var(--ms-dock) + var(--sp-3) + var(--sp-6) + env(safe-area-inset-bottom, 0px));
     }
     .ms-bar { padding: var(--sp-1) var(--sp-2); }
     .ms-meta { display: none; }
