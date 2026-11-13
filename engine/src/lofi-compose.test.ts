@@ -18,7 +18,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, lofiStream, lofiTuneSeconds, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS } from './lofi-compose.ts';
+import { composeLofiTune, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
@@ -508,7 +508,8 @@ test('the console\'s newer sounds and the ad-libs: where a game is played and wh
     for (const seed of SEEDS.slice(0, 10)) for (const b of composeLofiTune(seed, mood)) for (const n of b.notes) {
       if (n.voice === 'game') out.add(`game${(n.mod ?? 0) % 16}`);
       if (n.voice === 'coin') out.add(`coin${n.mod ?? 0}`);
-      if (n.voice === 'hey') out.add(`hey${n.mod ?? 0}`);
+      // The band's phrases ("let's go", "go") are their own layer, tested on their own below.
+      if (n.voice === 'hey' && (n.mod ?? 0) < LOFI_SHOUT_PHRASES) out.add(`hey${n.mod ?? 0}`);
     }
     return out;
   };
@@ -668,10 +669,190 @@ test('lofi house: a soft kick on every beat that comes in full at the drop, a fi
 });
 
 test('adding lofi house changed no other style: its draws come from a stream of its own', () => {
-  // Composed on main before lofi house existed (b89d0b4dd0), the tag left in.
+  // Composed on main before lofi house existed (b89d0b4dd0), the tag left in. Drum and bass
+  // has since gained the band's shouted phrases, a layer of their own: without them, the
+  // tune is unchanged.
   const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 4230037030, 'jazz.7': 3436312216, 'dnb.7': 2399839091, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
-    assert.equal(fingerprint(composeLofiTune(Number(seed), mood)), want, `${key} composes as it did`);
+    assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
   }
+});
+
+// ── The band's shouted phrases: "pick it up", "let's go" and "go" ─────────────
+
+/** A shouted phrase's name, from a `hey` note, or null for the one-vowel shouts and everything else. */
+const phraseOf = (n: LofiBar['notes'][number]): string | null =>
+  n.voice === 'hey' && (n.mod ?? 0) % LOFI_SHOUT_CROWD >= LOFI_SHOUT_PHRASES ? LOFI_SHOUTS[(n.mod ?? 0) % LOFI_SHOUT_CROWD]! : null;
+/** A tune without the band's phrases: the layer they were added in. */
+function withoutPhrases(bars: LofiBar[]): LofiBar[] {
+  return bars.map(b => ({ ...b, notes: b.notes.filter(n => phraseOf(n) === null) }));
+}
+/** The styles a band or an MC shouts in, and those that keep their calm. */
+const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert'] as const;
+const PHRASE_SEEDS = Array.from({ length: 40 }, (_, i) => (i * 2654435761 + 99) >>> 0);
+/** Where a shout sounds, in seconds from the top of the tune: [first consonant, end of its last vowel]. */
+function spanOf(barIndex: number, n: LofiBar['notes'][number], spb: number): [number, number] {
+  const at = (barIndex * 4 + n.beat) * spb;
+  const p = phraseOf(n);
+  if (p === 'pickitup') return [at - 0.07, at + 2 * lofiShoutStep('pickitup', spb) + 0.24];
+  if (p === 'letsgo') return [at - lofiShoutStep('letsgo', spb) - 0.08, at + 0.4];
+  if (p === 'go') return [at - 0.06, at + 0.4];
+  if (n.voice === 'tag') return [at - 0.05, at + 1.05 + 1.5 * spb];
+  return [at - 0.03, at + 0.45];
+}
+
+test('ska\'s band calls "pick it up!", "let\'s go!" and "woo" in most tunes, a few times a tune', () => {
+  let pick = 0, lets = 0, woo = 0, answered = 0;
+  for (const seed of PHRASE_SEEDS) {
+    const bars = composeLofiTune(seed, 'ska');
+    const phrases = bars.flatMap(b => b.notes.map(phraseOf).filter(p => p !== null));
+    const woos = bars.flatMap(b => b.notes.filter(n => n.voice === 'hey' && n.mod === 2));
+    if (phrases.includes('pickitup')) pick++;
+    if (phrases.includes('letsgo')) lets++;
+    if (woos.length) woo++;
+    if (bars.some(b => b.notes.some(n => phraseOf(n) === 'pickitup' && (n.mod ?? 0) >= LOFI_SHOUT_CROWD))) answered++;
+    assert.ok(phrases.length + woos.length >= 1, `ska ${seed}: the band calls out`);
+    assert.ok(phrases.length + woos.length <= 8, `ska ${seed}: a few calls, not a wall of them (${phrases.length + woos.length})`);
+  }
+  const n = PHRASE_SEEDS.length;
+  assert.ok(pick >= n * 0.65, `"pick it up!" in most ska tunes (${pick} of ${n})`);
+  assert.ok(lets >= n * 0.4 && lets < n, `"let's go!" in many ska tunes, not every one (${lets} of ${n})`);
+  assert.ok(woo >= n * 0.7, `a "woo" in most ska tunes (${woo} of ${n})`);
+  assert.ok(answered >= n * 0.2, `the crowd answers the call in some (${answered} of ${n})`);
+});
+
+test('ska\'s calls go where a band puts them', () => {
+  for (const seed of PHRASE_SEEDS) {
+    const bars = composeLofiTune(seed, 'ska');
+    const where = `ska ${seed}`;
+    bars.forEach((b, i) => {
+      for (const n of b.notes) {
+        const p = phraseOf(n);
+        if (p === 'pickitup') {
+          // Over the skank in the intro (after its first bar), or as a chorus opens: on one or three.
+          const opens = b.section === 'drop' && (bars[i - 1]!.section !== 'drop' || bars[i - 2]!.section !== 'drop');
+          assert.ok((b.section === 'intro' && i >= 1) || opens, `${where} bar ${i}: "pick it up!" in the intro or opening a chorus (${b.section})`);
+          assert.ok(n.beat === 0 || n.beat === 2, `${where} bar ${i}: on one or three (${n.beat})`);
+        }
+        if (p === 'letsgo') {
+          // At the top, or as the band turns into the first chorus.
+          assert.ok((i === 0 && n.beat >= 1) || bars[i + 1]!.section === 'drop', `${where} bar ${i}: "let's go!" at the top or into a chorus`);
+        }
+        if (n.voice === 'hey' && n.mod === 2) {
+          // A woo just after the backbeat, in a chorus.
+          assert.equal(b.section, 'drop', `${where} bar ${i}: a woo in a chorus`);
+          assert.ok(n.beat === 1.5 || n.beat === 3.5, `${where} bar ${i}: a woo off the backbeat (${n.beat})`);
+        }
+      }
+      // The crowd only ever answers: its "pick it up!" comes after the caller's.
+      const calls = b.notes.filter(n => phraseOf(n) === 'pickitup');
+      const prev = bars[i - 1]?.notes.filter(n => phraseOf(n) === 'pickitup') ?? [];
+      if (calls.some(n => (n.mod ?? 0) >= LOFI_SHOUT_CROWD)) assert.ok(calls.some(n => (n.mod ?? 0) < LOFI_SHOUT_CROWD) || prev.length > 0, `${where} bar ${i}: the crowd answers a caller`);
+    });
+  }
+});
+
+test('"let\'s go" and "go" in the styles a band or an MC shouts in, and in none of the calm ones', () => {
+  for (const mood of LOFI_MOODS) {
+    let tunes = 0, most = 0;
+    for (const seed of PHRASE_SEEDS.slice(0, 24)) {
+      const shouts = composeLofiTune(seed, mood).flatMap(b => b.notes.map(phraseOf).filter(p => p === 'letsgo' || p === 'go'));
+      if (shouts.length) tunes++;
+      most = Math.max(most, shouts.length);
+    }
+    if ((SHOUTING as readonly string[]).includes(mood)) {
+      assert.ok(tunes >= 6 && tunes <= 22, `${mood}: some tunes shout, not every one (${tunes} of 24)`);
+      assert.ok(most <= 3, `${mood}: never more than three a tune (${most})`);
+    } else {
+      assert.equal(tunes, 0, `${mood} shouts no "let's go"`);
+    }
+  }
+  // Only ska's band calls "pick it up".
+  for (const mood of SHOUTING.filter(m => m !== 'ska')) {
+    for (const seed of PHRASE_SEEDS.slice(0, 12)) assert.ok(!composeLofiTune(seed, mood).some(b => b.notes.some(n => phraseOf(n) === 'pickitup')), `${mood} ${seed}: no "pick it up"`);
+  }
+});
+
+test('"let\'s go" and "go" land at the top, into a chorus or a drop, into the first verse, or call in the solo', () => {
+  for (const mood of SHOUTING) for (const seed of PHRASE_SEEDS.slice(0, 16)) {
+    const bars = composeLofiTune(seed, mood);
+    bars.forEach((b, i) => {
+      for (const n of b.notes) {
+        const p = phraseOf(n);
+        if (p !== 'letsgo' && p !== 'go') continue;
+        const next = bars[i + 1]?.section;
+        const where = `${mood} ${seed} bar ${i} (${b.section}, beat ${n.beat})`;
+        const top = i === 0, into = next === 'drop' && b.section !== 'drop', verse = next === 'verse' && b.section === 'intro', solo = next === 'break' && b.section === 'drop';
+        assert.ok(top || into || verse || solo, `${where}: a "${p}" at a turn in the song`);
+        if (!top) assert.ok(n.beat >= 1 && n.beat <= 3, `${where}: late in the bar, so it leads into the next`);
+        if (solo) assert.equal(p, 'go', `${where}: "go!" calls the soloist`);
+        // The bass genres' drops are their choruses: the MC shouts into a drop, never over the drop.
+        if (mood === 'dnb' || mood === 'dubstep' || mood === 'brostep' || mood === 'electro' || mood === 'sherbert') assert.ok(into, `${where}: into a drop`);
+      }
+    });
+  }
+});
+
+test('a shout never sounds over the tag or another shout, and never shares the tag\'s bar', () => {
+  for (const mood of SHOUTING) for (const seed of PHRASE_SEEDS.slice(0, 16)) {
+    const bars = composeLofiTune(seed, mood);
+    const spb = 60 / bars[0]!.tune.bpm;
+    const voices = bars.flatMap((b, i) => b.notes.filter(n => n.voice === 'hey' || n.voice === 'tag').map(n => ({ i, n, span: spanOf(i, n, spb) })));
+    for (const a of voices) {
+      if (phraseOf(a.n) === null) continue;
+      assert.ok(a.span[0] >= 0, `${mood} ${seed}: the shout starts after the tune does`);
+      assert.ok(!bars[a.i]!.notes.some(n => n.voice === 'tag'), `${mood} ${seed} bar ${a.i}: the tag has its bar to itself`);
+      for (const b of voices) {
+        if (a === b) continue;
+        assert.ok(a.span[1] <= b.span[0] || a.span[0] >= b.span[1], `${mood} ${seed} bar ${a.i}: "${phraseOf(a.n)}" at ${a.n.beat} clashes with a ${b.n.voice} in bar ${b.i} at ${b.n.beat}`);
+      }
+    }
+  }
+});
+
+test('the shouts come from a stream of their own: the rest of every tune composes as it did', () => {
+  // Composed on main before the phrases existed (6bf5acd8b2), the tag left in. Without the
+  // phrases, each tune is unchanged.
+  const before: Record<string, number> = {
+    'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 3220058757, 'hiphop.7': 307798947,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 2399839091, 'dubstep.7': 1549858405, 'brostep.7': 3682160567, 'sherbert.7': 2035173988,
+  };
+  for (const [key, want] of Object.entries(before)) {
+    const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
+    assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
+  }
+  // Ska's calls also take over some of its heys (a chorus's opening pair, a woo), so in ska
+  // everything but the shouts is pinned.
+  const noShouts = (bars: LofiBar[]): LofiBar[] => bars.map(b => ({ ...b, notes: b.notes.filter(n => n.voice !== 'hey') }));
+  for (const [seed, want] of [[7, 4149753482], [2024, 2289128199]] as const) {
+    assert.equal(fingerprint(noShouts(composeLofiTune(seed, 'ska'))), want, `ska.${seed}: every note but the shouts composes as it did`);
+  }
+});
+
+test('the shouts are the same every time for a seed, and differ from seed to seed', () => {
+  const calls = (seed: number, mood: Parameters<typeof composeLofiTune>[1]): string => composeLofiTune(seed, mood)
+    .flatMap((b, i) => b.notes.filter(n => phraseOf(n) !== null || (mood === 'ska' && n.voice === 'hey' && n.mod === 2)).map(n => `${i}:${n.beat}:${n.mod}`)).join(' ');
+  // Ska calls several things a tune; the others shout once or twice, at one of a few turns.
+  for (const [mood, kinds] of [['ska', 9], ['punk', 4], ['dnb', 4], ['hiphop', 4]] as const) {
+    const seen = new Set<string>();
+    for (const seed of PHRASE_SEEDS.slice(0, 12)) {
+      assert.equal(calls(seed, mood), calls(seed, mood), `${mood} ${seed}: the same calls each time`);
+      seen.add(calls(seed, mood));
+    }
+    assert.ok(seen.size >= kinds, `${mood}: the calls vary from tune to tune (${seen.size} kinds in 12)`);
+  }
+});
+
+test('a tag chosen for the track takes the top from a "let\'s go!" there', () => {
+  let moved = 0;
+  for (const seed of PHRASE_SEEDS) {
+    const plain = lofiTrack(seed, { mood: 'punk' }, 48);
+    if (!plain[0]!.notes.some(n => phraseOf(n) === 'letsgo') || plain.some(b => b.notes.some(n => n.voice === 'tag'))) continue;
+    const tagged = lofiTrack(seed, { mood: 'punk', tag: 'shout' }, 48);
+    assert.ok(tagged[0]!.notes.some(n => n.voice === 'tag'), `punk ${seed}: the tag at the top`);
+    assert.ok(!tagged[0]!.notes.some(n => phraseOf(n) !== null), `punk ${seed}: and no shout under it`);
+    moved++;
+  }
+  assert.ok(moved >= 1, `some punk tunes open on "let's go!" with no tag of their own (${moved})`);
 });

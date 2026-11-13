@@ -31,7 +31,7 @@ import { lofiStream, lofiTrack, LOFI_DRUM_VOICES } from '../../../../engine/src/
 import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTagChoice, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
-import { lollyTag } from './lofi-tag.ts';
+import { bandShout, isShoutPhrase, lollyTag } from './lofi-tag.ts';
 import * as D from './lofi-drums.ts';
 import * as W from './lofi-world-voices.ts';
 import * as G from './lofi-guitars.ts';
@@ -164,7 +164,10 @@ const REVOLUTION = 60 / (100 / 3);
 const LOOKAHEAD = 0.25;
 const LOOKAHEAD_HIDDEN = 3;
 
-interface Queued { at: number; spb: number; note: LofiNote; bar: LofiBar; lanes: Lanes }
+/** `lead`: how long before `at` a note must be handed to the audio clock (a shouted phrase starts before its beat). */
+interface Queued { at: number; spb: number; note: LofiNote; bar: LofiBar; lanes: Lanes; lead: number }
+/** A shouted phrase's longest lead-in, its "let's" before the "go" at the slowest tempo, with room to spare (s). */
+const SHOUT_LEAD = 0.7;
 interface Mark { at: number; bar: LofiBar }
 /** One tune's inputs to the buses, so skipping can fade out what is still ringing. */
 interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNode; fx: GainNode }
@@ -573,7 +576,10 @@ export class LofiStation {
       // strummed guitar's chords fingered and strummed, a lead guitar's bends and slides.
       const keysV = bar.voices?.keys ?? bar.tune.style.keys;
       const leadV = bar.voices?.lead ?? bar.tune.style.lead;
-      for (const note of perform(bar, spb, keysV, leadV)) this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes });
+      for (const note of perform(bar, spb, keysV, leadV)) {
+        const lead = note.voice === 'hey' && isShoutPhrase(note.mod ?? 0) ? SHOUT_LEAD : 0;
+        this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes, lead });
+      }
       this.marks.push({ at, bar });
       this.nextBarAt = at + 4 * spb;
     }
@@ -582,8 +588,8 @@ export class LofiStation {
   /** Play every queued note and bar change due before `until`. */
   private flush(until: number): void {
     const now = this.ctx.currentTime;
-    const due = this.queue.filter(q => q.at < until);
-    if (due.length) this.queue = this.queue.filter(q => q.at >= until);
+    const due = this.queue.filter(q => q.at - q.lead < until);
+    if (due.length) this.queue = this.queue.filter(q => q.at - q.lead >= until);
     for (const q of due) {
       if (q.at < now - 0.05) continue;   // a stalled page: drop it rather than pile notes up late
       this.play(q);
@@ -695,7 +701,11 @@ export class LofiStation {
         if ((note.mod ?? 0) >= W.WORLD_PERC_FROM) W.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
         else V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
         break;
-      case 'hey': V.hey(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'hey':
+        // The band's phrases are said by the formant voice, each call its own take.
+        if (isShoutPhrase(note.mod ?? 0)) bandShout(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, spb, tuneVoice(bar), `${bar.index}|${note.beat}`);
+        else V.hey(k, lanes.fx, t, note.midi, vel, note.mod ?? 0);
+        break;
       case 'layer': {
         // The layered basses: the travelling line glides from its last note when it follows straight on.
         if (note.mod === 2) { BL.stab(k, lanes.bass, t, note.midi, vel); break; }
@@ -704,7 +714,7 @@ export class LofiStation {
         BL.travel(k, lanes.bass, t, note.midi, vel, len, glide);
         break;
       }
-      case 'tag': lollyTag(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, 60 / bar.tune.bpm, `${bar.tune.key}|${bar.tune.bpm}|${bar.tune.progressions[0].join(' ')}`, this.echoTimes[0]); break;
+      case 'tag': lollyTag(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, 60 / bar.tune.bpm, tuneVoice(bar), this.echoTimes[0]); break;
       case 'bwah': {
         // A bass shot's `mod` is the shot, plus 4 for each swing a beat (the voice wants Hz).
         const m = note.mod ?? 0;
@@ -896,6 +906,11 @@ export async function renderStation(ctx: OfflineAudioContext, station: LofiStati
     });
   }
   return ctx.startRendering();
+}
+
+/** A tune's identity for its voices, from which the producer's tag and the band's shouts draw their speakers. */
+function tuneVoice(bar: LofiBar): string {
+  return `${bar.tune.key}|${bar.tune.bpm}|${bar.tune.progressions[0].join(' ')}`;
 }
 
 // ── seeded buffers ──────────────────────────────────────────────────────────
