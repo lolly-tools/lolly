@@ -1606,7 +1606,8 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); dt.sheet.dismissLayer(); }
       return;
     }
-    if ((e.target as HTMLElement).closest('.asset-format-viewer, input, textarea, select, [contenteditable]')) return;
+    // A slider (the audio scrubber) owns its arrows; a key a control already handled is not a page turn.
+    if (e.defaultPrevented || (e.target as HTMLElement).closest('.asset-format-viewer, input, textarea, select, [contenteditable], [role="slider"]')) return;
     if (e.key === 'ArrowLeft' && nav.prev) { e.preventDefault(); dt.openDetails(cat, nav.prev, dt.dTheme, dt.dTreatment); }
     else if (e.key === 'ArrowRight' && nav.next) { e.preventDefault(); dt.openDetails(cat, nav.next, dt.dTheme, dt.dTreatment); }
   });
@@ -1658,12 +1659,21 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     const modUrl = audioEl.dataset.modUrl;
     const lofiUrl = audioEl.dataset.lofiUrl;
     const render = zzUrl ? songUrlToWavBlobUrl(zzUrl) : modUrl ? modUrlToWavBlobUrl(modUrl) : null;
-    // A saved tune plays the moment play is pressed: live until its WAV is made, then the
-    // file (lib/tune-preview.ts). The sheet's close handler stops it and frees the WAV.
+    // A saved tune plays live, as the Neurospicy player plays it (lib/tune-preview.ts): its
+    // own analyser drives the meter and the visualiser, and the transport seeks it by bar.
+    // Closing the sheet stops the tune.
+    const transportLabels = {
+      play: t('Play'), pause: t('Pause'), seek: t('Seek'),
+      mute: t('Mute'), unmute: t('Unmute'), volume: t('Volume'),
+    };
     if (lofiUrl) {
-      const fail = (): void => { if (note && cat.detailsDialog === dlg) { note.textContent = t('Couldn’t render this track.'); note.hidden = false; } };
+      const fail = (): void => { if (note && cat.detailsDialog === dlg) { note.textContent = t('Couldn’t play this track.'); note.hidden = false; } };
       void import('../../lib/tune-preview.ts').then((m) => {
-        if (cat.detailsDialog === dlg) cat.detailsTune = m.attachTunePreview(audioEl, lofiUrl, fail);
+        if (cat.detailsDialog !== dlg) return;
+        const tune = m.attachTunePreview(audioEl, lofiUrl, fail);
+        cat.detailsTune = tune;
+        cat.detailsTransport?.destroy();
+        cat.detailsTransport = wireAudioTransport(dlg, audioEl, transportLabels, tune.source);
       });
     }
     // A rondocode song renders the same way, and its section also shows the source
@@ -1677,11 +1687,9 @@ export function wireSheetEvents(dt: DetailsCtx): void {
     // The big preview meter: attaches its analyser on first play (a gesture, so the
     // shared AudioContext may run) and is disposed with the modal (closeDetails).
     const meterEl = dlg.querySelector<HTMLCanvasElement>('[data-audio-meter]');
-    if (meterEl) cat.detailsMeterDispose = attachAudioMeter(meterEl, audioEl);
-    cat.detailsTransport = wireAudioTransport(dlg, audioEl, {
-      play: t('Play'), pause: t('Pause'), seek: t('Seek'),
-      mute: t('Mute'), unmute: t('Unmute'), volume: t('Volume'),
-    });
+    const tuneTap = lofiUrl ? () => (cat.detailsDialog === dlg ? cat.detailsTune?.tap() ?? null : null) : undefined;
+    if (meterEl) cat.detailsMeterDispose = attachAudioMeter(meterEl, audioEl, tuneTap);
+    cat.detailsTransport = wireAudioTransport(dlg, audioEl, transportLabels);
     wireAudioViz(cat, dlg, ref, cat.detailsMeterDispose);
     // The resting art was built synchronously from whatever peaks were already in
     // memory - which on a cold open is none, so the stage showed the glyph instead of

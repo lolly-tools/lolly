@@ -452,6 +452,16 @@ button.cat-download { font: inherit; cursor: pointer; }
    seek surface there is. Same trick as .neuro-progress. */
 .cat-tp-seek::before { content: ''; position: absolute; inset: -10px 0; }
 .cat-tp-seek-fill { position: absolute; inset: 0 auto 0 0; width: 0%; background: hsl(var(--primary)); border-radius: inherit; }
+/* A generated tune's parts: a notch cut in the bar where each one starts, so the bar is
+   also the tune's map (lib/tune-preview.ts). */
+.cat-tp-mark { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: hsl(var(--background)); pointer-events: none; }
+/* Where a tune is ("Bar 5 of 43 · Verse"), just above the stage bar, on its left. The
+   bar itself has no room for it beside the clock and the scrubber. */
+.cat-tp-pos {
+  position: absolute; left: .6rem; bottom: 100%; max-width: calc(100% - 1.2rem);
+  font-size: var(--fs-xs); font-variant-numeric: tabular-nums; color: hsl(var(--muted-foreground));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+}
 .cat-tp-seek:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 4px; }
 /* An unknown duration (a zzfxm song still rendering, a stream) cannot be scrubbed -
    say so rather than offering a control that does nothing. */

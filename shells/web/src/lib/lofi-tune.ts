@@ -82,8 +82,8 @@ export function renderLofiTunePcm(
   recipe: LofiTuneRecipe,
   opts: { seconds?: number; prefs?: LofiPrefs; sampleRate?: number } = {},
 ): Promise<RenderedPcm> {
-  // Opening a tune in Assets asks for its WAV and for its waveform at the same moment:
-  // the same render, so the two share one instead of each taking the whole time.
+  // Two callers can ask for the same render at once (a tune's waveform in Assets and a
+  // music bed's WAV): they share one instead of each taking the whole time.
   return shareRender(renderKey(recipe, opts), () => renderUnshared(recipe, opts), inflight);
 }
 
@@ -137,7 +137,7 @@ async function renderTrackPcm(generator: string, opts: { seconds?: number; sampl
   return { left: tile(left), right: tile(right), sampleRate };
 }
 
-/** Render a saved tune at `url` to a WAV blob url (asset details, video music beds). */
+/** Render a saved tune at `url` to a WAV blob url (video music beds). */
 export async function lofiTuneUrlToWavBlobUrl(url: string, seconds?: number): Promise<string> {
   const [recipe, { pcmToWavBlob }] = await Promise.all([lofiTuneFromUrl(url), import('./pcm-wav.ts')]);
   return URL.createObjectURL(pcmToWavBlob(await renderLofiTunePcm(recipe, { seconds })));

@@ -31,7 +31,7 @@ export function editingHtml(dt: DetailsCtx): string {
   // A workspace template is a set of values, not a file to edit or convert.
   if (workspaceTemplateOf(ref)) return '';
   const actions: EditAction[] = [
-    { act: 'open-with', label: t('Open with'), glyph: icon('box'), available: true, disabled: !cat.actions.choices([ref]).length, menu: true },
+    { act: 'open-with', label: t('Open with'), glyph: icon('box'), available: true, disabled: !cat.actions.canOpen([ref]), menu: true },
     { act: 'convert', label: t('Convert…'), glyph: REPLACE_ICON, available: true, disabled: !cat.actions.canConvert([ref]) },
     { act: 'open-3d', label: t('Open in 3D Studio'), glyph: icon('box'), available: ref.type === 'model' },
     { act: 'open-lut', label: t('Open in Darkroom'), glyph: icon('camera'), available: ref.type === 'lut' },
