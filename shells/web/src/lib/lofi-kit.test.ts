@@ -57,7 +57,9 @@ test('cymbals ring and hats choke: a ride is still sounding after a second, a cl
   const ride = K.cymbal(SR, K.RIDE, K.cymbalBase(K.RIDE, seeded(10)), 0.7, seeded(11));
   const hat = K.cymbal(SR, K.HAT_CLOSED, K.cymbalBase(K.HAT_CLOSED, seeded(10)), 0.7, seeded(11));
   const open = K.cymbal(SR, K.HAT_OPEN, K.cymbalBase(K.HAT_OPEN, seeded(10)), 0.7, seeded(11));
-  assert.ok(rms(ride, 1, 1.2) > rms(ride, 0, 0.05) * 0.05, 'the ride keeps its wash');
+  // The recorded ride is 27 dB under its first 50 ms at 1 to 1.2 s.
+  const wash = 20 * Math.log10(rms(ride, 1, 1.2) / rms(ride, 0, 0.05));
+  assert.ok(wash > -34 && wash < -20, `the ride keeps its wash: ${wash.toFixed(1)} dB at a second`);
   assert.ok(rms(hat, 0.2, 0.25) < rms(hat, 0, 0.02) * 0.01, 'the closed hat is choked');
   assert.ok(rms(open, 0.25, 0.3) > rms(hat, 0.25, 0.3) * 10, 'the open hat rings on');
 });
@@ -66,7 +68,8 @@ test('a snare rings out and drops off; a floor tom rings longer than a high one'
   const snare = K.snareStroke(SR, 200, 0.9, 1, 1, seeded(12));
   const attack = rms(snare, 0, 0.02);
   assert.ok(rms(snare, 0.08, 0.12) > attack * 0.02, 'the wires keep buzzing after the hit');
-  assert.ok(rms(snare, 0.45, 0.6) < attack * 0.01, 'and drop off');
+  // The recorded snare is 47 dB under its first 20 ms by 0.2 to 0.25 s.
+  assert.ok(rms(snare, 0.2, 0.25) < attack * 0.01, 'and drop off');
   const high = K.tomStroke(SR, 190, 0.8, seeded(13));
   const floor = K.tomStroke(SR, 85, 0.8, seeded(13));
   assert.ok(rms(floor, 0.4, 0.5) / rms(floor, 0, 0.02) > rms(high, 0.4, 0.5) / rms(high, 0, 0.02));
@@ -99,13 +102,40 @@ function lineStrength(x: Float32Array, at: number): number {
   return mags[Math.floor(mags.length * 0.99)]! - mags[Math.floor(mags.length / 2)]!;
 }
 
-test('a cymbal is mostly dense modes, not a few ringing lines: a crash nearly noise, a ride keeping its ping', () => {
+test('a cymbal\'s spectrum holds lines over its dense partials, as a recorded one does: neither noise nor a few pure tones', () => {
+  // Measured on a recorded kit: the ride's lines stand 30 to 31 dB over the median, the
+  // crash's 24 to 28, at 0.05 and 0.3 s. White noise reads about 8; a handful of pure tones, over 40.
   const crash = K.cymbal(SR, K.CRASH, K.cymbalBase(K.CRASH, seeded(20)), 0.9, seeded(21));
   const ride = K.cymbal(SR, K.RIDE, K.cymbalBase(K.RIDE, seeded(20)), 0.65, seeded(21));
   for (const at of [0.05, 0.3]) {
-    assert.ok(lineStrength(crash, at) < 15, `crash at ${at} s: lines ${lineStrength(crash, at).toFixed(1)} dB`);
-    assert.ok(lineStrength(ride, at) < 18, `ride at ${at} s: lines ${lineStrength(ride, at).toFixed(1)} dB`);
+    for (const [name, x] of [['crash', crash], ['ride', ride]] as const) {
+      const lines = lineStrength(x, at);
+      assert.ok(lines > 18 && lines < 36, `${name} at ${at} s: lines ${lines.toFixed(1)} dB`);
+    }
   }
+});
+
+test('a press roll bounces as a recorded one does: the second contact as loud as the first, then about 16 a second, falling away', () => {
+  const roll = K.buzzStroke(SR, 194, 0.95, 1, 1, seeded(24));
+  assert.ok(roll.every(Number.isFinite) && peak(roll) <= 0.951);
+  // The recorded fast roll: contacts at 10, 96, 156, 220 and 286 ms, the second level with the first, 20 dB down by 0.24 s.
+  const first = rms(roll, 0, 0.02), second = rms(roll, 0.085, 0.105);
+  assert.ok(second > first * 0.5, `the press: ${(20 * Math.log10(second / first)).toFixed(1)} dB`);
+  assert.ok(rms(roll, 0.3, 0.34) < first * 0.1, 'and the bounces die away');
+  // The stick held on the head damps its lowest motion: the recorded roll's band under 90 Hz
+  // is some 15 dB further down than a single stroke's. Measured by four one-pole low-passes at 60 Hz.
+  const lowShare = (x: Float32Array): number => {
+    const k = 1 - Math.exp((-2 * Math.PI * 60) / SR);
+    const y = [0, 0, 0, 0];
+    let lo = 0, all = 0;
+    for (const v of x) {
+      y[0]! += k * (v - y[0]!); y[1]! += k * (y[0]! - y[1]!); y[2]! += k * (y[1]! - y[2]!); y[3]! += k * (y[2]! - y[3]!);
+      lo += y[3]! * y[3]!; all += v * v;
+    }
+    return lo / all;
+  };
+  const under = 10 * Math.log10(lowShare(roll) / lowShare(K.snareStroke(SR, 194, 0.95, 1, 1, seeded(24))));
+  assert.ok(under < -10, `the roll's low end against a single stroke's: ${under.toFixed(1)} dB`);
 });
 
 test('a tom struck hard starts well sharp and falls back into pitch, as a recorded tom does', () => {

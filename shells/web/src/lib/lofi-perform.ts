@@ -6,6 +6,8 @@
  * sound sequenced. This module plays the bar the way people do, before the instruments
  * sound it:
  *
+ * - The drummer chooses the stroke: the ride's bell through some rock and ska choruses, a
+ *   press roll for a jazz drummer's bomb at the end of a phrase.
  * - The drummer sits in a pocket and is never quite on the grid: each hit comes a few
  *   milliseconds off, by how loose the instrument is played (a hat more than a kick), and
  *   each style has its feel (a snare laid back in hip hop and soul, hats pushed in punk).
@@ -58,6 +60,40 @@ const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   // Lofi house is a sampler played by hand and left unquantised: a lazy clap and hats a little late.
   lofiHouse: { snare: 8, hat: 5 },
 };
+
+/** A hat note's `mod` that plays the ride's bell instead (1 is a light hat, 2 the hat's foot). */
+export const HAT_BELL = 3;
+/** The styles whose drummer may ride the bell through a chorus: the rock family on the beat, ska on the offbeat with the skank. */
+const BELL_CHORUS = new Set<LofiMood>(['rock', 'punk', 'metal', 'grunge', 'stoner', 'ska']);
+/** The jazz drummer's press roll into the turn of a phrase: how long it is held (beats). */
+const PRESS_ROLL = 0.5;
+
+/** Whether a tune's drummer rides the bell in its choruses: about half of them, drawn from the tune's seed alone. */
+function ridesBell(seed: number): boolean {
+  return ((Math.imul(seed ^ 0x6e11, 0x9e3779b1) >>> 0) % 100) < 50;
+}
+
+/**
+ * The drummer's choice of stroke, before the timing. In the rock family's choruses about half
+ * the drummers move the right hand to the ride's bell on the beat (the stick cannot be on
+ * the hats too, so the eighths between drop out), and in ska's the skank's offbeat chick
+ * goes to the bell, the downbeats dropped. In jazz and swing, the snare's bomb that ends a
+ * chorus phrase is a press roll held into the next bar (a `dur`).
+ */
+function strokes(notes: LofiNote[], bar: LofiBar): LofiNote[] {
+  const mood = bar.tune.mood;
+  if (bar.section !== 'drop') return notes;
+  if (BELL_CHORUS.has(mood) && ridesBell(bar.tune.seed)) {
+    const ska = mood === 'ska';
+    return notes.flatMap((n) => {
+      if (n.voice !== 'hat' || n.mod) return [n];
+      const onBeat = Math.abs(n.beat - Math.round(n.beat)) < 0.02;
+      return onBeat !== ska ? [{ ...n, mod: HAT_BELL, vel: Math.max(n.vel, 0.5) }] : [];
+    });
+  }
+  if (mood === 'jazz' || mood === 'swing') return notes.map(n => (n.voice === 'snare' && n.vel >= 0.7 && n.beat > 3.25 ? { ...n, dur: PRESS_ROLL } : n));
+  return notes;
+}
 
 /** The drums of a bar, played: moved off the grid by the instrument's looseness and the style's pocket, each stroke a little different. */
 function drummer(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => number): void {
@@ -238,7 +274,7 @@ function leadGuitarist(notes: LofiNote[], rand: () => number): void {
  */
 export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead: LofiStyle['lead']): LofiNote[] {
   const rand = barRandom(bar);
-  let notes = [...bar.notes];
+  let notes = strokes([...bar.notes], bar);
   drummer(notes, bar, spb, rand);
   if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, rand);

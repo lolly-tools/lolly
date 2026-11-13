@@ -215,8 +215,16 @@ function hit(k: VoiceKit, out: AudioNode, t: number, p: { buf: AudioBuffer; scal
 }
 /** Each piece's place across the speakers, from the drummer's side: hats left, ride right. */
 const PAN = { hat: -0.32, ride: 0.36, crash: -0.22, snare: 0.04, kick: 0 } as const;
-/** Each piece's level against the synthesised voices it replaces, so the mix holds. */
-const LEVEL = { hat: 0.113, open: 0.168, ride: 0.077, crash: 0.23, snare: 0.505, tom: 0.345, kick: 0.64 } as const;
+/**
+ * Each piece's level, so the mix holds: first set against the synthesised voices each
+ * replaced, and kept at that loudness (K-weighted, over as long as the piece sounds in a
+ * groove: the hats 0.1 s, the snare 0.2 s, the ride 0.5 s, the crash 1 s) when the pieces
+ * were remodelled on the recorded kit. The kick is held over its first 0.1 s, its punch:
+ * the old kick's loudness was a boom ringing six times as long as a real kick's. The
+ * cross-stick and the hat's foot are set against the synthesised ones they replace; the
+ * ride's bell and the press roll play at the ride's and the snare's.
+ */
+const LEVEL = { hat: 0.109, open: 0.128, ride: 0.373, bell: 0.373, crash: 0.926, snare: 0.6, press: 0.6, rim: 0.319, pedal: 0.051, tom: 0.345, kick: 1.01 } as const;
 
 /** The cymbal a crash note plays, by the kit, with its brightness and length. */
 function crashSpec(kit: DrumKit): K.CymbalSpec {
@@ -406,6 +414,17 @@ export function snare(style: LofiStyle['snare'], k: VoiceKit, out: AudioNode, t:
 }
 
 /**
+ * A press (buzz) roll on the snare: the stick pressed into the head bounces, each bounce
+ * softer and sooner than the last (lib/lofi-kit.ts buzzStroke), a jazz drummer's roll into
+ * the turn of a phrase. A kit without real shells plays it as a snare stroke.
+ */
+export function press(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, kit: DrumKit = PLAIN_KIT): void {
+  if (!kit.real) { snare('snare', k, out, t, vel, tone, kit); return; }
+  const p = piece(k, kit, t, `press:${Math.round(tone / 50)}`, vel, (sr, v, r) => K.buzzStroke(sr, kit.snareHead * (tone / 2000) ** 0.25, v, kit.wires, kit.ring, r));
+  hit(k, out, t, p, LEVEL.press, PAN.snare);
+}
+
+/**
  * A finger snap (R&B's backbeat): the finger slapping the palm, a sharp band of noise
  * high in the mids, the skin's short pop under it, and the flick of the nail on top.
  */
@@ -477,8 +496,16 @@ function chipNoise(ctx: BaseAudioContext): AudioBuffer {
   return b;
 }
 
-/** The cross-stick: the stick laid across the head, its shaft clicking on the rim. */
-export function rim(k: VoiceKit, out: AudioNode, t: number, vel: number): void {
+/**
+ * The cross-stick: the stick laid across the head, its shaft clicking on the rim. A real kit
+ * plays the recorded kit's (lib/lofi-kit.ts crossStick: the wood and the rim's knock at
+ * 300 Hz to 1.2 kHz); an electronic kit keeps a drum machine's.
+ */
+export function rim(k: VoiceKit, out: AudioNode, t: number, vel: number, kit: DrumKit = PLAIN_KIT): void {
+  if (kit.real) {
+    hit(k, out, t, piece(k, kit, t, 'cross-stick', vel, (sr, v, r) => K.crossStick(sr, kit.snareHead, v, kit.wires, r)), LEVEL.rim, PAN.snare);
+    return;
+  }
   const { ctx } = k;
   crack(k, out, t, vel * 0.3, 4500, 0.012);
   const o = osc(k, 'sine', 1150 * nudge(k, 0.02), t, t + 0.04);
@@ -502,11 +529,9 @@ export function hat(style: LofiStyle['hats'], k: VoiceKit, out: AudioNode, t: nu
     const bank = bankOf(k.ctx, kit);
     // A closed hat closes the plates on an open one still ringing.
     if (bank.open) { bank.open.gain.setTargetAtTime(0, t, 0.008); bank.open = null; }
-    const spec: K.CymbalSpec = open
-      ? { ...K.HAT_OPEN, peak: K.HAT_OPEN.peak * kit.hatBright, choke: (K.HAT_OPEN.choke ?? 0.5) * kit.hatDecay }
-      : { ...K.HAT_CLOSED, peak: K.HAT_CLOSED.peak * kit.hatBright, choke: (K.HAT_CLOSED.choke ?? 0.05) * kit.hatDecay };
+    const spec = hatSpec(kit, open);
     const name = open ? 'hat-open' : 'hat';
-    const base = cymbalOf(kit, k, 'hats', spec);
+    const base = cymbalOf(kit, k, name, spec);
     const g = hit(k, out, t, piece(k, kit, t, name, vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r, k.hq)), open ? LEVEL.open : LEVEL.hat, PAN.hat);
     if (open) bank.open = g;
     return;
@@ -546,11 +571,26 @@ export function hat(style: LofiStyle['hats'], k: VoiceKit, out: AudioNode, t: nu
   metalAt(k, t, decay * 1.3, f / 9000).connect(mhp).connect(mg).connect(out);
 }
 
+/** The kit's hats, closed or open: their brightness and length by the kit's leans. */
+function hatSpec(kit: DrumKit, open: boolean): K.CymbalSpec {
+  const spec = open ? K.HAT_OPEN : K.HAT_CLOSED;
+  return { ...spec, scale: kit.hatBright, choke: (spec.choke ?? 0.05) * kit.hatDecay };
+}
+
 /**
  * The hi-hat's foot: the two cymbals pressed together by the pedal, a short "chick" with
- * no stick, the jazz drummer's two and four under the ride.
+ * no stick, the jazz drummer's two and four under the ride. A kit with real cymbals plays
+ * the recorded kit's chick (lib/lofi-kit.ts pedalChick), which closes an open hat too.
  */
 export function pedal(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, kit: DrumKit = PLAIN_KIT): void {
+  if (kit.realCymbals) {
+    const bank = bankOf(k.ctx, kit);
+    if (bank.open) { bank.open.gain.setTargetAtTime(0, t, 0.008); bank.open = null; }
+    const spec = hatSpec(kit, false);
+    const base = cymbalOf(kit, k, 'hat', spec);
+    hit(k, out, t, piece(k, kit, t, 'hat-pedal', vel, (sr, v, r) => K.pedalChick(sr, spec, base, v, r, k.hq)), LEVEL.pedal, PAN.hat);
+    return;
+  }
   const { ctx } = k;
   const f = tone * kit.hatBright * nudge(k, 0.03);
   const g = ctx.createGain();
@@ -570,11 +610,15 @@ export function pedal(k: VoiceKit, out: AudioNode, t: number, vel: number, tone:
  * stroke differs a little, in pitch and in length; a stroke leaned on is brighter and
  * rings longer.
  */
-export function ride(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, kit: DrumKit = PLAIN_KIT): void {
+export function ride(k: VoiceKit, out: AudioNode, t: number, vel: number, tone: number, kit: DrumKit = PLAIN_KIT, bell = false): void {
   if (kit.realCymbals) {
-    const spec: K.CymbalSpec = { ...K.RIDE, peak: K.RIDE.peak * kit.rideRate / 0.9, life: K.RIDE.life * kit.wash, seconds: K.RIDE.seconds * kit.wash, wash: K.RIDE.wash * kit.wash, bell: (K.RIDE.bell ?? 800) * kit.rideRate / 0.9 };
+    // The kit's ride: its pitch (the metal's rate), how long it washes, how much a stroke on the bow sets its bell going.
+    const spec: K.CymbalSpec = { ...K.RIDE, scale: kit.rideRate / 0.9, lives: kit.wash, bellLevel: (K.RIDE.bellLevel ?? 0) * kit.bell };
     const base = cymbalOf(kit, k, 'ride', spec);
-    hit(k, out, t, piece(k, kit, t, 'ride', vel, (sr, v, r) => K.cymbal(sr, { ...spec, bell: kit.bell > 0.5 ? spec.bell : undefined }, base, v, r, k.hq)), LEVEL.ride, PAN.ride);
+    const p = bell
+      ? piece(k, kit, t, 'ride-bell', vel, (sr, v, r) => K.rideBell(sr, spec, base, v, r, k.hq))
+      : piece(k, kit, t, 'ride', vel, (sr, v, r) => K.cymbal(sr, spec, base, v, r, k.hq));
+    hit(k, out, t, p, bell ? LEVEL.bell : LEVEL.ride, PAN.ride);
     return;
   }
   const { ctx } = k;
