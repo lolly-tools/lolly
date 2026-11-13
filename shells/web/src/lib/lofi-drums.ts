@@ -22,10 +22,10 @@
  * strike's energy (Avanzini, Marogna and Bank, DAFx-10).
  */
 import type { LofiMood, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
-import { EPS, mtof, noiseAt, osc, crack, metalAt, type VoiceKit } from './lofi-voices.ts';
+import { EPS, mtof, noiseAt, osc, crack, metalAt, drivenBy, type VoiceKit } from './lofi-voices.ts';
 import * as K from './lofi-kit.ts';
 
-export type KickKind = 'sub' | 'punch' | 'tight' | 'boom' | 'acoustic' | 'feather' | 'click';
+export type KickKind = 'sub' | 'punch' | 'tight' | 'boom' | 'house' | 'acoustic' | 'feather' | 'click';
 export type CrashKind = 'crash' | 'splash' | 'china';
 
 /** One tune's drum kit. The numbers are each about 1, the kit's lean from the middle. */
@@ -56,7 +56,7 @@ export interface DrumKit {
 /** The kinds of music, by how their drums are played. */
 const JAZZ = new Set<LofiMood>(['jazz', 'swing']);
 const BAND = new Set<LofiMood>(['blues', 'country', 'rock', 'metal', 'soul', 'funk', 'reggae', 'spanish', 'straya', 'afrobeat', 'kora', 'persian', 'guzheng', 'koto', 'citypop', 'fantasy', 'grunge', 'stoner', 'shoegaze']);
-const DUSTY = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'triphop', 'dream']);
+const DUSTY = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'triphop', 'dream', 'lofiHouse']);
 const SUBS = new Set<LofiMood>(['dubstep', 'brostep', 'dnb', 'amapiano']);
 /** The styles whose sound is the electronic kit's own synthesised metal. */
 const SYNTH_METAL = new Set<LofiMood>(['acid', 'electro', 'chiptune', 'sherbert']);
@@ -93,6 +93,7 @@ export function drumKit(seed: number, mood: LofiMood): DrumKit {
       : mood === 'punk' ? pick(['acoustic', 'punch'] as const)
         : band ? (mood === 'rock' ? pick(['acoustic', 'acoustic', 'punch'] as const) : 'acoustic')
       : mood === 'hiphop' ? pick(['boom', 'punch', 'sub'] as const)
+        : mood === 'lofiHouse' ? 'house'
         : DUSTY.has(mood) ? pick(['boom', 'boom', 'tight'] as const)
         : SUBS.has(mood) ? pick(['sub', 'sub', 'punch'] as const)
           : pick(['sub', 'punch', 'tight'] as const);
@@ -254,6 +255,8 @@ function tap(k: VoiceKit, out: AudioNode, t: number, hz: number, q: number, leve
  * - punch: a 909-style kick, a fast sweep from high with a sharp click and a shorter body.
  * - tight: short and clicky, for busy dance music.
  * - boom: a lofi kick, round and dusty, its click rolled off.
+ * - house: lofi house's kick, the boom's round body pushed a little into a soft clip, as an
+ *   old sampler's input warms it: soft, never punchy, with a little more for a small speaker.
  * - acoustic: a bass drum: its head's first two modes, a small fall in pitch with the
  *   strike, the beater's click and the shell's thump.
  * - feather: a jazz drummer's kick, felt more than heard: low, soft, no click.
@@ -287,7 +290,7 @@ export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: nu
     if (!soft || vel > 0.6) tap(k, out, t, 2800, 1.2, (soft ? 0.05 : 0.2) * hard, 0.012);   // the beater
     return;
   }
-  if (kind === 'boom') {
+  if (kind === 'boom' || kind === 'house') {
     const o = osc(k, 'sine', hz * 2, t, t + len + 0.05);
     o.frequency.exponentialRampToValueAtTime(hz, t + 0.05);
     const lp = ctx.createBiquadFilter();
@@ -297,7 +300,15 @@ export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: nu
     amp.gain.setValueAtTime(EPS, t);
     amp.gain.exponentialRampToValueAtTime(0.78 * vel, t + 0.004);
     amp.gain.exponentialRampToValueAtTime(EPS, t + len);
-    o.connect(lp).connect(amp).connect(out);
+    o.connect(lp).connect(amp);
+    if (kind === 'house') {
+      // Into the clip at about a third of full scale: the body's third harmonic about 26 dB down.
+      const [push, ws] = drivenBy(ctx, HOUSE_KICK_PUSH);
+      const back = ctx.createGain();
+      back.gain.value = HOUSE_KICK_BACK;
+      amp.connect(push);
+      ws.connect(back).connect(out);
+    } else amp.connect(out);
     tap(k, out, t, 700, 0.8, 0.14 * vel, 0.02);
     return;
   }
@@ -320,6 +331,10 @@ export function kick(k: VoiceKit, out: AudioNode, t: number, vel: number, hz: nu
   cg.gain.exponentialRampToValueAtTime(EPS, t + (punch || tight ? 0.008 : 0.012));
   noiseAt(k, t, 0.015).connect(lp).connect(cg).connect(out);
 }
+
+/** How hard the house kick is pushed into the clip, and its level after it, so it plays about as loud as the boom. */
+const HOUSE_KICK_PUSH = 0.45;
+const HOUSE_KICK_BACK = 0.95;
 
 /**
  * The backbeat, by the style's kit: a snare, a brush or a clap, around `tone` Hz, tuned by

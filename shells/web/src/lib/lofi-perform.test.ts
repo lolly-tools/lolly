@@ -81,6 +81,8 @@ test('the drummer: off the grid by milliseconds, in the style\'s pocket, a machi
   assert.ok(mean(hipHopSnare) > 8, `hip hop's snare sits back: ${mean(hipHopSnare).toFixed(1)} ms`);
   const rockHats = offsets('rock', 'hat');
   assert.ok(sd(rockHats) > 3 && sd(rockHats) < 10 && Math.max(...rockHats.map(Math.abs)) < 25, `rock hats ${sd(rockHats).toFixed(1)} ms either way`);
+  const houseHats = offsets('lofiHouse', 'hat');
+  assert.ok(mean(houseHats) > 2.5 && sd(houseHats) > 3, `lofi house is played by hand, the hats a little late: ${mean(houseHats).toFixed(1)} ms, ${sd(houseHats).toFixed(1)} either way`);
   const dnbHats = offsets('dnb', 'hat');
   assert.ok(sd(dnbHats) < 2.5, `a machine stays tight: ${sd(dnbHats).toFixed(1)} ms`);
   const bar = composeLofiTune(5, 'rock')[10]!;

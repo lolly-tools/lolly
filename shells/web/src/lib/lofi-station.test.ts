@@ -127,6 +127,34 @@ test('every mood, instrument, kit and groove schedules only sound values', () =>
   for (const texture of [0, 1]) play(18, { ...base, texture, style: { crunch: true } });
 });
 
+test('lofi house plays its deep-house bass: a sine and a saw on each note, each settling into its pitch', () => {
+  const ctx = play(61, { ...base, mood: 'lofiHouse' }, 90);
+  // A bass note starts 1.2 per cent sharp and settles on its pitch, a bass's register (under 140 Hz).
+  const settling = (type: string) => ctx.oscs.filter(o => o.type === type && o.frequency.events.length >= 2
+    && o.frequency.events[1]![0] === 'exp' && o.frequency.events[1]![1] < 140 && Math.abs(o.frequency.events[0]![1] / o.frequency.events[1]![1] - 1.012) < 1e-6).length;
+  assert.ok(settling('sine') > 20, `sines under the bass notes (${settling('sine')})`);
+  assert.equal(settling('sawtooth'), settling('sine'), 'and a saw with each');
+});
+
+test('lofi house seats its bass 7.5 dB up: the same deep bass plays that much louder there than in another style', () => {
+  // A deep bass note's level: a ramp from silence to its peak, then settling to 0.82 of the peak.
+  const peaks = (mood: LofiSettings['mood']): number[] => play(62, { ...base, mood, style: { bass: 'deep' } }, 120).gains
+    .filter(g => g.gain.events.length >= 4 && g.gain.events[1]![0] === 'exp' && g.gain.events[2]![0] === 'target'
+      && Math.abs(g.gain.events[2]![1] - g.gain.events[1]![1] * 0.82) < 1e-9)
+    .map(g => g.gain.events[1]![1]);
+  const house = peaks('lofiHouse');
+  const disco = peaks('nudisco');
+  assert.ok(house.length > 20 && disco.length > 20, `bass notes in both (${house.length}, ${disco.length})`);
+  // The most common level is the same note in both: an offbeat at full level (velocity 0.8).
+  const usual = (xs: number[]): number => {
+    const count = new Map<number, number>();
+    for (const x of xs) count.set(Math.round(x * 1e6), (count.get(Math.round(x * 1e6)) ?? 0) + 1);
+    return [...count.entries()].sort((a, b) => b[1] - a[1])[0]![0] / 1e6;
+  };
+  const db = 20 * Math.log10(usual(house) / usual(disco));
+  assert.ok(Math.abs(db - 7.5) < 0.01, `the usual note is ${db.toFixed(2)} dB up`);
+});
+
 test('the drums switch takes the kit out and leaves the music', () => {
   const style = { kick: 50, hats: 'hat' as const, snare: 'snare' as const };
   const on = play(21, { ...base, style }, 60);

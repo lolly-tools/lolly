@@ -610,3 +610,64 @@ test('the bass styles layer their bass: a travelling line and percussive stabs t
     assert.ok(composeLofiTune(4, mood).every(b => b.notes.every(n => n.voice !== 'layer')), `${mood} has no layered bass`);
   }
 });
+
+test('lofi house: a soft kick on every beat that comes in full at the drop, a filter that opens and closes, a loud bass on the offbeats, and a quiet, sparse lead', () => {
+  const swings = new Set<number>();
+  for (const seed of SEEDS.slice(0, 10)) {
+    const bars = composeLofiTune(seed, 'lofiHouse');
+    const t = bars[0]!.tune;
+    const where = `lofiHouse ${seed}`;
+    assert.ok(t.bpm >= 116 && t.bpm <= 124, `${where}: ${t.bpm} bpm`);
+    assert.ok(t.swing >= 0.56 && t.swing <= 0.6, `${where}: an MPC's swing, ${t.swing}`);
+    swings.add(t.swing);
+    assert.equal(t.style.bass, 'deep', `${where}: the deep-house bass`);
+    // The chords are deep house's: minor ninths and elevenths, major sevenths and ninths.
+    for (const name of t.progressions.flat()) assert.match(name, /(m9|m11|maj7|maj9|m7|9sus4|6\/9|9)$/, `${where}: ${name}`);
+    const drops = bars.filter(b => b.section === 'drop');
+    const back = (b: LofiBar) => b.notes.filter(n => (n.voice === 'snare' || n.voice === 'rim') && n.vel >= 0.7).map(n => n.beat);
+    for (const b of drops) {
+      const kicks = b.notes.filter(n => n.voice === 'kick');
+      assert.deepEqual(kicks.map(n => n.beat), [0, 1, 2, 3], `${where} bar ${b.index}: four on the floor`);
+      assert.ok(kicks.every(n => n.vel >= 0.85), `${where} bar ${b.index}: the full kick`);
+      assert.deepEqual(back(b), [1, 3], `${where} bar ${b.index}: a clap or a rimshot on two and four`);
+      assert.deepEqual(b.notes.filter(n => n.voice === 'openHat').map(n => n.beat), [0.5, 1.5, 2.5, 3.5], `${where} bar ${b.index}: the open hat on each offbeat`);
+      assert.ok(b.notes.filter(n => n.voice === 'hat').some(n => Math.round(n.beat * 4) % 2 === 1), `${where} bar ${b.index}: sixteenth hats between`);
+      assert.ok(b.notes.some(n => n.voice === 'perc'), `${where} bar ${b.index}: a shaker`);
+      assert.ok(b.notes.some(n => n.voice === 'bass'), `${where} bar ${b.index}: the bass plays through the drop`);
+      assert.ok(b.notes.some(n => n.voice === 'keys'), `${where} bar ${b.index}: the chords too`);
+    }
+    // The kick is held back before the drop: softer in the intro and the verse.
+    const before = bars.slice(0, bars.findIndex(b => b.section === 'drop')).flatMap(b => b.notes.filter(n => n.voice === 'kick' && Math.round(n.beat * 4) === 0));
+    assert.ok(before.length > 0 && before.every(n => n.vel < 0.92), `${where}: the kick before the drop is softer than the drop's`);
+    // The bass rides the offbeats: most of its notes start off the beat.
+    const bass = drops.flatMap(b => b.notes.filter(n => n.voice === 'bass'));
+    assert.ok(bass.filter(n => Math.abs(n.beat - Math.round(n.beat)) > 0.05).length > bass.length * 0.6, `${where}: the bass is mostly off the beat`);
+    // The filter: the intro opens it slowly from nearly shut, and each drop opens wide, closes and opens again.
+    const intro = bars.filter(b => b.section === 'intro');
+    assert.ok(intro.length >= 16 && intro[0]!.open <= 0.2 && intro.every((b, i) => i === 0 || b.open >= intro[i - 1]!.open), `${where}: a long intro the filter opens`);
+    const first = bars.findIndex(b => b.section === 'drop');
+    const firstDrop = bars.slice(first, first + 16);
+    assert.equal(firstDrop[0]!.open, 1, `${where}: the drop hits wide open`);
+    assert.ok(Math.min(...firstDrop.map(b => b.open)) < 0.8, `${where}: then the filter closes`);
+    // The breakdown: the chords and the bass alone.
+    const breakdown = bars.filter(b => b.section === 'break');
+    assert.ok(breakdown.length >= 8, `${where}: a breakdown`);
+    for (const b of breakdown) assert.ok(b.notes.every(n => n.voice === 'keys' || n.voice === 'bass' || n.voice === 'tag'), `${where} bar ${b.index}: only the chords and the bass`);
+    // The lead: none in the first half of the first drop, and a rest in the third bar of each phrase.
+    assert.ok(firstDrop.slice(0, 8).every(b => !b.notes.some(n => n.voice === 'lead')), `${where}: the lead waits for the second half`);
+    assert.ok(drops.some(b => b.notes.some(n => n.voice === 'lead')), `${where}: then it comes in`);
+    drops.forEach((b, n) => { if (n % 4 === 2) assert.ok(!b.notes.some(n2 => n2.voice === 'lead'), `${where} bar ${b.index}: the lead rests`); });
+    const leadNotes = drops.flatMap(b => b.notes.filter(n => n.voice === 'lead')).length;
+    assert.ok(leadNotes < drops.length * 4, `${where}: a sparse lead (${leadNotes} notes in ${drops.length} drop bars)`);
+  }
+  assert.ok(swings.size >= 3, `the swing varies from tune to tune (${[...swings].join(', ')})`);
+});
+
+test('adding lofi house changed no other style: its draws come from a stream of its own', () => {
+  // Composed on main before lofi house existed (b89d0b4dd0), the tag left in.
+  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 4230037030, 'jazz.7': 3436312216, 'dnb.7': 2399839091, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
+  for (const [key, want] of Object.entries(before)) {
+    const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
+    assert.equal(fingerprint(composeLofiTune(Number(seed), mood)), want, `${key} composes as it did`);
+  }
+});
