@@ -9,8 +9,9 @@
  *          felt    a soft, muffled upright: a few warm partials and a felt thump
  *          wurli   a reedier FM piano with more bark on the attack
  *          pluck   a soft pluck, half guitar and half koto: a filter that closes fast
- *   lead   vibes, flute (with breath), soft (a filtered saw, a little like muted brass),
- *          kalimba (a bright inharmonic tine), chip (a soft chiptune square, for Lolly Sings)
+ *   lead   vibes, soft (a filtered saw, a little like muted brass), kalimba (a bright
+ *          inharmonic tine), chip (a soft chiptune square, for Lolly Sings); the flute is
+ *          blown in lib/lofi-flutes.ts and played in lib/lofi-winds.ts
  *   bass   round (sine and triangle), upright (a darker pluck with a thump), synth
  *          (a filtered saw over a sine)
  *   drums  kick, snare, brush, clap, rim, hat and shaker, tuned by the style
@@ -26,8 +27,9 @@
  *   lead   pulse (a thin chiptune pulse that blips into its note), guitar (a clean
  *          electric pluck), overdrive (a driven lead guitar that bends into its notes)
  *          and synthwave (a swept saw lead with its own echoes), riff and twang (driven
- *          and clean mid-range guitars an octave down), metal (a heavy
- *          power-chord guitar an octave down) and panflute (a soft, breathy pan flute)
+ *          and clean mid-range guitars an octave down) and metal (a heavy power-chord
+ *          guitar an octave down); the pan flute and the fiddle are modelled with the
+ *          winds (lib/lofi-winds.ts)
  *   guitar nylon (a warm nylon-string guitar, strummed as keys or picked as a lead),
  *          crunch (a mid-gain power-chord rhythm guitar) and a picked bass guitar
  *   bass   croak (the modelled slap string thumbed in repeated eighths: guttural and
@@ -336,15 +338,14 @@ function pluck(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 // ── lead ──────────────────────────────────────────────────────────────────────
 
 /**
- * The lead, by the style's instrument. `art` 1 bends (harmonica, guitar, pedal steel) or
- * scoops (horns, fiddle) up into the note; the other leads play every note straight.
- * `from` is the note before when this one is slurred onto it (it starts as the last one
- * ends); the wind voices then glide from that pitch with no new attack, the way a player
- * changes note without tonguing. The other voices take no notice of the pitch.
+ * The lead, by the style's instrument (the modelled winds and the fiddle are played in
+ * lib/lofi-winds.ts). `art` 1 bends (harmonica, guitar, pedal steel) up into the note;
+ * the other leads play every note straight. `from` is the note before when this one is
+ * slurred onto it (it starts as the last one ends); the harmonica then glides from that
+ * pitch with no new attack. The other voices take no notice of the pitch.
  */
 export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0, from?: number): void {
-  if (style === 'flute') flute(k, out, t, midi, vel, dur, from);
-  else if (style === 'soft') softLead(k, out, t, midi, vel, dur);
+  if (style === 'soft') softLead(k, out, t, midi, vel, dur);
   else if (style === 'kalimba') kalimba(k, out, t, midi, vel);
   else if (style === 'vibes') vibes(k, out, t, midi, vel, dur);
   else if (style === 'chip') chip(k, out, t, midi, vel, dur);
@@ -354,14 +355,12 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'overdrive') overdrive(k, out, t, midi, vel, dur, art);
   else if (style === 'synthwave') synthwave(k, out, t, midi, vel, dur);
   else if (style === 'metal') metal(k, out, t, midi, vel, dur, art);
-  else if (style === 'panflute') panflute(k, out, t, midi, vel, dur);
   else if (style === 'nylon') nylon(k, out, t, midi, vel, dur, true);
   else if (style === 'riff') riff(k, out, t, midi, vel, dur, art);
   else if (style === 'twang') twang(k, out, t, midi, vel, dur, art);
   else if (style === 'banjo') banjo(k, out, t, midi, vel, dur);
   else if (style === 'harmonica') harmonica(k, out, t, midi, vel, dur, art, from);
   else if (style === 'pedal') pedalSteel(k, out, t, midi, vel, dur, art);
-  else if (style === 'fiddle') fiddle(k, out, t, midi, vel, dur, art);
   else if (style === 'bells') bells(k, out, t, midi, vel, dur);
   else if (style === 'chop') chop(k, out, t, midi, vel, dur);
   else if (style === 'bit') bitLead(k, out, t, midi, vel, dur);
@@ -595,38 +594,6 @@ function organ(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 }
 
 /**
- * A harmonic spectrum as a PeriodicWave, made once per context and key: `amps(n)` is the
- * level of harmonic n. A PeriodicWave is band-limited by the browser, so a bright wave
- * never aliases, and it costs one oscillator, where a waveshaper needed oversampling.
- */
-const SPECTRA = new WeakMap<BaseAudioContext, Map<string, PeriodicWave>>();
-function spectrumWave(ctx: BaseAudioContext, key: string, count: number, amps: (n: number) => number): PeriodicWave {
-  let byKey = SPECTRA.get(ctx);
-  if (!byKey) { byKey = new Map(); SPECTRA.set(ctx, byKey); }
-  let wave = byKey.get(key);
-  if (!wave) {
-    const real = new Float32Array(count + 1);
-    const imag = new Float32Array(count + 1);
-    for (let n = 1; n <= count; n++) imag[n] = amps(n);
-    wave = ctx.createPeriodicWave(real, imag);
-    byKey.set(key, wave);
-  }
-  return wave;
-}
-const fromDb = (db: number): number => 10 ** (db / 20);
-
-/** An oscillator playing `wave` at `f`, or gliding into `f` from `from` Hz (a slur). */
-function waveOsc(k: VoiceKit, wave: PeriodicWave, f: number, t: number, end: number, from?: number): OscillatorNode {
-  const o = k.ctx.createOscillator();
-  o.setPeriodicWave(wave);
-  o.frequency.setValueAtTime(from ?? f, t);
-  if (from) o.frequency.exponentialRampToValueAtTime(f, t + 0.045);
-  o.start(t);
-  o.stop(end);
-  return o;
-}
-
-/**
  * A wind's brightness, the way a real one behaves: two low-passes whose cutoff follows the
  * note's loudness, a little behind the attack (the top harmonics of a horn speak last), so
  * a soft note is nearly pure and a loud one opens right up. `low` and `high` are the
@@ -722,50 +689,6 @@ function pedalSteel(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
     g.gain.value = level;
     o.connect(g).connect(lp);
   }
-}
-
-/**
- * A fiddle: two saws (the bow never quite still) through the body's three resonances,
- * bow noise, vibrato that arrives after the stroke, and with `art` a slide up into the note.
- */
-function fiddle(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.12;
-  let node: AudioNode = ctx.createGain();
-  const input = node;
-  for (const [hz, gain, q] of [[450, 6, 1.5], [1200, 5, 1.4], [2900, 4, 1.6]] as const) {
-    const pk = ctx.createBiquadFilter();
-    pk.type = 'peaking';
-    pk.frequency.value = hz;
-    pk.gain.value = gain;
-    pk.Q.value = q;
-    node.connect(pk);
-    node = pk;
-  }
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 5500;
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.04 * vel, t + 0.05);
-  amp.gain.setValueAtTime(0.038 * vel, t + Math.max(0.06, dur));
-  amp.gain.exponentialRampToValueAtTime(EPS, end);
-  node.connect(lp).connect(amp).connect(out);
-  for (const cents of [-4, 4]) {
-    const o = osc(k, 'sawtooth', f, t, end);
-    o.detune.setValueAtTime(cents - (art ? 100 : 0), t);
-    if (art) o.detune.linearRampToValueAtTime(cents, t + 0.1);
-    vibrato(k, o.detune, t, end, 5.6, 20, Math.min(0.2, dur * 0.5));
-    o.connect(input);
-  }
-  const bow = ctx.createBiquadFilter();
-  bow.type = 'highpass';
-  bow.frequency.value = 2800;
-  const bg = ctx.createGain();
-  bg.gain.setValueAtTime(0.008 * vel, t);
-  bg.gain.exponentialRampToValueAtTime(EPS, end);
-  noiseAt(k, t, dur + 0.1).connect(bow).connect(bg).connect(out);
 }
 
 /**
@@ -1062,41 +985,6 @@ function heavy(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
  */
 function metal(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0): void {
   strings(k, ampInput(k, out, LEAD_AMP, false), t, [mtof(midi)], vel, dur, dur < 0.18, dur >= 0.3, art ? guitarAttack(art) : undefined);
-}
-
-/**
- * Pan flute: a breathy, hollow pipe. A sine and a soft triangle carry the note under
- * band-passed breath noise; a chiff of noise starts it, the pitch wavers a little as
- * breath does, and a slow vibrato comes in on held notes.
- */
-function panflute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.9;
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.1 * vel, t + 0.09);
-  amp.gain.setTargetAtTime(EPS, t + dur, 0.12);
-  amp.connect(out);
-  const tone = osc(k, 'sine', f, t, end);
-  const tri = osc(k, 'triangle', f, t, end);
-  const tg = ctx.createGain();
-  tg.gain.value = 0.3;
-  vibrato(k, tone.detune, t, end, 4.6, 14, 0.35);
-  vibrato(k, tri.detune, t, end, 4.6, 14, 0.35);
-  tone.connect(amp);
-  tri.connect(tg).connect(amp);
-  // Breath: noise in a narrow band on the note's own pitch, so the air sounds blown
-  // rather than added, swelling with the note and never louder than the tone.
-  const breath = ctx.createBiquadFilter();
-  breath.type = 'bandpass';
-  breath.frequency.value = f * 2;
-  breath.Q.value = 10;
-  const bg = ctx.createGain();
-  bg.gain.setValueAtTime(0, t);
-  bg.gain.linearRampToValueAtTime(0.7, t + 0.09);
-  bg.gain.setTargetAtTime(0.35, t + 0.12, 0.2);
-  noiseAt(k, t, dur + 0.9).connect(breath).connect(bg).connect(amp);
 }
 
 /**
@@ -1431,58 +1319,6 @@ function vibes(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   sg.gain.exponentialRampToValueAtTime(0.02 * vel, t + 0.004);
   sg.gain.exponentialRampToValueAtTime(EPS, t + 0.3);
   shimmer.connect(sg).connect(out);
-}
-
-/**
- * A flute: a near-pure tone whose upper harmonics come with the breath (louder is brighter)
- * and whose vibrato is mostly in those harmonics, a breath-pressure swell at about five a
- * second rather than a pitch wobble, as a real flute's is. A chiff of air as the note
- * speaks, unless it is slurred (`from`), when it glides from the last pitch instead.
- * Breath under the tone throughout. Everything runs until the fade is silent: a note cut
- * off mid-fade, or a broad band of breath, reads as static.
- */
-function flute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, from?: number): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.9;
-  const amp = ctx.createGain();
-  const peak = 0.085 * vel;
-  amp.gain.setValueAtTime(from ? peak * 0.5 : EPS, t);
-  amp.gain.exponentialRampToValueAtTime(peak, t + (from ? 0.03 : 0.08));
-  amp.gain.setTargetAtTime(EPS, t + Math.max(0.1, dur), 0.12);
-  amp.connect(out);
-  const fromHz = from ? mtof(from) : undefined;
-  const o = waveOsc(k, spectrumWave(ctx, 'flute1', 1, () => 1), f, t, end, fromHz);
-  vibrato(k, o.detune, t, end, 4.9, 3, 0.3);
-  o.connect(amp);
-  // The upper harmonics: their level follows the breath, and swells with the vibrato.
-  const upper = waveOsc(k, spectrumWave(ctx, 'flute-upper', 6, (n) => (n === 1 ? 0 : fromDb(-9 * (n - 1) - 1))), f, t, end, fromHz);
-  vibrato(k, upper.detune, t, end, 4.9, 3, 0.3);
-  const ug = ctx.createGain();
-  ug.gain.value = 0.25 + 0.75 * vel;
-  vibrato(k, ug.gain, t, end, 4.9, 0.2 + 0.25 * vel, 0.25);
-  upper.connect(ug).connect(amp);
-  // The chiff: a puff of air on the second harmonic as the note speaks.
-  if (!from) {
-    const cbp = ctx.createBiquadFilter();
-    cbp.type = 'bandpass';
-    cbp.frequency.value = Math.min(9000, f * 2);
-    cbp.Q.value = 3;
-    const cg = ctx.createGain();
-    cg.gain.setValueAtTime(0.5 * vel, t);
-    cg.gain.exponentialRampToValueAtTime(EPS, t + 0.05);
-    noiseAt(k, t, 0.06).connect(cbp).connect(cg).connect(amp);
-  }
-  // Breath: a narrow band on the note's own harmonic, always under the tone.
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = Math.min(9000, f * 2);
-  bp.Q.value = 9;
-  const breath = ctx.createGain();
-  breath.gain.setValueAtTime(0, t);
-  breath.gain.linearRampToValueAtTime(from ? 0.1 : 0.18, t + 0.08);
-  breath.gain.setTargetAtTime(0.09, t + 0.1, 0.15);
-  noiseAt(k, t, dur + 0.9).connect(bp).connect(breath).connect(amp);
 }
 
 /** A soft lead: a filtered saw that swells in, a little like a muted horn. */
