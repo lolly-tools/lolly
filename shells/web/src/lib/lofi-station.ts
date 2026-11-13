@@ -35,7 +35,7 @@ import { lollyTag } from './lofi-tag.ts';
 import * as D from './lofi-drums.ts';
 import * as W from './lofi-world-voices.ts';
 import * as G from './lofi-guitars.ts';
-import { perform } from './lofi-perform.ts';
+import { HAT_BELL, perform } from './lofi-perform.ts';
 import * as BL from './lofi-bass-layers.ts';
 import * as R from './lofi-winds.ts';
 import * as H from './lofi-house.ts';
@@ -714,7 +714,9 @@ export class LofiStation {
       case 'kick': { const kit = this.kitOf(bar.tune); D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, kit.kick, kit); this.duck(t, st.duck); break; }
       case 'snare':
         // A section given the cross-stick plays its snare hits on the rim.
-        if (bar.voices?.snare === 'rim') { D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim); break; }
+        if (bar.voices?.snare === 'rim') { D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim, this.kitOf(bar.tune)); break; }
+        // A snare note the drummer holds (a `dur`) is a press roll (lib/lofi-perform.ts).
+        if (note.dur > 0 && snareV === 'snare') { D.press(k, lanes.drums, t, vel, st.snareTone, this.kitOf(bar.tune)); break; }
         // A roll that climbs (Sherbert's builds) tunes each hit up by its `mod` in semitones.
         D.snare(snareV === 'rim' ? 'snare' : snareV, k, lanes.drums, t, vel * VARIANT.snare[snareV], st.snareTone * 2 ** ((note.mod ?? 0) / 12), this.kitOf(bar.tune));
         if (note.vel > 0.5) this.duck(t, st.duck * 0.45);   // a backbeat, not a ghost: the music gives it a little room
@@ -723,12 +725,13 @@ export class LofiStation {
         // A section given another snare plays its rim hits on that snare instead.
         const over = bar.voices?.snare;
         if (over && over !== 'rim') D.snare(over, k, lanes.drums, t, vel * VARIANT.snare[over], st.snareTone, this.kitOf(bar.tune));
-        else D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim);
+        else D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim, this.kitOf(bar.tune));
         break;
       }
       case 'hat':
-        // A `mod` of 2 is the hat's foot (the pedal), whatever the hats are played on.
+        // A `mod` of 2 is the hat's foot (the pedal), whatever the hats are played on; a `mod` of 3 the ride's bell (lib/lofi-perform.ts).
         if (note.mod === 2) D.pedal(k, lanes.drums, t, vel, st.hatTone, this.kitOf(bar.tune));
+        else if (note.mod === HAT_BELL) D.ride(k, lanes.drums, t, vel, st.hatTone, this.kitOf(bar.tune), true);
         else D.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, false, note.mod === 1, this.kitOf(bar.tune));
         break;
       case 'openHat': D.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, true, false, this.kitOf(bar.tune)); break;

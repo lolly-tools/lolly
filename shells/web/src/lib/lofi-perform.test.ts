@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fingerChord, perform } from './lofi-perform.ts';
+import { HAT_BELL, fingerChord, perform } from './lofi-perform.ts';
 import { composeLofiTune, type LofiBar } from '../../../../engine/src/lofi-compose.ts';
 
 const TUNING = [40, 45, 50, 55, 59, 64];
@@ -70,8 +70,11 @@ test('the drummer: off the grid by milliseconds, in the style\'s pocket, a machi
     for (const bar of composeLofiTune(5, mood).slice(4, 24)) {
       const played = perform(bar, spb, bar.tune.style.keys, bar.tune.style.lead);
       const drums = bar.notes.filter(n => n.voice === voice);
-      const moved = played.filter(n => n.voice === voice);
-      for (const [i, n] of drums.entries()) out.push((moved[i]!.beat - n.beat) * spb * 1000);
+      // Each played hit against the written one it came from (the nearest): a drummer riding the bell drops some hats.
+      for (const n of played.filter(m => m.voice === voice)) {
+        const src = drums.reduce((a, b) => (Math.abs(b.beat - n.beat) < Math.abs(a.beat - n.beat) ? b : a));
+        out.push((n.beat - src.beat) * spb * 1000);
+      }
     }
     return out;
   };
@@ -101,4 +104,32 @@ test('a lead guitarist bends some long notes and slides into some, and keeps the
   }
   assert.ok(bends > 0 && slides > 0, `${bends} bends and ${slides} slides`);
   assert.ok(bends + slides < notes * 0.5, 'most notes are picked as written');
+});
+
+test('the drummer chooses the stroke: about half the rock and ska drummers ride the bell in a chorus, and a jazz drummer press-rolls into the turn', () => {
+  for (const mood of ['rock', 'ska'] as const) {
+    let riders = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      let bells = 0;
+      for (const bar of composeLofiTune(seed, mood)) {
+        const played = perform(bar, 0.5, bar.tune.style.keys, bar.tune.style.lead);
+        const here = played.filter(n => n.voice === 'hat' && n.mod === HAT_BELL).length;
+        assert.ok(here === 0 || bar.section === 'drop', `${mood} ${seed}: the bell only in a chorus`);
+        bells += here;
+      }
+      if (bells > 0) riders++;
+    }
+    assert.ok(riders >= 3 && riders <= 9, `${mood}: ${riders} of 12 drummers ride the bell`);
+  }
+  let rolls = 0;
+  for (let seed = 1; seed <= 6; seed++) {
+    for (const bar of composeLofiTune(seed, 'jazz')) {
+      for (const n of perform(bar, 0.5, bar.tune.style.keys, bar.tune.style.lead)) {
+        if (n.voice !== 'snare' || !(n.dur > 0)) continue;
+        assert.equal(bar.section, 'drop', 'a press roll only in a chorus');
+        rolls++;
+      }
+    }
+  }
+  assert.ok(rolls > 0, 'some jazz choruses end on a press roll');
 });
