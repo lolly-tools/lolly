@@ -1,0 +1,182 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The music generator's instrument browser (views/music-studio/instrument-browser.ts): a
+   sheet from the bottom on a phone, a panel at the side on a wider screen. A head with
+   the track's name and the kinds of section to hear an instrument in, a list of
+   instrument cards grouped by family, and a foot with the two ways to use the card
+   chosen. The dialog is mounted on the body, so nothing here is scoped to the view. */
+@layer views {
+  .msb {
+    --msb-gutter: var(--sp-4);
+    /* The hairline between the head, the list and the foot: the faint edge's colour
+       (tokens.css --edge-faint), neutral in every theme rather than the brand's border hue. */
+    --msb-divider: hsl(var(--foreground) / .1);
+    box-sizing: border-box;
+    flex-direction: column;
+    padding: 0;
+    border: 0;
+    color: var(--ui-color-text-default);
+    background: var(--ui-color-surface-overlay);
+    box-shadow: var(--ui-edge-faint), var(--ui-elevation-sheet);
+    overflow: hidden;
+  }
+  .msb[open] { display: flex; }
+
+  /* A phone: a sheet risen from the bottom, most of the screen tall, over a dimmed page. */
+  .msb--sheet {
+    position: fixed;
+    inset: auto 0 0;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: min(86dvh, calc(100dvh - var(--sp-8)));
+    margin: 0;
+    border-radius: var(--ui-radius-panel) var(--ui-radius-panel) 0 0;
+    padding-block-end: env(safe-area-inset-bottom, 0px);
+  }
+  .msb--sheet::backdrop { background: hsl(0 0% 0% / .42); }
+
+  /* A wider screen: a panel down the right side, below the page's top corner buttons.
+     The page makes room for the panel (parts/music-studio.css), so the timeline stays usable. */
+  .msb--panel {
+    position: fixed;
+    inset: calc(var(--ui-size-target) + var(--sp-6) * 2) var(--sp-4) var(--sp-4) auto;
+    width: min(400px, 42vw);
+    height: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border-radius: var(--ui-radius-panel);
+    z-index: var(--z-overlay);
+  }
+
+  .msb-head {
+    flex: none;
+    display: grid;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--msb-gutter) var(--sp-3);
+    border-block-end: 1px solid var(--msb-divider);
+  }
+  .msb-grip { justify-self: center; width: 36px; height: 4px; border-radius: var(--radius-pill); background: var(--msb-divider); }
+  .msb--panel .msb-grip { display: none; }
+  .msb--panel .msb-head { padding-block-start: var(--sp-3); }
+  .msb-title-row { display: flex; align-items: center; gap: var(--sp-2); }
+  .msb-swatch { flex: none; width: 12px; height: 12px; border-radius: var(--radius-pill); background: var(--msb-track, var(--ui-color-text-muted)); }
+  .msb-title { flex: 1; min-width: 0; margin: 0; font-size: var(--fs-lg); font-weight: 700; }
+  .msb-close { flex: none; display: inline-grid; place-items: center; min-width: var(--ui-size-target); min-height: var(--ui-size-target); }
+  .msb-now { margin: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+  .msb-now:empty { display: none; }
+  .msb-sections { display: flex; gap: var(--sp-1); overflow-x: auto; scrollbar-width: none; padding-block: 2px; }
+  .msb-sections[hidden] { display: none; }
+
+  /* A kind of section to hear the instruments in, and the drums' on switch: a pill that
+     fills with the action colour when chosen. */
+  .msb-chip {
+    flex: none;
+    min-height: 32px;
+    padding: 0 var(--sp-3);
+    border: 1px solid var(--ui-color-border-default);
+    border-radius: var(--radius-pill);
+    background: var(--ui-color-surface-canvas);
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--fs-sm);
+    cursor: pointer;
+  }
+  .msb-chip[aria-pressed="true"] { background: var(--ui-color-action-primary); border-color: transparent; color: var(--ui-color-action-on-primary); }
+  .msb-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+  .msb-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--sp-3) var(--msb-gutter) var(--sp-4); }
+  .msb-family { margin-block-start: var(--sp-4); }
+  .msb-family-title {
+    margin: 0 0 var(--sp-1);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--ui-type-tracking-label);
+    text-transform: uppercase;
+    color: var(--ui-color-text-muted);
+  }
+  .msb-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); }
+
+  /* A card: the instrument (a button that plays its preview and chooses it), then its
+     star and its block. Chosen reads as a tinted fill, never an accent border. */
+  .msb-card { display: flex; align-items: center; gap: 2px; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); }
+  .msb-card.is-selected { background: var(--ui-color-selection-surface); }
+  .msb-card.is-blocked .msb-main { opacity: .6; }
+  .msb-main {
+    flex: 1;
+    min-width: 0;
+    min-height: var(--ui-size-target);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-1) var(--sp-2);
+    border: 0;
+    border-radius: inherit;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+  .msb-main:focus-visible, .msb-toggle:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+  .msb-icon {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-round);
+    background: var(--ui-color-surface-muted);
+    color: var(--msb-track, currentColor);
+  }
+  .msb-text { flex: 1; min-width: 0; display: grid; }
+  .msb-name { font-size: var(--fs-md); font-weight: 600; overflow-wrap: anywhere; }
+  .msb-card.is-current .msb-name { color: var(--ui-color-text-accent); }
+  .msb-state { font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
+  .msb-state:empty { display: none; }
+  .msb-play {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-round);
+    color: var(--ui-color-action-primary);
+    background: var(--ui-color-surface-muted);
+  }
+  .msb-stop, .msb-main[aria-pressed="true"] .msb-go { display: none; }
+  .msb-main[aria-pressed="true"] .msb-stop { display: inline-grid; }
+  .msb-main[aria-pressed="true"] .msb-play { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+  .msb-toggle {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: var(--ui-size-target);
+    height: var(--ui-size-target);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-muted);
+    cursor: pointer;
+  }
+  .msb-toggle:hover { color: var(--ui-color-text-default); }
+  .msb-fav[aria-pressed="true"] { color: var(--ui-color-action-primary); }
+  .msb-fav[aria-pressed="true"] svg { fill: currentColor; }
+  .msb-block[aria-pressed="true"] { color: var(--ui-color-status-danger); background: var(--ui-color-status-danger-surface); }
+
+  .msb-drum-parts { display: grid; gap: var(--sp-2); margin-block-start: var(--sp-4); }
+  .msb-field { display: grid; gap: var(--sp-1); font-size: var(--fs-sm); }
+  .msb-field select { width: 100%; }
+
+  .msb-foot {
+    flex: none;
+    display: grid;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--msb-gutter);
+    border-block-start: 1px solid var(--msb-divider);
+  }
+  .msb-pick { margin: 0; min-height: 1.4em; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+  .msb-actions { display: flex; gap: var(--sp-2); }
+  .msb-actions .btn { flex: 1; justify-content: center; min-height: var(--ui-size-target); }
+}
