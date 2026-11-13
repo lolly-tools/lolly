@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LEAD_OWN, PLUCK_BEND, PLUCK_HAMMER, PLUCK_SLIDE, ownOnly } from './lofi-lead-art.ts';
+import { LEAD_OWN, PLUCK_BEND, PLUCK_DEAD, PLUCK_HAMMER, PLUCK_SLIDE, ownOnly } from './lofi-lead-art.ts';
 import { perform } from './lofi-perform.ts';
 import { composeLofiTune, type LofiMood, type LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
@@ -49,10 +49,10 @@ test('an acoustic guitarist slides into some notes and hammers some on; most are
   let slides = 0, hammers = 0, all = 0;
   for (const { notes } of played('country', 'steel', [1, 2, 3])) {
     for (const n of notes) {
+      if (ownOnly(n.mod)) continue;   // its strums, double stops and rakes: see below
       all++;
       if (n.mod === PLUCK_SLIDE) slides++;
       if (n.mod === PLUCK_HAMMER) hammers++;
-      assert.ok(!ownOnly(n.mod), 'no ornament notes of its own');
     }
   }
   assert.ok(slides > 0 && hammers > 0, `${slides} slides and ${hammers} hammer-ons`);
@@ -65,4 +65,35 @@ test('a tar player tremolos held notes: as the composer asks in Persian, and on 
   assert.ok(riz('warm') > 0, 'and elsewhere');
   const bar = composeLofiTune(4, 'persian', { lead: 'tar' })[12]!;
   assert.deepEqual(perform(bar, 0.6, bar.tune.style.keys, 'tar'), perform(bar, 0.6, bar.tune.style.keys, 'tar'), 'the same every time');
+});
+
+test('the acoustic guitarist now and then strums the chord under a note, plays a double stop or rakes into one, all from the bar\'s chord', () => {
+  let strums = 0, doubles = 0, rakes = 0, melody = 0;
+  for (const { bar, spb, notes } of [...played('country', 'steel', [1, 2, 3, 4]), ...played('warm', 'steel', [1, 2, 3, 4])]) {
+    const pc = (m: number): number => ((Math.round(m) % 12) + 12) % 12;
+    for (let i = 0; i < notes.length; i++) {
+      if (!ownOnly(notes[i]!.mod)) { melody++; continue; }
+      const group: typeof notes = [];
+      while (i < notes.length && ownOnly(notes[i]!.mod)) group.push(notes[i++]!);
+      const target = notes[i]!;
+      assert.ok(target && !ownOnly(target.mod), 'every ornament leads into a melody note');
+      if (group.every(n => (n.mod! & 7) === PLUCK_DEAD)) {
+        rakes++;
+        assert.ok(group.length >= 2 && group.length <= 3 && group.every(n => n.beat < target.beat), 'two or three muted strings before the note');
+        continue;
+      }
+      for (const n of group) assert.ok(bar.tones.includes(pc(n.midi)) && n.midi < target.midi, `a chord tone under the melody (${n.midi} under ${target.midi} on ${bar.chord})`);
+      if (group.length === 1 && group[0]!.beat > target.beat - 0.001) {
+        doubles++;
+        assert.ok([3, 4, 8, 9].includes(Math.round(target.midi - group[0]!.midi)), 'a third or a sixth under');
+      } else {
+        strums++;
+        assert.ok(group.every((n, k) => k === 0 || n.midi > group[k - 1]!.midi), 'a downstroke, low to high');
+        const spread = (target.beat - group[0]!.beat) * spb;
+        assert.ok(spread > 0.015 && spread < 0.05, `the stroke ends on the melody (${(spread * 1000).toFixed(0)} ms)`);
+      }
+    }
+  }
+  assert.ok(strums >= 3 && doubles >= 3 && rakes >= 2, `${strums} strums, ${doubles} double stops, ${rakes} rakes`);
+  assert.ok(strums + doubles + rakes < melody * 0.12, `occasional (${strums + doubles + rakes} in ${melody} notes)`);
 });
