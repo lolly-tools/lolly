@@ -36,9 +36,14 @@
  * - held harmonics within about 3 dB through the 10th at mezzo-forte and forte (the softest
  *   strokes a few dB dark above the 8th), the 5th to 8th climbing 5 to 10 dB from
  *   pianissimo to fortissimo, as recorded;
- * - a stroke comes within 3 dB of its held level 70 to 120 ms after it is first heard
- *   (recorded: 57 ms fortissimo to 132 pianissimo), through a scratch whose noise between
- *   the harmonics is 3 dB (loud) to 25 dB (soft) under them (recorded: 0 to 22);
+ * - a stroke comes within 3 dB of its held level 63 to 100 ms after it starts (recorded:
+ *   57 ms fortissimo to 132 pianissimo), through a scratch whose noise between the
+ *   harmonics is 5 dB (loud) to 22 dB (soft) under them (recorded: 0 to 22). The note's
+ *   first 25 ms sit 9 to 20 dB under its held level, louder than the recordings' 20 to 35:
+ *   a bow that crept in more slowly from rest could not find Helmholtz motion on every
+ *   note (see the stroke's constants);
+ * - no note leaves Helmholtz motion once it has spoken, over every semitone from E4 to D6,
+ *   strength, slur and slide (lofi-bowed.test.ts sweeps it);
  * - held, that noise sits 21 dB (fortissimo) to 40 dB (pianissimo) under the harmonics
  *   from 1 to 8 kHz (recorded: 21 to 35), rising toward the top as recorded;
  * - with vibrato the harmonics' levels swing by about 2 dB against each other (recorded:
@@ -104,8 +109,14 @@ const BODY: ReadonlyArray<readonly [number, number, number]> = [
 
 /** Every constant the measurements set, in one place (see bowSource for what each does). */
 const BOW_TUNING = {
-  /** The bow's distance from the bridge, as a fraction of the string, and how far a player strays note to note (a share of that distance). */
-  beta: 0.1, betaSpread: 0.3,
+  /**
+   * The bow's distance from the bridge, as a fraction of the string, how far a player strays
+   * note to note (a share of that distance), and how near the bridge a stroke may come.
+   * Schelleng's playable window narrows as the bow nears the bridge (its least force grows
+   * as the square of the distance shrinks, its greatest only in proportion), and below
+   * `betaNear` a loud stroke's attack no longer finds it in time.
+   */
+  beta: 0.1, betaSpread: 0.3, betaNear: 0.095,
   /** How much of each wave the bridge sends back. */
   bridge: 0.985,
   /** The corner's rounding: a one-pole low-pass in the loop, softly bowed and at full strength. */
@@ -114,17 +125,36 @@ const BOW_TUNING = {
   hair: 1500,
   /** The bow's speed softly and at full strength (harder playing is a faster bow). */
   speedSoft: 0.1, speedLoud: 0.32,
-  /** The bow's force against its speed (the friction curve's slope times the speed): lower is heavier. */
-  kappaSoft: 0.26, kappaLoud: 0.3,
+  /**
+   * The bow's force against its speed (the friction curve's slope times the speed: lower is
+   * heavier), at the usual distance. Nearer the bridge the force grows as the distance
+   * shrinks to the power `betaPower`: 1.5 keeps the bow in the middle of Schelleng's window
+   * (the geometric mean of its least force, as the square, and its greatest, as the first
+   * power), so neither double slip (too light) nor a raucous creak (too heavy) takes over.
+   */
+  kappa: 0.26, betaPower: 1.5,
   /** The bite: extra force at the stroke's start (all of it from `biteFull` strength up, less below), and how fast it settles (s). */
   bite: 0.55, biteFull: 0.6, biteTime: 0.035,
   /**
-   * The stroke: the bow drags at a crawl for `creep` s (the scratch before the string
-   * catches), then comes up to speed over `rampSoft` s softly bowed, `rampLoud` at full
-   * strength. A firm stroke starts faster than it goes on (the accent, a share of the speed
+   * The stroke: the bow drags at `crawl` of its speed for `creep` s (the scratch before the
+   * string catches), then comes up to speed over `rampSoft` s softly bowed, `rampLoud` at
+   * full strength, for C5; a lower note takes longer and a higher one less, in proportion to
+   * its period. A firm stroke starts faster than it goes on (the accent, a share of the speed
    * from `accentFrom` strength up, settling over `accentTime` s). Lifting takes `lift` s.
+   *
+   * How the stroke starts decides whether the string finds Helmholtz motion (Guettler): the
+   * bow's force against its acceleration has to stay inside a band, or the string slips
+   * twice a period (the note an octave up) or creaks. So the bow's weight goes on before its
+   * speed (force follows the speed's share to the power `forceLead`, under 1), it presses
+   * harder through the accent (to the power `forceAccent`), the crawl is quick enough that
+   * the ramp is never steep, and the ramp scales with the period, which is what the string
+   * counts in. Measured over every semitone, strength, slur and slide the fiddle plays
+   * (E4 to D6, strength 0.1 to 1), no note leaves Helmholtz motion once it has spoken. A
+   * slower crawl from rest made the first moments quieter, as recorded, but sent loud
+   * strokes into double slip, the note an octave up, for tens of milliseconds.
    */
-  creep: 0.018, crawl: 0.06, rampSoft: 0.15, rampLoud: 0.05, accent: 1.6, accentFrom: 0.45, accentTime: 0.07, lift: 0.03,
+  creep: 0.035, crawl: 0.25, rampSoft: 0.15, rampLoud: 0.08, accent: 1.6, accentFrom: 0.45, accentTime: 0.07, lift: 0.03,
+  forceLead: 0.5, forceAccent: 2,
   /**
    * Rosin: a crackle each time the string slips, against the bow's speed (more of it the
    * harder the bow, `rosinGrow` times from softest to loudest). A little of it runs along
@@ -132,13 +162,19 @@ const BOW_TUNING = {
    * and broad. As the stroke starts the hair scratches before the string catches:
    * `scratch` of the speed, from `scratchFrom` strength up, fading over `scratchTime` s.
    */
-  rosin: 0.02, rosinDirect: 0.15, rosinGrow: 20, rosinLoud: 20, rosinHigh: 1800, scratch: 1, scratchFrom: 0.3, scratchTime: 0.03,
+  rosin: 0.02, rosinDirect: 0.15, rosinGrow: 20, rosinLoud: 20, rosinHigh: 1800, scratch: 2, scratchFrom: 0.15, scratchTime: 0.03,
   /** How far the bow's speed sways as the arm draws it (a share of it): a few slow movements, never faster than a few a second. */
   waver: 0.05,
   /** How far the pitch wanders under the finger (cents, standard deviation), below about 2 Hz. */
   wander: 2.5,
   /** When a held note's vibrato starts (s) and how long it takes to come in (s). */
   vibratoFrom: 0.18, vibratoIn: 0.25,
+  /**
+   * A slur: the string plays the note before, unheard, for `slurPreroll` s under the same
+   * bow, then the finger moves to the new note over `slurGlide` s. Starting the slurred note
+   * on a string already in Helmholtz motion is what keeps the change clean.
+   */
+  slurPreroll: 0.15, slurGlide: 0.04,
 };
 /**
  * The friction curve (after Smith and the STK's bow table): how much of the velocity
@@ -206,17 +242,20 @@ export function bowSource(n: BowNote, rand: () => number): Float32Array {
   const out = new Float32Array(Math.ceil(n.seconds * sr));
   const maxPeriod = Math.ceil(sr / Math.min(n.f, n.from ?? n.f, n.f * 2 ** (-Math.max(0, n.slide) / 12)) * 1.1) + 8;
   const T = BOW_TUNING;
-  const beta = T.beta * (1 + T.betaSpread * (rand() - 0.5));
+  const beta = Math.max(T.betaNear, T.beta * (1 + T.betaSpread * (rand() - 0.5)));
   const nut = new Line(maxPeriod);
   const bridge = new Line(Math.ceil(maxPeriod * beta * 1.5) + 8);
   const v = Math.min(1, Math.max(0, n.vel));
   const speed = T.speedSoft * (T.speedLoud / T.speedSoft) ** v;
-  // Nearer the bridge the string needs a heavier bow to hold it (Schelleng's minimum force grows as the square of the distance shrinks).
-  const kappa = (T.kappaSoft + (T.kappaLoud - T.kappaSoft) * v) * (beta / T.beta) ** 2;
+  // Nearer the bridge the string needs a heavier bow to hold it (see betaPower).
+  const kappa = T.kappa * (beta / T.beta) ** T.betaPower;
   const pole = T.poleSoft + (T.poleLoud - T.poleSoft) * v;
   const release = Math.round(n.dur * sr);
-  const creep = n.from ? 0 : T.creep * sr;
-  const ramp = (T.rampSoft + (T.rampLoud - T.rampSoft) * v) * sr;
+  // A slurred note is the same bow on a string already playing the note before: the string
+  // plays that note first, unheard, for `slurPreroll` s, and the finger changes at the start.
+  const pre = n.from ? Math.round(T.slurPreroll * sr) : 0;
+  const creep = T.creep * sr;
+  const ramp = (T.rampSoft + (T.rampLoud - T.rampSoft) * v) * sr * (523.25 / n.f);
   const accent = n.from ? 0 : T.accent * Math.max(0, v - T.accentFrom);
   const accentFall = Math.exp(-1 / (T.accentTime * sr));
   let lifted = 1;
@@ -226,14 +265,21 @@ export function bowSource(n: BowNote, rand: () => number): Float32Array {
   const hp = highpass(sr, T.rosinHigh);
   let hx1 = 0, hx2 = 0, hy1 = 0, hy2 = 0, hz1 = 0, hz2 = 0;
   const scratchFall = Math.exp(-1 / (T.scratchTime * sr));
-  let scratch = n.from ? 0 : T.scratch * Math.max(0, v - T.scratchFrom) / (1 - T.scratchFrom);
+  let scratch = T.scratch * Math.max(0, v - T.scratchFrom) / (1 - T.scratchFrom);
   let hiss = 0, hiss2 = 0;
   const biteFall = Math.exp(-1 / (T.biteTime * sr));
-  let bite = n.from ? 0 : T.bite * Math.min(1, v / T.biteFull);
-  // The arm's sway: three slow movements at rates that never line up.
-  const sway = [rand() * 6.3, rand() * 6.3, rand() * 6.3];
+  let bite = T.bite * Math.min(1, v / T.biteFull);
+  // The arm's sway: three slow movements at rates that never line up (turned a step each sample).
+  const swayHz = [1.7, 3.9, 7.3], swayLevel = [0.62, 0.5, 0.35];
+  const swayC = [0, 0, 0], swayS = [0, 0, 0], stepC = [0, 0, 0], stepS = [0, 0, 0];
+  for (let j = 0; j < 3; j++) {
+    const p0 = rand() * 6.3, w = (2 * Math.PI * swayHz[j]!) / sr;
+    swayC[j] = Math.cos(p0); swayS[j] = Math.sin(p0); stepC[j] = Math.cos(w); stepS[j] = Math.sin(w);
+  }
+  let accentLeft = 1;
+  const accentFrom = creep + ramp * 0.6;
   // The pitch: in from a slur or a slide, wandering, with a vibrato once held.
-  const glide = n.from ? 0.04 * sr : n.slide ? 0.12 * sr : 0;
+  const glide = n.from ? T.slurGlide * sr : n.slide ? 0.12 * sr : 0;
   const start = n.from ?? (n.slide ? n.f * 2 ** (-n.slide / 12) : n.f);
   const drift = Math.exp((-2 * Math.PI * 2) / sr);
   const driftScale = T.wander / (0.577 * Math.sqrt((1 - drift) / (1 + drift)));
@@ -244,41 +290,40 @@ export function bowSource(n: BowNote, rand: () => number): Float32Array {
   let lp = 0;
   const hair = Math.exp((-2 * Math.PI * Math.min(sr * 0.4, T.hair * 8 ** v)) / sr);
   let ribbon = 0, ribbon2 = 0;
-  // A slurred note's string is already moving: seed it with a period of the note before.
-  if (n.from) {
-    const p = sr / n.from;
-    for (let i = 0; i < p; i++) {
-      const s = ((i / p) * 2 - 1) * speed * 0.5;
-      nut.write(s); bridge.write(s);
-    }
-  }
-  for (let i = 0; i < out.length; i++) {
-    const into = glide ? Math.min(1, i / glide) : 1;
-    let f = start * (n.f / start) ** (into * into * (3 - 2 * into));
+  for (let i = -pre; i < out.length; i++) {
+    const into = i < 0 ? 0 : glide ? Math.min(1, i / glide) : 1;
+    let f = into >= 1 ? n.f : start * (n.f / start) ** (into * into * (3 - 2 * into));
     wander = drift * wander + (1 - drift) * (rand() * 2 - 1);
     let cents = wander * driftScale;
     if (n.vibrato && i > vibFrom) {
       phase += (2 * Math.PI * n.rate) / sr;
       cents += n.vibrato * Math.min(1, (i - vibFrom) / (T.vibratoIn * sr)) * Math.sin(phase);
     }
-    f *= 2 ** (cents / 1200);
+    f *= Math.exp(cents * (Math.LN2 / 1200));
     const period = sr / f - lagFix;
     // The bow: a crawl, up to speed with the accent on top, swaying, lifted at the end; its force bites and settles.
-    const t = i / sr;
-    const sw = T.waver * (0.62 * Math.sin(2 * Math.PI * 1.7 * t + sway[0]!) + 0.5 * Math.sin(2 * Math.PI * 3.9 * t + sway[1]!) + 0.35 * Math.sin(2 * Math.PI * 7.3 * t + sway[2]!));
-    let up = 1;
-    if (!n.from) {
-      const r = Math.min(1, Math.max(0, (i - creep) / ramp));
-      up = i < creep ? T.crawl : T.crawl + (1 - T.crawl) * r * r * (3 - 2 * r);
-      if (i > creep) up *= 1 + accent * accentFall ** Math.max(0, i - creep - ramp * 0.6);
+    const k = i + pre;  // the bow's own time, from when it met the string
+    let sw = 0;
+    for (let j = 0; j < 3; j++) {
+      const c = swayC[j]! * stepC[j]! - swayS[j]! * stepS[j]!;
+      swayS[j] = swayS[j]! * stepC[j]! + swayC[j]! * stepS[j]!;
+      swayC[j] = c;
+      sw += swayLevel[j]! * swayS[j]!;
     }
+    sw *= T.waver;
+    const r = Math.min(1, Math.max(0, (k - creep) / ramp));
+    const base = k < creep ? T.crawl : T.crawl + (1 - T.crawl) * r * r * (3 - 2 * r);
+    if (k > accentFrom) accentLeft *= accentFall;
+    const acc = k > creep && accentLeft > 1e-4 ? 1 + accent * accentLeft : 1;
+    const up = base * acc;
     if (i >= release) lifted *= liftFall;
     const off = lifted > 0.001 ? lifted : 0;
     const vb = speed * up * off * (1 + sw);
     bite *= biteFall;
-    if (i > creep) scratch *= scratchFall;
-    // The force comes in with the speed (a player draws both together), a little heavier as the stroke bites.
-    const sl = (kappa / Math.max(vb, speed * 0.03)) * (1 - bite);
+    if (k > creep) scratch *= scratchFall;
+    // The weight goes on before the speed, presses harder through the accent, and is heavier still as the stroke bites.
+    const force = (base < 1 ? base ** T.forceLead : 1) * (acc > 1 ? acc ** T.forceAccent : 1);
+    const sl = (kappa / Math.max(speed * force * off * (1 + sw), speed * 0.03)) * (1 - bite);
     // The waves arriving at the bow from the finger and from the bridge (each turned over at its end).
     const fromNut = -nut.read(period * (1 - beta));
     const atBridge = bridge.read(period * beta);
@@ -304,7 +349,7 @@ export function bowSource(n: BowNote, rand: () => number): Float32Array {
     bridge.write(fromNut + push);
     ribbon = (1 - hair) * (atBridge + rasp) + hair * ribbon;
     ribbon2 = (1 - hair) * ribbon + hair * ribbon2;
-    out[i] = ribbon2;
+    if (i >= 0) out[i] = ribbon2;
   }
   return out;
 }
