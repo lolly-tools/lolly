@@ -155,8 +155,10 @@ export interface LofiNote {
    * how many times the chord's level and filter swing each beat (0 holds it), plus 16
    * when the chord bends up into its pitch. On the electric guitar (keys `electric`), how
    * the chord is played, as ELECTRIC_* flags: an upstroke, choked (the fretting hand lets
-   * go as it ends), dead (the strings muted by the fretting hand: a scratch) or
-   * palm-muted; the performer adds the fret each note is fingered at. On a snare, how many semitones it is tuned
+   * go as it ends), dead (the strings muted by the fretting hand: a scratch), palm-muted,
+   * slid into from a fret below, or a chord held and picked string by string (the
+   * performer chooses the strings and when); the performer adds the fret each note is
+   * fingered at. On a snare, how many semitones it is tuned
    * up (a build's roll climbing). On a hat, 1 is a light one: the hiss without the metal.
    */
   mod?: number;
@@ -2563,7 +2565,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           }
         } else if (keysV === 'electric') {
           // The electric guitar, played as the style plays it (see electricBar).
-          notes.push(...electricBar(mood, part.section, build, lastOfBuild, voicing, sb, rng));
+          notes.push(...electricBar(mood, part.section, build, lastOfBuild, voicing, chord, i, sb, rng));
         } else if (keysV === 'wah') {
           // Funk guitar: chanks on the sixteenths, the top of the chord with a wah on each,
           // muted scratches between.
@@ -3039,7 +3041,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
 // ── the electric guitar's parts ────────────────────────────────────────────
 
 /** How an electric guitar's chord is played, in its notes' `mod`: see LofiNote. The performer adds the fret, times ELECTRIC_FRET. */
-export const ELECTRIC_UP = 1, ELECTRIC_CHOKE = 2, ELECTRIC_DEAD = 4, ELECTRIC_PALM = 8, ELECTRIC_FRET = 16;
+export const ELECTRIC_UP = 1, ELECTRIC_CHOKE = 2, ELECTRIC_DEAD = 4, ELECTRIC_PALM = 8, ELECTRIC_SLIDE = 16, ELECTRIC_PICK = 32, ELECTRIC_FRET = 64;
 /** Funk's two bars of chicken scratch: the sixteenths where the chord rings out (choked short); every other sixteenth is a muted scratch or a miss. */
 const SCRATCH_CHANKS: ReadonlyArray<readonly number[]> = [[0, 3, 6, 10, 13], [2, 6, 7, 10, 14], [0, 6, 9, 12, 14], [3, 6, 10, 11, 14]];
 /** City pop's cutting: the offbeats choked short, one pushed a sixteenth. */
@@ -3052,14 +3054,18 @@ const CUTS: ReadonlyArray<readonly number[]> = [[2, 6, 10, 14], [2, 7, 10, 14], 
  * - reggae: the chop on two and four (the one drop's tempo is half ska's), shorter still,
  *   on the top three strings; a chorus sometimes doubles the four;
  * - funk: the chicken scratch, sixteenths strummed all bar with the strings muted (a
- *   scratch) and the chord let ring and choked on two bars of syncopated chanks;
+ *   scratch) and the chord let ring and choked on two bars of syncopated chanks; at the
+ *   end of a phrase (the second bar of two, more often the fourth of four) the back half
+ *   of the bar is a lick instead (funkLick);
  * - city pop's chorus: the offbeats cut short, a muted scratch now and then between;
- * - every quiet part, and rock's clean intro and breakdown: the chord picked as an
- *   arpeggio in eighths, each string left to ring.
+ * - every quiet part, and rock's clean intro and breakdown: the chord held and picked
+ *   string by string, each string left to ring, as a guitarist plays it: written as one
+ *   held chord for the performer to finger and pick (lib/lofi-perform.ts), not as a
+ *   keyboard's arpeggio up and down the chord's tones.
  * The voicing's top three or four notes make a funk or a skank chord; the performer
- * fingers and strums them (lib/lofi-perform.ts).
+ * fingers and strums them.
  */
-function electricBar(mood: DanceMood, section: LofiSection, build: boolean, lastOfBuild: boolean, voicing: readonly number[], sb: (step: number) => number, rng: () => number): LofiNote[] {
+function electricBar(mood: DanceMood, section: LofiSection, build: boolean, lastOfBuild: boolean, voicing: readonly number[], harmony: Chord, inPart: number, sb: (step: number) => number, rng: () => number): LofiNote[] {
   const out: LofiNote[] = [];
   const chord = (step: number, dur: number, vel: number, mod: number, tones: readonly number[] = voicing): void => {
     if (lastOfBuild && step >= 14) return;
@@ -3082,10 +3088,13 @@ function electricBar(mood: DanceMood, section: LofiSection, build: boolean, last
   if (mood === 'funk' && !quiet) {
     const top = voicing.slice(-3);
     const chanks = SCRATCH_CHANKS[Math.floor(rng() * SCRATCH_CHANKS.length)]!;
-    for (let s = 0; s < 16; s++) {
+    // The end of a phrase: the fourth bar of four nearly always, the second of two often.
+    const lick = !lastOfBuild && (inPart % 4 === 3 ? rng() < 0.85 : inPart % 2 === 1 && rng() < 0.45);
+    for (let s = 0; s < (lick ? 8 : 16); s++) {
       if (chanks.includes(s)) chord(s, 0.18, s % 4 === 0 ? 0.68 : 0.62, ELECTRIC_CHOKE, top);
       else if (rng() < 0.75) chord(s, 0.06, s % 2 ? 0.34 : 0.42, ELECTRIC_DEAD, top);
     }
+    if (lick) out.push(...funkLick(harmony, sb, rng));
     return out;
   }
   if (section === 'drop') {
@@ -3095,15 +3104,62 @@ function electricBar(mood: DanceMood, section: LofiSection, build: boolean, last
     for (const s of [5, 13]) if (rng() < 0.4) chord(s, 0.06, 0.32, ELECTRIC_DEAD, top);
     return out;
   }
-  // The arpeggio: the chord's tones up and down in eighths, each left to ring.
-  const strings = [...new Set([...voicing, ...voicing.map(p => p + 12)].filter(p => p <= 76))].sort((x, y) => x - y);
-  const up = [...strings, ...[...strings].reverse().slice(1, -1)];
-  for (let st = 0; st < 16; st += 2) {
-    if (lastOfBuild && st >= 14) break;
-    out.push({ voice: 'keys', midi: up[(st / 2) % up.length]!, beat: sb(st), dur: 1.1, vel: clamp01((st % 8 === 0 ? 0.5 : 0.42) + (rng() - 0.5) * 0.05) });
-  }
+  // The chord held and picked: one chord the length of the bar, for the performer to finger and pick.
+  chord(0, lastOfBuild ? 3.5 : 4, 0.5, ELECTRIC_PICK);
   return out;
 }
+
+/**
+ * A funk guitarist's lick for the back half of a bar (sixteenths 8 to 15), one of three:
+ * - a double-stop (the chord's third and its seventh or fifth, high on the neck) slid into
+ *   from a fret below, choked, and answered a little later;
+ * - a run through the chord's own tones, up or down, slid into its first note (the slide
+ *   is the chromatic approach), a muted ghost note in it, ending on the root or the fifth;
+ * - octaves: the root doubled twelve semitones up, syncopated and choked.
+ * Each note is short and stopped, so the lick snaps against the scratch around it, and
+ * every note stays a chord tone inside the keys' range (KEYS_LO to KEYS_HI).
+ */
+function funkLick(harmony: Chord, sb: (step: number) => number, rng: () => number): LofiNote[] {
+  const out: LofiNote[] = [];
+  const note = (step: number, midi: number, dur: number, vel: number, mod: number): void => {
+    out.push({ voice: 'keys', midi, beat: sb(step), dur, vel: clamp01(vel + (rng() - 0.5) * 0.06), mod });
+  };
+  const root = harmony.root;
+  const kind = rng();
+  if (kind < 0.34) {
+    const third = harmony.tones[1] ?? (root + 4) % 12;
+    const top = harmony.tones[3] ?? harmony.tones[2] ?? (root + 7) % 12;
+    const low = placeIn(third, 60, 67), high = Math.min(KEYS_HI, placeIn(top, low + 3, low + 9));
+    const at = rng() < 0.5 ? 10 : 8;
+    for (const p of [low, high]) note(at, p, 0.4, 0.72, ELECTRIC_SLIDE | ELECTRIC_CHOKE);
+    for (const p of [low, high]) note(at + 3, p, 0.16, 0.6, ELECTRIC_CHOKE);
+    if (at === 8) for (const p of [low, high]) note(14, p, 0.2, 0.64, ELECTRIC_CHOKE);
+    return out;
+  }
+  if (kind < 0.72) {
+    const base = placeIn(root, 55, 64);
+    const ladder: number[] = [];
+    for (let p = base; p <= Math.min(KEYS_HI, base + 14); p++) if (harmony.tones.includes(p % 12)) ladder.push(p);
+    const rhythm = FUNK_RUNS[Math.floor(rng() * FUNK_RUNS.length)]!;
+    const down = rng() < 0.5;
+    let at = down ? ladder.length - 1 - Math.floor(rng() * 2) : Math.floor(rng() * 2);
+    const ghost = 1 + Math.floor(rng() * (rhythm.length - 2));
+    rhythm.forEach((step, k) => {
+      const last = k === rhythm.length - 1;
+      const pitch = last ? placeIn(rng() < 0.6 ? root : harmony.tones[2] ?? root, ladder[0]!, ladder[0]! + 11) : ladder[Math.max(0, Math.min(ladder.length - 1, at))]!;
+      if (k === ghost) note(step, pitch, 0.08, 0.4, ELECTRIC_DEAD);
+      else note(step, pitch, last ? 0.5 : 0.22, k === 0 ? 0.74 : 0.66, (k === 0 ? ELECTRIC_SLIDE : 0) | ELECTRIC_CHOKE);
+      at += down ? -1 : 1;
+    });
+    return out;
+  }
+  const r = placeIn(root, 52, 63);
+  const steps = rng() < 0.5 ? [8, 11, 14] : [10, 12, 15];
+  steps.forEach((step, k) => { for (const p of [r, r + 12]) note(step, p, 0.2, k === 0 ? 0.72 : 0.64, (k === 0 ? ELECTRIC_SLIDE : 0) | ELECTRIC_CHOKE); });
+  return out;
+}
+/** The rhythms of a funk run, in sixteenths of the bar's back half. */
+const FUNK_RUNS: ReadonlyArray<readonly number[]> = [[8, 10, 11, 13, 14], [9, 10, 12, 14, 15], [8, 9, 11, 12, 14], [10, 11, 13, 14, 15]];
 
 // ── the world styles ──────────────────────────────────────────────────────
 
