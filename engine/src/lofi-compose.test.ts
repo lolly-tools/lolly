@@ -427,6 +427,29 @@ test('tunes differ: instruments, groove, kit and openings vary, and the mood lea
   }
 });
 
+test('the plucked keys instruments lead in the styles they suit, and the world styles lean on their plucked leads', () => {
+  /** How often each lead plays a style's lead bars across 40 tunes. */
+  const leads = (mood: Parameters<typeof composeLofiTune>[1]): Map<string, number> => {
+    const count = new Map<string, number>();
+    for (let seed = 1; seed <= 40; seed++) {
+      for (const b of composeLofiTune(seed * 7919, mood)) {
+        if (!b.notes.some(n => n.voice === 'lead')) continue;
+        const v = b.voices?.lead ?? b.tune.style.lead;
+        count.set(v, (count.get(v) ?? 0) + 1);
+      }
+    }
+    return count;
+  };
+  const share = (m: Map<string, number>, ...ids: string[]): number => ids.reduce((s, id) => s + (m.get(id) ?? 0), 0) / [...m.values()].reduce((s, n) => s + n, 0);
+  for (const [mood, id] of [['fantasy', 'harp'], ['dream', 'harp'], ['rainy', 'harp'], ['lateNight', 'harp'], ['country', 'steel'], ['straya', 'steel'], ['warm', 'steel'], ['persian', 'tar']] as const) {
+    assert.ok(share(leads(mood), id) > 0.04, `${mood} draws the ${id} as its lead`);
+  }
+  for (const id of ['harp', 'steel', 'tar']) assert.equal(share(leads('metal'), id), 0, `not the ${id} in metal`);
+  assert.ok(share(leads('guzheng'), 'zheng', 'pipa') > 0.5, 'guzheng leans on the zheng and the pipa');
+  assert.ok(share(leads('koto'), 'koto', 'shamisen') > 0.5, 'koto leans on the koto and the shamisen');
+  assert.ok(share(leads('kora'), 'kora', 'balafon') > 0.75, 'kora leans on the kora and the balafon');
+});
+
 test("a tune's shape: an opening, a verse, a fading outro and one silent bar", () => {
   for (const seed of SEEDS.slice(0, 8)) {
     const bars: LofiBar[] = composeLofiTune(seed, 'warm');

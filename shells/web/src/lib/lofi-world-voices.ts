@@ -6,7 +6,7 @@
  *
  *   keys   tar, santur, zheng (guzheng), koto, shamisen, kora, balafon
  *   lead   santur, ney, shakuhachi, dizi, kamancheh, erhu, zheng, koto, pipa, shamisen,
- *          kora, balafon
+ *          kora, balafon, tar
  *   bass   log (amapiano's log drum)
  *   perc   the hand drums and bells from the tombak on (see LOFI_PERCUSSION)
  *
@@ -23,7 +23,7 @@ import { EPS, mtof, noiseAt, osc, plucked, vibrato, drivenBy, metalAt, crack, PL
 /** The keys this module plays. */
 export const WORLD_KEYS = new Set<LofiStyle['keys']>(['tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon']);
 /** The leads this module plays. */
-export const WORLD_LEADS = new Set<LofiStyle['lead']>(['santur', 'ney', 'shakuhachi', 'dizi', 'kamancheh', 'erhu', 'zheng', 'koto', 'pipa', 'shamisen', 'kora', 'balafon']);
+export const WORLD_LEADS = new Set<LofiStyle['lead']>(['santur', 'ney', 'shakuhachi', 'dizi', 'kamancheh', 'erhu', 'zheng', 'koto', 'pipa', 'shamisen', 'kora', 'balafon', 'tar']);
 /** The first percussion kind (by its `mod`) this module plays: the tombak, and every later kind too. */
 export const WORLD_PERC_FROM = 5;
 
@@ -52,6 +52,7 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'shamisen') shamisen(k, out, t, midi, vel, dur);
   else if (style === 'kora') kora(k, out, t, midi, vel, dur);
   else if (style === 'balafon') balafon(k, out, t, midi, vel);
+  else if (style === 'tar') tarLead(k, out, t, midi, vel, dur, art);
 }
 
 /** The log drum, the one bass here; `mod` 2 or more slides. */
@@ -78,6 +79,22 @@ export function perc(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
  */
 function tar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
   plucked(k, out, t, midi, vel, dur, { pickAt: 0.1, bright: 26, mellow: 8.5, ring: 1.1, body: 2300, level: 0.06, course: 6 });
+}
+
+/**
+ * The tar as the lead: one doubled course picked at a time, a little nearer the middle of
+ * the string than for the drone, so the melody sings over the drone. `art` 1 is the riz, the
+ * plectrum tremoloing a held note (down and up strokes, the up a little lighter), the way
+ * a tar player sustains one.
+ */
+function tarLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
+  const pick = (at: number, v: number, d: number): void => plucked(k, out, at, midi, v, d, { pickAt: 0.13, bright: 24, mellow: 7, ring: 1.3, body: 2100, level: 0.085, course: 5 });
+  if (art === 1 && dur > 0.35) {
+    const n = Math.min(24, Math.floor(dur / 0.075));
+    for (let i = 0; i < n; i++) pick(t + i * 0.075, vel * (i % 2 ? 0.72 : 0.9) * (i === 0 ? 1.1 : 1), i === n - 1 ? Math.max(0.2, dur - i * 0.075) : 0.16);
+  } else {
+    pick(t, vel, dur);
+  }
 }
 
 /**

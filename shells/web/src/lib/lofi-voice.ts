@@ -69,7 +69,7 @@ class Resonator {
 }
 
 /** A smooth step from 0 to 1. */
-const ease = (u: number): number => u * u * (3 - 2 * u);
+export const ease = (u: number): number => u * u * (3 - 2 * u);
 
 /** Render one speaker saying the word (or the sounds in `phones`) into `out` (left, right). */
 function say(out: [Float32Array, Float32Array], sr: number, phones: readonly Phone[], s: Saying, rand: () => number, at: number): void {
@@ -262,7 +262,7 @@ function goSyllable(): Syllable {
 interface Shouter { f0: number; tract: number; open: number; rasp: number; stretch: number; level: number; pan: number; late: number }
 
 /** A formant resonator in Klatt's form, as Resonator, its frequency and bandwidth set every few samples rather than each one. */
-class Formant {
+export class Formant {
   private y1 = 0; private y2 = 0;
   private a = 0; private b = 0; private c = 0;
   set(f: number, bw: number, sr: number): void {
@@ -279,7 +279,7 @@ class Formant {
 }
 
 /** A band-pass filter of constant peak gain (the audio EQ cookbook's), for the noise of a hiss or a click. */
-class BandPass {
+export class BandPass {
   private x1 = 0; private x2 = 0; private y1 = 0; private y2 = 0;
   private b0 = 0; private a1 = 0; private a2 = 0;
   set(f: number, bw: number, sr: number): void {
