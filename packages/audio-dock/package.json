@@ -9,7 +9,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./styles": "./src/styles.ts"
+    "./styles": "./src/styles.ts",
+    "./seek-grid": "./src/seek-grid.ts"
   },
   "files": [
     "src",

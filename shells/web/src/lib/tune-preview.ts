@@ -1,153 +1,225 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * A saved tune (lib/lofi-tune.ts) in an asset preview's `<audio>` element, playable the
- * moment someone presses play.
+ * A saved tune (lib/lofi-tune.ts) in an asset preview, played the way the Neurospicy
+ * player plays one: live, on the same station, from its recipe. Nothing is rendered
+ * first, so the tune plays the moment someone presses play.
  *
- * A tune is a recipe, so the element has nothing to play until the recipe is rendered to
- * a WAV, and a full-length generator track renders at about four times real time: half a
- * minute for a two-minute track. A press in that time used to do nothing at all. Now a
- * press before the WAV is ready plays the tune live instead, on the same station the
- * Neurospicy player uses, streamed into the element (a MediaStream), so the transport's
- * play, pause, clock, volume and mute all work as they do for a file.
+ * The station plays into one gain, and from there two ways: into the preview's `<audio>`
+ * element (a MediaStream), so the transport's play, pause, volume and mute work as they
+ * do for a file; and into an analyser, which the level meter and the visualiser read
+ * (`tap()`, see lib/audio-meter.ts). The analyser sits before the element's volume, as
+ * the Neurospicy player's visualiser feed does, so the bars move however quietly the
+ * tune plays.
  *
- * The WAV keeps rendering, and takes over at the next natural stop: a pause (at the same
- * point in the track) or the end of the track. From then on the element plays the file,
- * which is what makes the scrubber, the level meter and the visualiser available (each
- * needs a real source; the meter waits for one, see lib/audio-meter.ts). A press after the
- * WAV is ready plays the file directly, as before.
- *
- * Live and rendered play the same notes with the same instruments, mix and length: both
- * come from the recipe, through the station settings that recipe gives.
+ * The transport reads the tune's place from `source`: the bar playing and its time, from
+ * the same bars and the same position the Neurospicy player uses (lib/neurospicy-lofi.ts).
+ * A seek starts the tune again from the top of the nearest bar on a new station, as the
+ * music generator plays from a bar. A pause holds the tune where it is; the end of the
+ * tune stops it and puts it back at the top.
  */
-import { lofiTuneFromUrl, lofiTuneUrlToWavBlobUrl, type LofiTuneRecipe } from './lofi-tune.ts';
+import { lofiTuneFromUrl, type LofiTuneRecipe } from './lofi-tune.ts';
+import { nearestBar, stationPosition, trackTimeline, tuneTimeline, type LofiTimeline } from './neurospicy-lofi.ts';
+import { positionWords } from './neuro-position.ts';
+import type { LofiMix, LofiSettings, LofiStation } from './lofi-station.ts';
+import type { TransportSource } from './audio-transport.ts';
 
-/** Seconds of reverb tail after the last bar, the same as the rendered WAV keeps. */
+/** Seconds of reverb tail a generator track keeps after its last bar. */
 const TAIL = 2.5;
+/** A new station starts its first bar this far in (lib/lofi-station.ts start()). */
+const LEAD = 0.1;
 
 export interface TunePreview {
-  /** Stop a live tune and drop the listeners. The WAV blob stays on `dataset.wavBlob`, for the sheet to free. */
+  /** Stop the tune, close its audio and drop the listeners. */
   dispose(): void;
+  /** The analyser the level meter and the visualiser read, and its context, while the tune is live. */
+  tap(): { analyser: AnalyserNode; context: BaseAudioContext } | null;
+  /** The tune's place and its bars, for the transport's clock and scrubber. */
+  readonly source: TransportSource;
 }
 
-interface Live {
-  ctx: AudioContext;
-  stop(): void;
-  /** Seconds into the track, from the live context's clock (which stops while suspended). */
-  position(): number;
-  /** Set the end-of-track timer from the current position (on), or clear it (off). */
-  arm(on: boolean): void;
+/** How a recipe plays: the station settings from a bar, its mix, its bars, and where it is over. */
+export interface TunePlan {
+  seed: number;
+  settings(startBar: number): LofiSettings;
+  mix?: LofiMix;
+  line: LofiTimeline;
+  /** A generator track counts its bars by their place in the track, a tune by their index in the tune. */
+  byPlace: boolean;
+  /** Seconds from the top at which the tune is over. */
+  end: number;
 }
 
-/** The station settings and length that play `recipe` as its WAV sounds. */
-async function liveSettings(recipe: LofiTuneRecipe): Promise<{ seed: number; settings: import('./lofi-station.ts').LofiSettings; mix?: import('./lofi-station.ts').LofiMix; seconds: number }> {
+/** The plan for `recipe`: the same station settings its WAV renders with (lib/lofi-tune.ts). */
+export async function tunePlan(recipe: LofiTuneRecipe): Promise<TunePlan> {
+  const compose = await import('../../../../engine/src/lofi-compose.ts');
   if (recipe.generator) {
-    const { parseMusicState, trackSettings, trackSeconds } = await import('./music-state.ts');
-    const state = parseMusicState(recipe.generator);
-    return { seed: state.seed, settings: trackSettings(state), mix: state.mix, seconds: trackSeconds(state) + TAIL };
+    const music = await import('./music-state.ts');
+    const state = music.parseMusicState(recipe.generator);
+    const line = trackTimeline(compose, music, state);
+    return { seed: state.seed, settings: (bar) => music.trackSettings(state, bar), mix: state.mix, line, byPlace: true, end: line.total + TAIL };
   }
-  const { lofiTuneSeconds } = await import('../../../../engine/src/lofi-compose.ts');
-  // The same settings renderLofiTunePcm renders a station tune with.
-  return { seed: recipe.seed, settings: { mood: recipe.mood, drums: true, texture: 0.5, repeat: true }, seconds: lofiTuneSeconds(recipe.seed, recipe.mood) + TAIL };
+  const line = tuneTimeline(compose, recipe.mood, recipe.seed);
+  // A station tune ends on a rest bar, which holds its tail; after it the tune would start again.
+  return {
+    seed: recipe.seed,
+    settings: (bar) => ({ mood: recipe.mood, drums: true, texture: 0.5, repeat: true, ...(bar ? { startBar: bar } : {}) }),
+    line, byPlace: false, end: line.total,
+  };
 }
+
+interface Live { ctx: AudioContext; out: GainNode; analyser: AnalyserNode; station: LofiStation | null }
 
 /**
- * Give `audioEl` the tune at `url`. `onError` is told when the WAV cannot be made; live
- * playback still works without one.
+ * Give `audioEl` the tune at `url`. `onError` is told when the tune cannot be read or
+ * played.
  */
 export function attachTunePreview(audioEl: HTMLAudioElement, url: string, onError: () => void): TunePreview {
   let disposed = false;
-  let wav: string | null = null;
+  let plan: TunePlan | null = null;
   let live: Live | null = null;
   let starting = false;
+  let Station: typeof LofiStation | null = null;
+  /** The bar the next start begins at (a seek before playing, or the top). */
+  let from = 0;
+  /** The bar a new station starts on, until that bar sounds. */
+  let pending: number | null = null;
+  let ends: ReturnType<typeof setTimeout> | null = null;
+  const listeners = new Set<() => void>();
+  const changed = (): void => { for (const l of listeners) { try { l(); } catch { /* one listener never blocks the rest */ } } };
 
-  /** Hand the element the rendered file, at `at` seconds. */
-  const useWav = (at: number): void => {
-    if (!wav || disposed) return;
-    audioEl.srcObject = null;
-    audioEl.src = wav;
-    if (at > 0) audioEl.addEventListener('loadedmetadata', () => { audioEl.currentTime = Math.min(at, audioEl.duration || at); }, { once: true });
+  const ready = lofiTuneFromUrl(url).then(tunePlan).then((p) => {
+    if (!disposed) { plan = p; changed(); }
+    return p;
+  }).catch(() => { if (!disposed) onError(); return null; });
+
+  const position = (): { seconds: number; duration: number } | null => {
+    if (!plan) return null;
+    const { line } = plan;
+    const station = live?.station ?? null;
+    const bar = pending ?? (station ? null : from);
+    if (bar !== null || !station) return { seconds: line.starts[bar ?? 0] ?? 0, duration: line.total };
+    return { seconds: stationPosition(station, line, plan.byPlace)?.seconds ?? 0, duration: line.total };
   };
 
-  const stopLive = (): number => {
-    if (!live) return 0;
-    const at = live.position();
-    live.stop();
+  const stopLive = (): void => {
+    if (ends) clearTimeout(ends);
+    ends = null;
+    pending = null;
+    if (!live) return;
+    if (live.station) { live.station.onBar = null; live.station.stop(0.05); }
     void live.ctx.close().catch(() => { /* already closed */ });
     live = null;
-    return at;
+  };
+
+  /** The end of the tune: stop, and stand ready at the top. */
+  const finish = (): void => {
+    stopLive();
+    from = 0;
+    audioEl.pause();
+    audioEl.srcObject = null;
+    audioEl.load();
+    changed();
+  };
+
+  /** Run the end-of-tune timer from where the tune is now (on), or stop it (off). */
+  const arm = (on: boolean): void => {
+    if (ends) clearTimeout(ends);
+    ends = null;
+    if (!on || !plan || !live) return;
+    const lead = pending !== null ? LEAD : 0;
+    ends = setTimeout(finish, Math.max(0, plan.end - (position()?.seconds ?? 0) + lead) * 1000);
+  };
+
+  /** Start a station on `bar`, fading out the one before. */
+  const playFrom = (bar: number): void => {
+    if (!live || !plan || !Station) return;
+    const old = live.station;
+    if (old) { old.onBar = null; old.stop(0.08); }
+    const s = new Station(live.ctx, live.out, plan.seed, plan.settings(bar), plan.mix);
+    s.setVolume(1);
+    pending = bar;
+    s.onBar = () => {
+      if (live?.station !== s || pending === null) return;
+      pending = null;
+      changed();
+    };
+    s.start();
+    live.station = s;
+    arm(!audioEl.paused);
+    changed();
   };
 
   const startLive = async (): Promise<void> => {
     if (starting || live || disposed) return;
     starting = true;
     try {
-      const recipe = await lofiTuneFromUrl(url);
-      const [{ LofiStation }, plan] = await Promise.all([import('./lofi-station.ts'), liveSettings(recipe)]);
-      if (disposed || audioEl.src) return;
+      const p = await ready;
+      if (!p || disposed) return;
+      Station ??= (await import('./lofi-station.ts')).LofiStation;
+      if (disposed) return;
       const ctx = new AudioContext();
+      const out = ctx.createGain();
       const dest = ctx.createMediaStreamDestination();
-      const station = new LofiStation(ctx, dest, plan.seed, plan.settings, plan.mix);
-      const startedAt = ctx.currentTime + 0.1;
-      station.start();
-      let ends: ReturnType<typeof setTimeout> | null = null;
-      const position = (): number => Math.max(0, ctx.currentTime - startedAt);
-      live = {
-        ctx,
-        stop: () => { if (ends) clearTimeout(ends); station.stop(0.05); },
-        position,
-        // The end of the track: hand over to the file, at the start, ready to play again.
-        arm: (on) => {
-          if (ends) clearTimeout(ends);
-          ends = on ? setTimeout(() => {
-            stopLive();
-            audioEl.pause();
-            if (wav) useWav(0); else { audioEl.srcObject = null; audioEl.load(); }
-          }, Math.max(0, (plan.seconds - position()) * 1000)) : null;
-        },
-      };
-      live.arm(true);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.8;
+      // The analyser has to be pulled to run: into a silent gain, then the speakers.
+      const sink = ctx.createGain();
+      sink.gain.value = 0;
+      out.connect(dest);
+      out.connect(analyser);
+      analyser.connect(sink);
+      sink.connect(ctx.destination);
+      live = { ctx, out, analyser, station: null };
+      playFrom(from);
       if (ctx.state === 'suspended') await ctx.resume().catch(() => { /* the next press resumes */ });
       audioEl.srcObject = dest.stream;
       await audioEl.play().catch(() => { /* the transport repaints from the element */ });
+      arm(!audioEl.paused);
     } catch {
-      // No live playback (no AudioContext, an unreadable recipe): the WAV still arrives.
+      if (!disposed) onError();
     } finally {
       starting = false;
-      // The file arrived while the live tune was starting, and the live tune did not start.
-      if (!live && wav && !audioEl.src) useWav(0);
     }
   };
 
-  // A press with nothing to play yet starts the tune live.
+  // A press with nothing to play yet starts the tune; a press after a pause carries on.
   const onPlay = (): void => {
     if (disposed) return;
-    if (live) { if (live.ctx.state === 'suspended') void live.ctx.resume(); live.arm(true); return; }
-    if (!audioEl.src && !audioEl.srcObject) void startLive();
+    if (live) { if (live.ctx.state === 'suspended') void live.ctx.resume(); arm(true); return; }
+    if (!audioEl.srcObject) void startLive();
   };
-  // A pause holds the live tune where it is; once the file is ready it takes over there.
+  // A pause holds the tune where it is.
   const onPause = (): void => {
     if (!live || starting) return;
-    if (wav) { useWav(stopLive()); return; }
-    live.arm(false);
+    arm(false);
     void live.ctx.suspend();
   };
   audioEl.addEventListener('play', onPlay);
   audioEl.addEventListener('pause', onPause);
 
-  void lofiTuneUrlToWavBlobUrl(url).then((made) => {
-    if (disposed) { URL.revokeObjectURL(made); return; }
-    wav = made;
-    audioEl.dataset.wavBlob = made;
-    // Playing live: the file waits for the next pause or the end. Otherwise it is the source now.
-    if (!live && !starting) useWav(0);
-  }).catch(() => { if (!disposed) onError(); });
+  const source: TransportSource = {
+    position,
+    seek(seconds: number): void {
+      if (!plan) return;
+      const bar = nearestBar(plan.line.starts, seconds);
+      if (live) playFrom(bar);
+      else { from = bar; changed(); }
+    },
+    grid: () => (plan ? { points: plan.line.starts, marks: plan.line.marks } : null),
+    describe: (seconds) => positionWords(seconds, plan?.line.total ?? 0, plan?.line ?? null),
+    onChange(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
+  };
 
   return {
+    source,
+    tap: () => (live ? { analyser: live.analyser, context: live.ctx } : null),
     dispose(): void {
       disposed = true;
       audioEl.removeEventListener('play', onPlay);
       audioEl.removeEventListener('pause', onPause);
       stopLive();
+      listeners.clear();
       if (audioEl.srcObject) { audioEl.pause(); audioEl.srcObject = null; }
     },
   };

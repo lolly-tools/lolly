@@ -36,6 +36,7 @@ import type {
   DockVizInfluence,
 } from './types.ts';
 import { DOCK_CSS, DOCK_STYLE_ID } from './styles.ts';
+import { seekKeyTarget, snapToGrid } from './seek-grid.ts';
 
 // Inline glyphs (currentColor, no external asset). The shell ships no icon
 // registry so it stays host-agnostic.
@@ -101,42 +102,6 @@ function fmtTime(s: number): string {
   return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 }
 
-/** The furthest a continuous seek goes: a second short of the end, so a looping track
- *  does not wrap round to its start. */
-function lastSecond(dur: number): number { return Math.max(0, dur - 1); }
-
-/** The point nearest `seconds` (`points` ascending); halfway goes to the later point. */
-function nearestPoint(points: readonly number[], seconds: number): number {
-  let best = 0;
-  for (let i = 1; i < points.length; i++) {
-    if (Math.abs(points[i]! - seconds) <= Math.abs(points[best]! - seconds)) best = i;
-    else break;   // past the nearest point, every later one is further away
-  }
-  return best;
-}
-
-/** The last point at or before `seconds`. */
-function pointBefore(points: readonly number[], seconds: number): number {
-  let i = 0;
-  while (i + 1 < points.length && points[i + 1]! <= seconds + 1e-3) i++;
-  return i;
-}
-
-/** One arrow-key step from `cur`: the next or previous grid point, or 5 seconds. */
-function stepFrom(cur: number, dir: 1 | -1, grid: DockSeekGrid | null, dur: number): number {
-  if (!grid) return Math.min(lastSecond(dur), Math.max(0, cur + dir * 5));
-  const i = pointBefore(grid.points, cur) + dir;
-  return grid.points[Math.min(grid.points.length - 1, Math.max(0, i))]!;
-}
-
-/** A Page Up or Page Down from `cur`: the next or previous part (four points when the grid
- *  marks none), or 30 seconds. */
-function leapFrom(cur: number, dir: 1 | -1, grid: DockSeekGrid | null, dur: number): number {
-  if (!grid) return Math.min(lastSecond(dur), Math.max(0, cur + dir * 30));
-  const stops = grid.marks?.length ? [0, ...grid.marks] : grid.points.filter((_, i) => i % 4 === 0);
-  const i = pointBefore(stops, cur) + dir;
-  return stops[Math.min(stops.length - 1, Math.max(0, i))]!;
-}
 
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] ?? c));
@@ -1234,8 +1199,7 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   }
   /** `seconds` on the host's grid (its nearest point), or within the track on a continuous one. */
   function snap(seconds: number, grid: DockSeekGrid | null, dur: number): number {
-    if (grid) return grid.points[nearestPoint(grid.points, seconds)]!;
-    return Math.min(lastSecond(dur), Math.max(0, seconds));
+    return snapToGrid(seconds, grid, dur);
   }
   function describe(seconds: number): DockPositionText {
     try { return host.describePosition?.(seconds) ?? {}; } catch { return {}; }
@@ -1624,16 +1588,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (!dur) return;
     const grid = seekGrid();
     const cur = dragging ? dragAt : (host.currentTime ? host.currentTime() : 0);
-    let to: number;
-    switch (e.key) {
-      case 'ArrowRight': case 'ArrowUp': to = stepFrom(cur, 1, grid, dur); break;
-      case 'ArrowLeft': case 'ArrowDown': to = stepFrom(cur, -1, grid, dur); break;
-      case 'PageUp': to = leapFrom(cur, 1, grid, dur); break;
-      case 'PageDown': to = leapFrom(cur, -1, grid, dur); break;
-      case 'Home': to = 0; break;
-      case 'End': to = grid ? grid.points[grid.points.length - 1]! : lastSecond(dur); break;
-      default: return;
-    }
+    const to = seekKeyTarget(e.key, cur, grid, dur);
+    if (to === null) return;
     e.preventDefault();
     e.stopPropagation();
     seekTo(to);

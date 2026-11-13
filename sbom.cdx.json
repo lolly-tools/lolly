@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:78eee812-1f65-4ae6-858c-5150de77995d",
+  "serialNumber": "urn:uuid:ee417fca-94e0-4456-8c9e-b49e61bd08ac",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-13T02:55:04.234Z",
+    "timestamp": "2026-11-13T17:31:22.718Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -11584,10 +11584,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/quinn-proto@0.11.18",
+      "bom-ref": "pkg:cargo/quinn-proto@0.11.19",
       "name": "quinn-proto",
-      "version": "0.11.18",
-      "purl": "pkg:cargo/quinn-proto@0.11.18",
+      "version": "0.11.19",
+      "purl": "pkg:cargo/quinn-proto@0.11.19",
       "scope": "required",
       "licenses": [
         {
@@ -11597,7 +11597,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9746dbde176634f4f2f1faf2404e30a31b2bc1e9cafb5329c95d8177a18c9fc"
+          "content": "0e750cca55fe4f0439a15d0bb529da9651e79993e8e72c61a899a36d462befbe"
         }
       ],
       "properties": [
@@ -11609,10 +11609,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/quinn-udp@0.5.14",
+      "bom-ref": "pkg:cargo/quinn-udp@0.5.16",
       "name": "quinn-udp",
-      "version": "0.5.14",
-      "purl": "pkg:cargo/quinn-udp@0.5.14",
+      "version": "0.5.16",
+      "purl": "pkg:cargo/quinn-udp@0.5.16",
       "scope": "required",
       "licenses": [
         {
@@ -11622,38 +11622,13 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "addec6a0dcad8a8d96a771f815f0eaf55f9d1805756410b39f5fa81332574cbd"
+          "content": "af66907df18639dcf4db56ca65490cabc4b27a97dbadd96f2926cca73298f016"
         }
       ],
       "properties": [
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/quinn-udp@0.5.15",
-      "name": "quinn-udp",
-      "version": "0.5.15",
-      "purl": "pkg:cargo/quinn-udp@0.5.15",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "35a133f956daabe89a61a685c2649f13d82d5aa4bd5d12d1277e1072a21c0694"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -19301,31 +19276,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows-sys@0.60.2",
-      "name": "windows-sys",
-      "version": "0.60.2",
-      "purl": "pkg:cargo/windows-sys@0.60.2",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "f2f500e4d28234f72040990ec9d39e3a6b950f9f22d3dba18416c35882612bcb"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows-sys@0.61.2",
       "name": "windows-sys",
       "version": "0.61.2",
@@ -19390,31 +19340,6 @@
         {
           "alg": "SHA-256",
           "content": "9b724f72796e036ab90c1021d4780d4d3d648aca59e491e6b98e725b84e99973"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows-targets@0.53.5",
-      "name": "windows-targets",
-      "version": "0.53.5",
-      "purl": "pkg:cargo/windows-targets@0.53.5",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "4945f9f551b88e0d65f3db0bc25c33b8acea4d9e41163edf90dcd0b19f9069f3"
         }
       ],
       "properties": [
@@ -19601,31 +19526,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows_aarch64_gnullvm@0.53.1",
-      "name": "windows_aarch64_gnullvm",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_aarch64_gnullvm@0.53.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "a9d8416fa8b42f5c947f8482c43e7d89e73a173cead56d044f6a56104a6d1b53"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows_aarch64_msvc@0.42.2",
       "name": "windows_aarch64_msvc",
       "version": "0.42.2",
@@ -19665,31 +19565,6 @@
         {
           "alg": "SHA-256",
           "content": "09ec2a7bb152e2252b53fa7803150007879548bc709c039df7627cabbd05d469"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows_aarch64_msvc@0.53.1",
-      "name": "windows_aarch64_msvc",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_aarch64_msvc@0.53.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "b9d782e804c2f632e395708e99a94275910eb9100b2114651e04744e9b125006"
         }
       ],
       "properties": [
@@ -19751,31 +19626,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows_i686_gnu@0.53.1",
-      "name": "windows_i686_gnu",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_i686_gnu@0.53.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "960e6da069d81e09becb0ca57a65220ddff016ff2d6af6a223cf372a506593a3"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows_i686_gnullvm@0.52.6",
       "name": "windows_i686_gnullvm",
       "version": "0.52.6",
@@ -19790,31 +19640,6 @@
         {
           "alg": "SHA-256",
           "content": "0eee52d38c090b3caa76c563b86c3a4bd71ef1a819287c19d586d7334ae8ed66"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows_i686_gnullvm@0.53.1",
-      "name": "windows_i686_gnullvm",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_i686_gnullvm@0.53.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "fa7359d10048f68ab8b09fa71c3daccfb0e9b559aed648a8f95469c27057180c"
         }
       ],
       "properties": [
@@ -19876,31 +19701,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows_i686_msvc@0.53.1",
-      "name": "windows_i686_msvc",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_i686_msvc@0.53.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "1e7ac75179f18232fe9c285163565a57ef8d3c89254a30685b57d83a38d326c2"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows_x86_64_gnu@0.42.2",
       "name": "windows_x86_64_gnu",
       "version": "0.42.2",
@@ -19940,31 +19740,6 @@
         {
           "alg": "SHA-256",
           "content": "147a5c80aabfbf0c7d901cb5895d1de30ef2907eb21fbbab29ca94c5b08b1a78"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows_x86_64_gnu@0.53.1",
-      "name": "windows_x86_64_gnu",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_x86_64_gnu@0.53.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "9c3842cdd74a865a8066ab39c8a7a473c0778a3f29370b5fd6b4b9aa7df4a499"
         }
       ],
       "properties": [
@@ -20026,31 +19801,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/windows_x86_64_gnullvm@0.53.1",
-      "name": "windows_x86_64_gnullvm",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_x86_64_gnullvm@0.53.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "0ffa179e2d07eee8ad8f57493436566c7cc30ac536a3379fdf008f47f6bb7ae1"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:cargo/windows_x86_64_msvc@0.42.2",
       "name": "windows_x86_64_msvc",
       "version": "0.42.2",
@@ -20090,31 +19840,6 @@
         {
           "alg": "SHA-256",
           "content": "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/windows_x86_64_msvc@0.53.1",
-      "name": "windows_x86_64_msvc",
-      "version": "0.53.1",
-      "purl": "pkg:cargo/windows_x86_64_msvc@0.53.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
         }
       ],
       "properties": [

@@ -63,11 +63,24 @@ export function instrumentIcon(part: 'keys' | 'lead' | 'bass', instrument: strin
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const SVG_ATTRS = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' };
 
+/** Glyph markup in this 24-unit stroke style as an `<svg>` string, for markup written once (the genre picker's cards). */
+export function strokeSvg(body: string, size: number): string {
+  const attrs = Object.entries({ ...SVG_ATTRS, width: String(size), height: String(size) }).map(([k, v]) => `${k}="${v}"`).join(' ');
+  return `<svg xmlns="${SVG_NS}" ${attrs}>${body}</svg>`;
+}
+
 /** An icon as an `<svg>` element, built node by node (a lane head swaps its icon as the playhead moves). */
 export function musicIconNode(name: InstrumentIcon, size: number): SVGSVGElement {
+  return strokeSvgNode(MARKUP[name], size);
+}
+/** An instrument icon's own markup, the shapes inside its `<svg>`. */
+export const musicIconBody = (name: InstrumentIcon): string => MARKUP[name];
+
+/** Glyph markup in this stroke style as an `<svg>` element, built node by node with no HTML parsing. */
+export function strokeSvgNode(body: string, size: number): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg');
   for (const [k, v] of Object.entries({ ...SVG_ATTRS, width: String(size), height: String(size) })) svg.setAttribute(k, v);
-  for (const el of MARKUP[name].match(/<[a-z]+\b[^>]*>/g) ?? []) {
+  for (const el of body.match(/<[a-z]+\b[^>]*>/g) ?? []) {
     const node = document.createElementNS(SVG_NS, /^<([a-z]+)/.exec(el)![1]!);
     for (const [, k, v] of el.matchAll(/([a-z][\w-]*)="([^"]*)"/gi)) node.setAttribute(k!, v!);
     svg.append(node);

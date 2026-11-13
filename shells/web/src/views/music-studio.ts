@@ -3,7 +3,7 @@
  * The music generator (#/music): a track editor for Lolly Sings, so a person or a brand
  * can dial in a track and keep the result.
  *
- * One row of controls (play, shuffle, style, seed, length, key, tempo, reset, sound, make,
+ * One row of controls (play, shuffle, genre, seed, length, key, tempo, reset, sound, make,
  * link), a visualiser, and the track laid out like a sequence editor: the sections and
  * chords above a lane for each part, every note drawn, each instrument in its own shade of
  * the part's colour with its name where it comes in (filled when the person chose that
@@ -11,10 +11,14 @@
  * (views/music-studio/instrument-browser.ts): hear each instrument play this tune's part,
  * use one in every section of that kind (the bass in every drop) or all through the track,
  * and star or block instruments (lib/music-prefs.ts, kept on the person's profile). Click
- * the section ruler to play from there. On a phone, play and shuffle sit in a dock at the
- * bottom, the styles are chips and each track is a row with its instruments, mute and solo. The seed is a design-tool number: type one, step it, or drag across it
- * to slide through seeds and watch the tune change. Shuffle draws a new style, seed and
- * sound at once (lib/music-shuffle.ts; with Shift, only the sound), and Reset puts every
+ * the section ruler to play from there. The genre button opens the genre picker
+ * (views/music-studio/genre-picker.ts): every genre as a card with its icon, and the
+ * "Shuffle genres" switch. On a phone, play and shuffle sit in a dock at the bottom, the
+ * genre button spans the bar and each track is a row with its instruments, mute and solo.
+ * The seed is a design-tool number: type one, step it, or drag across it to slide through
+ * seeds and watch the tune change. Shuffle draws a new genre, seed and sound at once
+ * (lib/music-shuffle.ts; with "Shuffle genres" off it keeps the genre, and with Shift it
+ * draws only the sound), and Reset puts every
  * setting back to how the generator opens. The tempo is the composer's for the seed until
  * a person sets their own: the notes stay where they are in the bar, so the tune plays
  * faster or slower and no other part of it changes. The Neurospicy player always plays a
@@ -42,10 +46,10 @@ import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
   lofiSectionName, transposeChordName, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, LOFI_PERCUSSION,
-  type LofiBar, type LofiMood,
+  type LofiBar,
 } from '../../../../engine/src/lofi-compose.ts';
 import { LofiStation, renderStation, type LofiMix, type LofiSettings } from '../lib/lofi-station.ts';
-import { LOFI_STATION_MOODS, LOFI_MOOD_LABEL, lofiStationName } from '../lib/neurospicy-lofi.ts';
+import { lofiStationName } from '../lib/neurospicy-lofi.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from '../lib/lofi-names.ts';
 import { encodeWav, encodeM4a, pcmFromAudioBuffer } from '../lib/audio-encode.ts';
 import { attachScrub } from '../lib/scrub.ts';
@@ -59,7 +63,10 @@ import { shuffleMusic } from '../lib/music-shuffle.ts';
 import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { TUNE_DECLARATION } from '../../../../engine/src/tune-provenance.ts';
-import { avoidBlocked, clearSwaps, loadMusicPrefs, setMusicPref, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
+import { genreIconNode, genreTitle, shuffleIconSvg } from '../lib/genre-icons.ts';
+import { openGenrePicker } from './music-studio/genre-picker.ts';
+import { actionButton, PlainFailure } from './music-studio/action-button.ts';
+import { avoidBlocked, clearSwaps, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
 import { openInstrumentBrowser, instrumentName, instrumentWord, type BrowseTrack, type InstrumentBrowser } from './music-studio/instrument-browser.ts';
 import '../styles/parts/music-studio.css';
 
@@ -92,8 +99,6 @@ const VIZ_LABEL: Record<VizMode, string> = { bars: 'Visualiser: bars', scope: 'V
 const VIZ_KEY = 'lolly:musicViz';
 
 const clock = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
-/** A style's name on a phone's style chips: the style alone ("Ska"), the Lofi moods marked as such. */
-const styleChipName = (m: LofiMood): string => (m === 'sings' ? 'Lolly Sings' : lofiStationName(m).startsWith('Lofi') ? `Lofi ${LOFI_MOOD_LABEL[m].toLowerCase()}` : LOFI_MOOD_LABEL[m]);
 
 /** Which track a note is drawn in. */
 function trackOf(voice: string): Track {
@@ -201,6 +206,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const firstVisit = !/(^|[?&])(style|seed)=/.test(params);
   if (firstVisit) Object.assign(state, shuffleMusic(Math.random, { bars: state.bars }));
   let prefs: MusicPrefs = NO_PREFS;
+  /** "Shuffle genres": on, shuffle draws a new genre; off, it keeps this one (Profile.music). */
+  let shuffleGenres = true;
   let profile: Profile | null = null;
   let touched = false;
   /** Where the generator put an instrument in place of a blocked one (swapKey), taken back for the next new tune. */
@@ -232,12 +239,11 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         <button type="button" class="btn btn--primary ms-play" data-play aria-label="${escapeHtml(t('Play'))}" title="${escapeHtml(t('Play or stop (space)'))}">
           <span data-play-icon>${icon('play', { size: 18 })}</span><span data-stop-icon hidden>${icon('pause', { size: 18 })}</span>
         </button>
-        <button type="button" class="ms-shuffle" data-shuffle aria-label="${escapeHtml(t('Shuffle style and settings'))}" title="${escapeHtml(t('Shuffle: a new style, seed and sound'))}">${icon('sparkle', { size: 26 })}</button>
+        <button type="button" class="ms-shuffle" data-shuffle>${shuffleIconSvg(26)}</button>
         <span class="ms-time" data-pos></span>
       </span>
       <button type="button" class="btn btn--sm ms-render-play" data-render-play title="${escapeHtml(t('Render the track at full quality first, then play it with the big visualiser'))}">${icon('monitor', { size: 16 })}<span>${escapeHtml(t('Render and play'))}</span></button>
-      <select class="field-select field-select--sm ms-style-pick" data-style aria-label="${escapeHtml(t('Style'))}">${LOFI_STATION_MOODS.map(m => `<option value="${m}"${m === state.mood ? ' selected' : ''}>${escapeHtml(lofiStationName(m))}</option>`).join('')}</select>
-      <div class="ms-styles" role="group" aria-label="${escapeHtml(t('Style'))}">${LOFI_STATION_MOODS.map(m => `<button type="button" class="ms-style" data-style-chip="${m}" aria-pressed="${m === state.mood}">${escapeHtml(styleChipName(m))}</button>`).join('')}</div>
+      <button type="button" class="field-select field-select--sm ms-genre" data-genre aria-haspopup="dialog"><span class="ms-genre-icon" data-genre-icon aria-hidden="true"></span><span class="ms-genre-name" data-genre-name></span></button>
       <span class="ms-seed" role="group" aria-label="${escapeHtml(t('Seed'))}">
         ${iconBtn('data-seed-step="-1"', 'chevronLeft', t('Previous seed'))}
         <input type="number" class="field-input field-input--sm ms-seed-input" min="0" max="4294967295" value="${state.seed}" data-seed aria-label="${escapeHtml(t('Seed'))}" title="${escapeHtml(t('The seed: type one, or drag across it to slide through seeds'))}">
@@ -920,6 +926,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   async function loadPrefs(): Promise<void> {
     try { profile = await host.profile.get(); } catch { return; }
     prefs = loadMusicPrefs(profile);
+    shuffleGenres = loadShuffleGenres(profile);
+    paintGenre();
     if (!prefs.favourites.size && !prefs.blocked.size) return;
     if (firstVisit && !touched) restate({ ...shuffleMusic(Math.random, { bars: state.bars, prefs }), bars: state.bars });
     browser?.refresh();
@@ -955,22 +963,37 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   listen('[data-play]', 'click', () => { if (station || renderedSrc) stopPlayback(); else play(selected); });
   /** A new tune from a change of style, seed or length: checked for blocked instruments, then composed. */
   const newTune = (): void => { const note = renew(); recompose(); if (note) say(note); };
-  /** The style chips on a phone: the one chosen pressed, and scrolled into view. */
-  const showStyleChips = (): void => {
-    const strip = page.querySelector<HTMLElement>('.ms-styles');
-    for (const el of page.querySelectorAll<HTMLElement>('[data-style-chip]')) {
-      const on = el.dataset.styleChip === state.mood;
-      el.setAttribute('aria-pressed', String(on));
-      if (on && strip?.clientWidth) strip.scrollLeft = el.offsetLeft - (strip.clientWidth - el.offsetWidth) / 2;
-    }
+  /** The genre button (its icon and name) and the shuffle button's words, in step with the state. */
+  const paintGenre = (): void => {
+    const title = genreTitle(state.mood);
+    q<HTMLElement>('[data-genre-icon]').replaceChildren(genreIconNode(state.mood, 18));
+    q<HTMLElement>('[data-genre-name]').textContent = title;
+    const btn = q<HTMLElement>('[data-genre]');
+    btn.setAttribute('aria-label', tRaw('Genre: {genre}. Choose a genre', { genre: title }));
+    btn.title = t('Choose a genre');
+    const shuffle = q<HTMLElement>('[data-shuffle]');
+    const label = shuffleGenres
+      ? t('Shuffle: a new genre, seed and sound')
+      : tRaw('Shuffle: a new seed and sound in {genre}. Shuffle genres is off.', { genre: title });
+    shuffle.setAttribute('aria-label', label);
+    shuffle.title = label;
   };
   const setStyle = (value: string | undefined): void => {
     state.mood = parseMusicState(`style=${value ?? ''}`).mood;
-    q<HTMLSelectElement>('[data-style]').value = state.mood;
-    showStyleChips(); newTune(); fit();
+    paintGenre(); newTune(); fit();
   };
-  listen('[data-style]', 'change', (_e, el) => { if (el instanceof HTMLSelectElement) setStyle(el.value); });
-  listen('[data-style-chip]', 'click', (_e, el) => setStyle(el.dataset.styleChip));
+  /** "Shuffle genres", from the genre picker's switch: kept on the profile with the other music preferences. */
+  const saveShuffleGenres = (on: boolean): void => {
+    shuffleGenres = on;
+    paintGenre();
+    if (!profile) return;
+    setShuffleGenres(profile, on);
+    const writer = host.profile;
+    if (canWriteProfile(writer)) void writer.set(profile).catch(() => { /* storage off: the choice holds for this visit */ });
+  };
+  listen('[data-genre]', 'click', (_e, el) => {
+    openGenrePicker({ current: () => state.mood, pick: setStyle, shuffleGenres: () => shuffleGenres, setShuffleGenres: saveShuffleGenres }, { opener: el });
+  });
   const setSeed = (seed: number): void => {
     state.seed = ((seed % 4294967296) + 4294967296) % 4294967296;
     q<HTMLInputElement>('[data-seed]').value = String(state.seed);
@@ -980,11 +1003,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   listen('[data-seed-step]', 'click', (_e, el) => setSeed(state.seed + Number(el.dataset.seedStep)));
   /** Put every control back in step with the state, after a shuffle or a reset. */
   const syncControls = (): void => {
-    q<HTMLSelectElement>('[data-style]').value = state.mood;
+    paintGenre();
     q<HTMLInputElement>('[data-seed]').value = String(state.seed);
     q<HTMLSelectElement>('[data-bars]').value = String(state.bars);
     for (const el of page.querySelectorAll<HTMLElement>('[data-drums]')) el.setAttribute('aria-pressed', String(state.drums));
-    showStyleChips();
     fillOptions();
     for (const el of page.querySelectorAll<HTMLElement>('[data-mute]')) el.setAttribute('aria-pressed', String(muted.has(el.dataset.mute as Track)));
     for (const el of page.querySelectorAll<HTMLElement>('[data-solo]')) el.setAttribute('aria-pressed', String(solo.has(el.dataset.solo as Track)));
@@ -1007,15 +1029,17 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     syncControls(); recompose(); fit();
     return note;
   };
-  // Shuffle: a new style, seed and sound (lib/music-shuffle.ts). Shift keeps the style, the
-  // seed and the key, and shuffles only the sound. The tempo goes back to the tune's own,
-  // and the length stays the person's.
+  // Shuffle: a new genre, seed and sound (lib/music-shuffle.ts), or with "Shuffle genres"
+  // off a new seed and sound in this genre. Shift keeps the genre, the seed and the key,
+  // and shuffles only the sound. The tempo goes back to the tune's own, and the length
+  // stays the person's.
   listen('[data-shuffle]', 'click', (e, el) => {
     popAgain(el);
     const shift = e instanceof MouseEvent && e.shiftKey;
-    const drawn = shuffleMusic(Math.random, { bars: state.bars, after: state.mood, prefs, ...(shift ? { keep: { mood: state.mood, seed: state.seed } } : {}) });
+    const fixed = shift ? { keep: { mood: state.mood, seed: state.seed } } : shuffleGenres ? {} : { genre: state.mood };
+    const drawn = shuffleMusic(Math.random, { bars: state.bars, after: state.mood, prefs, ...fixed });
     const note = restate({ ...drawn, bars: state.bars, ...(shift && state.transpose ? { transpose: state.transpose } : {}) });
-    say(`${t('Shuffled')}: ${lofiStationName(state.mood)} · ${t('seed')} ${state.seed}${note ? ` ${note}` : ''}`);
+    say(`${t('Shuffled')}: ${genreTitle(state.mood)} · ${t('seed')} ${state.seed}${note ? ` ${note}` : ''}`);
   });
   listen('[data-reset]', 'click', () => {
     muted.clear(); solo.clear();
@@ -1220,8 +1244,12 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       ? tRaw('Save to library records {maker} as the maker, the music generator as the source, and the Lolly and engine versions. The licence stays not recorded until you set one in the tune’s details.', { maker })
       : t('Save to library records the music generator as the source, and the Lolly and engine versions. Your profile has no name, so no maker is recorded. The licence stays not recorded until you set one in the tune’s details.');
   })().catch(() => { /* the note is a courtesy; the save still says what it wrote */ });
+  // Download and Save to library show their work on the button itself: busy, then a tick
+  // or the failure in plain words beside it (views/music-studio/action-button.ts).
+  const downloadAct = actionButton(downloadBtn, { busy: t('Preparing…'), done: t('Downloaded'), failed: t('The file could not be made.') });
+  const saveAct = actionButton(q<HTMLButtonElement>('[data-save]'), { busy: t('Saving…'), done: t('Saved'), failed: t('The tune could not be saved.') });
   listen('[data-download]', 'click', () => {
-    void (async () => {
+    void downloadAct.run(async () => {
       const { blob, format } = await encoded();
       if (!credToggle.checked) {
         await host.export.download(blob, fileName(format));
@@ -1240,11 +1268,11 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         : signed.declaration
           ? tRaw('File handed to your device’s save/download flow. Its Content Credentials record: {declaration}', { declaration: signed.declaration })
           : t('File handed to your device’s save/download flow. Reading it back found no Content Credentials, so none are confirmed.'));
-    })().catch(err => { say(String(err)); });
+    }).then(failed => { if (failed) say(failed); });
   });
   listen('[data-save]', 'click', () => {
-    void (async () => {
-      if (!canUpload(host.assets)) { say(t('This host cannot save to the library.')); return; }
+    void saveAct.run(async () => {
+      if (!canUpload(host.assets)) throw new PlainFailure(t('This host cannot save to the library.'));
       // Saved as a tune (lib/lofi-tune.ts), not a recording: a few hundred bytes holding the
       // track's settings, played and rendered from them wherever a tune plays (the player,
       // the asset details, an audiogram, a video's music bed). Nothing to make first.
@@ -1274,7 +1302,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       say(maker
         ? tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record {maker} as the maker, the music generator, and Lolly {lolly} with engine {engine}.', { maker, lolly: LOLLY_RELEASE, engine: ENGINE_VERSION })
         : tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record the music generator, and Lolly {lolly} with engine {engine}.', { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }));
-    })().catch(err => { say(String(err)); });
+    }).then(failed => { if (failed) say(failed); });
   });
   listen('[data-link]', 'click', () => {
     void navigator.clipboard.writeText(`${location.origin}${location.pathname}#/music?${musicStateParams(state)}`)
@@ -1318,9 +1346,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   });
 
   say(HINT);
-  writeLink(); meta(); paintSummaries(); showStyleChips(); fitHeight(); fit(); drawViz();
+  writeLink(); meta(); paintSummaries(); paintGenre(); fitHeight(); fit(); drawViz();
   void loadPrefs();
   view._cleanup = () => {
+    downloadAct.reset(); saveAct.reset();
     detachLang();
     detachScrub();
     detachTempoScrub();

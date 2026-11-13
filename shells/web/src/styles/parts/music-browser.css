@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: MPL-2.0 */
-/* The music generator's instrument browser (views/music-studio/instrument-browser.ts): a
-   sheet from the bottom on a phone, a panel at the side on a wider screen. A head with
+/* The music generator's sheets: the instrument browser (views/music-studio/instrument-browser.ts),
+   a sheet from the bottom on a phone and a panel at the side on a wider screen, and the
+   genre picker (views/music-studio/genre-picker.ts), the same sheet on a phone and a
+   centred panel on a wider screen. A head with
    the track's name and the kinds of section to hear an instrument in, a list of
    instrument cards grouped by family, and a foot with the two ways to use the card
    chosen. The dialog is mounted on the body, so nothing here is scoped to the view. */
@@ -179,4 +181,95 @@
   .msb-pick { margin: 0; min-height: 1.4em; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
   .msb-actions { display: flex; gap: var(--sp-2); }
   .msb-actions .btn { flex: 1; justify-content: center; min-height: var(--ui-size-target); }
+
+  /* The genre picker on a wider screen: a panel in the middle of the screen, over a dimmed page. */
+  .msb--dialog {
+    position: fixed;
+    inset: 0;
+    width: min(880px, calc(100vw - var(--sp-8) * 2));
+    height: min(720px, calc(100dvh - var(--sp-8) * 2));
+    max-width: none;
+    max-height: none;
+    margin: auto;
+    border-radius: var(--ui-radius-panel);
+  }
+  .msb--dialog::backdrop { background: hsl(0 0% 0% / .42); }
+  .msb--dialog .msb-grip { display: none; }
+  .msb--dialog .msb-head { padding-block-start: var(--sp-3); }
+
+  .msg-group + .msg-group { margin-block-start: var(--sp-5); }
+  .msg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--sp-2); }
+  /* A genre: its icon over its title. The one playing now is filled with the selection tint. */
+  .msg-card {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: var(--sp-1);
+    min-height: 84px;
+    padding: var(--sp-2) var(--sp-1);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text-default);
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+  }
+  .msg-card:hover { background: var(--ui-color-surface-muted); }
+  .msg-card:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .msg-card[aria-pressed="true"] { background: var(--ui-color-selection-surface); }
+  .msg-card[aria-pressed="true"] .msg-name { color: var(--ui-color-text-accent); font-weight: 700; }
+  .msg-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-round); background: var(--ui-color-surface-muted); color: var(--ui-color-action-primary); }
+  .msg-card[aria-pressed="true"] .msg-icon { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
+  .msg-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+
+  /* "Shuffle genres": a switch whose knob slides to the end and fills when on. */
+  .msg-switch {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: var(--ui-size-target);
+    padding: 0 var(--sp-2);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--fs-sm);
+    cursor: pointer;
+  }
+  .msg-switch:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .msg-switch-track {
+    position: relative;
+    flex: none;
+    width: 36px;
+    height: 20px;
+    border-radius: var(--radius-pill);
+    background: var(--ui-color-surface-muted);
+    box-shadow: var(--ui-edge-default);
+    transition: background-color var(--dur-2) var(--ease-out);
+  }
+  .msg-switch-knob {
+    position: absolute;
+    inset-block-start: 3px;
+    inset-inline-start: 3px;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radius-round);
+    background: var(--ui-color-text-muted);
+    transition: transform var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+  }
+  .msg-switch[aria-checked="true"] .msg-switch-track { background: var(--ui-color-action-primary); box-shadow: none; }
+  .msg-switch[aria-checked="true"] .msg-switch-knob { transform: translateX(16px); background: var(--ui-color-action-on-primary); }
+  .msg-switch[aria-checked="true"]:dir(rtl) .msg-switch-knob { transform: translateX(-16px); }
+  @media (prefers-reduced-motion: reduce) {
+    .msg-switch-track, .msg-switch-knob { transition: none; }
+  }
+  html[data-a11y-motion="reduce"] .msg-switch-track,
+  html[data-a11y-motion="reduce"] .msg-switch-knob { transition: none; }
+  @media (max-width: 760px) {
+    .msg-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .msg .msb-title-row { flex-wrap: wrap; }
+  }
 }
