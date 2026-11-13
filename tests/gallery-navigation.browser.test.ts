@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { shellSettled } from './helpers/shell-settled.ts';
+import { pollPage } from './helpers/page-poll.ts';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 test('gallery controls support keyboard and native scrolling past pending previews across accessibility preferences', {
@@ -171,15 +172,22 @@ test('the workspace shelf shows one card per published thing, answers search, an
         // One tap on New version: her copy opens with the new version and her price kept.
         await price.locator('.published-card-new').scrollIntoViewIfNeeded();
         await price.locator('.published-card-new').tap();
-        await page.waitForFunction(() => location.hash.includes('slot=pricing-table%3Am6copy'));
+        // The tool route rewrites the address from #/tool/...?slot= to its own form soon after
+        // it opens, and both keep the slot, so read the whole address.
+        await page.waitForFunction(() => location.href.includes('slot=pricing-table%3Am6copy'));
         await page.waitForFunction(() => {
           const model = (document.querySelector('#tool-canvas') as (HTMLElement & { __lollyModel?: () => Array<{ id: string; value: unknown }> }) | null)?.__lollyModel?.();
           return model?.find((i) => i.id === 'heading')?.value === 'Version two heading';
         }, undefined, { timeout: 60_000 });
         const data = await page.evaluate(() => (document.querySelector('#tool-canvas') as HTMLElement & { __lollyModel: () => Array<{ id: string; value: unknown }> }).__lollyModel().find((i) => i.id === 'data')?.value);
         assert.deepEqual(data, mine, `${width}: her price is kept`);
-        const listed = await page.evaluate(async () => { const path = '/src/lib/notifications.ts'; return (await import(path)).notificationEntries().map((n: { id: string }) => n.id); });
-        assert.equal(listed.includes('template-version:inst/m6price:2'), false, `${width}: the notice is done`);
+        // The notice comes down when the update has finished, after the new values are in
+        // and the references are resolved again (views/tool-template-notices.ts). The new
+        // heading shows a few milliseconds before that, so ask until the notice is gone.
+        await pollPage(page, async () => {
+          const path = '/src/lib/notifications.ts';
+          return !(await import(path)).notificationEntries().some((n: { id: string }) => n.id === 'template-version:inst/m6price:2');
+        }, undefined, { timeout: 10_000, message: `${width}: the notice is done` });
         assert.deepEqual(errors, []);
       } finally { await context.close(); }
     }
