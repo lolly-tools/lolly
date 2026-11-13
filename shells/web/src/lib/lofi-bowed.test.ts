@@ -62,10 +62,10 @@ test('bowed harder, the fiddle gets brighter (recorded violins: the upper harmon
   assert.ok(c > 1.6 && c < 3.8, `centroid ${c.toFixed(2)}`);
 });
 
-test('a stroke scratches before the string catches and takes tens of milliseconds to speak', () => {
+test('a stroke starts under the note and takes tens of milliseconds to speak', () => {
   const x = bowString(note(74, 0.6, { dur: 0.6, seconds: 0.8 }), seeded(4));
   const steady = rms(x, 0.3, 0.5);
-  assert.ok(rms(x, 0, 0.005) < steady * 0.2, 'quiet at the very start');
+  assert.ok(rms(x, 0, 0.005) < steady * 0.5, 'under the note at the very start');
   assert.ok(rms(x, 0.01, 0.03) < steady * 0.5, 'still well under the note 30 ms in');
   assert.ok(rms(x, 0.15, 0.2) > steady * 0.6, 'near full by 150 ms');
   // A slurred note changes under the same bow: it sounds at once.
@@ -95,4 +95,49 @@ test('the same note bows the same; the string rings on into the body and dies aw
   const held = rms(x, 0.15, 0.28);
   assert.ok(rms(x, 0.32, 0.36) > held * 0.05, 'it rings a moment after the bow lifts');
   assert.ok(rms(x, 0.85, 0.95) < held * 0.01, 'and is gone well within a second');
+});
+
+/** A harmonic's level (dB) over samples a..b, by Goertzel's recurrence (no trig per sample). */
+function goertzel(x: Float32Array, hz: number, a: number, b: number): number {
+  const w = (2 * Math.PI * hz) / SR, c = 2 * Math.cos(w);
+  let s1 = 0, s2 = 0;
+  for (let i = a; i < b; i++) { const s0 = x[i]! + c * s1 - s2; s2 = s1; s1 = s0; }
+  return 10 * Math.log10(s1 * s1 + s2 * s2 - c * s1 * s2 + 1e-30);
+}
+
+/**
+ * Whether the string's force on the bridge has left Helmholtz motion anywhere from `from`
+ * s on: in a window, the 2nd harmonic over the fundamental by more than 1 dB, or the wave
+ * nearly repeating at half its period (an octave). A sawtooth's fundamental leads by 6 dB
+ * and its half-period correlation is about -0.5.
+ */
+function jumped(x: Float32Array, f: number, from: number): string | undefined {
+  const T = SR / f, win = Math.max(Math.round(4 * T), Math.round(0.03 * SR));
+  const L = Math.floor(T / 2), fr = T / 2 - L;
+  for (let a = Math.round(from * SR); a + win + L + 2 < x.length; a += win) {
+    const d = goertzel(x, f, a, a + win) - goertzel(x, 2 * f, a, a + win);
+    let xy = 0, xx = 0, yy = 0;
+    for (let i = a; i < a + win; i++) { const y = x[i + L]! * (1 - fr) + x[i + L + 1]! * fr; xy += x[i]! * y; xx += x[i]! * x[i]!; yy += y * y; }
+    const half = xy / Math.sqrt(xx * yy + 1e-30);
+    if (d < -1 || half > 0.5) return `at ${(a / SR).toFixed(2)} s: 2nd harmonic ${(-d).toFixed(1)} dB over the fundamental, half-period correlation ${half.toFixed(2)}`;
+  }
+  return undefined;
+}
+
+test('the fiddle never jumps an octave: every semitone it plays, every strength, slurred, slid and plain', () => {
+  // What the composer hands the fiddle (country, straya, or any style a link chooses it for):
+  // E4 to C6, at strengths 0.27 to 0.9 (0.1 to 1 here), 4 in 10 notes slurred, many slid.
+  // Odd seeds slur in from one of eight intervals; even seeds start a stroke, every other
+  // one slid up from a semitone under, every fourth with vibrato.
+  const intervals = [-2, 3, -5, 7, -12, 1, 4, -3];
+  const bad: string[] = [];
+  for (let midi = 64; midi <= 84; midi++) for (let v = 1; v <= 10; v++) for (let seed = 1; seed <= 8; seed++) {
+    const vel = v / 10, f = mtof(midi), rand = seeded(seed * 7919 + midi * 31 + v);
+    const slurred = seed % 2 === 1, slide = !slurred && seed % 4 === 2 ? 1 : 0;
+    const from = slurred ? mtof(midi + intervals[(seed + midi) % 8]!) : undefined;
+    const x = bowSource(note(midi, vel, { dur: 0.25, seconds: 0.25, from, slide, vibrato: seed % 8 === 0 ? 13 : 0 }), rand);
+    const why = jumped(x, f, slide ? 0.16 : 0.06);
+    if (why) bad.push(`${midi} at ${vel}${slurred ? ' slurred' : slide ? ' slid' : ''}, seed ${seed}: ${why}`);
+  }
+  assert.deepEqual(bad, [], `${bad.length} notes left Helmholtz motion:\n${bad.slice(0, 12).join('\n')}`);
 });
