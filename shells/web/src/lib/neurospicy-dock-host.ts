@@ -32,8 +32,9 @@ import {
 } from './neurospicy.ts';
 import {
   isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiLinkValue, currentLofiBar, playsOnStation, savedTuneOf, currentLofiRecipe,
-  LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
+  lofiPosition, LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
 } from './neurospicy-lofi.ts';
+import { positionWords } from './neuro-position.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from './lofi-names.ts';
 import { applySoundMaster } from './sound-master.ts';
 import {
@@ -65,7 +66,7 @@ import type { VizPalette, VizPaletteHost } from './viz-palette.ts';
 import type {
   DockHost, DockNowPlaying, DockSource, DockSources, DockAtmosphere, DockViz, DockControl,
   DockRepeat, DockVolume, DockAttribution, DockVizPreset, DockVizTheme, DockVizTransition, DockVizInfluence,
-  DockBrandMark,
+  DockBrandMark, DockSeekGrid, DockPositionText,
 } from '@lolly-tools/audio-dock';
 
 /** The web shell's full host satisfies both what the transport needs (NeurospicyHost)
@@ -877,6 +878,15 @@ class NeurospicyDockHost implements DockHost {
   duration(): number { return getNeurospicyProgress()?.duration ?? 0; }
   seekable(): boolean { return getNeurospicyProgress() != null; }
   seek(seconds: number): void { seekNeurospicy(seconds); }
+  /** A generated tune seeks by bar: the scrub snaps to the start of each, and ticks where
+   *  each part of the tune begins. A recorded track seeks anywhere. */
+  seekGrid(): DockSeekGrid | null {
+    const line = lofiPosition()?.timeline;
+    return line ? { points: line.starts, marks: line.marks } : null;
+  }
+  describePosition(seconds: number): DockPositionText {
+    return positionWords(seconds, this.duration(), lofiPosition()?.timeline ?? null);
+  }
 
   onChange(listener: () => void): () => void {
     this.changeListeners.add(listener);

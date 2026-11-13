@@ -255,6 +255,26 @@ export interface DockViz {
   brandMark?(): DockBrandMark | null | Promise<DockBrandMark | null>;
 }
 
+/**
+ * The points a seek snaps to (see {@link DockHost.seekGrid}). Return the same arrays for
+ * as long as they hold: the shell redraws the part ticks only when an array changes.
+ */
+export interface DockSeekGrid {
+  /** Each landing point, in seconds, ascending, the first 0. A click or a drag snaps to
+   *  the nearest; an arrow key steps one point, Page Up and Page Down one part. */
+  points: readonly number[];
+  /** The points where a new part starts (a tune's verse, chorus, outro), ticked on the scrub. */
+  marks?: readonly number[];
+}
+
+/** Words for a position on the scrub (see {@link DockHost.describePosition}). */
+export interface DockPositionText {
+  /** Short, shown between the elapsed and total times when the dock has room. */
+  label?: string;
+  /** The scrub's value for a screen reader. Absent: the elapsed and total times. */
+  spoken?: string;
+}
+
 /** The brand's mono-reverse silhouette, per orientation (plans/147). Either may be null
  *  when the brand only carries one; the shell falls back to whichever exists. */
 export interface DockBrandMark { horizontal?: string | null; vertical?: string | null }
@@ -323,6 +343,14 @@ export interface DockHost {
   /** Whether the current source can be seeked (false for radio / live streams). */
   seekable?(): boolean;
   seek?(seconds: number): void;
+  /** Where a seek can land, for a source that only starts again at certain points (a
+   *  generated tune starts again at the top of a bar). Null or absent: the scrub seeks
+   *  anywhere, and an arrow key moves it 5 seconds. */
+  seekGrid?(): DockSeekGrid | null;
+  /** Words for the position `seconds` in: a short label shown between the times when the
+   *  dock has room (a tune's bar and part), and the scrub's value for a screen reader.
+   *  Absent: the times alone. */
+  describePosition?(seconds: number): DockPositionText;
   /** Set false to hide the numeric M:SS time labels under the scrub while KEEPING the
    *  bar itself. For a block-based narration (device voice) the bar shows position
    *  through the page but there is no clock, so a time readout would be a lie. Absent

@@ -26,6 +26,8 @@ export type {
   DockSources,
   DockAttribution,
   DockNowPlaying,
+  DockSeekGrid,
+  DockPositionText,
   DockNarration,
   DockNarrationPlayer,
   DockAtmosphere,
