@@ -379,7 +379,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     rootSelector: '.catalog',
     count: () => selected.size,
     actions: [
-      { id: 'open-with', icon: icon('externalLink'), label: () => t('Open with'), disabled: () => !cat.actions.choices(cat.actions.selection()).length, title: () => cat.actions.choices(cat.actions.selection()).length ? t('Open the selection in a compatible tool') : t('No tool accepts this selection.') },
+      { id: 'open-with', icon: icon('externalLink'), label: () => t('Open with'), disabled: () => !cat.actions.canOpen(cat.actions.selection()), title: () => cat.actions.canOpen(cat.actions.selection()) ? t('Open the selection in a compatible tool') : t('No tool accepts this selection.') },
       { id: 'convert', icon: icon('duplicate'), label: () => t('Convert'), disabled: () => !cat.actions.canConvert(cat.actions.selection()), title: () => cat.actions.canConvert(cat.actions.selection()) ? t('Choose a supported transformation') : t('No conversion accepts this selection.') },
       { id: 'compare', icon: icon('duplicate'), label: () => t('Compare'), hidden: () => !cat.bulk.canCompareSelection() },
       { id: 'fav', icon: STAR_ICON, label: () => (cat.bulk.allSelectedFav() ? t('Unfavourite') : t('Favourite')) },

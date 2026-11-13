@@ -32,7 +32,7 @@ import {
 } from './neurospicy.ts';
 import {
   isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiLinkValue, currentLofiBar, playsOnStation, savedTuneOf, currentLofiRecipe,
-  lofiPosition, LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
+  lofiPosition, musicEditorHash, LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
 } from './neurospicy-lofi.ts';
 import { positionWords } from './neuro-position.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from './lofi-names.ts';
@@ -814,7 +814,7 @@ class NeurospicyDockHost implements DockHost {
           const recipe = savedTuneOf(getNeurospicy().loopId) ?? currentLofiRecipe();
           if (!recipe || typeof location === 'undefined') return 'Play it first';
           // A track saved from the generator opens with everything it was made with.
-          location.hash = 'generator' in recipe && recipe.generator ? `#/music?${recipe.generator}` : `#/music?style=${encodeURIComponent(recipe.mood)}&seed=${recipe.seed >>> 0}`;
+          location.hash = musicEditorHash(recipe);
           return 'Opening';
         },
       },

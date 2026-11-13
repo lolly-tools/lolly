@@ -47,3 +47,22 @@ test('an ordinary catalog asset keeps Download and its file actions', () => {
   assert.ok(!acts(html).includes('use-template'));
   assert.doesNotMatch(html, /data-inspector-primary/);
 });
+
+// A saved tune opens in the music generator; a recording has no recipe to open.
+test('a saved tune offers the music generator in Open with, and a recorded file does not', async () => {
+  const { routeChoices } = await import('./actions.ts');
+  const generator = 'style=sugar&seed=2024&bars=64&bpm=118';
+  const made = { id: 'user/tune/1-sugar-2024', type: 'audio', format: 'lofi', url: 'blob:t',
+    meta: { name: 'Sugar · C major', lofi: { mood: 'sugar', seed: 2024, generator }, generator } } as unknown as AssetRef;
+  const routes = routeChoices(cat, [made]);
+  assert.equal(routes.length, 1);
+  assert.equal(routes[0]!.label, 'Music generator');
+  assert.equal(routes[0]!.hash, `#/music?${generator}`, 'with everything it was made with');
+  // A tune saved from a station (or a catalog preset) carries only its style and seed.
+  const station = { id: 'user/tune/2-warm-7', type: 'audio', format: 'lofi', url: 'blob:s', meta: { lofi: { mood: 'warm', seed: 7 } } } as unknown as AssetRef;
+  assert.equal(routeChoices(cat, [station])[0]!.hash, '#/music?style=warm&seed=7');
+  // Recorded audio, an unreadable recipe and a selection of several get no entry.
+  assert.deepEqual(routeChoices(cat, [sound]), []);
+  assert.deepEqual(routeChoices(cat, [{ ...sound, format: 'lofi', meta: { lofi: { mood: 'nope', seed: 1 } } } as AssetRef]), []);
+  assert.deepEqual(routeChoices(cat, [made, station]), []);
+});

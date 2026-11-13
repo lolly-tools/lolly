@@ -114,8 +114,8 @@ let track: { state: MusicState; music: MusicStateModule } | null = null;
 /** The bars of what is playing, worked out once per tune (or track). */
 let timeline: { key: string; line: LofiTimeline } | null = null;
 
-type Composer = typeof import('../../../../engine/src/lofi-compose.ts');
-type MusicStateModule = typeof import('./music-state.ts');
+export type Composer = typeof import('../../../../engine/src/lofi-compose.ts');
+export type MusicStateModule = typeof import('./music-state.ts');
 type MusicState = ReturnType<MusicStateModule['parseMusicState']>;
 interface StartArgs { ctx: AudioContext; dest: AudioNode; id: string; prefs: LofiPrefs; onTuneEnd?: (() => void) | undefined }
 
@@ -314,15 +314,39 @@ function currentTimeline(): LofiTimeline | null {
   if (track) {
     const { state, music } = track;
     const key = `track:${stationId}`;
-    if (timeline?.key !== key) timeline = { key, line: lofiTimeline(music.composeTrack(state), (b) => compose.lofiSectionName(b.tune.mood, b.section)) };
+    if (timeline?.key !== key) timeline = { key, line: trackTimeline(compose, music, state) };
     return timeline.line;
   }
   const mood = savedTunes.get(stationId)?.mood ?? lofiMoodOf(stationId);
   const seed = pending?.seed ?? station.current?.tune.seed;
   if (!mood || seed === undefined) return null;
   const key = `${mood}:${seed}`;
-  if (timeline?.key !== key) timeline = { key, line: lofiTimeline(compose.composeLofiTune(seed, mood), (b) => compose.lofiSectionName(mood, b.section)) };
+  if (timeline?.key !== key) timeline = { key, line: tuneTimeline(compose, mood, seed) };
   return timeline.line;
+}
+
+/** The bars of station tune `seed` in `mood`, with the music generator's name for each part. */
+export function tuneTimeline(compose: Composer, mood: LofiMood, seed: number): LofiTimeline {
+  return lofiTimeline(compose.composeLofiTune(seed, mood), (b) => compose.lofiSectionName(mood, b.section));
+}
+
+/** The bars of a track from the music generator, across every tune it holds. */
+export function trackTimeline(compose: Composer, music: MusicStateModule, state: MusicState): LofiTimeline {
+  return lofiTimeline(music.composeTrack(state), (b) => compose.lofiSectionName(b.tune.mood, b.section));
+}
+
+/**
+ * Where `station` has got to on `line`: the bar playing and the seconds from the top. A
+ * generator track counts its bars by their place in the track (`byPlace`), a tune by
+ * their index in the tune. Null before the station's first bar sounds.
+ */
+export function stationPosition(station: LofiStation, line: LofiTimeline, byPlace: boolean): { bar: number; seconds: number } | null {
+  if (!station.current) return null;
+  const bar = byPlace ? station.currentPos : station.current.index;
+  const start = line.starts[bar];
+  if (start === undefined) return null;
+  const length = (line.starts[bar + 1] ?? line.total) - start;
+  return { bar, seconds: start + Math.min(length, Math.max(0, station.ctx.currentTime - station.currentAt)) };
 }
 
 /**
@@ -334,12 +358,8 @@ export function lofiPosition(): { bar: number; seconds: number; timeline: LofiTi
   const line = currentTimeline();
   if (!station || !line) return null;
   if (pending) return { bar: pending.bar, seconds: line.starts[pending.bar] ?? 0, timeline: line };
-  if (!station.current) return null;
-  const bar = track ? station.currentPos : station.current.index;
-  const start = line.starts[bar];
-  if (start === undefined) return null;
-  const length = (line.starts[bar + 1] ?? line.total) - start;
-  return { bar, seconds: start + Math.min(length, Math.max(0, station.ctx.currentTime - station.currentAt)), timeline: line };
+  const at = stationPosition(station, line, track !== null);
+  return at ? { ...at, timeline: line } : null;
 }
 
 /**
@@ -364,6 +384,12 @@ export async function seekLofi(seconds: number): Promise<number | null> {
 
 /** A shared tune: its station's mood and its seed. */
 export interface LofiLink { mood: LofiMood; seed: number; /** A music generator track's settings (lib/music-state.ts), for a saved one. */ generator?: string }
+
+/** Where the music generator opens a tune: a generator track with everything it was made
+ *  with, a station tune by its style and seed. */
+export function musicEditorHash(recipe: LofiLink): string {
+  return recipe.generator ? `#/music?${recipe.generator}` : `#/music?style=${encodeURIComponent(recipe.mood)}&seed=${recipe.seed >>> 0}`;
+}
 
 /** The `lofi` link parameter's value for a tune: "<mood>.<seed>". */
 export function lofiLinkValue(link: LofiLink): string { return `${link.mood}.${link.seed >>> 0}`; }
