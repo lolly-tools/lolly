@@ -25,7 +25,7 @@ import { RADIO_STATIONS, radioStation, isRadioId, radioAvailable, resolveStreamU
 import { isSfxMuted } from './sfx.ts';
 import {
   isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_STATION_MOODS,
-  playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, isSingsMood,
+  playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, isSingsMood, lofiPosition, seekLofi,
   type LofiPrefs, type LofiLink,
 } from './neurospicy-lofi.ts';
 import { LOFI_TUNE_FORMAT, lofiTuneBytes, lofiTuneFromMeta, lofiTuneFromUrl, lofiTuneName } from './lofi-tune.ts';
@@ -108,7 +108,8 @@ let analyser: AnalyserNode | null = null;
 let src: AudioBufferSourceNode | null = null;
 // Progress bookkeeping for the current LOCAL source: position within the looping
 // buffer = (ctx.currentTime - srcStartedAt + srcOffset) % duration. Radio has neither
-// (a live stream has no duration), so the seek bar hides for it.
+// (a live stream has no duration), so the seek bar hides for it. A generated tune keeps
+// its own (lib/neurospicy-lofi.ts: the bar playing and when it began).
 let srcStartedAt = 0;
 let srcOffset = 0;
 // Radio plays through an <audio> element (a live stream has no buffer to decode), but it
@@ -386,9 +387,12 @@ export function neurospicySignalState(): NeuroSignalState {
   return 'connecting';
 }
 
-/** Position within the current LOCAL track (a looping buffer, so it wraps). Null for
- *  radio or while no local source is sounding - callers hide their seek bar then. */
+/** Position within the current LOCAL track (a looping buffer, so it wraps) or the
+ *  generated tune on a station. Null for radio or while nothing local is sounding -
+ *  callers hide their seek bar then. */
 export function getNeurospicyProgress(): { position: number; duration: number } | null {
+  const tune = lofiPosition();
+  if (tune) return { position: tune.seconds, duration: tune.timeline.total };
   if (!src?.buffer || !ctx) return null;
   const dur = src.buffer.duration;
   if (!(dur > 0)) return null;
@@ -398,8 +402,10 @@ export function getNeurospicyProgress(): { position: number; duration: number } 
 
 /** Jump to `seconds` within the current local track (the player's skip-to bar). A
  *  buffer source is one-shot, so seeking = swap in a new source starting at that
- *  offset. No-op for radio / while nothing local is sounding. */
+ *  offset. A generated tune starts again at the top of the nearest bar, as the music
+ *  generator plays from a bar. No-op for radio / while nothing local is sounding. */
 export function seekNeurospicy(seconds: number): void {
+  if (lofiLive()) { void seekLofi(seconds); return; }
   const a = audio();
   const buf = src?.buffer;
   if (!a || !src || !buf) return;

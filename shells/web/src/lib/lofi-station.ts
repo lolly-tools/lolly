@@ -48,7 +48,7 @@ export interface LofiSettings {
   /** Fix parts of every tune's style (for auditioning an instrument); normally empty. */
   style?: Partial<LofiStyle>;
   /** Repeat the first tune rather than going on to new ones (a saved tune). With `bars`,
-   *  the stretch of `bars` repeats instead (a saved music generator track). */
+   *  the whole track repeats from its top instead (a saved music generator track). */
   repeat?: boolean;
   /** Start this many bars in (the music generator's seek): the bars before are composed, not played. */
   startBar?: number;
@@ -168,7 +168,8 @@ const LOOKAHEAD_HIDDEN = 3;
 interface Queued { at: number; spb: number; note: LofiNote; bar: LofiBar; lanes: Lanes; lead: number }
 /** A shouted phrase's longest lead-in, its "let's" before the "go" at the slowest tempo, with room to spare (s). */
 const SHOUT_LEAD = 0.7;
-interface Mark { at: number; bar: LofiBar }
+/** A bar's start: when it sounds, the bar, and its place in the stream (bars from the stream's top). */
+interface Mark { at: number; bar: LofiBar; pos: number }
 /** One tune's inputs to the buses, so skipping can fade out what is still ringing. */
 interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNode; fx: GainNode }
 
@@ -177,6 +178,10 @@ export class LofiStation {
   /** The bar now playing (live only), and a callback when it changes. */
   current: LofiBar | null = null;
   onBar: ((bar: LofiBar) => void) | null = null;
+  /** When the bar now playing began, on the audio clock (live only). */
+  currentAt = 0;
+  /** The place of the bar now playing: bars from the top of the stream, or of a generator track (live only). */
+  currentPos = 0;
 
   private settings: LofiSettings;
   private mix: LofiMix;
@@ -562,10 +567,9 @@ export class LofiStation {
     while (this.nextBarAt < until) {
       if (this.settings.bars !== undefined && this.taken >= this.trackBars) {
         if (!this.settings.repeat) return;
-        // A saved generator track repeats: its stretch of bars starts again from the top.
+        // A saved generator track repeats from its top, wherever it was started (a seek).
         this.stream = this.open(this.seed);
         this.taken = 0;
-        for (let i = 0; i < (this.settings.startBar ?? 0); i++) { this.stream.next(); this.taken++; }
       }
       const raw = this.stream.next();
       const bar = this.settings.shape ? this.settings.shape(raw) : raw;
@@ -580,7 +584,7 @@ export class LofiStation {
         const lead = note.voice === 'hey' && isShoutPhrase(note.mod ?? 0) ? SHOUT_LEAD : 0;
         this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes, lead });
       }
-      this.marks.push({ at, bar });
+      this.marks.push({ at, bar, pos: this.taken - 1 });
       this.nextBarAt = at + 4 * spb;
     }
   }
@@ -603,7 +607,7 @@ export class LofiStation {
       this.tone.frequency.setTargetAtTime(this.cutoff(m.bar.open), Math.max(m.at, now), 0.5);
       this.drumTone.frequency.setTargetAtTime(drumCutoff(this.cutoff(m.bar.open)), Math.max(m.at, now), 0.5);
       if (this.running && typeof setTimeout === 'function') {
-        setTimeout(() => { this.current = m.bar; this.onBar?.(m.bar); }, Math.max(0, (m.at - now) * 1000));
+        setTimeout(() => { this.current = m.bar; this.currentAt = m.at; this.currentPos = m.pos; this.onBar?.(m.bar); }, Math.max(0, (m.at - now) * 1000));
       }
     }
   }
