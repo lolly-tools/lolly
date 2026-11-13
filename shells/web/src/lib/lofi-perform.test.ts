@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { HAT_BELL, fingerChord, perform } from './lofi-perform.ts';
-import { composeLofiTune, type LofiBar } from '../../../../engine/src/lofi-compose.ts';
+import { composeLofiTune, ELECTRIC_FRET, type LofiBar } from '../../../../engine/src/lofi-compose.ts';
 
 const TUNING = [40, 45, 50, 55, 59, 64];
 const frets = (shape: Array<number | null>): string => shape.map((p, s) => (p === null ? 'x' : String(p - TUNING[s]!))).join('');
@@ -98,8 +98,8 @@ test('a lead guitarist bends some long notes and slides into some, and keeps the
     for (const n of perform(bar, 0.5, bar.tune.style.keys, 'overdrive')) {
       if (n.voice !== 'lead') continue;
       notes++;
-      if (n.mod === 1) bends++;
-      if (n.mod === 2) slides++;
+      if ((n.mod ?? 0) % ELECTRIC_FRET === 1) bends++;
+      if ((n.mod ?? 0) % ELECTRIC_FRET === 2) slides++;
     }
   }
   assert.ok(bends > 0 && slides > 0, `${bends} bends and ${slides} slides`);

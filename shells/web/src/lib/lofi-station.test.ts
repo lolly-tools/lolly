@@ -32,10 +32,21 @@ class FakeParam {
   events: Ev[] = [];
   readonly owner: string;
   constructor(owner: string) { this.owner = owner; }
+  /** Value curves' spans: a browser throws on any other event inside one, [start, start + duration). */
+  private curves: Array<[number, number]> = [];
   private add(kind: string, v: number, t: number): this {
     assert.ok(Number.isFinite(v), `${this.owner}: ${kind} to ${v}`);
     assert.ok(Number.isFinite(t) && t >= 0, `${this.owner}: ${kind} at time ${t}`);
+    assert.ok(!this.curves.some(([a, d]) => t >= a && t < a + d), `${this.owner}: ${kind} at ${t} inside a value curve, which throws in a browser`);
     this.events.push([kind, v, t]);
+    return this;
+  }
+  setValueCurveAtTime(values: ArrayLike<number>, t: number, duration: number): this {
+    assert.ok(values.length >= 2 && Array.from(values).every(Number.isFinite), `${this.owner}: a curve of sound values`);
+    assert.ok(Number.isFinite(duration) && duration > 0, `${this.owner}: a curve lasting ${duration}`);
+    assert.ok(!this.events.some(([, , at]) => at >= t && at < t + duration), `${this.owner}: a curve at ${t} over another event, which throws in a browser`);
+    this.add('curve', values[values.length - 1]!, t);
+    this.curves.push([t, duration]);
     return this;
   }
   setValueAtTime(v: number, t: number): this { return this.add('set', v, t); }
