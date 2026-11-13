@@ -44,7 +44,7 @@ const LEADS: Record<LofiStyle['lead'], InstrumentIcon> = {
   chip: 'gamepad', pulse: 'gamepad', bit: 'gamepad',
   angel: 'micVocal', chop: 'micVocal',
   guitar: 'guitar', overdrive: 'guitar', metal: 'guitar', riff: 'guitar', twang: 'guitar', nylon: 'guitar', banjo: 'guitar', pedal: 'guitar',
-  santur: 'guitar', zheng: 'guitar', koto: 'guitar', pipa: 'guitar', shamisen: 'guitar', kora: 'guitar',
+  santur: 'guitar', zheng: 'guitar', koto: 'guitar', pipa: 'guitar', shamisen: 'guitar', kora: 'guitar', harp: 'guitar', steel: 'guitar', tar: 'guitar',
   fiddle: 'bowed', kamancheh: 'bowed', erhu: 'bowed',
   none: 'audioWaveform',
 };

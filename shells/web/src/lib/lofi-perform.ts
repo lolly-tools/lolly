@@ -19,12 +19,18 @@
  *   upstroke across the treble strings on the sixteenths between, faster when it is harder.
  * - A lead guitarist bends some long notes up into pitch, slides into some from the note
  *   before, and plays the rest as they are written.
+ * - A producer chops the vocal (lib/lofi-chop.ts): each note's slice, its scoops, slides,
+ *   flips, falls, gates and stutters, and the odd reversed swell into a phrase.
+ * - A harpist, an acoustic guitarist or a tar player takes the lead (lib/lofi-lead-art.ts):
+ *   a harp's run up into a phrase, a guitar's slides and hammer-ons, the tar's tremolo.
  *
  * Pure and deterministic: every choice comes from a source seeded by the tune and the bar,
  * so a tune plays the same every time. Times are moved in beats, so the caller's tempo holds.
  */
 import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { chopper } from './lofi-chop.ts';
+import { PLUCKED_LEADS, pluckedLead } from './lofi-lead-art.ts';
 
 /** A seeded source for one bar of one tune. */
 function barRandom(bar: LofiBar): () => number {
@@ -372,5 +378,7 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   drummer(notes, bar, spb, rand);
   if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, rand);
+  if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
+  else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
   return notes;
 }
