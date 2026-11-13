@@ -9,11 +9,10 @@
  * corner, a sheen across the top and a soft coloured shadow under the card. Nothing
  * outlines it in colour; a faint neutral edge and the top highlight define it.
  *
- * The card lays itself out by its own width (a container query), so a phone, a
- * tablet either way round and a desk each get an arrangement made for them:
- *   wide     the mark, the sentence with the quiet line under it, and the action
- *            with the lorikeet at the far end
- *   narrow   the mark beside the sentence, the action under them, the quiet line last
+ * One column of type on one left edge: the sentence, the action row under it, the
+ * quiet line last. The mark stands beside that column, centred on it; on a phone
+ * (a container query on the card's width) it sits above, on the same edge, and the
+ * action spans the card.
  *
  * It rises in once, and when it goes it fades and the space it held closes, so the
  * gallery slides up. A sideways swipe follows the finger (welcome-hero.ts).
@@ -41,15 +40,14 @@
   position: relative;
   isolation: isolate;
   justify-self: center;
-  inline-size: min(100%, 66rem);
+  inline-size: min(100%, 54rem);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: "mark title act" "mark quiet act";
-  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "mark title" "mark act" "mark quiet";
+  align-items: start;
   column-gap: var(--sp-7);
-  row-gap: var(--sp-2);
   /* The inline end leaves the close button its own corner. */
-  padding: var(--sp-6) calc(var(--ui-size-target) + var(--sp-4)) var(--sp-6) var(--sp-7);
+  padding: var(--sp-7) calc(var(--ui-size-target) + var(--sp-4)) var(--sp-7) var(--sp-7);
   border-radius: calc(var(--radius-lg) * 1.75);
   color: var(--ui-color-text-default);
   background:
@@ -59,45 +57,52 @@
     var(--ui-color-surface-raised);
   box-shadow:
     var(--bevel),
-    var(--edge-faint),
+    var(--ui-edge-faint),
     0 1px 2px color-mix(in oklab, var(--wh-drop) 40%, transparent),
     0 14px 28px -14px var(--wh-drop),
     0 36px 80px -32px color-mix(in oklab, var(--wh-key) 60%, transparent);
   touch-action: pan-y;
 }
 [data-theme="light"] .welcome-hero-card {
-  /* On a light surface the same lights at full strength read as a stain, not a glow. */
-  --wh-key: var(--job-candy-a);
-  --wh-key-mix: 22%;
-  --wh-fill-mix: 26%;
+  /* On a light surface a dark action colour reads as a stain, not a glow: the light
+     there is the brand's pale second colour, with a breath of the action colour opposite. */
+  --wh-key: var(--job-candy-b);
+  --wh-fill: var(--ui-color-action-primary);
+  --wh-key-mix: 90%;
+  --wh-fill-mix: 10%;
   --wh-sheen: hsl(0 0% 100% / .6);
   --wh-drop: hsl(0 0% 0% / .16);
 }
 .welcome-hero-lead { display: contents; }
-.welcome-hero-mark { grid-area: mark; }
+.welcome-hero-mark { grid-area: mark; align-self: center; }
 .welcome-hero-title {
   grid-area: title;
-  align-self: end;
   margin: 0;
-  font-size: clamp(1.4rem, .9rem + 2.4cqi, 2.6rem);
-  line-height: 1.08;
+  font-size: clamp(1.5rem, 1rem + 2.2cqi, 2.5rem);
+  line-height: 1.1;
   letter-spacing: -0.015em;
   text-wrap: balance;
 }
-.welcome-hero-act { grid-area: act; display: grid; justify-items: center; gap: var(--sp-3); }
-.welcome-hero-perch { display: flex; align-items: flex-end; gap: var(--sp-2); }
-.welcome-hero-bird { flex: none; inline-size: 68px; block-size: 68px; color: var(--ui-color-text-default); }
+/* The action row: the button, then the two other ways in, on the button's centre line. */
+.welcome-hero-act {
+  grid-area: act;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-5);
+  margin-block-start: var(--sp-5);
+}
 .welcome-hero-go {
   display: inline-grid;
   justify-items: center;
   min-height: calc(var(--ui-size-target) + var(--sp-1));
   padding-inline: var(--sp-7);
   border-radius: var(--radius-pill);
-  font-size: calc(1rem * var(--a11y-fs));
-  box-shadow: 0 10px 24px -12px color-mix(in oklab, var(--ui-color-action-primary) 80%, transparent);
+  font-size: var(--fs-xl);
+  box-shadow: var(--ui-elevation-control), 0 10px 24px -12px color-mix(in oklab, var(--ui-color-action-primary) 80%, transparent);
 }
 .welcome-hero-go-sub { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
-.welcome-hero-more { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--sp-2); align-items: center; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
+.welcome-hero-more { margin: 0; display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; font-size: var(--fs-md); color: var(--ui-color-text-muted); }
 .welcome-hero-link {
   padding: 0;
   border: 0;
@@ -112,8 +117,7 @@
 .welcome-hero-link:hover { text-decoration-color: currentColor; }
 .welcome-hero-quiet {
   grid-area: quiet;
-  align-self: start;
-  margin: 0;
+  margin: var(--sp-4) 0 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -232,30 +236,20 @@ html[data-a11y-motion="reduce"] .welcome-hero:not(.is-arrived) > .welcome-hero-c
 html[data-a11y-motion="reduce"] .welcome-hero-card.is-settling,
 html[data-a11y-motion="reduce"] .welcome-hero-close::before { transition: none; }
 
-/* Narrower cards (a phone, a tablet held upright): the mark beside the sentence, the
-   action under them across the card, the quiet line last. */
-@container welcome (max-width: 52rem) {
+/* A phone: the mark above the sentence on the same left edge, and the button across
+   the card, in reach of a thumb. */
+@container welcome (max-width: 32rem) {
   .welcome-hero-card {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: "mark title" "act act" "quiet quiet";
-    column-gap: var(--sp-4);
-    row-gap: var(--sp-5);
-    padding: var(--sp-6);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "mark" "title" "act" "quiet";
+    padding: var(--sp-5);
+    border-radius: calc(var(--radius-lg) * 1.5);
   }
-  .welcome-hero-title { align-self: center; padding-inline-end: var(--ui-size-target); }
-  .welcome-hero-mark { inline-size: 72px; block-size: 72px; }
-  .welcome-hero-act { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; column-gap: var(--sp-5); }
-  .welcome-hero-quiet { padding-block-start: var(--sp-4); box-shadow: inset 0 1px color-mix(in oklab, var(--ui-color-text-default) 8%, transparent); }
-}
-/* A phone: the action spans the card, in reach of a thumb. */
-@container welcome (max-width: 30rem) {
-  .welcome-hero-card { padding: var(--sp-5) var(--sp-4) var(--sp-4); row-gap: var(--sp-4); border-radius: calc(var(--radius-lg) * 1.5); }
-  .welcome-hero-mark { inline-size: 56px; block-size: 56px; }
-  .welcome-hero-act { display: grid; justify-items: stretch; }
-  .welcome-hero-perch { justify-content: stretch; }
-  .welcome-hero-bird { inline-size: 56px; block-size: 56px; }
-  .welcome-hero-go { flex: 1; }
-  .welcome-hero-quiet { justify-content: center; text-align: center; font-size: var(--fs-xs); }
+  .welcome-hero-mark { inline-size: 56px; block-size: 56px; align-self: start; margin-block-end: var(--sp-4); }
+  .welcome-hero-title { padding-inline-end: var(--sp-4); }
+  .welcome-hero-act { margin-block-start: var(--sp-5); }
+  .welcome-hero-go { inline-size: 100%; }
+  .welcome-hero-quiet { font-size: var(--fs-xs); }
 }
 @media (max-width: 760px) {
   .welcome-hero,

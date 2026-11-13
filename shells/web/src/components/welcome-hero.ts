@@ -15,8 +15,6 @@
  *                  Demo, lolly.tools) "Start making" opens Design on the lorikeet
  *                  poster (its brand-starter template); on a blank install "Make it yours" opens Design System
  *                  Setup, because there the brand is the point.
- *   The lorikeet   perches by that button and turns to look at it
- *                  (components/fauna-art.ts), which is what the drawings are for.
  *   Quiet lines    bring a file, the other audience's path, the privacy promise with
  *                  its "What we store" link, and a language chip only when the
  *                  detected language may be wrong.
@@ -51,7 +49,6 @@ import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { PickerHost } from '../views/picker.ts';
 import { openDropFilePicker } from '../lib/drop-file-picker.ts';
 import { holdWelcomeGate, markWelcomeDismissed } from '../lib/welcome-gate.ts';
-import { APPROVED_FAUNA, hydrateFauna } from './fauna-art.ts';
 
 /** Who the greeting is for: a shipped design system to try, or a blank install to brand. */
 export type WelcomeAudience = 'demo' | 'blank';
@@ -140,10 +137,7 @@ function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: b
       <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make the next thing beautiful.')}</h2>
     </div>
     <div class="welcome-hero-act">
-      <div class="welcome-hero-perch">
-        <span class="fauna-slot welcome-hero-bird" data-fauna="lorikeet" data-fauna-watch=".welcome-hero-go" data-fauna-key="welcome-hero" aria-hidden="true"></span>
-        ${primary}
-      </div>
+      ${primary}
       <p class="welcome-hero-more">${[file, other].filter(Boolean).join('<span aria-hidden="true">·</span>')}</p>
     </div>
     <p class="welcome-hero-quiet">${privacyLine(privacy)}${languageMayBeWrong() || langsOpen ? ` ${languageRow(langsOpen)}` : ''}</p>`;
@@ -271,7 +265,6 @@ export function showWelcomeHero(
     };
     const paint = (focus?: string): void => {
       card.innerHTML = heroMarkup(opts.audience, !!opts.uploadHost, langsOpen, opts.privacy);
-      hydrateFauna(card, { only: APPROVED_FAUNA });
       if (focus) card.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
     };
     paint();
