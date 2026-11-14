@@ -41,6 +41,7 @@ import { composeSalsa, salsaSectionName, SALSA_PERCUSSION } from './lofi-salsa.t
 import { composeBotanica, type BotanicaKit } from './lofi-botanica.ts';
 import { composeOompa, oompaSectionName } from './lofi-oompa.ts';
 import { dnbKitBar, dnbKitPlan, isBreakNote } from './lofi-breaks.ts';
+import { futureBuildEnd, futureDropBar, futurePlan } from './lofi-future.ts';
 import { cameoOf, didgeBass, didgeCameo, didgeLead, didgeMid, gateToots, strayaBirds, strayaOf, strayaParts, withMagpies, DIDGE_CAMEO } from './lofi-straya.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
@@ -2961,6 +2962,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   // two bars of chord rhythm and of kick, a two-bar melody for the verse (and, thinned,
   // the quieter sections) and a busier hook for the drop, where the console's arpeggios
   // sparkle, and whether a build ends on a chopped stutter or a power-up.
+  // How the future-bass chords vary through a drop, from a stream of their own (lofi-future.ts).
+  const fut = futurePlan(seed);
   const sher = mood === 'sherbert' ? {
     chords: [pick(FUTURE_CHORDS), pick(FUTURE_CHORDS)] as const,
     kicks: [kickSteps, pick(FUTURE_KICKS)] as const,
@@ -3013,6 +3016,10 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     let runStart = pi;
     while (runStart > 0 && parts[runStart - 1]!.section === part.section) runStart--;
     const runBars = parts.slice(runStart, pi).reduce((s, p) => s + p.bars, 0);
+    let runEnd = pi;
+    while (runEnd + 1 < parts.length && parts[runEnd + 1]!.section === part.section) runEnd++;
+    /** The whole section's length in bars (a drop in two halves counted once). */
+    const dropBars = parts.slice(runStart, runEnd + 1).reduce((s, p) => s + p.bars, 0);
     for (let i = 0; i < part.bars; i++, index++) {
       const slot = Math.floor(i / style.chordBars) + (part.from ?? 0);
       const firstOfChord = i % style.chordBars === 0;
@@ -3146,17 +3153,26 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           // Future-bass chords: the drop's stabs and wubs (the first chord of each phrase
           // bending up into its pitch), the verse's held chord pumping under the kick, and
           // a build's chord whose wub speeds up bar by bar to thirty-seconds at the end.
-          const chordAt = (beat: number, len: number, vel: number, mod: number): void => {
-            for (const p of voicing) notes.push({ voice: 'keys', midi: p, beat, dur: len, vel: clamp01(vel + (rng() - 0.5) * 0.05), ...(mod ? { mod } : {}) });
+          // The bar is drawn from the main stream as it always was, then varied from the
+          // chords' own stream (engine/src/lofi-future.ts), so the tune's other parts stay put.
+          const bar: LofiNote[] = [];
+          const chordAt = (beat: number, len: number, vel: number, mod: number, into: LofiNote[] = bar, jitter: () => number = rng): void => {
+            for (const p of voicing) into.push({ voice: 'keys', midi: p, beat, dur: len, vel: clamp01(vel + (jitter() - 0.5) * 0.05), ...(mod ? { mod } : {}) });
           };
           if (part.section === 'drop') {
             const fig = sher ? sher.chords[i % 2]! : FUTURE_CHORDS[0]!;
             fig.forEach(([step, len, wub], n) => { chordAt(sb(step), len / 4 - 0.04, step === 0 ? 0.64 : 0.55, wub + (n === 0 && (i % 4 === 0 || chance(0.3)) ? 16 : 0)); });
+            const third: LofiNote[] = [];
+            const fr = mulberry32((fut.seed ^ (inSection * 7919)) >>> 0);
+            FUTURE_CHORDS[fut.third]!.forEach(([step, len, wub]) => { chordAt(sb(step), len / 4 - 0.04, step === 0 ? 0.64 : 0.55, wub, third, fr); });
+            notes.push(...futureDropBar(bar, third, fut, { i: inSection, bars: dropBars, sb }));
           } else if (build) {
             const wub = lastOfBuild ? 8 : [0, 1, 2, 4][Math.min(3, Math.floor((i / part.bars) * 4))]!;
             chordAt(0, (lastOfBuild ? 3.5 : 4) - 0.1, 0.5 + (i / part.bars) * 0.12, wub);
+            notes.push(...(lastOfBuild && parts[pi + 1]?.section === 'drop' ? futureBuildEnd(bar, fut, sb) : bar));
           } else {
             chordAt(0, 3.9, 0.52, i % 4 === 0 ? 16 : 0);
+            notes.push(...bar);
           }
         } else if (mood === 'sherbert' && (keysV === 'pluck' || keysV === 'chiparp' || keysV === 'felt') && (part.section === 'intro' || part.section === 'break' || part.section === 'outro')) {
           // The quiet sections: the chord broken into a bright, skipping arpeggio, the
