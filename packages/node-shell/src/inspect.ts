@@ -363,12 +363,15 @@ function sniffSafe(bytes: Uint8Array): string | null {
 /**
  * `hasResidualMetadata` answers "would a strip pass still find this?" Asked of the
  * original bytes, it answers "is there anything here worth stripping?", which is the
- * question an inspection report needs. It only knows jpeg/png/svg; PDF metadata is
+ * question an inspection report needs. It knows jpeg/png/svg and the two audio
+ * containers the metadata reader reports (WAV, and MP4 for M4A); PDF metadata is
  * covered by the Info/XMP facts in the PDF section instead.
  */
+const RESIDUAL_FORMATS: Record<string, 'jpeg' | 'png' | 'svg' | 'wav' | 'mp4'> = { JPEG: 'jpeg', PNG: 'png', SVG: 'svg', WAV: 'wav', MP4: 'mp4' };
+
 function residualFor(bytes: Uint8Array, format: string): string | null {
   const f = format.toUpperCase();
-  const stripFormat = f === 'JPEG' ? 'jpeg' : f === 'PNG' ? 'png' : f === 'SVG' ? 'svg' : null;
+  const stripFormat = Object.hasOwn(RESIDUAL_FORMATS, f) ? RESIDUAL_FORMATS[f] : null;
   if (!stripFormat) return null;
   try { return hasResidualMetadata(bytes, stripFormat); } catch { return null; }
 }

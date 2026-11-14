@@ -110,6 +110,9 @@ export {
 } from './image-meta.ts';
 export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
+// Audio tags and Content Credentials removed byte for byte (M4A/MP4, WAV, MP3, FLAC, Ogg Opus).
+export { AUDIO_STRIP_FORMATS, audioMetadataResidual, inspectAudioMetadata, sniffAudioFormat, stripAudioMetadata } from './strip-audio.ts';
+export type { AudioInspection, AudioMetadataItem, AudioStripFormat } from './strip-audio.ts';
 // The bounded JPEG marker walker, shared with the shells' PDF image placement.
 export { scanJpegSegments, jpegSegmentBody } from './jpeg-segments.ts';
 export type { JpegScan, JpegSegment } from './jpeg-segments.ts';

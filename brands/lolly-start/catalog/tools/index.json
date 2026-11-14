@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-12T11:02:26.335Z",
+  "generatedAt": "2026-11-14T11:27:14.619Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -837,8 +837,8 @@
     {
       "id": "strip-data",
       "name": "Strip Hidden Data",
-      "description": "Remove selected DOCX properties or image and PDF metadata, and inspect other Office hidden content, on your device.",
-      "version": "1.4.1",
+      "description": "Remove metadata from images, audio and PDFs, and selected DOCX properties, and inspect other Office hidden content, on your device.",
+      "version": "1.5.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -862,7 +862,18 @@
         "pptx",
         "xlsx",
         "inkscape",
-        "illustrator"
+        "illustrator",
+        "audio",
+        "music",
+        "m4a",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "id3",
+        "tags",
+        "c2pa",
+        "content credentials"
       ],
       "added": "2026-07-08",
       "formats": [

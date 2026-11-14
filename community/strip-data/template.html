@@ -4,8 +4,8 @@
       <div class="exif-empty-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L7 20"/></svg>
       </div>
-      <h2>Inspect hidden data in an image, PDF or Office file</h2>
-      <p>Choose a JPEG, PNG, SVG or PDF to remove metadata, or a supported DOCX to remove selected core and custom properties, Company, Manager, Template, hyperlink base, application and statistics fields from a new copy. Other Office content remains inspect-only.</p>
+      <h2>Inspect hidden data in an image, audio file, PDF or Office file</h2>
+      <p>Choose a JPEG, PNG, SVG or PDF to remove metadata, or an M4A, WAV, MP3, FLAC or Opus file to remove its tags and Content Credentials. The audio itself is not changed. Choose a supported DOCX to remove selected core and custom properties, Company, Manager, Template, hyperlink base, application and statistics fields from a new copy. Other Office content remains inspect-only.</p>
       <button type="button" class="exif-pick" data-file-pick>Choose a file…</button>
       <p class="exif-empty-note">Everything happens in your browser. Your file is never uploaded.</p>
     </div>
@@ -22,7 +22,7 @@
       {{#unless supported}}
         <div class="exif-clean-state">
           <p class="exif-clean">This file cannot be inspected here.</p>
-          <p class="exif-note">Choose a JPEG, PNG, SVG or PDF, or a supported DOCX, PPTX or XLSX Office package.</p>
+          <p class="exif-note">Choose a JPEG, PNG, SVG or PDF, an M4A, WAV, MP3, FLAC or Opus audio file, or a supported DOCX, PPTX or XLSX Office package.</p>
         </div>
       {{/unless}}
 
@@ -31,6 +31,11 @@
           <div class="exif-clean-state">
             <p class="exif-clean">PDF cleaning isn't available here.</p>
             <p class="exif-note">Open this tool in the Lolly web app to strip a PDF's metadata. JPEG, PNG and SVG work everywhere.</p>
+          </div>
+        {{else if unreadable}}
+          <div class="exif-clean-state">
+            <p class="exif-clean">This {{kind}} could not be read.</p>
+            <p class="exif-note">{{unreadableNote}}</p>
           </div>
         {{else}}
           {{#if nothingFound}}
