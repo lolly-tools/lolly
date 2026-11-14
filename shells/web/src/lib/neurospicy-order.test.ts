@@ -54,7 +54,7 @@ test('listLoops returns tracks grouped in NEURO_CATEGORY_ORDER, alphabetical wit
   const declared = NEURO_CATEGORY_ORDER.filter((k) => runs.includes(k));
   assert.deepEqual(runs, declared);
   // The exact list a user reads in the picker (catalog → uploads → lolly → Lofi stations → ambient → beats → radio…).
-  assert.deepEqual(names(loops).slice(0, 60), [
+  assert.deepEqual(names(loops).slice(0, 61), [
     'Bed A',                        // catalog
     'A First Upload', 'My Take Two',// uploads, A→Z
     'Lolly Sings', 'Lolly Sings · Sugar', 'Lolly Sings · Sherbert', 'Lolly Sings · K-pop', 'Lolly Sings · Straya', 'Lolly Sings · Persian', 'Lolly Sings · Guzheng', 'Lolly Sings · Koto', 'Lolly Sings · Kora', 'Lolly Sings · Afrobeat', 'Lolly Sings · Amapiano', 'Lolly Sings · Chiptune', 'Lolly Sings · City pop',
@@ -62,7 +62,7 @@ test('listLoops returns tracks grouped in NEURO_CATEGORY_ORDER, alphabetical wit
     'Lolly Sings · Trip hop', 'Lolly Sings · Reggae', 'Lolly Sings · Ska', 'Lolly Sings · Spanish guitar', 'Lolly Sings · Rock', 'Lolly Sings · Punk', 'Lolly Sings · Grunge', 'Lolly Sings · Stoner rock', 'Lolly Sings · Metal',
     'Lolly Sings · Country', 'Lolly Sings · Blues', 'Lolly Sings · Jazz', 'Lolly Sings · Swing', 'Lolly Sings · Fantasy', 'Lolly Sings · Dreamscape', 'Lolly Sings · Shoegaze',
     'Lolly Sings · Synthwave', 'Lolly Sings · Acid', 'Lolly Sings · Electro', 'Lolly Sings · Dubstep',
-    'Lolly Sings · Brostep', 'Lolly Sings · D&B', 'Lolly Sings · Salsa', 'Lolly Sings · Surf rock', 'Lolly Sings · Yacht rock', 'Lolly Sings · Botanica', 'Lolly Sings · Breakbeat', 'Lolly Sings · Funky house', 'Lolly Sings · UK garage', 'Lolly Sings · Private school piano', 'Lofi · Warm', 'Lofi · Late night',
+    'Lolly Sings · Brostep', 'Lolly Sings · D&B', 'Lolly Sings · Salsa', 'Lolly Sings · Surf rock', 'Lolly Sings · Yacht rock', 'Lolly Sings · Botanica', 'Lolly Sings · Oompa', 'Lolly Sings · Breakbeat', 'Lolly Sings · Funky house', 'Lolly Sings · UK garage', 'Lolly Sings · Private school piano', 'Lofi · Warm', 'Lofi · Late night',
     'Lofi · Rainy',
                                     // the generated stations lead the Lolly Sings group, Lofi last…
     'Amber Glow', 'Drift',          // …then any Lolly Sings songs (zzfxm), A→Z

@@ -331,7 +331,7 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
     const { ctx, dest } = h.audio();
     const s = previewState(h.state, track, id, section);
     const station = new LofiStation(ctx, dest, s.seed, trackSettings(s, start), previewMix(s.mix, track));
-    const seconds = (PREVIEW_BARS * 240) / (bars[start]?.tune.bpm ?? 100);
+    const seconds = (PREVIEW_BARS * (bars[start]?.tune.beats ?? 4) * 60) / (bars[start]?.tune.bpm ?? 100);
     station.start();
     // The station starts a tenth of a second from now; fade over the last moment of the two bars.
     station.fadeOutAt(ctx.currentTime + 0.1 + seconds - 0.25, 0.25);

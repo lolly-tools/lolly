@@ -250,8 +250,9 @@ test('the bass genres: the bass talks at the end of each drop phrase, bleeps sit
 
 test('the dance genres change instruments between sections', () => {
   // Salsa's piano and lead play the whole tune: its montuno trades the lead between the
-  // coro and the pregón instead (see the salsa tests).
-  for (const mood of DANCE_MOODS.filter(m => m !== 'salsa')) {
+  // coro and the pregón instead (see the salsa tests). Oompa's band keeps its instruments,
+  // the trio handing the tune to the tenor horn (see the oompa tests).
+  for (const mood of DANCE_MOODS.filter(m => m !== 'salsa' && m !== 'oompa')) {
     let softer = 0, newLead = 0;
     for (const seed of SEEDS.slice(0, 8)) {
       const bars = composeLofiTune(seed, mood);
@@ -389,7 +390,9 @@ test('every note is playable', () => {
         const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
           : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
           // Botanica's place (a bed's pitch is nominal; a bird's is its song's centre), its granular pads and its glitches.
-          : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88] : [64, 84];
+          : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88]
+          // Oompa's lead notes are the whole band's lines: the trombones' countermelody to the clarinets' runs.
+          : mood === 'oompa' ? [40, 93] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
       }
     }

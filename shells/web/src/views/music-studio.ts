@@ -56,7 +56,7 @@ import { mountProfileFab } from '../components/profile-menu.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
-  lofiSectionName, transposeChordName, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, LOFI_PERCUSSION,
+  lofiBarBeats, lofiBarSeconds, lofiSectionName, transposeChordName, LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, LOFI_PERCUSSION,
   type LofiBar,
 } from '../../../../engine/src/lofi-compose.ts';
 import { LofiStation, renderStation, type LofiMix, type LofiSettings } from '../lib/lofi-station.ts';
@@ -425,7 +425,31 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     height = RULER + CHORDS + TRACKS.reduce((h, tr) => h + lane[tr], 0);
   }
   const laneTop = (tr: Track): number => RULER + CHORDS + TRACKS.slice(0, TRACKS.indexOf(tr)).reduce((h, x) => h + lane[x], 0);
-  const beatX = (bar: number, beat: number): number => (bar * 4 + beat) * pxPerBeat;
+  // Where each bar starts, in beats from the top: a bar is four beats, or two or three in a
+  // tune that says so (an oompa polka's, a waltz's). Worked out again when the bars change.
+  let beatsOf: { bars: LofiBar[] | null; starts: number[]; total: number } = { bars: null, starts: [], total: 0 };
+  const grid = (): { starts: number[]; total: number } => {
+    if (beatsOf.bars !== bars) {
+      const starts: number[] = [];
+      let at = 0;
+      for (const b of bars) { starts.push(at); at += lofiBarBeats(b.tune); }
+      beatsOf = { bars, starts, total: at };
+    }
+    return beatsOf;
+  };
+  /** Beats in bar `bar`. */
+  const barBeats = (bar: number): number => lofiBarBeats(bars[bar]?.tune ?? {});
+  const beatX = (bar: number, beat: number): number => {
+    const g = grid();
+    return ((bar < g.starts.length ? g.starts[bar]! : g.total + (bar - g.starts.length) * 4) + beat) * pxPerBeat;
+  };
+  /** The bar at `beat` beats from the top. */
+  const barAtBeat = (beat: number): number => {
+    const { starts } = grid();
+    let lo = 0, hi = starts.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (starts[mid]! <= beat) lo = mid; else hi = mid - 1; }
+    return Math.max(0, lo);
+  };
   const sectionLabel = (sec: string): string => {
     const name = lofiSectionName(state.mood, bars[0]!.section === sec ? bars[0]!.section : bars.find(b => b.section === sec)?.section ?? 'verse');
     return t(name.charAt(0).toUpperCase() + name.slice(1));
@@ -481,12 +505,12 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
 
   function paintTrack(cx: CanvasRenderingContext2D, dpr: number, offset: number, width: number, ink: string, muteInk: string, family: string): void {
     cx.setTransform(dpr, 0, 0, dpr, -offset * dpr, 0);
-    const first = Math.max(0, Math.floor(offset / (4 * pxPerBeat)) - 1);
-    const last = Math.min(bars.length, Math.ceil((offset + width) / (4 * pxPerBeat)) + 1);
+    const first = Math.max(0, barAtBeat(offset / pxPerBeat) - 1);
+    const last = Math.min(bars.length, barAtBeat((offset + width) / pxPerBeat) + 2);
     cx.clearRect(offset, 0, width, height);
     const lanesTop = RULER + CHORDS;
     let barStep = 1;
-    while (barStep < 16 && barStep * 4 * pxPerBeat < BAR_LINES_APART) barStep *= 2;
+    while (barStep < 16 && barStep * barBeats(0) * pxPerBeat < BAR_LINES_APART) barStep *= 2;
     // Sections: a tinted band for each run of bars in one section, a stronger tint behind
     // its name on the ruler, the grid in its hue, and in each pitched lane the instrument
     // it plays there.
@@ -511,7 +535,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         const from = Math.max(i, first), to = Math.min(j, last - 1);
         if (pxPerBeat >= BEAT_LINES_FROM) {
           cx.globalAlpha = GRID.beat;
-          for (let b = from; b <= to; b++) for (let beat = 1; beat < 4; beat++) cx.fillRect(beatX(b, beat), lanesTop, 1, height - lanesTop);
+          for (let b = from; b <= to; b++) for (let beat = 1; beat < barBeats(b); beat++) cx.fillRect(beatX(b, beat), lanesTop, 1, height - lanesTop);
         }
         cx.globalAlpha = GRID.bar;
         for (let b = Math.max(from, i + 1); b <= to; b++) if ((b - i) % barStep === 0) cx.fillRect(beatX(b, 0), RULER, 1, height - RULER);
@@ -645,7 +669,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     // The canvas is only as wide as the view and is drawn at the scroll offset: a long
     // track at a close zoom would be wider than a canvas is allowed to be.
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const total = bars.length * 4 * pxPerBeat + 2;
+    const total = grid().total * pxPerBeat + 2;
     spacer.style.width = `${total}px`;
     const width = Math.max(1, scroll.clientWidth);
     const offset = scroll.scrollLeft;
@@ -677,10 +701,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     // The selected bar: a faint wash of ink with a quiet edge.
     cx.fillStyle = ink;
     cx.globalAlpha = 0.05;
-    cx.fillRect(beatX(selected, 0), RULER, 4 * pxPerBeat, height - RULER);
+    cx.fillRect(beatX(selected, 0), RULER, barBeats(selected) * pxPerBeat, height - RULER);
     cx.globalAlpha = 0.32;
     cx.strokeStyle = ink; cx.lineWidth = 1;
-    cx.strokeRect(beatX(selected, 0) + 0.5, RULER + 0.5, 4 * pxPerBeat - 1, height - RULER - 1);
+    cx.strokeRect(beatX(selected, 0) + 0.5, RULER + 0.5, barBeats(selected) * pxPerBeat - 1, height - RULER - 1);
     cx.globalAlpha = 1;
     if (playheadBar >= 0) {
       cx.fillStyle = ink;
@@ -850,7 +874,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       let b = startedBar;
       while (b + 1 < bars.length && times.starts[b + 1]! <= at) b++;
       playheadBar = b;
-      playheadBeat = Math.min(4, (at - times.starts[b]!) / (240 / bars[b]!.tune.bpm) * 4);
+      playheadBeat = Math.min(barBeats(b), (at - times.starts[b]!) / lofiBarSeconds(bars[b]!.tune) * barBeats(b));
       pos.textContent = `${clock(at)} / ${clock(times.total)}`;
       drawViz();
       const x = beatX(b, playheadBeat);
@@ -1293,7 +1317,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
 
   /** Zoom so the whole track fits the visible width. */
   function fit(): void {
-    pxPerBeat = Math.max(0.5, Math.min(30, (scroll.clientWidth - 4) / (bars.length * 4)));
+    pxPerBeat = Math.max(0.5, Math.min(30, (scroll.clientWidth - 4) / Math.max(1, grid().total)));
     draw();
   }
   listen('[data-fit]', 'click', () => fit());
@@ -1375,7 +1399,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // ── the timeline ─────────────────────────────────────────────────────────────
   const barAt = (e: MouseEvent): number => {
     const r = canvas.getBoundingClientRect();
-    return Math.max(0, Math.min(bars.length - 1, Math.floor((e.clientX - r.left + scroll.scrollLeft) / (4 * pxPerBeat))));
+    return Math.max(0, Math.min(bars.length - 1, barAtBeat((e.clientX - r.left + scroll.scrollLeft) / pxPerBeat)));
   };
   const laneAt = (y: number): Track | 'ruler' | 'chords' => {
     if (y < RULER) return 'ruler';
@@ -1553,11 +1577,11 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           // The drums and the effects stay light: a steady pulse would fill their band.
           cx.globalAlpha = tr === 'drums' || tr === 'fx' ? 0.2 + n.vel * 0.2 : 0.55 + n.vel * 0.45;
           cx.fillStyle = trackColour[tr];
-          const x = (i + n.beat / 4) * bw;
+          const x = (i + n.beat / lofiBarBeats(b.tune)) * bw;
           if (tr === 'lead' || tr === 'keys' || tr === 'bass') {
             const [lo, hi] = pitch[tr];
             const y = (top + (1 - (Math.min(hi, Math.max(lo, n.midi)) - lo) / (hi - lo)) * (bottom - top)) * H;
-            cx.fillRect(x, y, Math.max(1.5, (n.dur / 4) * bw), 2.5);
+            cx.fillRect(x, y, Math.max(1.5, (n.dur / lofiBarBeats(b.tune)) * bw), 2.5);
           } else cx.fillRect(x, top * H, 1.5, (bottom - top) * H);
         }
       });

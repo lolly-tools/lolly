@@ -6,7 +6,7 @@
  * DOM, so the music generator (views/music-studio.ts), a saved tune's renderer
  * (lib/lofi-tune.ts) and the Neurospicy player all read a track the same way.
  */
-import { isOverNote, liveLead, lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import { isOverNote, liveLead, lofiBarSeconds, lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_KITS, type LofiKit } from './lofi-drums.ts';
 import { LOFI_MIX, type LofiMix, type LofiSettings } from './lofi-station.ts';
 
@@ -202,7 +202,7 @@ export function composeTrack(s: MusicState): LofiBar[] {
 export function barTimes(bars: readonly LofiBar[]): { starts: number[]; total: number } {
   const starts: number[] = [];
   let at = 0;
-  for (const b of bars) { starts.push(at); at += 240 / b.tune.bpm; }
+  for (const b of bars) { starts.push(at); at += lofiBarSeconds(b.tune); }
   return { starts, total: at };
 }
 

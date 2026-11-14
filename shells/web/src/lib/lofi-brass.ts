@@ -34,7 +34,7 @@
  * Pure: no DOM, no Web Audio; deterministic for the same note and seed.
  */
 
-export type Horn = 'trumpet' | 'trombone';
+export type Horn = 'trumpet' | 'trombone' | 'flugelhorn' | 'tenorhorn' | 'baritone' | 'tuba';
 
 /**
  * How a trumpeter plays a lead note, in its `mod` (lib/lofi-perform.ts decides, lib/lofi-winds.ts
@@ -68,6 +68,8 @@ export interface LipNote {
   taper?: number;
   /** How unsteady the player's lips are: 1 as recorded trumpets are in the note's register (see GRAIN), 0 steady, as the section was fitted. */
   grain?: number;
+  /** How long a tongued note takes to speak, as the player gives it (s): on a horn whose loop builds slowly (Bore.build), the note is taken from where its sound is already growing. */
+  speak?: number;
 }
 
 /** An instrument: its bell, its lips, and how hard its players blow. */
@@ -90,15 +92,31 @@ interface Bore {
   sharp: readonly [number, number, number, number];
   /** How strongly the tongue sets the bore going (the wave it starts with, against the breath): a long bore needs a firmer start to speak as promptly. */
   tongue: number;
+  /**
+   * How long the loop takes to build to its steady sound by itself on a note of 100 Hz (s,
+   * longer on a lower note, as BUILD_SLOPE says). A big bore's lips answer the bore slowly
+   * here, so a tuba's note would take a third of a second to speak; a player's tongue and
+   * lips start it far sooner. A note that asks to speak sooner (LipNote.speak) is taken from
+   * that far into its loop, faded in over the time it asks for.
+   */
+  build?: number;
+  /** How turbulent the air through the lips is, against the trumpet's (TURBULENCE): a big mouthpiece's flow is smoother, and a recorded tuba's tone holds its harmonics 25 to 30 dB over the noise between them. */
+  air?: number;
 }
+/** How the loop's build time grows on lower notes: as the period to this power. */
+const BUILD_SLOPE = 0.8;
 
 /**
  * The trumpet's bell lets go of its harmonics from about 1.5 kHz and the trombone's from
  * about 700 Hz; the trombone's bore is twice as long, so its waves steepen further.
  */
 const BORES: Record<Horn, Bore> = {
-  trumpet: { bell: 1500, lip: 0.75, q: 6, reflect: 0.97, steep: 4, soft: 0.11, loud: 2.2, sharp: [-4, 0, 3, 33], tongue: 0.08 },
-  trombone: { bell: 700, lip: 0.75, q: 6, reflect: 0.97, steep: 7, soft: 0.11, loud: 2.2, sharp: [-4, 55, -2, 150], tongue: 0.3 },
+  trumpet: { bell: 1500, lip: 0.75, q: 6, reflect: 0.97, steep: 4, soft: 0.11, loud: 2.2, sharp: [-4, 0, 3, 33], tongue: 0.08, build: 0.1 },
+  trombone: { bell: 700, lip: 0.75, q: 6, reflect: 0.97, steep: 7, soft: 0.11, loud: 2.2, sharp: [-4, 55, -2, 150], tongue: 0.3, build: 0.1 },
+  flugelhorn: { bell: 1107, lip: 0.75, q: 5.98, reflect: 0.962, steep: 0.92, soft: 0.14, loud: 2.23, sharp: [-5, 22, 3, 55], tongue: 0.08, build: 0.1 },
+  tenorhorn: { bell: 620, lip: 0.665, q: 4.43, reflect: 0.964, steep: 4.79, soft: 0.169, loud: 2.21, sharp: [0, 52, 2, 215], tongue: 0.25, build: 0.1 },
+  baritone: { bell: 496, lip: 0.665, q: 4.43, reflect: 0.964, steep: 4.79, soft: 0.169, loud: 2.21, sharp: [-7, 117, -1, 380], tongue: 0.3, build: 0.1 },
+  tuba: { bell: 210, lip: 0.64, q: 9.8, reflect: 0.987, steep: 4.5, soft: 0.098, loud: 2.85, sharp: [-15, 194, -6, 1965], tongue: 0.4, build: 0.19 },
 };
 
 /** The lips at rest are just closed: the breath has to push them open. */
@@ -266,7 +284,9 @@ export function darken(x: Float32Array, sr: number, hz: number): void {
 export function blowLips(n: LipNote, rand: () => number): Float32Array {
   const { sr } = n;
   const b = BORES[n.horn];
-  const out = new Float32Array(Math.ceil(n.seconds * sr));
+  // The loop run before the note is heard (see Bore.build), in samples: what it has built by then is where the note starts.
+  const lead = !n.from && n.speak !== undefined && b.build ? Math.round(Math.max(0, b.build * (100 / n.f) ** BUILD_SLOPE - n.speak) * sr) : 0;
+  const out = new Float32Array(Math.ceil(n.seconds * sr) + lead);
   const bore = new Line(Math.ceil(sr / 20) + 8);
   // The outgoing wave, read up to STEEP_MAX samples early as it steepens.
   const STEEP_MAX = 24;
@@ -281,7 +301,7 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
   const [s0, s1, l0, l2] = b.sharp;
   const sharp = (p: number): number => s0 + s1 * kHz + Math.min(1, Math.max(0, Math.log(Math.max(p, 1e-4) / pSoft) / pSpan)) * (l0 + l2 * kHz * kHz);
   const set = sharp(pm) * 0.5;
-  const release = Math.round(n.dur * sr);
+  const release = Math.round(n.dur * sr) + lead;
   const releaseLen = RELEASE * sr;
   const attack = (n.from ? n.slurAttack ?? SLUR_ATTACK : ATTACK) * sr;
   let rough = n.from ? 0 : ROUGH;
@@ -301,7 +321,7 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
   const glide = n.from ? (n.slurTime ?? 0.05) * sr : n.scoop ? (n.scoopTime ?? 0.12) * sr : 0;
   const start = n.from ?? (n.scoop ? n.f * 2 ** (-n.scoop / 12) : n.f);
   const fallLen = FALL_TIME * sr;
-  const vibratoFrom = (n.vibratoFrom ?? Math.min(0.3, n.dur * 0.5)) * sr;
+  const vibratoFrom = (n.vibratoFrom ?? Math.min(0.3, n.dur * 0.5)) * sr + lead;
   const vibratoSpan = Math.max(0.05 * sr, release - vibratoFrom);
   const taper = n.taper ?? 0;
   // Filter and lip state.
@@ -326,7 +346,7 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
   for (let i = 0; i < Math.ceil(period); i++) bore.write(Math.sin((2 * Math.PI * i) / period) * seed);
   for (let i = 0; i < out.length; i++) {
     // The pitch: in from a slur or a scoop, wandering, a vibrato once settled, off at the end.
-    const into = glide ? Math.min(1, i / glide) : 1;
+    const into = glide ? Math.min(1, Math.max(0, i - lead) / glide) : 1;
     let f = start * (n.f / start) ** (into * into * (3 - 2 * into));
     wander = drift * wander + (1 - drift) * (rand() * 2 - 1);
     let cents = wander * driftScale;
@@ -372,7 +392,7 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
     let dp: number, u: number;
     if (drive >= 0) { const s = (-gap + Math.sqrt(gap * gap + 4 * drive)) / 2; dp = s * s; u = gap * s; }
     else { const s = (-gap + Math.sqrt(gap * gap - 4 * drive)) / 2; dp = -s * s; u = -gap * s; }
-    u *= 1 + (rand() * 2 - 1) * (TURBULENCE + rough);
+    u *= 1 + (rand() * 2 - 1) * (TURBULENCE * (b.air ?? 1) + rough);
     rough *= roughFall;
     const w = 2 * Math.PI * f * b.lip * tension;
     lipV += (w * w * (COMPLIANCE * dp - lipY) - (w / b.q) * lipV) * dt;
@@ -388,5 +408,10 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
     o2 = o1; o1 = leaving; p2 = p1; p1 = o;
     out[i] = o;
   }
-  return out;
+  if (!lead) return out;
+  // The note as heard: from where the loop had built to, coming in over the time it speaks in.
+  const heard = out.slice(lead);
+  const fade = Math.max(1, Math.round((n.speak ?? 0) * sr));
+  for (let i = 0; i < fade && i < heard.length; i++) heard[i]! *= 0.5 - 0.5 * Math.cos((Math.PI * i) / fade);
+  return heard;
 }

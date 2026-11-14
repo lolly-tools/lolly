@@ -35,12 +35,12 @@ const KEYS: Record<LofiStyle['keys'], InstrumentIcon> = {
   nylon: 'guitar', clean: 'guitar', fuzz: 'guitar', wall: 'guitar', steel: 'guitar', banjo: 'guitar', jazzbox: 'guitar', crunch: 'guitar', heavy: 'guitar', buzzsaw: 'guitar', wah: 'guitar', electric: 'guitar', harp: 'guitar',
   tar: 'guitar', santur: 'guitar', zheng: 'guitar', koto: 'guitar', shamisen: 'guitar', kora: 'guitar',
   chiparp: 'gamepad', brass: 'horn', choir: 'micVocal', balafon: 'bell', strings: 'bowed', grand: 'piano',
-  surf: 'guitar', combo: 'piano',
+  surf: 'guitar', combo: 'piano', horns: 'horn',
 };
 const LEADS: Record<LiveLead, InstrumentIcon> = {
   vibes: 'bell', bells: 'bell', kalimba: 'bell', balafon: 'bell',
   flute: 'wind', panflute: 'wind', ney: 'wind', shakuhachi: 'wind', dizi: 'wind', clarinet: 'wind', harmonica: 'wind',
-  sax: 'horn', trumpet: 'horn',
+  sax: 'horn', trumpet: 'horn', flugelhorn: 'horn', tenorhorn: 'horn',
   synthwave: 'audioWaveform',
   chip: 'gamepad', pulse: 'gamepad', bit: 'gamepad',
   angel: 'micVocal', chop: 'micVocal',
@@ -53,7 +53,7 @@ const LEADS: Record<LiveLead, InstrumentIcon> = {
 const BASSES: Record<LofiStyle['bass'], InstrumentIcon> = {
   round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', warp: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
   upright: 'bowed', slap: 'guitar', picked: 'guitar', croak: 'guitar', motown: 'guitar',
-  pulse: 'gamepad', eight: 'drum', log: 'drum', yidaki: 'wind',
+  pulse: 'gamepad', eight: 'drum', log: 'drum', yidaki: 'wind', tuba: 'horn',
 };
 
 /** The family icon for a part's instrument. */

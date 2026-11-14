@@ -202,8 +202,23 @@ const SAX_HUM = [48, 88] as const, SAX_GROWL_DEPTH = 0.2;
 const SAX_GROWL_BEAT = 0.5;
 /** How far a player's pitch wanders while holding a note (cents, standard deviation): a recorded alto's held notes, 1.5 to 3. */
 const WANDER = 2.2;
-/** How uneven the clarinet's reed is (the even harmonics it brings). */
-const CLARINET_EVEN = 0.5;
+/**
+ * How uneven the clarinet's reed is (the even harmonics it brings), in the low register and
+ * above the break. Measured against recorded clarinets (the Philharmonia's B♭ clarinet at
+ * pianissimo, forte and fortissimo, E3 to D6): in the chalumeau the odd harmonics lead, the
+ * even ones 25 to 40 dB down, but from about C♯5 (concert) the second harmonic comes up to
+ * within 0 to 25 dB of the first, as the tone holes stop the bore acting as a closed pipe
+ * for the second harmonic. The evenness rises over CLARINET_EVEN_SPAN semitones from CLARINET_EVEN_FROM.
+ */
+const CLARINET_EVEN = 1;
+const CLARINET_EVEN_HIGH = 3;
+const CLARINET_EVEN_FROM = 73.3;
+const CLARINET_EVEN_SPAN = 8;
+/** The clarinet's breath pressure, softly and at full strength: a soft note's reed hardly beats, so its tone is nearly pure (recorded pianissimo notes above the break, the 3rd to 6th harmonics 25 to 60 dB down). */
+const CLARINET_PRESSURE = [0.537, 0.755] as const;
+/** What the bell and the room take off the top: two gentle low-passes at CLARINET_TOP Hz, lower by CLARINET_TOP_SOFT octaves per unit of strength under 0.5. */
+const CLARINET_TOP = 7630;
+const CLARINET_TOP_SOFT = 1.64;
 
 /** Blow one note. A sax note is blown by blowSax; the clarinet's is here. */
 export function blowReed(n: ReedNote, rand: () => number): Float32Array {
@@ -211,7 +226,9 @@ export function blowReed(n: ReedNote, rand: () => number): Float32Array {
   const { sr } = n;
   const out = new Float32Array(Math.ceil(n.seconds * sr));
   const lines = [new Line(Math.ceil(sr / 30) + 4), new Line(Math.ceil(sr / 30) + 4)];
-  const pressure = 0.52 + 0.2 * n.vel;
+  const pressure = CLARINET_PRESSURE[0] + (CLARINET_PRESSURE[1] - CLARINET_PRESSURE[0]) * n.vel;
+  const midi = 69 + 12 * Math.log2(n.f / 440);
+  const even = CLARINET_EVEN + (CLARINET_EVEN_HIGH - CLARINET_EVEN) * Math.min(1, Math.max(0, (midi - CLARINET_EVEN_FROM) / CLARINET_EVEN_SPAN));
   const attack = Math.max(1, n.attack * sr);
   const release = Math.round(n.dur * sr);
   const releaseLen = 0.07 * sr;
@@ -257,10 +274,11 @@ export function blowReed(n: ReedNote, rand: () => number): Float32Array {
     let y = breath + diff * reed(diff, CLARINET_SLOPE);
     lines[0]!.write(y);
     // The reed opens and shuts unevenly, which gives a real clarinet's weak even harmonics.
-    y += CLARINET_EVEN * y * y;
+    y += even * y * y;
     out[i] = y;
   }
   dcBlock(out);
+  lowpass2(out, sr, CLARINET_TOP * 2 ** (CLARINET_TOP_SOFT * (n.vel - 0.5)));
   return out;
 }
 
@@ -406,6 +424,13 @@ function shimmer(x: Float32Array, sr: number, rand: () => number): void {
 }
 
 /** Take out the breath's own steady push, which is not sound. */
+/** Two one-pole low-passes at `hz`, in place. */
+function lowpass2(x: Float32Array, sr: number, hz: number): void {
+  const a = Math.exp((-2 * Math.PI * Math.min(hz, sr * 0.45)) / sr), b = 1 - a;
+  let y1 = 0, y2 = 0;
+  for (let i = 0; i < x.length; i++) { y1 = b * x[i]! + a * y1; y2 = b * y1 + a * y2; x[i] = y2; }
+}
+
 function dcBlock(out: Float32Array): void {
   let x1 = 0, y1 = 0;
   for (let i = 0; i < out.length; i++) {

@@ -283,3 +283,32 @@ test('a soloist\'s lips are unsteady as recorded trumpets are, most in the low r
   assert.ok(low.shimmer > mid.shimmer, 'the low register shimmers most');
   for (const m of [63, 74]) { const s = g(m, 0); assert.ok(s.jitter < 0.05 && s.shimmer < 0.03, `a section player at ${m}: ${JSON.stringify(s)}`); }
 });
+
+test('the band\'s horns: each in tune, a conical horn mellower than the trumpet and a tuba darker than the trombone, as their recordings are', () => {
+  // Fitted to recorded notes (the Philharmonia's tuba, two recorded flugelhorns, a recorded
+  // euphonium for the baritone): the harmonics' centre, in harmonics, blown at a mezzo-forte.
+  const tuba = blowLips(note('tuba', 36, 0.52, { dur: 1.1, seconds: 1.2 }), seeded(11));
+  const trombone = blowLips(note('trombone', 36, 0.52, { dur: 1.1, seconds: 1.2 }), seeded(11));
+  assert.ok(centroid(tuba, mtof(36)) < centroid(trombone, mtof(36)) - 1.5, `the tuba ${centroid(tuba, mtof(36)).toFixed(1)}, the trombone ${centroid(trombone, mtof(36)).toFixed(1)}`);
+  const flugel = blowLips(note('flugelhorn', 70, 0.52), seeded(12));
+  const trumpet = blowLips(note('trumpet', 70, 0.52), seeded(12));
+  assert.ok(centroid(flugel, mtof(70)) < centroid(trumpet, mtof(70)) - 0.5, 'the flugelhorn is mellower than the trumpet');
+  for (const [horn, midis] of [['tuba', [29, 36, 43]], ['flugelhorn', [62, 70, 77]], ['tenorhorn', [55, 62, 67]], ['baritone', [43, 50, 58]]] as const) {
+    for (const m of midis) for (const v of [0.2, 0.8]) {
+      const x = blowLips(note(horn, m, v, { dur: 1.1, seconds: 1.2 }), seeded(m));
+      assert.ok(Math.abs(cents(x, mtof(m))) < 12, `${horn} ${m} at ${v}: ${cents(x, mtof(m)).toFixed(1)} cents`);
+    }
+  }
+});
+
+test('a horn whose loop builds slowly speaks as soon as its player asks, and only then', () => {
+  // A tuba's loop takes a third of a second to build by itself; asked to speak in 40 ms it is at its held level by then.
+  const at = (x: Float32Array, t: number): number => rms(x, t, t + 0.02);
+  const slow = blowLips(note('tuba', 34, 0.7), seeded(13));
+  const quick = blowLips(note('tuba', 34, 0.7, { speak: 0.04 }), seeded(13));
+  const held = rms(quick, 0.5, 0.7);
+  assert.ok(at(quick, 0.05) > 0.5 * held, 'spoken within a few hundredths');
+  assert.ok(at(slow, 0.05) < 0.5 * rms(slow, 0.5, 0.7), 'left to itself the loop is still building');
+  // A trumpet's or a slurred note's start is untouched.
+  assert.deepEqual(blowLips(note('tuba', 34, 0.7, { from: mtof(36), speak: 0.04 }), seeded(14)), blowLips(note('tuba', 34, 0.7, { from: mtof(36) }), seeded(14)));
+});

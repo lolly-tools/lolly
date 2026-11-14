@@ -683,6 +683,9 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   if (keys === 'steel') notes = strummer(notes, bar, spb, rand, (tones, near) => shapeFor(tones, 'steel', near));
   else if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
   if (keys === 'steel') notes = rhythmKnocks(notes, bar, rand);
+  // An oompa band's lines carry their parts in `mod`: its players play as written, each with
+  // their own tuning, timing and breath (lib/lofi-oompa.ts).
+  if (bar.tune.mood === 'oompa') return notes;
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
   // Yacht rock's guitar fills, fingered and bent or slid as a lead guitarist's notes are.
   if (notes.some(n => n.voice === 'fill')) leadGuitarist(notes, 'chorus', rand, 'fill');

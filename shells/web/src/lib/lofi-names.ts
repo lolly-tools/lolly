@@ -14,6 +14,7 @@ export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   grand: 'grand piano',
   surf: 'surf rhythm guitar', combo: 'combo organ',
   houseOrgan: 'house organ',
+  horns: 'band horns',
 };
 
 /** The leads that still play (a retired lead plays its replacement, so it needs no name). */
@@ -25,6 +26,7 @@ export const LOFI_LEAD_NAME: Record<LiveLead, string> = {
   santur: 'santur', ney: 'ney', kamancheh: 'kamancheh', erhu: 'erhu', dizi: 'dizi', zheng: 'guzheng', pipa: 'pipa', shakuhachi: 'shakuhachi',
   koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', harp: 'harp', steel: 'acoustic guitar', tar: 'tar', viola: 'viola', cello: 'cello', doublebass: 'double bass', none: '',
   surf: 'surf guitar', chorus: 'chorus guitar',
+  flugelhorn: 'flugelhorn', tenorhorn: 'tenor horn',
 };
 
 export const LOFI_SNARE_NAME: Record<LofiStyle['snare'], string> = { snare: 'snare', brush: 'brushes', rim: 'cross-stick', clap: 'claps', stack: 'big snare', snap: 'finger snaps' };
@@ -33,5 +35,5 @@ export const LOFI_HATS_NAME: Record<LofiStyle['hats'], string> = { hat: 'hi-hat'
 export const LOFI_BASS_NAME: Record<LofiStyle['bass'], string> = {
   round: 'rolling bass', upright: 'upright bass', synth: 'synth bass', wobble: 'wobble bass', growl: 'growl bass',
   reese: 'reese bass', slap: 'slap bass', screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass',
-  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass', yidaki: 'yidaki', log: 'log drum', deep: 'deep-house bass', warp: 'warp bass',
+  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass', yidaki: 'yidaki', log: 'log drum', deep: 'deep-house bass', warp: 'warp bass', tuba: 'tuba',
 };
