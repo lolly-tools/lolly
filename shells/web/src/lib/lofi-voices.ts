@@ -12,7 +12,7 @@
  *   lead   vibes, soft (a filtered saw, a little like muted brass), kalimba (a bright
  *          inharmonic tine), chip (a soft chiptune square, for Lolly Sings); the flute is
  *          blown in lib/lofi-flutes.ts and played in lib/lofi-winds.ts
- *   bass   round (sine and triangle), upright (a darker pluck with a thump), synth
+ *   bass   round (sine and triangle), upright (a double bass plucked, through its body), synth
  *          (a filtered saw over a sine)
  *   drums  kick, snare, brush, clap, rim, hat and shaker, tuned by the style
  *
@@ -54,6 +54,7 @@
  */
 import { pluckString, type StringSpec } from './lofi-strings.ts';
 import { acousticNote } from './lofi-acoustic.ts';
+import { pizzicato } from './lofi-string-section.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export interface VoiceKit {
@@ -1784,47 +1785,16 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
 const PICKED_DRIVE = 3.6;
 
 /**
- * An upright bass, plucked (pizzicato), modelled (lib/lofi-strings.ts): a long, heavy
- * string plucked with the side of a finger near the end of the fingerboard, so the top
- * dies almost at once and the low end blooms and rings, through the big body's warmth
- * around 100 Hz and the wood's growl near 700 Hz. The finger slapping the string onto the
- * fingerboard thumps the start of every note, and the note stops when the hand lets go.
+ * An upright bass, plucked (pizzicato): the double bass's string plucked with the side of a
+ * finger and heard through the double bass's body, both measured on recorded basses
+ * (lib/lofi-string-section.ts' pizzicato, lib/lofi-strings-bowed.ts' pluckBass), the
+ * finger knocking the body as it lets go, the note stopped when the hand lets go.
  */
 function upright(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, tone: Tone): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const hard = vel >= 0.6;
-  const string = ctx.createBufferSource();
-  string.buffer = stringBuffer(ctx, { f, seconds: 2.4, pickAt: 0.22, bright: hard ? 9 : 6, decay: 2.6, mellow: 5, noise: 0.12, plane: 0.5, top: 2600 * tone.bright }, k.rng() < 0.5 ? 0 : 1);
-  string.detune.value = (k.rng() - 0.5) * 6;
-  const body = ctx.createBiquadFilter();
-  body.type = 'peaking';
-  body.frequency.value = 105;
-  body.Q.value = 1.1;
-  body.gain.value = 4;
-  const growl = ctx.createBiquadFilter();
-  growl.type = 'peaking';
-  growl.frequency.value = 720;
-  growl.Q.value = 1.4;
-  growl.gain.value = 2.5;
-  const amp = ctx.createGain();
-  const level = UPRIGHT_LEVEL * pluckLevel(vel);
-  amp.gain.setValueAtTime(level, t);
-  amp.gain.setTargetAtTime(EPS, t + Math.max(0.08, dur), 0.05);
-  string.connect(body).connect(growl).connect(amp).connect(out);
-  string.start(t);
-  string.stop(t + Math.max(0.08, dur) + 0.4);
-  // The thump of the finger and the string meeting the fingerboard.
-  const tg = ctx.createGain();
-  tg.gain.setValueAtTime(0.1 * vel, t);
-  tg.gain.exponentialRampToValueAtTime(EPS, t + 0.03);
-  const thump = ctx.createBiquadFilter();
-  thump.type = 'lowpass';
-  thump.frequency.value = 300;
-  noiseAt(k, t, 0.04).connect(thump).connect(tg).connect(out);
+  pizzicato(k, out, t, midi, vel, UPRIGHT_LEVEL * pluckLevel(vel), dur, tone.bright);
 }
-/** The modelled upright's level against the voice it replaced. */
-const UPRIGHT_LEVEL = 0.84;
+/** The plucked bass's level: as loud (K-weighted) as the voice it replaced, note for note. */
+const UPRIGHT_LEVEL = 2.42;
 
 
 // ── effects ──────────────────────────────────────────────────────────────────
