@@ -131,11 +131,10 @@ const glyphMarkup = (sound: FxSound): string => {
 /** The chips' size in the canvas, in CSS pixels. */
 export const CHIP = 18;
 
-/** Paint the chips into the timeline's canvas at the top of the lane: a disc in the lane's colour with the sound's icon in `ink`. */
+/** Paint the chips into the timeline's canvas at the top of the lane: a disc in the lane's colour with the sound's icon in `ink`, at the canvas's alpha (faint while the lane is silent). */
 export function drawChips(cx: CanvasRenderingContext2D, chips: readonly PlacedChip[], top: number, colour: string, ink: string): void {
   cx.save();
   for (const { moment, x } of chips) {
-    cx.globalAlpha = 1;
     cx.fillStyle = colour;
     cx.beginPath();
     cx.arc(x + CHIP / 2, top + CHIP / 2, CHIP / 2, 0, Math.PI * 2);

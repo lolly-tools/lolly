@@ -433,7 +433,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const composed = composedTag(state.tag === undefined ? bars : composeTrack({ ...state, tag: undefined }));
     return autoLabel(t((short ? TAG_SHORT[composed] : TAG_LABEL[composed]) ?? composed));
   };
-  const HINT = t('Click a section in a track to hear and choose its instruments there. Click the top row to play from a section, or an ear candy icon to hear that sound alone.');
+  const HINT = t('Click a section in a lane to hear and choose its instruments, the top row to play from there, or an ear candy icon to hear that sound alone.');
   /** The effects' tag menu and the effect switches, set to the state. */
   const fillOptions = (): void => {
     for (const sel of page.querySelectorAll<HTMLSelectElement>('[data-tag]')) {
@@ -452,7 +452,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     // On a phone the play and shuffle dock covers the bottom of the screen: leave its room too.
     const dock = q<HTMLElement>('.ms-transport');
     const docked = getComputedStyle(dock).position === 'fixed' ? window.innerHeight - dock.getBoundingClientRect().top : 0;
-    const room = window.innerHeight - top - 56 - docked;
+    // Room under the editor for the status line, as tall as it is now (it wraps on a phone).
+    const room = window.innerHeight - top - Math.max(56, hint.offsetHeight + 24) - docked;
     const base = TRACKS.reduce((h, tr) => h + LANE[tr], 0);
     const scale = Math.max(0.85, Math.min(2.2, (room - RULER - CHORDS) / base));
     for (const tr of TRACKS) {
@@ -664,7 +665,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     }
     cx.globalAlpha = 1;
     // The ear candy's moments, each a chip with its sound's icon at the top of its lane.
-    shownChips = placeChips(moments(), m => beatX(m.bar, m.beat), offset, offset + width, CHIP);
+    // A moment in the track's last beats keeps its whole chip inside the track.
+    const end = grid().total * pxPerBeat - CHIP;
+    shownChips = placeChips(moments(), m => Math.max(0, Math.min(end, beatX(m.bar, m.beat))), offset, offset + width, CHIP);
     const fxSilent = muted.has('fx') || (solo.size > 0 && !solo.has('fx'));
     cx.globalAlpha = fxSilent ? 0.35 : 1;
     drawChips(cx, shownChips, laneTop('fx') + 3, trackColour.fx, '#fff');

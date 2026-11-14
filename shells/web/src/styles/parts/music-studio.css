@@ -36,11 +36,10 @@
     --ms-line: color-mix(in srgb, var(--ui-color-text-muted) 14%, transparent);
     /* The ground a project's picture is drawn on (views/music-studio.ts, coverImage). */
     --ms-surface: var(--ui-color-surface-canvas);
-    /* The shuffle button's size, a whole even number of pixels, so the bar's row is even
-       and every 44 or 48 pixel control centred in the row sits on a whole pixel (an odd row
-       put the lock, undo and redo glyphs half a pixel low). */
-    --ms-cap: calc(var(--ui-size-target) * 1.25);
-    --ms-cap: round(calc(var(--ui-size-target) * 1.25), 2px);
+    /* The shuffle button's size: the target and 12 pixels, an even number, so the bar's row
+       is even and every 44 or 48 pixel control centred in the row sits on a whole pixel (a
+       55 pixel cap put the lock, undo and redo glyphs half a pixel low). */
+    --ms-cap: calc(var(--ui-size-target) + 12px);
     position: relative;
     margin: 0;
     /* Clear of the back and home buttons, which float over the page's corner. */
@@ -664,8 +663,9 @@
        head opens its instruments; the rows above hold the rest. */
     .ms-editor { grid-template-columns: calc(var(--ui-size-target) + var(--sp-2)) 1fr; }
     .ms-track { flex-direction: column; justify-content: center; gap: 2px; padding: 0 2px; }
-    .ms-track-id { flex-direction: column; gap: 2px; min-width: 0; }
-    .ms-track-name { font-size: var(--fs-2xs); font-weight: 600; color: var(--ui-color-text-muted); }
+    .ms-track-id { flex-direction: column; gap: 2px; min-width: 0; max-width: 100%; }
+    /* A two-word name ("Ear candy") wraps onto two lines rather than running past the column. */
+    .ms-track-name { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.15; text-align: center; color: var(--ui-color-text-muted); }
     .ms-track .ms-ms-pair, .ms-track [data-tag] { display: none; }
     .ms-track .ms-browse {
       position: absolute;
