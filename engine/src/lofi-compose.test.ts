@@ -247,7 +247,9 @@ test('the bass genres: the bass talks at the end of each drop phrase, bleeps sit
 });
 
 test('the dance genres change instruments between sections', () => {
-  for (const mood of DANCE_MOODS) {
+  // Salsa's piano and lead play the whole tune: its montuno trades the lead between the
+  // coro and the pregón instead (see the salsa tests).
+  for (const mood of DANCE_MOODS.filter(m => m !== 'salsa')) {
     let softer = 0, newLead = 0;
     for (const seed of SEEDS.slice(0, 8)) {
       const bars = composeLofiTune(seed, mood);
@@ -417,10 +419,13 @@ test('the keys voice a few chord tones and move smoothly from chord to chord', (
 test('the lead plays a chord tone on the strong beats, and the keys play only chord tones', () => {
   let checked = 0;
   for (const mood of LOFI_MOODS) for (const seed of SEEDS) {
-    for (const bar of composeLofiTune(seed, mood)) {
+    const bars = composeLofiTune(seed, mood);
+    for (const bar of bars) {
       const tones = new Set(bar.tones);
+      // Salsa's montuno anticipates: the bar's last eighth is the next bar's chord.
+      const next = new Set(mood === 'salsa' ? bars[bar.index + 1]?.tones ?? [] : []);
       for (const n of bar.notes) {
-        if (n.voice === 'keys') assert.ok(tones.has(PC(n.midi)), `${mood} ${seed} bar ${bar.index}: keys ${n.midi} is not in ${bar.chord}`);
+        if (n.voice === 'keys') assert.ok(tones.has(PC(n.midi)) || (n.beat >= 3.5 && next.has(PC(n.midi))), `${mood} ${seed} bar ${bar.index}: keys ${n.midi} is not in ${bar.chord}`);
         const strong = Math.abs(n.beat - Math.round(n.beat / 2) * 2) < 0.03;
         if (n.voice === 'lead' && strong) {
           assert.ok(tones.has(PC(n.midi)), `${mood} ${seed} bar ${bar.index}: lead ${n.midi} on beat ${n.beat.toFixed(2)} is off ${bar.chord}`);
