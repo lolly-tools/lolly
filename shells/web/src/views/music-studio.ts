@@ -6,8 +6,9 @@
  * A toolbar (play and the time, the shuffle cap with the seed beside it, the genre, the
  * render pill with Play and Download, Save and the link), folding sections for the tune
  * (length, key, tempo, reset) and the mix (levels, tone, effects), one above the other, a
- * visualiser that takes room only while there is sound to show (its switcher sits in the
- * timeline's header),
+ * visualiser that takes room only while there is sound to show (a spectrum analyser in the
+ * playing section's colour by default, which expands in the page or fills the screen with
+ * the Neurospicy player's MilkDrop: views/music-studio/viz-stage.ts),
  * and the track laid out like a sequence editor: the sections and chords above a lane for
  * each part, every note drawn, each instrument in its own shade of the part's colour with
  * its name where it comes in (filled when the person chose that instrument). Each track's
@@ -63,8 +64,6 @@ import { LofiStation, renderStation, type LofiMix, type LofiSettings } from '../
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from '../lib/lofi-names.ts';
 import { encodeWav, encodeM4a, pcmFromAudioBuffer } from '../lib/audio-encode.ts';
 import { attachScrub } from '../lib/scrub.ts';
-import { mountViz, type VizHandle } from '../lib/butterchurn-viz.ts';
-import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { instrumentIcon, iconPath, musicIconNode, musicIconBody, strokeSvg } from '../lib/instrument-icons.ts';
@@ -77,6 +76,7 @@ import { genreIconNode, genreTitle, shuffleIconSvg } from '../lib/genre-icons.ts
 import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { actionButton, PlainFailure } from './music-studio/action-button.ts';
 import { renderPillHtml, wireRenderPill } from './music-studio/render-pill.ts';
+import { vizStageHtml, wireVizStage } from './music-studio/viz-stage.ts';
 import { wireSaveMenu, type SaveChoice, type SaveDestination } from './music-studio/save-menu.ts';
 import { musicProjectRecord, musicProjectTitle, musicStateFromProject, musicSlotFromParams, newMusicSlot } from '../lib/music-project.ts';
 import { avoidBlocked, clearSwaps, loadMusicPrefs, loadRecentGenres, loadShuffleGenres, noteRecentGenre, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
@@ -108,10 +108,6 @@ const RULER = 26;
 const CHORDS = 22;
 const LANE: Record<Track, number> = { lead: 64, keys: 64, bass: 64, drums: 52, fx: 40 };
 const LENGTHS = [8, 16, 32, 48, 64, 96, 128, 192, 256];
-type VizMode = 'off' | 'bars' | 'scope' | 'milkdrop';
-const VIZ_MODES: readonly VizMode[] = ['bars', 'scope', 'milkdrop', 'off'];
-const VIZ_LABEL: Record<VizMode, string> = { bars: 'Visualiser: bars', scope: 'Visualiser: scope', milkdrop: 'Visualiser: full', off: 'Visualiser: off' };
-const VIZ_KEY = 'lolly:musicViz';
 /** Which of the page's sections a viewer left open (a per-device convenience). */
 const SECTIONS_KEY = 'lolly:musicSections';
 
@@ -350,18 +346,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         </div>
       </details>
     </div>
-    <div class="ms-stage">
-      <canvas class="ms-viz" data-viz aria-hidden="true"></canvas>
-      <canvas class="ms-viz" data-viz-rich aria-hidden="true" hidden></canvas>
-      ${iconBtn('data-viz-full hidden', 'monitor', t('Full screen'))}
-    </div>
+    ${vizStageHtml()}
     <div class="ms-editor">
       <div class="ms-heads">
         <div class="ms-lane-head ms-zoom" style="height:${RULER + CHORDS}px">
           ${iconBtn('data-zoom="-1"', 'zoomOut', t('Zoom out'))}
           ${iconBtn('data-fit', 'fitAll', t('Fit the track'))}
           ${iconBtn('data-zoom="1"', 'zoomIn', t('Zoom in'))}
-          ${iconBtn('data-viz-mode', 'neuroBeat', t('Visualiser'))}
         </div>
         ${TRACKS.map(tr => `
           <div class="ms-lane-head ms-track" data-track="${tr}" style="height:${lane[tr]}px">
@@ -740,7 +731,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     paintStage();
     writeLink(); meta(); paintSummaries(); draw();
     if (station || renderedSrc) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
-    showFull();
     browser?.refresh();
   }
 
@@ -801,7 +791,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       analyser.fftSize = 2048;
       master.connect(ctx.destination);
       master.connect(analyser);
-      void syncRichViz();
+      viz.audioReady();
     }
     void ctx.resume();
     return ctx;
@@ -818,8 +808,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     rememberGenre();
   }
   /**
-   * Play the rendered track from `fromBar`, with the big visualiser: render and play's
-   * second half. The live station stops; a change to the track goes back to live playing,
+   * Play the rendered track from `fromBar`: render and play's second half. The live station stops; a change to the track goes back to live playing,
    * since the render no longer matches.
    */
   function playRendered(fromBar: number): void {
@@ -833,7 +822,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     src.start(c.currentTime + 0.05, times.starts[fromBar] ?? 0);
     src.onended = () => { if (renderedSrc === src) { stopPlayback(); playheadBar = -1; paintStage(); meta(); draw(); } };
     renderedSrc = src;
-    if (vizMode !== 'milkdrop') { vizMode = 'milkdrop'; showVizMode(); void syncRichViz(); }
     follow(fromBar, 0.05);
   }
   /** Move the playhead with whatever is playing, from `fromBar`, starting `lead` seconds from now. */
@@ -852,7 +840,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       playheadBar = b;
       playheadBeat = Math.min(4, (at - times.starts[b]!) / (240 / bars[b]!.tune.bpm) * 4);
       pos.textContent = `${clock(at)} / ${clock(times.total)}`;
-      drawViz();
+      viz.frame();
       const x = beatX(b, playheadBeat);
       if (x < scroll.scrollLeft || x > scroll.scrollLeft + scroll.clientWidth - 40) scroll.scrollLeft = Math.max(0, x - scroll.clientWidth / 3);
       draw();
@@ -879,7 +867,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     renderedBuffer = buffer; rendered = 1; draw();
     renderPill.showRendered(true);
     paintStage();
-    showFull();
     say(t('Rendered at full quality.'));
     return true;
   }
@@ -931,15 +918,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     card.close();
     return true;
   }
-  /** Play: the rendered track with the big visualiser, which can go full screen. */
+  /** Play: the rendered track, at full quality. */
   async function renderAndPlay(): Promise<void> {
     if (renderedBuffer) { playRendered(Math.max(0, selected)); return; }
     if (await renderWithCard()) playRendered(0);
-  }
-  /** The full-screen button shows once a track is rendered, where the browser can go full screen. */
-  function showFull(): void {
-    const btn = page.querySelector<HTMLButtonElement>('[data-viz-full]');
-    if (btn) btn.hidden = !renderedBuffer || !document.fullscreenEnabled;
   }
   async function encoded(): Promise<{ blob: Blob; format: 'm4a' | 'wav' }> {
     if (!renderedBuffer) throw new Error('nothing made yet');
@@ -1305,72 +1287,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     draw();
   });
 
-  // ── the visualiser ───────────────────────────────────────────────────────────
-  const vizCanvas = q<HTMLCanvasElement>('[data-viz]');
-  const richCanvas = q<HTMLCanvasElement>('[data-viz-rich]');
-  const vizBtn = q<HTMLButtonElement>('[data-viz-mode]');
-  let vizMode: VizMode = 'bars';
-  try { vizMode = VIZ_MODES.find(m => m === localStorage.getItem(VIZ_KEY)) ?? 'bars'; } catch { /* private mode */ }
-  const showVizMode = (): void => {
-    vizBtn.setAttribute('aria-label', t(VIZ_LABEL[vizMode]));
-    vizBtn.title = t(VIZ_LABEL[vizMode]);
-    page.classList.toggle('viz-off', vizMode === 'off');
-  };
-  let rich: VizHandle | null = null;
-  const bins = new Uint8Array(1024);
-  function drawViz(): void {
-    const show = vizMode === 'bars' || vizMode === 'scope';
-    vizCanvas.hidden = !show;
-    if (!show) return;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const w = vizCanvas.clientWidth || 600, h = vizCanvas.clientHeight || 100;
-    if (vizCanvas.width !== Math.round(w * dpr)) vizCanvas.width = Math.round(w * dpr);
-    if (vizCanvas.height !== Math.round(h * dpr)) vizCanvas.height = Math.round(h * dpr);
-    const cx = vizCanvas.getContext('2d');
-    if (!cx) return;
-    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    cx.clearRect(0, 0, w, h);
-    if (!analyser || (!station && !renderedSrc)) return;
-    cx.fillStyle = sectionColour.get(bars[Math.max(0, playheadBar)]?.section ?? 'intro') ?? trackColour.lead;
-    cx.strokeStyle = cx.fillStyle;
-    if (vizMode === 'bars') {
-      analyser.getByteFrequencyData(bins);
-      const count = 64;
-      for (let i = 0; i < count; i++) {
-        // Bins spread on a log scale, so the bass is not one bar at the edge.
-        const from = Math.floor(2 ** ((i / count) * Math.log2(bins.length / 2)));
-        const v = (bins[Math.min(bins.length - 1, from)] ?? 0) / 255;
-        const bw = w / count;
-        cx.globalAlpha = 0.45 + v * 0.55;
-        cx.fillRect(i * bw + 1, h - v * h, bw - 2, v * h);
-      }
-      cx.globalAlpha = 1;
-    } else {
-      analyser.getByteTimeDomainData(bins);
-      cx.lineWidth = 2;
-      cx.beginPath();
-      for (let i = 0; i < bins.length; i++) {
-        const x = (i / (bins.length - 1)) * w, y = ((bins[i] ?? 128) / 255) * h;
-        if (i) cx.lineTo(x, y); else cx.moveTo(x, y);
-      }
-      cx.stroke();
-    }
-  }
-  /** The full visualiser (MilkDrop, in the brand's colours), mounted only while chosen. */
-  async function syncRichViz(): Promise<void> {
-    const want = vizMode === 'milkdrop' && !!analyser;
-    richCanvas.hidden = !want;
-    if (!want) { rich?.destroy(); rich = null; return; }
-    if (rich) return;
-    rich = await mountViz(richCanvas, host, defaultVizPresetId(false), () => { rich = null; }, null, { audio: { analyser } });
-  }
-  vizBtn.addEventListener('click', () => {
-    vizMode = VIZ_MODES[(VIZ_MODES.indexOf(vizMode) + 1) % VIZ_MODES.length]!;
-    try { localStorage.setItem(VIZ_KEY, vizMode); } catch { /* private mode */ }
-    showVizMode(); drawViz();
-    void syncRichViz();
+  // ── the visualiser (views/music-studio/viz-stage.ts) ──────────────────────────
+  const viz = wireVizStage({
+    page, host,
+    analyser: () => analyser,
+    playing: () => !!station || !!renderedSrc,
+    ink: () => sectionColour.get(bars[Math.max(0, playheadBar)]?.section ?? 'intro') ?? trackColour.lead,
+    say,
   });
-  showVizMode();
 
   // ── the timeline ─────────────────────────────────────────────────────────────
   const barAt = (e: MouseEvent): number => {
@@ -1398,13 +1322,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   });
   canvas.addEventListener('dblclick', e => { selected = barAt(e); if (renderedSrc) playRendered(selected); else play(selected); });
   listen('[data-render-play]', 'click', () => { void renderAndPlay(); });
-  listen('[data-viz-full]', 'click', () => {
-    const stage = page.querySelector<HTMLElement>('.ms-stage');
-    if (!stage) return;
-    if (document.fullscreenElement) { void document.exitFullscreen(); return; }
-    if (vizMode !== 'milkdrop') { vizMode = 'milkdrop'; showVizMode(); void syncRichViz(); }
-    void stage.requestFullscreen().catch(() => { say(t('This browser would not go full screen.')); });
-  });
   // What a download and a save will record, said before either is clicked: the download
   // in its panel (views/music-studio/render-pill.ts), and each save in Save's own choices.
   /** The maker a tune saved to Assets records (the profile's name), once the profile is read. */
@@ -1571,13 +1488,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       .catch(() => { say(t('Could not copy the link.')); });
   });
   // Space plays and stops, shift and the arrows step the seed, Escape closes the
-  // instrument browser, and then leaves the way the back button does. Keys pressed in a
+  // instrument browser, shrinks the visualiser, and then leaves the way the back button does. Keys pressed in a
   // dialog (the browser, the render card) or in the download options are their own, and
   // Space on a button, a section's head or a field does what it always does there.
   const onKey = (e: KeyboardEvent): void => {
-    if (e.defaultPrevented || renderPill.isOpen() || saveMenu.isOpen() || (e.target instanceof Element && e.target.closest('dialog'))) return;
+    if (e.defaultPrevented || renderPill.isOpen() || saveMenu.isOpen() || viz.menuOpen() || (e.target instanceof Element && e.target.closest('dialog'))) return;
     if (e.key === 'Escape') {
       if (browser) { browser.close(); return; }
+      if (viz.escape()) return;
       view.querySelector<HTMLElement>('[data-back-pill]')?.click();
       return;
     }
@@ -1606,7 +1524,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   });
 
   say(HINT);
-  writeLink(); meta(); paintSummaries(); paintGenre(); paintSilent(); sizeSeed(); fitHeight(); fit(); drawViz();
+  writeLink(); meta(); paintSummaries(); paintGenre(); paintSilent(); sizeSeed(); fitHeight(); fit(); viz.frame();
   void loadPrefs();
   // A kept tune's address (from Projects, lib/music-project.ts) opens that tune exactly as
   // it was saved: its settings come back from the project's record, as a link would bring
@@ -1631,7 +1549,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     detachLang();
     detachScrub();
     detachTempoScrub();
-    rich?.destroy();
+    viz.destroy();
     stopPlayback();
     renderCard?.close();
     rendering++;

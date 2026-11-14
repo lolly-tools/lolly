@@ -2,8 +2,8 @@
 /**
  * The music generator's render pill (#/music): one pill, built like the tool view's
  * Export | Save pill (views/tool/stage-layout.ts, .render-pill), that reads as "Render
- * (play / download)". Play renders the whole track at full quality and plays it with the
- * big visualiser. Download opens the download's own panel in a body popover
+ * (play / download)". Play renders the whole track at full quality, then plays the render.
+ * Download opens the download's own panel in a body popover
  * (components/body-popover.ts), the way the tool view's Export opens its sheet: the file
  * type, the line that says what the download will record and the Download button, so
  * what a download writes is in view at the moment of the click (lib/tune-provenance.ts).
@@ -28,7 +28,7 @@ export function renderPillHtml(): string {
   return `
     <div class="ms-render" role="group" aria-label="${escapeHtml(t('Render'))}" data-render-pill>
       <span class="ms-render-name" aria-hidden="true"><span class="ms-render-tick">${icon('check', { size: 14, strokeWidth: 2.6 })}</span><span data-render-word>${escapeHtml(t('Render'))}</span></span>
-      <button type="button" class="ms-render-btn" data-render-play aria-label="${escapeHtml(t('Render and play'))}" title="${escapeHtml(t('Render the whole track at full quality, then play it with the big visualiser'))}">${icon('play', { size: 16, filled: true })}<span class="ms-render-label">${escapeHtml(t('Play'))}</span></button>
+      <button type="button" class="ms-render-btn" data-render-play aria-label="${escapeHtml(t('Render and play'))}" title="${escapeHtml(t('Render the whole track at full quality, then play it'))}">${icon('play', { size: 16, filled: true })}<span class="ms-render-label">${escapeHtml(t('Play'))}</span></button>
       <span class="ms-render-sep" aria-hidden="true"></span>
       <button type="button" class="ms-render-btn ms-render-get" data-download-open aria-haspopup="dialog" aria-expanded="false">${escapeHtml(t('Download'))}</button>
     </div>

@@ -144,6 +144,22 @@ export interface NeurospicyDockHandle {
   applySharedLook(v: SharedViz): Promise<void>;
 }
 
+/** The dock's visualiser over a page's own audio (createPageViz). */
+export type PageViz = Required<Pick<DockViz,
+  'mount' | 'unmount' | 'resize' | 'presets' | 'currentPreset' | 'selectPreset' | 'transitions' | 'currentTransition' | 'selectTransition'
+>> & { destroy(): void };
+
+/**
+ * The Neurospicy player's visualiser, for a page that plays its own audio (the music
+ * generator's stage, views/music-studio/viz-stage.ts): the same renderer, presets (Lolly's
+ * and the artist pack), brand colours and preset cycle, reacting to `analyser` instead of
+ * the player. The person chose it there, so it runs whatever the dock's own on/off says,
+ * and under reduced motion it opens on a calm preset.
+ */
+export function createPageViz(host: MusicHost, analyser: () => AnalyserNode | null): PageViz {
+  return new NeuroDockViz(host, { analyser, chosen: true });
+}
+
 /** Build a music `DockHost` over the neurospicy engine for the given app host. */
 export function createNeurospicyDockHost(nhost: MusicHost): NeurospicyDockHandle {
   const host = new NeurospicyDockHost(nhost);
@@ -194,9 +210,17 @@ class NeuroDockViz implements DockViz {
   private cycleSeconds = 0;
   private cycleTimer: ReturnType<typeof setInterval> | undefined;
   private readonly unsubscribePerf: () => void;
+  /** The analyser the picture reacts to: the player's own, or a page's (createPageViz). */
+  private readonly liveAnalyser: () => AnalyserNode | null;
+  /** The person picked this visualiser on the page it plays on (createPageViz), so it runs
+   *  whatever the dock's own on/off says, and under reduced motion opens on a calm preset
+   *  rather than not at all. */
+  private readonly chosen: boolean;
 
-  constructor(host: MusicHost) {
+  constructor(host: MusicHost, opts: { analyser?: () => AnalyserNode | null; chosen?: boolean } = {}) {
     this.host = host;
+    this.liveAnalyser = opts.analyser ?? getNeurospicyAnalyser;
+    this.chosen = opts.chosen === true;
     let saved = '1';
     try { saved = localStorage.getItem(ENABLED_KEY) ?? '1'; } catch { /* private mode */ }
     this.vizEnabled = saved !== '0';
@@ -209,7 +233,7 @@ class NeuroDockViz implements DockViz {
 
   // ── support probe + live analyser (also feeds the shell's 2D backdrop fallback) ──
   supported(): boolean { return vizSupported(); }
-  getAnalyser(): AnalyserNode | null { return getNeurospicyAnalyser(); }
+  getAnalyser(): AnalyserNode | null { return this.liveAnalyser(); }
 
   // The brand silhouette for the immersive/fullscreen viz (plans/147): the brand's
   // MONO-REVERSE logo (a one-colour, dark-background mark), resolved across BOTH logo
@@ -278,7 +302,7 @@ class NeuroDockViz implements DockViz {
   }
 
   // ── on/off ──────────────────────────────────────────────────────────────────
-  enabled(): boolean { return this.vizEnabled && !(this.light && this.heavy()); }
+  enabled(): boolean { return this.chosen || (this.vizEnabled && !(this.light && this.heavy())); }
   lightOn(): boolean { return this.light; }
   setLight(on: boolean): void {
     this.light = on;
@@ -318,11 +342,11 @@ class NeuroDockViz implements DockViz {
   async mount(canvas: HTMLCanvasElement): Promise<void> {
     // The rich dock visualiser idle-animates off a silent analyser even with nothing
     // playing, so it's an ambient loop - don't start it under reduced motion or perf-ui.
-    if (this.destroyed || !this.enabled() || !vizSupported() || prefersReducedMotion() || perfUiOn()) return;
+    if (this.destroyed || !this.enabled() || !vizSupported() || (prefersReducedMotion() && !this.chosen) || perfUiOn()) return;
     // Render IMMEDIATELY, audio or not: use the live analyser when it exists (reactive),
     // else a silent one (idle animation). When the live analyser first appears we remount
     // so the picture starts reacting.
-    const desired = getNeurospicyAnalyser() ?? this.silentAnalyser();
+    const desired = this.liveAnalyser() ?? this.silentAnalyser();
     // Already rendering the right thing on this canvas → cheap no-op.
     if (this.handle && this.canvas === canvas && this.handle.running() && this.mountedAnalyser === desired) return;
     // A stood-down loop, a new canvas, or the analyser changed (idle → live) → remount.
@@ -411,7 +435,7 @@ class NeuroDockViz implements DockViz {
     if (this.follow != null || typeof setInterval === 'undefined') return;
     this.follow = setInterval(() => {
       if (this.destroyed || !this.canvas || !this.handle) return;
-      const live = getNeurospicyAnalyser();
+      const live = this.liveAnalyser();
       if ((live && live !== this.mountedAnalyser) || !this.handle.running()) void this.mount(this.canvas);
     }, 1000);
   }

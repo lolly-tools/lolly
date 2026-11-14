@@ -1861,6 +1861,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // labels and titles go through escape(); icons come from the fixed registry; the rest
   // is numbers. Instrument lists, the hint and the picker are filled with DOM APIs.
   'views/music-studio.ts': 2,
+  // 2026-11-14: the music generator's visualiser settings, written fresh on each open.
+  // Every label goes through escape(); the mode switch is segHtml, which escapes its own;
+  // the shuffle glyph is the module's fixed SVG. The preset and cycle lists are filled
+  // with DOM APIs, and the buttons' glyphs swap as nodes.
+  'views/music-studio/viz-stage.ts': 1,
   // 2026-11-09: the first-visit greeting, painted again in place when the language
   // changes. Language names, the privacy text and its link go through escape(); the
   // rest is translated copy, the fixed icon registry and the module's own SVG.
