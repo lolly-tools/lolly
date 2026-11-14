@@ -500,6 +500,8 @@ function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number,
 
 /** The styles whose horn lines are a section's (lib/lofi-station.ts plays them so): there a trumpet line is the section's, not a soloist's. */
 export const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
+/** The styles whose horns play as a section only in some sections (salsa's mambo, its intro and its breaks), the lead singing the rest alone. */
+export const HORN_SECTION_IN: Partial<Record<LofiMood, ReadonlySet<string>>> = { salsa: new Set(['break', 'intro', 'build', 'outro']) };
 
 /** A player in a horn section: what they play against the line, how loud, how late (s) and where they sit (pan). */
 export interface SectionPart { voice: string; level: number; shift: number; late: number; pan: number; detune: number }

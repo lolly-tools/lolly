@@ -11,6 +11,7 @@ export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   nylon: 'nylon guitar', crunch: 'rhythm guitar', heavy: 'heavy guitars', buzzsaw: 'buzzsaw guitars', clean: 'clean chorus guitar', fuzz: 'fuzz guitars', wall: 'wall of guitars', wah: 'wah guitar', chiparp: 'chip arpeggio',
   steel: 'acoustic guitar', banjo: 'banjo', honky: 'honky-tonk piano', organ: 'organ', brass: 'brass section', jazzbox: 'jazz guitar', electric: 'electric guitar', harp: 'harp', choir: 'choir', future: 'future-bass chords',
   tar: 'tar', santur: 'santur', zheng: 'guzheng', koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', strings: 'string section',
+  grand: 'grand piano',
 };
 
 export const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {

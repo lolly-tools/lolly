@@ -48,7 +48,7 @@ import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead, rhythmKnocks } from './lofi-lead-art.ts';
 import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod } from './lofi-flutes.ts';
 import { TRUMPET_DOIT, TRUMPET_DROP, TRUMPET_GHOST, TRUMPET_KU, TRUMPET_PLAYED, TRUMPET_SCOOP, TRUMPET_SLUR, TRUMPET_TONGUE } from './lofi-brass.ts';
-import { HORN_SECTION } from './lofi-winds.ts';
+import { HORN_SECTION, HORN_SECTION_IN } from './lofi-winds.ts';
 import { strummer } from './lofi-strum.ts';
 
 /** A seeded source for one bar of one tune. */
@@ -656,6 +656,6 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
     if (lungs && !lungs.size) lungs.size = LUNGS_SIZE * (1 + LUNGS_SPREAD * (2 * barRandom({ ...bar, index: -1 })() - 1));
     flautist(notes, spb, rand, lungs);
   }
-  else if (lead === 'trumpet' && !HORN_SECTION.has(bar.tune.mood) && !bar.voices?.double) notes = trumpeter(notes, bar, spb, rand);
+  else if (lead === 'trumpet' && !HORN_SECTION.has(bar.tune.mood) && !HORN_SECTION_IN[bar.tune.mood]?.has(bar.section) && !bar.voices?.double) notes = trumpeter(notes, bar, spb, rand);
   return notes;
 }
