@@ -47,6 +47,9 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import sharp from 'sharp';
 import { deriveBrandTokens, hexToOklch, oklchToHex, parseOklch } from '../engine/src/brand-derive.ts';
+import { embedC2pa } from '../engine/src/c2pa.ts';
+import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
+import { artC2paOpts, artDims, type ArtMeta } from './sign-docs-art.ts';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -112,7 +115,8 @@ interface CoverPose {
   exportVideo?: { fps: number; seconds: number; quality?: 'smaller' | 'balanced' | 'best' };
   exportStill?: 'png' | 'svg';
   /** For an SVG export whose page is not 4:3 (the QR badge is portrait): the colour
-   *  (a placeholder or a hex) that fills the rest of the card. */
+   *  (a placeholder or a hex) that fills the rest of the card. The wrapped file is
+   *  signed again with the docs figures' claim (`signCover`). */
   svgGround?: string;
   /** Capture the APP VIEW as vector: the web shell's DOM-to-SVG walker (the same
    *  `__lollyWalkerShot` loopback hook the docs screenshots use), windowed to the
@@ -732,7 +736,10 @@ async function poseExport(browser: Browser, base: string, pose: CoverPose, fmt: 
   if (fmt === 'svg') {
     const head = readFileSync(out, 'utf8').slice(0, 300);
     if (!/^\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*<svg[\s>]/.test(head)) throw new Error(`${out} is not an SVG document`);
-    if (pose.svgGround) writeFileSync(out, letterboxSvg(readFileSync(out, 'utf8'), decodeURIComponent(colourFor(pose, pose.svgGround))));
+    if (pose.svgGround) {
+      writeFileSync(out, letterboxSvg(readFileSync(out, 'utf8'), decodeURIComponent(colourFor(pose, pose.svgGround))));
+      await signCover(out, pose);
+    }
     console.log(`   ${pose.slug}.svg ${Math.round(statSync(out).size / 1024)} KB`);
     return;
   }
@@ -764,8 +771,8 @@ async function poseExport(browser: Browser, base: string, pose: CoverPose, fmt: 
 /**
  * Set an exported SVG page on a 4:3 card filled with `ground`, scaled to fit with a
  * margin, as a nested <svg>. The export's Content Credential is bound to the bytes the
- * tool wrote, which the wrapper changes, so its <metadata> is dropped rather than left
- * to fail verification (the raster covers carry none either).
+ * tool wrote, which the wrapper changes, so its <metadata> is dropped here and
+ * `signCover` signs the wrapped file.
  */
 function letterboxSvg(svg: string, ground: string, margin = 0.05): string {
   const body = svg.replace(/^\s*<\?xml[^>]*>\s*/, '').replace(/<metadata>[\s\S]*?<\/metadata>/g, '');
@@ -782,6 +789,44 @@ function letterboxSvg(svg: string, ground: string, margin = 0.05): string {
   return '<?xml version="1.0" standalone="no"?>\n'
     + `<svg xmlns="http://www.w3.org/2000/svg" width="${OUT_W}px" height="${OUT_H}px" viewBox="0 0 ${OUT_W} ${OUT_H}">`
     + `<rect width="${OUT_W}" height="${OUT_H}" fill="${ground}"/>${body.replace(open, nested)}</svg>\n`;
+}
+
+/**
+ * The claim a letterboxed cover is signed with: the docs figures' own
+ * (scripts/sign-docs-art.ts `artC2paOpts`, the claim scripts/build-format-last-art.ts
+ * signs its panels with). It states the Lolly tool that drew the file, the model that
+ * posed the cover under the maintainer's direction, and the maintainer as author.
+ * Update `model` when another model poses the covers.
+ */
+const COVER_MODEL: NonNullable<ArtMeta['model']> = { name: 'Claude Opus 5.5', identifier: 'claude-opus-5-5', vendor: 'Anthropic' };
+const coverMeta = (generator: ArtMeta['generator']): ArtMeta => ({
+  generator,
+  model: COVER_MODEL,
+  oversight: 'prompt_guided',
+  source: 'compositeWithTrainedAlgorithmicMedia',
+  author: { name: 'Andy Fitzsimon' },
+});
+
+/** The tool behind a pose, as the generator the claim states: `Lolly <name>` and the
+ *  manifest's version, read from the community tool (the covers pose no brand tools). */
+function coverGenerator(pose: CoverPose): ArtMeta['generator'] {
+  const id = /^#\/tool\/([a-z0-9-]+)/.exec(pose.route)?.[1];
+  const manifest = id ? resolve(ROOT, 'community', id, 'tool.json') : '';
+  if (!manifest || !existsSync(manifest)) return { name: 'Lolly' };
+  const tool = JSON.parse(readFileSync(manifest, 'utf8')) as { name?: string; version?: string };
+  return { name: `Lolly ${tool.name ?? id}`, ...(tool.version ? { version: tool.version } : {}) };
+}
+
+/** Sign a cover the way the docs figures are signed, then read the file back with the
+ *  engine's verifier: anything but a valid credential naming the author fails the pose. */
+async function signCover(file: string, pose: CoverPose): Promise<void> {
+  const text = readFileSync(file, 'utf8');
+  const dims = artDims(text);
+  const opts = artC2paOpts(coverMeta(coverGenerator(pose)), { id: `cover-${pose.slug}`, kind: 'figure', format: 'svg', ...(dims ? { dims } : {}) });
+  writeFileSync(file, await embedC2pa(new TextEncoder().encode(text), 'svg', opts));
+  const report = await verifyC2pa(new Uint8Array(readFileSync(file)));
+  if (report.state !== 'valid' || report.author?.name !== 'Andy Fitzsimon') throw new Error(`${file} did not read back with a valid credential (${report.state})`);
+  console.log(`   ${pose.slug}.svg signed (${report.state})`);
 }
 
 /**
