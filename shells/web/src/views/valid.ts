@@ -3031,7 +3031,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     const dot = name.lastIndexOf('.');
     return dot > 0 ? `${name.slice(0, dot)}-clean${name.slice(dot)}` : `${name}-clean`;
   };
-  const CLEAN_MIME: Record<string, string> = { jpeg: 'image/jpeg', png: 'image/png', svg: 'image/svg+xml' };
+  const CLEAN_MIME: Record<string, string> = { jpeg: 'image/jpeg', png: 'image/png', svg: 'image/svg+xml', mp4: 'audio/mp4', wav: 'audio/wav', mp3: 'audio/mpeg', flac: 'audio/flac', ogg: 'audio/ogg' };
 
   /**
    * What a strip is about to remove from a third party, read BEFORE the bytes

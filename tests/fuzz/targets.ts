@@ -104,6 +104,8 @@ import { findVectorArtwork } from '../../engine/src/pdf-artwork.ts';
 import { findHiddenText, findHiddenTextInPages, describeHiddenText } from '../../engine/src/pdf-redaction.ts';
 import { extractFileMetadata } from '../../engine/src/file-metadata.ts';
 import { stripMetadata, type StripFormat } from '../../engine/src/strip-metadata.ts';
+import { AUDIO_STRIP_FORMATS, inspectAudioMetadata, stripAudioMetadata } from '../../engine/src/strip-audio.ts';
+import { buildFlac, buildFragmentedMp4, buildMp3, buildMp4, buildOpus, buildWav, XING_FRAMES } from '../helpers/audio-fixtures.ts';
 import { embedMp4Meta, embedWebmMeta, videoProvenanceTags } from '../../engine/src/video-meta.ts';
 import { parseDataRows } from '../../engine/src/data-import.ts';
 import {
@@ -480,6 +482,28 @@ export const stripMetadataTarget: FuzzTarget = {
   },
   async invoke(bytes) {
     for (const fmt of ['jpeg', 'png', 'svg'] as StripFormat[]) stripMetadata(bytes, fmt);
+  },
+};
+
+export const stripAudioTarget: FuzzTarget = {
+  name: 'strip-audio',
+  async seeds() {
+    return [
+      buildMp4({ udta: true, c2pa: 'tail', xmp: true, freeData: true, times: true, handlerName: 'x' }),
+      buildMp4({ udta: true, c2pa: 'head', co64: true }), buildFragmentedMp4(), buildWav(), buildMp3(), buildMp3(XING_FRAMES),
+      buildFlac(), buildOpus(),
+    ];
+  },
+  // Contract: fails closed. Anything it cannot walk throws a plain Error, which is the
+  // desired outcome; every format is tried on every input so a mutated magic still
+  // reaches each walker. The findings are the runner's classes (recursion, allocation,
+  // hangs): container nesting is capped at 8 and every count is clamped to the bytes.
+  async invoke(bytes) {
+    for (const format of AUDIO_STRIP_FORMATS) {
+      try { inspectAudioMetadata(bytes, format); stripAudioMetadata(bytes, format); } catch (err) {
+        if (/maximum call stack|invalid (typed )?array length|array buffer allocation|out of memory/i.test((err as Error).message)) throw err;
+      }
+    }
   },
 };
 
@@ -2699,7 +2723,7 @@ export const ALL_TARGETS: FuzzTarget[] = [
   lottieTarget,
   emojiPackTarget, emojiSvgTarget, emojiTextTarget,
   prepareTarget, c2paVerifyTarget, cborTarget, mediaSniffTarget, outputFactsTarget, pdfMapTarget, pdfDerivedTarget, x509Target,
-  fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget, brandImportTarget, brandReferenceTarget, tarReadTarget,
+  fileMetadataTarget, stripMetadataTarget, stripAudioTarget, videoMetaTarget, dataImportTarget, brandImportTarget, brandReferenceTarget, tarReadTarget,
   epubReadTarget, jpegStructureTarget,
   rasterDecodeTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
