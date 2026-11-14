@@ -31,9 +31,9 @@ const CARRY = 0.45;
  * chorus, and the solo about 4 dB under it, a little more forward than Straya's usual lead. The
  * solo goes through the lead's bus, which runs far hotter than the bass's, so its number is lower.
  */
-export const DIDGE_LEVELS = [1, 0.95, 0.31] as const;
+export const DIDGE_LEVELS = [1, 0.97, 0.085] as const;
 /** The player's output level, into the bass lane (the drone and the rhythm) or the lead's seat (the solo). */
-const LEVEL = 0.25;
+const LEVEL = 0.17;
 
 /** One station's didgeridoo player. */
 export class DidgePlayer {
