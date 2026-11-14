@@ -3,18 +3,22 @@
  * The music generator (#/music): a track editor for Lolly Sings, so a person or a brand
  * can dial in a track and keep the result.
  *
- * One row of controls (play, shuffle, genre, seed, length, key, tempo, reset, sound, make,
- * link), a visualiser, and the track laid out like a sequence editor: the sections and
- * chords above a lane for each part, every note drawn, each instrument in its own shade of
- * the part's colour with its name where it comes in (filled when the person chose that
- * instrument). A track's head, or a section in its lane, opens the instrument browser
+ * A toolbar (play and the time, the shuffle cap with the seed beside it, the genre, the
+ * render pill with Play and Download, Save to library and the link), folding sections for
+ * the tune (length, key, tempo, reset) and the mix (levels, tone, effects), a visualiser,
+ * and the track laid out like a sequence editor: the sections and chords above a lane for
+ * each part, every note drawn, each instrument in its own shade of the part's colour with
+ * its name where it comes in (filled when the person chose that instrument). Each track's
+ * head carries its icon in its colour, its instruments, and mute (a speaker) and solo (a
+ * star). A track's head, or a section in its lane, opens the instrument browser
  * (views/music-studio/instrument-browser.ts): hear each instrument play this tune's part,
  * use one in every section of that kind (the bass in every drop) or all through the track,
  * and star or block instruments (lib/music-prefs.ts, kept on the person's profile). Click
  * the section ruler to play from there. The genre button opens the genre picker
  * (views/music-studio/genre-picker.ts): every genre as a card with its icon, and the
- * "Shuffle genres" switch. On a phone, play and shuffle sit in a dock at the bottom, the
- * genre button spans the bar and each track is a row with its instruments, mute and solo.
+ * "Shuffle genres" switch. On a phone, play, the seed and shuffle sit in a dock at the
+ * bottom, the genre button spans the bar, each track is a row with its instruments, mute
+ * and solo in a Tracks section, and the lane heads narrow to an icon over a name.
  * The seed is a design-tool number: type one, step it, or drag across it to slide through
  * seeds and watch the tune change. Shuffle draws a new genre, seed and sound at once
  * (lib/music-shuffle.ts; with "Shuffle genres" off it keeps the genre, and with Shift it
@@ -23,18 +27,20 @@
  * a person sets their own: the notes stay where they are in the bar, so the tune plays
  * faster or slower and no other part of it changes. The Neurospicy player always plays a
  * style at its own tempo. Colours come from the brand's palette, with extra hues only where
- * the palette runs out. The mix and tone are pill sliders (components/pill-slider.ts).
+ * the palette runs out, and the grid's lines take the hue of the section they sit on. The
+ * mix and tone are pill sliders (components/pill-slider.ts).
  *
  * Every setting lives in the link, so a link plays and edits the same track for anyone
- * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). Making the
- * track renders the whole of it offline with progress; it can then be downloaded or
- * saved to the library, with the recipe kept in the asset's details.
+ * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). The render
+ * pill (views/music-studio/render-pill.ts) renders the whole track offline with progress,
+ * then plays it or downloads it; Save to library keeps the recipe in the asset's details.
  *
- * What each of those writes is said in the Make panel before the click (Andy's approval
- * of 2026-11-10, lib/tune-provenance.ts): a download carries Content Credentials that
- * say the music generator made it, unless the person unticks the switch, and a saved
- * tune records the person's profile name as its maker, the music generator and the
- * Lolly and engine versions. After the click the hint says only what was written.
+ * What each of those writes is said before the click (Andy's approval of 2026-11-10,
+ * lib/tune-provenance.ts): the download options under the pill's caret say that a download
+ * carries Content Credentials naming the music generator, unless the person unticks the
+ * switch, and the help beside Save to library says that a saved tune records the person's
+ * profile name as its maker, the music generator and the Lolly and engine versions. After
+ * the click the hint says only what was written.
  */
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
@@ -56,7 +62,8 @@ import { attachScrub } from '../lib/scrub.ts';
 import { mountViz, type VizHandle } from '../lib/butterchurn-viz.ts';
 import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
-import { instrumentIcon, iconPath, musicIconNode } from '../lib/instrument-icons.ts';
+import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
+import { instrumentIcon, iconPath, musicIconNode, musicIconBody, strokeSvg } from '../lib/instrument-icons.ts';
 import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
 import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
@@ -66,6 +73,8 @@ import { TUNE_DECLARATION } from '../../../../engine/src/tune-provenance.ts';
 import { genreIconNode, genreTitle, shuffleIconSvg } from '../lib/genre-icons.ts';
 import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { actionButton, PlainFailure } from './music-studio/action-button.ts';
+import { renderPillHtml, wireRenderPill } from './music-studio/render-pill.ts';
+import { helpTip, wireHelpTips, unwireHelpTips } from '../components/help-tip.ts';
 import { avoidBlocked, clearSwaps, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
 import { openInstrumentBrowser, instrumentName, instrumentWord, type BrowseTrack, type InstrumentBrowser } from './music-studio/instrument-browser.ts';
 import '../styles/parts/music-studio.css';
@@ -97,6 +106,8 @@ type VizMode = 'off' | 'bars' | 'scope' | 'milkdrop';
 const VIZ_MODES: readonly VizMode[] = ['bars', 'scope', 'milkdrop', 'off'];
 const VIZ_LABEL: Record<VizMode, string> = { bars: 'Visualiser: bars', scope: 'Visualiser: scope', milkdrop: 'Visualiser: full', off: 'Visualiser: off' };
 const VIZ_KEY = 'lolly:musicViz';
+/** Which of the page's sections a viewer left open (a per-device convenience). */
+const SECTIONS_KEY = 'lolly:musicSections';
 
 const clock = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
@@ -229,81 +240,107 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     `<button type="button" class="btn btn--ghost btn--sm ms-icon" ${attr} aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${extra}>${icon(name, { size: 18 })}</button>`;
   const slider = (id: string, label: string, min: number, max: number, step: number, value: number): string =>
     pillSliderHtml({ label, min, max, step, value, attrs: `data-slider="${id}"` });
+  /** A track's glyph, in the track's colour: the instrument playing now for the pitched
+   *  tracks (painted by laneHeads), a drum for the drums and a wand for the effects. */
+  const glyph = (tr: Track, label: boolean): string => tr === 'drums' || tr === 'fx'
+    ? `<span class="ms-inst" aria-hidden="true">${tr === 'drums' ? strokeSvg(musicIconBody('drum'), 18) : icon('wand', { size: 18 })}</span>`
+    : `<span class="ms-inst" data-inst="${tr}"${label ? ' role="img"' : ' aria-hidden="true"'}></span>`;
+  /** Mute (a speaker) and solo (a star): toggles named for their track. */
+  const muteSolo = (tr: Track): string => {
+    const track = t(TRACK_LABEL[tr]);
+    return `<span class="ms-ms-pair">`
+      + `<button type="button" class="ms-ms ms-mute" data-mute="${tr}" aria-pressed="false" aria-label="${escapeHtml(tRaw('Mute: {track}', { track }))}" title="${escapeHtml(t('Mute'))}">${icon('volumeOn', { size: 16, className: 'ms-ms-up' })}${icon('volumeOff', { size: 16, className: 'ms-ms-down' })}</button>`
+      + `<button type="button" class="ms-ms ms-solo" data-solo="${tr}" aria-pressed="false" aria-label="${escapeHtml(tRaw('Solo: {track}', { track }))}" title="${escapeHtml(t('Solo'))}">${icon('star', { size: 14 })}</button>`
+      + `</span>`;
+  };
+  const tagSelect = `<select class="field-select field-select--sm ms-pick" data-tag aria-label="${escapeHtml(t('The Lolly tag'))}" title="${escapeHtml(t('How the tune says “Lolly”, or not at all'))}"></select>`;
+  const saveTip = helpTip(t('Save to library records the music generator as the source, and the Lolly and engine versions.'));
+  /** A collapsible section's head (styles/parts/disclosure.css, details.section-card). */
+  const sectionHead = (name: Parameters<typeof icon>[0], title: string, value = ''): string =>
+    `<summary class="section-card-summary"><span class="section-card-icon" aria-hidden="true">${icon(name, { size: 18 })}</span><h2 class="section-card-title">${escapeHtml(title)}</h2>${value}</summary>`;
 
   const page = document.createElement('section');
   page.className = 'ms-page';
   page.setAttribute('aria-label', t('Music generator'));
   page.innerHTML = `
-    <div class="ms-bar" role="toolbar" aria-label="${escapeHtml(t('Track'))}">
+    <div class="ms-bar surface surface--floating" role="toolbar" aria-label="${escapeHtml(t('Track'))}">
       <span class="ms-transport">
         <button type="button" class="btn btn--primary ms-play" data-play aria-label="${escapeHtml(t('Play'))}" title="${escapeHtml(t('Play or stop (space)'))}">
-          <span data-play-icon>${icon('play', { size: 18 })}</span><span data-stop-icon hidden>${icon('pause', { size: 18 })}</span>
+          <span data-play-icon>${icon('play', { size: 18, filled: true })}</span><span data-stop-icon hidden>${icon('pause', { size: 18, filled: true })}</span>
         </button>
-        <button type="button" class="ms-shuffle" data-shuffle>${shuffleIconSvg(26)}</button>
         <span class="ms-time" data-pos></span>
+        <span class="ms-dice">
+          <button type="button" class="ms-shuffle" data-shuffle>${shuffleIconSvg(26)}</button>
+          <span class="ms-seed" role="group" aria-label="${escapeHtml(t('Seed'))}">
+            ${iconBtn('data-seed-step="-1"', 'chevronLeft', t('Previous seed'))}
+            <label class="ms-seed-field" title="${escapeHtml(t('This tune’s number: type one, or drag across it to slide through seeds'))}">
+              <span class="ms-seed-label">${escapeHtml(t('Seed'))}</span>
+              <input type="number" class="ms-seed-input" min="0" max="4294967295" value="${state.seed}" data-seed inputmode="numeric">
+            </label>
+            ${iconBtn('data-seed-step="1"', 'chevronRight', t('Next seed'))}
+          </span>
+        </span>
       </span>
-      <button type="button" class="btn btn--sm ms-render-play" data-render-play title="${escapeHtml(t('Render the track at full quality first, then play it with the big visualiser'))}">${icon('monitor', { size: 16 })}<span>${escapeHtml(t('Render and play'))}</span></button>
-      <button type="button" class="field-select field-select--sm ms-genre" data-genre aria-haspopup="dialog"><span class="ms-genre-icon" data-genre-icon aria-hidden="true"></span><span class="ms-genre-name" data-genre-name></span></button>
-      <span class="ms-seed" role="group" aria-label="${escapeHtml(t('Seed'))}">
-        ${iconBtn('data-seed-step="-1"', 'chevronLeft', t('Previous seed'))}
-        <input type="number" class="field-input field-input--sm ms-seed-input" min="0" max="4294967295" value="${state.seed}" data-seed aria-label="${escapeHtml(t('Seed'))}" title="${escapeHtml(t('The seed: type one, or drag across it to slide through seeds'))}">
-        ${iconBtn('data-seed-step="1"', 'chevronRight', t('Next seed'))}
-      </span>
-      <select class="field-select field-select--sm" data-bars aria-label="${escapeHtml(t('Length'))}">${LENGTHS.map(n => `<option value="${n}"${n === state.bars ? ' selected' : ''}>${n} ${escapeHtml(t('bars'))}</option>`).join('')}</select>
-      <select class="field-select field-select--sm ms-key" data-transpose aria-label="${escapeHtml(t('Key'))}" title="${escapeHtml(t('Move the tune to another key'))}"></select>
-      <span class="ms-tempo" role="group" aria-label="${escapeHtml(t('Tempo'))}">
-        <input type="number" class="field-input field-input--sm ms-bpm-input" min="${BPM_RANGE[0]}" max="${BPM_RANGE[1]}" step="1" data-bpm aria-label="${escapeHtml(t('Tempo in beats a minute'))}" title="${escapeHtml(t('The tempo: type one, or drag across it'))}">
-        <span class="ms-unit" aria-hidden="true">bpm</span>
-        ${iconBtn('data-bpm-reset hidden', 'undo', t('Back to the tune’s own tempo'))}
-      </span>
+      <button type="button" class="field-select ms-genre" data-genre aria-haspopup="dialog"><span class="ms-genre-icon" data-genre-icon aria-hidden="true"></span><span class="ms-genre-name" data-genre-name></span></button>
       <span class="ms-bar-end">
-        <button type="button" class="btn btn--ghost btn--sm ms-reset" data-reset title="${escapeHtml(t('Every setting back to how the generator opens'))}">${icon('undo', { size: 16 })}<span>${escapeHtml(t('Reset'))}</span></button>
-        ${iconBtn('data-panel="sound" aria-expanded="false"', 'sliders', t('Sound and mix'))}
-        ${iconBtn('data-panel="make" aria-expanded="false"', 'download', t('Make, download or save the track'))}
+        ${renderPillHtml()}
+        <span class="ms-save-host help-tip-host">
+          <button type="button" class="btn btn--labelled ms-save" data-save>${escapeHtml(t('Save to library'))}</button>${saveTip.button}${saveTip.pop}
+        </span>
         ${iconBtn('data-link', 'link', t('Copy a link to this track'))}
       </span>
     </div>
-    <div class="ms-panel" data-panel-body="sound" hidden>
-      ${slider('lead', t('Lead'), 0, 1.6, 0.05, state.mix.lead)}
-      ${slider('keys', t('Keys'), 0, 1.6, 0.05, state.mix.keys)}
-      ${slider('bass', t('Bass'), 0, 1.6, 0.05, state.mix.bass)}
-      ${slider('drums', t('Drums'), 0, 1.6, 0.05, state.mix.drums)}
-      ${slider('fx', t('Effects'), 0, 2, 0.05, state.mix.fx)}
-      ${slider('reverb', t('Room'), 0, 2, 0.05, state.mix.reverb)}
-      ${slider('texture', t('Texture'), 0, 1, 0.05, state.texture)}
-      ${slider('bright', t('Brightness'), 0.5, 1.8, 0.05, state.bright ?? 1)}
-      ${slider('drive', t('Drive'), 0.8, 4.5, 0.1, state.drive ?? 2)}
-      <div class="ms-fx-on" role="group" aria-label="${escapeHtml(t('Effects'))}">
-        <span class="ms-fx-label">${escapeHtml(t('Effects'))}</span>
-        ${FX_FAMILIES.map(f => `<button type="button" class="ms-ms" data-fx-family="${f}" aria-pressed="${!state.quiet?.includes(f)}">${escapeHtml(t(FX_FAMILY_LABEL[f]))}</button>`).join('')}
-      </div>
-    </div>
-    <div class="ms-panel ms-panel--make" data-panel-body="make" hidden>
-      <button type="button" class="btn btn--primary btn--sm" data-render>${escapeHtml(t('Make the track'))}</button>
-      <progress max="1" value="0" data-progress hidden></progress>
-      <select class="field-select field-select--sm" data-format aria-label="${escapeHtml(t('File type'))}"><option value="m4a">M4A</option><option value="wav">WAV</option></select>
-      <button type="button" class="btn btn--sm" data-download disabled>${escapeHtml(t('Download'))}</button>
-      <button type="button" class="btn btn--sm" data-save>${escapeHtml(t('Save to library'))}</button>
-      <label class="field-toggle ms-cred">
-        <input type="checkbox" class="field-check" data-cred checked>
-        <span>${escapeHtml(t('Content Credentials'))}</span>
-      </label>
-      <div class="ms-make-notes">
-        <p class="ms-make-note" data-cred-note></p>
-        <p class="ms-make-note" data-save-note></p>
-      </div>
-    </div>
-    <div class="ms-rows" role="group" aria-label="${escapeHtml(t('Tracks'))}">
-      ${TRACKS.map(tr => `
-        <div class="ms-row" data-row="${tr}">
-          <button type="button" class="ms-row-open" ${tr === 'fx' ? 'data-panel="sound" aria-expanded="false"' : `data-browse="${tr}"`}>
-            <span class="ms-swatch" data-swatch="${tr}" aria-hidden="true"></span>
-            <span class="ms-row-text"><span class="ms-row-name">${escapeHtml(t(TRACK_LABEL[tr]))}</span><span class="ms-row-inst" data-summary="${tr}"></span></span>
-            ${icon('chevronRight', { size: 18 })}
-          </button>
-          <button type="button" class="ms-ms ms-row-ms" data-mute="${tr}" aria-pressed="false" aria-label="${escapeHtml(tRaw('Mute: {track}', { track: t(TRACK_LABEL[tr]) }))}">M</button>
-          <button type="button" class="ms-ms ms-row-ms" data-solo="${tr}" aria-pressed="false" aria-label="${escapeHtml(tRaw('Solo: {track}', { track: t(TRACK_LABEL[tr]) }))}">S</button>
-        </div>`).join('')}
+    <div class="ms-sections">
+      <details class="section-card ms-sec" data-sec="tune">
+        ${sectionHead('music', t('Tune'), '<span class="section-card-value" data-tune-value></span>')}
+        <div class="section-card-body ms-sec-body ms-tune">
+          <select class="field-select field-select--sm" data-bars aria-label="${escapeHtml(t('Length'))}">${LENGTHS.map(n => `<option value="${n}"${n === state.bars ? ' selected' : ''}>${n} ${escapeHtml(t('bars'))}</option>`).join('')}</select>
+          <select class="field-select field-select--sm ms-key" data-transpose aria-label="${escapeHtml(t('Key'))}" title="${escapeHtml(t('Move the tune to another key'))}"></select>
+          <span class="ms-tempo" role="group" aria-label="${escapeHtml(t('Tempo'))}">
+            <input type="number" class="field-input field-input--sm ms-bpm-input" min="${BPM_RANGE[0]}" max="${BPM_RANGE[1]}" step="1" data-bpm aria-label="${escapeHtml(t('Tempo in beats a minute'))}" title="${escapeHtml(t('The tempo: type one, or drag across it'))}">
+            <span class="ms-unit" aria-hidden="true">bpm</span>
+            ${iconBtn('data-bpm-reset hidden', 'undo', t('Back to the tune’s own tempo'))}
+          </span>
+          <button type="button" class="btn btn--ghost btn--sm btn--labelled ms-reset" data-reset title="${escapeHtml(t('Every setting back to how the generator opens'))}">${icon('undo', { size: 16 })}<span>${escapeHtml(t('Reset'))}</span></button>
+        </div>
+      </details>
+      <details class="section-card ms-sec" data-sec="mix">
+        ${sectionHead('sliders', t('Mix'))}
+        <div class="section-card-body ms-sec-body ms-mix">
+          <div class="ms-sliders">
+            ${slider('lead', t('Lead'), 0, 1.6, 0.05, state.mix.lead)}
+            ${slider('keys', t('Keys'), 0, 1.6, 0.05, state.mix.keys)}
+            ${slider('bass', t('Bass'), 0, 1.6, 0.05, state.mix.bass)}
+            ${slider('drums', t('Drums'), 0, 1.6, 0.05, state.mix.drums)}
+            ${slider('fx', t('Effects'), 0, 2, 0.05, state.mix.fx)}
+            ${slider('reverb', t('Room'), 0, 2, 0.05, state.mix.reverb)}
+          </div>
+          <div class="ms-sliders">
+            ${slider('texture', t('Texture'), 0, 1, 0.05, state.texture)}
+            ${slider('bright', t('Brightness'), 0.5, 1.8, 0.05, state.bright ?? 1)}
+            ${slider('drive', t('Drive'), 0.8, 4.5, 0.1, state.drive ?? 2)}
+          </div>
+          <div class="ms-fx-on" role="group" aria-label="${escapeHtml(t('Effects'))}">
+            <span class="ms-fx-label">${icon('wand', { size: 16 })}${escapeHtml(t('Effects'))}</span>
+            ${tagSelect}
+            ${FX_FAMILIES.map(f => `<button type="button" class="ms-chip" data-fx-family="${f}" aria-pressed="${!state.quiet?.includes(f)}">${icon('check', { size: 14, className: 'ms-chip-tick' })}${escapeHtml(t(FX_FAMILY_LABEL[f]))}</button>`).join('')}
+          </div>
+        </div>
+      </details>
+      <details class="section-card ms-sec ms-sec--tracks" data-sec="tracks">
+        ${sectionHead('layers', t('Tracks'))}
+        <div class="section-card-body ms-rows" role="group" aria-label="${escapeHtml(t('Tracks'))}">
+          ${TRACKS.map(tr => `
+            <div class="ms-row" data-row="${tr}">
+              <button type="button" class="ms-row-open" ${tr === 'fx' ? 'data-open-mix' : `data-browse="${tr}"`}>
+                ${glyph(tr, false)}
+                <span class="ms-row-text"><span class="ms-row-name">${escapeHtml(t(TRACK_LABEL[tr]))}</span><span class="ms-row-inst" data-summary="${tr}"></span></span>
+                ${icon('chevronRight', { size: 18 })}
+              </button>
+              ${muteSolo(tr)}
+            </div>`).join('')}
+        </div>
+      </details>
     </div>
     <div class="ms-stage">
       <canvas class="ms-viz" data-viz aria-hidden="true"></canvas>
@@ -320,13 +357,11 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         </div>
         ${TRACKS.map(tr => `
           <div class="ms-lane-head ms-track" data-track="${tr}" style="height:${lane[tr]}px">
-            <span class="ms-swatch" data-swatch="${tr}" aria-hidden="true"></span>
-            <span class="ms-track-name">${escapeHtml(t(TRACK_LABEL[tr]))}</span>
-            ${tr === 'lead' || tr === 'keys' || tr === 'bass' ? `<span class="ms-inst" data-inst="${tr}" role="img"></span>` : ''}
+            <span class="ms-track-id">${glyph(tr, true)}<span class="ms-track-name">${escapeHtml(t(TRACK_LABEL[tr]))}</span></span>
             ${tr === 'fx'
-              ? `<select class="field-select field-select--sm ms-pick" data-tag aria-label="${escapeHtml(t('The Lolly tag'))}" title="${escapeHtml(t('How the tune says “Lolly”, or not at all'))}"></select>`
-              : `${tr === 'drums' ? `<button type="button" class="ms-ms" data-drums aria-pressed="${state.drums}" title="${escapeHtml(t('Drums on or off'))}">${escapeHtml(t('On'))}</button>` : ''}<button type="button" class="field-select field-select--sm ms-pick ms-browse" data-browse="${tr}" title="${escapeHtml(t('Browse and hear the instruments'))}"><span data-summary="${tr}"></span></button>`}
-            ${`<button type="button" class="ms-ms" data-mute="${tr}" aria-pressed="false" title="${escapeHtml(t('Mute'))}">M</button><button type="button" class="ms-ms" data-solo="${tr}" aria-pressed="false" title="${escapeHtml(t('Solo'))}">S</button>`}
+              ? tagSelect
+              : `<button type="button" class="field-select field-select--sm ms-pick ms-browse" data-browse="${tr}" title="${escapeHtml(t('Browse and hear the instruments'))}"><span data-summary="${tr}"></span></button>`}
+            ${muteSolo(tr)}
           </div>`).join('')}
       </div>
       <div class="ms-scroll" data-scroll>
@@ -348,14 +383,17 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const hint = q<HTMLElement>('[data-hint]');
   const playBtn = q<HTMLButtonElement>('[data-play]');
   const pos = q<HTMLElement>('[data-pos]');
-  const progress = q<HTMLProgressElement>('[data-progress]');
-  const downloadBtn = q<HTMLButtonElement>('[data-download]');
+  /** The pill's Download: it opens the download's panel, and shows the download's progress. */
+  const downloadBtn = q<HTMLButtonElement>('[data-download-open]');
+  // The download options are lent to a popover while it is open, so they are held here.
   const credToggle = q<HTMLInputElement>('[data-cred]');
+  const credNote = q<HTMLElement>('[data-cred-note]');
+  const renderPill = wireRenderPill(page);
   const say = (text: string): void => { hint.textContent = text; };
   const HINT = t('Click a section in a track to hear and choose its instruments there. Click the top row to play from a section.');
   /** The effects' tag menu and the effect switches, set to the state. */
   const fillOptions = (): void => {
-    q<HTMLSelectElement>('[data-tag]').replaceChildren(new Option(t('Lolly tag: as composed'), ''), ...TAG_CHOICES.map(c => new Option(t(TAG_LABEL[c] ?? c), c, false, c === state.tag)));
+    for (const sel of page.querySelectorAll<HTMLSelectElement>('[data-tag]')) sel.replaceChildren(new Option(t('Lolly tag: as composed'), ''), ...TAG_CHOICES.map(c => new Option(t(TAG_LABEL[c] ?? c), c, false, c === state.tag)));
     for (const el of page.querySelectorAll<HTMLElement>('[data-fx-family]')) el.setAttribute('aria-pressed', String(!state.quiet?.includes(el.dataset.fxFamily as FxFamily)));
   };
   fillOptions();
@@ -420,31 +458,65 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' ? 0
     : voice === 'game' || voice === 'coin' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
 
-  function paintTrack(cx: CanvasRenderingContext2D, dpr: number, offset: number, width: number, ink: string, muteInk: string, line: string): void {
+  /**
+   * The grid's lines take the colour of the section they sit on, a lightness step from
+   * its band: drawn in the section's own hue at a low alpha, they come out a little
+   * darker on a light page and a little lighter on a dark one. Bar lines a step stronger
+   * than beat lines, the line between sections a step stronger again; a lane's floor the
+   * same as a bar line. The rests between sections take the muted ink the same way.
+   */
+  const GRID = { band: 0.08, head: 0.16, edge: 0.42, bar: 0.2, beat: 0.08, floor: 0.2 };
+  /** Beat lines once a beat is this many pixels wide; closer, the bar lines say enough. */
+  const BEAT_LINES_FROM = 8;
+  /** Bar lines no closer than this: zoomed out, a line every two, four or eight bars of a section. */
+  const BAR_LINES_APART = 9;
+
+  function paintTrack(cx: CanvasRenderingContext2D, dpr: number, offset: number, width: number, ink: string, muteInk: string, family: string): void {
     cx.setTransform(dpr, 0, 0, dpr, -offset * dpr, 0);
     const first = Math.max(0, Math.floor(offset / (4 * pxPerBeat)) - 1);
     const last = Math.min(bars.length, Math.ceil((offset + width) / (4 * pxPerBeat)) + 1);
     cx.clearRect(offset, 0, width, height);
-    // Sections: a tinted band for each run of bars in one section, its name on the ruler,
-    // and in each pitched lane the instrument it plays there.
-    cx.font = '600 11px system-ui, sans-serif';
+    const lanesTop = RULER + CHORDS;
+    let barStep = 1;
+    while (barStep < 16 && barStep * 4 * pxPerBeat < BAR_LINES_APART) barStep *= 2;
+    // Sections: a tinted band for each run of bars in one section, a stronger tint behind
+    // its name on the ruler, the grid in its hue, and in each pitched lane the instrument
+    // it plays there.
+    cx.font = `600 11px ${family}`;
     for (let i = 0; i < bars.length;) {
       let j = i;
       while (j + 1 < bars.length && bars[j + 1]!.section === bars[i]!.section && bars[j + 1]!.index === bars[j]!.index + 1) j++;
       const sec = bars[i]!.section;
-      const colour = sectionColour.get(sec) ?? muteInk;
+      const rest = sec === 'rest';
+      const colour = rest ? muteInk : sectionColour.get(sec) ?? muteInk;
       const x0 = beatX(i, 0), x1 = beatX(j + 1, 0);
-      if (x1 >= offset && x0 <= offset + width && sec !== 'rest') {
+      if (x1 >= offset && x0 <= offset + width) {
         cx.fillStyle = colour;
-        cx.globalAlpha = 0.12;
-        cx.fillRect(x0, 0, x1 - x0, height);
+        if (!rest) {
+          cx.globalAlpha = GRID.band;
+          cx.fillRect(x0, 0, x1 - x0, height);
+          cx.globalAlpha = GRID.head;
+          cx.fillRect(x0, 0, x1 - x0, RULER);
+        }
+        // The grid: a beat line for every beat when they have room, a bar line for every
+        // bar, the line where the section starts, and each lane's floor.
+        const from = Math.max(i, first), to = Math.min(j, last - 1);
+        if (pxPerBeat >= BEAT_LINES_FROM) {
+          cx.globalAlpha = GRID.beat;
+          for (let b = from; b <= to; b++) for (let beat = 1; beat < 4; beat++) cx.fillRect(beatX(b, beat), lanesTop, 1, height - lanesTop);
+        }
+        cx.globalAlpha = GRID.bar;
+        for (let b = Math.max(from, i + 1); b <= to; b++) if ((b - i) % barStep === 0) cx.fillRect(beatX(b, 0), RULER, 1, height - RULER);
+        cx.globalAlpha = GRID.floor;
+        for (const tr of TRACKS) cx.fillRect(x0, laneTop(tr), x1 - x0, 1);
+        if (i > 0) { cx.globalAlpha = GRID.edge; cx.fillRect(x0, 0, 1, height); }
         cx.globalAlpha = 1;
-        cx.fillRect(x0, 0, x1 - x0, 4);
+        if (rest) { i = j + 1; continue; }
         cx.fillStyle = ink;
         const label = sectionLabel(sec);
-        if (cx.measureText(label).width + 8 < x1 - x0) cx.fillText(label, x0 + 4, 18);
+        if (cx.measureText(label).width + 8 < x1 - x0) cx.fillText(label, x0 + 5, 17);
         cx.save();
-        cx.font = '600 10px system-ui, sans-serif';
+        cx.font = `600 10px ${family}`;
         for (const tr of PITCHED) {
           // Where a part changes instrument: a bar of the new instrument's colour down its
           // lane, and a chip with its name, filled when the person chose it, tinted when the
@@ -463,12 +535,12 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           cx.fillStyle = shade;
           cx.globalAlpha = chosen ? 1 : 0.2;
           cx.beginPath();
-          cx.roundRect(x0 + 4, top + 3, fits ? w : 18, 16, 8);
+          cx.roundRect(x0 + 4, top + 4, fits ? w : 18, 16, 8);
           cx.fill();
           cx.globalAlpha = 1;
           // The instrument's family icon, then its name when the section has room.
           cx.save();
-          cx.translate(x0 + 8, top + 5);
+          cx.translate(x0 + 8, top + 6);
           cx.scale(12 / 24, 12 / 24);
           cx.lineWidth = 2.4;
           cx.lineCap = 'round';
@@ -476,25 +548,23 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           cx.strokeStyle = chosen ? '#fff' : ink;
           cx.stroke(glyph);
           cx.restore();
-          if (fits) { cx.fillStyle = chosen ? '#fff' : ink; cx.fillText(name, x0 + 23, top + 14.5); }
+          if (fits) { cx.fillStyle = chosen ? '#fff' : ink; cx.fillText(name, x0 + 23, top + 15.5); }
         }
         cx.restore();
       }
       i = j + 1;
     }
-    // Bar lines and the chord lane. A chord's name is drawn only when it has room.
-    cx.font = '11px system-ui, sans-serif';
+    // The chord lane. A chord's name is drawn only when it has room.
+    cx.font = `11px ${family}`;
+    cx.fillStyle = muteInk;
     for (let i = first; i < last; i++) {
-      cx.fillStyle = line;
-      cx.fillRect(beatX(i, 0), RULER, 1, height - RULER);
       const chord = bars[i]!.chord;
       if (!chord || (i > 0 && bars[i - 1]!.chord === chord)) continue;
       let next = i + 1;
       while (next < bars.length && bars[next]!.chord === chord) next++;
       const room = beatX(next, 0) - beatX(i, 0) - 6;
-      if (cx.measureText(chord).width <= room) { cx.fillStyle = muteInk; cx.fillText(chord, beatX(i, 0) + 3, RULER + 15); }
+      if (cx.measureText(chord).width <= room) cx.fillText(chord, beatX(i, 0) + 4, RULER + 15);
     }
-    for (const tr of TRACKS) { cx.fillStyle = line; cx.fillRect(offset, laneTop(tr), width, 1); }
     // Notes, each in its track: pitched parts by pitch, drums on three rows, effects on four
     // (a sweep drawn as long as it lasts, the rest as short ticks so a run of them stays legible).
     const pitchRange: Record<Pitched, [number, number]> = { lead: [52, 96], keys: [48, 80], bass: [24, 64] };
@@ -536,13 +606,15 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (key === laneHeadKey) return;
     laneHeadKey = key;
     PITCHED.forEach((tr, n) => {
-      const el = page.querySelector<HTMLElement>(`[data-inst="${tr}"]`);
-      if (!el) return;
       const label = `${t(TRACK_LABEL[tr])}: ${instrumentOf(bar, tr)}`;
-      el.replaceChildren(musicIconNode(instrumentIcon(tr, ids[n]!), 16));
-      el.style.color = shadeOf(tr, ids[n]!);
-      el.title = label;
-      el.setAttribute('aria-label', label);
+      for (const el of page.querySelectorAll<HTMLElement>(`[data-inst="${tr}"]`)) {
+        el.replaceChildren(musicIconNode(instrumentIcon(tr, ids[n]!), 18));
+        el.style.color = shadeOf(tr, ids[n]!);
+        // The lane head's icon is named; a row's sits in a button that names itself.
+        if (el.getAttribute('role') !== 'img') continue;
+        el.title = label;
+        el.setAttribute('aria-label', label);
+      }
     });
   }
 
@@ -564,13 +636,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const css = getComputedStyle(page);
     const ink = css.getPropertyValue('--ms-ink').trim() || '#123';
     const muteInk = css.getPropertyValue('--ms-muted').trim() || '#789';
-    const line = css.getPropertyValue('--ms-line').trim() || 'rgba(0,0,0,.12)';
-    const key = [paintVersion, pxPerBeat, offset, canvas.width, canvas.height, dpr, ink, muteInk, line, [...muted].join(), [...solo].join(), state.drums, TRACKS.map(tr => lane[tr]).join()].join('|');
+    // The page's own face, so the canvas speaks in the brand's type like the rest of the page.
+    const family = css.fontFamily || 'sans-serif';
+    const key = [paintVersion, pxPerBeat, offset, canvas.width, canvas.height, dpr, ink, muteInk, family, [...muted].join(), [...solo].join(), state.drums, TRACKS.map(tr => lane[tr]).join()].join('|');
     if (key !== layerKey) {
       layer.width = canvas.width;
       layer.height = canvas.height;
       const lx = layer.getContext('2d');
-      if (lx) paintTrack(lx, dpr, offset, width, ink, muteInk, line);
+      if (lx) paintTrack(lx, dpr, offset, width, ink, muteInk, family);
       layerKey = key;
     }
     cx.setTransform(1, 0, 0, 1, 0, 0);
@@ -579,8 +652,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     cx.setTransform(dpr, 0, 0, dpr, -offset * dpr, 0);
     // What has been made so far, under the ruler, then the selection and the playhead.
     if (rendered > 0) { cx.fillStyle = trackColour.bass; cx.fillRect(0, RULER - 4, total * rendered, 3); }
+    // The selected bar: a faint wash of ink with a quiet edge.
+    cx.fillStyle = ink;
+    cx.globalAlpha = 0.05;
+    cx.fillRect(beatX(selected, 0), RULER, 4 * pxPerBeat, height - RULER);
+    cx.globalAlpha = 0.32;
     cx.strokeStyle = ink; cx.lineWidth = 1;
     cx.strokeRect(beatX(selected, 0) + 0.5, RULER + 0.5, 4 * pxPerBeat - 1, height - RULER - 1);
+    cx.globalAlpha = 1;
     if (playheadBar >= 0) {
       cx.fillStyle = ink;
       cx.fillRect(beatX(playheadBar, playheadBeat), 0, 2, height);
@@ -601,6 +680,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (document.activeElement !== bpmInput) bpmInput.value = String(first.bpm);
     bpmInput.classList.toggle('is-set', state.bpm !== undefined);
     q<HTMLElement>('[data-bpm-reset]').hidden = state.bpm === undefined;
+    // The Tune section's head says what it holds while it is folded.
+    q<HTMLElement>('[data-tune-value]').textContent = `${state.bars} ${t('bars')} · ${first.key} · ${first.bpm} bpm`;
     if (!station) pos.textContent = `0:00 / ${clock(times.total)}`;
   }
 
@@ -612,7 +693,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     trackColour = { lead: pal[0]!, keys: pal[1]!, bass: pal[2]!, drums: pal[3]!, fx: pal[4]! };
     sectionColour = new Map(SECTION_ORDER.map((s, i) => [s, pal[i % pal.length]!]));
     paintVersion++;
-    for (const tr of TRACKS) for (const el of page.querySelectorAll<HTMLElement>(`[data-swatch="${tr}"]`)) el.style.setProperty('background', trackColour[tr]);
+    // The track's colour lives in its icon, in the lane head and the row alike.
+    for (const tr of TRACKS) for (const el of page.querySelectorAll<HTMLElement>(`[data-track="${tr}"], [data-row="${tr}"]`)) el.style.setProperty('--ms-track', trackColour[tr]);
     draw();
   })();
 
@@ -630,7 +712,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     // A render under way is of the track as it was: let it go.
     rendering++;
     renderedBuffer = null; rendered = 0;
-    downloadBtn.disabled = true; progress.hidden = true;
+    renderPill.showRendered(false);
     writeLink(); meta(); paintSummaries(); draw();
     if (station || renderedSrc) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
     showFull();
@@ -751,34 +833,33 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const octx = new OfflineAudioContext(2, Math.ceil(seconds * 44100), 44100);
     const offline = new LofiStation(octx, octx.destination, state.seed, { ...settings(0), quality: 'high' }, effectiveMix());
     offline.fadeOutAt(Math.max(0, seconds - 2.5), 2.5);
-    progress.hidden = false; progress.value = 0;
-    say(t('Making the track…'));
+    say(t('Rendering…'));
     const buffer = await renderStation(octx, offline, seconds, (done) => {
-      if (job === rendering) { rendered = done; progress.value = rendered; onProgress?.(done); draw(); }
+      if (job === rendering) { rendered = done; onProgress?.(done); draw(); }
     });
     if (job !== rendering) return false;
-    renderedBuffer = buffer; rendered = 1; progress.value = 1; draw();
-    downloadBtn.disabled = false;
+    renderedBuffer = buffer; rendered = 1; draw();
+    renderPill.showRendered(true);
     showFull();
-    say(t('Made. Download the track or save it to your library.'));
+    say(t('Rendered at full quality.'));
     return true;
   }
 
-  // ── render and play ──────────────────────────────────────────────────────────
+  // ── the render pill: render, then play or download ──────────────────────────
   /**
-   * Render and play: the track worked out at full quality first, behind a progress card
-   * with the shared candy-stripe bar and Cancel (Escape cancels too), then played with
-   * the big visualiser, which can go full screen. A track already rendered plays at once.
+   * The track worked out at full quality, behind a progress card with the shared
+   * candy-stripe bar and Cancel (Escape cancels too). True once there is a render to
+   * play or download; a track already rendered needs no card.
    */
   let renderCard: ModalHandle<void> | null = null;
-  async function renderAndPlay(): Promise<void> {
-    if (renderedBuffer) { playRendered(Math.max(0, selected)); return; }
+  async function renderWithCard(): Promise<boolean> {
+    if (renderedBuffer) return true;
     stopPlayback();
     let finished = false;
     const titleId = 'ms-render-title';
     renderCard = mountModal<void>(`
       <h2 class="modal-title" id="${titleId}" tabindex="-1">${escapeHtml(t('Rendering your track'))}</h2>
-      <p class="ms-render-note">${escapeHtml(t('Every part at full quality, worked out before it plays. A render can take longer than the track itself.'))}</p>
+      <p class="ms-render-note">${escapeHtml(t('Every part at full quality. A render can take longer than the track itself.'))}</p>
       <div class="ms-render-status"><span data-render-pct role="status" aria-live="polite">0%</span><span data-render-eta></span></div>
       <div class="job-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-labelledby="${titleId}"><span class="job-bar-fill"></span></div>
       <div class="modal-actions"><button type="button" class="btn modal-cancel" data-act="cancel">${escapeHtml(t('Cancel'))}</button></div>`, {
@@ -788,7 +869,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       initialFocus: (el) => el.querySelector<HTMLElement>('.modal-title'),
       onClose: () => {
         renderCard = null;
-        if (!finished) { rendering++; progress.hidden = true; say(t('Render stopped.')); }
+        if (!finished) { rendering++; rendered = 0; draw(); say(t('Render stopped.')); }
       },
     });
     const card = renderCard;
@@ -806,10 +887,15 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // Time left, from the pace so far, once there is a pace to go by.
       if (eta && done > 0.05) eta.textContent = t('About {s} s to go', { s: String(Math.max(1, Math.round(((performance.now() - began) / 1000) * (1 - done) / done))) });
     }).catch((err: unknown) => { say(`${t('Could not make the track')}: ${String(err)}`); return false; });
-    if (!ok || renderCard !== card) { card.close(); return; }
+    if (!ok || renderCard !== card) { card.close(); return false; }
     finished = true;
     card.close();
-    playRendered(0);
+    return true;
+  }
+  /** Play: the rendered track with the big visualiser, which can go full screen. */
+  async function renderAndPlay(): Promise<void> {
+    if (renderedBuffer) { playRendered(Math.max(0, selected)); return; }
+    if (await renderWithCard()) playRendered(0);
   }
   /** The full-screen button shows once a track is rendered, where the browser can go full screen. */
   function showFull(): void {
@@ -819,7 +905,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   async function encoded(): Promise<{ blob: Blob; format: string }> {
     if (!renderedBuffer) throw new Error('nothing made yet');
     const pcm = pcmFromAudioBuffer(renderedBuffer);
-    const want = q<HTMLSelectElement>('[data-format]').value;
+    const want = renderPill.format();
     if (want === 'm4a') {
       try { return { blob: await encodeM4a(pcm), format: 'm4a' }; } catch { /* no AAC encoder here: fall back to WAV */ }
     }
@@ -887,8 +973,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   }
   function setDrums(on: boolean): void {
     state.drums = on;
-    for (const el of page.querySelectorAll<HTMLElement>('[data-drums]')) el.setAttribute('aria-pressed', String(on));
-    station?.setDrums(on); writeLink(); paintSummaries(); draw();
+    station?.setDrums(on); writeLink(); paintSummaries(); paintSilent(); draw();
     browser?.refresh();
   }
 
@@ -994,22 +1079,28 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   listen('[data-genre]', 'click', (_e, el) => {
     openGenrePicker({ current: () => state.mood, pick: setStyle, shuffleGenres: () => shuffleGenres, setShuffleGenres: saveShuffleGenres }, { opener: el });
   });
+  /** The seed field is as wide as its number, so a short seed sits snug beside the shuffle. */
+  const seedInput = q<HTMLInputElement>('[data-seed]');
+  const sizeSeed = (): void => { seedInput.style.width = `${Math.max(2, seedInput.value.length) + 1}ch`; };
   const setSeed = (seed: number): void => {
     state.seed = ((seed % 4294967296) + 4294967296) % 4294967296;
-    q<HTMLInputElement>('[data-seed]').value = String(state.seed);
+    seedInput.value = String(state.seed);
+    sizeSeed();
     newTune();
   };
   listen('[data-seed]', 'change', (_e, el) => { if (el instanceof HTMLInputElement) setSeed(Math.floor(Number(el.value) || 0)); });
+  listen('[data-seed]', 'input', () => sizeSeed());
   listen('[data-seed-step]', 'click', (_e, el) => setSeed(state.seed + Number(el.dataset.seedStep)));
   /** Put every control back in step with the state, after a shuffle or a reset. */
   const syncControls = (): void => {
     paintGenre();
-    q<HTMLInputElement>('[data-seed]').value = String(state.seed);
+    seedInput.value = String(state.seed);
+    sizeSeed();
     q<HTMLSelectElement>('[data-bars]').value = String(state.bars);
-    for (const el of page.querySelectorAll<HTMLElement>('[data-drums]')) el.setAttribute('aria-pressed', String(state.drums));
     fillOptions();
     for (const el of page.querySelectorAll<HTMLElement>('[data-mute]')) el.setAttribute('aria-pressed', String(muted.has(el.dataset.mute as Track)));
     for (const el of page.querySelectorAll<HTMLElement>('[data-solo]')) el.setAttribute('aria-pressed', String(solo.has(el.dataset.solo as Track)));
+    paintSilent();
     // The sliders show 1 for a brightness and 2 for a drive left to the style, as they open.
     const values: Record<string, number> = { ...state.mix, texture: state.texture, bright: state.bright ?? 1, drive: state.drive ?? 2 };
     for (const el of page.querySelectorAll<HTMLInputElement>('[data-slider]')) {
@@ -1071,6 +1162,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   listen('[data-tag]', 'change', (_e, el) => {
     if (!(el instanceof HTMLSelectElement)) return;
     state.tag = TAG_CHOICES.find(c => c === el.value);
+    // The lane head and the Mix section each have the menu: both say the same.
+    for (const sel of page.querySelectorAll<HTMLSelectElement>('[data-tag]')) sel.value = el.value;
     recompose();
   });
   listen('[data-fx-family]', 'click', (_e, el) => {
@@ -1082,20 +1175,51 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     el.setAttribute('aria-pressed', String(!quiet.has(family)));
     recompose();
   });
-  listen('[data-drums]', 'click', () => setDrums(!state.drums));
-  // Mute and solo: a track's lane head and its row on a phone both show the same switch.
+  // Mute and solo: a track's lane head and its row on a phone both show the same switch,
+  // and a track that cannot be heard is drawn faint in both.
+  const paintSilent = (): void => {
+    for (const tr of TRACKS) {
+      const silent = muted.has(tr) || (solo.size > 0 && !solo.has(tr)) || (tr === 'drums' && !state.drums);
+      for (const el of page.querySelectorAll<HTMLElement>(`[data-track="${tr}"], [data-row="${tr}"]`)) el.classList.toggle('is-silent', silent);
+    }
+  };
   const toggle = (set: Set<Track>, attr: 'mute' | 'solo', tr: Track): void => {
     if (set.has(tr)) set.delete(tr); else set.add(tr);
     for (const el of page.querySelectorAll<HTMLElement>(`[data-${attr}="${tr}"]`)) el.setAttribute('aria-pressed', String(set.has(tr)));
+    paintSilent();
     station?.setMix(effectiveMix()); draw();
   };
   listen('[data-mute]', 'click', (_e, el) => { const tr = TRACKS.find(x => x === el.dataset.mute); if (tr) toggle(muted, 'mute', tr); });
   listen('[data-solo]', 'click', (_e, el) => { const tr = TRACKS.find(x => x === el.dataset.solo); if (tr) toggle(solo, 'solo', tr); });
-  // The panels: one open at a time, under the bar.
-  listen('[data-panel]', 'click', (_e, el) => {
-    const which = el.dataset.panel;
-    for (const body of page.querySelectorAll<HTMLElement>('[data-panel-body]')) body.hidden = body.dataset.panelBody !== which || !body.hidden;
-    for (const b of page.querySelectorAll<HTMLElement>('[data-panel]')) b.setAttribute('aria-expanded', String(!q<HTMLElement>(`[data-panel-body="${b.dataset.panel}"]`).hidden));
+  // The sections fold, and each viewer's open ones are remembered on this device. The
+  // lanes grow or shrink to keep the editor on the screen as a section opens or closes:
+  // the fold moves (parts/disclosure.css), so the lanes follow the sections' size as it
+  // changes rather than the moment of the toggle.
+  const sections = [...page.querySelectorAll<HTMLDetailsElement>('details[data-sec]')];
+  try {
+    const open = new Set<string>(JSON.parse(localStorage.getItem(SECTIONS_KEY) ?? '[]'));
+    for (const d of sections) d.open = open.has(d.dataset.sec ?? '');
+  } catch { /* private mode, or nothing kept: every section starts folded */ }
+  for (const d of sections) {
+    d.addEventListener('toggle', () => {
+      try { localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections.filter(x => x.open).map(x => x.dataset.sec))); } catch { /* private mode */ }
+    });
+  }
+  let sectionsHeight = -1;
+  const sectionsSize = new ResizeObserver(([entry]) => {
+    const h = Math.round(entry?.contentRect.height ?? 0);
+    if (h === sectionsHeight) return;
+    sectionsHeight = h;
+    onResize();
+  });
+  sectionsSize.observe(q<HTMLElement>('.ms-sections'));
+  // The effects row on a phone opens the Mix section, where the effects are.
+  listen('[data-open-mix]', 'click', () => {
+    const mix = sections.find(d => d.dataset.sec === 'mix');
+    if (!mix) return;
+    mix.open = true;
+    mix.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    mix.querySelector<HTMLElement>('summary')?.focus({ preventScroll: true });
   });
   const showSlider = (el: HTMLInputElement): void => { showPillSlider(el); };
   listen('[data-slider]', 'input', (_e, el) => {
@@ -1219,7 +1343,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     draw();
   });
   canvas.addEventListener('dblclick', e => { selected = barAt(e); if (renderedSrc) playRendered(selected); else play(selected); });
-  listen('[data-render]', 'click', () => { void render().catch(err => { say(`${t('Could not make the track')}: ${String(err)}`); }); });
   listen('[data-render-play]', 'click', () => { void renderAndPlay(); });
   listen('[data-viz-full]', 'click', () => {
     const stage = page.querySelector<HTMLElement>('.ms-stage');
@@ -1228,9 +1351,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (vizMode !== 'milkdrop') { vizMode = 'milkdrop'; showVizMode(); void syncRichViz(); }
     void stage.requestFullscreen().catch(() => { say(t('This browser would not go full screen.')); });
   });
-  // What a download and a save will record, said before either is clicked.
+  // What a download and a save will record, said before either is clicked: the download
+  // in its options, under the switch, and the save in the help beside its button.
   const paintCredNote = (): void => {
-    q<HTMLElement>('[data-cred-note]').textContent = credToggle.checked
+    credNote.textContent = credToggle.checked
       ? tRaw('Downloads will carry Content Credentials that record: {declaration}.', { declaration: TUNE_DECLARATION })
       : t('Downloads will carry no Content Credentials.');
   };
@@ -1240,16 +1364,38 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const { profileMaker } = await import('../lib/tune-provenance.ts');
     let maker = '';
     try { maker = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
-    q<HTMLElement>('[data-save-note]').textContent = maker
+    const note = maker
       ? tRaw('Save to library records {maker} as the maker, the music generator as the source, and the Lolly and engine versions. The licence stays not recorded until you set one in the tune’s details.', { maker })
       : t('Save to library records the music generator as the source, and the Lolly and engine versions. Your profile has no name, so no maker is recorded. The licence stays not recorded until you set one in the tune’s details.');
+    // The tip's words are its first text, before its close button.
+    const words = [...q<HTMLElement>('.ms-save-host .help-tip-pop').childNodes].find(n => n.nodeType === Node.TEXT_NODE);
+    if (words) words.textContent = note;
   })().catch(() => { /* the note is a courtesy; the save still says what it wrote */ });
   // Download and Save to library show their work on the button itself: busy, then a tick
   // or the failure in plain words beside it (views/music-studio/action-button.ts).
-  const downloadAct = actionButton(downloadBtn, { busy: t('Preparing…'), done: t('Downloaded'), failed: t('The file could not be made.') });
+  const downloadAct = actionButton(downloadBtn, { busy: t('Preparing…'), done: t('Downloaded'), failed: t('The file could not be made.'), rest: 'download', trail: 'chevronDown', errorAfter: q<HTMLElement>('[data-render-pill]') });
   const saveAct = actionButton(q<HTMLButtonElement>('[data-save]'), { busy: t('Saving…'), done: t('Saved'), failed: t('The tune could not be saved.') });
-  listen('[data-download]', 'click', () => {
-    void downloadAct.run(async () => {
+  // What a save records shows while a mouse or the keyboard is on Save itself, so the
+  // record is in view at the moment of the click; a touch screen has the info button
+  // beside Save. A tip the info button opened stays open until the person closes the tip.
+  const saveBtn = q<HTMLButtonElement>('[data-save]');
+  const savePop = q<HTMLElement>('.ms-save-host .help-tip-pop');
+  const saveInfo = q<HTMLElement>('.ms-save-host .help-tip-btn');
+  const peekSave = (on: boolean): void => {
+    if (saveInfo.getAttribute('aria-expanded') === 'true') return;
+    savePop.hidden = !on;
+    savePop.classList.toggle('is-peek', on);
+  };
+  saveBtn.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') peekSave(true); });
+  saveBtn.addEventListener('pointerleave', () => peekSave(false));
+  saveBtn.addEventListener('focus', () => { if (saveBtn.matches(':focus-visible')) peekSave(true); });
+  saveBtn.addEventListener('blur', () => peekSave(false));
+  // The panel's Download closes the panel, renders first when the track has not been
+  // rendered (behind the same card as Play), and shows its progress on the pill.
+  listen('[data-download]', 'click', () => { renderPill.close(true); void download(); });
+  async function download(): Promise<void> {
+    if (!(await renderWithCard())) return;
+    const failed = await downloadAct.run(async () => {
       const { blob, format } = await encoded();
       if (!credToggle.checked) {
         await host.export.download(blob, fileName(format));
@@ -1268,8 +1414,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         : signed.declaration
           ? tRaw('File handed to your device’s save/download flow. Its Content Credentials record: {declaration}', { declaration: signed.declaration })
           : t('File handed to your device’s save/download flow. Reading it back found no Content Credentials, so none are confirmed.'));
-    }).then(failed => { if (failed) say(failed); });
-  });
+    });
+    if (failed) say(failed);
+  }
   listen('[data-save]', 'click', () => {
     void saveAct.run(async () => {
       if (!canUpload(host.assets)) throw new PlainFailure(t('This host cannot save to the library.'));
@@ -1310,18 +1457,17 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       .catch(() => { say(t('Could not copy the link.')); });
   });
   // Space plays and stops, shift and the arrows step the seed, Escape closes the
-  // instrument browser or a panel, and then leaves the way the back button does. Keys
-  // pressed in a dialog (the browser, the render card) are the dialog's own.
+  // instrument browser, and then leaves the way the back button does. Keys pressed in a
+  // dialog (the browser, the render card) or in the download options are their own, and
+  // Space on a button, a section's head or a field does what it always does there.
   const onKey = (e: KeyboardEvent): void => {
-    if (e.defaultPrevented || (e.target instanceof Element && e.target.closest('dialog'))) return;
+    if (e.defaultPrevented || renderPill.isOpen() || (e.target instanceof Element && e.target.closest('dialog'))) return;
     if (e.key === 'Escape') {
       if (browser) { browser.close(); return; }
-      const open = page.querySelector<HTMLElement>('[data-panel-body]:not([hidden])');
-      if (open) { open.hidden = true; return; }
       view.querySelector<HTMLElement>('[data-back-pill]')?.click();
       return;
     }
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement || e.target instanceof HTMLTextAreaElement) return;
+    if (e.target instanceof Element && e.target.closest('input, select, textarea, button, summary, a[href], [role="slider"], [contenteditable]')) return;
     if (e.key === ' ') { e.preventDefault(); if (station || renderedSrc) stopPlayback(); else play(selected); }
     else if (e.key === 'ArrowRight' && e.shiftKey) setSeed(state.seed + 1);
     else if (e.key === 'ArrowLeft' && e.shiftKey) setSeed(state.seed - 1);
@@ -1335,7 +1481,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // slides, only the picture follows; letting go plays and links the seed it stopped on.
   const detachScrub = attachScrub(page, {
     selector: '[data-seed]', min: 0, max: 4294967295, unitPerPx: 1, touch: true,
-    onDrag: (_el, value) => { state.seed = Math.round(value); bars = composeTrack(state); paintVersion++; times = barTimes(bars); meta(); draw(); },
+    onDrag: (_el, value) => { state.seed = Math.round(value); sizeSeed(); bars = composeTrack(state); paintVersion++; times = barTimes(bars); meta(); draw(); },
     onCommit: (el) => setSeed(Math.floor(Number(el.value) || 0)),
   });
   // The tempo slides too: a beat a minute for every few pixels, the length following as it goes.
@@ -1345,11 +1491,15 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     onCommit: (el) => setBpm(Number(el.value)),
   });
 
+  wireHelpTips(page);
   say(HINT);
-  writeLink(); meta(); paintSummaries(); paintGenre(); fitHeight(); fit(); drawViz();
+  writeLink(); meta(); paintSummaries(); paintGenre(); paintSilent(); sizeSeed(); fitHeight(); fit(); drawViz();
   void loadPrefs();
   view._cleanup = () => {
     downloadAct.reset(); saveAct.reset();
+    renderPill.close();
+    sectionsSize.disconnect();
+    unwireHelpTips(page);
     detachLang();
     detachScrub();
     detachTempoScrub();
