@@ -13,7 +13,8 @@
  * a high-pass that leaves the low end to the 808; a three-band compressor run in parallel
  * with the dry chord, the way OTT is used, so the hash and the tails between the hits come up
  * and the hits stay solid; a soft saturation; a chorus; a short room; and a pump the kicks
- * drive, which ducks the room with the chord (a sidechained reverb). The chain is built once,
+ * drive (and, in a drop, every beat), which ducks the room with the chord (a sidechained
+ * reverb). The chain is built once,
  * on the first chord, so a chord itself is only a few buffers and gains.
  *
  * A chord's movement comes from the composer (engine/src/lofi-future.ts): a wub swinging the
@@ -163,10 +164,35 @@ interface Bus {
   body: GainNode;
   /** The pump the kicks drive. */
   pump: GainNode;
+  /** The chorus's two slow swings. */
+  sways: Sway[];
   /** The chord being built, while its notes arrive one by one. */
   last: { key: string; group: Group } | null;
 }
 const BUSES = new WeakMap<AudioNode, Bus>();
+
+/**
+ * One of the chorus's swings: its rate (Hz), the depth it feeds into a delay's time, and how
+ * far ahead its oscillator runs. The swing runs only while chords play, in stretches of whole
+ * cycles that follow on without a jump, so a station that moves on to another tune (a skip
+ * gives it new outputs) leaves nothing running.
+ */
+interface Sway { rate: number; amount: GainNode; until: number }
+/** Cycles in each stretch of a swing (about half a minute at the chorus's rates). */
+const SWAY_CYCLES = 9;
+
+function sway(ctx: BaseAudioContext, sw: Sway, from: number, to: number): void {
+  if (sw.until < from) sw.until = from;   // silent since its last stretch: start afresh
+  while (sw.until < to) {
+    const len = SWAY_CYCLES / sw.rate;
+    const o = ctx.createOscillator();
+    o.frequency.value = sw.rate;
+    o.connect(sw.amount);
+    o.start(sw.until);
+    o.stop(sw.until + len);
+    sw.until += len;
+  }
+}
 
 function biquad(ctx: BaseAudioContext, type: BiquadFilterType, f: number, q = Math.SQRT1_2, gain = 0): BiquadFilterNode {
   const b = ctx.createBiquadFilter();
@@ -276,13 +302,13 @@ function busOf(k: VoiceKit, out: AudioNode): Bus {
   tap.channelCountMode = 'explicit';
   tap.channelInterpretation = 'speakers';
   sat.connect(tap);
+  const sways: Sway[] = [];
   for (const [base, depth, rate, pan] of [[0.011, 0.0017, 0.29, -0.8], [0.0145, 0.0021, 0.41, 0.8]] as const) {
     const d = ctx.createDelay(0.05);
     d.delayTime.value = base;
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = rate;
-    lfo.connect(gainNode(ctx, depth)).connect(d.delayTime);
-    lfo.start();
+    const amount = gainNode(ctx, depth);
+    amount.connect(d.delayTime);
+    sways.push({ rate, amount, until: -Infinity });
     const p = ctx.createStereoPanner();
     p.pan.value = pan;
     tap.connect(d).connect(p).connect(gainNode(ctx, 0.22)).connect(pump);
@@ -294,7 +320,7 @@ function busOf(k: VoiceKit, out: AudioNode): Bus {
   // The body skips the high-pass: it is the low mids under the chord, kept dark and mono.
   body.connect(biquad(ctx, 'lowpass', 380, 0.6)).connect(biquad(ctx, 'highpass', 90, 0.6)).connect(pump);
   pump.connect(gainNode(ctx, BUS_LEVEL)).connect(out);
-  const bus: Bus = { main, muffle, vowel, body, pump, last: null };
+  const bus: Bus = { main, muffle, vowel, body, pump, sways, last: null };
   BUSES.set(out, bus);
   return bus;
 }
@@ -302,10 +328,11 @@ function busOf(k: VoiceKit, out: AudioNode): Bus {
 /** How far the chords dip under a kick, per unit of the style's ducking, on top of the station's duck. */
 const PUMP = 0.3;
 /**
- * Pump the future chords under a kick at `t` (the station calls this with each kick, as it
- * ducks the music): a fast dip, held for a moment, and a recovery over most of an eighth, the
- * shape a sidechain compressor keyed from the kick gives. Does nothing where no future chord
- * has played.
+ * Pump the future chords at `t` (the station calls this with each kick, as it ducks the music,
+ * and on every beat of a drop): a fast dip, held for a moment, and a recovery over most of an
+ * eighth, the shape a sidechain compressor keyed from the kick gives. With the station's own
+ * duck the chords fall about 16 dB and are back within 3 dB after 150 ms (the measured records
+ * fall 12 to 14 and recover over 150 to 200). Does nothing where no future chord has played.
  */
 export function pump(out: AudioNode, t: number, depth: number): void {
   const bus = BUSES.get(out);
@@ -329,7 +356,7 @@ interface Group {
 }
 
 /** A chord's level (a note's share), its pluck's and its body's. */
-const PEAK = 0.105, PLUCK = 0.4, BODY = 0.1;
+const PEAK = 0.118, PLUCK = 0.4, BODY = 0.1;
 /** The bend: a whole tone up, most of the way in the first 45 per cent of its time. */
 const BEND_CENTS = 200, BEND_TIME = 0.22;
 /** The strike filter: wide open on the hit (Hz), settling (Hz, plus more for a harder chord) within STRIKE_TIME (s). */
@@ -402,6 +429,7 @@ function cosine(ctx: BaseAudioContext, rate: number, t: number, end: number): Os
 function newGroup(k: VoiceKit, bus: Bus, t: number, dur: number, vel: number, art: KeysArt): Group {
   const { ctx } = k;
   const end = t + dur + 0.35;
+  for (const sw of bus.sways) sway(ctx, sw, t, end + 1);
   const env = ctx.createGain();
   const peak = PEAK * vel;
   shape(env.gain, t, dur, peak, art);
@@ -496,6 +524,7 @@ export function future(k: VoiceKit, out: AudioNode, t: number, midi: number, vel
     const p = ctx.createBufferSource();
     p.buffer = pluckFor(k, bucket, t);
     p.playbackRate.value = f / mtof(bucket);
+    glide(p.detune, t, dur, art);   // the strike bends with the chord, as one patch's pitch envelope moves every layer
     p.connect(group.pluck);
     p.start(t);
     p.stop(t + PLUCK_SECONDS + 0.01);

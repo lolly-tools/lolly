@@ -29,7 +29,7 @@ export interface StackSpec {
   voices: number;
   /** How far out of tune the outermost saws are (cents either side). */
   spread: number;
-  /** The level of the saw on the pitch, and of each saw beside it. A centre no louder than the
+  /** The level of the saw on the pitch, and of each of the other saws. A centre no louder than the
    *  sides keeps the middle of the chord from swamping its width. */
   centre: number;
   side: number;

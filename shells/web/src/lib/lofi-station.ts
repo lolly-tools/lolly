@@ -957,6 +957,9 @@ export class LofiStation {
     const spb = 60 / bar.tune.bpm;
     if (BS.stacked(bar.tune.mood)) BS.mark(this.kit, this.lanes.bass, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0);
     BR.markBreak(this.kit, this.lanes.drums, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0, 8);
+    // In a drop the future-bass chords pump on every beat, as a producer's sidechain does,
+    // whatever the half-time kick plays (lib/lofi-future.ts; nothing where no such chord plays).
+    if (bar.section === 'drop') for (let b = 0; b < lofiBarBeats(bar.tune); b++) FB.pump(this.lanes.keys, at + b * spb, bar.tune.style.duck);
     for (const d of this.echoTimes) d.delayTime.setValueAtTime(Math.min(1.9, 0.75 * spb), at);
     // A band's hall is the same room all tune; the other styles' room follows the section.
     const room = bar.tune.mood === 'oompa' ? 1 : SECTION_ROOM[bar.section] ?? 1;

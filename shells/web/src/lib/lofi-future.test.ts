@@ -42,8 +42,9 @@ class Source extends Node {
   detune = new Param();
   frequency = new Param();
   started: [number, number] = [-1, 0];
+  stopped = Infinity;
   start(t = 0, offset = 0): void { this.started = [t, offset]; }
-  stop(): void { /* ends */ }
+  stop(t = 0): void { this.stopped = t; }
   setPeriodicWave(): void { /* a cosine */ }
 }
 class Ctx {
@@ -174,4 +175,15 @@ test('a render builds its own, denser stacks; live playing in a page builds as i
   play(render.k, render.out, 0.5, 1, HELD, [60]);
   const data = (c: Ctx): Float32Array => (c.sources.find(s => s.loop)!.buffer as unknown as { getChannelData: (n: number) => Float32Array }).getChannelData(0);
   assert.notDeepEqual(data(live.ctx), data(render.ctx), 'a different stack for a render');
+});
+
+test('nothing the chords start runs on for ever: a skipped tune\'s chain falls silent and stops', () => {
+  const { k, ctx, out } = kit();
+  for (let i = 0; i < 6; i++) play(k, out, 0.5 + i * 2, 1.5, { rate: 2 / 0.42, bend: false, spb: 0.42 });
+  for (const o of [...ctx.oscs, ...ctx.sources]) assert.ok(Number.isFinite(o.stopped), 'every oscillator and buffer has an end');
+  // The chorus's swings follow on from stretch to stretch, whole cycles each, without a gap.
+  const swings = ctx.oscs.filter(o => o.frequency.value === 0.29).sort((a, b) => a.started[0] - b.started[0]);
+  assert.ok(swings.length >= 1);
+  for (let i = 1; i < swings.length; i++) assert.ok(Math.abs(swings[i]!.started[0] - swings[i - 1]!.stopped) < 1e-9, 'each stretch starts where the last stopped');
+  assert.ok(swings[swings.length - 1]!.stopped >= 0.5 + 5 * 2 + 1.5, 'and runs past the last chord');
 });
