@@ -366,6 +366,8 @@ const PATHS = {
   cloudLightning: '<path d="M6 16.326A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 .5 8.973"/><path d="m13 12-3 5h4l-3 5"/>',
   bird: '<path d="M16 7h.01"/><path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/><path d="m20 7 2 .5-2 .5"/><path d="M10 18v3"/><path d="M14 17.75V21"/><path d="M7 18a6 6 0 0 0 3.84-10.61"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  // Lucide leaf: botanica's genre (lib/genre-icons.ts), a leaf on its stem.
+  leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
   // Windchimes - no Lucide equivalent, so drawn in the same house style: the
   // suspension bar, four tubes of falling length, and the clapper disc below.
   chimes: '<path d="M4 4h16"/><path d="M7 4v9"/><path d="M11 4v12"/><path d="M15 4v8"/><path d="M19 4v11"/><circle cx="13" cy="19.5" r="2"/><path d="M13 16v1.5"/>',

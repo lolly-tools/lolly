@@ -81,7 +81,7 @@ test('what a style plays is read the same every time, and covers its sections\' 
 
 test('a new tune never plays a blocked instrument the composer drew, and the link carries what plays instead', () => {
   let swapsSeen = 0;
-  for (const mood of ['ska', 'sugar', 'metal', 'warm', 'dnb', 'koto'] as const) {
+  for (const mood of ['ska', 'sugar', 'metal', 'warm', 'dnb', 'koto', 'botanica'] as const) {
     for (let seed = 1; seed <= 6; seed++) {
       const s = parseMusicState(`style=${mood}&seed=${seed * 97}&bars=48`);
       // Block whatever the composer drew for each part, the main instrument and one more.

@@ -50,6 +50,7 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   dnb: { set: 'timer' }, warm: { set: 'coffee' }, lateNight: { set: 'moon' }, rainy: { set: 'cloudRain' },
   salsa: { set: 'sparkle' },
   surf: { own: 'surfboard' }, yacht: { own: 'sailboat' },
+  botanica: { set: 'leaf' },
 };
 
 /** The shapes of a genre's icon, inside its `<svg>`. */
@@ -75,10 +76,11 @@ export const GENRE_CATEGORIES = ['chill', 'electronic', 'classic', 'internationa
 export type GenreCategory = typeof GENRE_CATEGORIES[number];
 
 /** Which category each genre is listed under: the Lofi stations and the calm styles are
- *  chill, the club and synth styles electronic, the band and groove styles classic, and
+ *  chill (botanica among them: most of its tunes drift, and even its glitchy grooves sit
+ *  in a garden rather than a club), the club and synth styles electronic, the band and groove styles classic, and
  *  the styles of one tradition or place international. */
 export const GENRE_CATEGORY: Record<LofiMood, GenreCategory> = {
-  warm: 'chill', lateNight: 'chill', rainy: 'chill', lofiHouse: 'chill', triphop: 'chill', dream: 'chill', citypop: 'chill', sings: 'chill', fantasy: 'chill',
+  warm: 'chill', lateNight: 'chill', rainy: 'chill', lofiHouse: 'chill', triphop: 'chill', dream: 'chill', citypop: 'chill', sings: 'chill', fantasy: 'chill', botanica: 'chill',
   sugar: 'electronic', sherbert: 'electronic', synthwave: 'electronic', chiptune: 'electronic', acid: 'electronic', electro: 'electronic', dubstep: 'electronic', brostep: 'electronic', dnb: 'electronic', nudisco: 'electronic',
   rock: 'classic', punk: 'classic', grunge: 'classic', stoner: 'classic', metal: 'classic', shoegaze: 'classic', blues: 'classic', jazz: 'classic', swing: 'classic', soul: 'classic', funk: 'classic', rnb: 'classic', country: 'classic', ska: 'classic', reggae: 'classic', hiphop: 'classic',
   surf: 'classic', yacht: 'classic',

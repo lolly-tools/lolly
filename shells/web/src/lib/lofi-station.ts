@@ -49,6 +49,10 @@ import { ownOnly } from './lofi-lead-art.ts';
 import { composerMod } from './lofi-flutes.ts';
 import * as LP from './lofi-latin-perc.ts';
 import * as P from './lofi-piano.ts';
+import { readGlitch } from '../../../../engine/src/lofi-botanica.ts';
+import { playNature } from './lofi-nature.ts';
+import { playGrain } from './lofi-grains.ts';
+import { BeatRepeat, playGlitch, repeatSlice } from './lofi-glitch.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -84,11 +88,11 @@ const MOOD_TONE: Record<LofiMood, number> = {
   warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 13000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
-  persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500,
+  persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500, botanica: 12500,
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +2 dB), in every genre of the family. */
 const SINGS_LEAD = 1.3;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb', 'lofiHouse', 'salsa', 'surf', 'yacht']);
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -100,12 +104,16 @@ const DRUMS = new Set(LOFI_DRUM_VOICES);
  * from 4 dB to 2).
  */
 const BUS = { keys: 0.37, bass: 0.2, lead: 0.95, drums: 0.83, texture: 0.27, reverb: 0.44, fx: 1.5 };
+/** The sounds of botanica's place (lib/lofi-nature.ts), joined after the tone filter as a field recording would be, on the effects slider. */
+const NATURE_BUS = 0.6;
+/** How much of the place goes to the room. */
+const NATURE_ROOM = 0.18;
 /** The room by section: bigger in the quiet sections, tighter in a drop. */
 const SECTION_ROOM: Partial<Record<string, number>> = { intro: 1.25, break: 1.35, outro: 1.4, bridge: 1.15, build: 1.1, drop: 0.85 };
 /** The styles built on drops, whose builds sweep a high-pass up the music. */
 const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy']);
 /** The styles that throw a phrase's last lead note into the echo, and those that keep a little echo on the lead throughout. */
-const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska', 'lofiHouse', 'yacht']);
+const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska', 'lofiHouse', 'yacht', 'botanica']);
 const ECHO_ALWAYS = new Set<LofiMood>(['synthwave', 'dream', 'reggae']);
 const ECHO_BED = 0.12;
 /** The drums' room send, at the middle of the arrangement; the room slider and the section scale the send. */
@@ -158,7 +166,7 @@ const LEAD_TRIM: Partial<Record<LofiStyle['lead'], number>> = { angel: -0.2, bal
  * dont destroy the genre"; 2026-11-13, of lofi house: "the lead is quiet and the bass is
  * loud").
  */
-const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5 };
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5 };
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. */
 const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2 };
 /** The styles whose vocal chops in a chorus are a coro: several singers on the line, not one voice chopped. */
@@ -191,7 +199,7 @@ const SHOUT_LEAD = 0.7;
 /** A bar's start: when it sounds, the bar, and its place in the stream (bars from the stream's top). */
 interface Mark { at: number; bar: LofiBar; pos: number }
 /** One tune's inputs to the buses, so skipping can fade out what is still ringing. */
-interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNode; fx: GainNode }
+interface Lanes { keys: GainNode; bass: GainNode; lead: GainNode; drums: GainNode; fx: GainNode; nature: GainNode }
 
 export class LofiStation {
   readonly ctx: BaseAudioContext;
@@ -275,6 +283,12 @@ export class LofiStation {
   private readonly rain: GainNode;
   private readonly crunch: GainNode;
   private readonly dry: GainNode;
+  /** The mix after the tone filter's high-pass, before the saturation: the point where botanica's repeats catch the mix. */
+  private readonly mixed: BiquadFilterNode;
+  /** The place's sounds, after the tone filter. */
+  private readonly natureBus: GainNode;
+  /** A beat repeater on the whole mix, built when a tune first repeats (lib/lofi-glitch.ts). */
+  private repeater: BeatRepeat | null = null;
   private lanes: Lanes;
 
   constructor(ctx: BaseAudioContext, dest: AudioNode, seed: number, settings: LofiSettings, mix: LofiMix = LOFI_MIX) {
@@ -301,6 +315,7 @@ export class LofiStation {
     const hp = ctx.createBiquadFilter();
     hp.type = 'highpass'; hp.frequency.value = 28;
     hp.connect(this.shaper);
+    this.mixed = hp;
     this.tone = ctx.createBiquadFilter();
     this.tone.type = 'lowpass'; this.tone.Q.value = 0.5;
     this.tone.frequency.value = MOOD_TONE[settings.mood];
@@ -450,6 +465,14 @@ export class LofiStation {
     this.lfo(0.07, gustDepth).connect(gust.gain);
     rainBp.connect(gust).connect(this.rain);
     this.loop(noise, rainBp, 0.37);
+
+    // Botanica's place: after the tone filter, so wind and birds stay crisp however muffled
+    // the music is, with a little of the room so they sit in the same space.
+    this.natureBus = ctx.createGain();
+    this.natureBus.connect(this.shaper);
+    const natureRoom = ctx.createGain();
+    natureRoom.gain.value = NATURE_ROOM;
+    this.natureBus.connect(natureRoom).connect(this.reverbSend);
 
     this.lanes = this.newLanes();
     this.applyMix();
@@ -758,6 +781,14 @@ export class LofiStation {
       case 'game': V.game(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'nature': playNature(this.ctx, lanes.nature, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed, bar.index * 64 + Math.round(note.beat * 8)); break;
+      case 'grain': playGrain(this.ctx, lanes.fx, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed); break;
+      case 'glitch':
+        if (readGlitch(note.mod ?? 0).kind === 'repeat') {
+          this.repeater ??= new BeatRepeat(this.ctx, this.mixed, this.shaper);
+          this.repeater.repeat(t, repeatSlice(note.mod ?? 0, spb), len);
+        } else playGlitch(this.ctx, lanes.fx, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed, bar.index * 64 + Math.round(note.beat * 8));
+        break;
       case 'tom': D.tom(k, lanes.drums, t, note.midi, vel, this.kitOf(bar.tune)); break;
       case 'perc': {
         // Salsa's percussion (lib/lofi-latin-perc.ts); a güiro's scrape is as long as its note.
@@ -936,13 +967,14 @@ export class LofiStation {
     this.bassBus.gain.value = BUS.bass * this.mix.bass;
     this.leadBus.gain.value = BUS.lead * this.mix.lead;
     this.fxBus.gain.value = BUS.fx * this.mix.fx;
+    this.natureBus.gain.value = NATURE_BUS * this.mix.fx;
     this.drumBus.gain.value = BUS.drums * this.mix.drums;
     this.reverbSend.gain.value = BUS.reverb * this.mix.reverb * this.colour.room * this.sectionRoom;
   }
 
   private newLanes(): Lanes {
     const lane = (to: AudioNode): GainNode => { const g = this.ctx.createGain(); g.connect(to); return g; };
-    return { keys: lane(this.keysBus), bass: lane(this.bassBus), lead: lane(this.leadBus), drums: lane(this.drumBus), fx: lane(this.fxBus) };
+    return { keys: lane(this.keysBus), bass: lane(this.bassBus), lead: lane(this.leadBus), drums: lane(this.drumBus), fx: lane(this.fxBus), nature: lane(this.natureBus) };
   }
 
   /** A sine LFO into `depth`; returns `depth` to connect onward. */

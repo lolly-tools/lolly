@@ -42,7 +42,7 @@ test('each category lists its genres A to Z by title', () => {
     const titles = g.moods.map(genreTitle);
     assert.deepEqual(titles, [...titles].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })), g.id);
   }
-  assert.deepEqual(GENRE_GROUPS[0]!.moods.map(genreTitle), ['City pop', 'Dreamscape', 'Fantasy', 'Late night', 'Lofi house', 'Lolly Sings', 'Rainy', 'Trip hop', 'Warm']);
+  assert.deepEqual(GENRE_GROUPS[0]!.moods.map(genreTitle), ['Botanica', 'City pop', 'Dreamscape', 'Fantasy', 'Late night', 'Lofi house', 'Lolly Sings', 'Rainy', 'Trip hop', 'Warm']);
 });
 
 test('genres next to each other in the grid do not share an icon', () => {

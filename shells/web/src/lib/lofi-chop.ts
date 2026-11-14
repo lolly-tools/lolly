@@ -174,7 +174,7 @@ const CHOPPING: Record<'future' | 'smooth' | 'house' | 'plain' | 'coro', Choppin
   // long notes; nothing is flipped, gated, stuttered or reversed.
   coro: { scoop: 0.2, slide: 0.25, flip: 0, gate: 0, stutter: 0, fall: 0.2, reverse: 0, loose: 6, late: 4 },
 };
-const CHOPPING_OF: Partial<Record<string, keyof typeof CHOPPING>> = { sherbert: 'future', sugar: 'future', kpop: 'future', dubstep: 'future', brostep: 'future', dnb: 'future', electro: 'future', rnb: 'smooth', soul: 'smooth', triphop: 'smooth', lofiHouse: 'house', salsa: 'coro' };
+const CHOPPING_OF: Partial<Record<string, keyof typeof CHOPPING>> = { sherbert: 'future', sugar: 'future', kpop: 'future', dubstep: 'future', brostep: 'future', dnb: 'future', electro: 'future', rnb: 'smooth', soul: 'smooth', triphop: 'smooth', lofiHouse: 'house', salsa: 'coro', botanica: 'house' };
 
 /** A normally distributed draw (mean 0, deviation 1), cut at 2.5. */
 function gauss(rand: () => number): number {
