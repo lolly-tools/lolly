@@ -413,7 +413,9 @@ function pad(c: BarCtx): void {
   const tones = [...c.voicing].sort((a, z) => a - z);
   const take = part.section === 'intro' || part.section === 'outro' ? tones.filter((_, k) => k !== 1) : tones;
   for (const [k, p] of take.slice(0, 3).entries()) {
-    c.notes.push({ voice: 'grain', midi: k === 2 ? p + 12 : p, beat: 0, dur: left + 0.75, vel: clampVel((part.section === 'drop' ? 0.46 : 0.38) - k * 0.04), mod: grainMod(source, cloud) });
+    // A drift's pads sit under its piano or guitar, which have no drums to compete with.
+    const level = (part.section === 'drop' ? 0.46 : 0.38) * (c.form === 'drift' ? 0.75 : 1);
+    c.notes.push({ voice: 'grain', midi: k === 2 ? p + 12 : p, beat: 0, dur: left + 0.75, vel: clampVel(level - k * 0.04), mod: grainMod(source, cloud) });
   }
 }
 
@@ -427,14 +429,14 @@ function keys(c: BarCtx): void {
     // A chord rolled slowly from the bottom where the chord starts, left to ring.
     if (c.firstOfChord || c.i === 0) {
       const spread = 0.06 + c.m() * 0.12;
-      [...voicing].sort((a, z) => a - z).forEach((p, k) => { strike(feel(c, 0, 0.5) + k * spread, p, c.chordBars * 4 - 0.5, quiet ? 0.42 : 0.52); });
+      [...voicing].sort((a, z) => a - z).forEach((p, k) => { strike(feel(c, 0, 0.5) + k * spread, p, c.chordBars * 4 - 0.5, quiet ? 0.48 : 0.6); });
     }
     // Then a few of its notes, falling where they fall, each ringing on.
     const count = quiet ? 1 + Math.floor(c.m() * 2) : 2 + Math.floor(c.m() * 3);
     let at = 1 + c.m() * 0.8;
     for (let k = 0; k < count && at < 3.9; k++) {
       const p = voicing[Math.floor(c.m() * voicing.length)]!;
-      strike(at, c.m() < 0.25 && p + 12 <= 76 ? p + 12 : p, 2.2, quiet ? 0.3 : 0.4);
+      strike(at, c.m() < 0.25 && p + 12 <= 76 ? p + 12 : p, 2.2, quiet ? 0.34 : 0.46);
       at += 0.55 + c.m() * 1.1;
     }
     return;
@@ -502,7 +504,9 @@ function lead(c: BarCtx, set: (p: number) => void, from: number): number[] {
     if (p < 64) p += 12;
     prev = p;
     const dur = Math.max(0.3, (len / 4) * (c.form === 'drift' ? 1.1 : 0.9));
-    notes.push({ voice: 'lead', midi: p, beat, dur, vel: clampVel((part.section === 'drop' ? 0.56 : 0.48) + (c.m() - 0.5) * 0.12) });
+    // A groove's lead rides over its drums; a drift's sings softly over the pads and the place.
+    const vel = c.form === 'groove' ? (part.section === 'drop' ? 0.66 : 0.56) : part.section === 'drop' ? 0.52 : 0.46;
+    notes.push({ voice: 'lead', midi: p, beat, dur, vel: clampVel(vel + (c.m() - 0.5) * 0.12) });
     lastEnd = Math.max(lastEnd, beat + dur);
   }
   set(prev);
@@ -578,7 +582,7 @@ function natureHit(c: BarCtx, kind: 'twig' | 'droplet', beat: number, vel: numbe
 function placeSounds(c: BarCtx, rests: number[], free: (beat: number) => boolean, sing: (until: number) => void, index: number): void {
   const { part, notes, plan } = c;
   const quiet = part.section === 'intro' || part.section === 'break' || part.section === 'outro';
-  const bedVel = part.section === 'drop' ? 0.34 : quiet ? 0.72 : 0.48;
+  const bedVel = part.section === 'drop' ? 0.28 : quiet ? 0.72 : 0.4;
   if (c.i % 2 === 0) {
     const span = Math.min(2, part.bars - c.i) * 4;
     plan.place.beds.forEach((bed, k) => {

@@ -267,7 +267,7 @@ export function grainBuffer(ctx: BaseAudioContext, source: BotanicaSource, cloud
 }
 
 /** The pads' level in the mix. */
-const PAD_LEVEL = 0.55;
+const PAD_LEVEL = 0.3;
 
 /** Play a `grain` note: its pad from the cache (or rendered now), at its velocity. */
 export function playGrain(ctx: BaseAudioContext, out: AudioNode, t: number, midi: number, vel: number, seconds: number, mod: number, tune: number): void {

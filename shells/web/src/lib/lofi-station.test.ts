@@ -174,7 +174,7 @@ test('botanica plays its place, its pads and its glitches, and catches the mix i
   // The beds, the pads and the glitches render at half the context's rate: their buffers are filled, not empty.
   const filled = ctx.sources.filter(s => {
     const b = s.buffer as { getChannelData?: (c: number) => Float32Array } | null;
-    return b?.getChannelData && b.getChannelData(0).some(v => v !== 0);
+    return b?.getChannelData?.(0).some(v => v !== 0) ?? false;
   });
   assert.ok(filled.length > 40, `the place, the pads and the glitches sound (${filled.length} filled buffers)`);
   assert.equal(empty.length, 0, 'no empty buffer is played');

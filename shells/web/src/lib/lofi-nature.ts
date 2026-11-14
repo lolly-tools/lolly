@@ -489,7 +489,7 @@ export function rain(sr: number, seconds: number, seed: number): Stereo {
     const o = out[ch]!;
     for (let i = 0; i < n; i++) o[i] = lp.run(hp.run(pink.next())) * 0.22 * g[i]!;
   }
-  const rate = 650;
+  const rate = 520;
   const click = new Biquad(sr);
   for (let i = 0; i < n; i++) {
     if (r() >= (rate * g[i]!) / sr) continue;
@@ -627,7 +627,7 @@ export function twig(sr: number, seed: number): Float32Array {
     for (let i = 0; at + i < out.length && i < tau * 5; i++) {
       const x = r() * 2 - 1;
       const e = Math.exp(-i / tau);
-      out[at + i] = out[at + i]! + (crack.run(x) * Math.exp(-i / (0.0006 * sr)) * 0.8 + ring.run(x) * e * 2) * amp;
+      out[at + i] = out[at + i]! + (crack.run(x) * Math.exp(-i / (0.0012 * sr)) * 0.35 + ring.run(x) * e * 2) * amp;
     }
     at += Math.round((0.003 + r() * 0.012) * sr);
   }
@@ -665,7 +665,7 @@ export function bed(kind: BotanicaNature, sr: number, seconds: number, seed: num
 /** How long a bed's loop is (s): long enough that its repeats are not heard as a loop. */
 export const BED_LOOP = 10;
 /** Each kind's level in the mix against the others (a bed's loudest stretch is about this). */
-const BED_LEVEL: Record<string, number> = { wind: 0.5, leaves: 0.7, stream: 0.55, drip: 0.5, rain: 0.55, insects: 0.45, bird: 0.42, twig: 0.55, droplet: 0.45 };
+const BED_LEVEL: Record<string, number> = { wind: 0.5, leaves: 0.7, stream: 0.55, drip: 0.5, rain: 0.55, insects: 0.45, bird: 0.42, twig: 0.45, droplet: 0.45 };
 
 /** The loops and the phrases rendered so far, per context. */
 const LOOPS = new WeakMap<BaseAudioContext, Map<string, AudioBuffer>>();
