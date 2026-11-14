@@ -60,7 +60,7 @@ export interface BreakPlan {
   turnEvery: 2 | 4 | 8;
   /** Whether the ghost notes are drawn afresh every bar, or kept as the sample has them. */
   fresh: boolean;
-  /** The sample's ghost notes that sound, and one more the drummer played in each bar of it. */
+  /** The sample's ghost notes that sound, and one more the drummer played in each of the sample's two bars. */
   keep: readonly boolean[];
   extra: readonly [number, number];
 }

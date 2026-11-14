@@ -34,9 +34,12 @@ interface BreakSound {
   level: number;
 }
 const SOUNDS: Partial<Record<LofiTuneInfo['mood'], BreakSound>> = {
-  breakbeat: { from: [96, 112], top: 11000, floor: 30, drive: 0.6, level: 1 },
+  breakbeat: { from: [96, 112], top: 11000, floor: 30, drive: 0.6, level: 1.4 },
   dnb: { from: [124, 136], top: 13000, floor: 380, drive: 0.4, level: 1 },
 };
+/** The break's bass drum against the kit's: the breakbeat records measured carry 2 to 7 dB less under 150 Hz
+ *  against the whole mix than the break's full kick gave (docs/generated-music.md). */
+const KICK = 0.75;
 /** The fastest a break plays: a sped-up record past about seven semitones sounds like a toy. */
 const MOST = 2 ** (7 / 12);
 
@@ -109,7 +112,7 @@ export function playBreak(k: VoiceKit, lane: AudioNode, note: LofiNote, bar: Lof
   const kit = semis ? { ...base, rate: (base.rate ?? 1) * 2 ** (semis / 12) } : base;
   const out = busOf(k, lane, bar.tune).input;
   switch (note.voice) {
-    case 'kick': D.kick(k, out, t, vel, st.kick, st.kickLen, 'acoustic', kit); break;
+    case 'kick': D.kick(k, out, t, vel * KICK, st.kick, st.kickLen, 'acoustic', kit); break;
     case 'snare': D.snare('snare', k, out, t, vel, st.snareTone, kit); break;
     case 'rim': D.rim(k, out, t, vel, kit); break;
     case 'tom': D.tom(k, out, t, note.midi || 45, vel, kit); break;

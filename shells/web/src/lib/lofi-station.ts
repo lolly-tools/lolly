@@ -164,7 +164,7 @@ const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. The club
  *  genres' are set so the mix under 150 Hz sits against the whole as their records' does (docs/generated-music.md):
  *  breakbeat's back, garage's a little up, private school's log drum kept soft. */
-const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, breakbeat: -3, ukGarage: 1, privateSchool: -1.5 };
+const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5 };
 /** The styles whose horn lines are a section's (see the lead and lib/lofi-winds.ts's hornSection). */
 const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
 /** The styles whose horns play as a section only in some sections (salsa's mambo, its intro and its breaks), the lead singing the rest alone. */

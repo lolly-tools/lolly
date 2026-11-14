@@ -22,6 +22,7 @@
  */
 import type { DanceLean, DancePart, IntroStyle, LofiLayer, LofiNote, LofiSection, LofiStyle } from './lofi-compose.ts';
 import { breakBar, breakPlan, type BreakPlan } from './lofi-breaks.ts';
+import { BONGO_STROKES, CONGA_DRUM, CONGA_STROKES, TIMBAL_STROKES, type SalsaPercussion } from './lofi-salsa.ts';
 import { mulberry32 } from './zzfx-compose.ts';
 
 export type ClubMood = 'breakbeat' | 'funkyHouse' | 'ukGarage' | 'privateSchool';
@@ -94,13 +95,23 @@ const TWO_STEPS: ReadonlyArray<readonly number[]> = [[0, 10], [0, 7, 10], [0, 3,
 const GARAGE_RIMS: ReadonlyArray<readonly number[]> = [[3, 7, 11, 14], [2, 7, 9, 14], [3, 6, 11, 15], [7, 10, 13], [1, 6, 9, 14]];
 /** Private school's rims around the soft backbeat. */
 const SCHOOL_RIMS: ReadonlyArray<readonly number[]> = [[7, 14], [3, 11], [6, 14], [10, 15], [3, 7, 14]];
-/** The percussion kinds, by their place in the composer's LOFI_PERCUSSION. */
-const SHAKER = 0, TAMBOURINE = 1, CONGA = 2, COWBELL = 3;
-/** Congas in funky house and private school: the open tones answering the slap, a bar each. */
-const CONGAS: ReadonlyArray<ReadonlyArray<readonly [number, number, number]>> = [
-  [[2, 64, 0.5], [3, 60, 0.4], [6, 64, 0.55], [10, 60, 0.45], [11, 60, 0.4], [14, 55, 0.6]],
-  [[0, 55, 0.45], [3, 64, 0.5], [6, 60, 0.4], [7, 60, 0.4], [10, 64, 0.55], [14, 55, 0.55], [15, 55, 0.45]],
-  [[2, 60, 0.45], [4, 64, 0.6], [7, 60, 0.4], [10, 55, 0.5], [12, 64, 0.55], [14, 60, 0.4]],
+/** The older percussion kinds, by their place in the composer's LOFI_PERCUSSION. */
+const SHAKER = 0, TAMBOURINE = 1, COWBELL = 3;
+/** A conga stroke on one of the three drums (0 the quinto, 1 the conga, 2 the tumba), as salsa's section plays them (lofi-salsa.ts). */
+const conga = (drum: number, stroke: keyof typeof CONGA_STROKES): number => drum * CONGA_DRUM + CONGA_STROKES[stroke];
+/**
+ * House congas, a bar each: the slap on the quinto answering the backbeat, the open tones of
+ * the conga and the tumba pushed off the beat, a muffled stroke between. [sixteenth, stroke, strength].
+ */
+const HOUSE_CONGAS: ReadonlyArray<ReadonlyArray<readonly [number, number, number]>> = [
+  [[2, conga(1, 'open'), 0.55], [3, conga(1, 'muff'), 0.32], [6, conga(0, 'slap'), 0.6], [7, conga(1, 'open'), 0.45], [10, conga(2, 'open'), 0.6], [11, conga(2, 'open'), 0.5], [14, conga(0, 'slap'), 0.6]],
+  [[0, conga(2, 'bass'), 0.45], [3, conga(1, 'open'), 0.5], [6, conga(0, 'slap'), 0.6], [8, conga(1, 'heel'), 0.3], [10, conga(1, 'open'), 0.5], [11, conga(2, 'open'), 0.5], [14, conga(0, 'slap'), 0.55], [15, conga(1, 'open'), 0.42]],
+  [[2, conga(1, 'open'), 0.5], [4, conga(0, 'slap'), 0.58], [7, conga(1, 'open'), 0.42], [10, conga(2, 'open'), 0.55], [12, conga(0, 'slap'), 0.58], [14, conga(1, 'open'), 0.45]],
+];
+/** House bongos under the congas: eighths on the macho, fingertip and thumb, the hembra to turn the bar. */
+const HOUSE_BONGOS: ReadonlyArray<readonly [number, number, number]> = [
+  [0, BONGO_STROKES.finger, 0.45], [2, BONGO_STROKES.thumb, 0.3], [4, BONGO_STROKES.finger, 0.42], [6, BONGO_STROKES.thumb, 0.3],
+  [8, BONGO_STROKES.finger, 0.45], [10, BONGO_STROKES.thumb, 0.3], [12, BONGO_STROKES.hembra, 0.55], [14, BONGO_STROKES.thumb, 0.34],
 ];
 
 /** One tune's own draws for its club genre: the swing, the patterns it keeps, and a stream for the bars' small choices. */
@@ -115,6 +126,11 @@ export interface ClubPlan {
   rims: readonly [readonly number[], readonly number[]];
   stabs: readonly [Rhythm, Rhythm];
   congas: readonly [number, number];
+  /** A percussion kind's place in the composer's list (its notes' `mod`). */
+  perc: (kind: SalsaPercussion) => number;
+  /** Funky house's bongos and its cowbell in the second half of a drop. */
+  bongos: boolean;
+  cowbell: boolean;
   /** Funky house's filter through a drop: how many bars it takes to close and open again, and how far it closes. */
   cycle: { period: number; low: number } | null;
   /** UK garage's programmed loop: which sixteenths the hats play, the ghost snares of its two bars, and an open hat to end every other bar. */
@@ -132,7 +148,7 @@ const DISCO_LOOPS: readonly Rhythm[] = [[[0, 3], [3, 3], [6, 2], [10, 2], [12, 4
 const SCHOOL_COMPS: readonly Rhythm[] = [[[0, 6], [6, 2], [10, 4], [14, 2]], [[0, 3], [3, 3], [6, 4], [10, 2], [12, 4]], [[0, 8], [10, 2], [12, 4]], [[0, 2], [3, 2], [6, 2], [8, 2], [11, 2], [14, 2]]];
 
 /** A tune's club plan, drawn from its seed alone. */
-export function clubPlan(mood: ClubMood, seed: number): ClubPlan {
+export function clubPlan(mood: ClubMood, seed: number, perc: (kind: SalsaPercussion) => number): ClubPlan {
   const r = mulberry32((seed ^ 0xc1ab) >>> 0);
   const pick = <T>(a: readonly T[]): T => a[Math.floor(r() * a.length)]!;
   const r2 = (v: number): number => Math.round(v * 100) / 100;
@@ -151,12 +167,15 @@ export function clubPlan(mood: ClubMood, seed: number): ClubPlan {
     kicks: [kickA, kickB],
     rims: [rims, mood === 'privateSchool' ? pick(rimsOf) : rims],
     stabs: [pick(stabsOf), pick(stabsOf)],
-    congas: [Math.floor(r() * CONGAS.length), Math.floor(r() * CONGAS.length)],
+    congas: [Math.floor(r() * HOUSE_CONGAS.length), Math.floor(r() * HOUSE_CONGAS.length)],
+    perc,
     cycle: mood === 'funkyHouse' ? { period: pick([8, 16]), low: r2(0.5 + r() * 0.15) } : null,
     hats: Array.from({ length: 16 }, (_, s) => s % 4 === 2 || (s % 2 === 1 ? r() < 0.8 : r() < 0.55)),
     ghosts: ((g: number[]) => [g, g] as const)([7, 9, 15].filter(() => r() < 0.3)),
     openHat: r() < 0.6,
     roll: Math.floor(r() * BREAK_ROLLS.length),
+    bongos: r() < 0.6,
+    cowbell: r() < 0.4,
   };
 }
 
@@ -191,7 +210,7 @@ export function clubDrums(plan: ClubPlan, at: ClubBarAt, sb: (step: number) => n
   if (plan.mood === 'breakbeat' && plan.brk) {
     out.push(...breakBar(plan.brk, r, { section, inSection, bars, kick: has('kick'), snare: has('snare'), hats: has('hats'), lastOfBuild, level: quiet ? 0.85 : 1, sb }));
     // A punchier kick under the break's kicks in a drop: the weight a sampled break lacks.
-    if (section === 'drop' && has('kick')) for (const n of out.filter(x => x.voice === 'kick' && x.vel > 0.6)) hit('kick', n.beat, n.vel * 0.8);
+    if (section === 'drop' && has('kick')) for (const n of out.filter(x => x.voice === 'kick' && x.vel > 0.6)) hit('kick', n.beat, n.vel * 0.6);
   } else if (plan.mood === 'ukGarage') {
     if (has('kick') && !build) for (const s of plan.kicks[inSection % 2]!) hit('kick', sb(s), s === 0 ? 0.95 : 0.85);
     // A programmed loop, as the records' are: two bars of kick, ghost snares and rimshots
@@ -227,10 +246,18 @@ export function clubDrums(plan: ClubPlan, at: ClubBarAt, sb: (step: number) => n
       }
       if (!quiet) for (let s = 0; s < 16; s++) hit('perc', sb(s), s % 4 === 2 ? 0.36 : s % 2 ? 0.2 : 0.28, SHAKER);
       if (section === 'drop') for (const s of [2, 6, 10, 14]) hit('perc', sb(s), 0.32, TAMBOURINE);
+      // The Latin section (salsa's congas, bongos and timbales, lib/lofi-latin-perc.ts): the
+      // congas through the verse, the drop and the breakdown, bongos in some tunes' drops, a
+      // cowbell in the second half of some, and the timbales filling into each eight bars.
       if (section === 'drop' || section === 'verse' || section === 'break') {
-        for (const [s, midi, vel] of CONGAS[plan.congas[inSection % 2]!]!) hit('perc', sb(s), vel, CONGA, midi);
-        if (section === 'drop' && r() < 0.3) for (const s of [0, 6, 10]) hit('perc', sb(s), 0.36, COWBELL);
+        for (const [s, midi, vel] of HOUSE_CONGAS[plan.congas[inSection % 2]!]!) hit('perc', sb(s), vel, plan.perc('congas'), midi);
+        if (section === 'drop' && plan.bongos) for (const [s, stroke, vel] of HOUSE_BONGOS) hit('perc', sb(s), vel, plan.perc('bongos'), stroke);
+        if (section === 'drop' && plan.cowbell && inSection >= 8) for (const s of [0, 6, 10]) hit('perc', sb(s), 0.36, COWBELL);
       }
+      if (section === 'drop' && inSection % 8 === 7) {
+        for (let n = 0; n < 6; n++) hit('perc', 3 + n / 8, 0.35 + n * 0.08, plan.perc('timbales'), TIMBAL_STROKES.roll);
+      }
+      if (at.dropStart) hit('perc', 0, 0.85, plan.perc('timbales'), TIMBAL_STROKES.rimshot);
     }
   } else {
     // Private school: everything soft. The kick on every beat but under the log drum, the
@@ -243,7 +270,7 @@ export function clubDrums(plan: ClubPlan, at: ClubBarAt, sb: (step: number) => n
     if (has('hats')) {
       for (let s = 0; s < 16; s++) hit('perc', sb(s), (s % 4 === 2 ? 0.34 : s % 2 ? 0.16 : 0.24) * (quiet ? 0.8 : 1), SHAKER);
       if (!quiet) for (const s of [2, 6, 10, 14]) hit('hat', sb(s), 0.22, 1);
-      if (section === 'drop' || section === 'break') for (const [s, midi, vel] of CONGAS[plan.congas[inSection % 2]!]!) hit('perc', sb(s), vel * 0.7, CONGA, midi);
+      if (section === 'drop' || section === 'break') for (const [s, midi, vel] of HOUSE_CONGAS[plan.congas[inSection % 2]!]!) hit('perc', sb(s), vel * 0.6, plan.perc('congas'), midi);
     }
   }
   if (build && has('snare')) {
@@ -263,9 +290,9 @@ export function clubDrums(plan: ClubPlan, at: ClubBarAt, sb: (step: number) => n
 /** The keys a genre stabs on its rhythm; any other (a pad held, a person's choice) plays as it would elsewhere. */
 const STABBED: Record<ClubMood, ReadonlySet<LofiStyle['keys']>> = {
   breakbeat: new Set(['supersaw', 'brass', 'organ', 'pluck', 'houseOrgan']),
-  funkyHouse: new Set(['brass', 'pad', 'organ', 'houseOrgan', 'rhodes', 'felt', 'supersaw']),
+  funkyHouse: new Set(['brass', 'pad', 'organ', 'houseOrgan', 'rhodes', 'felt', 'supersaw', 'grand']),
   ukGarage: new Set(['houseOrgan', 'organ', 'rhodes', 'pluck', 'felt']),
-  privateSchool: new Set(['rhodes', 'felt', 'wurli', 'organ']),
+  privateSchool: new Set(['rhodes', 'felt', 'wurli', 'organ', 'grand']),
 };
 
 /** Whether a genre stabs these keys in this section. */

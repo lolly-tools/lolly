@@ -18,7 +18,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, type LofiBar, type LofiNote } from './lofi-compose.ts';
+import { composeLofiTune, LOFI_PERCUSSION, type LofiBar, type LofiNote } from './lofi-compose.ts';
 import { isBreakNote, breakPitch } from './lofi-breaks.ts';
 import { clubPlan } from './lofi-club.ts';
 
@@ -108,7 +108,7 @@ test('UK garage: two-step, the kick on one and never on three, the hats swung ha
   assert.ok(warps >= 3 && warps < SEEDS.length, `a warping bass on some tunes (${warps} of ${SEEDS.length})`);
 });
 
-test('funky house: four on the floor, claps on two and four, Latin percussion, and the filter opening and closing through a drop', () => {
+test('funky house: four on the floor, claps on two and four, congas and timbales, and the filter opening and closing through a drop', () => {
   for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, 'funkyHouse');
     const d = drops(bars);
@@ -116,7 +116,9 @@ test('funky house: four on the floor, claps on two and four, Latin percussion, a
       assert.deepEqual(b.notes.filter(n => n.voice === 'kick').map(n => n.beat), [0, 1, 2, 3], `${seed} bar ${b.index}: four on the floor`);
       assert.ok([1, 3].every(beat => b.notes.some(n => n.voice === 'snare' && n.beat === beat)), `${seed} bar ${b.index}: claps on two and four`);
     }
-    assert.ok(d.every(b => b.notes.some(n => n.voice === 'perc' && n.mod === 2)), `${seed}: congas in every drop bar`);
+    const congas = LOFI_PERCUSSION.indexOf('congas'), timbales = LOFI_PERCUSSION.indexOf('timbales');
+    assert.ok(d.every(b => b.notes.some(n => n.voice === 'perc' && n.mod === congas)), `${seed}: salsa's congas in every drop bar`);
+    assert.ok(d.some(b => b.notes.filter(n => n.voice === 'perc' && n.mod === timbales).length >= 6), `${seed}: a timbales roll into a phrase`);
     const opens = new Set(d.map(b => b.open));
     assert.ok(opens.size >= 4 && Math.min(...opens) < 0.75, `${seed}: the filter moves (${[...opens].join(', ')})`);
   }

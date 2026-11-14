@@ -1835,7 +1835,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // Funky house: a filtered disco loop, Latin percussion, a bouncing bass and vocal chops.
   funkyHouse: {
     bpm: [123, 128], minor: 0.4, groove: 'disco', chordBars: 2,
-    keys: [['brass', 2], ['houseOrgan', 2], ['pad', 1], ['rhodes', 2], ['wah', 1]], lead: [['chop', 4], ['soft', 1], ['vibes', 1], ['sax', 1], ['bells', 1]],
+    keys: [['brass', 2], ['houseOrgan', 2], ['grand', 2], ['pad', 1], ['rhodes', 1], ['wah', 1]], lead: [['chop', 4], ['soft', 1], ['vibes', 1], ['sax', 1], ['bells', 1]],
     bass: [['synth', 3], ['deep', 1]], snare: [['clap', 4], ['snare', 1]], kick: [50, 56], kickLen: [0.3, 0.4], duck: [1.1, 1.5], crunch: 0.15,
     swing: 0.54, intro: 16, build: [8, 4], drop: 16, breakdown: 8, harmony: 'house', singingDrop: false, busy: 0.6, dust: 0.1,
     softKeys: [['pad', 2], ['rhodes', 1], ['felt', 1]], verseBass: [['synth', 1]], switchBass: [['synth', 2], ['deep', 1]],
@@ -1853,10 +1853,10 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // on jazz chords, a saxophone, shakers and soft percussion, long builds.
   privateSchool: {
     bpm: [108, 113], minor: 0.55, groove: 'disco', chordBars: 2,
-    keys: [['rhodes', 3], ['felt', 2], ['wurli', 1]], lead: [['sax', 4], ['flute', 1], ['vibes', 1], ['soft', 1]],
+    keys: [['rhodes', 3], ['grand', 3], ['wurli', 1]], lead: [['sax', 4], ['flute', 1], ['vibes', 1], ['soft', 1]],
     bass: [['log', 1]], snare: [['rim', 3], ['clap', 1]], hats: 'shaker', kick: [46, 52], kickLen: [0.3, 0.42], duck: [0.4, 0.65], crunch: 0,
     swing: 0.56, intro: 16, build: [8, 16], drop: 16, breakdown: 16, harmony: 'jazz', singingDrop: false, busy: 0.4, dust: 0.05,
-    softKeys: [['pad', 2], ['felt', 1], ['rhodes', 1]], verseBass: [['log', 1]], switchBass: [['log', 1]],
+    softKeys: [['pad', 2], ['grand', 1], ['rhodes', 1]], verseBass: [['log', 1]], switchBass: [['log', 1]],
     room: [1.1, 1.4], wow: [0.03, 0.1],
   },
 };
@@ -2687,7 +2687,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   // Lofi house's own draws come from a stream of their own (see houseOf).
   const house = mood === 'lofiHouse' ? houseOf((seed ^ 0x4005e) >>> 0) : null;
   // The club genres' own draws, from a stream of their own too (lofi-club.ts).
-  const club = isClubMood(mood) ? clubPlan(mood, seed) : null;
+  const club = isClubMood(mood) ? clubPlan(mood, seed, kind => LOFI_PERCUSSION.indexOf(kind)) : null;
   const swing = house?.swing ?? club?.swing ?? lean.swing;
   const info: LofiTuneInfo = {
     seed: seed >>> 0, mood, bpm, swing, swing8: 0.5, style,
