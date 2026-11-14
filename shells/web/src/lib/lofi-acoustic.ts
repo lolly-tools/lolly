@@ -157,6 +157,14 @@ export function acousticDecay(hz: number, string = 5, dead = false): number {
 const COUPLED_DB = 2;
 /** How fast a stopped note dies (dB/s at 0 Hz and more per kHz): the fretting hand lifting off, damping the string. */
 const LIFT = [60, 300] as const;
+/**
+ * A strummed chord dies sooner than a single note let ring (dB/s, and more per kHz): in the
+ * recorded strumming the chord had fallen 9 to 18 dB (median about 11) from a stroke's peak
+ * by the next stroke, an eighth or so later, where single strings alone fall about 7.
+ */
+const STRUMMED = [12, 10] as const;
+/** How fast a strummed string's old note goes when the next stroke takes the string over (dB/s, and more per kHz). */
+const RESTRIKE = [500, 600] as const;
 
 // ── a stroke ─────────────────────────────────────────────────────────────────
 
@@ -182,6 +190,10 @@ export interface AcousticSpec {
   shift?: boolean;
   /** A knock on the top, no note: the box answering the hand. */
   knock?: boolean;
+  /** Struck again at `end` (a strum): the new stroke takes the string over, so the note is cut there rather than damped. */
+  restrike?: boolean;
+  /** One string of a strummed chord: the strumming hand brushing the strings and the fretted chord's fingers take its ring down sooner (see STRUMMED). */
+  strummed?: boolean;
 }
 
 /** The highest partial worth rendering (Hz): the measured body is 40 dB down by 6 kHz. */
@@ -326,7 +338,7 @@ export function acousticPartials(spec: AcousticSpec): Array<{ hz: number; amp: n
     if (hz > top) break;
     const sq = Math.sin(n * Math.PI * q);
     const amp = (Math.sqrt(sq * sq + PICK_FILL * PICK_FILL) / n / Math.sqrt(1 + (hz / pickTop) ** 2)) * bodyAt(hz);
-    out.push({ hz, amp, db: acousticDecay(hz, spec.string, spec.dead) });
+    out.push({ hz, amp, db: acousticDecay(hz, spec.string, spec.dead) + (spec.strummed ? STRUMMED[0] + STRUMMED[1] * (hz / 1000) : 0) });
   }
   return out;
 }
@@ -345,7 +357,7 @@ export function acousticString(spec: AcousticSpec, rand: () => number): Float32A
   const scale = power > 0 ? LEVEL / Math.sqrt(power) : 0;
   const sharp = 2 ** (GLIDE[spec.layer] / 1200) - 1;
   const nep = (db: number): number => (db * Math.LN10) / 20;
-  const liftAlpha = (hz: number): number => nep(LIFT[0] + LIFT[1] * (hz / 1000));
+  const liftAlpha = (hz: number): number => (spec.restrike ? nep(RESTRIKE[0] + RESTRIKE[1] * (hz / 1000)) : nep(LIFT[0] + LIFT[1] * (hz / 1000)));
   // The string, from the pick's release.
   for (const [n, p] of parts.entries()) {
     const second = n < PLANES && !spec.dead;
@@ -454,7 +466,7 @@ const LENGTHS = [0.6, 1.4, 2.6, 4] as const;
 export function acousticBuffer(ctx: BaseAudioContext, spec: Omit<AcousticSpec, 'sr'>, variant: number): AudioBuffer {
   let cache = STROKES.get(ctx);
   if (!cache) { cache = new Map(); STROKES.set(ctx, cache); }
-  const key = `${spec.f.toFixed(2)}|${spec.string}|${spec.fret}|${spec.pickMm}|${spec.layer}|${spec.seconds}|${spec.end ?? '-'}|${spec.dead ? 1 : 0}|${spec.slide ? 1 : 0}|${spec.buzz ? 1 : 0}|${spec.shift ? 1 : 0}|${spec.knock ? 1 : 0}|${variant}`;
+  const key = `${spec.f.toFixed(2)}|${spec.string}|${spec.fret}|${spec.pickMm}|${spec.layer}|${spec.seconds}|${spec.end ?? '-'}|${spec.dead ? 1 : 0}|${spec.slide ? 1 : 0}|${spec.buzz ? 1 : 0}|${spec.shift ? 1 : 0}|${spec.knock ? 1 : 0}|${spec.restrike ? 1 : 0}|${spec.strummed ? 1 : 0}|${variant}`;
   let buf = cache.get(key);
   if (!buf) {
     if (cache.size > 400) cache.clear();
@@ -471,12 +483,13 @@ export function acousticBuffer(ctx: BaseAudioContext, spec: Omit<AcousticSpec, '
 /**
  * How a note is played, in `art`: 2 slid into from a tone below, 3 hammered on from a tone
  * below, 4 a muted rake (a dead string), 5 pulled off from a tone above, 6 a knock on the
- * top (no note); plus 8 when the hand shifts along the neck to the note. `keys` for a
+ * top (no note); plus 8 when the hand shifts along the neck to the note, and 16 when a
+ * strummed string is struck again as the note ends (cut there, see restrike). `keys` for a
  * strummed chord's string, picked over the sound hole.
  */
 export interface AcousticPlay { art?: number; keys?: boolean }
 /** The articulations in AcousticPlay's `art`. */
-export const AC_SLIDE = 2, AC_HAMMER = 3, AC_DEAD = 4, AC_PULL = 5, AC_KNOCK = 6, AC_SHIFT = 8;
+export const AC_SLIDE = 2, AC_HAMMER = 3, AC_DEAD = 4, AC_PULL = 5, AC_KNOCK = 6, AC_SHIFT = 8, AC_RESTRUCK = 16;
 
 /**
  * An acoustic guitar note at `t`: the stroke's buffer, the fretting hand lifting off at
@@ -486,7 +499,7 @@ export const AC_SLIDE = 2, AC_HAMMER = 3, AC_DEAD = 4, AC_PULL = 5, AC_KNOCK = 6
  */
 export function acousticNote(k: Kit, out: AudioNode, t: number, midi: number, vel: number, dur: number, level: number, o: AcousticPlay = {}): void {
   const { ctx } = k;
-  const art = (o.art ?? 0) & 7, shift = ((o.art ?? 0) & AC_SHIFT) !== 0;
+  const art = (o.art ?? 0) & 7, shift = ((o.art ?? 0) & AC_SHIFT) !== 0, restrike = ((o.art ?? 0) & AC_RESTRUCK) !== 0;
   const where = stringFor(midi);
   const layer = layerOf(vel);
   const dead = art === AC_DEAD, knock = art === AC_KNOCK;
@@ -495,9 +508,9 @@ export function acousticNote(k: Kit, out: AudioNode, t: number, midi: number, ve
   const need = dead || knock ? 0.4 : (end ?? 0) + 1.2;
   const seconds = LENGTHS.find(l => l >= need) ?? LENGTHS[LENGTHS.length - 1]!;
   const spec: Omit<AcousticSpec, 'sr'> = {
-    f: 440 * 2 ** ((midi - 69) / 12), seconds, ...where, pickMm: o.keys ? 160 : 140, layer,
+    f: 440 * 2 ** ((midi - 69) / 12), seconds, ...where, pickMm: o.keys ? 160 : 140, layer, ...(o.keys ? { strummed: true } : {}),
     ...(end === undefined ? {} : { end }), ...(dead ? { dead } : {}), ...(knock ? { knock } : {}), ...(art === AC_SLIDE ? { slide: true } : {}),
-    ...(shift ? { shift } : {}), ...(!dead && !knock && layer === 2 && k.rng() < 0.12 ? { buzz: true } : {}),
+    ...(shift ? { shift } : {}), ...(restrike && end !== undefined ? { restrike } : {}), ...(!dead && !knock && layer === 2 && k.rng() < 0.12 ? { buzz: true } : {}),
   };
   const buf = acousticBuffer(ctx, spec, k.rng() < 0.5 ? 0 : 1);
   const src = ctx.createBufferSource();

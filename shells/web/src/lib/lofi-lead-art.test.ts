@@ -109,7 +109,20 @@ test('the acoustic guitarist decorates the tune from the bar\'s chord and scale:
   }
   assert.ok(strums >= 3 && doubles >= 3 && rakes >= 2 && runs >= 10 && knocks >= 1, `${strums} strums, ${doubles} double stops, ${rakes} rakes, ${runs} runs, ${knocks} knocks`);
   const added = strums + doubles + rakes + runs;
-  assert.ok(added > melody * 0.12 && added < melody * 0.45, `a lick on ${(100 * added / melody).toFixed(0)} per cent of the notes`);
+  assert.ok(added > melody * 0.2 && added < melody * 0.85, `a lick or a strum on ${(100 * added / melody).toFixed(0)} per cent of the notes`);
+});
+
+test('a strumming lead alternates picked phrases with strummed passages: about a quarter of its bars', () => {
+  let bars = 0, strummed = 0;
+  for (const { notes } of [...played('country', 'steel', [1, 2, 3, 4, 5]), ...played('warm', 'steel', [1, 2, 3, 4, 5])]) {
+    const melody = notes.filter(n => !ownOnly(n.mod));
+    if (melody.length < 2) continue;
+    bars++;
+    // A strummed bar: most of its notes come with strings struck under them.
+    const struck = melody.filter(m => notes.some(n => ownOnly(n.mod) && (n.mod! & 7) === 0 && n.midi < m.midi && m.beat - n.beat > 0 && m.beat - n.beat < 0.12)).length;
+    if (struck >= melody.length * 0.6) strummed++;
+  }
+  assert.ok(strummed > bars * 0.12 && strummed < bars * 0.4, `${strummed} strummed bars in ${bars}`);
 });
 
 test('a percussive strummer knocks the top on the backbeat; the others never do', () => {
