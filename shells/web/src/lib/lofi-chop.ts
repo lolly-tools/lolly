@@ -162,7 +162,7 @@ export function chopVocal(seed: number): ChopVocal {
 
 /** How each style chops: how often each move happens, and its timing (ms: a deviation either way, and a lay-back). */
 interface Chopping { scoop: number; slide: number; flip: number; gate: number; stutter: number; fall: number; reverse: number; loose: number; late: number }
-const CHOPPING: Record<'future' | 'smooth' | 'house' | 'plain', Chopping> = {
+const CHOPPING: Record<'future' | 'smooth' | 'house' | 'plain' | 'garage', Chopping> = {
   // Future bass: a producer's chops, flipped, gated and stuttered, on the grid.
   future: { scoop: 0.15, slide: 0.25, flip: 0.16, gate: 0.3, stutter: 0.15, fall: 0.12, reverse: 0.35, loose: 1.5, late: 0 },
   // R&B: sung, sliding and falling, a little behind the beat.
@@ -170,8 +170,10 @@ const CHOPPING: Record<'future' | 'smooth' | 'house' | 'plain', Chopping> = {
   // Lofi house: a sampler played by hand, sparse, the slices mostly left as they are.
   house: { scoop: 0.2, slide: 0.2, flip: 0.1, gate: 0.18, stutter: 0.1, fall: 0.15, reverse: 0.4, loose: 6, late: 5 },
   plain: { scoop: 0.22, slide: 0.3, flip: 0.1, gate: 0.15, stutter: 0.1, fall: 0.18, reverse: 0.3, loose: 4, late: 0 },
+  // UK garage: hooks cut short and gated on the swung grid, flipped and stuttered, rarely sung through.
+  garage: { scoop: 0.12, slide: 0.18, flip: 0.22, gate: 0.38, stutter: 0.2, fall: 0.1, reverse: 0.3, loose: 2, late: 0 },
 };
-const CHOPPING_OF: Partial<Record<string, keyof typeof CHOPPING>> = { sherbert: 'future', sugar: 'future', kpop: 'future', dubstep: 'future', brostep: 'future', dnb: 'future', electro: 'future', rnb: 'smooth', soul: 'smooth', triphop: 'smooth', lofiHouse: 'house' };
+const CHOPPING_OF: Partial<Record<string, keyof typeof CHOPPING>> = { sherbert: 'future', sugar: 'future', kpop: 'future', dubstep: 'future', brostep: 'future', dnb: 'future', electro: 'future', rnb: 'smooth', soul: 'smooth', triphop: 'smooth', lofiHouse: 'house', ukGarage: 'garage', funkyHouse: 'house', breakbeat: 'future' };
 
 /** A normally distributed draw (mean 0, deviation 1), cut at 2.5. */
 function gauss(rand: () => number): number {

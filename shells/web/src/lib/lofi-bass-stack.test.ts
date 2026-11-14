@@ -172,5 +172,5 @@ test('the sub dips under a kick and comes back', () => {
 
 test('the styles that keep one bass have no stack', () => {
   for (const mood of ['acid', 'synthwave', 'sherbert', 'sugar', 'rock', 'warm'] as const) assert.equal(BS.stacked(mood), false, mood);
-  for (const mood of ['dnb', 'dubstep', 'brostep', 'electro', 'lofiHouse', 'nudisco'] as const) assert.equal(BS.stacked(mood), true, mood);
+  for (const mood of ['dnb', 'dubstep', 'brostep', 'electro', 'lofiHouse', 'nudisco', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool'] as const) assert.equal(BS.stacked(mood), true, mood);
 });

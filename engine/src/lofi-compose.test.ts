@@ -20,6 +20,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { composeLofiTune, isOverNote, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_OVER, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
+import { isBreakNote } from './lofi-breaks.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
 const PHRASE_SEEDS_40 = Array.from({ length: 40 }, (_, i) => (i * 2654435761 + 7) >>> 0);
@@ -179,10 +180,13 @@ const withoutHatFoot = (bars: ReturnType<typeof composeLofiTune>): ReturnType<ty
 /**
  * A tune without the croak laid over its bass (LofiBar voices.over and its `layer` notes),
  * the layer it was added in. The drops' trades (another bass answering the drop's own) are
- * in the bass's own notes, so the dubstep and brostep pins moved with them.
+ * in the bass's own notes, so the dubstep and brostep pins moved with them. Also without
+ * drum and bass's top loop (2026-11-14), a break chopped over its kit: notes added on a
+ * stream of their own, each a break's (isBreakNote), so without them the kit is as it was.
  */
 function withoutOver(bars: LofiBar[]): LofiBar[] {
   return bars.map(b => {
+    if (b.notes.some(isBreakNote)) b = { ...b, notes: b.notes.filter(n => !isBreakNote(n)) };
     if (!b.voices?.over) return b;
     const { over: _over, ...rest } = b.voices;
     const { voices: _voices, ...bar } = b;
@@ -818,7 +822,7 @@ function withoutPhrases(bars: LofiBar[]): LofiBar[] {
   return withoutOver(bars).map(b => ({ ...b, notes: b.notes.filter(n => phraseOf(n) === null) }));
 }
 /** The styles a band or an MC shouts in, and those that keep their calm. */
-const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert'] as const;
+const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert', 'breakbeat', 'ukGarage'] as const;
 const PHRASE_SEEDS = Array.from({ length: 40 }, (_, i) => (i * 2654435761 + 99) >>> 0);
 /** Where a shout sounds, in seconds from the top of the tune: [first consonant, end of its last vowel]. */
 function spanOf(barIndex: number, n: LofiBar['notes'][number], spb: number): [number, number] {
