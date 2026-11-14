@@ -92,6 +92,8 @@ const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   yacht: { snare: 6, hat: 2 },
   // A breakbeat's drummer was sampled playing: a snare a hair behind, as funk drummers sit.
   breakbeat: { snare: 4 },
+  // Noosacore's drummer leans back in the sun: the backbeat and the shaker a little late.
+  noosa: { snare: 10, hat: 4 },
 };
 
 /** A hat note's `mod` that plays the ride's bell instead (1 is a light hat, 2 the hat's foot). */

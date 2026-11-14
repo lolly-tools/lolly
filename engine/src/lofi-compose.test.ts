@@ -264,7 +264,8 @@ test('the dance genres change instruments between sections', () => {
     }
     // Surf keeps its rhythm guitar through the intro: the band's sound is that guitar in the spring.
     if (mood !== 'surf') assert.ok(softer >= 6, `${mood}: the intro's keys differ from the drop's in most tunes (${softer} of 8)`);
-    assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
+    // Noosacore's surf guitar plays only its odd moments, the same guitar all through.
+    if (mood !== 'noosa') assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
   }
 });
 
@@ -392,6 +393,8 @@ test('every note is playable', () => {
           : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
           // Botanica's place (a bed's pitch is nominal; a bird's is its song's centre), its granular pads and its glitches.
           : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88]
+          // The sea's notes are pitched nominally (lofi-waves-notes.ts): a wave is noise, not a note.
+          : n.voice === 'wave' ? [36, 72]
           // Oompa's lead notes are the whole band's lines: the trombones' countermelody to the clarinets' runs.
           : mood === 'oompa' ? [40, 93] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);

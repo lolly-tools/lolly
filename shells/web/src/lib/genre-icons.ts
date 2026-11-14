@@ -15,7 +15,8 @@ import { musicIconBody, strokeSvg, strokeSvgNode, type InstrumentIcon } from './
 import { LOFI_MOOD_LABEL } from './neurospicy-lofi.ts';
 
 /** Glyphs only the generator draws. Lucide (ISC): shuffle, disc-3, headphones,
- *  ice-cream-cone, flower, mountain, radio, speaker, castle and sailboat. Lolly's own: a wrapped sweet, a surfboard and a tuba. */
+ *  ice-cream-cone, flower, mountain, radio, speaker, castle and sailboat. Lolly's own: a wrapped sweet, a surfboard, a tuba
+ *  and a wave curling over as it breaks on the shore. */
 const OWN = {
   shuffle: '<path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-7.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/>',
   disc: '<circle cx="12" cy="12" r="10"/><path d="M6 12c0-1.7.7-3.2 1.8-4.2"/><circle cx="12" cy="12" r="2"/><path d="M18 12c0 1.7-.7 3.2-1.8 4.2"/>',
@@ -29,6 +30,7 @@ const OWN = {
   candy: '<circle cx="12" cy="12" r="4.5"/><path d="M7.9 10 3 7v10l4.9-3"/><path d="M16.1 10 21 7v10l-4.9-3"/>',
   surfboard: '<path d="M4 20C4 13 10 5.5 20 4c0 8-7.5 14.5-16 16Z"/><path d="M4 20 20 4"/><path d="m7.5 14.5-2-2"/>',
   sailboat: '<path d="M22 18H2a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4Z"/><path d="M21 14 10 2 3 14h18Z"/><path d="M10 2v16"/>',
+  breaker: '<path d="M2 19.5c1.8 0 2.4-1.5 4.2-1.5s2.4 1.5 4.2 1.5 2.4-1.5 4.2-1.5 2.4 1.5 4.2 1.5H22"/><path d="M3 15.5C3 9.2 7.7 4 13.6 4 17.2 4 20 6.4 20 9.5c0 2.5-1.9 4.5-4.4 4.5-2 0-3.4-1.3-3.4-3 0-1.2.9-2.2 2.1-2.2"/>',
   tuba: '<path d="M10 2.5h12"/><path d="M11.5 2.5c.8 2.8 2.2 4.4 4 5.2"/><path d="M20.5 2.5c-.8 2.8-2.2 4.4-4 5.2"/><path d="M16 8v3.6"/><ellipse cx="12" cy="16" rx="7" ry="5"/><path d="M8 11.4V8.5"/><path d="M11.5 11V8.5"/><path d="M5 16H2.5"/>',
 } as const;
 type OwnGlyph = keyof typeof OWN;
@@ -53,6 +55,7 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   surf: { own: 'surfboard' }, yacht: { own: 'sailboat' },
   botanica: { set: 'leaf' },
   oompa: { own: 'tuba' },
+  noosa: { own: 'breaker' },
   breakbeat: { set: 'scissors' }, funkyHouse: { set: 'aperture' }, ukGarage: { set: 'neuroBeat' }, privateSchool: { set: 'graduationCap' },
 };
 
@@ -82,7 +85,7 @@ export type GenreCategory = typeof GENRE_CATEGORIES[number];
  *  roots (ska with them: Andy, 2026-11-14); the soul, jazz and groove styles; dance music for a club; the bass-heavy and
  *  synth styles; and the styles of one tradition or place. */
 const GROUP_MOODS: Record<GenreCategory, readonly LofiMood[]> = {
-  chill: ['warm', 'lateNight', 'rainy', 'lofiHouse', 'triphop', 'dream', 'citypop', 'sings', 'fantasy', 'botanica'],
+  chill: ['warm', 'lateNight', 'rainy', 'lofiHouse', 'triphop', 'dream', 'citypop', 'sings', 'fantasy', 'botanica', 'noosa'],
   rock: ['rock', 'punk', 'grunge', 'stoner', 'metal', 'shoegaze', 'surf', 'country', 'ska'],
   soul: ['blues', 'jazz', 'swing', 'soul', 'funk', 'rnb', 'hiphop', 'yacht', 'reggae'],
   club: ['nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'electro', 'privateSchool'],
