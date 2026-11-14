@@ -25,7 +25,8 @@
  * - A harpist, an acoustic guitarist or a tar player takes the lead (lib/lofi-lead-art.ts):
  *   a harp's run up into a phrase, a guitar's slides and hammer-ons, the tar's tremolo.
  * - A flautist tongues each note that is not slurred, softly ("du") when it follows close
- *   on the one before (stopping that one with the tongue), ghosts some quick passing notes,
+ *   on the one before (stopping that one with the tongue), double-tongues a quick run
+ *   ("tu-ku"), ghosts some quick passing notes,
  *   swells or tapers a held note, and takes a breath in a rest (lib/lofi-flutes.ts plays
  *   the flute).
  *
@@ -36,7 +37,7 @@ import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_U
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead } from './lofi-lead-art.ts';
-import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
+import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
 
 /** A seeded source for one bar of one tune. */
 function barRandom(bar: LofiBar): () => number {
@@ -410,6 +411,8 @@ const FLUTE_DEEP_REST = 0.75;
 /** A held note the player shapes (s), and a quick one that may be ghosted (s). */
 const FLUTE_HELD = 0.6;
 const FLUTE_QUICK = 0.16;
+/** A run quick enough to double-tongue: notes this short (s) following close on each other. */
+const FLUTE_RUN = 0.2;
 
 /**
  * A flautist's choices, measured against recorded players: a note that follows close on
@@ -423,6 +426,8 @@ export function flautist(notes: LofiNote[], spb: number, rand: () => number): vo
   const lines = notes.map((n, i) => ({ n, i })).filter(({ n }) => n.voice === 'lead').sort((a, b) => a.n.beat - b.n.beat);
   if (!lines.length) return;
   const mean = lines.reduce((a, { n }) => a + n.vel, 0) / lines.length;
+  // In a quick tongued run the tongue alternates front and back, "tu-ku": every other note a "ku".
+  let ku = false;
   for (let k = 0; k < lines.length; k++) {
     const { n, i } = lines[k]!;
     const prev = lines[k - 1]?.n, next = lines[k + 1]?.n;
@@ -439,6 +444,9 @@ export function flautist(notes: LofiNote[], spb: number, rand: () => number): vo
     if (after >= FLUTE_BREATH_REST && rand() < 0.75) flags |= FLUTE_BREATH | (after >= FLUTE_DEEP_REST ? FLUTE_DEEP : 0);
     // A note followed close by a tongued one is stopped by the tongue, not let go.
     if (next && after >= 0.035 && after < FLUTE_CLOSE) flags |= FLUTE_STOP;
+    const inRun = before >= 0.035 && before < FLUTE_CLOSE && n.dur * spb <= FLUTE_RUN;
+    ku = inRun && !ku;
+    if (ku) flags |= FLUTE_KU;
     notes[i] = { ...n, mod: flags };
   }
 }

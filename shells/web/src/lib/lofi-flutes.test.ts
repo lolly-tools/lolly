@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { blowFlute, inhale, type JetNote, type Pipe } from './lofi-flutes.ts';
+import { blowFlute, type JetNote, type Pipe } from './lofi-flutes.ts';
 
 const SR = 44100;
 const mtof = (m: number): number => 440 * 2 ** ((m - 69) / 12);
@@ -150,14 +150,20 @@ test('a half-tongued note speaks more softly than a tongued one; a swell rises a
   assert.ok(rise(swell) > 1 && rise(taper) < -1.5, `swell ${rise(swell).toFixed(1)} dB, taper ${rise(taper).toFixed(1)} dB`);
 });
 
-test('a breath between phrases is a soft rush of air in the middle of the band', () => {
-  const x = inhale(SR, 0.3, seeded(13));
-  assert.equal(x.length, Math.round(0.3 * SR));
-  assert.ok(x.every(Number.isFinite));
-  assert.ok(rms(x, 0.1, 0.18) > rms(x, 0, 0.02) * 2 && rms(x, 0.1, 0.18) > rms(x, 0.28, 0.3) * 2, 'it swells and fades');
-  const level = (hz: number): number => { const w = (2 * Math.PI * hz) / SR; let re = 0, im = 0; for (let i = 0; i < x.length; i++) { re += x[i]! * Math.cos(w * i); im += x[i]! * Math.sin(w * i); } return re * re + im * im; };
-  let mid = 0, low = 0;
-  for (let hz = 1100; hz < 1700; hz += 20) mid += level(hz);
-  for (let hz = 100; hz < 700; hz += 20) low += level(hz);
-  assert.ok(mid > low * 4, 'its rush sits in the middle, not the bottom');
+test('a tongued note puffs as the jet is let go, every puff its own; a slur does not; a quick note stays airy', () => {
+  // The air above about 3 kHz (a second difference) in a window, as energy.
+  const high = (y: Float32Array, a: number, b: number): number => { let e = 0, p1 = 0, p2 = 0; for (let i = Math.floor(a * SR); i < Math.floor(b * SR); i++) { const h = y[i]! - 2 * p1 + p2; p2 = p1; p1 = y[i]!; e += h * h; } return e / ((b - a) * SR); };
+  const quick = (more: Partial<JetNote>, seed: number): Float32Array => blowFlute(note('open', 76, 0.6, { dur: 0.15, seconds: 0.3, ...more }), seeded(seed));
+  // Recorded runs: the air above 4 kHz jumps 3 to 7 dB over the note's own for a few milliseconds at each tongued onset.
+  const tu = quick({ burst: {} }, 14);
+  const jump = 10 * Math.log10(high(tu, 0.001, 0.009) / high(tu, 0.06, 0.12));
+  assert.ok(jump > 3, `the puff stands ${jump.toFixed(1)} dB over the note's own air`);
+  const slur = quick({ from: mtof(74) }, 14);
+  assert.ok(10 * Math.log10(high(slur, 0.001, 0.009) / high(slur, 0.06, 0.12)) < jump - 3, 'a slur keeps the jet going: no puff');
+  const other = quick({ burst: {} }, 15);
+  assert.notEqual(high(tu, 0.001, 0.009).toFixed(6), high(other, 0.001, 0.009).toFixed(6), 'each puff is its own');
+  // An unsettled jet keeps a quick note airy: recorded quick notes carry 4 to 9 dB more air against the tone than slow ones.
+  const settled = quick({ burst: null }, 16), unsettled = quick({ burst: null, unsettled: 2.5 }, 16);
+  const f = mtof(76);
+  assert.ok(breath(unsettled, f, 0.03, 0.14) > breath(settled, f, 0.03, 0.14) + 3, 'the unsettled jet is airier');
 });
