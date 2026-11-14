@@ -4034,6 +4034,13 @@ html[data-a11y-motion="reduce"] .docs-content .md-cards ul.icon-list>li.ic:hover
    keeps it from opening up the last line's leading; the glyph does not move. */
 .docs-figure figcaption>p:last-of-type{display:inline}
 .docs-figure figcaption .shot-cred{position:relative;inset:auto;display:inline-flex;vertical-align:-.4em;margin-inline-start:.45em;margin-block:-.2rem}
+/* A ::: pillars picture keeps its mark in the top right corner, where every drawing
+   leaves room, and the card opens downward over the picture it describes. The drawings
+   are not mirrored for a right-to-left page, so the corner is physical, not logical,
+   and the card grows leftward over the picture in either direction. */
+.md-pillar-art .shot-cred{inset:.55rem .7rem auto auto}
+.md-pillar-art .shot-cred .shot-cred-line{inset-block-end:auto;inset-block-start:calc(100% + .4rem);left:auto;right:0;transform:translateY(-.25rem)}
+.md-pillar-art .shot-cred .shot-cred-line::after{inset-block-start:auto;inset-block-end:100%}
 .docs-content img{height:auto;    max-width: min(100%, 40em);    height: auto;   margin: 0 auto; display: block;}
 /* App screenshots (docs/shots.json captures) read at full column width, framed like a window. */
 .docs-content img[src*="/info/shots/"]{max-width:100%;min-width:50%;border-radius:1.2em;background-color:color-mix(in oklab, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-canvas));
@@ -4446,7 +4453,7 @@ html{font-size:calc(100% * var(--docs-zoom))}
    same line. Doubled class for weight over the components' own margin shorthands. */
 :root{--measure:calc(40.8rem * var(--a11y-fs))}
 main.docs-content.docs-content>*{margin-inline:max(0px,calc((100% - var(--measure)) / 2))}
-main.docs-content.docs-content>:is(.table-wrap,.doc-code,pre,figure,.md-cols,.md-cards,.md-pictures,.md-logos,.md-img,.fl-figure,.fmt-reference,section,article,.doc-details:has(>.doc-details-body>:is(.doc-code,.table-wrap))),
+main.docs-content.docs-content>:is(.table-wrap,.doc-code,pre,figure,.md-cols,.md-pillars,.md-cards,.md-pictures,.md-logos,.md-img,.fl-figure,.fmt-reference,section,article,.doc-details:has(>.doc-details-body>:is(.doc-code,.table-wrap))),
 main.docs-content.docs-content>p:has(>img,>a>img,>picture){margin-inline:0;max-width:none}
 /* The band over the article (the eyebrow, the title, the pathways strip) is as wide as
    the article's own box at every size, so the same margins put its words on the

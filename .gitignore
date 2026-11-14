@@ -214,11 +214,12 @@ shells/web/public/info/logos/
 shells/web/public/info/og/
 shells/web/public/info/shots/
 # The fingerprinted docs bundles (docs.<hash>.css and .js, a new name whenever the
-# docs CSS or JS changes) and the format-last figure's copies of docs/figures/formats-last*,
+# docs CSS or JS changes) and the copies of docs/figures/formats-last* and eu-ai-act-*,
 # all written by build:info.
 shells/web/public/info/docs.*.css
 shells/web/public/info/docs.*.js
 shells/web/public/info/figures/formats-last*
+shells/web/public/info/figures/eu-ai-act-*
 # Copied verbatim from skills/lolly/ by build:info.
 shells/web/public/info/skills/
 

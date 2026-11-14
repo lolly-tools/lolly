@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  mdToHtml, escAttr, parseComponentFence, parseFenceInfo, detailsBlock, noteBlock, unwrapComponentFences, mdDescription, hasCopyBlock,
+  mdToHtml, escAttr, parseComponentFence, parseFenceInfo, detailsBlock, noteBlock, unwrapComponentFences, unwrapFigureFences, mdDescription, hasCopyBlock,
   type DocsRenderContext,
 } from '../src/index.ts';
 
@@ -131,6 +131,38 @@ test('a steps fence is an ordered row of the same cards', (t) => {
   assert.equal((two.match(/<ul class="icon-list">/g) ?? []).length, 2);
   assert.ok(!two.includes('<ol'));
   assert.equal(warn.mock.callCount(), 0);
+});
+
+test('a pillars fence draws each section as a card led by its figure, joined by an arrow', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const art = (_bank: string, id: string) => ({ html: `<svg data-id="${id}"></svg>`, file: `${id}.svg`, src: `/info/figures/${id}.svg` });
+  const html = mdToHtml('::: pillars one two\n## Kept\n\nMarks stay.\n\n## Said\n\nIt says so.\n:::', ctx({ art }));
+  assert.equal(html, '<div class="md-pillars"><div class="md-pillars-row">'
+    + '<div class="md-pillar"><div class="md-pillar-art"><div class="md-pillar-pic" aria-hidden="true"><svg data-id="one"></svg></div></div>'
+    + '<div class="md-pillar-body"><h2 id="kept">Kept</h2>\n<p>Marks stay.</p></div></div>'
+    + '<div class="md-pillar"><div class="md-pillar-art"><span class="md-pillar-link" aria-hidden="true"><i data-icon="chrome-arrow"></i></span>'
+    + '<div class="md-pillar-pic" aria-hidden="true"><svg data-id="two"></svg></div></div>'
+    + '<div class="md-pillar-body"><h2 id="said">Said</h2>\n<p>It says so.</p></div></div>'
+    + '</div></div>');
+  // Signed art carries no readable credential in this context, which the build says out loud.
+  assert.match(String(warn.mock.calls[0]!.arguments[0]), /one\.svg carries no readable Content Credential/);
+});
+
+test('a pillars fence with a missing figure keeps its card and says which one', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const html = mdToHtml('::: pillars gone\n## Only\n\nWords.\n\n## Extra\n\nMore.\n:::', ctx());
+  assert.equal(html, '<div class="md-pillars"><div class="md-pillars-row">'
+    + '<div class="md-pillar"><div class="md-pillar-body"><h2 id="only">Only</h2>\n<p>Words.</p></div></div>'
+    + '<div class="md-pillar"><div class="md-pillar-body"><h2 id="extra">Extra</h2>\n<p>More.</p></div></div>'
+    + '</div></div>');
+  const said = warn.mock.calls.map(c => String(c.arguments[0]));
+  assert.ok(said.some(s => /names 1 figure\(s\) for 2 section\(s\)/.test(s)));
+  assert.ok(said.some(s => /no docs\/figures\/gone\.svg/.test(s)));
+});
+
+test('the twin keeps a pillars fence keyword and drops its figure ids', () => {
+  assert.equal(unwrapFigureFences('::: pillars a-one b-two\n## A\n:::\n'), '::: pillars\n## A\n:::\n');
+  assert.equal(unwrapFigureFences('::: pillars\n## A\n:::\n'), '::: pillars\n## A\n:::\n');
 });
 
 test('a logos fence names each mark beside it, and the image itself is silent', (t) => {
