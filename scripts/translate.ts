@@ -369,12 +369,12 @@ function evalDataLiteral<T>(text: string, what: string, where = 'docs/build.ts')
  * string values are looked up through the same `t()` as the chrome, so they
  * are site-corpus keys too. Walked here with the SAME skip list build.ts's
  * `localizeSiteJson` applies (`LANDING_I18N_SKIP` there - keys whose values are
- * routes, slugs, file names, css classes and code notes, never copy).
+ * routes, slugs, file names, css classes, icon keys and code notes, never copy).
  * tests/docs-landing-i18n.test.ts pins the two lists and the file list equal,
  * so a key added on one side cannot be quietly missed on the other.
  */
 export const LANDING_SITE_JSON = ['hero-chrome.json', 'format-last.json', 'covers.json', 'whatwhy.json', 'persona.json', 'work.json', 'behind.json'];
-export const LANDING_I18N_SKIP = ['href', 'slug', 'class', 'img', 'video', 'mascot', 'id', 'count', 'note'];
+export const LANDING_I18N_SKIP = ['href', 'slug', 'class', 'img', 'video', 'mascot', 'id', 'count', 'note', 'icon'];
 
 /** Every translatable string in one landing JSON value, in document order. */
 export function landingJsonStrings(value: unknown, out: string[] = [], key = ''): string[] {
