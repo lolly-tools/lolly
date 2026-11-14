@@ -45749,6 +45749,7 @@ function embedMp4Meta(bytes2, tags3) {
   if (tags3.artist) items2.push(ilstItem("\xA9ART", tags3.artist));
   if (tags3.date) items2.push(ilstItem("\xA9day", tags3.date));
   if (tags3.comment) items2.push(ilstItem("\xA9cmt", tags3.comment));
+  if (tags3.description) items2.push(ilstItem("desc", tags3.description));
   if (tags3.encoder) items2.push(ilstItem("\xA9too", tags3.encoder));
   if (tags3.publisher) items2.push(freeform("PUBLISHER", tags3.publisher));
   if (!items2.length) return bytes2;
