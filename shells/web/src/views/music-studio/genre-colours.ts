@@ -117,6 +117,24 @@ export function cssHex(value: string | null | undefined): string | null {
 }
 
 /**
+ * Every genre's wash for a surface and a title colour as the page draws them (computed CSS
+ * colours): the pool for that surface's theme, from the design system. Empty when either
+ * colour cannot be read, or the design system gives no colours; the genre picker's cards
+ * and the music generator's genre button (genre-hero.ts) both paint from this.
+ */
+export async function genreWashes(host: unknown, surfaceCss: string | null | undefined, textCss: string | null | undefined): Promise<Map<LofiMood, GenreTile>> {
+  const surface = cssHex(surfaceCss);
+  const text = cssHex(textCss);
+  const lightness = surface ? hexToOklch(surface)?.l : undefined;
+  if (!surface || !text || lightness === undefined) return new Map();
+  const theme: ThumbTheme = lightness < 0.5 ? 'dark' : 'light';
+  const h = host as Parameters<typeof livePalette>[0];
+  let pool: string[] = [];
+  try { pool = audioThumbPool(await livePalette(h), host as Parameters<typeof audioThumbPool>[1], theme, await audioThumbLeads(host, theme)); } catch { pool = []; }
+  return genreTiles(pool, surface, text);
+}
+
+/**
  * Paint the picker's cards: read the card's surface and the title's colour as the page
  * draws them, build the pool for that surface's theme and set each card's wash. Leaves
  * the cards plain when any of those cannot be read.
@@ -125,15 +143,7 @@ export async function paintGenreTiles(cards: readonly HTMLElement[], host: unkno
   // A card that is not the genre playing now, whose selected look would be read instead.
   const first = cards.find(c => c.getAttribute('aria-pressed') !== 'true') ?? cards[0];
   if (!first) return;
-  const surface = cssHex(getComputedStyle(first).backgroundColor);
-  const text = cssHex(getComputedStyle(first.querySelector('.msg-name') ?? first).color);
-  const lightness = surface ? hexToOklch(surface)?.l : undefined;
-  if (!surface || !text || lightness === undefined) return;
-  const theme: ThumbTheme = lightness < 0.5 ? 'dark' : 'light';
-  const h = host as Parameters<typeof livePalette>[0];
-  let pool: string[] = [];
-  try { pool = audioThumbPool(await livePalette(h), host as Parameters<typeof audioThumbPool>[1], theme, await audioThumbLeads(host, theme)); } catch { pool = []; }
-  const tiles = genreTiles(pool, surface, text);
+  const tiles = await genreWashes(host, getComputedStyle(first).backgroundColor, getComputedStyle(first.querySelector('.msg-name') ?? first).color);
   for (const card of cards) {
     const tile = tiles.get(card.dataset.genreCard as LofiMood);
     if (!tile) continue;

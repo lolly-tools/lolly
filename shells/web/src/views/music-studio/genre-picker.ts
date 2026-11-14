@@ -8,9 +8,8 @@
  * newest first (lib/music-prefs.ts), and is left out until one has played. A search
  * field filters the cards by title as you type, matching the start of any word in the
  * title whatever its case or accents, into one flat grid; clearing it brings the groups
- * back. A card picks its genre. The header holds the "Shuffle genres" switch: on, the
- * shuffle button draws a new genre; off, the shuffle keeps the genre and draws a new seed
- * and sound.
+ * back. A card picks its genre. Whether shuffle may change the genre is the lock beside
+ * the genre button (genre-hero.ts), so the picker only picks.
  *
  * The cards are one stop for Tab: the arrow keys move through them (up and down by the
  * row as the cards are laid out, across the groups), Home and End go to the first and
@@ -21,7 +20,7 @@
  * stays down. Built on mountModal (components/modal.ts): a sheet from the bottom on a
  * phone (parts/music-browser.css) and a centred panel on a wider screen.
  */
-import { t, tRaw } from '../../i18n.ts';
+import { t } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
 import { mountModal } from '../../components/modal.ts';
@@ -35,9 +34,6 @@ export interface GenrePickerHost {
   current(): LofiMood;
   /** Play another genre. */
   pick(mood: LofiMood): void;
-  /** Whether the shuffle button draws a new genre. */
-  shuffleGenres(): boolean;
-  setShuffleGenres(on: boolean): void;
   /** The genres played lately, newest first (lib/music-prefs.ts loadRecentGenres). */
   recent?(): readonly string[];
 }
@@ -66,11 +62,6 @@ export function matchesGenre(title: string, query: string): boolean {
   }
   return false;
 }
-
-/** What the switch does, said under the title. */
-const switchNote = (on: boolean, mood: LofiMood): string => (on
-  ? t('Shuffle draws a new genre each time.')
-  : tRaw('Shuffle keeps {genre} and draws a new seed and sound.', { genre: genreTitle(mood) }));
 
 /**
  * The card an arrow key moves to: the next or previous card for left and right, and for
@@ -133,13 +124,8 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
       <span class="msb-grip" aria-hidden="true"></span>
       <div class="msb-title-row">
         <h2 class="msb-title" id="${titleId}">${escapeHtml(t('Genre'))}</h2>
-        <button type="button" class="msg-switch" role="switch" aria-checked="${h.shuffleGenres()}" aria-describedby="msg-note-${n}" data-shuffle-genres>
-          <span class="msg-switch-track" aria-hidden="true"><span class="msg-switch-knob"></span></span>
-          <span>${escapeHtml(t('Shuffle genres'))}</span>
-        </button>
         <button type="button" class="btn btn--ghost btn--sm msb-close" data-close aria-label="${escapeHtml(t('Close'))}" title="${escapeHtml(t('Close'))}">${icon('close', { size: 18 })}</button>
       </div>
-      <p class="msb-now" id="msg-note-${n}" data-note>${escapeHtml(switchNote(h.shuffleGenres(), now))}</p>
       <input type="search" class="field-input msg-search" data-genre-search placeholder="${escapeHtml(t('Search genres'))}" aria-label="${escapeHtml(t('Search genres'))}" autocomplete="off" spellcheck="false">
     </div>
     <div class="msb-body msg-body" role="group" aria-labelledby="${titleId}">${recentRow}${groups}
@@ -208,14 +194,6 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
     const btn = e.target instanceof Element ? e.target.closest<HTMLElement>('button') : null;
     if (!btn || !dlg.contains(btn)) return;
     if (btn.matches('[data-close]')) { modal.close('button'); return; }
-    if (btn.matches('[data-shuffle-genres]')) {
-      const on = btn.getAttribute('aria-checked') !== 'true';
-      h.setShuffleGenres(on);
-      btn.setAttribute('aria-checked', String(on));
-      const note = dlg.querySelector<HTMLElement>('[data-note]');
-      if (note) note.textContent = switchNote(on, h.current());
-      return;
-    }
     const mood = btn.matches('[data-genre-card]') ? btn.dataset.genreCard : undefined;
     const pick = GENRE_GROUPS.flatMap(g => g.moods).find(m => m === mood);
     if (!pick) return;
