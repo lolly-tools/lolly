@@ -188,30 +188,60 @@ test('a soloist\'s vibrato grows towards the end of a held note, and the note ta
   assert.ok(am > 0.1 && am < 1.2, `the level swings ${am.toFixed(2)} dB`);
 });
 
-test('a solo trumpet plays one note at a time: the note before stops as the next one starts', () => {
-  const events: Array<[string, number, number]> = [];
-  const param = (name: string) => ({ value: 0, setValueAtTime: () => undefined, setTargetAtTime: (v: number, t: number) => { events.push([name, v, t]); } });
+/** A fake audio graph that records each buffer played (when it starts, how long it is) and each gain's scheduled stops. */
+function fakeKit(seed: number) {
+  const stops: Array<{ gain: number; at: number }> = [];
+  const sources: Array<{ at: number; seconds: number }> = [];
   let gains = 0;
   const node = () => ({ connect: (n: unknown) => n });
   const ctx = {
-    sampleRate: 4000,
-    createBuffer: (_c: number, n: number) => { const d = new Float32Array(n); return { getChannelData: () => d }; },
-    createBufferSource: () => ({ ...node(), buffer: null, start: () => undefined }),
-    createGain: () => ({ ...node(), gain: param(`gain${gains++}`) }),
-    createBiquadFilter: () => ({ ...node(), type: '', frequency: param('f'), Q: param('q') }),
+    sampleRate: 4000, currentTime: 0,
+    createBuffer: (_c: number, n: number) => { const d = new Float32Array(n); return { getChannelData: () => d, length: n }; },
+    createBufferSource: () => ({ ...node(), buffer: null as null | { length: number }, start(at: number) { sources.push({ at, seconds: this.buffer!.length / 4000 }); } }),
+    createGain: () => { const id = gains++; return { ...node(), gain: { value: 0, setTargetAtTime: (_v: number, at: number) => { stops.push({ gain: id, at }); } } }; },
+    createBiquadFilter: () => ({ ...node(), type: '', frequency: { value: 0 }, Q: { value: 0 } }),
   };
-  let r = 7;
+  let r = seed;
   const k = { ctx, noise: null, rng: () => { r = (r * 16807) % 2147483647; return r / 2147483647; } } as unknown as VoiceKit;
-  const seat = node() as unknown as AudioNode;
-  lead('trumpet', k, seat, 1, 70, 0.55, 0.5);
-  lead('trumpet', k, seat, 1.4, 72, 0.55, 0.5);
-  lead('trumpet', k, seat, 1.8, 74, 0.55, 0.5, 0, 72);
-  assert.deepEqual(events.map(([g, v, t]) => [g, v, t]), [['gain0', 0, 1.4], ['gain1', 0, 1.8]], 'each note stops when the next starts');
+  return { k, stops, sources, seat: node() as unknown as AudioNode, gainsMade: () => gains };
+}
+
+test('a solo trumpet plays one note at a time: the note before stops as the next one starts', () => {
+  const f = fakeKit(7);
+  // A note's gain is the first it makes (a breath before it comes after).
+  const gateOf = (t: number, midi: number, from?: number) => { const g = f.gainsMade(); lead('trumpet', f.k, f.seat, t, midi, 0.55, 0.5, 0, from); return g; };
+  const a = gateOf(1, 70), b = gateOf(1.4, 72);
+  gateOf(1.8, 74, 72);
+  assert.deepEqual(f.stops, [{ gain: a, at: 1.4 }, { gain: b, at: 1.8 }], 'each note stops when the next starts');
   // A section's players are each their own instrument: nothing is stopped.
-  events.length = 0;
-  lead('trumpet', k, seat, 3, 70, 0.55, 0.5, 0, undefined, { straight: true });
-  lead('trumpet', k, seat, 3.2, 72, 0.55, 0.5, 0, undefined, { straight: true });
-  assert.equal(events.length, 0);
+  f.stops.length = 0;
+  lead('trumpet', f.k, f.seat, 3, 70, 0.55, 0.5, 0, undefined, { straight: true });
+  lead('trumpet', f.k, f.seat, 3.2, 72, 0.55, 0.5, 0, undefined, { straight: true });
+  assert.equal(f.stops.length, 0);
+});
+
+test('a soloist breathes before a note out of a rest: air leads into it, and a breath is drawn in the rest', () => {
+  // Recorded: 15 to 25 ms of air before a note out of a rest, none inside a phrase; a breath
+  // in about half the rests of 0.4 s or more, ending 0.2 to 0.7 s before the next note.
+  let breaths = 0;
+  for (let seed = 1; seed <= 12; seed++) {
+    const f = fakeKit(seed * 7919);
+    // A phrase of four notes, a rest of 1.2 s, then four more.
+    for (const t of [0.5, 0.75, 1.0, 1.25, 2.95, 3.2, 3.45, 3.7]) {
+      const n = f.sources.length;
+      lead('trumpet', f.k, f.seat, t, 70, 0.55, 0.25);
+      const mine = f.sources.slice(n);
+      const out = t === 0.5 || t === 2.95;
+      const air = t - mine[0]!.at;
+      if (out) assert.ok(air > 0.012 && air < 0.04, `air ${(air * 1000).toFixed(0)} ms before a note out of a rest`);
+      else assert.equal(mine.length === 1 && air, 0, 'no air and no breath around a note inside the phrase');
+      for (const s of mine.slice(1)) {
+        assert.ok(s.at >= (t === 0.5 ? 0 : 1.5 + 0.07) && s.at + s.seconds <= t - 0.15, `a breath ${s.at.toFixed(2)} to ${(s.at + s.seconds).toFixed(2)} s, before the note at ${t}`);
+        if (t === 2.95) breaths++;
+      }
+    }
+  }
+  assert.ok(breaths >= 3 && breaths <= 10, `breaths in ${breaths} of 12 rests`);
 });
 
 /** Cycle-to-cycle jitter (%) and shimmer (dB) over 0.5 to 1.4 s, the cycles found by matching each to the next. */

@@ -237,8 +237,12 @@ const SOLO_SOFT = 3.9;
  * In place, on a rendered note.
  */
 export function heardSolo(x: Float32Array, sr: number, vel: number): void {
-  const fc = Math.min(0.45 * sr, SOLO_TOP * 2 ** (SOLO_SOFT * Math.min(0, vel - SOLO_FULL)));
-  const a = Math.exp((-2 * Math.PI * fc) / sr), b = 1 - a;
+  darken(x, sr, SOLO_TOP * 2 ** (SOLO_SOFT * Math.min(0, vel - SOLO_FULL)));
+}
+
+/** Two gentle low-passes (one pole each) at `hz`, in place: the top falls 12 dB an octave above. */
+export function darken(x: Float32Array, sr: number, hz: number): void {
+  const a = Math.exp((-2 * Math.PI * Math.min(0.45 * sr, hz)) / sr), b = 1 - a;
   let y1 = 0, y2 = 0;
   for (let i = 0; i < x.length; i++) {
     y1 = b * x[i]! + a * y1;
