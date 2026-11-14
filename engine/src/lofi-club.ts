@@ -317,12 +317,12 @@ export function clubKeys(plan: ClubPlan, at: { i: number; inSection: number; las
 
 // ── the running order ─────────────────────────────────────────────────────────
 
-/** Each genre's verse and outro lengths, the layers of its build and breakdown, and its breakdown's length. */
+/** Each genre's verse and outro lengths (eight bars of outro at most: the composer fades an outro 0.11 a bar), and the layers of its build and breakdown. */
 const SHAPES: Record<ClubMood, { verse: number; build: readonly LofiLayer[]; breakdown: readonly LofiLayer[]; outro: readonly [number, number] }> = {
-  breakbeat: { verse: 8, build: ['keys', 'snare', 'hats', 'fx'], breakdown: ['keys', 'lead', 'fx'], outro: [8, 4] },
-  funkyHouse: { verse: 8, build: ['keys', 'bass', 'snare', 'hats', 'fx'], breakdown: ['keys', 'lead', 'fx'], outro: [8, 4] },
-  ukGarage: { verse: 16, build: ['keys', 'lead', 'snare', 'hats', 'fx'], breakdown: ['keys', 'bass', 'lead'], outro: [8, 4] },
-  privateSchool: { verse: 16, build: ['keys', 'bass', 'snare', 'hats', 'fx'], breakdown: ['keys', 'lead', 'hats'], outro: [8, 8] },
+  breakbeat: { verse: 8, build: ['keys', 'snare', 'hats', 'fx'], breakdown: ['keys', 'lead', 'fx'], outro: [4, 4] },
+  funkyHouse: { verse: 8, build: ['keys', 'bass', 'snare', 'hats', 'fx'], breakdown: ['keys', 'lead', 'fx'], outro: [4, 4] },
+  ukGarage: { verse: 16, build: ['keys', 'lead', 'snare', 'hats', 'fx'], breakdown: ['keys', 'bass', 'lead'], outro: [4, 4] },
+  privateSchool: { verse: 16, build: ['keys', 'bass', 'snare', 'hats', 'fx'], breakdown: ['keys', 'lead', 'hats'], outro: [4, 4] },
 };
 
 /**

@@ -39,11 +39,15 @@ function variety(bars: LofiBar[], keep?: (n: LofiNote) => boolean): number {
   return pairs ? changed / pairs : 0;
 }
 
-test('each club genre keeps its tempo', () => {
+test('each club genre keeps its tempo, and its outro fades without ever going silent before the rest bar', () => {
   const BPM = { breakbeat: [126, 138], funkyHouse: [123, 128], ukGarage: [130, 136], privateSchool: [108, 113] } as const;
   for (const mood of Object.keys(BPM) as Array<keyof typeof BPM>) for (const seed of SEEDS) {
-    const t = composeLofiTune(seed, mood)[0]!.tune;
+    const bars = composeLofiTune(seed, mood);
+    const t = bars[0]!.tune;
     assert.ok(t.bpm >= BPM[mood][0] && t.bpm <= BPM[mood][1], `${mood} ${seed}: ${t.bpm} bpm`);
+    for (const b of bars.slice(0, -1)) assert.ok(b.level > 0 && b.level <= 1, `${mood} ${seed} bar ${b.index}: level ${b.level}`);
+    const outro = bars.filter(b => b.section === 'outro');
+    assert.ok(outro.at(-1)!.level < outro[0]!.level, `${mood} ${seed}: the outro fades`);
   }
 });
 
