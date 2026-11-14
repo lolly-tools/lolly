@@ -58,7 +58,7 @@ import * as BR from './lofi-breaks.ts';
 import * as GA from './lofi-garage.ts';
 import { houseOrgan } from './lofi-organ.ts';
 import { DidgePlayer } from './lofi-didge-player.ts';
-import { DIDGE_LEAD, DIDGE_ROLE, readBird } from '../../../../engine/src/lofi-straya.ts';
+import { DIDGE_LEAD, readBird, readDidge } from '../../../../engine/src/lofi-straya.ts';
 import { isBreakNote } from '../../../../engine/src/lofi-breaks.ts';
 
 export interface LofiSettings {
@@ -179,6 +179,11 @@ const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3
  *  genres' are set so the mix under 150 Hz sits against the whole as their records' does (docs/generated-music.md):
  *  breakbeat's back, garage's a little up, private school's log drum kept soft. */
 const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5 };
+/**
+ * The didgeridoo's cameo in the bass genres (engine/src/lofi-straya.ts), against its own level:
+ * measured K-weighted in its bar, it sits about 3 to 4 dB under the bass stack it plays over.
+ */
+const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.55, brostep: 0.55, dnb: 0.85 };
 /** The styles whose vocal chops in a chorus are a coro: several singers on the line, not one voice chopped. */
 const CORO = new Set<LofiMood>(['salsa']);
 /** A coro's singers: each its own voice (a seed for lib/lofi-chop.ts), how late (s), its place across the speakers and how loud. */
@@ -812,9 +817,9 @@ export class LofiStation {
       }
       case 'didge': {
         // Straya's didgeridoo over the band: its rhythm with the bass, its solo in the lead's seat.
-        const solo = Math.floor((note.mod ?? 0) / DIDGE_ROLE) === DIDGE_LEAD;
+        const solo = readDidge(note.mod ?? 0).role === DIDGE_LEAD;
         const lift = solo && SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
-        this.didge.play(k, solo ? this.leadSeat(lanes.lead, bar.tune.mood, 'didge') : lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift);
+        this.didge.play(k, solo ? this.leadSeat(lanes.lead, bar.tune.mood, 'didge') : lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift * (DIDGE_CAMEO_LEVEL[bar.tune.mood] ?? 1));
         break;
       }
       case 'fill': {

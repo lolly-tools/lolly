@@ -12,7 +12,7 @@
  * next note's sound (which carries on from the same moment of the same simulation) fades in,
  * so the join cannot be heard. A gap, a new tune or a new key starts the player afresh.
  */
-import { DIDGE_ART, DIDGE_ROLE } from '../../../../engine/src/lofi-straya.ts';
+import { DIDGE_TONGUE, readDidge } from '../../../../engine/src/lofi-straya.ts';
 import { Didgeridoo, type DidgeEvent } from './lofi-didgeridoo.ts';
 import type { VoiceKit } from './lofi-voices.ts';
 
@@ -25,10 +25,15 @@ const TAIL = 0.22;
 const FADE = 0.004;
 /** How long a note's articulation still shapes the sound after it ends (s): a push's decay, a breath's push back. */
 const CARRY = 0.45;
-/** Each role's level against the drone's: the rhythm sits in the middle of the band, the solo in front. */
-export const DIDGE_LEVELS = [1, 0.85, 1.15] as const;
+/**
+ * Each role's level against the drone's, set K-weighted against the rest of the band: the drone
+ * about 2 to 3 dB under the band through a verse, the rhythm about 3 dB under it through a
+ * chorus, and the solo about 4 dB under it, a little more forward than Straya's usual lead. The
+ * solo goes through the lead's bus, which runs far hotter than the bass's, so its number is lower.
+ */
+export const DIDGE_LEVELS = [1, 0.95, 0.31] as const;
 /** The player's output level, into the bass lane (the drone and the rhythm) or the lead's seat (the solo). */
-const LEVEL = 0.5;
+const LEVEL = 0.25;
 
 /** One station's didgeridoo player. */
 export class DidgePlayer {
@@ -49,12 +54,12 @@ export class DidgePlayer {
   play(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number, seed: number, level = 1): void {
     const { ctx } = k;
     const sr = ctx.sampleRate;
-    const role = Math.min(2, Math.floor(mod / DIDGE_ROLE));
-    const art = mod & DIDGE_ART;
-    const key = `${seed}:${midi}`;
+    const { art, role, kind } = readDidge(mod);
+    // Another kind of yidaki, or another pitch, is another instrument: it starts afresh.
+    const key = `${seed}:${midi}:${kind}`;
     const fresh = !this.player || this.key !== key || t > this.end + JOIN || t < this.end - 0.3;
     if (fresh) {
-      this.player = new Didgeridoo({ sr, f: mtof(midi), seed: (seed ^ Math.imul(midi + 1, 0x85ebca6b)) >>> 0 });
+      this.player = new Didgeridoo({ sr, f: mtof(midi), seed: (seed ^ Math.imul(midi + 1, 0x85ebca6b) ^ Math.imul(kind + 1, 0x27d4eb2f)) >>> 0, variant: kind });
       this.key = key;
       this.end = t;
       this.recent = [];
@@ -64,7 +69,10 @@ export class DidgePlayer {
     const start = this.end;
     const stop = Math.max(start + 0.02, t + dur);
     this.recent = this.recent.filter(n => n.t + n.dur + CARRY > start);
-    this.recent.push({ t, at: 0, dur, art, vel: Math.min(1, Math.max(0.05, vel)), role });
+    const strength = Math.min(1, Math.max(0.05, vel));
+    // A drone started afresh is tongued in: the lips set, then the air let go with a kick.
+    if (fresh && art !== DIDGE_TONGUE) this.recent.push({ t, at: 0, dur: 0.05, art: DIDGE_TONGUE, vel: strength, role });
+    this.recent.push({ t, at: 0, dur, art, vel: strength, role });
     const notes = this.recent.map(n => ({ ...n, at: n.t - start }));
     const body = player.render(notes, stop - start);
     // The tail: the breath stopping after this note, on a copy, so the player itself stays where the note ends.
@@ -78,7 +86,7 @@ export class DidgePlayer {
     const src = ctx.createBufferSource();
     src.buffer = buf;
     const g = ctx.createGain();
-    const gain = LEVEL * (DIDGE_LEVELS[role] ?? 1) * level;
+    const gain = LEVEL * (DIDGE_LEVELS[Math.min(2, role)] ?? 1) * level;
     if (this.tail && !fresh) {
       // Carry on: the last note's tail gives way as this note (the same breath, the same moment) comes in.
       this.tail.g.gain.setValueAtTime(this.tail.level, start);

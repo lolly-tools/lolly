@@ -67,7 +67,7 @@ import { attachScrub } from '../lib/scrub.ts';
 import { icon } from '../lib/icons.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { instrumentIcon, iconPath, musicIconNode, musicIconBody, strokeSvg } from '../lib/instrument-icons.ts';
-import { DIDGE_LEAD, DIDGE_ROLE } from '../../../../engine/src/lofi-straya.ts';
+import { DIDGE_LEAD, readDidge } from '../../../../engine/src/lofi-straya.ts';
 import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, fxOn, toggleFx, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
 import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
@@ -119,7 +119,7 @@ const clock = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.fl
 /** Which track a note is drawn in: Straya's didgeridoo with the bass, its solo with the lead (engine/src/lofi-straya.ts). */
 function trackOf({ voice, mod }: { voice: string; mod?: number }): Track {
   if (DRUM_VOICES.has(voice)) return 'drums';
-  if (voice === 'didge') return Math.floor((mod ?? 0) / DIDGE_ROLE) === DIDGE_LEAD ? 'lead' : 'bass';
+  if (voice === 'didge') return readDidge(mod ?? 0).role === DIDGE_LEAD ? 'lead' : 'bass';
   if (voice === 'soar' || voice === 'bwah' || voice === 'layer') return 'bass';
   return voice === 'keys' || voice === 'lead' || voice === 'bass' ? voice : 'fx';
 }

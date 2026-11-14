@@ -11,9 +11,8 @@
  *   bird's song is its syllable shapes, how fast it says them and its range: a blackbird's
  *   low fluted warble ending in a twitter, a robin's thin cascade of quick sweeps, a wren's
  *   rattling trills, a thrush saying each phrase two or three times, a wood pigeon's coo,
- *   and the Australian magpie's carol of two voices gliding between the notes of a
- *   pentatonic scale with trills and a gurgle (the magpie lib/lofi-voices.ts sings for
- *   Straya, rendered here as a buffer and measured against a recorded one).
+ *   and the Australian magpie's carol (lib/lofi-bush-birds.ts, the magpie Straya sings,
+ *   fitted to field recordings there).
  * - Wind is the air's rush, pink-ish noise whose loudness and brightness follow a gust: a
  *   slow random swell that reverts to its mean (an Ornstein-Uhlenbeck process), with a
  *   hollow band that rises as the wind gets up.
@@ -42,7 +41,7 @@
  *   -33 against -34 dB; robin 15.5 against 13.9, 20 against 25 ms, 4.23 against 4.13 kHz,
  *   -39 against -39 dB; wren 14.6 against 13.0, 29 against 22 ms, 5.18 against 5.15 kHz;
  *   song thrush 12.7 against 12.8, 48 against 42 ms, 4.18 against 4.52 kHz, -29 against
- *   -30 dB; Australian magpie 16.4 against 19.7, 1.31 against 1.42 kHz, -24 against -24 dB;
+ *   -30 dB (the Australian magpie is measured in lib/lofi-bush-birds.ts);
  * - wind in trees: centroid 0.31 to 1.30 kHz against 0.54, the level's spread between its
  *   10th and 90th percentiles 9 to 13 dB against 11, gusts lasting 2.7 to 4.6 s against 3.9;
  * - leaves in trees: centroid 2.0 to 3.3 kHz against 2.4, gusts 5 to 8 s against 8;
@@ -55,6 +54,7 @@
  *   bursts a second; bees: hum 447 against 447 Hz.
  */
 import { BOTANICA_BIRDS, BOTANICA_INSECTS, readNature, type BotanicaBird, type BotanicaInsect, type BotanicaNature } from '../../../../engine/src/lofi-botanica.ts';
+import { magpie } from './lofi-bush-birds.ts';
 
 export type Stereo = [Float32Array, Float32Array];
 
@@ -284,52 +284,12 @@ function coo(sr: number, seconds: number, centre: number, r: () => number): Floa
   return out;
 }
 
-/**
- * The Australian magpie's carol, after lib/lofi-voices.ts's magpie for Straya: two voices
- * on the notes of a pentatonic scale round `centre`, each note gliding in from the last
- * and struck afresh, some trilled, some a gurgle, now and then one leaping an octave or
- * two, with the harmonics a magpie's throat gives (the second about 24 dB down in the
- * recordings).
- */
-function carol(sr: number, seconds: number, centre: number, r: () => number): Float32Array {
-  const out = new Float32Array(Math.ceil(seconds * sr));
-  const scale = [0, 2, 4, 7, 9, 12, 14, 16];
-  const midi = 12 * Math.log2(centre / 440) + 69 - 7;
-  for (let voice = 0; voice < 2; voice++) {
-    const begin = voice * (0.1 + r() * 0.3);
-    const end = Math.min(seconds - 0.05, begin + 0.8 + r() * seconds);
-    if (end <= begin + 0.2) continue;
-    let f = 440 * 2 ** ((midi - 69) / 12);
-    let phase = 0, trillPhase = 0;
-    let t = begin;
-    while (t < end - 0.03) {
-      const len = 0.008 + r() ** 2 * 0.07;
-      const leap = r() < 0.2 ? 12 * (1 + Math.floor(r() * 2)) : 0;
-      const target = 440 * 2 ** ((midi + (voice ? -5 : 0) + scale[Math.floor(r() * scale.length)]! + leap - 69) / 12);
-      const trill = r() < 0.2 ? 0.02 : 0;
-      const level = 0.5 + r() * 0.5;
-      const glide = r() < 0.2 ? 0.3 : 0.05;
-      const from = f;
-      const start = Math.round(t * sr), n = Math.round(len * sr);
-      for (let i = 0; i < n && start + i < out.length; i++) {
-        const u = i / n;
-        f = from + (target - from) * Math.min(1, u / glide);
-        trillPhase += (2 * Math.PI * 30) / sr;
-        phase += (2 * Math.PI * f * (1 + trill * Math.sin(trillPhase))) / sr;
-        const env = Math.min(1, u / 0.15, (1 - u) / 0.25);
-        out[start + i] = out[start + i]! + (Math.sin(phase) + 0.06 * Math.sin(2 * phase + 0.3) + 0.02 * Math.sin(3 * phase)) * env * level * 0.45;
-      }
-      t += len + (r() < 0.85 ? 0.01 + r() * 0.035 : 0.003);
-    }
-  }
-  return out;
-}
-
 /** One phrase of `bird`'s song, `seconds` long at most, round its pitch `centre` (Hz). Mono, peak about 0.5. */
 export function birdPhrase(sr: number, bird: BotanicaBird, seconds: number, seed: number): Float32Array {
   const r = seeded(mix(seed, BOTANICA_BIRDS.indexOf(bird), 0xb12d));
   if (bird === 'dove') return coo(sr, Math.max(2.3, seconds), 520 + r() * 120, r);
-  if (bird === 'magpie') return carol(sr, seconds, 950 + r() * 500, r);
+  // The magpie is the one Straya sings (lib/lofi-bush-birds.ts), fitted to field recordings.
+  if (bird === 'magpie') return magpie(sr, seconds, 950 + r() * 500, Math.floor(r() * 4294967296));
   const out = new Float32Array(Math.ceil(seconds * sr));
   const sp = SPECIES[bird];
   sing(out, sr, songOf(bird, seconds, r), sp, r, 0.5);

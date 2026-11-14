@@ -993,13 +993,15 @@ test('the shouts come from a stream of their own: the rest of every tune compose
   // phrases, each tune is unchanged.
   const before: Record<string, number> = {
     'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 123733926, 'hiphop.7': 307798947,
-    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1758158366, 'dubstep.7': 2238141904, 'brostep.7': 1362639215, 'sherbert.7': 2035173988,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1758158366, 'dubstep.7': 2238141904, 'brostep.7': 1362639215, 'sherbert.7': 63369471,
   };
   // Dubstep's and brostep's drops trade their bass now (BASS_PLANS, 2026-11-13): a partner's
   // bars play its own figure and the stabs fall in its gaps, so those two pins moved with them.
   // Drum and bass's drops edit their kick and snare bar by bar (2026-11-14), so its pin moved too.
   // Soul's lead and brostep's breakdown and second drop were the soft lead, retired on
   // 2026-11-14 (RETIRED_LEADS): a trumpet and bells play there now, so those two pins moved again.
+  // Sherbert sings a magpie now (lofi-straya.ts withMagpies, Andy 2026-11-14): seed 7's carol
+  // comes in the bar before its first drop, the chopped vocal cleared from under it, so its pin moved.
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);

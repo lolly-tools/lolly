@@ -2,16 +2,16 @@
 /**
  * The Aussie birds sprinkled into any style a person turns them on in (the music generator's
  * effects lane): a magpie's quiet warble at some phrase ends where the lead rests, now and then
- * a magpie's carol opening the tune, and a kookaburra laughing as the outro begins. Straya and
- * Sugar sing their own birds (engine/src/lofi-straya.ts, and Sugar's magpie), so they are left
- * as they are. Pure and deterministic: every choice comes from the tune's seed and the bar's
+ * a magpie's carol opening the tune, and a kookaburra laughing as the outro begins. Straya,
+ * Sugar, botanica and sherbert sing their own birds (engine/src/lofi-straya.ts, and Sugar's
+ * magpie), so they are left as they are. Pure and deterministic: every choice comes from the tune's seed and the bar's
  * place, so a track sounds the same however it is played or sought through.
  */
 import { composeLofiTune, type LofiBar, type LofiMood, type LofiNote, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
-import { DIDGE_LEAD, DIDGE_ROLE, LOFI_BIRD_FEATURE, LOFI_BIRD_FLOCK } from '../../../../engine/src/lofi-straya.ts';
+import { DIDGE_LEAD, LOFI_BIRD_FEATURE, LOFI_BIRD_FLOCK, readDidge } from '../../../../engine/src/lofi-straya.ts';
 
 /** The styles that place their own birds. */
-export const OWN_BIRDS = new Set<LofiMood>(['straya', 'sugar']);
+export const OWN_BIRDS = new Set<LofiMood>(['straya', 'sugar', 'botanica', 'sherbert']);
 
 /** Where each tune's outro starts (its first outro bar's index), composed once a tune. */
 const OUTROS = new WeakMap<LofiTuneInfo, number>();
@@ -33,7 +33,7 @@ function draw(seed: number, index: number, salt: number): number {
 
 /** Whether a stretch of the bar (beats) is clear of the lead. */
 function clear(notes: readonly LofiNote[], from: number, to: number): boolean {
-  return !notes.some(n => (n.voice === 'lead' || (n.voice === 'didge' && Math.floor((n.mod ?? 0) / DIDGE_ROLE) === DIDGE_LEAD)) && n.beat < to && n.beat + n.dur > from);
+  return !notes.some(n => (n.voice === 'lead' || (n.voice === 'didge' && readDidge(n.mod ?? 0).role === DIDGE_LEAD)) && n.beat < to && n.beat + n.dur > from);
 }
 
 const CALM = new Set(['intro', 'verse', 'break', 'bridge', 'feature', 'groove', 'outro']);
