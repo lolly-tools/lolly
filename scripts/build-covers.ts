@@ -49,7 +49,7 @@ import sharp from 'sharp';
 import { deriveBrandTokens, hexToOklch, oklchToHex, parseOklch } from '../engine/src/brand-derive.ts';
 import { embedC2pa } from '../engine/src/c2pa.ts';
 import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
-import { artC2paOpts, artDims, type ArtMeta } from './sign-docs-art.ts';
+import { artC2paOpts, artDims, stripArtManifest, type ArtMeta } from './sign-docs-art.ts';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -115,8 +115,8 @@ interface CoverPose {
   exportVideo?: { fps: number; seconds: number; quality?: 'smaller' | 'balanced' | 'best' };
   exportStill?: 'png' | 'svg';
   /** For an SVG export whose page is not 4:3 (the QR badge is portrait): the colour
-   *  (a placeholder or a hex) that fills the rest of the card. The wrapped file is
-   *  signed again with the docs figures' claim (`signCover`). */
+   *  (a placeholder or a hex) that fills the rest of the card. Every SVG export, wrapped
+   *  or not, is then signed with the docs figures' claim (`signCover`). */
   svgGround?: string;
   /** Capture the APP VIEW as vector: the web shell's DOM-to-SVG walker (the same
    *  `__lollyWalkerShot` loopback hook the docs screenshots use), windowed to the
@@ -736,10 +736,8 @@ async function poseExport(browser: Browser, base: string, pose: CoverPose, fmt: 
   if (fmt === 'svg') {
     const head = readFileSync(out, 'utf8').slice(0, 300);
     if (!/^\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*<svg[\s>]/.test(head)) throw new Error(`${out} is not an SVG document`);
-    if (pose.svgGround) {
-      writeFileSync(out, letterboxSvg(readFileSync(out, 'utf8'), decodeURIComponent(colourFor(pose, pose.svgGround))));
-      await signCover(out, pose);
-    }
+    if (pose.svgGround) writeFileSync(out, letterboxSvg(readFileSync(out, 'utf8'), decodeURIComponent(colourFor(pose, pose.svgGround))));
+    await signCover(out, pose);
     console.log(`   ${pose.slug}.svg ${Math.round(statSync(out).size / 1024)} KB`);
     return;
   }
@@ -792,11 +790,13 @@ function letterboxSvg(svg: string, ground: string, margin = 0.05): string {
 }
 
 /**
- * The claim a letterboxed cover is signed with: the docs figures' own
- * (scripts/sign-docs-art.ts `artC2paOpts`, the claim scripts/build-format-last-art.ts
- * signs its panels with). It states the Lolly tool that drew the file, the model that
- * posed the cover under the maintainer's direction, and the maintainer as author.
- * Update `model` when another model poses the covers.
+ * The claim every SVG export cover is signed with (Andy, 2026-11-14: "Docs claim on
+ * all"): the docs figures' own (scripts/sign-docs-art.ts `artC2paOpts`, the claim
+ * scripts/build-format-last-art.ts signs its panels with), on the docs figures'
+ * ten-year on-device credential rather than the export's thirty-day one. It states
+ * the Lolly tool that drew the file, the model that posed the cover under the
+ * maintainer's direction, and the maintainer as author. Update `model` when another
+ * model poses the covers.
  */
 const COVER_MODEL: NonNullable<ArtMeta['model']> = { name: 'Claude Opus 5.5', identifier: 'claude-opus-5-5', vendor: 'Anthropic' };
 const coverMeta = (generator: ArtMeta['generator']): ArtMeta => ({
@@ -817,10 +817,11 @@ function coverGenerator(pose: CoverPose): ArtMeta['generator'] {
   return { name: `Lolly ${tool.name ?? id}`, ...(tool.version ? { version: tool.version } : {}) };
 }
 
-/** Sign a cover the way the docs figures are signed, then read the file back with the
- *  engine's verifier: anything but a valid credential naming the author fails the pose. */
+/** Sign a cover the way the docs figures are signed, in place of the credential the
+ *  export carried, then read the file back with the engine's verifier: anything but a
+ *  valid credential naming the author fails the pose. */
 async function signCover(file: string, pose: CoverPose): Promise<void> {
-  const text = readFileSync(file, 'utf8');
+  const text = stripArtManifest(readFileSync(file, 'utf8'), 'svg');
   const dims = artDims(text);
   const opts = artC2paOpts(coverMeta(coverGenerator(pose)), { id: `cover-${pose.slug}`, kind: 'figure', format: 'svg', ...(dims ? { dims } : {}) });
   writeFileSync(file, await embedC2pa(new TextEncoder().encode(text), 'svg', opts));
