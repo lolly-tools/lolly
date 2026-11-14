@@ -121,6 +121,12 @@ const SHOUT = (name: typeof LOFI_SHOUTS[number]): number => LOFI_SHOUTS.indexOf(
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric'] as const;
 export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'none'] as const;
 export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'yidaki', 'log', 'deep'] as const;
+/** A `layer` note's `mod`: 1 the travelling line, 2 a percussive stab, LOFI_OVER the bass laid
+ *  over the bar's (LofiBar voices.over), plus 8 times how that bass plays the note (its own
+ *  `mod`: a croak's note slid into is LOFI_OVER + 16). */
+export const LOFI_OVER = 3;
+/** Whether a note belongs to the bass laid over the bar's own. */
+export const isOverNote = (n: LofiNote): boolean => n.voice === 'layer' && (n.mod ?? 0) % 8 === LOFI_OVER;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap', 'stack', 'snap'] as const;
 export const LOFI_HATS = ['hat', 'shaker', 'ride', 'none'] as const;
 export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse', 'bossa', 'disco', 'halfStep', 'twoStep', 'rock', 'rumba', 'oneDrop', 'funk', 'train', 'swing', 'stomp'] as const;
@@ -236,6 +242,9 @@ export interface LofiBar {
   voices?: Partial<Pick<LofiStyle, 'keys' | 'lead' | 'bass' | 'snare' | 'hats'>> & {
     /** A second instrument playing the lead's notes with the lead (a drop's doubling). */
     double?: LofiStyle['lead'];
+    /** A bass laid over this bar's bass, never on its own: the croak calling at a phrase's
+     *  end, filling into a drop or adding a texture (`layer` notes with a `mod` of LOFI_OVER). */
+    over?: LofiStyle['bass'];
   };
 }
 
@@ -672,6 +681,111 @@ function bassLayers(notes: LofiNote[], r: () => number, plan: { travel: readonly
     if (main.has(st)) continue;
     notes.push({ voice: 'layer', midi: root - 12 + (r() < 0.25 ? 12 : 0), beat: sb(st), dur: 0.12, vel: 0.7 + r() * 0.15, mod: 2 });
   }
+}
+
+/**
+ * How the bass styles' basses answer each other, and what is laid over them (Andy,
+ * 2026-11-13: "duplication and mixed layers of bass building together like modern d&b
+ * dubstep etc ... the croaky bass ... should be an element of dubstep brostep dnb etc that
+ * overlays on occasion other bass effects"). Measured against produced drops (see
+ * docs/generated-music.md): a dubstep or brostep drop changes its bass's character every
+ * bar or two, where a drum and bass drop keeps one reese and dresses the reese up.
+ * - `trade`: the basses a drop's own bass trades with, a four-bar phrase at a time, and the
+ *   shapes a phrase takes (0 is the drop's own bass, 1 and 2 its partners, in an order each
+ *   drop draws): a two-bar call and its answer, or an answer in the phrase's last bar;
+ *   brostep brings a third bass in, and now and then trades every bar.
+ * - `over`: the croak, never on its own: how often a tune has it, the bar of a phrase it
+ *   calls in (`at` of every `every`) and how often, whether it fills into the second drop,
+ *   and whether it doubles the bass an octave up for two bars of the second drop.
+ */
+interface BassPlan {
+  trade?: { pool: readonly LofiStyle['bass'][]; phrases: Weights<readonly number[]> };
+  over?: { chance: number; at: number; every: number; call: number; fill: number; texture: number; in: readonly LofiSection[] };
+}
+const BASS_PLANS: Partial<Record<DanceMood, BassPlan>> = {
+  dubstep: {
+    trade: { pool: ['wobble', 'growl', 'screech'], phrases: [[[0, 0, 1, 1], 5], [[0, 0, 0, 1], 3], [[0, 0, 0, 0], 1]] },
+    over: { chance: 0.55, at: 1, every: 4, call: 0.6, fill: 0.5, texture: 0.4, in: ['drop'] },
+  },
+  brostep: {
+    trade: { pool: ['growl', 'screech', 'wobble'], phrases: [[[0, 0, 1, 1], 4], [[0, 0, 1, 2], 2], [[0, 0, 0, 1], 2], [[0, 1, 0, 2], 1]] },
+    over: { chance: 0.6, at: 1, every: 4, call: 0.6, fill: 0.5, texture: 0.4, in: ['drop'] },
+  },
+  dnb: { over: { chance: 0.4, at: 5, every: 8, call: 0.7, fill: 0.35, texture: 0, in: ['drop'] } },
+  // Sugar's croak used to play alone, as a verse's or a second drop's bass now and then:
+  // a bright, buzzy string with little weight. The croak now calls over the slap instead.
+  sugar: { over: { chance: 0.35, at: 3, every: 4, call: 0.75, fill: 0, texture: 0.5, in: ['verse', 'drop'] } },
+};
+/** The croak's calls: [sixteenth, length, how it is played (0 plucked, 2 slid into, 3 bent), semitones above the root an octave over the bass]. */
+const CROAK_CALLS: readonly Figure[] = [
+  [[12, 1, 0, 12], [13, 1, 0, 12], [14, 2, 3, 12]],
+  [[10, 1, 2, 12], [12, 1, 0, 12], [13, 1, 0, 7], [14, 2, 3, 12]],
+  [[12, 1, 2, 7], [13, 1, 0, 12], [14, 1, 0, 12], [15, 1, 0, 10]],
+  [[8, 1, 0, 12], [9, 1, 0, 12], [11, 1, 2, 12], [14, 2, 3, 7]],
+];
+/** The croak's fill into a drop: bubbling up the last half of the build's last bar. */
+const CROAK_FILL: Figure = [[8, 1, 0, 0], [9, 1, 0, 0], [10, 1, 2, 7], [12, 1, 0, 12], [13, 1, 0, 12], [14, 2, 3, 12]];
+
+/** A tune's trades and overlay, drawn from a stream of its own (so no other note moves), or null when the person chose the bass. */
+interface BassStack {
+  /** The bass of a drop's bar: its own, or the partner answering it; and that partner's figure for the bar. */
+  trade(alt: boolean, inSection: number, i: number): { bass: LofiStyle['bass']; fig: Figure } | null;
+  over: boolean;
+  /** The overlay's notes for a bar, each laid only where a note of the bar's bass (or, in a build, the travelling line) is sounding under the note. */
+  overlay(at: { section: LofiSection; alt: boolean; inSection: number; lastOfBuild: boolean; nextIsAltDrop: boolean; root: number; sb: (step: number) => number }, notes: readonly LofiNote[]): LofiNote[];
+}
+
+function bassStackOf(seed: number, mood: DanceMood, own: { a: LofiStyle['bass']; b: LofiStyle['bass'] }, figuresOf: (b: LofiStyle['bass']) => readonly Figure[], drop: number): BassStack | null {
+  const plan = BASS_PLANS[mood];
+  if (!plan) return null;
+  const r = layerStream(seed, 0x57ac);
+  const pickR = <T>(xs: readonly T[]): T => xs[Math.floor(r() * xs.length)]!;
+  // Each drop's partners in a drawn order, their figures (a call and its answer), and its phrases.
+  const drops = [own.a, own.b].map((self) => {
+    if (!plan.trade) return null;
+    const partners = plan.trade.pool.filter(b => b !== self);
+    if (r() < 0.5) partners.reverse();
+    const figs = partners.map(p => [pickR(figuresOf(p)), pickR(figuresOf(p))] as const);
+    const phrases = Array.from({ length: Math.ceil(drop / 4) }, () => weightedPick(r, plan.trade!.phrases));
+    return { self, partners, figs, phrases };
+  });
+  const o = plan.over;
+  const over = !!o && r() < o.chance;
+  const fill = !!o && r() < o.fill;
+  const texture = !!o && r() < o.texture;
+  /** Whether a note of the bass (or, in a build, the travelling line) is sounding at `beat`. */
+  const held = (notes: readonly LofiNote[], beat: number): boolean => notes.some(n => (n.voice === 'bass' || (n.voice === 'layer' && n.mod === 1)) && beat >= n.beat - 0.01 && beat < n.beat + n.dur);
+  return {
+    over,
+    trade(alt, inSection, i) {
+      const d = drops[alt ? 1 : 0];
+      if (!d) return null;
+      const who = d.phrases[Math.floor(inSection / 4)]?.[inSection % 4] ?? 0;
+      if (who === 0) return null;
+      const p = (who - 1) % d.partners.length;
+      return { bass: d.partners[p]!, fig: d.figs[p]![i % 2]! };
+    },
+    overlay(at, notes) {
+      if (!over || !o) return [];
+      let fig: Figure | null = null;
+      let vel = 0.62;
+      if (at.lastOfBuild && at.nextIsAltDrop && fill) fig = CROAK_FILL;
+      else if (o.in.includes(at.section)) {
+        if (at.section === 'drop' && at.alt && texture && (at.inSection === 8 || at.inSection === 9)) {
+          // A texture: the croak an octave over the bass, on its notes, for two bars.
+          return notes.filter(n => n.voice === 'bass').map(n => ({ voice: 'layer' as const, midi: Math.min(63, n.midi + 12), beat: n.beat, dur: Math.min(0.5, n.dur), vel: 0.5, mod: LOFI_OVER }));
+        }
+        if (at.inSection % o.every === o.at && r() < o.call) { fig = pickR(CROAK_CALLS); vel = 0.66; }
+      }
+      if (!fig) return [];
+      const out: LofiNote[] = [];
+      for (const [step, len, how, above] of fig) {
+        if (!held(notes, at.sb(step))) continue;   // never alone: only over the bass
+        out.push({ voice: 'layer', midi: Math.min(63, at.root + above), beat: at.sb(step), dur: len / 4 - 0.02, vel, mod: LOFI_OVER + 8 * how });
+      }
+      return out.length >= 2 ? out : [];
+    },
+  };
 }
 
 /** How often a tune carries the tag. */
@@ -1559,8 +1673,10 @@ const DANCE: Record<DanceMood, DanceLean> = {
     keys: [['supersaw', 4], ['rhodes', 1]], lead: [['chip', 3], ['pulse', 3], ['angel', 2], ['guitar', 2], ['synthwave', 1], ['vibes', 1], ['panflute', 2], ['flute', 1]],
     bass: [['slap', 1]], snare: [['clap', 1]], kick: [52, 60], kickLen: [0.25, 0.35], duck: [1.3, 1.7], crunch: 0,
     swing: 0.53, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.9,
-    // The croak: the modelled string in repeated eighths, a guttural, bubbling Sugar flavour now and then.
-    softKeys: [['rhodes', 2], ['pluck', 2], ['felt', 1]], verseBass: [['slap', 3], ['pulse', 2], ['croak', 1]], switchBass: [['slap', 4], ['croak', 1]],
+    // The croak's share of these draws (it was a verse's or a second drop's bass now and
+    // then) plays the slap now, so the other draws fall as they did: the croak calls over the
+    // slap instead (BASS_PLANS).
+    softKeys: [['rhodes', 2], ['pluck', 2], ['felt', 1]], verseBass: [['slap', 3], ['pulse', 2], ['slap', 1]], switchBass: [['slap', 4], ['slap', 1]],
   },
   // Sherbert: future bass with an old games console inside. Fast and half-time (the clap on
   // three), wide pumping saw chords that bend up into their pitch and wub, chopped vowels
@@ -2550,6 +2666,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const figA: [Figure, Figure] = [pick(figuresOf(style.bass)), pick(figuresOf(style.bass))];
   const figB: [Figure, Figure] = [pick(figuresOf(bassB)), pick(figuresOf(bassB))];
   const figVerse: [Figure, Figure] = [pick(figuresOf(verseBass)), pick(figuresOf(verseBass))];
+  // The basses' trades and the croak over them (BASS_PLANS), from a stream of their own; a
+  // bass the person chose plays alone through the tune, as a chosen lead drops its doubling.
+  const stack = fixed.bass ? null : bassStackOf(seed, mood, { a: style.bass, b: bassB }, figuresOf, lean.drop);
   const voicesOf = (part: DancePart): LofiBar['voices'] => {
     if (part.section === 'intro') return { keys: softKeys, lead: leadIntro };
     if (part.section === 'outro') return { keys: softKeys };
@@ -2816,12 +2935,15 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       // (EXTRA_FX): every bar, builds included, from their own stream.
       if (extra) notes.push(...extraFx(extra, mood, part.section, i, part.bars, { build, lastOfBuild, dropStart, fx: has('fx') }, { key, minor, coin, sb }));
 
-      // BASS: the genre's figure, a call and its answer, on the chord's root.
+      // BASS: the genre's figure, a call and its answer, on the chord's root. In a bass
+      // style's drop another bass may answer the drop's own for a bar (BASS_PLANS).
+      const traded = part.section === 'drop' && has('bass') ? stack?.trade(!!part.alt, inSection, i) ?? null : null;
+      const barBass = traded?.bass ?? bassV;
       if (has('bass')) {
         // A yidaki has one note, the key's: it drones under every chord.
-        const root = bassV === 'yidaki' ? placeIn(key, 34, 45)
-          : ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright', 'synth', 'round', 'motown', 'acid'].includes(bassV) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
-        let fig = (part.section === 'verse' ? figVerse : part.alt ? figB : figA)[i % 2]!;
+        const root = barBass === 'yidaki' ? placeIn(key, 34, 45)
+          : ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright', 'synth', 'round', 'motown', 'acid'].includes(barBass) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
+        let fig = traded?.fig ?? (part.section === 'verse' ? figVerse : part.alt ? figB : figA)[i % 2]!;
         if (house && part.section === 'break') fig = house.breakFig[i % 2]!;
         if (lean.band) {
           // A band's bass draws a figure every bar, by section, and fills into the next
@@ -2891,6 +3013,11 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       if (layerPlan && layers && (has('bass') || build)) {
         bassLayers(notes, layers, layerPlan, { section: part.section, alt: !!part.alt, i, bars: part.bars, chord, nextChord, sb });
       }
+      // OVER: the croak laid over the bass (BASS_PLANS), only where the bass is sounding.
+      const overNotes = stack?.over && (has('bass') || build)
+        ? stack.overlay({ section: part.section, alt: !!part.alt, inSection, lastOfBuild, nextIsAltDrop: !!parts[pi + 1]?.alt, root: placeIn(chord.root, 40, 51), sb }, notes)
+        : [];
+      notes.push(...overNotes);
 
       // SPARKLE: Sherbert's console arpeggios, through the second half of the first drop,
       // the whole of the second, and twice a bar in alternate bars of the breakdown.
@@ -3228,7 +3355,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         }
       }
       notes.sort((a, b) => a.beat - b.beat);
-      bars.push({ tune: info, index, section: part.section, layers: part.layers, chord: chord.name, tones: chord.tones, notes, open, level, ...(voices ? { voices } : {}) });
+      const barVoices = traded || overNotes.length ? { ...voices, ...(traded ? { bass: traded.bass } : {}), ...(overNotes.length ? { over: 'croak' as const } : {}) } : voices;
+      bars.push({ tune: info, index, section: part.section, layers: part.layers, chord: chord.name, tones: chord.tones, notes, open, level, ...(barVoices ? { voices: barVoices } : {}) });
     }
   }
   // K-pop's last chorus goes up a key (a semitone, now and then a whole tone), and the ending follows.

@@ -17,6 +17,7 @@ import {
   isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, styleInstruments, swapKey, type MusicPart, type MusicPrefs,
 } from './music-prefs.ts';
 import { shuffleMusic } from './music-shuffle.ts';
+import { isOverNote } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
 
 /** A small seeded random source (mulberry32), so a shuffle can be replayed. */
@@ -101,6 +102,35 @@ test('a new tune never plays a blocked instrument the composer drew, and the lin
     }
   }
   assert.ok(swapsSeen > 20, `swaps were made (${swapsSeen})`);
+});
+
+test('a blocked bass is never laid over another: the croak comes out of the track, and the link carries it', () => {
+  let tried = 0;
+  for (const mood of ['dubstep', 'brostep', 'dnb', 'sugar'] as const) {
+    for (let seed = 1; seed <= 40 && tried < 12; seed++) {
+      const s = parseMusicState(`style=${mood}&seed=${seed}&bars=64`);
+      if (!composeTrack(s).some(b => b.notes.some(isOverNote))) continue;
+      tried++;
+      const prefs = prefsOf([], ['bass:croak']);
+      const { state: next, swaps } = avoidBlocked(s, prefs);
+      assert.ok(swaps.some(w => w.part === 'bass' && w.from === 'croak'), `${mood} ${seed}: the croak is swapped out`);
+      const bars = composeTrack(next);
+      assert.ok(bars.every(b => !b.notes.some(isOverNote) && b.voices?.over !== 'croak'), `${mood} ${seed}: no croak laid over the bass`);
+      assert.ok(!heard(next, 'bass').includes('croak'), `${mood} ${seed}: the croak is heard nowhere`);
+      assert.deepEqual(composeTrack(parseMusicState(musicStateParams(next))), bars, `${mood} ${seed}: the link plays the same`);
+    }
+  }
+  assert.ok(tried >= 8, `tunes with the croak laid over were tried (${tried})`);
+  // The croak never stands in for another bass: it is not one a bass style plays on its own.
+  for (const mood of ['dubstep', 'brostep', 'dnb', 'sugar'] as const) assert.ok(!styleInstruments(mood, 'bass').includes('croak'), `${mood}: the croak is not a bass of its own`);
+});
+
+test('a bass chosen for a kind of section plays alone there: no other bass answering it and nothing laid over it', () => {
+  const s = parseMusicState('style=brostep&seed=3&bars=64&drop.bass=wobble');
+  for (const b of composeTrack(s).filter(x => x.section === 'drop')) {
+    assert.equal(b.voices?.bass, 'wobble');
+    assert.ok(!b.voices?.over && !b.notes.some(isOverNote), `bar ${b.index}: nothing laid over the chosen bass`);
+  }
 });
 
 test('a substitute is one the style plays, a favourite first', () => {

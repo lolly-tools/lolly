@@ -1236,8 +1236,15 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   }
 }
 
-/** A dance tune's tone (LofiStyle.bright and drive): filter brightness and how hard the bass is driven. */
-export interface Tone { bright: number; drive: number }
+/**
+ * A dance tune's tone (LofiStyle.bright and drive): filter brightness and how hard the bass
+ * is driven. A bass stack (lib/lofi-bass-stack.ts) also sets `sub` false, so a bass leaves
+ * out its own sine (the stack plays one clean sub for the note), `phase`, where in its
+ * cycle a bass's filter swing starts (0 to 1), so a second take swings out of step with the
+ * first, and `take`, which of the stack's two takes this is: a reese's or a growl's take
+ * plays two of its three saws, so the pair of takes beats as one bass of four.
+ */
+export interface Tone { bright: number; drive: number; sub?: boolean; phase?: number; take?: 0 | 1 }
 export const PLAIN_TONE: Tone = { bright: 1, drive: 1 };
 
 /** A pulse wave of `duty` (0.5 is a square) as a band-limited PeriodicWave, one per context and duty. */
@@ -1294,6 +1301,11 @@ export function drivenBy(ctx: BaseAudioContext, amount: number, clean = false): 
   return [push, ws];
 }
 
+/** When a bass's filter swing at `rate` Hz starts, so it is `tone.phase` of a cycle in at the note (never before the clock's start). */
+function swingFrom(t: number, rate: number, tone: Tone): number {
+  return Math.max(0, t - (tone.phase ?? 0) / Math.max(0.5, rate));
+}
+
 /** A sine under a dance bass, an octave down when the note is high: what the low end feels. */
 export function sub(k: VoiceKit, out: AudioNode, t: number, f: number, vel: number, dur: number): void {
   const g = k.ctx.createGain();
@@ -1312,7 +1324,7 @@ function wobble(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
   lp.type = 'lowpass';
   lp.Q.value = 7;
   lp.frequency.value = 700 * tone.bright;
-  const lfo = osc(k, 'sine', Math.max(0.5, rate), t, end);
+  const lfo = osc(k, 'sine', Math.max(0.5, rate), swingFrom(t, rate, tone), end);
   const depth = ctx.createGain();
   depth.gain.value = 620 * tone.bright;
   lfo.connect(depth).connect(lp.frequency);
@@ -1329,7 +1341,7 @@ function wobble(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
   const sg = ctx.createGain();
   sg.gain.value = 0.6;
   sq.connect(sg).connect(lp);
-  sub(k, out, t, f, vel, dur);
+  if (tone.sub !== false) sub(k, out, t, f, vel, dur);
 }
 
 /** Growl: a driven saw stack through two band-passes that sweep apart and back, a vowel that talks. */
@@ -1348,7 +1360,7 @@ function growl(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   amp.gain.setValueAtTime(EPS, t);
   amp.gain.exponentialRampToValueAtTime(0.24 * vel, t + 0.004);
   amp.gain.setTargetAtTime(EPS, t + dur, 0.015);
-  const lfo = osc(k, 'triangle', Math.max(1, rate), t, end);
+  const lfo = osc(k, 'triangle', Math.max(1, rate), swingFrom(t, Math.max(1, rate), tone), end);
   for (const [hz, swing] of [[520, 380], [1500, -700]] as const) {
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
@@ -1362,13 +1374,13 @@ function growl(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   fizz.connect(amp);
   pre.connect(ws);
   amp.connect(out);
-  for (const cents of [-10, 0, 9]) {
+  for (const cents of tone.take === undefined ? [-10, 0, 9] : tone.take === 0 ? [-10, 4] : [-4, 9]) {
     const o = osc(k, 'sawtooth', f * 1.04, t, end);
     o.frequency.exponentialRampToValueAtTime(f, t + 0.05);   // a small "yoi" into pitch
     o.detune.value = cents;
     o.connect(pre);
   }
-  sub(k, out, t, f, vel * 0.9, dur);
+  if (tone.sub !== false) sub(k, out, t, f, vel * 0.9, dur);
 }
 
 /**
@@ -1398,12 +1410,12 @@ function reese(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   amp.gain.exponentialRampToValueAtTime(0.13 * vel, t + 0.02);
   amp.gain.setTargetAtTime(EPS, t + dur, 0.05);
   lp.connect(push).connect(driven(ctx)).connect(smooth).connect(amp).connect(out);
-  for (const cents of [-14, 0, 13]) {
+  for (const cents of tone.take === undefined ? [-14, 0, 13] : tone.take === 0 ? [-14, 6] : [-6, 13]) {
     const o = osc(k, 'sawtooth', f, t, end);
     o.detune.value = cents;
     o.connect(lp);
   }
-  sub(k, out, t, f, vel, dur);
+  if (tone.sub !== false) sub(k, out, t, f, vel, dur);
 }
 
 /**
@@ -1497,7 +1509,8 @@ function stringSlap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   delay.connect(hp).connect(push);
   ws.connect(smooth).connect(amp).connect(out);
   // The weight under the string, following its slides and bends: a bigger share of the
-  // sound when smooth.
+  // sound when smooth. A bass stack plays its own sub instead.
+  if (tone.sub === false) return;
   const body = osc(k, 'sine', f, t, end);
   if (art === 2) {
     body.frequency.setValueAtTime(f * 2 ** (-5 / 12), t);
@@ -1627,7 +1640,7 @@ function screech(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   const mod = osc(k, 'sine', f * 1.5, t, end);
   const index = ctx.createGain();
   index.gain.value = f * 2.2;
-  const lfo = osc(k, 'triangle', Math.max(1, rate), t, end);
+  const lfo = osc(k, 'triangle', Math.max(1, rate), swingFrom(t, Math.max(1, rate), tone), end);
   const swing = ctx.createGain();
   swing.gain.value = f * 1.8;
   lfo.connect(swing).connect(index.gain);
@@ -1649,7 +1662,7 @@ function screech(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   amp.gain.setTargetAtTime(EPS, t + dur, 0.015);
   carrier.connect(push);
   ws.connect(bp).connect(fizz).connect(amp).connect(out);
-  sub(k, out, t, f / 2, vel * 0.85, dur);
+  if (tone.sub !== false) sub(k, out, t, f / 2, vel * 0.85, dur);
 }
 
 /** Pulse bass: a 25% pulse with a triangle an octave down, short and bright, like a console's bass channel. */
@@ -1702,7 +1715,7 @@ function electro(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   const sq = osc(k, 'square', f, t, end);
   sq.detune.value = -8;
   sq.connect(lp);
-  sub(k, out, t, f, vel * 0.8, len);
+  if (tone.sub !== false) sub(k, out, t, f, vel * 0.8, len);
 }
 
 /**
@@ -1761,7 +1774,7 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   const sg = ctx.createGain();
   sg.gain.value = PICKED_DRIVE;
   string.connect(sg).connect(lp);
-  sub(k, out, t, f, vel * 0.7, len);
+  if (tone.sub !== false) sub(k, out, t, f, vel * 0.7, len);
 }
 /** The picked bass's string into its amp, at the level the sawtooth and square used to drive the amp. */
 const PICKED_DRIVE = 3.6;
@@ -2452,7 +2465,7 @@ export function bwah(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
     lfo.connect(depth).connect(lp.frequency);
     if (throat) formants(k, lp, mouth, t, len, [[650, 1050], [700, 1150]]);
   }
-  sub(k, out, t, f, vel * 0.8, len);
+  if (tone.sub !== false) sub(k, out, t, f, vel * 0.8, len);
 }
 
 /** Two vowel formants from `from` to `to` ([F1, F2] each), sung between `src` and `dst`, with a little of the plain sound under them. */

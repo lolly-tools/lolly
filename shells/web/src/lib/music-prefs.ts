@@ -14,7 +14,7 @@
  * DOM, so the tests can run every rule.
  */
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { composeLofiTune, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
+import { composeLofiTune, isOverNote, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, type MusicState } from './music-state.ts';
 import { instrumentIcon, type InstrumentIcon } from './instrument-icons.ts';
 
@@ -113,17 +113,22 @@ const STYLE_SEEDS = 24;
 const styleCache = new Map<LofiMood, Record<MusicPart, string[]>>();
 
 /** The instruments a part plays where it has notes in `bars`, by kind of section: each
- *  bar's own instrument, or the tune's, and a drop's doubling of the lead. */
-export function heardBySection(bars: readonly LofiBar[], part: MusicPart): Map<string, string[]> {
+ *  bar's own instrument, or the tune's, a drop's doubling of the lead and, unless `over` is
+ *  false, the bass laid over a bar's bass (the croak, which also calls in a build). */
+export function heardBySection(bars: readonly LofiBar[], part: MusicPart, over = true): Map<string, string[]> {
   const out = new Map<string, string[]>();
   for (const bar of bars) {
-    if (bar.section === 'rest' || !bar.notes.some(n => n.voice === part)) continue;
+    if (bar.section === 'rest') continue;
     const list = out.get(bar.section) ?? [];
-    const own = bar.voices?.[part] ?? bar.tune.style[part];
-    if (!list.includes(own)) list.push(own);
-    const double = part === 'lead' ? bar.voices?.double : undefined;
-    if (double && !list.includes(double)) list.push(double);
-    out.set(bar.section, list);
+    if (bar.notes.some(n => n.voice === part)) {
+      const own = bar.voices?.[part] ?? bar.tune.style[part];
+      if (!list.includes(own)) list.push(own);
+      const double = part === 'lead' ? bar.voices?.double : undefined;
+      if (double && !list.includes(double)) list.push(double);
+    }
+    const laid = part === 'bass' && over ? bar.voices?.over : undefined;
+    if (laid && bar.notes.some(isOverNote) && !list.includes(laid)) list.push(laid);
+    if (list.length) out.set(bar.section, list);
   }
   return out;
 }
@@ -140,7 +145,8 @@ export function styleInstruments(mood: LofiMood, part: MusicPart): readonly stri
     for (let n = 1; n <= STYLE_SEEDS; n++) {
       const bars = composeLofiTune((n * 2654435761) >>> 0, mood);
       for (const p of MUSIC_PARTS) {
-        for (const list of heardBySection(bars, p).values()) for (const id of list) counts[p].set(id, (counts[p].get(id) ?? 0) + 1);
+        // A bass laid over another (the croak) is not one the style plays on its own, so never a substitute.
+        for (const list of heardBySection(bars, p, false).values()) for (const id of list) counts[p].set(id, (counts[p].get(id) ?? 0) + 1);
       }
     }
     const ranked = (m: Map<string, number>): string[] => [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([id]) => id);
@@ -222,7 +228,9 @@ const copyState = (s: MusicState): MusicState => ({
  *
  * When the blocked instrument is a tune's own (heard across the track), the replacement
  * is set for the whole track; when only a section's change of instrument is blocked
- * (an intro's lead, a drop's doubling), it is set for that kind of section alone.
+ * (an intro's lead, a drop's doubling, a bass answering the drop's own, the croak laid
+ * over a bass), it is set for that kind of section alone, where a chosen instrument plays
+ * without a doubling, an answer or anything laid over the chosen one.
  */
 export function avoidBlocked(state: MusicState, prefs: MusicPrefs): { state: MusicState; swaps: MusicSwap[] } {
   const swaps: MusicSwap[] = [];
