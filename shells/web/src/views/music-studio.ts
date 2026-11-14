@@ -4,8 +4,10 @@
  * can dial in a track and keep the result.
  *
  * A toolbar (play and the time, the shuffle cap with the seed beside it, the genre, the
- * render pill with Play and Download, Save to library and the link), folding sections for
- * the tune (length, key, tempo, reset) and the mix (levels, tone, effects), a visualiser,
+ * render pill with Play and Download, Save and the link), folding sections for the tune
+ * (length, key, tempo, reset) and the mix (levels, tone, effects), one above the other, a
+ * visualiser that takes room only while there is sound to show (its switcher sits in the
+ * timeline's header),
  * and the track laid out like a sequence editor: the sections and chords above a lane for
  * each part, every note drawn, each instrument in its own shade of the part's colour with
  * its name where it comes in (filled when the person chose that instrument). Each track's
@@ -33,14 +35,16 @@
  * Every setting lives in the link, so a link plays and edits the same track for anyone
  * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). The render
  * pill (views/music-studio/render-pill.ts) renders the whole track offline with progress,
- * then plays it or downloads it; Save to library keeps the recipe in the asset's details.
+ * then plays the render or downloads the file. Save (views/music-studio/save-menu.ts) keeps
+ * the tune in Assets, the recipe in the asset's details, or in Projects
+ * (lib/music-project.ts), which opens the tune back here with every setting.
  *
  * What each of those writes is said before the click (Andy's approval of 2026-11-10,
  * lib/tune-provenance.ts): the download options under the pill's caret say that a download
  * carries Content Credentials naming the music generator, unless the person unticks the
- * switch, and the help beside Save to library says that a saved tune records the person's
- * profile name as its maker, the music generator and the Lolly and engine versions. After
- * the click the hint says only what was written.
+ * switch, and Save's choice of Assets says that a saved tune records the person's profile
+ * name as its maker, the music generator and the Lolly and engine versions. After the click
+ * the hint says only what was written.
  */
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
@@ -74,7 +78,8 @@ import { genreIconNode, genreTitle, shuffleIconSvg } from '../lib/genre-icons.ts
 import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { actionButton, PlainFailure } from './music-studio/action-button.ts';
 import { renderPillHtml, wireRenderPill } from './music-studio/render-pill.ts';
-import { helpTip, wireHelpTips, unwireHelpTips } from '../components/help-tip.ts';
+import { wireSaveMenu, type SaveChoice, type SaveDestination } from './music-studio/save-menu.ts';
+import { musicProjectRecord, musicStateFromProject, musicSlotFromParams, newMusicSlot } from '../lib/music-project.ts';
 import { avoidBlocked, clearSwaps, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
 import { openInstrumentBrowser, instrumentName, instrumentWord, type BrowseTrack, type InstrumentBrowser } from './music-studio/instrument-browser.ts';
 import '../styles/parts/music-studio.css';
@@ -90,6 +95,8 @@ const TRACK_LABEL: Record<Track, string> = { lead: 'Lead', keys: 'Keys', bass: '
 const FX_FAMILY_LABEL: Record<FxFamily, string> = { voices: 'Voices', console: 'Console', sparkles: 'Sparkles', sweeps: 'Sweeps' };
 /** The producer's tag choices, by name. */
 const TAG_LABEL: Record<string, string> = { off: 'No Lolly tag', spoken: 'Lolly, spoken', shout: 'Lolly, shouted', crowd: 'Lolly, a crowd', sung: 'Lolly, sung', whisper: 'Lolly, whispered', high: 'Lolly, pitched up', deep: 'Lolly, pitched down', robot: 'Lolly, robot', stutter: 'Lolly, stuttered', echo: 'Lolly, echoed' };
+/** The same choices in a word or two, for the effects lane's head, where the menu is narrow. */
+const TAG_SHORT: Record<string, string> = { off: 'No tag', spoken: 'Spoken', shout: 'Shouted', crowd: 'A crowd', sung: 'Sung', whisper: 'Whispered', high: 'Pitched up', deep: 'Pitched down', robot: 'Robot', stutter: 'Stuttered', echo: 'Echoed' };
 /** Which mix level each track's slider moves. */
 const TRACK_MIX: Record<Track, keyof LofiMix> = { lead: 'lead', keys: 'keys', bass: 'bass', drums: 'drums', fx: 'fx' };
 const DRUM_VOICES = new Set<string>(LOFI_DRUM_VOICES);
@@ -217,7 +224,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // Shuffle draws one: a style, a seed and a sound to suit them. A link to a track opens
   // that track. The person's instrument preferences arrive with their profile, and a
   // first visit is drawn again with them if nothing has been touched by then.
-  const firstVisit = !/(^|[?&])(style|seed)=/.test(params);
+  // A tune kept in Projects (lib/music-project.ts) opens by its slot: read back below.
+  const openSlot = musicSlotFromParams(params);
+  const firstVisit = !openSlot && !/(^|[?&])(style|seed)=/.test(params);
   if (firstVisit) Object.assign(state, shuffleMusic(Math.random, { bars: state.bars }));
   let prefs: MusicPrefs = NO_PREFS;
   /** "Shuffle genres": on, shuffle draws a new genre; off, it keeps this one (Profile.music). */
@@ -256,8 +265,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       + `<button type="button" class="ms-ms ms-solo" data-solo="${tr}" aria-pressed="false" aria-label="${escapeHtml(tRaw('Solo: {track}', { track }))}" title="${escapeHtml(t('Solo'))}">${icon('star', { size: 14 })}</button>`
       + `</span>`;
   };
-  const tagSelect = `<select class="field-select field-select--sm ms-pick" data-tag aria-label="${escapeHtml(t('The Lolly tag'))}" title="${escapeHtml(t('How the tune says “Lolly”, or not at all'))}"></select>`;
-  const saveTip = helpTip(t('Save to library records the music generator as the source, and the Lolly and engine versions.'));
+  const tagSelect = (short: boolean): string => `<select class="field-select field-select--sm ms-pick" data-tag${short ? ' data-tag-short' : ''} aria-label="${escapeHtml(t('The Lolly tag'))}" title="${escapeHtml(t('How the tune says “Lolly”, or not at all'))}"></select>`;
   /** A collapsible section's head (styles/parts/disclosure.css, details.section-card). */
   const sectionHead = (name: Parameters<typeof icon>[0], title: string, value = ''): string =>
     `<summary class="section-card-summary"><span class="section-card-icon" aria-hidden="true">${icon(name, { size: 18 })}</span><h2 class="section-card-title">${escapeHtml(title)}</h2>${value}</summary>`;
@@ -287,9 +295,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       <button type="button" class="field-select ms-genre" data-genre aria-haspopup="dialog"><span class="ms-genre-icon" data-genre-icon aria-hidden="true"></span><span class="ms-genre-name" data-genre-name></span></button>
       <span class="ms-bar-end">
         ${renderPillHtml()}
-        <span class="ms-save-host help-tip-host">
-          <button type="button" class="btn btn--labelled ms-save" data-save>${escapeHtml(t('Save to library'))}</button>${saveTip.button}${saveTip.pop}
-        </span>
+        <button type="button" class="btn btn--labelled ms-save" data-save>${escapeHtml(t('Save'))}</button>
         ${iconBtn('data-link', 'link', t('Copy a link to this track'))}
       </span>
     </div>
@@ -325,7 +331,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           </div>
           <div class="ms-fx-on" role="group" aria-label="${escapeHtml(t('Effects'))}">
             <span class="ms-fx-label">${icon('wand', { size: 16 })}${escapeHtml(t('Effects'))}</span>
-            ${tagSelect}
+            ${tagSelect(false)}
             ${FX_FAMILIES.map(f => `<button type="button" class="ms-chip" data-fx-family="${f}" aria-pressed="${!state.quiet?.includes(f)}">${icon('check', { size: 14, className: 'ms-chip-tick' })}${escapeHtml(t(FX_FAMILY_LABEL[f]))}</button>`).join('')}
           </div>
         </div>
@@ -348,7 +354,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     <div class="ms-stage">
       <canvas class="ms-viz" data-viz aria-hidden="true"></canvas>
       <canvas class="ms-viz" data-viz-rich aria-hidden="true" hidden></canvas>
-      ${iconBtn('data-viz-mode', 'neuroBeat', t('Visualiser'))}
       ${iconBtn('data-viz-full hidden', 'monitor', t('Full screen'))}
     </div>
     <div class="ms-editor">
@@ -357,13 +362,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           ${iconBtn('data-zoom="-1"', 'zoomOut', t('Zoom out'))}
           ${iconBtn('data-fit', 'fitAll', t('Fit the track'))}
           ${iconBtn('data-zoom="1"', 'zoomIn', t('Zoom in'))}
+          ${iconBtn('data-viz-mode', 'neuroBeat', t('Visualiser'))}
         </div>
         ${TRACKS.map(tr => `
           <div class="ms-lane-head ms-track" data-track="${tr}" style="height:${lane[tr]}px">
             <span class="ms-track-id">${glyph(tr, true)}<span class="ms-track-name">${escapeHtml(t(TRACK_LABEL[tr]))}</span></span>
             ${tr === 'fx'
-              ? tagSelect
-              : `<button type="button" class="field-select field-select--sm ms-pick ms-browse" data-browse="${tr}" title="${escapeHtml(t('Browse and hear the instruments'))}"><span data-summary="${tr}"></span></button>`}
+              ? tagSelect(true)
+              : `<button type="button" class="field-select field-select--sm ms-pick ms-browse" data-browse="${tr}"><span data-short="${tr}"></span></button>`}
             ${muteSolo(tr)}
           </div>`).join('')}
       </div>
@@ -396,7 +402,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const HINT = t('Click a section in a track to hear and choose its instruments there. Click the top row to play from a section.');
   /** The effects' tag menu and the effect switches, set to the state. */
   const fillOptions = (): void => {
-    for (const sel of page.querySelectorAll<HTMLSelectElement>('[data-tag]')) sel.replaceChildren(new Option(t('Lolly tag: as composed'), ''), ...TAG_CHOICES.map(c => new Option(t(TAG_LABEL[c] ?? c), c, false, c === state.tag)));
+    for (const sel of page.querySelectorAll<HTMLSelectElement>('[data-tag]')) {
+      const short = sel.hasAttribute('data-tag-short');
+      sel.replaceChildren(new Option(short ? t('As composed') : t('Lolly tag: as composed'), ''), ...TAG_CHOICES.map(c => new Option(t((short ? TAG_SHORT[c] : TAG_LABEL[c]) ?? c), c, false, c === state.tag)));
+    }
     for (const el of page.querySelectorAll<HTMLElement>('[data-fx-family]')) el.setAttribute('aria-pressed', String(!state.quiet?.includes(el.dataset.fxFamily as FxFamily)));
   };
   fillOptions();
@@ -600,16 +609,30 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
 
   /** What each lane head's icon shows now, so it is redrawn only when the instrument changes. */
   let laneHeadKey = '';
+  /** The pitched parts with no note anywhere in the track (paintSummaries). */
+  const silentParts = new Set<Pitched>();
   /** Each pitched lane's head shows the instrument playing at the playhead (or the selected bar), in its shade. */
+  /** The bar whose instrument a part's head shows: this one, or where the part next plays (else last played). */
+  const barFor = (tr: Pitched, at: number): LofiBar | undefined => {
+    const plays = (b: LofiBar | undefined): boolean => !!b?.notes.some(n => trackOf(n.voice) === tr);
+    for (let i = at; i < bars.length; i++) if (plays(bars[i])) return bars[i];
+    for (let i = at - 1; i >= 0; i--) if (plays(bars[i])) return bars[i];
+    return bars[at];
+  };
   function laneHeads(): void {
-    const bar = bars[Math.max(0, Math.min(bars.length - 1, playheadBar >= 0 ? playheadBar : selected))];
-    if (!bar) return;
-    const ids = PITCHED.map(tr => instrumentIdOf(bar, tr));
+    const at = Math.max(0, Math.min(bars.length - 1, playheadBar >= 0 ? playheadBar : selected));
+    const heads = PITCHED.map(tr => barFor(tr, at));
+    if (heads.some(b => !b)) return;
+    const ids = PITCHED.map((tr, n) => instrumentIdOf(heads[n]!, tr));
     const key = ids.join('|') + PITCHED.map(tr => trackColour[tr]).join('|');
     if (key === laneHeadKey) return;
     laneHeadKey = key;
     PITCHED.forEach((tr, n) => {
+      const bar = heads[n]!;
       const label = `${t(TRACK_LABEL[tr])}: ${instrumentOf(bar, tr)}`;
+      // The lane head's menu gives the instrument of its icon, or Not playing for a part with no notes at all.
+      const short = page.querySelector<HTMLElement>(`[data-short="${tr}"]`);
+      if (short) short.textContent = silentParts.has(tr) ? t('Not playing') : instrumentOf(bar, tr);
       for (const el of page.querySelectorAll<HTMLElement>(`[data-inst="${tr}"]`)) {
         el.replaceChildren(musicIconNode(instrumentIcon(tr, ids[n]!), 18));
         el.style.color = shadeOf(tr, ids[n]!);
@@ -702,8 +725,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   })();
 
   // ── state, link and recomposing ──────────────────────────────────────────────
+  /** The project this tune is kept as, once it is saved there or opened from there. */
+  let projectSlot: string | null = openSlot;
   function writeLink(): void {
-    const next = `#/music?${musicStateParams(state)}`;
+    const next = `#/music?${musicStateParams(state)}${projectSlot ? `&slot=${encodeURIComponent(projectSlot)}` : ''}`;
     if (location.hash !== next) history.replaceState(history.state, '', next);
   }
   function recompose(): void {
@@ -716,6 +741,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     rendering++;
     renderedBuffer = null; rendered = 0;
     renderPill.showRendered(false);
+    paintStage();
     writeLink(); meta(); paintSummaries(); draw();
     if (station || renderedSrc) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
     showFull();
@@ -745,9 +771,21 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     q<HTMLElement>('[data-stop-icon]').hidden = !on;
     playBtn.setAttribute('aria-label', on ? t('Stop') : t('Play'));
     playBtn.setAttribute('aria-pressed', String(on));
-    // On a phone the visualiser's band opens only while something plays.
     page.classList.toggle('is-playing', on);
+    paintStage();
   };
+  /**
+   * The visualiser's band takes room only while there is sound to show: while a track
+   * plays, while it is stopped part way (the playhead still in the track), and once a
+   * render is made. Otherwise the band is gone and the timeline moves up; the lanes are
+   * fitted to the screen again whenever the band comes or goes.
+   */
+  function paintStage(): void {
+    const audible = !!station || !!renderedSrc || playheadBar >= 0 || !!renderedBuffer;
+    if (page.classList.contains('has-audio') === audible) return;
+    page.classList.toggle('has-audio', audible);
+    onResize();
+  }
   /** A rendered track playing (render and play), instead of the live station. */
   let renderedSrc: AudioBufferSourceNode | null = null;
   function stopPlayback(): void {
@@ -796,7 +834,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     src.buffer = renderedBuffer;
     src.connect(master ?? c.destination);
     src.start(c.currentTime + 0.05, times.starts[fromBar] ?? 0);
-    src.onended = () => { if (renderedSrc === src) { stopPlayback(); playheadBar = -1; meta(); draw(); } };
+    src.onended = () => { if (renderedSrc === src) { stopPlayback(); playheadBar = -1; paintStage(); meta(); draw(); } };
     renderedSrc = src;
     if (vizMode !== 'milkdrop') { vizMode = 'milkdrop'; showVizMode(); void syncRichViz(); }
     follow(fromBar, 0.05);
@@ -811,7 +849,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const tick = (): void => {
       if (!ctx || (!station && !renderedSrc)) return;
       const at = times.starts[startedBar]! + Math.max(0, ctx.currentTime - startedAt);
-      if (at >= times.total + 1.5) { stopPlayback(); playheadBar = -1; meta(); draw(); return; }
+      if (at >= times.total + 1.5) { stopPlayback(); playheadBar = -1; paintStage(); meta(); draw(); return; }
       let b = startedBar;
       while (b + 1 < bars.length && times.starts[b + 1]! <= at) b++;
       playheadBar = b;
@@ -843,6 +881,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (job !== rendering) return false;
     renderedBuffer = buffer; rendered = 1; draw();
     renderPill.showRendered(true);
+    paintStage();
     showFull();
     say(t('Rendered at full quality.'));
     return true;
@@ -940,7 +979,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       useDrumPart,
       setDrumsOn: setDrums,
       audio: () => { const c = ensureAudio(); return { ctx: c, dest: master ?? c.destination }; },
-      stopPlayback: () => { if (station || renderedSrc) { stopPlayback(); playheadBar = -1; draw(); } },
+      stopPlayback: () => { if (station || renderedSrc) { stopPlayback(); playheadBar = -1; paintStage(); draw(); } },
       trackColour: (track) => trackColour[track],
     }, tr, { section: section ?? at, opener: opener ?? browseButton(tr), onClose: () => { if (browser === opened) { browser = null; besideBrowser(false); } } });
     browser = opened;
@@ -1029,19 +1068,28 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       for (const b of bars) if (b.notes.some(n => n.voice === tr)) { const id = instrumentIdOf(b, tr); counts.set(id, (counts.get(id) ?? 0) + 1); }
       const ids = [...counts].sort((a, b) => b[1] - a[1]).map(([id]) => namesOf(tr)[id] ?? id);
       text[tr] = ids.length ? `${ids.slice(0, 2).join(', ')}${ids.length > 2 ? ` +${ids.length - 2}` : ''}` : t('Not playing');
+      if (ids.length) silentParts.delete(tr); else silentParts.add(tr);
     }
-    text.drums = `${state.kit ? t(LOFI_KIT_NAME[state.kit]) : t('Kit: the style’s own')}${state.drums ? '' : ` · ${t('Off')}`}`;
+    // The lane heads' short names follow on the next paint.
+    laneHeadKey = '';
+    text.drums = `${state.kit ? t(LOFI_KIT_NAME[state.kit]) : t('Style kit')}${state.drums ? '' : ` · ${t('Off')}`}`;
     text.fx = state.tag ? t(TAG_LABEL[state.tag] ?? state.tag) : t('Lolly tag: as composed');
     for (const el of page.querySelectorAll<HTMLElement>('[data-summary]')) {
       const tr = TRACKS.find(x => x === el.dataset.summary);
       if (tr) el.textContent = text[tr];
     }
+    // The drums' lane head: the kit in two words, or that the drums are off.
+    const drumsShort = page.querySelector<HTMLElement>('[data-short="drums"]');
+    if (drumsShort) drumsShort.textContent = !state.drums ? t('Off') : state.kit ? t(LOFI_KIT_NAME[state.kit]) : t('Style kit');
     for (const el of page.querySelectorAll<HTMLElement>('.ms-browse')) {
       const tr = TRACKS.find(x => x === el.dataset.browse);
       if (!tr) continue;
       el.classList.toggle('is-set', tr === 'drums' ? !!state.kit : tr !== 'fx' && !!state[tr]);
       el.setAttribute('aria-label', tRaw('{track}: {names}. Browse and hear the instruments.', { track: t(TRACK_LABEL[tr]), names: text[tr] }));
+      el.title = text[tr];
     }
+    // The effects lane's short menu carries the whole choice in its tooltip.
+    for (const sel of page.querySelectorAll<HTMLSelectElement>('[data-tag-short]')) sel.title = text.fx;
   }
 
   // ── wiring ───────────────────────────────────────────────────────────────────
@@ -1263,7 +1311,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const showVizMode = (): void => {
     vizBtn.setAttribute('aria-label', t(VIZ_LABEL[vizMode]));
     vizBtn.title = t(VIZ_LABEL[vizMode]);
-    page.querySelector<HTMLElement>('.ms-stage')?.classList.toggle('is-off', vizMode === 'off');
+    page.classList.toggle('viz-off', vizMode === 'off');
   };
   let rich: VizHandle | null = null;
   const bins = new Uint8Array(1024);
@@ -1355,7 +1403,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     void stage.requestFullscreen().catch(() => { say(t('This browser would not go full screen.')); });
   });
   // What a download and a save will record, said before either is clicked: the download
-  // in its options, under the switch, and the save in the help beside its button.
+  // in its panel, under the switch, and each save in Save's own choices.
   const paintCredNote = (): void => {
     credNote.textContent = credToggle.checked
       ? tRaw('Downloads will carry Content Credentials that record: {declaration}.', { declaration: TUNE_DECLARATION })
@@ -1363,36 +1411,30 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   };
   credToggle.addEventListener('change', paintCredNote);
   paintCredNote();
+  /** The maker a tune saved to Assets records (the profile's name), once the profile is read. */
+  let makerName = '';
   void (async () => {
     const { profileMaker } = await import('../lib/tune-provenance.ts');
-    let maker = '';
-    try { maker = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
-    const note = maker
-      ? tRaw('Save to library records {maker} as the maker, the music generator as the source, and the Lolly and engine versions. The licence stays not recorded until you set one in the tune’s details.', { maker })
-      : t('Save to library records the music generator as the source, and the Lolly and engine versions. Your profile has no name, so no maker is recorded. The licence stays not recorded until you set one in the tune’s details.');
-    // The tip's words are its first text, before its close button.
-    const words = [...q<HTMLElement>('.ms-save-host .help-tip-pop').childNodes].find(n => n.nodeType === Node.TEXT_NODE);
-    if (words) words.textContent = note;
+    try { makerName = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
   })().catch(() => { /* the note is a courtesy; the save still says what it wrote */ });
+  /** Save's two places, each with what a save there records. */
+  const saveChoices = (): SaveChoice[] => [
+    {
+      id: 'assets', icon: 'grid', title: t('Save to assets'),
+      note: makerName
+        ? tRaw('Records {maker} as the maker, the music generator and the Lolly and engine versions. No licence is set.', { maker: makerName })
+        : t('Records the music generator and the Lolly and engine versions. No maker or licence is set.'),
+    },
+    {
+      id: 'projects', icon: 'folder', title: t('Save to projects'),
+      note: projectSlot ? t('Updates this project with every setting, to open here again.') : t('Keeps every setting, so the tune opens here again as it is now.'),
+    },
+  ];
   // Download and Save to library show their work on the button itself: busy, then a tick
   // or the failure in plain words beside it (views/music-studio/action-button.ts).
   const downloadAct = actionButton(downloadBtn, { busy: t('Preparing…'), done: t('Downloaded'), failed: t('The file could not be made.'), rest: 'download', trail: 'chevronDown', errorAfter: q<HTMLElement>('[data-render-pill]') });
-  const saveAct = actionButton(q<HTMLButtonElement>('[data-save]'), { busy: t('Saving…'), done: t('Saved'), failed: t('The tune could not be saved.') });
-  // What a save records shows while a mouse or the keyboard is on Save itself, so the
-  // record is in view at the moment of the click; a touch screen has the info button
-  // beside Save. A tip the info button opened stays open until the person closes the tip.
-  const saveBtn = q<HTMLButtonElement>('[data-save]');
-  const savePop = q<HTMLElement>('.ms-save-host .help-tip-pop');
-  const saveInfo = q<HTMLElement>('.ms-save-host .help-tip-btn');
-  const peekSave = (on: boolean): void => {
-    if (saveInfo.getAttribute('aria-expanded') === 'true') return;
-    savePop.hidden = !on;
-    savePop.classList.toggle('is-peek', on);
-  };
-  saveBtn.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') peekSave(true); });
-  saveBtn.addEventListener('pointerleave', () => peekSave(false));
-  saveBtn.addEventListener('focus', () => { if (saveBtn.matches(':focus-visible')) peekSave(true); });
-  saveBtn.addEventListener('blur', () => peekSave(false));
+  const saveAct = actionButton(q<HTMLButtonElement>('[data-save]'), { busy: t('Saving…'), done: t('Saved'), failed: t('The tune could not be saved.'), trail: 'chevronDown' });
+  const saveMenu = wireSaveMenu(q<HTMLButtonElement>('[data-save]'), saveChoices, (to) => { void saveTo(to); });
   // The panel's Download closes the panel, renders first when the track has not been
   // rendered (behind the same card as Play), and shows its progress on the pill.
   listen('[data-download]', 'click', () => { renderPill.close(true); void download(); });
@@ -1420,8 +1462,26 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     });
     if (failed) say(failed);
   }
-  listen('[data-save]', 'click', () => {
-    void saveAct.run(async () => {
+  /**
+   * Save the tune where the person chose. Save itself says Saved (a short word, so the
+   * phone's bar keeps its shape); the toast says where, with Open to go there.
+   */
+  async function saveTo(to: SaveDestination): Promise<void> {
+    let opened = '';
+    const failed = await saveAct.run(async () => {
+      opened = to === 'assets' ? await saveToAssets() : await saveToProject();
+    });
+    if (failed) { say(failed); return; }
+    const { showUndoToast } = await import('../lib/undo-toast.ts');
+    showUndoToast({
+      message: to === 'assets' ? t('Saved to assets') : t('Saved to projects'),
+      actionLabel: t('Open'),
+      undo: () => { location.hash = opened; },
+      duration: 6000,
+    });
+  }
+  /** Assets: the tune as an asset. Answers where the asset opens. */
+  async function saveToAssets(): Promise<string> {
       if (!canUpload(host.assets)) throw new PlainFailure(t('This host cannot save to the library.'));
       // Saved as a tune (lib/lofi-tune.ts), not a recording: a few hundred bytes holding the
       // track's settings, played and rendered from them wherever a tune plays (the player,
@@ -1437,8 +1497,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       const generator = musicStateParams(state);
       const recipe = { mood: state.mood, seed: state.seed >>> 0, generator };
       const bytes = lofiTuneBytes(recipe);
+      const id = `user/tune/${Date.now()}-${state.mood}-${state.seed}`;
       await host.assets._uploadUserAsset({
-        id: `user/tune/${Date.now()}-${state.mood}-${state.seed}`, type: 'audio', format: LOFI_TUNE_FORMAT,
+        id, type: 'audio', format: LOFI_TUNE_FORMAT,
         blob: new Blob([bytes.slice().buffer], { type: 'application/json' }),
         meta: {
           name: trackName(), tags: ['music', 'generated', 'lolly-sings'],
@@ -1452,8 +1513,69 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       say(maker
         ? tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record {maker} as the maker, the music generator, and Lolly {lolly} with engine {engine}.', { maker, lolly: LOLLY_RELEASE, engine: ENGINE_VERSION })
         : tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record the music generator, and Lolly {lolly} with engine {engine}.', { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }));
-    }).then(failed => { if (failed) say(failed); });
-  });
+      return `#/a?asset=${encodeURIComponent(id)}`;
+  }
+  /**
+   * Projects: every setting kept as a project (lib/music-project.ts), with a picture of
+   * the tune for its tile. A tune opened from a project, or saved to one already, updates
+   * that project in place. Answers where Projects opens.
+   */
+  async function saveToProject(): Promise<string> {
+    const slot = projectSlot ?? newMusicSlot();
+    const record = musicProjectRecord(state, trackName());
+    const save = host.state.save.bind(host.state) as (slot: string, data: object, thumb?: string | null) => Promise<void>;
+    await save(slot, record, coverImage());
+    projectSlot = slot;
+    writeLink();
+    void import('../lib/sync-service.ts').then(m => m.markSyncDirty()).catch(() => { /* device sync is off */ });
+    say(t('Saved to projects: it opens here again with every setting, from Projects.'));
+    return '#/p';
+  }
+  /**
+   * The tune's picture for its project tile: the sections as bands in their colours and
+   * the notes of each part across them, the timeline at a glance. Null when the browser
+   * cannot draw one; the tile then shows its plain cover.
+   */
+  function coverImage(): string | null {
+    try {
+      const W = 480, H = 270;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      const cx = c.getContext('2d');
+      if (!cx) return null;
+      const css = getComputedStyle(page);
+      cx.fillStyle = css.getPropertyValue('--ms-surface').trim() || '#fff';
+      cx.fillRect(0, 0, W, H);
+      const bw = W / Math.max(1, bars.length);
+      bars.forEach((b, i) => {
+        const colour = sectionColour.get(b.section);
+        if (!colour || b.section === 'rest') return;
+        cx.globalAlpha = 0.18;
+        cx.fillStyle = colour;
+        cx.fillRect(i * bw, 0, Math.ceil(bw), H);
+      });
+      // Each part in a band of its own: the pitched parts by pitch, the drums and the effects as ticks.
+      const band: Record<Track, [number, number]> = { lead: [0.06, 0.3], keys: [0.32, 0.54], bass: [0.56, 0.76], drums: [0.8, 0.9], fx: [0.92, 0.97] };
+      const pitch: Record<Pitched, [number, number]> = { lead: [52, 96], keys: [48, 80], bass: [24, 64] };
+      bars.forEach((b, i) => {
+        for (const n of b.notes) {
+          const tr = trackOf(n.voice);
+          const [top, bottom] = band[tr];
+          // The drums and the effects stay light: a steady pulse would fill their band.
+          cx.globalAlpha = tr === 'drums' || tr === 'fx' ? 0.2 + n.vel * 0.2 : 0.55 + n.vel * 0.45;
+          cx.fillStyle = trackColour[tr];
+          const x = (i + n.beat / 4) * bw;
+          if (tr === 'lead' || tr === 'keys' || tr === 'bass') {
+            const [lo, hi] = pitch[tr];
+            const y = (top + (1 - (Math.min(hi, Math.max(lo, n.midi)) - lo) / (hi - lo)) * (bottom - top)) * H;
+            cx.fillRect(x, y, Math.max(1.5, (n.dur / 4) * bw), 2.5);
+          } else cx.fillRect(x, top * H, 1.5, (bottom - top) * H);
+        }
+      });
+      cx.globalAlpha = 1;
+      return c.toDataURL('image/jpeg', 0.82);
+    } catch { return null; }
+  }
   listen('[data-link]', 'click', () => {
     void navigator.clipboard.writeText(`${location.origin}${location.pathname}#/music?${musicStateParams(state)}`)
       .then(() => { say(t('Link copied: it opens this track, ready to edit.')); })
@@ -1464,7 +1586,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // dialog (the browser, the render card) or in the download options are their own, and
   // Space on a button, a section's head or a field does what it always does there.
   const onKey = (e: KeyboardEvent): void => {
-    if (e.defaultPrevented || renderPill.isOpen() || (e.target instanceof Element && e.target.closest('dialog'))) return;
+    if (e.defaultPrevented || renderPill.isOpen() || saveMenu.isOpen() || (e.target instanceof Element && e.target.closest('dialog'))) return;
     if (e.key === 'Escape') {
       if (browser) { browser.close(); return; }
       view.querySelector<HTMLElement>('[data-back-pill]')?.click();
@@ -1494,15 +1616,29 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     onCommit: (el) => setBpm(Number(el.value)),
   });
 
-  wireHelpTips(page);
   say(HINT);
   writeLink(); meta(); paintSummaries(); paintGenre(); paintSilent(); sizeSeed(); fitHeight(); fit(); drawViz();
   void loadPrefs();
+  // A kept tune's address (from Projects, lib/music-project.ts) opens that tune exactly as
+  // it was saved: its settings come back from the project's record, as a link would bring
+  // them, with no instrument swapped. An address that also carries the settings (a reload
+  // after an edit) already has the newest ones and keeps them.
+  if (openSlot && !/(^|[?&])(style|seed)=/.test(params)) {
+    void host.state.load(openSlot).then((data) => {
+      const kept = musicStateFromProject(data);
+      if (!kept) { projectSlot = null; writeLink(); say(t('This project could not be opened. It may have been deleted.')); return; }
+      for (const k of Object.keys(state) as (keyof MusicState)[]) delete state[k];
+      Object.assign(state, kept);
+      swapped.clear();
+      syncControls(); recompose(); fit();
+      say(t('Opened from Projects.'));
+    }).catch(() => { say(t('This project could not be opened.')); });
+  }
   view._cleanup = () => {
     downloadAct.reset(); saveAct.reset();
     renderPill.close();
+    saveMenu.close();
     sectionsSize.disconnect();
-    unwireHelpTips(page);
     detachLang();
     detachScrub();
     detachTempoScrub();

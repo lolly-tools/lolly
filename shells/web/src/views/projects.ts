@@ -35,7 +35,7 @@ import { openNewLocalTextFile } from '../lib/project-text-file.ts';
 import { groupSelectionInFolder } from './projects-folder-create.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
 import type { Folder, FolderItem, TrashEntry, ProjectTemplate } from '../folders.ts';
-import { PTPL_SLOT_PREFIX, isHiddenSlot } from '../lib/batch-slots.ts';
+import { PTPL_SLOT_PREFIX, isHiddenSlot, MUSIC_SLOT_PREFIX } from '../lib/batch-slots.ts';
 import { noteSessionOpen } from '../lib/open-intent.ts';
 import { instantiateBlueprint } from './projects-blueprint.ts';
 import { createTrash } from '../lib/trash.ts';
@@ -65,7 +65,7 @@ import { projectListHead } from '../components/project-listhead.ts';
 import { projectsTopRight } from './projects-topbar.ts';
 import { claimSearchBar, clearSearchBar } from '../components/search-bar.ts';
 import {
-  RETURN_KEY, armSessionReturn, sessionOpenHref,
+  RETURN_KEY, armSessionReturn, sessionOpenHref, sessionRenderHref,
   buildSessionHaystack, buildFolderHaystack, matchesHaystack,
 } from '../lib/search/projects-source.ts';
 import { tokenize } from '../lib/search/match.ts';
@@ -234,7 +234,7 @@ export async function mountProjects(
   if (!folderId) playProjectsAah();
   const w = window as typeof window & { __toolIndex?: { tools?: ProjectsTool[] } };
   const nameById = new Map((w.__toolIndex?.tools ?? []).map((tool): [string, string] => [tool.id, (tool as unknown as ProjectsTool).name]));
-  const toolName = (id: string): string => nameById.get(id) || id || t('Saved session');
+  const toolName = (id: string): string => nameById.get(id) || (`${id}:` === MUSIC_SLOT_PREFIX ? t('Music generator') : id) || t('Saved session');
   // Full index entries (formats + intended width/height/unit) so session tiles can show
   // the same "what you'll get" spec the gallery cards do - see sessionTile's `tool` opt.
   const toolById = new Map((w.__toolIndex?.tools ?? []).map((t): [string, ProjectsTool] => [t.id, t as unknown as ProjectsTool]));
@@ -2554,7 +2554,7 @@ export async function mountProjects(
   // A single-tool session downloads as a bare file (its native format); a batch session
   // falls back to a zip. See pro/folder-export.js renderSessionToFile.
   function renderSession(slot: string): void {
-    if (slot.startsWith('__learning__:')) { window.location.hash = `#/learning?slot=${encodeURIComponent(slot)}&export=1`; return; }
+    const elsewhere = sessionRenderHref(slot); if (elsewhere) { window.location.hash = elsewhere; return; }
     // The job is named by what it is rendering - the session's own name, else its tool.
     // It is what the toast (and a desktop notification) says while this view is gone.
     const entry = entryBySlot().get(slot);
