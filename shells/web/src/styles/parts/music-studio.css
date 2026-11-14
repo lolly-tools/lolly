@@ -174,42 +174,21 @@
   .ms-bar-end { margin-inline-start: auto; display: inline-flex; align-items: center; gap: var(--sp-2); }
   .ms-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); min-height: var(--ui-size-target); padding-inline: var(--sp-1); }
 
-  /* The render pill: the tool view's Export | Save pill (parts/tool.css, .render-pill),
-     here reading "Render (play / download)". Its name says when the track is rendered;
-     the halves share the fill and part on a hairline of the fill's own ink. */
+  /* Render: one button in the action fill, with a caret for its choices: render and
+     play, or a download as M4A or WAV (views/music-studio/render-button.ts). Once the
+     track is made it reads Rendered with a tick. */
   .ms-render {
     flex: none;
     display: inline-flex;
-    align-items: stretch;
+    align-items: center;
+    gap: var(--sp-1);
     min-height: var(--ui-size-target);
+    padding: 0 var(--sp-4) 0 var(--sp-5);
+    border: 0;
     border-radius: var(--ui-radius-pill);
     background: var(--ui-color-action-primary);
     color: var(--ui-color-action-on-primary);
     box-shadow: var(--ui-elevation-control);
-    overflow: hidden;
-    isolation: isolate;
-  }
-  .ms-render-name {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-1);
-    padding-inline: var(--sp-5) var(--sp-1);
-    font-size: var(--fs-sm);
-    font-weight: 700;
-    white-space: nowrap;
-    opacity: .78;
-  }
-  .ms-render-tick { display: none; }
-  .ms-render.is-rendered .ms-render-tick { display: inline-flex; }
-  .ms-render.is-rendered .ms-render-name { opacity: 1; }
-  .ms-render-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--sp-2);
-    padding: 0 var(--sp-4);
-    border: 0;
-    background: transparent;
-    color: inherit;
     font: inherit;
     font-size: var(--fs-sm);
     font-weight: 700;
@@ -218,38 +197,28 @@
     transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard);
   }
   /* Washes in the fill's own ink, so they read in a theme whose action ink is dark. */
-  .ms-render-btn:hover { background: color-mix(in srgb, var(--ui-color-action-on-primary) 14%, transparent); }
-  .ms-render-btn:active { background: color-mix(in srgb, var(--ui-color-action-on-primary) 28%, transparent); }
-  .ms-render-btn:focus-visible { outline: 2px solid var(--ui-color-action-on-primary); outline-offset: -4px; border-radius: var(--ui-radius-pill); }
-  .ms-render-btn:disabled { cursor: progress; }
-  .ms-render-btn svg { flex: none; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
-  .ms-render-get { padding-inline-end: var(--sp-3); }
+  .ms-render:hover:not(:disabled) { background: color-mix(in srgb, var(--ui-color-action-on-primary) 14%, var(--ui-color-action-primary)); }
+  .ms-render:active:not(:disabled) { background: color-mix(in srgb, var(--ui-color-action-on-primary) 28%, var(--ui-color-action-primary)); }
+  .ms-render:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .ms-render:disabled { cursor: progress; }
+  /* The download's busy, done and failed states keep the fill's ink. */
+  .ms-render.ms-act[data-state] { color: var(--ui-color-action-on-primary); }
   .ms-act-trail { display: inline-flex; opacity: .8; }
   .ms-act-trail svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
-  :is(.ms-render-get, .ms-save)[aria-expanded="true"] .ms-act-trail svg { transform: rotate(180deg); }
-  .ms-render-sep { flex: none; width: 1px; align-self: stretch; margin-block: var(--sp-3); background: color-mix(in srgb, var(--ui-color-action-on-primary) 30%, transparent); }
-  /* Download's busy, done and failed states keep the pill's ink. */
-  .ms-render .ms-act[data-state] { color: inherit; }
-  @media (prefers-reduced-motion: reduce) { .ms-render-btn { transition: none; } }
+  :is(.ms-render, .ms-save)[aria-expanded="true"] .ms-act-trail svg { transform: rotate(180deg); }
+  @media (prefers-reduced-motion: reduce) { .ms-render { transition: none; } }
 
-  /* The download's panel, lent to a body popover (components/body-popover.ts) by the pill's Download. */
-  .ms-render-options[hidden] { display: none; }
-  .ms-render-options { display: grid; gap: var(--sp-4); }
-  .ms-opt { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
-  .ms-opt-label { font-size: var(--ui-type-label); color: var(--ui-color-text-muted); }
-  .ms-opt-note { margin: 0; font-size: var(--fs-xs); line-height: 1.45; color: var(--ui-color-text-muted); }
-  .ms-opt-go { justify-content: center; border-radius: var(--ui-radius-pill); font-weight: 700; }
-
-  /* Save sits beside the pill and opens its two places (views/music-studio/save-menu.ts). */
+  /* Save sits beside Render and opens its two places (views/music-studio/choice-menu.ts). */
   .ms-save { border-radius: var(--ui-radius-pill); padding-inline: var(--sp-5) var(--sp-4); font-size: var(--fs-sm); font-weight: 600; }
   .ms-save:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
   /* The word on a wide screen; the glyph waits for a phone. */
   .ms-save[data-state="rest"] .ms-act-icon { display: none; }
 
-  /* Save's places, in the dropdown and in the phone's sheet: each a row of an icon, its
-     name and, under the name, what a save there records. */
-  .ms-save-list { display: grid; gap: var(--sp-1); }
-  .ms-save-choice {
+  /* Render's and Save's choices, in the dropdown and in the phone's sheet: each a row of
+     an icon, its name and, under the name, what the choice does or records. A line that
+     holds for every choice (what a download records) closes the list. */
+  .ms-choice-list { display: grid; gap: var(--sp-1); }
+  .ms-choice {
     display: grid;
     grid-template-columns: auto 1fr;
     column-gap: var(--sp-3);
@@ -266,13 +235,14 @@
     cursor: pointer;
     transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard);
   }
-  .ms-save-choice:hover, .ms-save-choice:focus-visible { background: var(--ui-color-surface-muted); }
-  .ms-save-choice:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
-  .ms-save-choice-icon { grid-row: span 2; display: inline-grid; place-items: center; width: var(--ui-size-control); height: var(--ui-size-control); border-radius: var(--radius-round); background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
-  .ms-save-choice-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
-  .ms-save-choice-title { font-size: var(--ui-type-section); font-weight: 600; }
-  .ms-save-choice-note { grid-column: 2; font-size: var(--fs-xs); line-height: 1.4; color: var(--ui-color-text-muted); }
-  @media (prefers-reduced-motion: reduce) { .ms-save-choice { transition: none; } }
+  .ms-choice:hover, .ms-choice:focus-visible { background: var(--ui-color-surface-muted); }
+  .ms-choice:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+  .ms-choice-icon { grid-row: span 2; display: inline-grid; place-items: center; width: var(--ui-size-control); height: var(--ui-size-control); border-radius: var(--radius-round); background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
+  .ms-choice-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+  .ms-choice-title { font-size: var(--ui-type-section); font-weight: 600; }
+  .ms-choice-note { grid-column: 2; font-size: var(--fs-xs); line-height: 1.4; color: var(--ui-color-text-muted); }
+  .ms-choice-foot { margin: var(--sp-2) 0 0; padding: var(--sp-2) var(--sp-4); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); font-size: var(--fs-xs); line-height: 1.45; color: var(--ui-color-text-muted); }
+  @media (prefers-reduced-motion: reduce) { .ms-choice { transition: none; } }
 
   /* Download and Save to library say what they are doing (views/music-studio/action-button.ts):
      a turning ring and "Saving…" while busy, a tick and "Saved" when done, and when the
@@ -496,16 +466,10 @@
     .ms-bar-end { display: contents; }
     .ms-genre { order: 1; flex: 1 1 calc(100% - var(--ui-size-target) - var(--sp-2)); min-width: 0; font-size: var(--fs-md); }
     .ms-bar-end > [data-link] { order: 2; }
-    .ms-render { order: 3; flex: 1 1 auto; }
-    .ms-render-btn { flex: 1 1 auto; justify-content: center; }
-    .ms-render-options { order: 4; }
+    .ms-render { order: 3; flex: 1 1 auto; justify-content: center; }
     .ms-save { order: 5; margin-inline-start: auto; }
     .ms-bar-end > .ms-act-error { order: 6; flex-basis: 100%; }
-    .ms-render-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    .ms-render-name { padding-inline-start: var(--sp-4); }
-    .ms-render-btn { padding-inline: var(--sp-3); }
-    .ms-render [data-download-open] .ms-act-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    /* Save as a glyph and its chevron, like the pill's Download; the word stays its name. */
+    /* Save as a glyph and its chevron; the word stays its name. */
     .ms-save { padding-inline: var(--sp-3); gap: var(--sp-1); }
     .ms-save .ms-act-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .ms-save[data-state="rest"] .ms-act-icon { display: inline-grid; }
@@ -584,24 +548,16 @@
 .ms-render-status { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; color: var(--ui-color-text-muted); }
 .ms-render-card .job-bar { height: 10px; margin: 0 0 18px; }
 
-/* Save's dropdown, like the download's panel, lives on the page's body. */
-.ms-save-menu {
+/* Render's and Save's dropdowns live on the page's body, outside the view. */
+.ms-choice-menu {
   position: fixed;
   z-index: var(--ui-layer-overlay);
   width: min(340px, calc(100vw - var(--sp-4) * 2));
   padding: var(--sp-2);
   border-radius: var(--ui-radius-card);
 }
-.ms-save-sheet .ms-save-list { padding: var(--sp-2) var(--sp-3) var(--sp-5); }
-
-/* The download options' popover lives on the page's body, outside the view. */
-.ms-render-menu {
-  position: fixed;
-  z-index: var(--ui-layer-overlay);
-  width: min(300px, calc(100vw - var(--sp-4) * 2));
-  padding: var(--sp-5);
-  border-radius: var(--ui-radius-card);
-}
+.ms-choice-sheet .ms-choice-sheet-body { padding: var(--sp-2) var(--sp-3) var(--sp-5); }
+.ms-choice-sheet .ms-choice-foot { padding-inline: var(--sp-4); }
 
 /* The visualiser's settings popover: on the page's body, or inside the band in full
    screen, where only the band is drawn (views/music-studio/viz-stage.ts). */

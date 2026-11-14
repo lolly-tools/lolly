@@ -4,7 +4,7 @@
  * can dial in a track and keep the result.
  *
  * A toolbar (play and the time, the shuffle cap with the seed beside it, the genre, the
- * render pill with Play and Download, Save and the link), folding sections for the tune
+ * Render button with its choices, Save and the link), folding sections for the tune
  * (length, key, tempo, reset) and the mix (levels, tone, effects), one above the other, a
  * visualiser that takes room only while there is sound to show (a spectrum analyser in the
  * playing section's colour by default, which expands in the page or fills the screen with
@@ -34,14 +34,14 @@
  * mix and tone are pill sliders (components/pill-slider.ts).
  *
  * Every setting lives in the link, so a link plays and edits the same track for anyone
- * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). The render
- * pill (views/music-studio/render-pill.ts) renders the whole track offline with progress,
- * then plays the render or downloads the file. Save (views/music-studio/save-menu.ts) keeps
+ * who opens it: the composer is deterministic (engine/src/lofi-compose.ts). Render
+ * (views/music-studio/render-button.ts) opens its choices: render and play, or download
+ * as M4A or WAV; either renders the whole track offline with progress first. Save keeps
  * the tune in Assets, the recipe in the asset's details, or in Projects
  * (lib/music-project.ts), which opens the tune back here with every setting.
  *
  * What each of those writes is said before the click (Andy's approval of 2026-11-10,
- * lib/tune-provenance.ts): the download options under the pill's caret say that a download
+ * lib/tune-provenance.ts): the line under Render's choices says that a download
  * carries Content Credentials naming the music generator, as every download does (Andy,
  * 2026-11-14, with Strip Hidden Data for anyone who wants them gone), and Save's choice of
  * Assets says that a saved tune records the person's profile name as its maker, the music
@@ -76,9 +76,9 @@ import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { genreIconNode, genreTitle, shuffleIconSvg } from '../lib/genre-icons.ts';
 import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { actionButton, PlainFailure } from './music-studio/action-button.ts';
-import { renderPillHtml, wireRenderPill } from './music-studio/render-pill.ts';
+import { renderButtonHtml, wireRenderButton } from './music-studio/render-button.ts';
 import { vizStageHtml, wireVizStage } from './music-studio/viz-stage.ts';
-import { wireSaveMenu, type SaveChoice, type SaveDestination } from './music-studio/save-menu.ts';
+import { wireChoiceMenu, type MenuChoice } from './music-studio/choice-menu.ts';
 import { musicProjectRecord, musicProjectTitle, musicStateFromProject, musicSlotFromParams, newMusicSlot } from '../lib/music-project.ts';
 import { avoidBlocked, clearSwaps, loadMusicPrefs, loadRecentGenres, loadShuffleGenres, noteRecentGenre, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
 import { openInstrumentBrowser, instrumentName, instrumentWord, type BrowseTrack, type InstrumentBrowser } from './music-studio/instrument-browser.ts';
@@ -102,6 +102,8 @@ const TRACK_MIX: Record<Track, keyof LofiMix> = { lead: 'lead', keys: 'keys', ba
 const DRUM_VOICES = new Set<string>(LOFI_DRUM_VOICES);
 /** The pitched tracks, whose instrument can be chosen for the whole track or a kind of section. */
 type Pitched = 'lead' | 'keys' | 'bass';
+/** Where Save keeps the tune (views/music-studio/choice-menu.ts shows the two). */
+type SaveDestination = 'assets' | 'projects';
 const PITCHED: readonly Pitched[] = ['lead', 'keys', 'bass'];
 
 /** Lane heights in CSS pixels: the section ruler, the chords, then each track. */
@@ -291,7 +293,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       </span>
       <button type="button" class="field-select ms-genre" data-genre aria-haspopup="dialog"><span class="ms-genre-icon" data-genre-icon aria-hidden="true"></span><span class="ms-genre-name" data-genre-name></span></button>
       <span class="ms-bar-end">
-        ${renderPillHtml()}
+        ${renderButtonHtml()}
         <button type="button" class="btn btn--labelled ms-save" data-save title="${escapeHtml(t('Save to assets or projects'))}">${escapeHtml(t('Save'))}</button>
         ${iconBtn('data-link', 'link', t('Copy a link to this track'))}
       </span>
@@ -384,9 +386,11 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const hint = q<HTMLElement>('[data-hint]');
   const playBtn = q<HTMLButtonElement>('[data-play]');
   const pos = q<HTMLElement>('[data-pos]');
-  /** The pill's Download: it opens the download's panel, and shows the download's progress. */
-  const downloadBtn = q<HTMLButtonElement>('[data-download-open]');
-  const renderPill = wireRenderPill(page);
+  /** Render: its choices are render and play, or a download as M4A or WAV; a download's progress shows on the button. */
+  const renderBtn = wireRenderButton(q<HTMLButtonElement>('[data-render]'), (choice) => {
+    if (choice === 'play') void renderAndPlay();
+    else void download(choice);
+  });
   const say = (text: string): void => { hint.textContent = text; };
   const HINT = t('Click a section in a track to hear and choose its instruments there. Click the top row to play from a section.');
   /** The effects' tag menu and the effect switches, set to the state. */
@@ -753,7 +757,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     // A render under way is of the track as it was: let it go.
     rendering++;
     renderedBuffer = null; rendered = 0;
-    renderPill.showRendered(false);
+    renderBtn.showRendered(false);
     paintStage();
     writeLink(); meta(); paintSummaries(); draw();
     if (station || renderedSrc) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
@@ -891,13 +895,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     });
     if (job !== rendering) return false;
     renderedBuffer = buffer; rendered = 1; draw();
-    renderPill.showRendered(true);
+    renderBtn.showRendered(true);
     paintStage();
     say(t('Rendered at full quality.'));
     return true;
   }
 
-  // ── the render pill: render, then play or download ──────────────────────────
+  // ── Render: render, then play or download ───────────────────────────────────
   /**
    * The track worked out at full quality, behind a progress card with the shared
    * candy-stripe bar and Cancel (Escape cancels too). True once there is a render to
@@ -949,10 +953,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (renderedBuffer) { playRendered(Math.max(0, selected)); return; }
     if (await renderWithCard()) playRendered(0);
   }
-  async function encoded(): Promise<{ blob: Blob; format: 'm4a' | 'wav' }> {
+  async function encoded(want: 'm4a' | 'wav'): Promise<{ blob: Blob; format: 'm4a' | 'wav' }> {
     if (!renderedBuffer) throw new Error('nothing made yet');
     const pcm = pcmFromAudioBuffer(renderedBuffer);
-    const want = renderPill.format();
     if (want === 'm4a') {
       try { return { blob: await encodeM4a(pcm), format: 'm4a' }; } catch { /* no AAC encoder here: fall back to WAV */ }
     }
@@ -1345,9 +1348,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     draw();
   });
   canvas.addEventListener('dblclick', e => { selected = barAt(e); if (renderedSrc) playRendered(selected); else play(selected); });
-  listen('[data-render-play]', 'click', () => { void renderAndPlay(); });
   // What a download and a save will record, said before either is clicked: the download
-  // in its panel (views/music-studio/render-pill.ts), and each save in Save's own choices.
+  // under Render's choices (views/music-studio/render-button.ts), and each save in Save's
+  // own choices.
   /** The maker a tune saved to Assets records (the profile's name), once the profile is read. */
   let makerName = '';
   void (async () => {
@@ -1355,7 +1358,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     try { makerName = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
   })().catch(() => { /* the note is a courtesy; the save still says what it wrote */ });
   /** Save's two places, each with what a save there records. */
-  const saveChoices = (): SaveChoice[] => [
+  const saveChoices = (): MenuChoice<SaveDestination>[] => [
     {
       id: 'assets', icon: 'grid', title: t('Save to assets'),
       note: makerName
@@ -1367,18 +1370,16 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       note: projectSlot ? t('Updates this project with every setting, to open here again.') : t('Keeps every setting, so the tune opens here again as it is now.'),
     },
   ];
-  // Download and Save to library show their work on the button itself: busy, then a tick
-  // or the failure in plain words beside it (views/music-studio/action-button.ts).
-  const downloadAct = actionButton(downloadBtn, { busy: t('Preparing…'), done: t('Downloaded'), failed: t('The file could not be made.'), rest: 'download', trail: 'chevronDown', errorAfter: q<HTMLElement>('[data-render-pill]') });
+  // Download and Save show their work on the button itself: busy, then a tick or the
+  // failure in plain words beside it (views/music-studio/action-button.ts).
   const saveAct = actionButton(q<HTMLButtonElement>('[data-save]'), { busy: t('Saving…'), done: t('Saved'), failed: t('The tune could not be saved.'), rest: 'save', trail: 'chevronDown' });
-  const saveMenu = wireSaveMenu(q<HTMLButtonElement>('[data-save]'), saveChoices, (to) => { void saveTo(to); });
-  // The panel's Download closes the panel, renders first when the track has not been
-  // rendered (behind the same card as Play), and shows its progress on the pill.
-  listen('[data-download]', 'click', () => { renderPill.close(true); void download(); });
-  async function download(): Promise<void> {
+  const saveMenu = wireChoiceMenu<SaveDestination>(q<HTMLButtonElement>('[data-save]'), { title: t('Save'), choices: saveChoices, pick: (to) => { void saveTo(to); } });
+  // A download renders first when the track has not been rendered (behind the same card
+  // as render and play), and shows its progress on Render.
+  async function download(want: 'm4a' | 'wav'): Promise<void> {
     if (!(await renderWithCard())) return;
-    const failed = await downloadAct.run(async () => {
-      const { blob, format } = await encoded();
+    const failed = await renderBtn.run(async () => {
+      const { blob, format } = await encoded(want);
       // Always signed, as a folder render signs: a file whose record does not read back
       // throws here, so no download leaves without its Content Credentials.
       const { credentialMusicFile } = await import('../lib/music-render.ts');
@@ -1516,7 +1517,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // dialog (the browser, the render card) or in the download options are their own, and
   // Space on a button, a section's head or a field does what it always does there.
   const onKey = (e: KeyboardEvent): void => {
-    if (e.defaultPrevented || renderPill.isOpen() || saveMenu.isOpen() || viz.menuOpen() || (e.target instanceof Element && e.target.closest('dialog'))) return;
+    if (e.defaultPrevented || renderBtn.isOpen() || saveMenu.isOpen() || viz.menuOpen() || (e.target instanceof Element && e.target.closest('dialog'))) return;
     if (e.key === 'Escape') {
       if (browser) { browser.close(); return; }
       if (viz.escape()) return;
@@ -1566,8 +1567,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     }).catch(() => { say(t('This project could not be opened.')); });
   }
   view._cleanup = () => {
-    downloadAct.reset(); saveAct.reset();
-    renderPill.close();
+    renderBtn.reset(); saveAct.reset();
+    renderBtn.close();
     saveMenu.close();
     sectionsSize.disconnect();
     detachLang();

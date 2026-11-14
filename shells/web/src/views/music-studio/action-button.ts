@@ -25,6 +25,8 @@ export interface ActionButton {
   run(work: () => Promise<void>): Promise<string | null>;
   /** Back to rest at once (the view going away). */
   reset(): void;
+  /** A new word and glyph for rest (Render, then Rendered with a tick), shown at once when the button is at rest. */
+  setRest(label: string, glyph?: IconName | null): void;
 }
 
 /** A failure whose message is already plain words for the person, shown as it is. */
@@ -88,15 +90,21 @@ export function actionButton(btn: HTMLButtonElement, words: ActionWords): Action
     else if (glyph) { const g = iconNode(glyph); if (g) icon.append(g); }
     icon.hidden = !glyph;
   };
+  let restGlyph: IconName | null = words.rest ?? null;
   const reset = (): void => {
     clearTimeout(timer);
-    show('rest', rest.label, words.rest ?? null);
+    show('rest', rest.label, restGlyph);
     btn.removeAttribute('aria-busy');
   };
   reset();
 
   return {
     reset,
+    setRest(label, glyph = null) {
+      rest.label = label;
+      restGlyph = glyph;
+      if (btn.dataset.state === 'rest') show('rest', label, glyph);
+    },
     async run(work) {
       clearTimeout(timer);
       error.hidden = true;
