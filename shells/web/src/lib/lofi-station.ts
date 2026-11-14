@@ -93,7 +93,7 @@ export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, fx: 1, r
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
 const MOOD_TONE: Record<LofiMood, number> = {
   warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 13000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
-  country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000, grunge: 7500, stoner: 6500, shoegaze: 7000,
+  country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 7000, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
   persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500, botanica: 12500, oompa: 9000,
   breakbeat: 9500, funkyHouse: 10500, ukGarage: 10500, privateSchool: 8500,
@@ -183,7 +183,7 @@ const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2
  * The didgeridoo's cameo in the bass genres (engine/src/lofi-straya.ts), against its own level:
  * measured K-weighted in its bar, it sits about 3 to 4 dB under the bass stack it plays over.
  */
-const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.55, brostep: 0.55, dnb: 0.85 };
+const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.52, brostep: 0.52, dnb: 0.84 };
 /** The styles whose vocal chops in a chorus are a coro: several singers on the line, not one voice chopped. */
 const CORO = new Set<LofiMood>(['salsa']);
 /** A coro's singers: each its own voice (a seed for lib/lofi-chop.ts), how late (s), its place across the speakers and how loud. */
