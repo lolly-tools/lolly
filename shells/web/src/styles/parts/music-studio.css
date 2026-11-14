@@ -4,12 +4,14 @@
    1. The toolbar, in the floating-toolbar look the hosted utilities share (.surface
       .surface--floating, the raised surface and the floating elevation): play and the
       time, the shuffle cap with the seed beside it (this tune's number), the genre, and
-      at the end the render pill (render, then play or download, with the download
-      options behind its caret), Save to library and the link.
-   2. The sections, folding with the app's standard disclosure (details.section-card,
-      parts/disclosure.css): the tune (length, key, tempo and reset) and the mix (the
-      levels, the tone and the effects), and on a phone the tracks.
-   3. A visualiser.
+      at the end the render pill (render, then play or download, with the download's
+      panel behind Download), Save (to Assets or to Projects) and the link.
+   2. The sections, one above the other, folding with the app's standard disclosure
+      (details.section-card, parts/disclosure.css): the tune (length, key, tempo and
+      reset) and the mix (the levels, the tone and the effects), and on a phone the
+      tracks. Each is as tall as what it holds.
+   3. A visualiser, which takes room only while there is sound to show (.has-audio);
+      its switcher sits in the timeline's header.
    4. The track editor: lane heads on the left (each track's icon in its colour, its
       instruments, mute and solo), a horizontally scrolling canvas of sections, chords
       and notes on the right. The canvas reads its ink and rules from the custom
@@ -31,6 +33,8 @@
     --ms-ink: var(--ui-color-text-default);
     --ms-muted: var(--ui-color-text-muted);
     --ms-line: color-mix(in srgb, var(--ui-color-text-muted) 14%, transparent);
+    /* The ground a project's picture is drawn on (views/music-studio.ts, coverImage). */
+    --ms-surface: var(--ui-color-surface-canvas);
     /* The shuffle button's size. */
     --ms-cap: calc(var(--ui-size-target) * 1.25);
     position: relative;
@@ -221,7 +225,8 @@
   .ms-render-btn svg { flex: none; width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
   .ms-render-get { padding-inline-end: var(--sp-3); }
   .ms-act-trail { display: inline-flex; opacity: .8; }
-  .ms-render-get[aria-expanded="true"] .ms-act-trail svg { transform: rotate(180deg); }
+  .ms-act-trail svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+  :is(.ms-render-get, .ms-save)[aria-expanded="true"] .ms-act-trail svg { transform: rotate(180deg); }
   .ms-render-sep { flex: none; width: 1px; align-self: stretch; margin-block: var(--sp-3); background: color-mix(in srgb, var(--ui-color-action-on-primary) 30%, transparent); }
   /* Download's busy, done and failed states keep the pill's ink. */
   .ms-render .ms-act[data-state] { color: inherit; }
@@ -236,14 +241,37 @@
   .ms-cred { gap: var(--sp-2); font-size: var(--ui-type-label); }
   .ms-opt-go { justify-content: center; border-radius: var(--ui-radius-pill); font-weight: 700; }
 
-  /* Save to library sits beside the pill, its help (what a save records) beside it. */
-  .ms-save { border-radius: var(--ui-radius-pill); padding-inline: var(--sp-5); font-size: var(--fs-sm); font-weight: 600; }
+  /* Save sits beside the pill and opens its two places (views/music-studio/save-menu.ts). */
+  .ms-save { border-radius: var(--ui-radius-pill); padding-inline: var(--sp-5) var(--sp-4); font-size: var(--fs-sm); font-weight: 600; }
   .ms-save:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
-  .ms-save-host { display: inline-flex; align-items: center; }
-  .ms-save-host .help-tip-btn { margin-inline-start: var(--sp-1); }
-  .ms-save-host .help-tip-pop { left: auto; right: 0; width: min(320px, calc(100vw - var(--sp-4) * 2)); }
-  /* Shown while Save is hovered or focused, the tip has nothing to close. */
-  .ms-save-host .help-tip-pop.is-peek .help-tip-close { display: none; }
+
+  /* Save's places, in the dropdown and in the phone's sheet: each a row of an icon, its
+     name and, under the name, what a save there records. */
+  .ms-save-list { display: grid; gap: var(--sp-1); }
+  .ms-save-choice {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--sp-3);
+    row-gap: 2px;
+    align-items: center;
+    width: 100%;
+    padding: var(--sp-3) var(--sp-4);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: transparent;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .ms-save-choice:hover, .ms-save-choice:focus-visible { background: var(--ui-color-surface-muted); }
+  .ms-save-choice:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+  .ms-save-choice-icon { grid-row: span 2; display: inline-grid; place-items: center; width: var(--ui-size-control); height: var(--ui-size-control); border-radius: var(--radius-round); background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
+  .ms-save-choice-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+  .ms-save-choice-title { font-size: var(--ui-type-section); font-weight: 600; }
+  .ms-save-choice-note { grid-column: 2; font-size: var(--fs-xs); line-height: 1.4; color: var(--ui-color-text-muted); }
+  @media (prefers-reduced-motion: reduce) { .ms-save-choice { transition: none; } }
 
   /* Download and Save to library say what they are doing (views/music-studio/action-button.ts):
      a turning ring and "Saving…" while busy, a tick and "Saved" when done, and when the
@@ -269,11 +297,13 @@
   .ms-act-error[hidden] { display: none; }
 
   /* ── 2. The sections ──────────────────────────────────────────────────────── */
-  .ms-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-3); align-items: start; }
+  .ms-sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
   /* The tracks' rows are the phone's: wider, each lane head holds its own controls. */
   .ms-sec--tracks { display: none; }
   /* A folded section says what it holds; open, its controls say it. */
   details.ms-sec[open] > .section-card-summary > .section-card-value { visibility: hidden; }
+  /* The controls sit close under their head: one row of them needs no wide gap above. */
+  details.ms-sec > .ms-sec-body { padding-block-start: var(--sp-3); }
   .ms-tune { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
   .ms-tune select { width: auto; }
   .ms-key { font-variant-numeric: tabular-nums; }
@@ -287,7 +317,8 @@
 
   /* The mix: the levels, then the tone, then the effects, each a row of its own. */
   .ms-mix { display: grid; gap: var(--sp-5); font-size: var(--fs-sm); }
-  .ms-sliders { display: grid; grid-template-columns: repeat(auto-fill, minmax(10em, 1fr)); gap: var(--sp-3); }
+  /* The levels and the tone on one set of columns, so the second row lines up under the first. */
+  .ms-sliders { display: grid; grid-template-columns: repeat(var(--ms-slider-cols, 6), minmax(0, 1fr)); gap: var(--sp-3); }
   .ms-fx-on { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
   .ms-fx-label { display: inline-flex; align-items: center; gap: var(--sp-2); margin-inline-end: var(--sp-1); color: var(--ui-color-text-muted); }
   .ms-fx-on select { flex: none; width: auto; }
@@ -312,14 +343,12 @@
   .ms-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 
   /* ── 3. The visualiser ────────────────────────────────────────────────────── */
-  .ms-stage { position: relative; height: 96px; border-radius: var(--ui-radius-card); overflow: hidden; background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
-  .ms-stage.is-off { height: 0; overflow: visible; }
-  .ms-stage.is-off [data-viz-mode] { top: calc(var(--ui-size-target) * -1 - var(--sp-1)); }
+  .ms-stage { display: none; position: relative; height: 96px; border-radius: var(--ui-radius-card); overflow: hidden; background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
+  .ms-page.has-audio:not(.viz-off) .ms-stage { display: block; }
   .ms-viz { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .ms-stage .ms-icon { background: transparent; box-shadow: none; color: var(--ui-color-text-muted); }
-  .ms-stage [data-viz-mode] { position: absolute; top: var(--sp-1); right: var(--sp-1); }
-  /* Full screen sits beside the visualiser's own button, and only once a track is rendered. */
-  .ms-stage [data-viz-full] { position: absolute; top: var(--sp-1); right: calc(var(--sp-1) * 2 + var(--ui-size-target)); }
+  /* Full screen sits in the band's corner, once a track is rendered. */
+  .ms-stage [data-viz-full] { position: absolute; top: var(--sp-1); right: var(--sp-1); }
   .ms-stage [data-viz-full][hidden] { display: none; }
   /* Full screen: the stage is the whole screen, the visualiser filling it. */
   .ms-stage:fullscreen { height: 100vh; border-radius: 0; background: #000; }
@@ -348,6 +377,8 @@
   .ms-zoom { justify-content: flex-start; gap: 0; padding-inline-start: var(--sp-1); }
   .ms-zoom .ms-icon { min-width: var(--ui-size-control); min-height: var(--ui-size-control); background: transparent; box-shadow: none; color: var(--ui-color-text-muted); }
   .ms-zoom .ms-icon:hover { color: var(--ui-color-text-default); background: var(--ui-color-surface-muted); }
+  /* The visualiser's switcher at the header's far end, away from the zoom. */
+  .ms-zoom [data-viz-mode] { margin-inline-start: auto; }
   /* A track's icon and name. The icon carries the track's colour (an instrument's own
      shade for the pitched tracks), so no other mark is needed. */
   .ms-track-id { flex: none; display: inline-flex; align-items: center; gap: var(--sp-2); min-width: 5.6em; }
@@ -405,6 +436,7 @@
   /* A narrower monitor: the toolbar's end takes a row of its own before anything squeezes. */
   @media (min-width: 761px) and (max-width: 1180px) {
     .ms-bar-end { flex-basis: 100%; justify-content: flex-end; }
+    .ms-sliders { --ms-slider-cols: 3; }
   }
 
   @media (max-width: 760px) {
@@ -449,7 +481,7 @@
     .ms-render { order: 3; flex: 1 1 auto; }
     .ms-render-btn { flex: 1 1 auto; justify-content: center; }
     .ms-render-options { order: 4; }
-    .ms-save-host { order: 5; margin-inline-start: auto; }
+    .ms-save { order: 5; margin-inline-start: auto; }
     .ms-bar-end > .ms-act-error { order: 6; flex-basis: 100%; }
     .ms-render-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .ms-render-name { padding-inline-start: var(--sp-4); }
@@ -457,7 +489,7 @@
     .ms-render [data-download-open] .ms-act-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .ms-save { padding-inline: var(--sp-4); }
 
-    .ms-sections { grid-template-columns: minmax(0, 1fr); gap: var(--sp-2); }
+    .ms-sliders { --ms-slider-cols: 2; }
     .ms-sec--tracks { display: block; }
     /* The tracks as rows: the track and what it plays (a tap opens its instruments),
        then mute and solo at full size for a thumb. */
@@ -487,8 +519,6 @@
     .ms-row-inst { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
     .ms-row .ms-ms { width: var(--ui-size-target); height: var(--ui-size-target); }
 
-    /* The visualiser waits until something plays. */
-    .ms-page:not(.is-playing) .ms-stage { display: none; }
     .ms-stage { height: 64px; }
 
     /* The lane heads narrow to a column: each track's icon over its name. A tap on a
@@ -511,9 +541,11 @@
       overflow: hidden;
     }
     .ms-track .ms-browse:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
-    .ms-zoom { justify-content: center; padding: 0; }
+    /* Zoom on one row and the visualiser's switcher under it, in the narrow column. */
+    .ms-zoom { flex-wrap: wrap; align-content: center; justify-content: center; padding: 0; }
     .ms-zoom [data-fit] { display: none; }
-    .ms-zoom .ms-icon { min-width: 24px; padding-inline: 0; }
+    .ms-zoom .ms-icon { min-width: 24px; min-height: 24px; padding: 0; }
+    .ms-zoom [data-viz-mode] { margin-inline: 0; }
   }
 }
 
@@ -529,6 +561,16 @@
 .ms-render-note { margin: 0 0 var(--sp-4); font-size: var(--fs-sm); line-height: 1.5; color: var(--ui-color-text-muted); }
 .ms-render-status { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0 0 var(--sp-2); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; color: var(--ui-color-text-muted); }
 .ms-render-card .job-bar { height: 10px; margin: 0 0 18px; }
+
+/* Save's dropdown, like the download's panel, lives on the page's body. */
+.ms-save-menu {
+  position: fixed;
+  z-index: var(--ui-layer-overlay);
+  width: min(340px, calc(100vw - var(--sp-4) * 2));
+  padding: var(--sp-2);
+  border-radius: var(--ui-radius-card);
+}
+.ms-save-sheet .ms-save-list { padding: var(--sp-2) var(--sp-3) var(--sp-5); }
 
 /* The download options' popover lives on the page's body, outside the view. */
 .ms-render-menu {

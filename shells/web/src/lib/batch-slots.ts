@@ -92,6 +92,14 @@ export const JOURNAL_SLOT_PREFIX = '__dsjournal__:';
 export const isJournalSlot = (slot: unknown): boolean =>
   typeof slot === 'string' && slot.startsWith(JOURNAL_SLOT_PREFIX);
 
+/**
+ * A tune kept from the music generator (#/music, lib/music-project.ts): `__music__:<time>`.
+ * Listed in Projects like a tool's session, but opened back in the music generator.
+ */
+export const MUSIC_SLOT_PREFIX = '__music__:';
+export const isMusicSlot = (slot: unknown): slot is string =>
+  typeof slot === 'string' && slot.startsWith(MUSIC_SLOT_PREFIX);
+
 export const isHiddenSlot = (slot: unknown): boolean =>
   isTrashedSlot(slot) || isTemplateSlot(slot) || isExportPrefsSlot(slot) || isDesignSystemSlot(slot) || isRebrandSlot(slot)
   || isDiscardedSlot(slot) || isJournalSlot(slot) || (typeof slot === 'string' && slot.startsWith('__projectcopy__:'));
