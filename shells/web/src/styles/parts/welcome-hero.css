@@ -127,6 +127,10 @@
   font-weight: 600;
   line-height: 1.25;
 }
+/* The label's line box carries room for descenders, so centring the box left the
+   letters about 1px high. Trimmed to cap height and baseline, the pill centres the
+   letters themselves (Andy, 2026-11-14). Browsers without text-box keep the old box. */
+.welcome-hero-go:not(.welcome-hero-go--sub) > .btn-label { text-box: trim-both cap alphabetic; }
 /* The blank install's button carries a second, smaller line under its label. */
 .welcome-hero-go--sub { flex-direction: column; gap: 0; }
 .welcome-hero-go-sub { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
