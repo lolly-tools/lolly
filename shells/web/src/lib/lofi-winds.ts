@@ -19,7 +19,7 @@
 import { bowString } from './lofi-bowed.ts';
 import { blowLips, type Horn } from './lofi-brass.ts';
 import { inhale, noteSpeed, type InhaleShape } from './lofi-breath.ts';
-import { blowFlute, FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, type Pipe } from './lofi-flutes.ts';
+import { blowFlute, FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsOf, type Pipe } from './lofi-flutes.ts';
 import { blowReed } from './lofi-reeds.ts';
 import { EPS, mtof, type VoiceKit } from './lofi-voices.ts';
 
@@ -124,7 +124,7 @@ function heldLevel(data: Float32Array, sr: number, held: number, expected: numbe
  * the breath vibrato's depth (cents) at no strength and how much it deepens to full.
  */
 const FLUTES: Record<Pipe, { level: number; raw: readonly [number, number, number]; vibrato: number; vibratoGrow: number; rate: number }> = {
-  open: { level: 0.0366, raw: [25.2, 7.3, -0.48], vibrato: 1, vibratoGrow: 21, rate: 4.9 },
+  open: { level: 0.0411, raw: [26.1, 6.7, -0.52], vibrato: 1, vibratoGrow: 21, rate: 4.9 },
   stopped: { level: 0.037, raw: [24.6, 5.6, -0.39], vibrato: 3, vibratoGrow: 4, rate: 5.4 },
 };
 /** How much of a note's own loudness against the measured trend a player keeps. */
@@ -178,8 +178,36 @@ const FLUTE_UNSETTLED = 2.5;
 const FLUTE_INHALE: InhaleShape = { bands: [{ centre: 1400, width: 1.53 }, { centre: 3500, width: 1.01, level: -6.9 }], rise: 0.25, fall: 0.45 };
 /** How far the flautist's vibrato rate spreads note to note (Hz, over FLUTES.open's): recorded players 4.6 to 6.6. */
 const FLUTE_RATE_SPREAD = 1;
-/** The breath's length short and deep (s), how long after the note it starts (s), and its level against the notes (dB). */
-const FLUTE_BREATH_S = 0.2, FLUTE_DEEP_S = 0.34, FLUTE_BREATH_AFTER = 0.07, FLUTE_BREATH_DB = -28, FLUTE_DEEP_DB = -25;
+/** The breath's length short and deep (s), how long after the note it starts (s), and its level against the notes (dB); a snatched one's length (s), at once. */
+const FLUTE_BREATH_S = 0.2, FLUTE_DEEP_S = 0.34, FLUTE_BREATH_AFTER = 0.07, FLUTE_BREATH_DB = -28, FLUTE_DEEP_DB = -25, FLUTE_SNATCH_S = 0.12;
+/**
+ * The breath running down (lib/lofi-perform.ts keeps how much is used), as recorded players'
+ * does. Over phrases of 6 to 8 s on one breath (72 of them, each note against the same pitch
+ * elsewhere) the level holds within a dB to the end and the pitch sags about 5 cents from the
+ * middle on; held to the very end of a breath (11 s forte, 40 s pianissimo) the level falls
+ * 2 to 4 dB in the last fifth, the air rises 3 to 5 dB against the tone, the tone darkens a
+ * little and wobbles more (the level 40 to 90% more, the pitch about half as much again), and
+ * the pitch is 5 to 10 cents flat. So: the pitch sags FLUTE_SAG cents at none left, early
+ * (the used share to FLUTE_SAG_POW); the level falls FLUTE_SPENT_DB[0] over the breath and
+ * FLUTE_SPENT_DB[1] more over its last quarter, the air rises FLUTE_SPENT_AIR dB over its
+ * last 40%, and over its last quarter the strength falls by FLUTE_SPENT_DARK and the wobble
+ * grows by FLUTE_SPENT_SHAKE.
+ */
+const FLUTE_SAG = 10, FLUTE_SAG_POW = 0.7, FLUTE_SPENT_DB = [-1.5, -2.5] as const, FLUTE_SPENT_AIR = 4, FLUTE_SPENT_DARK = 0.15, FLUTE_SPENT_SHAKE = 0.7;
+/** A smooth rise from 0 to 1 as `u` goes from `from` to 1. */
+function lateIn(u: number, from: number): number {
+  const x = Math.min(1, Math.max(0, (u - from) / (1 - from)));
+  return x * x * (3 - 2 * x);
+}
+const spentDb = (u: number): number => FLUTE_SPENT_DB[0] * u + FLUTE_SPENT_DB[1] * lateIn(u, 0.75);
+/**
+ * The flute's own level by register, as recorded ones are at mezzo-forte (an anechoic
+ * flute's notes and a studio player's phrases, each pitch against C5): level from A4 to C6,
+ * softer below A4 (D4 6 and 11 dB under, C4 6 and 13), and louder over C6 (G6 to A6 4 to 13
+ * dB over). So the level falls FLUTE_REGISTER[0] dB a semitone under A4 and rises
+ * FLUTE_REGISTER[1] a semitone over C6, at most FLUTE_REGISTER_MAX either way.
+ */
+const FLUTE_REGISTER = [0.8, 0.6] as const, FLUTE_REGISTER_MAX = 9;
 
 function flautist(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined): void {
   const { ctx } = k;
@@ -187,7 +215,12 @@ function flautist(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: num
   const flags = art & FLUTE_PLAYED ? art : art === 1 ? FLUTE_SCOOP : 0;
   const ghost = (flags & FLUTE_GHOST) !== 0;
   const held = Math.max(0.05, dur);
-  const strength = Math.min(1, Math.max(0, vel)) * (ghost ? FLUTE_GHOST_BLOW : 1);
+  const blown = Math.min(1, Math.max(0, vel)) * (ghost ? FLUTE_GHOST_BLOW : 1);
+  // How much of the breath is used through the note: the pitch sags, the level falls, the air rises and the tone darkens and wobbles as it runs out.
+  const [u0, u1] = lungsOf(flags);
+  const um = (u0 + u1) / 2;
+  const strength = blown * (1 - FLUTE_SPENT_DARK * lateIn(um, 0.75));
+  const sag = 2 ** (-FLUTE_SAG * um ** FLUTE_SAG_POW / 1200);
   const swell = (flags & FLUTE_SWELL) !== 0, taper = (flags & FLUTE_TAPER) !== 0;
   const rate = p.rate + k.rng() * FLUTE_RATE_SPREAD;
   const depth = (p.vibrato + p.vibratoGrow * strength) * (0.7 + 0.6 * k.rng());
@@ -198,19 +231,21 @@ function flautist(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: num
   const burst = from === undefined ? { db: tongue, centre: ku ? FLUTE_KU_CENTRE : 1, speed } : null;
   const unsettled = from === undefined ? FLUTE_UNSETTLED * speed : 0;
   const data = blowFlute({
-    sr: ctx.sampleRate, f: mtof(midi), from: from === undefined ? undefined : mtof(from), vel: strength, dur: held, seconds: held + 0.3, pipe: 'open',
+    sr: ctx.sampleRate, f: mtof(midi) * sag, from: from === undefined ? undefined : mtof(from) * sag, vel: strength, dur: held, seconds: held + 0.3, pipe: 'open',
     vibrato: !ghost && held > FLUTE_VIBRATO_FROM ? depth : 0, rate, scoop: flags & FLUTE_SCOOP ? 1 : 0,
     tongue: ghost ? FLUTE_GHOST_TONGUE : flags & FLUTE_SOFT ? FLUTE_SOFT_TONGUE : 1,
-    contour: swell && taper ? 0 : swell ? FLUTE_SWELL_DB : taper ? FLUTE_TAPER_DB : 0, arch: swell && taper ? FLUTE_ARCH_DB : 0,
+    contour: (swell && taper ? 0 : swell ? FLUTE_SWELL_DB : taper ? FLUTE_TAPER_DB : 0) + spentDb(u1) - spentDb(u0), arch: swell && taper ? FLUTE_ARCH_DB : 0,
     stop: (flags & FLUTE_STOP) !== 0, burst, unsettled,
+    airDb: FLUTE_SPENT_AIR * lateIn(um, 0.6), shake: FLUTE_SPENT_SHAKE * lateIn(um, 0.75),
   }, seeded(k));
   const expected = p.raw[0] + p.raw[1] * (strength - 0.5) + p.raw[2] * (midi - 72);
-  const level = p.level * (0.55 + 0.45 * strength) * (ghost ? FLUTE_GHOST_LEVEL : 1);
-  playBuffer(k, data, out, t, level * heldLevel(data, ctx.sampleRate, held, expected, NOTE_KEPT), []);
+  const register = Math.max(-FLUTE_REGISTER_MAX, Math.min(FLUTE_REGISTER_MAX, FLUTE_REGISTER[0] * Math.min(0, midi - 69) + FLUTE_REGISTER[1] * Math.max(0, midi - 84)));
+  const level = p.level * (0.55 + 0.45 * blown) * (ghost ? FLUTE_GHOST_LEVEL : 1);
+  playBuffer(k, data, out, t, level * 10 ** ((register + spentDb(u0)) / 20) * heldLevel(data, ctx.sampleRate, held, expected, NOTE_KEPT), []);
   if (flags & FLUTE_BREATH) {
-    const deep = (flags & FLUTE_DEEP) !== 0;
-    const air = inhale(ctx.sampleRate, deep ? FLUTE_DEEP_S : FLUTE_BREATH_S, FLUTE_INHALE, Math.floor(k.rng() * 4294967296));
-    playBuffer(k, air, out, t + held + FLUTE_BREATH_AFTER, level * 10 ** ((deep ? FLUTE_DEEP_DB : FLUTE_BREATH_DB) / 20), []);
+    const deep = (flags & FLUTE_DEEP) !== 0, snatched = (flags & FLUTE_SNATCH) !== 0;
+    const air = inhale(ctx.sampleRate, snatched ? FLUTE_SNATCH_S : deep ? FLUTE_DEEP_S : FLUTE_BREATH_S, FLUTE_INHALE, Math.floor(k.rng() * 4294967296));
+    playBuffer(k, air, out, t + held + (snatched ? 0.01 : FLUTE_BREATH_AFTER), level * 10 ** ((deep ? FLUTE_DEEP_DB : FLUTE_BREATH_DB) / 20), []);
   }
 }
 

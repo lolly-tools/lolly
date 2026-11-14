@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { HAT_BELL, fingerChord, flautist, perform } from './lofi-perform.ts';
-import { composerMod, FLUTE_BREATH, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
+import { HAT_BELL, fingerChord, flautist, newLungs, perform } from './lofi-perform.ts';
+import { composerMod, FLUTE_BREATH, FLUTE_DEEP, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod, lungsOf } from './lofi-flutes.ts';
 import { composeLofiTune, ELECTRIC_FRET, type LofiBar, type LofiNote } from '../../../../engine/src/lofi-compose.ts';
 
 const TUNING = [40, 45, 50, 55, 59, 64];
@@ -174,4 +174,37 @@ test('a flautist double-tongues a quick run: every other note a "ku"', () => {
   const slow: LofiNote[] = [0, 1, 2].map((beat) => ({ voice: 'lead', midi: 72, beat, dur: 0.8, vel: 0.55 }));
   flautist(slow, 0.5, () => 0.5);
   assert.ok(slow.every((n) => !(n.mod! & FLUTE_KU)), 'held notes are not double-tongued');
+});
+
+test('a flautist\'s breath runs down as the notes are blown, faster when loud, and a breath fills it again', () => {
+  const lead = (beat: number, dur: number, vel = 0.5): LofiNote => ({ voice: 'lead', midi: 72, beat, dur, vel });
+  // Four bars of legato notes at a beat a second, a rest of 1.2 s in the third: the breath carries from bar to bar.
+  const lungs = { used: 0, size: 20 };
+  const bars = [0, 1, 2, 3].map((b) => (b === 2 ? [lead(0, 1), lead(1, 1), lead(3.2, 0.8)] : [lead(0, 1), lead(1, 1), lead(2, 1), lead(3, 1)]));
+  const starts: number[] = [];
+  for (const bar of bars) {
+    flautist(bar, 1, () => 0.9, lungs);
+    for (const n of bar) starts.push(lungsOf(n.mod!)[0]);
+  }
+  // 1 s at mezzo-forte spends a twentieth of a 20 s breath (in fifteenths).
+  assert.ok(Math.abs(starts[1]! - 1 / 15) < 1e-9 && starts[7]! > starts[4]! && starts[4]! > starts[1]!, `the breath runs down note by note, bar after bar: ${starts.map((u) => u.toFixed(2)).join(' ')}`);
+  assert.ok(bars[2]![1]!.mod! & FLUTE_BREATH && bars[2]![1]!.mod! & FLUTE_DEEP, 'a long rest takes a deep breath');
+  assert.equal(starts[10], 0, 'and the next note starts on a full one');
+  // A loud phrase spends the breath faster than a soft one.
+  const spend = (vel: number): number => { const l = { used: 0, size: 20 }; const bar = [lead(0, 2, vel), lead(2, 2, vel)]; flautist(bar, 1, () => 0.9, l); return lungsOf(bar[1]!.mod!)[1]; };
+  assert.ok(spend(0.9) > 1.5 * spend(0.2), `loud ${spend(0.9).toFixed(2)}, soft ${spend(0.2).toFixed(2)}`);
+  // A phrase with no rest: once the breath is nearly gone a note is cut short and a breath snatched.
+  const tight = { used: 0.65, size: 20 };
+  const run = [lead(0, 1), lead(1, 1), lead(2, 1), lead(3, 1)];
+  flautist(run, 1, () => 0.9, tight);
+  const snatched = run.findIndex((n) => n.mod! & FLUTE_SNATCH);
+  assert.ok(snatched >= 0 && run[snatched]!.dur < 1 && run[snatched]!.mod! & FLUTE_BREATH, 'a breath snatched from the end of a note');
+  assert.ok(lungsOf(run[snatched + 1]!.mod!)[0] < lungsOf(run[snatched]!.mod!)[1], 'and the next note starts with more breath');
+  // Without lungs (another caller) nothing about the breath is written.
+  const plain = [lead(0, 1), lead(1, 1)];
+  flautist(plain, 1, () => 0.9);
+  assert.deepEqual(plain.map((n) => lungsOf(n.mod!)), [[0, 0], [0, 0]]);
+  assert.deepEqual(lungsOf(lungsMod(0.4, 0.6) + FLUTE_PLAYED + FLUTE_SOFT), [6 / 15, 9 / 15]);
+  assert.equal(composerMod(FLUTE_PLAYED | lungsMod(1, 1)), 0, 'a double reads none of it');
+  assert.deepEqual(newLungs(), { used: 0, size: 0 });
 });

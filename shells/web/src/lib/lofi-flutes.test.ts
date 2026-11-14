@@ -167,3 +167,24 @@ test('a tongued note puffs as the jet is let go, every puff its own; a slur does
   const f = mtof(76);
   assert.ok(breath(unsettled, f, 0.03, 0.14) > breath(settled, f, 0.03, 0.14) + 3, 'the unsettled jet is airier');
 });
+
+test('a breath running out: more air against the tone, and the breath wobbling more', () => {
+  const f = mtof(74);
+  const held = (more: Partial<JetNote>): Float32Array => blowFlute(note('open', 74, 0.5, { dur: 1.2, seconds: 1.3, burst: null, ...more }), seeded(21));
+  const fresh = held({}), spent = held({ airDb: 4 });
+  const more = breath(spent, f, 0.3, 1.1) - breath(fresh, f, 0.3, 1.1);
+  assert.ok(more > 2.5 && more < 5.5, `the air rises ${more.toFixed(1)} dB against the tone`);
+  // The level's wobble over the held part (50 ms frames, dB).
+  const wobble = (x: Float32Array): number => { const L: number[] = []; for (let a = 0.3; a < 1.1; a += 0.05) L.push(20 * Math.log10(rms(x, a, a + 0.05))); const m = L.reduce((p, v) => p + v, 0) / L.length; return Math.sqrt(L.reduce((p, v) => p + (v - m) ** 2, 0) / L.length); };
+  assert.ok(wobble(held({ shake: 0.7 })) > 1.2 * wobble(fresh), `wobble ${wobble(fresh).toFixed(2)} dB fresh, ${wobble(held({ shake: 0.7 })).toFixed(2)} running out`);
+});
+
+test('the flute\'s low notes are rich and its harmonics fall away over the tone holes\' cutoff, as recorded flutes\' do', () => {
+  // Recorded at mezzo-forte: C4 to F#4 carry their 2nd to 5th harmonics 3 to 10 dB under the 1st; over about 1.5 kHz the harmonics drop away.
+  const low = blowFlute(note('open', 60, 0.5, { burst: null }), seeded(31)), f = mtof(60);
+  const h = (x: Float32Array, fr: number, k: number): number => harmonic(x, fr, k) - harmonic(x, fr, 1);
+  for (const k of [2, 3, 4, 5]) assert.ok(h(low, f, k) > -18, `C4's harmonic ${k} at ${h(low, f, k).toFixed(1)} dB`);
+  const mid = blowFlute(note('open', 74, 0.5, { burst: null }), seeded(32)), g = mtof(74);
+  // D5: its 3rd (1.76 kHz) still rings; its 4th (2.35 kHz) is over the cutoff.
+  assert.ok(h(mid, g, 3) - h(mid, g, 4) > 8, `D5's 4th ${(h(mid, g, 3) - h(mid, g, 4)).toFixed(1)} dB under its 3rd`);
+});

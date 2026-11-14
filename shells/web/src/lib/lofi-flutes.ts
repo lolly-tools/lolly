@@ -39,15 +39,29 @@
  * with lib/lofi-breath.ts). Each articulated note starts with a burst of air as the tongue
  * lets the jet go, short and bright, every one its own (lib/lofi-breath.ts makes it from
  * FLUTE_BURST), and a quick note's jet never settles, so a fast run stays airy where a held
- * note clears.
+ * note clears. A breath running out (the player keeps track) brings more air and a shakier
+ * breath.
+ *
+ * The flute's sound leaves it as a real one's does: rising with the frequency as it radiates
+ * from the holes, and some 18 dB weaker over the tone holes' cutoff near 1.5 kHz, where the
+ * bore no longer rings (the pipe's own sound only: the jet's turbulence goes straight out).
+ * Up the range the player blows a faster jet with less air against the tone. So the low notes
+ * are full and woody, their 2nd to 5th harmonics close under the 1st, the middle keeps its
+ * 2nd and 3rd with little over them, and the top is nearly pure.
  *
  * The constants were set by measuring the model against recordings, for measurement only
  * (no recording is in this repository): a flute's sustained notes with and without vibrato
  * at three strengths, and a pan flute played in a studio (with a low pan pipe and a wooden
  * one for the breath). Against them:
- * - the flute's 2nd to 5th harmonics within a few dB at each strength (the 4th 5 to 8 dB
- *   strong), filling out with the breath as recorded (centroid about 1.5, 1.7 and 1.95
- *   harmonics softly, at mezzo-forte and loud; recorded 1.3, 1.8 and 1.9);
+ * - the flute's 2nd to 5th harmonics within a few dB at each strength, filling out with the
+ *   breath as recorded (centroid about 1.35, 1.6 and 1.9 harmonics softly, at mezzo-forte
+ *   and loud; recorded 1.25, 1.8 and 2.0);
+ * - by register, over a studio player's 61 phrases (attacks left out) and an anechoic
+ *   flute's notes: the 2nd to 5th harmonics 4.8 dB from the phrases' on average (before the
+ *   cutoff, 6.1), C4 to F#4 carrying them 4 to 21 dB under the 1st (recorded 3 to 9; before,
+ *   8 to 25), C5 to E5 its 4th 23 dB under (recorded 30; before, 20), C6 up its 2nd 22
+ *   (recorded 29; before, 17); G4 to B4's 3rd is 7 dB too strong (recorded 14 under the 1st,
+ *   before 12, now 6.5), where the fit gave ground;
  * - its breath 31 dB under the harmonics from 1 to 8 kHz (recorded 29 to 34), its chiff 9
  *   to 14 dB under them (recorded 8 to 14 at mezzo-forte), speaking within 3 dB in 80 ms
  *   at mezzo-forte (recorded 54 to 109) and in tune within 2 cents from C4 to C6;
@@ -69,10 +83,12 @@
  *   5.5), vibrato 8 to 10 cents at 5.1 to 5.5 Hz, its depth wandering by about 2 cents
  *   (recorded 9.7 cents at 5.9 Hz, wandering 2.0), and the breath after a phrase about 37
  *   to 49 dB under the notes (recorded 31 to 38 in a room; the old flute was silent);
- * - over recorded double- and triple-tongued runs: the air above 4 kHz jumping 4.9 dB over
+ * - over recorded double- and triple-tongued runs: the air above 4 kHz jumping 5.9 dB over
  *   the note's own at each tongued onset for about 4 ms (recorded 5.5 dB, 6 ms; before the
  *   burst, 5.2 dB under), and quick notes (under 0.2 s apart) carrying 16 dB less air than
- *   tone where slow ones carry 27 (recorded 19 and 28; before, 29 and 28).
+ *   tone where slow ones carry 25 (recorded 19 and 28; before, 29 and 28); and in the
+ *   triple-tongued run at C5 the 3rd harmonic 11 dB under the 1st and the 4th 23 (recorded
+ *   10 and 36; before the cutoff, 14 and 19).
  *
  * Pure: no DOM, no Web Audio; deterministic for the same note and seed.
  */
@@ -86,12 +102,26 @@ export type Pipe = 'open' | 'stopped';
  * plays): FLUTE_PLAYED marks the flags as the flute's own (another lead's `mod` means
  * something else), and the rest say how the note goes: scooped up into (the composer's
  * bend), half-tongued (a "du"), ghosted (a passing note barely blown), swelled, tapered (both:
- * a messa di voce), with a breath after it (a deep one in a longer rest), stopped by the
- * tongue for the next note rather than let go, and tongued with the back of the tongue (the
- * "ku" of a double-tongued run).
+ * a messa di voce), with a breath after it (a deep one in a longer rest, a quick one snatched
+ * from the end of the note), stopped by the tongue for the next note rather than let go, and
+ * tongued with the back of the tongue (the "ku" of a double-tongued run). Above the flags,
+ * how much of the player's breath is used as the note starts and as it ends (FLUTE_LUNGS:
+ * see lungsMod).
  */
 export const FLUTE_PLAYED = 1 << 12;
-export const FLUTE_SCOOP = 1, FLUTE_SOFT = 2, FLUTE_GHOST = 4, FLUTE_SWELL = 8, FLUTE_TAPER = 16, FLUTE_BREATH = 32, FLUTE_DEEP = 64, FLUTE_STOP = 128, FLUTE_KU = 256;
+export const FLUTE_SCOOP = 1, FLUTE_SOFT = 2, FLUTE_GHOST = 4, FLUTE_SWELL = 8, FLUTE_TAPER = 16, FLUTE_BREATH = 32, FLUTE_DEEP = 64, FLUTE_STOP = 128, FLUTE_KU = 256, FLUTE_SNATCH = 512;
+/** The breath used at a note's start and end, in 15 steps each (0 a full breath, 15 none left), above FLUTE_PLAYED. */
+export const FLUTE_LUNGS = 1 << 13, FLUTE_LUNGS_END = 1 << 17;
+const LUNG_STEPS = 15;
+/** A note's breath in its `mod`: how much is used as it starts and as it ends (shares, 0 to 1). */
+export function lungsMod(start: number, end: number): number {
+  const q = (u: number): number => Math.round(Math.min(1, Math.max(0, u)) * LUNG_STEPS);
+  return q(start) * FLUTE_LUNGS + q(end) * FLUTE_LUNGS_END;
+}
+/** The breath used as a note starts and ends, from its `mod` (both 0 for a note that does not say). */
+export function lungsOf(mod: number): [number, number] {
+  return [(Math.floor(mod / FLUTE_LUNGS) % 16) / LUNG_STEPS, (Math.floor(mod / FLUTE_LUNGS_END) % 16) / LUNG_STEPS];
+}
 /** A lead note's `mod` as another instrument should read it (a double): the composer's own bend under a flautist's flags. */
 export function composerMod(mod: number | undefined): number {
   const m = mod ?? 0;
@@ -125,6 +155,41 @@ export interface JetNote {
    * jet settles), which keeps a quick note airy.
    */
   burst?: { db?: number; centre?: number; speed?: number } | null; unsettled?: number;
+  /** A breath running out (the flute only): more air against the tone (dB), and the breath and the pitch wobbling more (a share more). */
+  airDb?: number; shake?: number;
+}
+
+/** A second-order Butterworth filter (RBJ), low- or high-pass, run one sample at a time. */
+class Butter {
+  private readonly b0: number; private readonly b1: number; private readonly a1: number; private readonly a2: number;
+  private x1 = 0; private x2 = 0; private y1 = 0; private y2 = 0;
+  constructor(sr: number, hz: number, high: boolean) {
+    const w = (2 * Math.PI * hz) / sr, cs = Math.cos(w), al = Math.sin(w) / Math.SQRT2, a0 = 1 + al;
+    this.b0 = (high ? (1 + cs) / 2 : (1 - cs) / 2) / a0; this.b1 = (high ? -(1 + cs) : 1 - cs) / a0;
+    this.a1 = (-2 * cs) / a0; this.a2 = (1 - al) / a0;
+  }
+  next(x: number): number {
+    const y = this.b0 * x + this.b1 * this.x1 + this.b0 * this.x2 - this.a1 * this.y1 - this.a2 * this.y2;
+    this.x2 = this.x1; this.x1 = x; this.y2 = this.y1; this.y1 = y;
+    return y;
+  }
+}
+
+/**
+ * The tone holes' cutoff: the sound under the cutoff as it is, over it `db` weaker. A Linkwitz-Riley
+ * split (two Butterworths each side, in phase at every frequency), so the two halves add
+ * without a notch where they cross.
+ */
+class Cutoff {
+  private readonly lo: [Butter, Butter]; private readonly hi: [Butter, Butter]; private readonly above: number;
+  constructor(sr: number, hz: number, db: number) {
+    this.lo = [new Butter(sr, hz, false), new Butter(sr, hz, false)];
+    this.hi = [new Butter(sr, hz, true), new Butter(sr, hz, true)];
+    this.above = 10 ** (db / 20);
+  }
+  next(x: number): number {
+    return this.lo[1].next(this.lo[0].next(x)) + this.above * this.hi[1].next(this.hi[0].next(x));
+  }
 }
 
 /** A delay line read at a fractional, changing length (linear interpolation). */
@@ -186,6 +251,15 @@ interface Breath {
   tongueStop: number;
   /** The tongue's burst of air against the held air (FLUTE_BURST for the flute; null none), and how fast the jet settles after the tongue lets it go (s). */
   burst: BurstShape | null; settle: number;
+  /**
+   * How the sound leaves the flute (0 leaves the pan flute's own): the share of it that rises
+   * with the frequency as it radiates from the holes (1 a full 6 dB an octave over the note),
+   * and the tone holes' cutoff (Hz), above which the bore no longer rings and the harmonics
+   * come out `cutoffDb` weaker (0 none).
+   */
+  radiate: number; cutoff: number; cutoffDb: number;
+  /** How the player's lips change up the range (dB an octave over C5): the jet's gain (a faster jet up high), how unevenly it splits, and the air against the tone. */
+  gainTilt: number; evenTilt: number; airTilt: number;
 }
 
 /**
@@ -197,17 +271,18 @@ interface Breath {
  */
 export const FLUTE_BURST: BurstShape = {
   centre: 2560, width: 1.7, top: 0.6, topHz: 4000,
-  level: 5.7, length: 0.008, rise: 0.0008, perStrength: 7, perSpeed: 4.2,
+  level: 6.9, length: 0.008, rise: 0.0008, perStrength: 7, perSpeed: 4.2,
   spread: 2.5, lengthSpread: 0.3, centreSpread: 0.17,
 };
 
 const FLUTE_TUNING: Record<Pipe, Breath> = {
   open: {
-    jet: 0.72, band: 3, gainSoft: 0.097, gainLoud: 0.22, evenSoft: 0.25, evenLoud: 0.75, reflect: 0.97, pole: 0.5, mouth: 0.97,
+    jet: 0.72, band: 3.2, gainSoft: 0.095, gainLoud: 0.215, evenSoft: 0.12, evenLoud: 0.55, reflect: 0.97, pole: 0.5, mouth: 0.97,
     turbulence: 0.25, air: 1.1, airHz: 1800, chiff: 0.3, chiffTime: 0.02, attackSoft: 0.05, attackLoud: 0.012, release: 0.04,
     vibratoBreath: 0.18, wander: 1.5, vibratoFrom: 0.15, vibratoIn: 0.25,
     push: 0.6, pushTime: 0.025, sharp: [3, 5], seed: 0.3, edge: 0, unsteady: 0.08,
     pulse: 2, airQ: 1.1, airTop: 0.25, airTopHz: 5000, airRelease: 0.1, puff: 1.5, pressPitch: 30, vibratoWobble: 0.25, turbHz: 1600, airVel: 12, airHold: 0.08, releasePitch: 0, tongueStop: 0.008, burst: FLUTE_BURST, settle: 0.06,
+    radiate: 1, cutoff: 1500, cutoffDb: -18, gainTilt: 1.9, evenTilt: -0.5, airTilt: -1,
   },
   stopped: {
     jet: 0.72, band: 3, gainSoft: 0.08, gainLoud: 0.14, evenSoft: 0.55, evenLoud: 0.7, reflect: 0.97, pole: 0.5, mouth: 0.97,
@@ -215,6 +290,7 @@ const FLUTE_TUNING: Record<Pipe, Breath> = {
     vibratoBreath: 0.08, wander: 2, vibratoFrom: 0.2, vibratoIn: 0.25,
     push: 0.6, pushTime: 0.025, sharp: [3, 5], seed: 0.3, edge: 3, unsteady: 0.08,
     pulse: 0, airQ: 0.5, airTop: 0, airTopHz: 5000, airRelease: 0, puff: 0, pressPitch: 0, vibratoWobble: 0, turbHz: 0, airVel: 0, airHold: 0, releasePitch: 0, tongueStop: 0.03, burst: null, settle: 0.06,
+    radiate: 0, cutoff: 0, cutoffDb: 0, gainTilt: 0, evenTilt: 0, airTilt: 0,
   },
 };
 
@@ -235,8 +311,10 @@ export function blowFlute(n: JetNote, rand: () => number): Float32Array {
   const bore = new Line(Math.ceil(sr / lowest) + 8);
   const jetLine = new Line(Math.ceil(sr / lowest) + 8);
   const v = Math.min(1, Math.max(0, n.vel));
-  const gain = T.gainSoft * (T.gainLoud / T.gainSoft) ** v;
-  const even = T.evenSoft + (T.evenLoud - T.evenSoft) * v;
+  // Up the range the player blows a faster jet, split a little differently, with less air against the tone.
+  const octave = Math.log2(n.f / 523.25);
+  const gain = T.gainSoft * (T.gainLoud / T.gainSoft) ** v * 10 ** ((T.gainTilt * octave) / 20);
+  const even = (T.evenSoft + (T.evenLoud - T.evenSoft) * v) * 10 ** ((T.evenTilt * octave) / 20);
   const release = Math.round(n.dur * sr);
   const attack = (T.attackSoft + (T.attackLoud - T.attackSoft) * v) * sr;
   const stop = open && n.stop === true;
@@ -255,7 +333,8 @@ export function blowFlute(n: JetNote, rand: () => number): Float32Array {
   const glide = n.from ? 0.035 * sr : n.scoop ? 0.1 * sr : 0;
   const start = n.from ?? (n.scoop ? n.f * 2 ** (-n.scoop / 12) : n.f);
   const drift = Math.exp((-2 * Math.PI * 2) / sr);
-  const driftScale = T.wander / (0.577 * Math.sqrt((1 - drift) / (1 + drift)));
+  const shake = open ? Math.max(0, n.shake ?? 0) : 0;
+  const driftScale = (T.wander * (1 + 0.5 * shake)) / (0.577 * Math.sqrt((1 - drift) / (1 + drift)));
   let wander = 0;
   let phase = rand() * Math.PI * 2;
   // The breath is never quite steady: three slow movements at rates that never line up.
@@ -266,6 +345,10 @@ export function blowFlute(n: JetNote, rand: () => number): Float32Array {
   const vibFrom = T.vibratoFrom * late * sr;
   const lag = 2 * poleDelay(T.pole, sr, n.f);
   let lp = 0, lp2 = 0, last = 0, dcx = 0, dcy = 0;
+  // What radiates: rising with the frequency (a difference, set to leave the note's own level), and weaker above the tone holes' cutoff.
+  const riseScale = 1 / (2 * Math.sin((Math.PI * n.f) / sr));
+  const holes = T.cutoff ? new Cutoff(sr, T.cutoff, T.cutoffDb) : null;
+  let lastTone = 0;
   let bx1 = 0, bx2 = 0, by1 = 0, by2 = 0;
   // The tongue lets the jet go already swinging at the note: the pipe starts with a little
   // of one period in it, so the note speaks in a few round trips (a slurred note's pipe is
@@ -290,7 +373,7 @@ export function blowFlute(n: JetNote, rand: () => number): Float32Array {
   const puffFall = Math.exp(-1 / (0.04 * sr));
   // The shape the player gives a held note (dB at its start, middle and end).
   const shaped = open && (n.contour || n.arch);
-  const breathy = 10 ** ((T.airVel * (v - 0.5)) / 20);
+  const breathy = 10 ** ((T.airVel * (v - 0.5) + T.airTilt * octave + (open ? n.airDb ?? 0 : 0)) / 20);
   // The tongue's burst: a short, bright rush of air as the jet is let go, against the held
   // air at this strength, and the jet's unsettled air after the burst. A slur keeps the jet
   // going, so it has neither unless asked.
@@ -320,7 +403,7 @@ export function blowFlute(n: JetNote, rand: () => number): Float32Array {
     // The breath: in over the attack (at once on a slur), held, let go.
     if (i < release) breath = Math.min(1, breath + 1 / attack);
     else breath *= releaseFall;
-    const unsteady = 1 + T.unsteady * (0.62 * Math.sin(2 * Math.PI * 1.3 * tt + drifts[0]!) + 0.5 * Math.sin(2 * Math.PI * 2.9 * tt + drifts[1]!) + 0.35 * Math.sin(2 * Math.PI * 6.1 * tt + drifts[2]!));
+    const unsteady = 1 + T.unsteady * (1 + shake) * (0.62 * Math.sin(2 * Math.PI * 1.3 * tt + drifts[0]!) + 0.5 * Math.sin(2 * Math.PI * 2.9 * tt + drifts[1]!) + 0.35 * Math.sin(2 * Math.PI * 6.1 * tt + drifts[2]!));
     let press = breath * swell * unsteady * (1 + push);
     if (shaped) {
       const x = Math.min(1, i / Math.max(1, release));
@@ -380,7 +463,18 @@ export function blowFlute(n: JetNote, rand: () => number): Float32Array {
     const hissIn = (rand() * 2 - 1) * hissLevel;
     const hiss = ab0 * hissIn - ab0 * ax2 - aa1 * ay1 - aa2 * ay2;
     ax2 = ax1; ax1 = hissIn; ay2 = ay1; ay1 = hiss;
-    let y = wave - back + T.edge * drive + hiss;
+    let y: number;
+    if (T.radiate || holes) {
+      // The pipe's sound radiates and meets the tone holes' cutoff; the jet's own turbulence goes straight out.
+      let tone = wave - turb - back + T.edge * drive;
+      if (T.radiate) {
+        const rise = (tone - lastTone) * riseScale;
+        lastTone = tone;
+        tone += T.radiate * (rise - tone);
+      }
+      if (holes) tone = holes.next(tone);
+      y = tone + turb + hiss;
+    } else y = wave - back + T.edge * drive + hiss;
     if (burst && i < burst.length) y += burst[i]! * burstRef;
     if (T.airTop) {
       topLow = (1 - topPole) * hissIn + topPole * topLow;

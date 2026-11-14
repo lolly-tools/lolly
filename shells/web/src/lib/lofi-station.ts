@@ -36,7 +36,7 @@ import * as D from './lofi-drums.ts';
 import * as W from './lofi-world-voices.ts';
 import * as G from './lofi-guitars.ts';
 import * as LG from './lofi-lead-guitars.ts';
-import { HAT_BELL, perform } from './lofi-perform.ts';
+import { HAT_BELL, newLungs, perform } from './lofi-perform.ts';
 import * as BL from './lofi-bass-layers.ts';
 import * as R from './lofi-winds.ts';
 import * as H from './lofi-house.ts';
@@ -215,6 +215,8 @@ export class LofiStation {
   private kit: V.VoiceKit;
   private queue: Queued[] = [];
   private marks: Mark[] = [];
+  /** A blown lead's breath from bar to bar (lib/lofi-perform.ts): a skip, or a track starting over, starts it full. */
+  private lungs = newLungs();
   private nextBarAt = 0;
   /** Bars taken from the stream so far, skipped ones included. */
   private taken = 0;
@@ -507,6 +509,7 @@ export class LofiStation {
     this.lanes = this.newLanes();
     this.seed = seed;
     this.stream = this.open(seed);
+    this.lungs = newLungs();
     this.queue = [];
     this.marks = [];
     this.nextBarAt = now + 0.15;
@@ -576,6 +579,7 @@ export class LofiStation {
         // A saved generator track repeats from its top, wherever it was started (a seek).
         this.stream = this.open(this.seed);
         this.taken = 0;
+        this.lungs = newLungs();
       }
       const raw = this.stream.next();
       const bar = this.settings.shape ? this.settings.shape(raw) : raw;
@@ -586,7 +590,7 @@ export class LofiStation {
       // strummed guitar's chords fingered and strummed, a lead guitar's bends and slides.
       const keysV = bar.voices?.keys ?? bar.tune.style.keys;
       const leadV = bar.voices?.lead ?? bar.tune.style.lead;
-      for (const note of perform(bar, spb, keysV, leadV)) {
+      for (const note of perform(bar, spb, keysV, leadV, this.lungs)) {
         const lead = note.voice === 'hey' && isShoutPhrase(note.mod ?? 0) ? SHOUT_LEAD : 0;
         this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes, lead });
       }

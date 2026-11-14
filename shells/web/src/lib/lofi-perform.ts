@@ -26,9 +26,11 @@
  *   a harp's run up into a phrase, a guitar's slides and hammer-ons, the tar's tremolo.
  * - A flautist tongues each note that is not slurred, softly ("du") when it follows close
  *   on the one before (stopping that one with the tongue), double-tongues a quick run
- *   ("tu-ku"), ghosts some quick passing notes,
- *   swells or tapers a held note, and takes a breath in a rest (lib/lofi-flutes.ts plays
- *   the flute).
+ *   ("tu-ku"), ghosts some quick passing notes, swells or tapers a held note, and breathes
+ *   in the rests as a phrase needs: the breath runs down as the notes are blown, faster
+ *   when they are loud, and a long phrase gets a breath in a shorter rest or one snatched
+ *   from the end of a note (lib/lofi-flutes.ts plays the flute, lib/lofi-winds.ts the
+ *   breath running down).
  *
  * Pure and deterministic: every choice comes from a source seeded by the tune and the bar,
  * so a tune plays the same every time. Times are moved in beats, so the caller's tempo holds.
@@ -37,7 +39,7 @@ import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_U
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead } from './lofi-lead-art.ts';
-import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
+import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod } from './lofi-flutes.ts';
 
 /** A seeded source for one bar of one tune. */
 function barRandom(bar: LofiBar): () => number {
@@ -415,6 +417,28 @@ const FLUTE_QUICK = 0.16;
 const FLUTE_RUN = 0.2;
 
 /**
+ * A flautist's breath as the bars go by, kept by the caller from bar to bar: how much of it
+ * is used (0 a full breath, 1 none left) and how long a full one lasts blown at mezzo-forte
+ * (s; 0 until the first bar sets it from the tune).
+ */
+export interface Lungs { used: number; size: number }
+/** Fresh lungs for a player starting to play. */
+export function newLungs(): Lungs { return { used: 0, size: 0 }; }
+/**
+ * How long a full breath lasts at mezzo-forte (s), each tune's player within this share
+ * either way: a recorded professional holds a forte note on one breath for 11 s and a
+ * pianissimo one for 40, so the breath goes about six times faster blown at full strength
+ * than at none (LUNGS_FLOW, e-folds a unit of strength).
+ */
+const LUNGS_SIZE = 21, LUNGS_SPREAD = 0.2, LUNGS_FLOW = 1.8;
+/** A rest that is a breath's chance is always taken once this much is used, and a shorter rest (s) once more is. */
+const LUNGS_WANT = 0.3, LUNGS_NEED = 0.5, LUNGS_SHORT_REST = 0.25;
+/** A phrase with no rest at all: a breath is snatched from the end of a note at least SNATCH_NOTE long (s) once this much is used, taking SNATCH_S (s, at most 40% of the note). */
+const LUNGS_SNATCH = 0.7, SNATCH_NOTE = 0.3, SNATCH_S = 0.15;
+/** What a breath leaves used (a share of what was): a deep one none, one in a shorter rest a little, a snatched one more. */
+const LUNGS_LEFT = 0.25, LUNGS_LEFT_SNATCH = 0.5;
+
+/**
  * A flautist's choices, measured against recorded players: a note that follows close on
  * the one before without a slur is half-tongued (recorded legato phrases dip 7 to 12 dB
  * between such notes, a full tongue 12 to 30); a quick, light note off the beat is
@@ -422,7 +446,7 @@ const FLUTE_RUN = 0.2;
  * to +8 dB a second); and a rest long enough gets a breath, a deep one in a longer rest
  * (recorded phrases sit 0.6 to 2.6 s apart with the breath heard between them).
  */
-export function flautist(notes: LofiNote[], spb: number, rand: () => number): void {
+export function flautist(notes: LofiNote[], spb: number, rand: () => number, lungs?: Lungs): void {
   const lines = notes.map((n, i) => ({ n, i })).filter(({ n }) => n.voice === 'lead').sort((a, b) => a.n.beat - b.n.beat);
   if (!lines.length) return;
   const mean = lines.reduce((a, { n }) => a + n.vel, 0) / lines.length;
@@ -441,13 +465,29 @@ export function flautist(notes: LofiNote[], spb: number, rand: () => number): vo
       const r = rand();
       flags |= r < 0.3 ? FLUTE_SWELL : r < 0.6 ? FLUTE_TAPER : r < 0.75 ? FLUTE_SWELL | FLUTE_TAPER : 0;
     }
-    if (after >= FLUTE_BREATH_REST && rand() < 0.75) flags |= FLUTE_BREATH | (after >= FLUTE_DEEP_REST ? FLUTE_DEEP : 0);
+    // The breath this note spends, faster when it is blown harder.
+    const len = n.dur * spb;
+    const flow = lungs ? Math.exp(LUNGS_FLOW * (Math.min(1, Math.max(0, n.vel)) - 0.5)) / lungs.size : 0;
+    const used = lungs ? lungs.used + len * flow : 0;
+    if (after >= FLUTE_BREATH_REST && (rand() < 0.75 || used >= LUNGS_WANT)) flags |= FLUTE_BREATH | (after >= FLUTE_DEEP_REST ? FLUTE_DEEP : 0);
+    else if (lungs && after >= LUNGS_SHORT_REST && used >= LUNGS_NEED) flags |= FLUTE_BREATH;
+    let dur = n.dur;
+    if (lungs && next && !(flags & FLUTE_BREATH) && used >= LUNGS_SNATCH && len >= SNATCH_NOTE) {
+      // Out of breath with no rest: the note is cut short and the breath snatched in its place.
+      dur = n.dur - Math.min(SNATCH_S, 0.4 * len) / spb;
+      flags |= FLUTE_BREATH | FLUTE_SNATCH;
+    }
     // A note followed close by a tongued one is stopped by the tongue, not let go.
-    if (next && after >= 0.035 && after < FLUTE_CLOSE) flags |= FLUTE_STOP;
+    if (next && after >= 0.035 && after < FLUTE_CLOSE && !(flags & FLUTE_SNATCH)) flags |= FLUTE_STOP;
     const inRun = before >= 0.035 && before < FLUTE_CLOSE && n.dur * spb <= FLUTE_RUN;
     ku = inRun && !ku;
     if (ku) flags |= FLUTE_KU;
-    notes[i] = { ...n, mod: flags };
+    if (lungs) {
+      const start = lungs.used, end = start + dur * spb * flow;
+      flags += lungsMod(start, end);
+      lungs.used = !(flags & FLUTE_BREATH) ? end : flags & FLUTE_DEEP ? 0 : end * (flags & FLUTE_SNATCH ? LUNGS_LEFT_SNATCH : LUNGS_LEFT);
+    }
+    notes[i] = { ...n, dur, mod: flags };
   }
 }
 
@@ -456,7 +496,7 @@ export function flautist(notes: LofiNote[], spb: number, rand: () => number): vo
  * fingered and strummed, a lead guitar's bends and slides. `keys` and `lead` are the
  * instruments playing the bar's keys and lead.
  */
-export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead: LofiStyle['lead']): LofiNote[] {
+export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead: LofiStyle['lead'], lungs?: Lungs): LofiNote[] {
   const rand = barRandom(bar);
   let notes = strokes([...bar.notes], bar);
   drummer(notes, bar, spb, rand);
@@ -464,6 +504,10 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
-  else if (lead === 'flute') flautist(notes, spb, rand);
+  else if (lead === 'flute') {
+    // The tune's player: how long a full breath lasts, set once, as the tune is seeded.
+    if (lungs && !lungs.size) lungs.size = LUNGS_SIZE * (1 + LUNGS_SPREAD * (2 * barRandom({ ...bar, index: -1 })() - 1));
+    flautist(notes, spb, rand, lungs);
+  }
   return notes;
 }
