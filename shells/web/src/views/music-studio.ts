@@ -60,7 +60,6 @@ import {
   type LofiBar,
 } from '../../../../engine/src/lofi-compose.ts';
 import { LofiStation, renderStation, type LofiMix, type LofiSettings } from '../lib/lofi-station.ts';
-import { lofiStationName } from '../lib/neurospicy-lofi.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from '../lib/lofi-names.ts';
 import { encodeWav, encodeM4a, pcmFromAudioBuffer } from '../lib/audio-encode.ts';
 import { attachScrub } from '../lib/scrub.ts';
@@ -950,7 +949,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     }
     return { blob: encodeWav(pcm), format: 'wav' };
   }
-  const trackName = (): string => `${lofiStationName(state.mood)} · ${bars[0]!.tune.key} · ${bars[0]!.tune.bpm} bpm · ${state.seed}`;
+  const trackName = (): string => `${genreTitle(state.mood)} · ${bars[0]!.tune.key} · ${bars[0]!.tune.bpm} bpm · ${state.seed}`;
   const fileName = (format: string): string => `${trackName().replace(/[^\w.-]+/g, '-').replace(/-+/g, '-').toLowerCase()}.${format}`;
 
   // ── the instrument browser ───────────────────────────────────────────────────

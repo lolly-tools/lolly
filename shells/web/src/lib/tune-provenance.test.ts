@@ -165,10 +165,10 @@ test('the readback finds songs and tunes in one pass, and a file with no credent
 
 test('a download is signed by the music generator and the hint repeats what the reading found', async () => {
   const signed = await signTrackDownload({ identity: { signer: async () => null } }, new Blob([wav() as BlobPart], { type: 'audio/wav' }), 'wav', {
-    name: 'Lolly Sings Sugar · C major · 96 bpm · 2024', style: 'sugar', styleName: 'Lolly Sings Sugar', seed: 2024,
+    name: 'Sugar · C major · 96 bpm · 2024', style: 'sugar', styleName: 'Sugar', seed: 2024,
   });
   assert.equal(signed.blob.type, 'audio/wav');
-  assert.equal(signed.declaration, `${TUNE_DECLARATION}. Style Lolly Sings Sugar, seed 2024.`);
+  assert.equal(signed.declaration, `${TUNE_DECLARATION}. Style Sugar, seed 2024.`);
   const report = await verifyC2pa(new Uint8Array(await signed.blob.arrayBuffer()));
   assert.equal(report.state, 'valid');
   assert.equal(report.aiGenerated, undefined, 'algorithmic media is not an AI flag');

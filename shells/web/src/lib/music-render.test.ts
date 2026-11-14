@@ -31,7 +31,8 @@ test('a folder render\'s tune declares algorithmic media and the music generator
   const step = report.history?.find((h) => h.action === 'c2pa.created');
   assert.equal(step?.digitalSourceType, 'http://cv.iptc.org/newscodes/digitalsourcetype/algorithmicMedia', 'algorithmic media, not a trained model');
   assert.ok(String(step?.description).startsWith(`${TUNE_DECLARATION}.`), String(step?.description));
-  assert.match(String(step?.description), /seed 7\.$/);
+  assert.ok(String(step?.description).endsWith('. Style Ska, seed 7.'), 'the plain genre title, as the project is titled');
+  assert.doesNotMatch(String(step?.description), /Lolly Sings/);
   assert.equal(declaration, step?.description, 'the declaration handed back is the one the file records');
   assert.equal(report.claim?.title, 'Ska · 7', 'titled as the project is');
   assert.equal(report.claim?.generatorInfo?.name, 'Lolly');

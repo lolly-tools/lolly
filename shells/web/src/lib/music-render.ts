@@ -15,7 +15,7 @@
  * reading back finds no declaration, is not handed on.
  */
 import { parseMusicState, trackSeconds, trackSettings, type MusicState } from './music-state.ts';
-import { lofiStationName } from './neurospicy-lofi.ts';
+import { genreTitle } from './genre-icons.ts';
 import { musicProjectTitle } from './music-project.ts';
 import { t } from '../i18n.ts';
 
@@ -40,7 +40,7 @@ export interface MusicFile {
  */
 export async function credentialMusicFile(host: unknown, blob: Blob, format: MusicFile['format'], state: MusicState, name = musicProjectTitle(state)): Promise<{ blob: Blob; declaration: string }> {
   const { signTrackDownload } = await import('./tune-provenance.ts');
-  const signed = await signTrackDownload(host, blob, format, { name, style: state.mood, styleName: lofiStationName(state.mood), seed: state.seed });
+  const signed = await signTrackDownload(host, blob, format, { name, style: state.mood, styleName: genreTitle(state.mood), seed: state.seed });
   if (!signed.declaration) throw new Error(t('The tune’s Content Credentials did not read back, so the file was not made.'));
   return { blob: signed.blob, declaration: signed.declaration };
 }
