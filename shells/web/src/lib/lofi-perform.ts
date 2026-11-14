@@ -24,6 +24,11 @@
  *   flips, falls, gates and stutters, and the odd reversed swell into a phrase.
  * - A harpist, an acoustic guitarist or a tar player takes the lead (lib/lofi-lead-art.ts):
  *   a harp's run up into a phrase, a guitar's slides and hammer-ons, the tar's tremolo.
+ * - A flautist tongues each note that is not slurred, softly ("du") when it follows close
+ *   on the one before (stopping that one with the tongue), double-tongues a quick run
+ *   ("tu-ku"), ghosts some quick passing notes,
+ *   swells or tapers a held note, and takes a breath in a rest (lib/lofi-flutes.ts plays
+ *   the flute).
  *
  * Pure and deterministic: every choice comes from a source seeded by the tune and the bar,
  * so a tune plays the same every time. Times are moved in beats, so the caller's tempo holds.
@@ -32,6 +37,7 @@ import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_U
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead } from './lofi-lead-art.ts';
+import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
 
 /** A seeded source for one bar of one tune. */
 function barRandom(bar: LofiBar): () => number {
@@ -397,6 +403,54 @@ function leadGuitarist(notes: LofiNote[], lead: string, rand: () => number): voi
   }
 }
 
+/** Seconds of rest under which a following note is half-tongued, a "du", most of the time (the station slurs anything under 35 ms). */
+const FLUTE_CLOSE = 0.15;
+/** A rest long enough for a breath, and for a deep one (s). */
+const FLUTE_BREATH_REST = 0.4;
+const FLUTE_DEEP_REST = 0.75;
+/** A held note the player shapes (s), and a quick one that may be ghosted (s). */
+const FLUTE_HELD = 0.6;
+const FLUTE_QUICK = 0.16;
+/** A run quick enough to double-tongue: notes this short (s) following close on each other. */
+const FLUTE_RUN = 0.2;
+
+/**
+ * A flautist's choices, measured against recorded players: a note that follows close on
+ * the one before without a slur is half-tongued (recorded legato phrases dip 7 to 12 dB
+ * between such notes, a full tongue 12 to 30); a quick, light note off the beat is
+ * sometimes ghosted; a held note is swelled, tapered or both (recorded long notes move -5
+ * to +8 dB a second); and a rest long enough gets a breath, a deep one in a longer rest
+ * (recorded phrases sit 0.6 to 2.6 s apart with the breath heard between them).
+ */
+export function flautist(notes: LofiNote[], spb: number, rand: () => number): void {
+  const lines = notes.map((n, i) => ({ n, i })).filter(({ n }) => n.voice === 'lead').sort((a, b) => a.n.beat - b.n.beat);
+  if (!lines.length) return;
+  const mean = lines.reduce((a, { n }) => a + n.vel, 0) / lines.length;
+  // In a quick tongued run the tongue alternates front and back, "tu-ku": every other note a "ku".
+  let ku = false;
+  for (let k = 0; k < lines.length; k++) {
+    const { n, i } = lines[k]!;
+    const prev = lines[k - 1]?.n, next = lines[k + 1]?.n;
+    const before = prev ? (n.beat - (prev.beat + prev.dur)) * spb : Infinity;
+    const after = ((next ? next.beat : 4) - (n.beat + n.dur)) * spb;
+    let flags = FLUTE_PLAYED | (n.mod === 1 ? FLUTE_SCOOP : 0);
+    if (before >= 0.035 && before < FLUTE_CLOSE && rand() < 0.7) flags |= FLUTE_SOFT;
+    const strong = Math.abs(n.beat - Math.round(n.beat)) < 0.02;
+    if (n.dur * spb <= FLUTE_QUICK && !strong && n.vel < mean && rand() < 0.4) flags |= FLUTE_GHOST;
+    if (n.dur * spb >= FLUTE_HELD) {
+      const r = rand();
+      flags |= r < 0.3 ? FLUTE_SWELL : r < 0.6 ? FLUTE_TAPER : r < 0.75 ? FLUTE_SWELL | FLUTE_TAPER : 0;
+    }
+    if (after >= FLUTE_BREATH_REST && rand() < 0.75) flags |= FLUTE_BREATH | (after >= FLUTE_DEEP_REST ? FLUTE_DEEP : 0);
+    // A note followed close by a tongued one is stopped by the tongue, not let go.
+    if (next && after >= 0.035 && after < FLUTE_CLOSE) flags |= FLUTE_STOP;
+    const inRun = before >= 0.035 && before < FLUTE_CLOSE && n.dur * spb <= FLUTE_RUN;
+    ku = inRun && !ku;
+    if (ku) flags |= FLUTE_KU;
+    notes[i] = { ...n, mod: flags };
+  }
+}
+
 /**
  * A bar as the band plays it: the drums in the style's pocket, a strummed guitar's chords
  * fingered and strummed, a lead guitar's bends and slides. `keys` and `lead` are the
@@ -410,5 +464,6 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
+  else if (lead === 'flute') flautist(notes, spb, rand);
   return notes;
 }

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { HAT_BELL, fingerChord, perform } from './lofi-perform.ts';
-import { composeLofiTune, ELECTRIC_FRET, type LofiBar } from '../../../../engine/src/lofi-compose.ts';
+import { HAT_BELL, fingerChord, flautist, perform } from './lofi-perform.ts';
+import { composerMod, FLUTE_BREATH, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
+import { composeLofiTune, ELECTRIC_FRET, type LofiBar, type LofiNote } from '../../../../engine/src/lofi-compose.ts';
 
 const TUNING = [40, 45, 50, 55, 59, 64];
 const frets = (shape: Array<number | null>): string => shape.map((p, s) => (p === null ? 'x' : String(p - TUNING[s]!))).join('');
@@ -132,4 +133,45 @@ test('the drummer chooses the stroke: about half the rock and ska drummers ride 
     }
   }
   assert.ok(rolls > 0, 'some jazz choruses end on a press roll');
+});
+
+test('a flautist marks every lead note as its own, half-tongues close notes and stops the one before, and breathes in a rest', () => {
+  const lead = (beat: number, dur: number, mod?: number): LofiNote => ({ voice: 'lead', midi: 72, beat, dur, vel: 0.55, ...(mod ? { mod } : {}) });
+  const spb = 0.5;
+  let soft = 0, stops = 0, shaped = 0, breaths = 0;
+  for (let seed = 1; seed <= 40; seed++) {
+    let a = seed;
+    const rand = (): number => { a = (a * 1103515245 + 12345) % 2147483648; return a / 2147483648; };
+    // a close pair (a 0.2-beat gap is 0.1 s), a held note (0.6 s), then a rest of 0.45 s and a last note
+    const notes: LofiNote[] = [lead(0, 0.8, 1), lead(1, 0.8), lead(1.8, 1.2), lead(3.9, 0.1), { voice: 'kick', midi: 36, beat: 0, dur: 0, vel: 1 }];
+    flautist(notes, spb, rand);
+    for (const n of notes.slice(0, 4)) assert.ok((n.mod ?? 0) & FLUTE_PLAYED, 'every lead note carries the flute\'s mark');
+    assert.equal(notes[4]!.mod, undefined, 'other parts are left alone');
+    assert.ok(notes[0]!.mod! & FLUTE_SCOOP, 'the composer\'s bend is kept as a scoop');
+    if (notes[1]!.mod! & FLUTE_SOFT) soft++;
+    if (notes[0]!.mod! & FLUTE_STOP) stops++;
+    if (notes[2]!.mod! & (FLUTE_SWELL | FLUTE_TAPER)) shaped++;
+    if (notes[2]!.mod! & FLUTE_BREATH) breaths++;
+    assert.equal(notes[1]!.mod! & FLUTE_BREATH, 0, 'no breath in a gap too short for one');
+    assert.equal(notes[2]!.mod! & FLUTE_STOP, 0, 'a note before a rest is let go, not stopped');
+  }
+  assert.equal(stops, 40, 'a note followed close by another is always stopped by the tongue');
+  assert.ok(soft > 20 && soft < 40, `most close notes half-tongued (${soft} of 40)`);
+  assert.ok(shaped > 20 && shaped < 40, `most held notes shaped (${shaped} of 40)`);
+  assert.ok(breaths > 20 && breaths < 40, `most long rests breathed in (${breaths} of 40)`);
+  // An instrument doubling the flute reads only the composer's articulation.
+  assert.equal(composerMod(FLUTE_PLAYED | FLUTE_SOFT | FLUTE_SCOOP), FLUTE_SCOOP);
+  assert.equal(composerMod(FLUTE_PLAYED | FLUTE_BREATH), 0);
+  assert.equal(composerMod(1), 1);
+  assert.equal(composerMod(ELECTRIC_FRET * 3 + 2), ELECTRIC_FRET * 3 + 2);
+});
+
+test('a flautist double-tongues a quick run: every other note a "ku"', () => {
+  const run: LofiNote[] = [0, 0.5, 1, 1.5, 2, 2.5].map((beat) => ({ voice: 'lead', midi: 72 + beat * 2, beat, dur: 0.3, vel: 0.55 }));
+  flautist(run, 0.5, () => 0.5);
+  // A 0.3-beat note is 0.15 s, with 0.1 s between: the first note starts the run, the rest alternate "ku", "tu".
+  assert.deepEqual(run.map((n) => (n.mod! & FLUTE_KU ? 'ku' : 'tu')), ['tu', 'ku', 'tu', 'ku', 'tu', 'ku']);
+  const slow: LofiNote[] = [0, 1, 2].map((beat) => ({ voice: 'lead', midi: 72, beat, dur: 0.8, vel: 0.55 }));
+  flautist(slow, 0.5, () => 0.5);
+  assert.ok(slow.every((n) => !(n.mod! & FLUTE_KU)), 'held notes are not double-tongued');
 });
