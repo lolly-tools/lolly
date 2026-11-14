@@ -40,7 +40,7 @@ import { arrangeClub, clubDrums, clubFigures, clubKeys, clubPlan, clubStabs, isC
 import { composeSalsa, salsaSectionName, SALSA_PERCUSSION } from './lofi-salsa.ts';
 import { composeBotanica, type BotanicaKit } from './lofi-botanica.ts';
 import { dnbKitBar, dnbKitPlan, isBreakNote } from './lofi-breaks.ts';
-import { cameoOf, didgeBass, didgeCameo, didgeLead, didgeMid, gateToots, strayaBirds, strayaOf, strayaParts, withMagpies, DIDGE_CAMEO } from './lofi-straya.ts';
+import { cameoOf, didgeBass, didgeCameo, didgeLead, didgeMid, didgeridooPitch, gateToots, strayaBirds, strayaOf, strayaParts, withMagpies, yidakiPitch, DIDGE_AND_DRONE, DIDGE_CAMEO, DIDGE_ONLY } from './lofi-straya.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
 export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse' | 'salsa' | 'surf' | 'yacht' | 'botanica' | ClubMood;
@@ -130,8 +130,8 @@ export const LOFI_BASS_SHOTS = ['bwah', 'yoi', 'throat', 'wub'] as const;
 const GAME = (name: typeof LOFI_GAME_SOUNDS[number]): number => LOFI_GAME_SOUNDS.indexOf(name);
 const SHOUT = (name: typeof LOFI_SHOUTS[number]): number => LOFI_SHOUTS.indexOf(name);
 
-export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'strings', 'grand', 'surf', 'combo', 'houseOrgan'] as const;
-export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'surf', 'chorus', 'none'] as const;
+export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'strings', 'grand', 'surf', 'combo', 'houseOrgan', 'didgeridoo', 'yidaki'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'surf', 'chorus', 'none', 'yidaki'] as const;
 /**
  * Leads that no longer play, each with the lead that plays in its place. A retired id stays
  * in LOFI_LEADS, so an old link or saved tune still reads, but no style draws one: a tune,
@@ -150,7 +150,14 @@ export const isRetiredLead = (lead: string): lead is RetiredLead => Object.hasOw
 export function liveLead(lead: typeof LOFI_LEADS[number]): LiveLead {
   return isRetiredLead(lead) ? RETIRED_LEADS[lead] : lead as LiveLead;
 }
-export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'yidaki', 'log', 'deep', 'warp'] as const;
+export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'didgeridoo', 'log', 'deep', 'warp'] as const;
+/**
+ * Bass ids an old link or saved tune may still carry, each with the bass that now plays them.
+ * The bass `yidaki` was the didgeridoo's deep drone; that drone is now the Didgeridoo
+ * (`didgeridoo`), and the Yidaki is the brighter instrument of the chords and the melody
+ * (lofi-straya.ts), so an old link's drone keeps its character.
+ */
+export const BASS_ALIASES: Readonly<Record<string, typeof LOFI_BASSES[number]>> = { yidaki: 'didgeridoo' };
 /** A `layer` note's `mod`: 1 the travelling line, 2 a percussive stab, LOFI_OVER the bass laid
  *  over the bar's (LofiBar voices.over), plus 8 times how that bass plays the note (its own
  *  `mod`: a croak's note slid into is LOFI_OVER + 16). */
@@ -1694,15 +1701,15 @@ const DANCE: Record<DanceMood, DanceLean> = {
     swing: 0.56, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.6, band: true,
     softKeys: [['rhodes', 2], ['pad', 1]], verseBass: [['eight', 1], ['motown', 1]], switchBass: [['eight', 1]], dust: 0.15,
   },
-  // Straya: a banjo picking rolls over a didgeridoo (the yidaki) droning on the key note, a
-  // stomp and clap, an acoustic strum (or the acoustic on the tune); the didgeridoo turns to
-  // rhythm in the choruses and takes the solo, and the birds sing (lofi-straya.ts).
+  // Straya: a banjo picking rolls over the Didgeridoo droning on the key note, a stomp and
+  // clap, an acoustic strum (or the acoustic on the tune); the Yidaki plays the rhythm over the
+  // drone in the choruses and takes the solo, and the birds sing (lofi-straya.ts).
   straya: {
     bpm: [104, 124], minor: 0.15, groove: 'stomp', chordBars: 1,
     keys: [['steel', 4], ['banjo', 1]], lead: [['banjo', 6], ['steel', 2], ['fiddle', 2], ['harmonica', 1], ['pedal', 1]],
-    bass: [['yidaki', 1]], snare: [['clap', 1]], hats: 'shaker', kick: [58, 68], kickLen: [0.18, 0.26], duck: [0.4, 0.6], crunch: 0,
+    bass: [['didgeridoo', 1]], snare: [['clap', 1]], hats: 'shaker', kick: [58, 68], kickLen: [0.18, 0.26], duck: [0.4, 0.6], crunch: 0,
     swing: 0.5, swing8: 0.52, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'country', singingDrop: true, busy: 0.7, band: true, dust: 0.2,
-    softKeys: [['banjo', 2], ['jazzbox', 1]], verseBass: [['yidaki', 1]], switchBass: [['yidaki', 1]],
+    softKeys: [['banjo', 2], ['jazzbox', 1]], verseBass: [['didgeridoo', 1]], switchBass: [['didgeridoo', 1]],
   },
   // Spanish guitar: a nylon-string guitar strumming a rumba, the Andalusian cadence, a
   // melody in the harmonic minor, upright bass, cajón, palmas and a shaker.
@@ -2245,7 +2252,7 @@ const BOOM_FILLS: readonly Figure[] = [
   [[0, 4, 0, 0], [8, 2, 0, 2], [10, 2, 0, THIRD], [12, 4, 0, APPROACH]],
   [[0, 4, 0, 0], [8, 2, 0, 7], [12, 2, 0, 9], [14, 2, 0, APPROACH]],
 ];
-/** The yidaki: a drone on the key note, pulsed by the breath (mod 1, a "wa"), with a toot
+/** The Didgeridoo: a drone on the key note, pulsed by the breath (mod 1, a "wa"), with a toot
  *  (mod 2, the overblown note), a bark (mod 3), the in-breath of circular breathing (mod 4)
  *  and a howl (mod 5, the voice sung through the drone). The notes join up, so the drone never stops. */
 const DIDGES: readonly Figure[] = [
@@ -2882,7 +2889,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const figuresOf = (b: LofiStyle['bass']): readonly Figure[] => clubFigures(mood, b, club) ?? (b === 'wobble' ? WOBBLES : b === 'growl' ? GROWLS : b === 'slap' ? SLAPS
     : MOOD_BASS[mood] && b === lean.bass[0]![0] ? MOOD_BASS[mood]!
     : b === 'log' ? LOGS : b === 'deep' ? HOUSE_BASS
-    : b === 'yidaki' ? DIDGES : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA : b === 'eight' ? (mood === 'sherbert' ? SUBS : EIGHTS) : b === 'synth' ? OCTAVES : b === 'round' ? RIDDIMS : b === 'motown' ? SOUL : b === 'acid' ? ACIDS
+    : b === 'didgeridoo' ? DIDGES : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA : b === 'eight' ? (mood === 'sherbert' ? SUBS : EIGHTS) : b === 'synth' ? OCTAVES : b === 'round' ? RIDDIMS : b === 'motown' ? SOUL : b === 'acid' ? ACIDS
     : [...REESES, ...ROLLERS]);
   // Two bars of bass figure for each drop and for the verse, a call and its answer.
   const figA: [Figure, Figure] = [pick(figuresOf(style.bass)), pick(figuresOf(style.bass))];
@@ -3199,18 +3206,23 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       // style's drop another bass may answer the drop's own for a bar (BASS_PLANS).
       const traded = part.section === 'drop' && has('bass') ? stack?.trade(!!part.alt, inSection, i) ?? null : null;
       const barBass = traded?.bass ?? bassV;
-      // Straya's didgeridoo (lofi-straya.ts): the soloist in the solo's trades, the rhythm through
-      // a pre-chorus and a chorus, and the drone everywhere else, when the tune's bass is the
-      // yidaki; a bass a person chose plays its own line under the rhythm and the solo.
-      const didgeAt = straya ? { section: part.section, i, bars: part.bars, inSection, kicks: part.section === 'intro' ? [0, 8] : kickSteps, lastOfBuild, root: placeIn(key, 34, 45), fifth: placeIn((key + 7) % 12, 34, 45), sb } : null;
+      // Straya's didgeridoos (lofi-straya.ts): the Yidaki soloing in the solo's trades, the rhythm
+      // through a pre-chorus and a chorus, and the Didgeridoo's drone everywhere else (under the
+      // Yidaki too, in a tune that layers them), when the tune's bass is the Didgeridoo; a bass a
+      // person chose plays its own line under the rhythm and the solo.
+      const over = !!straya?.both && barBass === 'didgeridoo';
+      const didgeAt = straya ? { section: part.section, i, bars: part.bars, inSection, kicks: part.section === 'intro' ? [0, 8] : kickSteps, lastOfBuild, root: didgeridooPitch(key), high: yidakiPitch(key, over), over, sb } : null;
       const rhythm = build || part.section === 'drop';
-      if (didgeAt && part.trade === 'didge') notes.push(...didgeLead(straya!, didgeAt, didgeSolo++ >> 1));
-      else if (didgeAt && has('bass') && rhythm) notes.push(...didgeMid(straya!, didgeAt));
-      if (didgeAt && barBass === 'yidaki') {
-        if (has('bass') && !rhythm) notes.push(...didgeBass(straya!, didgeAt));
+      if (didgeAt && part.trade === 'didge') {
+        notes.push(...didgeLead(straya!, didgeAt, didgeSolo++ >> 1));
+        // Both instruments: the Didgeridoo's drone held under the Yidaki's solo.
+        if (over) notes.push(...didgeBass(straya!, didgeAt));
+      } else if (didgeAt && has('bass') && rhythm) notes.push(...didgeMid(straya!, didgeAt));
+      if (didgeAt && barBass === 'didgeridoo') {
+        if (has('bass') && (!rhythm || over)) notes.push(...didgeBass(straya!, didgeAt));
       } else if (has('bass')) {
-        // A yidaki has one note, the key's: it drones under every chord.
-        const root = barBass === 'yidaki' ? placeIn(key, 34, 45)
+        // A didgeridoo has one note, the key's: it drones under every chord.
+        const root = barBass === 'didgeridoo' ? didgeridooPitch(key)
           : ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright', 'synth', 'round', 'motown', 'acid'].includes(barBass) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
         let fig = traded?.fig ?? (part.section === 'verse' ? figVerse : part.alt ? figB : figA)[i % 2]!;
         if (house && part.section === 'break') fig = house.breakFig[i % 2]!;
@@ -3219,7 +3231,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           // phrase on most fourth bars, so the line never settles into one loop.
           // Jazz, swing and the blues walk; country and Straya boom root to fifth.
           const walking = ((mood === 'jazz' || mood === 'swing' || mood === 'blues') && bassV === 'upright') || (mood === 'ska' && (bassV === 'round' || bassV === 'upright'));
-          const booming = (mood === 'country' || mood === 'straya') && bassV !== 'yidaki';
+          const booming = (mood === 'country' || mood === 'straya') && bassV !== 'didgeridoo';
           const rock = bassV === 'picked' && !booming;
           const fills = walking ? WALKS : booming ? BOOM_FILLS : rock ? ROCK_FILLS : bassV === 'upright' ? RUMBA_FILLS : figuresOf(bassV);
           const pool = walking ? (mood === 'blues' && !minor ? [...WALKS, ...BOOGIE] : WALKS)
@@ -3244,14 +3256,14 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
             midi = target + (target > root ? -1 : 1);
           }
           const dead = bassV === 'slap' && mod === 4;
-          // A yidaki is blown harder and softer through the bar, so its tone keeps changing.
+          // A didgeridoo is blown harder and softer through the bar, so its tone keeps changing.
           const blown = 0.55 + ((step * 7 + i * 5) % 6) * 0.08 + (mod === 2 || mod === 3 ? 0.1 : 0);
-          notes.push({ voice: 'bass', midi, beat: sb(step), dur: len / 4 - 0.02, vel: bassV === 'yidaki' ? clamp01(blown) : dead ? 0.5 : step === 0 ? 0.92 : 0.8, mod });
+          notes.push({ voice: 'bass', midi, beat: sb(step), dur: len / 4 - 0.02, vel: bassV === 'didgeridoo' ? clamp01(blown) : dead ? 0.5 : step === 0 ? 0.92 : 0.8, mod });
         }
       }
 
       // The cameo: the didgeridoo over the bass's stack for half a bar, or a bar of it between the stacks.
-      if (cameo && (part.section === 'drop' || part.section === 'break')) notes.push(...didgeCameo(cameo, { section: part.section, alt: !!part.alt, bar: inSection, root: placeIn(key, 34, 45), sb }));
+      if (cameo && (part.section === 'drop' || part.section === 'break')) notes.push(...didgeCameo(cameo, { section: part.section, alt: !!part.alt, bar: inSection, root: yidakiPitch(key, false), sb }));
 
       // The bass genres' bass talks at the end of each phrase of a drop: from the half bar,
       // the line gives way to a bwah, a yoi, a throat or a wub.
@@ -3659,7 +3671,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         }
       }
       // A didgeridoo's toot only where the band is busy around it (lofi-straya.ts gateToots).
-      if (straya || cameo) gateToots(notes, part.section, part.layers);
+      if (straya || cameo) gateToots(notes, part.section, part.layers, straya && bassV === 'didgeridoo' ? DIDGE_AND_DRONE : DIDGE_ONLY);
       notes.sort((a, b) => a.beat - b.beat);
       const barVoices = traded || overNotes.length ? { ...voices, ...(traded ? { bass: traded.bass } : {}), ...(overNotes.length ? { over: 'croak' as const } : {}) } : voices;
       bars.push({ tune: info, index, section: part.section, layers: part.layers, chord: chord.name, tones: chord.tones, notes, open, level, ...(barVoices ? { voices: barVoices } : {}) });
@@ -4219,6 +4231,12 @@ export function transposeChordName(name: string, by: number): string {
   if (slash > 0 && /^[A-G]/.test(name.slice(slash + 1))) return `${transposeChordName(name.slice(0, slash), by)}/${transposeChordName(name.slice(slash + 1), by)}`;
   const root = [...NAMES].sort((x, y) => y.length - x.length).find(n => name.startsWith(n));
   return root ? NAMES[(NAMES.indexOf(root) + by + 12) % 12] + name.slice(root.length) : name;
+}
+
+/** A key's or a chord's root as a pitch class (0 is C): "E♭ minor" is 3, "F♯m7" is 6. */
+export function rootPitchClass(name: string): number {
+  const root = [...NAMES].sort((x, y) => y.length - x.length).find(n => name.startsWith(n));
+  return root ? NAMES.indexOf(root) : 0;
 }
 
 /** What a section is called in a genre: a band's drop is its chorus, its break the solo. */

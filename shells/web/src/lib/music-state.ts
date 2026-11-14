@@ -6,10 +6,11 @@
  * DOM, so the music generator (views/music-studio.ts), a saved tune's renderer
  * (lib/lofi-tune.ts) and the Neurospicy player all read a track the same way.
  */
-import { isOverNote, liveLead, lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import { isOverNote, liveLead, lofiTrack, rootPitchClass, transposeChordName, BASS_ALIASES, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_KITS, type LofiKit } from './lofi-drums.ts';
 import { LOFI_MIX, type LofiMix, type LofiSettings } from './lofi-station.ts';
 import { OWN_BIRDS, sprinkleBirds } from './aussie-birds.ts';
+import { playOnDidge, DIDGE_INSTRUMENTS } from '../../../../engine/src/lofi-straya.ts';
 
 export const MIX_KEYS: readonly (keyof LofiMix)[] = ['keys', 'bass', 'lead', 'drums', 'fx', 'reverb', 'texture'];
 
@@ -78,11 +79,14 @@ export interface MusicState {
 export const DEFAULT_STATE: MusicState = { mood: 'sugar', seed: 2024, bars: 64, drums: true, texture: 0.3, mix: { ...LOFI_MIX }, sections: {} };
 
 /** Read a state from the link's parameters. Anything unknown or out of range falls back, and
- *  a retired lead (an old link's `lead=soft`) reads as the lead that took its place. */
+ *  a retired lead (an old link's `lead=soft`) reads as the lead that took its place, as does an
+ *  old bass id (`bass=yidaki` reads as the Didgeridoo, whose drone it was). */
 export function parseMusicState(params: string): MusicState {
   const q = new URLSearchParams(params);
   const pick = <T extends string>(v: string | null, from: readonly T[]): T | undefined => (from as readonly string[]).includes(v ?? '') ? from.find(x => x === v) : undefined;
   const pickLead = (v: string | null): LofiStyle['lead'] | undefined => ((lead) => lead && liveLead(lead))(pick(v, LOFI_LEADS));
+  // An old link's bass may carry an id that now plays as another (`bass=yidaki`, the drone, is the Didgeridoo).
+  const pickBass = (v: string | null): LofiStyle['bass'] | undefined => pick(v !== null && Object.hasOwn(BASS_ALIASES, v) ? BASS_ALIASES[v]! : v, LOFI_BASSES);
   const num = (v: string | null, lo: number, hi: number): number | undefined => {
     const n = Number(v);
     return v !== null && v !== '' && Number.isFinite(n) && n >= lo && n <= hi ? n : undefined;
@@ -97,7 +101,7 @@ export function parseMusicState(params: string): MusicState {
     const v: SectionVoices = {};
     const keys = pick(q.get(`${name}.keys`), LOFI_KEYS);
     const lead = pickLead(q.get(`${name}.lead`));
-    const bass = pick(q.get(`${name}.bass`), LOFI_BASSES);
+    const bass = pickBass(q.get(`${name}.bass`));
     const snare = pick(q.get(`${name}.snare`), LOFI_SNARES);
     const hats = pick(q.get(`${name}.hats`), LOFI_HATS);
     if (keys) v.keys = keys;
@@ -116,7 +120,7 @@ export function parseMusicState(params: string): MusicState {
     transpose: ((v) => v === undefined || Math.round(v) === 0 ? undefined : Math.round(v))(num(q.get('transpose'), -TRANSPOSE_RANGE, TRANSPOSE_RANGE)),
     keys: pick(q.get('keys'), LOFI_KEYS),
     lead: pickLead(q.get('lead')),
-    bass: pick(q.get('bass'), LOFI_BASSES),
+    bass: pickBass(q.get('bass')),
     drums: q.get('drums') !== '0',
     texture: num(q.get('texture'), 0, 1) ?? DEFAULT_STATE.texture,
     bright: num(q.get('bright'), 0.5, 1.8),
@@ -199,6 +203,7 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
     // plays alone there (in its stack), with no other bass answering and no croak laid over.
     let out = chosen ? { ...bar, voices: { ...bar.voices, ...chosen, ...(chosen.lead ? { double: undefined } : {}), ...(chosen.bass ? { over: undefined } : {}) } } : bar;
     if (chosen?.bass && bar.voices?.over) out = { ...out, notes: out.notes.filter(n => !isOverNote(n)) };
+    out = onDidge(bar, out);
     if (shift) {
       out = {
         ...out,
@@ -212,6 +217,29 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
     const tune = changed(bar.tune);
     return tune === bar.tune ? out : { ...out, tune };
   };
+}
+
+/**
+ * A bar with its tracks given to the Didgeridoo or the Yidaki played on that instrument's one
+ * note (lofi-straya.ts playOnDidge): the chords or the melody whenever either is one of them
+ * (the composer never gives them one of its own), the bass when a person chose the Didgeridoo
+ * for a kind of section whose bass the composer wrote for another. `bar` as composed, `out`
+ * with the person's instruments.
+ */
+function onDidge(bar: LofiBar, out: LofiBar): LofiBar {
+  const st = bar.tune.style;
+  const keys = out.voices?.keys ?? st.keys;
+  const lead = liveLead(out.voices?.lead ?? st.lead);
+  const bass = out.voices?.bass ?? st.bass;
+  const drone = bass === 'didgeridoo' && (bar.voices?.bass ?? st.bass) !== 'didgeridoo';
+  if (!drone && !DIDGE_INSTRUMENTS.has(keys) && lead !== 'yidaki') return out;
+  const at = { section: out.section, index: out.index, layers: out.layers, key: rootPitchClass(out.tune.key), seed: out.tune.seed, swing: out.tune.swing, swing8: out.tune.swing8 };
+  let notes = out.notes;
+  if (drone) notes = playOnDidge({ ...at, notes }, 'bass', 'didgeridoo', false);
+  const over = bass === 'didgeridoo' && notes.some(n => n.voice === 'bass');
+  if (keys === 'didgeridoo' || keys === 'yidaki') notes = playOnDidge({ ...at, notes }, 'keys', keys, over);
+  if (lead === 'yidaki') notes = playOnDidge({ ...at, notes }, 'lead', 'yidaki', over);
+  return { ...out, notes };
 }
 
 /**

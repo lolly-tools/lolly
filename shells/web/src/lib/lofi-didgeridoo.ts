@@ -3,7 +3,8 @@
  * The didgeridoo blown, modelled: the player's lips buzzing into a long, wide bore, with the
  * player's own vocal tract behind the lips, worked out in JS sample by sample and played back,
  * as the brass is (lib/lofi-brass.ts). The didgeridoo comes from the Yolŋu of north-east
- * Arnhem Land, where it is the yidaki.
+ * Arnhem Land, where it is the yidaki. Two instruments are modelled, each with kinds of its
+ * own (YIDAKI): the Didgeridoo, deep and dark, and the Yidaki, higher and brighter.
  *
  * Three things make the sound, and the model keeps each:
  *
@@ -35,17 +36,22 @@
  * CC0 and CC BY, numbers only; none is in this repository), each measured the same way as the
  * model:
  * - the drone's harmonics against its fundamental, the recordings' median: the 2nd to the 8th
- *   25, 8, 28, 15, 27, 22 and 30 dB down. The classic bore gives 29, 5, 36, 16, 31, 25 and 23
- *   on a held drone (the four kinds, played through a verse, lie 4 to 8 dB from the median on
- *   average across the first twelve);
+ *   25, 8, 28, 15, 27, 22 and 30 dB down. On a held drone the Didgeridoo's classic bore gives
+ *   21, 5, 26, 17, 38, 38 and 30, and the Yidaki 31, 3, 35, 12, 26, 20 and 21;
  * - the toot: recorded 2.2 to 3 times the drone (2.75 in the clearest takes), rising in 30 to
  *   140 ms, the sound 4 to 8 dB up, the drone's fundamental mostly gone under it, the tone
- *   brighter going in and duller coming out; the model's toots 2.62 to 2.95 times the drone by
- *   kind (2.78 for the classic bore), about 150 ms, 6.6 dB up, the drone gone under it;
+ *   brighter going in and duller coming out; the Didgeridoo's toots 2.5 to 2.7 times the drone,
+ *   5 to 6 dB up, the Yidaki's 2.87 to 2.94 times it, 8 to 9 dB up and brighter (the formant at
+ *   the toot 1.3 to 1.5 kHz against the Didgeridoo's 1.1), both rising in about 100 to 130 ms;
+ * - the two instruments against the recordings, the third-octaves from 800 Hz to 3.2 kHz against
+ *   the band holding the fundamental: the darker recorded drones (the low ones among them)
+ *   -21.5 dB at the median, the Didgeridoo's kinds -21 to -23; the brighter recorded drones
+ *   -12.6 (-10 to -13), the Yidaki's -11 to -11.5. The recorded rhythms fall in two kinds as well: mellow ones
+ *   whose formant reaches 0.8 to 1.6 kHz (95th percentile) at 1.4 to 3.9 sweeps a second, the
+ *   Didgeridoo's 1.1 kHz at 2.2; and quick, bright ones reaching 1.5 to 2.7 kHz at 6.4 to 8.5
+ *   sweeps a second, the Yidaki's 2.1 kHz at 8;
  * - the circular breath: recorded drones dip 5 to 6 dB, 0.14 to 0.6 times a second; the
  *   model's drone 6 dB, 0.2 to 0.25 times a second;
- * - the rhythm's formant: recorded rhythms reach 0.8 to 2.7 kHz at their 95th percentile; the
- *   model's 1.1 to 1.7 kHz;
  * - a howl's sung line: recorded about 340 to 515 Hz over a 69 Hz drone, 8 dB under the
  *   drone; the model's about 440 Hz, 11 dB under.
  *
@@ -80,22 +86,44 @@ export const BORE: Resonance[] = Array.from({ length: 12 }, (_, k) => {
 });
 
 /**
- * The kinds of yidaki a tune can call for (a note's variant, engine/src/lofi-straya.ts): each a
- * different bore, so a different trumpet note and a different colour. Its second resonance (the
- * toot, times the drone) and the spacing of the ones above, how sharp they are, how bright the
- * tract's bands sit, and how uneven a termite-hollowed bore leaves its resonances. Recorded
- * didgeridoos toot 2.2 to 3 times their drone (median about 2.75).
+ * The kinds a tune can call for (a note's kind, engine/src/lofi-straya.ts), each a different
+ * bore and so a different toot and colour, in two instruments:
+ *
+ * - The Didgeridoo, the deep one (kinds 0, 1 and 3): a long, wide bore, played low (44 to 82 Hz),
+ *   dark (the bell's lift and the air above the bore held back), its toot soft, slow and low
+ *   (about 2.6 times the drone), its vowel sweeps mellow and its tongue soft.
+ * - The Yidaki (kinds 2 and 4), modelled on the yidaki of north-east Arnhem Land: a narrower,
+ *   more conical bore, played higher (58 to 131 Hz), bright, its toot strong and sharp (about
+ *   2.9 times the drone, rising fast), its vowel sweeps reaching high, its tongue and voice quick.
+ *
+ * Each kind: its second resonance (the toot, times the drone) and the spacing of the ones
+ * above, how sharp they are and how high they peak, where the tract's bright bands sit, how
+ * uneven a termite-hollowed bore leaves its resonances; and the instrument's own playing: the
+ * bell's lift and the air above the bore (times DIDGE_TUNING's), the toot's rise (s), push and
+ * how much of the tract's bands it keeps, how far a sweep reaches towards "ee", and how sharply
+ * the tongue and the voice speak. Recorded didgeridoos toot 2.2 to 3 times their drone, and
+ * measured bores 2.5 to 3 times, by the bore's shape.
  */
-export interface Yidaki { second: number; step: number; q: number; peak: number; bands: number; rough: number }
+export interface Yidaki {
+  second: number; step: number; q: number; peak: number; bands: number; rough: number;
+  family: 'didgeridoo' | 'yidaki';
+  lift: number; hf: number;
+  tootRise: number; tootPush: number; tootBands: number;
+  reach: number; attack: number;
+}
+const DEEP = { family: 'didgeridoo', lift: 1.3, hf: 0.8, tootRise: 0.12, tootPush: 0.08, tootBands: 0.2, reach: 0.55, attack: 0.8 } as const;
+const BRIGHT = { family: 'yidaki', lift: 2.2, hf: 2.9, tootRise: 0.02, tootPush: 0.3, tootBands: 0.45, reach: 1.3, attack: 1.3 } as const;
 export const YIDAKI: readonly Yidaki[] = [
-  // The classic long eucalyptus bore: strong odd harmonics, the toot about 2.8 times the drone.
-  { second: 2.8, step: 2, q: 14, peak: 10, bands: 1, rough: 0 },
-  // A bell-ended bore: a lower toot and a rounder, darker drone.
-  { second: 2.62, step: 1.86, q: 12, peak: 9, bands: 0.92, rough: 0.01 },
-  // A narrow, smooth bore: a brighter drone, the toot nearly a twelfth up.
-  { second: 2.95, step: 2.05, q: 17, peak: 11, bands: 1.1, rough: 0 },
-  // A rough termite-hollowed bore: its resonances a little uneven, more air in the tone.
-  { second: 2.72, step: 1.95, q: 10, peak: 9, bands: 1.04, rough: 0.035 },
+  // The Didgeridoo's classic long eucalyptus bore: strong odd harmonics, a soft toot.
+  { second: 2.66, step: 2, q: 14, peak: 10, bands: 0.86, rough: 0, ...DEEP },
+  // The Didgeridoo, bell-ended: a lower toot and a rounder, darker drone.
+  { second: 2.62, step: 1.86, q: 12, peak: 9, bands: 0.8, rough: 0.01, ...DEEP },
+  // The Yidaki: a narrow, smooth, conical bore, bright, its toot nearly a twelfth up.
+  { second: 2.92, step: 2.05, q: 17, peak: 11, bands: 1.4, rough: 0, ...BRIGHT },
+  // The Didgeridoo, termite-hollowed and rough: its resonances a little uneven, more air in the tone.
+  { second: 2.62, step: 1.95, q: 10, peak: 9, bands: 0.9, rough: 0.035, ...DEEP },
+  // A second Yidaki, its bore a little uneven where the termites left it: a touch less bright.
+  { second: 2.85, step: 2, q: 15, peak: 10.5, bands: 1.3, rough: 0.015, ...BRIGHT },
 ];
 
 /** A yidaki's resonances, as multiples of its drone, from its kind and its own seed (the termites' unevenness). */
@@ -166,11 +194,13 @@ export const DIDGE_TUNING = {
   odd: 0,
   /** How far a bend loosens the lips (a share of their tuning). */
   bend: 0.06,
-  /** The toot: where the lips are tightened to (times the drone), and how much harder it is blown. */
-  toot: 0.96, tootPush: 0.3,
+  /** The toot: where the lips are tightened to (times the drone; each kind says how hard it is blown). */
+  toot: 0.96,
   /** Use BORE as it stands (the fitting harness), rather than a kind's. */
   useBore: false,
 };
+/** How hard a quick tongue kicks a toot into speaking (times how much quicker than the Didgeridoo's it is). */
+const TOOT_KICK = 1.2;
 /** Samples between control updates (the tract's filters are recomputed this often). */
 const BLOCK = 32;
 
@@ -307,12 +337,13 @@ export class Didgeridoo {
         if (art === DIDGE_WA && u >= 0) { c.to = 'ah'; c.blend = Math.max(c.blend, ease(u, 0, 0.07) * (1 - 0.7 * ease(u, 0.08, Math.min(0.35, n.dur + 0.05)))); }
       } else if (art === DIDGE_TONGUE) {
         // The tongue stops the air against the palate, then lets it go with a kick.
-        const stop = 0.022;
-        if (u >= -0.02 && u < 0) { c.breath *= 1 - 0.85 * ease(u, -0.02, -0.006); c.to = 'ee'; c.blend = 0.7; }
-        else if (u >= 0) c.breath *= 1 + (0.35 + 0.3 * v) * Math.exp(-u / 0.05) - 0.85 * Math.max(0, 1 - u / stop) ** 2;
+        // The Yidaki's tongue is quicker and harder than the Didgeridoo's.
+        const a = this.kind.attack, stop = 0.022 / a;
+        if (u >= -0.02 && u < 0) { c.breath *= 1 - 0.85 * ease(u, -0.02, -0.006); c.to = 'ee'; c.blend = 0.7 * this.kind.reach; }
+        else if (u >= 0) c.breath *= 1 + (0.35 + 0.3 * v) * a * Math.exp(-u * a / 0.05) - 0.85 * Math.max(0, 1 - u / stop) ** 2;
       } else if (art === DIDGE_SWEEP) {
         // "oo" to "ee" and back across the note.
-        if (u >= 0 && u <= n.dur + 0.1) { c.to = 'ee'; c.blend = Math.max(c.blend, Math.sin(Math.PI * Math.min(1, u / Math.max(0.12, n.dur)))); }
+        if (u >= 0 && u <= n.dur + 0.1) { c.to = 'ee'; c.blend = Math.max(c.blend, this.kind.reach * Math.sin(Math.PI * Math.min(1, u / Math.max(0.12, n.dur)))); }
       } else if (art === DIDGE_BREATH) {
         // The cheeks take over while the nose breathes in: the drone sags and darkens, then the lungs push back.
         const sag = ease(u, 0, 0.04) * (1 - ease(u, 0.13, 0.17));
@@ -325,12 +356,14 @@ export class Didgeridoo {
         // sound 4 to 8 dB up, the drone's fundamental all but gone under it), then let go,
         // the mouth relaxing to "oo" as the drone comes back.
         const len = Math.min(n.dur, 0.14 + 0.12 * v);
-        const on = ease(u, -0.04, 0.05) * (1 - ease(u, len, len + 0.05));
+        const rise = this.kind.tootRise;
+        const on = ease(u, -0.4 * rise, 0.6 * rise) * (1 - ease(u, len, len + 0.05));
         // Bright going in; the toot itself nearly pure, as recorded toots are (their second harmonic 27 to 35 dB down).
         const lead = ease(u, -0.18, -0.02) * (1 - ease(u, 0, 0.05));
         c.lips = 1 + (this.kind.second * DIDGE_TUNING.toot - 1) * on;
-        c.breath *= 1 + DIDGE_TUNING.tootPush * on;
-        c.bands *= 1 - 0.75 * on;
+        // The Yidaki's toot is tongued and kicked from the diaphragm, so the trumpet note speaks at once.
+        c.breath *= 1 + this.kind.tootPush * on + (u >= 0 ? TOOT_KICK * Math.max(0, this.kind.attack - 0.8) * Math.exp(-u / 0.03) : 0);
+        c.bands *= 1 - (1 - this.kind.tootBands) * on;
         if (lead > 0) { c.to = 'ee'; c.blend = Math.max(c.blend, 0.6 * lead); }
       } else if (art === DIDGE_BEND) {
         // The lips loosen and the drone sags, as far as the bore lets it, then they firm up again.
@@ -357,7 +390,7 @@ export class Didgeridoo {
         const pitch = art === DIDGE_HOWL ? this.f * (7.4 - 2.4 * along)
           : art === DIDGE_BARK ? this.f * (6 - 2 * along)
           : this.f * (3.2 + 4.2 * rise);
-        c.voice = Math.max(c.voice, on * (art === DIDGE_BARK ? 0.8 : 0.6) * (0.7 + 0.5 * v));
+        c.voice = Math.max(c.voice, on * (art === DIDGE_BARK ? 0.8 : 0.6) * (0.7 + 0.5 * v) * Math.sqrt(this.kind.attack));
         c.pitch = pitch;
         if (art === DIDGE_BARK) c.breath *= 1 + 0.5 * on;
         c.to = art === DIDGE_CALL ? (rise > 0.5 ? 'ee' : 'ah') : 'ah';
@@ -466,10 +499,10 @@ export class Didgeridoo {
       this.f2 = this.f1; this.f1 = u; this.g2 = this.g1; this.g1 = above;
       const b1 = this.band1.memory() + this.band1.gain() * above, b2 = this.band2.memory() + this.band2.gain() * above;
       this.band1.push(above); this.band2.push(above);
-      const hf = (above * T.hfPlain + (b1 + b2 * 0.7) * T.band * bright) * T.hf;
+      const hf = (above * T.hfPlain + (b1 + b2 * 0.7) * T.band * bright) * T.hf * this.kind.hf;
       // The bell sends the higher harmonics out more readily than the drone's fundamental.
       this.liftLow = this.liftPole * this.liftLow + (1 - this.liftPole) * y;
-      const bell = y + (y - this.liftLow) * T.lift;
+      const bell = y + (y - this.liftLow) * T.lift * this.kind.lift;
       // A sung voice is heard through the horn as well as mixed into the buzz: its own line, as recorded howls show.
       this.top = (1 - this.topPole) * (bell + hf + pv * T.voiceOut) + this.topPole * this.top;
       out[i] = this.top;

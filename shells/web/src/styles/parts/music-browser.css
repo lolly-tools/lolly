@@ -134,6 +134,7 @@
   .msb-text { flex: 1; min-width: 0; display: grid; }
   .msb-name { font-size: var(--fs-md); font-weight: 600; overflow-wrap: anywhere; }
   .msb-card.is-current .msb-name { color: var(--ui-color-text-accent); }
+  .msb-line { font-size: var(--fs-xs); line-height: 1.35; color: var(--ui-color-text-muted); }
   .msb-state { font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
   .msb-state:empty { display: none; }
   .msb-play {
