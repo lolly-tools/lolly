@@ -20,8 +20,8 @@
  * use one in every section of that kind (the bass in every drop) or all through the track,
  * and star or block instruments (lib/music-prefs.ts, kept on the person's profile). Click
  * the section ruler to play from there. The Ear candy lane shows each sound laid over the
- * tune as a chip with its icon; pressing one plays that moment alone
- * (views/music-studio/fx-moments.ts). The genre button is the bar's hero, the genre's
+ * tune as a chip with its icon; pressing one plays on from that moment while the track
+ * plays, or plays the moment alone while stopped (views/music-studio/fx-moments.ts). The genre button is the bar's hero, the genre's
  * icon, title and a line of what you hear on its own wash, and opens the genre picker
  * (views/music-studio/genre-picker.ts); the lock next to the button keeps the genre when
  * shuffling (views/music-studio/genre-hero.ts). Undo and redo take back or put back
@@ -86,7 +86,7 @@ import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { genreHeroHtml, wireGenreHero, wireGenreLock } from './music-studio/genre-hero.ts';
 import { autoLabel, composedTag, sentenceCase, styleKitName, trackName as partName } from './music-studio/track-names.ts';
 import { createStudioHistory, historyButtonsHtml, historyKey, paintHistoryButtons, redoneLine, stableJson, undoneLine } from './music-studio/studio-history.ts';
-import { auditionMoment, createFxLayer, drawChips, fxMoments, momentLabel, placeChips, CHIP, type FxMoment, type PlacedChip } from './music-studio/fx-moments.ts';
+import { auditionMoment, createFxLayer, drawChips, fxMoments, momentLabel, placeChips, pressMoment, CHIP, type FxMoment, type PlacedChip } from './music-studio/fx-moments.ts';
 import { isTextEditingTarget } from '../lib/typing-target.ts';
 import { actionButton, PlainFailure } from './music-studio/action-button.ts';
 import { renderButtonHtml, wireRenderButton } from './music-studio/render-button.ts';
@@ -408,7 +408,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** The genre button, the bar's hero, and the lock beside it (views/music-studio/genre-hero.ts). */
   const hero = wireGenreHero(q<HTMLElement>('[data-genre]'), host);
   const lock = wireGenreLock(q<HTMLElement>('[data-genre-lock]'), { locked: () => !shuffleGenres, setLocked: (on) => saveShuffleGenres(!on), genre: () => state.mood, say });
-  /** The buttons over the Ear candy lane's chips: a name to point at, and a press plays that moment alone. */
+  /** The buttons over the Ear candy lane's chips: a name to point at, and a press that plays
+   *  on from the moment while the track plays, or plays the moment alone while stopped. */
   let audition: { stop(): void } | null = null;
   const fxLayer = createFxLayer(scroll, {
     moments: () => moments(),
@@ -417,15 +418,20 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       if (x < scroll.scrollLeft + 8 || x > scroll.scrollLeft + scroll.clientWidth - 48) scroll.scrollLeft = Math.max(0, x - scroll.clientWidth / 3);
       draw();
     },
-    audition: (m) => {
-      audition?.stop();
-      browser?.stopPreview();
-      if (station || renderedSrc) stopPlayback();
-      const c = ensureAudio();
-      audition = auditionMoment({ ctx: c, dest: master ?? c.destination, state, bars }, m);
+    press: (m) => {
       selected = m.bar;
+      const how = pressMoment(m, {
+        playing: () => !!station || !!renderedSrc,
+        jump: (bar) => { if (renderedSrc) playRendered(bar); else play(bar); },
+        audition: () => {
+          audition?.stop();
+          browser?.stopPreview();
+          const c = ensureAudio();
+          audition = auditionMoment({ ctx: c, dest: master ?? c.destination, state, bars }, m);
+        },
+      });
       draw();
-      say(tRaw('Playing on its own: {moment}', { moment: momentLabel(m) }));
+      say(how === 'jump' ? tRaw('Playing on from {moment}', { moment: momentLabel(m) }) : tRaw('Playing on its own: {moment}', { moment: momentLabel(m) }));
     },
   });
   /** The tag menus' first choice: "Auto" and how the composer says "Lolly" in this tune. */
@@ -433,7 +439,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const composed = composedTag(state.tag === undefined ? bars : composeTrack({ ...state, tag: undefined }));
     return autoLabel(t((short ? TAG_SHORT[composed] : TAG_LABEL[composed]) ?? composed));
   };
-  const HINT = t('Click a section in a lane to hear and choose its instruments, the top row to play from there, or an ear candy icon to hear that sound alone.');
+  const HINT = t('Click a section in a lane to hear and choose its instruments, the top row to play from there, or an ear candy icon to hear that sound.');
   /** The effects' tag menu and the effect switches, set to the state. */
   const fillOptions = (): void => {
     for (const sel of page.querySelectorAll<HTMLSelectElement>('[data-tag]')) {
