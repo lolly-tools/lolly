@@ -131,7 +131,7 @@ test('the key moves every pitched note and the chords, leaves the drums, and tra
   for (let b = 0; b < own.length; b++) {
     own[b]!.notes.forEach((n, i) => {
       const m = moved[b]!.notes[i]!;
-      const pitched = ['keys', 'lead', 'bass', 'coin', 'hey', 'tag', 'game'].includes(n.voice);
+      const pitched = ['keys', 'lead', 'bass', 'coin', 'hey', 'tag', 'game', 'fm'].includes(n.voice);
       assert.equal(m.midi, pitched ? n.midi + 3 : n.midi, `bar ${b} ${n.voice}`);
     });
     if (own[b]!.chord) assert.deepEqual(moved[b]!.tones, own[b]!.tones.map(pc => (pc + 3) % 12));
@@ -157,8 +157,9 @@ test('the effect switches take their effects out and leave every other note', ()
   const quiet = composeTrack(parseMusicState('style=chiptune&seed=5&bars=64&quiet=console'));
   const count = (bars: typeof all, voices: string[]): number => bars.reduce((n, b) => n + b.notes.filter(x => voices.includes(x.voice)).length, 0);
   assert.ok(count(all, ['game', 'coin']) > 0, 'chiptune plays the console');
-  assert.equal(count(quiet, ['game', 'coin']), 0, 'and with the console off, none of it');
-  const others = (bars: typeof all) => bars.map(b => b.notes.filter(x => x.voice !== 'game' && x.voice !== 'coin'));
+  assert.ok(count(all, ['fm']) > 0, 'and its FM effects');
+  assert.equal(count(quiet, ['game', 'coin', 'fm']), 0, 'and with the console off, none of it');
+  const others = (bars: typeof all) => bars.map(b => b.notes.filter(x => x.voice !== 'game' && x.voice !== 'coin' && x.voice !== 'fm'));
   assert.deepEqual(others(quiet), others(all));
 });
 

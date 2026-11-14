@@ -108,7 +108,8 @@ class FakeCtx {
     const data = Array.from({ length: channels }, () => new Float32Array(n));
     return { getChannelData: (c: number) => data[c]!, length: n };
   }
-  createDelay(): FakeNode & { delayTime: FakeParam } { return Object.assign(new FakeNode(), { delayTime: new FakeParam('delayTime') }); }
+  delays: Array<FakeNode & { delayTime: FakeParam }> = [];
+  createDelay(): FakeNode & { delayTime: FakeParam } { const d = Object.assign(new FakeNode(), { delayTime: new FakeParam('delayTime') }); this.delays.push(d); return d; }
   createConvolver(): FakeNode & { buffer: unknown } { return Object.assign(new FakeNode(), { buffer: null }); }
   createWaveShaper(): FakeNode & { curve: unknown; oversample: string } { return Object.assign(new FakeNode(), { curve: null, oversample: 'none' }); }
   createDynamicsCompressor(): FakeNode & Record<'threshold' | 'knee' | 'ratio' | 'attack' | 'release', FakeParam> {
@@ -187,6 +188,18 @@ test('botanica plays its place, its pads and its glitches, and catches the mix i
   // A repeat gates the mix: the gate's gain falls to nothing and comes back, at least once.
   const gated = ctx.gains.filter(g => g.gain.events.some(e => e[0] === 'lin' && e[1] === 0) && g.gain.events.some(e => e[0] === 'lin' && e[1] === 1));
   assert.ok(gated.length >= 2, `the beat repeater's gate and wet gain move (${gated.length})`);
+});
+
+test('a console rewind stops the tape under the music, and only a tune with one wires the tape in', () => {
+  // Sugar's seed 2024 rewinds into its first drop, about 40 s in (engine/src/lofi-console.ts).
+  const stops = (c: FakeCtx): number => c.delays.filter(d => d.delayTime.events.some(e => e[0] === 'curve')).length;
+  const sugar = play(2024, { ...base, mood: 'sugar' }, 45);
+  assert.equal(stops(sugar), 1, 'one delay line follows the tape stop\'s curve');
+  assert.equal(stops(play(2024, { ...base, mood: 'warm' }, 45)), 0, 'none in a style without the console');
+  // The same tune with its FM effects taken out (as the console switch does): no tape, and one delay line fewer.
+  const without = play(2024, { ...base, mood: 'sugar', shape: bar => ({ ...bar, notes: bar.notes.filter(n => n.voice !== 'fm') }) }, 45);
+  assert.equal(stops(without), 0, 'no tape stop without the rewind');
+  assert.equal(without.delays.length + 1, sugar.delays.length, 'the tape is the only delay line the rewind adds');
 });
 
 test('the drums switch takes the kit out and leaves the music', () => {

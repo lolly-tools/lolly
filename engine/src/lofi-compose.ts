@@ -42,6 +42,7 @@ import { composeBotanica, type BotanicaKit } from './lofi-botanica.ts';
 import { composeOompa, oompaSectionName } from './lofi-oompa.ts';
 import { dnbKitBar, dnbKitPlan, isBreakNote } from './lofi-breaks.ts';
 import { cameoOf, didgeBass, didgeCameo, didgeLead, didgeMid, gateToots, strayaBirds, strayaOf, strayaParts, withMagpies, DIDGE_CAMEO } from './lofi-straya.ts';
+import { withConsoleFx } from './lofi-console.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
 export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse' | 'salsa' | 'surf' | 'yacht' | 'botanica' | 'oompa' | ClubMood;
@@ -70,8 +71,10 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
  *  (a stutter, crush, freeze, reverse, tape stop or repeat), their `mod`s read by
  *  lofi-botanica.ts's readNature, readGrain and readGlitch. Straya adds `didge`, its didgeridoo's
  *  rhythm and its solo over the band (lofi-straya.ts says what a note's `mod` holds), and its
- *  birds' `mod`s say which are featured and how many sing (lofi-straya.ts readBird). */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge';
+ *  birds' `mod`s say which are featured and how many sing (lofi-straya.ts readBird). `fm` (sugar,
+ *  chiptune and sherbert, and now and then K-pop and synthwave) is a 16-bit console's FM effect:
+ *  a spin, a shot or the moment before a drop, its `mod` read by lofi-console.ts readFm. */
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge' | 'fm';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash', 'tom', 'perc'];
 /** The percussion a `perc` note plays, by its `mod`: an egg shaker, a tambourine, congas (pitched by `midi`), a cowbell, clapsticks;
  *  and the world styles' hand drums and bells, whose `midi` is the stroke: the tombak (1 tom, 2 bak, 3 a snapped
@@ -675,8 +678,10 @@ export function nextLofiSeed(seed: number): number {
 
 /** Build one tune's bars, signed with the producer's tag when the tune has one (see withTag), with the band's shouts (see withBandShouts). */
 export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiBar[] {
-  // Botanica's and sherbert's magpie, from a stream of its own (lofi-straya.ts).
-  return withMagpies(withBandShouts(withTag(composeTuneBars(seed, mood, fixed), seed, mood), seed, mood), mood, (seed ^ 0x3a6e1) >>> 0);
+  // Botanica's and sherbert's magpie, from a stream of its own (lofi-straya.ts), then the
+  // console's FM effects, from theirs (lofi-console.ts), placed around everything else.
+  const tune = withMagpies(withBandShouts(withTag(composeTuneBars(seed, mood, fixed), seed, mood), seed, mood), mood, (seed ^ 0x3a6e1) >>> 0);
+  return withConsoleFx(tune, seed, mood);
 }
 
 /** How softly a quiet verse is played, against its chorus. */

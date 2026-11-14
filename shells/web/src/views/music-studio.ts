@@ -485,7 +485,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
 
   /** The effects lane's rows, by what makes the sound: voices and botanica's place on top, then the console's sounds and the glitches, its sparkles and bleeps, and the sweeps and pads at the bottom. */
   const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' || voice === 'nature' ? 0
-    : voice === 'game' || voice === 'coin' || voice === 'glitch' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
+    : voice === 'game' || voice === 'coin' || voice === 'fm' || voice === 'glitch' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
 
   /**
    * The grid's lines take the colour of the section they sit on, a lightness step from
