@@ -428,6 +428,15 @@ function keys(c: BarCtx): void {
   if (!voicing.length) return;
   const strike = (at: number, p: number, len: number, vel: number): void => { notes.push({ voice: 'keys', midi: p, beat: inBar(at), dur: len, vel: clampVel(vel + (c.m() - 0.5) * 0.08) }); };
   const quiet = part.section === 'intro' || part.section === 'outro' || part.section === 'break';
+  if (c.keysV === 'strings') {
+    // A string section holds the chord: one bow for each chord, every part at one strength,
+    // so a progression that comes round again is bowed as it was the first time.
+    if (c.firstOfChord || c.i === 0) {
+      const left = (c.chordBars - (c.i % c.chordBars)) * 4;
+      for (const p of voicing) notes.push({ voice: 'keys', midi: p, beat: 0, dur: left - 0.25, vel: quiet ? 0.45 : 0.55 });
+    }
+    return;
+  }
   if (c.form === 'drift' || part.free || part.section === 'intro') {
     // A chord rolled slowly from the bottom where the chord starts, left to ring.
     if (c.firstOfChord || c.i === 0) {
@@ -457,6 +466,11 @@ function keys(c: BarCtx): void {
 
 /** A build's keys: the chord struck on every beat, then every eighth, louder as it climbs. */
 function buildKeys(c: BarCtx): void {
+  // A string section swells through the build on held chords, a bow a bar, louder each bar.
+  if (c.keysV === 'strings') {
+    for (const p of c.voicing) c.notes.push({ voice: 'keys', midi: p, beat: 0, dur: 3.75, vel: Math.round((0.4 + (c.i / c.part.bars) * 0.3) * 10) / 10 });
+    return;
+  }
   const every = c.i >= c.part.bars - 1 ? 2 : 4;
   for (let s = 0; s < 16; s += every) for (const p of c.voicing) c.notes.push({ voice: 'keys', midi: p, beat: s / 4, dur: every / 4 - 0.05, vel: clampVel(0.34 + (c.i / c.part.bars) * 0.25) });
 }

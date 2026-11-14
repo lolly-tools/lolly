@@ -9,8 +9,9 @@
  *    70) and glitchy grooves (100 to 168), drawn per tune;
  *  - every tune is set somewhere: beds of its place under it, birds singing in the lead's
  *    rests (one bird at a time), granular pads on the chord's tones, glitches;
- *  - a drift is free of the grid and has no backbeat; a groove's bloom has its kick, its
- *    backbeat and the place's twigs and drops as percussion;
+ *  - a drift is free of the grid and has no backbeat (its struck keys: a string section
+ *    holds each chord, a bow a chord); a groove's bloom has its kick, its backbeat and the
+ *    place's twigs and drops as percussion;
  *  - the clearing (the break) is a free passage: no drums, notes off the grid, a frozen chord;
  *  - the note encodings round-trip, and the section names are the genre's own.
  */
@@ -31,6 +32,10 @@ const tune = (seed: number): LofiBar[] => {
 };
 const notesOf = (bars: readonly LofiBar[], voice: string, section?: string) => bars.filter(b => !section || b.section === section).flatMap(b => b.notes.filter(n => n.voice === voice));
 const kindOf = (n: { mod?: number }): string => readNature(n.mod ?? 0).kind;
+/** The keys struck in some bars (a string section's held chords left out), and whether every chord a section holds is one bow. */
+const struck = (bars: readonly LofiBar[]) => bars.filter(b => (b.voices?.keys ?? b.tune.style.keys) !== 'strings').flatMap(b => b.notes.filter(n => n.voice === 'keys'));
+const bowed = (bars: readonly LofiBar[]) => bars.filter(b => (b.voices?.keys ?? b.tune.style.keys) === 'strings').flatMap(b => b.notes.filter(n => n.voice === 'keys'));
+const offGrid = (n: { beat: number }): boolean => Math.abs(n.beat * 4 - Math.round(n.beat * 4)) > 0.04;
 
 test('a seed is a tune, and tunes cover the slow drift and the glitchy groove', () => {
   assert.deepEqual(composeLofiTune(77, 'botanica'), composeLofiTune(77, 'botanica'));
@@ -72,11 +77,12 @@ test('a drift floats free of the grid with no backbeat; a groove blooms on a kic
     const bars = tune(seed);
     const drift = bars[0]!.tune.bpm <= 70;
     const where = `botanica ${seed} (${drift ? 'drift' : 'groove'})`;
-    const offGrid = notesOf(bars, 'keys').filter(n => Math.abs(n.beat * 4 - Math.round(n.beat * 4)) > 0.04).length;
-    const keys = notesOf(bars, 'keys').length;
+    const keys = struck(bars);
+    const loose = keys.filter(offGrid).length;
+    for (const n of bowed(bars)) assert.ok(n.beat === 0 && n.dur >= 3, `${where}: a string section holds its chord`);
     if (drift) {
       assert.equal(notesOf(bars, 'snare').length, 0, `${where}: no backbeat`);
-      assert.ok(offGrid / keys > 0.5, `${where}: the keys are played by feel, ${offGrid} of ${keys} off the grid`);
+      assert.ok(keys.length === 0 || loose / keys.length > 0.5, `${where}: the keys are played by feel, ${loose} of ${keys.length} off the grid`);
     } else {
       const bloom = bars.filter(b => b.section === 'drop');
       assert.ok(bloom.every(b => b.notes.some(n => n.voice === 'kick')), `${where}: a kick through every bloom bar`);
@@ -94,8 +100,8 @@ test('the clearing is a free passage: no drums, notes off the grid, a chord froz
     const where = `botanica ${seed}`;
     assert.ok(clearing.length >= 4, `${where}: a clearing`);
     assert.ok(!clearing.some(b => b.notes.some(n => n.voice === 'kick' || n.voice === 'snare' || n.voice === 'hat')), `${where}: no drums in the clearing`);
-    const keys = clearing.flatMap(b => b.notes.filter(n => n.voice === 'keys'));
-    assert.ok(keys.filter(n => Math.abs(n.beat * 4 - Math.round(n.beat * 4)) > 0.04).length > keys.length / 2, `${where}: off the grid`);
+    const keys = struck(clearing);
+    assert.ok(keys.filter(offGrid).length >= keys.length / 2, `${where}: off the grid`);
     assert.ok(clearing[0]!.notes.some(n => n.voice === 'glitch' && readGlitch(n.mod!).kind === 'freeze'), `${where}: a frozen chord opens it`);
   }
 });
