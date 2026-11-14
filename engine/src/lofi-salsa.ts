@@ -28,6 +28,8 @@
  *   on the head in the verse, the same pattern on the mambo bell from the montuno on, and
  *   an abanico (a roll ending in a rimshot and the cymbal) into each new section.
  * - The güiro: long, short, short, every two beats.
+ * - The maracas: steady eighths, the hands taking turns, the beats flicked forward and
+ *   leaned on, the ands lighter; softer in the verse.
  * - The brass: the verse's melody and the pregones on the lead (a trumpet, the singer's
  *   part), the mambo's riffs and their moñas on the whole section.
  * - The coro: a refrain sung by several voices in thirds, answered by the pregón.
@@ -44,7 +46,7 @@ import type { LofiBar, LofiLayer, LofiNote, LofiSection, LofiStyle, LofiTuneInfo
 import { mulberry32 } from './zzfx-compose.ts';
 
 /** The salsa percussion, appended to the composer's LOFI_PERCUSSION in this order. */
-export const SALSA_PERCUSSION = ['congas', 'bongos', 'timbales', 'bongoBell', 'mamboBell', 'clave', 'guiro'] as const;
+export const SALSA_PERCUSSION = ['congas', 'bongos', 'timbales', 'bongoBell', 'mamboBell', 'clave', 'guiro', 'maracas'] as const;
 export type SalsaPercussion = typeof SALSA_PERCUSSION[number];
 
 /**
@@ -62,6 +64,8 @@ export const TIMBAL_STROKES = { macho: 1, hembra: 2, shell: 3, rimshot: 4, macho
 export const BELL_STROKES = { mouth: 1, neck: 2 } as const;
 /** A güiro note's `midi`: the stick scraped down (away) or up (back). Its `dur` is the scrape's length in beats. */
 export const GUIRO_STROKES = { down: 1, up: 2 } as const;
+/** A maracas note's `midi`: the right maraca or the left flicked forward (the accent), or drawn back. */
+export const MARACA_STROKES = { right: 1, left: 2, rightBack: 3, leftBack: 4 } as const;
 
 /** Son clave, in sixteenths of a four-beat bar: the three side and the two side. */
 export const SON_CLAVE = { three: [0, 6, 12], two: [4, 8] } as const;
@@ -365,6 +369,8 @@ export function composeSalsa(seed: number, fixed: Partial<LofiStyle>, deps: Sals
   // The bass's fills, and whether its two-and is the fifth or the root.
   const fifthOnTwoAnd = chance(0.6);
   const lead = style.lead === 'flute' && !fixed.lead ? 'trumpet' : style.lead;
+  // The maracas draw from their own stream (added after the first tunes were heard).
+  const maracas = mulberry32((seed ^ 0x3a7ac) >>> 0);
 
   // A part's chord at its bar `i` (`inSection` bars into its section): the ending is the
   // dominant and then the tonic, whatever the vamp was doing.
@@ -499,6 +505,15 @@ export function composeSalsa(seed: number, fixed: Partial<LofiStyle>, deps: Sals
         else perc('timbales', 12, TIMBAL_STROKES.hembra, 0.55);
         // Güiro: long, short, short.
         for (const [st, stroke, len, vel] of GUIRO) perc('guiro', st, stroke, vel, len);
+        // Maracas: eighths, the right hand forward on the beats, the left on the ands, the
+        // odd and drawn back; their strengths from a stream of their own, so adding them moved
+        // no other note of a tune.
+        const shake = part.section === 'verse' || part.section === 'intro' ? 0.8 : 1;
+        for (let st = 0; st < 16; st += 2) {
+          const onBeat = st % 4 === 0;
+          const stroke = onBeat ? MARACA_STROKES.right : maracas() < 0.25 ? MARACA_STROKES.leftBack : MARACA_STROKES.left;
+          notes.push({ voice: 'perc', beat: st / 4, dur: 0, midi: stroke, vel: clamp(((onBeat ? 0.68 : 0.46) + (maracas() - 0.5) * 0.08) * shake), mod: deps.perc('maracas') });
+        }
         // The abanico into the next section, and its rimshot and cymbal on the new one's beat one.
         const into = lastOfPart && next && next.section !== part.section && next.section !== 'outro';
         if (into) for (let n = 0; n < 6; n++) notes.push({ voice: 'perc', beat: 3 + n / 8, dur: 0, midi: TIMBAL_STROKES.roll, vel: clamp(0.35 + n * 0.08), mod: deps.perc('timbales') });

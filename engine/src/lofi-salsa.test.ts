@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { composeLofiTune, LOFI_PERCUSSION } from './lofi-compose.ts';
 import type { LofiBar, LofiNote } from './lofi-compose.ts';
-import { BELL_STROKES, CASCARA, claveSide, CONGA_DRUM, CONGA_STROKES, MONTUNOS, SALSA_PERCUSSION, SON_CLAVE, TIMBAL_STROKES, type ClaveDirection } from './lofi-salsa.ts';
+import { BELL_STROKES, CASCARA, claveSide, CONGA_DRUM, CONGA_STROKES, MARACA_STROKES, MONTUNOS, SALSA_PERCUSSION, SON_CLAVE, TIMBAL_STROKES, type ClaveDirection } from './lofi-salsa.ts';
 
 const SEEDS = Array.from({ length: 12 }, (_, i) => (i * 2654435761 + 17) >>> 0);
 const step = (n: LofiNote): number => Math.round(n.beat * 4);
@@ -140,6 +140,10 @@ test('the percussion: the conga\'s tumbao every bar, the martillo and the cásca
         if (bar.section === 'drop') assert.ok(perc(bar, 'congas').some(n => n.midi >= 2 * CONGA_DRUM) === (side === 'two'), 'the tumba answers on the two side');
       }
       assert.deepEqual(perc(bar, 'guiro').map(step), [0, 4, 6, 8, 12, 14], 'the güiro: long, short, short');
+      const shakes = perc(bar, 'maracas');
+      assert.deepEqual(shakes.map(step), [0, 2, 4, 6, 8, 10, 12, 14], 'the maracas in eighths');
+      assert.ok(shakes.filter(n => step(n) % 4 === 0).every(n => n.midi === MARACA_STROKES.right && n.vel > 0.5), 'the beats flicked forward and leaned on');
+      assert.ok(shakes.filter(n => step(n) % 4 === 2).every(n => n.midi === MARACA_STROKES.left || n.midi === MARACA_STROKES.leftBack), 'the other hand on the ands');
       assert.ok(perc(bar, 'guiro').filter(n => step(n) % 8 === 0).every(n => n.dur > 0.5), 'the long scrape is long');
     }
   }
