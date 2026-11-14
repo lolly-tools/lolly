@@ -21,6 +21,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LofiStation } from './lofi-station.ts';
 import type { LofiSettings } from './lofi-station.ts';
+import { STACKS } from './lofi-bass-stack.ts';
 import {
   LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_GROOVES,
 } from '../../../../engine/src/lofi-compose.ts';
@@ -138,13 +139,15 @@ test('every mood, instrument, kit and groove schedules only sound values', () =>
   for (const texture of [0, 1]) play(18, { ...base, texture, style: { crunch: true } });
 });
 
-test('lofi house plays its deep-house bass: a sine and a saw on each note, each settling into its pitch', () => {
+test('lofi house plays its deep-house bass: a saw on each take of a note and a sine under the first, each settling into its pitch', () => {
   const ctx = play(61, { ...base, mood: 'lofiHouse' }, 90);
   // A bass note starts 1.2 per cent sharp and settles on its pitch, a bass's register (under 140 Hz).
   const settling = (type: string) => ctx.oscs.filter(o => o.type === type && o.frequency.events.length >= 2
     && o.frequency.events[1]![0] === 'exp' && o.frequency.events[1]![1] < 140 && Math.abs(o.frequency.events[0]![1] / o.frequency.events[1]![1] - 1.012) < 1e-6).length;
   assert.ok(settling('sine') > 20, `sines under the bass notes (${settling('sine')})`);
-  assert.equal(settling('sawtooth'), settling('sine'), 'and a saw with each');
+  // A drop's note is two takes (lib/lofi-bass-stack.ts), the second without the sine; a quieter section's is one.
+  const saws = settling('sawtooth');
+  assert.ok(saws > settling('sine') && saws <= 2 * settling('sine'), `a saw on every take (${saws} saws, ${settling('sine')} sines)`);
 });
 
 test('lofi house seats its bass 7.5 dB up: the same deep bass plays that much louder there than in another style', () => {
@@ -162,7 +165,10 @@ test('lofi house seats its bass 7.5 dB up: the same deep bass plays that much lo
     for (const x of xs) count.set(Math.round(x * 1e6), (count.get(Math.round(x * 1e6)) ?? 0) + 1);
     return [...count.entries()].sort((a, b) => b[1] - a[1])[0]![0] / 1e6;
   };
-  const db = 20 * Math.log10(usual(house) / usual(disco));
+  // Both styles stack their bass (lib/lofi-bass-stack.ts), each at its own take level, so
+  // the seat is what is left once the two stacks' take levels are taken out.
+  const stacks = 20 * Math.log10(STACKS.lofiHouse!.take / STACKS.nudisco!.take);
+  const db = 20 * Math.log10(usual(house) / usual(disco)) - stacks;
   assert.ok(Math.abs(db - 7.5) < 0.01, `the usual note is ${db.toFixed(2)} dB up`);
 });
 

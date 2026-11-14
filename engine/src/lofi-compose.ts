@@ -37,13 +37,14 @@
  * per note, a growl, a reese, a slap bass with popped octaves.
  */
 import { mulberry32 } from './zzfx-compose.ts';
+import { composeSalsa, salsaSectionName, SALSA_PERCUSSION } from './lofi-salsa.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
-export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse';
+export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse' | 'salsa';
 /** The three Lofi moods, Lolly Sings (the melody-first genre, see LEAN.sings) and its dance genres. */
 export type LofiMood = 'warm' | 'lateNight' | 'rainy' | 'sings' | DanceMood;
-export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'metal', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'ska', 'punk', 'rnb', 'grunge', 'stoner', 'shoegaze', 'lofiHouse'];
-export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'metal', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'ska', 'punk', 'rnb', 'grunge', 'stoner', 'shoegaze', 'lofiHouse'];
+export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'metal', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'ska', 'punk', 'rnb', 'grunge', 'stoner', 'shoegaze', 'lofiHouse', 'salsa'];
+export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'metal', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'ska', 'punk', 'rnb', 'grunge', 'stoner', 'shoegaze', 'lofiHouse', 'salsa'];
 /** Whether `mood` is one of the dance genres. */
 export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_MOODS as readonly string[]).includes(mood); }
 
@@ -68,8 +69,10 @@ export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', '
  *  tanggu (1 centre, 2 rim) and a small gong; the taiko (1 don, 2 ka on the rim) and the kotsuzumi (1 pon, 2 ta, 3 a
  *  high pon); the djembe (1 bass, 2 tone, 3 slap) and the dunun (1 open, 2 muffled, its bell struck with every
  *  stroke); the shekere (1 its beads, 2 a slap on the gourd's base); the agogo (1 low bell, 2 high); and the talking
- *  drum, whose `midi` is 50 plus how far its pitch bends, in semitones. */
-export const LOFI_PERCUSSION = ['shaker', 'tambourine', 'conga', 'cowbell', 'sticks', 'tombak', 'daf', 'woodblock', 'tanggu', 'gong', 'taiko', 'kotsuzumi', 'djembe', 'dunun', 'shekere', 'agogo', 'talking'] as const;
+ *  drum, whose `midi` is 50 plus how far its pitch bends, in semitones. Then salsa's (lib/lofi-salsa.ts says each
+ *  `midi`): the congas (quinto, conga and tumba, each stroke), the bongos, the timbales, the bongo bell, the mambo
+ *  bell, the clave and the güiro. */
+export const LOFI_PERCUSSION = ['shaker', 'tambourine', 'conga', 'cowbell', 'sticks', 'tombak', 'daf', 'woodblock', 'tanggu', 'gong', 'taiko', 'kotsuzumi', 'djembe', 'dunun', 'shekere', 'agogo', 'talking', ...SALSA_PERCUSSION] as const;
 type Percussion = typeof LOFI_PERCUSSION[number];
 /** The sound effect a `game` note plays, by its `mod`: a jump (a sweep up), a power-up (a
  *  quick run up the key's chord), a power-down (a falling zap), a bonus (a trill climbing),
@@ -118,9 +121,15 @@ export const LOFI_BASS_SHOTS = ['bwah', 'yoi', 'throat', 'wub'] as const;
 const GAME = (name: typeof LOFI_GAME_SOUNDS[number]): number => LOFI_GAME_SOUNDS.indexOf(name);
 const SHOUT = (name: typeof LOFI_SHOUTS[number]): number => LOFI_SHOUTS.indexOf(name);
 
-export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric'] as const;
-export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'none'] as const;
+export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'strings', 'grand'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'none'] as const;
 export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'yidaki', 'log', 'deep'] as const;
+/** A `layer` note's `mod`: 1 the travelling line, 2 a percussive stab, LOFI_OVER the bass laid
+ *  over the bar's (LofiBar voices.over), plus 8 times how that bass plays the note (its own
+ *  `mod`: a croak's note slid into is LOFI_OVER + 16). */
+export const LOFI_OVER = 3;
+/** Whether a note belongs to the bass laid over the bar's own. */
+export const isOverNote = (n: LofiNote): boolean => n.voice === 'layer' && (n.mod ?? 0) % 8 === LOFI_OVER;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap', 'stack', 'snap'] as const;
 export const LOFI_HATS = ['hat', 'shaker', 'ride', 'none'] as const;
 export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse', 'bossa', 'disco', 'halfStep', 'twoStep', 'rock', 'rumba', 'oneDrop', 'funk', 'train', 'swing', 'stomp'] as const;
@@ -236,6 +245,9 @@ export interface LofiBar {
   voices?: Partial<Pick<LofiStyle, 'keys' | 'lead' | 'bass' | 'snare' | 'hats'>> & {
     /** A second instrument playing the lead's notes with the lead (a drop's doubling). */
     double?: LofiStyle['lead'];
+    /** A bass laid over this bar's bass, never on its own: the croak calling at a phrase's
+     *  end, filling into a drop or adding a texture (`layer` notes with a `mod` of LOFI_OVER). */
+    over?: LofiStyle['bass'];
   };
 }
 
@@ -674,12 +686,117 @@ function bassLayers(notes: LofiNote[], r: () => number, plan: { travel: readonly
   }
 }
 
+/**
+ * How the bass styles' basses answer each other, and what is laid over them (Andy,
+ * 2026-11-13: "duplication and mixed layers of bass building together like modern d&b
+ * dubstep etc ... the croaky bass ... should be an element of dubstep brostep dnb etc that
+ * overlays on occasion other bass effects"). Measured against produced drops (see
+ * docs/generated-music.md): a dubstep or brostep drop changes its bass's character every
+ * bar or two, where a drum and bass drop keeps one reese and dresses the reese up.
+ * - `trade`: the basses a drop's own bass trades with, a four-bar phrase at a time, and the
+ *   shapes a phrase takes (0 is the drop's own bass, 1 and 2 its partners, in an order each
+ *   drop draws): a two-bar call and its answer, or an answer in the phrase's last bar;
+ *   brostep brings a third bass in, and now and then trades every bar.
+ * - `over`: the croak, never on its own: how often a tune has it, the bar of a phrase it
+ *   calls in (`at` of every `every`) and how often, whether it fills into the second drop,
+ *   and whether it doubles the bass an octave up for two bars of the second drop.
+ */
+interface BassPlan {
+  trade?: { pool: readonly LofiStyle['bass'][]; phrases: Weights<readonly number[]> };
+  over?: { chance: number; at: number; every: number; call: number; fill: number; texture: number; in: readonly LofiSection[] };
+}
+const BASS_PLANS: Partial<Record<DanceMood, BassPlan>> = {
+  dubstep: {
+    trade: { pool: ['wobble', 'growl', 'screech'], phrases: [[[0, 0, 1, 1], 5], [[0, 0, 0, 1], 3], [[0, 0, 0, 0], 1]] },
+    over: { chance: 0.55, at: 1, every: 4, call: 0.6, fill: 0.5, texture: 0.4, in: ['drop'] },
+  },
+  brostep: {
+    trade: { pool: ['growl', 'screech', 'wobble'], phrases: [[[0, 0, 1, 1], 4], [[0, 0, 1, 2], 2], [[0, 0, 0, 1], 2], [[0, 1, 0, 2], 1]] },
+    over: { chance: 0.6, at: 1, every: 4, call: 0.6, fill: 0.5, texture: 0.4, in: ['drop'] },
+  },
+  dnb: { over: { chance: 0.4, at: 5, every: 8, call: 0.7, fill: 0.35, texture: 0, in: ['drop'] } },
+  // Sugar's croak used to play alone, as a verse's or a second drop's bass now and then:
+  // a bright, buzzy string with little weight. The croak now calls over the slap instead.
+  sugar: { over: { chance: 0.35, at: 3, every: 4, call: 0.75, fill: 0, texture: 0.5, in: ['verse', 'drop'] } },
+};
+/** The croak's calls: [sixteenth, length, how it is played (0 plucked, 2 slid into, 3 bent), semitones above the root an octave over the bass]. */
+const CROAK_CALLS: readonly Figure[] = [
+  [[12, 1, 0, 12], [13, 1, 0, 12], [14, 2, 3, 12]],
+  [[10, 1, 2, 12], [12, 1, 0, 12], [13, 1, 0, 7], [14, 2, 3, 12]],
+  [[12, 1, 2, 7], [13, 1, 0, 12], [14, 1, 0, 12], [15, 1, 0, 10]],
+  [[8, 1, 0, 12], [9, 1, 0, 12], [11, 1, 2, 12], [14, 2, 3, 7]],
+];
+/** The croak's fill into a drop: bubbling up the last half of the build's last bar. */
+const CROAK_FILL: Figure = [[8, 1, 0, 0], [9, 1, 0, 0], [10, 1, 2, 7], [12, 1, 0, 12], [13, 1, 0, 12], [14, 2, 3, 12]];
+
+/** A tune's trades and overlay, drawn from a stream of its own (so no other note moves), or null when the person chose the bass. */
+interface BassStack {
+  /** The bass of a drop's bar: its own, or the partner answering it; and that partner's figure for the bar. */
+  trade(alt: boolean, inSection: number, i: number): { bass: LofiStyle['bass']; fig: Figure } | null;
+  over: boolean;
+  /** The overlay's notes for a bar, each laid only where a note of the bar's bass (or, in a build, the travelling line) is sounding under the note. */
+  overlay(at: { section: LofiSection; alt: boolean; inSection: number; lastOfBuild: boolean; nextIsAltDrop: boolean; root: number; sb: (step: number) => number }, notes: readonly LofiNote[]): LofiNote[];
+}
+
+function bassStackOf(seed: number, mood: DanceMood, own: { a: LofiStyle['bass']; b: LofiStyle['bass'] }, figuresOf: (b: LofiStyle['bass']) => readonly Figure[], drop: number): BassStack | null {
+  const plan = BASS_PLANS[mood];
+  if (!plan) return null;
+  const r = layerStream(seed, 0x57ac);
+  const pickR = <T>(xs: readonly T[]): T => xs[Math.floor(r() * xs.length)]!;
+  // Each drop's partners in a drawn order, their figures (a call and its answer), and its phrases.
+  const drops = [own.a, own.b].map((self) => {
+    if (!plan.trade) return null;
+    const partners = plan.trade.pool.filter(b => b !== self);
+    if (r() < 0.5) partners.reverse();
+    const figs = partners.map(p => [pickR(figuresOf(p)), pickR(figuresOf(p))] as const);
+    const phrases = Array.from({ length: Math.ceil(drop / 4) }, () => weightedPick(r, plan.trade!.phrases));
+    return { self, partners, figs, phrases };
+  });
+  const o = plan.over;
+  const over = !!o && r() < o.chance;
+  const fill = !!o && r() < o.fill;
+  const texture = !!o && r() < o.texture;
+  /** Whether a note of the bass (or, in a build, the travelling line) is sounding at `beat`. */
+  const held = (notes: readonly LofiNote[], beat: number): boolean => notes.some(n => (n.voice === 'bass' || (n.voice === 'layer' && n.mod === 1)) && beat >= n.beat - 0.01 && beat < n.beat + n.dur);
+  return {
+    over,
+    trade(alt, inSection, i) {
+      const d = drops[alt ? 1 : 0];
+      if (!d) return null;
+      const who = d.phrases[Math.floor(inSection / 4)]?.[inSection % 4] ?? 0;
+      if (who === 0) return null;
+      const p = (who - 1) % d.partners.length;
+      return { bass: d.partners[p]!, fig: d.figs[p]![i % 2]! };
+    },
+    overlay(at, notes) {
+      if (!over || !o) return [];
+      let fig: Figure | null = null;
+      let vel = 0.62;
+      if (at.lastOfBuild && at.nextIsAltDrop && fill) fig = CROAK_FILL;
+      else if (o.in.includes(at.section)) {
+        if (at.section === 'drop' && at.alt && texture && (at.inSection === 8 || at.inSection === 9)) {
+          // A texture: the croak an octave over the bass, on its notes, for two bars.
+          return notes.filter(n => n.voice === 'bass').map(n => ({ voice: 'layer' as const, midi: Math.min(63, n.midi + 12), beat: n.beat, dur: Math.min(0.5, n.dur), vel: 0.5, mod: LOFI_OVER }));
+        }
+        if (at.inSection % o.every === o.at && r() < o.call) { fig = pickR(CROAK_CALLS); vel = 0.66; }
+      }
+      if (!fig) return [];
+      const out: LofiNote[] = [];
+      for (const [step, len, how, above] of fig) {
+        if (!held(notes, at.sb(step))) continue;   // never alone: only over the bass
+        out.push({ voice: 'layer', midi: Math.min(63, at.root + above), beat: at.sb(step), dur: len / 4 - 0.02, vel, mod: LOFI_OVER + 8 * how });
+      }
+      return out.length >= 2 ? out : [];
+    },
+  };
+}
+
 /** How often a tune carries the tag. */
 const TAG_CHANCE = 0.6;
 type Tag = typeof LOFI_TAGS[number];
 const TAG_CALM = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'dream', 'fantasy', 'triphop', 'shoegaze', 'lofiHouse']);
 const TAG_SMOOTH = new Set<LofiMood>(['jazz', 'swing', 'soul', 'rnb', 'citypop', 'blues']);
-const TAG_BAND = new Set<LofiMood>(['rock', 'metal', 'punk', 'ska', 'reggae', 'country', 'funk', 'afrobeat', 'spanish', 'straya', 'grunge', 'stoner']);
+const TAG_BAND = new Set<LofiMood>(['rock', 'metal', 'punk', 'ska', 'reggae', 'country', 'funk', 'afrobeat', 'spanish', 'straya', 'grunge', 'stoner', 'salsa']);
 const TAG_WORLD = new Set<LofiMood>(['persian', 'guzheng', 'koto', 'kora']);
 /** The deliveries a style's tag is drawn from, by weight: whispered and sung in the calm styles, shouted in a band's, pitched and chopped in a club's. */
 function tagWeights(mood: LofiMood): Array<readonly [Tag, number]> {
@@ -1559,8 +1676,10 @@ const DANCE: Record<DanceMood, DanceLean> = {
     keys: [['supersaw', 4], ['rhodes', 1]], lead: [['chip', 3], ['pulse', 3], ['angel', 2], ['guitar', 2], ['synthwave', 1], ['vibes', 1], ['panflute', 2], ['flute', 1]],
     bass: [['slap', 1]], snare: [['clap', 1]], kick: [52, 60], kickLen: [0.25, 0.35], duck: [1.3, 1.7], crunch: 0,
     swing: 0.53, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.9,
-    // The croak: the modelled string in repeated eighths, a guttural, bubbling Sugar flavour now and then.
-    softKeys: [['rhodes', 2], ['pluck', 2], ['felt', 1]], verseBass: [['slap', 3], ['pulse', 2], ['croak', 1]], switchBass: [['slap', 4], ['croak', 1]],
+    // The croak's share of these draws (it was a verse's or a second drop's bass now and
+    // then) plays the slap now, so the other draws fall as they did: the croak calls over the
+    // slap instead (BASS_PLANS).
+    softKeys: [['rhodes', 2], ['pluck', 2], ['felt', 1]], verseBass: [['slap', 3], ['pulse', 2], ['slap', 1]], switchBass: [['slap', 4], ['slap', 1]],
   },
   // Sherbert: future bass with an old games console inside. Fast and half-time (the clap on
   // three), wide pumping saw chords that bend up into their pitch and wub, chopped vowels
@@ -1687,11 +1806,23 @@ const DANCE: Record<DanceMood, DanceLean> = {
     swing: 0.5, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.7,
     softKeys: [['pad', 2], ['pluck', 1]], verseBass: [['electro', 2], ['pulse', 1]], switchBass: [['electro', 3], ['screech', 1]],
   },
+  // Salsa: the clave under everything, a bright piano's montuno anticipating each chord, the
+  // bass's tumbao, congas, bongos, timbales, the bells and a güiro, the brass's mambos and a
+  // coro answering the lead's pregones. Written by lib/lofi-salsa.ts (composeSalsa); these
+  // leanings draw its instruments and its sound.
+  salsa: {
+    bpm: [160, 210], minor: 0.55, groove: 'rumba', chordBars: 1,
+    keys: [['grand', 1]], lead: [['trumpet', 5], ['sax', 1], ['flute', 1]],
+    bass: [['upright', 3], ['round', 1]], snare: [['rim', 1]], hats: 'none', kick: [50, 56], kickLen: [0.25, 0.35], duck: [0.1, 0.25], crunch: 0,
+    swing: 0.5, intro: 8, build: [2], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.7, band: true, dust: 0.1,
+    softKeys: [['grand', 1]], verseBass: [['upright', 1]], switchBass: [['upright', 1]],
+    room: [0.8, 1.1], wow: [0.03, 0.08],
+  },
 };
 
 /** Each dance genre's range of brightness and drive (see LofiStyle.bright and drive). */
-const BRIGHT: Record<DanceMood, [number, number]> = { fantasy: [0.9, 1.2], dream: [0.6, 0.9], kpop: [1.1, 1.5], metal: [1, 1.4], country: [0.9, 1.3], blues: [0.7, 1.1], jazz: [0.7, 1.1], swing: [0.9, 1.3], straya: [1, 1.4], chiptune: [1.2, 1.6], citypop: [1, 1.4], nudisco: [0.9, 1.4], triphop: [0.6, 0.9], funk: [1, 1.5], soul: [0.8, 1.2], acid: [0.8, 1.6], reggae: [0.7, 1.1], synthwave: [0.8, 1.3], hiphop: [0.8, 1.2], rock: [0.9, 1.3], spanish: [0.8, 1.2], sugar: [1.1, 1.6], sherbert: [1.15, 1.55], persian: [0.9, 1.2], guzheng: [0.9, 1.2], koto: [0.9, 1.2], kora: [1, 1.3], afrobeat: [0.9, 1.3], amapiano: [0.8, 1.1], electro: [0.8, 1.4], dubstep: [0.7, 1.4], brostep: [0.9, 1.6], dnb: [0.6, 1.2], ska: [1, 1.4], punk: [1.1, 1.5], rnb: [0.7, 1.1], grunge: [0.75, 1.05], stoner: [0.7, 1], shoegaze: [0.6, 0.9], lofiHouse: [0.6, 0.85] };
-const DRIVE: Record<DanceMood, [number, number]> = { sherbert: [1, 1.5], persian: [1, 1.2], guzheng: [1, 1.2], koto: [1, 1.2], kora: [1, 1.2], afrobeat: [1.2, 2], amapiano: [1.2, 1.8], fantasy: [1, 1.2], dream: [1, 1.2], kpop: [1, 1.5], metal: [3, 4], country: [1, 1.4], blues: [1.4, 2.4], jazz: [1, 1.2], swing: [1, 1.3], straya: [1, 1.5], chiptune: [1, 1.4], citypop: [1, 1.5], nudisco: [1.2, 2], triphop: [1.4, 2.4], funk: [1.2, 2], soul: [1, 1.3], acid: [1.5, 3.5], reggae: [1, 1.4], synthwave: [1, 1.8], hiphop: [1.2, 2.2], rock: [2, 3.2], spanish: [1, 1.4], sugar: [1, 1.6], electro: [2.5, 4], dubstep: [1.2, 2.6], brostep: [2, 4], dnb: [1.8, 3.2], ska: [1, 1.4], punk: [2.4, 3.6], rnb: [1, 1.4], grunge: [2.6, 3.6], stoner: [3, 4], shoegaze: [1.8, 2.8], lofiHouse: [1.4, 2.2] };
+const BRIGHT: Record<DanceMood, [number, number]> = { fantasy: [0.9, 1.2], dream: [0.6, 0.9], kpop: [1.1, 1.5], metal: [1, 1.4], country: [0.9, 1.3], blues: [0.7, 1.1], jazz: [0.7, 1.1], swing: [0.9, 1.3], straya: [1, 1.4], chiptune: [1.2, 1.6], citypop: [1, 1.4], nudisco: [0.9, 1.4], triphop: [0.6, 0.9], funk: [1, 1.5], soul: [0.8, 1.2], acid: [0.8, 1.6], reggae: [0.7, 1.1], synthwave: [0.8, 1.3], hiphop: [0.8, 1.2], rock: [0.9, 1.3], spanish: [0.8, 1.2], sugar: [1.1, 1.6], sherbert: [1.15, 1.55], persian: [0.9, 1.2], guzheng: [0.9, 1.2], koto: [0.9, 1.2], kora: [1, 1.3], afrobeat: [0.9, 1.3], amapiano: [0.8, 1.1], electro: [0.8, 1.4], dubstep: [0.7, 1.4], brostep: [0.9, 1.6], dnb: [0.6, 1.2], ska: [1, 1.4], punk: [1.1, 1.5], rnb: [0.7, 1.1], grunge: [0.75, 1.05], stoner: [0.7, 1], shoegaze: [0.6, 0.9], lofiHouse: [0.6, 0.85], salsa: [1, 1.3] };
+const DRIVE: Record<DanceMood, [number, number]> = { sherbert: [1, 1.5], persian: [1, 1.2], guzheng: [1, 1.2], koto: [1, 1.2], kora: [1, 1.2], afrobeat: [1.2, 2], amapiano: [1.2, 1.8], fantasy: [1, 1.2], dream: [1, 1.2], kpop: [1, 1.5], metal: [3, 4], country: [1, 1.4], blues: [1.4, 2.4], jazz: [1, 1.2], swing: [1, 1.3], straya: [1, 1.5], chiptune: [1, 1.4], citypop: [1, 1.5], nudisco: [1.2, 2], triphop: [1.4, 2.4], funk: [1.2, 2], soul: [1, 1.3], acid: [1.5, 3.5], reggae: [1, 1.4], synthwave: [1, 1.8], hiphop: [1.2, 2.2], rock: [2, 3.2], spanish: [1, 1.4], sugar: [1, 1.6], electro: [2.5, 4], dubstep: [1.2, 2.6], brostep: [2, 4], dnb: [1.8, 3.2], ska: [1, 1.4], punk: [2.4, 3.6], rnb: [1, 1.4], grunge: [2.6, 3.6], stoner: [3, 4], shoegaze: [1.8, 2.8], lofiHouse: [1.4, 2.2], salsa: [1, 1.3] };
 
 /** Pop progressions for the dance genres (sugar uses the jazz ones above). */
 const POP_MAJOR: readonly (readonly Step[])[] = [
@@ -2391,6 +2522,7 @@ const INTROS: Record<DanceMood, Weights<IntroStyle>> = {
   dubstep: [['keys', 2], ['lead', 2], ['beat', 1]],
   brostep: [['keys', 2], ['beat', 1], ['lead', 1]],
   dnb: [['keys', 2], ['beat', 3], ['bass', 1]],
+  salsa: [['keys', 1]],   // drawn by lib/lofi-salsa.ts's own running order
 };
 
 function arrangeDance(rng: () => number, lean: DanceLean, mood: DanceMood): DancePart[] {
@@ -2466,6 +2598,11 @@ function arrangeDance(rng: () => number, lean: DanceLean, mood: DanceMood): Danc
 
 /** Build one dance tune's bars (see composeLofiTune; this is the dance genres' path). */
 function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyle>): LofiBar[] {
+  // Salsa is written by its own module, against the clave (lib/lofi-salsa.ts).
+  if (mood === 'salsa') {
+    const lean = DANCE.salsa;
+    return composeSalsa(seed, fixed, { drawStyle: r => drawDanceStyle(r, 'salsa', {}), perc: kind => LOFI_PERCUSSION.indexOf(kind), bpm: lean.bpm, minor: lean.minor });
+  }
   const rng = mulberry32(seed >>> 0);
   const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
   const chance = (p: number): boolean => rng() < p;
@@ -2550,6 +2687,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const figA: [Figure, Figure] = [pick(figuresOf(style.bass)), pick(figuresOf(style.bass))];
   const figB: [Figure, Figure] = [pick(figuresOf(bassB)), pick(figuresOf(bassB))];
   const figVerse: [Figure, Figure] = [pick(figuresOf(verseBass)), pick(figuresOf(verseBass))];
+  // The basses' trades and the croak over them (BASS_PLANS), from a stream of their own; a
+  // bass the person chose plays alone through the tune, as a chosen lead drops its doubling.
+  const stack = fixed.bass ? null : bassStackOf(seed, mood, { a: style.bass, b: bassB }, figuresOf, lean.drop);
   const voicesOf = (part: DancePart): LofiBar['voices'] => {
     if (part.section === 'intro') return { keys: softKeys, lead: leadIntro };
     if (part.section === 'outro') return { keys: softKeys };
@@ -2816,12 +2956,15 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       // (EXTRA_FX): every bar, builds included, from their own stream.
       if (extra) notes.push(...extraFx(extra, mood, part.section, i, part.bars, { build, lastOfBuild, dropStart, fx: has('fx') }, { key, minor, coin, sb }));
 
-      // BASS: the genre's figure, a call and its answer, on the chord's root.
+      // BASS: the genre's figure, a call and its answer, on the chord's root. In a bass
+      // style's drop another bass may answer the drop's own for a bar (BASS_PLANS).
+      const traded = part.section === 'drop' && has('bass') ? stack?.trade(!!part.alt, inSection, i) ?? null : null;
+      const barBass = traded?.bass ?? bassV;
       if (has('bass')) {
         // A yidaki has one note, the key's: it drones under every chord.
-        const root = bassV === 'yidaki' ? placeIn(key, 34, 45)
-          : ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright', 'synth', 'round', 'motown', 'acid'].includes(bassV) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
-        let fig = (part.section === 'verse' ? figVerse : part.alt ? figB : figA)[i % 2]!;
+        const root = barBass === 'yidaki' ? placeIn(key, 34, 45)
+          : ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright', 'synth', 'round', 'motown', 'acid'].includes(barBass) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
+        let fig = traded?.fig ?? (part.section === 'verse' ? figVerse : part.alt ? figB : figA)[i % 2]!;
         if (house && part.section === 'break') fig = house.breakFig[i % 2]!;
         if (lean.band) {
           // A band's bass draws a figure every bar, by section, and fills into the next
@@ -2891,6 +3034,11 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       if (layerPlan && layers && (has('bass') || build)) {
         bassLayers(notes, layers, layerPlan, { section: part.section, alt: !!part.alt, i, bars: part.bars, chord, nextChord, sb });
       }
+      // OVER: the croak laid over the bass (BASS_PLANS), only where the bass is sounding.
+      const overNotes = stack?.over && (has('bass') || build)
+        ? stack.overlay({ section: part.section, alt: !!part.alt, inSection, lastOfBuild, nextIsAltDrop: !!parts[pi + 1]?.alt, root: placeIn(chord.root, 40, 51), sb }, notes)
+        : [];
+      notes.push(...overNotes);
 
       // SPARKLE: Sherbert's console arpeggios, through the second half of the first drop,
       // the whole of the second, and twice a bar in alternate bars of the breakdown.
@@ -3228,7 +3376,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         }
       }
       notes.sort((a, b) => a.beat - b.beat);
-      bars.push({ tune: info, index, section: part.section, layers: part.layers, chord: chord.name, tones: chord.tones, notes, open, level, ...(voices ? { voices } : {}) });
+      const barVoices = traded || overNotes.length ? { ...voices, ...(traded ? { bass: traded.bass } : {}), ...(overNotes.length ? { over: 'croak' as const } : {}) } : voices;
+      bars.push({ tune: info, index, section: part.section, layers: part.layers, chord: chord.name, tones: chord.tones, notes, open, level, ...(barVoices ? { voices: barVoices } : {}) });
     }
   }
   // K-pop's last chorus goes up a key (a semitone, now and then a whole tone), and the ending follows.
@@ -3589,6 +3738,7 @@ export function transposeChordName(name: string, by: number): string {
 
 /** What a section is called in a genre: a band's drop is its chorus, its break the solo. */
 export function lofiSectionName(mood: LofiMood, section: LofiSection): string {
+  if (mood === 'salsa') return salsaSectionName(section);
   if (!isDanceMood(mood) || !DANCE[mood].band) return section;
   if (section === 'drop') return 'chorus';
   if (section === 'break') return 'solo';

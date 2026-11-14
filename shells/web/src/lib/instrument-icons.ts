@@ -34,7 +34,7 @@ const KEYS: Record<LofiStyle['keys'], InstrumentIcon> = {
   pluck: 'audioWaveform', pad: 'audioWaveform', supersaw: 'audioWaveform', future: 'audioWaveform',
   nylon: 'guitar', clean: 'guitar', fuzz: 'guitar', wall: 'guitar', steel: 'guitar', banjo: 'guitar', jazzbox: 'guitar', crunch: 'guitar', heavy: 'guitar', buzzsaw: 'guitar', wah: 'guitar', electric: 'guitar', harp: 'guitar',
   tar: 'guitar', santur: 'guitar', zheng: 'guitar', koto: 'guitar', shamisen: 'guitar', kora: 'guitar',
-  chiparp: 'gamepad', brass: 'horn', choir: 'micVocal', balafon: 'bell',
+  chiparp: 'gamepad', brass: 'horn', choir: 'micVocal', balafon: 'bell', strings: 'bowed', grand: 'piano',
 };
 const LEADS: Record<LofiStyle['lead'], InstrumentIcon> = {
   vibes: 'bell', bells: 'bell', kalimba: 'bell', balafon: 'bell',
@@ -45,7 +45,7 @@ const LEADS: Record<LofiStyle['lead'], InstrumentIcon> = {
   angel: 'micVocal', chop: 'micVocal',
   guitar: 'guitar', overdrive: 'guitar', metal: 'guitar', riff: 'guitar', twang: 'guitar', nylon: 'guitar', banjo: 'guitar', pedal: 'guitar',
   santur: 'guitar', zheng: 'guitar', koto: 'guitar', pipa: 'guitar', shamisen: 'guitar', kora: 'guitar', harp: 'guitar', steel: 'guitar', tar: 'guitar',
-  fiddle: 'bowed', kamancheh: 'bowed', erhu: 'bowed',
+  fiddle: 'bowed', kamancheh: 'bowed', erhu: 'bowed', viola: 'bowed', cello: 'bowed', doublebass: 'bowed',
   none: 'audioWaveform',
 };
 const BASSES: Record<LofiStyle['bass'], InstrumentIcon> = {

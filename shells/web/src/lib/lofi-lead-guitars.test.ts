@@ -3,7 +3,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { bendCurve } from './lofi-guitars.ts';
 import { bridgeAt, partialsOf, type ElectricSpec } from './lofi-electric.ts';
-import { CAB_4X12, CAB_GAIN, LEADS, triodeCurve } from './lofi-lead-guitars.ts';
+import { CAB_4X12, CAB_GAIN, DOUBLED, doubleTrack, LEADS, TAKES, triodeCurve } from './lofi-lead-guitars.ts';
+import type { VoiceKit } from './lofi-voices.ts';
 import { leadPosition, perform, TUNING } from './lofi-perform.ts';
 import { composeLofiTune, ELECTRIC_FRET } from '../../../../engine/src/lofi-compose.ts';
 
@@ -99,4 +100,25 @@ test('the lead guitarist fingers each note where the hand sits for the bar, and 
     const pos = leadPosition(line);
     for (const p of line) assert.ok(TUNING.some(open => p - open >= pos && p - open <= pos + 3), `${p} from position ${pos}`);
   }
+});
+
+test('metal is double-tracked: two takes, either side, each with its own timing and tuning, never a delayed copy', () => {
+  assert.ok(DOUBLED.has('metal') && !DOUBLED.has('overdrive') && !DOUBLED.has('guitar') && !DOUBLED.has('riff'));
+  const k = { rng: seeded(11) } as unknown as VoiceKit;
+  const apart: number[] = [], tuning: number[] = [];
+  for (let i = 0; i < 400; i++) {
+    const [a, b] = doubleTrack('metal', k);
+    assert.ok(a!.pan < 0 && b!.pan > 0 && Math.abs(a!.pan) === TAKES.pan, 'one take each side');
+    assert.ok(!a!.second && b!.second, 'the second take goes through the other amp');
+    assert.ok(a!.level === b!.level && a!.late >= 0);
+    apart.push((b!.late - a!.late) * 1000);
+    tuning.push(b!.detune - a!.detune);
+  }
+  const mean = (xs: number[]): number => xs.reduce((x, y) => x + y, 0) / xs.length;
+  const sd = (xs: number[]): number => Math.sqrt(mean(xs.map(x => (x - mean(xs)) ** 2)));
+  // The measured pair: the second take 17 ms behind, 2 to 3 ms either way note to note; 6 cents apart.
+  assert.ok(mean(apart) > 10 && mean(apart) < 20, `${mean(apart).toFixed(1)} ms apart`);
+  assert.ok(sd(apart) > 2 && sd(apart) < 6 && Math.min(...apart) >= 4 && Math.max(...apart) <= 30, `${sd(apart).toFixed(1)} ms either way, ${Math.min(...apart).toFixed(1)} to ${Math.max(...apart).toFixed(1)}`);
+  const offTune = mean(tuning.map(Math.abs));
+  assert.ok(offTune > 2 && offTune < 8, `${offTune.toFixed(1)} cents apart`);
 });

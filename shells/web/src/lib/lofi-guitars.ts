@@ -230,6 +230,8 @@ export interface ElectricStroke {
   vibrato?: number; vibratoAt?: number;
   /** Which pickups hear the string (the neck and middle by default). */
   pickup?: 'neck-middle' | 'bridge';
+  /** The guitar's own tuning against the note (cents): a second take's guitar is never quite the first's. */
+  detune?: number;
   /** The amp to play into (the small valve amp by default), and the stroke's level into that amp. */
   into?: AudioNode; level?: number;
 }
@@ -302,7 +304,7 @@ export function electricNote(k: VoiceKit, out: AudioNode, t: number, midi: numbe
   const pick = o.pick ?? (PICK_AT + Math.round(k.rng() * 2) * PICK_STEP) / (648 * 2 ** (-fret / 12));
   const src = ctx.createBufferSource();
   src.buffer = electricBuffer(ctx, { f: mtof(midi), seconds, fret, pick: Math.round(pick * 200) / 200, layer, damp: damp === 'dead' ? 'ring' : damp, lead, end, endDamp, ...(o.pickup === 'bridge' ? { pickup: 'bridge' as const } : {}) }, variant);
-  src.detune.value = (k.rng() - 0.5) * 4;
+  src.detune.value = (k.rng() - 0.5) * 4 + (o.detune ?? 0);
   // The pick touches the string `lead` before it sounds; a stroke due sooner than that starts part way in.
   const at = t - lead, now = ctx.currentTime;
   if (o.bend) {

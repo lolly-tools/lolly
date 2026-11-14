@@ -12,7 +12,7 @@
  *   lead   vibes, soft (a filtered saw, a little like muted brass), kalimba (a bright
  *          inharmonic tine), chip (a soft chiptune square, for Lolly Sings); the flute is
  *          blown in lib/lofi-flutes.ts and played in lib/lofi-winds.ts
- *   bass   round (sine and triangle), upright (a darker pluck with a thump), synth
+ *   bass   round (sine and triangle), upright (a double bass plucked, through its body), synth
  *          (a filtered saw over a sine)
  *   drums  kick, snare, brush, clap, rim, hat and shaker, tuned by the style
  *
@@ -53,6 +53,8 @@
  * end; nothing is kept. Levels sit low, and lofi-station.ts evens the variants out.
  */
 import { pluckString, type StringSpec } from './lofi-strings.ts';
+import { acousticNote } from './lofi-acoustic.ts';
+import { pizzicato } from './lofi-string-section.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export interface VoiceKit {
@@ -115,7 +117,7 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'buzzsaw') heavy(k, out, t, midi, vel, dur, PUNK_AMP);
   else if (style === 'wah') wah(k, out, t, midi, vel, dur);
   else if (style === 'chiparp') chipArp(k, out, t, midi, vel, dur);
-  else if (style === 'steel') steel(k, out, t, midi, vel, dur);
+  else if (style === 'steel') steelKeys(k, out, t, midi, vel, dur, 0);
   else if (style === 'banjo') banjo(k, out, t, midi, vel, dur);
   else if (style === 'jazzbox') jazzbox(k, out, t, midi, vel, dur);
   else if (style === 'organ') organ(k, out, t, midi, vel, dur);
@@ -475,21 +477,24 @@ function bells(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 
 // ── the roots instruments ───────────────────────────────────────────────────
 
-/** A steel-string acoustic: brighter and longer-ringing than nylon, with the body's jangle. */
-function steel(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.1, bright: 20, mellow: 4.5, ring: 1.5, body: 2600, level: 0.08 });
+/** A steel-string acoustic, strummed: the measured flat-top of ./lofi-acoustic.ts, picked over the sound hole. `mod` 4 is a chuck's muted string, 6 a knock on the top, 16 a string struck again as it ends (lib/lofi-strum.ts, lib/lofi-lead-art.ts). */
+export function steelKeys(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number): void {
+  acousticNote(k, out, t, midi, vel, dur, STEEL_KEYS * pluckLevel(vel), { keys: true, art: mod & 31 });
 }
 
 /**
- * The steel-string acoustic as the lead: single notes flatpicked a little nearer the
- * sound hole than its strum, so rounder. `art` 2 slides into the note from a tone below;
- * 3 hammers it on (the tone below picked, the finger coming down on the fret a moment
- * later); a held note gets a light vibrato.
+ * The steel-string acoustic as the lead (./lofi-acoustic.ts): single notes flatpicked
+ * nearer the bridge than its strum. `art` 2 slides into the note from a tone below (the
+ * finger squeaking on a wound string); 3 hammers it on (the tone below picked, the finger
+ * coming down on the fret a moment later); 4 is a muted string raked on the way in; a
+ * held note gets a light vibrato.
  */
 function steelLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
-  const how = art === 2 ? { slide: -2, slideTime: 0.06 } : art === 3 ? { slide: -2, slideTime: 0.012, slideHold: Math.min(0.07, dur * 0.3) } : {};
-  plucked(k, out, t, midi, vel, dur, { pickAt: 0.13, bright: 17, mellow: 4, ring: 1.4, body: 2300, level: 0.1, ...how, ...(dur > 0.6 ? { wobble: 8 } : {}) });
+  // The articulation and the shift are in the low bits; a lead's own ornament (a strum's string, a rake) carries a flag above them.
+  acousticNote(k, out, t, midi, vel, dur, STEEL_LEAD * pluckLevel(vel), { art: art & 15 });
 }
+/** The acoustic's levels, strummed and as the lead, against the other plucked voices. */
+const STEEL_KEYS = 0.44, STEEL_LEAD = 0.321;
 
 /**
  * A banjo: a bright, short pluck through a high-pass (a banjo has no low body), and the
@@ -1236,8 +1241,15 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   }
 }
 
-/** A dance tune's tone (LofiStyle.bright and drive): filter brightness and how hard the bass is driven. */
-export interface Tone { bright: number; drive: number }
+/**
+ * A dance tune's tone (LofiStyle.bright and drive): filter brightness and how hard the bass
+ * is driven. A bass stack (lib/lofi-bass-stack.ts) also sets `sub` false, so a bass leaves
+ * out its own sine (the stack plays one clean sub for the note), `phase`, where in its
+ * cycle a bass's filter swing starts (0 to 1), so a second take swings out of step with the
+ * first, and `take`, which of the stack's two takes this is: a reese's or a growl's take
+ * plays two of its three saws, so the pair of takes beats as one bass of four.
+ */
+export interface Tone { bright: number; drive: number; sub?: boolean; phase?: number; take?: 0 | 1 }
 export const PLAIN_TONE: Tone = { bright: 1, drive: 1 };
 
 /** A pulse wave of `duty` (0.5 is a square) as a band-limited PeriodicWave, one per context and duty. */
@@ -1294,6 +1306,11 @@ export function drivenBy(ctx: BaseAudioContext, amount: number, clean = false): 
   return [push, ws];
 }
 
+/** When a bass's filter swing at `rate` Hz starts, so it is `tone.phase` of a cycle in at the note (never before the clock's start). */
+function swingFrom(t: number, rate: number, tone: Tone): number {
+  return Math.max(0, t - (tone.phase ?? 0) / Math.max(0.5, rate));
+}
+
 /** A sine under a dance bass, an octave down when the note is high: what the low end feels. */
 export function sub(k: VoiceKit, out: AudioNode, t: number, f: number, vel: number, dur: number): void {
   const g = k.ctx.createGain();
@@ -1312,7 +1329,7 @@ function wobble(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
   lp.type = 'lowpass';
   lp.Q.value = 7;
   lp.frequency.value = 700 * tone.bright;
-  const lfo = osc(k, 'sine', Math.max(0.5, rate), t, end);
+  const lfo = osc(k, 'sine', Math.max(0.5, rate), swingFrom(t, rate, tone), end);
   const depth = ctx.createGain();
   depth.gain.value = 620 * tone.bright;
   lfo.connect(depth).connect(lp.frequency);
@@ -1329,7 +1346,7 @@ function wobble(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
   const sg = ctx.createGain();
   sg.gain.value = 0.6;
   sq.connect(sg).connect(lp);
-  sub(k, out, t, f, vel, dur);
+  if (tone.sub !== false) sub(k, out, t, f, vel, dur);
 }
 
 /** Growl: a driven saw stack through two band-passes that sweep apart and back, a vowel that talks. */
@@ -1348,7 +1365,7 @@ function growl(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   amp.gain.setValueAtTime(EPS, t);
   amp.gain.exponentialRampToValueAtTime(0.24 * vel, t + 0.004);
   amp.gain.setTargetAtTime(EPS, t + dur, 0.015);
-  const lfo = osc(k, 'triangle', Math.max(1, rate), t, end);
+  const lfo = osc(k, 'triangle', Math.max(1, rate), swingFrom(t, Math.max(1, rate), tone), end);
   for (const [hz, swing] of [[520, 380], [1500, -700]] as const) {
     const bp = ctx.createBiquadFilter();
     bp.type = 'bandpass';
@@ -1362,13 +1379,13 @@ function growl(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   fizz.connect(amp);
   pre.connect(ws);
   amp.connect(out);
-  for (const cents of [-10, 0, 9]) {
+  for (const cents of tone.take === undefined ? [-10, 0, 9] : tone.take === 0 ? [-10, 4] : [-4, 9]) {
     const o = osc(k, 'sawtooth', f * 1.04, t, end);
     o.frequency.exponentialRampToValueAtTime(f, t + 0.05);   // a small "yoi" into pitch
     o.detune.value = cents;
     o.connect(pre);
   }
-  sub(k, out, t, f, vel * 0.9, dur);
+  if (tone.sub !== false) sub(k, out, t, f, vel * 0.9, dur);
 }
 
 /**
@@ -1398,12 +1415,12 @@ function reese(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   amp.gain.exponentialRampToValueAtTime(0.13 * vel, t + 0.02);
   amp.gain.setTargetAtTime(EPS, t + dur, 0.05);
   lp.connect(push).connect(driven(ctx)).connect(smooth).connect(amp).connect(out);
-  for (const cents of [-14, 0, 13]) {
+  for (const cents of tone.take === undefined ? [-14, 0, 13] : tone.take === 0 ? [-14, 6] : [-6, 13]) {
     const o = osc(k, 'sawtooth', f, t, end);
     o.detune.value = cents;
     o.connect(lp);
   }
-  sub(k, out, t, f, vel, dur);
+  if (tone.sub !== false) sub(k, out, t, f, vel, dur);
 }
 
 /**
@@ -1497,7 +1514,8 @@ function stringSlap(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   delay.connect(hp).connect(push);
   ws.connect(smooth).connect(amp).connect(out);
   // The weight under the string, following its slides and bends: a bigger share of the
-  // sound when smooth.
+  // sound when smooth. A bass stack plays its own sub instead.
+  if (tone.sub === false) return;
   const body = osc(k, 'sine', f, t, end);
   if (art === 2) {
     body.frequency.setValueAtTime(f * 2 ** (-5 / 12), t);
@@ -1627,7 +1645,7 @@ function screech(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   const mod = osc(k, 'sine', f * 1.5, t, end);
   const index = ctx.createGain();
   index.gain.value = f * 2.2;
-  const lfo = osc(k, 'triangle', Math.max(1, rate), t, end);
+  const lfo = osc(k, 'triangle', Math.max(1, rate), swingFrom(t, Math.max(1, rate), tone), end);
   const swing = ctx.createGain();
   swing.gain.value = f * 1.8;
   lfo.connect(swing).connect(index.gain);
@@ -1649,7 +1667,7 @@ function screech(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   amp.gain.setTargetAtTime(EPS, t + dur, 0.015);
   carrier.connect(push);
   ws.connect(bp).connect(fizz).connect(amp).connect(out);
-  sub(k, out, t, f / 2, vel * 0.85, dur);
+  if (tone.sub !== false) sub(k, out, t, f / 2, vel * 0.85, dur);
 }
 
 /** Pulse bass: a 25% pulse with a triangle an octave down, short and bright, like a console's bass channel. */
@@ -1702,7 +1720,7 @@ function electro(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
   const sq = osc(k, 'square', f, t, end);
   sq.detune.value = -8;
   sq.connect(lp);
-  sub(k, out, t, f, vel * 0.8, len);
+  if (tone.sub !== false) sub(k, out, t, f, vel * 0.8, len);
 }
 
 /**
@@ -1761,53 +1779,22 @@ function pickedBass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: n
   const sg = ctx.createGain();
   sg.gain.value = PICKED_DRIVE;
   string.connect(sg).connect(lp);
-  sub(k, out, t, f, vel * 0.7, len);
+  if (tone.sub !== false) sub(k, out, t, f, vel * 0.7, len);
 }
 /** The picked bass's string into its amp, at the level the sawtooth and square used to drive the amp. */
 const PICKED_DRIVE = 3.6;
 
 /**
- * An upright bass, plucked (pizzicato), modelled (lib/lofi-strings.ts): a long, heavy
- * string plucked with the side of a finger near the end of the fingerboard, so the top
- * dies almost at once and the low end blooms and rings, through the big body's warmth
- * around 100 Hz and the wood's growl near 700 Hz. The finger slapping the string onto the
- * fingerboard thumps the start of every note, and the note stops when the hand lets go.
+ * An upright bass, plucked (pizzicato): the double bass's string plucked with the side of a
+ * finger and heard through the double bass's body, both measured on recorded basses
+ * (lib/lofi-string-section.ts' pizzicato, lib/lofi-strings-bowed.ts' pluckBass), the
+ * finger knocking the body as it lets go, the note stopped when the hand lets go.
  */
 function upright(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, tone: Tone): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const hard = vel >= 0.6;
-  const string = ctx.createBufferSource();
-  string.buffer = stringBuffer(ctx, { f, seconds: 2.4, pickAt: 0.22, bright: hard ? 9 : 6, decay: 2.6, mellow: 5, noise: 0.12, plane: 0.5, top: 2600 * tone.bright }, k.rng() < 0.5 ? 0 : 1);
-  string.detune.value = (k.rng() - 0.5) * 6;
-  const body = ctx.createBiquadFilter();
-  body.type = 'peaking';
-  body.frequency.value = 105;
-  body.Q.value = 1.1;
-  body.gain.value = 4;
-  const growl = ctx.createBiquadFilter();
-  growl.type = 'peaking';
-  growl.frequency.value = 720;
-  growl.Q.value = 1.4;
-  growl.gain.value = 2.5;
-  const amp = ctx.createGain();
-  const level = UPRIGHT_LEVEL * pluckLevel(vel);
-  amp.gain.setValueAtTime(level, t);
-  amp.gain.setTargetAtTime(EPS, t + Math.max(0.08, dur), 0.05);
-  string.connect(body).connect(growl).connect(amp).connect(out);
-  string.start(t);
-  string.stop(t + Math.max(0.08, dur) + 0.4);
-  // The thump of the finger and the string meeting the fingerboard.
-  const tg = ctx.createGain();
-  tg.gain.setValueAtTime(0.1 * vel, t);
-  tg.gain.exponentialRampToValueAtTime(EPS, t + 0.03);
-  const thump = ctx.createBiquadFilter();
-  thump.type = 'lowpass';
-  thump.frequency.value = 300;
-  noiseAt(k, t, 0.04).connect(thump).connect(tg).connect(out);
+  pizzicato(k, out, t, midi, vel, UPRIGHT_LEVEL * pluckLevel(vel), dur, tone.bright);
 }
-/** The modelled upright's level against the voice it replaced. */
-const UPRIGHT_LEVEL = 0.84;
+/** The plucked bass's level: as loud (K-weighted) as the voice it replaced, note for note. */
+const UPRIGHT_LEVEL = 2.42;
 
 
 // ── effects ──────────────────────────────────────────────────────────────────
@@ -2452,7 +2439,7 @@ export function bwah(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
     lfo.connect(depth).connect(lp.frequency);
     if (throat) formants(k, lp, mouth, t, len, [[650, 1050], [700, 1150]]);
   }
-  sub(k, out, t, f, vel * 0.8, len);
+  if (tone.sub !== false) sub(k, out, t, f, vel * 0.8, len);
 }
 
 /** Two vowel formants from `from` to `to` ([F1, F2] each), sung between `src` and `dst`, with a little of the plain sound under them. */
