@@ -94,11 +94,17 @@ const PATHS = new Map<string, Path2D>();
 
 /** An icon as one canvas path in its 24-unit box, to stroke at any size. Cached. */
 export function iconPath(name: InstrumentIcon): Path2D {
-  let p = PATHS.get(name);
+  return markupPath(MARKUP[name]);
+}
+
+/** Glyph markup in this stroke style (an instrument icon's, or a lib/icons.ts glyph's
+ *  shapes) as one canvas path in its 24-unit box. Cached by the markup. */
+export function markupPath(markup: string): Path2D {
+  let p = PATHS.get(markup);
   if (p) return p;
   p = new Path2D();
   const num = (el: string, attr: string): number => Number(new RegExp(`\\b${attr}="([-\\d.]+)"`).exec(el)?.[1] ?? 0);
-  for (const el of MARKUP[name].match(/<(path|circle|ellipse|line|polyline|rect)\b[^>]*>/g) ?? []) {
+  for (const el of markup.match(/<(path|circle|ellipse|line|polyline|rect)\b[^>]*>/g) ?? []) {
     if (el.startsWith('<path')) {
       const d = /\bd="([^"]+)"/.exec(el)?.[1];
       if (d) p.addPath(new Path2D(d));
@@ -118,6 +124,6 @@ export function iconPath(name: InstrumentIcon): Path2D {
       p.rect(num(el, 'x'), num(el, 'y'), num(el, 'width'), num(el, 'height'));
     }
   }
-  PATHS.set(name, p);
+  PATHS.set(markup, p);
   return p;
 }
