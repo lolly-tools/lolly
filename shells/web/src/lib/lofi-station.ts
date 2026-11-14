@@ -79,7 +79,7 @@ const MOOD_TONE: Record<LofiMood, number> = {
   warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 13000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
-  persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 12000,
+  persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000,
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +2 dB), in every genre of the family. */
 const SINGS_LEAD = 1.3;
@@ -153,9 +153,9 @@ const LEAD_TRIM: Partial<Record<LofiStyle['lead'], number>> = { angel: -0.2, bal
  * dont destroy the genre"; 2026-11-13, of lofi house: "the lead is quiet and the bass is
  * loud").
  */
-const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: -2 };
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1 };
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. */
-const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5 };
+const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2 };
 /** The styles whose horn lines are a section's (see the lead and lib/lofi-winds.ts's hornSection). */
 const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
 /** The styles whose horns play as a section only in some sections (salsa's mambo, its intro and its breaks), the lead singing the rest alone. */

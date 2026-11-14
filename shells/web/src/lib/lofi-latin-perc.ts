@@ -80,7 +80,7 @@ function congaSpecs(f: number): Record<number, StrokeSpec> {
     // Open: the fingers bounce off near the rim; the head's lowest modes ring.
     1: { f0: f, modes: [[1, 0, 0.95], [1.62, -16, 0.8], [2.3, -15, 0.5], [2.55, -11, 0.45], [3.1, -22, 0.3], [3.6, -26, 0.2]], glide: 0.03, settle: 0.02, contact: 0.003, noise: [[1200, 0.7, 1, 0.0003, 0.005], [3500, 0.7, -1, 0.0002, 0.004], [7000, 0.8, -4, 0.0002, 0.003], [2400, 0.6, -14, 0.0005, 0.025]], level: 0, seconds: 1.4 },
     // Slap: the cupped fingers snap onto the head; a crack across the top, the head's upper modes as loud as the fundamental.
-    2: { f0: f, modes: [[1, -3, 0.5], [1.62, -6, 0.45], [2.3, -4, 0.38], [2.55, -2, 0.33], [3.1, -8, 0.25], [3.6, -10, 0.2], [4.4, -12, 0.14]], glide: 0.02, settle: 0.015, contact: 0.0008, noise: [[1500, 0.6, 6, 0.0002, 0.012], [3500, 0.6, 5, 0.0002, 0.012], [7500, 0.7, 1, 0.0002, 0.01]], level: 1, seconds: 0.8 },
+    2: { f0: f, modes: [[1, -3, 0.5], [1.62, -6, 0.45], [2.3, -4, 0.38], [2.55, -2, 0.33], [3.1, -8, 0.25], [3.6, -10, 0.2], [4.4, -12, 0.14]], glide: 0.02, settle: 0.015, contact: 0.0008, noise: [[1500, 0.6, 6, 0.0002, 0.018], [3500, 0.6, 5, 0.0002, 0.02], [7500, 0.7, 1, 0.0002, 0.016]], level: 1, seconds: 0.8 },
     // Muffled: the hand stays on the head; a short, damped tone.
     3: { f0: f * 1.04, modes: [[1, 0, 0.1], [1.62, -10, 0.07], [2.4, -12, 0.06]], glide: 0.02, settle: 0.015, contact: 0.004, noise: [[120, 0.8, 26, 0.001, 0.014], [600, 0.8, 8, 0.0005, 0.008], [2000, 0.8, 3, 0.0003, 0.006]], level: -6, seconds: 0.25 },
     // Heel: the heel of the hand drops onto the head: a dull, broad thump.
@@ -129,7 +129,7 @@ const TIMBAL_SHELL: readonly Mode[] = [[520, 0, 1.2], [683, -1, 1.6], [1122, -4,
 function timbalSpecs(): Record<number, StrokeSpec> {
   const macho: StrokeSpec = { f0: 181, modes: [[1, 0, 0.27], [1.98, -7.5, 0.82], [2.55, -9.5, 0.4], [2.85, -11, 0.9], [3.1, -15.7, 0.9]], glide: 0.03, settle: 0.02, contact: 0.0006, noise: [[1500, 0.7, -4, 0.0002, 0.005], [3500, 0.8, -8, 0.0002, 0.004], [7000, 0.9, -14, 0.0001, 0.003]], level: 0, seconds: 1.4 };
   const hembra: StrokeSpec = { f0: 130, modes: [[1, 0, 0.82], [1.96, -17, 1.5], [2.69, -19, 0.45], [3.35, -12.7, 0.66], [3.88, -9.2, 1]], glide: 0.03, settle: 0.02, contact: 0.0006, noise: [[1500, 0.7, -4, 0.0002, 0.005], [3500, 0.8, -8, 0.0002, 0.004], [7000, 0.9, -14, 0.0001, 0.003]], level: 0, seconds: 1.6 };
-  const rim = (head: StrokeSpec): StrokeSpec => ({ ...head, noise: [[1200, 0.7, 8, 0.0001, 0.008], [3200, 0.7, 10, 0.0001, 0.008], [7000, 0.8, 4, 0.0001, 0.006]], level: 3 });
+  const rim = (head: StrokeSpec): StrokeSpec => ({ ...head, noise: [[1200, 0.7, 8, 0.0001, 0.012], [3200, 0.7, 10, 0.0001, 0.016], [7000, 0.8, 4, 0.0001, 0.012]], level: 3 });
   return {
     1: macho,
     2: hembra,
@@ -286,8 +286,12 @@ export function guiroStroke(sr: number, up: boolean, seconds: number, vel: numbe
 
 /** Each instrument's place across the speakers, from the band's side: congas right, bongos and güiro left, timbales right of centre. */
 const PAN: Record<LatinKind, number> = { congas: 0.38, bongos: -0.3, timbales: 0.2, bongoBell: -0.3, mamboBell: 0.24, clave: 0.04, guiro: -0.46 };
-/** Each instrument's level (a full stroke of its loudest stroke), set against recorded salsa (K-weighted, see the module's note). */
-const LEVEL: Record<LatinKind, number> = { congas: 0.5, bongos: 0.34, timbales: 0.36, bongoBell: 0.24, mamboBell: 0.2, clave: 0.2, guiro: 0.16 };
+/**
+ * Each instrument's level (a full stroke of its loudest stroke), set against four recorded
+ * salsa bands: the percussion stem about 3 dB under the whole mix, and the mix's octave bands
+ * from 125 Hz to 2 kHz within about 2 dB of the recordings' average.
+ */
+const LEVEL: Record<LatinKind, number> = { congas: 0.5, bongos: 0.45, timbales: 0.62, bongoBell: 0.32, mamboBell: 0.36, clave: 0.3, guiro: 0.5 };
 
 /** The strengths each stroke is rendered at, and how many takes of each. */
 const LAYERS = [0.35, 0.65, 0.95] as const;

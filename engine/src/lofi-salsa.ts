@@ -11,8 +11,8 @@
  *
  * - The clave itself, on two sticks: three strokes on the three side (one, the and of two,
  *   four) and two on the two side (two and three).
- * - The piano's montuno (guajeo): an eighth-note figure two bars long, the line doubled in
- *   octaves by the two hands, every bar's figure holding its side's off-beat clave strokes,
+ * - The piano's montuno (guajeo): an eighth-note figure two bars long, the line (G4 to A5)
+ *   doubled an octave down by the left hand, every bar's figure holding its side's off-beat clave strokes,
  *   beat one left empty and the last eighth of the bar anticipating the next chord, tied
  *   over the bar line.
  * - The bass's tumbao: the and of two, then four anticipating the next chord's root and
@@ -435,14 +435,14 @@ export function composeSalsa(seed: number, fixed: Partial<LofiStyle>, deps: Sals
       // KEYS: the montuno, every section (the intro on its own, if the piano starts the tune).
       if (has('keys')) {
         const fig = (hot ? montunoHot : montunoVerse)[side === 'two' ? 0 : 1];
-        let prev = 69;
+        let prev = 74;
         for (const [eighth, role] of fig) {
           const c = role === 'n' || role === 'N' ? nextChord : chord;
           const len = role === 'n' || role === 'N' ? 0.9 : 0.42;
           const vel = (eighth % 2 === 1 ? 0.6 : 0.52) * (part.section === 'intro' && part.intro === 'keys' ? 0.9 : 1);
           if (role === 'C' || role === 'N') {
             // A block: the chord's tones inside the octave its top note is doubled at.
-            const top = place(c.tones[eighth % 2 === 1 ? 0 : Math.min(2, c.tones.length - 1)]!, 65, 76, prev);
+            const top = place(c.tones[eighth % 2 === 1 ? 0 : Math.min(2, c.tones.length - 1)]!, 72, 83, prev);
             const inner = c.tones.map(pc => place(pc, top - 11, top - 1)).filter(p => p < top);
             for (const p of [top - 12, ...inner, top]) hit('keys', eighth * 2, vel, p, len);
             prev = top;
@@ -452,8 +452,8 @@ export function composeSalsa(seed: number, fixed: Partial<LofiStyle>, deps: Sals
             : role === '3' ? c.tones[1]!
             : role === '5' ? c.tones[2]!
             : role === '7' ? (c.tones[3] ?? c.root)
-            : c.tones.reduce((b, x) => (Math.abs(place(x, 64, 76, prev) - prev) < Math.abs(place(b, 64, 76, prev) - prev) ? x : b), c.root);
-          const p = role === 'R' ? place(pc, 65, 76, Math.max(prev, 72)) : place(pc, 64, 76, prev);
+            : c.tones.reduce((b, x) => (Math.abs(place(x, 67, 81, prev) - prev) < Math.abs(place(b, 67, 81, prev) - prev) ? x : b), c.root);
+          const p = role === 'R' ? place(pc, 72, 83, Math.max(prev, 77)) : place(pc, 67, 81, prev);
           // The two hands in octaves.
           hit('keys', eighth * 2, vel, p, len);
           hit('keys', eighth * 2, vel * 0.9, p - 12, len);

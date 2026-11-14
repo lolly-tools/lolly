@@ -159,7 +159,7 @@ export function pianoNote(sr: number, midi: number, vel: number, rand: Rand, sec
 /** The strengths each note is rendered at. */
 const LAYERS = [0.3, 0.55, 0.8, 1] as const;
 /** The piano's level against the felt piano's on the same chords (K-weighted, measured). */
-const GRAND_LEVEL = 0.42;
+const GRAND_LEVEL = 0.2;
 /** The highest key with a damper; the strings of the keys higher up ring on. */
 const TOP_DAMPER = 89;
 
