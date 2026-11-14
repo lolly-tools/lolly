@@ -15,7 +15,7 @@ import { musicIconBody, strokeSvg, strokeSvgNode, type InstrumentIcon } from './
 import { LOFI_MOOD_LABEL } from './neurospicy-lofi.ts';
 
 /** Glyphs only the generator draws. Lucide (ISC): shuffle, disc-3, headphones,
- *  ice-cream-cone, flower, mountain, radio, speaker and castle. Lolly's own: a wrapped sweet. */
+ *  ice-cream-cone, flower, mountain, radio, speaker and castle. Lolly's own: a wrapped sweet and a surfboard. */
 const OWN = {
   shuffle: '<path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-7.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/>',
   disc: '<circle cx="12" cy="12" r="10"/><path d="M6 12c0-1.7.7-3.2 1.8-4.2"/><circle cx="12" cy="12" r="2"/><path d="M18 12c0 1.7-.7 3.2-1.8 4.2"/>',
@@ -27,6 +27,7 @@ const OWN = {
   speaker: '<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M12 6h.01"/><circle cx="12" cy="14" r="4"/><path d="M12 14h.01"/>',
   castle: '<path d="M10 5V3"/><path d="M14 5V3"/><path d="M15 21v-3a3 3 0 0 0-6 0v3"/><path d="M18 3v8"/><path d="M18 5H6"/><path d="M22 11H2"/><path d="M22 9v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9"/><path d="M6 3v8"/>',
   candy: '<circle cx="12" cy="12" r="4.5"/><path d="M7.9 10 3 7v10l4.9-3"/><path d="M16.1 10 21 7v10l-4.9-3"/>',
+  surfboard: '<path d="M4 20C4 13 10 5.5 20 4c0 8-7.5 14.5-16 16Z"/><path d="M4 20 20 4"/><path d="m7.5 14.5-2-2"/>',
 } as const;
 type OwnGlyph = keyof typeof OWN;
 
@@ -46,6 +47,7 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   fantasy: { own: 'castle' }, dream: { set: 'cloud' }, shoegaze: { set: 'waves' }, synthwave: { set: 'sunburst' },
   acid: { set: 'flask' }, electro: { set: 'cpu' }, dubstep: { inst: 'audioWaveform' }, brostep: { set: 'hammer' },
   dnb: { set: 'timer' }, warm: { set: 'coffee' }, lateNight: { set: 'moon' }, rainy: { set: 'cloudRain' },
+  surf: { own: 'surfboard' },
 };
 
 /** The shapes of a genre's icon, inside its `<svg>`. */
@@ -77,6 +79,7 @@ export const GENRE_CATEGORY: Record<LofiMood, GenreCategory> = {
   warm: 'chill', lateNight: 'chill', rainy: 'chill', lofiHouse: 'chill', triphop: 'chill', dream: 'chill', citypop: 'chill', sings: 'chill', fantasy: 'chill',
   sugar: 'electronic', sherbert: 'electronic', synthwave: 'electronic', chiptune: 'electronic', acid: 'electronic', electro: 'electronic', dubstep: 'electronic', brostep: 'electronic', dnb: 'electronic', nudisco: 'electronic',
   rock: 'classic', punk: 'classic', grunge: 'classic', stoner: 'classic', metal: 'classic', shoegaze: 'classic', blues: 'classic', jazz: 'classic', swing: 'classic', soul: 'classic', funk: 'classic', rnb: 'classic', country: 'classic', ska: 'classic', reggae: 'classic', hiphop: 'classic',
+  surf: 'classic',
   persian: 'international', guzheng: 'international', koto: 'international', kora: 'international', afrobeat: 'international', amapiano: 'international', spanish: 'international', straya: 'international', kpop: 'international',
 };
 

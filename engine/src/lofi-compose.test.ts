@@ -18,7 +18,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES } from './lofi-compose.ts';
+import { composeLofiTune, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES, SURF_TREMOLO, SURF_GLISS, SURF_ARM, ELECTRIC_PALM, ELECTRIC_CHOKE } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
@@ -236,7 +236,8 @@ test('the dance genres change instruments between sections', () => {
       const secondDrop = bars.filter(b => b.section === 'drop').at(-1)!;
       if ((secondDrop.voices?.lead ?? st.lead) !== st.lead) newLead++;
     }
-    assert.ok(softer >= 6, `${mood}: the intro's keys differ from the drop's in most tunes (${softer} of 8)`);
+    // Surf keeps its rhythm guitar through the intro: the band's sound is that guitar in the spring.
+    if (mood !== 'surf') assert.ok(softer >= 6, `${mood}: the intro's keys differ from the drop's in most tunes (${softer} of 8)`);
     assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
   }
 });
@@ -879,3 +880,60 @@ test('a tag chosen for the track takes the top from a "let\'s go!" there', () =>
   }
   assert.ok(moved >= 1, `some punk tunes open on "let's go!" with no tag of their own (${moved})`);
 });
+
+// ── Surf rock ────────────────────────────────────────────────────────────────
+
+const NOTE_NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+
+test('surf rock: fast, its held notes tremolo-picked, a glissando into a chorus, fills round the toms, in major, minor and the Phrygian dominant', () => {
+  let phrygian = 0, minor = 0, major = 0, gliss = 0, tomBeat = 0, arm = 0;
+  for (const seed of SEEDS.slice(0, 16)) {
+    const bars = composeLofiTune(seed, 'surf');
+    const t = bars[0]!.tune;
+    const where = `surf ${seed}`;
+    assert.ok(t.bpm >= 148 && t.bpm <= 182, `${where}: ${t.bpm} bpm`);
+    const tonic = NOTE_NAMES.indexOf(t.key.split(' ')[0]!);
+    if (t.key.endsWith('Phrygian dominant')) {
+      phrygian++;
+      // The home chord is major, and the chord a semitone higher is played.
+      assert.ok(bars.some(b => b.tones[0] === tonic && b.tones.includes((tonic + 4) % 12)), `${where}: a major home chord`);
+      assert.ok(bars.some(b => b.tones[0] === (tonic + 1) % 12), `${where}: the chord a semitone above the home chord`);
+    } else if (t.key.endsWith('minor')) minor++;
+    else major++;
+    // The chorus: every held lead note tremolo-picked, the rhythm guitar's chords let ring, choked or palm-muted.
+    const drops = bars.filter(b => b.section === 'drop');
+    const held = drops.flatMap(b => b.notes.filter(n => n.voice === 'lead' && n.dur >= 0.5));
+    assert.ok(held.length > 0 && held.every(n => ((n.mod ?? 0) & SURF_TREMOLO) !== 0), `${where}: every held note of a chorus is tremolo-picked`);
+    if (bars.some(b => b.notes.some(n => n.voice === 'lead' && ((n.mod ?? 0) & SURF_ARM) !== 0))) arm++;
+    const style = t.style.keys;
+    if (style === 'surf') {
+      const verse = bars.filter(b => b.section === 'verse').flatMap(b => b.notes.filter(n => n.voice === 'keys'));
+      assert.ok(verse.some(n => ((n.mod ?? 0) & ELECTRIC_PALM) !== 0) && verse.some(n => ((n.mod ?? 0) & ELECTRIC_CHOKE) !== 0), `${where}: a verse of palm-muted eighths with the backbeat choked`);
+    }
+    // The glissando: the last bar of a pre-chorus stops at the half bar and slides down the neck.
+    const builds = bars.filter((b, i) => b.section === 'build' && bars[i + 1]?.section === 'drop');
+    for (const b of builds) {
+      const g = b.notes.filter(n => n.voice === 'lead' && ((n.mod ?? 0) & SURF_GLISS) !== 0);
+      if (!g.length) continue;
+      gliss++;
+      assert.equal(g.length, 1, `${where}: one glissando`);
+      assert.ok(Math.abs(g[0]!.beat - 2) < 0.01 && !b.notes.some(n => n.voice === 'lead' && n.beat > 2.01), `${where}: from the half bar, the tune stopped for the slide`);
+    }
+    // The drums: fills round the toms, and in some tunes the floor tom rides the chorus in place of the hats.
+    assert.ok(bars.some(b => b.notes.some(n => n.voice === 'tom')), `${where}: fills round the toms`);
+    if (drops.every(b => b.notes.some(n => n.voice === 'tom' && n.midi === 41) && !b.notes.some(n => n.voice === 'hat'))) tomBeat++;
+    // The last chorus gives the tune to the baritone, the lead guitar doubling it an octave up.
+    const last = drops.at(-1)!;
+    assert.deepEqual([last.voices?.lead, last.voices?.double], ['twang', 'surf'], `${where}: the last chorus's octaves`);
+  }
+  assert.ok(phrygian >= 2 && minor >= 2 && major >= 2, `the three flavours (${major} major, ${minor} minor, ${phrygian} Phrygian dominant)`);
+  assert.ok(gliss >= 12, `most pre-choruses slide into the chorus (${gliss})`);
+  assert.ok(tomBeat >= 3 && tomBeat <= 13, `the floor tom rides some tunes' choruses (${tomBeat} of 16)`);
+  assert.ok(arm >= 12, `the arm shakes a phrase's last note in most tunes (${arm} of 16)`);
+});
+
+test('a surf lead a person fixes plays all the way through, without the baritone', () => {
+  const bars = composeLofiTune(SEEDS[3]!, 'surf', { lead: 'surf' });
+  for (const b of bars) assert.ok(!b.voices?.lead && !b.voices?.double, `bar ${b.index}: the lead a person chose`);
+});
+
