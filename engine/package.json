@@ -26,7 +26,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cto.af/linebreak": "4.0.3",
+    "@cto.af/linebreak": "5.0.0",
     "@lolly-tools/core": "workspace:*",
     "ajv": "^8.17.1",
     "bidi-shaper": "0.1.2",
