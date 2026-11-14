@@ -3,9 +3,10 @@
 
    1. The toolbar, in the floating-toolbar look the hosted utilities share (.surface
       .surface--floating, the raised surface and the floating elevation): play and the
-      time, the shuffle cap with the seed beside it (this tune's number), the genre, and
-      at the end the render pill (render, then play or download, with the download's
-      panel behind Download), Save (to Assets or to Projects) and the link.
+      time, the seed and the shuffle cap beside it (this tune's number), the genre lock
+      and the genre button (the bar's hero: the genre's icon, title and a line of what you
+      hear, on the genre's own wash), and at the end undo and redo, the render pill
+      (render, then play or download), Save (to Assets or to Projects) and the link.
    2. The sections, one above the other, folding with the app's standard disclosure
       (details.section-card, parts/disclosure.css): the tune (length, key, tempo and
       reset) and the mix (the levels, the tone and the effects), and on a phone the
@@ -35,8 +36,10 @@
     --ms-line: color-mix(in srgb, var(--ui-color-text-muted) 14%, transparent);
     /* The ground a project's picture is drawn on (views/music-studio.ts, coverImage). */
     --ms-surface: var(--ui-color-surface-canvas);
-    /* The shuffle button's size. */
-    --ms-cap: calc(var(--ui-size-target) * 1.25);
+    /* The shuffle button's size: the target and 12 pixels, an even number, so the bar's row
+       is even and every 44 or 48 pixel control centred in the row sits on a whole pixel (a
+       55 pixel cap put the lock, undo and redo glyphs half a pixel low). */
+    --ms-cap: calc(var(--ui-size-target) + 12px);
     position: relative;
     margin: 0;
     /* Clear of the back and home buttons, which float over the page's corner. */
@@ -166,10 +169,123 @@
   .ms-seed-input::-webkit-inner-spin-button, .ms-seed-input::-webkit-outer-spin-button { appearance: none; margin: 0; }
   .ms-seed-input:focus { outline: none; cursor: text; }
 
-  /* The genre: its icon and name, opening the genre picker (views/music-studio/genre-picker.ts). */
-  .ms-genre { display: inline-flex; align-items: center; gap: var(--sp-2); width: auto; min-width: 10em; min-height: var(--ui-size-target); text-align: start; cursor: pointer; }
-  .ms-genre-icon { flex: none; display: inline-grid; place-items: center; color: var(--ui-color-action-primary); }
-  .ms-genre-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* The genre lock and the genre button side by side, close, so the lock reads as the
+     genre's (views/music-studio/genre-hero.ts). */
+  .ms-genre-group { display: inline-flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+  /* The lock: an open padlock while shuffle may change the genre, a closed one on the
+     selection wash while it keeps the genre. */
+  .ms-lock {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: var(--ui-size-target);
+    height: var(--ui-size-target);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-round);
+    background: transparent;
+    color: var(--ui-color-text-muted);
+    cursor: pointer;
+    transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard), color var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .ms-lock svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+  .ms-lock:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+  .ms-lock:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .ms-lock .ms-lock-shut, .ms-lock[aria-pressed="true"] .ms-lock-open { display: none; }
+  .ms-lock[aria-pressed="true"] .ms-lock-shut { display: block; }
+  .ms-lock[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
+
+  /* The genre button, the bar's hero: the genre's icon in a disc, its title and under it a
+     line of what you hear, on the genre's own wash of the design system's colours (the
+     wash its card wears in the picker, each stop held to 4.5:1 against the text). The
+     title and the line are trimmed to their ink (cap height to baseline), so the pair sits
+     in the middle of the button by what you see. */
+  .ms-genre {
+    position: relative;
+    flex: 0 1 auto;
+    display: inline-grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--sp-3);
+    min-width: 16em;
+    max-width: 28em;
+    min-height: calc(var(--ui-size-target) + var(--sp-2));
+    padding: var(--sp-1) var(--sp-4) var(--sp-1) var(--sp-1);
+    border: 0;
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-faint);
+    color: var(--ui-color-text-default);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+  }
+  .ms-genre.is-tinted { background: var(--ms-hero-from); }
+  @supports (background: linear-gradient(45deg in oklab, red, blue)) {
+    .ms-genre.is-tinted { background: linear-gradient(var(--ms-hero-angle) in oklab, var(--ms-hero-from), var(--ms-hero-to)); }
+  }
+  .ms-genre:hover { box-shadow: var(--ui-edge-strong); }
+  .ms-genre:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .ms-genre-icon {
+    display: inline-grid;
+    place-items: center;
+    width: calc(var(--ui-size-target) - var(--sp-1));
+    height: calc(var(--ui-size-target) - var(--sp-1));
+    border-radius: var(--radius-round);
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-action-primary);
+  }
+  .ms-genre.is-tinted .ms-genre-icon { background: var(--ui-color-surface-raised); }
+  .ms-genre-text { display: grid; gap: var(--sp-2); min-width: 0; }
+  .ms-genre-name, .ms-genre-tag { overflow: clip visible; text-overflow: ellipsis; white-space: nowrap; text-box: trim-both cap alphabetic; }
+  .ms-genre-name { font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; }
+  .ms-genre-tag { font-size: var(--fs-sm); line-height: 1.3; }
+  .ms-genre-more { display: inline-grid; place-items: center; }
+  .ms-genre-more svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+  /* A change of genre lights the button up: a small spring, the icon turning in and a
+     ring that grows and fades. Never with reduced motion (the view adds no light then). */
+  .ms-genre::after { content: ''; position: absolute; inset: 0; border-radius: inherit; opacity: 0; pointer-events: none; }
+  .ms-genre.is-lit { animation: ms-hero-lit calc(var(--dur-3) * 2) var(--ease-spring); }
+  .ms-genre.is-lit .ms-genre-icon { animation: ms-hero-icon calc(var(--dur-3) * 2) var(--ease-spring); }
+  .ms-genre.is-lit::after { border: 2px solid var(--ui-color-action-primary); animation: ms-hero-ring calc(var(--dur-3) * 2.5) var(--ease-out); }
+  @keyframes ms-hero-lit {
+    0% { transform: scale(.96); }
+    45% { transform: scale(1.025); }
+    100% { transform: scale(1); }
+  }
+  @keyframes ms-hero-icon {
+    0% { transform: rotate(-30deg) scale(.6); }
+    100% { transform: rotate(0) scale(1); }
+  }
+  @keyframes ms-hero-ring {
+    0% { transform: scale(1); opacity: .8; }
+    100% { transform: scale(1.06, 1.3); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ms-genre.is-lit, .ms-genre.is-lit .ms-genre-icon, .ms-genre.is-lit::after, .ms-lock { animation: none; transition: none; }
+  }
+  html[data-a11y-motion="reduce"] .ms-genre.is-lit,
+  html[data-a11y-motion="reduce"] .ms-genre.is-lit .ms-genre-icon,
+  html[data-a11y-motion="reduce"] .ms-genre.is-lit::after { animation: none; }
+
+  /* Undo and redo: two buttons in one soft pill, before Render (views/music-studio/studio-history.ts). */
+  .ms-history { flex: none; display: inline-flex; border-radius: var(--radius-pill); background: var(--ui-color-surface-muted); }
+  .ms-history-btn {
+    display: inline-grid;
+    place-items: center;
+    width: var(--ui-size-target);
+    height: var(--ui-size-target);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-round);
+    background: transparent;
+    color: var(--ui-color-text-default);
+    cursor: pointer;
+  }
+  .ms-history-btn svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+  .ms-history-btn:hover:not([aria-disabled="true"]) { background: var(--ui-color-surface-canvas); }
+  .ms-history-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+  .ms-history-btn[aria-disabled="true"] { color: var(--ui-color-text-muted); opacity: .45; cursor: default; }
 
   .ms-bar-end { margin-inline-start: auto; display: inline-flex; align-items: center; gap: var(--sp-2); }
   .ms-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); min-height: var(--ui-size-target); padding-inline: var(--sp-1); }
@@ -344,7 +460,7 @@
   /* ── 4. The track editor ──────────────────────────────────────────────────── */
   .ms-editor {
     display: grid;
-    grid-template-columns: minmax(220px, 264px) 1fr;
+    grid-template-columns: minmax(232px, 288px) 1fr;
     border-radius: var(--ui-radius-card);
     overflow: hidden;
     background: var(--ui-color-surface-canvas);
@@ -382,9 +498,9 @@
   .is-silent .ms-track-id, .is-silent .ms-pick, .is-silent .ms-row-text, .is-silent > .ms-row-open > .ms-inst { opacity: .42; }
 
   /* Mute and solo, a pair in one soft pill. Mute is a speaker that goes quiet when
-     pressed, on the danger wash; solo is a small star that fills on the action colour.
-     The instrument browser's favourite star (parts/music-browser.css) is a bare, larger
-     star on a card, with no pill, so the two never read as one control. */
+     pressed, on the danger wash; solo is headphones (hear this track alone) on the action
+     colour when pressed. The star is only ever a favourite instrument, in the instrument
+     browser (parts/music-browser.css). */
   .ms-ms-pair { flex: none; display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--radius-pill); background: var(--ui-color-surface-muted); }
   .ms-ms {
     display: inline-grid;
@@ -400,7 +516,6 @@
     transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard), color var(--ui-motion-feedback) var(--ui-motion-standard);
   }
   .ms-ms svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
-  .ms-solo svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
   .ms-ms:hover { background: var(--ui-color-surface-canvas); color: var(--ui-color-text-default); }
   .ms-ms:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 1px; }
   .ms-mute .ms-ms-down { display: none; }
@@ -408,12 +523,46 @@
   .ms-mute[aria-pressed="true"] .ms-ms-down { display: block; }
   .ms-mute[aria-pressed="true"] { background: var(--ui-color-status-danger-surface); color: var(--ui-color-status-danger); }
   .ms-solo[aria-pressed="true"] { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
-  .ms-solo[aria-pressed="true"] svg { fill: currentColor; }
   @media (prefers-reduced-motion: reduce) { .ms-ms { transition: none; } }
 
   .ms-scroll { position: relative; overflow-x: auto; overflow-y: hidden; }
   .ms-canvas { position: sticky; left: 0; display: block; cursor: pointer; }
   .ms-spacer { height: 1px; }
+  /* The buttons over the Ear candy lane's chips (views/music-studio/fx-moments.ts): clear,
+     so the canvas's chip shows through; pointing at one or focusing one shows its name
+     above it, and a press plays that moment alone. */
+  .ms-fx-layer { position: absolute; left: 0; pointer-events: none; }
+  .ms-fx-moment {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: transparent;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .ms-fx-moment:hover, .ms-fx-moment:focus-visible { background: color-mix(in srgb, var(--ui-color-text-default) 8%, transparent); }
+  .ms-fx-moment:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+  .ms-fx-moment::after {
+    content: attr(data-name);
+    position: absolute;
+    bottom: calc(100% + var(--sp-1));
+    left: 50%;
+    padding: var(--sp-1) var(--sp-2);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-surface-overlay);
+    box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
+    color: var(--ui-color-text-default);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ms-fx-moment:hover::after, .ms-fx-moment:focus-visible::after { opacity: 1; }
 
   .ms-hint { margin: 0; min-height: 1.4em; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
 
@@ -462,11 +611,14 @@
     .ms-seed { padding-inline: var(--sp-3); }
     .ms-seed .ms-icon { display: none; }
 
-    /* The genre and the link across the top, then the render pill and Save. */
+    /* The lock, the genre and the link across the top, then undo and redo, the render pill
+       and Save. */
     .ms-bar-end { display: contents; }
-    .ms-genre { order: 1; flex: 1 1 calc(100% - var(--ui-size-target) - var(--sp-2)); min-width: 0; font-size: var(--fs-md); }
+    .ms-genre-group { order: 1; flex: 1 1 calc(100% - var(--ui-size-target) - var(--sp-2)); }
+    .ms-genre { flex: 1 1 auto; min-width: 0; max-width: none; }
     .ms-bar-end > [data-link] { order: 2; }
-    .ms-render { order: 3; flex: 1 1 auto; justify-content: center; }
+    .ms-bar-end > .ms-history { order: 3; }
+    .ms-render { order: 4; flex: 1 1 auto; justify-content: center; }
     .ms-save { order: 5; margin-inline-start: auto; }
     .ms-bar-end > .ms-act-error { order: 6; flex-basis: 100%; }
     /* Save as a glyph and its chevron; the word stays its name. */
@@ -511,8 +663,9 @@
        head opens its instruments; the rows above hold the rest. */
     .ms-editor { grid-template-columns: calc(var(--ui-size-target) + var(--sp-2)) 1fr; }
     .ms-track { flex-direction: column; justify-content: center; gap: 2px; padding: 0 2px; }
-    .ms-track-id { flex-direction: column; gap: 2px; min-width: 0; }
-    .ms-track-name { font-size: var(--fs-2xs); font-weight: 600; color: var(--ui-color-text-muted); }
+    .ms-track-id { flex-direction: column; gap: 2px; min-width: 0; max-width: 100%; }
+    /* A two-word name ("Ear candy") wraps onto two lines rather than running past the column. */
+    .ms-track-name { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.15; text-align: center; color: var(--ui-color-text-muted); }
     .ms-track .ms-ms-pair, .ms-track [data-tag] { display: none; }
     .ms-track .ms-browse {
       position: absolute;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The music generator's instrument browser (#/music): one for each pitched track (the
- * lead, the keys and the bass) and one for the drums' kits. It opens from a track's head
+ * Melody, the Chords and the Bass) and one for the drums' kits. It opens from a track's head
  * or row, or from a section in a lane: a sheet from the bottom on a phone, and a panel at
  * the side on a wider screen, where the timeline stays usable beside the panel.
  *
@@ -10,6 +10,8 @@
  * generator's own (lib/lofi-station.ts) started at that section, with the instrument set
  * there and the other parts turned down, stopped after two bars. "Use here" sets the
  * instrument for every section of that kind, and "Use everywhere" for the whole track.
+ * The first card leaves the part to the composer, and reads "Auto" with the instrument
+ * the composer plays in that section ("Auto · Banjo"; track-names.ts).
  * The star makes an instrument a favourite and the block button keeps it out of shuffles
  * and new tunes (lib/music-prefs.ts); the view keeps both on the person's profile.
  *
@@ -26,7 +28,8 @@ import { instrumentIcon, musicIconNode } from '../../lib/instrument-icons.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME, LOFI_SNARE_NAME, LOFI_HATS_NAME } from '../../lib/lofi-names.ts';
 import { LOFI_KITS, LOFI_KIT_NAME } from '../../lib/lofi-drums.ts';
 import { LofiStation, type LofiMix } from '../../lib/lofi-station.ts';
-import { trackSettings, type MusicState } from '../../lib/music-state.ts';
+import { composeTrack, trackSettings, type MusicState } from '../../lib/music-state.ts';
+import { autoLabel, sentenceCase, styleKitName } from './track-names.ts';
 import { LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, type LofiBar } from '../../../../../engine/src/lofi-compose.ts';
 import {
   INSTRUMENT_FAMILIES, familyOf, instrumentsOf, isBlocked, isFavourite, setPartInstrument,
@@ -79,7 +82,6 @@ const DRUM_VOICES = new Set<string>(LOFI_DRUM_VOICES);
 const WIDE = '(min-width: 761px)';
 let opened = 0;
 
-const capital = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 /** An instrument's name as a sentence carries it ("felt piano", "Rhodes"), or a kit's ("Jazz kit"). */
 export function instrumentWord(track: BrowseTrack, id: string): string {
   if (track === 'drums') {
@@ -90,13 +92,13 @@ export function instrumentWord(track: BrowseTrack, id: string): string {
   return names[id] ?? id;
 }
 /** An instrument's name as a card or the start of a sentence shows it ("Felt piano"). */
-export const instrumentName = (track: BrowseTrack, id: string): string => capital(instrumentWord(track, id));
+export const instrumentName = (track: BrowseTrack, id: string): string => sentenceCase(instrumentWord(track, id));
 
 const FAMILY_LABEL = (): Record<InstrumentFamily, string> => ({
   keys: t('Keys'), guitars: t('Guitars and strings'), bells: t('Bells and mallets'), winds: t('Winds and brass'),
   voices: t('Voices'), world: t('World'), synths: t('Synths'), chip: t('8-bit'),
 });
-const TRACK_TITLE = (): Record<BrowseTrack, string> => ({ lead: t('Lead instruments'), keys: t('Keys instruments'), bass: t('Bass instruments'), drums: t('Drum kits') });
+const TRACK_TITLE = (): Record<BrowseTrack, string> => ({ lead: t('Instruments for the melody'), keys: t('Instruments for the chords'), bass: t('Instruments for the bass'), drums: t('Drum kits') });
 
 /** Whether a bar plays the track. */
 const plays = (bar: LofiBar, track: BrowseTrack): boolean => bar.notes.some(n => (track === 'drums' ? DRUM_VOICES.has(n.voice) : n.voice === track));
@@ -194,7 +196,7 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
       <div class="msb-sections" role="group" aria-label="${escapeHtml(t('Hear it in'))}" data-sections></div>
     </div>
     <div class="msb-body">
-      <ul class="msb-cards msb-cards--auto" role="list">${card('', track === 'drums' ? t('The style’s own kit') : t('Let the composer choose'), false)}</ul>
+      <ul class="msb-cards msb-cards--auto" role="list">${card('', t('Auto'), false)}</ul>
       ${families()}
       ${track === 'drums' ? `
       <div class="msb-drum-parts" role="group" aria-labelledby="msb-dp-${n}">
@@ -264,9 +266,32 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
     const blocked = !!part && !!id && isBlocked(h.prefs(), part, id);
     return { text: [now, blocked ? t('Blocked') : ''].filter(Boolean).join(' · '), current: !!now };
   }
+  /** The composer's own instruments in this kind of section, for the Auto card: as heard
+   *  when the part is left to the composer, else from the track composed without the
+   *  person's choice for this part. */
+  let autoOf: { key: string; ids: string[] } | null = null;
+  function composersOwn(p: MusicPart): string[] {
+    const s = h.state;
+    if (!s[p] && !s.sections[section]?.[p]) return heardIn(h.bars(), p, section);
+    const key = `${JSON.stringify(s)}|${section}`;
+    if (autoOf?.key !== key) autoOf = { key, ids: heardIn(composeTrack(previewState(s, p, '', section)), p, section) };
+    return autoOf.ids;
+  }
+  /** The Auto card's name: "Auto" and what the composer plays ("Auto · Banjo", "Auto · Jazz kit"). */
+  function autoName(): string {
+    if (!part) return autoLabel(styleKitName(h.state.mood));
+    return autoLabel(composersOwn(part).slice(0, 2).map(id => instrumentName(part, id)).join(', '));
+  }
   function paint(): void {
     const prefs = h.prefs();
     const s = h.state;
+    const auto = dlg.querySelector<HTMLElement>('.msb-card[data-card=""]');
+    if (auto) {
+      const name = autoName();
+      const label = auto.querySelector<HTMLElement>('.msb-name');
+      if (label) label.textContent = name;
+      auto.querySelector('.msb-main')?.setAttribute('aria-label', name);
+    }
     for (const li of dlg.querySelectorAll<HTMLElement>('.msb-card[data-card]')) {
       const id = li.dataset.card ?? '';
       const { text, current } = cardState(id);
@@ -283,9 +308,9 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
     }
     const now = q<HTMLElement>('[data-now]');
     if (now) {
-      if (!part) now.textContent = s.kit ? tRaw('Kit: {kit}', { kit: instrumentName('drums', s.kit) }) : t('Kit: the style’s own');
+      if (!part) now.textContent = tRaw('Kit: {kit}', { kit: s.kit ? instrumentName('drums', s.kit) : autoLabel(styleKitName(s.mood)) });
       else if (!section) now.textContent = t('This part has no notes in the track.');
-      else now.textContent = `${sectionName(section)}: ${heardIn(h.bars(), part, section).map(id => instrumentWord(part, id)).join(', ')}`;
+      else now.textContent = `${sectionName(section)}: ${heardIn(h.bars(), part, section).map(id => instrumentName(part, id)).join(', ')}`;
     }
     q<HTMLElement>('[data-drums-on]')?.setAttribute('aria-pressed', String(s.drums));
     const here = q<HTMLButtonElement>('[data-use="here"]');
@@ -307,7 +332,7 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
       const values: readonly string[] = which === 'snare' ? LOFI_SNARES : LOFI_HATS;
       const names: Record<string, string> = which === 'snare' ? LOFI_SNARE_NAME : LOFI_HATS_NAME;
       const composed = bar ? names[bar.tune.style[which]] ?? '' : '';
-      sel.replaceChildren(new Option(`${t('As composed')}: ${composed}`, ''), ...values.map(v => new Option(names[v] ?? v, v, false, v === chosen?.[which])));
+      sel.replaceChildren(new Option(autoLabel(composed), ''), ...values.map(v => new Option(sentenceCase(names[v] ?? v), v, false, v === chosen?.[which])));
       sel.disabled = !section;
     }
   }

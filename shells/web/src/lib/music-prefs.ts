@@ -98,7 +98,8 @@ function keepMusic(profile: Profile, music: NonNullable<Profile['music']>): void
 /** Whether a shuffle draws a new genre. On unless the person turned it off. */
 export const loadShuffleGenres = (profile: Profile | null | undefined): boolean => profile?.music?.shuffleGenres !== false;
 
-/** Turn "Shuffle genres" on or off on the profile record (the caller saves the record). On is the
+/** Turn "Shuffle genres" on or off on the profile record (the generator's genre lock, open for
+ *  on and closed for off; the caller saves the record). On is the
  *  default, so it leaves no field; only off is stored. */
 export function setShuffleGenres(profile: Profile, on: boolean): void {
   const music: NonNullable<Profile['music']> = { ...profile.music };
