@@ -4,9 +4,10 @@
  *
  * THE GENRE BUTTON is the bar's hero, so someone opening a shared link or shuffling can
  * tell at once what is playing: the genre's icon, its title in a heavier weight, and under
- * the title one line of what you are hearing (genre-taglines.ts), on the genre's own wash
- * of the design system's colours, the same wash its card wears in the genre picker
- * (genre-colours.ts, each stop held to 4.5:1 against the text, in light and dark). When
+ * the title one line of what you are hearing (genre-taglines.ts), on the genre's own
+ * colours from the design system, the colours its card wears in the genre picker but much
+ * stronger (genre-colours.ts HERO_WASH, each stop held to 4.5:1 against the text, in light
+ * and dark, the text turning light on a deep colour where that shows more of the colour). When
  * the genre changes (a shuffle, the picker, an undo, or a link opening) the button lights
  * up briefly; with reduced motion asked for, by the system or in Lolly's own settings
  * (lib/a11y-prefs.ts), it changes without moving. Clicking it opens the genre picker.
@@ -73,13 +74,15 @@ export function wireGenreHero(button: HTMLElement, host: unknown): GenreHero {
   async function tint(mood: LofiMood): Promise<void> {
     const { surface, text } = baseColours();
     const key = `${surface}|${text}`;
-    if (washes?.key !== key) washes = { key, tiles: genreWashes(host, surface, text).catch(() => new Map<LofiMood, GenreTile>()) };
+    if (washes?.key !== key) washes = { key, tiles: genreWashes(host, surface, text, 'hero').catch(() => new Map<LofiMood, GenreTile>()) };
     const tile = (await washes.tiles).get(mood);
     if (destroyed || shown !== mood) return;
     if (!tile) { button.classList.remove('is-tinted'); return; }
     button.style.setProperty('--ms-hero-from', tile.from);
     button.style.setProperty('--ms-hero-to', tile.to);
     button.style.setProperty('--ms-hero-angle', `${tile.angle}deg`);
+    // Light text on a deep colour, where the wash turned its text over (genre-colours.ts HERO_WASH).
+    if (tile.ink) button.style.setProperty('--ms-hero-ink', tile.ink); else button.style.removeProperty('--ms-hero-ink');
     button.classList.add('is-tinted');
   }
   function light(): void {
