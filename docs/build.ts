@@ -2451,11 +2451,11 @@ function renderMakeSomethingPage(md: string, _lang: Lang): string {
 // Every copy string is read through localizeSiteJson, which looks it up in the
 // site catalogue (t(), English-as-key, identity fallback) and leaves the keys in
 // LANDING_I18N_SKIP alone: routes, slugs, file names, css classes, counter
-// names and code notes are never copy. scripts/translate.ts carries the SAME
+// names, icon keys and code notes are never copy. scripts/translate.ts carries the SAME
 // list (its site corpus walks these files with it) and
 // tests/docs-landing-i18n.test.ts pins the two lists and the file list equal,
 // so a key added on one side cannot be quietly missed on the other.
-const LANDING_I18N_SKIP = ['href', 'slug', 'class', 'img', 'video', 'mascot', 'id', 'count', 'note'];
+const LANDING_I18N_SKIP = ['href', 'slug', 'class', 'img', 'video', 'mascot', 'id', 'count', 'note', 'icon'];
 function localizeSiteJson<T>(value: T, key = ''): T {
   if (typeof value === 'string') return (LANDING_I18N_SKIP.includes(key) ? value : t(value)) as T;
   if (Array.isArray(value)) return value.map((v) => localizeSiteJson(v, key)) as T;
@@ -2491,7 +2491,7 @@ interface Lane { tab: string; pitch: string; mascot?: string; links?: Array<{ la
 interface Door { id: string; name: string; sub: string; mascot: string; lanes: Lane[] }
 interface PersonaJson { title: string; doors: Door[] }
 interface BehindJson { eyebrow: string; sceptic: string; links: Array<{ label: string; slug: string }>; quiet: string }
-interface WorkJson { eyebrow: string; heading: string; body: string; links: Array<{ label: string; href: string }> }
+interface WorkJson { eyebrow: string; heading: string; line: string; points: Array<{ icon: string; title: string; text: string }>; links: Array<{ label: string; href: string }> }
 
 /** An app route (`#/tool/design`) goes through appHref (carries the reader's
  *  locale); anything else is a site path through localizeHref. */
@@ -2778,21 +2778,28 @@ function coversScript(): string {
  * in the public lolly-work repository and the hosted sandbox at lolly.work. Copy:
  * docs/site/work.json; the two links are external, so they open in a new tab.
  * Product-level only: what it does, where the code is, where to try it.
+ *
+ * One line and three short points (Andy, 2026-11-14: "easy to read, simple to look
+ * at"): sign-in and roles, a locked brand, audit and approvals, each led by a
+ * two-tone Etiquette icon that takes the reader's theme (docs-components.css).
  */
 function workBand(lang: Lang): string {
   const w = loadLandingJson<WorkJson>('work.json');
   void lang;
+  // Source order is the reading order: the copy, the points, then the two links. The
+  // stylesheet lifts the links beside the copy on a wide screen.
   return `<section class="work-section" id="work">
   <div class="work-inner reveal">
-    <div class="work-cols">
-      <div class="work-copy">
-        <p class="work-eyebrow">${esc(w.eyebrow)}</p>
-        <h2 class="work-heading">${esc(w.heading)}</h2>
-        <p class="work-body">${esc(w.body)}</p>
-      </div>
-      <div class="work-links">
-        ${w.links.map((l, i) => `<a class="${i === 0 ? 'hero-btn btn-primary btn-compact' : 'work-link'}" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('\n        ')}
-      </div>
+    <div class="work-copy">
+      <p class="work-eyebrow">${esc(w.eyebrow)}</p>
+      <h2 class="work-heading">${esc(w.heading)}</h2>
+      <p class="work-line">${esc(w.line)}</p>
+    </div>
+    <ul class="work-points">
+      ${w.points.map((p) => `<li class="work-point"><span class="work-point-ic">${docIcon(p.icon)}</span><span class="work-point-copy"><b>${esc(p.title)}</b> <span>${esc(p.text)}</span></span></li>`).join('\n      ')}
+    </ul>
+    <div class="work-links">
+      ${w.links.map((l, i) => `<a class="${i === 0 ? 'hero-btn btn-primary btn-compact' : 'work-link'}" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('\n      ')}
     </div>
   </div>
 </section>`;

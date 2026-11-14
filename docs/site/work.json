@@ -1,7 +1,24 @@
 {
   "eyebrow": "Lolly Work",
   "heading": "Lolly for the whole organisation",
-  "body": "The same tools, with what an organisation needs around them: sign-in with your own identity provider, roles and approvals, shared projects and libraries, inputs locked where the brand must not move, links that expire and an audit trail. If you already have an asset library, you can keep it as the source of record. Choose where the shared services run. Open source (MPL-2.0), hosted by you.",
+  "line": "The same tools, with what an organisation needs around them. Open source (MPL-2.0), hosted by you.",
+  "points": [
+    {
+      "icon": "eti-user-check",
+      "title": "Sign-in and roles",
+      "text": "Your own identity provider, and a role for each person."
+    },
+    {
+      "icon": "eti-lock",
+      "title": "A locked brand",
+      "text": "Shared libraries, with inputs locked where the brand must not move."
+    },
+    {
+      "icon": "eti-shield-check",
+      "title": "Audit and approvals",
+      "text": "An audit trail, and approvals wherever you switch them on."
+    }
+  ],
   "links": [
     {
       "label": "Try the sandbox at lolly.work ↗",

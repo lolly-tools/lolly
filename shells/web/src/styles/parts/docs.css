@@ -50,7 +50,7 @@
   --warn: #72251c;
   /* lib/docs-landing.ts sets the reader's face from this name. */
   --brand-font: var(--font-brand);
-  /* The ink on the lolly.work band (.work-body), which sits on a light green wash. */
+  /* The ink on the lolly.work band (.work-line), which sits on a light green wash. */
   --band-primary: var(--text);
 }
 [data-theme="dark"] :is(.docs-content, .docs-landing) {
