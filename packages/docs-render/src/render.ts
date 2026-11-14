@@ -7,7 +7,7 @@
 
 import { esc } from './esc.ts';
 import { PROV_SEAL, headingId, parseCells, stripAuthoringComments } from './markdown.ts';
-import { COMPONENT_GLYPH, bodyHasHeading, codeBlock, detailsBlock, fenceCopies, fenceCopyMode, fenceLabel, logoStrip, noteBlock, parseComponentFence, parseFenceInfo, sectionIcon, stepsBlock } from './components.ts';
+import { COMPONENT_GLYPH, bodyHasHeading, codeBlock, detailsBlock, fenceCopies, fenceCopyMode, fenceLabel, logoStrip, noteBlock, parseComponentFence, parseFenceInfo, pillarsBlock, sectionIcon, stepsBlock } from './components.ts';
 import { renderCredential } from './credential.ts';
 import { codeRunsHtml, isShellLang, shellRuns } from './shell-highlight.ts';
 import { parseFigureFence, figureBlock } from './art.ts';
@@ -26,6 +26,8 @@ const PICTURE_GROUND = /^<!--g:(light|dark|brand)-->\s*/;
 const PICTURE_ITEM = /^(!\[[^\]]*\]\([^)\s]+\))\s*([\s\S]*)$/;
 // `::: intro <icon>`: a subject page's opening paragraph, led by the subject's doc icon.
 const INTRO_FENCE = /^intro(?:\s+([a-z0-9-]+))?$/;
+// `::: pillars <figure-id> …`: the few things a page stands on, as one row of cards.
+const PILLARS_FENCE = /^pillars((?:\s+[a-z0-9][a-z0-9-]*)*)$/;
 
 export function inline(text: string, ctx: DocsRenderContext): string {
   let s = esc(text);
@@ -223,6 +225,8 @@ function layoutFence(label: string, body: string, ctx: DocsRenderContext): strin
   // The same cards in reading order: a numbered row, for the few steps a page walks through.
   if (label === 'steps') return stepsBlock(mdToHtml(body, ctx));
   if (label === 'logos') return buildLogos(body, ctx);
+  const pillars = PILLARS_FENCE.exec(label);
+  if (pillars) return buildPillars(pillars[1]!.trim().split(/\s+/).filter(Boolean), body, ctx);
   if (INTRO_FENCE.test(label)) {
     // A subject page's opening: its icon beside the paragraph that says what the
     // subject covers. The icon is decoration, so a reader without it loses nothing.
@@ -231,6 +235,30 @@ function layoutFence(label: string, body: string, ctx: DocsRenderContext): strin
     return `<div class="md-intro">${glyph ? `<span class="md-intro-icon" aria-hidden="true">${glyph}</span>` : ''}<div class="md-intro-body">${mdToHtml(body, ctx)}</div></div>`;
   }
   return null;
+}
+
+/**
+ * `::: pillars <figure-id> …` - each `## ` section is a card, led by the banked figure
+ * named at the same position on the opening line (docs/figures/<id>.svg). The ids are
+ * canonical, the same in every locale copy, as a `::: figure` id is, so a translated page
+ * changes only the words inside. The picture illustrates the heading below, so a screen
+ * reader skips the picture; the credential mark beside the picture stays reachable.
+ */
+function buildPillars(ids: string[], body: string, ctx: DocsRenderContext): string {
+  const parts = body.split(/\n(?=## )/).filter(p => p.trim());
+  if (ids.length !== parts.length) {
+    console.warn(`⚠  ::: pillars names ${ids.length} figure(s) for ${parts.length} section(s); a card without one shows no picture`);
+  }
+  return pillarsBlock(parts.map((part, n) => {
+    const id = ids[n];
+    const art = id ? ctx.art('figures', id) : null;
+    if (id && !art) console.warn(`⚠  ::: pillars - no docs/figures/${id}.svg (or it did not inline); its card shows no picture`);
+    const credential = art
+      ? renderCredential(ctx.credential(art.file, { assetSrc: art.src, art: true }), { file: art.file, extraClass: 'shot-cred--pillar', fromPresent: true }, ctx)
+      : '';
+    if (art && !credential) console.warn(`⚠  ::: pillars - ${art.file} carries no readable Content Credential; run 'node scripts/sign-docs-art.ts'`);
+    return { art: art?.html ?? '', credential, bodyHtml: mdToHtml(part, ctx) };
+  }), ctx.docIcon('chrome-arrow'));
 }
 
 /** `::: logos` - the marks a page is about, each with its alt text as its visible name. */

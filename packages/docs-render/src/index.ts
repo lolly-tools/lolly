@@ -40,8 +40,8 @@ export { parseFigureFence, figureBlock } from './art.ts';
 export { shellRuns, codeRunsHtml, isShellLang, type CodeRun, type ShellKind } from './shell-highlight.ts';
 export {
   NOTE_KINDS, COMPONENT_GLYPH, FENCE_FLAGS, parseComponentFence, parseFenceInfo, bodyHasHeading, noteBlock, detailsBlock,
-  codeBlock, hasCopyBlock, fenceLabel, fenceCopies, fenceCopyMode, RENDER_WORDS, logoStrip, stepsBlock, sectionIcon,
-  type NoteKind, type ComponentKind, type NoteParts, type DetailsParts, type CodeParts, type LogoMark,
+  codeBlock, hasCopyBlock, fenceLabel, fenceCopies, fenceCopyMode, RENDER_WORDS, logoStrip, stepsBlock, pillarsBlock, sectionIcon,
+  type NoteKind, type ComponentKind, type NoteParts, type DetailsParts, type CodeParts, type LogoMark, type PillarParts,
 } from './components.ts';
 export {
   hasContents, contentsRailHtml, pageBarHtml,

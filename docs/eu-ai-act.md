@@ -2,7 +2,7 @@
 
 If you deploy Lolly in the EU, the AI Act may ask you to mark synthetic output and disclose deep fakes. Lolly gives your legal review three technical facts to work with. They support the assessment; they do not establish compliance.
 
-::: cols
+::: pillars eu-ai-act-preserved eu-ai-act-declared eu-ai-act-verified
 ## Preserved
 
 AI marks that arrive with a file stay. Its declared AI origin is copied onto Lolly's own manifest at ingest, and every export that uses it carries that origin forward.

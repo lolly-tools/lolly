@@ -53,10 +53,12 @@ export function unwrapComponentFences(md: string): string {
  *
  * The id is not carried into the twin as text: it names a file the twin does not
  * publish, and an agent reading `::: figure trust-chain` would be reading build
- * plumbing, not documentation.
+ * plumbing, not documentation. A `::: pillars` fence keeps its keyword, as `::: cols`
+ * does, and loses its figure ids for the same reason.
  */
 export function unwrapFigureFences(md: string): string {
-  return md.replace(/^::: figure\s+\S+[ \t]*\r?\n([\s\S]*?)^:::[ \t]*\r?\n?/gm, (_m, caption: string) => caption);
+  return md.replace(/^::: figure\s+\S+[ \t]*\r?\n([\s\S]*?)^:::[ \t]*\r?\n?/gm, (_m, caption: string) => caption)
+    .replace(/^::: pillars[ \t]+[a-z0-9 \t-]*$/gm, '::: pillars');
 }
 
 // The twin is markdown, so it carries no CSS to turn a provenance marker into a
