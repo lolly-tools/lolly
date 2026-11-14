@@ -98,15 +98,15 @@ const SCHOOL_RIMS: ReadonlyArray<readonly number[]> = [[7, 14], [3, 11], [6, 14]
 /** The older percussion kinds, by their place in the composer's LOFI_PERCUSSION. */
 const SHAKER = 0, TAMBOURINE = 1, COWBELL = 3;
 /** A conga stroke on one of the three drums (0 the quinto, 1 the conga, 2 the tumba), as salsa's section plays them (lofi-salsa.ts). */
-const conga = (drum: number, stroke: keyof typeof CONGA_STROKES): number => drum * CONGA_DRUM + CONGA_STROKES[stroke];
+const congaStroke = (drum: number, stroke: keyof typeof CONGA_STROKES): number => drum * CONGA_DRUM + CONGA_STROKES[stroke];
 /**
  * House congas, a bar each: the slap on the quinto answering the backbeat, the open tones of
  * the conga and the tumba pushed off the beat, a muffled stroke between. [sixteenth, stroke, strength].
  */
 const HOUSE_CONGAS: ReadonlyArray<ReadonlyArray<readonly [number, number, number]>> = [
-  [[2, conga(1, 'open'), 0.55], [3, conga(1, 'muff'), 0.32], [6, conga(0, 'slap'), 0.6], [7, conga(1, 'open'), 0.45], [10, conga(2, 'open'), 0.6], [11, conga(2, 'open'), 0.5], [14, conga(0, 'slap'), 0.6]],
-  [[0, conga(2, 'bass'), 0.45], [3, conga(1, 'open'), 0.5], [6, conga(0, 'slap'), 0.6], [8, conga(1, 'heel'), 0.3], [10, conga(1, 'open'), 0.5], [11, conga(2, 'open'), 0.5], [14, conga(0, 'slap'), 0.55], [15, conga(1, 'open'), 0.42]],
-  [[2, conga(1, 'open'), 0.5], [4, conga(0, 'slap'), 0.58], [7, conga(1, 'open'), 0.42], [10, conga(2, 'open'), 0.55], [12, conga(0, 'slap'), 0.58], [14, conga(1, 'open'), 0.45]],
+  [[2, congaStroke(1, 'open'), 0.55], [3, congaStroke(1, 'muff'), 0.32], [6, congaStroke(0, 'slap'), 0.6], [7, congaStroke(1, 'open'), 0.45], [10, congaStroke(2, 'open'), 0.6], [11, congaStroke(2, 'open'), 0.5], [14, congaStroke(0, 'slap'), 0.6]],
+  [[0, congaStroke(2, 'bass'), 0.45], [3, congaStroke(1, 'open'), 0.5], [6, congaStroke(0, 'slap'), 0.6], [8, congaStroke(1, 'heel'), 0.3], [10, congaStroke(1, 'open'), 0.5], [11, congaStroke(2, 'open'), 0.5], [14, congaStroke(0, 'slap'), 0.55], [15, congaStroke(1, 'open'), 0.42]],
+  [[2, congaStroke(1, 'open'), 0.5], [4, congaStroke(0, 'slap'), 0.58], [7, congaStroke(1, 'open'), 0.42], [10, congaStroke(2, 'open'), 0.55], [12, congaStroke(0, 'slap'), 0.58], [14, congaStroke(1, 'open'), 0.45]],
 ];
 /** House bongos under the congas: eighths on the macho, fingertip and thumb, the hembra to turn the bar. */
 const HOUSE_BONGOS: ReadonlyArray<readonly [number, number, number]> = [
