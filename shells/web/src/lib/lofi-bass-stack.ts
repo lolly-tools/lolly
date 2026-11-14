@@ -78,8 +78,11 @@ const WIDE = new Set<LofiSection>(['drop', 'build']);
 /** The sub: a sine at this share of a note's level, the note folded under SUB_TOP. */
 const SUB_LEVEL = 0.42;
 const SUB_TOP = 100;
-/** The croak laid over the bass, against a bass note's level. */
-const OVER_LEVEL = 0.7;
+/**
+ * The croak laid over the bass, against a bass note's level. It was 0.7, which Andy heard
+ * as a little loud against the other calls (2026-11-14), so it sits about 3 dB lower.
+ */
+const OVER_LEVEL = 0.5;
 /** The croak's place when the style has no stack: high-passed at OVER_HP, and panned OVER_PAN off centre. */
 const OVER_HP = 160;
 const OVER_PAN = 0.35;
