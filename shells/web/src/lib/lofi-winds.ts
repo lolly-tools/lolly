@@ -27,7 +27,7 @@ import { blowLips, darken, heardSolo, TRUMPET_DOIT, TRUMPET_DROP, TRUMPET_GHOST,
 import type { LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { airBurst, inhale, noteSpeed, preAttack, type BurstShape, type InhaleShape, type PreAttackShape } from './lofi-breath.ts';
 import { blowFlute, FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsOf, type Pipe } from './lofi-flutes.ts';
-import { blowReed } from './lofi-reeds.ts';
+import { blowReed, saxNote } from './lofi-reeds.ts';
 import { EPS, mtof, type VoiceKit } from './lofi-voices.ts';
 
 /** The leads this module plays. */
@@ -76,31 +76,53 @@ export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi
   if (style === 'trumpet' || style === 'trombone') { brass(style, k, out, t, midi, vel, dur, art, from, how); return; }
   if (style === 'flute' || style === 'panflute') { flute(style === 'flute' ? 'open' : 'stopped', k, out, t, midi, vel, dur, art, from); return; }
   if (style === 'fiddle') { fiddle(k, out, t, midi, vel, dur, art, from); return; }
+  if (style === 'sax') { saxophone(k, out, t, midi, vel, dur, art, from, how); return; }
   const { ctx } = k;
-  const sax = style === 'sax';
   const held = Math.max(0.06, dur);
   const data = blowReed({
     sr: ctx.sampleRate, f: mtof(midi), from: from === undefined ? undefined : mtof(from), vel, dur: held, seconds: held + 0.12,
-    bore: sax ? 'cone' : 'cylinder', vibrato: sax ? 22 : 6, rate: 5.1 + k.rng() * 0.6, scoop: art === 1 ? 1 : 0, attack: sax ? 0.012 : 0.045,
+    bore: 'cylinder', vibrato: 6, rate: 5.1 + k.rng() * 0.6, scoop: art === 1 ? 1 : 0, attack: 0.045,
   }, seeded(k));
-  // The body: a sax's bell warms the middle and rolls the top off; a clarinet's wood is darker still.
+  // The body: a clarinet's wood warms the upper middle and rolls the top off.
   const warm = ctx.createBiquadFilter();
   warm.type = 'peaking';
-  warm.frequency.value = sax ? 650 : 1500;
+  warm.frequency.value = 1500;
   warm.Q.value = 1;
-  warm.gain.value = sax ? 3 : 2;
+  warm.gain.value = 2;
   const top = ctx.createBiquadFilter();
   top.type = 'lowpass';
-  top.frequency.value = sax ? 5200 : 4200;
+  top.frequency.value = 4200;
   top.Q.value = 0.6;
   const g = ctx.createGain();
   g.gain.setValueAtTime(1, t);
   g.gain.setTargetAtTime(EPS, t + held + 0.08, 0.02);
-  playBuffer(k, data, out, t, (sax ? SAX_LEVEL : CLARINET_LEVEL) * (how.gain ?? 1), [warm, top, g]);
+  playBuffer(k, data, out, t, CLARINET_LEVEL * (how.gain ?? 1), [warm, top, g]);
 }
-/** The blown reeds' levels against the voices they replaced. */
-const SAX_LEVEL = 0.044;
+/** The clarinet's level against the voice it replaced. */
 const CLARINET_LEVEL = 0.065;
+
+/**
+ * The saxophone (lib/lofi-reeds.ts saxNote): its horn's body is part of the model, so the note
+ * goes straight out. Its loudness follows its strength (SAX_DYNAMIC, as the brass's does) and
+ * its brightness follows too, inside the model. A section player plays straight, a little out
+ * of tune with the others (`how.detune`). The vibrato's rate is the recorded players' 4.6 to 5.1.
+ */
+function saxophone(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined, how: BrassPlay): void {
+  const { ctx } = k;
+  const held = Math.max(0.06, dur);
+  const strength = Math.min(1, Math.max(0, vel));
+  const data = saxNote({
+    sr: ctx.sampleRate, midi: midi + (how.detune ?? 0) / 100, from, vel: strength, dur: held, art, straight: how.straight, rate: SAX_RATE + k.rng() * 0.5,
+  }, seeded(k));
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(1, t);
+  g.gain.setTargetAtTime(EPS, t + held + 0.08, 0.02);
+  playBuffer(k, data, out, t, SAX_LEVEL * (SAX_DYNAMIC + (1 - SAX_DYNAMIC) * strength) * (how.gain ?? 1), [g]);
+}
+/** The saxophone's level against the voice it replaced (measured on the same phrases), its level blown softest against hardest, and its vibrato's slowest rate (Hz). */
+const SAX_LEVEL = 0.0378;
+const SAX_DYNAMIC = 0.4;
+const SAX_RATE = 4.6;
 
 /**
  * How loud a brass note comes out of the model at a strength and pitch (dB), measured: it

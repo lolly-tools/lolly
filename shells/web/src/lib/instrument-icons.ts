@@ -9,7 +9,7 @@
  * canvas too, so this also turns an icon's markup into canvas paths: its path, circle,
  * ellipse, line, polyline and rect elements, which are all these icons use.
  */
-import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import type { LiveLead, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export type InstrumentIcon = 'piano' | 'audioWaveform' | 'guitar' | 'bowed' | 'wind' | 'horn' | 'micVocal' | 'bell' | 'gamepad' | 'drum';
 
@@ -30,26 +30,28 @@ const MARKUP: Record<InstrumentIcon, string> = {
 };
 
 const KEYS: Record<LofiStyle['keys'], InstrumentIcon> = {
-  rhodes: 'piano', felt: 'piano', wurli: 'piano', honky: 'piano', organ: 'piano',
+  rhodes: 'piano', felt: 'piano', wurli: 'piano', honky: 'piano', organ: 'piano', houseOrgan: 'piano',
   pluck: 'audioWaveform', pad: 'audioWaveform', supersaw: 'audioWaveform', future: 'audioWaveform',
   nylon: 'guitar', clean: 'guitar', fuzz: 'guitar', wall: 'guitar', steel: 'guitar', banjo: 'guitar', jazzbox: 'guitar', crunch: 'guitar', heavy: 'guitar', buzzsaw: 'guitar', wah: 'guitar', electric: 'guitar', harp: 'guitar',
   tar: 'guitar', santur: 'guitar', zheng: 'guitar', koto: 'guitar', shamisen: 'guitar', kora: 'guitar',
   chiparp: 'gamepad', brass: 'horn', choir: 'micVocal', balafon: 'bell', strings: 'bowed', grand: 'piano',
+  surf: 'guitar', combo: 'piano',
 };
-const LEADS: Record<LofiStyle['lead'], InstrumentIcon> = {
+const LEADS: Record<LiveLead, InstrumentIcon> = {
   vibes: 'bell', bells: 'bell', kalimba: 'bell', balafon: 'bell',
   flute: 'wind', panflute: 'wind', ney: 'wind', shakuhachi: 'wind', dizi: 'wind', clarinet: 'wind', harmonica: 'wind',
   sax: 'horn', trumpet: 'horn',
-  soft: 'audioWaveform', synthwave: 'audioWaveform',
+  synthwave: 'audioWaveform',
   chip: 'gamepad', pulse: 'gamepad', bit: 'gamepad',
   angel: 'micVocal', chop: 'micVocal',
   guitar: 'guitar', overdrive: 'guitar', metal: 'guitar', riff: 'guitar', twang: 'guitar', nylon: 'guitar', banjo: 'guitar', pedal: 'guitar',
   santur: 'guitar', zheng: 'guitar', koto: 'guitar', pipa: 'guitar', shamisen: 'guitar', kora: 'guitar', harp: 'guitar', steel: 'guitar', tar: 'guitar',
   fiddle: 'bowed', kamancheh: 'bowed', erhu: 'bowed', viola: 'bowed', cello: 'bowed', doublebass: 'bowed',
   none: 'audioWaveform',
+  surf: 'guitar', chorus: 'guitar',
 };
 const BASSES: Record<LofiStyle['bass'], InstrumentIcon> = {
-  round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
+  round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', warp: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
   upright: 'bowed', slap: 'guitar', picked: 'guitar', croak: 'guitar', motown: 'guitar',
   pulse: 'gamepad', eight: 'drum', log: 'drum', yidaki: 'wind',
 };

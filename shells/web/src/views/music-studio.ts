@@ -138,7 +138,7 @@ export function drumRow(voice: string, mod = 0, stroke = 0): 0 | 1 | 2 {
   if (kind === 'shaker' || kind === 'tambourine' || kind === 'shekere' || kind === 'agogo' || kind === 'gong' || kind === 'cowbell' || (kind === 'daf' && stroke === 3)) return 0;
   // Salsa's: the tumba and the heel low, the bells, the clave, the güiro and the timbales' shell on top.
   if (kind === 'congas' && (stroke >= 16 || stroke % 8 === 4 || stroke % 8 === 6)) return 2;
-  if (kind === 'bongoBell' || kind === 'mamboBell' || kind === 'clave' || kind === 'guiro' || (kind === 'timbales' && stroke === 3)) return 0;
+  if (kind === 'bongoBell' || kind === 'mamboBell' || kind === 'clave' || kind === 'guiro' || kind === 'maracas' || (kind === 'timbales' && stroke === 3)) return 0;
   return 1;
 }
 
@@ -462,9 +462,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** Bumped whenever the bars or the colours change, so the layer is painted again. */
   let paintVersion = 0;
 
-  /** The effects lane's rows, by what makes the sound: voices on top, then the console's sounds, its sparkles and bleeps, and the sweeps at the bottom. */
-  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' ? 0
-    : voice === 'game' || voice === 'coin' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
+  /** The effects lane's rows, by what makes the sound: voices and botanica's place on top, then the console's sounds and the glitches, its sparkles and bleeps, and the sweeps and pads at the bottom. */
+  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' || voice === 'nature' ? 0
+    : voice === 'game' || voice === 'coin' || voice === 'glitch' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
 
   /**
    * The grid's lines take the colour of the section they sit on, a lightness step from
@@ -591,7 +591,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         } else if (tr === 'fx') {
           const row = fxRow(n.voice);
           const y = top + 4 + row * fxRowH;
-          const sweep = n.voice === 'riser' || n.voice === 'phaser';
+          const sweep = n.voice === 'riser' || n.voice === 'phaser' || n.voice === 'grain' || n.voice === 'nature' || n.voice === 'glitch';
           cx.fillRect(x, y, sweep ? Math.max(3, n.dur * pxPerBeat) : Math.max(2, Math.min(6, n.dur * pxPerBeat)), Math.max(3, fxRowH - 2));
         } else {
           const [lo, hi] = pitchRange[tr];

@@ -46,7 +46,7 @@ function wall(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
 
 /** A chorus pedal per output: the dry signal, and two short delays swaying either side of it, one each side. */
 const CHORUSES = new WeakMap<AudioNode, GainNode>();
-function chorusInput(k: VoiceKit, out: AudioNode): GainNode {
+export function chorusInput(k: VoiceKit, out: AudioNode): GainNode {
   const ready = CHORUSES.get(out);
   if (ready) return ready;
   const { ctx } = k;

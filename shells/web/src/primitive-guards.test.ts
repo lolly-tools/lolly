@@ -2105,7 +2105,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 247 to 243 (plan 336): the studio's glowing Add from button and its
     // breathing keyframes went with the rail; the bar's button is a plain pill.
     // 243 to 242 (plan 346): the Board's colour chips wear the faint edge token.
-    pin: 242,
+    // 242 to 241: the shared progress bar lost its outline (Andy, 2026-11-14).
+    pin: 241,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

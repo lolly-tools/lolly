@@ -14,12 +14,14 @@
  *  - tunes differ: across seeds the keys, lead, groove, kit and the way a tune opens all
  *    vary, and the mood leans the key (warm is major, late night and rainy minor);
  *  - a tune's shape: it opens, has a verse, ends with a fading outro and one silent bar;
- *  - a fixed style part (auditioning one instrument) changes that part only.
+ *  - a fixed style part (auditioning one instrument) changes that part only;
+ *  - a retired lead is never drawn, and a tune that asks for one plays the lead in its place.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, isOverNote, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_OVER, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES } from './lofi-compose.ts';
+import { composeLofiTune, isOverNote, isRetiredLead, liveLead, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_OVER, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES, SURF_TREMOLO, SURF_GLISS, SURF_ARM, ELECTRIC_PALM, ELECTRIC_CHOKE, transposeChordName, LOFI_LEADS, RETIRED_LEADS } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
+import { isBreakNote } from './lofi-breaks.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
 const PHRASE_SEEDS_40 = Array.from({ length: 40 }, (_, i) => (i * 2654435761 + 7) >>> 0);
@@ -34,12 +36,13 @@ function fingerprint(bars: unknown): number {
 }
 /** Tunes composed on main before Sherbert existed. Sugar's 2654435761 drew the croak for its
  *  verse, which now plays the slap (the croak only ever lies over a bass): its verse's bass
- *  notes moved (2026-11-13), the rest of the tune did not. */
+ *  notes moved (2026-11-13), the rest of the tune did not. Warm's 2654435761 drew the soft
+ *  lead, retired on 2026-11-14 (RETIRED_LEADS): it draws the acoustic guitar now. */
 const FINGERPRINTS: Record<string, number> = {
   'sugar.2024': 1067381605, 'sugar.2654435761': 3985419356, 'chiptune.2024': 3361767685, 'chiptune.2654435761': 2547177282,
   'kpop.2024': 1245126060, 'kpop.2654435761': 1409581692,
   'jazz.2024': 4242884971, 'jazz.2654435761': 1166250726, 'sings.2024': 2251072788, 'sings.2654435761': 419362352,
-  'warm.2024': 3837958448, 'warm.2654435761': 1943752970,
+  'warm.2024': 3837958448, 'warm.2654435761': 1921851039,
 };
 
 test('a seed is a tune: the same seed and mood compose the same bars', () => {
@@ -179,10 +182,13 @@ const withoutHatFoot = (bars: ReturnType<typeof composeLofiTune>): ReturnType<ty
 /**
  * A tune without the croak laid over its bass (LofiBar voices.over and its `layer` notes),
  * the layer it was added in. The drops' trades (another bass answering the drop's own) are
- * in the bass's own notes, so the dubstep and brostep pins moved with them.
+ * in the bass's own notes, so the dubstep and brostep pins moved with them. Also without
+ * drum and bass's top loop (2026-11-14), a break chopped over its kit: notes added on a
+ * stream of their own, each a break's (isBreakNote), so without them the kit is as it was.
  */
 function withoutOver(bars: LofiBar[]): LofiBar[] {
   return bars.map(b => {
+    if (b.notes.some(isBreakNote)) b = { ...b, notes: b.notes.filter(n => !isBreakNote(n)) };
     if (!b.voices?.over) return b;
     const { over: _over, ...rest } = b.voices;
     const { voices: _voices, ...bar } = b;
@@ -255,7 +261,8 @@ test('the dance genres change instruments between sections', () => {
       const secondDrop = bars.filter(b => b.section === 'drop').at(-1)!;
       if ((secondDrop.voices?.lead ?? st.lead) !== st.lead) newLead++;
     }
-    assert.ok(softer >= 6, `${mood}: the intro's keys differ from the drop's in most tunes (${softer} of 8)`);
+    // Surf keeps its rhythm guitar through the intro: the band's sound is that guitar in the spring.
+    if (mood !== 'surf') assert.ok(softer >= 6, `${mood}: the intro's keys differ from the drop's in most tunes (${softer} of 8)`);
     assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
   }
 });
@@ -380,7 +387,9 @@ test('every note is playable', () => {
         // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
         // Salsa's montuno is the grand piano's two hands in octaves, up to a B5.
         const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
-          : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96] : [64, 84];
+          : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
+          // Botanica's place (a bed's pitch is nominal; a bird's is its song's centre), its granular pads and its glitches.
+          : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
       }
     }
@@ -509,6 +518,32 @@ test('adding Lolly Sings changed no Lofi tune: a seed still composes what it did
   assert.equal(t.bpm, 88);
   assert.equal(t.style.keys, 'rhodes');
   assert.equal(t.style.lead, 'flute');
+});
+
+test('no style draws a retired lead: not as the tune\'s lead, a section\'s or a doubling', () => {
+  for (const [old, now] of Object.entries(RETIRED_LEADS)) {
+    assert.ok((LOFI_LEADS as readonly string[]).includes(old), `${old} keeps its id, so an old link still reads`);
+    assert.ok(!isRetiredLead(now), `${old} plays ${now}, a lead that still plays`);
+  }
+  assert.equal(liveLead('soft'), 'flute');
+  assert.equal(liveLead('vibes'), 'vibes');
+  for (const mood of LOFI_MOODS) {
+    for (const seed of SEEDS.slice(0, 16)) {
+      for (const b of composeLofiTune(seed, mood)) {
+        for (const lead of [b.tune.style.lead, b.voices?.lead, b.voices?.double]) assert.ok(!lead || !isRetiredLead(lead), `${mood} ${seed} bar ${b.index}: ${lead}`);
+      }
+    }
+  }
+});
+
+test('a tune that asks for the soft lead plays the flute: exactly the tune with the flute chosen', () => {
+  for (const mood of ['warm', 'sings', 'citypop', 'lofiHouse', 'salsa', 'botanica'] as const) {
+    const soft = composeLofiTune(31, mood, { lead: 'soft' });
+    assert.equal(soft[0]!.tune.style.lead, 'flute', mood);
+    assert.deepEqual(soft, composeLofiTune(31, mood, { lead: 'flute' }), mood);
+  }
+  // The player and a render read a link through a station's stream.
+  assert.equal(lofiStream(31, { mood: 'citypop', style: { lead: 'soft' } }).next().tune.style.lead, 'flute');
 });
 
 test('fixing one style part changes that part only', () => {
@@ -806,8 +841,11 @@ test('lofi house: a soft kick on every beat that comes in full at the drop, a fi
 test('adding lofi house changed no other style: its draws come from a stream of its own', () => {
   // Composed on main before lofi house existed (b89d0b4dd0), the tag left in. Drum and bass
   // has since gained the band's shouted phrases, a layer of their own: without them, the
-  // tune is unchanged.
-  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 4230037030, 'jazz.7': 3436312216, 'dnb.7': 2399839091, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
+  // tune is unchanged. Its drops' kick and snare are edited bar by bar since 2026-11-14 (Andy
+  // agreed D&B tunes may change: lofi-breaks.ts dnbKitBar), so its pin moved then; every
+  // other note of it is as it was. Amapiano's drew the soft lead, retired on 2026-11-14
+  // (RETIRED_LEADS): its vibes play in its place.
+  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 1758158366, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
@@ -824,7 +862,7 @@ function withoutPhrases(bars: LofiBar[]): LofiBar[] {
   return withoutOver(bars).map(b => ({ ...b, notes: b.notes.filter(n => phraseOf(n) === null) }));
 }
 /** The styles a band or an MC shouts in, and those that keep their calm. */
-const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert'] as const;
+const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert', 'breakbeat', 'ukGarage'] as const;
 const PHRASE_SEEDS = Array.from({ length: 40 }, (_, i) => (i * 2654435761 + 99) >>> 0);
 /** Where a shout sounds, in seconds from the top of the tune: [first consonant, end of its last vowel]. */
 function spanOf(barIndex: number, n: LofiBar['notes'][number], spb: number): [number, number] {
@@ -950,11 +988,14 @@ test('the shouts come from a stream of their own: the rest of every tune compose
   // Composed on main before the phrases existed (6bf5acd8b2), the tag left in. Without the
   // phrases, each tune is unchanged.
   const before: Record<string, number> = {
-    'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 3220058757, 'hiphop.7': 307798947,
-    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 2399839091, 'dubstep.7': 2238141904, 'brostep.7': 482108353, 'sherbert.7': 2035173988,
+    'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 123733926, 'hiphop.7': 307798947,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1758158366, 'dubstep.7': 2238141904, 'brostep.7': 1362639215, 'sherbert.7': 2035173988,
   };
   // Dubstep's and brostep's drops trade their bass now (BASS_PLANS, 2026-11-13): a partner's
   // bars play its own figure and the stabs fall in its gaps, so those two pins moved with them.
+  // Drum and bass's drops edit their kick and snare bar by bar (2026-11-14), so its pin moved too.
+  // Soul's lead and brostep's breakdown and second drop were the soft lead, retired on
+  // 2026-11-14 (RETIRED_LEADS): a trumpet and bells play there now, so those two pins moved again.
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
@@ -993,3 +1034,109 @@ test('a tag chosen for the track takes the top from a "let\'s go!" there', () =>
   }
   assert.ok(moved >= 1, `some punk tunes open on "let's go!" with no tag of their own (${moved})`);
 });
+
+// ── Surf rock ────────────────────────────────────────────────────────────────
+
+const NOTE_NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+
+test('surf rock: fast, its held notes tremolo-picked, a glissando into a chorus, fills round the toms, in major, minor and the Phrygian dominant', () => {
+  let phrygian = 0, minor = 0, major = 0, gliss = 0, tomBeat = 0, arm = 0;
+  for (const seed of SEEDS.slice(0, 16)) {
+    const bars = composeLofiTune(seed, 'surf');
+    const t = bars[0]!.tune;
+    const where = `surf ${seed}`;
+    assert.ok(t.bpm >= 148 && t.bpm <= 182, `${where}: ${t.bpm} bpm`);
+    const tonic = NOTE_NAMES.indexOf(t.key.split(' ')[0]!);
+    if (t.key.endsWith('Phrygian dominant')) {
+      phrygian++;
+      // The home chord is major, and the chord a semitone higher is played.
+      assert.ok(bars.some(b => b.tones[0] === tonic && b.tones.includes((tonic + 4) % 12)), `${where}: a major home chord`);
+      assert.ok(bars.some(b => b.tones[0] === (tonic + 1) % 12), `${where}: the chord a semitone above the home chord`);
+    } else if (t.key.endsWith('minor')) minor++;
+    else major++;
+    // The chorus: every held lead note tremolo-picked, the rhythm guitar's chords let ring, choked or palm-muted.
+    const drops = bars.filter(b => b.section === 'drop');
+    const held = drops.flatMap(b => b.notes.filter(n => n.voice === 'lead' && n.dur >= 0.5));
+    assert.ok(held.length > 0 && held.every(n => ((n.mod ?? 0) & SURF_TREMOLO) !== 0), `${where}: every held note of a chorus is tremolo-picked`);
+    if (bars.some(b => b.notes.some(n => n.voice === 'lead' && ((n.mod ?? 0) & SURF_ARM) !== 0))) arm++;
+    const style = t.style.keys;
+    if (style === 'surf') {
+      const verse = bars.filter(b => b.section === 'verse').flatMap(b => b.notes.filter(n => n.voice === 'keys'));
+      assert.ok(verse.some(n => ((n.mod ?? 0) & ELECTRIC_PALM) !== 0) && verse.some(n => ((n.mod ?? 0) & ELECTRIC_CHOKE) !== 0), `${where}: a verse of palm-muted eighths with the backbeat choked`);
+    }
+    // The glissando: the last bar of a pre-chorus stops at the half bar and slides down the neck.
+    const builds = bars.filter((b, i) => b.section === 'build' && bars[i + 1]?.section === 'drop');
+    for (const b of builds) {
+      const g = b.notes.filter(n => n.voice === 'lead' && ((n.mod ?? 0) & SURF_GLISS) !== 0);
+      if (!g.length) continue;
+      gliss++;
+      assert.equal(g.length, 1, `${where}: one glissando`);
+      assert.ok(Math.abs(g[0]!.beat - 2) < 0.01 && !b.notes.some(n => n.voice === 'lead' && n.beat > 2.01), `${where}: from the half bar, the tune stopped for the slide`);
+    }
+    // The drums: fills round the toms, and in some tunes the floor tom rides the chorus in place of the hats.
+    assert.ok(bars.some(b => b.notes.some(n => n.voice === 'tom')), `${where}: fills round the toms`);
+    if (drops.every(b => b.notes.some(n => n.voice === 'tom' && n.midi === 41) && !b.notes.some(n => n.voice === 'hat'))) tomBeat++;
+    // The last chorus gives the tune to the baritone, the lead guitar doubling it an octave up.
+    const last = drops.at(-1)!;
+    assert.deepEqual([last.voices?.lead, last.voices?.double], ['twang', 'surf'], `${where}: the last chorus's octaves`);
+  }
+  assert.ok(phrygian >= 2 && minor >= 2 && major >= 2, `the three flavours (${major} major, ${minor} minor, ${phrygian} Phrygian dominant)`);
+  assert.ok(gliss >= 12, `most pre-choruses slide into the chorus (${gliss})`);
+  assert.ok(tomBeat >= 3 && tomBeat <= 13, `the floor tom rides some tunes' choruses (${tomBeat} of 16)`);
+  assert.ok(arm >= 12, `the arm shakes a phrase's last note in most tunes (${arm} of 16)`);
+});
+
+test('a surf lead a person fixes plays all the way through, without the baritone', () => {
+  const bars = composeLofiTune(SEEDS[3]!, 'surf', { lead: 'surf' });
+  for (const b of bars) assert.ok(!b.voices?.lead && !b.voices?.double, `bar ${b.index}: the lead a person chose`);
+});
+
+// ── Yacht rock ───────────────────────────────────────────────────────────────
+
+test('yacht rock: a smooth tempo, lush sevenths, ninths and slash chords, a half-time shuffle, the guitar answering the tune and the sax taking the solo', () => {
+  let slash = 0, halfTime = 0, answered = 0, rhodes = 0, strings = 0;
+  for (const seed of SEEDS.slice(0, 16)) {
+    const bars = composeLofiTune(seed, 'yacht');
+    const t = bars[0]!.tune;
+    const where = `yacht ${seed}`;
+    assert.ok(t.bpm >= 84 && t.bpm <= 104, `${where}: ${t.bpm} bpm`);
+    assert.equal(t.swing, 0.61, `${where}: the shuffle`);
+    const names = t.progressions.flat();
+    assert.ok(names.filter(n => /maj7|maj9|m9|m11|6\/9|\/|9|m7/.test(n)).length >= 6, `${where}: lush chords (${names.join(' ')})`);
+    if (names.some(n => /\/[A-G]/.test(n))) slash++;
+    if (t.style.keys === 'rhodes') rhodes++;
+    // The solo is the sax's.
+    for (const b of bars.filter(b => b.section === 'break')) assert.equal(b.voices?.lead ?? t.style.lead, 'sax', `${where} bar ${b.index}: the sax's solo`);
+    if (bars.some(b => (b.section === 'break' || b.section === 'intro') && b.voices?.keys === 'strings')) strings++;
+    // The drums: every shuffled sixteenth on the hats, the backbeat on three or on two and four, ghost notes between.
+    const drops = bars.filter(b => b.section === 'drop');
+    const backs = drops.flatMap(b => b.notes.filter(n => n.voice === 'snare' && n.vel >= 0.8).map(n => n.beat));
+    if (backs.length && backs.every(b => b === 2)) halfTime++;
+    else assert.ok(backs.every(b => b === 1 || b === 3), `${where}: the backbeat on two and four`);
+    assert.ok(drops.some(b => b.notes.some(n => n.voice === 'snare' && n.vel < 0.3)), `${where}: ghost notes`);
+    const offHat = drops[0]!.notes.find(n => n.voice === 'hat' && n.beat > 0.2 && n.beat < 0.4);
+    assert.ok(offHat && Math.abs(offHat.beat - 0.305) < 0.01, `${where}: the swung sixteenth at ${offHat?.beat}`);
+    // The guitar's fills, in the lead's range, in the bars the tune leaves room in.
+    const fills = bars.filter(b => b.notes.some(n => n.voice === 'fill'));
+    if (fills.length >= 2) answered++;
+    for (const b of fills) {
+      for (const n of b.notes.filter(n => n.voice === 'fill')) assert.ok(n.midi >= 64 && n.midi <= 84 && n.beat >= 1.99, `${where} bar ${b.index}: a fill at ${n.beat} on ${n.midi}`);
+      const lead = b.notes.filter(n => n.voice === 'lead');
+      const from = Math.min(...b.notes.filter(n => n.voice === 'fill').map(n => n.beat));
+      assert.ok(lead.every(n => n.beat < from), `${where} bar ${b.index}: the tune has made room`);
+    }
+  }
+  assert.ok(slash >= 8, `slash chords in most tunes (${slash} of 16)`);
+  assert.ok(halfTime >= 7 && halfTime <= 15, `a half-time shuffle in most tunes (${halfTime} of 16)`);
+  assert.ok(answered >= 12, `the guitar answers the tune in most tunes (${answered} of 16)`);
+  assert.ok(rhodes >= 10, `the Rhodes in most tunes (${rhodes} of 16)`);
+  assert.ok(strings >= 4 && strings <= 13, `a string section opens the tune or holds the solo's chords in some tunes (${strings} of 16)`);
+});
+
+test('a slash chord transposes with its bass, and a six-nine keeps its nine', () => {
+  assert.equal(transposeChordName('F/G', 2), 'G/A');
+  assert.equal(transposeChordName('A♭maj7/B♭', 1), 'Amaj7/B');
+  assert.equal(transposeChordName('C6/9', 2), 'D6/9');
+  assert.equal(transposeChordName('Am6/9', -2), 'Gm6/9');
+});
+

@@ -63,6 +63,7 @@ import { shareOrigin } from './share-url.ts';
 import { appPathname } from './any-site.ts';
 import type { NeuroShareOffer } from '../components/neuro-share-card.ts';
 import type { VizPalette, VizPaletteHost } from './viz-palette.ts';
+import type { LiveLead } from '../../../../engine/src/lofi-compose.ts';
 import type {
   DockHost, DockNowPlaying, DockSource, DockSources, DockAtmosphere, DockViz, DockControl,
   DockRepeat, DockVolume, DockAttribution, DockVizPreset, DockVizTheme, DockVizTransition, DockVizInfluence,
@@ -903,7 +904,8 @@ class NeurospicyDockHost implements DockHost {
     if (playsOnStation(id)) {
       // The tune itself: its key, tempo and instruments, since every one is different.
       const tune = isNeurospicyPlaying() ? lofiTune() : null;
-      const lead = tune ? LOFI_LEAD_NAME[tune.style.lead] : '';
+      // A tune never plays a retired lead: the composer puts the lead that took its place in the style.
+      const lead = tune ? LOFI_LEAD_NAME[tune.style.lead as LiveLead] ?? '' : '';
       return {
         title: t.name,
         subtitle: tune

@@ -14,7 +14,7 @@
  * DOM, so the tests can run every rule.
  */
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { composeLofiTune, isOverNote, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
+import { composeLofiTune, isOverNote, isRetiredLead, liveLead, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, type MusicState } from './music-state.ts';
 import { instrumentIcon, type InstrumentIcon } from './instrument-icons.ts';
 
@@ -22,9 +22,9 @@ import { instrumentIcon, type InstrumentIcon } from './instrument-icons.ts';
 export type MusicPart = 'keys' | 'lead' | 'bass';
 export const MUSIC_PARTS: readonly MusicPart[] = ['lead', 'keys', 'bass'];
 
-/** Every instrument a part can play, in the composer's order ('none' is not one). */
+/** Every instrument a part can play, in the composer's order ('none' is not one, and nor is a retired lead). */
 export function instrumentsOf(part: MusicPart): readonly string[] {
-  return (part === 'keys' ? LOFI_KEYS : part === 'lead' ? LOFI_LEADS : LOFI_BASSES).filter(v => v !== 'none');
+  return (part === 'keys' ? LOFI_KEYS : part === 'lead' ? LOFI_LEADS : LOFI_BASSES).filter(v => v !== 'none' && !isRetiredLead(v));
 }
 
 // ── families ─────────────────────────────────────────────────────────────────
@@ -193,10 +193,12 @@ export function substituteFor(prefs: MusicPrefs, mood: LofiMood, part: MusicPart
   return from.length ? from[salt(seed, part, section) % from.length] : undefined;
 }
 
-/** Set a part's instrument for the whole track, or for one kind of section: only a name the part knows. */
+/** Set a part's instrument for the whole track, or for one kind of section: only a name the
+ *  part knows, a retired lead's name setting the lead that took its place. */
 export function setPartInstrument(s: MusicState, part: MusicPart, id: string | undefined, section?: string): void {
   const keys = part === 'keys' ? LOFI_KEYS.find(x => x === id) : undefined;
-  const lead = part === 'lead' ? LOFI_LEADS.find(x => x === id) : undefined;
+  const named = part === 'lead' ? LOFI_LEADS.find(x => x === id) : undefined;
+  const lead = named && liveLead(named);
   const bass = part === 'bass' ? LOFI_BASSES.find(x => x === id) : undefined;
   if (section === undefined) {
     if (part === 'keys') s.keys = keys;

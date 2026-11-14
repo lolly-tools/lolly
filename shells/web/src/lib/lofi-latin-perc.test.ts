@@ -11,7 +11,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { latinStroke, LATIN_PERCUSSION, type LatinKind } from './lofi-latin-perc.ts';
+import { guiroStroke, latinStroke, maracaStroke, LATIN_PERCUSSION, type LatinKind } from './lofi-latin-perc.ts';
 import { LOFI_PERCUSSION } from '../../../../engine/src/lofi-compose.ts';
 import { CONGA_DRUM, CONGA_STROKES, BONGO_STROKES, TIMBAL_STROKES } from '../../../../engine/src/lofi-salsa.ts';
 
@@ -58,6 +58,7 @@ test('every stroke of every instrument is a finite sound that starts and dies aw
     ...[1, 2, 3, 4, 5, 6].map(s => ['bongos', s] as [LatinKind, number]),
     ...[1, 2, 3, 4, 5, 6, 7].map(s => ['timbales', s] as [LatinKind, number]),
     ['bongoBell', 1], ['bongoBell', 2], ['mamboBell', 1], ['mamboBell', 2], ['clave', 1], ['guiro', 1], ['guiro', 2],
+    ['maracas', 1], ['maracas', 2], ['maracas', 3], ['maracas', 4],
   ];
   for (const [kind, midi] of strokes) {
     for (const vel of [0.35, 0.95]) {
@@ -123,9 +124,11 @@ test('a güiro scrape: clicks the length of the note, quickest in its middle, a 
   assert.ok(long.length > short.length * 2, 'as long as its note');
   // The scrape fills its length: sound in its middle and near its end, then silence.
   assert.ok(db(rms(long, 0.12, 0.18)) > db(rms(long, 0, 0.3)) - 6, 'sound right through the middle');
+  // Recorded: a scrape away from the player speeds up through the stroke (its ridges come
+  // quickest in its second half), one back toward the player is quickest in its middle.
   const down = render('guiro', 1, 0.6, 0.3), up = render('guiro', 2, 0.6, 0.3);
-  const hi = (x: Float32Array): number => db(at(x, 6000, 0, 0.3)) - db(at(x, 1450, 0, 0.3));
-  assert.ok(hi(down) > hi(up), `the down-stroke has more top (${hi(down).toFixed(1)} against ${hi(up).toFixed(1)} dB)`);
+  assert.ok(db(rms(down, 0.18, 0.25)) > db(rms(down, 0, 0.03)) + 3, 'the down-stroke builds');
+  assert.ok(db(rms(up, 0.12, 0.18)) > db(rms(up, 0.26, 0.3)) + 3, 'the up-stroke peaks in its middle');
   // Counting the clicks: an envelope's peaks, about 95 ridges a second.
   const env: number[] = [];
   const hop = Math.round(SR * 0.002);
@@ -133,6 +136,40 @@ test('a güiro scrape: clicks the length of the note, quickest in its middle, a 
   let clicks = 0;
   for (let i = 1; i < env.length - 1; i++) if (env[i]! > env[i - 1]! && env[i]! >= env[i + 1]! && env[i]! > 0.05) clicks++;
   assert.ok(clicks > 15 && clicks < 60, `${clicks} clicks in a 0.3 s scrape`);
+});
+
+test('a güiro scrape is grit, not a buzz: uneven ridges, the rub between them, the gourd ringing near 1.85 kHz', () => {
+  // Recorded (Iowa MIS, VSCO 2 CE): the gaps between ridges vary by 28 to 75 per cent, the
+  // level swings 10 to 25 dB between ridges (never silence), the waveform repeats weakly
+  // (autocorrelation 0.13 to 0.55), and the 16 kHz octave is 27 to 45 dB under the loudest.
+  const x = guiroStroke(SR, false, 0.3, 0.6, seeded(4));
+  const env: number[] = [];
+  const w = Math.round(SR * 0.001);
+  for (let i = Math.round(0.05 * SR); i + w < Math.round(0.25 * SR); i += w) env.push(rms(x, i / SR, (i + w) / SR));
+  const sorted = [...env].sort((a, b) => a - b);
+  const depth = db(sorted[Math.floor(sorted.length * 0.9)]!) - db(sorted[Math.floor(sorted.length * 0.1)]!);
+  assert.ok(depth > 6 && depth < 22, `the level swings ${depth.toFixed(1)} dB between ridges, not click and silence`);
+  // The gaps between ridge peaks are uneven.
+  const peaks: number[] = [];
+  for (let i = 2; i < env.length - 2; i++) if (env[i]! === Math.max(...env.slice(i - 2, i + 3)) && env[i]! > sorted[Math.floor(sorted.length * 0.6)]!) peaks.push(i);
+  const gaps = peaks.slice(1).map((p, i) => p - peaks[i]!);
+  const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+  const cv = Math.sqrt(gaps.reduce((a, b) => a + (b - mean) ** 2, 0) / gaps.length) / mean;
+  assert.ok(cv > 0.25, `the ridge gaps vary by ${(cv * 100).toFixed(0)} per cent`);
+  assert.ok(Math.abs(peak(x, 1500, 2300, 0, 0.3) - 1850) < 120, 'the gourd rings near 1.85 kHz');
+  assert.ok(db(at(x, 15000, 0, 0.3)) < db(at(x, 1850, 0, 0.3)) - 25, 'little above 8 kHz');
+});
+
+test('a maraca shake is a burst of seeds high up: rising in 10 to 40 ms, gone 20 dB in about 40 ms, almost all above 5 kHz', () => {
+  for (const midi of [1, 2, 3, 4]) {
+    const x = maracaStroke(SR, midi, 0.7, seeded(midi));
+    // Recorded: the 8 kHz octave leads, 2 kHz about 30 dB under; centroid 8.7 to 10.7 kHz.
+    assert.ok(db(at(x, 2000, 0, 0.08)) < db(at(x, 8000, 0, 0.08)) - 15, `stroke ${midi}: little under 5 kHz`);
+    let top = 0, at0 = 0;
+    for (let i = 0; i < x.length; i += 44) { const r = rms(x, i / SR, (i + 264) / SR); if (r > top) { top = r; at0 = i; } }
+    assert.ok(at0 / SR > 0.008 && at0 / SR < 0.045, `stroke ${midi}: peaks at ${(at0 / SR * 1000).toFixed(0)} ms, as the seeds fly across`);
+    assert.ok(db(rms(x, 0.11, 0.14)) < db(top) - 20, `stroke ${midi}: gone 20 dB by 110 ms`);
+  }
 });
 
 test('a stroke renders the same from the same seed, and differs from another', () => {
