@@ -360,8 +360,9 @@ const identityOf = (host: unknown): IdentityHost['identity'] =>
 export interface TrackFacts { name: string; style: string; styleName?: string; seed: number }
 
 /**
- * Sign a WAV or M4A the generator made, then read the written bytes back. The created
- * step says the file was made with Lolly's music generator (engine/src/tune-sign.ts),
+ * Sign a WAV or M4A the generator made, then read the written bytes back. The file's
+ * plain description and the created step both say the file was made with Lolly's
+ * music generator, procedurally and with no AI (engine/src/tune-sign.ts),
  * signed by the enrolled identity when there is one, else by the ephemeral on-device
  * signer. `declaration` is the description the reading found, or null when it found
  * none, so the line after the download says only what the file holds. Throws when the

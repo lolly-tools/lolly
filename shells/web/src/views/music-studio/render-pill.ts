@@ -5,19 +5,23 @@
  * (play / download)". Play renders the whole track at full quality and plays it with the
  * big visualiser. Download opens the download's own panel in a body popover
  * (components/body-popover.ts), the way the tool view's Export opens its sheet: the file
- * type, the Content Credentials switch, the line that says what the download will record
- * and the Download button, so what a download writes is in view at the moment of the
- * click (lib/tune-provenance.ts). Once the track is rendered the pill's name says so, and
- * play and download are immediate.
+ * type, the line that says what the download will record and the Download button, so
+ * what a download writes is in view at the moment of the click (lib/tune-provenance.ts).
+ * Every download carries Content Credentials and the plain description, with no switch
+ * to leave them out (Andy, 2026-11-14): the note under the file type states what every
+ * download records, with nothing to choose.
+ * Once the track is rendered the pill's name says so, and play and download are
+ * immediate.
  *
  * The options are written once, with the page, and lent to the popover while it is open:
- * the switch and the file type keep their state, and the view reads them from here.
+ * the file type keeps its state, and the view reads the type from here.
  */
-import { t } from '../../i18n.ts';
+import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
 import { segHtml } from '../../lib/seg.ts';
 import { mountBodyPopover } from '../../components/body-popover.ts';
+import { TUNE_DECLARATION } from '../../../../../engine/src/tune-provenance.ts';
 
 /** The pill, and beside the pill the download's panel, hidden until Download opens the panel. */
 export function renderPillHtml(): string {
@@ -33,11 +37,7 @@ export function renderPillHtml(): string {
         <span class="ms-opt-label" id="ms-format-label">${escapeHtml(t('File type'))}</span>
         ${segHtml('ms-format', [{ id: 'm4a', label: 'M4A' }, { id: 'wav', label: 'WAV' }], 'm4a', t('File type'), { attr: 'data-format', labelledBy: 'ms-format-label', extraClass: 'ms-format' })}
       </div>
-      <label class="field-toggle ms-cred">
-        <input type="checkbox" class="field-check" data-cred checked>
-        <span>${escapeHtml(t('Content Credentials'))}</span>
-      </label>
-      <p class="ms-opt-note" data-cred-note></p>
+      <p class="ms-opt-note" data-cred-note>${escapeHtml(tRaw('Downloads will carry Content Credentials that record: {declaration}.', { declaration: TUNE_DECLARATION }))}</p>
       <button type="button" class="btn btn--primary btn--labelled ms-opt-go" data-download>${icon('download', { size: 16 })}<span>${escapeHtml(t('Download'))}</span></button>
     </div>`;
 }

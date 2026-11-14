@@ -238,12 +238,13 @@
   .ms-opt { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
   .ms-opt-label { font-size: var(--ui-type-label); color: var(--ui-color-text-muted); }
   .ms-opt-note { margin: 0; font-size: var(--fs-xs); line-height: 1.45; color: var(--ui-color-text-muted); }
-  .ms-cred { gap: var(--sp-2); font-size: var(--ui-type-label); }
   .ms-opt-go { justify-content: center; border-radius: var(--ui-radius-pill); font-weight: 700; }
 
   /* Save sits beside the pill and opens its two places (views/music-studio/save-menu.ts). */
   .ms-save { border-radius: var(--ui-radius-pill); padding-inline: var(--sp-5) var(--sp-4); font-size: var(--fs-sm); font-weight: 600; }
   .ms-save:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+  /* The word on a wide screen; the glyph waits for a phone. */
+  .ms-save[data-state="rest"] .ms-act-icon { display: none; }
 
   /* Save's places, in the dropdown and in the phone's sheet: each a row of an icon, its
      name and, under the name, what a save there records. */
@@ -487,7 +488,10 @@
     .ms-render-name { padding-inline-start: var(--sp-4); }
     .ms-render-btn { padding-inline: var(--sp-3); }
     .ms-render [data-download-open] .ms-act-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    .ms-save { padding-inline: var(--sp-4); }
+    /* Save as a glyph and its chevron, like the pill's Download; the word stays its name. */
+    .ms-save { padding-inline: var(--sp-3); gap: var(--sp-1); }
+    .ms-save .ms-act-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .ms-save[data-state="rest"] .ms-act-icon { display: inline-grid; }
 
     .ms-sliders { --ms-slider-cols: 2; }
     .ms-sec--tracks { display: block; }
