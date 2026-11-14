@@ -265,7 +265,7 @@ function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number,
   const data = blowLips({
     sr: ctx.sampleRate, f: mtof(midi) * 2 ** ((how.detune ?? 0) / 1200), from: from === undefined ? undefined : mtof(from),
     vel: strength, dur: held, seconds: held + (fall ? 0.4 : 0.15), horn,
-    scoop: play.scoop ?? 0, scoopTime: play.scoopTime, fall, vibrato: play.vibrato ?? 0, rate, vibratoFrom: play.vibratoFrom, taper: play.taper,
+    scoop: play.scoop ?? 0, scoopTime: play.scoopTime, fall, vibrato: play.vibrato ?? 0, rate, vibratoFrom: play.vibratoFrom, taper: play.taper, grain: solo ? 1 : 0,
   }, rand);
   if (solo) heardSolo(data, ctx.sampleRate, strength);
   const at = horn === 'trumpet' ? 70 : 58;

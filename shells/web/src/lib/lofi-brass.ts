@@ -55,6 +55,8 @@ export interface LipNote {
   vibrato: number; rate: number; vibratoFrom?: number;
   /** How far the breath eases off by the end of the note (a share of it, 0 none). */
   taper?: number;
+  /** How unsteady the player's lips are: 1 as recorded trumpets are in the note's register (see GRAIN), 0 steady, as the section was fitted. */
+  grain?: number;
 }
 
 /** An instrument: its bell, its lips, and how hard its players blow. */
@@ -104,6 +106,40 @@ const GAP = 1.6;
  * note's does, by half of what the loop alone would do.
  */
 const LAG = 1.4;
+/**
+ * The lips are never quite steady: their tension and the breath behind them wander from
+ * cycle to cycle, at 20 to 200 a second (GRAIN_SLOW to GRAIN_FAST Hz). That is the grain
+ * of a played trumpet: the period jitters, the cycles' level shimmers, noise sits between
+ * the harmonics and the sound is roughened at 20 to 200 Hz, with a trace of the half
+ * harmonics. Measured on recorded single notes (University of Iowa, anechoic, and
+ * Philharmonia, in a room), from E4 up: jitter 0.06 to 0.10 % low in the range, rising to
+ * 0.14 to 0.21 at the top; shimmer 0.07 to 0.13 dB low and 0.05 to 0.08 above; the 1-2 kHz
+ * band's noise 26 to 37 dB under its harmonics; the half harmonics 35 to 45 dB under,
+ * most in the low register, where the lips sit loosely on the bore's lower resonances.
+ * The breath wanders by GRAIN_BREATH of itself (a standard deviation), more below
+ * GRAIN_LOW_FROM (up to GRAIN_BREATH_LOW more six semitones under), and the tension from
+ * GRAIN_TOP_FROM up (up to GRAIN_TENSION_TOP), where the lips are tightest. A soloist's
+ * held notes then give jitter 0.10 % low to 0.21 at the top, shimmer 0.09 dB low and 0.08
+ * above, noise 29 to 37 dB under and the half harmonics 34 to 46 dB under; held steady
+ * they gave 0.04 %, 0.02 dB, 43 to 48 and 53 to 56.
+ */
+const GRAIN_SLOW = 20;
+const GRAIN_FAST = 200;
+const GRAIN_BREATH = 0.015;
+const GRAIN_BREATH_LOW = 0.004;
+const GRAIN_LOW_FROM = 68;
+const GRAIN_TENSION_TOP = 0.003;
+const GRAIN_TOP_FROM = 78;
+/**
+ * Slurred onto a new note, the lips settle onto its resonance over a few tens of ms: on
+ * recorded slurs the jitter just after the change is 1.0 to 1.2 times the held note's for
+ * a step and 1.4 to 1.7 for a leap of a third or more, and the noise between the harmonics
+ * 2 to 5 dB up. The wander is SLUR_UNSTEADY more at the change for a leap of four
+ * semitones or more (less for a step), dying away over SLUR_SETTLE s: 1.0 and 1.4 times,
+ * 3 and 5 dB.
+ */
+const SLUR_UNSTEADY = 2.5;
+const SLUR_SETTLE = 0.05;
 /** A dc blocker's pole inside the loop: the bore is open, so it holds no steady pressure. */
 const DC = 0.9995;
 /** The push of breath behind a tongued note (a share of the pressure), and how fast it settles (s). */
@@ -234,6 +270,18 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
   const releaseLen = RELEASE * sr;
   const attack = (n.from ? SLUR_ATTACK : ATTACK) * sr;
   let rough = n.from ? 0 : ROUGH;
+  // Slurred onto a new resonance, the lips take a moment to settle there: more unsteady at first, the more so the further they move.
+  const settle = n.from ? SLUR_UNSTEADY * Math.min(1, Math.abs(12 * Math.log2(n.f / n.from)) / 4) : 0;
+  const settleTime = SLUR_SETTLE * sr;
+  // The lips' unsteadiness (GRAIN): two band-limited wanders, one in their tension, one in the breath.
+  const grain = n.grain ?? 0;
+  const midi = 69 + 12 * Math.log2(n.f / 440);
+  const breathDepth = GRAIN_BREATH + GRAIN_BREATH_LOW * Math.min(1, Math.max(0, (GRAIN_LOW_FROM - midi) / 6));
+  const tensionDepth = GRAIN_TENSION_TOP * Math.min(1, Math.max(0, (midi - GRAIN_TOP_FROM) / 6));
+  const gHi = Math.exp((-2 * Math.PI * GRAIN_FAST) / sr), gLo = Math.exp((-2 * Math.PI * GRAIN_SLOW) / sr);
+  // Each wander's spread before scaling (white noise of variance 1/3 through the band): dividing by that makes each depth a standard deviation.
+  const gNorm = 1 / Math.sqrt(((1 - gHi) ** 2 / (1 - gHi * gHi) + (1 - gLo) ** 2 / (1 - gLo * gLo) - (2 * (1 - gHi) * (1 - gLo)) / (1 - gHi * gLo)) / 3);
+  let tHi = 0, tLo = 0, bHi = 0, bLo = 0;
   const roughFall = Math.exp(-1 / (ROUGH_TIME * sr));
   const glide = n.from ? 0.05 * sr : n.scoop ? (n.scoopTime ?? 0.12) * sr : 0;
   const start = n.from ?? (n.scoop ? n.f * 2 ** (-n.scoop / 12) : n.f);
@@ -285,7 +333,16 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
     const letGo = n.fall ? fallLen * 0.8 : releaseLen;
     const gone = i < release ? 1 : Math.max(0, 1 - (i - release) / letGo);
     const ease = taper ? 1 - taper * Math.min(1, i / Math.max(1, release)) ** 2 : 1;
-    const air = pm * (1 + push) * swell * gone * gone * ease * (1 + VIBRATO_BREATH * swing);
+    let tension = 1, breath = 1;
+    if (grain) {
+      const r1 = rand() * 2 - 1, r2 = rand() * 2 - 1;
+      tHi = gHi * tHi + (1 - gHi) * r1; tLo = gLo * tLo + (1 - gLo) * r1;
+      bHi = gHi * bHi + (1 - gHi) * r2; bLo = gLo * bLo + (1 - gLo) * r2;
+      const unsteady = grain * (1 + settle * Math.exp(-i / settleTime));
+      tension = 1 + unsteady * tensionDepth * (tHi - tLo) * gNorm;
+      breath = 1 + unsteady * breathDepth * (bHi - bLo) * gNorm;
+    }
+    const air = pm * (1 + push) * swell * gone * gone * ease * (1 + VIBRATO_BREATH * swing) * breath;
     push *= pushFall;
     // The wave coming back from the bell, with the bell's low-pass and the open bore's dc block.
     const back = bore.read((sr / f) * 2 ** ((set + sharp(air) * 0.5) / 1200) - lag);
@@ -302,7 +359,7 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
     else { const s = (-gap + Math.sqrt(gap * gap - 4 * drive)) / 2; dp = -s * s; u = -gap * s; }
     u *= 1 + (rand() * 2 - 1) * (TURBULENCE + rough);
     rough *= roughFall;
-    const w = 2 * Math.PI * f * b.lip;
+    const w = 2 * Math.PI * f * b.lip * tension;
     lipV += (w * w * (COMPLIANCE * dp - lipY) - (w / b.q) * lipV) * dt;
     lipY += lipV * dt;
     const plus = minus + u;

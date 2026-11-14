@@ -213,3 +213,42 @@ test('a solo trumpet plays one note at a time: the note before stops as the next
   lead('trumpet', k, seat, 3.2, 72, 0.55, 0.5, 0, undefined, { straight: true });
   assert.equal(events.length, 0);
 });
+
+/** Cycle-to-cycle jitter (%) and shimmer (dB) over 0.5 to 1.4 s, the cycles found by matching each to the next. */
+function grainOf(x: Float32Array, f: number): { jitter: number; shimmer: number } {
+  let T = SR / f, p = Math.round(0.5 * SR);
+  const periods: number[] = [], levels: number[] = [];
+  while (p + 3 * T < 1.4 * SR) {
+    const n = Math.round(T);
+    let best = -2, at = T;
+    const score = (lag: number): number => { let ab = 0, aa = 0, bb = 0; for (let i = 0; i < n; i++) { const a = x[p + i]!, b = x[p + lag + i]!; ab += a * b; aa += a * a; bb += b * b; } return ab / Math.sqrt(aa * bb + 1e-30); };
+    for (let lag = Math.floor(T * 0.92); lag <= Math.ceil(T * 1.08); lag++) { const c = score(lag); if (c > best) { best = c; at = lag; } }
+    const a = score(at - 1), b = score(at), c = score(at + 1), d = a - 2 * b + c;
+    const L = at + (d ? (0.5 * (a - c)) / d : 0);
+    let e = 0; for (let i = 0; i < n; i++) e += x[p + i]! ** 2;
+    periods.push(L); levels.push(10 * Math.log10(e / n + 1e-30));
+    T = 0.8 * T + 0.2 * L;
+    p += Math.round(L);
+  }
+  let dj = 0, ds = 0;
+  for (let i = 1; i < periods.length; i++) { dj += Math.abs(periods[i]! - periods[i - 1]!); ds += Math.abs(levels[i]! - levels[i - 1]!); }
+  const mean = periods.reduce((s, v) => s + v, 0) / periods.length;
+  return { jitter: (100 * dj) / (periods.length - 1) / mean, shimmer: ds / (levels.length - 1) };
+}
+
+test('a soloist\'s lips are unsteady as recorded trumpets are, most in the low register; a section\'s stay steady', () => {
+  const g = (midi: number, grain: number) => {
+    const x = blowLips(note('trumpet', midi, 0.55, { dur: 1.5, seconds: 1.5, grain }), seeded(midi));
+    heardSolo(x, SR, 0.55);
+    return grainOf(x, mtof(midi));
+  };
+  // Recorded (Iowa and Philharmonia single notes, by register): jitter 0.06 to 0.10 % low,
+  // 0.10 to 0.13 in the middle and 0.14 to 0.21 at the top; shimmer 0.07 to 0.13 dB low and
+  // 0.05 to 0.08 above. The model's lips held steady gave a third of that.
+  const low = g(63, 1), mid = g(74, 1), high = g(85, 1);
+  assert.ok(low.jitter > 0.06 && low.jitter < 0.13 && low.shimmer > 0.06 && low.shimmer < 0.13, `low ${JSON.stringify(low)}`);
+  assert.ok(mid.jitter > 0.07 && mid.jitter < 0.15 && mid.shimmer > 0.04 && mid.shimmer < 0.09, `middle ${JSON.stringify(mid)}`);
+  assert.ok(high.jitter > 0.13 && high.jitter < 0.25, `top ${JSON.stringify(high)}`);
+  assert.ok(low.shimmer > mid.shimmer, 'the low register shimmers most');
+  for (const m of [63, 74]) { const s = g(m, 0); assert.ok(s.jitter < 0.05 && s.shimmer < 0.03, `a section player at ${m}: ${JSON.stringify(s)}`); }
+});
