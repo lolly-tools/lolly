@@ -57,6 +57,8 @@ import { BeatRepeat, playGlitch, repeatSlice } from './lofi-glitch.ts';
 import * as BR from './lofi-breaks.ts';
 import * as GA from './lofi-garage.ts';
 import { houseOrgan } from './lofi-organ.ts';
+import { DidgePlayer } from './lofi-didge-player.ts';
+import { DIDGE_LEAD, DIDGE_ROLE, readBird } from '../../../../engine/src/lofi-straya.ts';
 import { isBreakNote } from '../../../../engine/src/lofi-breaks.ts';
 
 export interface LofiSettings {
@@ -228,6 +230,8 @@ export class LofiStation {
   private lastLead = { end: -1, midi: 0, voice: '' };
   /** The travelling bass's last note, for the next note to glide from. */
   private lastTravel = { end: -1, midi: 0 };
+  /** Straya's didgeridoo: one player, carrying on from note to note (lib/lofi-didge-player.ts). */
+  private readonly didge = new DidgePlayer();
   /** Each tune's drum kit, drawn once from its seed (lib/lofi-drums.ts). */
   private kits = new Map<string, D.DrumKit>();
 
@@ -672,7 +676,8 @@ export class LofiStation {
 
   private play({ at, spb, note, bar, lanes }: Queued): void {
     const t = Math.max(at, this.ctx.currentTime);
-    const vel = note.vel * bar.level;
+    // A featured bird is a hook laid over the band, not the band: an outro's fade leaves it whole.
+    const vel = note.vel * ((note.voice === 'magpie' || note.voice === 'kookaburra') && readBird(note.mod ?? 0).featured ? 1 : bar.level);
     if (DRUMS.has(note.voice) && !this.settings.drums) return;
     // An oompa band plays its own drums, unless a person chose a kit (lib/lofi-oompa.ts).
     if (DRUMS.has(note.voice) && OB.bandDrums(bar, this.settings.kit) && OB.drum(this.kit, lanes.drums, note, t, vel, bar, this.kitOf(bar.tune))) return;
@@ -722,6 +727,8 @@ export class LofiStation {
         const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
         const level = vel * VARIANT.bass[bassV] * 10 ** ((BASS_SEAT[bar.tune.mood] ?? 0) / 20);
+        // The yidaki: the didgeridoo's drone, on the one player that also plays its rhythm and solo.
+        if (bassV === 'yidaki') { this.didge.play(k, lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * VARIANT.bass.yidaki); break; }
         const tone = { bright: st.bright ?? 1, drive: st.drive ?? 1 };
         const take: BS.Take = (kit, out, at, midi, lvl, tn) => {
           // The tuba blows as hard as the note says; its seat is only a level.
@@ -803,6 +810,13 @@ export class LofiStation {
         if (double && !ownOnly(note.mod) && !glide) play(double, vel * VARIANT.lead[double] * lift * 0.7);
         break;
       }
+      case 'didge': {
+        // Straya's didgeridoo over the band: its rhythm with the bass, its solo in the lead's seat.
+        const solo = Math.floor((note.mod ?? 0) / DIDGE_ROLE) === DIDGE_LEAD;
+        const lift = solo && SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
+        this.didge.play(k, solo ? this.leadSeat(lanes.lead, bar.tune.mood, 'didge') : lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift);
+        break;
+      }
       case 'fill': {
         // Yacht rock's guitar fills, on the chorused guitar, seated with the lead and a little under the tune.
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
@@ -815,7 +829,7 @@ export class LofiStation {
       case 'sparkle': V.sparkle(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 4); break;
       case 'game': V.game(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
-      case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, len); break;
       case 'nature': playNature(this.ctx, lanes.nature, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed, bar.index * 64 + Math.round(note.beat * 8)); break;
       case 'grain': playGrain(this.ctx, lanes.fx, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed); break;
       case 'glitch':

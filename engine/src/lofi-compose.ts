@@ -41,6 +41,7 @@ import { composeSalsa, salsaSectionName, SALSA_PERCUSSION } from './lofi-salsa.t
 import { composeBotanica, type BotanicaKit } from './lofi-botanica.ts';
 import { composeOompa, oompaSectionName } from './lofi-oompa.ts';
 import { dnbKitBar, dnbKitPlan, isBreakNote } from './lofi-breaks.ts';
+import { didgeBass, didgeLead, didgeMid, strayaBirds, strayaOf, strayaParts } from './lofi-straya.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
 export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse' | 'salsa' | 'surf' | 'yacht' | 'botanica' | 'oompa' | ClubMood;
@@ -67,8 +68,10 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
  *  `nature` (a place's wind, leaves, water, rain, insects and birds, and twigs and droplets as
  *  percussion), `grain` (a granular pad cut from one of Lolly's own instruments) and `glitch`
  *  (a stutter, crush, freeze, reverse, tape stop or repeat), their `mod`s read by
- *  lofi-botanica.ts's readNature, readGrain and readGlitch. */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch';
+ *  lofi-botanica.ts's readNature, readGrain and readGlitch. Straya adds `didge`, its didgeridoo's
+ *  rhythm and its solo over the band (lofi-straya.ts says what a note's `mod` holds), and its
+ *  birds' `mod`s say which are featured and how many sing (lofi-straya.ts readBird). */
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash', 'tom', 'perc'];
 /** The percussion a `perc` note plays, by its `mod`: an egg shaker, a tambourine, congas (pitched by `midi`), a cowbell, clapsticks;
  *  and the world styles' hand drums and bells, whose `midi` is the stroke: the tombak (1 tom, 2 bak, 3 a snapped
@@ -1701,9 +1704,9 @@ const DANCE: Record<DanceMood, DanceLean> = {
     swing: 0.56, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.6, band: true,
     softKeys: [['rhodes', 2], ['pad', 1]], verseBass: [['eight', 1], ['motown', 1]], switchBass: [['eight', 1]], dust: 0.15,
   },
-  // Straya: a banjo picking rolls over a yidaki drone on the key note, a stomp and clap,
-  // an acoustic strum (or the acoustic on the tune), magpies warbling between the phrases,
-  // and now and then a kookaburra.
+  // Straya: a banjo picking rolls over a didgeridoo (the yidaki) droning on the key note, a
+  // stomp and clap, an acoustic strum (or the acoustic on the tune); the didgeridoo turns to
+  // rhythm in the choruses and takes the solo, and the birds sing (lofi-straya.ts).
   straya: {
     bpm: [104, 124], minor: 0.15, groove: 'stomp', chordBars: 1,
     keys: [['steel', 4], ['banjo', 1]], lead: [['banjo', 6], ['steel', 2], ['fiddle', 2], ['harmonica', 1], ['pedal', 1]],
@@ -2671,8 +2674,9 @@ function drawDanceStyle(rng: () => number, mood: DanceMood, fixed: Partial<LofiS
   return { ...drawn, ...fixed };
 }
 
-/** A dance part: as Part, and `alt` plays the second drop's bass figures. */
-export interface DancePart extends Part { alt?: boolean }
+/** A dance part: as Part, and `alt` plays the second drop's bass figures. Straya's solo marks its
+ *  trades: the didgeridoo's bars and the answers (lofi-straya.ts strayaParts). */
+export interface DancePart extends Part { alt?: boolean; trade?: 'didge' | 'answer' }
 
 /**
  * A dance tune's running order: an intro of chords and the melody that opens the filter,
@@ -2853,7 +2857,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     : mood === 'jazz' || mood === 'swing' ? (minor ? DORIAN : MAJOR_SCALE)
     : minor ? PENTA_MINOR : PENTA_MAJOR;
   const penta = scale.map(i => (key + i) % 12);
-  const parts = arrangeDance(rng, lean, mood);
+  // Straya's didgeridoo and birds, from a stream of their own (lofi-straya.ts), its solo cut into trades.
+  const straya = mood === 'straya' ? strayaOf((seed ^ 0x57a7a) >>> 0, style.lead, !!fixed.lead) : null;
+  const parts = straya ? strayaParts(arrangeDance(rng, lean, mood), straya) : arrangeDance(rng, lean, mood);
   const total = parts.reduce((s, p) => s + p.bars, 0) + 1;
   // Lofi house's own draws come from a stream of their own (see houseOf).
   const house = mood === 'lofiHouse' ? houseOf((seed ^ 0x4005e) >>> 0) : null;
@@ -2927,6 +2933,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     }
     if (part.section === 'intro') return { keys: softKeys, lead: leadIntro };
     if (part.section === 'outro') return { keys: softKeys };
+    if (straya && part.trade === 'answer') return { lead: straya.answer };   // the didgeridoo's solo, answered
     if (part.section === 'break') return lean.band ? undefined : { keys: softKeys, lead: leadB };   // a band's break is the solo
     if (part.section === 'verse') return { bass: verseBass, ...(verseKeys ? { keys: verseKeys } : {}) };
     if (part.section === 'drop' && part.alt) return { lead: leadB, bass: bassB, ...(doubleB ? { double: doubleB } : {}) };
@@ -2945,9 +2952,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   // The tune's percussion, from its seed (no draw, so the rest of the tune is unchanged).
   const percussion = PERCUSSION[mood];
   const perc: Percussion | null = percussion ? percussion.kinds[((seed >>> 5) % percussion.kinds.length)]! : null;
-  // Where a Straya tune's kookaburra laughs, if it does.
-  const kooka: LofiSection | null = mood === 'straya' && rng() < 0.6 ? pick(['intro', 'break', 'outro'] as const) : null;
-  let kookaLaughed = false;
+  // The didgeridoo's solo phrases so far (two bars each).
+  let didgeSolo = 0;
   // Sherbert's own figures, drawn for its tunes only, so no other style's tune changes:
   // two bars of chord rhythm and of kick, a two-bar melody for the verse (and, thinned,
   // the quieter sections) and a busier hook for the drop, where the console's arpeggios
@@ -3215,7 +3221,16 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       // style's drop another bass may answer the drop's own for a bar (BASS_PLANS).
       const traded = part.section === 'drop' && has('bass') ? stack?.trade(!!part.alt, inSection, i) ?? null : null;
       const barBass = traded?.bass ?? bassV;
-      if (has('bass')) {
+      // Straya's didgeridoo (lofi-straya.ts): the soloist in the solo's trades, the rhythm through
+      // a pre-chorus and a chorus, and the drone everywhere else, when the tune's bass is the
+      // yidaki; a bass a person chose plays its own line under the rhythm and the solo.
+      const didgeAt = straya ? { section: part.section, i, bars: part.bars, inSection, kicks: part.section === 'intro' ? [0, 8] : kickSteps, lastOfBuild, root: placeIn(key, 34, 45), sb } : null;
+      const rhythm = build || part.section === 'drop';
+      if (didgeAt && part.trade === 'didge') notes.push(...didgeLead(straya!, didgeAt, didgeSolo++ >> 1));
+      else if (didgeAt && has('bass') && rhythm) notes.push(...didgeMid(straya!, didgeAt));
+      if (didgeAt && barBass === 'yidaki') {
+        if (has('bass') && !rhythm) notes.push(...didgeBass(straya!, didgeAt));
+      } else if (has('bass')) {
         // A yidaki has one note, the key's: it drones under every chord.
         const root = barBass === 'yidaki' ? placeIn(key, 34, 45)
           : ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright', 'synth', 'round', 'motown', 'acid'].includes(barBass) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
@@ -3635,18 +3650,13 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         if (mood === 'sugar' && quiet && i % 4 === 1 && chance(0.4)) {
           notes.push({ voice: 'magpie', midi: placeIn((key + 7) % 12, 84, 95), dur: 1.5 + rng() * 1.5, beat: sb(chance(0.5) ? 4 : 8), vel: 0.55, mod: Math.floor(rng() * 1000) });
         }
-        // Straya's birds: magpies carolling between the phrases, often two answering each
-        // other, and once in some tunes a kookaburra laughing at the band.
-        if (mood === 'straya') {
-          const calm = quiet || part.section === 'outro';
-          if (calm ? i % 4 === 1 && chance(0.65) : i % 8 === 5 && chance(0.35)) {
-            notes.push({ voice: 'magpie', midi: placeIn((key + 7) % 12, 84, 95), dur: 1.5 + rng() * 1.5, beat: sb(chance(0.5) ? 4 : 8), vel: 0.5, mod: Math.floor(rng() * 1000) });
-            if (chance(0.45)) notes.push({ voice: 'magpie', midi: placeIn((key + 4) % 12, 84, 95), dur: 1 + rng(), beat: sb(12), vel: 0.42, mod: Math.floor(rng() * 1000) });
-          }
-          if (kooka && !kookaLaughed && part.section === kooka && i === 1) {
-            kookaLaughed = true;
-            notes.push({ voice: 'kookaburra', midi: placeIn((key + 4) % 12, 72, 83), dur: 3, beat: sb(4), vel: 0.6, mod: Math.floor(rng() * 1000) });
-          }
+        // Straya's birds (lofi-straya.ts): its featured moments, and a quieter magpie between phrases.
+        if (straya) {
+          strayaBirds(straya, {
+            section: part.section, i, bars: part.bars, next: parts[pi + 1]?.section, closing: pi === outroStart && i === Math.min(2, part.bars - 1),
+            afterSolo: i === 0 && !part.trade && !!parts[pi - 1]?.trade, firstDropEnd: part.section === 'drop' && !part.alt && i === part.bars - 1,
+            magpie: placeIn((key + 7) % 12, 84, 95), kookaburra: placeIn((key + 4) % 12, 72, 83), sb,
+          }, notes);
         }
       }
 

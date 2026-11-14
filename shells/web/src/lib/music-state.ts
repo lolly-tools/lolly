@@ -9,6 +9,7 @@
 import { isOverNote, liveLead, lofiBarSeconds, lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_KITS, type LofiKit } from './lofi-drums.ts';
 import { LOFI_MIX, type LofiMix, type LofiSettings } from './lofi-station.ts';
+import { OWN_BIRDS, sprinkleBirds } from './aussie-birds.ts';
 
 export const MIX_KEYS: readonly (keyof LofiMix)[] = ['keys', 'bass', 'lead', 'drums', 'fx', 'reverb', 'texture'];
 
@@ -20,12 +21,29 @@ export const BPM_RANGE = [50, 220] as const;
 /** How far the key can be moved, in semitones each way. */
 export const TRANSPOSE_RANGE = 6;
 /** The voices that carry a pitch, which a change of key moves (the drums and sweeps stay). */
-export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser']);
+export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser', 'didge']);
 
-/** The kinds of effect a person can turn off, and which family each effect voice is in. */
-export const FX_FAMILIES = ['voices', 'console', 'sparkles', 'sweeps'] as const;
+/**
+ * The kinds of effect a person can turn on or off, and which family each effect voice is in.
+ * The Aussie birds (the magpie and the kookaburra) are on in the styles that sing their own
+ * (Straya, and Sugar's magpie) and turned off there through `quiet`; anywhere else they are off
+ * until a person turns them on (`birds`), and then they are sprinkled in (lib/aussie-birds.ts).
+ */
+export const FX_FAMILIES = ['voices', 'console', 'sparkles', 'sweeps', 'birds'] as const;
 export type FxFamily = typeof FX_FAMILIES[number];
-const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'voices', kookaburra: 'voices', game: 'console', coin: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps' };
+const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'birds', kookaburra: 'birds', game: 'console', coin: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps' };
+/** Whether a family of effects plays in a track. */
+export function fxOn(s: MusicState, family: FxFamily): boolean {
+  if (family === 'birds' && !OWN_BIRDS.has(s.mood)) return !!s.birds;
+  return !s.quiet?.includes(family);
+}
+/** Turn a family of effects on or off in a track. */
+export function toggleFx(s: MusicState, family: FxFamily): void {
+  if (family === 'birds' && !OWN_BIRDS.has(s.mood)) { s.birds = s.birds ? undefined : true; return; }
+  const quiet = new Set(s.quiet ?? []);
+  if (quiet.has(family)) quiet.delete(family); else quiet.add(family);
+  s.quiet = quiet.size ? FX_FAMILIES.filter(f => quiet.has(f)) : undefined;
+}
 /** The tag choices: none, or a delivery. */
 export const TAG_CHOICES: readonly LofiTagChoice[] = ['off', ...LOFI_TAGS];
 
@@ -53,6 +71,8 @@ export interface MusicState {
   tag?: LofiTagChoice;
   /** The kinds of effect the person turned off. */
   quiet?: FxFamily[];
+  /** The Aussie birds turned on in a style that has none of its own. */
+  birds?: boolean;
 }
 
 export const DEFAULT_STATE: MusicState = { mood: 'sugar', seed: 2024, bars: 64, drums: true, texture: 0.3, mix: { ...LOFI_MIX }, sections: {} };
@@ -105,6 +125,7 @@ export function parseMusicState(params: string): MusicState {
     kit: pick(q.get('kit'), LOFI_KITS),
     tag: pick(q.get('tag'), TAG_CHOICES),
     quiet: ((list) => list.length ? list : undefined)(FX_FAMILIES.filter(f => (q.get('quiet') ?? '').split(',').includes(f))),
+    birds: q.get('birds') === '1' || undefined,
   };
 }
 
@@ -127,6 +148,7 @@ export function musicStateParams(s: MusicState): string {
   if (s.kit) q.set('kit', s.kit);
   if (s.tag) q.set('tag', s.tag);
   if (s.quiet?.length) q.set('quiet', s.quiet.join(','));
+  if (s.birds) q.set('birds', '1');
   for (const name of SECTION_NAMES) {
     const v = s.sections[name];
     if (v?.keys) q.set(`${name}.keys`, v.keys);
@@ -159,6 +181,8 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
   const retimed = new WeakMap<LofiTuneInfo, LofiTuneInfo>();
   const shift = s.transpose ?? 0;
   const quiet = new Set<string>(s.quiet ?? []);
+  // The Aussie birds sprinkled into a style without its own, when a person turned them on.
+  const sprinkle = s.birds && !OWN_BIRDS.has(s.mood) && !quiet.has('birds');
   const changed = (tune: LofiTuneInfo): LofiTuneInfo => {
     const bpm = s.bpm ?? tune.bpm;
     if (bpm === tune.bpm && !shift) return tune;
@@ -184,6 +208,7 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
       };
     }
     if (quiet.size) out = { ...out, notes: out.notes.filter(n => !quiet.has(FX_FAMILY[n.voice] ?? '')) };
+    if (sprinkle) out = sprinkleBirds(out, bar.tune);
     const tune = changed(bar.tune);
     return tune === bar.tune ? out : { ...out, tune };
   };
