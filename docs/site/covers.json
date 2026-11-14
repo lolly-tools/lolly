@@ -23,12 +23,12 @@
       "alt": "The Lolly logo as a halftone dot screen in fuchsia on pink, exported as SVG"
     },
     {
-      "img": "covers/chart.webp",
+      "img": "covers/chart.svg",
       "hue": 241.7,
       "name": "Lolly Chart",
       "href": "#/tool/chart",
       "promise": "Paste a table and get a chart in your palette, flat or in 3-D",
-      "alt": "Glass 3-D bars in blue, brown and orange on a night stage, open in Lolly Chart"
+      "alt": "3-D bars in blue, brown and orange for four teams over three waves, on a dark stage, exported as SVG"
     },
     {
       "img": "covers/certificate.svg",

@@ -158,9 +158,16 @@ const POSES: CoverPose[] = [
       + '&treatmentColor={lead}&blendMode=color&treatmentIntensity=100'
       + '&ht_transparentBg=false&ht_bgColor=%23f39dbd',
     settleMs: 5000, exportStill: 'svg' },
-  // The new 3-D charts (Andy, 2026-11-14): the glass bars template, Lagoon, Bark and
-  // Outback bars on a night stage, in Beach's light look.
-  { slug: 'chart', wear: { colourway: 'beach', look: 'light' }, route: '#/tool/chart?template=scene-bars-glass', settleMs: 9000 },
+  // The new 3-D charts as the chart alone (Andy, 2026-11-14: "just have the chart not
+  // the UI and no title for the chart"): the glass bars template's values with no
+  // heading, Lagoon, Bark and Outback glass on a night stage, in Beach's light look.
+  // Still, so the export is the finished pose rather than a frame of the camera sweep.
+  // No legend: the 3-D scene draws it along the bottom, under the card's caption, and
+  // the rows already carry the series names (First, Second and Final wave).
+  { slug: 'chart', wear: { colourway: 'beach', look: 'light' },
+    route: '#/tool/chart?renderMode=scene&chartType=bar&sceneType=bar3d&chartStyle=glass-3d&sceneMaterial=glass&sceneStage=night&showLegend=false'
+      + '&data=' + encodeURIComponent('Team,First wave,Second wave,Final wave\nDesign,42,51,63\nEngineering,58,66,74\nSales,33,47,59\nSupport,27,39,52'),
+    settleMs: 9000, exportStill: 'svg' },
   // Certificate (plan 341): the certificate itself, the tool's SVG export, in Morning.
   // Lolly Demo carries logos, so the certificate's logo stays on.
   { slug: 'certificate', wear: { colourway: 'morning', look: 'light' }, route: '#/tool/certificate?certKind=completion&style=classic', settleMs: 4000, exportStill: 'svg' },
