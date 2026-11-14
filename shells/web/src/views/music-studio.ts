@@ -1124,7 +1124,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (canWriteProfile(writer)) void writer.set(profile).catch(() => { /* storage off: the choice holds for this visit */ });
   };
   listen('[data-genre]', 'click', (_e, el) => {
-    openGenrePicker({ current: () => state.mood, pick: setStyle, shuffleGenres: () => shuffleGenres, setShuffleGenres: saveShuffleGenres }, { opener: el });
+    openGenrePicker({ current: () => state.mood, pick: setStyle, shuffleGenres: () => shuffleGenres, setShuffleGenres: saveShuffleGenres }, { opener: el, host });
   });
   /** The seed field is as wide as its number, so a short seed sits snug beside the shuffle. */
   const seedInput = q<HTMLInputElement>('[data-seed]');

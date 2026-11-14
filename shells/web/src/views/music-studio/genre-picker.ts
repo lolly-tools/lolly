@@ -2,7 +2,9 @@
 /**
  * The music generator's genre picker (#/music): the genre button opens a grid of every
  * genre as a card with its icon and title (lib/genre-icons.ts), grouped by category (chill,
- * electronic, classic and international) and A to Z in each, the genre playing now marked. A card picks its genre. The header holds the
+ * electronic, classic and international) and A to Z in each, the genre playing now marked,
+ * each card in its own wash of the design system's colours (genre-colours.ts). A card
+ * picks its genre. The header holds the
  * "Shuffle genres" switch: on, the shuffle button draws a new genre; off, the shuffle
  * keeps the genre and draws a new seed and sound.
  *
@@ -18,6 +20,7 @@ import { escape as escapeHtml } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
 import { mountModal } from '../../components/modal.ts';
 import { GENRE_GROUPS, genreIconSvg, genreTitle, type GenreCategory } from '../../lib/genre-icons.ts';
+import { paintGenreTiles } from './genre-colours.ts';
 import type { LofiMood } from '../../../../../engine/src/lofi-compose.ts';
 import '../../styles/parts/music-browser.css';
 
@@ -72,7 +75,11 @@ export function cardToward<T extends Placed>(cards: readonly T[], from: T, key: 
   return best;
 }
 
-export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement | null; onClose?: () => void } = {}): { close(): void } {
+/**
+ * Open the picker. `host` is the shell's bridge: given one, each card takes its own wash
+ * of the design system's colours (genre-colours.ts); without one the cards stay plain.
+ */
+export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement | null; onClose?: () => void; host?: unknown } = {}): { close(): void } {
   const n = ++opened;
   const wide = window.matchMedia(WIDE).matches;
   const now = h.current();
@@ -116,6 +123,7 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
   dlg.setAttribute('aria-labelledby', titleId);
   const cards = [...dlg.querySelectorAll<HTMLElement>('[data-genre-card]')];
   const body = dlg.querySelector<HTMLElement>('.msg-body');
+  if (opts.host) void paintGenreTiles(cards, opts.host).catch(() => { /* the cards stay plain */ });
 
   dlg.addEventListener('click', (e) => {
     const btn = e.target instanceof Element ? e.target.closest<HTMLElement>('button') : null;
