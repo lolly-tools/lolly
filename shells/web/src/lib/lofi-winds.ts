@@ -16,11 +16,13 @@
  * chord tone (keys). Every player is a little out of tune with the others and a little
  * late or early, by the amounts measured on recorded sections. A trumpet soloist plays
  * one note at a time and chooses how to play each (soloist): which notes to lip up into,
- * a vibrato that grows on some held notes, and a taper, as recorded soloists do.
+ * a vibrato that grows on some held notes, and a taper, as recorded soloists do; and
+ * breathes (lib/lofi-breath.ts): air before a note out of a rest, air in every tongued
+ * onset, and a breath drawn in some rests.
  */
 import { bowString } from './lofi-bowed.ts';
-import { blowLips, heardSolo, type Horn } from './lofi-brass.ts';
-import { inhale, noteSpeed, type InhaleShape } from './lofi-breath.ts';
+import { blowLips, darken, heardSolo, type Horn } from './lofi-brass.ts';
+import { airBurst, inhale, noteSpeed, preAttack, type BurstShape, type InhaleShape, type PreAttackShape } from './lofi-breath.ts';
 import { blowFlute, FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, type Pipe } from './lofi-flutes.ts';
 import { blowReed } from './lofi-reeds.ts';
 import { EPS, mtof, type VoiceKit } from './lofi-voices.ts';
@@ -300,8 +302,53 @@ const TAPER_MOST = 0.55;
  * sound together through the change.
  */
 const NOTE_STOP = 0.004;
-/** The soloist's note still sounding on each seat: its gain, when it started and when its sound ends (s). */
-const SOUNDING = new WeakMap<AudioNode, { gate: GainNode; from: number; until: number }>();
+/** The soloist's note still sounding on each seat: its gain, when it started, when the breath stopped and when its sound ends (s). */
+const SOUNDING = new WeakMap<AudioNode, { gate: GainNode; from: number; end: number; until: number }>();
+
+/**
+ * A soloist's breath (lib/lofi-breath.ts makes the air), measured on the recorded solo
+ * phrases. A note out of a rest of ENTRY_REST s or more is preceded by air through the
+ * lips: nothing 15 to 80 ms before the tone, then 15 to 25 ms of it reaching 28 dB (the
+ * blues player) to 43 dB (the jazz improviser) under the held note, centred near 1 kHz.
+ * Every tongued note starts with air in the buzz: in its first 20 ms the noise between the
+ * harmonics sits 15 dB under the held note (the model alone gave 21), and neither pitch
+ * holds for 12 to 16 ms of a tongued change (the model alone gave 5). With ENTRY_AIR and
+ * TONGUE_AIR (against the note's own held level, before the bell): the air before an entry
+ * reaches 38 dB under the note in its last 15 ms, the first 20 ms of a tongued note 18,
+ * and a tongued change goes 10 to 13 ms without a pitch.
+ */
+const ENTRY_REST = 0.3;
+const ENTRY_AIR: PreAttackShape = { centre: 1100, width: 2, level: -26, perStrength: 6, length: 0.022, curve: 2, spread: 4, lengthSpread: 0.35 };
+const TONGUE_AIR: BurstShape = { centre: 1100, width: 2, level: -9, length: 0.008, rise: 0.001, perStrength: 4, perSpeed: 2, spread: 2, lengthSpread: 0.3, centreSpread: 0.2 };
+/**
+ * A breath drawn in a rest: recorded soloists breathe in about half their rests of 0.4 s
+ * or more (the blues player in every one, the improviser in 13 to 45 %), 80 to 260 ms of
+ * it, 28 to 46 dB under the next note, ending 0.2 to 0.7 s before it, a broad rush from
+ * 500 Hz to 4 kHz falling away above 5 kHz (12 to 24 dB down by 10 kHz; dark above
+ * BREATH_TOP Hz). It is the mouth's, so it is heard as it is, not through the horn. The
+ * player takes it once the note before has gone (BREATH_AFTER s after it), to end
+ * BREATH_BEFORE s before the next; played live, the next note arrives only a moment
+ * ahead, so the breath then ends as close to it as BREATH_GAP s, shorter, or is not
+ * taken.
+ */
+const BREATH_REST = 0.4;
+const BREATH_CHANCE = 0.55;
+const BREATH_LONGEST = 0.2;
+const BREATH_SHORTEST = 0.08;
+const BREATH_DB = -36;
+const BREATH_BEFORE = 0.3;
+const BREATH_AFTER = 0.08;
+const BREATH_GAP = 0.03;
+const TRUMPET_BREATH: InhaleShape = { bands: [{ centre: 1200, width: 2.6 }, { centre: 3500, width: 0.8, level: -6 }], rise: 0.3, fall: 0.4 };
+const BREATH_TOP = 4000;
+
+/** The RMS of a rendered note over its held part (from 60 ms, or a third of a short note, to 0.6 s or its end). */
+function heldRms(data: Float32Array, sr: number, held: number): number {
+  const a = Math.floor(Math.min(0.06, held / 3) * sr), b = Math.max(a + 32, Math.floor(Math.min(held, 0.6) * sr));
+  let e = 0;
+  for (let i = a; i < b && i < data.length; i++) e += data[i]! * data[i]!;
+  return Math.sqrt(e / (b - a)) || 1e-9;
+}
 
 /** How a soloist plays a note: the lift into it (semitones, and over how long), the vibrato (cents by the end, and when it comes in) and the taper. */
 export interface SoloNote { scoop: number; scoopTime: number; vibrato: number; vibratoFrom: number; taper: number }
@@ -330,9 +377,29 @@ function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number,
   const data = blowLips({
     sr: ctx.sampleRate, f: mtof(midi) * 2 ** ((how.detune ?? 0) / 1200), from: from === undefined ? undefined : mtof(from),
     vel: strength, dur: held, seconds: held + (fall ? 0.4 : 0.15), horn,
-    scoop: play.scoop ?? 0, scoopTime: play.scoopTime, fall, vibrato: play.vibrato ?? 0, rate, vibratoFrom: play.vibratoFrom, taper: play.taper,
+    scoop: play.scoop ?? 0, scoopTime: play.scoopTime, fall, vibrato: play.vibrato ?? 0, rate, vibratoFrom: play.vibratoFrom, taper: play.taper, grain: solo ? 1 : 0,
   }, rand);
-  if (solo) heardSolo(data, ctx.sampleRate, strength);
+  // A soloist's breath around the note: air into a note out of a rest, air at every tongued onset.
+  const last = solo ? SOUNDING.get(out) : undefined;
+  const sr = ctx.sampleRate;
+  let sound = data, lead = 0;
+  if (solo) {
+    const ref = heldRms(data, sr, held);
+    const note = { strength, speed: noteSpeed(held), seed: Math.floor(rand() * 4294967296) };
+    if (from === undefined) {
+      const burst = airBurst(sr, TONGUE_AIR, note, Math.min(held, 0.08));
+      for (let i = 0; i < burst.length; i++) data[i]! += burst[i]! * ref;
+    }
+    if (from === undefined && (!last || t - last.end >= ENTRY_REST)) {
+      const pre = preAttack(sr, ENTRY_AIR, { ...note, seed: note.seed ^ 0x5bd1e995 });
+      lead = pre.length / sr;
+      sound = new Float32Array(pre.length + data.length);
+      for (let i = 0; i < pre.length; i++) sound[i] = pre[i]! * ref;
+      sound.set(data, pre.length);
+    }
+    heardSolo(sound, sr, strength);
+  }
+  const heard = heldRms(lead ? sound.subarray(Math.round(lead * sr)) : sound, sr, held);
   const at = horn === 'trumpet' ? 70 : 58;
   const level = BRASS_LEVEL[horn] * (0.55 + 0.45 * strength) * 10 ** ((-rawLevel(horn, strength, midi) + REGISTER_KEPT * 0.32 * (midi - at) + (solo ? SOLO_LEVEL : 0)) / 20);
   // The top past what a horn sends out, where the model's steepened wave would only alias.
@@ -340,12 +407,25 @@ function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number,
   top.type = 'lowpass';
   top.frequency.value = 14000;
   top.Q.value = 0.5;
-  const gate = playBuffer(k, data, out, t, level * (how.gain ?? 1), [top]);
+  const gate = playBuffer(k, sound, out, t - lead, level * (how.gain ?? 1), [top]);
   if (!solo) return;
   // One note at a time: the note before stops as this one starts.
-  const last = SOUNDING.get(out);
   if (last && t > last.from + 0.02 && t < last.until) last.gate.gain.setTargetAtTime(0, t, NOTE_STOP);
-  SOUNDING.set(out, { gate, from: t, until: t + data.length / ctx.sampleRate });
+  SOUNDING.set(out, { gate, from: t, end: t + held, until: t + data.length / sr });
+  // A breath in the rest before the note, if it had one.
+  const before = last ? t - last.end : Infinity;
+  if (from === undefined && before >= BREATH_REST && rand() < BREATH_CHANCE) {
+    const want = Math.min(BREATH_LONGEST, Math.max(BREATH_SHORTEST, before - BREATH_BEFORE - BREATH_AFTER)) * (0.75 + 0.25 * rand());
+    const earliest = Math.max(ctx.currentTime + 0.005, (last?.end ?? -Infinity) + BREATH_AFTER);
+    const latest = t - lead - BREATH_GAP;
+    const length = Math.min(want, latest - earliest);
+    if (length >= BREATH_SHORTEST) {
+      const end = Math.min(latest, Math.max(t - BREATH_BEFORE, earliest + length));
+      const air = inhale(sr, length, TRUMPET_BREATH, Math.floor(rand() * 4294967296));
+      darken(air, sr, BREATH_TOP);
+      playBuffer(k, air, out, end - air.length / sr, level * heard * 10 ** (BREATH_DB / 20), []);
+    }
+  }
 }
 
 /** A player in a horn section: what they play against the line, how loud, how late (s) and where they sit (pan). */
