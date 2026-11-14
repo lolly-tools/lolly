@@ -101,7 +101,7 @@ Sherbert was tuned by measuring three Australian future-bass records of the mid-
 | Dreamscape | Pads and a choir, vibes, a harp, bells or a soft lead, chords held two bars, a slow beat with the hats on the beat, and a long room |
 | Shoegaze | A wall of guitars: full chords swelling in through a soft fuzz, each string swaying with the tremolo arm, in a huge room, with a dreamy lead half-buried in it, as the style's singers are |
 | Surf rock | The early-sixties instrumental band, fast: a clean single-coil lead drenched in a spring reverb, its held notes tremolo-picked, its long notes shaken with the tremolo arm and a glissando down the neck into a chorus, a rhythm guitar through the same kind of big clean amp (now and then a transistor combo organ), a picked bass driving eighths, and a driving beat with fills round the toms, the floor tom riding some choruses. As often in a minor key or the Phrygian dominant as in a major one |
-| Yacht rock | Smooth late-seventies soft rock: a Rhodes comping lush major sevenths, ninths and slash chords (a chord over a bass a tone higher), a smooth, melodic bass, a polished, tight kit in a half-time shuffle with ghost notes on the snare, a clean guitar through a chorus pedal answering the tune at the end of its phrases, and a sax taking the solo |
+| Yacht rock | Smooth late-seventies soft rock: a Rhodes comping lush major sevenths, ninths and slash chords (a chord over a bass a tone higher), a smooth, melodic bass, a polished, tight kit in a half-time shuffle with ghost notes on the snare, a clean guitar through a chorus pedal answering the tune at the end of its phrases, and a sax taking the solo, now and then over a string section, which opens some tunes too |
 :::
 
 <!--i:eti-music-->

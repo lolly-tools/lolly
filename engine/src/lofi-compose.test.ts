@@ -940,7 +940,7 @@ test('a surf lead a person fixes plays all the way through, without the baritone
 // ── Yacht rock ───────────────────────────────────────────────────────────────
 
 test('yacht rock: a smooth tempo, lush sevenths, ninths and slash chords, a half-time shuffle, the guitar answering the tune and the sax taking the solo', () => {
-  let slash = 0, halfTime = 0, answered = 0, rhodes = 0;
+  let slash = 0, halfTime = 0, answered = 0, rhodes = 0, strings = 0;
   for (const seed of SEEDS.slice(0, 16)) {
     const bars = composeLofiTune(seed, 'yacht');
     const t = bars[0]!.tune;
@@ -953,6 +953,7 @@ test('yacht rock: a smooth tempo, lush sevenths, ninths and slash chords, a half
     if (t.style.keys === 'rhodes') rhodes++;
     // The solo is the sax's.
     for (const b of bars.filter(b => b.section === 'break')) assert.equal(b.voices?.lead ?? t.style.lead, 'sax', `${where} bar ${b.index}: the sax's solo`);
+    if (bars.some(b => (b.section === 'break' || b.section === 'intro') && b.voices?.keys === 'strings')) strings++;
     // The drums: every shuffled sixteenth on the hats, the backbeat on three or on two and four, ghost notes between.
     const drops = bars.filter(b => b.section === 'drop');
     const backs = drops.flatMap(b => b.notes.filter(n => n.voice === 'snare' && n.vel >= 0.8).map(n => n.beat));
@@ -975,6 +976,7 @@ test('yacht rock: a smooth tempo, lush sevenths, ninths and slash chords, a half
   assert.ok(halfTime >= 7 && halfTime <= 15, `a half-time shuffle in most tunes (${halfTime} of 16)`);
   assert.ok(answered >= 12, `the guitar answers the tune in most tunes (${answered} of 16)`);
   assert.ok(rhodes >= 10, `the Rhodes in most tunes (${rhodes} of 16)`);
+  assert.ok(strings >= 4 && strings <= 13, `a string section opens the tune or holds the solo's chords in some tunes (${strings} of 16)`);
 });
 
 test('a slash chord transposes with its bass, and a six-nine keeps its nine', () => {

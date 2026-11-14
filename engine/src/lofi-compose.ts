@@ -1710,7 +1710,8 @@ const DANCE: Record<DanceMood, DanceLean> = {
   },
   // Yacht rock: smooth late-seventies soft rock. A Rhodes comping lush sevenths, ninths and
   // slash chords, a clean guitar through a chorus answering the tune with fills, a smooth,
-  // melodic bass, a polished, tight kit in a half-time shuffle, and a sax taking the solo.
+  // melodic bass, a polished, tight kit in a half-time shuffle, and a sax taking the solo,
+  // a string section now and then opening the tune or holding the chords under the solo.
   // The shuffle's swung sixteenth falls at 0.61 of its eighth, where three recorded drummers'
   // shuffles put theirs (0.58 to 0.61, Freesound 77291, 139060 and 557634, CC0).
   yacht: {
@@ -1718,7 +1719,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
     keys: [['rhodes', 6], ['wurli', 1], ['felt', 1]], lead: [['sax', 3], ['chorus', 3], ['soft', 1]],
     bass: [['motown', 1]], snare: [['snare', 1]], kick: [52, 60], kickLen: [0.22, 0.3], duck: [0.2, 0.4], crunch: 0,
     swing: 0.61, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'yacht', singingDrop: true, busy: 0.6, band: true,
-    softKeys: [['clean', 3], ['felt', 1]], verseBass: [['motown', 1]], switchBass: [['motown', 1]], room: [0.7, 1], wow: [0.03, 0.08], dust: 0.1,
+    softKeys: [['clean', 3], ['strings', 2], ['felt', 1]], verseBass: [['motown', 1]], switchBass: [['motown', 1]], room: [0.7, 1], wow: [0.03, 0.08], dust: 0.1,
   },
 };
 
@@ -2657,8 +2658,11 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       if (part.alt) return { bass: bassB, ...(fixed.lead ? {} : { lead: 'twang' as const, double: style.lead }) };
       return !fixed.lead && surf.double ? { double: 'twang' as const } : undefined;
     }
-    // Yacht rock's solo is the sax's, whatever carries the tune.
-    if (yacht && part.section === 'break') return fixed.lead ? undefined : { lead: 'sax' };
+    // Yacht rock's solo is the sax's, whatever carries the tune, in some tunes over a string section.
+    if (yacht && part.section === 'break') {
+      const strings = !fixed.keys && yacht.stringsSolo ? { keys: 'strings' as const } : {};
+      return fixed.lead ? (strings.keys ? strings : undefined) : { lead: 'sax', ...strings };
+    }
     if (part.section === 'intro') return { keys: softKeys, lead: leadIntro };
     if (part.section === 'outro') return { keys: softKeys };
     if (part.section === 'break') return lean.band ? undefined : { keys: softKeys, lead: leadB };   // a band's break is the solo
@@ -3600,7 +3604,7 @@ function surfRhythm(section: LofiSection, build: boolean, lastOfBuild: boolean, 
 // ── yacht rock ───────────────────────────────────────────────────────────────
 
 /** A yacht rock tune's own choices (see yachtOf); `r` goes on to draw the bars' small choices. */
-interface YachtPlan { r: () => number; halfTime: boolean; kick: readonly number[]; comp: number; fills: number }
+interface YachtPlan { r: () => number; halfTime: boolean; kick: readonly number[]; comp: number; fills: number; stringsSolo: boolean }
 
 /** The kick under a half-time shuffle (the backbeat on three) and under a shuffle with its backbeat on two and four (sixteenths). */
 const YACHT_KICKS_HALF: ReadonlyArray<readonly number[]> = [[0, 10], [0, 7, 10], [0, 11, 14], [0, 3, 10]];
@@ -3615,7 +3619,8 @@ const YACHT_COMP: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
 /**
  * Yacht rock's own draws, from a stream of their own so no other style's tune moves: a
  * half-time shuffle (the backbeat on three) in most tunes, the rest with the backbeat on two
- * and four; the kick's figure; the keys' comping; how often the guitar answers a phrase.
+ * and four; the kick's figure; the keys' comping; how often the guitar answers a phrase;
+ * and whether a string section holds the chords under the solo.
  */
 function yachtOf(seed: number): YachtPlan {
   const r = mulberry32(seed >>> 0);
@@ -3624,7 +3629,8 @@ function yachtOf(seed: number): YachtPlan {
   const kick = kicks[Math.floor(r() * kicks.length)]!;
   const comp = Math.floor(r() * YACHT_COMP.length);
   const fills = 0.55 + r() * 0.35;
-  return { r, halfTime, kick, comp, fills };
+  const stringsSolo = r() < 0.4;
+  return { r, halfTime, kick, comp, fills, stringsSolo };
 }
 
 /**
