@@ -40,7 +40,7 @@ import { arrangeClub, clubDrums, clubFigures, clubKeys, clubPlan, clubStabs, isC
 import { composeSalsa, salsaSectionName, SALSA_PERCUSSION } from './lofi-salsa.ts';
 import { composeBotanica, type BotanicaKit } from './lofi-botanica.ts';
 import { dnbKitBar, dnbKitPlan, isBreakNote } from './lofi-breaks.ts';
-import { didgeBass, didgeLead, didgeMid, strayaBirds, strayaOf, strayaParts } from './lofi-straya.ts';
+import { cameoOf, didgeBass, didgeCameo, didgeLead, didgeMid, gateToots, strayaBirds, strayaOf, strayaParts, withMagpies, DIDGE_CAMEO } from './lofi-straya.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
 export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse' | 'salsa' | 'surf' | 'yacht' | 'botanica' | ClubMood;
@@ -664,7 +664,8 @@ export function nextLofiSeed(seed: number): number {
 
 /** Build one tune's bars, signed with the producer's tag when the tune has one (see withTag), with the band's shouts (see withBandShouts). */
 export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiBar[] {
-  return withBandShouts(withTag(composeTuneBars(seed, mood, fixed), seed, mood), seed, mood);
+  // Botanica's and sherbert's magpie, from a stream of its own (lofi-straya.ts).
+  return withMagpies(withBandShouts(withTag(composeTuneBars(seed, mood, fixed), seed, mood), seed, mood), mood, (seed ^ 0x3a6e1) >>> 0);
 }
 
 /** How softly a quiet verse is played, against its chorus. */
@@ -2929,6 +2930,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const perc: Percussion | null = percussion ? percussion.kinds[((seed >>> 5) % percussion.kinds.length)]! : null;
   // The didgeridoo's solo phrases so far (two bars each).
   let didgeSolo = 0;
+  // A bass genre's rare didgeridoo cameo (lofi-straya.ts), from a stream of its own.
+  const cameo = DIDGE_CAMEO.has(mood) ? cameoOf((seed ^ 0xd1d6e) >>> 0) : null;
   // Sherbert's own figures, drawn for its tunes only, so no other style's tune changes:
   // two bars of chord rhythm and of kick, a two-bar melody for the verse (and, thinned,
   // the quieter sections) and a busier hook for the drop, where the console's arpeggios
@@ -3199,7 +3202,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       // Straya's didgeridoo (lofi-straya.ts): the soloist in the solo's trades, the rhythm through
       // a pre-chorus and a chorus, and the drone everywhere else, when the tune's bass is the
       // yidaki; a bass a person chose plays its own line under the rhythm and the solo.
-      const didgeAt = straya ? { section: part.section, i, bars: part.bars, inSection, kicks: part.section === 'intro' ? [0, 8] : kickSteps, lastOfBuild, root: placeIn(key, 34, 45), sb } : null;
+      const didgeAt = straya ? { section: part.section, i, bars: part.bars, inSection, kicks: part.section === 'intro' ? [0, 8] : kickSteps, lastOfBuild, root: placeIn(key, 34, 45), fifth: placeIn((key + 7) % 12, 34, 45), sb } : null;
       const rhythm = build || part.section === 'drop';
       if (didgeAt && part.trade === 'didge') notes.push(...didgeLead(straya!, didgeAt, didgeSolo++ >> 1));
       else if (didgeAt && has('bass') && rhythm) notes.push(...didgeMid(straya!, didgeAt));
@@ -3246,6 +3249,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           notes.push({ voice: 'bass', midi, beat: sb(step), dur: len / 4 - 0.02, vel: bassV === 'yidaki' ? clamp01(blown) : dead ? 0.5 : step === 0 ? 0.92 : 0.8, mod });
         }
       }
+
+      // The cameo: the didgeridoo over the bass's stack for half a bar, or a bar of it between the stacks.
+      if (cameo && (part.section === 'drop' || part.section === 'break')) notes.push(...didgeCameo(cameo, { section: part.section, alt: !!part.alt, bar: inSection, root: placeIn(key, 34, 45), sb }));
 
       // The bass genres' bass talks at the end of each phrase of a drop: from the half bar,
       // the line gives way to a bwah, a yoi, a throat or a wub.
@@ -3652,6 +3658,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           else if (nt.voice === 'keys') notes[n] = { ...nt, dur: Math.min(8, nt.dur * 1.6) };
         }
       }
+      // A didgeridoo's toot only where the band is busy around it (lofi-straya.ts gateToots).
+      if (straya || cameo) gateToots(notes, part.section, part.layers);
       notes.sort((a, b) => a.beat - b.beat);
       const barVoices = traded || overNotes.length ? { ...voices, ...(traded ? { bass: traded.bass } : {}), ...(overNotes.length ? { over: 'croak' as const } : {}) } : voices;
       bars.push({ tune: info, index, section: part.section, layers: part.layers, chord: chord.name, tones: chord.tones, notes, open, level, ...(barVoices ? { voices: barVoices } : {}) });

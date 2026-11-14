@@ -42,14 +42,22 @@ import { mulberry32 } from './zzfx-compose.ts';
  * shouted into the horn; the circular breath (the drone sags while the nose breathes in,
  * then the lungs push back); a howl, the voice sung through the drone; the tongue sweeping
  * "oo" to "ee" and back; a tongued accent ("d"); a voiced call that rises and falls like an
- * animal's; and a push from the diaphragm with no change of vowel.
+ * animal's; a push from the diaphragm with no change of vowel; a growl, the voice rough and low
+ * in the throat under the drone; and a bend, the lips loosened so the drone sags a little and
+ * comes back, as far as a fixed bore lets a player bend.
  */
-export const DIDGE_DRONE = 0, DIDGE_WA = 1, DIDGE_TOOT = 2, DIDGE_BARK = 3, DIDGE_BREATH = 4, DIDGE_HOWL = 5, DIDGE_SWEEP = 6, DIDGE_TONGUE = 7, DIDGE_CALL = 8, DIDGE_PUSH = 9;
+export const DIDGE_DRONE = 0, DIDGE_WA = 1, DIDGE_TOOT = 2, DIDGE_BARK = 3, DIDGE_BREATH = 4, DIDGE_HOWL = 5, DIDGE_SWEEP = 6, DIDGE_TONGUE = 7, DIDGE_CALL = 8, DIDGE_PUSH = 9, DIDGE_GROWL = 10, DIDGE_BEND = 11;
 /** The articulation's bits in a note's `mod`. */
 export const DIDGE_ART = 15;
 /** The role in a note's `mod`, times this: 0 the drone (a bass note), 1 the middle's rhythm, 2 the lead. */
 export const DIDGE_ROLE = 16;
 export const DIDGE_MID = 1, DIDGE_LEAD = 2;
+/** The kind of yidaki in a note's `mod`, times this (0 to 3: lib/lofi-didgeridoo.ts YIDAKI). */
+export const DIDGE_KIND = 64;
+/** A didgeridoo note's articulation, role and kind. */
+export function readDidge(mod: number): { art: number; role: number; kind: number } {
+  return { art: mod % DIDGE_ROLE, role: Math.floor(mod / DIDGE_ROLE) % 4, kind: Math.floor(mod / DIDGE_KIND) % 4 };
+}
 
 /**
  * A bird note's `mod`: its song's seed in the low bits (under LOFI_BIRD_FEATURE), then
@@ -83,6 +91,8 @@ const MID_GROOVES: readonly Figure[] = [
   [[0, 3, DIDGE_WA], [3, 3, DIDGE_WA], [6, 2, DIDGE_TONGUE], [8, 3, DIDGE_WA], [11, 3, DIDGE_WA], [14, 2, DIDGE_TONGUE]],
   // "wah-ee": a sweep each half bar, tongued pairs between.
   [[0, 4, DIDGE_SWEEP], [4, 2, DIDGE_TONGUE], [6, 2, DIDGE_TONGUE], [8, 4, DIDGE_SWEEP], [12, 2, DIDGE_TONGUE], [14, 2, DIDGE_TONGUE]],
+  // pushes with a growl between: the voice rattling in the throat on the offbeats.
+  [[0, 2, DIDGE_PUSH], [2, 2, DIDGE_GROWL], [4, 2, DIDGE_WA], [6, 2, DIDGE_TONGUE], [8, 2, DIDGE_PUSH], [10, 2, DIDGE_GROWL], [12, 2, DIDGE_WA], [14, 2, DIDGE_TONGUE]],
 ];
 /** A groove's answer bar ends its phrase: the last beat turned into toots. */
 const MID_TURNS: readonly Figure[] = [
@@ -99,8 +109,8 @@ const LEAD_PHRASES: ReadonlyArray<ReadonlyArray<readonly [number, number, number
   [[0, 0, 6, DIDGE_SWEEP], [0, 6, 2, DIDGE_TOOT], [0, 8, 2, DIDGE_TOOT], [0, 10, 6, DIDGE_CALL], [1, 0, 4, DIDGE_HOWL], [1, 4, 2, DIDGE_TONGUE], [1, 6, 2, DIDGE_TONGUE], [1, 8, 2, DIDGE_BARK], [1, 10, 2, DIDGE_DRONE], [1, 12, 2, DIDGE_TOOT], [1, 14, 2, DIDGE_BREATH]],
   [[0, 0, 2, DIDGE_TOOT], [0, 2, 2, DIDGE_WA], [0, 4, 2, DIDGE_TOOT], [0, 6, 2, DIDGE_WA], [0, 8, 8, DIDGE_CALL], [1, 0, 2, DIDGE_BARK], [1, 2, 2, DIDGE_TONGUE], [1, 4, 2, DIDGE_BARK], [1, 6, 2, DIDGE_TONGUE], [1, 8, 4, DIDGE_SWEEP], [1, 12, 2, DIDGE_TOOT], [1, 14, 2, DIDGE_BREATH]],
   [[0, 0, 8, DIDGE_CALL], [0, 8, 2, DIDGE_TOOT], [0, 10, 2, DIDGE_TOOT], [0, 12, 2, DIDGE_TOOT], [0, 14, 2, DIDGE_DRONE], [1, 0, 4, DIDGE_SWEEP], [1, 4, 4, DIDGE_SWEEP], [1, 8, 2, DIDGE_BARK], [1, 10, 2, DIDGE_BARK], [1, 12, 4, DIDGE_BREATH]],
-  [[0, 0, 3, DIDGE_BARK], [0, 3, 3, DIDGE_BARK], [0, 6, 2, DIDGE_TOOT], [0, 8, 8, DIDGE_HOWL], [1, 0, 2, DIDGE_TONGUE], [1, 2, 2, DIDGE_TONGUE], [1, 4, 2, DIDGE_TOOT], [1, 6, 2, DIDGE_WA], [1, 8, 6, DIDGE_CALL], [1, 14, 2, DIDGE_BREATH]],
-  [[0, 0, 4, DIDGE_WA], [0, 4, 2, DIDGE_TOOT], [0, 6, 2, DIDGE_TOOT], [0, 8, 4, DIDGE_SWEEP], [0, 12, 4, DIDGE_CALL], [1, 0, 4, DIDGE_CALL], [1, 4, 4, DIDGE_HOWL], [1, 8, 2, DIDGE_TOOT], [1, 10, 2, DIDGE_BARK], [1, 12, 4, DIDGE_BREATH]],
+  [[0, 0, 3, DIDGE_BARK], [0, 3, 3, DIDGE_BARK], [0, 6, 2, DIDGE_TOOT], [0, 8, 4, DIDGE_GROWL], [0, 12, 4, DIDGE_BEND], [1, 0, 2, DIDGE_TONGUE], [1, 2, 2, DIDGE_TONGUE], [1, 4, 2, DIDGE_TOOT], [1, 6, 2, DIDGE_WA], [1, 8, 6, DIDGE_CALL], [1, 14, 2, DIDGE_BREATH]],
+  [[0, 0, 4, DIDGE_BEND], [0, 4, 2, DIDGE_TOOT], [0, 6, 2, DIDGE_TOOT], [0, 8, 4, DIDGE_SWEEP], [0, 12, 4, DIDGE_CALL], [1, 0, 4, DIDGE_GROWL], [1, 4, 4, DIDGE_HOWL], [1, 8, 2, DIDGE_TOOT], [1, 10, 2, DIDGE_BARK], [1, 12, 4, DIDGE_BREATH]],
   [[0, 0, 2, DIDGE_TONGUE], [0, 2, 2, DIDGE_TONGUE], [0, 4, 4, DIDGE_CALL], [0, 8, 2, DIDGE_TOOT], [0, 10, 2, DIDGE_WA], [0, 12, 2, DIDGE_TOOT], [0, 14, 2, DIDGE_WA], [1, 0, 8, DIDGE_HOWL], [1, 8, 4, DIDGE_SWEEP], [1, 12, 2, DIDGE_BARK], [1, 14, 2, DIDGE_BREATH]],
 ];
 
@@ -127,6 +137,14 @@ export interface StrayaPlan {
   sung: Set<string>;
   /** Beats of the next bar still under a featured bird, where the lead stays out. */
   clearing: number;
+  /** The birds' own stream, so the didgeridoo's draws never move a bird. */
+  birdR: () => number;
+  /**
+   * The kinds of yidaki (lib/lofi-didgeridoo.ts YIDAKI): the band's for the drone, the one the
+   * rhythm is played on (and the one it changes to at some phrase turns of a chorus), the
+   * soloist's, and whether the soloist's is a shorter one, tuned a fifth above the key.
+   */
+  kinds: { bass: number; mid: number; turn: number; lead: number; fifth: boolean; swap: number };
 }
 
 /** The tune's Straya plan, from a stream of its own (`seed` already mixed). */
@@ -156,7 +174,11 @@ export function strayaOf(seed: number, lead: LofiStyle['lead'], fixedLead: boole
     : kinds < 0.36 ? [{ bird: 'magpie', at: weighted(magpies) }, { bird: 'kookaburra', at: weighted(kookas) }]
     : kinds < 0.68 ? [{ bird: 'magpie', at: weighted(magpies) }]
     : [{ bird: 'kookaburra', at: weighted(kookas) }];
-  return { r, solo, answer, breathEvery, breathAt, grooves: [MID_GROOVES[g]!, MID_GROOVES[g2]!], turn, phrases: order, birds, sung: new Set(), clearing: 0 };
+  const other = (k: number): number => (k + 1 + Math.floor(r() * 3)) % 4;
+  const bass = r() < 0.5 ? 0 : pick([1, 2, 3]);
+  const mid = r() < 0.5 ? bass : other(bass);
+  const yidaki = { bass, mid, turn: other(mid), lead: r() < 0.6 ? other(bass) : bass, fifth: r() < 0.3, swap: 0.2 + r() * 0.3 };
+  return { r, solo, answer, breathEvery, breathAt, grooves: [MID_GROOVES[g]!, MID_GROOVES[g2]!], turn, phrases: order, birds, sung: new Set(), clearing: 0, birdR: mulberry32((seed ^ 0xb1d5) >>> 0), kinds: yidaki };
 }
 
 /** A part of a band's running order, as the dance path builds it, with the solo's trades marked. */
@@ -196,19 +218,19 @@ export interface DidgeBar {
   i: number; bars: number; inSection: number;
   /** The kick's sixteenths in this bar (the stomp's), and whether it is a pre-chorus's last bar. */
   kicks: readonly number[]; lastOfBuild: boolean;
-  /** The drone's pitch. */
-  root: number;
+  /** The drone's pitch, and a shorter yidaki's a fifth above the key, in the same octave range. */
+  root: number; fifth: number;
   /** A sixteenth as a beat, with the tune's swing. */
   sb: (step: number) => number;
 }
 
 /** Notes from a figure: each lasting to the next, so the drone between them never stops. */
-function tile(steps: ReadonlyArray<readonly [number, number, number, number]>, at: DidgeBar, voice: 'bass' | 'didge', role: number): LofiNote[] {
+function tile(steps: ReadonlyArray<readonly [number, number, number, number]>, at: DidgeBar, voice: 'bass' | 'didge', role: number, kind: number, midi = at.root): LofiNote[] {
   const sorted = [...steps].sort((a, b) => a[0] - b[0]);
   return sorted.map(([step, , art, vel], n) => {
     const next = sorted[n + 1]?.[0] ?? 16;
     const beat = at.sb(step);
-    return { voice, midi: at.root, beat, dur: Math.max(0.1, at.sb(next) - beat - 0.01), vel, mod: art + role * DIDGE_ROLE };
+    return { voice, midi, beat, dur: Math.max(0.1, at.sb(next) - beat - 0.01), vel, mod: art + role * DIDGE_ROLE + kind * DIDGE_KIND };
   });
 }
 
@@ -222,15 +244,17 @@ export function didgeBass(plan: StrayaPlan, at: DidgeBar): LofiNote[] {
   const steps: Array<[number, number, number, number]> = [];
   const breathes = (at.inSection + 1) % plan.breathEvery === 0;
   const last = at.section === 'intro' && at.i === at.bars - 1;
+  // A phrase's last bar now and then bends the drone on its third beat, as a player's lips do.
+  const bend = at.inSection % 4 === 3 && r() < 0.3;
   for (const k of at.kicks) {
     if (breathes && k >= plan.breathAt) continue;
     if (last && k >= 12) continue;
-    steps.push([k, 0, k === 0 ? DIDGE_PUSH : r() < 0.25 ? DIDGE_WA : DIDGE_PUSH, k === 0 ? 0.74 : 0.62 + r() * 0.06]);
+    steps.push([k, 0, k === 0 ? DIDGE_PUSH : bend && k === 8 ? DIDGE_BEND : r() < 0.25 ? DIDGE_WA : DIDGE_PUSH, k === 0 ? 0.74 : 0.62 + r() * 0.06]);
   }
   if (!steps.some(s => s[0] === 0)) steps.push([0, 0, DIDGE_DRONE, 0.66]);
-  if (last) steps.push([12, 0, DIDGE_TOOT, 0.8], [14, 0, DIDGE_BREATH, 0.7]);
+  if (last) steps.push([12, 0, DIDGE_SWEEP, 0.76], [14, 0, DIDGE_BREATH, 0.7]);
   else if (breathes) steps.push([plan.breathAt, 0, DIDGE_BREATH, 0.68]);
-  return tile(steps, at, 'bass', 0);
+  return tile(steps, at, 'bass', 0, plan.kinds.bass);
 }
 
 /**
@@ -247,7 +271,9 @@ export function didgeMid(plan: StrayaPlan, at: DidgeBar): LofiNote[] {
   if (breathes) fig = [...fig.filter(([s]) => s < 14), [14, 2, DIDGE_BREATH]];
   const lift = build ? 0.05 + (0.15 * (at.i + 1)) / at.bars : 0.2;
   const steps = fig.map(([s, , a]) => [s, 0, a, Math.min(1, (s % 4 === 0 ? 0.62 : 0.5) + lift + (a === DIDGE_TOOT ? 0.12 : 0))] as [number, number, number, number]);
-  return tile(steps, at, 'didge', DIDGE_MID);
+  // At some phrase turns of a chorus the rhythm moves to another yidaki, as a player picks up another.
+  const kind = at.section === 'drop' && Math.floor(at.inSection / 4) % 2 === 1 && plan.kinds.swap > 0.35 ? plan.kinds.turn : plan.kinds.mid;
+  return tile(steps, at, 'didge', DIDGE_MID, kind);
 }
 
 /** The lead's two bars of a phrase: `phrase` counts the didgeridoo's phrases through the solo. */
@@ -255,7 +281,7 @@ export function didgeLead(plan: StrayaPlan, at: DidgeBar, phrase: number): LofiN
   const shape = LEAD_PHRASES[plan.phrases[phrase % plan.phrases.length]!]!;
   const half = at.i % 2;
   const steps = shape.filter(([b]) => b === half).map(([, s, , a]) => [s, 0, a, a === DIDGE_DRONE ? 0.7 : 0.82 + plan.r() * 0.12] as [number, number, number, number]);
-  return tile(steps, at, 'didge', DIDGE_LEAD);
+  return tile(steps, at, 'didge', DIDGE_LEAD, plan.kinds.lead, plan.kinds.fifth ? at.fifth : at.root);
 }
 
 // ── the birds ────────────────────────────────────────────────────────────────
@@ -276,7 +302,7 @@ export interface BirdBar {
 
 /** Whether a stretch of the bar (beats) is clear of the lead, the banjo's or the didgeridoo's. */
 function clear(notes: readonly LofiNote[], from: number, to: number): boolean {
-  return !notes.some(n => (n.voice === 'lead' || (n.voice === 'didge' && Math.floor((n.mod ?? 0) / DIDGE_ROLE) === DIDGE_LEAD)) && n.beat < to && n.beat + n.dur > from);
+  return !notes.some(n => (n.voice === 'lead' || (n.voice === 'didge' && readDidge(n.mod ?? 0).role === DIDGE_LEAD)) && n.beat < to && n.beat + n.dur > from);
 }
 
 /**
@@ -285,7 +311,7 @@ function clear(notes: readonly LofiNote[], from: number, to: number): boolean {
  * and then a quieter magpie between phrases, only where the lead has rested.
  */
 export function strayaBirds(plan: StrayaPlan, at: BirdBar, notes: LofiNote[]): void {
-  const r = plan.r;
+  const r = plan.birdR;
   const song = (): number => Math.floor(r() * LOFI_BIRD_FEATURE);
   // A featured bird from the bar before may still be singing: the lead waits for the bird.
   if (plan.clearing > 0) {
@@ -319,3 +345,131 @@ export function strayaBirds(plan: StrayaPlan, at: BirdBar, notes: LofiNote[]): v
     if (clear(notes, beat, Math.min(4, beat + dur))) notes.push({ voice: 'magpie', midi: at.magpie, beat, dur, vel: 0.4, mod: song() });
   }
 }
+
+// ── the didgeridoo's cameo in the bass genres ────────────────────────────────
+
+/** The bass genres the didgeridoo now and then turns up in, over or between the bass stacks. */
+export const DIDGE_CAMEO = new Set(['dubstep', 'brostep', 'dnb']);
+
+/** Where a tune's cameo falls: in a drop (the first or the second) at a phrase's end, or in the breakdown's middle; or none. */
+export interface Cameo { section: 'drop' | 'break'; alt: boolean; bar: number; kind: number; figure: number; second: boolean }
+
+/**
+ * The cameo's figures over a drop: a bar of the drone undulating (the mouth opening and the
+ * tongue on the sixteenths), the toots and a growl or a call coming out of it in the second
+ * half, never on their own.
+ */
+const CAMEO_FILLS: readonly Figure[] = [
+  [[0, 2, DIDGE_WA], [2, 2, DIDGE_TONGUE], [4, 2, DIDGE_WA], [6, 2, DIDGE_TONGUE], [8, 2, DIDGE_PUSH], [10, 2, DIDGE_TOOT], [12, 2, DIDGE_GROWL], [14, 2, DIDGE_TOOT]],
+  [[0, 3, DIDGE_WA], [3, 3, DIDGE_WA], [6, 2, DIDGE_TONGUE], [8, 4, DIDGE_CALL], [12, 2, DIDGE_WA], [14, 2, DIDGE_TOOT]],
+  [[0, 2, DIDGE_PUSH], [2, 2, DIDGE_WA], [4, 2, DIDGE_PUSH], [6, 2, DIDGE_WA], [8, 1, DIDGE_TONGUE], [9, 1, DIDGE_TONGUE], [10, 2, DIDGE_TOOT], [12, 1, DIDGE_TONGUE], [13, 1, DIDGE_TONGUE], [14, 2, DIDGE_TOOT]],
+];
+
+/**
+ * A bass-genre tune's didgeridoo cameo, from a stream of its own (`seed` already mixed): about
+ * two tunes in five have one, a single bar, and a few of those a second, shorter one in the other
+ * drop. Rare by design: a moment, never a part.
+ */
+export function cameoOf(seed: number): Cameo | null {
+  const r = mulberry32(seed >>> 0);
+  if (r() >= 0.4) return null;
+  const inBreak = r() < 0.35;
+  return { section: inBreak ? 'break' : 'drop', alt: r() < 0.5, bar: inBreak ? 2 : r() < 0.5 ? 3 : 7, kind: Math.floor(r() * 4), figure: Math.floor(r() * CAMEO_FILLS.length), second: r() < 0.3 };
+}
+
+/** The cameo's notes in a bar (none where it does not fall): `bar` counts the section's bars. */
+export function didgeCameo(c: Cameo, at: { section: LofiSection; alt: boolean; bar: number; root: number; sb: (step: number) => number }): LofiNote[] {
+  const tileAt = (fig: Figure, vel: number): LofiNote[] => {
+    const sorted = [...fig].sort((x, y) => x[0] - y[0]);
+    return sorted.map(([step, , art], n) => {
+      const beat = at.sb(step), next = sorted[n + 1]?.[0] ?? 16;
+      return { voice: 'didge' as const, midi: at.root, beat, dur: Math.max(0.1, at.sb(next) - beat - 0.01), vel, mod: art + DIDGE_MID * DIDGE_ROLE + c.kind * DIDGE_KIND };
+    });
+  };
+  if (at.section === c.section && at.alt === c.alt && at.bar === c.bar) {
+    // In the breakdown, a bar of rhythm between the stacks; in a drop, the bar's second half over the bass.
+    return c.section === 'break' ? tileAt(MID_GROOVES[c.figure * 2]!, 0.72) : tileAt(CAMEO_FILLS[c.figure]!, 0.8);
+  }
+  // The second, shorter one: the other drop's eighth bar, half a bar of undulation into a toot.
+  if (c.second && c.section === 'drop' && at.section === 'drop' && at.alt !== c.alt && at.bar === 7) return tileAt([[8, 2, DIDGE_WA], [10, 2, DIDGE_TONGUE], [12, 2, DIDGE_WA], [14, 2, DIDGE_TOOT]], 0.75);
+  return [];
+}
+
+// ── the magpie in botanica and sherbert ──────────────────────────────────────
+
+/** The styles that sing the magpie as their own, besides Straya: botanica gently, sherbert as a hook. */
+export const MAGPIE_STYLES = new Set(['botanica', 'sherbert']);
+
+/**
+ * A botanica or sherbert tune with its magpie, from a stream of its own (`seed` already mixed),
+ * so every other note is as it was. Botanica's is gentle: a quiet warble in the opening, in the
+ * clearing (its breakdown) and now and then at a phrase's end, only where the lead rests.
+ * Sherbert's is a hook: most tunes carol once up front, into the first drop, at that drop's
+ * tail or in the breakdown, the chopped vocal leaving room under it, and some warble quietly
+ * in the breakdown too.
+ */
+export function withMagpies<B extends { section: LofiSection; index: number; tones: readonly number[]; notes: LofiNote[] }>(bars: B[], mood: string, seed: number, sb: (step: number) => number = s => s / 4): B[] {
+  if (!MAGPIE_STYLES.has(mood)) return bars;
+  // Scrambled first: neighbouring seeds' first draws would otherwise lie close together.
+  const r = mulberry32(Math.imul((seed ^ (seed >>> 16)) >>> 0, 0x45d9f3b) >>> 0);
+  r(); r();
+  const song = (): number => Math.floor(r() * LOFI_BIRD_FEATURE);
+  const out = bars.map(b => ({ ...b, notes: [...b.notes] }));
+  const runStart = (i: number): number => { let j = i; while (j > 0 && out[j - 1]!.section === out[i]!.section) j--; return j; };
+  const pitch = (b: B): number => 84 + (((b.tones[0] ?? 0) + 7) % 12);
+  const add = (b: B, n: LofiNote): void => { b.notes.push(n); b.notes.sort((x, y) => x.beat - y.beat); };
+  if (mood === 'botanica') {
+    let sung = 0;
+    out.forEach((b, i) => {
+      if (sung >= 4) return;
+      const into = i - runStart(i);
+      const calm = b.section === 'intro' || b.section === 'break' || b.section === 'verse' || b.section === 'outro';
+      const chance = (b.section === 'intro' && into === 1) ? 0.7 : (b.section === 'break' && into === 2) ? 0.6 : calm && into % 4 === 3 ? 0.25 : 0;
+      if (!chance || r() >= chance) return;
+      const beat = sb(r() < 0.5 ? 8 : 4), dur = 2 + r() * 2;
+      if (!clear(b.notes, beat, Math.min(4, beat + dur))) return;
+      add(b, { voice: 'magpie', midi: pitch(b), beat, dur, vel: 0.42, mod: song() });
+      sung++;
+    });
+    return out;
+  }
+  // Sherbert: one carol up front in most tunes, the chopped vocal cleared from under the carol.
+  const drop = out.findIndex(b => b.section === 'drop');
+  if (drop < 1) return out;
+  let dropEnd = drop;
+  while (dropEnd + 1 < out.length && out[dropEnd + 1]!.section === 'drop') dropEnd++;
+  const breakAt = out.findIndex(b => b.section === 'break');
+  const x = r();
+  const where = x < 0.15 ? -1 : x < 0.5 ? drop - 1 : x < 0.75 ? dropEnd : breakAt >= 0 ? breakAt + 1 : drop - 1;
+  if (where >= 0 && where < out.length) {
+    const b = out[where]!;
+    const beat = where === drop - 1 ? 0 : 2;
+    for (let n = b.notes.length - 1; n >= 0; n--) if (b.notes[n]!.voice === 'lead' && b.notes[n]!.beat >= beat - 0.25) b.notes.splice(n, 1);
+    add(b, { voice: 'magpie', midi: pitch(b), beat, dur: 6, vel: 0.8, mod: song() + LOFI_BIRD_FEATURE + (r() < 0.3 ? LOFI_BIRD_FLOCK : 0) });
+  }
+  if (breakAt >= 0 && breakAt + 4 < out.length && out[breakAt + 4]!.section === 'break' && r() < 0.4) {
+    const b = out[breakAt + 4]!;
+    if (clear(b.notes, 2, 4)) add(b, { voice: 'magpie', midi: pitch(b), beat: 2, dur: 2.5, vel: 0.4, mod: song() });
+  }
+  return out;
+}
+
+/**
+ * A toot (the overblown honk) only where the band is busy and loud around it: players put it
+ * over a full band, and on its own it sounds out of place (Andy, 2026-11-14). In a bar that is
+ * not a pre-chorus, a chorus or a solo trade with the band playing under the solo, or where fewer than four
+ * other parts play, each toot becomes the mouth's "wa" in its place, so the undulation carries
+ * on and nothing honks bare. In place on `notes`.
+ */
+export function gateToots(notes: LofiNote[], section: LofiSection, layers: readonly LofiLayer[]): void {
+  const parts = new Set(notes.filter(n => n.voice !== 'didge').map(n => n.voice)).size;
+  const band = layers.includes('keys') && layers.includes('kick');
+  const busy = (section === 'build' || section === 'drop' || (section === 'break' && band)) && parts >= 4;
+  if (busy) return;
+  for (const n of notes) {
+    if (n.voice !== 'didge' && n.voice !== 'bass') continue;
+    const d = readDidge(n.mod ?? 0);
+    if (d.art === DIDGE_TOOT) n.mod = (n.mod ?? 0) - DIDGE_TOOT + DIDGE_WA;
+  }
+}
+

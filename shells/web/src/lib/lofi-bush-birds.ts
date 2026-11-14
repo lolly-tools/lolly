@@ -15,11 +15,12 @@
  * a second between; a family carols together, each bird its own phrases, overlapping. The
  * warble, its quiet sub-song, is softer and denser, its notes shorter and more of them pulsed.
  *
- * The kookaburra laughs in four parts: low chuckles ("hoo-hoo"), a build that quickens and
- * climbs, the full rolling laugh ("koo-koo-kaa-kaa", the kaa higher and harsher), and the
- * fall-away, slower and lower. Each syllable is a harsh, harmonic-rich call near 450 to 700
- * Hz, its pitch arching a little, its tone rough with noise. A family laughs together, each
- * bird starting a moment apart.
+ * The kookaburra laughs in four parts: low, soft chuckles ("hoo-hoo"), a build that quickens
+ * and climbs, the full rolling laugh ("koo-koo-kaa-kaa", the kaa higher and harsher), and the
+ * fall-away, sputtering down, with breaks and a breath drawn in. Each syllable is raucous: a
+ * voice near 450 to 700 Hz whose pulses waver and alternate (period doubling), full of breath
+ * noise, its pitch arching up and down inside each syllable. A family laughs together, out of step, the
+ * birds further off quieter and duller.
  *
  * Measured against field recordings (numbers only; none is in this repository): magpie carols
  * and warbles from Freesound, the radio aporee archive and Wikimedia Commons (CC0, CC BY, CC
@@ -33,8 +34,12 @@
  *   4.5 to 5.9 notes a second, 87 to 141 ms, 830, 1300 and 1850 to 2050 Hz, two voices 36 per
  *   cent of the time, 27.6 dB down, pulsed near 90 to 100 Hz.
  * - kookaburra laughs: 7 to 15 s, 6 to 9 syllables a second, syllables 56 to 116 ms, a pitch of
- *   450 to 690 Hz, 7 to 10 harmonics within 30 dB; the model's laugh 9.7 to 12.8 s, 6.6 to 9.3 a
- *   second, 84 to 92 ms, 615 Hz, 9 harmonics.
+ *   450 to 690 Hz, 7 to 10 harmonics within 30 dB; inside a syllable the harmonics stand only
+ *   about 0 to 5 dB over the noise, period doubling puts energy half way between them 11 to 19
+ *   dB down, the pitch arches up 1.4 to 2.5 semitones and down 1 to 3, the attack takes 28 to
+ *   40 ms, and the gaps spread by about 0.4 of themselves. The model's laugh: 10.7 s, 8.1 a
+ *   second, 112 ms, 615 Hz, 9 harmonics, harmonics 0.8 dB under the noise, doubling 11 dB
+ *   down, arches up 1.8 and down 1.2 semitones, a 32 ms attack, gaps spread by 0.34.
  */
 
 export type Stereo = [Float32Array, Float32Array];
@@ -229,63 +234,123 @@ export function magpieFamily(sr: number, seconds: number, centre: number, seed: 
 
 // ── the kookaburra ───────────────────────────────────────────────────────────
 
-/** One syllable of a laugh: when, how long, its pitch at the start, how far it arches, how harsh and how loud. */
-interface Syllable { at: number; dur: number; f0: number; arch: number; harsh: number; level: number }
+/**
+ * One syllable of a laugh: when, how long, its pitch, how its pitch sweeps inside it (from,
+ * peak and end in semitones, and where the peak falls), how harsh and how loud, and whether it
+ * is a breath drawn in between bursts rather than a call.
+ */
+interface Syllable { at: number; dur: number; f0: number; from: number; top: number; end: number; peakAt: number; harsh: number; level: number; breath: boolean }
 
 /**
  * The laugh's four parts, fitted to the recordings: [length (s), syllables a second from and to,
  * pitch from and to (times the laugh's own), syllable length (s), harshness, level from and to].
  * Recorded laughs run 7 to 15 s, 6 to 9 syllables a second through the full laugh, each about
- * 55 to 115 ms long.
+ * 55 to 115 ms long, the chuckles 5 to 10 dB under the full laugh and the fall-away sputtering
+ * down 5 to 12 dB.
  */
 const LAUGH: ReadonlyArray<readonly [number, number, number, number, number, number, number, number, number]> = [
-  [1.8, 7.5, 8.5, 0.62, 0.72, 0.045, 0.3, 0.22, 0.45],  // the chuckles: hoo-hoo, low and quick
-  [2, 8, 9, 0.78, 1, 0.055, 0.6, 0.45, 0.9],             // the build: quicker, climbing
-  [5, 6.4, 6.1, 1, 1, 0.075, 1, 1, 1],                   // the full laugh: koo-koo-kaa-kaa
-  [2.6, 5.5, 3.5, 0.95, 0.72, 0.085, 0.8, 0.7, 0.18],    // the fall-away
+  [1.8, 7.5, 8.5, 0.62, 0.72, 0.05, 0.25, 0.28, 0.45],   // the chuckles: hoo-hoo, low, soft and quick
+  [2, 7.5, 8.5, 0.78, 1, 0.08, 0.65, 0.5, 0.9],           // the build: quicker, climbing, harsher
+  [5, 6.6, 6.2, 1, 1, 0.105, 1, 1, 1],                    // the full laugh: koo-koo-kaa-kaa-ha-ha
+  [2.6, 5.5, 3.2, 0.95, 0.72, 0.09, 0.85, 0.5, 0.15],     // the fall-away, sputtering down
 ];
 
-/** A laugh's syllables, `length` times the usual length (1 about 11 s). */
+/**
+ * A laugh's syllables, `length` times the usual length (1 about 11 s). Never metronomic: the
+ * gaps vary (recorded laughs' spread is about 0.4 of the gap), a syllable now and then comes
+ * hard on the last (a stutter), the laugh breaks off and starts again, a breath is drawn in the
+ * longer breaks, and the pitch jumps a semitone or two between syllables.
+ */
 function laughSyllables(r: () => number, f0: number, length: number): Syllable[] {
   const out: Syllable[] = [];
   let t = 0;
   for (const [secs, rateA, rateB, pitchA, pitchB, dur, harsh, levelA, levelB] of LAUGH) {
     const span = secs * length * (0.8 + r() * 0.4);
-    const end = t + span;
+    const begin = t, end = t + span;
     let k = 0;
     while (t < end) {
-      const u = (t - (end - span)) / span;
+      const u = (t - begin) / span;
       const rate = rateA + (rateB - rateA) * u;
       // The full laugh alternates: koo, koo, then kaa higher and harsher.
       const kaa = harsh >= 1 && k % 4 >= 2;
-      const f = f0 * (pitchA + (pitchB - pitchA) * u) * (kaa ? 1.22 : 1) * 2 ** ((r() - 0.5) * 0.08);
-      out.push({ at: t, dur: dur * (0.8 + r() * 0.4) * (kaa ? 1.15 : 1), f0: f, arch: 0.4 + r() * 1.2, harsh: Math.min(1, harsh * (kaa ? 1.3 : 1)), level: (levelA + (levelB - levelA) * u) * (0.7 + r() * 0.6) });
-      t += (1 / rate) * (0.88 + r() * 0.24);
+      const f = f0 * (pitchA + (pitchB - pitchA) * u) * (kaa ? 1.2 : 1) * 2 ** ((gauss(r) * 1.1) / 12);
+      // Each syllable's own sweep: up from under its pitch to a peak near its middle, and down past where it began.
+      const width = (harsh < 0.4 ? 0.5 : 0.9) * (0.3 + r() * 1.0);
+      out.push({
+        at: t, dur: dur * (0.75 + r() * 0.5) * (kaa ? 1.15 : 1), f0: f,
+        from: -(3 + r() * 2) * width, top: (0.5 + r() * 1.2) * width, end: -(0.8 + r() * 2) * width, peakAt: 0.4 + r() * 0.2,
+        harsh: Math.min(1, harsh * (kaa ? 1.25 : 1) * (0.8 + r() * 0.4)), level: (levelA + (levelB - levelA) * u) * (0.65 + r() * 0.7), breath: false,
+      });
+      // The gap to the next: varied, sometimes a stutter, sometimes a break and a breath drawn in.
+      // The full laugh runs steadiest; the chuckles, the build and the fall-away stutter more.
+      let gap = (1 / rate) * Math.exp((harsh >= 1 ? 0.15 : 0.4) * gauss(r));
+      if (r() < (harsh >= 1 ? 0.04 : 0.12)) gap = 0.055 + r() * 0.03;
+      else if (harsh >= 0.6 && r() < 0.06) {
+        gap = 0.22 + r() * 0.25;
+        out.push({ at: t + gap * 0.45, dur: 0.07 + r() * 0.05, f0: f * 0.45, from: 0, top: 0, end: -1, peakAt: 0.5, harsh: 1, level: 0.12 + r() * 0.08, breath: true });
+      }
+      t += Math.max(0.05, gap);
       k++;
     }
   }
   return out;
 }
 
-/** Sing a laugh's syllables into `out`: a harsh, rough voice rich in harmonics, through the bird's two resonances. */
+/** The breath noise in each pulse, against the pulse. */
+const LAUGH_NOISE = 0.22;
+/**
+ * Sing a laugh's syllables into `out`: a raucous voice, its pulses irregular (jitter and shimmer
+ * of a few per cent), every other pulse weaker and later (the period doubling that puts energy
+ * half way between the harmonics, 10 to 20 dB under them in the recordings), and breath noise
+ * inside each pulse (the recordings' harmonics stand only about 0 to 5 dB over their noise),
+ * through the bird's resonances. A drawn breath is noise alone, low and soft.
+ */
 function singLaugh(out: Float32Array, sr: number, syl: readonly Syllable[], r: () => number, gain: number): void {
-  const f1 = new Band(sr, 1450, 1.6), f2 = new Band(sr, 2700, 2.2);
+  const low = new Band(sr, 700, 1.6), f1 = new Band(sr, 1500, 3.5), f2 = new Band(sr, 2600, 3.5), f3 = new Band(sr, 3600, 4);
+  const breathBand = new Band(sr, 1200, 0.8);
   for (const s of syl) {
-    const start = Math.round(s.at * sr), len = Math.round(s.dur * sr);
-    let phase = 0;
-    for (let i = 0; i < len + Math.round(0.02 * sr) && start + i < out.length; i++) {
+    const start = Math.round(s.at * sr), len = Math.round(s.dur * sr), tail = Math.round(0.015 * sr);
+    const attack = Math.round((0.025 + 0.03 * s.harsh * r()) * sr);
+    if (s.breath) {
+      for (let i = 0; i < len + tail && start + i < out.length; i++) {
+        const u = i / len;
+        const env = Math.sin(Math.PI * Math.min(1, u)) ** 2;
+        out[start + i]! += breathBand.run((r() * 2 - 1) * env) * s.level * gain;
+      }
+      continue;
+    }
+    let phase = 0, odd = false, period = sr / s.f0, amp = 1;
+    const doubling = 0.12 + 0.35 * s.harsh * r();
+    const offset = 0.015 * s.harsh * r();
+    const noisy = 0.25 + 1.1 * s.harsh;
+    // The voice's top: the chuckles low and soft (the recordings' "hoo" sits under a kilohertz),
+    // the full laugh's energy mostly between 1 and 3.5 kHz, falling away above 4.
+    const topPole = Math.exp((-2 * Math.PI * (900 + 3100 * Math.min(1, s.harsh * 1.25))) / sr);
+    let t1 = 0, t2 = 0;
+    for (let i = 0; i < len + tail && start + i < out.length; i++) {
       const u = Math.min(1, i / len);
-      // The pitch arches up a little through the syllable and falls at its end.
-      const f = s.f0 * 2 ** ((s.arch * Math.sin(Math.PI * Math.min(1, u * 1.15)) - 1.5 * Math.max(0, u - 0.8)) / 12) * (1 + 0.06 * gauss(r) * s.harsh);
-      phase += f / sr;
+      // The sweep inside the syllable, as a chevron.
+      const st = u < s.peakAt ? s.from + (s.top - s.from) * Math.sin((Math.PI / 2) * (u / s.peakAt)) : s.top + (s.end - s.top) * (1 - Math.cos((Math.PI / 2) * ((u - s.peakAt) / (1 - s.peakAt))));
+      phase += 1;
       let pulse = 0;
-      if (phase >= 1) { phase -= 1; pulse = 1; }
-      // A rough voice: each period a sharp pulse, some pulses weaker (the rasp), with noise.
-      const p = pulse ? (1 - 0.45 * s.harsh * r()) : 0;
-      const src = p + (r() * 2 - 1) * 0.05 * s.harsh * Math.min(1, phase * 6);
-      const env = i < len ? Math.min(1, i / (0.007 * sr)) * (1 - 0.35 * u) : Math.max(0, 1 - (i - len) / (0.02 * sr)) * 0.65;
-      const voiced = src * env;
-      out[start + i]! += (f1.run(voiced) * 1.0 + f2.run(voiced) * 0.6 + voiced * (0.12 + 0.3 * (1 - s.harsh))) * s.level * gain;
+      if (phase >= period) {
+        phase -= period;
+        odd = !odd;
+        // The next period: the sweep's pitch, jittered, every other one longer and weaker.
+        const f = s.f0 * 2 ** (st / 12);
+        period = (sr / f) * (1 + 0.01 * s.harsh * gauss(r)) * (odd ? 1 + offset : 1 - offset);
+        amp = (odd ? 1 - doubling : 1) * (1 + 0.1 * s.harsh * gauss(r));
+        pulse = amp;
+      }
+      // Breath noise, strongest in the first part of each period (while the syrinx is open).
+      const open = phase < period * 0.4 ? 1 : 0.3;
+      const src = pulse * 1.6 + (r() * 2 - 1) * LAUGH_NOISE * noisy * open;
+      const env = i < attack ? 0.5 - 0.5 * Math.cos((Math.PI * i) / attack) : i < len ? 1 - 0.5 * ((i - attack) / Math.max(1, len - attack)) : 0.5 * (1 - (i - len) / tail);
+      t1 = (1 - topPole) * src * env + topPole * t1;
+      t2 = (1 - topPole) * t1 + topPole * t2;
+      const v = t2;
+      const chuckle = 1 - Math.min(1, s.harsh * 1.4);
+      out[start + i]! += (low.run(v) * (0.3 + 0.9 * chuckle) + f1.run(v) * 1.4 * (1 - 0.6 * chuckle) + f2.run(v) * 1.0 * (1 - 0.7 * chuckle) + f3.run(v) * 0.3 * (1 - 0.8 * chuckle) + v * 0.02) * s.level * gain;
     }
   }
 }
@@ -315,7 +380,10 @@ export function kookaburraFamily(sr: number, f0: number, seed: number, birds: nu
   for (const k of takes) {
     const gl = k.near * Math.cos(((k.pan + 1) * Math.PI) / 4), gr = k.near * Math.sin(((k.pan + 1) * Math.PI) / 4);
     const off = Math.round(k.late * sr);
-    for (let i = 0; i < k.x.length; i++) { L[off + i]! += k.x[i]! * gl; R[off + i]! += k.x[i]! * gr; }
+    // A bird further off is quieter and duller: the air takes its top.
+    const pole = Math.exp((-2 * Math.PI * (2500 + 5000 * k.near)) / sr);
+    let y = 0;
+    for (let i = 0; i < k.x.length; i++) { y = (1 - pole) * k.x[i]! + pole * y; L[off + i]! += y * gl; R[off + i]! += y * gr; }
   }
   outdoors([L, R], sr, room);
   return [L, R];

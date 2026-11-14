@@ -37,9 +37,8 @@
  */
 import { LIP_COMPLIANCE, LIP_GAP, LIP_REST } from './lofi-brass.ts';
 import { airBurst, inhale, seededRandom, type BurstShape, type InhaleShape } from './lofi-breath.ts';
-import { DIDGE_BARK, DIDGE_BREATH, DIDGE_CALL, DIDGE_HOWL, DIDGE_PUSH, DIDGE_SWEEP, DIDGE_TONGUE, DIDGE_TOOT, DIDGE_WA } from '../../../../engine/src/lofi-straya.ts';
+import { DIDGE_BARK, DIDGE_BEND, DIDGE_BREATH, DIDGE_CALL, DIDGE_GROWL, DIDGE_HOWL, DIDGE_PUSH, DIDGE_SWEEP, DIDGE_TONGUE, DIDGE_TOOT, DIDGE_WA } from '../../../../engine/src/lofi-straya.ts';
 
-export { DIDGE_ART, DIDGE_ROLE } from '../../../../engine/src/lofi-straya.ts';
 
 /** One note the player plays: when it starts and how long it lasts (s, within the span), how it is played (a DIDGE_* articulation), how hard (0 to 1) and in which role (0 the drone, 1 the rhythm, 2 the lead). */
 export interface DidgeEvent { at: number; dur: number; art: number; vel: number; role: number }
@@ -63,6 +62,34 @@ export const BORE: Resonance[] = Array.from({ length: 12 }, (_, k) => {
 });
 
 /**
+ * The kinds of yidaki a tune can call for (a note's variant, engine/src/lofi-straya.ts): each a
+ * different bore, so a different trumpet note and a different colour. Its second resonance (the
+ * toot, times the drone) and the spacing of the ones above, how sharp they are, how bright the
+ * tract's bands sit, and how uneven a termite-hollowed bore leaves its resonances. Recorded
+ * didgeridoos toot 2.2 to 3 times their drone (median about 2.75).
+ */
+export interface Yidaki { second: number; step: number; q: number; peak: number; bands: number; rough: number }
+export const YIDAKI: readonly Yidaki[] = [
+  // The classic long eucalyptus bore: strong odd harmonics, the toot about 2.8 times the drone.
+  { second: 2.8, step: 2, q: 14, peak: 10, bands: 1, rough: 0 },
+  // A bell-ended bore: a lower toot and a rounder, darker drone.
+  { second: 2.62, step: 1.86, q: 12, peak: 9, bands: 0.92, rough: 0.01 },
+  // A narrow, smooth bore: a brighter drone, the toot nearly a twelfth up.
+  { second: 2.95, step: 2.05, q: 17, peak: 11, bands: 1.1, rough: 0 },
+  // A rough termite-hollowed bore: its resonances a little uneven, more air in the tone.
+  { second: 2.72, step: 1.95, q: 10, peak: 9, bands: 1.04, rough: 0.035 },
+];
+
+/** A yidaki's resonances, as multiples of its drone, from its kind and its own seed (the termites' unevenness). */
+function boreOf(v: Yidaki, seed: number): Resonance[] {
+  const r = seededRandom(seed ^ 0x7e3a11);
+  return Array.from({ length: 12 }, (_, k) => {
+    const ratio = (k === 0 ? 0.98 : v.second + v.step * (k - 1)) * (k === 0 ? 1 : 1 + v.rough * (r() * 2 - 1));
+    return [ratio, v.peak * Math.sqrt(0.98 / ratio) * (1 + v.rough * 4 * (r() - 0.5)), Math.min(80, v.q * Math.sqrt(ratio / 0.98))] as const;
+  });
+}
+
+/**
  * The tongue's places, as the vocal tract's resonances seen from the lips (Hz, peak against the
  * tube's resistance, sharpness): its low resonance, the one the tongue moves most, and the one
  * above. "oo" with the tongue low and back, "ah" open, "ee" high and forward, and the cheeks'
@@ -77,12 +104,12 @@ export const TRACT: Record<'oo' | 'ah' | 'ee' | 'cheek', readonly [Resonance, Re
 type Vowel = keyof typeof TRACT;
 
 /**
- * The bright bands each tongue position lets out (Hz): where the tract chokes the air least,
- * the band between its resonances that the ear hears as the vowel. A rhythm's "ee" sweeps
+ * The bright bands each tongue position lets out (Hz, and how strongly): where the tract chokes
+ * the air least, the band between its resonances that the ear hears as the vowel. A rhythm's "ee" sweeps
  * them up to two and a half kilohertz and more, as recorded players' do; a drone's "oo" keeps
  * them low.
  */
-export const BANDS: Record<Vowel, readonly [number, number]> = { oo: [750, 1250], ah: [900, 1500], ee: [1700, 2600], cheek: [1200, 2300] };
+export const BANDS: Record<Vowel, readonly [number, number, number]> = { oo: [750, 1250, 1], ah: [1150, 1800, 2.2], ee: [2100, 3000, 3.2], cheek: [1200, 2300, 1.2] };
 
 /** The fitted constants (see the measurements above); one object so the fitting harness can try others. */
 export const DIDGE_TUNING = {
@@ -114,8 +141,12 @@ export const DIDGE_TUNING = {
   sniff: 0.035, tongueAir: 0.05,
   /** How firmly the lips are set together beyond the brass model's rest (more shuts them for longer each cycle). */
   press: 0.1,
+  /** How far a bend loosens the lips (a share of their tuning). */
+  bend: 0.06,
   /** The toot: where the lips are tightened to (times the drone), and how much harder it is blown. */
-  toot: 2.7, tootPush: 0.3,
+  toot: 0.96, tootPush: 0.3,
+  /** Use BORE as it stands (the fitting harness), rather than a kind's. */
+  useBore: false,
 };
 /** Samples between control updates (the tract's filters are recomputed this often). */
 const BLOCK = 32;
@@ -155,8 +186,8 @@ interface Controls {
   lips: number;
   /** The tongue's place: a blend between vowels. */
   vowel: Vowel; to: Vowel; blend: number;
-  /** The voice: its loudness (a share of the breath) and its pitch (Hz). */
-  voice: number; pitch: number;
+  /** The voice: its loudness (a share of the breath), its pitch (Hz) and how rough it is (a growl's flutter, 0 smooth). */
+  voice: number; pitch: number; rough: number;
 }
 
 /** A small seeded normal draw. */
@@ -171,7 +202,7 @@ function ease(x: number, a: number, b: number): number {
 }
 
 /** Options for a player: its drone (Hz), the vowel it rests on, how bright its lips are. */
-export interface DidgeOptions { sr: number; f: number; rest?: Vowel; seed: number }
+export interface DidgeOptions { sr: number; f: number; rest?: Vowel; seed: number; variant?: number }
 
 /**
  * One didgeridoo and its player, as a continuous simulation. `render` carries on from where
@@ -184,10 +215,17 @@ export class Didgeridoo {
   private readonly rest: Vowel;
   private readonly rand: () => number;
   private readonly bore: Peak[];
+  /** The kind of yidaki, and its index in YIDAKI. */
+  private readonly kind: Yidaki;
+  private readonly variant: number;
   private readonly tract: Peak[];
   private lipY = 0; private lipV = 0;
   private wander = 0; private drift = 0;
   private vphase = 0;
+  private flutter = 0;
+  /** Samples blown so far, and the controls as the last block left them. */
+  private count = 0;
+  private ctl = { lipW: 0, gt: 0, breath: 0, voice: 0, vf: 0, rough: 0, bright: 1 };
   private r1 = 0; private r2 = 0; private o1 = 0; private o2 = 0; private top = 0;
   private hp: { b0: number; b1: number; b2: number; a1: number; a2: number };
   private f1 = 0; private f2 = 0; private g1 = 0; private g2 = 0;
@@ -210,8 +248,11 @@ export class Didgeridoo {
     this.rest = o.rest ?? 'oo';
     this.seed = o.seed >>> 0;
     this.rand = seededRandom(this.seed);
-    this.bore = BORE.map(() => new Peak());
-    this.bore.forEach((p, k) => { const [ratio, peak, q] = BORE[k]!; p.set(o.sr, o.f * ratio, q, peak * DIDGE_TUNING.boreGain); });
+    this.kind = YIDAKI[(o.variant ?? 0) % YIDAKI.length]!;
+    this.variant = o.variant ?? 0;
+    const modes = o.variant === undefined && DIDGE_TUNING.useBore ? BORE : boreOf(this.kind, this.seed);
+    this.bore = modes.map(() => new Peak());
+    this.bore.forEach((p, k) => { const [ratio, peak, q] = modes[k]!; p.set(o.sr, o.f * ratio, q, peak * DIDGE_TUNING.boreGain); });
     this.tract = [new Peak(), new Peak(), new Peak()];
     const w = (2 * Math.PI * DIDGE_TUNING.radiate) / o.sr, c = Math.cos(w), al = Math.sin(w) / (2 * 0.7), a0 = 1 + al;
     this.hp = { b0: (1 + c) / 2 / a0, b1: -(1 + c) / a0, b2: (1 + c) / 2 / a0, a1: (-2 * c) / a0, a2: (1 - al) / a0 };
@@ -226,11 +267,11 @@ export class Didgeridoo {
     let now: DidgeEvent | undefined;
     for (const n of notes) if (n.at <= t + 0.005 && (!now || n.at >= now.at)) now = n;
     const rest = now ? DIDGE_TUNING.rests[now.role] ?? this.rest : this.rest;
-    const c: Controls = { strength: now?.vel ?? -1, breath: 1, lips: 1, vowel: rest, to: rest, blend: 0, voice: 0, pitch: this.f * 2.5 };
+    const c: Controls = { strength: now?.vel ?? -1, breath: 1, lips: 1, vowel: rest, to: rest, blend: 0, voice: 0, pitch: this.f * 2.5, rough: 0 };
     for (const n of notes) {
       const u = t - n.at;
-      if (u < -0.05 || u > n.dur + 0.4) continue;
       const art = n.art;
+      if (u < (art === DIDGE_TOOT ? -0.2 : -0.05) || u > n.dur + 0.4) continue;
       const v = n.vel;
       if (art === DIDGE_WA || art === DIDGE_PUSH) {
         // A push from the diaphragm; a "wa" opens the mouth with it and closes it again.
@@ -250,12 +291,31 @@ export class Didgeridoo {
         c.breath *= 1 - 0.32 * sag + (0.3 + 0.2 * v) * ease(u, 0.15, 0.18) * Math.exp(-Math.max(0, u - 0.18) / 0.14);
         if (sag > 0) { c.to = 'cheek'; c.blend = Math.max(c.blend, sag); }
       } else if (art === DIDGE_TOOT) {
-        // The lips tighten onto the bore's second resonance, blown harder, for a moment.
-        const len = Math.min(n.dur, 0.12 + 0.1 * v);
-        const on = ease(u, -0.01, 0.012) * (1 - ease(u, len, len + 0.03));
-        c.lips = 1 + (DIDGE_TUNING.toot - 1) * on;
+        // The toot rises out of the drone as the recordings' do: the tongue leads in towards
+        // "ee" over the last tenth of a second or so, the lips tighten onto the bore's second
+        // resonance over about a tenth more (rising 30 to 140 ms in the recordings, the whole
+        // sound 4 to 8 dB up, the drone's fundamental all but gone under it), then let go,
+        // the mouth relaxing to "oo" as the drone comes back.
+        const len = Math.min(n.dur, 0.14 + 0.12 * v);
+        const on = ease(u, -0.05, 0.06) * (1 - ease(u, len, len + 0.05));
+        const lead = ease(u, -0.18, -0.02) * (1 - ease(u, len, len + 0.12));
+        c.lips = 1 + (this.kind.second * DIDGE_TUNING.toot - 1) * on;
         c.breath *= 1 + DIDGE_TUNING.tootPush * on;
-        if (on > 0) { c.to = 'ee'; c.blend = Math.max(c.blend, 0.5 * on); }
+        if (lead > 0) { c.to = 'ee'; c.blend = Math.max(c.blend, 0.6 * lead); }
+      } else if (art === DIDGE_BEND) {
+        // The lips loosen and the drone sags, as far as the bore lets it, then they firm up again.
+        const on = Math.sin(Math.PI * Math.min(1, Math.max(0, u / Math.max(0.15, n.dur))));
+        c.lips *= 1 - DIDGE_TUNING.bend * on;
+        c.breath *= 1 - 0.08 * on;
+      } else if (art === DIDGE_GROWL) {
+        // A growl: the voice low in the throat, fluttering, under the drone.
+        const on = ease(u, 0, 0.03) * (1 - ease(u, n.dur, n.dur + 0.08));
+        if (on <= 0) continue;
+        c.voice = Math.max(c.voice, on * 0.5 * (0.7 + 0.5 * v));
+        c.pitch = this.f * 2.02;
+        c.rough = on;
+        c.breath *= 1 + 0.2 * on;
+        c.to = 'ah'; c.blend = Math.max(c.blend, 0.5 * on);
       } else if (art === DIDGE_HOWL || art === DIDGE_BARK || art === DIDGE_CALL) {
         const len = art === DIDGE_BARK ? Math.min(n.dur, 0.18) : n.dur;
         const on = ease(u, 0, art === DIDGE_BARK ? 0.012 : 0.06) * (1 - ease(u, len, len + (art === DIDGE_BARK ? 0.05 : 0.12)));
@@ -297,12 +357,14 @@ export class Didgeridoo {
     const driftPole = Math.exp((-2 * Math.PI * T.driftRate) / sr * BLOCK);
     const wScale = Math.sqrt((1 + wanderPole) / (1 - wanderPole));
     const dScale = Math.sqrt((1 + driftPole) / (1 - driftPole));
-    let lipW = 0, gt = 0, gb = 0, breath = 0, voice = 0, vf = this.f;
+    // The controls carry over from the last span, and are worked out on the player's own clock,
+    // so a span rendered in two pieces is the same sound as one.
+    let { lipW, gt, breath, voice, vf, rough, bright } = this.ctl;
     // The instantaneous part of the bore's impedance does not change.
-    gb = T.zc;
+    let gb = T.zc;
     for (const p of this.bore) gb += p.gain();
     for (let i = 0; i < n; i++) {
-      if (i % BLOCK === 0) {
+      if ((this.count + i) % BLOCK === 0 || (this.count === 0 && i === 0)) {
         const t = i * dt;
         const c = this.controls(t, notes, releaseAfter);
         this.wander = wanderPole * this.wander + (1 - wanderPole) * gauss(rand);
@@ -317,11 +379,13 @@ export class Didgeridoo {
         breath = this.pm * c.breath * swell;
         voice = c.voice * this.pm;
         vf = c.pitch;
+        rough = c.rough;
         // The tract: the resting vowel blended towards the one the note moves to, drifting a little.
         const a = TRACT[c.vowel], b = TRACT[c.to];
-        const [a1, a2] = BANDS[c.vowel], [b1, b2] = BANDS[c.to];
-        this.band1.set(sr, a1 * (b1 / a1) ** c.blend, T.bandQ, 1);
-        this.band2.set(sr, a2 * (b2 / a2) ** c.blend, T.bandQ, 1);
+        const [a1, a2, ag] = BANDS[c.vowel], [b1, b2, bg] = BANDS[c.to];
+        bright = ag * (bg / ag) ** c.blend;
+        this.band1.set(sr, a1 * (b1 / a1) ** c.blend * this.kind.bands, T.bandQ, 1);
+        this.band2.set(sr, a2 * (b2 / a2) ** c.blend * this.kind.bands, T.bandQ, 1);
         const d = 1 + this.drift * dScale * T.drift * (1 - driftPole);
         gt = 0;
         for (let j = 0; j < 3; j++) {
@@ -338,6 +402,8 @@ export class Didgeridoo {
         if (this.vphase >= 1) this.vphase -= 1;
         const ph = this.vphase;
         pv = voice * ((ph < 0.6 ? 0.5 - 0.5 * Math.cos((2 * Math.PI * ph) / 0.6) : 0) - 0.3);
+        // A growl's flutter: the false folds rattling about thirty times a second.
+        if (rough > 0) { this.flutter += 28 / sr; if (this.flutter >= 1) this.flutter -= 1; pv *= 1 + rough * (0.8 * Math.sin(2 * Math.PI * this.flutter) + 0.5 * (rand() * 2 - 1)); }
       }
       // What the past has already decided of the bore's and the tract's pressure.
       let mb = 0, mt = 0;
@@ -351,7 +417,7 @@ export class Didgeridoo {
       let dp: number, u: number;
       if (drive >= 0) { const s = (-g * gap + Math.sqrt(g * g * gap * gap + 4 * drive)) / 2; dp = s * s; u = gap * s; }
       else { const s = (-g * gap + Math.sqrt(g * g * gap * gap - 4 * drive)) / 2; dp = -s * s; u = -gap * s; }
-      u *= 1 + (rand() * 2 - 1) * T.turbulence;
+      u *= 1 + (rand() * 2 - 1) * (T.turbulence + this.kind.rough);
       for (const p of this.bore) p.push(u);
       for (const p of this.tract) p.push(u);
       // The lips move under the pressure across them.
@@ -370,20 +436,22 @@ export class Didgeridoo {
       this.f2 = this.f1; this.f1 = u; this.g2 = this.g1; this.g1 = above;
       const b1 = this.band1.memory() + this.band1.gain() * above, b2 = this.band2.memory() + this.band2.gain() * above;
       this.band1.push(above); this.band2.push(above);
-      const hf = (above * T.hfPlain + b1 * T.band + b2 * T.band * 0.7) * T.hf;
+      const hf = (above * T.hfPlain + (b1 + b2 * 0.7) * T.band * bright) * T.hf;
       this.top = (1 - this.topPole) * (y + hf) + this.topPole * this.top;
       out[i] = this.top;
     }
     this.blown += seconds;
+    this.count += n;
+    this.ctl = { lipW, gt, breath, voice, vf, rough, bright };
     this.addAir(out, notes);
     return out;
   }
 
   /** A copy of the player as it stands, to try a release on without moving this one on. */
   clone(): Didgeridoo {
-    const d = new Didgeridoo({ sr: this.sr, f: this.f, rest: this.rest, seed: this.seed });
+    const d = new Didgeridoo({ sr: this.sr, f: this.f, rest: this.rest, seed: this.seed, variant: this.variant });
     d.lipY = this.lipY; d.lipV = this.lipV; d.wander = this.wander; d.drift = this.drift; d.vphase = this.vphase;
-    d.r1 = this.r1; d.r2 = this.r2; d.o1 = this.o1; d.o2 = this.o2; d.top = this.top; d.f1 = this.f1; d.f2 = this.f2; d.g1 = this.g1; d.g2 = this.g2; d.blown = this.blown; d.pm = this.pm;
+    d.r1 = this.r1; d.r2 = this.r2; d.o1 = this.o1; d.o2 = this.o2; d.top = this.top; d.f1 = this.f1; d.f2 = this.f2; d.g1 = this.g1; d.g2 = this.g2; d.blown = this.blown; d.pm = this.pm; d.count = this.count; d.ctl = { ...this.ctl }; d.flutter = this.flutter;
     this.bore.forEach((p, k) => { d.bore[k]!.copy(p); });
     this.tract.forEach((p, k) => { d.tract[k]!.copy(p); });
     d.band1.copy(this.band1); d.band2.copy(this.band2);
