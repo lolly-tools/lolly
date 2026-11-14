@@ -41,10 +41,11 @@
  *
  * What each of those writes is said before the click (Andy's approval of 2026-11-10,
  * lib/tune-provenance.ts): the download options under the pill's caret say that a download
- * carries Content Credentials naming the music generator, unless the person unticks the
- * switch, and Save's choice of Assets says that a saved tune records the person's profile
- * name as its maker, the music generator and the Lolly and engine versions. After the click
- * the hint says only what was written.
+ * carries Content Credentials naming the music generator, as every download does (Andy,
+ * 2026-11-14, with Strip Hidden Data for anyone who wants them gone), and Save's choice of
+ * Assets says that a saved tune records the person's profile name as its maker, the music
+ * generator and the Lolly and engine versions. After the click the hint says only what was
+ * written.
  */
 import type { HostV1, Profile } from '@lolly-tools/core/host-v1';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
@@ -59,7 +60,6 @@ import {
   type LofiBar,
 } from '../../../../engine/src/lofi-compose.ts';
 import { LofiStation, renderStation, type LofiMix, type LofiSettings } from '../lib/lofi-station.ts';
-import { lofiStationName } from '../lib/neurospicy-lofi.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from '../lib/lofi-names.ts';
 import { encodeWav, encodeM4a, pcmFromAudioBuffer } from '../lib/audio-encode.ts';
 import { attachScrub } from '../lib/scrub.ts';
@@ -73,7 +73,6 @@ import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
 import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
-import { TUNE_DECLARATION } from '../../../../engine/src/tune-provenance.ts';
 import { genreIconNode, genreTitle, shuffleIconSvg } from '../lib/genre-icons.ts';
 import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { actionButton, PlainFailure } from './music-studio/action-button.ts';
@@ -295,7 +294,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       <button type="button" class="field-select ms-genre" data-genre aria-haspopup="dialog"><span class="ms-genre-icon" data-genre-icon aria-hidden="true"></span><span class="ms-genre-name" data-genre-name></span></button>
       <span class="ms-bar-end">
         ${renderPillHtml()}
-        <button type="button" class="btn btn--labelled ms-save" data-save>${escapeHtml(t('Save'))}</button>
+        <button type="button" class="btn btn--labelled ms-save" data-save title="${escapeHtml(t('Save to assets or projects'))}">${escapeHtml(t('Save'))}</button>
         ${iconBtn('data-link', 'link', t('Copy a link to this track'))}
       </span>
     </div>
@@ -394,9 +393,6 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const pos = q<HTMLElement>('[data-pos]');
   /** The pill's Download: it opens the download's panel, and shows the download's progress. */
   const downloadBtn = q<HTMLButtonElement>('[data-download-open]');
-  // The download options are lent to a popover while it is open, so they are held here.
-  const credToggle = q<HTMLInputElement>('[data-cred]');
-  const credNote = q<HTMLElement>('[data-cred-note]');
   const renderPill = wireRenderPill(page);
   const say = (text: string): void => { hint.textContent = text; };
   const HINT = t('Click a section in a track to hear and choose its instruments there. Click the top row to play from a section.');
@@ -944,7 +940,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const btn = page.querySelector<HTMLButtonElement>('[data-viz-full]');
     if (btn) btn.hidden = !renderedBuffer || !document.fullscreenEnabled;
   }
-  async function encoded(): Promise<{ blob: Blob; format: string }> {
+  async function encoded(): Promise<{ blob: Blob; format: 'm4a' | 'wav' }> {
     if (!renderedBuffer) throw new Error('nothing made yet');
     const pcm = pcmFromAudioBuffer(renderedBuffer);
     const want = renderPill.format();
@@ -953,7 +949,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     }
     return { blob: encodeWav(pcm), format: 'wav' };
   }
-  const trackName = (): string => `${lofiStationName(state.mood)} · ${bars[0]!.tune.key} · ${bars[0]!.tune.bpm} bpm · ${state.seed}`;
+  const trackName = (): string => `${genreTitle(state.mood)} · ${bars[0]!.tune.key} · ${bars[0]!.tune.bpm} bpm · ${state.seed}`;
   const fileName = (format: string): string => `${trackName().replace(/[^\w.-]+/g, '-').replace(/-+/g, '-').toLowerCase()}.${format}`;
 
   // ── the instrument browser ───────────────────────────────────────────────────
@@ -1403,14 +1399,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     void stage.requestFullscreen().catch(() => { say(t('This browser would not go full screen.')); });
   });
   // What a download and a save will record, said before either is clicked: the download
-  // in its panel, under the switch, and each save in Save's own choices.
-  const paintCredNote = (): void => {
-    credNote.textContent = credToggle.checked
-      ? tRaw('Downloads will carry Content Credentials that record: {declaration}.', { declaration: TUNE_DECLARATION })
-      : t('Downloads will carry no Content Credentials.');
-  };
-  credToggle.addEventListener('change', paintCredNote);
-  paintCredNote();
+  // in its panel (views/music-studio/render-pill.ts), and each save in Save's own choices.
   /** The maker a tune saved to Assets records (the profile's name), once the profile is read. */
   let makerName = '';
   void (async () => {
@@ -1433,7 +1422,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // Download and Save to library show their work on the button itself: busy, then a tick
   // or the failure in plain words beside it (views/music-studio/action-button.ts).
   const downloadAct = actionButton(downloadBtn, { busy: t('Preparing…'), done: t('Downloaded'), failed: t('The file could not be made.'), rest: 'download', trail: 'chevronDown', errorAfter: q<HTMLElement>('[data-render-pill]') });
-  const saveAct = actionButton(q<HTMLButtonElement>('[data-save]'), { busy: t('Saving…'), done: t('Saved'), failed: t('The tune could not be saved.'), trail: 'chevronDown' });
+  const saveAct = actionButton(q<HTMLButtonElement>('[data-save]'), { busy: t('Saving…'), done: t('Saved'), failed: t('The tune could not be saved.'), rest: 'save', trail: 'chevronDown' });
   const saveMenu = wireSaveMenu(q<HTMLButtonElement>('[data-save]'), saveChoices, (to) => { void saveTo(to); });
   // The panel's Download closes the panel, renders first when the track has not been
   // rendered (behind the same card as Play), and shows its progress on the pill.
@@ -1442,23 +1431,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (!(await renderWithCard())) return;
     const failed = await downloadAct.run(async () => {
       const { blob, format } = await encoded();
-      if (!credToggle.checked) {
-        await host.export.download(blob, fileName(format));
-        say(t('File handed to your device’s save/download flow, with no Content Credentials.'));
-        return;
-      }
-      const { signTrackDownload } = await import('../lib/tune-provenance.ts');
-      let signed: { blob: Blob; declaration: string | null } | null = null;
-      try {
-        signed = await signTrackDownload(host, blob, format, { name: trackName(), style: state.mood, styleName: lofiStationName(state.mood), seed: state.seed });
-      } catch { signed = null; }
-      await host.export.download(signed?.blob ?? blob, fileName(format));
+      // Always signed, as a folder render signs: a file whose record does not read back
+      // throws here, so no download leaves without its Content Credentials.
+      const { credentialMusicFile } = await import('../lib/music-render.ts');
+      const signed = await credentialMusicFile(host, blob, format, state, trackName());
+      await host.export.download(signed.blob, fileName(format));
       // Only what the reading of the written file found.
-      say(!signed
-        ? t('File handed to your device’s save/download flow without Content Credentials: they could not be written.')
-        : signed.declaration
-          ? tRaw('File handed to your device’s save/download flow. Its Content Credentials record: {declaration}', { declaration: signed.declaration })
-          : t('File handed to your device’s save/download flow. Reading it back found no Content Credentials, so none are confirmed.'));
+      say(tRaw('File handed to your device’s save/download flow. Its Content Credentials record: {declaration}', { declaration: signed.declaration }));
     });
     if (failed) say(failed);
   }
