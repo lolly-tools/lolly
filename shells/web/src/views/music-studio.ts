@@ -79,7 +79,7 @@ import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { actionButton, PlainFailure } from './music-studio/action-button.ts';
 import { renderPillHtml, wireRenderPill } from './music-studio/render-pill.ts';
 import { wireSaveMenu, type SaveChoice, type SaveDestination } from './music-studio/save-menu.ts';
-import { musicProjectRecord, musicStateFromProject, musicSlotFromParams, newMusicSlot } from '../lib/music-project.ts';
+import { musicProjectRecord, musicProjectTitle, musicStateFromProject, musicSlotFromParams, newMusicSlot } from '../lib/music-project.ts';
 import { avoidBlocked, clearSwaps, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
 import { openInstrumentBrowser, instrumentName, instrumentWord, type BrowseTrack, type InstrumentBrowser } from './music-studio/instrument-browser.ts';
 import '../styles/parts/music-studio.css';
@@ -1522,7 +1522,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
    */
   async function saveToProject(): Promise<string> {
     const slot = projectSlot ?? newMusicSlot();
-    const record = musicProjectRecord(state, trackName());
+    // A project renamed in Projects keeps the name it was given.
+    const kept = projectSlot ? await host.state.load(projectSlot).catch(() => null) : null;
+    const named = kept && typeof (kept as { __label?: unknown }).__label === 'string' ? (kept as { __label: string }).__label : '';
+    const record = musicProjectRecord(state, named || musicProjectTitle(state));
     const save = host.state.save.bind(host.state) as (slot: string, data: object, thumb?: string | null) => Promise<void>;
     await save(slot, record, coverImage());
     projectSlot = slot;
