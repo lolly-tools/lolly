@@ -57,7 +57,7 @@ interface Running { c: number; r2: number; y1: number; y2: number; len: number }
  * partials of about the same length run four at a time, so the output is read and written
  * once for every four of them.
  */
-function ring(out: Float32Array, sr: number, partials: readonly Partial[], rand: Rand, at = 0, floor = 1e-3): void {
+export function ring(out: Float32Array, sr: number, partials: readonly Partial[], rand: Rand, at = 0, floor = 1e-3): void {
   let top = 0;
   for (const p of partials) top = Math.max(top, p.a);
   const least = top * floor;
@@ -112,7 +112,7 @@ function bloomRing(out: Float32Array, at: number, len: number, w: number, r: num
 }
 
 /** White noise through a two-pole band-pass at `hz`, under an envelope rising in `attack` and falling by e in `tau`. */
-function noiseBand(out: Float32Array, sr: number, rand: Rand, hz: number, q: number, level: number, attack: number, tau: number, at = 0): void {
+export function noiseBand(out: Float32Array, sr: number, rand: Rand, hz: number, q: number, level: number, attack: number, tau: number, at = 0): void {
   const len = Math.min(out.length - at, Math.ceil((attack + tau * 6) * sr));
   const w = (2 * Math.PI * Math.min(hz, sr * 0.45)) / sr;
   const alpha = Math.sin(w) / (2 * q);
@@ -132,7 +132,7 @@ function noiseBand(out: Float32Array, sr: number, rand: Rand, hz: number, q: num
 }
 
 /** Normalise to a peak of `to`. */
-function normalise(x: Float32Array, to: number): Float32Array {
+export function normalise(x: Float32Array, to: number): Float32Array {
   let peak = 0;
   for (const v of x) peak = Math.max(peak, Math.abs(v));
   if (peak > 0) for (let i = 0; i < x.length; i++) x[i] = (x[i]! / peak) * to;
@@ -363,7 +363,7 @@ function washBank(out: Float32Array, sr: number, rand: Rand, spec: CymbalSpec, v
  * pitch of the moment, worked out once every 16 samples (the pitch moves far more slowly)
  * as a rotating phasor, so there is no sine to work out for every sample.
  */
-function headMode(out: Float32Array, sr: number, f: number, level: number, tau: number, glide: number, settle: number, rise: number, fast = 0, fastTau = 1): void {
+export function headMode(out: Float32Array, sr: number, f: number, level: number, tau: number, glide: number, settle: number, rise: number, fast = 0, fastTau = 1): void {
   const size = Math.abs(level);
   if (f * (1 + glide) >= sr * 0.45 || size < 0.003) return;
   // Rendered until it is 74 dB under the fundamental's start (a level of 1), and no longer.
@@ -400,7 +400,7 @@ function headMode(out: Float32Array, sr: number, f: number, level: number, tau: 
  * the square of the frequency above, smoothed over its notches. A hard stroke's short
  * contact reaches far up the head's modes; a soft one's long contact does not.
  */
-function pushAt(f: number, contact: number): number {
+export function pushAt(f: number, contact: number): number {
   const u = 2 * f * contact;
   return 1 / Math.sqrt(1 + 0.45 * u ** 4);
 }

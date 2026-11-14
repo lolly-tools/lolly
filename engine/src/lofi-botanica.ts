@@ -6,8 +6,9 @@
  * Like every path there, it writes notes and never sound, and is pure and deterministic.
  *
  * The genre's traits, never any one record's:
- * - Acoustic instruments: a felt piano, a steel-string or nylon guitar, a harp, a bowed
- *   fiddle, a flute, a voice singing syllables, an upright or round bass.
+ * - Acoustic instruments: a grand piano (a felt one in the quiet sections), a steel-string
+ *   or nylon guitar, a harp, a bowed fiddle, a flute, a voice singing syllables, an upright
+ *   or round bass.
  * - The sounds of a place, as `nature` notes the shell models (lib/lofi-nature.ts): a tune
  *   is set somewhere (a wood, a stream, a garden after rain, a meadow, dusk, a cave) whose
  *   wind, leaves, water, rain and insects run under it, with birds singing in the lead's
@@ -53,7 +54,7 @@ export const BOTANICA_INSECTS = ['cricket', 'cicada', 'bee'] as const;
 export type BotanicaInsect = typeof BOTANICA_INSECTS[number];
 
 /**
- * What a `grain` note's pad is cut from, by `mod % 16`: the felt piano, the steel-string
+* What a `grain` note's pad is cut from, by `mod % 16`: the grand piano, the steel-string
  * and nylon guitars, the bowed fiddle, the flute, a voice singing, breath, the harp.
  */
 export const BOTANICA_SOURCES = ['piano', 'guitar', 'nylon', 'fiddle', 'flute', 'voice', 'breath', 'harp'] as const;

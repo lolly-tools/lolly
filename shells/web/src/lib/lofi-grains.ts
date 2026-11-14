@@ -3,7 +3,7 @@
  * Granular pads for botanica (engine/src/lofi-botanica.ts): one of Lolly's own instruments
  * or voices, rendered, then cut into grains (tens of milliseconds each, under a smooth
  * window) and played back reordered, reversed, pitched and stretched into a pad that
- * shimmers. The sources are the instruments' own models: the felt piano's partials, the
+ * shimmers. The sources are the instruments' own models: the grand piano (lib/lofi-piano.ts), the
  * modelled steel, nylon and harp strings (lib/lofi-strings.ts), the bowed fiddle
  * (lib/lofi-bowed.ts), the jet-blown flute (lib/lofi-flutes.ts), the chopped voice singing
  * an open vowel (lib/lofi-chop.ts) and a breath (lib/lofi-breath.ts) through the note's
@@ -21,6 +21,7 @@
  */
 import { readGrain, type BotanicaCloud, type BotanicaSource } from '../../../../engine/src/lofi-botanica.ts';
 import { pluckString } from './lofi-strings.ts';
+import { pianoNote } from './lofi-piano.ts';
 import { bowString } from './lofi-bowed.ts';
 import { blowFlute } from './lofi-flutes.ts';
 import { chopVocal, singChop, CHOP_PLAIN } from './lofi-chop.ts';
@@ -46,34 +47,6 @@ const RANGE: Record<BotanicaSource, readonly [number, number]> = {
   piano: [40, 96], guitar: [40, 84], nylon: [40, 81], harp: [36, 96], fiddle: [55, 93], flute: [60, 96], voice: [55, 79], breath: [48, 84],
 };
 
-/**
- * The felt piano of lib/lofi-voices.ts, by its own recipe: a triangle at the note and sines
- * at the next three partials (2.003, 3.01, 4.02 times, at 0.38, 0.14 and 0.05), through a
- * low-pass that closes from five times the note to two and a half over 0.8 s, struck and
- * fading, with the felt's thump.
- */
-function feltNote(sr: number, f: number, seconds: number, r: () => number): Float32Array {
-  const n = Math.ceil(seconds * sr);
-  const out = new Float32Array(n);
-  const lp = new Biquad(sr);
-  const det = 2 ** (((r() - 0.5) * 6) / 1200);
-  const step = (f * det) / sr;
-  let p1 = r(), p2 = r(), p3 = r(), p4 = r();
-  const thump = new Biquad(sr).set('lp', 500);
-  const from = Math.min(3200, f * 5), to = Math.min(1600, f * 2.5);
-  const tau = 2 * Math.PI;
-  for (let i = 0; i < n; i++) {
-    const t = i / sr;
-    if (i % 32 === 0) lp.set('lp', from * (to / from) ** Math.min(1, t / 0.8), Math.SQRT1_2);
-    p1 = (p1 + step) % 1; p2 = (p2 + step * 2.003) % 1; p3 = (p3 + step * 3.01) % 1; p4 = (p4 + step * 4.02) % 1;
-    const x = (1 - 4 * Math.abs(p1 - 0.5)) + 0.38 * Math.sin(tau * p2) + 0.14 * Math.sin(tau * p3) + 0.05 * Math.sin(tau * p4);
-    // Struck: in over 8 ms, falling to the body's level over 1.5 s, then on slowly.
-    const env = Math.min(1, t / 0.008) * (0.42 + 0.58 * Math.exp(-t / 0.5)) * Math.exp(-t / 3.5);
-    out[i] = lp.run(x) * env + (i < 0.06 * sr ? thump.run(r() * 2 - 1) * 0.33 * Math.exp(-t / 0.012) : 0);
-  }
-  return out;
-}
-
 /** A breath tuned to the note: air from lib/lofi-breath.ts through narrow resonances at the note's first harmonics, with some of the air left raw. */
 function breathNote(sr: number, f: number, seconds: number, seed: number): Float32Array {
   const air = inhale(sr, seconds, { bands: [{ centre: 1300, width: 2 }, { centre: 3600, width: 1.2, level: -7 }], rise: 0.2, fall: 0.3 }, seed);
@@ -98,7 +71,7 @@ export function renderSource(source: BotanicaSource, midi: number, sr: number, s
   const r = seeded(mix(seed, Math.round(m * 10), source.length));
   let data: Float32Array;
   switch (source) {
-    case 'piano': data = feltNote(sr, f, SOURCE_SECONDS, r); break;
+    case 'piano': data = pianoNote(sr, m, 0.5, r, SOURCE_SECONDS); break;
     case 'guitar': data = pluckString({ sr, f, seconds: SOURCE_SECONDS, pickAt: 0.1, bright: 18, decay: 3.2, mellow: 9, noise: 0.15, top: 5200 }, r); break;
     case 'nylon': data = pluckString({ sr, f, seconds: SOURCE_SECONDS, pickAt: 0.16, bright: 9, decay: 2.6, mellow: 5, noise: 0.08, top: 4000 }, r); break;
     case 'harp': data = pluckString({ sr, f, seconds: SOURCE_SECONDS, pickAt: 0.3, bright: 12, decay: 4.5, mellow: 6, top: 6000 }, r); break;

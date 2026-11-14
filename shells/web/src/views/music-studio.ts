@@ -119,6 +119,9 @@ export function drumRow(voice: string, mod = 0, stroke = 0): 0 | 1 | 2 {
   const kind = LOFI_PERCUSSION[mod] ?? 'shaker';
   if (kind === 'dunun' || ((kind === 'tombak' || kind === 'daf' || kind === 'tanggu' || kind === 'taiko' || kind === 'djembe') && stroke === 1)) return 2;
   if (kind === 'shaker' || kind === 'tambourine' || kind === 'shekere' || kind === 'agogo' || kind === 'gong' || kind === 'cowbell' || (kind === 'daf' && stroke === 3)) return 0;
+  // Salsa's: the tumba and the heel low, the bells, the clave, the güiro and the timbales' shell on top.
+  if (kind === 'congas' && (stroke >= 16 || stroke % 8 === 4 || stroke % 8 === 6)) return 2;
+  if (kind === 'bongoBell' || kind === 'mamboBell' || kind === 'clave' || kind === 'guiro' || (kind === 'timbales' && stroke === 3)) return 0;
   return 1;
 }
 
