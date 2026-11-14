@@ -10,6 +10,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 const EXPECTED: readonly string[] = [
+  // Additive 1.345: audio metadata removal for Strip Hidden Data (M4A/MP4, WAV, MP3, FLAC, Ogg Opus).
+  'AUDIO_STRIP_FORMATS', 'AudioInspection', 'AudioMetadataItem', 'AudioStripFormat', 'audioMetadataResidual',
+  'inspectAudioMetadata', 'sniffAudioFormat', 'stripAudioMetadata',
   // Additive partner kits (plans/82 M8): the kit reader and its two colour proposers.
   'PartnerKitReadResult', 'checkPartnerKit', 'partnerKitColoursFromInks', 'partnerKitColoursFromTokens', 'partnerKitLogoIds', 'readPartnerKit',
   // Additive guest-mark checks (plans/82 M8): partner marks against their kit's rules.

@@ -1550,8 +1550,8 @@
     {
       "version": 1,
       "toolId": "strip-data",
-      "toolVersion": "1.4.1",
-      "toolVersionRange": "1.4.1",
+      "toolVersion": "1.5.0",
+      "toolVersionRange": "1.5.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1559,12 +1559,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "10b009c7f8f02042b8949fac9b6fe1f92e0b1d661814bc963293ec66500aca0a",
-          "bytes": 1685
+          "sha256": "a14ed024918a3729ffc1bc41e8fef54ca72c3fdf74ea88abd3f06efeba11d4df",
+          "bytes": 1701
         },
         "reference/inputs.json": {
-          "sha256": "0acaa5237f48d778069e1ea0df37daa20f1f0b511f7ce0feda244145343f1c71",
-          "bytes": 959
+          "sha256": "6dfce49afd016b4cc9961f87c9d6d33aed4513408718e57067abaebbe5f96915",
+          "bytes": 1273
         }
       },
       "path": "strip-data/SKILL.md"

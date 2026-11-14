@@ -207,7 +207,20 @@
         "bounds": "no numeric caps; the invariants are structural (`STRIPPABLE`, `PNG_STRIP`, `DROP_EL_PREFIX`, `DROP_EL_NAME`, `SPACE_SENSITIVE`, `DROP_XMLNS`)",
         "directTests": "`tests/strip-metadata.test.ts`",
         "fuzzCoverage": "`strip-metadata` (`stripMetadata`)",
-        "notes": "Deliberately the inverse contract to its read-side sibling. Consumes `file-metadata.ts`'s `readMpfIndex` for one documented exception to \"image content is preserved\": a multi-picture JPEG loses every image after the primary along with the MPF index that declared them, because an orphaned second image behind a deleted index is worse than either alternative (module header states the choice). Files with no MPF index - motion photos included - are byte-for-byte unaffected. This is a privacy control, so it must **fail closed**: if the surgery throws or leaves removable metadata behind, `stripMetadata()` throws rather than return an original a caller would present as clean (`hasResidualMetadata`)."
+        "notes": "Deliberately the inverse contract to its read-side sibling. Consumes `file-metadata.ts`'s `readMpfIndex` for one documented exception to \"image content is preserved\": a multi-picture JPEG loses every image after the primary along with the MPF index that declared them, because an orphaned second image behind a deleted index is worse than either alternative (module header states the choice). Files with no MPF index - motion photos included - are byte-for-byte unaffected. This is a privacy control, so it must **fail closed**: if the surgery throws or leaves removable metadata behind, `stripMetadata()` throws rather than return an original a caller would present as clean (`hasResidualMetadata`). Audio formats are delegated to `strip-audio.ts`, which keeps the same contract."
+      }
+    },
+    "engine/src/strip-audio.ts": {
+      "family": "Audio, video and animation",
+      "fuzzTargets": [
+        "strip-audio"
+      ],
+      "details": {
+        "inputSource": "a user's own M4A/MP4, WAV, MP3, FLAC or Ogg Opus file, in Strip Hidden Data (compiled into the tool's hook by `scripts/build-strip-audio.ts`), Verify's cleaned copy and `stripMetadata`",
+        "bounds": "`MAX_UNITS = 65536` boxes, chunks or blocks per level, `MP4_NEST_DEPTH = 8` MP4 container nesting, `MAX_TAGS = 16` stacked tags at either end, `MAX_SYNC_SCAN = 65536` bytes searched for the first MPEG frame, `MAX_FRAMES = 1024` tag entries read for the report, `MAX_REPORT_ITEMS = 64` report rows of at most 200 characters; every chunk-offset and fragment-index count is checked against the bytes its box holds",
+        "directTests": "`tests/strip-audio.test.ts`, `tests/strip-data-audio.test.ts`",
+        "fuzzCoverage": "`strip-audio` (`inspectAudioMetadata` + `stripAudioMetadata`, every format on every input)",
+        "notes": "Writer and walker, the audio counterpart of `strip-metadata.ts`, under the same **fail closed** contract: structure it cannot walk throws a plain-language Error, and every clean copy is planned again before it is returned, so a copy that still holds removable data, no longer parses, or whose audio payload (`mdat` sample data, PCM, MPEG or FLAC frames, Opus pages) differs byte for byte from the original's throws. When an MP4 shrinks before its media, every `stco`/`co64`, `tfhd` base data offset and `tfra` entry is moved by the shift of the box it points into, and an offset that points outside a box copied verbatim throws. Metadata between the fragments of a fragmented MP4 is refused, because `sidx` indexes by relative distance. Labels for keys read from the file are looked up with an own-property check."
       }
     },
     "engine/src/jpeg-segments.ts": {

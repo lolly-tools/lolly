@@ -20,11 +20,14 @@ const bytesOf = (...parts: (number[] | Uint8Array | string)[]): Uint8Array => {
   return out;
 };
 
-test('isStrippableFormat: recognises the four cleanable formats, case-insensitively', () => {
+test('isStrippableFormat: recognises the cleanable image, PDF and audio formats, case-insensitively', () => {
   assert.equal(isStrippableFormat('JPEG'), true);
   assert.equal(isStrippableFormat('png'), true);
   assert.equal(isStrippableFormat('Svg'), true);
   assert.equal(isStrippableFormat('PDF'), true);
+  for (const audio of ['MP4', 'wav', 'MP3', 'flac', 'OGG']) assert.equal(isStrippableFormat(audio), true, audio);
+  assert.equal(isStrippableFormat('QuickTime'), false);
+  assert.equal(isStrippableFormat('HEIC'), false);
   assert.equal(isStrippableFormat('WebP'), false);
   assert.equal(isStrippableFormat('TIFF'), false);
   assert.equal(isStrippableFormat(null), false);

@@ -219,11 +219,12 @@ function offend(text: string): string[] {
 const CYCLE_H1 = 'is sovereign';
 
 test('say offline once: the hero stays clear of the claim and the Why column states it', () => {
-  // plans/177: the hero is "Lolly is <cycling word>" + a tagline and a one-liner
-  // from site.md. Above the fold the privacy receipt in the cycle stands in for the
-  // offline claim; neither the cycle words nor the subtitle lines may state the claim.
+  // plans/177: the hero is "Lolly is <cycling word>" + one line from site.md (Andy,
+  // 2026-11-14: the tagline and the one-liner said much the same thing, so they became
+  // one line). Above the fold the privacy receipt in the cycle stands in for the
+  // offline claim; neither the cycle words nor the subtitle line may state the claim.
   const heroLines = heroSection.split('\n').filter(l => l.trim() && !l.startsWith('#'));
-  assert.ok(heroLines.length >= 2, 'the hero subtitle should still be at least two lines (tagline + one-liner)');
+  assert.equal(heroLines.length, 1, 'the hero subtitle is one line under the cycling claim');
   for (const line of heroLines) {
     assert.deepEqual(offend(line), [], `hero line repeats the offline claim: ${line}`);
   }
@@ -472,7 +473,7 @@ test('a number typed into the landing copy matches the live count it states', ()
   // instead of shipping a stale sentence.
   const cv = siteJson('covers.json') as { caption?: string; covers: unknown[] };
   const WORDS: Record<string, number> = { twelve: 12, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, twenty: 20 };
-  const said = /^(\w+) design systems/i.exec(cv.caption ?? '')?.[1]?.toLowerCase();
+  const said = /^(\w+) covers\b/i.exec(cv.caption ?? '')?.[1]?.toLowerCase();
   assert.ok(said && said in WORDS, `the covers caption should open with the number of covers in words: ${cv.caption}`);
   assert.equal(WORDS[said!], cv.covers.length, `the covers caption says ${said} but the fan holds ${cv.covers.length} covers`);
   // Every language including English (plan 341, decision 9): the LANGS register.

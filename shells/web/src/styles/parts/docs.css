@@ -50,7 +50,7 @@
   --warn: #72251c;
   /* lib/docs-landing.ts sets the reader's face from this name. */
   --brand-font: var(--font-brand);
-  /* The ink on the lolly.work band (.work-body), which sits on a light green wash. */
+  /* The ink on the lolly.work band (.work-line), which sits on a light green wash. */
   --band-primary: var(--text);
 }
 [data-theme="dark"] :is(.docs-content, .docs-landing) {
@@ -393,7 +393,7 @@
 .docs-content .md-timeline .icon-list > li.ic .li-icon { width: 1.75rem; height: 1.75rem; }
 .docs-content .md-timeline .icon-list > li.ic .li-icon svg { width: 1rem; height: 1rem; }
 .docs-content .md-timeline .icon-list > li.ic:not(:last-child)::before {
-  content: ''; position: absolute; left: 0.875rem; top: 1.75rem; bottom: -1.35rem;
+  content: ''; position: absolute; left: .5em; top: 1.75rem; bottom: -1.35rem;
   width: 1px; background: var(--border);
 }
 

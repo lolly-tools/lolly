@@ -1574,19 +1574,32 @@ html[data-a11y-motion="reduce"] .persona-tabs img{transition:none}
 
 /* ── beat 4b: the lolly.work band ───────────────────────────────────────── */
 .work-section{padding:0 1.5rem 3.5rem}
-.work-inner{max-width:1120px;margin:0 auto;padding:1.5rem 1.6rem;border:1px solid var(--border);border-radius:14px;background:color-mix(in oklab,hsl(var(--band-accent)) 20%,var(--page))}
-.work-cols{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem 2rem;align-items:center}
+/* The copy, the points and the links in source order; on a wide screen the links sit
+   beside the copy and the points run across the full width under both. */
+.work-inner{max-width:1120px;margin:0 auto;padding:1.75rem 1.75rem 1.6rem;border:1px solid var(--border);border-radius:14px;background:color-mix(in oklab,hsl(var(--band-accent)) 20%,var(--page));display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"copy links" "points points";gap:0 2rem;align-items:center}
+.work-copy{grid-area:copy;min-width:0}
 /* The product's name over the heading (plan 341: the band used to leave "Lolly Work"
    to the two link labels). */
 .work-eyebrow{margin:0 0 .3rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text))}
-.work-heading{font-size:1.25rem;font-weight:800;text-transform:none;letter-spacing:0;margin:0 0 .4rem;text-wrap:balance}
-.work-body{margin:0;color:var(--band-primary);max-width:62ch;font-size:.95rem}
-.work-links{display:flex;flex-direction:column;gap:.6rem;align-items:flex-start}
+.work-heading{font-size:1.375rem;font-weight:800;text-transform:none;letter-spacing:0;margin:0 0 .4rem;text-wrap:balance}
+.work-line{margin:0;color:var(--band-primary);max-width:58ch;font-size:1rem;line-height:1.55;text-wrap:pretty}
+/* The three points (Andy, 2026-11-14: one line and three short points, "easy to read,
+   simple to look at"): each a two-tone Etiquette icon on a soft chip of its own accent,
+   a short title in the ink and one line in the quiet text. Three across, one column on
+   a phone. The icon paints from --eti-accent and --eti-base (docs-components.css), so it
+   follows light, dark, brand and High contrast with the rest of the page. */
+.work-points{grid-area:points;list-style:none;margin:1.5rem 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem 1.75rem}
+.work-point{display:flex;gap:.8rem;align-items:flex-start;margin:0;min-width:0}
+.work-point-ic{flex:none;display:inline-flex;align-items:center;justify-content:center;width:2.6rem;height:2.6rem;border-radius:.8rem;background:color-mix(in oklab,var(--eti-accent) 18%,transparent)}
+.work-point-ic svg{width:1.55rem;height:1.55rem}
+.work-point-copy{display:flex;flex-direction:column;gap:.15rem;min-width:0;padding-top:.1rem;font-size:.9rem;line-height:1.45;color:var(--muted)}
+.work-point-copy b{color:var(--text);font-size:.975rem;font-weight:700}
+.work-links{grid-area:links;display:flex;flex-direction:column;gap:.6rem;align-items:flex-start}
 .work-links .hero-btn{display:inline-flex;align-items:center;gap:.4em;background:hsl(var(--primary));color:hsl(var(--primary-foreground,0 0% 100%));border:1px solid transparent;border-radius:999px;padding:.55rem 1.1rem;font-size:.875rem;font-weight:700;text-decoration:none;white-space:nowrap;backdrop-filter:none;-webkit-backdrop-filter:none;mix-blend-mode:normal}
 .work-links .hero-btn:hover{filter:brightness(1.07);text-decoration:none;transform:none;box-shadow:none}
 .work-link{font-weight:700;font-size:.875rem;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));text-decoration:none;white-space:nowrap}
 .work-link:hover{text-decoration:underline}
-@media(max-width:719px){.work-cols{grid-template-columns:minmax(0,1fr)}.work-links{flex-direction:row;flex-wrap:wrap}.work-links .hero-btn,.work-link{white-space:normal}.work-heading{overflow-wrap:break-word;hyphens:auto}}
+@media(max-width:719px){.work-inner{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "points" "links"}.work-links{flex-direction:row;flex-wrap:wrap;align-items:center;gap:.75rem 1.25rem;margin-top:1.4rem}.work-links .hero-btn,.work-link{white-space:normal}.work-heading{overflow-wrap:break-word;hyphens:auto}.work-points{grid-template-columns:minmax(0,1fr);gap:.9rem;margin-top:1.25rem}}
 
 /* ── beat 5: behind, additions ──────────────────────────────────────────── */
 .behind-quiet{margin:1rem 0 0;font-size:.8125rem;color:var(--muted);text-align:center}

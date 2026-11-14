@@ -81,7 +81,19 @@ In the TUI, press **P** from Tools, add file paths, inspect, choose replacements
 <a id="strip-hidden-data-and-redact"></a>
 ### Lolly Strip Hidden Data and Redact
 
-**[Lolly Strip Hidden Data](/t/strip-data)** removes selected DOCX properties, or image and PDF metadata, and lets you inspect other Office hidden content. **[Lolly Redact](/t/redact)** blacks out sensitive content by rebuilding the file, then checks the output before it downloads. Both are tools, so they save sessions like any other.
+**[Lolly Strip Hidden Data](/t/strip-data)** removes metadata from images and PDFs, tags and Content Credentials from audio files, and selected DOCX properties, and lets you inspect other Office hidden content. **[Lolly Redact](/t/redact)** blacks out sensitive content by rebuilding the file, then checks the output before it downloads. Both are tools, so they save sessions like any other.
+
+::: details What Strip Hidden Data removes from audio
+M4A, WAV, MP3, FLAC and Opus files keep their audio byte for byte. The sound is copied, never re-encoded, and the clean copy is read again before the download starts.
+
+- **M4A:** the title, comment, description, encoder, artist and other tags, Content Credentials, XMP, the handler names and the creation times. The offsets that point at the audio move to match.
+- **WAV:** the INFO tags and the broadcast (bext), iXML, XMP, ID3 and Content Credentials chunks.
+- **MP3:** ID3 tags at either end, with any Content Credentials inside them, and APE and Lyrics3 tags. The first frame keeps its encoder header, because players read the track length from that frame.
+- **FLAC:** tags, pictures, cue sheets and Content Credentials. The stream information and the seek table stay.
+- **Opus:** the tags and the encoder name.
+
+Not supported yet: RF64 WAV files, Ogg Vorbis, Opus files whose tags span several pages, and fragmented MP4 files with tags between their fragments. The tool refuses these files rather than hand back a copy it has not cleaned.
+:::
 
 #### Two ways to redact a PDF
 
