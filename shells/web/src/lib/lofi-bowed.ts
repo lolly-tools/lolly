@@ -62,6 +62,12 @@ export interface BowNote {
   vibrato: number; rate: number;
   /** A slide up into the note (semitones under it, 0 none). */
   slide: number;
+  /** How long a slur or a slide takes to reach the note (s); the tuning's own when absent. */
+  glide?: number;
+  /** How far under the note an ornament may take it (semitones), so the string is long enough to reach there. */
+  reach?: number;
+  /** An ornament the left hand plays: cents over the note, `s` seconds after the note starts. */
+  bend?: (s: number) => number;
 }
 
 /** A delay line read at a fractional, changing length (third-order Lagrange interpolation). */
@@ -88,6 +94,8 @@ class Line {
 
 /** A two-pole resonator (one body mode): its coefficients and state. */
 interface Mode { a1: number; a2: number; g: number; y1: number; y2: number }
+/** A body as its modes: frequency (Hz), level (dB) and Q of each. */
+export type BodyModes = ReadonlyArray<readonly [number, number, number]>;
 
 /**
  * The body's modes: frequency (Hz), level (dB) and Q. The low modes are a violin's
@@ -95,7 +103,7 @@ interface Mode { a1: number; a2: number; g: number; y1: number; y2: number }
  * them the modes come thicker, and their levels follow the response measured from the
  * recorded notes: the harmonics' levels, less what the string itself gives them.
  */
-const BODY: ReadonlyArray<readonly [number, number, number]> = [
+const BODY: BodyModes = [
   [275, -9.2, 58], [405, -19.4, 72], [460, -15.7, 82], [540, -15.9, 72], [602, -22.1, 96], [640, -28, 96],
   [692, -38.6, 96], [732, -31.5, 96], [792, -26.7, 96], [848, -19.4, 96], [911, -18.3, 96], [972, -11.4, 96],
   [1039, -11.8, 96], [1117, -17.9, 96], [1208, -13, 96], [1277, -2.9, 96], [1372, -13.9, 96],
@@ -108,7 +116,7 @@ const BODY: ReadonlyArray<readonly [number, number, number]> = [
 ];
 
 /** Every constant the measurements set, in one place (see bowSource for what each does). */
-const BOW_TUNING = {
+export const BOW_TUNING = {
   /**
    * The bow's distance from the bridge, as a fraction of the string, how far a player strays
    * note to note (a share of that distance), and how near the bridge a stroke may come.
@@ -163,6 +171,8 @@ const BOW_TUNING = {
    * `scratch` of the speed, from `scratchFrom` strength up, fading over `scratchTime` s.
    */
   rosin: 0.02, rosinDirect: 0.15, rosinGrow: 20, rosinLoud: 20, rosinHigh: 1800, scratch: 2, scratchFrom: 0.15, scratchTime: 0.03,
+  /** How far the crackle at the bridge follows the bow's own speed as it comes up to speed (0: the stroke's full speed from the start). */
+  rosinFollow: 0,
   /** How far the bow's speed sways as the arm draws it (a share of it): a few slow movements, never faster than a few a second. */
   waver: 0.05,
   /** How far the pitch wanders under the finger (cents, standard deviation), below about 2 Hz. */
@@ -175,7 +185,9 @@ const BOW_TUNING = {
    * on a string already in Helmholtz motion is what keeps the change clean.
    */
   slurPreroll: 0.15, slurGlide: 0.04,
-};
+} as const;
+/** A bowed string's constants: the fiddle's (BOW_TUNING), or another instrument's on the same string. */
+export type BowTuning = { readonly [K in keyof typeof BOW_TUNING]: number };
 /**
  * The friction curve (after Smith and the STK's bow table): how much of the velocity
  * difference between bow and string the hair passes back into the string, falling as the
@@ -199,9 +211,9 @@ function poleDelay(p: number, sr: number, hz: number): number {
   return Math.atan2(p * Math.sin(w), 1 - p * Math.cos(w)) / w;
 }
 
-/** The body as a bank of resonators at this sample rate. */
-function body(sr: number): Mode[] {
-  return BODY.filter(([hz]) => hz < sr * 0.45).map(([hz, db, q]) => {
+/** A body as a bank of resonators at this sample rate. */
+function body(sr: number, table: BodyModes): Mode[] {
+  return table.filter(([hz]) => hz < sr * 0.45).map(([hz, db, q]) => {
     const w = (2 * Math.PI * hz) / sr;
     const r = Math.exp(-w / (2 * q));
     // Normalised so each mode's peak is its level, whatever its Q.
@@ -214,9 +226,14 @@ export function bowString(n: BowNote, rand: () => number): Float32Array {
   return violinBody(n.sr, bowSource(n, rand));
 }
 
-/** The body's response to the force on the bridge. */
+/** The violin's body's response to the force on the bridge. */
 function violinBody(sr: number, x: Float32Array): Float32Array {
-  const modes = body(sr);
+  return resonate(sr, x, BODY);
+}
+
+/** A body's response to the force on the bridge: its modes ringing, summed. */
+export function resonate(sr: number, x: Float32Array, table: BodyModes): Float32Array {
+  const modes = body(sr, table);
   const out = new Float32Array(x.length);
   // A dc blocker after the modes: the box holds no steady pressure.
   const dc = Math.exp((-2 * Math.PI * 20) / sr);
@@ -236,12 +253,14 @@ function violinBody(sr: number, x: Float32Array): Float32Array {
   return out;
 }
 
-/** The bowed string alone: the force on the bridge, before the body. */
-export function bowSource(n: BowNote, rand: () => number): Float32Array {
+/**
+ * The bowed string alone: the force on the bridge, before the body. `T` is the string's
+ * constants: the fiddle's unless another instrument brings its own.
+ */
+export function bowSource(n: BowNote, rand: () => number, T: BowTuning = BOW_TUNING): Float32Array {
   const { sr } = n;
   const out = new Float32Array(Math.ceil(n.seconds * sr));
-  const maxPeriod = Math.ceil(sr / Math.min(n.f, n.from ?? n.f, n.f * 2 ** (-Math.max(0, n.slide) / 12)) * 1.1) + 8;
-  const T = BOW_TUNING;
+  const maxPeriod = Math.ceil(sr / Math.min(n.f, n.from ?? n.f, n.f * 2 ** (-Math.max(0, n.slide, n.reach ?? 0) / 12)) * 1.1) + 8;
   const beta = Math.max(T.betaNear, T.beta * (1 + T.betaSpread * (rand() - 0.5)));
   const nut = new Line(maxPeriod);
   const bridge = new Line(Math.ceil(maxPeriod * beta * 1.5) + 8);
@@ -279,7 +298,7 @@ export function bowSource(n: BowNote, rand: () => number): Float32Array {
   let accentLeft = 1;
   const accentFrom = creep + ramp * 0.6;
   // The pitch: in from a slur or a slide, wandering, with a vibrato once held.
-  const glide = n.from ? T.slurGlide * sr : n.slide ? 0.12 * sr : 0;
+  const glide = n.from ? (n.glide ?? T.slurGlide) * sr : n.slide ? (n.glide ?? 0.12) * sr : 0;
   const start = n.from ?? (n.slide ? n.f * 2 ** (-n.slide / 12) : n.f);
   const drift = Math.exp((-2 * Math.PI * 2) / sr);
   const driftScale = T.wander / (0.577 * Math.sqrt((1 - drift) / (1 + drift)));
@@ -299,6 +318,7 @@ export function bowSource(n: BowNote, rand: () => number): Float32Array {
       phase += (2 * Math.PI * n.rate) / sr;
       cents += n.vibrato * Math.min(1, (i - vibFrom) / (T.vibratoIn * sr)) * Math.sin(phase);
     }
+    if (n.bend && i >= 0) cents += n.bend(i / sr);
     f *= Math.exp(cents * (Math.LN2 / 1200));
     const period = sr / f - lagFix;
     // The bow: a crawl, up to speed with the accent on top, swaying, lifted at the end; its force bites and settles.
@@ -338,7 +358,7 @@ export function bowSource(n: BowNote, rand: () => number): Float32Array {
     // Along the string it is high (a second difference); to the bridge, broader (a first).
     const grain = (crackle - 2 * hiss + hiss2) * 0.5 * speed * off;
     // The crackle comes in pulses, one each slip; it is filtered after, so the pulsing cannot fold it down low.
-    const pulse = crackle * (rosinDirect * (1 - g) + scratch) * speed * off;
+    const pulse = crackle * (rosinDirect * (1 - g) + scratch) * speed * off * (1 - T.rosinFollow + T.rosinFollow * up);
     const mid = hp.b0 * pulse + hp.b1 * hx1 + hp.b2 * hx2 - hp.a1 * hy1 - hp.a2 * hy2;
     const rasp = hp.b0 * mid + hp.b1 * hy1 + hp.b2 * hy2 - hp.a1 * hz1 - hp.a2 * hz2;
     hx2 = hx1; hx1 = pulse; hz2 = hz1; hz1 = rasp; hy2 = hy1; hy1 = mid;
