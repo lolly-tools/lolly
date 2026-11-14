@@ -62,6 +62,8 @@ import { houseOrgan } from './lofi-organ.ts';
 import { DidgePlayer } from './lofi-didge-player.ts';
 import { DIDGE_LEAD, readBird, readDidge } from '../../../../engine/src/lofi-straya.ts';
 import { isBreakNote } from '../../../../engine/src/lofi-breaks.ts';
+import { readFuture } from '../../../../engine/src/lofi-future.ts';
+import * as FB from './lofi-future.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -94,7 +96,7 @@ export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, fx: 1, r
 
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
 const MOOD_TONE: Record<LofiMood, number> = {
-  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 13000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
+  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 16000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 7000, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
   persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500, botanica: 12500, oompa: 9000, noosa: 11000,
@@ -120,6 +122,11 @@ const NATURE_BUS = 0.6;
 const NATURE_ROOM = 0.18;
 /** The room by section: bigger in the quiet sections, tighter in a drop. */
 const SECTION_ROOM: Partial<Record<string, number>> = { intro: 1.25, break: 1.35, outro: 1.4, bridge: 1.15, build: 1.1, drop: 0.85 };
+/**
+ * The styles whose supersaw is played as the layered future-bass chord (lib/lofi-future.ts):
+ * Sherbert only. Sugar's and the other styles' supersaw stays the four-saw chord it was.
+ */
+const LAYERED_SAWS = new Set<LofiMood>(['sherbert']);
 /** The styles built on drops, whose builds sweep a high-pass up the music. */
 const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy', 'breakbeat', 'funkyHouse', 'ukGarage']);
 /** The styles that throw a phrase's last lead note into the echo, and those that keep a little echo on the lead throughout. */
@@ -720,6 +727,7 @@ export class LofiStation {
       if (note.voice === 'kick') {
         this.duck(t, st.duck);
         BS.duck(lanes.bass, Math.max(this.ctx.currentTime, t - 0.02), st.duck);
+        FB.pump(lanes.keys, Math.max(this.ctx.currentTime, t), st.duck);
       }
       return;
     }
@@ -730,7 +738,7 @@ export class LofiStation {
     }
     switch (note.voice) {
       case 'keys': {
-        // A future-bass chord's wub is swings a beat (the voice wants Hz), plus 16 for a bend.
+        // A future-bass chord's movement (engine/src/lofi-future.ts): its wub is swings a beat (the voice wants Hz).
         const m = note.mod ?? 0;
         if (keysV === 'surf') SF.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys.surf, len, m);
         else if (keysV === 'combo') CO.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys.combo, len);
@@ -745,7 +753,12 @@ export class LofiStation {
         // The band's after-beats, one player to a chord tone (lib/lofi-oompa.ts).
         else if (keysV === 'horns') OB.horns(k, lanes.keys, bar.tune.seed, t, note.midi, vel, len);
         else if (P.PIANO_KEYS.has(keysV)) P.grand(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
-        else V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
+        // Sherbert's supersaw is the layered future chord, held still (its stabs are the supersaw's own).
+        else if (keysV === 'supersaw' && LAYERED_SAWS.has(bar.tune.mood)) FB.future(k, lanes.keys, t, note.midi, vel * VARIANT.keys.future, len, { rate: 0, bend: false, spb });
+        else {
+          const fm = readFuture(m);
+          V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: fm.rate / spb, bend: fm.bend, dive: fm.dive, swell: fm.swell, gate: fm.gate, spb });
+        }
         break;
       }
       case 'bass': {
@@ -926,6 +939,7 @@ export class LofiStation {
         D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, kit.kick, kit);
         this.duck(t, st.duck);
         BS.duck(lanes.bass, Math.max(this.ctx.currentTime, t - 0.02), st.duck);   // a stack's sub dips further
+        FB.pump(lanes.keys, Math.max(this.ctx.currentTime, t), st.duck);   // and the future chords pump hardest
         break;
       }
       case 'snare':
@@ -991,6 +1005,9 @@ export class LofiStation {
     const spb = 60 / bar.tune.bpm;
     if (BS.stacked(bar.tune.mood)) BS.mark(this.kit, this.lanes.bass, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0);
     BR.markBreak(this.kit, this.lanes.drums, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0, 8);
+    // In a drop the future-bass chords pump on every beat, as a producer's sidechain does,
+    // whatever the half-time kick plays (lib/lofi-future.ts; nothing where no such chord plays).
+    if (bar.section === 'drop') for (let b = 0; b < lofiBarBeats(bar.tune); b++) FB.pump(this.lanes.keys, at + b * spb, bar.tune.style.duck);
     for (const d of this.echoTimes) d.delayTime.setValueAtTime(Math.min(1.9, 0.75 * spb), at);
     // A band's hall is the same room all tune; the other styles' room follows the section.
     const room = bar.tune.mood === 'oompa' ? 1 : SECTION_ROOM[bar.section] ?? 1;
@@ -1018,6 +1035,8 @@ export class LofiStation {
   /** A new tune's colour: wobble, room, tone and grit, from the moment it starts. */
   private applyStyle(style: LofiStyle, at: number, mood?: LofiMood): void {
     this.colour = style;
+    // Future-bass chords build their sounds while the intro plays (lib/lofi-future.ts).
+    if (style.keys === 'future') FB.warm(this.kit);
     // A band plays in its hall; every other tune in the station's own room.
     this.inHall = mood === 'oompa';
     if (this.inHall && !this.hall) {

@@ -38,7 +38,8 @@
  *          and coin (a bright two-note square ding)
  *
  * Sherbert (future bass with an old console inside it) adds:
- *   keys   future (wide saw chords, panned apart, that bend up into their pitch and wub)
+ *   keys   future (layered supersaw chords that pump, wub, chop, bend and swell, played in
+ *          lib/lofi-future.ts)
  *   lead   bit (a console's pulse lead: the duty cycle switching, the level and vibrato
  *          stepping once a frame); its vocal chops are sung by ./lofi-chop.ts
  *   snare  stack (a clap and a snare together over the console's buzzing noise, with a
@@ -60,6 +61,7 @@ import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { readBird } from '../../../../engine/src/lofi-straya.ts';
 import { kookaburraFamily, magpieFamily } from './lofi-bush-birds.ts';
 import { DidgePlayer } from './lofi-didge-player.ts';
+import { future } from './lofi-future.ts';
 
 export interface VoiceKit {
   ctx: BaseAudioContext;
@@ -106,8 +108,13 @@ function struck(g: AudioParam, t: number, dur: number, peak: number, attack: num
 
 // ── keys ──────────────────────────────────────────────────────────────────────
 
-/** How a future-bass chord moves: its wub in swings a second (0 holds it), and whether it bends up into its pitch. */
-export interface KeysArt { rate: number; bend: boolean }
+/**
+ * How a future-bass chord moves (lib/lofi-future.ts reads it; engine/src/lofi-future.ts says
+ * how the composer writes it): its wub in swings a second (0 holds it), whether it bends up
+ * into its pitch, dives as it ends or swells into the next hit, the gate pattern chopping it,
+ * and the length of a beat (s) that the gate keeps time with.
+ */
+export interface KeysArt { rate: number; bend: boolean; dive?: boolean; swell?: boolean; gate?: number; spb?: number }
 const HELD: KeysArt = { rate: 0, bend: false };
 
 export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: KeysArt = HELD): void {
@@ -130,105 +137,6 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'rhodes') rhodes(k, out, t, midi, vel, dur);
   else if (style === 'honky') { fmPiano(k, out, t, midi, vel * 0.75, dur, false, 9); fmPiano(k, out, t, midi, vel * 0.75, dur, false, -9); }
   else fmPiano(k, out, t, midi, vel, dur, style === 'wurli');
-}
-
-/** A cosine (not a sine), one per context, so a wub starts each note at the top of its swing. */
-const COSINES = new WeakMap<BaseAudioContext, PeriodicWave>();
-function cosineOsc(k: VoiceKit, rate: number, t: number, end: number): OscillatorNode {
-  let wave = COSINES.get(k.ctx);
-  if (!wave) { wave = k.ctx.createPeriodicWave(new Float32Array([0, 1]), new Float32Array([0, 0])); COSINES.set(k.ctx, wave); }
-  const o = k.ctx.createOscillator();
-  o.setPeriodicWave(wave);
-  o.frequency.setValueAtTime(rate, t);
-  o.start(t);
-  o.stop(end);
-  return o;
-}
-
-/**
- * Future-bass chords (Sherbert). Four saws a note, two panned left and two right with
- * different detunes, so the chord is as wide as the speakers while the bass stays in the
- * middle, and a quiet pulse an octave up for a console's glint. The filter strikes open
- * and settles. A chord can bend up a whole tone into its pitch (the future-bass swoop) and
- * can wub: its level and filter swinging together at `art.rate`, the swing starting at the
- * top so every stab still hits hard. The station's kick ducking does the pumping.
- */
-function future(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: KeysArt): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.15;
-  const open = Math.min(12000, 6500 + f * 6);
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.Q.value = 0.7;
-  lp.frequency.value = open;   // held still (a moving filter is costly on every chord note); the wub alone moves it
-  // The 808 owns the low end: the chords are thinned below 260 Hz, as a producer would.
-  const thin = ctx.createBiquadFilter();
-  thin.type = 'highpass';
-  thin.frequency.value = 260;
-  thin.Q.value = 0.6;
-  // And brightened on top, where the records' chords shine.
-  const shine = ctx.createBiquadFilter();
-  shine.type = 'highshelf';
-  shine.frequency.value = 2500;
-  shine.gain.value = 5;
-  lp.connect(thin).connect(shine);
-  const env = ctx.createGain();
-  const peak = 0.12 * vel;
-  env.gain.setValueAtTime(EPS, t);
-  env.gain.exponentialRampToValueAtTime(peak, t + 0.006);
-  env.gain.setTargetAtTime(peak * 0.8, t + 0.04, 0.35);
-  env.gain.setTargetAtTime(EPS, t + dur, 0.04);
-  shine.connect(env);
-  if (art.rate > 0) {
-    // The wub: the chord swings between itself, bright, and a dark, muffled copy, with its
-    // level dipping between. A crossfade between two still filters, because a filter swept
-    // by an oscillator is redesigned every sample, which made these chords the costliest
-    // sound in the station.
-    const lfo = cosineOsc(k, art.rate, t, end);
-    const bright = ctx.createGain();
-    bright.gain.value = 0.55;
-    const bd = ctx.createGain();
-    bd.gain.value = 0.45;
-    lfo.connect(bd).connect(bright.gain);
-    const dark = ctx.createGain();
-    dark.gain.value = 0.35;
-    const dd = ctx.createGain();
-    dd.gain.value = -0.25;
-    lfo.connect(dd).connect(dark.gain);
-    const muffle = ctx.createBiquadFilter();
-    muffle.type = 'lowpass';
-    muffle.frequency.value = 900;
-    muffle.Q.value = 2;
-    env.connect(bright).connect(out);
-    env.connect(muffle).connect(dark).connect(out);
-  } else {
-    env.connect(out);
-  }
-  // The glide is a ramp that ends (a target never quite arrives, so the browser would
-  // work out every saw's pitch sample by sample for the whole note, which doubled the cost).
-  const from = art.bend ? f * 2 ** (-2 / 12) : f * 2 ** (-0.25 / 12);
-  const arrive = t + (art.bend ? 0.2 : 0.03);
-  const glide = (o: OscillatorNode, by = 1): void => {
-    o.frequency.setValueAtTime(from * by, t);
-    o.frequency.exponentialRampToValueAtTime(f * by, arrive);
-  };
-  for (const [pan, detunes] of [[-0.8, [-26, 9]], [0.8, [-9, 26]]] as const) {
-    const side = ctx.createStereoPanner();
-    side.pan.value = pan;
-    side.connect(lp);
-    for (const cents of detunes) {
-      const o = osc(k, 'sawtooth', f, t, end);
-      glide(o);
-      o.detune.value = cents + (k.rng() - 0.5) * 4;
-      o.connect(side);
-    }
-  }
-  const glint = pulseOsc(k, 0.25, f * 2, t, end);
-  glide(glint, 2);
-  const gg = ctx.createGain();
-  gg.gain.value = 0.22;
-  glint.connect(gg).connect(lp);
 }
 
 /**
