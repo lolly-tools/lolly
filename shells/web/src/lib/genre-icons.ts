@@ -51,6 +51,7 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   salsa: { set: 'sparkle' },
   surf: { own: 'surfboard' }, yacht: { own: 'sailboat' },
   botanica: { set: 'leaf' },
+  breakbeat: { set: 'scissors' }, funkyHouse: { set: 'aperture' }, ukGarage: { set: 'neuroBeat' }, privateSchool: { set: 'graduationCap' },
 };
 
 /** The shapes of a genre's icon, inside its `<svg>`. */
@@ -82,6 +83,7 @@ export type GenreCategory = typeof GENRE_CATEGORIES[number];
 export const GENRE_CATEGORY: Record<LofiMood, GenreCategory> = {
   warm: 'chill', lateNight: 'chill', rainy: 'chill', lofiHouse: 'chill', triphop: 'chill', dream: 'chill', citypop: 'chill', sings: 'chill', fantasy: 'chill', botanica: 'chill',
   sugar: 'electronic', sherbert: 'electronic', synthwave: 'electronic', chiptune: 'electronic', acid: 'electronic', electro: 'electronic', dubstep: 'electronic', brostep: 'electronic', dnb: 'electronic', nudisco: 'electronic',
+  breakbeat: 'electronic', funkyHouse: 'electronic', ukGarage: 'electronic', privateSchool: 'electronic',
   rock: 'classic', punk: 'classic', grunge: 'classic', stoner: 'classic', metal: 'classic', shoegaze: 'classic', blues: 'classic', jazz: 'classic', swing: 'classic', soul: 'classic', funk: 'classic', rnb: 'classic', country: 'classic', ska: 'classic', reggae: 'classic', hiphop: 'classic',
   surf: 'classic', yacht: 'classic',
   persian: 'international', guzheng: 'international', koto: 'international', kora: 'international', afrobeat: 'international', amapiano: 'international', spanish: 'international', straya: 'international', kpop: 'international', salsa: 'international',

@@ -78,7 +78,7 @@ const LOOSE: Partial<Record<LofiNote['voice'], number>> = { kick: 3, snare: 4, r
 /** How much each stroke's strength varies (one deviation, as a fraction). */
 const STRENGTH = 0.07;
 /** The styles played by machines, where the grid is the feel: they stay tight (a fifth of the looseness). */
-const MACHINE = new Set<LofiMood>(['acid', 'electro', 'dubstep', 'brostep', 'dnb', 'chiptune', 'sherbert', 'synthwave', 'nudisco', 'kpop', 'sugar', 'amapiano']);
+const MACHINE = new Set<LofiMood>(['acid', 'electro', 'dubstep', 'brostep', 'dnb', 'chiptune', 'sherbert', 'synthwave', 'nudisco', 'kpop', 'sugar', 'amapiano', 'funkyHouse', 'ukGarage', 'privateSchool']);
 /** Each style's pocket (ms): where its snare and its hats sit against the grid. */
 const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   hiphop: { snare: 14, hat: 4 }, rnb: { snare: 10 }, soul: { snare: 8 }, triphop: { snare: 12 },
@@ -90,6 +90,8 @@ const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   surf: { hat: -3 },
   // Yacht rock's sits back a little: a relaxed backbeat, the hats a touch behind too.
   yacht: { snare: 6, hat: 2 },
+  // A breakbeat's drummer was sampled playing: a snare a hair behind, as funk drummers sit.
+  breakbeat: { snare: 4 },
 };
 
 /** A hat note's `mod` that plays the ride's bell instead (1 is a light hat, 2 the hat's foot). */

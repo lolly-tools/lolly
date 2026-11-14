@@ -13,6 +13,7 @@ export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   tar: 'tar', santur: 'santur', zheng: 'guzheng', koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', strings: 'string section',
   grand: 'grand piano',
   surf: 'surf rhythm guitar', combo: 'combo organ',
+  houseOrgan: 'house organ',
 };
 
 export const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
@@ -31,5 +32,5 @@ export const LOFI_HATS_NAME: Record<LofiStyle['hats'], string> = { hat: 'hi-hat'
 export const LOFI_BASS_NAME: Record<LofiStyle['bass'], string> = {
   round: 'rolling bass', upright: 'upright bass', synth: 'synth bass', wobble: 'wobble bass', growl: 'growl bass',
   reese: 'reese bass', slap: 'slap bass', screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass',
-  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass', yidaki: 'yidaki', log: 'log drum', deep: 'deep-house bass',
+  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass', yidaki: 'yidaki', log: 'log drum', deep: 'deep-house bass', warp: 'warp bass',
 };

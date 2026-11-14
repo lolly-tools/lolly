@@ -30,7 +30,7 @@ const MARKUP: Record<InstrumentIcon, string> = {
 };
 
 const KEYS: Record<LofiStyle['keys'], InstrumentIcon> = {
-  rhodes: 'piano', felt: 'piano', wurli: 'piano', honky: 'piano', organ: 'piano',
+  rhodes: 'piano', felt: 'piano', wurli: 'piano', honky: 'piano', organ: 'piano', houseOrgan: 'piano',
   pluck: 'audioWaveform', pad: 'audioWaveform', supersaw: 'audioWaveform', future: 'audioWaveform',
   nylon: 'guitar', clean: 'guitar', fuzz: 'guitar', wall: 'guitar', steel: 'guitar', banjo: 'guitar', jazzbox: 'guitar', crunch: 'guitar', heavy: 'guitar', buzzsaw: 'guitar', wah: 'guitar', electric: 'guitar', harp: 'guitar',
   tar: 'guitar', santur: 'guitar', zheng: 'guitar', koto: 'guitar', shamisen: 'guitar', kora: 'guitar',
@@ -51,7 +51,7 @@ const LEADS: Record<LofiStyle['lead'], InstrumentIcon> = {
   surf: 'guitar', chorus: 'guitar',
 };
 const BASSES: Record<LofiStyle['bass'], InstrumentIcon> = {
-  round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
+  round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', warp: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
   upright: 'bowed', slap: 'guitar', picked: 'guitar', croak: 'guitar', motown: 'guitar',
   pulse: 'gamepad', eight: 'drum', log: 'drum', yidaki: 'wind',
 };

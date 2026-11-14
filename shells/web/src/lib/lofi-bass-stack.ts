@@ -68,6 +68,14 @@ export const STACKS: Partial<Record<LofiMood, StackPlan>> = {
   electro: { xover: 120, mono: 180, width: 0.6, cents: 8, late: 0.004, sub: 0.9, take: 0.55, soft: 0.55, top: 0.25 },
   lofiHouse: { xover: 140, mono: 200, width: 0.3, cents: 5, late: 0.004, sub: 0.85, take: 0.82, soft: 0.8, top: 0 },
   nudisco: { xover: 130, mono: 200, width: 0.35, cents: 6, late: 0.004, sub: 0.45, take: 0.52, soft: 0.5, top: 0 },
+  // The club genres (engine/src/lofi-club.ts). Breakbeat's rolling reese is as wide as drum
+  // and bass's; funky house and UK garage keep the house styles' narrow middle, garage with a
+  // little top for the warp; private school's log drum crosses over low (its slide is in
+  // its own fundamental) and barely spreads.
+  breakbeat: { xover: 120, mono: 180, width: 0.7, cents: 8, late: 0.005, sub: 1, take: 0.9, soft: 0.8, top: 0.35 },
+  funkyHouse: { xover: 130, mono: 200, width: 0.35, cents: 6, late: 0.004, sub: 0.5, take: 0.55, soft: 0.5, top: 0 },
+  ukGarage: { xover: 130, mono: 200, width: 0.6, cents: 7, late: 0.004, sub: 0.9, take: 0.7, soft: 0.75, top: 0.15 },
+  privateSchool: { xover: 70, mono: 220, width: 0.2, cents: 3, late: 0.003, sub: 0.35, take: 0.85, soft: 0.85, top: 0 },
 };
 
 /** Whether a style stacks its bass. */
