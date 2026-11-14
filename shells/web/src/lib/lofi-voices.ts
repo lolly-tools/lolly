@@ -9,9 +9,9 @@
  *          felt    a soft, muffled upright: a few warm partials and a felt thump
  *          wurli   a reedier FM piano with more bark on the attack
  *          pluck   a soft pluck, half guitar and half koto: a filter that closes fast
- *   lead   vibes, soft (a filtered saw, a little like muted brass), kalimba (a bright
- *          inharmonic tine), chip (a soft chiptune square, for Lolly Sings); the flute is
- *          blown in lib/lofi-flutes.ts and played in lib/lofi-winds.ts
+ *   lead   vibes, kalimba (a bright inharmonic tine), chip (a soft chiptune square, for
+ *          Lolly Sings); the flute is blown in lib/lofi-flutes.ts and played in
+ *          lib/lofi-winds.ts
  *   bass   round (sine and triangle), upright (a double bass plucked, through its body), synth
  *          (a filtered saw over a sine)
  *   drums  kick, snare, brush, clap, rim, hat and shaker, tuned by the style
@@ -349,8 +349,7 @@ function pluck(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
  * take no notice of the pitch.
  */
 export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0, from?: number): void {
-  if (style === 'soft') softLead(k, out, t, midi, vel, dur);
-  else if (style === 'kalimba') kalimba(k, out, t, midi, vel);
+  if (style === 'kalimba') kalimba(k, out, t, midi, vel);
   else if (style === 'vibes') vibes(k, out, t, midi, vel, dur);
   else if (style === 'chip') chip(k, out, t, midi, vel, dur);
   else if (style === 'angel') angel(k, out, t, midi, vel, dur);
@@ -1154,27 +1153,6 @@ function vibes(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   sg.gain.exponentialRampToValueAtTime(0.02 * vel, t + 0.004);
   sg.gain.exponentialRampToValueAtTime(EPS, t + 0.3);
   shimmer.connect(sg).connect(out);
-}
-
-/** A soft lead: a filtered saw that swells in, a little like a muted horn. */
-function softLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.3;
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.Q.value = 0.8;
-  lp.frequency.setValueAtTime(f * 1.2, t);
-  lp.frequency.exponentialRampToValueAtTime(f * 2.8, t + 0.08);
-  lp.frequency.exponentialRampToValueAtTime(f * 1.8, t + 0.5);
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(0.07 * vel, t + 0.045);
-  amp.gain.setTargetAtTime(EPS, t + Math.max(0.06, dur), 0.08);
-  lp.connect(amp).connect(out);
-  const o = osc(k, 'sawtooth', f, t, end);
-  vibrato(k, o.detune, t, end, 5.4, 8, 0.25);
-  o.connect(lp);
 }
 
 /** Kalimba: a bright tine with an inharmonic overtone that dies fast. */

@@ -14,11 +14,12 @@
  *  - tunes differ: across seeds the keys, lead, groove, kit and the way a tune opens all
  *    vary, and the mood leans the key (warm is major, late night and rainy minor);
  *  - a tune's shape: it opens, has a verse, ends with a fading outro and one silent bar;
- *  - a fixed style part (auditioning one instrument) changes that part only.
+ *  - a fixed style part (auditioning one instrument) changes that part only;
+ *  - a retired lead is never drawn, and a tune that asks for one plays the lead in its place.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, isOverNote, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_OVER, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES, SURF_TREMOLO, SURF_GLISS, SURF_ARM, ELECTRIC_PALM, ELECTRIC_CHOKE, transposeChordName } from './lofi-compose.ts';
+import { composeLofiTune, isOverNote, isRetiredLead, liveLead, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_OVER, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES, SURF_TREMOLO, SURF_GLISS, SURF_ARM, ELECTRIC_PALM, ELECTRIC_CHOKE, transposeChordName, LOFI_LEADS, RETIRED_LEADS } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
 import { isBreakNote } from './lofi-breaks.ts';
 
@@ -35,12 +36,13 @@ function fingerprint(bars: unknown): number {
 }
 /** Tunes composed on main before Sherbert existed. Sugar's 2654435761 drew the croak for its
  *  verse, which now plays the slap (the croak only ever lies over a bass): its verse's bass
- *  notes moved (2026-11-13), the rest of the tune did not. */
+ *  notes moved (2026-11-13), the rest of the tune did not. Warm's 2654435761 drew the soft
+ *  lead, retired on 2026-11-14 (RETIRED_LEADS): it draws the acoustic guitar now. */
 const FINGERPRINTS: Record<string, number> = {
   'sugar.2024': 1067381605, 'sugar.2654435761': 3985419356, 'chiptune.2024': 3361767685, 'chiptune.2654435761': 2547177282,
   'kpop.2024': 1245126060, 'kpop.2654435761': 1409581692,
   'jazz.2024': 4242884971, 'jazz.2654435761': 1166250726, 'sings.2024': 2251072788, 'sings.2654435761': 419362352,
-  'warm.2024': 3837958448, 'warm.2654435761': 1943752970,
+  'warm.2024': 3837958448, 'warm.2654435761': 1921851039,
 };
 
 test('a seed is a tune: the same seed and mood compose the same bars', () => {
@@ -518,6 +520,32 @@ test('adding Lolly Sings changed no Lofi tune: a seed still composes what it did
   assert.equal(t.style.lead, 'flute');
 });
 
+test('no style draws a retired lead: not as the tune\'s lead, a section\'s or a doubling', () => {
+  for (const [old, now] of Object.entries(RETIRED_LEADS)) {
+    assert.ok((LOFI_LEADS as readonly string[]).includes(old), `${old} keeps its id, so an old link still reads`);
+    assert.ok(!isRetiredLead(now), `${old} plays ${now}, a lead that still plays`);
+  }
+  assert.equal(liveLead('soft'), 'flute');
+  assert.equal(liveLead('vibes'), 'vibes');
+  for (const mood of LOFI_MOODS) {
+    for (const seed of SEEDS.slice(0, 16)) {
+      for (const b of composeLofiTune(seed, mood)) {
+        for (const lead of [b.tune.style.lead, b.voices?.lead, b.voices?.double]) assert.ok(!lead || !isRetiredLead(lead), `${mood} ${seed} bar ${b.index}: ${lead}`);
+      }
+    }
+  }
+});
+
+test('a tune that asks for the soft lead plays the flute: exactly the tune with the flute chosen', () => {
+  for (const mood of ['warm', 'sings', 'citypop', 'lofiHouse', 'salsa', 'botanica'] as const) {
+    const soft = composeLofiTune(31, mood, { lead: 'soft' });
+    assert.equal(soft[0]!.tune.style.lead, 'flute', mood);
+    assert.deepEqual(soft, composeLofiTune(31, mood, { lead: 'flute' }), mood);
+  }
+  // The player and a render read a link through a station's stream.
+  assert.equal(lofiStream(31, { mood: 'citypop', style: { lead: 'soft' } }).next().tune.style.lead, 'flute');
+});
+
 test('fixing one style part changes that part only', () => {
   const base = composeLofiTune(77, 'warm')[0]!.tune;
   const fixed = composeLofiTune(77, 'warm', { keys: 'felt' })[0]!.tune;
@@ -813,8 +841,9 @@ test('lofi house: a soft kick on every beat that comes in full at the drop, a fi
 test('adding lofi house changed no other style: its draws come from a stream of its own', () => {
   // Composed on main before lofi house existed (b89d0b4dd0), the tag left in. Drum and bass
   // has since gained the band's shouted phrases, a layer of their own: without them, the
-  // tune is unchanged.
-  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 4230037030, 'jazz.7': 3436312216, 'dnb.7': 2399839091, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
+  // tune is unchanged. Amapiano's drew the soft lead, retired on 2026-11-14 (RETIRED_LEADS):
+  // its vibes play in its place.
+  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 2399839091, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
@@ -957,11 +986,13 @@ test('the shouts come from a stream of their own: the rest of every tune compose
   // Composed on main before the phrases existed (6bf5acd8b2), the tag left in. Without the
   // phrases, each tune is unchanged.
   const before: Record<string, number> = {
-    'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 3220058757, 'hiphop.7': 307798947,
-    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 2399839091, 'dubstep.7': 2238141904, 'brostep.7': 482108353, 'sherbert.7': 2035173988,
+    'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 123733926, 'hiphop.7': 307798947,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 2399839091, 'dubstep.7': 2238141904, 'brostep.7': 1362639215, 'sherbert.7': 2035173988,
   };
   // Dubstep's and brostep's drops trade their bass now (BASS_PLANS, 2026-11-13): a partner's
   // bars play its own figure and the stabs fall in its gaps, so those two pins moved with them.
+  // Soul's lead and brostep's breakdown and second drop were the soft lead, retired on
+  // 2026-11-14 (RETIRED_LEADS): a trumpet and bells play there now, so those two pins moved again.
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);

@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import {
   INSTRUMENT_FAMILIES, MUSIC_PARTS, NO_PREFS, avoidBlocked, clearSwaps, familyOf, heardBySection, instrumentsOf,
-  isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, styleInstruments, swapKey, type MusicPart, type MusicPrefs,
+  isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setPartInstrument, setShuffleGenres, styleInstruments, substituteFor, swapKey, type MusicPart, type MusicPrefs,
 } from './music-prefs.ts';
 import { shuffleMusic } from './music-shuffle.ts';
 import { isOverNote } from '../../../../engine/src/lofi-compose.ts';
@@ -46,6 +46,29 @@ test('every instrument has a family, and every family is one the browser shows',
   assert.equal(familyOf('bass', 'upright'), 'guitars');
   assert.equal(familyOf('keys', 'electric'), 'guitars', 'the electric guitar is with the guitars');
   assert.ok(!instrumentsOf('lead').includes('none'), 'no lead is not an instrument');
+});
+
+test('the retired soft lead has no card, its name sets the flute, and a profile that stars or blocks it comes to no harm', () => {
+  assert.ok(!instrumentsOf('lead').includes('soft'), 'the browser lists every lead but a retired one');
+  assert.ok(instrumentsOf('lead').includes('flute'));
+  const s = parseMusicState('style=citypop&seed=5&bars=64');
+  setPartInstrument(s, 'lead', 'soft');
+  setPartInstrument(s, 'lead', 'soft', 'drop');
+  assert.equal(s.lead, 'flute');
+  assert.equal(s.sections.drop?.lead, 'flute');
+  // A profile saved before the retirement may still star or block the soft lead.
+  const starred = loadMusicPrefs({ music: { favourites: ['lead:soft'] } });
+  const blocked = loadMusicPrefs({ music: { blocked: ['lead:soft'] } });
+  for (let i = 0; i < 30; i++) {
+    const sh = shuffleMusic(seeded(700 + i), { bars: 64, prefs: starred });
+    assert.notEqual(sh.lead, 'soft', 'a star does not bring it back');
+    for (const v of Object.values(sh.sections)) assert.notEqual(v?.lead, 'soft');
+  }
+  for (const mood of ['citypop', 'funk', 'shoegaze'] as const) {
+    assert.notEqual(substituteFor(starred, mood, 'lead', [], 5), 'soft');
+    const { swaps } = avoidBlocked(parseMusicState(`style=${mood}&seed=5&bars=64`), blocked);
+    assert.deepEqual(swaps, [], `${mood}: no tune plays it, so there is nothing to swap`);
+  }
 });
 
 test('a favourite and a block are kept on the profile, never both at once, and an empty record leaves no field', () => {

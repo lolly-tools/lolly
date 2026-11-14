@@ -13,11 +13,10 @@
  *
  * What makes one tune sound unlike the last is mostly not its key. So each seed picks a
  * whole style: the keys (a Rhodes, a felt piano, a Wurlitzer, a soft pluck), the lead
- * (vibes, flute, a soft brass-like line, kalimba, a harp, an acoustic guitar, bells, or
- * none), the bass, the drum kit and its tuning, the groove (boom-bap, half-time,
- * shuffle, lazy, sparse), how often the
- * chords change, how busy the keys are, and how much tape wobble and room it gets. The
- * mood leans those choices without fixing them. Each tune also builds its own running
+ * (vibes, flute, kalimba, a harp, an acoustic guitar, bells, or none), the bass, the
+ * drum kit and its tuning, the groove (boom-bap, half-time, shuffle, lazy, sparse), how
+ * often the chords change, how busy the keys are, and how much tape wobble and room it
+ * gets. The mood leans those choices without fixing them. Each tune also builds its own running
  * order (see arrange): how it opens, which instrument takes the front when, and how it
  * ends, so a tune can start on the hats alone or the whole kit as well as the keys.
  *
@@ -129,6 +128,24 @@ const SHOUT = (name: typeof LOFI_SHOUTS[number]): number => LOFI_SHOUTS.indexOf(
 
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'strings', 'grand', 'surf', 'combo', 'houseOrgan'] as const;
 export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'surf', 'chorus', 'none'] as const;
+/**
+ * Leads that no longer play, each with the lead that plays in its place. A retired id stays
+ * in LOFI_LEADS, so an old link or saved tune still reads, but no style draws one: a tune,
+ * a section or an instrument choice that asks for one plays the replacement (see liveLead). The
+ * soft lead, a filtered saw, gave way to the modelled flute (Andy, 2026-11-14: the flute is
+ * better than the soft lead).
+ */
+export const RETIRED_LEADS = { soft: 'flute' } as const satisfies Partial<Record<typeof LOFI_LEADS[number], typeof LOFI_LEADS[number]>>;
+/** A lead id that no longer plays. */
+export type RetiredLead = keyof typeof RETIRED_LEADS;
+/** A lead id that still plays. */
+export type LiveLead = Exclude<typeof LOFI_LEADS[number], RetiredLead>;
+/** Whether `lead` is a retired lead's id. */
+export const isRetiredLead = (lead: string): lead is RetiredLead => Object.hasOwn(RETIRED_LEADS, lead);
+/** The lead that plays for `lead`: the same lead, or the one that took a retired lead's place. */
+export function liveLead(lead: typeof LOFI_LEADS[number]): LiveLead {
+  return isRetiredLead(lead) ? RETIRED_LEADS[lead] : lead as LiveLead;
+}
 export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'yidaki', 'log', 'deep', 'warp'] as const;
 /** A `layer` note's `mod`: 1 the travelling line, 2 a percussive stab, LOFI_OVER the bass laid
  *  over the bar's (LofiBar voices.over), plus 8 times how that bass plays the note (its own
@@ -423,7 +440,7 @@ const LEAN: Record<Exclude<LofiMood, DanceMood>, {
   warm: {
     minor: false, bpm: [74, 92], swing: [0.55, 0.6],
     keys: [['rhodes', 3], ['wurli', 3], ['pluck', 2], ['felt', 1]],
-    lead: [['vibes', 2], ['soft', 1], ['steel', 1], ['flute', 2], ['kalimba', 1], ['none', 2]],
+    lead: [['vibes', 2], ['steel', 1], ['flute', 3], ['kalimba', 1], ['none', 2]],
     bass: [['round', 2], ['upright', 2], ['synth', 1]],
     snare: [['snare', 3], ['clap', 2], ['rim', 1], ['brush', 1]],
     hats: [['hat', 4], ['shaker', 2], ['none', 1]],
@@ -433,7 +450,7 @@ const LEAN: Record<Exclude<LofiMood, DanceMood>, {
   lateNight: {
     minor: true, bpm: [62, 78], swing: [0.57, 0.62],
     keys: [['felt', 3], ['rhodes', 3], ['wurli', 1], ['pluck', 1]],
-    lead: [['vibes', 2], ['harp', 1], ['soft', 1], ['flute', 1], ['kalimba', 1], ['none', 3]],
+    lead: [['vibes', 2], ['harp', 1], ['flute', 2], ['kalimba', 1], ['none', 3]],
     bass: [['round', 3], ['upright', 2], ['synth', 1]],
     snare: [['rim', 3], ['brush', 2], ['snare', 2], ['clap', 1]],
     hats: [['hat', 3], ['shaker', 1], ['none', 2]],
@@ -456,7 +473,7 @@ const LEAN: Record<Exclude<LofiMood, DanceMood>, {
   sings: {
     minor: false, bpm: [86, 108], swing: [0.5, 0.56],
     keys: [['pluck', 3], ['felt', 2], ['rhodes', 2], ['wurli', 1]],
-    lead: [['kalimba', 3], ['vibes', 2], ['bells', 1], ['chip', 2], ['steel', 1], ['flute', 1], ['harp', 1], ['soft', 1]],
+    lead: [['kalimba', 3], ['vibes', 2], ['bells', 1], ['chip', 2], ['steel', 1], ['flute', 2], ['harp', 1]],
     bass: [['round', 3], ['upright', 2], ['synth', 1]],
     snare: [['rim', 3], ['clap', 2], ['brush', 2], ['snare', 1]],
     hats: [['shaker', 3], ['hat', 2], ['none', 1]],
@@ -1051,6 +1068,8 @@ function shoutSpan(bar: number, n: LofiNote, spb: number): [number, number] {
 
 /** Build one tune's bars, before the tag. */
 function composeTuneBars(seed: number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiBar[] {
+  // A retired lead (an old link's, a saved tune's) plays the lead that took its place.
+  if (fixed.lead && isRetiredLead(fixed.lead)) fixed = { ...fixed, lead: liveLead(fixed.lead) };
   if (mood === 'botanica') return composeBotanica(seed, fixed, BOTANICA_KIT);
   if (isDanceMood(mood)) return composeDanceTune(seed, mood, fixed);
   const rng = mulberry32(seed >>> 0);
@@ -1439,11 +1458,11 @@ const DANCE: Record<DanceMood, DanceLean> = {
     swing: 0.5, intro: 4, build: [4], drop: 16, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.95,
     softKeys: [['pluck', 1], ['felt', 1]], verseBass: [['pulse', 1]], switchBass: [['pulse', 1]],
   },
-  // City pop: eighties Tokyo at sunset. Slap bass, Rhodes stabs, horn-like leads, four on
-  // the floor, bright major-ninth chords.
+  // City pop: eighties Tokyo at sunset. Slap bass, Rhodes stabs, a flute, a trumpet or a
+  // synth lead, four on the floor, bright major-ninth chords.
   citypop: {
     bpm: [108, 124], minor: 0.2, groove: 'disco', chordBars: 1,
-    keys: [['rhodes', 3], ['electric', 2], ['wurli', 1], ['pad', 1]], lead: [['soft', 3], ['vibes', 2], ['synthwave', 2], ['guitar', 2]],
+    keys: [['rhodes', 3], ['electric', 2], ['wurli', 1], ['pad', 1]], lead: [['flute', 2], ['trumpet', 1], ['vibes', 2], ['synthwave', 2], ['guitar', 2]],
     bass: [['slap', 3], ['motown', 1]], snare: [['snare', 2], ['clap', 1]], kick: [52, 58], kickLen: [0.3, 0.4], duck: [0.6, 0.9], crunch: 0,
     swing: 0.52, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.75, band: true,
     softKeys: [['felt', 1], ['pluck', 1]], verseBass: [['slap', 2], ['motown', 1]], switchBass: [['slap', 1]],
@@ -1452,7 +1471,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // four on the floor, with builds that open the filter.
   nudisco: {
     bpm: [115, 124], minor: 0.45, groove: 'disco', chordBars: 2,
-    keys: [['wah', 3], ['pad', 2], ['supersaw', 1]], lead: [['synthwave', 2], ['soft', 2], ['guitar', 2], ['vibes', 1]],
+    keys: [['wah', 3], ['pad', 2], ['supersaw', 1]], lead: [['synthwave', 2], ['flute', 2], ['guitar', 2], ['vibes', 1]],
     bass: [['synth', 2], ['electro', 1]], snare: [['clap', 3], ['snare', 1]], kick: [50, 56], kickLen: [0.3, 0.4], duck: [1.1, 1.5], crunch: 0.1,
     swing: 0.52, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.65,
     softKeys: [['pad', 2], ['rhodes', 1]], verseBass: [['synth', 1]], switchBass: [['synth', 2], ['electro', 1]],
@@ -1461,16 +1480,16 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // an eerie lead, grit and plenty of record dust.
   triphop: {
     bpm: [78, 92], minor: 0.9, groove: 'boomBap', chordBars: 2,
-    keys: [['pad', 2], ['rhodes', 2], ['felt', 1]], lead: [['angel', 3], ['flute', 2], ['guitar', 2], ['soft', 1]],
+    keys: [['pad', 2], ['rhodes', 2], ['felt', 1]], lead: [['angel', 3], ['flute', 2], ['guitar', 2], ['cello', 1]],
     bass: [['eight', 1]], snare: [['snare', 2], ['rim', 1]], kick: [46, 54], kickLen: [0.4, 0.55], duck: [0.6, 0.9], crunch: 0.6,
     swing: 0.57, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.4, band: true, dust: 0.8,
     softKeys: [['felt', 2], ['pluck', 1]], verseBass: [['eight', 1]], switchBass: [['eight', 1]],
   },
-  // Funk: slap bass up front, a wah guitar chanking sixteenths, horn-like stabs, tight
+  // Funk: slap bass up front, a wah guitar chanking sixteenths, a horn section's lines, tight
   // drums with ghost notes, and the jazz-funk chords.
   funk: {
     bpm: [98, 114], minor: 0.6, groove: 'funk', chordBars: 2,
-    keys: [['electric', 3], ['wah', 3], ['pluck', 1], ['rhodes', 1]], lead: [['soft', 3], ['guitar', 2], ['synthwave', 1], ['flute', 1], ['vibes', 1]],
+    keys: [['electric', 3], ['wah', 3], ['pluck', 1], ['rhodes', 1]], lead: [['trumpet', 3], ['guitar', 2], ['synthwave', 1], ['flute', 1], ['vibes', 1]],
     bass: [['slap', 1]], snare: [['snare', 1]], kick: [52, 60], kickLen: [0.25, 0.35], duck: [0.6, 0.9], crunch: 0.2,
     swing: 0.54, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.8, band: true,
     softKeys: [['rhodes', 2], ['felt', 1]], verseBass: [['slap', 1]], switchBass: [['slap', 1]],
@@ -1479,7 +1498,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // and a vibes, flute, horn or guitar lead.
   soul: {
     bpm: [88, 108], minor: 0.35, groove: 'rock', chordBars: 2,
-    keys: [['rhodes', 3], ['wurli', 2], ['pad', 1]], lead: [['vibes', 2], ['flute', 2], ['soft', 2], ['guitar', 2]],
+    keys: [['rhodes', 3], ['wurli', 2], ['pad', 1]], lead: [['vibes', 2], ['flute', 2], ['trumpet', 2], ['guitar', 2]],
     bass: [['motown', 1]], snare: [['snare', 2], ['clap', 1]], hats: 'shaker', kick: [50, 56], kickLen: [0.3, 0.45], duck: [0.5, 0.8], crunch: 0.1,
     swing: 0.55, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.65, band: true,
     softKeys: [['felt', 2], ['pluck', 1]], verseBass: [['motown', 1]], switchBass: [['motown', 1]],
@@ -1494,10 +1513,10 @@ const DANCE: Record<DanceMood, DanceLean> = {
     softKeys: [['pad', 1], ['felt', 1]], verseBass: [['acid', 1]], switchBass: [['acid', 1]],
   },
   // Reggae: the one drop, an offbeat skank on the keys with an organ's bubble, a deep and
-  // melodic bass that leaves space, and a horn-like or flute lead.
+  // melodic bass that leaves space, and a trumpet or flute lead.
   reggae: {
     bpm: [70, 84], minor: 0.5, groove: 'oneDrop', chordBars: 1,
-    keys: [['electric', 3], ['wurli', 3], ['rhodes', 2], ['pluck', 1]], lead: [['soft', 3], ['flute', 2], ['vibes', 2], ['kalimba', 1], ['guitar', 1]],
+    keys: [['electric', 3], ['wurli', 3], ['rhodes', 2], ['pluck', 1]], lead: [['trumpet', 3], ['flute', 2], ['vibes', 2], ['kalimba', 1], ['guitar', 1]],
     bass: [['round', 1]], snare: [['rim', 1]], kick: [46, 54], kickLen: [0.35, 0.5], duck: [0.5, 0.8], crunch: 0,
     swing: 0.58, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.6, band: true,
     softKeys: [['felt', 2], ['pad', 1]], verseBass: [['round', 1]], switchBass: [['round', 1]],
@@ -1506,7 +1525,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // backbeat with a big snare, a saw lead or a lead guitar, builds that open on a crash.
   synthwave: {
     bpm: [92, 118], minor: 0.8, groove: 'rock', chordBars: 2,
-    keys: [['pluck', 3], ['pad', 2], ['supersaw', 1]], lead: [['synthwave', 4], ['overdrive', 2], ['soft', 1], ['pulse', 1]],
+    keys: [['pluck', 3], ['pad', 2], ['supersaw', 1]], lead: [['synthwave', 4], ['overdrive', 2], ['bells', 1], ['pulse', 1]],
     bass: [['synth', 1]], snare: [['snare', 3], ['clap', 1]], kick: [50, 58], kickLen: [0.3, 0.42], duck: [1, 1.4], crunch: 0,
     swing: 0.5, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.65,
     softKeys: [['pad', 2], ['felt', 1]], verseBass: [['synth', 1]], switchBass: [['synth', 2], ['electro', 1]],
@@ -1576,11 +1595,11 @@ const DANCE: Record<DanceMood, DanceLean> = {
     softKeys: [['harp', 2], ['choir', 2], ['felt', 1]], verseBass: [['round', 1]], switchBass: [['upright', 1], ['round', 1]],
     scale: [[0, 2, 4, 6, 7, 9, 11], [0, 2, 3, 5, 7, 9, 10]], room: [1.2, 1.6], wow: [0.05, 0.15],
   },
-  // Dreamscape: pads and a choir drifting, vibes, a harp or a soft lead, the jazz-major chords held two bars,
+  // Dreamscape: pads and a choir drifting, vibes, a harp, bells or a flute, the jazz-major chords held two bars,
   // a slow half-time beat with the hats on the beat, a long room and a gentle wobble.
   dream: {
     bpm: [68, 88], minor: 0.45, groove: 'halfTime', chordBars: 2,
-    keys: [['pad', 3], ['choir', 2], ['felt', 1]], lead: [['soft', 2], ['angel', 2], ['vibes', 3], ['harp', 2], ['bells', 1], ['flute', 1]],
+    keys: [['pad', 3], ['choir', 2], ['felt', 1]], lead: [['flute', 2], ['angel', 2], ['vibes', 3], ['harp', 2], ['bells', 2]],
     bass: [['round', 2], ['synth', 1]], snare: [['rim', 2], ['brush', 1]], hats: 'shaker', kick: [46, 54], kickLen: [0.4, 0.6], duck: [0.4, 0.8], crunch: 0,
     swing: 0.52, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.45, dust: 0.25,
     softKeys: [['felt', 2], ['pad', 1], ['choir', 1]], verseBass: [['round', 1]], switchBass: [['synth', 1], ['round', 1]],
@@ -1654,7 +1673,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // plain bass, a steady beat.
   shoegaze: {
     bpm: [80, 112], minor: 0.5, groove: 'rock', chordBars: 2,
-    keys: [['wall', 1]], lead: [['angel', 3], ['soft', 2], ['guitar', 1]],
+    keys: [['wall', 1]], lead: [['angel', 3], ['viola', 2], ['guitar', 1]],
     bass: [['picked', 1], ['round', 1]], snare: [['snare', 1]], kick: [50, 58], kickLen: [0.3, 0.4], duck: [0.3, 0.5], crunch: 0.2,
     swing: 0.5, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.45, band: true,
     softKeys: [['clean', 2], ['wall', 1]], verseKeys: [['clean', 1], ['wall', 2]], verseBass: [['round', 1]], switchBass: [['picked', 1]],
@@ -1662,10 +1681,10 @@ const DANCE: Record<DanceMood, DanceLean> = {
   },
   // R&B: smooth and slow. Lush sevenths and ninths on a Rhodes, a pad or a felt piano, an
   // 808 sliding under them or a Motown bass with a sub beneath, a clap and a finger snap on
-  // the backbeat, hats that roll, and a soft lead or a chopped vocal.
+  // the backbeat, hats that roll, and a flute or a chopped vocal.
   rnb: {
     bpm: [64, 80], minor: 0.6, groove: 'boomBap', chordBars: 2,
-    keys: [['rhodes', 3], ['pad', 2], ['felt', 1], ['future', 1]], lead: [['soft', 2], ['chop', 3], ['angel', 2], ['vibes', 2], ['synthwave', 1]],
+    keys: [['rhodes', 3], ['pad', 2], ['felt', 1], ['future', 1]], lead: [['flute', 2], ['chop', 3], ['angel', 2], ['vibes', 2], ['synthwave', 1]],
     bass: [['eight', 2], ['motown', 1]], snare: [['clap', 2], ['snap', 2]], kick: [44, 52], kickLen: [0.45, 0.7], duck: [0.6, 1], crunch: 0,
     swing: 0.56, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.6, band: true,
     softKeys: [['rhodes', 2], ['pad', 1]], verseBass: [['eight', 1], ['motown', 1]], switchBass: [['eight', 1]], dust: 0.15,
@@ -1772,10 +1791,10 @@ const DANCE: Record<DanceMood, DanceLean> = {
   },
   // Amapiano: South African house slowed and opened up. The log drum's woody, sliding
   // bass, jazzy piano chords on the offbeats, a swung shaker, a soft four on the floor, and
-  // a flute, sax or soft lead floating over.
+  // a flute, sax or vibes floating over.
   amapiano: {
     bpm: [110, 116], minor: 0.6, groove: 'disco', chordBars: 2,
-    keys: [['rhodes', 3], ['felt', 1], ['pluck', 1]], lead: [['flute', 2], ['sax', 2], ['soft', 2], ['vibes', 1]],
+    keys: [['rhodes', 3], ['felt', 1], ['pluck', 1]], lead: [['flute', 2], ['sax', 2], ['vibes', 3]],
     bass: [['log', 1]], snare: [['rim', 2], ['clap', 2]], hats: 'shaker', kick: [48, 54], kickLen: [0.3, 0.42], duck: [0.6, 0.9], crunch: 0,
     swing: 0.56, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.5, dust: 0.05,
     softKeys: [['pad', 2], ['felt', 1]], verseBass: [['log', 1]], switchBass: [['log', 1]],
@@ -1790,7 +1809,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // swing is drawn per tune (see houseOf), and the running order is its own (arrangeHouse).
   lofiHouse: {
     bpm: [116, 124], minor: 0.65, groove: 'disco', chordBars: 1,
-    keys: [['rhodes', 4], ['organ', 2], ['pad', 1], ['wurli', 1]], lead: [['chop', 4], ['bells', 3], ['vibes', 2], ['flute', 1], ['soft', 1]],
+    keys: [['rhodes', 4], ['organ', 2], ['pad', 1], ['wurli', 1]], lead: [['chop', 4], ['bells', 3], ['vibes', 2], ['flute', 2]],
     bass: [['deep', 1]], snare: [['clap', 3], ['rim', 2]], kick: [48, 54], kickLen: [0.32, 0.45], duck: [1.1, 1.5], crunch: 0.65,
     swing: 0.58, intro: 16, build: [8, 4], drop: 16, breakdown: 8, harmony: 'house', singingDrop: false, busy: 0.3,
     softKeys: [['pad', 3], ['felt', 1], ['rhodes', 1]], verseBass: [['deep', 1]], switchBass: [['deep', 1]],
@@ -1805,7 +1824,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   },
   brostep: {
     bpm: [145, 150], minor: 0.75, groove: 'halfStep', chordBars: 2,
-    keys: [['pad', 3], ['supersaw', 2]], lead: [['chip', 2], ['soft', 2], ['angel', 1], ['overdrive', 3], ['synthwave', 1], ['metal', 3]],
+    keys: [['pad', 3], ['supersaw', 2]], lead: [['chip', 2], ['bells', 2], ['angel', 1], ['overdrive', 3], ['synthwave', 1], ['metal', 3]],
     bass: [['growl', 1], ['screech', 1]], snare: [['snare', 4], ['clap', 1]], kick: [50, 58], kickLen: [0.3, 0.45], duck: [1.4, 1.8], crunch: 0.4,
     swing: 0.5, intro: 8, build: [4, 8], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: false, busy: 0.75,
     softKeys: [['pad', 2], ['pluck', 1]], verseBass: [['growl', 1]], switchBass: [['growl', 1], ['screech', 1]],
@@ -1821,7 +1840,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // riff jumping octaves, big saw chords, grit on the whole mix.
   electro: {
     bpm: [118, 126], minor: 0.6, groove: 'disco', chordBars: 1,
-    keys: [['supersaw', 3], ['pad', 1]], lead: [['soft', 2], ['pulse', 2], ['chip', 1], ['overdrive', 3], ['synthwave', 2], ['metal', 2], ['panflute', 1]],
+    keys: [['supersaw', 3], ['pad', 1]], lead: [['bells', 2], ['pulse', 2], ['chip', 1], ['overdrive', 3], ['synthwave', 2], ['metal', 2], ['panflute', 1]],
     bass: [['electro', 1]], snare: [['clap', 3], ['snare', 2]], kick: [50, 58], kickLen: [0.3, 0.42], duck: [1.8, 2.2], crunch: 0.7,
     swing: 0.5, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.7,
     softKeys: [['pad', 2], ['pluck', 1]], verseBass: [['electro', 2], ['pulse', 1]], switchBass: [['electro', 3], ['screech', 1]],
@@ -1858,7 +1877,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // shuffles put theirs (0.58 to 0.61, Freesound 77291, 139060 and 557634, CC0).
   yacht: {
     bpm: [84, 104], minor: 0.25, groove: 'shuffle', chordBars: 1,
-    keys: [['rhodes', 6], ['wurli', 1], ['felt', 1]], lead: [['sax', 3], ['chorus', 3], ['soft', 1]],
+    keys: [['rhodes', 6], ['wurli', 1], ['felt', 1]], lead: [['sax', 3], ['chorus', 3], ['flute', 1]],
     bass: [['motown', 1]], snare: [['snare', 1]], kick: [52, 60], kickLen: [0.22, 0.3], duck: [0.2, 0.4], crunch: 0,
     swing: 0.61, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'yacht', singingDrop: true, busy: 0.6, band: true,
     softKeys: [['clean', 3], ['strings', 2], ['felt', 1]], verseBass: [['motown', 1]], switchBass: [['motown', 1]], room: [0.7, 1], wow: [0.03, 0.08], dust: 0.1,
@@ -1880,7 +1899,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // Breakbeat: a chopped drummer's break, a rolling reese, short stabs, grit on the sampler.
   breakbeat: {
     bpm: [126, 138], minor: 0.75, groove: 'funk', chordBars: 2,
-    keys: [['supersaw', 3], ['brass', 2], ['organ', 1], ['pluck', 1]], lead: [['chop', 3], ['synthwave', 2], ['soft', 2], ['riff', 1], ['overdrive', 1], ['pulse', 1]],
+    keys: [['supersaw', 3], ['brass', 2], ['organ', 1], ['pluck', 1]], lead: [['chop', 3], ['synthwave', 2], ['flute', 2], ['riff', 1], ['overdrive', 1], ['pulse', 1]],
     bass: [['reese', 3], ['electro', 1]], snare: [['snare', 1]], kick: [52, 60], kickLen: [0.24, 0.34], duck: [0.9, 1.3], crunch: 0.45,
     swing: 0.5, intro: 16, build: [8], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: false, busy: 0.6,
     softKeys: [['pad', 3], ['felt', 1]], verseBass: [['reese', 1]], switchBass: [['reese', 2], ['electro', 1]],
@@ -1888,7 +1907,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // Funky house: a filtered disco loop, Latin percussion, a bouncing bass and vocal chops.
   funkyHouse: {
     bpm: [123, 128], minor: 0.4, groove: 'disco', chordBars: 2,
-    keys: [['brass', 2], ['houseOrgan', 2], ['grand', 2], ['pad', 1], ['rhodes', 1], ['wah', 1]], lead: [['chop', 4], ['soft', 1], ['vibes', 1], ['sax', 1], ['bells', 1]],
+    keys: [['brass', 2], ['houseOrgan', 2], ['grand', 2], ['pad', 1], ['rhodes', 1], ['wah', 1]], lead: [['chop', 4], ['flute', 1], ['vibes', 1], ['sax', 1], ['bells', 1]],
     bass: [['synth', 3], ['deep', 1]], snare: [['clap', 4], ['snare', 1]], kick: [50, 56], kickLen: [0.3, 0.4], duck: [1.1, 1.5], crunch: 0.15,
     swing: 0.54, intro: 16, build: [8, 4], drop: 16, breakdown: 8, harmony: 'house', singingDrop: false, busy: 0.6, dust: 0.1,
     softKeys: [['pad', 2], ['rhodes', 1], ['felt', 1]], verseBass: [['synth', 1]], switchBass: [['synth', 2], ['deep', 1]],
@@ -1897,7 +1916,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // or a warping bass on some tunes.
   ukGarage: {
     bpm: [130, 136], minor: 0.65, groove: 'twoStep', chordBars: 1,
-    keys: [['houseOrgan', 5], ['rhodes', 2], ['pluck', 1]], lead: [['chop', 6], ['soft', 1], ['bells', 1], ['vibes', 1]],
+    keys: [['houseOrgan', 5], ['rhodes', 2], ['pluck', 1]], lead: [['chop', 6], ['bells', 2], ['vibes', 1]],
     bass: [['deep', 3], ['warp', 2]], snare: [['clap', 2], ['snare', 2]], kick: [50, 56], kickLen: [0.3, 0.42], duck: [1, 1.4], crunch: 0.2,
     swing: 0.6, intro: 16, build: [4, 8], drop: 16, breakdown: 8, harmony: 'house', singingDrop: true, busy: 0.7, dust: 0.1,
     softKeys: [['pad', 2], ['rhodes', 1]], verseBass: [['deep', 1]], switchBass: [['warp', 2], ['deep', 1]],
@@ -1906,7 +1925,7 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // on jazz chords, a saxophone, shakers and soft percussion, long builds.
   privateSchool: {
     bpm: [108, 113], minor: 0.55, groove: 'disco', chordBars: 2,
-    keys: [['rhodes', 3], ['grand', 3], ['wurli', 1]], lead: [['sax', 4], ['flute', 1], ['vibes', 1], ['soft', 1]],
+    keys: [['rhodes', 3], ['grand', 3], ['wurli', 1]], lead: [['sax', 4], ['flute', 2], ['vibes', 1]],
     bass: [['log', 1]], snare: [['rim', 3], ['clap', 1]], hats: 'shaker', kick: [46, 52], kickLen: [0.3, 0.42], duck: [0.4, 0.65], crunch: 0,
     swing: 0.56, intro: 16, build: [8, 16], drop: 16, breakdown: 16, harmony: 'jazz', singingDrop: false, busy: 0.4, dust: 0.05,
     softKeys: [['pad', 2], ['grand', 1], ['rhodes', 1]], verseBass: [['log', 1]], switchBass: [['log', 1]],
