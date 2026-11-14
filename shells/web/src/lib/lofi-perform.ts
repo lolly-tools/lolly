@@ -50,6 +50,7 @@ import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SC
 import { TRUMPET_DOIT, TRUMPET_DROP, TRUMPET_GHOST, TRUMPET_KU, TRUMPET_PLAYED, TRUMPET_SCOOP, TRUMPET_SLUR, TRUMPET_TONGUE } from './lofi-brass.ts';
 import { HORN_SECTION, HORN_SECTION_IN } from './lofi-winds.ts';
 import { strummer } from './lofi-strum.ts';
+import { SAX_GROWL, SAX_PLAYED, SAX_SCOOP, SAX_SUBTONE } from './lofi-reeds.ts';
 
 /** A seeded source for one bar of one tune. */
 function barRandom(bar: LofiBar): () => number {
@@ -85,6 +86,10 @@ const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   jazz: { hat: -3 }, swing: { hat: -3 }, punk: { hat: -4 }, metal: { hat: -2 }, rock: { hat: -2 }, grunge: { snare: 6 }, stoner: { snare: 10 },
   // Lofi house is a sampler played by hand and left unquantised: a lazy clap and hats a little late.
   lofiHouse: { snare: 8, hat: 5 },
+  // Surf's drummer drives: the hats and the floor tom a little ahead.
+  surf: { hat: -3 },
+  // Yacht rock's sits back a little: a relaxed backbeat, the hats a touch behind too.
+  yacht: { snare: 6, hat: 2 },
 };
 
 /** A hat note's `mod` that plays the ride's bell instead (1 is a light hat, 2 the hat's foot). */
@@ -144,7 +149,9 @@ function drummer(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => numbe
 // ── the rhythm guitarist ────────────────────────────────────────────────────────
 
 /** The guitars that strum their chords, and those whose player lets the open strings ring. */
-export const STRUMMED = new Set<string>(['steel', 'jazzbox', 'clean', 'wall', 'electric']);
+export const STRUMMED = new Set<string>(['steel', 'jazzbox', 'clean', 'wall', 'electric', 'surf']);
+/** The strummed guitars played on the measured electric string, whose strokes carry ELECTRIC_* flags and a fret. */
+const ELECTRICS = new Set<string>(['electric', 'surf']);
 const OPEN_STRINGS = new Set<string>(['steel', 'wall']);
 /** Standard tuning, low E to high E. */
 export const TUNING = [40, 45, 50, 55, 59, 64] as const;
@@ -239,7 +246,7 @@ function guitarist(notes: LofiNote[], bar: LofiBar, voice: string, spb: number, 
     if (last && n.beat - last[0]!.beat < STROKE) last.push(n);
     else strokes.push([n]);
   }
-  const electric = voice === 'electric';
+  const electric = ELECTRICS.has(voice);
   for (const group of strokes) {
     const marks = electric ? (group[0]!.mod ?? 0) % ELECTRIC_FRET : 0;
     if (marks & ELECTRIC_PICK && bar.tones.length) {
@@ -365,7 +372,7 @@ export function fretFor(midi: number, near: number): number {
 // ── the lead guitarist ─────────────────────────────────────────────────────────
 
 /** The lead guitars, which bend and slide. */
-export const GUITAR_LEADS = new Set<string>(['guitar', 'overdrive', 'riff', 'metal', 'twang']);
+export const GUITAR_LEADS = new Set<string>(['guitar', 'overdrive', 'riff', 'metal', 'twang', 'surf', 'chorus']);
 /** The lead guitars that sound an octave below the written line. */
 const LOW_LEADS = new Set<string>(['riff', 'twang']);
 /** A lead guitar note's articulation, carried in `mod`: plain, bent up into pitch, or slid into from the last note. The performer adds the fret, times ELECTRIC_FRET. */
@@ -400,15 +407,16 @@ export function leadPosition(pitches: readonly number[]): number {
  * after it, is sometimes slid into; the rest are picked as written. Each note is fingered
  * at the hand's place for the bar, on the string that keeps the note nearest.
  */
-function leadGuitarist(notes: LofiNote[], lead: string, rand: () => number): void {
+function leadGuitarist(notes: LofiNote[], lead: string, rand: () => number, voice: 'lead' | 'fill' = 'lead'): void {
   const shift = LOW_LEADS.has(lead) ? -12 : 0;
-  const pos = leadPosition(notes.filter(n => n.voice === 'lead').map(n => n.midi + shift));
+  const pos = leadPosition(notes.filter(n => n.voice === voice).map(n => n.midi + shift));
   let last: LofiNote | undefined;
   for (const [i, n] of notes.entries()) {
-    if (n.voice !== 'lead') continue;
+    if (n.voice !== voice) continue;
     const strong = Math.abs(n.beat - Math.round(n.beat)) < 0.02;
     const near = last && Math.abs(n.midi - last.midi) <= 4 && n.midi !== last.midi && n.beat - (last.beat + last.dur) < 0.15;
-    const art = n.dur >= 0.75 && strong && rand() < 0.45 ? LEAD_BEND : near && rand() < 0.3 ? LEAD_SLIDE : LEAD_PLAIN;
+    // A surf lead is played as the composer marked it (tremolo picking, a glissando, the arm), never bent.
+    const art = lead === 'surf' ? LEAD_PLAIN : n.dur >= 0.75 && strong && rand() < 0.45 ? LEAD_BEND : near && rand() < 0.3 ? LEAD_SLIDE : LEAD_PLAIN;
     const fret = fretFor(Math.round(n.midi + shift), pos + 1.5);
     notes[i] = { ...n, mod: (n.mod ? n.mod % ELECTRIC_FRET : art) + ELECTRIC_FRET * fret };
     last = n;
@@ -636,6 +644,31 @@ export function trumpeter(notes: LofiNote[], bar: LofiBar, spb: number, rand: ()
   return [...rest, ...out];
 }
 
+/** The styles whose saxophonist growls and subtones (lib/lofi-reeds.ts), so far yacht rock's. */
+const SAX_PLAYERS = new Set<LofiMood>(['yacht']);
+/** A held note long enough for a growl (s), and the highest note a subtone sits on (MIDI). */
+const SAX_HELD = 0.4, SUBTONE_TOP = 67;
+
+/**
+ * A saxophonist's choices in the styles that play the sax this way (SAX_PLAYERS): about one
+ * loud held note in ten in a chorus or the solo growled (recorded players growl about one
+ * note in ten), the soft low notes of the quiet sections in the airy subtone, and the
+ * composer's scoops kept.
+ */
+function saxophonist(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => number): void {
+  const lines = notes.map((n, i) => ({ n, i })).filter(({ n }) => n.voice === 'lead');
+  if (!lines.length) return;
+  const mean = lines.reduce((a, { n }) => a + n.vel, 0) / lines.length;
+  const loud = bar.section === 'drop' || bar.section === 'break';
+  const quiet = bar.section === 'intro' || bar.section === 'verse' || bar.section === 'outro';
+  for (const { n, i } of lines) {
+    let flags = SAX_PLAYED | (n.mod === 1 ? SAX_SCOOP : 0);
+    if (loud && n.dur * spb >= SAX_HELD && n.vel >= mean && rand() < 0.12) flags |= SAX_GROWL;
+    else if (quiet && n.midi <= SUBTONE_TOP && n.vel < mean && rand() < 0.5) flags |= SAX_SUBTONE;
+    notes[i] = { ...n, mod: flags };
+  }
+}
+
 /**
  * A bar as the band plays it: the drums in the style's pocket, a strummed guitar's chords
  * fingered and strummed, a lead guitar's bends and slides. `keys` and `lead` are the
@@ -649,6 +682,8 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   else if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
   if (keys === 'steel') notes = rhythmKnocks(notes, bar, rand);
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
+  // Yacht rock's guitar fills, fingered and bent or slid as a lead guitarist's notes are.
+  if (notes.some(n => n.voice === 'fill')) leadGuitarist(notes, 'chorus', rand, 'fill');
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
   else if (lead === 'flute') {
@@ -657,5 +692,6 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
     flautist(notes, spb, rand, lungs);
   }
   else if (lead === 'trumpet' && !HORN_SECTION.has(bar.tune.mood) && !HORN_SECTION_IN[bar.tune.mood]?.has(bar.section) && !bar.voices?.double) notes = trumpeter(notes, bar, spb, rand);
+  else if (lead === 'sax' && SAX_PLAYERS.has(bar.tune.mood)) saxophonist(notes, bar, spb, rand);
   return notes;
 }
