@@ -148,6 +148,8 @@ A track the generator makes says that Lolly composed it, so nobody mistakes it f
 
 The Lolly Sings genres play many more synthesised voices at once than the original Lolly Sings and the Lofi stations. On a genre's station, and on a saved tune from one, the player offers **Light visualiser** (the lightning bolt), which shows the simple level bars instead of the full visualiser so the music has the processing time it needs. The setting is on by default on a modest device: one with a touch screen, four processor cores or fewer, or 4 GB of memory or less. You can change it in the station's controls at any time.
 
+Botanica renders its sounds of a place, its pads and its glitches as buffers while it plays: a ten-second loop of each bed, a few seconds of each instrument note its pads are cut from, and each pad and glitch once. Each is kept for the rest of the tune, so a progression that comes round again plays from what was already rendered.
+
 <!--i:eti-speak-->
 ## No samples, no recorded voices
 

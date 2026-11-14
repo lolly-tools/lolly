@@ -30,10 +30,29 @@
  *   second; a cicada buzzes, noise pulsed hundreds of times a second in a high band; a bee
  *   hums at its wingbeat, nearer and further as it passes.
  *
- * A bed (wind, leaves, water, rain, insects) is rendered as a loop of a dozen seconds per
- * tune and played from different places in it (see bedLoop), so a long tune costs one loop
- * per kind rather than a render per bar. Pure: no DOM, no Web Audio; the player at the end
- * is the only part that touches a context.
+ * A bed (wind, leaves, water, rain, insects) is rendered as a loop of ten seconds, two
+ * takes a kind per tune, and played from different places in the loop (see bedLoop), so a
+ * long tune costs a few loops rather than a render per bar. Pure: no DOM, no Web Audio; the
+ * player at the end is the only part that touches a context.
+ *
+ * Measured against CC0 field recordings from Freesound (numbers only; no recording is in
+ * this repository), each model rendered and measured the same way, recording first:
+ * - birds, elements a second within a phrase, median element length, median pitch and
+ *   second harmonic: blackbird 14.4 against 16.9, 19 against 23 ms, 2.21 against 2.51 kHz,
+ *   -33 against -34 dB; robin 15.5 against 13.9, 20 against 25 ms, 4.23 against 4.13 kHz,
+ *   -39 against -39 dB; wren 14.6 against 13.0, 29 against 22 ms, 5.18 against 5.15 kHz;
+ *   song thrush 12.7 against 12.8, 48 against 42 ms, 4.18 against 4.52 kHz, -29 against
+ *   -30 dB; Australian magpie 16.4 against 19.7, 1.31 against 1.42 kHz, -24 against -24 dB;
+ * - wind in trees: centroid 0.31 to 1.30 kHz against 0.54, the level's spread between its
+ *   10th and 90th percentiles 9 to 13 dB against 11, gusts lasting 2.7 to 4.6 s against 3.9;
+ * - leaves in trees: centroid 2.0 to 3.3 kHz against 2.4, gusts 5 to 8 s against 8;
+ * - a brook: centroid 2.1 to 3.3 kHz against 2.1, slope -2.6 to +0.6 dB an octave against -1.9;
+ * - drips: 0.3 to 4.8 a second against 1.7, the gaps' spread (CV) 0.64 to 0.80 against 0.69,
+ *   pitch 1.3 to 4.7 kHz against 1.9 to 3.6, down 20 dB in 8 to 13 ms against 9 to 12;
+ * - light rain: impacts 0.7 to 9.2 a second against 8.5, centroid 1.6 to 5.0 kHz against 2.7;
+ * - crickets: carrier 4.78 against 4.87 kHz, 64 against 58 pulses and 1.8 against 1.7 chirps
+ *   a second; cicadas: band 4.40 against 4.72 kHz, 82 against 76 pulses and 5.8 against 5.3
+ *   bursts a second; bees: hum 447 against 447 Hz.
  */
 import { BOTANICA_BIRDS, BOTANICA_INSECTS, readNature, type BotanicaBird, type BotanicaInsect, type BotanicaNature } from '../../../../engine/src/lofi-botanica.ts';
 
