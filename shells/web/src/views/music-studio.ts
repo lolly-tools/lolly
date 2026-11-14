@@ -68,7 +68,8 @@ import { defaultVizPresetId } from '../lib/viz-presets.ts';
 import { icon } from '../lib/icons.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { instrumentIcon, iconPath, musicIconNode, musicIconBody, strokeSvg } from '../lib/instrument-icons.ts';
-import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
+import { DIDGE_LEAD, DIDGE_ROLE } from '../../../../engine/src/lofi-straya.ts';
+import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, fxOn, toggleFx, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
 import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
 import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
@@ -91,7 +92,7 @@ type Track = 'lead' | 'keys' | 'bass' | 'drums' | 'fx';
 const TRACKS: readonly Track[] = ['lead', 'keys', 'bass', 'drums', 'fx'];
 const TRACK_LABEL: Record<Track, string> = { lead: 'Lead', keys: 'Keys', bass: 'Bass', drums: 'Drums', fx: 'Effects' };
 /** The kinds of effect a person can turn off, by name. */
-const FX_FAMILY_LABEL: Record<FxFamily, string> = { voices: 'Voices', console: 'Console', sparkles: 'Sparkles', sweeps: 'Sweeps' };
+const FX_FAMILY_LABEL: Record<FxFamily, string> = { voices: 'Voices', console: 'Console', sparkles: 'Sparkles', sweeps: 'Sweeps', birds: 'Aussie birds' };
 /** The producer's tag choices, by name. */
 const TAG_LABEL: Record<string, string> = { off: 'No Lolly tag', spoken: 'Lolly, spoken', shout: 'Lolly, shouted', crowd: 'Lolly, a crowd', sung: 'Lolly, sung', whisper: 'Lolly, whispered', high: 'Lolly, pitched up', deep: 'Lolly, pitched down', robot: 'Lolly, robot', stutter: 'Lolly, stuttered', echo: 'Lolly, echoed' };
 /** The same choices in a word or two, for the effects lane's head, where the menu is narrow. */
@@ -117,9 +118,10 @@ const SECTIONS_KEY = 'lolly:musicSections';
 
 const clock = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
-/** Which track a note is drawn in. */
-function trackOf(voice: string): Track {
+/** Which track a note is drawn in: Straya's didgeridoo with the bass, its solo with the lead (engine/src/lofi-straya.ts). */
+function trackOf({ voice, mod }: { voice: string; mod?: number }): Track {
   if (DRUM_VOICES.has(voice)) return 'drums';
+  if (voice === 'didge') return Math.floor((mod ?? 0) / DIDGE_ROLE) === DIDGE_LEAD ? 'lead' : 'bass';
   if (voice === 'soar' || voice === 'bwah' || voice === 'layer') return 'bass';
   return voice === 'keys' || voice === 'lead' || voice === 'bass' ? voice : 'fx';
 }
@@ -331,7 +333,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           <div class="ms-fx-on" role="group" aria-label="${escapeHtml(t('Effects'))}">
             <span class="ms-fx-label">${icon('wand', { size: 16 })}${escapeHtml(t('Effects'))}</span>
             ${tagSelect(false)}
-            ${FX_FAMILIES.map(f => `<button type="button" class="ms-chip" data-fx-family="${f}" aria-pressed="${!state.quiet?.includes(f)}">${icon('check', { size: 14, className: 'ms-chip-tick' })}${escapeHtml(t(FX_FAMILY_LABEL[f]))}</button>`).join('')}
+            ${FX_FAMILIES.map(f => `<button type="button" class="ms-chip" data-fx-family="${f}" aria-pressed="${fxOn(state, f)}">${icon('check', { size: 14, className: 'ms-chip-tick' })}${escapeHtml(t(FX_FAMILY_LABEL[f]))}</button>`).join('')}
           </div>
         </div>
       </details>
@@ -402,7 +404,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       const short = sel.hasAttribute('data-tag-short');
       sel.replaceChildren(new Option(short ? t('As composed') : t('Lolly tag: as composed'), ''), ...TAG_CHOICES.map(c => new Option(t((short ? TAG_SHORT[c] : TAG_LABEL[c]) ?? c), c, false, c === state.tag)));
     }
-    for (const el of page.querySelectorAll<HTMLElement>('[data-fx-family]')) el.setAttribute('aria-pressed', String(!state.quiet?.includes(el.dataset.fxFamily as FxFamily)));
+    for (const el of page.querySelectorAll<HTMLElement>('[data-fx-family]')) el.setAttribute('aria-pressed', String(fxOn(state, el.dataset.fxFamily as FxFamily)));
   };
   fillOptions();
 
@@ -531,7 +533,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           // composer did.
           const name = instrumentOf(bars[i]!, tr);
           const changed = i === 0 || instrumentOf(bars[i - 1]!, tr) !== name;
-          if (!changed || !name || !bars.slice(i, j + 1).some(b => b.notes.some(n => trackOf(n.voice) === tr))) continue;
+          if (!changed || !name || !bars.slice(i, j + 1).some(b => b.notes.some(n => trackOf(n) === tr))) continue;
           const shade = shadeOf(tr, instrumentIdOf(bars[i]!, tr));
           const top = laneTop(tr);
           if (i > 0) { cx.fillStyle = shade; cx.fillRect(x0, top + 1, 2, lane[tr] - 2); }
@@ -580,7 +582,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     for (let i = first; i < last; i++) {
       const bar = bars[i]!;
       for (const n of bar.notes) {
-        const tr = trackOf(n.voice);
+        const tr = trackOf(n);
         const silent = muted.has(tr) || (solo.size > 0 && !solo.has(tr)) || (tr === 'drums' && !state.drums);
         const x = beatX(i, n.beat);
         const top = laneTop(tr);
@@ -610,7 +612,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** Each pitched lane's head shows the instrument playing at the playhead (or the selected bar), in its shade. */
   /** The bar whose instrument a part's head shows: this one, or where the part next plays (else last played). */
   const barFor = (tr: Pitched, at: number): LofiBar | undefined => {
-    const plays = (b: LofiBar | undefined): boolean => !!b?.notes.some(n => trackOf(n.voice) === tr);
+    const plays = (b: LofiBar | undefined): boolean => !!b?.notes.some(n => trackOf(n) === tr);
     for (let i = at; i < bars.length; i++) if (plays(bars[i])) return bars[i];
     for (let i = at - 1; i >= 0; i--) if (plays(bars[i])) return bars[i];
     return bars[at];
@@ -1113,7 +1115,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   };
   const setStyle = (value: string | undefined): void => {
     state.mood = parseMusicState(`style=${value ?? ''}`).mood;
-    paintGenre(); newTune(); fit();
+    paintGenre(); fillOptions(); newTune(); fit();
   };
   /** "Shuffle genres", from the genre picker's switch: kept on the profile with the other music preferences. */
   const saveShuffleGenres = (on: boolean): void => {
@@ -1223,10 +1225,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   listen('[data-fx-family]', 'click', (_e, el) => {
     const family = FX_FAMILIES.find(f => f === el.dataset.fxFamily);
     if (!family) return;
-    const quiet = new Set(state.quiet ?? []);
-    if (quiet.has(family)) quiet.delete(family); else quiet.add(family);
-    state.quiet = quiet.size ? FX_FAMILIES.filter(f => quiet.has(f)) : undefined;
-    el.setAttribute('aria-pressed', String(!quiet.has(family)));
+    toggleFx(state, family);
+    el.setAttribute('aria-pressed', String(fxOn(state, family)));
     recompose();
   });
   // Mute and solo: a track's lane head and its row on a phone both show the same switch,
@@ -1548,7 +1548,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       const pitch: Record<Pitched, [number, number]> = { lead: [52, 96], keys: [48, 80], bass: [24, 64] };
       bars.forEach((b, i) => {
         for (const n of b.notes) {
-          const tr = trackOf(n.voice);
+          const tr = trackOf(n);
           const [top, bottom] = band[tr];
           // The drums and the effects stay light: a steady pulse would fill their band.
           cx.globalAlpha = tr === 'drums' || tr === 'fx' ? 0.2 + n.vel * 0.2 : 0.55 + n.vel * 0.45;

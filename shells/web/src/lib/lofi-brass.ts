@@ -106,6 +106,8 @@ const REST = -0.02;
 /** How far the pressure difference moves the lips, and how much air a gap passes. */
 const COMPLIANCE = 0.6;
 const GAP = 1.6;
+/** The same lips for the other lip-blown models (lib/lofi-didgeridoo.ts): their rest, compliance and gap. */
+export const LIP_REST = REST, LIP_COMPLIANCE = COMPLIANCE, LIP_GAP = GAP;
 /**
  * The loop's own delay past its filters (samples): the lips answer the bore a sample late.
  * With it, the loop still runs a little off the bore's resonance by itself, sharper the

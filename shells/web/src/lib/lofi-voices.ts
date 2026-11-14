@@ -57,6 +57,9 @@ import { acousticNote } from './lofi-acoustic.ts';
 import { rhodes } from './lofi-rhodes.ts';
 import { pizzicato } from './lofi-string-section.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { readBird } from '../../../../engine/src/lofi-straya.ts';
+import { kookaburraFamily, magpieFamily } from './lofi-bush-birds.ts';
+import { DidgePlayer } from './lofi-didge-player.ts';
 
 export interface VoiceKit {
   ctx: BaseAudioContext;
@@ -1191,7 +1194,7 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'croak') { stringSlap(k, out, t, midi, vel, dur, Math.round(mod), tone, true); return; }   // the raw, buzzy string: bubbling, sliding, bending
   if (style === 'eight') { eightOhEight(k, out, t, midi, vel, dur, mod >= 2, tone); return; }
   if (style === 'acid') { acid(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
-  if (style === 'yidaki') { yidaki(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
+  if (style === 'yidaki') { yidaki(k, out, t, midi, vel, dur, Math.round(mod)); return; }
   const { ctx } = k;
   const f = mtof(midi);
   const end = t + dur + 0.3;
@@ -1925,225 +1928,65 @@ function shout(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
   }
 }
 
-/**
- * A magpie's warble: two voices duetting in rising and falling glissandi, with fast
- * trills and a gurgle, on the notes of a pentatonic scale around `midi`. `song` seeds
- * the phrase, so a tune's magpie sings the same carol every time.
- */
-export function magpie(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, song: number): void {
+/** A stereo buffer into the graph at `t`, at `level`; for a bird further off, its top softened (`far`, Hz). */
+function playStereo(k: VoiceKit, out: AudioNode, t: number, [l, r]: [Float32Array, Float32Array], level: number, far = 0): void {
   const { ctx } = k;
-  let seed = (song * 2654435761) >>> 0;
-  const rand = (): number => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-  const scale = [0, 2, 4, 7, 9, 12, 14, 16];
-  for (let voice = 0; voice < 2; voice++) {
-    const start = t + voice * (0.12 + rand() * 0.25);
-    const end = Math.min(t + dur, start + 0.6 + rand() * dur);
-    if (end <= start + 0.2) continue;
-    const o = osc(k, 'sine', mtof(midi), start, end + 0.05);
-    const reed = osc(k, 'triangle', mtof(midi) * 2, start, end + 0.05);
-    const rg = ctx.createGain();
-    rg.gain.value = 0.12;
-    reed.connect(rg);
-    // The trill and the gurgle: fast vibrato that comes and goes.
-    const trill = osc(k, 'sine', 22 + rand() * 14, start, end + 0.05);
-    const depth = ctx.createGain();
-    depth.gain.value = 0;
-    trill.connect(depth);
-    depth.connect(o.detune);
-    depth.connect(reed.detune);
-    const amp = ctx.createGain();
-    amp.gain.setValueAtTime(EPS, start);
-    o.connect(amp);
-    rg.connect(amp);
-    amp.connect(out);
-    let at = start;
-    while (at < end - 0.06) {
-      const step = 0.07 + rand() * 0.16;
-      const note = midi + (voice ? -5 : 0) + scale[Math.floor(rand() * scale.length)]!;
-      const f = mtof(note);
-      // A glide into each note, sometimes a long swoop, then a short hold.
-      o.frequency.exponentialRampToValueAtTime(f, at + step * (rand() < 0.3 ? 0.9 : 0.4));
-      reed.frequency.exponentialRampToValueAtTime(f * 2, at + step * 0.5);
-      depth.gain.setValueAtTime(rand() < 0.35 ? 45 : 0, at);
-      amp.gain.setTargetAtTime((0.05 + rand() * 0.04) * vel, at, 0.012);
-      if (rand() < 0.25) amp.gain.setTargetAtTime(EPS, at + step * 0.8, 0.01);   // a gap between notes
-      at += step;
-    }
-    amp.gain.setTargetAtTime(EPS, end, 0.03);
-  }
+  const buf = ctx.createBuffer(2, l.length, ctx.sampleRate);
+  buf.getChannelData(0).set(l);
+  buf.getChannelData(1).set(r);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = level;
+  if (far) {
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = far;
+    lp.Q.value = 0.5;
+    src.connect(lp).connect(g);
+  } else src.connect(g);
+  g.connect(out);
+  src.start(t);
 }
 
-/** The yidaki player's mouth shapes, as the first two formants: oo, oh, ah, ee. */
-const VOWELS: ReadonlyArray<readonly [number, number]> = [[300, 870], [460, 820], [700, 1150], [330, 1900]];
+/** A featured bird's level against a passing one's: up front, like a sampled hook. */
+const BIRD_FEATURE = 2.2;
+/** The magpie's and the kookaburra's levels (their buffers peak about 0.5). */
+const MAGPIE_LEVEL = 0.16, KOOKABURRA_LEVEL = 0.2;
+/** How much of the place rings on round a featured bird (nearer, drier) and a passing one (further off). */
+const NEAR = 0.3, FAR = 0.7;
 
 /**
- * A yidaki (didgeridoo): the lips' buzz on one low note, shaped by the mouth like a voice.
- * Each note takes one of four mouth shapes, and the harder it is blown (`vel`) the
- * narrower the buzz and the brighter and grittier the tone. `art` is how the breath is
- * used: 0 a steady drone that drifts, 1 a "wa" (the mouth opening and closing, the pulse
- * that drives the rhythm), 2 a toot (the overblown note), 3 a bark (a shout into the
- * horn), 4 the in-breath (circular breathing: the drone dips, a sniff, then the cheeks
- * push it back hard) and 5 a howl (the player's voice sung through the drone, beating
- * against the drone). The notes overlap a little, so the drone is unbroken.
+ * An Australian magpie (lib/lofi-bush-birds.ts) for `dur` seconds, round `midi`: a featured
+ * carol up front, a family of them when the note says so (engine/src/lofi-straya.ts readBird),
+ * or a passing bird's quieter warble a little way off. `mod` seeds the song.
  */
-function yidaki(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, tone: Tone): void {
-  const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.12;
-  const [v1, v2] = VOWELS[Math.floor(k.rng() * VOWELS.length)]!;
-  const lips = pulseOsc(k, Math.max(0.08, 0.24 - 0.14 * vel), f, t, end);
-  lips.detune.setValueAtTime((k.rng() - 0.5) * 10, t);
-  const mix = ctx.createGain();
-  const formant = (shape: number, open: number, q: number, level: number): void => {
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.Q.value = q;
-    if (art === 1 || art === 3 || art === 4) {
-      // From nearly closed, open to the vowel, and part way back.
-      bp.frequency.setValueAtTime(shape * 0.7, t);
-      bp.frequency.exponentialRampToValueAtTime(open, t + (art === 4 ? 0.14 : 0.07));
-      bp.frequency.exponentialRampToValueAtTime(shape, t + Math.min(0.32, dur * 0.8 + 0.05));
-    } else {
-      bp.frequency.setValueAtTime(shape, t);
-      bp.frequency.linearRampToValueAtTime(shape * (0.9 + k.rng() * 0.25), t + Math.max(0.1, dur));   // the drone drifts
-    }
-    const g = ctx.createGain();
-    g.gain.value = level;
-    lips.connect(bp).connect(g).connect(mix);
-  };
-  formant(v1, Math.max(v1 * 1.8, 650), 3.5, 1.4);
-  formant(v2, v2 * 1.6, 5, 0.9);
-  formant(2400, 2700, 7, 0.25 + 0.35 * vel);
-  // The bore's fundamental, the weight under the buzz.
-  const body = osc(k, 'sine', f, t, end);
-  const bodyG = ctx.createGain();
-  bodyG.gain.value = 0.5;
-  body.connect(bodyG).connect(mix);
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = Math.min(5500, (1500 + 2200 * vel) * tone.bright);
-  const [push, shaper] = drivenBy(ctx, 0.8 + vel * 0.6 + (tone.drive - 1) * 0.4);
-  const amp = ctx.createGain();
-  const level = 0.42 * vel;
-  const hold = art === 1 ? level * 0.62 : level * 0.75;
-  amp.gain.setValueAtTime(EPS, t);
-  if (art === 1) {
-    amp.gain.exponentialRampToValueAtTime(level, t + 0.02);
-    amp.gain.exponentialRampToValueAtTime(hold, t + 0.18);
-  } else if (art === 4) {
-    // The in-breath: the drone sags while the nose draws air, then the cheeks push it back.
-    amp.gain.exponentialRampToValueAtTime(level * 0.3, t + 0.03);
-    amp.gain.setValueAtTime(level * 0.3, t + 0.1);
-    amp.gain.exponentialRampToValueAtTime(level * 1.05, t + 0.16);
-    amp.gain.exponentialRampToValueAtTime(hold, t + 0.32);
-  } else {
-    amp.gain.exponentialRampToValueAtTime(hold, t + 0.05);
-  }
-  amp.gain.setValueAtTime(hold, t + Math.max(0.33, dur));
-  amp.gain.exponentialRampToValueAtTime(EPS, end);
-  mix.connect(lp).connect(push);
-  shaper.connect(amp).connect(out);
-  if (art === 2) {
-    // The toot: the horn overblown to its next resonance, a bright blare for a moment.
-    const toot = osc(k, 'sawtooth', f * 2.62, t, t + Math.min(0.35, dur + 0.05));
-    toot.frequency.setValueAtTime(f * 2.5, t);
-    toot.frequency.exponentialRampToValueAtTime(f * 2.62, t + 0.04);
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = Math.min(1800, f * 7);
-    bp.Q.value = 1.4;
-    const tg = ctx.createGain();
-    tg.gain.setValueAtTime(EPS, t);
-    tg.gain.exponentialRampToValueAtTime(0.16 * vel, t + 0.02);
-    tg.gain.exponentialRampToValueAtTime(EPS, t + Math.min(0.33, dur + 0.03));
-    toot.connect(bp).connect(tg).connect(out);
-  }
-  if (art === 3 || art === 4) {
-    // A bark is voice and breath shouted in; the in-breath is a short sniff through the nose.
-    const bp = ctx.createBiquadFilter();
-    bp.type = art === 3 ? 'bandpass' : 'highpass';
-    bp.frequency.value = art === 3 ? 650 : 1800;
-    bp.Q.value = 1.2;
-    const ng = ctx.createGain();
-    const at = art === 3 ? t : t + 0.02;
-    ng.gain.setValueAtTime(EPS, t);
-    ng.gain.exponentialRampToValueAtTime((art === 3 ? 0.12 : 0.03) * vel, at + 0.015);
-    ng.gain.exponentialRampToValueAtTime(EPS, at + (art === 3 ? 0.14 : 0.09));
-    noiseAt(k, t, 0.15).connect(bp).connect(ng).connect(out);
-  }
-  if (art === 5) {
-    // The howl: the voice a tenth above, sung into the horn, wavering and beating with the drone.
-    const voice = osc(k, 'sawtooth', f * 2.5 * (1 + (k.rng() - 0.5) * 0.01), t, end);
-    vibrato(k, voice.detune, t, end, 5.8, 25, 0.1);
-    const bp = ctx.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = v2;
-    bp.Q.value = 2;
-    const vg = ctx.createGain();
-    vg.gain.setValueAtTime(EPS, t);
-    vg.gain.exponentialRampToValueAtTime(0.09 * vel, t + 0.12);
-    vg.gain.setValueAtTime(0.09 * vel, t + Math.max(0.13, dur));
-    vg.gain.exponentialRampToValueAtTime(EPS, end);
-    voice.connect(bp).connect(vg).connect(out);
-  }
+export function magpie(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number): void {
+  const { song, featured, birds } = readBird(mod);
+  const sr = k.ctx.sampleRate;
+  const centre = Math.min(1300, Math.max(850, mtof(midi) * 0.72));
+  const seconds = Math.max(1.2, dur + 0.4);
+  const voice = featured ? magpieFamily(sr, seconds, centre, song, birds, 'carol', NEAR) : magpieFamily(sr, seconds, centre, song, 1, 'warble', FAR);
+  playStereo(k, out, t, voice, vel * MAGPIE_LEVEL * (featured ? BIRD_FEATURE : 1), featured ? 0 : 5200);
 }
 
 /**
- * A kookaburra's laugh: chuckles that climb, break into the full cackle (the "koo" and
- * "kaa" alternating, high and harsh) and tumble away. Each syllable is a harsh tone
- * falling in pitch. `song` seeds the laugh, so the same tune laughs the same way.
+ * A laughing kookaburra (lib/lofi-bush-birds.ts) round `midi`, a family laughing together when
+ * the note says so, fitted to `dur` seconds (a full laugh runs about ten). `mod` seeds the laugh.
  */
-export function kookaburra(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, song: number): void {
-  const { ctx } = k;
-  let seed = (song * 2246822519) >>> 0;
-  const rand = (): number => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-  const f0 = mtof(midi);
-  // [syllables, pitch from, pitch to, gap, level] for each phase of the laugh.
-  const phases: ReadonlyArray<readonly [number, number, number, number, number]> = [
-    [4 + Math.floor(rand() * 3), 0.7, 0.85, 0.13, 0.45],
-    [6 + Math.floor(rand() * 4), 0.9, 1.5, 0.08, 0.8],
-    [6 + Math.floor(rand() * 5), 1.6, 1.7, 0.068, 1],
-    [5 + Math.floor(rand() * 3), 1.3, 0.75, 0.11, 0.6],
-  ];
-  const total = phases.reduce((sum, [n, , , gap]) => sum + n * gap, 0);
-  const end = t + total + 0.2;
-  const o = osc(k, 'sawtooth', f0, t, end);
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = 450;
-  const bp = ctx.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = f0 * 2;
-  bp.Q.value = 1.1;
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  o.connect(hp).connect(bp).connect(amp).connect(out);
-  const rasp = ctx.createGain();
-  rasp.gain.setValueAtTime(EPS, t);
-  const rbp = ctx.createBiquadFilter();
-  rbp.type = 'bandpass';
-  rbp.frequency.value = f0 * 2.5;
-  rbp.Q.value = 2;
-  noiseAt(k, t, total + 0.2).connect(rbp).connect(rasp).connect(out);
-  let at = t;
-  for (const [count, from, to, gap, level] of phases) {
-    for (let n = 0; n < count; n++) {
-      const along = count > 1 ? n / (count - 1) : 0;
-      const kaa = n % 2 === 1 && level === 1;   // the cackle alternates high and low
-      const pitch = f0 * (from + (to - from) * along) * (kaa ? 1.18 : 1) * (0.97 + rand() * 0.06);
-      o.frequency.setValueAtTime(pitch * 1.12, at);
-      o.frequency.exponentialRampToValueAtTime(pitch * 0.78, at + gap * 0.7);
-      const peak = 0.4 * vel * level;
-      amp.gain.setValueAtTime(EPS, at);
-      amp.gain.exponentialRampToValueAtTime(peak, at + 0.008);
-      amp.gain.exponentialRampToValueAtTime(peak * 0.05, at + gap * 0.75);
-      rasp.gain.setValueAtTime(EPS, at);
-      rasp.gain.exponentialRampToValueAtTime(peak * 0.5, at + 0.006);
-      rasp.gain.exponentialRampToValueAtTime(EPS, at + gap * 0.5);
-      at += gap * (0.92 + rand() * 0.16);
-    }
-  }
-  amp.gain.setTargetAtTime(EPS, at, 0.02);
+export function kookaburra(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, mod: number, dur = 10): void {
+  const { song, featured, birds } = readBird(mod);
+  const f0 = Math.min(700, Math.max(480, mtof(midi) * 0.8));
+  const length = Math.min(1.2, Math.max(0.45, dur / 10));
+  playStereo(k, out, t, kookaburraFamily(k.ctx.sampleRate, f0, song, birds, length, featured ? NEAR : FAR), vel * KOOKABURRA_LEVEL * (featured ? BIRD_FEATURE : 1), featured ? 0 : 5600);
+}
+
+/**
+ * A yidaki note on its own (lib/lofi-didgeridoo.ts), blown afresh: a station plays its yidaki on
+ * one player that carries from note to note (lib/lofi-didge-player.ts); this is for anything else.
+ */
+function yidaki(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number): void {
+  new DidgePlayer().play(k, out, t, midi, vel, dur, mod, Math.floor(k.rng() * 4294967296));
 }
 
 /**
