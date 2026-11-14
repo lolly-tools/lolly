@@ -2,13 +2,13 @@
 /** First-use guidance can resolve before gallery cards and previews load. */
 import { instanceFetch, instancePath } from '../lib/instance.ts';
 import { activeDesignSystemRecord } from '../lib/design-system/active.ts';
-import { decideWelcome } from '../lib/welcome-gate.ts';
+import { decideWelcome, isWelcomeDismissed } from '../lib/welcome-gate.ts';
 import { viewingAs } from '../org/view-as.ts';
 import { isWorkspaceTemplateRef, listWorkspaceTemplates, workspaceCompany, workspaceCompanySettled, workspaceGoverned, workspaceTemplateOf } from '../lib/workspace-templates.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 // The welcome is first content on a new public visit; fetch its code and CSS with boot.
 import * as welcome from '../components/welcome-dialog.ts';
-import { showWelcomeHero, type WelcomeAudience, type WelcomePrivacy } from '../components/welcome-hero.ts';
+import { adoptWelcomeHero, closeWelcomeHero, showWelcomeHero, welcomeHeroOpen, type WelcomeAudience, type WelcomePrivacy } from '../components/welcome-hero.ts';
 import { ackPrivacyNotice, connectedWorkspace, WORKSPACE_PRIVACY_HREF, workspacePrivacyLine } from './privacy-notice.ts';
 import { docsAppHref, t } from '../i18n.ts';
 import type { GalleryHost } from './gallery.ts';
@@ -98,6 +98,44 @@ function welcomePrivacy(): WelcomePrivacy {
   return { text: t('No accounts, no tracking. Your work stays on this device.'), href: docsAppHref('trust/privacy') };
 }
 
+/**
+ * Who the last greeting was for, so a later visit that has not settled the welcome can
+ * put the card in the gallery's first paint. On such a visit the gallery paints from
+ * its cached index before the decision can answer, and a card added after that pushes
+ * the whole gallery down. The decision still runs and takes the card away if it is no
+ * longer due. Exported for tests.
+ */
+export const WELCOME_AUDIENCE_KEY = 'lolly-welcome-audience';
+
+function rememberAudience(audience: WelcomeAudience | null): void {
+  try {
+    if (audience) localStorage.setItem(WELCOME_AUDIENCE_KEY, audience);
+    else localStorage.removeItem(WELCOME_AUDIENCE_KEY);
+  } catch { /* storage off: the card waits for the decision */ }
+}
+
+function rememberedAudience(): WelcomeAudience | null {
+  try {
+    const audience = localStorage.getItem(WELCOME_AUDIENCE_KEY);
+    return audience === 'demo' || audience === 'blank' ? audience : null;
+  } catch { return null; }
+}
+
+/**
+ * Put the greeting in a gallery that is mounting, in the same task as the gallery's
+ * markup, so the card is in its first paint. A card the decision already opened (a
+ * first visit, where the decision usually comes before the gallery) moves in; failing
+ * that, a visit after one that showed the greeting opens it from the remembered
+ * audience. Neither waits for anything, so neither can move the gallery later.
+ */
+export function placeGalleryWelcome(root: HTMLElement | null, host: GalleryHost & PickerHost, opts: { classic?: boolean } = {}): void {
+  if (welcomeHeroOpen()) { adoptWelcomeHero(root); return; }
+  if (!root || opts.classic || viewingAs() || isWelcomeDismissed()) return;
+  const audience = rememberedAudience();
+  if (!audience) return;
+  void showWelcomeHero(root, { audience, privacy: welcomePrivacy(), ackPrivacy: ackPrivacyNotice, profileApi: host.profile, uploadHost: host });
+}
+
 type WelcomeModule = typeof welcome;
 type WelcomeStep =
   | { unbranded: false }
@@ -117,18 +155,23 @@ export function galleryWelcomeStep(
     // Viewing as a partner: no welcome, even with ?welcome, and nothing is recorded.
     if (viewingAs()) return { unbranded: false };
     const audience = await galleryWelcomeAudience(host, isCurrent);
-    if (!audience) return { unbranded: false };
+    if (!audience) {
+      // Not due (any more): a card opened from the last visit's answer goes, unsettled.
+      rememberAudience(null);
+      closeWelcomeHero();
+      return { unbranded: false };
+    }
     if (!isCurrent()) return null;
     const due = force || !welcome.isWelcomeDismissed();
     // Every caller agrees on the form: the address says when the classic dialog is
-    // asked for. The greeting goes at the top of the gallery, or, when main.ts asks
-    // before the gallery has mounted (a slow first profile read), at the top of the
-    // view, and the gallery's own mount then moves the same element into place.
+    // asked for. The greeting goes at the top of the gallery; when main.ts asks before
+    // the gallery has mounted, the card waits out of the page and the gallery's own
+    // mount places it (placeGalleryWelcome), so it never shows in the loading view.
     const classic = opts.classic ?? /[?&]welcome=classic(?:&|$)/.test(globalThis.location?.hash ?? '');
-    const root = classic ? null
-      : opts.root?.() ?? document.querySelector<HTMLElement>('.gallery') ?? document.getElementById('view');
-    if (!due) return { unbranded: true, welcome, closed: null, inPlace: !!root };
-    if (root) {
+    if (!due) return { unbranded: true, welcome, closed: null, inPlace: !classic };
+    if (!classic) {
+      rememberAudience(audience);
+      const root = opts.root?.() ?? document.querySelector<HTMLElement>('.gallery');
       const closed = showWelcomeHero(root, { audience, privacy: welcomePrivacy(), ackPrivacy: ackPrivacyNotice, profileApi: host.profile, uploadHost: host });
       return { unbranded: true, welcome, closed, inPlace: true };
     }
