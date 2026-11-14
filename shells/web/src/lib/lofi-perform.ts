@@ -46,6 +46,7 @@ import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_U
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead, rhythmKnocks } from './lofi-lead-art.ts';
+import { erhuist } from './lofi-erhu.ts';
 import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod } from './lofi-flutes.ts';
 import { TRUMPET_DOIT, TRUMPET_DROP, TRUMPET_GHOST, TRUMPET_KU, TRUMPET_PLAYED, TRUMPET_SCOOP, TRUMPET_SLUR, TRUMPET_TONGUE } from './lofi-brass.ts';
 import { HORN_SECTION, HORN_SECTION_IN } from './lofi-winds.ts';
@@ -693,7 +694,8 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   if (notes.some(n => n.voice === 'fill')) leadGuitarist(notes, 'chorus', rand, 'fill');
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
-  else if (lead === 'flute') {
+  else if (lead === 'erhu') erhuist(notes, spb, !!bar.voices?.double);
+  else if (lead === 'flute' || lead === 'dizi') {
     // The tune's player: how long a full breath lasts, set once, as the tune is seeded.
     if (lungs && !lungs.size) lungs.size = LUNGS_SIZE * (1 + LUNGS_SPREAD * (2 * barRandom({ ...bar, index: -1 })() - 1));
     flautist(notes, spb, rand, lungs);

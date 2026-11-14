@@ -65,6 +65,8 @@ export function genreTaglines(): Readonly<Record<string, string>> {
     botanica: t('Acoustic instruments outdoors, with gentle glitches'),
     oompa: t('A Bavarian brass band, tuba on the beat'),
     noosa: t('Warm bass, coastal groove and breaking waves'),
+    mandopop: t('Piano ballads and R&B with erhu hooks'),
+    cpop: t('Dance-pop drops with dizi and erhu hooks'),
     breakbeat: t('A chopped drum break and a rolling reese'),
     funkyHouse: t('Disco loop, Latin percussion and vocal chops'),
     ukGarage: t('Swung two-step drums, organ stabs and chops'),
