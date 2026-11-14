@@ -212,7 +212,8 @@ test('a solo trumpet plays one note at a time: the note before stops as the next
   const gateOf = (t: number, midi: number, from?: number) => { const g = f.gainsMade(); lead('trumpet', f.k, f.seat, t, midi, 0.55, 0.5, 0, from); return g; };
   const a = gateOf(1, 70), b = gateOf(1.4, 72);
   gateOf(1.8, 74, 72);
-  assert.deepEqual(f.stops, [{ gain: a, at: 1.4 }, { gain: b, at: 1.8 }], 'each note stops when the next starts');
+  // The tongue starts to stop a note 20 ms before the next; a slur hands over at the change.
+  assert.deepEqual(f.stops.map(s => ({ ...s, at: Math.round(s.at * 1000) / 1000 })), [{ gain: a, at: 1.38 }, { gain: b, at: 1.8 }], 'each note stops as the next starts');
   // A section's players are each their own instrument: nothing is stopped.
   f.stops.length = 0;
   lead('trumpet', f.k, f.seat, 3, 70, 0.55, 0.5, 0, undefined, { straight: true });

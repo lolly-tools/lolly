@@ -156,8 +156,6 @@ const LEAD_TRIM: Partial<Record<LofiStyle['lead'], number>> = { angel: -0.2, bal
 const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5 };
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. */
 const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5 };
-/** The styles whose horn lines are a section's (see the lead and lib/lofi-winds.ts's hornSection). */
-const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
 /** How far a section's brass falls off a phrase's last long note (semitones). */
 const SECTION_FALL = 5;
 /** The style a station starts from, until its first tune's arrives. */
@@ -693,7 +691,7 @@ export class LofiStation {
         // section (lib/lofi-winds.ts): a second horn in unison and a trombone an octave
         // under, each player a little out of tune and a little late, placed across the
         // stage, as a ska or soul section plays.
-        const section = HORN_SECTION.has(bar.tune.mood) && (leadV === 'trumpet' || leadV === 'sax');
+        const section = R.HORN_SECTION.has(bar.tune.mood) && (leadV === 'trumpet' || leadV === 'sax');
         if (section) {
           // The section's brass falls off the long note that ends an eight-bar phrase, as a
           // ska or soul section does (the saxophone leading holds its note).

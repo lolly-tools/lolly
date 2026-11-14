@@ -18,10 +18,13 @@
  * one note at a time and chooses how to play each (soloist): which notes to lip up into,
  * a vibrato that grows on some held notes, and a taper, as recorded soloists do; and
  * breathes (lib/lofi-breath.ts): air before a note out of a rest, air in every tongued
- * onset, and a breath drawn in some rests.
+ * onset, and a breath drawn in some rests. The trumpeter (lib/lofi-perform.ts) marks how
+ * each note goes, slurred or tongued, ghosted, dropped off or lifted, and the soloist
+ * plays it so.
  */
 import { bowString } from './lofi-bowed.ts';
-import { blowLips, darken, heardSolo, type Horn } from './lofi-brass.ts';
+import { blowLips, darken, heardSolo, TRUMPET_DOIT, TRUMPET_DROP, TRUMPET_GHOST, TRUMPET_PLAYED, TRUMPET_SCOOP, TRUMPET_SLUR, type Horn } from './lofi-brass.ts';
+import type { LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { airBurst, inhale, noteSpeed, preAttack, type BurstShape, type InhaleShape, type PreAttackShape } from './lofi-breath.ts';
 import { blowFlute, FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, type Pipe } from './lofi-flutes.ts';
 import { blowReed } from './lofi-reeds.ts';
@@ -245,7 +248,7 @@ const REGISTER_KEPT = 0.35;
 /** The brass leads' levels against the voices they replaced. */
 const BRASS_LEVEL: Record<Horn, number> = { trumpet: 0.019, trombone: 0.019 };
 /** A soloist's level against a section player's at the same strength (dB): what keeps the solo trumpet as loud as before it was heard darker (K-weighted). */
-const SOLO_LEVEL = 2.86;
+const SOLO_LEVEL = 2.69;
 
 /**
  * A soloist's choices, measured note by note on recorded solo trumpet phrases (a blues
@@ -303,7 +306,31 @@ const TAPER_MOST = 0.55;
  */
 const NOTE_STOP = 0.004;
 /** The soloist's note still sounding on each seat: its gain, when it started, when the breath stopped and when its sound ends (s). */
-const SOUNDING = new WeakMap<AudioNode, { gate: GainNode; from: number; end: number; until: number }>();
+const SOUNDING = new WeakMap<AudioNode, { gate: GainNode; from: number; end: number; until: number; midi: number }>();
+
+/**
+ * How a trumpeter's flags sound (lib/lofi-perform.ts sets them): a ghosted note is blown at
+ * GHOST_BLOW of the strength and GHOST_DB under the line (recorded ghosts sit 8 dB or more
+ * under their phrase); a note dropped off or lifted at its end moves END_MOVE semitones as
+ * the breath stops (recorded: 5 to 8 % of notes end more than 40 cents under, 3 to 8 %
+ * over); a slur arrives over SLUR_TIME s, spread as recorded slurs are (their pitch moves
+ * 10 to 90 % of the way in a median 25 to 50 ms, a quarter of them past 50, a few smeared).
+ */
+const GHOST_BLOW = 0.6;
+const GHOST_DB = -8;
+const END_MOVE = 0.8;
+const SLUR_TIME = 0.05;
+const SLUR_SPREAD = 0.6;
+/**
+ * How a change sounds between two notes: on recorded phrases a tongued change dips a median
+ * 15 dB for 30 ms (the tongue stopping the air), a slur 10 dB for 20 ms (the lips moving
+ * between resonances); the model's notes, crossing at the change, dipped 11 and 6. The
+ * tongue starts to stop the note before TONGUE_LEAD s ahead of the next (dying away with a
+ * time constant of TONGUE_STOP s), and on a slur the breath comes back over SLUR_SWELL s.
+ */
+const TONGUE_LEAD = 0.02;
+const TONGUE_STOP = 0.012;
+const SLUR_SWELL = 0.015;
 
 /**
  * A soloist's breath (lib/lofi-breath.ts makes the air), measured on the recorded solo
@@ -365,22 +392,30 @@ export function soloist(midi: number, held: number, art: number, slurred: boolea
   return { scoop, scoopTime: lifts ? SCOOP_TIME : LIP_TIME, vibrato: sings ? SOLO_VIBRATO : 0, vibratoFrom: Math.min(SOLO_VIBRATO_FROM, held * 0.45), taper };
 }
 
-function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined, how: BrassPlay): void {
+function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number, slurFrom: number | undefined, how: BrassPlay): void {
   const { ctx } = k;
   const held = Math.max(0.05, dur);
-  const strength = Math.min(1, Math.max(0, vel));
-  const fall = how.fall ?? 0;
   const solo = !how.straight;
+  // A trumpeter's own flags (lib/lofi-perform.ts): the composer's bend under them, and the
+  // slur or the tongue the player chose in place of the timing's guess.
+  const played = (mod & TRUMPET_PLAYED) !== 0;
+  const art = played ? mod & TRUMPET_SCOOP : mod;
+  const last = solo ? SOUNDING.get(out) : undefined;
+  const from = !solo || !played ? slurFrom
+    : mod & TRUMPET_SLUR && last && last.midi !== midi && t - last.end < 0.1 ? last.midi : undefined;
+  const ghost = solo && (mod & TRUMPET_GHOST) !== 0;
+  const strength = Math.min(1, Math.max(0, vel)) * (ghost ? GHOST_BLOW : 1);
+  const fall = how.fall ?? (solo && mod & TRUMPET_DROP ? END_MOVE : solo && mod & TRUMPET_DOIT ? -END_MOVE : 0);
   const rate = solo ? SOLO_RATE + k.rng() * 0.6 : 5 + k.rng() * 0.7;
   const rand = seeded(k);
   const play: Partial<SoloNote> = solo ? soloist(midi, held, art, from !== undefined, rand) : { scoop: art === 1 ? 1 : 0, vibrato: 0 };
+  const slurTime = solo && from !== undefined ? Math.min(0.14, Math.max(0.02, SLUR_TIME * 2 ** (SLUR_SPREAD * gauss01(rand)))) : undefined;
   const data = blowLips({
-    sr: ctx.sampleRate, f: mtof(midi) * 2 ** ((how.detune ?? 0) / 1200), from: from === undefined ? undefined : mtof(from),
+    sr: ctx.sampleRate, f: mtof(midi) * 2 ** ((how.detune ?? 0) / 1200), from: from === undefined ? undefined : mtof(from), slurTime, slurAttack: solo ? SLUR_SWELL : undefined,
     vel: strength, dur: held, seconds: held + (fall ? 0.4 : 0.15), horn,
     scoop: play.scoop ?? 0, scoopTime: play.scoopTime, fall, vibrato: play.vibrato ?? 0, rate, vibratoFrom: play.vibratoFrom, taper: play.taper, grain: solo ? 1 : 0,
   }, rand);
   // A soloist's breath around the note: air into a note out of a rest, air at every tongued onset.
-  const last = solo ? SOUNDING.get(out) : undefined;
   const sr = ctx.sampleRate;
   let sound = data, lead = 0;
   if (solo) {
@@ -401,7 +436,7 @@ function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number,
   }
   const heard = heldRms(lead ? sound.subarray(Math.round(lead * sr)) : sound, sr, held);
   const at = horn === 'trumpet' ? 70 : 58;
-  const level = BRASS_LEVEL[horn] * (0.55 + 0.45 * strength) * 10 ** ((-rawLevel(horn, strength, midi) + REGISTER_KEPT * 0.32 * (midi - at) + (solo ? SOLO_LEVEL : 0)) / 20);
+  const level = BRASS_LEVEL[horn] * (0.55 + 0.45 * strength) * 10 ** ((-rawLevel(horn, strength, midi) + REGISTER_KEPT * 0.32 * (midi - at) + (solo ? SOLO_LEVEL : 0) + (ghost ? GHOST_DB : 0)) / 20);
   // The top past what a horn sends out, where the model's steepened wave would only alias.
   const top = ctx.createBiquadFilter();
   top.type = 'lowpass';
@@ -410,8 +445,8 @@ function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number,
   const gate = playBuffer(k, sound, out, t - lead, level * (how.gain ?? 1), [top]);
   if (!solo) return;
   // One note at a time: the note before stops as this one starts.
-  if (last && t > last.from + 0.02 && t < last.until) last.gate.gain.setTargetAtTime(0, t, NOTE_STOP);
-  SOUNDING.set(out, { gate, from: t, end: t + held, until: t + data.length / sr });
+  if (last && t > last.from + 0.02 && t < last.until) last.gate.gain.setTargetAtTime(0, from === undefined ? Math.max(last.from + 0.02, t - TONGUE_LEAD) : t, from === undefined ? TONGUE_STOP : NOTE_STOP);
+  SOUNDING.set(out, { gate, from: t, end: t + held, until: t + data.length / sr, midi });
   // A breath in the rest before the note, if it had one.
   const before = last ? t - last.end : Infinity;
   if (from === undefined && before >= BREATH_REST && rand() < BREATH_CHANCE) {
@@ -427,6 +462,9 @@ function brass(horn: Horn, k: VoiceKit, out: AudioNode, t: number, midi: number,
     }
   }
 }
+
+/** The styles whose horn lines are a section's (lib/lofi-station.ts plays them so): there a trumpet line is the section's, not a soloist's. */
+export const HORN_SECTION = new Set<LofiMood>(['ska', 'afrobeat', 'soul', 'funk', 'swing']);
 
 /** A player in a horn section: what they play against the line, how loud, how late (s) and where they sit (pan). */
 export interface SectionPart { voice: string; level: number; shift: number; late: number; pan: number; detune: number }
@@ -459,6 +497,10 @@ export function hornSection(lead0: string, k: VoiceKit): SectionPart[] {
     { voice: 'trumpet', level: SECTION_LEVELS.unison, shift: 0, late: late(), pan: 0.45, detune: lead + apart },
     { voice: 'trombone', level: SECTION_LEVELS.octave, shift: -12, late: late(), pan: -0.4, detune: SECTION_SPREAD * gauss(k) },
   ];
+}
+/** A standard normal draw (Box-Muller) from a seeded source, cut at 2.5. */
+function gauss01(rand: () => number): number {
+  return Math.max(-2.5, Math.min(2.5, Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand())));
 }
 /** A standard normal draw (Box-Muller), from the station's seeded source. */
 function gauss(k: VoiceKit): number {
