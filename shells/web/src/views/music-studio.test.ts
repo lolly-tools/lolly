@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The music generator's link and its track (views/music-studio.ts): every setting
- * round-trips through the link, nonsense falls back to the defaults, and the composed
- * track has the length asked for with a locked part held all the way through.
+ * round-trips through the link, nonsense falls back to the defaults, a retired lead plays the
+ * lead that took its place, and the composed track has the length asked for with a locked
+ * part held all the way through.
  *
  * Run directly: node --import ./tests/css-stub.mjs --test shells/web/src/views/music-studio.test.ts
  */
@@ -19,6 +20,19 @@ test('a link carries every setting and reads back the same', () => {
   assert.equal(s.drums, false);
   assert.equal(s.mix.bass, 1.4);
   assert.deepEqual(parseMusicState(musicStateParams(s)), s);
+});
+
+test('a link that asks for the retired soft lead plays the flute, for the whole track or a kind of section', () => {
+  const s = parseMusicState('style=citypop&seed=5&bars=64&lead=soft&drop.lead=soft');
+  assert.equal(s.lead, 'flute');
+  assert.deepEqual(s.sections, { drop: { lead: 'flute' } });
+  assert.equal(musicStateParams(s), 'style=citypop&seed=5&bars=64&lead=flute&drop.lead=flute', 'the link it writes back asks for the flute');
+  const bars = composeTrack(s);
+  assert.ok(bars.every(b => (b.voices?.lead ?? b.tune.style.lead) === 'flute'), 'every bar plays the flute');
+  assert.deepEqual(bars, composeTrack(parseMusicState('style=citypop&seed=5&bars=64&lead=flute&drop.lead=flute')), 'exactly the track a flute link plays');
+  const section = parseMusicState('style=soul&seed=5&bars=64&break.lead=soft');
+  assert.deepEqual(section.sections, { break: { lead: 'flute' } });
+  assert.ok(composeTrack(section).filter(b => b.section === 'break').every(b => b.voices?.lead === 'flute'));
 });
 
 test('nonsense in a link falls back to the defaults', () => {

@@ -9,7 +9,7 @@
  * canvas too, so this also turns an icon's markup into canvas paths: its path, circle,
  * ellipse, line, polyline and rect elements, which are all these icons use.
  */
-import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import type { LiveLead, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export type InstrumentIcon = 'piano' | 'audioWaveform' | 'guitar' | 'bowed' | 'wind' | 'horn' | 'micVocal' | 'bell' | 'gamepad' | 'drum';
 
@@ -37,11 +37,11 @@ const KEYS: Record<LofiStyle['keys'], InstrumentIcon> = {
   chiparp: 'gamepad', brass: 'horn', choir: 'micVocal', balafon: 'bell', strings: 'bowed', grand: 'piano',
   surf: 'guitar', combo: 'piano',
 };
-const LEADS: Record<LofiStyle['lead'], InstrumentIcon> = {
+const LEADS: Record<LiveLead, InstrumentIcon> = {
   vibes: 'bell', bells: 'bell', kalimba: 'bell', balafon: 'bell',
   flute: 'wind', panflute: 'wind', ney: 'wind', shakuhachi: 'wind', dizi: 'wind', clarinet: 'wind', harmonica: 'wind',
   sax: 'horn', trumpet: 'horn',
-  soft: 'audioWaveform', synthwave: 'audioWaveform',
+  synthwave: 'audioWaveform',
   chip: 'gamepad', pulse: 'gamepad', bit: 'gamepad',
   angel: 'micVocal', chop: 'micVocal',
   guitar: 'guitar', overdrive: 'guitar', metal: 'guitar', riff: 'guitar', twang: 'guitar', nylon: 'guitar', banjo: 'guitar', pedal: 'guitar',

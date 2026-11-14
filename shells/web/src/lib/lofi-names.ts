@@ -4,7 +4,7 @@
  * now-playing line and the music generator's track pickers share them. Types only from
  * the composer, so importing this never loads the composer.
  */
-import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import type { LiveLead, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   rhodes: 'Rhodes', felt: 'felt piano', wurli: 'Wurlitzer', pluck: 'soft pluck', pad: 'pad', supersaw: 'saw chords',
@@ -16,8 +16,9 @@ export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   houseOrgan: 'house organ',
 };
 
-export const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
-  vibes: 'vibes', flute: 'flute', soft: 'soft lead', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead',
+/** The leads that still play (a retired lead plays its replacement, so it needs no name). */
+export const LOFI_LEAD_NAME: Record<LiveLead, string> = {
+  vibes: 'vibes', flute: 'flute', kalimba: 'kalimba', chip: 'chip lead', angel: 'angel lead', pulse: 'pulse lead',
   guitar: 'guitar', overdrive: 'lead guitar', synthwave: 'synthwave lead', metal: 'metal guitar', panflute: 'pan flute',
   nylon: 'nylon guitar', riff: 'riff guitar', twang: 'twang guitar', banjo: 'banjo', harmonica: 'harmonica', sax: 'sax',
   trumpet: 'trumpet', clarinet: 'clarinet', pedal: 'pedal steel', fiddle: 'fiddle', bells: 'bells', chop: 'vocal chops', bit: '8-bit lead',

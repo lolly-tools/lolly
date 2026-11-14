@@ -8,7 +8,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LOFI_KEYS, LOFI_LEADS, LOFI_BASSES } from '../../../../engine/src/lofi-compose.ts';
+import { isRetiredLead, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES } from '../../../../engine/src/lofi-compose.ts';
 import { shuffleMusic, SHUFFLE_RANGES } from './music-shuffle.ts';
 import { LOFI_STATION_MOODS } from './neurospicy-lofi.ts';
 import { parseMusicState, musicStateParams } from '../views/music-studio.ts';
@@ -43,6 +43,13 @@ test('a shuffle draws only values the generator accepts, and its link reads back
     // What the view sets: the shuffle over a fresh state, at the tune's own tempo.
     const state = { ...parseMusicState(''), ...s, bars: 64, bpm: undefined };
     assert.deepEqual(parseMusicState(musicStateParams(state)), state);
+  }
+});
+
+test('a shuffle never draws a retired lead, for the track or a kind of section', () => {
+  for (const s of SHUFFLES) {
+    assert.ok(!s.lead || !isRetiredLead(s.lead), `${s.mood} ${s.seed}: ${s.lead}`);
+    for (const [section, v] of Object.entries(s.sections)) assert.ok(!v?.lead || !isRetiredLead(v.lead), `${s.mood} ${s.seed} ${section}: ${v?.lead}`);
   }
 });
 
