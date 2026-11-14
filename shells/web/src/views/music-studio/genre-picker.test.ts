@@ -8,7 +8,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cardToward } from './genre-picker.ts';
+import { cardToward, matchesGenre, foldTitle } from './genre-picker.ts';
+import { GENRE_GROUPS, genreTitle } from '../../lib/genre-icons.ts';
 
 /** Cards laid out as a grid of `cols` columns, 100 by 80 each; a second group starts after `split` cards, on a new row 40 lower. */
 function grid(count: number, cols: number, split = count): Array<{ id: number; getBoundingClientRect(): { left: number; top: number; bottom: number; width: number } }> {
@@ -45,4 +46,19 @@ test('down from the last row of one group goes into the next group', () => {
   assert.equal(cardToward(cards, cards[5]!, 'ArrowDown')?.id, 7, 'the second group\'s card under it');
   assert.equal(cardToward(cards, cards[3]!, 'ArrowDown')?.id, 5, 'the nearest card in the short row below');
   assert.equal(cardToward(cards, cards[6]!, 'ArrowUp')?.id, 4);
+});
+
+test('search matches the start of any word in a title, whatever the case or accents', () => {
+  const titles = GENRE_GROUPS.flatMap(g => g.moods).map(genreTitle);
+  const find = (q: string): string[] => titles.filter(title => matchesGenre(title, q)).sort();
+  assert.deepEqual(find('house'), ['Funky house', 'Lofi house']);
+  assert.deepEqual(find('rock'), ['Rock', 'Stoner rock', 'Surf rock', 'Yacht rock']);
+  assert.deepEqual(find('ROCK'), find('rock'), 'any case');
+  assert.deepEqual(find('ouse'), [], 'not from the middle of a word');
+  assert.deepEqual(find('lofi h'), ['Lofi house'], 'across a space');
+  assert.deepEqual(find('pop'), ['City pop', 'K-pop'], 'after a hyphen too');
+  assert.equal(matchesGenre('Música', 'musica'), true, 'accents fold');
+  assert.equal(matchesGenre('Musica', 'Mús'), true);
+  assert.equal(find('').length, titles.length, 'an empty search shows every genre');
+  assert.equal(foldTitle('Ça Va'), 'ca va');
 });

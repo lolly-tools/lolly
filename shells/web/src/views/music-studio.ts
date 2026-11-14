@@ -79,7 +79,7 @@ import { actionButton, PlainFailure } from './music-studio/action-button.ts';
 import { renderPillHtml, wireRenderPill } from './music-studio/render-pill.ts';
 import { wireSaveMenu, type SaveChoice, type SaveDestination } from './music-studio/save-menu.ts';
 import { musicProjectRecord, musicProjectTitle, musicStateFromProject, musicSlotFromParams, newMusicSlot } from '../lib/music-project.ts';
-import { avoidBlocked, clearSwaps, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
+import { avoidBlocked, clearSwaps, loadMusicPrefs, loadRecentGenres, loadShuffleGenres, noteRecentGenre, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
 import { openInstrumentBrowser, instrumentName, instrumentWord, type BrowseTrack, type InstrumentBrowser } from './music-studio/instrument-browser.ts';
 import '../styles/parts/music-studio.css';
 
@@ -815,6 +815,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     station.setVolume(1);
     station.start();
     follow(fromBar, 0.1);
+    rememberGenre();
   }
   /**
    * Play the rendered track from `fromBar`, with the big visualiser: render and play's
@@ -1123,8 +1124,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const writer = host.profile;
     if (canWriteProfile(writer)) void writer.set(profile).catch(() => { /* storage off: the choice holds for this visit */ });
   };
+  /** The genre playing now leads the picker's Recent row, kept on the profile with the other music preferences. */
+  function rememberGenre(): void {
+    if (!profile || !noteRecentGenre(profile, state.mood)) return;
+    const writer = host.profile;
+    if (canWriteProfile(writer)) void writer.set(profile).catch(() => { /* storage off: the row holds for this visit */ });
+  }
   listen('[data-genre]', 'click', (_e, el) => {
-    openGenrePicker({ current: () => state.mood, pick: setStyle, shuffleGenres: () => shuffleGenres, setShuffleGenres: saveShuffleGenres }, { opener: el, host });
+    openGenrePicker({ current: () => state.mood, pick: setStyle, shuffleGenres: () => shuffleGenres, setShuffleGenres: saveShuffleGenres, recent: () => loadRecentGenres(profile) }, { opener: el, host });
   });
   /** The seed field is as wide as its number, so a short seed sits snug beside the shuffle. */
   const seedInput = q<HTMLInputElement>('[data-seed]');

@@ -72,27 +72,29 @@ export const shuffleIconSvg = (size: number): string => strokeSvg(OWN.shuffle, s
 /** A genre's title in the picker: the style alone, the station's family left to the group heading. */
 export const genreTitle = (mood: LofiMood): string => (mood === 'sings' ? 'Lolly Sings' : LOFI_MOOD_LABEL[mood]);
 
-/** The picker's categories, in the order it shows them. */
-export const GENRE_CATEGORIES = ['chill', 'electronic', 'classic', 'international'] as const;
+/** The picker's groups, in the order it shows them (Andy, 2026-11-14). */
+export const GENRE_CATEGORIES = ['chill', 'rock', 'soul', 'club', 'bass', 'world'] as const;
 export type GenreCategory = typeof GENRE_CATEGORIES[number];
 
-/** Which category each genre is listed under: the Lofi stations and the calm styles are
- *  chill (botanica among them: most of its tunes drift, and even its glitchy grooves sit
- *  in a garden rather than a club), the club and synth styles electronic, the band and groove styles classic, and
- *  the styles of one tradition or place international. */
-export const GENRE_CATEGORY: Record<LofiMood, GenreCategory> = {
-  warm: 'chill', lateNight: 'chill', rainy: 'chill', lofiHouse: 'chill', triphop: 'chill', dream: 'chill', citypop: 'chill', sings: 'chill', fantasy: 'chill', botanica: 'chill',
-  sugar: 'electronic', sherbert: 'electronic', synthwave: 'electronic', chiptune: 'electronic', acid: 'electronic', electro: 'electronic', dubstep: 'electronic', brostep: 'electronic', dnb: 'electronic', nudisco: 'electronic',
-  breakbeat: 'electronic', funkyHouse: 'electronic', ukGarage: 'electronic', privateSchool: 'electronic',
-  rock: 'classic', punk: 'classic', grunge: 'classic', stoner: 'classic', metal: 'classic', shoegaze: 'classic', blues: 'classic', jazz: 'classic', swing: 'classic', soul: 'classic', funk: 'classic', rnb: 'classic', country: 'classic', ska: 'classic', reggae: 'classic', hiphop: 'classic',
-  surf: 'classic', yacht: 'classic',
-  persian: 'international', guzheng: 'international', koto: 'international', kora: 'international', afrobeat: 'international', amapiano: 'international', spanish: 'international', straya: 'international', kpop: 'international', salsa: 'international',
+/** The genres in each group: the Lofi stations and the calm styles; guitar bands and
+ *  roots; the soul, jazz and groove styles; dance music for a club; the bass-heavy and
+ *  synth styles; and the styles of one tradition or place. */
+const GROUP_MOODS: Record<GenreCategory, readonly LofiMood[]> = {
+  chill: ['warm', 'lateNight', 'rainy', 'lofiHouse', 'triphop', 'dream', 'citypop', 'sings', 'fantasy', 'botanica'],
+  rock: ['rock', 'punk', 'grunge', 'stoner', 'metal', 'shoegaze', 'surf', 'country'],
+  soul: ['blues', 'jazz', 'swing', 'soul', 'funk', 'rnb', 'hiphop', 'yacht', 'ska', 'reggae'],
+  club: ['nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'electro', 'privateSchool'],
+  bass: ['dubstep', 'brostep', 'sugar', 'sherbert', 'synthwave', 'chiptune', 'acid'],
+  world: ['persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'spanish', 'straya', 'kpop', 'salsa'],
 };
+
+/** Which group each genre is listed under. */
+export const GENRE_CATEGORY = Object.fromEntries(
+  GENRE_CATEGORIES.flatMap(id => GROUP_MOODS[id].map(mood => [mood, id] as const)),
+) as Record<LofiMood, GenreCategory>;
 
 /** The picker's groups: each category's genres, A to Z by title. */
 export const GENRE_GROUPS: ReadonlyArray<{ id: GenreCategory; moods: readonly LofiMood[] }> = GENRE_CATEGORIES.map(id => ({
   id,
-  moods: (Object.keys(GENRE_CATEGORY) as LofiMood[])
-    .filter(m => GENRE_CATEGORY[m] === id)
-    .sort((a, b) => genreTitle(a).localeCompare(genreTitle(b), 'en', { sensitivity: 'base' })),
+  moods: [...GROUP_MOODS[id]].sort((a, b) => genreTitle(a).localeCompare(genreTitle(b), 'en', { sensitivity: 'base' })),
 }));

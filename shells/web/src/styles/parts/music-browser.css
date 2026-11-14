@@ -198,6 +198,9 @@
   .msb--dialog .msb-head { padding-block-start: var(--sp-3); }
 
   .msg-group + .msg-group { margin-block-start: var(--sp-5); }
+  /* A search's matches, in one grid in place of the groups (genre-picker.ts filter). */
+  .msg-group[data-results] { margin-block-start: 0; }
+  .msg-none { padding-block: var(--sp-3); }
   .msg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--sp-2); }
   /* A genre: its icon over its title. The one playing now is filled with the selection tint. */
   .msg-card {

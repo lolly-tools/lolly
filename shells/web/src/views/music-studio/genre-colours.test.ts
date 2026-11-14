@@ -52,7 +52,7 @@ test('a genre keeps its wash, and an empty pool leaves the cards plain', () => {
   assert.equal(genreTiles([], LIGHT.surface, LIGHT.text).size, 0);
 });
 
-test('tiles side by side differ, and each category starts on a different colour', () => {
+test('tiles side by side differ, and each group opens on a different colour', () => {
   for (const theme of [LIGHT, DARK]) {
     const tiles = genreTiles(WIDE, theme.surface, theme.text);
     for (const g of GENRE_GROUPS) {
@@ -62,7 +62,7 @@ test('tiles side by side differ, and each category starts on a different colour'
       });
     }
     const firsts = GENRE_GROUPS.map((g) => tiles.get(g.moods[0]!)!.from);
-    assert.equal(new Set(firsts).size, firsts.length, 'four categories, four opening colours');
+    assert.equal(new Set(firsts).size, firsts.length, 'six groups, six opening colours from a pool of six');
   }
 });
 

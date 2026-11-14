@@ -106,6 +106,30 @@ export function setShuffleGenres(profile: Profile, on: boolean): void {
   keepMusic(profile, music);
 }
 
+// ── the genres played lately ─────────────────────────────────────────────────
+
+/** How many genres the picker's Recent row holds. */
+export const RECENT_GENRES = 6;
+const GENRE_ID = /^[a-z][a-zA-Z0-9]*$/;
+
+/** The genres played lately, newest first, each once, from the profile. Ids this build
+ *  does not know (a genre added by a later version) are kept, so saving here never drops
+ *  them; the picker shows only the ones it has a card for. */
+export function loadRecentGenres(profile: Profile | null | undefined): string[] {
+  const list = profile?.music?.recentGenres;
+  const ids = Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string' && GENRE_ID.test(x)) : [];
+  return [...new Set(ids)].slice(0, RECENT_GENRES);
+}
+
+/** Put a genre at the front of the Recent row on the profile record (the caller then saves
+ *  the record). Returns false, and leaves the record alone, when the genre is already first. */
+export function noteRecentGenre(profile: Profile, genre: string): boolean {
+  const recent = loadRecentGenres(profile);
+  if (recent[0] === genre || !GENRE_ID.test(genre)) return false;
+  keepMusic(profile, { ...profile.music, recentGenres: [genre, ...recent.filter(g => g !== genre)].slice(0, RECENT_GENRES) });
+  return true;
+}
+
 // ── what a style plays ───────────────────────────────────────────────────────
 
 /** Tunes of a style read to learn its instruments: enough to meet the rarer ones. */

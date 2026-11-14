@@ -16,9 +16,10 @@
  * until the title's colour reaches 4.5:1 against the stop, so the wash never costs the
  * text its contrast, in light or dark, under any brand.
  *
- * The assignment follows the genre's place in the picker (its category, then A to Z), so
- * a genre keeps its look, tiles side by side in a row take different colours, and each
- * category starts on a different colour.
+ * The assignment follows the genre's place in the picker (its group, then A to Z), so a
+ * genre keeps its look, tiles side by side in a row take different colours, and the
+ * groups open on colours spread evenly round the pool: six different ones when the brand
+ * has at least six.
  */
 import { contrastRatio, hexToOklch, mixOklch, oklchToHex } from '../../../../../engine/src/brand-derive.ts';
 import { parseColorToSrgb8 } from '../../../../../engine/src/css-color.ts';
@@ -40,8 +41,6 @@ const STEP = 0.02;
 export const TITLE_CONTRAST = 4.5;
 /** The wash's two directions, alternating so a repeated colour still reads as a different tile. */
 const ANGLES = [135, 45] as const;
-/** How many colours on each category starts from the one before: a new category, a new colour. */
-const CATEGORY_STEP = 3;
 
 /** A colour mixed into the surface, backed off until the text keeps its contrast; the surface itself when no mix does. */
 function stop(surface: string, ink: string, start: number, text: string): string {
@@ -96,7 +95,7 @@ export function genreTiles(colours: readonly string[], surface: string, text: st
   const n = pool.length;
   if (!n || !hexToOklch(surface) || !hexToOklch(text)) return out;
   GENRE_GROUPS.forEach((group, c) => { group.moods.forEach((mood, k) => {
-    const slot = k + c * CATEGORY_STEP;
+    const slot = k + Math.floor((c * n) / GENRE_GROUPS.length);
     const lead = slot % n;
     const lap = Math.floor(slot / n) % 2;
     // The softer stop is another of the brand's colours, a step or two on round the pool.
@@ -123,7 +122,8 @@ export function cssHex(value: string | null | undefined): string | null {
  * the cards plain when any of those cannot be read.
  */
 export async function paintGenreTiles(cards: readonly HTMLElement[], host: unknown): Promise<void> {
-  const first = cards[0];
+  // A card that is not the genre playing now, whose selected look would be read instead.
+  const first = cards.find(c => c.getAttribute('aria-pressed') !== 'true') ?? cards[0];
   if (!first) return;
   const surface = cssHex(getComputedStyle(first).backgroundColor);
   const text = cssHex(getComputedStyle(first.querySelector('.msg-name') ?? first).color);
