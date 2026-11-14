@@ -13,7 +13,9 @@
  *    swing (the hats swung harder than the rest), private school's soft kit and shakers;
  *  - their basses: a rolling bass in breakbeat, a bouncing one in funky house, a sub or a
  *    warping bass in UK garage, and a low, soft log drum in private school piano;
- *  - drum and bass's top loop: only notes added, each a break's, varying from bar to bar.
+ *  - drum and bass's top loop: only notes added, each a break's, varying from bar to bar;
+ *  - drum and bass's own kick and snare through a drop: the two-step kept (the kick on one,
+ *    the snare on two), edited bar by bar, a turnaround every four bars, a fill every eight.
  * How these measure against openly licensed records is in docs/generated-music.md.
  */
 import { test } from 'node:test';
@@ -146,15 +148,39 @@ test('private school piano: a soft kit, shakers throughout, a low log drum, long
 });
 
 test('drum and bass\'s top loop: break notes added over the kit, its notes different from bar to bar', () => {
-  let loop = 0, kit = 0;
+  let loop = 0;
   for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, 'dnb');
     const added = drops(bars).flatMap(b => b.notes.filter(isBreakNote));
     assert.ok(added.length > 100, `${seed}: a top loop through the drops (${added.length} notes)`);
     assert.ok(added.every(n => n.voice !== 'kick'), `${seed}: the loop leaves the kick to the kit`);
     loop += variety(bars);
-    kit += variety(bars, n => !isBreakNote(n));
   }
   assert.ok(loop / 6 > 0.6, `with the top loop, the drums' notes change most bars (${(loop / 6).toFixed(2)})`);
-  assert.ok(kit / 6 <= loop / 6, `the kit's own bars change less (${(kit / 6).toFixed(2)})`);
+});
+
+test('drum and bass\'s own kit: the two-step on every drop bar, edited bar by bar, a turnaround every four bars and a fill into every eight', () => {
+  let edited = 0, pairs = 0, fills = 0, eights = 0, turns = 0, fours = 0;
+  const kit = (b: LofiBar): LofiNote[] => b.notes.filter(n => (n.voice === 'kick' || n.voice === 'snare') && !isBreakNote(n));
+  const hits = (b: LofiBar): string => kit(b).filter(n => n.vel > 0.5).map(n => `${n.voice}@${Math.round(n.beat * 4)}`).sort().join(' ');
+  for (const seed of SEEDS) {
+    const bars = composeLofiTune(seed, 'dnb');
+    let run = -1;
+    bars.forEach((b, i) => {
+      run = b.section === 'drop' ? (bars[i - 1]?.section === 'drop' ? run + 1 : 0) : -1;
+      if (run < 0) return;
+      const k = kit(b);
+      assert.ok(k.some(n => n.voice === 'kick' && n.beat === 0), `${seed} bar ${b.index}: the kick on one`);
+      assert.ok(k.some(n => n.voice === 'snare' && n.beat === 1 && n.vel > 0.9), `${seed} bar ${b.index}: the snare on two`);
+      assert.ok(!k.some(n => n.voice === 'kick' && n.beat === 1), `${seed} bar ${b.index}: never a kick on the backbeat`);
+      if (run === 0) assert.deepEqual(k.filter(n => n.voice === 'snare').map(n => n.beat), [1, 3], `${seed} bar ${b.index}: the drop opens on the plain two-step`);
+      if (run % 8 === 7) { eights++; if (k.filter(n => n.voice === 'snare' && n.beat >= 2).length >= 4) fills++; }
+      if (run % 8 === 3) { fours++; if (hits(b) !== hits(bars[i - 2]!)) turns++; }
+      // Against the bar two before (the kit's two bars of kick alternate), how often a bar is edited.
+      if (run >= 2) { pairs++; if (hits(b) !== hits(bars[i - 2]!)) edited++; }
+    });
+  }
+  assert.equal(fills, eights, `a fill into every eight bars (${fills} of ${eights})`);
+  assert.ok(turns / fours > 0.8, `a turnaround ends most fours (${turns} of ${fours})`);
+  assert.ok(edited / pairs > 0.3 && edited / pairs < 0.8, `bars edited against the bar two before (${(edited / pairs).toFixed(2)})`);
 });

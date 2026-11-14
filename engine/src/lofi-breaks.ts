@@ -205,3 +205,100 @@ export function breakBar(plan: BreakPlan, r: () => number, at: BreakAt): LofiNot
   }
   return out.sort((x, y) => x.beat - y.beat);
 }
+
+// ── drum and bass's own kit ────────────────────────────────────────────────────
+
+/**
+ * Drum and bass's kick and snare through a drop, edited bar by bar as the records' are
+ * (Andy, 2026-11-14: D&B's drums may change). The two-step stays: the kick on one and on
+ * the "and" of three, the snare on two and four, at 170 to 176 bpm. Around it, in the break
+ * engine's vocabulary (all written for Lolly, none a famous break's): a second kick moved or
+ * added, ghost snares and drags into the backbeat, a half bar re-cut, a turnaround to end
+ * each four bars and a fill into each eight. The produced drum and bass measured
+ * (docs/generated-music.md) changes its drums in 0.27 and 0.80 of its bars.
+ */
+type Hit = readonly [step: number, kind: 'k' | 'S' | 'g', vel: number];
+/** The two-step's bars: the kick on one and the "and" of three, now and then pushed or doubled. */
+const DNB_BASES: ReadonlyArray<readonly number[]> = [[0, 10], [0, 7, 10], [0, 10, 14], [0, 2, 10], [0, 10, 13], [0, 6, 10]];
+/** A phrase's turnaround, the last half bar re-cut: kicks and snares traded, the backbeat pushed or doubled. */
+const DNB_TURNS: ReadonlyArray<ReadonlyArray<Hit>> = [
+  [[10, 'k', 0.85], [12, 'S', 0.95], [13, 'g', 0.3], [14, 'k', 0.8], [15, 'S', 0.7]],
+  [[9, 'g', 0.28], [10, 'k', 0.85], [11, 'k', 0.75], [12, 'S', 0.95], [14, 'S', 0.75], [15, 'g', 0.3]],
+  [[10, 'S', 0.7], [11, 'k', 0.8], [12, 'S', 0.95], [14, 'g', 0.3], [15, 'S', 0.65]],
+  [[12, 'S', 0.95], [13, 'S', 0.6], [14, 'k', 0.85], [15, 'S', 0.75]],
+  [[10, 'k', 0.85], [11, 'S', 0.9], [13, 'g', 0.3], [14, 'S', 0.85]],
+];
+/** A half bar re-cut in the middle of a phrase: the backbeat kept, the kicks and ghosts around it moved. */
+const DNB_HALVES: ReadonlyArray<ReadonlyArray<Hit>> = [
+  [[8, 'g', 0.25], [10, 'k', 0.85], [12, 'S', 0.95], [13, 'k', 0.7]],
+  [[11, 'k', 0.85], [12, 'S', 0.95], [14, 'g', 0.3], [15, 'g', 0.25]],
+  [[10, 'k', 0.8], [12, 'S', 0.95], [14, 'k', 0.75], [15, 'g', 0.3]],
+  [[9, 'k', 0.8], [10, 'k', 0.7], [12, 'S', 0.95], [15, 'g', 0.3]],
+];
+
+/** One tune's D&B kit: its two bars of kick, its ghost notes, its turnarounds in order, and how often a bar is edited. */
+export interface DnbKitPlan { a: readonly number[]; b: readonly number[]; ghosts: readonly number[]; turns: readonly number[]; edits: number }
+export function dnbKitPlan(r: () => number): DnbKitPlan {
+  const a = Math.floor(r() * DNB_BASES.length);
+  let b = Math.floor(r() * (DNB_BASES.length - 1));
+  if (b >= a) b++;
+  const ghosts = [3, 7, 9, 14, 15].filter(() => r() < 0.4);
+  const turns = DNB_TURNS.map((_, n) => [n, r()] as const).sort((x, y) => x[1] - y[1]).map(([n]) => n);
+  return { a: DNB_BASES[a]!, b: DNB_BASES[b]!, ghosts, turns, edits: 0.2 + r() * 0.25 };
+}
+
+/**
+ * One drop bar of the D&B kit. The bars of a phrase alternate between the tune's two kick
+ * bars; most carry ghost notes; some are edited (a kick moved or added, a drag into a
+ * backbeat, a half bar re-cut, a cluster of ghosts); the fourth bar of each four ends on a
+ * turnaround and the eighth on a fill, a snare run climbing into the next phrase. The first
+ * bar of a drop is the plain two-step under its crash. About a fifth to two-fifths of the
+ * other bars are edited, which puts the kit between the two records measured.
+ */
+export function dnbKitBar(plan: DnbKitPlan, r: () => number, at: { inSection: number; sb: (step: number) => number }): LofiNote[] {
+  const { inSection, sb } = at;
+  const pos = inSection % 8;
+  const kicks = new Map<number, number>();
+  const snares = new Map<number, number>();
+  for (const s of inSection % 2 ? plan.b : plan.a) kicks.set(s, s === 0 ? 0.95 : 0.82);
+  snares.set(4, 0.95);
+  snares.set(12, 0.95);
+  const half = (hits: ReadonlyArray<Hit>, from: number): void => {
+    for (const s of [...kicks.keys()]) if (s >= from) kicks.delete(s);
+    for (const s of [...snares.keys()]) if (s >= from) snares.delete(s);
+    for (const [s, kind, vel] of hits) (kind === 'k' ? kicks : snares).set(s, vel);
+  };
+  if (inSection > 0) {
+    for (const s of plan.ghosts) if (!snares.has(s) && r() < 0.9) snares.set(s, 0.22 + r() * 0.08);
+    if (pos === 7) {
+      // The fill: a snare run from the half bar (or the last beat), louder all the way, the kick on the half bar.
+      const from = r() < 0.5 ? 8 : 12;
+      half([], from);
+      if (from === 8) kicks.set(8, 0.8);
+      for (let s = from; s < 16; s++) snares.set(s, 0.4 + ((s - from) / (16 - from)) * 0.55);
+    } else if (pos === 3) {
+      half(DNB_TURNS[plan.turns[Math.floor(inSection / 8) % plan.turns.length]!]!, 8);
+    } else if (r() < plan.edits) {
+      const edit = Math.floor(r() * 4);
+      if (edit === 0) {
+        // A kick moved or added: the second kick a sixteenth early or late, or a pickup before the backbeat.
+        const second = [...kicks.keys()].find(s => s >= 7 && s <= 11);
+        if (second !== undefined && r() < 0.5) { kicks.delete(second); kicks.set(second + (r() < 0.5 ? -1 : 1), 0.82); }
+        else kicks.set([3, 6, 13][Math.floor(r() * 3)]!, 0.75);
+      } else if (edit === 1) {
+        // A drag into a backbeat: two quiet snares on the two sixteenths before the backbeat.
+        const into = r() < 0.5 ? 4 : 12;
+        snares.set(into - 2, 0.28);
+        snares.set(into - 1, 0.38);
+      } else if (edit === 2) {
+        half(DNB_HALVES[Math.floor(r() * DNB_HALVES.length)]!, 8);
+      } else {
+        for (const s of r() < 0.5 ? [1, 3] : [9, 11]) if (!snares.has(s)) snares.set(s, 0.26);
+      }
+    }
+  }
+  const out: LofiNote[] = [];
+  for (const [s, vel] of kicks) out.push({ voice: 'kick', midi: 0, dur: 0, beat: sb(s), vel });
+  for (const [s, vel] of snares) out.push({ voice: 'snare', midi: 0, dur: 0, beat: sb(s), vel: Math.min(1, vel) });
+  return out.sort((x, y) => x.beat - y.beat);
+}

@@ -39,6 +39,7 @@
 import { mulberry32 } from './zzfx-compose.ts';
 import { arrangeClub, clubDrums, clubFigures, clubKeys, clubPlan, clubStabs, isClubMood, topLoopBar, topLoopOf, CLUB_MOODS, type ClubMood } from './lofi-club.ts';
 import { composeSalsa, salsaSectionName, SALSA_PERCUSSION } from './lofi-salsa.ts';
+import { dnbKitBar, dnbKitPlan, isBreakNote } from './lofi-breaks.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
 export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse' | 'salsa' | ClubMood;
@@ -2784,6 +2785,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   // Drum and bass's top loop: a break chopped over the kit, edited bar by bar, from a stream
   // of its own, so the rest of every tune composes as it did (lofi-club.ts).
   const topLoop = mood === 'dnb' ? topLoopOf(seed) : null;
+  // And its own kick and snare through a drop, edited bar by bar (lofi-breaks.ts dnbKitBar),
+  // from a stream of its own: the generic two-step is still drawn, so no other part moves.
+  const dnbKit = mood === 'dnb' ? (() => { const r = mulberry32((seed ^ 0xd0b5) >>> 0); return { plan: dnbKitPlan(r), r }; })() : null;
   // The bass genres' shots, sweeps and bleeps come from a stream of their own, so the notes
   // they had before these existed are still drawn the same.
   const bassFx = mood === 'dubstep' || mood === 'brostep' || mood === 'dnb' ? mulberry32((seed ^ 0xb3a5) >>> 0) : null;
@@ -3428,6 +3432,11 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         }
       }
 
+      // Drum and bass's kick and snare through a drop: the edited kit in place of the plain two-step.
+      if (dnbKit && part.section === 'drop' && has('kick')) {
+        for (let n = notes.length - 1; n >= 0; n--) if ((notes[n]!.voice === 'kick' || notes[n]!.voice === 'snare') && !isBreakNote(notes[n]!)) notes.splice(n, 1);
+        notes.push(...dnbKitBar(dnbKit.plan, dnbKit.r, { inSection, sb }));
+      }
       // Drum and bass's top loop over the kit, a bar's edit at a time (only notes added).
       if (topLoop) notes.push(...topLoopBar(topLoop, { section: part.section, inSection, bars: part.bars, lastOfBuild, hats: has('hats') || (build && has('snare')) }, sb));
 
