@@ -39,7 +39,8 @@ test('every genre is in exactly one group, and the groups come in their order', 
   assert.deepEqual([...listed].sort(), [...LOFI_STATION_MOODS].sort(), 'no group lists a genre the generator does not play');
   assert.deepEqual(Object.keys(GENRE_CATEGORY).sort(), [...LOFI_STATION_MOODS].sort());
   for (const lofi of ['warm', 'lateNight', 'rainy'] as const) assert.equal(GENRE_CATEGORY[lofi], 'chill', 'the Lofi stations are chill');
-  assert.deepEqual(GENRE_GROUPS.map(g => g.moods.length), [10, 8, 10, 7, 7, 11]);
+  assert.equal(GENRE_CATEGORY.ska, 'rock', 'ska is with rock and roots (Andy, 2026-11-14)');
+  assert.deepEqual(GENRE_GROUPS.map(g => g.moods.length), [10, 9, 9, 7, 7, 11]);
 });
 
 test('each group lists its genres A to Z by title', () => {

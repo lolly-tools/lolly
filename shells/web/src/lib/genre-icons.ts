@@ -79,12 +79,12 @@ export const GENRE_CATEGORIES = ['chill', 'rock', 'soul', 'club', 'bass', 'world
 export type GenreCategory = typeof GENRE_CATEGORIES[number];
 
 /** The genres in each group: the Lofi stations and the calm styles; guitar bands and
- *  roots; the soul, jazz and groove styles; dance music for a club; the bass-heavy and
+ *  roots (ska with them: Andy, 2026-11-14); the soul, jazz and groove styles; dance music for a club; the bass-heavy and
  *  synth styles; and the styles of one tradition or place. */
 const GROUP_MOODS: Record<GenreCategory, readonly LofiMood[]> = {
   chill: ['warm', 'lateNight', 'rainy', 'lofiHouse', 'triphop', 'dream', 'citypop', 'sings', 'fantasy', 'botanica'],
-  rock: ['rock', 'punk', 'grunge', 'stoner', 'metal', 'shoegaze', 'surf', 'country'],
-  soul: ['blues', 'jazz', 'swing', 'soul', 'funk', 'rnb', 'hiphop', 'yacht', 'ska', 'reggae'],
+  rock: ['rock', 'punk', 'grunge', 'stoner', 'metal', 'shoegaze', 'surf', 'country', 'ska'],
+  soul: ['blues', 'jazz', 'swing', 'soul', 'funk', 'rnb', 'hiphop', 'yacht', 'reggae'],
   club: ['nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'electro', 'privateSchool'],
   bass: ['dubstep', 'brostep', 'sugar', 'sherbert', 'synthwave', 'chiptune', 'acid'],
   world: ['persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'spanish', 'straya', 'kpop', 'salsa', 'oompa'],
