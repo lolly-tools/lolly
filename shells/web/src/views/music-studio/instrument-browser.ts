@@ -280,7 +280,7 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
   /** The Auto card's name: "Auto" and what the composer plays ("Auto · Banjo", "Auto · Jazz kit"). */
   function autoName(): string {
     if (!part) return autoLabel(styleKitName(h.state.mood));
-    return autoLabel(composersOwn(part).slice(0, 2).map(id => instrumentWord(part, id)).join(', '));
+    return autoLabel(composersOwn(part).slice(0, 2).map(id => instrumentName(part, id)).join(', '));
   }
   function paint(): void {
     const prefs = h.prefs();
