@@ -10,7 +10,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LOFI_SNARES, LOFI_HATS } from '../../../../engine/src/lofi-compose.ts';
 import { parseMusicState, musicStateParams } from './music-state.ts';
-import { MUSIC_SLOT_PREFIX, MUSIC_TOOL_ID, isMusicSlot, newMusicSlot, musicProjectHref, musicProjectRecord, musicStateFromProject, musicSlotFromParams } from './music-project.ts';
+import { MUSIC_SLOT_PREFIX, MUSIC_TOOL_ID, isMusicSlot, newMusicSlot, musicProjectHref, musicProjectRecord, musicProjectTitle, musicStateFromProject, musicSlotFromParams } from './music-project.ts';
 import { sessionOpenHref, sessionRenderHref } from './search/projects-source.ts';
 
 /** A tune with every setting away from its default: what a project has to keep. */
@@ -78,4 +78,11 @@ test('a copy made in Projects is a kept tune too', () => {
   const copy = `${record.__toolId}:${Date.now()}`;
   assert.equal(record.__toolId, MUSIC_TOOL_ID);
   assert.ok(isMusicSlot(copy), copy);
+});
+
+test('a kept tune is named by its genre and its seed, short enough for a phone tile', () => {
+  assert.equal(musicProjectTitle(parseMusicState('style=ska&seed=7')), 'Ska · 7');
+  const longest = musicProjectTitle(parseMusicState('style=dnb&seed=999999'));
+  assert.ok(!/Lolly Sings/.test(longest), longest);
+  assert.ok(longest.length <= 24, `${longest} (${longest.length} characters)`);
 });

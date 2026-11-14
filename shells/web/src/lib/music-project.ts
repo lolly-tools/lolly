@@ -13,10 +13,11 @@
  * effects that are off, the mix, the texture, the brightness and the drive.
  */
 import { musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
-import { MUSIC_SLOT_PREFIX, isMusicSlot } from './batch-slots.ts';
+import { MUSIC_SLOT_PREFIX, MUSIC_TOOL_ID, isMusicSlot } from './batch-slots.ts';
+import { genreTitle } from './genre-icons.ts';
 
 // The prefix lives with the other slot kinds, which the Projects tiles read without this module.
-export { MUSIC_SLOT_PREFIX, isMusicSlot };
+export { MUSIC_SLOT_PREFIX, MUSIC_TOOL_ID, isMusicSlot };
 
 /** A slot for a newly kept tune. */
 export const newMusicSlot = (now = Date.now()): string => `${MUSIC_SLOT_PREFIX}${now}`;
@@ -25,11 +26,12 @@ export const newMusicSlot = (now = Date.now()): string => `${MUSIC_SLOT_PREFIX}$
 export const musicProjectHref = (slot: string): string => `#/music?slot=${encodeURIComponent(slot)}`;
 
 /**
- * The tool id a kept tune's record carries. It is the slot prefix without its colon, so
- * Projects' own copy rule (`<toolId>:<time>`, views/projects.ts duplicateSessionCore)
- * gives a copy a music slot too, and no tool in the catalog has the id.
+ * A kept tune's name: its genre and its seed ("Ska · 7"), which together pick the tune.
+ * Short enough for a project tile on a phone: a shuffle's seeds have at most six digits.
  */
-export const MUSIC_TOOL_ID = MUSIC_SLOT_PREFIX.slice(0, -1);
+export function musicProjectTitle(state: MusicState): string {
+  return `${genreTitle(state.mood)} · ${state.seed}`;
+}
 
 /** The saved record: the name Projects shows, and the tune's settings as its link carries them. */
 export interface MusicProjectData {

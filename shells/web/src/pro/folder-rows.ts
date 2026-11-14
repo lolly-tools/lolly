@@ -7,7 +7,7 @@
  * use it to flatten a folder into the grid without pulling the run-overlay shell.
  */
 
-import { BATCH_SLOT_PREFIX, isBatchSlot } from '../lib/batch-slots.ts';
+import { BATCH_SLOT_PREFIX, MUSIC_TOOL_ID, isBatchSlot, isMusicSlot } from '../lib/batch-slots.ts';
 import { TOKEN_CONTEXT_KEYS } from '../lib/token-bulk-link.ts';
 
 /** An assembled batch row with an optional nested export path. */
@@ -137,6 +137,21 @@ export const MOTION_EXPORT_FORMATS = new Set(['webm', 'mp4', 'gif', 'apng']);
 /** True if a row renders to a real-time motion clip (video/animation). */
 export const isMotionRow = (r: ExportRow): boolean => !!r.format && MOTION_EXPORT_FORMATS.has(r.format.toLowerCase());
 
+/** A row that renders a kept tune to audio (pro/batch.ts, lib/music-render.ts) rather than a tool. */
+export const isMusicRow = (r: { toolId?: string }): boolean => r.toolId === MUSIC_TOOL_ID;
+
+/**
+ * A tune kept from the music generator (lib/music-project.ts) as one audio row: its
+ * settings as its link carries them, named after the project, at the given path. Null
+ * when the record holds no settings.
+ */
+export function rowFromMusicProject(data: StoredSession, pathParts: string[] = []): ExportRow | null {
+  const params = (data as { __musicStudio?: { params?: unknown } }).__musicStudio?.params;
+  if (typeof params !== 'string') return null;
+  const leaf = slug(data.__label) || 'music';
+  return { toolId: MUSIC_TOOL_ID, values: { params }, format: 'm4a', filename: [...pathParts, leaf].join('/'), unit: 'px' };
+}
+
 const posNum = (v: string | undefined): number | undefined => { const n = parseFloat(v as string); return n > 0 ? n : undefined; };
 
 /**
@@ -242,6 +257,9 @@ export async function rowsForFolder(host: FolderHost, folder: Folder, allFolders
         const r = srcRows[k]!;
         rows.push({ ...rowFromBatchRow(r, [...path, sub], runPrint), uid: `${path.join('/')}::${item.ref}#${k}` });
       }
+    } else if (isMusicSlot(item.ref)) {
+      const row = rowFromMusicProject(data, path);
+      if (row) rows.push({ ...row, uid: `${path.join('/')}::${item.ref}` });
     } else if (data.__toolId) {
       rows.push({ ...rowFromToolSession(data, path), uid: `${path.join('/')}::${item.ref}` });
     }

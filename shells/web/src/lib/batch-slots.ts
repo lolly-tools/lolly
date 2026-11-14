@@ -99,6 +99,12 @@ export const isJournalSlot = (slot: unknown): boolean =>
 export const MUSIC_SLOT_PREFIX = '__music__:';
 export const isMusicSlot = (slot: unknown): slot is string =>
   typeof slot === 'string' && slot.startsWith(MUSIC_SLOT_PREFIX);
+/**
+ * The tool id a kept tune's record carries: the slot prefix without its colon, so
+ * Projects' copy rule (`<toolId>:<time>`) gives a copy a music slot too, and no tool in
+ * the catalog has the id. A folder render reads it as an audio row (pro/batch.ts).
+ */
+export const MUSIC_TOOL_ID = MUSIC_SLOT_PREFIX.slice(0, -1);
 
 export const isHiddenSlot = (slot: unknown): boolean =>
   isTrashedSlot(slot) || isTemplateSlot(slot) || isExportPrefsSlot(slot) || isDesignSystemSlot(slot) || isRebrandSlot(slot)
