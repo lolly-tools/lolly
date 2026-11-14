@@ -9,8 +9,9 @@
  * (a run of sparkles over a drop is one moment, a magpie's carol another). The chips are
  * painted into the timeline's canvas with the notes. Over the lane, a row of transparent
  * buttons sits on the chips drawn now, so pointing at a chip or reaching one from the
- * keyboard gives its name, and pressing one plays that moment's ear candy on its own (the
- * view's audition). The buttons are one Tab stop: the arrow keys move from moment to
+ * keyboard gives its name. Pressing one while the track is stopped plays that moment's
+ * ear candy on its own (the view's audition); while the track plays, the music carries
+ * on from the moment's bar (pressMoment). The buttons are one Tab stop: the arrow keys move from moment to
  * moment through the whole track, scrolling the timeline as they go, and Home and End go
  * to the first and last.
  *
@@ -158,8 +159,24 @@ export interface FxLayerDeps {
   moments(): readonly FxMoment[];
   /** Scroll the timeline so a moment is on show and paint it, so its chip has a button. */
   reveal(m: FxMoment): void;
+  /** A moment pressed: the view answers with pressMoment. */
+  press(m: FxMoment): void;
+}
+
+export interface PressDeps {
+  /** Whether the track is playing now (live or the render). */
+  playing(): boolean;
+  /** Carry the playing track on from a bar. */
+  jump(bar: number): void;
   /** Play a moment's ear candy on its own. */
   audition(m: FxMoment): void;
+}
+
+/** What pressing a moment does: while the track plays, the music carries on from the moment's bar; stopped, the moment plays alone. */
+export function pressMoment(m: FxMoment, d: PressDeps): 'jump' | 'audition' {
+  if (d.playing()) { d.jump(m.bar); return 'jump'; }
+  d.audition(m);
+  return 'audition';
 }
 
 export interface FxLayer {
@@ -177,7 +194,7 @@ export function createFxLayer(scroll: HTMLElement, deps: FxLayerDeps): FxLayer {
   const how = document.createElement('span');
   how.id = `ms-fx-how-${Math.random().toString(36).slice(2, 8)}`;
   how.hidden = true;
-  how.textContent = t('Press to hear this moment alone. The arrow keys move between moments.');
+  how.textContent = t('Press to hear this moment alone, or to play on from here while the track plays. The arrow keys move between moments.');
   layer.append(how);
   scroll.append(layer);
   const buttons = new Map<string, HTMLButtonElement>();
@@ -190,7 +207,7 @@ export function createFxLayer(scroll: HTMLElement, deps: FxLayerDeps): FxLayer {
     b.className = 'ms-fx-moment';
     b.dataset.moment = momentKey(m);
     b.setAttribute('aria-describedby', how.id);
-    b.addEventListener('click', () => { active = momentKey(m); deps.audition(m); });
+    b.addEventListener('click', () => { active = momentKey(m); deps.press(m); });
     b.addEventListener('focus', () => { active = momentKey(m); settleTabStop(); });
     return b;
   };

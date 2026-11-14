@@ -196,8 +196,9 @@
   .ms-lock[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
 
   /* The genre button, the bar's hero: the genre's icon in a disc, its title and under it a
-     line of what you hear, on the genre's own wash of the design system's colours (the
-     wash its card wears in the picker, each stop held to 4.5:1 against the text). The
+     line of what you hear, on the genre's own colours from the design system (its card's
+     colours in the picker, much stronger, each stop held to 4.5:1 against the text, which
+     turns light on a deep colour: --ms-hero-ink). The
      title and the line are trimmed to their ink (cap height to baseline), so the pair sits
      in the middle of the button by what you see. */
   .ms-genre {
@@ -220,7 +221,7 @@
     text-align: start;
     cursor: pointer;
   }
-  .ms-genre.is-tinted { background: var(--ms-hero-from); }
+  .ms-genre.is-tinted { background: var(--ms-hero-from); color: var(--ms-hero-ink, var(--ui-color-text-default)); }
   @supports (background: linear-gradient(45deg in oklab, red, blue)) {
     .ms-genre.is-tinted { background: linear-gradient(var(--ms-hero-angle) in oklab, var(--ms-hero-from), var(--ms-hero-to)); }
   }

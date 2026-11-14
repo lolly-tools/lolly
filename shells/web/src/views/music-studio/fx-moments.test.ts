@@ -2,13 +2,15 @@
 /**
  * The Ear candy lane's moments (views/music-studio/fx-moments.ts): each sound gets its own
  * icon and name, a sound the table does not know gets the lane's wand, a run of one sound
- * is one moment, and the chips on show never overlap, the rare sounds placed first.
+ * is one moment, the chips on show never overlap, the rare sounds placed first, and a
+ * press plays on from the moment while the track plays or plays the moment alone when not.
  *
  * Run directly: node --import ./tests/css-stub.mjs --test shells/web/src/views/music-studio/fx-moments.test.ts
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fxMoments, fxSound, momentLabel, placeChips, momentKey, type FxMoment } from './fx-moments.ts';
+import { readFileSync } from 'node:fs';
+import { fxMoments, fxSound, momentLabel, placeChips, momentKey, pressMoment, type FxMoment } from './fx-moments.ts';
 import { composeTrack, parseMusicState } from '../../lib/music-state.ts';
 
 const bar = (...notes: Array<[string, number]>) => ({ notes: notes.map(([voice, beat]) => ({ voice, beat })) });
@@ -62,4 +64,25 @@ test('a real track\'s ear candy: Straya\'s birds and Chiptune\'s console are mom
   assert.ok(chip.some(m => m.kind === 'console'), 'the console\'s sounds');
   const straya = Array.from({ length: 8 }, (_, seed) => lane(`style=straya&seed=${seed + 1}&bars=64`)).flat();
   assert.ok(straya.some(m => m.kind === 'bird'), 'Straya\'s birds');
+});
+
+test('a press while the track plays carries the music on from the moment\'s bar; stopped, the moment plays alone', () => {
+  const m: FxMoment = { voice: 'magpie', kind: 'bird', bar: 12, beat: 2, lastBar: 13 };
+  const calls: string[] = [];
+  const deps = (playing: boolean) => ({
+    playing: () => playing,
+    jump: (bar: number) => calls.push(`jump ${bar}`),
+    audition: (x: FxMoment) => calls.push(`audition ${momentKey(x)}`),
+  });
+  assert.equal(pressMoment(m, deps(true)), 'jump');
+  assert.deepEqual(calls, ['jump 12'], 'the track keeps playing, from the bar the moment starts in');
+  calls.length = 0;
+  assert.equal(pressMoment(m, deps(false)), 'audition');
+  assert.deepEqual(calls, ['audition magpie:12'], 'stopped, only the moment plays');
+  // The view answers a press with pressMoment, jumping the render or the live track, and never stops the music to do so.
+  const src = readFileSync(new URL('../music-studio.ts', import.meta.url), 'utf8');
+  const press = src.slice(src.indexOf('press: (m) => {'), src.indexOf('/** The tag menus'));
+  assert.match(press, /pressMoment\(m, \{/);
+  assert.match(press, /jump: \(bar\) => \{ if \(renderedSrc\) playRendered\(bar\); else play\(bar\); \}/);
+  assert.doesNotMatch(press, /stopPlayback/);
 });
