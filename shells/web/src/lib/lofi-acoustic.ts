@@ -26,10 +26,19 @@
  *   so up to 5 kHz, the whole falling about 27 dB from 250 Hz to 2 kHz. Every partial is
  *   heard through them, and every pluck sets them ringing for a moment (a knock under the
  *   note: a low mode rings for about a quarter of a second).
- * - Playing it: the pick's contact before the string goes, its click, the unsettled first
- *   milliseconds; the open strings ringing in sympathy where a partial of the note meets
- *   one of theirs; a finger squeaking along a wound string on a slide; now and then a fret
- *   buzz on a hard stroke; and a raked string muted under the fretting hand (a dead note).
+ * - Playing it, measured in recorded flatpicked and fingerpicked phrases (five takes, two
+ *   guitars, three handheld recorders and a dynamic-microphone riff): the pick's click and
+ *   scrape, 6 dB under the note above 3 kHz in its first 12 ms (the phrases' medians ran
+ *   from 14 dB under to level); the fret ticking as a finger presses a string down and as
+ *   it lets go; finger noise between the notes, 1.2 to 2.2 events a second at about 24 dB
+ *   under a note in its 1.5 to 6 kHz band (a squeak along a wound string, a brush on a
+ *   plain one), more on a shift up or down the neck; the open strings ringing in sympathy
+ *   where a partial of the note meets one of theirs; a fret buzz now and then on a hard
+ *   stroke; a raked string muted under the fretting hand (a dead note).
+ * - A knock on the top: a thumb or the picking hand striking the body, measured from a
+ *   body-percussion take and two single hits: the air resonance near 102 Hz with the top
+ *   near 186 Hz (3.5 dB under), 24 dB down by 250 Hz and 44 by 1 kHz, dying at 100 to 170
+ *   dB a second, and a faint contact click on top.
  *
  * Pure but for the player at the end: the strokes are rendered into buffers, each once
  * per context, and played back.
@@ -169,6 +178,10 @@ export interface AcousticSpec {
   slide?: boolean;
   /** The string touching a fret as it swings: a buzz in the first moments of a hard stroke. */
   buzz?: boolean;
+  /** The fretting hand moving along the neck to this note: finger noise along the string as it goes. */
+  shift?: boolean;
+  /** A knock on the top, no note: the box answering the hand. */
+  knock?: boolean;
 }
 
 /** The highest partial worth rendering (Hz): the measured body is 40 dB down by 6 kHz. */
@@ -190,7 +203,20 @@ const SQUEAK = [1.6, 0.25] as const;
 /** A fret buzz's rattle against the note's level (about 20 dB under it, in its first 70 ms). */
 const BUZZ = 2.2;
 /** The pick's contact before it lets the string go (s), the click's level against the note (dB), by stroke. */
-const LEAD = [0.009, 0.006, 0.005] as const, CLICK_DB = [-28, -24, -19] as const;
+const LEAD = [0.009, 0.006, 0.005] as const, CLICK_DB = [-6, -2, 2] as const;
+/** The pick scraping off a string's edge as it goes (3 to 8 kHz, a few milliseconds), against the click. */
+const SCRAPE = 0.6;
+/** The fret's tick against the note's level: as a finger presses the string down, and as it lets the string go. */
+const FRET_DOWN = 0.06, FRET_UP = 0.1;
+/** Finger noise between notes: how often a note's release brings some, and its level against the note (wound strings louder). */
+const FINGER_NOISE = 0.95, FINGER = [0.8, 0.5] as const;
+/**
+ * The knock: the body's two lowest resonances as the measured hits ring them (Hz, level
+ * against the first, decay in dB a second), the measured fall above them, and the level
+ * of a knock's peak against a note's.
+ */
+const THUMP: ReadonlyArray<readonly [number, number, number]> = [[102, 1, 150], [186, 0.67, 170], [248, 0.12, 200], [393, 0.05, 260]];
+const KNOCK_LEVEL = 1.1;
 
 /** A seeded 0..1. */
 function mulberry(a: number): () => number {
@@ -239,6 +265,52 @@ function bandPass(x: Float32Array, from: number, to: number, sr: number, hz: num
   }
 }
 
+/** A burst of noise `seconds` long at `at`, through a band-pass, dying fast: returned, for the caller to place. */
+function burst(sr: number, len: number, at: number, seconds: number, hz: number, q: number, rand: () => number): Float32Array {
+  const n = Math.max(0, Math.min(len - at, Math.round(seconds * sr)));
+  const x = new Float32Array(n);
+  for (let i = 0; i < n; i++) x[i] = (rand() * 2 - 1) * Math.exp(-i / (seconds * 0.35 * sr));
+  bandPass(x, 0, n, sr, hz, q);
+  return x;
+}
+/** A fret's tick: a bright, very short click over a little thud. */
+function addTick(out: Float32Array, sr: number, at: number, level: number, hz: number, rand: () => number): void {
+  const x = burst(sr, out.length, at, 0.004, hz, 1.2, rand), thud = burst(sr, out.length, at, 0.012, 400, 1, rand);
+  for (let i = 0; i < x.length; i++) out[at + i] = out[at + i]! + x[i]! * level * 2.5;
+  for (let i = 0; i < thud.length; i++) out[at + i] = out[at + i]! + thud[i]! * level;
+}
+/** Finger noise along a string: a swell and fade of narrow noise, its band moving as the finger does. */
+function addNoise(out: Float32Array, sr: number, at: number, seconds: number, hz: number, level: number, rand: () => number): void {
+  const n = Math.max(0, Math.min(out.length - at, Math.round(seconds * sr)));
+  if (!n) return;
+  const x = new Float32Array(n);
+  for (let i = 0; i < n; i++) x[i] = (rand() * 2 - 1) * Math.sin((Math.PI * i) / n);
+  const pieces = 4, rise = rand() < 0.5 ? 1 : -1;
+  for (let k = 0; k < pieces; k++) bandPass(x, Math.floor((k * n) / pieces), Math.floor(((k + 1) * n) / pieces), sr, hz * (1 + (rise * 0.35 * k) / pieces), 5);
+  for (let i = 0; i < n; i++) out[at + i] = out[at + i]! + x[i]! * level;
+}
+/** A knock on the top: the box's lowest resonances rung by the hand, and the hand's own click. */
+function knockOn(spec: AcousticSpec, rand: () => number): Float32Array {
+  const { sr } = spec;
+  const out = new Float32Array(Math.ceil(spec.seconds * sr));
+  const strength = [0.6, 0.8, 1][spec.layer] ?? 1;
+  for (const [hz, level, dbs] of THUMP) {
+    if (hz > sr * 0.45) continue;
+    const alpha = (dbs * Math.LN10) / 20;
+    addPartial(out, sr, 0, LEVEL * KNOCK_LEVEL * strength * level * (0.9 + rand() * 0.2), hz * (0.98 + rand() * 0.04), alpha, alpha, Infinity, 0, 0, 0, 0, 0);
+  }
+  // The rest of the box, rung faintly (the measured fall: 24 dB down by 250 Hz, 44 by 1 kHz).
+  for (const m of MODES) {
+    if (m.f < 230 || m.f > Math.min(3000, sr * 0.45)) continue;
+    const alpha = Math.max((150 * Math.LN10) / 20, (Math.PI * m.f) / m.q);
+    addPartial(out, sr, 0, LEVEL * KNOCK_LEVEL * strength * m.g * 0.1 * (250 / m.f), m.f, alpha, alpha, Infinity, 0, 0, rand() * 2 * Math.PI, 0, 0);
+  }
+  addTick(out, sr, 0, LEVEL * 0.45 * strength, 1800, rand);
+  const ramp = Math.min(out.length, Math.round(0.0015 * sr));
+  for (let i = 0; i < ramp; i++) out[i] = out[i]! * (i / ramp);
+  return out;
+}
+
 /** The partials of a stroke: frequency, amplitude (signed by the pick's side), decay. */
 export function acousticPartials(spec: AcousticSpec): Array<{ hz: number; amp: number; db: number }> {
   const { f, sr } = spec;
@@ -266,6 +338,7 @@ export function acousticString(spec: AcousticSpec, rand: () => number): Float32A
   const out = new Float32Array(len);
   const lead = spec.dead ? 0 : Math.min(len >> 3, Math.round(LEAD[spec.layer] * (0.75 + rand() * 0.5) * sr));
   const endAt = spec.end !== undefined ? Math.max(0, Math.round(spec.end * sr)) : Infinity;
+  if (spec.knock) return knockOn(spec, rand);
   const parts = acousticPartials(spec);
   let power = 0;
   for (const p of parts) power += (p.amp * p.amp) / 2;
@@ -316,6 +389,20 @@ export function acousticString(spec: AcousticSpec, rand: () => number): Float32A
   for (let i = 0; i < lead; i++) noise[i] = (rand() * 2 - 1) * (i / lead) ** 1.5 * click * 0.5;
   bandPass(noise, 0, lead + clickLen, sr, 2600, 0.6);
   for (let i = 0; i < lead + clickLen; i++) out[i] = out[i]! + noise[i]!;
+  // The pick scraping off the string's edge: a few milliseconds of bright noise as the string goes.
+  const scrape = burst(sr, len, lead, 0.006, 5200, 0.9, rand);
+  for (let i = 0; i < scrape.length && lead + i < len; i++) out[lead + i] = out[lead + i]! + scrape[i]! * click * SCRAPE;
+  // The fret: a tick as the finger presses a fretted string down (under the pick's contact), and as it lets go.
+  if (spec.fret > 0 && !spec.dead) addTick(out, sr, 0, LEVEL * FRET_DOWN, 3600, rand);
+  if (endAt < len && !spec.dead) {
+    addTick(out, sr, endAt, LEVEL * FRET_UP, 3200, rand);
+    // Finger noise as the hand moves on: a squeak along a wound string, a brush on a plain one.
+    if (rand() < FINGER_NOISE) addNoise(out, sr, endAt + Math.round(rand() * 0.06 * sr), 0.03 + rand() * 0.04, 1800 + rand() * 1600, LEVEL * (spec.string < WOUND ? FINGER[0] : FINGER[1]), rand);
+  }
+  // A held note: the fretting hand's other fingers getting ready for the next shape, brushing the strings.
+  if (endAt < len && endAt > 0.3 * sr && !spec.dead && rand() < 0.85) addNoise(out, sr, Math.round(endAt * (0.4 + rand() * 0.3)), 0.03 + rand() * 0.03, 1600 + rand() * 1800, LEVEL * (spec.string < WOUND ? FINGER[0] : FINGER[1]) * 0.7, rand);
+  // The hand moving along the neck to this note: the fingers rubbing the strings on the way.
+  if (spec.shift && !spec.slide) addNoise(out, sr, 0, 0.05 + rand() * 0.04, 1500 + rand() * 1200, LEVEL * (spec.string < WOUND ? FINGER[0] : FINGER[1]) * 1.4, rand);
   // A finger sliding along a wound string: the windings squeak, the squeak rising as the hand speeds up.
   if (spec.slide) {
     const level = (spec.string < WOUND ? SQUEAK[0] : SQUEAK[1]) * LEVEL;
@@ -367,7 +454,7 @@ const LENGTHS = [0.6, 1.4, 2.6, 4] as const;
 export function acousticBuffer(ctx: BaseAudioContext, spec: Omit<AcousticSpec, 'sr'>, variant: number): AudioBuffer {
   let cache = STROKES.get(ctx);
   if (!cache) { cache = new Map(); STROKES.set(ctx, cache); }
-  const key = `${spec.f.toFixed(2)}|${spec.string}|${spec.fret}|${spec.pickMm}|${spec.layer}|${spec.seconds}|${spec.end ?? '-'}|${spec.dead ? 1 : 0}|${spec.slide ? 1 : 0}|${spec.buzz ? 1 : 0}|${variant}`;
+  const key = `${spec.f.toFixed(2)}|${spec.string}|${spec.fret}|${spec.pickMm}|${spec.layer}|${spec.seconds}|${spec.end ?? '-'}|${spec.dead ? 1 : 0}|${spec.slide ? 1 : 0}|${spec.buzz ? 1 : 0}|${spec.shift ? 1 : 0}|${spec.knock ? 1 : 0}|${variant}`;
   let buf = cache.get(key);
   if (!buf) {
     if (cache.size > 400) cache.clear();
@@ -381,8 +468,15 @@ export function acousticBuffer(ctx: BaseAudioContext, spec: Omit<AcousticSpec, '
   return buf;
 }
 
-/** How a note is played: 2 slid into from a tone below, 3 hammered on from a tone below, 4 a muted rake (a dead string). */
+/**
+ * How a note is played, in `art`: 2 slid into from a tone below, 3 hammered on from a tone
+ * below, 4 a muted rake (a dead string), 5 pulled off from a tone above, 6 a knock on the
+ * top (no note); plus 8 when the hand shifts along the neck to the note. `keys` for a
+ * strummed chord's string, picked over the sound hole.
+ */
 export interface AcousticPlay { art?: number; keys?: boolean }
+/** The articulations in AcousticPlay's `art`. */
+export const AC_SLIDE = 2, AC_HAMMER = 3, AC_DEAD = 4, AC_PULL = 5, AC_KNOCK = 6, AC_SHIFT = 8;
 
 /**
  * An acoustic guitar note at `t`: the stroke's buffer, the fretting hand lifting off at
@@ -392,31 +486,32 @@ export interface AcousticPlay { art?: number; keys?: boolean }
  */
 export function acousticNote(k: Kit, out: AudioNode, t: number, midi: number, vel: number, dur: number, level: number, o: AcousticPlay = {}): void {
   const { ctx } = k;
-  const art = o.art ?? 0;
+  const art = (o.art ?? 0) & 7, shift = ((o.art ?? 0) & AC_SHIFT) !== 0;
   const where = stringFor(midi);
   const layer = layerOf(vel);
-  const dead = art === 4;
+  const dead = art === AC_DEAD, knock = art === AC_KNOCK;
   // The fretting hand lets go at the note's end; rounded so notes of a tune share their strokes.
-  const end = dead ? undefined : Math.min(3.5, Math.max(0.08, Math.round(dur * 20) / 20));
-  const need = dead ? 0.3 : (end ?? 0) + 1.2;
+  const end = dead || knock ? undefined : Math.min(3.5, Math.max(0.08, Math.round(dur * 20) / 20));
+  const need = dead || knock ? 0.4 : (end ?? 0) + 1.2;
   const seconds = LENGTHS.find(l => l >= need) ?? LENGTHS[LENGTHS.length - 1]!;
   const spec: Omit<AcousticSpec, 'sr'> = {
     f: 440 * 2 ** ((midi - 69) / 12), seconds, ...where, pickMm: o.keys ? 160 : 140, layer,
-    ...(end === undefined ? {} : { end }), ...(dead ? { dead } : {}), ...(art === 2 ? { slide: true } : {}),
-    ...(!dead && layer === 2 && k.rng() < 0.12 ? { buzz: true } : {}),
+    ...(end === undefined ? {} : { end }), ...(dead ? { dead } : {}), ...(knock ? { knock } : {}), ...(art === AC_SLIDE ? { slide: true } : {}),
+    ...(shift ? { shift } : {}), ...(!dead && !knock && layer === 2 && k.rng() < 0.12 ? { buzz: true } : {}),
   };
   const buf = acousticBuffer(ctx, spec, k.rng() < 0.5 ? 0 : 1);
   const src = ctx.createBufferSource();
   src.buffer = buf;
   src.detune.value = (k.rng() - 0.5) * 4;
-  if (art === 2 || art === 3) {
-    const from = 2 ** (-2 / 12);
-    const hold = art === 3 ? Math.min(0.07, dur * 0.3) : 0.02;
+  if (art === AC_SLIDE || art === AC_HAMMER || art === AC_PULL) {
+    // A slide or a hammer-on from a tone below, a pull-off from a tone above: the first pitch held, then the finger moves.
+    const from = 2 ** ((art === AC_PULL ? 2 : -2) / 12);
+    const hold = art === AC_SLIDE ? 0.02 : Math.min(0.07, dur * 0.3);
     src.playbackRate.setValueAtTime(from, t);
     src.playbackRate.setValueAtTime(from, t + hold);
-    src.playbackRate.exponentialRampToValueAtTime(1, t + hold + (art === 3 ? 0.012 : 0.06));
+    src.playbackRate.exponentialRampToValueAtTime(1, t + hold + (art === AC_SLIDE ? 0.06 : 0.01));
   }
-  if (!o.keys && !dead && dur > 0.6) {
+  if (!o.keys && !dead && !knock && dur > 0.6) {
     const lfo = ctx.createOscillator();
     lfo.frequency.value = 5.2;
     const depth = ctx.createGain();

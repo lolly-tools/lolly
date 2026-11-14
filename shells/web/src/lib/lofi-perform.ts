@@ -36,7 +36,7 @@
 import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { chopper } from './lofi-chop.ts';
-import { PLUCKED_LEADS, pluckedLead } from './lofi-lead-art.ts';
+import { PLUCKED_LEADS, pluckedLead, rhythmKnocks } from './lofi-lead-art.ts';
 import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
 
 /** A seeded source for one bar of one tune. */
@@ -461,6 +461,7 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   let notes = strokes([...bar.notes], bar);
   drummer(notes, bar, spb, rand);
   if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
+  if (keys === 'steel') notes = rhythmKnocks(notes, bar, rand);
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);

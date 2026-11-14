@@ -127,9 +127,9 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LofiStyle
   // so they take most of the measured difference, not the whole difference. The electric
   // guitars (the keys' electric and the lead guitars) set their own level, as their
   // velocity chooses how hard the string is picked (lib/lofi-lead-guitars.ts).
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 2.4, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 1, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1 },
   lead: { vibes: 1, flute: 0.82, soft: 1.35, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 1, overdrive: 1, synthwave: 0.86, metal: 1, panflute: 0.56, nylon: 1.9, riff: 1, twang: 1, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1,
-    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 2, tar: 1, none: 0 },
+    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, none: 0 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, yidaki: 1.1, log: 1, deep: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
@@ -639,6 +639,8 @@ export class LofiStation {
         else if (W.WORLD_KEYS.has(keysV)) W.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
         // The brass section blows each chord as hard as the tune says; its variant level is only a level.
         else if (keysV === 'brass') R.keys(k, lanes.keys, t, note.midi, vel, len, VARIANT.keys[keysV]);
+        // The acoustic's strings and its knocks on the top (the performer's, in `mod`).
+        else if (keysV === 'steel') V.steelKeys(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, m);
         else V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
         break;
       }
