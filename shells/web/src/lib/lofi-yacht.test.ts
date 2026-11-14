@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 import { perform } from './lofi-perform.ts';
 import { LEAD_GUITARS, LEADS } from './lofi-lead-guitars.ts';
 import { composeLofiTune, ELECTRIC_FRET } from '../../../../engine/src/lofi-compose.ts';
+import { SAX_GROWL, SAX_PLAYED, SAX_SUBTONE } from './lofi-reeds.ts';
 
 test('the guitar\'s fills are fingered on the neck, each on a fret the hand reaches', () => {
   let fills = 0;
@@ -46,3 +47,24 @@ test('the drummer sits back a little: the backbeat lands behind the grid on aver
   }
   assert.ok(n > 20 && late / n > 0, `the backbeat ${((late / n) * 1000).toFixed(1)} thousandths of a beat behind`);
 });
+
+test('the saxophonist growls a few loud held notes in the chorus and the solo, and plays the soft low ones in the subtone; other styles\' sax is left as it was', () => {
+  let notes = 0, growls = 0, subtones = 0;
+  for (const seed of [1, 3, 4, 6, 9, 13, 21, 34]) {
+    for (const bar of composeLofiTune(seed, 'yacht')) {
+      const lead = bar.voices?.lead ?? bar.tune.style.lead;
+      if (lead !== 'sax') continue;
+      for (const n of perform(bar, 60 / bar.tune.bpm, bar.voices?.keys ?? bar.tune.style.keys, lead).filter(x => x.voice === 'lead')) {
+        notes++;
+        const m = n.mod ?? 0;
+        assert.ok(m & SAX_PLAYED, 'played for the sax');
+        if (m & SAX_GROWL) { growls++; assert.ok(bar.section === 'drop' || bar.section === 'break', 'a growl in the chorus or the solo'); }
+        if (m & SAX_SUBTONE) { subtones++; assert.ok(n.midi <= 67, 'a subtone low'); }
+      }
+    }
+  }
+  assert.ok(notes > 100 && growls >= 3 && growls < notes * 0.15 && subtones >= 1, `${notes} sax notes, ${growls} growled, ${subtones} subtoned`);
+  const jazz = composeLofiTune(5, 'jazz', { lead: 'sax' }).flatMap(b => perform(b, 60 / b.tune.bpm, b.tune.style.keys, 'sax')).filter(n => n.voice === 'lead');
+  assert.ok(jazz.length > 0 && jazz.every(n => !((n.mod ?? 0) & SAX_PLAYED)), 'a jazz sax line keeps the composer\'s marks');
+});
+

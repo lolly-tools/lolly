@@ -38,6 +38,7 @@ import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead } from './lofi-lead-art.ts';
 import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
+import { SAX_GROWL, SAX_PLAYED, SAX_SCOOP, SAX_SUBTONE } from './lofi-reeds.ts';
 
 /** A seeded source for one bar of one tune. */
 function barRandom(bar: LofiBar): () => number {
@@ -458,6 +459,31 @@ export function flautist(notes: LofiNote[], spb: number, rand: () => number): vo
   }
 }
 
+/** The styles whose saxophonist growls and subtones (lib/lofi-reeds.ts), so far yacht rock's. */
+const SAX_PLAYERS = new Set<LofiMood>(['yacht']);
+/** A held note long enough for a growl (s), and the highest note a subtone sits on (MIDI). */
+const SAX_HELD = 0.4, SUBTONE_TOP = 67;
+
+/**
+ * A saxophonist's choices in the styles that play the sax this way (SAX_PLAYERS): about one
+ * loud held note in ten in a chorus or the solo growled (recorded players growl about one
+ * note in ten), the soft low notes of the quiet sections in the airy subtone, and the
+ * composer's scoops kept.
+ */
+function saxophonist(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => number): void {
+  const lines = notes.map((n, i) => ({ n, i })).filter(({ n }) => n.voice === 'lead');
+  if (!lines.length) return;
+  const mean = lines.reduce((a, { n }) => a + n.vel, 0) / lines.length;
+  const loud = bar.section === 'drop' || bar.section === 'break';
+  const quiet = bar.section === 'intro' || bar.section === 'verse' || bar.section === 'outro';
+  for (const { n, i } of lines) {
+    let flags = SAX_PLAYED | (n.mod === 1 ? SAX_SCOOP : 0);
+    if (loud && n.dur * spb >= SAX_HELD && n.vel >= mean && rand() < 0.12) flags |= SAX_GROWL;
+    else if (quiet && n.midi <= SUBTONE_TOP && n.vel < mean && rand() < 0.5) flags |= SAX_SUBTONE;
+    notes[i] = { ...n, mod: flags };
+  }
+}
+
 /**
  * A bar as the band plays it: the drums in the style's pocket, a strummed guitar's chords
  * fingered and strummed, a lead guitar's bends and slides. `keys` and `lead` are the
@@ -474,5 +500,6 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
   else if (lead === 'flute') flautist(notes, spb, rand);
+  else if (lead === 'sax' && SAX_PLAYERS.has(bar.tune.mood)) saxophonist(notes, bar, spb, rand);
   return notes;
 }
