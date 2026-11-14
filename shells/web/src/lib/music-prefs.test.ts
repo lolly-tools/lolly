@@ -15,6 +15,7 @@ import type { Profile } from '@lolly-tools/core/host-v1';
 import {
   INSTRUMENT_FAMILIES, MUSIC_PARTS, NO_PREFS, avoidBlocked, clearSwaps, familyOf, heardBySection, instrumentsOf,
   isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setPartInstrument, setShuffleGenres, styleInstruments, substituteFor, swapKey, type MusicPart, type MusicPrefs,
+  loadRecentGenres, noteRecentGenre, RECENT_GENRES,
 } from './music-prefs.ts';
 import { shuffleMusic } from './music-shuffle.ts';
 import { isOverNote } from '../../../../engine/src/lofi-compose.ts';
@@ -254,4 +255,17 @@ test('with a genre given, a shuffle keeps the genre and draws a new seed and sou
   }
   assert.ok(seeds.size >= 11, `new seeds each time (${seeds.size} of 12)`);
   assert.notEqual(shuffleMusic(seeded(1), { bars: 32, after: 'ska' }).mood, 'ska', 'without one, the genre changes');
+});
+
+test('the Recent row: newest first, each genre once, six at most, and a repeat of the newest writes nothing', () => {
+  const profile = {} as Profile;
+  assert.deepEqual(loadRecentGenres(profile), [], 'none played yet');
+  for (const g of ['ska', 'funk', 'ska', 'dnb', 'jazz', 'rock', 'salsa', 'kpop']) noteRecentGenre(profile, g);
+  assert.deepEqual(loadRecentGenres(profile), ['kpop', 'salsa', 'rock', 'jazz', 'dnb', 'ska'].slice(0, RECENT_GENRES));
+  assert.equal(noteRecentGenre(profile, 'kpop'), false, 'already newest: nothing to save');
+  assert.equal(noteRecentGenre(profile, 'jazz'), true);
+  assert.deepEqual(loadRecentGenres(profile), ['jazz', 'kpop', 'salsa', 'rock', 'dnb', 'ska']);
+  assert.equal(profile.music?.shuffleGenres, undefined, 'the other music settings are left alone');
+  const stored = { music: { recentGenres: ['ska', 'ska', 42, '<b>', 'newGenreFromLater'] } } as unknown as Profile;
+  assert.deepEqual(loadRecentGenres(stored), ['ska', 'newGenreFromLater'], 'junk dropped, a later build\'s genre kept');
 });

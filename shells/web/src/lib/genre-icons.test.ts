@@ -2,8 +2,7 @@
 /**
  * The genre picker's genres (lib/genre-icons.ts): every genre the generator plays has an
  * icon and a title, the titles drop the station's family ("Ska", not "Lolly Sings · Ska"),
- * every genre is in exactly one of the four categories, and each category lists its
- * genres A to Z.
+ * every genre is in exactly one of the six groups, and each group lists its genres A to Z.
  *
  * Run directly: node --import ./tests/css-stub.mjs --test shells/web/src/lib/genre-icons.test.ts
  */
@@ -27,17 +26,23 @@ test('every genre has an icon with shapes in it, and a title', () => {
   assert.equal(lofiStationName('ska'), 'Lolly Sings · Ska', 'station names elsewhere keep their family');
 });
 
-test('every genre is in exactly one category, and the categories come in their order', () => {
-  for (const mood of LOFI_STATION_MOODS) assert.ok(GENRE_CATEGORIES.includes(GENRE_CATEGORY[mood]), `${mood} has a category`);
-  assert.deepEqual(Object.keys(GENRE_CATEGORY).sort(), [...LOFI_STATION_MOODS].sort(), 'no category lists a genre the generator does not play');
+test('every genre is in exactly one group, and the groups come in their order', () => {
+  assert.deepEqual(GENRE_GROUPS.map(g => g.id), ['chill', 'rock', 'soul', 'club', 'bass', 'world']);
+  assert.deepEqual([...GENRE_CATEGORIES], GENRE_GROUPS.map(g => g.id));
+  for (const mood of LOFI_STATION_MOODS) {
+    const homes = GENRE_GROUPS.filter(g => g.moods.includes(mood)).map(g => g.id);
+    assert.equal(homes.length, 1, `${mood} is in exactly one group, not ${JSON.stringify(homes)}`);
+    assert.equal(GENRE_CATEGORY[mood], homes[0], `${mood}'s group reads the same both ways`);
+  }
   const listed = GENRE_GROUPS.flatMap(g => g.moods);
-  assert.deepEqual([...listed].sort(), [...LOFI_STATION_MOODS].sort());
-  assert.equal(new Set(listed).size, listed.length, 'each genre once');
-  assert.deepEqual(GENRE_GROUPS.map(g => g.id), ['chill', 'electronic', 'classic', 'international']);
+  assert.equal(listed.length, 52, 'every genre the generator plays');
+  assert.deepEqual([...listed].sort(), [...LOFI_STATION_MOODS].sort(), 'no group lists a genre the generator does not play');
+  assert.deepEqual(Object.keys(GENRE_CATEGORY).sort(), [...LOFI_STATION_MOODS].sort());
   for (const lofi of ['warm', 'lateNight', 'rainy'] as const) assert.equal(GENRE_CATEGORY[lofi], 'chill', 'the Lofi stations are chill');
+  assert.deepEqual(GENRE_GROUPS.map(g => g.moods.length), [10, 8, 10, 7, 7, 10]);
 });
 
-test('each category lists its genres A to Z by title', () => {
+test('each group lists its genres A to Z by title', () => {
   for (const g of GENRE_GROUPS) {
     const titles = g.moods.map(genreTitle);
     assert.deepEqual(titles, [...titles].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })), g.id);

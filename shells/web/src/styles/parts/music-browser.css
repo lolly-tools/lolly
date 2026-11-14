@@ -198,6 +198,9 @@
   .msb--dialog .msb-head { padding-block-start: var(--sp-3); }
 
   .msg-group + .msg-group { margin-block-start: var(--sp-5); }
+  /* A search's matches, in one grid in place of the groups (genre-picker.ts filter). */
+  .msg-group[data-results] { margin-block-start: 0; }
+  .msg-none { padding-block: var(--sp-3); }
   .msg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--sp-2); }
   /* A genre: its icon over its title. The one playing now is filled with the selection tint. */
   .msg-card {
@@ -222,6 +225,18 @@
   .msg-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-round); background: var(--ui-color-surface-muted); color: var(--ui-color-action-primary); }
   .msg-card[aria-pressed="true"] .msg-icon { background: var(--ui-color-action-primary); color: var(--ui-color-action-on-primary); }
   .msg-name { font-size: var(--fs-sm); font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+  /* A genre's own wash (views/music-studio/genre-colours.ts): two of the design system's
+     colours mixed into the card, each held to the title's 4.5:1. The icon keeps its disc
+     on the plain surface; the genre playing now keeps its filled disc and is ringed in the
+     title's own colour, which holds that contrast against every wash. */
+  .msg-card.is-tinted { background: var(--msg-from); }
+  @supports (background: linear-gradient(45deg in oklab, red, blue)) {
+    .msg-card.is-tinted { background: linear-gradient(var(--msg-angle) in oklab, var(--msg-from), var(--msg-to)); }
+  }
+  .msg-card.is-tinted:hover { box-shadow: var(--ui-edge-strong); }
+  .msg-card.is-tinted:not([aria-pressed="true"]) .msg-icon { background: var(--ui-color-surface-raised); }
+  .msg-card.is-tinted[aria-pressed="true"] { border: 2px solid var(--ui-color-text-default); }
+  .msg-card.is-tinted[aria-pressed="true"] .msg-name { color: var(--ui-color-text-default); }
 
   /* "Shuffle genres": a switch whose knob slides to the end and fills when on. */
   .msg-switch {
