@@ -1,3 +1,0 @@
-(function(){var c=localStorage.getItem('theme'),s=window.matchMedia('(prefers-color-scheme:dark)').matches;var t=(c==='light'||c==='dark'||c==='brand')?c:(s?'dark':'light');var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{var ax=JSON.parse(localStorage.getItem('lolly-a11y')||'null');if(ax&&ax.reduceMotion)r.dataset.a11yMotion='reduce';if(ax&&ax.largeText)r.dataset.a11yText='large';}catch(e){}})();
-;
-if(document.documentElement.dataset.a11yMotion!=='reduce')document.documentElement.classList.add('shots-motion');
