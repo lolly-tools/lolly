@@ -75,6 +75,8 @@ const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   lofiHouse: { snare: 8, hat: 5 },
   // Surf's drummer drives: the hats and the floor tom a little ahead.
   surf: { hat: -3 },
+  // Yacht rock's sits back a little: a relaxed backbeat, the hats a touch behind too.
+  yacht: { snare: 6, hat: 2 },
 };
 
 /** A hat note's `mod` that plays the ride's bell instead (1 is a light hat, 2 the hat's foot). */
@@ -357,7 +359,7 @@ export function fretFor(midi: number, near: number): number {
 // ── the lead guitarist ─────────────────────────────────────────────────────────
 
 /** The lead guitars, which bend and slide. */
-export const GUITAR_LEADS = new Set<string>(['guitar', 'overdrive', 'riff', 'metal', 'twang', 'surf']);
+export const GUITAR_LEADS = new Set<string>(['guitar', 'overdrive', 'riff', 'metal', 'twang', 'surf', 'chorus']);
 /** The lead guitars that sound an octave below the written line. */
 const LOW_LEADS = new Set<string>(['riff', 'twang']);
 /** A lead guitar note's articulation, carried in `mod`: plain, bent up into pitch, or slid into from the last note. The performer adds the fret, times ELECTRIC_FRET. */
@@ -392,12 +394,12 @@ export function leadPosition(pitches: readonly number[]): number {
  * after it, is sometimes slid into; the rest are picked as written. Each note is fingered
  * at the hand's place for the bar, on the string that keeps the note nearest.
  */
-function leadGuitarist(notes: LofiNote[], lead: string, rand: () => number): void {
+function leadGuitarist(notes: LofiNote[], lead: string, rand: () => number, voice: 'lead' | 'fill' = 'lead'): void {
   const shift = LOW_LEADS.has(lead) ? -12 : 0;
-  const pos = leadPosition(notes.filter(n => n.voice === 'lead').map(n => n.midi + shift));
+  const pos = leadPosition(notes.filter(n => n.voice === voice).map(n => n.midi + shift));
   let last: LofiNote | undefined;
   for (const [i, n] of notes.entries()) {
-    if (n.voice !== 'lead') continue;
+    if (n.voice !== voice) continue;
     const strong = Math.abs(n.beat - Math.round(n.beat)) < 0.02;
     const near = last && Math.abs(n.midi - last.midi) <= 4 && n.midi !== last.midi && n.beat - (last.beat + last.dur) < 0.15;
     // A surf lead is played as the composer marked it (tremolo picking, a glissando, the arm), never bent.
@@ -467,6 +469,8 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   drummer(notes, bar, spb, rand);
   if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
+  // Yacht rock's guitar fills, fingered and bent or slid as a lead guitarist's notes are.
+  if (notes.some(n => n.voice === 'fill')) leadGuitarist(notes, 'chorus', rand, 'fill');
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
   else if (lead === 'flute') flautist(notes, spb, rand);

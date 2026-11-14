@@ -6,6 +6,8 @@
  *   valve amp at the edge of breakup, as measured, played as a lead: single notes, bends,
  *   slides and a finger vibrato on the held notes;
  * - twang: the same guitar an octave down on its bridge pickup, through the amp's tremolo;
+ * - chorus: the guitar on its neck and middle pickups through a chorus pedal into the clean
+ *   twin amp (lib/lofi-surf.ts), yacht rock's clean guitar, which plays its fills too;
  * - overdrive, riff and metal: the bridge pickup into a valve amp turned up, three settings
  *   of one amp (below): a cranked amp for the overdrive solo, a mid-forward crunch an
  *   octave down for the riff, and a high-gain lead for metal.
@@ -33,12 +35,13 @@
  *   the riff's to a melody played through an overdriven valve amp (each lick's spectrum by
  *   third octaves, the model playing the same notes).
  */
-import { electricNote, valveInput } from './lofi-guitars.ts';
+import { chorusInput, electricNote, valveInput } from './lofi-guitars.ts';
+import { twinInput } from './lofi-surf.ts';
 import type { VoiceKit } from './lofi-voices.ts';
 import { fretFor, LEAD_BEND, LEAD_SLIDE, TUNING } from './lofi-perform.ts';
 import { ELECTRIC_FRET } from '../../../../engine/src/lofi-compose.ts';
 
-export const LEAD_GUITARS = new Set<string>(['guitar', 'overdrive', 'metal', 'riff', 'twang']);
+export const LEAD_GUITARS = new Set<string>(['guitar', 'overdrive', 'metal', 'riff', 'twang', 'chorus']);
 
 // ── the high-gain valve amp ─────────────────────────────────────────────────────
 
@@ -187,6 +190,7 @@ export const LEADS: Record<string, LeadStyle> = {
   overdrive: { shift: 0, pickup: 'bridge', dig: 1.25, vibrato: 50, vibratoFrom: 0.35, choke: true, amp: CRANKED, level: 0.45 },
   riff: { shift: -12, pickup: 'bridge', dig: 1.25, vibrato: 30, vibratoFrom: 0.45, choke: true, amp: CRUNCH, level: 0.25 },
   metal: { shift: 0, pickup: 'bridge', dig: 1.3, vibrato: 55, vibratoFrom: 0.3, choke: true, amp: METAL, level: 2.36 },
+  chorus: { shift: 0, pickup: 'neck-middle', dig: 1.1, vibrato: 30, vibratoFrom: 0.45, choke: false, amp: null, level: 0.125 },
 };
 
 /** A tremolo per output (twang's): the amp's level swaying at 6.5 Hz, a quarter either way. */
@@ -237,7 +241,8 @@ export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi
   const fret = (TUNING as readonly number[]).includes(Math.round(pitch) - marked) ? marked : fretFor(Math.round(pitch), 7);
   let into = levelOut(k, out, style, s.level);
   if (style === 'twang') into = tremoloOut(k, into);
-  const amp = s.amp ? driveInput(k, into, s.amp) : valveInput(k, into);
+  // The chorused guitar goes through its pedal into the clean twin.
+  const amp = s.amp ? driveInput(k, into, s.amp) : style === 'chorus' ? chorusInput(k, twinInput(k, into)) : valveInput(k, into);
   // A slide comes from the note before (or two frets below), fret by fret; a bend pushes up a tone.
   const slide = art === LEAD_SLIDE ? Math.max(-5, Math.min(5, from === undefined || from === midi ? 2 : midi - from)) : 0;
   const bend = art === LEAD_BEND && fret >= 2 ? 2 : 0;

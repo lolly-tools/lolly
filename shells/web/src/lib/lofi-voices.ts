@@ -5,7 +5,7 @@
  * station ships no samples, owes no licence and renders the same bytes offline as live.
  * Each tune's style (LofiStyle) picks one voice of each kind and tunes the drums.
  *
- *   keys   rhodes  a two-operator FM electric piano whose brightness falls as it rings
+ *   keys   rhodes  a struck tine through its pickup, measured (lib/lofi-rhodes.ts)
  *          felt    a soft, muffled upright: a few warm partials and a felt thump
  *          wurli   a reedier FM piano with more bark on the attack
  *          pluck   a soft pluck, half guitar and half koto: a filter that closes fast
@@ -53,6 +53,7 @@
  * end; nothing is kept. Levels sit low, and lofi-station.ts evens the variants out.
  */
 import { pluckString, type StringSpec } from './lofi-strings.ts';
+import { rhodes } from './lofi-rhodes.ts';
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
 export interface VoiceKit {
@@ -121,6 +122,7 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'organ') organ(k, out, t, midi, vel, dur);
   else if (style === 'harp') harp(k, out, t, midi, vel, dur);
   else if (style === 'choir') choir(k, out, t, midi, vel, dur);
+  else if (style === 'rhodes') rhodes(k, out, t, midi, vel, dur);
   else if (style === 'honky') { fmPiano(k, out, t, midi, vel * 0.75, dur, false, 9); fmPiano(k, out, t, midi, vel * 0.75, dur, false, -9); }
   else fmPiano(k, out, t, midi, vel, dur, style === 'wurli');
 }

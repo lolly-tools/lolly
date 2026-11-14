@@ -18,7 +18,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { composeLofiTune, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES, SURF_TREMOLO, SURF_GLISS, SURF_ARM, ELECTRIC_PALM, ELECTRIC_CHOKE } from './lofi-compose.ts';
+import { composeLofiTune, lofiStream, lofiTrack, lofiTuneSeconds, lofiShoutStep, nextLofiSeed, isDanceMood, LOFI_MOODS, LOFI_DRUM_VOICES, DANCE_MOODS, LOFI_SHOUTS, LOFI_SHOUT_CROWD, LOFI_SHOUT_PHRASES, SURF_TREMOLO, SURF_GLISS, SURF_ARM, ELECTRIC_PALM, ELECTRIC_CHOKE, transposeChordName } from './lofi-compose.ts';
 import type { LofiBar } from './lofi-compose.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761) >>> 0);
@@ -935,5 +935,52 @@ test('surf rock: fast, its held notes tremolo-picked, a glissando into a chorus,
 test('a surf lead a person fixes plays all the way through, without the baritone', () => {
   const bars = composeLofiTune(SEEDS[3]!, 'surf', { lead: 'surf' });
   for (const b of bars) assert.ok(!b.voices?.lead && !b.voices?.double, `bar ${b.index}: the lead a person chose`);
+});
+
+// ── Yacht rock ───────────────────────────────────────────────────────────────
+
+test('yacht rock: a smooth tempo, lush sevenths, ninths and slash chords, a half-time shuffle, the guitar answering the tune and the sax taking the solo', () => {
+  let slash = 0, halfTime = 0, answered = 0, rhodes = 0;
+  for (const seed of SEEDS.slice(0, 16)) {
+    const bars = composeLofiTune(seed, 'yacht');
+    const t = bars[0]!.tune;
+    const where = `yacht ${seed}`;
+    assert.ok(t.bpm >= 84 && t.bpm <= 104, `${where}: ${t.bpm} bpm`);
+    assert.equal(t.swing, 0.61, `${where}: the shuffle`);
+    const names = t.progressions.flat();
+    assert.ok(names.filter(n => /maj7|maj9|m9|m11|6\/9|\/|9|m7/.test(n)).length >= 6, `${where}: lush chords (${names.join(' ')})`);
+    if (names.some(n => /\/[A-G]/.test(n))) slash++;
+    if (t.style.keys === 'rhodes') rhodes++;
+    // The solo is the sax's.
+    for (const b of bars.filter(b => b.section === 'break')) assert.equal(b.voices?.lead ?? t.style.lead, 'sax', `${where} bar ${b.index}: the sax's solo`);
+    // The drums: every shuffled sixteenth on the hats, the backbeat on three or on two and four, ghost notes between.
+    const drops = bars.filter(b => b.section === 'drop');
+    const backs = drops.flatMap(b => b.notes.filter(n => n.voice === 'snare' && n.vel >= 0.8).map(n => n.beat));
+    if (backs.length && backs.every(b => b === 2)) halfTime++;
+    else assert.ok(backs.every(b => b === 1 || b === 3), `${where}: the backbeat on two and four`);
+    assert.ok(drops.some(b => b.notes.some(n => n.voice === 'snare' && n.vel < 0.3)), `${where}: ghost notes`);
+    const offHat = drops[0]!.notes.find(n => n.voice === 'hat' && n.beat > 0.2 && n.beat < 0.4);
+    assert.ok(offHat && Math.abs(offHat.beat - 0.305) < 0.01, `${where}: the swung sixteenth at ${offHat?.beat}`);
+    // The guitar's fills, in the lead's range, in the bars the tune leaves room in.
+    const fills = bars.filter(b => b.notes.some(n => n.voice === 'fill'));
+    if (fills.length >= 2) answered++;
+    for (const b of fills) {
+      for (const n of b.notes.filter(n => n.voice === 'fill')) assert.ok(n.midi >= 64 && n.midi <= 84 && n.beat >= 1.99, `${where} bar ${b.index}: a fill at ${n.beat} on ${n.midi}`);
+      const lead = b.notes.filter(n => n.voice === 'lead');
+      const from = Math.min(...b.notes.filter(n => n.voice === 'fill').map(n => n.beat));
+      assert.ok(lead.every(n => n.beat < from), `${where} bar ${b.index}: the tune has made room`);
+    }
+  }
+  assert.ok(slash >= 8, `slash chords in most tunes (${slash} of 16)`);
+  assert.ok(halfTime >= 7 && halfTime <= 15, `a half-time shuffle in most tunes (${halfTime} of 16)`);
+  assert.ok(answered >= 12, `the guitar answers the tune in most tunes (${answered} of 16)`);
+  assert.ok(rhodes >= 10, `the Rhodes in most tunes (${rhodes} of 16)`);
+});
+
+test('a slash chord transposes with its bass, and a six-nine keeps its nine', () => {
+  assert.equal(transposeChordName('F/G', 2), 'G/A');
+  assert.equal(transposeChordName('A♭maj7/B♭', 1), 'Amaj7/B');
+  assert.equal(transposeChordName('C6/9', 2), 'D6/9');
+  assert.equal(transposeChordName('Am6/9', -2), 'Gm6/9');
 });
 

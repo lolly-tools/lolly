@@ -2,7 +2,7 @@
 
 The Neurospicy player makes its own music. Its generated stations compose every tune as they play. Nothing is recorded or sampled: each tune is written by Lolly's composer and played by instruments synthesised in your browser.
 
-- **The Lolly Sings group.** The original Lolly Sings and its genres. Lolly 1.2.0 ships 26 of them: Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B. Fifteen more have arrived since 1.2.0: Sherbert, Persian, Guzheng, Koto, Kora, Afrobeat, Amapiano, Ska, Punk, R&B, Grunge, Stoner rock, Shoegaze, Lofi house and Surf rock.
+- **The Lolly Sings group.** The original Lolly Sings and its genres. Lolly 1.2.0 ships 26 of them: Sugar, K-pop, Straya, Chiptune, City pop, Funk, Soul, Nu-disco, Hip hop, Trip hop, Reggae, Spanish guitar, Rock, Metal, Country, Blues, Jazz, Swing, Fantasy, Dreamscape, Synthwave, Acid, Electro, Dubstep, Brostep and D&B. Sixteen more have arrived since 1.2.0: Sherbert, Persian, Guzheng, Koto, Kora, Afrobeat, Amapiano, Ska, Punk, R&B, Grunge, Stoner rock, Shoegaze, Lofi house, Surf rock and Yacht rock.
 - **The Lofi group.** Three moods: Warm, Late night and Rainy.
 
 The **[music generator](#the-music-generator)** opens any of these stations as a track you can change, down to the instrument each part plays in each section.
@@ -64,6 +64,8 @@ The saxophone and the clarinet are blown, not played from a waveform. Each is a 
 
 The spring reverb in Surf rock is a model of a real tank, not a reverb preset: two springs that carry high frequencies more slowly than low ones, so each echo arrives as a chirp, its low end first and its top a few tens of milliseconds later, which is the drip after a picked note. Its echo times, its decay at each frequency and its tone were measured from a recorded two-spring tank, and its chirp from a recorded tank's impulse response; the surf amp's clean tone was fitted to a single-coil guitar recorded through a twin-speaker combo, and the tremolo picking's pace to recorded surf instrumentals. None of those recordings is in Lolly, only the numbers.
 
+The Rhodes is a model of the instrument too: a struck tine ringing in front of an electromagnetic pickup, whose pull falls off with distance, so a soft note is nearly a pure tone and a hard one barks with strong low harmonics; low notes are rich and the top of the keyboard nearly a sine, the harmonics die faster than the fundamental, and the tine's bell rings for a moment as the hammer strikes. Its harmonics, decays, bell and attack were measured from recorded Rhodes notes. Surf rock's combo organ is built as a transistor organ is, square waves divided down from twelve top-octave oscillators through its tabs, with the vibrato and the instant keying measured from two recorded combo organs.
+
 Sherbert was tuned by measuring three Australian future-bass records of the mid-2010s for tempo, groove, stereo width and tonal balance (134 to 145 beats a minute, half-time, chords as wide as the speakers over a mono sub bass); it copies none of their notes or sounds.
 :::
 
@@ -96,7 +98,8 @@ Sherbert was tuned by measuring three Australian future-bass records of the mid-
 | Fantasy | A harp rippling under bells, a flute or a choir, or taking the tune itself with a run up into each phrase, a lydian melody, a half-time pulse with toms, and a big room |
 | Dreamscape | Pads and a choir, vibes, a harp, bells or a soft lead, chords held two bars, a slow beat with the hats on the beat, and a long room |
 | Shoegaze | A wall of guitars: full chords swelling in through a soft fuzz, each string swaying with the tremolo arm, in a huge room, with a dreamy lead half-buried in it, as the style's singers are |
-| Surf rock | The early-sixties instrumental band, fast: a clean single-coil lead drenched in a spring reverb, its held notes tremolo-picked, its long notes shaken with the tremolo arm and a glissando down the neck into a chorus, a rhythm guitar through the same kind of big clean amp (now and then an organ), a picked bass driving eighths, and a driving beat with fills round the toms, the floor tom riding some choruses. As often in a minor key or the Phrygian dominant as in a major one |
+| Surf rock | The early-sixties instrumental band, fast: a clean single-coil lead drenched in a spring reverb, its held notes tremolo-picked, its long notes shaken with the tremolo arm and a glissando down the neck into a chorus, a rhythm guitar through the same kind of big clean amp (now and then a transistor combo organ), a picked bass driving eighths, and a driving beat with fills round the toms, the floor tom riding some choruses. As often in a minor key or the Phrygian dominant as in a major one |
+| Yacht rock | Smooth late-seventies soft rock: a Rhodes comping lush major sevenths, ninths and slash chords (a chord over a bass a tone higher), a smooth, melodic bass, a polished, tight kit in a half-time shuffle with ghost notes on the snare, a clean guitar through a chorus pedal answering the tune at the end of its phrases, and a sax taking the solo |
 :::
 
 <!--i:eti-music-->
