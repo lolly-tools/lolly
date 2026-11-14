@@ -252,7 +252,9 @@ test('the dance genres change instruments between sections', () => {
   // Salsa's piano and lead play the whole tune: its montuno trades the lead between the
   // coro and the pregón instead (see the salsa tests). Oompa's band keeps its instruments,
   // the trio handing the tune to the tenor horn (see the oompa tests).
-  for (const mood of DANCE_MOODS.filter(m => m !== 'salsa' && m !== 'oompa')) {
+  // Mandopop and C-Pop hand the tune to the traditional instrument in their hooks and dance
+  // breaks, and bring the strings or the pad in under the chorus (see the cpop tests).
+  for (const mood of DANCE_MOODS.filter(m => m !== 'salsa' && m !== 'oompa' && m !== 'mandopop' && m !== 'cpop')) {
     let softer = 0, newLead = 0;
     for (const seed of SEEDS.slice(0, 8)) {
       const bars = composeLofiTune(seed, mood);
@@ -392,6 +394,8 @@ test('every note is playable', () => {
           : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
           // Botanica's place (a bed's pitch is nominal; a bird's is its song's centre), its granular pads and its glitches.
           : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88]
+          // Mandopop's strings and C-Pop's pad, held under the keys.
+          : n.voice === 'pad' ? [48, 79]
           // Oompa's lead notes are the whole band's lines: the trombones' countermelody to the clarinets' runs.
           : mood === 'oompa' ? [40, 93] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
@@ -866,7 +870,7 @@ function withoutPhrases(bars: LofiBar[]): LofiBar[] {
   return withoutOver(bars).map(b => ({ ...b, notes: b.notes.filter(n => phraseOf(n) === null) }));
 }
 /** The styles a band or an MC shouts in, and those that keep their calm. */
-const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert', 'breakbeat', 'ukGarage'] as const;
+const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert', 'breakbeat', 'ukGarage', 'cpop'] as const;
 const PHRASE_SEEDS = Array.from({ length: 40 }, (_, i) => (i * 2654435761 + 99) >>> 0);
 /** Where a shout sounds, in seconds from the top of the tune: [first consonant, end of its last vowel]. */
 function spanOf(barIndex: number, n: LofiBar['notes'][number], spb: number): [number, number] {

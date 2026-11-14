@@ -157,6 +157,8 @@ export interface JetNote {
   burst?: { db?: number; centre?: number; speed?: number } | null; unsettled?: number;
   /** A breath running out (the flute only): more air against the tone (dB), and the breath and the pitch wobbling more (a share more). */
   airDb?: number; shake?: number;
+  /** An ornament the fingers play (the dizi's grace notes, turns and slides): cents over the note, `s` seconds after it starts, and how far under the note it may take the pitch (semitones). */
+  bend?: (s: number) => number; reach?: number;
 }
 
 /** A second-order Butterworth filter (RBJ), low- or high-pass, run one sample at a time. */
@@ -307,7 +309,7 @@ export function blowFlute(n: JetNote, rand: () => number): Float32Array {
   const out = new Float32Array(Math.ceil(n.seconds * sr));
   const stopped = n.pipe === 'stopped';
   const open = !stopped;
-  const lowest = Math.min(n.f, n.from ?? n.f, n.f * 2 ** (-Math.max(0, n.scoop) / 12));
+  const lowest = Math.min(n.f, n.from ?? n.f, n.f * 2 ** (-Math.max(0, n.scoop, n.reach ?? 0) / 12));
   const bore = new Line(Math.ceil(sr / lowest) + 8);
   const jetLine = new Line(Math.ceil(sr / lowest) + 8);
   const v = Math.min(1, Math.max(0, n.vel));
@@ -390,6 +392,7 @@ export function blowFlute(n: JetNote, rand: () => number): Float32Array {
     let f = start * (n.f / start) ** (into * into * (3 - 2 * into));
     wander = drift * wander + (1 - drift) * (rand() * 2 - 1);
     let cents = wander * driftScale;
+    if (n.bend) cents += n.bend(i / sr);
     let swell = 1;
     const tt = i / sr;
     if (n.vibrato && i > vibFrom) {
