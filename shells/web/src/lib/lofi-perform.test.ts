@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { HAT_BELL, fingerChord, flautist, newLungs, perform } from './lofi-perform.ts';
+import { HAT_BELL, fingerChord, flautist, newLungs, perform, trumpeter } from './lofi-perform.ts';
+import { TRUMPET_PLAYED, TRUMPET_SCOOP, TRUMPET_SLUR, TRUMPET_TONGUE } from './lofi-brass.ts';
 import { composerMod, FLUTE_BREATH, FLUTE_DEEP, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod, lungsOf } from './lofi-flutes.ts';
 import { composeLofiTune, ELECTRIC_FRET, type LofiBar, type LofiNote } from '../../../../engine/src/lofi-compose.ts';
 
@@ -207,4 +208,69 @@ test('a flautist\'s breath runs down as the notes are blown, faster when loud, a
   assert.deepEqual(lungsOf(lungsMod(0.4, 0.6) + FLUTE_PLAYED + FLUTE_SOFT), [6 / 15, 9 / 15]);
   assert.equal(composerMod(FLUTE_PLAYED | lungsMod(1, 1)), 0, 'a double reads none of it');
   assert.deepEqual(newLungs(), { used: 0, size: 0 });
+});
+
+/** Every lead bar of a few jazz tunes with a trumpet lead: the line as written and as the trumpeter plays the line. */
+function trumpetBars(): Array<{ written: LofiNote[]; played: LofiNote[]; bar: LofiBar }> {
+  const out: Array<{ written: LofiNote[]; played: LofiNote[]; bar: LofiBar }> = [];
+  for (const seed of [11, 12, 13, 14, 15, 16]) {
+    for (const bar of composeLofiTune(seed, 'jazz', { lead: 'trumpet' })) {
+      const spb = 60 / bar.tune.bpm;
+      const written = bar.notes.filter(n => n.voice === 'lead').sort((a, b) => a.beat - b.beat);
+      if (!written.length) continue;
+      const played = perform(bar, spb, bar.tune.style.keys, 'trumpet').filter(n => n.voice === 'lead').sort((a, b) => a.beat - b.beat);
+      out.push({ written, played, bar });
+    }
+  }
+  return out;
+}
+
+test('a trumpeter slurs by the interval as recorded players do, holds the line legato and keeps its harmony and rhythm', () => {
+  const bars = trumpetBars();
+  const slurs: Record<string, [number, number]> = { step: [0, 0], third: [0, 0], wide: [0, 0] };
+  let leaps = 0, back = 0, repeats = 0, moves = 0, gaps = 0, pairs = 0;
+  for (const { written, played, bar } of bars) {
+    const spb = 60 / bar.tune.bpm;
+    for (const n of played) assert.ok((n.mod ?? 0) & TRUMPET_PLAYED && (n.mod! & (TRUMPET_SLUR | TRUMPET_TONGUE)), 'every note is the trumpeter\'s, slurred or tongued');
+    // Harmony and rhythm: every note on the beat keeps its pitch, and every written start is still played.
+    for (const w of written) {
+      const p = played.find(n => Math.abs(n.beat - w.beat) < 1e-9);
+      assert.ok(p, 'the written start is played');
+      if (Math.abs(w.beat - Math.round(w.beat)) < 0.02) assert.equal(p!.midi, w.midi, 'a note on the beat keeps its pitch');
+      if (w.mod === 1) assert.ok(p!.mod! & TRUMPET_SCOOP, 'the composer\'s bend is kept');
+    }
+    for (let i = 1; i < played.length; i++) {
+      const a = played[i - 1]!, b = played[i]!, iv = Math.abs(b.midi - a.midi);
+      moves++;
+      if (iv === 0) { repeats++; assert.ok(!(b.mod! & TRUMPET_SLUR), 'a repeated note is tongued'); continue; }
+      const k = iv <= 2 ? 'step' : iv <= 4 ? 'third' : 'wide';
+      slurs[k]![1]++;
+      if (b.mod! & TRUMPET_SLUR) slurs[k]![0]++;
+      pairs++;
+      const gap = (b.beat - (a.beat + a.dur)) * spb;
+      if (gap > 0.04 && gap < 0.3) gaps++;
+      if (i >= 2 && Math.abs(a.midi - played[i - 2]!.midi) >= 5) { leaps++; if (iv <= 2 && Math.sign(b.midi - a.midi) !== Math.sign(a.midi - played[i - 2]!.midi)) back++; }
+    }
+  }
+  const share = (k: string) => slurs[k]![0] / slurs[k]![1];
+  // Recorded: steps 68 to 77 % slurred, thirds 26 to 29 %, wider 11 to 24 %; written (by timing) 35, 25 and 70.
+  assert.ok(share('step') > 0.58 && share('step') < 0.82, `steps slurred ${share('step')}`);
+  assert.ok(share('third') > 0.15 && share('third') < 0.38, `thirds slurred ${share('third')}`);
+  assert.ok(share('wide') < 0.32, `wider moves slurred ${share('wide')}`);
+  // Legato: no short gaps left between the notes of a phrase.
+  assert.ok(gaps / pairs < 0.05, `short gaps ${gaps} of ${pairs}`);
+  // After a leap a step back, a third of the time or so (recorded 32 to 33 %, written 9 %); fewer repeated notes (recorded 5 to 7 %, written 12 %).
+  assert.ok(back / leaps > 0.2, `step back after a leap ${back} of ${leaps}`);
+  assert.ok(repeats / moves < 0.1, `repeated notes ${repeats} of ${moves}`);
+});
+
+test('a trumpeter leaves a section\'s line alone, and the same bar plays the same', () => {
+  for (const bar of composeLofiTune(21, 'ska', { lead: 'trumpet' }).slice(0, 24)) {
+    const spb = 60 / bar.tune.bpm;
+    const played = perform(bar, spb, bar.tune.style.keys, 'trumpet').filter(n => n.voice === 'lead');
+    for (const n of played) assert.ok(!((n.mod ?? 0) & TRUMPET_PLAYED), 'a ska section plays the written line');
+  }
+  // A tune composed afresh plays the same, bar after bar (each bar follows on from the last).
+  const play = () => composeLofiTune(12, 'jazz', { lead: 'trumpet' }).flatMap(bar => trumpeter([...bar.notes], bar, 60 / bar.tune.bpm, (() => { let a = bar.index + 5; return () => { a = (a * 16807) % 2147483647; return a / 2147483647; }; })()).filter(n => n.voice === 'lead').map(n => [n.midi, n.beat, n.dur, n.mod]));
+  assert.deepEqual(play(), play());
 });

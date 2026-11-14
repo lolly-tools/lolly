@@ -36,10 +36,21 @@
 
 export type Horn = 'trumpet' | 'trombone';
 
+/**
+ * How a trumpeter plays a lead note, in its `mod` (lib/lofi-perform.ts decides, lib/lofi-winds.ts
+ * plays): TRUMPET_PLAYED marks the flags as the trumpeter's own (the same mark as the
+ * flautist's, so an instrument doubling the line reads only the composer's bend, bit 1), and
+ * the rest say how the note goes: slurred from the note before or tongued, ghosted (barely
+ * blown), dropped off or lifted off (a doit) at its end, and tongued with the back of the
+ * tongue (the second of a double-tongued pair).
+ */
+export const TRUMPET_PLAYED = 1 << 12;
+export const TRUMPET_SCOOP = 1, TRUMPET_SLUR = 2, TRUMPET_TONGUE = 4, TRUMPET_GHOST = 8, TRUMPET_DROP = 16, TRUMPET_DOIT = 32, TRUMPET_KU = 64;
+
 export interface LipNote {
   sr: number;
-  /** The note (Hz), and the one it slurs from, if any. */
-  f: number; from?: number;
+  /** The note (Hz), the one it slurs from, if any, how long the slur takes to arrive (s, 0.05 by default) and how long the breath takes to come back into it (s, SLUR_ATTACK by default). */
+  f: number; from?: number; slurTime?: number; slurAttack?: number;
   /** How hard it is blown (0 to 1), how long it is held (s), and how long to render (s). */
   vel: number; dur: number; seconds: number;
   horn: Horn;
@@ -272,7 +283,7 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
   const set = sharp(pm) * 0.5;
   const release = Math.round(n.dur * sr);
   const releaseLen = RELEASE * sr;
-  const attack = (n.from ? SLUR_ATTACK : ATTACK) * sr;
+  const attack = (n.from ? n.slurAttack ?? SLUR_ATTACK : ATTACK) * sr;
   let rough = n.from ? 0 : ROUGH;
   // Slurred onto a new resonance, the lips take a moment to settle there: more unsteady at first, the more so the further they move.
   const settle = n.from ? SLUR_UNSTEADY * Math.min(1, Math.abs(12 * Math.log2(n.f / n.from)) / 4) : 0;
@@ -287,7 +298,7 @@ export function blowLips(n: LipNote, rand: () => number): Float32Array {
   const gNorm = 1 / Math.sqrt(((1 - gHi) ** 2 / (1 - gHi * gHi) + (1 - gLo) ** 2 / (1 - gLo * gLo) - (2 * (1 - gHi) * (1 - gLo)) / (1 - gHi * gLo)) / 3);
   let tHi = 0, tLo = 0, bHi = 0, bLo = 0;
   const roughFall = Math.exp(-1 / (ROUGH_TIME * sr));
-  const glide = n.from ? 0.05 * sr : n.scoop ? (n.scoopTime ?? 0.12) * sr : 0;
+  const glide = n.from ? (n.slurTime ?? 0.05) * sr : n.scoop ? (n.scoopTime ?? 0.12) * sr : 0;
   const start = n.from ?? (n.scoop ? n.f * 2 ** (-n.scoop / 12) : n.f);
   const fallLen = FALL_TIME * sr;
   const vibratoFrom = (n.vibratoFrom ?? Math.min(0.3, n.dur * 0.5)) * sr;

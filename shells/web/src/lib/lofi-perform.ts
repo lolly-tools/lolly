@@ -31,6 +31,10 @@
  *   when they are loud, and a long phrase gets a breath in a shorter rest or one snatched
  *   from the end of a note (lib/lofi-flutes.ts plays the flute, lib/lofi-winds.ts the
  *   breath running down).
+ * - A trumpeter slurs or tongues each note by its interval, holds the line legato, steps
+ *   back after a leap, turns some repeated notes into neighbours, ghosts some quick notes,
+ *   tongues the odd one twice and drops off or lifts some note ends (lib/lofi-winds.ts plays
+ *   the trumpet). A horn section's line is left as written.
  *
  * Pure and deterministic: every choice comes from a source seeded by the tune and the bar,
  * so a tune plays the same every time. Times are moved in beats, so the caller's tempo holds.
@@ -40,6 +44,8 @@ import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead, rhythmKnocks } from './lofi-lead-art.ts';
 import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod } from './lofi-flutes.ts';
+import { TRUMPET_DOIT, TRUMPET_DROP, TRUMPET_GHOST, TRUMPET_KU, TRUMPET_PLAYED, TRUMPET_SCOOP, TRUMPET_SLUR, TRUMPET_TONGUE } from './lofi-brass.ts';
+import { HORN_SECTION } from './lofi-winds.ts';
 
 /** A seeded source for one bar of one tune. */
 function barRandom(bar: LofiBar): () => number {
@@ -491,6 +497,141 @@ export function flautist(notes: LofiNote[], spb: number, rand: () => number, lun
   }
 }
 
+// ── the trumpeter ───────────────────────────────────────────────────────────
+
+/**
+ * A trumpeter's choices, measured note by note on recorded solo phrases (a blues player and
+ * a jazz improviser, CC0 recordings from Freesound), against the composer's line played
+ * as written:
+ * - Articulation follows the interval: recorded players slur 68 to 77 % of steps, 26 to 29 %
+ *   of thirds and 11 to 24 % of wider moves, a little more after a slur than after a tongued
+ *   note, and tongue every repeated note. Played as written, the line's slurs fell where its
+ *   timing left no gap: 35 % of steps and 70 % of fourths and fifths.
+ * - Notes are held into the next (half of recorded notes fill their whole gap, a tenth
+ *   stop at 70 % or less); the written line left a short gap under most notes, so the
+ *   player holds through any rest under HOLD_GAP s and breathes at the longer ones.
+ * - After a leap of a fourth or more, a third of recorded lines step back the other way;
+ *   the written line did so 9 % of the time, and more often leapt on. A note off the beat
+ *   after a leap is turned into a step back, in the tune's scale, RESOLVE of the time.
+ * - Ghosted notes (2.5 to 4 %), quick repeated notes tongued "ta-ka" (0.5 to 1.8 % of the
+ *   moves), and notes that drop off (5 to 8 %) or lift off (3 to 8 %) as they end.
+ */
+const SLUR_BY_CLASS = { step: 0.73, third: 0.28, wide: 0.18 } as const;
+const SLUR_AFTER_SLUR = 0.06;
+const HOLD_GAP = 0.45;
+const CLIP = 0.06;
+const RESOLVE = 0.8;
+const REPEAT_TURN = 0.75;
+const GHOST = 0.7;
+const STUTTER = 0.08;
+const DROP = 0.22;
+const DOIT = 0.18;
+/** The scale a trumpet line steps in, from the tune's key and style (as the composer chooses it: dorian or major for jazz and swing, the blues scale, else pentatonic); null for a mode. */
+function lineScale(bar: LofiBar): number[] | null {
+  const m = /^([A-G])([♯#♭b]?)\s+(major|minor)$/.exec(bar.tune.key);
+  if (!m) return null;
+  const root = ({ C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 } as Record<string, number>)[m[1]!]! + (m[2] === '♯' || m[2] === '#' ? 1 : m[2] ? -1 : 0);
+  const minor = m[3] === 'minor', mood = bar.tune.mood;
+  const steps = mood === 'jazz' || mood === 'swing' ? (minor ? [0, 2, 3, 5, 7, 9, 10] : [0, 2, 4, 5, 7, 9, 11])
+    : mood === 'blues' ? [0, 3, 5, 6, 7, 10] : minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9];
+  return steps.map(i => (((root + i) % 12) + 12) % 12);
+}
+/** The nearest pitch a scale step from `p`, in `dir` (1 up, -1 down). */
+function scaleStep(p: number, dir: number, scale: number[]): number {
+  let q = p;
+  do q += dir; while (!scale.includes(((q % 12) + 12) % 12));
+  return q;
+}
+/** Each tune's last lead note as the trumpeter left it: its pitch and its end (beats, against the next bar's start). */
+const TRUMPET_LAST = new WeakMap<object, { midi: number; end: number }>();
+
+/**
+ * A trumpet line as a soloist plays it (see SLUR_BY_CLASS above): the line reshaped where
+ * it leaps unidiomatically, held legato through short rests, each note slurred or tongued
+ * by its interval, some quick notes ghosted, the odd quick note tongued twice, and some
+ * notes before a rest dropped off or lifted. Harmony and rhythm hold: notes on the beat and
+ * the bar's last note keep their pitch, and every note keeps its start.
+ */
+export function trumpeter(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => number): LofiNote[] {
+  const line = notes.filter(n => n.voice === 'lead').sort((a, b) => a.beat - b.beat).map(n => ({ ...n, mod: n.mod ?? 0 }));
+  const rest = notes.filter(n => n.voice !== 'lead');
+  const before = TRUMPET_LAST.get(bar.tune);
+  if (!line.length) { if (before) TRUMPET_LAST.set(bar.tune, { ...before, end: before.end - 4 }); return notes; }
+  const scale = lineScale(bar);
+  const onBeat = (n: LofiNote): boolean => Math.abs(n.beat - Math.round(n.beat)) < 0.02;
+  // The line reshaped: a leap of a fourth or more, then a step back the other way.
+  for (let i = 0; i + 1 < line.length; i++) {
+    const x = i ? line[i - 1]!.midi : before?.midi;
+    const y = line[i]!, z = line[i + 1]!;
+    if (x === undefined || !scale || Math.abs(y.midi - x) < 5) continue;
+    const back = -Math.sign(y.midi - x);
+    const steps = Math.sign(z.midi - y.midi) === back && Math.abs(z.midi - y.midi) <= 2;
+    if (steps || onBeat(z) || i + 1 === line.length - 1 || rand() >= RESOLVE) continue;
+    z.midi = Math.min(84, Math.max(64, scaleStep(y.midi, back, scale)));
+  }
+  // A note repeated off the beat turned into a neighbour, half the time (recorded lines
+  // repeat a note 5 to 7 % of the time, the written line 12 %).
+  // Off the beat, the second becomes a step on towards the next note; on the beat, the
+  // first (when that one is off the beat) becomes a step from above or below leading into the second.
+  for (let i = 1; i < line.length; i++) {
+    const n = line[i]!, p = line[i - 1]!, next = line[i + 1];
+    if (!scale || n.midi !== p.midi || rand() >= REPEAT_TURN) continue;
+    if (!onBeat(n)) {
+      const dir = next ? (next.midi > n.midi ? 1 : next.midi < n.midi ? -1 : rand() < 0.5 ? 1 : -1) : rand() < 0.5 ? 1 : -1;
+      // The bar's last note is a chord tone, as the composer wrote it: it moves to the next one.
+      n.midi = Math.min(84, Math.max(64, next ? scaleStep(n.midi, dir, scale) : scaleStep(n.midi, dir, bar.tones.length ? [...bar.tones] : scale)));
+    } else if (!onBeat(p) && i > 1) {
+      p.midi = Math.min(84, Math.max(64, scaleStep(n.midi, line[i - 2]!.midi > n.midi ? 1 : -1, scale)));
+    }
+  }
+  // Held into the next note through a short rest; a few clipped short.
+  for (let i = 0; i < line.length; i++) {
+    const n = line[i]!, next = line[i + 1];
+    const until = next ? next.beat : 4;
+    const gap = (until - (n.beat + n.dur)) * spb;
+    if (gap > 0 && gap < HOLD_GAP) n.dur = until - n.beat;
+    if (next && !onBeat(n) && n.dur * spb < 0.3 && rand() < CLIP) n.dur *= 0.6;
+  }
+  // The odd quick note tongued twice, "ta-ka": two halves of a short note off the beat.
+  const out: typeof line = [];
+  for (const n of line) {
+    if (!onBeat(n) && n.dur * spb >= 0.2 && n.dur * spb <= 0.32 && rand() < STUTTER) {
+      out.push({ ...n, dur: n.dur / 2 }, { ...n, beat: n.beat + n.dur / 2, dur: n.dur / 2, vel: n.vel * 0.9, mod: n.mod | TRUMPET_KU });
+    } else out.push(n);
+  }
+  // Each note slurred or tongued by its interval; quick passing notes ghosted; drops and doits before a rest.
+  const mean = out.reduce((a, n) => a + n.vel, 0) / out.length;
+  let prev: { midi: number; end: number; slurred: boolean } | null = before ? { midi: before.midi, end: before.end, slurred: false } : null;
+  for (let i = 0; i < out.length; i++) {
+    const n = out[i]!, next = out[i + 1];
+    let flags = TRUMPET_PLAYED | (n.mod & TRUMPET_SCOOP) | (n.mod & TRUMPET_KU);
+    const iv = prev ? Math.abs(n.midi - prev.midi) : 0;
+    const joined = prev !== null && (n.beat - prev.end) * spb < 0.04;
+    let slurred = false;
+    if (joined && iv > 0 && !(n.mod & TRUMPET_KU)) {
+      const base = iv <= 2 ? SLUR_BY_CLASS.step : iv <= 4 ? SLUR_BY_CLASS.third : SLUR_BY_CLASS.wide;
+      slurred = rand() < base + (prev!.slurred ? SLUR_AFTER_SLUR : -SLUR_AFTER_SLUR);
+    }
+    flags |= slurred ? TRUMPET_SLUR : TRUMPET_TONGUE;
+    const inside = i > 0 && next !== undefined;
+    if (inside && !onBeat(n) && n.dur * spb < 0.25 && n.vel < mean && rand() < GHOST) flags |= TRUMPET_GHOST;
+    n.mod = flags;
+    prev = { midi: n.midi, end: n.beat + n.dur, slurred };
+  }
+  // A note before a rest may drop off or lift off as it ends (before a tongued note the
+  // tongue would cut the move short).
+  for (let i = 0; i < out.length; i++) {
+    const n = out[i]!, next = out[i + 1];
+    const restAfter = ((next ? next.beat : 4) - (n.beat + n.dur)) * spb;
+    if ((next && restAfter < 0.12) || n.dur * spb < 0.15) continue;
+    const r = rand();
+    n.mod |= r < DROP ? TRUMPET_DROP : r < DROP + DOIT ? TRUMPET_DOIT : 0;
+  }
+  const last = out[out.length - 1]!;
+  TRUMPET_LAST.set(bar.tune, { midi: last.midi, end: last.beat + last.dur - 4 });
+  return [...rest, ...out];
+}
+
 /**
  * A bar as the band plays it: the drums in the style's pocket, a strummed guitar's chords
  * fingered and strummed, a lead guitar's bends and slides. `keys` and `lead` are the
@@ -510,5 +651,6 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
     if (lungs && !lungs.size) lungs.size = LUNGS_SIZE * (1 + LUNGS_SPREAD * (2 * barRandom({ ...bar, index: -1 })() - 1));
     flautist(notes, spb, rand, lungs);
   }
+  else if (lead === 'trumpet' && !HORN_SECTION.has(bar.tune.mood) && !bar.voices?.double) notes = trumpeter(notes, bar, spb, rand);
   return notes;
 }
