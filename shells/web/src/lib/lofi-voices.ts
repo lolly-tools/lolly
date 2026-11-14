@@ -116,7 +116,7 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'buzzsaw') heavy(k, out, t, midi, vel, dur, PUNK_AMP);
   else if (style === 'wah') wah(k, out, t, midi, vel, dur);
   else if (style === 'chiparp') chipArp(k, out, t, midi, vel, dur);
-  else if (style === 'steel') steel(k, out, t, midi, vel, dur);
+  else if (style === 'steel') steelKeys(k, out, t, midi, vel, dur, 0);
   else if (style === 'banjo') banjo(k, out, t, midi, vel, dur);
   else if (style === 'jazzbox') jazzbox(k, out, t, midi, vel, dur);
   else if (style === 'organ') organ(k, out, t, midi, vel, dur);
@@ -476,9 +476,9 @@ function bells(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 
 // ── the roots instruments ───────────────────────────────────────────────────
 
-/** A steel-string acoustic, strummed: the measured flat-top of ./lofi-acoustic.ts, picked over the sound hole. */
-function steel(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
-  acousticNote(k, out, t, midi, vel, dur, STEEL_KEYS * pluckLevel(vel), { keys: true });
+/** A steel-string acoustic, strummed: the measured flat-top of ./lofi-acoustic.ts, picked over the sound hole. `mod` 6 is a knock on the top (lib/lofi-lead-art.ts). */
+export function steelKeys(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number): void {
+  acousticNote(k, out, t, midi, vel, dur, STEEL_KEYS * pluckLevel(vel), { keys: true, art: mod & 15 });
 }
 
 /**
@@ -489,11 +489,11 @@ function steel(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
  * held note gets a light vibrato.
  */
 function steelLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
-  // The articulation is in the low bits; a lead's own ornament (a strum's string, a rake) carries a flag above them.
-  acousticNote(k, out, t, midi, vel, dur, STEEL_LEAD * pluckLevel(vel), { art: art & 7 });
+  // The articulation and the shift are in the low bits; a lead's own ornament (a strum's string, a rake) carries a flag above them.
+  acousticNote(k, out, t, midi, vel, dur, STEEL_LEAD * pluckLevel(vel), { art: art & 15 });
 }
 /** The acoustic's levels, strummed and as the lead, against the other plucked voices. */
-const STEEL_KEYS = 0.138, STEEL_LEAD = 0.19;
+const STEEL_KEYS = 0.331, STEEL_LEAD = 0.352;
 
 /**
  * A banjo: a bright, short pluck through a high-pass (a banjo has no low body), and the

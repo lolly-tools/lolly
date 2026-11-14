@@ -98,3 +98,26 @@ test('a melody note is fingered on the highest string that reaches it within twe
   assert.deepEqual(stringFor(40), { string: 0, fret: 0 });
   assert.deepEqual(stringFor(84), { string: 5, fret: 20 });
 });
+
+test('a knock on the top is the box\'s air and top resonances, dying in a fraction of a second, about as loud as a note', () => {
+  const knock = stroke({ knock: true }, 11), note = stroke({ f: 164.8, string: 2, fret: 2 }, 11);
+  assert.ok(at(knock, 102, 0.005, 0.1) > at(knock, 400, 0.005, 0.1) * 5, 'the air resonance near 102 Hz, far over 400 Hz');
+  assert.ok(at(knock, 186, 0.005, 0.1) > at(knock, 400, 0.005, 0.1) * 3, 'and the top near 186 Hz');
+  assert.ok(rms(knock, 0.25, 0.35) < rms(knock, 0, 0.05) * 0.06, 'gone in a few tenths of a second (measured 100 to 170 dB/s)');
+  const peak = (x: Float32Array): number => x.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  const rel = db(peak(knock) / peak(note));
+  assert.ok(rel > -6 && rel < 1, `a knock's peak ${rel.toFixed(1)} dB against a note's`);
+});
+
+test('the playing noises: the pick\'s click and scrape, the fret ticking as the hand lets go, finger noise after', () => {
+  // The pick: above 3 kHz in the first 12 ms, about as loud as the note's whole body (measured 6 dB under it, in a median).
+  const x = stroke({ f: 329.63, string: 5, fret: 0, layer: 1 }, 12);
+  const high = band(x, 3000, 9000, 0, 0.012), body = rms(x, 0.03, 0.12);
+  assert.ok(db(high / body) > -20, `the pick's click and scrape (${db(high / body).toFixed(1)} dB, by bins)`);
+  // The fret and the fingers as the hand lets go: noise above 1.5 kHz around the end that a ringing note lacks.
+  const let_ = stroke({ f: 220, string: 3, fret: 2, layer: 1, end: 0.6 }, 13), ring = stroke({ f: 220, string: 3, fret: 2, layer: 1 }, 13);
+  assert.ok(band(let_, 1500, 6000, 0.6, 0.7) > band(ring, 1500, 6000, 0.6, 0.7) * 1.5, 'the release ticks and rubs');
+  // A shift along the neck rubs the strings at the start.
+  const shifted = stroke({ f: 220, string: 3, fret: 2, layer: 1, shift: true }, 14), still = stroke({ f: 220, string: 3, fret: 2, layer: 1 }, 14);
+  assert.ok(band(shifted, 1500, 3500, 0, 0.09) > band(still, 1500, 3500, 0, 0.09) * 1.2, 'the shift');
+});
