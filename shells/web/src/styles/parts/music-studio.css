@@ -348,11 +348,28 @@
   .ms-page.has-audio:not(.viz-off) .ms-stage { display: block; }
   .ms-viz { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .ms-stage .ms-icon { background: transparent; box-shadow: none; color: var(--ui-color-text-muted); }
-  /* Full screen sits in the band's corner, once a track is rendered. */
-  .ms-stage [data-viz-full] { position: absolute; top: var(--sp-1); right: var(--sp-1); }
-  .ms-stage [data-viz-full][hidden] { display: none; }
-  /* Full screen: the stage is the whole screen, the visualiser filling it. */
+  /* The visualiser's own controls (views/music-studio/viz-stage.ts): settings, Expand and
+     Full screen, floating in the band's corner. */
+  .ms-viz-bar { position: absolute; top: var(--sp-1); right: var(--sp-1); display: flex; gap: 2px; padding: 2px; border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-overlay); }
+  .ms-viz-bar [hidden] { display: none; }
+  .ms-stage .ms-viz-bar .ms-icon { color: var(--ui-color-text-default); }
+  /* Expanded: the band grows in the page, the timeline below it. */
+  .ms-stage.is-expanded { display: block; height: min(62vh, 560px); }
+  /* Full screen: the stage is the whole screen, the visualiser filling it; where the
+     browser cannot fullscreen the band, a layer over the page does the same. The controls
+     hide until a tap, a move or a key, and stay while one has focus. */
+  .ms-stage.is-full { display: block; }
   .ms-stage:fullscreen { height: 100vh; border-radius: 0; background: #000; }
+  .ms-stage.is-layered { position: fixed; inset: 0; z-index: var(--z-top); height: 100dvh; border-radius: 0; background: #000; }
+  .ms-stage.is-full .ms-viz-bar { top: var(--sp-3); right: var(--sp-3); opacity: 0; pointer-events: none; transition: opacity var(--ui-motion-feedback); }
+  .ms-stage.is-full.show-bar .ms-viz-bar, .ms-stage.is-full .ms-viz-bar:focus-within { opacity: 1; pointer-events: auto; }
+  @media (prefers-reduced-motion: reduce) { .ms-stage.is-full .ms-viz-bar { transition: none; } }
+  /* The settings: the mode, and for MilkDrop the preset, a shuffle and the cycle. */
+  .ms-viz-menu { display: grid; gap: var(--sp-2); min-width: min(300px, 86vw); }
+  .ms-viz-milk { display: grid; gap: var(--sp-2); padding-block-start: var(--sp-2); }
+  .ms-viz-milk[hidden] { display: none; }
+  .ms-viz-preset-row { display: flex; align-items: center; gap: var(--sp-1); }
+  .ms-viz-preset-row .field-select { flex: 1; min-width: 0; }
 
   /* ── 4. The track editor ──────────────────────────────────────────────────── */
   .ms-editor {
@@ -524,6 +541,7 @@
     .ms-row .ms-ms { width: var(--ui-size-target); height: var(--ui-size-target); }
 
     .ms-stage { height: 64px; }
+    .ms-stage.is-expanded { height: min(56vh, 440px); }
 
     /* The lane heads narrow to a column: each track's icon over its name. A tap on a
        head opens its instruments; the rows above hold the rest. */
@@ -582,5 +600,15 @@
   z-index: var(--ui-layer-overlay);
   width: min(300px, calc(100vw - var(--sp-4) * 2));
   padding: var(--sp-5);
+  border-radius: var(--ui-radius-card);
+}
+
+/* The visualiser's settings popover: on the page's body, or inside the band in full
+   screen, where only the band is drawn (views/music-studio/viz-stage.ts). */
+.ms-viz-pop {
+  position: fixed;
+  z-index: var(--ui-layer-overlay);
+  width: min(320px, calc(100vw - var(--sp-4) * 2));
+  padding: var(--sp-4);
   border-radius: var(--ui-radius-card);
 }
