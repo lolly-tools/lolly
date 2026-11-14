@@ -92,7 +92,7 @@ type Track = 'lead' | 'keys' | 'bass' | 'drums' | 'fx';
 const TRACKS: readonly Track[] = ['lead', 'keys', 'bass', 'drums', 'fx'];
 const TRACK_LABEL: Record<Track, string> = { lead: 'Lead', keys: 'Keys', bass: 'Bass', drums: 'Drums', fx: 'Effects' };
 /** The kinds of effect a person can turn off, by name. */
-const FX_FAMILY_LABEL: Record<FxFamily, string> = { voices: 'Voices', console: 'Console', sparkles: 'Sparkles', sweeps: 'Sweeps', birds: 'Aussie birds' };
+const FX_FAMILY_LABEL: Record<FxFamily, string> = { voices: 'Voices', console: 'Console', sparkles: 'Sparkles', sweeps: 'Sweeps', birds: 'Aussie birds', waves: 'Waves' };
 /** The producer's tag choices, by name. */
 const TAG_LABEL: Record<string, string> = { off: 'No Lolly tag', spoken: 'Lolly, spoken', shout: 'Lolly, shouted', crowd: 'Lolly, a crowd', sung: 'Lolly, sung', whisper: 'Lolly, whispered', high: 'Lolly, pitched up', deep: 'Lolly, pitched down', robot: 'Lolly, robot', stutter: 'Lolly, stuttered', echo: 'Lolly, echoed' };
 /** The same choices in a word or two, for the effects lane's head, where the menu is narrow. */
@@ -483,8 +483,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** Bumped whenever the bars or the colours change, so the layer is painted again. */
   let paintVersion = 0;
 
-  /** The effects lane's rows, by what makes the sound: voices and botanica's place on top, then the console's sounds and the glitches, its sparkles and bleeps, and the sweeps and pads at the bottom. */
-  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' || voice === 'nature' ? 0
+  /** The effects lane's rows, by what makes the sound: voices, botanica's place and the sea on top, then the console's sounds and the glitches, its sparkles and bleeps, and the sweeps and pads at the bottom. */
+  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' || voice === 'nature' || voice === 'wave' ? 0
     : voice === 'game' || voice === 'coin' || voice === 'fm' || voice === 'glitch' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
 
   /**
@@ -612,7 +612,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         } else if (tr === 'fx') {
           const row = fxRow(n.voice);
           const y = top + 4 + row * fxRowH;
-          const sweep = n.voice === 'riser' || n.voice === 'phaser' || n.voice === 'grain' || n.voice === 'nature' || n.voice === 'glitch';
+          const sweep = n.voice === 'riser' || n.voice === 'phaser' || n.voice === 'grain' || n.voice === 'nature' || n.voice === 'glitch' || n.voice === 'wave';
           cx.fillRect(x, y, sweep ? Math.max(3, n.dur * pxPerBeat) : Math.max(2, Math.min(6, n.dur * pxPerBeat)), Math.max(3, fxRowH - 2));
         } else {
           const [lo, hi] = pitchRange[tr];

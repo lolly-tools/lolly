@@ -96,7 +96,7 @@ export function drumKit(seed: number, mood: LofiMood): DrumKit {
         : band ? (mood === 'rock' ? pick(['acoustic', 'acoustic', 'punch'] as const) : 'acoustic')
       : mood === 'hiphop' ? pick(['boom', 'punch', 'sub'] as const)
         : mood === 'lofiHouse' ? 'house'
-        : mood === 'botanica' ? pick(['tight', 'boom', 'tight'] as const)
+        : mood === 'botanica' || mood === 'noosa' ? pick(['tight', 'boom', 'tight'] as const)
         : mood === 'privateSchool' ? 'boom'
         : mood === 'breakbeat' || mood === 'funkyHouse' || mood === 'ukGarage' ? pick(['punch', 'punch', 'tight'] as const)
         : DUSTY.has(mood) ? pick(['boom', 'boom', 'tight'] as const)
@@ -109,10 +109,10 @@ export function drumKit(seed: number, mood: LofiMood): DrumKit {
     // A jazz ride is dark and washy, its bell barely there; a jazz kit has no china.
     rideRate: jazz ? between(0.66, 0.8) : between(0.8, 0.98), bell: jazz ? between(0.2, 0.6) : between(0.3, 1.2), wash: jazz ? between(1.3, 1.7) : between(0.8, 1.5),
     crash: pick(jazz ? ['crash', 'crash', 'splash'] as const : band ? ['crash', 'crash', 'splash', 'china'] as const : ['crash', 'crash', 'splash'] as const),
-    boom: !band && !DUSTY.has(mood) && mood !== 'hiphop' && mood !== 'botanica',
+    boom: !band && !DUSTY.has(mood) && mood !== 'hiphop' && mood !== 'botanica' && mood !== 'noosa',
     acousticToms: band,
-    // Botanica's kit is played by hand in a room, under its glitches: real shells and cymbals, no sub boom.
-    real: band || DUSTY.has(mood) || mood === 'hiphop' || mood === 'rnb' || mood === 'botanica',
+    // Botanica's kit and Noosacore's are played by hand in a room: real shells and cymbals, no sub boom.
+    real: band || DUSTY.has(mood) || mood === 'hiphop' || mood === 'rnb' || mood === 'botanica' || mood === 'noosa',
     realCymbals: !SYNTH_METAL.has(mood),
     snareHead: Math.round(between(170, 235)),
     tomTune: jazz ? 7 : Math.round(between(-2, 2)),
