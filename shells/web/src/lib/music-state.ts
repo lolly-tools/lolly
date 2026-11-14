@@ -21,17 +21,19 @@ export const BPM_RANGE = [50, 220] as const;
 /** How far the key can be moved, in semitones each way. */
 export const TRANSPOSE_RANGE = 6;
 /** The voices that carry a pitch, which a change of key moves (the drums and sweeps stay). */
-export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser', 'didge']);
+export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser', 'didge', 'fm']);
 
 /**
  * The kinds of effect a person can turn on or off, and which family each effect voice is in.
  * The Aussie birds (the magpie and the kookaburra) are on in the styles that sing their own
  * (Straya, and Sugar's magpie) and turned off there through `quiet`; anywhere else they are off
  * until a person turns them on (`birds`), and then they are sprinkled in (lib/aussie-birds.ts).
+ * The 16-bit console's FM effects (`fm`: spins, shots and the moments before a drop) are the
+ * console's too, so `quiet=console` silences them with the coins and game sounds.
  */
 export const FX_FAMILIES = ['voices', 'console', 'sparkles', 'sweeps', 'birds'] as const;
 export type FxFamily = typeof FX_FAMILIES[number];
-const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'birds', kookaburra: 'birds', game: 'console', coin: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps' };
+const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'birds', kookaburra: 'birds', game: 'console', coin: 'console', fm: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps' };
 /** Whether a family of effects plays in a track. */
 export function fxOn(s: MusicState, family: FxFamily): boolean {
   if (family === 'birds' && !OWN_BIRDS.has(s.mood)) return !!s.birds;

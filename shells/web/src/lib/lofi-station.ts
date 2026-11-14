@@ -50,6 +50,7 @@ import { composerMod } from './lofi-flutes.ts';
 import * as LP from './lofi-latin-perc.ts';
 import * as P from './lofi-piano.ts';
 import * as OB from './lofi-oompa.ts';
+import { playConsoleFx, stopsTape, tapeStopCurve } from './lofi-console-fx.ts';
 import { readGlitch } from '../../../../engine/src/lofi-botanica.ts';
 import { playNature } from './lofi-nature.ts';
 import { playGrain } from './lofi-grains.ts';
@@ -184,6 +185,13 @@ const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2
  * measured K-weighted in its bar, it sits about 3 to 4 dB under the bass stack it plays over.
  */
 const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.52, brostep: 0.52, dnb: 0.84 };
+/**
+ * Each genre's seat for the console's FM effects (dB, against Sugar's): its hook's loudness
+ * through the drops, measured K-weighted, decides it, so a spin or a shot sits the same
+ * few decibels under the tune in every style. Sherbert's stays 2 dB further back, as its
+ * console is already busy.
+ */
+const FM_SEAT: Partial<Record<LofiMood, number>> = { chiptune: -4.5, sherbert: 2.5, kpop: 2.5, synthwave: -7.2 };
 /** The styles whose vocal chops in a chorus are a coro: several singers on the line, not one voice chopped. */
 const CORO = new Set<LofiMood>(['salsa']);
 /** A coro's singers: each its own voice (a seed for lib/lofi-chop.ts), how late (s), its place across the speakers and how loud. */
@@ -204,6 +212,8 @@ const TEXTURE_MAX = 0.4;
 const DUST_MID = 1.4;
 /** A record at 33⅓ rpm turns once every 1.8 s. */
 const REVOLUTION = 60 / (100 / 3);
+/** The longest a tape stop's delay line can stretch to (s): a stop over a beat at the slowest tempo. */
+const TAPE_MAX = 0.6;
 const LOOKAHEAD = 0.25;
 const LOOKAHEAD_HIDDEN = 3;
 
@@ -294,6 +304,9 @@ export class LofiStation {
   private readonly wowDepth: GainNode;
   private readonly driftDepth: GainNode;
   private readonly flutterDepth: GainNode;
+  /** The record head's delay line, and the tape machine after it that a console moment's rewind stops (see tapeStop). */
+  private readonly wow: DelayNode;
+  private tape: DelayNode | null = null;
   private readonly toneWander: GainNode;
   private readonly crackle: GainNode;
   private readonly hiss: GainNode;
@@ -345,6 +358,7 @@ export class LofiStation {
     const wow = ctx.createDelay(0.1);
     wow.delayTime.value = 0.02;
     wow.connect(this.tone);
+    this.wow = wow;
     this.music = ctx.createGain();
     this.dry = ctx.createGain();
     // The build's sweep sits between the music and everything after it, wide open (20 Hz)
@@ -833,6 +847,11 @@ export class LofiStation {
       case 'coin': V.coin(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'sparkle': V.sparkle(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 4); break;
       case 'game': V.game(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'fm':
+        // A 16-bit console's FM effect (lib/lofi-console-fx.ts); a rewind also stops the tape under the music.
+        playConsoleFx(k, lanes.fx, t, note.midi, vel * 10 ** ((FM_SEAT[bar.tune.mood] ?? 0) / 20), note.mod ?? 0, len, spb);
+        if (stopsTape(note.mod ?? 0) && this.mix.fx > 0) this.tapeStop(t, len);
+        break;
       case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, len); break;
       case 'nature': playNature(this.ctx, lanes.nature, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed, bar.index * 64 + Math.round(note.beat * 8)); break;
@@ -923,6 +942,25 @@ export class LofiStation {
         break;
       case 'openHat': D.hat(hatsV, k, lanes.drums, t, vel * VARIANT.hats[hatsV], st.hatTone, true, false, this.kitOf(bar.tune)); break;
     }
+  }
+
+  /**
+   * Stop the tape under the music over `seconds` from `t`, as a tape machine's motor cut
+   * does: a delay line after the record head stretches so the keys, lead, bass and effects
+   * slow to a halt (the drums keep their own path), then snaps back on the next bar's first beat.
+   * The delay line is put in when a tune first stops its tape, at no delay, so a station
+   * that never does is wired as before.
+   */
+  private tapeStop(t: number, seconds: number): void {
+    if (!this.tape) {
+      this.tape = this.ctx.createDelay(TAPE_MAX);
+      this.tape.delayTime.value = 0;
+      this.wow.disconnect(this.tone);
+      this.wow.connect(this.tape).connect(this.tone);
+    }
+    const len = Math.min(seconds, (TAPE_MAX - 0.02) * 2.6);
+    this.tape.delayTime.setValueCurveAtTime(tapeStopCurve(0, len), t, len);
+    this.tape.delayTime.setValueAtTime(0, t + len);
   }
 
   /** Dip the music under a kick (it reaches the speakers 20 ms later, through the wow delay). */
