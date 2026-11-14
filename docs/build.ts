@@ -2903,9 +2903,10 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
     : `<img src="/info/shots/${esc(c.img)}" alt="${esc(c.alt)}" loading="lazy" decoding="async">`;
   // No heading row above the fan (Andy, 2026-09-02: "remove this row of text,
   // it's not needed"). One muted caption line sits under the dots instead (plan 341,
-  // Andy 2026-11-01): a first-time reader saw sixteen different-looking products,
-  // and the line says they are one app wearing sixteen design systems. It is outside
-  // the carousel region, so it shows in the scriptless filmstrip too.
+  // Andy 2026-11-01): a first-time reader saw many different-looking products, and
+  // the line says they are one app, at work and in the files it makes, in a different
+  // colourway from card to card. It is outside the carousel region, so it shows in
+  // the scriptless filmstrip too.
   const coversHtml = `<section class="covers-section" id="covers">
   <div class="covers-inner">
     <div class="covers" id="coversRoot" role="region" aria-roledescription="carousel" aria-label="${esc(cv.label)}" tabindex="0">

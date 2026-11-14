@@ -472,7 +472,7 @@ test('a number typed into the landing copy matches the live count it states', ()
   // instead of shipping a stale sentence.
   const cv = siteJson('covers.json') as { caption?: string; covers: unknown[] };
   const WORDS: Record<string, number> = { twelve: 12, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, twenty: 20 };
-  const said = /^(\w+) design systems/i.exec(cv.caption ?? '')?.[1]?.toLowerCase();
+  const said = /^(\w+) covers\b/i.exec(cv.caption ?? '')?.[1]?.toLowerCase();
   assert.ok(said && said in WORDS, `the covers caption should open with the number of covers in words: ${cv.caption}`);
   assert.equal(WORDS[said!], cv.covers.length, `the covers caption says ${said} but the fan holds ${cv.covers.length} covers`);
   // Every language including English (plan 341, decision 9): the LANGS register.
