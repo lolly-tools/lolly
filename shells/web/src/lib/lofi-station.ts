@@ -679,7 +679,7 @@ export class LofiStation {
           if (v === 'chop') C.chop(k, seat, at, note.midi + shift, level, len, mod, spb, bar.tune.seed, bar.index * 1000 + Math.round(note.beat * 48));
           else if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
           else if (LG.LEAD_GUITARS.has(v)) LG.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
-          else if (W.WORLD_LEADS.has(v as LofiStyle['lead'])) W.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, mod);
+          else if (W.WORLD_LEADS.has(v as LofiStyle['lead'])) W.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift);
           else V.lead(v as LofiStyle['lead'], k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift);
         };
         // A horn section: in the styles built on one, a horn's line is played by the
