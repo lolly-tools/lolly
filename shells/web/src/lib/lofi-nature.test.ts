@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Botanica's place (lib/lofi-nature.ts): each sound a model driven by a seed, the same seed
- * the same bytes, and each where recorded nature puts it. The numbers in the ranges below
+ * the same bytes, and each where recorded nature puts that sound. The numbers in the ranges below
  * are measurements of CC0 field recordings from Freesound (blackbird, robin, wren and song
  * thrush song; wind in trees; a stream; drips; crickets; cicadas; bees), taken with the
  * same measures applied to these models; the models sit inside or close to them.
@@ -67,7 +67,7 @@ test('songbirds: elements of a few tens of milliseconds, about twelve to eightee
     const mid = centres[centres.length >> 1]!;
     assert.ok(mid >= lo && mid <= hi, `${bird}: sings round ${Math.round(mid)} Hz`);
   }
-  // A bird's whistle is nearly pure: most of a robin's energy is in its band, little below it.
+  // A bird's whistle is nearly pure: most of a robin's energy is in its band, little of the energy lower down.
   assert.ok(bandShare(birdPhrase(SR, 'robin', 1.5, 3), SR, 2400, 9000) > 0.9, 'a robin sings high');
   assert.ok(bandShare(birdPhrase(SR, 'dove', 2.4, 3), SR, 300, 1800) > 0.8, 'a wood pigeon coos low');
 });

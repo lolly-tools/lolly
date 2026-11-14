@@ -72,7 +72,7 @@ export class Biquad {
   private readonly sr: number;
   constructor(sr: number) { this.sr = sr; }
   /** 'lp', 'hp' or 'bp' (a band-pass whose peak is 0 dB) at `f` Hz with quality `q`. */
-  set(type: 'lp' | 'hp' | 'bp', f: number, q = 0.707): this {
+  set(type: 'lp' | 'hp' | 'bp', f: number, q = Math.SQRT1_2): this {
     const w = (2 * Math.PI * Math.min(this.sr * 0.45, Math.max(10, f))) / this.sr;
     const cw = Math.cos(w), al = Math.sin(w) / (2 * q), a0 = 1 + al;
     if (type === 'lp') { this.b0 = (1 - cw) / 2 / a0; this.b1 = (1 - cw) / a0; this.b2 = this.b0; }
@@ -679,7 +679,7 @@ function cached(ctx: BaseAudioContext, key: string, make: () => Stereo | Float32
     const made = make();
     const chans = made instanceof Float32Array ? [made] : made;
     buf = ctx.createBuffer(chans.length, chans[0]!.length, rate);
-    chans.forEach((c, k) => buf!.getChannelData(k).set(c));
+    chans.forEach((c, k) => { buf!.getChannelData(k).set(c); });
     cache.set(key, buf);
   }
   return buf;

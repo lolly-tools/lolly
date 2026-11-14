@@ -391,11 +391,11 @@ interface BarCtx {
   keysV: LofiStyle['keys'];
 }
 
-/** Where a note on sixteenth `step` lands: on the grid in a groove, pulled by feel in a drift or a free passage. */
+/** Where a note on sixteenth `step` is played: on the grid in a groove, pulled by feel in a drift or a free passage. */
 function feel(c: BarCtx, step: number, amount = 1): number {
   const beat = step / 4;
   if (c.form === 'groove' && !c.part.free) return beat;
-  // A phrase's time leans: late into the bar's middle and back, a little each note, as a player breathes with it.
+  // A phrase's time leans: late into the bar's middle and back, a little each note, as a player breathes with the phrase.
   const lean = Math.sin((Math.PI * beat) / 4) * 0.09 * amount;
   return inBar(beat + lean + (c.m() - 0.5) * 0.05 * amount);
 }
@@ -427,7 +427,7 @@ function keys(c: BarCtx): void {
     // A chord rolled slowly from the bottom where the chord starts, left to ring.
     if (c.firstOfChord || c.i === 0) {
       const spread = 0.06 + c.m() * 0.12;
-      [...voicing].sort((a, z) => a - z).forEach((p, k) => strike(feel(c, 0, 0.5) + k * spread, p, c.chordBars * 4 - 0.5, quiet ? 0.42 : 0.52));
+      [...voicing].sort((a, z) => a - z).forEach((p, k) => { strike(feel(c, 0, 0.5) + k * spread, p, c.chordBars * 4 - 0.5, quiet ? 0.42 : 0.52); });
     }
     // Then a few of its notes, falling where they fall, each ringing on.
     const count = quiet ? 1 + Math.floor(c.m() * 2) : 2 + Math.floor(c.m() * 3);

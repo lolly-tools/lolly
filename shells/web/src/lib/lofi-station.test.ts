@@ -166,6 +166,23 @@ test('lofi house seats its bass 7.5 dB up: the same deep bass plays that much lo
   assert.ok(Math.abs(db - 7.5) < 0.01, `the usual note is ${db.toFixed(2)} dB up`);
 });
 
+test('botanica plays its place, its pads and its glitches, and catches the mix in a repeat', () => {
+  // Seed 2's tune is a glitchy groove (162 bpm): every kind of botanica note in its first two minutes.
+  const ctx = play(2, { ...base, mood: 'botanica' }, 120);
+  const empty = ctx.sources.filter(s => (s.buffer as { length?: number } | null)?.length === 0);
+  assert.ok(ctx.sources.some(s => s.loop), 'a bed loops under the music');
+  // The beds, the pads and the glitches render at half the context's rate: their buffers are filled, not empty.
+  const filled = ctx.sources.filter(s => {
+    const b = s.buffer as { getChannelData?: (c: number) => Float32Array } | null;
+    return b?.getChannelData && b.getChannelData(0).some(v => v !== 0);
+  });
+  assert.ok(filled.length > 40, `the place, the pads and the glitches sound (${filled.length} filled buffers)`);
+  assert.equal(empty.length, 0, 'no empty buffer is played');
+  // A repeat gates the mix: the gate's gain falls to nothing and comes back, at least once.
+  const gated = ctx.gains.filter(g => g.gain.events.some(e => e[0] === 'lin' && e[1] === 0) && g.gain.events.some(e => e[0] === 'lin' && e[1] === 1));
+  assert.ok(gated.length >= 2, `the beat repeater's gate and wet gain move (${gated.length})`);
+});
+
 test('the drums switch takes the kit out and leaves the music', () => {
   const style = { kick: 50, hats: 'hat' as const, snare: 'snare' as const };
   const on = play(21, { ...base, style }, 60);

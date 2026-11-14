@@ -64,7 +64,7 @@ function feltNote(sr: number, f: number, seconds: number, r: () => number): Floa
   const tau = 2 * Math.PI;
   for (let i = 0; i < n; i++) {
     const t = i / sr;
-    if (i % 32 === 0) lp.set('lp', from * (to / from) ** Math.min(1, t / 0.8), 0.707);
+    if (i % 32 === 0) lp.set('lp', from * (to / from) ** Math.min(1, t / 0.8), Math.SQRT1_2);
     p1 = (p1 + step) % 1; p2 = (p2 + step * 2.003) % 1; p3 = (p3 + step * 3.01) % 1; p4 = (p4 + step * 4.02) % 1;
     const x = (1 - 4 * Math.abs(p1 - 0.5)) + 0.38 * Math.sin(tau * p2) + 0.14 * Math.sin(tau * p3) + 0.05 * Math.sin(tau * p4);
     // Struck: in over 8 ms, falling to the body's level over 1.5 s, then on slowly.
@@ -167,7 +167,7 @@ export function grainPlan(cloud: Cloud, seconds: number, sourceSeconds: number, 
   let t = 0;
   while (t < seconds) {
     const len = cloud.grain[0] + r() * (cloud.grain[1] - cloud.grain[0]);
-    // The reading place walks through the window at the scan rate and wraps, each grain a little off it.
+    // The reading place walks through the window at the scan rate and wraps, each grain a little off the walk.
     const walk = (t * cloud.scan) % span;
     const from = w0 * sourceSeconds + ((walk + (r() - 0.5) * 0.08 * span) % span + span) % span;
     const ratio = pitch() * 2 ** (((r() - 0.5) * 2 * cloud.jitter) / 1200);

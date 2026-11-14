@@ -267,7 +267,7 @@ export class LofiStation {
   private readonly rain: GainNode;
   private readonly crunch: GainNode;
   private readonly dry: GainNode;
-  /** The mix after the tone filter's high-pass, before the saturation: where botanica's repeats catch it. */
+  /** The mix after the tone filter's high-pass, before the saturation: the point where botanica's repeats catch the mix. */
   private readonly mixed: BiquadFilterNode;
   /** The place's sounds, after the tone filter. */
   private readonly natureBus: GainNode;

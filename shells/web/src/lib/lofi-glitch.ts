@@ -77,7 +77,7 @@ export function stutter(x: Float32Array, sr: number, from: number, slice: number
   return out;
 }
 
-/** A tape stop: `x` slowing from its own speed to nothing over `n` samples, the pitch falling with it. */
+/** A tape stop: `x` slowing from its own speed to nothing over `n` samples, the pitch falling with the speed. */
 export function tapeStop(x: Float32Array, n: number): Float32Array {
   return resample(x, n, i => Math.max(0, 1 - i / n) ** 1.5);
 }
