@@ -12,6 +12,7 @@ export const LOFI_KEYS_NAME: Record<LofiStyle['keys'], string> = {
   steel: 'acoustic guitar', banjo: 'banjo', honky: 'honky-tonk piano', organ: 'organ', brass: 'brass section', jazzbox: 'jazz guitar', electric: 'electric guitar', harp: 'harp', choir: 'choir', future: 'future-bass chords',
   tar: 'tar', santur: 'santur', zheng: 'guzheng', koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon',
   grand: 'grand piano',
+  strings: 'string section',
 };
 
 export const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
@@ -20,7 +21,7 @@ export const LOFI_LEAD_NAME: Record<LofiStyle['lead'], string> = {
   nylon: 'nylon guitar', riff: 'riff guitar', twang: 'twang guitar', banjo: 'banjo', harmonica: 'harmonica', sax: 'sax',
   trumpet: 'trumpet', clarinet: 'clarinet', pedal: 'pedal steel', fiddle: 'fiddle', bells: 'bells', chop: 'vocal chops', bit: '8-bit lead',
   santur: 'santur', ney: 'ney', kamancheh: 'kamancheh', erhu: 'erhu', dizi: 'dizi', zheng: 'guzheng', pipa: 'pipa', shakuhachi: 'shakuhachi',
-  koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', harp: 'harp', steel: 'acoustic guitar', tar: 'tar', none: '',
+  koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', harp: 'harp', steel: 'acoustic guitar', tar: 'tar', viola: 'viola', cello: 'cello', doublebass: 'double bass', none: '',
 };
 
 export const LOFI_SNARE_NAME: Record<LofiStyle['snare'], string> = { snare: 'snare', brush: 'brushes', rim: 'cross-stick', clap: 'claps', stack: 'big snare', snap: 'finger snaps' };

@@ -5,7 +5,7 @@
  * window) and played back reordered, reversed, pitched and stretched into a pad that
  * shimmers. The sources are the instruments' own models: the grand piano (lib/lofi-piano.ts), the
  * modelled steel, nylon and harp strings (lib/lofi-strings.ts), the bowed fiddle
- * (lib/lofi-bowed.ts), the jet-blown flute (lib/lofi-flutes.ts), the chopped voice singing
+ * (lib/lofi-bowed.ts) and the bowed cello and viola (lib/lofi-strings-bowed.ts), the jet-blown flute (lib/lofi-flutes.ts), the chopped voice singing
  * an open vowel (lib/lofi-chop.ts) and a breath (lib/lofi-breath.ts) through the note's
  * resonances. Nothing is recorded.
  *
@@ -23,6 +23,7 @@ import { readGrain, type BotanicaCloud, type BotanicaSource } from '../../../../
 import { pluckString } from './lofi-strings.ts';
 import { pianoNote } from './lofi-piano.ts';
 import { bowString } from './lofi-bowed.ts';
+import { bowInstrument } from './lofi-strings-bowed.ts';
 import { blowFlute } from './lofi-flutes.ts';
 import { chopVocal, singChop, CHOP_PLAIN } from './lofi-chop.ts';
 import { inhale } from './lofi-breath.ts';
@@ -44,7 +45,7 @@ export interface Source { data: Float32Array; ratio: number }
 
 /** Each source's comfortable range (MIDI), where its model plays well: a note outside is rendered octaves in and moved back by the grains. */
 const RANGE: Record<BotanicaSource, readonly [number, number]> = {
-  piano: [40, 96], guitar: [40, 84], nylon: [40, 81], harp: [36, 96], fiddle: [55, 93], flute: [60, 96], voice: [55, 79], breath: [48, 84],
+  piano: [40, 96], guitar: [40, 84], nylon: [40, 81], harp: [36, 96], fiddle: [55, 93], flute: [60, 96], voice: [55, 79], breath: [48, 84], cello: [36, 72], viola: [48, 81],
 };
 
 /** A breath tuned to the note: air from lib/lofi-breath.ts through narrow resonances at the note's first harmonics, with some of the air left raw. */
@@ -76,6 +77,8 @@ export function renderSource(source: BotanicaSource, midi: number, sr: number, s
     case 'nylon': data = pluckString({ sr, f, seconds: SOURCE_SECONDS, pickAt: 0.16, bright: 9, decay: 2.6, mellow: 5, noise: 0.08, top: 4000 }, r); break;
     case 'harp': data = pluckString({ sr, f, seconds: SOURCE_SECONDS, pickAt: 0.3, bright: 12, decay: 4.5, mellow: 6, top: 6000 }, r); break;
     case 'fiddle': data = bowString({ sr, f, vel: 0.55, dur: SOURCE_SECONDS - 0.2, seconds: SOURCE_SECONDS, vibrato: 14, rate: 5.6, slide: 0 }, r); break;
+    case 'cello':
+    case 'viola': data = bowInstrument(source, { sr, f, vel: 0.55, dur: SOURCE_SECONDS - 0.2, seconds: SOURCE_SECONDS, vibrato: 12, rate: 5.4, slide: 0 }, r); break;
     case 'flute': data = blowFlute({ sr, f, vel: 0.55, dur: SOURCE_SECONDS - 0.2, seconds: SOURCE_SECONDS, pipe: 'open', vibrato: 12, rate: 5, scoop: 0 }, r); break;
     case 'voice': {
       const vocal = chopVocal(seed);

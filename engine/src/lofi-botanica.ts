@@ -7,8 +7,9 @@
  *
  * The genre's traits, never any one record's:
  * - Acoustic instruments: a grand piano (a felt one in the quiet sections), a steel-string
- *   or nylon guitar, a harp, a bowed fiddle, a flute, a voice singing syllables, an upright
- *   or round bass.
+ *   or nylon guitar, a harp, a string section; on the tune a cello (an octave down), a viola,
+ *   a fiddle, a double bass (two octaves down), a flute or a voice singing syllables; the
+ *   double bass plucked, or a round bass, underneath.
  * - The sounds of a place, as `nature` notes the shell models (lib/lofi-nature.ts): a tune
  *   is set somewhere (a wood, a stream, a garden after rain, a meadow, dusk, a cave) whose
  *   wind, leaves, water, rain and insects run under it, with birds singing in the lead's
@@ -55,9 +56,10 @@ export type BotanicaInsect = typeof BOTANICA_INSECTS[number];
 
 /**
 * What a `grain` note's pad is cut from, by `mod % 16`: the grand piano, the steel-string
- * and nylon guitars, the bowed fiddle, the flute, a voice singing, breath, the harp.
+ * and nylon guitars, the bowed fiddle, the flute, a voice singing, breath, the harp, and
+ * the bowed cello and viola.
  */
-export const BOTANICA_SOURCES = ['piano', 'guitar', 'nylon', 'fiddle', 'flute', 'voice', 'breath', 'harp'] as const;
+export const BOTANICA_SOURCES = ['piano', 'guitar', 'nylon', 'fiddle', 'flute', 'voice', 'breath', 'harp', 'cello', 'viola'] as const;
 export type BotanicaSource = typeof BOTANICA_SOURCES[number];
 /**
  * How the grains are played, by `mod >> 4`: a shimmer (short grains, dense, an octave
@@ -290,7 +292,7 @@ export function composeBotanica(seed: number, fixed: Partial<LofiStyle>, kit: Bo
   const parts = form === 'drift' ? driftOrder(b) : grooveOrder(b);
   const place = weighted(b, PLACES);
   const birds = place.birds.length ? [...new Set([pickOf(b, place.birds), pickOf(b, place.birds)])] : [];
-  const sources: ReadonlyArray<readonly [BotanicaSource, number]> = [['piano', 3], ['guitar', 2], ['nylon', 2], ['fiddle', 2], ['voice', 3], ['flute', 1], ['breath', 1], ['harp', 1]];
+  const sources: ReadonlyArray<readonly [BotanicaSource, number]> = [['piano', 3], ['guitar', 2], ['nylon', 2], ['fiddle', 1], ['voice', 3], ['flute', 1], ['breath', 1], ['harp', 1], ['cello', 3], ['viola', 2]];
   const source = weighted(b, sources);
   const sourceB = weighted(b, sources.filter(([s]) => s !== source));
   const plan: Plan = {

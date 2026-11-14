@@ -126,8 +126,8 @@ export const LOFI_BASS_SHOTS = ['bwah', 'yoi', 'throat', 'wub'] as const;
 const GAME = (name: typeof LOFI_GAME_SOUNDS[number]): number => LOFI_GAME_SOUNDS.indexOf(name);
 const SHOUT = (name: typeof LOFI_SHOUTS[number]): number => LOFI_SHOUTS.indexOf(name);
 
-export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'grand'] as const;
-export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'none'] as const;
+export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'grand', 'strings'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'none'] as const;
 export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'yidaki', 'log', 'deep'] as const;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap', 'stack', 'snap'] as const;
 export const LOFI_HATS = ['hat', 'shaker', 'ride', 'none'] as const;
@@ -1713,12 +1713,12 @@ const DANCE: Record<DanceMood, DanceLean> = {
   // instruments and colour, and its tempo is drawn there, a slow drift or a glitchy groove.
   botanica: {
     bpm: [40, 168], minor: 0.5, groove: 'sparse', chordBars: 2,
-    keys: [['grand', 4], ['steel', 3], ['nylon', 3], ['harp', 1]],
-    lead: [['flute', 3], ['fiddle', 2], ['steel', 2], ['nylon', 2], ['chop', 2], ['kalimba', 1], ['bells', 1], ['bit', 1]],
+    keys: [['grand', 4], ['steel', 3], ['nylon', 3], ['strings', 2], ['harp', 1]],
+    lead: [['flute', 3], ['cello', 3], ['viola', 2], ['fiddle', 2], ['steel', 2], ['nylon', 2], ['chop', 2], ['doublebass', 1], ['kalimba', 1], ['bells', 1], ['bit', 1]],
     bass: [['upright', 3], ['round', 2], ['synth', 1]], snare: [['snap', 3], ['rim', 3], ['clap', 1], ['brush', 1]],
     kick: [46, 56], kickLen: [0.22, 0.38], duck: [0.2, 0.5], crunch: 0.35,
     swing: 0.5, intro: 4, build: [4], drop: 8, breakdown: 4, harmony: 'jazz', singingDrop: true, busy: 0.4,
-    softKeys: [['harp', 2], ['nylon', 2], ['felt', 2], ['steel', 1]], verseBass: [['upright', 2], ['round', 1]], switchBass: [['round', 2], ['upright', 2], ['synth', 1]],
+    softKeys: [['strings', 3], ['harp', 2], ['nylon', 2], ['felt', 2], ['steel', 1]], verseBass: [['upright', 2], ['round', 1]], switchBass: [['round', 2], ['upright', 2], ['synth', 1]],
     room: [1.1, 1.5], wow: [0.15, 0.45], dust: 0.25,
   },
 };
