@@ -476,9 +476,9 @@ function bells(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number
 
 // ── the roots instruments ───────────────────────────────────────────────────
 
-/** A steel-string acoustic, strummed: the measured flat-top of ./lofi-acoustic.ts, picked over the sound hole. `mod` 6 is a knock on the top (lib/lofi-lead-art.ts). */
+/** A steel-string acoustic, strummed: the measured flat-top of ./lofi-acoustic.ts, picked over the sound hole. `mod` 4 is a chuck's muted string, 6 a knock on the top, 16 a string struck again as it ends (lib/lofi-strum.ts, lib/lofi-lead-art.ts). */
 export function steelKeys(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number): void {
-  acousticNote(k, out, t, midi, vel, dur, STEEL_KEYS * pluckLevel(vel), { keys: true, art: mod & 15 });
+  acousticNote(k, out, t, midi, vel, dur, STEEL_KEYS * pluckLevel(vel), { keys: true, art: mod & 31 });
 }
 
 /**
@@ -493,7 +493,7 @@ function steelLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: nu
   acousticNote(k, out, t, midi, vel, dur, STEEL_LEAD * pluckLevel(vel), { art: art & 15 });
 }
 /** The acoustic's levels, strummed and as the lead, against the other plucked voices. */
-const STEEL_KEYS = 0.331, STEEL_LEAD = 0.352;
+const STEEL_KEYS = 0.44, STEEL_LEAD = 0.321;
 
 /**
  * A banjo: a bright, short pluck through a high-pass (a banjo has no low body), and the

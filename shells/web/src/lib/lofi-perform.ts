@@ -22,6 +22,9 @@
  *   each note on the fret the hand reaches it at.
  * - A producer chops the vocal (lib/lofi-chop.ts): each note's slice, its scoops, slides,
  *   flips, falls, gates and stutters, and the odd reversed swell into a phrase.
+ * - The acoustic's strummer (lib/lofi-strum.ts) strums as recorded strummers do: patterns
+ *   through held chords, booms and chicks, upstrokes and ghost strokes between, the strings
+ *   ringing until struck again, and a percussive player's chucks.
  * - A harpist, an acoustic guitarist or a tar player takes the lead (lib/lofi-lead-art.ts):
  *   a harp's run up into a phrase, a guitar's slides and hammer-ons, the tar's tremolo.
  *
@@ -32,6 +35,7 @@ import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_U
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead, rhythmKnocks } from './lofi-lead-art.ts';
+import { strummer } from './lofi-strum.ts';
 
 /** A seeded source for one bar of one tune. */
 function barRandom(bar: LofiBar): () => number {
@@ -406,7 +410,8 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   const rand = barRandom(bar);
   let notes = strokes([...bar.notes], bar);
   drummer(notes, bar, spb, rand);
-  if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
+  if (keys === 'steel') notes = strummer(notes, bar, spb, rand, (tones, near) => shapeFor(tones, 'steel', near));
+  else if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
   if (keys === 'steel') notes = rhythmKnocks(notes, bar, rand);
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
