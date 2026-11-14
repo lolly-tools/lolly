@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { HAT_BELL, fingerChord, flautist, perform } from './lofi-perform.ts';
-import { composerMod, FLUTE_BREATH, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
+import { composerMod, FLUTE_BREATH, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER } from './lofi-flutes.ts';
 import { composeLofiTune, ELECTRIC_FRET, type LofiBar, type LofiNote } from '../../../../engine/src/lofi-compose.ts';
 
 const TUNING = [40, 45, 50, 55, 59, 64];
@@ -164,4 +164,14 @@ test('a flautist marks every lead note as its own, half-tongues close notes and 
   assert.equal(composerMod(FLUTE_PLAYED | FLUTE_BREATH), 0);
   assert.equal(composerMod(1), 1);
   assert.equal(composerMod(ELECTRIC_FRET * 3 + 2), ELECTRIC_FRET * 3 + 2);
+});
+
+test('a flautist double-tongues a quick run: every other note a "ku"', () => {
+  const run: LofiNote[] = [0, 0.5, 1, 1.5, 2, 2.5].map((beat) => ({ voice: 'lead', midi: 72 + beat * 2, beat, dur: 0.3, vel: 0.55 }));
+  flautist(run, 0.5, () => 0.5);
+  // A 0.3-beat note is 0.15 s, with 0.1 s between: the first note starts the run, the rest alternate "ku", "tu".
+  assert.deepEqual(run.map((n) => (n.mod! & FLUTE_KU ? 'ku' : 'tu')), ['tu', 'ku', 'tu', 'ku', 'tu', 'ku']);
+  const slow: LofiNote[] = [0, 1, 2].map((beat) => ({ voice: 'lead', midi: 72, beat, dur: 0.8, vel: 0.55 }));
+  flautist(slow, 0.5, () => 0.5);
+  assert.ok(slow.every((n) => !(n.mod! & FLUTE_KU)), 'held notes are not double-tongued');
 });
