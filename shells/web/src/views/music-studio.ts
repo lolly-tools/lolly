@@ -416,9 +416,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** Bumped whenever the bars or the colours change, so the layer is painted again. */
   let paintVersion = 0;
 
-  /** The effects lane's rows, by what makes the sound: voices on top, then the console's sounds, its sparkles and bleeps, and the sweeps at the bottom. */
-  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' ? 0
-    : voice === 'game' || voice === 'coin' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
+  /** The effects lane's rows, by what makes the sound: voices and botanica's place on top, then the console's sounds and the glitches, its sparkles and bleeps, and the sweeps and pads at the bottom. */
+  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' || voice === 'nature' ? 0
+    : voice === 'game' || voice === 'coin' || voice === 'glitch' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
 
   function paintTrack(cx: CanvasRenderingContext2D, dpr: number, offset: number, width: number, ink: string, muteInk: string, line: string): void {
     cx.setTransform(dpr, 0, 0, dpr, -offset * dpr, 0);
@@ -513,7 +513,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         } else if (tr === 'fx') {
           const row = fxRow(n.voice);
           const y = top + 4 + row * fxRowH;
-          const sweep = n.voice === 'riser' || n.voice === 'phaser';
+          const sweep = n.voice === 'riser' || n.voice === 'phaser' || n.voice === 'grain' || n.voice === 'nature' || n.voice === 'glitch';
           cx.fillRect(x, y, sweep ? Math.max(3, n.dur * pxPerBeat) : Math.max(2, Math.min(6, n.dur * pxPerBeat)), Math.max(3, fxRowH - 2));
         } else {
           const [lo, hi] = pitchRange[tr];

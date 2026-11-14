@@ -360,7 +360,9 @@ test('every note is playable', () => {
         const dance = isDanceMood(mood);
         // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
         const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? [52, 76] : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
-          : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96] : [64, 84];
+          : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
+          // Botanica's place (a bed's pitch is nominal; a bird's is its song's centre), its granular pads and its glitches.
+          : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
       }
     }
