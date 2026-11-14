@@ -3,8 +3,9 @@
  * The first-visit greeting in place (components/welcome-hero.ts): it sits at the top
  * of the gallery, offers one action by audience, settles the welcome on any explicit
  * choice (and acknowledges the privacy notice it carries), leaves both alone on a
- * route change, moves rather than repeats when the gallery re-mounts, and keeps
- * maintenance waiting only while the mark draws.
+ * route change, moves rather than repeats when the gallery re-mounts, arrives in the
+ * gallery's first paint rather than before or after it, and keeps maintenance waiting
+ * only while the mark draws.
  *
  * Run directly (the module imports its stylesheet, so the CSS stub is required):
  *   node --import ./tests/css-stub.mjs --test shells/web/src/components/welcome-hero.test.ts
@@ -23,7 +24,7 @@ globalThis.Element = dom.window.Element;
 globalThis.HTMLElement = dom.window.HTMLElement;
 globalThis.KeyboardEvent = dom.window.KeyboardEvent;
 
-const { showWelcomeHero, closeWelcomeHero, languageMayBeWrong } = await import('./welcome-hero.ts');
+const { showWelcomeHero, closeWelcomeHero, adoptWelcomeHero, languageMayBeWrong } = await import('./welcome-hero.ts');
 const { welcomeSettled, isWelcomeDismissed, WELCOME_DISMISSED_KEY } = await import('../lib/welcome-gate.ts');
 
 const PRIVACY = { privacy: { text: 'No accounts, no tracking. Your work stays on this device.', href: '/info/trust/privacy' }, ackPrivacy: (): void => { acked++; } };
@@ -128,6 +129,42 @@ test('a gallery re-mount moves the same greeting instead of drawing a second', a
   assert.equal(document.querySelectorAll('.welcome-hero').length, 1);
   closeWelcomeHero();
   await first;
+});
+
+test('a decision made while the page loads waits out of the page, then arrives with the gallery', async () => {
+  await fresh();
+  document.body.innerHTML = '<main id="view"><p class="loading">Loading</p></main>';
+  const done = showWelcomeHero(null, { audience: 'demo', ...PRIVACY });
+  assert.equal(hero(), null, 'never shown in the loading view, so nothing there is pushed down');
+  const root = gallery();
+  adoptWelcomeHero(root);
+  assert.equal(root.firstElementChild, hero(), 'placed by the gallery mount, in its first paint');
+  closeWelcomeHero();
+  await done;
+});
+
+test('a later visit puts the greeting in the gallery\'s first paint, and the decision can take it away', async () => {
+  await fresh();
+  const { placeGalleryWelcome, galleryWelcomeStep, WELCOME_AUDIENCE_KEY } = await import('../views/gallery-welcome.ts');
+  const host = {} as never;
+  placeGalleryWelcome(gallery(), host);
+  assert.equal(hero(), null, 'a first visit has nothing remembered: the decision opens it');
+  localStorage.setItem(WELCOME_AUDIENCE_KEY, 'demo');
+  placeGalleryWelcome(gallery(), host, { classic: true });
+  assert.equal(hero(), null, 'the classic dialog is asked for instead');
+  localStorage.setItem(WELCOME_DISMISSED_KEY, '1');
+  placeGalleryWelcome(gallery(), host);
+  assert.equal(hero(), null, 'a dismissed welcome stays dismissed');
+  localStorage.removeItem(WELCOME_DISMISSED_KEY);
+  const root = gallery();
+  placeGalleryWelcome(root, host);
+  assert.equal(root.firstElementChild, hero(), 'opened in the same task as the gallery markup');
+  // The decision answers later: this install is locked now, so the welcome is not due.
+  const lockedHost = { tokens: { isLocked: async () => true } } as never;
+  assert.deepEqual(await galleryWelcomeStep(lockedHost, () => true), { unbranded: false });
+  assert.equal(hero(), null, 'taken away without settling anything');
+  assert.equal(isWelcomeDismissed(), false);
+  assert.equal(localStorage.getItem(WELCOME_AUDIENCE_KEY), null, 'and not remembered for the next visit');
 });
 
 /** A stand-in IntersectionObserver whose band comes into view when `show()` is called. */

@@ -124,10 +124,17 @@ test('cold catalog and welcome progress while the local profile read is pending'
     await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => (window as unknown as { profileReadWaiting(): boolean }).profileReadWaiting());
     await assets;
-    await page.locator('.welcome-hero').waitFor();
+    // The decision does not wait for the profile read: the greeting opens, held out of
+    // the page until the gallery mounts, so the loading view is never pushed down and
+    // the card never shows there half laid out.
+    await page.waitForFunction(() => {
+      const url = performance.getEntriesByType('resource').map(entry => entry.name).find(name => name.includes('/src/components/welcome-hero.ts'));
+      return url ? import(url).then((m: { welcomeHeroOpen(): boolean }) => m.welcomeHeroOpen()) : false;
+    });
+    assert.equal(await page.locator('.welcome-hero').count(), 0, 'not in the loading view');
     await page.evaluate(() => (window as unknown as { releaseProfileRead(): void }).releaseProfileRead());
-    await page.locator('.gallery').waitFor({ state: 'attached' });
-    assert.equal(await page.locator('.welcome-hero').count(), 1);
+    await page.locator('.gallery > .welcome-hero:first-child').waitFor({ state: 'attached' });
+    assert.equal(await page.locator('.welcome-hero').count(), 1, 'placed by the gallery mount, in its first paint');
   } finally { await browser.close(); }
 });
 

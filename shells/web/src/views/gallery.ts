@@ -52,7 +52,7 @@ import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts
 import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
 import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
 import { createPreviewQueue } from '../lib/preview-queue.ts';
-import { galleryWelcomeStep } from './gallery-welcome.ts';
+import { galleryWelcomeStep, placeGalleryWelcome } from './gallery-welcome.ts';
 import { isProgrammeMember } from '../lib/workspace-templates.ts';
 import { loadGalleryLook } from './gallery-look-loader.ts';
 import { renderFeaturedVariant, renderFeaturedPages, coverFormats, displayFormatOf } from '../lib/featured-render.ts';
@@ -82,7 +82,6 @@ import type { createAssetsAPI } from '../bridge/assets.ts';
 import type { WebTokensAPI } from '../bridge/tokens.ts';
 import type { PreviewsAPI } from '../bridge/previews.ts';
 export { showGalleryWelcome } from './gallery-welcome.ts';
-import { adoptWelcomeHero } from '../components/welcome-hero.ts';
 
 /**
  * The slice of a catalog index entry that this view reads. Kept local: the index
@@ -2279,9 +2278,9 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // components/welcome-dialog.ts) - no cleanup entry here, so the same-route
   // post-sync re-mount keeps it open without a flash. The decision and the open
   // dialog both hold lib/welcome-gate.ts, so boot-time maintenance waits for them.
-  const galleryRoot = viewEl.querySelector<HTMLElement>('.gallery'); adoptWelcomeHero(galleryRoot);
+  const galleryRoot = viewEl.querySelector<HTMLElement>('.gallery'), welcomeHost = host as unknown as GalleryHost & PickerHost, classicWelcome = deepLink.get('welcome') === 'classic'; placeGalleryWelcome(galleryRoot, welcomeHost, { classic: classicWelcome });
   void (async () => {
-    const step = await galleryWelcomeStep(host as unknown as GalleryHost & PickerHost, () => !!galleryRoot?.isConnected, deepLink.has('welcome'), { classic: deepLink.get('welcome') === 'classic', root: () => galleryRoot });
+    const step = await galleryWelcomeStep(welcomeHost, () => !!galleryRoot?.isConnected, deepLink.has('welcome'), { classic: classicWelcome, root: () => galleryRoot });
     if (!step || !galleryRoot?.isConnected) return;
     // Branded (or locked): no welcome to wait for, so the banner slot is free.
     // The branded intro strip that used to come first ("Your brand is loaded")
