@@ -41,12 +41,15 @@ export function bass(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
   amp.gain.setTargetAtTime(peak * 0.82, t + 0.06, 0.2);   // it settles a little after the attack
   amp.gain.setTargetAtTime(EPS, t + dur, 0.035);
   ws.connect(dark).connect(amp).connect(out);
-  // The weight: a sine at the note.
-  const sine = osc(k, 'sine', f * 1.012, t, end);
-  sine.frequency.exponentialRampToValueAtTime(f, t + 0.025);
-  const sg = ctx.createGain();
-  sg.gain.value = 0.4;
-  sine.connect(sg).connect(push);
+  // The weight: a sine at the note. A bass stack's second take leaves the sine out: the
+  // stack's own sub carries the weight, and the first take's sine still warms the clip.
+  if (tone.take !== 1) {
+    const sine = osc(k, 'sine', f * 1.012, t, end);
+    sine.frequency.exponentialRampToValueAtTime(f, t + 0.025);
+    const sg = ctx.createGain();
+    sg.gain.value = 0.4;
+    sine.connect(sg).connect(push);
+  }
   // The body: a saw through a filter that opens on the note and closes to a couple of harmonics.
   const saw = osc(k, 'sawtooth', f * 1.012, t, end);
   saw.frequency.exponentialRampToValueAtTime(f, t + 0.025);

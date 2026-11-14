@@ -6,7 +6,7 @@
  * DOM, so the music generator (views/music-studio.ts), a saved tune's renderer
  * (lib/lofi-tune.ts) and the Neurospicy player all read a track the same way.
  */
-import { lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import { isOverNote, lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_KITS, type LofiKit } from './lofi-drums.ts';
 import { LOFI_MIX, type LofiMix, type LofiSettings } from './lofi-station.ts';
 
@@ -169,7 +169,10 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
   };
   return (bar) => {
     const chosen = s.sections[bar.section];
-    let out = chosen ? { ...bar, voices: { ...bar.voices, ...chosen, ...(chosen.lead ? { double: undefined } : {}) } } : bar;
+    // A lead chosen for a kind of section drops a drop's doubling; a bass chosen for one
+    // plays alone there (in its stack), with no other bass answering and no croak laid over.
+    let out = chosen ? { ...bar, voices: { ...bar.voices, ...chosen, ...(chosen.lead ? { double: undefined } : {}), ...(chosen.bass ? { over: undefined } : {}) } } : bar;
+    if (chosen?.bass && bar.voices?.over) out = { ...out, notes: out.notes.filter(n => !isOverNote(n)) };
     if (shift) {
       out = {
         ...out,

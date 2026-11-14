@@ -27,7 +27,7 @@
  * clock a little ahead of time. A hidden tab's timers run slowly, so while the page
  * is hidden the station queues a few seconds ahead instead of a quarter of one.
  */
-import { lofiStream, lofiTrack, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
+import { isOverNote, lofiStream, lofiTrack, LOFI_DRUM_VOICES } from '../../../../engine/src/lofi-compose.ts';
 import type { LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTagChoice, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
@@ -38,6 +38,7 @@ import * as G from './lofi-guitars.ts';
 import * as LG from './lofi-lead-guitars.ts';
 import { HAT_BELL, perform } from './lofi-perform.ts';
 import * as BL from './lofi-bass-layers.ts';
+import * as BS from './lofi-bass-stack.ts';
 import * as R from './lofi-winds.ts';
 import * as H from './lofi-house.ts';
 import * as C from './lofi-chop.ts';
@@ -651,9 +652,15 @@ export class LofiStation {
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
         const level = vel * VARIANT.bass[bassV] * 10 ** ((BASS_SEAT[bar.tune.mood] ?? 0) / 20);
         const tone = { bright: st.bright ?? 1, drive: st.drive ?? 1 };
-        if (bassV === 'log') W.bass(k, lanes.bass, t, note.midi, level, len, mod, tone);
-        else if (H.HOUSE_BASSES.has(bassV)) H.bass(k, lanes.bass, t, note.midi, level, len, tone);
-        else V.bass(bassV, k, lanes.bass, t, note.midi, level, len, mod, tone);
+        const take: BS.Take = (kit, out, at, midi, lvl, tn) => {
+          if (bassV === 'log') W.bass(kit, out, at, midi, lvl, len, mod, tn);
+          else if (H.HOUSE_BASSES.has(bassV)) H.bass(kit, out, at, midi, lvl, len, tn);
+          else V.bass(bassV, kit, out, at, midi, lvl, len, mod, tn);
+        };
+        // The electronic styles play a bass note as a stack: a mono sub under the bass's
+        // own sound, doubled and wide in a drop (lib/lofi-bass-stack.ts).
+        if (BS.stacked(bar.tune.mood)) BS.bassNote(k, lanes.bass, bar, t, note.midi, level, len, tone, take);
+        else take(k, lanes.bass, t, note.midi, level, tone);
         // In a chorus, a modern record puts a sine under its electric bass for the weight a
         // bass guitar alone does not give: only in the styles that do it, only in the drop,
         // where the song opens up, so the verses keep the bass guitar's own sound.
@@ -728,24 +735,47 @@ export class LofiStation {
         else V.hey(k, lanes.fx, t, note.midi, vel, note.mod ?? 0);
         break;
       case 'layer': {
-        // The layered basses: the travelling line glides from its last note when it follows straight on.
-        if (note.mod === 2) { BL.stab(k, lanes.bass, t, note.midi, vel); break; }
+        // The croak laid over the bass (never on its own), played as the croak plays its notes.
+        if (isOverNote(note)) {
+          const over = bar.voices?.over;
+          if (over) BS.overNote(k, lanes.bass, bar, note, { bright: st.bright ?? 1, drive: st.drive ?? 1 }, (out, level, how, tone) => V.bass(over, k, out, t, note.midi, level * VARIANT.bass[over], len, how, tone));
+          break;
+        }
+        // The layered basses join the stack where the style has one (lib/lofi-bass-stack.ts).
+        const stack = BS.stacked(bar.tune.mood);
+        if (note.mod === 2) {
+          if (stack) BS.stab(k, lanes.bass, bar, t, note.midi, vel, (out) => BL.stab(k, out, t, note.midi, vel));
+          else BL.stab(k, lanes.bass, t, note.midi, vel);
+          break;
+        }
+        // The travelling line glides from its last note when it follows straight on.
         const glide = t - this.lastTravel.end < 0.03 ? this.lastTravel.midi : undefined;
         this.lastTravel = { end: t + len, midi: note.midi };
-        BL.travel(k, lanes.bass, t, note.midi, vel, len, glide);
+        BL.travel(k, lanes.bass, t, note.midi, vel, len, glide, stack ? BS.travelOuts(k, lanes.bass, bar, t, note.midi, vel, len) ?? undefined : undefined);
         break;
       }
       case 'tag': lollyTag(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, 60 / bar.tune.bpm, tuneVoice(bar), this.echoTimes[0]); break;
       case 'bwah': {
         // A bass shot's `mod` is the shot, plus 4 for each swing a beat (the voice wants Hz).
         const m = note.mod ?? 0;
-        V.bwah(k, lanes.bass, t, note.midi, vel, len, m % 4, Math.floor(m / 4) / spb, { bright: st.bright ?? 1, drive: st.drive ?? 1 });
+        const tone = { bright: st.bright ?? 1, drive: st.drive ?? 1 };
+        if (BS.stacked(bar.tune.mood)) BS.shot(k, lanes.bass, bar, t, note.midi, vel, len, (out) => V.bwah(k, out, t, note.midi, vel, len, m % 4, Math.floor(m / 4) / spb, { ...tone, sub: false }));
+        else V.bwah(k, lanes.bass, t, note.midi, vel, len, m % 4, Math.floor(m / 4) / spb, tone);
         break;
       }
       case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
-      case 'soar': V.soar(k, lanes.bass, t, note.midi, vel, len, note.mod === 1); break;
-      case 'kick': { const kit = this.kitOf(bar.tune); D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, kit.kick, kit); this.duck(t, st.duck); break; }
+      case 'soar':
+        if (BS.stacked(bar.tune.mood)) BS.soar(k, lanes.bass, bar, t, note.midi, vel, len, note.mod === 1);
+        else V.soar(k, lanes.bass, t, note.midi, vel, len, note.mod === 1);
+        break;
+      case 'kick': {
+        const kit = this.kitOf(bar.tune);
+        D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, kit.kick, kit);
+        this.duck(t, st.duck);
+        BS.duck(lanes.bass, Math.max(this.ctx.currentTime, t - 0.02), st.duck);   // a stack's sub dips further
+        break;
+      }
       case 'snare':
         // A section given the cross-stick plays its snare hits on the rim.
         if (bar.voices?.snare === 'rim') { D.rim(k, lanes.drums, t, vel * VARIANT.snare.rim, this.kitOf(bar.tune)); break; }
@@ -788,6 +818,7 @@ export class LofiStation {
    */
   private markSection(bar: LofiBar, at: number): void {
     const spb = 60 / bar.tune.bpm;
+    if (BS.stacked(bar.tune.mood)) BS.mark(this.kit, this.lanes.bass, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0);
     for (const d of this.echoTimes) d.delayTime.setValueAtTime(Math.min(1.9, 0.75 * spb), at);
     const room = SECTION_ROOM[bar.section] ?? 1;
     if (room !== this.sectionRoom) {
