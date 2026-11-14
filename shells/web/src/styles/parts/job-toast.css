@@ -101,12 +101,13 @@
 }
 
 /* ── Candy-stripe bar (shared: pill mini-bar + per-row bars) ─────────────────*/
+/* Twice the old 7px and no outline (Andy, 2026-11-14): the label above it holds
+   its place, and the mid-lightness stripes stand out against the track alone. */
 .job-bar {
-  height: 7px;
+  height: 14px;
   border-radius: var(--radius-pill);
   overflow: hidden;
   background: hsl(var(--muted));
-  box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.6);
 }
 .job-pill .job-bar { height: 6px; }
 .job-bar-fill {

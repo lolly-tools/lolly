@@ -2497,12 +2497,13 @@ interface WorkJson { eyebrow: string; heading: string; body: string; links: Arra
  *  locale); anything else is a site path through localizeHref. */
 const landingCtaHref = (lang: Lang, href: string): string => (href.startsWith('#') ? appHref(lang, href) : localizeHref(lang, href));
 
-// ── Choose the format last (the band after the hero, and its proof on the formats page) ──
+// ── Choose the format last (the proof on the formats page) ──────────────────────
 // One Lolly Demo piece, five files Lolly made from it, each drawn by the program a
 // recipient would open it in. scripts/build-format-last-art.ts makes the files, runs the
 // readers and signs the panels; the panels and originals sit in docs/figures/ as
-// formats-last-*. The landing shows the row; the formats page shows the same panels with
-// the reader that drew each one and the file it came from. Copy: docs/site/format-last.json.
+// formats-last-*. The formats page shows the panels with the reader that drew each one
+// and the file it came from. The landing no longer carries a band of its own (Andy,
+// 2026-11-14). Copy: docs/site/format-last.json.
 interface FormatLastOutput { id: string; kind: string; format: string; alt: string; drawn: string }
 interface FormatLastJson {
   heading: string; line: string; label: string; outputs: FormatLastOutput[];
@@ -2534,33 +2535,6 @@ function formatLastSize(id: string): { art: string; source: string; w: number; h
 function formatLastPanel(o: FormatLastOutput): string {
   const p = formatLastSize(o.id);
   return `<img src="/info/figures/${p.art}" width="${p.w}" height="${p.h}" alt="${esc(o.alt)}" loading="lazy" decoding="async">`;
-}
-
-/** The landing band: heading, line, the row of real outputs and the format chips. The
- *  text carries dir="auto", so a string still in English on a right-to-left page keeps
- *  its full stop at the end until the next translation wave. */
-function formatLastBand(lang: Lang): string {
-  const fl = loadLandingJson<FormatLastJson>('format-last.json');
-  const formats = localeHref(lang, fl.more.slug);
-  const chips = (label: string, list: string[]): string => `<p class="fl-chips"><span class="fl-chips-label">${esc(label)}</span>${list.map((f) => `<a class="fl-chip" href="${esc(formats)}">${esc(f)}</a>`).join('')}</p>`;
-  return `<section class="fl-section" id="format-last" aria-labelledby="fl-title">
-  <div class="fl-inner">
-    <h2 class="fl-title" id="fl-title" dir="auto">${esc(fl.heading)}</h2>
-    <p class="fl-line" dir="auto">${esc(fl.line)}</p>
-    ${fl.control ? `<p class="fl-control" dir="auto">${esc(fl.control.text)} <a href="${esc(localeHref(lang, fl.control.slug))}">${esc(fl.control.label)} <span aria-hidden="true">→</span></a></p>` : ''}
-    <ul class="fl-row" aria-label="${esc(fl.label)}">
-      ${fl.outputs.map((o) => `<li class="fl-out fl-out--${esc(o.id)}" style="--fl-a:${(formatLastSize(o.id).w / formatLastSize(o.id).h).toFixed(4)}"><a href="${esc(formats)}#format-last-figure">
-        <span class="fl-art">${formatLastPanel(o)}</span>
-        <span class="fl-cap" dir="auto"><b>${esc(o.kind)}</b><i>${esc(o.format)}</i></span>
-      </a></li>`).join('\n      ')}
-    </ul>
-    <div class="fl-formats">
-      ${chips(fl.outLabel, fl.out)}
-      ${chips(fl.inLabel, fl.in)}
-      <a class="fl-more" href="${esc(formats)}">${esc(fl.more.label)} <span aria-hidden="true">→</span></a>
-    </div>
-  </div>
-</section>`;
 }
 
 /** The formats page's proof: the same panels, each with the reader that drew it, its
@@ -2852,8 +2826,7 @@ function whoIsBehindBlock(lang: Lang): string {
 }
 
 // ── The landing (plans/177: five beats, top to bottom) ───────────────────────
-// 1 hero ("Lolly is …" cycling its claims), then "Choose the format last" on the same
-// dark ground (formatLastBand: one piece as five real files) · 2 covers (the studios in the
+// 1 hero ("Lolly is …" cycling its claims) · 2 covers (the studios in the
 // app's own Cover Flow gesture) · 3 what/why (the counts; the offline
 // statement's one home) · 4 the persona device (people doors + side tabs, CSS-only
 // radios so the in-app reader rehosts it working, scripts stripped), then the Lolly
@@ -3090,7 +3063,6 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
   const darkBandHtml = `<div class="hero-wrap">
 <canvas id="heroCanvas" aria-hidden="true"></canvas>
 ${heroHtml}
-${formatLastBand(lang)}
 ${coversHtml}
 </div>`;
   // The documentation sections, in the same strip every other page opens with, placed

@@ -116,6 +116,7 @@ function heardIn(bars: readonly LofiBar[], part: MusicPart, section: string): st
     const id = b.voices?.[part] ?? b.tune.style[part];
     if (!out.includes(id)) out.push(id);
     if (part === 'lead' && b.voices?.double && !out.includes(b.voices.double)) out.push(b.voices.double);
+    if (part === 'bass' && b.voices?.over && !out.includes(b.voices.over)) out.push(b.voices.over);
   }
   return out;
 }

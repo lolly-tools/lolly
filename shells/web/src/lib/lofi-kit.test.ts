@@ -169,3 +169,41 @@ test('a tom has a stick attack above 1 kHz, more for a hard stroke, and a low ri
   const late = highShare(hard.subarray(Math.floor(0.3 * SR), Math.floor(0.6 * SR)), 1000);
   assert.ok(late < early(hard) * 0.2, `after a few tenths of a second only the low ring is left (${(late * 100).toFixed(1)} per cent)`);
 });
+
+/** Energy (dB) between `lo` and `hi` Hz over `from` to `to` s, by a DFT in 2 Hz steps. */
+function bandDb(x: Float32Array, lo: number, hi: number, from: number, to: number): number {
+  let sum = 0;
+  for (let f = lo; f <= hi; f += 2) {
+    const w = (2 * Math.PI * f) / SR; let re = 0, im = 0;
+    for (let i = Math.floor(from * SR); i < Math.floor(to * SR); i++) { re += x[i]! * Math.cos(w * i); im += x[i]! * Math.sin(w * i); }
+    sum += re * re + im * im;
+  }
+  return 10 * Math.log10(sum + 1e-30);
+}
+
+test('a tom rings about a second and a half, as the recorded FW toms do, not two and a half', () => {
+  for (const f0 of [129, 98]) {
+    const x = K.tomStroke(SR, f0, 0.75, seeded(31));
+    const fall = 20 * Math.log10(rms(x, 0.05, 0.1) / rms(x, 1.1, 1.3));
+    assert.ok(fall > 35, `${f0} Hz: ${fall.toFixed(1)} dB down by 1.1 s`);
+  }
+});
+
+test('a medium tom stroke starts about 12 per cent sharp, as the recorded FW toms do', () => {
+  const x = K.tomStroke(SR, 129, 0.75, seeded(32));
+  let best = 0, bf = 0;
+  for (let f = 120; f <= 175; f += 0.5) {
+    const w = (2 * Math.PI * f) / SR; let re = 0, im = 0;
+    for (let i = Math.floor(0.005 * SR); i < Math.floor(0.035 * SR); i++) { re += x[i]! * Math.cos(w * i); im += x[i]! * Math.sin(w * i); }
+    if (re * re + im * im > best) { best = re * re + im * im; bf = f; }
+  }
+  const sharp = bf / 129 - 1;
+  assert.ok(sharp > 0.06 && sharp < 0.2, `${(sharp * 100).toFixed(1)} per cent sharp (recorded: 12.5)`);
+});
+
+test('a high tom leads with its fundamental; a floor tom with the modes near twice its pitch', () => {
+  const high = K.tomStroke(SR, 129, 0.75, seeded(33));
+  assert.ok(bandDb(high, 118, 150, 0.01, 0.07) > bandDb(high, 240, 300, 0.01, 0.07) + 6, 'the high tom: the fundamental over the second');
+  const floor = K.tomStroke(SR, 70, 0.75, seeded(33));
+  assert.ok(bandDb(floor, 130, 200, 0.01, 0.07) > bandDb(floor, 62, 82, 0.01, 0.07), 'the floor tom: the modes near twice its pitch over its fundamental');
+});

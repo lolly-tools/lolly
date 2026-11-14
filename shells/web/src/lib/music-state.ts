@@ -6,7 +6,7 @@
  * DOM, so the music generator (views/music-studio.ts), a saved tune's renderer
  * (lib/lofi-tune.ts) and the Neurospicy player all read a track the same way.
  */
-import { lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import { isOverNote, liveLead, lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_KITS, type LofiKit } from './lofi-drums.ts';
 import { LOFI_MIX, type LofiMix, type LofiSettings } from './lofi-station.ts';
 
@@ -57,10 +57,12 @@ export interface MusicState {
 
 export const DEFAULT_STATE: MusicState = { mood: 'sugar', seed: 2024, bars: 64, drums: true, texture: 0.3, mix: { ...LOFI_MIX }, sections: {} };
 
-/** Read a state from the link's parameters. Anything unknown or out of range falls back. */
+/** Read a state from the link's parameters. Anything unknown or out of range falls back, and
+ *  a retired lead (an old link's `lead=soft`) reads as the lead that took its place. */
 export function parseMusicState(params: string): MusicState {
   const q = new URLSearchParams(params);
   const pick = <T extends string>(v: string | null, from: readonly T[]): T | undefined => (from as readonly string[]).includes(v ?? '') ? from.find(x => x === v) : undefined;
+  const pickLead = (v: string | null): LofiStyle['lead'] | undefined => ((lead) => lead && liveLead(lead))(pick(v, LOFI_LEADS));
   const num = (v: string | null, lo: number, hi: number): number | undefined => {
     const n = Number(v);
     return v !== null && v !== '' && Number.isFinite(n) && n >= lo && n <= hi ? n : undefined;
@@ -74,7 +76,7 @@ export function parseMusicState(params: string): MusicState {
   for (const name of SECTION_NAMES) {
     const v: SectionVoices = {};
     const keys = pick(q.get(`${name}.keys`), LOFI_KEYS);
-    const lead = pick(q.get(`${name}.lead`), LOFI_LEADS);
+    const lead = pickLead(q.get(`${name}.lead`));
     const bass = pick(q.get(`${name}.bass`), LOFI_BASSES);
     const snare = pick(q.get(`${name}.snare`), LOFI_SNARES);
     const hats = pick(q.get(`${name}.hats`), LOFI_HATS);
@@ -93,7 +95,7 @@ export function parseMusicState(params: string): MusicState {
     bpm: ((v) => v === undefined ? undefined : Math.round(v))(num(q.get('bpm'), BPM_RANGE[0], BPM_RANGE[1])),
     transpose: ((v) => v === undefined || Math.round(v) === 0 ? undefined : Math.round(v))(num(q.get('transpose'), -TRANSPOSE_RANGE, TRANSPOSE_RANGE)),
     keys: pick(q.get('keys'), LOFI_KEYS),
-    lead: pick(q.get('lead'), LOFI_LEADS),
+    lead: pickLead(q.get('lead')),
     bass: pick(q.get('bass'), LOFI_BASSES),
     drums: q.get('drums') !== '0',
     texture: num(q.get('texture'), 0, 1) ?? DEFAULT_STATE.texture,
@@ -169,7 +171,10 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
   };
   return (bar) => {
     const chosen = s.sections[bar.section];
-    let out = chosen ? { ...bar, voices: { ...bar.voices, ...chosen, ...(chosen.lead ? { double: undefined } : {}) } } : bar;
+    // A lead chosen for a kind of section drops a drop's doubling; a bass chosen for one
+    // plays alone there (in its stack), with no other bass answering and no croak laid over.
+    let out = chosen ? { ...bar, voices: { ...bar.voices, ...chosen, ...(chosen.lead ? { double: undefined } : {}), ...(chosen.bass ? { over: undefined } : {}) } } : bar;
+    if (chosen?.bass && bar.voices?.over) out = { ...out, notes: out.notes.filter(n => !isOverNote(n)) };
     if (shift) {
       out = {
         ...out,

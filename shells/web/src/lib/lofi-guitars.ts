@@ -46,7 +46,7 @@ function wall(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number,
 
 /** A chorus pedal per output: the dry signal, and two short delays swaying either side of it, one each side. */
 const CHORUSES = new WeakMap<AudioNode, GainNode>();
-function chorusInput(k: VoiceKit, out: AudioNode): GainNode {
+export function chorusInput(k: VoiceKit, out: AudioNode): GainNode {
   const ready = CHORUSES.get(out);
   if (ready) return ready;
   const { ctx } = k;
@@ -101,7 +101,7 @@ const ELECTRIC = new WeakMap<BaseAudioContext, Map<string, AudioBuffer>>();
 export function electricBuffer(ctx: BaseAudioContext, spec: Omit<ElectricSpec, 'sr'>, variant: number): AudioBuffer {
   let cache = ELECTRIC.get(ctx);
   if (!cache) { cache = new Map(); ELECTRIC.set(ctx, cache); }
-  const key = `${spec.f.toFixed(2)}|${spec.fret}|${spec.pick}|${spec.layer}|${spec.damp ?? "ring"}|${spec.seconds}|${spec.lead ?? 0}|${spec.end ?? "-"}|${spec.endDamp ?? "-"}|${variant}`;
+  const key = `${spec.f.toFixed(2)}|${spec.fret}|${spec.pick}|${spec.layer}|${spec.damp ?? "ring"}|${spec.seconds}|${spec.lead ?? 0}|${spec.end ?? "-"}|${spec.endDamp ?? "-"}|${spec.pickup ?? "nm"}|${variant}`;
   let buf = cache.get(key);
   if (!buf) {
     if (cache.size > 400) cache.clear();
@@ -220,9 +220,66 @@ export interface ElectricStroke {
   damp?: 'ring' | 'palm' | 'dead';
   /** The fretting hand lets go as the note ends: the strings stop in a few hundredths of a second, the top first. */
   choke?: boolean;
-  /** Bend up into the note from this many semitones below over `bendTime` (s), and a vibrato of this many cents once it is held. */
-  bend?: number; bendTime?: number; vibrato?: number;
+  /**
+   * Into the note from this many semitones below over `bendTime` (s): a quick glide by
+   * default (the keys' slide from the fret below), or as a lead guitarist does it (`how`):
+   * a bend, the string pushed across the fret, or a slide, the finger moving along the frets.
+   */
+  bend?: number; bendTime?: number; how?: 'bend' | 'slide';
+  /** A finger vibrato on a held note: how wide (cents, upward only) and when it starts (s after the note). */
+  vibrato?: number; vibratoAt?: number;
+  /** Which pickups hear the string (the neck and middle by default). */
+  pickup?: 'neck-middle' | 'bridge';
+  /** The guitar's own tuning against the note (cents): a second take's guitar is never quite the first's. */
+  detune?: number;
+  /** The amp to play into (the small valve amp by default), and the stroke's level into that amp. */
+  into?: AudioNode; level?: number;
 }
+
+/**
+ * How a lead guitarist moves the pitch into a note, measured from recorded high-gain leads,
+ * as playback rates over the move: a bend is held at the pick's pitch a moment (25 to 60 ms
+ * of the 200 to 250 the bends took), pushed up in an S (slowly off the fret, fast through the
+ * middle, easing in), and arrives a little sharp (10 to 60 cents) before settling; a slide
+ * steps through the frets, a semitone each, the finger crossing each fret in a few
+ * milliseconds.
+ */
+export function bendCurve(semitones: number, how: 'bend' | 'slide', points = 64): Float32Array<ArrayBuffer> {
+  const c = new Float32Array(points);
+  for (let i = 0; i < points; i++) {
+    const x = i / (points - 1);
+    let st: number;
+    if (how === 'bend') {
+      const u = Math.max(0, Math.min(1, (x - BEND_DWELL) / (1 - BEND_DWELL - BEND_SETTLE)));
+      const s = u * u * (3 - 2 * u);
+      // Over the top by BEND_OVER of the bend's width as the pitch arrives, settling in the last part.
+      const over = x > 1 - BEND_SETTLE ? BEND_OVER * Math.sin((Math.PI * (1 - x)) / (2 * BEND_SETTLE)) : BEND_OVER * s * s * s;
+      st = -semitones * (1 - s) + semitones * over;
+    } else {
+      // Fret by fret: the pitch sits on each fret and crosses to the next in the last fifth of each step.
+      const steps = Math.max(1, Math.round(semitones));
+      const pos = x * steps, k = Math.floor(pos), f = pos - k;
+      const cross = f > 0.8 ? ((f - 0.8) / 0.2) ** 2 * (3 - 2 * (f - 0.8) / 0.2) : 0;
+      st = -semitones + (Math.min(steps, k + cross) * semitones) / steps;
+    }
+    c[i] = 2 ** (st / 12);
+  }
+  c[points - 1] = 1;
+  return c;
+}
+/** A cosine wave per context, for the vibrato: it starts at its top, so (1 - cos) starts on the note. */
+const COSINES = new WeakMap<BaseAudioContext, PeriodicWave>();
+function cosineOf(ctx: BaseAudioContext): PeriodicWave {
+  let w = COSINES.get(ctx);
+  if (!w) { w = ctx.createPeriodicWave(new Float32Array([0, 1]), new Float32Array([0, 0]), { disableNormalization: true }); COSINES.set(ctx, w); }
+  return w;
+}
+/** A bend's dwell at the picked pitch, and its settling once the pitch arrives, as shares of the move. */
+const BEND_DWELL = 0.18, BEND_SETTLE = 0.2;
+/** How far past the note a bend arrives (a share of its width: a tone's bend 20 cents over). */
+const BEND_OVER = 0.1;
+/** A finger vibrato's rate (Hz), measured on held notes in recorded leads (6.2 and 6.8), and how much one player's varies. */
+const VIBRATO_HZ = 6.2, VIBRATO_SPREAD = 0.6;
 
 /** How long a scratch sounds before the fretting hand stops it (s): as the recorded notes stopped this soon sound crisp. */
 const SCRATCH = 0.03;
@@ -246,31 +303,47 @@ export function electricNote(k: VoiceKit, out: AudioNode, t: number, midi: numbe
   const fret = Math.max(0, Math.min(20, Math.round(o.fret)));
   const pick = o.pick ?? (PICK_AT + Math.round(k.rng() * 2) * PICK_STEP) / (648 * 2 ** (-fret / 12));
   const src = ctx.createBufferSource();
-  src.buffer = electricBuffer(ctx, { f: mtof(midi), seconds, fret, pick: Math.round(pick * 200) / 200, layer, damp: damp === 'dead' ? 'ring' : damp, lead, end, endDamp }, variant);
-  src.detune.value = (k.rng() - 0.5) * 4;
+  src.buffer = electricBuffer(ctx, { f: mtof(midi), seconds, fret, pick: Math.round(pick * 200) / 200, layer, damp: damp === 'dead' ? 'ring' : damp, lead, end, endDamp, ...(o.pickup === 'bridge' ? { pickup: 'bridge' as const } : {}) }, variant);
+  src.detune.value = (k.rng() - 0.5) * 4 + (o.detune ?? 0);
   // The pick touches the string `lead` before it sounds; a stroke due sooner than that starts part way in.
   const at = t - lead, now = ctx.currentTime;
   if (o.bend) {
     // Held below from the pick's touch, then up into the note.
     const from = 2 ** (-o.bend / 12);
-    src.playbackRate.setValueAtTime(from, Math.max(at, now));
-    src.playbackRate.setValueAtTime(from, t + 0.02);
-    src.playbackRate.exponentialRampToValueAtTime(1, t + 0.02 + (o.bendTime ?? 0.15));
+    const time = o.bendTime ?? 0.15;
+    const held = Math.max(at, now);
+    src.playbackRate.setValueAtTime(from, held);
+    // A curve may not start on another event's time, so it starts a moment after the pick's.
+    if (o.how && t > now) src.playbackRate.setValueCurveAtTime(bendCurve(o.bend, o.how), Math.max(t, held + 0.002), time);
+    else {
+      src.playbackRate.setValueAtTime(from, t + 0.02);
+      src.playbackRate.exponentialRampToValueAtTime(1, t + 0.02 + time);
+    }
   }
   if (o.vibrato) {
+    // A fretted string is pushed sharp and let back, never pulled flat: the pitch swings
+    // from the note up to `vibrato` cents and back (the measured held notes swung 45 to 65
+    // cents above the fret and no lower), (1 - cos) of the swing, so it starts on the note.
+    const begin = t + (o.vibratoAt ?? Math.min(0.25, hold * 0.4));
+    const full = begin + Math.min(0.3, Math.max(0.05, hold * 0.4));
     const lfo = ctx.createOscillator();
-    lfo.frequency.value = 5.4 + k.rng() * 0.8;
+    lfo.setPeriodicWave(cosineOf(ctx));
+    lfo.frequency.value = VIBRATO_HZ + (k.rng() - 0.5) * VIBRATO_SPREAD;
     const depth = ctx.createGain();
-    depth.gain.setValueAtTime(0, t);
-    depth.gain.setValueAtTime(0, t + Math.min(0.25, hold * 0.4));
-    depth.gain.linearRampToValueAtTime(o.vibrato, t + Math.min(0.6, hold * 0.8));
+    const half = o.vibrato / 2, base = src.detune.value;
+    depth.gain.setValueAtTime(0, Math.max(now, t));
+    depth.gain.setValueAtTime(0, begin);
+    depth.gain.linearRampToValueAtTime(-half, full);
+    src.detune.setValueAtTime(base, Math.max(now, t));
+    src.detune.setValueAtTime(base, begin);
+    src.detune.linearRampToValueAtTime(base + half, full);
     lfo.connect(depth).connect(src.detune);
-    lfo.start(t);
+    lfo.start(begin);
     lfo.stop(t + hold + tail + 0.05);
   }
   const g = ctx.createGain();
-  g.gain.value = ELECTRIC_LEVEL * pluckLevel(vel) ** VEL_CURVE;
-  src.connect(g).connect(valveInput(k, out));
+  g.gain.value = ELECTRIC_LEVEL * pluckLevel(vel) ** VEL_CURVE * (o.level ?? 1);
+  src.connect(g).connect(o.into ?? valveInput(k, out));
   if (at >= now) src.start(at);
   else src.start(now, now - at);
   src.stop(Math.max(at, now) + Math.min(seconds, lead + end + tail));

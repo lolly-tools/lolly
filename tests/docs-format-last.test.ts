@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * "Choose the format last": the landing band after the hero and its proof on the formats
- * page (docs/site/format-last.json, docs/build.ts formatLastBand / formatLastFigure, the
+ * "Choose the format last": the proof on the formats page (docs/site/format-last.json,
+ * docs/build.ts formatLastFigure, the
  * panels and originals in docs/figures/formats-last-*, made by
  * scripts/build-format-last-art.ts).
  *
  * What is pinned, and why:
- *  - THE TWO PAGES AGREE. docs/formats.md opens with the landing's own heading and line,
- *    so the claim on the door and the page that proves it say the same thing.
+ *  - THE PAGE AND ITS COPY AGREE. docs/formats.md opens with format-last.json's heading and
+ *    line, word for word.
  *  - EVERY OUTPUT HAS ITS PANEL, signed. A panel is a reader's drawing of a real file,
  *    so a panel without a credential, or an output without a panel, is a mock-up.
  *  - THE OFFICE FILES KEEP TEXT AS TEXT. The deck and the document are offered as files
@@ -38,10 +38,10 @@ function panels(): Record<string, { art: string; source: string }> {
   return new Function(`return (${m[1]});`)() as Record<string, { art: string; source: string }>;
 }
 
-test('the formats page opens with the landing\'s own heading and line', () => {
+test('the formats page opens with its own heading and line', () => {
   const body = read('docs/formats.md').split('\n').slice(1).join('\n').trim();
   assert.ok(body.startsWith(`**${FL.heading}** ${FL.line}`),
-    'docs/formats.md must open with the "Choose the format last" heading and line, word for word, so the landing and the page that proves it agree');
+    'docs/formats.md must open with the "Choose the format last" heading and line, word for word, so the page and its copy agree');
   assert.match(body, /<!-- the format-last figure renders here -->/, 'the figure marker is missing from docs/formats.md');
 });
 

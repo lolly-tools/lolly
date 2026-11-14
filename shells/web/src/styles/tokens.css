@@ -657,10 +657,16 @@
  * lazily against the element it is USED on, not the element it is declared
  * on, so this one :root declaration already reads each theme's own
  * --primary/--accent above and needs no separate dark block of its own. With
- * no brand primary the stripe wears Lolly's tone (--lolly-tone, above). */
+ * no brand primary the stripe wears Lolly's tone (--lolly-tone, above).
+ *
+ * The two stripes are the one primary at two mid lightnesses (Andy, 2026-11-14:
+ * "the same primary at two lightness differences"), so the bar stands out
+ * against its track in light and dark alike: a dark brand primary was close to
+ * a dark track. The chroma is kept up so a pale primary still reads as a hue. */
 :root {
-  --job-candy-a: var(--brand-primary, var(--lolly-tone));
-  --job-candy-b: var(--brand-secondary, hsl(var(--accent)));
+  --job-candy-tone: var(--brand-primary, var(--lolly-tone));
+  --job-candy-a: oklch(from var(--job-candy-tone) 0.6 clamp(0.09, c * 1.5, 0.17) h);
+  --job-candy-b: oklch(from var(--job-candy-tone) 0.74 clamp(0.07, c * 1.3, 0.15) h);
 }
 
 /* ─── High contrast (opt-in) ─────────────────────────────────────────────────

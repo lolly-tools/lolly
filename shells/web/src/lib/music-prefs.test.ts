@@ -14,9 +14,11 @@ import assert from 'node:assert/strict';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import {
   INSTRUMENT_FAMILIES, MUSIC_PARTS, NO_PREFS, avoidBlocked, clearSwaps, familyOf, heardBySection, instrumentsOf,
-  isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setShuffleGenres, styleInstruments, swapKey, type MusicPart, type MusicPrefs,
+  isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setPartInstrument, setShuffleGenres, styleInstruments, substituteFor, swapKey, type MusicPart, type MusicPrefs,
+  loadRecentGenres, noteRecentGenre, RECENT_GENRES,
 } from './music-prefs.ts';
 import { shuffleMusic } from './music-shuffle.ts';
+import { isOverNote } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
 
 /** A small seeded random source (mulberry32), so a shuffle can be replayed. */
@@ -45,6 +47,29 @@ test('every instrument has a family, and every family is one the browser shows',
   assert.equal(familyOf('bass', 'upright'), 'guitars');
   assert.equal(familyOf('keys', 'electric'), 'guitars', 'the electric guitar is with the guitars');
   assert.ok(!instrumentsOf('lead').includes('none'), 'no lead is not an instrument');
+});
+
+test('the retired soft lead has no card, its name sets the flute, and a profile that stars or blocks it comes to no harm', () => {
+  assert.ok(!instrumentsOf('lead').includes('soft'), 'the browser lists every lead but a retired one');
+  assert.ok(instrumentsOf('lead').includes('flute'));
+  const s = parseMusicState('style=citypop&seed=5&bars=64');
+  setPartInstrument(s, 'lead', 'soft');
+  setPartInstrument(s, 'lead', 'soft', 'drop');
+  assert.equal(s.lead, 'flute');
+  assert.equal(s.sections.drop?.lead, 'flute');
+  // A profile saved before the retirement may still star or block the soft lead.
+  const starred = loadMusicPrefs({ music: { favourites: ['lead:soft'] } });
+  const blocked = loadMusicPrefs({ music: { blocked: ['lead:soft'] } });
+  for (let i = 0; i < 30; i++) {
+    const sh = shuffleMusic(seeded(700 + i), { bars: 64, prefs: starred });
+    assert.notEqual(sh.lead, 'soft', 'a star does not bring it back');
+    for (const v of Object.values(sh.sections)) assert.notEqual(v?.lead, 'soft');
+  }
+  for (const mood of ['citypop', 'funk', 'shoegaze'] as const) {
+    assert.notEqual(substituteFor(starred, mood, 'lead', [], 5), 'soft');
+    const { swaps } = avoidBlocked(parseMusicState(`style=${mood}&seed=5&bars=64`), blocked);
+    assert.deepEqual(swaps, [], `${mood}: no tune plays it, so there is nothing to swap`);
+  }
 });
 
 test('a favourite and a block are kept on the profile, never both at once, and an empty record leaves no field', () => {
@@ -80,7 +105,7 @@ test('what a style plays is read the same every time, and covers its sections\' 
 
 test('a new tune never plays a blocked instrument the composer drew, and the link carries what plays instead', () => {
   let swapsSeen = 0;
-  for (const mood of ['ska', 'sugar', 'metal', 'warm', 'dnb', 'koto'] as const) {
+  for (const mood of ['ska', 'sugar', 'metal', 'warm', 'dnb', 'koto', 'botanica'] as const) {
     for (let seed = 1; seed <= 6; seed++) {
       const s = parseMusicState(`style=${mood}&seed=${seed * 97}&bars=48`);
       // Block whatever the composer drew for each part, the main instrument and one more.
@@ -101,6 +126,35 @@ test('a new tune never plays a blocked instrument the composer drew, and the lin
     }
   }
   assert.ok(swapsSeen > 20, `swaps were made (${swapsSeen})`);
+});
+
+test('a blocked bass is never laid over another: the croak comes out of the track, and the link carries it', () => {
+  let tried = 0;
+  for (const mood of ['dubstep', 'brostep', 'dnb', 'sugar'] as const) {
+    for (let seed = 1; seed <= 40 && tried < 12; seed++) {
+      const s = parseMusicState(`style=${mood}&seed=${seed}&bars=64`);
+      if (!composeTrack(s).some(b => b.notes.some(isOverNote))) continue;
+      tried++;
+      const prefs = prefsOf([], ['bass:croak']);
+      const { state: next, swaps } = avoidBlocked(s, prefs);
+      assert.ok(swaps.some(w => w.part === 'bass' && w.from === 'croak'), `${mood} ${seed}: the croak is swapped out`);
+      const bars = composeTrack(next);
+      assert.ok(bars.every(b => !b.notes.some(isOverNote) && b.voices?.over !== 'croak'), `${mood} ${seed}: no croak laid over the bass`);
+      assert.ok(!heard(next, 'bass').includes('croak'), `${mood} ${seed}: the croak is heard nowhere`);
+      assert.deepEqual(composeTrack(parseMusicState(musicStateParams(next))), bars, `${mood} ${seed}: the link plays the same`);
+    }
+  }
+  assert.ok(tried >= 8, `tunes with the croak laid over were tried (${tried})`);
+  // The croak never stands in for another bass: it is not one a bass style plays on its own.
+  for (const mood of ['dubstep', 'brostep', 'dnb', 'sugar'] as const) assert.ok(!styleInstruments(mood, 'bass').includes('croak'), `${mood}: the croak is not a bass of its own`);
+});
+
+test('a bass chosen for a kind of section plays alone there: no other bass answering it and nothing laid over it', () => {
+  const s = parseMusicState('style=brostep&seed=3&bars=64&drop.bass=wobble');
+  for (const b of composeTrack(s).filter(x => x.section === 'drop')) {
+    assert.equal(b.voices?.bass, 'wobble');
+    assert.ok(!b.voices?.over && !b.notes.some(isOverNote), `bar ${b.index}: nothing laid over the chosen bass`);
+  }
 });
 
 test('a substitute is one the style plays, a favourite first', () => {
@@ -201,4 +255,17 @@ test('with a genre given, a shuffle keeps the genre and draws a new seed and sou
   }
   assert.ok(seeds.size >= 11, `new seeds each time (${seeds.size} of 12)`);
   assert.notEqual(shuffleMusic(seeded(1), { bars: 32, after: 'ska' }).mood, 'ska', 'without one, the genre changes');
+});
+
+test('the Recent row: newest first, each genre once, six at most, and a repeat of the newest writes nothing', () => {
+  const profile = {} as Profile;
+  assert.deepEqual(loadRecentGenres(profile), [], 'none played yet');
+  for (const g of ['ska', 'funk', 'ska', 'dnb', 'jazz', 'rock', 'salsa', 'kpop']) noteRecentGenre(profile, g);
+  assert.deepEqual(loadRecentGenres(profile), ['kpop', 'salsa', 'rock', 'jazz', 'dnb', 'ska'].slice(0, RECENT_GENRES));
+  assert.equal(noteRecentGenre(profile, 'kpop'), false, 'already newest: nothing to save');
+  assert.equal(noteRecentGenre(profile, 'jazz'), true);
+  assert.deepEqual(loadRecentGenres(profile), ['jazz', 'kpop', 'salsa', 'rock', 'dnb', 'ska']);
+  assert.equal(profile.music?.shuffleGenres, undefined, 'the other music settings are left alone');
+  const stored = { music: { recentGenres: ['ska', 'ska', 42, '<b>', 'newGenreFromLater'] } } as unknown as Profile;
+  assert.deepEqual(loadRecentGenres(stored), ['ska', 'newGenreFromLater'], 'junk dropped, a later build\'s genre kept');
 });

@@ -21,6 +21,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { LofiStation } from './lofi-station.ts';
 import type { LofiSettings } from './lofi-station.ts';
+import { STACKS } from './lofi-bass-stack.ts';
 import {
   LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_GROOVES,
 } from '../../../../engine/src/lofi-compose.ts';
@@ -32,10 +33,21 @@ class FakeParam {
   events: Ev[] = [];
   readonly owner: string;
   constructor(owner: string) { this.owner = owner; }
+  /** Value curves' spans: a browser throws on any other event inside one, [start, start + duration). */
+  private curves: Array<[number, number]> = [];
   private add(kind: string, v: number, t: number): this {
     assert.ok(Number.isFinite(v), `${this.owner}: ${kind} to ${v}`);
     assert.ok(Number.isFinite(t) && t >= 0, `${this.owner}: ${kind} at time ${t}`);
+    assert.ok(!this.curves.some(([a, d]) => t >= a && t < a + d), `${this.owner}: ${kind} at ${t} inside a value curve, which throws in a browser`);
     this.events.push([kind, v, t]);
+    return this;
+  }
+  setValueCurveAtTime(values: ArrayLike<number>, t: number, duration: number): this {
+    assert.ok(values.length >= 2 && Array.from(values).every(Number.isFinite), `${this.owner}: a curve of sound values`);
+    assert.ok(Number.isFinite(duration) && duration > 0, `${this.owner}: a curve lasting ${duration}`);
+    assert.ok(!this.events.some(([, , at]) => at >= t && at < t + duration), `${this.owner}: a curve at ${t} over another event, which throws in a browser`);
+    this.add('curve', values[values.length - 1]!, t);
+    this.curves.push([t, duration]);
     return this;
   }
   setValueAtTime(v: number, t: number): this { return this.add('set', v, t); }
@@ -127,13 +139,15 @@ test('every mood, instrument, kit and groove schedules only sound values', () =>
   for (const texture of [0, 1]) play(18, { ...base, texture, style: { crunch: true } });
 });
 
-test('lofi house plays its deep-house bass: a sine and a saw on each note, each settling into its pitch', () => {
+test('lofi house plays its deep-house bass: a saw on each take of a note and a sine under the first, each settling into its pitch', () => {
   const ctx = play(61, { ...base, mood: 'lofiHouse' }, 90);
   // A bass note starts 1.2 per cent sharp and settles on its pitch, a bass's register (under 140 Hz).
   const settling = (type: string) => ctx.oscs.filter(o => o.type === type && o.frequency.events.length >= 2
     && o.frequency.events[1]![0] === 'exp' && o.frequency.events[1]![1] < 140 && Math.abs(o.frequency.events[0]![1] / o.frequency.events[1]![1] - 1.012) < 1e-6).length;
   assert.ok(settling('sine') > 20, `sines under the bass notes (${settling('sine')})`);
-  assert.equal(settling('sawtooth'), settling('sine'), 'and a saw with each');
+  // A drop's note is two takes (lib/lofi-bass-stack.ts), the second without the sine; a quieter section's is one.
+  const saws = settling('sawtooth');
+  assert.ok(saws > settling('sine') && saws <= 2 * settling('sine'), `a saw on every take (${saws} saws, ${settling('sine')} sines)`);
 });
 
 test('lofi house seats its bass 7.5 dB up: the same deep bass plays that much louder there than in another style', () => {
@@ -151,8 +165,28 @@ test('lofi house seats its bass 7.5 dB up: the same deep bass plays that much lo
     for (const x of xs) count.set(Math.round(x * 1e6), (count.get(Math.round(x * 1e6)) ?? 0) + 1);
     return [...count.entries()].sort((a, b) => b[1] - a[1])[0]![0] / 1e6;
   };
-  const db = 20 * Math.log10(usual(house) / usual(disco));
+  // Both styles stack their bass (lib/lofi-bass-stack.ts), each at its own take level, so
+  // the seat is what is left once the two stacks' take levels are taken out.
+  const stacks = 20 * Math.log10(STACKS.lofiHouse!.take / STACKS.nudisco!.take);
+  const db = 20 * Math.log10(usual(house) / usual(disco)) - stacks;
   assert.ok(Math.abs(db - 7.5) < 0.01, `the usual note is ${db.toFixed(2)} dB up`);
+});
+
+test('botanica plays its place, its pads and its glitches, and catches the mix in a repeat', () => {
+  // Seed 2's tune is a glitchy groove (162 bpm): every kind of botanica note in its first two minutes.
+  const ctx = play(2, { ...base, mood: 'botanica' }, 120);
+  const empty = ctx.sources.filter(s => (s.buffer as { length?: number } | null)?.length === 0);
+  assert.ok(ctx.sources.some(s => s.loop), 'a bed loops under the music');
+  // The beds, the pads and the glitches render at half the context's rate: their buffers are filled, not empty.
+  const filled = ctx.sources.filter(s => {
+    const b = s.buffer as { getChannelData?: (c: number) => Float32Array } | null;
+    return b?.getChannelData?.(0).some(v => v !== 0) ?? false;
+  });
+  assert.ok(filled.length > 40, `the place, the pads and the glitches sound (${filled.length} filled buffers)`);
+  assert.equal(empty.length, 0, 'no empty buffer is played');
+  // A repeat gates the mix: the gate's gain falls to nothing and comes back, at least once.
+  const gated = ctx.gains.filter(g => g.gain.events.some(e => e[0] === 'lin' && e[1] === 0) && g.gain.events.some(e => e[0] === 'lin' && e[1] === 1));
+  assert.ok(gated.length >= 2, `the beat repeater's gate and wet gain move (${gated.length})`);
 });
 
 test('the drums switch takes the kit out and leaves the music', () => {

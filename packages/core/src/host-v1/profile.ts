@@ -106,6 +106,10 @@ export interface Profile {
     /** "Shuffle genres": absent or true, a shuffle draws a new genre; false keeps the
      *  genre and draws a new seed and sound. */
     shuffleGenres?: boolean;
+    /** The genres last played, newest first, at most six and each once: the genre
+     *  picker's Recent row. Entries are genre ids, for example `ska`. Optional:
+     *  absent means none played yet. */
+    recentGenres?: string[];
   };
   /** How the app itself dresses - the shell's OWN use of the design system,
    *  which is secondary to what a design system is for (tools and exports).

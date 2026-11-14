@@ -6,7 +6,7 @@
  *
  *   keys   tar, santur, zheng (guzheng), koto, shamisen, kora, balafon
  *   lead   santur, ney, shakuhachi, dizi, kamancheh, erhu, zheng, koto, pipa, shamisen,
- *          kora, balafon
+ *          kora, balafon, tar
  *   bass   log (amapiano's log drum)
  *   perc   the hand drums and bells from the tombak on (see LOFI_PERCUSSION)
  *
@@ -14,16 +14,18 @@
  * waveform with its pick position's missing harmonics through a closing filter and the
  * body's resonance (a modelled string loop cannot reach these pitches, because a delay
  * in a feedback loop is held to at least one 128-sample block), bars and drums as their
- * measured modes ringing down, flutes and bowed strings as a source through the body's
- * filters with breath or bow noise.
+ * measured modes ringing down, flutes and the erhu as a source through the body's
+ * filters with breath or bow noise. The kamancheh is worked out in JS a note at a time
+ * instead: the fiddle's bowed string through a skin body (lib/lofi-spike-fiddles.ts).
  */
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { KAMANCHEH_RAW, bowKamancheh, kamanchehPlay, steadyGain } from './lofi-spike-fiddles.ts';
 import { EPS, mtof, noiseAt, osc, plucked, vibrato, drivenBy, metalAt, crack, PLAIN_TONE, type Tone, type VoiceKit } from './lofi-voices.ts';
 
 /** The keys this module plays. */
 export const WORLD_KEYS = new Set<LofiStyle['keys']>(['tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon']);
 /** The leads this module plays. */
-export const WORLD_LEADS = new Set<LofiStyle['lead']>(['santur', 'ney', 'shakuhachi', 'dizi', 'kamancheh', 'erhu', 'zheng', 'koto', 'pipa', 'shamisen', 'kora', 'balafon']);
+export const WORLD_LEADS = new Set<LofiStyle['lead']>(['santur', 'ney', 'shakuhachi', 'dizi', 'kamancheh', 'erhu', 'zheng', 'koto', 'pipa', 'shamisen', 'kora', 'balafon', 'tar']);
 /** The first percussion kind (by its `mod`) this module plays: the tombak, and every later kind too. */
 export const WORLD_PERC_FROM = 5;
 
@@ -38,13 +40,16 @@ export function keys(style: LofiStyle['keys'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'balafon') balafon(k, out, t, midi, vel);
 }
 
-/** A world lead (see WORLD_LEADS); `art` 1 is the instrument's ornament. */
-export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0): void {
+/**
+ * A world lead (see WORLD_LEADS); `art` 1 is the instrument's ornament. `from` is the note
+ * this one is slurred from, which only the kamancheh plays (a change of finger under one bow).
+ */
+export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art = 0, from?: number): void {
   if (style === 'santur') santur(k, out, t, midi, vel, dur, art);
   else if (style === 'ney') windFlute(k, out, t, midi, vel, dur, art, NEY);
   else if (style === 'shakuhachi') windFlute(k, out, t, midi, vel, dur, art, SHAKUHACHI);
   else if (style === 'dizi') windFlute(k, out, t, midi, vel, dur, art, DIZI);
-  else if (style === 'kamancheh') bowed(k, out, t, midi, vel, dur, art, KAMANCHEH);
+  else if (style === 'kamancheh') kamancheh(k, out, t, midi, vel, dur, art, from);
   else if (style === 'erhu') bowed(k, out, t, midi, vel, dur, art, ERHU);
   else if (style === 'zheng') zheng(k, out, t, midi, vel, dur, art);
   else if (style === 'koto') koto(k, out, t, midi, vel, dur, art);
@@ -52,6 +57,7 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   else if (style === 'shamisen') shamisen(k, out, t, midi, vel, dur);
   else if (style === 'kora') kora(k, out, t, midi, vel, dur);
   else if (style === 'balafon') balafon(k, out, t, midi, vel);
+  else if (style === 'tar') tarLead(k, out, t, midi, vel, dur, art);
 }
 
 /** The log drum, the one bass here; `mod` 2 or more slides. */
@@ -78,6 +84,22 @@ export function perc(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
  */
 function tar(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number): void {
   plucked(k, out, t, midi, vel, dur, { pickAt: 0.1, bright: 26, mellow: 8.5, ring: 1.1, body: 2300, level: 0.06, course: 6 });
+}
+
+/**
+ * The tar as the lead: one doubled course picked at a time, a little nearer the middle of
+ * the string than for the drone, so the melody sings over the drone. `art` 1 is the riz, the
+ * plectrum tremoloing a held note (down and up strokes, the up a little lighter), the way
+ * a tar player sustains one.
+ */
+function tarLead(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number): void {
+  const pick = (at: number, v: number, d: number): void => plucked(k, out, at, midi, v, d, { pickAt: 0.13, bright: 24, mellow: 7, ring: 1.3, body: 2100, level: 0.085, course: 5 });
+  if (art === 1 && dur > 0.35) {
+    const n = Math.min(24, Math.floor(dur / 0.075));
+    for (let i = 0; i < n; i++) pick(t + i * 0.075, vel * (i % 2 ? 0.72 : 0.9) * (i === 0 ? 1.1 : 1), i === n - 1 ? Math.max(0.2, dur - i * 0.075) : 0.16);
+  } else {
+    pick(t, vel, dur);
+  }
 }
 
 /**
@@ -277,17 +299,55 @@ function windFlute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: nu
   noiseAt(k, t, dur + 0.5).connect(hp).connect(ag).connect(amp);
 }
 
+/** The kamancheh's level against the voice it replaced, and how much of a note's own loudness against the measured trend (KAMANCHEH_RAW) the player keeps. */
+const KAMANCHEH_LEVEL = 0.0342;
+const KAMANCHEH_KEPT = 0.3;
+
+/** A small seeded source, from the station's own, so a tune's notes are the same each time. */
+function seededFrom(k: VoiceKit): () => number {
+  let a = Math.floor(k.rng() * 4294967296) >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * The kamancheh: the bowed string through its skin, the player's left hand choosing the
+ * vibrato, the slur's glide and, on a note the composer bends (`art` 1), a slide or a turn
+ * (lib/lofi-spike-fiddles.ts). A note slurred `from` the one before changes under the same bow.
+ */
+function kamancheh(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined): void {
+  const { ctx } = k;
+  const rand = seededFrom(k);
+  const held = Math.max(0.05, dur);
+  const strength = Math.min(1, Math.max(0, vel));
+  const play = kamanchehPlay({ held, art, slurred: from !== undefined }, rand);
+  const data = bowKamancheh({
+    sr: ctx.sampleRate, f: mtof(midi), from: from === undefined ? undefined : mtof(from), vel: strength, dur: held, seconds: held + 0.3, ...play,
+  }, rand);
+  const expected = KAMANCHEH_RAW[0] + KAMANCHEH_RAW[1] * (strength - 0.5) + KAMANCHEH_RAW[2] * (midi - 72);
+  const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
+  buf.getChannelData(0).set(data);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = KAMANCHEH_LEVEL * (0.55 + 0.45 * strength) * steadyGain(data, ctx.sampleRate, held, expected, KAMANCHEH_KEPT);
+  src.connect(g).connect(out);
+  src.start(t);
+}
+
 /** A bowed string's character: the body's resonances and how it is played (see bowed). */
 interface Bow { formants: ReadonlyArray<readonly [number, number, number]>; vibrato: number; slide: number; noise: number; level: number }
-/** Kamancheh: the Persian spike fiddle, warm and singing. */
-const KAMANCHEH: Bow = { formants: [[600, 5, 1.4], [1300, 6, 1.6], [2600, 4, 1.8]], vibrato: 22, slide: -2, noise: 0.008, level: 0.04 };
 /** Erhu: the Chinese two-string fiddle, its python-skin drum making it nasal and vocal. */
 const ERHU: Bow = { formants: [[850, 4, 1.6], [2000, 8, 2.2], [3400, 3, 2]], vibrato: 30, slide: -3, noise: 0.012, level: 0.038 };
 
 /**
- * A bowed string (kamancheh, erhu): two saws a few cents apart through the body's
- * resonances, bow noise over the top, a deep vibrato that eases in, and with `art` 1 the
- * huayin, a slide up into the note from below.
+ * The erhu: two saws a few cents apart through the body's resonances, bow noise over the
+ * top, a deep vibrato that eases in, and with `art` 1 the huayin, a slide up into the note
+ * from below.
  */
 function bowed(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, b: Bow): void {
   const { ctx } = k;

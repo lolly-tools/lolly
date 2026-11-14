@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The music generator's genres as a person picks them (#/music): each genre's title
- * without its station's family ("Ska", not "Lolly Sings · Ska"), the group the picker
- * lists it under (Lolly Sings or Lofi), and an icon. Most icons come from the shared set
+ * without its station's family ("Ska", not "Lolly Sings · Ska"), the category the picker
+ * lists it under (chill, electronic, classic or international), and an icon. Most icons come from the shared set
  * (lib/icons.ts) or the instrument icons (lib/instrument-icons.ts). The few that only the
  * genre picker draws live here, in the same 24-unit stroke style, so a page that never
  * opens the generator never loads them. The shuffle button's crossing arrows are here
@@ -12,10 +12,10 @@
 import type { LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { icon, type IconName } from './icons.ts';
 import { musicIconBody, strokeSvg, strokeSvgNode, type InstrumentIcon } from './instrument-icons.ts';
-import { LOFI_MOOD_LABEL, LOFI_STATION_MOODS, isSingsMood } from './neurospicy-lofi.ts';
+import { LOFI_MOOD_LABEL } from './neurospicy-lofi.ts';
 
 /** Glyphs only the generator draws. Lucide (ISC): shuffle, disc-3, headphones,
- *  ice-cream-cone, flower, mountain, radio, speaker and castle. Lolly's own: a wrapped sweet. */
+ *  ice-cream-cone, flower, mountain, radio, speaker, castle and sailboat. Lolly's own: a wrapped sweet and a surfboard. */
 const OWN = {
   shuffle: '<path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-7.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/>',
   disc: '<circle cx="12" cy="12" r="10"/><path d="M6 12c0-1.7.7-3.2 1.8-4.2"/><circle cx="12" cy="12" r="2"/><path d="M18 12c0 1.7-.7 3.2-1.8 4.2"/>',
@@ -27,6 +27,8 @@ const OWN = {
   speaker: '<rect width="16" height="20" x="4" y="2" rx="2"/><path d="M12 6h.01"/><circle cx="12" cy="14" r="4"/><path d="M12 14h.01"/>',
   castle: '<path d="M10 5V3"/><path d="M14 5V3"/><path d="M15 21v-3a3 3 0 0 0-6 0v3"/><path d="M18 3v8"/><path d="M18 5H6"/><path d="M22 11H2"/><path d="M22 9v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9"/><path d="M6 3v8"/>',
   candy: '<circle cx="12" cy="12" r="4.5"/><path d="M7.9 10 3 7v10l4.9-3"/><path d="M16.1 10 21 7v10l-4.9-3"/>',
+  surfboard: '<path d="M4 20C4 13 10 5.5 20 4c0 8-7.5 14.5-16 16Z"/><path d="M4 20 20 4"/><path d="m7.5 14.5-2-2"/>',
+  sailboat: '<path d="M22 18H2a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4Z"/><path d="M21 14 10 2 3 14h18Z"/><path d="M10 2v16"/>',
 } as const;
 type OwnGlyph = keyof typeof OWN;
 
@@ -46,6 +48,10 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   fantasy: { own: 'castle' }, dream: { set: 'cloud' }, shoegaze: { set: 'waves' }, synthwave: { set: 'sunburst' },
   acid: { set: 'flask' }, electro: { set: 'cpu' }, dubstep: { inst: 'audioWaveform' }, brostep: { set: 'hammer' },
   dnb: { set: 'timer' }, warm: { set: 'coffee' }, lateNight: { set: 'moon' }, rainy: { set: 'cloudRain' },
+  salsa: { set: 'sparkle' },
+  surf: { own: 'surfboard' }, yacht: { own: 'sailboat' },
+  botanica: { set: 'leaf' },
+  breakbeat: { set: 'scissors' }, funkyHouse: { set: 'aperture' }, ukGarage: { set: 'neuroBeat' }, privateSchool: { set: 'graduationCap' },
 };
 
 /** The shapes of a genre's icon, inside its `<svg>`. */
@@ -66,8 +72,29 @@ export const shuffleIconSvg = (size: number): string => strokeSvg(OWN.shuffle, s
 /** A genre's title in the picker: the style alone, the station's family left to the group heading. */
 export const genreTitle = (mood: LofiMood): string => (mood === 'sings' ? 'Lolly Sings' : LOFI_MOOD_LABEL[mood]);
 
-/** The picker's groups, in the order the player lists the stations. */
-export const GENRE_GROUPS: ReadonlyArray<{ id: 'sings' | 'lofi'; title: string; moods: readonly LofiMood[] }> = [
-  { id: 'sings', title: 'Lolly Sings', moods: LOFI_STATION_MOODS.filter(isSingsMood) },
-  { id: 'lofi', title: 'Lofi', moods: LOFI_STATION_MOODS.filter(m => !isSingsMood(m)) },
-];
+/** The picker's groups, in the order it shows them (Andy, 2026-11-14). */
+export const GENRE_CATEGORIES = ['chill', 'rock', 'soul', 'club', 'bass', 'world'] as const;
+export type GenreCategory = typeof GENRE_CATEGORIES[number];
+
+/** The genres in each group: the Lofi stations and the calm styles; guitar bands and
+ *  roots; the soul, jazz and groove styles; dance music for a club; the bass-heavy and
+ *  synth styles; and the styles of one tradition or place. */
+const GROUP_MOODS: Record<GenreCategory, readonly LofiMood[]> = {
+  chill: ['warm', 'lateNight', 'rainy', 'lofiHouse', 'triphop', 'dream', 'citypop', 'sings', 'fantasy', 'botanica'],
+  rock: ['rock', 'punk', 'grunge', 'stoner', 'metal', 'shoegaze', 'surf', 'country'],
+  soul: ['blues', 'jazz', 'swing', 'soul', 'funk', 'rnb', 'hiphop', 'yacht', 'ska', 'reggae'],
+  club: ['nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'electro', 'privateSchool'],
+  bass: ['dubstep', 'brostep', 'sugar', 'sherbert', 'synthwave', 'chiptune', 'acid'],
+  world: ['persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'spanish', 'straya', 'kpop', 'salsa'],
+};
+
+/** Which group each genre is listed under. */
+export const GENRE_CATEGORY = Object.fromEntries(
+  GENRE_CATEGORIES.flatMap(id => GROUP_MOODS[id].map(mood => [mood, id] as const)),
+) as Record<LofiMood, GenreCategory>;
+
+/** The picker's groups: each category's genres, A to Z by title. */
+export const GENRE_GROUPS: ReadonlyArray<{ id: GenreCategory; moods: readonly LofiMood[] }> = GENRE_CATEGORIES.map(id => ({
+  id,
+  moods: [...GROUP_MOODS[id]].sort((a, b) => genreTitle(a).localeCompare(genreTitle(b), 'en', { sensitivity: 'base' })),
+}));

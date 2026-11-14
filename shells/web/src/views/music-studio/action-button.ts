@@ -6,7 +6,9 @@
  * ("Saved") for three seconds, then goes back; when it fails a short plain sentence
  * appears beside the button, and the button reads it as its description. The view's
  * status line keeps saying the full result for screen readers. The ring stands still
- * under reduced motion (parts/music-studio.css).
+ * under reduced motion (parts/music-studio.css). A button can rest with a glyph of its
+ * own (Download's arrow), keep a caret after its words, and, inside a pill, put its
+ * failure after the pill.
  */
 import { t } from '../../i18n.ts';
 import { iconNode } from '../../lib/icon-node.ts';
@@ -14,6 +16,8 @@ import type { IconName } from '../../lib/icons.ts';
 
 /** How long the "done" state shows before the button goes back. */
 const DONE_MS = 3000;
+/** Each button's failure line gets an id of its own, for aria-describedby. */
+let errorSeq = 0;
 
 export interface ActionButton {
   /** Run `work` with the button busy. Resolves null when the work finished, or the plain
@@ -39,7 +43,19 @@ export function plainFailure(err: unknown, fallback: string): string {
   return fallback;
 }
 
-export function actionButton(btn: HTMLButtonElement, words: { busy: string; done: string; failed: string }): ActionButton {
+export interface ActionWords {
+  busy: string;
+  done: string;
+  failed: string;
+  /** The glyph the button shows at rest, if any. */
+  rest?: IconName;
+  /** A glyph that stays after the words in every state (the caret of a button that opens a menu). */
+  trail?: IconName;
+  /** Where the failure sentence goes: after this element (a pill the button sits in), or after the button. */
+  errorAfter?: HTMLElement;
+}
+
+export function actionButton(btn: HTMLButtonElement, words: ActionWords): ActionButton {
   const rest = { label: btn.textContent?.trim() ?? '' };
   const icon = document.createElement('span');
   icon.className = 'ms-act-icon';
@@ -48,12 +64,20 @@ export function actionButton(btn: HTMLButtonElement, words: { busy: string; done
   label.className = 'ms-act-label';
   label.textContent = rest.label;
   btn.replaceChildren(icon, label);
+  if (words.trail) {
+    const trail = document.createElement('span');
+    trail.className = 'ms-act-trail';
+    trail.setAttribute('aria-hidden', 'true');
+    const g = iconNode(words.trail);
+    if (g) trail.append(g);
+    btn.append(trail);
+  }
   btn.classList.add('ms-act');
   const error = document.createElement('span');
   error.className = 'ms-act-error';
-  error.id = `${btn.dataset.download !== undefined ? 'ms-download' : 'ms-save'}-error`;
+  error.id = `ms-act-error-${++errorSeq}`;
   error.hidden = true;
-  btn.after(error);
+  (words.errorAfter ?? btn).after(error);
   let timer: ReturnType<typeof setTimeout> | undefined;
 
   const show = (state: 'rest' | 'busy' | 'done' | 'failed', text: string, glyph: IconName | 'ring' | null): void => {
@@ -66,7 +90,7 @@ export function actionButton(btn: HTMLButtonElement, words: { busy: string; done
   };
   const reset = (): void => {
     clearTimeout(timer);
-    show('rest', rest.label, null);
+    show('rest', rest.label, words.rest ?? null);
     btn.removeAttribute('aria-busy');
   };
   reset();

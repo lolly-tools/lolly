@@ -11,6 +11,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { previewMix, previewState, sectionsFor, instrumentName, instrumentWord } from './instrument-browser.ts';
 import { composeTrack, parseMusicState } from '../../lib/music-state.ts';
+import { instrumentsOf } from '../../lib/music-prefs.ts';
 
 test('a card previews its instrument in the chosen kind of section, and the track stays as it is', () => {
   const state = parseMusicState('style=ska&seed=4&bars=64&lead=clarinet');
@@ -20,6 +21,13 @@ test('a card previews its instrument in the chosen kind of section, and the trac
   assert.equal(state.sections.drop, undefined, 'the generator\'s own state is not changed');
   const bars = composeTrack(s);
   assert.ok(bars.filter(b => b.section === 'drop').every(b => b.voices?.lead === 'flute'));
+});
+
+test('the browser has no card for the retired soft lead, and a preview that asks for the soft lead plays the flute', () => {
+  assert.ok(!instrumentsOf('lead').includes('soft'), 'the cards are instrumentsOf, which leaves it out');
+  const s = previewState(parseMusicState('style=citypop&seed=4&bars=64'), 'lead', 'soft', 'drop');
+  assert.equal(s.sections.drop?.lead, 'flute');
+  assert.ok(composeTrack(s).filter(b => b.section === 'drop').every(b => b.voices?.lead === 'flute'));
 });
 
 test('the composer\'s card takes away the person\'s choices for that part', () => {

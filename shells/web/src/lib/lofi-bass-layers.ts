@@ -4,39 +4,51 @@
  * and under the soar's harmony:
  * - the travelling line: two saws a few cents apart and a square an octave down, through
  *   a low-pass that opens on each new note and settles, gliding from the note before when
- *   it follows straight on, as a mono synth's portamento does;
+ *   it follows straight on, as a mono synth's portamento does (in a bass stack, the two
+ *   saws a pair of takes, one each side, over the stack's sub);
  * - the percussive bass: a short punch of frequency modulation (the modulator at the
  *   note, its depth falling away in 80 ms, so the note starts bright and knocks) over a
  *   square through a fast-closing filter, with a click.
  */
 import { EPS, mtof, noiseAt, osc, type VoiceKit } from './lofi-voices.ts';
 
-/** The travelling line, at `midi`, gliding from `from` (a MIDI note) when it follows straight on. */
-export function travel(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, from?: number): void {
+/**
+ * The travelling line, at `midi`, gliding from `from` (a MIDI note) when it follows straight
+ * on. In a bass stack (lib/lofi-bass-stack.ts) its two saws are a pair of takes, one into
+ * each of `wide`, and the square under them is left out: the stack's sub carries the weight.
+ */
+export function travel(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, from?: number, wide?: readonly [AudioNode, AudioNode]): void {
   const { ctx } = k;
   const f = mtof(midi);
   const len = Math.max(0.06, dur);
   const end = t + len + 0.08;
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.Q.value = 4;
-  if (from === undefined) {
-    lp.frequency.setValueAtTime(1700 * (0.7 + vel * 0.5), t);
-    lp.frequency.exponentialRampToValueAtTime(650, t + 0.16);
-  } else lp.frequency.setValueAtTime(800, t);
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(TRAVEL_LEVEL * vel, t + (from === undefined ? 0.006 : 0.02));
-  amp.gain.setTargetAtTime(EPS, t + len, 0.03);
-  lp.connect(amp).connect(out);
+  const filtered = (to: AudioNode): BiquadFilterNode => {
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = 4;
+    if (from === undefined) {
+      lp.frequency.setValueAtTime(1700 * (0.7 + vel * 0.5), t);
+      lp.frequency.exponentialRampToValueAtTime(650, t + 0.16);
+    } else lp.frequency.setValueAtTime(800, t);
+    const amp = ctx.createGain();
+    amp.gain.setValueAtTime(EPS, t);
+    amp.gain.exponentialRampToValueAtTime(TRAVEL_LEVEL * vel, t + (from === undefined ? 0.006 : 0.02));
+    amp.gain.setTargetAtTime(EPS, t + len, 0.03);
+    lp.connect(amp).connect(to);
+    return lp;
+  };
+  const lps = wide ? [filtered(wide[0]), filtered(wide[1])] : [filtered(out)];
   const start = from === undefined ? f : mtof(from);
-  for (const [type, ratio, cents, level] of [['sawtooth', 1, -8, 0.5], ['sawtooth', 1, 8, 0.5], ['square', 0.5, 0, 0.45]] as const) {
+  const parts = wide
+    ? [['sawtooth', 1, -8, 0.5, 0], ['sawtooth', 1, 8, 0.5, 1]] as const
+    : [['sawtooth', 1, -8, 0.5, 0], ['sawtooth', 1, 8, 0.5, 0], ['square', 0.5, 0, 0.45, 0]] as const;
+  for (const [type, ratio, cents, level, side] of parts) {
     const o = osc(k, type, start * ratio, t, end);
     if (from !== undefined) o.frequency.exponentialRampToValueAtTime(f * ratio, t + 0.05);
     o.detune.value = cents;
     const g = ctx.createGain();
     g.gain.value = level;
-    o.connect(g).connect(lp);
+    o.connect(g).connect(lps[side]!);
   }
 }
 /** The travelling line's level against the main bass. */

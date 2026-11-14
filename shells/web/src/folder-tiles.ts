@@ -17,7 +17,7 @@ import { tRaw } from './i18n.ts';
 // re-exported here so existing importers (folder-overlay, projects) are unchanged.
 export { BATCH_SLOT_PREFIX, isBatchSlot } from './lib/batch-slots.ts';
 // Local binding for isBatchSlot used below (a re-export creates no in-scope name).
-import { isBatchSlot } from './lib/batch-slots.ts';
+import { isBatchSlot, isMusicSlot } from './lib/batch-slots.ts';
 
 /** A host.state.list() row as the tiles read it. */
 export interface SessionEntry {
@@ -178,7 +178,9 @@ export function sessionTile(entry: SessionEntry, { toolName = '', sizeBytes = 0,
   }
 
   const badges = [
-    entry.slot.startsWith('__learning__:') ? '<span class="tile-badge tile-badge--type">Learning module</span>' : batch ? '<span class="tile-badge tile-badge--type">Batch</span>' : fmtBadge(format),
+    entry.slot.startsWith('__learning__:') ? '<span class="tile-badge tile-badge--type">Learning module</span>'
+      : isMusicSlot(entry.slot) ? '<span class="tile-badge tile-badge--type">Music</span>'
+        : batch ? '<span class="tile-badge tile-badge--type">Batch</span>' : fmtBadge(format),
     dimBadge(width, height, unit),
     batch ? rowCountBadge(meta.rowCount) : '',
     sizeBytes ? `<span class="tile-badge tile-badge--size">${fmtBytes(sizeBytes)}</span>` : '',
@@ -193,7 +195,7 @@ export function sessionTile(entry: SessionEntry, { toolName = '', sizeBytes = 0,
     openLabel: shared?.openLabel ?? (batch ? `Open batch ${title}` : `Resume ${title}`),
     selectable, selected, href,
     cols: cols ?? {
-      kind: batch ? 'Batch' : (toolName || 'Session'),
+      kind: batch ? 'Batch' : isMusicSlot(entry.slot) ? 'Music' : (toolName || 'Session'),
       count: sizeBytes ? fmtBytes(sizeBytes) : '',
       when: relativeTime(entry.updatedAt),
     },

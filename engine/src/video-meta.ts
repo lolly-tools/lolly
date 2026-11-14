@@ -31,6 +31,8 @@ export interface VideoProvenanceTags {
   encoder: string;
   encodedBy: string;
   publisher: string;
+  /** The iTunes `desc` item, which players and ffprobe show as the description. Absent: not written. */
+  description?: string;
 }
 
 interface BoxInfo {
@@ -196,6 +198,7 @@ export function embedMp4Meta(bytes: Uint8Array, tags: VideoProvenanceTags): Uint
   if (tags.artist)    items.push(ilstItem('©ART', tags.artist));
   if (tags.date)      items.push(ilstItem('©day', tags.date));
   if (tags.comment)   items.push(ilstItem('©cmt', tags.comment));
+  if (tags.description) items.push(ilstItem('desc', tags.description));
   if (tags.encoder)   items.push(ilstItem('©too', tags.encoder));
   if (tags.publisher) items.push(freeform('PUBLISHER', tags.publisher));
   if (!items.length) return bytes;

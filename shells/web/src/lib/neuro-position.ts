@@ -28,6 +28,9 @@ export function sectionWord(name: string): string {
     // Kept in English: the catalogs already hold "Drop" for drag and drop, and a dance
     // track's drop is called a drop in most languages.
     case 'drop': return 'Drop';
+    // Botanica's drop and break: where it blooms, and the clearing where the time goes free.
+    case 'bloom': return t('Bloom');
+    case 'clearing': return t('Clearing');
     case 'outro': return t('Outro');
     default: return '';
   }

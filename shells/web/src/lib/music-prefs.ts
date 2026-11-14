@@ -14,7 +14,7 @@
  * DOM, so the tests can run every rule.
  */
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { composeLofiTune, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
+import { composeLofiTune, isOverNote, isRetiredLead, liveLead, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, type MusicState } from './music-state.ts';
 import { instrumentIcon, type InstrumentIcon } from './instrument-icons.ts';
 
@@ -22,9 +22,9 @@ import { instrumentIcon, type InstrumentIcon } from './instrument-icons.ts';
 export type MusicPart = 'keys' | 'lead' | 'bass';
 export const MUSIC_PARTS: readonly MusicPart[] = ['lead', 'keys', 'bass'];
 
-/** Every instrument a part can play, in the composer's order ('none' is not one). */
+/** Every instrument a part can play, in the composer's order ('none' is not one, and nor is a retired lead). */
 export function instrumentsOf(part: MusicPart): readonly string[] {
-  return (part === 'keys' ? LOFI_KEYS : part === 'lead' ? LOFI_LEADS : LOFI_BASSES).filter(v => v !== 'none');
+  return (part === 'keys' ? LOFI_KEYS : part === 'lead' ? LOFI_LEADS : LOFI_BASSES).filter(v => v !== 'none' && !isRetiredLead(v));
 }
 
 // ── families ─────────────────────────────────────────────────────────────────
@@ -106,6 +106,30 @@ export function setShuffleGenres(profile: Profile, on: boolean): void {
   keepMusic(profile, music);
 }
 
+// ── the genres played lately ─────────────────────────────────────────────────
+
+/** How many genres the picker's Recent row holds. */
+export const RECENT_GENRES = 6;
+const GENRE_ID = /^[a-z][a-zA-Z0-9]*$/;
+
+/** The genres played lately, newest first, each once, from the profile. Ids this build
+ *  does not know (a genre added by a later version) are kept, so saving here never drops
+ *  them; the picker shows only the ones it has a card for. */
+export function loadRecentGenres(profile: Profile | null | undefined): string[] {
+  const list = profile?.music?.recentGenres;
+  const ids = Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string' && GENRE_ID.test(x)) : [];
+  return [...new Set(ids)].slice(0, RECENT_GENRES);
+}
+
+/** Put a genre at the front of the Recent row on the profile record (the caller then saves
+ *  the record). Returns false, and leaves the record alone, when the genre is already first. */
+export function noteRecentGenre(profile: Profile, genre: string): boolean {
+  const recent = loadRecentGenres(profile);
+  if (recent[0] === genre || !GENRE_ID.test(genre)) return false;
+  keepMusic(profile, { ...profile.music, recentGenres: [genre, ...recent.filter(g => g !== genre)].slice(0, RECENT_GENRES) });
+  return true;
+}
+
 // ── what a style plays ───────────────────────────────────────────────────────
 
 /** Tunes of a style read to learn its instruments: enough to meet the rarer ones. */
@@ -113,17 +137,22 @@ const STYLE_SEEDS = 24;
 const styleCache = new Map<LofiMood, Record<MusicPart, string[]>>();
 
 /** The instruments a part plays where it has notes in `bars`, by kind of section: each
- *  bar's own instrument, or the tune's, and a drop's doubling of the lead. */
-export function heardBySection(bars: readonly LofiBar[], part: MusicPart): Map<string, string[]> {
+ *  bar's own instrument, or the tune's, a drop's doubling of the lead and, unless `over` is
+ *  false, the bass laid over a bar's bass (the croak, which also calls in a build). */
+export function heardBySection(bars: readonly LofiBar[], part: MusicPart, over = true): Map<string, string[]> {
   const out = new Map<string, string[]>();
   for (const bar of bars) {
-    if (bar.section === 'rest' || !bar.notes.some(n => n.voice === part)) continue;
+    if (bar.section === 'rest') continue;
     const list = out.get(bar.section) ?? [];
-    const own = bar.voices?.[part] ?? bar.tune.style[part];
-    if (!list.includes(own)) list.push(own);
-    const double = part === 'lead' ? bar.voices?.double : undefined;
-    if (double && !list.includes(double)) list.push(double);
-    out.set(bar.section, list);
+    if (bar.notes.some(n => n.voice === part)) {
+      const own = bar.voices?.[part] ?? bar.tune.style[part];
+      if (!list.includes(own)) list.push(own);
+      const double = part === 'lead' ? bar.voices?.double : undefined;
+      if (double && !list.includes(double)) list.push(double);
+    }
+    const laid = part === 'bass' && over ? bar.voices?.over : undefined;
+    if (laid && bar.notes.some(isOverNote) && !list.includes(laid)) list.push(laid);
+    if (list.length) out.set(bar.section, list);
   }
   return out;
 }
@@ -140,7 +169,8 @@ export function styleInstruments(mood: LofiMood, part: MusicPart): readonly stri
     for (let n = 1; n <= STYLE_SEEDS; n++) {
       const bars = composeLofiTune((n * 2654435761) >>> 0, mood);
       for (const p of MUSIC_PARTS) {
-        for (const list of heardBySection(bars, p).values()) for (const id of list) counts[p].set(id, (counts[p].get(id) ?? 0) + 1);
+        // A bass laid over another (the croak) is not one the style plays on its own, so never a substitute.
+        for (const list of heardBySection(bars, p, false).values()) for (const id of list) counts[p].set(id, (counts[p].get(id) ?? 0) + 1);
       }
     }
     const ranked = (m: Map<string, number>): string[] => [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([id]) => id);
@@ -187,10 +217,12 @@ export function substituteFor(prefs: MusicPrefs, mood: LofiMood, part: MusicPart
   return from.length ? from[salt(seed, part, section) % from.length] : undefined;
 }
 
-/** Set a part's instrument for the whole track, or for one kind of section: only a name the part knows. */
+/** Set a part's instrument for the whole track, or for one kind of section: only a name the
+ *  part knows, a retired lead's name setting the lead that took its place. */
 export function setPartInstrument(s: MusicState, part: MusicPart, id: string | undefined, section?: string): void {
   const keys = part === 'keys' ? LOFI_KEYS.find(x => x === id) : undefined;
-  const lead = part === 'lead' ? LOFI_LEADS.find(x => x === id) : undefined;
+  const named = part === 'lead' ? LOFI_LEADS.find(x => x === id) : undefined;
+  const lead = named && liveLead(named);
   const bass = part === 'bass' ? LOFI_BASSES.find(x => x === id) : undefined;
   if (section === undefined) {
     if (part === 'keys') s.keys = keys;
@@ -222,7 +254,9 @@ const copyState = (s: MusicState): MusicState => ({
  *
  * When the blocked instrument is a tune's own (heard across the track), the replacement
  * is set for the whole track; when only a section's change of instrument is blocked
- * (an intro's lead, a drop's doubling), it is set for that kind of section alone.
+ * (an intro's lead, a drop's doubling, a bass answering the drop's own, the croak laid
+ * over a bass), it is set for that kind of section alone, where a chosen instrument plays
+ * without a doubling, an answer or anything laid over the chosen one.
  */
 export function avoidBlocked(state: MusicState, prefs: MusicPrefs): { state: MusicState; swaps: MusicSwap[] } {
   const swaps: MusicSwap[] = [];
