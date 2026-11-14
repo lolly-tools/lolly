@@ -21,9 +21,10 @@ function peak(x: Float32Array, hz: number, span: number, a: number, b: number): 
 }
 const drone = (seconds: number): DidgeEvent[] => [{ at: 0, dur: seconds, art: DIDGE_DRONE, vel: 0.6, role: 0 }];
 
-test('every kind of yidaki drones in tune on its note, its odd harmonics strong and its even ones weak', () => {
+test('every kind drones in tune on its note, its odd harmonics strong and its even ones weak', () => {
   for (let kind = 0; kind < YIDAKI.length; kind++) {
-    for (const midi of [34, 39, 45]) {
+    // Each instrument across its own range: the Didgeridoo low, the Yidaki higher.
+    for (const midi of YIDAKI[kind]!.family === 'yidaki' ? [34, 41, 47] : [29, 34, 40]) {
       const f = mtof(midi);
       const x = new Didgeridoo({ sr: SR, f, seed: 3, variant: kind }).render(drone(1.6), 1.6);
       assert.ok(x.every(Number.isFinite), `kind ${kind} ${midi}: finite`);
@@ -78,4 +79,25 @@ test('the same notes and seed blow the same bytes', () => {
   const f = mtof(40);
   const n = drone(0.4);
   assert.deepEqual(new Didgeridoo({ sr: SR, f, seed: 4, variant: 3 }).render(n, 0.4), new Didgeridoo({ sr: SR, f, seed: 4, variant: 3 }).render(n, 0.4));
+});
+
+test('the Yidaki is the brighter instrument, its toot higher and stronger; the Didgeridoo the darker, its toot softer and lower', () => {
+  const f = mtof(36);
+  const band = (x: Float32Array, at: number, a: number, b: number, lo: number, hi: number): number => {
+    let s = 0;
+    for (let k = 1; k * at < hi; k++) if (k * at >= lo) s += 10 ** (level(x, k * at, a, b) / 10);
+    return 10 * Math.log10(s + 1e-30);
+  };
+  const of = (kind: number) => {
+    const x = new Didgeridoo({ sr: SR, f, seed: 4, variant: kind }).render([...drone(1), { at: 1, dur: 0.3, art: DIDGE_TOOT, vel: 0.8, role: 1 }, { at: 1.3, dur: 0.5, art: DIDGE_DRONE, vel: 0.6, role: 0 }], 1.8);
+    const at = peak(x, f, 0.04, 0.4, 0.95);
+    const rms = (a: number, b: number): number => { let s = 0; for (let i = Math.floor(a * SR); i < Math.floor(b * SR); i++) s += x[i]! ** 2; return 10 * Math.log10(s / ((b - a) * SR)); };
+    return { bright: band(x, at, 0.4, 0.95, 800, 3200) - level(x, at, 0.4, 0.95), toot: YIDAKI[kind]!.second, up: rms(1.05, 1.25) - rms(0.6, 0.95) };
+  };
+  const deep = [0, 1, 3].map(of), bright = [2, 4].map(of);
+  for (const d of deep) for (const b of bright) {
+    assert.ok(b.bright > d.bright + 4, `brighter by ${(b.bright - d.bright).toFixed(1)} dB above 800 Hz`);
+    assert.ok(b.toot > d.toot, 'the Yidaki\'s toot sits higher over its drone');
+    assert.ok(b.up > d.up + 1, `the Yidaki's toot ${b.up.toFixed(1)} dB up against the Didgeridoo's ${d.up.toFixed(1)}`);
+  }
 });

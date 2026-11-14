@@ -128,10 +128,10 @@ const SECTIONS_KEY = 'lolly:musicSections';
 
 const clock = (sec: number): string => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, '0')}`;
 
-/** Which track a note is drawn in: Straya's didgeridoo with the bass, its solo with the lead (engine/src/lofi-straya.ts). */
+/** Which track a note is drawn in: Straya's didgeridoo rhythm with the chords, its solo with the lead (engine/src/lofi-straya.ts). */
 function trackOf({ voice, mod }: { voice: string; mod?: number }): Track {
   if (DRUM_VOICES.has(voice)) return 'drums';
-  if (voice === 'didge') return readDidge(mod ?? 0).role === DIDGE_LEAD ? 'lead' : 'bass';
+  if (voice === 'didge') return readDidge(mod ?? 0).role === DIDGE_LEAD ? 'lead' : 'keys';
   if (voice === 'soar' || voice === 'bwah' || voice === 'layer') return 'bass';
   return voice === 'keys' || voice === 'lead' || voice === 'bass' ? voice : 'fx';
 }

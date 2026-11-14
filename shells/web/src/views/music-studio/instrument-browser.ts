@@ -5,7 +5,8 @@
  * or row, or from a section in a lane: a sheet from the bottom on a phone, and a panel at
  * the side on a wider screen, where the timeline stays usable beside the panel.
  *
- * Instruments are cards grouped by family. A card plays two bars of this tune's part, in
+ * Instruments are cards grouped by family, a card with a line under its name where the name
+ * alone says too little (lib/lofi-names.ts LOFI_INSTRUMENT_LINE). A card plays two bars of this tune's part, in
  * the kind of section chosen at the top, on that instrument: a small station of the
  * generator's own (lib/lofi-station.ts) started at that section, with the instrument set
  * there and the other parts turned down, stopped after two bars. "Use here" sets the
@@ -25,7 +26,7 @@ import { escape as escapeHtml } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
 import { mountModal, type ModalHandle } from '../../components/modal.ts';
 import { instrumentIcon, musicIconNode } from '../../lib/instrument-icons.ts';
-import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME, LOFI_SNARE_NAME, LOFI_HATS_NAME } from '../../lib/lofi-names.ts';
+import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME, LOFI_SNARE_NAME, LOFI_HATS_NAME, LOFI_INSTRUMENT_LINE } from '../../lib/lofi-names.ts';
 import { LOFI_KITS, LOFI_KIT_NAME } from '../../lib/lofi-drums.ts';
 import { LofiStation, type LofiMix } from '../../lib/lofi-station.ts';
 import { composeTrack, trackSettings, type MusicState } from '../../lib/music-state.ts';
@@ -163,7 +164,7 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
     <li class="msb-card" data-card="${escapeHtml(id)}">
       <button type="button" class="msb-main" data-preview="${escapeHtml(id)}" aria-pressed="false" aria-label="${escapeHtml(name)}" aria-describedby="${stateId(id)} msb-how-${n}">
         <span class="msb-icon" aria-hidden="true">${id ? '' : icon('sparkle', { size: 18 })}</span>
-        <span class="msb-text"><span class="msb-name">${escapeHtml(name)}</span><span class="msb-state" id="${stateId(id)}"></span></span>
+        <span class="msb-text"><span class="msb-name">${escapeHtml(name)}</span>${LOFI_INSTRUMENT_LINE[id] ? `<span class="msb-line">${escapeHtml(t(LOFI_INSTRUMENT_LINE[id]))}</span>` : ''}<span class="msb-state" id="${stateId(id)}"></span></span>
         ${playGlyph}
       </button>
       ${toggles ? `

@@ -269,3 +269,18 @@ test('the Recent row: newest first, each genre once, six at most, and a repeat o
   const stored = { music: { recentGenres: ['ska', 'ska', 42, '<b>', 'newGenreFromLater'] } } as unknown as Profile;
   assert.deepEqual(loadRecentGenres(stored), ['ska', 'newGenreFromLater'], 'junk dropped, a later build\'s genre kept');
 });
+
+test('an old link\'s yidaki bass plays the Didgeridoo, and a track given to either instrument plays on its one note', () => {
+  const old = parseMusicState('style=straya&seed=7&bass=yidaki&drop.bass=yidaki');
+  assert.equal(old.bass, 'didgeridoo');
+  assert.equal(old.sections.drop?.bass, 'didgeridoo');
+  assert.ok(musicStateParams(old).includes('bass=didgeridoo'));
+  // A star or a block on the old bass carries over to the Didgeridoo.
+  assert.ok(isBlocked(loadMusicPrefs({ music: { blocked: ['bass:yidaki'] } } as Profile), 'bass', 'didgeridoo'));
+  for (const q of ['style=country&seed=3&bars=16&keys=yidaki', 'style=country&seed=3&bars=16&lead=yidaki', 'style=rock&seed=4&bars=16&verse.bass=didgeridoo']) {
+    const track = q.includes('keys=') ? 'keys' : q.includes('lead=') ? 'lead' : 'bass';
+    const bars = composeTrack(parseMusicState(q)).filter(b => (track !== 'bass' || b.section === 'verse') && b.notes.some(n => n.voice === track));
+    assert.ok(bars.length > 0, `${q}: the track plays`);
+    for (const b of bars) assert.equal(new Set(b.notes.filter(n => n.voice === track).map(n => n.midi)).size, 1, `${q} bar ${b.index}: one note`);
+  }
+});

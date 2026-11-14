@@ -1102,7 +1102,7 @@ export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'croak') { stringSlap(k, out, t, midi, vel, dur, Math.round(mod), tone, true); return; }   // the raw, buzzy string: bubbling, sliding, bending
   if (style === 'eight') { eightOhEight(k, out, t, midi, vel, dur, mod >= 2, tone); return; }
   if (style === 'acid') { acid(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
-  if (style === 'yidaki') { yidaki(k, out, t, midi, vel, dur, Math.round(mod)); return; }
+  if (style === 'didgeridoo') { didgeridoo(k, out, t, midi, vel, dur, Math.round(mod)); return; }
   const { ctx } = k;
   const f = mtof(midi);
   const end = t + dur + 0.3;
@@ -1890,10 +1890,10 @@ export function kookaburra(k: VoiceKit, out: AudioNode, t: number, midi: number,
 }
 
 /**
- * A yidaki note on its own (lib/lofi-didgeridoo.ts), blown afresh: a station plays its yidaki on
- * one player that carries from note to note (lib/lofi-didge-player.ts); this is for anything else.
+ * A Didgeridoo note on its own (lib/lofi-didgeridoo.ts), blown afresh: a station plays its
+ * didgeridoos on players that carry from note to note (lib/lofi-didge-player.ts); this is for anything else.
  */
-function yidaki(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number): void {
+function didgeridoo(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number): void {
   new DidgePlayer().play(k, out, t, midi, vel, dur, mod, Math.floor(k.rng() * 4294967296));
 }
 

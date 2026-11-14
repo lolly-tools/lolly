@@ -158,11 +158,11 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
   // so they take most of the measured difference, not the whole difference. The electric
   // guitars (the keys' electric and the lead guitars) set their own level, as their
   // velocity chooses how hard the string is picked (lib/lofi-lead-guitars.ts).
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 1, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1, strings: 1, grand: 1, surf: 1, combo: 2.2, houseOrgan: 1, horns: 1 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 1, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1, strings: 1, grand: 1, surf: 1, combo: 2.2, houseOrgan: 1, horns: 1, didgeridoo: 0.7, yidaki: 0.7 },
   lead: { vibes: 1, flute: 0.82, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 1, overdrive: 1, synthwave: 0.86, metal: 1, panflute: 0.56, nylon: 1.9, riff: 1, twang: 1, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1,
-    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1 },
+    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
-  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, yidaki: 1.1, log: 1, deep: 1, warp: 1, tuba: 1 },
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
   hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
@@ -740,6 +740,8 @@ export class LofiStation {
       case 'keys': {
         // A future-bass chord's movement (engine/src/lofi-future.ts): its wub is swings a beat (the voice wants Hz).
         const m = note.mod ?? 0;
+        // The chords given to the Didgeridoo or the Yidaki: a rhythm on its one note (music-state.ts shapeBar).
+        if (keysV === 'didgeridoo' || keysV === 'yidaki') { this.didge.play(k, lanes.keys, t, note.midi, note.vel, len, m, bar.tune.seed, bar.level * VARIANT.keys[keysV], 'keys'); break; }
         if (keysV === 'surf') SF.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys.surf, len, m);
         else if (keysV === 'combo') CO.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys.combo, len);
         else if (G.GUITAR_KEYS.has(keysV)) G.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, m);
@@ -767,8 +769,8 @@ export class LofiStation {
         const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
         const level = vel * VARIANT.bass[bassV] * 10 ** ((BASS_SEAT[bar.tune.mood] ?? 0) / 20);
-        // The yidaki: the didgeridoo's drone, on the one player that also plays its rhythm and solo.
-        if (bassV === 'yidaki') { this.didge.play(k, lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * VARIANT.bass.yidaki); break; }
+        // The Didgeridoo: its drone, on the player that also plays its rhythm when the drone turns into one.
+        if (bassV === 'didgeridoo') { this.didge.play(k, lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * VARIANT.bass.didgeridoo); break; }
         const tone = { bright: st.bright ?? 1, drive: st.drive ?? 1 };
         const take: BS.Take = (kit, out, at, midi, lvl, tn) => {
           // The tuba blows as hard as the note says; its seat is only a level.
@@ -793,6 +795,8 @@ export class LofiStation {
         // melody on a lead the band does not play goes on as any lead does.
         if (bar.tune.mood === 'oompa' && OB.line(k, lanes.lead, bar, t, note.midi, vel, len, note.mod ?? 0, leadV)) break;
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
+        // The melody given to the Yidaki: its phrases played as calls, toots and sweeps on its one note (music-state.ts shapeBar).
+        if (leadV === 'yidaki') { this.didge.play(k, this.leadSeat(lanes.lead, bar.tune.mood, 'didge'), t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift * VARIANT.lead.yidaki, 'lead'); break; }
         // A note that starts as the last one ends, on the same instrument, is slurred onto
         // it: a wind glides from that pitch instead of tonguing a new attack.
         // A jazz soloist lays back: the lead's notes on the beat sit a little behind it, the
@@ -851,10 +855,10 @@ export class LofiStation {
         break;
       }
       case 'didge': {
-        // Straya's didgeridoo over the band: its rhythm with the bass, its solo in the lead's seat.
+        // Straya's didgeridoos over the band: the rhythm with the chords, the solo in the lead's seat.
         const solo = readDidge(note.mod ?? 0).role === DIDGE_LEAD;
         const lift = solo && SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
-        this.didge.play(k, solo ? this.leadSeat(lanes.lead, bar.tune.mood, 'didge') : lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift * (DIDGE_CAMEO_LEVEL[bar.tune.mood] ?? 1));
+        this.didge.play(k, solo ? this.leadSeat(lanes.lead, bar.tune.mood, 'didge') : lanes.keys, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift * (DIDGE_CAMEO_LEVEL[bar.tune.mood] ?? 1));
         break;
       }
       case 'fill': {
