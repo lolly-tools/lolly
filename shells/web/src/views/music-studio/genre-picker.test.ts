@@ -56,7 +56,7 @@ test('search matches the start of any word in a title, whatever the case or acce
   assert.deepEqual(find('ROCK'), find('rock'), 'any case');
   assert.deepEqual(find('ouse'), [], 'not from the middle of a word');
   assert.deepEqual(find('lofi h'), ['Lofi house'], 'across a space');
-  assert.deepEqual(find('pop'), ['City pop', 'K-pop'], 'after a hyphen too');
+  assert.deepEqual(find('pop'), ['C-Pop', 'City pop', 'K-pop'], 'after a hyphen too');
   assert.equal(matchesGenre('Música', 'musica'), true, 'accents fold');
   assert.equal(matchesGenre('Musica', 'Mús'), true);
   assert.equal(find('').length, titles.length, 'an empty search shows every genre');

@@ -13,6 +13,7 @@ import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { genreHeroHtml, lockLine, wireGenreLock } from './genre-hero.ts';
 import { shuffleMusic } from '../../lib/music-shuffle.ts';
+import { linkLocksGenre, withGenreLock } from '../../lib/music-state.ts';
 import type { LofiMood } from '../../../../../engine/src/lofi-compose.ts';
 
 /** A seeded random source, so the shuffles replay. */
@@ -72,4 +73,13 @@ test('a change of genre lights the button only without reduced motion asked for'
   const css = readFileSync(new URL('../../styles/parts/music-studio.css', import.meta.url), 'utf8');
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{\n\s+\.ms-genre\.is-lit/);
   assert.match(css, /html\[data-a11y-motion="reduce"\] \.ms-genre\.is-lit/);
+});
+
+test('a link can carry the genre lock, so whoever opens a shared link shuffles in the same genre', () => {
+  assert.equal(linkLocksGenre('style=straya&seed=6&lock=genre'), true);
+  assert.equal(linkLocksGenre('#/music?style=straya&lock=genre'), true, 'read from a whole hash too');
+  assert.equal(linkLocksGenre('style=straya&seed=6'), false, 'no lock in the link: the person\'s own preference decides');
+  assert.equal(linkLocksGenre('lock=drums,genre'), true, 'lock takes a list');
+  assert.equal(withGenreLock('style=sugar&seed=1', true), 'style=sugar&seed=1&lock=genre');
+  assert.equal(withGenreLock('style=sugar&seed=1', false), 'style=sugar&seed=1');
 });

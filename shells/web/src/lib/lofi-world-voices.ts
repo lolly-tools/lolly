@@ -14,12 +14,15 @@
  * waveform with its pick position's missing harmonics through a closing filter and the
  * body's resonance (a modelled string loop cannot reach these pitches, because a delay
  * in a feedback loop is held to at least one 128-sample block), bars and drums as their
- * measured modes ringing down, flutes and the erhu as a source through the body's
- * filters with breath or bow noise. The kamancheh is worked out in JS a note at a time
- * instead: the fiddle's bowed string through a skin body (lib/lofi-spike-fiddles.ts).
+ * measured modes ringing down, flutes as a source through the body's filters with
+ * breath noise. The kamancheh and the erhu are worked out in JS a note
+ * at a time instead: the fiddle's bowed string through a skin body (lib/lofi-spike-fiddles.ts,
+ * lib/lofi-erhu.ts).
  */
 import type { LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { KAMANCHEH_RAW, bowKamancheh, kamanchehPlay, steadyGain } from './lofi-spike-fiddles.ts';
+import { ERHU_RAW, ERHU_REST, bowErhu, erhuPlay } from './lofi-erhu.ts';
+import { playDizi } from './lofi-dizi.ts';
 import { EPS, mtof, noiseAt, osc, plucked, vibrato, drivenBy, metalAt, crack, PLAIN_TONE, type Tone, type VoiceKit } from './lofi-voices.ts';
 
 /** The keys this module plays. */
@@ -48,9 +51,9 @@ export function lead(style: LofiStyle['lead'], k: VoiceKit, out: AudioNode, t: n
   if (style === 'santur') santur(k, out, t, midi, vel, dur, art);
   else if (style === 'ney') windFlute(k, out, t, midi, vel, dur, art, NEY);
   else if (style === 'shakuhachi') windFlute(k, out, t, midi, vel, dur, art, SHAKUHACHI);
-  else if (style === 'dizi') windFlute(k, out, t, midi, vel, dur, art, DIZI);
+  else if (style === 'dizi') playDizi(k, out, t, midi, vel, dur, art, from);
   else if (style === 'kamancheh') kamancheh(k, out, t, midi, vel, dur, art, from);
-  else if (style === 'erhu') bowed(k, out, t, midi, vel, dur, art, ERHU);
+  else if (style === 'erhu') erhu(k, out, t, midi, vel, dur, art, from);
   else if (style === 'zheng') zheng(k, out, t, midi, vel, dur, art);
   else if (style === 'koto') koto(k, out, t, midi, vel, dur, art);
   else if (style === 'pipa') pipa(k, out, t, midi, vel, dur, art);
@@ -75,8 +78,8 @@ export function perc(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
 // waveform with its pick position's missing harmonics through a closing filter and the
 // body's resonance (a modelled string loop cannot reach these pitches, because a delay
 // in a feedback loop is held to at least one 128-sample block), bars and drums as their
-// measured modes ringing down, flutes and bowed strings as a source through the body's
-// filters with breath or bow noise.
+// measured modes ringing down, flutes as a source through the body's
+// filters with breath noise.
 
 /**
  * Tar (Persian): a long-necked lute with doubled courses, struck with a brass plectrum
@@ -238,15 +241,13 @@ interface Wind { harmonics: readonly number[]; breath: number; air: number; atta
 const NEY: Wind = { harmonics: [1, 0.22, 0.1, 0.04], breath: 0.42, air: 0.05, attack: 0.12, vibrato: 12, vibratoRate: 5.4, buzz: 0, scoop: -45, level: 0.075 };
 /** Shakuhachi: the Japanese bamboo flute, breathier still, a muraiki's rush of air on an accent, notes bent from below (meri). */
 const SHAKUHACHI: Wind = { harmonics: [1, 0.3, 0.12, 0.05], breath: 0.55, air: 0.08, attack: 0.09, vibrato: 18, vibratoRate: 4.6, buzz: 0, scoop: -70, level: 0.075 };
-/** Dizi: the Chinese flute, brighter, its dimo membrane buzzing in the upper middle. */
-const DIZI: Wind = { harmonics: [1, 0.35, 0.18, 0.08], breath: 0.25, air: 0.04, attack: 0.05, vibrato: 16, vibratoRate: 5.8, buzz: 0.35, scoop: -100, level: 0.07 };
 
 /**
- * A breathy flute (ney, shakuhachi, dizi): the tone's few harmonics, breath on the note's
- * own harmonics (narrow bands of noise at the pitch and its octave), high air over the
- * top, a vibrato that eases in and, for the dizi, the membrane's buzz (the tone clipped,
- * a band around 4 kHz). `art` 1 bends the note in from below and, on the shakuhachi, starts
- * it with a rush of breath.
+ * A breathy flute (ney, shakuhachi): the tone's few harmonics, breath on the note's own
+ * harmonics (narrow bands of noise at the pitch and its octave), high air over the top, a
+ * vibrato that eases in and, where a Wind has one, a membrane's buzz (the tone clipped, a
+ * band around 4 kHz). `art` 1 bends the note in from below and, on the shakuhachi, starts
+ * it with a rush of breath. The dizi is modelled instead (lib/lofi-dizi.ts).
  */
 function windFlute(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, w: Wind): void {
   const { ctx } = k;
@@ -339,54 +340,35 @@ function kamancheh(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: nu
   src.start(t);
 }
 
-/** A bowed string's character: the body's resonances and how it is played (see bowed). */
-interface Bow { formants: ReadonlyArray<readonly [number, number, number]>; vibrato: number; slide: number; noise: number; level: number }
-/** Erhu: the Chinese two-string fiddle, its python-skin drum making it nasal and vocal. */
-const ERHU: Bow = { formants: [[850, 4, 1.6], [2000, 8, 2.2], [3400, 3, 2]], vibrato: 30, slide: -3, noise: 0.012, level: 0.038 };
+/** The erhu's level against the voice it replaced, and how much of a note's own loudness against the measured trend (ERHU_RAW) the player keeps. */
+const ERHU_LEVEL = 0.031;
+const ERHU_KEPT = 0.3;
 
 /**
- * The erhu: two saws a few cents apart through the body's resonances, bow noise over the
- * top, a deep vibrato that eases in, and with `art` 1 the huayin, a slide up into the note
- * from below.
+ * The erhu: the bowed string through its python skin, the player's left hand choosing the
+ * rouxian, how a slur slides along the string and, on a note the composer bends (`art` 1),
+ * a slide in or a return slide; a held note before a rest (ERHU_REST in `art`, marked by
+ * lib/lofi-perform.ts) may fall off its end (lib/lofi-erhu.ts). A note slurred `from` the
+ * one before changes under the same bow.
  */
-function bowed(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, b: Bow): void {
+function erhu(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, art: number, from: number | undefined): void {
   const { ctx } = k;
-  const f = mtof(midi);
-  const end = t + dur + 0.15;
-  let node: AudioNode = ctx.createGain();
-  const input = node;
-  for (const [hz, gain, q] of b.formants) {
-    const pk = ctx.createBiquadFilter();
-    pk.type = 'peaking';
-    pk.frequency.value = hz;
-    pk.gain.value = gain;
-    pk.Q.value = q;
-    node.connect(pk);
-    node = pk;
-  }
-  const lp = ctx.createBiquadFilter();
-  lp.type = 'lowpass';
-  lp.frequency.value = 5200;
-  const amp = ctx.createGain();
-  amp.gain.setValueAtTime(EPS, t);
-  amp.gain.exponentialRampToValueAtTime(b.level * vel, t + 0.07);
-  amp.gain.setValueAtTime(b.level * 0.95 * vel, t + Math.max(0.08, dur));
-  amp.gain.exponentialRampToValueAtTime(EPS, end);
-  node.connect(lp).connect(amp).connect(out);
-  for (const cents of [-5, 5]) {
-    const o = osc(k, 'sawtooth', f, t, end);
-    o.detune.setValueAtTime(cents + (art === 1 ? b.slide * 100 : 0), t);
-    if (art === 1) o.detune.linearRampToValueAtTime(cents, t + 0.18);
-    vibrato(k, o.detune, t, end, 5.8, b.vibrato, Math.min(0.3, dur * 0.5));
-    o.connect(input);
-  }
-  const bow = ctx.createBiquadFilter();
-  bow.type = 'highpass';
-  bow.frequency.value = 3000;
-  const bg = ctx.createGain();
-  bg.gain.setValueAtTime(b.noise * vel, t);
-  bg.gain.exponentialRampToValueAtTime(EPS, end);
-  noiseAt(k, t, dur + 0.15).connect(bow).connect(bg).connect(out);
+  const rand = seededFrom(k);
+  const held = Math.max(0.05, dur);
+  const strength = Math.min(1, Math.max(0, vel));
+  const play = erhuPlay({ midi, held, art: art & 1, slurred: from !== undefined, rest: (art & ERHU_REST) !== 0 }, rand);
+  const data = bowErhu({
+    sr: ctx.sampleRate, f: mtof(midi), from: from === undefined ? undefined : mtof(from), vel: strength, dur: held, seconds: held + 0.3, ...play,
+  }, rand);
+  const expected = ERHU_RAW[0] + ERHU_RAW[1] * (strength - 0.5) + ERHU_RAW[2] * (midi - 72);
+  const buf = ctx.createBuffer(1, data.length, ctx.sampleRate);
+  buf.getChannelData(0).set(data);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = ERHU_LEVEL * (0.55 + 0.45 * strength) * steadyGain(data, ctx.sampleRate, held, expected, ERHU_KEPT);
+  src.connect(g).connect(out);
+  src.start(t);
 }
 
 /**
