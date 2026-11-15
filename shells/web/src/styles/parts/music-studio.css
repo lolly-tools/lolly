@@ -239,7 +239,20 @@
   }
   .ms-genre.is-tinted .ms-genre-icon { background: var(--ui-color-surface-raised); }
   .ms-genre-text { display: grid; gap: var(--sp-2); min-width: 0; }
-  .ms-genre-name, .ms-genre-tag { min-width: 0; overflow: clip visible; text-overflow: ellipsis; white-space: nowrap; text-box: trim-both cap alphabetic; }
+  /* Each line clips to end in an ellipsis, and a clip stops at the padding box, which the
+     trim has drawn in to the cap height and the baseline. So each line gets room above and
+     below for its accents and its descenders (the g in "coin dings"), padding that an equal
+     negative margin takes back: the layout box, and so the centring by ink, is unchanged. */
+  .ms-genre-name, .ms-genre-tag {
+    min-width: 0;
+    overflow: clip;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-box: trim-both cap alphabetic;
+    padding-block: var(--ms-ink-room);
+    margin-block: calc(var(--ms-ink-room) * -1);
+  }
+  .ms-genre-text { --ms-ink-room: .3em; }
   .ms-genre-name { font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; }
   .ms-genre-tag { font-size: var(--fs-sm); line-height: 1.3; }
   .ms-genre-more { display: inline-grid; place-items: center; }

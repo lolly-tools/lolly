@@ -75,6 +75,20 @@ test('a change of genre lights the button only without reduced motion asked for'
   assert.match(css, /html\[data-a11y-motion="reduce"\] \.ms-genre\.is-lit/);
 });
 
+test('the title and its line keep their accents and descenders while trimmed to their ink', () => {
+  // A clip stops at the padding box, which the trim draws in to cap height and baseline, so
+  // each line takes room above and below that an equal negative margin gives back: the g of
+  // "coin dings" shows whole, the ellipsis still works and the layout box is unchanged.
+  const css = readFileSync(new URL('../../styles/parts/music-studio.css', import.meta.url), 'utf8');
+  const rule = /\.ms-genre-name, \.ms-genre-tag \{([^}]*)\}/.exec(css)?.[1] ?? '';
+  assert.match(rule, /text-box: trim-both cap alphabetic;/);
+  assert.match(rule, /overflow: clip;/);
+  assert.match(rule, /text-overflow: ellipsis;/);
+  assert.match(rule, /padding-block: var\(--ms-ink-room\);/);
+  assert.match(rule, /margin-block: calc\(var\(--ms-ink-room\) \* -1\);/);
+  assert.match(css, /\.ms-genre-text \{ --ms-ink-room: [.\d]+em; \}/);
+});
+
 test('a link can carry the genre lock, so whoever opens a shared link shuffles in the same genre', () => {
   assert.equal(linkLocksGenre('style=straya&seed=6&lock=genre'), true);
   assert.equal(linkLocksGenre('#/music?style=straya&lock=genre'), true, 'read from a whole hash too');
