@@ -9,14 +9,14 @@
  *    swell, the lull and the band leaving;
  *  - the bass carries it: it plays through every groove and swell bar, busier than the keys;
  *  - the surf guitar plays only in odd moments: one to three licks a tune, a bar or two each;
- *  - the sea is always there: the shore's roar under every four bars, waves at irregular gaps,
- *    and a set wave breaking on the first beat of each swell;
+ *  - the sea and the dunes come in a few moments, not a bed, and the cicadas in a few soft swells
+ *    in some tunes only;
  *  - the magpie sings in most tunes, the kookaburra in few;
  *  - a didgeridoo, where there is one, drones under the quiet sections and toots only over
  *    a full swell, in its one rhythm figure;
  *  - a wave note's `mod` reads back, and a wave series is the same whatever stretch is asked for;
- *  - the coast's birds: a whipbird pair in some intros or lulls, lorikeets now and then, both rarer
- *    than the magpie, and their notes' `mod`s read back.
+ *  - a living coastline: birds all through the tune, quieter under a swell, each species kept to
+ *    its own pace, and their notes' `mod`s read back.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -79,25 +79,37 @@ test('the surf guitar plays only in odd moments: one to three licks, a bar or tw
   }
 });
 
-test('the sea: the shore under every four bars, waves at irregular gaps, a set wave on each swell\'s first beat, the breeze in the she-oaks', () => {
-  for (const seed of SEEDS.slice(0, 12)) {
+test('the sea and the dunes are a few moments, not a bed: one to three wave moments a tune, each held sound a swell', () => {
+  const counts: number[] = [];
+  let cicadaTunes = 0, breezy = 0, sheoaks = 0;
+  for (const seed of SEEDS) {
     const bars = tune(seed);
-    const bpm = bars[0]!.tune.bpm;
+    const plan = noosaPlan(seed);
     const waves = bars.flatMap(b => b.notes.filter(n => n.voice === 'wave').map(n => ({ n, b, w: readWave(n.mod ?? 0) })));
-    for (let i = 0; i < bars.length - 1; i += 4) assert.ok(waves.some(x => x.w.kind === 'shore' && x.b.index === i), `${seed}: the shore at bar ${i}`);
-    const crashes = waves.filter(x => x.w.kind === 'break').map(x => x.b.index * 4 + x.n.beat + swellBeats(x.w.size, bpm)).sort((a, z) => a - z);
-    const gaps = crashes.slice(1).map((c, i) => ((c - crashes[i]!) * 60) / bpm);
-    const mean = gaps.reduce((s, g) => s + g, 0) / gaps.length;
-    const sd = Math.sqrt(gaps.reduce((s, g) => s + (g - mean) ** 2, 0) / gaps.length);
-    const river = noosaPlan(seed).place === 'river';
-    assert.ok(mean > 4 && mean < 12, `${seed}: a wave every ${mean.toFixed(1)} s (${noosaPlan(seed).place})`);
-    if (river) assert.ok(waves.every(x => x.w.kind !== 'break' || x.w.size <= 2), `${seed}: only small waves lap at the river mouth`);
-    assert.ok(sd / mean > 0.15, `${seed}: never evenly (spread ${(sd / mean).toFixed(2)})`);
-    const swells = bars.filter((b, i) => b.section === 'drop' && bars[i - 1]?.section !== 'drop').map(b => b.index * 4);
-    const set = river ? 2 : 3;
-    for (const at of swells) assert.ok(waves.some(x => x.w.kind === 'break' && x.w.size === set && Math.abs(x.b.index * 4 + x.n.beat + swellBeats(set, bpm) - at) < 0.01), `${seed}: a set wave breaks on beat ${at}`);
-    assert.equal(waves.some(x => x.w.kind === 'dunes'), noosaPlan(seed).breeze, `${seed}: the she-oaks sing when the plan has a breeze`);
+    const breaks = waves.filter(x => x.w.kind === 'break');
+    const shores = waves.filter(x => x.w.kind === 'shore');
+    // A moment is a wave breaking, or the roar swelling with a wave at its height.
+    const moments = breaks.length - shores.length;
+    counts.push(moments + shores.length);
+    assert.ok(moments + shores.length >= 1 && moments + shores.length <= 3, `${seed}: ${moments + shores.length} sea moments`);
+    assert.ok(shores.length <= 1, `${seed}: the roar swells once at most`);
+    for (const x of shores) assert.ok(x.n.dur >= 8 && x.n.dur <= 32, `${seed}: the roar swells over a few bars (${x.n.dur} beats)`);
+    const dunes = waves.filter(x => x.w.kind === 'dunes');
+    assert.ok(plan.breeze ? dunes.length <= 2 : dunes.length === 0, `${seed}: the she-oaks swell twice at most, and only when there is a breeze`);
+    if (plan.breeze) { breezy++; if (dunes.length) sheoaks++; }
+    // One held sound at a time: the roar, the breeze and the cicadas never swell over each other.
+    const spans = waves.filter(x => x.w.kind !== 'break').map(x => [x.b.index * 4 + x.n.beat, x.b.index * 4 + x.n.beat + x.n.dur] as const).sort((a, z) => a[0] - z[0]);
+    for (let k = 1; k < spans.length; k++) assert.ok(spans[k]![0] >= spans[k - 1]![1], `${seed}: a held sound waits for the last to fall away`);
+    const cicadas = waves.filter(x => x.w.kind === 'cicadas');
+    assert.deepEqual(cicadas.map(x => x.b.index), plan.cicadaSwells.map(c => c.bar), `${seed}: the cicadas swell where the plan says`);
+    assert.ok(cicadas.length <= 3, `${seed}: a few cicada swells at most`);
+    for (const x of cicadas) assert.ok(x.n.dur >= 28 && x.n.dur <= 40 && x.n.vel <= 0.45, `${seed}: a soft swell of seven to ten bars`);
+    if (cicadas.length) cicadaTunes++;
+    assert.ok(!bars.some(b => b.notes.some(n => n.voice === 'nature')), `${seed}: no cicada bed under long stretches`);
   }
+  assert.ok(counts.filter(c => c === 1).length >= 3, `some tunes have only one sea moment (${counts.join(' ')})`);
+  assert.ok(cicadaTunes >= 2 && cicadaTunes <= SEEDS.length * 0.4, `cicadas in ${cicadaTunes} of ${SEEDS.length} tunes, none in most`);
+  assert.ok(sheoaks >= breezy * 0.7, `the she-oaks swell in most breezy tunes (${sheoaks} of ${breezy})`);
 });
 
 test('the magpie sings in most tunes, the kookaburra in few, and a didgeridoo drones, tooting only over a full band', () => {
@@ -108,7 +120,8 @@ test('the magpie sings in most tunes, the kookaburra in few, and a didgeridoo dr
     const notes = bars.flatMap(b => b.notes.map(n => ({ n, b })));
     if (notes.some(x => x.n.voice === 'magpie')) magpies++;
     if (notes.some(x => x.n.voice === 'kookaburra')) kookaburras++;
-    for (const { b } of notes.filter(x => x.n.voice === 'magpie' && readBird(x.n.mod ?? 0).featured)) assert.ok(b.index === 1 || b.section === 'break', `${seed}: a featured magpie at an airy moment (bar ${b.index}, ${b.section})`);
+    for (const { b } of notes.filter(x => x.n.voice === 'magpie' && readBird(x.n.mod ?? 0).featured)) assert.ok(b.section !== 'drop' && b.section !== 'build', `${seed}: a magpie carols at an airy moment (bar ${b.index}, ${b.section})`);
+    for (const f of noosaPlan(seed).birds.filter(x => x.bird === 'magpie')) assert.ok(f.bar === 1 || bars[f.bar]!.section === 'break', `${seed}: the featured carol at the top or in the lull (bar ${f.bar})`);
     const didge = notes.filter(x => x.n.voice === 'didge');
     if (didge.length) didges++;
     assert.equal(didge.length > 0, noosaPlan(seed).didge, `${seed}: the didgeridoo as planned`);
@@ -144,28 +157,35 @@ test('a wave note reads back, and a series is the same whatever stretch is asked
   assert.equal(swellBeats(2, 120), WAVE_SWELL[2] * 2);
 });
 
-test('the coast\'s birds: a whipbird pair in some tunes\' intro or lull, lorikeets now and then, both rarer than the magpie', () => {
-  let whip = 0, lori = 0, magpie = 0;
+test('a living coastline: birds through the whole tune, quieter under a swell, a species never crowding itself', () => {
+  let swellBirds = 0, overlaps = 0, far = 0, whipTunes = 0, loriTunes = 0;
   for (const seed of SEEDS) {
     const bars = tune(seed);
     const plan = noosaPlan(seed);
-    const whips = bars.filter(b => b.notes.some(n => n.voice === 'whipbird'));
-    const loris = bars.filter(b => b.notes.some(n => n.voice === 'lorikeet'));
-    if (whips.length) whip++;
-    if (loris.length) lori++;
-    if (bars.some(b => b.notes.some(n => n.voice === 'magpie'))) magpie++;
-    assert.deepEqual(whips.map(b => b.index), plan.whipbird, `${seed}: the pair calls where the plan says`);
-    for (const b of whips) assert.ok(b.section === 'intro' || b.section === 'break', `${seed}: the pair calls in an intro or a lull, not a ${b.section}`);
-    if (whips.length) assert.ok(whips.length === 2, `${seed}: the pair calls twice`);
-    for (const b of loris) {
-      const n = b.notes.find(x => x.voice === 'lorikeet')!;
-      const kind = readLorikeet(n.mod ?? 0).kind;
-      assert.ok(kind === 'flypast' ? b.section === 'verse' || b.section === 'drop' : kind === 'chatter' && b.section === 'break', `${seed}: ${kind} in a ${b.section}`);
+    const spb = 60 / bars[0]!.tune.bpm;
+    const calls = bars.flatMap(b => b.notes.filter(n => n.voice === 'magpie' || n.voice === 'whipbird' || n.voice === 'lorikeet').map(n => ({ n, b, t: (b.index * 4 + n.beat) * spb })));
+    // Birds all through: at least one call in most sixteen-bar stretches.
+    const stretches = Math.floor((bars.length - 1) / 16);
+    const filled = Array.from({ length: stretches }, (_, k) => calls.some(c => c.b.index >= k * 16 && c.b.index < (k + 1) * 16)).filter(Boolean).length;
+    assert.ok(filled >= stretches - 1, `${seed}: birds in ${filled} of ${stretches} stretches`);
+    assert.ok(calls.length >= 8, `${seed}: ${calls.length} calls`);
+    for (const c of calls) if (c.b.section === 'drop' && !readBird(c.n.mod ?? 0).featured) { swellBirds++; assert.ok(c.n.vel <= 0.36, `${seed}: a bird under a swell sits behind the groove (${c.n.voice} ${c.n.vel})`); }
+    // The aviary keeps each species to its pace.
+    const gap: Record<string, number> = { magpie: 5, whipbird: 9, lorikeet: 14 };
+    for (const bird of ['magpie', 'whipbird', 'lorikeet'] as const) {
+      const ts = plan.aviary.filter(a => a.bird === bird && a.kind !== 'far').map(a => (a.bar * 4 + a.beat) * spb);
+      for (let k = 1; k < ts.length; k++) assert.ok(ts[k]! - ts[k - 1]! >= gap[bird]! - 0.01, `${seed}: ${bird} ${ts[k - 1]!.toFixed(1)} then ${ts[k]!.toFixed(1)} s`);
     }
-    for (const b of whips) for (const n of b.notes.filter(x => x.voice === 'whipbird')) assert.ok(readWhipbird(n.mod ?? 0).distance >= 1, `${seed}: the pair is in the trees`);
+    for (let k = 1; k < plan.aviary.length; k++) if (plan.aviary[k]!.bar === plan.aviary[k - 1]!.bar && plan.aviary[k]!.bird !== plan.aviary[k - 1]!.bird) overlaps++;
+    far += plan.aviary.filter(a => a.kind === 'far').length;
+    if (plan.whipbird.length) whipTunes++;
+    if (plan.lorikeets.length) loriTunes++;
+    assert.deepEqual(bars.filter(b => b.notes.some(n => n.voice === 'whipbird' && readWhipbird(n.mod ?? 0).distance === 1)).map(b => b.index).filter((v, i, a) => a.indexOf(v) === i), [...new Set(plan.whipbird)], `${seed}: the near pairs call where the plan says`);
   }
-  assert.ok(whip >= 4 && whip < magpie, `a whipbird pair in ${whip} of ${SEEDS.length}, the magpie in ${magpie}`);
-  assert.ok(lori >= 3 && lori < magpie, `lorikeets in ${lori} of ${SEEDS.length}`);
+  assert.ok(swellBirds >= 10, `birds under the swells too (${swellBirds})`);
+  assert.ok(overlaps >= 5, `now and then two species at once (${overlaps})`);
+  assert.ok(far >= 5, `a pair answering from further off (${far})`);
+  assert.ok(whipTunes >= SEEDS.length * 0.5 && loriTunes >= SEEDS.length * 0.5, `whipbirds in ${whipTunes}, lorikeets in ${loriTunes} of ${SEEDS.length}`);
   for (const kind of ['screech', 'chatter', 'flypast'] as const) for (const birds of [1, 4, 8]) assert.deepEqual(readLorikeet(lorikeetMod(kind, birds, 77)), { kind, birds, take: 77 });
   for (const answered of [true, false]) for (const d of [0, 1, 2]) assert.deepEqual(readWhipbird(whipbirdMod(answered, d, 99)), { answered, distance: d, take: 99 });
 });

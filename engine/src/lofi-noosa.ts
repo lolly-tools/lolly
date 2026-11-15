@@ -14,19 +14,26 @@
  * - The bass is the song. A round, warm line rolls through every groove: the root pushed, the
  *   octave answered, a walk through the chord, a passing note into the next chord, a run at the
  *   end of a phrase. It plays louder and busier than anything else in the band.
- * - The effects tell the story, and the coast is their setting. The sea breaks on the shore
- *   under the whole tune (lofi-waves-notes.ts): off the point, where the surf comes in sets, or
- *   at the river mouth, where only small waves lap; the shore's roar always, a wave every seven
- *   to eleven seconds and never evenly, a big one crashing on the first beat of each swell (the
- *   style's chorus), the waves coming forward in the lull (its break). In most tunes a breeze
- *   sings in the she-oaks on the dunes, and on some warm afternoons cicadas call. Botanica's glitches weather the edges:
+ * - The effects tell the story, and the coast is their setting. The sea comes in a few moments,
+ *   never a bed (Andy, 2026-11-15: "the waves are too strong and too persistent ... they should
+ *   be a rare thing"; lofi-waves-notes.ts): one to three a tune, off the point or at the river
+ *   mouth, a set wave breaking on the first beat of a swell (the style's chorus), a wave
+ *   breaking into the lull (its break), or the shore's roar swelling in softly for a few bars
+ *   and away again. In most tunes a breeze swells once or twice in the she-oaks on the dunes,
+ *   and in some cicadas fade in slowly over a few bars, hold briefly and fade right out (Andy,
+ *   2026-11-15: "less cicadas"). Botanica's glitches weather the edges:
  *   a tape stop into the second swell, a frozen chord opening the lull, a repeat at a phrase's
  *   end, a pad swelling backwards into a downbeat, a phaser drifting over the lull.
  * - From botanica, its granular pads (`grain` notes cut from a guitar, a voice, breath, a harp
  *   or a flute) and its rolled, ringing chords on a Rhodes, an acoustic, a nylon guitar or a harp.
- * - From Straya, the magpie: a quiet warble at a phrase's end where the band leaves room, and
- *   in most tunes a featured carol at an airy moment (the top of the tune, or the lull). Now
- *   and then a kookaburra laughs as the tune winds down.
+ * - A living coastline of birds (Andy, 2026-11-15: "noosacore needs more birds"): through the
+ *   whole tune, at the ends of phrases and the starts of calm ones, the magpie warbles or carols,
+ *   the eastern whipbird cracks and its mate answers (sometimes a second pair answers from
+ *   farther off), and rainbow lorikeets fly past screeching or chatter as they feed
+ *   (lofi-coast-birds.ts). Under a swell they sit behind the groove. Now and then two kinds
+ *   overlap, and the same kind never calls twice too close together. In most tunes the magpie
+ *   has a featured carol at an airy moment (the top of the tune, or the lull), and now and then
+ *   a kookaburra laughs as the tune winds down.
  * - The didgeridoo, in some tunes: a soft drone under the intro, the lull and the ending (the
  *   mouth opening and closing on it and the breath), and in some of those one bar of rhythm
  *   over the second swell. Its toot comes only there, rising out of the drone with the band
@@ -36,19 +43,18 @@
  *   shaken with the arm, a call and its held answer), each a bar or two, never a lead that
  *   runs through the tune.
  *
- * Running order: the shore alone, then the pads and the bass (the intro); the groove (verse);
- * the swell (the drop, a set wave breaking on its first beat); the lull (the drums and the bass
- * out, the sea and the birds in front); in most tunes a short build; the second swell; and the
- * band leaving the shore as the tune found the shore.
+ * Running order: the pads and the birds, then the keys and the bass (the intro); the groove (verse); the
+ * swell (the drop); the lull (the drums and the bass out, the birds in front); in most tunes a
+ * short build; the second swell; and the band leaving as the tune began.
  *
  * Every draw comes from streams of the style's own, so no other style's tune moved when it
  * arrived. The helpers it shares with the other paths arrive as a kit (see NoosaKit), so this
  * module imports nothing from lofi-compose.ts at run time.
  */
 import type { LofiBar, LofiLayer, LofiNote, LofiSection, LofiStyle, LofiTuneInfo } from './lofi-compose.ts';
-import { glitchMod, grainMod, natureMod, BOTANICA_INSECTS, BOTANICA_SOURCES, type BotanicaChord, type BotanicaCloud, type BotanicaSource } from './lofi-botanica.ts';
+import { glitchMod, grainMod, BOTANICA_SOURCES, type BotanicaChord, type BotanicaCloud, type BotanicaSource } from './lofi-botanica.ts';
 import { DIDGE_BREATH, DIDGE_DRONE, DIDGE_MID, DIDGE_ROLE, DIDGE_SWEEP, DIDGE_TONGUE, DIDGE_TOOT, DIDGE_WA, LOFI_BIRD_FEATURE, LOFI_BIRD_FLOCK } from './lofi-straya.ts';
-import { swellBeats, waveMod, waveSeries, WAVE_WASH } from './lofi-waves-notes.ts';
+import { swellBeats, waveMod, WAVE_WASH } from './lofi-waves-notes.ts';
 import { lorikeetMod, whipbirdMod, type LorikeetKind } from './lofi-coast-birds.ts';
 import { mulberry32 } from './zzfx-compose.ts';
 
@@ -226,10 +232,16 @@ export interface NoosaPlan {
   /** Whether a breeze sings in the she-oaks on the dunes, and whether cicadas call (a warm afternoon). */
   breeze: boolean;
   cicadas: boolean;
-  /** The coast's birds, rarer than the magpie (coastOf): the bars a whipbird pair calls on, and the lorikeets' bars and what they do. */
+  /** The coast's birds through the whole tune (aviaryOf): every call, and from those the bars a near whipbird pair calls on and the lorikeets' bars and what they do. */
+  aviary: AviaryCall[];
   whipbird: number[];
   lorikeets: Array<{ bar: number; kind: LorikeetKind }>;
+  /** The cicadas' swells (cicadaSwells): where each starts and how many bars it lasts. None in most tunes. */
+  cicadaSwells: Array<{ bar: number; bars: number }>;
 }
+
+/** One bird calling: its bar and beat, the bird, what it does and how loud. */
+export interface AviaryCall { bar: number; beat: number; bird: 'magpie' | 'whipbird' | 'lorikeet'; kind: 'warble' | 'carol' | 'pair' | 'far' | 'flypast' | 'chatter'; vel: number }
 
 /** Everything a tune draws before its bars, from the style's own streams. */
 interface Plan extends NoosaPlan {
@@ -243,7 +255,7 @@ interface Plan extends NoosaPlan {
 }
 
 /** The tune's plan, from its own stream: what plays, and where its odd moments fall. */
-function planOf(seed: number, parts: readonly Part[], minor: boolean, key: number, bpm: number, swing: number): Omit<Plan, 'whipbird' | 'lorikeets'> {
+function planOf(seed: number, parts: readonly Part[], minor: boolean, key: number, bpm: number, swing: number): Omit<Plan, 'aviary' | 'whipbird' | 'lorikeets' | 'cicadaSwells'> {
   const p = stream(seed, 0x0005a);
   const at = (section: LofiSection, nth = 0): number => {
     let bar = 0, seen = 0;
@@ -283,7 +295,7 @@ function planOf(seed: number, parts: readonly Part[], minor: boolean, key: numbe
   const tapeStop = p() < 0.5, freeze = p() < 0.55, repeats = 0.2 + p() * 0.25, phaser = p();
   const wavePeriod = 7 + p() * 4;
   const place: NoosaPlan['place'] = p() < 0.3 ? 'river' : 'point';
-  const breeze = p() < 0.75, cicadas = p() < 0.35;
+  const breeze = p() < 0.75, cicadas = p() < 0.25;
   // The one figure the didgeridoo plays over the band, where the second swell is full and loud.
   const figure = p() < 0.6, late = p() < 0.5;
   return {
@@ -303,7 +315,8 @@ export function composeNoosa(seed: number, fixed: Partial<LofiStyle>, kit: Noosa
   const bpm = Math.round(80 + o() * 22);
   const swing = Math.round((0.52 + o() * 0.06) * 100) / 100;
   const parts = runningOrder(o);
-  const plan = { ...planOf(seed, parts, minor, key, bpm, swing), ...coastOf(seed, parts, bpm) };
+  const base = planOf(seed, parts, minor, key, bpm, swing);
+  const plan = { ...base, ...aviaryOf(seed, parts, bpm, base.birds, base.licks), cicadaSwells: cicadaSwells(seed, parts, base.cicadas) };
   const pool = minor ? MINOR : MAJOR;
   const progA = pickOf(o, pool);
   let progB = pickOf(o, pool);
@@ -371,7 +384,7 @@ export function noosaPlan(seed: number): NoosaPlan {
   const swing = Math.round((0.52 + o() * 0.06) * 100) / 100;
   const parts = runningOrder(o);
   const { licks, birds, didge, yidaki, place, breeze, cicadas } = planOf(seed, parts, minor, key, bpm, swing);
-  return { bpm, licks, birds, didge, yidaki, place, breeze, cicadas, ...coastOf(seed, parts, bpm) };
+  return { bpm, licks, birds, didge, yidaki, place, breeze, cicadas, ...aviaryOf(seed, parts, bpm, birds, licks), cicadaSwells: cicadaSwells(seed, parts, cicadas) };
 }
 
 /** What one bar's writers share. */
@@ -394,56 +407,74 @@ const sb = (c: Bar, step: number): number => step / 4 + (step % 2 === 1 ? (c.pla
 // ── the sea ──────────────────────────────────────────────────────────────────
 
 /**
- * The tune's waves, bar by bar: the shore's roar under every four bars, and the waves
- * breaking, a series as the sea sends them (lofi-waves-notes.ts waveSeries) with the story's
- * own: the first wave breaking alone on the intro's second bar, a set wave crashing on the
- * first beat of each swell, bigger waves in the lull, and quieter ones under the band. A
- * wave's note starts as its swell begins, before the bar it breaks in when it must.
+ * The sea and the dunes as a few moments, not a bed (Andy, 2026-11-15: "the waves are too
+ * strong and too persistent ... they should be a rare thing"). One to three wave moments a tune,
+ * some tunes only one: a set wave breaking on the first beat of a swell, a wave breaking into the
+ * lull, or the shore's roar swelling in softly over a few bars and away again, a wave breaking at
+ * its height. In the tunes with a breeze, the she-oaks swell once or twice in a quiet section.
+ * Each held sound rises slowly and falls away to nothing (lofi-waves-notes.ts). A wave's note
+ * starts as its swell begins, before the bar it breaks in when it must. All from the sea's own
+ * stream.
  */
 function seaOf(seed: number, parts: readonly Part[], bpm: number, plan: Plan): Map<number, LofiNote[]> {
   const out = new Map<number, LofiNote[]>();
   const add = (bar: number, n: LofiNote): void => { const list = out.get(bar) ?? []; list.push(n); out.set(bar, list); };
   const w = stream(seed, 0x0005e);
-  const sectionAt: LofiSection[] = [];
-  const starts: number[] = [];
-  let bar = 0;
-  for (const p of parts) { starts.push(bar); for (let i = 0; i < p.bars; i++) sectionAt.push(p.section); bar += p.bars; }
-  const total = bar;
-  const spb = 60 / bpm;
-  // How loud the sea is, by section: in front where the band is quiet, under it where it is full.
-  const forward: Partial<Record<LofiSection, number>> = { intro: 1, break: 1, outro: 0.95, verse: 0.6, build: 0.55, drop: 0.42 };
-  // The breeze in the she-oaks: in front in the quiet sections, a soft hiss beside the band elsewhere.
-  const breeze: Partial<Record<LofiSection, number>> = { intro: 0.9, break: 1, outro: 0.9, verse: 0.45, build: 0.4, drop: 0.32 };
-  // At the river mouth the water laps: only small waves, at the edge, and the roar of the surf further off.
+  const starts = new Map<LofiSection, number[]>();
+  let total = 0;
+  for (const p of parts) { starts.set(p.section, [...(starts.get(p.section) ?? []), total]); total += p.bars; }
   const river = plan.place === 'river';
-  for (let b = 0; b < total; b += 4) {
-    const span = Math.min(4, total - b) * 4;
-    add(b, { voice: 'wave', midi: 48, beat: 0, dur: span + 0.75, vel: clampVel((forward[sectionAt[b]!] ?? 0.7) * (river ? 0.55 : 1)), mod: waveMod('shore', 2, 1, Math.floor(w() * 1024)) });
-    if (plan.breeze) add(b, { voice: 'wave', midi: 48, beat: 0, dur: span + 0.75, vel: clampVel(breeze[sectionAt[b]!] ?? 0.5), mod: waveMod('dunes', 1, 1, Math.floor(w() * 1024)) });
-  }
-  // The story's waves: crash beats (tune-wide), each with its size and how far off it is.
   const big = river ? 2 : 3;
-  const story: Array<{ beat: number; size: number; distance: number; vel: number }> = [{ beat: 4, size: big - 1, distance: river ? 0 : 1, vel: 0.95 }];
-  parts.forEach((p, k) => {
-    const at = starts[k]! * 4;
-    if (p.section === 'drop') story.push({ beat: at, size: big, distance: river ? 0 : 1, vel: 0.85 });
-    if (p.section === 'break') for (let b = 2; b < p.bars; b += 3) story.push({ beat: at + b * 4 + Math.floor(w() * 4) / 2, size: big - 1 + (w() < 0.4 ? 1 : 0), distance: river || w() < 0.3 ? 0 : 1, vel: 1 });
-  });
-  const totalSeconds = total * 4 * spb;
-  const series = waveSeries(seed ^ 0x5ea, 0, totalSeconds, river ? { period: plan.wavePeriod, distance: 0, biggest: 1 } : { period: plan.wavePeriod, distance: 1 })
-    .map(e => ({ beat: e.at / spb, size: e.size, distance: e.distance, take: e.take, vel: 0 }))
-    .filter(e => !story.some(s => Math.abs(s.beat - e.beat) * spb < 4));
-  const all = [
-    ...story.map(s => ({ ...s, take: Math.floor(w() * 1048576) })),
-    ...series.map(e => ({ ...e, vel: forward[sectionAt[Math.min(total - 1, Math.floor(e.beat / 4))]!] ?? 0.6 })),
+  const take = (): number => Math.floor(w() * 1048576);
+  /** A wave breaking on tune-wide beat `crash`, its note placed as its swell begins. */
+  const wave = (crash: number, size: number, distance: number, vel: number): void => {
+    const begin = Math.max(0, crash - swellBeats(size, bpm));
+    const b = Math.floor(begin / 4);
+    if (b >= total - 1) return;
+    add(b, { voice: 'wave', midi: 48, beat: Math.round((begin - b * 4) * 1000) / 1000, dur: Math.round((swellBeats(size, bpm) + (WAVE_WASH[size]! * bpm) / 60) * 100) / 100, vel: clampVel(vel), mod: waveMod('break', distance, size, take()) });
+  };
+  /** The bars a held sound already fills (the cicadas' swells to start with), so two never swell at once. */
+  const held: Array<readonly [number, number]> = plan.cicadaSwells.map(c => [c.bar, c.bar + c.bars] as const);
+  const free = (bar: number, bars: number): boolean => !held.some(([a, z]) => bar < z + 1 && a < bar + bars + 1);
+  /** A held sound (the shore's roar, the dunes' breeze) swelling over `bars` from `bar`. */
+  const swell = (kind: 'shore' | 'dunes', bar: number, bars: number, vel: number): void => {
+    const n = Math.min(bars, total - 1 - bar);
+    if (n < 2) return;
+    held.push([bar, bar + n]);
+    add(bar, { voice: 'wave', midi: 48, beat: 0, dur: n * 4, vel: clampVel(vel), mod: waveMod(kind, kind === 'shore' ? 2 : 1, 1, take()) });
+  };
+  const drops = starts.get('drop') ?? [];
+  const lull = starts.get('break')?.[0] ?? -1;
+  const intro = starts.get('intro')?.[0] ?? 0;
+  const outro = starts.get('outro')?.[0] ?? -1;
+  // The moments a tune may have, and how many it gets: one to three, a few tunes only one.
+  const moments: Array<() => void> = [
+    () => { const d = drops[Math.floor(w() * drops.length)]; if (d !== undefined) wave(d * 4, big, river ? 0 : 1 + (w() < 0.4 ? 1 : 0), 0.7); },
+    () => { if (lull >= 0) wave(lull * 4 + 2, big - 1, river ? 0 : 1 + (w() < 0.5 ? 1 : 0), 0.75); },
+    () => {
+      const first = w() < 0.4 ? intro + 1 : w() < 0.5 && lull >= 0 ? lull + 1 : outro >= 0 ? outro : intro + 1;
+      const bars = 5 + Math.floor(w() * 3);
+      // Where the cicadas are already swelling, the roar takes another quiet spot; the wave breaks either way.
+      const at = [first, intro + 1, lull + 1, outro].find(b => b > 0 && free(b, bars)) ?? first;
+      if (free(at, bars)) swell('shore', at, bars, river ? 0.6 : 0.8);
+      // A wave breaking at the roar's height, a little further off.
+      wave((at + bars / 2) * 4, Math.max(1, big - 1), river ? 0 : 2, 0.6);
+    },
   ];
-  for (const e of all) {
-    const start = Math.max(0, e.beat - swellBeats(e.size, bpm));
-    const b = Math.floor(start / 4);
-    if (b >= total - 1) continue;   // the sea goes on past the tune, but its notes stop with the band
-    // A wave breaking under a swell is a little quieter, as the band's own crest takes the moment.
-    const vel = clampVel(e.vel * (0.85 + w() * 0.15));
-    add(b, { voice: 'wave', midi: 48, beat: Math.round((start - b * 4) * 1000) / 1000, dur: Math.round((swellBeats(e.size, bpm) + (WAVE_WASH[e.size]! * bpm) / 60) * 100) / 100, vel, mod: waveMod('break', e.distance, e.size, e.take) });
+  const count = 1 + (w() < 0.55 ? 1 : 0) + (w() < 0.2 ? 1 : 0);
+  const order = moments.map((_, k) => [w(), k] as const).sort((a, z) => a[0] - z[0]).map(([, k]) => k).slice(0, count);
+  for (const k of order.sort((a, z) => a - z)) moments[k]!();
+  // The she-oaks: once or twice in a quiet section, swelling in and away.
+  if (plan.breeze) {
+    const quiet = [intro + 2, lull >= 0 ? lull + 2 : -1, outro >= 0 ? outro + 1 : -1].filter(b => b > 0);
+    const times = w() < 0.45 ? 2 : 1;
+    for (let k = 0; k < times; k++) {
+      const from = Math.floor(w() * quiet.length);
+      const bars = 5 + Math.floor(w() * 3);
+      // Never over the roar, the cicadas or another breeze: one held sound at a time, so the next quiet spot if this one is taken.
+      const at = quiet.map((_, j) => quiet[(from + j) % quiet.length]!).find(b => free(b, bars));
+      if (at !== undefined) swell('dunes', at, bars, 0.7);
+    }
   }
   return out;
 }
@@ -453,7 +484,7 @@ function seaOf(seed: number, parts: readonly Part[], bpm: number, plan: Plan): M
 /** The granular pad: the chord held through, cut from the tune's source, quietly under the bass. */
 function pad(c: Bar): boolean {
   const { part, i } = c;
-  if (part.section === 'intro' && i < 2) return false;
+  // From the first bar: with no shore under the top of the tune, the pad opens it, the keys joining two bars in.
   if (part.section === 'outro' && i >= part.bars - 1) return false;
   if (!c.firstOfChord && i !== 0) return true;
   const cloud: BotanicaCloud = part.section === 'break' ? (c.m() < 0.5 ? 'stretch' : 'reverse')
@@ -640,67 +671,140 @@ function didge(c: Bar): void {
   tile(shape, part.section === 'break' ? 0.2 : 0.12, 0);
 }
 
-/** Cicadas calling through a warm afternoon, in the tunes that have one: under the groove, and louder in the lull and the intro (botanica's cicada, lib/lofi-nature.ts). */
+/**
+ * Where the cicadas swell, in the tunes that have a warm afternoon (a quarter of them): one to
+ * three swells, each fading in slowly over a few bars, held a moment and fading out completely,
+ * in the intro, a verse, the lull or the outro. From a stream of their own.
+ */
+function cicadaSwells(seed: number, parts: readonly Part[], on: boolean): Array<{ bar: number; bars: number }> {
+  if (!on) return [];
+  const r = stream(seed, 0x00061);
+  const spots: number[] = [];
+  let bar = 0;
+  for (const p of parts) {
+    if (p.section === 'intro') spots.push(bar + 1);
+    if (p.section === 'verse' && p.bars >= 8) spots.push(bar + 2);
+    if (p.section === 'break') spots.push(bar);
+    if (p.section === 'outro') spots.push(bar);
+    bar += p.bars;
+  }
+  const want = 1 + (r() < 0.4 ? 1 : 0) + (r() < 0.15 ? 1 : 0);
+  const out: Array<{ bar: number; bars: number }> = [];
+  for (let tries = 0; out.length < want && tries < 12; tries++) {
+    const at = spots[Math.floor(r() * spots.length)]!;
+    const bars = 7 + Math.floor(r() * 4);
+    if (out.some(o => at < o.bar + o.bars + 2 && o.bar < at + bars + 2)) continue;
+    out.push({ bar: at, bars });
+  }
+  return out.sort((a, z) => a.bar - z.bar);
+}
+
+/** A cicada swell starting on this bar: one held note the shell fades in, holds and fades out (lofi-waves-notes.ts 'cicadas'). */
 function cicadas(c: Bar): void {
-  const { part, i, plan, notes, fx } = c;
-  if (!plan.cicadas || i % 4 !== 0) return;
-  const vel = part.section === 'break' ? 0.6 : part.section === 'verse' ? 0.45 : part.section === 'intro' && i >= 4 ? 0.5 : 0;
-  if (!vel) return;
-  const span = Math.min(4, part.bars - i) * 4;
-  notes.push({ voice: 'nature', midi: 60, beat: 0, dur: span + 0.5, vel, mod: natureMod('insects', BOTANICA_INSECTS.indexOf('cicada') + 8 * Math.floor(fx() * 32)) });
+  const { index, plan, notes, fx } = c;
+  for (const sw of plan.cicadaSwells) {
+    if (sw.bar !== index) continue;
+    notes.push({ voice: 'wave', midi: 48, beat: 0, dur: sw.bars * 4, vel: clampVel(0.36 + fx() * 0.08), mod: waveMod('cicadas', 1, 1, Math.floor(fx() * 1024)) });
+  }
 }
 
 /**
- * Where the coast's birds call, from a stream of their own so no other draw of the tune moved
- * when they arrived. In some tunes a whipbird pair calls twice in the intro or the lull, seven to
- * eleven seconds apart, as pairs do; in some, lorikeets fly over screeching at the end of a
- * phrase, and now and then a flock chatters in a tree through the lull. Both are rarer than the
- * magpie, and both keep clear of its featured carol.
+ * The living coastline: the birds calling through the whole tune, from a stream of their own.
+ * At most phrase ends (and at some phrase starts in the calm sections) a bird calls: a magpie
+ * warbling or now and then carolling, a whipbird pair (often answered by another pair further off
+ * in the trees), or rainbow lorikeets flying over or chattering in a tree. The calm sections have
+ * the most; under a swell the birds come less often and sit behind the groove. A species keeps to
+ * its own pace (a magpie no closer than five seconds to the last, a whipbird pair nine, the
+ * lorikeets fourteen), the same species never calls twice in a row within eight seconds, and now
+ * and then a second species calls over the first. The featured carol, the kookaburra and the surf
+ * guitar's licks keep their bars to themselves. The levels were set by measuring each call
+ * K-weighted against the band: at its loudest moment a call sits at or under the bass's level then.
  */
-function coastOf(seed: number, parts: readonly Part[], bpm: number): Pick<NoosaPlan, 'whipbird' | 'lorikeets'> {
+function aviaryOf(seed: number, parts: readonly Part[], bpm: number, featured: NoosaPlan['birds'], licks: readonly number[]): Pick<NoosaPlan, 'aviary' | 'whipbird' | 'lorikeets'> {
   const r = stream(seed, 0x00060);
-  const at = (section: LofiSection, nth = 0): number => {
-    let bar = 0, seen = 0;
-    for (const part of parts) {
-      if (part.section === section && seen++ === nth) return bar;
-      bar += part.bars;
-    }
-    return -1;
-  };
+  const sections: LofiSection[] = [];
+  for (const p of parts) for (let i = 0; i < p.bars; i++) sections.push(p.section);
+  const total = sections.length;
   const barSeconds = (4 * 60) / bpm;
-  const whipbird: number[] = [];
-  const lull = at('break');
-  if (r() < 0.4) {
-    const first = r() < 0.5 ? 3 : lull + 3;
-    whipbird.push(first, first + Math.max(2, Math.round((7 + r() * 4) / barSeconds)));
+  type Bird = AviaryCall['bird'];
+  const chance: Partial<Record<LofiSection, number>> = { intro: 0.85, verse: 0.7, drop: 0.5, break: 0.9, build: 0.3, outro: 0.85 };
+  const minGap: Record<Bird, number> = { magpie: 5, whipbird: 9, lorikeet: 14 };
+  const last: Record<Bird, number> = { magpie: -99, whipbird: -99, lorikeet: -99 };
+  let prev: Bird | null = null, prevAt = -99;
+  const aviary: AviaryCall[] = [];
+  const calm = (s: LofiSection): boolean => s !== 'drop' && s !== 'build';
+  const add = (bird: Bird, bar: number, beat: number, s: LofiSection, loud: number): void => {
+    const quiet = calm(s) ? 1 : 0.6;   // under a swell, behind the groove
+    if (bird === 'magpie') {
+      const carol = calm(s) && r() < 0.2;
+      aviary.push({ bar, beat, bird, kind: carol ? 'carol' : 'warble', vel: (carol ? 0.38 : 0.5) * quiet * loud });
+    } else if (bird === 'whipbird') {
+      aviary.push({ bar, beat, bird, kind: 'pair', vel: 0.34 * quiet * loud });
+      // Another pair answering from further off, two to four seconds later.
+      if (r() < 0.45) {
+        const at = bar * 4 + beat + ((2 + r() * 2) * bpm) / 60;
+        const landing = Math.floor(at / 4);
+        if (landing < total - 1) aviary.push({ bar: landing, beat: Math.round((at % 4) * 1000) / 1000, bird, kind: 'far', vel: 0.26 * (calm(sections[landing]!) ? 1 : 0.6) * loud });
+      }
+    } else {
+      const chatter = calm(s) && r() < 0.45;
+      aviary.push({ bar, beat: chatter ? 0 : beat, bird, kind: chatter ? 'chatter' : 'flypast', vel: (chatter ? 0.4 : 0.42) * quiet * loud });
+    }
+    const t = (bar * 4 + beat) * (barSeconds / 4);
+    last[bird] = t; prev = bird; prevAt = t;
+  };
+  for (let b = 1; b < total; b++) {
+    const s = sections[b]!;
+    const end = b % 4 === 3, start = b % 4 === 1 && calm(s);
+    if (!end && !start) continue;
+    if (featured.some(f => Math.abs(f.bar - b) < 3) || licks.some(l => b >= l - 1 && b <= l + 1)) continue;
+    if (r() >= (chance[s] ?? 0.5) * (start ? 0.55 : 1)) continue;
+    const t = b * barSeconds;
+    const free = (bird: Bird): boolean => t - last[bird] >= minGap[bird] && !(bird === prev && t - prevAt < 8);
+    const choices = ([['magpie', 5], ['whipbird', calm(s) ? 2.5 : 1], ['lorikeet', 2.5]] as const).filter(([bird]) => free(bird));
+    if (!choices.length) continue;
+    const bird = weighted(r, choices);
+    add(bird, b, end ? 2 + Math.floor(r() * 3) * 0.5 : 0.5 + Math.floor(r() * 3) * 0.25, s, 1);
+    // Now and then a second species over the first, a beat or two later and a little quieter.
+    if (r() < 0.22) {
+      const second = (['magpie', 'lorikeet', 'whipbird'] as const).filter(x => x !== bird && t - last[x] >= minGap[x]);
+      if (second.length) add(second[Math.floor(r() * second.length)]!, b, Math.min(3.5, (end ? 2.5 : 1.5) + Math.floor(r() * 3) * 0.5), s, 0.8);
+    }
   }
-  const lorikeets: NoosaPlan['lorikeets'] = [];
-  if (r() < 0.35) {
-    // A flock flying over at a phrase's end: the verse's last bar, or the middle of a swell.
-    lorikeets.push({ bar: r() < 0.5 ? at('drop') - 1 : at('drop') + 7, kind: 'flypast' });
-    if (r() < 0.5 && !whipbird.some(b => b >= lull && b < lull + 8)) lorikeets.push({ bar: lull + 4, kind: 'chatter' });
-  }
-  return { whipbird, lorikeets };
+  aviary.sort((a, z) => a.bar - z.bar || a.beat - z.beat);
+  return {
+    aviary,
+    whipbird: aviary.filter(c => c.kind === 'pair').map(c => c.bar),
+    lorikeets: aviary.filter(c => c.bird === 'lorikeet').map(c => ({ bar: c.bar, kind: c.kind as LorikeetKind })),
+  };
 }
 
-/** The coast's birds of a bar: a whipbird pair calling, lorikeets flying over or chattering in a tree. */
+/** The birds of a bar from the aviary: magpies, whipbird pairs near and far, and lorikeets. */
 function coastBirds(c: Bar): void {
   const { index, plan, notes, key, fx } = c;
-  if (plan.whipbird.includes(index)) {
-    // The pair whistles on a note of the key, near 2 kHz or now and then near 4 (as recorded pairs do); she answers most calls.
-    const tone = plan.scale[Math.floor(fx() * plan.scale.length)]!;
-    notes.push({ voice: 'whipbird', midi: fx() < 0.25 ? placeIn(tone, 104, 109) : placeIn(tone, 93, 98), beat: sb(c, 2), dur: 8, vel: 0.62, mod: whipbirdMod(fx() < 0.85, fx() < 0.6 ? 1 : 2, Math.floor(fx() * 1048576)) });
-  }
-  for (const l of plan.lorikeets) {
-    if (l.bar !== index) continue;
-    const flypast = l.kind === 'flypast';
-    notes.push({ voice: 'lorikeet', midi: placeIn(key + 7, 92, 97), beat: flypast ? 1 : 0, dur: flypast ? 10 : 12, vel: flypast ? 0.5 : 0.4, mod: lorikeetMod(l.kind, flypast ? 6 + Math.floor(fx() * 3) : 4 + Math.floor(fx() * 3), Math.floor(fx() * 1048576)) });
+  const magpie = 84 + ((key + 7) % 12);
+  for (const call of plan.aviary) {
+    if (call.bar !== index) continue;
+    const beat = Math.max(0, Math.min(3.9, call.beat));
+    const take = Math.floor(fx() * 1048576);
+    if (call.bird === 'magpie') {
+      const carol = call.kind === 'carol';
+      notes.push({ voice: 'magpie', midi: magpie, beat, dur: carol ? 5 : 1.5 + fx() * 1.5, vel: call.vel, mod: Math.floor(fx() * LOFI_BIRD_FEATURE) + (carol ? LOFI_BIRD_FEATURE : 0) });
+    } else if (call.bird === 'whipbird') {
+      // The pair whistles on a note of the key, near 2 kHz or now and then near 4 (as recorded pairs do); she answers most calls.
+      const tone = plan.scale[Math.floor(fx() * plan.scale.length)]!;
+      // A full octave each, so every note of the key has a place in it (a narrower window let some fall an octave, near 1.2 kHz).
+      notes.push({ voice: 'whipbird', midi: fx() < 0.25 ? placeIn(tone, 99, 110) : placeIn(tone, 89, 100), beat, dur: 8, vel: call.vel, mod: whipbirdMod(fx() < 0.85, call.kind === 'far' ? 2 : 1, take) });
+    } else {
+      const flypast = call.kind === 'flypast';
+      notes.push({ voice: 'lorikeet', midi: placeIn(key + 7, 90, 101), beat, dur: flypast ? 10 : 12, vel: call.vel, mod: lorikeetMod(call.kind as LorikeetKind, flypast ? 5 + Math.floor(fx() * 4) : 3 + Math.floor(fx() * 3), take) });
+    }
   }
 }
 
-/** The birds: a featured magpie carol or kookaburra where the plan puts one, and a quiet magpie at a calm phrase's end where the lead rests. */
+/** The featured birds: a magpie carol or a kookaburra where the plan puts one. */
 function birds(c: Bar): void {
-  const { part, i, index, plan, notes, key } = c;
+  const { index, plan, notes, key } = c;
   const magpie = 84 + ((key + 7) % 12), kookaburra = 72 + ((key + 4) % 12);
   const song = (): number => Math.floor(c.fx() * LOFI_BIRD_FEATURE);
   for (const b of plan.birds) {
@@ -709,11 +813,7 @@ function birds(c: Bar): void {
     else notes.push({ voice: 'kookaburra', midi: kookaburra, beat: 1, dur: 12, vel: 0.6, mod: song() + LOFI_BIRD_FEATURE + (c.fx() < 0.35 ? LOFI_BIRD_FLOCK : 0) });
     return;
   }
-  const calm = part.section === 'intro' || part.section === 'verse' || part.section === 'break' || part.section === 'outro';
-  const featuredNear = plan.birds.some(b => Math.abs(b.bar - index) < 3) || plan.whipbird.some(b => Math.abs(b - index) < 2) || plan.lorikeets.some(l => Math.abs(l.bar - index) < 2);
-  if (calm && i % 4 === 3 && !featuredNear && !notes.some(n => n.voice === 'lead') && c.fx() < 0.5) {
-    notes.push({ voice: 'magpie', midi: magpie, beat: sb(c, c.fx() < 0.5 ? 8 : 10), dur: 1.5 + c.fx() * 1.5, vel: 0.5, mod: song() });
-  }
+  // The rest of the magpies sing in the aviary (aviaryOf), with the other birds of the coast.
 }
 
 /** The effects that weather the edges: a pad swelling backwards into a swell, a tape stop, a frozen chord, a repeat, a phaser drifting. */

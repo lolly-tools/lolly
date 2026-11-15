@@ -42,16 +42,26 @@ test('the Waves chip: on in Noosacore, off elsewhere, and the link carries it bo
   assert.deepEqual(composeTrack(back).map(b => ({ ...b, notes: b.notes.filter(n => n.voice !== 'wave') })), plain);
 });
 
-test('the sea laid under another style: the shore every four bars, irregular waves, quieter in a drop', () => {
-  const bars = composeLofiTune(11, 'dnb');
-  const laid = bars.map(b => sprinkleWaves(b, b.tune));
-  assert.deepEqual(laid, bars.map(b => sprinkleWaves(b, b.tune)), 'the same each time');
-  const shore = laid.filter(b => b.notes.some(n => n.voice === 'wave' && readWave(n.mod ?? 0).kind === 'shore')).map(b => b.index);
-  assert.deepEqual(shore, laid.filter(b => b.section !== 'rest' && b.index % 4 === 0).map(b => b.index));
-  const breaks = laid.flatMap(b => b.notes.filter(n => n.voice === 'wave' && readWave(n.mod ?? 0).kind === 'break').map(n => ({ n, b })));
-  assert.ok(breaks.length >= 8, `${breaks.length} waves`);
-  const drop = breaks.filter(x => x.b.section === 'drop').map(x => x.n.vel);
-  const intro = breaks.filter(x => x.b.section === 'intro').map(x => x.n.vel);
-  if (drop.length && intro.length) assert.ok(Math.max(...drop) < Math.min(...intro), 'the sea sits under a drop and comes forward in the intro');
-  assert.equal(sprinkleWaves(laid.at(-1)!, laid.at(-1)!.tune), laid.at(-1), 'the rest bar stays silent');
+test('the sea laid under another style: one to three soft moments a tune, never a bed', () => {
+  const MOODS = ['dnb', 'jazz', 'lofiHouse', 'rainy', 'synthwave', 'botanica'] as const;
+  let single = 0, tunes = 0;
+  for (const mood of MOODS) for (let seed = 1; seed <= 12; seed++) {
+    const bars = composeLofiTune(seed, mood);
+    const laid = bars.map(b => sprinkleWaves(b, b.tune));
+    assert.deepEqual(laid, bars.map(b => sprinkleWaves(b, b.tune)), 'the same each time');
+    const notes = laid.flatMap(b => b.notes.filter(n => n.voice === 'wave').map(n => ({ n, b })));
+    const shore = notes.filter(x => readWave(x.n.mod ?? 0).kind === 'shore');
+    const crests = notes.filter(x => readWave(x.n.mod ?? 0).kind === 'break');
+    // Each moment has one wave breaking: on its own, or at the height of the shore's swell.
+    const moments = crests.length;
+    const where = `${mood} ${seed}`;
+    assert.ok(moments >= 1 && moments <= 3, `${where}: one to three moments (${moments})`);
+    assert.ok(shore.length <= 1, `${where}: the shore swells in once at most`);
+    for (const x of shore) assert.ok(x.n.dur <= 6 * 4 && x.n.vel <= 0.6, `${where}: a short, soft swell of the shore`);
+    for (const x of crests) assert.ok(x.n.vel <= 0.6 && readWave(x.n.mod ?? 0).distance >= 1, `${where}: a wave breaks softly, out from the shore`);
+    tunes++;
+    if (moments === 1) single++;
+    assert.equal(sprinkleWaves(laid.at(-1)!, laid.at(-1)!.tune), laid.at(-1), 'the rest bar stays silent');
+  }
+  assert.ok(single >= tunes * 0.2, `some tunes have only one moment (${single} of ${tunes})`);
 });

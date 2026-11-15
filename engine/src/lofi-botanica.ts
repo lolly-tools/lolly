@@ -12,8 +12,9 @@
  *   double bass plucked, or a round bass, underneath.
  * - The sounds of a place, as `nature` notes the shell models (lib/lofi-nature.ts): a tune
  *   is set somewhere (a wood, a stream, a garden after rain, a meadow, dusk, a cave) whose
- *   wind, leaves, water, rain and insects run under it, with birds singing in the lead's
- *   rests. Twigs and droplets also play as percussion in the grooves.
+ *   wind, leaves, water, rain and insects come forward in a few short passages, each one
+ *   swell in and away (the opening, the clearing and, in some tunes, the close), with birds
+ *   singing in the lead's rests. Twigs and droplets also play as percussion in the grooves.
  * - Granular pads (`grain` notes): the shell renders one of Lolly's own instruments or
  *   voices and cuts it into grains, reordered, reversed and stretched into a shimmer
  *   (lib/lofi-grains.ts).
@@ -27,7 +28,8 @@
  * to 168): a soft kick, crushed hats that ratchet, snaps, shakers, twigs and drips, the
  * guitar or piano picking an ostinato. Both open on the place alone, bloom (the style's
  * name for its drop), clear (its break: the place comes forward and the time goes free),
- * bloom again with a second voice, and close on the place.
+ * bloom again with a second voice, and close, some of them on the place again. The blooms,
+ * the verses and the builds are music alone, with no place under them.
  *
  * Every draw here comes from streams of this style's own, so no other style's tune moved
  * when it arrived. The helpers it shares with the other paths arrive as a kit (see
@@ -338,6 +340,8 @@ export function composeBotanica(seed: number, fixed: Partial<LofiStyle>, kit: Bo
     bars: total,
   };
 
+  // Where the place comes forward, drawn last from the plan's stream so no earlier draw moved.
+  const passages = passagesOf(parts, form, b);
   const n = stream(seed, 0x9a7e);   // the place's sounds
   const g = stream(seed, 0x611c);   // the glitches
   const m = stream(seed, 0x4e10);   // the playing: timing, velocities, pitches
@@ -370,7 +374,8 @@ export function composeBotanica(seed: number, fixed: Partial<LofiStyle>, kit: Bo
       const rests = leadOn ? lead(ctx, (p: number) => { prevLead = p; }, prevLead) : [0, 4];
       if (leadOn) layers.add('lead');
       if (form === 'groove' || plan.pulse) for (const l of drums(ctx)) layers.add(l);
-      placeSounds(ctx, rests, (beat: number) => birdAt <= index * 4 + beat, (until: number) => { birdAt = until; }, index);
+      const passage = passages.find(p => index >= p.at && index < p.at + p.bars);
+      placeSounds(ctx, rests, (beat: number) => birdAt <= index * 4 + beat, (until: number) => { birdAt = until; }, index, passage);
       glitches(ctx);
 
       const [o0, o1] = part.open;
@@ -592,22 +597,48 @@ function natureHit(c: BarCtx, kind: 'twig' | 'droplet', beat: number, vel: numbe
   c.notes.push({ voice: 'nature', midi: kind === 'droplet' ? 88 + Math.floor(c.n() * 8) : 76, beat: inBar(beat), dur: 0.25, vel: clampVel(vel), mod: natureMod(kind, Math.floor(c.n() * 64)) });
 }
 
+/** A passage where the place comes forward: its first bar (counted through the tune) and how many bars. */
+interface Passage { at: number; bars: number }
+
 /**
- * The place: its beds two bars at a time (louder where the music is quiet), and its birds
- * singing in the bar's free stretches (`rests`), never over another bird.
+ * Where the place comes forward, a few passages rather than a bed (Andy, 2026-11-15: the
+ * water and the place's sounds ran "for too long and too many"): over the opening's quiet
+ * start and away as the music comes in, a few bars into the clearing and, in some tunes,
+ * the last bars of the close. Each starts on an even bar, where the place's draws are made.
  */
-function placeSounds(c: BarCtx, rests: number[], free: (beat: number) => boolean, sing: (until: number) => void, index: number): void {
+function passagesOf(parts: readonly Part[], form: Form, r: () => number): Passage[] {
+  const out: Passage[] = [];
+  let at = 0;
+  for (const part of parts) {
+    if (part.section === 'intro') out.push({ at, bars: Math.min(part.bars, form === 'drift' ? 3 : 5) });
+    if (part.section === 'break') out.push({ at, bars: Math.min(part.bars, (form === 'drift' ? 2 : 3) + (r() < 0.5 ? 1 : 0)) });
+    if (part.section === 'outro' && r() < 0.55) { const bars = Math.min(part.bars, form === 'drift' ? 2 : 4); out.push({ at: at + part.bars - bars, bars }); }
+    at += part.bars;
+  }
+  return out;
+}
+/** The place's level at the top of a passage's swell (it was 0.72 when the beds ran under every quiet bar). */
+const PLACE_VEL = 0.6;
+
+/**
+ * The place: its beds as one swell each at the start of a passage (the shell shapes the
+ * swell, lib/lofi-nature.ts), and its birds singing in the bar's free stretches (`rests`),
+ * never over another bird.
+ */
+function placeSounds(c: BarCtx, rests: number[], free: (beat: number) => boolean, sing: (until: number) => void, index: number, passage?: Passage): void {
   const { part, notes, plan } = c;
   const quiet = part.section === 'intro' || part.section === 'break' || part.section === 'outro';
-  const bedVel = part.section === 'drop' ? 0.28 : quiet ? 0.72 : 0.4;
   if (c.i % 2 === 0) {
-    const span = Math.min(2, part.bars - c.i) * 4;
-    plan.place.beds.forEach((bed, k) => {
-      const variant = bed === 'insects' ? BOTANICA_INSECTS.indexOf(plan.place.insect ?? 'cricket') + 8 * Math.floor(c.n() * 32) : Math.floor(c.n() * 256);
-      notes.push({ voice: 'nature', midi: 60, beat: 0, dur: span + 0.5, vel: clampVel(bedVel * (k ? 0.75 : 1)), mod: natureMod(bed, variant) });
-    });
-    // Bees about the flowers, now and then, where the place has them.
-    if (plan.place.insect === 'bee' && c.n() < 0.3) notes.push({ voice: 'nature', midi: 60, beat: c.n() * 2, dur: 4, vel: 0.4, mod: natureMod('insects', BOTANICA_INSECTS.indexOf('bee') + 8 * Math.floor(c.n() * 32)) });
+    // The place's draws are made every two bars whether it sounds or not, so the birds, twigs and droplets keep their places.
+    const variants = plan.place.beds.map(bed => (bed === 'insects' ? BOTANICA_INSECTS.indexOf(plan.place.insect ?? 'cricket') + 8 * Math.floor(c.n() * 32) : Math.floor(c.n() * 256)));
+    const bee = plan.place.insect === 'bee' && c.n() < 0.3 ? { beat: c.n() * 2, variant: BOTANICA_INSECTS.indexOf('bee') + 8 * Math.floor(c.n() * 32) } : null;
+    if (passage?.at === index) {
+      plan.place.beds.forEach((bed, k) => {
+        notes.push({ voice: 'nature', midi: 60, beat: 0, dur: passage.bars * 4, vel: clampVel(PLACE_VEL * (k ? 0.75 : 1)), mod: natureMod(bed, variants[k]) });
+      });
+    }
+    // Bees about the flowers, now and then, while the place is forward.
+    if (passage && bee) notes.push({ voice: 'nature', midi: 60, beat: bee.beat, dur: 4, vel: 0.4, mod: natureMod('insects', bee.variant) });
   }
   if (!plan.birds.length || rests.length < 2) return;
   const [from, to] = rests as [number, number];
