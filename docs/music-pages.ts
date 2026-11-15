@@ -136,6 +136,8 @@ export interface SampleRecipe {
   sha256: string;
   /** The declaration the file's Content Credentials read back. */
   declaration: string;
+  /** The licence statement the file's Content Credentials read back (`dc:rights`). */
+  licence: string;
   measured: SampleMeasures;
 }
 

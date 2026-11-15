@@ -149,6 +149,7 @@ export function xmlProvenanceFields(input: string): MetaField[] {
     ['cc', 'http://creativecommons.org/ns#', 'license', 'authorship', 'Licence'],
     ['dc', 'http://purl.org/dc/elements/1.1/', 'source', 'description', 'Source'],
     ['dc', 'http://purl.org/dc/elements/1.1/', 'relation', 'description', 'Related resource'],
+    ['cc', 'http://creativecommons.org/ns#', 'attributionName', 'authorship', 'Attribution name'],
     ['cc', 'http://creativecommons.org/ns#', 'attributionURL', 'authorship', 'Attribution URL'],
     ['dc', 'http://purl.org/dc/elements/1.1/', 'creator', 'authorship', 'Creator'],
     ['Iptc4xmpCore', 'http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/', 'CiEmailWork', 'authorship', 'Contact email'],

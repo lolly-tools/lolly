@@ -7,9 +7,17 @@
  * players and file inspectors show (tagTuneFile): the WAV's RIFF INFO comment (ICMT), or
  * the M4A's comment and description items (`©cmt`, `desc`). Then as the created step of
  * the signed Content Credentials: algorithmic media, described as made with Lolly's
- * music generator, with the style and the seed. The credential goes into the container
- * as the last byte operation, so its hash covers the description too. Nothing else is
- * added to the file.
+ * music generator, with the style and the seed.
+ *
+ * The licence the music is offered under (CC BY 4.0) and the credit it asks for travel
+ * the same way (Andy, 2026-11-15). In the plain tags: the licence statement in the
+ * copyright field (the WAV's ICOP, the M4A's `cprt`), and an XMP packet with the terms
+ * in words (`xmpRights:UsageTerms`), the terms page (`xmpRights:WebStatement`,
+ * `cc:license`), the party to credit (`cc:attributionName`, `cc:attributionURL`) and the
+ * credit line (`photoshop:Credit`), in the WAV's `_PMX` chunk or the M4A's XMP `uuid`
+ * box. In the credential's `cawg.metadata` assertion: the statement as `dc:rights`, the
+ * same terms page, party and credit line. The credential goes into the container as
+ * the last byte operation, so its hash covers every tag. Nothing else is added.
  *
  * The caller picks the signer: an enrolled identity when there is one, else the
  * ephemeral on-device signer (`dates` without `signer`). Not on the engine barrel;
@@ -17,9 +25,12 @@
  */
 import { embedC2pa, C2PA_FORMATS } from './c2pa-containers.ts';
 import type { EmbedOptions } from './c2pa.ts';
-import { embedWavInfo } from './riff-meta.ts';
-import { tuneCreatedAction, tuneDeclaration, type TuneTrackFacts } from './tune-provenance.ts';
-import { embedMp4Meta } from './video-meta.ts';
+import { embedWavInfo, embedWavXmp } from './riff-meta.ts';
+import {
+  TUNE_ATTRIBUTION_NAME, TUNE_CREDIT, TUNE_CREDIT_URL, TUNE_LICENCE, TUNE_LICENCE_STATEMENT,
+  tuneCreatedAction, tuneDeclaration, type TuneTrackFacts,
+} from './tune-provenance.ts';
+import { embedMp4Meta, embedMp4Xmp } from './video-meta.ts';
 import { ENGINE_VERSION } from './version.ts';
 
 export interface TuneSignArgs {
@@ -43,14 +54,37 @@ export function canSignTune(format: string): boolean {
 const SOFTWARE = 'lolly.tools';
 
 /**
- * The file's plain title and description: the declaration a reader sees without a
- * Content Credentials reader. WAV and M4A only; any other format comes back as it was.
+ * The XMP packet a tune file carries: the licence's terms and the credit, nothing
+ * else. Every value is a fixed string of this module, so nothing needs escaping.
+ */
+export function tuneLicenceXmp(): string {
+  return '<?xpacket begin="\uFEFF" id="W5M0MpCehiHzreSzNTczkc9d"?>'
+    + '<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
+    + '<rdf:Description rdf:about="" xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/"'
+    + ' xmlns:cc="http://creativecommons.org/ns#" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/">'
+    + `<xmpRights:UsageTerms><rdf:Alt><rdf:li xml:lang="x-default">${TUNE_LICENCE_STATEMENT}</rdf:li></rdf:Alt></xmpRights:UsageTerms>`
+    + `<xmpRights:WebStatement>${TUNE_LICENCE.url}</xmpRights:WebStatement>`
+    + `<cc:license rdf:resource="${TUNE_LICENCE.url}"/>`
+    + `<cc:attributionName>${TUNE_ATTRIBUTION_NAME}</cc:attributionName>`
+    + `<cc:attributionURL rdf:resource="${TUNE_CREDIT_URL}"/>`
+    + `<photoshop:Credit>${TUNE_CREDIT}</photoshop:Credit>`
+    + '</rdf:Description></rdf:RDF></x:xmpmeta><?xpacket end="r"?>';
+}
+
+/**
+ * The file's plain tags: its title, the declaration as its description, the licence
+ * statement as its copyright notice, and the XMP packet (tuneLicenceXmp), all of
+ * which a reader sees without a Content Credentials reader. WAV and M4A only; any
+ * other format comes back as it was.
  */
 export function tagTuneFile(bytes: Uint8Array, format: string, args: Pick<TuneSignArgs, 'name' | 'facts'>): Uint8Array {
   const description = tuneDeclaration(args.facts);
-  if (format === 'wav') return embedWavInfo(bytes, { title: args.name, comment: description, software: SOFTWARE });
+  if (format === 'wav') {
+    return embedWavXmp(embedWavInfo(bytes, { title: args.name, comment: description, copyright: TUNE_LICENCE_STATEMENT, software: SOFTWARE }), tuneLicenceXmp());
+  }
   if (format === 'm4a') {
-    return embedMp4Meta(bytes, { title: args.name, artist: '', date: '', comment: description, description, encoder: SOFTWARE, encodedBy: '', publisher: '' });
+    const tagged = embedMp4Meta(bytes, { title: args.name, artist: '', date: '', comment: description, description, copyright: TUNE_LICENCE_STATEMENT, encoder: SOFTWARE, encodedBy: '', publisher: '' });
+    return embedMp4Xmp(tagged, tuneLicenceXmp());
   }
   return bytes;
 }
@@ -67,6 +101,9 @@ export async function signTuneFile(bytes: Uint8Array, format: string, args: Tune
     claimGenerator: 'Lolly lolly.tools',
     generatorInfo: { name: args.generator ?? 'Lolly', version: ENGINE_VERSION },
     actions: [tuneCreatedAction(args.facts)],
+    // The licence and the credit, in the credential's own metadata (cawg.metadata).
+    rights: TUNE_LICENCE_STATEMENT,
+    licence: { url: TUNE_LICENCE.url, attributionName: TUNE_ATTRIBUTION_NAME, attributionUrl: TUNE_CREDIT_URL, credit: TUNE_CREDIT },
     ...(args.signer ? { signer: args.signer } : {}),
     // An enrolled identity brings its certificate window; the ephemeral signer
     // gets now to 30 days on.

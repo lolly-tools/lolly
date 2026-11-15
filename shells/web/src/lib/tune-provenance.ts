@@ -9,10 +9,13 @@
  *   - THE SAVED TUNE. A tune saved from the music generator records who made it (the
  *     profile's name, left out when none is set: a statement of fact, not a rights
  *     claim), that it was made in the music generator, and the Lolly and engine
- *     versions that made the tune. Its licence starts as not recorded, and the person can
- *     set one in the asset's details. The details sheet shows every one of these.
+ *     versions that made the tune. Its licence starts as CC BY 4.0, with the credit
+ *     "Music made with Lolly" (Andy, 2026-11-15), and the person can change it in the
+ *     asset's details. A tune saved from a Neurospicy station records the same licence
+ *     and credit (tuneLicenceRecord). The details sheet shows every one of these.
  *   - THE DOWNLOAD. A WAV or M4A downloaded from the generator carries a created step
- *     that says it was made with Lolly's music generator (engine/src/tune-sign.ts).
+ *     that says it was made with Lolly's music generator, and the CC BY 4.0 licence with
+ *     its credit, in its tags and its credential (engine/src/tune-sign.ts).
  *   - AN EXPORT THAT PLAYS A TUNE. Each saved tune whose sound reaches a video or an
  *     audio export is one C2PA source ingredient (engine/src/tune-provenance.ts):
  *     its name, the licence when the tune records one, the digest of its recipe, the
@@ -30,7 +33,7 @@ import type { SourceIngredient } from '@lolly-tools/core/host-v1';
 import type { Signer } from '../../../../engine/src/c2pa.ts';
 import { OUTPUT_LICENCE_CHOICES } from '../../../../engine/src/rights-profiles.ts';
 import { assetLicenceDeclaration } from '../../../../engine/src/asset-rights.ts';
-import { tuneIngredient, type TuneOrigin } from '../../../../engine/src/tune-provenance.ts';
+import { TUNE_CREDIT, TUNE_LICENCE, tuneIngredient, type TuneOrigin } from '../../../../engine/src/tune-provenance.ts';
 import { ENGINE_VERSION } from '../../../../engine/src/version.ts';
 import { LOFI_TUNE_FORMAT, lofiTuneBytes, lofiTuneFromBytes, lofiTuneFromMeta, type LofiTuneRecipe } from './lofi-tune.ts';
 import { lofiStationName } from './neurospicy-lofi.ts';
@@ -55,9 +58,19 @@ export function profileMaker(profile: NamedProfile | null | undefined): string {
 export interface TuneVersions { lolly: string; engine: string }
 
 /**
+ * The licence a saved tune starts with, and the credit it asks for: Lolly's own terms
+ * for its music, CC BY 4.0 with "Music made with Lolly" (Andy, 2026-11-15). Written
+ * by a save from the music generator and by a save from a Neurospicy station; the
+ * person can change a generator tune's licence in its details.
+ */
+export function tuneLicenceRecord(): { license: string; attribution: string } {
+  return { license: TUNE_LICENCE.id, attribution: TUNE_CREDIT };
+}
+
+/**
  * The keys the music generator adds to a saved tune's meta: where it was made, who
- * made it (only when the profile has a name) and the versions. No licence is written:
- * a new tune's licence is not recorded until the person sets one.
+ * made it (only when the profile has a name), the versions, and the licence it starts
+ * with (tuneLicenceRecord).
  */
 export function tuneSaveRecord(maker: string, versions: TuneVersions): Record<string, unknown> {
   const name = maker.trim().slice(0, MAX_NAME);
@@ -65,6 +78,7 @@ export function tuneSaveRecord(maker: string, versions: TuneVersions): Record<st
     madeIn: MADE_IN_GENERATOR,
     ...(name ? { maker: name } : {}),
     versions: { lolly: versions.lolly.slice(0, MAX_VERSION), engine: versions.engine.slice(0, MAX_VERSION) },
+    ...tuneLicenceRecord(),
   };
 }
 
@@ -362,13 +376,15 @@ export interface TrackFacts { name: string; style: string; styleName?: string; s
 /**
  * Sign a WAV or M4A the generator made, then read the written bytes back. The file's
  * plain description and the created step both say the file was made with Lolly's
- * music generator, procedurally and with no AI (engine/src/tune-sign.ts),
- * signed by the enrolled identity when there is one, else by the ephemeral on-device
- * signer. `declaration` is the description the reading found, or null when it found
- * none, so the line after the download says only what the file holds. Throws when the
- * credential could not be written.
+ * music generator, procedurally and with no AI, and its tags and credential state the
+ * CC BY 4.0 licence with its credit (engine/src/tune-sign.ts), signed by the enrolled
+ * identity when there is one, else by the ephemeral on-device signer. `declaration` is
+ * the description the reading found and `licence` the licence statement it found
+ * (`dc:rights`), each null when the reading found none, so the line after the
+ * download says only what the file holds. Throws when the credential could not be
+ * written.
  */
-export async function signTrackDownload(host: unknown, blob: Blob, format: string, track: TrackFacts): Promise<{ blob: Blob; declaration: string | null }> {
+export async function signTrackDownload(host: unknown, blob: Blob, format: string, track: TrackFacts): Promise<{ blob: Blob; declaration: string | null; licence: string | null }> {
   const [{ signTuneFile }, { verifyC2pa }, { isTuneDeclaration }] = await Promise.all([
     import('../../../../engine/src/tune-sign.ts'),
     import('../../../../engine/src/c2pa-verify.ts'),
@@ -385,5 +401,6 @@ export async function signTrackDownload(host: unknown, blob: Blob, format: strin
   const step = report.state === 'valid'
     ? report.history?.find((h) => h.action === 'c2pa.created' && isTuneDeclaration(h.description))
     : undefined;
-  return { blob: new Blob([signed as BlobPart], { type: blob.type }), declaration: step ? String(step.description) : null };
+  const licence = report.state === 'valid' && report.rights?.includes(TUNE_LICENCE.url) ? report.rights : null;
+  return { blob: new Blob([signed as BlobPart], { type: blob.type }), declaration: step ? String(step.description) : null, licence };
 }

@@ -5,11 +5,13 @@
  * per genre, rendered through the music generator's own code and signed the way its
  * Download signs, so each sample carries the same Content Credentials a person's
  * download does (lib/music-render.ts credentialMusicFile: procedural, no AI,
- * algorithmic media, the style and the seed).
+ * algorithmic media, the style and the seed, and the CC BY 4.0 licence with the
+ * credit it asks for).
  *
  *   node scripts/build-music-samples.ts             # render every recipe whose file is missing or stale
  *   node scripts/build-music-samples.ts --search    # try seeds, keep the best-measuring one, then render
  *   node scripts/build-music-samples.ts --only=jazz,dnb --force
+ *   node scripts/build-music-samples.ts --resign    # sign the committed audio again, no render
  *
  * Options:
  *   --search        for each genre (or --only), render the excerpt from seeds 1 to --seeds
@@ -21,6 +23,10 @@
  *   --parallel=<n>  pages rendering at once (default 3)
  *   --want=scratch  in --search, prefer a seed whose excerpt holds a DJ's scratch
  *                   (hip hop, R&B, breakbeat, jungle and trip hop)
+ *   --resign        take each committed sample's tags and Content Credentials off and
+ *                   sign its audio again through credentialMusicFile, in Node, with no
+ *                   browser: for when what a file records changes and its sound does not.
+ *                   The AAC samples are kept byte for byte, and the script checks so.
  *
  * Why pre-rendered files: the app needs WebGPU and a person's own device to compose,
  * while a crawler, a browser without WebGPU and a reader on a slow connection can all
@@ -57,6 +63,10 @@ import { fileURLToPath } from 'node:url';
 import { createServer } from 'node:net';
 import { chromium, type Browser, type Page } from 'playwright';
 import { LOFI_MOODS, lofiSectionName, type LofiMood, type LofiSection } from '../engine/src/lofi-compose.ts';
+import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
+import { walkBoxes, withoutMp4Udta } from '../engine/src/video-meta.ts';
+import { credentialMusicFile } from '../shells/web/src/lib/music-render.ts';
+import { parseMusicState } from '../shells/web/src/lib/music-state.ts';
 import { ANCHOR_SECTIONS, GENRE_SLUG, type ExcerptSpec, type SampleMeasures, type SampleRecipe, type SampleSet } from '../docs/music-pages.ts';
 import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
@@ -80,6 +90,7 @@ const SEEDS = Number(flag('seeds') ?? 6);
 const PARALLEL = Math.max(1, Number(flag('parallel') ?? 3));
 /** `--want=scratch`: in --search, keep only seeds whose excerpt holds a DJ's scratch (when any does). */
 const WANT = flag('want') ?? '';
+const RESIGN = flag('resign') !== undefined;
 const ONLY = (flag('only') ?? '').split(',').map(s => s.trim()).filter(Boolean);
 for (const id of ONLY) if (!(LOFI_MOODS as readonly string[]).includes(id)) throw new Error(`Unknown genre id: ${id}`);
 const MOODS: LofiMood[] = ONLY.length ? (ONLY as LofiMood[]) : [...LOFI_MOODS];
@@ -123,7 +134,7 @@ async function startServer(): Promise<{ origin: string; stop: () => void }> {
 // ── in the page ─────────────────────────────────────────────────────────────
 interface Rendered {
   anchorBar: number; anchorSection: string; bpm: number; key: string;
-  measured: SampleMeasures; bytes?: string; declaration?: string;
+  measured: SampleMeasures; bytes?: string; declaration?: string; licence?: string;
 }
 
 /** Render one excerpt in the page: the generator's station, its encoder and its signing. */
@@ -216,6 +227,7 @@ async function renderInPage(page: Page, origin: string, style: LofiMood, seed: n
     for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
     out.bytes = btoa(bin);
     out.declaration = signed.declaration;
+    out.licence = signed.licence;
     return out;
   }, { origin, style, seed, bars: BARS, ex, encode, prefer: [...ANCHOR_SECTIONS] }) as Rendered;
 }
@@ -228,7 +240,59 @@ function score(m: SampleMeasures): number {
   return m.rmsDb + 0.5 * Math.min(m.liftDb, 8) + wanted;
 }
 
+// ── signing the committed audio again (--resign) ────────────────────────────
+
+/** The `mdat` box of an MP4, as bytes: the AAC samples, which a re-signing must keep. */
+function mdatOf(bytes: Uint8Array): Uint8Array {
+  const box = walkBoxes(bytes, 0, bytes.length)?.find(b => b.type === 'mdat');
+  if (!box) throw new Error('no mdat box');
+  return bytes.subarray(box.off, box.off + box.size);
+}
+
+/**
+ * One sample signed again: the trailing `uuid` boxes (its credential, and an XMP packet
+ * when it has one) and the movie's tags taken off, which gives back the encoder's own
+ * file, then credentialMusicFile, as the generator's Download signs. The title is the
+ * one the old credential carried, and the AAC samples must come out byte for byte.
+ */
+async function resignSample(recipe: SampleRecipe): Promise<SampleRecipe> {
+  const file = join(SAMPLES_DIR, recipe.file);
+  const signedBefore = new Uint8Array(readFileSync(file));
+  const before = await verifyC2pa(signedBefore);
+  const title = typeof before.claim?.title === 'string' ? before.claim.title : '';
+  if (!title) throw new Error(`${recipe.file}: the old credential holds no title`);
+  let bare: Uint8Array = signedBefore;
+  for (let top = walkBoxes(bare, 0, bare.length); top?.length && top[top.length - 1]!.type === 'uuid'; top = walkBoxes(bare, 0, bare.length)) {
+    bare = bare.subarray(0, top[top.length - 1]!.off);
+  }
+  bare = withoutMp4Udta(bare);
+  const state = parseMusicState(`style=${recipe.style}&seed=${recipe.seed}&bars=${recipe.bars}`);
+  const signed = await credentialMusicFile(undefined, new Blob([bare as BlobPart], { type: 'audio/mp4' }), 'm4a', state, title);
+  const bytes = new Uint8Array(await signed.blob.arrayBuffer());
+  if (sha256(mdatOf(bytes)) !== sha256(mdatOf(signedBefore))) throw new Error(`${recipe.file}: the audio changed while signing`);
+  const after = await verifyC2pa(bytes);
+  if (after.state !== 'valid' || after.claim?.title !== title) throw new Error(`${recipe.file}: the new credential did not read back`);
+  writeFileSync(file, bytes);
+  return { ...recipe, bytes: bytes.length, sha256: sha256(bytes), declaration: signed.declaration, licence: signed.licence };
+}
+
+async function resign(): Promise<void> {
+  const set = readSet();
+  const recipes = new Map(set.samples.map(s => [s.style, s]));
+  for (const style of MOODS) {
+    const recipe = recipes.get(style);
+    if (!recipe) { console.log(`  ${style}: no recipe`); continue; }
+    const next = await resignSample(recipe);
+    recipes.set(style, next);
+    console.log(`✎ ${style}: ${recipe.file} signed again, ${(next.bytes / 1024).toFixed(0)} KB`);
+  }
+  writeSet({ ...set, samples: [...recipes.values()] });
+  const total = [...recipes.values()].reduce((n, s) => n + (s.bytes || 0), 0);
+  console.log(`\n${recipes.size} samples, ${(total / 1e6).toFixed(2)} MB in docs/music/samples/`);
+}
+
 async function main(): Promise<void> {
+  if (RESIGN) { await resign(); return; }
   const set = readSet();
   const ex = set.excerpt ?? DEFAULT_EXCERPT;
   const server = await startServer();
@@ -278,7 +342,7 @@ async function main(): Promise<void> {
           writeFileSync(file, bytes);
           recipes.set(style, {
             ...recipe, bars: BARS, anchorBar: r.anchorBar, anchorSection: r.anchorSection, bpm: r.bpm, key: r.key,
-            bytes: bytes.length, sha256: sha256(bytes), declaration: r.declaration ?? '', measured: r.measured,
+            bytes: bytes.length, sha256: sha256(bytes), declaration: r.declaration ?? '', licence: r.licence ?? '', measured: r.measured,
           });
           console.log(`✚ ${style}: seed ${recipe.seed}, ${r.anchorSection} at bar ${r.anchorBar + 1}, ${(bytes.length / 1024).toFixed(0)} KB  ${fmt(r.measured)}`);
           writeSet({ version: 1, excerpt: ex, samples: [...recipes.values()] });
@@ -300,7 +364,7 @@ async function main(): Promise<void> {
 function blankRecipe(style: LofiMood): SampleRecipe {
   return {
     style, seed: 1, bars: BARS, anchorBar: 0, anchorSection: '', bpm: 0, key: '', file: `${GENRE_SLUG[style]}.m4a`,
-    bytes: 0, sha256: '', declaration: '',
+    bytes: 0, sha256: '', declaration: '', licence: '',
     measured: { rmsDb: 0, peakDb: 0, dipDb: 0, liftDb: 0, lowDb: 0, stereo: 0 },
   };
 }

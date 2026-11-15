@@ -2,7 +2,7 @@
 
 The music generator makes a track of your own in any of Lolly's genres, from lofi and jazz to synthwave and drum and bass. Pick a genre, shuffle until you like what plays, change any instrument you like, then download an M4A or WAV file. Every note is composed on your device: no samples, no recordings and no generative AI.
 
-Music you make here is free for any use, including commercial use, as long as you credit Lolly with the line **Music made with Lolly**. [Use your music](#use-your-music) explains how to credit a track.
+Music you make here comes under the [Creative Commons Attribution 4.0 International licence (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/): free for any use, including commercial use, as long as you credit Lolly with the line **Music made with Lolly**. [Use your music](#use-your-music) explains how to credit a track.
 
 Open **Music generator** from **Utilities**, or go straight to [the music generator](/#/music). Want to hear the genres first? [Free background music](/info/background-music.html) has a short sample of every genre to play.
 
@@ -157,7 +157,15 @@ Every change can be taken back: the genre, the seed, a shuffle, an instrument, m
 <!--i:eti-badge-check-->
 ## Content Credentials
 
-Every M4A or WAV you download carries Content Credentials: a signed record inside the file. The record says the track was made with Lolly's music generator, procedurally and with no AI, and gives the genre and the seed. Its digital source type is algorithmic media, the IPTC term for media computed by an algorithm with no recordings or trained models, so a checker such as [Lolly Verify](/#/verify) does not flag the track as AI. The record carries no name, and the same sentence is also the file's plain description, which a music player shows.
+Every M4A or WAV you download carries Content Credentials: a signed record inside the file. The record says the track was made with Lolly's music generator, procedurally and with no AI, and gives the genre and the seed. Its digital source type is algorithmic media, the IPTC term for media computed by an algorithm with no recordings or trained models, so a checker such as [Lolly Verify](/#/verify) does not flag the track as AI. The record carries no person's name, and the same sentence is also the file's plain description, which a music player shows.
+
+The file also states its licence and the credit the licence asks for, in the record and in tags a music player or file inspector reads without a credential reader:
+
+- **The copyright field** (a WAV's copyright and an M4A's copyright item) reads *Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools).*
+- **An XMP packet** gives the same sentence as the usage terms, the licence's address, Lolly (lolly.tools) as the party to credit, and the credit line *Music made with Lolly*.
+- **The Content Credentials** record the sentence as the file's rights, beside the licence's address, the party to credit and the credit line.
+
+After a download, the line under the track repeats what a reading of the written file found, the licence included.
 
 To share a file without the record, run the file through the [Lolly Strip Hidden Data](/t/strip-data) utility. [What a track records](/info/generated-music.html#what-a-track-records) lists everything each kind of file and saved tune keeps.
 
@@ -166,7 +174,7 @@ To share a file without the record, run the file through the [Lolly Strip Hidden
 
 <a id="free-with-credit"></a>
 
-Music you make in the music generator is free for any use, including commercial use, provided you credit Lolly. Use this line wherever your credits go:
+Music you make in the music generator comes under the Creative Commons Attribution 4.0 International licence ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). The same licence covers the samples on the [genre pages](/info/background-music.html) and the tunes the Neurospicy player's stations compose. The music is free for any use, including commercial use, provided you credit Lolly. Use this line wherever your credits go:
 
 > **Music made with Lolly**
 
@@ -178,7 +186,9 @@ When there is room for a link, add the address: **Music made with Lolly (https:/
 - **A game or an app:** on the credits screen.
 - **A presentation or an event:** on the last slide or in the programme.
 
-Looking for copyright-free background music? Music made here is not copyright-free, because the credit is a condition of using the music. The music is free to use, even commercially, and royalty-free as long as you include the credit.
+A track you save to your assets starts with the same licence and credit in its details, and you can change the licence there. [What a track records](/info/generated-music.html#what-a-track-records) has the details.
+
+Looking for copyright-free background music? Music made here is not copyright-free: it comes under CC BY 4.0, a licence that asks for the credit. The music is free to use, even commercially, and royalty-free as long as you include the credit.
 
 <!--i:eti-keyboard-->
 ## Keyboard and phone

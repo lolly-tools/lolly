@@ -7,7 +7,11 @@
  * artist, the writing software) goes where every audio tool already looks:
  *
  *   LIST ▸ INFO ▸ INAM (title) / IART (artist, only when provided) /
- *                 ICMT (comment) / ISFT (software)
+ *                 ICMT (comment) / ICOP (copyright or licence notice) /
+ *                 ISFT (software)
+ *
+ * and, as a chunk of its own, an XMP packet in `_PMX` (embedWavXmp) for the
+ * structured fields INFO has no slot for, such as a licence's terms page.
  *
  * Pure bytes-in/bytes-out, no DOM, no async. Conservative like the video
  * embedders: anything that is not a walkable RIFF/WAVE file returns the
@@ -93,6 +97,38 @@ export function embedWavInfo(wav: Uint8Array, tags: WavInfoTags): Uint8Array {
   const list = concatBytes([fourccBytes('LIST'), u32le(payload.length), payload]);
   const cleaned = drop ? concatBytes([wav.subarray(0, drop.start), wav.subarray(drop.end)]) : wav;
   const out = concatBytes([cleaned, list]);
+  new DataView(out.buffer, out.byteOffset).setUint32(4, out.length - 8, true);
+  return out;
+}
+
+/**
+ * Write (or replace) the WAV's XMP packet: a top-level `_PMX` chunk, where Adobe's
+ * XMP specification (part 3, WAV) and the tools that read XMP from audio look for
+ * the packet. The packet is UTF-8, even-padded, and the RIFF size is patched. Same contract
+ * as embedWavInfo: a file that is not a walkable RIFF/WAVE container, or an empty
+ * packet, returns the original bytes untouched. Write it before the C2PA chunk, so
+ * the credential's hash covers the packet.
+ */
+export function embedWavXmp(wav: Uint8Array, xmp: string): Uint8Array {
+  const fourcc = (o: number) => String.fromCharCode(wav[o]!, wav[o + 1]!, wav[o + 2]!, wav[o + 3]!);
+  if (wav.length < 12 || fourcc(0) !== 'RIFF' || fourcc(8) !== 'WAVE') return wav;
+  const packet = te.encode(String(xmp ?? '').trim());
+  if (!packet.length) return wav;
+  const dv = new DataView(wav.buffer, wav.byteOffset);
+  const drops: Array<{ start: number; end: number }> = [];
+  for (let i = 12; i + 8 <= wav.length; ) {
+    const size = dv.getUint32(i + 4, true);
+    const end = i + 8 + size + (size & 1);
+    if (end > wav.length + 1) return wav;
+    if (fourcc(i) === '_PMX') drops.push({ start: i, end: Math.min(end, wav.length) });
+    i = end;
+  }
+  const kept: Uint8Array[] = [];
+  let at = 0;
+  for (const d of drops) { kept.push(wav.subarray(at, d.start)); at = d.end; }
+  kept.push(wav.subarray(at));
+  const chunk = concatBytes([fourccBytes('_PMX'), u32le(packet.length), packet, packet.length & 1 ? Uint8Array.of(0) : new Uint8Array(0)]);
+  const out = concatBytes([...kept, chunk]);
   new DataView(out.buffer, out.byteOffset).setUint32(4, out.length - 8, true);
   return out;
 }

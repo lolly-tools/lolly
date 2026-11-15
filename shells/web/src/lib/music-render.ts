@@ -11,8 +11,10 @@
  * 2026-11-14): the description says the music generator made the tune procedurally with
  * no AI, and the credential records the same sentence as algorithmic media
  * (engine/src/tune-sign.ts), so a reader checking for undeclared generative AI finds a
- * declared origin instead. A file whose credential could not be written, or whose
- * reading back finds no declaration, is not handed on.
+ * declared origin instead. Each file also states the licence the music is offered under,
+ * CC BY 4.0, with the credit "Music made with Lolly", in its tags and its credential
+ * (Andy, 2026-11-15). A file whose credential could not be written, or whose reading
+ * back finds no declaration or no licence, is not handed on.
  */
 import { parseMusicState, trackSeconds, trackSettings, type MusicState } from './music-state.ts';
 import { genreTitle } from './genre-icons.ts';
@@ -30,19 +32,21 @@ export interface MusicFile {
   url: string;
   /** What the file's Content Credentials record, read back from the written file. */
   declaration: string;
+  /** The licence statement the file's Content Credentials record, read back the same way. */
+  licence: string;
 }
 
 /**
- * Sign a rendered tune, always: the plain description, then the credential, then a
- * reading of the written bytes. The folder render and the music generator's Download
- * both sign here. `name` is the credential's title, the project's title by default.
- * Throws when the credential could not be written or the reading finds no declaration.
+ * Sign a rendered tune, always: the plain tags, then the credential, then a reading of
+ * the written bytes. The folder render and the music generator's Download both sign
+ * here. `name` is the credential's title, the project's title by default. Throws when
+ * the credential could not be written or the reading finds no declaration or no licence.
  */
-export async function credentialMusicFile(host: unknown, blob: Blob, format: MusicFile['format'], state: MusicState, name = musicProjectTitle(state)): Promise<{ blob: Blob; declaration: string }> {
+export async function credentialMusicFile(host: unknown, blob: Blob, format: MusicFile['format'], state: MusicState, name = musicProjectTitle(state)): Promise<{ blob: Blob; declaration: string; licence: string }> {
   const { signTrackDownload } = await import('./tune-provenance.ts');
   const signed = await signTrackDownload(host, blob, format, { name, style: state.mood, styleName: genreTitle(state.mood), seed: state.seed });
-  if (!signed.declaration) throw new Error(t('The tune’s Content Credentials did not read back, so the file was not made.'));
-  return { blob: signed.blob, declaration: signed.declaration };
+  if (!signed.declaration || !signed.licence) throw new Error(t('The tune’s Content Credentials did not read back, so the file was not made.'));
+  return { blob: signed.blob, declaration: signed.declaration, licence: signed.licence };
 }
 
 /** Render a tune from its link's settings (`style=…&seed=…`) to an audio file. */
@@ -60,5 +64,5 @@ export async function renderMusicFile(host: unknown, params: string): Promise<Mu
   let format: MusicFile['format'];
   try { blob = await encodeM4a(pcm); format = 'm4a'; } catch { blob = encodeWav(pcm); format = 'wav'; }
   const signed = await credentialMusicFile(host, blob, format, state);
-  return { blob: signed.blob, format, url: `${location.origin}${location.pathname}#/music?${params}`, declaration: signed.declaration };
+  return { blob: signed.blob, format, url: `${location.origin}${location.pathname}#/music?${params}`, declaration: signed.declaration, licence: signed.licence };
 }

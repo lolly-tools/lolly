@@ -128,6 +128,27 @@ interface AssetHash {
 // 'created' preserves every existing caller.
 type Authorship = 'created' | 'delivered';
 
+/**
+ * The licence the signer offers the asset under, and the credit it asks for, as
+ * machine-readable terms beside `rights` in the same `cawg.metadata` assertion: the
+ * XMP rights and Creative Commons REL properties a photo or audio tool already reads
+ * (`xmpRights:WebStatement`, `cc:license`, `cc:attributionName`,
+ * `cc:attributionURL`) and the IPTC credit line (`photoshop:Credit`). The terms in
+ * words stay in `rights` (`dc:rights`). Every value is validated: a URL must be a
+ * public http(s) address and text is bounded. A statement the signer made, not a
+ * verdict on rights.
+ */
+export interface C2paLicenceInput {
+  /** The licence's terms page: `cc:license` and `xmpRights:WebStatement`. */
+  url: string;
+  /** The party to credit: `cc:attributionName`. */
+  attributionName?: string;
+  /** Where the credit points: `cc:attributionURL`. */
+  attributionUrl?: string;
+  /** The credit line, word for word: `photoshop:Credit`. */
+  credit?: string;
+}
+
 // One recorded step for the actions assertion. `action` is a C2PA action code
 // (c2pa.created / c2pa.edited / c2pa.converted / c2pa.color_adjustments / …);
 // `digitalSourceType` (IPTC) and a free-text `description` are optional. The
@@ -359,6 +380,9 @@ interface BuildC2paManifestOptions {
   /** User-asserted copyright + licence, emitted as `dc:rights` in the v2
    *  cawg.metadata assertion (from buildExportMeta / an input's bindToMeta). */
   rights?: string;
+  /** The licence's machine-readable terms and credit, beside `rights` in the same
+   *  cawg.metadata assertion (v2 claims only). See {@link C2paLicenceInput}. */
+  licence?: C2paLicenceInput;
   /**
    * Explicit action history for the actions assertion. When present and
    * non-empty it REPLACES the default single created/published action - each
@@ -430,6 +454,8 @@ export interface EmbedOptions {
   authorship?: Authorship;
   /** User-asserted copyright + licence → `dc:rights` in the manifest. */
   rights?: string;
+  /** The licence's machine-readable terms and credit. See {@link C2paLicenceInput}. */
+  licence?: C2paLicenceInput;
   actions?: C2paActionInput[];
   ingredients?: C2paIngredientInput[];
   /**
@@ -1051,6 +1077,31 @@ export const CREATIVE_WORK_ASSERTION = 'stds.schema-org.CreativeWork';
 // removed in 2.x, so this replaces the v1 CreativeWork path.
 export const METADATA_ASSERTION = 'cawg.metadata';
 const DC_CONTEXT = { dc: 'http://purl.org/dc/elements/1.1/' };
+// The vocabularies a licence's terms are written in: XMP rights management, the
+// Creative Commons Rights Expression Language and the IPTC credit line, under
+// the prefixes XMP itself uses for them.
+const LICENCE_CONTEXT = {
+  xmpRights: 'http://ns.adobe.com/xap/1.0/rights/',
+  cc: 'http://creativecommons.org/ns#',
+  photoshop: 'http://ns.adobe.com/photoshop/1.0/',
+};
+
+/**
+ * A licence's terms as JSON-LD properties for the cawg.metadata assertion. The
+ * licence page is required; the rest is written only when given. The two
+ * Creative Commons properties whose values are addresses are written as IRIs
+ * (`@id`), as CC REL defines them; the XMP web statement stays text, as XMP does.
+ */
+function licenceTerms(licence: C2paLicenceInput): Record<string, unknown> {
+  const url = publicHttpUrl(licence.url, 'licence.url');
+  const out: Record<string, unknown> = {};
+  out['xmpRights:WebStatement'] = url;
+  out['cc:license'] = { '@id': url };
+  if (licence.attributionName != null) out['cc:attributionName'] = boundedText(licence.attributionName, 'licence.attributionName', 1024);
+  if (licence.attributionUrl != null) out['cc:attributionURL'] = { '@id': publicHttpUrl(licence.attributionUrl, 'licence.attributionUrl') };
+  if (licence.credit != null) out['photoshop:Credit'] = boundedText(licence.credit, 'licence.credit', 1024);
+  return out;
+}
 
 // ─── section 18.28 AI disclosure (C2PA 2.4) ──────────────────────────────────────────
 
@@ -1256,6 +1307,7 @@ export async function buildC2paManifest({
   author,
   authorship = 'created',
   rights,
+  licence,
   actions: actionSteps,
   ingredients,
   aiDisclosure,
@@ -1464,19 +1516,23 @@ export async function buildC2paManifest({
   // v2: the human author rides in the spec-clean c2pa.metadata assertion
   // (JSON-LD, Dublin Core dc:creator) instead of the removed schema.org one.
   let metadataBox: Uint8Array | null = null;
-  if (v2 && (author?.name || rights)) {
+  const licenceLd = v2 && licence ? licenceTerms(licence) : null;
+  if (v2 && (author?.name || rights || licenceLd)) {
     // JSON-LD cawg.metadata: dc:creator (author) + dc:rights (user-asserted
     // copyright/licence). Either one alone is enough to emit the assertion.
     // The licensing contact rides inside the creator entry npm-style -
     // `Name <email> (site)` - Dublin Core has no contact term of its own, and a
     // composed string stays a single dc:creator any external viewer displays
     // verbatim; the verifier's parseCreatorEntry unpicks it on read.
-    const metaLd: Record<string, unknown> = { '@context': DC_CONTEXT };
+    // The context lists only the vocabularies used, so a manifest without a
+    // licence keeps its exact bytes.
+    const metaLd: Record<string, unknown> = { '@context': licenceLd ? { ...DC_CONTEXT, ...LICENCE_CONTEXT } : DC_CONTEXT };
     if (author?.name) {
       const contact = [author.email ? `<${String(author.email)}>` : '', author.url ? `(${String(author.url)})` : ''].filter(Boolean).join(' ');
       metaLd['dc:creator'] = [contact ? `${String(author.name)} ${contact}` : String(author.name)];
     }
     if (rights) metaLd['dc:rights'] = String(rights);
+    if (licenceLd) Object.assign(metaLd, licenceLd);
     metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox('json', te.encode(JSON.stringify(metaLd))));
     storeBoxes.push(metadataBox);
   }

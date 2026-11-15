@@ -16,6 +16,7 @@ import {
 import { stripMetadata, hasResidualMetadata } from '../engine/src/strip-metadata.ts';
 import { extractC2paStore } from '../engine/src/c2pa-extract.ts';
 import { extractFileMetadata } from '../engine/src/file-metadata.ts';
+import { signTuneFile } from '../engine/src/tune-sign.ts';
 import { buildOpusTags, locateOpusComment, parseOpusTags, walkOggPages, oggCrc32 } from '../engine/src/ogg.ts';
 import {
   apeTag, box, buildFlac, buildFragmentedMp4, buildMp3, buildMp4, buildOpus, buildWav, cat, chunkOffsets, find,
@@ -174,6 +175,29 @@ test('wav: LIST/INFO, bext, XMP, C2PA, id3 and dirty JUNK go; the RIFF size and 
   assert.deepEqual(out, expected);
   assert.equal(new DataView(out.buffer, out.byteOffset).getUint32(4, true), out.length - 8);
   assert.deepEqual(extractFileMetadata(out).fields, []);
+});
+
+// The music generator's own files (engine/src/tune-sign.ts, 2026-11-15): the licence in
+// the copyright field and an XMP packet, beside the description and the credential.
+// Strip Hidden Data takes every one of them off and keeps the audio.
+test('a music generator file: the licence, the credit, the description and the credential all go', async () => {
+  const facts = { style: 'sugar', styleName: 'Sugar', seed: 7 };
+  const wav = riff(wavFmt, riffChunk('data', WAV_PCM));
+  const m4a = buildMp4();
+  for (const [format, src] of [['wav', wav], ['mp4', m4a]] as const) {
+    const signed = await signTuneFile(src, format === 'mp4' ? 'm4a' : 'wav', { name: 'Sugar · 7', facts });
+    const before = extractFileMetadata(signed).fields.map((f) => f.label);
+    for (const l of ['Copyright', 'Usage terms', 'Licence', 'Credit']) assert.ok(before.includes(l), `${format}: the signed file carries ${l}`);
+    const found = labels(signed, format);
+    assert.ok(found.includes('XMP metadata'), `${format}: inspect lists the XMP packet`);
+    assert.ok(found.includes('Content Credentials'), `${format}: inspect lists the credential`);
+    const out = stripClean(signed, format);
+    assert.equal(extractC2paStore(out), null);
+    const left = extractFileMetadata(out).fields.filter((f) => f.group === 'authorship' || f.group === 'description');
+    assert.deepEqual(left, [], `${format}: no licence, credit or description is left`);
+    assert.doesNotMatch(new TextDecoder('latin1').decode(out), /Creative Commons|Music made with Lolly|xmpmeta/, `${format}: not a trace of the text`);
+    if (format === 'wav') assert.deepEqual(out, wav, 'the WAV comes back as it was before signing');
+  }
 });
 
 test('wav: an ID3 tag appended after the RIFF form goes; other trailing bytes stay', () => {

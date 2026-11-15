@@ -13,6 +13,8 @@
  *
  *   1. A WAV or M4A downloaded from the music generator carries a created step whose
  *      description starts with TUNE_DECLARATION, followed by the style and the seed.
+ *      Since 2026-11-15 it also carries the licence the music is offered under
+ *      (TUNE_LICENCE, CC BY 4.0) and the credit that licence asks for (TUNE_CREDIT).
  *   2. A saved tune used in another export (a video's music bed, a tool's audio, a
  *      timeline clip) is recorded as a C2PA source ingredient: its name, its licence
  *      when the tune records one, the digest of its recipe and the engine version that
@@ -33,6 +35,36 @@ export const TUNE_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/
 
 /** The sentence a file downloaded from the music generator carries, word for word. */
 export const TUNE_DECLARATION = "Made with Lolly's music generator (procedural, no AI)";
+
+/**
+ * The terms Lolly's music is offered under (Andy, 2026-11-15): Creative Commons
+ * Attribution 4.0 International. They cover music made in the music generator, the
+ * samples on the docs' genre pages and the tunes the Neurospicy player's stations
+ * compose. `id` is the SPDX identifier, as rights-profiles.ts lists the licence.
+ */
+export const TUNE_LICENCE = Object.freeze({
+  id: 'CC-BY-4.0',
+  name: 'Creative Commons Attribution 4.0 International',
+  short: 'CC BY 4.0',
+  url: 'https://creativecommons.org/licenses/by/4.0/',
+});
+
+/** The credit those terms ask for, word for word (Andy, 2026-11-15). */
+export const TUNE_CREDIT = 'Music made with Lolly';
+/** Where the credit points when there is room for a link. */
+export const TUNE_CREDIT_URL = 'https://lolly.tools';
+/** The credit with its address: what a file's tags and a saved tune's credit carry. */
+export const TUNE_CREDIT_LINE = `${TUNE_CREDIT} (${TUNE_CREDIT_URL})`;
+/** The party the credit names (CC REL `cc:attributionName`), beside TUNE_CREDIT_URL. */
+export const TUNE_ATTRIBUTION_NAME = 'Lolly';
+
+/**
+ * The licence statement a music file carries in its copyright field (the WAV's ICOP,
+ * the M4A's `cprt`), its XMP usage terms and its Content Credentials' `dc:rights`:
+ * the licence by name, its terms page, then the credit.
+ */
+export const TUNE_LICENCE_STATEMENT =
+  `Licensed under ${TUNE_LICENCE.name} (${TUNE_LICENCE.short}), ${TUNE_LICENCE.url}. Credit: ${TUNE_CREDIT_LINE}.`;
 
 /** Where a tune was made: the music generator, or a station of the Neurospicy player. */
 export type TuneOrigin = 'generator' | 'station';
