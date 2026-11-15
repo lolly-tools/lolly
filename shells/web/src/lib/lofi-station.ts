@@ -173,16 +173,33 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
     santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1, turntable: 0.5,
     chopFemale: 1, chopMale: 1, chopBaritone: 1, chopChild: 1, chopOctave: 1, chopChoir: 1, chopGroup: 1 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
-  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 1 },
+  // The tuba had sat 8.8 dB under the round bass (soloed, K-weighted, in nine styles where a
+  // bass plays whole: 8.1 to 9.9 dB), so it takes the whole difference (bassVariant says where).
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 2.75 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
   hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
 /**
+ * A bass's variant level in a bar's style. The tuba's applies where a bass plays whole: in a
+ * stacked style (lib/lofi-bass-stack.ts) the sub under the crossover carries every bass's
+ * low end and the tuba's harmonics over it already sit level with the round bass's (eleven
+ * stacked styles, 0.8 dB under on average, from 4.6 under to 1.9 over), and in its own band's
+ * tunes the tuba is at the band's balance, which the band's fader brings up as one
+ * (lib/lofi-oompa.ts BAND_LEVEL).
+ */
+export function bassVariant(bass: LofiStyle['bass'], bar: LofiBar): number {
+  if (bass === 'tuba' && (BS.stacked(bar.tune.mood) || OB.ownTune(bar))) return 1;
+  return VARIANT.bass[bass];
+}
+/**
  * Each lead instrument's trim (dB): what brings it to the others' loudness on the same
  * phrase (measured, the sounds that ring and fade trimmed by only part of the difference),
- * then refined with the genre seats against the stems of every style.
+ * then refined with the genre seats against the stems of every style. The band's flugelhorn
+ * and tenor horn (lib/lofi-oompa.ts) had sat 4.9 and 3.0 dB under the vibes, fiddle, guitar,
+ * trumpet and saxophone on the same phrase in eight styles, where those five sit within
+ * a decibel of each other, and take the whole difference.
  */
-const LEAD_TRIM: Partial<Record<LiveLead, number>> = { angel: -0.2, balafon: 2.2, banjo: -1.8, bells: -0.6, bit: 4.0, chip: 4.0, chop: 0.3, clarinet: 1.5, dizi: -1.4, erhu: 1.4, fiddle: 0.2, flute: -2.1, guitar: -2.1, harp: -4.6, kalimba: -3.1, kamancheh: -0.1, kora: 0.1, koto: 2.2, metal: -0.3, ney: -0.6, nylon: -1.9, overdrive: 0.3, panflute: 0.3, pedal: 0.1, pipa: 3.3, pulse: 1.8, riff: -0.1, santur: 3.7, sax: 2.5, shakuhachi: -1.1, shamisen: 4.0, steel: -1.2, tar: 0.5, trumpet: 4.0, twang: -1.5, vibes: -0.7, zheng: 2.1, viola: 0.1, cello: -0.4, doublebass: -0.3, flugelhorn: 8.5, tenorhorn: 8.5 };
+const LEAD_TRIM: Partial<Record<LiveLead, number>> = { angel: -0.2, balafon: 2.2, banjo: -1.8, bells: -0.6, bit: 4.0, chip: 4.0, chop: 0.3, clarinet: 1.5, dizi: -1.4, erhu: 1.4, fiddle: 0.2, flute: -2.1, guitar: -2.1, harp: -4.6, kalimba: -3.1, kamancheh: -0.1, kora: 0.1, koto: 2.2, metal: -0.3, ney: -0.6, nylon: -1.9, overdrive: 0.3, panflute: 0.3, pedal: 0.1, pipa: 3.3, pulse: 1.8, riff: -0.1, santur: 3.7, sax: 2.5, shakuhachi: -1.1, shamisen: 4.0, steel: -1.2, tar: 0.5, trumpet: 4.0, twang: -1.5, vibes: -0.7, zheng: 2.1, viola: 0.1, cello: -0.4, doublebass: -0.3, flugelhorn: 13.4, tenorhorn: 11.5 };
 /**
  * Each genre's seat for its lead (dB), with the instrument trimmed: the lead's place
  * against the band while the lead plays. Measured from the stems of two tunes a genre, fitted twice, and set
@@ -803,7 +820,7 @@ export class LofiStation {
         // other basses' `mod` is how the note is played, passed as it is.
         const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
-        const level = vel * VARIANT.bass[bassV] * 10 ** ((BASS_SEAT[bar.tune.mood] ?? 0) / 20);
+        const level = vel * bassVariant(bassV, bar) * 10 ** ((BASS_SEAT[bar.tune.mood] ?? 0) / 20);
         // The Didgeridoo: its drone, on the player that also plays its rhythm when the drone turns into one.
         if (bassV === 'didgeridoo') { this.didge.play(k, lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * VARIANT.bass.didgeridoo); break; }
         const tone = { bright: st.bright ?? 1, drive: st.drive ?? 1 };

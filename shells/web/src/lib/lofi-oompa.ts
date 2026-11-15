@@ -170,6 +170,10 @@ function chairOf(k: VoiceKit, out: AudioNode, pan: number): AudioNode {
   return p;
 }
 
+/** Whether a bar is of the band's own tunes (an Oompa tune), where it sets its own players' levels. */
+export function ownTune(bar: LofiBar): boolean {
+  return bar.tune.mood === 'oompa';
+}
 /** The band's own fader on each lane, made once: every part it plays in its own tunes goes through it, at BAND_LEVEL. */
 const FADERS = new WeakMap<AudioNode, GainNode>();
 /**
@@ -179,7 +183,7 @@ const FADERS = new WeakMap<AudioNode, GainNode>();
  * chose in an Oompa tune (a kalimba's melody, a drum kit) is the station's, already at its level.
  */
 export function bandLane(k: VoiceKit, out: AudioNode, bar: LofiBar): AudioNode {
-  if (bar.tune.mood !== 'oompa') return out;
+  if (!ownTune(bar)) return out;
   let f = FADERS.get(out);
   if (!f) { f = k.ctx.createGain(); f.gain.value = BAND_LEVEL; f.connect(out); FADERS.set(out, f); }
   return f;
