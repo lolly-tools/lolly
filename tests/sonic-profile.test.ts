@@ -190,3 +190,14 @@ test('signature and reference audio use the existing asset packaging and version
     'user/audio/signature'
   );
 });
+
+test('the starting sound round-trips through the design system, and only its two shapes are accepted', () => {
+  for (const startingSound of [{ mode: 'one', sound: 'explain' }, { mode: 'mixed' }] as const) {
+    const profile = { ...fixture(), startingSound };
+    assert.ok(readSonicProfile(profile), JSON.stringify(startingSound));
+    const doc = withSonicProfile({}, profile);
+    assert.deepEqual(sonicProfileOf(JSON.parse(JSON.stringify(doc))).profile?.startingSound, startingSound);
+  }
+  for (const startingSound of [{ mode: 'mixed', sound: 'explain' }, { mode: 'one' }, { mode: 'all' }, 'mixed'])
+    assert.equal(readSonicProfile({ ...fixture(), startingSound }), null, JSON.stringify(startingSound));
+});

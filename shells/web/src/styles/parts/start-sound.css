@@ -52,6 +52,10 @@
     color: var(--ui-color-action-primary);
   }
   .sound-card.is-tinted .sound-card-icon { background: var(--ui-color-surface-raised); }
+  /* The mix card: its own surface, and a disc for each use's sound on that sound's wash. */
+  .sound-card-icons { display: inline-flex; gap: var(--sp-1); }
+  .sound-card--mix .sound-card-badge { background: var(--ui-color-surface-muted); }
+  .sound-card--mix .sound-card-icon.is-tinted { background: var(--sound-disc); color: var(--sound-disc-ink, var(--ui-color-text-default)); }
   .sound-card-badge {
     display: inline-flex;
     align-items: center;
@@ -228,7 +232,7 @@
        smaller play button. */
     .sound-card { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--sp-1) var(--sp-3); min-height: 0; padding: var(--sp-4); }
     .sound-card-top { display: contents; }
-    .sound-card-icon { grid-area: 1 / 1; }
+    .sound-card-icon, .sound-card-icons { grid-area: 1 / 1; }
     .sound-card-name { grid-area: 1 / 2; margin: 0; }
     .sound-card-badge { grid-area: 1 / 2; justify-self: end; }
     .sound-card-line, .sound-card-meta, .sound-card-actions { grid-column: 1 / -1; }
