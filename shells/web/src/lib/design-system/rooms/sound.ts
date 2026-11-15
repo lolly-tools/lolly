@@ -185,19 +185,25 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
   /** What the room last said; shown in the floating foot until the room paints again. */
   let statusText = '';
   const status = (message: string): void => { statusText = message; syncSave(); };
-  /** Show the save state and the foot without painting the room again (typing keeps its focus). */
+  /** Show the save state, what just happened and the save buttons without painting the room again (typing keeps its focus). */
   const syncSave = (): void => {
     const text = saveStateText({ saved, dirty, picked, readonly });
-    const state = el.querySelector<HTMLElement>('[data-sound-state]');
-    if (state) { state.textContent = text; state.hidden = !text; }
-    const bar = el.querySelector<HTMLElement>('[data-savebar]');
-    if (bar) {
+    for (const state of el.querySelectorAll<HTMLElement>('[data-sound-state]')) { state.textContent = text; state.hidden = !text; }
+    for (const bar of el.querySelectorAll<HTMLElement>('[data-savebar]')) {
       bar.hidden = !dirty;
       for (const button of bar.querySelectorAll<HTMLButtonElement>('button')) button.disabled = working;
     }
     const out = el.querySelector('[data-sound-status]');
-    if (out) out.textContent = statusText || (dirty ? text : '');
-    el.querySelector('[data-foot]')?.classList.toggle('is-empty', !dirty && !statusText);
+    if (out) out.textContent = statusText;
+    const top = el.querySelector<HTMLElement>('[data-bar]');
+    if (top) top.hidden = !picked && !statusText;
+    // The room's end repeats the top while there is something to save or to say.
+    const end = el.querySelector<HTMLElement>('[data-endbar]');
+    if (end) {
+      end.hidden = !picked || (!dirty && !statusText);
+      const words = end.querySelector('[data-endbar-text]');
+      if (words) words.textContent = statusText || text;
+    }
   };
   const changed = (): void => {
     if (!profile) return;

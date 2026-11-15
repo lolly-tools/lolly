@@ -182,28 +182,38 @@ function detailsHtml(m: SoundViewModel): string {
   return fold('details', t('Details'), 'info', reviewed ? t('Reviewed') : t('Draft'), body, m.open, 3);
 }
 
-/** The whole room. */
+/** The save state and its two buttons, the same at the top of the room and at its end. */
+const saveButtons = (m: SoundViewModel): string =>
+  `<span class="sound-savebar" data-savebar${m.dirty ? '' : ' hidden'}>`
+  + btn('data-discard', m.saved ? t('Discard changes') : t('Start over'), { kind: 'ghost' })
+  + btn('data-save', t('Save sound'), { kind: 'primary' })
+  + '</span>';
+
+/**
+ * The whole room. Saving lives in the room's own flow, never over it: beside the title
+ * (the save state, what just happened, and Save sound while there are changes, where the
+ * Rules room keeps its own action), and again at the room's end while there is something
+ * to save or to say, so neither end of the page sends the person back to the other.
+ */
 export function soundRoomHtml(m: SoundViewModel): string {
   fieldsReadonly = m.readonly;
   const state = saveStateText(m);
+  const bar = m.readonly
+    ? `<span class="usage-badge">${t('Read-only')}</span>`
+    : `<div class="sound-bar" data-bar${m.picked ? '' : ' hidden'}><div class="sound-bar-row"><span class="be-save-state sound-state" data-sound-state${state ? '' : ' hidden'}>${e(state)}</span>${saveButtons(m)}</div>`
+      + '<p class="sound-status" role="status" aria-live="polite" data-sound-status></p></div>';
   const head = `<header class="sound-head"><div class="sound-head-text"><p class="start-eyebrow">${e(m.label)}</p>`
-    + `<div class="sound-title-row"><h2 class="sound-title">${t('Sound')}</h2><span class="be-save-state sound-state" data-sound-state role="status"${state ? '' : ' hidden'}>${e(state)}</span></div>`
-    + `<p class="sound-lede">${t('Music and a voice for your videos, decks and stories.')}</p></div>`
-    + (m.readonly ? `<span class="usage-badge">${t('Read-only')}</span>` : '')
-    + '</header>';
+    + `<h2 class="sound-title">${t('Sound')}</h2>`
+    + `<p class="sound-lede">${t('Music and a voice for your videos, decks and stories.')}</p></div>${bar}</header>`;
   const uses = m.picked || m.readonly
     ? `<section class="sound-section sound-uses" aria-labelledby="sound-uses-title" data-reveal><div class="sound-section-head sound-section-head--row"><h3 class="sound-section-title" id="sound-uses-title">${t('Where it plays')}</h3>`
       + segHtml('sound-listen', [{ id: 'music', label: t('Music') }, { id: 'voice', label: t('With narration') }], m.withVoice ? 'voice' : 'music', t('What to play'), { attr: 'data-listen', extraClass: 'sound-listen' })
       + `</div>${chipsHtml(m)}${useHtml(m)}</section>`
     : '';
   const details = m.picked || m.readonly ? `<div data-reveal>${detailsHtml(m)}</div>` : '';
-  const savebar = m.readonly ? '' : `<span class="sound-savebar" data-savebar${m.dirty ? '' : ' hidden'}>`
-    + btn('data-discard', m.saved ? t('Discard changes') : t('Start over'), { kind: 'ghost' })
-    + btn('data-save', t('Save sound'), { kind: 'primary' })
-    + '</span>';
-  // One floating foot: what just happened (or what is unsaved), and while there are changes, the way to save them.
-  const foot = `<div class="sound-foot surface surface--floating" data-foot><p class="sound-status" role="status" aria-live="polite" data-sound-status></p>${savebar}</div>`;
-  return `${head}${m.readonly ? '' : directionsHtml(m)}${uses}${details}${foot}`;
+  // The end of the room says the same as its top; only the top is a live region, so a screen reader hears it once.
+  const end = m.readonly ? '' : `<div class="sound-end" data-endbar${m.dirty ? '' : ' hidden'}><span class="sound-end-text" data-endbar-text aria-hidden="true">${e(state)}</span>${saveButtons(m)}</div>`;
+  return `${head}${m.readonly ? '' : directionsHtml(m)}${uses}${details}${end}`;
 }
 
 /** What the room says when it cannot show a sound. */

@@ -11,7 +11,6 @@
   /* ── head ── */
   .sound-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-6); margin-bottom: var(--sp-7); }
   .sound-head .start-eyebrow { margin-bottom: var(--sp-2); }
-  .sound-title-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-3); }
   .sound-title { margin: 0 0 var(--sp-2); font-size: calc(var(--fs-sm) * 2); font-weight: 550; letter-spacing: -.025em; }
   .sound-lede { max-width: 58ch; margin: 0; color: var(--ui-color-text-muted); line-height: 1.55; }
 
@@ -199,27 +198,18 @@
   .sound-sub { margin: var(--sp-2) 0 0; font-size: var(--fs-md); font-weight: 700; }
   .sound-list { margin: 0; padding-inline-start: var(--sp-5); line-height: 1.5; }
   .sound-review { display: grid; gap: var(--sp-3); }
-  .sound-status { min-height: 1.5em; margin: var(--sp-4) 0 0; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.5; }
 
-  /* ── the foot: what just happened, and Save while there are changes, floating at the
-     bottom of the screen; nothing at all when there is nothing to say ── */
-  .sound-foot {
-    position: sticky;
-    bottom: calc(var(--ds-roombar-h, 0px) + var(--sp-4));
-    z-index: 5;
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
-    width: fit-content;
-    max-width: 100%;
-    margin: var(--sp-6) 0 0 auto;
-    padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
-    border-radius: var(--ui-radius-pill);
-  }
-  .sound-foot.is-empty { visibility: hidden; }
-  .sound-status { margin: 0; min-width: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.4; }
-  .sound-foot:not(:has([data-savebar]:not([hidden]))) { padding-inline-end: var(--sp-4); }
+  /* ── saving: in the room's own flow, never over its content. Beside the title the save
+     state, what just happened and, while there are changes, the two buttons (where the
+     Rules room keeps its action); at the room's end the same again, so the person never
+     has to scroll back to save. ── */
+  .sound-bar { flex: 0 1 auto; display: grid; justify-items: end; gap: var(--sp-2); min-width: 0; max-width: min(34rem, 50%); padding-top: var(--sp-1); }
+  .sound-bar-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--sp-2) var(--sp-3); }
+  .sound-state { font-size: var(--fs-md); }
+  .sound-status { margin: 0; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.45; text-align: end; }
   .sound-savebar { display: inline-flex; align-items: center; gap: var(--sp-2); flex: none; }
+  .sound-end { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--sp-2) var(--sp-3); margin-top: var(--sp-6); }
+  .sound-end-text { color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.45; }
 
   /* ── buttons: icon and label in one row, the label centred by its ink ── */
   .sound-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--ui-size-control); }
@@ -247,7 +237,9 @@
     .sound-play--lg { width: 3rem; height: 3rem; }
     .sound-use { padding: var(--sp-4); }
     .sound-grid, .sound-rename { grid-template-columns: minmax(0, 1fr); }
-    .sound-foot { width: auto; margin-inline-start: 0; flex-wrap: wrap; border-radius: var(--ui-radius-card); }
-    .sound-status { flex: 1 1 10rem; }
+    .sound-bar { flex-basis: 100%; max-width: none; justify-items: start; }
+    .sound-bar-row { justify-content: flex-start; }
+    .sound-status { text-align: start; }
+    .sound-end { justify-content: flex-start; }
   }
 }

@@ -101,7 +101,8 @@ test('a design system with no sound opens on the starting sounds alone', async (
   assert.equal(room().querySelector('.sound-uses'), null, 'no uses until a sound is chosen');
   assert.equal(room().querySelectorAll('input, select, textarea').length, 0, 'nothing to fill in at first');
   assert.equal(room().querySelectorAll('[data-choose]').length, SONIC_DIRECTIONS.length);
-  assert.ok(room().querySelector('[data-foot]')?.classList.contains('is-empty'), 'nothing to save yet');
+  assert.equal(room().querySelector<HTMLElement>('[data-bar]')?.hidden, true, 'nothing to save yet');
+  assert.equal(room().querySelector<HTMLElement>('[data-endbar]')?.hidden, true);
   handle.teardown();
 });
 
@@ -132,6 +133,9 @@ test('choosing a starting sound makes it every use’s sound, and each use keeps
   assert.ok(room().querySelector('[data-direction="play"]')?.classList.contains('is-chosen'));
   assert.equal(room().querySelector('[data-sound-state]')?.textContent, 'Not saved yet');
   assert.equal(room().querySelector<HTMLElement>('[data-savebar]')?.hidden, false, 'Save sound shows once there is something to save');
+  assert.equal(room().querySelectorAll('[data-save]').length, 2, 'beside the title and at the room’s end');
+  assert.equal(room().querySelector<HTMLElement>('[data-endbar]')?.hidden, false);
+  assert.equal(room().lastElementChild?.matches('[data-endbar]'), true, 'the end row comes after everything else');
   click('[data-save]');
   await until(() => fake!.saved.length === 1, 'the save');
   const profile = sonicProfileOf(fake!.doc()).profile!;
@@ -294,4 +298,10 @@ test('a read-only design system shows its uses to play, and nothing to change', 
     assert.ok(field.disabled || (field as HTMLTextAreaElement).readOnly, `${field.dataset.field} cannot be changed`);
   assert.match(room().textContent ?? '', /Read-only/);
   ro.handle.teardown();
+});
+
+test('saving never floats over the room: no sticky or fixed positioning in its stylesheet', async () => {
+  const { readFileSync } = await import('node:fs');
+  const css = readFileSync(new URL('../../../styles/parts/start-sound.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(css, /position:\s*(sticky|fixed)/, 'the save rows sit in the room’s flow, so they cover nothing');
 });
