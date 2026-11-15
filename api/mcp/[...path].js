@@ -39114,14 +39114,41 @@ var init_brand_page_address = __esm({
 function mapBrandResourceIds(doc, map) {
   if (!record7(doc) || !record7(doc.$extensions)) return doc;
   const vendor = doc.$extensions[TOKEN_EXT];
-  if (!record7(vendor) || !record7(vendor.brandSystem)) return doc;
+  if (!record7(vendor)) return doc;
+  const resource = (ref2) => record7(ref2) && ref2.type === "asset" && typeof ref2.id === "string" ? { ...ref2, id: map(ref2.id) } : ref2;
+  const next2 = { ...vendor };
   const system = vendor.brandSystem;
-  if (system.schemaVersion !== 1 || !Array.isArray(system.roles)) return doc;
-  const roles = system.roles.map((role) => !record7(role) || !Array.isArray(role.resources) ? role : {
-    ...role,
-    resources: role.resources.map((ref2) => record7(ref2) && ref2.type === "asset" && typeof ref2.id === "string" ? { ...ref2, id: map(ref2.id) } : ref2)
-  });
-  return { ...doc, $extensions: { ...doc.$extensions, [TOKEN_EXT]: { ...vendor, brandSystem: { ...system, roles } } } };
+  if (record7(system) && system.schemaVersion === 1 && Array.isArray(system.roles)) {
+    next2.brandSystem = {
+      ...system,
+      roles: system.roles.map(
+        (role) => !record7(role) || !Array.isArray(role.resources) ? role : { ...role, resources: role.resources.map(resource) }
+      )
+    };
+  }
+  const sound = vendor.sonicProfile;
+  if (record7(sound) && sound.schemaVersion === 1 && Array.isArray(sound.contexts)) {
+    next2.sonicProfile = {
+      ...sound,
+      contexts: sound.contexts.map(
+        (context) => !record7(context) ? context : {
+          ...context,
+          ...record7(context.signature) ? {
+            signature: {
+              ...context.signature,
+              ...context.signature.resource ? { resource: resource(context.signature.resource) } : {}
+            }
+          } : {},
+          ...Array.isArray(context.examples) ? {
+            examples: context.examples.map(
+              (example) => record7(example) ? { ...example, resource: resource(example.resource) } : example
+            )
+          } : {}
+        }
+      )
+    };
+  }
+  return { ...doc, $extensions: { ...doc.$extensions, [TOKEN_EXT]: next2 } };
 }
 function brandResourceAssetIds(doc) {
   const ids2 = /* @__PURE__ */ new Set();

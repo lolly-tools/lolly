@@ -137,6 +137,8 @@ export function renderShell(start: StartCtx): void {
             role="region" aria-labelledby="ds-live-title" hidden></section>
           <section class="ds-panel" id="start-panel-versions" data-ds-panel="versions"
             role="region" aria-labelledby="ds-room-versions" hidden></section>
+          <section class="ds-panel" id="start-panel-sound" data-ds-panel="sound"
+            role="region" aria-labelledby="ds-room-sound" hidden></section>
           <section class="ds-panel" id="start-panel-usage" data-ds-panel="usage"
             role="region" aria-labelledby="ds-room-usage" hidden></section>
           <section class="ds-panel" id="start-panel-skills" data-ds-panel="skills"

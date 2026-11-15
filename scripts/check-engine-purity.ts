@@ -97,6 +97,9 @@ const ALLOWED_PACKAGES = new Set([
   '@lolly-tools/core/intent-v1',
   '@lolly-tools/core/brand-system-v1',
   '@lolly-tools/core/schema/brand-system-v1.schema.json',
+  // Sound profiles: the profile and recipe records and their static schema.
+  '@lolly-tools/core/sonic-profile-v1',
+  '@lolly-tools/core/schema/sonic-profile-v1.schema.json',
   // Partner kits (plans/82 M8): the kit format, its bounds and its static schema.
   '@lolly-tools/core/partner-kit-v1',
   '@lolly-tools/core/schema/partner-kit-v1.schema.json',

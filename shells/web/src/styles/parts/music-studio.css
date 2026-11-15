@@ -819,3 +819,15 @@ html[data-a11y-motion="reduce"] .ms-choice-menu.is-entering { animation: none; }
   padding: var(--sp-4);
   border-radius: var(--ui-radius-card);
 }
+
+/* A design system's sound, above the bar (views/music-studio/sound-profile.ts): the use
+   being edited for the Sound room, or the sound a project was made from. */
+@layer views {
+  .ms-sound-profile { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-3); padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4); border-radius: var(--ui-radius-card); }
+  .ms-sound-icon { display: inline-grid; place-items: center; flex: none; width: var(--ui-size-control); height: var(--ui-size-control); border-radius: var(--radius-round); background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
+  .ms-sound-text { flex: 1 1 16rem; min-width: 0; }
+  .ms-sound-text strong { display: block; font-size: var(--fs-lg); }
+  .ms-sound-text p { margin: var(--sp-1) 0 0; max-width: 75ch; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.45; }
+  .ms-sound-notes summary { width: fit-content; margin-top: var(--sp-1); color: var(--ui-color-text-muted); font-size: var(--fs-md); cursor: pointer; }
+  .ms-sound-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin-inline-start: auto; }
+}

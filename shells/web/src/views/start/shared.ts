@@ -61,6 +61,11 @@ export const IMPORT_FORMATS: ReadonlyArray<{ icon: string; name: string; ext: st
 
 /** The rail's glyphs, from the one registry (lib/icons.ts). Every AREA, not just
  *  the rooms: the foot's Versions entry wears its own from the same table. */
+/** The Sound room's card washes: the music generator's genre colours, the hero's strength
+ *  (views/music-studio/genre-colours.ts), loaded when the room first paints its cards. */
+export const soundWashes = (host: unknown) => async (surface: string, text: string) =>
+  (await import('../music-studio/genre-colours.ts')).genreWashes(host, surface, text, 'hero');
+
 export const ROOM_ICONS: Record<StartArea, IconName> = {
   overview: 'dashboard',
   color: 'palette',
@@ -68,6 +73,7 @@ export const ROOM_ICONS: Record<StartArea, IconName> = {
   logos: 'shapes',
   tokens: 'tokens',
   catalogue: 'folder',
+  sound: 'music',
   usage: 'clipboard',
   skills: 'graduationCap',
   versions: 'tag',

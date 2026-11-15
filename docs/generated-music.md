@@ -9,6 +9,8 @@ The **music generator** opens any of these stations as a track you can change, d
 
 New here? Start with the [music generator guide](/info/music-generator.html), which walks through every control with pictures, or [Free background music](/info/background-music.html), which has a sample of every genre to play. Music you make in the generator is free for any use, including commercial use, provided you credit Lolly with the line **Music made with Lolly**. This page goes deeper: how a seed becomes a tune, what stays the same on every device, how each genre's instruments are built and measured, and what every file records.
 
+For a brand's own sound, start in [Design System Setup’s Sound room](/info/brand-studio.html#sound): choose a starting sound there, then shape each use here with **Edit in the music generator**. A project made from the room keeps its use and the version of the sound, and **New tune** gives you a fresh composition with the same settings.
+
 <!--i:eti-repeat-->
 ## Every tune is a number
 

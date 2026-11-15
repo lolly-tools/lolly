@@ -26,7 +26,7 @@ The bar across the top of the studio carries the design system's name, and the n
 
 The studio is a set of rooms in no fixed order: nothing is numbered and nothing waits on anything else. On a desk the rooms sit in one strip under the bar. On a phone they move to a bar along the bottom edge, where a thumb reaches them, with the open room scrolled into view; the palette sheet and the tray rise above that bar, and the bar steps aside while you type. With a keyboard, Tab reaches the strip once, and the arrow keys, Home and End move from room to room.
 
-![The studio's bar and its rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![The studio's bar and its rooms: Board, Colours, Type, Logos, Tokens, Files, Sound, Rules and Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Room | What you do there | Link key |
 |---|---|---|
@@ -36,6 +36,7 @@ The studio is a set of rooms in no fixed order: nothing is numbered and nothing 
 | **Logos** | Place your marks in every orientation and treatment | `logos` |
 | **Tokens** | Corners, spacing, shadows and every other named value | `tokens` |
 | **Files** | The images, audio and motion files your brand keeps | `catalogue` |
+| **Sound** | Shape sonic identity, music for different uses and the voice relationship | `sound` |
 | **Rules** | The rules your brand applies, checked on real examples | `usage` |
 | **Skills** | The brand's written standards for people and agents, to read and download | `skills` |
 
@@ -314,6 +315,22 @@ A section with nothing in it offers the way to fill the gap: **Pick a colour**, 
 ## Files
 
 Drop the files your brand keeps, apart from logos: **vector**, **image**, **audio** and **motion** files (video, Lottie and animations). They appear in [Assets](/info/using.html#assets-your-library), sorted into sections and ready in every tool's asset picker, and they stay on this device.
+
+## Sound
+
+**Sound** is chosen by listening. The room opens on three starting sounds, **Calm**, **Steady** and **Bright**, each a card on its genre's colours with a play button. Play one to hear a short excerpt; starting another stops the first. **Choose** makes that sound the sound of every use. Nothing is saved until you choose **Save sound**, and the sound then becomes part of this design system, with a checkpoint in the same history the other rooms use. A design system without a sound keeps working as before.
+
+A use is a moment the sound plays in: **Explain**, **Demonstrate** and **Play** to start with. Each use is a chip with its own play button, and **Music** or **With narration** above the chips decides whether a chip plays the music alone or under a voice. The use you pick shows what it is for and its music in plain words, for example "Warm · 84 bpm · Rhodes, rolling bass, dusty kit". Every use takes the chosen sound's genre, tempo and instruments and keeps two things of its own: its tune, and its balance, so Explain keeps the melody out of a voice's way while Play lets the melody lead. **Add a use** adds one and lets you type its name in place, **Make main** chooses the use played when nothing else is asked for, and **Another tune** plays a new composition with the same settings.
+
+**Edit in the music generator** opens the [music generator](/info/generated-music.html#the-music-generator) on that use's settings, with a line at the top saying whose sound you are editing. **Save to this use** brings the settings back to the room, and **Cancel** comes back with nothing changed. Unsaved choices in the room wait for you while you are away, and if someone saves the sound in another tab meanwhile, the newer save stands and your edit is left out.
+
+**Voice** picks a voice for the use, the speaking speed and how loud the music sits under the voice; **Hear the voice with the music** plays both. Under **More** are the dip while the voice speaks, the words to try (they stay in the room), pronunciation notes, one per line as written = spoken, and notes on the voice. Previews use the local speech model and the same mixing as a sequence export. A preview fades out; it is not a composed ending.
+
+**Notes and signature** holds what to listen for in a use and a sound signature: a fixed opening or ending kept as its own audio file. Place the signature in your sequence; generated music never includes the signature. A requirement this version of Lolly cannot check stops new music for that use rather than pretending to meet the requirement.
+
+**Details** holds the brand's character (how the sound should feel, what stays the same and what to avoid) and the listening review. **Record a listening review** keeps the reviewer's name, the date and their notes against the saved version of the sound. Any change makes the sound a draft again, and a review covers that version, not every tune made from the sound later: listen to each new piece before it goes out.
+
+**Make a music project** opens the use in the music generator as a project that keeps the use, the version of the sound and the exact settings. **New tune** there draws a new composition and keeps the sound. If you change the settings, **Put the sound back** returns to the sound, or **Keep as my own** carries on with an independent tune; until you choose, the project cannot be saved or downloaded as made from the sound. Share links carry the music settings only. The project and a saved tune also keep the sound's notes, which stay out of share links and out of the audio file's public credentials. Keep a rendered recording when the exact audio has to survive future versions of the generator.
 
 <!--i:eti-checklist-->
 ## Rules
