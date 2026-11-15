@@ -1237,8 +1237,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     shuffleGenres = linkLock ? false : loadShuffleGenres(profile);
     paintGenre();
     writeLink();
-    if (!prefs.favourites.size && !prefs.blocked.size && !genrePrefs.hidden.size) return;
-    if (firstVisit && !touched) { restate({ ...shuffleMusic(Math.random, { bars: state.bars, prefs, hidden: genrePrefs.hidden }), bars: state.bars }); studioHistory.rebase(); }
+    if (!prefs.favourites.size && !prefs.blocked.size && !genrePrefs.hidden.size && !genrePrefs.favourites.size) return;
+    if (firstVisit && !touched) { restate({ ...shuffleMusic(Math.random, { bars: state.bars, prefs, hidden: genrePrefs.hidden, favourites: genrePrefs.favourites }), bars: state.bars }); studioHistory.rebase(); }
     browser?.refresh();
   }
 
@@ -1431,7 +1431,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     popAgain(el);
     const shift = e instanceof MouseEvent && e.shiftKey;
     const fixed = shift ? { keep: { mood: state.mood, seed: state.seed } } : shuffleGenres ? {} : { genre: state.mood };
-    const drawn = shuffleMusic(Math.random, { bars: state.bars, after: state.mood, prefs, hidden: genrePrefs.hidden, ...fixed });
+    const drawn = shuffleMusic(Math.random, { bars: state.bars, after: state.mood, prefs, hidden: genrePrefs.hidden, favourites: genrePrefs.favourites, ...fixed });
     const note = restate({ ...drawn, bars: state.bars, ...(shift && state.transpose ? { transpose: state.transpose } : {}) });
     step(t('Shuffle'));
     say(`${t('Shuffled')}: ${genreTitle(state.mood)} · ${t('seed')} ${state.seed}${note ? ` ${note}` : ''}`);

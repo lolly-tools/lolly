@@ -18,7 +18,7 @@ import {
   loadRecentGenres, noteRecentGenre, RECENT_GENRES, loadGenrePrefs, setGenrePref,
 } from './music-prefs.ts';
 import { LOFI_STATION_MOODS } from './neurospicy-lofi.ts';
-import { shuffleMusic } from './music-shuffle.ts';
+import { FAVOURITE_GENRE_WEIGHT, shuffleGenre, shuffleMusic } from './music-shuffle.ts';
 import { isOverNote } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
 
@@ -322,4 +322,57 @@ test('a shuffle never draws a hidden genre, the genre lock and Shift still keep 
   }
   const all = new Set<string>(LOFI_STATION_MOODS);
   assert.ok(LOFI_STATION_MOODS.includes(shuffleMusic(seeded(3), { bars: 16, after: 'jazz', hidden: all }).mood), 'every genre hidden: a shuffle still plays one');
+});
+
+test('with no favourite genre to draw, the genre draw is the one it always was', () => {
+  // The rule before favourites: one number, any genre but the one playing and the hidden ones, alike.
+  const unweighted = (rand: () => number, after: string, hidden: ReadonlySet<string>): string => {
+    const others = LOFI_STATION_MOODS.filter(m => m !== after);
+    const shown = others.filter(m => !hidden.has(m));
+    const moods = shown.length ? shown : others;
+    return moods[Math.floor(rand() * moods.length)]!;
+  };
+  const hidden = new Set(LOFI_STATION_MOODS.filter((_, i) => i % 4 === 1));
+  for (let i = 0; i < 400; i++) {
+    for (const favourites of [undefined, new Set<string>(), new Set(['ska']), new Set([[...hidden][0]!])]) {
+      // No favourites, or only ones that cannot be drawn (the genre playing now, a hidden genre).
+      const rand = seeded(i), ref = seeded(i);
+      assert.equal(shuffleGenre(rand, { after: 'ska', hidden, favourites }), unweighted(ref, 'ska', hidden));
+      assert.equal(rand(), ref(), 'and one number taken from the random source, so every later draw is the same too');
+    }
+  }
+  for (let i = 0; i < 10; i++) {
+    assert.deepEqual(shuffleMusic(seeded(60 + i), { bars: 16, after: 'jazz', favourites: new Set() }), shuffleMusic(seeded(60 + i), { bars: 16, after: 'jazz' }), 'no favourites: the same whole shuffle');
+  }
+});
+
+test('a starred genre comes up about three times as often as any other, a hidden one never, and the lock and Shift still keep the genre', () => {
+  assert.equal(FAVOURITE_GENRE_WEIGHT, 3);
+  const favourites = new Set(['jazz', 'metal']);
+  const hidden = new Set(['rock', 'punk']);
+  const rand = seeded(2024);
+  const counts = new Map<string, number>();
+  const draws = 60_000;
+  for (let i = 0; i < draws; i++) {
+    const g = shuffleGenre(rand, { after: 'ska', hidden, favourites });
+    counts.set(g, (counts.get(g) ?? 0) + 1);
+  }
+  assert.ok(!counts.has('ska') && !counts.has('rock') && !counts.has('punk'), 'never the genre playing, never a hidden genre');
+  const plain = LOFI_STATION_MOODS.filter(m => m !== 'ska' && !hidden.has(m) && !favourites.has(m));
+  assert.equal(counts.size, plain.length + favourites.size, 'every other genre still comes up');
+  const perPlain = plain.reduce((n, m) => n + (counts.get(m) ?? 0), 0) / plain.length;
+  for (const f of favourites) {
+    const ratio = (counts.get(f) ?? 0) / perPlain;
+    // About 3050 draws for each favourite against 1020 for any of the 53 others: three sits well inside the band.
+    assert.ok(ratio > 2.7 && ratio < 3.3, `${f} came up ${ratio.toFixed(2)} times as often as another genre`);
+  }
+  const share = [...favourites].reduce((n, f) => n + (counts.get(f) ?? 0), 0) / draws;
+  const expected = (favourites.size * FAVOURITE_GENRE_WEIGHT) / (plain.length + favourites.size * FAVOURITE_GENRE_WEIGHT);
+  assert.ok(Math.abs(share - expected) < 0.01, `the favourites together came up in ${(share * 100).toFixed(1)}% of shuffles, against ${(expected * 100).toFixed(1)}%`);
+  // A favourite that is also hidden (a profile written by hand) is still never drawn.
+  for (let i = 0; i < 2000; i++) assert.notEqual(shuffleGenre(rand, { after: 'ska', hidden: new Set(['jazz']), favourites: new Set(['jazz']) }), 'jazz');
+  // The whole shuffle draws its genre this way, and the lock and Shift keep any genre.
+  for (let i = 0; i < 12; i++) assert.equal(shuffleMusic(seeded(80 + i), { bars: 16, after: 'ska', favourites }).mood, shuffleGenre(seeded(80 + i), { after: 'ska', favourites }));
+  assert.equal(shuffleMusic(seeded(5), { bars: 16, after: 'ska', genre: 'ska', favourites }).mood, 'ska', 'the genre lock wins');
+  assert.equal(shuffleMusic(seeded(5), { bars: 16, keep: { mood: 'blues', seed: 7 }, favourites }).mood, 'blues', 'Shift keeps the genre');
 });

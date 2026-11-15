@@ -1200,7 +1200,7 @@
     "Profile": {
       "module": "profile.ts",
       "kind": "InterfaceDeclaration",
-      "sha256": "2bd7d9571cb178607681aaaf93fd1973c845206a14f13c72e695dab86a54e136"
+      "sha256": "0ca983fbf060fb65a1b694e00901fa97d14f3beb094ad9a196ce42ad5bfd0d11"
     },
     "RasterAPI": {
       "module": "raster.ts",

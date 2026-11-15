@@ -2,9 +2,10 @@
 /**
  * The genre picker's Manage list (views/music-studio/genre-picker.ts, #/music): every genre
  * as a row with its icon and title, a star to make it a favourite (the picker's Favourites
- * row leads with it) and an eye to hide it (the picker leaves it out and a shuffle never
- * draws it; a link or the genre lock still plays a hidden genre). The rows sit under the
- * picker's six group headings and follow its search field.
+ * row leads with it, and a shuffle draws it three times as often as any other genre) and
+ * an eye to hide it (the picker leaves it out and a shuffle never draws it; a link or the
+ * genre lock still plays a hidden genre). The rows sit under the picker's six group
+ * headings and follow its search field.
  *
  * Each change is saved on the person's profile at once (lib/music-prefs.ts setGenrePref,
  * through the view) and offers a way back in the shared undo toast (lib/undo-toast.ts).
@@ -41,7 +42,7 @@ export interface GenreManageList {
 
 /** What the toast says after a change, so the person knows what it did and can take it back. */
 export function genrePrefLine(kind: GenrePrefKind, on: boolean, title: string): string {
-  if (kind === 'favourite') return on ? tRaw('{genre} is a favourite: it leads the genre picker.', { genre: title }) : tRaw('{genre} is no longer a favourite.', { genre: title });
+  if (kind === 'favourite') return on ? tRaw('{genre} is a favourite: it leads the genre picker and comes up more often in shuffles.', { genre: title }) : tRaw('{genre} is no longer a favourite.', { genre: title });
   return on ? tRaw('{genre} is hidden: the picker and shuffle leave it out.', { genre: title }) : tRaw('{genre} shows again.', { genre: title });
 }
 
@@ -55,7 +56,7 @@ function toggle(doc: Document, kind: GenrePrefKind, mood: LofiMood, title: strin
   b.setAttribute('aria-pressed', 'false');
   const label = kind === 'favourite' ? tRaw('Favourite: {genre}', { genre: title }) : tRaw('Hide: {genre}', { genre: title });
   b.setAttribute('aria-label', label);
-  b.title = kind === 'favourite' ? t('Favourite: leads the genre picker') : t('Hide from the picker and shuffle');
+  b.title = kind === 'favourite' ? t('Favourite: leads the picker and comes up more often in shuffles') : t('Hide from the picker and shuffle');
   const glyph = iconNode(kind === 'favourite' ? 'star' : 'eyeOff', doc);
   if (glyph) { glyph.setAttribute('aria-hidden', 'true'); b.append(glyph); }
   return b;
@@ -68,7 +69,7 @@ export function genreManageList(doc: Document, deps: GenreManageDeps): GenreMana
   el.dataset.manage = '';
   const intro = doc.createElement('p');
   intro.className = 'msb-now msg-manage-intro';
-  intro.textContent = t('Star a genre to keep it at the top of the picker. Hide one to leave it out of the picker and of shuffles.');
+  intro.textContent = t('Star a genre to keep it at the top of the picker and hear it more often in shuffles. Hide one to leave it out of the picker and of shuffles.');
   el.append(intro);
   const all: Array<{ row: HTMLElement; mood: LofiMood; title: string; section: HTMLElement }> = [];
   for (const group of GENRE_GROUPS) {

@@ -111,7 +111,8 @@ export interface Profile {
      *  absent means none played yet. */
     recentGenres?: string[];
     /** The genres a person starred: the genre picker's Favourites row, in the order
-     *  starred. Entries are genre ids. Optional: absent means none. */
+     *  starred, and a shuffle draws them more often. Entries are genre ids. Optional:
+     *  absent means none. */
     favouriteGenres?: string[];
     /** The genres a person hid: the genre picker leaves them out and a shuffle never
      *  draws one, though a link or the genre lock still plays a hidden genre. Entries
