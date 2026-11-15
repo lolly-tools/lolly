@@ -5,21 +5,26 @@
  * say where a wave breaks, how big it is and how far off; the shell's model
  * (shells/web/src/lib/lofi-waves.ts) makes the sound. Pure: no Web Audio, no randomness.
  *
- * A wave note is one of three kinds, by `mod & 3`:
+ * A wave note is one of four kinds, by `mod & 3`:
  * - a break (0): one wave. The note starts as the swell is first heard and the wave breaks
  *   WAVE_SWELL[size] seconds later, so a composer that wants a wave to crash on a downbeat
  *   starts the note that long before the downbeat. The foam then runs up the sand and drains back.
- * - the shore (1): the roar of the waves breaking further along the beach, held for the
- *   note's length under everything else, as every field recording of a beach has the roar.
- * - the dunes (2): the breeze singing in the she-oaks on the dunes behind the beach, held
- *   for the note's length.
+ * - the shore (1): the roar of the waves breaking further along the beach, a swell over the
+ *   note's length.
+ * - the dunes (2): the breeze singing in the she-oaks on the dunes behind the beach, a swell
+ *   over the note's length.
+ * - the cicadas (3): cicadas in the trees behind the dunes on a warm afternoon, a swell over the
+ *   note's length.
+ *
+ * Each held kind swells the same way: fading in slowly over the note's first two fifths, held,
+ * and fading out over its last two fifths to nothing.
  *
  * `(mod >> 2) & 3` is how far off the wave is (WAVE_DISTANCES), `(mod >> 4) & 3` its size
  * (WAVE_SIZES), and `mod >> 6` a take, so no two waves of a tune are the same wave.
  */
 
 /** The kinds of wave note. */
-export const WAVE_KINDS = ['break', 'shore', 'dunes'] as const;
+export const WAVE_KINDS = ['break', 'shore', 'dunes', 'cicadas'] as const;
 export type WaveKind = typeof WAVE_KINDS[number];
 /** How far off a wave breaks: at the water's edge, a little out, out on the sandbank, far down the beach. */
 export const WAVE_DISTANCES = ['edge', 'near', 'bank', 'far'] as const;

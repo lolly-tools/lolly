@@ -27,6 +27,7 @@
  * and the Yidaki answers, two bars each; the solo is the Yidaki's, traded with the band.
  */
 import type { DanceLean, LofiLayer, LofiNote, LofiSection, LofiStyle } from './lofi-compose.ts';
+import { whipbirdMod } from './lofi-coast-birds.ts';
 import { didgeBass, didgeLead, didgeMid, didgePlanOf, didgeridooPitch, yidakiPitch, type DidgeBar, type StrayaPlan } from './lofi-straya.ts';
 import { mulberry32 } from './zzfx-compose.ts';
 
@@ -54,11 +55,14 @@ export interface ArnhemPlan {
   chops: 'future' | 'plain' | 'coro' | 'smooth';
   /**
    * Where the eastern whipbird calls as the tune's signature moment, if it does: in the
-   * intro, in the solo's opening bars, or now and then between phrases. From a stream of its
-   * own, so placing the bird moves nothing else. The whipbird itself comes from the coast's
-   * bird module, which this style calls once that module is in.
+   * intro, in the solo's opening bar, or between the verse's phrases. From a stream of its
+   * own, with its own draws for the call (which pitch, whether the female answers, how far
+   * off the pair is), so placing the bird moves nothing else. The call is the coast's
+   * whipbird (lofi-coast-birds.ts), a `whipbird` note the station plays.
    */
   whipbird: 'intro' | 'break' | 'between' | null;
+  /** The whipbird's own draws, and whether it has called yet. */
+  whipR: () => number; called: boolean;
   /** Draws through the tune: the shouts. */
   r: () => number;
 }
@@ -143,9 +147,10 @@ export function arnhemOf(seed: number): ArnhemPlan {
   const stick = 98 + Math.floor(r() * 5);
   const chops = flavour === 'acoustic' ? 'smooth' : flavour === 'island' ? 'plain' : zone === 'modern' ? 'future' : zone === 'traditional' ? 'coro' : 'plain';
   const answer: LofiStyle['lead'] = flavour === 'acoustic' ? 'steel' : zone === 'modern' ? 'synthwave' : 'overdrive';
-  const w = mulberry32((seed ^ 0x3b1d7) >>> 0)();
+  const whipR = mulberry32((seed ^ 0x3b1d7) >>> 0);
+  const w = whipR();
   const whipbird = w < 0.2 ? 'intro' : w < 0.35 ? 'break' : w < 0.5 ? 'between' : null;
-  return { axis, flavour, zone, lean, didge: didgePlanOf((seed ^ 0x2d1d6) >>> 0, depth, answer), depth, unison, bilma, stick, chops, whipbird, r: mulberry32((seed ^ 0x5b0e7) >>> 0) };
+  return { axis, flavour, zone, lean, didge: didgePlanOf((seed ^ 0x2d1d6) >>> 0, depth, answer), depth, unison, bilma, stick, chops, whipbird, whipR, called: false, r: mulberry32((seed ^ 0x5b0e7) >>> 0) };
 }
 
 /** What the vocal chops of a tune are cut like (lib/lofi-chop.ts), read straight from its seed. */
@@ -173,6 +178,13 @@ export interface ArnhemBar extends Omit<DidgeBar, 'high' | 'root' | 'over'> {
   trade?: 'didge' | 'answer'; dropStart: boolean;
   /** The section that comes next, whether the tune fades from here, and the shouts' pitch. */
   next: LofiSection | undefined; fade: boolean; shout: number;
+}
+
+/** A pitch class placed between lo and hi (MIDI). */
+function placeIn(pc: number, lo: number, hi: number): number {
+  let p = lo + ((pc - lo) % 12 + 12) % 12;
+  if (p > hi) p -= 12;
+  return p;
 }
 
 /** The composer's ids for what this module places: the bilma's `perc` mod (its place in LOFI_PERCUSSION), the shouts' (LOFI_SHOUTS, ARNHEM_SHOUTS's order) and the crowd's flag. */
@@ -213,6 +225,28 @@ export function arnhemBar(plan: ArnhemPlan, at: ArnhemBar, notes: LofiNote[], ph
     out.push(...didgeLead(plan.didge, d, phrase++ >> 1));
   }
   for (const n of out) notes.push(n);
+  // The whipbird, where the tune calls for it: a pair calling as the tune opens (the voice
+  // cleared from under the call), in the solo's opening bar behind the Yidaki, or farther off
+  // in the trees at the end of one of the verse's phrases (or the outro's first bar), only where
+  // the voice rests for three beats.
+  const w = plan.whipbird;
+  const rests = (from: number): boolean => !notes.some(n => n.voice === 'lead' && n.beat + n.dur > from && n.beat < from + 3);
+  let call = -1;
+  if (!plan.called && w === 'intro' && s === 'intro' && at.i === 0) call = at.sb(2);
+  else if (!plan.called && w === 'break' && s === 'break' && at.inSection === 0) call = at.sb(2);
+  else if (!plan.called && w === 'between' && ((s === 'verse' && at.inSection % 4 === 3) || (s === 'outro' && at.i === 0))) call = [2, 4, 6, 8, 10].map(at.sb).find(rests) ?? -1;
+  if (call >= 0) {
+    plan.called = true;
+    if (w === 'intro') for (let n = notes.length - 1; n >= 0; n--) if (notes[n]!.voice === 'lead' && notes[n]!.beat + notes[n]!.dur > call) notes.splice(n, 1);
+    const r = plan.whipR;
+    // Most pairs whistle between 1.6 and 3.1 kHz, a few an octave up (as recorded pairs do), on the key's fifth or its root.
+    const tone = (at.key + (r() < 0.6 ? 7 : 0)) % 12;
+    const low = placeIn(tone, 91, 102);
+    const midi = r() < 0.2 && low + 12 <= 106 ? low + 12 : low;
+    const answered = r() < 0.85;
+    const distance = w === 'intro' ? 0 : w === 'break' ? 1 : 2;
+    notes.push({ voice: 'whipbird', midi, beat: call, dur: 8, vel: w === 'between' ? 0.55 : 0.72, mod: whipbirdMod(answered, distance, Math.floor(r() * 1048576)) });
+  }
   // The shouts: wordless, riding the chorus at the modern end and in the middle; the whole band at the traditional end into the chorus.
   const shout = (beat: number, which: number, crowd: boolean, vel: number): void => { notes.push({ voice: 'hey', midi: at.shout, dur: 0.4, beat, vel, mod: which + (crowd ? ids.crowd : 0) }); };
   if (!quiet && s === 'drop' && plan.zone !== 'traditional' && at.inSection % 4 === 1 && plan.r() < 0.6) shout(at.sb(14), ids.shouts[Math.floor(plan.r() * ids.shouts.length)]!, false, 0.78);

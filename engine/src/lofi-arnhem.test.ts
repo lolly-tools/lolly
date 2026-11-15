@@ -50,3 +50,22 @@ test('through a chorus the sung hook calls and the Yidaki answers; its toots onl
   }
   assert.ok(answered > 20, `the Yidaki answers (${answered} bars)`);
 });
+
+test('about half the tunes have one whipbird moment, in the intro, the solo\'s opening or between phrases', () => {
+  let called = 0;
+  for (const seed of SEEDS) {
+    const plan = arnhemOf((seed ^ 0xa4e3) >>> 0);
+    const birds = composeLofiTune(seed, 'arnhem').flatMap(b => b.notes.filter(n => n.voice === 'whipbird').map(n => ({ b, n })));
+    assert.ok(birds.length <= 1, `seed ${seed}: one call at most`);
+    if (!birds.length) continue;
+    called++;
+    const { b, n } = birds[0]!;
+    const where = plan.whipbird === 'intro' ? ['intro'] : plan.whipbird === 'break' ? ['break'] : ['verse', 'outro'];
+    assert.ok(where.includes(b.section), `seed ${seed}: where the plan puts it (${b.section})`);
+    // The whistle sits where recorded whipbirds whistle, about 1.5 to 4.4 kHz.
+    const hz = 440 * 2 ** ((n.midi - 69) / 12);
+    assert.ok(hz >= 1500 && hz <= 4400, `seed ${seed}: the whistle at ${hz.toFixed(0)} Hz`);
+    if (plan.whipbird !== 'break') assert.ok(!b.notes.some(x => x.voice === 'lead' && x.beat < n.beat + 3 && x.beat + x.dur > n.beat), `seed ${seed}: the voice clear of the call`);
+  }
+  assert.ok(called >= SEEDS.length * 0.3 && called <= SEEDS.length * 0.7, `about half (${called} of ${SEEDS.length})`);
+});

@@ -677,11 +677,27 @@ export function bedLoop(ctx: BaseAudioContext, kind: BotanicaNature, tune: numbe
 }
 /** The share of the context's rate a bed is rendered at. */
 export const BED_RATE = 0.5;
+
+/** A swell's shape, a few points: a slow rise (the square of the time), and its mirror for the fall. */
+const SWELL_IN = Float32Array.from({ length: 33 }, (_, k) => (k / 32) ** 2);
+const SWELL_OUT = Float32Array.from({ length: 33 }, (_, k) => (1 - k / 32) ** 2);
+/**
+ * Shape `gain` into a swell over `seconds` from `t`: rising slowly to `level` through the
+ * first `rise` of the span, held, then falling away to nothing through the last `fall`.
+ * `rise` and `fall` together stay under 0.8, so the hold always has room.
+ */
+export function swellGain(gain: AudioParam, t: number, seconds: number, level: number, rise = 0.4, fall = 0.4): void {
+  const span = Math.max(0.5, seconds);
+  gain.setValueAtTime(0, t);
+  gain.setValueCurveAtTime(SWELL_IN.map(v => v * level), t + 0.01, span * rise);
+  gain.setValueAtTime(level, t + span * rise + 0.02);
+  gain.setValueCurveAtTime(SWELL_OUT.map(v => v * level), t + span * (1 - fall), span * fall - 0.01);
+}
 const BOTANICA_NATURE_SALT = 0x9a7e;
 
 /**
- * Play a `nature` note: a bed faded in and out over its length from a place in the tune's
- * loop, a bird's phrase from a side of the stage, or a twig or a droplet as percussion.
+ * Play a `nature` note: a bed swelling in and away over its length from a place in the
+ * tune's loop, a bird's phrase from a side of the stage, or a twig or a droplet as percussion.
  * `tune` is the tune's seed, `take` tells this note from the tune's others.
  */
 export function playNature(ctx: BaseAudioContext, out: AudioNode, t: number, midi: number, vel: number, seconds: number, mod: number, tune: number, take: number): void {
@@ -714,11 +730,8 @@ export function playNature(ctx: BaseAudioContext, out: AudioNode, t: number, mid
   const buf = bedLoop(ctx, kind, tune, kind === 'insects' ? variant >> 3 : variant, insect);
   src.buffer = buf;
   src.loop = true;
-  const fade = Math.min(1.2, seconds / 3);
-  gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(level, t + fade);
-  gain.gain.setValueAtTime(level, t + seconds - fade);
-  gain.gain.linearRampToValueAtTime(0, t + seconds);
+  // A passage of the place, not a bed under the tune: in slowly, held a little, and away to nothing.
+  swellGain(gain.gain, t, seconds, level, 0.3, 0.45);
   src.connect(gain).connect(out);
   src.start(t, (((take * 7919) % 1000) / 1000) * (BED_LOOP - 0.1));
   src.stop(t + seconds + 0.05);

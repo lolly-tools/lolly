@@ -23,8 +23,9 @@
  * - Distance: a wave further off is quieter, duller (the air takes its top), slower to rise,
  *   narrower and more alike in both ears.
  *
- * Under the waves the shore itself runs as a bed: the roar of the waves breaking further
- * along the beach, low and steady, rising and falling a few decibels as distant sets come in.
+ * The shore itself is a sound of its own: the roar of the waves breaking further along the
+ * beach, low and steady, rising and falling a few decibels as distant sets come in. The
+ * composers play it as a short swell, never a bed under the tune.
  *
  * Fitted against field recordings from Freesound (CC0, measured only; no recording is in
  * this repository): Gulf Shores, Alabama, medium surf (852736); an Australian beach at night
@@ -38,7 +39,7 @@
  * Pure until the player at the end, the only part that touches an audio context.
  */
 import { readWave, WAVE_SWELL } from '../../../../engine/src/lofi-waves-notes.ts';
-import { Biquad, mix, seamless, seeded, type Stereo } from './lofi-nature.ts';
+import { bedLoop, Biquad, mix, seamless, seeded, swellGain, type Stereo } from './lofi-nature.ts';
 import { sheOaks } from './lofi-sheoaks.ts';
 
 // ── sources ─────────────────────────────────────────────────────────────────
@@ -320,11 +321,17 @@ export function shoreBed(sr: number, seconds: number, seed: number): Stereo {
 
 // ── played ──────────────────────────────────────────────────────────────────
 
-/** A wave's level against the place's other sounds, and the shore's (the shore sits about 10 dB under a wave's peak, as on the recordings). */
-const WAVE_LEVEL = 1.6;
-const SHORE_LEVEL = 0.107;
+/**
+ * A wave's level against the place's other sounds, and the shore's (the shore sits about 10 dB
+ * under a wave's peak, as on the recordings). Brought down 4 dB (Andy, 2026-11-15: the waves
+ * were "too strong"), so a wave sits behind the groove and its distance does more of the work.
+ */
+const WAVE_LEVEL = 1;
+const SHORE_LEVEL = 0.067;
 /** The she-oaks' breeze against the waves (lib/lofi-sheoaks.ts): in front in the quiet sections, soft beside the sea. */
 const DUNES_LEVEL = 0.5;
+/** The cicadas' level at the top of their swell: botanica's insects bed level (lib/lofi-nature.ts). */
+const CICADA_LEVEL = 0.45;
 /** The share of the context's rate a wave is made at: its sound lies below about 15 kHz, and three quarters of 44.1 kHz holds that for a quarter less work. */
 export const WAVE_RATE = 0.75;
 /** How long the shore's loop is (s), and the share of the context's rate it is made at (the roar lies below about 7 kHz). */
@@ -349,8 +356,9 @@ function made(ctx: BaseAudioContext, key: string, make: () => Stereo, rate = ctx
 }
 
 /**
- * Play a `wave` note: a wave breaking WAVE_SWELL[size] seconds after `t`, or the shore's
- * roar or the she-oaks' breeze faded in and out over the note's `seconds`. `tune` is the tune's seed and `take`
+ * Play a `wave` note: a wave breaking WAVE_SWELL[size] seconds after `t`, or a swell over the
+ * note's `seconds` of the shore's roar, the she-oaks' breeze or cicadas (botanica's cicada,
+ * lib/lofi-nature.ts): rising slowly, held a moment and falling away to nothing. `tune` is the tune's seed and `take`
  * tells the note from the tune's others.
  */
 export function playWave(ctx: BaseAudioContext, out: AudioNode, t: number, vel: number, seconds: number, mod: number, tune: number, take: number): void {
@@ -365,18 +373,23 @@ export function playWave(ctx: BaseAudioContext, out: AudioNode, t: number, vel: 
     src.start(t);
     return;
   }
+  if (w.kind === 'cicadas') {
+    src.buffer = bedLoop(ctx, 'insects', tune, w.take, 'cicada');
+    src.loop = true;
+    swellGain(gain.gain, t, seconds, CICADA_LEVEL * vel);
+    src.connect(gain).connect(out);
+    src.start(t, ((take * 3571) % 1000) / 1000 * 9.5);
+    src.stop(t + Math.max(0.5, seconds) + 0.05);
+    return;
+  }
   const rate = Math.round(ctx.sampleRate * SHORE_RATE);
   const dunes = w.kind === 'dunes';
   src.buffer = dunes
     ? made(ctx, `dunes|${tune}|${w.take % 2}`, () => seamless(sheOaks(rate, SHORE_LOOP + 1, mix(tune, w.take % 2, 0x5e)), rate, 1), rate)
     : made(ctx, `shore|${tune}|${w.take % 2}`, () => seamless(shoreBed(rate, SHORE_LOOP + 1, mix(tune, w.take % 2, 0x54)), rate, 1), rate);
   src.loop = true;
-  const level = (dunes ? DUNES_LEVEL : SHORE_LEVEL) * vel;
-  const fade = Math.min(1.5, seconds / 3);
-  gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(level, t + fade);
-  gain.gain.setValueAtTime(level, t + Math.max(fade, seconds - fade));
-  gain.gain.linearRampToValueAtTime(0, t + seconds);
+  // A moment, not a bed: the roar or the breeze swells in slowly, holds a moment and falls away.
+  swellGain(gain.gain, t, seconds, (dunes ? DUNES_LEVEL : SHORE_LEVEL) * vel);
   src.connect(gain).connect(out);
   src.start(t, (((take * 7919) % 1000) / 1000) * (SHORE_LOOP - 0.1));
   src.stop(t + seconds + 0.05);

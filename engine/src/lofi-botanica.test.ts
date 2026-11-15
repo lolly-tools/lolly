@@ -7,8 +7,9 @@
  * What is pinned:
  *  - a seed is a tune, and tunes cover both ends of the genre's tempo: slow drifts (40 to
  *    70) and glitchy grooves (100 to 168), drawn per tune;
- *  - every tune is set somewhere: beds of its place under it, birds singing in the lead's
- *    rests (one bird at a time), granular pads on the chord's tones, glitches;
+ *  - every tune is set somewhere: its place comes forward in a few short passages (the
+ *    opening, the clearing, sometimes the close) and never under a bloom, birds singing in
+ *    the lead's rests (one bird at a time), granular pads on the chord's tones, glitches;
  *  - a drift is free of the grid and has no backbeat (its struck keys: a string section
  *    holds each chord, a bow a chord); a groove's bloom has its kick, its backbeat and the
  *    place's twigs and drops as percussion;
@@ -56,8 +57,16 @@ test('every tune is set somewhere: beds of its place, birds in the rests, pads o
     const nature = notesOf(bars, 'nature');
     const beds = new Set(nature.filter(n => n.dur >= 2).map(kindOf).filter(k => k !== 'bird'));
     assert.ok(beds.size >= 1, `${where}: a bed of its place under the tune`);
-    // The beds run under the whole tune, two bars at a time, from the first bar.
+    // The place opens the tune, then comes forward only in a few short passages: none under a verse, a build or a bloom.
     assert.ok(bars[0]!.notes.some(n => n.voice === 'nature' && n.dur >= 2 && kindOf(n) !== 'bird'), `${where}: the place is heard from the top`);
+    const isPlace = (n: { voice: string; dur: number; mod?: number }): boolean => n.voice === 'nature' && n.dur >= 8 && kindOf(n) !== 'bird';
+    const passages = bars.filter(b => b.notes.some(isPlace));
+    assert.ok(passages.length >= 2 && passages.length <= 3, `${where}: two or three passages of the place (${passages.length})`);
+    for (const b of passages) assert.ok(['intro', 'break', 'outro'].includes(b.section), `${where}: the place comes forward in the opening, the clearing or the close (bar ${b.index}, ${b.section})`);
+    const first = kindOf(bars[0]!.notes.find(isPlace)!);
+    const placeBeats = bars.flatMap(b => b.notes.filter(n => isPlace(n) && kindOf(n) === first)).reduce((sum, n) => sum + n.dur, 0);
+    assert.ok(placeBeats <= (bars.length - 1) * 4 * 0.3, `${where}: long stretches of music with no place (${placeBeats} of ${(bars.length - 1) * 4} beats)`);
+    for (const b of bars) if (b.section === 'drop' || b.section === 'verse' || b.section === 'build') assert.ok(!b.notes.some(n => n.voice === 'nature' && n.dur >= 2 && kindOf(n) !== 'bird'), `${where}: no place under bar ${b.index} (${b.section})`);
     const birds = nature.filter(n => kindOf(n) === 'bird');
     if (birds.length) birdTunes++;
     for (const b of birds) assert.ok(BOTANICA_BIRDS[readNature(b.mod!).variant % 8], `${where}: a bird the shell can sing`);
