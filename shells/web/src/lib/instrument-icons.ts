@@ -43,7 +43,7 @@ const LEADS: Record<LiveLead, InstrumentIcon> = {
   sax: 'horn', trumpet: 'horn', flugelhorn: 'horn', tenorhorn: 'horn',
   synthwave: 'audioWaveform',
   chip: 'gamepad', pulse: 'gamepad', bit: 'gamepad',
-  angel: 'micVocal', chop: 'micVocal',
+  angel: 'micVocal', chop: 'micVocal', chopFemale: 'micVocal', chopMale: 'micVocal', chopBaritone: 'micVocal', chopChild: 'micVocal', chopOctave: 'micVocal', chopChoir: 'micVocal', chopGroup: 'micVocal',
   guitar: 'guitar', overdrive: 'guitar', metal: 'guitar', riff: 'guitar', twang: 'guitar', nylon: 'guitar', banjo: 'guitar', pedal: 'guitar',
   santur: 'guitar', zheng: 'guitar', koto: 'guitar', pipa: 'guitar', shamisen: 'guitar', kora: 'guitar', harp: 'guitar', steel: 'guitar', tar: 'guitar',
   fiddle: 'bowed', kamancheh: 'bowed', erhu: 'bowed', viola: 'bowed', cello: 'bowed', doublebass: 'bowed',

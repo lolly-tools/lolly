@@ -27,6 +27,8 @@ export const LOFI_LEAD_NAME: Record<LiveLead, string> = {
   koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', harp: 'harp', steel: 'acoustic guitar', tar: 'tar', viola: 'viola', cello: 'cello', doublebass: 'double bass', none: '',
   surf: 'surf guitar', chorus: 'chorus guitar', yidaki: 'yidaki',
   flugelhorn: 'flugelhorn', tenorhorn: 'tenor horn',
+  chopFemale: 'vocal chops (female)', chopMale: 'vocal chops (male)', chopBaritone: 'vocal chops (baritone)', chopChild: 'vocal chops (child)',
+  chopOctave: 'vocal chops (female and baritone)', chopChoir: 'vocal chops (children\'s choir)', chopGroup: 'vocal chops (mixed group)',
 };
 
 export const LOFI_SNARE_NAME: Record<LofiStyle['snare'], string> = { snare: 'snare', brush: 'brushes', rim: 'cross-stick', clap: 'claps', stack: 'big snare', snap: 'finger snaps' };
@@ -45,4 +47,12 @@ export const LOFI_BASS_NAME: Record<LofiStyle['bass'], string> = {
 export const LOFI_INSTRUMENT_LINE: Readonly<Partial<Record<string, string>>> = {
   didgeridoo: 'A long, wide didgeridoo: a deep, warm drone pulsed by the circular breath, with soft, low toots and mellow vowel sweeps.',
   yidaki: 'Modelled on the yidaki of north-east Arnhem Land: a narrower bore pitched higher and brighter, with sharp toots and fast tongue and voice rhythms.',
+  chop: 'The genre picks the voice: a woman sped up in the club styles, a man now and then in R&B and hip hop, a group singing a chorus together.',
+  chopFemale: 'A woman\'s voice, soprano or alto: a light vibrato and a clear head voice up high, sped up a little in the club styles.',
+  chopMale: 'A tenor an octave under the melody: pressed and bright when loud, breaking into falsetto at the top.',
+  chopBaritone: 'A deep baritone an octave or two under the melody, darker, with a slower vibrato and slower slides.',
+  chopChild: 'A child\'s voice: higher and lighter, breathier, with almost no vibrato.',
+  chopOctave: 'A woman\'s chops with a baritone singing them an octave under her.',
+  chopChoir: 'Five children on the line, each with their own take, timing and place across the speakers.',
+  chopGroup: 'Women and men singing the line together, the men an octave under.',
 };

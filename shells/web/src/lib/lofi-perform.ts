@@ -46,6 +46,7 @@ import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_U
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { isSliceNote } from '../../../../engine/src/lofi-break-chop.ts';
 import { chopper } from './lofi-chop.ts';
+import { isChopLead } from '../../../../engine/src/lofi-chop-cast.ts';
 import { PLUCKED_LEADS, pluckedLead, rhythmKnocks } from './lofi-lead-art.ts';
 import { erhuist } from './lofi-erhu.ts';
 import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod } from './lofi-flutes.ts';
@@ -694,7 +695,7 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
   // Yacht rock's guitar fills, fingered and bent or slid as a lead guitarist's notes are.
   if (notes.some(n => n.voice === 'fill')) leadGuitarist(notes, 'chorus', rand, 'fill');
-  if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
+  if (isChopLead(lead)) notes = chopper(notes, bar, spb, rand, lead);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
   else if (lead === 'erhu') erhuist(notes, spb, !!bar.voices?.double);
   else if (lead === 'flute' || lead === 'dizi') {

@@ -62,7 +62,8 @@ import * as GA from './lofi-garage.ts';
 import { houseOrgan } from './lofi-organ.ts';
 import { DidgePlayer } from './lofi-didge-player.ts';
 import { DIDGE_LEAD, readBird, readDidge } from '../../../../engine/src/lofi-straya.ts';
-import { arnhemDidgeLift, arnhemUnison } from '../../../../engine/src/lofi-arnhem.ts';
+import { arnhemDidgeLift } from '../../../../engine/src/lofi-arnhem.ts';
+import { isChopLead } from '../../../../engine/src/lofi-chop-cast.ts';
 import * as BI from './lofi-bilma.ts';
 import { isBreakNote } from '../../../../engine/src/lofi-breaks.ts';
 import { readFuture } from '../../../../engine/src/lofi-future.ts';
@@ -168,7 +169,8 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
   // velocity chooses how hard the string is picked (lib/lofi-lead-guitars.ts).
   keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 1, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1, strings: 1, grand: 1, surf: 1, combo: 2.2, houseOrgan: 1, horns: 1, didgeridoo: 0.7, yidaki: 0.7 },
   lead: { vibes: 1, flute: 0.82, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 1, overdrive: 1, synthwave: 0.86, metal: 1, panflute: 0.56, nylon: 1.9, riff: 1, twang: 1, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1,
-    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1 },
+    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1,
+    chopFemale: 1, chopMale: 1, chopBaritone: 1, chopChild: 1, chopOctave: 1, chopChoir: 1, chopGroup: 1 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
@@ -211,20 +213,10 @@ const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.52, br
 const FM_SEAT: Partial<Record<LofiMood, number>> = { chiptune: -4.5, sherbert: 2.5, kpop: 2.5, synthwave: -7.2 };
 /** Noosacore's didgeridoo is an undertone under the sea (engine/src/lofi-noosa.ts): measured K-weighted, about 7 to 8 dB under the lull it drones in. */
 const NOOSA_DIDGE = 0.5;
-/** The styles whose vocal chops in a chorus are a coro: several singers on the line, not one voice chopped. */
-const CORO = new Set<LofiMood>(['salsa']);
-/** Whether a tune's chorus is sung by several voices in unison: a coro's styles, and Arnhem Land's tunes that sing their hook together (engine/src/lofi-arnhem.ts). */
-const coro = (mood: LofiMood, seed: number): boolean => CORO.has(mood) || (mood === 'arnhem' && arnhemUnison(seed));
 /** Arnhem Land's singers together against its one voice (its lead seat is set for the one voice). */
 const ARNHEM_GROUP = 0.6;
 /** Arnhem Land's Yidaki in the lead seat, against the seat's lift for the voice (5.5 dB down: its answers about level with the band, its solo 3 dB under). */
 const ARNHEM_YIDAKI_SEAT = 0.53;
-/** A coro's singers: each its own voice (a seed for lib/lofi-chop.ts), how late (s), its place across the speakers and how loud. */
-const CORO_SINGERS: ReadonlyArray<{ seed: number; late: number; pan: number; level: number }> = [
-  { seed: 0, late: 0, pan: 0, level: 0.62 },
-  { seed: 0x51a, late: 0.012, pan: -0.35, level: 0.5 },
-  { seed: 0xc0e, late: 0.02, pan: 0.35, level: 0.5 },
-];
 /** Yacht rock's guitar fills against the lead they answer (about 3 dB under). */
 const FILL_LEVEL = 0.7;
 /** How far a section's brass falls off a phrase's last long note (semitones). */
@@ -846,17 +838,20 @@ export class LofiStation {
         const from = prev.voice === leadV && gap > -0.25 && gap < SLUR_GAP && prev.midi !== note.midi ? prev.midi : undefined;
         this.lastLead = { end: lt + len, midi: note.midi, voice: leadV };
         const play = (v: string, level: number, shift = 0, late = 0, pan = 0, how?: R.BrassPlay & LG.TakeHow): void => {
-          const seat = this.leadSeat(lanes.lead, bar.tune.mood, v, pan);
+          // Every vocal chop sits in the chop's seat, whoever the singer.
+          const chops = isChopLead(v);
+          const seat = this.leadSeat(lanes.lead, bar.tune.mood, chops ? 'chop' : v, pan);
           const at = lt + late;
           // A flautist's flags are the flute's own: an instrument doubling it reads the composer's articulation.
           const mod = v === leadV ? note.mod ?? 0 : composerMod(note.mod);
-          if (v === 'chop' && coro(bar.tune.mood, bar.tune.seed) && bar.section === 'drop') {
-            // A coro: the line sung by several voices, each its own singer, a little apart.
-            // Arnhem Land's group sings its hook under its lead seat, set for one voice (about 4 dB down).
-            const group = bar.tune.mood === 'arnhem' ? ARNHEM_GROUP : 1;
-            for (const s of CORO_SINGERS) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, v, s.pan) : seat, at + s.late, note.midi + shift, level * s.level * group, len, mod, spb, (bar.tune.seed ^ s.seed) >>> 0, bar.index * 1000 + Math.round(note.beat * 48));
-          } else if (v === 'chop') C.chop(k, seat, at, note.midi + shift, level, len, mod, spb, bar.tune.seed, bar.index * 1000 + Math.round(note.beat * 48));
-          else if (v === 'surf') SF.lead(k, seat, at, note.midi + shift, level, len, mod, spb);
+          if (chops) {
+            // Who sings it (engine/src/lofi-chop-cast.ts): one voice, a baritone under her, a
+            // children's choir or a group, each its own singer, a little apart. Arnhem Land's
+            // group sings its hook under its lead seat, set for one voice (about 4 dB down).
+            const cast = C.castOf(v, bar);
+            const group = bar.tune.mood === 'arnhem' && cast.length > 1 ? ARNHEM_GROUP : 1;
+            for (const s of cast) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, 'chop', s.pan) : seat, at + s.late, note.midi + shift + s.shift, level * s.level * group, len, mod, spb, (bar.tune.seed ^ s.salt) >>> 0, bar.index * 1000 + Math.round(note.beat * 48), s);
+          } else if (v === 'surf') SF.lead(k, seat, at, note.midi + shift, level, len, mod, spb);
           // The band's own horns as a lead in any style: a player of the oompa band (lib/lofi-oompa.ts).
           else if (OB.BAND_SOLOS.has(v)) OB.line(k, seat, bar, at, note.midi + shift, level, len, 0, v);
           else if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
