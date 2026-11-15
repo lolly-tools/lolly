@@ -70,6 +70,7 @@ import * as FB from './lofi-future.ts';
 import { isSliceNote } from '../../../../engine/src/lofi-break-chop.ts';
 import * as BK from './lofi-break-kit.ts';
 import * as DUB from './lofi-dub.ts';
+import * as SC from './lofi-scratches.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -168,7 +169,7 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
   // velocity chooses how hard the string is picked (lib/lofi-lead-guitars.ts).
   keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 1, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1, strings: 1, grand: 1, surf: 1, combo: 2.2, houseOrgan: 1, horns: 1, didgeridoo: 0.7, yidaki: 0.7 },
   lead: { vibes: 1, flute: 0.82, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 1, overdrive: 1, synthwave: 0.86, metal: 1, panflute: 0.56, nylon: 1.9, riff: 1, twang: 1, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1,
-    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1 },
+    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1, turntable: 0.5 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
@@ -667,6 +668,8 @@ export class LofiStation {
     this.flush(until);
     // A chopped break's recording, a step a tick, ahead of its first slice (lib/lofi-break-kit.ts).
     BK.warm(this.ctx);
+    // A tune's scratch records, a record a tick, ahead of its first scratch (lib/lofi-scratches.ts).
+    SC.warm(this.ctx);
   }
 
   /** Queue whole bars until the next one starts after `until`. */
@@ -694,6 +697,7 @@ export class LofiStation {
       }
       this.marks.push({ at, bar, pos: this.taken - 1 });
       BK.prepare(this.ctx, bar.tune);
+      SC.prepare(this.ctx, bar);
       this.nextBarAt = at + lofiBarBeats(bar.tune) * spb;
     }
   }
@@ -857,6 +861,8 @@ export class LofiStation {
             for (const s of CORO_SINGERS) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, v, s.pan) : seat, at + s.late, note.midi + shift, level * s.level * group, len, mod, spb, (bar.tune.seed ^ s.seed) >>> 0, bar.index * 1000 + Math.round(note.beat * 48));
           } else if (v === 'chop') C.chop(k, seat, at, note.midi + shift, level, len, mod, spb, bar.tune.seed, bar.index * 1000 + Math.round(note.beat * 48));
           else if (v === 'surf') SF.lead(k, seat, at, note.midi + shift, level, len, mod, spb);
+          // The Turntable: the melody's notes scratched on the tune's record (lib/lofi-scratches.ts).
+          else if (v === 'turntable') SC.playTurntable(k, seat, bar, at, note.midi + shift, level, len);
           // The band's own horns as a lead in any style: a player of the oompa band (lib/lofi-oompa.ts).
           else if (OB.BAND_SOLOS.has(v)) OB.line(k, seat, bar, at, note.midi + shift, level, len, 0, v);
           else if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
@@ -983,6 +989,7 @@ export class LofiStation {
       }
       case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'siren': DUB.siren(k, lanes.keys, lanes.fx, bar, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'scratch': SC.playScratch(k, lanes.fx, bar, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar':
         if (BS.stacked(bar.tune.mood)) BS.soar(k, lanes.bass, bar, t, note.midi, vel, len, note.mod === 1);
