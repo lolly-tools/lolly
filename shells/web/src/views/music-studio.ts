@@ -63,6 +63,7 @@ import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { mountProfileFab } from '../components/profile-menu.ts';
 import { mountMusicSoundProfile } from './music-studio/sound-profile.ts';
+import { isSoundEditLink, readSoundEdit, SOUND_EDIT_PARAM } from '../lib/sound-edit-handoff.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
@@ -866,8 +867,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   let projectSlot: string | null = openSlot;
   let soundProfile: ReturnType<typeof mountMusicSoundProfile> | undefined;
   let soundDisposed = false;
+  /** Editing a use for the Sound room (lib/sound-edit-handoff.ts): the address keeps saying so, through a reload. */
+  const soundEditing = isSoundEditLink(params) && !!readSoundEdit();
   function writeLink(): void {
-    const next = `#/music?${withGenreLock(musicStateParams(state), !shuffleGenres)}${projectSlot ? `&slot=${encodeURIComponent(projectSlot)}` : ''}`;
+    const next = `#/music?${withGenreLock(musicStateParams(state), !shuffleGenres)}${projectSlot ? `&slot=${encodeURIComponent(projectSlot)}` : ''}${soundEditing ? `&${SOUND_EDIT_PARAM}` : ''}`;
     if (location.hash !== next) history.replaceState(history.state, '', next);
   }
   function recompose(): void {
@@ -1818,7 +1821,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   soundProfile = mountMusicSoundProfile(page, state, next => {
     for (const k of Object.keys(state) as (keyof MusicState)[]) delete state[k];
     Object.assign(state, next); swapped.clear(); syncControls(); recompose(); fit();
-  }, () => { projectSlot = null; writeLink(); });
+  }, () => { projectSlot = null; writeLink(); }, { editing: soundEditing });
   if (openSlot) soundProfile.pending();
   say(HINT);
   writeLink(); meta(); paintSummaries(); paintGenre(); paintSilent(); sizeSeed(); fitHeight(); fit(); viz.frame();

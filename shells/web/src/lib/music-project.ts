@@ -12,7 +12,7 @@
  * instruments for the whole track and for each kind of section, the kit, the tag, the
  * effects that are off, the mix, the texture, the brightness and the drive.
  */
-import type { SonicRecipeV1 } from '../../../../packages/core/src/sonic-profile-v1.ts';
+import type { SonicRecipeV1 } from '@lolly-tools/core/sonic-profile-v1';
 import { musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
 import { MUSIC_SLOT_PREFIX, MUSIC_TOOL_ID, isMusicSlot } from './batch-slots.ts';
 import { genreTitle } from './genre-icons.ts';

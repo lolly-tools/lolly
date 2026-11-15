@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Read and resolve sound profiles without a renderer, storage or personal preferences. */
 import Ajv from 'ajv';
-import schema from '../../packages/core/schema/sonic-profile-v1.schema.json' with { type: 'json' };
+import schema from '@lolly-tools/core/schema/sonic-profile-v1.schema.json' with { type: 'json' };
 import type {
   SonicFindingV1,
   SonicProfileV1,
   SonicRecipeV1,
-} from '../../packages/core/src/sonic-profile-v1.ts';
+} from '@lolly-tools/core/sonic-profile-v1';
 import { sha256Hex } from './bytes.ts';
 import { TOKEN_EXT } from './token-ext.ts';
 
@@ -137,14 +137,14 @@ export async function resolveSonicRecipe(
       code: 'signature-separate',
       severity: 'notice',
       message:
-        'The signature is a separate audio asset. Place and review it in the sequence; it is not part of this generated music bed.',
+        'The signature is its own audio file. Place it in the sequence; the generated music does not include it.',
     });
   if (profile.review.state === 'draft')
     findings.push({
       code: 'listening-pending',
       severity: 'notice',
       message:
-        'This sound profile is a draft. Its character and intelligibility still need listening review.',
+        'This sound is a draft. Nobody has recorded a listening review of it yet.',
     });
   if (findings.some((f) => f.severity === 'error')) return { recipe: null, findings };
   let resolved: ReturnType<SonicMusicAdapter['resolve']>;

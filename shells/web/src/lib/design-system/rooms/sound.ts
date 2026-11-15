@@ -1,449 +1,593 @@
 // SPDX-License-Identifier: MPL-2.0
-
+/**
+ * The Sound room (#/start?area=sound): the design system's sound, chosen by listening.
+ *
+ * It opens on the starting sounds (lib/sonic-music.ts SONIC_DIRECTIONS), each a card
+ * with a play button. Choosing one makes it the sound of every use, and the uses appear:
+ * chips that each play, the use picked showing its purpose and its music in plain words.
+ * The music itself is shaped in the music generator: Edit in the music generator takes
+ * the use there with the room's draft (lib/sound-edit-handoff.ts) and comes back with the
+ * new settings or none. The voice, the notes and signature, and the brand's character and
+ * listening review fold away below. Markup: rooms/sound-html.ts.
+ *
+ * One player serves the whole room: an audio element that is never in the page, so the
+ * play buttons are the only controls and starting one stops the other.
+ *
+ * Saving writes the profile into the design system as a new revision, with a checkpoint
+ * in the same history the other rooms use (engine/src/sonic-profile.ts withSonicProfile).
+ * Any change returns the profile to a draft, so a listening review always belongs to
+ * the version that was heard. Nothing is saved until Save sound.
+ */
 import type { SpeechVoiceInfo } from '@lolly-tools/core/host-v1';
-import {
-  readSonicProfile,
-  resolveSonicRecipe,
-  sonicProfileOf,
-  withSonicProfile,
-} from '../../../../../../engine/src/sonic-profile.ts';
-import type { SonicProfileV1 } from '../../../../../../packages/core/src/sonic-profile-v1.ts';
-import { t } from '../../../i18n.ts';
-import { escape as e } from '../../../utils.ts';
+import type { SonicContextV1, SonicNarrationV1, SonicProfileV1 } from '@lolly-tools/core/sonic-profile-v1';
+import { readSonicProfile, resolveSonicRecipe, sonicProfileOf, withSonicProfile } from '../../../../../../engine/src/sonic-profile.ts';
+import type { LofiMood } from '../../../../../../engine/src/lofi-compose.ts';
+import { perfUiOn } from '../../../feature-flags.ts';
+import { prefersReducedMotion } from '../../a11y-prefs.ts';
+import { showPillSlider } from '../../../components/pill-slider.ts';
+import { t, tRaw } from '../../../i18n.ts';
 import { musicProjectHref, musicProjectRecord, newMusicSlot } from '../../music-project.ts';
-import { parseMusicState } from '../../music-state.ts';
-import { sonicMusicAdapter, sonicMusicFromLink, starterSonicProfile } from '../../sonic-music.ts';
-import { sonicContextFields, sonicIdentityFields } from '../sonic-form.ts';
+import { musicStateParams, parseMusicState } from '../../music-state.ts';
+import { staggerReveal } from '../../reveal.ts';
+import { clearSoundEdit, readSoundEdit, soundEditHref, writeSoundEdit } from '../../sound-edit-handoff.ts';
+import { applySonicDirection, SONIC_DIRECTIONS, sonicDirectionOf, sonicMusicAdapter, sonicMusicFromLink, starterSonicProfile } from '../../sonic-music.ts';
 import type { StudioState } from '../studio-state.ts';
 import { type UsageHost, usageRevision } from '../usage-model.ts';
+import { percentText, saveStateText, soundMessageHtml, soundRoomHtml, speedText, type SoundViewModel } from './sound-html.ts';
 
-export function mountSoundRoom(
-  el: HTMLElement,
-  opts: { host: UsageHost; readonly?: boolean; studio?: StudioState; changed?(): void }
-) {
-  let profile: SonicProfileV1 | null = null,
-    contextId = '',
-    seed = 2024;
+/** A genre's wash for a card: the stronger stop, the softer one, their angle, and the text colour when it is not the theme's. */
+export interface SoundWash { from: string; to: string; angle: number; ink?: string }
+
+export interface SoundRoomOptions {
+  host: UsageHost;
+  readonly?: boolean;
+  studio?: StudioState;
+  changed?(): void;
+  /** The genres' washes for this surface and text colour (views/music-studio/genre-colours.ts), passed in by the view. */
+  washes?(surface: string, text: string): Promise<ReadonlyMap<LofiMood, SoundWash>>;
+  /** Make a preview: the music, or the music under the voice. Defaults to lib/sonic-preview.ts. */
+  audition?(parameters: string, signal: AbortSignal, narration?: { settings: SonicNarrationV1; script: string }): Promise<Blob>;
+  /** The one player. Defaults to an audio element that is never in the page. */
+  audio?: Pick<HTMLAudioElement, 'play' | 'pause' | 'addEventListener' | 'removeEventListener' | 'currentTime' | 'duration'> & { src: string };
+  /** Go to an address in the app. Defaults to setting location.hash. */
+  navigate?(href: string): void;
+}
+
+const DEFAULT_SAMPLE = 'Here is one clear idea. Give the words room to land, and let the music support the story.';
+/** How many previews are kept, so a second play starts at once. */
+const KEPT_PREVIEWS = 6;
+const randomSeed = (): number => crypto.getRandomValues(new Uint32Array(1))[0]!;
+
+export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
+  const readonly = !!opts.readonly;
+  let profile: SonicProfileV1 | null = null;
+  let contextId = '';
+  let label = '';
+  let systemId = '';
+  /** The saved revision, or null when this design system has no sound yet. */
+  let savedRevision: number | null = null;
   let revision: Awaited<ReturnType<typeof usageRevision>> | undefined;
-  let voices: SpeechVoiceInfo[] = [],
-    assets: Array<{ id: string; name: string }> = [];
-  let disposed = false,
-    dirty = false,
-    saved = false,
-    working = false,
-    sequence = 0;
-  let abort: AbortController | undefined, url: string | undefined;
-  let speechUnavailable = !opts.host.speech;
-  let sample =
-    'Here is one clear idea. Give the words room to land, and let the music support the story.';
-  const context = () => profile!.contexts.find((c) => c.id === contextId)!;
-  const status = (message: string) => {
-    const out = el.querySelector('[data-sound-status]');
-    if (out) out.textContent = message;
-  };
-  const stop = () => {
-    sequence++;
-    abort?.abort();
-    abort = undefined;
-    el.querySelectorAll('audio').forEach((audio) => {
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
-    });
-    if (url) URL.revokeObjectURL(url);
-    url = undefined;
-    working = false;
-    el.querySelectorAll<HTMLButtonElement>('[data-sound-listen]').forEach((button) => {
-      button.disabled = false;
-    });
-  };
-  const updateSave = () => {
-    const button = el.querySelector<HTMLButtonElement>('[data-sound-action="save"]');
-    if (button) {
-      button.disabled = !dirty || working;
-      button.textContent = t(saved ? 'Save sound changes' : 'Save these starting points');
+  let picked = false, saved = false, dirty = false, working = false, disposed = false;
+  let withVoice = false, renaming = false, reviewing = false;
+  let renameBackup: { label: string; purpose: string } | null = null;
+  let sample = DEFAULT_SAMPLE;
+  let voices: SpeechVoiceInfo[] = [];
+  let audioAssets: Array<{ id: string; name: string }> = [];
+  let speech = !!opts.host.speech;
+  let sequence = 0;
+  let pendingStatus = '';
+  /** A tune drawn by Another tune, per use: heard in the room and carried to the generator. */
+  const drawn = new Map<string, number>();
+  const open = new Set<string>();
+  const navigate = opts.navigate ?? ((href: string) => { location.hash = href; });
+
+  // ── the one player ─────────────────────────────────────────────────────────
+  let audio = opts.audio ?? null;
+  let playingKey = '', playState: '' | 'loading' | 'playing' = '', playAbort: AbortController | undefined, playUrl = '';
+  const kept = new Map<string, Blob>();
+  const player = () => {
+    if (!audio) {
+      const element = new Audio();
+      element.preload = 'none';
+      audio = element;
     }
-    const badge = el.querySelector('[data-sound-review]');
-    if (badge)
-      badge.textContent = t(
-        dirty
-          ? 'Unsaved draft'
-          : profile?.review.state === 'reviewed'
-            ? 'Listening review recorded'
-            : 'Draft sound'
-      );
+    return audio;
   };
-  const paint = () => {
+  const markButtons = (): void => {
+    for (const button of el.querySelectorAll<HTMLButtonElement>('[data-play]')) {
+      const on = button.dataset.play === playingKey;
+      button.dataset.state = on ? playState : '';
+      button.setAttribute('aria-pressed', String(on && playState !== ''));
+    }
+  };
+  const stop = (): void => {
+    playAbort?.abort();
+    playAbort = undefined;
+    if (audio) {
+      audio.pause();
+      // An empty src asks the element to load the page's own address; dropping the attribute does not.
+      if (typeof HTMLMediaElement !== 'undefined' && audio instanceof HTMLMediaElement) { audio.removeAttribute('src'); audio.load(); } else audio.src = '';
+    }
+    if (playUrl) URL.revokeObjectURL(playUrl);
+    playUrl = '';
+    playingKey = '';
+    playState = '';
+    markButtons();
+  };
+  const onEnded = (): void => { if (playingKey) stop(); };
+  const onTime = (): void => {
+    const button = el.querySelector<HTMLElement>(`[data-play="${CSS.escape(playingKey)}"]`);
+    if (button && audio && audio.duration > 0) button.style.setProperty('--sound-progress', String(Math.min(1, audio.currentTime / audio.duration)));
+  };
+  let listening = false;
+  const listen = (): void => {
+    if (listening) return;
+    listening = true;
+    player().addEventListener('ended', onEnded);
+    player().addEventListener('timeupdate', onTime);
+  };
+  async function play(key: string, parameters: string, narration?: { settings: SonicNarrationV1; script: string }): Promise<void> {
+    if (playingKey === key) { stop(); return; }
     stop();
-    if (!profile) return;
-    const current = context();
-    el.classList.add('sound-room');
-    el.innerHTML = `<header class="sound-head"><div><p class="start-eyebrow">${e(profile.label)}</p><h2>${t('Sound')}</h2><p>${t('A familiar character, with a fresh composition for each story.')}</p></div><span class="sound-badge" data-sound-review></span></header>
-      ${!saved ? `<div class="sound-intro"><h3>${t('Start by listening')}</h3><p>${t('Compare three starting points, then shape your own sound. Nothing is saved until you choose to keep a direction.')}</p></div>` : ''}
-      <form data-sound-form>
-      <section class="sound-listening"><div class="sound-grid"><label class="sound-field"><span>${t('Use this sound for')}</span><select data-sound-context>${profile.contexts.map((c) => `<option value="${e(c.id)}"${c.id === current.id ? ' selected' : ''}>${e(c.label)}${c.id === profile!.defaultContext ? ` (${t('default')})` : ''}</option>`).join('')}</select></label><div class="sound-actions">${!opts.readonly ? `<button type="button" class="btn" data-sound-action="add">${t('Add a use')}</button><button type="button" class="btn" data-sound-action="default"${current.id === profile.defaultContext ? ' disabled' : ''}>${t('Make default')}</button>` : ''}</div></div>
-      <h3>${e(current.label)}</h3><p>${e(current.purpose)}</p><div class="sound-actions"><button type="button" class="btn btn--primary" data-sound-listen="music">${t('Listen to music')}</button><button type="button" class="btn" data-sound-listen="voice">${t('Listen with narration')}</button><button type="button" class="btn" data-sound-action="new">${t('New composition')}</button><button type="button" class="btn" data-sound-action="stop">${t('Stop')}</button></div><audio controls preload="none" aria-label="${e(t('Sound audition'))}"></audio>
-      <p class="sound-hint">${t('A short excerpt with a fade, not a composed ending. Compare the same seed across uses; New composition changes the notes while retaining the saved music choices.')}</p><details class="sound-details"><summary>${t('Narration sample')}</summary><label class="sound-field"><span>${t('Text to hear with the music')}</span><textarea data-sound-sample rows="3" maxlength="600">${e(sample)}</textarea></label><p>${t('This sample stays in this room. The profile keeps voice and pronunciation choices, not your sample text.')}</p></details></section>
-      <fieldset${opts.readonly ? ' disabled' : ''}><details class="sound-details"><summary>${t('Your sound identity')}</summary>${sonicIdentityFields(profile)}</details></fieldset>
-      <fieldset${opts.readonly ? ' disabled' : ''}>${sonicContextFields(current, voices, assets)}</fieldset>
-      <details class="sound-details"><summary>${t('Review and repeatability')}</summary><p>${t('The profile stores musical choices and guidance. Listening is still needed for recognition, cultural fit and intelligibility. Every composition needs a release review.')}</p><p>${t('Seed')}: <code>${seed}</code> · ${t('Profile revision')}: ${profile.revision}</p>${profile.review.state === 'reviewed' ? `<p>${e(profile.review.reviewer)} · ${e(profile.review.at)}</p><p>${e(profile.review.notes)}</p>` : `<p>${t('No listening review has been recorded for this profile.')}</p>`}${!opts.readonly ? `<label class="sound-field"><span>${t('Reviewer name')}</span><input data-sound-reviewer maxlength="160"></label><label class="sound-field"><span>${t('What did you listen to and decide?')}</span><textarea data-sound-review-notes rows="3" maxlength="4000"></textarea><small>${t('Name the uses, seeds, listening conditions and remaining concerns. This records a human review of the profile, not approval of every future track.')}</small></label><button type="button" class="btn" data-sound-action="review">${t('Record listening review')}</button>` : ''}<p>${t('Saved projects retain this profile revision and exact recipe. Keep a rendered audio file when you need identical sound across future generator versions. Private guidance is not added to a music share link.')}</p></details>
-      <p class="sound-status" role="status" aria-live="polite" data-sound-status></p><footer class="sound-actions">${!opts.readonly ? `<button type="submit" class="btn btn--primary" data-sound-action="save">${t('Save sound changes')}</button><button type="button" class="btn" data-sound-action="discard">${t('Reload saved sound')}</button>` : `<span>${t('Read-only design system')}</span>`}<button type="button" class="btn" data-sound-action="project">${t('Make a music project')}</button></footer></form>`;
-    updateSave();
-  };
-  const refresh = async () => {
-    if (dirty || working || disposed) return;
+    listen();
+    const controller = new AbortController();
+    playAbort = controller;
+    playingKey = key;
+    playState = 'loading';
+    markButtons();
+    const cacheKey = JSON.stringify([parameters, narration ?? null]);
     try {
-      const current = ++sequence;
-      const next = opts.readonly
-        ? { doc: (await opts.host.tokens.snapshot()).document, snapshot: undefined }
-        : await usageRevision(opts.host);
-      const state = sonicProfileOf(next.doc);
+      let blob = kept.get(cacheKey);
+      if (!blob) {
+        const make = opts.audition ?? (async (p: string, signal: AbortSignal, n?: { settings: SonicNarrationV1; script: string }) =>
+          (await import('../../sonic-preview.ts')).auditionSound(p, opts.host, signal, n));
+        blob = await make(parameters, controller.signal, narration);
+        kept.set(cacheKey, blob);
+        if (kept.size > KEPT_PREVIEWS) kept.delete(kept.keys().next().value!);
+      }
+      if (controller.signal.aborted || disposed || playingKey !== key) return;
+      playUrl = URL.createObjectURL(blob);
+      const out = player();
+      out.src = playUrl;
+      playState = 'playing';
+      markButtons();
+      await out.play();
+    } catch (error) {
+      if (controller.signal.aborted || playingKey !== key) return;
+      stop();
+      status(/local_files_only|no available backend|voice fetch failed/.test((error as Error).message)
+        ? t('The voice is not installed on this device. Check the speech model in Settings, then try again.')
+        : (error as Error).message);
+    }
+  }
+
+  // ── reading the model ──────────────────────────────────────────────────────
+  const context = (): SonicContextV1 => profile!.contexts.find((c) => c.id === contextId)!;
+  /** The settings a use plays now: its own, with the tune Another tune drew. */
+  const playing = (c: SonicContextV1): string => {
+    const seed = drawn.get(c.id);
+    if (seed === undefined) return c.music.parameters;
+    const state = parseMusicState(c.music.parameters);
+    state.seed = seed;
+    return musicStateParams(state);
+  };
+  const model = (): SoundViewModel => ({
+    label, profile: profile!, contextId, picked, saved, dirty, readonly, speech,
+    chosen: picked ? sonicDirectionOf(profile!)?.id ?? null : null,
+    voices, audio: audioAssets, withVoice, sample, renaming, reviewing, open, playing,
+  });
+  /** What the room last said; shown in the floating foot until the room paints again. */
+  let statusText = '';
+  const status = (message: string): void => { statusText = message; syncSave(); };
+  /** Show the save state and the foot without painting the room again (typing keeps its focus). */
+  const syncSave = (): void => {
+    const text = saveStateText({ saved, dirty, picked, readonly });
+    const state = el.querySelector<HTMLElement>('[data-sound-state]');
+    if (state) { state.textContent = text; state.hidden = !text; }
+    const bar = el.querySelector<HTMLElement>('[data-savebar]');
+    if (bar) {
+      bar.hidden = !dirty;
+      for (const button of bar.querySelectorAll<HTMLButtonElement>('button')) button.disabled = working;
+    }
+    const out = el.querySelector('[data-sound-status]');
+    if (out) out.textContent = statusText || (dirty ? text : '');
+    el.querySelector('[data-foot]')?.classList.toggle('is-empty', !dirty && !statusText);
+  };
+  const changed = (): void => {
+    if (!profile) return;
+    profile.review = { state: 'draft' };
+    dirty = true;
+    syncSave();
+  };
+
+  // ── painting ───────────────────────────────────────────────────────────────
+  async function tint(): Promise<void> {
+    if (!opts.washes) return;
+    const card = el.querySelector<HTMLElement>('.sound-card');
+    if (!card) return;
+    const surface = getComputedStyle(card).backgroundColor;
+    const ink = getComputedStyle(card).color;
+    let washes: ReadonlyMap<LofiMood, SoundWash>;
+    try { washes = await opts.washes(surface, ink); } catch { return; }
+    if (disposed) return;
+    for (const node of el.querySelectorAll<HTMLElement>('.sound-card[data-mood]')) {
+      const wash = washes.get(node.dataset.mood as LofiMood);
+      if (!wash) continue;
+      node.style.setProperty('--sound-wash-from', wash.from);
+      node.style.setProperty('--sound-wash-to', wash.to);
+      node.style.setProperty('--sound-wash-angle', `${wash.angle}deg`);
+      if (wash.ink) { node.style.setProperty('--sound-wash-ink', wash.ink); node.dataset.deep = ''; }
+      else { node.style.removeProperty('--sound-wash-ink'); delete node.dataset.deep; }
+      node.classList.add('is-tinted');
+    }
+  }
+  /** The room's one raw-HTML sink: every value in the markup went through escape(). */
+  const render = (html: string): void => { el.innerHTML = html; };
+  function paint(focus?: string, reveal = false): void {
+    if (!profile) return;
+    el.classList.add('sound-room');
+    el.classList.toggle('is-moving', !prefersReducedMotion() && !perfUiOn());
+    render(soundRoomHtml(model()));
+    markButtons();
+    statusText = pendingStatus;
+    pendingStatus = '';
+    syncSave();
+    if (focus) el.querySelector<HTMLElement>(focus)?.focus();
+    if (reveal && !perfUiOn()) staggerReveal([...el.querySelectorAll('[data-reveal]')], { sound: false });
+    void tint();
+  }
+  const say = (message: string): void => { pendingStatus = message; };
+
+  // ── loading ────────────────────────────────────────────────────────────────
+  async function refresh(): Promise<void> {
+    if (dirty || working || disposed) return;
+    const current = ++sequence;
+    try {
+      const [next, active] = await Promise.all([
+        readonly ? opts.host.tokens.snapshot().then((s) => ({ doc: s.document, snapshot: undefined })) : usageRevision(opts.host),
+        opts.host.tokens.active().catch(() => null),
+      ]);
       if (disposed || current !== sequence) return;
-      if (state.state === 'unsupported') {
-        el.innerHTML = `<h2>${t('Sound')}</h2><p>${t('This sound profile needs a compatible editor. Its original data has been kept.')}</p>`;
-        return;
-      }
-      if (opts.readonly && state.state === 'absent') {
-        el.innerHTML = `<h2>${t('Sound')}</h2><p>${t('No sound profile has been published with this design system.')}</p>`;
-        return;
-      }
+      const found = sonicProfileOf(next.doc);
+      label = active?.label || t('Your brand');
+      systemId = active?.id ?? '';
+      if (found.state === 'unsupported') { render(soundMessageHtml(t('This sound was made with a newer version of Lolly. It has been kept as it is.'))); return; }
+      if (readonly && found.state === 'absent') { render(soundMessageHtml(t('This design system has no sound yet.'))); return; }
       revision = next.snapshot ? (next as Awaited<ReturnType<typeof usageRevision>>) : undefined;
-      profile = state.profile ?? starterSonicProfile('sound', 'Your sound identity');
-      saved = !!state.profile;
+      saved = !!found.profile;
+      savedRevision = found.profile?.revision ?? null;
+      profile = found.profile ?? starterSonicProfile('sound', label);
+      picked = saved;
+      dirty = false;
       if (!profile.contexts.some((c) => c.id === contextId)) contextId = profile.defaultContext;
-      // Empty starting points are kept only by an explicit save.
-      dirty = !saved && !opts.readonly;
+      if (!readonly) resume();
       paint();
     } catch (error) {
-      el.innerHTML = `<h2>${t('Sound')}</h2><p role="status">${e((error as Error).message)}</p>`;
+      if (!disposed) render(soundMessageHtml((error as Error).message));
     }
-  };
-  const resolve = async () => {
-    if (!profile) throw new Error(t('Load a sound profile first.'));
-    const result = await resolveSonicRecipe(
-      profile,
-      { documentContext: contextId, seed },
-      sonicMusicAdapter
-    );
-    if (!result.recipe) throw new Error(result.findings.map((f) => f.message).join(' '));
-    return result.recipe;
-  };
-  const listen = async (narrated: boolean) => {
-    if (narrated && speechUnavailable) {
-      status(
-        t(
-          'Speech is unavailable in this shell or disabled by its AI settings. Music previews remain available.'
-        )
-      );
+  }
+  /** Back from the music generator: put the draft back, with the new settings when there are some. */
+  function resume(): void {
+    const trip = readSoundEdit();
+    if (!trip || trip.system !== systemId) return;
+    clearSoundEdit();
+    if (trip.base !== savedRevision) {
+      say(t('The saved sound changed while you were away, so that edit was left out.'));
       return;
     }
-    if (narrated && opts.readonly && !context().narration.voice) {
-      status(t('No narration voice is assigned to this read-only profile.'));
-      return;
-    }
-    if (narrated && !context().narration.voice) {
-      const select = el.querySelector<HTMLSelectElement>('[data-sound-field="narration.voice"]');
-      const details = select?.closest('details');
-      if (details) details.open = true;
-      select?.focus();
-      status(t('Choose a voice, then listen with narration.'));
-      return;
-    }
-    stop();
-    const current = sequence;
-    const controller = new AbortController();
-    abort = controller;
-    working = true;
-    el.querySelectorAll<HTMLButtonElement>('[data-sound-listen]').forEach((button) => {
-      button.disabled = true;
-    });
-    updateSave();
-    status(
-      t(
-        narrated
-          ? 'Preparing the voice and music. First use may take a while.'
-          : 'Rendering this composition…'
-      )
-    );
-    try {
-      const recipe = await resolve();
-      const { auditionSonicRecipe } = await import('../../sonic-preview.ts');
-      const blob = await auditionSonicRecipe(
-        recipe,
-        opts.host,
-        controller.signal,
-        narrated ? sample : undefined
-      );
-      if (disposed || current !== sequence) return;
-      url = URL.createObjectURL(blob);
-      const audio = el.querySelector('audio')!;
-      audio.src = url;
-      await audio.play().catch(() => {
-        /* The visible native control remains available. */
-      });
-      status(t('Ready to listen. Check the feeling, distracting sounds and clarity of the words.'));
-    } catch (error) {
-      if (!controller.signal.aborted && current === sequence)
-        status(
-          /local_files_only|no available backend|voice fetch failed/.test((error as Error).message)
-            ? t(
-                'Speech is unavailable in this installation. Check that its local model and audio runtime are installed, then try again. Music previews remain available.'
-              )
-            : (error as Error).message
-        );
-    } finally {
-      if (current === sequence) {
-        working = false;
-        el.querySelectorAll<HTMLButtonElement>('[data-sound-listen]').forEach((button) => {
-          button.disabled = false;
-        });
-        updateSave();
+    const draft = readSonicProfile(trip.profile);
+    if (!draft?.contexts.some((c) => c.id === trip.contextId)) return;
+    profile = draft;
+    contextId = trip.contextId;
+    picked = trip.picked;
+    dirty = trip.dirty;
+    const result = trip.result;
+    if (result && 'parameters' in result) {
+      try {
+        context().music = { adapter: sonicMusicAdapter.id, parameters: sonicMusicFromLink(result.parameters) };
+        drawn.delete(contextId);
+        picked = true;
+        profile.review = { state: 'draft' };
+        dirty = true;
+        say(tRaw('{use} has its new music.', { use: context().label }));
+      } catch {
+        say(t('Those music settings cannot be kept in a sound. Nothing was changed.'));
       }
+    } else if (result && 'cancelled' in result) {
+      say(t('Nothing was changed.'));
     }
-  };
-  const save = async (recordReview = false) => {
-    if (
-      opts.readonly ||
-      (!dirty && !recordReview) ||
-      working ||
-      !profile ||
-      !revision ||
-      !opts.studio
-    )
+  }
+
+  // ── actions ────────────────────────────────────────────────────────────────
+  function choose(id: string): void {
+    const direction = SONIC_DIRECTIONS.find((d) => d.id === id);
+    if (!direction || !profile || readonly) return;
+    const first = !picked;
+    profile = applySonicDirection(profile, direction);
+    drawn.clear();
+    picked = true;
+    dirty = true;
+    stop();
+    const name = el.querySelector(`[data-direction="${CSS.escape(id)}"] .sound-card-name`)?.textContent ?? '';
+    say(tRaw('{name} is now the sound of every use.', { name }));
+    paint(`[data-direction="${CSS.escape(id)}"] [data-play]`, first);
+  }
+  function select(id: string): void {
+    if (!profile?.contexts.some((c) => c.id === id) || id === contextId) return;
+    contextId = id;
+    renaming = false;
+    paint(`[data-select="${CSS.escape(id)}"]`);
+  }
+  function needsVoice(): boolean {
+    if (!speech) { status(t('Speech is not available here. You can still listen to the music.')); return true; }
+    if (context().narration.voice) return false;
+    open.add('voice');
+    paint('[data-field="narration.voice"]');
+    status(t('Choose a voice first.'));
+    return true;
+  }
+  async function playKey(key: string): Promise<void> {
+    if (!profile) return;
+    const [kind, id = ''] = key.split(/:(.*)/s);
+    if (kind === 'dir') {
+      const direction = SONIC_DIRECTIONS.find((d) => d.id === id);
+      if (direction) await play(key, direction.parameters);
       return;
-    if (!el.querySelector<HTMLFormElement>('form')!.reportValidity()) return;
+    }
+    const c = profile.contexts.find((x) => x.id === id);
+    if (!c) return;
+    if (kind === 'sig') {
+      if (playingKey === key) { stop(); return; }
+      const ref = c.signature.resource;
+      if (!ref) return;
+      stop();
+      try {
+        const asset = await opts.host.assets.get(ref.id);
+        if (disposed) return;
+        if (asset.format === 'lofi') { status(t('Render this tune to an audio file before using it as a signature.')); return; }
+        listen();
+        playingKey = key;
+        playState = 'playing';
+        markButtons();
+        const out = player();
+        out.src = asset.url;
+        await out.play();
+      } catch (error) { stop(); status((error as Error).message); }
+      return;
+    }
+    const voiced = kind === 'voice' || (kind === 'use' && withVoice);
+    if (voiced && playingKey !== key && needsVoice()) return;
+    await play(key, playing(c), voiced ? { settings: structuredClone(c.narration), script: sample } : undefined);
+  }
+  function editInGenerator(): void {
+    if (!profile || readonly) return;
+    const c = context();
+    if (c.music.adapter !== sonicMusicAdapter.id) { status(t('This use plays music this version of Lolly cannot edit. It has been kept.')); return; }
+    stop();
+    writeSoundEdit({ v: 1, system: systemId, label, base: savedRevision, profile: structuredClone(profile), contextId, picked, dirty, at: Date.now() });
+    navigate(soundEditHref(playing(c)));
+  }
+  function addUse(): void {
+    if (!profile || readonly) return;
+    if (profile.contexts.length >= 24) { status(t('A sound can have 24 uses. Rename one instead.')); return; }
+    const copy = structuredClone(context());
+    copy.id = `use-${crypto.randomUUID()}`;
+    copy.label = t('New use');
+    copy.purpose = '';
+    profile.contexts.push(copy);
+    contextId = copy.id;
+    renameBackup = null;
+    renaming = true;
+    changed();
+    paint('[data-field="context.label"]');
+  }
+  function finishRename(keep: boolean): void {
+    if (!profile || !renaming) return;
+    const c = context();
+    if (!keep && renameBackup) { c.label = renameBackup.label; c.purpose = renameBackup.purpose; }
+    if (!c.label.trim()) c.label = t('New use');
+    renaming = false;
+    renameBackup = null;
+    paint('[data-rename]');
+  }
+  async function makeProject(): Promise<void> {
+    if (!profile) return;
+    if (!saved || dirty) { status(t('Save the sound first, then make a project from the saved sound.')); return; }
+    const c = context();
+    const result = await resolveSonicRecipe(profile, { documentContext: contextId, seed: parseMusicState(playing(c)).seed }, sonicMusicAdapter);
+    if (!result.recipe) { status(result.findings.map((f) => f.message).join(' ')); return; }
+    const slot = newMusicSlot();
+    await opts.host.state.save(slot, musicProjectRecord(parseMusicState(result.recipe.music.parameters), `${label} · ${c.label}`, result.recipe));
+    navigate(musicProjectHref(slot));
+  }
+  async function save(review?: { reviewer: string; notes: string }): Promise<void> {
+    if (readonly || working || !profile || !revision || !opts.studio) return;
+    if (!review && !dirty) return;
     working = true;
-    const form = el.querySelector<HTMLFormElement>('form')!;
-    form.inert = true;
-    updateSave();
+    syncSave();
+    status(t('Saving…'));
     try {
       const next = structuredClone(profile);
       next.revision = saved ? next.revision + 1 : 1;
-      next.review = { state: 'draft' };
-      if (recordReview) {
-        if (dirty || !saved)
-          throw new Error(t('Save your changes before recording a listening review.'));
-        const reviewer = el.querySelector<HTMLInputElement>('[data-sound-reviewer]')!.value.trim();
-        const notes = el
-          .querySelector<HTMLTextAreaElement>('[data-sound-review-notes]')!
-          .value.trim();
-        if (!reviewer || !notes)
-          throw new Error(t('Enter the reviewer and listening notes before recording the review.'));
-        next.review = { state: 'reviewed', reviewer, notes, at: new Date().toISOString() };
-      }
-      if (!readSonicProfile(next))
-        throw new Error(t('Check the names, pronunciation notes and number ranges before saving.'));
-      const candidate = await opts.host.brandAdoption.prepare(revision.snapshot, {
-        doc: withSonicProfile(revision.doc, next),
-      });
+      next.review = review ? { state: 'reviewed', reviewer: review.reviewer, notes: review.notes, at: new Date().toISOString() } : { state: 'draft' };
+      if (!next.label.trim()) next.label = label;
+      if (!readSonicProfile(next)) throw new Error(t('Check the names and the pronunciation notes, then save again.'));
+      const candidate = await opts.host.brandAdoption.prepare(revision.snapshot, { doc: withSonicProfile(revision.doc, next) });
       await opts.studio.load();
       await opts.studio.checkpoint(t('Before editing sound'));
       await opts.host.brandAdoption.commit(candidate, { recovery: false });
       await opts.studio.load();
       dirty = false;
       working = false;
+      reviewing = false;
       opts.changed?.();
+      say(review ? t('Review recorded.') : t('Sound saved. Listen to new tunes before you publish them.'));
       await refresh();
-      status(
-        t('Sound saved with your design system. Listen to new compositions before releasing them.')
-      );
     } catch (error) {
       status((error as Error).message);
     } finally {
-      form.inert = false;
       working = false;
-      updateSave();
+      syncSave();
     }
-  };
-  const edit = (target: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement) => {
-    if (!profile || opts.readonly || !target.dataset.soundField) return;
+  }
+  async function discard(): Promise<void> {
     stop();
-    const path = target.dataset.soundField;
+    drawn.clear();
+    renaming = false;
+    reviewing = false;
+    dirty = false;
+    if (!saved) { profile = null; picked = false; }
+    say(saved ? t('Changes discarded.') : '');
+    await refresh();
+  }
+
+  // ── editing fields ─────────────────────────────────────────────────────────
+  function edit(target: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): void {
+    if (!profile || readonly) return;
+    const path = target.dataset.field;
+    if (!path) return;
     const c = context();
     const value = target.value;
-    if (path.startsWith('music.')) {
-      if (c.music.adapter !== sonicMusicAdapter.id) {
-        status(t('These music settings need a compatible editor. They have been kept.'));
-        return;
-      }
-      const params = new URLSearchParams(c.music.parameters);
-      const key = path.slice(6);
-      if (value === '') params.delete(key);
-      else params.set(key, value);
-      c.music.parameters = params.toString();
-    } else if (path === 'signature.resource') {
+    if (path === 'signature.resource') {
       if (value) c.signature.resource = { type: 'asset', id: value };
       else delete c.signature.resource;
     } else if (path === 'pronunciations') {
-      c.narration.pronunciations = value
-        .split('\n')
-        .filter((line) => line.trim())
-        .map((line) => {
-          const at = line.indexOf('=');
-          return {
-            written: at < 0 ? line.trim() : line.slice(0, at).trim(),
-            spoken: at < 0 ? '' : line.slice(at + 1).trim(),
-          };
-        });
+      c.narration.pronunciations = value.split('\n').filter((line) => line.trim()).map((line) => {
+        const at = line.indexOf('=');
+        return { written: at < 0 ? line.trim() : line.slice(0, at).trim(), spoken: at < 0 ? '' : line.slice(at + 1).trim() };
+      });
     } else {
-      const [group, key] = path.split('.') as [string, string];
-      const object =
-        group === 'identity'
-          ? profile.identity
-          : group === 'context'
-            ? c
-            : group === 'narration'
-              ? c.narration
-              : c.signature;
-      if (Object.hasOwn(object, key))
-        Reflect.set(object, key, target.type === 'number' ? Number(value) : value);
+      const [group, key = ''] = path.split('.');
+      const owner = group === 'identity' ? profile.identity : group === 'context' ? c : group === 'narration' ? c.narration : c.signature;
+      if (!Object.hasOwn(owner, key)) return;
+      const numeric = target.type === 'range';
+      Reflect.set(owner, key, numeric ? Number(value) : value);
+      if (path === 'narration.voice' && value) {
+        // The first voice chosen speaks for every use that has none yet.
+        for (const other of profile.contexts) if (!other.narration.voice) other.narration.voice = value;
+      }
     }
-    profile.review = { state: 'draft' };
-    dirty = true;
-    updateSave();
-    status(t('Unsaved changes. Save when this direction feels right.'));
-  };
-  const onInput = (event: Event) => {
+    if (playingKey) stop();
+    changed();
+  }
+  const onInput = (event: Event): void => {
     const target = event.target as HTMLInputElement;
-    if (target.hasAttribute('data-sound-sample')) {
-      sample = target.value;
-      stop();
+    if (target.hasAttribute('data-sample')) { sample = target.value; if (playingKey.startsWith('voice:') || withVoice) stop(); return; }
+    if (target.type === 'range') {
+      showPillSlider(target, target.dataset.field === 'narration.speed' ? speedText : percentText);
+      edit(target);
       return;
     }
-    if (target.tagName !== 'SELECT') edit(target);
+    if (target.tagName !== 'SELECT' && target.dataset.field) edit(target);
   };
-  const onChange = (event: Event) => {
+  const onChange = (event: Event): void => {
     const target = event.target as HTMLSelectElement;
-    if (target.hasAttribute('data-sound-context')) {
-      contextId = target.value;
-      paint();
-    } else if (target.tagName === 'SELECT') edit(target);
+    if (target.tagName === 'SELECT' && target.dataset.field) {
+      edit(target);
+      paint(`[data-field="${CSS.escape(target.dataset.field)}"]`);
+    }
   };
-  const onClick = async (event: Event) => {
+  const onKey = (event: KeyboardEvent): void => {
+    if (!renaming || !(event.target as Element).closest('[data-rename-form]')) return;
+    if (event.key === 'Enter') { event.preventDefault(); finishRename(true); }
+    if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); finishRename(false); }
+  };
+  const onToggle = (event: Event): void => {
+    const fold = (event.target as HTMLElement).closest?.('details[data-fold]') as HTMLDetailsElement | null;
+    if (!fold || fold !== event.target) return;
+    if (fold.open) open.add(fold.dataset.fold!); else open.delete(fold.dataset.fold!);
+  };
+  const onClick = (event: Event): void => {
     const button = (event.target as Element).closest<HTMLButtonElement>('button');
-    if (!button || button.disabled || !profile) return;
-    if (button.dataset.soundListen) {
-      await listen(button.dataset.soundListen === 'voice');
+    if (!button || button.disabled || !profile || !el.contains(button)) return;
+    const d = button.dataset;
+    if (d.play) { void playKey(d.play); return; }
+    if (d.choose) { choose(d.choose); return; }
+    if (d.select) { select(d.select); return; }
+    if (d.listen) {
+      withVoice = d.listen === 'voice';
+      stop();
+      for (const b of el.querySelectorAll<HTMLButtonElement>('[data-listen]')) b.setAttribute('aria-pressed', String(b.dataset.listen === d.listen));
+      if (withVoice && speech && !context().narration.voice) needsVoice();
       return;
     }
-    const action = button.dataset.soundAction;
-    if (action === 'save') return;
-    if (action === 'review') {
-      await save(true);
-      return;
-    }
-    try {
-      if (action === 'apply-music' && !opts.readonly) {
-        const parameters = sonicMusicFromLink(
-          el.querySelector<HTMLInputElement>('[data-sound-music-link]')!.value
-        );
-        context().music = { adapter: sonicMusicAdapter.id, parameters };
-        seed = parseMusicState(parameters).seed;
-        profile.review = { state: 'draft' };
-        dirty = true;
-        paint();
-        status(t('Music choices applied. Listen and save when ready.'));
-      }
-      if (action === 'stop') {
-        stop();
-        status(t('Stopped.'));
-      }
-      if (action === 'new') {
-        seed = crypto.getRandomValues(new Uint32Array(1))[0]!;
-        paint();
-        await listen(false);
-      }
-      if (action === 'discard') {
-        dirty = false;
-        stop();
-        await refresh();
-      }
-      if (action === 'default' && !opts.readonly) {
-        profile.defaultContext = contextId;
-        profile.review = { state: 'draft' };
-        dirty = true;
-        paint();
-      }
-      if (action === 'add' && !opts.readonly) {
-        if (profile.contexts.length >= 24)
-          throw new Error(t('This profile already has 24 uses. Edit an existing use.'));
-        const copy = structuredClone(context());
-        copy.id = `use-${crypto.randomUUID()}`;
-        copy.label = t('New use');
-        profile.contexts.push(copy);
-        contextId = copy.id;
-        profile.review = { state: 'draft' };
-        dirty = true;
-        paint();
-      }
-      if (action === 'signature') {
-        const ref = context().signature.resource;
-        if (!ref) throw new Error(t('Choose a signature audio file first.'));
-        stop();
-        const current = sequence;
-        const asset = await opts.host.assets.get(ref.id);
-        if (disposed || current !== sequence) return;
-        if (asset.format === 'lofi')
-          throw new Error(
-            t('Render this procedural tune to an audio file before using it as a fixed signature.')
-          );
-        const audio = el.querySelector('audio')!;
-        audio.src = asset.url;
-        await audio.play();
-        status(t('Playing the signature by itself.'));
-      }
-      if (action === 'project') {
-        if (dirty) throw new Error(t('Save your sound changes before making a music project.'));
-        const recipe = await resolve();
-        const slot = newMusicSlot();
-        await opts.host.state.save(
-          slot,
-          musicProjectRecord(
-            parseMusicState(recipe.music.parameters),
-            `${profile.label} · ${context().label}`,
-            recipe
-          )
-        );
-        location.hash = musicProjectHref(slot);
-      }
-    } catch (error) {
-      status((error as Error).message);
-    }
-  };
-  const onSubmit = (event: Event) => {
-    event.preventDefault();
-    void save();
+    if (readonly) return;
+    if (d.editMusic !== undefined) editInGenerator();
+    else if (d.another !== undefined) {
+      drawn.set(contextId, randomSeed());
+      paint('[data-another]');
+      void playKey(`use:${contextId}`);
+    } else if (d.project !== undefined) void makeProject().catch((error: Error) => status(error.message));
+    else if (d.makeMain !== undefined) {
+      profile.defaultContext = contextId;
+      changed();
+      say(tRaw('{use} is now the main use, played when nothing else is asked for.', { use: context().label }));
+      paint('[data-select]');
+    } else if (d.removeUse !== undefined) {
+      if (contextId === profile.defaultContext || profile.contexts.length < 2) return;
+      const gone = context().label;
+      profile.contexts = profile.contexts.filter((c) => c.id !== contextId);
+      drawn.delete(contextId);
+      contextId = profile.defaultContext;
+      changed();
+      say(tRaw('{use} was removed.', { use: gone }));
+      paint('[data-add-use]');
+    } else if (d.addUse !== undefined) addUse();
+    else if (d.rename !== undefined) {
+      const c = context();
+      renameBackup = { label: c.label, purpose: c.purpose };
+      renaming = true;
+      paint('[data-field="context.label"]');
+    } else if (d.renameDone !== undefined) finishRename(true);
+    else if (d.review !== undefined) {
+      if (dirty || !saved) { status(t('Save the sound before you record a review.')); return; }
+      reviewing = true;
+      open.add('details');
+      paint('[data-reviewer]');
+    } else if (d.reviewCancel !== undefined) { reviewing = false; paint('[data-review]'); }
+    else if (d.reviewSave !== undefined) {
+      const reviewer = el.querySelector<HTMLInputElement>('[data-reviewer]')?.value.trim() ?? '';
+      const notes = el.querySelector<HTMLTextAreaElement>('[data-review-notes]')?.value.trim() ?? '';
+      if (!reviewer || !notes) { status(t('Write your name and what you heard, then record the review.')); return; }
+      void save({ reviewer, notes });
+    } else if (d.save !== undefined) void save();
+    else if (d.discard !== undefined) void discard();
   };
   el.addEventListener('input', onInput);
   el.addEventListener('change', onChange);
   el.addEventListener('click', onClick);
-  el.addEventListener('submit', onSubmit);
+  el.addEventListener('keydown', onKey);
+  el.addEventListener('toggle', onToggle, true);
+
   void Promise.allSettled([
-    opts.host.speech?.voices() ?? Promise.resolve([]),
+    opts.host.speech?.voices() ?? Promise.resolve([] as SpeechVoiceInfo[]),
     opts.host.assets.query({ type: 'audio' }),
   ]).then((results) => {
     if (disposed) return;
     if (results[0].status === 'fulfilled') voices = results[0].value;
-    else speechUnavailable = true;
+    else speech = false;
     if (results[1].status === 'fulfilled')
-      assets = results[1].value.map((a) => ({
-        id: a.id,
-        name: typeof a.meta?.name === 'string' ? a.meta.name : a.id,
-      }));
-    // Do not replace a focused form while someone is typing.
-    if (!el.contains(document.activeElement) && profile && !working) paint();
+      audioAssets = results[1].value.map((a) => ({ id: a.id, name: typeof a.meta?.name === 'string' ? a.meta.name : a.id }));
+    // Never repaint under someone who is typing.
+    if (profile && !el.contains(document.activeElement)) paint();
   });
   void refresh();
+
   return {
     refresh,
     suspend: stop,
-    teardown() {
+    teardown(): void {
       disposed = true;
       stop();
+      if (audio && listening) {
+        audio.removeEventListener('ended', onEnded);
+        audio.removeEventListener('timeupdate', onTime);
+      }
       el.removeEventListener('input', onInput);
       el.removeEventListener('change', onChange);
       el.removeEventListener('click', onClick);
-      el.removeEventListener('submit', onSubmit);
+      el.removeEventListener('keydown', onKey);
+      el.removeEventListener('toggle', onToggle, true);
     },
   };
 }

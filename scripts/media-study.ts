@@ -20,6 +20,7 @@ import { serializeUrlState } from '../engine/src/url-mode.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
 import { packWav, parseWav } from '../engine/src/wav.ts';
 import { mixSequenceAudio } from '../packages/node-shell/src/sequence-audio.ts';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import {
   createNodeSpeechAPI,
   modelFilePath,
@@ -301,7 +302,7 @@ async function main(): Promise<void> {
   });
   await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
   const port = (server.address() as { port: number }).port;
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, args: webGpuLaunchArgs('auto') });
   const dom = new JSDOM('<!doctype html><body></body>');
   try {
     ledger.environment.browser = browser.version();

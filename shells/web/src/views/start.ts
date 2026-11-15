@@ -71,6 +71,7 @@ import type { Tray } from '../lib/design-system/tray.ts';
 import { takePendingDesignSystemFile } from '../lib/drop-router.ts';
 import { escape as escapeText } from '../utils.ts';
 import type { PickerSource, StartHost } from './start/shared.ts';
+import { soundWashes } from './start/shared.ts';
 import type { StartCtx } from './start/context.ts';
 import { navigationOps } from './start/navigation.ts';
 import { feedbackOps } from './start/feedback.ts';
@@ -190,7 +191,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
     showReadOnlyColourRoles(viewEl, tokenDoc);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
-    const sound = mountSoundRoom(viewEl.querySelector<HTMLElement>('[data-sound-readonly]')!, { host, readonly: true });
+    const sound = mountSoundRoom(viewEl.querySelector<HTMLElement>('[data-sound-readonly]')!, { host, readonly: true, washes: soundWashes(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
     (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { sound.teardown(); usage.teardown(); skills.teardown(); workspace.teardown(); };
@@ -224,7 +225,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
     showReadOnlyColourRoles(viewEl, tokenDoc);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
-    const sound = mountSoundRoom(viewEl.querySelector<HTMLElement>('[data-sound-readonly]')!, { host, readonly: true });
+    const sound = mountSoundRoom(viewEl.querySelector<HTMLElement>('[data-sound-readonly]')!, { host, readonly: true, washes: soundWashes(host) });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
     // Someone the instance says can change this system gets the way in here, because

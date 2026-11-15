@@ -1866,6 +1866,14 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // the shuffle glyph is the module's fixed SVG. The preset and cycle lists are filled
   // with DOM APIs, and the buttons' glyphs swap as nodes.
   'views/music-studio/viz-stage.ts': 1,
+  // 2026-11-15: the Sound room, painted whole through one render(). Every name, line,
+  // voice, file name and note goes through escape(); the rest is translated copy, the
+  // pill-slider and segmented-control markup (both escape their own) and fixed icons.
+  'lib/design-system/rooms/sound.ts': 1,
+  // 2026-11-15: the music generator's line about a design system's sound, through one
+  // render(). The use, the design system's name, the sound's label and its notes go
+  // through escape(); the rest is translated copy and fixed icons.
+  'views/music-studio/sound-profile.ts': 1,
   // 2026-11-09: the first-visit greeting, painted again in place when the language
   // changes. Language names, the privacy text and its link go through escape(); the
   // rest is translated copy, the fixed icon registry and the module's own SVG.

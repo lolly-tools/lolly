@@ -1,24 +1,253 @@
 /* SPDX-License-Identifier: MPL-2.0 */
-@layer components {
-.sound-room { max-width: 960px; margin-inline: auto; padding: 24px; }
-.sound-head { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
-.sound-head h2 { margin-block: 4px 8px; }
-.sound-head p, .sound-hint { line-height: 1.6; }
-.sound-badge { white-space: nowrap; border: 1px solid hsl(var(--border)); border-radius: 16px; padding: 4px 10px; font-size: .8rem; }
-.sound-intro, .sound-listening { padding: 20px; border: 1px solid hsl(var(--border)); border-radius: 12px; margin-block: 20px; }
-.sound-room fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-.sound-details { border-block-end: 1px solid hsl(var(--border)); padding-block: 16px; }
-.sound-details summary { cursor: pointer; font-weight: 600; padding-block: 8px; }
-.sound-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.sound-field { display: grid; gap: 8px; margin-block: 12px; min-width: 0; }
-.sound-field input, .sound-field select, .sound-field textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; color: inherit; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 10px; }
-.sound-field textarea { resize: vertical; }
-.sound-field small, .sound-hint { font-size: .85rem; line-height: 1.5; }
-.sound-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 12px; }
-.sound-room audio { width: 100%; margin-block: 16px 4px; }
-.sound-status { min-height: 1.5em; line-height: 1.5; }
-@media (max-width: 600px) { .sound-room { padding: 14px; } .sound-head { flex-wrap: wrap; } .sound-grid { grid-template-columns: 1fr; gap: 0; } .sound-listening { padding: 14px; } }
+/* The Sound room (lib/design-system/rooms/sound.ts, markup in rooms/sound-html.ts).
+   Sound first: the starting sounds are big cards on the genres' own colours, the uses
+   are chips that play, and everything deeper folds away in section cards. Sizes,
+   radii, colours and shadows come from the tokens; type rides --fs-* and --ui-type-*,
+   so the large-text preference reaches it. */
+@layer views {
+  .sound-room { min-width: 0; padding-block: var(--sp-1) var(--sp-8); }
+  [data-sound-readonly] { max-width: 1200px; margin-inline: auto; margin-top: var(--sp-7); }
 
+  /* ── head ── */
+  .sound-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-6); margin-bottom: var(--sp-7); }
+  .sound-head .start-eyebrow { margin-bottom: var(--sp-2); }
+  .sound-title-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--sp-3); }
+  .sound-title { margin: 0 0 var(--sp-2); font-size: calc(var(--fs-sm) * 2); font-weight: 550; letter-spacing: -.025em; }
+  .sound-lede { max-width: 58ch; margin: 0; color: var(--ui-color-text-muted); line-height: 1.55; }
+
+  /* ── sections ── */
+  .sound-section { margin-bottom: var(--sp-8); }
+  .sound-section-head { margin-bottom: var(--sp-4); }
+  .sound-section-head--row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-3); }
+  .sound-section-title { margin: 0; font-size: var(--ui-type-lead); font-weight: 600; }
+  .sound-hint { margin: var(--sp-1) 0 0; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.5; }
+
+  /* ── the starting sounds: a card each, on the genre's own wash ── */
+  .sound-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--sp-4); }
+  .sound-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    min-width: 0;
+    min-height: 15rem;
+    padding: var(--sp-5);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text-default);
+    box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+  }
+  .sound-card.is-tinted { background: var(--sound-wash-from); color: var(--sound-wash-ink, var(--ui-color-text-default)); }
+  @supports (background: linear-gradient(45deg in oklab, red, blue)) {
+    .sound-card.is-tinted { background: linear-gradient(var(--sound-wash-angle) in oklab, var(--sound-wash-from), var(--sound-wash-to)); }
+  }
+  .sound-card.is-chosen { outline: 3px solid var(--ui-color-action-primary); outline-offset: 3px; box-shadow: var(--ui-effect-bevel), var(--ui-elevation-floating); }
+  .sound-card-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); min-height: var(--ui-size-target); }
+  .sound-card-icon {
+    display: inline-grid;
+    place-items: center;
+    width: var(--ui-size-target);
+    height: var(--ui-size-target);
+    border-radius: var(--radius-round);
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-action-primary);
+  }
+  .sound-card.is-tinted .sound-card-icon { background: var(--ui-color-surface-raised); }
+  .sound-card-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: calc(var(--fs-sm) * 2);
+    gap: var(--sp-1);
+    padding: var(--sp-1) var(--sp-3);
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text-default);
+    font-size: var(--fs-sm);
+    font-weight: 650;
+  }
+  .sound-card-badge svg { color: var(--ui-color-action-primary); }
+  .sound-card-name { margin: var(--sp-3) 0 0; font-size: calc(var(--fs-sm) * 2); font-weight: 700; line-height: 1.15; letter-spacing: -.02em; }
+  .sound-card-line { margin: 0; font-size: var(--fs-lg); line-height: 1.45; }
+  .sound-card-meta { margin: 0; font-size: var(--fs-sm); line-height: 1.4; }
+  .sound-card-actions { display: flex; align-items: center; gap: var(--sp-3); margin-top: auto; padding-top: var(--sp-3); }
+  .sound-card .sound-choose { min-width: 6rem; }
+
+  /* ── the play buttons: one player, so a button says whether it is the one playing ── */
+  .sound-play {
+    --sound-progress: 0;
+    position: relative;
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-round);
+    background: var(--ui-color-action-primary);
+    color: var(--ui-color-action-on-primary);
+    box-shadow: var(--ui-elevation-control);
+    cursor: pointer;
+  }
+  .sound-play--lg { width: 3.5rem; height: 3.5rem; }
+  .sound-play:hover { box-shadow: var(--ui-elevation-floating); }
+  .sound-play:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+  .sound-play-icon { display: inline-grid; place-items: center; grid-area: 1 / 1; }
+  /* Lucide's play triangle sits left of its box's middle by its centroid; nudge it so the
+     ink, not the box, is centred (checked by eye at 2x). */
+  .sound-play-icon--play svg { translate: 6% 0; }
+  .sound-play-icon--stop { visibility: hidden; }
+  .sound-play[data-state="playing"] .sound-play-icon--play { visibility: hidden; }
+  .sound-play[data-state="playing"] .sound-play-icon--stop { visibility: visible; }
+  /* How far the preview has played: a ring round the button. */
+  .sound-play::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    background: conic-gradient(var(--ui-color-action-primary) calc(var(--sound-progress) * 1turn), transparent 0);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+    opacity: 0;
+    pointer-events: none;
+  }
+  .sound-play[data-state="playing"]::before { opacity: 1; }
+  .sound-play[data-state="loading"] { cursor: progress; }
+  .sound-play[data-state="loading"] .sound-play-icon--play { opacity: .55; }
+  /* The waiting pulse only runs when the room may move (rooms/sound.ts sets is-moving
+     away from reduced motion and the performance setting). */
+  .sound-room.is-moving .sound-play[data-state="loading"] .sound-play-icon--play { animation: sound-wait calc(var(--dur-3) * 4) var(--ease-out) infinite alternate; }
+  @keyframes sound-wait { from { opacity: .35; } to { opacity: .9; } }
+
+  /* ── the uses ── */
+  .sound-chips { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin: 0 0 var(--sp-4); padding: 0; }
+  .sound-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    padding: var(--sp-1);
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+  }
+  .sound-chip.is-selected { background: var(--ui-color-selection-surface); box-shadow: var(--ui-effect-selection-ring); }
+  .sound-chip-name {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: 2rem;
+    padding: 0 var(--sp-3) 0 var(--sp-1);
+    border: 0;
+    border-radius: var(--ui-radius-pill);
+    background: transparent;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sound-chip-label, .sound-card-badge > span, .sound-chip-main { text-box: trim-both cap alphabetic; }
+  .sound-chip-name:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .sound-chip-main { padding: var(--sp-1) var(--sp-2); border-radius: var(--ui-radius-pill); background: var(--ui-color-surface-muted); color: var(--ui-color-text-muted); font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .sound-listen { flex: none; }
+
+  .sound-use {
+    display: grid;
+    gap: var(--sp-4);
+    min-width: 0;
+    padding: var(--sp-5);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+  }
+  .sound-use-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-3); }
+  .sound-use-text { min-width: 0; }
+  .sound-use-name { margin: 0; font-size: var(--ui-type-lead); font-weight: 650; overflow-wrap: anywhere; }
+  .sound-use-purpose { margin: var(--sp-1) 0 0; max-width: 62ch; color: var(--ui-color-text-muted); line-height: 1.5; }
+  .sound-summary {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    width: fit-content;
+    max-width: 100%;
+    margin: 0;
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-surface-muted);
+    font-size: var(--fs-md);
+    line-height: 1.4;
+  }
+  .sound-summary svg { flex: none; color: var(--ui-color-action-primary); }
+  .sound-use-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+  /* The folds inside a use sit on its card, so they take a muted ground instead of a second lift. */
+  .sound-use .sound-fold { background: var(--ui-color-surface-muted); box-shadow: none; }
+  .sound-rename { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; align-items: end; gap: var(--sp-3); }
+
+  /* ── folds and fields ── */
+  .sound-fold-body { display: grid; gap: var(--sp-3); }
+  .sound-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--sp-4); }
+  .sound-field { display: grid; gap: var(--sp-2); min-width: 0; margin: 0; }
+  .sound-field-label { font-size: var(--fs-md); font-weight: 600; }
+  .sound-field textarea { resize: vertical; }
+  .sound-field .sound-hint { margin: 0; font-size: var(--fs-sm); }
+  .sound-sliders { display: grid; gap: var(--sp-3); }
+  .sound-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-3); }
+  .sound-row-label { font-size: var(--fs-md); }
+  .sound-more > summary { width: fit-content; padding-block: var(--sp-1); color: var(--ui-color-text-muted); font-size: var(--fs-md); cursor: pointer; }
+  .sound-more > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; border-radius: var(--radius-xs); }
+  .sound-more-body { display: grid; gap: var(--sp-3); padding-top: var(--sp-2); }
+  .sound-sub { margin: var(--sp-2) 0 0; font-size: var(--fs-md); font-weight: 700; }
+  .sound-list { margin: 0; padding-inline-start: var(--sp-5); line-height: 1.5; }
+  .sound-review { display: grid; gap: var(--sp-3); }
+  .sound-status { min-height: 1.5em; margin: var(--sp-4) 0 0; color: var(--ui-color-text-muted); font-size: var(--fs-md); line-height: 1.5; }
+
+  /* ── the foot: what just happened, and Save while there are changes, floating at the
+     bottom of the screen; nothing at all when there is nothing to say ── */
+  .sound-foot {
+    position: sticky;
+    bottom: calc(var(--ds-roombar-h, 0px) + var(--sp-4));
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    width: fit-content;
+    max-width: 100%;
+    margin: var(--sp-6) 0 0 auto;
+    padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4);
+    border-radius: var(--ui-radius-pill);
+  }
+  .sound-foot.is-empty { visibility: hidden; }
+  .sound-status { margin: 0; min-width: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.4; }
+  .sound-foot:not(:has([data-savebar]:not([hidden]))) { padding-inline-end: var(--sp-4); }
+  .sound-savebar { display: inline-flex; align-items: center; gap: var(--sp-2); flex: none; }
+
+  /* ── buttons: icon and label in one row, the label centred by its ink ── */
+  .sound-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); min-height: var(--ui-size-control); }
+  .sound-fold-body > .sound-btn, .sound-review .sound-btn { justify-self: start; }
+  .sound-btn > svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); flex: none; }
+  .sound-btn-label { text-box: trim-both cap alphabetic; white-space: nowrap; }
+  .sound-listen .view-seg-btn { white-space: nowrap; }
+
+  /* On a deep wash the text turns light, and so do the play button and its ring. */
+  .sound-card[data-deep] .sound-play { background: var(--sound-wash-ink); color: var(--sound-wash-from); }
+  .sound-card[data-deep] .sound-play::before { background: conic-gradient(var(--sound-wash-ink) calc(var(--sound-progress) * 1turn), transparent 0); }
+
+  @media (max-width: 640px) {
+    .sound-head { flex-wrap: wrap; margin-bottom: var(--sp-6); }
+    /* A phone stacks the cards, so each one is shorter: the icon beside the name, and a
+       smaller play button. */
+    .sound-card { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--sp-1) var(--sp-3); min-height: 0; padding: var(--sp-4); }
+    .sound-card-top { display: contents; }
+    .sound-card-icon { grid-area: 1 / 1; }
+    .sound-card-name { grid-area: 1 / 2; margin: 0; }
+    .sound-card-badge { grid-area: 1 / 2; justify-self: end; }
+    .sound-card-line, .sound-card-meta, .sound-card-actions { grid-column: 1 / -1; }
+    .sound-card-line { margin-top: var(--sp-2); }
+    .sound-card-actions { padding-top: var(--sp-2); }
+    .sound-play--lg { width: 3rem; height: 3rem; }
+    .sound-use { padding: var(--sp-4); }
+    .sound-grid, .sound-rename { grid-template-columns: minmax(0, 1fr); }
+    .sound-foot { width: auto; margin-inline-start: 0; flex-wrap: wrap; border-radius: var(--ui-radius-card); }
+    .sound-status { flex: 1 1 10rem; }
+  }
 }
-
-@layer components { .sound-field input:focus-visible, .sound-field textarea:focus-visible, .sound-field select:focus-visible, .sound-details summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; } }
