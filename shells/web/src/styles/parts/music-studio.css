@@ -536,7 +536,13 @@
   .ms-track-name { font-weight: 600; }
   .ms-pick { flex: 1; min-width: 0; }
   /* A lane head's instruments, as a button that opens the track's instrument browser. */
-  .ms-browse { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; cursor: pointer; }
+  /* The label inside is what gets cut short: its box ends at the button's content edge, so a
+     long name ("Auto · Synthwave lead") ends in an ellipsis before the chevron. On the button
+     itself the clip would fall at its padding box, under the chevron, and a browser that
+     draws no ellipsis on a button (or the docs' vector shots) ran the name into it. The
+     whole name is the button's tooltip and its spoken name (track-names.ts laneHeadName). */
+  .ms-browse { overflow: hidden; text-align: start; cursor: pointer; }
+  .ms-browse > [data-short] { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* An instrument the person chose for the whole track reads as theirs, as a set key does. */
   .ms-browse.is-set { font-weight: 600; color: var(--ui-color-action-primary); }
   /* A track that cannot be heard (muted, another soloed, the drums off) goes faint. */

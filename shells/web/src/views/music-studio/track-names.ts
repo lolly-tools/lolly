@@ -51,6 +51,17 @@ export function autoLabel(playing: string): string {
 }
 
 /**
+ * A lane head's whole name, for its tooltip and for what a screen reader says. The head
+ * shows the instrument at the playhead and is cut short with an ellipsis when the name is
+ * longer than the head ("Auto · Synthwav…"), so this gives that label in full and, when
+ * the lane plays other instruments across the tune, those too (`across`, the lane's list:
+ * "Synthwave lead, Pad +1").
+ */
+export function laneHeadName(shown: string, across: string, others: boolean): string {
+  return others && across ? tRaw('{now}. In this tune: {names}', { now: shown, names: across }) : shown;
+}
+
+/**
  * The drum kit a genre plays when the person has chosen none: the kit of that name for
  * the genres the named kits come from (rock's acoustic kit, jazz's jazz kit), and the
  * genre's own kit, by the genre's name, for the rest ("Straya kit").
