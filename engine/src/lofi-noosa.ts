@@ -49,6 +49,7 @@ import type { LofiBar, LofiLayer, LofiNote, LofiSection, LofiStyle, LofiTuneInfo
 import { glitchMod, grainMod, natureMod, BOTANICA_INSECTS, BOTANICA_SOURCES, type BotanicaChord, type BotanicaCloud, type BotanicaSource } from './lofi-botanica.ts';
 import { DIDGE_BREATH, DIDGE_DRONE, DIDGE_MID, DIDGE_ROLE, DIDGE_SWEEP, DIDGE_TONGUE, DIDGE_TOOT, DIDGE_WA, LOFI_BIRD_FEATURE, LOFI_BIRD_FLOCK } from './lofi-straya.ts';
 import { swellBeats, waveMod, waveSeries, WAVE_WASH } from './lofi-waves-notes.ts';
+import { lorikeetMod, whipbirdMod, type LorikeetKind } from './lofi-coast-birds.ts';
 import { mulberry32 } from './zzfx-compose.ts';
 
 // ── the kit the composer lends ──────────────────────────────────────────────
@@ -225,6 +226,9 @@ export interface NoosaPlan {
   /** Whether a breeze sings in the she-oaks on the dunes, and whether cicadas call (a warm afternoon). */
   breeze: boolean;
   cicadas: boolean;
+  /** The coast's birds, rarer than the magpie (coastOf): the bars a whipbird pair calls on, and the lorikeets' bars and what they do. */
+  whipbird: number[];
+  lorikeets: Array<{ bar: number; kind: LorikeetKind }>;
 }
 
 /** Everything a tune draws before its bars, from the style's own streams. */
@@ -239,7 +243,7 @@ interface Plan extends NoosaPlan {
 }
 
 /** The tune's plan, from its own stream: what plays, and where its odd moments fall. */
-function planOf(seed: number, parts: readonly Part[], minor: boolean, key: number, bpm: number, swing: number): Plan {
+function planOf(seed: number, parts: readonly Part[], minor: boolean, key: number, bpm: number, swing: number): Omit<Plan, 'whipbird' | 'lorikeets'> {
   const p = stream(seed, 0x0005a);
   const at = (section: LofiSection, nth = 0): number => {
     let bar = 0, seen = 0;
@@ -299,7 +303,7 @@ export function composeNoosa(seed: number, fixed: Partial<LofiStyle>, kit: Noosa
   const bpm = Math.round(80 + o() * 22);
   const swing = Math.round((0.52 + o() * 0.06) * 100) / 100;
   const parts = runningOrder(o);
-  const plan = planOf(seed, parts, minor, key, bpm, swing);
+  const plan = { ...planOf(seed, parts, minor, key, bpm, swing), ...coastOf(seed, parts, bpm) };
   const pool = minor ? MINOR : MAJOR;
   const progA = pickOf(o, pool);
   let progB = pickOf(o, pool);
@@ -343,6 +347,7 @@ export function composeNoosa(seed: number, fixed: Partial<LofiStyle>, kit: Noosa
       didge(ctx);
       cicadas(ctx);
       birds(ctx);
+      coastBirds(ctx);
       effects(ctx);
       for (const w of waves.get(index) ?? []) ctx.notes.push(w);
       const [o0, o1] = part.open;
@@ -364,8 +369,9 @@ export function noosaPlan(seed: number): NoosaPlan {
   const o = stream(seed, 0x0005b);
   const bpm = Math.round(80 + o() * 22);
   const swing = Math.round((0.52 + o() * 0.06) * 100) / 100;
-  const { licks, birds, didge, yidaki, place, breeze, cicadas } = planOf(seed, runningOrder(o), minor, key, bpm, swing);
-  return { bpm, licks, birds, didge, yidaki, place, breeze, cicadas };
+  const parts = runningOrder(o);
+  const { licks, birds, didge, yidaki, place, breeze, cicadas } = planOf(seed, parts, minor, key, bpm, swing);
+  return { bpm, licks, birds, didge, yidaki, place, breeze, cicadas, ...coastOf(seed, parts, bpm) };
 }
 
 /** What one bar's writers share. */
@@ -644,6 +650,54 @@ function cicadas(c: Bar): void {
   notes.push({ voice: 'nature', midi: 60, beat: 0, dur: span + 0.5, vel, mod: natureMod('insects', BOTANICA_INSECTS.indexOf('cicada') + 8 * Math.floor(fx() * 32)) });
 }
 
+/**
+ * Where the coast's birds call, from a stream of their own so no other draw of the tune moved
+ * when they arrived. In some tunes a whipbird pair calls twice in the intro or the lull, seven to
+ * eleven seconds apart, as pairs do; in some, lorikeets fly over screeching at the end of a
+ * phrase, and now and then a flock chatters in a tree through the lull. Both are rarer than the
+ * magpie, and both keep clear of its featured carol.
+ */
+function coastOf(seed: number, parts: readonly Part[], bpm: number): Pick<NoosaPlan, 'whipbird' | 'lorikeets'> {
+  const r = stream(seed, 0x00060);
+  const at = (section: LofiSection, nth = 0): number => {
+    let bar = 0, seen = 0;
+    for (const part of parts) {
+      if (part.section === section && seen++ === nth) return bar;
+      bar += part.bars;
+    }
+    return -1;
+  };
+  const barSeconds = (4 * 60) / bpm;
+  const whipbird: number[] = [];
+  const lull = at('break');
+  if (r() < 0.4) {
+    const first = r() < 0.5 ? 3 : lull + 3;
+    whipbird.push(first, first + Math.max(2, Math.round((7 + r() * 4) / barSeconds)));
+  }
+  const lorikeets: NoosaPlan['lorikeets'] = [];
+  if (r() < 0.35) {
+    // A flock flying over at a phrase's end: the verse's last bar, or the middle of a swell.
+    lorikeets.push({ bar: r() < 0.5 ? at('drop') - 1 : at('drop') + 7, kind: 'flypast' });
+    if (r() < 0.5 && !whipbird.some(b => b >= lull && b < lull + 8)) lorikeets.push({ bar: lull + 4, kind: 'chatter' });
+  }
+  return { whipbird, lorikeets };
+}
+
+/** The coast's birds of a bar: a whipbird pair calling, lorikeets flying over or chattering in a tree. */
+function coastBirds(c: Bar): void {
+  const { index, plan, notes, key, fx } = c;
+  if (plan.whipbird.includes(index)) {
+    // The pair whistles on a note of the key, near 2 kHz or now and then near 4 (as recorded pairs do); she answers most calls.
+    const tone = plan.scale[Math.floor(fx() * plan.scale.length)]!;
+    notes.push({ voice: 'whipbird', midi: fx() < 0.25 ? placeIn(tone, 104, 109) : placeIn(tone, 93, 98), beat: sb(c, 2), dur: 8, vel: 0.62, mod: whipbirdMod(fx() < 0.85, fx() < 0.6 ? 1 : 2, Math.floor(fx() * 1048576)) });
+  }
+  for (const l of plan.lorikeets) {
+    if (l.bar !== index) continue;
+    const flypast = l.kind === 'flypast';
+    notes.push({ voice: 'lorikeet', midi: placeIn(key + 7, 92, 97), beat: flypast ? 1 : 0, dur: flypast ? 10 : 12, vel: flypast ? 0.5 : 0.4, mod: lorikeetMod(l.kind, flypast ? 6 + Math.floor(fx() * 3) : 4 + Math.floor(fx() * 3), Math.floor(fx() * 1048576)) });
+  }
+}
+
 /** The birds: a featured magpie carol or kookaburra where the plan puts one, and a quiet magpie at a calm phrase's end where the lead rests. */
 function birds(c: Bar): void {
   const { part, i, index, plan, notes, key } = c;
@@ -656,7 +710,7 @@ function birds(c: Bar): void {
     return;
   }
   const calm = part.section === 'intro' || part.section === 'verse' || part.section === 'break' || part.section === 'outro';
-  const featuredNear = plan.birds.some(b => Math.abs(b.bar - index) < 3);
+  const featuredNear = plan.birds.some(b => Math.abs(b.bar - index) < 3) || plan.whipbird.some(b => Math.abs(b - index) < 2) || plan.lorikeets.some(l => Math.abs(l.bar - index) < 2);
   if (calm && i % 4 === 3 && !featuredNear && !notes.some(n => n.voice === 'lead') && c.fx() < 0.5) {
     notes.push({ voice: 'magpie', midi: magpie, beat: sb(c, c.fx() < 0.5 ? 8 : 10), dur: 1.5 + c.fx() * 1.5, vel: 0.5, mod: song() });
   }

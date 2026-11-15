@@ -526,7 +526,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   let paintVersion = 0;
 
   /** The effects lane's rows, by what makes the sound: voices, botanica's place and the sea on top, then the console's sounds and the glitches, its sparkles and bleeps, and the sweeps and pads at the bottom. */
-  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' || voice === 'nature' || voice === 'wave' ? 0
+  const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' || voice === 'whipbird' || voice === 'lorikeet' || voice === 'nature' || voice === 'wave' ? 0
     : voice === 'game' || voice === 'coin' || voice === 'fm' || voice === 'glitch' ? 1 : voice === 'sparkle' || voice === 'blip' ? 2 : 3;
 
   /**

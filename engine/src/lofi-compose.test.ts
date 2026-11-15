@@ -403,6 +403,8 @@ test('every note is playable', () => {
           : n.voice === 'fm' ? [60, 71]
           // The sea's notes are pitched nominally (lofi-waves-notes.ts): a wave is noise, not a note.
           : n.voice === 'wave' ? [36, 72]
+          // The coast's birds: a whipbird's whistle and a lorikeet flock's middle pitch (lofi-coast-birds.ts).
+          : n.voice === 'whipbird' || n.voice === 'lorikeet' ? [88, 110]
           // Oompa's lead notes are the whole band's lines: the trombones' countermelody to the clarinets' runs.
           : mood === 'oompa' ? [40, 93] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
