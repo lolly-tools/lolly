@@ -27,10 +27,6 @@ import type { GenreCategory } from '../shells/web/src/lib/genre-icons.ts';
 export const MUSIC_BASE = 'music';
 /** Where the samples are served from: /info/music/samples/<slug>.m4a. */
 export const SAMPLES_DIR = 'music/samples';
-/** The one credit line every page asks for (Andy, 2026-11-15). */
-export const MUSIC_CREDIT = 'Music made with Lolly';
-/** The credit line with the address, for when there is room for a link. */
-export const MUSIC_CREDIT_LINK = 'Music made with Lolly (https://lolly.tools)';
 
 /** Each group's heading, as the genre picker shows the groups (views/music-studio/
  *  genre-picker.ts CATEGORY_TITLE, which is not exported because it translates at call

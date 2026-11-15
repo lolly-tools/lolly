@@ -1010,7 +1010,7 @@ async function learnSavedTune(id: string): Promise<boolean> {
 /**
  * Save the tune playing on a station to the asset library, so it can be played again
  * later (it lists under the listener's own audio). The saved tune records Lolly's terms
- * for its stations' music, CC BY 4.0 with the credit "Music made with Lolly" (Andy,
+ * for its stations' music, CC BY 4.0 with its credit line, TUNE_CREDIT (Andy,
  * 2026-11-15), as lib/tune-provenance.ts tuneLicenceRecord does for the music generator.
  * Returns the saved asset's id, or null when nothing is playing on a station or this
  * host cannot write assets.

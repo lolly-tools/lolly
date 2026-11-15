@@ -27,7 +27,7 @@ export function renderButtonHtml(): string {
 
 /** What every download records: the line under Render's choices, the licence included (Andy, 2026-11-15). */
 export function downloadRecordLine(): string {
-  return tRaw('Downloads will carry Content Credentials that record: {declaration}. Each file will also state its licence, CC BY 4.0, with the credit {credit}.', { declaration: TUNE_DECLARATION, credit: TUNE_CREDIT });
+  return tRaw('Downloads will carry Content Credentials that record: {declaration}. Each file will also state its licence and the credit: {credit}.', { declaration: TUNE_DECLARATION, credit: TUNE_CREDIT });
 }
 
 /** Render's choices, worded for a track that is or is not rendered yet. */

@@ -52,7 +52,7 @@ test('a saved tune records the maker only when the profile has a name, the music
   const versions = { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION };
   assert.match(LOLLY_RELEASE, /^\d+\.\d+\.\d+$/, 'the release version reads from the web package');
   assert.deepEqual(tuneSaveRecord('Andy Fitzsimon', versions), {
-    madeIn: MADE_IN_GENERATOR, maker: 'Andy Fitzsimon', versions, license: 'CC-BY-4.0', attribution: 'Music made with Lolly',
+    madeIn: MADE_IN_GENERATOR, maker: 'Andy Fitzsimon', versions, license: 'CC-BY-4.0', attribution: 'Music made with Lolly (https://lolly.tools), CC BY 4.0',
   });
   const anonymous = tuneSaveRecord('', versions);
   assert.equal('maker' in anonymous, false, 'no name, no maker field');
@@ -60,12 +60,12 @@ test('a saved tune records the maker only when the profile has a name, the music
 
 test('a saved tune\'s licence starts as CC BY 4.0 with the credit, and its maker can change the licence', () => {
   const meta = tuneSaveRecord('', { lolly: '1.2.0', engine: '1.300.0' });
-  assert.deepEqual(tuneLicenceRecord(), { license: 'CC-BY-4.0', attribution: 'Music made with Lolly' }, 'Andy\'s terms, 2026-11-15');
+  assert.deepEqual(tuneLicenceRecord(), { license: 'CC-BY-4.0', attribution: 'Music made with Lolly (https://lolly.tools), CC BY 4.0' }, 'Andy\'s terms and credit line, 2026-11-15');
   assert.deepEqual(tuneLicence(meta), { declared: 'CC-BY-4.0', name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' }, 'not "Not recorded"');
-  assert.equal(meta.attribution, 'Music made with Lolly');
+  assert.equal(meta.attribution, 'Music made with Lolly (https://lolly.tools), CC BY 4.0', 'the credit Copy credit copies');
   const changed = withTuneLicence(meta, 'CC0-1.0');
   assert.equal(tuneLicence(changed)?.name, 'CC0 1.0', 'the details menu still changes it');
-  assert.equal(changed.attribution, 'Music made with Lolly', 'the credit stays as a courtesy');
+  assert.equal(changed.attribution, 'Music made with Lolly (https://lolly.tools), CC BY 4.0', 'the credit stays as a courtesy');
   assert.equal(tuneLicence(withTuneLicence(meta, '')), null, 'and Not recorded still clears it');
   // A new tune's ingredient gives the licence without anyone setting one.
   assert.deepEqual(tuneSource(recipe, tuneRef(meta)).licence, { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' });

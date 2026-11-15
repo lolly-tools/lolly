@@ -2,7 +2,7 @@
 
 The music generator makes a track of your own in any of Lolly's genres, from lofi and jazz to synthwave and drum and bass. Pick a genre, shuffle until you like what plays, change any instrument you like, then download an M4A or WAV file. Every note is composed on your device: no samples, no recordings and no generative AI.
 
-Music you make here comes under the [Creative Commons Attribution 4.0 International licence (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/): free for any use, including commercial use, as long as you credit Lolly with the line **Music made with Lolly**. [Use your music](#use-your-music) explains how to credit a track.
+Music you make here comes under the [Creative Commons Attribution 4.0 International licence (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/): free for any use, including commercial use, as long as you credit Lolly with the line **Music made with Lolly (https://lolly.tools), CC BY 4.0**. [Use your music](#use-your-music) explains how to credit a track.
 
 Open **Music generator** from **Utilities**, or go straight to [the music generator](/#/music). Want to hear the genres first? [Free background music](/info/background-music.html) has a short sample of every genre to play.
 
@@ -161,8 +161,8 @@ Every M4A or WAV you download carries Content Credentials: a signed record insid
 
 The file also states its licence and the credit the licence asks for, in the record and in tags a music player or file inspector reads without a credential reader:
 
-- **The copyright field** (a WAV's copyright and an M4A's copyright item) reads *Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools).*
-- **An XMP packet** gives the same sentence as the usage terms, the licence's address, Lolly (lolly.tools) as the party to credit, and the credit line *Music made with Lolly*.
+- **The copyright field** (a WAV's copyright and an M4A's copyright item) reads *Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0.*
+- **An XMP packet** gives the same sentence as the usage terms, the licence's address, Lolly (lolly.tools) as the party to credit, and the credit line *Music made with Lolly (https://lolly.tools), CC BY 4.0*.
 - **The Content Credentials** record the sentence as the file's rights, beside the licence's address, the party to credit and the credit line.
 
 After a download, the line under the track repeats what a reading of the written file found, the licence included.
@@ -176,9 +176,7 @@ To share a file without the record, run the file through the [Lolly Strip Hidden
 
 Music you make in the music generator comes under the Creative Commons Attribution 4.0 International licence ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). The same licence covers the samples on the [genre pages](/info/background-music.html) and the tunes the Neurospicy player's stations compose. The music is free for any use, including commercial use, provided you credit Lolly. Use this line wherever your credits go:
 
-> **Music made with Lolly**
-
-When there is room for a link, add the address: **Music made with Lolly (https://lolly.tools)**.
+> **Music made with Lolly (https://lolly.tools), CC BY 4.0**
 
 - **A video or a YouTube upload:** in the description or the end credits.
 - **A podcast:** in the show notes.

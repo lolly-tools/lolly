@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.347.0
+
+- The credit line Lolly's music asks for is now "Music made with Lolly (https://lolly.tools), CC BY 4.0" (Andy, 2026-11-15). `TUNE_CREDIT` in `tune-provenance.ts` holds the whole line and is the one constant every credit reads: the XMP `photoshop:Credit` and the credential's `photoshop:Credit` (`tagTuneFile`, `signTuneFile`), the licence sentence `TUNE_LICENCE_STATEMENT` ("… Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."), a saved tune's `attribution` in the web shell, and the docs' genre pages. `TUNE_CREDIT_LINE` is gone, since the line is now `TUNE_CREDIT` itself. The party to credit (`TUNE_ATTRIBUTION_NAME`, "Lolly") and the licence's address are unchanged.
+
 ## 1.346.0
 
 - The music generator's files state the licence the music comes under, Creative Commons Attribution 4.0 International (CC BY 4.0), and the credit it asks for, "Music made with Lolly" (Andy, 2026-11-15). `tune-provenance.ts` gains `TUNE_LICENCE` (`CC-BY-4.0`, its name, short name and terms page), `TUNE_CREDIT`, `TUNE_CREDIT_URL`, `TUNE_CREDIT_LINE`, `TUNE_ATTRIBUTION_NAME` (`Lolly`) and `TUNE_LICENCE_STATEMENT`, the sentence each file carries: "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."

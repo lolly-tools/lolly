@@ -43,7 +43,8 @@ test('a folder render\'s tune declares algorithmic media and the music generator
 
 // Andy, 2026-11-15: every rendered music file carries the CC BY 4.0 licence and the
 // credit, in its plain tags (the copyright field and XMP usage terms) and its credential.
-const STATEMENT = 'Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools).';
+const CREDIT = 'Music made with Lolly (https://lolly.tools), CC BY 4.0';
+const STATEMENT = `Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: ${CREDIT}.`;
 const m4a = (() => {
   const latin1 = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
   const u32 = (n: number): Uint8Array => Uint8Array.of(n >>> 24, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff);
@@ -69,13 +70,13 @@ for (const [format, file] of [['wav', wav], ['m4a', m4a]] as const) {
     assert.equal(report.state, 'valid');
     assert.equal(report.rights, STATEMENT);
     assert.equal(report.licence?.url, 'https://creativecommons.org/licenses/by/4.0/');
-    assert.equal(report.licence?.credit, 'Music made with Lolly', 'the credit line is in the credential');
+    assert.equal(report.licence?.credit, CREDIT, 'the credit line is in the credential');
     assert.equal(report.history?.find((h) => h.action === 'c2pa.created')?.digitalSourceType, 'http://cv.iptc.org/newscodes/digitalsourcetype/algorithmicMedia');
     const tags = Object.fromEntries(extractFileMetadata(bytes).fields.map((f) => [f.label, f.value]));
     assert.equal(tags.Copyright, STATEMENT, 'the copyright field states the licence');
     assert.equal(tags['Usage terms'], STATEMENT, 'and the XMP usage terms');
     assert.equal(tags.Licence, 'https://creativecommons.org/licenses/by/4.0/');
-    assert.equal(tags.Credit, 'Music made with Lolly');
+    assert.equal(tags.Credit, CREDIT);
   });
 }
 

@@ -1,6 +1,6 @@
 # Free background music generator
 
-Need background music for a video, a podcast, a stream, a game or a presentation? Lolly's [music generator](/#/music) makes a new track in any of more than 50 genres, from lofi and jazz to synthwave and drum and bass, right on your device. Music you make comes under the [Creative Commons Attribution 4.0 International licence (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/): free for any use, including commercial use, as long as you credit Lolly with the line **Music made with Lolly**.
+Need background music for a video, a podcast, a stream, a game or a presentation? Lolly's [music generator](/#/music) makes a new track in any of more than 50 genres, from lofi and jazz to synthwave and drum and bass, right on your device. Music you make comes under the [Creative Commons Attribution 4.0 International licence (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/): free for any use, including commercial use, as long as you credit Lolly with the line **Music made with Lolly (https://lolly.tools), CC BY 4.0**.
 
 Choose a genre below to hear a short sample, read what the genre sounds like, and open the music generator in that genre with one click.
 
@@ -25,9 +25,9 @@ The [music generator guide](/info/music-generator.html) shows every control, wit
 
 Music you make in the music generator comes under the [Creative Commons Attribution 4.0 International licence (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/). The same licence covers the samples on these pages and the tunes the Neurospicy player's stations compose. The music is free for any use, including commercial use, provided you credit Lolly. Put this line wherever your credits go:
 
-> **Music made with Lolly**
+> **Music made with Lolly (https://lolly.tools), CC BY 4.0**
 
-When there is room for a link, add the address: **Music made with Lolly (https://lolly.tools)**. Put the credit in a video's description or end credits, a podcast's show notes, a stream's description, a game's credits screen, or a presentation's last slide.
+Put the credit in a video's description or end credits, a podcast's show notes, a stream's description, a game's credits screen, or a presentation's last slide.
 
 Looking for copyright-free background music? Music made here is not copyright-free: it comes under CC BY 4.0, a licence that asks for the credit. The music is free to use, even commercially, and royalty-free as long as you include the credit.
 
@@ -36,7 +36,7 @@ Looking for copyright-free background music? Music made here is not copyright-fr
 
 - **No samples, no loops, no recordings.** Lolly's composer writes every note, and instruments modelled in code play them. Even the drum breaks, the record scratches, the birds and the waves are synthesised.
 - **No generative AI.** The composer is a set of rules for each genre, not a trained model, and it makes the same tune from the same genre and seed on every device.
-- **Content Credentials in every file.** Each M4A or WAV you download carries a signed record that says Lolly's music generator made the music, procedurally and with no AI. The record's digital source type is algorithmic media. The record and the file's own tags also state the licence, CC BY 4.0, and the credit, **Music made with Lolly**.
+- **Content Credentials in every file.** Each M4A or WAV you download carries a signed record that says Lolly's music generator made the music, procedurally and with no AI. The record's digital source type is algorithmic media. The record and the file's own tags also state the licence and the credit, **Music made with Lolly (https://lolly.tools), CC BY 4.0**.
 - **Nothing to sign up for.** The music generator runs in your browser. Your tracks stay on your device until you share them.
 
 <!--i:eti-help-->
@@ -48,7 +48,7 @@ Yes. The music generator costs nothing to use, and music you make in the generat
 
 ### What licence is the music under?
 
-The Creative Commons Attribution 4.0 International licence, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The licence covers music you make in the music generator, the samples on these pages and the tunes the Neurospicy player's stations compose. The licence asks for credit: use the line **Music made with Lolly**. Every file you download states the licence and the credit in its tags and its Content Credentials.
+The Creative Commons Attribution 4.0 International licence, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The licence covers music you make in the music generator, the samples on these pages and the tunes the Neurospicy player's stations compose. The licence asks for credit: use the line **Music made with Lolly (https://lolly.tools), CC BY 4.0**. Every file you download states the licence and the credit in its tags and its Content Credentials.
 
 ### Can I use the music commercially?
 
@@ -56,7 +56,7 @@ Yes. You can use music you make in a paid product, an advert, a monetised video 
 
 ### Do I need to credit Lolly?
 
-Yes. The CC BY 4.0 licence asks for credit. Use the line **Music made with Lolly**, and add **https://lolly.tools** when there is room for a link.
+Yes. The CC BY 4.0 licence asks for credit. Use the line **Music made with Lolly (https://lolly.tools), CC BY 4.0**.
 
 ### Is the music copyright-free?
 

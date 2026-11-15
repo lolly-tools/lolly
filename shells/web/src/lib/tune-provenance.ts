@@ -10,7 +10,7 @@
  *     profile's name, left out when none is set: a statement of fact, not a rights
  *     claim), that it was made in the music generator, and the Lolly and engine
  *     versions that made the tune. Its licence starts as CC BY 4.0, with the credit
- *     "Music made with Lolly" (Andy, 2026-11-15), and the person can change it in the
+ *     line TUNE_CREDIT (Andy, 2026-11-15), and the person can change it in the
  *     asset's details. A tune saved from a Neurospicy station records the same licence
  *     and credit (tuneLicenceRecord). The details sheet shows every one of these.
  *   - THE DOWNLOAD. A WAV or M4A downloaded from the generator carries a created step
@@ -59,7 +59,7 @@ export interface TuneVersions { lolly: string; engine: string }
 
 /**
  * The licence a saved tune starts with, and the credit it asks for: Lolly's own terms
- * for its music, CC BY 4.0 with "Music made with Lolly" (Andy, 2026-11-15). Written
+ * for its music, CC BY 4.0 with its credit line, TUNE_CREDIT (Andy, 2026-11-15). Written
  * by a save from the music generator and by a save from a Neurospicy station; the
  * person can change a generator tune's licence in its details.
  */

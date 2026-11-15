@@ -210,6 +210,21 @@ An icon tagged `themable` is an SVG that sets its two colours only through class
 
 When a vector export outlines its text (`host.text`), the shell looks for a font file in that order: the brand pack's own files, then the person's fonts, then the platform faces.
 
+### Saved tunes
+
+A saved tune is an `audio` asset of format `lofi`: a few bytes naming a Neurospicy station's mood and a seed, which Lolly composes again each time the tune plays. Lolly's own catalogs keep theirs under `lolly/tunes/`, and there is no script for adding one: a tune goes in as a hand-written `index.json` entry beside its `.lofi.json` file, like any other asset.
+
+The licence follows one rule. The six tunes already released in Lolly Demo and Lolly Start (`lolly/tunes/warm-250249288` and the five `lolly/tunes/sings-*` tunes) stay CC0 (`"license": "CC0-1.0"`), because a CC0 release cannot be withdrawn. Tunes added from now on are CC BY 4.0, with the credit Lolly's music asks for:
+
+```json
+{
+  "license": "CC-BY-4.0",
+  "attribution": "Music made with Lolly (https://lolly.tools), CC BY 4.0"
+}
+```
+
+`tests/catalog-tunes-licence.test.ts` holds both catalogs to the rule: a tune outside the six released ones that records another licence or another credit fails the test. [Generated music](/info/generated-music.html#what-a-track-records) says what the licence covers.
+
 ### Locales
 
 Locale-specific format variants go under `locales`:
