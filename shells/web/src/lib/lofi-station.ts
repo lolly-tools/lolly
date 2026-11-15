@@ -786,8 +786,8 @@ export class LofiStation {
         else if (keysV === 'steel') V.steelKeys(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, m);
         else if (S.STRING_KEYS.has(keysV)) S.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
         else if (keysV === 'houseOrgan') houseOrgan(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
-        // The band's after-beats, one player to a chord tone (lib/lofi-oompa.ts).
-        else if (keysV === 'horns') OB.horns(k, lanes.keys, bar.tune.seed, t, note.midi, vel, len);
+        // The band's after-beats, one player to a chord tone (lib/lofi-oompa.ts); in its own tunes, through its fader.
+        else if (keysV === 'horns') OB.horns(k, OB.bandLane(k, lanes.keys, bar), bar.tune.seed, t, note.midi, vel, len);
         else if (P.PIANO_KEYS.has(keysV)) P.grand(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
         // Sherbert's supersaw is the layered future chord, held still (its stabs are the supersaw's own).
         else if (keysV === 'supersaw' && LAYERED_SAWS.has(bar.tune.mood)) FB.future(k, lanes.keys, t, note.midi, vel * VARIANT.keys.future, len, { rate: 0, bend: false, spb });
@@ -816,8 +816,8 @@ export class LofiStation {
         if (bassV === 'didgeridoo') { this.didge.play(k, lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * VARIANT.bass.didgeridoo); break; }
         const tone = { bright: st.bright ?? 1, drive: st.drive ?? 1 };
         const take: BS.Take = (kit, out, at, midi, lvl, tn) => {
-          // The tuba blows as hard as the note says; its seat is only a level.
-          if (bassV === 'tuba') OB.tuba(kit, out, bar.tune.seed, at, midi, vel, len, mod, lvl / Math.max(0.05, vel));
+          // The tuba blows as hard as the note says; its seat is only a level. In the band's own tunes it plays through the band's fader.
+          if (bassV === 'tuba') OB.tuba(kit, OB.bandLane(kit, out, bar), bar.tune.seed, at, midi, vel, len, mod, lvl / Math.max(0.05, vel));
           else if (bassV === 'log') W.bass(kit, out, at, midi, lvl, len, mod, tn);
           else if (H.HOUSE_BASSES.has(bassV)) H.bass(kit, out, at, midi, lvl, len, tn);
           else if (GA.GARAGE_BASSES.has(bassV)) GA.bass(kit, out, at, midi, lvl, len, mod, spb, tn);
@@ -834,9 +834,9 @@ export class LofiStation {
         break;
       }
       case 'lead': {
-        // An oompa tune's lines are the band's, each on its player (lib/lofi-oompa.ts); a
-        // melody on a lead the band does not play goes on as any lead does.
-        if (bar.tune.mood === 'oompa' && OB.line(k, lanes.lead, bar, t, note.midi, vel, len, note.mod ?? 0, leadV)) break;
+        // An oompa tune's lines are the band's, each on its player through the band's fader
+        // (lib/lofi-oompa.ts); a melody on a lead the band does not play goes on as any lead does.
+        if (bar.tune.mood === 'oompa' && OB.line(k, OB.bandLane(k, lanes.lead, bar), bar, t, note.midi, vel, len, note.mod ?? 0, leadV)) break;
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
         // The melody given to the Yidaki: its phrases played as calls, toots and sweeps on its one note (music-state.ts shapeBar).
         if (leadV === 'yidaki') { this.didge.play(k, this.leadSeat(lanes.lead, bar.tune.mood, 'didge'), t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift * VARIANT.lead.yidaki, 'lead'); break; }
