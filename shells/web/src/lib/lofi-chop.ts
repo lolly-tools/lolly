@@ -3,10 +3,13 @@
  * Vocal chops: a sung phrase cut into slices and played as an instrument, the way a
  * producer chops a vocal. Synthesised, never recorded: each slice is sung by the formant
  * voice of ./lofi-voice.ts (a glottal pulse and breath through a cascade of vocal-tract
- * resonators, after Klatt), a woman's voice sped up a little, as chops usually are.
+ * resonators, after Klatt), in one of four voices measured from real singing
+ * (./lofi-chop-voices.ts): a woman's, a man's, a baritone's or a child's. Who sings is cast
+ * by engine/src/lofi-chop-cast.ts: one voice, a woman sped up a little as chops usually
+ * are, a baritone under her, a children's choir or a mixed group.
  *
- * Each tune draws its own vocal from its seed: a singer (how long her vocal tract is, how
- * breathy she is) and a handful of syllables she sang ("oh", "la", "da", "yeah"…), the
+ * Each tune draws its own vocal from its seed: a singer (how long the vocal tract is, how
+ * breathy, the vibrato) and a handful of syllables sung ("oh", "la", "da", "yeah"…), the
  * slices of the sample. Each pitch is mapped to one slice, as a sampler maps a slice to a
  * key, so a melody that comes round again sings the same syllables; now and then the next
  * slice of the sample plays instead, as a producer playing through the pads.
@@ -28,21 +31,14 @@
 import { BandPass, Formant, ease } from './lofi-voice.ts';
 import { LEAD_OWN } from './lofi-lead-art.ts';
 import type { VoiceKit } from './lofi-voices.ts';
+import { CHOP_GESTURES, CHOP_VOICE, LEGACY_VOICE, WOMAN, upperShare, type ChopVoiceSpec, type Vowel } from './lofi-chop-voices.ts';
 import type { LofiBar, LofiNote } from '../../../../engine/src/lofi-compose.ts';
 import { arnhemChops } from '../../../../engine/src/lofi-arnhem.ts';
+import { chopCast, isChopLead, type ChopLead, type ChopSinger, type ChopVoice } from '../../../../engine/src/lofi-chop-cast.ts';
 
 type Quad = readonly [number, number, number, number];
 
 // ── the syllables ───────────────────────────────────────────────────────────
-
-/** A woman's sung vowels, their four formants (Hz): Hillenbrand et al.'s (1995) averages for women, F4 near 4.2 kHz. */
-const AH: Quad = [940, 1550, 2820, 4150];
-const EH: Quad = [730, 2060, 2980, 4200];
-const EE: Quad = [440, 2760, 3370, 4300];
-const EY: Quad = [540, 2530, 3050, 4200];
-const OH: Quad = [560, 1040, 2830, 4050];
-const OO: Quad = [460, 1110, 2740, 4000];
-const UH: Quad = [650, 1600, 2850, 4100];   // the schwa that "yeah" closes on
 
 /**
  * How a syllable starts: the formants of the consonant (Hz), how long it lasts (s), how
@@ -59,33 +55,33 @@ const ONSETS = {
   n: { f: [270, 1750, 2650, 3800], dur: 0.055, voice: 0.6, glide: 0.035, nasal: true },
   d: { f: [260, 1800, 2750, 3900], dur: 0.028, voice: 0.12, glide: 0.04, burst: { f: 3600, bw: 2600, level: 0.5 } },
   b: { f: [260, 950, 2300, 3700], dur: 0.028, voice: 0.12, glide: 0.04, burst: { f: 1100, bw: 1500, level: 0.4 } },
-  h: { f: AH, dur: 0.06, voice: 0, glide: 0.01, asp: 0.9, vowelShape: true },
+  h: { f: WOMAN.ah, dur: 0.06, voice: 0, glide: 0.01, asp: 0.9, vowelShape: true },
 } as const satisfies Record<string, Onset>;
 
 /** A slice of the sample: its consonant (if any), its vowel, and the vowel it glides to as it ends (a diphthong). */
-interface Syllable { onset?: keyof typeof ONSETS; vowel: Quad; to?: Quad }
+interface Syllable { onset?: keyof typeof ONSETS; vowel: Vowel; to?: Vowel }
 /** Every syllable a tune's vocal can hold. A chop's `mod` gives a syllable's place in this list. */
 const SYLLABLES: readonly Syllable[] = [
-  { vowel: AH },                       // ah
-  { vowel: OH, to: OO },               // oh
-  { vowel: OO },                       // ooh
-  { vowel: EH },                       // eh
-  { vowel: EE },                       // ee
-  { vowel: AH, to: EE },               // ay (the "I")
-  { onset: 'h', vowel: EY, to: EE },   // hey
-  { onset: 'y', vowel: EH, to: UH },   // yeah
-  { onset: 'l', vowel: AH },           // la
-  { onset: 'l', vowel: OH, to: OO },   // lo
-  { onset: 'd', vowel: AH },           // da
-  { onset: 'd', vowel: OO },           // doo
-  { onset: 'n', vowel: AH },           // na
-  { onset: 'n', vowel: EY, to: EE },   // nay
-  { onset: 'm', vowel: AH },           // ma
-  { onset: 'w', vowel: OH },           // wo
-  { onset: 'w', vowel: AH },           // wa
-  { onset: 'y', vowel: AH },           // ya
-  { onset: 'y', vowel: OH, to: OO },   // yo
-  { onset: 'b', vowel: AH },           // ba
+  { vowel: 'ah' },                         // ah
+  { vowel: 'oh', to: 'oo' },               // oh
+  { vowel: 'oo' },                         // ooh
+  { vowel: 'eh' },                         // eh
+  { vowel: 'ee' },                         // ee
+  { vowel: 'ah', to: 'ee' },               // ay (the "I")
+  { onset: 'h', vowel: 'ey', to: 'ee' },   // hey
+  { onset: 'y', vowel: 'eh', to: 'uh' },   // yeah
+  { onset: 'l', vowel: 'ah' },             // la
+  { onset: 'l', vowel: 'oh', to: 'oo' },   // lo
+  { onset: 'd', vowel: 'ah' },             // da
+  { onset: 'd', vowel: 'oo' },             // doo
+  { onset: 'n', vowel: 'ah' },             // na
+  { onset: 'n', vowel: 'ey', to: 'ee' },   // nay
+  { onset: 'm', vowel: 'ah' },             // ma
+  { onset: 'w', vowel: 'oh' },             // wo
+  { onset: 'w', vowel: 'ah' },             // wa
+  { onset: 'y', vowel: 'ah' },             // ya
+  { onset: 'y', vowel: 'oh', to: 'oo' },   // yo
+  { onset: 'b', vowel: 'ah' },             // ba
 ];
 /** The syllables a phrase can open on with no consonant, which a sample always holds a couple of. */
 const OPEN = [0, 1, 2, 3, 4, 5];
@@ -113,6 +109,13 @@ export function readChop(mod: number): { syllable: number; gesture: number; amou
 
 // ── the tune's vocal ─────────────────────────────────────────────────────────
 
+/** The average pitch of a bar's lead notes (MIDI), which sets a baritone's octave. */
+export function leadMean(notes: readonly LofiNote[]): number {
+  let sum = 0, n = 0;
+  for (const x of notes) if (x.voice === 'lead') { sum += x.midi; n++; }
+  return n ? sum / n : 72;
+}
+
 /** A pitch's class (0 is C), for a note a quarter-tone off too. */
 const pitchClass = (midi: number): number => ((Math.round(midi) % 12) + 12) % 12;
 
@@ -133,13 +136,17 @@ function hash(...xs: number[]): number {
   return (h ^ (h >>> 13)) >>> 0;
 }
 
-/** A tune's vocal sample: the singer, the syllables she sang (the slices) and the slice each pitch plays. */
+/** A tune's vocal sample: the singer, the syllables sung (the slices) and the slice each pitch plays. */
 export interface ChopVocal {
-  /** Her vocal tract, as a formant scale (1 is the table's woman; above it, higher, as a sped-up vocal is). */
+  /** The voice: its vowels, range, registers and source (./lofi-chop-voices.ts). */
+  spec: ChopVoiceSpec;
+  /** The singer's vocal tract, as a formant scale against the voice's average speaker. */
   tract: number;
-  /** How breathy she sings (0 to 1). */
+  /** How far the sample is sped up (1 not at all): the formants and the vibrato rise with the speed. */
+  speed: number;
+  /** How breathy the singer is (0 to 1). */
   breathy: number;
-  /** Her vibrato (Hz) and its depth (cents). */
+  /** The vibrato (Hz) and its depth (cents). */
   vibRate: number; vibDepth: number;
   /** The slices, as places in SYLLABLES. */
   slices: readonly number[];
@@ -147,12 +154,27 @@ export interface ChopVocal {
   byPitch: readonly number[];
 }
 
-/** The vocal a tune's chops are cut from, drawn from its seed alone. */
-export function chopVocal(seed: number, mood?: string): ChopVocal {
+/**
+ * The vocal a tune's chops are cut from, drawn from its seed alone. With a `voice`, the
+ * singer is drawn around that voice's measured average (sped up by `speed`); without one, it
+ * is the chop voice as it was before the voices were measured, which the botanica grains sing.
+ * The syllables are the same whoever sings them.
+ */
+export function chopVocal(seed: number, mood?: string, voice?: ChopVoice, speed = 1): ChopVocal {
   const r = mulberry(hash(seed, 0xc40b));
-  const tract = 1.06 + r() * 0.14;
-  const breathy = 0.15 + r() * 0.3;
-  const vibRate = 5.2 + r() * 0.8, vibDepth = 22 + r() * 18;
+  let tract = 1.06 + r() * 0.14;
+  let breathy = 0.15 + r() * 0.3;
+  let vibRate = 5.2 + r() * 0.8, vibDepth = 22 + r() * 18;
+  const spec = voice ? CHOP_VOICE[voice] : LEGACY_VOICE;
+  if (voice) {
+    // The singer, on a stream of the voice's own, so the syllables below stay the tune's.
+    const v = mulberry(hash(seed, 0xc40b, CHOP_VOICES_SALT[voice]));
+    const pick = (lo: number, hi: number): number => lo + v() * (hi - lo);
+    tract = pick(...spec.tract);
+    breathy = pick(...spec.breathy);
+    vibRate = pick(...spec.vibRate);
+    vibDepth = pick(...spec.vibDepth);
+  }
   // Two open vowels, then four more of anything, none twice.
   const slices: number[] = [];
   while (slices.length < 2) { const s = OPEN[Math.floor(r() * OPEN.length)]!; if (!slices.includes(s)) slices.push(s); }
@@ -160,8 +182,10 @@ export function chopVocal(seed: number, mood?: string): ChopVocal {
   const from = mood === 'arnhem' ? VOCABLES : null;
   while (slices.length < 6) { const s = from ? from[Math.floor(r() * from.length)]! : Math.floor(r() * SYLLABLES.length); if (!slices.includes(s)) slices.push(s); }
   const byPitch = Array.from({ length: 12 }, () => Math.floor(r() * slices.length));
-  return { tract, breathy, vibRate, vibDepth, slices, byPitch };
+  return { spec, tract, speed, breathy, vibRate, vibDepth, slices, byPitch };
 }
+/** Each voice's own stream for its singer. */
+const CHOP_VOICES_SALT: Readonly<Record<ChopVoice, number>> = { female: 0xf1, male: 0x3a1e, baritone: 0xba5, child: 0xc41d };
 
 // ── the chopper ─────────────────────────────────────────────────────────────
 
@@ -189,18 +213,29 @@ function gauss(rand: () => number): number {
   return Math.max(-2.5, Math.min(2.5, v));
 }
 
+/** Who sings a bar's chops (engine/src/lofi-chop-cast.ts), the principal singer first. */
+export function castOf(instrument: ChopLead, bar: LofiBar): ChopSinger[] {
+  return chopCast(instrument, { mood: bar.tune.mood, seed: bar.tune.seed, section: bar.section, barMean: leadMean(bar.notes) });
+}
+
 /**
  * The chopper: how each of a bar's lead notes is sung (its slice and move, carried in its
  * `mod`), each moved a few milliseconds off the grid, with a stutter's pieces and a
  * reversed swell added where it chooses. A run of short notes on one pitch (the
  * composer's own stutter) is one slice stuttered. `rand` is the bar's seeded source.
+ * `instrument` is the chop lead playing: the bar's principal singer's voice suits the moves
+ * to it (a baritone flips less and slides more, a child's chops are lighter); a woman's
+ * are the style's own.
  */
-export function chopper(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => number): LofiNote[] {
+export function chopper(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => number, instrument: string = 'chop'): LofiNote[] {
   const vocal = chopVocal(bar.tune.seed, bar.tune.mood);
   // Arnhem Land's chops are cut by the tune's place on its line (engine/src/lofi-arnhem.ts): a producer's at the modern end, sung near the traditional.
-  const how = CHOPPING[bar.tune.mood === 'arnhem' ? arnhemChops(bar.tune.seed) : CHOPPING_OF[bar.tune.mood] ?? 'plain'];
+  const style = CHOPPING[bar.tune.mood === 'arnhem' ? arnhemChops(bar.tune.seed) : CHOPPING_OF[bar.tune.mood] ?? 'plain'];
   const lead = notes.filter(n => n.voice === 'lead').sort((a, b) => a.beat - b.beat);
   if (!lead.length) return notes;
+  const voice = castOf(isChopLead(instrument) ? instrument : 'chop', bar)[0]!.voice;
+  const g = CHOP_GESTURES[voice];
+  const how: Chopping = g ? { ...style, scoop: style.scoop * g.scoop, slide: style.slide * g.slide, flip: style.flip * g.flip, gate: style.gate * g.gate, stutter: style.stutter * g.stutter, fall: style.fall * g.fall, reverse: style.reverse * g.reverse } : style;
   const added = new Map<LofiNote, LofiNote[]>();
   const played = new Map<LofiNote, LofiNote>();
   let slice = vocal.byPitch[pitchClass(lead[0]!.midi)]!;
@@ -272,10 +307,15 @@ export interface ChopSlice {
 /** A sung vowel's bandwidths (Hz), and a nasal murmur's, wider. */
 const BW: Quad = [80, 100, 150, 240];
 const BW_NASAL: Quad = [120, 300, 380, 480];
+/** The higher formants' bandwidths (Hz): wider the higher they are. */
+const POLE_BW = [350, 500, 650];
 /** A chop's level once its slice is sung: the sung body's loudness, before its velocity. */
 const CHOP_RMS = 0.046;
 /** How far an octave flip carries the formants with the pitch, as a sampler's repitch does (part of the way). */
 const FLIP_FORMANT = 0.35;
+
+/** A source's value at `vel`, softly `a` changing by `b` at full strength. */
+const atVel = (a: number, b: number, vel: number): number => a + b * vel;
 
 /** One take of a slice, mono, into `out` from sample `at`, at `gain`. Returns the sung body's RMS before `gain`. */
 function sing(out: Float32Array, sr: number, s: ChopSlice, rand: () => number, at: number, cents: number, vowelOnly: boolean, decay: number): number {
@@ -284,22 +324,34 @@ function sing(out: Float32Array, sr: number, s: ChopSlice, rand: () => number, a
   const od = onset ? onset.dur : 0;
   const len = Math.max(0.03, s.dur);
   const vel = Math.max(0, Math.min(1, s.vel));
+  const spec = s.vocal.spec;
   const flip = s.gesture === CHOP_FLIP ? s.amount : 0;
   const base = 440 * 2 ** ((s.midi + flip - 69) / 12) * 2 ** (cents / 1200);
-  const scale = s.vocal.tract * 2 ** ((flip / 12) * FLIP_FORMANT) * (0.975 + s.take * 0.05);
+  const scale = s.vocal.tract * s.vocal.speed * 2 ** ((flip / 12) * FLIP_FORMANT) * (0.975 + s.take * 0.05);
+  // Which register the note was sung in: the singer sang it before the sampler repitched it
+  // (a flip), slower by the sample's speed-up. Above the voice's turn, its upper register.
+  const up = upperShare(spec, s.midi - 12 * Math.log2(s.vocal.speed));
+  const src = (k: 'open' | 'breath' | 'presence', kv: 'openVel' | 'breathVel' | 'presenceVel', v: number): number => {
+    const lo = atVel(spec.low[k], spec.low[kv], v);
+    return up > 0 ? lo + (atVel(spec.high[k], spec.high[kv], v) - lo) * up : lo;
+  };
+  const cornerLo = spec.low.corner + spec.low.cornerVel * vel * vel;
+  const corner = up > 0 ? cornerLo + (spec.high.corner + spec.high.cornerVel * vel * vel - cornerLo) * up : cornerLo;
   // Louder is pressed and bright, the jaw open wider; softer is breathy and dark.
-  const open = 0.64 - 0.2 * vel;
-  const breath = s.vocal.breathy * (1.25 - 0.6 * vel);
+  const open = src('open', 'openVel', vel);
+  const breath = s.vocal.breathy * src('breath', 'breathVel', vel);
   // The voice's top: a soft voice's harmonics fall away above about 1.6 kHz, a full one's
   // above 5 kHz; and the presence a produced vocal is given, more on a full one.
-  const tiltK = 1 - Math.exp((-2 * Math.PI * (1500 + 4500 * vel * vel)) / sr);
-  const presence = (0.5 + 0.7 * vel) * (sr / 44100);
+  const tiltK = 1 - Math.exp((-2 * Math.PI * corner) / sr);
+  const presence = src('presence', 'presenceVel', vel) * (sr / 44100);
   const jaw = 0.93 + 0.14 * vel;
+  // The ring belongs to the lower register: a man's falsetto has almost none.
+  const ring = up > 0 ? spec.ring * (1 + (spec.highRing - 1) * up) : spec.ring;
   const release = s.gesture === CHOP_FALL ? 0.05 : len > 0.4 ? 0.03 : 0.012;
   const n = Math.min(out.length - at, Math.ceil((len + release) * sr));
   if (n <= 0) return 0;
   // The pitch through the slice, before the vibrato.
-  const glide = s.gesture === CHOP_SLIDE ? Math.min(0.14, len * 0.45) : s.gesture === CHOP_SCOOP ? 0.075 : 0.03;
+  const glide = (s.gesture === CHOP_SLIDE ? Math.min(0.14, len * 0.45) : s.gesture === CHOP_SCOOP ? 0.075 : 0.03) * spec.glide;
   const from = s.gesture === CHOP_SLIDE || s.gesture === CHOP_SCOOP ? s.amount : s.gesture === CHOP_REVERSE ? 0 : -0.15;
   const fallAt = Math.max(len * 0.55, len - 0.28);
   const pitch = (t: number): number => {
@@ -307,58 +359,94 @@ function sing(out: Float32Array, sr: number, s: ChopSlice, rand: () => number, a
     if (s.gesture === CHOP_FALL && t > fallAt) semis += s.amount * ((t - fallAt) / (len - fallAt)) ** 2;
     return base * 2 ** (semis / 12);
   };
-  const vibOn = len > 0.3 && s.gesture !== CHOP_PIECE;
-  const vibDepth = s.vocal.vibDepth * (0.7 + 0.5 * vel), vibRate = s.vocal.vibRate * (0.96 + s.take * 0.08);
+  // Some voices carry a vibrato on only some notes (a child's), each take deciding; a sped-up sample's is quicker.
+  const vibOn = len > 0.3 && s.gesture !== CHOP_PIECE && s.take < spec.vibShare;
+  const vibDepth = s.vocal.vibDepth * (0.7 + 0.5 * vel) * (up > 0 ? 1 + (spec.highVib - 1) * up : 1), vibRate = s.vocal.vibRate * (0.96 + s.take * 0.08) * s.vocal.speed;
+  const vibAt = spec.vibDelay;
+  // An untrained voice's pitch wanders slowly on a held note, each take its own way.
+  const drift = spec.drift, dp = s.take * 19.1, dq = s.take * 7.3;
+  let wander = 1;
   const res = [new Formant(), new Formant(), new Formant(), new Formant()];
+  // The tract's higher formants, which the vowel tables leave out: without them the voice has
+  // almost nothing above 5 kHz (60 dB under a sung voice there). Set once: they hardly move.
+  const higher = spec.poles.map((hz, j) => { const r = new Formant(); r.set(Math.min(hz * scale, sr * 0.45), POLE_BW[j] ?? 600, sr); return r; });
+  const h0 = higher[0] ?? null, h1 = higher[1] ?? null;
+  // The formants above those, lumped, as Klatt's bypass is: a little of the source straight
+  // through, keeping the air above 6 kHz that the four formants alone leave silent.
+  const bypass = spec.bypass;
+  // The voice's numbers the loop reads, held here.
+  const target = spec.vowels[syl.vowel], to = syl.to ? spec.vowels[syl.to] : null;
+  const onsetScale = spec.onset, bwScale = spec.bw, ringHz = spec.ringHz, trackBw = spec.trackBw, jitter = spec.jitter, shimmer = spec.shimmer;
   const click = new BandPass();
   const burst = onset?.burst;
   if (burst) click.set(burst.f, burst.bw, sr);
-  const f = [0, 0, 0, 0], bw = [0, 0, 0, 0];
-  let phase = 0, period = sr / base, strength = 1, tilt = 0, lastNoise = 0, lastTract = 0, voicing = 1, asp = 0, f0 = base;
+  const f = [0, 0, 0, 0], bw = [0, 0, 0, 0], setF = [-1, -1, -1, -1], setB = [-1, -1, -1, -1];
+  const attackT = onset ? 0.005 : 0.012;
+  let quick = spec.id === 'legacy' ? 0 : (Math.floor(rand() * 4294967295) | 1);
+  let phase = 0, period = sr / base, inc = 1 / period, strength = 1, tilt = 0, lastNoise = 0, lastTract = 0, lastDry = 0, voicing = 1, asp = 0, f0 = base;
   let sum = 0, count = 0;
   const bodyFrom = od + 0.02, bodyTo = len - 0.01;
   for (let i = 0; i < n; i++) {
     const t = i / sr;
     if (i % 8 === 0) {
       // The formants: the consonant's, moving to the vowel's, and at the end towards the vowel it glides to.
-      const target = syl.vowel;
       const u = onset ? ease(Math.min(1, Math.max(0, (t - (od - onset.glide * 0.25)) / onset.glide))) : 1;
-      const g = syl.to && len > 0.12 && t > len * 0.5 ? ease(Math.min(1, (t - len * 0.5) / (len * 0.5))) * 0.85 : 0;
+      const g = to && len > 0.12 && t > len * 0.5 ? ease(Math.min(1, (t - len * 0.5) / (len * 0.5))) * 0.85 : 0;
       for (let j = 0; j < 4; j++) {
-        const start = onset && !onset.vowelShape ? onset.f[j]! : target[j]!;
+        const start = onset && !onset.vowelShape ? onset.f[j]! * onsetScale : target[j]!;
         let hz = start + (target[j]! - start) * u;
-        if (syl.to) hz += (syl.to[j]! - hz) * g;
+        if (to) hz += (to[j]! - hz) * g;
+        // The trained voice's ring: the third and fourth formants drawn together into one cluster.
+        if (j >= 2 && ring > 0) hz += ((j === 2 ? ringHz - 200 : ringHz + 250) - hz) * ring;
         f[j] = hz * scale * (j === 0 ? jaw : 1);
         const nb = onset?.nasal ? BW_NASAL[j]! : BW[j]!;
-        bw[j] = nb + (BW[j]! - nb) * u;
+        bw[j] = (nb + (BW[j]! - nb) * u) * bwScale * (j >= 2 && ring > 0 ? 1 - 0.3 * ring : 1);
       }
       voicing = onset ? onset.voice + (1 - onset.voice) * Math.min(1, Math.max(0, (t - od) / 0.012)) : 1;
       asp = onset?.asp ? onset.asp * (1 - Math.min(1, Math.max(0, (t - od + 0.01) / 0.025))) : 0;
-      f0 = pitch(t) * (vibOn && t > 0.12 ? 2 ** ((vibDepth * Math.min(1, (t - 0.12) / 0.2) * Math.sin(2 * Math.PI * vibRate * t)) / 1200) : 1);
-      // A high note leaves no voice under a low first formant: a singer raises the first formant to the note.
-      f[0] = Math.max(f[0]!, f0 * 1.08);
-      for (let j = 0; j < 4; j++) res[j]!.set(Math.min(f[j]!, sr * 0.45), bw[j]!, sr);
+      f0 = pitch(t) * (vibOn && t > vibAt ? 2 ** ((vibDepth * Math.min(1, (t - vibAt) / 0.2) * Math.sin(2 * Math.PI * vibRate * t)) / 1200) : 1);
+      if (drift > 0) {
+        // The wander moves slowly, so it is worked out every fourth time.
+        if (i % 32 === 0) wander = 2 ** ((drift * (0.6 * Math.sin(2 * Math.PI * 1.1 * t + dp) + 0.4 * Math.sin(2 * Math.PI * 2.3 * t + dq))) / 1200);
+        f0 *= wander;
+      }
+      // A high note leaves no voice under a low first formant: a singer raises the first formant
+      // to the note, and an open glottis damps it there (a wider band on a measured voice).
+      if (f[0]! < f0 * 1.08) { f[0] = f0 * 1.08; if (trackBw) bw[0] = Math.max(bw[0]!, f0 * trackBw); }
+      // A held vowel's formants stand still: a resonator is set again only when its own move.
+      for (let j = 0; j < 4; j++) {
+        const hz = Math.min(f[j]!, sr * 0.45);
+        if (hz !== setF[j] || bw[j] !== setB[j]) { res[j]!.set(hz, bw[j]!, sr); setF[j] = hz; setB[j] = bw[j]!; }
+      }
     }
     // The glottal pulse, each period a little different, with its closing step band-limited (a polyBLEP).
-    phase += 1 / period;
+    phase += inc;
     if (phase >= 1) {
       phase -= 1;
-      period = (sr / f0) * (1 + (rand() - 0.5) * 0.012);
-      strength = 1 + (rand() - 0.5) * 0.08;
+      period = (sr / f0) * (1 + (rand() - 0.5) * jitter);
+      strength = 1 + (rand() - 0.5) * shimmer;
+      inc = 1 / period;
     }
     const x = phase / open;
     let pulse = x < 1 ? (2 * x - 3 * x * x) * strength : 0;
-    const dt = 1 / period, tc = phase - open;
+    const dt = inc, tc = phase - open;
     if (tc >= 0 && tc < dt) { const v = tc / dt; pulse += (strength / 2) * (2 * v - v * v - 1); }
     else if (tc < 0 && tc > -dt) { const v = tc / dt; pulse += (strength / 2) * (v * v + 2 * v + 1); }
     tilt += tiltK * (pulse - tilt);
     // Breath rides the voice; an h is breath alone, brighter (its low end mostly gone) and
     // well under the vowel, as a breathed h is.
-    const noise = rand() * 2 - 1;
+    // A measured voice draws its breath from a quicker generator of its own (xorshift); the old voice keeps its stream.
+    let noise: number;
+    if (quick) { quick ^= quick << 13; quick ^= quick >>> 17; quick ^= quick << 5; noise = (quick >>> 0) / 2147483648 - 1; } else noise = rand() * 2 - 1;
     const air = noise - lastNoise * 0.6, hiss = noise - lastNoise * 0.95;
     lastNoise = noise;
     let y = tilt * voicing + hiss * asp * 0.4 + air * breath * voicing * (x < 1 ? 0.12 : 0.04);
+    const dry = y;
     for (let j = 0; j < 4; j++) y = res[j]!.run(y);
+    if (h0) y = h0.run(y);
+    if (h1) y = h1.run(y);
+    if (bypass) y += (dry - lastDry) * bypass;
+    lastDry = dry;
     const tract = y;
     y += presence * (y - lastTract);
     lastTract = tract;
@@ -367,8 +455,9 @@ function sing(out: Float32Array, sr: number, s: ChopSlice, rand: () => number, a
       if (since >= 0 && since < 0.03) y += click.run(noise) * burst.level * Math.exp(-since / 0.005) * 0.4;
     }
     // The slice's shape: a soft start on a vowel, a quicker one on a consonant, and the cut.
-    const attack = Math.min(1, t / (onset ? 0.005 : 0.012));
-    const cut = Math.min(1, Math.max(0, (len + release - t) / release));
+    // (Worked out only near the ends: in between both are exactly 1.)
+    const attack = t < attackT ? t / attackT : 1;
+    const cut = t < len - 1e-6 ? 1 : Math.min(1, Math.max(0, (len + release - t) / release));
     const body = decay > 0 ? Math.exp(-t / decay) : 1 - Math.min(0.08, t * 0.05);
     out[at + i] = out[at + i]! + y * attack * cut * body;
     if (t >= bodyFrom && t <= bodyTo) { sum += y * y; count++; }
@@ -377,30 +466,50 @@ function sing(out: Float32Array, sr: number, s: ChopSlice, rand: () => number, a
   return Math.sqrt(sum / Math.max(1, count));
 }
 
+/** The slice's level against the woman's: the voice's own, and quieter in a man's falsetto. */
+function voiceLevel(s: ChopSlice): number {
+  const spec = s.vocal.spec;
+  const up = upperShare(spec, s.midi - 12 * Math.log2(s.vocal.speed));
+  return spec.level * (up > 0 ? 1 + (spec.highLevel - 1) * up : 1);
+}
+
 /**
  * Sing one slice, double-tracked: two takes a few cents apart, one to each side, the
  * second a few milliseconds late. Returns stereo at the chop's level for `s.vel`. A gate
  * cuts a held slice into steps of the beat; a reversed slice is its vowel sung and
  * echoed, dying away, then played backwards, so the slice swells into the next note.
+ * With `takes` of 1 (one voice of a group) it is a single take, in the middle: both
+ * channels are the same array, for a player to place.
  */
-export function singChop(sr: number, s: ChopSlice, seed: number): [Float32Array, Float32Array] {
+export function singChop(sr: number, s: ChopSlice, seed: number, takes: 1 | 2 = 2): [Float32Array, Float32Array] {
   const reverse = s.gesture === CHOP_REVERSE;
   const len = Math.max(0.03, s.dur);
   const tail = reverse ? 0 : s.gesture === CHOP_FALL ? 0.06 : 0.04;
-  const late = Math.round(0.006 * sr);
+  const late = takes === 2 ? Math.round(0.006 * sr) : 0;
   const size = Math.ceil((len + tail) * sr) + late;
-  const takes = [new Float32Array(size), new Float32Array(size)];
-  const rms = [
-    sing(takes[0]!, sr, s, mulberry(hash(seed, 1)), 0, -6 + (s.take - 0.5) * 8, reverse, reverse ? len * 0.4 : 0),
-    sing(takes[1]!, sr, s, mulberry(hash(seed, 2)), late, 6 + (s.take - 0.5) * 8, reverse, reverse ? len * 0.4 : 0),
-  ];
-  const gain = (CHOP_RMS * Math.max(0, Math.min(1.4, s.vel))) / Math.max(1e-6, (rms[0]! + rms[1]!) / 2);
-  const L = new Float32Array(size), R = new Float32Array(size);
-  const near = 0.84, far = 0.36;   // each take panned half way to its side
-  for (let i = 0; i < size; i++) {
-    const a = takes[0]![i]! * gain, b = takes[1]![i]! * gain;
-    L[i] = a * near + b * far;
-    R[i] = b * near + a * far;
+  const decay = reverse ? len * 0.4 : 0;
+  const level = CHOP_RMS * Math.max(0, Math.min(1.4, s.vel)) * voiceLevel(s);
+  let channels: Float32Array[];
+  if (takes === 1) {
+    const one = new Float32Array(size);
+    const gain = level / Math.max(1e-6, sing(one, sr, s, mulberry(hash(seed, 1)), 0, (s.take - 0.5) * 8, reverse, decay));
+    for (let i = 0; i < size; i++) one[i] = one[i]! * gain;
+    channels = [one];
+  } else {
+    const sung = [new Float32Array(size), new Float32Array(size)];
+    const rms = [
+      sing(sung[0]!, sr, s, mulberry(hash(seed, 1)), 0, -6 + (s.take - 0.5) * 8, reverse, decay),
+      sing(sung[1]!, sr, s, mulberry(hash(seed, 2)), late, 6 + (s.take - 0.5) * 8, reverse, decay),
+    ];
+    const gain = level / Math.max(1e-6, (rms[0]! + rms[1]!) / 2);
+    const L = new Float32Array(size), R = new Float32Array(size);
+    const near = 0.84, far = 0.36;   // each take panned half way to its side
+    for (let i = 0; i < size; i++) {
+      const a = sung[0]![i]! * gain, b = sung[1]![i]! * gain;
+      L[i] = a * near + b * far;
+      R[i] = b * near + a * far;
+    }
+    channels = [L, R];
   }
   if (s.gesture === CHOP_GATE && s.amount > 0 && s.beat > 0) {
     // Gated: open for the first two thirds of each step, a few milliseconds' edges.
@@ -408,13 +517,14 @@ export function singChop(sr: number, s: ChopSlice, seed: number): [Float32Array,
     for (let i = 0; i < size; i++) {
       const t = i / sr, inStep = t % stepLen;
       const g = Math.min(1, inStep / edge, Math.max(0, (stepLen * 0.66 - inStep) / edge));
-      L[i] = L[i]! * g;
-      R[i] = R[i]! * g;
+      for (const ch of channels) ch[i] = ch[i]! * g;
     }
   }
   if (reverse) {
     // The echo it dies into, a little different on each side, then all of it backwards.
-    for (const [ch, taps] of [[L, [0.031, 0.067, 0.113]], [R, [0.043, 0.079, 0.127]]] as const) {
+    const echoes: ReadonlyArray<readonly number[]> = [[0.031, 0.067, 0.113], [0.043, 0.079, 0.127]];
+    for (const [c, ch] of channels.entries()) {
+      const taps = echoes[c]!;
       const dry = Float32Array.from(ch);
       for (const [k, d] of taps.entries()) {
         const off = Math.round(d * sr), g = 0.5 * 0.7 ** k;
@@ -426,23 +536,28 @@ export function singChop(sr: number, s: ChopSlice, seed: number): [Float32Array,
       ch.reverse();
     }
   }
-  return [L, R];
+  return [channels[0]!, channels[channels.length - 1]!];
 }
 
 // ── played ──────────────────────────────────────────────────────────────────
 
-/** The slices sung so far, per context. */
-const SLICES = new WeakMap<BaseAudioContext, Map<string, AudioBuffer>>();
+/** The slices sung so far, per context, and how many samples they hold. */
+const SLICES = new WeakMap<BaseAudioContext, { buffers: Map<string, AudioBuffer>; samples: number }>();
+/** The most samples kept per context (about 48 MB) before the slices are sung afresh. */
+const SLICE_BUDGET = 12e6;
 
 /**
  * A vocal chop at `t`: `mod` is the chopper's (see chopMod); a note it never saw (the chop
  * doubling another lead) sings the slice its pitch maps to, plainly. `beat` is the tune's
  * beat (s), `seed` the tune's, which draws the vocal, and `take` tells this note from the
- * tune's others, so each is sung a little differently.
+ * tune's others, so each is sung a little differently. `singer` is who sings it
+ * (engine/src/lofi-chop-cast.ts), its octave already in `midi`; without one, the chop voice
+ * as it was before the voices were measured.
  */
-export function chop(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number, beat: number, seed: number, take: number): void {
+export function chop(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod: number, beat: number, seed: number, take: number, singer?: ChopSinger): void {
   const { ctx } = k;
-  const vocal = chopVocal(seed);
+  const vocal = singer ? chopVocal(seed, undefined, singer.voice, singer.speed) : chopVocal(seed);
+  const takes = singer?.takes ?? 2;
   const how = readChop(mod) ?? { syllable: vocal.slices[vocal.byPitch[pitchClass(midi)]!]!, gesture: CHOP_PLAIN, amount: 0, only: false };
   // Takes come in four kinds, and every note's length and strength are rounded, so repeats share a slice.
   const variant = hash(seed, take) % 4;
@@ -451,16 +566,18 @@ export function chop(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: 
     gesture: how.gesture, amount: how.amount, beat, vocal, take: (variant + 0.5) / 4,
   };
   let cache = SLICES.get(ctx);
-  if (!cache) { cache = new Map(); SLICES.set(ctx, cache); }
-  const key = `${seed}|${slice.syllable}|${slice.midi}|${slice.dur}|${slice.vel}|${slice.gesture}|${slice.amount}|${variant}|${slice.gesture === CHOP_GATE ? beat.toFixed(3) : ''}`;
-  let buf = cache.get(key);
+  if (!cache) { cache = { buffers: new Map(), samples: 0 }; SLICES.set(ctx, cache); }
+  const who = singer ? `${singer.voice}:${singer.speed.toFixed(3)}:${takes}` : '';
+  const key = `${who}|${seed}|${slice.syllable}|${slice.midi}|${slice.dur}|${slice.vel}|${slice.gesture}|${slice.amount}|${variant}|${slice.gesture === CHOP_GATE ? beat.toFixed(3) : ''}`;
+  let buf = cache.buffers.get(key);
   if (!buf) {
-    if (cache.size > 400) cache.clear();
-    const [left, right] = singChop(ctx.sampleRate, slice, hash(seed, slice.syllable, slice.midi, variant, slice.gesture));
-    buf = ctx.createBuffer(2, left.length, ctx.sampleRate);
+    if (cache.samples > SLICE_BUDGET) { cache.buffers.clear(); cache.samples = 0; }
+    const [left, right] = singChop(ctx.sampleRate, slice, hash(seed, slice.syllable, slice.midi, variant, slice.gesture), takes);
+    buf = ctx.createBuffer(takes, left.length, ctx.sampleRate);
     buf.getChannelData(0).set(left);
-    buf.getChannelData(1).set(right);
-    cache.set(key, buf);
+    if (takes === 2) buf.getChannelData(1).set(right);
+    cache.buffers.set(key, buf);
+    cache.samples += left.length * takes;
   }
   const src = ctx.createBufferSource();
   src.buffer = buf;
