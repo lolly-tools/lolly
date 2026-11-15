@@ -11,6 +11,14 @@
  * back. A card picks its genre. Whether shuffle may change the genre is the lock beside
  * the genre button (genre-hero.ts), so the picker only picks.
  *
+ * The person's own genres lead: a Favourites row of the genres they starred sits above
+ * Recent, and a genre they hid is left out of the rows, the groups and the search (the
+ * genre playing now always shows). Manage, in the header, turns the cards into a list of
+ * every genre with a star and a hide toggle (genre-manage.ts), each change saved on the
+ * profile with Undo in the toast. The cards and the list come in with the app's quick
+ * entrance cascade (instrument-popup.ts cascade), not under reduced motion or the
+ * performance setting.
+ *
  * The cards are one stop for Tab: the arrow keys move through them (up and down by the
  * row as the cards are laid out, across the groups), Home and End go to the first and
  * last card, and Enter or Space picks. In the search field, Down goes to the first card
@@ -26,6 +34,9 @@ import { icon } from '../../lib/icons.ts';
 import { mountModal } from '../../components/modal.ts';
 import { GENRE_GROUPS, genreIconSvg, genreTitle, type GenreCategory } from '../../lib/genre-icons.ts';
 import { paintGenreTiles } from './genre-colours.ts';
+import { genreManageList, type GenreManageList } from './genre-manage.ts';
+import { cascade, motionOn } from './instrument-popup.ts';
+import type { GenrePrefKind, GenrePrefs } from '../../lib/music-prefs.ts';
 import type { LofiMood } from '../../../../../engine/src/lofi-compose.ts';
 import '../../styles/parts/music-browser.css';
 
@@ -36,7 +47,12 @@ export interface GenrePickerHost {
   pick(mood: LofiMood): void;
   /** The genres played lately, newest first (lib/music-prefs.ts loadRecentGenres). */
   recent?(): readonly string[];
+  /** The person's favourite and hidden genres (lib/music-prefs.ts loadGenrePrefs). */
+  genrePrefs?(): GenrePrefs;
+  /** Star or hide a genre, or undo either; the view saves it on the profile. Without it there is no Manage. */
+  setGenrePref?(genre: string, kind: GenrePrefKind, on: boolean): void;
 }
+
 
 /** The picker opens as a centred panel from this width, as a sheet below it (the view's breakpoint). */
 const WIDE = '(min-width: 761px)';
@@ -108,7 +124,13 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
           <span class="msg-name">${escapeHtml(genreTitle(m))}</span>
         </button>`;
   const known = new Set<string>(GENRE_GROUPS.flatMap(g => g.moods));
-  const recent = (h.recent?.() ?? []).filter((m): m is LofiMood => known.has(m)).slice(0, 6);
+  const prefsNow = (): GenrePrefs => h.genrePrefs?.() ?? { favourites: new Set(), hidden: new Set() };
+  const recent = (h.recent?.() ?? []).filter((m): m is LofiMood => known.has(m) && (m === now || !prefsNow().hidden.has(m))).slice(0, 6);
+  const favouritesRow = `
+    <section class="msg-group" data-favourites aria-labelledby="msg-g-${n}-fav" hidden>
+      <h3 class="msb-family-title" id="msg-g-${n}-fav">${escapeHtml(t('Favourites'))}</h3>
+      <div class="msg-grid" data-favourites-grid></div>
+    </section>`;
   const recentRow = recent.length ? `
     <section class="msg-group" data-recent aria-labelledby="msg-g-${n}-recent">
       <h3 class="msb-family-title" id="msg-g-${n}-recent">${escapeHtml(t('Recent'))}</h3>
@@ -124,11 +146,12 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
       <span class="msb-grip" aria-hidden="true"></span>
       <div class="msb-title-row">
         <h2 class="msb-title" id="${titleId}">${escapeHtml(t('Genre'))}</h2>
+        ${h.setGenrePref ? `<button type="button" class="msb-chip msg-manage-btn" data-manage-toggle aria-pressed="false" title="${escapeHtml(t('Star favourite genres and hide the ones you never want'))}">${escapeHtml(t('Manage'))}</button>` : ''}
         <button type="button" class="btn btn--ghost btn--sm msb-close" data-close aria-label="${escapeHtml(t('Close'))}" title="${escapeHtml(t('Close'))}">${icon('close', { size: 18 })}</button>
       </div>
       <input type="search" class="field-input msg-search" data-genre-search placeholder="${escapeHtml(t('Search genres'))}" aria-label="${escapeHtml(t('Search genres'))}" autocomplete="off" spellcheck="false">
     </div>
-    <div class="msb-body msg-body" role="group" aria-labelledby="${titleId}">${recentRow}${groups}
+    <div class="msb-body msg-body" role="group" aria-labelledby="${titleId}">${favouritesRow}${recentRow}${groups}
       <section class="msg-group" data-results aria-label="${escapeHtml(t('Matching genres'))}" hidden>
         <div class="msg-grid" data-results-grid></div>
         <p class="msb-now msg-none" data-results-none hidden>${escapeHtml(t('No genre matches that search.'))}</p>
@@ -139,8 +162,11 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
   const modal = mountModal<'picked' | 'escape' | 'button'>(content, {
     className: `msb msg ${wide ? 'msb--dialog' : 'msb--sheet'}`,
     cancelValue: 'escape',
-    // Escape clears a search before it closes the picker.
-    onEscape: () => { const field = search(); if (field?.value) { field.value = ''; filter(); field.focus(); } else modal.close('escape'); },
+    // Escape clears a search, then leaves Manage, then closes the picker.
+    onEscape: () => {
+      const field = search();
+      if (field?.value) { field.value = ''; filter(); field.focus(); } else if (managing) setManaging(false); else modal.close('escape');
+    },
     onClose: (how) => {
       // Back to the genre button, however the person left (a route change takes focus elsewhere).
       if (how && opts.opener?.isConnected) opts.opener.focus({ preventScroll: true });
@@ -149,6 +175,11 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
   });
   const dlg = modal.el;
   dlg.setAttribute('aria-labelledby', titleId);
+  // The picker opens with the app's dialog motion (a sheet rises on a phone), unless motion is off.
+  if (motionOn()) {
+    dlg.classList.add('is-entering');
+    dlg.addEventListener('animationend', (e) => { if (e.target === dlg) dlg.classList.remove('is-entering'); });
+  }
   const body = dlg.querySelector<HTMLElement>('.msg-body');
   const field = search();
   const results = dlg.querySelector<HTMLElement>('[data-results]');
@@ -157,7 +188,24 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
   /** The groups' cards, each with its home grid, in the order the groups list them. */
   const homes = [...dlg.querySelectorAll<HTMLElement>('[data-group] [data-genre-card]')].map(c => ({ card: c, grid: c.parentElement! }));
   /** The cards on show, in the order they are laid out. */
-  const shown = (): HTMLElement[] => [...dlg.querySelectorAll<HTMLElement>('[data-genre-card]')].filter(c => !c.closest('[hidden]'));
+  const shown = (): HTMLElement[] => [...dlg.querySelectorAll<HTMLElement>('[data-genre-card]')].filter(c => !c.hidden && !c.closest('[hidden]'));
+  /** Whether a genre is left out: hidden by the person, unless it is the one playing now. */
+  const isOut = (mood: string | undefined): boolean => !!mood && mood !== now && prefsNow().hidden.has(mood);
+  const favourites = dlg.querySelector<HTMLElement>('[data-favourites]');
+  const favouritesGrid = dlg.querySelector<HTMLElement>('[data-favourites-grid]');
+  /** Show the person's genres as they are now: the Favourites row (copies of the group cards,
+   *  in the order starred), and every hidden genre left out of the rows and the groups. */
+  function applyPrefs(): void {
+    const prefs = prefsNow();
+    const byMood = new Map(homes.map(x => [x.card.dataset.genreCard, x.card] as const));
+    const starred = [...prefs.favourites].map(m => byMood.get(m)).filter((c): c is HTMLElement => !!c);
+    favouritesGrid?.replaceChildren(...starred.map(c => { const copy = c.cloneNode(true) as HTMLElement; copy.hidden = false; return copy; }));
+    if (favourites) favourites.hidden = !starred.length || managing || searching();
+    for (const c of dlg.querySelectorAll<HTMLElement>('[data-recent] [data-genre-card], [data-group] [data-genre-card]')) c.hidden = isOut(c.dataset.genreCard);
+    for (const g of dlg.querySelectorAll<HTMLElement>('[data-group]')) g.classList.toggle('is-empty', ![...g.querySelectorAll<HTMLElement>('[data-genre-card]')].some(c => !c.hidden));
+    settleTabStop();
+  }
+  const searching = (): boolean => foldTitle(field?.value ?? '').trim() !== '';
   /** One card is the Tab stop: the genre playing now where it shows, else the first card. */
   const settleTabStop = (): HTMLElement | undefined => {
     const cards = shown();
@@ -170,11 +218,13 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
   /** Show the cards that match the search in one grid, A to Z, or the groups again when the search is empty. */
   function filter(): void {
     const query = field?.value ?? '';
-    const searching = foldTitle(query).trim() !== '';
-    for (const section of dlg.querySelectorAll<HTMLElement>('[data-recent], [data-group]')) section.hidden = searching;
-    if (results) results.hidden = !searching;
-    if (searching) {
-      const hits = homes.map(x => x.card).filter(c => matchesGenre(nameOf(c), query))
+    if (managing) { manage?.filter(query); return; }
+    const looking = searching();
+    for (const section of dlg.querySelectorAll<HTMLElement>('[data-recent], [data-group]')) section.hidden = looking;
+    if (favourites) favourites.hidden = looking || !favouritesGrid?.children.length;
+    if (results) results.hidden = !looking;
+    if (looking) {
+      const hits = homes.map(x => x.card).filter(c => !isOut(c.dataset.genreCard) && matchesGenre(nameOf(c), query))
         .sort((a, b) => nameOf(a).localeCompare(nameOf(b), 'en', { sensitivity: 'base' }));
       resultsGrid?.replaceChildren(...hits);
       if (none) none.hidden = hits.length > 0;
@@ -182,6 +232,32 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
       for (const { card: c, grid } of homes) grid.append(c);
     }
     settleTabStop();
+  }
+
+  // ── Manage: every genre with a star and a hide toggle (genre-manage.ts) ─────
+  let managing = false;
+  let manage: GenreManageList | null = null;
+  const manageBtn = dlg.querySelector<HTMLElement>('[data-manage-toggle]');
+  function setManaging(on: boolean): void {
+    if (!h.setGenrePref || managing === on) return;
+    managing = on;
+    manageBtn?.setAttribute('aria-pressed', String(on));
+    if (on && !manage && body) {
+      manage = genreManageList(document, {
+        prefs: prefsNow,
+        setPref: (genre, kind, value) => h.setGenrePref?.(genre, kind, value),
+        changed: applyPrefs,
+        titles,
+        matches: matchesGenre,
+      });
+      body.append(manage.el);
+    }
+    if (manage) manage.el.hidden = !on;
+    for (const section of dlg.querySelectorAll<HTMLElement>('[data-recent], [data-group], [data-results]')) section.hidden = on || (section.matches('[data-results]') ? !searching() : searching());
+    applyPrefs();
+    filter();
+    if (on && manage) cascade(manage.rows().slice(0, 40));
+    else if (!on) cascade(shown().slice(0, 40));
   }
   field?.addEventListener('input', filter);
   field?.addEventListener('keydown', (e) => {
@@ -194,6 +270,7 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
     const btn = e.target instanceof Element ? e.target.closest<HTMLElement>('button') : null;
     if (!btn || !dlg.contains(btn)) return;
     if (btn.matches('[data-close]')) { modal.close('button'); return; }
+    if (btn.matches('[data-manage-toggle]')) { setManaging(!managing); return; }
     const mood = btn.matches('[data-genre-card]') ? btn.dataset.genreCard : undefined;
     const pick = GENRE_GROUPS.flatMap(g => g.moods).find(m => m === mood);
     if (!pick) return;
@@ -213,8 +290,11 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
     to.focus();
   });
 
+  applyPrefs();
   const cards = [...dlg.querySelectorAll<HTMLElement>('[data-genre-card]')];
+  // The Favourites row's copies are painted with the rest, and later copies take the paint with them.
   if (opts.host) void paintGenreTiles(cards, opts.host).catch(() => { /* the cards stay plain */ });
+  cascade(shown().slice(0, 40));
   // Open on the genre playing now: its card is the Tab stop, scrolled to about the middle
   // when it is below the fold with the top of the list starting on a whole row. A wide
   // screen focuses the search; a phone focuses the card, so its keyboard stays down.

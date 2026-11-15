@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The music generator's instrument browser (#/music): one for each pitched track (the
- * Melody, the Chords and the Bass) and one for the drums' kits. It opens from a track's head
- * or row, or from a section in a lane: a sheet from the bottom on a phone, and a panel at
- * the side on a wider screen, where the timeline stays usable beside the panel.
+ * Melody, the Chords and the Bass) and one for the drums' kits. It opens from what the
+ * person clicked, and shows where. On a wide screen it is a popup beside that origin (a lane
+ * head, or a section in a lane), growing out of the click and shrinking back into it
+ * when it closes (instrument-popup.ts); it stays out of the way, so the timeline is
+ * usable beside the popup and a click on another section moves the popup there. On a phone it
+ * is a sheet that rises from the bottom. Its heading gives the origin ("Chords ·
+ * Chorus", or "Chords · every section" from the lane head) with what plays there now
+ * under it ("Auto · Banjo", or the instrument chosen), and the view lights up the lane
+ * or the kind of section behind the popup while the popup is open. The cards come in with the app's
+ * quick entrance cascade.
  *
  * Instruments are cards grouped by family, a card with a line under its name where the name
  * alone says too little (lib/lofi-names.ts LOFI_INSTRUMENT_LINE). A card plays two bars of this tune's part, in
@@ -14,12 +21,14 @@
  * The first card leaves the part to the composer, and reads "Auto" with the instrument
  * the composer plays in that section ("Auto · Banjo"; track-names.ts).
  * The star makes an instrument a favourite and the block button keeps it out of shuffles
- * and new tunes (lib/music-prefs.ts); the view keeps both on the person's profile.
+ * and new tunes (lib/music-prefs.ts); the view keeps both on the person's profile, and
+ * "Your instruments" in the heading lists every star and block for every part, each with
+ * one button to take it away (your-instruments.ts).
  *
  * Escape and the close button close the browser and put focus back on the control that
- * opened the browser. Built on mountModal (components/modal.ts): modal on a phone, in the page
- * beside the timeline on a wider screen. The markup is written once when it opens; after
- * that only attributes and text change.
+ * opened the browser. Built on mountModal (components/modal.ts): modal on a phone, in the
+ * page on a wider screen. The markup is written once when it opens; after that only
+ * attributes and text change, and Your instruments is built with DOM calls.
  */
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
@@ -30,7 +39,9 @@ import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME, LOFI_SNARE_NAME, LOFI_H
 import { LOFI_KITS, LOFI_KIT_NAME } from '../../lib/lofi-drums.ts';
 import { LofiStation, type LofiMix } from '../../lib/lofi-station.ts';
 import { composeTrack, trackSettings, type MusicState } from '../../lib/music-state.ts';
-import { autoLabel, sentenceCase, styleKitName } from './track-names.ts';
+import { autoLabel, sentenceCase, styleKitName, trackName } from './track-names.ts';
+import { cascade, motionOn, placePopup, playOut, type PopupOrigin } from './instrument-popup.ts';
+import { yourInstruments, type YourInstruments } from './your-instruments.ts';
 import { LOFI_SNARES, LOFI_HATS, LOFI_DRUM_VOICES, type LofiBar } from '../../../../../engine/src/lofi-compose.ts';
 import {
   INSTRUMENT_FAMILIES, familyOf, instrumentsOf, isBlocked, isFavourite, setPartInstrument,
@@ -62,16 +73,23 @@ export interface BrowserHost {
   /** Stop the track if it plays, so a preview is heard alone. */
   stopPlayback(): void;
   trackColour(track: BrowseTrack): string;
+  /** The browser's origin changed (another kind of section, or every section), so the view lights up the lane behind it again. */
+  focusChanged?(): void;
 }
 
 export interface InstrumentBrowser {
   readonly track: BrowseTrack;
   /** Show and preview another kind of section. */
   setSection(section: string): void;
+  /** Point the browser at a new origin: a kind of section, or every section, and the place clicked. */
+  retarget(to: { section?: string; wholeTrack: boolean; origin?: PopupOrigin }): void;
+  /** What the browser is about, for the view to light up behind it: the track, and its kind of section (null: every section). */
+  focus(): { track: BrowseTrack; section: string | null };
   /** Paint again after the track or the preferences changed. */
   refresh(): void;
   stopPreview(): void;
-  close(): void;
+  /** Close with the leaving motion, or at once (`immediate`, the view going away). */
+  close(immediate?: boolean): void;
 }
 
 /** How long a preview plays, in bars. */
@@ -146,13 +164,25 @@ export function previewMix(mix: LofiMix, track: BrowseTrack): LofiMix {
   return m;
 }
 
-export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: { section?: string; opener?: HTMLElement | null; onClose?: () => void } = {}): InstrumentBrowser {
+export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: {
+  section?: string;
+  /** Opened for every section (a lane head) or for the section given (a section in a lane). Default: every section. */
+  wholeTrack?: boolean;
+  /** Where the person clicked, so the popup opens beside that place and grows out of the point. */
+  origin?: PopupOrigin;
+  opener?: HTMLElement | null;
+  onClose?: () => void;
+} = {}): InstrumentBrowser {
   const n = ++opened;
   const part: MusicPart | null = track === 'drums' ? null : track;
   const ids: readonly string[] = part ? instrumentsOf(part) : LOFI_KITS;
   const wide = window.matchMedia(WIDE).matches;
   let sections = sectionsFor(h.bars(), track);
   let section = opts.section && sections.includes(opts.section) ? opts.section : sections[0] ?? '';
+  /** For every section (opened from a lane head) or for the kind of section above (from a section in a lane). */
+  let wholeTrack = opts.wholeTrack !== false || !section;
+  let origin = opts.origin;
+  let yours: YourInstruments | null = null;
   /** The card chosen for Use: an instrument, or '' for the composer's own. Null before one is. */
   let selected: string | null = null;
   let preview: { station: LofiStation; timer: ReturnType<typeof setTimeout>; id: string } | null = null;
@@ -187,12 +217,13 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
     <div class="msb-head">
       <span class="msb-grip" aria-hidden="true"></span>
       <div class="msb-title-row">
+        <button type="button" class="btn btn--ghost btn--sm msb-back" data-yours-back hidden aria-label="${escapeHtml(t('Back to the instruments'))}" title="${escapeHtml(t('Back to the instruments'))}">${icon('chevronLeft', { size: 18 })}</button>
         <span class="msb-swatch" aria-hidden="true"></span>
-        <h2 class="msb-title" id="${titleId}">${escapeHtml(TRACK_TITLE()[track])}</h2>
-        ${track === 'drums' ? `<button type="button" class="msb-chip msb-drums-on" data-drums-on aria-pressed="false">${escapeHtml(t('Drums on'))}</button>` : ''}
+        <h2 class="msb-title" id="${titleId}" data-origin-title>${escapeHtml(TRACK_TITLE()[track])}</h2>
+        ${track === 'drums' ? `<button type="button" class="msb-chip msb-drums-on" data-drums-on aria-pressed="false">${escapeHtml(t('Drums on'))}</button>` : `<button type="button" class="msb-chip" data-yours title="${escapeHtml(t('Every instrument you starred or blocked, for every part'))}">${escapeHtml(t('Your instruments'))}</button>`}
         <button type="button" class="btn btn--ghost btn--sm msb-close" data-close aria-label="${escapeHtml(t('Close'))}" title="${escapeHtml(t('Close'))}">${icon('close', { size: 18 })}</button>
       </div>
-      <p class="msb-now" data-now></p>
+      <p class="msb-now msb-origin-now" data-now></p>
       <p id="msb-how-${n}" hidden>${escapeHtml(track === 'drums' ? t('Plays two bars of this tune’s drums on this kit.') : t('Plays two bars of this tune’s part on this instrument, in the section chosen above.'))}</p>
       <div class="msb-sections" role="group" aria-label="${escapeHtml(t('Hear it in'))}" data-sections></div>
     </div>
@@ -209,16 +240,27 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
     <div class="msb-foot">
       <p class="msb-pick" data-pick-line role="status"></p>
       <div class="msb-actions">
-        ${track === 'drums' ? '' : `<button type="button" class="btn btn--sm" data-use="here" disabled>${escapeHtml(t('Use here'))}</button>`}
+        ${track === 'drums' ? '' : `<button type="button" class="btn btn--sm" data-use="here" disabled><span data-use-here-label>${escapeHtml(t('Use here'))}</span></button>`}
         <button type="button" class="btn btn--primary btn--sm" data-use="everywhere" disabled>${escapeHtml(track === 'drums' ? t('Use this kit') : t('Use everywhere'))}</button>
       </div>
     </div>`;
 
   let closedBy: 'escape' | 'button' | undefined;
+  let leaving = false;
+  /** Close with the leaving motion (the popup shrinking back into its origin, the sheet
+   *  dropping away), then for good. Under reduced motion it closes at once. */
+  function leave(how?: 'escape' | 'button'): void {
+    if (leaving) return;
+    leaving = true;
+    stopPreview();
+    void playOut(dlg, 'is-leaving', 500).then(() => modal.close(how));
+  }
   const modal: ModalHandle<'escape' | 'button'> = mountModal<'escape' | 'button'>(content, {
-    className: `msb ${wide ? 'msb--panel' : 'msb--sheet'}`,
+    className: `msb ${wide ? 'msb--pop' : 'msb--sheet'}${motionOn() ? ' is-entering' : ''}`,
     modal: !wide,
     cancelValue: 'escape',
+    onEscape: () => leave('escape'),
+    dismissOnBackdrop: false,
     onClose: (how) => {
       closedBy = how;
       stopPreview();
@@ -231,6 +273,23 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
   const dlg = modal.el;
   dlg.setAttribute('aria-labelledby', titleId);
   dlg.style.setProperty('--msb-track', h.trackColour(track));
+  // A tap on the sheet's dimmed page closes it, with the same motion as Escape.
+  dlg.addEventListener('click', (e) => {
+    if (e.target !== dlg) return;
+    const r = dlg.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) leave('escape');
+  });
+  dlg.addEventListener('animationend', (e) => { if (e.target === dlg) dlg.classList.remove('is-entering'); });
+  /** On a wide screen, sit beside the origin and grow from the point clicked. */
+  function place(): void {
+    if (!wide || !origin) return;
+    // The laid-out size, not the drawn one: the opening motion scales the popup down at first.
+    const at = placePopup(origin, { width: dlg.offsetWidth, height: dlg.offsetHeight }, { width: window.innerWidth, height: window.innerHeight });
+    dlg.style.left = `${at.left}px`;
+    dlg.style.top = `${at.top}px`;
+    dlg.style.setProperty('--msb-origin', `${at.originX}px ${at.originY}px`);
+    dlg.dataset.side = at.side;
+  }
   const q = <T extends Element>(sel: string): T | null => dlg.querySelector<T>(sel);
   // The instruments' own icons, as nodes (the lane heads draw the same ones).
   for (const li of dlg.querySelectorAll<HTMLElement>('.msb-card[data-card]')) {
@@ -244,16 +303,39 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
   function paintSections(): void {
     const box = q<HTMLElement>('[data-sections]');
     if (!box) return;
-    box.replaceChildren(...sections.map(sec => {
+    const chip = (sec: string, label: string, on: boolean): HTMLButtonElement => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'msb-chip';
       b.dataset.section = sec;
-      b.textContent = sectionName(sec);
-      b.setAttribute('aria-pressed', String(sec === section));
+      b.textContent = label;
+      b.setAttribute('aria-pressed', String(on));
       return b;
-    }));
-    box.hidden = sections.length < 2;
+    };
+    // Every section first: the whole track, as from a lane head. A kind of section then
+    // chooses where a card is heard, and what Use in every one of them changes.
+    box.replaceChildren(
+      ...(part ? [chip('', t('Every section'), wholeTrack)] : []),
+      ...sections.map(sec => chip(sec, sectionName(sec), !wholeTrack && sec === section)),
+    );
+    box.hidden = sections.length < (part ? 1 : 2);
+  }
+  /** The heading: the track and where the choice applies ("Chords · Chorus", "Chords · every section"). */
+  const originTitle = (): string => tRaw('{track} · {where}', { track: trackName(track), where: wholeTrack || !section ? t('every section') : sectionName(section) });
+  /** What plays at the origin now, under the heading: Auto and the composer's instrument, or the one chosen and where. */
+  function originNow(): string {
+    const s = h.state;
+    if (!part) return tRaw('Kit: {kit}', { kit: s.kit ? instrumentName('drums', s.kit) : autoLabel(styleKitName(s.mood)) });
+    if (!section) return t('This part has no notes in the track.');
+    // Every name as a card shows it: "Auto · Fiddle, Harmonica".
+    const names = (ids: readonly string[]): string => ids.slice(0, 2).map(id => instrumentName(part, id)).join(', ');
+    if (!wholeTrack && s.sections[section]?.[part]) return tRaw('{name}, chosen for every {section}', { name: instrumentName(part, s.sections[section]![part]!), section: sectionName(section) });
+    if (s[part]) return tRaw('{name}, chosen for the whole track', { name: instrumentName(part, s[part]!) });
+    if (wholeTrack) {
+      const heard = [...new Set(sections.flatMap(sec => heardIn(h.bars(), part, sec)))];
+      return Object.values(s.sections).some(v => !!v?.[part]) ? names(heard) : autoLabel(names(heard));
+    }
+    return autoLabel(names(composersOwn(part)));
   }
   /** What a card says about itself (chosen, playing here, blocked), and whether it plays here now. */
   function cardState(id: string): { text: string; current: boolean } {
@@ -308,19 +390,24 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
       }
     }
     const now = q<HTMLElement>('[data-now]');
-    if (now) {
-      if (!part) now.textContent = tRaw('Kit: {kit}', { kit: s.kit ? instrumentName('drums', s.kit) : autoLabel(styleKitName(s.mood)) });
-      else if (!section) now.textContent = t('This part has no notes in the track.');
-      else now.textContent = `${sectionName(section)}: ${heardIn(h.bars(), part, section).map(id => instrumentName(part, id)).join(', ')}`;
-    }
+    if (now && !yoursOpen()) now.textContent = originNow();
+    const title = q<HTMLElement>('[data-origin-title]');
+    if (title && !yoursOpen()) title.textContent = originTitle();
     q<HTMLElement>('[data-drums-on]')?.setAttribute('aria-pressed', String(s.drums));
     const here = q<HTMLButtonElement>('[data-use="here"]');
     const all = q<HTMLButtonElement>('[data-use="everywhere"]');
+    // The button for the origin leads: Use everywhere from a lane head, Use in every Chorus from a chorus.
     if (here) {
+      here.hidden = wholeTrack || !section;
       here.disabled = selected === null || !section;
-      here.setAttribute('aria-label', section ? tRaw('Use here: every {section}', { section: sectionName(section) }) : t('Use here'));
+      here.classList.toggle('btn--primary', !wholeTrack);
+      const label = here.querySelector<HTMLElement>('[data-use-here-label]');
+      if (label) label.textContent = section ? tRaw('Use in every {section}', { section: sectionName(section) }) : t('Use here');
     }
-    if (all) all.disabled = selected === null;
+    if (all) {
+      all.disabled = selected === null;
+      all.classList.toggle('btn--primary', wholeTrack || !part);
+    }
     if (!part) paintDrumParts();
   }
   function paintDrumParts(): void {
@@ -370,8 +457,10 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
     const target = e.target instanceof Element ? e.target : null;
     const btn = target?.closest<HTMLElement>('button');
     if (!btn || !dlg.contains(btn)) return;
-    if (btn.matches('[data-close]')) { modal.close('button'); return; }
-    if (btn.dataset.section !== undefined) { setSection(btn.dataset.section); return; }
+    if (btn.matches('[data-close]')) { leave('button'); return; }
+    if (btn.matches('[data-yours]')) { showYours(true); return; }
+    if (btn.matches('[data-yours-back]')) { showYours(false); return; }
+    if (btn.dataset.section !== undefined) { if (btn.dataset.section) setSection(btn.dataset.section); else retarget({ wholeTrack: true }); return; }
     if (btn.matches('[data-drums-on]')) { h.setDrumsOn(!h.state.drums); paint(); return; }
     const preview_ = btn.dataset.preview;
     if (preview_ !== undefined) {
@@ -417,9 +506,58 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
   function setSection(sec: string): void {
     if (!sections.includes(sec)) return;
     section = sec;
+    wholeTrack = false;
     stopPreview();
     paintSections();
     paint();
+    h.focusChanged?.();
+  }
+  /** A new origin: a kind of section or every section, and the place clicked. The popup moves beside that place. */
+  function retarget(to: { section?: string; wholeTrack: boolean; origin?: PopupOrigin }): void {
+    if (to.section && sections.includes(to.section)) section = to.section;
+    wholeTrack = to.wholeTrack || !section;
+    if (to.origin) origin = to.origin;
+    if (yoursOpen()) showYours(false);
+    stopPreview();
+    paintSections();
+    paint();
+    if (to.origin) place();
+    h.focusChanged?.();
+  }
+
+  // ── Your instruments: every star and block, for every part ────────────────
+  const yoursOpen = (): boolean => !!yours && !yours.el.hidden;
+  function showYours(on: boolean): void {
+    if (!part) return;
+    const body = q<HTMLElement>('.msb-body');
+    if (on && !yours && body) {
+      yours = yourInstruments(document, {
+        prefs: h.prefs,
+        setPref: (p, id, kind, value) => { h.setPref(p, id, kind, value); },
+        name: (p, id) => instrumentName(p, id),
+        changed: () => paint(),
+      });
+      body.after(yours.el);
+    }
+    if (!yours || !body) return;
+    if (on) yours.paint();
+    stopPreview();
+    yours.el.hidden = !on;
+    body.hidden = on;
+    for (const el of dlg.querySelectorAll<HTMLElement>('.msb-foot, [data-sections], [data-yours], .msb-swatch')) el.hidden = on || (el.matches('[data-sections]') && sections.length < 1);
+    const back = q<HTMLElement>('[data-yours-back]');
+    if (back) back.hidden = !on;
+    const title = q<HTMLElement>('[data-origin-title]');
+    const now = q<HTMLElement>('[data-now]');
+    if (on) {
+      if (title) title.textContent = t('Your instruments');
+      if (now) now.textContent = t('Every instrument you starred or blocked, for every part.');
+      cascade(yours.rows().slice(0, 30));
+      back?.focus({ preventScroll: true });
+    } else {
+      paint();
+      q<HTMLElement>('[data-yours]')?.focus({ preventScroll: true });
+    }
   }
   function refresh(): void {
     sections = sectionsFor(h.bars(), track);
@@ -430,9 +568,12 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
 
   paintSections();
   paint();
+  place();
+  // The cards come in with the app's quick cascade, the first screenful of them.
+  cascade([...dlg.querySelectorAll('.msb-body .msb-card, .msb-body .msb-family-title')].slice(0, 28));
   // A phone's sheet opens at the top of the list, on the composer's card, every row of
-  // the first screen in full. The side panel, which has the height, opens on the
-  // instrument playing in this section, scrolled into view only when it is below the fold.
+  // the first screen in full. The popup, which has the height, opens on the instrument
+  // playing at its origin, scrolled into view only when it is below the fold.
   const body = q<HTMLElement>('.msb-body');
   const current = wide ? q<HTMLElement>('.msb-card.is-current:not([data-card=""])') : null;
   (current?.querySelector<HTMLElement>('.msb-main') ?? q<HTMLElement>('.msb-main'))?.focus({ preventScroll: true });
@@ -444,5 +585,9 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
   }
   if (track !== 'drums' && !sections.length) say(t('This part has no notes in the track.'));
 
-  return { track, setSection, refresh, stopPreview, close: () => modal.close() };
+  return {
+    track, setSection, retarget, refresh, stopPreview,
+    focus: () => ({ track, section: wholeTrack || !section ? null : section }),
+    close: (immediate) => { if (immediate) modal.close(); else leave(); },
+  };
 }
