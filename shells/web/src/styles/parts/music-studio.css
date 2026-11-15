@@ -462,6 +462,8 @@
   @starting-style {
     .ms-motion.has-audio:not(.viz-off) .ms-stage { height: 0; margin-block-end: calc(var(--ms-gap) * -1); opacity: 0; }
   }
+  @media (prefers-reduced-motion: reduce) { .ms-motion .ms-stage:not(.is-full) { transition: none; } }
+  html[data-a11y-motion="reduce"] .ms-motion .ms-stage:not(.is-full) { transition: none; }
   .ms-viz { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .ms-stage .ms-icon { background: transparent; box-shadow: none; color: var(--ui-color-text-muted); }
   /* The visualiser's own controls (views/music-studio/viz-stage.ts): settings, Expand and
@@ -620,6 +622,8 @@
   }
   .ms-motion .ms-seek-thumb { transition: transform var(--ui-motion-feedback) var(--ui-motion-standard); }
   .ms-seek.is-dragging .ms-seek-thumb { transform: scale(1.35); }
+  @media (prefers-reduced-motion: reduce) { .ms-motion .ms-seek-thumb { transition: none; } }
+  html[data-a11y-motion="reduce"] .ms-motion .ms-seek-thumb { transition: none; }
 
   /* The lane head (or the phone's row) whose instruments are open is marked in its track's
      colour, as the timeline lights up its lane or its kind of section behind the popup. */
