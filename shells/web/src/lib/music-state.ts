@@ -23,7 +23,7 @@ export const BPM_RANGE = [50, 220] as const;
 /** How far the key can be moved, in semitones each way. */
 export const TRANSPOSE_RANGE = 6;
 /** The voices that carry a pitch, which a change of key moves (the drums and sweeps stay). */
-export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser', 'didge', 'fm', 'pad']);
+export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser', 'didge', 'fm', 'pad', 'siren']);
 
 /**
  * The kinds of effect a person can turn on or off, and which family each effect voice is in.
@@ -38,7 +38,7 @@ export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', '
  */
 export const FX_FAMILIES = ['voices', 'console', 'sparkles', 'sweeps', 'birds', 'waves'] as const;
 export type FxFamily = typeof FX_FAMILIES[number];
-const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'birds', kookaburra: 'birds', game: 'console', coin: 'console', fm: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps', wave: 'waves' };
+const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'birds', kookaburra: 'birds', game: 'console', coin: 'console', fm: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps', wave: 'waves' , siren: 'sweeps' };
 /** Whether a style places its own birds: the Aussie birds' own (lib/aussie-birds.ts), and Noosacore, whose composer sings its magpie (engine/src/lofi-noosa.ts). */
 const ownBirds = (mood: LofiMood): boolean => OWN_BIRDS.has(mood) || mood === 'noosa';
 /** The families a style has to be given (`birds`, `waves`) rather than having its own to turn off. */

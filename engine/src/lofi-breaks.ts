@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The break engine: breakbeat's drums, and drum and bass's top loop. A breakbeat producer
+ * The note-written break engine: drum and bass's top loop (breakbeat's drums, which it used
+ * to write, are now a recorded break chopped by lofi-break-chop.ts). A breakbeat producer
  * samples a drummer's two bars, cuts them into slices and plays the slices back in a new
  * order: a beat swapped for another, a slice stuttered, the snare rolled and pitched up
  * into a phrase, the kick dropped out for a beat, the ghost notes never quite the same.

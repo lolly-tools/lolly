@@ -66,6 +66,9 @@ import * as BI from './lofi-bilma.ts';
 import { isBreakNote } from '../../../../engine/src/lofi-breaks.ts';
 import { readFuture } from '../../../../engine/src/lofi-future.ts';
 import * as FB from './lofi-future.ts';
+import { isSliceNote } from '../../../../engine/src/lofi-break-chop.ts';
+import * as BK from './lofi-break-kit.ts';
+import * as DUB from './lofi-dub.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -102,11 +105,11 @@ const MOOD_TONE: Record<LofiMood, number> = {
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 7000, arnhem: 9500, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
   persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500, botanica: 12500, oompa: 9000, noosa: 11000, mandopop: 9500, cpop: 11500,
-  breakbeat: 9500, funkyHouse: 10500, ukGarage: 10500, privateSchool: 8500,
+  breakbeat: 9500, funkyHouse: 10500, ukGarage: 10500, privateSchool: 8500, jungle: 15000,
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +2 dB), in every genre of the family. */
 const SINGS_LEAD = 1.3;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'arnhem', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa']);
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'arnhem', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa', 'jungle']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -130,9 +133,9 @@ const SECTION_ROOM: Partial<Record<string, number>> = { intro: 1.25, break: 1.35
  */
 const LAYERED_SAWS = new Set<LofiMood>(['sherbert']);
 /** The styles built on drops, whose builds sweep a high-pass up the music. */
-const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy', 'breakbeat', 'funkyHouse', 'ukGarage', 'cpop']);
+const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy', 'breakbeat', 'funkyHouse', 'ukGarage', 'cpop', 'jungle']);
 /** The styles that throw a phrase's last lead note into the echo, and those that keep a little echo on the lead throughout. */
-const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska', 'lofiHouse', 'yacht', 'botanica', 'ukGarage', 'privateSchool', 'noosa', 'mandopop', 'cpop']);
+const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska', 'lofiHouse', 'yacht', 'botanica', 'ukGarage', 'privateSchool', 'noosa', 'mandopop', 'cpop', 'jungle']);
 const ECHO_ALWAYS = new Set<LofiMood>(['synthwave', 'dream', 'reggae']);
 const ECHO_BED = 0.12;
 /** The drums' room send, at the middle of the arrangement; the room slider and the section scale the send. */
@@ -187,11 +190,12 @@ const LEAD_TRIM: Partial<Record<LiveLead, number>> = { angel: -0.2, balafon: 2.2
  * dont destroy the genre"; 2026-11-13, of lofi house: "the lead is quiet and the bass is
  * loud").
  */
-const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, arnhem: 3.0, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5, noosa: -6.5, breakbeat: -3, funkyHouse: -3, ukGarage: -2, privateSchool: -4 };
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, arnhem: 3.0, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5, noosa: -6.5, breakbeat: -3, funkyHouse: -3, ukGarage: -2, privateSchool: -4, jungle: -3 };
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. The club
  *  genres' are set so the mix under 150 Hz sits against the whole as their records' does (docs/generated-music.md):
- *  breakbeat's back, garage's a little up, private school's log drum kept soft. */
-const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5 };
+ *  breakbeat's back, garage's a little up, private school's log drum kept soft; jungle's sub sits about 3.5 LU
+ *  under its breaks (K-weighted), as eight jungle records' drops do. */
+const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5, jungle: -3 };
 /**
  * The didgeridoo's cameo in the bass genres (engine/src/lofi-straya.ts), against its own level:
  * measured K-weighted in its bar, it sits about 3 to 4 dB under the bass stack it plays over.
@@ -660,6 +664,8 @@ export class LofiStation {
     const until = this.ctx.currentTime + (hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
     this.fill(until);
     this.flush(until);
+    // A chopped break's recording, a step a tick, ahead of its first slice (lib/lofi-break-kit.ts).
+    BK.warm(this.ctx);
   }
 
   /** Queue whole bars until the next one starts after `until`. */
@@ -686,6 +692,7 @@ export class LofiStation {
         this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes, lead });
       }
       this.marks.push({ at, bar, pos: this.taken - 1 });
+      BK.prepare(this.ctx, bar.tune);
       this.nextBarAt = at + lofiBarBeats(bar.tune) * spb;
     }
   }
@@ -730,8 +737,18 @@ export class LofiStation {
     const bassV = bar.voices?.bass ?? st.bass;
     const snareV = bar.voices?.snare ?? st.snare;
     const hatsV = bar.voices?.hats ?? st.hats;
-    // A break's note (breakbeat's drums, drum and bass's top loop) plays on the break's kit
-    // through its filters (lib/lofi-breaks.ts); its kick still pumps the music.
+    // A slice of a chopped break plays its stretch of the tune's recording (lib/lofi-break-kit.ts);
+    // a kick slice pumps the music as a kick does.
+    if (isSliceNote(note)) {
+      BK.playSlice(k, lanes.drums, note, bar, t, vel);
+      if (note.voice === 'kick') {
+        this.duck(t, st.duck);
+        BS.duck(lanes.bass, Math.max(this.ctx.currentTime, t - 0.02), st.duck);
+      }
+      return;
+    }
+    // A break's note (drum and bass's top loop) plays on the break's kit through its filters
+    // (lib/lofi-breaks.ts); its kick still pumps the music.
     if (isBreakNote(note)) {
       BR.playBreak(k, lanes.drums, note, bar, t, vel);
       if (note.voice === 'kick') {
@@ -750,6 +767,8 @@ export class LofiStation {
       case 'keys': {
         // A future-bass chord's movement (engine/src/lofi-future.ts): its wub is swings a beat (the voice wants Hz).
         const m = note.mod ?? 0;
+        // Jungle's stabs are thrown into its dub echo and spring (lib/lofi-dub.ts).
+        if (DUB.dubbed(bar.tune.mood)) DUB.stab(k, lanes.keys, lanes.fx, bar, note.beat, t, len);
         // The chords given to the Didgeridoo or the Yidaki: a rhythm on its one note (music-state.ts shapeBar).
         if (keysV === 'didgeridoo' || keysV === 'yidaki') { this.didge.play(k, lanes.keys, t, note.midi, note.vel, len, m, bar.tune.seed, bar.level * VARIANT.keys[keysV], 'keys'); break; }
         if (keysV === 'surf') SF.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys.surf, len, m);
@@ -959,6 +978,7 @@ export class LofiStation {
         break;
       }
       case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'siren': DUB.siren(k, lanes.keys, lanes.fx, bar, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar':
         if (BS.stacked(bar.tune.mood)) BS.soar(k, lanes.bass, bar, t, note.midi, vel, len, note.mod === 1);
@@ -1038,6 +1058,7 @@ export class LofiStation {
     // In a drop the future-bass chords pump on every beat, as a producer's sidechain does,
     // whatever the half-time kick plays (lib/lofi-future.ts; nothing where no such chord plays).
     if (bar.section === 'drop') for (let b = 0; b < lofiBarBeats(bar.tune); b++) FB.pump(this.lanes.keys, at + b * spb, bar.tune.style.duck);
+    BK.markChop(this.kit, this.lanes.drums, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0, 4);
     for (const d of this.echoTimes) d.delayTime.setValueAtTime(Math.min(1.9, 0.75 * spb), at);
     // A band's hall is the same room all tune; the other styles' room follows the section.
     const room = bar.tune.mood === 'oompa' ? 1 : SECTION_ROOM[bar.section] ?? 1;

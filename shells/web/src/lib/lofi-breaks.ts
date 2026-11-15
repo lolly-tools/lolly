@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The break's kit and its filters: how the station plays a note the composer marked as a
- * break's (engine/src/lofi-breaks.ts isBreakNote), breakbeat's drums and drum and bass's
- * top loop.
+ * break's (engine/src/lofi-breaks.ts isBreakNote): drum and bass's top loop. Breakbeat's
+ * drums, which this used to play, are now a recorded break, chopped (lib/lofi-break-kit.ts).
  *
  * A breakbeat producer samples a drummer and speeds the record up to the track's tempo, so
  * the whole kit plays higher and shorter: the break here is the real acoustic kit
