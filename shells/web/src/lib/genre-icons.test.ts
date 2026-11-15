@@ -35,11 +35,14 @@ test('every genre is in exactly one group, and the groups come in their order', 
     assert.equal(GENRE_CATEGORY[mood], homes[0], `${mood}'s group reads the same both ways`);
   }
   const listed = GENRE_GROUPS.flatMap(g => g.moods);
-  assert.equal(listed.length, 52, 'every genre the generator plays');
+  assert.equal(listed.length, 58, 'every genre the generator plays');
   assert.deepEqual([...listed].sort(), [...LOFI_STATION_MOODS].sort(), 'no group lists a genre the generator does not play');
   assert.deepEqual(Object.keys(GENRE_CATEGORY).sort(), [...LOFI_STATION_MOODS].sort());
   for (const lofi of ['warm', 'lateNight', 'rainy'] as const) assert.equal(GENRE_CATEGORY[lofi], 'chill', 'the Lofi stations are chill');
-  assert.deepEqual(GENRE_GROUPS.map(g => g.moods.length), [10, 8, 10, 7, 7, 10]);
+  assert.equal(GENRE_CATEGORY.ska, 'rock', 'ska is with rock and roots (Andy, 2026-11-14)');
+  assert.deepEqual(GENRE_GROUPS.map(g => g.moods.length), [11, 9, 9, 8, 7, 14]);
+  assert.equal(GENRE_CATEGORY.noosa, 'chill', 'Noosacore is chill, beside botanica (Andy, 2026-11-14)');
+  assert.equal(GENRE_CATEGORY.jungle, 'club', 'jungle is with breakbeat and D&B, the other break-driven club styles');
 });
 
 test('each group lists its genres A to Z by title', () => {
@@ -47,7 +50,7 @@ test('each group lists its genres A to Z by title', () => {
     const titles = g.moods.map(genreTitle);
     assert.deepEqual(titles, [...titles].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })), g.id);
   }
-  assert.deepEqual(GENRE_GROUPS[0]!.moods.map(genreTitle), ['Botanica', 'City pop', 'Dreamscape', 'Fantasy', 'Late night', 'Lofi house', 'Lolly Sings', 'Rainy', 'Trip hop', 'Warm']);
+  assert.deepEqual(GENRE_GROUPS[0]!.moods.map(genreTitle), ['Botanica', 'City pop', 'Dreamscape', 'Fantasy', 'Late night', 'Lofi house', 'Lolly Sings', 'Noosacore', 'Rainy', 'Trip hop', 'Warm']);
 });
 
 test('genres next to each other in the grid do not share an icon', () => {

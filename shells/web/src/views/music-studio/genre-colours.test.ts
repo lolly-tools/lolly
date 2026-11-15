@@ -11,7 +11,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { contrastRatio, hexToOklch } from '../../../../../engine/src/brand-derive.ts';
 import { GENRE_GROUPS } from '../../lib/genre-icons.ts';
-import { TITLE_CONTRAST, cssHex, genreTiles } from './genre-colours.ts';
+import { CARD_WASH, HERO_WASH, TITLE_CONTRAST, cssHex, genreTiles } from './genre-colours.ts';
 
 const LIGHT = { surface: '#ffffff', text: '#1a1d21' };
 const DARK = { surface: '#1c2026', text: '#f1f3f5' };
@@ -93,4 +93,39 @@ test('a computed colour reads as hex only when it is opaque enough to judge cont
   assert.equal(cssHex('rgba(255, 255, 255, 0.5)'), null);
   assert.equal(cssHex('transparent'), null);
   assert.equal(cssHex(''), null);
+});
+
+test('the genre button takes far more colour than its card on a light theme, and every stop holds 4.5:1 against the text it carries', () => {
+  const moods = GENRE_GROUPS.flatMap((g) => g.moods);
+  for (const [theme, strength] of [[LIGHT, HERO_WASH.light], [DARK, HERO_WASH.dark]] as const) {
+    for (const pool of [WIDE, ONE, HARD]) {
+      const hero = genreTiles(pool, theme.surface, theme.text, strength);
+      assert.equal(hero.size, moods.length);
+      for (const [mood, tile] of hero) {
+        const ink = tile.ink ?? theme.text;
+        for (const stop of [tile.from, tile.to]) {
+          assert.ok(contrastRatio(stop, ink) >= TITLE_CONTRAST, `${mood} ${stop} under ${ink}: ${contrastRatio(stop, ink).toFixed(2)}`);
+        }
+      }
+    }
+  }
+  // How far the stronger stop sits from the plain surface, on average: the hero's colour reads from across the room.
+  const reach = (strength: typeof CARD_WASH, theme: typeof LIGHT): number => {
+    const tiles = [...genreTiles(WIDE, theme.surface, theme.text, strength).values()];
+    return tiles.reduce((sum, t) => sum + distance(t.from, theme.surface), 0) / tiles.length;
+  };
+  const [card, hero] = [reach(CARD_WASH, LIGHT), reach(HERO_WASH.light, LIGHT)];
+  assert.ok(hero >= card * 1.6, `light: the hero carries more colour (${hero.toFixed(3)} against the card's ${card.toFixed(3)})`);
+  const [cardDark, heroDark] = [reach(CARD_WASH, DARK), reach(HERO_WASH.dark, DARK)];
+  assert.ok(heroDark > cardDark && heroDark < hero * 1.1, `dark: a measured step up (${heroDark.toFixed(3)} against ${cardDark.toFixed(3)}), never the light theme's blast`);
+});
+
+test('on a light theme a deep brand colour turns the hero\'s text light, and a light one keeps the dark text', () => {
+  const deep = genreTiles(['#033633'], LIGHT.surface, LIGHT.text, HERO_WASH.light);
+  for (const tile of deep.values()) assert.equal(tile.ink, LIGHT.surface, 'white text on the deep teal');
+  const bright = genreTiles(['#f2b134'], LIGHT.surface, LIGHT.text, HERO_WASH.light);
+  for (const tile of bright.values()) assert.equal(tile.ink, undefined, 'dark text on the amber');
+  const dark = genreTiles(['#033633'], DARK.surface, DARK.text, HERO_WASH.dark);
+  for (const tile of dark.values()) assert.equal(tile.ink, undefined, 'a dark theme keeps its own text');
+  assert.equal(genreTiles(WIDE, LIGHT.surface, LIGHT.text).values().next().value?.ink, undefined, 'the cards never turn their text');
 });

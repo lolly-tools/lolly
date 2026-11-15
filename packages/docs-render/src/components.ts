@@ -11,7 +11,7 @@
 //   ::: details Title       optional depth, closed by default
 //   :::
 // and the layout pieces assembled here for render.ts: the `::: logos` strip, the
-// `::: steps` row and the large icon that opens a section.
+// `::: steps` row, the `::: pillars` cards and the large icon that opens a section.
 // Styles: shells/web/src/styles/parts/docs-components.css. Behaviour (Copy, feedback,
 // opening a disclosure from a link): docs/reader/enhance.ts.
 import { escAttr } from './esc.ts';
@@ -104,6 +104,27 @@ export function stepsBlock(bodyHtml: string): string {
     ? `<ol class="icon-list">${bodyHtml.slice('<ul class="icon-list">'.length, -'</ul>'.length)}</ol>`
     : bodyHtml;
   return `<div class="md-steps">${ordered}</div>`;
+}
+
+export interface PillarParts {
+  /** The figure's inline SVG, or '' when the card has none. */
+  art: string;
+  /** The figure's credential mark, or ''. */
+  credential: string;
+  bodyHtml: string;
+}
+
+/** `::: pillars`: one row of cards, each a picture over its heading and words. A small
+ *  arrow on each picture after the first joins it to the one before, so the row reads as
+ *  one journey. A screen reader skips the picture and the arrow and reads the headings. */
+export function pillarsBlock(cards: PillarParts[], arrow: string): string {
+  return `<div class="md-pillars"><div class="md-pillars-row">${cards.map((card, n) => {
+    const join = n && arrow ? `<span class="md-pillar-link" aria-hidden="true">${arrow}</span>` : '';
+    const art = card.art
+      ? `<div class="md-pillar-art">${join}<div class="md-pillar-pic" aria-hidden="true">${card.art}</div>${card.credential}</div>`
+      : '';
+    return `<div class="md-pillar">${art}<div class="md-pillar-body">${card.bodyHtml}</div></div>`;
+  }).join('')}</div></div>`;
 }
 
 /** The large two-tone icon that opens a section (`<!--i:eti-…-->` on a line of its own,

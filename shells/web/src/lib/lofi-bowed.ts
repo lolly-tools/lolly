@@ -185,6 +185,13 @@ export const BOW_TUNING = {
    * on a string already in Helmholtz motion is what keeps the change clean.
    */
   slurPreroll: 0.15, slurGlide: 0.04,
+  /**
+   * The stopping finger, where nothing backs the string (the erhu has no fingerboard): the
+   * finger's soft pad lets the top of each wave through less (a one-pole low-pass at the
+   * finger, its pole) and gives back a little less of every wave (`fingerLoss`, a share).
+   * 0 for both is a hard stop, as a fingerboard, a fret or a nut gives.
+   */
+  finger: 0, fingerLoss: 0,
 } as const;
 /** A bowed string's constants: the fiddle's (BOW_TUNING), or another instrument's on the same string. */
 export type BowTuning = { readonly [K in keyof typeof BOW_TUNING]: number };
@@ -305,8 +312,8 @@ export function bowSource(n: BowNote, rand: () => number, T: BowTuning = BOW_TUN
   let wander = 0;
   let phase = rand() * Math.PI * 2;
   const vibFrom = T.vibratoFrom * sr;
-  const lagFix = poleDelay(pole, sr, n.f);
-  let lp = 0;
+  const lagFix = poleDelay(pole, sr, n.f) + (T.finger ? poleDelay(T.finger, sr, n.f) : 0);
+  let lp = 0, pad = 0;
   const hair = Math.exp((-2 * Math.PI * Math.min(sr * 0.4, T.hair * 8 ** v)) / sr);
   let ribbon = 0, ribbon2 = 0;
   for (let i = -pre; i < out.length; i++) {
@@ -345,7 +352,12 @@ export function bowSource(n: BowNote, rand: () => number, T: BowTuning = BOW_TUN
     const force = (base < 1 ? base ** T.forceLead : 1) * (acc > 1 ? acc ** T.forceAccent : 1);
     const sl = (kappa / Math.max(speed * force * off * (1 + sw), speed * 0.03)) * (1 - bite);
     // The waves arriving at the bow from the finger and from the bridge (each turned over at its end).
-    const fromNut = -nut.read(period * (1 - beta));
+    let fromNut: number;
+    if (T.finger) {
+      // A soft stop: the finger's pad, with no fingerboard under the string, rounds and loses each wave.
+      pad = (1 - T.finger) * nut.read(period * (1 - beta)) + T.finger * pad;
+      fromNut = -(1 - T.fingerLoss) * pad;
+    } else fromNut = -nut.read(period * (1 - beta));
     const atBridge = bridge.read(period * beta);
     lp = (1 - pole) * atBridge + pole * lp;
     const fromBridge = -T.bridge * lp;

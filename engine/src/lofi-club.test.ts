@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The club genres' promises (lofi-club.ts, lofi-breaks.ts): breakbeat, funky house, UK
- * garage and private school piano, and drum and bass's top loop.
+ * The club genres' promises (lofi-club.ts, lofi-breaks.ts, lofi-break-chop.ts): breakbeat,
+ * funky house, UK garage and private school piano, and drum and bass's top loop.
  *
  * Run directly:  node --test engine/src/lofi-club.test.ts
  *
  * What is pinned:
- *  - each genre's tempo, and its drums: breakbeat's chopped break (on the break's kit,
- *    ghost notes, rolls into a phrase, pitched slices, a different bar most bars), funky
+ *  - each genre's tempo, and its drums: breakbeat's chopped break (slices of one recording,
+ *    rolls into a phrase, pitched slices, looping between its edits), funky
  *    house's four on the floor with Latin percussion and a filter that opens and closes
  *    through a drop, UK garage's two-step (the kick on one and never on three) and its
  *    swing (the hats swung harder than the rest), private school's soft kit and shakers;
  *  - their basses: a rolling bass in breakbeat, a bouncing one in funky house, a sub or a
  *    warping bass in UK garage, and a low, soft log drum in private school piano;
- *  - drum and bass's top loop: only notes added, each a break's, varying from bar to bar;
+ *  - drum and bass's top loop (or, in a third of its tunes, a chopped break over the kit):
+ *    only notes added, each a break's, varying from bar to bar;
  *  - drum and bass's own kick and snare through a drop: the two-step kept (the kick on one,
  *    the snare on two), edited bar by bar, a turnaround every four bars, a fill every eight.
  * How these measure against openly licensed records is in docs/generated-music.md.
@@ -21,7 +22,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { composeLofiTune, LOFI_PERCUSSION, type LofiBar, type LofiNote } from './lofi-compose.ts';
-import { isBreakNote, breakPitch } from './lofi-breaks.ts';
+import { isBreakNote } from './lofi-breaks.ts';
+import { chopsOf, isSliceNote, readSlice } from './lofi-break-chop.ts';
 import { clubPlan } from './lofi-club.ts';
 
 const SEEDS = Array.from({ length: 12 }, (_, i) => (i * 2654435761 + 3) >>> 0);
@@ -53,37 +55,37 @@ test('each club genre keeps its tempo, and its outro fades without ever going si
   }
 });
 
-test('breakbeat: a chopped break on the break\'s kit, ghost notes, rolls and pitched slices, looping its bar and turning at a phrase\'s end', () => {
-  let ghosts = 0, rolls = 0, pitched = 0, punch = 0, loops = 0, mids = 0, turns = 0, ends = 0;
+test('breakbeat: a chopped break, sliced out of one recording, a punchier kick under it, looping its bars and edited at a phrase\'s end', () => {
+  let rolls = 0, pitched = 0, punch = 0, loops = 0, mids = 0, turns = 0, ends = 0;
   for (const seed of SEEDS) {
     const bars = composeLofiTune(seed, 'breakbeat');
     const d = drops(bars);
     const drums = d.flatMap(b => b.notes.filter(n => ['snare', 'hat', 'openHat'].includes(n.voice)));
-    assert.ok(drums.length > 100 && drums.every(isBreakNote), `${seed}: the snare and hats are the break's`);
-    ghosts += drums.filter(n => n.voice === 'snare' && n.vel < 0.35).length;
-    pitched += d.flatMap(b => b.notes).filter(n => isBreakNote(n) && breakPitch(n) !== 0).length;
-    // A phrase's last bar turns: more snare hits in its last beat than the bar before.
-    for (const b of d) if (b.notes.filter(n => n.voice === 'snare' && n.beat >= 3).length >= 4) rolls++;
-    // A punchier kick under the break's in a drop: a kick that is not a break note.
-    punch += d.flatMap(b => b.notes).filter(n => n.voice === 'kick' && !isBreakNote(n)).length;
-    // Every drop bar keeps a kick and its backbeat somewhere.
+    assert.ok(drums.length > 100 && drums.every(isSliceNote), `${seed}: the snare and hats are the break's slices`);
+    assert.ok(!bars.some(b => b.notes.some(n => isBreakNote(n) && !isSliceNote(n))), `${seed}: none of the old note-written break is left`);
+    const take = chopsOf('breakbeat', seed, bars[0]!.tune.bpm)!.take;
+    assert.ok(take.hits.filter(h => h.drum === 'ghost').length >= 2, `${seed}: the drummer played ghost notes`);
+    pitched += d.flatMap(b => b.notes).filter(n => isSliceNote(n) && readSlice(n.mod)!.semis !== 0).length;
+    // A roll: four or more short slices in a bar's last beat.
+    for (const b of d) if (b.notes.filter(n => isSliceNote(n) && n.beat >= 3 && n.dur <= 0.13).length >= 4) rolls++;
+    punch += d.flatMap(b => b.notes).filter(n => n.voice === 'kick' && !isSliceNote(n)).length;
     for (const b of d) assert.ok(b.notes.some(n => n.voice === 'kick'), `${seed} bar ${b.index}: a kick in the bar`);
-    // In the middle of a phrase the bar is the bar before (the kick and the backbeat); a phrase's last bar turns.
-    const hits = (b: LofiBar): string => pattern(b, n => n.voice === 'kick' || (n.voice === 'snare' && n.vel > 0.6));
+    // The groove loops its two bars in the middle of a phrase; a phrase's last bar is edited.
+    const slices = (b: LofiBar): string => b.notes.filter(isSliceNote).map(n => `${readSlice(n.mod)!.slice}@${Math.round(n.beat * 8)}`).join(' ');
     let run = 0;
     bars.forEach((b, i) => {
       run = b.section === 'drop' ? (bars[i - 1]?.section === 'drop' ? run + 1 : 0) : -1;
-      if (run <= 0) return;
-      if (run % 8 === 1 || run % 8 === 2 || run % 8 === 5) { mids++; if (hits(b) === hits(bars[i - 1]!)) loops++; }
-      if (run % 8 === 7) { ends++; if (pattern(b) !== pattern(bars[i - 1]!)) turns++; }
+      if (run < 2) return;
+      // Against the groove bar four before (the loop is two bars, and the bar two before a phrase's sixth is its fourth, edited).
+      if (run >= 4 && (run % 8 === 1 || run % 8 === 2 || run % 8 === 5)) { mids++; if (slices(b) === slices(bars[i - 4]!)) loops++; }
+      if (run % 8 === 7) { ends++; if (slices(b) !== slices(bars[i - 2]!)) turns++; }
     });
   }
-  assert.ok(ghosts > SEEDS.length * 40, `ghost notes (${ghosts})`);
-  assert.ok(rolls >= SEEDS.length * 2, `rolls into a phrase (${rolls})`);
+  assert.ok(rolls >= SEEDS.length, `rolls into a phrase (${rolls})`);
   assert.ok(pitched > SEEDS.length * 4, `pitched slices (${pitched})`);
   assert.ok(punch > SEEDS.length * 30, `a kick under the break's (${punch})`);
-  assert.ok(loops / mids > 0.75, `the break loops in the middle of a phrase (${loops} of ${mids} bars as the bar before)`);
-  assert.ok(turns / ends > 0.8, `and turns at its end (${turns} of ${ends})`);
+  assert.ok(loops / mids > 0.75, `the break loops in the middle of a phrase (${loops} of ${mids} bars as four bars before)`);
+  assert.ok(turns / ends > 0.8, `and is edited at its end (${turns} of ${ends})`);
 });
 
 test('UK garage: two-step, the kick on one and never on three, the hats swung harder than the sixteenths', () => {

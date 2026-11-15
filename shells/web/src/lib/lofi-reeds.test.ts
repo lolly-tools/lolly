@@ -98,13 +98,27 @@ test('a sax and a clarinet sound by themselves, in tune across their range', () 
   }
 });
 
-test('the clarinet blows exactly as it did before the sax was rebuilt', () => {
+test('the clarinet blows the same every time (pinned when its upper register was fitted to recorded clarinets)', () => {
   const h = createHash('sha1');
   for (const [m, v, from, scoop] of [[52, 0.3, 0, 0], [60, 0.7, 0, 1], [64, 0.9, 62, 0], [72, 0.5, 0, 0]] as const) {
     const x = blowReed({ sr: SR, f: mtof(m), from: from ? mtof(from) : undefined, vel: v, dur: 0.6, seconds: 0.7, bore: 'cylinder', vibrato: 6, rate: 5.3, scoop, attack: 0.045 }, seeded(m));
     h.update(Buffer.from(x.buffer));
   }
-  assert.equal(h.digest('hex'), 'e3c80af8f483cb600d64cb2f2599c8a71ec0f9b2');
+  assert.equal(h.digest('hex'), 'd74235e239823813fffa30e63d66ec7f29a15f4b');
+});
+
+test('above the break the clarinet\'s second harmonic comes up, and blown softly its tone is nearly pure', () => {
+  // Recorded clarinets: the chalumeau's even harmonics 25 to 40 dB down; above about C sharp 5
+  // the second within 0 to 25 dB of the first; a pianissimo's third to sixth 25 to 60 dB down.
+  const high = mtof(81), low = mtof(55);
+  const up = blowReed(note('cylinder', 81, 0.6), seeded(5));
+  const down = blowReed(note('cylinder', 55, 0.6), seeded(5));
+  assert.ok(harmonic(up, high, 2) > harmonic(up, high, 1) - 25, 'the second harmonic of a clarion note');
+  assert.ok(harmonic(down, low, 2) < harmonic(down, low, 3) - 10, 'the low register still leads with the odd ones');
+  const soft = blowReed(note('cylinder', 77, 0.15), seeded(6)), loud = blowReed(note('cylinder', 77, 0.9), seeded(6));
+  const f = mtof(77);
+  const top = (x: Float32Array): number => harmonic(x, f, 4) + harmonic(x, f, 5) - 2 * harmonic(x, f, 1);
+  assert.ok(top(soft) < top(loud) - 6, 'softer is purer');
 });
 
 test('a clarinet\'s low notes lead with the odd harmonics; a sax has them all, and is brighter blown harder', () => {

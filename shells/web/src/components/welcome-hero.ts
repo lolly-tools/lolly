@@ -35,6 +35,13 @@
  * button, Escape, and on a touch screen a sideways swipe. When it goes, it fades and
  * the space it held closes, so the gallery slides up rather than jumping.
  *
+ * It arrives with the gallery, never before it (Andy, 2026-11-14: "it loads funny on
+ * first load"). A decision made while the page is still loading keeps the card out of
+ * the page until the gallery mounts and adopts it in the same task as its own markup,
+ * so the card is in the gallery's first paint: nothing below it moves, and it never
+ * shows half-styled in the empty view. It does not rise in, and its words do not wait
+ * for the mark; the mark's drawing is the one movement.
+ *
  * Singleton, like the dialog: the gallery re-mounts after a catalog sync, and a
  * second call while the greeting is up moves the same element into the new gallery
  * and hands back the same promise, so the mark does not draw twice.
@@ -69,7 +76,10 @@ const SWIPE_SHARE = 0.3;
 const SWIPE_FLICK = 0.6;
 
 let openPromise: Promise<HeroChoice> | null = null;
-let current: { el: HTMLElement; close: (choice: HeroChoice | null) => void; settle: () => void } | null = null;
+let current: {
+  el: HTMLElement; audience: WelcomeAudience;
+  close: (choice: HeroChoice | null) => void; settle: () => void; repaint: (audience: WelcomeAudience) => void;
+} | null = null;
 
 /** The lollipop's swirl: an Archimedean spiral from the centre out, about three turns. */
 function swirlPath(cx: number, cy: number, radius: number, turns: number): string {
@@ -121,26 +131,28 @@ function languageRow(open: boolean): string {
   }).join('')}</span>`;
 }
 
-/** The greeting's markup, painted again in place when the language changes. */
+/**
+ * The greeting's markup, painted again in place when the language changes. The close
+ * button comes last, so the first Tab stop after the navigation is the action; the
+ * stylesheet puts it in the card's corner.
+ */
 function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: boolean, privacy: WelcomePrivacy): string {
   const primary = audience === 'demo'
-    ? `<button type="button" class="btn btn--primary welcome-hero-go" data-choice="make">${t('Start making')}</button>`
-    : `<button type="button" class="btn btn--primary welcome-hero-go" data-choice="brand">${t('Make it yours')}<span class="welcome-hero-go-sub">${t('One colour is enough')}</span></button>`;
+    ? `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go" data-choice="make"><span class="btn-label">${t('Start making')}</span></button>`
+    : `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go welcome-hero-go--sub" data-choice="brand"><span class="btn-label">${t('Make it yours')}</span><span class="welcome-hero-go-sub">${t('One colour is enough')}</span></button>`;
   const other = audience === 'demo'
     ? `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Make it yours')}</button>`
     : `<button type="button" class="welcome-hero-link" data-choice="explore">${t('Explore the tools')}</button>`;
   const file = withImport ? `<button type="button" class="welcome-hero-link" data-choice="import">${t('Bring a file')}</button>` : '';
   return `
-    <button type="button" class="welcome-hero-close" data-choice="dismiss" aria-label="${t('Close the welcome')}">${icon('close', { size: 18 })}</button>
-    <div class="welcome-hero-lead">
-      ${markSvg()}
-      <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make the next thing beautiful.')}</h2>
-    </div>
+    ${markSvg()}
+    <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make the next thing beautiful.')}</h2>
     <div class="welcome-hero-act">
       ${primary}
-      <p class="welcome-hero-more">${[file, other].filter(Boolean).join('<span aria-hidden="true">·</span>')}</p>
+      <p class="welcome-hero-more">${[file, other].filter(Boolean).join('<span class="welcome-hero-dot" aria-hidden="true">·</span>')}</p>
     </div>
-    <p class="welcome-hero-quiet">${privacyLine(privacy)}${languageMayBeWrong() || langsOpen ? ` ${languageRow(langsOpen)}` : ''}</p>`;
+    <p class="welcome-hero-quiet">${privacyLine(privacy)}${languageMayBeWrong() || langsOpen ? ` ${languageRow(langsOpen)}` : ''}</p>
+    <button type="button" class="welcome-hero-close" data-choice="dismiss" aria-label="${t('Close the welcome')}">${icon('close', { size: 18 })}</button>`;
 }
 
 /**
@@ -216,11 +228,13 @@ function wireSwipe(card: HTMLElement, dismiss: () => void): void {
 
 /**
  * Show the greeting at the top of `root` (the gallery), or move the one already up
- * there. Resolves with how it ended; a route change resolves 'dismiss' without
- * settling anything, as the dialog does.
+ * there. With no gallery yet (`root` null: the decision came while the page was still
+ * loading) the card waits out of the page, and the gallery's mount places it with
+ * adoptWelcomeHero. Resolves with how it ended; a route change resolves 'dismiss'
+ * without settling anything, as the dialog does.
  */
 export function showWelcomeHero(
-  root: HTMLElement,
+  root: HTMLElement | null,
   opts: {
     audience: WelcomeAudience; privacy: WelcomePrivacy;
     /** Acknowledge the privacy notice: every explicit choice does, since the band carries the promise. */
@@ -229,6 +243,9 @@ export function showWelcomeHero(
   },
 ): Promise<HeroChoice> {
   if (openPromise && current) {
+    // A card opened from the last visit's answer keeps its place; the decision only
+    // corrects who it is for.
+    if (current.audience !== opts.audience) current.repaint(opts.audience);
     adoptWelcomeHero(root);
     return openPromise;
   }
@@ -236,6 +253,7 @@ export function showWelcomeHero(
   const holdTimer = setTimeout(releaseGate, MAX_HOLD_MS);
   const pending = new Promise<HeroChoice>((resolve) => {
     let langsOpen = false;
+    let audience = opts.audience;
     const el = document.createElement('section');
     el.className = 'welcome-hero';
     el.setAttribute('aria-labelledby', 'welcome-hero-title');
@@ -243,11 +261,6 @@ export function showWelcomeHero(
     const card = document.createElement('div');
     card.className = 'welcome-hero-card';
     el.append(card);
-    // The card rises in once. Moving the element to a re-mounted gallery would
-    // restart that, so once it has arrived it stays arrived.
-    card.addEventListener('animationend', (e) => {
-      if (e.target === card && e.animationName === 'wh-arrive') el.classList.add('is-arrived');
-    });
     let drawn = false;
     try { drawn = localStorage.getItem(DRAWN_KEY) === '1'; } catch { drawn = true; }
     // The mark draws once, when the band is first in view: a finished mark from the
@@ -264,11 +277,11 @@ export function showWelcomeHero(
       releaseGate();
     };
     const paint = (focus?: string): void => {
-      card.innerHTML = heroMarkup(opts.audience, !!opts.uploadHost, langsOpen, opts.privacy);
+      card.innerHTML = heroMarkup(audience, !!opts.uploadHost, langsOpen, opts.privacy);
       if (focus) card.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
     };
     paint();
-    root.prepend(el);
+    root?.prepend(el);
     if (drawn || prefersReducedMotion() || typeof IntersectionObserver !== 'function') {
       settle();
     } else {
@@ -299,7 +312,12 @@ export function showWelcomeHero(
       leave(el, choice === 'dismiss' || choice === 'import' || choice === 'explore');
       resolve(choice ?? 'dismiss');
     };
-    current = { el, close, settle };
+    const repaint = (next: WelcomeAudience): void => {
+      audience = next;
+      if (current) current.audience = next;
+      paint();
+    };
+    current = { el, audience, close, settle, repaint };
     const onNav = (): void => close(null);
     const onKey = (e: KeyboardEvent): void => {
       // Escape dismisses the greeting, unless another dialog is open above the page.
@@ -350,15 +368,20 @@ export function showWelcomeHero(
 
 /**
  * Move an open greeting into a gallery that has just mounted, in the same task as the
- * gallery's markup, so the band never leaves the screen while the welcome step catches
- * up. Moving an element restarts its CSS animations, so a drawing caught mid-way is
- * shown finished instead of drawn twice. A no-op when no greeting is open.
+ * gallery's markup, so the card is part of the gallery's first paint and nothing under
+ * it moves when it arrives. Moving an element restarts its CSS animations, so a drawing
+ * caught mid-way is shown finished instead of drawn twice. A no-op when no greeting is
+ * open.
  */
 export function adoptWelcomeHero(root: HTMLElement | null): void {
   if (!root || !current || current.el.parentElement === root) return;
   if (current.el.classList.contains('is-drawing')) current.settle();
-  current.el.classList.add('is-arrived');
   root.prepend(current.el);
+}
+
+/** Whether a greeting is up, or waiting for its gallery. */
+export function welcomeHeroOpen(): boolean {
+  return !!current;
 }
 
 /** Take the greeting down without settling it (a host's safety hatch, and the tests'). */

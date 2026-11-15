@@ -35,12 +35,12 @@ const KEYS: Record<LofiStyle['keys'], InstrumentIcon> = {
   nylon: 'guitar', clean: 'guitar', fuzz: 'guitar', wall: 'guitar', steel: 'guitar', banjo: 'guitar', jazzbox: 'guitar', crunch: 'guitar', heavy: 'guitar', buzzsaw: 'guitar', wah: 'guitar', electric: 'guitar', harp: 'guitar',
   tar: 'guitar', santur: 'guitar', zheng: 'guitar', koto: 'guitar', shamisen: 'guitar', kora: 'guitar',
   chiparp: 'gamepad', brass: 'horn', choir: 'micVocal', balafon: 'bell', strings: 'bowed', grand: 'piano',
-  surf: 'guitar', combo: 'piano',
+  surf: 'guitar', combo: 'piano', horns: 'horn', didgeridoo: 'wind', yidaki: 'wind',
 };
 const LEADS: Record<LiveLead, InstrumentIcon> = {
   vibes: 'bell', bells: 'bell', kalimba: 'bell', balafon: 'bell',
   flute: 'wind', panflute: 'wind', ney: 'wind', shakuhachi: 'wind', dizi: 'wind', clarinet: 'wind', harmonica: 'wind',
-  sax: 'horn', trumpet: 'horn',
+  sax: 'horn', trumpet: 'horn', flugelhorn: 'horn', tenorhorn: 'horn',
   synthwave: 'audioWaveform',
   chip: 'gamepad', pulse: 'gamepad', bit: 'gamepad',
   angel: 'micVocal', chop: 'micVocal',
@@ -48,12 +48,12 @@ const LEADS: Record<LiveLead, InstrumentIcon> = {
   santur: 'guitar', zheng: 'guitar', koto: 'guitar', pipa: 'guitar', shamisen: 'guitar', kora: 'guitar', harp: 'guitar', steel: 'guitar', tar: 'guitar',
   fiddle: 'bowed', kamancheh: 'bowed', erhu: 'bowed', viola: 'bowed', cello: 'bowed', doublebass: 'bowed',
   none: 'audioWaveform',
-  surf: 'guitar', chorus: 'guitar',
+  surf: 'guitar', chorus: 'guitar', yidaki: 'wind',
 };
 const BASSES: Record<LofiStyle['bass'], InstrumentIcon> = {
   round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', warp: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
   upright: 'bowed', slap: 'guitar', picked: 'guitar', croak: 'guitar', motown: 'guitar',
-  pulse: 'gamepad', eight: 'drum', log: 'drum', yidaki: 'wind',
+  pulse: 'gamepad', eight: 'drum', log: 'drum', didgeridoo: 'wind', tuba: 'horn',
 };
 
 /** The family icon for a part's instrument. */
@@ -94,11 +94,17 @@ const PATHS = new Map<string, Path2D>();
 
 /** An icon as one canvas path in its 24-unit box, to stroke at any size. Cached. */
 export function iconPath(name: InstrumentIcon): Path2D {
-  let p = PATHS.get(name);
+  return markupPath(MARKUP[name]);
+}
+
+/** Glyph markup in this stroke style (an instrument icon's, or a lib/icons.ts glyph's
+ *  shapes) as one canvas path in its 24-unit box. Cached by the markup. */
+export function markupPath(markup: string): Path2D {
+  let p = PATHS.get(markup);
   if (p) return p;
   p = new Path2D();
   const num = (el: string, attr: string): number => Number(new RegExp(`\\b${attr}="([-\\d.]+)"`).exec(el)?.[1] ?? 0);
-  for (const el of MARKUP[name].match(/<(path|circle|ellipse|line|polyline|rect)\b[^>]*>/g) ?? []) {
+  for (const el of markup.match(/<(path|circle|ellipse|line|polyline|rect)\b[^>]*>/g) ?? []) {
     if (el.startsWith('<path')) {
       const d = /\bd="([^"]+)"/.exec(el)?.[1];
       if (d) p.addPath(new Path2D(d));
@@ -118,6 +124,6 @@ export function iconPath(name: InstrumentIcon): Path2D {
       p.rect(num(el, 'x'), num(el, 'y'), num(el, 'width'), num(el, 'height'));
     }
   }
-  PATHS.set(name, p);
+  PATHS.set(markup, p);
   return p;
 }

@@ -98,8 +98,8 @@ export function lead(style: string, k: VoiceKit, out: AudioNode, t: number, midi
   g.gain.setTargetAtTime(EPS, t + held + 0.08, 0.02);
   playBuffer(k, data, out, t, CLARINET_LEVEL * (how.gain ?? 1), [warm, top, g]);
 }
-/** The clarinet's level against the voice it replaced. */
-const CLARINET_LEVEL = 0.065;
+/** The clarinet's level against the voice it replaced (a decibel under the old 0.065: the reed fitted to recorded clarinets plays about that much louder). */
+const CLARINET_LEVEL = 0.058;
 
 /**
  * The saxophone (lib/lofi-reeds.ts saxNote): its horn's body is part of the model, so the note
@@ -302,8 +302,8 @@ function fiddle(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numbe
 
 /** How much of the register's own rise in loudness a player keeps (the top of a horn is louder). */
 const REGISTER_KEPT = 0.35;
-/** The brass leads' levels against the voices they replaced. */
-const BRASS_LEVEL: Record<Horn, number> = { trumpet: 0.019, trombone: 0.019 };
+/** The brass leads' levels against the voices they replaced (the band's horns play through lib/lofi-oompa.ts, which sets its own). */
+const BRASS_LEVEL: Record<Horn, number> = { trumpet: 0.019, trombone: 0.019, flugelhorn: 0.019, tenorhorn: 0.019, baritone: 0.019, tuba: 0.019 };
 /** A soloist's level against a section player's at the same strength (dB): what keeps the solo trumpet as loud as before it was heard darker (K-weighted). */
 const SOLO_LEVEL = 2.69;
 

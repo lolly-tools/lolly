@@ -14,7 +14,7 @@
  * DOM, so the tests can run every rule.
  */
 import type { Profile } from '@lolly-tools/core/host-v1';
-import { composeLofiTune, isOverNote, isRetiredLead, liveLead, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
+import { composeLofiTune, isOverNote, isRetiredLead, liveLead, BASS_ALIASES, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, type MusicState } from './music-state.ts';
 import { instrumentIcon, type InstrumentIcon } from './instrument-icons.ts';
 
@@ -34,7 +34,7 @@ export const INSTRUMENT_FAMILIES = ['keys', 'guitars', 'bells', 'winds', 'voices
 export type InstrumentFamily = typeof INSTRUMENT_FAMILIES[number];
 
 /** Instruments from a tradition of their own, whatever their icon. */
-const WORLD = new Set(['tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'ney', 'kamancheh', 'erhu', 'dizi', 'pipa', 'shakuhachi', 'yidaki', 'log']);
+const WORLD = new Set(['tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'ney', 'kamancheh', 'erhu', 'dizi', 'pipa', 'shakuhachi', 'didgeridoo', 'yidaki', 'log']);
 /** Every other instrument goes by its icon, so a new one goes to a sensible family. */
 const BY_ICON: Record<InstrumentIcon, InstrumentFamily> = {
   piano: 'keys', guitar: 'guitars', bowed: 'guitars', wind: 'winds', horn: 'winds', micVocal: 'voices', bell: 'bells', gamepad: 'chip', audioWaveform: 'synths', drum: 'synths',
@@ -64,9 +64,15 @@ const ENTRY = /^(keys|lead|bass):[a-z0-9]+$/i;
  *  by a later version) are kept, so saving here never drops them. */
 const entries = (list: unknown): string[] => Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string' && ENTRY.test(x)) : [];
 
+/** An entry under the instrument that plays it now (`bass:yidaki`, the drone, is `bass:didgeridoo`). */
+const current = (key: string): string => {
+  const [part, id = ''] = key.split(':');
+  return part === 'bass' && Object.hasOwn(BASS_ALIASES, id) ? `bass:${BASS_ALIASES[id]}` : key;
+};
+
 /** The person's preferences, from their profile. */
 export function loadMusicPrefs(profile: Profile | null | undefined): MusicPrefs {
-  return { favourites: new Set(entries(profile?.music?.favourites)), blocked: new Set(entries(profile?.music?.blocked)) };
+  return { favourites: new Set(entries(profile?.music?.favourites).map(current)), blocked: new Set(entries(profile?.music?.blocked).map(current)) };
 }
 
 /**
@@ -98,7 +104,8 @@ function keepMusic(profile: Profile, music: NonNullable<Profile['music']>): void
 /** Whether a shuffle draws a new genre. On unless the person turned it off. */
 export const loadShuffleGenres = (profile: Profile | null | undefined): boolean => profile?.music?.shuffleGenres !== false;
 
-/** Turn "Shuffle genres" on or off on the profile record (the caller saves the record). On is the
+/** Turn "Shuffle genres" on or off on the profile record (the generator's genre lock, open for
+ *  on and closed for off; the caller saves the record). On is the
  *  default, so it leaves no field; only off is stored. */
 export function setShuffleGenres(profile: Profile, on: boolean): void {
   const music: NonNullable<Profile['music']> = { ...profile.music };
@@ -223,7 +230,7 @@ export function setPartInstrument(s: MusicState, part: MusicPart, id: string | u
   const keys = part === 'keys' ? LOFI_KEYS.find(x => x === id) : undefined;
   const named = part === 'lead' ? LOFI_LEADS.find(x => x === id) : undefined;
   const lead = named && liveLead(named);
-  const bass = part === 'bass' ? LOFI_BASSES.find(x => x === id) : undefined;
+  const bass = part === 'bass' ? LOFI_BASSES.find(x => x === (id !== undefined && Object.hasOwn(BASS_ALIASES, id) ? BASS_ALIASES[id] : id)) : undefined;
   if (section === undefined) {
     if (part === 'keys') s.keys = keys;
     if (part === 'lead') s.lead = lead;

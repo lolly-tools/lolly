@@ -44,8 +44,10 @@
  */
 import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { isSliceNote } from '../../../../engine/src/lofi-break-chop.ts';
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead, rhythmKnocks } from './lofi-lead-art.ts';
+import { erhuist } from './lofi-erhu.ts';
 import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod } from './lofi-flutes.ts';
 import { TRUMPET_DOIT, TRUMPET_DROP, TRUMPET_GHOST, TRUMPET_KU, TRUMPET_PLAYED, TRUMPET_SCOOP, TRUMPET_SLUR, TRUMPET_TONGUE } from './lofi-brass.ts';
 import { HORN_SECTION, HORN_SECTION_IN } from './lofi-winds.ts';
@@ -92,6 +94,8 @@ const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   yacht: { snare: 6, hat: 2 },
   // A breakbeat's drummer was sampled playing: a snare a hair behind, as funk drummers sit.
   breakbeat: { snare: 4 },
+  // Noosacore's drummer leans back in the sun: the backbeat and the shaker a little late.
+  noosa: { snare: 10, hat: 4 },
 };
 
 /** A hat note's `mod` that plays the ride's bell instead (1 is a light hat, 2 the hat's foot). */
@@ -135,7 +139,8 @@ function drummer(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => numbe
   const pocket = POCKET[mood] ?? {};
   for (const [i, n] of notes.entries()) {
     const loose = LOOSE[n.voice];
-    if (loose === undefined) continue;
+    // A slice of a chopped break is a sampler's, sequenced exactly: the drummer's feel is already in the recording.
+    if (loose === undefined || isSliceNote(n)) continue;
     let ms = gauss(rand) * loose * tight;
     if (n.voice === 'snare' || n.voice === 'rim') ms += pocket.snare ?? 0;
     if (n.voice === 'hat' || n.voice === 'openHat') ms += pocket.hat ?? 0;
@@ -683,12 +688,16 @@ export function perform(bar: LofiBar, spb: number, keys: LofiStyle['keys'], lead
   if (keys === 'steel') notes = strummer(notes, bar, spb, rand, (tones, near) => shapeFor(tones, 'steel', near));
   else if (STRUMMED.has(keys)) notes = guitarist(notes, bar, keys, spb, rand);
   if (keys === 'steel') notes = rhythmKnocks(notes, bar, rand);
+  // An oompa band's lines carry their parts in `mod`: its players play as written, each with
+  // their own tuning, timing and breath (lib/lofi-oompa.ts).
+  if (bar.tune.mood === 'oompa') return notes;
   if (GUITAR_LEADS.has(lead)) leadGuitarist(notes, lead, rand);
   // Yacht rock's guitar fills, fingered and bent or slid as a lead guitarist's notes are.
   if (notes.some(n => n.voice === 'fill')) leadGuitarist(notes, 'chorus', rand, 'fill');
   if (lead === 'chop') notes = chopper(notes, bar, spb, rand);
   else if (PLUCKED_LEADS.has(lead)) notes = pluckedLead(notes, bar, lead, spb, rand);
-  else if (lead === 'flute') {
+  else if (lead === 'erhu') erhuist(notes, spb, !!bar.voices?.double);
+  else if (lead === 'flute' || lead === 'dizi') {
     // The tune's player: how long a full breath lasts, set once, as the tune is seeded.
     if (lungs && !lungs.size) lungs.size = LUNGS_SIZE * (1 + LUNGS_SPREAD * (2 * barRandom({ ...bar, index: -1 })() - 1));
     flautist(notes, spb, rand, lungs);

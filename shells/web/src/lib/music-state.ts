@@ -6,9 +6,12 @@
  * DOM, so the music generator (views/music-studio.ts), a saved tune's renderer
  * (lib/lofi-tune.ts) and the Neurospicy player all read a track the same way.
  */
-import { isOverNote, liveLead, lofiTrack, transposeChordName, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
+import { isOverNote, liveLead, lofiBarSeconds, lofiTrack, rootPitchClass, transposeChordName, BASS_ALIASES, LOFI_TAGS, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, type LofiBar, type LofiMood, type LofiStyle, type LofiTagChoice, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_KITS, type LofiKit } from './lofi-drums.ts';
 import { LOFI_MIX, type LofiMix, type LofiSettings } from './lofi-station.ts';
+import { OWN_BIRDS, sprinkleBirds } from './aussie-birds.ts';
+import { OWN_WAVES, sprinkleWaves } from './beach-waves.ts';
+import { playOnDidge, DIDGE_INSTRUMENTS } from '../../../../engine/src/lofi-straya.ts';
 
 export const MIX_KEYS: readonly (keyof LofiMix)[] = ['keys', 'bass', 'lead', 'drums', 'fx', 'reverb', 'texture'];
 
@@ -20,12 +23,44 @@ export const BPM_RANGE = [50, 220] as const;
 /** How far the key can be moved, in semitones each way. */
 export const TRANSPOSE_RANGE = 6;
 /** The voices that carry a pitch, which a change of key moves (the drums and sweeps stay). */
-export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser']);
+export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser', 'didge', 'fm', 'pad', 'siren']);
 
-/** The kinds of effect a person can turn off, and which family each effect voice is in. */
-export const FX_FAMILIES = ['voices', 'console', 'sparkles', 'sweeps'] as const;
+/**
+ * The kinds of effect a person can turn on or off, and which family each effect voice is in.
+ * The Aussie birds (the magpie and the kookaburra) are on in the styles that sing their own
+ * (Straya, Sugar's magpie and Noosacore's) and turned off there through `quiet`; anywhere else
+ * they are off until a person turns them on (`birds`), and then they are sprinkled in
+ * (lib/aussie-birds.ts). The waves work the same way: on in Noosacore, which sets its own sea,
+ * and off elsewhere until a person turns them on (`waves`), when the sea is laid under the
+ * track (lib/beach-waves.ts).
+ * The 16-bit console's FM effects (`fm`: spins, shots and the moments before a drop) are the
+ * console's too, so `quiet=console` silences them with the coins and game sounds.
+ */
+export const FX_FAMILIES = ['voices', 'console', 'sparkles', 'sweeps', 'birds', 'waves'] as const;
 export type FxFamily = typeof FX_FAMILIES[number];
-const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'voices', kookaburra: 'voices', game: 'console', coin: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps' };
+const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'birds', kookaburra: 'birds', game: 'console', coin: 'console', fm: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps', wave: 'waves', siren: 'sweeps', whipbird: 'birds', lorikeet: 'birds' };
+/** Whether a style places its own birds: the Aussie birds' own (lib/aussie-birds.ts), and Noosacore, whose composer sings its magpie (engine/src/lofi-noosa.ts). */
+const ownBirds = (mood: LofiMood): boolean => OWN_BIRDS.has(mood) || mood === 'noosa';
+/** The families a style has to be given (`birds`, `waves`) rather than having its own to turn off. */
+function given(s: MusicState, family: FxFamily): 'birds' | 'waves' | null {
+  if (family === 'birds' && !ownBirds(s.mood)) return 'birds';
+  if (family === 'waves' && !OWN_WAVES.has(s.mood)) return 'waves';
+  return null;
+}
+/** Whether a family of effects plays in a track. */
+export function fxOn(s: MusicState, family: FxFamily): boolean {
+  const add = given(s, family);
+  if (add) return !!s[add];
+  return !s.quiet?.includes(family);
+}
+/** Turn a family of effects on or off in a track. */
+export function toggleFx(s: MusicState, family: FxFamily): void {
+  const add = given(s, family);
+  if (add) { s[add] = s[add] ? undefined : true; return; }
+  const quiet = new Set(s.quiet ?? []);
+  if (quiet.has(family)) quiet.delete(family); else quiet.add(family);
+  s.quiet = quiet.size ? FX_FAMILIES.filter(f => quiet.has(f)) : undefined;
+}
 /** The tag choices: none, or a delivery. */
 export const TAG_CHOICES: readonly LofiTagChoice[] = ['off', ...LOFI_TAGS];
 
@@ -53,16 +88,23 @@ export interface MusicState {
   tag?: LofiTagChoice;
   /** The kinds of effect the person turned off. */
   quiet?: FxFamily[];
+  /** The Aussie birds turned on in a style that has none of its own. */
+  birds?: boolean;
+  /** The waves turned on in a style that has no sea of its own. */
+  waves?: boolean;
 }
 
 export const DEFAULT_STATE: MusicState = { mood: 'sugar', seed: 2024, bars: 64, drums: true, texture: 0.3, mix: { ...LOFI_MIX }, sections: {} };
 
 /** Read a state from the link's parameters. Anything unknown or out of range falls back, and
- *  a retired lead (an old link's `lead=soft`) reads as the lead that took its place. */
+ *  a retired lead (an old link's `lead=soft`) reads as the lead that took its place, as does an
+ *  old bass id (`bass=yidaki` reads as the Didgeridoo, whose drone it was). */
 export function parseMusicState(params: string): MusicState {
   const q = new URLSearchParams(params);
   const pick = <T extends string>(v: string | null, from: readonly T[]): T | undefined => (from as readonly string[]).includes(v ?? '') ? from.find(x => x === v) : undefined;
   const pickLead = (v: string | null): LofiStyle['lead'] | undefined => ((lead) => lead && liveLead(lead))(pick(v, LOFI_LEADS));
+  // An old link's bass may carry an id that now plays as another (`bass=yidaki`, the drone, is the Didgeridoo).
+  const pickBass = (v: string | null): LofiStyle['bass'] | undefined => pick(v !== null && Object.hasOwn(BASS_ALIASES, v) ? BASS_ALIASES[v]! : v, LOFI_BASSES);
   const num = (v: string | null, lo: number, hi: number): number | undefined => {
     const n = Number(v);
     return v !== null && v !== '' && Number.isFinite(n) && n >= lo && n <= hi ? n : undefined;
@@ -77,7 +119,7 @@ export function parseMusicState(params: string): MusicState {
     const v: SectionVoices = {};
     const keys = pick(q.get(`${name}.keys`), LOFI_KEYS);
     const lead = pickLead(q.get(`${name}.lead`));
-    const bass = pick(q.get(`${name}.bass`), LOFI_BASSES);
+    const bass = pickBass(q.get(`${name}.bass`));
     const snare = pick(q.get(`${name}.snare`), LOFI_SNARES);
     const hats = pick(q.get(`${name}.hats`), LOFI_HATS);
     if (keys) v.keys = keys;
@@ -96,7 +138,7 @@ export function parseMusicState(params: string): MusicState {
     transpose: ((v) => v === undefined || Math.round(v) === 0 ? undefined : Math.round(v))(num(q.get('transpose'), -TRANSPOSE_RANGE, TRANSPOSE_RANGE)),
     keys: pick(q.get('keys'), LOFI_KEYS),
     lead: pickLead(q.get('lead')),
-    bass: pick(q.get('bass'), LOFI_BASSES),
+    bass: pickBass(q.get('bass')),
     drums: q.get('drums') !== '0',
     texture: num(q.get('texture'), 0, 1) ?? DEFAULT_STATE.texture,
     bright: num(q.get('bright'), 0.5, 1.8),
@@ -105,8 +147,22 @@ export function parseMusicState(params: string): MusicState {
     kit: pick(q.get('kit'), LOFI_KITS),
     tag: pick(q.get('tag'), TAG_CHOICES),
     quiet: ((list) => list.length ? list : undefined)(FX_FAMILIES.filter(f => (q.get('quiet') ?? '').split(',').includes(f))),
+    birds: q.get('birds') === '1' || undefined,
+    waves: q.get('waves') === '1' || undefined,
   };
 }
+
+/**
+ * The genre lock in a link (Andy, 2026-11-15: "a url param for locked genre so that when
+ * sharing a url people can shuffle the same genre"). `lock=genre` means Shuffle keeps the
+ * genre for whoever opens the link. The lock is not part of the tune: it never changes what
+ * plays, and a link without it leaves Shuffle to the person's own preference. `lock` takes a
+ * list, so later locks (a track's part) can sit beside the genre.
+ */
+export const linkLocksGenre = (params: string): boolean =>
+  (new URLSearchParams(params.replace(/^[^?]*\?/, '')).get('lock') ?? '').split(',').includes('genre');
+/** The link's parameters with the genre lock written in, or left out. */
+export const withGenreLock = (params: string, locked: boolean): string => (locked ? `${params}&lock=genre` : params);
 
 /** The link's parameters for a state: only what differs from the defaults, so links stay short. */
 export function musicStateParams(s: MusicState): string {
@@ -127,6 +183,8 @@ export function musicStateParams(s: MusicState): string {
   if (s.kit) q.set('kit', s.kit);
   if (s.tag) q.set('tag', s.tag);
   if (s.quiet?.length) q.set('quiet', s.quiet.join(','));
+  if (s.birds) q.set('birds', '1');
+  if (s.waves) q.set('waves', '1');
   for (const name of SECTION_NAMES) {
     const v = s.sections[name];
     if (v?.keys) q.set(`${name}.keys`, v.keys);
@@ -159,6 +217,9 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
   const retimed = new WeakMap<LofiTuneInfo, LofiTuneInfo>();
   const shift = s.transpose ?? 0;
   const quiet = new Set<string>(s.quiet ?? []);
+  // The Aussie birds sprinkled into a style without its own, and the sea laid under one, when a person turned them on.
+  const sprinkle = s.birds && !ownBirds(s.mood) && !quiet.has('birds');
+  const sea = s.waves && !OWN_WAVES.has(s.mood) && !quiet.has('waves');
   const changed = (tune: LofiTuneInfo): LofiTuneInfo => {
     const bpm = s.bpm ?? tune.bpm;
     if (bpm === tune.bpm && !shift) return tune;
@@ -175,6 +236,7 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
     // plays alone there (in its stack), with no other bass answering and no croak laid over.
     let out = chosen ? { ...bar, voices: { ...bar.voices, ...chosen, ...(chosen.lead ? { double: undefined } : {}), ...(chosen.bass ? { over: undefined } : {}) } } : bar;
     if (chosen?.bass && bar.voices?.over) out = { ...out, notes: out.notes.filter(n => !isOverNote(n)) };
+    out = onDidge(bar, out);
     if (shift) {
       out = {
         ...out,
@@ -184,9 +246,34 @@ export function shapeBar(s: MusicState): (bar: LofiBar) => LofiBar {
       };
     }
     if (quiet.size) out = { ...out, notes: out.notes.filter(n => !quiet.has(FX_FAMILY[n.voice] ?? '')) };
+    if (sprinkle) out = sprinkleBirds(out, bar.tune);
+    if (sea) out = sprinkleWaves(out, bar.tune);
     const tune = changed(bar.tune);
     return tune === bar.tune ? out : { ...out, tune };
   };
+}
+
+/**
+ * A bar with its tracks given to the Didgeridoo or the Yidaki played on that instrument's one
+ * note (lofi-straya.ts playOnDidge): the chords or the melody whenever either is one of them
+ * (the composer never gives them one of its own), the bass when a person chose the Didgeridoo
+ * for a kind of section whose bass the composer wrote for another. `bar` as composed, `out`
+ * with the person's instruments.
+ */
+function onDidge(bar: LofiBar, out: LofiBar): LofiBar {
+  const st = bar.tune.style;
+  const keys = out.voices?.keys ?? st.keys;
+  const lead = liveLead(out.voices?.lead ?? st.lead);
+  const bass = out.voices?.bass ?? st.bass;
+  const drone = bass === 'didgeridoo' && (bar.voices?.bass ?? st.bass) !== 'didgeridoo';
+  if (!drone && !DIDGE_INSTRUMENTS.has(keys) && lead !== 'yidaki') return out;
+  const at = { section: out.section, index: out.index, layers: out.layers, key: rootPitchClass(out.tune.key), seed: out.tune.seed, swing: out.tune.swing, swing8: out.tune.swing8 };
+  let notes = out.notes;
+  if (drone) notes = playOnDidge({ ...at, notes }, 'bass', 'didgeridoo', false);
+  const over = bass === 'didgeridoo' && notes.some(n => n.voice === 'bass');
+  if (keys === 'didgeridoo' || keys === 'yidaki') notes = playOnDidge({ ...at, notes }, 'keys', keys, over);
+  if (lead === 'yidaki') notes = playOnDidge({ ...at, notes }, 'lead', 'yidaki', over);
+  return { ...out, notes };
 }
 
 /**
@@ -202,7 +289,7 @@ export function composeTrack(s: MusicState): LofiBar[] {
 export function barTimes(bars: readonly LofiBar[]): { starts: number[]; total: number } {
   const starts: number[] = [];
   let at = 0;
-  for (const b of bars) { starts.push(at); at += 240 / b.tune.bpm; }
+  for (const b of bars) { starts.push(at); at += lofiBarSeconds(b.tune); }
   return { starts, total: at };
 }
 

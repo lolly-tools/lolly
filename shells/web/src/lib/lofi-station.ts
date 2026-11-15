@@ -27,7 +27,7 @@
  * clock a little ahead of time. A hidden tab's timers run slowly, so while the page
  * is hidden the station queues a few seconds ahead instead of a quarter of one.
  */
-import { isOverNote, liveLead, lofiStream, lofiTrack, LOFI_DRUM_VOICES, LOFI_PERCUSSION, ELECTRIC_FRET, SURF_GLISS } from '../../../../engine/src/lofi-compose.ts';
+import { isOverNote, liveLead, lofiBarBeats, lofiStream, lofiTrack, LOFI_DRUM_VOICES, LOFI_PERCUSSION, ELECTRIC_FRET, SURF_GLISS } from '../../../../engine/src/lofi-compose.ts';
 import type { LiveLead, LofiBar, LofiMood, LofiNote, LofiStream, LofiStyle, LofiTagChoice, LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
 import * as V from './lofi-voices.ts';
@@ -49,14 +49,27 @@ import { ownOnly } from './lofi-lead-art.ts';
 import { composerMod } from './lofi-flutes.ts';
 import * as LP from './lofi-latin-perc.ts';
 import * as P from './lofi-piano.ts';
+import * as OB from './lofi-oompa.ts';
+import { playConsoleFx, stopsTape, tapeStopCurve } from './lofi-console-fx.ts';
 import { readGlitch } from '../../../../engine/src/lofi-botanica.ts';
 import { playNature } from './lofi-nature.ts';
+import { playWave } from './lofi-waves.ts';
+import { playLorikeets, playWhipbird } from './lofi-coast-birds.ts';
 import { playGrain } from './lofi-grains.ts';
 import { BeatRepeat, playGlitch, repeatSlice } from './lofi-glitch.ts';
 import * as BR from './lofi-breaks.ts';
 import * as GA from './lofi-garage.ts';
 import { houseOrgan } from './lofi-organ.ts';
+import { DidgePlayer } from './lofi-didge-player.ts';
+import { DIDGE_LEAD, readBird, readDidge } from '../../../../engine/src/lofi-straya.ts';
+import { arnhemDidgeLift, arnhemUnison } from '../../../../engine/src/lofi-arnhem.ts';
+import * as BI from './lofi-bilma.ts';
 import { isBreakNote } from '../../../../engine/src/lofi-breaks.ts';
+import { readFuture } from '../../../../engine/src/lofi-future.ts';
+import * as FB from './lofi-future.ts';
+import { isSliceNote } from '../../../../engine/src/lofi-break-chop.ts';
+import * as BK from './lofi-break-kit.ts';
+import * as DUB from './lofi-dub.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -89,15 +102,15 @@ export const LOFI_MIX: LofiMix = { keys: 1, bass: 1, lead: 1, drums: 1, fx: 1, r
 
 /** The tone filter's most open cutoff per mood (Hz); texture and each bar close it from there. */
 const MOOD_TONE: Record<LofiMood, number> = {
-  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 13000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
-  country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 10000, grunge: 7500, stoner: 6500, shoegaze: 7000,
+  warm: 7500, lateNight: 4300, rainy: 5400, sings: 8200, sugar: 11000, sherbert: 16000, chiptune: 11000, citypop: 9500, nudisco: 9500, triphop: 5500, funk: 9500, soul: 8000, acid: 10000, hiphop: 8000, reggae: 7500, spanish: 8500, rock: 9000, synthwave: 9500, electro: 9000, dubstep: 9500, brostep: 10000, dnb: 10000,
+  country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 7000, arnhem: 9500, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
-  persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500, botanica: 12500,
-  breakbeat: 9500, funkyHouse: 10500, ukGarage: 10500, privateSchool: 8500,
+  persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500, botanica: 12500, oompa: 9000, noosa: 11000, mandopop: 9500, cpop: 11500,
+  breakbeat: 9500, funkyHouse: 10500, ukGarage: 10500, privateSchool: 8500, jungle: 15000,
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +2 dB), in every genre of the family. */
 const SINGS_LEAD = 1.3;
-const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool']);
+const SINGS_FAMILY = new Set<LofiMood>(['sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'nudisco', 'triphop', 'funk', 'soul', 'acid', 'hiphop', 'reggae', 'spanish', 'rock', 'synthwave', 'electro', 'dubstep', 'brostep', 'dnb', 'country', 'blues', 'jazz', 'swing', 'straya', 'arnhem', 'fantasy', 'dream', 'kpop', 'metal', 'ska', 'punk', 'rnb', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa', 'jungle']);
 const DRUMS = new Set(LOFI_DRUM_VOICES);
 /**
  * Each part's designed level: first measured K-weighted and soloed (keys about -25 LUFS,
@@ -115,18 +128,25 @@ const NATURE_BUS = 0.6;
 const NATURE_ROOM = 0.18;
 /** The room by section: bigger in the quiet sections, tighter in a drop. */
 const SECTION_ROOM: Partial<Record<string, number>> = { intro: 1.25, break: 1.35, outro: 1.4, bridge: 1.15, build: 1.1, drop: 0.85 };
+/**
+ * The styles whose supersaw is played as the layered future-bass chord (lib/lofi-future.ts):
+ * Sherbert only. Sugar's and the other styles' supersaw stays the four-saw chord it was.
+ */
+const LAYERED_SAWS = new Set<LofiMood>(['sherbert']);
 /** The styles built on drops, whose builds sweep a high-pass up the music. */
-const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy', 'breakbeat', 'funkyHouse', 'ukGarage']);
+const SWEEPS = new Set<LofiMood>(['sugar', 'sherbert', 'kpop', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'amapiano', 'citypop', 'dream', 'fantasy', 'breakbeat', 'funkyHouse', 'ukGarage', 'cpop', 'jungle']);
 /** The styles that throw a phrase's last lead note into the echo, and those that keep a little echo on the lead throughout. */
-const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska', 'lofiHouse', 'yacht', 'botanica', 'ukGarage', 'privateSchool']);
+const THROWS = new Set<LofiMood>(['reggae', 'synthwave', 'sugar', 'sherbert', 'kpop', 'dream', 'fantasy', 'triphop', 'rnb', 'citypop', 'chiptune', 'dubstep', 'amapiano', 'ska', 'lofiHouse', 'yacht', 'botanica', 'ukGarage', 'privateSchool', 'noosa', 'mandopop', 'cpop', 'jungle']);
 const ECHO_ALWAYS = new Set<LofiMood>(['synthwave', 'dream', 'reggae']);
 const ECHO_BED = 0.12;
 /** The drums' room send, at the middle of the arrangement; the room slider and the section scale the send. */
 const DRUM_ROOM = 0.32;
 const THROW_LEVEL = 0.55;
 /** The styles whose chorus puts a sine sub under the bass guitar, and the basses it goes under. */
-const SUB_UNDER = new Set<LofiMood>(['rnb', 'soul', 'citypop', 'kpop']);
+const SUB_UNDER = new Set<LofiMood>(['rnb', 'soul', 'citypop', 'kpop', 'mandopop']);
 const SUB_BASSES = new Set<string>(['motown', 'round', 'synth', 'picked']);
+/** A pad under the keys (`pad` notes) against the keys' own level: held under them, not over. */
+const PAD_LEVEL = 0.7;
 /** The styles whose lead lays back behind the beat, and by how much (s). */
 const LAID_BACK = new Set<LofiMood>(['jazz', 'swing', 'blues']);
 const LAY_BACK = 0.024;
@@ -146,11 +166,11 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
   // so they take most of the measured difference, not the whole difference. The electric
   // guitars (the keys' electric and the lead guitars) set their own level, as their
   // velocity chooses how hard the string is picked (lib/lofi-lead-guitars.ts).
-  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 1, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1, strings: 1, grand: 1, surf: 1, combo: 2.2, houseOrgan: 1 },
+  keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 1, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1, strings: 1, grand: 1, surf: 1, combo: 2.2, houseOrgan: 1, horns: 1, didgeridoo: 0.7, yidaki: 0.7 },
   lead: { vibes: 1, flute: 0.82, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 1, overdrive: 1, synthwave: 0.86, metal: 1, panflute: 0.56, nylon: 1.9, riff: 1, twang: 1, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1,
-    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0 },
+    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
-  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, yidaki: 1.1, log: 1, deep: 1, warp: 1 },
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
   hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
@@ -159,7 +179,7 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
  * phrase (measured, the sounds that ring and fade trimmed by only part of the difference),
  * then refined with the genre seats against the stems of every style.
  */
-const LEAD_TRIM: Partial<Record<LiveLead, number>> = { angel: -0.2, balafon: 2.2, banjo: -1.8, bells: -0.6, bit: 4.0, chip: 4.0, chop: 0.3, clarinet: 1.5, dizi: -1.4, erhu: 1.4, fiddle: 0.2, flute: -2.1, guitar: -2.1, harp: -4.6, kalimba: -3.1, kamancheh: -0.1, kora: 0.1, koto: 2.2, metal: -0.3, ney: -0.6, nylon: -1.9, overdrive: 0.3, panflute: 0.3, pedal: 0.1, pipa: 3.3, pulse: 1.8, riff: -0.1, santur: 3.7, sax: 2.5, shakuhachi: -1.1, shamisen: 4.0, steel: -1.2, tar: 0.5, trumpet: 4.0, twang: -1.5, vibes: -0.7, zheng: 2.1, viola: 0.1, cello: -0.4, doublebass: -0.3 };
+const LEAD_TRIM: Partial<Record<LiveLead, number>> = { angel: -0.2, balafon: 2.2, banjo: -1.8, bells: -0.6, bit: 4.0, chip: 4.0, chop: 0.3, clarinet: 1.5, dizi: -1.4, erhu: 1.4, fiddle: 0.2, flute: -2.1, guitar: -2.1, harp: -4.6, kalimba: -3.1, kamancheh: -0.1, kora: 0.1, koto: 2.2, metal: -0.3, ney: -0.6, nylon: -1.9, overdrive: 0.3, panflute: 0.3, pedal: 0.1, pipa: 3.3, pulse: 1.8, riff: -0.1, santur: 3.7, sax: 2.5, shakuhachi: -1.1, shamisen: 4.0, steel: -1.2, tar: 0.5, trumpet: 4.0, twang: -1.5, vibes: -0.7, zheng: 2.1, viola: 0.1, cello: -0.4, doublebass: -0.3, flugelhorn: 8.5, tenorhorn: 8.5 };
 /**
  * Each genre's seat for its lead (dB), with the instrument trimmed: the lead's place
  * against the band while the lead plays. Measured from the stems of two tunes a genre, fitted twice, and set
@@ -171,13 +191,34 @@ const LEAD_TRIM: Partial<Record<LiveLead, number>> = { angel: -0.2, balafon: 2.2
  * dont destroy the genre"; 2026-11-13, of lofi house: "the lead is quiet and the bass is
  * loud").
  */
-const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5, breakbeat: -3, funkyHouse: -3, ukGarage: -2, privateSchool: -4 };
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -8.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, arnhem: 3.0, sugar: -1.0, swing: -0.7, synthwave: -8.2, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5, noosa: -6.5, breakbeat: -3, funkyHouse: -3, ukGarage: -2, privateSchool: -4, jungle: -3 };
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. The club
  *  genres' are set so the mix under 150 Hz sits against the whole as their records' does (docs/generated-music.md):
- *  breakbeat's back, garage's a little up, private school's log drum kept soft. */
-const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5 };
+ *  breakbeat's back, garage's a little up, private school's log drum kept soft; jungle's sub sits about 3.5 LU
+ *  under its breaks (K-weighted), as eight jungle records' drops do. */
+const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5, jungle: -3 };
+/**
+ * The didgeridoo's cameo in the bass genres (engine/src/lofi-straya.ts), against its own level:
+ * measured K-weighted in its bar, it sits about 3 to 4 dB under the bass stack it plays over.
+ */
+const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.52, brostep: 0.52, dnb: 0.84 };
+/**
+ * Each genre's seat for the console's FM effects (dB, against Sugar's): its hook's loudness
+ * through the drops, measured K-weighted, decides it, so a spin or a shot sits the same
+ * few decibels under the tune in every style. Sherbert's stays 2 dB further back, as its
+ * console is already busy.
+ */
+const FM_SEAT: Partial<Record<LofiMood, number>> = { chiptune: -4.5, sherbert: 2.5, kpop: 2.5, synthwave: -7.2 };
+/** Noosacore's didgeridoo is an undertone under the sea (engine/src/lofi-noosa.ts): measured K-weighted, about 7 to 8 dB under the lull it drones in. */
+const NOOSA_DIDGE = 0.5;
 /** The styles whose vocal chops in a chorus are a coro: several singers on the line, not one voice chopped. */
 const CORO = new Set<LofiMood>(['salsa']);
+/** Whether a tune's chorus is sung by several voices in unison: a coro's styles, and Arnhem Land's tunes that sing their hook together (engine/src/lofi-arnhem.ts). */
+const coro = (mood: LofiMood, seed: number): boolean => CORO.has(mood) || (mood === 'arnhem' && arnhemUnison(seed));
+/** Arnhem Land's singers together against its one voice (its lead seat is set for the one voice). */
+const ARNHEM_GROUP = 0.6;
+/** Arnhem Land's Yidaki in the lead seat, against the seat's lift for the voice (5.5 dB down: its answers about level with the band, its solo 3 dB under). */
+const ARNHEM_YIDAKI_SEAT = 0.53;
 /** A coro's singers: each its own voice (a seed for lib/lofi-chop.ts), how late (s), its place across the speakers and how loud. */
 const CORO_SINGERS: ReadonlyArray<{ seed: number; late: number; pan: number; level: number }> = [
   { seed: 0, late: 0, pan: 0, level: 0.62 },
@@ -196,6 +237,8 @@ const TEXTURE_MAX = 0.4;
 const DUST_MID = 1.4;
 /** A record at 33⅓ rpm turns once every 1.8 s. */
 const REVOLUTION = 60 / (100 / 3);
+/** The longest a tape stop's delay line can stretch to (s): a stop over a beat at the slowest tempo. */
+const TAPE_MAX = 0.6;
 const LOOKAHEAD = 0.25;
 const LOOKAHEAD_HIDDEN = 3;
 
@@ -227,6 +270,8 @@ export class LofiStation {
   private lastLead = { end: -1, midi: 0, voice: '' };
   /** The travelling bass's last note, for the next note to glide from. */
   private lastTravel = { end: -1, midi: 0 };
+  /** Straya's didgeridoo: one player, carrying on from note to note (lib/lofi-didge-player.ts). */
+  private readonly didge = new DidgePlayer();
   /** Each tune's drum kit, drawn once from its seed (lib/lofi-drums.ts). */
   private kits = new Map<string, D.DrumKit>();
 
@@ -284,6 +329,9 @@ export class LofiStation {
   private readonly wowDepth: GainNode;
   private readonly driftDepth: GainNode;
   private readonly flutterDepth: GainNode;
+  /** The record head's delay line, and the tape machine after it that a console moment's rewind stops (see tapeStop). */
+  private readonly wow: DelayNode;
+  private tape: DelayNode | null = null;
   private readonly toneWander: GainNode;
   private readonly crackle: GainNode;
   private readonly hiss: GainNode;
@@ -296,6 +344,9 @@ export class LofiStation {
   private readonly natureBus: GainNode;
   /** A beat repeater on the whole mix, built when a tune first repeats (lib/lofi-glitch.ts). */
   private repeater: BeatRepeat | null = null;
+  /** An oompa band's hall (lib/lofi-oompa.ts), made when a band's tune first plays: every part goes into it, in place of the music's room. */
+  private hall: OB.Hall | null = null;
+  private inHall = false;
   private lanes: Lanes;
 
   constructor(ctx: BaseAudioContext, dest: AudioNode, seed: number, settings: LofiSettings, mix: LofiMix = LOFI_MIX) {
@@ -332,6 +383,7 @@ export class LofiStation {
     const wow = ctx.createDelay(0.1);
     wow.delayTime.value = 0.02;
     wow.connect(this.tone);
+    this.wow = wow;
     this.music = ctx.createGain();
     this.dry = ctx.createGain();
     // The build's sweep sits between the music and everything after it, wide open (20 Hz)
@@ -613,6 +665,8 @@ export class LofiStation {
     const until = this.ctx.currentTime + (hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
     this.fill(until);
     this.flush(until);
+    // A chopped break's recording, a step a tick, ahead of its first slice (lib/lofi-break-kit.ts).
+    BK.warm(this.ctx);
   }
 
   /** Queue whole bars until the next one starts after `until`. */
@@ -639,7 +693,8 @@ export class LofiStation {
         this.queue.push({ at: at + note.beat * spb, spb, note, bar, lanes: this.lanes, lead });
       }
       this.marks.push({ at, bar, pos: this.taken - 1 });
-      this.nextBarAt = at + 4 * spb;
+      BK.prepare(this.ctx, bar.tune);
+      this.nextBarAt = at + lofiBarBeats(bar.tune) * spb;
     }
   }
 
@@ -655,7 +710,7 @@ export class LofiStation {
     const marks = this.marks.filter(m => m.at < until);
     if (marks.length) this.marks = this.marks.filter(m => m.at >= until);
     for (const m of marks) {
-      if (m.bar.index === 0 || !this.styled) { this.applyStyle(m.bar.tune.style, Math.max(m.at, now)); this.styled = true; }
+      if (m.bar.index === 0 || !this.styled) { this.applyStyle(m.bar.tune.style, Math.max(m.at, now), m.bar.tune.mood); this.styled = true; }
       this.lastOpen = m.bar.open;
       this.markSection(m.bar, Math.max(m.at, now));
       this.tone.frequency.setTargetAtTime(this.cutoff(m.bar.open), Math.max(m.at, now), 0.5);
@@ -668,8 +723,11 @@ export class LofiStation {
 
   private play({ at, spb, note, bar, lanes }: Queued): void {
     const t = Math.max(at, this.ctx.currentTime);
-    const vel = note.vel * bar.level;
+    // A featured bird is a hook laid over the band, not the band: an outro's fade leaves it whole.
+    const vel = note.vel * ((note.voice === 'magpie' || note.voice === 'kookaburra') && readBird(note.mod ?? 0).featured ? 1 : bar.level);
     if (DRUMS.has(note.voice) && !this.settings.drums) return;
+    // An oompa band plays its own drums, unless a person chose a kit (lib/lofi-oompa.ts).
+    if (DRUMS.has(note.voice) && OB.bandDrums(bar, this.settings.kit) && OB.drum(this.kit, lanes.drums, note, t, vel, bar, this.kitOf(bar.tune))) return;
     const k = this.kit;
     const st = bar.tune.style;
     const len = note.dur * spb;
@@ -680,20 +738,40 @@ export class LofiStation {
     const bassV = bar.voices?.bass ?? st.bass;
     const snareV = bar.voices?.snare ?? st.snare;
     const hatsV = bar.voices?.hats ?? st.hats;
-    // A break's note (breakbeat's drums, drum and bass's top loop) plays on the break's kit
-    // through its filters (lib/lofi-breaks.ts); its kick still pumps the music.
-    if (isBreakNote(note)) {
-      BR.playBreak(k, lanes.drums, note, bar, t, vel);
+    // A slice of a chopped break plays its stretch of the tune's recording (lib/lofi-break-kit.ts);
+    // a kick slice pumps the music as a kick does.
+    if (isSliceNote(note)) {
+      BK.playSlice(k, lanes.drums, note, bar, t, vel);
       if (note.voice === 'kick') {
         this.duck(t, st.duck);
         BS.duck(lanes.bass, Math.max(this.ctx.currentTime, t - 0.02), st.duck);
       }
       return;
     }
+    // A break's note (drum and bass's top loop) plays on the break's kit through its filters
+    // (lib/lofi-breaks.ts); its kick still pumps the music.
+    if (isBreakNote(note)) {
+      BR.playBreak(k, lanes.drums, note, bar, t, vel);
+      if (note.voice === 'kick') {
+        this.duck(t, st.duck);
+        BS.duck(lanes.bass, Math.max(this.ctx.currentTime, t - 0.02), st.duck);
+        FB.pump(lanes.keys, Math.max(this.ctx.currentTime, t), st.duck);
+      }
+      return;
+    }
+    // Noosacore's didgeridoo drones softly under its quiet sections, and plays its one rhythm figure inside a full swell, in the bass's lane.
+    if (note.voice === 'didge' && bar.tune.mood === 'noosa') {
+      this.didge.play(k, lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * NOOSA_DIDGE);
+      return;
+    }
     switch (note.voice) {
       case 'keys': {
-        // A future-bass chord's wub is swings a beat (the voice wants Hz), plus 16 for a bend.
+        // A future-bass chord's movement (engine/src/lofi-future.ts): its wub is swings a beat (the voice wants Hz).
         const m = note.mod ?? 0;
+        // Jungle's stabs are thrown into its dub echo and spring (lib/lofi-dub.ts).
+        if (DUB.dubbed(bar.tune.mood)) DUB.stab(k, lanes.keys, lanes.fx, bar, note.beat, t, len);
+        // The chords given to the Didgeridoo or the Yidaki: a rhythm on its one note (music-state.ts shapeBar).
+        if (keysV === 'didgeridoo' || keysV === 'yidaki') { this.didge.play(k, lanes.keys, t, note.midi, note.vel, len, m, bar.tune.seed, bar.level * VARIANT.keys[keysV], 'keys'); break; }
         if (keysV === 'surf') SF.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys.surf, len, m);
         else if (keysV === 'combo') CO.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys.combo, len);
         else if (G.GUITAR_KEYS.has(keysV)) G.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, m);
@@ -704,8 +782,24 @@ export class LofiStation {
         else if (keysV === 'steel') V.steelKeys(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, m);
         else if (S.STRING_KEYS.has(keysV)) S.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
         else if (keysV === 'houseOrgan') houseOrgan(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
+        // The band's after-beats, one player to a chord tone (lib/lofi-oompa.ts).
+        else if (keysV === 'horns') OB.horns(k, lanes.keys, bar.tune.seed, t, note.midi, vel, len);
         else if (P.PIANO_KEYS.has(keysV)) P.grand(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
-        else V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: (m % 16) / spb, bend: m >= 16 });
+        // Sherbert's supersaw is the layered future chord, held still (its stabs are the supersaw's own).
+        else if (keysV === 'supersaw' && LAYERED_SAWS.has(bar.tune.mood)) FB.future(k, lanes.keys, t, note.midi, vel * VARIANT.keys.future, len, { rate: 0, bend: false, spb });
+        else {
+          const fm = readFuture(m);
+          V.keys(keysV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, { rate: fm.rate / spb, bend: fm.bend, dive: fm.dive, swell: fm.swell, gate: fm.gate, spb });
+        }
+        break;
+      }
+      case 'pad': {
+        // A second keys instrument holding the chords under the keys (Mandopop's strings, C-Pop's pad).
+        const padV = bar.voices?.pad ?? 'strings';
+        const m = note.mod ?? 0;
+        if (S.STRING_KEYS.has(padV)) S.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys[padV] * PAD_LEVEL, len);
+        else if (P.PIANO_KEYS.has(padV)) P.grand(k, lanes.keys, t, note.midi, vel * VARIANT.keys[padV] * PAD_LEVEL, len);
+        else V.keys(padV, k, lanes.keys, t, note.midi, vel * VARIANT.keys[padV] * PAD_LEVEL, len, { rate: (m % 16) / spb, bend: m >= 16 });
         break;
       }
       case 'bass': {
@@ -714,9 +808,13 @@ export class LofiStation {
         const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
         const level = vel * VARIANT.bass[bassV] * 10 ** ((BASS_SEAT[bar.tune.mood] ?? 0) / 20);
+        // The Didgeridoo: its drone, on the player that also plays its rhythm when the drone turns into one.
+        if (bassV === 'didgeridoo') { this.didge.play(k, lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * VARIANT.bass.didgeridoo); break; }
         const tone = { bright: st.bright ?? 1, drive: st.drive ?? 1 };
         const take: BS.Take = (kit, out, at, midi, lvl, tn) => {
-          if (bassV === 'log') W.bass(kit, out, at, midi, lvl, len, mod, tn);
+          // The tuba blows as hard as the note says; its seat is only a level.
+          if (bassV === 'tuba') OB.tuba(kit, out, bar.tune.seed, at, midi, vel, len, mod, lvl / Math.max(0.05, vel));
+          else if (bassV === 'log') W.bass(kit, out, at, midi, lvl, len, mod, tn);
           else if (H.HOUSE_BASSES.has(bassV)) H.bass(kit, out, at, midi, lvl, len, tn);
           else if (GA.GARAGE_BASSES.has(bassV)) GA.bass(kit, out, at, midi, lvl, len, mod, spb, tn);
           else V.bass(bassV, kit, out, at, midi, lvl, len, mod, tn);
@@ -732,7 +830,12 @@ export class LofiStation {
         break;
       }
       case 'lead': {
+        // An oompa tune's lines are the band's, each on its player (lib/lofi-oompa.ts); a
+        // melody on a lead the band does not play goes on as any lead does.
+        if (bar.tune.mood === 'oompa' && OB.line(k, lanes.lead, bar, t, note.midi, vel, len, note.mod ?? 0, leadV)) break;
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
+        // The melody given to the Yidaki: its phrases played as calls, toots and sweeps on its one note (music-state.ts shapeBar).
+        if (leadV === 'yidaki') { this.didge.play(k, this.leadSeat(lanes.lead, bar.tune.mood, 'didge'), t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift * VARIANT.lead.yidaki, 'lead'); break; }
         // A note that starts as the last one ends, on the same instrument, is slurred onto
         // it: a wind glides from that pitch instead of tonguing a new attack.
         // A jazz soloist lays back: the lead's notes on the beat sit a little behind it, the
@@ -747,11 +850,15 @@ export class LofiStation {
           const at = lt + late;
           // A flautist's flags are the flute's own: an instrument doubling it reads the composer's articulation.
           const mod = v === leadV ? note.mod ?? 0 : composerMod(note.mod);
-          if (v === 'chop' && CORO.has(bar.tune.mood) && bar.section === 'drop') {
+          if (v === 'chop' && coro(bar.tune.mood, bar.tune.seed) && bar.section === 'drop') {
             // A coro: the line sung by several voices, each its own singer, a little apart.
-            for (const s of CORO_SINGERS) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, v, s.pan) : seat, at + s.late, note.midi + shift, level * s.level, len, mod, spb, (bar.tune.seed ^ s.seed) >>> 0, bar.index * 1000 + Math.round(note.beat * 48));
+            // Arnhem Land's group sings its hook under its lead seat, set for one voice (about 4 dB down).
+            const group = bar.tune.mood === 'arnhem' ? ARNHEM_GROUP : 1;
+            for (const s of CORO_SINGERS) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, v, s.pan) : seat, at + s.late, note.midi + shift, level * s.level * group, len, mod, spb, (bar.tune.seed ^ s.seed) >>> 0, bar.index * 1000 + Math.round(note.beat * 48));
           } else if (v === 'chop') C.chop(k, seat, at, note.midi + shift, level, len, mod, spb, bar.tune.seed, bar.index * 1000 + Math.round(note.beat * 48));
           else if (v === 'surf') SF.lead(k, seat, at, note.midi + shift, level, len, mod, spb);
+          // The band's own horns as a lead in any style: a player of the oompa band (lib/lofi-oompa.ts).
+          else if (OB.BAND_SOLOS.has(v)) OB.line(k, seat, bar, at, note.midi + shift, level, len, 0, v);
           else if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
           else if (S.STRING_LEADS.has(v)) S.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift);
           else if (LG.LEAD_GUITARS.has(v)) LG.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
@@ -788,6 +895,16 @@ export class LofiStation {
         if (double && !ownOnly(note.mod) && !glide) play(double, vel * VARIANT.lead[double] * lift * 0.7);
         break;
       }
+      case 'didge': {
+        // The didgeridoos over the band: a drone with the bass, the rhythm with the chords, the solo in the lead's seat.
+        const role = readDidge(note.mod ?? 0).role;
+        const solo = role === DIDGE_LEAD;
+        const lift = solo && SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
+        // Arnhem Land's lead seat is set for its singing; its Yidaki's answers and solo take back that seat's lift.
+        const arnhem = bar.tune.mood === 'arnhem' ? arnhemDidgeLift(bar.tune.seed) * (solo ? ARNHEM_YIDAKI_SEAT : 1) : 1;
+        this.didge.play(k, solo ? this.leadSeat(lanes.lead, bar.tune.mood, 'didge') : role === 0 ? lanes.bass : lanes.keys, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift * arnhem * (DIDGE_CAMEO_LEVEL[bar.tune.mood] ?? 1));
+        break;
+      }
       case 'fill': {
         // Yacht rock's guitar fills, on the chorused guitar, seated with the lead and a little under the tune.
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
@@ -799,9 +916,19 @@ export class LofiStation {
       case 'coin': V.coin(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'sparkle': V.sparkle(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 4); break;
       case 'game': V.game(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'fm':
+        // A 16-bit console's FM effect (lib/lofi-console-fx.ts); a rewind also stops the tape under the music.
+        playConsoleFx(k, lanes.fx, t, note.midi, vel * 10 ** ((FM_SEAT[bar.tune.mood] ?? 0) / 20), note.mod ?? 0, len, spb);
+        if (stopsTape(note.mod ?? 0) && this.mix.fx > 0) this.tapeStop(t, len);
+        break;
       case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
-      case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
+      case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, len); break;
+      // The coast's birds (lib/lofi-coast-birds.ts): a whipbird pair calling, rainbow lorikeets.
+      case 'whipbird': playWhipbird(this.ctx, lanes.fx, t, note.midi, vel, note.mod ?? 0, bar.tune.seed); break;
+      case 'lorikeet': playLorikeets(this.ctx, lanes.fx, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed); break;
       case 'nature': playNature(this.ctx, lanes.nature, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed, bar.index * 64 + Math.round(note.beat * 8)); break;
+      // The sea on the shore (lib/lofi-waves.ts), with the place's sounds after the tone filter, as a field recording would be.
+      case 'wave': playWave(this.ctx, lanes.nature, t, vel, len, note.mod ?? 0, bar.tune.seed, bar.index * 64 + Math.round(note.beat * 8)); break;
       case 'grain': playGrain(this.ctx, lanes.fx, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed); break;
       case 'glitch':
         if (readGlitch(note.mod ?? 0).kind === 'repeat') {
@@ -812,6 +939,8 @@ export class LofiStation {
       case 'tom': D.tom(k, lanes.drums, t, note.midi, vel, this.kitOf(bar.tune)); break;
       case 'perc': {
         // Salsa's percussion (lib/lofi-latin-perc.ts); a güiro's scrape is as long as its note.
+        // Arnhem Land's bilma, the hardwood clapsticks (lib/lofi-bilma.ts), pitched by the note.
+        if (LOFI_PERCUSSION[note.mod ?? 0] === 'bilma') { BI.play(k, lanes.drums, t, note.midi, vel); break; }
         const latin = LOFI_PERCUSSION[note.mod ?? 0] as LP.LatinKind;
         if (LP.LATIN_PERCUSSION.includes(latin)) { LP.perc(k, lanes.drums, t, note.midi, vel, latin, len); break; }
         if ((note.mod ?? 0) >= W.WORLD_PERC_FROM) W.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
@@ -853,6 +982,7 @@ export class LofiStation {
         break;
       }
       case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'siren': DUB.siren(k, lanes.keys, lanes.fx, bar, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar':
         if (BS.stacked(bar.tune.mood)) BS.soar(k, lanes.bass, bar, t, note.midi, vel, len, note.mod === 1);
@@ -863,6 +993,7 @@ export class LofiStation {
         D.kick(k, lanes.drums, t, vel, st.kick, st.kickLen, kit.kick, kit);
         this.duck(t, st.duck);
         BS.duck(lanes.bass, Math.max(this.ctx.currentTime, t - 0.02), st.duck);   // a stack's sub dips further
+        FB.pump(lanes.keys, Math.max(this.ctx.currentTime, t), st.duck);   // and the future chords pump hardest
         break;
       }
       case 'snare':
@@ -891,6 +1022,25 @@ export class LofiStation {
     }
   }
 
+  /**
+   * Stop the tape under the music over `seconds` from `t`, as a tape machine's motor cut
+   * does: a delay line after the record head stretches so the keys, lead, bass and effects
+   * slow to a halt (the drums keep their own path), then snaps back on the next bar's first beat.
+   * The delay line is put in when a tune first stops its tape, at no delay, so a station
+   * that never does is wired as before.
+   */
+  private tapeStop(t: number, seconds: number): void {
+    if (!this.tape) {
+      this.tape = this.ctx.createDelay(TAPE_MAX);
+      this.tape.delayTime.value = 0;
+      this.wow.disconnect(this.tone);
+      this.wow.connect(this.tape).connect(this.tone);
+    }
+    const len = Math.min(seconds, (TAPE_MAX - 0.02) * 2.6);
+    this.tape.delayTime.setValueCurveAtTime(tapeStopCurve(0, len), t, len);
+    this.tape.delayTime.setValueAtTime(0, t + len);
+  }
+
   /** Dip the music under a kick (it reaches the speakers 20 ms later, through the wow delay). */
   private duck(t: number, depth: number): void {
     const g = this.music.gain;
@@ -909,9 +1059,14 @@ export class LofiStation {
     const spb = 60 / bar.tune.bpm;
     if (BS.stacked(bar.tune.mood)) BS.mark(this.kit, this.lanes.bass, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0);
     BR.markBreak(this.kit, this.lanes.drums, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0, 8);
+    // In a drop the future-bass chords pump on every beat, as a producer's sidechain does,
+    // whatever the half-time kick plays (lib/lofi-future.ts; nothing where no such chord plays).
+    if (bar.section === 'drop') for (let b = 0; b < lofiBarBeats(bar.tune); b++) FB.pump(this.lanes.keys, at + b * spb, bar.tune.style.duck);
+    BK.markChop(this.kit, this.lanes.drums, bar, at, bar.section === 'build' ? this.buildBars + 1 : 0, 4);
     for (const d of this.echoTimes) d.delayTime.setValueAtTime(Math.min(1.9, 0.75 * spb), at);
-    const room = SECTION_ROOM[bar.section] ?? 1;
-    if (room !== this.sectionRoom) {
+    // A band's hall is the same room all tune; the other styles' room follows the section.
+    const room = bar.tune.mood === 'oompa' ? 1 : SECTION_ROOM[bar.section] ?? 1;
+    if (room !== this.sectionRoom && !this.inHall) {
       this.sectionRoom = room;
       this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * this.colour.room * room, at, 0.6);
       // The drums' room follows the style's room, more gently than the music's: a grunge kit in a big room, a punk one tight.
@@ -922,7 +1077,7 @@ export class LofiStation {
       this.buildBars++;
       const to = Math.min(900, 40 * 2 ** (this.buildBars * 1.05));
       this.sweep.frequency.setValueAtTime(Math.max(20, this.sweep.frequency.value), at);
-      this.sweep.frequency.exponentialRampToValueAtTime(to, at + 4 * spb);
+      this.sweep.frequency.exponentialRampToValueAtTime(to, at + lofiBarBeats(bar.tune) * spb);
     } else if (this.buildBars > 0) {
       this.buildBars = 0;
       this.sweep.frequency.cancelScheduledValues(at);
@@ -933,12 +1088,22 @@ export class LofiStation {
   // ── sound ─────────────────────────────────────────────────────────────────
 
   /** A new tune's colour: wobble, room, tone and grit, from the moment it starts. */
-  private applyStyle(style: LofiStyle, at: number): void {
+  private applyStyle(style: LofiStyle, at: number, mood?: LofiMood): void {
     this.colour = style;
+    // Future-bass chords build their sounds while the intro plays (lib/lofi-future.ts).
+    if (style.keys === 'future') FB.warm(this.kit);
+    // A band plays in its hall; every other tune in the station's own room.
+    this.inHall = mood === 'oompa';
+    if (this.inHall && !this.hall) {
+      this.hall = OB.hall(this.ctx, this.seed, this.tone);
+      for (const g of [this.keysBus, this.bassBus, this.leadBus, this.drumBus]) g.connect(this.hall.input);
+    }
+    this.hall?.send.gain.setTargetAtTime(this.inHall ? OB.HALL_SEND * this.mix.reverb * style.room : 0, at, 0.1);
+    this.drumRoom.gain.setTargetAtTime(this.inHall ? 0 : DRUM_ROOM * this.mix.reverb * this.sectionRoom * Math.sqrt(style.room), at, 0.1);
     const grit = style.crunch ? GRIT_MIX : 0;
     this.crunch.gain.setTargetAtTime(grit / GRIT_LIFT, at, 0.1);
     this.dry.gain.setTargetAtTime(1 - grit, at, 0.1);
-    this.reverbSend.gain.setTargetAtTime(BUS.reverb * this.mix.reverb * style.room * this.sectionRoom, at, 0.1);
+    this.reverbSend.gain.setTargetAtTime(this.inHall ? 0 : BUS.reverb * this.mix.reverb * style.room * this.sectionRoom, at, 0.1);
     this.applyTexture(0.3);
   }
 
@@ -990,8 +1155,10 @@ export class LofiStation {
     this.fxBus.gain.value = BUS.fx * this.mix.fx;
     this.natureBus.gain.value = NATURE_BUS * this.mix.fx;
     this.drumBus.gain.value = BUS.drums * this.mix.drums;
-    this.reverbSend.gain.value = BUS.reverb * this.mix.reverb * this.colour.room * this.sectionRoom;
+    this.reverbSend.gain.value = this.inHall ? 0 : BUS.reverb * this.mix.reverb * this.colour.room * this.sectionRoom;
+    if (this.hall) this.hall.send.gain.value = this.inHall ? OB.HALL_SEND * this.mix.reverb * this.colour.room : 0;
   }
+
 
   private newLanes(): Lanes {
     const lane = (to: AudioNode): GainNode => { const g = this.ctx.createGain(); g.connect(to); return g; };

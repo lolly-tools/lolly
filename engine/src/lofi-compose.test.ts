@@ -37,9 +37,12 @@ function fingerprint(bars: unknown): number {
 /** Tunes composed on main before Sherbert existed. Sugar's 2654435761 drew the croak for its
  *  verse, which now plays the slap (the croak only ever lies over a bass): its verse's bass
  *  notes moved (2026-11-13), the rest of the tune did not. Warm's 2654435761 drew the soft
- *  lead, retired on 2026-11-14 (RETIRED_LEADS): it draws the acoustic guitar now. */
+ *  lead, retired on 2026-11-14 (RETIRED_LEADS): it draws the acoustic guitar now. Both Sugar
+ *  tunes moved again on 2026-11-14 (lofi-console.ts): a spin into the second build takes the
+ *  place of the coin that ended the breakdown's last phrase, so that coin is gone; every
+ *  other note is as it was. */
 const FINGERPRINTS: Record<string, number> = {
-  'sugar.2024': 1067381605, 'sugar.2654435761': 3985419356, 'chiptune.2024': 3361767685, 'chiptune.2654435761': 2547177282,
+  'sugar.2024': 2077140644, 'sugar.2654435761': 3925230420, 'chiptune.2024': 3361767685, 'chiptune.2654435761': 2547177282,
   'kpop.2024': 1245126060, 'kpop.2654435761': 1409581692,
   'jazz.2024': 4242884971, 'jazz.2654435761': 1166250726, 'sings.2024': 2251072788, 'sings.2654435761': 419362352,
   'warm.2024': 3837958448, 'warm.2654435761': 1921851039,
@@ -185,9 +188,12 @@ const withoutHatFoot = (bars: ReturnType<typeof composeLofiTune>): ReturnType<ty
  * in the bass's own notes, so the dubstep and brostep pins moved with them. Also without
  * drum and bass's top loop (2026-11-14), a break chopped over its kit: notes added on a
  * stream of their own, each a break's (isBreakNote), so without them the kit is as it was.
+ * And without the console's FM effects (`fm`, lofi-console.ts, 2026-11-14), a voice of their
+ * own on a stream of their own.
  */
 function withoutOver(bars: LofiBar[]): LofiBar[] {
   return bars.map(b => {
+    if (b.notes.some(n => n.voice === 'fm')) b = { ...b, notes: b.notes.filter(n => n.voice !== 'fm') };
     if (b.notes.some(isBreakNote)) b = { ...b, notes: b.notes.filter(n => !isBreakNote(n)) };
     if (!b.voices?.over) return b;
     const { over: _over, ...rest } = b.voices;
@@ -250,8 +256,11 @@ test('the bass genres: the bass talks at the end of each drop phrase, bleeps sit
 
 test('the dance genres change instruments between sections', () => {
   // Salsa's piano and lead play the whole tune: its montuno trades the lead between the
-  // coro and the pregón instead (see the salsa tests).
-  for (const mood of DANCE_MOODS.filter(m => m !== 'salsa')) {
+  // coro and the pregón instead (see the salsa tests). Oompa's band keeps its instruments,
+  // the trio handing the tune to the tenor horn (see the oompa tests).
+  // Mandopop and C-Pop hand the tune to the traditional instrument in their hooks and dance
+  // breaks, and bring the strings or the pad in under the chorus (see the cpop tests).
+  for (const mood of DANCE_MOODS.filter(m => m !== 'salsa' && m !== 'oompa' && m !== 'mandopop' && m !== 'cpop')) {
     let softer = 0, newLead = 0;
     for (const seed of SEEDS.slice(0, 8)) {
       const bars = composeLofiTune(seed, mood);
@@ -263,7 +272,9 @@ test('the dance genres change instruments between sections', () => {
     }
     // Surf keeps its rhythm guitar through the intro: the band's sound is that guitar in the spring.
     if (mood !== 'surf') assert.ok(softer >= 6, `${mood}: the intro's keys differ from the drop's in most tunes (${softer} of 8)`);
-    assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
+    // Noosacore's surf guitar plays only its odd moments, the same guitar all through; Arnhem Land's
+    // voice leads all through, and its choruses' answers are the Yidaki's.
+    if (mood !== 'noosa' && mood !== 'arnhem') assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
   }
 });
 
@@ -385,11 +396,22 @@ test('every note is playable', () => {
         if (n.voice === 'riser') continue;   // a sweep, not a pitch
         const dance = isDanceMood(mood);
         // The dance basses sit lower (a sub register), and a slap bass pops up to a twelfth above.
-        // Salsa's montuno is the grand piano's two hands in octaves, up to a B5.
-        const [lo, hi] = n.voice === 'bass' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
+        // Salsa's montuno is the grand piano's two hands in octaves, up to a B5. Straya's
+        // didgeridoo plays its drone's pitch in every role.
+        const [lo, hi] = n.voice === 'bass' || n.voice === 'didge' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
           : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
           // Botanica's place (a bed's pitch is nominal; a bird's is its song's centre), its granular pads and its glitches.
-          : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88] : [64, 84];
+          : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88]
+          // The console's FM effects are written on a chord's root, an octave from middle C up; each sounds its own range from there.
+          : n.voice === 'fm' ? [60, 71]
+          // The sea's notes are pitched nominally (lofi-waves-notes.ts): a wave is noise, not a note.
+          : n.voice === 'wave' ? [36, 72]
+          // Mandopop's strings and C-Pop's pad, held under the keys.
+          : n.voice === 'pad' ? [48, 79]
+          // The coast's birds: a whipbird's whistle and a lorikeet flock's middle pitch (lofi-coast-birds.ts).
+          : n.voice === 'whipbird' || n.voice === 'lorikeet' ? [88, 110]
+          // Oompa's lead notes are the whole band's lines: the trombones' countermelody to the clarinets' runs.
+          : mood === 'oompa' ? [40, 93] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
       }
     }
@@ -862,7 +884,7 @@ function withoutPhrases(bars: LofiBar[]): LofiBar[] {
   return withoutOver(bars).map(b => ({ ...b, notes: b.notes.filter(n => phraseOf(n) === null) }));
 }
 /** The styles a band or an MC shouts in, and those that keep their calm. */
-const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert', 'breakbeat', 'ukGarage'] as const;
+const SHOUTING = ['ska', 'punk', 'rock', 'metal', 'funk', 'soul', 'hiphop', 'kpop', 'electro', 'dnb', 'dubstep', 'brostep', 'sherbert', 'breakbeat', 'ukGarage', 'cpop'] as const;
 const PHRASE_SEEDS = Array.from({ length: 40 }, (_, i) => (i * 2654435761 + 99) >>> 0);
 /** Where a shout sounds, in seconds from the top of the tune: [first consonant, end of its last vowel]. */
 function spanOf(barIndex: number, n: LofiBar['notes'][number], spb: number): [number, number] {
@@ -989,13 +1011,17 @@ test('the shouts come from a stream of their own: the rest of every tune compose
   // phrases, each tune is unchanged.
   const before: Record<string, number> = {
     'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 123733926, 'hiphop.7': 307798947,
-    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1758158366, 'dubstep.7': 2238141904, 'brostep.7': 1362639215, 'sherbert.7': 2035173988,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1758158366, 'dubstep.7': 2238141904, 'brostep.7': 1362639215, 'sherbert.7': 3954562497,
   };
   // Dubstep's and brostep's drops trade their bass now (BASS_PLANS, 2026-11-13): a partner's
   // bars play its own figure and the stabs fall in its gaps, so those two pins moved with them.
   // Drum and bass's drops edit their kick and snare bar by bar (2026-11-14), so its pin moved too.
   // Soul's lead and brostep's breakdown and second drop were the soft lead, retired on
   // 2026-11-14 (RETIRED_LEADS): a trumpet and bells play there now, so those two pins moved again.
+  // Sherbert sings a magpie now (lofi-straya.ts withMagpies, Andy 2026-11-14): seed 7's carol
+  // comes in the bar before its first drop, the chopped vocal cleared from under it, so its pin moved.
+  // Its verse now ends in a console spin into the build (lofi-console.ts, 2026-11-14), which
+  // takes the place of the jump that ended the verse, so its pin moved again.
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);

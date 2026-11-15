@@ -39,14 +39,23 @@ import { mulberry32 } from './zzfx-compose.ts';
 import { arrangeClub, clubDrums, clubFigures, clubKeys, clubPlan, clubStabs, isClubMood, topLoopBar, topLoopOf, CLUB_MOODS, type ClubMood } from './lofi-club.ts';
 import { composeSalsa, salsaSectionName, SALSA_PERCUSSION } from './lofi-salsa.ts';
 import { composeBotanica, type BotanicaKit } from './lofi-botanica.ts';
+import { composeNoosa, noosaSectionName, type NoosaKit } from './lofi-noosa.ts';
+import { composeOompa, oompaSectionName } from './lofi-oompa.ts';
+import { composeCpop, cpopSectionName } from './lofi-cpop.ts';
 import { dnbKitBar, dnbKitPlan, isBreakNote } from './lofi-breaks.ts';
+import { futureBuildEnd, futureDropBar, futurePlan } from './lofi-future.ts';
+import { cameoOf, didgeBass, didgeCameo, didgeLead, didgeMid, didgeridooPitch, gateToots, strayaBirds, strayaOf, strayaParts, withMagpies, yidakiPitch, DIDGE_AND_DRONE, DIDGE_CAMEO, DIDGE_ONLY } from './lofi-straya.ts';
+import { withConsoleFx } from './lofi-console.ts';
+import { arnhemBar, arnhemOf, ARNHEM_LEAN, ARNHEM_SHOUTS } from './lofi-arnhem.ts';
+import { chopDrums, chopsOf } from './lofi-break-chop.ts';
+import { arrangeJungle, jungleFigures, jungleHold, jungleKeys, jungleMoments, jungleOf, jungleStabs } from './lofi-jungle.ts';
 
 /** The dance genres in the Lolly Sings family, written by composeDanceTune. */
-export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse' | 'salsa' | 'surf' | 'yacht' | 'botanica' | ClubMood;
+export type DanceMood = 'sugar' | 'sherbert' | 'persian' | 'guzheng' | 'koto' | 'kora' | 'afrobeat' | 'amapiano' | 'chiptune' | 'citypop' | 'funk' | 'soul' | 'nudisco' | 'hiphop' | 'triphop' | 'reggae' | 'spanish' | 'rock' | 'metal' | 'country' | 'blues' | 'jazz' | 'swing' | 'straya' | 'arnhem' | 'fantasy' | 'dream' | 'kpop' | 'synthwave' | 'acid' | 'electro' | 'dubstep' | 'brostep' | 'dnb' | 'ska' | 'punk' | 'rnb' | 'grunge' | 'stoner' | 'shoegaze' | 'lofiHouse' | 'salsa' | 'surf' | 'yacht' | 'botanica' | 'oompa' | 'noosa' | 'mandopop' | 'cpop' | ClubMood | 'jungle';
 /** The three Lofi moods, Lolly Sings (the melody-first genre, see LEAN.sings) and its dance genres. */
 export type LofiMood = 'warm' | 'lateNight' | 'rainy' | 'sings' | DanceMood;
-export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'metal', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'ska', 'punk', 'rnb', 'grunge', 'stoner', 'shoegaze', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', ...CLUB_MOODS];
-export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'metal', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'ska', 'punk', 'rnb', 'grunge', 'stoner', 'shoegaze', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', ...CLUB_MOODS];
+export const LOFI_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'sings', 'sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'metal', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'ska', 'punk', 'rnb', 'grunge', 'stoner', 'shoegaze', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', 'arnhem', 'oompa', 'mandopop', 'cpop', ...CLUB_MOODS, 'noosa', 'jungle'];
+export const DANCE_MOODS: readonly DanceMood[] = ['sugar', 'sherbert', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'nudisco', 'hiphop', 'triphop', 'reggae', 'spanish', 'rock', 'metal', 'country', 'blues', 'jazz', 'swing', 'straya', 'fantasy', 'dream', 'kpop', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'ska', 'punk', 'rnb', 'grunge', 'stoner', 'shoegaze', 'lofiHouse', 'salsa', 'surf', 'yacht', 'botanica', 'arnhem', 'oompa', 'mandopop', 'cpop', ...CLUB_MOODS, 'noosa', 'jungle'];
 /** Whether `mood` is one of the dance genres. */
 export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_MOODS as readonly string[]).includes(mood); }
 
@@ -66,8 +75,18 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
  *  `nature` (a place's wind, leaves, water, rain, insects and birds, and twigs and droplets as
  *  percussion), `grain` (a granular pad cut from one of Lolly's own instruments) and `glitch`
  *  (a stutter, crush, freeze, reverse, tape stop or repeat), their `mod`s read by
- *  lofi-botanica.ts's readNature, readGrain and readGlitch. */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch';
+ *  lofi-botanica.ts's readNature, readGrain and readGlitch. Straya adds `didge`, its didgeridoo's
+ *  rhythm and its solo over the band (lofi-straya.ts says what a note's `mod` holds), and its
+ *  birds' `mod`s say which are featured and how many sing (lofi-straya.ts readBird). `fm` (sugar,
+ *  chiptune and sherbert, and now and then K-pop and synthwave) is a 16-bit console's FM effect:
+ *  a spin, a shot or the moment before a drop, its `mod` read by lofi-console.ts readFm. Noosacore
+ *  adds `wave`, the sea on a sandy shore, a wave breaking or the shore's roar (lofi-waves-notes.ts
+ *  says what a note's `mod` holds), which any style plays when a person turns the waves on. Mandopop
+ *  and C-Pop add `pad`, a second keys instrument holding chords under the keys (lofi-cpop.ts). `siren`
+ *  (jungle) is a dub siren, a synth's pitch swept by its own oscillator, its `mod` one of lofi-jungle.ts JUNGLE_SIRENS. The coast's
+ *  birds are `whipbird` (a pair's whistle, crack and answer) and `lorikeet` (screeches, a feeding
+ *  flock, a flock flying over), whose `mod`s lofi-coast-birds.ts reads. */
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge' | 'fm' | 'wave' | 'pad' | 'siren' | 'whipbird' | 'lorikeet';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash', 'tom', 'perc'];
 /** The percussion a `perc` note plays, by its `mod`: an egg shaker, a tambourine, congas (pitched by `midi`), a cowbell, clapsticks;
  *  and the world styles' hand drums and bells, whose `midi` is the stroke: the tombak (1 tom, 2 bak, 3 a snapped
@@ -78,7 +97,7 @@ export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', '
  *  drum, whose `midi` is 50 plus how far its pitch bends, in semitones. Then salsa's (lib/lofi-salsa.ts says each
  *  `midi`): the congas (quinto, conga and tumba, each stroke), the bongos, the timbales, the bongo bell, the mambo
  *  bell, the clave and the güiro. */
-export const LOFI_PERCUSSION = ['shaker', 'tambourine', 'conga', 'cowbell', 'sticks', 'tombak', 'daf', 'woodblock', 'tanggu', 'gong', 'taiko', 'kotsuzumi', 'djembe', 'dunun', 'shekere', 'agogo', 'talking', ...SALSA_PERCUSSION] as const;
+export const LOFI_PERCUSSION = ['shaker', 'tambourine', 'conga', 'cowbell', 'sticks', 'tombak', 'daf', 'woodblock', 'tanggu', 'gong', 'taiko', 'kotsuzumi', 'djembe', 'dunun', 'shekere', 'agogo', 'talking', ...SALSA_PERCUSSION, 'bilma'] as const;
 type Percussion = typeof LOFI_PERCUSSION[number];
 /** The sound effect a `game` note plays, by its `mod`: a jump (a sweep up), a power-up (a
  *  quick run up the key's chord), a power-down (a falling zap), a bonus (a trill climbing),
@@ -127,8 +146,8 @@ export const LOFI_BASS_SHOTS = ['bwah', 'yoi', 'throat', 'wub'] as const;
 const GAME = (name: typeof LOFI_GAME_SOUNDS[number]): number => LOFI_GAME_SOUNDS.indexOf(name);
 const SHOUT = (name: typeof LOFI_SHOUTS[number]): number => LOFI_SHOUTS.indexOf(name);
 
-export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'strings', 'grand', 'surf', 'combo', 'houseOrgan'] as const;
-export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'surf', 'chorus', 'none'] as const;
+export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'strings', 'grand', 'surf', 'combo', 'houseOrgan', 'horns', 'didgeridoo', 'yidaki'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'surf', 'chorus', 'none', 'flugelhorn', 'tenorhorn', 'yidaki'] as const;
 /**
  * Leads that no longer play, each with the lead that plays in its place. A retired id stays
  * in LOFI_LEADS, so an old link or saved tune still reads, but no style draws one: a tune,
@@ -147,7 +166,14 @@ export const isRetiredLead = (lead: string): lead is RetiredLead => Object.hasOw
 export function liveLead(lead: typeof LOFI_LEADS[number]): LiveLead {
   return isRetiredLead(lead) ? RETIRED_LEADS[lead] : lead as LiveLead;
 }
-export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'yidaki', 'log', 'deep', 'warp'] as const;
+export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'didgeridoo', 'log', 'deep', 'warp', 'tuba'] as const;
+/**
+ * Bass ids an old link or saved tune may still carry, each with the bass that now plays them.
+ * The bass `yidaki` was the didgeridoo's deep drone; that drone is now the Didgeridoo
+ * (`didgeridoo`), and the Yidaki is the brighter instrument of the chords and the melody
+ * (lofi-straya.ts), so an old link's drone keeps its character.
+ */
+export const BASS_ALIASES: Readonly<Record<string, typeof LOFI_BASSES[number]>> = { yidaki: 'didgeridoo' };
 /** A `layer` note's `mod`: 1 the travelling line, 2 a percussive stab, LOFI_OVER the bass laid
  *  over the bar's (LofiBar voices.over), plus 8 times how that bass plays the note (its own
  *  `mod`: a croak's note slid into is LOFI_OVER + 16). */
@@ -156,7 +182,7 @@ export const LOFI_OVER = 3;
 export const isOverNote = (n: LofiNote): boolean => n.voice === 'layer' && (n.mod ?? 0) % 8 === LOFI_OVER;
 export const LOFI_SNARES = ['snare', 'brush', 'rim', 'clap', 'stack', 'snap'] as const;
 export const LOFI_HATS = ['hat', 'shaker', 'ride', 'none'] as const;
-export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse', 'bossa', 'disco', 'halfStep', 'twoStep', 'rock', 'rumba', 'oneDrop', 'funk', 'train', 'swing', 'stomp'] as const;
+export const LOFI_GROOVES = ['boomBap', 'halfTime', 'shuffle', 'lazy', 'sparse', 'bossa', 'disco', 'halfStep', 'twoStep', 'rock', 'rumba', 'oneDrop', 'funk', 'train', 'swing', 'stomp', 'polka', 'march', 'waltz'] as const;
 export const LOFI_COMPS = ['hold', 'sparse', 'arp', 'pulse'] as const;
 
 /** Everything about how a tune sounds, besides its notes. */
@@ -240,7 +266,14 @@ export interface LofiTuneInfo {
   style: LofiStyle;
   /** Bars in the tune, the rest bar after it included. */
   bars: number;
+  /** Beats in each of its bars, when not four: an oompa polka's or march's two, a waltz's three (lofi-oompa.ts). */
+  beats?: number;
 }
+
+/** Beats in a bar of `tune`: four, unless the tune says otherwise. */
+export function lofiBarBeats(tune: Pick<LofiTuneInfo, 'beats'>): number { return tune.beats ?? 4; }
+/** How long a bar of `tune` lasts (s), at its tempo. */
+export function lofiBarSeconds(tune: Pick<LofiTuneInfo, 'beats' | 'bpm'>): number { return (lofiBarBeats(tune) * 60) / tune.bpm; }
 
 export interface LofiBar {
   tune: LofiTuneInfo;
@@ -272,6 +305,8 @@ export interface LofiBar {
     /** A bass laid over this bar's bass, never on its own: the croak calling at a phrase's
      *  end, filling into a drop or adding a texture (`layer` notes with a `mod` of LOFI_OVER). */
     over?: LofiStyle['bass'];
+    /** A second keys instrument holding the chords under the keys (`pad` notes): Mandopop's strings under its piano, C-Pop's pad. */
+    pad?: LofiStyle['keys'];
   };
 }
 
@@ -642,6 +677,9 @@ const KICKS: Record<LofiStyle['groove'], readonly (readonly number[])[]> = {
   train: [[0, 8], [0, 8, 14], [0, 6, 8]],
   swing: [[0, 4, 8, 12]],
   stomp: [[0, 4, 8, 12], [0, 4, 8, 11, 12], [0, 3, 4, 8, 12]],
+  // Oompa's own (lofi-oompa.ts writes its drums): the bass drum on every beat of a polka or a
+  // march, on a waltz's first.
+  polka: [[0, 4, 8, 12]], march: [[0, 4, 8, 12]], waltz: [[0]],
 };
 /** The bossa's clave, played on the rim in place of a backbeat. */
 const CLAVE = [0, 3, 6, 10, 12];
@@ -661,7 +699,10 @@ export function nextLofiSeed(seed: number): number {
 
 /** Build one tune's bars, signed with the producer's tag when the tune has one (see withTag), with the band's shouts (see withBandShouts). */
 export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<LofiStyle> = {}): LofiBar[] {
-  return withBandShouts(withTag(composeTuneBars(seed, mood, fixed), seed, mood), seed, mood);
+  // Botanica's and sherbert's magpie, from a stream of its own (lofi-straya.ts), then the
+  // console's FM effects, from theirs (lofi-console.ts), placed around everything else.
+  const tune = withMagpies(withBandShouts(withTag(composeTuneBars(seed, mood, fixed), seed, mood), seed, mood), mood, (seed ^ 0x3a6e1) >>> 0);
+  return withConsoleFx(tune, seed, mood);
 }
 
 /** How softly a quiet verse is played, against its chorus. */
@@ -829,9 +870,9 @@ function bassStackOf(seed: number, mood: DanceMood, own: { a: LofiStyle['bass'];
 /** How often a tune carries the tag. */
 const TAG_CHANCE = 0.6;
 type Tag = typeof LOFI_TAGS[number];
-const TAG_CALM = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'dream', 'fantasy', 'triphop', 'shoegaze', 'lofiHouse', 'botanica', 'privateSchool']);
-const TAG_SMOOTH = new Set<LofiMood>(['jazz', 'swing', 'soul', 'rnb', 'citypop', 'blues', 'yacht']);
-const TAG_BAND = new Set<LofiMood>(['rock', 'metal', 'punk', 'ska', 'reggae', 'country', 'funk', 'afrobeat', 'spanish', 'straya', 'grunge', 'stoner', 'salsa', 'surf']);
+const TAG_CALM = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'dream', 'fantasy', 'triphop', 'shoegaze', 'lofiHouse', 'botanica', 'privateSchool', 'noosa']);
+const TAG_SMOOTH = new Set<LofiMood>(['jazz', 'swing', 'soul', 'rnb', 'citypop', 'blues', 'yacht', 'mandopop']);
+const TAG_BAND = new Set<LofiMood>(['rock', 'metal', 'punk', 'ska', 'reggae', 'country', 'funk', 'afrobeat', 'spanish', 'straya', 'grunge', 'stoner', 'salsa', 'surf', 'oompa']);
 const TAG_WORLD = new Set<LofiMood>(['persian', 'guzheng', 'koto', 'kora']);
 /** The deliveries a style's tag is drawn from, by weight: whispered and sung in the calm styles, shouted in a band's, pitched and chopped in a club's. */
 function tagWeights(mood: LofiMood): Array<readonly [Tag, number]> {
@@ -868,7 +909,7 @@ function withTag(bars: LofiBar[], seed: number, mood: LofiMood): LofiBar[] {
   const where = rng();
   const [at, beat] = where < 0.5 || firstDrop < 1
     ? [0, 0]
-    : where < 0.85 || lastOutro < 0 ? [firstDrop - 1, delivery === 'stutter' || delivery === 'deep' ? 2 : 2.5] : [lastOutro, 0.5];
+    : where < 0.85 || lastOutro < 0 ? [firstDrop - 1, Math.max(0, lofiBarBeats(bars[0]!.tune) - 4 + (delivery === 'stutter' || delivery === 'deep' ? 2 : 2.5))] : [lastOutro, 0.5];
   const root = bars[at]!.tones[0] ?? bars.find(b => b.tones.length)?.tones[0] ?? 0;
   const note: LofiNote = { voice: 'tag', midi: placeIn(root, 55, 66), beat, dur: 1.5, vel: 0.85, mod: LOFI_TAGS.indexOf(delivery) };
   return bars.map((b, i) => (i === at ? { ...b, notes: [...b.notes, note] } : b));
@@ -902,6 +943,7 @@ const GO_STYLES: Partial<Record<LofiMood, GoPlan>> = {
   soul: { chance: 0.35, spots: [['top', 1], ['into', 2]], go: 0.2, crowd: 0.3, goBeat: 3, again: 0, solo: 0.2 },
   hiphop: { chance: 0.6, spots: [['top', 1], ['verse', 1]], go: 0.15, crowd: 0, goBeat: 3, again: 0, solo: 0 },
   kpop: { chance: 0.5, spots: [['into', 1], ['into2', 1]], go: 0.2, crowd: 0.8, goBeat: 3, again: 0, solo: 0 },
+  cpop: { chance: 0.45, spots: [['into', 1], ['into2', 1]], go: 0.2, crowd: 0.8, goBeat: 3, again: 0, solo: 0 },
   electro: { ...MC, chance: 0.5, again: 0 },
   dnb: MC, dubstep: MC, brostep: MC,
   sherbert: { chance: 0.55, spots: [['into', 1], ['into2', 1]], go: 0.3, crowd: 0, goBeat: 2, again: 0, solo: 0 },
@@ -1072,6 +1114,7 @@ function composeTuneBars(seed: number, mood: LofiMood, fixed: Partial<LofiStyle>
   // A retired lead (an old link's, a saved tune's) plays the lead that took its place.
   if (fixed.lead && isRetiredLead(fixed.lead)) fixed = { ...fixed, lead: liveLead(fixed.lead) };
   if (mood === 'botanica') return composeBotanica(seed, fixed, BOTANICA_KIT);
+  if (mood === 'noosa') return composeNoosa(seed, fixed, NOOSA_KIT);
   if (isDanceMood(mood)) return composeDanceTune(seed, mood, fixed);
   const rng = mulberry32(seed >>> 0);
   const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
@@ -1355,10 +1398,10 @@ const FIT_SLACK = 8;
 /** The least of a later tune a track will hold, its outro aside: past its intro and into its first section. */
 const FIT_PART = 16;
 
-/** How long one tune lasts, in seconds: its bars at its tempo (four beats a bar). */
+/** How long one tune lasts, in seconds: its bars at its tempo (four beats a bar, unless the tune says otherwise). */
 export function lofiTuneSeconds(seed: number, mood: LofiMood): number {
   const bars = composeLofiTune(seed >>> 0, mood);
-  return (bars.length * 4 * 60) / bars[0]!.tune.bpm;
+  return bars.length * lofiBarSeconds(bars[0]!.tune);
 }
 
 // ── the dance genres ──────────────────────────────────────────────────────
@@ -1690,15 +1733,18 @@ const DANCE: Record<DanceMood, DanceLean> = {
     swing: 0.56, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.6, band: true,
     softKeys: [['rhodes', 2], ['pad', 1]], verseBass: [['eight', 1], ['motown', 1]], switchBass: [['eight', 1]], dust: 0.15,
   },
-  // Straya: a banjo picking rolls over a yidaki drone on the key note, a stomp and clap,
-  // an acoustic strum (or the acoustic on the tune), magpies warbling between the phrases,
-  // and now and then a kookaburra.
+  // Arnhem Land: the region's band music today, its lean drawn per tune along a line from
+  // modern to traditional (lofi-arnhem.ts); the table holds the middle of the line.
+  arnhem: ARNHEM_LEAN,
+  // Straya: a banjo picking rolls over the Didgeridoo droning on the key note, a stomp and
+  // clap, an acoustic strum (or the acoustic on the tune); the Yidaki plays the rhythm over the
+  // drone in the choruses and takes the solo, and the birds sing (lofi-straya.ts).
   straya: {
     bpm: [104, 124], minor: 0.15, groove: 'stomp', chordBars: 1,
     keys: [['steel', 4], ['banjo', 1]], lead: [['banjo', 6], ['steel', 2], ['fiddle', 2], ['harmonica', 1], ['pedal', 1]],
-    bass: [['yidaki', 1]], snare: [['clap', 1]], hats: 'shaker', kick: [58, 68], kickLen: [0.18, 0.26], duck: [0.4, 0.6], crunch: 0,
+    bass: [['didgeridoo', 1]], snare: [['clap', 1]], hats: 'shaker', kick: [58, 68], kickLen: [0.18, 0.26], duck: [0.4, 0.6], crunch: 0,
     swing: 0.5, swing8: 0.52, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'country', singingDrop: true, busy: 0.7, band: true, dust: 0.2,
-    softKeys: [['banjo', 2], ['jazzbox', 1]], verseBass: [['yidaki', 1]], switchBass: [['yidaki', 1]],
+    softKeys: [['banjo', 2], ['jazzbox', 1]], verseBass: [['didgeridoo', 1]], switchBass: [['didgeridoo', 1]],
   },
   // Spanish guitar: a nylon-string guitar strumming a rumba, the Andalusian cadence, a
   // melody in the harmonic minor, upright bass, cajón, palmas and a shaker.
@@ -1896,6 +1942,50 @@ const DANCE: Record<DanceMood, DanceLean> = {
     softKeys: [['strings', 3], ['harp', 2], ['nylon', 2], ['felt', 2], ['steel', 1]], verseBass: [['upright', 2], ['round', 1]], switchBass: [['round', 2], ['upright', 2], ['synth', 1]],
     room: [1.1, 1.5], wow: [0.15, 0.45], dust: 0.25,
   },
+  // Oompa: a Bavarian brass band. A tuba on the beats, the horns' after-beats, a flugelhorn's
+  // tune with a second player under it, clarinets decorating, a trombone countermelody, the
+  // bass drum and its cymbal; a polka, a march or a waltz. Its own composer writes it
+  // (lofi-oompa.ts): these weights draw its instruments and its sound.
+  oompa: {
+    bpm: [84, 168], minor: 0, groove: 'polka', chordBars: 1,
+    keys: [['horns', 1]], lead: [['flugelhorn', 5], ['trumpet', 2], ['clarinet', 1]],
+    bass: [['tuba', 1]], snare: [['snare', 1]], kick: [44, 52], kickLen: [1.1, 1.6], duck: [0, 0.05], crunch: 0,
+    swing: 0.5, intro: 4, build: [4], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.6, band: true,
+    softKeys: [['horns', 1]], verseBass: [['tuba', 1]], switchBass: [['tuba', 1]], room: [0.9, 1.2], wow: [0.02, 0.06], dust: 0.05,
+  },
+  // Noosacore: a warm bass rolling under botanica's pads and a sunny coastal groove, the sea on
+  // the shore, the magpie, and now and then a surf guitar's lick. Its own composer writes it
+  // (lofi-noosa.ts): these weights draw its instruments and its colour.
+  noosa: {
+    bpm: [80, 102], minor: 0.3, groove: 'sparse', chordBars: 2,
+    keys: [['rhodes', 3], ['steel', 2], ['nylon', 2], ['wurli', 1], ['harp', 1]], lead: [['surf', 1]],
+    bass: [['round', 5], ['upright', 3], ['synth', 1]], snare: [['rim', 3], ['snap', 2], ['brush', 2]], hats: 'shaker',
+    kick: [48, 56], kickLen: [0.25, 0.38], duck: [0.15, 0.35], crunch: 0.1,
+    swing: 0.55, intro: 8, build: [4], drop: 16, breakdown: 8, harmony: 'jazz', singingDrop: true, busy: 0.5,
+    softKeys: [['harp', 2], ['nylon', 2], ['felt', 1], ['rhodes', 1]], verseBass: [['round', 1]], switchBass: [['round', 1]],
+    room: [1, 1.3], wow: [0.12, 0.3], dust: 0.15,
+  },
+  // Mandopop: Mandarin pop in the Taiwan and Hong Kong tradition. A piano ballad with
+  // strings, an R&B groove or a strummed soft-rock song, mostly China wind: the hook on an
+  // erhu, a dizi, a pipa or the guzheng over the beat. Its own composer writes it
+  // (lofi-cpop.ts): these weights draw its instruments and its sound.
+  mandopop: {
+    bpm: [66, 100], minor: 0.3, groove: 'rock', chordBars: 1,
+    keys: [['grand', 4], ['rhodes', 2], ['steel', 2], ['strings', 1]], lead: [['chop', 4], ['erhu', 2], ['flute', 2], ['dizi', 1], ['steel', 1]],
+    bass: [['round', 2], ['upright', 1], ['eight', 1], ['motown', 1]], snare: [['snare', 2], ['snap', 1], ['clap', 1]], kick: [48, 56], kickLen: [0.3, 0.45], duck: [0.2, 0.45], crunch: 0,
+    swing: 0.5, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.6, band: true,
+    softKeys: [['grand', 1]], verseBass: [['round', 1]], switchBass: [['round', 1]], room: [1.1, 1.5], wow: [0.03, 0.08], dust: 0.06,
+  },
+  // C-Pop: mainland Chinese pop. Dance-pop with idol energy, trap-pop or a future-bass drop,
+  // and the guochao hook: a dizi or an erhu riff over the dance break, a guzheng run into the
+  // chorus, the tanggu and a gong on the drop. Its own composer writes it (lofi-cpop.ts).
+  cpop: {
+    bpm: [94, 128], minor: 0.35, groove: 'disco', chordBars: 1,
+    keys: [['pluck', 3], ['supersaw', 3], ['future', 2]], lead: [['chop', 5], ['dizi', 2], ['erhu', 1], ['pulse', 1], ['synthwave', 1]],
+    bass: [['synth', 2], ['eight', 3]], snare: [['clap', 3], ['stack', 1], ['snap', 1]], kick: [50, 58], kickLen: [0.28, 0.42], duck: [1.1, 1.6], crunch: 0,
+    swing: 0.5, intro: 4, build: [4], drop: 8, breakdown: 8, harmony: 'pop', singingDrop: true, busy: 0.85, band: true,
+    softKeys: [['pad', 1]], verseBass: [['eight', 1]], switchBass: [['eight', 1]], room: [0.8, 1.15], wow: [0.03, 0.08], dust: 0.03,
+  },
   // The club genres (lofi-club.ts writes their drums, stabs, basslines and running order).
   // Breakbeat: a chopped drummer's break, a rolling reese, short stabs, grit on the sampler.
   breakbeat: {
@@ -1932,6 +2022,17 @@ const DANCE: Record<DanceMood, DanceLean> = {
     softKeys: [['pad', 2], ['grand', 1], ['rhodes', 1]], verseBass: [['log', 1]], switchBass: [['log', 1]],
     room: [1.1, 1.4], wow: [0.03, 0.1],
   },
+  // Jungle (lofi-jungle.ts writes its running order, stabs, bass lines and moments): chopped
+  // funk breaks at 160 to 175 bpm over a reggae and dub sub, stabs thrown into a dub echo and
+  // a spring, pads and strings in the intro and the breakdown, and a dub siren.
+  jungle: {
+    bpm: [160, 175], minor: 0.85, groove: 'funk', chordBars: 2,
+    keys: [['organ', 3], ['rhodes', 3], ['brass', 1], ['pluck', 2], ['felt', 1]], lead: [['chop', 3], ['vibes', 2], ['flute', 2], ['angel', 2], ['sax', 1], ['bells', 1]],
+    bass: [['round', 1]], snare: [['snare', 1]], kick: [46, 52], kickLen: [0.4, 0.55], duck: [0.7, 1.1], crunch: 0.3,
+    swing: 0.5, intro: 12, build: [4], drop: 16, breakdown: 8, harmony: 'pop', singingDrop: false, busy: 0.5, dust: 0.25,
+    softKeys: [['pad', 3], ['strings', 3], ['felt', 1]], verseBass: [['round', 1]], switchBass: [['round', 3], ['reese', 1]],
+    room: [0.9, 1.2],
+  },
 };
 
 /** The pieces botanica's composer (lofi-botanica.ts) shares with the dance genres. */
@@ -1944,8 +2045,8 @@ const BOTANICA_KIT: BotanicaKit = {
 };
 
 /** Each dance genre's range of brightness and drive (see LofiStyle.bright and drive). */
-const BRIGHT: Record<DanceMood, [number, number]> = { fantasy: [0.9, 1.2], dream: [0.6, 0.9], kpop: [1.1, 1.5], metal: [1, 1.4], country: [0.9, 1.3], blues: [0.7, 1.1], jazz: [0.7, 1.1], swing: [0.9, 1.3], straya: [1, 1.4], chiptune: [1.2, 1.6], citypop: [1, 1.4], nudisco: [0.9, 1.4], triphop: [0.6, 0.9], funk: [1, 1.5], soul: [0.8, 1.2], acid: [0.8, 1.6], reggae: [0.7, 1.1], synthwave: [0.8, 1.3], hiphop: [0.8, 1.2], rock: [0.9, 1.3], spanish: [0.8, 1.2], sugar: [1.1, 1.6], sherbert: [1.15, 1.55], persian: [0.9, 1.2], guzheng: [0.9, 1.2], koto: [0.9, 1.2], kora: [1, 1.3], afrobeat: [0.9, 1.3], amapiano: [0.8, 1.1], electro: [0.8, 1.4], dubstep: [0.7, 1.4], brostep: [0.9, 1.6], dnb: [0.6, 1.2], ska: [1, 1.4], punk: [1.1, 1.5], rnb: [0.7, 1.1], grunge: [0.75, 1.05], stoner: [0.7, 1], shoegaze: [0.6, 0.9], lofiHouse: [0.6, 0.85], salsa: [1, 1.3], surf: [1, 1.35], yacht: [0.8, 1.1], botanica: [0.7, 1.1], breakbeat: [0.8, 1.3], funkyHouse: [0.9, 1.3], ukGarage: [0.8, 1.2], privateSchool: [0.6, 0.9] };
-const DRIVE: Record<DanceMood, [number, number]> = { sherbert: [1, 1.5], persian: [1, 1.2], guzheng: [1, 1.2], koto: [1, 1.2], kora: [1, 1.2], afrobeat: [1.2, 2], amapiano: [1.2, 1.8], fantasy: [1, 1.2], dream: [1, 1.2], kpop: [1, 1.5], metal: [3, 4], country: [1, 1.4], blues: [1.4, 2.4], jazz: [1, 1.2], swing: [1, 1.3], straya: [1, 1.5], chiptune: [1, 1.4], citypop: [1, 1.5], nudisco: [1.2, 2], triphop: [1.4, 2.4], funk: [1.2, 2], soul: [1, 1.3], acid: [1.5, 3.5], reggae: [1, 1.4], synthwave: [1, 1.8], hiphop: [1.2, 2.2], rock: [2, 3.2], spanish: [1, 1.4], sugar: [1, 1.6], electro: [2.5, 4], dubstep: [1.2, 2.6], brostep: [2, 4], dnb: [1.8, 3.2], ska: [1, 1.4], punk: [2.4, 3.6], rnb: [1, 1.4], grunge: [2.6, 3.6], stoner: [3, 4], shoegaze: [1.8, 2.8], lofiHouse: [1.4, 2.2], salsa: [1, 1.3], surf: [1.1, 1.6], yacht: [1, 1.3], botanica: [1, 1.3], breakbeat: [1.6, 2.8], funkyHouse: [1.2, 1.8], ukGarage: [1.2, 2], privateSchool: [1, 1.4] };
+const BRIGHT: Record<DanceMood, [number, number]> = { arnhem: [0.95, 1.35], fantasy: [0.9, 1.2], dream: [0.6, 0.9], kpop: [1.1, 1.5], metal: [1, 1.4], country: [0.9, 1.3], blues: [0.7, 1.1], jazz: [0.7, 1.1], swing: [0.9, 1.3], straya: [1, 1.4], chiptune: [1.2, 1.6], citypop: [1, 1.4], nudisco: [0.9, 1.4], triphop: [0.6, 0.9], funk: [1, 1.5], soul: [0.8, 1.2], acid: [0.8, 1.6], reggae: [0.7, 1.1], synthwave: [0.8, 1.3], hiphop: [0.8, 1.2], rock: [0.9, 1.3], spanish: [0.8, 1.2], sugar: [1.1, 1.6], sherbert: [1.15, 1.55], persian: [0.9, 1.2], guzheng: [0.9, 1.2], koto: [0.9, 1.2], kora: [1, 1.3], afrobeat: [0.9, 1.3], amapiano: [0.8, 1.1], electro: [0.8, 1.4], dubstep: [0.7, 1.4], brostep: [0.9, 1.6], dnb: [0.6, 1.2], ska: [1, 1.4], punk: [1.1, 1.5], rnb: [0.7, 1.1], grunge: [0.75, 1.05], stoner: [0.7, 1], shoegaze: [0.6, 0.9], lofiHouse: [0.6, 0.85], salsa: [1, 1.3], surf: [1, 1.35], yacht: [0.8, 1.1], botanica: [0.7, 1.1], oompa: [0.9, 1.2], noosa: [0.8, 1.1], mandopop: [0.8, 1.1], cpop: [1, 1.4], breakbeat: [0.8, 1.3], funkyHouse: [0.9, 1.3], ukGarage: [0.8, 1.2], privateSchool: [0.6, 0.9], jungle: [0.7, 1.1] };
+const DRIVE: Record<DanceMood, [number, number]> = { arnhem: [1.1, 1.8], sherbert: [1, 1.5], persian: [1, 1.2], guzheng: [1, 1.2], koto: [1, 1.2], kora: [1, 1.2], afrobeat: [1.2, 2], amapiano: [1.2, 1.8], fantasy: [1, 1.2], dream: [1, 1.2], kpop: [1, 1.5], metal: [3, 4], country: [1, 1.4], blues: [1.4, 2.4], jazz: [1, 1.2], swing: [1, 1.3], straya: [1, 1.5], chiptune: [1, 1.4], citypop: [1, 1.5], nudisco: [1.2, 2], triphop: [1.4, 2.4], funk: [1.2, 2], soul: [1, 1.3], acid: [1.5, 3.5], reggae: [1, 1.4], synthwave: [1, 1.8], hiphop: [1.2, 2.2], rock: [2, 3.2], spanish: [1, 1.4], sugar: [1, 1.6], electro: [2.5, 4], dubstep: [1.2, 2.6], brostep: [2, 4], dnb: [1.8, 3.2], ska: [1, 1.4], punk: [2.4, 3.6], rnb: [1, 1.4], grunge: [2.6, 3.6], stoner: [3, 4], shoegaze: [1.8, 2.8], lofiHouse: [1.4, 2.2], salsa: [1, 1.3], surf: [1.1, 1.6], yacht: [1, 1.3], botanica: [1, 1.3], oompa: [1, 1.1], noosa: [1, 1.25], mandopop: [1, 1.3], cpop: [1.2, 1.8], breakbeat: [1.6, 2.8], funkyHouse: [1.2, 1.8], ukGarage: [1.2, 2], privateSchool: [1, 1.4], jungle: [1, 1.4] };
 
 /** Pop progressions for the dance genres (sugar uses the jazz ones above). */
 const POP_MAJOR: readonly (readonly Step[])[] = [
@@ -2241,7 +2342,7 @@ const BOOM_FILLS: readonly Figure[] = [
   [[0, 4, 0, 0], [8, 2, 0, 2], [10, 2, 0, THIRD], [12, 4, 0, APPROACH]],
   [[0, 4, 0, 0], [8, 2, 0, 7], [12, 2, 0, 9], [14, 2, 0, APPROACH]],
 ];
-/** The yidaki: a drone on the key note, pulsed by the breath (mod 1, a "wa"), with a toot
+/** The Didgeridoo: a drone on the key note, pulsed by the breath (mod 1, a "wa"), with a toot
  *  (mod 2, the overblown note), a bark (mod 3), the in-breath of circular breathing (mod 4)
  *  and a howl (mod 5, the voice sung through the drone). The notes join up, so the drone never stops. */
 const DIDGES: readonly Figure[] = [
@@ -2632,8 +2733,7 @@ const BLIP_STEPS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
 ];
 
 /** A dance tune's style: one of each instrument from its genre's lean, and a clean, bright, pumping chain. */
-function drawDanceStyle(rng: () => number, mood: DanceMood, fixed: Partial<LofiStyle>): LofiStyle {
-  const lean = DANCE[mood];
+function drawDanceStyle(rng: () => number, mood: DanceMood, fixed: Partial<LofiStyle>, lean: DanceLean = DANCE[mood]): LofiStyle {
   const weighted = <T>(w: Weights<T>): T => weightedPick(rng, w);
   const range = ([lo, hi]: readonly [number, number]): number => lo + rng() * (hi - lo);
   const r2 = (v: number): number => Math.round(v * 100) / 100;
@@ -2649,8 +2749,9 @@ function drawDanceStyle(rng: () => number, mood: DanceMood, fixed: Partial<LofiS
   return { ...drawn, ...fixed };
 }
 
-/** A dance part: as Part, and `alt` plays the second drop's bass figures. */
-export interface DancePart extends Part { alt?: boolean }
+/** A dance part: as Part, and `alt` plays the second drop's bass figures. Straya's solo marks its
+ *  trades: the didgeridoo's bars and the answers (lofi-straya.ts strayaParts). */
+export interface DancePart extends Part { alt?: boolean; trade?: 'didge' | 'answer' }
 
 /**
  * A dance tune's running order: an intro of chords and the melody that opens the filter,
@@ -2684,6 +2785,7 @@ const INTROS: Record<DanceMood, Weights<IntroStyle>> = {
   jazz: [['keys', 2], ['bass', 2], ['full', 2]],
   swing: [['beat', 3], ['full', 2]],
   straya: [['bass', 3], ['lead', 2], ['keys', 1]],
+  arnhem: [['full', 2], ['beat', 2], ['keys', 1]],   // the bilma and the Yidaki open every one (lofi-arnhem.ts)
   fantasy: [['keys', 3], ['lead', 2]],
   dream: [['keys', 3], ['lead', 1]],
   kpop: [['beat', 2], ['keys', 2], ['bass', 1]],
@@ -2704,10 +2806,15 @@ const INTROS: Record<DanceMood, Weights<IntroStyle>> = {
   surf: [['lead', 3], ['beat', 2], ['full', 2]],   // the lead's glissando, a fill round the toms, or the whole band
   yacht: [['keys', 3], ['full', 2], ['bass', 1]],   // a chorused guitar picking the chords, or the band from the top
   botanica: [['keys', 1]],   // botanica writes its own opening (lofi-botanica.ts)
+  oompa: [['full', 1]],   // oompa opens on its fanfare (lofi-oompa.ts)
+  noosa: [['keys', 1]],   // Noosacore opens on the shore (lofi-noosa.ts)
+  mandopop: [['keys', 1]],   // Mandopop and C-Pop write their own openings (lofi-cpop.ts)
+  cpop: [['keys', 1]],
   breakbeat: [['beat', 4], ['keys', 1], ['bass', 1]],   // the break alone, as a DJ wants it
   funkyHouse: [['beat', 2], ['keys', 2], ['bass', 1]],
   ukGarage: [['beat', 3], ['keys', 1], ['bass', 1]],
   privateSchool: [['keys', 3], ['beat', 1]],
+  jungle: [['keys', 3], ['beat', 2], ['bass', 1]],   // the pads alone, the break filtered under them, or the sub
 };
 
 function arrangeDance(rng: () => number, lean: DanceLean, mood: DanceMood): DancePart[] {
@@ -2717,6 +2824,7 @@ function arrangeDance(rng: () => number, lean: DanceLean, mood: DanceMood): Danc
   const intro = weightedPick(rng, INTROS[mood]);
   if (mood === 'lofiHouse') return arrangeHouse(rng, lean, intro);
   if (isClubMood(mood)) return arrangeClub(rng, lean, intro, mood);
+  if (mood === 'jungle') return arrangeJungle(rng, lean, intro);
   if (lean.band) {
     // A band's song: an intro on the guitar (the rock band joins it), verse, a pre-chorus
     // that turns with a drum fill, the chorus on a crash, a solo, a last pre-chorus and
@@ -2789,13 +2897,19 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     const lean = DANCE.salsa;
     return composeSalsa(seed, fixed, { drawStyle: r => drawDanceStyle(r, 'salsa', {}), perc: kind => LOFI_PERCUSSION.indexOf(kind), bpm: lean.bpm, minor: lean.minor });
   }
+  // Oompa is written by its own module, as a band plays it (lib/lofi-oompa.ts).
+  if (mood === 'oompa') return composeOompa(seed, fixed, { drawStyle: r => drawDanceStyle(r, 'oompa', {}), woodblock: LOFI_PERCUSSION.indexOf('woodblock') });
+  // Mandopop and C-Pop are written by their own module, as a pop song (lofi-cpop.ts).
+  if (mood === 'mandopop' || mood === 'cpop') return composeCpop(seed, mood, fixed, { drawStyle: r => drawDanceStyle(r, mood, {}), perc: kind => LOFI_PERCUSSION.indexOf(kind) });
   const rng = mulberry32(seed >>> 0);
   const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
   const chance = (p: number): boolean => rng() < p;
-  const lean = DANCE[mood];
+  // Arnhem Land draws its place on the line from modern to traditional, and the style there, from a stream of its own (lofi-arnhem.ts).
+  const arnhem = mood === 'arnhem' ? arnhemOf((seed ^ 0xa4e3) >>> 0) : null;
+  const lean = arnhem?.lean ?? DANCE[mood];
   const key = Math.floor(rng() * 12);
   const minor = rng() < lean.minor;
-  const style = drawDanceStyle(rng, mood, fixed);
+  const style = drawDanceStyle(rng, mood, fixed, lean);
   const bpm = Math.round(lean.bpm[0] + rng() * (lean.bpm[1] - lean.bpm[0]));
   const POOLS = {
     jazz: [MAJOR, MINOR], pop: [POP_MAJOR, POP_MINOR], rock: [ROCK_MAJOR, ROCK_MINOR], spanish: [SPANISH_MAJOR, SPANISH_MINOR], future: [FUTURE_MAJOR, FUTURE_MINOR],
@@ -2828,7 +2942,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     : mood === 'jazz' || mood === 'swing' ? (minor ? DORIAN : MAJOR_SCALE)
     : minor ? PENTA_MINOR : PENTA_MAJOR;
   const penta = scale.map(i => (key + i) % 12);
-  const parts = arrangeDance(rng, lean, mood);
+  // Straya's didgeridoo and birds, from a stream of their own (lofi-straya.ts), its solo cut into trades.
+  const straya = mood === 'straya' ? strayaOf((seed ^ 0x57a7a) >>> 0, style.lead, !!fixed.lead) : null;
+  const parts = straya ? strayaParts(arrangeDance(rng, lean, mood), straya) : arnhem ? strayaParts(arrangeDance(rng, lean, mood), arnhem.didge, true) : arrangeDance(rng, lean, mood);
   const total = parts.reduce((s, p) => s + p.bars, 0) + 1;
   // Lofi house's own draws come from a stream of their own (see houseOf).
   const house = mood === 'lofiHouse' ? houseOf((seed ^ 0x4005e) >>> 0) : null;
@@ -2872,10 +2988,10 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const verseKeysDrawn = lean.verseKeys ? weightedPick(rng, lean.verseKeys) : undefined;
   const verseKeys = fixed.keys ?? verseKeysDrawn;
   // A reese holds a note under the break, or rolls along with the drums.
-  const figuresOf = (b: LofiStyle['bass']): readonly Figure[] => clubFigures(mood, b, club) ?? (b === 'wobble' ? WOBBLES : b === 'growl' ? GROWLS : b === 'slap' ? SLAPS
+  const figuresOf = (b: LofiStyle['bass']): readonly Figure[] => clubFigures(mood, b, club) ?? jungleFigures(mood, b) ?? (b === 'wobble' ? WOBBLES : b === 'growl' ? GROWLS : b === 'slap' ? SLAPS
     : MOOD_BASS[mood] && b === lean.bass[0]![0] ? MOOD_BASS[mood]!
     : b === 'log' ? LOGS : b === 'deep' ? HOUSE_BASS
-    : b === 'yidaki' ? DIDGES : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA : b === 'eight' ? (mood === 'sherbert' ? SUBS : EIGHTS) : b === 'synth' ? OCTAVES : b === 'round' ? RIDDIMS : b === 'motown' ? SOUL : b === 'acid' ? ACIDS
+    : b === 'didgeridoo' ? DIDGES : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA : b === 'eight' ? (mood === 'sherbert' ? SUBS : EIGHTS) : b === 'synth' ? OCTAVES : b === 'round' ? RIDDIMS : b === 'motown' ? SOUL : b === 'acid' ? ACIDS
     : [...REESES, ...ROLLERS]);
   // Two bars of bass figure for each drop and for the verse, a call and its answer.
   const figA: [Figure, Figure] = [pick(figuresOf(style.bass)), pick(figuresOf(style.bass))];
@@ -2902,6 +3018,8 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     }
     if (part.section === 'intro') return { keys: softKeys, lead: leadIntro };
     if (part.section === 'outro') return { keys: softKeys };
+    if (straya && part.trade === 'answer') return { lead: straya.answer };   // the didgeridoo's solo, answered
+    if (arnhem && part.trade === 'answer') return fixed.lead ? undefined : { lead: arnhem.didge.answer };   // the Yidaki's solo, answered by the band
     if (part.section === 'break') return lean.band ? undefined : { keys: softKeys, lead: leadB };   // a band's break is the solo
     if (part.section === 'verse') return { bass: verseBass, ...(verseKeys ? { keys: verseKeys } : {}) };
     if (part.section === 'drop' && part.alt) return { lead: leadB, bass: bassB, ...(doubleB ? { double: doubleB } : {}) };
@@ -2920,13 +3038,17 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   // The tune's percussion, from its seed (no draw, so the rest of the tune is unchanged).
   const percussion = PERCUSSION[mood];
   const perc: Percussion | null = percussion ? percussion.kinds[((seed >>> 5) % percussion.kinds.length)]! : null;
-  // Where a Straya tune's kookaburra laughs, if it does.
-  const kooka: LofiSection | null = mood === 'straya' && rng() < 0.6 ? pick(['intro', 'break', 'outro'] as const) : null;
-  let kookaLaughed = false;
+  // The didgeridoo's solo phrases so far (two bars each), and Arnhem Land's Yidaki phrases (its answers and its solo).
+  let didgeSolo = 0;
+  let arnhemPhrase = 0;
+  // A bass genre's rare didgeridoo cameo (lofi-straya.ts), from a stream of its own.
+  const cameo = DIDGE_CAMEO.has(mood) ? cameoOf((seed ^ 0xd1d6e) >>> 0) : null;
   // Sherbert's own figures, drawn for its tunes only, so no other style's tune changes:
   // two bars of chord rhythm and of kick, a two-bar melody for the verse (and, thinned,
   // the quieter sections) and a busier hook for the drop, where the console's arpeggios
   // sparkle, and whether a build ends on a chopped stutter or a power-up.
+  // How the future-bass chords vary through a drop, from a stream of their own (lofi-future.ts).
+  const fut = futurePlan(seed);
   const sher = mood === 'sherbert' ? {
     chords: [pick(FUTURE_CHORDS), pick(FUTURE_CHORDS)] as const,
     kicks: [kickSteps, pick(FUTURE_KICKS)] as const,
@@ -2944,7 +3066,12 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     ?? (mood === 'ukGarage' || mood === 'funkyHouse' ? { verse: chopMelody(rng), hook: chopMelody(rng), stutter: chance(0.5) } : null);
   // Drum and bass's top loop: a break chopped over the kit, edited bar by bar, from a stream
   // of its own, so the rest of every tune composes as it did (lofi-club.ts).
-  const topLoop = mood === 'dnb' ? topLoopOf(seed) : null;
+  // A tune that chops a break (lofi-break-chop.ts: jungle, breakbeat, some drum and bass,
+  // hip-hop and trip-hop tunes), from a stream of its own; a drum and bass tune that chops
+  // one plays it in place of the top loop.
+  const breakChops = chopsOf(mood, seed, bpm);
+  const jgl = mood === 'jungle' ? jungleOf(seed) : null;
+  const topLoop = mood === 'dnb' && !breakChops ? topLoopOf(seed) : null;
   // And its own kick and snare through a drop, edited bar by bar (lofi-breaks.ts dnbKitBar),
   // from a stream of its own: the generic two-step is still drawn, so no other part moves.
   const dnbKit = mood === 'dnb' ? (() => { const r = mulberry32((seed ^ 0xd0b5) >>> 0); return { plan: dnbKitPlan(r), r }; })() : null;
@@ -2979,6 +3106,10 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
     let runStart = pi;
     while (runStart > 0 && parts[runStart - 1]!.section === part.section) runStart--;
     const runBars = parts.slice(runStart, pi).reduce((s, p) => s + p.bars, 0);
+    let runEnd = pi;
+    while (runEnd + 1 < parts.length && parts[runEnd + 1]!.section === part.section) runEnd++;
+    /** The whole section's length in bars (a drop in two halves counted once). */
+    const dropBars = parts.slice(runStart, runEnd + 1).reduce((s, p) => s + p.bars, 0);
     for (let i = 0; i < part.bars; i++, index++) {
       const slot = Math.floor(i / style.chordBars) + (part.from ?? 0);
       const firstOfChord = i % style.chordBars === 0;
@@ -3022,6 +3153,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           // The club genres' keys on the tune's rhythm (lofi-club.ts): breakbeat's stabs, the
           // garage organ's, funky house's disco loop and private school's comping.
           notes.push(...clubKeys(club, { i, inSection, lastOfBuild }, voicing, sb, rng));
+        } else if (jgl && jungleStabs(keysV, part.section)) {
+          // Jungle's stabs off the beat, for the dub echo (lofi-jungle.ts).
+          notes.push(...jungleKeys(jgl, inSection, voicing, sb));
         } else if (keysV === 'banjo') {
           // A banjo's forward roll: the chord's tones picked in sixteenths, thumb, index, middle.
           const roll = chordShape.slice(-3);
@@ -3112,17 +3246,26 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           // Future-bass chords: the drop's stabs and wubs (the first chord of each phrase
           // bending up into its pitch), the verse's held chord pumping under the kick, and
           // a build's chord whose wub speeds up bar by bar to thirty-seconds at the end.
-          const chordAt = (beat: number, len: number, vel: number, mod: number): void => {
-            for (const p of voicing) notes.push({ voice: 'keys', midi: p, beat, dur: len, vel: clamp01(vel + (rng() - 0.5) * 0.05), ...(mod ? { mod } : {}) });
+          // The bar is drawn from the main stream as it always was, then varied from the
+          // chords' own stream (engine/src/lofi-future.ts), so the tune's other parts stay put.
+          const bar: LofiNote[] = [];
+          const chordAt = (beat: number, len: number, vel: number, mod: number, into: LofiNote[] = bar, jitter: () => number = rng): void => {
+            for (const p of voicing) into.push({ voice: 'keys', midi: p, beat, dur: len, vel: clamp01(vel + (jitter() - 0.5) * 0.05), ...(mod ? { mod } : {}) });
           };
           if (part.section === 'drop') {
             const fig = sher ? sher.chords[i % 2]! : FUTURE_CHORDS[0]!;
             fig.forEach(([step, len, wub], n) => { chordAt(sb(step), len / 4 - 0.04, step === 0 ? 0.64 : 0.55, wub + (n === 0 && (i % 4 === 0 || chance(0.3)) ? 16 : 0)); });
+            const third: LofiNote[] = [];
+            const fr = mulberry32((fut.seed ^ (inSection * 7919)) >>> 0);
+            FUTURE_CHORDS[fut.third]!.forEach(([step, len, wub]) => { chordAt(sb(step), len / 4 - 0.04, step === 0 ? 0.64 : 0.55, wub, third, fr); });
+            notes.push(...futureDropBar(bar, third, fut, { i: inSection, bars: dropBars, sb }));
           } else if (build) {
             const wub = lastOfBuild ? 8 : [0, 1, 2, 4][Math.min(3, Math.floor((i / part.bars) * 4))]!;
             chordAt(0, (lastOfBuild ? 3.5 : 4) - 0.1, 0.5 + (i / part.bars) * 0.12, wub);
+            notes.push(...(lastOfBuild && parts[pi + 1]?.section === 'drop' ? futureBuildEnd(bar, fut, sb) : bar));
           } else {
             chordAt(0, 3.9, 0.52, i % 4 === 0 ? 16 : 0);
+            notes.push(...bar);
           }
         } else if (mood === 'sherbert' && (keysV === 'pluck' || keysV === 'chiparp' || keysV === 'felt') && (part.section === 'intro' || part.section === 'break' || part.section === 'outro')) {
           // The quiet sections: the chord broken into a bright, skipping arpeggio, the
@@ -3190,18 +3333,33 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       // style's drop another bass may answer the drop's own for a bar (BASS_PLANS).
       const traded = part.section === 'drop' && has('bass') ? stack?.trade(!!part.alt, inSection, i) ?? null : null;
       const barBass = traded?.bass ?? bassV;
-      if (has('bass')) {
-        // A yidaki has one note, the key's: it drones under every chord.
-        const root = barBass === 'yidaki' ? placeIn(key, 34, 45)
+      // Straya's didgeridoos (lofi-straya.ts): the Yidaki soloing in the solo's trades, the rhythm
+      // through a pre-chorus and a chorus, and the Didgeridoo's drone everywhere else (under the
+      // Yidaki too, in a tune that layers them), when the tune's bass is the Didgeridoo; a bass a
+      // person chose plays its own line under the rhythm and the solo.
+      const over = !!straya?.both && barBass === 'didgeridoo';
+      const didgeAt = straya ? { section: part.section, i, bars: part.bars, inSection, kicks: part.section === 'intro' ? [0, 8] : kickSteps, lastOfBuild, root: didgeridooPitch(key), high: yidakiPitch(key, over), over, sb } : null;
+      const rhythm = build || part.section === 'drop';
+      if (didgeAt && part.trade === 'didge') {
+        notes.push(...didgeLead(straya!, didgeAt, didgeSolo++ >> 1));
+        // Both instruments: the Didgeridoo's drone held under the Yidaki's solo.
+        if (over) notes.push(...didgeBass(straya!, didgeAt));
+      } else if (didgeAt && has('bass') && rhythm) notes.push(...didgeMid(straya!, didgeAt));
+      if (didgeAt && barBass === 'didgeridoo') {
+        if (has('bass') && (!rhythm || over)) notes.push(...didgeBass(straya!, didgeAt));
+      } else if (has('bass')) {
+        // A didgeridoo has one note, the key's: it drones under every chord.
+        const root = barBass === 'didgeridoo' ? didgeridooPitch(key)
           : ['slap', 'pulse', 'electro', 'picked', 'croak', 'upright', 'synth', 'round', 'motown', 'acid'].includes(barBass) ? placeIn(chord.root, 33, 44) : placeIn(chord.root, 28, 39);
         let fig = traded?.fig ?? (part.section === 'verse' ? figVerse : part.alt ? figB : figA)[i % 2]!;
         if (house && part.section === 'break') fig = house.breakFig[i % 2]!;
+        if (jgl && part.section === 'break') fig = jungleHold(i);
         if (lean.band) {
           // A band's bass draws a figure every bar, by section, and fills into the next
           // phrase on most fourth bars, so the line never settles into one loop.
           // Jazz, swing and the blues walk; country and Straya boom root to fifth.
           const walking = ((mood === 'jazz' || mood === 'swing' || mood === 'blues') && bassV === 'upright') || (mood === 'ska' && (bassV === 'round' || bassV === 'upright'));
-          const booming = (mood === 'country' || mood === 'straya') && bassV !== 'yidaki';
+          const booming = (mood === 'country' || mood === 'straya') && bassV !== 'didgeridoo';
           const rock = bassV === 'picked' && !booming;
           const fills = walking ? WALKS : booming ? BOOM_FILLS : rock ? ROCK_FILLS : bassV === 'upright' ? RUMBA_FILLS : figuresOf(bassV);
           const pool = walking ? (mood === 'blues' && !minor ? [...WALKS, ...BOOGIE] : WALKS)
@@ -3226,11 +3384,14 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
             midi = target + (target > root ? -1 : 1);
           }
           const dead = bassV === 'slap' && mod === 4;
-          // A yidaki is blown harder and softer through the bar, so its tone keeps changing.
+          // A didgeridoo is blown harder and softer through the bar, so its tone keeps changing.
           const blown = 0.55 + ((step * 7 + i * 5) % 6) * 0.08 + (mod === 2 || mod === 3 ? 0.1 : 0);
-          notes.push({ voice: 'bass', midi, beat: sb(step), dur: len / 4 - 0.02, vel: bassV === 'yidaki' ? clamp01(blown) : dead ? 0.5 : step === 0 ? 0.92 : 0.8, mod });
+          notes.push({ voice: 'bass', midi, beat: sb(step), dur: len / 4 - 0.02, vel: bassV === 'didgeridoo' ? clamp01(blown) : dead ? 0.5 : step === 0 ? 0.92 : 0.8, mod });
         }
       }
+
+      // The cameo: the didgeridoo over the bass's stack for half a bar, or a bar of it between the stacks.
+      if (cameo && (part.section === 'drop' || part.section === 'break')) notes.push(...didgeCameo(cameo, { section: part.section, alt: !!part.alt, bar: inSection, root: yidakiPitch(key, false), sb }));
 
       // The bass genres' bass talks at the end of each phrase of a drop: from the half bar,
       // the line gives way to a bwah, a yoi, a throat or a wub.
@@ -3410,6 +3571,9 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       } else if (yacht) {
         notes.push(...yachtDrums(yacht, { section: part.section, layers: part.layers, i, bars: part.bars, lastOfBuild, dropStart }, sb));
         if (perc && percussion!.in.includes(part.section) && has('hats')) notes.push(...percussionBar(perc, i, sb));
+      } else if (jgl) {
+        // Jungle's drums are its chopped break (below); here its crashes, riser, siren and shouts.
+        notes.push(...jungleMoments(jgl, { section: part.section, i, bars: part.bars, inSection, alt: !!part.alt, dropStart, next: parts[pi + 1]?.section, fx: has('fx'), key, sb }));
       } else if (club) {
         notes.push(...clubDrums(club, { section: part.section, layers: part.layers, i, bars: part.bars, inSection, lastOfBuild, dropStart }, sb));
       } else if (house) {
@@ -3610,18 +3774,13 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
         if (mood === 'sugar' && quiet && i % 4 === 1 && chance(0.4)) {
           notes.push({ voice: 'magpie', midi: placeIn((key + 7) % 12, 84, 95), dur: 1.5 + rng() * 1.5, beat: sb(chance(0.5) ? 4 : 8), vel: 0.55, mod: Math.floor(rng() * 1000) });
         }
-        // Straya's birds: magpies carolling between the phrases, often two answering each
-        // other, and once in some tunes a kookaburra laughing at the band.
-        if (mood === 'straya') {
-          const calm = quiet || part.section === 'outro';
-          if (calm ? i % 4 === 1 && chance(0.65) : i % 8 === 5 && chance(0.35)) {
-            notes.push({ voice: 'magpie', midi: placeIn((key + 7) % 12, 84, 95), dur: 1.5 + rng() * 1.5, beat: sb(chance(0.5) ? 4 : 8), vel: 0.5, mod: Math.floor(rng() * 1000) });
-            if (chance(0.45)) notes.push({ voice: 'magpie', midi: placeIn((key + 4) % 12, 84, 95), dur: 1 + rng(), beat: sb(12), vel: 0.42, mod: Math.floor(rng() * 1000) });
-          }
-          if (kooka && !kookaLaughed && part.section === kooka && i === 1) {
-            kookaLaughed = true;
-            notes.push({ voice: 'kookaburra', midi: placeIn((key + 4) % 12, 72, 83), dur: 3, beat: sb(4), vel: 0.6, mod: Math.floor(rng() * 1000) });
-          }
+        // Straya's birds (lofi-straya.ts): its featured moments, and a quieter magpie between phrases.
+        if (straya) {
+          strayaBirds(straya, {
+            section: part.section, i, bars: part.bars, next: parts[pi + 1]?.section, closing: pi === outroStart && i === Math.min(2, part.bars - 1),
+            afterSolo: i === 0 && !part.trade && !!parts[pi - 1]?.trade, firstDropEnd: part.section === 'drop' && !part.alt && i === part.bars - 1,
+            magpie: placeIn((key + 7) % 12, 84, 95), kookaburra: placeIn((key + 4) % 12, 72, 83), sb,
+          }, notes);
         }
       }
 
@@ -3632,6 +3791,14 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
       }
       // Drum and bass's top loop over the kit, a bar's edit at a time (only notes added).
       if (topLoop) notes.push(...topLoopBar(topLoop, { section: part.section, inSection, bars: part.bars, lastOfBuild, hats: has('hats') || (build && has('snare')) }, sb));
+      // The chopped break, in place of the kit it replaces (lofi-break-chop.ts chopDrums).
+      if (breakChops) {
+        const runEnd = parts.slice(runStart).findIndex(p => p.section !== part.section);
+        const sectionBars = parts.slice(runStart, runEnd < 0 ? parts.length : runStart + runEnd).reduce((s, p) => s + p.bars, 0);
+        const nextLayers = i < part.bars - 1 ? part.layers : parts[pi + 1]?.layers ?? [];
+        const ringOut = !nextLayers.some(l => l === 'kick' || l === 'snare' || l === 'hats');
+        chopDrums(notes, breakChops, { section: part.section, inSection, bars: sectionBars, lastOfBuild, alt: !!part.alt, ringOut, level: part.section === 'intro' ? 0.8 : 1, sb, layers: part.layers });
+      }
 
       if (mood === 'dream') {
         // A dreamscape: the drums back and the hats thinned to the beat, the keys held longer.
@@ -3642,6 +3809,15 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           else if (nt.voice === 'keys') notes[n] = { ...nt, dur: Math.min(8, nt.dur * 1.6) };
         }
       }
+      // Arnhem Land's own parts (lofi-arnhem.ts): the bilma, the Yidaki and the Didgeridoo, the shouts.
+      if (arnhem) {
+        arnhemPhrase = arnhemBar(arnhem, {
+          section: part.section, i, bars: part.bars, inSection, kicks: kickSteps, lastOfBuild, sb, key, layers: part.layers, trade: part.trade, dropStart,
+          next: parts[pi + 1]?.section, fade: !!part.fade, shout: placeIn(key, 55, 66),
+        }, notes, arnhemPhrase, { bilma: LOFI_PERCUSSION.indexOf('bilma'), shouts: ARNHEM_SHOUTS.map(SHOUT), crowd: LOFI_SHOUT_CROWD });
+      }
+      // A didgeridoo's toot only where the band is busy around it (lofi-straya.ts gateToots).
+      if (straya || cameo || arnhem) gateToots(notes, part.section, part.layers, straya && bassV === 'didgeridoo' ? DIDGE_AND_DRONE : DIDGE_ONLY);
       notes.sort((a, b) => a.beat - b.beat);
       const barVoices = traded || overNotes.length ? { ...voices, ...(traded ? { bass: traded.bass } : {}), ...(overNotes.length ? { over: 'croak' as const } : {}) } : voices;
       bars.push({ tune: info, index, section: part.section, layers: part.layers, chord: chord.name, tones: chord.tones, notes, open, level, ...(barVoices ? { voices: barVoices } : {}) });
@@ -3800,6 +3976,15 @@ const FUNK_RUNS: ReadonlyArray<readonly number[]> = [[8, 10, 11, 13, 14], [9, 10
 
 /** A surf lead note's playing, in its `mod` (the lead guitarist adds the fret, times ELECTRIC_FRET): tremolo-picked, a glissando down the neck from it, or shaken with the tremolo arm. */
 export const SURF_TREMOLO = 4, SURF_GLISS = 8, SURF_ARM = 16;
+
+/** The pieces Noosacore's composer (lofi-noosa.ts) shares with the dance genres. */
+const NOOSA_KIT: NoosaKit = {
+  chord: BOTANICA_KIT.chord, voicing: BOTANICA_KIT.voicing,
+  style: (rng, fixed) => drawDanceStyle(rng, 'noosa', fixed),
+  softKeys: DANCE.noosa.softKeys, names: NAMES,
+  surf: { tremolo: SURF_TREMOLO, gliss: SURF_GLISS, arm: SURF_ARM },
+  perc: kind => LOFI_PERCUSSION.indexOf(kind),
+};
 
 /** A surf tune's own choices (see surfOf); `r` goes on to draw the bars' small choices. */
 interface SurfPlan { r: () => number; phrygian: boolean; tomBeat: boolean; gliss: readonly [boolean, boolean]; verseTremolo: number; double: boolean; rhythm: number }
@@ -4203,11 +4388,20 @@ export function transposeChordName(name: string, by: number): string {
   return root ? NAMES[(NAMES.indexOf(root) + by + 12) % 12] + name.slice(root.length) : name;
 }
 
+/** A key's or a chord's root as a pitch class (0 is C): "E♭ minor" is 3, "F♯m7" is 6. */
+export function rootPitchClass(name: string): number {
+  const root = [...NAMES].sort((x, y) => y.length - x.length).find(n => name.startsWith(n));
+  return root ? NAMES.indexOf(root) : 0;
+}
+
 /** What a section is called in a genre: a band's drop is its chorus, its break the solo. */
 export function lofiSectionName(mood: LofiMood, section: LofiSection): string {
   if (mood === 'salsa') return salsaSectionName(section);
+  if (mood === 'oompa') return oompaSectionName(section);
+  if (mood === 'mandopop' || mood === 'cpop') return cpopSectionName(mood, section);
   // Botanica's drop is a bloom, and its break a clearing, where the place comes forward and the time goes free.
   if (mood === 'botanica') return section === 'drop' ? 'bloom' : section === 'break' ? 'clearing' : section;
+  if (mood === 'noosa') return noosaSectionName(section);
   if (!isDanceMood(mood) || !DANCE[mood].band) return section;
   if (section === 'drop') return 'chorus';
   if (section === 'break') return 'solo';
