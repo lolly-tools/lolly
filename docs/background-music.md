@@ -34,7 +34,7 @@ Looking for copyright-free background music? Music made here is not copyright-fr
 <!--i:eti-shield-check-->
 ## Made on your device, with no AI
 
-- **No samples, no loops, no recordings.** Lolly's composer writes every note, and instruments modelled in code play them. Even the drum breaks, the birds and the waves are synthesised.
+- **No samples, no loops, no recordings.** Lolly's composer writes every note, and instruments modelled in code play them. Even the drum breaks, the record scratches, the birds and the waves are synthesised.
 - **No generative AI.** The composer is a set of rules for each genre, not a trained model, and it makes the same tune from the same genre and seed on every device.
 - **Content Credentials in every file.** Each M4A or WAV you download carries a signed record that says Lolly's music generator made the music, procedurally and with no AI. The record's digital source type is algorithmic media.
 - **Nothing to sign up for.** The music generator runs in your browser. Your tracks stay on your device until you share them.
@@ -64,7 +64,7 @@ No. Lolly's composer follows rules written for each genre, and it plays the note
 
 ### Does the music use samples or loops?
 
-No. Every sound is synthesised by Lolly's own code as the track plays: the drums, the voices, the birds and the waves included. No recording of anyone's music is in a track.
+No. Every sound is synthesised by Lolly's own code as the track plays: the drums, the voices, the DJ's scratches, the birds and the waves included. No recording of anyone's music is in a track.
 
 ### What file types can I download?
 

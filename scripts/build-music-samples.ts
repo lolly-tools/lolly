@@ -19,6 +19,8 @@
  *   --force         re-render and re-sign even when the file matches its recipe
  *   --url=<origin>  use a running Vite dev server of the web shell instead of starting one
  *   --parallel=<n>  pages rendering at once (default 3)
+ *   --want=scratch  in --search, prefer a seed whose excerpt holds a DJ's scratch
+ *                   (hip hop, R&B, breakbeat, jungle and trip hop)
  *
  * Why pre-rendered files: the app needs WebGPU and a person's own device to compose,
  * while a crawler, a browser without WebGPU and a reader on a slow connection can all
@@ -75,6 +77,8 @@ const SEARCH = flag('search') !== undefined;
 const FORCE = flag('force') !== undefined;
 const SEEDS = Number(flag('seeds') ?? 6);
 const PARALLEL = Math.max(1, Number(flag('parallel') ?? 3));
+/** `--want=scratch`: in --search, keep only seeds whose excerpt holds a DJ's scratch (when any does). */
+const WANT = flag('want') ?? '';
 const ONLY = (flag('only') ?? '').split(',').map(s => s.trim()).filter(Boolean);
 for (const id of ONLY) if (!(LOFI_MOODS as readonly string[]).includes(id)) throw new Error(`Unknown genre id: ${id}`);
 const MOODS: LofiMood[] = ONLY.length ? (ONLY as LofiMood[]) : [...LOFI_MOODS];
@@ -174,7 +178,16 @@ async function renderInPage(page: Page, origin: string, style: LofiMood, seed: n
         dip = Math.min(dip, db(Math.sqrt(e / (2 * block))) - db(rms));
       }
     }
+    // The DJ's scratches the excerpt holds: the composer's own notes in the bars it spans.
+    const winStart = times.starts[startBar]! + from, winEnd = winStart + ex.seconds;
+    let scratches = 0;
+    for (let b = 0; b < track.length; b++) {
+      const barEnd = times.starts[b + 1] ?? times.total;
+      if (barEnd <= winStart || times.starts[b]! >= winEnd) continue;
+      for (const n of (track[b] as unknown as { notes: Array<{ voice: string }> }).notes) if (n.voice === 'scratch') scratches++;
+    }
     const measured = {
+      scratches,
       rmsDb: +db(rms).toFixed(1), peakDb: +db(peak).toFixed(1), dipDb: +dip.toFixed(1),
       liftDb: beforeN && afterN ? +(db(Math.sqrt(after / (2 * afterN))) - db(Math.sqrt(before / (2 * beforeN)))).toFixed(1) : 0,
       lowDb: +(db(Math.sqrt(lowSum / (2 * n))) - db(rms)).toFixed(1),
@@ -210,7 +223,8 @@ async function renderInPage(page: Page, origin: string, style: LofiMood, seed: n
  *  anchor, with any drop-out or clip set aside. */
 function score(m: SampleMeasures): number {
   if (m.dipDb < -18 || m.peakDb > -0.1) return -Infinity;
-  return m.rmsDb + 0.5 * Math.min(m.liftDb, 8);
+  const wanted = WANT === 'scratch' && (m.scratches ?? 0) > 0 ? 20 : 0;
+  return m.rmsDb + 0.5 * Math.min(m.liftDb, 8) + wanted;
 }
 
 async function main(): Promise<void> {
@@ -290,7 +304,7 @@ function blankRecipe(style: LofiMood): SampleRecipe {
   };
 }
 const fmt = (m: SampleMeasures): string =>
-  `rms ${m.rmsDb} dB  peak ${m.peakDb}  dip ${m.dipDb}  lift ${m.liftDb}  low ${m.lowDb}  stereo ${m.stereo}`;
+  `${m.scratches ? `scratches ${m.scratches}  ` : ''}rms ${m.rmsDb} dB  peak ${m.peakDb}  dip ${m.dipDb}  lift ${m.liftDb}  low ${m.lowDb}  stereo ${m.stereo}`;
 
 async function runPool(jobs: Array<() => Promise<void>>, n: number): Promise<void> {
   let next = 0;

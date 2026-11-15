@@ -34,14 +34,20 @@ From the top down:
 <!--i:eti-music-->
 ## Choose a genre
 
-The genre button shows the genre playing: its icon, its name and a line of what you are hearing (Straya's reads "Didgeridoo, banjo and bush birds"), on the genre's own colours. Click the button to see every genre as a card, A to Z in six groups: **Chill** (the Lofi moods among them), **Rock & Roots**, **Soul & Groove**, **Club**, **Bass & Synth** and **World**. A **Recent** row at the top holds the last six genres you played.
+The genre button shows the genre playing: its icon, its name and a line of what you are hearing (Straya's reads "Didgeridoo, banjo and bush birds"), on the genre's own colours. Click the button to see every genre as a card, A to Z in six groups: **Chill** (the Lofi moods among them), **Rock & Roots**, **Soul & Groove**, **Club**, **Bass & Synth** and **World**. A **Favourites** row at the top holds the genres you starred, and a **Recent** row under it the last six genres you played.
+
+![The genre picker with three favourites starred: the Favourites row (Jazz, Lofi house and Straya) above the Chill group, each card in its own colours and Lofi house, the genre playing, marked](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3DlofiHouse%26seed%3D4%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&drive=click%3A.ms-genre%3Bwait%3A600%3Bclick%3A%5Bdata-manage-toggle%5D%3Bwait%3A300%3Bclick%3A%5Bdata-genre-pref%3D%22favourite%22%5D%5Bdata-genre%3D%22jazz%22%5D%3Bclick%3A%5Bdata-genre-pref%3D%22favourite%22%5D%5Bdata-genre%3D%22lofiHouse%22%5D%3Bclick%3A%5Bdata-genre-pref%3D%22favourite%22%5D%5Bdata-genre%3D%22straya%22%5D%3Bclick%3A%5Bdata-manage-toggle%5D%3Bwait%3A400%3Bpress%3AHome%7Con%3D.msg-card%5Bdata-genre-card%3D%22lofiHouse%22%5D%20%3E%3E%20nth%3D0%3Bwait%3A400&css=.undo-toasts%7Bdisplay%3Anone%21important%7D&cropSelector=.msg&walker=1&format=svg&dark=1&filename=music-genre-favourites)
 
 Type in the search field to narrow the cards ("house" finds Lofi house and Funky house), then click a card, or move to one with the arrow keys and press Enter. Escape clears the search, then closes the picker.
 
-<!-- A screenshot of the genre picker goes here once its redesign merges (feat/music-studio-motion).
-Recipe to add then, with the leading "!" and the alt text:
-[The genre picker: the Recent row, then the six groups of genre cards, each in its own colours](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&drive=click%3A%5Bdata-genre%5D%3Bwait%3A600&walker=1&format=svg&dark=1&filename=music-genre-picker)
--->
+**Manage**, in the picker's heading, lists every genre with a star and an eye:
+
+- **Star** a genre to keep it in Favourites, at the top of the picker.
+- **Hide** a genre you never want. The picker and every shuffle leave a hidden genre out, though a link or a closed padlock still plays one.
+
+Each change is saved at once, and the note that says what changed has **Undo**. Press **Manage** again to go back to the cards.
+
+![Manage in the genre picker: each genre in a row with a star and an eye, Jazz starred and Metal hidden](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&drive=click%3A.ms-genre%3Bwait%3A600%3Bclick%3A%5Bdata-manage-toggle%5D%3Bwait%3A300%3Bclick%3A%5Bdata-genre-pref%3D%22favourite%22%5D%5Bdata-genre%3D%22jazz%22%5D%3Bclick%3A%5Bdata-genre-pref%3D%22hidden%22%5D%5Bdata-genre%3D%22metal%22%5D%3Bwait%3A600&css=.undo-toasts%7Bdisplay%3Anone%21important%7D&cropSelector=.msg&walker=1&format=svg&dark=1&filename=music-genre-manage)
 
 <!--i:eti-repeat-->
 ## Shuffle, the seed and the padlock
@@ -65,19 +71,20 @@ Each lane is one part of the tune:
 | **Chords** | Keys, guitars, strings, harps or saw chords |
 | **Bass** | The bass line |
 | **Drums** | The kit, from acoustic and jazz kits to 808s |
-| **Ear candy** | The sounds laid over the tune: birds, waves, shouts, the Lolly tag, a games console, sparkles and sweeps |
+| **Ear candy** | The sounds laid over the tune: birds, waves, shouts, the Lolly tag, a games console, sparkles, sweeps and a DJ's scratches |
 
 ![The track heads: Melody, Chords, Bass, Drums and Ear candy, each with the instrument playing (Auto with the composer's choice), then mute and solo](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&cropSelector=.ms-heads&walker=1&format=svg&dark=1&filename=music-track-heads)
 
 - **Mute and solo.** Each track's head has mute (the speaker) and solo (the headphones). Soloed tracks play alone.
 - **Who chose the instrument.** A head reads **Auto** and the instrument's name when the composer chose the instrument (**Auto · Slap bass**), and the name alone when you did. Where a part changes instrument, a line runs down the lane and a chip shows the new instrument: filled when you chose the instrument, tinted when the composer did.
-- **Choose an instrument.** Click a track's head, or a section in its lane, to open the instrument browser. Click a card to hear two bars of this tune's part on that instrument. **Use here** plays the instrument in every section of that kind (the bass in every chorus), and **Use everywhere** plays the instrument all through the track. **Auto** goes back to the composer's choice. The drums' browser holds the kits. A kit changes how the drums sound, never which notes they play.
-- **Favourites and blocks.** A star on a card makes an instrument a favourite, which shuffle draws more often. Block an instrument to keep it out of shuffles and new tunes.
+- **Choose an instrument.** Click a section in a lane, or a track's head, and the instrument popup grows out of the place you clicked. Its heading says where the choice applies, such as **Chords · Drop** for a section or **Chords · every section** for a lane head, with what plays there now under the heading, and that part of the lane lights up behind the popup. Click another section while the popup is open and the popup moves there. The chips under the heading choose every section or one kind of section. Click a card's play button to hear two bars of this tune's part on that instrument, with the other parts turned down. **Use in every Drop** (named for the section you chose) plays the instrument in every section of that kind, and **Use everywhere** plays the instrument all through the track. The first card, **Auto**, goes back to the composer's choice. For the drums, the popup holds the kits: a kit changes how the drums sound, never which notes they play. On a phone the popup rises from the bottom of the screen.
+- **Favourites and blocks.** The star on a card makes an instrument a favourite, which shuffle draws more often. The block button keeps an instrument out of shuffles and new tunes, and the generator plays another the genre plays in its place.
+- **Your instruments**, in the popup's heading, lists every instrument you starred or blocked, for the melody, the chords and the bass, each with one button to take the star or the block away. The note that follows has **Undo**.
+- **The Turntable.** Among the Melody lane's synths, the Turntable plays the tune as a DJ's scratches: baby scratches, chirps, flares and stabs, each note's length choosing the scratch and the record pitched to each note. The turntable scratches the tune's own sounds (a sung vowel, a horn stab or a bass note), never a record.
 
-<!-- A screenshot of the instrument browser goes here once its redesign merges (feat/music-studio-motion).
-Recipe to add then, with the leading "!" and the alt text:
-[The instrument browser for the bass: a card for each instrument, grouped by family, with Use here and Use everywhere](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&drive=click%3A.ms-heads%20%5Bdata-browse%3D%22bass%22%5D%3Bwait%3A800&walker=1&format=svg&dark=1&filename=music-instrument-browser)
--->
+![The instrument popup grown from the Chords lane's drop: its heading reads Chords · Drop, with the instrument playing there now, chips for every section or one kind of section, then a card for each instrument with play, a star and a block button, and the two Use buttons at the foot](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&drive=click%3A.ms-canvas%7Cat%3D0.43%2C0.41%3Bwait%3A900&css=.undo-toasts%7Bdisplay%3Anone%21important%7D&cropSelector=.msb--pop&walker=1&format=svg&dark=1&filename=music-instrument-popup)
+
+![Your instruments: the instruments starred and blocked so far, each with its part and a button to take the star or the block away](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&drive=click%3A.ms-canvas%7Cat%3D0.43%2C0.41%3Bwait%3A900%3Bclick%3A.msb-fav%20%3E%3E%20nth%3D4%3Bclick%3A.msb-block%20%3E%3E%20nth%3D7%3Bclick%3A%5Bdata-yours%5D%3Bwait%3A600&css=.undo-toasts%7Bdisplay%3Anone%21important%7D&cropSelector=.msb--pop&walker=1&format=svg&dark=1&filename=music-your-instruments)
 
 <!--i:eti-sliders-->
 ## Tune
@@ -98,18 +105,20 @@ Recipe to add then, with the leading "!" and the alt text:
 
 ![The Mix section open: pills for Melody, Chords, Bass, Drums, Ear candy and Room, then Texture, Brightness and Drive, then the ear candy row with the Lolly tag menu and the Voices, Console, Sparkles, Sweeps, Aussie birds and Waves switches](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=900&height=900&dpi=192&waitMs=3200&drive=click%3A%5Bdata-sec%3D%22mix%22%5D%20summary%3Bwait%3A400&cropSelector=%5Bdata-sec%3D%22mix%22%5D&walker=1&format=svg&dark=1&filename=music-mix)
 
-The ear candy row turns kinds of sound on and off: **Voices** (the shouts and the Lolly tag), **Console** (a games console's sounds), **Sparkles**, **Sweeps**, **Aussie birds** and **Waves**. In a genre with birds of its own, such as Straya or Noosacore, **Aussie birds** turns them off; in any other genre the switch brings in a magpie and a kookaburra now and then. **Waves** works the same way with the sea. The menu beside the switches chooses how a tune says "Lolly": as the composer placed the tag, not at all, or one way every time (spoken, sung, whispered, shouted, as a robot and more).
+The ear candy row turns kinds of sound on and off: **Voices** (the shouts and the Lolly tag), **Console** (a games console's sounds), **Sparkles**, **Sweeps** (the risers, the phasers and a DJ's scratches), **Aussie birds** and **Waves**. In a genre with birds of its own, such as Straya or Noosacore, **Aussie birds** turns them off; in any other genre the switch brings in a magpie and a kookaburra now and then. **Waves** works the same way with the sea. The menu beside the switches chooses how a tune says "Lolly": as the composer placed the tag, not at all, or one way every time (spoken, sung, whispered, shouted, as a robot and more).
 
 <!--i:eti-bird-->
 ## Ear candy moments
 
-Each sound on the Ear candy lane shows as a small icon where it comes in: a bird, a wave, a games console, a riser or a sweep, a shout or the Lolly tag, sparkles, or the sounds of a place. Point at an icon to see its name.
+Each sound on the Ear candy lane shows as a small icon where it comes in: a bird, a wave, a games console, a riser or a sweep, a shout or the Lolly tag, sparkles, the sounds of a place, or a record for a DJ's scratch. Point at an icon to see its name.
 
 - **While the track is stopped**, press an icon to hear that moment on its own, with every other part turned off.
 - **While the track plays**, press an icon and the music carries on from that moment's bar.
 - **With the keyboard**, the icons are one stop for Tab, and the arrow keys move from moment to moment through the whole track.
 
-![The track with a pointer resting on one Ear candy icon: under the drum hits, a row of small icons (games consoles, coins and risers) sits where each sound comes in, and the icon pointed at shows its name, Shout](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&drive=hover%3A.ms-fx-moment%20%3E%3E%20nth%3D6%3Bwait%3A300&cropSelector=.ms-editor&walker=1&format=svg&dark=1&filename=music-ear-candy)
+Hip hop, breakbeat and jungle tunes most often carry a DJ's scratches: scratched hooks on a chorus turnaround in hip hop, rewinds and backspins into a drop in breakbeat and jungle. About one R&B or trip hop tune in four has a few, and a funk, nu-disco or UK garage tune now and then. Like the Turntable, the scratches work on the tune's own sounds, never on a record.
+
+![A hip hop track with the pointer on an Ear candy icon: under the drum hits, a row of small icons sits where each sound comes in, and the record icon pointed at shows its name, Record scratch](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dhiphop%26seed%3D8%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&drive=hover%3A.ms-fx-moment%5Bdata-name%3D%22Record%20scratch%22%5D%3Bwait%3A300&cropSelector=.ms-editor&walker=1&format=svg&dark=1&filename=music-ear-candy)
 
 <!--i:eti-sun-->
 ## The visualiser
@@ -143,7 +152,7 @@ A render can take longer than the track itself, and a card shows how far it has 
 <!--i:eti-history-->
 ## Undo and redo
 
-Every change can be taken back: the genre, the seed, a shuffle, an instrument, mute and solo, a level, the tempo, the key, the length, the ear candy switches and **Reset**. Use the arrows beside **Render**, or press Cmd or Ctrl+Z to undo and Shift+Cmd or Ctrl+Z (or Ctrl+Y) to redo. A slider dragged counts as one step, however far you drag the slider. A playing track keeps playing, and the line under the track tells you what was undone or redone.
+Every change can be taken back: the genre, the seed, a shuffle, an instrument, mute and solo, a level, the tempo, the key, the length, the ear candy switches and **Reset**. Use the arrows beside **Render**, or press Cmd or Ctrl+Z to undo and Shift+Cmd or Ctrl+Z (or Ctrl+Y) to redo. A slider dragged counts as one step, however far you drag the slider. A playing track keeps playing, and the line under the track tells you what was undone or redone. Starring or hiding a genre, and starring or blocking an instrument, are kept with your profile rather than the track, so each of those has **Undo** in the note that appears as you make the change.
 
 <!--i:eti-badge-check-->
 ## Content Credentials
@@ -177,10 +186,13 @@ Looking for copyright-free background music? Music made here is not copyright-fr
 - Space plays and stops. Click the top row to play from a section, or double-click a bar to play from that bar.
 - Escape closes the instrument browser or a panel, then leaves the generator.
 - Zoom in, zoom out or fit the whole track with the buttons above the track heads.
+- With reduced motion on, in your system's settings or in Lolly's, the sections, menus and popups change at once instead of moving.
 
-On a phone, play, the time, the seed and shuffle sit along the bottom of the screen, and each track is a row showing its instruments, mute and solo. Tap a row to choose its instruments.
+On a phone, everything you press often sits in the dock at the bottom of the screen, within reach of a thumb: play, the seed, shuffle, **Render**, **Save** and the link. Along the top of the dock runs the seek bar, with the time gone at one end, the track's length at the other and the tune's sections drawn along the bar in their colours, so the bar is also a map of the tune. Tap or drag along the bar to go to a bar of the music: while the track plays, the music carries on from where you let go; while the track is stopped, play starts there. With the keyboard, the arrow keys step a bar, Page Up and Page Down a section, and Home and End go to the start and the end. Each track is a row showing its instruments, mute and solo; tap a row to choose its instruments.
 
-![The music generator on a phone: the genre button and the padlock across the top, Render and Save below them, the Tune, Mix and Tracks sections, and play, the seed and shuffle along the bottom](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=390&height=844&dpi=192&waitMs=3200&css=.ms-track%20.ms-browse%20%5Bdata-short%5D%7Bdisplay%3Anone%7D&walker=1&format=svg&dark=1&filename=music-phone)
+![The phone dock: the seek bar across the top with the time gone, the sections in their colours and the track's length, then play, the seed, shuffle, Render, Save and the link](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=390&height=844&dpi=192&waitMs=3200&drive=click%3A%5Bdata-seek%5D%7Cat%3D0.62%2C0.5%3Bwait%3A500&cropSelector=.ms-transport&walker=1&format=svg&dark=1&filename=music-phone-dock)
+
+![The music generator on a phone: the padlock, the genre button, undo and redo across the top, the Tune, Mix and Tracks sections, the track, and the dock along the bottom](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=390&height=844&dpi=192&waitMs=3200&css=.ms-track%20.ms-browse%20%5Bdata-short%5D%7Bdisplay%3Anone%7D&walker=1&format=svg&dark=1&filename=music-phone)
 
 <!--i:eti-info-->
 ## How the music is made

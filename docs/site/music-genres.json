@@ -27,7 +27,7 @@
         },
         {
           "q": "Can I swap the flute for another instrument?",
-          "a": "Yes. Click the Melody lane's head to open the instrument browser, click a card to hear two bars of this tune on that instrument, then choose Use everywhere, or Use here for one kind of section."
+          "a": "Yes. Click the Melody lane's head to open the instrument popup, click a card to hear two bars of this tune on that instrument, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
         }
       ],
       "related": [
@@ -147,7 +147,7 @@
       "lead": "A slow, swung break, a deep 808 and dark chords, with an eerie lead drifting over them. Lolly writes a new trip hop tune from every seed, in your browser, and you can change every part.",
       "sound": [
         "Lolly's trip hop is dark and dusty, nearly always in a minor key. Pads, a Rhodes or a felt piano hold each chord for two bars over an 808 bass, and the tune goes to an airy, voice-like synth lead, a flute, a guitar or a cello. Grit and plenty of record dust colour the whole mix, and the top end is kept dark.",
-        "The beat is a slow, swung boom-bap, with a shaker through the verses and choruses. In about three tunes in four the drums are a chopped break: two bars of Lolly's own modelled drummer, put through a model of an old sampler, sliced and played back in a new order. Tunes play at about 79 to 91 beats a minute.",
+        "The beat is a slow, swung boom-bap, with a shaker through the verses and choruses. In about three tunes in four the drums are a chopped break: two bars of Lolly's own modelled drummer, put through a model of an old sampler, sliced and played back in a new order. Tunes play at about 79 to 91 beats a minute. In about one tune in four a DJ adds a slow baby scratch on one of the tune's own sounds.",
         "Each tune is a song. It opens on the beat or the keys, plays a verse and a pre-chorus that builds into the chorus, gives the lead a solo, then plays a last pre-chorus and chorus before the ending rings out. Most tunes say 'Lolly' once, often whispered or sung."
       ],
       "uses": [
@@ -160,7 +160,7 @@
       "faq": [
         {
           "q": "Can I swap the lead in trip hop?",
-          "a": "Yes. Open the Melody lane's instrument browser, hear two bars of the tune on any card, then use that instrument everywhere or only in one kind of section, such as the solo."
+          "a": "Yes. Open the Melody lane's instrument popup, hear two bars of the tune on any card, then use that instrument everywhere or only in one kind of section, such as the solo."
         },
         {
           "q": "Can I make trip hop darker or brighter?",
@@ -229,7 +229,7 @@
       "faq": [
         {
           "q": "Can I swap the slap bass?",
-          "a": "Yes. Click the Bass lane's head to open the instrument browser, hear two bars on each card, and choose Use everywhere, or Use here for one kind of section, such as the chorus."
+          "a": "Yes. Click the Bass lane's head to open the instrument popup, hear two bars on each card, and choose Use everywhere, or click a chorus in the lane first and choose Use in every Chorus."
         },
         {
           "q": "Can I move city pop to another key?",
@@ -301,7 +301,7 @@
         },
         {
           "q": "Can I swap the harp for something else?",
-          "a": "Yes. Click the Chords lane's head to open the instrument browser, hear two bars on each card, and use your choice everywhere or in one kind of section."
+          "a": "Yes. Click the Chords lane's head to open the instrument popup, hear two bars on each card, and use your choice everywhere or in one kind of section."
         }
       ],
       "related": [
@@ -401,7 +401,7 @@
       "faq": [
         {
           "q": "Is there a guitar solo in every rock tune?",
-          "a": "Yes. Every tune has a solo after the first chorus, where the lead steps forward. To give the solo its own instrument, pick one in the Melody lane's instrument browser and choose Use here."
+          "a": "Yes. Every tune has a solo after the first chorus, where the lead steps forward. To give the solo its own instrument, click the solo in the Melody lane, pick an instrument in the popup and choose Use in every Solo."
         },
         {
           "q": "Can I take out the shouts?",
@@ -541,7 +541,7 @@
         },
         {
           "q": "Can I swap the lead guitar?",
-          "a": "Yes. Click the Melody lane's head to hear two bars of the tune on each instrument, then use your choice everywhere, or only in the solo with Use here."
+          "a": "Yes. Click the Melody lane's head to hear two bars of the tune on each instrument, then use your choice everywhere, or click the solo in the lane first and choose Use in every Solo."
         }
       ],
       "related": [
@@ -575,7 +575,7 @@
         },
         {
           "q": "Can I bring the lead forward?",
-          "a": "Yes. Raise the Melody level in Mix to lift the lead out of the wall, or pick a different lead in the Melody lane's instrument browser."
+          "a": "Yes. Raise the Melody level in Mix to lift the lead out of the wall, or pick a different lead in the Melody lane's instrument popup."
         }
       ],
       "related": [
@@ -639,7 +639,7 @@
       "faq": [
         {
           "q": "Can I swap the pedal steel for a fiddle or a harmonica?",
-          "a": "Yes. Click the Melody lane's head, hear two bars of the tune on each instrument card, and choose Use everywhere, or Use here to change only one kind of section."
+          "a": "Yes. Click the Melody lane's head, hear two bars of the tune on each instrument card, and choose Use everywhere, or the Use in every button for the kind of section you clicked."
         },
         {
           "q": "Can I make country slower, like a ballad?",
@@ -677,7 +677,7 @@
         },
         {
           "q": "Can I swap the trumpet for a sax or a clarinet?",
-          "a": "Yes. Click the Melody lane's head, hear two bars of the tune on each instrument card, and choose Use everywhere, or Use here for one kind of section, such as the solo."
+          "a": "Yes. Click the Melody lane's head, hear two bars of the tune on each instrument card, and choose Use everywhere, or click a solo in the lane first and choose Use in every Solo."
         }
       ],
       "related": [
@@ -707,7 +707,7 @@
       "faq": [
         {
           "q": "Can I swap the harmonica for a guitar or a sax?",
-          "a": "Yes. Open the Melody lane's instrument browser and click a card to hear two bars of this tune on that instrument. Use everywhere plays your choice all through the track, and Use here plays it only in one kind of section, such as the solo."
+          "a": "Yes. Open the Melody lane's instrument popup and click a card to hear two bars of this tune on that instrument. Use everywhere plays your choice all through the track, and Use in every Solo, from a solo in the lane, plays it only in the solos."
         },
         {
           "q": "Can I make the blues slower?",
@@ -745,7 +745,7 @@
         },
         {
           "q": "Can I change the sax to a trumpet or vibes?",
-          "a": "Yes. Open the Melody lane's instrument browser, click a card to hear two bars of this tune on that instrument, then choose Use everywhere."
+          "a": "Yes. Open the Melody lane's instrument popup, click a card to hear two bars of this tune on that instrument, then choose Use everywhere."
         }
       ],
       "related": [
@@ -779,7 +779,7 @@
         },
         {
           "q": "Can I swap the clarinet for a trumpet or a sax?",
-          "a": "Yes. Open the Melody lane's instrument browser and click a card to hear this tune's melody on that instrument. Use everywhere keeps your choice all through the track."
+          "a": "Yes. Open the Melody lane's instrument popup and click a card to hear this tune's melody on that instrument. Use everywhere keeps your choice all through the track."
         }
       ],
       "related": [
@@ -848,7 +848,7 @@
         },
         {
           "q": "Can I swap the trumpet for a guitar lead?",
-          "a": "Yes. Open the Melody lane's instrument browser, click a card to hear two bars of this tune on that instrument, then choose Use everywhere, or Use here for one kind of section."
+          "a": "Yes. Open the Melody lane's instrument popup, click a card to hear two bars of this tune on that instrument, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
         }
       ],
       "related": [
@@ -865,7 +865,7 @@
       "lead": "Lush electric piano chords, a sliding 808 and a finger snap on the backbeat. Lolly writes a new R&B tune from every seed, in your browser, and you can change every part of the track.",
       "sound": [
         "Lolly's R&B is smooth and slow. Lush sevenths and ninths ring on a Rhodes, a pad or a felt piano, over an 808 that slides between its notes or, in some tunes, a soul bass with a sub under it in the chorus. Vocal chops, a flute or vibes carry the tune.",
-        "A clap or a finger snap marks the backbeat, and the hats roll often, in thirty-seconds or triplets, the way R&B producers program them. Now and then a soft voice adds an 'oh', a 'yeah' or a 'whoa' as an ad-lib.",
+        "A clap or a finger snap marks the backbeat, and the hats roll often, in thirty-seconds or triplets, the way R&B producers program them. Now and then a soft voice adds an 'oh', a 'yeah' or a 'whoa' as an ad-lib. In about one tune in four a DJ chirps or baby-scratches into the chorus, on one of the tune's own sounds.",
         "Each tune is a song: verses, a pre-chorus, a chorus, a solo and a last chorus. Tunes are a little more often minor than major and play at about 65 to 79 beats a minute, slow and unhurried under a voice-over."
       ],
       "uses": [
@@ -878,7 +878,7 @@
       "faq": [
         {
           "q": "Can I swap the 808 for a different bass?",
-          "a": "Yes. Open the Bass lane's instrument browser and click a card to hear this tune's bass line on that instrument. Use everywhere plays your choice all through the track, and Use here plays it only in one kind of section, such as the chorus."
+          "a": "Yes. Open the Bass lane's instrument popup and click a card to hear this tune's bass line on that instrument. Use everywhere plays your choice all through the track, and Use in every Chorus, from a chorus in the lane, plays it only in the choruses."
         },
         {
           "q": "Can I take out the ad-libs?",
@@ -899,7 +899,7 @@
       "lead": "A hard boom-bap beat, a sliding 808 and keys chopped into short hits. Lolly writes a new hip hop beat from every seed, in your browser, and you can change every part of the track.",
       "sound": [
         "Lolly's hip hop is a hard boom-bap with the snare laid back. An 808 slides between its notes, and a Rhodes, a Wurlitzer, a felt piano or a soft pluck cuts each chord into a few short hits. A bright lead, often a flute, a kalimba or a chip lead, sings the hook.",
-        "At the end of a phrase the hats often roll in thirty-seconds across the last beat, trap style. In about half the tunes a chopped break takes the place of the kit: Lolly's own drummer plays two bars on a modelled kit, recorded through a model of an old sampler and played back in slices in a new order.",
+        "At the end of a phrase the hats often roll in thirty-seconds across the last beat, trap style. In about half the tunes a chopped break takes the place of the kit: Lolly's own drummer plays two bars on a modelled kit, recorded through a model of an old sampler and played back in slices in a new order. Most tunes also have a DJ on the turntable, scratching a hook into a chorus turnaround or a fill, and now and then scratching the intro. The turntable works on the tune's own sounds, such as a sung vowel, a horn stab or the chopped break, never on a record.",
         "Each tune runs through verses, a pre-chorus, a chorus and a solo, then a last chorus, with an ad-lib such as 'yeah', 'uh' or 'yo' at the end of some phrases. Tunes play at about 85 to 97 beats a minute."
       ],
       "uses": [
@@ -918,6 +918,10 @@
         {
           "q": "Can I make the beat longer for a video?",
           "a": "Yes. Set the Length in the Tune section. A track holds whole tunes and ends on a tune's own outro and fade, the way a song ends."
+        },
+        {
+          "q": "Can I turn the scratches off, or have more?",
+          "a": "Yes. The scratches belong to Sweeps under the ear candy in Mix, so switching Sweeps off takes them out, with the risers and the phaser sweeps. For more scratching, choose the Turntable in the Melody lane's instrument popup, and a DJ plays the melody as scratches."
         }
       ],
       "related": [
@@ -947,7 +951,7 @@
       "faq": [
         {
           "q": "Can I swap the sax solo for a guitar?",
-          "a": "Yes. Open the Melody lane's instrument browser, choose the solo at the top and click a card to hear two bars on that instrument. Use here plays your choice in every solo, and Use everywhere plays it all through the track."
+          "a": "Yes. Click a solo in the Melody lane to open the instrument popup there, and click a card to hear two bars on that instrument. Use in every Solo plays your choice in every solo, and Use everywhere plays it all through the track."
         }
       ],
       "related": [
@@ -1041,7 +1045,7 @@
       "faq": [
         {
           "q": "Can I take the vocal chops out?",
-          "a": "Yes. Mute the Melody lane, or open its instrument browser, choose a flute, a sax or vibes and press Use everywhere. Everything else about the tune stays the same."
+          "a": "Yes. Mute the Melody lane, or open its instrument popup, choose a flute, a sax or vibes and press Use everywhere. Everything else about the tune stays the same."
         },
         {
           "q": "Can I make a longer mix for a shop or a stream?",
@@ -1075,7 +1079,7 @@
       "faq": [
         {
           "q": "Can I choose between the sub and the warp bass?",
-          "a": "Yes. Open the Bass lane's instrument browser and click a card to hear this tune's bass line on that bass. Use everywhere plays your choice all through the track, and Use here plays it only in one kind of section, such as the drop."
+          "a": "Yes. Open the Bass lane's instrument popup and click a card to hear this tune's bass line on that bass. Use everywhere plays your choice all through the track, and Use in every Drop, from a drop in the lane, plays it only in the drops."
         },
         {
           "q": "Can I hear just the two-step drums?",
@@ -1096,7 +1100,7 @@
       "lead": "A drum break cut into slices and played back in a new order, over a rolling reese bass. Lolly writes a new breakbeat tune from every seed, in your browser, and you can change every part of the track.",
       "sound": [
         "Each Lolly breakbeat tune starts with a drummer: Lolly's modelled kit plays an original two-bar break in a live room. A model of an old twelve-bit sampler records the break, pushed in hot, and plays the break back faster than the drummer played, so the break rises in pitch.",
-        "The sampler then plays the break in slices. The groove loops, and at the end of every four and eight bars the break is edited: a beat swapped, a slice stuttered, a drag or a snare roll into the next phrase, a slice pitched up. Each build high-passes the break bar by bar, and the drops add a punchier kick.",
+        "The sampler then plays the break in slices. The groove loops, and at the end of every four and eight bars the break is edited: a beat swapped, a slice stuttered, a drag or a snare roll into the next phrase, a slice pitched up. Each build high-passes the break bar by bar, and the drops add a punchier kick. In most tunes a DJ throws rewinds and backspins into the drops and scratches stabs over the edits, on the tune's own sounds rather than a record.",
         "A rolling reese bass drives the tune, answered now and then by a growl. Short saw, brass or organ stabs punch the chords, and vocal chops, a synth lead or a flute come in for the second half of the drop. A tune opens on a long intro, and tunes play at about 127 to 137 beats a minute."
       ],
       "uses": [
@@ -1113,7 +1117,7 @@
         },
         {
           "q": "Can I swap the vocal chop for another lead?",
-          "a": "Yes. Open the Melody lane's instrument browser, click a card to hear two bars of this tune on that instrument, then press Use everywhere, or Use here for one kind of section."
+          "a": "Yes. Open the Melody lane's instrument popup, click a card to hear two bars of this tune on that instrument, then press Use everywhere, or the Use in every button for the kind of section you clicked."
         }
       ],
       "related": [
@@ -1143,7 +1147,7 @@
       "faq": [
         {
           "q": "Can I swap the reese for another bass?",
-          "a": "Yes. Open the Bass lane's instrument browser and click a card to hear this tune's bass line on that bass, from a wobble to an 808. Use everywhere plays your choice all through the track."
+          "a": "Yes. Open the Bass lane's instrument popup and click a card to hear this tune's bass line on that bass, from a wobble to an 808. Use everywhere plays your choice all through the track."
         },
         {
           "q": "Can I slow drum and bass down?",
@@ -1164,7 +1168,7 @@
       "lead": "Chopped funk breaks over a deep dub sub, with stabs thrown into a dub echo. Lolly writes a new jungle tune from every seed, in your browser, and you can change every part of the track.",
       "sound": [
         "Each Lolly jungle tune has its own drummer, who plays two original two-bar funk breaks on a modelled kit in a live room, the snare's wires ringing whenever the kick is struck. A model of a twelve-bit sampler records the breaks and speeds them up a few semitones, and the chopped break is the tune's drum part.",
-        "Between steady stretches of groove the break is chopped every four and eight bars: slices resequenced, stutters, reversed slices swelling into the bar line, a half-time switch, and snare rolls in thirty-seconds and sixty-fourths into each drop. The second drop edits harder.",
+        "Between steady stretches of groove the break is chopped every four and eight bars: slices resequenced, stutters, reversed slices swelling into the bar line, a half-time switch, and snare rolls in thirty-seconds and sixty-fourths into each drop. The second drop edits harder. In most tunes a DJ throws a rewind or a backspin into a drop and scratches stabs over the edits.",
         "A sine sub plays long dub basslines, organ, Rhodes or brass stabs are thrown into a dub echo and a spring, and a synth siren calls at a few moments. A tune opens on pads and strings, in some tunes with the break filtered under them, then drops, breaks down, drops again and thins out, at about 160 to 175 beats a minute."
       ],
       "uses": [
@@ -1215,7 +1219,7 @@
         },
         {
           "q": "Can I swap the saw chords for something else?",
-          "a": "Yes. Open the Chords lane's instrument browser and click a card to hear two bars of this tune's chords on that instrument, then press Use everywhere, or Use here for one kind of section."
+          "a": "Yes. Open the Chords lane's instrument popup and click a card to hear two bars of this tune's chords on that instrument, then press Use everywhere, or the Use in every button for the kind of section you clicked."
         }
       ],
       "related": [
@@ -1249,7 +1253,7 @@
         },
         {
           "q": "Can I swap the sax for a flute or vibes?",
-          "a": "Yes. Open the Melody lane's instrument browser, click a card to hear two bars of this tune on that instrument, then press Use everywhere."
+          "a": "Yes. Open the Melody lane's instrument popup, click a card to hear two bars of this tune on that instrument, then press Use everywhere."
         }
       ],
       "related": [
@@ -1381,7 +1385,7 @@
         },
         {
           "q": "Can I swap the chopped vocal for another lead?",
-          "a": "Yes. Open the Melody track's instrument browser, click a card to hear two bars of this tune on that instrument, then choose Use here for one kind of section or Use everywhere for the whole track."
+          "a": "Yes. Open the Melody track's instrument popup, click a card to hear two bars of this tune on that instrument, then choose Use everywhere for the whole track, or the Use in every button for the kind of section you clicked."
         }
       ],
       "related": [
@@ -1411,7 +1415,7 @@
       "faq": [
         {
           "q": "Can I swap the saw lead for a guitar?",
-          "a": "Yes. Open the Melody track's instrument browser, click a guitar to hear two bars of this tune on it, then choose Use here for one kind of section or Use everywhere for the whole track."
+          "a": "Yes. Open the Melody track's instrument popup, click a guitar to hear two bars of this tune on it, then choose Use everywhere for the whole track, or the Use in every button for the kind of section you clicked."
         },
         {
           "q": "Can I make a longer track for a stream?",
@@ -1449,7 +1453,7 @@
         },
         {
           "q": "Can I play the tune on other instruments?",
-          "a": "Yes. Each track's instrument browser offers every instrument by family, 8-bit and synths included. Click a card to hear two bars of this tune on that instrument, then choose Use here or Use everywhere."
+          "a": "Yes. Each track's instrument popup offers every instrument by family, 8-bit and synths included. Click a card to hear two bars of this tune on that instrument, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
         }
       ],
       "related": [
@@ -1516,7 +1520,7 @@
         },
         {
           "q": "Can I put the ney on the tune?",
-          "a": "Yes. Open the Melody track's instrument browser, click the ney to hear two bars of this tune on it, then choose Use here or Use everywhere. Nothing else about the tune changes."
+          "a": "Yes. Open the Melody track's instrument popup, click the ney to hear two bars of this tune on it, then choose Use everywhere, or the Use in every button for the kind of section you clicked. Nothing else about the tune changes."
         }
       ],
       "related": [
@@ -1546,7 +1550,7 @@
       "faq": [
         {
           "q": "Can the guzheng play the whole tune?",
-          "a": "Yes. Open the Melody track's instrument browser, click the guzheng to hear two bars of this tune on it and choose Use everywhere. Choose Use here instead to keep it to one kind of section, such as the solo."
+          "a": "Yes. Open the Melody track's instrument popup, click the guzheng to hear two bars of this tune on it and choose Use everywhere. To keep it to the solos, click a solo in the lane first and choose Use in every Solo."
         },
         {
           "q": "Can I make it slower?",
@@ -1583,7 +1587,7 @@
         },
         {
           "q": "Can I put the shakuhachi on the tune?",
-          "a": "Yes. Open the Melody track's instrument browser, click the shakuhachi to hear two bars of this tune on it, then choose Use here or Use everywhere."
+          "a": "Yes. Open the Melody track's instrument popup, click the shakuhachi to hear two bars of this tune on it, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
         }
       ],
       "related": [
@@ -1850,7 +1854,7 @@
         },
         {
           "q": "Can I swap the trumpet for a sax?",
-          "a": "Yes. Open the Melody track's instrument browser, click the sax to hear two bars of this tune on it, then choose Use here or Use everywhere."
+          "a": "Yes. Open the Melody track's instrument popup, click the sax to hear two bars of this tune on it, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
         }
       ],
       "related": [
@@ -1914,7 +1918,7 @@
       "faq": [
         {
           "q": "Can I make a Mandopop tune without the traditional instruments?",
-          "a": "Yes. Some seeds are not China wind at all. For any tune, open the Melody track's instrument browser and choose a piano, a flute or another lead with Use everywhere."
+          "a": "Yes. Some seeds are not China wind at all. For any tune, open the Melody track's instrument popup and choose a piano, a flute or another lead with Use everywhere."
         },
         {
           "q": "Can I make a slow ballad?",
@@ -1947,7 +1951,7 @@
       "faq": [
         {
           "q": "Can I put the erhu on the whole tune?",
-          "a": "Yes. Open the Melody track's instrument browser, click the erhu to hear two bars of this tune on it, then choose Use everywhere, or Use here to keep it to one kind of section."
+          "a": "Yes. Open the Melody track's instrument popup, click the erhu to hear two bars of this tune on it, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
         },
         {
           "q": "How is C-pop different from Mandopop here?",

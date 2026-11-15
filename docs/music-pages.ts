@@ -114,6 +114,8 @@ export interface SampleMeasures {
   lowDb: number;
   /** Left and right correlation, 1 for mono. */
   stereo: number;
+  /** The DJ's scratches the composer placed in the sample's bars. */
+  scratches?: number;
 }
 
 /** One genre's listening sample. */
