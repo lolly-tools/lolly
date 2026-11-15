@@ -878,16 +878,41 @@
       "group": "Motion and presenting"
     },
     {
+      "slug": "background-music",
+      "title": "Free background music generator",
+      "src": "background-music.md",
+      "description": "Make free background music for videos, podcasts, streams and games in more than 50 genres, on your own device. Free for any use, even commercial, with credit.",
+      "section": "create",
+      "path": "create/background-music",
+      "icon": "headphones",
+      "aliases": [],
+      "renderer": "renderMusicHubPage",
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Music"
+    },
+    {
+      "slug": "music-generator",
+      "title": "Music generator",
+      "src": "music-generator.md",
+      "description": "Make a track in any of Lolly's genres: shuffle, choose instruments, set the tune and the mix, then download an M4A or WAV file that is free to use with credit.",
+      "section": "create",
+      "path": "create/music-generator",
+      "icon": "music",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Music"
+    },
+    {
       "slug": "generated-music",
       "title": "Generated music",
       "src": "generated-music.md",
-      "description": "How the Neurospicy player's Lofi and Lolly Sings stations compose their music, and why a seed always plays the same tune.",
+      "description": "How a seed becomes a tune, what stays the same on every device, how each genre's instruments are made and measured, and what a track records.",
       "section": "create",
       "path": "create/generated-music",
       "icon": "neurobeat",
       "aliases": [],
       "contentLicense": "CC-BY-SA-4.0",
-      "group": "Motion and presenting"
+      "group": "Music"
     },
     {
       "slug": "collaborate",

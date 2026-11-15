@@ -45,7 +45,7 @@
 
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { createTokenSet, colorToHex } from '../engine/src/tokens.ts';
 import { TOKEN_EXT } from '../engine/src/token-ext.ts';
 import {
@@ -68,7 +68,12 @@ type SvgToPng = (svg: string, opts: { width: number; height: number; background?
 // A page from the build's page list; only `slug` + `title` (non-landing) get a card.
 // `description` captions the card (falls back to the site tagline when absent), and
 // `register: 'stage'` marks a why page, which Opal's designs put on the stage.
-interface OgPage { slug?: string; title?: string; description?: string; isLanding?: boolean; register?: 'stage'; }
+interface OgPage { slug?: string; title?: string; description?: string; isLanding?: boolean; register?: 'stage'; card?: OgCard; }
+
+/** A generated page's own card (the music genre pages): a kicker in place of the house
+ *  card's title, the page's line, its address, and an icon for the sticker. Under Opal's
+ *  designs it is the tool card with this kicker; otherwise the view card with this icon. */
+export interface OgCard { kicker: string; line: string; url: string; iconSvg: string }
 
 // The per-tool card inputs. `id` gives Opal's tool card its link (/t/<id>).
 interface ToolCard {
@@ -705,6 +710,7 @@ function docsCardRenderer(rasterize: SvgToPng, chrome: BrandChrome) {
   if (chrome.cards === 'opal') {
     const opal = createOpalCards(rasterize, chrome.mark);
     return (title: string, page: OgPage): Promise<Buffer> => {
+      if (page.card) return opal.tool({ name: title, kicker: page.card.kicker, description: page.card.line, url: page.card.url, iconSvg: page.card.iconSvg });
       const line = page.description || DOCS_DESC_FALLBACK;
       return docsCardDesign(page) === 'stage'
         ? opal.stage({ kicker: STAGE_KICKER, title, line })
@@ -715,7 +721,7 @@ function docsCardRenderer(rasterize: SvgToPng, chrome: BrandChrome) {
   return (title: string, page: OgPage): Promise<Buffer> => view.render({
     title,
     description: page.description || DOCS_DESC_FALLBACK,
-    iconSvg: DOCS_ICON,
+    iconSvg: page.card?.iconSvg ?? DOCS_ICON,
   });
 }
 
@@ -755,6 +761,8 @@ export async function generateOgImages(
       // before writing (see scripts/lib/stamp-media.ts).
       const png = await render(page.title, page);
       const stamped = await stampBitmap(new Uint8Array(png), 'png', { id: page.slug, name: page.title });
+      // A generated page's slug can hold a folder (music/lofi-house).
+      mkdirSync(dirname(resolve(outDir, 'og', `${page.slug}.png`)), { recursive: true });
       writeFileSync(resolve(outDir, 'og', `${page.slug}.png`), Buffer.from(stamped));
       done.add(page.slug);
     } catch (e) {
