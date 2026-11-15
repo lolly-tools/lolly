@@ -68,6 +68,7 @@ import { walkBoxes, withoutMp4Udta } from '../engine/src/video-meta.ts';
 import { credentialMusicFile } from '../shells/web/src/lib/music-render.ts';
 import { parseMusicState } from '../shells/web/src/lib/music-state.ts';
 import { ANCHOR_SECTIONS, GENRE_SLUG, type ExcerptSpec, type SampleMeasures, type SampleRecipe, type SampleSet } from '../docs/music-pages.ts';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SAMPLES_JSON = join(ROOT, 'docs', 'music', 'samples.json');
@@ -297,7 +298,7 @@ async function main(): Promise<void> {
   const server = await startServer();
   let browser: Browser | null = null;
   try {
-    browser = await chromium.launch({ channel: 'chrome', headless: true });
+    browser = await chromium.launch({ channel: 'chrome', headless: true, args: webGpuLaunchArgs('auto') });
     const pages: Page[] = [];
     for (let i = 0; i < PARALLEL; i++) {
       const page = await (await browser.newContext()).newPage();

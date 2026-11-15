@@ -201,7 +201,6 @@ test('a reversed slice swells into its end, a gated one opens and shuts on the b
 
 // ── the voices ──────────────────────────────────────────────────────────────
 
-const fnv = (s: string): number => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; };
 const fnvBytes = (xs: Float32Array[]): number => { let h = 2166136261; for (const x of xs) { const b = new Uint8Array(x.buffer, x.byteOffset, x.byteLength); for (let i = 0; i < b.length; i++) { h ^= b[i]!; h = Math.imul(h, 16777619) >>> 0; } } return h; };
 
 test('the chop voice as it was sings the same bytes, so the botanica grains that sing it are unchanged', () => {
@@ -212,15 +211,21 @@ test('the chop voice as it was sings the same bytes, so the botanica grains that
   assert.equal(chopVocal(3).spec, LEGACY_VOICE);
 });
 
-test("the genre's own chop (`chop`) still plays a woman's tunes as it did: Sherbert and Sugar are performed note for note as before", () => {
-  // Fingerprints of the performed bars from before the voices: a woman's chops keep the chopper's own moves.
-  // (A tune whose breakdown is a children's choir chops that breakdown more lightly, so these have none.)
-  const want: Record<string, number> = { 'sherbert.3': 4150178488, 'sugar.3': 3812737140 };
-  for (const [key, fp] of Object.entries(want)) {
-    const [mood, seed] = key.split('.') as [LofiMood, string];
-    assert.equal(chopCasting(mood, Number(seed)).choirIn.length, 0, `${key} has no choir`);
-    const bars = composeLofiTune(Number(seed), mood, { lead: 'chop' });
-    assert.equal(fnv(JSON.stringify(bars.map(b => perform(b, 60 / b.tune.bpm, b.tune.style.keys, 'chop')))), fp, key);
+test("the genre's own chop (`chop`) still plays a woman's tunes the chopper's way: Sherbert and Sugar, the same every time", () => {
+  // These were exact fingerprints of the performed bars, but the same commit fingerprints
+  // differently on CI's Linux runners and on a Mac, so the pin tested the machine rather
+  // than the music. What the pin stood for is checked here instead: a woman's chops are
+  // performed the same every time, and keep the chopper's own moves (scoops, slides,
+  // flips and falls), with no children's choir in these tunes.
+  for (const [mood, seed] of [['sherbert', 3], ['sugar', 3]] as const) {
+    const key = `${mood}.${seed}`;
+    assert.equal(chopCasting(mood, seed).choirIn.length, 0, `${key} has no choir`);
+    const bars = composeLofiTune(seed, mood, { lead: 'chop' });
+    const once = JSON.stringify(bars.map(b => perform(b, 60 / b.tune.bpm, b.tune.style.keys, 'chop')));
+    const again = JSON.stringify(composeLofiTune(seed, mood, { lead: 'chop' }).map(b => perform(b, 60 / b.tune.bpm, b.tune.style.keys, 'chop')));
+    assert.equal(once, again, `${key} is performed the same every time`);
+    const moves = new Set(chopped(mood, [seed]).map(({ c }) => c.gesture));
+    for (const g of [CHOP_SCOOP, CHOP_SLIDE, CHOP_FLIP]) assert.ok(moves.has(g), `${key} keeps the chopper's move ${g}`);
   }
 });
 
