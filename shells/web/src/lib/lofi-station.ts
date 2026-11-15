@@ -54,6 +54,7 @@ import { playConsoleFx, stopsTape, tapeStopCurve } from './lofi-console-fx.ts';
 import { readGlitch } from '../../../../engine/src/lofi-botanica.ts';
 import { playNature } from './lofi-nature.ts';
 import { playWave } from './lofi-waves.ts';
+import { playLorikeets, playWhipbird } from './lofi-coast-birds.ts';
 import { playGrain } from './lofi-grains.ts';
 import { BeatRepeat, playGlitch, repeatSlice } from './lofi-glitch.ts';
 import * as BR from './lofi-breaks.ts';
@@ -922,6 +923,9 @@ export class LofiStation {
         break;
       case 'magpie': V.magpie(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'kookaburra': V.kookaburra(k, lanes.fx, t, note.midi, vel, note.mod ?? 0, len); break;
+      // The coast's birds (lib/lofi-coast-birds.ts): a whipbird pair calling, rainbow lorikeets.
+      case 'whipbird': playWhipbird(this.ctx, lanes.fx, t, note.midi, vel, note.mod ?? 0, bar.tune.seed); break;
+      case 'lorikeet': playLorikeets(this.ctx, lanes.fx, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed); break;
       case 'nature': playNature(this.ctx, lanes.nature, t, note.midi, vel, len, note.mod ?? 0, bar.tune.seed, bar.index * 64 + Math.round(note.beat * 8)); break;
       // The sea on the shore (lib/lofi-waves.ts), with the place's sounds after the tone filter, as a field recording would be.
       case 'wave': playWave(this.ctx, lanes.nature, t, vel, len, note.mod ?? 0, bar.tune.seed, bar.index * 64 + Math.round(note.beat * 8)); break;

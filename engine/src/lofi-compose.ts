@@ -83,8 +83,10 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
  *  adds `wave`, the sea on a sandy shore, a wave breaking or the shore's roar (lofi-waves-notes.ts
  *  says what a note's `mod` holds), which any style plays when a person turns the waves on. Mandopop
  *  and C-Pop add `pad`, a second keys instrument holding chords under the keys (lofi-cpop.ts). `siren`
- *  (jungle) is a dub siren, a synth's pitch swept by its own oscillator, its `mod` one of lofi-jungle.ts JUNGLE_SIRENS. */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge' | 'fm' | 'wave' | 'pad' | 'siren';
+ *  (jungle) is a dub siren, a synth's pitch swept by its own oscillator, its `mod` one of lofi-jungle.ts JUNGLE_SIRENS. The coast's
+ *  birds are `whipbird` (a pair's whistle, crack and answer) and `lorikeet` (screeches, a feeding
+ *  flock, a flock flying over), whose `mod`s lofi-coast-birds.ts reads. */
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge' | 'fm' | 'wave' | 'pad' | 'siren' | 'whipbird' | 'lorikeet';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash', 'tom', 'perc'];
 /** The percussion a `perc` note plays, by its `mod`: an egg shaker, a tambourine, congas (pitched by `midi`), a cowbell, clapsticks;
  *  and the world styles' hand drums and bells, whose `midi` is the stroke: the tombak (1 tom, 2 bak, 3 a snapped
