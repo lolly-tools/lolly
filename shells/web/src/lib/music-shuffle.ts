@@ -11,7 +11,8 @@
  * brightness and drive stay near the style's own. The tempo stays the tune's own and the
  * length stays the person's, so neither is drawn here.
  *
- * A genre the person hid is never drawn (unless every genre is hidden), and the genre lock
+ * A genre the person hid is never drawn (unless every genre is hidden), a genre they
+ * starred is drawn three times as often as any other (shuffleGenre), and the genre lock
  * and Shift keep the genre playing whatever its state. A person's instrument preferences
  * (lib/music-prefs.ts) steer the draw: an instrument they blocked is never drawn, and a favourite the style plays is drawn more often, and
  * makes the shuffle choose that part's instrument more often too. A part whose tune
@@ -67,6 +68,14 @@ const FAVOURITE_WEIGHT = 3;
 const SECTION_CHANCE = 0.35;
 const SECOND_SECTION_CHANCE = 0.3;
 const TONE_CHANCE = 0.5;
+/**
+ * How many times as likely a starred genre is to be drawn as any other: the same weight a
+ * starred instrument gets. With n other genres to move to, one favourite comes up in 3 of
+ * every n + 2 shuffles: while there are 58 genres, about one in 20 instead of one in 57,
+ * and three favourites together about one in 7. They come round often, and every other
+ * genre still plays.
+ */
+export const FAVOURITE_GENRE_WEIGHT = 3;
 /** Other seeds of the style whose instruments make up what a shuffle may choose. */
 const POOL_SEEDS = 6;
 
@@ -137,20 +146,35 @@ function sectionChanges(rand: () => number, track: readonly LofiBar[], pool: Poo
 }
 
 /**
+ * The genre a shuffle moves to: any but `after` (the one playing now) and the ones the
+ * person hid (unless every other genre is hidden), with each genre they starred
+ * FAVOURITE_GENRE_WEIGHT times as likely as any other. One number from `rand` either way,
+ * and with no favourite among the genres it may move to, the very draw it always was.
+ */
+export function shuffleGenre(rand: () => number, opts: { after?: LofiMood; hidden?: ReadonlySet<string>; favourites?: ReadonlySet<string> } = {}): LofiMood {
+  const others = LOFI_STATION_MOODS.filter(m => m !== opts.after);
+  // A hidden genre is never drawn; with every genre hidden, the draw is as it was.
+  const shown = opts.hidden?.size ? others.filter(m => !opts.hidden!.has(m)) : others;
+  const moods = shown.length ? shown : others;
+  const fav = opts.favourites;
+  const weighted = fav?.size && moods.some(m => fav.has(m))
+    ? moods.flatMap(m => fav.has(m) ? Array.from({ length: FAVOURITE_GENRE_WEIGHT }, () => m) : [m])
+    : moods;
+  return choose(rand, weighted) ?? LOFI_STATION_MOODS[0]!;
+}
+
+/**
  * A shuffled track: any style but `after` (the one playing now), a new seed, and
  * instruments, a mix and a tone to suit them. `bars` is the track's length, which says
  * which kinds of section it reaches. With `keep`, the style and seed stay as given and
  * only the sound is drawn (the generator's Shift-shuffle). With `genre`, the genre stays
  * and the seed and the sound are drawn (the generator's shuffle with its genre lock
- * closed). `prefs` are the person's favourite and blocked instruments, and `hidden` the
- * genres they hid, which the draw passes over.
+ * closed). `prefs` are the person's favourite and blocked instruments, `hidden` the genres
+ * they hid, which the draw passes over, and `favourites` the genres they starred, which it
+ * draws more often (shuffleGenre).
  */
-export function shuffleMusic(rand: () => number, opts: { bars?: number; after?: LofiMood; keep?: { mood: LofiMood; seed: number }; genre?: LofiMood; prefs?: MusicPrefs; hidden?: ReadonlySet<string> } = {}): MusicShuffle {
-  const others = LOFI_STATION_MOODS.filter(m => m !== opts.after);
-  // A hidden genre is never drawn; with every genre hidden, the draw is as it was.
-  const shown = opts.hidden?.size ? others.filter(m => !opts.hidden!.has(m)) : others;
-  const moods = shown.length ? shown : others;
-  const mood = opts.keep?.mood ?? opts.genre ?? choose(rand, moods) ?? LOFI_STATION_MOODS[0]!;
+export function shuffleMusic(rand: () => number, opts: { bars?: number; after?: LofiMood; keep?: { mood: LofiMood; seed: number }; genre?: LofiMood; prefs?: MusicPrefs; hidden?: ReadonlySet<string>; favourites?: ReadonlySet<string> } = {}): MusicShuffle {
+  const mood = opts.keep?.mood ?? opts.genre ?? shuffleGenre(rand, opts);
   const seed = opts.keep ? opts.keep.seed >>> 0 : seedFrom(rand);
   const own = lofiStream(seed, { mood }).next().tune.style;
   const prefs = opts.prefs;

@@ -26,7 +26,7 @@ test('every star and block, favourites first, by part (Melody, Chords, Bass) and
 test('the toast says what a removal did', () => {
   assert.equal(removedLine({ part: 'lead', id: 'banjo', kind: 'favourite' }, 'Banjo'), 'Banjo is no longer a favourite.');
   assert.equal(removedLine({ part: 'keys', id: 'organ', kind: 'blocked' }, 'Organ'), 'Organ can play in shuffles again.');
-  assert.equal(genrePrefLine('favourite', true, 'Jazz'), 'Jazz is a favourite: it leads the genre picker.');
+  assert.equal(genrePrefLine('favourite', true, 'Jazz'), 'Jazz is a favourite: it leads the genre picker and comes up more often in shuffles.');
   assert.equal(genrePrefLine('hidden', true, 'Metal'), 'Metal is hidden: the picker and shuffle leave it out.');
   assert.equal(genrePrefLine('hidden', false, 'Metal'), 'Metal shows again.');
 });

@@ -12,9 +12,15 @@
  * and the balance (the mix levels): Explain keeps the melody out of a voice's way while
  * Play lets the melody lead. Everything else (the genre, the tempo, the
  * instruments, the kit, the tag and the effects left out) comes from the starting sound.
+ *
+ * The mix is the fourth choice, the study's own arrangement: each use plays the starting
+ * sound the study wrote for it (Explain the first, Demonstrate the second, Play the
+ * third), again with the use's own seed and balance. A use the study did not name keeps
+ * the sound it has. The profile records which was chosen (`startingSound`); a profile
+ * saved before that field existed is read from its music.
  */
 
-import type { SonicFindingV1, SonicProfileV1, SonicRecipeV1 } from '@lolly-tools/core/sonic-profile-v1';
+import type { SonicFindingV1, SonicProfileV1, SonicRecipeV1, SonicStartingSoundV1 } from '@lolly-tools/core/sonic-profile-v1';
 import type { SonicMusicAdapter } from '../../../../engine/src/sonic-profile.ts';
 import { ENGINE_VERSION } from '../../../../engine/src/version.ts';
 import type { LofiMood } from '../../../../engine/src/lofi-compose.ts';
@@ -177,6 +183,7 @@ export function applySonicDirection(profile: SonicProfileV1, direction: SonicDir
     if (context.music.adapter !== SONIC_MUSIC_ADAPTER) continue;
     context.music.parameters = musicInDirection(direction, context.music.parameters);
   }
+  next.startingSound = { mode: 'one', sound: direction.id };
   next.review = { state: 'draft' };
   return next;
 }
@@ -187,6 +194,60 @@ export function sonicDirectionOf(profile: SonicProfileV1): SonicDirection | null
   if (!main || main.music.adapter !== SONIC_MUSIC_ADAPTER) return null;
   const own = character(main.music.parameters);
   return SONIC_DIRECTIONS.find((d) => character(d.parameters) === own) ?? null;
+}
+
+/** The starting sound the study wrote for a use, by the use's id; undefined for a use it did not name. */
+const studySoundFor = (useId: string): SonicDirection | undefined => SONIC_DIRECTIONS.find((d) => d.id === useId);
+
+/** The study's own mix: each use it named plays the sound it wrote for that use. Returns a copy. */
+export function applySonicMix(profile: SonicProfileV1): SonicProfileV1 {
+  const next = structuredClone(profile);
+  for (const context of next.contexts) {
+    const direction = studySoundFor(context.id);
+    if (!direction || context.music.adapter !== SONIC_MUSIC_ADAPTER) continue;
+    context.music.parameters = musicInDirection(direction, context.music.parameters);
+  }
+  next.startingSound = { mode: 'mixed' };
+  next.review = { state: 'draft' };
+  return next;
+}
+
+/** The mix's id beside the starting sounds' own, for the room's fourth card. No study use is called this. */
+export const SONIC_MIX = 'mixed';
+
+/** Whether the study's uses play the study's mix: each its own sound, and not all one sound. */
+function playsStudyMix(profile: SonicProfileV1): boolean {
+  const named = profile.contexts.filter((c) => c.music.adapter === SONIC_MUSIC_ADAPTER && studySoundFor(c.id));
+  if (named.length < 2) return false;
+  const own = named.map((c) => character(c.music.parameters));
+  return named.every((c, i) => own[i] === character(studySoundFor(c.id)!.parameters)) && new Set(own).size > 1;
+}
+
+/**
+ * The starting sound the profile was given: what it records, or, for a profile saved
+ * before it recorded one, what its music says (the study's mix, else the starting sound
+ * the default use plays). Null when neither applies.
+ */
+export function sonicStartOf(profile: SonicProfileV1): SonicStartingSoundV1 | null {
+  const kept = profile.startingSound;
+  if (kept?.mode === 'mixed') return kept;
+  if (kept?.mode === 'one' && SONIC_DIRECTIONS.some((d) => d.id === kept.sound)) return kept;
+  if (playsStudyMix(profile)) return { mode: 'mixed' };
+  const one = sonicDirectionOf(profile);
+  return one ? { mode: 'one', sound: one.id } : null;
+}
+
+/** The mix card's name and lines: which sound each use plays, from the study's own order. */
+export function mixCopy(): { name: string; line: string; meta: string } {
+  const pairs = SONIC_DIRECTIONS.map((d) => tRaw('{sound} for {use}', {
+    sound: directionCopy(d).name,
+    use: corpus.modes.find((m) => m.id === d.id)?.label ?? d.id,
+  }));
+  return {
+    name: t('Mixed'),
+    line: tRaw('Each use plays its own sound: {pairs}.', { pairs: pairs.join(', ') }),
+    meta: SONIC_DIRECTIONS.map((d) => genreTitle(d.mood)).join(' · '),
+  };
 }
 
 /** A sound in plain words: "Warm · 84 bpm · Rhodes, rolling bass, dusty kit". */

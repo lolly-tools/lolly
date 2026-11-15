@@ -14,6 +14,9 @@ import { readSonicProfile } from '../../../../engine/src/sonic-profile.ts';
 import { musicStateParams, parseMusicState } from './music-state.ts';
 import {
   applySonicDirection,
+  applySonicMix,
+  mixCopy,
+  sonicStartOf,
   directionCopy,
   musicInDirection,
   SONIC_DIRECTIONS,
@@ -72,4 +75,53 @@ test('a sound in plain words: genre, tempo and the instruments that play', () =>
   assert.doesNotMatch(soundSummary('style=sugar&seed=1&lead=kalimba&mix.lead=0'), /kalimba/i);
   assert.equal(soundSummary('style=sugar&seed=1&lead=kalimba'), 'Sugar · Kalimba, drums');
   assert.match(soundSummary('style=sugar&seed=1&drums=0'), /^Sugar$/);
+});
+
+test('the mix gives each study use its own sound, keeps every tune and balance, and says it was chosen', () => {
+  const start = starterSonicProfile('sound', 'Harbour');
+  const added = structuredClone(start.contexts[0]!);
+  added.id = 'launch';
+  added.label = 'Launch';
+  added.music.parameters = musicStateParams({ ...parseMusicState(SONIC_DIRECTIONS[2]!.parameters), seed: 5 });
+  start.contexts.push(added);
+  const bright = applySonicDirection(start, SONIC_DIRECTIONS.find((d) => d.id === 'play')!);
+  assert.deepEqual(bright.startingSound, { mode: 'one', sound: 'play' });
+  const mixed = applySonicMix(bright);
+  assert.ok(readSonicProfile(mixed), 'still a valid profile');
+  assert.deepEqual(mixed.startingSound, { mode: 'mixed' });
+  for (const [i, context] of mixed.contexts.entries()) {
+    const before = parseMusicState(bright.contexts[i]!.music.parameters);
+    const now = parseMusicState(context.music.parameters);
+    assert.equal(now.seed, before.seed, `${context.id} keeps its tune`);
+    assert.deepEqual(now.mix, before.mix, `${context.id} keeps its balance`);
+    const own = SONIC_DIRECTIONS.find((d) => d.id === context.id);
+    assert.equal(now.mood, own ? own.mood : before.mood, own ? `${context.id} plays the study’s sound for it` : 'a use the study did not name keeps its sound');
+  }
+  // And back to one sound: the tunes and balances are still each use's own.
+  const calm = applySonicDirection(mixed, SONIC_DIRECTIONS[0]!);
+  for (const [i, context] of calm.contexts.entries()) {
+    assert.equal(parseMusicState(context.music.parameters).seed, parseMusicState(bright.contexts[i]!.music.parameters).seed);
+    assert.equal(parseMusicState(context.music.parameters).mood, SONIC_DIRECTIONS[0]!.mood);
+  }
+});
+
+test('the starting sound is read from the profile, or from its music when an older save never recorded one', () => {
+  const start = starterSonicProfile('sound', 'Harbour');
+  assert.deepEqual(sonicStartOf(applySonicMix(start)), { mode: 'mixed' });
+  assert.deepEqual(sonicStartOf(applySonicDirection(start, SONIC_DIRECTIONS[1]!)), { mode: 'one', sound: SONIC_DIRECTIONS[1]!.id });
+  // Saved before the field existed: the study's own arrangement reads as the mix ...
+  assert.deepEqual(sonicStartOf(start), { mode: 'mixed' });
+  // ... and every use on one sound reads as that sound.
+  const legacy = applySonicDirection(start, SONIC_DIRECTIONS[2]!);
+  delete legacy.startingSound;
+  assert.deepEqual(sonicStartOf(legacy), { mode: 'one', sound: SONIC_DIRECTIONS[2]!.id });
+  // A recorded sound this build does not offer is not trusted.
+  assert.equal(sonicStartOf({ ...legacy, startingSound: { mode: 'one', sound: 'gone' } })?.mode, 'one');
+});
+
+test('the mix card names which sound each use plays', () => {
+  const { name, line, meta } = mixCopy();
+  assert.equal(name, 'Mixed');
+  assert.equal(line, 'Each use plays its own sound: Calm for Explain, Steady for Demonstrate, Bright for Play.');
+  assert.equal(meta, 'Warm · City pop · Sugar');
 });

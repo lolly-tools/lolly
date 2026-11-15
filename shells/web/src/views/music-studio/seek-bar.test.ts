@@ -8,6 +8,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { barAtFraction, sectionStep, seekBarHtml, seekValueText } from './seek-bar.ts';
 
 test('a tap lands on the start of the bar nearest the finger', () => {
@@ -34,4 +35,14 @@ test('the bar is a slider that says the bar, the section and the time', () => {
   const html = seekBarHtml();
   assert.match(html, /role="slider" tabindex="0" aria-label="Position in the track"/);
   assert.equal(seekValueText(21, 64, 'Chorus', 42.4, 114), 'Bar 22 of 64, Chorus, 0:42 of 1:54');
+});
+
+test('the sections ahead of the playhead are stronger on a dark dock, and still fainter than the part played', () => {
+  const css = readFileSync(new URL('../../styles/parts/music-studio.css', import.meta.url), 'utf8');
+  const light = Number(/\.ms-seek \{ --ms-seek-ahead: ([.\d]+);/.exec(css)?.[1]);
+  const dark = Number(/:root\[data-theme="dark"\] \.ms-seek \{ --ms-seek-ahead: ([.\d]+); \}/.exec(css)?.[1]);
+  assert.equal(light, 0.35, 'light stays as it was');
+  assert.ok(dark > light && dark < 1, `dark ahead ${dark}: stronger than light, fainter than played`);
+  assert.match(css, /\.ms-seek-map \{[^}]*opacity: var\(--ms-seek-ahead\);/);
+  assert.match(css, /\.ms-seek-played \{ opacity: 1; \}/);
 });

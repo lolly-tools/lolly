@@ -12,18 +12,20 @@
  *  - the drums switch takes the kit out (no kick oscillator, fewer noise bursts) and
  *    leaves the music;
  *  - skipping fades out what the old tune left ringing rather than cutting it;
- *  - the same seed and settings schedule the same notes (an offline render repeats).
+ *  - the same seed and settings schedule the same notes (an offline render repeats);
+ *  - the tuba's variant level applies where a bass plays whole, not in a stacked style or
+ *    in its own band's tunes, whose fader sets the tuba's level.
  *
  * The sound itself (levels, the visualizer's bands, how it feels) was tuned by
  * measurement in a real browser and by ear; none of that can be checked here.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { LofiStation } from './lofi-station.ts';
+import { bassVariant, LofiStation } from './lofi-station.ts';
 import type { LofiSettings } from './lofi-station.ts';
 import { STACKS } from './lofi-bass-stack.ts';
 import {
-  LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_GROOVES,
+  composeLofiTune, LOFI_MOODS, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, LOFI_SNARES, LOFI_HATS, LOFI_GROOVES, type LofiBar,
 } from '../../../../engine/src/lofi-compose.ts';
 
 type Ev = [kind: string, value: number, time: number];
@@ -171,6 +173,22 @@ test('lofi house seats its bass 7.5 dB up: the same deep bass plays that much lo
   const stacks = 20 * Math.log10(STACKS.lofiHouse!.take / STACKS.nudisco!.take);
   const db = 20 * Math.log10(usual(house) / usual(disco)) - stacks;
   assert.ok(Math.abs(db - 7.5) < 0.01, `the usual note is ${db.toFixed(2)} dB up`);
+});
+
+test('the tuba comes up to the other basses where a bass plays whole, and nowhere else', () => {
+  const barOf = (mood: LofiSettings['mood']): LofiBar => composeLofiTune(5, mood)[4]!;
+  // Measured soloed and K-weighted, the tuba sat 8.8 dB under the round bass in the styles
+  // where a bass plays whole: its variant takes the difference there.
+  for (const mood of ['country', 'jazz', 'reggae', 'salsa'] as const) {
+    assert.ok(Math.abs(20 * Math.log10(bassVariant('tuba', barOf(mood)) / bassVariant('round', barOf(mood))) - 8.8) < 0.05, mood);
+  }
+  // A stack's sub carries its low end and the tuba already sat level there; in its own band
+  // the band's fader sets it, so a variant on top would raise it twice.
+  for (const mood of [...Object.keys(STACKS), 'oompa'] as Array<LofiSettings['mood']>) {
+    assert.equal(bassVariant('tuba', barOf(mood)), 1, mood);
+  }
+  // Every other bass keeps its one level in every style.
+  for (const mood of ['country', 'dubstep', 'oompa'] as const) assert.equal(bassVariant('slap', barOf(mood)), 1.6, mood);
 });
 
 test('botanica plays its place, its pads and its glitches, and catches the mix in a repeat', () => {

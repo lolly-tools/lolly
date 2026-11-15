@@ -39,7 +39,16 @@ export interface SonicProfileV1 {
   defaultContext: string;
   contexts: SonicContextV1[];
   review: { state: 'draft' } | { state: 'reviewed'; reviewer: string; at: string; notes: string };
+  /**
+   * The starting sound chosen for the uses: one sound for every use (`sound` is its id), or
+   * the mix, where each use keeps the sound the starting set wrote for that use. Optional: a
+   * profile without the field says nothing about how its uses began, and a reader works
+   * that out from the music when it needs to.
+   */
+  startingSound?: SonicStartingSoundV1;
 }
+
+export type SonicStartingSoundV1 = { mode: 'one'; sound: string } | { mode: 'mixed' };
 
 export interface SonicFindingV1 {
   code: string;

@@ -622,10 +622,15 @@
      at the playhead. Its hit area is the whole row's height, for a thumb. */
   .ms-seek-row { display: none; }
   .ms-seek-time { flex: none; min-width: 2.6em; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; text-align: center; color: var(--ui-color-text-muted); }
-  .ms-seek { position: relative; flex: 1; height: 6px; border-radius: var(--radius-pill); background: var(--ui-color-surface-muted); cursor: pointer; touch-action: none; }
+  .ms-seek { --ms-seek-ahead: .35; position: relative; flex: 1; height: 6px; border-radius: var(--radius-pill); background: var(--ui-color-surface-muted); cursor: pointer; touch-action: none; }
+  /* On a dark dock a faint colour sinks towards the dock and goes muddy, so the sections
+     ahead were hard to tell apart (1.8 to 2.6:1 against the dock). At .6 they read as a map,
+     about 4.2:1 for most of them, and stay plainly fainter than the part already played.
+     On a light dock .35 already gives clear pastel tints, so light stays as it was. */
+  :root[data-theme="dark"] .ms-seek { --ms-seek-ahead: .6; }
   .ms-seek::before { content: ''; position: absolute; inset: -19px 0; }
   .ms-seek:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 6px; }
-  .ms-seek-map { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; opacity: .35; pointer-events: none; }
+  .ms-seek-map { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; opacity: var(--ms-seek-ahead); pointer-events: none; }
   .ms-seek-played { opacity: 1; }
   .ms-seek-run { position: absolute; top: 0; bottom: 0; }
   .ms-seek-thumb {

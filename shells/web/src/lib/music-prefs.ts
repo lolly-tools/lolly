@@ -11,8 +11,9 @@
  * that instrument.
  *
  * The genres a person starred and the ones they hid live beside them: the genre picker
- * shows the starred ones first, leaves the hidden ones out, and a shuffle never draws a
- * hidden genre (the genre lock still keeps whatever plays).
+ * shows the starred ones first and leaves the hidden ones out, and a shuffle draws a
+ * starred genre more often and never draws a hidden one (the genre lock still keeps
+ * whatever plays).
  *
  * Also here: the families the instrument browser groups instruments by. Pure, with no
  * DOM, so the tests can run every rule.
@@ -119,8 +120,9 @@ export function setShuffleGenres(profile: Profile, on: boolean): void {
 
 // ── favourite and hidden genres ──────────────────────────────────────────────
 
-/** The genres a person starred, which lead the genre picker in a Favourites row, and the
- *  genres they hid, which the picker leaves out and a shuffle never draws. */
+/** The genres a person starred, which lead the genre picker in a Favourites row and come
+ *  up more often in shuffles, and the genres they hid, which the picker leaves out and a
+ *  shuffle never draws. */
 export interface GenrePrefs { favourites: ReadonlySet<string>; hidden: ReadonlySet<string> }
 export const NO_GENRE_PREFS: GenrePrefs = { favourites: new Set(), hidden: new Set() };
 export type GenrePrefKind = 'favourite' | 'hidden';
