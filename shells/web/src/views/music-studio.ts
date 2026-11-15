@@ -93,8 +93,10 @@ import { renderButtonHtml, wireRenderButton } from './music-studio/render-button
 import { vizStageHtml, wireVizStage } from './music-studio/viz-stage.ts';
 import { wireChoiceMenu, type MenuChoice } from './music-studio/choice-menu.ts';
 import { musicProjectRecord, musicProjectTitle, musicStateFromProject, musicSlotFromParams, newMusicSlot } from '../lib/music-project.ts';
-import { avoidBlocked, clearSwaps, loadMusicPrefs, loadRecentGenres, loadShuffleGenres, noteRecentGenre, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_PREFS, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
+import { avoidBlocked, clearSwaps, loadGenrePrefs, loadMusicPrefs, loadRecentGenres, loadShuffleGenres, noteRecentGenre, setGenrePref, setMusicPref, setShuffleGenres, setPartInstrument, swapKey, NO_GENRE_PREFS, NO_PREFS, type GenrePrefKind, type GenrePrefs, type MusicPart, type MusicPrefKind, type MusicPrefs, type MusicSwap } from '../lib/music-prefs.ts';
 import { openInstrumentBrowser, instrumentName, instrumentWord, type BrowseTrack, type InstrumentBrowser } from './music-studio/instrument-browser.ts';
+import { barRuns, drawPopupFocus, motionOn, type PopupOrigin } from './music-studio/instrument-popup.ts';
+import { dockActions, seekBarHtml, wireSeekBar, type SeekBar } from './music-studio/seek-bar.ts';
 import '../styles/parts/music-studio.css';
 
 // The track's settings and how they shape the composer's bars live in lib/music-state.ts
@@ -123,6 +125,8 @@ const RULER = 26;
 const CHORDS = 22;
 const LANE: Record<Track, number> = { lead: 64, keys: 64, bass: 64, drums: 52, fx: 40 };
 const LENGTHS = [8, 16, 32, 48, 64, 96, 128, 192, 256];
+/** How long the timeline takes to fade from one picture to the next when the notes change, in milliseconds. */
+const LANE_FADE_MS = 200;
 /** Which of the page's sections a viewer left open (a per-device convenience). */
 const SECTIONS_KEY = 'lolly:musicSections';
 
@@ -240,6 +244,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const firstVisit = !openSlot && !/(^|[?&])(style|seed)=/.test(params);
   if (firstVisit) Object.assign(state, shuffleMusic(Math.random, { bars: state.bars }));
   let prefs: MusicPrefs = NO_PREFS;
+  /** The genres the person starred and hid (Profile.music): the picker's Favourites row, and the genres a shuffle passes over. */
+  let genrePrefs: GenrePrefs = NO_GENRE_PREFS;
   /** A link that locks the genre (lock=genre) keeps it for whoever opens the link, over their own preference, until they open the lock. */
   let linkLock = linkLocksGenre(params);
   /** "Shuffle genres": on, shuffle draws a new genre; off (the genre lock closed), it keeps this one (Profile.music, or the link's lock). */
@@ -284,11 +290,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     `<summary class="section-card-summary"><span class="section-card-icon" aria-hidden="true">${icon(name, { size: 18 })}</span><h2 class="section-card-title">${escapeHtml(title)}</h2>${value}</summary>`;
 
   const page = document.createElement('section');
-  page.className = 'ms-page';
+  // The studio's own motion (the visualiser band, the undo kick) is armed by a class, so
+  // reduced motion and the performance setting leave it out entirely.
+  page.className = `ms-page${motionOn() ? ' ms-motion' : ''}`;
   page.setAttribute('aria-label', t('Music generator'));
   page.innerHTML = `
     <div class="ms-bar surface surface--floating" role="toolbar" aria-label="${escapeHtml(t('Track'))}">
       <span class="ms-transport">
+        ${seekBarHtml()}
         <button type="button" class="btn btn--primary ms-play" data-play aria-label="${escapeHtml(t('Play'))}" title="${escapeHtml(t('Play or stop (space)'))}">
           <span data-play-icon>${icon('play', { size: 18, filled: true })}</span><span data-stop-icon hidden>${icon('pause', { size: 18, filled: true })}</span>
         </button>
@@ -304,6 +313,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
           </span>
           <button type="button" class="ms-shuffle" data-shuffle>${shuffleIconSvg(26)}</button>
         </span>
+        <span class="ms-dock-actions" data-dock-actions></span>
       </span>
       ${genreHeroHtml()}
       <span class="ms-bar-end">
@@ -532,6 +542,17 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   let layerKey = '';
   /** Bumped whenever the bars or the colours change, so the layer is painted again. */
   let paintVersion = 0;
+  /** The phone dock's seek bar (views/music-studio/seek-bar.ts), wired once playback is. */
+  let seekBar = null as SeekBar | null;
+  /** The picture before a change, faded out over LANE_FADE_MS as the new one fades in. */
+  const fadeFrom = document.createElement('canvas');
+  let fadeStart = 0;
+  let fadeRaf = 0;
+  /** Where the last picture was painted (zoom, scroll, size): a fade runs only in the same place. */
+  let layerPlace = '';
+  /** Each bar's kind of section, worked out again when the bars change. */
+  let sectionsOf: { bars: LofiBar[] | null; list: string[] } = { bars: null, list: [] };
+  const sectionsNow = (): string[] => { if (sectionsOf.bars !== bars) sectionsOf = { bars, list: bars.map(b => b.section) }; return sectionsOf.list; };
 
   /** The effects lane's rows, by what makes the sound: voices, botanica's place and the sea on top, then the console's sounds and the glitches, its sparkles and bleeps, and the sweeps and pads at the bottom. */
   const fxRow = (voice: string): number => voice === 'hey' || voice === 'tag' || voice === 'magpie' || voice === 'kookaburra' || voice === 'whipbird' || voice === 'lorikeet' || voice === 'nature' || voice === 'wave' ? 0
@@ -749,8 +770,17 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const muteInk = css.getPropertyValue('--ms-muted').trim() || '#789';
     // The page's own face, so the canvas speaks in the brand's type like the rest of the page.
     const family = css.fontFamily || 'sans-serif';
-    const key = [paintVersion, pxPerBeat, offset, canvas.width, canvas.height, dpr, ink, muteInk, family, [...muted].join(), [...solo].join(), state.drums, TRACKS.map(tr => lane[tr]).join()].join('|');
+    const place = [pxPerBeat, offset, canvas.width, canvas.height, dpr, TRACKS.map(tr => lane[tr]).join()].join('|');
+    const key = [place, paintVersion, ink, muteInk, family, [...muted].join(), [...solo].join(), state.drums].join('|');
     if (key !== layerKey) {
+      // A change to the notes in the same place (an instrument, a mute, a new tune) fades
+      // from the old picture to the new one rather than jumping; a scroll or zoom does not.
+      if (layerKey && layerPlace === place && motionOn()) {
+        fadeFrom.width = layer.width; fadeFrom.height = layer.height;
+        fadeFrom.getContext('2d')?.drawImage(layer, 0, 0);
+        fadeStart = performance.now();
+      } else fadeStart = 0;
+      layerPlace = place;
       layer.width = canvas.width;
       layer.height = canvas.height;
       const lx = layer.getContext('2d');
@@ -760,7 +790,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     }
     cx.setTransform(1, 0, 0, 1, 0, 0);
     cx.clearRect(0, 0, canvas.width, canvas.height);
-    cx.drawImage(layer, 0, 0);
+    const fade = fadeStart ? Math.min(1, (performance.now() - fadeStart) / LANE_FADE_MS) : 1;
+    if (fade < 1) {
+      cx.globalAlpha = 1 - fade; cx.drawImage(fadeFrom, 0, 0);
+      cx.globalAlpha = fade; cx.drawImage(layer, 0, 0);
+      cx.globalAlpha = 1;
+      if (!fadeRaf) fadeRaf = requestAnimationFrame(() => { fadeRaf = 0; draw(); });
+    } else { fadeStart = 0; cx.drawImage(layer, 0, 0); }
     cx.setTransform(dpr, 0, 0, dpr, -offset * dpr, 0);
     // What has been made so far, under the ruler, then the selection and the playhead.
     if (rendered > 0) { cx.fillStyle = trackColour.bass; cx.fillRect(0, RULER - 4, total * rendered, 3); }
@@ -772,10 +808,15 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     cx.strokeStyle = ink; cx.lineWidth = 1;
     cx.strokeRect(beatX(selected, 0) + 0.5, RULER + 0.5, barBeats(selected) * pxPerBeat - 1, height - RULER - 1);
     cx.globalAlpha = 1;
+    // What the instrument popup is about, lit up behind the popup: its whole lane, or every one of
+    // its kind of section in that lane, washed and outlined in the track's colour.
+    const about = browser?.focus();
+    if (about) drawPopupFocus(cx, barRuns(sectionsNow(), about.section), bar => beatX(bar, 0), laneTop(about.track), lane[about.track], trackColour[about.track]);
     if (playheadBar >= 0) {
       cx.fillStyle = ink;
       cx.fillRect(beatX(playheadBar, playheadBeat), 0, 2, height);
     }
+    seekBar?.paint();
   }
 
   function meta(): void {
@@ -805,6 +846,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     trackColour = { lead: pal[0]!, keys: pal[1]!, bass: pal[2]!, drums: pal[3]!, fx: pal[4]! };
     sectionColour = new Map(SECTION_ORDER.map((s, i) => [s, pal[i % pal.length]!]));
     paintVersion++;
+    seekBar?.paintMap();
     // The track's colour lives in its icon, in the lane head and the row alike.
     for (const tr of TRACKS) for (const el of page.querySelectorAll<HTMLElement>(`[data-track="${tr}"], [data-row="${tr}"]`)) el.style.setProperty('--ms-track', trackColour[tr]);
     draw();
@@ -828,7 +870,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     renderedBuffer = null; rendered = 0;
     renderBtn.showRendered(false);
     paintStage();
-    writeLink(); meta(); paintSummaries(); draw();
+    writeLink(); meta(); paintSummaries(); seekBar?.paintMap(); draw();
     if (station || renderedSrc) play(Math.max(0, Math.min(playheadBar, bars.length - 1)));
     browser?.refresh();
   }
@@ -949,6 +991,33 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     raf = requestAnimationFrame(tick);
   }
 
+  // ── the phone's dock: the seek bar, and Render, Save and the link in reach ────
+  // The seek bar (views/music-studio/seek-bar.ts) goes by the bar: while the track plays it
+  // carries the music on from the bar let go on, and while it is stopped it moves where
+  // play starts. Its sections are the timeline's, in their colours.
+  seekBar = wireSeekBar(page, {
+    times: () => times,
+    sections: sectionsNow,
+    colour: (sec) => sectionColour.get(sec) ?? trackColour.fx,
+    label: sectionLabel,
+    playing: () => (ctx && (station || renderedSrc) ? times.starts[startedBar]! + Math.max(0, ctx.currentTime - startedAt) : null),
+    selected: () => selected,
+    seek: (bar) => {
+      selected = bar;
+      if (renderedSrc) playRendered(bar);
+      else if (station) play(bar);
+      else {
+        // Stopped: the bar becomes where play starts, shown on the timeline.
+        const x = beatX(bar, 0);
+        if (x < scroll.scrollLeft || x > scroll.scrollLeft + scroll.clientWidth - 40) scroll.scrollLeft = Math.max(0, x - scroll.clientWidth / 3);
+        say(`${t('Bar')} ${bar + 1} · ${sectionLabel(bars[bar]!.section)}`);
+        draw();
+      }
+    },
+  });
+  // On a phone, Render, Save and the link move down into the dock (views/music-studio/seek-bar.ts).
+  const detachDock = dockActions(page);
+
   // ── making the track ─────────────────────────────────────────────────────────
   let renderedBuffer: AudioBuffer | null = null;
   let rendering = 0;
@@ -1043,8 +1112,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** The button that opens a track's browser where the screen shows one (a row on a phone, a lane head wider). */
   const browseButton = (tr: BrowseTrack): HTMLElement | null =>
     [...page.querySelectorAll<HTMLElement>(`[data-browse="${tr}"]`)].find(el => el.offsetParent !== null) ?? null;
-  function openBrowser(tr: BrowseTrack, section?: string, opener?: HTMLElement | null): void {
-    if (browser?.track === tr) { if (section) browser.setSection(section); return; }
+  /**
+   * Open a track's instruments from where the person clicked: a lane head or a row (for
+   * every section) or a section in a lane (for that kind of section). The popup opens
+   * beside the origin and grows out of it (views/music-studio/instrument-popup.ts), and the
+   * lane or the kind of section lights up behind it while it is open.
+   */
+  function openBrowser(tr: BrowseTrack, section?: string, opener?: HTMLElement | null, origin?: PopupOrigin): void {
+    if (browser?.track === tr) { browser.retarget({ section, wholeTrack: !section, origin }); return; }
     browser?.close();
     const at = bars[Math.max(0, Math.min(bars.length - 1, playheadBar >= 0 ? playheadBar : selected))]?.section;
     const opened: InstrumentBrowser = openInstrumentBrowser({
@@ -1059,15 +1134,23 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       audio: () => { const c = ensureAudio(); return { ctx: c, dest: master ?? c.destination }; },
       stopPlayback: () => { if (station || renderedSrc) { stopPlayback(); playheadBar = -1; paintStage(); draw(); } },
       trackColour: (track) => trackColour[track],
-    }, tr, { section: section ?? at, opener: opener ?? browseButton(tr), onClose: () => { if (browser === opened) { browser = null; besideBrowser(false); } } });
+      focusChanged: () => besideBrowser(true),
+    }, tr, { section: section ?? at, wholeTrack: !section, origin, opener: opener ?? browseButton(tr), onClose: () => { if (browser === opened) { browser = null; besideBrowser(false); } } });
     browser = opened;
     besideBrowser(true);
   }
-  /** On a wide screen the browser is a panel at the side: the page makes room for the panel, so nothing hides under the panel. */
+  /** While the browser is open, its lane head (or row) is marked and the timeline lights up what it is about. */
   function besideBrowser(on: boolean): void {
     page.classList.toggle('has-browser', on);
-    onResize();
+    const at = on ? browser?.focus().track : undefined;
+    for (const el of page.querySelectorAll<HTMLElement>('[data-track], [data-row]')) el.classList.toggle('is-browsing', !!at && (el.dataset.track ?? el.dataset.row) === at);
+    draw();
   }
+  /** A control's place, as the popup's origin: beside its right edge, at its middle. */
+  const originOf = (el: HTMLElement): PopupOrigin => {
+    const r = el.getBoundingClientRect();
+    return { x: r.right, y: r.top + r.height / 2, rect: { left: r.left, top: r.top, right: r.right, bottom: r.bottom } };
+  };
   /** An instrument chosen in the browser: for a kind of section, or for the whole track (and so every section). */
   function useInstrument(track: BrowseTrack, id: string | undefined, section: string | null): void {
     touched = true;
@@ -1134,11 +1217,12 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   async function loadPrefs(): Promise<void> {
     try { profile = await host.profile.get(); } catch { return; }
     prefs = loadMusicPrefs(profile);
+    genrePrefs = loadGenrePrefs(profile);
     shuffleGenres = linkLock ? false : loadShuffleGenres(profile);
     paintGenre();
     writeLink();
-    if (!prefs.favourites.size && !prefs.blocked.size) return;
-    if (firstVisit && !touched) { restate({ ...shuffleMusic(Math.random, { bars: state.bars, prefs }), bars: state.bars }); studioHistory.rebase(); }
+    if (!prefs.favourites.size && !prefs.blocked.size && !genrePrefs.hidden.size) return;
+    if (firstVisit && !touched) { restate({ ...shuffleMusic(Math.random, { bars: state.bars, prefs, hidden: genrePrefs.hidden }), bars: state.bars }); studioHistory.rebase(); }
     browser?.refresh();
   }
 
@@ -1216,6 +1300,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   function undoRedo(way: 'undo' | 'redo'): void {
     const label = way === 'undo' ? studioHistory.undo() : studioHistory.redo();
     paintHistoryButtons(page, studioHistory);
+    // The arrow that was used gives a small turn the way it points.
+    const btn = label ? page.querySelector<HTMLElement>(`[data-${way}]`) : null;
+    if (btn && motionOn()) { btn.classList.remove('is-kicked'); void btn.offsetWidth; btn.classList.add('is-kicked'); }
     say(label ? (way === 'undo' ? undoneLine(label) : redoneLine(label)) : way === 'undo' ? t('Nothing to undo') : t('Nothing to redo'));
   }
   for (const way of ['undo', 'redo'] as const) {
@@ -1261,6 +1348,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     const writer = host.profile;
     if (canWriteProfile(writer)) void writer.set(profile).catch(() => { /* storage off: the choice holds for this visit */ });
   };
+  /** Star or hide a genre, or undo either, from the picker's Manage list: kept on the profile with the other music preferences. */
+  const saveGenrePref = (genre: string, kind: GenrePrefKind, on: boolean): void => {
+    if (!profile) return;
+    genrePrefs = setGenrePref(profile, genre, kind, on);
+    const writer = host.profile;
+    if (canWriteProfile(writer)) void writer.set(profile).catch(() => { /* storage off: the choice holds for this visit */ });
+  };
   /** The genre playing now leads the picker's Recent row, kept on the profile with the other music preferences. */
   function rememberGenre(): void {
     if (!profile || !noteRecentGenre(profile, state.mood)) return;
@@ -1268,7 +1362,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     if (canWriteProfile(writer)) void writer.set(profile).catch(() => { /* storage off: the row holds for this visit */ });
   }
   listen('[data-genre]', 'click', (_e, el) => {
-    openGenrePicker({ current: () => state.mood, pick: setStyle, recent: () => loadRecentGenres(profile) }, { opener: el, host });
+    openGenrePicker({ current: () => state.mood, pick: setStyle, recent: () => loadRecentGenres(profile), genrePrefs: () => genrePrefs, setGenrePref: saveGenrePref }, { opener: el, host });
   });
   /** The seed field is as wide as its number, so a short seed sits snug beside the shuffle. */
   const seedInput = q<HTMLInputElement>('[data-seed]');
@@ -1320,7 +1414,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     popAgain(el);
     const shift = e instanceof MouseEvent && e.shiftKey;
     const fixed = shift ? { keep: { mood: state.mood, seed: state.seed } } : shuffleGenres ? {} : { genre: state.mood };
-    const drawn = shuffleMusic(Math.random, { bars: state.bars, after: state.mood, prefs, ...fixed });
+    const drawn = shuffleMusic(Math.random, { bars: state.bars, after: state.mood, prefs, hidden: genrePrefs.hidden, ...fixed });
     const note = restate({ ...drawn, bars: state.bars, ...(shift && state.transpose ? { transpose: state.transpose } : {}) });
     step(t('Shuffle'));
     say(`${t('Shuffled')}: ${genreTitle(state.mood)} · ${t('seed')} ${state.seed}${note ? ` ${note}` : ''}`);
@@ -1354,7 +1448,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // A track's head or row opens its instrument browser. The kit (chosen there) changes
   // the drums' sound, never their notes; the tag and the effect families change what the
   // effects lane plays. Each is in the link.
-  listen('[data-browse]', 'click', (_e, el) => { const tr = TRACKS.find(x => x === el.dataset.browse); if (tr && tr !== 'fx') openBrowser(tr, undefined, el); });
+  listen('[data-browse]', 'click', (_e, el) => { const tr = TRACKS.find(x => x === el.dataset.browse); if (tr && tr !== 'fx') openBrowser(tr, undefined, el, originOf(el.closest<HTMLElement>('[data-track], [data-row]') ?? el)); });
   listen('[data-tag]', 'change', (_e, el) => {
     if (!(el instanceof HTMLSelectElement)) return;
     state.tag = TAG_CHOICES.find(c => c === el.value);
@@ -1410,6 +1504,15 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     onResize();
   });
   sectionsSize.observe(q<HTMLElement>('.ms-sections'));
+  // The visualiser band grows and shrinks as it comes and goes: the lanes follow it as it moves.
+  let stageHeight = -1;
+  const stageSize = new ResizeObserver(([entry]) => {
+    const h = Math.round(entry?.contentRect.height ?? 0);
+    if (h === stageHeight) return;
+    stageHeight = h;
+    onResize();
+  });
+  stageSize.observe(q<HTMLElement>('[data-viz-stage]'));
   // The effects row on a phone opens the Mix section, where the effects are.
   listen('[data-open-mix]', 'click', () => {
     const mix = sections.find(d => d.dataset.sec === 'mix');
@@ -1476,14 +1579,18 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   canvas.addEventListener('click', e => {
     selected = barAt(e);
     const bar = bars[selected]!;
-    const lane = laneAt(e.clientY - canvas.getBoundingClientRect().top);
-    if (lane === 'ruler') {
+    const hit = laneAt(e.clientY - canvas.getBoundingClientRect().top);
+    if (hit === 'ruler') {
       // The ruler plays from the start of the section.
       let start = selected;
       while (start > 0 && bars[start - 1]!.section === bar.section) start--;
       selected = start; play(start); return;
     }
-    if ((lane === 'lead' || lane === 'keys' || lane === 'bass' || lane === 'drums') && bar.section !== 'rest') openBrowser(lane, bar.section);
+    if ((hit === 'lead' || hit === 'keys' || hit === 'bass' || hit === 'drums') && bar.section !== 'rest') {
+      // The popup grows out of the point clicked, beside a narrow slice of the lane there.
+      const top = canvas.getBoundingClientRect().top + laneTop(hit);
+      openBrowser(hit, bar.section, undefined, { x: e.clientX, y: e.clientY, rect: { left: e.clientX - 4, right: e.clientX + 4, top, bottom: top + lane[hit] } });
+    }
     say(`${t('Bar')} ${selected + 1} · ${sectionLabel(bar.section)} · ${bar.chord || t('rest')}`);
     draw();
   });
@@ -1717,6 +1824,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     renderBtn.close();
     saveMenu.close();
     sectionsSize.disconnect();
+    stageSize.disconnect();
+    detachDock();
     detachLang();
     detachScrub();
     detachTempoScrub();
@@ -1726,7 +1835,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     rendering++;
     if (document.fullscreenElement) void document.exitFullscreen();
     document.removeEventListener('keydown', onKey);
-    browser?.close();
+    browser?.close(true);
     audition?.stop();
     fxLayer.destroy();
     hero.destroy();
