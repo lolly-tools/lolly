@@ -124,6 +124,47 @@ test('the band plays its own drums unless a kit is chosen, and every stroke soun
   assert.equal(OB.bandDrums(bar, 'acoustic'), false);
 });
 
+test('in its own tunes the whole band plays through one fader at its level; in another style it plays straight onto the lane', () => {
+  const ctx = new FakeCtx();
+  const k = kitOf(ctx);
+  const lane = ctx.createGain();
+  const out = lane as unknown as AudioNode;
+  const fader = OB.bandLane(k, out, bar) as unknown as FakeGain;
+  assert.notEqual(fader as unknown, lane, 'an Oompa bar gets the fader');
+  assert.equal(fader.gain.value, OB.BAND_LEVEL);
+  assert.deepEqual(fader.outs, [lane], 'the fader feeds the lane');
+  assert.equal(OB.bandLane(k, out, bar) as unknown, fader, 'one fader to a lane');
+  const other = composeLofiTune(3, 'salsa')[8]! as LofiBar;
+  assert.equal(OB.bandLane(k, out, other), out, 'a band player in another style plays onto the lane');
+  // What reaches the lane, and whether through the fader: each started sound's path, followed forward.
+  const via = (s: FakeSource): 'fader' | 'lane' | 'none' => {
+    const seen = new Set<unknown>();
+    const walk = (n: FakeNode, passed: boolean): 'fader' | 'lane' | 'none' => {
+      if (n === (lane as FakeNode)) return passed ? 'fader' : 'lane';
+      if (seen.has(n)) return 'none';
+      seen.add(n);
+      for (const o of n.outs) { const r = walk(o as FakeNode, passed || o === fader); if (r !== 'none') return r; }
+      return 'none';
+    };
+    return walk(s, false);
+  };
+  const kit = drumKit(3, 'oompa');
+  const paths = (play: () => void): string[] => { const n = ctx.started.length; play(); return ctx.started.slice(n).map(via); };
+  // The band's players and its own drums go through the fader.
+  assert.ok(paths(() => OB.horns(k, fader as unknown as AudioNode, 3, 1, 62, 0.6, 0.15)).every(p => p === 'fader'), 'the after-beats');
+  assert.ok(paths(() => OB.tuba(k, fader as unknown as AudioNode, 3, 1.5, 34, 0.7, 0.3, 0)).every(p => p === 'fader'), 'the oom');
+  assert.ok(paths(() => OB.line(k, fader as unknown as AudioNode, bar, 2, 70, 0.6, 0.4, 0, 'flugelhorn')).every(p => p === 'fader'), 'the melody');
+  for (const note of [{ voice: 'kick' }, { voice: 'hat', mod: 1 }, { voice: 'crash' }] as Array<Partial<LofiNote>>) {
+    const p = paths(() => OB.drum(k, out, { beat: 0, dur: 0, midi: 0, vel: 0.7, ...note } as LofiNote, 3, 0.7, bar, kit));
+    assert.ok(p.length > 0 && p.every(x => x === 'fader'), `the ${note.voice} through the fader`);
+  }
+  // The snare is the station's kit snare at the kit's level: never through the band's fader.
+  for (const note of [{ voice: 'snare' }, { voice: 'snare', dur: 1 }] as Array<Partial<LofiNote>>) {
+    const p = paths(() => OB.drum(k, out, { beat: 0, dur: 0, midi: 0, vel: 0.7, ...note } as LofiNote, 4, 0.7, bar, kit));
+    assert.ok(p.length > 0 && p.every(x => x === 'lane'), `the snare${note.dur ? '\'s roll' : ''} onto the lane`);
+  }
+});
+
 test('the hall answers early, then dies away, its low octaves last', () => {
   const ctx = new FakeCtx();
   ctx.sampleRate = 16000;

@@ -48,7 +48,8 @@
     /* One column as wide as the screen: a wide child scrolls inside it rather than
        widening the page. */
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--sp-4);
+    --ms-gap: var(--sp-4);
+    gap: var(--ms-gap);
   }
 
   /* ── 1. The toolbar ───────────────────────────────────────────────────────── */
@@ -238,7 +239,20 @@
   }
   .ms-genre.is-tinted .ms-genre-icon { background: var(--ui-color-surface-raised); }
   .ms-genre-text { display: grid; gap: var(--sp-2); min-width: 0; }
-  .ms-genre-name, .ms-genre-tag { overflow: clip visible; text-overflow: ellipsis; white-space: nowrap; text-box: trim-both cap alphabetic; }
+  /* Each line clips to end in an ellipsis, and a clip stops at the padding box, which the
+     trim has drawn in to the cap height and the baseline. So each line gets room above and
+     below for its accents and its descenders (the g in "coin dings"), padding that an equal
+     negative margin takes back: the layout box, and so the centring by ink, is unchanged. */
+  .ms-genre-name, .ms-genre-tag {
+    min-width: 0;
+    overflow: clip;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-box: trim-both cap alphabetic;
+    padding-block: var(--ms-ink-room);
+    margin-block: calc(var(--ms-ink-room) * -1);
+  }
+  .ms-genre-text { --ms-ink-room: .3em; }
   .ms-genre-name { font-size: var(--fs-xl); font-weight: 700; line-height: 1.2; }
   .ms-genre-tag { font-size: var(--fs-sm); line-height: 1.3; }
   .ms-genre-more { display: inline-grid; place-items: center; }
@@ -287,6 +301,14 @@
   .ms-history-btn:hover:not([aria-disabled="true"]) { background: var(--ui-color-surface-canvas); }
   .ms-history-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
   .ms-history-btn[aria-disabled="true"] { color: var(--ui-color-text-muted); opacity: .45; cursor: default; }
+  /* Undo and redo come and go softly as there is something to take back, and the arrow
+     used gives a small turn the way it points (armed by the view, never under reduced
+     motion or the performance setting). */
+  .ms-motion .ms-history-btn { transition: opacity var(--ui-motion-overlay) var(--ui-motion-standard), color var(--ui-motion-overlay) var(--ui-motion-standard), background-color var(--ui-motion-feedback) var(--ui-motion-standard); }
+  .ms-history-btn.is-kicked[data-undo] svg { animation: ms-kick-back var(--dur-3) var(--ease-spring); }
+  .ms-history-btn.is-kicked[data-redo] svg { animation: ms-kick-on var(--dur-3) var(--ease-spring); }
+  @keyframes ms-kick-back { from { transform: rotate(-40deg); } }
+  @keyframes ms-kick-on { from { transform: rotate(40deg); } }
 
   .ms-bar-end { margin-inline-start: auto; display: inline-flex; align-items: center; gap: var(--sp-2); }
   .ms-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); min-height: var(--ui-size-target); padding-inline: var(--sp-1); }
@@ -321,6 +343,8 @@
   /* The download's busy, done and failed states keep the fill's ink. */
   .ms-render.ms-act[data-state] { color: var(--ui-color-action-on-primary); }
   .ms-act-trail { display: inline-flex; opacity: .8; }
+  /* Render's and Save's words sit in the middle of their pills by their ink (cap height to baseline). */
+  :is(.ms-render, .ms-save) .ms-act-label { text-box: trim-both cap alphabetic; }
   .ms-act-trail svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
   :is(.ms-render, .ms-save)[aria-expanded="true"] .ms-act-trail svg { transform: rotate(180deg); }
   @media (prefers-reduced-motion: reduce) { .ms-render { transition: none; } }
@@ -431,8 +455,28 @@
   .ms-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 
   /* ── 3. The visualiser ────────────────────────────────────────────────────── */
-  .ms-stage { display: none; position: relative; height: 96px; border-radius: var(--ui-radius-card); overflow: hidden; background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
-  .ms-page.has-audio:not(.viz-off) .ms-stage { display: block; }
+  /* The band is folded away (no height, no gap above the timeline) until there is sound,
+     then opens to its height; with motion on it grows and fades in, and folds away again
+     the same way, the timeline's lanes following it (views/music-studio.ts stageSize). */
+  .ms-stage {
+    display: none;
+    position: relative;
+    height: 0;
+    margin-block-end: calc(var(--ms-gap) * -1);
+    opacity: 0;
+    border-radius: var(--ui-radius-card);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent);
+  }
+  .ms-page.has-audio:not(.viz-off) .ms-stage { display: block; height: var(--ms-stage-h, 96px); margin-block-end: 0; opacity: 1; }
+  .ms-motion .ms-stage:not(.is-full) {
+    transition: height var(--dur-3) var(--ui-motion-standard), margin-block-end var(--dur-3) var(--ui-motion-standard), opacity var(--ui-motion-overlay) var(--ui-motion-standard), display var(--dur-3) allow-discrete;
+  }
+  @starting-style {
+    .ms-motion.has-audio:not(.viz-off) .ms-stage { height: 0; margin-block-end: calc(var(--ms-gap) * -1); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .ms-motion .ms-stage:not(.is-full) { transition: none; } }
+  html[data-a11y-motion="reduce"] .ms-motion .ms-stage:not(.is-full) { transition: none; }
   .ms-viz { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .ms-stage .ms-icon { background: transparent; box-shadow: none; color: var(--ui-color-text-muted); }
   /* The visualiser's own controls (views/music-studio/viz-stage.ts): settings, Expand and
@@ -441,11 +485,11 @@
   .ms-viz-bar [hidden] { display: none; }
   .ms-stage .ms-viz-bar .ms-icon { color: var(--ui-color-text-default); }
   /* Expanded: the band grows in the page, the timeline below it. */
-  .ms-stage.is-expanded { display: block; height: min(62vh, 560px); }
+  .ms-stage.is-expanded { display: block; height: min(62vh, 560px); margin-block-end: 0; opacity: 1; }
   /* Full screen: the stage is the whole screen, the visualiser filling it; where the
      browser cannot fullscreen the band, a layer over the page does the same. The controls
      hide until a tap, a move or a key, and stay while one has focus. */
-  .ms-stage.is-full { display: block; }
+  .ms-stage.is-full { display: block; margin-block-end: 0; opacity: 1; }
   .ms-stage:fullscreen { height: 100vh; border-radius: 0; background: #000; }
   .ms-stage.is-layered { position: fixed; inset: 0; z-index: var(--z-top); height: 100dvh; border-radius: 0; background: #000; }
   .ms-stage.is-full .ms-viz-bar { top: var(--sp-3); right: var(--sp-3); opacity: 0; pointer-events: none; transition: opacity var(--ui-motion-feedback); }
@@ -492,7 +536,13 @@
   .ms-track-name { font-weight: 600; }
   .ms-pick { flex: 1; min-width: 0; }
   /* A lane head's instruments, as a button that opens the track's instrument browser. */
-  .ms-browse { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: start; cursor: pointer; }
+  /* The label inside is what gets cut short: its box ends at the button's content edge, so a
+     long name ("Auto · Synthwave lead") ends in an ellipsis before the chevron. On the button
+     itself the clip would fall at its padding box, under the chevron, and a browser that
+     draws no ellipsis on a button (or the docs' vector shots) ran the name into it. The
+     whole name is the button's tooltip and its spoken name (track-names.ts laneHeadName). */
+  .ms-browse { overflow: hidden; text-align: start; cursor: pointer; }
+  .ms-browse > [data-short] { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* An instrument the person chose for the whole track reads as theirs, as a set key does. */
   .ms-browse.is-set { font-weight: 600; color: var(--ui-color-action-primary); }
   /* A track that cannot be heard (muted, another soloed, the drums off) goes faint. */
@@ -567,10 +617,37 @@
 
   .ms-hint { margin: 0; min-height: 1.4em; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
 
-  /* The instrument browser's panel sits down the right side (parts/music-browser.css): the page makes room. */
-  @media (min-width: 761px) {
-    .ms-page.has-browser { padding-inline-end: calc(min(400px, 42vw) + var(--sp-4) * 2); }
+  /* The seek bar (views/music-studio/seek-bar.ts), shown in the phone's dock: the sections
+     in their timeline colours, faint ahead of the playhead and full behind it, and a thumb
+     at the playhead. Its hit area is the whole row's height, for a thumb. */
+  .ms-seek-row { display: none; }
+  .ms-seek-time { flex: none; min-width: 2.6em; font-size: var(--fs-xs); font-variant-numeric: tabular-nums; text-align: center; color: var(--ui-color-text-muted); }
+  .ms-seek { position: relative; flex: 1; height: 6px; border-radius: var(--radius-pill); background: var(--ui-color-surface-muted); cursor: pointer; touch-action: none; }
+  .ms-seek::before { content: ''; position: absolute; inset: -19px 0; }
+  .ms-seek:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 6px; }
+  .ms-seek-map { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; opacity: .35; pointer-events: none; }
+  .ms-seek-played { opacity: 1; }
+  .ms-seek-run { position: absolute; top: 0; bottom: 0; }
+  .ms-seek-thumb {
+    position: absolute;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border-radius: var(--radius-round);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-strong), var(--ui-elevation-control);
+    pointer-events: none;
   }
+  .ms-motion .ms-seek-thumb { transition: transform var(--ui-motion-feedback) var(--ui-motion-standard); }
+  .ms-seek.is-dragging .ms-seek-thumb { transform: scale(1.35); }
+  @media (prefers-reduced-motion: reduce) { .ms-motion .ms-seek-thumb { transition: none; } }
+  html[data-a11y-motion="reduce"] .ms-motion .ms-seek-thumb { transition: none; }
+
+  /* The lane head (or the phone's row) whose instruments are open is marked in its track's
+     colour, as the timeline lights up its lane or its kind of section behind the popup. */
+  .ms-lane-head.is-browsing, .ms-row.is-browsing { background: color-mix(in srgb, var(--ms-track, var(--ui-color-text-muted)) 14%, transparent); }
+  .ms-motion :is(.ms-lane-head, .ms-row) { transition: background-color var(--ui-motion-overlay) var(--ui-motion-standard); }
   /* A narrower monitor: the toolbar's end takes a row of its own before anything squeezes. */
   @media (min-width: 761px) and (max-width: 1180px) {
     .ms-bar-end { flex-basis: 100%; justify-content: flex-end; }
@@ -580,49 +657,63 @@
   @media (max-width: 760px) {
     .ms-page {
       padding-inline: var(--sp-2);
-      gap: var(--sp-3);
+      --ms-gap: var(--sp-3);
       /* The dock's height (the cap and the dock's padding), its gap from the screen's
          edge and the home indicator's inset, and a little room above, so the last line of
          the page (the hint) scrolls clear of the dock. */
-      --ms-dock: calc(var(--ms-cap) + var(--sp-2) * 2);
+      --ms-dock: calc(var(--ms-dock-btn) + var(--ms-seek-h) + var(--sp-2) * 2 + var(--sp-1));
+      /* The dock's buttons and its seek row. */
+      --ms-dock-btn: calc(var(--ui-size-target) + var(--sp-1));
+      --ms-seek-h: 32px;
       padding-block-end: calc(var(--ms-dock) + var(--sp-3) + var(--sp-6) + env(safe-area-inset-bottom, 0px));
     }
     .ms-bar { gap: var(--sp-2); padding: var(--sp-2); }
 
-    /* The dock: play and the time, then the seed and the shuffle cap under the thumb. */
+    /* The dock, everything within the thumb's reach: along its top the seek bar with the
+       time gone and the track's length (views/music-studio/seek-bar.ts); under it play, the
+       seed and the shuffle cap, then Render, Save and the link, which the view moves down
+       here from the toolbar. */
     .ms-transport {
       position: fixed;
       z-index: var(--z-chrome);
       inset-inline: var(--sp-3);
       inset-block-end: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
       display: flex;
-      justify-content: space-between;
-      gap: var(--sp-2);
-      padding: var(--sp-2);
-      border-radius: var(--radius-pill);
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--sp-1) var(--sp-1);
+      padding: var(--sp-1) var(--sp-2) var(--sp-2);
+      border-radius: var(--ui-radius-panel);
       background: var(--ui-color-surface-overlay);
       box-shadow: var(--ui-edge-faint), var(--ui-elevation-floating);
     }
-    .ms-transport .ms-play { width: var(--ms-cap); height: var(--ms-cap); }
-    .ms-transport .ms-play svg { width: 24px; height: 24px; }
-    .ms-transport .ms-time { flex: 1; min-width: 0; text-align: center; font-size: var(--fs-md); }
+    .ms-transport .ms-play, .ms-transport .ms-shuffle { width: var(--ms-dock-btn); height: var(--ms-dock-btn); min-width: 0; min-height: 0; }
+    .ms-transport .ms-play svg { width: 22px; height: 22px; }
+    .ms-transport .ms-shuffle svg { width: 22px; height: 22px; }
+    .ms-transport .ms-time { display: none; }
+    .ms-seek-row { order: -1; flex-basis: 100%; display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ms-seek-h); padding-inline: var(--sp-1); }
     /* The seed beside the cap, stepped by drag or typing; the arrows wait for a wider screen. */
-    .ms-dice { gap: var(--sp-2); }
+    .ms-dice { gap: var(--sp-1); }
     .ms-dice .ms-shuffle { order: 2; }
-    .ms-seed { padding-inline: var(--sp-3); }
+    .ms-seed { padding-inline: var(--sp-2); min-height: var(--ms-dock-btn); }
     .ms-seed .ms-icon { display: none; }
+    .ms-seed-input { font-size: var(--fs-xl); }
+    /* Render, Save and the link at the dock's end: Render keeps its word, Save and the link
+       their glyphs, each named for a screen reader; their menus open from where they sit. */
+    .ms-dock-actions { margin-inline-start: auto; display: inline-flex; align-items: center; gap: var(--sp-1); }
+    .ms-dock-actions .ms-render { flex: none; min-height: var(--ms-dock-btn); padding-inline: var(--sp-8); }
+    .ms-dock-actions .ms-save { flex: none; justify-content: center; min-width: var(--ui-size-target); min-height: var(--ms-dock-btn); }
+    .ms-dock-actions .ms-act-trail { display: none; }
+    .ms-dock-actions .ms-icon { min-width: var(--ui-size-target); min-height: var(--ms-dock-btn); padding: 0; border-radius: var(--radius-round); }
+    /* A failure sentence floats just above the dock rather than squeezing its row. */
+    .ms-dock-actions .ms-act-error { position: absolute; inset-inline: var(--sp-2); bottom: calc(100% + var(--sp-2)); padding: var(--sp-2) var(--sp-3); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-overlay); box-shadow: var(--ui-edge-faint); }
 
-    /* The lock, the genre and the link across the top, then undo and redo, the render pill
-       and Save. */
+    /* The lock, the genre and undo and redo across the top; Render, Save and the link are in the dock. */
     .ms-bar-end { display: contents; }
-    .ms-genre-group { order: 1; flex: 1 1 calc(100% - var(--ui-size-target) - var(--sp-2)); }
+    .ms-genre-group { order: 1; flex: 1 1 0; min-width: 0; }
     .ms-genre { flex: 1 1 auto; min-width: 0; max-width: none; }
-    .ms-bar-end > [data-link] { order: 2; }
-    .ms-bar-end > .ms-history { order: 3; }
-    .ms-render { order: 4; flex: 1 1 auto; justify-content: center; }
-    .ms-save { order: 5; margin-inline-start: auto; }
-    .ms-bar-end > .ms-act-error { order: 6; flex-basis: 100%; }
-    /* Save as a glyph and its chevron; the word stays its name. */
+    .ms-bar-end > .ms-history { order: 2; }
+    /* Save as a glyph; the word stays its name. */
     .ms-save { padding-inline: var(--sp-3); gap: var(--sp-1); }
     .ms-save .ms-act-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .ms-save[data-state="rest"] .ms-act-icon { display: inline-grid; }
@@ -657,7 +748,7 @@
     .ms-row-inst { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
     .ms-row .ms-ms { width: var(--ui-size-target); height: var(--ui-size-target); }
 
-    .ms-stage { height: 64px; }
+    .ms-stage { --ms-stage-h: 64px; }
     .ms-stage.is-expanded { height: min(56vh, 440px); }
 
     /* The lane heads narrow to a column: each track's icon over its name. A tap on a
@@ -711,6 +802,12 @@
   border-radius: var(--ui-radius-card);
 }
 .ms-choice-sheet .ms-choice-sheet-body { padding: var(--sp-2) var(--sp-3) var(--sp-5); }
+/* The dropdown unfolds down from its button, as the profile menu does (armed by
+   views/music-studio/choice-menu.ts, never under reduced motion or the performance setting). */
+.ms-choice-menu.is-entering { transform-origin: top right; animation: ms-menu-in var(--ui-motion-overlay) var(--ui-motion-standard) both; }
+@keyframes ms-menu-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ms-choice-menu.is-entering { animation: none; } }
+html[data-a11y-motion="reduce"] .ms-choice-menu.is-entering { animation: none; }
 .ms-choice-sheet .ms-choice-foot { padding-inline: var(--sp-4); }
 
 /* The visualiser's settings popover: on the page's body, or inside the band in full

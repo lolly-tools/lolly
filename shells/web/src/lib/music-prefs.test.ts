@@ -15,8 +15,9 @@ import type { Profile } from '@lolly-tools/core/host-v1';
 import {
   INSTRUMENT_FAMILIES, MUSIC_PARTS, NO_PREFS, avoidBlocked, clearSwaps, familyOf, heardBySection, instrumentsOf,
   isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setPartInstrument, setShuffleGenres, styleInstruments, substituteFor, swapKey, type MusicPart, type MusicPrefs,
-  loadRecentGenres, noteRecentGenre, RECENT_GENRES,
+  loadRecentGenres, noteRecentGenre, RECENT_GENRES, loadGenrePrefs, setGenrePref,
 } from './music-prefs.ts';
+import { LOFI_STATION_MOODS } from './neurospicy-lofi.ts';
 import { shuffleMusic } from './music-shuffle.ts';
 import { isOverNote } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
@@ -283,4 +284,42 @@ test('an old link\'s yidaki bass plays the Didgeridoo, and a track given to eith
     assert.ok(bars.length > 0, `${q}: the track plays`);
     for (const b of bars) assert.equal(new Set(b.notes.filter(n => n.voice === track).map(n => n.midi)).size, 1, `${q} bar ${b.index}: one note`);
   }
+});
+
+test('favourite and hidden genres are kept on the profile, never both at once, keeping a later build\'s genres', () => {
+  const profile: Profile = {};
+  assert.deepEqual([...loadGenrePrefs(profile).favourites], []);
+  setGenrePref(profile, 'jazz', 'favourite', true);
+  setGenrePref(profile, 'ska', 'favourite', true);
+  setGenrePref(profile, 'metal', 'hidden', true);
+  setMusicPref(profile, 'lead', 'flute', 'favourite', true);
+  assert.deepEqual(profile.music, { favouriteGenres: ['jazz', 'ska'], hiddenGenres: ['metal'], favourites: ['lead:flute'] });
+  let prefs = setGenrePref(profile, 'jazz', 'hidden', true);
+  assert.deepEqual([...prefs.favourites], ['ska'], 'hiding a favourite unstars it');
+  assert.deepEqual([...prefs.hidden], ['metal', 'jazz']);
+  prefs = setGenrePref(profile, 'metal', 'favourite', true);
+  assert.ok(!prefs.hidden.has('metal') && prefs.favourites.has('metal'), 'starring a hidden genre shows it again');
+  assert.equal(profile.music?.favourites?.[0], 'lead:flute', 'the instrument preferences are left alone');
+  for (const g of ['ska', 'metal']) setGenrePref(profile, g, 'favourite', false);
+  setGenrePref(profile, 'jazz', 'hidden', false);
+  assert.deepEqual(profile.music, { favourites: ['lead:flute'] }, 'empty lists leave no field');
+  const stored = { music: { favouriteGenres: ['jazz', 'jazz', 7, '<i>', 'cpop'], hiddenGenres: ['rock'] } } as unknown as Profile;
+  assert.deepEqual([...loadGenrePrefs(stored).favourites], ['jazz', 'cpop'], 'junk and repeats dropped, a later genre kept');
+  assert.deepEqual([...loadGenrePrefs(stored).hidden], ['rock']);
+});
+
+test('a shuffle never draws a hidden genre, the genre lock and Shift still keep a hidden genre, and with nothing hidden the draws are as they were', () => {
+  const hidden = new Set(LOFI_STATION_MOODS.filter((_, i) => i % 3 !== 0));
+  for (let i = 0; i < 60; i++) {
+    const s = shuffleMusic(seeded(900 + i), { bars: 16, after: 'ska', hidden });
+    assert.ok(!hidden.has(s.mood), `seed ${900 + i} drew ${s.mood}, which is hidden`);
+  }
+  const hiddenNow = [...hidden][0]!;
+  assert.equal(shuffleMusic(seeded(5), { bars: 16, after: hiddenNow, genre: hiddenNow, hidden }).mood, hiddenNow, 'the genre lock wins');
+  assert.equal(shuffleMusic(seeded(5), { bars: 16, keep: { mood: hiddenNow, seed: 7 }, hidden }).mood, hiddenNow, 'Shift keeps the genre');
+  for (let i = 0; i < 20; i++) {
+    assert.deepEqual(shuffleMusic(seeded(40 + i), { bars: 16, after: 'jazz', hidden: new Set() }), shuffleMusic(seeded(40 + i), { bars: 16, after: 'jazz' }), 'nothing hidden: the same draw');
+  }
+  const all = new Set<string>(LOFI_STATION_MOODS);
+  assert.ok(LOFI_STATION_MOODS.includes(shuffleMusic(seeded(3), { bars: 16, after: 'jazz', hidden: all }).mood), 'every genre hidden: a shuffle still plays one');
 });

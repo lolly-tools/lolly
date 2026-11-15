@@ -113,6 +113,19 @@ export function pulse(seed: number, t: number): number {
 const PAN: Record<string, number> = { melody: -0.28, second: -0.12, clarinet: -0.5, counter: 0.42, fanfare: 0.3, tuba: 0.06, pahLow: 0.38, pahMid: 0.2, pahTop: 0.02 };
 /** Each part's level in the band (a share of the lane's), set against recorded bands. */
 const PART_LEVEL: Record<string, number> = { melody: 0.11, second: 0.085, clarinet: 0.05, counter: 0.08, fanfare: 0.09, tuba: 1, pah: 0.55 };
+/**
+ * The whole band's level in its own tunes, against the station's other genres. PART_LEVEL and
+ * DRUM_LEVEL balance the band against itself, as recorded bands balance; this brings the
+ * band up as one to the station's loudness, so that balance holds. Each player's note is
+ * brought to the band's own scale, and in an Oompa tune none of the station's trims or seats
+ * reach it (in another style the station lifts a band lead 8.5 dB, LEAD_TRIM), so the band
+ * had played about 9 dB under the other band genres. Measured K-weighted on the docs
+ * samples' 20 s cut, twelve Oompa tunes go from -28.2 LUFS to -19.6 with it (the bus
+ * compressor takes back some of the 11 dB, working as hard as it does on the other genres),
+ * against six tunes each of salsa at -17.9, surf rock -18.7, ska -19.0, yacht rock -19.4,
+ * Spanish -19.5, country -20.2, jazz -20.5 and swing -20.7.
+ */
+export const BAND_LEVEL = 10 ** (11 / 20);
 /** How the after-beats' players are chosen: under this note the trombone, from it to PAH_TOP the baritone, over it the tenor horn. */
 const PAH_LOW = 59, PAH_TOP = 64;
 /** The after-beats' players start a little ahead, as the tuba does, for the time a tongued note takes to speak: recorded bands' after-beats sound 40 to 55 ms after the straight half-beat. */
@@ -155,6 +168,21 @@ function chairOf(k: VoiceKit, out: AudioNode, pan: number): AudioNode {
   let p = m.get(key);
   if (!p) { p = k.ctx.createStereoPanner(); p.pan.value = key / 100; p.connect(out); m.set(key, p); }
   return p;
+}
+
+/** The band's own fader on each lane, made once: every part it plays in its own tunes goes through it, at BAND_LEVEL. */
+const FADERS = new WeakMap<AudioNode, GainNode>();
+/**
+ * Where the band plays a bar's part on a lane: through its fader in its own tunes (an Oompa
+ * tune), so the whole band comes up as one; straight onto the lane in any other style, where
+ * a band player is one instrument the station sets the level of. An instrument a person
+ * chose in an Oompa tune (a kalimba's melody, a drum kit) is the station's, already at its level.
+ */
+export function bandLane(k: VoiceKit, out: AudioNode, bar: LofiBar): AudioNode {
+  if (bar.tune.mood !== 'oompa') return out;
+  let f = FADERS.get(out);
+  if (!f) { f = k.ctx.createGain(); f.gain.value = BAND_LEVEL; f.connect(out); FADERS.set(out, f); }
+  return f;
 }
 
 /** A rendered buffer into the graph at `t`, at `level`. */
@@ -405,26 +433,33 @@ function cymbal(k: VoiceKit, out: AudioNode, t: number, vel: number, name: strin
  * the cymbal on the after-beats (`mod` 1 a pair clashed and choked, 0 the mounted one), a
  * pair clashed open, the snare and its rolls, and the woodblock. False for a note it does
  * not play.
+ *
+ * The bass drum, the cymbals and the woodblock are the band's own, set on its scale
+ * (DRUM_LEVEL), and play through its fader. The snare is the station's kit snare at the
+ * kit's own level (lib/lofi-drums.ts), already at the station's loudness, so it plays
+ * straight onto the lane. It was the one part not on the band's scale: a march's drums,
+ * nearly all snare, had sat 9.5 dB over the band's after-beats, and now sit level with them.
  */
 export function drum(k: VoiceKit, out: AudioNode, note: LofiNote, t0: number, vel: number, bar: LofiBar, kit: D.DrumKit): boolean {
   const t = t0 + pulse(bar.tune.seed, t0);
   const style = bar.tune.style;
+  const band = bandLane(k, out, bar);
   switch (note.voice) {
     case 'kick': {
       const buf = stroke(k, 'bassDrum', vel, (sr, v, r) => K.kickStroke(sr, BASS_DRUM.hz, v, BASS_DRUM.click, BASS_DRUM.life, r));
-      strike(k, out, t, buf, DRUM_LEVEL.bass * D.strokeLevel(vel), DRUM_PAN.bass);
+      strike(k, band, t, buf, DRUM_LEVEL.bass * D.strokeLevel(vel), DRUM_PAN.bass);
       return true;
     }
     case 'hat':
-      if (note.mod === 1) cymbal(k, out, t, vel, 'clash', CLASH_CHOKED, DRUM_LEVEL.choked);
-      else cymbal(k, out, t, vel, 'mounted', MOUNTED, DRUM_LEVEL.mounted);
+      if (note.mod === 1) cymbal(k, band, t, vel, 'clash', CLASH_CHOKED, DRUM_LEVEL.choked);
+      else cymbal(k, band, t, vel, 'mounted', MOUNTED, DRUM_LEVEL.mounted);
       return true;
-    case 'crash': cymbal(k, out, t, vel, 'open', CLASH_OPEN, DRUM_LEVEL.open); return true;
+    case 'crash': cymbal(k, band, t, vel, 'open', CLASH_OPEN, DRUM_LEVEL.open); return true;
     case 'snare':
       if (note.dur > 0) D.press(k, out, t, vel, style.snareTone, kit);
       else D.snare('snare', k, out, t, vel, style.snareTone, kit);
       return true;
-    case 'perc': W.perc(k, out, t, note.midi, vel * DRUM_LEVEL.wood, note.mod ?? 0); return true;
+    case 'perc': W.perc(k, band, t, note.midi, vel * DRUM_LEVEL.wood, note.mod ?? 0); return true;
     default: return false;
   }
 }

@@ -10,7 +10,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { autoLabel, composedTag, sentenceCase, styleKitName, trackName } from './track-names.ts';
+import { autoLabel, composedTag, laneHeadName, sentenceCase, styleKitName, trackName } from './track-names.ts';
 import { LOFI_BASS_NAME, LOFI_KEYS_NAME, LOFI_LEAD_NAME } from '../../lib/lofi-names.ts';
 import { musicStateParams, parseMusicState, composeTrack } from '../../lib/music-state.ts';
 
@@ -45,6 +45,20 @@ test('a control left to the composer reads Auto and what plays', () => {
   assert.equal(autoLabel('yidaki'), 'Auto · Yidaki');
   assert.equal(autoLabel('jazz guitar'), 'Auto · Jazz guitar');
   assert.equal(autoLabel(''), 'Auto');
+});
+
+test('a lane head cut short keeps its whole name for the tooltip and the screen reader', () => {
+  // One instrument across the tune: just the label, with nothing cut.
+  assert.equal(laneHeadName('Auto · Synthwave lead', 'Synthwave lead', false), 'Auto · Synthwave lead');
+  // Others in the lane: the label in full, then the lane's instruments across the tune.
+  assert.equal(laneHeadName('Auto · Synthwave lead', 'Synthwave lead, Pad +1', true), 'Auto · Synthwave lead. In this tune: Synthwave lead, Pad +1');
+  // Nothing to list (a part that plays nowhere): the label only.
+  assert.equal(laneHeadName('Not playing', '', true), 'Not playing');
+  // The view sets both from it, after the label, and the label truncates inside the button.
+  const view = readFileSync(new URL('../music-studio.ts', import.meta.url), 'utf8');
+  assert.match(view, /head\.title = whole; head\.setAttribute\('aria-label', tRaw\('\{track\}: \{names\}\. Browse and hear the instruments\.', \{ track: partName\(tr\), names: whole \}\)\)/);
+  const css = readFileSync(new URL('../../styles/parts/music-studio.css', import.meta.url), 'utf8');
+  assert.match(css, /\.ms-browse > \[data-short\] \{ display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; \}/);
 });
 
 test('the drums left to the genre name the genre\'s own kit', () => {

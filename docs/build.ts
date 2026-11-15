@@ -16,7 +16,7 @@ import { readFileSync, writeFileSync, mkdirSync, copyFileSync, cpSync, existsSyn
 import { resolve, dirname, relative, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { generateOgImages } from './og-image.ts';
+import { generateOgImages, type OgCard } from './og-image.ts';
 import { LANGS, LANG_META, sortedLangs } from '../engine/src/lang.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
 import { buildAgentDocs, buildAgentInstructions, AGENT_FILES } from './agents-pages.ts';
@@ -58,6 +58,16 @@ import { resolveDocsArt, inlineDocsArt, mastheadArtBand } from './docs-art.ts';
 // tests/docs-page-seal.test.ts, and importing build.ts would build the site.
 import { pageSealLink, sealPages, type SealTarget } from './page-seal.ts';
 import { DOC_LOGOS } from './logos.ts';
+// The music genre pages and the background music hub: the pure page model, and the
+// app's own genre list, titles, icons and taglines (all free of the DOM).
+import {
+  GENRE_SLUG, MUSIC_BASE, MUSIC_CREDIT, MUSIC_CREDIT_LINK, MUSIC_GROUP_TITLE, SAMPLES_DIR, genrePageSlug, isoDuration,
+  makeYourOwnHash, plainText, questionsFromMarkdown, registerProblems,
+  type GenreCopy, type MusicQuestion, type MusicRegister, type SampleRecipe, type SampleSet,
+} from './music-pages.ts';
+import { GENRE_GROUPS, genreIconSvg, genreTitle, type GenreCategory } from '../shells/web/src/lib/genre-icons.ts';
+import { genreTaglines } from '../shells/web/src/views/music-studio/genre-taglines.ts';
+import type { LofiMood } from '../engine/src/lofi-compose.ts';
 import { readShotAnatomy } from './shot-anatomy.ts';
 // The shots pipeline's own recipe parser, reused rather than re-implemented: the
 // capture params a credential wants to state are exactly the ones the capture read,
@@ -317,7 +327,9 @@ const pages: Page[] = [
   { slug: 'agenda', title: 'Agenda screens and programmes', src: 'agenda.md', pathway: 'creators', canonicalPath: 'create/agenda', contentLicense: 'CC-BY-SA-4.0', description: 'Turn an event programme into branded screens, an interactive page, video, calendars and PowerPoint slides.' },
   { slug: 'animating', title: 'Animating: keyframes, depth and a camera', src: 'animating.md', pathway: 'creators', canonicalPath: 'create/animating', contentLicense: 'CC-BY-SA-4.0', description: 'Pose a box at one moment, lift it off the page, and fly a camera over the result - keyframes, depth, the scene camera and Lift layers, all on your device.' },
   { slug: 'rondocode', title: 'Lolly Rondocode songs', src: 'rondocode.md', pathway: 'creators', canonicalPath: 'create/rondocode', contentLicense: 'CC-BY-SA-4.0', description: 'Play music written as code under a video, write and export a song, and see what its Content Credentials record.' },
-  { slug: 'generated-music', title: 'Generated music', src: 'generated-music.md', pathway: 'creators', canonicalPath: 'create/generated-music', contentLicense: 'CC-BY-SA-4.0', description: 'How the Neurospicy player\'s Lofi and Lolly Sings stations compose their music, and why a seed always plays the same tune.' },
+  { slug: 'background-music', title: 'Free background music generator', src: 'background-music.md', pathway: 'creators', canonicalPath: 'create/background-music', contentLicense: 'CC-BY-SA-4.0', description: 'Make free background music for videos, podcasts, streams and games in more than 50 genres, on your own device. Free for any use, even commercial, with credit.', render: renderMusicHubPage },
+  { slug: 'music-generator', title: 'Music generator', src: 'music-generator.md', pathway: 'creators', canonicalPath: 'create/music-generator', contentLicense: 'CC-BY-SA-4.0', description: 'Make a track in any of Lolly\'s genres: shuffle, choose instruments, set the tune and the mix, then download an M4A or WAV file that is free to use with credit.' },
+  { slug: 'generated-music', title: 'Generated music', src: 'generated-music.md', pathway: 'creators', canonicalPath: 'create/generated-music', contentLicense: 'CC-BY-SA-4.0', description: 'How a seed becomes a tune, what stays the same on every device, how each genre\'s instruments are made and measured, and what a track records.' },
   { slug: 'collaborate', title: 'Working together', src: 'collaborate.md', pathway: 'creators', canonicalPath: 'create/collaborate', contentLicense: 'CC-BY-SA-4.0', description: 'Edit a tool session with someone else: a private collab between two devices with no account or server, or a work collab through your organisation\'s Lolly Work.' },
   { slug: 'project-asset-transfers', title: 'Shared project assets', src: 'project-asset-transfers.md', pathway: 'creators', canonicalPath: 'create/project-asset-transfers', contentLicense: 'CC-BY-SA-4.0', description: 'With Lolly Work, browse shared project folders, copy files between projects, offer originals to the organisation library and send files to connected services.' },
   { slug: 'utilities', title: 'Utilities', src: 'utilities.md', pathway: 'creators', canonicalPath: 'create/utilities', contentLicense: 'CC-BY-SA-4.0', description: 'Fix a file on your device: share it safely, compare two versions, change its format, get the words out or check a colour, with every utility in the Utilities tab.' },
@@ -757,6 +769,10 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'agenda', label: 'Agenda screens and programmes' },
       { slug: 'animating', label: 'Animating: keyframes, depth and a camera' },
       { slug: 'rondocode', label: 'Lolly Rondocode songs' },
+    ] },
+    { label: 'Music', items: [
+      { slug: 'background-music', label: 'Free background music generator' },
+      { slug: 'music-generator', label: 'Music generator' },
       { slug: 'generated-music', label: 'Generated music' },
     ] },
     { label: 'Team playbooks and comparisons', items: [
@@ -1705,6 +1721,9 @@ DOC_ICONS.image = appIcon('image');
 DOC_ICONS.zap = appIcon('zap');
 DOC_ICONS.play = appIcon('play');
 DOC_ICONS.film = appIcon('filmStrip');
+// The music pages' rail glyphs: the app's own note and headphones (the music generator's solo).
+DOC_ICONS.music = appIcon('music');
+DOC_ICONS.headphones = appIcon('headphones');
 DOC_ICONS.file = DOC_ICONS.document!;
 // The app registry has no book glyph, so this is drawn here in the same 24px
 // stroke style: an open book, for the guides and documentation bullet.
@@ -3241,6 +3260,251 @@ function renderConvertSideDoor(model: ConvertPageModel, lang: Lang): string {
   </article>`;
 }
 
+// ── Music: the genre pages and the background music hub ─────────────────────
+// One generated page per genre at /info/music/<slug>/ and the hub page
+// (docs/background-music.md, slug background-music) that lists them by the genre
+// picker's groups. The genre copy is docs/site/music-genres.json, the listening
+// samples and their recipes are docs/music/ (scripts/build-music-samples.ts), and
+// the genres, their groups, titles and icons are the app's own
+// (shells/web/src/lib/genre-icons.ts). The page model is pure and lives in
+// ./music-pages.ts. The shared questions every genre page repeats are the hub's own
+// "Questions" section, so they have one source, which translates with the hub.
+//
+// The labels below pass through t(), like the format side doors' skeleton. The
+// genre copy is English; a locale twin at docs/i18n/<lang>/music-genres.json
+// replaces the fields it holds (musicCopy).
+
+const MUSIC_REGISTER = JSON.parse(readFileSync(resolve(__dirname, 'site', 'music-genres.json'), 'utf8')) as MusicRegister;
+const MUSIC_SAMPLES: SampleSet = existsSync(resolve(__dirname, 'music', 'samples.json'))
+  ? JSON.parse(readFileSync(resolve(__dirname, 'music', 'samples.json'), 'utf8')) as SampleSet
+  : { version: 1, excerpt: { seconds: 20, fadeIn: 0.5, fadeOut: 2.5, bitrate: 80_000, maxLeadIn: 2.6, warmupBars: 2 }, samples: [] };
+const MUSIC_SAMPLE = new Map(MUSIC_SAMPLES.samples.map(s => [s.style, s]));
+/** The hub page's slug, and where its markdown asks for the genre grid. */
+const MUSIC_HUB = 'background-music';
+const MUSIC_GRID_MARK = '<!-- the genre grid renders here -->';
+/** The guide's section on using and crediting the music. */
+const MUSIC_GUIDE = 'music-generator';
+const MUSIC_CREDIT_ANCHOR = 'use-your-music';
+/** Every genre the picker lists, in its groups and its order, with copy to show. */
+const MUSIC_GENRES: Array<{ group: GenreCategory; mood: LofiMood }> = GENRE_GROUPS.flatMap(g => g.moods.map(mood => ({ group: g.id, mood })));
+{
+  const problems = registerProblems(MUSIC_REGISTER, MUSIC_GENRES.map(g => g.mood));
+  // A genre that arrives before its copy is left off the site with a warning rather than
+  // failing the build; tests/music-pages.test.ts is the gate that asks for the copy.
+  for (const p of problems) console.warn(`⚠  music pages: ${p}`);
+}
+
+const musicTwins = new Map<Lang, Map<string, Partial<GenreCopy>>>();
+/** A genre's copy in `lang`: the English register, with any field a locale twin holds. */
+function musicCopy(id: LofiMood, lang: Lang): GenreCopy | undefined {
+  const en = MUSIC_REGISTER.genres.find(g => g.id === id);
+  if (!en || lang === 'en') return en;
+  if (!musicTwins.has(lang)) {
+    const path = resolve(__dirname, 'i18n', lang, 'music-genres.json');
+    const twin = existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as { genres: Array<Partial<GenreCopy>> }).genres : [];
+    musicTwins.set(lang, new Map(twin.filter(g => g.id).map(g => [g.id!, g])));
+  }
+  return { ...en, ...musicTwins.get(lang)!.get(id), id: en.id, related: en.related };
+}
+
+/** The questions in the hub's markdown: its "Questions" section, under the heading's
+ *  translation or the English word. */
+function hubQuestions(md: string): MusicQuestion[] {
+  const local = questionsFromMarkdown(md, t('Questions'));
+  return local.length ? local : questionsFromMarkdown(md, 'Questions');
+}
+/** The hub's questions in `lang`, the ones every genre page repeats: the locale's hub
+ *  where it has them, else the English hub's. */
+function musicSharedQuestions(lang: Lang): MusicQuestion[] {
+  const hub = pages.find(p => p.slug === MUSIC_HUB);
+  if (!hub) return [];
+  const read = (l: Lang): MusicQuestion[] => {
+    try { return hubQuestions(readFileSync(resolvePageSrc(hub, l), 'utf8')); } catch { return []; }
+  };
+  const local = read(lang);
+  return local.length || lang === 'en' ? local : read('en');
+}
+
+/** {name} placeholders filled in a string t() has already looked up, so a translation can
+ *  move them. The literal stays inside t('...') for the site corpus (scripts/translate.ts). */
+const fill = (s: string, vars: Record<string, string>): string =>
+  Object.entries(vars).reduce((out, [k, v]) => out.split(`{${k}}`).join(v), s);
+/** The picker's group headings, each a literal t() for the site corpus. */
+const musicGroupLabel = (g: GenreCategory): string =>
+  ({ chill: t('Chill'), rock: t('Rock & Roots'), soul: t('Soul & Groove'), club: t('Club'), bass: t('Bass & Synth'), world: t('World') })[g] ?? MUSIC_GROUP_TITLE[g];
+
+const jsonLd = (data: unknown): string =>
+  `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`;
+
+/** The music generator as an application, for structured data. */
+function musicAppLd(): Record<string, unknown> {
+  return {
+    '@type': 'WebApplication',
+    '@id': `${SITE_URL}/#/music`,
+    name: 'Lolly music generator',
+    url: `${SITE_URL}/#/music`,
+    applicationCategory: 'MultimediaApplication',
+    operatingSystem: 'Web browser',
+    browserRequirements: 'Requires WebGPU',
+    description: 'Make background music in any of Lolly\'s genres on your own device: change the instruments, the tempo, the key and the mix, then download an M4A or WAV file. Music you make is free for any use, including commercial use, provided you credit it as Music made with Lolly.',
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
+    license: CODE_LICENSE_URL,
+  };
+}
+const faqLd = (qs: MusicQuestion[]): Record<string, unknown> => ({
+  '@type': 'FAQPage',
+  mainEntity: qs.map(q => ({ '@type': 'Question', name: plainText(q.q), acceptedAnswer: { '@type': 'Answer', text: plainText(q.a) } })),
+});
+
+/** A question as the page shows it: a heading and its answer. */
+function musicQuestionHtml(q: MusicQuestion): string {
+  return `<div class="music-q"><h3>${esc(q.q)}</h3>${mdToHtml(q.a)}</div>`;
+}
+
+/** The licence block every genre page carries, in the guide's words. */
+function musicCreditHtml(lang: Lang): string {
+  return `<section class="music-credit" id="free-with-credit">
+    <h2>${esc(t('Free with credit'))}</h2>
+    <p>${esc(t('Music you make in the music generator is free for any use, including commercial use, provided you credit Lolly. Put this line wherever your credits go:'))}</p>
+    <p class="music-credit-line"><code>${esc(MUSIC_CREDIT)}</code></p>
+    <p>${esc(t('When there is room for a link, add the address:'))} <code>${esc(MUSIC_CREDIT_LINK)}</code></p>
+    <p><a href="${esc(localeHref(lang, MUSIC_GUIDE))}#${MUSIC_CREDIT_ANCHOR}">${esc(t('Where to put the credit'))}</a></p>
+  </section>`;
+}
+
+/** A genre as a card that links to its page: the icon, the title and what you hear. */
+function musicCardHtml(mood: LofiMood, lang: Lang): string {
+  return `<li class="music-card"><a href="${esc(localeHref(lang, genrePageSlug(mood)))}">${genreIconSvg(mood, 24)}`
+    + `<span class="music-card-text"><strong>${esc(genreTitle(mood))}</strong><span>${esc(genreTaglines()[mood] ?? '')}</span></span></a></li>`;
+}
+
+/** The sample player: a plain audio control, then what the sample is. */
+function musicSampleHtml(mood: LofiMood, s: SampleRecipe | undefined): string {
+  if (!s) return '';
+  const cap = fill(t('A {seconds}-second sample from the {section} section: {genre}, seed {seed}, {bpm} beats a minute in {key}. Made in the music generator, with Content Credentials.'), {
+    seconds: String(MUSIC_SAMPLES.excerpt.seconds), section: s.anchorSection, genre: genreTitle(mood), seed: String(s.seed), bpm: String(s.bpm), key: s.key,
+  });
+  return `<figure class="music-sample">
+    <audio controls preload="none" src="/info/${SAMPLES_DIR}/${esc(s.file)}">${esc(t('Your browser cannot play this sample.'))} <a href="/info/${SAMPLES_DIR}/${esc(s.file)}">${esc(t('Download the sample'))}</a></audio>
+    <figcaption>${esc(cap)}</figcaption>
+  </figure>`;
+}
+
+/** /info/music/<slug>/ - one page per genre. */
+function renderMusicGenrePage(copy: GenreCopy, group: GenreCategory, lang: Lang): string {
+  const mood = copy.id;
+  const slug = genrePageSlug(mood);
+  const url = `${SITE_URL}${localeHref(lang, slug)}`;
+  const hubUrl = `${SITE_URL}${localeHref(lang, MUSIC_HUB)}`;
+  const sample = MUSIC_SAMPLE.get(mood);
+  const make = appHref(lang, makeYourOwnHash(mood, sample?.seed ?? 1, sample?.bars ?? 64));
+  const title = genreTitle(mood);
+  const own = copy.faq ?? [];
+  const shared = musicSharedQuestions(lang);
+  const related = copy.related.filter(r => MUSIC_REGISTER.genres.some(g => g.id === r));
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      musicAppLd(),
+      faqLd([...own, ...shared]),
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: t('Free background music generator'), item: hubUrl },
+          { '@type': 'ListItem', position: 2, name: copy.title, item: url },
+        ],
+      },
+      ...(sample ? [{
+        '@type': 'MusicRecording',
+        name: `${title}: ${t('a sample from the music generator')}`,
+        genre: title,
+        duration: isoDuration(MUSIC_SAMPLES.excerpt.seconds),
+        url,
+        isAccessibleForFree: true,
+        creditText: MUSIC_CREDIT,
+        usageInfo: `${SITE_URL}${localeHref(lang, MUSIC_GUIDE)}#${MUSIC_CREDIT_ANCHOR}`,
+        audio: {
+          '@type': 'AudioObject',
+          contentUrl: `${SITE_URL}/info/${SAMPLES_DIR}/${sample.file}`,
+          encodingFormat: 'audio/mp4',
+          duration: isoDuration(MUSIC_SAMPLES.excerpt.seconds),
+          contentSize: `${Math.round(sample.bytes / 1024)} KB`,
+        },
+      }] : []),
+    ],
+  };
+  return `<article class="sidedoor music-genre">
+    <nav class="music-crumbs" aria-label="${esc(t('Breadcrumb'))}"><a href="${esc(localeHref(lang, MUSIC_HUB))}">${esc(t('Free background music'))}</a> <span aria-hidden="true">/</span> <span>${esc(musicGroupLabel(group))}</span></nav>
+    <div class="sidedoor-eyebrow">${genreIconSvg(mood, 24)}<span>${esc(t('Background music'))} · ${esc(title)}</span></div>
+    <h1>${esc(copy.title)}</h1>
+    <p class="sidedoor-lead">${esc(copy.lead)}</p>
+    ${musicSampleHtml(mood, sample)}
+    <a class="sidedoor-cta" href="${esc(make)}">${esc(fill(t('Make your own {genre} track'), { genre: copy.name }))} <span aria-hidden="true">→</span></a>
+    <ul class="sidedoor-promise">
+      <li>${esc(t('Free with credit, even commercially'))}</li>
+      <li>${esc(t('No AI, no samples'))}</li>
+      <li>${esc(t('Runs on your device'))}</li>
+    </ul>
+    <section class="sidedoor-detail" id="sound">
+      <h2>${esc(fill(t('What {genre} sounds like'), { genre: title }))}</h2>
+      ${copy.sound.map(p => `<p>${esc(p)}</p>`).join('\n      ')}
+      <p><a href="${esc(localeHref(lang, 'generated-music'))}#the-genres-instruments">${esc(t('Every genre\'s instruments'))}</a></p>
+    </section>
+    <section class="sidedoor-detail" id="uses">
+      <h2>${esc(t('Good for'))}</h2>
+      <ul class="sidedoor-feats">${copy.uses.map(u => `<li>${esc(u)}</li>`).join('')}</ul>
+    </section>
+    ${musicCreditHtml(lang)}
+    <section class="sidedoor-detail music-faq" id="questions">
+      <h2>${esc(t('Questions'))}</h2>
+      ${[...own, ...shared].map(musicQuestionHtml).join('\n      ')}
+    </section>
+    <section class="sidedoor-detail" id="more-genres">
+      <h2>${esc(t('Try another genre'))}</h2>
+      <ul class="music-grid">${related.map(r => musicCardHtml(r, lang)).join('')}</ul>
+      <p><a href="${esc(localeHref(lang, MUSIC_HUB))}">${esc(t('Every genre, with a sample of each'))}</a> · <a href="${esc(localeHref(lang, MUSIC_GUIDE))}">${esc(t('How to use the music generator'))}</a></p>
+    </section>
+    ${jsonLd(ld)}
+  </article>`;
+}
+
+/** The hub's genre grid: a heading per picker group and a card per genre. */
+function musicGridHtml(lang: Lang): string {
+  const groups = GENRE_GROUPS.map(g => {
+    const moods = g.moods.filter(m => MUSIC_REGISTER.genres.some(c => c.id === m));
+    if (!moods.length) return '';
+    return `<h3 id="genres-${g.id}">${esc(musicGroupLabel(g.id))}</h3>\n<ul class="music-grid">${moods.map(m => musicCardHtml(m, lang)).join('')}</ul>`;
+  }).join('\n');
+  return `<div class="music-hub-grid">${groups}</div>`;
+}
+
+/** docs/background-music.md: the markdown, the genre grid at its mark, and the hub's structured data. */
+function renderMusicHubPage(md: string, lang: Lang): string {
+  // Split at the mark, as the formats page does, so the grid is never inside a paragraph.
+  // A translation without the mark renders as markdown alone.
+  const [before, after] = md.split(MUSIC_GRID_MARK);
+  const html = after === undefined ? mdToHtml(md) : `${mdToHtml(before ?? '')}\n${musicGridHtml(lang)}\n${mdToHtml(after)}`;
+  const url = `${SITE_URL}${localeHref(lang, MUSIC_HUB)}`;
+  const qs = hubQuestions(md);
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      musicAppLd(),
+      ...(qs.length ? [faqLd(qs)] : []),
+      {
+        '@type': 'ItemList',
+        name: t('Background music genres'),
+        url,
+        itemListElement: MUSIC_GENRES.filter(g => MUSIC_REGISTER.genres.some(c => c.id === g.mood)).map((g, i) => ({
+          '@type': 'ListItem', position: i + 1, name: genreTitle(g.mood), url: `${SITE_URL}${localeHref(lang, genrePageSlug(g.mood))}`,
+        })),
+      },
+    ],
+  };
+  return `${html}\n${jsonLd(ld)}`;
+}
+
 // ── HTML template ─────────────────────────────────────────────────────────────
 
 // The app's design tokens, inlined verbatim (comments/blank lines stripped) so the docs
@@ -3658,6 +3922,27 @@ ${LANDING_CSS}
 .sidedoor-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem}
 .sidedoor-foot-link{font-weight:700;text-decoration:none;color:var(--green)}
 .sidedoor-foot-link:hover{text-decoration:underline}
+/* The music genre pages and the background music hub (renderMusicGenrePage, musicGridHtml). */
+.music-crumbs{font-size:.8125rem;color:var(--muted);margin:0 0 1rem}
+.music-crumbs a{color:inherit}
+.music-sample{margin:0 0 1.25rem;padding:1rem 1.15rem;background:hsl(var(--card));border:1px solid var(--border);border-radius:.75rem}
+.music-sample audio{display:block;width:100%}
+.music-sample figcaption{margin-top:.6rem;font-size:.875rem;line-height:1.5;color:var(--muted)}
+.music-credit{margin-top:2rem;padding:1.25rem 1.35rem;background:hsl(var(--card));border:1px solid var(--border);border-radius:.75rem}
+.music-credit h2{margin-top:0}
+.music-credit-line{margin:.75rem 0}
+.music-credit-line code{display:inline-block;font-size:1.0625rem;font-weight:700;padding:.4rem .8rem;border-radius:.5rem;user-select:all}
+.music-q h3{font-size:1rem;margin:1.25rem 0 .35rem}
+.music-q p{margin:0 0 .5rem}
+.music-grid{list-style:none;padding:0;margin:.75rem 0 1.75rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:.75rem}
+.music-card a{display:flex;align-items:flex-start;gap:.75rem;height:100%;box-sizing:border-box;padding:.85rem 1rem;background:hsl(var(--card));border:1px solid var(--border);border-radius:.75rem;color:inherit;text-decoration:none}
+.music-card a:hover,.music-card a:focus-visible{border-color:var(--green)}
+.music-card svg{flex:none;width:1.5rem;height:1.5rem;color:var(--green)}
+.music-card-text strong{display:block;font-size:.9375rem}
+.music-card-text span{display:block;margin-top:.15rem;font-size:.8125rem;line-height:1.45;color:var(--muted)}
+.docs-content .music-card a,.docs-content .music-card a:hover{text-decoration:none}
+.music-genre h1{font-size:clamp(1.75rem,3vw,2.35rem);line-height:1.15}
+.music-hub-grid h3{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:1.5rem 0 0}
 /* The rail has three tiers and they have to be told apart at a glance: the
    PATHWAY is a name (17px, bold, full ink, on a rule), a GROUP LABEL is an
    eyebrow over a run of links (11px, uppercase, tracked, muted, one weight step
@@ -6085,7 +6370,8 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'creators', label: 'Design and templates', slugs: ['using', 'design', 'create-a-tool', 'training-creators', 'training-delivery', 'templates', 'batch', 'brand-studio', 'brand-architectures', 'brand-page', 'colourways', 'partners', '3d-studio', 'chart', 'design-import', 'design-layout', 'darkroom', 'rebrand', 'text-composition', 'utilities', 'extension'] },
   { hub: 'creators', label: 'Find and keep your work', slugs: ['find-your-work', 'sync', 'search', 'dashboard', 'profile', 'ask', 'favourites'] },
   { hub: 'creators', label: 'Collaborate and export', slugs: ['formats', 'fallback-fonts', 'collaborate', 'project-asset-transfers', 'exporting'] },
-  { hub: 'creators', label: 'Motion and presenting', slugs: ['hdr-editing', 'sequence-editor', 'presenting', 'interactive-pages', 'agenda', 'animating', 'rondocode', 'generated-music'] },
+  { hub: 'creators', label: 'Motion and presenting', slugs: ['hdr-editing', 'sequence-editor', 'presenting', 'interactive-pages', 'agenda', 'animating', 'rondocode'] },
+  { hub: 'creators', label: 'Music', slugs: ['background-music', 'music-generator', 'generated-music'] },
   { hub: 'creators', label: 'Team playbooks and comparisons', slugs: ['positioning', 'compare', 'compare-canva', 'compare-adobe', 'compare-figma', 'compare-render-apis', 'compare-converters', 'compare-penpot', 'compare-brand-portals', 'dam-production', 'sales', 'press', 'marketing', 'legal'] },
   { hub: 'builders', label: 'Architecture and contracts', slugs: ['design-tool-contract', 'text-composition-engine', 'colour-engine', 'overview', 'document-model', 'constraints', 'determinism', 'reproducibility', 'host-api', 'data-transfer'] },
   { hub: 'builders', label: 'Agents, APIs and integrations', slugs: ['ai-agents', 'learning-integration', 'tool-skills', 'mcp', 'open-document-agents', 'work-document-agents', 'work-automation-api', 'work-api', 'work-resumable-uploads'] },
@@ -6262,6 +6548,8 @@ const SIDEBAR_ICON: Record<string, string> = {
   'agenda': 'checklist',
   'animating': 'layers',
   'rondocode': 'clock',
+  'background-music': 'headphones',
+  'music-generator': 'music',
   'generated-music': 'neurobeat',
   'collaborate': 'people',
   'project-asset-transfers': 'folder',
@@ -7116,6 +7404,19 @@ async function build() {
     }
   }
 
+  // The music genre pages (/info/music/<slug>/) and their listening samples, rendered by
+  // scripts/build-music-samples.ts into docs/music/samples/ and served from
+  // /info/music/samples/. Mirrored, not accumulated: a retired genre or sample must not
+  // stay behind in the (gitignored) output.
+  rmSync(resolve(outDir, MUSIC_BASE), { recursive: true, force: true });
+  const musicSamplesSrc = resolve(__dirname, 'music', 'samples');
+  if (existsSync(musicSamplesSrc)) {
+    const files = readdirSync(musicSamplesSrc).filter(f => f.endsWith('.m4a'));
+    mkdirSync(resolve(outDir, SAMPLES_DIR), { recursive: true });
+    for (const f of files) copyFileSync(resolve(musicSamplesSrc, f), resolve(outDir, SAMPLES_DIR, f));
+    console.log(`✓  /info/${SAMPLES_DIR}/ (${files.length} listening samples)`);
+  }
+
   // The imported Work marks and licence retain their original bytes.
   rmSync(resolve(outDir, 'work'), { recursive: true, force: true });
   mkdirSync(resolve(outDir, 'work'), { recursive: true });
@@ -7217,6 +7518,10 @@ async function build() {
       .filter((p) => !p.isLanding && p.slug && existsSync(resolve(outDir, 'og', `${p.slug}.png`)))
       .map((p) => p.slug),
   );
+  for (const { mood } of MUSIC_GENRES) {
+    const slug = genrePageSlug(mood);
+    if (existsSync(resolve(outDir, 'og', `${slug}.png`))) ogSlugs.add(slug);
+  }
 
   // English at /info/, every other locale mirrored under /info/<lang>/ - same
   // page set, same slugs, translated chrome + (where a docs/i18n/<lang>/<slug>.md
@@ -7371,6 +7676,27 @@ async function build() {
       sideDoorCount++;
     }
     console.log(`✓  ${lang === 'en' ? '' : `/${lang}`}/info format side-door pages (${sideDoorCount})`);
+
+    // The music genre pages: one per genre at /info/music/<slug>/, generated like the
+    // format side doors (English copy, or a locale twin's, in localized chrome).
+    if (lang !== 'en') rmSync(resolve(localeOutDir, MUSIC_BASE), { recursive: true, force: true });
+    let musicCount = 0;
+    for (const { group, mood } of MUSIC_GENRES) {
+      const copy = musicCopy(mood, lang);
+      if (!copy) continue;
+      const slug = genrePageSlug(mood);
+      const gp: Page = { slug, title: copy.title, src: '', description: copy.description, pathway: 'creators', generated: true };
+      const content = renderMusicGenrePage(copy, group, lang);
+      const html = doorizeLinks(wrapPage(lang, gp, content, ogSlugs, ''));
+      auditLinks(localeHref('en', slug), lang, html);
+      const dir = resolve(localeOutDir, MUSIC_BASE, GENRE_SLUG[mood]);
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(resolve(dir, 'index.html'), html, 'utf-8');
+      searchRecords.push(...indexSections(content, slug, gp.title));
+      if (lang === 'en') sitemapUrls.push({ slug });
+      musicCount++;
+    }
+    console.log(`✓  ${lang === 'en' ? '' : `/${lang}`}/info/${MUSIC_BASE}/ genre pages (${musicCount})`);
 
     // One index per locale, fetched lazily by the sidebar search on first use - 
     // never on page load, so a reader who doesn't search pays nothing for it.
@@ -7632,11 +7958,22 @@ function writeDocsManifest(): void {
 // own copy instead of one shared tagline. The md is read once here (cheap, English only;
 // the cards are language-neutral). A page whose source can't be read keeps whatever
 // explicit description it had, and generateOgImages falls back to the site tagline.
-const ogPages = pages.map((p) => {
+const ogPages: Array<Page & { card?: OgCard }> = pages.map((p) => {
   if (p.description || p.isLanding) return p;
   try { return { ...p, description: mdDescription(readFileSync(resolve(__dirname, p.src), 'utf-8')) || undefined }; }
   catch { return p; }
 });
+// The genre pages' cards: the share card that shows a genre's icon, its name and its
+// lead, linking to the page (docs/og-image.ts, OgPage.card).
+for (const { mood } of MUSIC_GENRES) {
+  const copy = musicCopy(mood, 'en');
+  if (!copy) continue;
+  const slug = genrePageSlug(mood);
+  ogPages.push({
+    slug, title: copy.title, description: copy.description, src: '', generated: true,
+    card: { kicker: `Background music · ${genreTitle(mood)}`, line: copy.lead, url: `${new URL(PREVIEW_URL).host}/info/${slug}/`, iconSvg: genreIconSvg(mood, 24) },
+  } as Page & { card: OgCard });
+}
 const ogGenerated = await generateOgImages(ogPages, outDir, repoRoot, (m) => console.log(m));
 const ogExpected = pages.filter((p) => !p.isLanding && p.slug && p.title).length;
 if (ogExpected > 0 && ogGenerated.size < ogExpected) {

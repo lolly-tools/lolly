@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The vocal chops: the tune's vocal, the chopper's choices and the sung slices.
+ * The vocal chops: the tune's vocal, the chopper's choices and the sung slices, and the
+ * four voices that sing them (lib/lofi-chop-voices.ts).
  *
  * Run directly:  node --test shells/web/src/lib/lofi-chop.test.ts
  */
@@ -8,8 +9,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CHOP_FALL, CHOP_FLIP, CHOP_GATE, CHOP_ONLY, CHOP_PIECE, CHOP_PLAIN, CHOP_REVERSE, CHOP_SCOOP, CHOP_SLIDE,
-  chopMod, chopVocal, chopper, readChop, singChop, type ChopSlice,
+  castOf, chopMod, chopVocal, chopper, leadMean, readChop, singChop, type ChopSlice,
 } from './lofi-chop.ts';
+import { CHOP_VOICE, LEGACY_VOICE, upperShare } from './lofi-chop-voices.ts';
+import { CHOP_LEADS, chopCasting, type ChopVoice } from '../../../../engine/src/lofi-chop-cast.ts';
 import { perform } from './lofi-perform.ts';
 import { ownOnly } from './lofi-lead-art.ts';
 import { composeLofiTune, type LofiMood } from '../../../../engine/src/lofi-compose.ts';
@@ -194,4 +197,123 @@ test('a reversed slice swells into its end, a gated one opens and shuts on the b
   const plain = singChop(SR, slice({ syllable: 2, midi: 64, dur: 0.5 }), 5)[0], up = singChop(SR, slice({ syllable: 2, midi: 64, dur: 0.5, gesture: CHOP_FLIP, amount: 12 }), 5)[0];
   const ratio = period(plain) / period(up);
   assert.ok(Math.abs(ratio - 2) < 0.15, `the flip sings an octave up (periods ${period(plain)} and ${period(up)})`);
+});
+
+// ── the voices ──────────────────────────────────────────────────────────────
+
+const fnvBytes = (xs: Float32Array[]): number => { let h = 2166136261; for (const x of xs) { const b = new Uint8Array(x.buffer, x.byteOffset, x.byteLength); for (let i = 0; i < b.length; i++) { h ^= b[i]!; h = Math.imul(h, 16777619) >>> 0; } } return h; };
+
+test('the chop voice as it was sings the same bytes, so the botanica grains that sing it are unchanged', () => {
+  // Hashes of singChop's output with the vocal drawn with no voice, taken before the voices were measured.
+  const want = [4198412037, 2561836990, 3925384359, 1923474909, 4158614919, 1287893451];
+  const overs: Array<Partial<ChopSlice>> = [{}, { syllable: 2, midi: 64, gesture: CHOP_FLIP, amount: 12 }, { gesture: CHOP_REVERSE, dur: 0.8 }, { gesture: CHOP_GATE, amount: 4, dur: 0.8 }, { syllable: 12, vel: 0.9, gesture: CHOP_FALL, amount: -4 }, { syllable: 6, gesture: CHOP_SLIDE, amount: -3, vel: 0.3 }];
+  for (const [i, over] of overs.entries()) assert.equal(fnvBytes(singChop(44100, slice(over), 5)), want[i], `slice ${i}`);
+  assert.equal(chopVocal(3).spec, LEGACY_VOICE);
+});
+
+test("the genre's own chop (`chop`) still plays a woman's tunes the chopper's way: Sherbert and Sugar, the same every time", () => {
+  // These were exact fingerprints of the performed bars, but the same commit fingerprints
+  // differently on CI's Linux runners and on a Mac, so the pin tested the machine rather
+  // than the music. What the pin stood for is checked here instead: a woman's chops are
+  // performed the same every time, and keep the chopper's own moves (scoops, slides,
+  // flips and falls), with no children's choir in these tunes.
+  for (const [mood, seed] of [['sherbert', 3], ['sugar', 3]] as const) {
+    const key = `${mood}.${seed}`;
+    assert.equal(chopCasting(mood, seed).choirIn.length, 0, `${key} has no choir`);
+    const bars = composeLofiTune(seed, mood, { lead: 'chop' });
+    const once = JSON.stringify(bars.map(b => perform(b, 60 / b.tune.bpm, b.tune.style.keys, 'chop')));
+    const again = JSON.stringify(composeLofiTune(seed, mood, { lead: 'chop' }).map(b => perform(b, 60 / b.tune.bpm, b.tune.style.keys, 'chop')));
+    assert.equal(once, again, `${key} is performed the same every time`);
+    const moves = new Set(chopped(mood, [seed]).map(({ c }) => c.gesture));
+    for (const g of [CHOP_SCOOP, CHOP_SLIDE, CHOP_FLIP]) assert.ok(moves.has(g), `${key} keeps the chopper's move ${g}`);
+  }
+});
+
+test('each voice is measured: a man\'s formants under a woman\'s, a child\'s over them, each its own range, turn and vibrato', () => {
+  const { female, male, baritone, child } = CHOP_VOICE;
+  for (const v of ['ah', 'ee', 'oo'] as const) {
+    for (let j = 0; j < 3; j++) {
+      const m = male.vowels[v][j]! / female.vowels[v][j]!, c = child.vowels[v][j]! / female.vowels[v][j]!;
+      assert.ok(m > 0.72 && m < 0.95, `a man's ${v} F${j + 1} is ${m.toFixed(2)} of a woman's`);
+      assert.ok(c > 0.98 && c < 1.25, `a child's ${v} F${j + 1} is ${c.toFixed(2)} of a woman's`);
+    }
+  }
+  assert.ok(baritone.tract[1] <= male.tract[1] && baritone.tract[0] < male.tract[0], 'a baritone\'s tract is the longer');
+  assert.ok(baritone.ringHz < male.ringHz && male.ring > female.ring && child.ring === 0, 'the ring: lower for a baritone, a woman\'s fainter, none in a child');
+  assert.ok(baritone.range[1] < male.range[1] && male.range[1] < female.range[1], 'each voice\'s range');
+  assert.ok(baritone.flip <= male.flip && male.flip < female.range[1], 'a man turns over into falsetto, a baritone sooner');
+  assert.ok(male.high.open > male.low.open && male.highLevel < 1, 'his falsetto is open and quieter');
+  assert.ok(baritone.vibRate[1] < female.vibRate[1] && baritone.vibRate[0] < female.vibRate[0], 'a baritone\'s vibrato is slower');
+  assert.ok(child.vibDepth[0] < female.vibDepth[0] && child.vibDepth[1] < female.vibDepth[1] && child.vibShare < 1 && child.vibRate[1] < female.vibRate[0], 'a child has a small, slow vibrato, on few notes');
+  assert.ok(child.jitter > female.jitter && child.shimmer > female.shimmer && child.breathy[0] > female.breathy[1] - 0.1 && child.drift > 0, 'a child\'s voice wobbles more, drifts and is breathier');
+  assert.ok(baritone.glide > male.glide && male.glide >= female.glide && child.glide < female.glide, 'a baritone slides slowest, a child quickest');
+  assert.equal(upperShare(male, male.flip - 1), 0);
+  assert.equal(upperShare(male, male.flip + male.flipSpan + 1), 1);
+});
+
+/** A slice sung by a voice at a note, one take. */
+const voiced = (voice: ChopVoice, midi: number, over: Partial<ChopSlice> = {}): Float32Array => singChop(SR, slice({ syllable: 0, midi, dur: 0.6, vocal: chopVocal(3, undefined, voice), ...over }), 5, 1)[0];
+/** The fundamental's level against the second harmonic's (dB), by correlating with each over the slice's middle. */
+function h1h2(x: Float32Array, midi: number): number {
+  const f = 440 * 2 ** ((midi - 69) / 12), from = Math.floor(x.length * 0.35), to = Math.floor(x.length * 0.8);
+  const amp = (hz: number): number => { let c = 0, s = 0; for (let i = from; i < to; i++) { const w = (2 * Math.PI * hz * i) / SR; c += x[i]! * Math.cos(w); s += x[i]! * Math.sin(w); } return Math.hypot(c, s); };
+  return 20 * Math.log10(amp(f) / amp(2 * f));
+}
+
+/** Darkness: the share of a signal's energy under 1 kHz (two passes of a one-pole low-pass), in dB. */
+function dark(x: Float32Array): number {
+  const k = 1 - Math.exp((-2 * Math.PI * 1000) / SR);
+  let a = 0, b = 0, lo = 0, all = 0;
+  for (const v of x) { a += k * (v - a); b += k * (a - b); lo += b * b; all += v * v; }
+  return 10 * Math.log10(lo / Math.max(1e-12, all));
+}
+
+test('the voices sound as measured: a baritone darker than a woman, a man\'s falsetto open and soft, a child light', () => {
+  const woman = voiced('female', 72), bari = voiced('baritone', 52), man = voiced('male', 57);
+  assert.ok(dark(bari) > dark(woman) + 3, `a baritone is darker (${dark(bari).toFixed(1)} dB of his energy under 1 kHz against her ${dark(woman).toFixed(1)})`);
+  // A man just under his turn and well over it: over it, the fundamental leads and the top falls away.
+  const chest = voiced('male', CHOP_VOICE.male.flip - 2), falsetto = voiced('male', CHOP_VOICE.male.flip + CHOP_VOICE.male.flipSpan + 1);
+  assert.ok(h1h2(falsetto, CHOP_VOICE.male.flip + CHOP_VOICE.male.flipSpan + 1) > h1h2(chest, CHOP_VOICE.male.flip - 2) + 4, 'falsetto: the fundamental leads');
+  assert.ok(bright(falsetto) < bright(chest) - 2, 'falsetto is darker');
+  assert.ok(rms(falsetto) < rms(chest), 'and quieter');
+  assert.ok(rms(man) > 0.01 && man.every(Number.isFinite));
+  // A child sings lighter than a woman at the same note and strength.
+  assert.ok(rms(voiced('child', 72)) < rms(woman), 'a child is lighter');
+  // One take: mono, the same array on both sides, for a player to place.
+  const [l, r] = singChop(SR, slice({ vocal: chopVocal(3, undefined, 'child') }), 5, 1);
+  assert.equal(l, r);
+  // A sped-up sample's formants rise with it: brighter than the voice as it is.
+  assert.ok(bright(singChop(SR, slice({ syllable: 0, vocal: chopVocal(3, undefined, 'female', 1.18) }), 5, 1)[0]) > bright(voiced('female', 72)), 'sped up, brighter');
+});
+
+test('the chopper suits its moves to the voice: a baritone flips less than a woman, a child falls and slides less', () => {
+  const moves = (lead: string): Record<number, number> => {
+    const n: Record<number, number> = {};
+    for (const seed of [1, 2, 3, 4, 5]) {
+      for (const bar of composeLofiTune(seed, 'sherbert', { lead: lead as never })) {
+        for (const x of perform(bar, 60 / bar.tune.bpm, bar.tune.style.keys, lead as never)) {
+          const c = x.voice === 'lead' ? readChop(x.mod ?? 0) : null;
+          if (c) n[c.gesture] = (n[c.gesture] ?? 0) + 1;
+        }
+      }
+    }
+    return n;
+  };
+  const woman = moves('chopFemale'), bari = moves('chopBaritone'), kid = moves('chopChild');
+  assert.ok((bari[CHOP_FLIP] ?? 0) < (woman[CHOP_FLIP] ?? 0) * 0.7, `a baritone flips less (${bari[CHOP_FLIP]} against ${woman[CHOP_FLIP]})`);
+  assert.ok((kid[CHOP_FALL] ?? 0) < (woman[CHOP_FALL] ?? 0) * 0.8, `a child falls less (${kid[CHOP_FALL]} against ${woman[CHOP_FALL]})`);
+  assert.ok((kid[CHOP_SLIDE] ?? 0) < (woman[CHOP_SLIDE] ?? 0), 'and slides less');
+  // Every chop lead is chopped, and its notes say how each is sung.
+  for (const lead of CHOP_LEADS) assert.ok(Object.values(moves(lead)).reduce((a, b) => a + b, 0) > 50, `${lead} is chopped`);
+});
+
+test('a chop names who sings it: a group is each its own voice, and a voice alone is not the one before the voices', () => {
+  const bar = composeLofiTune(4, 'sherbert', { lead: 'chop' }).find(b => b.notes.some(n => n.voice === 'lead'))!;
+  assert.deepEqual(castOf('chopChoir', bar).map(s => s.voice), ['child', 'child', 'child', 'child', 'child']);
+  const v = chopVocal(4, undefined, 'baritone');
+  assert.equal(v.spec, CHOP_VOICE.baritone);
+  assert.ok(v.tract >= CHOP_VOICE.baritone.tract[0] && v.tract <= CHOP_VOICE.baritone.tract[1]);
+  assert.deepEqual(v.slices, chopVocal(4).slices, 'the same syllables whoever sings them');
+  assert.notDeepEqual(chopVocal(4, undefined, 'child').vibRate, chopVocal(4).vibRate);
+  assert.equal(leadMean([]), 72);
 });

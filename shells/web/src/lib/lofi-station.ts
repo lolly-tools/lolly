@@ -62,7 +62,8 @@ import * as GA from './lofi-garage.ts';
 import { houseOrgan } from './lofi-organ.ts';
 import { DidgePlayer } from './lofi-didge-player.ts';
 import { DIDGE_LEAD, readBird, readDidge } from '../../../../engine/src/lofi-straya.ts';
-import { arnhemDidgeLift, arnhemUnison } from '../../../../engine/src/lofi-arnhem.ts';
+import { arnhemDidgeLift } from '../../../../engine/src/lofi-arnhem.ts';
+import { isChopLead } from '../../../../engine/src/lofi-chop-cast.ts';
 import * as BI from './lofi-bilma.ts';
 import { isBreakNote } from '../../../../engine/src/lofi-breaks.ts';
 import { readFuture } from '../../../../engine/src/lofi-future.ts';
@@ -70,6 +71,7 @@ import * as FB from './lofi-future.ts';
 import { isSliceNote } from '../../../../engine/src/lofi-break-chop.ts';
 import * as BK from './lofi-break-kit.ts';
 import * as DUB from './lofi-dub.ts';
+import * as SC from './lofi-scratches.ts';
 
 export interface LofiSettings {
   mood: LofiMood;
@@ -168,7 +170,8 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
   // velocity chooses how hard the string is picked (lib/lofi-lead-guitars.ts).
   keys: { rhodes: 1, felt: 0.93, wurli: 1.4, pluck: 1.8, pad: 1, supersaw: 1, nylon: 1.8, crunch: 1, heavy: 1, buzzsaw: 1, clean: 1, fuzz: 1, wall: 1, wah: 1, chiparp: 1.6, steel: 1, banjo: 2, honky: 1, organ: 2.2, brass: 2, jazzbox: 2, electric: 1, harp: 1.3, choir: 1, future: 1.5, tar: 1, santur: 1, zheng: 1.2, koto: 1, shamisen: 1, kora: 1.2, balafon: 1.1, strings: 1, grand: 1, surf: 1, combo: 2.2, houseOrgan: 1, horns: 1, didgeridoo: 0.7, yidaki: 0.7 },
   lead: { vibes: 1, flute: 0.82, kalimba: 1.7, chip: 0.8, angel: 0.76, pulse: 2.4, guitar: 1, overdrive: 1, synthwave: 0.86, metal: 1, panflute: 0.56, nylon: 1.9, riff: 1, twang: 1, banjo: 1.5, harmonica: 0.55, sax: 1, trumpet: 1, clarinet: 1, pedal: 0.44, fiddle: 1, bells: 1.6, chop: 1, bit: 1,
-    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1 },
+    santur: 1, ney: 1, kamancheh: 1, erhu: 1, dizi: 1, zheng: 1, pipa: 1, shakuhachi: 1, koto: 1, shamisen: 1, kora: 1, balafon: 1, harp: 1.3, steel: 1, tar: 1, viola: 1, cello: 1, doublebass: 1, surf: 1, chorus: 1, none: 0, flugelhorn: 1, tenorhorn: 1, yidaki: 1, turntable: 0.5,
+    chopFemale: 1, chopMale: 1, chopBaritone: 1, chopChild: 1, chopOctave: 1, chopChoir: 1, chopGroup: 1 },
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
@@ -211,20 +214,10 @@ const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.52, br
 const FM_SEAT: Partial<Record<LofiMood, number>> = { chiptune: -4.5, sherbert: 2.5, kpop: 2.5, synthwave: -7.2 };
 /** Noosacore's didgeridoo is an undertone under the sea (engine/src/lofi-noosa.ts): measured K-weighted, about 7 to 8 dB under the lull it drones in. */
 const NOOSA_DIDGE = 0.5;
-/** The styles whose vocal chops in a chorus are a coro: several singers on the line, not one voice chopped. */
-const CORO = new Set<LofiMood>(['salsa']);
-/** Whether a tune's chorus is sung by several voices in unison: a coro's styles, and Arnhem Land's tunes that sing their hook together (engine/src/lofi-arnhem.ts). */
-const coro = (mood: LofiMood, seed: number): boolean => CORO.has(mood) || (mood === 'arnhem' && arnhemUnison(seed));
 /** Arnhem Land's singers together against its one voice (its lead seat is set for the one voice). */
 const ARNHEM_GROUP = 0.6;
 /** Arnhem Land's Yidaki in the lead seat, against the seat's lift for the voice (5.5 dB down: its answers about level with the band, its solo 3 dB under). */
 const ARNHEM_YIDAKI_SEAT = 0.53;
-/** A coro's singers: each its own voice (a seed for lib/lofi-chop.ts), how late (s), its place across the speakers and how loud. */
-const CORO_SINGERS: ReadonlyArray<{ seed: number; late: number; pan: number; level: number }> = [
-  { seed: 0, late: 0, pan: 0, level: 0.62 },
-  { seed: 0x51a, late: 0.012, pan: -0.35, level: 0.5 },
-  { seed: 0xc0e, late: 0.02, pan: 0.35, level: 0.5 },
-];
 /** Yacht rock's guitar fills against the lead they answer (about 3 dB under). */
 const FILL_LEVEL = 0.7;
 /** How far a section's brass falls off a phrase's last long note (semitones). */
@@ -667,6 +660,8 @@ export class LofiStation {
     this.flush(until);
     // A chopped break's recording, a step a tick, ahead of its first slice (lib/lofi-break-kit.ts).
     BK.warm(this.ctx);
+    // A tune's scratch records, a record a tick, ahead of its first scratch (lib/lofi-scratches.ts).
+    SC.warm(this.ctx);
   }
 
   /** Queue whole bars until the next one starts after `until`. */
@@ -694,6 +689,7 @@ export class LofiStation {
       }
       this.marks.push({ at, bar, pos: this.taken - 1 });
       BK.prepare(this.ctx, bar.tune);
+      SC.prepare(this.ctx, bar);
       this.nextBarAt = at + lofiBarBeats(bar.tune) * spb;
     }
   }
@@ -782,8 +778,8 @@ export class LofiStation {
         else if (keysV === 'steel') V.steelKeys(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len, m);
         else if (S.STRING_KEYS.has(keysV)) S.keys(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
         else if (keysV === 'houseOrgan') houseOrgan(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
-        // The band's after-beats, one player to a chord tone (lib/lofi-oompa.ts).
-        else if (keysV === 'horns') OB.horns(k, lanes.keys, bar.tune.seed, t, note.midi, vel, len);
+        // The band's after-beats, one player to a chord tone (lib/lofi-oompa.ts); in its own tunes, through its fader.
+        else if (keysV === 'horns') OB.horns(k, OB.bandLane(k, lanes.keys, bar), bar.tune.seed, t, note.midi, vel, len);
         else if (P.PIANO_KEYS.has(keysV)) P.grand(k, lanes.keys, t, note.midi, vel * VARIANT.keys[keysV], len);
         // Sherbert's supersaw is the layered future chord, held still (its stabs are the supersaw's own).
         else if (keysV === 'supersaw' && LAYERED_SAWS.has(bar.tune.mood)) FB.future(k, lanes.keys, t, note.midi, vel * VARIANT.keys.future, len, { rate: 0, bend: false, spb });
@@ -812,8 +808,8 @@ export class LofiStation {
         if (bassV === 'didgeridoo') { this.didge.play(k, lanes.bass, t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * VARIANT.bass.didgeridoo); break; }
         const tone = { bright: st.bright ?? 1, drive: st.drive ?? 1 };
         const take: BS.Take = (kit, out, at, midi, lvl, tn) => {
-          // The tuba blows as hard as the note says; its seat is only a level.
-          if (bassV === 'tuba') OB.tuba(kit, out, bar.tune.seed, at, midi, vel, len, mod, lvl / Math.max(0.05, vel));
+          // The tuba blows as hard as the note says; its seat is only a level. In the band's own tunes it plays through the band's fader.
+          if (bassV === 'tuba') OB.tuba(kit, OB.bandLane(kit, out, bar), bar.tune.seed, at, midi, vel, len, mod, lvl / Math.max(0.05, vel));
           else if (bassV === 'log') W.bass(kit, out, at, midi, lvl, len, mod, tn);
           else if (H.HOUSE_BASSES.has(bassV)) H.bass(kit, out, at, midi, lvl, len, tn);
           else if (GA.GARAGE_BASSES.has(bassV)) GA.bass(kit, out, at, midi, lvl, len, mod, spb, tn);
@@ -830,9 +826,9 @@ export class LofiStation {
         break;
       }
       case 'lead': {
-        // An oompa tune's lines are the band's, each on its player (lib/lofi-oompa.ts); a
-        // melody on a lead the band does not play goes on as any lead does.
-        if (bar.tune.mood === 'oompa' && OB.line(k, lanes.lead, bar, t, note.midi, vel, len, note.mod ?? 0, leadV)) break;
+        // An oompa tune's lines are the band's, each on its player through the band's fader
+        // (lib/lofi-oompa.ts); a melody on a lead the band does not play goes on as any lead does.
+        if (bar.tune.mood === 'oompa' && OB.line(k, OB.bandLane(k, lanes.lead, bar), bar, t, note.midi, vel, len, note.mod ?? 0, leadV)) break;
         const lift = SINGS_FAMILY.has(bar.tune.mood) ? SINGS_LEAD : 1;
         // The melody given to the Yidaki: its phrases played as calls, toots and sweeps on its one note (music-state.ts shapeBar).
         if (leadV === 'yidaki') { this.didge.play(k, this.leadSeat(lanes.lead, bar.tune.mood, 'didge'), t, note.midi, note.vel, len, note.mod ?? 0, bar.tune.seed, bar.level * lift * VARIANT.lead.yidaki, 'lead'); break; }
@@ -846,17 +842,22 @@ export class LofiStation {
         const from = prev.voice === leadV && gap > -0.25 && gap < SLUR_GAP && prev.midi !== note.midi ? prev.midi : undefined;
         this.lastLead = { end: lt + len, midi: note.midi, voice: leadV };
         const play = (v: string, level: number, shift = 0, late = 0, pan = 0, how?: R.BrassPlay & LG.TakeHow): void => {
-          const seat = this.leadSeat(lanes.lead, bar.tune.mood, v, pan);
+          // Every vocal chop sits in the chop's seat, whoever the singer.
+          const chops = isChopLead(v);
+          const seat = this.leadSeat(lanes.lead, bar.tune.mood, chops ? 'chop' : v, pan);
           const at = lt + late;
           // A flautist's flags are the flute's own: an instrument doubling it reads the composer's articulation.
           const mod = v === leadV ? note.mod ?? 0 : composerMod(note.mod);
-          if (v === 'chop' && coro(bar.tune.mood, bar.tune.seed) && bar.section === 'drop') {
-            // A coro: the line sung by several voices, each its own singer, a little apart.
-            // Arnhem Land's group sings its hook under its lead seat, set for one voice (about 4 dB down).
-            const group = bar.tune.mood === 'arnhem' ? ARNHEM_GROUP : 1;
-            for (const s of CORO_SINGERS) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, v, s.pan) : seat, at + s.late, note.midi + shift, level * s.level * group, len, mod, spb, (bar.tune.seed ^ s.seed) >>> 0, bar.index * 1000 + Math.round(note.beat * 48));
-          } else if (v === 'chop') C.chop(k, seat, at, note.midi + shift, level, len, mod, spb, bar.tune.seed, bar.index * 1000 + Math.round(note.beat * 48));
-          else if (v === 'surf') SF.lead(k, seat, at, note.midi + shift, level, len, mod, spb);
+          if (chops) {
+            // Who sings it (engine/src/lofi-chop-cast.ts): one voice, a baritone under her, a
+            // children's choir or a group, each its own singer, a little apart. Arnhem Land's
+            // group sings its hook under its lead seat, set for one voice (about 4 dB down).
+            const cast = C.castOf(v, bar);
+            const group = bar.tune.mood === 'arnhem' && cast.length > 1 ? ARNHEM_GROUP : 1;
+            for (const s of cast) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, 'chop', s.pan) : seat, at + s.late, note.midi + shift + s.shift, level * s.level * group, len, mod, spb, (bar.tune.seed ^ s.salt) >>> 0, bar.index * 1000 + Math.round(note.beat * 48), s);
+          } else if (v === 'surf') SF.lead(k, seat, at, note.midi + shift, level, len, mod, spb);
+          // The Turntable: the melody's notes scratched on the tune's record (lib/lofi-scratches.ts).
+          else if (v === 'turntable') SC.playTurntable(k, seat, bar, at, note.midi + shift, level, len);
           // The band's own horns as a lead in any style: a player of the oompa band (lib/lofi-oompa.ts).
           else if (OB.BAND_SOLOS.has(v)) OB.line(k, seat, bar, at, note.midi + shift, level, len, 0, v);
           else if (R.WIND_LEADS.has(v)) R.lead(v, k, seat, at, note.midi + shift, level, len, mod, from === undefined ? undefined : from + shift, how);
@@ -983,6 +984,7 @@ export class LofiStation {
       }
       case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'siren': DUB.siren(k, lanes.keys, lanes.fx, bar, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'scratch': SC.playScratch(k, lanes.fx, bar, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar':
         if (BS.stacked(bar.tune.mood)) BS.soar(k, lanes.bass, bar, t, note.midi, vel, len, note.mod === 1);

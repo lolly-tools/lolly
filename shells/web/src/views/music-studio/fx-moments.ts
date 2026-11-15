@@ -2,7 +2,7 @@
 /**
  * The Ear candy lane's moments (#/music): each sound laid over the tune, drawn on the lane
  * as a small chip with its icon (a bird, the sea's waves, a games console, a riser or a
- * sweep, a shout or the Lolly tag, sparkles, a place's sounds), so a person can see where
+ * sweep, a shout or the Lolly tag, sparkles, a place's sounds, a record for a DJ's scratch), so a person can see where
  * the ear candy comes and learn what each sound is.
  *
  * A moment is one sound and where it plays: its first note, and the bars it runs on for
@@ -28,7 +28,7 @@ import { lofiBarSeconds, type LofiBar } from '../../../../../engine/src/lofi-com
 /** What kind of ear candy a sound is, which sets how readily its chip shows when chips crowd. */
 export type FxKind = 'bird' | 'wave' | 'voice' | 'place' | 'console' | 'sweep' | 'sparkle' | 'other';
 
-interface FxSound { kind: FxKind; glyph: IconName | 'gamepad' | 'guitar'; name: () => string }
+interface FxSound { kind: FxKind; glyph: IconName | 'gamepad' | 'guitar' | 'disc'; name: () => string }
 
 /** The sounds the lane knows, by the composer's voice ids. */
 const SOUNDS: Readonly<Record<string, FxSound>> = {
@@ -49,6 +49,7 @@ const SOUNDS: Readonly<Record<string, FxSound>> = {
   sparkle: { kind: 'sparkle', glyph: 'sparkle', name: () => t('Sparkles') },
   blip: { kind: 'sparkle', glyph: 'sparkle', name: () => t('Bleeps') },
   fill: { kind: 'other', glyph: 'guitar', name: () => t('Guitar fill') },
+  scratch: { kind: 'other', glyph: 'disc', name: () => t('Record scratch') },
 };
 const UNKNOWN: FxSound = { kind: 'other', glyph: 'wand', name: () => t('Ear candy') };
 
@@ -127,7 +128,7 @@ export function placeChips(moments: readonly FxMoment[], xOf: (m: FxMoment) => n
 
 /** A sound's icon markup in the 24-unit stroke style. */
 const glyphMarkup = (sound: FxSound): string => {
-  if (sound.glyph === 'gamepad' || sound.glyph === 'guitar') return musicIconBody(sound.glyph);
+  if (sound.glyph === 'gamepad' || sound.glyph === 'guitar' || sound.glyph === 'disc') return musicIconBody(sound.glyph);
   return /^<svg[^>]*>([\s\S]*)<\/svg>$/.exec(icon(sound.glyph))?.[1] ?? '';
 };
 

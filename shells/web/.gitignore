@@ -72,6 +72,8 @@ public/info/examples/
 public/info/diagrams/
 # Print editions (a page's PDF), copied from the committed docs/editions/.
 public/info/editions/
+# The music genre pages' listening samples, copied from the committed docs/music/samples/.
+public/info/music/samples/
 public/info/spec/**/index.json
 public/info/search-index.json
 public/info/*/search-index.json

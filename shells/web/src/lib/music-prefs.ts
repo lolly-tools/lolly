@@ -10,6 +10,10 @@
  * opens it, whatever they have blocked. A link that already sets an instrument plays
  * that instrument.
  *
+ * The genres a person starred and the ones they hid live beside them: the genre picker
+ * shows the starred ones first, leaves the hidden ones out, and a shuffle never draws a
+ * hidden genre (the genre lock still keeps whatever plays).
+ *
  * Also here: the families the instrument browser groups instruments by. Pure, with no
  * DOM, so the tests can run every rule.
  */
@@ -37,7 +41,7 @@ export type InstrumentFamily = typeof INSTRUMENT_FAMILIES[number];
 const WORLD = new Set(['tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'ney', 'kamancheh', 'erhu', 'dizi', 'pipa', 'shakuhachi', 'didgeridoo', 'yidaki', 'log']);
 /** Every other instrument goes by its icon, so a new one goes to a sensible family. */
 const BY_ICON: Record<InstrumentIcon, InstrumentFamily> = {
-  piano: 'keys', guitar: 'guitars', bowed: 'guitars', wind: 'winds', horn: 'winds', micVocal: 'voices', bell: 'bells', gamepad: 'chip', audioWaveform: 'synths', drum: 'synths',
+  piano: 'keys', guitar: 'guitars', bowed: 'guitars', wind: 'winds', horn: 'winds', micVocal: 'voices', bell: 'bells', gamepad: 'chip', audioWaveform: 'synths', drum: 'synths', disc: 'synths',
 };
 
 /** The family an instrument belongs to. */
@@ -111,6 +115,41 @@ export function setShuffleGenres(profile: Profile, on: boolean): void {
   const music: NonNullable<Profile['music']> = { ...profile.music };
   if (on) delete music.shuffleGenres; else music.shuffleGenres = false;
   keepMusic(profile, music);
+}
+
+// ── favourite and hidden genres ──────────────────────────────────────────────
+
+/** The genres a person starred, which lead the genre picker in a Favourites row, and the
+ *  genres they hid, which the picker leaves out and a shuffle never draws. */
+export interface GenrePrefs { favourites: ReadonlySet<string>; hidden: ReadonlySet<string> }
+export const NO_GENRE_PREFS: GenrePrefs = { favourites: new Set(), hidden: new Set() };
+export type GenrePrefKind = 'favourite' | 'hidden';
+
+/** The genre ids of a stored list, each once. Ids this build does not know (a genre added by
+ *  a later version) are kept, so saving here never drops them. */
+const genreIds = (list: unknown): string[] => [...new Set(Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string' && GENRE_ID.test(x)) : [])];
+
+/** The person's favourite and hidden genres, from their profile. */
+export function loadGenrePrefs(profile: Profile | null | undefined): GenrePrefs {
+  return { favourites: new Set(genreIds(profile?.music?.favouriteGenres)), hidden: new Set(genreIds(profile?.music?.hiddenGenres)) };
+}
+
+/**
+ * Star or hide a genre, or undo either, on the profile record (the caller then saves the record).
+ * Starring a genre shows it again and hiding one unstars it: the two never hold together.
+ * An empty list leaves its field out. Returns the new preferences.
+ */
+export function setGenrePref(profile: Profile, genre: string, kind: GenrePrefKind, on: boolean): GenrePrefs {
+  const favourites = genreIds(profile.music?.favouriteGenres).filter(g => g !== genre);
+  const hidden = genreIds(profile.music?.hiddenGenres).filter(g => g !== genre);
+  if (on && GENRE_ID.test(genre)) (kind === 'favourite' ? favourites : hidden).push(genre);
+  const music: NonNullable<Profile['music']> = { ...profile.music };
+  delete music.favouriteGenres;
+  delete music.hiddenGenres;
+  if (favourites.length) music.favouriteGenres = favourites;
+  if (hidden.length) music.hiddenGenres = hidden;
+  keepMusic(profile, music);
+  return { favourites: new Set(favourites), hidden: new Set(hidden) };
 }
 
 // ── the genres played lately ─────────────────────────────────────────────────

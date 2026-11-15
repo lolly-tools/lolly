@@ -189,11 +189,12 @@ const withoutHatFoot = (bars: ReturnType<typeof composeLofiTune>): ReturnType<ty
  * drum and bass's top loop (2026-11-14), a break chopped over its kit: notes added on a
  * stream of their own, each a break's (isBreakNote), so without them the kit is as it was.
  * And without the console's FM effects (`fm`, lofi-console.ts, 2026-11-14), a voice of their
- * own on a stream of their own.
+ * own on a stream of their own, nor the DJ's scratches (`scratch`, lofi-scratch.ts, 2026-11-15),
+ * likewise.
  */
 function withoutOver(bars: LofiBar[]): LofiBar[] {
   return bars.map(b => {
-    if (b.notes.some(n => n.voice === 'fm')) b = { ...b, notes: b.notes.filter(n => n.voice !== 'fm') };
+    if (b.notes.some(n => n.voice === 'fm' || n.voice === 'scratch')) b = { ...b, notes: b.notes.filter(n => n.voice !== 'fm' && n.voice !== 'scratch') };
     if (b.notes.some(isBreakNote)) b = { ...b, notes: b.notes.filter(n => !isBreakNote(n)) };
     if (!b.voices?.over) return b;
     const { over: _over, ...rest } = b.voices;
@@ -400,6 +401,8 @@ test('every note is playable', () => {
         // didgeridoo plays its drone's pitch in every role.
         const [lo, hi] = n.voice === 'bass' || n.voice === 'didge' ? (dance ? [28, 64] : [33, 53]) : n.voice === 'keys' ? (mood === 'salsa' ? [52, 84] : [52, 76]) : n.voice === 'coin' || n.voice === 'magpie' ? [79, 95] : n.voice === 'hey' || n.voice === 'tag' ? [55, 66] : n.voice === 'soar' ? [40, 60]
           : n.voice === 'bwah' ? [28, 60] : n.voice === 'layer' ? [28, 66] : n.voice === 'phaser' ? [40, 72] : n.voice === 'blip' ? [64, 96]
+          // A scratch's record is heard at a chord tone: a bass's low, a voice's or a horn's middle (a break's carries no pitch, 0).
+          : n.voice === 'scratch' ? [0, 73]
           // Botanica's place (a bed's pitch is nominal; a bird's is its song's centre), its granular pads and its glitches.
           : n.voice === 'nature' ? [36, 120] : n.voice === 'grain' ? [40, 96] : n.voice === 'glitch' ? [52, 88]
           // The console's FM effects are written on a chord's root, an octave from middle C up; each sounds its own range from there.

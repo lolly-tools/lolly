@@ -58,7 +58,7 @@ Record a clean take with a count-in and a level meter, or put yourself in front 
 
 - **[The Lolly Design timeline](/info/design.html#timeline-sequence)** - recording a voiceover straight onto the timeline.
 - **[Make your first file](/info/make-something.html#other-first-projects)** - the audiogram, for when you would rather be heard than seen.
-- **[Generated music](/info/generated-music.html)** - stations that compose as they play, and the music generator for a track of your own.
+- **[Music generator](/info/music-generator.html)** - make a track of your own in any genre, free to use with credit. [Free background music](/info/background-music.html) has a sample of every genre, and [Generated music](/info/generated-music.html) explains how the music is made.
 - **[Presenting with camera](/info/presenting.html)** - your camera, logo and name over a deck or Countdown, with private controls in a separate window.
 - **[Live pages that take the clicker](/info/interactive-pages.html)** and **[Agenda screens](/info/agenda.html)** - pages and programmes for the room.
 
