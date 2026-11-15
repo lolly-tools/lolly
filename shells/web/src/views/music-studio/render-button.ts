@@ -7,13 +7,14 @@
  * reads Rendered with a tick and every choice is immediate. Under the choices, a line
  * says what every download records (lib/tune-provenance.ts), so the record is in view
  * at the moment of choosing: every download carries Content Credentials and the plain
- * description, with no switch to leave them out (Andy, 2026-11-14). A download's
+ * description, with no switch to leave them out (Andy, 2026-11-14), and states the
+ * licence it is offered under with its credit (2026-11-15). A download's
  * progress, its tick and a failure show on the button itself
  * (views/music-studio/action-button.ts).
  */
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
-import { TUNE_DECLARATION } from '../../../../../engine/src/tune-provenance.ts';
+import { TUNE_CREDIT, TUNE_DECLARATION } from '../../../../../engine/src/tune-provenance.ts';
 import { actionButton } from './action-button.ts';
 import { wireChoiceMenu, type MenuChoice } from './choice-menu.ts';
 
@@ -24,9 +25,9 @@ export function renderButtonHtml(): string {
   return `<button type="button" class="ms-render" data-render title="${escapeHtml(t('Render the whole track at full quality, to play or download'))}">${escapeHtml(t('Render'))}</button>`;
 }
 
-/** What every download records: the line under Render's choices. */
+/** What every download records: the line under Render's choices, the licence included (Andy, 2026-11-15). */
 export function downloadRecordLine(): string {
-  return tRaw('Downloads will carry Content Credentials that record: {declaration}.', { declaration: TUNE_DECLARATION });
+  return tRaw('Downloads will carry Content Credentials that record: {declaration}. Each file will also state its licence, CC BY 4.0, with the credit {credit}.', { declaration: TUNE_DECLARATION, credit: TUNE_CREDIT });
 }
 
 /** Render's choices, worded for a track that is or is not rendered yet. */

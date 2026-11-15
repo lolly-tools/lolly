@@ -1618,8 +1618,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     {
       id: 'assets', icon: 'grid', title: t('Save to assets'),
       note: makerName
-        ? tRaw('Records {maker} as the maker, the music generator and the Lolly and engine versions. No licence is set.', { maker: makerName })
-        : t('Records the music generator and the Lolly and engine versions. No maker or licence is set.'),
+        ? tRaw('Records {maker} as the maker, the music generator, the Lolly and engine versions, and the licence CC BY 4.0 with the credit Music made with Lolly. You can change the licence in the tune’s details.', { maker: makerName })
+        : t('Records the music generator, the Lolly and engine versions, and the licence CC BY 4.0 with the credit Music made with Lolly. No maker is set. You can change the licence in the tune’s details.'),
     },
     {
       id: 'projects', icon: 'folder', title: t('Save to projects'),
@@ -1641,8 +1641,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       const { credentialMusicFile } = await import('../lib/music-render.ts');
       const signed = await credentialMusicFile(host, blob, format, state, trackName());
       await host.export.download(signed.blob, fileName(format));
-      // Only what the reading of the written file found.
-      say(tRaw('File handed to your device’s save/download flow. Its Content Credentials record: {declaration}', { declaration: signed.declaration }));
+      // Only what the reading of the written file found: the declaration, then the licence.
+      say(tRaw('File handed to your device’s save/download flow. Its Content Credentials record: {declaration} {licence}', { declaration: signed.declaration, licence: signed.licence }));
     });
     if (failed) say(failed);
   }
@@ -1672,7 +1672,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // the asset details, an audiogram, a video's music bed). Nothing to make first.
       // The tune also records who made it (the profile's name, left out when none is
       // set: a fact, not a rights claim), the music generator and the versions that made
-      // it, all shown in its details. Its licence is not written: not recorded until set.
+      // it, and the licence it starts with, CC BY 4.0 with the credit "Music made with
+      // Lolly" (tuneSaveRecord), all shown in its details, where the licence can change.
       const [{ lofiTuneBytes, LOFI_TUNE_FORMAT }, { profileMaker, tuneSaveRecord }, { LOLLY_RELEASE }, { ENGINE_VERSION }] = await Promise.all([
         import('../lib/lofi-tune.ts'), import('../lib/tune-provenance.ts'), import('../lib/lolly-release.ts'), import('../../../../engine/src/version.ts'),
       ]);
@@ -1695,8 +1696,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // The player keeps a cached list of the library's audio: drop it, so the track is there now.
       (await import('../lib/neurospicy.ts')).invalidateNeurospicyTracks();
       say(maker
-        ? tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record {maker} as the maker, the music generator, and Lolly {lolly} with engine {engine}.', { maker, lolly: LOLLY_RELEASE, engine: ENGINE_VERSION })
-        : tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record the music generator, and Lolly {lolly} with engine {engine}.', { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }));
+        ? tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record {maker} as the maker, the music generator, Lolly {lolly} with engine {engine}, and the licence CC BY 4.0 with the credit Music made with Lolly.', { maker, lolly: LOLLY_RELEASE, engine: ENGINE_VERSION })
+        : tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record the music generator, Lolly {lolly} with engine {engine}, and the licence CC BY 4.0 with the credit Music made with Lolly.', { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }));
       return `#/a?asset=${encodeURIComponent(id)}`;
   }
   /**

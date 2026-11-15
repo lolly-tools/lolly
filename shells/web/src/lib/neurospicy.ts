@@ -29,6 +29,7 @@ import {
   type LofiPrefs, type LofiLink,
 } from './neurospicy-lofi.ts';
 import { LOFI_TUNE_FORMAT, lofiTuneBytes, lofiTuneFromMeta, lofiTuneFromUrl, lofiTuneName } from './lofi-tune.ts';
+import { TUNE_CREDIT, TUNE_LICENCE } from '../../../../engine/src/tune-provenance.ts';
 
 // Just the host surface this module uses - the catalog assets (loop list + bytes) and the
 // profile (persist). host.profile.set is a web-shell capability, not on the read-only engine
@@ -1008,8 +1009,11 @@ async function learnSavedTune(id: string): Promise<boolean> {
 
 /**
  * Save the tune playing on a station to the asset library, so it can be played again
- * later (it lists under the listener's own audio). Returns the saved asset's id, or null
- * when nothing is playing on a station or this host cannot write assets.
+ * later (it lists under the listener's own audio). The saved tune records Lolly's terms
+ * for its stations' music, CC BY 4.0 with the credit "Music made with Lolly" (Andy,
+ * 2026-11-15), as lib/tune-provenance.ts tuneLicenceRecord does for the music generator.
+ * Returns the saved asset's id, or null when nothing is playing on a station or this
+ * host cannot write assets.
  */
 export async function saveLofiTune(host: NeurospicyHost): Promise<string | null> {
   const recipe = currentLofiRecipe();
@@ -1026,6 +1030,8 @@ export async function saveLofiTune(host: NeurospicyHost): Promise<string | null>
       tags: ['neurospicy', 'generated', isSingsMood(recipe.mood) ? 'lolly-sings' : 'lofi'],
       lofi: { mood: recipe.mood, seed: recipe.seed },
       durationMs: Math.round(lofiTuneSeconds(recipe.seed, recipe.mood) * 1000),
+      license: TUNE_LICENCE.id,
+      attribution: TUNE_CREDIT,
     },
   });
   rememberSavedTune(id, recipe);

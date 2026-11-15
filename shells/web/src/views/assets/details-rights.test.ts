@@ -14,7 +14,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
+import { readFileSync } from 'node:fs';
 import { assetRightsRows } from './details-sheet.ts';
+import { tuneLicenceRecord, tuneSaveRecord } from '../../lib/tune-provenance.ts';
 
 const ref = (meta: Record<string, unknown>): AssetRef => ({
   id: 'lolly/photo/lorikeet', type: 'raster', format: 'jpg', url: '', meta,
@@ -161,8 +163,9 @@ test('an owner-published mark shows the phrase and the owner\'s own terms', () =
 });
 
 // A saved tune (Andy's approval of 2026-11-10, lib/tune-provenance.ts): the sheet says
-// where it was made, who made it and the versions, and its licence is a menu that
-// starts at "Not recorded".
+// where it was made, who made it and the versions, and its licence is a menu. Since
+// 2026-11-15 a new tune starts at CC BY 4.0 with the credit "Music made with Lolly";
+// a tune saved before then, with no licence recorded, still starts at "Not recorded".
 const tune = (meta: Record<string, unknown>): AssetRef => ({
   id: 'user/tune/1-sugar-2024', type: 'audio', format: 'lofi', url: '', source: 'user',
   meta: { name: 'Lolly Sings Sugar · C major · 96 bpm · 2024', lofi: { mood: 'sugar', seed: 2024, generator: 'style=sugar' }, generator: 'style=sugar', ...meta },
@@ -186,6 +189,27 @@ test('a licence set on a tune is the selected choice, and a tune with no maker s
   assert.ok(!html.includes('<option value="" selected>'));
   assert.ok(html.includes('Credit required. Lolly prepares it for the export routes that can carry it.'));
   assert.ok(!html.includes('data-meta="maker"'), 'no name was set, so no maker is shown');
+});
+
+test('a tune saved from the music generator now starts at CC BY 4.0, with the credit to copy', () => {
+  const html = assetRightsRows(tune({ ...tuneSaveRecord('', { lolly: '1.2.0', engine: '1.300.0' }) }), true);
+  assert.ok(html.includes('<option value="CC-BY-4.0" selected>CC BY 4.0</option>'), 'CC BY 4.0 is selected');
+  assert.ok(html.includes('<option value="">Not recorded</option>'), 'Not recorded is still a choice');
+  assert.ok(html.includes('Credit</dt><dd>Music made with Lolly <button'), 'the credit, with Copy credit');
+  assert.ok(html.includes('data-credit="Music made with Lolly"'));
+  assert.ok(html.includes('Credit required. Lolly prepares it for the export routes that can carry it.'));
+  assert.ok(!html.includes('Licence not recorded.'));
+});
+
+test('a tune saved from a Neurospicy station records Lolly\'s terms as a plain row, with the credit', () => {
+  const html = assetRightsRows({ ...tune({}), meta: { name: 'Sugar · 7', lofi: { mood: 'sugar', seed: 7 }, ...tuneLicenceRecord() } } as unknown as AssetRef, true);
+  assert.ok(html.includes('Saved from the Neurospicy player'));
+  assert.ok(!html.includes('data-tune-licence'), 'a station tune is Lolly\'s, so its licence is not a menu');
+  assert.ok(html.includes('>CC BY 4.0</span>'), 'CC BY 4.0');
+  assert.ok(html.includes('Credit</dt><dd>Music made with Lolly <button'));
+  // The player's save writes the same record (lib/neurospicy.ts saveLofiTune).
+  const player = readFileSync(new URL('../../lib/neurospicy.ts', import.meta.url), 'utf8');
+  assert.match(player, /license: TUNE_LICENCE\.id,\s+attribution: TUNE_CREDIT,/);
 });
 
 test('a tune saved from the player says so, and its licence stays a plain row', () => {

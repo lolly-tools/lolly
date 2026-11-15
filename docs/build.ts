@@ -3285,6 +3285,8 @@ const MUSIC_GRID_MARK = '<!-- the genre grid renders here -->';
 /** The guide's section on using and crediting the music. */
 const MUSIC_GUIDE = 'music-generator';
 const MUSIC_CREDIT_ANCHOR = 'use-your-music';
+/** The terms the music is offered under (Andy, 2026-11-15): CC BY 4.0. */
+const MUSIC_LICENCE_URL = 'https://creativecommons.org/licenses/by/4.0/';
 /** Every genre the picker lists, in its groups and its order, with copy to show. */
 const MUSIC_GENRES: Array<{ group: GenreCategory; mood: LofiMood }> = GENRE_GROUPS.flatMap(g => g.moods.map(mood => ({ group: g.id, mood })));
 {
@@ -3346,7 +3348,7 @@ function musicAppLd(): Record<string, unknown> {
     applicationCategory: 'MultimediaApplication',
     operatingSystem: 'Web browser',
     browserRequirements: 'Requires WebGPU',
-    description: 'Make background music in any of Lolly\'s genres on your own device: change the instruments, the tempo, the key and the mix, then download an M4A or WAV file. Music you make is free for any use, including commercial use, provided you credit it as Music made with Lolly.',
+    description: 'Make background music in any of Lolly\'s genres on your own device: change the instruments, the tempo, the key and the mix, then download an M4A or WAV file. Music you make comes under the Creative Commons Attribution 4.0 International licence (CC BY 4.0): free for any use, including commercial use, provided you credit it as Music made with Lolly.',
     isAccessibleForFree: true,
     offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
     license: CODE_LICENSE_URL,
@@ -3366,7 +3368,8 @@ function musicQuestionHtml(q: MusicQuestion): string {
 function musicCreditHtml(lang: Lang): string {
   return `<section class="music-credit" id="free-with-credit">
     <h2>${esc(t('Free with credit'))}</h2>
-    <p>${esc(t('Music you make in the music generator is free for any use, including commercial use, provided you credit Lolly. Put this line wherever your credits go:'))}</p>
+    <p>${esc(t('Music you make in the music generator comes under the Creative Commons Attribution 4.0 International licence'))} (<a rel="license" href="${MUSIC_LICENCE_URL}">CC BY 4.0</a>). ${esc(t('The licence also covers the sample on this page and the tunes the Neurospicy player\'s stations compose.'))}</p>
+    <p>${esc(t('The music is free for any use, including commercial use, provided you credit Lolly. Put this line wherever your credits go:'))}</p>
     <p class="music-credit-line"><code>${esc(MUSIC_CREDIT)}</code></p>
     <p>${esc(t('When there is room for a link, add the address:'))} <code>${esc(MUSIC_CREDIT_LINK)}</code></p>
     <p><a href="${esc(localeHref(lang, MUSIC_GUIDE))}#${MUSIC_CREDIT_ANCHOR}">${esc(t('Where to put the credit'))}</a></p>
@@ -3382,7 +3385,7 @@ function musicCardHtml(mood: LofiMood, lang: Lang): string {
 /** The sample player: a plain audio control, then what the sample is. */
 function musicSampleHtml(mood: LofiMood, s: SampleRecipe | undefined): string {
   if (!s) return '';
-  const cap = fill(t('A {seconds}-second sample from the {section} section: {genre}, seed {seed}, {bpm} beats a minute in {key}. Made in the music generator, with Content Credentials.'), {
+  const cap = fill(t('A {seconds}-second sample from the {section} section: {genre}, seed {seed}, {bpm} beats a minute in {key}. Made in the music generator, with Content Credentials. Licence: CC BY 4.0, with the credit Music made with Lolly.'), {
     seconds: String(MUSIC_SAMPLES.excerpt.seconds), section: s.anchorSection, genre: genreTitle(mood), seed: String(s.seed), bpm: String(s.bpm), key: s.key,
   });
   return `<figure class="music-sample">
@@ -3422,6 +3425,7 @@ function renderMusicGenrePage(copy: GenreCopy, group: GenreCategory, lang: Lang)
         duration: isoDuration(MUSIC_SAMPLES.excerpt.seconds),
         url,
         isAccessibleForFree: true,
+        license: MUSIC_LICENCE_URL,
         creditText: MUSIC_CREDIT,
         usageInfo: `${SITE_URL}${localeHref(lang, MUSIC_GUIDE)}#${MUSIC_CREDIT_ANCHOR}`,
         audio: {

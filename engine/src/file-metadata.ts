@@ -999,6 +999,9 @@ function readWav(bytes: Uint8Array, out: FileMetadata): void {
         }
         q += 8 + size + (size & 1);
       }
+    } else if (matchAscii(bytes, p, '_PMX')) {
+      // The XMP packet (XMP specification part 3, WAV): a licence's terms and credit.
+      readXmp(new TextDecoder('utf-8').decode(bytes.subarray(p + 8, Math.min(end, p + 8 + MAX_TEXT_SCAN))), out);
     }
     p = end + (length & 1);
   }

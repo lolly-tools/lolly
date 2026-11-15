@@ -21,13 +21,13 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ANCHOR_SECTIONS, GENRE_SLUG, MUSIC_CREDIT, MUSIC_GROUP_TITLE, excerptAnchor, genrePageSlug, makeYourOwnHash,
+  ANCHOR_SECTIONS, GENRE_SLUG, MUSIC_CREDIT, MUSIC_CREDIT_LINK, MUSIC_GROUP_TITLE, excerptAnchor, genrePageSlug, makeYourOwnHash,
   plainText, questionsFromMarkdown, registerProblems, type MusicRegister, type SampleSet,
 } from '../docs/music-pages.ts';
 import { GENRE_GROUPS } from '../shells/web/src/lib/genre-icons.ts';
 import { LOFI_MOODS } from '../engine/src/lofi-compose.ts';
 import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
-import { isTuneDeclaration } from '../engine/src/tune-provenance.ts';
+import { TUNE_CREDIT, TUNE_CREDIT_LINE, TUNE_LICENCE_STATEMENT, isTuneDeclaration } from '../engine/src/tune-provenance.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const register = JSON.parse(readFileSync(resolve(ROOT, 'docs/site/music-genres.json'), 'utf8')) as MusicRegister;
@@ -81,6 +81,7 @@ test('every genre has a sample whose bytes match its recipe, within the size bud
     assert.equal(createHash('sha256').update(bytes).digest('hex'), s.sha256, `${s.file} is the file its recipe rendered`);
     assert.equal(statSync(path).size, s.bytes);
     assert.ok(isTuneDeclaration(s.declaration), `${s.file} declares the music generator`);
+    assert.equal(s.licence, TUNE_LICENCE_STATEMENT, `${s.file} states the CC BY 4.0 licence and the credit (node scripts/build-music-samples.ts --resign)`);
     assert.ok((ANCHOR_SECTIONS as readonly string[]).length && s.anchorBar >= 0);
     total += s.bytes;
   }
@@ -94,6 +95,14 @@ test('a sample\'s Content Credentials read back as the music generator\'s, as a 
   const report = await verifyC2pa(new Uint8Array(readFileSync(resolve(ROOT, 'docs/music/samples', s.file))));
   assert.equal(report.state, 'valid');
   assert.ok(report.history?.some(h => h.action === 'c2pa.created' && isTuneDeclaration(h.description)), 'the created step declares the music generator');
+  assert.equal(report.rights, TUNE_LICENCE_STATEMENT, 'the credential states the licence and the credit');
+  assert.equal(report.licence?.url, 'https://creativecommons.org/licenses/by/4.0/');
+  assert.equal(report.licence?.credit, MUSIC_CREDIT, 'the credit line the pages ask for');
+});
+
+test('the pages ask for the same credit the files and saved tunes carry', () => {
+  assert.equal(MUSIC_CREDIT, TUNE_CREDIT);
+  assert.equal(MUSIC_CREDIT_LINK, TUNE_CREDIT_LINE);
 });
 
 test('the excerpt opens on the first drop, else the groove, else the first verse', () => {
