@@ -76,7 +76,7 @@ import { icon } from '../lib/icons.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { instrumentIcon, iconPath, musicIconNode, musicIconBody, strokeSvg } from '../lib/instrument-icons.ts';
 import { DIDGE_LEAD, readDidge } from '../../../../engine/src/lofi-straya.ts';
-import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, fxOn, toggleFx, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
+import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, linkLocksGenre, withGenreLock, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, fxOn, toggleFx, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
 import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
 import { pillSliderHtml, showPillSlider } from '../components/pill-slider.ts';
@@ -240,8 +240,10 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const firstVisit = !openSlot && !/(^|[?&])(style|seed)=/.test(params);
   if (firstVisit) Object.assign(state, shuffleMusic(Math.random, { bars: state.bars }));
   let prefs: MusicPrefs = NO_PREFS;
-  /** "Shuffle genres": on, shuffle draws a new genre; off (the genre lock closed), it keeps this one (Profile.music). */
-  let shuffleGenres = true;
+  /** A link that locks the genre (lock=genre) keeps it for whoever opens the link, over their own preference, until they open the lock. */
+  let linkLock = linkLocksGenre(params);
+  /** "Shuffle genres": on, shuffle draws a new genre; off (the genre lock closed), it keeps this one (Profile.music, or the link's lock). */
+  let shuffleGenres = !linkLock;
   let profile: Profile | null = null;
   let touched = false;
   /** Where the generator put an instrument in place of a blocked one (swapKey), taken back for the next new tune. */
@@ -812,7 +814,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** The project this tune is kept as, once it is saved there or opened from there. */
   let projectSlot: string | null = openSlot;
   function writeLink(): void {
-    const next = `#/music?${musicStateParams(state)}${projectSlot ? `&slot=${encodeURIComponent(projectSlot)}` : ''}`;
+    const next = `#/music?${withGenreLock(musicStateParams(state), !shuffleGenres)}${projectSlot ? `&slot=${encodeURIComponent(projectSlot)}` : ''}`;
     if (location.hash !== next) history.replaceState(history.state, '', next);
   }
   function recompose(): void {
@@ -1132,8 +1134,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   async function loadPrefs(): Promise<void> {
     try { profile = await host.profile.get(); } catch { return; }
     prefs = loadMusicPrefs(profile);
-    shuffleGenres = loadShuffleGenres(profile);
+    shuffleGenres = linkLock ? false : loadShuffleGenres(profile);
     paintGenre();
+    writeLink();
     if (!prefs.favourites.size && !prefs.blocked.size) return;
     if (firstVisit && !touched) { restate({ ...shuffleMusic(Math.random, { bars: state.bars, prefs }), bars: state.bars }); studioHistory.rebase(); }
     browser?.refresh();
@@ -1250,7 +1253,9 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** "Shuffle genres", from the genre lock (open: on, closed: off): kept on the profile with the other music preferences. */
   const saveShuffleGenres = (on: boolean): void => {
     shuffleGenres = on;
+    linkLock = false;
     paintGenre();
+    writeLink();
     if (!profile) return;
     setShuffleGenres(profile, on);
     const writer = host.profile;
@@ -1643,7 +1648,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     } catch { return null; }
   }
   listen('[data-link]', 'click', () => {
-    void navigator.clipboard.writeText(`${location.origin}${location.pathname}#/music?${musicStateParams(state)}`)
+    void navigator.clipboard.writeText(`${location.origin}${location.pathname}#/music?${withGenreLock(musicStateParams(state), !shuffleGenres)}`)
       .then(() => { say(t('Link copied: it opens this track, ready to edit.')); })
       .catch(() => { say(t('Could not copy the link.')); });
   });

@@ -19,11 +19,11 @@ test('the tracks are named for the part they play', () => {
 });
 
 test('the names are labels only: a link keeps the ids lead, keys, bass and fx', () => {
-  const s = parseMusicState('style=straya&seed=9&bars=32&lead=banjo&keys=steel&bass=yidaki&mix.fx=1.5&drop.lead=fiddle');
+  const s = parseMusicState('style=straya&seed=9&bars=32&lead=banjo&keys=steel&bass=didgeridoo&mix.fx=1.5&drop.lead=fiddle');
   const link = musicStateParams(s);
   assert.match(link, /(^|&)lead=banjo(&|$)/);
   assert.match(link, /(^|&)keys=steel(&|$)/);
-  assert.match(link, /(^|&)bass=yidaki(&|$)/);
+  assert.match(link, /(^|&)bass=didgeridoo(&|$)/);
   assert.match(link, /(^|&)mix\.fx=1\.5(&|$)/);
   assert.match(link, /(^|&)drop\.lead=fiddle(&|$)/);
   assert.doesNotMatch(link, /melody|chords|candy/i);
@@ -38,7 +38,7 @@ test('an instrument shows in sentence case, and the name tables stay as a senten
   assert.equal(sentenceCase('istanbul', 'tr'), 'İstanbul', 'capitalised for the page\'s language');
   assert.equal(LOFI_KEYS_NAME.banjo, 'banjo', 'the tables are unchanged');
   assert.equal(LOFI_LEAD_NAME.fiddle, 'fiddle');
-  assert.equal(LOFI_BASS_NAME.yidaki, 'yidaki');
+  assert.equal(LOFI_BASS_NAME.didgeridoo, 'didgeridoo');
 });
 
 test('a control left to the composer reads Auto and what plays', () => {

@@ -152,6 +152,18 @@ export function parseMusicState(params: string): MusicState {
   };
 }
 
+/**
+ * The genre lock in a link (Andy, 2026-11-15: "a url param for locked genre so that when
+ * sharing a url people can shuffle the same genre"). `lock=genre` means Shuffle keeps the
+ * genre for whoever opens the link. The lock is not part of the tune: it never changes what
+ * plays, and a link without it leaves Shuffle to the person's own preference. `lock` takes a
+ * list, so later locks (a track's part) can join it.
+ */
+export const linkLocksGenre = (params: string): boolean =>
+  (new URLSearchParams(params.replace(/^[^?]*\?/, '')).get('lock') ?? '').split(',').includes('genre');
+/** The link's parameters with the genre lock written in, or left out. */
+export const withGenreLock = (params: string, locked: boolean): string => (locked ? `${params}&lock=genre` : params);
+
 /** The link's parameters for a state: only what differs from the defaults, so links stay short. */
 export function musicStateParams(s: MusicState): string {
   const q = new URLSearchParams();
