@@ -718,7 +718,7 @@ function cicadas(c: Bar): void {
  * lorikeets fourteen), the same species never calls twice in a row within eight seconds, and now
  * and then a second species calls over the first. The featured carol, the kookaburra and the surf
  * guitar's licks keep their bars to themselves. The levels were set by measuring each call
- * K-weighted against the band: at its loudest moment a call sits at or under the bass beside it.
+ * K-weighted against the band: at its loudest moment a call sits at or under the bass's level then.
  */
 function aviaryOf(seed: number, parts: readonly Part[], bpm: number, featured: NoosaPlan['birds'], licks: readonly number[]): Pick<NoosaPlan, 'aviary' | 'whipbird' | 'lorikeets'> {
   const r = stream(seed, 0x00060);
