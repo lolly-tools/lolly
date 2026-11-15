@@ -7,6 +7,8 @@ The Neurospicy player makes its own music. Its generated stations compose every 
 
 The **[music generator](#the-music-generator)** opens any of these stations as a track you can change, down to the instrument each part plays in each section.
 
+For a recurring brand sound, start in [Design System Setup’s Sound room](/info/brand-studio.html#sound). A music project made there retains its use and profile revision, while new seeds give you fresh compositions within the chosen music settings. Listening review remains separate from matching those settings.
+
 <!--i:eti-repeat-->
 ## Every tune is a number
 

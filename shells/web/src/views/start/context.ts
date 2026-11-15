@@ -14,6 +14,7 @@ import type { BrandEditorHandle } from '../../lib/brand-editor.ts';
 import type { ColourRoleProposal, TokenRoleProposal } from '../../lib/brand-propose.ts';
 import type { ColourRoleReview } from '../../lib/design-system/colour-role-review.ts';
 import type { BoardState, OverviewRoom } from '../../lib/design-system/rooms/overview.ts';
+import type { SoundRoom } from '../../lib/design-system/rooms/sound.ts';
 import type { UsageRoom } from '../../lib/design-system/rooms/usage.ts';
 import type { SkillsRoom } from '../../lib/design-system/rooms/skills.ts';
 import type { VersionsRoom, mountVersionsRoom } from '../../lib/design-system/rooms/versions.ts';
@@ -91,6 +92,8 @@ export interface StartCtx {
   /** Whose system the Board shows (rooms/overview.ts boardState), which the
    *  bar's emphasis follows; latched once `owned`. */
   boardState: BoardState | null;
+  soundPanel: HTMLElement;
+  sound: SoundRoom | null;
   usagePanel: HTMLElement;
   usage: UsageRoom | null;
   /** The Skills room (plan 323): mounted the first time it is opened. */

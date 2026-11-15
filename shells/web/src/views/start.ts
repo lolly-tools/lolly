@@ -45,6 +45,8 @@ import { onLayoutChange } from '../lib/layout-posture.ts';
 import { mountSplitView } from '../lib/split-panes.ts';
 import '../styles/parts/start-bar.css';
 import '../styles/parts/start-usage.css';
+import '../styles/parts/start-sound.css';
+import { mountSoundRoom } from '../lib/design-system/rooms/sound.ts';
 import '../styles/parts/start-skills.css';
 import { mountUsageRoom } from '../lib/design-system/rooms/usage.ts';
 import { mountSkillsRoom } from '../lib/design-system/rooms/skills.ts';
@@ -96,8 +98,8 @@ import { barOps } from './start/bar.ts';
 // foot-pinned panel this view renders itself, and parking its key on the same
 // attribute is exactly how the editor hides - the same trick `overview` uses.
 type RoomsArePanels =
-  Exclude<StartRoom, 'overview' | 'usage' | 'skills'> extends BrandTabKey
-    ? BrandTabKey extends Exclude<StartRoom, 'overview' | 'usage' | 'skills'>
+  Exclude<StartRoom, 'overview' | 'usage' | 'skills' | 'sound'> extends BrandTabKey
+    ? BrandTabKey extends Exclude<StartRoom, 'overview' | 'usage' | 'skills' | 'sound'>
       ? true
       : never
     : never;
@@ -180,7 +182,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
           <h1 class="start-title">${t('This brand is set')}</h1>
           <p class="start-sub">${t('This build ships with a fixed brand. Explore its usage rules and examples below.')}</p>
         </header>
-        <section data-colour-roles-readonly></section><section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
+        <section data-colour-roles-readonly></section><section data-token-readonly></section><section data-sound-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
@@ -188,9 +190,10 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
     showReadOnlyColourRoles(viewEl, tokenDoc);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
+    const sound = mountSoundRoom(viewEl.querySelector<HTMLElement>('[data-sound-readonly]')!, { host, readonly: true });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { usage.teardown(); skills.teardown(); workspace.teardown(); };
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { sound.teardown(); usage.teardown(); skills.teardown(); workspace.teardown(); };
     return;
   }
 
@@ -213,7 +216,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
             <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
           </p>
         </header>
-        <section data-colour-roles-readonly></section><section data-token-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
+        <section data-colour-roles-readonly></section><section data-token-readonly></section><section data-sound-readonly></section><section data-usage-readonly></section><section data-skills-readonly></section>
       </div>`;
     attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
     start.navigation.wireBackPill();
@@ -221,6 +224,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     const tokenDoc = await host.tokens?.raw?.().catch(() => null);
     showReadOnlyColourRoles(viewEl, tokenDoc);
     const workspace = mountTokenWorkspace(viewEl.querySelector<HTMLElement>('[data-token-readonly]')!, { read: () => tokenDoc, host, label: t('Design system'), context: 'Editable head', consumers: webTokenConsumerSources(host) });
+    const sound = mountSoundRoom(viewEl.querySelector<HTMLElement>('[data-sound-readonly]')!, { host, readonly: true });
     const usage = mountUsageRoom(viewEl.querySelector<HTMLElement>('[data-usage-readonly]')!, { host: host, readonly: true });
     const skills = mountSkillsRoom(viewEl.querySelector<HTMLElement>('[data-skills-readonly]')!, { host, readonly: true });
     // Someone the instance says can change this system gets the way in here, because
@@ -230,7 +234,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
       edit: () => { void start.brand.editForInstance((message) => { managerSlot.append(' ', message); }); },
       publish: () => { void import('../lib/design-system/brand-page-sheet.ts').then(m => m.openBrandPageSheet(host)); },
     });
-    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { stopManager(); usage.teardown(); skills.teardown(); workspace.teardown(); };
+    (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { stopManager(); sound.teardown(); usage.teardown(); skills.teardown(); workspace.teardown(); };
     viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
       const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([
         import('../lib/design-system/manage.ts'),
@@ -279,6 +283,7 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     logos: t('Logos'),
     tokens: t('Tokens'),
     catalogue: t('Files'),
+    sound: t('Sound'),
     usage: t('Rules'),
     skills: t('Skills'),
     versions: t('Versions'),
@@ -300,6 +305,8 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   const overviewPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="overview"]')!; start.overviewPanel = overviewPanel;
   start.livePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="live"]')!;
   start.boardState = null;
+  start.soundPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="sound"]')!;
+  start.sound = null;
   start.usagePanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="usage"]')!;
   start.usage = null;
   start.skillsPanel = viewEl.querySelector<HTMLElement>('[data-ds-panel="skills"]')!;

@@ -62,6 +62,7 @@ import { mountHomeFab } from '../components/home-fab.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { mountProfileFab } from '../components/profile-menu.ts';
+import { mountMusicSoundProfile } from './music-studio/sound-profile.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import {
@@ -813,11 +814,14 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // ── state, link and recomposing ──────────────────────────────────────────────
   /** The project this tune is kept as, once it is saved there or opened from there. */
   let projectSlot: string | null = openSlot;
+  let soundProfile: ReturnType<typeof mountMusicSoundProfile> | undefined;
+  let soundDisposed = false;
   function writeLink(): void {
     const next = `#/music?${withGenreLock(musicStateParams(state), !shuffleGenres)}${projectSlot ? `&slot=${encodeURIComponent(projectSlot)}` : ''}`;
     if (location.hash !== next) history.replaceState(history.state, '', next);
   }
   function recompose(): void {
+    soundProfile?.refresh();
     touched = true;
     bars = composeTrack(state);
     paintVersion++;
@@ -1517,9 +1521,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // A download renders first when the track has not been rendered (behind the same card
   // as render and play), and shows its progress on Render.
   async function download(want: 'm4a' | 'wav'): Promise<void> {
+    try { await soundProfile?.retained(); } catch (error) { say((error as Error).message); return; }
+    const requestedMusic = musicStateParams(state);
     if (!(await renderWithCard())) return;
     const failed = await renderBtn.run(async () => {
       const { blob, format } = await encoded(want);
+      if (musicStateParams(state) !== requestedMusic) throw new PlainFailure(t('The composition changed during rendering. Render the current version before downloading.'));
+      await soundProfile?.retained();
       // Always signed, as a folder render signs: a file whose record does not read back
       // throws here, so no download leaves without its Content Credentials.
       const { credentialMusicFile } = await import('../lib/music-render.ts');
@@ -1563,7 +1571,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       let maker = '';
       try { maker = profileMaker(await host.profile.get()); } catch { /* no profile, no maker */ }
       const generator = musicStateParams(state);
-      const recipe = { mood: state.mood, seed: state.seed >>> 0, generator };
+      const sonic = await soundProfile?.retained();
+      const recipe = { mood: state.mood, seed: state.seed >>> 0, generator, ...(sonic ? { sonic } : {}) };
       const bytes = lofiTuneBytes(recipe);
       const id = `user/tune/${Date.now()}-${state.mood}-${state.seed}`;
       await host.assets._uploadUserAsset({
@@ -1593,7 +1602,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     // A project renamed in Projects keeps the name it was given.
     const kept = projectSlot ? await host.state.load(projectSlot).catch(() => null) : null;
     const named = kept && typeof (kept as { __label?: unknown }).__label === 'string' ? (kept as { __label: string }).__label : '';
-    const record = musicProjectRecord(state, named || musicProjectTitle(state));
+    const record = musicProjectRecord(state, named || musicProjectTitle(state), await soundProfile?.retained());
     const save = host.state.save.bind(host.state) as (slot: string, data: object, thumb?: string | null) => Promise<void>;
     await save(slot, record, coverImage());
     projectSlot = slot;
@@ -1690,6 +1699,11 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     onCommit: (el) => setBpm(Number(el.value)),
   });
 
+  soundProfile = mountMusicSoundProfile(page, state, next => {
+    for (const k of Object.keys(state) as (keyof MusicState)[]) delete state[k];
+    Object.assign(state, next); swapped.clear(); syncControls(); recompose(); fit();
+  }, () => { projectSlot = null; writeLink(); });
+  if (openSlot) soundProfile.pending();
   say(HINT);
   writeLink(); meta(); paintSummaries(); paintGenre(); paintSilent(); sizeSeed(); fitHeight(); fit(); viz.frame();
   // The genre lights up as the page opens, so a shared link says at once what it plays.
@@ -1700,19 +1714,23 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   // it was saved: its settings come back from the project's record, as a link would bring
   // them, with no instrument swapped. An address that also carries the settings (a reload
   // after an edit) already has the newest ones and keeps them.
-  if (openSlot && !/(^|[?&])(style|seed)=/.test(params)) {
-    void host.state.load(openSlot).then((data) => {
+  if (openSlot) {
+    void host.state.load(openSlot).then(async (data) => {
+      if (soundDisposed) return;
       const kept = musicStateFromProject(data);
-      if (!kept) { projectSlot = null; writeLink(); say(t('This project could not be opened. It may have been deleted.')); return; }
+      if (!kept) { soundProfile?.failed(); projectSlot = null; writeLink(); say(t('This project could not be opened. It may have been deleted.')); return; }
+      await soundProfile?.load(data);
+      if (soundDisposed || /(^|[?&])(style|seed)=/.test(params)) return;
       for (const k of Object.keys(state) as (keyof MusicState)[]) delete state[k];
       Object.assign(state, kept);
       swapped.clear();
       syncControls(); recompose(); fit();
       studioHistory.rebase(); paintHistoryButtons(page, studioHistory);
       say(t('Opened from Projects.'));
-    }).catch(() => { say(t('This project could not be opened.')); });
+    }).catch(() => { if (!soundDisposed) { soundProfile?.failed(); say(t('This project could not be opened.')); } });
   }
   view._cleanup = () => {
+    soundDisposed = true; soundProfile?.teardown();
     renderBtn.reset(); saveAct.reset();
     renderBtn.close();
     saveMenu.close();

@@ -68,6 +68,7 @@ export const ROOM_ICONS: Record<StartArea, IconName> = {
   logos: 'shapes',
   tokens: 'tokens',
   catalogue: 'folder',
+  sound: 'music',
   usage: 'clipboard',
   skills: 'graduationCap',
   versions: 'tag',

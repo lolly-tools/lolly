@@ -12,6 +12,7 @@
  * instruments for the whole track and for each kind of section, the kit, the tag, the
  * effects that are off, the mix, the texture, the brightness and the drive.
  */
+import type { SonicRecipeV1 } from '../../../../packages/core/src/sonic-profile-v1.ts';
 import { musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
 import { MUSIC_SLOT_PREFIX, MUSIC_TOOL_ID, isMusicSlot } from './batch-slots.ts';
 import { genreTitle } from './genre-icons.ts';
@@ -37,11 +38,11 @@ export function musicProjectTitle(state: MusicState): string {
 export interface MusicProjectData {
   __toolId: string;
   __label: string;
-  __musicStudio: { version: 1; params: string };
+  __musicStudio: { version: 1; params: string; sonic?: SonicRecipeV1 };
 }
 
-export function musicProjectRecord(state: MusicState, label: string): MusicProjectData {
-  return { __toolId: MUSIC_TOOL_ID, __label: label, __musicStudio: { version: 1, params: musicStateParams(state) } };
+export function musicProjectRecord(state: MusicState, label: string, sonic?: SonicRecipeV1): MusicProjectData {
+  return { __toolId: MUSIC_TOOL_ID, __label: label, __musicStudio: { version: 1, params: musicStateParams(state), ...(sonic ? { sonic: structuredClone(sonic) } : {}) } };
 }
 
 /** The tune a saved record holds, or null when the record is not a tune. */
