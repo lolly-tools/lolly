@@ -30,7 +30,7 @@ import { musicProjectHref, musicProjectRecord, newMusicSlot } from '../../music-
 import { musicStateParams, parseMusicState } from '../../music-state.ts';
 import { staggerReveal } from '../../reveal.ts';
 import { clearSoundEdit, readSoundEdit, soundEditHref, writeSoundEdit } from '../../sound-edit-handoff.ts';
-import { applySonicDirection, SONIC_DIRECTIONS, sonicDirectionOf, sonicMusicAdapter, sonicMusicFromLink, starterSonicProfile } from '../../sonic-music.ts';
+import { applySonicDirection, applySonicMix, SONIC_DIRECTIONS, SONIC_MIX as MIXED, sonicMusicAdapter, sonicMusicFromLink, sonicStartOf, starterSonicProfile } from '../../sonic-music.ts';
 import type { StudioState } from '../studio-state.ts';
 import { type UsageHost, usageRevision } from '../usage-model.ts';
 import { percentText, saveStateText, soundMessageHtml, soundRoomHtml, speedText, type SoundViewModel } from './sound-html.ts';
@@ -46,7 +46,7 @@ export interface SoundRoomOptions {
   /** The genres' washes for this surface and text colour (views/music-studio/genre-colours.ts), passed in by the view. */
   washes?(surface: string, text: string): Promise<ReadonlyMap<LofiMood, SoundWash>>;
   /** Make a preview: the music, or the music under the voice. Defaults to lib/sonic-preview.ts. */
-  audition?(parameters: string, signal: AbortSignal, narration?: { settings: SonicNarrationV1; script: string }): Promise<Blob>;
+  audition?(parameters: string | readonly string[], signal: AbortSignal, narration?: { settings: SonicNarrationV1; script: string }): Promise<Blob>;
   /** The one player. Defaults to an audio element that is never in the page. */
   audio?: Pick<HTMLAudioElement, 'play' | 'pause' | 'addEventListener' | 'removeEventListener' | 'currentTime' | 'duration'> & { src: string };
   /** Go to an address in the app. Defaults to setting location.hash. */
@@ -57,6 +57,12 @@ const DEFAULT_SAMPLE = 'Here is one clear idea. Give the words room to land, and
 /** How many previews are kept, so a second play starts at once. */
 const KEPT_PREVIEWS = 6;
 const randomSeed = (): number => crypto.getRandomValues(new Uint32Array(1))[0]!;
+
+/** Which card is chosen: a starting sound's id, the mix, or none. */
+export function chosenOf(profile: SonicProfileV1): string | null {
+  const start = sonicStartOf(profile);
+  return !start ? null : start.mode === 'mixed' ? MIXED : start.sound;
+}
 
 export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
   const readonly = !!opts.readonly;
@@ -127,7 +133,8 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
     player().addEventListener('timeupdate', onTime);
   };
   /** `offer`: when the voice model is missing, offer its download once and try again. */
-  async function play(key: string, parameters: string, narration?: { settings: SonicNarrationV1; script: string }, offer = true): Promise<void> {
+  /** `parameters`: one sound, or several to hear in turn (the mix card's preview). */
+  async function play(key: string, parameters: string | readonly string[], narration?: { settings: SonicNarrationV1; script: string }, offer = true): Promise<void> {
     if (playingKey === key) { stop(); return; }
     stop();
     listen();
@@ -140,8 +147,10 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
     try {
       let blob = kept.get(cacheKey);
       if (!blob) {
-        const make = opts.audition ?? (async (p: string, signal: AbortSignal, n?: { settings: SonicNarrationV1; script: string }) =>
-          (await import('../../sonic-preview.ts')).auditionSound(p, opts.host, signal, n));
+        const make = opts.audition ?? (async (p: string | readonly string[], signal: AbortSignal, n?: { settings: SonicNarrationV1; script: string }) => {
+          const preview = await import('../../sonic-preview.ts');
+          return typeof p === 'string' ? preview.auditionSound(p, opts.host, signal, n) : preview.auditionMedley(p, signal);
+        });
         blob = await make(parameters, controller.signal, narration);
         kept.set(cacheKey, blob);
         if (kept.size > KEPT_PREVIEWS) kept.delete(kept.keys().next().value!);
@@ -179,7 +188,7 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
   };
   const model = (): SoundViewModel => ({
     label, profile: profile!, contextId, picked, saved, dirty, readonly, speech,
-    chosen: picked ? sonicDirectionOf(profile!)?.id ?? null : null,
+    chosen: picked ? chosenOf(profile!) : null,
     voices, audio: audioAssets, withVoice, sample, renaming, reviewing, open, playing,
   });
   /** What the room last said; shown in the floating foot until the room paints again. */
@@ -235,6 +244,15 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
       if (wash.ink) { node.style.setProperty('--sound-wash-ink', wash.ink); node.dataset.deep = ''; }
       else { node.style.removeProperty('--sound-wash-ink'); delete node.dataset.deep; }
       node.classList.add('is-tinted');
+    }
+    // The mix card keeps its own surface; each of its discs wears its sound's wash.
+    for (const disc of el.querySelectorAll<HTMLElement>('.sound-card--mix .sound-card-icon[data-mood]')) {
+      const wash = washes.get(disc.dataset.mood as LofiMood);
+      if (!wash) continue;
+      disc.style.setProperty('--sound-disc', wash.from);
+      if (wash.ink) disc.style.setProperty('--sound-disc-ink', wash.ink);
+      else disc.style.removeProperty('--sound-disc-ink');
+      disc.classList.add('is-tinted');
     }
   }
   /** The room's one raw-HTML sink: every value in the markup went through escape(). */
@@ -317,15 +335,15 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
   // ── actions ────────────────────────────────────────────────────────────────
   function choose(id: string): void {
     const direction = SONIC_DIRECTIONS.find((d) => d.id === id);
-    if (!direction || !profile || readonly) return;
+    if ((!direction && id !== MIXED) || !profile || readonly) return;
     const first = !picked;
-    profile = applySonicDirection(profile, direction);
+    profile = direction ? applySonicDirection(profile, direction) : applySonicMix(profile);
     drawn.clear();
     picked = true;
     dirty = true;
     stop();
     const name = el.querySelector(`[data-direction="${CSS.escape(id)}"] .sound-card-name`)?.textContent ?? '';
-    say(tRaw('{name} is now the sound of every use.', { name }));
+    say(direction ? tRaw('{name} is now the sound of every use.', { name }) : t('Each use now plays its own sound.'));
     paint(`[data-direction="${CSS.escape(id)}"] [data-play]`, first);
   }
   function select(id: string): void {
@@ -348,6 +366,7 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
     if (kind === 'dir') {
       const direction = SONIC_DIRECTIONS.find((d) => d.id === id);
       if (direction) await play(key, direction.parameters);
+      else if (id === MIXED) await play(key, SONIC_DIRECTIONS.map((d) => d.parameters));
       return;
     }
     const c = profile.contexts.find((x) => x.id === id);

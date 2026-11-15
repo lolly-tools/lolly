@@ -18,7 +18,7 @@ import { escape as e } from '../../../utils.ts';
 import { genreIconSvg, shuffleIconSvg } from '../../genre-icons.ts';
 import { icon } from '../../icons.ts';
 import { segHtml } from '../../seg.ts';
-import { directionCopy, SONIC_DIRECTIONS, soundSummary } from '../../sonic-music.ts';
+import { directionCopy, mixCopy, SONIC_DIRECTIONS, SONIC_MIX, soundSummary } from '../../sonic-music.ts';
 
 /** Everything the room shows, as rooms/sound.ts holds the state. */
 export interface SoundViewModel {
@@ -75,22 +75,33 @@ const fold = (id: string, title: string, iconName: Parameters<typeof icon>[0], v
   + `<summary class="section-card-summary"><span class="section-card-icon" aria-hidden="true">${icon(iconName, { size: 18 })}</span><h${level} class="section-card-title">${e(title)}</h${level}>${value ? `<span class="section-card-value">${e(value)}</span>` : ''}</summary>`
   + `<div class="section-card-body sound-fold-body">${body}</div></details>`;
 
+/** One starting-sound card. `icons`: its icon discs, `mood` its wash (the mix card has none of its own). */
+function cardHtml(m: SoundViewModel, id: string, name: string, line: string, meta: string, icons: string, mood?: string): string {
+  const chosen = m.chosen === id;
+  return `<article class="sound-card${chosen ? ' is-chosen' : ''}${mood ? '' : ' sound-card--mix'}" data-direction="${e(id)}"${mood ? ` data-mood="${e(mood)}"` : ''}>`
+    + `<div class="sound-card-top">${icons}`
+    + (chosen ? `<span class="sound-card-badge">${icon('check', { size: 14 })}<span>${t('Chosen')}</span></span>` : '')
+    + '</div>'
+    + `<h4 class="sound-card-name">${e(name)}</h4><p class="sound-card-line">${e(line)}</p><p class="sound-card-meta">${e(meta)}</p>`
+    + `<div class="sound-card-actions">${playButton(`dir:${id}`, name, true)}`
+    + (m.readonly || chosen ? '' : btn(`data-choose="${e(id)}"`, t('Choose'), { cls: 'sound-choose' }))
+    + '</div></article>';
+}
+
+const iconDisc = (mood: string, extra = ''): string =>
+  `<span class="sound-card-icon"${extra} aria-hidden="true">${genreIconSvg(mood as Parameters<typeof genreIconSvg>[0], 22)}</span>`;
+
 function directionsHtml(m: SoundViewModel): string {
   const cards = SONIC_DIRECTIONS.map((dir) => {
     const { name, line } = directionCopy(dir);
-    const chosen = m.chosen === dir.id;
-    return `<article class="sound-card${chosen ? ' is-chosen' : ''}" data-direction="${e(dir.id)}" data-mood="${e(dir.mood)}">`
-      + `<div class="sound-card-top"><span class="sound-card-icon" aria-hidden="true">${genreIconSvg(dir.mood, 22)}</span>`
-      + (chosen ? `<span class="sound-card-badge">${icon('check', { size: 14 })}<span>${t('Chosen')}</span></span>` : '')
-      + '</div>'
-      + `<h4 class="sound-card-name">${e(name)}</h4><p class="sound-card-line">${e(line)}</p><p class="sound-card-meta">${e(soundSummary(dir.parameters))}</p>`
-      + `<div class="sound-card-actions">${playButton(`dir:${dir.id}`, name, true)}`
-      + (m.readonly || chosen ? '' : btn(`data-choose="${e(dir.id)}"`, t('Choose'), { cls: 'sound-choose' }))
-      + '</div></article>';
+    return cardHtml(m, dir.id, name, line, soundSummary(dir.parameters), iconDisc(dir.mood), dir.mood);
   }).join('');
+  // The fourth card: the study's own mix, each use its own sound. Its discs wear each sound's wash.
+  const mix = mixCopy();
+  const discs = `<span class="sound-card-icons">${SONIC_DIRECTIONS.map((d) => iconDisc(d.mood, ` data-mood="${e(d.mood)}"`)).join('')}</span>`;
   return `<section class="sound-section" aria-labelledby="sound-start-title"><div class="sound-section-head"><h3 class="sound-section-title" id="sound-start-title">${m.picked ? t('Your sound') : t('Pick a starting sound')}</h3>`
     + (m.picked ? '' : `<p class="sound-hint">${t('Listen, then choose one. You can change it at any time.')}</p>`)
-    + `</div><div class="sound-cards">${cards}</div></section>`;
+    + `</div><div class="sound-cards">${cards}${cardHtml(m, SONIC_MIX, mix.name, mix.line, mix.meta, discs)}</div></section>`;
 }
 
 function chipsHtml(m: SoundViewModel): string {

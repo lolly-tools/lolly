@@ -83,3 +83,34 @@ export async function auditionSound(
     }
   return pcmToWavBlob({ left, right, sampleRate: rate });
 }
+
+/** How long each sound plays in the mix's preview, in seconds. */
+export const MEDLEY_SECONDS = 5;
+
+/**
+ * The mix's preview: a short excerpt of each sound in turn, each fading in and out, as one
+ * WAV file, so one press hears every use's sound in the order the uses come.
+ */
+export async function auditionMedley(list: readonly string[], signal: AbortSignal, seconds = MEDLEY_SECONDS): Promise<Blob> {
+  const rate = 48000;
+  const frames = Math.ceil(seconds * rate);
+  const left = new Float32Array(frames * list.length);
+  const right = new Float32Array(frames * list.length);
+  for (const [i, parameters] of list.entries()) {
+    const state = parseMusicState(parameters);
+    const music = await renderLofiTunePcm({ mood: state.mood, seed: state.seed, generator: parameters }, { seconds, sampleRate: rate });
+    signal.throwIfAborted();
+    const [l, r] = mixWindow(
+      {
+        rate,
+        clips: [],
+        beds: [{ pcm: [music.left, music.right], events: bedDuckEnvelope({ clipSec: seconds, volume: 0.7, fadeIn: 0.2, fadeOut: 0.8 }) }],
+      },
+      0,
+      frames
+    );
+    left.set(l.subarray(0, frames), i * frames);
+    right.set(r.subarray(0, frames), i * frames);
+  }
+  return pcmToWavBlob({ left, right, sampleRate: rate });
+}

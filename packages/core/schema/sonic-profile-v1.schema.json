@@ -301,6 +301,35 @@
           }
         }
       ]
+    },
+    "startingSound": {
+      "description": "The starting sound chosen for the uses: one sound for every use, or the mix, where each use keeps the sound the starting set gave it. Optional.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "sound"],
+          "properties": {
+            "mode": {
+              "const": "one"
+            },
+            "sound": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode"],
+          "properties": {
+            "mode": {
+              "const": "mixed"
+            }
+          }
+        }
+      ]
     }
   }
 }

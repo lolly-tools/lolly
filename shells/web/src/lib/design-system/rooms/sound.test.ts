@@ -24,7 +24,7 @@ g.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListen
 (dom.window as unknown as { matchMedia: unknown }).matchMedia = g.matchMedia;
 
 const { mountSoundRoom } = await import('./sound.ts');
-const { SONIC_DIRECTIONS } = await import('../../sonic-music.ts');
+const { SONIC_DIRECTIONS, soundSummary: soundSummaryOf } = await import('../../sonic-music.ts');
 const { parseMusicState, musicStateParams } = await import('../../music-state.ts');
 const { readSoundEdit, finishSoundEdit, clearSoundEdit } = await import('../../sound-edit-handoff.ts');
 const { sonicProfileOf } = await import('../../../../../../engine/src/sonic-profile.ts');
@@ -79,7 +79,7 @@ function mount(extra: Partial<Options> = {}) {
   const fresh = document.createElement('div');
   current.replaceWith(fresh);
   current = fresh;
-  const heard: Array<{ parameters: string; narrated: boolean }> = [];
+  const heard: Array<{ parameters: string | readonly string[]; narrated: boolean }> = [];
   const went: string[] = [];
   const fake = (extra.host ? null : fakeHost());
   const handle = mountSoundRoom(room(), {
@@ -97,10 +97,10 @@ test('a design system with no sound opens on the starting sounds alone', async (
   clearSoundEdit();
   const { handle } = mount();
   await until(() => room().querySelector('.sound-card'), 'the cards');
-  assert.equal(room().querySelectorAll('.sound-card').length, SONIC_DIRECTIONS.length);
+  assert.equal(room().querySelectorAll('.sound-card').length, SONIC_DIRECTIONS.length + 1, 'three sounds and the mix');
   assert.equal(room().querySelector('.sound-uses'), null, 'no uses until a sound is chosen');
   assert.equal(room().querySelectorAll('input, select, textarea').length, 0, 'nothing to fill in at first');
-  assert.equal(room().querySelectorAll('[data-choose]').length, SONIC_DIRECTIONS.length);
+  assert.equal(room().querySelectorAll('[data-choose]').length, SONIC_DIRECTIONS.length + 1);
   assert.equal(room().querySelector<HTMLElement>('[data-bar]')?.hidden, true, 'nothing to save yet');
   assert.equal(room().querySelector<HTMLElement>('[data-endbar]')?.hidden, true);
   handle.teardown();
@@ -304,4 +304,57 @@ test('saving never floats over the room: no sticky or fixed positioning in its s
   const { readFileSync } = await import('node:fs');
   const css = readFileSync(new URL('../../../styles/parts/start-sound.css', import.meta.url), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   assert.doesNotMatch(css, /position:\s*(sticky|fixed)/, 'the save rows sit in the room’s flow, so they cover nothing');
+});
+
+test('the mix: a fourth card that plays every sound in turn, each use its own genre, and it survives a save', async () => {
+  clearSoundEdit();
+  const first = mount();
+  await until(() => room().querySelector('.sound-card'), 'the cards');
+  assert.equal(room().querySelectorAll('.sound-card').length, SONIC_DIRECTIONS.length + 1, 'three sounds and the mix');
+  const mixCard = room().querySelector('[data-direction="mixed"]')!;
+  assert.match(mixCard.textContent ?? '', /Mixed/);
+  assert.equal(mixCard.querySelectorAll('.sound-card-icon').length, SONIC_DIRECTIONS.length, 'a disc for each use’s sound');
+
+  click('[data-play="dir:mixed"]');
+  await until(() => first.heard.length === 1, 'the mix preview');
+  assert.deepEqual(first.heard[0]!.parameters, SONIC_DIRECTIONS.map((d) => d.parameters), 'one press hears each sound in turn');
+
+  click('[data-choose="mixed"]');
+  await until(() => room().querySelector('.sound-uses'), 'the uses');
+  assert.ok(room().querySelector('[data-direction="mixed"]')?.classList.contains('is-chosen'));
+  for (const direction of SONIC_DIRECTIONS) {
+    click(`[data-select="${direction.id}"]`);
+    const genre = soundSummaryOf(direction.parameters).split(' · ')[0]!;
+    assert.match(room().querySelector('.sound-summary')?.textContent ?? '', new RegExp(`^${genre}`), `${direction.id} plays its own genre`);
+  }
+  // A chip plays its own use's sound.
+  click('[data-play="use:demonstrate"]');
+  await until(() => first.heard.length === 2, 'the use preview');
+  assert.equal(parseMusicState(first.heard[1]!.parameters as string).mood, SONIC_DIRECTIONS.find((d) => d.id === 'demonstrate')!.mood);
+  // Edit in the music generator takes the selected use's own genre.
+  click('[data-select="play"]');
+  click('[data-edit-music]');
+  assert.match(first.went.at(-1)!, new RegExp(`style=${SONIC_DIRECTIONS.find((d) => d.id === 'play')!.mood}&`));
+  first.handle.teardown();
+  finishSoundEdit({ cancelled: true });
+
+  // Back in the room, save; a fresh room reads the mix back from the design system.
+  const second = mount({ host: first.fake!.host });
+  await until(() => room().querySelector('[data-save]'), 'the save button');
+  click('[data-save]');
+  await until(() => first.fake!.saved.length === 1, 'the save');
+  assert.deepEqual(sonicProfileOf(first.fake!.doc()).profile?.startingSound, { mode: 'mixed' });
+  second.handle.teardown();
+  const third = mount({ host: first.fake!.host });
+  await until(() => room().querySelector('.sound-card.is-chosen'), 'the chosen card');
+  assert.equal(room().querySelector<HTMLElement>('.sound-card.is-chosen')?.dataset.direction, 'mixed');
+  // And one sound again, each use keeping its tune.
+  const before = sonicProfileOf(first.fake!.doc()).profile!.contexts.map((c) => parseMusicState(c.music.parameters).seed);
+  click('[data-choose="explain"]');
+  click('[data-save]');
+  await until(() => first.fake!.saved.length === 2, 'the second save');
+  const after = sonicProfileOf(first.fake!.doc()).profile!;
+  assert.deepEqual(after.startingSound, { mode: 'one', sound: 'explain' });
+  assert.deepEqual(after.contexts.map((c) => parseMusicState(c.music.parameters).seed), before);
+  third.handle.teardown();
 });
