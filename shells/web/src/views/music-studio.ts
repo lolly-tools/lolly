@@ -84,7 +84,7 @@ import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { genreTitle, shuffleIconSvg } from '../lib/genre-icons.ts';
 import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { genreHeroHtml, wireGenreHero, wireGenreLock } from './music-studio/genre-hero.ts';
-import { autoLabel, composedTag, sentenceCase, styleKitName, trackName as partName } from './music-studio/track-names.ts';
+import { autoLabel, composedTag, laneHeadName, sentenceCase, styleKitName, trackName as partName } from './music-studio/track-names.ts';
 import { createStudioHistory, historyButtonsHtml, historyKey, paintHistoryButtons, redoneLine, stableJson, undoneLine } from './music-studio/studio-history.ts';
 import { auditionMoment, createFxLayer, drawChips, fxMoments, momentLabel, placeChips, pressMoment, CHIP, type FxMoment, type PlacedChip } from './music-studio/fx-moments.ts';
 import { isTextEditingTarget } from '../lib/typing-target.ts';
@@ -716,6 +716,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   let laneHeadKey = '';
   /** The pitched parts with no note anywhere in the track (paintSummaries). */
   const silentParts = new Set<Pitched>();
+  /** Each pitched lane's instruments across the tune (paintSummaries), for its head's whole name. */
+  const laneLists: Partial<Record<Pitched, { names: string[]; list: string }>> = {};
   /** Each pitched lane's head shows the instrument playing at the playhead (or the selected bar), in its shade. */
   /** The bar whose instrument a part's head shows: this one, or where the part next plays (else last played). */
   const barFor = (tr: Pitched, at: number): LofiBar | undefined => {
@@ -738,7 +740,13 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // The lane head's menu gives the instrument of its icon ("Auto" first when the composer
       // chose it), or Not playing for a part with no notes at all.
       const short = page.querySelector<HTMLElement>(`[data-short="${tr}"]`);
-      if (short) short.textContent = silentParts.has(tr) ? t('Not playing') : chosenHere(bar.section, tr) ? sentenceCase(instrumentOf(bar, tr)) : autoLabel(instrumentOf(bar, tr));
+      const shown = sentenceCase(instrumentOf(bar, tr));
+      const text = silentParts.has(tr) ? t('Not playing') : chosenHere(bar.section, tr) ? shown : autoLabel(instrumentOf(bar, tr));
+      if (short) short.textContent = text;
+      // A long label is cut short on screen; the tooltip and the spoken name give the whole label.
+      const lane = laneLists[tr], head = short?.closest<HTMLElement>('.ms-browse');
+      const whole = laneHeadName(text, lane?.list ?? '', !silentParts.has(tr) && !!lane && (lane.names.length > 1 || lane.names[0] !== shown));
+      if (head) { head.title = whole; head.setAttribute('aria-label', tRaw('{track}: {names}. Browse and hear the instruments.', { track: partName(tr), names: whole })); }
       for (const el of page.querySelectorAll<HTMLElement>(`[data-inst="${tr}"]`)) {
         el.replaceChildren(musicIconNode(instrumentIcon(tr, ids[n]!), 18));
         el.style.color = shadeOf(tr, ids[n]!);
@@ -1237,6 +1245,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // "Auto" leads the list while the person has chosen this part's instrument nowhere.
       const chosen = !!state[tr] || Object.values(state.sections).some(v => !!v?.[tr]);
       text[tr] = !ids.length ? t('Not playing') : chosen ? list : tRaw('Auto · {name}', { name: list });
+      laneLists[tr] = { names: ids, list };
       if (ids.length) silentParts.delete(tr); else silentParts.add(tr);
     }
     // The lane heads' short names follow on the next paint.
