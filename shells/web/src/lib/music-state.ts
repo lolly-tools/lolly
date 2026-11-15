@@ -21,7 +21,7 @@ export const BPM_RANGE = [50, 220] as const;
 /** How far the key can be moved, in semitones each way. */
 export const TRANSPOSE_RANGE = 6;
 /** The voices that carry a pitch, which a change of key moves (the drums and sweeps stay). */
-export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser', 'didge', 'fm']);
+export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', 'bwah', 'sparkle', 'game', 'hey', 'tag', 'layer', 'blip', 'coin', 'phaser', 'didge', 'fm', 'siren']);
 
 /**
  * The kinds of effect a person can turn on or off, and which family each effect voice is in.
@@ -33,7 +33,7 @@ export const PITCHED_VOICES = new Set<string>(['keys', 'lead', 'bass', 'soar', '
  */
 export const FX_FAMILIES = ['voices', 'console', 'sparkles', 'sweeps', 'birds'] as const;
 export type FxFamily = typeof FX_FAMILIES[number];
-const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'birds', kookaburra: 'birds', game: 'console', coin: 'console', fm: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps' };
+const FX_FAMILY: Partial<Record<string, FxFamily>> = { hey: 'voices', tag: 'voices', magpie: 'birds', kookaburra: 'birds', game: 'console', coin: 'console', fm: 'console', sparkle: 'sparkles', blip: 'sparkles', riser: 'sweeps', phaser: 'sweeps', siren: 'sweeps' };
 /** Whether a family of effects plays in a track. */
 export function fxOn(s: MusicState, family: FxFamily): boolean {
   if (family === 'birds' && !OWN_BIRDS.has(s.mood)) return !!s.birds;

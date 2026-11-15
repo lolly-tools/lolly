@@ -44,6 +44,7 @@
  */
 import { ELECTRIC_CHOKE, ELECTRIC_DEAD, ELECTRIC_FRET, ELECTRIC_PICK, ELECTRIC_UP } from '../../../../engine/src/lofi-compose.ts';
 import type { LofiBar, LofiMood, LofiNote, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
+import { isSliceNote } from '../../../../engine/src/lofi-break-chop.ts';
 import { chopper } from './lofi-chop.ts';
 import { PLUCKED_LEADS, pluckedLead, rhythmKnocks } from './lofi-lead-art.ts';
 import { FLUTE_BREATH, FLUTE_DEEP, FLUTE_GHOST, FLUTE_KU, FLUTE_PLAYED, FLUTE_SCOOP, FLUTE_SNATCH, FLUTE_SOFT, FLUTE_STOP, FLUTE_SWELL, FLUTE_TAPER, lungsMod } from './lofi-flutes.ts';
@@ -135,7 +136,8 @@ function drummer(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => numbe
   const pocket = POCKET[mood] ?? {};
   for (const [i, n] of notes.entries()) {
     const loose = LOOSE[n.voice];
-    if (loose === undefined) continue;
+    // A slice of a chopped break is a sampler's, sequenced exactly: the drummer's feel is already in the recording.
+    if (loose === undefined || isSliceNote(n)) continue;
     let ms = gauss(rand) * loose * tight;
     if (n.voice === 'snare' || n.voice === 'rim') ms += pocket.snare ?? 0;
     if (n.voice === 'hat' || n.voice === 'openHat') ms += pocket.hat ?? 0;

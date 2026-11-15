@@ -15,7 +15,7 @@ import { musicIconBody, strokeSvg, strokeSvgNode, type InstrumentIcon } from './
 import { LOFI_MOOD_LABEL } from './neurospicy-lofi.ts';
 
 /** Glyphs only the generator draws. Lucide (ISC): shuffle, disc-3, headphones,
- *  ice-cream-cone, flower, mountain, radio, speaker, castle and sailboat. Lolly's own: a wrapped sweet, a surfboard and a tuba. */
+ *  ice-cream-cone, flower, mountain, radio, speaker, castle, sailboat and tree-palm. Lolly's own: a wrapped sweet, a surfboard and a tuba. */
 const OWN = {
   shuffle: '<path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-7.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/>',
   disc: '<circle cx="12" cy="12" r="10"/><path d="M6 12c0-1.7.7-3.2 1.8-4.2"/><circle cx="12" cy="12" r="2"/><path d="M18 12c0 1.7-.7 3.2-1.8 4.2"/>',
@@ -29,6 +29,7 @@ const OWN = {
   candy: '<circle cx="12" cy="12" r="4.5"/><path d="M7.9 10 3 7v10l4.9-3"/><path d="M16.1 10 21 7v10l-4.9-3"/>',
   surfboard: '<path d="M4 20C4 13 10 5.5 20 4c0 8-7.5 14.5-16 16Z"/><path d="M4 20 20 4"/><path d="m7.5 14.5-2-2"/>',
   sailboat: '<path d="M22 18H2a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4Z"/><path d="M21 14 10 2 3 14h18Z"/><path d="M10 2v16"/>',
+  palm: '<path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/>',
   tuba: '<path d="M10 2.5h12"/><path d="M11.5 2.5c.8 2.8 2.2 4.4 4 5.2"/><path d="M20.5 2.5c-.8 2.8-2.2 4.4-4 5.2"/><path d="M16 8v3.6"/><ellipse cx="12" cy="16" rx="7" ry="5"/><path d="M8 11.4V8.5"/><path d="M11.5 11V8.5"/><path d="M5 16H2.5"/>',
 } as const;
 type OwnGlyph = keyof typeof OWN;
@@ -54,6 +55,7 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   botanica: { set: 'leaf' },
   oompa: { own: 'tuba' },
   breakbeat: { set: 'scissors' }, funkyHouse: { set: 'aperture' }, ukGarage: { set: 'neuroBeat' }, privateSchool: { set: 'graduationCap' },
+  jungle: { own: 'palm' },
 };
 
 /** The shapes of a genre's icon, inside its `<svg>`. */
@@ -85,7 +87,7 @@ const GROUP_MOODS: Record<GenreCategory, readonly LofiMood[]> = {
   chill: ['warm', 'lateNight', 'rainy', 'lofiHouse', 'triphop', 'dream', 'citypop', 'sings', 'fantasy', 'botanica'],
   rock: ['rock', 'punk', 'grunge', 'stoner', 'metal', 'shoegaze', 'surf', 'country', 'ska'],
   soul: ['blues', 'jazz', 'swing', 'soul', 'funk', 'rnb', 'hiphop', 'yacht', 'reggae'],
-  club: ['nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'electro', 'privateSchool'],
+  club: ['nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'jungle', 'electro', 'privateSchool'],
   bass: ['dubstep', 'brostep', 'sugar', 'sherbert', 'synthwave', 'chiptune', 'acid'],
   world: ['persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'spanish', 'straya', 'kpop', 'salsa', 'oompa'],
 };

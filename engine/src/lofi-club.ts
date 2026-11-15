@@ -5,9 +5,10 @@
  * and running orders, called by the composer (lofi-compose.ts composeDanceTune) so that
  * file holds only the hooks.
  *
- * - Breakbeat: a sampled drummer's break chopped and played back in a new order (the break
- *   engine, lofi-breaks.ts), a punchier kick under it in the drops, a rolling bass, short
- *   chord stabs and a 125 to 138 bpm feel.
+ * - Breakbeat: a sampled drummer's break chopped and played back in a new order (a recorded
+ *   break sliced by lofi-break-chop.ts, which the composer puts in place of the note-written
+ *   break these drums still draw, so the tune's other draws stay as they were), a punchier
+ *   kick under it in the drops, a rolling bass, short chord stabs and a 125 to 138 bpm feel.
  * - Funky house: four on the floor with claps on two and four, open hats on the offbeats,
  *   a shaker and Latin percussion, a filtered disco chord loop whose filter opens and closes
  *   through the drop, piano or organ stabs, a bouncing bass and vocal chops.
