@@ -1052,15 +1052,16 @@
       "bpm": 108,
       "key": "F major",
       "file": "oompa.m4a",
-      "bytes": 203168,
-      "sha256": "f660f7c46b017c1f73433c1b3b501bdc43890c48b88959cf4199c05c48def525",
+      "bytes": 202946,
+      "sha256": "51bd7bd0e503c95438c7e57f6ac2d6f5ddd9efe152492c9fc33e470a5523c1cb",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Oompa, seed 1.",
       "measured": {
-        "rmsDb": -31.1,
-        "peakDb": -13,
-        "dipDb": -2.3,
+        "scratches": 0,
+        "rmsDb": -21.6,
+        "peakDb": -6.1,
+        "dipDb": -2.1,
         "liftDb": -0.6,
-        "lowDb": -5.9,
+        "lowDb": -5.6,
         "stereo": 0.91
       }
     },
