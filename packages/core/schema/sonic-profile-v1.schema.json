@@ -1,0 +1,306 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sonic profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "revision",
+    "label",
+    "owner",
+    "identity",
+    "defaultContext",
+    "contexts",
+    "review"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "owner": {
+      "const": "containing-design-system"
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["character", "anchors", "avoid"],
+      "properties": {
+        "character": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 4000
+        },
+        "anchors": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 4000
+        },
+        "avoid": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 4000
+        }
+      }
+    },
+    "defaultContext": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$"
+    },
+    "contexts": {
+      "type": "array",
+      "maxItems": 24,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "purpose",
+          "guidance",
+          "music",
+          "narration",
+          "signature",
+          "examples",
+          "requirements"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 2000
+          },
+          "guidance": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 4000
+          },
+          "music": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["adapter", "parameters"],
+            "properties": {
+              "adapter": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 160
+              },
+              "parameters": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000
+              }
+            }
+          },
+          "narration": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["voice", "speed", "bedVolume", "duck", "guidance", "pronunciations"],
+            "properties": {
+              "voice": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 160
+              },
+              "speed": {
+                "type": "number",
+                "minimum": 0.5,
+                "maximum": 2
+              },
+              "bedVolume": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "duck": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "guidance": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 4000
+              },
+              "pronunciations": {
+                "type": "array",
+                "maxItems": 64,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["written", "spoken"],
+                  "properties": {
+                    "written": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    },
+                    "spoken": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "signature": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["guidance"],
+            "properties": {
+              "guidance": {
+                "type": "string",
+                "minLength": 0,
+                "maxLength": 2000
+              },
+              "resource": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type", "id"],
+                "properties": {
+                  "type": {
+                    "const": "asset"
+                  },
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                }
+              }
+            }
+          },
+          "examples": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["label", "note", "resource"],
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "note": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 2000
+                },
+                "resource": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["type", "id"],
+                  "properties": {
+                    "type": {
+                      "const": "asset"
+                    },
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "requirements": {
+            "type": "array",
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "kind", "label", "requirement"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "requirement": {
+                  "enum": ["required", "advisory"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "review": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": {
+            "state": {
+              "const": "draft"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reviewer", "at", "notes"],
+          "properties": {
+            "state": {
+              "const": "reviewed"
+            },
+            "reviewer": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "at": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T",
+              "maxLength": 50
+            },
+            "notes": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 4000
+            }
+          }
+        }
+      ]
+    }
+  }
+}

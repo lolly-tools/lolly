@@ -34,12 +34,12 @@ const TAIL_SECONDS = 2.5;
  * A saved tune's recipe: its station's mood and its seed, and for a music generator track
  * the generator's link parameters (lib/music-state.ts), which win over the mood and seed.
  */
-export type LofiTuneRecipe = LofiLink & { generator?: string };
+export type LofiTuneRecipe = LofiLink & { generator?: string; sonic?: unknown };
 
 /** The bytes stored for a saved tune: version 1 a station tune, version 2 a generator track. */
 export function lofiTuneBytes(recipe: LofiTuneRecipe): Uint8Array {
   const base = { kind: KIND, version: recipe.generator ? 2 : 1, mood: recipe.mood, seed: recipe.seed >>> 0 };
-  return new TextEncoder().encode(JSON.stringify(recipe.generator ? { ...base, generator: recipe.generator } : base));
+  return new TextEncoder().encode(JSON.stringify(recipe.generator ? { ...base, generator: recipe.generator, ...(recipe.sonic ? { sonic: recipe.sonic } : {}) } : base));
 }
 
 /** Read a saved tune's bytes, or null when they are not one. */
@@ -53,13 +53,13 @@ export function lofiTuneFromBytes(bytes: Uint8Array): LofiTuneRecipe | null {
 /** The recipe in an asset's `meta.lofi` (written when the tune is saved), or null. */
 export function lofiTuneFromMeta(value: unknown): LofiTuneRecipe | null {
   if (!value || typeof value !== 'object') return null;
-  const { mood, seed, generator } = value as { mood?: unknown; seed?: unknown; generator?: unknown };
+  const { mood, seed, generator, sonic } = value as { mood?: unknown; seed?: unknown; generator?: unknown; sonic?: unknown };
   if (typeof mood !== 'string' || !LOFI_STATION_MOODS.includes(mood as LofiMood)) return null;
   if (typeof seed !== 'number' || !Number.isInteger(seed) || seed < 0 || seed > 4294967295) return null;
   // A generator track's settings are its link's parameters: short, and read back by the
   // same parser the generator uses, which ignores anything it does not know.
   const gen = typeof generator === 'string' && generator.length < 4000 ? generator : undefined;
-  return { mood: mood as LofiMood, seed, ...(gen ? { generator: gen } : {}) };
+  return { mood: mood as LofiMood, seed, ...(gen ? { generator: gen, ...(sonic !== undefined ? { sonic } : {}) } : {}) };
 }
 
 /** Fetch and read a saved tune from its asset url. */

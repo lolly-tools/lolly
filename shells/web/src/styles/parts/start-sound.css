@@ -1,0 +1,24 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+@layer components {
+.sound-room { max-width: 960px; margin-inline: auto; padding: 24px; }
+.sound-head { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.sound-head h2 { margin-block: 4px 8px; }
+.sound-head p, .sound-hint { line-height: 1.6; }
+.sound-badge { white-space: nowrap; border: 1px solid hsl(var(--border)); border-radius: 16px; padding: 4px 10px; font-size: .8rem; }
+.sound-intro, .sound-listening { padding: 20px; border: 1px solid hsl(var(--border)); border-radius: 12px; margin-block: 20px; }
+.sound-room fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.sound-details { border-block-end: 1px solid hsl(var(--border)); padding-block: 16px; }
+.sound-details summary { cursor: pointer; font-weight: 600; padding-block: 8px; }
+.sound-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sound-field { display: grid; gap: 8px; margin-block: 12px; min-width: 0; }
+.sound-field input, .sound-field select, .sound-field textarea { width: 100%; min-width: 0; box-sizing: border-box; font: inherit; color: inherit; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 6px; padding: 10px; }
+.sound-field textarea { resize: vertical; }
+.sound-field small, .sound-hint { font-size: .85rem; line-height: 1.5; }
+.sound-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 12px; }
+.sound-room audio { width: 100%; margin-block: 16px 4px; }
+.sound-status { min-height: 1.5em; line-height: 1.5; }
+@media (max-width: 600px) { .sound-room { padding: 14px; } .sound-head { flex-wrap: wrap; } .sound-grid { grid-template-columns: 1fr; gap: 0; } .sound-listening { padding: 14px; } }
+
+}
+
+@layer components { .sound-field input:focus-visible, .sound-field textarea:focus-visible, .sound-field select:focus-visible, .sound-details summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; } }

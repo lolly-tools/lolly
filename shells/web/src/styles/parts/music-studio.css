@@ -819,3 +819,8 @@ html[data-a11y-motion="reduce"] .ms-choice-menu.is-entering { animation: none; }
   padding: var(--sp-4);
   border-radius: var(--ui-radius-card);
 }
+
+.ms-sound-profile { padding: 16px; border-bottom: 1px solid var(--ms-line, #aaa); display: flex; gap: 16px; flex-wrap: wrap; }
+.ms-sound-profile[hidden] { display: none; }
+.ms-sound-profile p { max-width: 75ch; line-height: 1.5; }
+.ms-sound-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

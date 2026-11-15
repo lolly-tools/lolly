@@ -200,8 +200,8 @@ export function distinctTunes(sources: readonly (TuneSource | null | undefined)[
 
 // ── which tunes an export will hold ──────────────────────────────────────────
 
-/** Largest file read to check whether a url holds a saved tune: a recipe is a few hundred bytes. */
-const MAX_TUNE_BYTES = 16 * 1024;
+/** Recipes can retain a bounded sound profile as well as the musical settings. */
+const MAX_TUNE_BYTES = 1024 * 1024;
 
 /**
  * The recipe at a media url, or null when the url is not a saved tune. A `blob:` or

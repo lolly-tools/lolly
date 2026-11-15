@@ -26,7 +26,7 @@ The bar across the top of the studio carries the design system's name, and the n
 
 The studio is a set of rooms in no fixed order: nothing is numbered and nothing waits on anything else. On a desk the rooms sit in one strip under the bar. On a phone they move to a bar along the bottom edge, where a thumb reaches them, with the open room scrolled into view; the palette sheet and the tray rise above that bar, and the bar steps aside while you type. With a keyboard, Tab reaches the strip once, and the arrow keys, Home and End move from room to room.
 
-![The studio's bar and its rooms: Board, Colours, Type, Logos, Tokens, Files, Rules and Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![The studio's bar and its rooms: Board, Colours, Type, Logos, Tokens, Files, Sound, Rules and Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 | Room | What you do there | Link key |
 |---|---|---|
@@ -36,6 +36,7 @@ The studio is a set of rooms in no fixed order: nothing is numbered and nothing 
 | **Logos** | Place your marks in every orientation and treatment | `logos` |
 | **Tokens** | Corners, spacing, shadows and every other named value | `tokens` |
 | **Files** | The images, audio and motion files your brand keeps | `catalogue` |
+| **Sound** | Shape sonic identity, music for different uses and the voice relationship | `sound` |
 | **Rules** | The rules your brand applies, checked on real examples | `usage` |
 | **Skills** | The brand's written standards for people and agents, to read and download | `skills` |
 
@@ -314,6 +315,20 @@ A section with nothing in it offers the way to fill the gap: **Pick a colour**, 
 ## Files
 
 Drop the files your brand keeps, apart from logos: **vector**, **image**, **audio** and **motion** files (video, Lottie and animations). They appear in [Assets](/info/using.html#assets-your-library), sorted into sections and ready in every tool's asset picker, and they stay on this device.
+
+## Sound
+
+**Sound** starts with listening. Explain, Demonstrate and Play are editable starting points, not a prescribed identity. Compare a short music excerpt, describe the character and familiar elements you want to keep, then choose **Save these starting points**. The settings become part of this design system. Older systems without a sound profile continue to work.
+
+Each use has its own purpose, musical choices and voice relationship. **New composition** changes the seed while retaining those music choices. Automatic instrument choices can still vary with the seed. Name fixed instruments where their sound matters; a seed does not preserve a melodic motif or establish brand recognition. **More musical control** opens the recipe in Music, where you can edit sections, kits, effects and the producer tag, then apply the copied settings link back to this use.
+
+Choose a voice before **Listen with narration**. Speaking speed, music level and the amount remaining during speech are separate choices. Pronunciation notes use one exact written phrase and spoken phrase per line. Auditions use the existing local speech model and sequence gain envelopes. The preview is an excerpt with a fade, not a composed ending or an intelligibility score. Its sample text stays in the room.
+
+A fixed signature is a separate audio asset. Assign the recording and describe its use, then place that asset in the sequence; the generated bed does not insert the signature. Imported reference examples and unsupported requirements are retained. A required capability that the generator cannot fulfil stops generation.
+
+**Make a music project** keeps the selected use, profile revision and exact recipe with the project. New compositions retain the music choices; changing those choices requires reapplying the profile or making an independent copy. The original project stays available. Share links carry musical settings, while the retained project and tune file also hold profile guidance. Public audio credentials carry the tune digest rather than private profile text. Keep a rendered recording when identical audio must survive future renderer changes.
+
+**Record listening review** stores the reviewer, date and notes for the saved profile. Editing sound choices returns the profile to draft. That review does not approve every future composition: listen for recognition, cultural fit, pronunciation, masking and pacing before release. Saving makes a checkpoint in the same design system history used by the other rooms.
 
 <!--i:eti-checklist-->
 ## Rules

@@ -80,6 +80,8 @@ export function wireCleanup(start: StartCtx): void {
     start.trayUi = null;
     start.overview?.teardown();
     start.overview = null;
+    start.sound?.teardown();
+    start.sound = null;
     start.usage?.teardown();
     start.usage = null;
     start.skills?.teardown();
