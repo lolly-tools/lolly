@@ -76,6 +76,9 @@ export const STACKS: Partial<Record<LofiMood, StackPlan>> = {
   funkyHouse: { xover: 130, mono: 200, width: 0.35, cents: 6, late: 0.004, sub: 0.5, take: 0.55, soft: 0.5, top: 0 },
   ukGarage: { xover: 130, mono: 200, width: 0.6, cents: 7, late: 0.004, sub: 0.9, take: 0.7, soft: 0.75, top: 0.15 },
   privateSchool: { xover: 70, mono: 220, width: 0.2, cents: 3, late: 0.003, sub: 0.35, take: 0.85, soft: 0.85, top: 0 },
+  // Jungle's dub sub (engine/src/lofi-jungle.ts): the sine carries it, the round bass over it
+  // only a little body for small speakers, narrow, with no top.
+  jungle: { xover: 110, mono: 220, width: 0.25, cents: 4, late: 0.003, sub: 1.5, take: 0.45, soft: 0.45, top: 0 },
 };
 
 /** Whether a style stacks its bass. */

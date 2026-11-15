@@ -142,7 +142,9 @@ test('item 1: decorative rAF loops fold perf-ui into their reduce-motion guard',
   // The ambient MilkDrop backdrop is gated at its call site, the dock host, NOT in the
   // butterchurn-viz engine wrapper (that wrapper also serves user-invoked rendering like
   // the catalog audio-asset preview, which must still paint under perf-ui).
-  assert.match(DOCK, /prefersReducedMotion\(\) \|\| perfUiOn\(\)/, 'the ambient dock visualiser never starts');
+  // Reduced motion keeps it off unless the person chose MilkDrop themselves (the music
+  // generator's Expand and Full screen); perf-ui keeps it off whatever was chosen.
+  assert.match(DOCK, /\(prefersReducedMotion\(\) && !this\.chosen\) \|\| perfUiOn\(\)/, 'the ambient dock visualiser never starts under perf-ui');
 });
 
 test('item 2: the gallery skips live grid-tile rasterisation and settles on the static icon', () => {

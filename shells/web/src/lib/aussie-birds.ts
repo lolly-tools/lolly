@@ -9,6 +9,7 @@
  */
 import { composeLofiTune, type LofiBar, type LofiMood, type LofiNote, type LofiTuneInfo } from '../../../../engine/src/lofi-compose.ts';
 import { DIDGE_LEAD, LOFI_BIRD_FEATURE, LOFI_BIRD_FLOCK, readDidge } from '../../../../engine/src/lofi-straya.ts';
+import { coastBirdsFor } from './coast-birds.ts';
 
 /** The styles that place their own birds. */
 export const OWN_BIRDS = new Set<LofiMood>(['straya', 'sugar', 'botanica', 'sherbert']);
@@ -53,5 +54,6 @@ export function sprinkleBirds(bar: LofiBar, tune: LofiTuneInfo): LofiBar {
   } else if (CALM.has(bar.section) && i % 8 === 3 && draw(seed, i, 6) < 0.55 && clear(bar.notes, 2, 4)) {
     add.push({ voice: 'magpie', midi: magpie, beat: 2, dur: 1.5 + draw(seed, i, 7), vel: 0.4, mod: song(8) });
   }
+  if (!add.length) add.push(...coastBirdsFor(bar, tune));   // now and then a whipbird pair or lorikeets (lib/coast-birds.ts)
   return add.length ? { ...bar, notes: [...bar.notes, ...add].sort((a, b) => a.beat - b.beat) } : bar;
 }

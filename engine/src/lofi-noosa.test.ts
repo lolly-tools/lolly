@@ -14,7 +14,9 @@
  *  - the magpie sings in most tunes, the kookaburra in few;
  *  - a didgeridoo, where there is one, drones under the quiet sections and toots only over
  *    a full swell, in its one rhythm figure;
- *  - a wave note's `mod` reads back, and a wave series is the same whatever stretch is asked for.
+ *  - a wave note's `mod` reads back, and a wave series is the same whatever stretch is asked for;
+ *  - the coast's birds: a whipbird pair in some intros or lulls, lorikeets now and then, both rarer
+ *    than the magpie, and their notes' `mod`s read back.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,6 +24,7 @@ import { composeLofiTune, lofiSectionName, LOFI_MOODS, type LofiBar } from './lo
 import { noosaPlan } from './lofi-noosa.ts';
 import { DIDGE_BREATH, DIDGE_DRONE, DIDGE_SWEEP, DIDGE_WA, readBird } from './lofi-straya.ts';
 import { readWave, swellBeats, waveMod, waveSeries, WAVE_SWELL } from './lofi-waves-notes.ts';
+import { lorikeetMod, readLorikeet, readWhipbird, whipbirdMod } from './lofi-coast-birds.ts';
 
 const SEEDS = Array.from({ length: 24 }, (_, i) => (i * 2654435761 + 5) >>> 0);
 const tune = (seed: number): LofiBar[] => composeLofiTune(seed, 'noosa');
@@ -139,4 +142,30 @@ test('a wave note reads back, and a series is the same whatever stretch is asked
   assert.ok(mean > 6.5 && mean < 9.5 && cv > 0.15 && cv < 0.45, `gaps ${mean.toFixed(2)} s, spread ${cv.toFixed(2)}`);
   assert.ok(new Set(whole.map(w => w.size)).size >= 3, 'small, medium and big waves, in sets');
   assert.equal(swellBeats(2, 120), WAVE_SWELL[2] * 2);
+});
+
+test('the coast\'s birds: a whipbird pair in some tunes\' intro or lull, lorikeets now and then, both rarer than the magpie', () => {
+  let whip = 0, lori = 0, magpie = 0;
+  for (const seed of SEEDS) {
+    const bars = tune(seed);
+    const plan = noosaPlan(seed);
+    const whips = bars.filter(b => b.notes.some(n => n.voice === 'whipbird'));
+    const loris = bars.filter(b => b.notes.some(n => n.voice === 'lorikeet'));
+    if (whips.length) whip++;
+    if (loris.length) lori++;
+    if (bars.some(b => b.notes.some(n => n.voice === 'magpie'))) magpie++;
+    assert.deepEqual(whips.map(b => b.index), plan.whipbird, `${seed}: the pair calls where the plan says`);
+    for (const b of whips) assert.ok(b.section === 'intro' || b.section === 'break', `${seed}: the pair calls in an intro or a lull, not a ${b.section}`);
+    if (whips.length) assert.ok(whips.length === 2, `${seed}: the pair calls twice`);
+    for (const b of loris) {
+      const n = b.notes.find(x => x.voice === 'lorikeet')!;
+      const kind = readLorikeet(n.mod ?? 0).kind;
+      assert.ok(kind === 'flypast' ? b.section === 'verse' || b.section === 'drop' : kind === 'chatter' && b.section === 'break', `${seed}: ${kind} in a ${b.section}`);
+    }
+    for (const b of whips) for (const n of b.notes.filter(x => x.voice === 'whipbird')) assert.ok(readWhipbird(n.mod ?? 0).distance >= 1, `${seed}: the pair is in the trees`);
+  }
+  assert.ok(whip >= 4 && whip < magpie, `a whipbird pair in ${whip} of ${SEEDS.length}, the magpie in ${magpie}`);
+  assert.ok(lori >= 3 && lori < magpie, `lorikeets in ${lori} of ${SEEDS.length}`);
+  for (const kind of ['screech', 'chatter', 'flypast'] as const) for (const birds of [1, 4, 8]) assert.deepEqual(readLorikeet(lorikeetMod(kind, birds, 77)), { kind, birds, take: 77 });
+  for (const answered of [true, false]) for (const d of [0, 1, 2]) assert.deepEqual(readWhipbird(whipbirdMod(answered, d, 99)), { answered, distance: d, take: 99 });
 });

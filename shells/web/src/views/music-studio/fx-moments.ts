@@ -44,6 +44,7 @@ const SOUNDS: Readonly<Record<string, FxSound>> = {
   glitch: { kind: 'console', glyph: 'zap', name: () => t('Glitch') },
   riser: { kind: 'sweep', glyph: 'wind', name: () => t('Riser') },
   phaser: { kind: 'sweep', glyph: 'wind', name: () => t('Phaser sweep') },
+  siren: { kind: 'sweep', glyph: 'wind', name: () => t('Dub siren') },
   grain: { kind: 'sweep', glyph: 'cloud', name: () => t('Granular pad') },
   sparkle: { kind: 'sparkle', glyph: 'sparkle', name: () => t('Sparkles') },
   blip: { kind: 'sparkle', glyph: 'sparkle', name: () => t('Bleeps') },
