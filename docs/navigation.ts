@@ -68,7 +68,7 @@ export function validateRegistry(registry: DocsRegistry, root = DOCS_ROOT): void
   const paths = new Set<string>();
   const aliases = new Set<string>();
   const workSlugs = new Set<string>();
-  const renderers = new Set(['renderMakeSomethingPage', 'renderFaqPage', 'renderTenetsPage', 'renderDesignImportPage', 'renderFormatsPage']);
+  const renderers = new Set(['renderMakeSomethingPage', 'renderFaqPage', 'renderTenetsPage', 'renderDesignImportPage', 'renderFormatsPage', 'renderMusicHubPage']);
   for (const page of registry.pages) {
     if (!ID.test(page.slug) || slugs.has(page.slug) || !PATH.test(page.path) || paths.has(page.path)) throw new Error(`Duplicate or invalid documentation identity: ${page.slug}`);
     if (!sections.has(page.section) || !page.group || !page.title || !ID.test(page.icon)) throw new Error(`Incomplete documentation metadata: ${page.slug}`);

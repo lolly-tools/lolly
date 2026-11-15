@@ -1,0 +1,1968 @@
+{
+  "version": 1,
+  "genres": [
+    {
+      "id": "warm",
+      "name": "warm lofi",
+      "title": "Free warm lofi background music generator: make your own, free with credit",
+      "description": "Make warm lofi background music in your browser: a dusty Rhodes, a soft flute and a lazy beat. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Sunny jazz chords on a dusty Rhodes, a flute on the tune and a beat that never hurries. Every seed gives a new warm lofi tune, written in your browser, and you can change every part of the track.",
+      "sound": [
+        "Warm is the sunniest of Lolly's three Lofi moods, always in a major key. A Rhodes, a Wurlitzer, a soft pluck or a felt piano plays major and minor ninths voiced close, each chord moving as little as possible from the last. A flute most often carries the tune, or vibes, a kalimba or an acoustic guitar, and some tunes have no lead at all, just the keys.",
+        "The beat is mostly a swung boom-bap played a little behind the grid, with a shuffle, a lazy groove, half-time or a sparse kick in other tunes, over a rolling, upright or synth bass. Tunes play at about 75 to 99 beats a minute, through a worn record's tiny ticks of dust, an occasional pop and the soft noise of the stylus.",
+        "Each tune opens its own way (the keys alone, the hats and then the kit, or the bass and hats) and plays a verse that the melody joins halfway. Two or three middle sections follow: a bridge, a feature for the lead, the keys or a walking bass, a groove with the beat held back, a breakdown or a drum break. A last verse leads to a fade."
+      ],
+      "uses": [
+        "Study and focus playlists",
+        "Vlogs and cooking videos",
+        "Podcast intros and beds under talk",
+        "Coffee-shop and waiting-room ambience",
+        "Calm game menus",
+        "Morning live streams"
+      ],
+      "faq": [
+        {
+          "q": "Can I make warm lofi without the crackle?",
+          "a": "Yes. Open Mix and turn Texture down for a clean record, or up for more dust. The link you share keeps the setting."
+        },
+        {
+          "q": "Can I swap the flute for another instrument?",
+          "a": "Yes. Click the Melody lane's head to open the instrument popup, click a card to hear two bars of this tune on that instrument, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
+        }
+      ],
+      "related": [
+        "lateNight",
+        "rainy",
+        "sings"
+      ]
+    },
+    {
+      "id": "lateNight",
+      "name": "late night lofi",
+      "title": "Free late night lofi background music generator: make your own, free with credit",
+      "description": "Make late night lofi background music in your browser: slow minor felt piano and soft rimshots. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Slow minor chords on a felt piano, soft rimshots and plenty of space. Lolly writes a new late night lofi tune from every seed, right in your browser, and you can change any part of the track.",
+      "sound": [
+        "Late night is the slowest and sparest of Lolly's three Lofi moods, and always in a minor key. A felt piano or a Rhodes (now and then a Wurlitzer or a soft pluck) plays minor ninths and elevenths, voiced close and moving as little as possible from chord to chord. Many tunes have no lead at all; the rest bring in vibes, a flute, a harp or a kalimba.",
+        "The drums stay soft: a rimshot or brushes more often than a snare, a half-time or lazy groove, and sometimes a sparse kick with no hats at all. A rolling or upright bass holds the root. Tunes play at about 63 to 86 beats a minute, with a worn record's dust and the stylus's soft noise underneath.",
+        "A tune can open on the keys alone or on the hats, then plays a verse that the melody joins halfway. Two or three middle sections follow, such as a bridge on the second progression, a groove with the beat held back or a breakdown with no drums, before a last verse and an ending that fades or thins out."
+      ],
+      "uses": [
+        "Sleep and wind-down playlists",
+        "Late-night study sessions",
+        "Reading and journaling videos",
+        "Quiet live streams after dark",
+        "Night-time city footage"
+      ],
+      "faq": [
+        {
+          "q": "Can I make late night lofi slower for sleep?",
+          "a": "Yes. Type a lower tempo in the Tune section, down to 50 beats a minute; the notes keep their places in the bar, so only the pace changes. To lose the beat altogether, mute the Drums lane."
+        },
+        {
+          "q": "Can I turn off the voice that says Lolly?",
+          "a": "Yes. The Ear candy lane's menu chooses how the tune says Lolly, and No Lolly tag leaves the voice out. The choice goes into the link you share."
+        }
+      ],
+      "related": [
+        "rainy",
+        "warm",
+        "triphop"
+      ]
+    },
+    {
+      "id": "rainy",
+      "name": "rainy lofi",
+      "title": "Free rainy lofi background music generator: make your own, free with credit",
+      "description": "Make rainy lofi background music in your browser: felt piano, kalimba and brushed snare. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Felt piano, a kalimba and brushes on the snare, in a minor key. Lolly writes a new rainy lofi tune from every seed, in your browser, and every part of the track is yours to change.",
+      "sound": [
+        "Rainy is the quiet, minor-key middle of Lolly's three Lofi moods. A felt piano or a soft pluck (now and then a Rhodes) plays close-voiced minor ninths and elevenths. A kalimba most often carries the tune, or a harp, a flute, vibes or bells, with a melody drawn from the key's pentatonic scale so the tune never fights the chords.",
+        "Brushes take the snare in most tunes, a shaker often plays in place of the hats, and an upright or rolling bass holds the root. The groove is lazy, boom-bap, half-time or sparse, and swung a little. Tunes play at about 67 to 90 beats a minute.",
+        "There is no rain sound in the mix: the name is the mood. Under the music you hear a worn record's dust and the stylus's soft noise. A tune opens on the keys or the kit, the melody joins halfway through the first verse, and middle sections such as a keys feature or a breakdown without drums come and go before the last verse."
+      ],
+      "uses": [
+        "Rainy-day study playlists",
+        "Reading and writing sessions",
+        "Cosy vlogs and slow-living videos",
+        "Quiet café or shop ambience",
+        "Relaxing game backgrounds"
+      ],
+      "faq": [
+        {
+          "q": "Is there real rain in rainy lofi?",
+          "a": "No. The name is the mood: minor keys on a felt piano, with a kalimba and brushes. The crackle you hear is a worn record, which Texture in Mix turns up or down."
+        },
+        {
+          "q": "Can I take the drums out?",
+          "a": "Yes. Press the speaker on the Drums lane to mute the drums, or press the headphones on another lane to hear that part alone. The link you share keeps the choice."
+        }
+      ],
+      "related": [
+        "lateNight",
+        "warm",
+        "botanica"
+      ]
+    },
+    {
+      "id": "lofiHouse",
+      "name": "lofi house",
+      "title": "Free lofi house background music generator: make your own, free with credit",
+      "description": "Make lofi house background music in your browser: a soft kick, dusty Rhodes and a warm deep bass. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Deep house with the dust left on: a soft kick on every beat, dusty chords under a slowly moving filter and a warm bass up front. Every seed gives a new lofi house tune, made in your browser.",
+      "sound": [
+        "Lolly's lofi house is Chicago and deep house through a worn record and an old sampler's grit. A soft, round kick plays every beat, a muted clap or rimshot falls on two and four, and swung sixteenth hats run with the open hat on the offbeat and a shaker. Rhodes or organ stabs on minor ninths and major sevenths move under a filter that slowly opens and closes.",
+        "The bass is the loudest part: a warm, slightly saturated deep-house bass riding the offbeats, a clean sub under a warm middle. The lead stays quiet and sparse, a vocal chop, bells, vibes or a flute half-buried in the dust, and comes in only halfway through the first drop. Tunes play at about 116 to 124 beats a minute.",
+        "A tune opens on a long, filtered intro (the chords, the beat or the bass alone), then a verse and a build. The full kick arrives at the drop, where the filter closes and opens again over eight or sixteen bars, and the breakdown is the chords and the bass alone before the next build."
+      ],
+      "uses": [
+        "Study and work playlists",
+        "Fashion and lifestyle videos",
+        "Shop and café ambience",
+        "Warm-up sets and live streams",
+        "Product reels and ads",
+        "Late-night drive footage"
+      ],
+      "faq": [
+        {
+          "q": "Can I set lofi house to an exact tempo?",
+          "a": "Yes. Type the beats a minute you want in the Tune section's tempo field; the notes keep their places in the bar, so only the pace changes. The arrow next to the field returns to the tune's own tempo."
+        },
+        {
+          "q": "Can I make lofi house cleaner, without the dust?",
+          "a": "Yes. Turn Texture down in Mix for a clean record, and Drive down for a softer edge."
+        }
+      ],
+      "related": [
+        "funkyHouse",
+        "nudisco",
+        "warm"
+      ]
+    },
+    {
+      "id": "triphop",
+      "name": "trip hop",
+      "title": "Free trip hop background music generator: make your own, free with credit",
+      "description": "Make trip hop background music in your browser: a slow swung break, a deep 808 and dark pads. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A slow, swung break, a deep 808 and dark chords, with an eerie lead drifting over them. Lolly writes a new trip hop tune from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's trip hop is dark and dusty, nearly always in a minor key. Pads, a Rhodes or a felt piano hold each chord for two bars over an 808 bass, and the tune goes to an airy, voice-like synth lead, a flute, a guitar or a cello. Grit and plenty of record dust colour the whole mix, and the top end is kept dark.",
+        "The beat is a slow, swung boom-bap, with a shaker through the verses and choruses. In about three tunes in four the drums are a chopped break: two bars of Lolly's own modelled drummer, put through a model of an old sampler, sliced and played back in a new order. Tunes play at about 79 to 91 beats a minute. In about one tune in four a DJ adds a slow baby scratch on one of the tune's own sounds.",
+        "Each tune is a song. It opens on the beat or the keys, plays a verse and a pre-chorus that builds into the chorus, gives the lead a solo, then plays a last pre-chorus and chorus before the ending rings out. Most tunes say 'Lolly' once, often whispered or sung."
+      ],
+      "uses": [
+        "Moody film and video scenes",
+        "Late-night podcasts and audio stories",
+        "Fashion and art films",
+        "Noir-style game levels",
+        "Gallery and installation ambience"
+      ],
+      "faq": [
+        {
+          "q": "Can I swap the lead in trip hop?",
+          "a": "Yes. Open the Melody lane's instrument popup, hear two bars of the tune on any card, then use that instrument everywhere or only in one kind of section, such as the solo."
+        },
+        {
+          "q": "Can I make trip hop darker or brighter?",
+          "a": "Yes. Brightness in Mix moves the top end, and Room sets how much space surrounds the band."
+        }
+      ],
+      "related": [
+        "hiphop",
+        "lateNight",
+        "rnb"
+      ]
+    },
+    {
+      "id": "dream",
+      "name": "Dreamscape ambient",
+      "title": "Free Dreamscape ambient background music generator: make your own, free with credit",
+      "description": "Make Dreamscape ambient music in your browser: drifting pads, a soft choir and long held chords. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Drifting pads, a choir and chords held for two bars in a long room. Dreamscape is Lolly's slow, floating style, and every seed gives a new tune you can change in your browser.",
+      "sound": [
+        "Dreamscape is built from pads and a choir (now and then a felt piano) holding jazz-coloured chords for two bars each. Over them, vibes, a flute, a harp, bells or an airy, voice-like synth lead play a slow melody, and a rolling or synth bass moves gently underneath. A long room and a gentle tape wobble soften the edges.",
+        "The beat is slow and half-time, with a rimshot or brushes and a shaker on the beat instead of busy hats. Tunes play at about 69 to 87 beats a minute, with a soft top end and only a little record dust.",
+        "A tune opens on the pads or a lone melody, then a build with a roll and a riser opens into the drop on a crash. A breakdown pulls back before a second build and a second drop, where a different lead and bass take over, and an outro fades the tune away."
+      ],
+      "uses": [
+        "Meditation and yoga videos",
+        "Sleep and relaxation playlists",
+        "Spa and wellness spaces",
+        "Slow nature and product footage",
+        "Guided breathing sessions"
+      ],
+      "faq": [
+        {
+          "q": "Can I make Dreamscape without a beat?",
+          "a": "Yes. Mute the Drums lane with its speaker button and the pads, choir and melody play on alone. You can also lower the tempo in the Tune section for an even slower drift."
+        },
+        {
+          "q": "Can I make the echo shorter?",
+          "a": "Yes. Turn Room down in Mix for a closer, drier sound, or up for more space."
+        }
+      ],
+      "related": [
+        "fantasy",
+        "shoegaze",
+        "botanica"
+      ]
+    },
+    {
+      "id": "citypop",
+      "name": "city pop",
+      "title": "Free city pop background music generator: make your own, free with credit",
+      "description": "Make city pop background music in your browser: slap bass, Rhodes and bright jazz chords. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Slap bass, a Rhodes and bright jazz chords, like eighties Tokyo at sunset. Lolly writes a new city pop tune from every seed, in your browser, and you can change the instrument in every section.",
+      "sound": [
+        "Lolly's city pop is eighties Tokyo at sunset: a slap bass (now and then a smooth soul bass) under a Rhodes, an electric guitar, a Wurlitzer or a pad playing bright major ninths, with a flute, a trumpet, vibes, a guitar or a synthwave lead on the tune. Most tunes are in a major key, and the chords change every bar.",
+        "The drums play four on the floor with a snare or a clap on the backbeat and a hint of swing, and a shaker or congas join the verses and choruses. Tunes play at about 109 to 123 beats a minute, and some are signed with a spoken or sung 'Lolly'.",
+        "Each tune is a song: it opens on the whole band, the keys or the bass, then plays a verse, a pre-chorus that builds into the chorus on a snare fill and a crash, a solo for the lead, and a last pre-chorus and chorus before the ending rings out."
+      ],
+      "uses": [
+        "Retro and nostalgic vlogs",
+        "Night-drive and city footage",
+        "Fashion and lifestyle reels",
+        "Café and boutique ambience",
+        "Summer playlists",
+        "Cheerful podcast intros"
+      ],
+      "faq": [
+        {
+          "q": "Can I swap the slap bass?",
+          "a": "Yes. Click the Bass lane's head to open the instrument popup, hear two bars on each card, and choose Use everywhere, or click a chorus in the lane first and choose Use in every Chorus."
+        },
+        {
+          "q": "Can I move city pop to another key?",
+          "a": "Yes. The key menu in the Tune section moves the whole tune up to six semitones up or down. Every pitched part moves together and the drums stay as they are."
+        }
+      ],
+      "related": [
+        "yacht",
+        "funk",
+        "synthwave"
+      ]
+    },
+    {
+      "id": "sings",
+      "name": "Lolly Sings upbeat lofi",
+      "title": "Free Lolly Sings upbeat lofi background music generator: make your own, free with credit",
+      "description": "Make upbeat lofi with Lolly Sings: a kalimba melody over a bossa or a shuffle, in a major key. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A bright melody on a kalimba, vibes or bells, over a bossa or a shuffle. Lolly Sings is the melody-first, sunny side of Lolly's lofi, and every seed gives a new tune in your browser.",
+      "sound": [
+        "In Lolly Sings the melody is the point. Every tune is in a major key and has a lead, and the lead plays through every verse: a kalimba most often, or vibes, bells, a flute, a harp, an acoustic guitar or a chip lead. Underneath, a soft pluck, a felt piano, a Rhodes or a Wurlitzer plays jazz-coloured chords over a rolling, upright or synth bass.",
+        "The grooves leave the melody room: a bossa with the clave on the rim in place of a backbeat, a shuffle, a sparse kick, a boom-bap or half-time, with a rimshot, a clap or brushes and a shaker. The tape is cleaner than the Lofi moods', with less wobble, a brighter tone and about half the dust. Tunes play at about 87 to 120 beats a minute.",
+        "A tune opens on the keys, the hats, the kit or the bass and plays a verse. Two or three middle sections follow, such as a lead feature, a keys feature, a groove with the beat held back or a breakdown, and a last verse comes before the ending fades or thins out."
+      ],
+      "uses": [
+        "Kids' and family videos",
+        "Craft and how-to tutorials",
+        "Cheerful explainers and presentations",
+        "Cosy game menus",
+        "Upbeat study playlists"
+      ],
+      "faq": [
+        {
+          "q": "Does Lolly Sings have vocals?",
+          "a": "No. The melody is played, not sung, on a kalimba, vibes, bells or another instrument. Most tunes do say 'Lolly' once in a synthesised voice, and No Lolly tag in the Ear candy lane's menu leaves the voice out."
+        },
+        {
+          "q": "Can I change the melody instrument?",
+          "a": "Yes. Click the Melody lane's head, hear two bars of the tune on any instrument card, and choose Use everywhere."
+        }
+      ],
+      "related": [
+        "warm",
+        "citypop",
+        "botanica"
+      ]
+    },
+    {
+      "id": "fantasy",
+      "name": "fantasy",
+      "title": "Free fantasy background music generator: make your own, free with credit",
+      "description": "Make fantasy background music in your browser: a rippling harp, bells and a lydian melody. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A harp rippling under bells, a flute or a choir, with a lydian melody and toms turning each phrase. Lolly writes a new fantasy tune from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's fantasy style is built on a harp rippling under bells, a flute or a choir, or the harp taking the tune itself with a run up into each phrase. The melody is lydian in a major key, with its bright raised fourth, or dorian in a minor one, and plays on bells, a flute, a harp, a pan flute, a clarinet or an airy, voice-like synth lead.",
+        "A rolling or upright bass and a half-time pulse carry the music, with a shaker, a snare or brushes, and toms to turn the phrases. Everything plays in a big room with almost no record dust. Tunes play at about 85 to 103 beats a minute.",
+        "A tune opens on the harp or a lone melody, then a build with a roll and a riser opens into the drop on a crash. After a breakdown, a second build leads to a second drop with a different lead and bass, and an outro closes the tune."
+      ],
+      "uses": [
+        "Tabletop and role-playing sessions",
+        "Fantasy game menus and maps",
+        "Storytelling and bedtime videos",
+        "Book trailers and readings",
+        "Children's animation"
+      ],
+      "faq": [
+        {
+          "q": "Can I make a longer track for a game session?",
+          "a": "Yes. Set Length in the Tune section, up to 256 bars, and the track ends the way a song does, with an outro and a fade. Saved to your assets, a tune can also loop as a video's music bed."
+        },
+        {
+          "q": "Can I swap the harp for something else?",
+          "a": "Yes. Click the Chords lane's head to open the instrument popup, hear two bars on each card, and use your choice everywhere or in one kind of section."
+        }
+      ],
+      "related": [
+        "dream",
+        "guzheng",
+        "botanica"
+      ]
+    },
+    {
+      "id": "botanica",
+      "name": "Botanica acoustic nature",
+      "title": "Free Botanica acoustic nature background music generator: make your own, free with credit",
+      "description": "Make Botanica acoustic nature music in your browser: piano, guitar, birds and soft glitches. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Acoustic instruments in a place outdoors, with birds singing in the rests and gentle digital glitches over everything. Botanica, also called petalcore, is Lolly's own style, and every seed gives a new tune in a place of its own.",
+      "sound": [
+        "Botanica puts acoustic instruments in a place outdoors, under granular pads and digital glitches. A grand piano (a felt one in the quiet sections), a steel-string or nylon guitar, a string section or a harp plays the chords, and a flute, a cello, a viola, a fiddle, a guitar or a voice singing syllables takes the tune over a plucked double bass or a round bass.",
+        "Each tune is set somewhere: a wood, a stream, a garden in the rain, a meadow, dusk or a cave. Its wind, water, rain and insects come forward in a few short passages, and blackbirds, robins, wrens, thrushes or magpies sing in the lead's rests. The pads are the tune's own instruments cut into grains, and stutters, crushed notes and frozen chords glint over the top.",
+        "Half the tunes drift at about 40 to 70 beats a minute, mostly free of the grid; the others are glitchy grooves at 100 to 168, with a soft kick, snaps and ratcheting hats, and twigs and drips keeping time. A tune opens on its place alone, blooms (the style's drop), clears for a break, blooms again with a second voice and closes."
+      ],
+      "uses": [
+        "Nature and travel videos",
+        "Meditation and mindfulness sessions",
+        "Garden and craft vlogs",
+        "Art installations and galleries",
+        "Calm game worlds",
+        "Wellness and spa spaces"
+      ],
+      "faq": [
+        {
+          "q": "Can I get only the slow, drifting kind?",
+          "a": "Each seed is one kind or the other, so step through seeds with the arrows beside the seed until a tune drifts. You can also lower any tune's tempo in the Tune section."
+        },
+        {
+          "q": "Can I choose the place a tune is set in?",
+          "a": "The seed picks the place: a wood, a stream, a garden in the rain, a meadow, dusk or a cave. Try another seed for another place, and the link you share keeps the one you found."
+        }
+      ],
+      "related": [
+        "noosa",
+        "dream",
+        "rainy"
+      ]
+    },
+    {
+      "id": "noosa",
+      "name": "Noosacore beach",
+      "title": "Free Noosacore beach background music generator: make your own, free with credit",
+      "description": "Make Noosacore beach music in your browser: a warm rolling bass, breaking waves and magpies. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A warm bass rolling under a sunny coastal groove, with waves breaking now and then and magpies, whipbirds and lorikeets calling. Noosacore is Lolly's own sound of a beach town, new with every seed.",
+      "sound": [
+        "Noosacore is the sound of Noosa today, a coastal town where many cultures meet: a laid-back, sunny groove that mixes surf guitar, the didgeridoo, Botanica's acoustic instruments and the sounds of the coast. A warm, round bass (or an upright, or a soft synth) rolls through every groove, louder and busier than anything else, under granular pads and a Rhodes, an acoustic, a nylon guitar or a harp.",
+        "The sea comes in one to three moments a tune: a wave breaking on the first beat of a swell (the style's chorus), a wave breaking into the lull, or the shore's roar swelling for a few bars. Magpies, eastern whipbirds and rainbow lorikeets call at the ends of phrases, a breeze moves through the she-oaks, and a surf guitar plays one to three licks a tune.",
+        "The drums stay soft: a kick, a rim, a snap or brushes, a shaker and now and then a conga. In some tunes a didgeridoo drones softly under the intro, the lull and the ending. A tune moves through its intro, verses, swells and lull at about 80 to 100 beats a minute."
+      ],
+      "uses": [
+        "Beach and surf videos",
+        "Travel and holiday vlogs",
+        "Summer café and bar ambience",
+        "Outdoor and lifestyle reels",
+        "Relaxed podcast beds",
+        "Coastal property tours"
+      ],
+      "faq": [
+        {
+          "q": "Can I turn the waves or the birds off?",
+          "a": "Yes. In Mix, untick Waves to take out the sea and the breeze in the she-oaks, or Aussie birds to take out the magpies, whipbirds and lorikeets. The link you share keeps both choices."
+        },
+        {
+          "q": "Is the didgeridoo in every Noosacore tune?",
+          "a": "No, only in some tunes, where it drones softly under the intro, the lull and the ending and plays one bar of rhythm over the second swell."
+        }
+      ],
+      "related": [
+        "surf",
+        "botanica",
+        "straya"
+      ]
+    },
+    {
+      "id": "rock",
+      "name": "rock",
+      "title": "Free rock background music generator: make your own, free with credit",
+      "description": "Make rock background music in your browser: crunchy power chords, a rock beat and a guitar solo. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Crunchy power chords, a picked bass, a solid rock beat and a lead guitar that takes a solo. Every seed is a new rock song written in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's rock is a classic band: a crunchy rhythm guitar chugging power chords in eighths, a picked bass guitar, and a beat with the kick on one and three, pushed now and then. The lead is an overdriven lead guitar, a riff guitar, a twangy guitar or a heavier metal tone, playing over rock's three chords and their cousins in a major or a minor key.",
+        "Each electric guitar is modelled as strings heard through a pickup, so its distorted parts drive the amp with a modelled string rather than a synth wave, and the lead guitarist bends some long notes up into pitch. A tambourine or a cowbell joins the chorus. Tunes play at about 109 to 138 beats a minute.",
+        "Each tune is a song: an intro on the guitar, the beat or the whole band, a verse, a pre-chorus that builds into the chorus on a snare fill and a crash, a solo for the lead, then a last pre-chorus and chorus before the ending rings out. In about half the tunes the band shouts 'let's go' or 'go!' at the top or into a chorus."
+      ],
+      "uses": [
+        "Sports highlights and action edits",
+        "Workout and gym videos",
+        "Car and motorbike footage",
+        "Game trailers and menus",
+        "Energetic intros and outros"
+      ],
+      "faq": [
+        {
+          "q": "Is there a guitar solo in every rock tune?",
+          "a": "Yes. Every tune has a solo after the first chorus, where the lead steps forward. To give the solo its own instrument, click the solo in the Melody lane, pick an instrument in the popup and choose Use in every Solo."
+        },
+        {
+          "q": "Can I take out the shouts?",
+          "a": "Yes. In Mix, untick Voices to turn off the shouts and the Lolly tag. The link you share keeps the choice."
+        }
+      ],
+      "related": [
+        "punk",
+        "grunge",
+        "metal"
+      ]
+    },
+    {
+      "id": "punk",
+      "name": "punk rock",
+      "title": "Free punk rock background music generator: make your own, free with credit",
+      "description": "Make punk rock background music in your browser: fast buzzsaw power chords and a driving bass. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Fast buzzsaw power chords, a bass driving eighths and a beat that never lets up. Lolly writes a new punk song from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's punk is fast and loud: buzzsaw power chords chugging eighths, a picked bass driving eighths on the root through every section, and a fast rock beat with the hats pushed ahead of the beat. An overdriven lead guitar or a riff guitar carries the tune, and the band plays in a small, tight room.",
+        "Tunes play at about 167 to 198 beats a minute, the fastest of Lolly's rock styles, and most are counted in and straight in, on the whole band or the beat. In about three tunes in four the band shouts 'let's go' at the top or into a chorus, often with the crowd shouting back.",
+        "Each tune is a song: a verse, a pre-chorus that builds into the chorus on a snare fill and a crash, a solo (sometimes called in with a shouted 'go!'), a last pre-chorus and chorus, and an ending that rings out."
+      ],
+      "uses": [
+        "Skate and BMX videos",
+        "Sports and action montages",
+        "Workout and running playlists",
+        "Energetic game levels",
+        "Short, loud social clips"
+      ],
+      "faq": [
+        {
+          "q": "Can I make punk even faster?",
+          "a": "Yes. Type a tempo in the Tune section's tempo field, up to 220 beats a minute. The notes keep their places in the bar, so the song simply plays faster."
+        },
+        {
+          "q": "Can I turn off the 'let's go' shouts?",
+          "a": "Yes. In Mix, untick Voices to turn off the shouts and the Lolly tag."
+        }
+      ],
+      "related": [
+        "ska",
+        "rock",
+        "grunge"
+      ]
+    },
+    {
+      "id": "grunge",
+      "name": "grunge",
+      "title": "Free grunge background music generator: make your own, free with credit",
+      "description": "Make grunge background music in your browser: quiet clean verses, then loud fuzz choruses. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Quiet, clean verses, then the chorus hits with fuzz. Lolly writes a new grunge song from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's grunge is quiet, then loud. A clean guitar through a chorus pedal picks the chords in a verse the band plays softly, then the chorus hits with fuzz power chords, double-tracked. A picked bass doubles the roots, the drums are big and roomy, and the lead lazily sings the tune on a driven guitar.",
+        "Most tunes are in a minor key at a steady mid-tempo, about 97 to 126 beats a minute, with a dark top end and a big room. In most tunes the clean guitar opens alone before the band comes in. The lead is a riff guitar, an overdriven lead guitar or a plainer guitar.",
+        "Each tune is a song: a soft verse, a pre-chorus that builds into the loud chorus on a snare fill and a crash, a solo for the lead, then a last pre-chorus and chorus before the ending rings out and fades."
+      ],
+      "uses": [
+        "Skate and street videos",
+        "Moody vlogs and short films",
+        "Retro nineties edits",
+        "Game trailers with an edge",
+        "Indie fashion lookbooks"
+      ],
+      "faq": [
+        {
+          "q": "Can I hear only the guitars?",
+          "a": "Yes. Press the headphones on the Chords and Melody lanes to solo them. Soloed lanes play alone until you press again."
+        },
+        {
+          "q": "Can I make grunge heavier?",
+          "a": "Turn Drive up in Mix for more grit, or try Stoner rock for slower, heavier fuzz riffs."
+        }
+      ],
+      "related": [
+        "shoegaze",
+        "stoner",
+        "rock"
+      ]
+    },
+    {
+      "id": "stoner",
+      "name": "stoner rock",
+      "title": "Free stoner rock background music generator: make your own, free with credit",
+      "description": "Make stoner rock background music in your browser: slow, heavy fuzz riffs on the blues scale. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Slow, heavy fuzz riffs on the blues scale, a fuzzed bass and a big, loose beat in a big room. Lolly writes a new stoner rock song from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's stoner rock is slow, heavy and hypnotic: deep fuzz guitar riffs on the blues scale, a bass guitar or a growling bass fuzzed underneath, and a big, loose beat in a big room. A lead guitar bends the blue notes, and the chords change only every two bars, so each riff has time to roll round.",
+        "Most tunes are in a minor key at about 69 to 95 beats a minute, with a dark top end and plenty of drive. A tune opens on the fuzz guitar alone, the bass or the whole band, and the verses are held back a little so the chorus can hit harder.",
+        "Every tune follows a song form: a verse, a pre-chorus that builds into the chorus on a snare fill and a crash, a solo for the lead guitar, then a last pre-chorus and chorus before the ending rings out."
+      ],
+      "uses": [
+        "Desert and road-trip footage",
+        "Moody skate and surf films",
+        "Slow-motion action shots",
+        "Game trailers with weight",
+        "Motorbike and van-life vlogs"
+      ],
+      "faq": [
+        {
+          "q": "Can I make stoner rock even slower?",
+          "a": "Yes. Type a lower tempo in the Tune section, down to 50 beats a minute. The notes keep their places in the bar, so the riffs just roll slower."
+        },
+        {
+          "q": "Can I change the fuzz bass?",
+          "a": "Yes. Click the Bass lane's head, hear two bars of the riff on each bass, and use the one you like everywhere or only in the choruses."
+        }
+      ],
+      "related": [
+        "grunge",
+        "metal",
+        "blues"
+      ]
+    },
+    {
+      "id": "metal",
+      "name": "metal",
+      "title": "Free metal background music generator: make your own, free with credit",
+      "description": "Make metal background music in your browser: heavy guitars, palm-muted chugs and a double kick. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Heavy, double-tracked guitars through a high-gain amp, palm-muted chugs and a double kick through every chorus. Lolly writes a new metal song from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's metal is a band with heavy, double-tracked rhythm guitars through a high-gain amp and a four-by-twelve cabinet, chugging palm-muted power chords. A metal guitar, an overdriven lead or a riff guitar plays a phrygian melody, most tunes are in a minor key, and a picked or growling bass plays underneath.",
+        "The kick is clicky and tight, a double kick and a crash every phrase drive the chorus, and fills round the toms turn each phrase. Tunes play at about 130 to 166 beats a minute, in a small, tight room. In about half the tunes the band shouts 'let's go' at the top or into a chorus.",
+        "A tune opens on the whole band, the beat or the guitars, then plays a verse, a pre-chorus that turns into the chorus on a fill round the toms, a solo, a last pre-chorus and chorus, and an ending that rings out."
+      ],
+      "uses": [
+        "Gaming montages and boss fights",
+        "Extreme sports edits",
+        "Gym and lifting videos",
+        "Action trailers",
+        "Horror and dark fantasy scenes"
+      ],
+      "faq": [
+        {
+          "q": "Can I make metal faster?",
+          "a": "Yes. Type a tempo up to 220 beats a minute in the Tune section. The notes keep their places in the bar, so the whole song plays faster, double kick and all."
+        },
+        {
+          "q": "Can I swap the lead guitar?",
+          "a": "Yes. Click the Melody lane's head to hear two bars of the tune on each instrument, then use your choice everywhere, or click the solo in the lane first and choose Use in every Solo."
+        }
+      ],
+      "related": [
+        "stoner",
+        "rock",
+        "punk"
+      ]
+    },
+    {
+      "id": "shoegaze",
+      "name": "shoegaze",
+      "title": "Free shoegaze background music generator: make your own, free with credit",
+      "description": "Make shoegaze background music in your browser: a wall of swaying fuzz guitars in a huge room. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A wall of guitars swelling through a soft fuzz, with a dreamy lead half-buried in the haze. Lolly writes a new shoegaze song from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's shoegaze is a wall of guitars: full chords swelling in through a soft fuzz, each string swaying with the tremolo arm, in a huge room. A dreamy lead (an airy, voice-like synth, a viola or a guitar) is half-buried in the wall, as the style's singers are, and the chords change every two bars.",
+        "A plain bass, a bass guitar or a rolling bass, and a steady beat hold the ground. The verses are held back a little, sometimes on a clean guitar, so the wall can swell in the chorus. Tunes play at about 81 to 110 beats a minute, with a soft, dark top end.",
+        "Each tune opens on the guitars alone or the whole band, then moves through a verse, a pre-chorus that builds into the chorus on a snare fill and a crash, a solo and a last chorus before the sound rings out."
+      ],
+      "uses": [
+        "Dreamy film and art pieces",
+        "Slow-motion city footage",
+        "Indie fashion lookbooks",
+        "Late-night study playlists",
+        "Atmospheric game levels"
+      ],
+      "faq": [
+        {
+          "q": "Can I make shoegaze less washed out?",
+          "a": "Yes. Turn Room down in Mix for a closer, drier wall, and Brightness up for more edge."
+        },
+        {
+          "q": "Can I bring the lead forward?",
+          "a": "Yes. Raise the Melody level in Mix to lift the lead out of the wall, or pick a different lead in the Melody lane's instrument popup."
+        }
+      ],
+      "related": [
+        "dream",
+        "grunge",
+        "triphop"
+      ]
+    },
+    {
+      "id": "surf",
+      "name": "surf rock",
+      "title": "Free surf rock background music generator: make your own, free with credit",
+      "description": "Make surf rock background music in your browser: a tremolo-picked lead drenched in spring reverb. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A clean lead guitar dripping with spring reverb, tremolo-picking its held notes over a fast, driving beat. Lolly writes a new surf rock instrumental from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's surf rock is the early-sixties instrumental band, fast: a clean single-coil lead drenched in a spring reverb, its held notes tremolo-picked, its long notes shaken with the tremolo arm, and in most tunes a glissando down the neck into a chorus. A rhythm guitar plays through the same kind of big clean amp, now and then swapped for a transistor combo organ.",
+        "A picked bass drives eighths, and the drummer plays a driving beat with fills round the toms, riding the floor tom through the choruses in about half the tunes. Tunes are as often in a minor key or the Phrygian dominant as in a major one, at about 150 to 180 beats a minute.",
+        "The spring reverb is modelled as a real two-spring tank, so each echo arrives as a chirp: the drip after a picked note. In some tunes a twangy baritone guitar doubles the tune an octave down in the first chorus, and the last chorus hands the tune to the baritone while the lead tremolo-picks an octave above."
+      ],
+      "uses": [
+        "Beach and surf videos",
+        "Retro travel and road trips",
+        "Spy-style comedy and capers",
+        "Summer promos and ads",
+        "Tiki bar and diner ambience"
+      ],
+      "faq": [
+        {
+          "q": "Can I add ocean waves to surf rock?",
+          "a": "Yes. Open Mix and turn on Waves: the sea comes in one to three soft moments a tune, a wave breaking on the first beat of a chorus or into the solo, or the shore's roar swelling for a few bars."
+        },
+        {
+          "q": "Is surf rock instrumental?",
+          "a": "Yes. The lead guitar carries the tune through every section, the solo included. Most tunes do say 'Lolly' once, and No Lolly tag in the Ear candy lane's menu leaves the voice out."
+        }
+      ],
+      "related": [
+        "noosa",
+        "rock",
+        "punk"
+      ]
+    },
+    {
+      "id": "country",
+      "name": "country",
+      "title": "Free country background music generator: make your own, free with credit",
+      "description": "Make country background music in your browser: boom-chick guitar, pedal steel and fiddle. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A boom-chick acoustic or a honky-tonk piano, the train beat on the snare and a twanging guitar, pedal steel or fiddle up front. Every seed is a new country song, written in your browser for you to change.",
+      "sound": [
+        "Lolly's country band strums an acoustic guitar's boom-chick (or plays a honky-tonk piano or a banjo) over the train beat on the snare or brushes, with an upright or a picked bass walking root to fifth. Up front is a twanging electric guitar, a pedal steel, a fiddle, a flatpicked acoustic sliding and hammering on, a harmonica or a banjo.",
+        "The acoustic is modelled through its body, with the pick's click, the frets ticking and the fingers on the strings, and about half the guitarists knock the top on the backbeat. Nearly every tune is in a major key, on country's familiar chord changes, at about 101 to 127 beats a minute.",
+        "Each tune is a song: it opens on the guitar, the whole band or the lead, then plays a verse, a pre-chorus that turns into the chorus on a fill round the toms, a solo, a last chorus and an ending that rings out."
+      ],
+      "uses": [
+        "Road-trip and travel vlogs",
+        "Farm, food and outdoor videos",
+        "Rodeo and rural event promos",
+        "Bar and barbecue ambience",
+        "Western-themed games"
+      ],
+      "faq": [
+        {
+          "q": "Can I swap the pedal steel for a fiddle or a harmonica?",
+          "a": "Yes. Click the Melody lane's head, hear two bars of the tune on each instrument card, and choose Use everywhere, or the Use in every button for the kind of section you clicked."
+        },
+        {
+          "q": "Can I make country slower, like a ballad?",
+          "a": "Type a lower tempo in the Tune section. The notes keep their places in the bar, so the song plays slower and nothing else changes."
+        }
+      ],
+      "related": [
+        "straya",
+        "blues",
+        "rock"
+      ]
+    },
+    {
+      "id": "ska",
+      "name": "ska",
+      "title": "Free ska background music generator: make your own, free with credit",
+      "description": "Make ska background music in your browser: an offbeat skank, a walking bass and horns. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A guitar or an organ skanking on every offbeat, a walking bass and horns on the tune. Lolly writes a new ska song from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's ska is Jamaica's fast dance music: an electric guitar or an organ skanking on every offbeat, a walking bass, the drums' backbeat with the hats' chick on the offbeats, and a trumpet, a sax, a clarinet or a harmonica on the tune. Most tunes are in a major key, and the skank starts from the first bar.",
+        "The horns are blown models that brighten as they get louder, with breath that buzzes at the note's pitch. Tunes play fast, at about 152 to 182 beats a minute. In most tunes the band calls 'pick it up!' over the skank in the intro or as a chorus opens, often answered by the crowd, with a 'woo' or a 'let's go' now and then.",
+        "Each tune is a song: it opens on the whole band or the guitar, then plays a verse, a pre-chorus that builds into the chorus on a snare fill and a crash, a solo for the lead, and a last chorus before the ending rings out."
+      ],
+      "uses": [
+        "Upbeat vlogs and travel edits",
+        "Skate and BMX videos",
+        "Party and festival promos",
+        "Comedy sketches and bloopers",
+        "Summer event and bar ambience"
+      ],
+      "faq": [
+        {
+          "q": "Can I turn off the 'pick it up!' shouts?",
+          "a": "Yes. In Mix, untick Voices to turn off the band's shouts and the Lolly tag. The link you share keeps the choice."
+        },
+        {
+          "q": "Can I swap the trumpet for a sax or a clarinet?",
+          "a": "Yes. Click the Melody lane's head, hear two bars of the tune on each instrument card, and choose Use everywhere, or click a solo in the lane first and choose Use in every Solo."
+        }
+      ],
+      "related": [
+        "reggae",
+        "punk",
+        "swing"
+      ]
+    },
+    {
+      "id": "blues",
+      "name": "blues",
+      "title": "Free blues background music generator: make your own, free with credit",
+      "description": "Make slow blues background music in your browser: a twelve-bar shuffle, a harmonica and an organ. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A slow shuffle, a harmonica answering its own call and an organ holding the chords. Lolly writes a new twelve-bar blues from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's blues is a slow shuffle in twelve-bar choruses. A harmonica, a lead guitar or a sax plays the tune and answers its own call. An organ holds the chords and pushes them again on the swung beat, or a barrelhouse piano chops them, and an upright bass walks or plays a boogie line.",
+        "The lead bends its long notes up into pitch on the blues scale. The drummer shuffles on a snare or brushes, rolls round the toms into each chorus and adds a tambourine there, and the mix carries a little record dust.",
+        "A tune opens on the turnaround, goes round its twelve-bar choruses and gives the lead a twelve-bar solo before the last chorus. Tunes play at about 70 to 95 beats a minute, and most are in a major key."
+      ],
+      "uses": [
+        "Podcast intros and talk beds",
+        "Barbecue and cooking videos",
+        "Road trip and travel vlogs",
+        "Bar and venue background music",
+        "Late-night live streams"
+      ],
+      "faq": [
+        {
+          "q": "Can I swap the harmonica for a guitar or a sax?",
+          "a": "Yes. Open the Melody lane's instrument popup and click a card to hear two bars of this tune on that instrument. Use everywhere plays your choice all through the track, and Use in every Solo, from a solo in the lane, plays it only in the solos."
+        },
+        {
+          "q": "Can I make the blues slower?",
+          "a": "Yes. Type a tempo in the Tune section or drag across the tempo field. The notes stay where they are in the bar, so the shuffle just plays slower."
+        }
+      ],
+      "related": [
+        "jazz",
+        "soul",
+        "country"
+      ]
+    },
+    {
+      "id": "jazz",
+      "name": "jazz",
+      "title": "Free jazz background music generator: make your own, free with credit",
+      "description": "Make jazz background music in your browser: a combo swinging on the ride and a walking bass. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A small combo swinging on the ride, with a walking bass and a horn on the tune. Every seed gives a new jazz tune, written in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's jazz is a small combo swinging on the ride. A piano, a jazz guitar or a Rhodes comps on jazz chords, often pushing them ahead of the beat, an upright bass walks, and a sax, a trumpet or vibes plays the tune, further forward in the mix than the melody in Lolly's calmer styles.",
+        "The drummer keeps a dark, washy ride with the hi-hat's foot on two and four, feathers the kick so the kick is felt more than heard, and plays brushes or a cross-stick on the snare. The soloist lays back a little behind the beat and bends some notes up into pitch.",
+        "Each tune has verses and choruses, and in place of a pre-chorus the band stops for a four-bar drum break: the drummer alone, playing round the kit and filling into the chorus. A solo and a last chorus follow. Tunes play at about 120 to 175 beats a minute."
+      ],
+      "uses": [
+        "Café and restaurant ambience",
+        "Dinner party playlists",
+        "Cooking and recipe videos",
+        "Podcast beds and interludes",
+        "Presentations and slideshows"
+      ],
+      "faq": [
+        {
+          "q": "Can I make slower jazz for a café background?",
+          "a": "Yes. Type a slower tempo in the Tune section, or drag across the tempo field. The notes keep their place in the bar, so the combo plays the same tune at an easier pace."
+        },
+        {
+          "q": "Can I change the sax to a trumpet or vibes?",
+          "a": "Yes. Open the Melody lane's instrument popup, click a card to hear two bars of this tune on that instrument, then choose Use everywhere."
+        }
+      ],
+      "related": [
+        "swing",
+        "blues",
+        "soul"
+      ]
+    },
+    {
+      "id": "swing",
+      "name": "swing",
+      "title": "Free swing background music generator: make your own, free with credit",
+      "description": "Make swing background music in your browser: a big band, brass stabs and a clarinet or trumpet. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Brass stabs, a clarinet or trumpet on the tune and a drummer driving the band on the ride. Lolly writes a new big band swing tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's swing is a big band at full tilt. The brass section plays short stabs off the beat and a long chord to end each phrase, a clarinet, a trumpet or a sax plays the tune, and an upright bass walks under chords built on sixths, with passing diminished chords between.",
+        "The drummer rides the cymbal with the hi-hat's foot on two and four and feathers the kick. Some tunes open on a jungle intro, the drummer alone on the floor tom: boom, ba-ba, boom. As in Lolly's jazz, the band stops before each chorus for a four-bar drum break.",
+        "A tune runs through verses, drum breaks, choruses and a solo, then a last chorus, with the soloist forward in the mix and laying back a little behind the beat. Tunes play fast, at about 150 to 195 beats a minute."
+      ],
+      "uses": [
+        "Vintage and retro-style videos",
+        "Dance class warm-ups",
+        "Party and event playlists",
+        "Period scenes in games",
+        "Upbeat cooking and how-to videos"
+      ],
+      "faq": [
+        {
+          "q": "Can I slow swing down for a dance class?",
+          "a": "Yes. Type a tempo in the Tune section or drag across the tempo field. The notes stay where they are in the bar, so the band swings the same arrangement at your pace."
+        },
+        {
+          "q": "Can I swap the clarinet for a trumpet or a sax?",
+          "a": "Yes. Open the Melody lane's instrument popup and click a card to hear this tune's melody on that instrument. Use everywhere keeps your choice all through the track."
+        }
+      ],
+      "related": [
+        "jazz",
+        "oompa",
+        "ska"
+      ]
+    },
+    {
+      "id": "soul",
+      "name": "soul",
+      "title": "Free soul background music generator: make your own, free with credit",
+      "description": "Make soul background music in your browser: a walking bass, warm Rhodes and a laid-back backbeat. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A bass that walks and pushes, warm electric piano chords and a snare that sits back in the pocket. Lolly writes a new soul tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's soul is built on a soul bass that walks and pushes the band along. A Rhodes or a Wurlitzer plays warm jazz chords, and vibes, a flute, a trumpet or a guitar takes the tune. Most tunes are in a major key, with the chords changing every two bars.",
+        "The drummer plays a backbeat with the snare laid back in the pocket and a shaker in place of the hi-hat. A tambourine or a shaker joins in the choruses, and a crash opens each new section, as a band's drummer marks the change.",
+        "Each tune is a song: verses, a pre-chorus that turns into the chorus with a fill round the toms, a solo and a last chorus. The 'Lolly' tag is most often spoken or sung. Tunes play at about 90 to 107 beats a minute."
+      ],
+      "uses": [
+        "Lifestyle and fashion videos",
+        "Podcast intros and beds",
+        "Restaurant and bar ambience",
+        "Wedding and event slideshows",
+        "Feel-good brand videos"
+      ],
+      "faq": [
+        {
+          "q": "Can I turn off the 'Lolly' voice tag?",
+          "a": "Yes. The Ear candy lane's menu sets how the tune says 'Lolly': Auto, as the composer placed the tag, not at all, or one delivery for every tag. The link you share keeps your choice."
+        },
+        {
+          "q": "Can I change the key to sing over the track?",
+          "a": "Yes. The key menu in the Tune section moves the whole tune up or down by as much as six semitones and lists each key by name. Every pitched part moves together and the drums stay as they are."
+        }
+      ],
+      "related": [
+        "funk",
+        "rnb",
+        "yacht"
+      ]
+    },
+    {
+      "id": "funk",
+      "name": "funk",
+      "title": "Free funk background music generator: make your own, free with credit",
+      "description": "Make funk background music in your browser: slap bass, a scratching guitar and horn lines. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Slap bass up front, a guitar scratching sixteenths and a trumpet on the tune. Lolly writes a new funk tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's funk puts the slap bass up front: sixteenths of thumbed notes and popped octaves with dead notes between, a slide and a bend. An electric guitar plays the chicken scratch, muted strokes all through the bar with the chord ringing out on syncopated hits, and ends some phrases with a lick. In other tunes a wah guitar chanks the chords.",
+        "A trumpet most often plays the tune in horn lines, though a guitar, a flute, vibes or a synth lead can take the tune instead. The drummer plays tight sixteenths on the hats with ghost notes on the snare, and a tambourine, congas or a cowbell join in the choruses and the solo.",
+        "The chords are jazz-funk chords, rich in sevenths and ninths, and more often minor than major. Each tune is a song, with verses, a pre-chorus, a chorus, a solo and a last chorus. Tunes play at about 100 to 113 beats a minute."
+      ],
+      "uses": [
+        "Workout and dance videos",
+        "Product reveals and adverts",
+        "Live stream intros",
+        "Retro game levels",
+        "Party playlists",
+        "Sports highlights"
+      ],
+      "faq": [
+        {
+          "q": "Can I hear just the slap bass and drums?",
+          "a": "Yes. Press solo, the headphones, on the Bass and Drums lanes, and only the soloed lanes play. Press solo again to bring the band back."
+        },
+        {
+          "q": "Can I swap the trumpet for a guitar lead?",
+          "a": "Yes. Open the Melody lane's instrument popup, click a card to hear two bars of this tune on that instrument, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
+        }
+      ],
+      "related": [
+        "soul",
+        "afrobeat",
+        "nudisco"
+      ]
+    },
+    {
+      "id": "rnb",
+      "name": "R&B",
+      "title": "Free R&B background music generator: make your own, free with credit",
+      "description": "Make slow R&B background music in your browser: lush Rhodes, a sliding 808 and finger snaps. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Lush electric piano chords, a sliding 808 and a finger snap on the backbeat. Lolly writes a new R&B tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's R&B is smooth and slow. Lush sevenths and ninths ring on a Rhodes, a pad or a felt piano, over an 808 that slides between its notes or, in some tunes, a soul bass with a sub under it in the chorus. Vocal chops, a flute or vibes carry the tune.",
+        "A clap or a finger snap marks the backbeat, and the hats roll often, in thirty-seconds or triplets, the way R&B producers program them. Now and then a soft voice adds an 'oh', a 'yeah' or a 'whoa' as an ad-lib. In about one tune in four a DJ chirps or baby-scratches into the chorus, on one of the tune's own sounds.",
+        "Each tune is a song: verses, a pre-chorus, a chorus, a solo and a last chorus. Tunes are a little more often minor than major and play at about 65 to 79 beats a minute, slow and unhurried under a voice-over."
+      ],
+      "uses": [
+        "Late-night chill playlists",
+        "Beauty and fashion videos",
+        "Voice-over beds for vlogs",
+        "Slow-motion lifestyle clips",
+        "Lounge and bar ambience"
+      ],
+      "faq": [
+        {
+          "q": "Can I swap the 808 for a different bass?",
+          "a": "Yes. Open the Bass lane's instrument popup and click a card to hear this tune's bass line on that instrument. Use everywhere plays your choice all through the track, and Use in every Chorus, from a chorus in the lane, plays it only in the choruses."
+        },
+        {
+          "q": "Can I take out the ad-libs?",
+          "a": "Yes. In Mix, switch off the voices: that turns off the ad-libs and the 'Lolly' tag, and the band keeps every other note."
+        }
+      ],
+      "related": [
+        "soul",
+        "hiphop",
+        "triphop"
+      ]
+    },
+    {
+      "id": "hiphop",
+      "name": "hip hop",
+      "title": "Free hip hop background music generator: make your own, free with credit",
+      "description": "Make hip hop background music in your browser: boom-bap drums, a sliding 808 and chopped keys. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A hard boom-bap beat, a sliding 808 and keys chopped into short hits. Lolly writes a new hip hop beat from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's hip hop is a hard boom-bap with the snare laid back. An 808 slides between its notes, and a Rhodes, a Wurlitzer, a felt piano or a soft pluck cuts each chord into a few short hits. A bright lead, often a flute, a kalimba or a chip lead, sings the hook.",
+        "At the end of a phrase the hats often roll in thirty-seconds across the last beat, trap style. In about half the tunes a chopped break takes the place of the kit: Lolly's own drummer plays two bars on a modelled kit, recorded through a model of an old sampler and played back in slices in a new order. Most tunes also have a DJ on the turntable, scratching a hook into a chorus turnaround or a fill, and now and then scratching the intro. The turntable works on the tune's own sounds, such as a sung vowel, a horn stab or the chopped break, never on a record.",
+        "Each tune runs through verses, a pre-chorus, a chorus and a solo, then a last chorus, with an ad-lib such as 'yeah', 'uh' or 'yo' at the end of some phrases. Tunes play at about 85 to 97 beats a minute."
+      ],
+      "uses": [
+        "YouTube intros and vlogs",
+        "Skate and street edits",
+        "Live stream backgrounds",
+        "Gaming montages",
+        "Freestyle practice instrumentals",
+        "Podcast intros"
+      ],
+      "faq": [
+        {
+          "q": "Can I make an instrumental with no ad-libs or voice tag?",
+          "a": "Yes. In Mix, switch off the voices: that turns off the ad-libs and the 'Lolly' tag. The beat keeps every other note."
+        },
+        {
+          "q": "Can I make the beat longer for a video?",
+          "a": "Yes. Set the Length in the Tune section. A track holds whole tunes and ends on a tune's own outro and fade, the way a song ends."
+        },
+        {
+          "q": "Can I turn the scratches off, or have more?",
+          "a": "Yes. The scratches belong to Sweeps under the ear candy in Mix, so switching Sweeps off takes them out, with the risers and the phaser sweeps. For more scratching, choose the Turntable in the Melody lane's instrument popup, and a DJ plays the melody as scratches."
+        }
+      ],
+      "related": [
+        "triphop",
+        "rnb",
+        "lateNight"
+      ]
+    },
+    {
+      "id": "yacht",
+      "name": "yacht rock",
+      "title": "Free yacht rock background music generator: make your own, free with credit",
+      "description": "Make yacht rock background music in your browser: smooth Rhodes, a chorus guitar and a sax solo. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Smooth Rhodes chords, a polished half-time shuffle and a sax taking the solo. Lolly writes a new yacht rock tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's yacht rock is smooth late-seventies soft rock. A Rhodes comps on lush major sevenths, ninths and slash chords (a chord over a bass a tone higher), a smooth, melodic bass moves under them, and a clean guitar through a chorus pedal answers the tune at the end of its phrases.",
+        "The kit is polished and tight, most often in a half-time shuffle with ghost notes on the snare, with a tambourine or a shaker in the choruses. Whatever plays the tune, the solo goes to a saxophone, which growls a few loud held notes and plays soft low ones in a breathy subtone.",
+        "Each tune is a song: verses, a pre-chorus, a chorus, a solo and a last chorus. A string section opens some tunes or holds the chords under the solo. Tunes play at about 85 to 103 beats a minute, mostly in major keys."
+      ],
+      "uses": [
+        "Summer and travel vlogs",
+        "Boat, beach and holiday videos",
+        "Lifestyle brand videos",
+        "Cocktail bar ambience",
+        "Retro adverts and slideshows"
+      ],
+      "faq": [
+        {
+          "q": "Can I swap the sax solo for a guitar?",
+          "a": "Yes. Click a solo in the Melody lane to open the instrument popup there, and click a card to hear two bars on that instrument. Use in every Solo plays your choice in every solo, and Use everywhere plays it all through the track."
+        }
+      ],
+      "related": [
+        "citypop",
+        "soul",
+        "funk"
+      ]
+    },
+    {
+      "id": "reggae",
+      "name": "reggae",
+      "title": "Free reggae background music generator: make your own, free with credit",
+      "description": "Make reggae background music in your browser: a one drop beat, an offbeat skank and a deep bass. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "The one drop, a skank on every offbeat and a deep bass that leaves space. Lolly writes a new reggae tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's reggae plays the one drop: the kick and a cross-stick together on the third beat, a ghost note now and then, and a shaker and congas over the top. A Wurlitzer or a Rhodes skanks on every offbeat and, in the chorus, bubbles quietly on the sixteenths around each chop.",
+        "When an electric guitar plays the chords instead, the guitarist chops on two and four on the top strings and stops each chord at once. The rolling bass is deep and melodic and leaves space, and a trumpet, a flute, vibes or a kalimba sings the tune.",
+        "A tune opens on the whole band, straight into the groove, then runs through verses, a pre-chorus, a chorus and a solo. A 'hey' shout calls at the top of a chorus now and then. Tunes play at about 71 to 83 beats a minute."
+      ],
+      "uses": [
+        "Summer and beach videos",
+        "Travel vlogs",
+        "Chill live streams",
+        "Barbecue and party playlists",
+        "Café and shop ambience"
+      ],
+      "faq": [
+        {
+          "q": "Can I make reggae without the shouts?",
+          "a": "Yes. In Mix, switch off the voices: that turns off the 'hey' shouts and the 'Lolly' tag. The band plays on unchanged."
+        },
+        {
+          "q": "Can I make the groove a bit faster?",
+          "a": "Yes. Type a tempo in the Tune section or drag across the tempo field. The notes keep their place in the bar, so the one drop stays a one drop, only faster."
+        }
+      ],
+      "related": [
+        "ska",
+        "jungle",
+        "afrobeat"
+      ]
+    },
+    {
+      "id": "nudisco",
+      "name": "nu-disco",
+      "title": "Free nu-disco background music generator: make your own, free with credit",
+      "description": "Make nu-disco background music in your browser: filtered disco, an octave bass and a wah guitar. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Filtered disco: an octave bass, a wah guitar chanking and a kick on every beat. Lolly writes a new nu-disco tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's nu-disco is filtered disco: a kick on every beat, claps on two and four with an extra clap now and then, open hats on the offbeats, and a shaker, a tambourine or congas in the drops. A wah guitar chanks the chords, or a pad or saw chords hold them.",
+        "The bass bounces between octaves, a synth bass or an electro bass played as a stack over a clean sub in the middle. A synthwave lead, a flute, a guitar or vibes plays the tune. Each build opens the filter with a roll and a riser, and each drop opens on a crash.",
+        "A tune opens on an eight-bar intro, builds, drops, breaks down and drops again, with a second lead and bass in the second drop. Tunes play at about 115 to 124 beats a minute, a little more often in a major key than a minor one."
+      ],
+      "uses": [
+        "Fashion and lifestyle videos",
+        "Shop and boutique background music",
+        "Workout and spin classes",
+        "Party and event playlists",
+        "Night drive and city vlogs"
+      ],
+      "faq": [
+        {
+          "q": "Can I make nu-disco faster for a workout video?",
+          "a": "Yes. Type a tempo in the Tune section or drag across the tempo field. The notes keep their place in the bar, so only the speed changes, and the arrow next to the field puts the tune's own tempo back."
+        }
+      ],
+      "related": [
+        "funkyHouse",
+        "citypop",
+        "synthwave"
+      ]
+    },
+    {
+      "id": "funkyHouse",
+      "name": "funky house",
+      "title": "Free funky house background music generator: make your own, free with credit",
+      "description": "Make funky house background music in your browser: a filtered disco loop, congas and vocal chops. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A filtered disco loop, congas and timbales, a bouncing bass and vocal chops singing the hook. Lolly writes a new funky house tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's funky house is four on the floor with claps on two and four, open hats on the offbeats, a shaker and a tambourine. Over them plays a Latin section: congas, bongos in some tunes, a cowbell later in some drops and timbales rolling into every eight bars.",
+        "The disco loop is brass, a house organ, a grand piano, a Rhodes or strings stabbing house chords, under a filter that closes and opens again through the drop. A synth bass bounces off the octave like a disco player's line, and vocal chops sing the hook.",
+        "A tune opens on a sixteen-bar intro, then runs through a verse, a build, the drop and a breakdown. The groove swings a little, as funky house records do. Tunes play at about 123 to 128 beats a minute."
+      ],
+      "uses": [
+        "Fashion and beauty videos",
+        "Shop and salon background music",
+        "Workout and spin classes",
+        "Product launch videos",
+        "Summer party playlists"
+      ],
+      "faq": [
+        {
+          "q": "Can I take the vocal chops out?",
+          "a": "Yes. Mute the Melody lane, or open its instrument popup, choose a flute, a sax or vibes and press Use everywhere. Everything else about the tune stays the same."
+        },
+        {
+          "q": "Can I make a longer mix for a shop or a stream?",
+          "a": "Yes. Set the Length in the Tune section. A track holds whole tunes and ends on a tune's own outro and fade, the way a song ends."
+        }
+      ],
+      "related": [
+        "nudisco",
+        "ukGarage",
+        "lofiHouse"
+      ]
+    },
+    {
+      "id": "ukGarage",
+      "name": "UK garage",
+      "title": "Free UK garage background music generator: make your own, free with credit",
+      "description": "Make UK garage background music in your browser: two-step drums, organ stabs and vocal chops. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Swung two-step drums, organ stabs that pop and fall away, and vocal hooks chopped into a melody. Lolly writes a new UK garage tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's UK garage plays two-step drums: the kick on one and on the 'and' of three, never on three, with claps or snares on two and four and rimshots between. The sixteenths are shuffled and the hats swung harder still, and a fill turns the two-bar drum loop every eight bars.",
+        "A nineties house organ stabs the chords, popping and falling straight back. Chopped vocal hooks are pitched into a melody, gated and stuttered. Under them runs a sub bass, or in some tunes a warp bass whose filter swings with the beat and whose long notes sag as they end.",
+        "A tune opens on a sixteen-bar intro, then plays a verse, a build and the drop. The groove swings hard, as garage records do, and most tunes are in a minor key. Tunes play at about 130 to 136 beats a minute."
+      ],
+      "uses": [
+        "Streetwear and fashion edits",
+        "City and night-out vlogs",
+        "Live stream backgrounds",
+        "Dance and movement videos",
+        "Party playlists"
+      ],
+      "faq": [
+        {
+          "q": "Can I choose between the sub and the warp bass?",
+          "a": "Yes. Open the Bass lane's instrument popup and click a card to hear this tune's bass line on that bass. Use everywhere plays your choice all through the track, and Use in every Drop, from a drop in the lane, plays it only in the drops."
+        },
+        {
+          "q": "Can I hear just the two-step drums?",
+          "a": "Yes. Press solo, the headphones, on the Drums lane to hear the drums alone. Press solo again to bring the organ, the chops and the bass back."
+        }
+      ],
+      "related": [
+        "funkyHouse",
+        "breakbeat",
+        "dnb"
+      ]
+    },
+    {
+      "id": "breakbeat",
+      "name": "breakbeat",
+      "title": "Free breakbeat background music generator: make your own, free with credit",
+      "description": "Make breakbeat background music in your browser: a chopped drum break and a rolling reese bass. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A drum break cut into slices and played back in a new order, over a rolling reese bass. Lolly writes a new breakbeat tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Each Lolly breakbeat tune starts with a drummer: Lolly's modelled kit plays an original two-bar break in a live room. A model of an old twelve-bit sampler records the break, pushed in hot, and plays the break back faster than the drummer played, so the break rises in pitch.",
+        "The sampler then plays the break in slices. The groove loops, and at the end of every four and eight bars the break is edited: a beat swapped, a slice stuttered, a drag or a snare roll into the next phrase, a slice pitched up. Each build high-passes the break bar by bar, and the drops add a punchier kick. In most tunes a DJ throws rewinds and backspins into the drops and scratches stabs over the edits, on the tune's own sounds rather than a record.",
+        "A rolling reese bass drives the tune, answered now and then by a growl. Short saw, brass or organ stabs punch the chords, and vocal chops, a synth lead or a flute come in for the second half of the drop. A tune opens on a long intro, and tunes play at about 127 to 137 beats a minute."
+      ],
+      "uses": [
+        "Action and sports edits",
+        "Skate and BMX videos",
+        "Racing and driving games",
+        "Gaming streams",
+        "Trailers and teasers"
+      ],
+      "faq": [
+        {
+          "q": "Can I hear the drum break on its own?",
+          "a": "Yes. Press solo, the headphones, on the Drums lane, and only the chopped break plays. Press solo again to bring the bass and the stabs back."
+        },
+        {
+          "q": "Can I swap the vocal chop for another lead?",
+          "a": "Yes. Open the Melody lane's instrument popup, click a card to hear two bars of this tune on that instrument, then press Use everywhere, or the Use in every button for the kind of section you clicked."
+        }
+      ],
+      "related": [
+        "dnb",
+        "jungle",
+        "ukGarage"
+      ]
+    },
+    {
+      "id": "dnb",
+      "name": "drum and bass",
+      "title": "Free drum and bass background music generator: make your own, free with credit",
+      "description": "Make drum and bass background music in your browser: fast edited drums and a rolling reese bass. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Fast drums edited bar by bar, a rolling reese and a sub that dips under every kick. Lolly writes a new drum and bass tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's drum and bass keeps one rolling reese through a drop and dresses the reese up. The bass is a stack: a clean sub in the middle that dips under every kick, the reese played twice, one take on each side, and a driven top that carries the bass on small speakers. Neuro stabs fill the gaps.",
+        "Through every drop the kick and snare are edited bar by bar around a two-step: a kick moved or added, ghost notes and drags into the backbeat, a turnaround every four bars and a fill every eight. A quiet chopped break rides over the kit, and the bass talks at the end of a phrase with a bwah, a growl or a wub.",
+        "Pads, a Rhodes or soft plucks hold the chords, and the lead ranges from vibes or a kalimba to a flute or a riff guitar. A tune opens on a long intro, rises through phaser sweeps in the build, drops, breaks down and drops again, at about 170 to 176 beats a minute."
+      ],
+      "uses": [
+        "Workout and running videos",
+        "Gaming and esports streams",
+        "Sports highlights",
+        "Racing and action games",
+        "Tech and product trailers"
+      ],
+      "faq": [
+        {
+          "q": "Can I swap the reese for another bass?",
+          "a": "Yes. Open the Bass lane's instrument popup and click a card to hear this tune's bass line on that bass, from a wobble to an 808. Use everywhere plays your choice all through the track."
+        },
+        {
+          "q": "Can I slow drum and bass down?",
+          "a": "Yes. Type a tempo in the Tune section or drag across the tempo field. The notes keep their place in the bar, so only the speed changes."
+        }
+      ],
+      "related": [
+        "jungle",
+        "breakbeat",
+        "dubstep"
+      ]
+    },
+    {
+      "id": "jungle",
+      "name": "jungle",
+      "title": "Free jungle background music generator: make your own, free with credit",
+      "description": "Make jungle background music in your browser: chopped funk breaks over a deep dub sub. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Chopped funk breaks over a deep dub sub, with stabs thrown into a dub echo. Lolly writes a new jungle tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Each Lolly jungle tune has its own drummer, who plays two original two-bar funk breaks on a modelled kit in a live room, the snare's wires ringing whenever the kick is struck. A model of a twelve-bit sampler records the breaks and speeds them up a few semitones, and the chopped break is the tune's drum part.",
+        "Between steady stretches of groove the break is chopped every four and eight bars: slices resequenced, stutters, reversed slices swelling into the bar line, a half-time switch, and snare rolls in thirty-seconds and sixty-fourths into each drop. The second drop edits harder. In most tunes a DJ throws a rewind or a backspin into a drop and scratches stabs over the edits.",
+        "A sine sub plays long dub basslines, organ, Rhodes or brass stabs are thrown into a dub echo and a spring, and a synth siren calls at a few moments. A tune opens on pads and strings, in some tunes with the break filtered under them, then drops, breaks down, drops again and thins out, at about 160 to 175 beats a minute."
+      ],
+      "uses": [
+        "Gaming and racing streams",
+        "Skate and street videos",
+        "Retro nineties edits",
+        "Workout and running playlists",
+        "Action trailers"
+      ],
+      "faq": [
+        {
+          "q": "Can I hear the break without the bass?",
+          "a": "Yes. Press solo, the headphones, on the Drums lane, and only the chopped break plays. Press solo again to bring the sub and the stabs back."
+        },
+        {
+          "q": "Can I make a longer jungle track?",
+          "a": "Yes. Set the Length in the Tune section. A track holds whole tunes and ends on a tune's own outro and fade, the way a song ends."
+        }
+      ],
+      "related": [
+        "dnb",
+        "breakbeat",
+        "reggae"
+      ]
+    },
+    {
+      "id": "electro",
+      "name": "electro",
+      "title": "Free electro background music generator: make your own, free with credit",
+      "description": "Make electro background music in your browser: a distorted bass riff, saw chords and a hard pump. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A distorted bass riff jumping octaves, big saw chords and a kick that makes the whole mix pump. Lolly writes a new electro tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's electro takes after French house, with grit on the whole mix. A kick on every beat drives a hard pump, the music ducking under each kick, with claps or a snare on two and four. Big saw chords hold the harmony, and a distorted electro bass plays a riff that jumps octaves.",
+        "In the drop the riff is one of several basses at once: a travelling line an octave above walks the chord and slides into the next, short stabs punch the riff's gaps and a held note carries the root and fifth. A lead guitar, bells, a pulse lead or a metal guitar plays the tune.",
+        "A tune runs through a verse, a build with a roll and a riser, a drop that opens on a crash, a breakdown, and a second drop with a new lead and bass, now and then a screech bass. Tunes play at about 118 to 126 beats a minute."
+      ],
+      "uses": [
+        "Gaming montages and streams",
+        "Tech and product launches",
+        "Sports and car edits",
+        "Club and party playlists",
+        "Esports intros"
+      ],
+      "faq": [
+        {
+          "q": "Can I make electro less distorted?",
+          "a": "Yes. Open Mix and turn Drive down for a cleaner sound, or up for more grit. The link you share keeps the setting."
+        },
+        {
+          "q": "Can I swap the saw chords for something else?",
+          "a": "Yes. Open the Chords lane's instrument popup and click a card to hear two bars of this tune's chords on that instrument, then press Use everywhere, or the Use in every button for the kind of section you clicked."
+        }
+      ],
+      "related": [
+        "acid",
+        "synthwave",
+        "nudisco"
+      ]
+    },
+    {
+      "id": "privateSchool",
+      "name": "Private school amapiano",
+      "title": "Free Private school amapiano background music generator: make your own, free with credit",
+      "description": "Make Private school piano in your browser: mellow amapiano with a soft log drum and jazzy keys. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Amapiano at its most mellow: a soft, sliding log drum, jazz chords on piano or Rhodes and a saxophone on the tune. Every seed gives a new tune, written in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's Private school piano is amapiano at its most mellow. The log drum plays low, soft and sliding, a few notes a bar with its knock off the beat. A grand piano, a Rhodes or a Wurlitzer comps on jazz chords, and a saxophone, now and then a flute or vibes, plays the tune.",
+        "The drums stay quiet: a soft kick, rimshots around a gentle backbeat, shakers swung on every sixteenth and soft congas in the drops. Nothing hurries: the chords change every two bars, and a build can take eight or sixteen bars to reach the drop.",
+        "A tune opens on a long sixteen-bar intro, then plays a verse, builds slowly and drops. Tunes play at about 108 to 113 beats a minute, a little slower and softer than Lolly's own Amapiano, the busier side of the same sound."
+      ],
+      "uses": [
+        "Lounge and rooftop bar ambience",
+        "Fashion and lifestyle videos",
+        "Sunset and travel vlogs",
+        "Restaurant and shop background music",
+        "Study and work playlists"
+      ],
+      "faq": [
+        {
+          "q": "What is Private school piano?",
+          "a": "It is the deep, jazzy strand of amapiano: softer drums, a log drum played low and quiet, and jazz chords on a grand piano, a Rhodes or a Wurlitzer, with a saxophone on top."
+        },
+        {
+          "q": "Can I swap the sax for a flute or vibes?",
+          "a": "Yes. Open the Melody lane's instrument popup, click a card to hear two bars of this tune on that instrument, then press Use everywhere."
+        }
+      ],
+      "related": [
+        "amapiano",
+        "lofiHouse",
+        "jazz"
+      ]
+    },
+    {
+      "id": "dubstep",
+      "name": "dubstep",
+      "title": "Free dubstep background music generator: make your own, free with credit",
+      "description": "Make dubstep background music in your browser: half-time drops, a wobble bass and growls. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Half-time drums, a wobble bass that trades blows with a growl, and a build that rolls into every drop. Lolly writes a new dubstep tune from every seed, in your browser.",
+      "sound": [
+        "Lolly's dubstep runs at about 138 to 142 beats a minute with a half-time step, the snare on three. A tune opens on its chords, a lead or the beat, then a build of a snare roll and a riser opens the drop on a crash. The second drop brings in a second lead and a new bass figure.",
+        "The bass is a stack: a clean sub in the middle that dips under every kick, the bass's own sound played twice across the speakers, and a driven top in the drop. Each drop trades a wobble with a growl or a screech two bars at a time, and the bass talks at the end of each phrase with a bwah, a yoi, a growl or a deep wub.",
+        "Around the bass, FM bleeps sit in the gaps and phaser sweeps rise through the builds. In some tunes a buzzy croak calls over the bass at the end of a phrase, and about one tune in three brings in the Yidaki, Lolly's higher, brighter didgeridoo, for a bar, its sharp toots cutting through the stack."
+      ],
+      "uses": [
+        "Gaming montages and highlight reels",
+        "Workout and gym videos",
+        "Action trailers and teasers",
+        "Live stream intros",
+        "Skate and extreme sports edits"
+      ],
+      "faq": [
+        {
+          "q": "Can I turn off the bleeps and sweeps?",
+          "a": "Yes. Open Mix: under the ear candy, Sparkles turns off the FM bleeps and Sweeps turns off the phaser sweeps and risers. The link you share keeps both choices."
+        },
+        {
+          "q": "Can I change the tempo?",
+          "a": "Yes. Type a number of beats a minute in the tempo field, or drag across the field. The notes stay where they are in the bar, so the tune plays faster or slower and nothing else changes."
+        }
+      ],
+      "related": [
+        "brostep",
+        "dnb",
+        "jungle"
+      ]
+    },
+    {
+      "id": "brostep",
+      "name": "brostep",
+      "title": "Free brostep background music generator: make your own, free with credit",
+      "description": "Make brostep background music in your browser: growling, screeching basses in heavy half-time. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Growls, screeches and now and then a third bass, over a heavy half-time beat. Lolly writes a new brostep tune from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Brostep is the louder, harder side of Lolly's dubstep: about 145 to 150 beats a minute in half-time, with more drive on the bass and, in about half the tunes, an overdriven or metal lead on the tune. A tune opens on its chords, the beat or a lead, rolls up through a build and opens each drop on a crash.",
+        "Each drop trades its bass between characters, a growl answered by a screech or a wobble, and now and then a third bass joins or the basses swap every bar. Under them a clean sub dips with every kick, and at the end of each phrase the bass talks: a bwah flung open, a yoi from oh to ee or a deep wub.",
+        "FM bleeps fill the gaps, phaser sweeps rise through the builds, and in some tunes a buzzy croak calls over the bass. About one tune in three, the Yidaki turns up for a bar with sharp toots that cut through the stack. The second drop brings a second lead and a new bass figure."
+      ],
+      "uses": [
+        "Gaming and esports montages",
+        "Extreme sports and stunt edits",
+        "Hype reels and trailers",
+        "Workout and gym videos",
+        "Live stream highlight clips"
+      ],
+      "faq": [
+        {
+          "q": "How is brostep different from dubstep in Lolly?",
+          "a": "Brostep is faster, about 145 to 150 beats a minute against dubstep's 138 to 142, drives its basses harder and now and then brings in a third bass. Dubstep's drops start from a wobble, brostep's from a growl or a screech."
+        },
+        {
+          "q": "Can I turn off the Lolly voice tag?",
+          "a": "Yes. The Ear candy track's menu chooses how the tune says Lolly: Auto, not at all, or one delivery for every tag. The link you share keeps the choice."
+        }
+      ],
+      "related": [
+        "dubstep",
+        "metal",
+        "dnb"
+      ]
+    },
+    {
+      "id": "sugar",
+      "name": "Sugar video game funk",
+      "title": "Free Sugar video game funk background music generator: make your own, free with credit",
+      "description": "Make Sugar video game funk in your browser: slap bass, bright saw chords and coin dings. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Slap bass, soaring saw chords and the coins and power-ups of an old games console. Sugar is Lolly's bright, funky dance style, with a new tune from every seed.",
+      "sound": [
+        "Sugar is fast, bright and funky: about 117 to 129 beats a minute, four on the floor, claps and crashes, and the jazzy major chords of an old platform game. Saw chords pump with the kick, a slap bass is thumbed, popped, slid and bent, and a chip, pulse, pan flute, guitar or flute lead sings the tune.",
+        "A tune runs intro, verse, build, drop, break, a second drop and an outro. The console has plenty to say: coins ring, echo or come in pairs, a level-up can end a build, the music shrinks as the break starts and grows back as it ends, and a 1-up crowns a drop. A synthesised hey calls the next phrase in the drops.",
+        "Before each drop comes one moment in the style of the 16-bit consoles' FM chip: a power-up climbing the chord, a warp diving across the speakers, a spin that fires a shot, a short fanfare or a tape stop. These are Lolly's own sounds, not copies of any game's. In some tunes a buzzy croak calls over the slap bass."
+      ],
+      "uses": [
+        "Game trailers and devlogs",
+        "Upbeat YouTube intros",
+        "Kids' and family videos",
+        "Product launch videos",
+        "Party and event slideshows"
+      ],
+      "faq": [
+        {
+          "q": "Can I turn off the game sounds?",
+          "a": "Yes. Open Mix and switch off Console under the ear candy, which takes out the coins, the spins and the moments before each drop. Switch off Voices as well to drop the hey shouts and the Lolly tag."
+        }
+      ],
+      "related": [
+        "chiptune",
+        "sherbert",
+        "kpop"
+      ]
+    },
+    {
+      "id": "sherbert",
+      "name": "Sherbert future bass",
+      "title": "Free Sherbert future bass background music generator: make your own, free with credit",
+      "description": "Make Sherbert future bass in your browser: wide supersaw chords, vocal chops and game sounds. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Wide, pumping supersaw chords, a chopped vocal singing the hook and an old games console sparkling inside. Sherbert is Lolly's future bass, with a new tune from every seed.",
+      "sound": [
+        "Sherbert is fast and half-time, about 137 to 149 beats a minute with the clap on three, tuned by measuring Australian future bass of the mid-2010s. Layered supersaw chords, wide on top and mono underneath, pump on every beat, bend up into their pitch, wub at straight, triplet and dotted rates and stutter into each fourth bar.",
+        "A chopped vocal sings the hook in leaps over an 808: slices of a sung phrase, scooped, slid, flipped an octave and gated, with no words. Hats roll in sixteenths and thirty-seconds, and a crowd calls hey, yeah and woo. A tune runs intro, verse, build, drop and break, each build's roll climbing an octave, mostly into a chopped stutter.",
+        "A console's chord arpeggios sparkle, with coins, jumps, lasers and power-ups between phrases, and laser shots answer the tune in the breakdown's spaces. In most tunes a magpie carols once, up front: into the first drop, at its tail or in the breakdown."
+      ],
+      "uses": [
+        "Upbeat short-form video edits",
+        "Travel and summer vlogs",
+        "Game trailers and devlogs",
+        "Festival and event promos",
+        "Fashion and lifestyle reels"
+      ],
+      "faq": [
+        {
+          "q": "Can I take out the magpie or the game sounds?",
+          "a": "Yes. Open Mix and switch off Aussie birds under the ear candy for the magpie, or Console for the coins, jumps and power-ups. The link you share keeps each choice."
+        },
+        {
+          "q": "Can I swap the chopped vocal for another lead?",
+          "a": "Yes. Open the Melody track's instrument popup, click a card to hear two bars of this tune on that instrument, then choose Use everywhere for the whole track, or the Use in every button for the kind of section you clicked."
+        }
+      ],
+      "related": [
+        "sugar",
+        "chiptune",
+        "cpop"
+      ]
+    },
+    {
+      "id": "synthwave",
+      "name": "synthwave",
+      "title": "Free synthwave background music generator: make your own, free with credit",
+      "description": "Make synthwave background music in your browser: octave bass, arpeggios and a saw lead. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "The eighties at night: an octave bass, running arpeggios and a saw lead over a big backbeat. Lolly writes a new synthwave tune from every seed, in your browser.",
+      "sound": [
+        "Lolly's synthwave is the eighties at night, mostly in minor keys, at about 93 to 117 beats a minute. An octave bass pulses in straight eighths, plucked chords run up and down in sixteenth-note arpeggios or pads hold the chords, and a backbeat with a big snare drives the tune. A saw lead, an overdriven lead guitar, bells or a pulse lead carries the melody.",
+        "A tune opens on the chords, the bass, the beat or the lead, and after an eight-bar intro a build opens the drop on a crash. The drop runs sixteen bars, a breakdown thins things out, and the second drop can switch to a harder electro bass. A tambourine can join in the drops.",
+        "In about one tune in four, an FM console moment comes before the last drop, a power-up or a warp in the style of the 16-bit machines. Most tunes are signed by a synthesised voice saying Lolly once, at the top or at the end, which you can switch off in the Ear candy track's menu."
+      ],
+      "uses": [
+        "Retro gaming and tech videos",
+        "Night drive and city footage",
+        "Product demos and explainers",
+        "Live stream backgrounds",
+        "Coding and focus sessions"
+      ],
+      "faq": [
+        {
+          "q": "Can I swap the saw lead for a guitar?",
+          "a": "Yes. Open the Melody track's instrument popup, click a guitar to hear two bars of this tune on it, then choose Use everywhere for the whole track, or the Use in every button for the kind of section you clicked."
+        },
+        {
+          "q": "Can I make a longer track for a stream?",
+          "a": "Yes. Set the length in the Tune section. A track holds whole tunes and ends the way a song does, each tune finished with its own outro and fade."
+        }
+      ],
+      "related": [
+        "electro",
+        "chiptune",
+        "citypop"
+      ]
+    },
+    {
+      "id": "chiptune",
+      "name": "chiptune",
+      "title": "Free chiptune background music generator: make your own, free with credit",
+      "description": "Make chiptune background music in your browser: pulse arpeggios, a chip lead and coin dings. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Pulse arpeggios, a chip lead and the coins and power-ups of an old games console. Lolly composes fresh chiptune from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's chiptune is written for an old console's three channels: pulse-wave arpeggios running the chords up and down in sixteenths, a pulse bass, and a chip or pulse lead on the tune. It is fast and busy, about 129 to 149 beats a minute, set in the jazzy chords of game music over tight machine drums.",
+        "A tune opens on the lead, the arpeggios or the beat, builds into a sixteen-bar drop and breaks down before the next. The console has plenty to say: coins ring, echo or come in pairs, the music shrinks as a break starts and grows back as it ends, and a 1-up crowns a drop.",
+        "A second console joins in, in the style of the 16-bit machines' FM chip, with spins, laser shots and one moment before each drop: a power-up, a warp, a charged shot, a short fanfare or a tape stop. These are Lolly's own sounds in that style, not copies of any game's."
+      ],
+      "uses": [
+        "Indie game menus and trailers",
+        "Retro gaming videos and streams",
+        "Pixel art timelapses",
+        "Coding tutorials and devlogs",
+        "Quiz and kids' videos"
+      ],
+      "faq": [
+        {
+          "q": "Can I turn off the coin and power-up sounds?",
+          "a": "Yes. Open Mix and switch off Console under the ear candy, which takes out the coins, the spins and the moments before each drop. The rest of the tune keeps its notes."
+        },
+        {
+          "q": "Can I play the tune on other instruments?",
+          "a": "Yes. Each track's instrument popup offers every instrument by family, 8-bit and synths included. Click a card to hear two bars of this tune on that instrument, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
+        }
+      ],
+      "related": [
+        "sugar",
+        "sherbert",
+        "synthwave"
+      ]
+    },
+    {
+      "id": "acid",
+      "name": "acid house",
+      "title": "Free acid house background music generator: make your own, free with credit",
+      "description": "Make acid house background music in your browser: a squelching 303 line over four on the floor. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A squelching 303 line slides and accents its way over four on the floor. Lolly writes a new acid tune from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's Acid style is built around one sound: a 303 bass line running in sixteenths through a resonant filter, with accented notes, slides between pitches and jumps up the octave. Under the line runs four on the floor with claps and open hats at about 122 to 130 beats a minute, tight as a drum machine.",
+        "A tune usually opens on the bass line or the beat alone, then runs an eight-bar intro, a build of four or eight bars, a sixteen-bar drop, a breakdown and a second drop. The drop belongs to the bass at first, before pads, plucked chords or a chip, pulse or saw lead join in."
+      ],
+      "uses": [
+        "Club visuals and party videos",
+        "Workout and running videos",
+        "Fashion and runway edits",
+        "Tech and gadget reviews",
+        "Live stream backgrounds"
+      ],
+      "faq": [
+        {
+          "q": "Can I hear just the bass line and the drums?",
+          "a": "Yes. Solo the Bass and Drums tracks with the headphones button on each track's head, and only they play. Mute the Melody and Chords tracks instead to keep the ear candy."
+        },
+        {
+          "q": "Can I set the tempo to match a DJ set?",
+          "a": "Yes. Type a number of beats a minute in the tempo field. The notes stay where they are in the bar, so the tune plays faster or slower and nothing else changes."
+        }
+      ],
+      "related": [
+        "electro",
+        "lofiHouse",
+        "funkyHouse"
+      ]
+    },
+    {
+      "id": "persian",
+      "name": "Persian",
+      "title": "Free Persian background music generator: make your own, free with credit",
+      "description": "Make Persian background music in your browser: tar, santur and tombak in a dastgah. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A tar strumming the drone in six-eight, a santur's hammered runs and the tombak's finger rolls. Lolly writes a new Persian tune from every seed, each in a dastgah, in your browser.",
+      "sound": [
+        "Lolly's Persian style sets a tar strumming the drone in six-eight under a santur's hammered runs and tremolos. On the tune, the santur, the tar itself tremoloing its long notes, a ney or a kamancheh sings in a dastgah: Shur, Homayoun, Chahargah, Mahur or Esfahan, drawn from the seed. Tunes play at about 85 to 111 beats a minute.",
+        "The koron, the quarter-tone step of a dastgah, is played a quarter-tone flat, a close approximation of the neutral steps musicians play, and the chords keep clear of it so the chords never fight the melody. The tombak plays its tom and bak with finger rolls, and the daf adds its boom and rings.",
+        "Each tune is a song: verses, a pre-chorus that turns into the chorus, a solo and a last chorus. The instruments follow published acoustics: plucked and struck strings shaped by where they are played, and breathy flutes and bowed strings heard through their bodies' resonances."
+      ],
+      "uses": [
+        "Travel and food videos",
+        "Documentary and history scenes",
+        "Poetry readings and storytelling",
+        "Restaurant and cafe ambience",
+        "Cultural event slideshows"
+      ],
+      "faq": [
+        {
+          "q": "Can I choose the dastgah?",
+          "a": "The seed draws the dastgah, so step through seeds to hear Shur, Homayoun, Chahargah, Mahur and Esfahan. The key menu then moves the whole tune up or down by as much as six semitones."
+        },
+        {
+          "q": "Can I put the ney on the tune?",
+          "a": "Yes. Open the Melody track's instrument popup, click the ney to hear two bars of this tune on it, then choose Use everywhere, or the Use in every button for the kind of section you clicked. Nothing else about the tune changes."
+        }
+      ],
+      "related": [
+        "kora",
+        "guzheng",
+        "spanish"
+      ]
+    },
+    {
+      "id": "guzheng",
+      "name": "Chinese guzheng",
+      "title": "Free Chinese guzheng background music generator: make your own, free with credit",
+      "description": "Make Chinese guzheng music in your browser: flowing glissandi, a pipa, an erhu and a gong. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Flowing arpeggios and glissandi on a Chinese zither, with a pipa, an erhu or a dizi on the tune. Lolly writes a new guzheng tune from every seed, in your browser.",
+      "sound": [
+        "The guzheng, a Chinese zither, plays flowing arpeggios and glissandi in a pentatonic mode, slowly, at about 69 to 91 beats a minute over a half-time beat. On the tune, the guzheng itself presses up into its notes, or a pipa takes the melody, and now and then an erhu or a dizi with its buzzing membrane sings the line.",
+        "The erhu is a bowed string heard through a python skin over a small box, sliding between notes with a slow, wide vibrato. The dizi is a flute whose thin membrane buzzes, and its player flicks grace notes and slides into notes. A woodblock, the tanggu's big drum and a gong mark the beat.",
+        "Each tune is a song: verses, a pre-chorus that turns into the chorus, a solo and a last chorus. The zither and the pipa are modelled as strings, each plucked at its own point along its length, softer plucks sounding darker."
+      ],
+      "uses": [
+        "Calm study and reading sessions",
+        "Tea house, spa or restaurant ambience",
+        "Travel and nature videos",
+        "Documentary and history scenes",
+        "Slow yoga and stretching"
+      ],
+      "faq": [
+        {
+          "q": "Can the guzheng play the whole tune?",
+          "a": "Yes. Open the Melody track's instrument popup, click the guzheng to hear two bars of this tune on it and choose Use everywhere. To keep it to the solos, click a solo in the lane first and choose Use in every Solo."
+        },
+        {
+          "q": "Can I make it slower?",
+          "a": "Yes. Type a number of beats a minute in the tempo field, or drag across the field. The notes stay where they are in the bar, so the tune plays slower and nothing else changes."
+        }
+      ],
+      "related": [
+        "koto",
+        "mandopop",
+        "cpop"
+      ]
+    },
+    {
+      "id": "koto",
+      "name": "Japanese koto",
+      "title": "Free Japanese koto background music generator: make your own, free with credit",
+      "description": "Make Japanese koto music in your browser: koto, shamisen and shakuhachi over the taiko. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "The koto and the shamisen in a Japanese scale, a breathy shakuhachi and the taiko's don and ka. Lolly writes a new koto tune from every seed, in your browser.",
+      "sound": [
+        "Lolly's koto style pairs the koto, a Japanese zither, with the shamisen. Each tune is set in a scale drawn from the seed: the in scale with its half steps, the brighter yo, or the Ryukyu scale of Okinawa. One of the two strings, or a breathy shakuhachi bending its notes, carries the tune, slow and spacious at about 65 to 87 beats a minute.",
+        "The taiko plays its don and ka, and the kotsuzumi adds its calls. Each tune is a song: verses, a pre-chorus that turns into the chorus, a solo and a last chorus. The koto and the shamisen are modelled as strings, each plucked at its own point along its length, softer plucks sounding darker."
+      ],
+      "uses": [
+        "Calm study and reading",
+        "Garden, spa or tea ambience",
+        "Travel and nature videos",
+        "Documentary scenes",
+        "Slow yoga and mindfulness"
+      ],
+      "faq": [
+        {
+          "q": "Can I hear a different scale?",
+          "a": "The seed draws the scale, so step through seeds to hear the in, yo and Ryukyu scales. The key menu moves the whole tune up or down by as much as six semitones."
+        },
+        {
+          "q": "Can I put the shakuhachi on the tune?",
+          "a": "Yes. Open the Melody track's instrument popup, click the shakuhachi to hear two bars of this tune on it, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
+        }
+      ],
+      "related": [
+        "guzheng",
+        "persian",
+        "dream"
+      ]
+    },
+    {
+      "id": "kora",
+      "name": "kora",
+      "title": "Free kora background music generator: make your own, free with credit",
+      "description": "Make kora music in your browser: a harp-lute ostinato in twelve-eight, balafon and djembe. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "The kora's ostinato under its own running lines, in a lilting twelve-eight, with a balafon and the djembe. Lolly writes a new kora tune from every seed, in your browser.",
+      "sound": [
+        "The kora, the West African harp-lute, plays an ostinato in a lilting twelve-eight with its own running lines over the top, in one of three tunings drawn from the seed: sauta with its raised fourth, silaba (major) or tomora with its minor third. Tunes are busy and bright, at about 93 to 117 beats a minute.",
+        "A buzzing balafon plays alongside or takes the tune, and now and then a flute does. The djembe plays bass, tone and slap over the dunun and its bell, with a shekere and an upright bass. Each tune is a song: verses, a pre-chorus that turns into the chorus, a solo and a last chorus."
+      ],
+      "uses": [
+        "Travel and food videos",
+        "Documentary scenes",
+        "Warm podcast intros",
+        "Cafe and market ambience",
+        "Family and celebration videos"
+      ],
+      "faq": [
+        {
+          "q": "Can I choose the kora's tuning?",
+          "a": "The seed draws the tuning, so step through seeds to hear sauta, silaba and tomora. The key menu then moves the whole tune up or down by as much as six semitones."
+        },
+        {
+          "q": "Can I hear the kora and the balafon without the drums?",
+          "a": "Yes. Solo the Chords and Melody tracks with the headphones button on each track's head, and the drums and the bass drop out."
+        }
+      ],
+      "related": [
+        "afrobeat",
+        "persian",
+        "amapiano"
+      ]
+    },
+    {
+      "id": "afrobeat",
+      "name": "afrobeat",
+      "title": "Free afrobeat background music generator: make your own, free with credit",
+      "description": "Make afrobeat background music in your browser: horns, a chopping guitar and a talking drum. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A guitar chopping sixteenths, a bass riff that never lets go and horns on the tune. Lolly writes a new afrobeat tune from every seed, in your browser.",
+      "sound": [
+        "Lolly's afrobeat is a long groove at about 101 to 117 beats a minute, mostly in minor keys. A guitar chops sixteenths, an organ holds the chords and a bass riff never lets go. A sax or a trumpet takes the tune, now and then a guitar.",
+        "A busy kit drives the band with a shekere, an agogo bell and congas, and at the end of each phrase a talking drum answers, bending its pitch. A tune opens on the beat, the bass or the whole band, then runs verses, a pre-chorus that turns into the chorus, a solo and a last chorus."
+      ],
+      "uses": [
+        "Food and travel videos",
+        "Dance and fitness classes",
+        "Fashion and lifestyle reels",
+        "Party and event playlists",
+        "Lively podcast intros"
+      ],
+      "faq": [
+        {
+          "q": "Can I hear just the groove without the horns?",
+          "a": "Yes. Mute the Melody track with the speaker button on its head, and the guitar, organ, bass and drums play on."
+        },
+        {
+          "q": "Can I make the groove last longer?",
+          "a": "Yes. Set the length in the Tune section. A track holds whole tunes and ends the way a song does, each tune finished with its own outro and fade."
+        }
+      ],
+      "related": [
+        "funk",
+        "kora",
+        "amapiano"
+      ]
+    },
+    {
+      "id": "amapiano",
+      "name": "amapiano",
+      "title": "Free amapiano background music generator: make your own, free with credit",
+      "description": "Make amapiano background music in your browser: a sliding log drum bass and jazzy offbeat piano. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A woody, sliding log drum bass under jazzy chords and a swung shaker. Lolly writes a new amapiano tune from every seed, in your browser, and you can change every part.",
+      "sound": [
+        "Lolly's amapiano is South African house slowed and opened up, at about 110 to 116 beats a minute. The log drum plays a woody, sliding bass, jazzy piano and Rhodes chords fall on the offbeats, and a swung shaker rides over a soft four on the floor with rimshots or claps.",
+        "A flute, a sax or vibes floats over the groove. A tune runs an eight-bar intro, a build, a sixteen-bar drop, a breakdown and a second drop, with softer keys in the quiet parts. For a gentler take, Lolly's Private school piano is amapiano at its most mellow."
+      ],
+      "uses": [
+        "Dance and fitness videos",
+        "Fashion and lifestyle reels",
+        "Sunset and travel vlogs",
+        "Bar, shop or venue ambience",
+        "Party and event playlists"
+      ],
+      "faq": [
+        {
+          "q": "Is there a mellower amapiano?",
+          "a": "Yes. Private school piano is amapiano at its most mellow, 108 to 113 beats a minute, with a soft log drum, jazz chords on a grand piano, a Rhodes or a Wurlitzer, and a saxophone on the tune."
+        },
+        {
+          "q": "Can I turn the log drum down?",
+          "a": "Yes. In Mix, set the Bass level lower, or mute the Bass track with the speaker button on its head to hear the chords and drums alone."
+        }
+      ],
+      "related": [
+        "privateSchool",
+        "afrobeat",
+        "lofiHouse"
+      ]
+    },
+    {
+      "id": "spanish",
+      "name": "Spanish guitar",
+      "title": "Free Spanish guitar background music generator: make your own, free with credit",
+      "description": "Make Spanish guitar music in your browser: a nylon-string rumba over cajón and palmas. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A nylon-string guitar strumming a rumba over cajón, palmas and an upright bass. Lolly writes a new Spanish guitar tune from every seed, in your browser.",
+      "sound": [
+        "Lolly's Spanish guitar style is a nylon-string guitar strumming a rumba at about 101 to 123 beats a minute. The chords follow the Andalusian cadence, and in a minor key, which most tunes are, the melody moves in the harmonic minor. A nylon guitar most often takes the tune, now and then a flute, a pan flute or another guitar.",
+        "An upright bass plays under the guitar, the cajón and palmas (hand claps) keep the rumba going, and a shaker fills between. Each tune is a song: verses, a pre-chorus that turns into the chorus, a solo and a last chorus. The nylon strings are modelled as strings and go mellow sooner than steel."
+      ],
+      "uses": [
+        "Travel and food videos",
+        "Restaurant and bar ambience",
+        "Wedding and summer slideshows",
+        "Romantic or dramatic scenes",
+        "Dance practice and fitness"
+      ],
+      "faq": [
+        {
+          "q": "Can I hear only the guitar?",
+          "a": "Yes. Solo the Chords track with the headphones button on its head, and the strummed guitar plays alone. Solo the Melody track as well to keep the tune."
+        },
+        {
+          "q": "Can I make the rumba faster?",
+          "a": "Yes. Type a number of beats a minute in the tempo field, or drag across the field. The notes stay where they are in the bar, so the tune plays faster and nothing else changes."
+        }
+      ],
+      "related": [
+        "salsa",
+        "persian",
+        "country"
+      ]
+    },
+    {
+      "id": "straya",
+      "name": "Straya didgeridoo and banjo",
+      "title": "Free Straya didgeridoo and banjo background music generator: make your own, free with credit",
+      "description": "Make Straya music in your browser: banjo and didgeridoo, a stomp and clap, and bush birds. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A banjo picking rolls over a didgeridoo drone, with a stomp, a clap and a magpie's carol. Lolly writes a new Straya tune from every seed, in your browser.",
+      "sound": [
+        "In Straya a banjo picks rolls over the didgeridoo, with an acoustic strum, a stomp and clap and clapsticks, at about 105 to 123 beats a minute. Two instruments play the didgeridoo part: the Didgeridoo, the deep one, with a long, wide bore, low and dark, and the Yidaki, pitched higher and brighter.",
+        "The Yidaki is modelled on the yidaki of the Yolŋu people of north-east Arnhem Land: a narrower bore, with strong, sharp toots and quick tongue and voice rhythms. The Didgeridoo drones on the key note under the verses, never stopping for the circular breath. Through the choruses comes a rhythm with toots rising over the full band, in most tunes played by the Yidaki a fifth above the droning Didgeridoo.",
+        "The solo is the Yidaki's, traded two bars at a time with the banjo or the fiddle, with calls, barks, growls and a howl sung through the drone, none of them words. Most tunes have one bird moment up front, a magpie's carol or a kookaburra's laugh, with quieter magpies between the phrases."
+      ],
+      "uses": [
+        "Aussie travel and road trip vlogs",
+        "Bush walks and nature videos",
+        "Outdoor and adventure edits",
+        "Upbeat podcast intros",
+        "Festival and market promos"
+      ],
+      "faq": [
+        {
+          "q": "What is the difference between the Didgeridoo and the Yidaki?",
+          "a": "The Didgeridoo is the deep one: a long, wide bore, low and dark, with a warm drone and soft, low toots. The Yidaki, modelled on the yidaki of the Yolŋu people of north-east Arnhem Land, has a narrower bore and is pitched higher and brighter, with strong, sharp toots."
+        },
+        {
+          "q": "Can I turn off the birds?",
+          "a": "Yes. Open Mix and switch off Aussie birds under the ear candy, and the magpies and the kookaburra stay quiet. The link you share keeps the choice."
+        }
+      ],
+      "related": [
+        "arnhem",
+        "noosa",
+        "country"
+      ]
+    },
+    {
+      "id": "arnhem",
+      "name": "Arnhem Land band",
+      "title": "Free Arnhem Land band background music generator: make your own, free with credit",
+      "description": "Make Arnhem Land band music in your browser: rock, soul and hip-hop with yidaki and bilma. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Rock, island grooves, soul and hip-hop, with the yidaki and the bilma inside the band. Lolly writes a new Arnhem Land tune from every seed, in your browser.",
+      "sound": [
+        "Arnhem Land is the region's band music today: rock, island grooves, soul and hip-hop, with the yidaki and the bilma, the hardwood clapsticks, inside the band. Each tune is placed somewhere between modern and traditional, and most are in the middle, where the two meet. Tunes play from about 73 to 127 beats a minute.",
+        "At the modern end there is a punchy beat with an 808 or a funky synth bass, bright synth chords, vocal chops and shouts, and the Yidaki as a hook. At the traditional end the bilma's steady pulse and the Yidaki's rhythmic drone and calls set the groove, often over the Didgeridoo's drone, with a rock band on top.",
+        "Now and then a tune is an island groove on reggae's one drop, or a gentle acoustic song led by the voice. The bilma keeps time in every tune. Through each chorus the sung hook calls and the Yidaki answers, and the solo is the Yidaki's, traded with a guitar. The voices sing wordless syllables only."
+      ],
+      "uses": [
+        "Festival and event promos",
+        "Sport and outdoor highlights",
+        "Upbeat podcast intros",
+        "Road trip and travel vlogs",
+        "Live stream backgrounds"
+      ],
+      "faq": [
+        {
+          "q": "Do the voices sing words?",
+          "a": "No. The voices sing wordless syllables only, so the sung hooks, the vocal chops and the shouts carry no words in any language."
+        },
+        {
+          "q": "Can I turn the whipbird off?",
+          "a": "Yes. In about half the tunes an eastern whipbird pair calls once, and switching off Aussie birds under the ear candy in Mix leaves the pair out. The link you share keeps the choice."
+        }
+      ],
+      "related": [
+        "straya",
+        "noosa",
+        "reggae"
+      ]
+    },
+    {
+      "id": "kpop",
+      "name": "K-pop",
+      "title": "Free K-pop background music generator: make your own, free with credit",
+      "description": "Make K-pop background music in your browser: supersaw stabs, claps on every beat and a chant. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Supersaw stabs, bright plucks and a chanted chorus that goes up a key at the end. Lolly writes a new K-pop tune from every seed, in your browser.",
+      "sound": [
+        "Lolly's K-pop is bright and fast, about 119 to 131 beats a minute, mostly in major keys. Supersaw stabs and bright plucks play the chords, a pulse, chip or saw lead carries the hook, and a synth bass, an 808 or now and then a slap bass drives underneath. In the chorus, claps hit every beat.",
+        "A verse comes before the first chorus and a build rolls into each one. Through the chorus a chant calls the next phrase, a synthesised hey. The last chorus goes up a key, usually a semitone and now and then a whole tone, and in about one tune in four an FM console moment leads into the last chorus."
+      ],
+      "uses": [
+        "Dance practice and choreography videos",
+        "Beauty and fashion reels",
+        "Upbeat vlogs and intros",
+        "Fitness and dance classes",
+        "Product launches and promos"
+      ],
+      "faq": [
+        {
+          "q": "Can I change the key?",
+          "a": "Yes. The key menu moves the whole tune up or down by as much as six semitones. Every pitched part moves together and the drums stay as they are."
+        },
+        {
+          "q": "Can I turn off the hey chant?",
+          "a": "Yes. Open Mix and switch off Voices under the ear candy, which also turns off the Lolly tag. The link you share keeps the choice."
+        }
+      ],
+      "related": [
+        "cpop",
+        "sugar",
+        "mandopop"
+      ]
+    },
+    {
+      "id": "salsa",
+      "name": "salsa",
+      "title": "Free salsa background music generator: make your own, free with credit",
+      "description": "Make salsa background music in your browser: clave, a piano montuno, congas and timbales. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Everything follows the clave: a piano montuno, the bass's tumbao, congas, bongos and timbales. Lolly writes a new salsa tune from every seed, in your browser.",
+      "sound": [
+        "In Lolly's salsa everything follows the clave, two sticks playing son clave in 2-3 or 3-2, and every part keeps to its side. A bright grand piano plays the montuno in octaves, anticipating each chord, and the bass plays the tumbao, holding the next chord's root over the bar line so beat one is never struck.",
+        "The congas play heel, toe, a slap on two and open tones on four. The bongos play the martillo, then the bongo bell in the montuno, while the timbales move from cáscara to the mambo bell, with an abanico roll into each new section. A güiro scrapes and maracas shake steady eighths.",
+        "A trumpet or a sax sings the verse and the pregones, and a coro of three voices sings a refrain back. A tune runs verse, bridge, montuno and mambo, where the horns play a riff with a lower moña joining in. Tunes are fast, about 160 to 210 beats a minute, and end on the clave and a last chord."
+      ],
+      "uses": [
+        "Dance classes and practice",
+        "Food and travel videos",
+        "Party and event slideshows",
+        "Restaurant and bar ambience",
+        "Summer and holiday vlogs"
+      ],
+      "faq": [
+        {
+          "q": "Can I slow it down for a dance class?",
+          "a": "Yes. Type a number of beats a minute in the tempo field, or drag across the field. The notes stay where they are in the bar, so every part keeps to the clave and only the speed changes."
+        },
+        {
+          "q": "Can I swap the trumpet for a sax?",
+          "a": "Yes. Open the Melody track's instrument popup, click the sax to hear two bars of this tune on it, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
+        }
+      ],
+      "related": [
+        "spanish",
+        "afrobeat",
+        "funkyHouse"
+      ]
+    },
+    {
+      "id": "oompa",
+      "name": "Oompa brass band",
+      "title": "Free Oompa brass band background music generator: make your own, free with credit",
+      "description": "Make Oompa brass band music in your browser: a Bavarian band's polka, march or waltz. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "A tuba blows the oom, horns answer with the pah, and a flugelhorn sings the tune. Oompa is Lolly's Bavarian brass band, with a new polka, march or waltz from every seed.",
+      "sound": [
+        "Oompa is a Bavarian brass band in a beer tent or a band hall, playing a polka or a march in two or a waltz in three, at about 86 to 166 beats a minute. A tuba blows the oom on the strong beats, and tenor horns, a baritone and trombones play the pah, short chords on the after-beats.",
+        "A flugelhorn, a trumpet or a clarinet has the tune, with a second player a third or a sixth under the melody, while clarinets run and turn over the top and the trombones play a countermelody. A bass drum keeps the beats with a cymbal on the after-beats, a snare in a march and a woodblock now and then.",
+        "A fanfare opens the tune, each sixteen-bar strain is played twice, and the trio moves to the subdominant, giving the tune softly to the tenor horn and the baritone before the whole band takes over. The coda ends on a stinger. Every player breathes and sits a little apart in tuning and timing."
+      ],
+      "uses": [
+        "Beer festival and beer garden promos",
+        "Comedy sketches and funny videos",
+        "Food and travel videos",
+        "Party invitations and slideshows",
+        "Kids' videos and cartoons"
+      ],
+      "faq": [
+        {
+          "q": "Can I choose a waltz or a polka?",
+          "a": "The seed chooses between a polka or a march in two and a waltz in three, so step through seeds until you hear the one you want. The tempo field then sets the pace without moving any notes."
+        },
+        {
+          "q": "Can I turn off the Lolly voice tag?",
+          "a": "Yes. The Ear candy track's menu chooses how the tune says Lolly: Auto, not at all, or one delivery for every tag. The link you share keeps the choice."
+        }
+      ],
+      "related": [
+        "swing",
+        "salsa",
+        "country"
+      ]
+    },
+    {
+      "id": "mandopop",
+      "name": "Mandopop",
+      "title": "Free Mandopop background music generator: make your own, free with credit",
+      "description": "Make Mandopop background music in your browser: piano ballads and R&B with erhu or dizi hooks. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Piano ballads, R&B grooves and soft-rock songs, most with a pentatonic hook on an erhu, a dizi, a pipa or the guzheng. Lolly writes a new Mandopop tune from every seed.",
+      "sound": [
+        "Lolly's Mandopop is Mandarin pop in the Taiwan and Hong Kong tradition, at about 67 to 94 beats a minute. Each tune is a piano ballad, an R&B groove or a strummed soft-rock song. A grand piano breaks the chords in the verse, the strings come in through the pre-chorus and swell under the chorus, and the kit moves from a cross-stick to a full backbeat.",
+        "Most tunes are China wind: the hook is a pentatonic line on an erhu, a dizi, a pipa or the guzheng, which also takes the bridge's solo, a guzheng runs up into the chorus, and a woodblock, the tanggu and a gong colour the beat. The chords fall down the scale, climb to the dominant in the pre-chorus and cadence home, with major sevenths and added ninths.",
+        "A tune runs an intro on the hook, a verse, a pre-chorus and a big chorus, an interlude, a second verse and chorus, and a bridge for the solo. The last chorus lifts a semitone or a tone after a held dominant, and the outro returns to the hook."
+      ],
+      "uses": [
+        "Emotional vlogs and montages",
+        "Wedding and anniversary slideshows",
+        "Drama and story scenes",
+        "Cafe and shop ambience",
+        "Calm podcast beds"
+      ],
+      "faq": [
+        {
+          "q": "Can I make a Mandopop tune without the traditional instruments?",
+          "a": "Yes. Some seeds are not China wind at all. For any tune, open the Melody track's instrument popup and choose a piano, a flute or another lead with Use everywhere."
+        },
+        {
+          "q": "Can I make a slow ballad?",
+          "a": "The seed draws a ballad, an R&B groove or a soft-rock song, so step through seeds to find a ballad. You can also slow any tune in the tempo field without moving its notes."
+        }
+      ],
+      "related": [
+        "cpop",
+        "guzheng",
+        "rnb"
+      ]
+    },
+    {
+      "id": "cpop",
+      "name": "C-pop",
+      "title": "Free C-pop background music generator: make your own, free with credit",
+      "description": "Make C-pop background music in your browser: dance-pop drops with dizi, erhu and pipa hooks. Free for any use, even commercial, when you credit Lolly.",
+      "lead": "Dance-pop, trap-pop and future bass, with a dizi or an erhu taking the hook in each dance break. Lolly writes a new C-pop tune from every seed, in your browser.",
+      "sound": [
+        "Lolly's C-pop is contemporary mainland Chinese pop, brighter and faster than Mandopop, at about 94 to 128 beats a minute. Each tune is dance-pop on four to the floor with claps on two and four, trap-pop with a half-time clap, rolling hats and a sliding 808, or a future-bass drop of wide, pumping chords.",
+        "Sung chops carry the verse and the chorus. After each chorus a dance break hands the hook to a dizi, an erhu or a pipa over the drop, a guzheng sweeps up into the chorus, and the tanggu and a gong strike the downbeat. A breakdown, a riser and a snare roll lead into the last chorus, now and then a semitone or a tone higher."
+      ],
+      "uses": [
+        "Dance and fitness videos",
+        "Fashion and beauty reels",
+        "Product launch promos",
+        "Gaming and esports intros",
+        "Upbeat vlogs and short videos"
+      ],
+      "faq": [
+        {
+          "q": "Can I put the erhu on the whole tune?",
+          "a": "Yes. Open the Melody track's instrument popup, click the erhu to hear two bars of this tune on it, then choose Use everywhere, or the Use in every button for the kind of section you clicked."
+        },
+        {
+          "q": "How is C-pop different from Mandopop here?",
+          "a": "Mandopop is slower, about 67 to 94 beats a minute, with piano ballads, R&B and soft rock. C-pop is brighter and faster dance-pop, trap-pop and future bass, with a dance break after each chorus."
+        }
+      ],
+      "related": [
+        "mandopop",
+        "kpop",
+        "sherbert"
+      ]
+    }
+  ]
+}
