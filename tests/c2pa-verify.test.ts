@@ -14,7 +14,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { embedC2paInPdf, embedC2pa, encodeCbor } from '../engine/src/c2pa.ts';
-import { verifyC2pa, extractC2paFromPdf, decodeCbor, parseC2paStore, sniffFormat, prepareC2paIngredient } from '../engine/src/c2pa-verify.ts';
+import { verifyC2pa, extractC2paFromPdf, decodeCbor, parseC2paStore, sniffFormat, prepareC2paIngredient, readLicenceTerms } from '../engine/src/c2pa-verify.ts';
 import { designRecordEnvironment, readDesignRecord } from '../engine/src/metadata.ts';
 
 const bytesOf = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
@@ -330,6 +330,38 @@ test('rights alone → report.rights, no invented author', async () => {
   assert.equal(r.state, 'valid');
   assert.equal(r.rights, 'CC0 1.0');
   assert.equal(r.author, undefined);
+  assert.equal(r.licence, undefined, 'no licence terms were given, so none read back');
+});
+
+// A licence's machine-readable terms ride beside dc:rights in the same assertion
+// (the music generator's files, 2026-11-15): the terms page, the party to credit
+// and the credit line, read back into report.licence.
+test('licence terms → cawg.metadata → report.licence round-trip, beside report.rights', async () => {
+  const pdf = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Licensed Tune', claimGenerator: 'Lolly', rights: 'Licensed under CC BY 4.0.',
+    licence: { url: 'https://creativecommons.org/licenses/by/4.0/', attributionName: 'Lolly', attributionUrl: 'https://lolly.tools', credit: 'Music made with Lolly' },
+  });
+  const r: any = await verifyC2pa(pdf);
+  assert.equal(r.state, 'valid', 'the licence terms do not break validity');
+  assert.equal(r.rights, 'Licensed under CC BY 4.0.');
+  assert.deepEqual(r.licence, {
+    url: 'https://creativecommons.org/licenses/by/4.0/', attributionName: 'Lolly', attributionUrl: 'https://lolly.tools', credit: 'Music made with Lolly',
+  });
+  // Terms alone are enough to write the assertion.
+  const bare: any = await verifyC2pa(await embedC2paInPdf(buildTestPdf(), { title: 'Terms Only', licence: { url: 'https://creativecommons.org/publicdomain/zero/1.0/' } }));
+  assert.equal(bare.state, 'valid');
+  assert.deepEqual(bare.licence, { url: 'https://creativecommons.org/publicdomain/zero/1.0/' });
+  assert.equal(bare.rights, undefined);
+});
+
+test('licence terms are validated before they are signed, and read back bounded', async () => {
+  await assert.rejects(embedC2paInPdf(buildTestPdf(), { title: 'x', licence: { url: 'javascript:alert(1)' } }), /licence\.url/);
+  await assert.rejects(embedC2paInPdf(buildTestPdf(), { title: 'x', licence: { url: 'https://example.org/l', attributionUrl: 'file:///etc/passwd' } }), /licence\.attributionUrl/);
+  // A third party's record: the address read from text or an @id, never from anything else.
+  assert.deepEqual(readLicenceTerms({ 'xmpRights:WebStatement': 'https://example.org/terms', 'xmpRights:UsageTerms': ['Use freely.'], 'cc:attributionURL': { '@id': 'javascript:x' } }),
+    { url: 'https://example.org/terms', usageTerms: 'Use freely.' });
+  assert.equal(readLicenceTerms({ 'dc:rights': 'only rights' }), null);
+  assert.equal(readLicenceTerms('not a record'), null);
 });
 
 // The manifest profile a catalog "modified download" writes (web shell

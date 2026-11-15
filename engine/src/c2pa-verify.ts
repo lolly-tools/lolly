@@ -280,6 +280,50 @@ export interface C2paAiDisclosure {
 /** Which C2PA 2.4 text binding carried (or merely referenced) the credential. */
 export type C2paTextBindingKind = 'html' | 'structuredText' | 'text';
 
+/** The licence terms a credential's metadata records (see C2paReport.licence). */
+export interface C2paLicenceTerms {
+  /** The licence's terms page: `cc:license`, else `xmpRights:WebStatement`. */
+  url?: string;
+  usageTerms?: string;
+  attributionName?: string;
+  attributionUrl?: string;
+  /** The credit line: `photoshop:Credit`. */
+  credit?: string;
+}
+
+/**
+ * The licence terms in a JSON-LD metadata record, or null when it holds none. The
+ * record is the signer's own text, so each value is bounded, and an address is kept
+ * only as a plain http(s) URL, whether written as text or as an `@id`.
+ */
+export function readLicenceTerms(meta: unknown): C2paLicenceTerms | null {
+  if (!meta || typeof meta !== 'object') return null;
+  const rec = meta as Record<string, unknown>;
+  const text = (key: string, max = 4096): string | undefined => {
+    const v = rec[key];
+    const s = typeof v === 'string' ? v : Array.isArray(v) && typeof v[0] === 'string' ? v[0] : '';
+    return s.trim() ? s.trim().slice(0, max) : undefined;
+  };
+  const address = (key: string): string | undefined => {
+    const v = rec[key];
+    const s = typeof v === 'string' ? v : v && typeof v === 'object' && typeof (v as { '@id'?: unknown })['@id'] === 'string' ? (v as { '@id': string })['@id'] : '';
+    const t = s.trim();
+    return t.length <= 2048 && /^https?:\/\/[^\s<>"]+$/i.test(t) ? t : undefined;
+  };
+  const out: C2paLicenceTerms = {};
+  const url = address('cc:license') ?? address('xmpRights:WebStatement');
+  if (url) out.url = url;
+  const usageTerms = text('xmpRights:UsageTerms');
+  if (usageTerms) out.usageTerms = usageTerms;
+  const attributionName = text('cc:attributionName', 1024);
+  if (attributionName) out.attributionName = attributionName;
+  const attributionUrl = address('cc:attributionURL');
+  if (attributionUrl) out.attributionUrl = attributionUrl;
+  const credit = text('photoshop:Credit', 1024);
+  if (credit) out.credit = credit;
+  return Object.keys(out).length ? out : null;
+}
+
 /**
  * The text-binding posture, present ONLY for the three 2.4 text formats.
  *
@@ -376,6 +420,11 @@ export interface C2paReport {
   // User-asserted copyright + licence, read back from the credential's own
   // metadata (v2 cawg.metadata dc:rights; v1 CreativeWork copyrightNotice/license).
   rights?: string;
+  // The licence's machine-readable terms and credit, read from the same metadata
+  // assertion (xmpRights:UsageTerms and WebStatement, cc:license,
+  // cc:attributionName and attributionURL, photoshop:Credit). A statement the
+  // signer made, not a verdict on rights. Absent when none of them is recorded.
+  licence?: C2paLicenceTerms;
   signer?: C2paSigner;
   aiGenerated?: C2paAiOrigin;
   // section 18.28 c2pa.ai-disclosure, read for every format. Self-asserted claim
@@ -1013,6 +1062,8 @@ export async function verifyC2pa(
       if (name) report.author = parseCreatorEntry(String(name));
       const rights = meta?.['dc:rights'];
       if (typeof rights === 'string' && rights.trim()) report.rights = rights.trim();
+      const licence = readLicenceTerms(meta);
+      if (licence) report.licence = licence;
     } catch { /* display nicety only */ }
   }
   const creativeWork = factAssertions.find((a) => a.label === 'stds.schema-org.CreativeWork');

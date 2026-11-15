@@ -12,7 +12,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { embedWavInfo } from '../engine/src/riff-meta.ts';
+import { embedWavInfo, embedWavXmp } from '../engine/src/riff-meta.ts';
 import { parseWav } from '../engine/src/wav.ts';
 
 /** A real minimal WAV: 16-bit PCM mono. */
@@ -126,4 +126,22 @@ test('ICOP carries the copyright notice (plans/144 Wave 2 G4)', () => {
   assert.ok(subs.has('ICOP'));
   const raw = subs.get('ICOP')!;
   assert.equal(new TextDecoder().decode(raw.subarray(0, raw.length - 1)), '© 2026 Ana Kovac');
+});
+
+test('embedWavXmp: an even-padded _PMX chunk after the audio, replaced on a re-write, RIFF size patched', () => {
+  const src = tinyWav(8);
+  const out = embedWavXmp(src, '<x:xmpmeta>odd</x:xmpmeta>X');
+  assert.deepEqual(out.subarray(8, src.length), src.subarray(8), 'the audio and its header stay put (only the RIFF size changes)');
+  assert.equal(str(out, src.length, 4), '_PMX');
+  const size = u32(out, src.length + 4);
+  assert.equal(str(out, src.length + 8, size), '<x:xmpmeta>odd</x:xmpmeta>X');
+  assert.equal(out.length, src.length + 8 + size + (size & 1), 'an odd packet gets its pad byte');
+  assert.equal(u32(out, 4), out.length - 8);
+  const again = embedWavXmp(out, '<x:xmpmeta>two</x:xmpmeta>');
+  assert.equal(again.length, src.length + 8 + 26, 'replaced, not added');
+  assert.equal(str(again, src.length + 8, 26), '<x:xmpmeta>two</x:xmpmeta>');
+  assert.ok(parseWav(again), 'the file still reads as a WAV');
+  assert.equal(embedWavXmp(src, ''), src, 'an empty packet writes nothing');
+  const junk = new TextEncoder().encode('not a wav at all');
+  assert.equal(embedWavXmp(junk, '<x/>'), junk);
 });

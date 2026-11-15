@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * tune-sign.ts: a WAV made by the music generator reads back with the declaration,
- * the style and the seed, as algorithmic media and with no AI flag. Read back through
- * the same verifier the Verify view uses.
+ * the style and the seed, as algorithmic media and with no AI flag, and with the
+ * CC BY 4.0 licence and its credit in its tags and its credential. Read back through
+ * the same verifier and file reader the Verify view uses.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { canSignTune, signTuneFile, tagTuneFile } from './tune-sign.ts';
+import { canSignTune, signTuneFile, tagTuneFile, tuneLicenceXmp } from './tune-sign.ts';
 import { verifyC2pa } from './c2pa-verify.ts';
 import { collectIngredients } from './c2pa-extract.ts';
 import { aiKind } from './ai-kind.ts';
 import { packWav } from './wav.ts';
 import { ENGINE_VERSION } from './version.ts';
-import { TUNE_DECLARATION, TUNE_SOURCE_TYPE } from './tune-provenance.ts';
+import { TUNE_CREDIT, TUNE_CREDIT_LINE, TUNE_DECLARATION, TUNE_LICENCE, TUNE_LICENCE_STATEMENT, TUNE_SOURCE_TYPE } from './tune-provenance.ts';
+import { OUTPUT_LICENCE_CHOICES } from './rights-profiles.ts';
 import { extractFileMetadata } from './file-metadata.ts';
 import { concatBytes } from './bytes.ts';
 
@@ -97,4 +99,60 @@ test('a format with no credential placer is refused rather than reported as sign
   assert.equal(canSignTune('m4a'), true);
   assert.equal(canSignTune('mid'), false);
   await assert.rejects(signTuneFile(new Uint8Array(8), 'mid', { name: 'x', facts }), /MID has no place for Content Credentials/);
+});
+
+/** Every licence and credit field a file inspector shows, label to value. */
+const licenceTags = (bytes: Uint8Array): Record<string, string> =>
+  Object.fromEntries(extractFileMetadata(bytes).fields.filter((f) => f.group === 'authorship').map((f) => [f.label, f.value]));
+
+const STATEMENT = 'Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools).';
+
+test('the licence and the credit are word for word what Andy chose', () => {
+  assert.equal(TUNE_LICENCE_STATEMENT, STATEMENT);
+  assert.equal(TUNE_CREDIT, 'Music made with Lolly');
+  assert.equal(TUNE_CREDIT_LINE, 'Music made with Lolly (https://lolly.tools)');
+  const listed = OUTPUT_LICENCE_CHOICES.find((c) => c.id === TUNE_LICENCE.id);
+  assert.deepEqual(listed && { name: listed.name, url: listed.url }, { name: TUNE_LICENCE.short, url: TUNE_LICENCE.url }, 'the export panel lists the same licence at the same address');
+});
+
+for (const [format, bytes] of [['wav', wav], ['m4a', m4a]] as const) {
+  test(`${format === 'wav' ? 'a WAV' : 'an M4A'} reads back with the CC BY 4.0 licence and the credit, in its tags and its credential`, async () => {
+    const out = await signTuneFile(bytes, format, { name: 'Sugar · 2024', facts });
+    const report = await verifyC2pa(out);
+    assert.equal(report.state, 'valid', JSON.stringify(report.checks));
+    assert.equal(report.rights, STATEMENT, 'the credential states the licence and the credit');
+    assert.deepEqual(report.licence, {
+      url: 'https://creativecommons.org/licenses/by/4.0/', attributionName: 'Lolly', attributionUrl: 'https://lolly.tools', credit: 'Music made with Lolly',
+    }, 'and its machine-readable terms');
+    assert.match(String(created(report)?.digitalSourceType), /\/algorithmicMedia$/, 'still algorithmic media');
+    assert.doesNotMatch(String(created(report)?.digitalSourceType), /trainedAlgorithmicMedia/);
+    assert.equal(report.aiGenerated, undefined);
+    assert.deepEqual(licenceTags(out), {
+      Copyright: STATEMENT,
+      'Usage terms': STATEMENT,
+      'Rights statement': 'https://creativecommons.org/licenses/by/4.0/',
+      Licence: 'https://creativecommons.org/licenses/by/4.0/',
+      'Attribution name': 'Lolly',
+      'Attribution URL': 'https://lolly.tools',
+      Credit: 'Music made with Lolly',
+    }, 'the plain tags carry the same terms without a credential reader');
+    assert.equal(extractFileMetadata(out).fields.find((f) => f.label === 'Copyright')?.source, format === 'wav' ? 'WAV INFO ICOP' : 'MP4 Copyright');
+  });
+}
+
+test('tagging again replaces the licence tags rather than adding a second set', () => {
+  const once = tagTuneFile(wav, 'wav', { name: 'x', facts });
+  assert.deepEqual(tagTuneFile(once, 'wav', { name: 'x', facts }), once);
+  const m4aOnce = tagTuneFile(m4a, 'm4a', { name: 'x', facts });
+  const count = (b: Uint8Array): number => new TextDecoder('latin1').decode(b).split('xmpRights:UsageTerms>').length - 1;
+  assert.equal(count(m4aOnce), 2, 'one packet: an opening and a closing tag');
+  assert.equal(count(tagTuneFile(m4aOnce, 'm4a', { name: 'x', facts })), 2);
+});
+
+test('the XMP packet holds the licence terms and the credit, and nothing about the person', () => {
+  const xmp = tuneLicenceXmp();
+  for (const want of ['xmpRights:UsageTerms', 'xmpRights:WebStatement', 'cc:license rdf:resource="https://creativecommons.org/licenses/by/4.0/"', 'cc:attributionName>Lolly<', 'photoshop:Credit>Music made with Lolly<']) {
+    assert.ok(xmp.includes(want), want);
+  }
+  assert.doesNotMatch(xmp, /dc:creator|Iptc4xmpExt|DigitalSourceType|xmpRights:Marked/, 'only the licence and the credit');
 });

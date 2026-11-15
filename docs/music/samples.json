@@ -18,8 +18,8 @@
       "bpm": 87,
       "key": "B major",
       "file": "warm-lofi.m4a",
-      "bytes": 208565,
-      "sha256": "d5efabf35990c53bfd51aaebe16ed0f5392032de2104c02e810b11de8558e585",
+      "bytes": 210558,
+      "sha256": "5b9e93f8bfbae89d58b26cae879615939e3cba7ef0c2f5be3e32062826641764",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Warm, seed 4.",
       "measured": {
         "rmsDb": -21.4,
@@ -28,7 +28,8 @@
         "liftDb": 0.3,
         "lowDb": -1.8,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "lateNight",
@@ -39,8 +40,8 @@
       "bpm": 78,
       "key": "A♭ minor",
       "file": "late-night-lofi.m4a",
-      "bytes": 200908,
-      "sha256": "4e2edf8e17886b72c4c93296cd5ac47ef20a4bbbdc1cc52aa56fe1087d9c8c3b",
+      "bytes": 202903,
+      "sha256": "a6f4cdd614f2c687e15fde5fe73a132725793cea94b428907ad6588dfa67b5b5",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Late night, seed 2.",
       "measured": {
         "rmsDb": -22,
@@ -49,7 +50,8 @@
         "liftDb": -0.2,
         "lowDb": -1.9,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "rainy",
@@ -60,8 +62,8 @@
       "bpm": 82,
       "key": "A♭ minor",
       "file": "rainy-lofi.m4a",
-      "bytes": 201308,
-      "sha256": "4679be35ef462449c6f86cbdea96b1f3bc13f4d94e8cd1ee6f0f2e3c7928cb13",
+      "bytes": 203302,
+      "sha256": "a25d7e784ab6d93d953ad7a2ed46c0e5b93240d3c5a2707bc1937276d693d32d",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Rainy, seed 2.",
       "measured": {
         "rmsDb": -22,
@@ -70,7 +72,8 @@
         "liftDb": 1,
         "lowDb": -2,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "sings",
@@ -81,8 +84,8 @@
       "bpm": 92,
       "key": "A♭ major",
       "file": "lolly-sings.m4a",
-      "bytes": 201055,
-      "sha256": "8b0ae5568179df9cd92e16fbb7409d3af6cc82dc96f10923c9b35cef86985812",
+      "bytes": 203050,
+      "sha256": "4990ba0750ca772a2c33d93fac0d439b11487cbe7d777f5ddd86c29e96506008",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Lolly Sings, seed 3.",
       "measured": {
         "rmsDb": -23.3,
@@ -91,7 +94,8 @@
         "liftDb": -1.1,
         "lowDb": -2.6,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "sugar",
@@ -102,8 +106,8 @@
       "bpm": 117,
       "key": "G minor",
       "file": "sugar.m4a",
-      "bytes": 202505,
-      "sha256": "11fcf4aafef77131cbbf6ca0f683d558e064f203ef2c66020d1dd56870030483",
+      "bytes": 204500,
+      "sha256": "10d6f6713c93acc2d7579b2efd3a85a7b5d3ba76ab0180d1a8cdd5717bddc78f",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Sugar, seed 1.",
       "measured": {
         "rmsDb": -19.7,
@@ -112,7 +116,8 @@
         "liftDb": 5.3,
         "lowDb": -2.8,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "sherbert",
@@ -123,8 +128,8 @@
       "bpm": 140,
       "key": "A♭ major",
       "file": "sherbert.m4a",
-      "bytes": 202058,
-      "sha256": "260cca5c4531186f834e138623667aa6920c7d7ec85069d66d6a5af058c2bdcb",
+      "bytes": 204053,
+      "sha256": "c105a9bc8e7d4975cf8f5c505399148268e906dc624a0a0bced00844f1bc7c5b",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Sherbert, seed 5.",
       "measured": {
         "rmsDb": -19.5,
@@ -133,7 +138,8 @@
         "liftDb": 4,
         "lowDb": -2.9,
         "stereo": 0.88
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "persian",
@@ -144,8 +150,8 @@
       "bpm": 103,
       "key": "A♭ Homayoun",
       "file": "persian.m4a",
-      "bytes": 202263,
-      "sha256": "8e2b6068a6221bfc126861b66159570caf20137a2b1a1f8c29841b534bd2a017",
+      "bytes": 204258,
+      "sha256": "937e43a207736d96080fa89a29604a92a10751ca4d173769a7f58bf662874fb0",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Persian, seed 3.",
       "measured": {
         "rmsDb": -20.6,
@@ -154,7 +160,8 @@
         "liftDb": 1.1,
         "lowDb": -2.8,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "guzheng",
@@ -165,8 +172,8 @@
       "bpm": 85,
       "key": "A♭ minor",
       "file": "guzheng.m4a",
-      "bytes": 202441,
-      "sha256": "df9de94efc287dab423c43914d4d1c99e202843903ca40df3912517dfbff83c2",
+      "bytes": 204433,
+      "sha256": "cd3402675a0dea23ffe3fbd0dbb97ed610baf543c3828dae9bb668f5969b347e",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Guzheng, seed 3.",
       "measured": {
         "rmsDb": -21.1,
@@ -175,7 +182,8 @@
         "liftDb": -5.6,
         "lowDb": -2,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "koto",
@@ -186,8 +194,8 @@
       "bpm": 76,
       "key": "B yo",
       "file": "koto.m4a",
-      "bytes": 203865,
-      "sha256": "7a6159d7a1325402e89002ae53e612a031fa2924ea6d36a23cb90288c24b4474",
+      "bytes": 205861,
+      "sha256": "808ad0eea0cb614c1019974aace1bc241aaacf7c30a01973ab30229ebe1d058a",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Koto, seed 4.",
       "measured": {
         "rmsDb": -19.4,
@@ -196,7 +204,8 @@
         "liftDb": -5.1,
         "lowDb": -2.4,
         "stereo": 0.96
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "kora",
@@ -207,8 +216,8 @@
       "bpm": 110,
       "key": "A♭ sauta",
       "file": "kora.m4a",
-      "bytes": 201631,
-      "sha256": "d3a845e4b5d5f550b7e349e177c7054a37be5a680de38c9f8bef9924c0236608",
+      "bytes": 203625,
+      "sha256": "4c68471f15d75a3f1deafcd0ff2dd5946fe733db640210c9414abfda91e83a20",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Kora, seed 3.",
       "measured": {
         "rmsDb": -21,
@@ -217,7 +226,8 @@
         "liftDb": 1.5,
         "lowDb": -2.9,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "afrobeat",
@@ -228,8 +238,8 @@
       "bpm": 105,
       "key": "A♭ minor",
       "file": "afrobeat.m4a",
-      "bytes": 201568,
-      "sha256": "c398566a85338527badbaead6c4d0a82ada99fdcb1b876db786589e00105dcd6",
+      "bytes": 203563,
+      "sha256": "aba2a4282597a7a4e6ef0a2358784ab755b3de07277ddf864e79505931bdff31",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Afrobeat, seed 5.",
       "measured": {
         "rmsDb": -21.2,
@@ -238,7 +248,8 @@
         "liftDb": 0,
         "lowDb": -3.6,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "amapiano",
@@ -249,8 +260,8 @@
       "bpm": 112,
       "key": "A♭ major",
       "file": "amapiano.m4a",
-      "bytes": 199697,
-      "sha256": "aaf7fc3d5c46acb643f5c01bbf6f494e98c10d2145e5cb1c21ef9504cd2f1af7",
+      "bytes": 201690,
+      "sha256": "6dccc2c493784c7daebbc3795a1514e880e9b99c4b51d850ed0034639d3f5dfb",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Amapiano, seed 5.",
       "measured": {
         "rmsDb": -21.7,
@@ -259,7 +270,8 @@
         "liftDb": 4.2,
         "lowDb": -2.7,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "chiptune",
@@ -270,8 +282,8 @@
       "bpm": 143,
       "key": "A♭ minor",
       "file": "chiptune.m4a",
-      "bytes": 201793,
-      "sha256": "9c7d7deb8da1cdce3a156066a40e3c87ba51917beb9193fd275aeb2516c8fef8",
+      "bytes": 203787,
+      "sha256": "8f7fd4838c94fba4cb2069743533e264f2d799b000fa976e25586339ca8e518d",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Chiptune, seed 3.",
       "measured": {
         "rmsDb": -23.7,
@@ -280,7 +292,8 @@
         "liftDb": 1,
         "lowDb": -3,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "citypop",
@@ -291,8 +304,8 @@
       "bpm": 113,
       "key": "A♭ major",
       "file": "city-pop.m4a",
-      "bytes": 202913,
-      "sha256": "64f93015ff4466b38c9df38a93c4e954f1ab2c53bddfd867afb9c28b5ba04811",
+      "bytes": 204907,
+      "sha256": "a61f049122ebc7bcafbb09ef3cf21cba345c0d016473ba727537ee9b5f713c8f",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style City pop, seed 5.",
       "measured": {
         "rmsDb": -19.1,
@@ -301,7 +314,8 @@
         "liftDb": 0,
         "lowDb": -2.9,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "funk",
@@ -312,8 +326,8 @@
       "bpm": 103,
       "key": "A♭ major",
       "file": "funk.m4a",
-      "bytes": 202109,
-      "sha256": "425663d75ff7138ba119904784ccdbaf72f9786cc6ab1dd43679132161dcbe7e",
+      "bytes": 204105,
+      "sha256": "ba7ec9d0d748fd8bb56c8ca00f7e269a48342421384de647d4dd6de24bab537f",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Funk, seed 5.",
       "measured": {
         "scratches": 0,
@@ -323,7 +337,8 @@
         "liftDb": 0.1,
         "lowDb": -3.8,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "soul",
@@ -334,8 +349,8 @@
       "bpm": 94,
       "key": "A♭ major",
       "file": "soul.m4a",
-      "bytes": 201640,
-      "sha256": "d8327191c8539422e87edbb79ea67cad5902dfaefe6c3b207b09450b7fe2f265",
+      "bytes": 203635,
+      "sha256": "2053b62459bf3bd6bf8706dc07cc6c4a16609659b8eb18ecf970f9db521af26c",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Soul, seed 5.",
       "measured": {
         "rmsDb": -19.5,
@@ -344,7 +359,8 @@
         "liftDb": 2.1,
         "lowDb": -2.1,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "nudisco",
@@ -355,8 +371,8 @@
       "bpm": 118,
       "key": "A♭ major",
       "file": "nu-disco.m4a",
-      "bytes": 204004,
-      "sha256": "5a9143475c7d9f2a70974fec3d114ca0d0c87580b144e9c5cca456f5477f57d9",
+      "bytes": 205999,
+      "sha256": "ba8cfde837c4e04dd9f2476b26741bfeb9b29a34f4d9ac21d487bb94f21d98fd",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Nu-disco, seed 5.",
       "measured": {
         "scratches": 0,
@@ -366,7 +382,8 @@
         "liftDb": 4.6,
         "lowDb": -3.3,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "hiphop",
@@ -377,8 +394,8 @@
       "bpm": 85,
       "key": "D♭ major",
       "file": "hip-hop.m4a",
-      "bytes": 202001,
-      "sha256": "15e0929ecd109f38afb91cf3e85916b77745971ff1542cee36143b490ec855ae",
+      "bytes": 203996,
+      "sha256": "c8682ffc4c631b8c19299d7c8dd6c5f4c9d4e0a62710a1e73a3ad323777ab0cd",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Hip hop, seed 8.",
       "measured": {
         "scratches": 1,
@@ -388,7 +405,8 @@
         "liftDb": 0.7,
         "lowDb": -1.9,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "triphop",
@@ -399,8 +417,8 @@
       "bpm": 89,
       "key": "F♯ major",
       "file": "trip-hop.m4a",
-      "bytes": 202131,
-      "sha256": "82d37cbc8348c72f4b62dedf28a1357ed858f2692a92a296c444e5ba818e47e7",
+      "bytes": 204125,
+      "sha256": "775d6106efa112aead4666f303b1f9bca73d6800ab5e83d1a5bd80763f3ba75f",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Trip hop, seed 10.",
       "measured": {
         "scratches": 0,
@@ -410,7 +428,8 @@
         "liftDb": -0.2,
         "lowDb": -2.8,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "reggae",
@@ -421,8 +440,8 @@
       "bpm": 74,
       "key": "A♭ major",
       "file": "reggae.m4a",
-      "bytes": 203007,
-      "sha256": "3c200e85b683f90763d0a9384e068dfcf564a3e55dad023af2fcfb6f2ec7298f",
+      "bytes": 205001,
+      "sha256": "528b29d8a6e3ad68c47c5f549a840f557a726f6a56313af31ae9ca2fa3489c30",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Reggae, seed 5.",
       "measured": {
         "rmsDb": -23.1,
@@ -431,7 +450,8 @@
         "liftDb": -1.4,
         "lowDb": -3.2,
         "stereo": 0.96
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "spanish",
@@ -442,8 +462,8 @@
       "bpm": 107,
       "key": "A♭ major",
       "file": "spanish-guitar.m4a",
-      "bytes": 202603,
-      "sha256": "f4f861a2d7896e40b38ca782a5af1e1a5ef2047e553edd9920a566837a52734c",
+      "bytes": 204599,
+      "sha256": "3c4f1eed9d60b12804fb7fdc9f5a5abb3eb9fd8be2c9fdae6fcaaf4cc3f021af",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Spanish guitar, seed 5.",
       "measured": {
         "rmsDb": -21.9,
@@ -452,7 +472,8 @@
         "liftDb": -0.3,
         "lowDb": -4,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "rock",
@@ -463,8 +484,8 @@
       "bpm": 117,
       "key": "A♭ major",
       "file": "rock.m4a",
-      "bytes": 203063,
-      "sha256": "14fb470d0db6d534b0edbf368f16f8d94ec01119db11794ef017124323165852",
+      "bytes": 205059,
+      "sha256": "9c6a2146ccf68d6e9dfdcb409726fd1660771ae265a18a95e064824d4b38c790",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Rock, seed 5.",
       "measured": {
         "rmsDb": -20.4,
@@ -473,7 +494,8 @@
         "liftDb": -0.3,
         "lowDb": -3.1,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "metal",
@@ -484,8 +506,8 @@
       "bpm": 156,
       "key": "A♭ minor",
       "file": "metal.m4a",
-      "bytes": 204006,
-      "sha256": "db4f5e22c621eefbc036702081d5315ea66f1101225e906dcf3a13906dca0c43",
+      "bytes": 206000,
+      "sha256": "954cf890608fbbb0227db26b1a8e737d9b65c4b752ee37a198ff349c20db0bc8",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Metal, seed 3.",
       "measured": {
         "rmsDb": -18.3,
@@ -494,7 +516,8 @@
         "liftDb": 0.2,
         "lowDb": -1.7,
         "stereo": 0.87
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "country",
@@ -505,8 +528,8 @@
       "bpm": 102,
       "key": "G minor",
       "file": "country.m4a",
-      "bytes": 203125,
-      "sha256": "e96babb77a8f426f2b35d35ef8be234d26dfa4b0cff74ee082a43de83a10b4f5",
+      "bytes": 205119,
+      "sha256": "05f671fca0c8908e1ed88ca5fd8fe9ebc0153687e04f6eb7d15e26dee9dec0c4",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Country, seed 1.",
       "measured": {
         "rmsDb": -21.8,
@@ -515,7 +538,8 @@
         "liftDb": -0.9,
         "lowDb": -2.7,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "blues",
@@ -526,8 +550,8 @@
       "bpm": 87,
       "key": "A♭ minor",
       "file": "blues.m4a",
-      "bytes": 202349,
-      "sha256": "428018ffa84eb5b43883171fdff89bad8ee6bb5a45b9bada5e05552aeacee157",
+      "bytes": 204345,
+      "sha256": "719f9cc231762b8efef08a459b96d400dbfca47e5ecba4f59e7f4999752ab7e3",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Blues, seed 3.",
       "measured": {
         "rmsDb": -22.2,
@@ -536,7 +560,8 @@
         "liftDb": 0.9,
         "lowDb": -3.3,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "jazz",
@@ -547,8 +572,8 @@
       "bpm": 120,
       "key": "G minor",
       "file": "jazz.m4a",
-      "bytes": 202983,
-      "sha256": "f4d48b6071aa27b5ff5be24d1ebfa0949b7a879defb450b9b30b5c5b867ec574",
+      "bytes": 204979,
+      "sha256": "bb7942bd5a6970fd1f6af1fb15969ddd04b1107b486548df96ae9fb0f1b5b504",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Jazz, seed 1.",
       "measured": {
         "rmsDb": -22.5,
@@ -557,7 +582,8 @@
         "liftDb": 3.8,
         "lowDb": -4.4,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "swing",
@@ -568,8 +594,8 @@
       "bpm": 182,
       "key": "A♭ minor",
       "file": "swing.m4a",
-      "bytes": 202349,
-      "sha256": "3afb897fb8b262f8d594b61f168ad1b3b691120c2216be270c285ee09dbafb49",
+      "bytes": 204344,
+      "sha256": "f69e0e42d112d0036538a591d793eecdf24a9cb63a8173e01abf325f547043be",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Swing, seed 3.",
       "measured": {
         "rmsDb": -22.8,
@@ -578,7 +604,8 @@
         "liftDb": 0.2,
         "lowDb": -3.6,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "straya",
@@ -589,8 +616,8 @@
       "bpm": 118,
       "key": "A♭ minor",
       "file": "straya.m4a",
-      "bytes": 203516,
-      "sha256": "f8fdda7355e5db97ac6b09a830a0811b00c0f8a79dcb167d8bd72beef9c5a1ff",
+      "bytes": 205513,
+      "sha256": "a6fbd9a83332ea8918e60968107149c6d332dad36b4746aa63218c2ea826a487",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Straya, seed 3.",
       "measured": {
         "rmsDb": -20.1,
@@ -599,7 +626,8 @@
         "liftDb": -0.4,
         "lowDb": -2.9,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "fantasy",
@@ -610,8 +638,8 @@
       "bpm": 94,
       "key": "B minor",
       "file": "fantasy.m4a",
-      "bytes": 202005,
-      "sha256": "4a8d4f3b7012176ecbb81059816f87fa94ceef91a45fbbdf15351c2261662486",
+      "bytes": 203999,
+      "sha256": "8df3c454dd5000b7dde91332cd6ae7da7b5292a0e309c83216188c790fe4a342",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Fantasy, seed 4.",
       "measured": {
         "rmsDb": -21.9,
@@ -620,7 +648,8 @@
         "liftDb": 0,
         "lowDb": -2.7,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "dream",
@@ -631,8 +660,8 @@
       "bpm": 69,
       "key": "G minor",
       "file": "dreamscape.m4a",
-      "bytes": 201882,
-      "sha256": "74e46f387ca38b219c47f91b27184aee15fadca714f9377baf8133c131a77e5d",
+      "bytes": 203877,
+      "sha256": "8a78b4056908c3b5d0a5a0ed08acda459aceae3cbdddb6195f2471f8006f5cad",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Dreamscape, seed 1.",
       "measured": {
         "rmsDb": -21.2,
@@ -641,7 +670,8 @@
         "liftDb": 0.6,
         "lowDb": -3.3,
         "stereo": 0.95
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "kpop",
@@ -652,8 +682,8 @@
       "bpm": 122,
       "key": "A♭ major",
       "file": "k-pop.m4a",
-      "bytes": 202723,
-      "sha256": "82557324a17a4d0c5ea203c6f501750f52481f1721636f8bb8b7f2ec1298c82e",
+      "bytes": 204720,
+      "sha256": "5da2d7ed87d91d6f23cef5aa33478f075bdceec4d179da3541df83138b4f7418",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style K-pop, seed 5.",
       "measured": {
         "rmsDb": -19.8,
@@ -662,7 +692,8 @@
         "liftDb": 4.7,
         "lowDb": -2.7,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "synthwave",
@@ -673,8 +704,8 @@
       "bpm": 99,
       "key": "A♭ minor",
       "file": "synthwave.m4a",
-      "bytes": 203548,
-      "sha256": "73b335133a3cefb65c3da8a180721164b64492ea024c094326213b164200132d",
+      "bytes": 205542,
+      "sha256": "90663e30960d980dc6d5e828491258a48d1cc96292b7f02443f7f2ddf55a55b2",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Synthwave, seed 5.",
       "measured": {
         "rmsDb": -22.2,
@@ -683,7 +714,8 @@
         "liftDb": 3.6,
         "lowDb": -2.8,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "acid",
@@ -694,8 +726,8 @@
       "bpm": 123,
       "key": "G minor",
       "file": "acid.m4a",
-      "bytes": 201560,
-      "sha256": "d742b8292b1c2891bad9a71d4932c5f62864cce67ae8c939fcd5be342c69279e",
+      "bytes": 203556,
+      "sha256": "f75b0a13159a706fa4d26b72e9c16fe6f03d1d4b0464cc82b902138b902617f7",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Acid, seed 1.",
       "measured": {
         "rmsDb": -21.7,
@@ -704,7 +736,8 @@
         "liftDb": 3.4,
         "lowDb": -2.4,
         "stereo": 1
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "electro",
@@ -715,8 +748,8 @@
       "bpm": 124,
       "key": "A♭ minor",
       "file": "electro.m4a",
-      "bytes": 203235,
-      "sha256": "b2f56cefe724c29c675d353803314af075e4d305ac115bf3379b707e290e3443",
+      "bytes": 205230,
+      "sha256": "b2b8882dda5c5d1101295d1c45e96fc91e975f1b7a67494eec970d028ef31795",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Electro, seed 3.",
       "measured": {
         "rmsDb": -19.9,
@@ -725,7 +758,8 @@
         "liftDb": 3.5,
         "lowDb": -2.9,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "dubstep",
@@ -736,8 +770,8 @@
       "bpm": 139,
       "key": "A♭ major",
       "file": "dubstep.m4a",
-      "bytes": 201794,
-      "sha256": "4590cb4183191455eb6cb7c218906d29f65ff958a8d6806544108a4665b613c4",
+      "bytes": 203789,
+      "sha256": "e8b5ee453382730fbec565591498f43afff7a2d0ac843c8684ccf9efecc49815",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Dubstep, seed 5.",
       "measured": {
         "rmsDb": -19.2,
@@ -746,7 +780,8 @@
         "liftDb": 3.5,
         "lowDb": -2.1,
         "stereo": 0.95
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "brostep",
@@ -757,8 +792,8 @@
       "bpm": 145,
       "key": "G minor",
       "file": "brostep.m4a",
-      "bytes": 202150,
-      "sha256": "24e35c5a07c22aa7038da36709ef7e615103a3fcfe964b85370bdf995ce80166",
+      "bytes": 204145,
+      "sha256": "7bf0c5995a7c0879ef1abf3e18fbaea965a655034106024c23f52f329c96e07c",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Brostep, seed 1.",
       "measured": {
         "rmsDb": -20,
@@ -767,7 +802,8 @@
         "liftDb": 1.3,
         "lowDb": -2.5,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "dnb",
@@ -778,8 +814,8 @@
       "bpm": 172,
       "key": "A♭ minor",
       "file": "drum-and-bass.m4a",
-      "bytes": 204894,
-      "sha256": "5a3cb29e832b23269c930bab5a231122872e6ff04f35d853a786b356e968a588",
+      "bytes": 206890,
+      "sha256": "a9d638232e16214e0b8e7dbc6b803fd13dd7902da3bcfb7b3bdd68aa38be04f9",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style D&B, seed 2.",
       "measured": {
         "rmsDb": -16.8,
@@ -788,7 +824,8 @@
         "liftDb": 3.6,
         "lowDb": -1.3,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "ska",
@@ -799,8 +836,8 @@
       "bpm": 160,
       "key": "A♭ major",
       "file": "ska.m4a",
-      "bytes": 204348,
-      "sha256": "d80c737968807e6e7c68259c3123921a5f1349198a9ad614bc53aad5a8f3d12c",
+      "bytes": 206342,
+      "sha256": "fad8f1864f3ee7bcf55189ef06a2ca7880ab8a238c0335d6406ffcf42968aaad",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Ska, seed 5.",
       "measured": {
         "rmsDb": -20.7,
@@ -809,7 +846,8 @@
         "liftDb": -0.3,
         "lowDb": -3.3,
         "stereo": 0.96
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "punk",
@@ -820,8 +858,8 @@
       "bpm": 167,
       "key": "G minor",
       "file": "punk.m4a",
-      "bytes": 201419,
-      "sha256": "af448fa2517b9cc6e254c5f7bdfa74363a591b9be194acaa1ed3ce99768d9e4a",
+      "bytes": 203413,
+      "sha256": "9231acb2b936131e2213f7c72b148d0335fa510812b261c86e22ea357e695314",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Punk, seed 1.",
       "measured": {
         "rmsDb": -19.9,
@@ -830,7 +868,8 @@
         "liftDb": -0.4,
         "lowDb": -2.7,
         "stereo": 0.96
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "rnb",
@@ -841,8 +880,8 @@
       "bpm": 72,
       "key": "F♯ minor",
       "file": "r-and-b.m4a",
-      "bytes": 202313,
-      "sha256": "ee7c4b9f46ec30efd74f1a50ff269bcf56ab13fbf2195678e8fb687ec6f2bcdb",
+      "bytes": 204307,
+      "sha256": "e8ae88cffaec28111b4e495c5e7e50925a4abf32e641f15aae6e35ea2ddc5a92",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style R&B, seed 6.",
       "measured": {
         "scratches": 1,
@@ -852,7 +891,8 @@
         "liftDb": 0.8,
         "lowDb": -1.8,
         "stereo": 0.96
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "grunge",
@@ -863,8 +903,8 @@
       "bpm": 118,
       "key": "A♭ minor",
       "file": "grunge.m4a",
-      "bytes": 201261,
-      "sha256": "2c6ab3de4c525ce46776e51dd3eaf88f83e847f5a3151f796c65dbbba9e3fd69",
+      "bytes": 203256,
+      "sha256": "1f936b527793a8f2a24a0a1653179d0d47549be676aadbf274485ef025a9f10a",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Grunge, seed 3.",
       "measured": {
         "rmsDb": -20.7,
@@ -873,7 +913,8 @@
         "liftDb": -0.4,
         "lowDb": -2.7,
         "stereo": 0.94
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "stoner",
@@ -884,8 +925,8 @@
       "bpm": 70,
       "key": "G minor",
       "file": "stoner-rock.m4a",
-      "bytes": 204153,
-      "sha256": "4eeb3479b4d4bb4a90a93e4f9874bb63cd63011e1a5e3153ac6d0efa1972ba1c",
+      "bytes": 206147,
+      "sha256": "30267fefd41a17c7dd88a67b74e0608070cde138981025b7a45d176c9991ff43",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Stoner rock, seed 1.",
       "measured": {
         "rmsDb": -18.1,
@@ -894,7 +935,8 @@
         "liftDb": 1,
         "lowDb": -1.5,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "shoegaze",
@@ -905,8 +947,8 @@
       "bpm": 89,
       "key": "A♭ major",
       "file": "shoegaze.m4a",
-      "bytes": 201093,
-      "sha256": "f093488a2de83763cdd53db432f8b1ed000bdeb95ae24c0c54948f58e6bfaf84",
+      "bytes": 203088,
+      "sha256": "f1ee27f9d6bd4c66207c5aa8c95d4c784fad44839f81ae86b0ef1ffb287c6646",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Shoegaze, seed 5.",
       "measured": {
         "rmsDb": -21.1,
@@ -915,7 +957,8 @@
         "liftDb": -0.3,
         "lowDb": -2.2,
         "stereo": 0.95
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "lofiHouse",
@@ -926,8 +969,8 @@
       "bpm": 120,
       "key": "B minor",
       "file": "lofi-house.m4a",
-      "bytes": 203439,
-      "sha256": "8f94bde7187b0a43e38a8e1021e04e0f83d228d696138280c7161d4923e59929",
+      "bytes": 205436,
+      "sha256": "07a2dac13f447a787d4cfffac60c25e3951e69c74161ec06a19a86bb49bc1ffc",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Lofi house, seed 4.",
       "measured": {
         "rmsDb": -17.7,
@@ -936,7 +979,8 @@
         "liftDb": 1.7,
         "lowDb": -1.1,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "salsa",
@@ -947,8 +991,8 @@
       "bpm": 200,
       "key": "G minor",
       "file": "salsa.m4a",
-      "bytes": 200986,
-      "sha256": "7093b9e1c5a30273a884c5544d87bb231106c6e6e309f854cafce6605b446a04",
+      "bytes": 202981,
+      "sha256": "63ba2475f351b9fd3ab641b98b1c5260400b41ddde8874c1d57e7c3348a19934",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Salsa, seed 3.",
       "measured": {
         "rmsDb": -19.9,
@@ -957,7 +1001,8 @@
         "liftDb": 1.5,
         "lowDb": -7.2,
         "stereo": 0.88
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "surf",
@@ -968,8 +1013,8 @@
       "bpm": 150,
       "key": "G Phrygian dominant",
       "file": "surf-rock.m4a",
-      "bytes": 201735,
-      "sha256": "fdfbd78ae54df892676b36880e98aeac2bfe5381b5c7215811ab03c7cb85f8cd",
+      "bytes": 203731,
+      "sha256": "ee3f8df224c86778d2868d95819d5af013757c4ade0d3309c781f1007e1b762a",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Surf rock, seed 1.",
       "measured": {
         "rmsDb": -20.1,
@@ -978,7 +1023,8 @@
         "liftDb": -0.5,
         "lowDb": -2.7,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "yacht",
@@ -989,8 +1035,8 @@
       "bpm": 85,
       "key": "G minor",
       "file": "yacht-rock.m4a",
-      "bytes": 200248,
-      "sha256": "3f9942c7a94e44307712ae0075e5f0bf9e63388169740ad2380e5fa14bcdd845",
+      "bytes": 202243,
+      "sha256": "f868dbb8324793dd7746a6250c3c51933076f314e256881572b7ce5ce1e20d00",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Yacht rock, seed 1.",
       "measured": {
         "rmsDb": -21.3,
@@ -999,7 +1045,8 @@
         "liftDb": 0.1,
         "lowDb": -3.2,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "botanica",
@@ -1010,8 +1057,8 @@
       "bpm": 162,
       "key": "A♭ minor",
       "file": "botanica.m4a",
-      "bytes": 201639,
-      "sha256": "b1f2973d1a966e09a2055899c3049b85522f8fa95f92f68be7d1353997d4c518",
+      "bytes": 203635,
+      "sha256": "f7b56a2bdfb55700d334440f365a8a5b06685cce8bdbe892c5d648edef8ae9a5",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Botanica, seed 2.",
       "measured": {
         "rmsDb": -19.4,
@@ -1020,7 +1067,8 @@
         "liftDb": -2.1,
         "lowDb": -4.8,
         "stereo": 0.91
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "arnhem",
@@ -1031,8 +1079,8 @@
       "bpm": 97,
       "key": "A♭ major",
       "file": "arnhem-land.m4a",
-      "bytes": 201421,
-      "sha256": "e5ff65b50b6c138226de40d71a0473ccf62c46db689c4ffb806ec48960c30f86",
+      "bytes": 203416,
+      "sha256": "132ed49d3213a31b02fdc43c1ff800fdd86897f14572a6318d28cef739d1df62",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Arnhem Land, seed 5.",
       "measured": {
         "rmsDb": -18,
@@ -1041,7 +1089,8 @@
         "liftDb": -0.3,
         "lowDb": -3.2,
         "stereo": 0.89
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "oompa",
@@ -1052,8 +1101,8 @@
       "bpm": 108,
       "key": "F major",
       "file": "oompa.m4a",
-      "bytes": 202946,
-      "sha256": "51bd7bd0e503c95438c7e57f6ac2d6f5ddd9efe152492c9fc33e470a5523c1cb",
+      "bytes": 204941,
+      "sha256": "72fbe60fef2a037d8ae8a36d4e18b07a51ab248cb632f682ee723668708b6dfa",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Oompa, seed 1.",
       "measured": {
         "scratches": 0,
@@ -1063,7 +1112,8 @@
         "liftDb": -0.6,
         "lowDb": -5.6,
         "stereo": 0.91
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "mandopop",
@@ -1074,8 +1124,8 @@
       "bpm": 67,
       "key": "E♭ major",
       "file": "mandopop.m4a",
-      "bytes": 201348,
-      "sha256": "69e571583608804db4339ce44bd9962c2b414fae5b160446f66a726d8968fded",
+      "bytes": 203341,
+      "sha256": "e02d1466f69c416e65c6a31d0d46b9bafef22865c273deb44d87a9663831828a",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Mandopop, seed 1.",
       "measured": {
         "rmsDb": -20.4,
@@ -1084,7 +1134,8 @@
         "liftDb": 1.2,
         "lowDb": -3.2,
         "stereo": 0.95
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "cpop",
@@ -1095,8 +1146,8 @@
       "bpm": 123,
       "key": "C major",
       "file": "c-pop.m4a",
-      "bytes": 203628,
-      "sha256": "0470e829170c82bd8588e701254c327982a98bef213b56e4baef2476377c2c23",
+      "bytes": 205623,
+      "sha256": "6a7dca78d8e5e4a5999a7d1b12a8726f59bf0c0914f962a86f7ff6846b4ede65",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style C-Pop, seed 5.",
       "measured": {
         "rmsDb": -19.5,
@@ -1105,7 +1156,8 @@
         "liftDb": 2.6,
         "lowDb": -3,
         "stereo": 0.86
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "breakbeat",
@@ -1116,8 +1168,8 @@
       "bpm": 129,
       "key": "A♭ major",
       "file": "breakbeat.m4a",
-      "bytes": 204712,
-      "sha256": "1457b7f46277fe8cf849d74cea11b839f1f918155be82975da89e4999138c8ae",
+      "bytes": 206706,
+      "sha256": "85de879901484504a0fdd1b3f0d48bd9f0caea91b557fdf9da56451b7654ca6d",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Breakbeat, seed 5.",
       "measured": {
         "scratches": 3,
@@ -1127,7 +1179,8 @@
         "liftDb": 1.4,
         "lowDb": -2.9,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "funkyHouse",
@@ -1138,8 +1191,8 @@
       "bpm": 126,
       "key": "A♭ minor",
       "file": "funky-house.m4a",
-      "bytes": 202424,
-      "sha256": "87fd5e960dc5a02982c4ad5bdb062420cf7632aceb128391f63d6eff95f07896",
+      "bytes": 204419,
+      "sha256": "9c6646de8c121cf370f4cf484257361ad0a6666a61260d45ea4e2c15a8610b24",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Funky house, seed 3.",
       "measured": {
         "rmsDb": -20.8,
@@ -1148,7 +1201,8 @@
         "liftDb": 4.2,
         "lowDb": -3.3,
         "stereo": 0.95
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "ukGarage",
@@ -1159,8 +1213,8 @@
       "bpm": 130,
       "key": "G minor",
       "file": "uk-garage.m4a",
-      "bytes": 203104,
-      "sha256": "14fd97b5d95cf8fe7ac777fedee23dd64a7e37a740cb3e88b4cd934ceac3e50b",
+      "bytes": 205098,
+      "sha256": "06296d4cdde799bf2a7634f0e3d3618a218f7164a3d3c20acb543ec0e3e3045c",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style UK garage, seed 1.",
       "measured": {
         "scratches": 0,
@@ -1170,7 +1224,8 @@
         "liftDb": 3.4,
         "lowDb": -2.8,
         "stereo": 0.98
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "privateSchool",
@@ -1181,8 +1236,8 @@
       "bpm": 110,
       "key": "B minor",
       "file": "private-school-piano.m4a",
-      "bytes": 207965,
-      "sha256": "c8c29fa4b776cb45670610383e4e07708b4334327a73e799c2f3e343b382fdb1",
+      "bytes": 209960,
+      "sha256": "3e3fbf719d698d7d0634e563d03c9f4d01af4e78df1c86977b841f7fdc4b94e5",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Private school piano, seed 4.",
       "measured": {
         "rmsDb": -21.2,
@@ -1191,7 +1246,8 @@
         "liftDb": 3.2,
         "lowDb": -2,
         "stereo": 0.97
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "noosa",
@@ -1202,8 +1258,8 @@
       "bpm": 92,
       "key": "B major",
       "file": "noosacore.m4a",
-      "bytes": 206889,
-      "sha256": "4b81ba1897ba41e4982cce64a9a3b4bf3b77b3c6e64eded649b4b5c963356380",
+      "bytes": 208884,
+      "sha256": "be9115d6337131e5eeaa2d7f78bd02790e192d2b29561c827a7b3a8b5ebc5291",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Noosacore, seed 4.",
       "measured": {
         "rmsDb": -22.2,
@@ -1212,7 +1268,8 @@
         "liftDb": -0.2,
         "lowDb": -2.5,
         "stereo": 0.95
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     },
     {
       "style": "jungle",
@@ -1223,8 +1280,8 @@
       "bpm": 161,
       "key": "D♭ minor",
       "file": "jungle.m4a",
-      "bytes": 205137,
-      "sha256": "4bf22cb7d5eb67978920023d33a55c395e3702d49000035981850bb1dc8014c4",
+      "bytes": 207132,
+      "sha256": "ee35b52963b65d0d4e004c4b7da0a82ac531a45c44259daff28af052593954b9",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Jungle, seed 8.",
       "measured": {
         "scratches": 2,
@@ -1234,7 +1291,8 @@
         "liftDb": 1.1,
         "lowDb": -3.1,
         "stereo": 0.99
-      }
+      },
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools)."
     }
   ]
 }

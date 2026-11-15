@@ -79,7 +79,9 @@ import { mountAssetFileList } from '../../components/asset-file-list.ts';
  *
  * A saved tune says where it was made instead of "Your upload". A tune made in the
  * music generator also shows who made it and the versions that made it, as the tune
- * records them, and its licence is a menu: not recorded until its maker sets one.
+ * records them, and its licence is a menu: CC BY 4.0 for a tune saved since
+ * 2026-11-15 (lib/tune-provenance.ts tuneLicenceRecord), not recorded for an older one
+ * until its maker sets one.
  */
 export function assetRightsRows(ref: AssetRef, isUser: boolean): string {
   const meta = (ref.meta ?? {}) as AssetRightsMeta;
@@ -153,8 +155,8 @@ function tuneVersionsText(v: { lolly?: string; engine?: string }): string {
 
 /**
  * The licence menu for a tune its maker made in the music generator: "Not recorded"
- * first and selected until a licence is set, then the licences a person can declare
- * for their own work. A declaration the menu does not list (one that arrived some
+ * first (selected only for a tune with no licence recorded, as one saved before
+ * 2026-11-15 has none), then the licences a person can declare for their own work. A declaration the menu does not list (one that arrived some
  * other way) stays shown and selected, so the menu never reads as a change.
  */
 function tuneLicencePick(label: ReturnType<typeof licenceLabel>): string {
