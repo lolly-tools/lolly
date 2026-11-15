@@ -126,7 +126,8 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
     player().addEventListener('ended', onEnded);
     player().addEventListener('timeupdate', onTime);
   };
-  async function play(key: string, parameters: string, narration?: { settings: SonicNarrationV1; script: string }): Promise<void> {
+  /** `offer`: when the voice model is missing, offer its download once and try again. */
+  async function play(key: string, parameters: string, narration?: { settings: SonicNarrationV1; script: string }, offer = true): Promise<void> {
     if (playingKey === key) { stop(); return; }
     stop();
     listen();
@@ -155,9 +156,14 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
     } catch (error) {
       if (controller.signal.aborted || playingKey !== key) return;
       stop();
-      status(/local_files_only|no available backend|voice fetch failed/.test((error as Error).message)
-        ? t('The voice is not installed on this device. Check the speech model in Settings, then try again.')
-        : (error as Error).message);
+      if (offer && narration && /local_files_only|no available backend|voice fetch failed/.test((error as Error).message)) {
+        // The voice model is not on this device yet: offer the download here, then play.
+        const { ensureModel } = await import('../../model-offer.ts');
+        if (await ensureModel('speech', { reason: t('Hearing a voice with your sound') })) { if (!disposed) void play(key, parameters, narration, false); }
+        else status(t('The voice is not on this device yet. Music without a voice still plays.'));
+        return;
+      }
+      status((error as Error).message);
     }
   }
 
@@ -205,8 +211,12 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
     if (!opts.washes) return;
     const card = el.querySelector<HTMLElement>('.sound-card');
     if (!card) return;
+    // The card's own surface and text, as drawn without a wash (a repaint after a change of theme).
+    const tinted = card.classList.contains('is-tinted');
+    if (tinted) card.classList.remove('is-tinted');
     const surface = getComputedStyle(card).backgroundColor;
     const ink = getComputedStyle(card).color;
+    if (tinted) card.classList.add('is-tinted');
     let washes: ReadonlyMap<LofiMood, SoundWash>;
     try { washes = await opts.washes(surface, ink); } catch { return; }
     if (disposed) return;
@@ -553,6 +563,12 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
     } else if (d.save !== undefined) void save();
     else if (d.discard !== undefined) void discard();
   };
+  // A change of theme washes the cards again for the new surface, as the generator's genre button does.
+  const retint = (): void => { if (profile) void tint(); };
+  const themes = typeof MutationObserver === 'undefined' ? null : new MutationObserver(retint);
+  themes?.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+  const darkScheme = globalThis.matchMedia?.('(prefers-color-scheme: dark)');
+  darkScheme?.addEventListener?.('change', retint);
   el.addEventListener('input', onInput);
   el.addEventListener('change', onChange);
   el.addEventListener('click', onClick);
@@ -579,6 +595,8 @@ export function mountSoundRoom(el: HTMLElement, opts: SoundRoomOptions) {
     teardown(): void {
       disposed = true;
       stop();
+      themes?.disconnect();
+      darkScheme?.removeEventListener?.('change', retint);
       if (audio && listening) {
         audio.removeEventListener('ended', onEnded);
         audio.removeEventListener('timeupdate', onTime);

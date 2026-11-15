@@ -69,9 +69,10 @@ const btn = (attrs: string, label: string, opts: { kind?: 'primary' | 'ghost'; g
 const field = (path: string, label: string, value: string, hint = '', rows = 2): string =>
   `<label class="sound-field"><span class="sound-field-label">${e(label)}</span><textarea class="field-input" data-field="${path}" rows="${rows}" maxlength="4000"${fieldsReadonly ? ' readonly' : ''}>${e(value)}</textarea>${hint ? `<small class="sound-hint">${e(hint)}</small>` : ''}</label>`;
 
-const fold = (id: string, title: string, iconName: Parameters<typeof icon>[0], value: string, body: string, open: ReadonlySet<string>): string =>
+/** A section card that folds away. `level`: its heading's place under the room's own (h3 beside the sections, h5 inside a use). */
+const fold = (id: string, title: string, iconName: Parameters<typeof icon>[0], value: string, body: string, open: ReadonlySet<string>, level: 3 | 5 = 5): string =>
   `<details class="section-card sound-fold" data-fold="${id}"${open.has(id) ? ' open' : ''}>`
-  + `<summary class="section-card-summary"><span class="section-card-icon" aria-hidden="true">${icon(iconName, { size: 18 })}</span><h2 class="section-card-title">${e(title)}</h2>${value ? `<span class="section-card-value">${e(value)}</span>` : ''}</summary>`
+  + `<summary class="section-card-summary"><span class="section-card-icon" aria-hidden="true">${icon(iconName, { size: 18 })}</span><h${level} class="section-card-title">${e(title)}</h${level}>${value ? `<span class="section-card-value">${e(value)}</span>` : ''}</summary>`
   + `<div class="section-card-body sound-fold-body">${body}</div></details>`;
 
 function directionsHtml(m: SoundViewModel): string {
@@ -97,7 +98,7 @@ function chipsHtml(m: SoundViewModel): string {
     const selected = c.id === m.contextId;
     const main = c.id === m.profile.defaultContext;
     return `<li class="sound-chip${selected ? ' is-selected' : ''}">${playButton(`use:${c.id}`, c.label)}`
-      + `<button type="button" class="sound-chip-name" data-select="${e(c.id)}" aria-pressed="${selected}"><span class="sound-chip-label">${e(c.label)}</span>${main ? `<span class="sound-chip-main">${t('Main')}</span>` : ''}</button></li>`;
+      + `<button type="button" class="sound-chip-name" data-select="${e(c.id)}" aria-pressed="${selected}"${c.purpose ? ` title="${e(c.purpose)}"` : ''}><span class="sound-chip-label">${e(c.label)}</span>${main ? `<span class="sound-chip-main">${t('Main')}</span>` : ''}</button></li>`;
   }).join('');
   return `<ul class="sound-chips" aria-label="${e(t('Uses'))}">${chips}${m.readonly ? '' : `<li>${btn('data-add-use', t('Add a use'), { kind: 'ghost', glyph: icon('plus', { size: 16 }), cls: 'sound-add' })}</li>`}</ul>`;
 }
@@ -178,7 +179,7 @@ function detailsHtml(m: SoundViewModel): string {
     + `<h4 class="sound-sub">${t('Listening review')}</h4>${review}${reviewForm}`
     + `<p class="sound-hint">${t('A review covers this version of the sound, not every tune made from this version. Any change makes the sound a draft again.')}</p>`
     + `<p class="sound-hint">${t('Projects made from a use keep this version of the sound. Your notes stay out of share links.')}</p>`;
-  return fold('details', t('Details'), 'info', reviewed ? t('Reviewed') : t('Draft'), body, m.open);
+  return fold('details', t('Details'), 'info', reviewed ? t('Reviewed') : t('Draft'), body, m.open, 3);
 }
 
 /** The whole room. */
