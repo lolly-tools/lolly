@@ -37,7 +37,7 @@ export type InstrumentFamily = typeof INSTRUMENT_FAMILIES[number];
 const WORLD = new Set(['tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'ney', 'kamancheh', 'erhu', 'dizi', 'pipa', 'shakuhachi', 'didgeridoo', 'yidaki', 'log']);
 /** Every other instrument goes by its icon, so a new one goes to a sensible family. */
 const BY_ICON: Record<InstrumentIcon, InstrumentFamily> = {
-  piano: 'keys', guitar: 'guitars', bowed: 'guitars', wind: 'winds', horn: 'winds', micVocal: 'voices', bell: 'bells', gamepad: 'chip', audioWaveform: 'synths', drum: 'synths',
+  piano: 'keys', guitar: 'guitars', bowed: 'guitars', wind: 'winds', horn: 'winds', micVocal: 'voices', bell: 'bells', gamepad: 'chip', audioWaveform: 'synths', drum: 'synths', disc: 'synths',
 };
 
 /** The family an instrument belongs to. */

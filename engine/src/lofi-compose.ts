@@ -46,6 +46,7 @@ import { dnbKitBar, dnbKitPlan, isBreakNote } from './lofi-breaks.ts';
 import { futureBuildEnd, futureDropBar, futurePlan } from './lofi-future.ts';
 import { cameoOf, didgeBass, didgeCameo, didgeLead, didgeMid, didgeridooPitch, gateToots, strayaBirds, strayaOf, strayaParts, withMagpies, yidakiPitch, DIDGE_AND_DRONE, DIDGE_CAMEO, DIDGE_ONLY } from './lofi-straya.ts';
 import { withConsoleFx } from './lofi-console.ts';
+import { withScratches } from './lofi-scratch.ts';
 import { arnhemBar, arnhemOf, ARNHEM_LEAN, ARNHEM_SHOUTS } from './lofi-arnhem.ts';
 import { chopDrums, chopsOf } from './lofi-break-chop.ts';
 import { arrangeJungle, jungleFigures, jungleHold, jungleKeys, jungleMoments, jungleOf, jungleStabs } from './lofi-jungle.ts';
@@ -85,8 +86,10 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
  *  and C-Pop add `pad`, a second keys instrument holding chords under the keys (lofi-cpop.ts). `siren`
  *  (jungle) is a dub siren, a synth's pitch swept by its own oscillator, its `mod` one of lofi-jungle.ts JUNGLE_SIRENS. The coast's
  *  birds are `whipbird` (a pair's whistle, crack and answer) and `lorikeet` (screeches, a feeding
- *  flock, a flock flying over), whose `mod`s lofi-coast-birds.ts reads. */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge' | 'fm' | 'wave' | 'pad' | 'siren' | 'whipbird' | 'lorikeet';
+ *  flock, a flock flying over), whose `mod`s lofi-coast-birds.ts reads. `scratch` is a DJ's scratch on one of
+ *  Lolly's own sounds (hip-hop, R&B, breakbeat, jungle, trip-hop, and rarely funk, nu-disco and UK garage), its
+ *  `mod` read by lofi-scratch.ts readScratch. */
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge' | 'fm' | 'wave' | 'pad' | 'siren' | 'whipbird' | 'lorikeet' | 'scratch';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash', 'tom', 'perc'];
 /** The percussion a `perc` note plays, by its `mod`: an egg shaker, a tambourine, congas (pitched by `midi`), a cowbell, clapsticks;
  *  and the world styles' hand drums and bells, whose `midi` is the stroke: the tombak (1 tom, 2 bak, 3 a snapped
@@ -147,7 +150,7 @@ const GAME = (name: typeof LOFI_GAME_SOUNDS[number]): number => LOFI_GAME_SOUNDS
 const SHOUT = (name: typeof LOFI_SHOUTS[number]): number => LOFI_SHOUTS.indexOf(name);
 
 export const LOFI_KEYS = ['rhodes', 'felt', 'wurli', 'pluck', 'pad', 'supersaw', 'nylon', 'crunch', 'wah', 'chiparp', 'steel', 'banjo', 'honky', 'organ', 'brass', 'jazzbox', 'harp', 'choir', 'future', 'tar', 'santur', 'zheng', 'koto', 'shamisen', 'kora', 'balafon', 'heavy', 'buzzsaw', 'clean', 'fuzz', 'wall', 'electric', 'strings', 'grand', 'surf', 'combo', 'houseOrgan', 'horns', 'didgeridoo', 'yidaki'] as const;
-export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'surf', 'chorus', 'none', 'flugelhorn', 'tenorhorn', 'yidaki'] as const;
+export const LOFI_LEADS = ['vibes', 'flute', 'soft', 'kalimba', 'chip', 'angel', 'pulse', 'guitar', 'overdrive', 'synthwave', 'metal', 'panflute', 'nylon', 'riff', 'twang', 'banjo', 'harmonica', 'sax', 'trumpet', 'clarinet', 'pedal', 'fiddle', 'bells', 'chop', 'bit', 'santur', 'ney', 'kamancheh', 'erhu', 'dizi', 'zheng', 'pipa', 'shakuhachi', 'koto', 'shamisen', 'kora', 'balafon', 'harp', 'steel', 'tar', 'viola', 'cello', 'doublebass', 'surf', 'chorus', 'none', 'flugelhorn', 'tenorhorn', 'yidaki', 'turntable'] as const;
 /**
  * Leads that no longer play, each with the lead that plays in its place. A retired id stays
  * in LOFI_LEADS, so an old link or saved tune still reads, but no style draws one: a tune,
@@ -702,7 +705,8 @@ export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<Lof
   // Botanica's and sherbert's magpie, from a stream of its own (lofi-straya.ts), then the
   // console's FM effects, from theirs (lofi-console.ts), placed around everything else.
   const tune = withMagpies(withBandShouts(withTag(composeTuneBars(seed, mood, fixed), seed, mood), seed, mood), mood, (seed ^ 0x3a6e1) >>> 0);
-  return withConsoleFx(tune, seed, mood);
+  // Then the DJ's scratches, from their own stream (lofi-scratch.ts), around those too.
+  return withScratches(withConsoleFx(tune, seed, mood), seed, mood);
 }
 
 /** How softly a quiet verse is played, against its chorus. */
