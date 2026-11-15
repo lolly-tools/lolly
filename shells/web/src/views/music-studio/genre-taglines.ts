@@ -43,6 +43,7 @@ export function genreTaglines(): Readonly<Record<string, string>> {
     jazz: t('A small combo swinging on the ride'),
     swing: t('Big band brass, clarinet and jungle toms'),
     straya: t('Didgeridoo, banjo and bush birds'),
+    arnhem: t('Yidaki and clapsticks with rock and hip-hop'),
     fantasy: t('Rippling harp, bells and a lydian melody'),
     dream: t('Drifting pads, choir and long held chords'),
     kpop: t('Supersaw stabs, claps and a chanted chorus'),

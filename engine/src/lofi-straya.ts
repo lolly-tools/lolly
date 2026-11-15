@@ -228,6 +228,29 @@ export function strayaOf(seed: number, lead: LofiStyle['lead'], fixedLead: boole
   return { r, solo, answer, breathEvery, breathAt, grooves: [MID_GROOVES[g]!, MID_GROOVES[g2]!], turn: turnFig, phrases: order, birds, sung: new Set(), clearing: 0, birdR: mulberry32((seed ^ 0xb1d5) >>> 0), both, kinds };
 }
 
+/**
+ * The didgeridoos' half of a plan for another style (Arnhem Land), from a stream of its own:
+ * the Yidaki's grooves, turns and phrases, the breath, the solo's shape and its answer, the
+ * kinds, and whether the Didgeridoo drones under the Yidaki (`both`). No birds.
+ */
+export function didgePlanOf(seed: number, both: boolean, answer: LofiStyle['lead']): StrayaPlan {
+  const r = mulberry32(seed >>> 0);
+  const pick = <T>(a: readonly T[]): T => a[Math.floor(r() * a.length)] as T;
+  const solo = r() < 0.35 ? 'carry' : 'trade';
+  const breathEvery = r() < 0.6 ? 2 : 1;
+  const breathAt = pick([12, 14, 14]);
+  const g = Math.floor(r() * MID_GROOVES.length);
+  const g2 = r() < 0.5 ? g : Math.floor(r() * MID_GROOVES.length);
+  const turnFig = pick(MID_TURNS);
+  const order = Array.from({ length: LEAD_PHRASES.length }, (_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [order[i], order[j]] = [order[j]!, order[i]!]; }
+  const soloist = YIDAKI_KINDS[Math.floor(r() * YIDAKI_KINDS.length)]!;
+  const otherYidaki = YIDAKI_KINDS.find(k => k !== soloist)!;
+  const kinds = { bass: DIDGERIDOO_KINDS[Math.floor(r() * DIDGERIDOO_KINDS.length)]!, mid: r() < 0.6 ? soloist : otherYidaki, turn: soloist, lead: soloist, swap: 0.2 + r() * 0.3 };
+  if (kinds.turn === kinds.mid) kinds.turn = otherYidaki;
+  return { r, solo, answer, breathEvery, breathAt, grooves: [MID_GROOVES[g]!, MID_GROOVES[g2]!], turn: turnFig, phrases: order, birds: [], sung: new Set(), clearing: 0, birdR: r, both, kinds };
+}
+
 /** A part of a band's running order, as the dance path builds it, with the solo's trades marked. */
 export interface StrayaPart { section: LofiSection; bars: number; layers: readonly LofiLayer[]; trade?: 'didge' | 'answer' }
 
@@ -236,12 +259,13 @@ export interface StrayaPart { section: LofiSection; bars: number; layers: readon
  * bass drone: the soloist's own drone is under the calls), and the answers. Carried, the
  * first four bars are the didgeridoo's alone over the stomp, the clap and the shaker.
  */
-export function strayaParts<P extends StrayaPart>(parts: P[], plan: StrayaPlan): P[] {
+export function strayaParts<P extends StrayaPart>(parts: P[], plan: StrayaPlan, keepBass = false): P[] {
   const out: P[] = [];
   for (const p of parts) {
     if (p.section !== 'break') { out.push(p); continue; }
-    const drums = p.layers.filter(l => l === 'kick' || l === 'snare' || l === 'hats' || l === 'fx');
-    const didge = p.layers.filter(l => l !== 'lead' && l !== 'bass');
+    // A band whose bass is its own (Arnhem Land's) keeps it under the solo; Straya's bass is the drone, the soloist's own.
+    const drums = p.layers.filter(l => l === 'kick' || l === 'snare' || l === 'hats' || l === 'fx' || (keepBass && l === 'bass'));
+    const didge = p.layers.filter(l => l !== 'lead' && (keepBass || l !== 'bass'));
     const plan2: Array<[number, 'didge' | 'answer', readonly LofiLayer[]]> = plan.solo === 'carry'
       ? [[4, 'didge', drums], [2, 'answer', p.layers], [2, 'didge', didge]]
       : [[2, 'didge', didge], [2, 'answer', p.layers], [2, 'didge', didge], [2, 'answer', p.layers]];
@@ -286,7 +310,7 @@ function tile(steps: ReadonlyArray<readonly [number, number, number, number]>, a
  * the drone held between, and the circular breath on its bar, the push back landing on the
  * next downbeat. The intro's last bar ends on a toot into the verse.
  */
-export function didgeBass(plan: StrayaPlan, at: DidgeBar): LofiNote[] {
+export function didgeBass(plan: StrayaPlan, at: DidgeBar, voice: 'bass' | 'didge' = 'bass'): LofiNote[] {
   const r = plan.r;
   const steps: Array<[number, number, number, number]> = [];
   const breathes = (at.inSection + 1) % plan.breathEvery === 0;
@@ -301,7 +325,7 @@ export function didgeBass(plan: StrayaPlan, at: DidgeBar): LofiNote[] {
   if (!steps.some(s => s[0] === 0)) steps.push([0, 0, DIDGE_DRONE, 0.66]);
   if (last) steps.push([12, 0, DIDGE_SWEEP, 0.76], [14, 0, DIDGE_BREATH, 0.7]);
   else if (breathes) steps.push([plan.breathAt, 0, DIDGE_BREATH, 0.68]);
-  return tile(steps, at, 'bass', 0, plan.kinds.bass);
+  return tile(steps, at, voice, 0, plan.kinds.bass);
 }
 
 /**
@@ -313,7 +337,7 @@ export function didgeMid(plan: StrayaPlan, at: DidgeBar): LofiNote[] {
   const build = at.section === 'build';
   let fig: Array<readonly [number, number, number]> = [...plan.grooves[at.inSection % 2]!];
   // The Didgeridoo plays the rhythm mellower than the Yidaki: its sweeps and pushes, never a growl.
-  if (!plan.both) fig = fig.map(([s, l, a]) => [s, l, a === DIDGE_GROWL ? DIDGE_WA : a] as const);
+  if (!isYidaki(plan.kinds.mid)) fig = fig.map(([s, l, a]) => [s, l, a === DIDGE_GROWL ? DIDGE_WA : a] as const);
   if (build && at.i < at.bars / 2) fig = MID_GROOVES[2]!.map(([s, l, a]) => [s, l, a === DIDGE_TOOT ? DIDGE_WA : a] as const);
   if (at.inSection % 4 === 3 || at.lastOfBuild) fig = [...fig.filter(([s]) => s < 12), ...(at.lastOfBuild ? [[12, 1, DIDGE_TONGUE], [13, 1, DIDGE_TONGUE], [14, 2, DIDGE_TOOT]] as const : plan.turn)];
   const breathes = !at.lastOfBuild && (at.inSection + 1) % plan.breathEvery === 0;

@@ -272,8 +272,9 @@ test('the dance genres change instruments between sections', () => {
     }
     // Surf keeps its rhythm guitar through the intro: the band's sound is that guitar in the spring.
     if (mood !== 'surf') assert.ok(softer >= 6, `${mood}: the intro's keys differ from the drop's in most tunes (${softer} of 8)`);
-    // Noosacore's surf guitar plays only its odd moments, the same guitar all through.
-    if (mood !== 'noosa') assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
+    // Noosacore's surf guitar plays only its odd moments, the same guitar all through; Arnhem Land's
+    // voice leads all through, and its choruses' answers are the Yidaki's.
+    if (mood !== 'noosa' && mood !== 'arnhem') assert.ok(newLead >= 6, `${mood}: the second drop brings a second lead in most tunes (${newLead} of 8)`);
   }
 });
 
