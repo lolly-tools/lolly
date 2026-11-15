@@ -157,7 +157,7 @@ export function parseMusicState(params: string): MusicState {
  * sharing a url people can shuffle the same genre"). `lock=genre` means Shuffle keeps the
  * genre for whoever opens the link. The lock is not part of the tune: it never changes what
  * plays, and a link without it leaves Shuffle to the person's own preference. `lock` takes a
- * list, so later locks (a track's part) can join it.
+ * list, so later locks (a track's part) can sit beside the genre.
  */
 export const linkLocksGenre = (params: string): boolean =>
   (new URLSearchParams(params.replace(/^[^?]*\?/, '')).get('lock') ?? '').split(',').includes('genre');
