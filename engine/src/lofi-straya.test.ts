@@ -78,7 +78,8 @@ test('the didgeridoo\'s cameo in the bass genres is rare and short, and only Str
     for (const seed of SEEDS) {
       const bars = composeLofiTune(seed, mood).filter(b => b.notes.some(n => n.voice === 'didge'));
       // Straya plays its own, and so does Noosacore (Andy, 2026-11-14: "noosa core can have didge").
-      if (mood === 'straya' || mood === 'noosa') continue;
+      // Arnhem Land plays its own didgeridoos too.
+      if (mood === 'straya' || mood === 'noosa' || mood === 'arnhem') continue;
       if (!DIDGE_CAMEO.has(mood)) { assert.equal(bars.length, 0, `${mood} ${seed}: no didgeridoo`); continue; }
       assert.ok(bars.length <= 2, `${mood} ${seed}: a cameo of ${bars.length} bars`);
       for (const b of bars) for (const n of b.notes) if (n.voice === 'didge') assert.ok(isYidaki(readDidge(n.mod ?? 0).kind), `${mood} ${seed}: the cameo is the Yidaki's`);

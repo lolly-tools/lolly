@@ -23,9 +23,10 @@ function direction(bars: LofiBar[]): ClaveDirection {
 /** The bars that keep the groove: not the break, the ending, or the rest bar. */
 const grooving = (bars: LofiBar[]): LofiBar[] => bars.filter(b => b.section !== 'rest' && perc(b, 'clave').length > 0);
 
-test('the percussion the composer already had keeps its place; salsa\'s follows it', () => {
+test('the percussion the composer already had keeps its place; salsa\'s follows it, then the bilma', () => {
   assert.deepEqual(LOFI_PERCUSSION.slice(0, 17), ['shaker', 'tambourine', 'conga', 'cowbell', 'sticks', 'tombak', 'daf', 'woodblock', 'tanggu', 'gong', 'taiko', 'kotsuzumi', 'djembe', 'dunun', 'shekere', 'agogo', 'talking']);
-  assert.deepEqual(LOFI_PERCUSSION.slice(17), [...SALSA_PERCUSSION]);
+  assert.deepEqual(LOFI_PERCUSSION.slice(17, 17 + SALSA_PERCUSSION.length), [...SALSA_PERCUSSION]);
+  assert.deepEqual(LOFI_PERCUSSION.slice(17 + SALSA_PERCUSSION.length), ['bilma']);
 });
 
 test('a salsa tune: 160 to 210 a minute, every section an even number of bars, a montuno, a mambo and a second montuno', () => {

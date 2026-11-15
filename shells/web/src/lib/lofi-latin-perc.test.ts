@@ -48,8 +48,8 @@ function rms(x: Float32Array, t0: number, t1: number): number {
 }
 const db = (r: number): number => 20 * Math.log10(r + 1e-12);
 
-test('the kinds are the composer\'s percussion from congas on', () => {
-  assert.deepEqual([...LATIN_PERCUSSION], LOFI_PERCUSSION.slice(LOFI_PERCUSSION.indexOf('congas')));
+test('the kinds are the composer\'s percussion from congas to the bilma', () => {
+  assert.deepEqual([...LATIN_PERCUSSION], LOFI_PERCUSSION.slice(LOFI_PERCUSSION.indexOf('congas'), LOFI_PERCUSSION.indexOf('bilma')));
 });
 
 test('every stroke of every instrument is a finite sound that starts and dies away', () => {

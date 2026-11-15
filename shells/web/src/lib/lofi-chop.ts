@@ -29,6 +29,7 @@ import { BandPass, Formant, ease } from './lofi-voice.ts';
 import { LEAD_OWN } from './lofi-lead-art.ts';
 import type { VoiceKit } from './lofi-voices.ts';
 import type { LofiBar, LofiNote } from '../../../../engine/src/lofi-compose.ts';
+import { arnhemChops } from '../../../../engine/src/lofi-arnhem.ts';
 
 type Quad = readonly [number, number, number, number];
 
@@ -88,6 +89,8 @@ const SYLLABLES: readonly Syllable[] = [
 ];
 /** The syllables a phrase can open on with no consonant, which a sample always holds a couple of. */
 const OPEN = [0, 1, 2, 3, 4, 5];
+/** The syllables that are no word in any language, for the styles that sing only those (Arnhem Land): not "hey", "yeah", "ya" or "yo". */
+const VOCABLES = [0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 19];
 
 // ── how a note is chopped, carried in its `mod` ─────────────────────────────
 
@@ -145,7 +148,7 @@ export interface ChopVocal {
 }
 
 /** The vocal a tune's chops are cut from, drawn from its seed alone. */
-export function chopVocal(seed: number): ChopVocal {
+export function chopVocal(seed: number, mood?: string): ChopVocal {
   const r = mulberry(hash(seed, 0xc40b));
   const tract = 1.06 + r() * 0.14;
   const breathy = 0.15 + r() * 0.3;
@@ -153,7 +156,9 @@ export function chopVocal(seed: number): ChopVocal {
   // Two open vowels, then four more of anything, none twice.
   const slices: number[] = [];
   while (slices.length < 2) { const s = OPEN[Math.floor(r() * OPEN.length)]!; if (!slices.includes(s)) slices.push(s); }
-  while (slices.length < 6) { const s = Math.floor(r() * SYLLABLES.length); if (!slices.includes(s)) slices.push(s); }
+  // Arnhem Land's voices sing vocables only, drawn from their own list; every other style's draws are as they were.
+  const from = mood === 'arnhem' ? VOCABLES : null;
+  while (slices.length < 6) { const s = from ? from[Math.floor(r() * from.length)]! : Math.floor(r() * SYLLABLES.length); if (!slices.includes(s)) slices.push(s); }
   const byPitch = Array.from({ length: 12 }, () => Math.floor(r() * slices.length));
   return { tract, breathy, vibRate, vibDepth, slices, byPitch };
 }
@@ -191,8 +196,9 @@ function gauss(rand: () => number): number {
  * composer's own stutter) is one slice stuttered. `rand` is the bar's seeded source.
  */
 export function chopper(notes: LofiNote[], bar: LofiBar, spb: number, rand: () => number): LofiNote[] {
-  const vocal = chopVocal(bar.tune.seed);
-  const how = CHOPPING[CHOPPING_OF[bar.tune.mood] ?? 'plain'];
+  const vocal = chopVocal(bar.tune.seed, bar.tune.mood);
+  // Arnhem Land's chops are cut by the tune's place on its line (engine/src/lofi-arnhem.ts): a producer's at the modern end, sung near the traditional.
+  const how = CHOPPING[bar.tune.mood === 'arnhem' ? arnhemChops(bar.tune.seed) : CHOPPING_OF[bar.tune.mood] ?? 'plain'];
   const lead = notes.filter(n => n.voice === 'lead').sort((a, b) => a.beat - b.beat);
   if (!lead.length) return notes;
   const added = new Map<LofiNote, LofiNote[]>();
