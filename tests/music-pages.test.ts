@@ -21,13 +21,13 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ANCHOR_SECTIONS, GENRE_SLUG, MUSIC_CREDIT, MUSIC_CREDIT_LINK, MUSIC_GROUP_TITLE, excerptAnchor, genrePageSlug, makeYourOwnHash,
+  ANCHOR_SECTIONS, GENRE_SLUG, MUSIC_GROUP_TITLE, excerptAnchor, genrePageSlug, makeYourOwnHash,
   plainText, questionsFromMarkdown, registerProblems, type MusicRegister, type SampleSet,
 } from '../docs/music-pages.ts';
 import { GENRE_GROUPS } from '../shells/web/src/lib/genre-icons.ts';
 import { LOFI_MOODS } from '../engine/src/lofi-compose.ts';
 import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
-import { TUNE_CREDIT, TUNE_CREDIT_LINE, TUNE_LICENCE_STATEMENT, isTuneDeclaration } from '../engine/src/tune-provenance.ts';
+import { TUNE_CREDIT, TUNE_LICENCE_STATEMENT, isTuneDeclaration } from '../engine/src/tune-provenance.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const register = JSON.parse(readFileSync(resolve(ROOT, 'docs/site/music-genres.json'), 'utf8')) as MusicRegister;
@@ -97,12 +97,22 @@ test('a sample\'s Content Credentials read back as the music generator\'s, as a 
   assert.ok(report.history?.some(h => h.action === 'c2pa.created' && isTuneDeclaration(h.description)), 'the created step declares the music generator');
   assert.equal(report.rights, TUNE_LICENCE_STATEMENT, 'the credential states the licence and the credit');
   assert.equal(report.licence?.url, 'https://creativecommons.org/licenses/by/4.0/');
-  assert.equal(report.licence?.credit, MUSIC_CREDIT, 'the credit line the pages ask for');
+  assert.equal(report.licence?.credit, TUNE_CREDIT, 'the credit line the pages ask for');
 });
 
-test('the pages ask for the same credit the files and saved tunes carry', () => {
-  assert.equal(MUSIC_CREDIT, TUNE_CREDIT);
-  assert.equal(MUSIC_CREDIT_LINK, TUNE_CREDIT_LINE);
+test('the pages ask for the one credit line the files and saved tunes carry, from one constant', () => {
+  assert.equal(TUNE_CREDIT, 'Music made with Lolly (https://lolly.tools), CC BY 4.0', 'Andy, 2026-11-15');
+  const build = readFileSync(resolve(ROOT, 'docs/build.ts'), 'utf8');
+  assert.match(build, /import \{ TUNE_CREDIT as MUSIC_CREDIT \} from '\.\.\/engine\/src\/tune-provenance\.ts';/, 'the docs build reads the engine\'s constant');
+  assert.match(build, /creditText: MUSIC_CREDIT,/, 'the JSON-LD credit is that constant');
+  assert.doesNotMatch(build, /'Music made with Lolly/, 'no copy of the line in the docs build');
+  // Every markdown page that gives the credit gives the whole line.
+  for (const page of ['docs/background-music.md', 'docs/music-generator.md', 'docs/generated-music.md', 'docs/make-something.md']) {
+    const md = readFileSync(resolve(ROOT, page), 'utf8');
+    const found = [...md.matchAll(/Music made with Lolly[^*\n]*/g)].map((m) => m[0]);
+    assert.ok(found.length > 0, `${page} gives the credit`);
+    for (const line of found) assert.ok(line.startsWith(TUNE_CREDIT), `${page} gives the whole credit line, not "${line}"`);
+  }
 });
 
 test('the excerpt opens on the first drop, else the groove, else the first verse', () => {
@@ -124,7 +134,7 @@ test('the hub answers a newcomer\'s questions in the licence\'s words', () => {
     assert.ok(asked.some(q => q.includes(want)), `a question about ${want}`);
   }
   const text = qs.map(q => plainText(q.a)).join('\n');
-  assert.ok(text.includes(MUSIC_CREDIT), 'the answers give the credit line');
+  assert.ok(text.includes(TUNE_CREDIT), 'the answers give the credit line');
   assert.doesNotMatch(text, /\bis copyright-free\b|rights cleared|legally safe|royalty-free(?! as long as)/i);
   assert.ok(md.includes('<!-- the genre grid renders here -->'), 'the hub keeps the mark the genre grid replaces');
 });

@@ -12,7 +12,7 @@
  * no AI, and the credential records the same sentence as algorithmic media
  * (engine/src/tune-sign.ts), so a reader checking for undeclared generative AI finds a
  * declared origin instead. Each file also states the licence the music is offered under,
- * CC BY 4.0, with the credit "Music made with Lolly", in its tags and its credential
+ * CC BY 4.0, with its credit line (TUNE_CREDIT), in its tags and its credential
  * (Andy, 2026-11-15). A file whose credential could not be written, or whose reading
  * back finds no declaration or no licence, is not handed on.
  */

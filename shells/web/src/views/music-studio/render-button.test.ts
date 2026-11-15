@@ -34,7 +34,7 @@ test('its choices are render and play, then the two downloads, each with a line 
 });
 
 test('what a download records is a statement under the choices, word for word, with no switch', () => {
-  assert.equal(downloadRecordLine(), `Downloads will carry Content Credentials that record: ${TUNE_DECLARATION}. Each file will also state its licence, CC BY 4.0, with the credit Music made with Lolly.`);
+  assert.equal(downloadRecordLine(), `Downloads will carry Content Credentials that record: ${TUNE_DECLARATION}. Each file will also state its licence and the credit: Music made with Lolly (https://lolly.tools), CC BY 4.0.`);
   const src = readFileSync(new URL('./render-button.ts', import.meta.url), 'utf8');
   assert.match(src, /foot: downloadRecordLine/, 'the line is the menu\'s foot, in view at the moment of choosing');
   assert.doesNotMatch(src, /type="checkbox"|data-cred[ >"]/, 'no switch: every download carries the record (Andy, 2026-11-14)');

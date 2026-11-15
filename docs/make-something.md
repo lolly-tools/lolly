@@ -50,7 +50,7 @@ Saved work stays on this device, in the browser or app you used, unless you turn
 
 - [Lolly Audiogram](/#/tool/audiogram) turns a voice note into a video: a moving waveform, your words on the cover, your colours. Drop the recording into **Audio**, add a **Title**, then export **MP4**.
 - [Lolly Filter](/#/tool/filter) treats a photo for a poster: printed halftone dots, two flat colours or a few blocks of tone. Choose the photo under **Image**, pick an **Effect**, then export **PNG**, or **SVG** on an effect badged *vector*.
-- The [music generator](/#/music) composes a track from a genre and a seed. Press the round shuffle button until you like what plays, then open **Render** and download an M4A or WAV file. Music you make is free to use, even commercially, with the credit **Music made with Lolly**. The [music generator guide](/info/music-generator.html) shows every control, and [Free background music](/info/background-music.html) has a sample of every genre.
+- The [music generator](/#/music) composes a track from a genre and a seed. Press the round shuffle button until you like what plays, then open **Render** and download an M4A or WAV file. Music you make is free to use, even commercially, with the credit **Music made with Lolly (https://lolly.tools), CC BY 4.0**. The [music generator guide](/info/music-generator.html) shows every control, and [Free background music](/info/background-music.html) has a sample of every genre.
 
 <!--i:eti-map-pin-->
 ## Next

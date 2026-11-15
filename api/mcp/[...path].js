@@ -4157,7 +4157,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.346.0";
+    ENGINE_VERSION = "1.347.0";
   }
 });
 

@@ -78,6 +78,7 @@ import { icon } from '../lib/icons.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { instrumentIcon, iconPath, musicIconNode, musicIconBody, strokeSvg } from '../lib/instrument-icons.ts';
 import { DIDGE_LEAD, readDidge } from '../../../../engine/src/lofi-straya.ts';
+import { TUNE_CREDIT } from '../../../../engine/src/tune-provenance.ts';
 import { MIX_KEYS, BPM_RANGE, TRANSPOSE_RANGE, FX_FAMILIES, TAG_CHOICES, linkLocksGenre, withGenreLock, parseMusicState, musicStateParams, fixedStyle, shapeBar, composeTrack, barTimes, fxOn, toggleFx, type FxFamily, type MusicState, type SectionVoices } from '../lib/music-state.ts';
 import { LOFI_KITS, LOFI_KIT_NAME } from '../lib/lofi-drums.ts';
 import { shuffleMusic } from '../lib/music-shuffle.ts';
@@ -1625,8 +1626,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
     {
       id: 'assets', icon: 'grid', title: t('Save to assets'),
       note: makerName
-        ? tRaw('Records {maker} as the maker, the music generator, the Lolly and engine versions, and the licence CC BY 4.0 with the credit Music made with Lolly. You can change the licence in the tune’s details.', { maker: makerName })
-        : t('Records the music generator, the Lolly and engine versions, and the licence CC BY 4.0 with the credit Music made with Lolly. No maker is set. You can change the licence in the tune’s details.'),
+        ? tRaw('Records {maker} as the maker, the music generator, the Lolly and engine versions, and the licence with its credit: {credit}. You can change the licence in the tune’s details.', { maker: makerName, credit: TUNE_CREDIT })
+        : tRaw('Records the music generator, the Lolly and engine versions, and the licence with its credit: {credit}. No maker is set. You can change the licence in the tune’s details.', { credit: TUNE_CREDIT }),
     },
     {
       id: 'projects', icon: 'folder', title: t('Save to projects'),
@@ -1683,8 +1684,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // the asset details, an audiogram, a video's music bed). Nothing to make first.
       // The tune also records who made it (the profile's name, left out when none is
       // set: a fact, not a rights claim), the music generator and the versions that made
-      // it, and the licence it starts with, CC BY 4.0 with the credit "Music made with
-      // Lolly" (tuneSaveRecord), all shown in its details, where the licence can change.
+      // it, and the licence it starts with, CC BY 4.0 with its credit line (TUNE_CREDIT,
+      // via tuneSaveRecord), all shown in its details, where the licence can change.
       const [{ lofiTuneBytes, LOFI_TUNE_FORMAT }, { profileMaker, tuneSaveRecord }, { LOLLY_RELEASE }, { ENGINE_VERSION }] = await Promise.all([
         import('../lib/lofi-tune.ts'), import('../lib/tune-provenance.ts'), import('../lib/lolly-release.ts'), import('../../../../engine/src/version.ts'),
       ]);
@@ -1708,8 +1709,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
       // The player keeps a cached list of the library's audio: drop it, so the track is there now.
       (await import('../lib/neurospicy.ts')).invalidateNeurospicyTracks();
       say(maker
-        ? tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record {maker} as the maker, the music generator, Lolly {lolly} with engine {engine}, and the licence CC BY 4.0 with the credit Music made with Lolly.', { maker, lolly: LOLLY_RELEASE, engine: ENGINE_VERSION })
-        : tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record the music generator, Lolly {lolly} with engine {engine}, and the licence CC BY 4.0 with the credit Music made with Lolly.', { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION }));
+        ? tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record {maker} as the maker, the music generator, Lolly {lolly} with engine {engine}, and the licence with its credit: {credit}.', { maker, lolly: LOLLY_RELEASE, engine: ENGINE_VERSION, credit: TUNE_CREDIT })
+        : tRaw('Saved to your library: it plays in the Neurospicy player and in Assets, and works as a music bed or an audiogram\'s sound. Its details record the music generator, Lolly {lolly} with engine {engine}, and the licence with its credit: {credit}.', { lolly: LOLLY_RELEASE, engine: ENGINE_VERSION, credit: TUNE_CREDIT }));
       return `#/a?asset=${encodeURIComponent(id)}`;
   }
   /**

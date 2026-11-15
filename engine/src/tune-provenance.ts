@@ -49,14 +49,18 @@ export const TUNE_LICENCE = Object.freeze({
   url: 'https://creativecommons.org/licenses/by/4.0/',
 });
 
-/** The credit those terms ask for, word for word (Andy, 2026-11-15). */
-export const TUNE_CREDIT = 'Music made with Lolly';
-/** Where the credit points when there is room for a link. */
+/** Where the credit points: Lolly's own address (CC REL `cc:attributionURL`). */
 export const TUNE_CREDIT_URL = 'https://lolly.tools';
-/** The credit with its address: what a file's tags and a saved tune's credit carry. */
-export const TUNE_CREDIT_LINE = `${TUNE_CREDIT} (${TUNE_CREDIT_URL})`;
 /** The party the credit names (CC REL `cc:attributionName`), beside TUNE_CREDIT_URL. */
 export const TUNE_ATTRIBUTION_NAME = 'Lolly';
+
+/**
+ * The credit line those terms ask for, word for word (Andy, 2026-11-15): "Music made
+ * with Lolly (https://lolly.tools), CC BY 4.0". The one constant every place that
+ * writes or shows the credit reads: a file's credit tags and credential, a saved
+ * tune's credit, the music generator's notes and the docs' genre pages.
+ */
+export const TUNE_CREDIT = `Music made with ${TUNE_ATTRIBUTION_NAME} (${TUNE_CREDIT_URL}), ${TUNE_LICENCE.short}`;
 
 /**
  * The licence statement a music file carries in its copyright field (the WAV's ICOP,
@@ -64,7 +68,7 @@ export const TUNE_ATTRIBUTION_NAME = 'Lolly';
  * the licence by name, its terms page, then the credit.
  */
 export const TUNE_LICENCE_STATEMENT =
-  `Licensed under ${TUNE_LICENCE.name} (${TUNE_LICENCE.short}), ${TUNE_LICENCE.url}. Credit: ${TUNE_CREDIT_LINE}.`;
+  `Licensed under ${TUNE_LICENCE.name} (${TUNE_LICENCE.short}), ${TUNE_LICENCE.url}. Credit: ${TUNE_CREDIT}.`;
 
 /** Where a tune was made: the music generator, or a station of the Neurospicy player. */
 export type TuneOrigin = 'generator' | 'station';

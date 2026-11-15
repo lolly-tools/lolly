@@ -19,6 +19,8 @@ import { fileURLToPath } from 'node:url';
 import { generateOgImages, type OgCard } from './og-image.ts';
 import { LANGS, LANG_META, sortedLangs } from '../engine/src/lang.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
+// The one credit line Lolly's music asks for, as every file and saved tune carries the line.
+import { TUNE_CREDIT as MUSIC_CREDIT } from '../engine/src/tune-provenance.ts';
 import { buildAgentDocs, buildAgentInstructions, AGENT_FILES } from './agents-pages.ts';
 // The document model specification (plan 276): its own web document under
 // /info/spec/document-model/, built from docs/spec/document-model/*.md.
@@ -61,7 +63,7 @@ import { DOC_LOGOS } from './logos.ts';
 // The music genre pages and the background music hub: the pure page model, and the
 // app's own genre list, titles, icons and taglines (all free of the DOM).
 import {
-  GENRE_SLUG, MUSIC_BASE, MUSIC_CREDIT, MUSIC_CREDIT_LINK, MUSIC_GROUP_TITLE, SAMPLES_DIR, genrePageSlug, isoDuration,
+  GENRE_SLUG, MUSIC_BASE, MUSIC_GROUP_TITLE, SAMPLES_DIR, genrePageSlug, isoDuration,
   makeYourOwnHash, plainText, questionsFromMarkdown, registerProblems,
   type GenreCopy, type MusicQuestion, type MusicRegister, type SampleRecipe, type SampleSet,
 } from './music-pages.ts';
@@ -3348,7 +3350,7 @@ function musicAppLd(): Record<string, unknown> {
     applicationCategory: 'MultimediaApplication',
     operatingSystem: 'Web browser',
     browserRequirements: 'Requires WebGPU',
-    description: 'Make background music in any of Lolly\'s genres on your own device: change the instruments, the tempo, the key and the mix, then download an M4A or WAV file. Music you make comes under the Creative Commons Attribution 4.0 International licence (CC BY 4.0): free for any use, including commercial use, provided you credit it as Music made with Lolly.',
+    description: `Make background music in any of Lolly's genres on your own device: change the instruments, the tempo, the key and the mix, then download an M4A or WAV file. Music you make comes under the Creative Commons Attribution 4.0 International licence (CC BY 4.0): free for any use, including commercial use, provided you credit it as ${MUSIC_CREDIT}.`,
     isAccessibleForFree: true,
     offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
     license: CODE_LICENSE_URL,
@@ -3371,7 +3373,6 @@ function musicCreditHtml(lang: Lang): string {
     <p>${esc(t('Music you make in the music generator comes under the Creative Commons Attribution 4.0 International licence'))} (<a rel="license" href="${MUSIC_LICENCE_URL}">CC BY 4.0</a>). ${esc(t('The licence also covers the sample on this page and the tunes the Neurospicy player\'s stations compose.'))}</p>
     <p>${esc(t('The music is free for any use, including commercial use, provided you credit Lolly. Put this line wherever your credits go:'))}</p>
     <p class="music-credit-line"><code>${esc(MUSIC_CREDIT)}</code></p>
-    <p>${esc(t('When there is room for a link, add the address:'))} <code>${esc(MUSIC_CREDIT_LINK)}</code></p>
     <p><a href="${esc(localeHref(lang, MUSIC_GUIDE))}#${MUSIC_CREDIT_ANCHOR}">${esc(t('Where to put the credit'))}</a></p>
   </section>`;
 }
@@ -3385,8 +3386,8 @@ function musicCardHtml(mood: LofiMood, lang: Lang): string {
 /** The sample player: a plain audio control, then what the sample is. */
 function musicSampleHtml(mood: LofiMood, s: SampleRecipe | undefined): string {
   if (!s) return '';
-  const cap = fill(t('A {seconds}-second sample from the {section} section: {genre}, seed {seed}, {bpm} beats a minute in {key}. Made in the music generator, with Content Credentials. Licence: CC BY 4.0, with the credit Music made with Lolly.'), {
-    seconds: String(MUSIC_SAMPLES.excerpt.seconds), section: s.anchorSection, genre: genreTitle(mood), seed: String(s.seed), bpm: String(s.bpm), key: s.key,
+  const cap = fill(t('A {seconds}-second sample from the {section} section: {genre}, seed {seed}, {bpm} beats a minute in {key}. Made in the music generator, with Content Credentials. Credit: {credit}.'), {
+    seconds: String(MUSIC_SAMPLES.excerpt.seconds), section: s.anchorSection, genre: genreTitle(mood), seed: String(s.seed), bpm: String(s.bpm), key: s.key, credit: MUSIC_CREDIT,
   });
   return `<figure class="music-sample">
     <audio controls preload="none" src="/info/${SAMPLES_DIR}/${esc(s.file)}">${esc(t('Your browser cannot play this sample.'))} <a href="/info/${SAMPLES_DIR}/${esc(s.file)}">${esc(t('Download the sample'))}</a></audio>

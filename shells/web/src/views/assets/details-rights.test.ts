@@ -164,7 +164,7 @@ test('an owner-published mark shows the phrase and the owner\'s own terms', () =
 
 // A saved tune (Andy's approval of 2026-11-10, lib/tune-provenance.ts): the sheet says
 // where it was made, who made it and the versions, and its licence is a menu. Since
-// 2026-11-15 a new tune starts at CC BY 4.0 with the credit "Music made with Lolly";
+// 2026-11-15 a new tune starts at CC BY 4.0 with the credit "Music made with Lolly (https://lolly.tools), CC BY 4.0";
 // a tune saved before then, with no licence recorded, still starts at "Not recorded".
 const tune = (meta: Record<string, unknown>): AssetRef => ({
   id: 'user/tune/1-sugar-2024', type: 'audio', format: 'lofi', url: '', source: 'user',
@@ -195,8 +195,8 @@ test('a tune saved from the music generator now starts at CC BY 4.0, with the cr
   const html = assetRightsRows(tune({ ...tuneSaveRecord('', { lolly: '1.2.0', engine: '1.300.0' }) }), true);
   assert.ok(html.includes('<option value="CC-BY-4.0" selected>CC BY 4.0</option>'), 'CC BY 4.0 is selected');
   assert.ok(html.includes('<option value="">Not recorded</option>'), 'Not recorded is still a choice');
-  assert.ok(html.includes('Credit</dt><dd>Music made with Lolly <button'), 'the credit, with Copy credit');
-  assert.ok(html.includes('data-credit="Music made with Lolly"'));
+  assert.ok(html.includes('Credit</dt><dd>Music made with Lolly (https://lolly.tools), CC BY 4.0 <button'), 'the credit, with Copy credit');
+  assert.ok(html.includes('data-credit="Music made with Lolly (https://lolly.tools), CC BY 4.0"'), 'Copy credit copies the whole line');
   assert.ok(html.includes('Credit required. Lolly prepares it for the export routes that can carry it.'));
   assert.ok(!html.includes('Licence not recorded.'));
 });
@@ -206,7 +206,7 @@ test('a tune saved from a Neurospicy station records Lolly\'s terms as a plain r
   assert.ok(html.includes('Saved from the Neurospicy player'));
   assert.ok(!html.includes('data-tune-licence'), 'a station tune is Lolly\'s, so its licence is not a menu');
   assert.ok(html.includes('>CC BY 4.0</span>'), 'CC BY 4.0');
-  assert.ok(html.includes('Credit</dt><dd>Music made with Lolly <button'));
+  assert.ok(html.includes('Credit</dt><dd>Music made with Lolly (https://lolly.tools), CC BY 4.0 <button'));
   // The player's save writes the same record (lib/neurospicy.ts saveLofiTune).
   const player = readFileSync(new URL('../../lib/neurospicy.ts', import.meta.url), 'utf8');
   assert.match(player, /license: TUNE_LICENCE\.id,\s+attribution: TUNE_CREDIT,/);
