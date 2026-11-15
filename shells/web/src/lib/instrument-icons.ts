@@ -11,10 +11,10 @@
  */
 import type { LiveLead, LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 
-export type InstrumentIcon = 'piano' | 'audioWaveform' | 'guitar' | 'bowed' | 'wind' | 'horn' | 'micVocal' | 'bell' | 'gamepad' | 'drum';
+export type InstrumentIcon = 'piano' | 'audioWaveform' | 'guitar' | 'bowed' | 'wind' | 'horn' | 'micVocal' | 'bell' | 'gamepad' | 'drum' | 'disc';
 
 /** The icons' markup, in the 24-unit stroke style of lib/icons.ts. Lucide (ISC): piano,
- *  guitar, drum, mic-vocal, audio-waveform, gamepad-2, bell and wind. Lolly's own:
+ *  guitar, drum, mic-vocal, audio-waveform, gamepad-2, bell, wind and disc-3 (a record). Lolly's own:
  *  a bowed string with its bow, and a horn. */
 const MARKUP: Record<InstrumentIcon, string> = {
   piano: '<path d="M18.5 8c-1.4 0-2.6-.8-3.2-2A6.87 6.87 0 0 0 2 9v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8.5C22 9.6 20.4 8 18.5 8"/><path d="M2 14h20"/><path d="M6 14v4"/><path d="M10 14v4"/><path d="M14 14v4"/><path d="M18 14v4"/>',
@@ -26,6 +26,7 @@ const MARKUP: Record<InstrumentIcon, string> = {
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   bowed: '<path d="M9 22c-2.5 0-4-1.6-4-3.5 0-1.2.6-2 1.4-2.6-.6-.6-1-1.4-1-2.4C5.4 11.6 7 10 9 10s3.6 1.6 3.6 3.5c0 1-.4 1.8-1 2.4.8.6 1.4 1.4 1.4 2.6C13 20.4 11.5 22 9 22z"/><path d="M9 10V2"/><path d="m14 3 7 16"/>',
   horn: '<path d="M2 11h11"/><path d="M13 7.5c3 1.5 5 2 9-1.5v11c-4-3.5-6-3-9-1.5z"/><path d="M5 11v4"/><path d="M8 11v4"/><path d="M11 11v4"/>',
+  disc: '<circle cx="12" cy="12" r="10"/><path d="M6 12c0-1.7.7-3.2 1.8-4.2"/><circle cx="12" cy="12" r="2"/><path d="M18 12c0 1.7-.7 3.2-1.8 4.2"/>',
   wind: '<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
 };
 
@@ -48,7 +49,7 @@ const LEADS: Record<LiveLead, InstrumentIcon> = {
   santur: 'guitar', zheng: 'guitar', koto: 'guitar', pipa: 'guitar', shamisen: 'guitar', kora: 'guitar', harp: 'guitar', steel: 'guitar', tar: 'guitar',
   fiddle: 'bowed', kamancheh: 'bowed', erhu: 'bowed', viola: 'bowed', cello: 'bowed', doublebass: 'bowed',
   none: 'audioWaveform',
-  surf: 'guitar', chorus: 'guitar', yidaki: 'wind',
+  surf: 'guitar', chorus: 'guitar', yidaki: 'wind', turntable: 'disc',
 };
 const BASSES: Record<LofiStyle['bass'], InstrumentIcon> = {
   round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', warp: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',

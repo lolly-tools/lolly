@@ -1,8 +1,13 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 /* The music generator's sheets: the instrument browser (views/music-studio/instrument-browser.ts),
-   a sheet from the bottom on a phone and a panel at the side on a wider screen, and the
-   genre picker (views/music-studio/genre-picker.ts), the same sheet on a phone and a
-   centred panel on a wider screen. A head with
+   a sheet from the bottom on a phone and a popup beside what was clicked on a wider screen,
+   and the genre picker (views/music-studio/genre-picker.ts), the same sheet on a phone and
+   a centred panel on a wider screen. Each one moves as the app's dialogs and sheets do:
+   the popup grows out of the point clicked and shrinks back into the point (its
+   transform-origin, --msb-origin, is set by instrument-popup.ts), a sheet rises and drops,
+   the picker's panel settles in. The view arms each motion with .is-entering and
+   .is-leaving only when motion is on, so reduced motion and the performance setting get
+   none. A head with
    the track's name and the kinds of section to hear an instrument in, a list of
    instrument cards grouped by family, and a foot with the two ways to use the card
    chosen. The dialog is mounted on the body, so nothing here is scoped to the view. */
@@ -37,19 +42,47 @@
   }
   .msb--sheet::backdrop { background: hsl(0 0% 0% / .42); }
 
-  /* A wider screen: a panel down the right side, below the page's top corner buttons.
-     The page makes room for the panel (parts/music-studio.css), so the timeline stays usable. */
-  .msb--panel {
+  /* A wider screen: a popup beside what was clicked (instrument-popup.ts places it), in
+     the page rather than over a dimmed one, so the timeline stays usable beside it. A click
+     on another section moves it there. */
+  .msb--pop {
     position: fixed;
-    inset: calc(var(--ui-size-target) + var(--sp-6) * 2) var(--sp-4) var(--sp-4) auto;
-    width: min(400px, 42vw);
-    height: auto;
+    inset: auto;
+    left: var(--sp-4);
+    top: var(--sp-4);
+    width: min(392px, calc(100vw - var(--sp-4) * 2));
+    height: min(640px, calc(100dvh - var(--sp-4) * 2));
     max-width: none;
     max-height: none;
     margin: 0;
     border-radius: var(--ui-radius-panel);
     z-index: var(--z-overlay);
+    transform-origin: var(--msb-origin, 0 0);
   }
+  @media (prefers-reduced-motion: no-preference) {
+    .msb--pop { transition: left var(--dur-3) var(--ui-motion-standard), top var(--dur-3) var(--ui-motion-standard); }
+  }
+  html[data-a11y-motion="reduce"] .msb--pop { transition: none; }
+
+  /* The motions, armed by the view. */
+  .msb--pop.is-entering { animation: msb-pop-in calc(var(--dur-3) * .8) var(--ui-motion-standard) both; }
+  .msb--pop.is-leaving { animation: msb-pop-out var(--dur-2) ease-in both; }
+  .msb--sheet.is-entering { animation: msb-sheet-in var(--dur-3) var(--ui-motion-standard) both; }
+  .msb--sheet.is-leaving { animation: msb-sheet-out var(--dur-2) ease-in both; }
+  .msb--sheet.is-entering::backdrop { animation: msb-fade-in var(--dur-3) var(--ui-motion-standard) both; }
+  .msb--sheet.is-leaving::backdrop { animation: msb-fade-in var(--dur-2) ease-in reverse both; }
+  .msb--dialog.is-entering { animation: msb-dialog-in var(--dur-3) var(--ui-motion-standard) both; }
+  .msb--dialog.is-entering::backdrop { animation: msb-fade-in var(--dur-3) var(--ui-motion-standard) both; }
+  @keyframes msb-pop-in { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: none; } }
+  @keyframes msb-pop-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: scale(.86); } }
+  @keyframes msb-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
+  @keyframes msb-sheet-out { from { transform: none; } to { transform: translateY(100%); } }
+  @keyframes msb-dialog-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+  @keyframes msb-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) {
+    .msb.is-entering, .msb.is-leaving, .msb.is-entering::backdrop, .msb.is-leaving::backdrop { animation: none; }
+  }
+  html[data-a11y-motion="reduce"] :is(.msb.is-entering, .msb.is-leaving, .msb.is-entering::backdrop, .msb.is-leaving::backdrop) { animation: none; }
 
   .msb-head {
     flex: none;
@@ -59,8 +92,12 @@
     border-block-end: 1px solid var(--msb-divider);
   }
   .msb-grip { justify-self: center; width: 36px; height: 4px; border-radius: var(--radius-pill); background: var(--msb-divider); }
-  .msb--panel .msb-grip { display: none; }
-  .msb--panel .msb-head { padding-block-start: var(--sp-3); }
+  .msb--pop .msb-grip { display: none; }
+  .msb--pop .msb-head { padding-block-start: var(--sp-3); }
+  /* The heading names where the choice came from; the line under it says what plays there now. */
+  .msb-origin-now { color: var(--ui-color-text-default); font-weight: 600; }
+  .msb-back { flex: none; display: inline-grid; place-items: center; min-width: var(--ui-size-target); min-height: var(--ui-size-target); }
+  .msb-back[hidden], .msb-title-row [hidden] { display: none; }
   .msb-title-row { display: flex; align-items: center; gap: var(--sp-2); }
   .msb-swatch { flex: none; width: 12px; height: 12px; border-radius: var(--radius-pill); background: var(--msb-track, var(--ui-color-text-muted)); }
   .msb-title { flex: 1; min-width: 0; margin: 0; font-size: var(--fs-lg); font-weight: 700; }
@@ -238,6 +275,43 @@
   .msg-card.is-tinted:not([aria-pressed="true"]) .msg-icon { background: var(--ui-color-surface-raised); }
   .msg-card.is-tinted[aria-pressed="true"] { border: 2px solid var(--ui-color-text-default); }
   .msg-card.is-tinted[aria-pressed="true"] .msg-name { color: var(--ui-color-text-default); }
+
+  /* A group whose genres are all hidden is left out. */
+  .msg-group.is-empty { display: none; }
+  .msg-manage-btn[aria-pressed="true"] { background: var(--ui-color-selection-surface); border-color: transparent; color: var(--ui-color-text-default); }
+  /* Manage: every genre as a row, a star and a hide toggle at its end (genre-manage.ts). */
+  .msg-manage[hidden] { display: none; }
+  .msg-manage-intro { margin-block-end: var(--sp-3); }
+  .msg-manage-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-1) var(--sp-3); }
+  .msg-manage-row { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ui-size-target); padding-inline-start: var(--sp-2); border-radius: var(--ui-radius-control); background: var(--ui-color-surface-raised); }
+  .msg-manage-row.is-hidden-genre .msg-manage-icon, .msg-manage-row.is-hidden-genre .msg-manage-name { opacity: .5; }
+  .msg-manage-icon { flex: none; display: inline-grid; place-items: center; color: var(--ui-color-action-primary); }
+  .msg-manage-name { flex: 1; min-width: 0; font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .msg-manage-toggle {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: var(--ui-size-target);
+    height: var(--ui-size-target);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-muted);
+    cursor: pointer;
+  }
+  .msg-manage-toggle svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+  .msg-manage-toggle:hover { color: var(--ui-color-text-default); }
+  .msg-manage-toggle:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+  .msg-manage-fav[aria-pressed="true"] { color: var(--ui-color-action-primary); }
+  .msg-manage-fav[aria-pressed="true"] svg { fill: currentColor; }
+  .msg-manage-hide[aria-pressed="true"] { color: var(--ui-color-status-danger); background: var(--ui-color-status-danger-surface); }
+
+  /* Your instruments: each starred or blocked instrument as a card with one button to take it away. */
+  .msb-yours[hidden] { display: none; }
+  .msb-yours { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--sp-3) var(--msb-gutter) var(--sp-4); }
+  .msb-yours-empty { padding-block: var(--sp-3); }
+  .msb-yours-remove:hover { color: var(--ui-color-status-danger); background: var(--ui-color-status-danger-surface); }
 
   @media (max-width: 760px) {
     .msg-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }

@@ -26,7 +26,7 @@ export const LOFI_LEAD_NAME: Record<LiveLead, string> = {
   santur: 'santur', ney: 'ney', kamancheh: 'kamancheh', erhu: 'erhu', dizi: 'dizi', zheng: 'guzheng', pipa: 'pipa', shakuhachi: 'shakuhachi',
   koto: 'koto', shamisen: 'shamisen', kora: 'kora', balafon: 'balafon', harp: 'harp', steel: 'acoustic guitar', tar: 'tar', viola: 'viola', cello: 'cello', doublebass: 'double bass', none: '',
   surf: 'surf guitar', chorus: 'chorus guitar', yidaki: 'yidaki',
-  flugelhorn: 'flugelhorn', tenorhorn: 'tenor horn',
+  flugelhorn: 'flugelhorn', tenorhorn: 'tenor horn', turntable: 'turntable',
 };
 
 export const LOFI_SNARE_NAME: Record<LofiStyle['snare'], string> = { snare: 'snare', brush: 'brushes', rim: 'cross-stick', clap: 'claps', stack: 'big snare', snap: 'finger snaps' };
@@ -44,5 +44,6 @@ export const LOFI_BASS_NAME: Record<LofiStyle['bass'], string> = {
  */
 export const LOFI_INSTRUMENT_LINE: Readonly<Partial<Record<string, string>>> = {
   didgeridoo: 'A long, wide didgeridoo: a deep, warm drone pulsed by the circular breath, with soft, low toots and mellow vowel sweeps.',
+  turntable: 'A DJ scratching a record: the melody played as baby scratches, chirps, flares and stabs, on a sung vowel, a horn stab or a bass note of the tune\'s own.',
   yidaki: 'Modelled on the yidaki of north-east Arnhem Land: a narrower bore pitched higher and brighter, with sharp toots and fast tongue and voice rhythms.',
 };

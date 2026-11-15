@@ -121,6 +121,17 @@ function buffers(ctx: BaseAudioContext, bank: Bank): { fwd: AudioBuffer; rev: Au
   return { fwd: bank.fwd, rev: bank.rev };
 }
 
+/**
+ * A tune's break recording for a turntable to scratch (lib/lofi-scratches.ts), and where its
+ * first backbeat starts in it (s), or null when the tune does not chop a break.
+ */
+export function breakRecording(ctx: BaseAudioContext, tune: LofiTuneInfo): { data: Float32Array; snare: number } | null {
+  if (!STYLE_OF[tune.mood] || !chopsOf(tune.mood, tune.seed, tune.bpm)) return null;
+  const bank = bankOf(ctx, tune);
+  if (!bank) return null;
+  return { data: buffers(ctx, bank).fwd.getChannelData(0), snare: sliceStart(bank.take, bank.take.snare, tune.bpm) };
+}
+
 /** The break's filter on a tune's drum lane. */
 interface Bus { input: GainNode; hp: BiquadFilterNode; floor: number }
 const LANES = new WeakMap<AudioNode, Map<string, Bus>>();

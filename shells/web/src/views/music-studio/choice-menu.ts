@@ -9,7 +9,9 @@
  * parts/music-browser.css). Each choice says what it does or records, and a menu can end
  * with a line that holds for every choice (what a download records), so the note is in
  * view at the moment of choosing, on a touch screen as with a mouse. Escape, the close
- * button and a tap outside close either one, and focus goes back to the button.
+ * button and a tap outside close either one, and focus goes back to the button. The
+ * dropdown unfolds from its button and the sheet rises, as the app's menus and sheets do,
+ * except under reduced motion or the performance setting.
  */
 import { t } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
@@ -17,7 +19,16 @@ import { icon, type IconName } from '../../lib/icons.ts';
 import { iconNode } from '../../lib/icon-node.ts';
 import { mountBodyPopover } from '../../components/body-popover.ts';
 import { mountModal, type ModalHandle } from '../../components/modal.ts';
+import { motionOn } from './instrument-popup.ts';
 import '../../styles/parts/music-browser.css';
+
+/** Arm an opening motion on a menu or sheet that has just appeared, unless motion is off; it
+ *  takes the class off again once the motion ends, so nothing lingers on the element. */
+function enter(el: HTMLElement): void {
+  if (!motionOn()) return;
+  el.classList.add('is-entering');
+  el.addEventListener('animationend', () => el.classList.remove('is-entering'), { once: true });
+}
 
 export interface MenuChoice<T extends string> {
   id: T;
@@ -91,6 +102,7 @@ export function wireChoiceMenu<T extends string>(button: HTMLElement, opts: Choi
     el.append(list);
     const foot = footNode(opts);
     if (foot) el.append(foot);
+    enter(el);
     return list.querySelector<HTMLElement>('button');
   }, {
     className: 'surface surface--floating ms-choice-menu',
@@ -124,6 +136,7 @@ export function wireChoiceMenu<T extends string>(button: HTMLElement, opts: Choi
     });
     const dlg = sheet.el;
     dlg.setAttribute('aria-labelledby', titleId);
+    enter(dlg);
     const list = dlg.querySelector<HTMLElement>('.ms-choice-list');
     for (const c of opts.choices()) {
       const b = choiceButton(c, null);

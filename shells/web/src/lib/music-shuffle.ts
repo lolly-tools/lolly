@@ -11,8 +11,9 @@
  * brightness and drive stay near the style's own. The tempo stays the tune's own and the
  * length stays the person's, so neither is drawn here.
  *
- * A person's instrument preferences (lib/music-prefs.ts) steer the draw: an instrument
- * they blocked is never drawn, and a favourite the style plays is drawn more often, and
+ * A genre the person hid is never drawn (unless every genre is hidden), and the genre lock
+ * and Shift keep the genre playing whatever its state. A person's instrument preferences
+ * (lib/music-prefs.ts) steer the draw: an instrument they blocked is never drawn, and a favourite the style plays is drawn more often, and
  * makes the shuffle choose that part's instrument more often too. A part whose tune
  * would open on a blocked instrument always gets one drawn. With no preferences, the
  * draws are exactly as they were.
@@ -141,10 +142,14 @@ function sectionChanges(rand: () => number, track: readonly LofiBar[], pool: Poo
  * which kinds of section it reaches. With `keep`, the style and seed stay as given and
  * only the sound is drawn (the generator's Shift-shuffle). With `genre`, the genre stays
  * and the seed and the sound are drawn (the generator's shuffle with its genre lock
- * closed). `prefs` are the person's favourite and blocked instruments.
+ * closed). `prefs` are the person's favourite and blocked instruments, and `hidden` the
+ * genres they hid, which the draw passes over.
  */
-export function shuffleMusic(rand: () => number, opts: { bars?: number; after?: LofiMood; keep?: { mood: LofiMood; seed: number }; genre?: LofiMood; prefs?: MusicPrefs } = {}): MusicShuffle {
-  const moods = LOFI_STATION_MOODS.filter(m => m !== opts.after);
+export function shuffleMusic(rand: () => number, opts: { bars?: number; after?: LofiMood; keep?: { mood: LofiMood; seed: number }; genre?: LofiMood; prefs?: MusicPrefs; hidden?: ReadonlySet<string> } = {}): MusicShuffle {
+  const others = LOFI_STATION_MOODS.filter(m => m !== opts.after);
+  // A hidden genre is never drawn; with every genre hidden, the draw is as it was.
+  const shown = opts.hidden?.size ? others.filter(m => !opts.hidden!.has(m)) : others;
+  const moods = shown.length ? shown : others;
   const mood = opts.keep?.mood ?? opts.genre ?? choose(rand, moods) ?? LOFI_STATION_MOODS[0]!;
   const seed = opts.keep ? opts.keep.seed >>> 0 : seedFrom(rand);
   const own = lofiStream(seed, { mood }).next().tune.style;
