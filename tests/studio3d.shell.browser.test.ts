@@ -951,6 +951,33 @@ test('3D Studio handles on the selected object: the ring turns in 15 degree step
     await waitValues(`objects[1].scale === ${before}`);
     step('handles: the corner square scaled the sphere, one undo step');
 
+    // Duplicate adds a selected copy beside the sphere, and Delete takes an object out;
+    // each is one undo step.
+    await page.getByRole('button', { name: 'Duplicate', exact: true }).click();
+    await waitValues('objects.length === 4 && v.activeObject === 4');
+    assert.equal((await values()).objects[3].name, 'Sphere copy');
+    await undo();
+    await waitValues('objects.length === 3 && v.activeObject === 2');
+    await preview.focus();
+    await preview.press('Delete');
+    await waitValues('objects.length === 2 && objects.every((row) => row.name !== "Sphere")');
+    await undo();
+    await waitValues('objects.length === 3 && objects[1].name === "Sphere"');
+    await preview.click({ position: { x: box.width * 0.68, y: box.height * 0.6 } });
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === false);
+    step('handles: Duplicate and Delete, one undo step each');
+
+    // Tilt keeps the ring as the outline and puts the other handles away until it ends.
+    const knobShown = () => page.locator('.stage-kit-handle[data-studio-handle="turn"]').isVisible();
+    await page.getByRole('button', { name: 'Tilt', exact: true }).click();
+    assert.equal(await preview.getAttribute('data-tilt-object'), 'true');
+    assert.equal(await knobShown(), false);
+    assert.equal(await page.locator('[data-studio-ring]').isVisible(), true);
+    await preview.press('Escape');
+    assert.equal(await preview.getAttribute('data-tilt-object'), 'false');
+    assert.equal(await knobShown(), true);
+    step('handles: Tilt shows the ring alone');
+
     // Escape in the middle of a drag puts the object back and saves nothing.
     await grab('scale', [[20, -20], [40, -40]]);
     await page.keyboard.press('Escape');
