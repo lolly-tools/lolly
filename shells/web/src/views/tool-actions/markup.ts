@@ -1017,8 +1017,10 @@ export function paintBar(ta: ActionsCtx): void {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
       const take = getAudioTake();
       if (!btn || !take) return;
+      const value = runtime.getModel().find(i => i.id === 'name')?.value;
+      const name = typeof value === 'string' ? value : undefined;
       if (btn.dataset.action === 'take-native') {
-        void saveTakeNative(host, take);
+        void saveTakeNative(host, take, name);
         return;
       }
       if (btn.dataset.action === 'take-mp3') {
@@ -1026,12 +1028,12 @@ export function paintBar(ta: ActionsCtx): void {
         btn.disabled = true;
         btn.textContent = t('Encoding…');
         try {
-          await saveTakeMp3(host, take);
+          await saveTakeMp3(host, take, name);
         } catch (err) {
           host.log('warn', 'export-sheet mp3 transcode failed - saving the native container', {
             error: String(err),
           });
-          void saveTakeNative(host, take);
+          void saveTakeNative(host, take, name);
         } finally {
           btn.disabled = false;
           btn.textContent = was;

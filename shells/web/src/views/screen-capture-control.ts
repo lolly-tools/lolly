@@ -12,6 +12,7 @@ import { composeCropRect, cropPixelSize } from './screen-capture-crop.ts';
 import { subscribeRecordPreview } from '../lib/record-preview.ts';
 import { storeRecordingAsset } from './picker.ts';
 import { fmtBytes } from '../lib/device-info.ts';
+import { holdScreenAwake } from '../lib/wake-lock.ts';
 import type { AssetRef, RecordOpts } from '@lolly-tools/core/host-v1';
 import type { ToolRuntime, WebToolHost } from './tool.ts';
 
@@ -37,6 +38,7 @@ export function setupScreenCaptureControl({
   sizeExplicit?: boolean;
 }): void {
   let disposed = false;
+  let releaseWakeLock: (() => void) | null = null;
   const bar = document.createElement('div');
   bar.className = 'canvas-screen-bar';
   bar.setAttribute('data-export-hide', '');   // never let the control land in the capture
@@ -398,6 +400,7 @@ export function setupScreenCaptureControl({
       const res = await runtime.startRecording(opts);
       if (disposed) return;
       if (!res.started) { busy = false; render(); return; }
+      releaseWakeLock = holdScreenAwake();
       state = 'recording'; startTs = performance.now();
       busy = false; render();
       timerRaf = requestAnimationFrame(tick);
@@ -410,6 +413,7 @@ export function setupScreenCaptureControl({
       }
     } catch (e) {
       if (disposed) return;
+      releaseWakeLock?.(); releaseWakeLock = null;
       reportFailure(e, 'start recording');
       state = 'idle'; busy = false; render();
     }
@@ -422,6 +426,7 @@ export function setupScreenCaptureControl({
     let res: { blob: Blob; mimeType: string; micActive?: boolean } | null = null;
     try { res = await runtime.stopRecording(); }
     catch (e) { host.log('warn', 'screencap: stopRecording failed', { error: String(e) }); }
+    finally { releaseWakeLock?.(); releaseWakeLock = null; }
     if (disposed) return;
     state = 'idle'; render();
     try {
@@ -491,6 +496,7 @@ export function setupScreenCaptureControl({
   (stageEl as HTMLElement & { _recordCleanup?: () => void })._recordCleanup = () => {
     if (disposed) return;
     disposed = true;
+    releaseWakeLock?.(); releaseWakeLock = null;
     runtime.cancelRecording();
     if (timerRaf) cancelAnimationFrame(timerRaf);
     observer.disconnect();
