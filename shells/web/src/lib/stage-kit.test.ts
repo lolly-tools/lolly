@@ -238,3 +238,21 @@ test('a button disabled while its action reloads the tool gets focus back when i
     assert.equal(document.activeElement, fit, 'focus came back to the same action');
   } finally { h.teardown(); }
 });
+
+test('the handle layer covers the stage under the bar, owns its presses, and goes with the kit', () => {
+  const h = mount();
+  try {
+    assert.equal(h.stage.querySelector('.stage-kit-layer'), null, 'nothing made before it is asked for');
+    const layer = h.kit.layer();
+    assert.equal(h.kit.layer(), layer, 'one layer per kit');
+    assert.equal(layer.parentElement, h.stage, 'a child of the stage');
+    assert.equal(h.canvas.contains(layer), false, 'never inside #tool-canvas');
+    assert.equal(layer.nextElementSibling, h.kit.element, 'before the bar, which draws over it');
+    for (const attr of ['data-export-hide', 'data-live-hide']) assert.ok(layer.hasAttribute(attr), attr);
+    assert.equal(layer.getAttribute('data-stage-gestures'), 'own');
+    assert.equal(layer.getAttribute('aria-hidden'), 'true');
+    h.kit.dispose();
+    assert.equal(layer.isConnected, false, 'dispose takes the layer away');
+    assert.equal(h.kit.layer().isConnected, false, 'a kit that has gone hands out a detached layer');
+  } finally { h.teardown(); }
+});

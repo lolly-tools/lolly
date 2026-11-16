@@ -20,6 +20,10 @@
  *    changes height or goes, the canvas gets `canvas-resize` and the fit runs again.
  *  - Presses on the kit belong to the kit (`data-stage-gestures="own"`): the stage
  *    neither pans nor pinches under them, and a finger can scroll a phone bar sideways.
+ *  - `layer()` hands out one element over the whole stage, under the bar, made on first
+ *    request: a tool draws handles on its picture there, at screen size, from points it
+ *    measures itself. The layer takes no press; the handles in it do, and the stage
+ *    leaves their presses alone too.
  *
  * Nothing here knows a particular tool. 3D Studio builds its groups in
  * lib/studio3d/toolbar.ts; controls a manifest declares will be drawn the same way.
@@ -96,10 +100,16 @@ export interface StageKitMenuItem {
 export interface StageKitPort {
   setBar(groups: readonly StageKitGroup[]): void;
   setStatus(text: string): void;
+  /**
+   * The handle layer: the whole stage, under the bar and the zoom control, out of every
+   * capture. Optional so a port that draws no picture (a test's) can leave it out.
+   */
+  layer?(): HTMLElement;
 }
 
 export interface StageKit extends StageKitPort {
   readonly element: HTMLElement;
+  layer(): HTMLElement;
   /** Measure again: placement, label density and the reserved band. */
   layout(): void;
   dispose(): void;
@@ -155,6 +165,27 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
   status.hidden = true;
   root.append(bar, status);
   stage.appendChild(root);
+
+  /** The handle layer, made on the first call to layer(). */
+  let handleLayer: HTMLElement | null = null;
+  function layer(): HTMLElement {
+    if (handleLayer) return handleLayer;
+    const el = doc.createElement('div');
+    el.className = 'stage-kit-layer';
+    el.setAttribute('data-export-hide', '');
+    el.setAttribute('data-live-hide', '');
+    el.setAttribute('data-canvas-keys', 'off');
+    el.setAttribute(STAGE_GESTURES_ATTR, 'own');
+    // The handles repeat what the bar and the keys already offer, so a screen reader is
+    // not walked through them.
+    el.setAttribute('aria-hidden', 'true');
+    // A kit that has gone hands back a layer that is never shown.
+    if (disposed) return el;
+    // Before the bar's layer, so the bar draws over a handle that runs under the band.
+    stage.insertBefore(el, root);
+    handleLayer = el;
+    return el;
+  }
 
   const groupEls = new Map<string, HTMLElement>();
   const buttons = new Map<string, HTMLButtonElement>();
@@ -548,6 +579,8 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     offLayout();
     if (frame) doc.defaultView?.cancelAnimationFrame(frame);
     root.remove();
+    handleLayer?.remove();
+    handleLayer = null;
     disposed = true;
     const changed = lastReserve.top !== prior.top || lastReserve.bottom !== prior.bottom;
     for (const [name, value] of [[RESERVE_TOP, prior.top], [RESERVE_BOTTOM, prior.bottom]] as const) {
@@ -558,5 +591,5 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
   }
 
   layout();
-  return { element: root, setBar, setStatus, layout, dispose };
+  return { element: root, setBar, setStatus, layer, layout, dispose };
 }

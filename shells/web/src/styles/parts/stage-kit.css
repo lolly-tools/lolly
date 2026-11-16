@@ -228,8 +228,110 @@
   overflow-wrap: anywhere;
 }
 
+/* ─── The handle layer (StageKit.layer) ───────────────────────────────────────
+   The whole stage, under the bar and the zoom control, where a tool draws handles on its
+   own picture at screen size. The look is Design's selection (editor.css: .fc-outline,
+   .fc-outlines path, .fc-handle, .fc-h-rotate, .fc-rot-stem and .fc-xform-label), carried
+   through the tokens so the handles follow the theme and the design system. Nothing here
+   moves by itself: a handle is placed again with each frame of the picture it sits on,
+   so there is no transition to reduce. */
+.stage-kit-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  overflow: hidden;
+  /* The layer takes no press, so a press between the handles reaches the canvas. */
+  pointer-events: none;
+}
+/* Lines on the picture: one solid 1.5px stroke in the selection colour. Never dashed,
+   because a dashed line means a drop area here. */
+.stage-kit-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.stage-kit-outline,
+.stage-kit-stem {
+  fill: none;
+  stroke: var(--ui-color-selection-border);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+/* A clear stroke over the outline takes the press, so the thin line can be grabbed. */
+.stage-kit-outline-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  stroke-linejoin: round;
+  pointer-events: stroke;
+  touch-action: none;
+  cursor: grab;
+}
+/* A square handle: white with the selection edge. The white is the ink the theme sets on
+   its primary colour, so the pair still contrasts in a theme whose primary is white. */
+.stage-kit-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: 1.5px solid var(--ui-color-selection-border);
+  border-radius: var(--radius-xs);
+  background: var(--ui-color-action-on-primary);
+  box-shadow: var(--ui-elevation-control);
+  pointer-events: auto;
+  touch-action: none;
+}
+/* The fat target round a handle: 30px with a mouse, 44px on a coarse pointer (below). */
+.stage-kit-handle::after { content: ""; position: absolute; inset: -9px; }
+/* The round knob: primary with the white edge, the one filled primary mark. */
+.stage-kit-handle[data-shape="round"] {
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-color: var(--ui-color-action-on-primary);
+  border-radius: var(--radius-round);
+  background: var(--ui-color-action-primary);
+}
+.stage-kit-handle[data-cursor="grab"],
+.stage-kit-handle[data-cursor="grab"]::after { cursor: grab; }
+.stage-kit-handle[data-cursor="ns"],
+.stage-kit-handle[data-cursor="ns"]::after { cursor: ns-resize; }
+.stage-kit-handle[data-cursor="nesw"],
+.stage-kit-handle[data-cursor="nesw"]::after { cursor: nesw-resize; }
+.stage-kit-layer[data-dragging] .stage-kit-outline-hit,
+.stage-kit-layer[data-dragging] .stage-kit-handle[data-cursor="grab"] { cursor: grabbing; }
+/* The number by the pointer while a handle drags: Design's readout chip. */
+.stage-kit-chip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 3px 7px;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, transparent);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating), 0 0 0 1px var(--ui-color-border-default);
+  font-family: var(--ui-type-ui-family);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 @media (any-pointer: coarse) {
   .stage-kit-btn { min-width: 44px; min-height: 44px; }
+  .stage-kit-handle { width: 16px; height: 16px; margin: -8px 0 0 -8px; }
+  .stage-kit-handle::after { inset: -14px; }
+  .stage-kit-handle[data-shape="round"] { width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+  .stage-kit-handle[data-shape="round"]::after { inset: -13px; }
+  .stage-kit-outline-hit { stroke-width: 28; }
 }
 @media (prefers-reduced-motion: reduce) {
   .stage-kit-btn { transition: none; }
