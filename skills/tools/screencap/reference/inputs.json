@@ -5,7 +5,7 @@
     "type": "asset",
     "assetType": "raster",
     "allowUpload": true,
-    "help": "Pick an image to crop, or use the Screenshot button above the canvas if your browser supports screen capture."
+    "help": "Pick an image to crop, or use the Screenshot button below the canvas if your browser supports screen capture."
   },
   {
     "id": "crop",

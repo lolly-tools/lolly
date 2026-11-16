@@ -95,8 +95,8 @@ test('the shipped tools whose own stacks get a slot', () => {
   // These tools once named SUSE or SUSE Mono first, so their pages needed the slot. They now
   // set their words in the design system's fonts (var(--font-brand), var(--font-mono)),
   // which carry the fallback fonts already.
-  for (const id of ['frame', 'org-chart', 'prompt-card', 'record']) assert.ok(!slotted.includes(id), id);
-  // A utility's own controls, which never reach an export, still name a font first: those
-  // stacks get the slot.
-  for (const id of ['compress-pdf', 'convert-image']) assert.ok(slotted.includes(id), id);
+  // Compress and Convert Image named SUSE first for their own controls until plan 368.
+  for (const id of ['frame', 'org-chart', 'prompt-card', 'record', 'compress-pdf', 'convert-image']) assert.ok(!slotted.includes(id), id);
+  // Icon still names a font first, so that stack gets the slot.
+  for (const id of ['icon']) assert.ok(slotted.includes(id), id);
 });
