@@ -271,6 +271,8 @@ export interface ToolViewCtx {
   /** Drops the `\\` show/hide-sidebar shortcut (wireStageZoom). */
   panelKeyTeardown: (() => void) | null;
   framingTeardown: (() => void) | null;
+  /** Ends the watch that keeps the canvas role true to what the canvas holds. */
+  canvasRoleStop?: (() => void) | null;
   renderSaveBtn: HTMLButtonElement | null;
   renderPill: HTMLElement | null;
   /** The share-link meter's reassurance toast; absent where the tool shares no links. */

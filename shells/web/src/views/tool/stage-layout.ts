@@ -1407,6 +1407,8 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     tview.panelKeyTeardown = null;
     tview.framingTeardown?.();
     tview.framingTeardown = null; // framing overlay: listeners + its layer
+    tview.canvasRoleStop?.();
+    tview.canvasRoleStop = null;
     tview.filmstrip?.destroy();
     window.removeEventListener('keydown', tview.history.onHistoryKey);
     // Presence chrome first, transport last: the pill/rings/cursors come down, then
