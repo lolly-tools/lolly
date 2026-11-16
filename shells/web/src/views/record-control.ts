@@ -8,7 +8,8 @@ import { mountCoachHud, coachAudio, type CoachHud, type CoachTarget } from '../l
 import { frameLuma, coachVideo } from '../lib/video-coach-core.ts';
 import { subscribeRecordPreview } from '../lib/record-preview.ts';
 import { mountRecordingHelp, createTipFlasher, type RecordingHelp } from '../lib/recording-tips.ts';
-import { setAudioTake, saveTakeMp3, saveTakeNative } from '../lib/audio-take.ts';
+import { setAudioTake, saveTakeMp3, saveTakeNative, takesAudioInput } from '../lib/audio-take.ts';
+import { holdScreenAwake } from '../lib/wake-lock.ts';
 import type { storeRecordingAsset } from './picker.ts';
 import { fmtBytes } from '../lib/device-info.ts';
 import { icon } from '../lib/icons.ts';
@@ -29,6 +30,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   stageEl: HTMLElement; runtime: ToolRuntime; host: WebToolHost; mode: 'audio' | 'video' | 'av'; markSessionDirty: () => void;
 }): void {
   let disposed = false;
+  let releaseWakeLock: (() => void) | null = null;
   const isAudio = mode === 'audio';
   const wantAudio = mode !== 'video'; // 'audio' + 'av' capture the mic; 'video' is camera-only
   const wantVideo = mode !== 'audio';
@@ -73,6 +75,8 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     flipBtn.addEventListener('click', () => {
       if (disposed || btn.disabled) return;
       facingMode = facingMode === 'user' ? 'environment' : 'user';
+      if (viewfinder) viewfinder.dataset.facing = facingMode;
+      if (previewVideo) previewVideo.dataset.facing = facingMode;
       if (viewfinder) { stopViewfinder(); void startViewfinder(); }   // re-frame with the new camera
       announce(facingMode === 'environment' ? 'Rear camera' : 'Front camera');
     });
@@ -207,6 +211,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     }
     viewfinder = document.createElement('canvas');
     viewfinder.className = 'canvas-record-viewfinder';
+    viewfinder.dataset.facing = facingMode;
     viewfinder.setAttribute('data-export-hide', '');
     cameraHost().appendChild(viewfinder);
     const vctx = viewfinder.getContext('2d');
@@ -248,6 +253,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
         cameraHost().appendChild(previewVideo);
       }
       previewVideo.srcObject = stream;
+      previewVideo.dataset.facing = facingMode;
       void previewVideo.play?.().catch(() => { /* autoplay policy - muted inline should be fine */ });
       startExposureSampler();   // keep exposure coaching live through the take (framing view is gone)
     } else if (previewVideo) {
@@ -389,6 +395,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       const result = await runtime.startRecording(opts);
       if (disposed) return;
       if (!result.started) { stopCoach(); state = 'idle'; render(); return; }
+      releaseWakeLock = holdScreenAwake();
       coachPhase = 'record';     // switch the HUD from room-check to level coaching
       if (wantCoach) await startCoach(); // in case recording began without an arm (framing) step
       if (disposed) return;
@@ -396,6 +403,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       timerRaf = requestAnimationFrame(tick);
       announce(isAudio ? 'Recording started' : 'Video recording started');
     } catch (e) {
+      releaseWakeLock?.(); releaseWakeLock = null;
       if (disposed) return;
       const name = (e as { name?: string })?.name;
       const dev = isAudio ? 'microphone' : (wantAudio ? 'camera or microphone' : 'camera');
@@ -420,6 +428,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     let res: { blob: Blob; mimeType: string; micActive?: boolean } | null = null;
     try { res = await runtime.stopRecording(); }
     catch (e) { host.log('warn', 'stopRecording failed', { error: String(e) }); }
+    finally { releaseWakeLock?.(); releaseWakeLock = null; }
     if (disposed) return;
     stopCoach();   // release the sound-check mic + drop the HUD when the take ends
     state = 'idle'; render();
@@ -481,6 +490,8 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     void begin();
   });
 
+  // The asset store takes the picker's host type. Both kinds of take hand it this one.
+  const storeHost = host as unknown as Parameters<typeof storeRecordingAsset>[0];
   async function handleClip(blob: Blob, mimeType: string, takeMs = 0, micActive?: boolean): Promise<void> {
     if (!isAudio) {
       // Video: the footage becomes the compositor's body clip (see export.renderRecord).
@@ -504,9 +515,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       try {
         // The asset store lives with the picker, loaded once there is a take to keep.
         const { storeRecordingAsset: store } = await import('./picker.ts');
-        ref = await store(
-          host as unknown as Parameters<typeof storeRecordingAsset>[0], clip, ext, prevClip?.id, credential ?? undefined,
-        );
+        ref = await store(storeHost, clip, ext, prevClip?.id, credential ?? undefined);
       } catch (e) {
         if (disposed) return;
         host.log('warn', 'record: could not persist clip - using an in-memory clip', { error: String(e) });
@@ -542,9 +551,36 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     if (disposed) return;
     const container = captureContainer(mimeType);
     let clip = blob;
-    if (container) clip = (await stampCaptureClip(host, blob, container, { microphone: true })).blob;
+    let credential: Awaited<ReturnType<typeof stampCaptureClip>>['credential'] = null;
+    if (container) ({ blob: clip, credential } = await stampCaptureClip(host, blob, container, { microphone: true }));
     else host.log('warn', 'record: take saved without Content Credentials - no embedder for this container', { mimeType });
     if (disposed) return;
+    // A tool with an Audio input takes the recording as that input: Audiogram draws its
+    // picture from the clip, and its help says a recording can be the clip. The take is
+    // kept as a user asset, the way the timeline keeps a voiceover take, so a saved
+    // session finds the sound again. If the store refuses, the take falls through to
+    // the save bar below and is not lost.
+    if (takesAudioInput(runtime.getModel())) {
+      try {
+        // The store is told the container the recorder really wrote. Firefox writes Ogg,
+        // and an Ogg take filed as WebM would download under the wrong name.
+        const ext = /mp4|mpeg|m4a/i.test(mimeType) ? 'mp4' : /ogg/i.test(mimeType) ? 'ogg' : 'webm';
+        const { storeRecordingAsset: store } = await import('./picker.ts');
+        // No previous id: the store deletes the asset it is handed before the input
+        // changes, and Undo would then restore a reference to a deleted take. An earlier
+        // take stays in the library.
+        const ref = await store(storeHost, clip, ext, undefined, credential ?? undefined, { audio: true, durationMs: takeMs });
+        if (disposed) return;
+        await runtime.setInput('audio', ref);
+        if (disposed) return;
+        markSessionDirty();
+        announce('Recording added as the audio.');
+        return;
+      } catch (e) {
+        if (disposed) return;
+        host.log('warn', 'record: could not keep the take as the audio input', { error: String(e) });
+      }
+    }
     // Publish the take so the export sheet's "Your recording" card offers the
     // same saves (lib/audio-take.ts) - the sheet otherwise only exports the card.
     setAudioTake({ blob: clip, mimeType, container: container ?? null });
@@ -731,15 +767,20 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     // transcode as the same live mic capture; without that the PRIMARY save
     // button was the one shipping unsigned.
     const take = { blob, mimeType, container: container ?? null };
-    natBtn.addEventListener('click', () => { void saveTakeNative(host, take); });
+    const takeName = (): string | undefined => {
+      const value = runtime.getModel().find(i => i.id === 'name')?.value;
+      return typeof value === 'string' ? value : undefined;
+    };
+    natBtn.addEventListener('click', () => { void saveTakeNative(host, take, takeName()); });
     mp3Btn.addEventListener('click', async () => {
+      const name = takeName();
       mp3Btn.disabled = true; mp3Btn.textContent = 'Encoding…';
       try {
-        await saveTakeMp3(host, take);
+        await saveTakeMp3(host, take, name);
       } catch (err) {
         host.log('warn', 'mp3 transcode failed', { error: String(err) });
         announce('MP3 encoding failed - saving the original instead.', { assertive: true });
-        await saveTakeNative(host, take);
+        await saveTakeNative(host, take, name);
       } finally { mp3Btn.disabled = false; mp3Btn.textContent = 'Save MP3'; }
     });
     xBtn.addEventListener('click', () => { dlBar?.remove(); dlBar = null; if (dlUrl) { URL.revokeObjectURL(dlUrl); dlUrl = null; } });
@@ -750,6 +791,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
   (stageEl as HTMLElement & { _recordCleanup?: () => void })._recordCleanup = () => {
     if (disposed) return;
     disposed = true;
+    releaseWakeLock?.(); releaseWakeLock = null;
     runtime.stopMeter();
     runtime.cancelRecording();
     if (timerRaf) cancelAnimationFrame(timerRaf);

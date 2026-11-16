@@ -20,6 +20,7 @@ export interface AudioTake {
 }
 
 import type { HostV1 } from '../../../../engine/src/bridge/host-v1.ts';
+import { deriveExportFilename } from '../../../../engine/src/inputs.ts';
 
 let take: AudioTake | null = null;
 // ponytail: single listener slot - one tool view (one export sheet) exists at a
@@ -34,6 +35,16 @@ export function setAudioTake(next: AudioTake | null): void {
 
 export const getAudioTake = (): AudioTake | null => take;
 
+/**
+ * Does this tool take a recording as its own Audio input? True for a tool that declares
+ * an asset input with the id `audio` (Audiogram). The recorder then stores the take as
+ * that input, and the export sheet has no separate recording to offer. A tool without
+ * one (Voice Recorder) keeps the take as its deliverable.
+ */
+export function takesAudioInput(model: readonly { id: string; type?: string }[]): boolean {
+  return model.some(input => input.id === 'audio' && input.type === 'asset');
+}
+
 /** Replaces any previous subscriber; pass null to unsubscribe. */
 export function onAudioTakeChange(cb: (() => void) | null): void {
   listener = cb;
@@ -43,11 +54,14 @@ export function onAudioTakeChange(cb: (() => void) | null): void {
 export const takeNativeExt = (t: AudioTake): string =>
   t.container ?? (t.mimeType.includes('mp4') ? 'm4a' : t.mimeType.includes('ogg') ? 'ogg' : 'webm');
 
-const baseName = (signed: boolean): string => signed ? 'voice-recording-lolly' : 'voice-recording';
+export function takeFilename(ext: string, signed: boolean, name?: string): string {
+  const base = deriveExportFilename({ render: { filenameFrom: ['name'] } }, { name }) || 'voice-recording';
+  return `${base}${signed && !base.endsWith('-lolly') ? '-lolly' : ''}.${ext}`;
+}
 
 /** Save the take in its native container, credential intact when one was stamped. */
-export async function saveTakeNative(host: HostV1, t: AudioTake): Promise<void> {
-  await host.export.file(t.blob, { filename: `${baseName(!!t.container)}.${takeNativeExt(t)}` });
+export async function saveTakeNative(host: HostV1, t: AudioTake, name?: string): Promise<void> {
+  await host.export.file(t.blob, { filename: takeFilename(takeNativeExt(t), !!t.container, name) });
 }
 
 /**
@@ -55,10 +69,10 @@ export async function saveTakeNative(host: HostV1, t: AudioTake): Promise<void> 
  * save. Throws on encode failure so the caller can fall back to the native
  * container with its own messaging.
  */
-export async function saveTakeMp3(host: HostV1, t: AudioTake): Promise<void> {
+export async function saveTakeMp3(host: HostV1, t: AudioTake, name?: string): Promise<void> {
   const { blobToMp3 } = await import('./audio-encode.ts');
   const mp3 = await blobToMp3(t.blob);
   const { stampCaptureClip } = await import('../bridge/export.ts');
   const { blob: signed } = await stampCaptureClip(host, mp3, 'mp3', { microphone: true, transcoded: true });
-  await host.export.file(signed, { filename: `${baseName(true)}.mp3` });
+  await host.export.file(signed, { filename: takeFilename('mp3', true, name) });
 }

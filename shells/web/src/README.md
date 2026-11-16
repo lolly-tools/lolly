@@ -9,8 +9,8 @@ Roughly 931,000 lines of TypeScript, tests included, and 69,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 630 files, 231,499 lines | 347 files, 104,001 lines | 12 files, 1,686 lines |
-| `lib/` | 1030 files, 224,505 lines | 645 files, 121,443 lines | 13 files, 1,856 lines |
+| `views/` | 631 files, 231,614 lines | 348 files, 104,218 lines | 12 files, 1,686 lines |
+| `lib/` | 1031 files, 224,552 lines | 647 files, 121,588 lines | 13 files, 1,856 lines |
 | `bridge/` | 272 files, 60,073 lines | 156 files, 32,706 lines | none |
 | `components/` | 139 files, 32,494 lines | 71 files, 17,291 lines | 24 files, 1,641 lines |
 | `org/` | 88 files, 22,038 lines | 62 files, 18,307 lines | none |
@@ -19,7 +19,7 @@ Roughly 931,000 lines of TypeScript, tests included, and 69,000 lines of CSS.
 | `catalog/` | 12 files, 2,135 lines | 11 files, 1,302 lines | none |
 | `capture/` | 6 files, 798 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 12 files, 2,187 lines | 153 files, 62,550 lines |
+| `styles/` | none | 12 files, 2,187 lines | 153 files, 62,569 lines |
 
 Plus 53 `.ts`/`.js` files at the top level of `src/`, 20,240 lines all told, of which 27 are tests and 3 are ambient declarations. `main.ts` is 2,500 of that.
 <!-- web-src-dirs:end -->
@@ -73,7 +73,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,652 | `views/design-import.ts` | **none** |
 | 2,643 | `views/design-inspector.ts` | yes |
 | 2,615 | `views/timeline-math.ts` | yes |
-| 2,527 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
+| 2,528 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
 | 2,505 | `components/color-field.ts` | yes |
 | 2,500 | `main.ts` | yes |
 | 2,448 | `views/free-canvas-math.ts` | yes |

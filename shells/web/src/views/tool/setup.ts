@@ -1530,6 +1530,20 @@ export async function mountLiveControls(tview: ToolViewCtx): Promise<void> {
         actionsApi,
         sizeExplicit: Boolean(urlWidth || urlHeight),
       });
+    } else {
+      // No screen capture in this browser (every phone, or a page that is not secure).
+      // One status line takes the place of the two capture buttons. `has-record` gives
+      // the line the same lift above the Export button that the buttons get on a phone.
+      const status = document.createElement('div');
+      status.className = 'canvas-screen-bar';
+      status.setAttribute('role', 'status');
+      status.setAttribute('data-export-hide', '');
+      const message = document.createElement('p');
+      message.className = 'canvas-screen-note';
+      message.textContent = t('Screen capture is not available in this browser. You can still crop an image here.');
+      status.appendChild(message);
+      stageEl.classList.add('has-record');
+      stageEl.appendChild(status);
     }
   } else if (
     stageEl &&

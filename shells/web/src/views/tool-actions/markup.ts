@@ -14,7 +14,7 @@ import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, OUTPUT_LICENCE_C
 import { durableSupport, liveCaptureSupport } from '../../bridge/format-support.js';
 import { helpTip } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
-import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNativeExt } from '../../lib/audio-take.ts';
+import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNativeExt, takesAudioInput } from '../../lib/audio-take.ts';
 import { exportAffordance, getExportPolicy } from '../../lib/export-policy.ts';
 import { icon } from '../../lib/icons.ts';
 import { escape as escapeText } from '../../utils.js';
@@ -959,7 +959,9 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // a "Your recording" card fed by the latest take (lib/audio-take.ts, written by
   // views/record-control.ts). Before any take exists it says plainly what the
   // Download below saves, closing the "Export is not my recording" trap.
-  const isAudioCaptureTool = manifest.render.capture === 'audio'; ta.isAudioCaptureTool = isAudioCaptureTool;
+  // The card and the "not audio" line are for a tool whose take is the deliverable.
+  // Audiogram takes the recording as an Audio input and delivers the sound in the export.
+  const isAudioCaptureTool = manifest.render.capture === 'audio' && !takesAudioInput(manifest.inputs ?? []); ta.isAudioCaptureTool = isAudioCaptureTool;
   const recordingRow = isAudioCaptureTool
     ? `
       <div class="section-card export-recording" data-recording-row>
@@ -1017,8 +1019,10 @@ export function paintBar(ta: ActionsCtx): void {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
       const take = getAudioTake();
       if (!btn || !take) return;
+      const value = runtime.getModel().find(i => i.id === 'name')?.value;
+      const name = typeof value === 'string' ? value : undefined;
       if (btn.dataset.action === 'take-native') {
-        void saveTakeNative(host, take);
+        void saveTakeNative(host, take, name);
         return;
       }
       if (btn.dataset.action === 'take-mp3') {
@@ -1026,12 +1030,12 @@ export function paintBar(ta: ActionsCtx): void {
         btn.disabled = true;
         btn.textContent = t('Encoding…');
         try {
-          await saveTakeMp3(host, take);
+          await saveTakeMp3(host, take, name);
         } catch (err) {
           host.log('warn', 'export-sheet mp3 transcode failed - saving the native container', {
             error: String(err),
           });
-          void saveTakeNative(host, take);
+          void saveTakeNative(host, take, name);
         } finally {
           btn.disabled = false;
           btn.textContent = was;

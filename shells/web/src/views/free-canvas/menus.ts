@@ -1303,6 +1303,15 @@ export function onContextMenu(fc: FcCtx, e: MouseEvent): void {
 }
 export function openAddMenu(fc: FcCtx, anchor: HTMLElement): void {
   const { ADD_KIND_ICON, addKinds } = fc;
+  // The compact layout hides the tool rail, so the rail's drawing tools are offered here.
+  // A menu row is one word and the rail's own glyph. The rail's tooltip also lists a
+  // shortcut and a hold gesture, and neither exists on a phone.
+  const drawingItems: PopItem[] = fc.stageEl.dataset.designLayout === 'compact' && fc.cv.pathField ? [
+    { sep: true },
+    { label: t('Line'), icon: icon(SVG.line), key: 'line', run: () => fc.modes.setMode('line') },
+    { label: t('Pen'), icon: icon(SVG.pen), key: 'pen', run: () => fc.modes.setMode('pen') },
+    { label: t('Pencil'), icon: icon(SVG.freehand), key: 'pencil', run: () => fc.modes.setMode('pencil') },
+  ] : [];
   spawnPopover(fc, 
     anchor,
     [...addKinds.filter(k => !fc.timeCfg || k.id !== 'camera').flatMap((k) => [{
@@ -1313,7 +1322,7 @@ export function openAddMenu(fc: FcCtx, anchor: HTMLElement): void {
       label: t('Text frame'), icon: icon(ADD_KIND_ICON.text || SVG.add),
       run: () => fc.modes.setMode('create', { kind: { ...k, id: 'text-frame', label: t('Text frame'), seed: { ...k.seed, [fc.cv.textFrameField!]: 'fixed' } } }),
     },{label:t('Text on a circle'),icon:icon(ADD_KIND_ICON.text || SVG.add),run:()=>fc.storyPath.circle()},
-      {label:t('Text on a path'),keepOpen:true,icon:icon(ADD_KIND_ICON.text || SVG.add),run:()=>fc.storyPathUi.open(anchor)}] : [])]), ...(fc.storyText.available() && fc.storyText.read().document.stories.some(story=>!story.frameIds.length) ? [{label:t('Place text'),keepOpen:true,icon:icon(SVG.add),run:()=>fc.storyRecovery.unplaced(anchor)}] : [])]
+      {label:t('Text on a path'),keepOpen:true,icon:icon(ADD_KIND_ICON.text || SVG.add),run:()=>fc.storyPathUi.open(anchor)}] : [])]), ...(fc.storyText.available() && fc.storyText.read().document.stories.some(story=>!story.frameIds.length) ? [{label:t('Place text'),keepOpen:true,icon:icon(SVG.add),run:()=>fc.storyRecovery.unplaced(anchor)}] : []), ...drawingItems]
   );
 }
 export function openArrangeMenu(fc: FcCtx): void {

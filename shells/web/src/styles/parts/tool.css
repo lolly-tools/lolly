@@ -3368,7 +3368,9 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   height: 100%;
   object-fit: cover;
   background: #000;
-  transform: scaleX(-1); /* mirror like a selfie camera for natural framing */
+}
+.canvas-record-viewfinder[data-facing="user"] {
+  transform: scaleX(-1);
 }
 
 /* "Processing your video" curtain - shown while the record tool auto-composites the
@@ -3463,6 +3465,23 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   position: static;
   inset: auto;
   transform: none;
+}
+/* The line a browser with no screen capture gets in place of the two buttons. It is a
+   note, so it does not wear the pill a button wears. */
+.canvas-screen-bar[role="status"] {
+  width: max-content;
+  max-width: calc(100% - 28px);
+}
+.canvas-screen-note {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--radius);
+  background: var(--ui-color-surface-raised);
+  color: hsl(var(--muted-foreground));
+  box-shadow: var(--ui-elevation-floating);
+  font-size: var(--ui-type-label);
+  line-height: 1.4;
+  text-align: center;
 }
 /* Capture controls share the canvas space reserved by the editor's panels. */
 .tool-layout.is-editor .tool-stage {
