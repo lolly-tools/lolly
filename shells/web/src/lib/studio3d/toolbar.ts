@@ -526,6 +526,14 @@ export function syncStudioControls(entry: StudioControls): void {
   // still zooms the stage.
   if (entry.options.setInput) entry.canvas.setAttribute('data-stage-gestures', 'own');
   else entry.canvas.removeAttribute('data-stage-gestures');
+  // The canvas's name says what a press does here: with handles an object is selected
+  // and moved, and without them every drag moves the camera.
+  entry.canvas.setAttribute(
+    'aria-label',
+    objectEditing(entry)
+      ? tRaw('3D studio preview: click an object to select it, drag an object to move it and use the arrow keys to nudge the selection. Drag empty space to orbit, drag with two fingers or Shift to pan, pinch or scroll to zoom, and double-click to frame.')
+      : tRaw('3D studio preview: drag to orbit, drag with two fingers or Shift to pan, pinch or scroll to zoom, and double-click to frame.')
+  );
   const chrome = entry.options.chrome;
   entry.refreshChrome = chrome ? () => chrome.setBar(studioBar(entry)) : undefined;
   let mode = studioMode(entry);

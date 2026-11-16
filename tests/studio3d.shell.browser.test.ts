@@ -574,7 +574,7 @@ test('3D Studio imports, reopens a portable model and exports through editor and
   }
 });
 
-test('3D Studio arranges several objects: click selects, drags move, keys nudge, undo restores', {
+test('3D Studio arranges several objects: click selects, drags move with no mode, keys nudge, undo restores', {
   skip: !origin && 'Set STUDIO_SHELL_URL to a running web shell.',
   timeout: 600_000,
 }, async () => {
@@ -672,66 +672,72 @@ test('3D Studio arranges several objects: click selects, drags move, keys nudge,
     }, before);
     step('arrangement: frame all and undo passed');
 
-    // The frame offers the library flow and a grouped toolbar; Orbit reads pressed at rest.
+    // The frame offers the library flow; there is no Orbit or Move mode to choose.
     assert.equal(await page.getByRole('button', { name: 'Add objects', exact: true }).count(), 1);
-    assert.equal(await page.locator('[data-studio-orbit]').getAttribute('aria-pressed'), 'true');
-    // A plain click on the sphere selects it while orbiting; a drag still orbits.
+    assert.equal(await page.locator('[data-studio-orbit], [data-studio-move]').count(), 0);
+    const label = () => page.locator('[data-studio-object-label]').getAttribute('aria-label');
+    const handles = page.locator('[data-studio-handles]');
+    // A plain click on the sphere selects it and shows its handles.
     const preview = page.locator('.lolly-studio-canvas');
     const box = (await preview.boundingBox())!;
     // The default sphere sits right of centre at the default camera.
     const hitSphere = { x: box.width * 0.68, y: box.height * 0.6 };
+    assert.equal(await handles.evaluate((el) => (el as HTMLElement).hidden), true, 'nothing selected at first');
     await preview.click({ position: hitSphere });
     await waitObjects('active === 2');
-    assert.match(await page.locator('[data-studio-object-label]').textContent() ?? '', /2 of 3: Sphere/);
+    assert.match((await label()) ?? '', /2 of 3: Sphere/);
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === false);
+    assert.equal(await page.locator('.stage-kit-handle[data-studio-handle="turn"]').isVisible(), true);
+    // The click was a pointer press: the canvas has the keys but shows no focus ring.
+    assert.equal(await preview.evaluate((el) => document.activeElement === el && !el.matches(':focus-visible')), true);
+    step('arrangement: a click selected the sphere and showed its handles');
+    // A drag that starts on an object moves it with no mode, selecting it first: one step.
     await page.evaluate(() =>
       (document.querySelector('[data-lolly-canvas]') as any).__lollyCommit('activeObject', 1)
     );
     await waitObjects('active === 1');
-    step('arrangement: orbit click selected the sphere');
-    // Move mode: a click on the sphere selects it; a drag on it moves it on the stage.
-    await page.getByRole('button', { name: 'Move objects', exact: true }).click();
-    assert.equal(await preview.getAttribute('data-move-object'), 'true');
-    assert.equal(await page.locator('[data-studio-orbit]').getAttribute('aria-pressed'), 'false');
-    await preview.click({ position: hitSphere });
-    await waitObjects('active === 2');
-    assert.match(await page.locator('[data-studio-object-label]').textContent() ?? '', /2 of 3: Sphere/);
-    step('arrangement: click selected the sphere');
     const from = (await objects())[1];
     await page.mouse.move(box.x + hitSphere.x, box.y + hitSphere.y);
     await page.mouse.down();
     await page.mouse.move(box.x + hitSphere.x - 40, box.y + hitSphere.y - 10, { steps: 6 });
     await page.mouse.move(box.x + hitSphere.x - 80, box.y + hitSphere.y - 20, { steps: 6 });
     await page.mouse.up();
-    await waitObjects(`objects[1].x !== ${JSON.stringify(from.x)}`);
+    await waitObjects(`objects[1].x !== ${JSON.stringify(from.x)} && active === 2`);
     const dragged = (await objects())[1];
     assert.notEqual(dragged.x, from.x);
+    assert.equal(dragged.y, from.y, 'a move along the floor writes no height');
     assert.equal((await objects())[0].x, initial[0].x, 'the badge did not move');
-    step('arrangement: drag moved the sphere');
+    step('arrangement: a drag selected and moved the sphere');
     await page.keyboard.press('ControlOrMeta+z');
-    await waitObjects(`objects[1].x === ${JSON.stringify(from.x)}`);
-    step('arrangement: undo restored the sphere');
+    await waitObjects(`objects[1].x === ${JSON.stringify(from.x)} && active === 1`);
+    step('arrangement: one undo put back the move and the selection');
+    await page.keyboard.press('ControlOrMeta+Shift+z');
+    await waitObjects('active === 2');
 
-    // Keyboard: arrow nudges, comma turns, bracket selects; each is one undo step.
+    // Keyboard: with the sphere selected the arrows nudge it, the full stop turns it and
+    // a bracket selects the next object; each is one undo step.
     await preview.focus();
+    const at = (await objects())[1];
     await preview.press('ArrowRight');
-    await waitObjects(`Math.abs(objects[1].x - (${JSON.stringify(from.x)} + 0.1)) < 1e-6`);
+    await waitObjects(`Math.abs(objects[1].x - (${JSON.stringify(at.x)} + 0.1)) < 1e-6`);
     await preview.press('Shift+ArrowUp');
-    await waitObjects(`Math.abs(objects[1].z - (${JSON.stringify(from.z ?? 0)} - 0.5)) < 1e-6`);
+    await waitObjects(`Math.abs(objects[1].z - (${JSON.stringify(at.z ?? 0)} - 0.5)) < 1e-6`);
     await preview.press('.');
     await waitObjects('objects[1].rotY === 5');
     await preview.press(']');
     await waitObjects('active === 3');
-    assert.match(await page.locator('[data-studio-object-label]').textContent() ?? '', /3 of 3: Box/);
+    assert.match((await label()) ?? '', /3 of 3: Box/);
     await page.keyboard.press('ControlOrMeta+z');
     await waitObjects('active === 2');
     await page.keyboard.press('ControlOrMeta+z');
     await waitObjects('!objects[1].rotY');
     step('arrangement: keyboard nudges, turn, select and undo passed');
 
-    // Escape leaves move mode and the arrow keys orbit the camera again; the left arrow
-    // turns it as a drag to the left does.
+    // Escape clears the selection, and the arrow keys orbit the camera again; the left
+    // arrow turns it as a drag to the left does.
     await preview.press('Escape');
-    assert.equal(await preview.getAttribute('data-move-object'), 'false');
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === true);
+    assert.match(await page.locator('[data-stage-status]').textContent() ?? '', /Click an object to select it/);
     const orbitBefore = await camera();
     await preview.press('ArrowLeft');
     await page.waitForFunction((azimuth) => {
@@ -743,7 +749,7 @@ test('3D Studio arranges several objects: click selects, drags move, keys nudge,
         Math.abs(JSON.parse(marker.dataset.lollyStudio!).values.camera.azimuth - (azimuth + 5)) < 0.01
       );
     }, Number(orbitBefore.azimuth));
-    step('arrangement: escape returned to orbit');
+    step('arrangement: escape cleared the selection and the arrows orbit');
 
     // A hidden object is reported and Fit selected frames only the selection.
     await page.evaluate(() =>
@@ -799,7 +805,7 @@ test('3D Studio arranges several objects: click selects, drags move, keys nudge,
     assert.deepEqual(await lightValue('keyPosition'), keyMoved, 'undo is one light at a time');
     await preview.press('Escape');
     assert.equal(await preview.getAttribute('data-move-light'), 'false');
-    assert.equal(await page.locator('[data-studio-orbit]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-studio-lights]').getAttribute('aria-pressed'), 'false');
     // Switching modes and leaving them never touches the saved objects.
     assert.equal((await objects()).length, 3);
     step('arrangement: move lights passed');
@@ -839,6 +845,139 @@ test('3D Studio arranges several objects: click selects, drags move, keys nudge,
       return marker?.dataset.studioState === 'ready' && JSON.parse(marker.dataset.lollyStudio!).values.cameraKeys?.length === 1;
     });
     step('arrangement: camera keys passed');
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+  }
+});
+
+test('3D Studio handles on the selected object: the ring turns in 15 degree steps, the squares lift and scale, one undo step each', {
+  skip: !origin && 'Set STUDIO_SHELL_URL to a running web shell.',
+  timeout: 600_000,
+}, async () => {
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.env.STUDIO_NATIVE
+      ? { executablePath: chromium.executablePath(), args: ['--use-angle=metal'] }
+      : {}),
+  });
+  const errors: string[] = [];
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, serviceWorkers: 'block' });
+    page.setDefaultTimeout(90000);
+    await page.routeWebSocket(/127\.0\.0\.1/, (socket) => socket.close());
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto(`${origin}/t/3d-studio?source=arrangement&samples=8&c2pa=0&width=360&height=360`);
+    await page.locator('[data-studio-state="ready"]').waitFor();
+    const values = () =>
+      page.locator('[data-lolly-studio]').evaluate((el) => JSON.parse((el as HTMLElement).dataset.lollyStudio!).values);
+    const waitValues = (check: string) =>
+      page.waitForFunction((check) => {
+        const marker = document.querySelector<HTMLElement>('[data-lolly-studio]');
+        if (marker?.dataset.studioState !== 'ready') return false;
+        const v = JSON.parse(marker.dataset.lollyStudio!).values;
+        return new Function('objects', 'v', `return ${check}`)(v.objects, v);
+      }, check);
+    const undo = () => page.keyboard.press('ControlOrMeta+z');
+    const chip = page.locator('[data-studio-chip]');
+    const centre = async (kind: string) => {
+      const b = (await page.locator(`.stage-kit-handle[data-studio-handle="${kind}"]`).boundingBox())!;
+      return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    };
+    /** Press a handle, drag it through two points, read the chip, and leave the button down. */
+    const grab = async (kind: string, path: Array<[number, number]>) => {
+      const at = await centre(kind);
+      await page.mouse.move(at.x, at.y);
+      await page.mouse.down();
+      for (const [dx, dy] of path) await page.mouse.move(at.x + dx, at.y + dy, { steps: 4 });
+      return (await chip.textContent()) ?? '';
+    };
+
+    const preview = page.locator('.lolly-studio-canvas');
+    const box = (await preview.boundingBox())!;
+    await preview.click({ position: { x: box.width * 0.68, y: box.height * 0.6 } });
+    await waitValues('v.activeObject === 2');
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === false);
+    // The handles sit on the stage at screen size, beside the picture, out of the artwork.
+    const layer = await page.evaluate(() => {
+      const el = document.querySelector('[data-studio-handles]')!.parentElement!;
+      return {
+        kit: el.classList.contains('stage-kit-layer'),
+        inCanvas: document.querySelector('#tool-canvas')!.contains(el),
+        hidden: el.hasAttribute('data-export-hide') && el.hasAttribute('data-live-hide'),
+        ring: !!document.querySelector('[data-studio-ring]')?.getAttribute('d'),
+      };
+    });
+    assert.deepEqual(layer, { kit: true, inCanvas: false, hidden: true, ring: true });
+    step('handles: the selected sphere shows its ring and squares');
+
+    // Turn: the knob drags round the ring, the chip reads the turn, and it snaps to 15.
+    const turnText = await grab('turn', [[30, -4], [60, -12]]);
+    assert.match(turnText, /^Turn -?\d+°$/);
+    const shown = Number(/-?\d+/.exec(turnText)![0]);
+    assert.equal(shown % 15, 0, `snapped to 15 degrees: ${turnText}`);
+    assert.notEqual(shown, 0, 'the drag turned the sphere');
+    await page.mouse.up();
+    await waitValues(`objects[1].rotY === ${shown}`);
+    assert.equal(await chip.isVisible(), false, 'the chip goes on release');
+    await undo();
+    await waitValues('!objects[1].rotY');
+    step('handles: the ring turned the sphere in a 15 degree step, one undo step');
+
+    // Lift: the top square raises the sphere, and a drag down past the stage rests it there.
+    const liftText = await grab('lift', [[0, -25], [0, -50]]);
+    assert.match(liftText, /^Lift \d+\.\d\d$/);
+    await page.mouse.up();
+    await waitValues('objects[1].y > 0.05');
+    const lifted = (await values()).objects[1].y;
+    await grab('lift', [[0, 100], [0, 200]]);
+    assert.equal(await chip.textContent(), 'Lift 0.00');
+    await page.mouse.up();
+    await waitValues('objects[1].y === 0');
+    await undo();
+    await waitValues(`objects[1].y === ${lifted}`);
+    await undo();
+    await waitValues('!objects[1].y');
+    step('handles: the top square lifted the sphere and rested it on the stage, one step each');
+
+    // Scale: the corner square scales the sphere from the ring's centre.
+    const before = (await values()).objects[1].scale;
+    const scaleText = await grab('scale', [[20, -20], [40, -40]]);
+    assert.match(scaleText, /^Scale \d+ %$/);
+    await page.mouse.up();
+    await waitValues(`objects[1].scale > ${before}`);
+    assert.equal(Math.round((await values()).objects[1].scale * 100), Number(/\d+/.exec(scaleText)![0]));
+    await undo();
+    await waitValues(`objects[1].scale === ${before}`);
+    step('handles: the corner square scaled the sphere, one undo step');
+
+    // Escape in the middle of a drag puts the object back and saves nothing.
+    await grab('scale', [[20, -20], [40, -40]]);
+    await page.keyboard.press('Escape');
+    await page.mouse.up();
+    assert.equal(await chip.isVisible(), false);
+    await page.waitForTimeout(400);
+    assert.equal((await values()).objects[1].scale, before, 'a cancelled drag saves nothing');
+    // A second Escape clears the selection, and a mode hides the handles too.
+    await preview.press('Escape');
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === true);
+    step('handles: Escape cancelled a drag, then cleared the selection');
+
+    // A lone subject gets the same handles, through its own position input.
+    await page.goto(`${origin}/t/3d-studio?source=primitive&primitive=sphere&samples=8&c2pa=0&width=360&height=360`);
+    await page.locator('[data-studio-state="ready"]').waitFor();
+    const lone = (await values()).position;
+    const subject = (await preview.boundingBox())!;
+    await preview.click({ position: { x: subject.width / 2, y: subject.height * 0.55 } });
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === false);
+    assert.equal(await page.locator('[data-studio-duplicate]:not([hidden])').count(), 0, 'a lone subject has no copy to make');
+    await grab('lift', [[0, -25], [0, -50]]);
+    await page.mouse.up();
+    await waitValues(`v.position.y > ${lone.y}`);
+    assert.equal((await values()).position.x, lone.x, 'a lift keeps the place on the floor');
+    await undo();
+    await waitValues(`v.position.y === ${lone.y}`);
+    step('handles: a lone subject lifted through its position, one undo step');
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();
@@ -1105,6 +1244,17 @@ test('3D Studio on a phone: a pinch zooms the camera, two fingers pan, and the b
       return marker?.dataset.studioState === 'ready' && JSON.parse(marker.dataset.lollyStudio!).values.camera.zoom === zoom;
     }, Number(before.zoom));
     step('phone: pinch zoomed the camera in one step and the bar stayed on screen');
+    // A tap on the subject selects it; the handles take their touch sizes and the status
+    // line its touch wording.
+    await touch('touchStart', [[cx, cy]]);
+    await touch('touchEnd', []);
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === false);
+    const sizes = await page.evaluate(() =>
+      ['turn', 'lift', 'scale'].map((kind) => document.querySelector(`.stage-kit-handle[data-studio-handle="${kind}"]`)!.getBoundingClientRect().width)
+    );
+    assert.deepEqual(sizes, [18, 16, 16]);
+    assert.match(await page.locator('[data-stage-status]').textContent() ?? '', /^Drag to move\./);
+    step('phone: a tap selected the subject and the handles took their touch sizes');
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();

@@ -3252,7 +3252,14 @@
     },
     {
       "file": "tests/studio3d.shell.browser.test.ts",
-      "fullName": "3D Studio arranges several objects: click selects, drags move, keys nudge, undo restores",
+      "fullName": "3D Studio arranges several objects: click selects, drags move with no mode, keys nudge, undo restores",
+      "reason": "Set STUDIO_SHELL_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/studio3d.shell.browser.test.ts",
+      "fullName": "3D Studio handles on the selected object: the ring turns in 15 degree steps, the squares lift and scale, one undo step each",
       "reason": "Set STUDIO_SHELL_URL to a running web shell.",
       "capability": "environment",
       "owner": "tests"

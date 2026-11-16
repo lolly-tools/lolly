@@ -10,7 +10,6 @@ import { studioFit } from './controls.ts';
 import { wireStudioGestures } from './gestures.ts';
 import { clearStudioControls, syncStudioControls } from './toolbar.ts';
 import type { StageKitPort } from '../stage-kit.ts';
-import { tRaw } from '../../i18n.ts';
 import type { StudioLease } from './pool.ts';
 import { StudioRenderer } from './renderer.ts';
 import type { StudioSceneCounters, StudioSceneQuality, StudioSceneState } from './scene-host.ts';
@@ -324,10 +323,6 @@ export async function mountToolStudio(
     const canvas = (lease?.canvas ?? document.createElement('canvas')) as FrameCanvas;
     canvas.className = 'lolly-studio-canvas';
     canvas.style.cssText = 'width:100%;height:100%;display:block;touch-action:none;';
-    canvas.setAttribute(
-      'aria-label',
-      tRaw('3D studio preview: drag to orbit, drag with two fingers or Shift to pan, pinch or scroll to zoom, and double-click to frame.')
-    );
     let handle: StudioRenderer;
     try {
       handle = lease?.renderer ?? new StudioRenderer(canvas);
