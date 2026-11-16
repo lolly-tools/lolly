@@ -3,7 +3,7 @@
   "name": "URL Screenshot",
   "description": "Any web page, at any scroll depth, with custom CSS.",
   "a11yLabel": "Screenshot of {{default url \"(no URL set)\"}}",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",
@@ -105,7 +105,7 @@
       "min": 0,
       "max": 0.9,
       "step": 0.01,
-      "help": "Trim in from the top edge, as a 0–0.9 fraction of the height. Raster (png/jpg/svg) only."
+      "help": "Trim in from the top edge, as a 0–0.9 fraction of the height. Raster (png/jpg) only."
     },
     {
       "id": "cropRight",

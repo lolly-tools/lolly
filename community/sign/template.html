@@ -1,5 +1,5 @@
 <main class="utility"><div class="sign-root">
-  {{#unless hasFile}}<section class="empty"><div class="mark">✍</div><h1>Sign a PDF</h1><p>Draw your signature here or choose an existing signature image, then place it on any page.</p><button class="btn btn--primary" type="button" data-file-pick>Choose a PDF…</button><small>Your document stays on this device.</small></section>{{/unless}}
+  {{#unless hasFile}}<section class="empty"><div class="mark" aria-hidden="true">✍</div><h1>Sign a PDF</h1><p>Choose a PDF first, then draw or choose a signature and place it on any page.</p><button class="btn btn--primary" type="button" data-file-pick>Choose a PDF…</button><small>Your document stays on this device.</small></section>{{/unless}}
   {{#if hasFile}}<section class="card">
     <header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="btn btn--ghost quiet" data-file-pick>Replace PDF</button></header>
     {{#if error}}<div class="notice bad"><strong>Check the signing choices</strong><span>{{error}}</span></div>{{/if}}

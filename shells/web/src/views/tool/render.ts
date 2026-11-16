@@ -1,5 +1,5 @@
 import { hasDesignLayout } from '@lolly/engine';
-import { getInputPolicy } from '../../lib/input-policy.ts';
+import { getInputPolicy, refuseDocumentEdit } from '../../lib/input-policy.ts';
 import { designSelection } from '@lolly-tools/core/design-tool-v1';
 import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
 // SPDX-License-Identifier: MPL-2.0
@@ -25,6 +25,7 @@ import { finishCanvasFeedback } from '../../lib/canvas-feedback.ts';
 import { scopeTemplateStyles } from '../../lib/scope-css.ts';
 import { addFallbackSlots } from '../../lib/fallback-slots.ts';
 import { runTemplateScripts, waitForQuiescence } from '../../lib/render-lifecycle.ts';
+import { watchCanvasRole } from '../tool-canvas-role.ts';
 import { hydrateEmbeds, neutralizeEmbeds } from '../../bridge/embed.ts';
 import { markdownSafeUrl, mountTableCellEditing } from '../../lib/table-canvas-edit.ts';
 import type { TableEditOpts } from '../../lib/table-canvas-edit.ts';
@@ -216,6 +217,13 @@ export function paint(tview: ToolViewCtx): void {
       // Keep the canvas's accessible summary current when it's a live a11yLabel.
       if (tview.tool.manifest.a11yLabel) contentEl.setAttribute('aria-label', tview.history.canvasLabel());
       runTemplateScripts(contentEl);
+      // A canvas that holds a control must not keep the image role, and a control can
+      // arrive after any paint. The watch starts with the first paint and ends with
+      // the first control, or with the view.
+      if (tview.canvasRole === 'img' && !tview.canvasRoleStop) {
+        const roleHolder = contentEl.closest('[role="img"]');
+        if (roleHolder) tview.canvasRoleStop = watchCanvasRole(roleHolder, contentEl);
+      }
       // Populate any [data-shell-slot] hooks the freshly-painted template exposes
       // (the app theme toggle, the relocated export pill) - see mountToolbarSlots.
       tview.history.mountToolbarSlots();
@@ -305,7 +313,21 @@ export function paint(tview: ToolViewCtx): void {
             },
             endGesture: () => tview.inputHistory.endGesture(),
             shapeText: m.studioShaperFor(tview.host),
-            setInput: (id, value) => tview.runtime.setInput(id, value as Parameters<typeof tview.runtime.setInput>[1]),
+            // A canvas edit is the person's edit: it dirties the document and reaches the
+            // address, as the per-canvas commit channel's writes do.
+            setInput: (id, value) => {
+              tview.session.markUserDirty(id);
+              return tview.runtime.setInput(id, value as Parameters<typeof tview.runtime.setInput>[1]);
+            },
+            // An edit that changes several inputs (Go to key, Convert to keys, a move that
+            // also selects) is one undo step.
+            commitMany: (values, label) => {
+              if (refuseDocumentEdit(tview.toolId)) { tview.runtime.refresh(); return; }
+              for (const id of Object.keys(values)) tview.session.markUserDirty(id);
+              void tview.history.commitInputs(values, label).catch(error => console.warn('studio edit failed:', error));
+            },
+            // The controls are drawn by the stage kit, beside the picture (lib/stage-kit.ts).
+            chrome: tview.stageKit.get(),
             reviewCollection: () => {
               void import('../studio3d-collection.ts').then(m => {
                 if (tview.contentEl.isConnected) m.openStudioCollection(tview.runtime, tview.host, () => tview.revisionChanged());

@@ -102,7 +102,7 @@ export interface StudioFrame {
   pixels: number[];
   width: number;
   height: number;
-  /** The text of the template's info panel. */
+  /** The scene's source notes, kept on the marker (lib/studio3d/mount.ts). */
   info: string;
   /** The marker's data-studio-state. */
   state: string;
@@ -368,7 +368,7 @@ const readFrame = (marker, previous) => {
     pixels: Array.from(ctx.getImageData(0, 0, copy.width, copy.height).data),
     width: canvas.width,
     height: canvas.height,
-    info: marker.querySelector('[data-studio-info]')?.textContent || '',
+    info: marker.dataset.studioNotes || '',
     state: marker.dataset.studioState,
     reads,
     reused: !previous || previous === canvas,

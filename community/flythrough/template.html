@@ -5,13 +5,20 @@
 <script>
 (function () {
   /* Idempotent per-paint IIFE ('Template script IIFE required'). Epoch guard drops stale
-     async callbacks; the previous renderer is disposed so we never leak WebGL contexts. */
-  window.__lollyFlyEpoch = (window.__lollyFlyEpoch || 0) + 1;
-  var EP = window.__lollyFlyEpoch;
-  function alive() { return window.__lollyFlyEpoch === EP; }
+     async callbacks; the previous renderer is disposed so we never leak WebGL contexts.
+     `home` is the element this paint was written into: the tool canvas, or the stage of
+     a one-shot render. The epoch and the renderer handle are kept on `home`, and the
+     canvas is found inside `home`, so each copy on the page has its own renderer. With
+     one handle on `window` and a page-wide id, a template tile drawn while the tool was
+     open disposed the open tool's renderer and then drew on the open tool's canvas,
+     whose context was lost. The tool opened on a blank canvas. */
+  var home = (document.currentScript && document.currentScript.parentNode) || document.body;
+  home.__lollyFlyEpoch = (home.__lollyFlyEpoch || 0) + 1;
+  var EP = home.__lollyFlyEpoch;
+  function alive() { return home.__lollyFlyEpoch === EP; }
 
-  var canvas = document.getElementById('fly-canvas');
-  var stateEl = document.getElementById('fly-state');
+  var canvas = home.querySelector('#fly-canvas');
+  var stateEl = home.querySelector('#fly-state');
   if (!canvas || !stateEl) return;
   var cfg; try { cfg = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
   if (!cfg || !cfg.shotUrl) return;
@@ -32,9 +39,9 @@
              distance: L('distance', 1), height: L('height', 0) };
   }
 
-  if (window.__lollyFly && typeof window.__lollyFly.dispose === 'function') {
-    try { window.__lollyFly.dispose(); } catch (e) {}
-    window.__lollyFly = null;
+  if (home.__lollyFly && typeof home.__lollyFly.dispose === 'function') {
+    try { home.__lollyFly.dispose(); } catch (e) {}
+    home.__lollyFly = null;
   }
 
   window.__toolHasReadySignal = true;
@@ -753,7 +760,7 @@
       try { renderer.dispose(); } catch (e) {}
       try { renderer.forceContextLoss(); } catch (e) {}
     }
-    window.__lollyFly = { dispose: disposeAll };
+    home.__lollyFly = { dispose: disposeAll };
   }
 })();
 </script>

@@ -378,6 +378,7 @@
   --ui-color-action-on-primary: hsl(var(--primary-foreground));
   --ui-color-selection-surface: hsl(var(--primary) / .12);
   --ui-color-selection-border: hsl(var(--primary));
+  --ui-color-selection-handle: hsl(0 0% 100%);
   --ui-color-border-default: hsl(var(--border));
   --ui-color-focus-ring: hsl(var(--ring));
   --ui-color-syntax-keyword: hsl(var(--primary));

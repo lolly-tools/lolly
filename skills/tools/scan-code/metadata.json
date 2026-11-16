@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "scan-code",
-  "toolVersion": "0.1.2",
-  "toolVersionRange": "0.1.2",
+  "toolVersion": "0.1.3",
+  "toolVersionRange": "0.1.3",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,12 +10,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "b7b0ae07f9de65c3f010f69dfea8117e6be45eef6c0d947a00d707988bb4727d",
-      "bytes": 1764
+      "sha256": "085a0e0cbc46c3efcee2e1e6498873b3d8f11d550c33b55413aad195f03bc930",
+      "bytes": 1713
     },
     "reference/inputs.json": {
-      "sha256": "5e856aee15e30af24a00e49f443e138d269843201738fa6d55ceef4e24fcef6b",
-      "bytes": 1604
+      "sha256": "fcc004dd8c4587d4992e35994f53f23aaf726a8986a9ce40dce34d6779aa9f48",
+      "bytes": 1221
     }
   }
 }

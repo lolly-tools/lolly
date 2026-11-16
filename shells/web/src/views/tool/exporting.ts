@@ -14,6 +14,7 @@ import { automationPasswordExpected } from '../../lib/automation-export-secret.t
 import { LinkPasswordRefused, linkPasswordRefusal } from '../../lib/export-password.ts';
 import { flushAddressWrites } from '../../lib/url-state.ts';
 import { holdStageView } from '../../lib/stage-lod.ts';
+import { holdStageScale } from '../../lib/stage-scale.ts';
 import { withStudioExport } from '../../lib/studio-export-guard.ts';
 import { settleForExport } from '../../lib/export-settle.ts';
 import { livePalette } from '../../lib/live-palette.ts';
@@ -116,6 +117,9 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
   const resumeStage = tview.stageZoom?.suspend();
   // The view attributes (moving, level of detail) must not reach an export.
   const releaseView = holdStageView(canvasEl);
+  // And the published on-screen scale (lib/stage-scale.ts): a render reads the tool's
+  // own fallback, as the CLI and every offscreen stage do.
+  const releaseScale = holdStageScale(canvasEl);
   const prevTransform = canvasEl!.style.transform;
   const prevOuterTransform = outerEl!.style.transform;
   const prevZoom = canvasEl!.style.zoom; // paged docs fit-to-width via zoom
@@ -137,6 +141,7 @@ export async function exportUnscaledRaw<T>(tview: ToolViewCtx,
     outerEl!.style.width = prevW;
     outerEl!.style.height = prevH;
     releaseView();
+    releaseScale();
     resumeStage?.();
     saved.forEach(({ el, id }) => {
       if (el.isConnected && id != null) el.dataset.canvasInput = id;

@@ -35,7 +35,10 @@ test('the Start studio can show every UI role without adding any of them to a br
   // walked per theme until it reads (brand-vars.ts accentText), so a design
   // system sets it through its primary, and one inline value would be one
   // colour in every theme, the failure the role exists to remove.
-  assert.equal(tokens.length, 82);
+  // 82 to 83 (plan 368, W3): color.selection.handle, the white of a selection handle on a
+  // picture. It is in UI_SLOTS, as the other selection colours are.
+  assert.equal(tokens.length, 83);
+  assert.equal(tokens.find(t => t.path.join('.') === 'color.selection.handle')?.type, 'color');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.text.accent')?.type, 'color');
   for (const role of ['rail', 'sidebar']) assert.equal(tokens.find(t => t.path.join('.') === `elevation.${role}`)?.type, 'shadow');
   assert.equal(tokens.find(t => t.path.join('.') === 'effect.inset')?.type, 'shadow');

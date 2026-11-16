@@ -110,6 +110,16 @@
                 "css": "hsl(var(--primary))"
               }
             }
+          },
+          "handle": {
+            "$type": "color",
+            "$value": "#ffffff",
+            "$description": "The fill of a square selection handle and the edge of a round one, drawn on a picture: white in every theme, as the Design canvas handles are, so a handle reads on any artwork.",
+            "$extensions": {
+              "tools.lolly": {
+                "css": "hsl(0 0% 100%)"
+              }
+            }
           }
         },
         "border": {

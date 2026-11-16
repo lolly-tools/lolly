@@ -1,0 +1,359 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* Cascade layer: this lazy sheet sits in the `views` layer (order declared once in
+   styles/app.css), so its rules keep a fixed priority whenever Vite injects the chunk.
+   Every selector here is the kit's own, so no other tool-view sheet restates one
+   (styles/tool-layout-order.test.ts). */
+@layer views {
+/* ─── The stage kit (lib/stage-kit.ts) ────────────────────────────────────────
+   One layer on the tool stage that holds a tool's own controls at screen size, beside
+   the picture. It is a child of .tool-stage and never inside #tool-canvas, so neither the
+   fit nor the stage zoom scales the layer and no export reads the layer. The recipe is the Design
+   rail's (.fc-toolbar and .fc-btn in editor.css): a raised surface with the floating
+   elevation and the default edge, transparent buttons that take the muted surface on
+   hover, the focus ring, and 44px targets on a coarse pointer. Sizes ride the chrome
+   type multiplier, which is allowed here because the kit is chrome, not the canvas. */
+.stage-kit {
+  position: absolute;
+  /* Above the stage's own chrome (4 to 7), below the zoom control (20). */
+  z-index: 8;
+  left: 0;
+  right: 0;
+  top: var(--chrome-top);
+  padding-inline: var(--stage-kit-side, var(--sp-7));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  /* The layer itself takes no press: only the bar and the status line do, so a press in
+     the gaps reaches the canvas underneath. */
+  pointer-events: none;
+}
+
+/* A phone: one row at the foot of the stage, above the Export pill, with the status line
+   above the bar. The pill is fixed at 8px + its 48px height above the safe area and the
+   keyboard; the kit clears it by the same two references. */
+.stage-kit[data-placement="foot"] {
+  top: auto;
+  bottom: calc(64px + var(--safe-bottom) + var(--vv-bottom, 0px));
+  padding-inline: var(--sp-4);
+  flex-direction: column-reverse;
+}
+/* A recorder's Record pill and its timer already stand above the Export pill there
+   (tool.css, .tool-stage.has-record), so the kit stands above them. */
+.tool-stage.has-record > .stage-kit[data-placement="foot"] {
+  bottom: calc(146px + var(--safe-bottom) + var(--vv-bottom, 0px));
+}
+
+.stage-kit-bar {
+  pointer-events: auto;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  /* A finger scrolls the row sideways; the stage leaves the press alone
+     (data-stage-gestures="own" on the layer). */
+  touch-action: pan-x;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+  font-family: var(--ui-type-ui-family);
+}
+.stage-kit-bar::-webkit-scrollbar { display: none; }
+/* A row that scrolls says so: the edge with more beyond it fades out, and the fade goes
+   once the row is scrolled to that end (lib/stage-kit.ts sets the two flags). */
+.stage-kit-bar[data-more-end] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+.stage-kit-bar[data-more-start] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent); }
+.stage-kit-bar[data-more-start][data-more-end] {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
+
+.stage-kit-group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+}
+/* The rule between groups: a 1px stroke of the default border colour, drawn before every
+   visible group but the first (data-kit-lead marks the first). */
+.stage-kit-group:not([data-kit-lead])::before {
+  content: "";
+  flex: none;
+  width: 1px;
+  height: calc(20px * var(--a11y-fs));
+  background: var(--ui-color-border-default);
+}
+.stage-kit-items {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stage-kit-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-width: calc(36px * var(--a11y-fs));
+  height: calc(36px * var(--a11y-fs));
+  padding: 0 var(--sp-3);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard), color var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.stage-kit-btn svg {
+  flex: none;
+  width: calc(18px * var(--a11y-fs));
+  height: calc(18px * var(--a11y-fs));
+}
+.stage-kit-btn:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+/* Press feedback, brightness only: no motion to reduce. */
+.stage-kit-btn:active:not(:disabled) { filter: brightness(0.92); }
+/* Inset, because the bar scrolls and would clip a ring drawn outside the button. */
+.stage-kit-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.stage-kit-btn:disabled { opacity: 0.35; cursor: default; }
+/* A mode or toggle that is on reads as the sidebar's chosen option does (.badge-select-opt.is-on
+   in tool.css): the tinted fill, the inset edge and the accent ink, so the app has one
+   pressed language. */
+.stage-kit-btn[aria-pressed="true"] {
+  background: hsl(var(--primary) / 0.14);
+  box-shadow: var(--ui-effect-selected);
+  color: var(--ui-color-text-accent);
+  font-weight: 600;
+}
+.stage-kit-btn[aria-pressed="true"]:hover:not(:disabled) { background: hsl(var(--primary) / 0.2); }
+
+/* Labels: the full one on a wide screen, the short one on a phone, none in a group that
+   gave its labels up for room (data-compact) or that a phone draws as icons. */
+.stage-kit-short { display: none; }
+.stage-kit-group[data-compact] .stage-kit-label { display: none; }
+.stage-kit-group[data-compact] .stage-kit-btn { padding: 0; }
+.stage-kit[data-placement="foot"] .stage-kit-label { display: none; }
+.stage-kit[data-placement="foot"] .stage-kit-short { display: inline; }
+.stage-kit[data-placement="foot"] .stage-kit-group[data-phone-icons] .stage-kit-short { display: none; }
+.stage-kit[data-placement="foot"] .stage-kit-btn:not([data-kit-short]),
+.stage-kit[data-placement="foot"] .stage-kit-group[data-phone-icons] .stage-kit-btn { padding: 0; }
+
+/* A short piece of text in the bar, such as the selected object. */
+.stage-kit-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: calc(28px * var(--a11y-fs));
+  padding: 0 var(--sp-4);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-default);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* One quiet caption about the current mode, in the muted ink at caption size, with no
+   surface of its own. Hidden, and taking no space, when there is nothing to say. */
+.stage-kit-status {
+  pointer-events: auto;
+  margin: 0;
+  max-width: min(42rem, 100%);
+  box-sizing: border-box;
+  padding: 0 var(--sp-3);
+  color: var(--ui-color-text-muted);
+  font-family: var(--ui-type-ui-family);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  text-align: center;
+  /* One row, always: the band the kit reserves is the bar plus this row, with words or
+     without, so the picture does not shift when a mode shows its sentence. */
+  min-height: 1.4em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stage-kit-status[data-empty] { visibility: hidden; }
+/* At the foot of a phone the picture has no height to spare for a row, so the sentence
+   stands over the stage just above the bar, on the raised surface a toast uses, and
+   reserves nothing. It may wrap there. */
+.stage-kit[data-placement="foot"] .stage-kit-status {
+  position: absolute;
+  bottom: calc(100% + var(--sp-2));
+  left: var(--sp-4);
+  right: var(--sp-4);
+  margin-inline: auto;
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--sp-4));
+  min-height: 0;
+  white-space: normal;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--radius);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-elevation-floating);
+}
+.stage-kit[data-placement="foot"] .stage-kit-status[data-empty] { display: none; }
+
+/* The menu and the panel the kit opens: the profile menu's surface (topbar.css), a
+   tick on the current choice, and a readable column for text. */
+.stage-kit-menu { min-width: 180px; }
+.stage-kit-menu-item { font-size: var(--fs-md); padding-block: 9px; }
+.stage-kit-menu-item[aria-checked="true"] { font-weight: 600; }
+.stage-kit-panel { width: min(22rem, calc(100vw - 16px)); }
+.stage-kit-panel-title {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3) 0;
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+.stage-kit-panel-text {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3) var(--sp-3);
+  color: var(--ui-color-text-muted);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ─── The handle layer (StageKit.layer) ───────────────────────────────────────
+   The whole stage, under the bar and the zoom control, where a tool draws handles on its
+   own picture at screen size. The look is Design's selection (editor.css: .fc-outline,
+   .fc-outlines path, .fc-handle, .fc-h-rotate, .fc-rot-stem and .fc-xform-label), carried
+   through the tokens so the handles follow the theme and the design system. Nothing here
+   moves by itself: a handle is placed again with each frame of the picture it sits on,
+   so there is no transition to reduce. */
+.stage-kit-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  overflow: hidden;
+  /* The layer takes no press, so a press between the handles reaches the canvas. */
+  pointer-events: none;
+}
+/* Lines on the picture: one solid 1.5px stroke in the selection colour. Never dashed,
+   because a dashed line means a drop area here. */
+.stage-kit-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.stage-kit-outline,
+.stage-kit-stem {
+  fill: none;
+  stroke: var(--ui-color-selection-border);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+/* The part of an outline that stands behind the object: the same line, faint. */
+.stage-kit-outline--behind { stroke-opacity: 0.32; }
+/* A clear stroke over the outline takes the press, so the thin line can be grabbed. */
+.stage-kit-outline-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  stroke-linejoin: round;
+  pointer-events: stroke;
+  touch-action: none;
+  cursor: grab;
+}
+/* A square handle: white with the selection edge, white in every theme as Design's is. */
+.stage-kit-handle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: 1.5px solid var(--ui-color-selection-border);
+  border-radius: var(--radius-xs);
+  background: var(--ui-color-selection-handle);
+  box-shadow: var(--ui-elevation-control);
+  pointer-events: auto;
+  touch-action: none;
+}
+/* The fat target round a handle: 30px with a mouse, 44px on a coarse pointer (below). */
+.stage-kit-handle::after { content: ""; position: absolute; inset: -9px; }
+/* The round knob: primary with the white edge, the one filled primary mark. */
+.stage-kit-handle[data-shape="round"] {
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-color: var(--ui-color-selection-handle);
+  border-radius: var(--radius-round);
+  background: var(--ui-color-action-primary);
+}
+.stage-kit-handle[data-cursor="grab"],
+.stage-kit-handle[data-cursor="grab"]::after { cursor: grab; }
+.stage-kit-handle[data-cursor="ns"],
+.stage-kit-handle[data-cursor="ns"]::after { cursor: ns-resize; }
+.stage-kit-handle[data-cursor="nesw"],
+.stage-kit-handle[data-cursor="nesw"]::after { cursor: nesw-resize; }
+.stage-kit-layer[data-dragging] .stage-kit-outline-hit,
+.stage-kit-layer[data-dragging] .stage-kit-handle[data-cursor="grab"] { cursor: grabbing; }
+/* A group that stands by the selection (StageKitGroup.float): the bar's own surface,
+   icons only, placed by the tool. Its host is a child of the stage, over the handles. */
+.stage-kit-float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  padding: 4px;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+  font-family: var(--ui-type-ui-family);
+  pointer-events: auto;
+}
+.stage-kit-float[hidden] { display: none; }
+/* One group stands alone here, so no rule is drawn before the group. */
+.stage-kit-float .stage-kit-group::before { content: none; }
+/* The number by the pointer while a handle drags: Design's readout chip. */
+.stage-kit-chip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 3px 7px;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, transparent);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating), 0 0 0 1px var(--ui-color-border-default);
+  font-family: var(--ui-type-ui-family);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media (any-pointer: coarse) {
+  .stage-kit-btn { min-width: 44px; min-height: 44px; }
+  .stage-kit-handle { width: 16px; height: 16px; margin: -8px 0 0 -8px; }
+  .stage-kit-handle::after { inset: -14px; }
+  .stage-kit-handle[data-shape="round"] { width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+  .stage-kit-handle[data-shape="round"]::after { inset: -13px; }
+  .stage-kit-outline-hit { stroke-width: 28; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-kit-btn { transition: none; }
+}
+}

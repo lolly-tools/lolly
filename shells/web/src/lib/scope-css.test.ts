@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { toolDirs, toolFile } from '@lolly-tools/node-shell/content-roots';
-import { scopeCss, unscopeCss, scopeTemplateStyles, unscopeStyleEls } from './scope-css.ts';
+import { scopeCss, unscopeCss, scopeTemplateStyles, unscopeStyleEls, mountScopedStyle, removeStyleWithMarkup, releaseLeavingStyles } from './scope-css.ts';
 
 const S = '#c';
 const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
@@ -271,4 +271,112 @@ test('unscopeStyleEls ignores a <style> it never scoped', () => {
   const svg = doc.querySelector('svg')!;
   unscopeStyleEls(svg);
   assert.equal(norm(svg.querySelector('style')!.textContent!), '.a{fill:red}');
+});
+
+// A view's cleanup runs before its markup leaves the screen: the router lifts the old
+// markup into the cross-view fade, and a tool opened from another tool keeps the old
+// markup until its own layout is ready. The sheet has to last as long as the markup.
+const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+function leavingDoc(): { doc: Document; markup: HTMLElement; style: HTMLStyleElement } {
+  const doc = new JSDOM('<!doctype html><html><head></head><body><main id="view"><div id="tool-canvas"><p class="a">x</p></div></main></body></html>').window.document;
+  const style = doc.createElement('style');
+  style.setAttribute('data-lolly-scope', '#tool-canvas');
+  style.textContent = '#tool-canvas .a{color:red}';
+  doc.head.appendChild(style);
+  return { doc, markup: doc.getElementById('tool-canvas')!, style };
+}
+
+test('a leaving sheet stays while its markup is on screen and goes when the markup does', async () => {
+  const { doc, markup, style } = leavingDoc();
+  removeStyleWithMarkup(style, markup);
+  assert.equal(style.isConnected, true, 'the markup is still shown, so the sheet stays');
+
+  // The cross-view fade moves the live nodes into a layer on the body.
+  const layer = doc.createElement('div');
+  layer.className = 'view-fade';
+  layer.appendChild(doc.getElementById('view')!.firstChild!);
+  doc.body.appendChild(layer);
+  await tick();
+  assert.equal(style.isConnected, true, 'moved into the fade layer is not gone');
+  assert.equal(doc.defaultView!.getComputedStyle(markup.querySelector('.a')!).color, 'rgb(255, 0, 0)');
+
+  layer.remove();
+  await tick();
+  assert.equal(style.isConnected, false, 'the fade layer went, and the sheet with it');
+});
+
+test('a leaving sheet is no longer listed as a live tool sheet', () => {
+  const { doc, markup, style } = leavingDoc();
+  removeStyleWithMarkup(style, markup);
+  assert.equal(doc.head.querySelectorAll('style[data-lolly-scope]').length, 0);
+  assert.equal(style.hasAttribute('data-lolly-leaving'), true);
+  releaseLeavingStyles();
+});
+
+test('a write that replaces the old markup takes the sheet with it', async () => {
+  const { doc, markup, style } = leavingDoc();
+  removeStyleWithMarkup(style, markup);
+  doc.getElementById('view')!.innerHTML = '<p class="loading">Loading</p>';
+  await tick();
+  assert.equal(style.isConnected, false);
+});
+
+test('releaseLeavingStyles removes every held sheet at once', () => {
+  const { doc, markup, style } = leavingDoc();
+  const second = doc.createElement('style');
+  doc.head.appendChild(second);
+  removeStyleWithMarkup(style, markup);
+  removeStyleWithMarkup(second, markup);
+  releaseLeavingStyles();
+  assert.equal(style.isConnected, false);
+  assert.equal(second.isConnected, false);
+});
+
+test('each leaving sheet follows its own markup', async () => {
+  const { doc, markup, style } = leavingDoc();
+  const other = doc.createElement('div');
+  doc.body.appendChild(other);
+  const otherStyle = doc.createElement('style');
+  doc.head.appendChild(otherStyle);
+  removeStyleWithMarkup(style, markup);
+  removeStyleWithMarkup(otherStyle, other);
+  other.remove();
+  await tick();
+  assert.equal(otherStyle.isConnected, false);
+  assert.equal(style.isConnected, true);
+  releaseLeavingStyles();
+});
+
+test('a sheet with no markup on screen is removed at once', () => {
+  const { doc, markup, style } = leavingDoc();
+  markup.remove();
+  removeStyleWithMarkup(style, markup);
+  assert.equal(style.isConnected, false);
+  const { style: orphan } = leavingDoc();
+  removeStyleWithMarkup(orphan, null);
+  assert.equal(orphan.isConnected, false);
+  assert.equal(doc.head.querySelectorAll('style').length, 0);
+});
+
+test('mounting a tool sheet first removes any held one: two tools share one scope', () => {
+  const { doc, markup, style } = leavingDoc();
+  removeStyleWithMarkup(style, markup);
+  const before = globalThis.document;
+  globalThis.document = doc;
+  try {
+    const next = mountScopedStyle('.b{color:blue}', '#tool-canvas');
+    assert.equal(style.isConnected, false, 'the old tool sheet never styles the new tool');
+    assert.equal(next.getAttribute('data-lolly-scope'), '#tool-canvas');
+    next.remove();
+  } finally {
+    globalThis.document = before;
+  }
+});
+
+test('the tool view hands its sheet to the holder and never removes it in the cleanup', () => {
+  const source = readFileSync(new URL('../views/tool/stage-layout.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /styleEl\.remove\(\)/, 'a sheet removed in the cleanup leaves the fading markup bare');
+  assert.match(source, /removeStyleWithMarkup\(styleEl, viewEl\.querySelector\(tview\.canvasScope\)\)/);
+  // The next tool's layout and the held sheet change in one step.
+  assert.match(source, /releaseLeavingStyles\(\);\s*viewEl\.innerHTML = `/);
 });

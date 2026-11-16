@@ -55,6 +55,12 @@
   backdrop-filter: blur(6px);
 }
 .sm-zoom-btn:hover { background: rgba(127, 127, 127, 0.32); }
+@media (hover: none) {
+  .sm-zoom-controls { display: flex; }
+}
+@media (any-pointer: coarse) {
+  .sm-zoom-btn { min-width: 44px; min-height: 44px; }
+}
 
 /* Route notice - only ever present when a GPX had something wrong with it, and
    marked data-export-hide so it never prints into the map. */

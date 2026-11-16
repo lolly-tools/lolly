@@ -1,7 +1,7 @@
 .font-convert {
   font-family: var(--font-brand, SUSE, system-ui, sans-serif);
   color: hsl(var(--foreground));
-  padding: calc(var(--chrome-top, 20px) + var(--chrome-h, 40px) + 24px) 24px 24px;
+  padding: 24px;
   min-height: 100%;
   display: flex;
   flex-direction: column;

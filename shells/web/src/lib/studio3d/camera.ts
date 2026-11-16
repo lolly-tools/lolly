@@ -15,7 +15,8 @@ import type {
 } from '../../../../../packages/core/src/studio3d-v1.ts';
 import { studioCamera } from './stage.ts';
 
-function lift(recipe: StudioSceneV1): number {
+/** The height of the surface a grounded subject stands on: the pedestal's top, or the floor. */
+export function studioFloorHeight(recipe: StudioSceneV1): number {
   return recipe.stage.pedestal && recipe.stage.output === 'scene' ? 0.3 : 0;
 }
 
@@ -69,7 +70,7 @@ function placeObject(
   const bounds = new THREE.Box3().setFromObject(object);
   object.position.set(
     spec.transform.position[0],
-    (spec.grounded ? -bounds.min.y + lift(recipe) : 0) + spec.transform.position[1] + pose.lift,
+    (spec.grounded ? -bounds.min.y + studioFloorHeight(recipe) : 0) + spec.transform.position[1] + pose.lift,
     spec.transform.position[2]
   );
 }

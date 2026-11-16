@@ -306,14 +306,6 @@ async function compute(model, changedId) {
   return {
     ...patch,
     _studioState: JSON.stringify({ version: 1, values: values }),
-    _expert: values.controls === 'expert' || values.materialMode === 'custom',
-    _collection: values.source === 'collection',
-    _arrangement: values.source === 'arrangement',
-    _cameraKeys: Array.isArray(values.cameraKeys) ? values.cameraKeys.length : 0,
-    _cameraPlays:
-      values.cameraMotion === 'keys' &&
-      Array.isArray(values.cameraKeys) &&
-      values.cameraKeys.length >= 2,
     // A clip has a length when anything moves: any motion but Still image, any light
     // animation, a camera move, or a camera path with two keys to travel between. A
     // dolly zoom changes the lens against the distance, and an orthographic camera has

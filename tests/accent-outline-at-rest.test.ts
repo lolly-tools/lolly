@@ -103,6 +103,8 @@ const ALLOWED: Allowed[] = [
     reason: 'The Design canvas outline around a selected group, drawn only while the group is selected.' },
   { file: `${PARTS}editor.css`, selector: '.fc-handle',
     reason: 'The Design canvas resize and rotate handles, drawn only on the current selection.' },
+  { file: `${PARTS}stage-kit.css`, selector: '.stage-kit-handle',
+    reason: "The handles the stage kit's handle layer draws on a tool's selected object, as .fc-handle does in Design: part of the selection overlay." },
   { file: `${PARTS}editor.css`, selector: '.fc-rubber',
     reason: 'The Design canvas rubber band, drawn only while the pointer is dragging out a selection.' },
   { file: `${PARTS}editor.css`, selector: '.fc-pen-node',

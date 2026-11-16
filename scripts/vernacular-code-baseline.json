@@ -998,7 +998,7 @@
   "shells/web/src/lib/studio3d/mount.ts": 6,
   "shells/web/src/lib/studio3d/pool.ts": 1,
   "shells/web/src/lib/studio3d/poster.ts": 2,
-  "shells/web/src/lib/studio3d/renderer.ts": 6,
+  "shells/web/src/lib/studio3d/renderer.ts": 5,
   "shells/web/src/lib/studio3d/scene-host.ts": 3,
   "shells/web/src/lib/studio3d/shatter.ts": 2,
   "shells/web/src/lib/svg-bindings.ts": 1,
