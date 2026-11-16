@@ -325,6 +325,7 @@ export interface DesignCanvasPorts {
   openLollyMenu(anchor: HTMLElement): void;
   openAddMenu?(anchor: HTMLElement): void;
   finishTextEditing?(): void;
+  finishDrawing?(): void;
   toggleTimeline(): void;
   isTimelineOpen(): boolean;
   /** The legacy Artboards filmstrip (the navigator's mobile skin host). */

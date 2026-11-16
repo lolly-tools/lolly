@@ -199,6 +199,24 @@ export function buildToolbar(fc: FcCtx): void {
       check: true,
       run: () => (fc.scaleContent ? fc.scaleMode.toggle() : fc.scaleMode.pick()),
     };
+    // The rail's other tools, for the same reason as Scale mode: the compact layout hides
+    // the rail, and these three live nowhere else. They sit with Scale mode, in the rail's
+    // order and with the rail's glyphs.
+    const railRows: PopItem[] = [];
+    if (stageEl.dataset.designLayout === 'compact') {
+      if (cv.pathField) railRows.push({
+        label: t('Edit points'), icon: icon(SVG.nodes), key: 'edit-points',
+        run: () => fc.modes.toggleNodeTool(),
+      });
+      if (cv.pathField && hasBindCfg) railRows.push({
+        label: t('Auto-arrange cards'), icon: icon(SVG.tidy),
+        key: 'auto-arrange', run: () => fc.modes.autoLayout(),
+      });
+      if (cv.grid) railRows.push({
+        label: t('Snap to grid'), icon: icon(SVG.grid), key: 'snap-grid',
+        on: fc.gridOn, check: true, run: () => fc.toolbox.toggleGrid(),
+      });
+    }
     // Export leads - it's the star of the Lolly menu. Present is added LAST (very bottom).
     if (actions && !barMounted) {
       items.push({
@@ -423,7 +441,7 @@ export function buildToolbar(fc: FcCtx): void {
           run: () => fc.frameTitles.cycleTitleMode(),
         });
       }
-      items.push(scaleRow, grabRow);
+      items.push(scaleRow, ...railRows, grabRow);
       items.push({
         label: t('Keyboard shortcuts'),
         icon: icon(SVG.info),
@@ -459,7 +477,7 @@ export function buildToolbar(fc: FcCtx): void {
     // Without a top bar there is no view group above, so the two rows stand alone.
     if (!barMounted) {
       if (items.length) items.push({ sep: true });
-      items.push(scaleRow, grabRow);
+      items.push(scaleRow, ...railRows, grabRow);
     }
     // Present is the VERY LAST row (Andy: Export is the star; Present sits at the bottom),
     // set off by its own separator and next to the Slide transition it uses (plan 112).
@@ -644,11 +662,8 @@ export function buildToolbar(fc: FcCtx): void {
   fc.keys.syncArrangeUI();
   // Snap-to-grid toggle (opt-in).
   if (cv.grid) {
-    const gbtn = toolBtn(fc, t('Snap to grid'), SVG.grid, () => {
-      fc.gridOn = !fc.gridOn;
-      gbtn.classList.toggle('is-armed', fc.gridOn);
-      gbtn.setAttribute('aria-pressed', String(fc.gridOn));
-    });
+    const gbtn = toolBtn(fc, t('Snap to grid'), SVG.grid, () => fc.toolbox.toggleGrid());
+    fc.gridBtn = gbtn;
     gbtn.setAttribute('aria-pressed', String(fc.gridOn));
     if (fc.gridOn) gbtn.classList.add('is-armed');
   }
@@ -821,11 +836,17 @@ export function fillPopover(fc: FcCtx, el: HTMLElement, items: PopItem[]): void 
     el.appendChild(b);
   }
 }
+export function toggleGrid(fc: FcCtx): void {
+  fc.gridOn = !fc.gridOn;
+  fc.gridBtn?.classList.toggle('is-armed', fc.gridOn);
+  fc.gridBtn?.setAttribute('aria-pressed', String(fc.gridOn));
+}
 export function toolboxOps(fc: FcCtx) {
   return {
     closePopover: bindOp(fc, closePopover),
     toolBtn: bindOp(fc, toolBtn),
     buildToolbar: bindOp(fc, buildToolbar),
+    toggleGrid: bindOp(fc, toggleGrid),
     bgTarget: bindOp(fc, bgTarget),
     paintBgField: bindOp(fc, paintBgField),
     syncBgField: bindOp(fc, syncBgField),

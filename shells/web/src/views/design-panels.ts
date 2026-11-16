@@ -85,7 +85,10 @@ export function mountDesignPanels(opts: {
   const layers = button(t('Layer/Page'), () => { navigator.setOpen(!navigator.isOpen()); if (navigator.isOpen()) phone?.show('layers', { focus: true }); else phone?.collapse(); });
   const inspect = button(t('Inspect'), () => { inspector.setOpen(!inspector.isOpen()); if (inspector.isOpen()) phone?.show('inspect', { focus: true }); else phone?.collapse(); });
   button(t('More'), opts.more);
-  const done = button(t('Done'), () => design.finishTextEditing?.());
+  const done = button(t('Done'), () => {
+    if (stage.classList.contains('is-text-editing')) design.finishTextEditing?.();
+    else design.finishDrawing?.();
+  });
   done.className = 'design-text-done';
   stage.append(actions);
 
@@ -129,7 +132,7 @@ export function mountDesignPanels(opts: {
     stage.dataset.designLayout = compact ? 'compact' : 'wide';
     actions.hidden = !compact;
     const editing = stage.classList.contains('is-text-editing');
-    done.hidden = !editing;
+    done.hidden = !editing && !stage.matches('.fc-lining, .fc-penning, .fc-penciling');
     if (compact && editing && !wasEditing) {
       wasEditing = true; activate('timeline');
       if (design.isTimelineOpen()) design.toggleTimeline();

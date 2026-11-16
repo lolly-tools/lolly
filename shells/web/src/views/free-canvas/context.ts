@@ -131,6 +131,7 @@ export interface FcCtx {
   importArtboardCapable: boolean;
   gridSize: number;
   gridOn: boolean;
+  gridBtn?: HTMLButtonElement;
   selection: Set<string>;
   selListeners: Set<(ids: string[]) => void>;
   selNotifyKey: string | null;
