@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:ee417fca-94e0-4456-8c9e-b49e61bd08ac",
+  "serialNumber": "urn:uuid:eb11bf44-a889-4493-8425-458fe7ab7d75",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-13T17:31:22.718Z",
+    "timestamp": "2026-11-16T11:45:00.023Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -25678,15 +25678,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-notification@2.8.0",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-notification@2.8.1",
       "name": "@tauri-apps/plugin-notification",
-      "version": "2.8.0",
-      "purl": "pkg:npm/%40tauri-apps/plugin-notification@2.8.0",
+      "version": "2.8.1",
+      "purl": "pkg:npm/%40tauri-apps/plugin-notification@2.8.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "041f4a9367a688d1f2323210af793fc9ef11283d9125e38f0a33393992c5fb8fe93ba29f8e5f51b645f885509ed6faa06c0c791e31d78dfd0ef2bb5d5b617677"
+          "content": "07e38226fd7b5c2150c4085edbe7e7d9b1ea4357f3fe11a7607793fbecaff3eab475a387e68d60857ecc9b15a0a06169ecf39a367e1430e35c9477999fae6624"
         }
       ]
     },
@@ -34157,26 +34157,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/vite@8.3.6",
-      "name": "vite",
-      "version": "8.3.6",
-      "purl": "pkg:npm/vite@8.3.6",
-      "scope": "excluded",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "508edd2b6f4d9d2e78164fa69a8ee8fa323a53c169ee10e5f97e50d64e39587f9de1d4a56cb554113190fa17e4360bcb406ca81253e3f37ee7672bf830173454"
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/vite@8.3.7",
       "name": "vite",
       "version": "8.3.7",
@@ -34193,6 +34173,26 @@
         {
           "alg": "SHA-512",
           "content": "a3187474cc6b6b206bdf749c26fbc12761c14368dcd5306b5ca4763722ff309f563ee5f5f663760d75949b2c0a772c39445550068f219ad6f614c0b42c7ae79e"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vite@8.3.8",
+      "name": "vite",
+      "version": "8.3.8",
+      "purl": "pkg:npm/vite@8.3.8",
+      "scope": "excluded",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "2f33a7de1f6b1bfd2f84b757ad5e3227840503d784a2a0a5f98c7e90625deda07dc3a9df3605472926302cf6541ebcf86466beb7e9178d5f62b6f7070cb428b8"
         }
       ],
       "properties": [
