@@ -33,3 +33,11 @@ test('native saves pass the name through and preserve the original blob', async 
     { blob, filename: 'voice-recording.webm' },
   ]);
 });
+
+test('a tool with an asset input called audio takes the recording as that input', async () => {
+  const { takesAudioInput } = await import('./audio-take.ts');
+  assert.equal(takesAudioInput([{ id: 'audio', type: 'asset' }, { id: 'title', type: 'text' }]), true, 'Audiogram');
+  assert.equal(takesAudioInput([{ id: 'name', type: 'text' }, { id: 'target', type: 'select' }]), false, 'Voice Recorder keeps the take');
+  assert.equal(takesAudioInput([{ id: 'audio', type: 'boolean' }]), false, 'an input that only shares the id does not count');
+});
+

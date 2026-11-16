@@ -14,7 +14,7 @@ import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, OUTPUT_LICENCE_C
 import { durableSupport, liveCaptureSupport } from '../../bridge/format-support.js';
 import { helpTip } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
-import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNativeExt } from '../../lib/audio-take.ts';
+import { getAudioTake, onAudioTakeChange, saveTakeMp3, saveTakeNative, takeNativeExt, takesAudioInput } from '../../lib/audio-take.ts';
 import { exportAffordance, getExportPolicy } from '../../lib/export-policy.ts';
 import { icon } from '../../lib/icons.ts';
 import { escape as escapeText } from '../../utils.js';
@@ -959,7 +959,9 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // a "Your recording" card fed by the latest take (lib/audio-take.ts, written by
   // views/record-control.ts). Before any take exists it says plainly what the
   // Download below saves, closing the "Export is not my recording" trap.
-  const isAudioCaptureTool = manifest.render.capture === 'audio'; ta.isAudioCaptureTool = isAudioCaptureTool;
+  // A tool that takes the recording as its own Audio input (Audiogram) delivers the
+  // sound inside its export, so the card and its "not audio" line do not apply.
+  const isAudioCaptureTool = manifest.render.capture === 'audio' && !takesAudioInput(manifest.inputs ?? []); ta.isAudioCaptureTool = isAudioCaptureTool;
   const recordingRow = isAudioCaptureTool
     ? `
       <div class="section-card export-recording" data-recording-row>

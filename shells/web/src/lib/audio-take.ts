@@ -35,6 +35,16 @@ export function setAudioTake(next: AudioTake | null): void {
 
 export const getAudioTake = (): AudioTake | null => take;
 
+/**
+ * Does this tool take a recording as its own Audio input? True for a tool that declares
+ * an asset input with the id `audio` (Audiogram). The recorder then stores the take as
+ * that input, and the export sheet has no separate recording to offer. A tool without
+ * one (Voice Recorder) keeps the take as its deliverable.
+ */
+export function takesAudioInput(model: readonly { id: string; type?: string }[]): boolean {
+  return model.some(input => input.id === 'audio' && input.type === 'asset');
+}
+
 /** Replaces any previous subscriber; pass null to unsubscribe. */
 export function onAudioTakeChange(cb: (() => void) | null): void {
   listener = cb;

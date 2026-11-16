@@ -8,7 +8,7 @@ import { mountCoachHud, coachAudio, type CoachHud, type CoachTarget } from '../l
 import { frameLuma, coachVideo } from '../lib/video-coach-core.ts';
 import { subscribeRecordPreview } from '../lib/record-preview.ts';
 import { mountRecordingHelp, createTipFlasher, type RecordingHelp } from '../lib/recording-tips.ts';
-import { setAudioTake, saveTakeMp3, saveTakeNative } from '../lib/audio-take.ts';
+import { setAudioTake, saveTakeMp3, saveTakeNative, takesAudioInput } from '../lib/audio-take.ts';
 import { holdScreenAwake } from '../lib/wake-lock.ts';
 import type { storeRecordingAsset } from './picker.ts';
 import { fmtBytes } from '../lib/device-info.ts';
@@ -551,9 +551,35 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     if (disposed) return;
     const container = captureContainer(mimeType);
     let clip = blob;
-    if (container) clip = (await stampCaptureClip(host, blob, container, { microphone: true })).blob;
+    let credential: Awaited<ReturnType<typeof stampCaptureClip>>['credential'] = null;
+    if (container) ({ blob: clip, credential } = await stampCaptureClip(host, blob, container, { microphone: true }));
     else host.log('warn', 'record: take saved without Content Credentials - no embedder for this container', { mimeType });
     if (disposed) return;
+    // A tool with an Audio input takes the recording as that input: Audiogram draws its
+    // picture from the clip, and its help says a recording can be the clip. The take is
+    // kept as a user asset, the way the timeline keeps a voiceover take, so a saved
+    // session finds the sound again. If the store refuses, the take falls through to
+    // the save bar below and is not lost.
+    if (takesAudioInput(runtime.getModel())) {
+      try {
+        const ext: 'mp4' | 'webm' = /mp4|mpeg|m4a/i.test(mimeType) ? 'mp4' : 'webm';
+        const previous = runtime.getModel().find(i => i.id === 'audio')?.value as { id?: string } | undefined;
+        const { storeRecordingAsset: store } = await import('./picker.ts');
+        const ref = await store(
+          host as unknown as Parameters<typeof storeRecordingAsset>[0], clip, ext, previous?.id, credential ?? undefined,
+          { audio: true, durationMs: takeMs },
+        );
+        if (disposed) return;
+        await runtime.setInput('audio', ref);
+        if (disposed) return;
+        markSessionDirty();
+        announce('Recording added as the audio.');
+        return;
+      } catch (e) {
+        if (disposed) return;
+        host.log('warn', 'record: could not keep the take as the audio input', { error: String(e) });
+      }
+    }
     // Publish the take so the export sheet's "Your recording" card offers the
     // same saves (lib/audio-take.ts) - the sheet otherwise only exports the card.
     setAudioTake({ blob: clip, mimeType, container: container ?? null });
