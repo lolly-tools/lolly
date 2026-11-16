@@ -43,8 +43,10 @@ const STEM_PX = 30;
 /** The touch target round a handle (stage-kit.css): 30px with a mouse, 44px on a coarse pointer. */
 const MOUSE_PX = 30;
 const TOUCH_PX = 44;
-/** The chip stands this far below and to the right of the pointer, as Design's does. */
+/** The chip stands this far below and to the right of a mouse pointer, as Design's does. */
 const CHIP_OFFSET = 14;
+/** And this far above a finger, which would cover a chip drawn lower down. */
+const TOUCH_CHIP_OFFSET = 36;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 type Point = [number, number];
@@ -278,11 +280,19 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     if (!n || !at || !layer) return;
     if (n.chip.textContent !== text) n.chip.textContent = text;
     n.chip.hidden = false;
-    // By the pointer, turned to the other side where the stage edge would cut it off.
     const room = layer.getBoundingClientRect();
     const w = n.chip.offsetWidth, h = n.chip.offsetHeight;
-    const x = at[0] + CHIP_OFFSET + w > room.width ? at[0] - CHIP_OFFSET - w : at[0] + CHIP_OFFSET;
-    const y = at[1] + CHIP_OFFSET + h > room.height ? at[1] - CHIP_OFFSET - h : at[1] + CHIP_OFFSET;
+    let x: number, y: number;
+    if (e.pointerType === 'mouse') {
+      // Below and to the right of the pointer, turned to the other side where the stage
+      // edge would cut it off.
+      x = at[0] + CHIP_OFFSET + w > room.width ? at[0] - CHIP_OFFSET - w : at[0] + CHIP_OFFSET;
+      y = at[1] + CHIP_OFFSET + h > room.height ? at[1] - CHIP_OFFSET - h : at[1] + CHIP_OFFSET;
+    } else {
+      // A finger or a pen covers what is below it, so the chip stands above the contact.
+      x = Math.max(0, Math.min(room.width - w, at[0] - w / 2));
+      y = Math.max(0, at[1] - TOUCH_CHIP_OFFSET - h);
+    }
     n.chip.style.transform = `translate(${fmt(x)}px, ${fmt(y)}px)`;
   }
 
