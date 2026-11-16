@@ -1,5 +1,5 @@
 <main class="utility">
- {{#unless hasFile}}<section class="empty" data-file-pick><div class="mark">≋</div><h1>Clean a recording</h1><p>Reduce voice noise, trim silent edges and finish to a useful loudness.</p><button class="btn btn--primary" type="button" data-file-pick>Choose audio or video…</button><small>On-device processing. Your recording is never uploaded.</small></section>{{/unless}}
+ {{#unless hasFile}}<section class="empty" data-file-pick><div class="mark" aria-hidden="true">≋</div><h1>Clean a recording</h1><p>Reduce voice noise, trim silent edges and finish to a useful loudness.</p><button class="btn btn--primary" type="button" data-file-pick>Choose audio or video…</button><small>On-device processing. Your recording is never uploaded.</small></section>{{/unless}}
  {{#if hasFile}}<section class="card"><header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="btn btn--ghost quiet" data-file-pick>Replace</button></header>
   {{#if error}}<div class="notice bad"><strong>Cannot continue</strong><span>{{error}}</span></div>{{/if}}
   {{#if available}}<div class="wave" role="img" aria-label="Source waveform">{{#each wave}}<i style="height:{{h}}px"></i>{{/each}}</div>

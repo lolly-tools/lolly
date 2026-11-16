@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "color-palette",
-  "toolVersion": "2.3.4",
-  "toolVersionRange": "2.3.4",
+  "toolVersion": "2.3.5",
+  "toolVersionRange": "2.3.5",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,7 +11,7 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "9b28b6da483c5782f90fc93927d8b35ab08cd1f35ee29270ce75565c65f70695",
+      "sha256": "1c6bd26045a7fc71ffe86a1db9e7e5d27df2714368229e946137e895d7b54618",
       "bytes": 1952
     },
     "reference/inputs.json": {

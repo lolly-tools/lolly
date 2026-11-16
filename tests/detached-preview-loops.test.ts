@@ -43,9 +43,34 @@ function body(source: string, name: string): string {
 
 const LOOPS = [
   { file: 'community/3d/template.html', loop: 'loop', handle: 'window.__lolly3d = { dispose: disposeAll }' },
-  { file: 'community/booth-studio/template.html', loop: 'loop', handle: 'window.__lollyBooth = { dispose: disposeAll }' },
-  { file: 'community/flythrough/template.html', loop: 'loop', handle: 'window.__lollyFly = { dispose: disposeAll }' },
+  { file: 'community/booth-studio/template.html', loop: 'loop', handle: 'home.__lollyBooth = { dispose: disposeAll }' },
+  { file: 'community/flythrough/template.html', loop: 'loop', handle: 'home.__lollyFly = { dispose: disposeAll }' },
 ];
+
+// A template tile is drawn while its tool is open, so two copies of one template are on
+// the page at once. Booth and Flythrough kept one renderer handle on `window` and found
+// their canvas by a page-wide id: the tile's copy disposed the open tool's renderer, then
+// drew on the open tool's canvas, whose context was lost, and the tool opened blank.
+const PER_COPY = [
+  { file: 'community/booth-studio/template.html', name: 'Booth', ids: ['booth-canvas', 'booth-proxy', 'booth-state'] },
+  { file: 'community/flythrough/template.html', name: 'Fly', ids: ['fly-canvas', 'fly-state'] },
+];
+
+for (const { file, name, ids } of PER_COPY) {
+  test(`${file}: each copy on the page keeps its own renderer`, () => {
+    const source = read(file);
+    assert.ok(
+      source.includes('var home = (document.currentScript && document.currentScript.parentNode) || document.body;'),
+      'the script works inside the element its paint was written into',
+    );
+    for (const id of ids) {
+      assert.ok(source.includes(`home.querySelector('#${id}')`), `#${id} is found inside that element`);
+      assert.ok(!source.includes(`document.getElementById('${id}')`), `#${id} is not looked up page-wide`);
+    }
+    assert.doesNotMatch(source, new RegExp(`window\\.__lolly${name}(Epoch)?\\b`), 'no renderer handle or epoch is shared through window');
+    assert.ok(source.includes(`home.__lolly${name}Epoch = (home.__lolly${name}Epoch || 0) + 1;`), 'the epoch counts paints of this copy only');
+  });
+}
 
 for (const { file, loop, handle } of LOOPS) {
   test(`${file}: the live loop disposes when its canvas is detached`, () => {

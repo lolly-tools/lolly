@@ -2,7 +2,7 @@
   "id": "font-convert",
   "name": "Convert Font",
   "description": "Convert a font between TrueType, OpenType and WOFF - on your device.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",

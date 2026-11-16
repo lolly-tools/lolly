@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "street-map",
-  "toolVersion": "0.5.3",
-  "toolVersionRange": "0.5.3",
+  "toolVersion": "0.5.4",
+  "toolVersionRange": "0.5.4",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -11,12 +11,12 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "0a3b8588f3ff35d596aead7e8f7cd00b8c2d7f2d0be4d3cd525fb309fe6b13ca",
+      "sha256": "4f17be69006d4704de0168ae11f9efea4b1870c2e759fb39e1571b5f93922a8e",
       "bytes": 1929
     },
     "reference/inputs.json": {
-      "sha256": "fc69734924219e423d4caec91aa7c9ab5e41b63dc48a3281aabc85052d9b73f9",
-      "bytes": 7084
+      "sha256": "f9949426995fb2224fd7d2e6dc3c2babbf35bbca4782a2b0a74005311654ec16",
+      "bytes": 6985
     },
     "reference/examples.json": {
       "sha256": "516857ef7ff5ad0c892e127825ef4ce8570e196f94bbc1b13adc1f237c760832",

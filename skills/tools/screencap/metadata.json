@@ -1,8 +1,8 @@
 {
   "version": 1,
   "toolId": "screencap",
-  "toolVersion": "1.1.2",
-  "toolVersionRange": "1.1.2",
+  "toolVersion": "1.1.3",
+  "toolVersionRange": "1.1.3",
   "skillRevision": "1",
   "origin": "generated",
   "references": [
@@ -10,11 +10,11 @@
   ],
   "files": {
     "SKILL.md": {
-      "sha256": "77a7294910b61d4220194dc3d391c3b752ea80dc81dfd2368b2cab8fe4db0520",
+      "sha256": "78aefa9f02ee7028f439811dc6c8de03250b2094eb670f03096ebb025982b471",
       "bytes": 1662
     },
     "reference/inputs.json": {
-      "sha256": "034244d438b35a0ac91a081d1b37ae0e278f16c1710e3a92e6220fa62902a639",
+      "sha256": "428c3bcbd23fa85152e9e4300c8f3a77bd8fbd05c518c87fecd2f4c228d5613f",
       "bytes": 1870
     }
   }

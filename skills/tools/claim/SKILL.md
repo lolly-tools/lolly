@@ -5,7 +5,7 @@ description: "Operate the Lolly Claim tool (claim) using its declared inputs and
 
 # Claim
 
-Tool ID: `claim`. Tool version: `2.0.1`. Engine range: `^1.104.0`.
+Tool ID: `claim`. Tool version: `2.0.2`. Engine range: `^1.104.0`.
 
 Claim your name on any media you've already made - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file - all on your device, before you upload it anywhere.
 

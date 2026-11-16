@@ -56,3 +56,24 @@
     </div>
   {{/if}}
 </div>
+<script>
+(function () {
+  var cs = document.currentScript;
+  var wrap = cs && cs.previousElementSibling && cs.previousElementSibling.classList
+    && cs.previousElementSibling.classList.contains('eit')
+    ? cs.previousElementSibling : null;
+  if (!wrap) {
+    var all = document.querySelectorAll('.eit');
+    wrap = all[all.length - 1];
+  }
+  var empty = wrap && wrap.querySelector('.eit-empty');
+  if (!empty || empty.dataset.eitWired) return;
+  empty.dataset.eitWired = '1';
+  empty.addEventListener('keydown', function (e) {
+    if (e.target !== empty || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    empty.click();
+  });
+})();
+</script>

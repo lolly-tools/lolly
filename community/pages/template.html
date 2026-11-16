@@ -1,5 +1,5 @@
 <main class="utility"><div class="pages-root" data-operation="{{operation}}" data-pages="{{pagesText}}" data-total-pages="{{totalPages}}">
-  {{#unless hasFile}}<section class="empty"><div class="mark">▤</div><h1>Arrange PDF pages</h1><p>Choose PDFs or images, then drag every page into the order you need. Images become pages of the new PDF.</p><button class="btn btn--primary" type="button" data-file-pick>Choose files…</button><small>Processed on this device. Never uploaded.</small></section>{{/unless}}
+  {{#unless hasFile}}<section class="empty"><div class="mark" aria-hidden="true">▤</div><h1>Arrange PDF pages</h1><p>Choose PDFs or images, then drag every page into the order you need. Images become pages of the new PDF.</p><button class="btn btn--primary" type="button" data-file-pick>Choose files…</button><small>Processed on this device. Never uploaded.</small></section>{{/unless}}
   {{#if hasFile}}<section class="card">
     <header><div><strong title="{{fileName}}">{{fileName}}</strong><span>{{fileSize}}</span></div><button type="button" class="btn btn--ghost quiet" data-file-pick>Add files…</button></header>
 

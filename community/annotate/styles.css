@@ -228,6 +228,10 @@
 .an-hit:hover .an-grip,
 .an-del:focus-visible,
 .an-grip:focus-visible { opacity: 1; }
+@media (hover: none) {
+  .an-del,
+  .an-grip { opacity: 1; }
+}
 
 /* A suggested text line. Dotted, never dashed - this app reserves dashed
    borders for drop areas - and visibly unlike a mark, because it is not one
