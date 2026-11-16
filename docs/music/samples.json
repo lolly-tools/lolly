@@ -1293,6 +1293,29 @@
         "stereo": 0.99
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
+    },
+    {
+      "style": "trailer",
+      "seed": 2,
+      "bars": 64,
+      "anchorBar": 15,
+      "anchorSection": "back end",
+      "bpm": 150,
+      "key": "F minor",
+      "file": "trailer.m4a",
+      "bytes": 201441,
+      "sha256": "78ce88707dadf03113caad95c781fb91e5e4a53d30f8f98db754edf766bebc8d",
+      "declaration": "Made with Lolly's music generator (procedural, no AI). Style Trailer, seed 2.",
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0.",
+      "measured": {
+        "scratches": 0,
+        "rmsDb": -16.2,
+        "peakDb": -4.3,
+        "dipDb": -4.3,
+        "liftDb": 3.6,
+        "lowDb": -1.3,
+        "stereo": 0.88
+      }
     }
   ]
 }

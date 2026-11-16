@@ -15,7 +15,7 @@ import { musicIconBody, strokeSvg, strokeSvgNode, type InstrumentIcon } from './
 import { LOFI_MOOD_LABEL } from './neurospicy-lofi.ts';
 
 /** Glyphs only the generator draws. Lucide (ISC): shuffle, disc-3, headphones,
- *  ice-cream-cone, flower, mountain, radio, speaker, castle, sailboat and tree-palm. Lolly's own: a wrapped sweet, a surfboard,
+ *  ice-cream-cone, flower, mountain, radio, speaker, castle, sailboat, tree-palm and clapperboard. Lolly's own: a wrapped sweet, a surfboard,
  *  a tuba, a wave curling over as it breaks on the shore, a folding fan, a lantern and a pair of clapsticks. */
 const OWN = {
   shuffle: '<path d="m18 14 4 4-4 4"/><path d="m18 2 4 4-4 4"/><path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-7.6a4 4 0 0 1 3.3-1.7H22"/><path d="M2 6h1.972a4 4 0 0 1 3.6 2.2"/><path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45"/>',
@@ -34,6 +34,7 @@ const OWN = {
   breaker: '<path d="M2 19.5c1.8 0 2.4-1.5 4.2-1.5s2.4 1.5 4.2 1.5 2.4-1.5 4.2-1.5 2.4 1.5 4.2 1.5H22"/><path d="M3 15.5C3 9.2 7.7 4 13.6 4 17.2 4 20 6.4 20 9.5c0 2.5-1.9 4.5-4.4 4.5-2 0-3.4-1.3-3.4-3 0-1.2.9-2.2 2.1-2.2"/>',
   fan: '<path d="M3.5 13.9a9 9 0 0 1 17 0"/><path d="M9.2 16a3 3 0 0 1 5.6 0"/><path d="m3.5 13.9 5.7 2.1"/><path d="m20.5 13.9-5.7 2.1"/><path d="m6.8 9.6 3.5 4.9"/><path d="M12 8v6"/><path d="m17.2 9.6-3.5 4.9"/><circle cx="12" cy="18" r="1"/><path d="M12 19v3"/>',
   lantern: '<path d="M12 2v2"/><path d="M8.5 4h7"/><path d="M8.5 4C5 6 5 15 8.5 18h7c3.5-3 3.5-12 0-14"/><path d="M12 4v14"/><path d="M10 4.4c-1.6 3.5-1.6 9.7 0 13.2"/><path d="M14 4.4c1.6 3.5 1.6 9.7 0 13.2"/><path d="M8.5 18h7"/><path d="M12 18v4"/>',
+  clapperboard: '<path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
   palm: '<path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-3"/><path d="M5.89 9.71c-2.15 2.15-2.3 5.47-.35 7.43l4.24-4.25.7-.7.71-.71 2.12-2.12c-1.95-1.96-5.27-1.8-7.42.35"/><path d="M11 15.5c.5 2.5-.17 4.5-1 6.5h4c2-5.5-.5-12-1-14"/>',
   tuba: '<path d="M10 2.5h12"/><path d="M11.5 2.5c.8 2.8 2.2 4.4 4 5.2"/><path d="M20.5 2.5c-.8 2.8-2.2 4.4-4 5.2"/><path d="M16 8v3.6"/><ellipse cx="12" cy="16" rx="7" ry="5"/><path d="M8 11.4V8.5"/><path d="M11.5 11V8.5"/><path d="M5 16H2.5"/>',
 } as const;
@@ -62,6 +63,7 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   noosa: { own: 'breaker' }, mandopop: { own: 'fan' }, cpop: { own: 'lantern' },
   breakbeat: { set: 'scissors' }, funkyHouse: { set: 'aperture' }, ukGarage: { set: 'neuroBeat' }, privateSchool: { set: 'graduationCap' },
   jungle: { own: 'palm' },
+  trailer: { own: 'clapperboard' },
 };
 
 /** The shapes of a genre's icon, inside its `<svg>`. */
@@ -94,7 +96,7 @@ const GROUP_MOODS: Record<GenreCategory, readonly LofiMood[]> = {
   rock: ['rock', 'punk', 'grunge', 'stoner', 'metal', 'shoegaze', 'surf', 'country', 'ska'],
   soul: ['blues', 'jazz', 'swing', 'soul', 'funk', 'rnb', 'hiphop', 'yacht', 'reggae'],
   club: ['nudisco', 'funkyHouse', 'ukGarage', 'breakbeat', 'dnb', 'jungle', 'electro', 'privateSchool'],
-  bass: ['dubstep', 'brostep', 'sugar', 'sherbert', 'synthwave', 'chiptune', 'acid'],
+  bass: ['dubstep', 'brostep', 'sugar', 'sherbert', 'synthwave', 'chiptune', 'acid', 'trailer'],
   world: ['persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'spanish', 'straya', 'arnhem', 'kpop', 'salsa', 'oompa', 'mandopop', 'cpop'],
 };
 

@@ -71,7 +71,7 @@ Each lane is one part of the tune:
 | **Chords** | Keys, guitars, strings, harps or saw chords |
 | **Bass** | The bass line |
 | **Drums** | The kit, from acoustic and jazz kits to 808s |
-| **Ear candy** | The sounds laid over the tune: birds, waves, shouts, the Lolly tag, a games console, sparkles, sweeps and a DJ's scratches |
+| **Ear candy** | The sounds laid over the tune: birds, waves, shouts, the Lolly tag, a games console, sparkles, sweeps, a DJ's scratches and a trailer's hits |
 
 ![The track heads: Melody, Chords, Bass, Drums and Ear candy, each with the instrument playing (Auto with the composer's choice), then mute and solo](/t/url-shot?url=%2F%23%2Fmusic%3Fstyle%3Dsugar%26seed%3D7%26bars%3D64&width=1440&height=900&dpi=192&waitMs=3200&cropSelector=.ms-heads&walker=1&format=svg&dark=1&filename=music-track-heads)
 
@@ -110,7 +110,7 @@ The ear candy row turns kinds of sound on and off: **Voices** (the shouts and th
 <!--i:eti-bird-->
 ## Ear candy moments
 
-Each sound on the Ear candy lane shows as a small icon where it comes in: a bird, a wave, a games console, a riser or a sweep, a shout or the Lolly tag, sparkles, the sounds of a place, or a record for a DJ's scratch. Point at an icon to see its name.
+Each sound on the Ear candy lane shows as a small icon where it comes in: a bird, a wave, a games console, a riser or a sweep, a shout or the Lolly tag, sparkles, the sounds of a place, a record for a DJ's scratch, or a bolt for a trailer's impact. Point at an icon to see its name.
 
 - **While the track is stopped**, press an icon to hear that moment on its own, with every other part turned off.
 - **While the track plays**, press an icon and the music carries on from that moment's bar.

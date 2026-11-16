@@ -53,7 +53,7 @@ export const GENRE_SLUG: Readonly<Record<LofiMood, string>> = {
   lofiHouse: 'lofi-house', salsa: 'salsa', surf: 'surf-rock', yacht: 'yacht-rock',
   botanica: 'botanica', arnhem: 'arnhem-land', oompa: 'oompa', mandopop: 'mandopop', cpop: 'c-pop',
   breakbeat: 'breakbeat', funkyHouse: 'funky-house', ukGarage: 'uk-garage',
-  privateSchool: 'private-school-piano', noosa: 'noosacore', jungle: 'jungle',
+  privateSchool: 'private-school-piano', noosa: 'noosacore', jungle: 'jungle', trailer: 'trailer',
 };
 
 /** One question and its answer. */

@@ -1963,6 +1963,40 @@
         "kpop",
         "sherbert"
       ]
+    },
+    {
+      "id": "trailer",
+      "name": "trailer",
+      "title": "Free trailer background music generator: make your own, free with credit",
+      "description": "Make trailer music in your browser: big hits, braams and a rising pulse for openers and promos. CC BY 4.0: free for any use, even commercial, with credit.",
+      "lead": "Big hits a few bars apart, braams and a pulse that rises into full drums. Lolly writes a new trailer cue from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Each Lolly trailer cue is written the way a trailer is cut: the hits come first. After a four-bar open, three or four hits land at uneven gaps of one to four bars. Each hit is an impact, a braam and the drums struck together, and an ostinato pulses between them.",
+        "A rise follows: a riser, the pulse climbing an octave and a snare roll that tightens from eighths to sixteenths, then a breath. The drop is the back end, with toms, a half-time snare, sixteenth hats and a braam on every chord. A stop lets a sub drop fall away under a held chord, the theme plays alone, and a second rise leads to a longer drop with the theme on a cello, a horn or voices.",
+        "The cue ends on the button: one last hit left to ring. Every fourth bar of a drop lifts into the next with a tom roll and a riser, so a track cut short still rises into its button. Cues are in a minor key at 150 to 170 beats a minute, with the drums in half time."
+      ],
+      "uses": [
+        "Event openers and walk-on films",
+        "Product launch teasers",
+        "Game and film trailers",
+        "Sports highlight reels",
+        "Countdowns and reveals"
+      ],
+      "faq": [
+        {
+          "q": "Can I make the hits land on my cuts?",
+          "a": "A cue's hits fall on bar lines. Set the Tempo in the Tune section until a bar is the length you need: at 160 beats a minute a bar lasts a second and a half. Then step through seeds until the gaps between the hits match your cuts."
+        },
+        {
+          "q": "Can I make a short sting?",
+          "a": "Yes. Set the Length in the Tune section to about 20 bars. The cue is cut at a fourth bar, where the drums lift, and finished with its button, one last hit left to ring."
+        }
+      ],
+      "related": [
+        "dubstep",
+        "dnb",
+        "fantasy"
+      ]
     }
   ]
 }
