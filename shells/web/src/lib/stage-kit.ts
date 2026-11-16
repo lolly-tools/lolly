@@ -477,6 +477,9 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
         }
       }
       while (row.children.length > index) row.lastElementChild!.remove();
+      // The bar has one tab stop and walks its buttons with the arrow keys, so a button
+      // that came from the bar may hold tabindex -1. By the selection each one is a stop.
+      if (floats) for (const b of row.querySelectorAll<HTMLButtonElement>('button.stage-kit-btn')) b.tabIndex = 0;
       const empty = group.items.every((item) => item.hidden || (isPill(item) && !item.text));
       setHidden(el, !!group.hidden || empty);
     }

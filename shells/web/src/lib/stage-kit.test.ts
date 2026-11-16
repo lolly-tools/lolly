@@ -319,3 +319,28 @@ test('floating hosts go with the kit', () => {
   assert.equal(h.stage.querySelector('.stage-kit-float'), null);
   h.stage.remove();
 });
+
+test('a button that moves from the bar to the selection becomes a tab stop', () => {
+  let phone = true;
+  const stage = document.createElement('div');
+  stage.className = 'tool-stage';
+  document.body.append(stage);
+  stage.getBoundingClientRect = () => rect(0, 600);
+  const kit = mountStageKit(stage, { phone: () => phone, label: 'Canvas controls' });
+  try {
+    // On a phone the group is in the bar, where one button holds the tab stop.
+    kit.setBar([modes('orbit'), objectGroup]);
+    const copy = kit.element.querySelector<HTMLButtonElement>('[data-kit-action="copy"]')!;
+    assert.equal(copy.tabIndex, -1);
+    // The window widens: the same buttons now stand by the selection.
+    phone = false;
+    kit.layout();
+    kit.setBar([modes('orbit'), objectGroup]);
+    const host = stage.querySelector<HTMLElement>('.stage-kit-float')!;
+    assert.equal(copy.parentElement?.closest('.stage-kit-float'), host);
+    assert.deepEqual([...host.querySelectorAll<HTMLButtonElement>('button')].map((b) => b.tabIndex), [0, 0], 'each one can be reached by Tab');
+  } finally {
+    kit.dispose();
+    stage.remove();
+  }
+});

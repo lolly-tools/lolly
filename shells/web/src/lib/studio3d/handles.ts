@@ -141,9 +141,14 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
       el.addEventListener('pointerdown', (e) => press(kind, e as PointerEvent));
       el.addEventListener('pointermove', (e) => move(e as PointerEvent));
       el.addEventListener('pointerup', (e) => release(e as PointerEvent));
-      el.addEventListener('pointercancel', () => cancel());
+      // A drag the system ends (a cancelled pointer, a lost capture) is dropped, and a
+      // view that waited through the drag is saved now: nothing else would save the view.
+      const dropped = (): void => {
+        if (cancel()) entry.flushView?.();
+      };
+      el.addEventListener('pointercancel', dropped);
       el.addEventListener('lostpointercapture', (e) => {
-        if (drag && (e as PointerEvent).pointerId === drag.id) cancel();
+        if (drag && (e as PointerEvent).pointerId === drag.id) dropped();
       });
     }
     return { root, lines, hit, behind, ring, stem, reach, knob, lift, scale, chip };
@@ -194,7 +199,7 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     const selection = row !== null && camera && !failed && atRest && (mode === 'orbit' || mode === 'tilt') ? entry.handle.selection(row) : null;
     const box = entry.canvas.getBoundingClientRect();
     if (!selection || !camera || !box.width || !box.height) {
-      if (drag) cancel();
+      if (drag && cancel()) entry.flushView?.();
       hide(n);
       // A motion has moved the object off its rest place, so no handle is drawn. The
       // object's actions must still be in reach: they stand at the foot of the picture.
@@ -460,6 +465,9 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     else if (d.kind === 'lift') entry.handle.moveObject(d.row, d.from);
     else entry.handle.scaleObject(d.row, d.from);
     redraw();
+    // The frame may be the one already on screen, in which case nothing draws the
+    // handles again: the object's actions, hidden for the drag, would stay hidden.
+    draw();
     return true;
   }
 

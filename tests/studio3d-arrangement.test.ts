@@ -251,6 +251,19 @@ test('dropped files become placed, named objects whose kind follows the file', a
   runtime.destroy();
 });
 
+test('the object actions stand by the selection only where an object can be selected', async () => {
+  const rows = [{ kind: 'primitive', primitive: 'box' }, { kind: 'primitive', primitive: 'sphere', x: 2 }];
+  const group = async (values: Record<string, unknown>, extra: Parameters<typeof studioBarHarness>[1]) =>
+    (await studioBarHarness(values, extra)).groups().find((g) => g.id === 'studio-object')!;
+  assert.equal((await group({ source: 'arrangement', activeObject: 1, objects: rows }, { layer: true })).float, true);
+  // With no handle layer (multi-edit, a Design scene box) nothing places the group, so it stays in the bar.
+  assert.equal((await group({ source: 'arrangement', activeObject: 1, objects: rows }, {})).float, false);
+  // A collection has no selection either, and Tilt must stay in reach.
+  const collection = await studioBarHarness({ source: 'collection', subjects: [{ kind: 'primitive', primitive: 'box' }, { kind: 'primitive', primitive: 'sphere' }] }, { layer: true });
+  assert.equal(collection.groups().find((g) => g.id === 'studio-object')!.float, false);
+  assert.ok(collection.action('studio-tilt'));
+});
+
 test('a copy and a removal never leave two objects with one id', async () => {
   const unique = (rows: Record<string, unknown>[]): string[] => {
     const taken = new Set<string>();

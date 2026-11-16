@@ -217,10 +217,16 @@ export function wireStudioGestures(entry: StudioControls): void {
   };
   /** Save a waiting wheel or key view now; a toolbar action calls this before it acts. */
   entry.flushView = () => {
-    if ((saveTimer !== undefined || heldView) && !pointers.size) {
-      heldView = false;
-      save();
-    }
+    if ((saveTimer === undefined && !heldView) || pointers.size) return;
+    heldView = false;
+    // Saved only on the item the view was made on. Otherwise the view is dropped and
+    // the picture goes back to the saved camera.
+    if (liveScope === viewScope()) return save();
+    clearTimeout(saveTimer);
+    saveTimer = undefined;
+    live = null;
+    entry.handle.view(entry.recipe.camera);
+    redraw();
   };
   // A handle drag that starts while a view waits must not save the view at once: the
   // save repaints the studio, and the repaint would end the drag that has just begun.

@@ -475,8 +475,10 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
     id: 'studio-object',
     label: tRaw('Selected object'),
     // By the selection on a desktop (handles.ts places the group under the ring); one
-    // more group of the bar on a phone.
-    float: true,
+    // more group of the bar on a phone. Only where objects are handled on the canvas:
+    // a collection and a mount with no handle layer have no selection to stand by, and
+    // Tilt must stay in reach there.
+    float: objectEditing(entry),
     items: [
       ...objectActions(entry, disabled),
       modeButton('tilt', tRaw('Tilt'), tRaw('Tilt'), 'rotateCw', 'tilt', {
