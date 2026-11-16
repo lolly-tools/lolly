@@ -271,8 +271,7 @@
   touch-action: none;
   cursor: grab;
 }
-/* A square handle: white with the selection edge. The white is the ink the theme sets on
-   its primary colour, so the pair still contrasts in a theme whose primary is white. */
+/* A square handle: white with the selection edge, white in every theme as Design's is. */
 .stage-kit-handle {
   position: absolute;
   left: 0;
@@ -282,7 +281,7 @@
   margin: -6px 0 0 -6px;
   border: 1.5px solid var(--ui-color-selection-border);
   border-radius: var(--radius-xs);
-  background: var(--ui-color-action-on-primary);
+  background: var(--ui-color-selection-handle);
   box-shadow: var(--ui-elevation-control);
   pointer-events: auto;
   touch-action: none;
@@ -294,7 +293,7 @@
   width: 14px;
   height: 14px;
   margin: -7px 0 0 -7px;
-  border-color: var(--ui-color-action-on-primary);
+  border-color: var(--ui-color-selection-handle);
   border-radius: var(--radius-round);
   background: var(--ui-color-action-primary);
 }

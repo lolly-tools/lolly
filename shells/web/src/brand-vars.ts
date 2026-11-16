@@ -158,6 +158,7 @@ const UI_SLOTS: ReadonlyArray<readonly [path: string, css: string, kind: UiToken
   ['color.action.on-primary', '--ui-color-action-on-primary', 'color'],
   ['color.selection.surface', '--ui-color-selection-surface', 'color'],
   ['color.selection.border', '--ui-color-selection-border', 'color'],
+  ['color.selection.handle', '--ui-color-selection-handle', 'color'],
   ['color.border.default', '--ui-color-border-default', 'color'],
   ['color.focus.ring', '--ui-color-focus-ring', 'color'],
   // The status roles (plans/273). Every other colour role is overridable here, so
