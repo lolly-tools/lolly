@@ -74,7 +74,74 @@ export function foldBody(body: HTMLElement, open: boolean, apply: (open: boolean
     running.delete(body);
     if (!open) apply(false);
     for (const animation of animations) animation.cancel();
+    const then = foldEnded.get(body);
+    foldEnded.delete(body);
+    if (open) then?.(Number.parseFloat(shown.height));
   });
+}
+/** Work that waits for an opening fold to end, with the height the fold ended at. */
+const foldEnded = new WeakMap<HTMLElement, (endHeight: number) => void>();
+
+/** The one folding body of a `<details>` section, or null when the section has none. */
+function sectionBody(section: HTMLDetailsElement): HTMLElement | null {
+  if (!section.matches('details.section-card, details.input-section')) return null;
+  return section.querySelector<HTMLElement>(':scope > .section-card-body, :scope > .input-section-body');
+}
+
+/**
+ * Fold a `<details>` section from a press on its summary. Returns true when the press
+ * was taken, and the section then opens or closes with the shared motion.
+ *
+ * A press on a control inside the summary (a help tip, a link) is that control's own
+ * and is left alone, as the browser does. So is a press something else already
+ * handled, and a section with no body wrapper.
+ */
+export function foldDetailsOnPress(event: Event): boolean {
+  if (event.defaultPrevented) return false;
+  const target = event.target;
+  if (!target || typeof (target as Element).closest !== 'function') return false;
+  const summary = (target as Element).closest('summary');
+  const section = summary?.parentElement;
+  if (!summary || !section || section.tagName !== 'DETAILS') return false;
+  const details = section as HTMLDetailsElement;
+  // Only the section's own summary opens it: the first summary child.
+  if (details.querySelector(':scope > summary') !== summary) return false;
+  const control = (target as Element).closest('a[href], button, input, select, textarea, label, [contenteditable]:not([contenteditable="false"])');
+  if (control && summary.contains(control)) return false;
+  const body = sectionBody(details);
+  if (!body) return false;
+  event.preventDefault();
+  // A second press part way through reverses from where the body has got to. While a
+  // close is running the section still reads open, so the press count decides.
+  const opening = !(folding.get(details) ?? details.open);
+  folding.set(details, opening);
+  // A closing body has nothing left to settle, and the watch on its size would
+  // report every frame of the fold.
+  if (!opening) stopSettle?.(body);
+  foldBody(body, opening, (open) => {
+    details.open = open;
+    if (folding.get(details) === open) folding.delete(details);
+  });
+  return true;
+}
+const folding = new WeakMap<HTMLDetailsElement, boolean>();
+/** Ends the late-content watch on one body; set by installFoldSettle. */
+let stopSettle: ((body: HTMLElement) => void) | null = null;
+
+let detailsFoldInstalled = false;
+/**
+ * parts/disclosure.css folds a `<details>` section through ::details-content, and the
+ * height moves only where the browser has `interpolate-size`. WebKit and Gecko do not,
+ * so on every iPhone and iPad, in Safari, in Firefox and in the desktop app a section
+ * snapped open and shut. In those browsers this runs the same fold on the section's
+ * body, timed from the same --fold-* values. A browser with `interpolate-size` keeps
+ * the stylesheet's own motion and this installs nothing. Idempotent; call once at boot.
+ */
+export function installDetailsFold(): void {
+  if (detailsFoldInstalled || typeof document === 'undefined') return;
+  detailsFoldInstalled = true;
+  if (typeof CSS === 'undefined' || typeof CSS.supports !== 'function' || CSS.supports('interpolate-size', 'allow-keywords')) return;
+  document.addEventListener('click', (event) => { foldDetailsOnPress(event); });
 }
 
 /** How long after a section opens a change in its height still eases, in milliseconds. */
@@ -102,6 +169,9 @@ export function installFoldSettle(): void {
 
   const ease = (body: HTMLElement, state: Settling, measured?: number): void => {
     // A running ease starts the next one from where it has got to.
+    // The fold itself is moving this body (foldBody, in a browser without
+    // interpolate-size): a second motion on the same height would fight the fold.
+    if (running.has(body)) return;
     const reached = state.animation ? body.getBoundingClientRect().height : null;
     state.animation?.cancel();
     state.animation = undefined;
@@ -137,12 +207,15 @@ export function installFoldSettle(): void {
     }
   });
   const stop = (body: HTMLElement): void => {
+    foldEnded.delete(body);
     const state = settling.get(body);
     state?.animation?.cancel();
     state?.changes.disconnect();
     settling.delete(body);
     resized.unobserve(body);
   };
+
+  stopSettle = stop;
 
   document.addEventListener('toggle', event => {
     const section = event.target;
@@ -151,9 +224,19 @@ export function installFoldSettle(): void {
     if (!body) return;
     stop(body);
     if (!section.open) return;
-    const changes = new MutationObserver(() => { const state = live(body); if (state) ease(body, state); });
-    settling.set(body, { since: performance.now(), height: body.getBoundingClientRect().height, changes });
-    resized.observe(body);
-    changes.observe(body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'open'] });
+    const begin = (foldEnd?: number): void => {
+      const changes = new MutationObserver(() => { const state = live(body); if (state) ease(body, state); });
+      const state: Settling = { since: performance.now(), height: foldEnd ?? body.getBoundingClientRect().height, changes };
+      settling.set(body, state);
+      resized.observe(body);
+      changes.observe(body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'class', 'open'] });
+      // Content that arrived while the fold ran: ease from where the fold ended.
+      if (foldEnd !== undefined) ease(body, state);
+    };
+    // Where the fold moves the body itself (foldDetailsOnPress), the watch starts when
+    // the fold has ended. A size watch on a body that changes every frame made WebKit
+    // report a resize loop.
+    if (running.has(body)) foldEnded.set(body, begin);
+    else begin();
   }, true);
 }
