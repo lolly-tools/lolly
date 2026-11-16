@@ -12,20 +12,14 @@ import {
   type StudioValues,
 } from '../../../../../engine/src/studio3d-collection.ts';
 import {
-  studioAddCameraKey,
-  studioCameraApparentSize,
-  studioCameraFromKey,
-  studioCameraKeyLabel,
-  studioCameraPresetEdit,
-  studioIsCameraPreset,
-} from '../../../../../engine/src/studio3d-camera-path.ts';
-import {
   studioLightEdit,
   studioOrbitLight,
   studioPlaceableLights,
   studioScaleLightDistance,
 } from '../../../../../engine/src/studio3d-lights.ts';
 import type { StudioSceneV1, StudioVector3 } from '../../../../../packages/core/src/studio3d-v1.ts';
+import { tRaw } from '../../i18n.ts';
+import type { StageKitPort } from '../stage-kit.ts';
 import type { StudioRenderer } from './renderer.ts';
 
 export interface StudioControls {
@@ -38,134 +32,150 @@ export interface StudioControls {
   inputCamera: StudioValues;
   options: {
     setInput?: (id: string, value: unknown) => void;
+    /** Write several inputs as one undo step. Without it each input is written on its own. */
+    commitMany?: (values: Record<string, unknown>, label: string) => void;
     endGesture?: () => void;
     addObjects?: () => void;
+    reviewCollection?: () => void;
+    /** The stage kit the studio's controls are drawn in. Absent: the studio draws none. */
+    chrome?: StageKitPort | null;
   };
   /** The light the Move lights mode acts on; chrome state, never saved. */
   selectedLight?: number;
+  /** The source notes the Info panel shows; empty until the scene has loaded. */
+  notes?: string;
+  /** The status sentence on show, and whether it reports one action rather than the mode. */
+  status?: { text: string; once: boolean };
+  /** Draw the controls again from the current state; set by lib/studio3d/toolbar.ts. */
+  refreshChrome?: () => void;
   render(quality: 'preview'): void;
 }
-const FOCUSABLE = ['fit', 'fit-selected', 'reset', 'focus', 'auto-focus', 'move', 'turn', 'lights', 'orbit', 'add', 'add-key', 'go-key', 'play'];
 
-function commit(entry: StudioControls, ...edits: { id: string; value: unknown }[]): void {
-  const focused = document.activeElement;
-  if (focused === entry.canvas) entry.canvas.dataset.restoreFocus = 'canvas';
-  else
-    for (const name of FOCUSABLE)
-      if (focused?.hasAttribute(`data-studio-${name}`)) entry.canvas.dataset.restoreFocus = name;
+/** The pointer modes. Orbit is the rest state; Pick focus waits for one press. */
+export type StudioMode = 'orbit' | 'move' | 'turn' | 'lights' | 'focus';
+
+/**
+ * Write edits. One gesture or one key press is one undo step: the history's gesture is
+ * closed before and after, and edits to several inputs go through `commitMany`, which the
+ * history keeps as one step (views/tool-transaction.ts).
+ */
+export function commit(entry: StudioControls, label: string, ...edits: { id: string; value: unknown }[]): void {
+  if (!edits.length) return;
+  if (entry.canvas.ownerDocument?.activeElement === entry.canvas) entry.canvas.dataset.restoreFocus = 'canvas';
+  const ids = new Set(edits.map((edit) => edit.id));
+  if (ids.size > 1 && entry.options.commitMany) {
+    entry.options.commitMany(Object.fromEntries(edits.map((edit) => [edit.id, edit.value])), label);
+    return;
+  }
   entry.options.endGesture?.();
   for (const edit of edits) entry.options.setInput?.(edit.id, edit.value);
   entry.options.endGesture?.();
 }
-function cameraEdit(entry: StudioControls, values: StudioValues): void {
-  commit(entry, studioCameraEdit(entry.inputValues, { ...entry.inputCamera, ...values }));
+export function cameraEdit(entry: StudioControls, values: StudioValues): void {
+  commit(entry, 'Camera', studioCameraEdit(entry.inputValues, { ...entry.inputCamera, ...values }));
 }
-function note(entry: StudioControls, text: string): void {
-  const el = entry.marker.querySelector('[data-studio-camera-note]');
-  if (el) el.textContent = text;
+/** The primary pointer is a finger: status lines name no keys there. */
+export function coarsePointer(): boolean {
+  return typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
 }
-function picking(entry: StudioControls, value: boolean): void {
-  entry.canvas.dataset.pickFocus = String(value);
-  if (value) {
-    moving(entry, false);
-    lighting(entry, false);
-    turning(entry, false);
-  }
-  entry.canvas.style.cursor = value ? 'crosshair' : arranging(entry) || relighting(entry) ? 'move' : 'grab';
-  entry.marker.querySelector('[data-studio-focus]')?.setAttribute('aria-pressed', String(value));
-  reflectModes(entry);
-  note(entry, value ? 'Click the subject to focus. Escape cancels.' : '');
+/**
+ * Show one sentence in the stage kit's status line. `once` marks a report of one action;
+ * the next press on the canvas puts the mode's own sentence back.
+ */
+export function note(entry: StudioControls, text: string, once = true): void {
+  entry.status = { text, once: once && !!text };
+  entry.options.chrome?.setStatus(text);
 }
-function arranging(entry: StudioControls): boolean {
-  return entry.canvas.dataset.moveObject === 'true';
+export function studioMode(entry: StudioControls): StudioMode {
+  const flags = entry.canvas.dataset;
+  if (flags.pickFocus === 'true') return 'focus';
+  if (flags.moveLight === 'true') return 'lights';
+  if (flags.turnObject === 'true') return 'turn';
+  if (flags.moveObject === 'true') return 'move';
+  return 'orbit';
 }
-function turnsObject(entry: StudioControls): boolean {
-  return entry.canvas.dataset.turnObject === 'true';
+export function arranging(entry: StudioControls): boolean {
+  return studioMode(entry) === 'move';
 }
-/** The Orbit button reads pressed whenever no other pointer mode is on. */
-function reflectModes(entry: StudioControls): void {
-  const orbit =
-    !arranging(entry) && !relighting(entry) && !turnsObject(entry) && entry.canvas.dataset.pickFocus !== 'true';
-  entry.marker.querySelector('[data-studio-orbit]')?.setAttribute('aria-pressed', String(orbit));
+export function turnsObject(entry: StudioControls): boolean {
+  return studioMode(entry) === 'turn';
 }
-function relighting(entry: StudioControls): boolean {
-  return entry.canvas.dataset.moveLight === 'true';
+export function relighting(entry: StudioControls): boolean {
+  return studioMode(entry) === 'lights';
 }
-function lightName(entry: StudioControls, index: number): string {
+export function lightName(entry: StudioControls, index: number): string {
   const id = entry.recipe.lights[index]?.id ?? '';
-  return { key: 'Key light', fill: 'Fill light', rim: 'Rim light' }[id] ?? id.replace('light-', 'Light ');
+  const names: Record<string, string> = { key: tRaw('Key light'), fill: tRaw('Fill light'), rim: tRaw('Rim light') };
+  return names[id] ?? tRaw('Light {n}', { n: id.replace('light-', '') });
 }
-function selectedLight(entry: StudioControls): number {
+export function selectedLight(entry: StudioControls): number {
   const placeable = studioPlaceableLights(entry.recipe);
   const current = entry.selectedLight ?? placeable[0] ?? 0;
   return placeable.includes(current) ? current : (placeable[0] ?? 0);
 }
-/** Light mode: drags orbit a light about the subject; keys turn it and change its distance. */
-function lighting(entry: StudioControls, value: boolean): void {
-  entry.canvas.dataset.moveLight = String(value);
-  if (value) {
-    entry.canvas.dataset.moveObject = 'false';
-    entry.canvas.dataset.turnObject = 'false';
-    entry.marker.querySelector('[data-studio-turn]')?.setAttribute('aria-pressed', 'false');
+/** The sentence a mode shows while it is on, worded for the pointer in use. */
+export function modeStatus(entry: StudioControls, mode: StudioMode): string {
+  const touch = coarsePointer();
+  switch (mode) {
+    case 'focus':
+      return touch ? tRaw('Tap the subject to set the focus.') : tRaw('Click the subject to set the focus, or press Escape to cancel.');
+    case 'lights': {
+      const light = lightName(entry, selectedLight(entry));
+      return touch
+        ? tRaw('{light} selected: drag a light round the subject.', { light })
+        : tRaw('{light} selected: drag a light round the subject, or use the arrow keys.', { light });
+    }
+    case 'move':
+      return touch ? tRaw('Drag an object to move it on the stage.') : tRaw('Drag an object to move it, or nudge the selected one with the arrow keys.');
+    case 'turn':
+      return touch ? tRaw('Drag sideways to turn the object and up or down to tilt.') : tRaw('Drag sideways to turn and up or down to tilt, or use the arrow keys.');
+    default:
+      return '';
   }
-  entry.canvas.style.cursor = value ? 'move' : 'grab';
-  entry.marker.querySelector('[data-studio-lights]')?.setAttribute('aria-pressed', String(value));
-  entry.marker.querySelector('[data-studio-move]')?.setAttribute('aria-pressed', String(arranging(entry)));
-  entry.handle.showLightHandles(value ? { selected: selectedLight(entry) } : null);
-  reflectModes(entry);
-  if (entry.ready) entry.render('preview');
-  note(
-    entry,
-    value
-      ? `${lightName(entry, selectedLight(entry))} selected. Drag a light to orbit it. Arrow keys turn, plus and minus change distance, brackets select. Escape finishes.`
-      : ''
-  );
-}
-/** Move mode: drags and arrow keys move the selected object; orbit gestures pause. */
-function moving(entry: StudioControls, value: boolean): void {
-  entry.canvas.dataset.moveObject = String(value);
-  if (value) {
-    lighting(entry, false);
-    turning(entry, false);
-  }
-  entry.canvas.style.cursor = value ? 'move' : 'grab';
-  entry.marker.querySelector('[data-studio-move]')?.setAttribute('aria-pressed', String(value));
-  entry.handle.highlight(value && entry.recipe.objects ? activeObject(entry) : null);
-  reflectModes(entry);
-  if (entry.ready) entry.render('preview');
-  note(
-    entry,
-    value
-      ? 'Drag an object to move it. Arrow keys nudge, comma and full stop turn, brackets select. Escape finishes.'
-      : ''
-  );
 }
 /**
- * Turn mode: a sideways drag turns the object on the floor and an up or down drag tilts
- * it; arrow keys do the same and comma and full stop lean the object sideways. In an
- * arrangement the drag acts on the object under the pointer, else the selected one.
- * Orbit gestures pause.
+ * Change the pointer mode. The canvas carries the mode as data flags (read by tests and by
+ * the cursor), the renderer shows the selection outline or the light handles that go with
+ * it, and the controls and the status line follow.
  */
-function turning(entry: StudioControls, value: boolean): void {
-  entry.canvas.dataset.turnObject = String(value);
-  if (value) {
-    entry.canvas.dataset.moveObject = 'false';
-    entry.canvas.dataset.moveLight = 'false';
-    entry.marker.querySelector('[data-studio-move]')?.setAttribute('aria-pressed', 'false');
-    entry.marker.querySelector('[data-studio-lights]')?.setAttribute('aria-pressed', 'false');
-    entry.handle.showLightHandles(null);
-  }
-  entry.canvas.style.cursor = value ? 'grab' : arranging(entry) || relighting(entry) ? 'move' : 'grab';
-  entry.marker.querySelector('[data-studio-turn]')?.setAttribute('aria-pressed', String(value));
-  entry.handle.highlight(value && entry.recipe.objects ? activeObject(entry) : null);
-  reflectModes(entry);
+export function setStudioMode(entry: StudioControls, mode: StudioMode): void {
+  const flags = entry.canvas.dataset;
+  const was = studioMode(entry);
+  flags.pickFocus = String(mode === 'focus');
+  flags.moveLight = String(mode === 'lights');
+  flags.turnObject = String(mode === 'turn');
+  flags.moveObject = String(mode === 'move');
+  entry.canvas.style.cursor = mode === 'focus' ? 'crosshair' : mode === 'move' || mode === 'lights' ? 'move' : 'grab';
+  entry.handle.highlight((mode === 'move' || mode === 'turn') && entry.recipe.objects ? activeObject(entry) : null);
+  entry.handle.showLightHandles(mode === 'lights' ? { selected: selectedLight(entry) } : null);
   if (entry.ready) entry.render('preview');
-  note(
-    entry,
-    value
-      ? 'Drag sideways to turn and up or down to tilt. Arrow keys turn and tilt, comma and full stop lean. Escape finishes.'
-      : ''
-  );
+  // A mode's sentence replaces a report of one action; a report survives a repaint in the same mode.
+  if (mode !== was || !entry.status?.once) note(entry, modeStatus(entry, mode), false);
+  entry.refreshChrome?.();
+}
+/** The camera the studio rests at: the engine's defaults (engine/src/studio3d.ts). */
+export const STUDIO_REST_CAMERA = { azimuth: 25, elevation: 14, fov: 29, zoom: 1, panX: 0, panY: 0, panZ: 0 } as const;
+/**
+ * Frame every object, or one row, with the renderer's fit, saved as one camera step. The
+ * fit answers a world target; the camera keeps it as pan added to the saved target.
+ */
+export function studioFit(entry: StudioControls, index?: number): boolean {
+  const box = entry.canvas.getBoundingClientRect();
+  const result = entry.handle.fit(box.width / Math.max(1, box.height), index);
+  if (!result) return false;
+  cameraEdit(entry, {
+    zoom: result.zoom,
+    ...Object.fromEntries(
+      ['panX', 'panY', 'panZ'].map((key, i) => [
+        key,
+        Number(entry.inputCamera[key] || 0) + result.target.getComponent(i) - entry.recipe.camera.target[i]!,
+      ])
+    ),
+  });
+  return true;
+}
+export function resetCamera(entry: StudioControls): void {
+  cameraEdit(entry, { ...STUDIO_REST_CAMERA });
 }
 /** The rotation, in degrees, of an arrangement row or of the lone subject (row 0). */
 function rotationOf(entry: StudioControls, row: number): StudioVector3 {
@@ -187,7 +197,7 @@ function turnEdits(entry: StudioControls, row: number, rotation: StudioVector3):
     : [];
   return [{ id: 'rotation', value: { x, y, z } }, ...pose];
 }
-function activeObject(entry: StudioControls): number {
+export function activeObject(entry: StudioControls): number {
   try {
     return studioActiveObject(entry.inputValues);
   } catch {
@@ -275,6 +285,8 @@ export function wireStudioGestures(entry: StudioControls): void {
   };
   entry.canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 0 || !entry.ready || !entry.options.setInput) return;
+    // A report of the last action gives way to the mode's own sentence.
+    if (entry.status?.once) note(entry, modeStatus(entry, studioMode(entry)), false);
     entry.canvas.focus({ preventScroll: true });
     const box = entry.canvas.getBoundingClientRect();
     const nx = ((e.clientX - box.left) / box.width) * 2 - 1,
@@ -282,25 +294,24 @@ export function wireStudioGestures(entry: StudioControls): void {
     if (entry.canvas.dataset.pickFocus === 'true') {
       const focus = entry.handle.focus(box.width / box.height, nx, ny);
       if (focus !== null) {
-        picking(entry, false);
-        commit(entry, studioFocusEdit(entry.inputValues, focus));
-      } else note(entry, 'No subject here. Click the object, or press Escape to cancel.');
+        setStudioMode(entry, 'orbit');
+        commit(entry, 'Focus', studioFocusEdit(entry.inputValues, focus));
+      } else note(entry, coarsePointer() ? tRaw('No subject here: tap the object.') : tRaw('No subject here: click the object, or press Escape to cancel.'));
       e.preventDefault();
       return;
     }
     if (relighting(entry)) {
       const index = entry.handle.pickLight(box.width / box.height, nx, ny);
       if (index === null) {
-        note(entry, 'No light here. Drag a light handle, or press Escape to finish.');
+        note(entry, coarsePointer() ? tRaw('No light here: drag one of the light handles.') : tRaw('No light here: drag a light handle, or press Escape to finish.'));
         e.preventDefault();
         return;
       }
       entry.selectedLight = index;
-      entry.handle.showLightHandles({ selected: index });
       const from = [...entry.recipe.lights[index]!.position] as StudioVector3;
       lightDrag = { index, x: e.clientX, y: e.clientY, from, current: from, moved: false };
-      note(entry, `${lightName(entry, index)} selected.`);
-      entry.render('preview');
+      setStudioMode(entry, 'lights');
+      note(entry, modeStatus(entry, 'lights'), false);
       entry.canvas.setPointerCapture(e.pointerId);
       e.preventDefault();
       return;
@@ -320,7 +331,7 @@ export function wireStudioGestures(entry: StudioControls): void {
     if (arranging(entry) && entry.recipe.objects) {
       const hit = entry.handle.pick(box.width / box.height, nx, ny);
       if (!hit) {
-        note(entry, 'No object here. Drag an object, or press Escape to finish moving.');
+        note(entry, coarsePointer() ? tRaw('No object here: drag one of the objects.') : tRaw('No object here: drag an object, or press Escape to finish.'));
         e.preventDefault();
         return;
       }
@@ -411,13 +422,13 @@ export function wireStudioGestures(entry: StudioControls): void {
       entry.canvas.style.cursor = 'grab';
       const edits = moved ? turnEdits(entry, row, current) : [];
       if (entry.recipe.objects && row !== activeObject(entry)) edits.unshift(studioObjectSelect(entry.inputValues, row));
-      if (edits.length) commit(entry, ...edits);
+      commit(entry, 'Turn', ...edits);
       return;
     }
     if (lightDrag) {
       const { index, moved, current } = lightDrag;
       lightDrag = null;
-      if (moved) commit(entry, studioLightEdit(entry.inputValues, entry.recipe, index, current));
+      if (moved) commit(entry, 'Light', studioLightEdit(entry.inputValues, entry.recipe, index, current));
       return;
     }
     if (drag) {
@@ -426,7 +437,7 @@ export function wireStudioGestures(entry: StudioControls): void {
       const edits: { id: string; value: unknown }[] = [];
       if (index !== activeObject(entry)) edits.push(studioObjectSelect(entry.inputValues, index));
       if (moved) edits.push(studioObjectEdit(entry.inputValues, index, { x: current[0], z: current[2] }));
-      if (edits.length) commit(entry, ...edits);
+      if (edits.length) commit(entry, 'Move', ...edits);
       else entry.render('preview');
       return;
     }
@@ -434,7 +445,7 @@ export function wireStudioGestures(entry: StudioControls): void {
       cameraEdit(entry, pose);
       pose = null;
     } else if (clicked !== null && clicked !== activeObject(entry)) {
-      commit(entry, studioObjectSelect(entry.inputValues, clicked));
+      commit(entry, 'Select', studioObjectSelect(entry.inputValues, clicked));
     }
   });
   entry.canvas.addEventListener('pointercancel', cancel);
@@ -444,10 +455,7 @@ export function wireStudioGestures(entry: StudioControls): void {
   });
   entry.canvas.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      picking(entry, false);
-      moving(entry, false);
-      lighting(entry, false);
-      turning(entry, false);
+      setStudioMode(entry, 'orbit');
       cancel();
       return;
     }
@@ -468,7 +476,7 @@ export function wireStudioGestures(entry: StudioControls): void {
       if (!next) return;
       e.preventDefault();
       e.stopPropagation();
-      commit(entry, ...turnEdits(entry, row, next));
+      commit(entry, 'Turn', ...turnEdits(entry, row, next));
       return;
     }
     if (relighting(entry)) {
@@ -480,7 +488,8 @@ export function wireStudioGestures(entry: StudioControls): void {
         at = placeable.indexOf(index);
       const select = (next: number) => {
         entry.selectedLight = placeable[Math.max(0, Math.min(placeable.length - 1, next))];
-        lighting(entry, true);
+        setStudioMode(entry, 'lights');
+        note(entry, modeStatus(entry, 'lights'), false);
       };
       const moves: Record<string, StudioVector3 | undefined> = {
         ArrowLeft: studioOrbitLight(position, -turn, 0),
@@ -501,7 +510,7 @@ export function wireStudioGestures(entry: StudioControls): void {
       if (!next) return;
       e.preventDefault();
       e.stopPropagation();
-      commit(entry, studioLightEdit(entry.inputValues, entry.recipe, index, next));
+      commit(entry, 'Light', studioLightEdit(entry.inputValues, entry.recipe, index, next));
       return;
     }
     if (arranging(entry) && entry.recipe.objects) {
@@ -525,7 +534,7 @@ export function wireStudioGestures(entry: StudioControls): void {
       if (!edit) return;
       e.preventDefault();
       e.stopPropagation();
-      commit(entry, edit);
+      commit(entry, 'Move', edit);
       return;
     }
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
@@ -551,152 +560,4 @@ export function wireStudioGestures(entry: StudioControls): void {
       ),
     });
   });
-}
-
-export function syncStudioControls(entry: StudioControls): void {
-  if (!entry.ready) entry.canvas.dispatchEvent(new Event('studio-reset-gesture'));
-  const actions = entry.marker.querySelector<HTMLElement>('[data-studio-camera-actions]');
-  if (actions) actions.hidden = !entry.options.setInput;
-  entry.canvas.tabIndex = entry.options.setInput ? 0 : -1;
-  const button = (selector: string, action: () => void) => {
-    const b = entry.marker.querySelector<HTMLButtonElement>(selector);
-    if (b) {
-      b.disabled = !entry.ready;
-      b.onclick = () => {
-        try {
-          action();
-        } catch (error) {
-          note(entry, (error as Error).message);
-        }
-      };
-    }
-    return b;
-  };
-  const fit = (index?: number) => {
-    const box = entry.canvas.getBoundingClientRect(),
-      result = entry.handle.fit(box.width / box.height, index);
-    if (!result) return;
-    cameraEdit(entry, {
-      zoom: result.zoom,
-      ...Object.fromEntries(
-        ['panX', 'panY', 'panZ'].map((key, i) => [
-          key,
-          Number(entry.inputCamera[key] || 0) +
-            result.target.getComponent(i) -
-            entry.recipe.camera.target[i]!,
-        ])
-      ),
-    });
-  };
-  button('[data-studio-fit]', () => fit());
-  button('[data-studio-fit-selected]', () => fit(activeObject(entry)));
-  button('[data-studio-reset]', () =>
-    cameraEdit(entry, { azimuth: 25, elevation: 14, fov: 29, zoom: 1, panX: 0, panY: 0, panZ: 0 })
-  );
-  const focus = button('[data-studio-focus]', () => {
-    picking(entry, entry.canvas.dataset.pickFocus !== 'true');
-    entry.canvas.focus({ preventScroll: true });
-  });
-  if (focus) focus.disabled = !entry.ready || entry.recipe.camera.aperture === 0;
-  button('[data-studio-auto-focus]', () => commit(entry, studioFocusEdit(entry.inputValues, 0)));
-  button('[data-studio-move]', () => {
-    moving(entry, !arranging(entry));
-    entry.canvas.focus({ preventScroll: true });
-  });
-  button('[data-studio-lights]', () => {
-    lighting(entry, !relighting(entry));
-    entry.canvas.focus({ preventScroll: true });
-  });
-  button('[data-studio-turn]', () => {
-    turning(entry, !turnsObject(entry));
-    entry.canvas.focus({ preventScroll: true });
-  });
-  button('[data-studio-orbit]', () => {
-    picking(entry, false);
-    moving(entry, false);
-    lighting(entry, false);
-    turning(entry, false);
-    entry.canvas.focus({ preventScroll: true });
-  });
-  const add = button('[data-studio-add]', () => entry.options.addObjects?.());
-  if (add) add.hidden = !entry.options.addObjects;
-  button('[data-studio-add-key]', () => {
-    const edit = studioAddCameraKey(entry.inputValues);
-    const count = (edit.value as unknown[]).length;
-    commit(entry, edit, ...(count >= 2 ? [] : [{ id: 'cameraMotion', value: 'still' }]));
-    note(
-      entry,
-      count >= 2
-        ? `Key ${count} saved. Play path shows the move; export as video or GIF to keep it.`
-        : 'First key saved. Orbit to the next view and add another key.'
-    );
-  });
-  // Each press shows the next saved key, wrapping at the end, so a view already in the
-  // path can be recalled and composed from. It moves the camera and nothing else.
-  button('[data-studio-go-key]', () => {
-    const rows = Array.isArray(entry.inputValues.cameraKeys)
-      ? (entry.inputValues.cameraKeys as StudioValues[])
-      : [];
-    if (!rows.length) throw new Error('Add a camera key first.');
-    const last = Number(entry.canvas.dataset.cameraKey);
-    const next = Number.isInteger(last) && last >= 0 ? (last + 1) % rows.length : 0;
-    entry.canvas.dataset.cameraKey = String(next);
-    commit(entry, ...studioCameraFromKey(entry.inputValues, next));
-    note(
-      entry,
-      `${studioCameraKeyLabel(entry.inputValues, next)}.${
-        entry.inputValues.cameraMotion === 'keys' && rows.length >= 2
-          ? ' Turn Play path off to hold this view.'
-          : ''
-      }`
-    );
-  });
-  button('[data-studio-play]', () =>
-    commit(entry, {
-      id: 'cameraMotion',
-      value: entry.inputValues.cameraMotion === 'keys' ? 'still' : 'keys',
-    })
-  );
-  // A camera move draws its keys from the live view. Convert to keys hands those rows
-  // over as one edit, so one undo takes the move back, and the button is here only
-  // while a move is chosen: authored keys are already editable.
-  const moveKeys = studioIsCameraPreset(entry.recipe.cameraMotion?.kind ?? 'still')
-    ? (entry.recipe.cameraMotion?.keys ?? [])
-    : [];
-  const convert = button('[data-studio-convert-keys]', () => {
-    const edits = studioCameraPresetEdit(entry.recipe);
-    // A dolly holds the subject's size by trading lens for distance. Where the zoom
-    // range cannot go that far, the framing moves, and the reader is told so. Both are
-    // read before the commit, because the commit hands this view its next recipe.
-    const live = studioCameraApparentSize(entry.recipe.camera);
-    const framed = moveKeys.every(
-      (key) => Math.abs(studioCameraApparentSize(key) - live) <= live * 0.02
-    );
-    commit(entry, ...edits);
-    note(
-      entry,
-      `Converted to ${moveKeys.length} keys. Edit them under Motion.${
-        framed ? '' : ' The zoom range limited this move, so the subject changes size.'
-      }`
-    );
-  });
-  if (convert) convert.hidden = moveKeys.length < 2;
-  const lightsButton = entry.marker.querySelector<HTMLButtonElement>('[data-studio-lights]');
-  if (lightsButton) lightsButton.hidden = !studioPlaceableLights(entry.recipe).length;
-  picking(entry, false);
-  // A repaint keeps a mode and its overlay on the newly selected object or light.
-  if (relighting(entry)) lighting(entry, true);
-  else if (turnsObject(entry)) turning(entry, true);
-  else if (arranging(entry) && entry.recipe.objects) moving(entry, true);
-  else if (arranging(entry)) moving(entry, false);
-  reflectModes(entry);
-  if (entry.ready && entry.canvas.dataset.restoreFocus) {
-    const name = entry.canvas.dataset.restoreFocus;
-    const target =
-      name === 'canvas'
-        ? entry.canvas
-        : entry.marker.querySelector<HTMLElement>(`[data-studio-${name}]`);
-    target?.focus({ preventScroll: true });
-    delete entry.canvas.dataset.restoreFocus;
-  }
 }

@@ -19,6 +19,7 @@ import {
 } from '../engine/src/studio3d-collection.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { baseHost } from './helpers/host.ts';
+import { studioBarHarness } from './helpers/studio3d-bar.ts';
 
 const collection = {
   source: 'collection',
@@ -98,7 +99,10 @@ test('the real tool resolves nested assets and preserves a collection through UR
     before.map((row) => buildStudioScene({ version: 1, values: row.values }))
   );
   assert.equal(buildStudioScene({ version: 1, values: values(reopened) }).source.kind, 'glb');
-  assert.match(reopened.getHydrated(), /Review collection/);
+  // The collection controls are the shell's (lib/studio3d/toolbar.ts), from the same values.
+  const bar = await studioBarHarness(values(reopened), { reviewCollection: true });
+  assert.ok(bar.action('studio-review'), 'a collection offers Review collection');
+  assert.ok(bar.action('studio-shared-camera'), 'an item with its own framing offers Use shared framing');
   await reopened.setInput('lightMotion', 'orbit');
   await reopened.setInput('duration', 6);
   assert.match(reopened.getHydrated(), /data-clip-ms="6000"/);

@@ -16,6 +16,7 @@ import {
 import { buildStudioScene } from '../engine/src/studio3d.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { baseHost } from './helpers/host.ts';
+import { studioBarHarness } from './helpers/studio3d-bar.ts';
 
 const arrangement = {
   source: 'arrangement',
@@ -169,9 +170,12 @@ test('the real tool resolves object assets and carries an arrangement through UR
   assert.equal(scene.objects![1]!.source.url, '/assets/user/upload/duck.glb');
   assert.equal(scene.objects![1]!.source.id, 'user/upload/duck.glb');
   assert.equal(scene.objects![2]!.source.kind, 'stl');
-  assert.match(runtime.getHydrated(), /data-studio-move/);
-  assert.match(runtime.getHydrated(), /Frame all/);
-  assert.doesNotMatch(runtime.getHydrated(), /Review collection/);
+  // The controls are the shell's (lib/studio3d/toolbar.ts), drawn from the same values.
+  const bar = await studioBarHarness(resolved.values, { addObjects: true, reviewCollection: true });
+  assert.ok(bar.action('studio-move'), 'an arrangement offers Move objects');
+  assert.equal(bar.action('studio-fit')?.label, 'Frame all');
+  assert.equal(bar.action('studio-review'), undefined, 'Review collection is for a collection');
+  assert.match(bar.visible().join(' '), /studio-object-label/);
   const parsed = parseUrlState(
     serializeUrlState(runtime.getModel(), { keepUserIds: true }),
     tool.manifest
@@ -241,6 +245,6 @@ test('dropped files become placed, named objects whose kind follows the file', a
     scene.objects!.map((object) => object.source.kind),
     ['svg', 'glb', 'primitive']
   );
-  assert.match(runtime.getHydrated(), /data-studio-move/);
+  assert.ok((await studioBarHarness({ source: 'arrangement', objects: rows })).action('studio-move'));
   runtime.destroy();
 });

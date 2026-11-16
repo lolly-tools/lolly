@@ -1,5 +1,5 @@
 import { hasDesignLayout } from '@lolly/engine';
-import { getInputPolicy } from '../../lib/input-policy.ts';
+import { getInputPolicy, refuseDocumentEdit } from '../../lib/input-policy.ts';
 import { designSelection } from '@lolly-tools/core/design-tool-v1';
 import { wireSyntaxRequests } from '../../lib/syntax-preview.ts';
 // SPDX-License-Identifier: MPL-2.0
@@ -305,7 +305,21 @@ export function paint(tview: ToolViewCtx): void {
             },
             endGesture: () => tview.inputHistory.endGesture(),
             shapeText: m.studioShaperFor(tview.host),
-            setInput: (id, value) => tview.runtime.setInput(id, value as Parameters<typeof tview.runtime.setInput>[1]),
+            // A canvas edit is the person's edit: it dirties the document and reaches the
+            // address, as the per-canvas commit channel's writes do.
+            setInput: (id, value) => {
+              tview.session.markUserDirty(id);
+              return tview.runtime.setInput(id, value as Parameters<typeof tview.runtime.setInput>[1]);
+            },
+            // An edit that changes several inputs (Go to key, Convert to keys, a move that
+            // also selects) is one undo step.
+            commitMany: (values, label) => {
+              if (refuseDocumentEdit(tview.toolId)) { tview.runtime.refresh(); return; }
+              for (const id of Object.keys(values)) tview.session.markUserDirty(id);
+              void tview.history.commitInputs(values, label).catch(error => console.warn('studio edit failed:', error));
+            },
+            // The controls are drawn by the stage kit, beside the picture (lib/stage-kit.ts).
+            chrome: tview.stageKit.get(),
             reviewCollection: () => {
               void import('../studio3d-collection.ts').then(m => {
                 if (tview.contentEl.isConnected) m.openStudioCollection(tview.runtime, tview.host, () => tview.revisionChanged());

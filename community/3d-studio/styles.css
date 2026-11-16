@@ -1,9 +1,13 @@
+/* The studio's controls are drawn by the shell's stage kit, beside the picture and at
+   screen size (shells/web/src/lib/studio3d/toolbar.ts). The frame holds the canvas and
+   the loading or error line only. */
 .studio-frame {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
+/* Loading and error text over the frame, in the design system's surface, ink and face. */
 .studio-status {
   position: absolute;
   z-index: 2;
@@ -12,158 +16,15 @@
   place-content: center;
   padding: 2rem;
   margin: 0;
-  color: #dff7eb;
-  background: #10251e;
+  color: var(--brand-text, #262626);
+  background: var(--brand-surface, #f2f2f2);
   text-align: center;
-  font:
-    16px / 1.5 system-ui,
-    sans-serif;
+  font: 16px / 1.5 var(--font-brand, sans-serif);
 }
 .studio-status[hidden] {
   display: none;
 }
-.studio-info {
-  position: absolute;
-  z-index: 2;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  max-height: 30%;
-  overflow: auto;
-  padding: 10px 14px;
-  border-radius: 8px;
-  color: #eaf7ef;
-  background: #10251ee8;
-  font:
-    13px / 1.5 system-ui,
-    sans-serif;
-}
-.studio-info summary {
-  cursor: pointer;
-}
-.studio-info p {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.studio-collection-actions {
-  position: absolute;
-  z-index: 3;
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  color: #eaf7ef;
-  font:
-    14px / 1.4 system-ui,
-    sans-serif;
-}
-.studio-collection-actions span,
-.studio-collection-actions button {
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #10251ee8;
-  color: inherit;
-}
-.studio-collection-actions button {
-  border: 1px solid #86a99b;
-  cursor: pointer;
-}
-.studio-collection-actions [hidden] {
-  display: none;
-}
-/* The toolbar floats over the picture and wraps as it grows; only its controls take the
-   pointer, so a click in a gap or on the status text reaches the canvas underneath. */
-.studio-collection-actions {
-  pointer-events: none;
-}
-.studio-collection-actions button {
-  pointer-events: auto;
-}
-
-.studio-camera-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.studio-collection-actions {
-  font-size: calc(13px * var(--studio-ui-scale, 1));
-  gap: calc(6px * var(--studio-ui-scale, 1));
-}
-.studio-collection-actions button {
-  min-height: calc(34px * var(--studio-ui-scale, 1));
-  padding: calc(6px * var(--studio-ui-scale, 1)) calc(10px * var(--studio-ui-scale, 1));
-  font: inherit;
-}
-.studio-collection-actions button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.studio-collection-actions button:focus-visible,
 .lolly-studio-canvas:focus-visible {
-  outline: 3px solid #ffffff;
+  outline: 3px solid var(--brand-primary, currentColor);
   outline-offset: -3px;
-}
-.studio-collection-actions button[aria-pressed="true"] {
-  background: #315c4d;
-}
-[data-studio-camera-note]:empty {
-  display: none;
-}
-
-.studio-group {
-  display: inline-flex;
-  border: 1px solid #86a99b;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.studio-collection-actions .studio-group button {
-  border: 0;
-  border-radius: 0;
-  min-height: calc(32px * var(--studio-ui-scale, 1));
-}
-.studio-collection-actions .studio-group button + button {
-  border-left: 1px solid #86a99b;
-}
-.studio-collection-actions .studio-status-pill {
-  border: 0;
-  background: #10251ea0;
-  font-weight: 600;
-}
-.studio-collection-actions [data-studio-add] {
-  border-color: #dff7eb;
-  background: #1c4a3a;
-}
-
-/* Frames shown narrow (a phone, or a small render size) keep every control but show
-   short labels; the studio marks the frame from its visible width, not its layout width,
-   because a 1280 px layout is scaled to fit a phone. */
-.studio-label-short {
-  display: none;
-}
-.studio-frame[data-studio-narrow="true"] .studio-label-full {
-  display: none;
-}
-.studio-frame[data-studio-narrow="true"] .studio-label-short {
-  display: inline;
-}
-.studio-frame[data-studio-narrow="true"] .studio-collection-actions {
-  gap: calc(4px * var(--studio-ui-scale, 1));
-}
-.studio-frame[data-studio-narrow="true"] .studio-collection-actions button {
-  padding: calc(5px * var(--studio-ui-scale, 1)) calc(7px * var(--studio-ui-scale, 1));
-}
-.studio-frame[data-studio-narrow="true"] [data-studio-camera-note] {
-  font-size: calc(11px * var(--studio-ui-scale, 1));
-}
-
-@media (any-pointer: coarse) {
-  .studio-collection-actions button,
-  .studio-collection-actions .studio-group button {
-    min-height: calc(44px * var(--studio-ui-scale, 1));
-    min-width: calc(44px * var(--studio-ui-scale, 1));
-  }
 }

@@ -255,6 +255,12 @@ const PATHS = {
   // Horizontal twin of arrowsV - a left/right double-arrow. Pairs with it as the pitch (X)
   // / yaw (Y) tilt pair; roll (Z) is the circular rotateCw below.
   arrowsH: '<path d="M4 12h16"/><path d="m8 8-4 4 4 4"/><path d="m16 8 4 4-4 4"/>',
+  // Lucide orbit: a body circled by a path with two satellites. 3D Studio's Orbit mode,
+  // where a drag turns the camera round the subject.
+  orbit: '<circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M10.4 21.9a10 10 0 0 0 9.941-15.416"/><path d="M13.5 2.1a10 10 0 0 0-9.841 15.416"/>',
+  // Lucide move: four arrows from the centre. Moving an object in any direction on a
+  // stage (the `move` name above is a different glyph, a folder that takes a file in).
+  move4: '<path d="M12 2v20"/><path d="m15 19-3 3-3-3"/><path d="m19 9 3 3-3 3"/><path d="M2 12h20"/><path d="m5 9-3 3 3 3"/><path d="m9 5 3-3 3 3"/>',
   // Single clockwise circular arrow (Lucide rotate-cw) - an in-plane spin, i.e. roll.
   rotateCw: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
   // Translate handles - a double-arrow with a centre tick marking the moved object, so they
