@@ -33,7 +33,7 @@ permissions:
 jobs:
   request:
     if: github.ref == 'refs/heads/main'
-    uses: lolly-tools/lolly-work/.github/workflows/shell-deployment-request.yml@d9c65b3e707bffa1b274b6465d3ef8609ac34bf1
+    uses: lolly-tools/lolly-work/.github/workflows/shell-deployment-request.yml@8680a32930f3c91c95b83dc696d6691f7162ed18
     with:
       source: ${{ inputs.source }}
       ci_run: ${{ inputs.ci_run }}
