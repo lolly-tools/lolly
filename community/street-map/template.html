@@ -1,6 +1,6 @@
 <div class="sm-root sm-{{theme}}" id="sm-root">
   <div class="sm-map-wrap" id="sm-map" data-lolly-anno="{{city}} {{roadColor}} {{waterColor}} {{background}}"></div>
-  <div class="sm-zoom-controls">
+  <div class="sm-zoom-controls" data-export-hide>
     <button class="sm-zoom-btn" id="sm-zi" type="button" aria-label="Zoom in">+</button>
     <button class="sm-zoom-btn" id="sm-zo" type="button" aria-label="Zoom out">&minus;</button>
     <button class="sm-zoom-btn" id="sm-zr" type="button" aria-label="Reset view">&#8962;</button>
@@ -322,9 +322,10 @@
     var zi = smRoot.querySelector('#sm-zi');
     var zo = smRoot.querySelector('#sm-zo');
     var zr = smRoot.querySelector('#sm-zr');
-    if (zi) zi.onclick = function () { svg.transition().duration(220).call(zoomFn.scaleBy, 1.5); };
-    if (zo) zo.onclick = function () { svg.transition().duration(220).call(zoomFn.scaleBy, 0.667); };
-    if (zr) zr.onclick = function () {
+    if (zi) zi.onclick = function (e) { e.preventDefault(); svg.transition().duration(220).call(zoomFn.scaleBy, 1.5); };
+    if (zo) zo.onclick = function (e) { e.preventDefault(); svg.transition().duration(220).call(zoomFn.scaleBy, 0.667); };
+    if (zr) zr.onclick = function (e) {
+      e.preventDefault();
       stateStore.__smView = null;
       svg.transition().duration(280).call(zoomFn.transform, window.d3.zoomIdentity);
     };

@@ -3,7 +3,7 @@
   "name": "Claim",
   "description": "Claim your name on any media you've already made - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file - all on your device, before you upload it anywhere.",
   "a11yLabel": "Embed credentials into your files",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "engineVersion": "^1.104.0",
   "requires": ["c2pa"],
   "status": "official",

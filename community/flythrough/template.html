@@ -90,7 +90,7 @@
   loadThree().then(function (THREE) {
     if (!alive()) return;
     if (!THREE || !THREE.WebGLRenderer) { fail('3D library failed to load.'); return; }
-    try { start(THREE); } catch (err) { console.error('[flythrough] init error:', err); fail('3D could not start in this browser. Reload the page to try again.'); }
+    try { start(THREE); } catch (err) { console.error('[flythrough] init error:', err); fail(String(err && err.message || err)); }
   }).catch(function (e) { console.error('[flythrough]', e); fail('3D library failed to load.'); });
 
   function start(THREE) {

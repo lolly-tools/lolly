@@ -13,7 +13,7 @@
       {{#if scanCameraReady}}
       <span class="sc-viewfinder__hint">Point the camera at a code and hold it in the frame. If it doesn't start, tap here.</span>
       {{else}}
-      <span class="sc-viewfinder__hint">This connection can't open the camera - a phone needs a secure (https) address. Switch Source to <strong>From image</strong> or <strong>Paste text</strong> to scan without it.</span>
+      <span class="sc-viewfinder__hint">This connection can't open the camera - a phone needs a secure (https) address. Switch Source to <strong>Image</strong> or <strong>Text</strong> to scan without it.</span>
       {{/if}}
     </div>
     {{/if}}
@@ -22,7 +22,7 @@
 
   {{#if scanEmpty}}
     <div class="sc-empty">
-      {{#if (eq mode "paste")}}Paste a code's text above to inspect it.{{/if}}
+      {{#if (eq mode "paste")}}Paste a code's text in Code text to inspect it.{{/if}}
       {{#if (eq mode "image")}}Choose an image containing a code.{{/if}}
       {{#if (eq mode "camera")}}Nothing decoded yet - hold a code in view.{{/if}}
     </div>

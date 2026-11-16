@@ -196,7 +196,7 @@
     if (!alive()) return;
     if (!THREE || !THREE.WebGLRenderer) { message('3D library failed to load.'); fireReady(); return; }
     try { start(THREE); }
-    catch (err) { console.error('[booth-studio] init error:', err); message('3D could not start in this browser. Reload the page to try again.'); fireReady(); }
+    catch (err) { console.error('[booth-studio] init error:', err); message(String(err && err.message || err)); fireReady(); }
   }).catch(function (e) { console.error('[booth-studio]', e); message('3D library failed to load.'); fireReady(); });
 
   // ---- helpers --------------------------------------------------------------
