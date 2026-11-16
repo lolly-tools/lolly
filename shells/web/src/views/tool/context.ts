@@ -53,6 +53,8 @@ import type { renderOps } from './render.ts';
 import type { openDocumentOps } from './open-document.ts';
 import type { OpenProgress } from '../../components/open-progress.ts';
 import type { setupOps } from './setup.ts';
+import type { stageKitOps } from './stage-kit.ts';
+import type { StageKit } from '../../lib/stage-kit.ts';
 
 export interface ToolViewCtx {
   // ---- state (was: closure variables of mountTool) ----
@@ -320,6 +322,8 @@ export interface ToolViewCtx {
   studioPending: Promise<unknown>;
   studioModule: typeof import('../../lib/studio3d/mount.ts') | null;
   studioError: Error | null;
+  /** The stage kit, once something asked for it (./stage-kit.ts); null until then. */
+  stageKitHandle: StageKit | null;
   paginateSource: string | undefined;
   tableEditOpts: TableEditOpts | null;
   rafId: number;
@@ -342,6 +346,7 @@ export interface ToolViewCtx {
   render: ReturnType<typeof renderOps>;
   setup: ReturnType<typeof setupOps>;
   openDocument: ReturnType<typeof openDocumentOps>;
+  stageKit: ReturnType<typeof stageKitOps>;
 }
 
 /** A module function minus its leading context parameter. */

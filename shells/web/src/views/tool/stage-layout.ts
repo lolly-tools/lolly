@@ -52,6 +52,7 @@ import { bindOp, type ToolViewCtx } from './context.ts';
 import { isIframeMode } from '../../lib/iframe-mode.ts';
 import { isPhoneLayout, phoneLayoutQuery } from '../../lib/layout-posture.ts';
 import { mountSplitView } from '../../lib/split-panes.ts';
+import { publishStageScale } from '../../lib/stage-scale.ts';
 
 export function setSidebarWidth(tview: ToolViewCtx, w: number, save = true): void {
   const { SIDEBAR_MIN, fullscreenToggle, layout, sidebarEl } = tview;
@@ -173,6 +174,8 @@ export function fitCanvas(tview: ToolViewCtx): void {
   outerEl.style.marginBottom = reserveBottom ? `${reserveBottom}px` : '';
   outerEl.style.marginLeft = reserveLeft ? `${reserveLeft}px` : '';
   outerEl.style.marginRight = reserveRight ? `${reserveRight}px` : '';
+  // Here the canvas scale is the whole on-screen scale: a zoomed view returned above.
+  publishStageScale(canvasEl, scale);
   tview.stageZoom?.sync(); // refresh the zoom % readout after a re-fit
 }
 // Reset pan/zoom and re-fit. Passed to renderActions so a dimension change always

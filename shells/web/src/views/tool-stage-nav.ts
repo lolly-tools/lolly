@@ -24,6 +24,8 @@ import type { ZoomHud } from '../components/zoom-hud.ts';
 import { deepActiveElement, isTypingTarget } from '../lib/typing-target.ts';
 import { icon } from '../lib/icons.ts';
 import { endCanvasCost, startCanvasCost } from '../lib/canvas-feedback.ts';
+import { ownsStageGestures } from '../lib/stage-gestures.ts';
+import { publishStageScale } from '../lib/stage-scale.ts';
 import { t } from '../i18n.ts';
 import {
   requestDock, releaseDock, isDocked, dockedFullCount, onDockChange,
@@ -389,6 +391,10 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // Measured once and shared: the event carries the same absolute zoom the readouts
     // get, so a listener on the stage (the canvas level of detail) needs no read of its own.
     const abs = absScale();
+    // The same measure for tools that draw their own controls (lib/stage-scale.ts):
+    // screen pixels per canvas pixel, against the canvas's laid-out width, which is the
+    // page strip's rather than one page's on a carousel.
+    if (canvasEl && abs > 0) publishStageScale(canvasEl, (abs * nativeW) / (canvasEl.offsetWidth || nativeW));
     const EventType = stageEl.ownerDocument.defaultView?.CustomEvent;
     if (EventType) stageEl.dispatchEvent(new EventType('lolly:stage-view', { detail: { abs } }));
     for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
@@ -760,6 +766,9 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   };
   stageEl.addEventListener('pointerdown', e => {
     if (e.pointerType === 'mouse') return;
+    // A press on an element that handles its own presses (a 3-D canvas, the stage kit)
+    // is not tracked: that finger never pans the stage and never makes half a pinch.
+    if (ownsStageGestures(e.target)) return;
     touchDown(e.pointerId, e.clientX, e.clientY, e.timeStamp);
   });
   // A finger the Design canvas kept for an object press, handed back when a second
@@ -1208,7 +1217,9 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
         holdForWheel();
         const step = isNotchedWheel(e) ? notchLogZoom(e) : pinchLogZoom(pinch, e.deltaY, e.timeStamp);
         zoomAbout(Math.exp(step), e.clientX, e.clientY);
-      } else if ((e.target as Element | null)?.closest?.(STAGE_FLOATING_SURFACES)) {
+      } else if ((e.target as Element | null)?.closest?.(STAGE_FLOATING_SURFACES) || ownsStageGestures(e.target)) {
+        // A floating surface scrolls, and an element that handles its own wheel (a 3-D
+        // canvas zooming its camera) keeps it: neither is a pan.
         return;
       } else if (isZoomed() || opts?.editorLayout) {
         e.preventDefault();
@@ -1249,6 +1260,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     stageEl.addEventListener('pointerdown', e => {
       if (e.pointerType !== 'mouse') return;
       if (!(e.button === 1 || (e.button === 0 && spaceDown))) return;
+      if (ownsStageGestures(e.target)) return;
       e.preventDefault();
       stageEl.setPointerCapture(e.pointerId);
       mousePanPt = { x: e.clientX, y: e.clientY };
