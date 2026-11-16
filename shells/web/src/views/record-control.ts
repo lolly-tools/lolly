@@ -490,6 +490,8 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     void begin();
   });
 
+  // The asset store takes the picker's host type. Both kinds of take hand it this one.
+  const storeHost = host as unknown as Parameters<typeof storeRecordingAsset>[0];
   async function handleClip(blob: Blob, mimeType: string, takeMs = 0, micActive?: boolean): Promise<void> {
     if (!isAudio) {
       // Video: the footage becomes the compositor's body clip (see export.renderRecord).
@@ -513,9 +515,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
       try {
         // The asset store lives with the picker, loaded once there is a take to keep.
         const { storeRecordingAsset: store } = await import('./picker.ts');
-        ref = await store(
-          host as unknown as Parameters<typeof storeRecordingAsset>[0], clip, ext, prevClip?.id, credential ?? undefined,
-        );
+        ref = await store(storeHost, clip, ext, prevClip?.id, credential ?? undefined);
       } catch (e) {
         if (disposed) return;
         host.log('warn', 'record: could not persist clip - using an in-memory clip', { error: String(e) });
@@ -565,10 +565,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
         const ext: 'mp4' | 'webm' = /mp4|mpeg|m4a/i.test(mimeType) ? 'mp4' : 'webm';
         const previous = runtime.getModel().find(i => i.id === 'audio')?.value as { id?: string } | undefined;
         const { storeRecordingAsset: store } = await import('./picker.ts');
-        const ref = await store(
-          host as unknown as Parameters<typeof storeRecordingAsset>[0], clip, ext, previous?.id, credential ?? undefined,
-          { audio: true, durationMs: takeMs },
-        );
+        const ref = await store(storeHost, clip, ext, previous?.id, credential ?? undefined, { audio: true, durationMs: takeMs });
         if (disposed) return;
         await runtime.setInput('audio', ref);
         if (disposed) return;
