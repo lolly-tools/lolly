@@ -70,6 +70,7 @@ export function genreTaglines(): Readonly<Record<string, string>> {
     cpop: t('Dance-pop drops with dizi and erhu hooks'),
     breakbeat: t('A chopped drum break and a rolling reese'),
     jungle: t('Chopped funk breaks over a deep dub sub'),
+    trailer: t('Big hits, braams and a rising pulse'),
     funkyHouse: t('Disco loop, Latin percussion and vocal chops'),
     ukGarage: t('Swung two-step drums, organ stabs and chops'),
     privateSchool: t('Mellow amapiano, soft log drum and sax'),
