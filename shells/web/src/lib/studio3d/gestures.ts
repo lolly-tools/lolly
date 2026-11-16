@@ -11,24 +11,26 @@
  *  - the arrow keys orbit the way a drag in that direction does, 0 and Home reset the camera.
  * Ctrl or Cmd with the wheel, and a trackpad pinch, are left to the stage's own zoom.
  *
- * The modes (Move objects, Turn object, Move lights, Pick focus) keep one-pointer drags
- * and their keys for themselves. Two fingers, a pinch and the wheel move the camera in
- * every mode.
+ * With no mode on and a stage kit to draw handles in (plan 368, D4), a press on an object
+ * selects it and a drag that starts on one moves it along the floor, selecting it first; a
+ * click on empty space clears the selection. The selected object's handles (handles.ts)
+ * turn, lift and scale the selection. With an object selected the arrow keys nudge it, Delete removes
+ * it from an arrangement and Escape clears the selection; with none, the arrows orbit.
+ *
+ * The modes (Tilt, Move lights, Pick focus) keep one-pointer drags and their keys for
+ * themselves. Two fingers, a pinch and the wheel move the camera in every mode.
  *
  * A gesture previews through the renderer without saving (`view`, `moveObject`,
- * `turnObject`, `moveLight`) and saves once: on release for a drag or a pinch, and after a
- * pause for the wheel and for a run of keys, so one gesture is one undo step. A finger
- * that lifts from a pinch re-anchors the one left, `pointercancel` and a lost capture put
- * the preview back, and a capture that starts mid-gesture (`studio-reset-gesture`) does the
- * same, saving a wheel or key view that was only waiting for its pause.
+ * `turnObject`, `scaleObject`, `moveLight`) and saves once: on release for a drag or a
+ * pinch, and after a pause for the wheel and for a run of keys, so one gesture is one undo
+ * step. A finger that lifts from a pinch re-anchors the one left, `pointercancel` and a
+ * lost capture put the preview back, and a capture that starts mid-gesture
+ * (`studio-reset-gesture`) does the same, saving a wheel or key view that was only waiting
+ * for its pause.
  */
 import * as THREE from 'three';
-import {
-  STUDIO_ARRANGEMENT_EXTENT,
-  studioObjectEdit,
-  studioObjectSelect,
-} from '../../../../../engine/src/studio3d-arrangement.ts';
-import { studioFocusEdit, type StudioValues } from '../../../../../engine/src/studio3d-collection.ts';
+import { studioObjectSelect } from '../../../../../engine/src/studio3d-arrangement.ts';
+import { studioFocusEdit } from '../../../../../engine/src/studio3d-collection.ts';
 import {
   studioLightEdit,
   studioOrbitLight,
@@ -53,14 +55,20 @@ import {
   cameraEdit,
   coarsePointer,
   commit,
+  focusQuietly,
   modeStatus,
   note,
+  objectEditing,
   resetCamera,
   selectedLight,
+  selectedObject,
+  setSelected,
   setStudioMode,
   studioFit,
   studioMode,
 } from './controls.ts';
+import { createStudioHandles } from './handles.ts';
+import { moveEdits, objectPlace, positionLimit, removeEdits, turnEdits } from './object-edit.ts';
 
 /** The pause after the last wheel event or key press before the view is saved. */
 export const STUDIO_SAVE_PAUSE_MS = 400;
@@ -74,7 +82,7 @@ type Gesture =
   | { kind: 'pan'; x: number; y: number; moved: boolean }
   | { kind: 'pinch'; d: number; mx: number; my: number }
   | { kind: 'object'; index: number; origin: THREE.Vector3; from: StudioVector3; current: StudioVector3; height: number; moved: boolean }
-  | { kind: 'turn'; row: number; x: number; y: number; from: StudioVector3; current: StudioVector3; moved: boolean }
+  | { kind: 'tilt'; row: number; x: number; y: number; from: StudioVector3; current: StudioVector3; moved: boolean }
   | { kind: 'light'; index: number; x: number; y: number; from: StudioVector3; current: StudioVector3; moved: boolean }
   /** A press that does nothing until it is released: a miss in a mode, or a finger left over from a pinch. */
   | { kind: 'idle' };
@@ -86,27 +94,7 @@ const num = (value: unknown): number => {
 
 /** The rotation, in degrees, of an arrangement row or of the lone subject (row 0). */
 function rotationOf(entry: StudioControls, row: number): StudioVector3 {
-  const transform = entry.recipe.objects ? entry.recipe.objects[row]?.transform : entry.recipe.transform;
-  return [...(transform?.rotation ?? [0, 0, 0])] as StudioVector3;
-}
-/** An angle kept in -180 to 180, whole degrees. */
-const wrapDegrees = (angle: number): number => {
-  const turned = ((((angle + 180) % 360) + 360) % 360) - 180;
-  return Math.round(turned === -180 && angle > 0 ? 180 : turned);
-};
-/** The saved edit for a turned object: the row's rotation, or the subject's Turn and tilt. */
-function turnEdits(entry: StudioControls, row: number, rotation: StudioVector3): { id: string; value: unknown }[] {
-  const [x, y, z] = rotation.map(wrapDegrees) as StudioVector3;
-  if (entry.recipe.objects) return [studioObjectEdit(entry.inputValues, row, { rotX: x, rotY: y, rotZ: z })];
-  // Words face the camera until they are given the object's pose, so a turn gives them one.
-  const pose = entry.inputValues.source === 'text' && entry.inputValues.wordPose !== 'scene'
-    ? [{ id: 'wordPose', value: 'scene' }]
-    : [];
-  return [{ id: 'rotation', value: { x, y, z } }, ...pose];
-}
-function selectedRow(entry: StudioControls, index: number): StudioValues {
-  const rows = entry.inputValues.objects;
-  return Array.isArray(rows) ? ((rows[index] as StudioValues) ?? {}) : {};
+  return objectPlace(entry, row)?.rotation ?? [0, 0, 0];
 }
 /** The point on the horizontal plane through `height` that a canvas position looks at. */
 function groundPoint(entry: StudioControls, x: number, y: number, height: number): THREE.Vector3 | null {
@@ -176,8 +164,12 @@ export function wireStudioGestures(entry: StudioControls): void {
   const box = (): DOMRect => canvas.getBoundingClientRect();
   const cursor = (): string => {
     const mode = studioMode(entry);
-    return mode === 'focus' ? 'crosshair' : mode === 'move' || mode === 'lights' ? 'move' : 'grab';
+    return mode === 'focus' ? 'crosshair' : mode === 'lights' ? 'move' : 'grab';
   };
+  // The selected object's handles, drawn after every preview frame (mount.ts).
+  const handles = createStudioHandles(entry, redraw);
+  entry.drawHandles = handles.draw;
+  entry.clearHandles = handles.remove;
 
   function preview(view: StudioView): void {
     live = view;
@@ -228,15 +220,16 @@ export function wireStudioGestures(entry: StudioControls): void {
     if (saveTimer !== undefined && !pointers.size) save();
   };
 
-  /** Put back what a mode's drag was previewing: an object, a turn or a light. */
+  /** Put back what a drag was previewing: an object, a turn or a light. */
   function revertModePreview(): void {
     if (gesture?.kind === 'object') entry.handle.moveObject(gesture.index, gesture.from);
-    else if (gesture?.kind === 'turn') entry.handle.turnObject(gesture.row, gesture.from);
+    else if (gesture?.kind === 'tilt') entry.handle.turnObject(gesture.row, gesture.from);
     else if (gesture?.kind === 'light') entry.handle.moveLight(gesture.index, gesture.from);
   }
 
   /** Drop the gesture and its preview. A wheel or key view that only waited for its pause is kept. */
   function cancel(): void {
+    handles.cancel();
     const waiting = saveTimer !== undefined && !pointers.size && gesture === null;
     revertModePreview();
     gesture = null;
@@ -303,25 +296,19 @@ export function wireStudioGestures(entry: StudioControls): void {
       gesture = { kind: 'light', index, x: e.clientX, y: e.clientY, from, current: from, moved: false };
       return;
     }
-    if (mode === 'turn') {
+    if (mode === 'tilt') {
       const row = entry.recipe.objects ? (entry.handle.pick(aspect, nx, ny)?.index ?? activeObject(entry)) : 0;
       const from = rotationOf(entry, row);
-      gesture = { kind: 'turn', row, x: e.clientX, y: e.clientY, from, current: from, moved: false };
-      if (entry.recipe.objects) entry.handle.highlight(row);
+      gesture = { kind: 'tilt', row, x: e.clientX, y: e.clientY, from, current: from, moved: false };
       canvas.style.cursor = 'grabbing';
       return;
     }
-    if (mode === 'move' && entry.recipe.objects) {
-      const hit = entry.handle.pick(aspect, nx, ny);
-      if (!hit) {
-        note(entry, touch ? tRaw('No object here: drag one of the objects.') : tRaw('No object here: drag an object, or press Escape to finish.'));
-        gesture = { kind: 'idle' };
-        return;
-      }
-      const position = [...entry.recipe.objects[hit.index]!.transform.position] as StudioVector3;
-      gesture = { kind: 'object', index: hit.index, origin: hit.point, from: position, current: position, height: hit.point.y, moved: false };
-      entry.handle.highlight(hit.index);
-      redraw();
+    const hit = entry.recipe.objects || objectEditing(entry) ? entry.handle.pick(aspect, nx, ny) : null;
+    const place = hit && objectEditing(entry) ? objectPlace(entry, hit.index) : null;
+    if (hit && place) {
+      // A press on an object selects it, and a drag from it moves it along the floor.
+      gesture = { kind: 'object', index: hit.index, origin: hit.point, from: place.position, current: place.position, height: hit.point.y, moved: false };
+      canvas.style.cursor = 'grabbing';
       return;
     }
     gesture = {
@@ -329,9 +316,9 @@ export function wireStudioGestures(entry: StudioControls): void {
       x: e.clientX,
       y: e.clientY,
       moved: false,
-      // A plain click on an object selects it even while orbiting, so the sidebar and
-      // the frame controls follow what the person pointed at.
-      hit: entry.recipe.objects ? (entry.handle.pick(aspect, nx, ny)?.index ?? null) : null,
+      // Without handles (multi-edit, a Design scene box) a plain click on an object still
+      // selects it, so the sidebar and the frame controls follow what was pointed at.
+      hit: hit?.index ?? null,
     };
     canvas.style.cursor = 'grabbing';
   }
@@ -341,7 +328,7 @@ export function wireStudioGestures(entry: StudioControls): void {
     if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
     // A report of the last action gives way to the mode's own sentence.
     if (entry.status?.once && pointers.size === 0) note(entry, modeStatus(entry, studioMode(entry)), false);
-    canvas.focus({ preventScroll: true });
+    focusQuietly(canvas);
     e.preventDefault();
     // A wheel or key view still waiting for its pause rides into this gesture, and the
     // release saves both.
@@ -382,7 +369,7 @@ export function wireStudioGestures(entry: StudioControls): void {
         preview(g.kind === 'pan' || e.shiftKey ? panBy(current(), lens(), dx, dy, box().height) : orbitBy(current(), dx, dy));
         return;
       }
-      case 'turn': {
+      case 'tilt': {
         const dx = e.clientX - g.x, dy = e.clientY - g.y;
         if (!g.moved && Math.hypot(dx, dy) < DRAG_PX) return;
         g.moved = true;
@@ -403,7 +390,7 @@ export function wireStudioGestures(entry: StudioControls): void {
       case 'object': {
         const hit = groundPoint(entry, e.clientX, e.clientY, g.height);
         if (!hit) return;
-        const limit = STUDIO_ARRANGEMENT_EXTENT;
+        const limit = positionLimit(entry);
         const next: StudioVector3 = [
           Math.max(-limit, Math.min(limit, g.from[0] + hit.x - g.origin.x)),
           g.from[1],
@@ -420,6 +407,16 @@ export function wireStudioGestures(entry: StudioControls): void {
         return;
     }
   });
+
+  /**
+   * Show the handles, on an arrangement row just selected when `row` is given. The saved
+   * selection comes back with the next render; the entry takes it now, so the handles
+   * land on the object that was pressed rather than on the object selected before.
+   */
+  function showSelection(row: number | null): void {
+    if (row !== null) entry.inputValues = { ...entry.inputValues, activeObject: row + 1 };
+    setSelected(entry, true);
+  }
 
   /**
    * Two taps close together in time and place, in the same mode, frame the object under
@@ -449,17 +446,22 @@ export function wireStudioGestures(entry: StudioControls): void {
           save();
           return;
         }
-        // A tap: a waiting wheel or key view is saved first, then the tap selects or frames.
+        // A tap: a waiting wheel or key view is saved first, then the tap selects, clears
+        // the selection or frames.
         save();
-        if (!doubleTap(e) && g.hit !== null && g.hit !== activeObject(entry))
+        if (doubleTap(e)) return;
+        if (objectEditing(entry)) setSelected(entry, false);
+        else if (g.hit !== null && g.hit !== activeObject(entry))
           commit(entry, tRaw('Select'), studioObjectSelect(entry.inputValues, g.hit));
         return;
-      case 'turn': {
+      case 'tilt': {
         save();
         const edits = g.moved ? turnEdits(entry, g.row, g.current) : [];
-        if (entry.recipe.objects && g.row !== activeObject(entry)) edits.unshift(studioObjectSelect(entry.inputValues, g.row));
+        const select = !!entry.recipe.objects && g.row !== activeObject(entry);
+        if (select) edits.unshift(studioObjectSelect(entry.inputValues, g.row));
         if (!g.moved && doubleTap(e)) return;
         commit(entry, tRaw('Turn'), ...edits);
+        if (objectEditing(entry)) showSelection(select ? g.row : null);
         return;
       }
       case 'light':
@@ -468,12 +470,16 @@ export function wireStudioGestures(entry: StudioControls): void {
         return;
       case 'object': {
         save();
-        if (!g.moved && doubleTap(e)) return;
+        // The press selected the object, whatever the release does next: a move and the
+        // selection it needed are one step.
+        const select = !!entry.recipe.objects && g.index !== activeObject(entry);
         const edits: { id: string; value: unknown }[] = [];
-        if (g.index !== activeObject(entry)) edits.push(studioObjectSelect(entry.inputValues, g.index));
-        if (g.moved) edits.push(studioObjectEdit(entry.inputValues, g.index, { x: g.current[0], z: g.current[2] }));
-        if (edits.length) commit(entry, tRaw('Move'), ...edits);
-        else redraw();
+        if (select) edits.push(studioObjectSelect(entry.inputValues, g.index));
+        if (g.moved) edits.push(...moveEdits(entry, g.index, g.current, ['x', 'z']));
+        const framed = !g.moved && doubleTap(e);
+        if (edits.length) commit(entry, g.moved ? tRaw('Move') : tRaw('Select'), ...edits);
+        else if (!framed) redraw();
+        showSelection(select ? g.index : null);
         return;
       }
       default:
@@ -514,7 +520,7 @@ export function wireStudioGestures(entry: StudioControls): void {
     if (!pointers.size) saveSoon();
   }, { passive: false });
 
-  /** Keys that turn the object in Turn object. True when the key was used. */
+  /** Keys that turn and tilt the object in Tilt. True when the key was used. */
   function turnKey(e: KeyboardEvent): boolean {
     const row = entry.recipe.objects ? activeObject(entry) : 0;
     const [x, y, z] = rotationOf(entry, row);
@@ -562,35 +568,67 @@ export function wireStudioGestures(entry: StudioControls): void {
     return true;
   }
 
-  /** Keys that nudge, turn and select objects in Move objects. */
-  function moveKey(e: KeyboardEvent): boolean {
-    const index = activeObject(entry);
-    const spec = entry.recipe.objects?.[index];
-    if (!spec) return false;
-    const row = selectedRow(entry, index);
+  /**
+   * Keys for the selected object: the arrows nudge it along the floor (Shift for larger
+   * steps), comma and full stop turn it, the square brackets select the previous or next
+   * object of an arrangement, and Delete or Backspace takes it out of the arrangement.
+   * True when the key was used.
+   */
+  function objectKey(e: KeyboardEvent): boolean {
+    const row = selectedObject(entry);
+    const place = row === null ? null : objectPlace(entry, row);
+    if (row === null || !place) return false;
+    const arrangement = !!entry.recipe.objects;
+    if (arrangement && (e.key === '[' || e.key === ']')) {
+      const edit = studioObjectSelect(entry.inputValues, row + (e.key === '[' ? -1 : 1));
+      commit(entry, tRaw('Select'), edit);
+      showSelection(Number(edit.value) - 1);
+      return true;
+    }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (!arrangement) return false;
+      const edits = removeEdits(entry, row);
+      if (edits.length) {
+        setSelected(entry, false);
+        commit(entry, tRaw('Remove'), ...edits);
+      } else note(entry, tRaw('An arrangement keeps at least one object you can see.'));
+      return true;
+    }
     const step = e.shiftKey ? 0.5 : 0.1,
       turn = e.shiftKey ? 15 : 5;
-    const [px, , pz] = spec.transform.position;
-    const edits: Record<string, { id: string; value: unknown } | undefined> = {
-      ArrowLeft: studioObjectEdit(entry.inputValues, index, { x: px - step }),
-      ArrowRight: studioObjectEdit(entry.inputValues, index, { x: px + step }),
-      ArrowUp: studioObjectEdit(entry.inputValues, index, { z: pz - step }),
-      ArrowDown: studioObjectEdit(entry.inputValues, index, { z: pz + step }),
-      ',': studioObjectEdit(entry.inputValues, index, { rotY: num(row.rotY) - turn }),
-      '.': studioObjectEdit(entry.inputValues, index, { rotY: num(row.rotY) + turn }),
-      '[': studioObjectSelect(entry.inputValues, index - 1),
-      ']': studioObjectSelect(entry.inputValues, index + 1),
+    const limit = positionLimit(entry);
+    const [px, py, pz] = place.position;
+    const along = (x: number, z: number): StudioVector3 => [
+      Math.max(-limit, Math.min(limit, x)),
+      py,
+      Math.max(-limit, Math.min(limit, z)),
+    ];
+    const moves: Record<string, StudioVector3> = {
+      ArrowLeft: along(px - step, pz),
+      ArrowRight: along(px + step, pz),
+      ArrowUp: along(px, pz - step),
+      ArrowDown: along(px, pz + step),
     };
-    const edit = edits[e.key];
-    if (!edit) return false;
-    commit(entry, tRaw('Move'), edit);
-    return true;
+    if (moves[e.key]) {
+      commit(entry, tRaw('Move'), ...moveEdits(entry, row, moves[e.key]!, ['x', 'z']));
+      return true;
+    }
+    if (e.key === ',' || e.key === '.') {
+      const [x, y, z] = place.rotation;
+      commit(entry, tRaw('Turn'), ...turnEdits(entry, row, [x, y + (e.key === ',' ? -turn : turn), z]));
+      return true;
+    }
+    return false;
   }
 
   canvas.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      setStudioMode(entry, 'orbit');
+      // Escape drops a drag first, then leaves a mode, then clears the selection.
+      const dragging = gesture !== null || handles.busy();
       cancel();
+      if (dragging) return;
+      if (studioMode(entry) !== 'orbit') setStudioMode(entry, 'orbit');
+      else if (selectedObject(entry) !== null) setSelected(entry, false);
       return;
     }
     if (!editable() || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -608,7 +646,7 @@ export function wireStudioGestures(entry: StudioControls): void {
       return;
     }
     const mode = studioMode(entry);
-    const modeKey = (mode === 'turn' && turnKey(e)) || (mode === 'lights' && lightKey(e)) || (mode === 'move' && !!entry.recipe.objects && moveKey(e));
+    const modeKey = (mode === 'tilt' && turnKey(e)) || (mode === 'lights' && lightKey(e)) || (mode === 'orbit' && objectKey(e));
     if (modeKey) {
       used();
       return;

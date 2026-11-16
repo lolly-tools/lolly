@@ -3,16 +3,22 @@
  * 3D Studio's controls, drawn by the stage kit (lib/stage-kit.ts) beside the picture
  * instead of inside the scaled artboard (plan 368, W1 and W3).
  *
- * `syncStudioControls` builds the groups from the mount's state on every sync: the
- * pointer modes as one segmented control, framing, the camera path, focus (only with
- * depth of field), the collection or arrangement items, and the source notes at the end.
- * The enabled, hidden and pressed rules are the ones the template's toolbar had, and the
- * buttons keep their `data-studio-*` attributes, so tests and scripts find them as before.
+ * `syncStudioControls` builds the groups from the mount's state on every sync: Move
+ * lights, framing, the camera path, focus (only with depth of field), the collection or
+ * arrangement items, the selected object's actions (Duplicate, Remove, Rest on the stage
+ * and Tilt), and the source notes at the end. The object's name opens the list of objects.
+ * There is no Orbit, Move or Turn mode: an object is selected, moved, turned, lifted and
+ * scaled on the canvas (handles.ts, plan 368 D4). The buttons keep their `data-studio-*`
+ * attributes, so tests and scripts find them by those.
  *
  * A mount with no stage kit (multi-edit, a Design scene box, an export or a one-off
  * render) draws no controls at all, and a mount with no `setInput` draws none either.
  */
-import { studioActiveObject, studioObjectName } from '../../../../../engine/src/studio3d-arrangement.ts';
+import {
+  studioActiveObject,
+  studioObjectName,
+  studioObjectSelect,
+} from '../../../../../engine/src/studio3d-arrangement.ts';
 import {
   type StudioValues,
   studioActiveIndex,
@@ -36,14 +42,25 @@ import {
   type StudioMode,
   activeObject,
   commit,
+  focusQuietly,
   modeStatus,
   note,
+  objectEditing,
   resetCamera,
+  selectedObject,
+  setSelected,
   setStudioMode,
   studioFit,
   studioMode,
   viewFrom,
 } from './controls.ts';
+import {
+  canDuplicate,
+  canRemove,
+  duplicateEdits,
+  removeEdits,
+  restEdits,
+} from './object-edit.ts';
 
 /** The View menu's names, translated where they are shown. */
 const VIEW_LABELS: Record<(typeof STUDIO_VIEW_PRESETS)[number]['id'], () => string> = {
@@ -66,7 +83,7 @@ function guarded(entry: StudioControls, action: () => void): () => void {
   };
 }
 
-/** A mode button switches to its mode, or back to Orbit when it is already on. */
+/** A mode button switches to its mode, or back to the rest state when it is already on. */
 function toggleMode(entry: StudioControls, mode: StudioMode): void {
   setStudioMode(entry, studioMode(entry) === mode ? 'orbit' : mode);
   entry.canvas.focus({ preventScroll: true });
@@ -77,7 +94,7 @@ function rows(values: StudioValues, key: string): StudioValues[] {
   return Array.isArray(list) ? (list as StudioValues[]) : [];
 }
 
-/** The pill for the selected arrangement object: "2 of 3: Sphere". */
+/** The name of the selected arrangement object, as its list button reads: "2 of 3: Sphere". */
 function objectLabel(values: StudioValues): string {
   try {
     const index = studioActiveObject(values);
@@ -169,6 +186,81 @@ function useSharedFraming(entry: StudioControls, index: number): void {
   });
 }
 
+/** The objects of an arrangement as a menu: choosing one selects it and shows its handles. */
+function objectMenu(entry: StudioControls): { id: string; label: string; checked: boolean; onPress(): void }[] {
+  const objects = rows(entry.inputValues, 'objects');
+  const active = activeObject(entry);
+  return objects.map((row, index) => ({
+    id: `object-${index + 1}`,
+    label: studioObjectName(row, index),
+    checked: index === active,
+    onPress: () => {
+      if (index !== active) commit(entry, tRaw('Select'), studioObjectSelect(entry.inputValues, index));
+      // The saved selection comes back with the next render; the handles follow the choice now.
+      entry.inputValues = { ...entry.inputValues, activeObject: index + 1 };
+      setSelected(entry, true);
+      entry.canvas.focus({ preventScroll: true });
+    },
+  }));
+}
+
+/** The selected object's actions. The ones that need a selection wait for one. */
+function objectActions(entry: StudioControls, disabled: boolean): StageKitAction[] {
+  const run = (action: () => void) => guarded(entry, action);
+  const arrangement = entry.inputValues.source === 'arrangement';
+  const editing = objectEditing(entry);
+  const row = selectedObject(entry);
+  const none = disabled || row === null;
+  return [
+    {
+      id: 'studio-duplicate',
+      label: tRaw('Duplicate'),
+      shortLabel: tRaw('Copy'),
+      icon: 'duplicate',
+      disabled: none || !canDuplicate(entry),
+      hidden: !arrangement || !editing,
+      data: { 'studio-duplicate': '' },
+      onPress: run(() => {
+        if (row === null) return;
+        // The copy stands one footprint to the side of the original, clear of the original.
+        const offset = Math.max(0.4, 2 * (entry.handle.selection(row)?.radius ?? 0.4) + 0.1);
+        commit(entry, tRaw('Duplicate'), ...duplicateEdits(entry, row, offset));
+        entry.inputValues = { ...entry.inputValues, activeObject: rows(entry.inputValues, 'objects').length + 1 };
+        setSelected(entry, true);
+      }),
+    },
+    {
+      id: 'studio-remove',
+      label: tRaw('Remove'),
+      icon: 'trash',
+      disabled: none || !canRemove(entry, row),
+      hidden: !arrangement || !editing,
+      data: { 'studio-remove': '' },
+      onPress: run(() => {
+        if (row === null) return;
+        const edits = removeEdits(entry, row);
+        setSelected(entry, false);
+        commit(entry, tRaw('Remove'), ...edits);
+        entry.canvas.focus({ preventScroll: true });
+      }),
+    },
+    {
+      id: 'studio-rest',
+      label: tRaw('Rest on the stage'),
+      shortLabel: tRaw('Rest'),
+      icon: 'alignB',
+      title: tRaw('Put the object down on the stage, with no height'),
+      disabled: none || !restEdits(entry, row),
+      hidden: !editing,
+      data: { 'studio-rest': '' },
+      onPress: run(() => {
+        const edits = row === null ? null : restEdits(entry, row);
+        if (edits) commit(entry, tRaw('Rest on the stage'), ...edits);
+      }),
+    },
+  ];
+}
+
 /** The groups the stage kit draws for this mount, or none. */
 export function studioBar(entry: StudioControls): StageKitGroup[] {
   const { options, recipe, inputValues: values } = entry;
@@ -199,12 +291,8 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
   const groups: StageKitGroup[] = [
     {
       id: 'studio-modes',
-      label: tRaw('Pointer mode'),
-      segmented: true,
+      label: tRaw('Lights'),
       items: [
-        modeButton('orbit', tRaw('Orbit'), tRaw('Orbit'), 'orbit', 'orbit'),
-        modeButton('move', tRaw('Move objects'), tRaw('Move'), 'move4', 'move', { hidden: !arrangement }),
-        modeButton('turn', tRaw('Turn object'), tRaw('Turn'), 'rotateCw', 'turn'),
         modeButton('lights', tRaw('Move lights'), tRaw('Lights'), 'sunburst', 'lights', { hidden: !studioPlaceableLights(recipe).length }),
       ],
     },
@@ -357,8 +445,19 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
       },
     );
   } else if (arrangement) {
+    const name = objectLabel(values);
     items.push(
-      { kind: 'pill', id: 'studio-object-label', text: objectLabel(values), data: { 'studio-object-label': '' } },
+      {
+        id: 'studio-object-label',
+        label: name,
+        // The phone shows the object's own name, without the count.
+        shortLabel: name.replace(/^[^:]*:\s*/, ''),
+        icon: 'layers',
+        title: tRaw('Choose the object to work on'),
+        disabled,
+        data: { 'studio-object-label': '' },
+        menu: () => objectMenu(entry),
+      },
       {
         id: 'studio-add',
         label: tRaw('Add objects'),
@@ -372,6 +471,16 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
     );
   }
   if (items.length) groups.push({ id: 'studio-items', label: collection ? tRaw('Collection') : tRaw('Objects'), items });
+  groups.push({
+    id: 'studio-object',
+    label: tRaw('Selected object'),
+    items: [
+      ...objectActions(entry, disabled),
+      modeButton('tilt', tRaw('Tilt'), tRaw('Tilt'), 'rotateCw', 'tilt', {
+        title: tRaw('Drag to turn and tilt the object freely'),
+      }),
+    ],
+  });
 
   const expert = values.controls === 'expert' || values.materialMode === 'custom';
   const notesTitle = expert ? tRaw('Material slots and source notes') : tRaw('Source notes');
@@ -420,18 +529,21 @@ export function syncStudioControls(entry: StudioControls): void {
   const chrome = entry.options.chrome;
   entry.refreshChrome = chrome ? () => chrome.setBar(studioBar(entry)) : undefined;
   let mode = studioMode(entry);
-  if (mode === 'focus' || (mode === 'move' && !entry.recipe.objects)) mode = 'orbit';
+  if (mode === 'focus') mode = 'orbit';
   // A repaint keeps a mode and its overlay on the newly selected object or light.
   setStudioMode(entry, mode);
   if (!entry.status) note(entry, modeStatus(entry, mode), false);
   if (entry.ready && entry.canvas.dataset.restoreFocus) {
-    if (entry.canvas.dataset.restoreFocus === 'canvas') entry.canvas.focus({ preventScroll: true });
+    const restore = entry.canvas.dataset.restoreFocus;
+    if (restore === 'canvas') entry.canvas.focus({ preventScroll: true });
+    else if (restore === 'canvas-quiet') focusQuietly(entry.canvas);
     delete entry.canvas.dataset.restoreFocus;
   }
 }
 
 /** Take the studio's controls off the stage: its mount is going. */
 export function clearStudioControls(entry: StudioControls): void {
+  entry.clearHandles?.();
   entry.refreshChrome = undefined;
   entry.options.chrome?.setBar([]);
   entry.options.chrome?.setStatus('');

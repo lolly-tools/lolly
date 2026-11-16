@@ -25,7 +25,7 @@ export interface StudioBarHarness {
 
 export async function studioBarHarness(
   values: Record<string, unknown>,
-  extra: { commitMany?: boolean; addObjects?: boolean; reviewCollection?: boolean } = {}
+  extra: { commitMany?: boolean; addObjects?: boolean; reviewCollection?: boolean; layer?: boolean; selected?: boolean } = {}
 ): Promise<StudioBarHarness> {
   const { syncStudioControls } = await import('../../shells/web/src/lib/studio3d/toolbar.ts');
   let groups: StageKitGroup[] = [];
@@ -45,7 +45,9 @@ export async function studioBarHarness(
   const entry = {
     canvas,
     marker: {},
-    handle: { highlight() {}, showLightHandles() {}, fit: () => null, view() {} },
+    handle: { showLightHandles() {}, fit: () => null, view() {}, selection: () => null },
+    // Handles are drawn only where the kit has a handle layer; `selected` shows them.
+    selected: !!extra.selected,
     ready: true,
     recipe: buildStudioScene({ version: 1, values }),
     inputValues: values,
@@ -59,6 +61,7 @@ export async function studioBarHarness(
       chrome: {
         setBar: (next: readonly StageKitGroup[]) => { groups = [...next]; },
         setStatus: (text: string) => { status = text; },
+        ...(extra.layer ? { layer: () => ({}) as HTMLElement } : {}),
       },
     },
     render() {},

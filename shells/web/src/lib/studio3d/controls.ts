@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * 3D Studio's pointer modes, its status line and the way its canvas edits are saved.
- * The gestures themselves are in gestures.ts and the controls in toolbar.ts; both call
- * through here, so a mode, a commit and a framing behave the same from a key, a drag or
- * a button.
+ * 3D Studio's pointer modes, its selection, its status line and the way its canvas edits
+ * are saved. The gestures are in gestures.ts, the handles on the selected object in
+ * handles.ts and the controls in toolbar.ts; all three call through here, so a mode, a
+ * selection, a commit and a framing behave the same from a key, a drag or a button.
+ *
+ * With no mode on, a press on an object selects it and a drag on one moves it; a drag on
+ * empty space orbits (plan 368, D4). Tilt, Move lights and Pick focus are the modes left,
+ * each a tool with no handle of its own.
  */
 import { studioActiveObject } from '../../../../../engine/src/studio3d-arrangement.ts';
 import { studioCameraEdit, type StudioValues } from '../../../../../engine/src/studio3d-collection.ts';
@@ -34,6 +38,15 @@ export interface StudioControls {
   };
   /** The light the Move lights mode acts on; chrome state, never saved. */
   selectedLight?: number;
+  /**
+   * Whether the object shows its handles: chrome state, never saved. Which object it is
+   * comes from the saved `activeObject` in an arrangement; a lone subject is row 0.
+   */
+  selected?: boolean;
+  /** Place the handles on the selected object again, or take them away; set by handles.ts. */
+  drawHandles?: () => void;
+  /** Take the handles off the stage for good: the mount is going. */
+  clearHandles?: () => void;
   /** The source notes the Info panel shows; empty until the scene has loaded. */
   notes?: string;
   /** The status sentence on show, and whether it reports one action rather than the mode. */
@@ -45,8 +58,11 @@ export interface StudioControls {
   render(quality: 'preview'): void;
 }
 
-/** The pointer modes. Orbit is the rest state; Pick focus waits for one press. */
-export type StudioMode = 'orbit' | 'move' | 'turn' | 'lights' | 'focus';
+/**
+ * The pointer modes. Orbit is the rest state, where a press selects, a drag on an object
+ * moves it and a drag on empty space orbits; Pick focus waits for one press.
+ */
+export type StudioMode = 'orbit' | 'tilt' | 'lights' | 'focus';
 
 /**
  * Write edits. One gesture or one key press is one undo step: the history's gesture is
@@ -55,7 +71,10 @@ export type StudioMode = 'orbit' | 'move' | 'turn' | 'lights' | 'focus';
  */
 export function commit(entry: StudioControls, label: string, ...edits: { id: string; value: unknown }[]): void {
   if (!edits.length) return;
-  if (entry.canvas.ownerDocument?.activeElement === entry.canvas) entry.canvas.dataset.restoreFocus = 'canvas';
+  // The repaint moves the canvas, which takes its focus away; the sync gives it back, with
+  // the focus ring only if the ring was on show (a key press, not a press of the pointer).
+  if (entry.canvas.ownerDocument?.activeElement === entry.canvas)
+    entry.canvas.dataset.restoreFocus = entry.canvas.matches(':focus-visible') ? 'canvas' : 'canvas-quiet';
   const ids = new Set(edits.map((edit) => edit.id));
   if (ids.size > 1 && entry.options.commitMany) {
     entry.options.commitMany(Object.fromEntries(edits.map((edit) => [edit.id, edit.value])), label);
@@ -75,6 +94,13 @@ export function cameraEdit(entry: StudioControls, values: StudioValues): void {
   entry.inputValues = { ...entry.inputValues, [edit.id]: edit.value };
   entry.inputCamera = camera;
 }
+/**
+ * Focus the canvas without the focus ring, for a press of the pointer: the keys still reach
+ * the canvas, and the ring stays for a person who arrived by keyboard.
+ */
+export function focusQuietly(canvas: HTMLElement): void {
+  canvas.focus({ preventScroll: true, focusVisible: false } as FocusOptions);
+}
 /** The primary pointer is a finger: status lines name no keys there. */
 export function coarsePointer(): boolean {
   return typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
@@ -91,18 +117,25 @@ export function studioMode(entry: StudioControls): StudioMode {
   const flags = entry.canvas.dataset;
   if (flags.pickFocus === 'true') return 'focus';
   if (flags.moveLight === 'true') return 'lights';
-  if (flags.turnObject === 'true') return 'turn';
-  if (flags.moveObject === 'true') return 'move';
+  if (flags.tiltObject === 'true') return 'tilt';
   return 'orbit';
 }
-export function arranging(entry: StudioControls): boolean {
-  return studioMode(entry) === 'move';
+/**
+ * Whether objects are selected and handled on the canvas: a mount whose edits are saved,
+ * drawn with a stage kit that has a handle layer. A collection's items share one pose, so
+ * it keeps the sidebar for that. Without the kit (multi-edit, a Design scene box) every
+ * drag moves the camera, as before.
+ */
+export function objectEditing(entry: StudioControls): boolean {
+  return !!entry.options.setInput && !!entry.options.chrome?.layer && entry.inputValues.source !== 'collection';
 }
-export function turnsObject(entry: StudioControls): boolean {
-  return studioMode(entry) === 'turn';
-}
-export function relighting(entry: StudioControls): boolean {
-  return studioMode(entry) === 'lights';
+/** The row whose handles show, or null: the arrangement's selected row, or 0 for a lone subject. */
+export function selectedObject(entry: StudioControls): number | null {
+  if (!entry.selected || !objectEditing(entry)) return null;
+  if (!entry.recipe.objects) return 0;
+  const row = activeObject(entry);
+  const spec = entry.recipe.objects[row];
+  return spec?.visible && !spec.pending ? row : null;
 }
 export function lightName(entry: StudioControls, index: number): string {
   const id = entry.recipe.lights[index]?.id ?? '';
@@ -126,13 +159,33 @@ export function modeStatus(entry: StudioControls, mode: StudioMode): string {
         ? tRaw('{light} selected: drag a light round the subject.', { light })
         : tRaw('{light} selected: drag a light round the subject, or use the arrow keys.', { light });
     }
-    case 'move':
-      return touch ? tRaw('Drag an object to move it on the stage.') : tRaw('Drag an object to move it, or nudge the selected one with the arrow keys.');
-    case 'turn':
+    case 'tilt':
       return touch ? tRaw('Drag sideways to turn the object and up or down to tilt.') : tRaw('Drag sideways to turn and up or down to tilt, or use the arrow keys.');
-    default:
-      return '';
+    default: {
+      if (!objectEditing(entry)) return '';
+      if (selectedObject(entry) !== null)
+        return touch
+          ? tRaw('Drag to move. Drag the ring to turn and the squares to lift and scale.')
+          : tRaw('Drag or use the arrow keys to move. Drag the ring to turn and the squares to lift and scale.');
+      const one = !entry.recipe.objects;
+      if (touch) return one ? tRaw('Tap the object to select it, or drag empty space to orbit.') : tRaw('Tap an object to select it, or drag empty space to orbit.');
+      return one ? tRaw('Click the object to select it, or drag empty space to orbit.') : tRaw('Click an object to select it, or drag empty space to orbit.');
+    }
   }
+}
+/**
+ * Show or hide the selected object's handles. Chrome only: nothing is saved, and the
+ * picture does not move, because the handles sit on their own layer and the status line
+ * keeps its row.
+ */
+export function setSelected(entry: StudioControls, on: boolean): void {
+  const was = selectedObject(entry);
+  entry.selected = on;
+  const now = selectedObject(entry);
+  entry.drawHandles?.();
+  if (was === now) return;
+  if (studioMode(entry) === 'orbit') note(entry, modeStatus(entry, 'orbit'), false);
+  entry.refreshChrome?.();
 }
 /**
  * Change the pointer mode. The canvas carries the mode as data flags (read by tests and by
@@ -144,12 +197,12 @@ export function setStudioMode(entry: StudioControls, mode: StudioMode): void {
   const was = studioMode(entry);
   flags.pickFocus = String(mode === 'focus');
   flags.moveLight = String(mode === 'lights');
-  flags.turnObject = String(mode === 'turn');
-  flags.moveObject = String(mode === 'move');
-  entry.canvas.style.cursor = mode === 'focus' ? 'crosshair' : mode === 'move' || mode === 'lights' ? 'move' : 'grab';
-  entry.handle.highlight((mode === 'move' || mode === 'turn') && entry.recipe.objects ? activeObject(entry) : null);
+  flags.tiltObject = String(mode === 'tilt');
+  entry.canvas.style.cursor = mode === 'focus' ? 'crosshair' : mode === 'lights' ? 'move' : 'grab';
   entry.handle.showLightHandles(mode === 'lights' ? { selected: selectedLight(entry) } : null);
   if (entry.ready) entry.render('preview');
+  // A mode keeps the handles to itself: Tilt shows the ring alone, the others none.
+  entry.drawHandles?.();
   // A mode's sentence replaces a report of one action; a report survives a repaint in the same mode.
   if (mode !== was || !entry.status?.once) note(entry, modeStatus(entry, mode), false);
   entry.refreshChrome?.();

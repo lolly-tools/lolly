@@ -18,6 +18,18 @@ import type {
   StudioVector3,
 } from '../../../../../packages/core/src/studio3d-v1.ts';
 
+/**
+ * The rest place of a selected object (plan 368, W3): the centre of the floor ring on
+ * the surface it stands on, the ring's radius in studio units, and the object's world
+ * bounds. The handles over a preview are drawn from this, never from the frame's pixels.
+ */
+export interface StudioSceneSelection<Point> {
+  center: Point;
+  radius: number;
+  min: Point;
+  max: Point;
+}
+
 /** Sample profile of one frame: live previews, still exports, or clip frames. */
 export type StudioSceneQuality = 'preview' | 'export' | 'clip';
 
@@ -125,16 +137,20 @@ export interface StudioSceneHost<Surface, Camera, Point> {
   // Interactive and preview-only: none of these reach an export.
   /** Preview an unsaved camera, such as an orbit in progress. */
   view: (camera: Partial<StudioSceneV1['camera']>) => void;
-  /** Preview an object at a new position while it is dragged. */
+  /** Preview an object at a new position, height included, while it is dragged; row 0 is a lone subject. */
   moveObject: (row: number, position: StudioVector3) => void;
   /** Preview an object at a new rotation, in degrees, while it is turned; row 0 is a lone subject. */
   turnObject: (row: number, rotation: StudioVector3) => void;
+  /** Preview an object at a new uniform scale while it is scaled; row 0 is a lone subject. */
+  scaleObject: (row: number, scale: number) => void;
   /** Preview a light at a new position while it is dragged. */
   moveLight: (index: number, position: StudioVector3) => void;
   /** The placeable light whose handle is nearest a point in normalised device coordinates. */
   pickLight: (aspect: number, x: number, y: number) => number | null;
-  /** Outline one object row in previews, or none. */
-  highlight: (index: number | null) => void;
+  /** The rest place of one object row, for handles drawn over the preview; null when hidden. */
+  selection: (row: number) => StudioSceneSelection<Point> | null;
+  /** The camera of the last preview frame, which handles over the preview are placed through. */
+  frameCamera: () => Camera | null;
   /** Show light handles in previews, marking the selected light, or hide them. */
   showLightHandles: (state: { selected: number | null } | null) => void;
   /** The zoom and target that frame every object, or one row. */

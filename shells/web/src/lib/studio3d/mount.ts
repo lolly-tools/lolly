@@ -162,6 +162,12 @@ interface Entry {
   refreshChrome?: () => void;
   /** Save a camera view a wheel or key run is still previewing; set by gestures.ts. */
   flushView?: () => void;
+  /** Whether the selected object shows its handles; chrome state, never saved (controls.ts). */
+  selected?: boolean;
+  /** Place the selected object's handles on the frame just drawn; set by gestures.ts. */
+  drawHandles?: () => void;
+  /** Take the handles off the stage; set by gestures.ts. */
+  clearHandles?: () => void;
   /**
    * Draw a frame. Only a capture render (`capture` true: the export clock or a prepare)
    * draws while a capture is running; any other call returns without drawing.
@@ -191,6 +197,8 @@ function status(entry: Entry, message: string, state: StudioSceneState): void {
     label.textContent = message;
     label.hidden = state === 'ready' || state === 'cancelled';
   }
+  // A scene that failed shows no handles on the frame it can no longer draw.
+  if (state === 'error') entry.drawHandles?.();
 }
 
 function destroy(entry: Entry): void {
@@ -386,7 +394,11 @@ export async function mountToolStudio(
             const verify = current.verifyNext;
             current.verifyNext = false;
             handle.capture(target.width, target.height, quality, time, seconds, verify);
-          } else handle.render(target.width, target.height, quality, time, seconds);
+          } else {
+            handle.render(target.width, target.height, quality, time, seconds);
+            // The handles over the preview move in the same task as the frame they sit on.
+            if (!capture && quality === 'preview') current.drawHandles?.();
+          }
         } catch (error) {
           const failure = error instanceof Error ? error : new Error(String(error));
           if (capture) current.captureError ??= failure;
