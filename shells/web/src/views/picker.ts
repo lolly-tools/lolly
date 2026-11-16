@@ -3741,7 +3741,7 @@ export async function replaceUserUpload(host: ReplaceHost, targetId: string, fil
  * number rather than probing the bytes. Ignored when it is not a finite positive.
  */
 export async function storeRecordingAsset(
-  host: PickerHost, blob: Blob, ext: 'mp4' | 'webm' | 'png', prevId?: string,
+  host: PickerHost, blob: Blob, ext: 'mp4' | 'webm' | 'ogg' | 'png', prevId?: string,
   credential?: { store: Uint8Array; format: string },
   opts?: { audio?: boolean; durationMs?: number },
 ): Promise<AssetRef> {

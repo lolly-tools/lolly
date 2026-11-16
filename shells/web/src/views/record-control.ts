@@ -562,10 +562,14 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     // the save bar below and is not lost.
     if (takesAudioInput(runtime.getModel())) {
       try {
-        const ext: 'mp4' | 'webm' = /mp4|mpeg|m4a/i.test(mimeType) ? 'mp4' : 'webm';
-        const previous = runtime.getModel().find(i => i.id === 'audio')?.value as { id?: string } | undefined;
+        // The store is told the container the recorder really wrote. Firefox writes Ogg,
+        // and an Ogg take filed as WebM would download under the wrong name.
+        const ext = /mp4|mpeg|m4a/i.test(mimeType) ? 'mp4' : /ogg/i.test(mimeType) ? 'ogg' : 'webm';
         const { storeRecordingAsset: store } = await import('./picker.ts');
-        const ref = await store(storeHost, clip, ext, previous?.id, credential ?? undefined, { audio: true, durationMs: takeMs });
+        // No previous id: the store deletes the asset it is handed before the input
+        // changes, and Undo would then restore a reference to a deleted take. An earlier
+        // take stays in the library.
+        const ref = await store(storeHost, clip, ext, undefined, credential ?? undefined, { audio: true, durationMs: takeMs });
         if (disposed) return;
         await runtime.setInput('audio', ref);
         if (disposed) return;
