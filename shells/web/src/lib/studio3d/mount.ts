@@ -6,9 +6,11 @@ import {
 } from '../../../../../engine/src/studio3d-collection.ts';
 import type { StudioSceneV1 } from '../../../../../packages/core/src/studio3d-v1.ts';
 import { STUDIO_CONTEXT_LOST, StudioEmptyFrameError } from './capture.ts';
-import { studioFit, wireStudioGestures } from './controls.ts';
+import { studioFit } from './controls.ts';
+import { wireStudioGestures } from './gestures.ts';
 import { clearStudioControls, syncStudioControls } from './toolbar.ts';
 import type { StageKitPort } from '../stage-kit.ts';
+import { tRaw } from '../../i18n.ts';
 import type { StudioLease } from './pool.ts';
 import { StudioRenderer } from './renderer.ts';
 import type { StudioSceneCounters, StudioSceneQuality, StudioSceneState } from './scene-host.ts';
@@ -158,6 +160,8 @@ interface Entry {
   notes?: string;
   /** Redraw the controls from the current state; set by toolbar.ts while a kit is attached. */
   refreshChrome?: () => void;
+  /** Save a camera view a wheel or key run is still previewing; set by gestures.ts. */
+  flushView?: () => void;
   /**
    * Draw a frame. Only a capture render (`capture` true: the export clock or a prepare)
    * draws while a capture is running; any other call returns without drawing.
@@ -314,7 +318,7 @@ export async function mountToolStudio(
     canvas.style.cssText = 'width:100%;height:100%;display:block;touch-action:none;';
     canvas.setAttribute(
       'aria-label',
-      '3D studio preview. Drag or use arrow keys to orbit. Shift moves by ten degrees.'
+      tRaw('3D studio preview: drag to orbit, drag with two fingers or Shift to pan, pinch or scroll to zoom, and double-click to frame.')
     );
     let handle: StudioRenderer;
     try {

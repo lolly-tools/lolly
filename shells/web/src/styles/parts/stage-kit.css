@@ -66,6 +66,14 @@
   font-family: var(--ui-type-ui-family);
 }
 .stage-kit-bar::-webkit-scrollbar { display: none; }
+/* A row that scrolls says so: the edge with more beyond it fades out, and the fade goes
+   once the row is scrolled to that end (lib/stage-kit.ts sets the two flags). */
+.stage-kit-bar[data-more-end] { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
+.stage-kit-bar[data-more-start] { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent); }
+.stage-kit-bar[data-more-start][data-more-end] {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
 
 .stage-kit-group {
   display: flex;
@@ -86,13 +94,6 @@
   display: flex;
   align-items: center;
   gap: 2px;
-}
-/* Mode buttons as one segmented control: a muted track, the chosen mode raised on it
-   (the profile menu's theme switch and the view toggle draw choices the same way). */
-.stage-kit-group[data-segmented] > .stage-kit-items {
-  padding: 2px;
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-color-surface-muted);
 }
 
 .stage-kit-btn {
@@ -127,22 +128,16 @@
 /* Inset, because the bar scrolls and would clip a ring drawn outside the button. */
 .stage-kit-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 .stage-kit-btn:disabled { opacity: 0.35; cursor: default; }
-/* A toggle that is on (Play path, Pick focus): the selection surface and the accent ink. */
+/* A mode or toggle that is on reads as the sidebar's chosen option does (.badge-select-opt.is-on
+   in tool.css): the tinted fill, the inset edge and the accent ink, so the app has one
+   pressed language. */
 .stage-kit-btn[aria-pressed="true"] {
-  background: var(--ui-color-selection-surface);
+  background: hsl(var(--primary) / 0.14);
+  box-shadow: var(--ui-effect-selected);
   color: var(--ui-color-text-accent);
+  font-weight: 600;
 }
-/* The chosen mode on a segmented track: raised, like the theme switch's chosen segment. */
-.stage-kit-group[data-segmented] .stage-kit-btn[aria-pressed="true"] {
-  background: var(--ui-color-surface-raised);
-  color: var(--ui-color-text-default);
-  box-shadow: var(--ui-elevation-control), var(--ui-edge-faint);
-}
-.stage-kit-group[data-segmented] .stage-kit-btn[aria-pressed="false"] { color: var(--ui-color-text-muted); }
-.stage-kit-group[data-segmented] .stage-kit-btn[aria-pressed="false"]:hover:not(:disabled) {
-  color: var(--ui-color-text-default);
-  background: color-mix(in srgb, var(--ui-color-surface-raised) 60%, transparent);
-}
+.stage-kit-btn[aria-pressed="true"]:hover:not(:disabled) { background: hsl(var(--primary) / 0.2); }
 
 /* Labels: the full one on a wide screen, the short one on a phone, none in a group that
    gave its labels up for room (data-compact) or that a phone draws as icons. */
@@ -170,19 +165,17 @@
   white-space: nowrap;
 }
 
-/* One sentence about the current mode. Hidden when there is nothing to say. */
+/* One quiet caption about the current mode, in the muted ink at caption size, with no
+   surface of its own. Hidden, and taking no space, when there is nothing to say. */
 .stage-kit-status {
   pointer-events: auto;
   margin: 0;
   max-width: min(42rem, 100%);
   box-sizing: border-box;
-  padding: var(--sp-2) var(--sp-5);
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface-raised);
-  color: var(--ui-color-text-default);
-  box-shadow: var(--ui-elevation-panel), var(--ui-edge-faint);
+  padding: 0 var(--sp-3);
+  color: var(--ui-color-text-muted);
   font-family: var(--ui-type-ui-family);
-  font-size: var(--fs-md);
+  font-size: var(--fs-sm);
   line-height: 1.4;
   text-align: center;
 }

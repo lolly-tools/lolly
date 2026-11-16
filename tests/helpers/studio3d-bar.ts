@@ -37,6 +37,8 @@ export async function studioBarHarness(
     style: {} as Record<string, string>,
     tabIndex: 0,
     focus() {},
+    setAttribute() {},
+    removeAttribute() {},
     dispatchEvent() { return true; },
     getBoundingClientRect: () => ({ left: 0, top: 0, width: 400, height: 400, right: 400, bottom: 400 }),
   };

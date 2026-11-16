@@ -30,6 +30,7 @@ import {
 import { studioPlaceableLights } from '../../../../../engine/src/studio3d-lights.ts';
 import { tRaw } from '../../i18n.ts';
 import type { StageKitAction, StageKitGroup, StageKitItem } from '../stage-kit.ts';
+import { STUDIO_VIEW_PRESETS } from './camera-nav.ts';
 import {
   type StudioControls,
   type StudioMode,
@@ -41,12 +42,23 @@ import {
   setStudioMode,
   studioFit,
   studioMode,
+  viewFrom,
 } from './controls.ts';
+
+/** The View menu's names, translated where they are shown. */
+const VIEW_LABELS: Record<(typeof STUDIO_VIEW_PRESETS)[number]['id'], () => string> = {
+  front: () => tRaw('Front'),
+  side: () => tRaw('Side'),
+  top: () => tRaw('Top'),
+  'three-quarter': () => tRaw('Three-quarter'),
+};
 
 /** Run a control's action; an action that cannot run reports why in the status line. */
 function guarded(entry: StudioControls, action: () => void): () => void {
   return () => {
     try {
+      // A wheel or key view still waiting for its pause is saved first, as its own step.
+      entry.flushView?.();
       action();
     } catch (error) {
       note(entry, (error as Error).message);
@@ -99,7 +111,7 @@ function moveKeys(entry: StudioControls): unknown[] {
 function addCameraKey(entry: StudioControls): void {
   const edit = studioAddCameraKey(entry.inputValues);
   const count = (edit.value as unknown[]).length;
-  commit(entry, tRaw('Add camera key'), edit, ...(count >= 2 ? [] : [{ id: 'cameraMotion', value: 'still' }]));
+  commit(entry, tRaw('Add key'), edit, ...(count >= 2 ? [] : [{ id: 'cameraMotion', value: 'still' }]));
   note(
     entry,
     count >= 2
@@ -200,7 +212,23 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
       id: 'studio-framing',
       label: tRaw('Framing'),
       phoneIcons: true,
+      // Four related views read well as icons with tooltips; they give their labels up first.
+      collapse: 0,
       items: [
+        {
+          id: 'studio-view',
+          label: tRaw('View'),
+          icon: 'eye',
+          title: tRaw('Front, side, top or three-quarter view'),
+          disabled,
+          data: { 'studio-view': '' },
+          menu: () => STUDIO_VIEW_PRESETS.map((view) => ({
+            id: view.id,
+            label: VIEW_LABELS[view.id](),
+            checked: Math.abs(recipe.camera.azimuth - view.azimuth) < 0.5 && Math.abs(recipe.camera.elevation - view.elevation) < 0.5,
+            onPress: run(() => viewFrom(entry, view.azimuth, view.elevation)),
+          })),
+        },
         {
           id: 'studio-fit',
           label: arrangement ? tRaw('Frame all') : tRaw('Fit object'),
@@ -235,7 +263,7 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
       items: [
         {
           id: 'studio-add-key',
-          label: tRaw('Add camera key'),
+          label: tRaw('Add key'),
           icon: 'camera',
           title: tRaw('Save this view as the next key of the camera path'),
           disabled,
@@ -351,6 +379,7 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
     id: 'studio-notes',
     label: notesTitle,
     phoneIcons: true,
+    collapse: 1,
     items: [{
       id: 'studio-info',
       label: notesTitle,
@@ -383,6 +412,11 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
 export function syncStudioControls(entry: StudioControls): void {
   if (!entry.ready) entry.canvas.dispatchEvent(new Event('studio-reset-gesture'));
   entry.canvas.tabIndex = entry.options.setInput ? 0 : -1;
+  // The canvas moves its own camera, so the stage neither pans nor pinches under it and
+  // leaves its plain wheel alone (lib/stage-gestures.ts). Ctrl or Cmd with the wheel
+  // still zooms the stage.
+  if (entry.options.setInput) entry.canvas.setAttribute('data-stage-gestures', 'own');
+  else entry.canvas.removeAttribute('data-stage-gestures');
   const chrome = entry.options.chrome;
   entry.refreshChrome = chrome ? () => chrome.setBar(studioBar(entry)) : undefined;
   let mode = studioMode(entry);

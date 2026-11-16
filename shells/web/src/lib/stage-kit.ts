@@ -76,6 +76,11 @@ export interface StageKitGroup {
   segmented?: boolean;
   /** On a phone the group shows icons only, whatever its short labels say. */
   phoneIcons?: boolean;
+  /**
+   * When the bar is too wide for its labels, groups give theirs up in this order, lowest
+   * first. Unset: from the last group forward, segmented modes last.
+   */
+  collapse?: number;
   hidden?: boolean;
 }
 
@@ -180,6 +185,29 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     }
   }
 
+  /**
+   * A button that loses focus to nothing (it was disabled while its action reloads the
+   * tool, or the node moved) takes focus back when it is usable again, so a keyboard
+   * person stays on the action they pressed. Focus moved anywhere else is left there.
+   */
+  let refocus: { id: string; at: number } | null = null;
+  bar.addEventListener('focusout', (e) => {
+    const id = (e.target as HTMLElement | null)?.dataset?.kitAction;
+    refocus = id && !e.relatedTarget ? { id, at: Date.now() } : null;
+  });
+  function restoreFocus(): void {
+    if (!refocus) return;
+    const active = doc.activeElement;
+    if (Date.now() - refocus.at > 2000 || (active && active !== doc.body && !bar.contains(active))) {
+      refocus = null;
+      return;
+    }
+    const b = buttons.get(refocus.id);
+    if (!b || b.disabled || b.hidden || bar.contains(active)) return;
+    refocus = null;
+    b.focus({ preventScroll: true });
+  }
+
   bar.addEventListener('focusin', (e) => {
     const b = (e.target as Element | null)?.closest?.<HTMLButtonElement>('button.stage-kit-btn');
     if (!b) return;
@@ -210,6 +238,11 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
       return;
     }
     popover?.handle.close();
+    // The button's tooltip would sit beside the panel and take the first Escape, so it
+    // goes, and stays off while the panel is open (lib/tooltips.ts).
+    button.setAttribute('data-tooltip', 'off');
+    doc.dispatchEvent(new Event('lolly:tooltip-toast'));
+    const tipBack = (): void => button.removeAttribute('data-tooltip');
     const handle = mountBodyPopover(
       button,
       (el, pop) => {
@@ -242,8 +275,8 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
         return first;
       },
       action.panel
-        ? { className: 'profile-menu stage-kit-panel', role: 'dialog', ariaLabel: action.panel.label, trackSize: true }
-        : { className: 'profile-menu stage-kit-menu', role: 'menu', ariaLabel: action.label, menuNavigation: true },
+        ? { className: 'profile-menu stage-kit-panel', role: 'dialog', ariaLabel: action.panel.label, trackSize: true, onClose: tipBack }
+        : { className: 'profile-menu stage-kit-menu', role: 'menu', ariaLabel: action.label, menuNavigation: true, onClose: tipBack },
     );
     popover = { id: action.id, handle };
     handle.open();
@@ -331,6 +364,8 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
       if (el.getAttribute('aria-label') !== group.label) el.setAttribute('aria-label', group.label);
       el.toggleAttribute('data-segmented', !!group.segmented);
       el.toggleAttribute('data-phone-icons', !!group.phoneIcons);
+      if (group.collapse === undefined) delete el.dataset.kitCollapse;
+      else el.dataset.kitCollapse = String(group.collapse);
       place(bar, el, slot++);
       const row = el.firstElementChild as HTMLElement;
       let index = 0;
@@ -370,6 +405,7 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     for (const el of groupEls.values()) el.toggleAttribute('data-kit-lead', el === lead);
     setHidden(root, ![...groupEls.values()].some((el) => !el.hidden) && status.hidden);
     syncTabStops();
+    restoreFocus();
     layout();
   }
 
@@ -407,10 +443,10 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     for (const el of groupEls.values()) el.removeAttribute('data-compact');
     if (root.dataset.placement === 'foot' || root.hidden) return;
     const shown = ([...bar.children] as HTMLElement[]).filter((el) => !el.hidden).reverse();
-    const order = [
-      ...shown.filter((el) => !el.hasAttribute('data-segmented')),
-      ...shown.filter((el) => el.hasAttribute('data-segmented')),
-    ];
+    const rank = (el: HTMLElement): number =>
+      el.dataset.kitCollapse !== undefined ? Number(el.dataset.kitCollapse) : el.hasAttribute('data-segmented') ? 1000 : 500;
+    // A stable sort keeps the last-group-first order among equal ranks.
+    const order = shown.map((el, i) => ({ el, i })).sort((a, b) => rank(a.el) - rank(b.el) || a.i - b.i).map(({ el }) => el);
     for (const el of order) {
       if (bar.scrollWidth <= bar.clientWidth + 1) break;
       el.setAttribute('data-compact', '');
@@ -460,6 +496,15 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     opts.canvas?.dispatchEvent(new Event('canvas-resize'));
   }
 
+  /** Flag the ends of a row that scrolls, so the stylesheet can fade an edge that has more past the edge. */
+  function syncScrollEdges(): void {
+    const max = bar.scrollWidth - bar.clientWidth;
+    const start = Math.abs(bar.scrollLeft);
+    bar.toggleAttribute('data-more-start', max > 1 && start > 1);
+    bar.toggleAttribute('data-more-end', max > 1 && start < max - 1);
+  }
+  bar.addEventListener('scroll', syncScrollEdges, { passive: true });
+
   function layout(): void {
     if (disposed) return;
     const placement = phone() ? 'foot' : 'top';
@@ -467,6 +512,7 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     clearHud();
     fitLabels();
     syncTips();
+    syncScrollEdges();
     reserve();
   }
 

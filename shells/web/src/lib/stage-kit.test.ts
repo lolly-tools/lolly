@@ -214,3 +214,19 @@ test('a menu action opens the shell popover and runs the chosen item', () => {
     assert.equal(document.querySelector('.stage-kit-menu'), null, 'a choice closes the menu');
   } finally { h.teardown(); }
 });
+
+test('a button disabled while its action reloads the tool gets focus back when it is usable', () => {
+  const h = mount();
+  try {
+    const bar = (disabled: boolean): Group[] => [{ id: 'v', label: 'View', items: [{ id: 'fit', label: 'Fit', icon: 'fitAll', disabled, onPress() {} }] }];
+    h.kit.setBar(bar(false));
+    const fit = h.kit.element.querySelector<HTMLButtonElement>('[data-kit-action="fit"]')!;
+    fit.focus();
+    h.kit.setBar(bar(true));
+    // jsdom keeps focus on a disabled button; a browser lets it go, which is what this is.
+    fit.blur();
+    assert.equal(document.activeElement, document.body);
+    h.kit.setBar(bar(false));
+    assert.equal(document.activeElement, fit, 'focus came back to the same action');
+  } finally { h.teardown(); }
+});
