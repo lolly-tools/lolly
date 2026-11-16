@@ -33,6 +33,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { createTokenSet } from '../../../../engine/src/tokens.ts';
 import type { Box } from './free-canvas-math.ts';
 import { ARRANGE_OPS, initDesignInspector } from './design-inspector.ts';
+import { mountDesignPanels } from './design-panels.ts';
 
 // The timeline panel imports its own stylesheet and free-canvas reaches it through a
 // dynamic import; Node has no idea what a .css module is (Vite resolves it for real).
@@ -96,6 +97,7 @@ const childBox = (id: string, frame: string, x: number): Box =>
   ({ kind: 'box', id, frame, x, y: 20, w: 100, h: 60, bg: '#ccc', text: 'hi' } as Box);
 
 interface MountOpts {
+  canvas?: Record<string, unknown>;
   chrome?: Record<string, unknown>;
   withActions?: boolean;
   withHistory?: boolean;
@@ -149,6 +151,7 @@ function mount(initial: Box[] = [], o: MountOpts = {}): Fixture {
       'exitField', 'enterMsField', 'enterEaseField', 'exitMsField', 'muteField', 'laneField']) delete cfg[k];
   }
   if (o.withImport) cfg.import = { formats: ['svg', 'penpot', 'pdf'] };
+  Object.assign(cfg, o.canvas);
   const handle = initFreeCanvas({
     viewEl, stageEl, canvasEl,
     runtime: runtime as never,
@@ -1161,5 +1164,141 @@ test('mounting the inspector pins the object bar; unmounting it lets the bar aut
     assert.equal(bar.classList.contains('fc-ctxbar--pinned'), true, 'the Design chrome makes it the selection toolbar');
     f.design.setInspector(null);
     assert.equal(bar.classList.contains('fc-ctxbar--pinned'), false);
+  } finally { f.destroy(); }
+});
+
+function compactMenuRow(key: string): HTMLButtonElement | null {
+  return document.querySelector<HTMLButtonElement>(`.fc-popover [data-pop="${key}"]`);
+}
+
+for (const path of [false, true]) for (const bindings of [undefined, 'bindStartField', 'bindEndField']) for (const grid of [false, true]) {
+  test(`compact menus follow the rail gates: path ${path}, bindings ${bindings}, grid ${grid}`, () => {
+    const f = mount([], { canvas: {
+      ...(path ? { pathField: 'path' } : {}),
+      ...(bindings ? { [bindings]: 'binding' } : {}),
+      ...(grid ? { grid: { size: 32 } } : {}),
+    } });
+    try {
+      const anchor = document.createElement('button');
+      f.stageEl.append(anchor);
+      const rail = f.stageEl.querySelector('.fc-toolbar')!;
+      const railCount = rail.querySelectorAll('button').length;
+      const line = rail.querySelector<HTMLButtonElement>('.fc-btn-line');
+      const pen = rail.querySelector<HTMLButtonElement>('.fc-btn-pen');
+      const snap = rail.querySelector('[aria-label="Snap to grid"]');
+      const existingKeys = (): string[] => [...document.querySelectorAll<HTMLElement>('.fc-popover [data-pop]')].map(row => row.dataset.pop!);
+      f.design.openLollyMenu(anchor);
+      const wideKeys = existingKeys();
+      f.design.openAddMenu!(anchor);
+      assert.deepEqual([...document.querySelectorAll('.fc-pop-item')].map(row => row.textContent), ['Box', 'Artboard']);
+
+      f.stageEl.dataset.designLayout = 'compact';
+      f.design.openAddMenu!(anchor);
+      for (const tool of ['line', 'pen', 'pencil']) assert.equal(!!compactMenuRow(tool), tool === 'line' ? !!line : !!pen);
+      const addRows = [...document.querySelectorAll<HTMLElement>('.fc-pop-item')];
+      assert.deepEqual(addRows.slice(0, 2).map(row => row.textContent), ['Box', 'Artboard']);
+      assert.deepEqual(addRows.slice(2).map(row => row.dataset.pop), path ? ['line', 'pen', 'pencil'] : []);
+      assert.equal(!!document.querySelector('.fc-popover [role="separator"]'), path);
+      if (path) {
+        // One word each. The rail's tooltip also gives a shortcut and a hold gesture,
+        // and a phone has neither.
+        assert.deepEqual(['line', 'pen', 'pencil'].map(tool => compactMenuRow(tool)!.textContent), ['Line', 'Pen', 'Pencil']);
+        assert.equal(compactMenuRow('line')!.querySelector('svg')!.innerHTML, line!.querySelector('svg')!.innerHTML);
+        for (const tool of ['pen', 'pencil']) {
+          assert.equal(compactMenuRow(tool)!.querySelector('svg')!.innerHTML, pen!.querySelector(`.fc-slot-${tool}`)!.innerHTML);
+        }
+      }
+      f.design.openLollyMenu(anchor);
+      assert.equal(!!compactMenuRow('edit-points'), !!pen);
+      assert.equal(!!compactMenuRow('auto-arrange'), !!line?.hasAttribute('aria-haspopup'));
+      assert.equal(!!compactMenuRow('snap-grid'), !!snap);
+      assert.deepEqual(existingKeys().filter(key => !['edit-points', 'auto-arrange', 'snap-grid'].includes(key)), wideKeys);
+      if (grid) {
+        assert.equal(compactMenuRow('snap-grid')!.getAttribute('role'), 'menuitemcheckbox');
+        assert.equal(compactMenuRow('snap-grid')!.getAttribute('aria-checked'), snap!.getAttribute('aria-pressed'));
+      }
+      f.stageEl.dataset.designLayout = 'wide';
+      f.design.openLollyMenu(anchor);
+      assert.deepEqual(existingKeys(), wideKeys);
+      assert.equal(rail.querySelectorAll('button').length, railCount);
+    } finally { f.destroy(); }
+  });
+}
+
+for (const [tool, activeClass] of [['line', 'fc-lining'], ['pen', 'fc-penning'], ['pencil', 'fc-penciling']]) {
+  test(`compact Add starts ${tool} and Done returns to the pointer`, async () => {
+    const f = mount([], { canvas: { pathField: 'path' } });
+    const oldWidth = window.innerWidth;
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 390 });
+    const panels = mountDesignPanels({
+      stage: f.stageEl, canvas: f.canvasEl, design: f.design,
+      navigator: { isOpen: () => false, width: () => 0, setOpen() {} } as never,
+      inspector: { isOpen: () => false, setOpen() {} } as never,
+      more: anchor => f.design.openLollyMenu(anchor),
+    });
+    const paint = (): Promise<void> => new Promise(resolve => requestAnimationFrame(() => resolve()));
+    try {
+      const bar = f.stageEl.querySelector<HTMLElement>('.design-compact-actions')!;
+      const done = bar.querySelector<HTMLButtonElement>('.design-text-done')!;
+      assert.equal(done.hidden, true);
+      [...bar.querySelectorAll('button')].find(button => button.textContent === 'Add')!.click();
+      compactMenuRow(tool!)!.click();
+      assert.equal(document.querySelector('.fc-popover'), null);
+      assert.equal(f.stageEl.classList.contains(activeClass!), true);
+      await paint();
+      assert.equal(done.hidden, false);
+      done.click();
+      await paint();
+      assert.equal(f.stageEl.matches('.fc-lining, .fc-penning, .fc-penciling'), false);
+      assert.equal(f.stageEl.querySelector('.fc-btn-pointer')!.getAttribute('aria-pressed'), 'true');
+      assert.equal(done.hidden, true);
+    } finally {
+      panels.destroy(); f.destroy();
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: oldWidth });
+    }
+  });
+}
+
+test('compact More shares auto-arrange and grid snap with the rail', () => {
+  const initial = [childBox('a', '', 10), childBox('b', '', 200),
+    { kind: 'path', id: 'link', x: 0, y: 0, w: 100, h: 100, bindStart: 'a', bindEnd: 'b' } as Box];
+  const f = mount(initial, { canvas: {
+    pathField: 'path', bindStartField: 'bindStart', bindEndField: 'bindEnd', grid: { size: 32, default: false },
+  } });
+  try {
+    const anchor = document.createElement('button');
+    f.stageEl.append(anchor);
+    f.stageEl.dataset.designLayout = 'compact';
+    const snap = f.stageEl.querySelector<HTMLButtonElement>('[aria-label="Snap to grid"]')!;
+    f.design.openLollyMenu(anchor);
+    assert.equal(compactMenuRow('snap-grid')!.getAttribute('aria-checked'), 'false');
+    compactMenuRow('auto-arrange')!.click();
+    assert.equal(document.querySelector('.fc-popover'), null);
+    assert.equal(f.commits(), 1);
+    assert.equal(f.boxes()[0]!.x, 450);
+    assert.ok(Number(f.boxes()[1]!.y) > Number(f.boxes()[0]!.y));
+    const arranged = structuredClone(f.boxes());
+    f.design.openLollyMenu(anchor);
+    compactMenuRow('snap-grid')!.click();
+    assert.equal(document.querySelector('.fc-popover'), null);
+    assert.equal(snap.getAttribute('aria-pressed'), 'true');
+    assert.equal(snap.classList.contains('is-armed'), true);
+    f.design.openLollyMenu(anchor);
+    assert.equal(compactMenuRow('snap-grid')!.getAttribute('aria-checked'), 'true');
+    compactMenuRow('auto-arrange')!.click();
+    assert.equal(f.boxes()[0]!.x, 448);
+    assert.equal(f.commits(), 2);
+
+    f.stageEl.dataset.designLayout = 'wide';
+    snap.click();
+    assert.equal(snap.getAttribute('aria-pressed'), 'false');
+    const line = f.stageEl.querySelector<HTMLButtonElement>('.fc-btn-line')!;
+    line.dispatchEvent(new W.MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    [...document.querySelectorAll<HTMLButtonElement>('.fc-pop-item')].find(row => row.textContent === 'Auto-arrange the connected cards')!.click();
+    assert.deepEqual(f.boxes(), arranged);
+    assert.equal(f.commits(), 3);
+    f.stageEl.dataset.designLayout = 'compact';
+    f.design.openLollyMenu(anchor);
+    assert.equal(compactMenuRow('snap-grid')!.getAttribute('aria-checked'), 'false');
   } finally { f.destroy(); }
 });

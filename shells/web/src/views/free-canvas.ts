@@ -2312,6 +2312,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
     toggleTimeline: fc.timeline.toggleTimeline,
     openAddMenu: fc.menus.openAddMenu,
     finishTextEditing: fc.textEdit.commitTextEdit,
+    finishDrawing: fc.modes.pickPointer,
     isTimelineOpen: () => !!fc.timelinePanel?.isOpen(),
     toggleFramesPanel: () => fc.document.toggleFramesPanel(),
     isFramesPanelOpen: fc.document.isFramesPanelOpen,
