@@ -71,6 +71,7 @@ import * as FB from './lofi-future.ts';
 import { isSliceNote } from '../../../../engine/src/lofi-break-chop.ts';
 import * as BK from './lofi-break-kit.ts';
 import * as DUB from './lofi-dub.ts';
+import * as TR from './lofi-trailer.ts';
 import * as SC from './lofi-scratches.ts';
 
 export interface LofiSettings {
@@ -108,7 +109,7 @@ const MOOD_TONE: Record<LofiMood, number> = {
   country: 9500, blues: 7000, jazz: 7500, swing: 8500, straya: 7000, arnhem: 9500, grunge: 7500, stoner: 6500, shoegaze: 7000,
   fantasy: 9000, dream: 6000, kpop: 11000, metal: 9500, ska: 9500, punk: 10000, rnb: 8500,
   persian: 11500, guzheng: 11000, koto: 11000, kora: 11500, afrobeat: 9500, amapiano: 10000, lofiHouse: 6000, salsa: 18000, surf: 11500, yacht: 12500, botanica: 12500, oompa: 9000, noosa: 11000, mandopop: 9500, cpop: 11500,
-  breakbeat: 9500, funkyHouse: 10500, ukGarage: 10500, privateSchool: 8500, jungle: 15000,
+  breakbeat: 9500, funkyHouse: 10500, ukGarage: 10500, privateSchool: 8500, jungle: 15000, trailer: 14000,
 };
 /** Lolly Sings is melody-first: its lead sits this much higher than Lofi's (about +2 dB), in every genre of the family. */
 const SINGS_LEAD = 1.3;
@@ -216,7 +217,7 @@ const LEAD_SEAT: Partial<Record<LofiMood, number>> = { acid: -2.6, afrobeat: 0.3
  *  genres' are set so the mix under 150 Hz sits against the whole as their records' does (docs/generated-music.md):
  *  breakbeat's back, garage's a little up, private school's log drum kept soft; jungle's sub sits about 3.5 LU
  *  under its breaks (K-weighted), as eight jungle records' drops do. */
-const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5, jungle: -3 };
+const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5, jungle: -3, trailer: -3 };
 /**
  * The didgeridoo's cameo in the bass genres (engine/src/lofi-straya.ts), against its own level:
  * measured K-weighted in its bar, it sits about 3 to 4 dB under the bass stack it plays over.
@@ -1001,6 +1002,13 @@ export class LofiStation {
       }
       case 'phaser': V.phaser(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'siren': DUB.siren(k, lanes.keys, lanes.fx, bar, t, note.midi, vel, len, note.mod ?? 0); break;
+      // Trailer's hits (lib/lofi-trailer.ts): the music gives a full impact room, as it does a kick.
+      case 'impact':
+        TR.impact(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0);
+        if ((note.mod ?? 0) !== 2) this.duck(t, st.duck);
+        break;
+      case 'braam': TR.braam(k, lanes.fx, t, note.midi, vel, len, note.mod ?? 0); break;
+      case 'subdrop': TR.subdrop(k, lanes.fx, t, note.midi, vel, len); break;
       case 'scratch': SC.playScratch(k, lanes.fx, bar, t, note.midi, vel, len, note.mod ?? 0); break;
       case 'blip': V.blip(k, lanes.fx, t, note.midi, vel, note.mod ?? 0); break;
       case 'soar':

@@ -413,6 +413,8 @@ test('every note is playable', () => {
           : n.voice === 'pad' ? [48, 79]
           // The coast's birds: a whipbird's whistle and a lorikeet flock's middle pitch (lofi-coast-birds.ts).
           : n.voice === 'whipbird' || n.voice === 'lorikeet' ? [88, 110]
+          // Trailer's hits are tuned low, to the chord's root: the impact's boom, the braam over the boom, and where the sub drop starts falling (lofi-trailer.ts).
+          : n.voice === 'impact' ? [24, 35] : n.voice === 'braam' ? [33, 44] : n.voice === 'subdrop' ? [36, 47]
           // Oompa's lead notes are the whole band's lines: the trombones' countermelody to the clarinets' runs.
           : mood === 'oompa' ? [40, 93] : [64, 84];
         assert.ok(n.midi >= lo && n.midi <= hi, `${where}: note ${n.midi} outside ${lo}..${hi}`);
