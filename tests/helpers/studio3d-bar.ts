@@ -45,7 +45,7 @@ export async function studioBarHarness(
   const entry = {
     canvas,
     marker: {},
-    handle: { showLightHandles() {}, fit: () => null, view() {}, selection: () => null },
+    handle: { showLightHandles() {}, fit: () => null, view() {}, selection: () => null, frameAtRest: () => true },
     // Handles are drawn only where the kit has a handle layer; `selected` shows them.
     selected: !!extra.selected,
     ready: true,

@@ -45,9 +45,13 @@ const MOUSE_PX = 30;
 const TOUCH_PX = 44;
 /** The chip stands this far below and to the right of a mouse pointer, as Design's does. */
 const CHIP_OFFSET = 14;
-/** And this far above a finger, which would cover a chip drawn lower down. */
-const TOUCH_CHIP_OFFSET = 36;
 const SVG_NS = 'http://www.w3.org/2000/svg';
+/** The group of the selected object's actions, which the kit floats by the selection (toolbar.ts). */
+const OBJECT_BAR = 'studio-object';
+/** The space between the ring and the actions under it, clear of the knob's touch target. */
+const OBJECT_BAR_GAP = 20;
+/** The height the actions take: one row of the kit's buttons and its padding. */
+const OBJECT_BAR_HEIGHT = 44;
 
 type Point = [number, number];
 
@@ -60,8 +64,12 @@ interface Nodes {
   root: HTMLElement;
   lines: SVGSVGElement;
   hit: SVGPathElement;
+  /** The whole ring, faint: the part the object hides is still read as a ring. */
+  behind: SVGPathElement;
   ring: SVGPathElement;
   stem: SVGLineElement;
+  /** Joins the scale square to the ring where the square had to stand off the ring. */
+  reach: SVGLineElement;
   knob: HTMLElement;
   lift: HTMLElement;
   scale: HTMLElement;
@@ -99,6 +107,8 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
   /** The ring's centre on the screen at the last draw, in layer pixels; the scale drag measures from this point. */
   let center: Point | null = null;
   let resize: ResizeObserver | null = null;
+  /** True while the status line holds a drag's number (touch). */
+  let readout = false;
 
   function build(doc: Document): Nodes {
     const root = doc.createElement('div');
@@ -109,12 +119,16 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     const hit = doc.createElementNS(SVG_NS, 'path');
     hit.setAttribute('class', 'stage-kit-outline-hit');
     hit.dataset.studioHandle = 'ring';
+    const behind = doc.createElementNS(SVG_NS, 'path');
+    behind.setAttribute('class', 'stage-kit-outline stage-kit-outline--behind');
     const ring = doc.createElementNS(SVG_NS, 'path');
     ring.setAttribute('class', 'stage-kit-outline');
     ring.dataset.studioRing = '';
     const stem = doc.createElementNS(SVG_NS, 'line');
     stem.setAttribute('class', 'stage-kit-stem');
-    lines.append(ring, stem, hit);
+    const reach = doc.createElementNS(SVG_NS, 'line');
+    reach.setAttribute('class', 'stage-kit-stem');
+    lines.append(behind, ring, stem, reach, hit);
     const knob = handleEl(doc, 'turn', 'grab', true);
     const lift = handleEl(doc, 'lift', 'ns');
     const scale = handleEl(doc, 'scale', 'nesw');
@@ -132,7 +146,7 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
         if (drag && (e as PointerEvent).pointerId === drag.id) cancel();
       });
     }
-    return { root, lines, hit, ring, stem, knob, lift, scale, chip };
+    return { root, lines, hit, behind, ring, stem, reach, knob, lift, scale, chip };
   }
 
   /** Find the kit's layer and put the handles in it; null when the mount draws no handles. */
@@ -160,6 +174,7 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
   function hide(n: Nodes): void {
     n.root.hidden = true;
     center = null;
+    entry.options.chrome?.placeFloat?.(OBJECT_BAR, null);
   }
 
   function place(el: HTMLElement, at: Point | null): void {
@@ -174,11 +189,22 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     const mode = studioMode(entry);
     const camera = entry.handle.frameCamera();
     const failed = entry.marker.dataset.studioState === 'error';
-    const selection = row !== null && camera && !failed && (mode === 'orbit' || mode === 'tilt') ? entry.handle.selection(row) : null;
+    // The handles stand at the object's rest place, so they show only on a frame drawn there.
+    const atRest = entry.handle.frameAtRest();
+    const selection = row !== null && camera && !failed && atRest && (mode === 'orbit' || mode === 'tilt') ? entry.handle.selection(row) : null;
     const box = entry.canvas.getBoundingClientRect();
     if (!selection || !camera || !box.width || !box.height) {
       if (drag) cancel();
       hide(n);
+      // A motion has moved the object off its rest place, so no handle is drawn. The
+      // object's actions must still be in reach: they stand at the foot of the picture.
+      if (row !== null && !failed && !atRest && (mode === 'orbit' || mode === 'tilt') && box.width && box.height) {
+        const frame = layer.getBoundingClientRect();
+        entry.options.chrome?.placeFloat?.(OBJECT_BAR, {
+          x: box.left - frame.left + box.width / 2,
+          y: box.bottom - frame.top - OBJECT_BAR_HEIGHT - OBJECT_BAR_GAP,
+        });
+      }
       return;
     }
     const footprint: StudioFootprint = {
@@ -196,6 +222,15 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     const d = runs.map((run) => `M${run.map(([x, y]) => `${fmt(x)} ${fmt(y)}`).join('L')}`).join('');
     n.ring.setAttribute('d', d);
     n.hit.setAttribute('d', d);
+    // Every point of the ring on screen, in order. The whole ring is drawn faint under
+    // the visible runs, so the part behind the object still reads as one ring.
+    const ring: Point[] = [];
+    for (let i = 0; i < STUDIO_RING_SEGMENTS; i++) {
+      const p = studioProject(camera, studioRingPoint(footprint, (i * 360) / STUDIO_RING_SEGMENTS));
+      if (p) ring.push(px(p));
+    }
+    const whole = ring.length === STUDIO_RING_SEGMENTS;
+    n.behind.setAttribute('d', whole ? `M${ring.map(([x, y]) => `${fmt(x)} ${fmt(y)}`).join('L')}Z` : '');
     n.root.hidden = false;
     const middle = studioProject(camera, footprint.center);
     center = middle ? px(middle) : null;
@@ -208,15 +243,11 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     const knob = handles ? studioProject(camera, studioRingPoint(footprint, knobAngle)) : null;
     place(n.knob, knob && px(knob));
 
-    // The lift square stands on a stem above the top of the object's bounds on screen.
-    const { min, max } = footprint.box;
-    const corners: Point[] = [];
-    for (let i = 0; i < 8; i++) {
-      const p = studioProject(camera, new THREE.Vector3(i & 1 ? max.x : min.x, i & 2 ? max.y : min.y, i & 4 ? max.z : min.z));
-      if (p) corners.push(px(p));
-    }
-    const crown = studioProject(camera, new THREE.Vector3(footprint.center.x, max.y, footprint.center.z));
-    const base: Point | null = handles && crown && corners.length === 8 ? [px(crown)[0], Math.min(...corners.map((c) => c[1]))] : null;
+    // The lift square stands on a stem that rises from the top of the object: the point
+    // over its centre at the height of its bounds. (The top of the bounds' box on screen
+    // is higher than the object looks, and left the stem standing in the air.)
+    const crown = studioProject(camera, new THREE.Vector3(footprint.center.x, footprint.box.max.y, footprint.center.z));
+    const base: Point | null = handles && crown ? px(crown) : null;
     const tip: Point | null = base && [base[0], base[1] - STEM_PX];
     n.stem.style.display = base ? '' : 'none';
     if (base && tip) {
@@ -227,23 +258,46 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     }
     place(n.lift, tip);
 
-    // The scale square sits at the upper right of the ring's box on screen. Where the knob
-    // or the lift square comes closer than one touch target, the square moves further up
-    // and out along that diagonal, so one press never reaches two handles.
+    // The scale square sits on the ring, at the ring's right end on screen: a drag away
+    // from the centre makes the ring, and the object, larger. Where the knob or the lift
+    // square comes closer than one touch target, the square moves further out along the
+    // line from the centre, so one press never reaches two handles.
     let corner: Point | null = null;
-    if (handles) {
-      const ring: Point[] = [];
-      for (let i = 0; i < STUDIO_RING_SEGMENTS; i += 2) {
-        const p = studioProject(camera, studioRingPoint(footprint, (i * 360) / STUDIO_RING_SEGMENTS));
-        if (p) ring.push(px(p));
-      }
-      if (ring.length) corner = [Math.max(...ring.map((p) => p[0])), Math.min(...ring.map((p) => p[1]))];
+    let joined: Point | null = null;
+    if (handles && ring.length && center) {
+      const end: Point = ring.reduce((best, p) => (p[0] > best[0] ? p : best));
       const gap = layer.ownerDocument.defaultView?.matchMedia?.('(any-pointer: coarse)').matches ? TOUCH_PX : MOUSE_PX;
+      const out = Math.hypot(end[0] - center[0], end[1] - center[1]) || 1;
+      const dir: Point = [(end[0] - center[0]) / out, (end[1] - center[1]) / out];
+      let x = end[0], y = end[1];
       for (const other of [knob && px(knob), tip]) {
-        if (!corner || !other) continue;
-        const clear = gap - Math.hypot(corner[0] - other[0], corner[1] - other[1]);
-        if (clear > 0) corner = [corner[0] + clear * Math.SQRT1_2, corner[1] - clear * Math.SQRT1_2];
+        if (!other) continue;
+        const short: number = gap - Math.hypot(x - other[0], y - other[1]);
+        if (short > 0) { x += short * dir[0]; y += short * dir[1]; }
       }
+      corner = [x, y];
+      // A square that stands off the ring keeps a line to the ring, as the lift square
+      // keeps its stem: a handle is never left floating.
+      if (Math.hypot(x - end[0], y - end[1]) > 4) joined = end;
+    }
+    place(n.scale, corner);
+    n.reach.style.display = corner && joined ? '' : 'none';
+    if (corner && joined) {
+      n.reach.setAttribute('x1', fmt(joined[0]));
+      n.reach.setAttribute('y1', fmt(joined[1]));
+      n.reach.setAttribute('x2', fmt(corner[0]));
+      n.reach.setAttribute('y2', fmt(corner[1]));
+    }
+
+    // The object's own actions stand under the ring, clear of the knob. Where the stage
+    // ends below the ring they stand over the lift square. A handle drag hides them.
+    const low = ring.length ? Math.max(...ring.map((p) => p[1])) : null;
+    if (drag || low === null || !center) entry.options.chrome?.placeFloat?.(OBJECT_BAR, null);
+    else {
+      const below = low + OBJECT_BAR_GAP;
+      const fits = below + OBJECT_BAR_HEIGHT <= frame.height - OBJECT_BAR_GAP;
+      const high = Math.min(tip ? tip[1] : Infinity, ...ring.map((p) => p[1]));
+      entry.options.chrome?.placeFloat?.(OBJECT_BAR, { x: center[0], y: fits ? below : Math.max(0, high - OBJECT_BAR_GAP - OBJECT_BAR_HEIGHT) });
     }
     place(n.scale, corner);
   }
@@ -278,21 +332,22 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     const n = nodes;
     const at = local(e);
     if (!n || !at || !layer) return;
+    if (e.pointerType !== 'mouse') {
+      // A finger covers what it drags and a chip by the finger covered the subject. On
+      // touch the number goes in the status line, which stands clear of the picture.
+      n.chip.hidden = true;
+      readout = true;
+      note(entry, text, false);
+      return;
+    }
     if (n.chip.textContent !== text) n.chip.textContent = text;
     n.chip.hidden = false;
     const room = layer.getBoundingClientRect();
     const w = n.chip.offsetWidth, h = n.chip.offsetHeight;
-    let x: number, y: number;
-    if (e.pointerType === 'mouse') {
-      // Below and to the right of the pointer, turned to the other side where the stage
-      // edge would cut it off.
-      x = at[0] + CHIP_OFFSET + w > room.width ? at[0] - CHIP_OFFSET - w : at[0] + CHIP_OFFSET;
-      y = at[1] + CHIP_OFFSET + h > room.height ? at[1] - CHIP_OFFSET - h : at[1] + CHIP_OFFSET;
-    } else {
-      // A finger or a pen covers what is below it, so the chip stands above the contact.
-      x = Math.max(0, Math.min(room.width - w, at[0] - w / 2));
-      y = Math.max(0, at[1] - TOUCH_CHIP_OFFSET - h);
-    }
+    // Below and to the right of the pointer, turned to the other side where the stage
+    // edge would cut it off.
+    const x = at[0] + CHIP_OFFSET + w > room.width ? at[0] - CHIP_OFFSET - w : at[0] + CHIP_OFFSET;
+    const y = at[1] + CHIP_OFFSET + h > room.height ? at[1] - CHIP_OFFSET - h : at[1] + CHIP_OFFSET;
     n.chip.style.transform = `translate(${fmt(x)}px, ${fmt(y)}px)`;
   }
 
@@ -311,8 +366,8 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     if (row === null || !place || !selection || !camera || !entry.ready || studioMode(entry) !== 'orbit') return;
     e.preventDefault();
     e.stopPropagation();
-    // A wheel or key view still waiting for its pause is saved first, as its own step.
-    entry.flushView?.();
+    // A wheel or key view still waiting for its pause is kept until this drag ends.
+    entry.holdView?.();
     focusQuietly(entry.canvas);
     if (entry.status?.once) note(entry, modeStatus(entry, 'orbit'), false);
     const footprint: StudioFootprint = { center: selection.center, radius: selection.radius, box: new THREE.Box3(selection.min, selection.max) };
@@ -376,12 +431,19 @@ export function createStudioHandles(entry: StudioControls, redraw: () => void): 
     drag = null;
     layer?.removeAttribute('data-dragging');
     if (nodes) nodes.chip.hidden = true;
+    // The status line showed the number on touch; the mode's own sentence comes back.
+    if (readout) {
+      readout = false;
+      note(entry, modeStatus(entry, studioMode(entry)), false);
+    }
     return d;
   }
 
   function release(e: PointerEvent): void {
     if (!drag || e.pointerId !== drag.id) return;
     const d = end()!;
+    // The view that waited through the drag is saved first, as its own step.
+    entry.flushView?.();
     if (d.kind === 'turn' && d.value !== (Math.round(studioWrapDegrees(d.from[1])) || 0))
       commit(entry, tRaw('Turn'), ...turnEdits(entry, d.row, [d.from[0], d.value, d.from[2]]));
     else if (d.kind === 'lift' && d.value !== d.from[1])

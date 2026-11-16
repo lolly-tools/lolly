@@ -151,6 +151,8 @@ export interface StudioSceneHost<Surface, Camera, Point> {
   selection: (row: number) => StudioSceneSelection<Point> | null;
   /** The camera of the last preview frame, which handles over the preview are placed through. */
   frameCamera: () => Camera | null;
+  /** Whether the last preview frame drew the objects at rest; a motion moves them off `selection`. */
+  frameAtRest: () => boolean;
   /** Show light handles in previews, marking the selected light, or hide them. */
   showLightHandles: (state: { selected: number | null } | null) => void;
   /** The zoom and target that frame every object, or one row. */

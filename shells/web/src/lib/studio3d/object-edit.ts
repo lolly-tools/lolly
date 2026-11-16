@@ -15,6 +15,7 @@ import {
   STUDIO_ARRANGEMENT_LIMIT,
   studioArrangementRows,
   studioObjectEdit,
+  studioObjectId,
 } from '../../../../../engine/src/studio3d-arrangement.ts';
 import type { StudioVector3 } from '../../../../../packages/core/src/studio3d-v1.ts';
 import { tRaw } from '../../i18n.ts';
@@ -108,6 +109,16 @@ export function restEdits(entry: StudioControls, row: number): StudioEdit[] | nu
   return [{ id: 'objects', value: rows.map((r, i) => (i === row ? { ...r, y: 0, grounded: true } : r)) }];
 }
 
+/** The id each row has now: the authored one, or the one the row's place gives. Null where two rows already clash. */
+function rowIds(rows: Record<string, unknown>[]): string[] | null {
+  const taken = new Set<string>();
+  try {
+    return rows.map((row, index) => studioObjectId(row, index, taken));
+  } catch {
+    return null;
+  }
+}
+
 /** Whether an arrangement has room for a copy of one more object. */
 export function canDuplicate(entry: StudioControls): boolean {
   return !!entry.recipe.objects && entry.recipe.objects.length < STUDIO_ARRANGEMENT_LIMIT;
@@ -117,12 +128,22 @@ export function canDuplicate(entry: StudioControls): boolean {
  * A copy of one arrangement row, added at the end and selected, standing `offset` units to
  * one side so the two do not overlap. The copy takes no authored id, so the arrangement
  * gives it one by its place in the list, and a named row's copy takes the row's name.
+ * Where another row already holds that id (someone typed `object-3` into a two-row
+ * arrangement), the copy takes the next free one, because two rows with one id cannot
+ * be drawn.
  */
 export function duplicateEdits(entry: StudioControls, row: number, offset: number): StudioEdit[] {
   const rows = studioArrangementRows(entry.inputValues);
   const source = rows[row];
   if (!source || !canDuplicate(entry)) return [];
   const { id: _id, ...copy } = source;
+  const ids = rowIds(rows);
+  let id: string | null = null;
+  if (ids?.includes(`object-${rows.length + 1}`)) {
+    let n = rows.length + 2;
+    while (ids.includes(`object-${n}`)) n++;
+    id = `object-${n}`;
+  }
   const x = Number(entry.recipe.objects?.[row]?.transform.position[0] ?? 0);
   const right = x + offset <= STUDIO_ARRANGEMENT_EXTENT;
   const name = String(source.name ?? '').trim();
@@ -133,6 +154,7 @@ export function duplicateEdits(entry: StudioControls, row: number, offset: numbe
         ...rows,
         {
           ...copy,
+          ...(id ? { id } : {}),
           ...(name ? { name: tRaw('{name} copy', { name }) } : {}),
           x: round(Math.max(-STUDIO_ARRANGEMENT_EXTENT, Math.min(STUDIO_ARRANGEMENT_EXTENT, right ? x + offset : x - offset))),
         },
@@ -151,12 +173,22 @@ export function canRemove(entry: StudioControls, row: number): boolean {
   return !!objects && objects.length > 1 && objects.some((object, i) => i !== row && object.visible && !object.pending);
 }
 
-/** Take one row out of the arrangement; the row before it becomes the selected one. */
+/**
+ * Take one row out of the arrangement; the row before it becomes the selected one. A row
+ * with no authored id takes its id from its place, so the rows after the gap would each
+ * take a new one. Where that makes two rows clash, the rows left keep the ids they had.
+ */
 export function removeEdits(entry: StudioControls, row: number): StudioEdit[] {
   if (!canRemove(entry, row)) return [];
   const rows = studioArrangementRows(entry.inputValues);
+  const before = rowIds(rows);
+  let left = rows.filter((_, i) => i !== row);
+  if (before && !rowIds(left)) {
+    const kept = before.filter((_, i) => i !== row);
+    left = left.map((r, i) => (String(r.id ?? '').trim() ? r : { ...r, id: kept[i] }));
+  }
   return [
-    { id: 'objects', value: rows.filter((_, i) => i !== row) },
+    { id: 'objects', value: left },
     { id: 'activeObject', value: Math.max(1, Math.min(rows.length - 1, row)) },
   ];
 }

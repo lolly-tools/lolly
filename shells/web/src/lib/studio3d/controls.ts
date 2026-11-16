@@ -55,6 +55,8 @@ export interface StudioControls {
   refreshChrome?: () => void;
   /** Save a camera view a wheel or key run is still previewing; set by gestures.ts. */
   flushView?: () => void;
+  /** Keep a waiting wheel or key view unsaved until `flushView` is called (gestures.ts). */
+  holdView?: () => void;
   render(quality: 'preview'): void;
 }
 
@@ -163,13 +165,21 @@ export function modeStatus(entry: StudioControls, mode: StudioMode): string {
       return touch ? tRaw('Drag sideways to turn the object and up or down to tilt.') : tRaw('Drag sideways to turn and up or down to tilt, or use the arrow keys.');
     default: {
       if (!objectEditing(entry)) return '';
-      if (selectedObject(entry) !== null)
+      if (selectedObject(entry) !== null) {
+        // A motion moves the object off its rest place, where the handles stand.
+        if (entry.recipe.motion.kind !== 'still')
+          return touch
+            ? tRaw('Drag to move. The handles show when Motion is Still image.')
+            : tRaw('Drag or use the arrow keys to move. The handles show when Motion is Still image.');
         return touch
           ? tRaw('Drag to move. Drag the ring to turn and the squares to lift and scale.')
           : tRaw('Drag or use the arrow keys to move. Drag the ring to turn and the squares to lift and scale.');
+      }
       const one = !entry.recipe.objects;
       if (touch) return one ? tRaw('Tap the object to select it, or drag empty space to orbit.') : tRaw('Tap an object to select it, or drag empty space to orbit.');
-      return one ? tRaw('Click the object to select it, or drag empty space to orbit.') : tRaw('Click an object to select it, or drag empty space to orbit.');
+      return one
+        ? tRaw('Click the object or press Enter to select it, or drag empty space to orbit.')
+        : tRaw('Click an object or press Enter to select it, or drag empty space to orbit.');
     }
   }
 }

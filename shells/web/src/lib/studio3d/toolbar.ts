@@ -474,6 +474,9 @@ export function studioBar(entry: StudioControls): StageKitGroup[] {
   groups.push({
     id: 'studio-object',
     label: tRaw('Selected object'),
+    // By the selection on a desktop (handles.ts places the group under the ring); one
+    // more group of the bar on a phone.
+    float: true,
     items: [
       ...objectActions(entry, disabled),
       modeButton('tilt', tRaw('Tilt'), tRaw('Tilt'), 'rotateCw', 'tilt', {

@@ -483,6 +483,8 @@ export async function mountToolStudio(
   entry.marker = marker;
   entry.options = options;
   entry.recipe = recipe;
+  // Another source is another subject: a selection made on the old one does not carry over.
+  if (entry.selected && (raw.values?.source ?? '') !== (entry.inputValues.source ?? '')) entry.selected = false;
   entry.inputValues = raw.values || {};
   entry.inputCamera = {
     azimuth: recipe.camera.azimuth,

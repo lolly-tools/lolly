@@ -261,6 +261,8 @@
   stroke-linejoin: round;
   stroke-linecap: round;
 }
+/* The part of an outline that stands behind the object: the same line, faint. */
+.stage-kit-outline--behind { stroke-opacity: 0.32; }
 /* A clear stroke over the outline takes the press, so the thin line can be grabbed. */
 .stage-kit-outline-hit {
   fill: none;
@@ -305,6 +307,25 @@
 .stage-kit-handle[data-cursor="nesw"]::after { cursor: nesw-resize; }
 .stage-kit-layer[data-dragging] .stage-kit-outline-hit,
 .stage-kit-layer[data-dragging] .stage-kit-handle[data-cursor="grab"] { cursor: grabbing; }
+/* A group that stands by the selection (StageKitGroup.float): the bar's own surface,
+   icons only, placed by the tool. Its host is a child of the stage, over the handles. */
+.stage-kit-float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 8;
+  display: flex;
+  padding: 4px;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-floating), var(--ui-edge-default);
+  font-family: var(--ui-type-ui-family);
+  pointer-events: auto;
+}
+.stage-kit-float[hidden] { display: none; }
+/* One group stands alone here, so no rule is drawn before the group. */
+.stage-kit-float .stage-kit-group::before { content: none; }
 /* The number by the pointer while a handle drags: Design's readout chip. */
 .stage-kit-chip {
   position: absolute;

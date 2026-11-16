@@ -44,7 +44,8 @@ test('3D Studio imports, reopens a portable model and exports through editor and
     step('studio: page loaded');
     await page.locator('[data-input-id="modelAsset"]').click();
     step('studio: model choice clicked');
-    const upload = page.locator('input[type="file"][accept*=".glb"]');
+    // The picker's own file input: the page holds a second input that also takes .glb.
+    const upload = page.locator('.asset-picker-dialog input[type="file"][accept*=".glb"]');
     step('studio: picker opened');
     await upload.setInputFiles({
       name: 'duck.glb',
@@ -737,7 +738,7 @@ test('3D Studio arranges several objects: click selects, drags move with no mode
     // arrow turns it as a drag to the left does.
     await preview.press('Escape');
     await page.waitForFunction(() => document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === true);
-    assert.match(await page.locator('[data-stage-status]').textContent() ?? '', /Click an object to select it/);
+    assert.match(await page.locator('[data-stage-status]').textContent() ?? '', /Click an object or press Enter to select it/);
     const orbitBefore = await camera();
     await preview.press('ArrowLeft');
     await page.waitForFunction((azimuth) => {
@@ -1005,6 +1006,128 @@ test('3D Studio handles on the selected object: the ring turns in 15 degree step
     await undo();
     await waitValues(`v.position.y === ${lone.y}`);
     step('handles: a lone subject lifted through its position, one undo step');
+    assert.deepEqual(errors, []);
+  } finally {
+    await browser.close();
+  }
+});
+
+test('3D Studio keeps the object in reach: actions by the selection, Enter to select, a zoom kept through a drag, and a motion that hides the handles', {
+  skip: !origin && 'Set STUDIO_SHELL_URL to a running web shell.',
+  timeout: 600_000,
+}, async () => {
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.env.STUDIO_NATIVE
+      ? { executablePath: chromium.executablePath(), args: ['--use-angle=metal'] }
+      : {}),
+  });
+  const errors: string[] = [];
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, serviceWorkers: 'block' });
+    page.setDefaultTimeout(90000);
+    await page.routeWebSocket(/127\.0\.0\.1/, (socket) => socket.close());
+    page.on('pageerror', (e) => errors.push(e.message));
+    const values = () =>
+      page.locator('#tool-canvas [data-lolly-studio]').evaluate((el) => JSON.parse((el as HTMLElement).dataset.lollyStudio!).values);
+    const waitValues = (check: string) =>
+      page.waitForFunction((check) => {
+        const marker = document.querySelector<HTMLElement>('#tool-canvas [data-lolly-studio]');
+        if (marker?.dataset.studioState !== 'ready') return false;
+        const v = JSON.parse(marker.dataset.lollyStudio!).values;
+        return new Function('objects', 'v', `return ${check}`)(v.objects, v);
+      }, check);
+    const handlesShown = (shown: boolean) =>
+      page.waitForFunction((shown) => (document.querySelector<HTMLElement>('[data-studio-handles]')?.hidden === false) === shown, shown);
+    const preview = page.locator('#tool-canvas .lolly-studio-canvas');
+    const float = page.locator('.stage-kit-float');
+
+    await page.goto(`${origin}/t/3d-studio?source=arrangement&samples=8&c2pa=0&width=360&height=360`);
+    await page.locator('#tool-canvas [data-studio-state="ready"]').waitFor();
+    const box = (await preview.boundingBox())!;
+    await preview.click({ position: { x: box.width * 0.68, y: box.height * 0.6 } });
+    await waitValues('v.activeObject === 2');
+    await handlesShown(true);
+
+    // The object's actions stand by the selection, under the ring, and not in the bar.
+    await float.waitFor({ state: 'visible' });
+    const placed = await page.evaluate(() => {
+      const host = document.querySelector<HTMLElement>('.stage-kit-float')!;
+      const ring = document.querySelector('[data-studio-ring]')!.getBoundingClientRect();
+      const at = host.getBoundingClientRect();
+      const stage = document.querySelector('#tool-stage')!.getBoundingClientRect();
+      return {
+        names: [...host.querySelectorAll('button:not([hidden])')].map((b) => b.getAttribute('aria-label')),
+        inBar: !!document.querySelector('.stage-kit-bar [data-studio-duplicate]'),
+        hiddenFromReaders: !!host.closest('[aria-hidden="true"]'),
+        underRing: at.top >= ring.bottom,
+        centred: Math.abs((at.left + at.right) / 2 - (ring.left + ring.right) / 2) < 12,
+        onStage: at.left >= stage.left && at.right <= stage.right && at.bottom <= stage.bottom,
+      };
+    });
+    assert.deepEqual(placed, {
+      names: ['Duplicate', 'Remove', 'Rest on the stage', 'Tilt'],
+      inBar: false, hiddenFromReaders: false, underRing: true, centred: true, onStage: true,
+    });
+    step('reach: the object bar stands under the ring');
+
+    // A wheel zoom waits 400 ms for a pause before it saves. A handle drag that starts
+    // in that time used to be ended by the save's repaint; now both are kept.
+    const zoom0 = Number((await values())['camera.zoom'] ?? (await values()).camera?.zoom ?? 1);
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.2);
+    await page.mouse.wheel(0, -240);
+    const knob = (await page.locator('.stage-kit-handle[data-studio-handle="turn"]').boundingBox())!;
+    await page.mouse.move(knob.x + knob.width / 2, knob.y + knob.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(knob.x + 40, knob.y - 6, { steps: 4 });
+    await page.mouse.move(knob.x + 70, knob.y - 14, { steps: 4 });
+    await page.mouse.up();
+    await waitValues('!!objects[1].rotY');
+    const after = await values();
+    const zoom1 = Number(after['camera.zoom'] ?? after.camera?.zoom ?? 1);
+    assert.notEqual(zoom1, zoom0, 'the zoom that waited through the drag is saved');
+    assert.equal(Number(after.objects[1].rotY) % 15, 0, 'and the drag turned the object');
+    await page.keyboard.press('ControlOrMeta+z');
+    await waitValues('!objects[1].rotY');
+    assert.equal(Number((await values())['camera.zoom'] ?? (await values()).camera?.zoom ?? 1), zoom1, 'the turn is its own undo step');
+    step('reach: a zoom just before a handle drag is kept');
+
+    // Escape clears the selection; Enter selects again from the keyboard.
+    await preview.focus();
+    await page.keyboard.press('Escape');
+    await handlesShown(false);
+    assert.equal(await float.isVisible(), false, 'no selection, no object bar');
+    await page.keyboard.press('Enter');
+    await handlesShown(true);
+    await float.waitFor({ state: 'visible' });
+    step('reach: Enter selects');
+
+    // A lone subject has no list to choose from, so Enter is its only keyboard way in.
+    await page.goto(`${origin}/t/3d-studio?samples=8&c2pa=0&width=360&height=360`);
+    await page.locator('#tool-canvas [data-studio-state="ready"]').waitFor();
+    await preview.focus();
+    await page.keyboard.press('Enter');
+    await handlesShown(true);
+    await float.waitFor({ state: 'visible' });
+    assert.deepEqual(
+      await float.locator('button:not([hidden])').evaluateAll((els) => els.map((b) => b.getAttribute('aria-label'))),
+      ['Rest on the stage', 'Tilt']
+    );
+    step('reach: a lone subject is selected by Enter');
+
+    // A turntable moves the object off its rest place, where the handles would stand.
+    await page.goto(`${origin}/t/3d-studio?source=arrangement&motion=turntable&samples=8&c2pa=0&width=360&height=360`);
+    await page.locator('#tool-canvas [data-studio-state="ready"]').waitFor();
+    const moving = (await preview.boundingBox())!;
+    await preview.focus();
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => /Motion is Still image/.test(document.querySelector('[data-stage-status]')?.textContent ?? ''));
+    await handlesShown(false);
+    await float.waitFor({ state: 'visible' });
+    const foot = (await float.boundingBox())!;
+    assert.ok(foot.y + foot.height <= moving.y + moving.height && foot.y > moving.y + moving.height / 2, 'the actions stand at the foot of the picture');
+    step('reach: a motion hides the handles and keeps the actions');
+
     assert.deepEqual(errors, []);
   } finally {
     await browser.close();

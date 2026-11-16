@@ -86,6 +86,12 @@ export interface StageKitGroup {
    */
   collapse?: number;
   hidden?: boolean;
+  /**
+   * The group stands by the thing it acts on, not in the bar: a small bar of icons the
+   * tool places with `placeFloat`. On a phone there is no room by the picture, so the
+   * group stays in the bar there.
+   */
+  float?: boolean;
 }
 
 export interface StageKitMenuItem {
@@ -105,11 +111,17 @@ export interface StageKitPort {
    * capture. Optional so a port that draws no picture (a test's) can leave it out.
    */
   layer?(): HTMLElement;
+  /**
+   * Put a floating group (`StageKitGroup.float`) with its top centre at a point on the
+   * stage, in the handle layer's pixels, or hide the group with null.
+   */
+  placeFloat?(id: string, at: { x: number; y: number } | null): void;
 }
 
 export interface StageKit extends StageKitPort {
   readonly element: HTMLElement;
   layer(): HTMLElement;
+  placeFloat(id: string, at: { x: number; y: number } | null): void;
   /** Measure again: placement, label density and the reserved band. */
   layout(): void;
   dispose(): void;
@@ -185,6 +197,41 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     stage.insertBefore(el, root);
     handleLayer = el;
     return el;
+  }
+
+  /**
+   * The hosts of floating groups, one for each group, direct children of the stage. They
+   * are not in the handle layer, which is hidden from assistive technology: these hold
+   * real buttons.
+   */
+  const floatHosts = new Map<string, HTMLElement>();
+  function floatHost(id: string): HTMLElement {
+    let host = floatHosts.get(id);
+    if (!host) {
+      host = doc.createElement('div');
+      host.className = 'stage-kit-float';
+      host.dataset.kitFloat = id;
+      host.setAttribute('data-export-hide', '');
+      host.setAttribute('data-live-hide', '');
+      host.setAttribute(STAGE_GESTURES_ATTR, 'own');
+      host.hidden = true;
+      stage.insertBefore(host, root);
+      floatHosts.set(id, host);
+    }
+    return host;
+  }
+  function placeFloat(id: string, at: { x: number; y: number } | null): void {
+    const host = floatHosts.get(id);
+    if (!host || disposed) return;
+    const group = groupEls.get(id);
+    const show = !!at && !!group && group.parentElement === host && !group.hidden;
+    if (host.hidden === show) host.hidden = !show;
+    if (!show || !at) return;
+    // Kept on the stage: the group's centre never comes closer to an edge than half its width.
+    const half = host.offsetWidth / 2;
+    const x = Math.max(half + 8, Math.min(stage.clientWidth - half - 8, at.x));
+    const value = `translate(${Math.round(x - half)}px, ${Math.round(at.y)}px)`;
+    if (host.style.transform !== value) host.style.transform = value;
   }
 
   const groupEls = new Map<string, HTMLElement>();
@@ -397,7 +444,14 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
       el.toggleAttribute('data-phone-icons', !!group.phoneIcons);
       if (group.collapse === undefined) delete el.dataset.kitCollapse;
       else el.dataset.kitCollapse = String(group.collapse);
-      place(bar, el, slot++);
+      // A floating group stands by the selection where there is room for one; on a
+      // phone the group is one more group of the bar.
+      const floats = !!group.float && root.dataset.placement !== 'foot';
+      el.toggleAttribute('data-float', floats);
+      if (floats) {
+        const host = floatHost(group.id);
+        if (el.parentElement !== host) host.append(el);
+      } else place(bar, el, slot++);
       const row = el.firstElementChild as HTMLElement;
       let index = 0;
       for (const item of group.items) {
@@ -428,6 +482,8 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     }
     while (bar.children.length > slot) bar.lastElementChild!.remove();
     for (const [id, el] of groupEls) if (!seenGroups.has(id)) { el.remove(); groupEls.delete(id); }
+    // A host whose group left (the group went, or went back into the bar) goes too.
+    for (const [id, host] of floatHosts) if (!host.firstElementChild) { host.remove(); floatHosts.delete(id); }
     for (const [id, b] of buttons) if (!seenItems.has(id)) { b.remove(); buttons.delete(id); actions.delete(id); }
     for (const [id, el] of pills) if (!seenItems.has(id)) { el.remove(); pills.delete(id); }
     if (popover && !actions.has(popover.id)) popover.handle.close();
@@ -480,7 +536,8 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
    * forward, the segmented modes last of all. A phone shows short labels and scrolls.
    */
   function fitLabels(): void {
-    for (const el of groupEls.values()) el.removeAttribute('data-compact');
+    // A floating group is always icons: there is no room for words by the selection.
+    for (const el of groupEls.values()) el.toggleAttribute('data-compact', el.hasAttribute('data-float'));
     if (root.dataset.placement === 'foot' || root.hidden) return;
     const shown = ([...bar.children] as HTMLElement[]).filter((el) => !el.hidden).reverse();
     const rank = (el: HTMLElement): number =>
@@ -581,6 +638,8 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     root.remove();
     handleLayer?.remove();
     handleLayer = null;
+    for (const host of floatHosts.values()) host.remove();
+    floatHosts.clear();
     disposed = true;
     const changed = lastReserve.top !== prior.top || lastReserve.bottom !== prior.bottom;
     for (const [name, value] of [[RESERVE_TOP, prior.top], [RESERVE_BOTTOM, prior.bottom]] as const) {
@@ -591,5 +650,5 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
   }
 
   layout();
-  return { element: root, setBar, setStatus, layer, layout, dispose };
+  return { element: root, setBar, setStatus, layer, placeFloat, layout, dispose };
 }

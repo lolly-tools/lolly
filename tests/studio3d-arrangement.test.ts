@@ -12,6 +12,7 @@ import {
   studioObjectSelect,
   studioOverlaps,
   studioSceneObjects,
+  studioObjectId,
 } from '../engine/src/studio3d-arrangement.ts';
 import { buildStudioScene } from '../engine/src/studio3d.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
@@ -250,6 +251,41 @@ test('dropped files become placed, named objects whose kind follows the file', a
   runtime.destroy();
 });
 
+test('a copy and a removal never leave two objects with one id', async () => {
+  const unique = (rows: Record<string, unknown>[]): string[] => {
+    const taken = new Set<string>();
+    return rows.map((row, index) => studioObjectId(row, index, taken));
+  };
+  // A row with no authored id takes its id from its place. Here someone typed the id
+  // the third place would give into a two-row arrangement.
+  const copyClash = await studioBarHarness(
+    { source: 'arrangement', activeObject: 1, objects: [{ kind: 'primitive', primitive: 'box' }, { id: 'object-3', kind: 'primitive', primitive: 'sphere', x: 2 }] },
+    { layer: true, commitMany: true, selected: true }
+  );
+  copyClash.action('studio-duplicate')!.onPress!(null as never);
+  const copied = (copyClash.edits.at(-1) as Record<string, unknown>).objects as Record<string, unknown>[];
+  assert.equal(copied[2]!.id, 'object-4', 'the copy takes the next free id');
+  assert.deepEqual(unique(copied), ['object-1', 'object-3', 'object-4']);
+
+  // With no clash the copy still takes no authored id.
+  const plain = await studioBarHarness(
+    { source: 'arrangement', activeObject: 1, objects: [{ kind: 'primitive', primitive: 'box' }, { kind: 'primitive', primitive: 'sphere', x: 2 }] },
+    { layer: true, commitMany: true, selected: true }
+  );
+  plain.action('studio-duplicate')!.onPress!(null as never);
+  assert.equal(((plain.edits.at(-1) as Record<string, unknown>).objects as Record<string, unknown>[])[2]!.id, undefined);
+
+  // Removing the first row moves the third into the second place, whose id another row holds.
+  const removeClash = await studioBarHarness(
+    { source: 'arrangement', activeObject: 1, objects: [{ kind: 'primitive', primitive: 'box' }, { id: 'object-2', kind: 'primitive', primitive: 'sphere', x: 2 }, { kind: 'primitive', primitive: 'badge', x: -2 }] },
+    { layer: true, commitMany: true, selected: true }
+  );
+  removeClash.action('studio-remove')!.onPress!(null as never);
+  const left = (removeClash.edits.at(-1) as Record<string, unknown>).objects as Record<string, unknown>[];
+  assert.deepEqual(left.map((row) => row.id), ['object-2', 'object-3'], 'the rows left keep the ids they had');
+  assert.deepEqual(unique(left), ['object-2', 'object-3']);
+});
+
 test('the selected object offers Duplicate, Remove, Rest on the stage and Tilt, each one step', async () => {
   const rows = [
     { name: 'Badge', kind: 'primitive', primitive: 'badge', x: -1.2, rotY: 12, scale: 0.55 },
@@ -264,7 +300,7 @@ test('the selected object offers Duplicate, Remove, Rest on the stage and Tilt, 
   // With one, they wait for a selection.
   const idle = await studioBarHarness(values, { layer: true, commitMany: true });
   assert.equal(idle.action('studio-duplicate')?.disabled, true);
-  assert.match(idle.status(), /Click an object to select it/);
+  assert.match(idle.status(), /Click an object or press Enter to select it/);
   const bar = await studioBarHarness(values, { layer: true, commitMany: true, selected: true });
   assert.match(bar.status(), /Drag the ring to turn/);
   for (const id of ['studio-duplicate', 'studio-remove', 'studio-rest']) assert.equal(bar.action(id)?.disabled, false, id);

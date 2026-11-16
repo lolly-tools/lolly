@@ -256,3 +256,66 @@ test('the handle layer covers the stage under the bar, owns its presses, and goe
     assert.equal(h.kit.layer().isConnected, false, 'a kit that has gone hands out a detached layer');
   } finally { h.teardown(); }
 });
+
+const objectGroup: Group = {
+  id: 'object',
+  label: 'Selected object',
+  float: true,
+  items: [
+    { id: 'copy', label: 'Duplicate', icon: 'duplicate', onPress() {} },
+    { id: 'remove', label: 'Remove', icon: 'trash', onPress() {} },
+  ],
+};
+
+test('a floating group stands outside the bar and outside the handle layer, as icons', () => {
+  const h = mount();
+  try {
+    let pressed = 0;
+    h.kit.setBar([modes('orbit'), { ...objectGroup, items: [{ id: 'copy', label: 'Duplicate', icon: 'duplicate', onPress() { pressed++; } }, objectGroup.items[1]!] }]);
+    const host = h.stage.querySelector<HTMLElement>('.stage-kit-float')!;
+    assert.ok(host, 'the group has a host of its own on the stage');
+    assert.equal(host.parentElement, h.stage);
+    assert.equal(host.closest('[aria-hidden="true"]'), null, 'real buttons are never inside the hidden handle layer');
+    assert.equal(host.getAttribute('data-stage-gestures'), 'own');
+    assert.equal(host.hasAttribute('data-export-hide'), true);
+    const group = host.querySelector<HTMLElement>('[data-kit-group="object"]')!;
+    assert.equal(group.hasAttribute('data-compact'), true, 'no room for words by the selection');
+    assert.equal(h.kit.element.querySelector('[data-kit-group="object"]'), null, 'and the bar does not hold the group');
+    // A button with no words shows its name as the tooltip.
+    assert.equal(host.querySelector<HTMLElement>('[data-kit-action="copy"]')!.dataset.tip, 'Duplicate');
+    host.querySelector<HTMLButtonElement>('[data-kit-action="copy"]')!.click();
+    assert.equal(pressed, 1);
+
+    // Hidden until the tool says where the selection is.
+    assert.equal(host.hidden, true);
+    h.kit.placeFloat('object', { x: 400, y: 300 });
+    assert.equal(host.hidden, false);
+    assert.match(host.style.transform, /translate\(\d+px, 300px\)/);
+    h.kit.placeFloat('object', null);
+    assert.equal(host.hidden, true);
+
+    // When the group goes, the host goes too.
+    h.kit.setBar([modes('orbit')]);
+    assert.equal(h.stage.querySelector('.stage-kit-float'), null);
+  } finally { h.teardown(); }
+});
+
+test('on a phone a floating group is one more group of the bar', () => {
+  const h = mount(true);
+  try {
+    h.kit.setBar([modes('orbit'), objectGroup]);
+    assert.equal(h.stage.querySelector('.stage-kit-float'), null, 'there is no room by a phone picture');
+    assert.ok(h.kit.element.querySelector('[data-kit-group="object"]'));
+    h.kit.placeFloat('object', { x: 100, y: 100 });
+    assert.equal(h.stage.querySelector('.stage-kit-float'), null);
+  } finally { h.teardown(); }
+});
+
+test('floating hosts go with the kit', () => {
+  const h = mount();
+  h.kit.setBar([objectGroup]);
+  assert.ok(h.stage.querySelector('.stage-kit-float'));
+  h.kit.dispose();
+  assert.equal(h.stage.querySelector('.stage-kit-float'), null);
+  h.stage.remove();
+});

@@ -3273,6 +3273,13 @@
     },
     {
       "file": "tests/studio3d.shell.browser.test.ts",
+      "fullName": "3D Studio keeps the object in reach: actions by the selection, Enter to select, a zoom kept through a drag, and a motion that hides the handles",
+      "reason": "Set STUDIO_SHELL_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/studio3d.shell.browser.test.ts",
       "fullName": "3D Studio moves its camera on the canvas: wrap, keys, wheel, pan, frame and views, one undo step each",
       "reason": "Set STUDIO_SHELL_URL to a running web shell.",
       "capability": "environment",

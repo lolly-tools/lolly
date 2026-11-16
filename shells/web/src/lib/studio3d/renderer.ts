@@ -7,7 +7,7 @@ import {
 } from '../../../../../engine/src/studio3d-arrangement.ts';
 import { STUDIO_LIGHT_TARGET, studioPlaceableLights } from '../../../../../engine/src/studio3d-lights.ts';
 import { studioCameraPose } from '../../../../../engine/src/studio3d-camera-path.ts';
-import { studioObjectPose } from '../../../../../engine/src/studio3d-motion.ts';
+import { STUDIO_POSE_REST, studioObjectPose } from '../../../../../engine/src/studio3d-motion.ts';
 import { studioAnimated, studioLightMotion } from '../../../../../engine/src/studio3d.ts';
 import type {
   StudioObjectV1,
@@ -234,6 +234,9 @@ const PROBE_POINTS: [number, number][] = [
   [0.25, 0.25],
 ];
 
+/** The rest pose as text, to compare a frame's pose with. */
+const REST_POSE = JSON.stringify(STUDIO_POSE_REST);
+
 export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.Camera, THREE.Vector3> {
   readonly canvas: HTMLCanvasElement;
   private readonly output: StudioCapture;
@@ -262,6 +265,8 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
   private recipe: StudioSceneV1 | null = null;
   /** The camera the last preview frame was drawn with, without its sample jitter. */
   private previewCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera | null = null;
+  /** Whether the last preview frame drew the objects at their rest pose (no motion applied). */
+  private previewAtRest = true;
   /** Preview-only light handles: null hides them, otherwise the selected light index. */
   private lightHandles: { selected: number | null } | null = null;
   private disposed = false;
@@ -639,6 +644,7 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
     // One pose for the whole frame: the subjects take it, the burst takes it, and the
     // empty-frame check reads the same one back.
     const pose = studioObjectPose(recipe, time, clipSeconds);
+    if (quality === 'preview') this.previewAtRest = JSON.stringify(pose) === REST_POSE;
     const showEnvironment = recipe.environment.background && recipe.stage.output === 'scene';
     const frameKey = JSON.stringify([
       this.revision,
@@ -915,6 +921,15 @@ export class StudioRenderer implements StudioSceneHost<HTMLCanvasElement, THREE.
   /** The camera of the last preview frame, which the handles over it are placed through. */
   frameCamera(): THREE.Camera | null {
     return this.previewCamera;
+  }
+
+  /**
+   * Whether the last preview frame drew the objects where they rest. A turntable or a
+   * hover moves them, and `selection` reports the rest place, so handles drawn from it
+   * would stand where the object is not.
+   */
+  frameAtRest(): boolean {
+    return this.previewAtRest;
   }
 
   /** A sphere per placeable light in its own colour, a line to the target, and a ring on the selection. */

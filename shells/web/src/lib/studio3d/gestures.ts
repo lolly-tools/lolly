@@ -217,7 +217,20 @@ export function wireStudioGestures(entry: StudioControls): void {
   };
   /** Save a waiting wheel or key view now; a toolbar action calls this before it acts. */
   entry.flushView = () => {
-    if (saveTimer !== undefined && !pointers.size) save();
+    if ((saveTimer !== undefined || heldView) && !pointers.size) {
+      heldView = false;
+      save();
+    }
+  };
+  // A handle drag that starts while a view waits must not save the view at once: the
+  // save repaints the studio, and the repaint would end the drag that has just begun.
+  // The view is kept and saved when the drag ends, as its own step.
+  let heldView = false;
+  entry.holdView = () => {
+    if (saveTimer === undefined) return;
+    clearTimeout(saveTimer);
+    saveTimer = undefined;
+    heldView = true;
   };
 
   /** Put back what a drag was previewing: an object, a turn or a light. */
@@ -230,7 +243,9 @@ export function wireStudioGestures(entry: StudioControls): void {
   /** Drop the gesture and its preview. A wheel or key view that only waited for its pause is kept. */
   function cancel(): void {
     handles.cancel();
-    const waiting = saveTimer !== undefined && !pointers.size && gesture === null;
+    // A view held through a handle drag waits like any other.
+    const waiting = (saveTimer !== undefined || heldView) && !pointers.size && gesture === null;
+    heldView = false;
     revertModePreview();
     gesture = null;
     for (const id of pointers.keys()) {
@@ -637,6 +652,13 @@ export function wireStudioGestures(entry: StudioControls): void {
       e.preventDefault();
       e.stopPropagation();
     };
+    // Enter or Space selects from the keyboard what a click selects: the object, or the
+    // arrangement's current one. Without this the handles' actions had no keyboard way in.
+    if ((e.key === 'Enter' || e.key === ' ') && studioMode(entry) === 'orbit' && objectEditing(entry) && selectedObject(entry) === null) {
+      setSelected(entry, true);
+      used();
+      return;
+    }
     // 0 and Home put the camera back; the stage's own 0 (fit the view) never hears the key.
     if ((e.key === '0' || e.key === 'Home') && !e.shiftKey) {
       used();
