@@ -35,7 +35,7 @@ import { createThemeToggle } from '../../components/theme-toggle.ts';
 import { createSoundToggle } from '../../components/sound-toggle.ts';
 import { createProfileControl } from '../../components/profile-menu.ts';
 import { addFallbackSlots } from '../../lib/fallback-slots.ts';
-import { mountScopedStyle } from '../../lib/scope-css.ts';
+import { mountScopedStyle, releaseLeavingStyles, removeStyleWithMarkup } from '../../lib/scope-css.ts';
 import { flickDirection, setupMobileSheet } from '../../lib/mobile-sheet.ts';
 import { wireExportPanelFloat } from '../../lib/export-panel-float.ts';
 import { dockedFullCount, isDocked, releaseDock } from '../../lib/edge-dock.ts';
@@ -366,6 +366,9 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
     </div>`
     : ''; tview.madeWithNotice = madeWithNotice;
 
+  // The layout below replaces whatever tool was here. Its sheet was kept for as long as
+  // its markup showed (lib/scope-css.ts); both go in this one step.
+  releaseLeavingStyles();
   viewEl.innerHTML = `
     ${
       /* The editor layout's Home pill moves INTO the design top bar's left slot (plan 179
@@ -1397,7 +1400,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     tview.vizModule?.destroyToolViz(); // else a WebGL2 context stays pinned per visited tool
     tview.studioModule?.destroyToolStudio(tview.contentEl);
     if (tview.onFocusRect && stageEl) stageEl.removeEventListener('fc-focus-rect', tview.onFocusRect);
-    styleEl.remove();
+    // The markup outlives this teardown: it fades out in the cross-view layer, or stays
+    // in place until the next tool has loaded. The sheet goes when the markup does.
+    removeStyleWithMarkup(styleEl, viewEl.querySelector(tview.canvasScope));
     shutter.destroy();
     ro.disconnect();
     cancelAnimationFrame(resizeFrame);

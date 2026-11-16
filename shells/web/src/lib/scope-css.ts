@@ -235,8 +235,63 @@ function transformCss(css: string, scope: string, mapSelectors: (selectors: stri
   return out + buf;
 }
 
+/**
+ * Stylesheets whose view was torn down while its markup is still on the screen.
+ *
+ * A view's cleanup runs before its markup leaves. The router then lifts the old markup
+ * into the cross-view fade (view-fade.ts), and a tool that opens from another tool
+ * keeps the old markup in place until its own layout is ready. A sheet removed in the
+ * cleanup left that markup bare for up to half a second: Claim's icon, which has no
+ * size of its own, filled the whole canvas while the view faded.
+ *
+ * Each sheet is kept with the element it styles and is removed when that element is no
+ * longer in the document.
+ */
+const leaving = new Map<HTMLStyleElement, Element>();
+let leavingWatch: MutationObserver | null = null;
+
+function sweepLeaving(all: boolean): void {
+  for (const [style, markup] of leaving) {
+    if (!all && markup.isConnected) continue;
+    style.remove();
+    leaving.delete(style);
+  }
+  if (!leaving.size) { leavingWatch?.disconnect(); leavingWatch = null; }
+}
+
+/**
+ * Remove `style` when `markup`, the element it styles, has left the document. Call
+ * this from a view's cleanup in place of `style.remove()`.
+ *
+ * The sheet loses its scope marker at once, so a reader that collects the live tool
+ * sheets (the export player, a Design field preview) does not take a leaving one.
+ */
+export function removeStyleWithMarkup(style: HTMLStyleElement, markup: Element | null | undefined): void {
+  const doc = style.ownerDocument;
+  const Observer = doc.defaultView?.MutationObserver;
+  if (!markup?.isConnected || !doc.body || !Observer) { style.remove(); return; }
+  style.removeAttribute(SCOPE_ATTR);
+  style.setAttribute('data-lolly-leaving', '');
+  leaving.set(style, markup);
+  if (leavingWatch) return;
+  // The markup can leave by any of several writes: the incoming view's layout, a
+  // loading line, an error card, or the fade layer being taken down. One watch on the
+  // body sees them all, and it lasts only while a sheet is held.
+  leavingWatch = new Observer(() => sweepLeaving(false));
+  leavingWatch.observe(doc.body, { childList: true, subtree: true });
+}
+
+/**
+ * Remove every held sheet now. A tool view calls this as it writes its own layout:
+ * two tool sheets share one scope, so an old one must never style a new tool.
+ */
+export function releaseLeavingStyles(): void {
+  sweepLeaving(true);
+}
+
 /** Mount a tool stylesheet and record its scope so detached previews can reuse it. */
 export function mountScopedStyle(css: string, scope: string): HTMLStyleElement {
+  releaseLeavingStyles();
   const style = document.createElement('style');
   style.setAttribute(SCOPE_ATTR, scope);
   style.textContent = scopeCss(css, scope);
