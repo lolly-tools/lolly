@@ -959,8 +959,8 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // a "Your recording" card fed by the latest take (lib/audio-take.ts, written by
   // views/record-control.ts). Before any take exists it says plainly what the
   // Download below saves, closing the "Export is not my recording" trap.
-  // A tool that takes the recording as its own Audio input (Audiogram) delivers the
-  // sound inside its export, so the card and its "not audio" line do not apply.
+  // The card and the "not audio" line are for a tool whose take is the deliverable.
+  // Audiogram takes the recording as an Audio input and delivers the sound in the export.
   const isAudioCaptureTool = manifest.render.capture === 'audio' && !takesAudioInput(manifest.inputs ?? []); ta.isAudioCaptureTool = isAudioCaptureTool;
   const recordingRow = isAudioCaptureTool
     ? `
