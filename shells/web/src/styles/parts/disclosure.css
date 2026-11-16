@@ -387,6 +387,16 @@ details.section-card > .section-card-body,
 }
 
 
+/* A section folded shut by lib/disclosure-motion.ts (a browser with no
+   interpolate-size) reads closed at once, for the page and for assistive
+   technology. Its body stays drawn until the fold has ended; the script then takes
+   this attribute off. */
+@supports selector(::details-content) {
+  :is(.input-section, details.section-card)[data-fold-closing]::details-content {
+    content-visibility: visible;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .input-section-summary::after,
   details.section-card > .section-card-summary::after { transition: none; }
