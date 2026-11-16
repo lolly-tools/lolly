@@ -15,14 +15,21 @@
   /* Idempotent per-paint IIFE - the template re-runs on EVERY paint (see the
      'Template script IIFE required' invariant). An epoch guard drops stale async
      callbacks from a prior paint; the previous renderer is disposed so we never
-     leak WebGL contexts (browsers cap ~16). Mirrors tools/3d/template.html. */
-  window.__lollyBoothEpoch = (window.__lollyBoothEpoch || 0) + 1;
-  var EP = window.__lollyBoothEpoch;
-  function alive() { return window.__lollyBoothEpoch === EP; }
+     leak WebGL contexts (browsers cap ~16). Mirrors tools/3d/template.html.
+     `home` is the element this paint was written into: the tool canvas, or the stage of
+     a one-shot render. The epoch and the renderer handle are kept on `home`, and the
+     canvas is found inside `home`, so each copy on the page has its own renderer. With
+     one handle on `window` and a page-wide id, a template tile drawn while the tool was
+     open disposed the open tool's renderer and then drew on the open tool's canvas,
+     whose context was lost. The tool opened on a blank canvas. */
+  var home = (document.currentScript && document.currentScript.parentNode) || document.body;
+  home.__lollyBoothEpoch = (home.__lollyBoothEpoch || 0) + 1;
+  var EP = home.__lollyBoothEpoch;
+  function alive() { return home.__lollyBoothEpoch === EP; }
 
-  var canvas = document.getElementById('booth-canvas');
-  var proxy = document.getElementById('booth-proxy');
-  var stateEl = document.getElementById('booth-state');
+  var canvas = home.querySelector('#booth-canvas');
+  var proxy = home.querySelector('#booth-proxy');
+  var stateEl = home.querySelector('#booth-state');
   if (!canvas || !stateEl) return;
   var cfg; try { cfg = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
   if (!cfg || !cfg.panels) return;
@@ -39,9 +46,9 @@
 
   /* Tear down the renderer from the previous paint (its <canvas> was just
      replaced by the innerHTML swap, so its GL context is orphaned). */
-  if (window.__lollyBooth && typeof window.__lollyBooth.dispose === 'function') {
-    try { window.__lollyBooth.dispose(); } catch (e) {}
-    window.__lollyBooth = null;
+  if (home.__lollyBooth && typeof home.__lollyBooth.dispose === 'function') {
+    try { home.__lollyBooth.dispose(); } catch (e) {}
+    home.__lollyBooth = null;
   }
 
   function message(txt) {
@@ -189,7 +196,7 @@
     if (!alive()) return;
     if (!THREE || !THREE.WebGLRenderer) { message('3D library failed to load.'); fireReady(); return; }
     try { start(THREE); }
-    catch (err) { console.error('[booth-studio] init error:', err); message(String(err && err.message || err)); fireReady(); }
+    catch (err) { console.error('[booth-studio] init error:', err); message('3D could not start in this browser. Reload the page to try again.'); fireReady(); }
   }).catch(function (e) { console.error('[booth-studio]', e); message('3D library failed to load.'); fireReady(); });
 
   // ---- helpers --------------------------------------------------------------
@@ -928,7 +935,7 @@ function drawFramed(ctx, source, iw, ih, W, H, framing, fit) {
       try { renderer.dispose(); } catch (e) {}
       try { renderer.forceContextLoss(); } catch (e) {}
     }
-    window.__lollyBooth = { dispose: disposeAll };
+    home.__lollyBooth = { dispose: disposeAll };
   }
 
   // ---- hall lighting presets -----------------------------------------------
