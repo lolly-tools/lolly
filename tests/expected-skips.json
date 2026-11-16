@@ -3266,6 +3266,20 @@
     },
     {
       "file": "tests/studio3d.shell.browser.test.ts",
+      "fullName": "3D Studio moves its camera on the canvas: wrap, keys, wheel, pan, frame and views, one undo step each",
+      "reason": "Set STUDIO_SHELL_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/studio3d.shell.browser.test.ts",
+      "fullName": "3D Studio on a phone: a pinch zooms the camera, two fingers pan, and the bar stays on screen",
+      "reason": "Set STUDIO_SHELL_URL to a running web shell.",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/studio3d.shell.browser.test.ts",
       "fullName": "3D Studio sets words in the brand font on the live shell, alone and inside an arrangement",
       "reason": "Set STUDIO_SHELL_URL to a running web shell.",
       "capability": "environment",
