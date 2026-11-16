@@ -11,8 +11,19 @@ export function toolCanvasRole(
     ? 'group' : 'img';
 }
 
-/** What a person can operate inside a canvas. */
-const CANVAS_CONTROL = 'button, a[href], input:not([type="hidden"]), select, textarea, summary, [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"])';
+/**
+ * What a person can operate inside a canvas: form controls, links, a player with its
+ * own controls, an embedded page, anything that takes keyboard focus and anything that
+ * declares a widget role.
+ */
+const CANVAS_CONTROL = [
+  'button', 'a[href]', 'input:not([type="hidden"])', 'select', 'textarea', 'summary',
+  'audio[controls]', 'video[controls]', 'iframe',
+  '[contenteditable]:not([contenteditable="false"])', '[tabindex]:not([tabindex="-1"])',
+  '[role="button"]', '[role="link"]', '[role="slider"]', '[role="checkbox"]', '[role="switch"]', '[role="tab"]', '[role="textbox"]',
+].join(', ');
+/** The attributes whose change can make an element a control, or show or hide one. */
+const CONTROL_ATTRIBUTES = ['hidden', 'inert', 'aria-hidden', 'tabindex', 'href', 'contenteditable', 'type', 'controls', 'role'];
 
 /**
  * The role of a canvas after a paint. An image role tells assistive technology that
@@ -65,6 +76,6 @@ export function watchCanvasRole(holder: Element, content: Element): () => void {
   if (done || !Observer || !view) return stop;
   // Many changes in one frame cost one check.
   observer = new Observer(() => { if (!frame && !done) frame = view.requestAnimationFrame(check); });
-  observer.observe(content, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'inert', 'aria-hidden', 'tabindex', 'href', 'contenteditable'] });
+  observer.observe(content, { childList: true, subtree: true, attributes: true, attributeFilter: CONTROL_ATTRIBUTES });
   return stop;
 }

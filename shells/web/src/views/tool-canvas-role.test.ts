@@ -26,10 +26,12 @@ const painted = (html: string): ParentNode => new JSDOM(`<div id="c">${html}</di
 test('a painted canvas with no control stays an image', () => {
   assert.equal(paintedCanvasRole('img', painted('<svg><text>Poster</text></svg><p data-canvas-input="title">Title</p>')), 'img');
   assert.equal(paintedCanvasRole('img', painted('<span tabindex="-1">Programmatic focus only</span><input type="hidden" value="1">')), 'img');
+  // A player with no controls of its own is a picture with sound.
+  assert.equal(paintedCanvasRole('img', painted('<video muted></video><audio></audio>')), 'img');
 });
 
 test('a painted canvas that holds a control is a group', () => {
-  for (const control of ['<button type="button">Capture</button>', '<a href="#/d">Open</a>', '<input type="range">', '<select><option>A</option></select>', '<textarea></textarea>', '<details><summary>More</summary></details>', '<div contenteditable>Text</div>', '<div tabindex="0" role="slider"></div>']) {
+  for (const control of ['<button type="button">Capture</button>', '<a href="#/d">Open</a>', '<input type="range">', '<select><option>A</option></select>', '<textarea></textarea>', '<details><summary>More</summary></details>', '<div contenteditable>Text</div>', '<div tabindex="0" role="slider"></div>', '<audio controls></audio>', '<video controls></video>', '<iframe title="Page"></iframe>', '<div role="button">Pick</div>']) {
     assert.equal(paintedCanvasRole('img', painted(`<p>Preview</p>${control}`)), 'group', control);
   }
 });
@@ -93,6 +95,22 @@ test('a control that stops being hidden counts, and a group stays a group', asyn
   await frame();
   await frame();
   assert.equal(holder.getAttribute('role'), 'group', 'a role that changed back would be announced again');
+});
+
+test('an element that becomes a control by an attribute is seen', async () => {
+  for (const [html, change] of [
+    ['<input type="hidden" value="1">', (el: Element) => el.setAttribute('type', 'text')],
+    ['<video></video>', (el: Element) => el.setAttribute('controls', '')],
+    ['<div class="knob"></div>', (el: Element) => el.setAttribute('role', 'slider')],
+  ] as const) {
+    const { holder, content, frame } = liveCanvas(html);
+    watchCanvasRole(holder, content);
+    assert.equal(holder.getAttribute('role'), 'img', html);
+    change(content.firstElementChild!);
+    await frame();
+    await frame();
+    assert.equal(holder.getAttribute('role'), 'group', html);
+  }
 });
 
 test('a watch that was ended changes nothing', async () => {
