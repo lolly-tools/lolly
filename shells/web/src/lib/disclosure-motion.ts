@@ -88,6 +88,30 @@ function sectionBody(section: HTMLDetailsElement): HTMLElement | null {
   return section.querySelector<HTMLElement>(':scope > .section-card-body, :scope > .input-section-body');
 }
 
+/** Marks a section that reads closed while its body is still drawn (parts/disclosure.css). */
+const CLOSING = 'data-fold-closing';
+const closingWatch = new WeakMap<HTMLDetailsElement, MutationObserver>();
+
+/** Can a closed section's body stay drawn for the fold? It needs ::details-content. */
+function canHoldClosedBody(): boolean {
+  return typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('selector(::details-content)');
+}
+
+function endClosing(details: HTMLDetailsElement): void {
+  closingWatch.get(details)?.disconnect();
+  closingWatch.delete(details);
+  details.removeAttribute(CLOSING);
+}
+
+/** Stop a running fold. The body returns to its own size. */
+function cancelFold(body: HTMLElement): void {
+  const animations = running.get(body);
+  if (!animations) return;
+  running.delete(body);
+  foldEnded.delete(body);
+  for (const animation of animations) animation.cancel();
+}
+
 /**
  * Fold a `<details>` section from a press on its summary. Returns true when the press
  * was taken, and the section then opens or closes with the shared motion.
@@ -95,6 +119,11 @@ function sectionBody(section: HTMLDetailsElement): HTMLElement | null {
  * A press on a control inside the summary (a help tip, a link) is that control's own
  * and is left alone, as the browser does. So is a press something else already
  * handled, and a section with no body wrapper.
+ *
+ * The section's `open` state is true from the first moment. A closing section reads
+ * closed at once, and only its body stays drawn until the fold has ended. Code that
+ * opens the section again in that time (a press on the canvas reveals a control in a
+ * folded section) is seen, and the fold stops with the section open.
  */
 export function foldDetailsOnPress(event: Event): boolean {
   if (event.defaultPrevented) return false;
@@ -110,21 +139,41 @@ export function foldDetailsOnPress(event: Event): boolean {
   if (control && summary.contains(control)) return false;
   const body = sectionBody(details);
   if (!body) return false;
+
+  if (!details.open) {
+    event.preventDefault();
+    // A press part way through a close takes over. The section opens first, so the
+    // fold starts from the size the body has reached.
+    closingWatch.get(details)?.disconnect();
+    closingWatch.delete(details);
+    details.open = true;
+    details.removeAttribute(CLOSING);
+    foldBody(body, true, () => {});
+    return true;
+  }
+
+  // Where the stylesheet cannot keep a closed body drawn, the browser closes the
+  // section at once, as before.
+  if (!canHoldClosedBody()) return false;
   event.preventDefault();
-  // A second press part way through reverses from where the body has got to. While a
-  // close is running the section still reads open, so the press count decides.
-  const opening = !(folding.get(details) ?? details.open);
-  folding.set(details, opening);
   // A closing body has nothing left to settle, and the watch on its size would
   // report every frame of the fold.
-  if (!opening) stopSettle?.(body);
-  foldBody(body, opening, (open) => {
-    details.open = open;
-    if (folding.get(details) === open) folding.delete(details);
-  });
+  stopSettle?.(body);
+  details.setAttribute(CLOSING, '');
+  details.open = false;
+  const Observer = details.ownerDocument.defaultView?.MutationObserver;
+  if (Observer) {
+    const watch = new Observer(() => {
+      if (!details.open) return;
+      endClosing(details);
+      cancelFold(body);
+    });
+    watch.observe(details, { attributes: true, attributeFilter: ['open'] });
+    closingWatch.set(details, watch);
+  }
+  foldBody(body, false, () => endClosing(details));
   return true;
 }
-const folding = new WeakMap<HTMLDetailsElement, boolean>();
 /** Ends the late-content watch on one body; set by installFoldSettle. */
 let stopSettle: ((body: HTMLElement) => void) | null = null;
 

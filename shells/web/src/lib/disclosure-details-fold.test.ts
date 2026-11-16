@@ -15,7 +15,20 @@ globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
 
+// What the browser under test can do. The fold is for a browser with no
+// interpolate-size; closing with a fold also needs ::details-content.
+const can = { interpolateSize: false, detailsContent: true };
+const asked: string[] = [];
+(globalThis as { CSS?: unknown }).CSS = {
+  supports: (first: string, second?: string) => {
+    asked.push(second === undefined ? first : `${first}: ${second}`);
+    if (second === undefined) return first === 'selector(::details-content)' && can.detailsContent;
+    return first === 'interpolate-size' && can.interpolateSize;
+  },
+};
+
 const { foldDetailsOnPress, installDetailsFold } = await import('./disclosure-motion.ts');
+const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
 function mount(html: string): HTMLElement {
   document.body.innerHTML = html;
@@ -84,36 +97,54 @@ test('a press on the body is not a press on the summary', () => {
   assert.equal(press(root.querySelector('.section-card-body')!).taken, false);
 });
 
-interface FakeAnimation { finish: () => void; cancel: () => void; addEventListener: (type: string, fn: () => void) => void }
+const OPEN_CARD = CARD.replace('<details class="section-card">', '<details class="section-card" open>');
+interface FakeAnimation { cancelled: boolean; finish: () => void; cancel: () => void; addEventListener: (type: string, fn: () => void) => void }
 /** Give a body an animate() whose motions the test finishes by hand. */
 function recording(body: HTMLElement): FakeAnimation[] {
   const calls: FakeAnimation[] = [];
   (body as unknown as { animate: () => FakeAnimation }).animate = () => {
     const listeners: Array<() => void> = [];
-    const animation: FakeAnimation = { finish: () => { for (const fn of listeners) fn(); }, cancel: () => {}, addEventListener: (_type, fn) => { listeners.push(fn); } };
+    const animation: FakeAnimation = { cancelled: false, finish: () => { for (const fn of listeners) fn(); }, cancel: () => { animation.cancelled = true; }, addEventListener: (_type, fn) => { listeners.push(fn); } };
     calls.push(animation);
     return animation;
   };
   return calls;
 }
 
-test('a closing section stays open until the motion ends', () => {
-  const root = mount(CARD.replace('<details class="section-card">', '<details class="section-card" open>'));
+test('a closing section reads closed at once and keeps its body drawn until the motion ends', () => {
+  const root = mount(OPEN_CARD);
   const details = root.querySelector('details')!;
   const calls = recording(root.querySelector<HTMLElement>('.section-card-body')!);
   press(root.querySelector('summary')!);
-  assert.equal(details.open, true, 'the body is still shown while it shrinks');
+  assert.equal(details.open, false, 'the page and assistive technology read the true state');
+  assert.equal(details.hasAttribute('data-fold-closing'), true, 'the stylesheet keeps the body drawn while it shrinks');
   calls[0]!.finish();
+  assert.equal(details.hasAttribute('data-fold-closing'), false);
   assert.equal(details.open, false);
 });
 
+test('code that opens a closing section again wins', async () => {
+  const root = mount(OPEN_CARD);
+  const details = root.querySelector('details')!;
+  const calls = recording(root.querySelector<HTMLElement>('.section-card-body')!);
+  press(root.querySelector('summary')!);
+  // A press on the canvas reveals a control in this section while the fold still runs.
+  details.open = true;
+  await tick();
+  assert.equal(details.hasAttribute('data-fold-closing'), false, 'the fold stood down');
+  assert.equal(calls[0]!.cancelled, true);
+  calls[0]!.finish();
+  assert.equal(details.open, true, 'the fold that was stopped does not close the section later');
+});
+
 test('a second press part way through a close opens the section again', () => {
-  const root = mount(CARD.replace('<details class="section-card">', '<details class="section-card" open>'));
+  const root = mount(OPEN_CARD);
   const details = root.querySelector('details')!;
   const calls = recording(root.querySelector<HTMLElement>('.section-card-body')!);
   press(root.querySelector('summary')!);
   press(root.querySelector('summary')!);
   assert.equal(details.open, true);
+  assert.equal(details.hasAttribute('data-fold-closing'), false);
   // The first motion was replaced; finishing it late must not close the section.
   calls[0]!.finish();
   assert.equal(details.open, true);
@@ -121,14 +152,27 @@ test('a second press part way through a close opens the section again', () => {
   assert.equal(details.open, true, 'the section rests open, as the last press asked');
   // And the press after that closes the section.
   press(root.querySelector('summary')!);
-  calls[4]!.finish();
   assert.equal(details.open, false);
+});
+
+test('where a closed body cannot stay drawn, closing is the browser\'s own toggle', () => {
+  can.detailsContent = false;
+  try {
+    const root = mount(OPEN_CARD);
+    assert.deepEqual(press(root.querySelector('summary')!), { taken: false, prevented: false });
+    assert.equal(root.querySelector('details')!.hasAttribute('data-fold-closing'), false);
+    // Opening needs nothing from the stylesheet, so the fold still opens a section there.
+    const closed = mount(CARD);
+    assert.equal(press(closed.querySelector('summary')!).taken, true);
+    assert.equal(closed.querySelector('details')!.open, true);
+  } finally {
+    can.detailsContent = true;
+  }
 });
 
 test('the fold is installed only where the stylesheet cannot move the height', () => {
   const root = mount(CARD);
-  const asked: string[] = [];
-  (globalThis as { CSS?: unknown }).CSS = { supports: (property: string, value: string) => { asked.push(`${property}: ${value}`); return false; } };
+  asked.length = 0;
   installDetailsFold();
   assert.deepEqual(asked, ['interpolate-size: allow-keywords']);
   root.querySelector('summary')!.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, cancelable: true }));
