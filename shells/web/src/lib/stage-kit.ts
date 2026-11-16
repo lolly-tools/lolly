@@ -403,7 +403,11 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     // The rule between groups is drawn before every visible group but the first.
     const lead = [...groupEls.values()].find((el) => !el.hidden && el.parentElement === bar);
     for (const el of groupEls.values()) el.toggleAttribute('data-kit-lead', el === lead);
-    setHidden(root, ![...groupEls.values()].some((el) => !el.hidden) && status.hidden);
+    const barShown = [...groupEls.values()].some((el) => !el.hidden);
+    const statusEmpty = !status.textContent;
+    status.toggleAttribute('data-empty', statusEmpty);
+    setHidden(status, statusEmpty && !barShown);
+    setHidden(root, !barShown && statusEmpty);
     syncTabStops();
     restoreFocus();
     layout();
@@ -413,8 +417,13 @@ export function mountStageKit(stage: HTMLElement, opts: StageKitOptions = {}): S
     if (disposed) return;
     const value = text.trim();
     if (status.textContent !== value) status.textContent = value;
-    setHidden(status, !value);
-    setHidden(root, ![...groupEls.values()].some((el) => !el.hidden) && !value);
+    // With a bar on show the line keeps its row whether it has words or not, so the band
+    // the kit reserves has one height and the picture stays still when a mode changes.
+    // The stylesheet hides an empty line from view; with no bar an empty line is removed.
+    const barShown = [...groupEls.values()].some((el) => !el.hidden);
+    status.toggleAttribute('data-empty', !value);
+    setHidden(status, !value && !barShown);
+    setHidden(root, !barShown && !value);
     reserve();
   }
 

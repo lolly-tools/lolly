@@ -66,7 +66,14 @@ export function commit(entry: StudioControls, label: string, ...edits: { id: str
   entry.options.endGesture?.();
 }
 export function cameraEdit(entry: StudioControls, values: StudioValues): void {
-  commit(entry, 'Camera', studioCameraEdit(entry.inputValues, { ...entry.inputCamera, ...values }));
+  const camera = { ...entry.inputCamera, ...values };
+  const edit = studioCameraEdit(entry.inputValues, camera);
+  commit(entry, 'Camera', edit);
+  // The saved inputs come back with the next render. An action that runs in the same
+  // turn reads the view from the entry (Add key straight after an arrow key saved the
+  // view before the key), so the entry is brought up to date at once.
+  entry.inputValues = { ...entry.inputValues, [edit.id]: edit.value };
+  entry.inputCamera = camera;
 }
 /** The primary pointer is a finger: status lines name no keys there. */
 export function coarsePointer(): boolean {

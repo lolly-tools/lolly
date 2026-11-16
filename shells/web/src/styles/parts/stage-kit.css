@@ -178,7 +178,33 @@
   font-size: var(--fs-sm);
   line-height: 1.4;
   text-align: center;
+  /* One row, always: the band the kit reserves is the bar plus this row, with words or
+     without, so the picture does not shift when a mode shows its sentence. */
+  min-height: 1.4em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+.stage-kit-status[data-empty] { visibility: hidden; }
+/* At the foot of a phone the picture has no height to spare for a row, so the sentence
+   stands over the stage just above the bar, on the raised surface a toast uses, and
+   reserves nothing. It may wrap there. */
+.stage-kit[data-placement="foot"] .stage-kit-status {
+  position: absolute;
+  bottom: calc(100% + var(--sp-2));
+  left: var(--sp-4);
+  right: var(--sp-4);
+  margin-inline: auto;
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--sp-4));
+  min-height: 0;
+  white-space: normal;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--radius);
+  background: var(--ui-color-surface-raised);
+  box-shadow: var(--ui-elevation-floating);
+}
+.stage-kit[data-placement="foot"] .stage-kit-status[data-empty] { display: none; }
 
 /* The menu and the panel the kit opens: the profile menu's surface (topbar.css), a
    tick on the current choice, and a readable column for text. */

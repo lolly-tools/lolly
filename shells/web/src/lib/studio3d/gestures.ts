@@ -204,8 +204,13 @@ export function wireStudioGestures(entry: StudioControls): void {
     committed = { view, recipe: entry.recipe };
     cameraEdit(entry, { ...view });
   }
+  // Which item a waiting view belongs to. In a collection the camera is the selected
+  // item's own, so a view made on one item must never be saved on another.
+  const viewScope = (): string => JSON.stringify([entry.inputValues.source ?? '', entry.inputValues.activeSubject ?? '']);
+  let liveScope = '';
   const saveSoon = (): void => {
     lastInput = performance.now();
+    liveScope = viewScope();
     clearTimeout(saveTimer);
     const wait = (delay: number): void => {
       saveTimer = setTimeout(() => {
@@ -240,7 +245,9 @@ export function wireStudioGestures(entry: StudioControls): void {
     }
     pointers.clear();
     canvas.style.cursor = cursor();
-    if (waiting) {
+    // A waiting view is saved only while its own item is still the selected one. If the
+    // selection changed in the pause, the view is dropped with the rest below.
+    if (waiting && liveScope === viewScope()) {
       save();
       return;
     }

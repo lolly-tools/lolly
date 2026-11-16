@@ -738,7 +738,9 @@ test('3D Studio arranges several objects: click selects, drags move, keys nudge,
       const marker = document.querySelector<HTMLElement>('[data-lolly-studio]');
       return (
         marker?.dataset.studioState === 'ready' &&
-        JSON.parse(marker.dataset.lollyStudio!).values.camera.azimuth === azimuth + 5
+        // A saved view is rounded to two places, and the view before the key may be an
+        // unrounded one from an earlier drag, so the step is checked within a hundredth.
+        Math.abs(JSON.parse(marker.dataset.lollyStudio!).values.camera.azimuth - (azimuth + 5)) < 0.01
       );
     }, Number(orbitBefore.azimuth));
     step('arrangement: escape returned to orbit');

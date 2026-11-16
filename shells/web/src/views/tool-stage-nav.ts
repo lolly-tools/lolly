@@ -764,11 +764,15 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
       if (tapAt !== null) tapAtTime(tapAt);
     }
   };
+  // Fingers that went down on an element that handles its own presses. Their release is
+  // not the stage's either: the settle check below would read "scale 1" as "back at fit"
+  // and recentre a stage the person had panned.
+  const ownedTouches = new Set<number>();
   stageEl.addEventListener('pointerdown', e => {
     if (e.pointerType === 'mouse') return;
     // A press on an element that handles its own presses (a 3-D canvas, the stage kit)
     // is not tracked: that finger never pans the stage and never makes half a pinch.
-    if (ownsStageGestures(e.target)) return;
+    if (ownsStageGestures(e.target)) { ownedTouches.add(e.pointerId); return; }
     touchDown(e.pointerId, e.clientX, e.clientY, e.timeStamp);
   });
   // A finger the Design canvas kept for an object press, handed back when a second
@@ -840,6 +844,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // (tx/ty ≠ 0 → isZoomed() → fitCanvas preserves the view); letting go of the
     // button must not re-engage it.
     if (e.pointerType === 'mouse') return;
+    if (ownedTouches.delete(e.pointerId)) return;
     pts.delete(e.pointerId);
     if (pts.size < 2) { lastMid = null; pinchDist = 0; }
     if (pts.size === 1) {

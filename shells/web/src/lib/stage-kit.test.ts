@@ -130,19 +130,27 @@ test('the toolbar has one tab stop and the arrow keys walk it', () => {
   } finally { h.teardown(); }
 });
 
-test('the status line is one polite sentence and takes no space when empty', () => {
+test('the status line is one polite sentence and keeps its row while a bar is shown', () => {
   const h = mount();
   try {
     const status = h.kit.element.querySelector<HTMLElement>('[data-stage-status]')!;
     assert.equal(status.getAttribute('role'), 'status');
     assert.equal(status.getAttribute('aria-live'), 'polite');
-    assert.equal(status.hidden, true);
+    assert.equal(status.hidden, true, 'with no bar an empty line is removed');
     h.kit.setBar([modes('lights')]);
+    // The row stays, marked empty, so the reserved band has one height and the picture
+    // does not shift when a mode shows its sentence. The stylesheet hides an empty row.
+    assert.equal(status.hidden, false);
+    assert.equal(status.hasAttribute('data-empty'), true);
     h.kit.setStatus('Key light selected.');
     assert.equal(status.hidden, false);
+    assert.equal(status.hasAttribute('data-empty'), false);
     assert.equal(status.textContent, 'Key light selected.');
     h.kit.setStatus('');
-    assert.equal(status.hidden, true);
+    assert.equal(status.hidden, false);
+    assert.equal(status.hasAttribute('data-empty'), true);
+    h.kit.setBar([]);
+    assert.equal(status.hidden, true, 'the row goes when the bar goes');
   } finally { h.teardown(); }
 });
 
