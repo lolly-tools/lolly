@@ -324,7 +324,8 @@ export function wireStudioGestures(entry: StudioControls): void {
   }
 
   canvas.addEventListener('pointerdown', (e) => {
-    if (!editable()) return;
+    // A second finger on the canvas while a handle drags is left alone.
+    if (!editable() || handles.busy()) return;
     if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 1) return;
     // A report of the last action gives way to the mode's own sentence.
     if (entry.status?.once && pointers.size === 0) note(entry, modeStatus(entry, studioMode(entry)), false);
