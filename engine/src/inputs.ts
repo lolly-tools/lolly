@@ -106,14 +106,14 @@ export interface SelectOption {
    *  input renders as `display: 'icon-toggle'`. The engine only carries it. */
   icon?: string;
   /** SVG path data for a 24 by 24 box, drawn as an outline in the web shell's
-   *  `display: 'picker'` tiles and trigger. Tool data, so a tool brings its own
-   *  pictures; the schema bounds it to path commands and numbers. Engine only
-   *  carries it. */
+   *  `display: 'picker'` tiles and trigger. It is tool data: a tool brings its
+   *  own pictures, and the schema allows path commands and numbers only. The
+   *  engine passes the value through. */
   glyph?: string;
   /** A short heading. A `display: 'picker'` select draws options that share one
    *  under that heading, in manifest order, with groups in order of first
-   *  appearance. Translatable as `inputs.<id>.groups.<heading>`. Engine only
-   *  carries it. */
+   *  appearance. Translatable as `inputs.<id>.groups.<heading>`. The engine
+   *  passes the value through. */
   group?: string;
   /** Short pill shown beside this option's label. Any option carrying a badge
    *  switches the select to a badged picker in the web shell (a radiogroup of
