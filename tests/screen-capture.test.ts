@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.347.0', () => {
+test('ENGINE_VERSION is 1.348.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -620,7 +620,8 @@ test('ENGINE_VERSION is 1.347.0', () => {
   // 1.345.0 removes tags and Content Credentials from audio files (strip-audio). Capture is unchanged.
   // 1.346.0 writes the music generator's CC BY 4.0 licence and credit into its files. Capture is unchanged.
   // 1.347.0 makes the music credit line "Music made with Lolly (https://lolly.tools), CC BY 4.0". Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.347.0');
+  // 1.348.0 adds the select display "picker" with option glyphs and groups (chrome only). Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.348.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
