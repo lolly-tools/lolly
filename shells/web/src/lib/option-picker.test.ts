@@ -10,10 +10,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
+import { readFileSync } from 'node:fs';
 
 import {
   closeOptionPicker,
   drawsAsButtons,
+  GLYPH_MAX_LENGTH,
+  GLYPH_PATTERN,
   groupOptions,
   optionPickerHtml,
   pickerPanelHtml,
@@ -351,6 +354,18 @@ test('glyphs: drawn only when they pass the pattern; text-only tiles when none d
   assert.doesNotMatch(pictured, /option-picker-list--text/);
   assert.equal((pictured.match(/<path d=/g) ?? []).length, 3, 'one outline per glyph');
   assert.match(pictured, /stroke-width="1\.75" stroke-linecap="round" stroke-linejoin="round"/);
+});
+
+test('the renderer tests the same glyph bound as the schema, character for character', () => {
+  const schema = JSON.parse(readFileSync(new URL('../../../../schemas/tool.schema.json', import.meta.url), 'utf8'));
+  const select = schema.$defs.input.allOf.find((b: { if?: { properties?: { type?: { const?: string } } } }) => b.if?.properties?.type?.const === 'select');
+  const glyph = select.then.properties.options.items.properties.glyph;
+  assert.equal(glyph.maxLength, GLYPH_MAX_LENGTH);
+  const theirs = new RegExp(glyph.pattern);
+  for (let c = 0; c < 0x3000; c += 1) {
+    const s = `M${String.fromCharCode(c)}`;
+    assert.equal(GLYPH_PATTERN.test(s), theirs.test(s), `U+${c.toString(16)}`);
+  }
 });
 
 test('a glyph-free option falls back to its registry icon', () => {

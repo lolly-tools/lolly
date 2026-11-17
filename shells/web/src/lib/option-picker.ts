@@ -18,20 +18,23 @@
  * resize, a route change, system Back on a touch device and the focus restore.
  * The view's teardown calls closeOptionPicker(), so no node outlives the sidebar.
  *
- * Markup safety: every label and heading goes through escape(), and a glyph is
+ * Markup safety: every label and heading goes through escapeHtml(), and a glyph is
  * drawn only after it passes the schema's own pattern again (path commands and
  * numbers, at most 900 characters), so a manifest that skipped validation still
  * cannot write markup through one.
  */
 import { mountBodyPopover, type BodyPopoverHandle, type PopoverAnchor } from '../components/body-popover.ts';
 import { t } from '../i18n.ts';
-import { escape } from '../utils.ts';
 import { hasIcon, icon } from './icons.ts';
 import { isPhoneLayout } from './layout-posture.ts';
+import { escapeHtml } from './util/escape.ts';
 import './option-picker.css';
 
-/** The schema's bound on `options[].glyph` (schemas/tool.schema.json), tested again here. */
-export const GLYPH_PATTERN = /^[MmLlHhVvCcSsQqTtAaZz0-9 ,.\-]+$/;
+/** The schema's bound on `options[].glyph` (schemas/tool.schema.json), tested again
+ *  here. The same character class: the schema writes the closing hyphen as `\-`,
+ *  which a literal here does not need, and a unit test holds the two to the same
+ *  answer for every character. */
+export const GLYPH_PATTERN = /^[MmLlHhVvCcSsQqTtAaZz0-9 ,.-]+$/;
 export const GLYPH_MAX_LENGTH = 900;
 
 /** One option, after the sidebar has narrowed the list. */
@@ -85,7 +88,7 @@ function markHtml(opt: PickerOption): string {
   const glyph = safeGlyph(opt.glyph);
   if (glyph) {
     return '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.75"'
-      + ` stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${escape(glyph)}"/></svg>`;
+      + ` stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${escapeHtml(glyph)}"/></svg>`;
   }
   return opt.icon && hasIcon(opt.icon) ? icon(opt.icon) : '';
 }
@@ -119,15 +122,15 @@ export function pickerSpec(input: PickerInput, choices: readonly PickerChoice[])
  */
 export function optionPickerHtml(input: PickerInput, choices: readonly PickerChoice[]): string {
   const spec = pickerSpec(input, choices);
-  const id = escape(spec.id);
+  const id = escapeHtml(spec.id);
   const cur = spec.options.find((o) => o.value === spec.value);
   const mark = pictured(spec) ? `<span class="option-picker-glyph" aria-hidden="true">${cur ? markHtml(cur) : ''}</span>` : '';
-  const na = cur?.na ? `<span class="option-picker-na"> (${escape(t('not applicable'))})</span>` : '';
+  const na = cur?.na ? `<span class="option-picker-na"> (${escapeHtml(t('not applicable'))})</span>` : '';
   return `<button type="button" class="field-select option-picker-trigger${cur?.na ? ' is-na' : ''}" data-option-picker`
-    + ` data-badge-select="${id}" data-input-id="${id}" value="${escape(spec.value)}" aria-haspopup="listbox" aria-expanded="false"`
+    + ` data-badge-select="${id}" data-input-id="${id}" value="${escapeHtml(spec.value)}" aria-haspopup="listbox" aria-expanded="false"`
     + ` aria-controls="${listboxId(id)}" aria-labelledby="irow-label-${id} opick-cur-${id}"`
-    + `${cur?.na ? ` title="${escape(t('Not applicable in this mode'))}"` : ''} data-picker="${escape(JSON.stringify(spec))}">`
-    + `${mark}<span class="option-picker-current" id="opick-cur-${id}">${escape(cur?.label ?? spec.value)}${na}</span></button>`;
+    + `${cur?.na ? ` title="${escapeHtml(t('Not applicable in this mode'))}"` : ''} data-picker="${escapeHtml(JSON.stringify(spec))}">`
+    + `${mark}<span class="option-picker-current" id="opick-cur-${id}">${escapeHtml(cur?.label ?? spec.value)}${na}</span></button>`;
 }
 
 /** Options in their groups: the unlabelled run first, then each heading in order of first appearance. */
@@ -143,7 +146,7 @@ export function groupOptions(options: readonly PickerOption[]): Array<{ heading:
 
 /** The panel's content. `sheet` adds the phone's dimmed area and its header row. */
 export function pickerPanelHtml(spec: PickerSpec, sheet: boolean): string {
-  const list = listboxId(escape(spec.id));
+  const list = listboxId(escapeHtml(spec.id));
   const marks = pictured(spec);
   const hasCurrent = spec.options.some((o) => o.value === spec.value);
   let n = 0;
@@ -151,11 +154,11 @@ export function pickerPanelHtml(spec: PickerSpec, sheet: boolean): string {
     const on = o.value === spec.value;
     const stop = on || (!hasCurrent && n === 0);
     const html = `<div class="option-picker-tile${on ? ' is-on' : ''}${o.na ? ' is-na' : ''}" role="option" id="${list}-${n}"`
-      + ` tabindex="${stop ? '0' : '-1'}" aria-selected="${on ? 'true' : 'false'}" data-value="${escape(o.value)}"`
-      + `${o.na ? ` title="${escape(t('Not applicable in this mode'))}"` : ''}>`
+      + ` tabindex="${stop ? '0' : '-1'}" aria-selected="${on ? 'true' : 'false'}" data-value="${escapeHtml(o.value)}"`
+      + `${o.na ? ` title="${escapeHtml(t('Not applicable in this mode'))}"` : ''}>`
       + `${marks ? `<span class="option-picker-tile-glyph" aria-hidden="true">${markHtml(o)}</span>` : ''}`
-      + `<span class="option-picker-tile-label">${escape(o.label)}</span>`
-      + `${o.na ? `<span class="visually-hidden"> (${escape(t('not applicable'))})</span>` : ''}</div>`;
+      + `<span class="option-picker-tile-label">${escapeHtml(o.label)}</span>`
+      + `${o.na ? `<span class="visually-hidden"> (${escapeHtml(t('not applicable'))})</span>` : ''}</div>`;
     n += 1;
     return html;
   };
@@ -164,15 +167,15 @@ export function pickerPanelHtml(spec: PickerSpec, sheet: boolean): string {
     if (g.heading === null) return `<div class="option-picker-group" role="none">${tiles}</div>`;
     const head = `${list}-g${gi}`;
     return `<div class="option-picker-group" role="group" aria-labelledby="${head}">`
-      + `<div class="option-picker-heading" id="${head}" role="none">${escape(g.heading)}</div>${tiles}</div>`;
+      + `<div class="option-picker-heading" id="${head}" role="none">${escapeHtml(g.heading)}</div>${tiles}</div>`;
   }).join('');
   const header = sheet
-    ? `<div class="option-picker-head"><span class="option-picker-title">${escape(spec.label)}</span>`
-      + `<button type="button" class="option-picker-close" data-picker-close aria-label="${escape(t('Close'))}">${icon('close')}</button></div>`
+    ? `<div class="option-picker-head"><span class="option-picker-title">${escapeHtml(spec.label)}</span>`
+      + `<button type="button" class="option-picker-close" data-picker-close aria-label="${escapeHtml(t('Close'))}">${icon('close')}</button></div>`
     : '';
   return `${sheet ? '<div class="option-picker-scrim" data-picker-scrim aria-hidden="true"></div>' : ''}`
     + `<div class="option-picker-surface">${header}`
-    + `<div class="option-picker-list${marks ? '' : ' option-picker-list--text'}" role="listbox" id="${list}" aria-label="${escape(spec.label)}">${groups}</div></div>`;
+    + `<div class="option-picker-list${marks ? '' : ' option-picker-list--text'}" role="listbox" id="${list}" aria-label="${escapeHtml(spec.label)}">${groups}</div></div>`;
 }
 
 /** Under the trigger, left edges aligned; above it when there is no room below;
