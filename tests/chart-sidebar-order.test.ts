@@ -102,6 +102,24 @@ test('the type and style controls are pickers, and every type option has a group
   assert.equal(byId.get('chartType')!.options!.length, 35);
 });
 
+test('every type and style option has a picture of its own', () => {
+  // The schema's bound on a glyph, which the web shell tests again before drawing.
+  const pattern = /^[MmLlHhVvCcSsQqTtAaZz0-9 ,.-]+$/;
+  const seen = new Map<string, string>();
+  for (const id of ['chartType', 'plotType', 'sceneType', 'cinematicType', 'chartStyle']) {
+    for (const o of byId.get(id)!.options as Array<Option & { glyph?: string }>) {
+      const where = `${id}.${o.value}`;
+      assert.equal(typeof o.glyph, 'string', `${where} has a glyph`);
+      assert.ok(o.glyph!.length <= 900 && pattern.test(o.glyph!), `${where} is path data within the bound`);
+      assert.match(o.glyph!, /^M/, `${where} starts with a move`);
+      // Two options that share a picture cannot be told apart on their tiles.
+      assert.equal(seen.get(o.glyph!), undefined, `${where} repeats the picture of ${seen.get(o.glyph!)}`);
+      seen.set(o.glyph!, where);
+    }
+  }
+  assert.equal(seen.size, 80);
+});
+
 test('a control the chosen type never reads is hidden, and a hidden value still arrives', () => {
   const visible = (values: Record<string, string>): Set<string> => new Set(sidebar(values).map((r) => r.id));
   assert.ok(!visible({ chartType: 'radar' }).has('showValues'), 'a radar draws no data labels');

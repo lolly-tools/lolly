@@ -51,177 +51,212 @@
       {
         "value": "bar",
         "label": "Bar",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M3 3v18h18M8 17v-4M13 17V7M18 17v-7"
       },
       {
         "value": "bar-horizontal",
         "label": "Bar, horizontal",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M3 3v18h18M7 6h5M7 11h11M7 16h8"
       },
       {
         "value": "lollipop",
         "label": "Lollipop",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M6 20v-7M12 20V9M18 20V10M4 11a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M10 7a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M16 8a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"
       },
       {
         "value": "dumbbell",
         "label": "Dumbbell",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M4.25 6a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0M13.25 6a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0M7.75 6h5.5M7.25 12a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0M17.25 12a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0M10.75 12h6.5M3.25 18a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0M10.25 18a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0M6.75 18h3.5"
       },
       {
         "value": "bullet",
         "label": "Bullet",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M3 9h18v6H3zM3 12h10M16.5 6.5v11"
       },
       {
         "value": "range-bar",
         "label": "Range bars",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M6 6h9M10 12h9M4 18h8M6 4.5v3M15 4.5v3M10 10.5v3M19 10.5v3M4 16.5v3M12 16.5v3"
       },
       {
         "value": "pareto",
         "label": "Pareto",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M3 3v18h18M7 17v-7M12 17v-4M17 17v-2M7 7l5-2.5 6-1"
       },
       {
         "value": "radial-bar",
         "label": "Radial bar",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M12 3a9 9 0 1 1-9 9M12 6a6 6 0 1 1-5.6 8.2M12 9a3 3 0 0 1 2.6 4.5"
       },
       {
         "value": "radar",
         "label": "Radar",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M12 3.5l8.6 6.2-3.3 10.1H6.7L3.4 9.7zM12 7.5l4.5 3.6-2.5 5.4H9l-1.8-4.5z"
       },
       {
         "value": "waffle",
         "label": "Waffle",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M4 4h4v4h-4zM10 4h4v4h-4zM16 4h4v4h-4zM4 10h4v4h-4zM10 10h4v4h-4zM16 10h4v4h-4zM4 16h4v4h-4zM10 16h4v4h-4zM16 16h4v4h-4z"
       },
       {
         "value": "line",
         "label": "Line",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 3v18h18M7 15l4-4 3 3 5-7"
       },
       {
         "value": "area",
         "label": "Area",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 3v18h18M7 17v-4l4-4 3 3 5-6v11z"
       },
       {
         "value": "slope",
         "label": "Slope",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M5 4v16M19 4v16M5 7l14-2M5 12l14 5M5 18l14-8"
       },
       {
         "value": "bump",
         "label": "Bump",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 6h4c4 0 6 12 10 12h4M3 18h4c4 0 6-6 10-6h4M3 12h4c4 0 6-6 10-6h4"
       },
       {
         "value": "stream",
         "label": "Streamgraph",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 9c3-5 6-3 9-1s6 1 9-3M3 12c3 0 6 2 9 1s6-2 9-1M3 15c3 4 6 5 9 3s6-1 9 3"
       },
       {
         "value": "waterfall",
         "label": "Waterfall",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M4 14h3v5H4zM8.5 9h3v5h-3zM13 5h3v4h-3zM17.5 5h3v9h-3z"
       },
       {
         "value": "pie",
         "label": "Pie",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M12 4a9 9 0 1 0 9 9h-9zM15 2.6v6.4h6.4a6.4 6.4 0 0 0-6.4-6.4z"
       },
       {
         "value": "donut",
         "label": "Donut",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M12 3v5M16 12h5M9.2 14.8l-3.6 3.6"
       },
       {
         "value": "treemap",
         "label": "Treemap",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M3 4h18v16H3zM12 4v16M12 11h9M16.5 11v9"
       },
       {
         "value": "pack",
         "label": "Circle pack",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0M6 10a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M13 14.5a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M8.5 16.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"
       },
       {
         "value": "sunburst",
         "label": "Sunburst",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M5.5 12a6.5 6.5 0 1 0 13 0a6.5 6.5 0 1 0 -13 0M12 2.5a9.5 9.5 0 1 1-8.23 14.25M12 9V2.5M14.6 13.5l3 1.75M9.4 13.5l-5.6 3.25M17.6 8.75l2.6-1.5M12 18.5v3"
       },
       {
         "value": "icicle",
         "label": "Icicle",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M3 4h18v5H3zM3 9h10v5H3zM13 9h8v5h-8zM3 14h5v5H3zM8 14h5v5H8zM13 14h8v5h-8z"
       },
       {
         "value": "marimekko",
         "label": "Marimekko",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M3 4h18v16H3zM9 4v16M17 4v16M3 13h6M9 9h8M17 15h4"
       },
       {
         "value": "funnel",
         "label": "Funnel",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M3 4h18l-2.5 5h-13zM7 12h10l-2 4H9zM10.5 19h3"
       },
       {
         "value": "gauge",
         "label": "Gauge",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M4 17a8 8 0 0 1 16 0M12 17l4-6M11.4 17a0.6 0.6 0 1 0 1.2 0a0.6 0.6 0 1 0 -1.2 0"
       },
       {
         "value": "histogram",
         "label": "Histogram",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M3 3v18h18M6 21v-4h3v-5h3V7h3v6h3v4h3"
       },
       {
         "value": "box",
         "label": "Box plot",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M7 4v3M5 7h4v8H5zM7 15v4M5 11h4M17 6v4M15 10h4v6h-4zM17 16v4M15 13h4"
       },
       {
         "value": "violin",
         "label": "Violin",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M8 4c0 2.5-3 3.5-3 7s3 4.5 3 9c0-4.5 3-5.5 3-9s-3-4.5-3-7zM16 6c0 2-2.5 3-2.5 6s2.5 4 2.5 8c0-4 2.5-5 2.5-8s-2.5-4-2.5-6z"
       },
       {
         "value": "beeswarm",
         "label": "Beeswarm",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M11.1 4.4a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M8.9 8.2a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M13.3 8.2a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M6.7 12a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M11.1 12a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M15.5 12a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M8.9 15.8a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M13.3 15.8a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M11.1 19.6a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0"
       },
       {
         "value": "heatmap",
         "label": "Heatmap",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M3 3h18v18H3zM9 3v18M15 3v18M3 9h18M3 15h18M5.5 5.5h1v1h-1zM11.5 11.5h1v1h-1zM17.5 5.5h1v1h-1zM11.5 17.5h1v1h-1z"
       },
       {
         "value": "scatter",
         "label": "Scatter",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M3 3v18h18M7.4 15.5a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M10.9 11a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M14.4 13.5a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M16.9 7.5a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0"
       },
       {
         "value": "parallel",
         "label": "Parallel",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M4 4v16M12 4v16M20 4v16M4 7l8 9 8-6M4 15l8-7 8 9"
       },
       {
         "value": "chord",
         "label": "Chord",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M13.56 3.14A9 9 0 0 1 20.86 13.56M18.9 17.8A9 9 0 0 1 6.2 18.9M3.54 15.08A9 9 0 0 1 8.92 3.54M19.4 6.8Q12 12 12.8 21M12.8 21Q12 12 3.8 8.2M3.8 8.2Q12 12 19.4 6.8"
       },
       {
         "value": "polar",
         "label": "Polar area",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M12 12V3a9 9 0 0 1 7.8 4.5zM12 12l5.2-3a6 6 0 0 1-2.2 8.2zM12 12l3.75 6.5a7.5 7.5 0 0 1-11.25-6.5zM12 12H7.5a4.5 4.5 0 0 1 4.5-4.5z"
       },
       {
         "value": "wordcloud",
         "label": "Word cloud",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M7 6h10M4 10h6M12 10h8M6 14h9M17 14h3M9 18h6"
       }
     ]
   },
@@ -239,82 +274,98 @@
       {
         "value": "dot-strip",
         "label": "Editorial dot plot",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M3 7h18M3 12h18M3 17h18M6.25 7a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0M13.25 12a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0M9.25 17a1.75 1.75 0 1 0 3.5 0a1.75 1.75 0 1 0 -3.5 0"
       },
       {
         "value": "interval",
         "label": "Interval / range",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M6 6v9M4.5 6h3M4.5 15h3M12 9v9M10.5 9h3M10.5 18h3M18 4v8M16.5 4h3M16.5 12h3M5.3 10.5a0.7 0.7 0 1 0 1.4 0a0.7 0.7 0 1 0 -1.4 0M11.3 13.5a0.7 0.7 0 1 0 1.4 0a0.7 0.7 0 1 0 -1.4 0M17.3 8a0.7 0.7 0 1 0 1.4 0a0.7 0.7 0 1 0 -1.4 0"
       },
       {
         "value": "candlestick",
         "label": "Candlestick / OHLC",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M6 4v16M4.5 8h3v7h-3zM12 3v14M10.5 6h3v6h-3zM18 7v14M16.5 11h3v6h-3z"
       },
       {
         "value": "range-band",
         "label": "Range band",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 8l6-3 6 4 6-4v8l-6 4-6-4-6 3zM3 12l6-3 6 4 6-4"
       },
       {
         "value": "difference-area",
         "label": "Difference area",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 15l6-8 6 6 6-7v8l-6-6-6 5-6-4z"
       },
       {
         "value": "indexed-change",
         "label": "Indexed change",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 12h18M4 12l5-3 5 1 6-6M4 12l5 2 5 4 6-1"
       },
       {
         "value": "small-multiples",
         "label": "Small multiples",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 7l4-3 4 2 4-3 6 2M3 13l4 1 4-3 4 2 6-3M3 19l4-2 4 1 4-2 6 1"
       },
       {
         "value": "control-band",
         "label": "Control band",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 6h18M3 18h18M3 12l3-3 3 5 3-4 3 3 3-5 3 4"
       },
       {
         "value": "box-observations",
         "label": "Box + observations",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M8 4v3M5.5 7h5v9h-5zM8 16v4M5.5 11h5M14.1 6a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M16.6 9.5a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M13.6 13a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M17.1 16a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0M14.6 19a0.9 0.9 0 1 0 1.8 0a0.9 0.9 0 1 0 -1.8 0"
       },
       {
         "value": "rug-histogram",
         "label": "Histogram + rug",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M3 16h18M4 16v-3h3V8h3V5h3v5h3v3h4v3M5 16v3.5M8 16v3.5M10 16v3.5M12 16v3.5M15 16v3.5M19 16v3.5"
       },
       {
         "value": "distribution-facets",
         "label": "Distribution facets",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M3 10h18M6 10V7M10 10V4M14 10V6M18 10V8M3 20h18M6 20v-2M10 20v-4M14 20v-6M18 20v-3"
       },
       {
         "value": "density-ridges",
         "label": "Density ridges",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M3 9c3 0 4-5 7-5s4 5 7 5h4M3 14c4 0 5-5 8-5s4 5 6 5h4M3 19c2 0 4-5 6-5s5 5 8 5h4"
       },
       {
         "value": "ecdf",
         "label": "Cumulative distribution",
-        "group": "Distribution"
+        "group": "Distribution",
+        "glyph": "M3 3v18h18M6 18h3v-3h3v-4h3V8h3V5h3"
       },
       {
         "value": "hexbin",
         "label": "Hexbin density",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M8 4l3.5 2v4L8 12l-3.5-2V6zM15 4l3.5 2v4L15 12l-3.5-2V6zM11.5 10l3.5 2v4l-3.5 2L8 16v-4z"
       },
       {
         "value": "density-contour",
         "label": "Density contours",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M4 13c0-5 5-9 10-8s7 5 6 9-6 7-10 6-6-3-6-7zM9 13c0-2 2-4 4.5-3.5s3 2.5 2.5 4-3 3-4.5 2.5-2.5-1.5-2.5-3z"
       },
       {
         "value": "regression",
         "label": "Scatter + regression",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M3 3v18h18M5 18l15-12M7 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M9.5 16.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M12 8.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M15 12.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M17.5 4.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"
       }
     ],
     "help": "Curated layered and transformed SVG forms for comparison, change, distributions, uncertainty, relationships, monitoring and finance. Density, hexbin and regression use the first two numeric columns. Range band uses Low, Expected, High; candlestick uses Open, High, Low, Close."
@@ -333,67 +384,80 @@
       {
         "value": "bar3d",
         "label": "Bars",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M4 10l3 -1.5 3 1.5 -3 1.5zM4 10v8l3 1.5 3 -1.5v-8M7 11.5v8M13 5l3 -1.5 3 1.5 -3 1.5zM13 5v13l3 1.5 3 -1.5v-13M16 6.5v13"
       },
       {
         "value": "tiles3d",
         "label": "Tiles",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M12 10l8 4-8 4-8-4zM8 12l8 4M16 12l-8 4M12 4l4 2-4 2-4-2zM8 6v6M16 6v6M12 8v6"
       },
       {
         "value": "blocks3d",
         "label": "Unit blocks",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M4 14l4-2 4 2-4 2zM4 14v4l4 2 4-2v-4M8 16v4M12 14l4-2 4 2-4 2zM12 14v4l4 2 4-2v-4M16 16v4M8 8l4-2 4 2-4 2zM8 8v4M16 8v4M12 10v4"
       },
       {
         "value": "bubbles3d",
         "label": "Bubbles",
-        "group": "Compare"
+        "group": "Compare",
+        "glyph": "M4 10a5 5 0 1 0 10 0a5 5 0 1 0 -10 0M6.5 8.5a3 3 0 0 1 2-2M13 15.5a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M14.8 14.3a2 2 0 0 1 1.2-1.2M15 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"
       },
       {
         "value": "area3d",
         "label": "Walls",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 19v-2l5-7 5 3 5-7v13zM3 17l3-2M8 10l3-2M13 13l3-2M18 6l3-2M6 15l5-7 5 3 5-7v13l-3 2"
       },
       {
         "value": "waterfall3d",
         "label": "Waterfall",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M3 13l3 -1.5 3 1.5 -3 1.5zM3 13v5l3 1.5 3 -1.5v-5M6 14.5v5M9 9l3 -1.5 3 1.5 -3 1.5zM9 9v4l3 1.5 3 -1.5v-4M12 10.5v4M15 5l3 -1.5 3 1.5 -3 1.5zM15 5v4l3 1.5 3 -1.5v-4M18 6.5v4"
       },
       {
         "value": "spiral3d",
         "label": "Spiral",
-        "group": "Change over time"
+        "group": "Change over time",
+        "glyph": "M12 12a1.5 1.5 0 0 1 3 0a3 3 0 0 1-6 0a4.5 4.5 0 0 1 9 0a6 6 0 0 1-12 0a7.5 7.5 0 0 1 15 0"
       },
       {
         "value": "donut3d",
         "label": "Donut or pie",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M3 10a9 5 0 1 0 18 0a9 5 0 1 0 -18 0M8 10a4 2 0 1 0 8 0a4 2 0 1 0 -8 0M3 10v4a9 5 0 0 0 18 0v-4"
       },
       {
         "value": "rose3d",
         "label": "Rose",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M12 11V5.6a9 5.4 0 0 1 7.8 2.7zM12 11l5.2-1.8a6 3.6 0 0 1-2.2 4.9zM12 11l3.75 3.9a7.5 4.5 0 0 1-11.25-3.9zM12 11H7.5a4.5 2.7 0 0 1 4.5-2.7zM4.5 11v3a7.5 4.5 0 0 0 11.25 3.9v-3"
       },
       {
         "value": "funnel3d",
         "label": "Funnel or pyramid",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M4 6a8 2.5 0 1 0 16 0a8 2.5 0 1 0 -16 0M4 6l5.5 12a2.5 1 0 0 0 5 0L20 6M6.3 11a5.7 1.8 0 0 0 11.4 0"
       },
       {
         "value": "city3d",
         "label": "City",
-        "group": "Parts of a whole"
+        "group": "Parts of a whole",
+        "glyph": "M3 12l3 -1.5 3 1.5 -3 1.5zM3 12v6l3 1.5 3 -1.5v-6M6 13.5v6M9 5l3 -1.5 3 1.5 -3 1.5zM9 5v13l3 1.5 3 -1.5v-13M12 6.5v13M15 9l3 -1.5 3 1.5 -3 1.5zM15 9v9l3 1.5 3 -1.5v-9M18 10.5v9"
       },
       {
         "value": "scatter3d",
         "label": "Scatter",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M10 15V4M10 15l10 4M10 15l-7 4M13.4 7.5a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M16.4 12a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M5.4 9.5a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0M12.9 13a1.1 1.1 0 1 0 2.2 0a1.1 1.1 0 1 0 -2.2 0"
       },
       {
         "value": "surface3d",
         "label": "Surface",
-        "group": "Relationship"
+        "group": "Relationship",
+        "glyph": "M3 10c3-6 6-6 9-2s6 4 9-3M3 14c3-6 6-6 9-2s6 4 9-3M3 18c3-6 6-6 9-2s6 4 9-3M3 10v8M12 8v8M21 5v8"
       }
     ],
     "help": "Choose how the same table is read in the real 3-D scene. Bars, walls, tiles and blocks use a label column plus numeric series. City, donut, rose, funnel, bubbles, spiral and waterfall draw the first numeric series. Scatter uses at least three numeric columns; Surface uses the table as a value grid."
@@ -412,47 +476,56 @@
       {
         "value": "tour3d",
         "label": "Spotlight tour",
-        "group": "Directed"
+        "group": "Directed",
+        "glyph": "M5 20v-6M10 20v-9M15 20v-8M20 20v-4M11.5 8a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0"
       },
       {
         "value": "countdown3d",
         "label": "Countdown",
-        "group": "Directed"
+        "group": "Directed",
+        "glyph": "M3 20v-5h6V9h6v3h6v8zM9 15v5M15 12v8M11 4l1.2-1v4"
       },
       {
         "value": "reveal3d",
         "label": "Pull-back reveal",
-        "group": "Directed"
+        "group": "Directed",
+        "glyph": "M10 10h4v4h-4zM3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"
       },
       {
         "value": "tunnel3d",
         "label": "Gate tunnel",
-        "group": "Directed"
+        "group": "Directed",
+        "glyph": "M3 3h18v18H3zM7 7h10v10H7zM10.5 10.5h3v3h-3zM3 3l4 4M21 3l-4 4M21 21l-4-4M3 21l4-4"
       },
       {
         "value": "terrain3d",
         "label": "Terrain flight",
-        "group": "Directed"
+        "group": "Directed",
+        "glyph": "M2 19l6-9 4 5 3-3 7 7zM10.5 11.5l4-6.5 5 8"
       },
       {
         "value": "flythrough3d",
         "label": "Data flight",
-        "group": "Flight"
+        "group": "Flight",
+        "glyph": "M3 11l18-7-7 18-3-8zM11 14L21 4"
       },
       {
         "value": "ribbon3d",
         "label": "Ribbon canyon",
-        "group": "Flight"
+        "group": "Flight",
+        "glyph": "M3 20c3-6 5-9 9-16M9 20c2-5 3-9 3-16M15 20c-1-5-2-9-3-16M21 20c-3-6-5-9-9-16"
       },
       {
         "value": "constellation3d",
         "label": "Constellation",
-        "group": "Flight"
+        "group": "Flight",
+        "glyph": "M5 7l6-3 6 5-4 6-7 2M13 15l7 3M3.75 7a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0M9.75 4a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0M15.75 9a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0M11.75 15a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0M4.75 17a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0M18.75 18a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0 -2.5 0"
       },
       {
         "value": "skyline3d",
         "label": "Data skyline",
-        "group": "Flight"
+        "group": "Flight",
+        "glyph": "M2 20h20M4 20v-7h4v7M10 20V5h5v15M17 20V10h3v10"
       }
     ],
     "help": "Turn the same table into a paced, directed story. The tour, countdown and reveal move a camera between named shots with a caption for each; the gate tunnel flies through one ring per value; the terrain flight crosses the table as a landscape. The flights follow a series along the category order, with values as altitude."
@@ -467,26 +540,31 @@
     "options": [
       {
         "value": "brand-default",
-        "label": "Design system"
+        "label": "Design system",
+        "glyph": "M4 20h16M7 17v-5M12 17V7M17 17v-8"
       },
       {
         "value": "editorial",
-        "label": "Editorial"
+        "label": "Editorial",
+        "glyph": "M4 5h10M4 20h16M8 17v-5M12 17v-7M16 17v-3"
       },
       {
         "value": "technical",
-        "label": "Technical"
+        "label": "Technical",
+        "glyph": "M4 4v16h16M4 8h2M4 12h2M4 16h2M10 17v-4M14 17V8M18 17v-7"
       },
       {
         "value": "poster",
-        "label": "Poster"
+        "label": "Poster",
+        "glyph": "M5 20v-9h5v9zM14 20V4h5v16z"
       },
       {
         "value": "iso-vector",
         "showIf": {
           "renderMode": "vector"
         },
-        "label": "Isometric"
+        "label": "Isometric",
+        "glyph": "M4 11l3 -1.5 3 1.5 -3 1.5zM4 11v7l3 1.5 3 -1.5v-7M7 12.5v7M13 6l3 -1.5 3 1.5 -3 1.5zM13 6v12l3 1.5 3 -1.5v-12M16 7.5v12"
       },
       {
         "value": "studio-3d",
@@ -496,7 +574,8 @@
             "cinematic"
           ]
         },
-        "label": "Studio 3-D"
+        "label": "Studio 3-D",
+        "glyph": "M6.5 9.5a5.5 5.5 0 1 0 11 0a5.5 5.5 0 1 0 -11 0M8.6 8a4 4 0 0 1 2.6-2.6M5 19a7 1.6 0 1 0 14 0a7 1.6 0 1 0 -14 0"
       },
       {
         "value": "glass-3d",
@@ -506,7 +585,8 @@
             "cinematic"
           ]
         },
-        "label": "Glass 3-D"
+        "label": "Glass 3-D",
+        "glyph": "M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12L4 7.5M12 12v9"
       }
     ],
     "help": "A curated presentation layer above the chart type. Styles inherit the active design system's typography, ordered colours, ramps, patterns and motion character. Controls you change explicitly always win. Studio and Glass affect the real 3-D chart types; Isometric keeps projected depth as editable vectors."
