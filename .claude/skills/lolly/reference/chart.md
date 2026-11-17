@@ -140,36 +140,31 @@ Generated from `community/chart/tool.json`. Aliases are the `urlKey` column.
 | ID | Alias | Type | Default | Section | What it does |
 |---|---|---|---|---|---|
 | `data` | `d` | longtext | `Quarter,Coffee,Tea,Juice\nQ1,42…` | - | Data |
+| `renderMode` | `rm` | select | `vector` | - | Render |
+| `chartType` | `ct` | select | `bar` | - | Chart type |
+| `plotType` | `pf` | select | `dot-strip` | - | Statistical form |
+| `sceneType` | `sct` | select | `bar3d` | - | 3-D chart type |
+| `cinematicType` | `cft` | select | `flythrough3d` | - | Cinematic form |
+| `chartStyle` | `sty` | select | `brand-default` | - | Style |
+| `chartIntent` | `goal` | select | `manual` | - | What to show |
 | `heading` | `t` | text | `""` | - | Title |
 | `subheading` | `st` | text | `""` | - | Subtitle / source |
-| `chartIntent` | `goal` | select | `manual` | Change chart | What to show |
-| `renderMode` | `rm` | select | `vector` | Change chart | Render |
-| `chartType` | `ct` | select | `bar` | Change chart | Chart type |
-| `paretoCumulative` | - | boolean | true | Pareto | Show cumulative percentage |
-| `paretoThreshold` | - | number | 80 | Pareto | Cumulative reference (%) |
-| `bulletTarget` | - | number | 100 | Bullet targets | Fallback target |
-| `bulletBands` | - | boolean | true | Bullet targets | Show target bands |
-| `rangeMidpoint` | - | boolean | true | Range bars | Show range midpoint |
-| `plotType` | `pf` | select | `dot-strip` | Change chart | Statistical form |
-| `sceneType` | `sct` | select | `bar3d` | Change chart | 3-D chart type |
-| `cinematicType` | `cft` | select | `flythrough3d` | Change chart | Cinematic form |
-| `plotBins` | `pbn` | number | 20 | Statistical | Bins / contour levels |
-| `plotBinWidth` | `pbw` | number | 24 | Statistical | Hexagon size |
-| `plotBandwidth` | `pbnd` | number | 20 | Statistical | Density smoothing |
-| `plotShowRaw` | `praw` | boolean | true | Statistical | Show observations |
-| `plotConfidenceBand` | `pci` | boolean | true | Statistical | 95% confidence band |
-| `plotFacetDirection` | `pfd` | select | `rows` | Statistical | Facet direction |
-| `plotMotionPreset` | `psm` | select | `none` | Animation | Statistical motion |
-| `chartStyle` | `sty` | select | `brand-default` | - | Style |
-| `palette` | `pl` | select | `ordered` | Colour & style | Palette |
-| `paletteSeed` | `pz` | color | `{color.semantic.primary}` | Colour & style | Base colour |
-| `paletteBlend` | `pb` | select | `smooth` | Colour & style | Colour interpolation |
-| `paletteBlendTo` | `p2` | color | `{color.semantic.secondary}` | Colour & style | Second colour |
-| `hueRoute` | `hr` | select | `short` | Colour & style | Hue direction |
-| `colorBy` | `cb` | select | `series` | Colour & style | Colour by |
-| `barStyle` | `b3` | select | `flat` | Colour & style | Bar look |
-| `pieStyle` | `p3` | select | `flat` | Colour & style | Pie look |
-| `depth3d` | `dp` | number | 0 | Colour & style | 3-D depth (px, 0 = auto) |
+| `paretoCumulative` | - | boolean | true | Pareto options | Show cumulative percentage |
+| `paretoThreshold` | - | number | 80 | Pareto options | Cumulative reference (%) |
+| `bulletTarget` | - | number | 100 | Bullet options | Fallback target |
+| `bulletBands` | - | boolean | true | Bullet options | Show target bands |
+| `rangeMidpoint` | - | boolean | true | Range bar options | Show range midpoint |
+| `plotBins` | `pbn` | number | 20 | Statistical options | Bins / contour levels |
+| `plotBinWidth` | `pbw` | number | 24 | Statistical options | Hexagon size |
+| `plotBandwidth` | `pbnd` | number | 20 | Statistical options | Density smoothing |
+| `plotShowRaw` | `praw` | boolean | true | Statistical options | Show observations |
+| `plotConfidenceBand` | `pci` | boolean | true | Statistical options | 95% confidence band |
+| `plotFacetDirection` | `pfd` | select | `rows` | Statistical options | Facet direction |
+| `flightSeries` | `cfs` | text | `""` | Flight camera | Camera follows |
+| `flightHeight` | `cfh` | number | 0.85 | Flight camera | Camera clearance |
+| `flightLookAhead` | `cfla` | number | 1.5 | Flight camera | Look ahead |
+| `flightBank` | `cfb` | number | 10 | Flight camera | Bank with change |
+| `flightFov` | `cff` | number | 54 | Flight camera | Field of view |
 | `sceneLayout` | `sly` | select | `auto` | 3-D scene | Arrangement |
 | `sceneHighlight` | `shl` | text | `""` | 3-D scene | Highlight |
 | `scenePose` | `spo` | select | `hero` | 3-D scene | Camera |
@@ -183,74 +178,14 @@ Generated from `community/chart/tool.json`. Aliases are the `urlKey` column.
 | `sceneRoughness` | `rou` | number | 0.58 | 3-D scene | Roughness |
 | `sceneMetalness` | `met` | number | 0.04 | 3-D scene | Metalness |
 | `sceneShadows` | `s3s` | boolean | true | 3-D scene | Shadows |
-| `flightSeries` | `cfs` | text | `""` | Cinematic flight | Camera follows |
-| `flightHeight` | `cfh` | number | 0.85 | Cinematic flight | Camera clearance |
-| `flightLookAhead` | `cfla` | number | 1.5 | Cinematic flight | Look ahead |
-| `flightBank` | `cfb` | number | 10 | Cinematic flight | Bank with change |
-| `flightFov` | `cff` | number | 54 | Cinematic flight | Field of view |
-| `shadow` | `sh` | select | `none` | Colour & style | Shadow / depth |
-| `differentiate` | `df` | select | `auto` | Colour & style | Differentiate series by |
-| `colorOverrides` | `co` | text | `""` | Colour & style | Highlighted values |
-| `transparentBg` | - | boolean | true | Colour & style | Transparent background |
-| `background` | `bg` | color | `{color.semantic.surface}` | Colour & style | Background |
-| `textColor` | `tc` | color | `""` | Colour & style | Text & axis colour |
-| `strokeWidth` | `ow` | number | 0 | Colour & style | Mark outline width |
-| `strokeColor` | `oc` | color | `{color.semantic.surface}` | Colour & style | Mark outline colour |
 | `hasHeader` | `hh` | boolean | true | Data | First row is a header |
 | `delimiter` | `dl` | select | `auto` | Data | Column separator |
 | `transpose` | `tp` | boolean | false | Data | Swap rows & columns |
-| `labelColumn` | `lc` | text | `""` | Field mapping | Category column (X) |
-| `seriesColumns` | `sc` | text | `""` | Field mapping | Value columns (Y) |
-| `pivotColumn` | `pv` | text | `""` | Field mapping | Split into series (colour) |
-| `zColumn` | `zc` | text | `""` | Field mapping | Z / depth |
-| `sizeColumn` | `szc` | text | `""` | Field mapping | Size |
-| `frameColumn` | `fc` | text | `""` | Animation | Frame / time |
-| `motionPreset` | `mp` | select | `none` | Animation | Scene motion |
-| `animSpeed` | `as` | number | 1.5 | Animation | Seconds per frame |
-| `frameLabelShow` | `fl` | boolean | true | Animation | Show frame label |
-| `frameLabelSize` | `fls` | number | 36 | Animation | Frame label size |
-| `frameLabelWeight` | `flw` | select | `700` | Animation | Frame label weight |
-| `frameLabelColor` | `flc` | color | `""` | Animation | Frame label colour |
-| `frameLabelPos` | `flp` | select | `tr` | Animation | Frame label position |
-| `animEase` | `ae` | select | `smooth` | Animation | Motion |
-| `animDirection` | `ad` | select | `loop` | Animation | Loop style |
-| `stackMode` | `sm` | select | `grouped` | Marks & spacing | Series layout |
-| `curve` | `cv` | select | `monotone` | Marks & spacing | Line shape |
-| `showPoints` | `pt` | boolean | false | Marks & spacing | Show point markers |
-| `pointSize` | `ps` | number | 10 | Marks & spacing | Point size |
-| `sizeBy` | `sz` | select | `uniform` | Marks & spacing | Bubble size |
-| `lineWidth` | `lw` | number | 3 | Marks & spacing | Line width |
-| `fillOpacity` | `fo` | number | 85 | Marks & spacing | Fill opacity % |
-| `donutRadius` | `dr` | number | 0.55 | Marks & spacing | Inner radius (hole) |
-| `sliceGap` | `sg` | number | 1 | Marks & spacing | Gap between slices |
-| `cornerRadius` | `cr` | number | 6 | Marks & spacing | Corner radius |
-| `barPadding` | `bp` | number | 0.2 | Marks & spacing | Bar spacing |
-| `barGap` | `bpg` | number | 0.08 | Marks & spacing | Series gap |
-| `binCount` | `bc` | number | 0 | Marks & spacing | Bins (0 = auto) |
-| `sort` | `so` | select | `none` | Marks & spacing | Sort |
-| `labelLayout` | `ll` | select | `auto` | Category labels | Category label layout |
-| `labelReserve` | `lr` | number | 0 | Category labels | Label area (%, 0 = auto) |
-| `labelLines` | `ln` | number | 2 | Category labels | Max label lines |
-| `barThickness` | `bt` | number | 0 | Category labels | Bar thickness |
-| `yScaleType` | `ys` | select | `linear` | Axes & scale | Value scale |
-| `yZero` | `yz` | boolean | true | Axes & scale | Start value axis at zero |
-| `yMax` | `ym` | number | 0 | Axes & scale | Value axis max (0 = auto) |
-| `showGrid` | `gd` | boolean | true | Axes & scale | Gridlines |
-| `showAxes` | `ax` | boolean | true | Axes & scale | Axis lines & ticks |
-| `tickCount` | `tk` | number | 5 | Axes & scale | Approx. tick count |
-| `numberFormat` | `nf` | select | `auto` | Axes & scale | Number format |
-| `xTitle` | `xt` | text | `""` | Axes & scale | X-axis title |
-| `yTitle` | `yt` | text | `""` | Axes & scale | Y-axis title |
-| `timeAxis` | `tax` | select | `auto` | Axes & scale | Time axis |
-| `reference` | `rf` | longtext | `""` | Axes & scale | Reference lines & bands |
-| `trend` | `tr` | select | `none` | Axes & scale | Trend / fit line |
-| `errorColumn` | `ec` | text | `""` | Axes & scale | Uncertainty / error |
-| `palette1` | `c1` | color | `""` | Custom palette | Colour 1 |
-| `palette2` | `c2` | color | `""` | Custom palette | Colour 2 |
-| `palette3` | `c3` | color | `""` | Custom palette | Colour 3 |
-| `palette4` | `c4` | color | `""` | Custom palette | Colour 4 |
-| `palette5` | `c5` | color | `""` | Custom palette | Colour 5 |
-| `palette6` | `c6` | color | `""` | Custom palette | Colour 6 |
+| `labelColumn` | `lc` | text | `""` | Data | Category column (X) |
+| `seriesColumns` | `sc` | text | `""` | Data | Value columns (Y) |
+| `pivotColumn` | `pv` | text | `""` | Data | Split into series (colour) |
+| `zColumn` | `zc` | text | `""` | Data | Z / depth |
+| `sizeColumn` | `szc` | text | `""` | Data | Size |
 | `annotations` | `an` | longtext | `""` | Titles & labels | Annotations |
 | `titleSize` | `tz` | number | 34 | Titles & labels | Title text size |
 | `titleWeight` | `tw` | number | 500 | Titles & labels | Title weight |
@@ -276,6 +211,71 @@ Generated from `community/chart/tool.json`. Aliases are the `urlKey` column.
 | `legendBold` | `lbo` | boolean | false | Legend | Bold |
 | `legendItalic` | `lit` | boolean | false | Legend | Italic |
 | `legendColor` | `lgc` | color | `""` | Legend | Legend text colour |
+| `palette` | `pl` | select | `ordered` | Colour & style | Palette |
+| `paletteSeed` | `pz` | color | `{color.semantic.primary}` | Colour & style | Base colour |
+| `paletteBlend` | `pb` | select | `smooth` | Colour & style | Colour interpolation |
+| `paletteBlendTo` | `p2` | color | `{color.semantic.secondary}` | Colour & style | Second colour |
+| `hueRoute` | `hr` | select | `short` | Colour & style | Hue direction |
+| `colorBy` | `cb` | select | `series` | Colour & style | Colour by |
+| `barStyle` | `b3` | select | `flat` | Colour & style | Bar look |
+| `pieStyle` | `p3` | select | `flat` | Colour & style | Pie look |
+| `depth3d` | `dp` | number | 0 | Colour & style | 3-D depth (px, 0 = auto) |
+| `shadow` | `sh` | select | `none` | Colour & style | Shadow / depth |
+| `differentiate` | `df` | select | `auto` | Colour & style | Differentiate series by |
+| `colorOverrides` | `co` | text | `""` | Colour & style | Highlighted values |
+| `transparentBg` | - | boolean | true | Colour & style | Transparent background |
+| `background` | `bg` | color | `{color.semantic.surface}` | Colour & style | Background |
+| `textColor` | `tc` | color | `""` | Colour & style | Text & axis colour |
+| `strokeWidth` | `ow` | number | 0 | Colour & style | Mark outline width |
+| `strokeColor` | `oc` | color | `{color.semantic.surface}` | Colour & style | Mark outline colour |
+| `palette1` | `c1` | color | `""` | Custom palette | Colour 1 |
+| `palette2` | `c2` | color | `""` | Custom palette | Colour 2 |
+| `palette3` | `c3` | color | `""` | Custom palette | Colour 3 |
+| `palette4` | `c4` | color | `""` | Custom palette | Colour 4 |
+| `palette5` | `c5` | color | `""` | Custom palette | Colour 5 |
+| `palette6` | `c6` | color | `""` | Custom palette | Colour 6 |
+| `stackMode` | `sm` | select | `grouped` | Marks & spacing | Series layout |
+| `curve` | `cv` | select | `monotone` | Marks & spacing | Line shape |
+| `showPoints` | `pt` | boolean | false | Marks & spacing | Show point markers |
+| `pointSize` | `ps` | number | 10 | Marks & spacing | Point size |
+| `sizeBy` | `sz` | select | `uniform` | Marks & spacing | Bubble size |
+| `lineWidth` | `lw` | number | 3 | Marks & spacing | Line width |
+| `fillOpacity` | `fo` | number | 85 | Marks & spacing | Fill opacity % |
+| `donutRadius` | `dr` | number | 0.55 | Marks & spacing | Inner radius (hole) |
+| `sliceGap` | `sg` | number | 1 | Marks & spacing | Gap between slices |
+| `cornerRadius` | `cr` | number | 6 | Marks & spacing | Corner radius |
+| `barPadding` | `bp` | number | 0.2 | Marks & spacing | Bar spacing |
+| `barGap` | `bpg` | number | 0.08 | Marks & spacing | Series gap |
+| `barThickness` | `bt` | number | 0 | Marks & spacing | Bar thickness |
+| `binCount` | `bc` | number | 0 | Marks & spacing | Bins (0 = auto) |
+| `sort` | `so` | select | `none` | Marks & spacing | Sort |
+| `labelLayout` | `ll` | select | `auto` | Axes & scale | Category label layout |
+| `labelReserve` | `lr` | number | 0 | Axes & scale | Label area (%, 0 = auto) |
+| `labelLines` | `ln` | number | 2 | Axes & scale | Max label lines |
+| `yScaleType` | `ys` | select | `linear` | Axes & scale | Value scale |
+| `yZero` | `yz` | boolean | true | Axes & scale | Start value axis at zero |
+| `yMax` | `ym` | number | 0 | Axes & scale | Value axis max (0 = auto) |
+| `showGrid` | `gd` | boolean | true | Axes & scale | Gridlines |
+| `showAxes` | `ax` | boolean | true | Axes & scale | Axis lines & ticks |
+| `tickCount` | `tk` | number | 5 | Axes & scale | Approx. tick count |
+| `numberFormat` | `nf` | select | `auto` | Axes & scale | Number format |
+| `xTitle` | `xt` | text | `""` | Axes & scale | X-axis title |
+| `yTitle` | `yt` | text | `""` | Axes & scale | Y-axis title |
+| `timeAxis` | `tax` | select | `auto` | Axes & scale | Time axis |
+| `reference` | `rf` | longtext | `""` | Axes & scale | Reference lines & bands |
+| `trend` | `tr` | select | `none` | Axes & scale | Trend / fit line |
+| `errorColumn` | `ec` | text | `""` | Axes & scale | Uncertainty / error |
+| `frameColumn` | `fc` | text | `""` | Animation | Frame / time |
+| `motionPreset` | `mp` | select | `none` | Animation | Scene motion |
+| `plotMotionPreset` | `psm` | select | `none` | Animation | Statistical motion |
+| `animSpeed` | `as` | number | 1.5 | Animation | Seconds per frame |
+| `frameLabelShow` | `fl` | boolean | true | Animation | Show frame label |
+| `frameLabelSize` | `fls` | number | 36 | Animation | Frame label size |
+| `frameLabelWeight` | `flw` | select | `700` | Animation | Frame label weight |
+| `frameLabelColor` | `flc` | color | `""` | Animation | Frame label colour |
+| `frameLabelPos` | `flp` | select | `tr` | Animation | Frame label position |
+| `animEase` | `ae` | select | `smooth` | Animation | Motion |
+| `animDirection` | `ad` | select | `loop` | Animation | Loop style |
 | `width` | - | number | 1280 | - | Width |
 | `height` | - | number | 800 | - | Height |
 <!-- /GEN:chart-inputs -->
