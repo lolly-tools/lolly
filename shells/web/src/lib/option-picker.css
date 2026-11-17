@@ -219,6 +219,13 @@
 .option-picker-close:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
 .option-picker-close:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 
+/* Windows High Contrast and other forced palettes erase the tinted fill and the
+   inset ring, which leaves the chosen tile looking like the rest. A system-colour
+   outline keeps it apart. */
+@media (forced-colors: active) {
+  .option-picker-tile.is-on { outline: 2px solid Highlight; outline-offset: -2px; }
+}
+
 /* Both Reduce motion switches take the panel's rise and fade away. */
 @media (prefers-reduced-motion: reduce) {
   .option-picker-surface { animation: none; }
