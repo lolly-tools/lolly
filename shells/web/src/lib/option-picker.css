@@ -18,7 +18,6 @@
   gap: var(--sp-3);
   min-width: 0;
   text-align: start;
-  line-height: normal;
 }
 .option-picker-glyph {
   flex: none;
