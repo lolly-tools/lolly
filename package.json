@@ -213,12 +213,12 @@
     "playwright-core": "^1.63.0"
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^1.6.0",
-    "@biomejs/biome": "^2.6.6",
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@biomejs/biome": "^2.6.7",
     "@lolly-tools/core": "workspace:*",
     "@lolly-tools/node-shell": "workspace:*",
     "@lolly/engine": "workspace:*",
-    "@lottiefiles/dotlottie-web": "0.82.1",
+    "@lottiefiles/dotlottie-web": "0.83.2",
     "@observablehq/plot": "0.6.19",
     "@types/d3-geo": "^3.1.1",
     "@types/node": "^26.6.6",
