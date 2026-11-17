@@ -1,8 +1,11 @@
 {
  "v": 1,
+ "source": {
+  "fingerprint": "ca63edcb38f4a4d8fce6069a5668200c"
+ },
  "contexts": {
-  "187e29b35da526ec04fe3534790ad084": "light",
-  "767952e66c79f836ff75b0dccbeb9710": "dark"
+  "777224d5ce5d0eae25bf94a772a6494d": "light",
+  "8a64201522908f2717606d292ffdbe10": "dark"
  },
  "covers": {
   "design": {
@@ -17,7 +20,7 @@
    }
   },
   "darkroom": {
-   "version": "2.5.3",
+   "version": "2.6.0",
    "light": {
     "templateId": "warm-portrait",
     "file": "/catalog/previews/covers/darkroom.light.webp"
@@ -28,7 +31,7 @@
    }
   },
   "filter": {
-   "version": "1.6.0",
+   "version": "1.7.0",
    "light": {
     "templateId": "colour-scanlines",
     "file": "/catalog/previews/covers/filter.light.webp"
@@ -39,7 +42,7 @@
    }
   },
   "chart": {
-   "version": "1.28.0",
+   "version": "1.30.1",
    "light": {
     "templateId": "brand-bars",
     "file": "/catalog/previews/covers/chart.light.svg"
@@ -83,7 +86,7 @@
    }
   },
   "week": {
-   "version": "1.0.0",
+   "version": "1.1.0",
    "light": {
     "file": "/catalog/previews/covers/week.light.svg"
    },
@@ -92,7 +95,7 @@
    }
   },
   "scorecard": {
-   "version": "1.0.0",
+   "version": "1.1.0",
    "light": {
     "file": "/catalog/previews/covers/scorecard.light.svg"
    },
@@ -101,7 +104,7 @@
    }
   },
   "email": {
-   "version": "1.0.0",
+   "version": "1.1.0",
    "light": {
     "file": "/catalog/previews/covers/email.light.svg"
    },
@@ -110,7 +113,7 @@
    }
   },
   "brief": {
-   "version": "1.0.0",
+   "version": "1.1.0",
    "light": {
     "file": "/catalog/previews/covers/brief.light.svg"
    },
@@ -119,7 +122,7 @@
    }
   },
   "quote": {
-   "version": "1.0.1",
+   "version": "1.1.0",
    "light": {
     "templateId": "services",
     "file": "/catalog/previews/covers/quote.light.svg"
@@ -141,7 +144,7 @@
    }
   },
   "wayfinding-signage": {
-   "version": "1.2.5",
+   "version": "1.3.0",
    "light": {
     "file": "/catalog/previews/covers/wayfinding-signage.light.svg"
    },
@@ -170,7 +173,7 @@
    }
   },
   "street-map": {
-   "version": "0.5.3",
+   "version": "0.5.4",
    "light": {
     "templateId": "city-poster",
     "file": "/catalog/previews/covers/street-map.light.webp"
@@ -181,7 +184,7 @@
    }
   },
   "stationery": {
-   "version": "1.0.4",
+   "version": "1.1.0",
    "light": {
     "templateId": "card-card-back",
     "file": "/catalog/previews/covers/stationery.light.svg"
@@ -225,7 +228,7 @@
    }
   },
   "pricing-table": {
-   "version": "1.1.2",
+   "version": "1.2.0",
    "light": {
     "templateId": "saas",
     "file": "/catalog/previews/covers/pricing-table.light.svg"
@@ -245,7 +248,7 @@
    }
   },
   "multi-page-pdf": {
-   "version": "1.1.4",
+   "version": "1.2.0",
    "light": {
     "templateId": "annual-report",
     "file": "/catalog/previews/covers/multi-page-pdf.light.webp"
@@ -256,7 +259,7 @@
    }
   },
   "meeting-planner": {
-   "version": "1.2.4",
+   "version": "1.3.1",
    "light": {
     "file": "/catalog/previews/covers/meeting-planner.light.svg"
    },
@@ -276,7 +279,7 @@
    }
   },
   "logo-wall": {
-   "version": "1.8.1",
+   "version": "1.9.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/logo-wall.light.svg"
@@ -287,7 +290,7 @@
    }
   },
   "link-card": {
-   "version": "1.0.4",
+   "version": "1.1.0",
    "light": {
     "templateId": "og",
     "file": "/catalog/previews/covers/link-card.light.webp"
@@ -342,7 +345,7 @@
    }
   },
   "flythrough": {
-   "version": "0.2.6",
+   "version": "0.2.7",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/flythrough.light.webp"
@@ -364,7 +367,7 @@
    }
   },
   "doc-studio": {
-   "version": "1.3.0",
+   "version": "1.4.0",
    "light": {
     "templateId": "field-report",
     "file": "/catalog/previews/covers/doc-studio.light.webp"
@@ -419,7 +422,7 @@
    }
   },
   "calendar-ics": {
-   "version": "1.2.4",
+   "version": "1.3.0",
    "light": {
     "templateId": "month",
     "file": "/catalog/previews/covers/calendar-ics.light.svg"
@@ -430,7 +433,7 @@
    }
   },
   "booth-studio": {
-   "version": "0.4.0",
+   "version": "0.4.1",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/booth-studio.light.webp"
@@ -441,7 +444,7 @@
    }
   },
   "battlecards": {
-   "version": "1.3.3",
+   "version": "1.4.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/battlecards.light.svg"
@@ -485,7 +488,7 @@
    }
   },
   "3d-studio": {
-   "version": "0.9.1",
+   "version": "0.11.0",
    "light": {
     "templateId": "studio-object",
     "file": "/catalog/previews/covers/3d-studio.light.webp"
