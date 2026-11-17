@@ -3,9 +3,12 @@
  * lib/option-picker.ts - the `display: "picker"` select. jsdom hosts the real
  * mountBodyPopover underneath, so these pin the genuine lifecycle: open and
  * close, focus, each key, choosing, an outside press, groups, the glyph pattern,
- * an option that is not applicable, the phone sheet and teardown.
+ * an option that is not applicable, the phone sheet and teardown. jsdom measures
+ * nothing, so where the panel goes and how many columns it draws are pinned on
+ * the two pure functions that decide them.
  *
- * The glyphs here are test fixtures only. Chart's manifest carries none yet.
+ * The glyphs here are test fixtures. Chart's own are in its manifest, held by
+ * tests/chart-sidebar-order.test.ts.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,6 +22,8 @@ import {
   GLYPH_PATTERN,
   groupOptions,
   optionPickerHtml,
+  panelPlace,
+  pickerColumns,
   pickerPanelHtml,
   pickerSpec,
   safeGlyph,
@@ -415,6 +420,170 @@ test('on a phone the panel is a sheet with a header, and the page behind holds s
   h.key('Escape');
   assert.equal(h.panel(), null, 'and so does Escape');
   assert.deepEqual(h.commits, []);
+});
+
+test('columns: four, five or six, whichever leaves the fewest empty cells', () => {
+  const cols = (...sizes: number[]): number => pickerColumns(sizes.map((n) => ({ options: Array.from({ length: n }) })));
+  assert.equal(cols(10, 6, 9, 5, 5), 5, "Chart's 35 types: five empty cells, where four columns leave thirteen");
+  assert.equal(cols(3, 5, 5, 3), 5, 'the statistical forms');
+  assert.equal(cols(4, 3, 4, 2), 4, 'the 3-D types');
+  assert.equal(cols(5, 4), 5, 'the cinematic forms');
+  assert.equal(cols(5), 5, 'five styles sit in one row');
+  assert.equal(cols(7), 4);
+  assert.equal(cols(6, 6, 6), 6);
+  assert.equal(cols(8), 4, 'the fewest columns among equals');
+  assert.equal(cols(12), 4);
+  assert.equal(cols(3), 4);
+  assert.equal(cols(), 4);
+});
+
+test('the floating panel carries its column count; a sheet takes its columns from the phone', () => {
+  const h = harness();
+  h.trigger.click();
+  assert.equal(h.panel()!.dataset.cols, '4', 'groups of 1, 2, 2 and 1');
+  closeOptionPicker();
+  const five = harness({
+    input: { id: 'chartType', label: 'Style', value: 'a', options: ['a', 'b', 'c', 'd', 'e'].map((value) => ({ value })) },
+    choices: ['a', 'b', 'c', 'd', 'e'].map((value) => ({ value, label: value.toUpperCase() })),
+  });
+  five.trigger.click();
+  assert.equal(five.panel()!.dataset.cols, '5');
+  closeOptionPicker();
+  const phone = harness({ width: 390 });
+  phone.trigger.click();
+  assert.equal(phone.panel()!.dataset.cols, undefined);
+  closeOptionPicker();
+});
+
+test('placement: under the trigger when the whole panel fits, beside it when it does not', () => {
+  const viewport = { width: 1440, height: 900 };
+  const trigger = { left: 4, right: 268, top: 464, bottom: 502 };
+  assert.deepEqual(panelPlace(trigger, { width: 540, height: 88 }, viewport), { left: 4, top: 506, maxHeight: null },
+    'left edges aligned, even with the trigger nearer the edge than the margin');
+  assert.deepEqual(panelPlace(trigger, { width: 540, height: 744 }, viewport), { left: 276, top: 144, maxHeight: null },
+    'beside, moved up until the whole panel is in view');
+  assert.deepEqual(panelPlace(trigger, { width: 432, height: 300 }, { width: 1440, height: 760 }), { left: 276, top: 448, maxHeight: null },
+    'a short panel beside keeps to the bottom margin');
+  assert.deepEqual(panelPlace({ ...trigger, top: 100, bottom: 138 }, { width: 432, height: 780 }, viewport), { left: 276, top: 100, maxHeight: null },
+    'top edges aligned when there is room below that line');
+  assert.deepEqual(panelPlace(trigger, { width: 540, height: 1200 }, viewport), { left: 276, top: 12, maxHeight: 876 },
+    'a panel taller than the viewport fills the height and scrolls');
+});
+
+test('placement: the near side when the far side has no room, then over or under', () => {
+  const viewport = { width: 1440, height: 900 };
+  // A sidebar on the right, as a right-to-left layout has.
+  const right = { left: 1172, right: 1436, top: 464, bottom: 502 };
+  assert.deepEqual(panelPlace(right, { width: 540, height: 744 }, viewport), { left: 624, top: 144, maxHeight: null });
+  assert.deepEqual(panelPlace(right, { width: 540, height: 88 }, viewport), { left: 888, top: 506, maxHeight: null },
+    'under the trigger, pulled in from the right edge');
+  // A window too narrow for the panel beside the trigger on either side.
+  const narrow = { width: 700, height: 900 };
+  const trigger = { left: 4, right: 268, top: 464, bottom: 502 };
+  assert.deepEqual(panelPlace(trigger, { width: 540, height: 744 }, narrow), { left: 4, top: 12, maxHeight: 448 },
+    'over the trigger, the larger side, scrolling');
+  assert.deepEqual(panelPlace(trigger, { width: 540, height: 420 }, narrow), { left: 4, top: 40, maxHeight: null },
+    'over the trigger whole');
+  assert.deepEqual(panelPlace({ ...trigger, top: 100, bottom: 138 }, { width: 540, height: 900 }, narrow), { left: 4, top: 142, maxHeight: 746 },
+    'under the trigger when that side is larger');
+  for (const place of [
+    panelPlace(trigger, { width: 540, height: 5000 }, { width: 300, height: 200 }),
+    panelPlace({ left: -400, right: -136, top: -50, bottom: -12 }, { width: 540, height: 744 }, viewport),
+  ]) {
+    assert.ok(place.left >= 0 && place.top >= 12, 'never off the top or the left of the viewport');
+    assert.ok(place.maxHeight === null || place.maxHeight >= 120);
+  }
+  // A trigger scrolled out above the viewport: the panel stays in view.
+  assert.deepEqual(panelPlace({ left: 4, right: 268, top: -156, bottom: -118 }, { width: 432, height: 200 }, { width: 1440, height: 768 }),
+    { left: 4, top: 12, maxHeight: null });
+  // Too little room over and under the trigger for a list worth opening, and none
+  // beside: the panel takes the viewport's height and never runs past its bottom.
+  const short = { width: 800, height: 200 };
+  const mid = { left: 280, right: 500, top: 70, bottom: 110 };
+  assert.deepEqual(panelPlace(mid, { width: 432, height: 176 }, short), { left: 280, top: 12, maxHeight: null });
+  assert.deepEqual(panelPlace(mid, { width: 432, height: 400 }, short), { left: 280, top: 12, maxHeight: 176 });
+});
+
+test('placement right-to-left: right edges align and the far side is the left', () => {
+  const viewport = { width: 1440, height: 900 };
+  const right = { left: 1172, right: 1436, top: 464, bottom: 502 };
+  assert.deepEqual(panelPlace(right, { width: 540, height: 88 }, viewport, true), { left: 896, top: 506, maxHeight: null });
+  assert.deepEqual(panelPlace(right, { width: 540, height: 744 }, viewport, true), { left: 624, top: 144, maxHeight: null });
+  // A sidebar that stays on the left: the left has no room, so the panel takes the right.
+  const left = { left: 4, right: 268, top: 464, bottom: 502 };
+  assert.deepEqual(panelPlace(left, { width: 540, height: 744 }, viewport, true), { left: 276, top: 144, maxHeight: null });
+  assert.deepEqual(panelPlace(left, { width: 540, height: 88 }, viewport, true), { left: 12, top: 506, maxHeight: null },
+    'pulled in from the left edge');
+});
+
+test('right-to-left, the left and right arrows swap', () => {
+  const h = harness();
+  h.doc.documentElement.dir = 'rtl';
+  h.trigger.click();
+  assert.equal(label(h.active()), 'Bar');
+  h.key('ArrowLeft');
+  assert.equal(label(h.active()), 'Lollipop', 'left is forward in reading order');
+  h.key('ArrowRight');
+  assert.equal(label(h.active()), 'Bar');
+  closeOptionPicker();
+});
+
+test('a trigger inside an open dialog mounts its panel in that dialog', () => {
+  const h = harness();
+  const dialog = h.doc.createElement('dialog');
+  dialog.setAttribute('open', '');
+  h.doc.body.appendChild(dialog);
+  dialog.appendChild(h.doc.getElementById('side')!);
+  h.trigger.click();
+  assert.equal(h.panel()!.parentElement, dialog, 'a node on body would sit under a modal dialog');
+  h.key('Escape');
+  assert.equal(h.panel(), null);
+  assert.equal(h.active(), h.trigger);
+});
+
+test('crossing from the desktop layout to the phone layout closes the panel', () => {
+  const h = harness();
+  h.trigger.click();
+  assert.ok(h.panel());
+  Object.defineProperty(h.win, 'innerWidth', { value: 390, configurable: true });
+  h.win.dispatchEvent(new h.win.Event('resize'));
+  assert.equal(h.panel(), null);
+  assert.deepEqual(h.commits, []);
+});
+
+test('a rebuild that changes the choices closes the panel; one that drops the input does too', async () => {
+  const h = harness();
+  h.trigger.click();
+  const side = h.doc.getElementById('side')!;
+  // The same input with one choice gone and another value current.
+  const fewer = CHOICES.filter((c) => c.value !== 'pie');
+  side.innerHTML = `<span id="irow-label-chartType">Chart type</span>${optionPickerHtml({ ...INPUT, value: 'line' }, fewer)}`;
+  const fresh = side.querySelector<HTMLButtonElement>('[data-option-picker]')!;
+  wireOptionPicker(fresh, (v) => h.commits.push(v));
+  assert.equal(h.panel(), null, 'the panel was showing a set that no longer stands');
+  assert.equal(fresh.getAttribute('aria-expanded'), 'false');
+  assert.equal(h.active(), fresh, 'focus is on the button on screen');
+  fresh.click();
+  assert.deepEqual(h.tiles().map(label), ['Loose one', 'Bar', 'Lollipop', 'Line', 'Area'], 'opened again from the new choices');
+  assert.equal(label(h.active()), 'Line');
+  // The input leaves the sidebar (its showIf turned false): no trigger takes over.
+  side.innerHTML = '';
+  assert.ok(h.panel(), 'still mounted until the sidebar has finished its rebuild');
+  await tick();
+  assert.equal(h.panel(), null);
+  assert.deepEqual(h.commits, []);
+  assert.equal(h.doc.body.children.length, 1, 'only the sidebar is left');
+});
+
+test('a rebuild that draws the same trigger again keeps the panel open', async () => {
+  const h = harness();
+  h.trigger.click();
+  const side = h.doc.getElementById('side')!;
+  side.innerHTML = `<span id="irow-label-chartType">Chart type</span>${optionPickerHtml(INPUT, CHOICES)}`;
+  wireOptionPicker(side.querySelector<HTMLButtonElement>('[data-option-picker]')!, (v) => h.commits.push(v));
+  await tick();
+  assert.ok(h.panel(), 'the new trigger took the panel over before the observer reported');
+  closeOptionPicker();
 });
 
 test('teardown and a route change each leave no node on body', () => {

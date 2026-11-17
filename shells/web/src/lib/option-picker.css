@@ -36,6 +36,12 @@
   white-space: nowrap;
 }
 .option-picker-na { color: var(--ui-color-text-muted); }
+/* Open: the trigger keeps the field's focus halo (parts/fields.css
+   .field-select:focus) while its panel is up, so a panel that opens beside the
+   sidebar still reads as this control's. */
+.option-picker-trigger[aria-expanded="true"] {
+  box-shadow: var(--ui-effect-bevel), var(--ui-effect-focus-halo);
+}
 /* A sidebar select is 44px tall under a finger and sets its text at 16px there
    (parts/notfound.css); the trigger keeps step with it. */
 @media (pointer: coarse) {
@@ -53,12 +59,18 @@
   position: fixed;
   z-index: calc(var(--z-top) + 1);
 }
+/* The floating panel draws 4, 5 or 6 columns, chosen from the set by
+   pickerColumns() so no group ends in a row of one or two, and is as wide as its
+   columns. Its height is the set's own: placePanel() caps a panel the viewport
+   cannot hold, and the list scrolls inside. */
+.option-picker-panel[data-cols="5"] { --picker-cols: 5; }
+.option-picker-panel[data-cols="6"] { --picker-cols: 6; }
 .option-picker-surface {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  width: clamp(300px, 432px, calc(100vw - 24px));
-  max-height: min(70vh, 640px);
+  width: clamp(300px, calc(var(--picker-cols, 4) * 108px), calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
   padding: var(--sp-4);
   background: var(--ui-color-surface-raised);
   color: var(--ui-color-text-default);
@@ -79,7 +91,7 @@
 
 /* Group heading: the sidebar's band label (parts/panel.css .lp-band-label). */
 .option-picker-heading {
-  margin: var(--sp-4) 0 var(--sp-2);
+  margin: var(--sp-6) 0 var(--sp-2);
   font-size: var(--ui-type-band);
   font-weight: var(--ui-type-weight-label);
   text-transform: uppercase;
@@ -90,9 +102,11 @@
 
 .option-picker-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  grid-template-columns: repeat(var(--picker-cols, 4), minmax(0, 1fr));
   gap: var(--sp-2);
 }
+/* A sheet is as wide as the phone, so its columns follow that width. */
+.is-sheet .option-picker-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
 
 /* ── Tile ─────────────────────────────────────────────────────────────── */
 .option-picker-tile {
@@ -134,6 +148,22 @@
 }
 /* No glyph on any option: text-only tiles. */
 .option-picker-list--text .option-picker-tile { min-height: 44px; }
+/* Pictured tiles share their row's two tracks, the picture then the label, so the
+   pictures along a row stay level when one label there runs to two lines. A
+   subgrid takes its height from those tracks and ignores a min-height, so the
+   padding carries the tile's height. Where subgrid is not supported the tile lays
+   its own two rows out and centres them, as the flex column above does. */
+.option-picker-list:not(.option-picker-list--text) .option-picker-tile {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+  justify-items: center;
+  align-content: center;
+  min-height: 0;
+  padding-block: var(--sp-6);
+}
+.option-picker-list:not(.option-picker-list--text) .option-picker-tile-glyph { align-self: end; }
+.option-picker-list:not(.option-picker-list--text) .option-picker-tile-label { align-self: start; }
 
 .option-picker-tile:hover { background: var(--ui-color-surface-muted); }
 /* Chosen: the house on-state of a badged select option (parts/tool.css

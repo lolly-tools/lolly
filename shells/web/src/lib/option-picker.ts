@@ -13,10 +13,16 @@
  * with that loop's commit, so undo, the address, a showIf re-render and policy
  * behave as for any select. This module only draws and drives the panel.
  *
- * The panel is mounted on document.body by mountBodyPopover, which already owns
- * the lifecycle every body popover shares: an outside press, Escape, a window
- * resize, a route change, system Back on a touch device and the focus restore.
- * The view's teardown calls closeOptionPicker(), so no node outlives the sidebar.
+ * The panel is mounted on document.body by mountBodyPopover (in the open dialog,
+ * when the trigger sits in one), which already owns the lifecycle every body
+ * popover shares: an outside press, Escape, a window resize, a route change,
+ * system Back on a touch device and the focus restore. The view's teardown calls
+ * closeOptionPicker(), and an open panel closes when a rebuild drops its trigger,
+ * so no node outlives the sidebar or the input it chooses for.
+ *
+ * On a desktop the panel opens under the trigger when the whole set fits there and
+ * beside the trigger when it does not (panelPlace), in 4, 5 or 6 columns chosen
+ * from the set (pickerColumns), so a long set is seen whole.
  *
  * Markup safety: every label and heading goes through escapeHtml(), and a glyph is
  * drawn only after it passes the schema's own pattern again (path commands and
@@ -26,7 +32,7 @@
 import { mountBodyPopover, type BodyPopoverHandle, type PopoverAnchor } from '../components/body-popover.ts';
 import { t } from '../i18n.ts';
 import { hasIcon, icon } from './icons.ts';
-import { isPhoneLayout } from './layout-posture.ts';
+import { isPhoneLayout, onLayoutChange } from './layout-posture.ts';
 import { escapeHtml } from './util/escape.ts';
 import './option-picker.css';
 
@@ -178,32 +184,113 @@ export function pickerPanelHtml(spec: PickerSpec, sheet: boolean): string {
     + `<div class="option-picker-list${marks ? '' : ' option-picker-list--text'}" role="listbox" id="${list}" aria-label="${escapeHtml(spec.label)}">${groups}</div></div>`;
 }
 
-/** Under the trigger, left edges aligned; above it when there is no room below;
- *  inside the viewport either way, capping the height to the larger side when the
- *  panel fits neither. The panel is position:fixed on <body>, so viewport
- *  coordinates need no correction (see body-popover.ts's defaultPosition). */
+/**
+ * How many columns the floating panel draws: 4, 5 or 6, whichever leaves the fewest
+ * empty cells at the ends of the groups' last rows, and the fewest columns among
+ * equals. Chart's types (10, 6, 9, 5 and 5 in their groups) sit in five columns
+ * with five cells empty, where four columns leave thirteen and a row of two.
+ */
+export function pickerColumns(groups: ReadonlyArray<{ options: readonly unknown[] }>): number {
+  let best = 4;
+  let fewest = Number.POSITIVE_INFINITY;
+  for (const cols of [4, 5, 6]) {
+    const empty = groups.reduce((sum, g) => sum + ((cols - (g.options.length % cols)) % cols), 0);
+    if (empty < fewest) {
+      fewest = empty;
+      best = cols;
+    }
+  }
+  return best;
+}
+
+/** Where the floating panel goes. `maxHeight` is set only when the panel has to scroll. */
+export interface PanelPlace {
+  left: number;
+  top: number;
+  maxHeight: number | null;
+}
+
+/**
+ * Under the trigger with left edges aligned, when the whole panel fits there. A
+ * panel too tall for that opens beside the trigger with top edges aligned, moved up
+ * as far as the viewport needs, so a long set is seen whole and the trigger stays in
+ * view; the far side first, the near side when the far side has no room. With no
+ * room on either side the panel goes over or under the trigger, whichever is
+ * larger, and scrolls; where neither holds a usable list the panel takes the
+ * viewport's height and covers the trigger. Every case stays inside the viewport.
+ * In a right-to-left layout (`rtl`) the edges that align are the right ones and
+ * the far side is the left.
+ */
+export function panelPlace(
+  anchor: { left: number; right: number; top: number; bottom: number },
+  panel: { width: number; height: number },
+  viewport: { width: number; height: number },
+  rtl = false,
+): PanelPlace {
+  const M = 12; // kept clear of the viewport's edge
+  const GAP = 4; // between the trigger and a panel under or over it
+  const SIDE = 8; // between the trigger and a panel beside it
+  const USABLE = 120; // the least height a scrolling list is worth opening at
+  const tall = Math.max(0, viewport.height - 2 * M);
+  // The top edge of a panel under the trigger and the room it has there. A trigger
+  // scrolled out above the viewport still gets a panel inside the viewport.
+  const under = Math.max(M, anchor.bottom + GAP);
+  const below = viewport.height - M - under;
+  // A trigger nearer the viewport's edge than the margin keeps its panel on its
+  // own edge, as a select's list hangs from the select.
+  const inset = (gap: number): number => Math.max(0, Math.min(M, gap));
+  const aligned = rtl
+    ? Math.max(M, Math.min(anchor.right, viewport.width - inset(viewport.width - anchor.right)) - panel.width)
+    : Math.max(inset(anchor.left), Math.min(anchor.left, viewport.width - panel.width - M));
+  if (panel.height <= below) return { left: aligned, top: under, maxHeight: null };
+
+  const after = anchor.right + SIDE;
+  const before = anchor.left - SIDE - panel.width;
+  const afterFits = after + panel.width + M <= viewport.width;
+  const beforeFits = before >= M;
+  const side = rtl ? (beforeFits ? before : afterFits ? after : null) : (afterFits ? after : beforeFits ? before : null);
+  if (side !== null) {
+    const height = Math.min(panel.height, tall);
+    const top = Math.max(M, Math.min(anchor.top, viewport.height - M - height));
+    return { left: side, top, maxHeight: panel.height > tall ? tall : null };
+  }
+
+  // The bottom edge of a panel over the trigger, and the room it has there.
+  const ceiling = Math.min(anchor.top - GAP, viewport.height - M);
+  const above = ceiling - M;
+  const room = Math.max(below, above);
+  if (room < USABLE) return { left: aligned, top: M, maxHeight: panel.height > tall ? tall : null };
+  const height = Math.min(panel.height, room);
+  const over = panel.height <= above || above > below;
+  return { left: aligned, top: over ? ceiling - height : under, maxHeight: panel.height > room ? room : null };
+}
+
+/** Measure the panel and put it where panelPlace() says. A sheet is placed by its
+ *  stylesheet. The panel is position:fixed, on <body> or in the open dialog its
+ *  trigger sits in. A dialog that is itself the containing block (one with a
+ *  transform) offsets a fixed child, so the panel is measured where the browser
+ *  drew it and moved by the difference. */
 export function placePanel(el: HTMLElement, anchor: PopoverAnchor): void {
   const surface = el.querySelector<HTMLElement>('.option-picker-surface');
   if (el.classList.contains('is-sheet') || !surface) return;
-  const M = 12;
-  const GAP = 4;
-  const r = anchor.getBoundingClientRect();
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
   surface.style.maxHeight = '';
-  const pw = el.offsetWidth;
-  const ph = el.offsetHeight;
-  const below = vh - r.bottom - GAP - M;
-  const above = r.top - GAP - M;
-  let top = r.bottom + GAP;
-  if (ph > below) {
-    if (ph <= above || above > below) top = r.top - GAP - Math.min(ph, above);
-    const room = Math.max(below, above);
-    if (ph > room) surface.style.maxHeight = `${Math.max(120, Math.round(room))}px`;
-  }
-  const left = Math.max(M, Math.min(r.left, vw - pw - M));
-  el.style.left = `${Math.round(left)}px`;
-  el.style.top = `${Math.round(Math.max(M, top))}px`;
+  const place = panelPlace(
+    anchor.getBoundingClientRect(),
+    { width: el.offsetWidth, height: el.offsetHeight },
+    { width: window.innerWidth, height: window.innerHeight },
+    document.documentElement.dir === 'rtl',
+  );
+  if (place.maxHeight !== null) surface.style.maxHeight = `${Math.round(place.maxHeight)}px`;
+  const left = Math.round(place.left);
+  const top = Math.round(place.top);
+  el.style.left = `${left}px`;
+  el.style.top = `${top}px`;
+  const actual = el.getBoundingClientRect();
+  if (!actual.width && !actual.height) return;
+  const dx = Math.round(left - actual.left);
+  const dy = Math.round(top - actual.top);
+  if (dx) el.style.left = `${left + dx}px`;
+  if (dy) el.style.top = `${top + dy}px`;
 }
 
 /** The phone layout, read the way the sidebar reads it (tool-inputs.ts inSheetMode). */
@@ -229,6 +316,8 @@ export function verticalNeighbour(tiles: readonly HTMLElement[], from: HTMLEleme
 /** The open panel, which a sidebar rebuild re-points and a teardown closes. */
 interface OpenPicker {
   id: string;
+  /** The trigger's `data-picker` the panel was drawn from. */
+  drawn: string;
   trigger(): HTMLElement;
   repoint(el: HTMLElement): void;
   close(returnFocus?: boolean): void;
@@ -258,10 +347,14 @@ export function wireOptionPicker(el: HTMLElement, commit: (value: string) => voi
     return true;
   }
   // A rebuild while the panel is open hands the panel this new trigger, so its
-  // position, aria-expanded and focus restore follow the button on screen.
+  // position, aria-expanded and focus restore follow the button on screen. A
+  // rebuild that changed the choices or the value leaves the panel showing a set
+  // that no longer stands, so the panel closes and focus goes to the new trigger.
   if (openPicker?.id === spec.id && !openPicker.trigger().isConnected) {
+    const same = openPicker.drawn === (el.dataset.picker ?? '');
     openPicker.repoint(el);
-    el.setAttribute('aria-expanded', 'true');
+    if (same) el.setAttribute('aria-expanded', 'true');
+    else openPicker.close(true);
   }
   let live = el;
   const anchor: PopoverAnchor = {
@@ -314,6 +407,8 @@ export function wireOptionPicker(el: HTMLElement, commit: (value: string) => voi
     const render = (host: HTMLDivElement, pop: BodyPopoverHandle): HTMLElement | null => {
       panel = host;
       host.innerHTML = pickerPanelHtml(spec, sheet);
+      // A sheet takes its columns from the phone's width; the floating panel from the set.
+      if (!sheet) host.dataset.cols = String(pickerColumns(groupOptions(spec.options)));
       tiles = [...host.querySelectorAll<HTMLElement>('[role="option"]')];
       for (const tile of tiles) tile.addEventListener('click', () => choose(tile, pop));
       host.querySelector('[data-picker-scrim]')?.addEventListener('click', () => pop.close(true));
@@ -335,8 +430,10 @@ export function wireOptionPicker(el: HTMLElement, commit: (value: string) => voi
           choose(tile, pop);
           return;
         }
-        if (e.key === 'ArrowRight') next = tiles[at + 1];
-        else if (e.key === 'ArrowLeft') next = tiles[at - 1];
+        // Right-to-left, the grid runs from the right, so the arrows swap.
+        const step = document.documentElement.dir === 'rtl' ? -1 : 1;
+        if (e.key === 'ArrowRight') next = tiles[at + step];
+        else if (e.key === 'ArrowLeft') next = tiles[at - step];
         else if (e.key === 'ArrowDown') next = verticalNeighbour(tiles, tile, 1);
         else if (e.key === 'ArrowUp') next = verticalNeighbour(tiles, tile, -1);
         else if (e.key === 'Home') next = tiles[0];
@@ -361,18 +458,35 @@ export function wireOptionPicker(el: HTMLElement, commit: (value: string) => voi
       return tiles.find((tile) => tile.tabIndex === 0) ?? null;
     };
 
+    // A trigger inside an open dialog (the embedded tool editor's inputs) mounts its
+    // panel in that dialog: a node on <body> sits under a modal dialog and is inert.
+    const dialog = el.closest<HTMLElement>('dialog[open]');
+    // Crossing between the phone and the desktop layout closes the panel rather
+    // than leaving a sheet on a desktop or a popover on a phone. The layout class
+    // settles a moment after the resize event, so the settled change is heard too.
+    const offLayout = onLayoutChange(() => {
+      if (sheetLayout() !== sheet) popover?.close();
+    });
+    // A sidebar rebuild that drops this input (its showIf turned false) draws no
+    // new trigger to take the panel over. The observer reports once the rebuild
+    // and its wiring have run, and a panel whose trigger has left the document
+    // closes, so no panel is left choosing for an input that is not on screen.
+    const Observer = typeof window.MutationObserver === 'function' ? window.MutationObserver : null;
+    const watch = Observer ? new Observer(() => { if (!live.isConnected) popover?.close(false); }) : null;
+    watch?.observe(document.body, { childList: true, subtree: true });
     popover = mountBodyPopover(anchor, render, {
       className: `option-picker-panel${sheet ? ' is-sheet' : ''}`,
       role: 'none',
       position: placePanel,
       trackScroll: !sheet,
-      // Crossing between the phone and the desktop layout closes the panel rather
-      // than leaving a sheet on a desktop or a popover on a phone.
+      ...(dialog ? { container: dialog } : {}),
       onResize: (pop) => {
         if (sheetLayout() !== sheet) pop.close();
         else if (panel) placePanel(panel, anchor);
       },
       onClose: () => {
+        offLayout();
+        watch?.disconnect();
         unlockScroll?.();
         unlockScroll = null;
         if (openPicker === record) openPicker = null;
@@ -380,6 +494,7 @@ export function wireOptionPicker(el: HTMLElement, commit: (value: string) => voi
     });
     const record: OpenPicker = {
       id: spec.id,
+      drawn: el.dataset.picker ?? '',
       trigger: () => live,
       repoint: (next) => { live = next; },
       close: (returnFocus) => popover?.close(returnFocus),
