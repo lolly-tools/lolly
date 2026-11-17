@@ -68,6 +68,22 @@ A `select` option can carry its own `showIf` with the same shape, so a choice th
 
 All of this is a visibility overlay on the sidebar. URL params, hooks, the CLI and validation see every input and every option regardless, and a hidden input keeps its value. Lolly Chart is the reference: its render modes park the previous mode's type, so most of its controls gate on both. `validate:catalog` checks that every id a `showIf` names is a declared input.
 
+### A picker for a long select
+
+A `select` with `display: "picker"` draws as one button that shows the current choice. Pressing the button opens a panel with every option as a tile, so a person can see the whole set at once instead of reading a list of names. On a phone the panel is a sheet at the bottom of the screen. Two option fields go with it:
+
+- `group` is a short heading. Options with the same heading sit together under that heading, in the order you list them, and the headings come in the order they first appear. Options with no group come first, under no heading.
+- `glyph` is the option's picture: SVG path data for a 24 by 24 box, drawn as an outline in the text colour. It holds path commands and numbers only, at most 900 characters, and the pictures travel with the tool rather than coming from the shell. An option with no glyph shows its `icon` from the shell's icon set, and a picker where no option has either shows tiles with the name alone.
+
+```json
+{ "id": "chartType", "type": "select", "display": "picker", "default": "bar", "options": [
+  { "value": "bar", "label": "Bar", "group": "Compare", "glyph": "M5 20V11M12 20V5M19 20v-7" },
+  { "value": "line", "label": "Line", "group": "Change over time", "glyph": "M4 17l5-6 4 3 7-8" }
+] }
+```
+
+The panel works from the keyboard: the arrow keys move between tiles, typing jumps to a name, Enter chooses and Escape closes with nothing changed. A translation sidecar translates a heading as `inputs.<id>.groups.<heading>`, keyed by the heading in the manifest's own words. The CLI, the TUI and MCP keep a plain list of options. Lolly Chart's type, form and style controls are the reference, and a tool that uses the picker must require engine 1.348.0 or later.
+
 ### `bindToProfile`
 
 Any input can declare `bindToProfile: "firstname"` (or `email`, `headshot` and the other profile fields). When the tool mounts, the input is filled from the person's profile, and they can change the value for that session.
@@ -107,7 +123,7 @@ Some properties belong to one type:
 | `longtext` | `maxLength`, `rows` |
 | `number` | `min`, `max`, `step`; `display: "slider"`; `rangeWhen` for slider bounds that change with another input |
 | `color` | `palette`, `swatchesOnly` (see above) |
-| `select` | `options`; `display: "icon-toggle"` or `"segmented"` |
+| `select` | `options`; `display: "icon-toggle"`, `"segmented"` or `"picker"` (see below) |
 | `asset` | `assetType`, `allowUpload`, `filter` (see [Assets and file utilities](/info/tool-files.html)) |
 | `file` | `accept`, `maxSize`, `multiple` (see [Assets and file utilities](/info/tool-files.html)) |
 | `table` | `columnEditors` (`text`, `url` or `emoji` for each column); `tableEditor` for a full table editor with typed columns (`agenda`) |

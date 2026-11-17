@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { isPhoneLayout } from '../lib/layout-posture.ts';
+import { closeOptionPicker, drawsAsButtons, optionPickerHtml, wireOptionPicker } from '../lib/option-picker.ts';
 import { shareUrlState } from '../lib/share-privacy.ts';
 import { prepareInputPanel } from './tool-input-model.ts';
 import { flattenValue } from '../../../../engine/src/inputs.ts';
@@ -597,13 +598,12 @@ export function renderInputs(
     // collapse chevron (the reported "clicking the 2nd scene expands the 1st"), and a
     // `vector` input forwards to its first number field. Wrap these in a <div role=group>
     // instead: the caption still names them (aria-labelledby), but it never proxies clicks.
-    // A badged OR segmented select renders as a radiogroup of buttons (see controlHtml).
-    // Treat it like other composites: a wrapping <label> would proxy dead-space clicks to
-    // the first option button, and the caption must be aria-labelledby, not a <label for>.
-    const isBadgedSelect =
-      input.control === 'select' &&
-      (input.display !== 'select' && (input.options ?? []).some((o) => (o as { badge?: string }).badge) ||
-        input.display === 'segmented');
+    // A badged or segmented select renders as a radiogroup of buttons, and a picker as
+    // one button that opens a panel (see controlHtml). Treat them like other composites:
+    // a wrapping <label> would proxy a dead-space click to the first button (choosing an
+    // option, or opening the panel), and the caption must be aria-labelledby, not a
+    // <label for>. lib/option-picker.ts drawsAsButtons is the one test for all three.
+    const isBadgedSelect = drawsAsButtons(input);
     const isComposite =
       isBadgedSelect ||
       ['blocks', 'vector', 'asset-picker', 'file-picker', 'color-picker', 'palette-picker', 'table'].includes(
@@ -1224,14 +1224,13 @@ export function renderInputs(
   // ARIA radio keys (arrows/Home/End, Space/Enter) commit the option through the
   // normal input path; the change re-renders the panel (which reveals that option's
   // showIf-gated inputs) and the by-id focus restore returns to the checked button.
+  // A picker's trigger carries the same attribute and commits through the same write.
   el.querySelectorAll<HTMLElement>('[data-badge-select]').forEach((group) => {
     const id = group.dataset.badgeSelect!;
+    const commit = (value: string): void => { runtime.setInput(id, value); onDirty?.(id); };
+    if (wireOptionPicker(group, commit)) return;
     const opts = [...group.querySelectorAll<HTMLElement>('.badge-select-opt')];
-    const pick = (btn: HTMLElement | undefined): void => {
-      if (!btn) return;
-      runtime.setInput(id, btn.dataset.badgeValue!);
-      onDirty?.(id);
-    };
+    const pick = (btn: HTMLElement | undefined): void => { if (btn) commit(btn.dataset.badgeValue!); };
     opts.forEach((btn, idx) => {
       btn.addEventListener('click', () => pick(btn));
       btn.addEventListener('keydown', (e) => {
@@ -2493,6 +2492,7 @@ export function renderInputs(
   el._emojiInputsDispose = mountInputEmoji(el, model, host, runtime);
   el._inputsDispose = () => {
     el._emojiInputsDispose?.();
+    closeOptionPicker(el);
     el._audioThumbs?.destroy();
     el._audioThumbs = undefined;
     if (el._colorPopoverDismiss)
@@ -2693,6 +2693,7 @@ function controlHtml(
         const restricted = selOpts.filter((o) => allow.has(o.value));
         if (restricted.length) selOpts = restricted;
       }
+      if (input.display === 'picker') return optionPickerHtml(input, selOpts);
       // Badged picker: when ANY option carries a `badge`, render a radiogroup of
       // labelled pills instead of a native <select>, so the badge (e.g. vector/raster)
       // is visible while choosing rather than hidden inside a closed dropdown. Roving

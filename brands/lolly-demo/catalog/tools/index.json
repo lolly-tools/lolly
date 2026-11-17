@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-16T22:28:24.064Z",
+  "generatedAt": "2026-11-17T05:30:47.103Z",
   "tools": [
     {
       "id": "3d",
@@ -2389,7 +2389,7 @@
       "id": "chart",
       "name": "Chart",
       "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
-      "version": "1.30.1",
+      "version": "1.31.0",
       "status": "official",
       "category": "designer",
       "tags": [
