@@ -345,23 +345,6 @@
    phones (still reachable from the profile page / capabilities), leaving the
    footer as the original search + Pro/What? stack. */
 .gallery-nav-link { white-space: nowrap; }
-/* Verify (Content Credentials) reads as the trust action: a solid SUSE Pine Green
-   pill with a shield-check. Explicit green (not --primary, which is dark teal in the
-   light theme) so it's green in every theme. */
-.gallery-footer a.gallery-nav-link--verify {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-3);
-  background: hsl(var(--primary) / 1);
-  color: hsl(var(--primary-foreground) / 1);
-  border-color: transparent;
-  font-weight: 600;
-}
-.gallery-footer a.gallery-nav-link--verify:hover {
-  background: hsl(151 57% 36%);
-  color: #fff;
-  border-color: transparent;
-}
 /* Every footer nav link shows its icon + text label on desktop; on phones the label
    collapses away (see the media query) so each button is just its icon. */
 /* Icons scale on --a11y-fs: below 640px .gallery-nav-label is hidden (see the media
@@ -1101,9 +1084,8 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   pointer-events: none;
 }
 /* Two copies of the icon, one over the other: a static muted BASE and, over it, a
-   TRACE in the theme's --secondary colour whose dashes walk the outline while a
-   preview loads. Both inset from the tile edges so the icon floats within the
-   preview area. */
+   solid OUTLINE in the primary colour that breathes while a preview loads. Both inset
+   from the tile edges so the icon floats within the preview area. */
 .gtile-iconfill-base,
 .gtile-iconfill-trace {
   position: absolute;
@@ -1131,37 +1113,35 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 /* Base: the very muted ghost that always stands in for a missing/loading preview. */
 
 .gtile-iconfill-base {  color: var(--ui-color-surface-canvas); opacity: 0.5; transform: translatey(4px); filter: blur(6px);}
-/* Trace: hsl(var(--secondary)), the theme's secondary surface tone (not
-   --brand-secondary). styles/tokens.css sets --secondary for each theme, and
-   brand-vars.ts rebuilds the brand theme's value from the active brand's primary
-   colours. stroke-dasharray breaks each outline into short dashes, and the
-   animated dashoffset moves the dashes slowly along the outline; the gaps between
-   them show the muted base underneath. */
-.gtile-iconfill-trace {   color: hsl(var(--primary) / .35); stroke-linecap: round; stroke-linejoin: round; }
-.gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
-  fill:transparent;
-  stroke-width: 3px;             /* the same 3px as the base outline it walks over */
-  stroke-dasharray: 12 4;     /* 12-unit dashes, 4-unit gaps: a 16-unit pattern */
-  animation: gtile-icon-trace 4.8s linear infinite;
-
+/* Outline: the tool's icon as one solid line in a tint of the primary colour. A solid
+   line, never dashes: a dashed outline means a drop area in this app, and a card that
+   is still loading is not one. Waiting is shown by a slow change of opacity, the same
+   language as the strip's pending dots. Opacity is composited, so fifty waiting cards
+   cost no repaint (the walking dashes that stood here repainted every outline on
+   every frame, and had to be paused during the WebGPU check below for that reason). */
+.gtile-iconfill-trace {
+  color: hsl(var(--primary) / .3);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: gtile-icon-wait 2.4s ease-in-out infinite;
 }
-/* Each loop moves the dashes exactly one 16-unit pattern, so the restart shows the
-   same frame the loop began on instead of jumping half a dash. 4.8s per pattern
-   keeps the earlier pace of 200 units a minute. Change the offset with the dash
-   pattern. */
-@keyframes gtile-icon-trace { to { stroke-dashoffset: -16; } }
-/* Held still while the shell's WebGPU startup check runs (lib/startup-motion.ts): on
-   software graphics the per-frame repaint of every traced outline delayed the device
-   past its budget. Paused rather than removed, so the trace carries on from the same
-   frame once the check settles. */
-html[data-webgpu-pending] .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) { animation-play-state: paused; }
-/* The trace is a WAITING affordance only - stop it once real art has loaded (carousel
-   .has-art / hero .is-ready), on the permanent icon-only fallback (preview gone, not
-   "loading"), and under reduced-motion - leaving just the muted base. */
+.gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
+  fill: transparent;
+  stroke-width: 3px;             /* the same 3px as the base outline under it */
+}
+@keyframes gtile-icon-wait { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+/* Held still while the shell's WebGPU startup check runs (lib/startup-motion.ts), as
+   every other ambient animation is. */
+html[data-webgpu-pending] .gtile-iconfill-trace { animation-play-state: paused; }
+/* The outline is a WAITING affordance only - drop it once real art has loaded (carousel
+   .has-art / hero .is-ready) and on the permanent icon-only fallback (preview gone, not
+   "loading"), leaving just the muted base. Under either Reduce motion switch the outline
+   stays and holds still, so a waiting card still shows which tool it is. */
 .gcar.has-art .gtile-iconfill-trace,
 .gtile-hero--preview.is-ready .gtile-iconfill-trace,
 .gtile-hero--icononly .gtile-iconfill-trace { display: none; }
-@media (prefers-reduced-motion: reduce) { .gtile-iconfill-trace { display: none; } }
+@media (prefers-reduced-motion: reduce) { .gtile-iconfill-trace { animation: none; } }
+html[data-a11y-motion="reduce"] .gtile-iconfill-trace { animation: none; }
 /* Once a REAL preview is showing, drop the WHOLE icon backdrop (base + trace), not just the
    animated trace above. The muted base was only ever a loading stand-in, but it sits BEHIND
    the preview (z-index:-1), so it bleeds through a preview that carries transparency and shows
@@ -1179,8 +1159,9 @@ html[data-webgpu-pending] .gtile-iconfill-trace svg :is(path, circle, rect, line
 /* Preview failed for good: pin the icon-only hero visible (it never got the load-driven
    .is-ready reveal) and lift the muted ghost a touch so the fallback still reads. */
 .gtile-hero--icononly .gtile-iconfill-base { color: hsl(var(--muted-foreground) / .32); }
-/* Performance UI renders no looks (views/gallery.ts queueCarousel), so the icon IS the
-   tile's picture there, and the soft ghost above would leave every box looking empty.
+/* Performance UI renders no looks (views/gallery.ts queueCarousel). A card with a baked
+   cover still shows that file; for every other card the icon IS the picture, and the
+   soft ghost above would leave the box looking empty.
    Draw it plainly instead: the muted ink, no blur (a filter on every tile is exactly
    the compositing the mode drops) and a size that sits in the box rather than fills
    it. A look that does load (a lead slide, a deck) still takes the box, as above. */
@@ -1439,10 +1420,13 @@ html[data-perf-ui] .gcar .gtile-iconfill-base svg { width: 36%; height: 36%; }
    rather than broken. base.css's reduced-motion blocks (OS query and the app pref
    alike) stop it dead, leaving the static dim dot above - and a docs capture pins
    reduced motion, so a baseline is never mid-pulse. */
-.gcar-dot[data-look-pending] { animation: gcar-dot-wait 1.6s ease-in-out infinite; }
+/* A look is drawn once the person shows interest in its card (data-looks-wanted, set by
+   views/gallery.ts). Until then nothing is on its way, so the dot rests and does not
+   breathe: a grid of cards that all pulse reads as a page that never finishes loading. */
+.gcar[data-looks-wanted] .gcar-dot[data-look-pending] { animation: gcar-dot-wait 1.6s ease-in-out infinite; }
 @keyframes gcar-dot-wait { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 /* The pending dot holds still while the WebGPU startup check runs, like the trace above. */
-html[data-webgpu-pending] .gcar-dot[data-look-pending] { animation-play-state: paused; }
+html[data-webgpu-pending] .gcar[data-looks-wanted] .gcar-dot[data-look-pending] { animation-play-state: paused; }
 /* Touch: a 6px dot is too small to reliably tap. Grow the TAP AREA only, via a
    ::after - the dot itself never changes size (padding here would also drag its
    box-shadow out to the bigger box and read as a bigger dot). */

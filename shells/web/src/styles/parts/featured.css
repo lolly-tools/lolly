@@ -598,8 +598,16 @@ html[data-webgpu-pending] .featured:not(.featured--static) .ftile-img.is-active 
 .featured--coverflow .ftile.is-centred .ftile-link {
   filter: none;
   box-shadow:inset 0 0 1.5px  var(--ui-color-surface-raised), 0 .2rem 1rem -0.3rem color-mix(in srgb, var(--ui-color-selection-border) 50%, transparent);
-
-  background-color: hsl(var(--card) / .3);
+  /* Opaque. The picked cover is the nearest card, so it hides the covers behind it. As a
+     30% veil its neighbours showed through both sides as blurred shapes beside its own
+     picture. The colour is what that veil gave over the bare page, so the card keeps its
+     tone in both themes. */
+  background-color: color-mix(in srgb, var(--ui-color-surface-raised) 30%, var(--ui-color-surface-canvas));
+}
+/* Nothing shows through an opaque card, so the frost has nothing left to do here. */
+.featured--coverflow .ftile.is-centred {
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
 }
 /* Only the centred (selected) cover carries its label and dots (the Open button is one
    per strip now - see .featured-go). Its floor shadow is dropped (it reads odd on an

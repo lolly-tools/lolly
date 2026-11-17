@@ -124,11 +124,11 @@ export function footerNav({ searchHtml }: FooterNavOpts): string {
     href: '#/settings', nativeClass: 'gallery-nav-link btn', variant: 'platinum', sfx: 'click',
     aria: t('Settings - preferences, design system and this device'), inner: `${NAV_ICONS.settings}${label(t('Settings'))}`,
   });
-  // Verify keeps its solid SUSE Pine Green pill (explicit green in every theme,
-  // matching the native rule) via an inline --jelly-fill / --jelly-label.
+  // Verify is one of the bar's four quiet buttons. It was a filled pill, which made
+  // three filled buttons on the first screen (the welcome's "Start making", the strip's
+  // "Open" and this one), so nothing led. The filled one is now the action that starts work.
   const verify = navItem({
-    href: '#/verify', nativeClass: 'gallery-nav-link gallery-nav-link--verify btn', sfx: 'verify',
-    style: ' style="--jelly-fill:hsl(151 57% 42%);--jelly-label:#fff"',
+    href: '#/verify', nativeClass: 'gallery-nav-link btn', variant: 'platinum', sfx: 'verify',
     aria: t('Verify Content Credentials - check any file on-device'), inner: `${NAV_ICONS.shield}${label(t('Verify'))}`,
   });
   // In-app route, not the static /info page (Andy, 2026-08-16): the reader who

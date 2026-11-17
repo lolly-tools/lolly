@@ -1336,7 +1336,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // a Trash Undo; savedItem builds each row through sessionRow, which escapes.
   // +1 2026-11-07 (plan 82 M2, lolly-work): the workspace's shelf of published templates;
   // views/published-shelf.ts escapes every value, and a tool icon is the catalog's own markup.
-  'views/gallery.ts': 9,
+  'views/gallery.ts': 8,
+  // The page deck's markup, moved out of views/gallery.ts as it was: the tool id is escaped,
+  // and each page is a data URL from this shell's own render.
+  'views/gallery-paged-deck.ts': 1,
   'views/multi-edit.ts': 3,
   // 6, unchanged 2026-08-09 (plan 97 M5 - the design-system hand-offs). The three
   // new controls are markup inside the existing report template, not new sinks:

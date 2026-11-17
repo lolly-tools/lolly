@@ -11,7 +11,7 @@ import type { PreviewQueue } from '../lib/preview-queue.ts';
 // Drive the mounted component's real event handlers and animation loop. jsdom
 // supplies the DOM; these layout measurements model a 390px phone with 260px
 // covers, including integer scrollLeft rounding in a browser at device scale 1.
-function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow', reduced = false, count = 7, recent?: string, unstyled = false, extra: { previewQueue?: PreviewQueue } = {}) {
+function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow', reduced = false, count = 7, recent?: string, unstyled = false, extra: { previewQueue?: PreviewQueue; entries?: Parameters<typeof mountFeaturedRow>[1] } = {}) {
   const dom = new JSDOM('<!doctype html><div id="mount"></div>', { url: 'http://localhost/', pretendToBeVisual: true });
   const win = dom.window;
   t.mock.timers.enable({ apis: ['setTimeout', 'setInterval'] });
@@ -44,9 +44,9 @@ function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow'
   const mount = win.document.getElementById('mount')!;
   const opened: string[] = [];
   if (recent) win.localStorage.setItem('lolly-featured-activity:tools', JSON.stringify([recent]));
-  const entries = Array.from({ length: count }, (_, i) => ({ id: `tool-${i}`, name: `Tool ${i}`, featured: { blurb: 'Description to omit' } }));
+  const entries = extra.entries ?? Array.from({ length: count }, (_, i) => ({ id: `tool-${i}`, name: `Tool ${i}`, featured: { blurb: 'Description to omit' } }));
   const handle = mountFeaturedRow(mount, entries, {} as Parameters<typeof mountFeaturedRow>[2], {
-    viewMode, onActivate: id => { opened.push(id); }, ...extra,
+    viewMode, onActivate: id => { opened.push(id); }, ...(extra.previewQueue ? { previewQueue: extra.previewQueue } : {}),
   });
   const viewport = mount.querySelector<HTMLElement>('.featured-viewport')!;
   let position = viewport.scrollLeft;
@@ -643,6 +643,26 @@ test('the preview queue is held while the fan moves and for half a second after 
   assert.deepEqual(holds, ['hold']);
   t.mock.timers.tick(1);
   assert.deepEqual(holds, ['hold', 'release']);
+});
+
+test('the strip queues six looks for a tool at most, however many templates the tool has', t => {
+  // Chart has more than forty templates. Each one was a live render queued on a first
+  // visit, for a cross-fade that took three minutes to come round.
+  const added: Array<{ priority(): number | null; stale?(): boolean }> = [];
+  const queue = {
+    add(task: (typeof added)[number]) { added.push(task); }, wake() {}, setPaused() {}, destroy() {},
+    hold() { return () => {}; },
+  } as unknown as PreviewQueue;
+  const looks = Array.from({ length: 40 }, (_, i) => ({ label: `Look ${i}`, values: { n: i } }));
+  fixture(t, 'coverflow', false, 2, undefined, false, {
+    previewQueue: queue,
+    entries: [
+      { id: 'many', name: 'Many', formats: ['svg'], examples: looks, featured: { blurb: '' } },
+      { id: 'few', name: 'Few', formats: ['svg'], examples: looks.slice(0, 2), featured: { blurb: '' } },
+    ],
+  });
+  assert.equal(added.length, 6 + 2);
+  assert.ok(added.every(task => task.stale?.() === false), 'nothing is stale before it has run');
 });
 
 test('the Docs landing announces a cover the reader moved to, and never its autoplay', t => {

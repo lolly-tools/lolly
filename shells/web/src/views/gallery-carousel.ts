@@ -2,9 +2,11 @@
 /**
  * The gallery tile's example strip - its markup and every function over it.
  *
- * A tile's looks render lazily, one live render each (views/gallery.ts's preview
- * queue), so for the first second or two of a cold grid a strip holds skeleton
- * panes. The strip still has to say what it IS in that window: how many looks are
+ * A tile's cover is a baked file when the visitor's context matches a bake, and a live
+ * render otherwise. Its other looks render lazily, one live render each
+ * (views/gallery.ts's preview queue), and only once the person shows interest in that
+ * tile (`data-looks-wanted`). So a strip can hold skeleton panes for a while.
+ * The strip still has to say what it IS in that window: how many looks are
  * coming, which one you are on, and that it can be stepped. So the nav and the dot
  * row are built from the look COUNT, which the manifest knows before a single
  * render starts, and each dot carries its look's state:
@@ -145,6 +147,51 @@ export function markLookReady(gcar: HTMLElement, slide: HTMLElement): void {
   slide.classList.add('is-loaded');
   gcar.classList.add('has-art');
   syncCarState(gcar);
+  // An arrow pressed a moment ago, before a second look existed, takes its step now.
+  const owed = owedSteps.get(gcar);
+  const track = gcar.querySelector<HTMLElement>('.gcar-track');
+  if (owed && track && readyCarIndices(track).length > 1) {
+    owedSteps.delete(gcar);
+    if (performance.now() - owed.at <= OWED_STEP_MS) advanceCarousel(gcar, owed.dir, true);
+  }
+}
+
+/** Attribute a strip carries once the person has shown interest in its other looks. */
+export const CAR_WANTED_ATTR = 'data-looks-wanted';
+
+/** Mark a strip as wanted. True when this call is what marked the strip. */
+export function wantLooks(gcar: HTMLElement | null | undefined): boolean {
+  if (!gcar || gcar.hasAttribute(CAR_WANTED_ATTR)) return false;
+  gcar.setAttribute(CAR_WANTED_ATTR, '');
+  return true;
+}
+
+/**
+ * Interest in a card is the pointer over the card, the focus inside the card, or a press
+ * on the card. One set of listeners on the grid outlives each repaint of its cards.
+ * `onWanted` runs each time a strip is newly marked. Returns the undo.
+ */
+export function wireLookInterest(grid: HTMLElement, onWanted: () => void): () => void {
+  const interest = (e: Event): void => {
+    if (wantLooks((e.target as Element | null)?.closest?.('.gtile')?.querySelector<HTMLElement>('.gcar'))) onWanted();
+  };
+  const types = ['pointerover', 'focusin', 'pointerdown'] as const;
+  for (const type of types) grid.addEventListener(type, interest, { passive: true });
+  return () => { for (const type of types) grid.removeEventListener(type, interest); };
+}
+
+/**
+ * Extra looks are drawn on interest, so a press can land on an arrow before there is a
+ * second look to show. The press is kept for a few seconds and the step is taken when
+ * that look arrives. A look that takes longer arrives without moving the strip: by then
+ * the person has stopped expecting the press to do anything.
+ */
+const OWED_STEP_MS = 4000;
+const owedSteps = new WeakMap<HTMLElement, { dir: number; at: number }>();
+function stepOrOwe(gcar: HTMLElement, dir: number): void {
+  const track = gcar.querySelector<HTMLElement>('.gcar-track');
+  if (track && readyCarIndices(track).length < 2) { owedSteps.set(gcar, { dir, at: performance.now() }); return; }
+  advanceCarousel(gcar, dir, true);
 }
 
 /** A look will not arrive (render threw, image errored, or the look is gone). The
@@ -207,8 +254,8 @@ export function wireCarousel(gcar: HTMLElement): void {
   // nav/dot) falls through untouched, so it still opens the tool.
   gcar.addEventListener('click', (e) => {
     const el = e.target as HTMLElement;
-    if (el.closest('.gcar-prev')) { e.preventDefault(); advanceCarousel(gcar, -1, true); }
-    else if (el.closest('.gcar-next')) { e.preventDefault(); advanceCarousel(gcar, 1, true); }
+    if (el.closest('.gcar-prev')) { e.preventDefault(); stepOrOwe(gcar, -1); }
+    else if (el.closest('.gcar-next')) { e.preventDefault(); stepOrOwe(gcar, 1); }
     else {
       const dot = el.closest<HTMLElement>('.gcar-dot');
       if (!dot) return;
