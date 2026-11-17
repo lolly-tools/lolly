@@ -87,10 +87,23 @@ function device(opts: { uploads?: EmojiAssetRecord[]; cached?: Record<string, Ui
   return { assets, uploads, cache, seen };
 }
 
-/** Holds the idle work until the test releases it, so "before" can be asserted. */
+/**
+ * Holds the idle work and the engagement work until the test releases them, so "before"
+ * can be asserted. `idle()` is the moment after first paint; `flush()` is that moment
+ * and the person having started to work (a first edit, or half a minute).
+ */
 function idleQueue() {
   const queue: (() => void)[] = [];
-  const queued = { codeWarms: 0, whenIdle: (run: () => void) => { queue.push(run); }, warmCode() { queued.codeWarms++; }, async flush() { for (const run of queue.splice(0)) run(); await new Promise(resolve => setTimeout(resolve, 0)); } };
+  const engaged: (() => void)[] = [];
+  const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+  const queued = {
+    codeWarms: 0,
+    whenIdle: (run: () => void) => { queue.push(run); },
+    whenEngaged: (run: () => void) => { engaged.push(run); },
+    warmCode() { queued.codeWarms++; },
+    async idle() { for (const run of queue.splice(0)) run(); await settle(); },
+    async flush() { for (const run of queue.splice(0)) run(); for (const run of engaged.splice(0)) run(); await settle(); },
+  };
   return queued;
 }
 
@@ -121,6 +134,53 @@ test('the set comes onto the device once, later, as one catalog file with no par
   await idle.flush();
   assert.deepEqual(d.seen.downloads, [entry.id], 'a later open adds nothing');
   assert.equal(d.uploads.size, 0);
+});
+
+test('a person who opens a tool and leaves downloads no pack', async () => {
+  // Storing the default set after every first paint made a first tool open 2.5 MB
+  // heavier, for a set most first visits never draw with.
+  const d = device();
+  const idle = idleQueue();
+  const api = createEmojiAPI(d.assets, idle);
+  await api.dependencies!([pin]);
+  await idle.idle();
+  assert.equal(idle.codeWarms, 1, 'the code still comes after the first paint');
+  assert.deepEqual(d.seen.downloads, [], 'the pack waits for a person who is at work here');
+  assert.deepEqual(d.seen.held, [[entry.id]], 'the choice is recorded all the same');
+  await idle.flush();
+  assert.deepEqual(d.seen.downloads, [entry.id], 'a first edit, or half a minute, brings it in');
+});
+
+test('a document that draws an emoji now does not wait for the hold', async () => {
+  const d = device();
+  const idle = idleQueue();
+  const api = createEmojiAPI(d.assets, idle);
+  await api.dependencies!([pin]);
+  assert.ok(await api.manifest(pin), 'the pass reads the set the moment a glyph needs drawing');
+  assert.deepEqual(d.seen.downloads, [entry.id]);
+  await idle.flush();
+  assert.deepEqual(d.seen.downloads, [entry.id], 'and the later hold finds it there');
+});
+
+test('a slow connection is spared the pack, as Save-Data is', async () => {
+  const nav = globalThis.navigator as unknown as Record<string, unknown>;
+  try {
+    for (const effectiveType of ['slow-2g', '2g', '3g']) {
+      Object.defineProperty(nav, 'connection', { value: { effectiveType }, configurable: true });
+      const slow = device();
+      const idle = idleQueue();
+      await createEmojiAPI(slow.assets, idle).dependencies!([pin]);
+      await idle.flush();
+      assert.deepEqual(slow.seen.downloads, [], `${effectiveType} skips the pack`);
+      assert.equal(idle.codeWarms, 1);
+    }
+    Object.defineProperty(nav, 'connection', { value: { effectiveType: '4g' }, configurable: true });
+    const fast = device();
+    const idle = idleQueue();
+    await createEmojiAPI(fast.assets, idle).dependencies!([pin]);
+    await idle.flush();
+    assert.deepEqual(fast.seen.downloads, [entry.id]);
+  } finally { delete nav.connection; }
 });
 
 test('the code a first offline emoji needs is brought in once, later, with the set', async () => {

@@ -46,7 +46,18 @@ function readDevice(page: Page): Promise<{ uploads: DeviceRow[]; packFiles: stri
   });
 }
 
-/** The hold runs after the first paint and an idle moment, so give it time to land. */
+/**
+ * A first edit. The set is held on the device once a person is at work in a tool
+ * (lib/engagement.ts): after a first edit, or a stay of half a minute. A test makes the edit.
+ */
+async function startWork(page: Page): Promise<void> {
+  if (await page.locator('.tmpl-chooser-panel').first().isVisible().catch(() => false)) await page.keyboard.press('Escape');
+  const field = page.locator('#tool-inputs input[type="text"], #tool-inputs input[type="url"], #tool-inputs textarea').first();
+  await field.click();
+  await field.pressSequentially('x');
+}
+
+/** The hold follows the first edit and an idle moment, so give it time to land. */
 async function packArrives(page: Page): Promise<string[]> {
   for (let attempt = 0; attempt < 60; attempt++) {
     const { packFiles } = await readDevice(page);
@@ -65,11 +76,25 @@ describe('a catalog emoji pack on a device', { skip }, () => {
     return browser.newContext({ viewport: { width: 1280, height: 800 } });
   }
 
-  test('opening a tool holds the pack as one catalog file and adds nothing to the uploads', { timeout: 180_000 }, async () => {
+  test('a person who opens a tool and only looks downloads no pack', { timeout: 180_000 }, async () => {
+    // Holding the set after every first paint made a first tool open 2.5 MB heavier.
     const context = await freshProfile();
     try {
       const page = await context.newPage();
       await gotoSettled(page, `${origin}${PLAIN_TOOL}`);
+      await page.waitForTimeout(8000);
+      assert.deepEqual((await readDevice(page)).packFiles, [], 'nothing is fetched for emoji before the person does anything');
+      await startWork(page);
+      assert.equal((await packArrives(page)).length, 1, 'a first edit brings the set in');
+    } finally { await context.close(); }
+  });
+
+  test('working in a tool holds the pack as one catalog file and adds nothing to the uploads', { timeout: 180_000 }, async () => {
+    const context = await freshProfile();
+    try {
+      const page = await context.newPage();
+      await gotoSettled(page, `${origin}${PLAIN_TOOL}`);
+      await startWork(page);
       const files = await packArrives(page);
       assert.equal(files.length, 1, `one catalog row for the set in force, not a second row for a recorded read: ${files.join(', ')}`);
       const { uploads } = await readDevice(page);
@@ -85,6 +110,7 @@ describe('a catalog emoji pack on a device', { skip }, () => {
       for (const page of pages) page.on('console', message => { if (/View mount failed/.test(message.text())) failures.push(message.text()); });
       await Promise.all(pages.map(page => gotoSettled(page, `${origin}${PLAIN_TOOL}`)));
       assert.deepEqual(failures, [], 'neither view failed');
+      for (const page of pages) { await page.bringToFront(); await startWork(page); }
       assert.equal((await packArrives(pages[0]!)).length, 1, 'both tabs land on the same catalog row');
       const { uploads } = await readDevice(pages[0]!);
       assert.equal(uploads.some(row => row.pack), false);
@@ -96,6 +122,7 @@ describe('a catalog emoji pack on a device', { skip }, () => {
     try {
       const page = await context.newPage();
       await gotoSettled(page, `${origin}${PLAIN_TOOL}`);
+      await startWork(page);
       assert.equal((await packArrives(page)).length, 1);
       // Only the pack files, so the rest of the shell still loads on any server.
       await context.route('**/catalog/packs/**', route => route.abort());
@@ -122,8 +149,9 @@ describe('a catalog emoji pack on a device', { skip }, () => {
       await gotoSettled(page, `${built}${TEXT_TOOL}`);
       await page.evaluate(() => navigator.serviceWorker?.ready.then(() => true));
       await gotoSettled(page, `${built}${TEXT_TOOL}`);
+      await startWork(page);
       assert.equal((await packArrives(page)).length, 1);
-      // The code is brought in at the same idle moment as the set, so let it land.
+      // The code is brought in after the first paint, before the set, so let it land.
       await page.waitForLoadState('networkidle');
       await context.setOffline(true);
       await page.goto(`${built}${TEXT_TOOL}?heading=${encodeURIComponent('Ship it \u{1F389}')}`, { waitUntil: 'load' });
