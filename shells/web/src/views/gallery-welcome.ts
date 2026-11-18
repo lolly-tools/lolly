@@ -93,9 +93,11 @@ async function welcomeDue(host: GalleryHost, isCurrent: () => boolean): Promise<
 }
 
 /** The host a colour chosen on the greeting installs through, when this shell has a design system registry. */
-function brandHostOf(host: GalleryHost & PickerHost): OneColourHost | undefined {
-  const full = host as unknown as Partial<OneColourHost>;
-  return full.designSystems && full.tokens ? full as OneColourHost : undefined;
+function brandHostOf(host: object): OneColourHost | undefined {
+  return isBrandHost(host) ? host : undefined;
+}
+function isBrandHost(host: object): host is OneColourHost {
+  return 'designSystems' in host && !!host.designSystems && 'tokens' in host && !!host.tokens;
 }
 
 /** The privacy promise the greeting carries: the notice's own words when a workspace keeps the work. */

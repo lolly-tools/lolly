@@ -14,7 +14,7 @@
  * Loaded on the first press, so a visit that never picks a colour pays nothing.
  */
 import { DEFAULT_DESIGN_SYSTEM_ID, deriveBrandTokens } from '@lolly/engine';
-import { installUserTokens } from '../../bridge/tokens.ts';
+import { installUserTokens, type InstallTokensHost } from '../../bridge/tokens.ts';
 import { STUDIO_GROUPS } from '../token-studio.ts';
 import { removeDesignSystem, type ManageHost } from './manage.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
@@ -23,7 +23,7 @@ type Rec = Record<string, unknown>;
 const isRec = (v: unknown): v is Rec => typeof v === 'object' && v !== null && !Array.isArray(v);
 
 /** What the greeting needs from the gallery's host. */
-export type OneColourHost = SwitchHost & ManageHost;
+export type OneColourHost = SwitchHost & ManageHost & InstallTokensHost;
 
 /**
  * The document for `primary`: a fresh derive, with everything that is not colour
@@ -62,7 +62,7 @@ export async function startFromColour(host: OneColourHost, primary: string, made
     if (await registry.get(DEFAULT_DESIGN_SYSTEM_ID)) return null;
   }
   const doc = designSystemFromColour(await host.tokens?.raw?.(), primary);
-  await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc);
+  await installUserTokens(host, doc);
   const made = await registry.activeId();
   await switchDesignSystem(host, made, { previous: before, route: 'gallery' });
   return {
