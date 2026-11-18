@@ -30,6 +30,22 @@ export interface AdvisoryException {
   tracking: string[];
 }
 
+/**
+ * A reviewed, temporary hold on GitHub advisories for one npm root, for a finding that has
+ * no fixed release to move to. The audit leaves a held advisory out of that root's count,
+ * and npmHoldProblems fails as soon as the registry lists a fixed version or the advisory
+ * stops applying, so a hold ends with the reason for the hold.
+ */
+export interface NpmAdvisoryHold {
+  /** GitHub advisory ids (GHSA-xxxx-xxxx-xxxx) held for this root only. */
+  advisories: string[];
+  /** The package the advisories are filed against. */
+  package: string;
+  approvedBy: string;
+  justification: string;
+  tracking: string[];
+}
+
 export interface DependencyRoot {
   id: string;
   ecosystem: Ecosystem;
@@ -38,6 +54,7 @@ export interface DependencyRoot {
   exposure: 'runtime-and-development' | 'build-toolchain' | 'shipped-runtime';
   owner: string;
   advisoryExceptions?: AdvisoryException[];
+  npmAdvisoryHolds?: NpmAdvisoryHold[];
 }
 
 interface Inventory {
@@ -49,6 +66,7 @@ const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const INVENTORY = join(REPO, 'security/dependency-roots.json');
 const PRUNED = new Set(['.git', '.claude', '.worktrees', 'dist', 'node_modules', 'target', 'vendor']);
 const RUSTSEC_ID = /^RUSTSEC-\d{4}-\d{4}$/;
+const GHSA_ID = /^GHSA(-[23456789cfghjmpqrvwx]{4}){3}$/;
 const PLAIN_VERSION = /^\d+\.\d+\.\d+$/;
 
 function slash(path: string): string {
@@ -93,6 +111,34 @@ function checkAdvisoryExceptions(root: DependencyRoot): void {
   }
 }
 
+function checkNpmAdvisoryHolds(root: DependencyRoot): void {
+  const list: unknown = root.npmAdvisoryHolds;
+  if (list === undefined) return;
+  if (!Array.isArray(list) || list.length === 0) {
+    throw new Error(`${root.id}: npmAdvisoryHolds must be a non-empty array when present`);
+  }
+  if (root.ecosystem !== 'npm') {
+    throw new Error(`${root.id}: npmAdvisoryHolds are supported for npm roots only`);
+  }
+  const seen = new Set<string>();
+  for (const entry of list as Partial<NpmAdvisoryHold>[]) {
+    const ids = entry?.advisories;
+    if (!Array.isArray(ids) || ids.length === 0 || !ids.every((id) => typeof id === 'string' && GHSA_ID.test(id))) {
+      throw new Error(`${root.id}: an npm advisory hold needs a non-empty list of GHSA ids`);
+    }
+    for (const id of ids) {
+      if (seen.has(id)) throw new Error(`${root.id}: ${id} is held twice`);
+      seen.add(id);
+    }
+    for (const field of ['package', 'approvedBy', 'justification'] as const) {
+      if (!nonEmptyString(entry[field])) throw new Error(`${root.id}: npm advisory hold is missing ${field}`);
+    }
+    if (!Array.isArray(entry.tracking) || entry.tracking.length === 0 || !entry.tracking.every(nonEmptyString)) {
+      throw new Error(`${root.id}: npm advisory hold needs at least one tracking link`);
+    }
+  }
+}
+
 /** Validate a parsed inventory object. loadInventory reads the file and calls this. */
 export function parseInventory(parsed: Partial<Inventory>): Inventory {
   if (parsed.schemaVersion !== 1 || !Array.isArray(parsed.roots)) {
@@ -109,6 +155,7 @@ export function parseInventory(parsed: Partial<Inventory>): Inventory {
     ids.add(root.id);
     locks.add(root.lockfile);
     checkAdvisoryExceptions(root);
+    checkNpmAdvisoryHolds(root);
   }
   return parsed as Inventory;
 }
@@ -261,23 +308,74 @@ function commandAvailable(command: string, args: string[]): boolean {
   return !result.error && result.status === 0;
 }
 
+interface NpmAdvisory { severity: string; id: string | null; module: string | null; patched: string | null }
+
 /** pnpm 11 returns npm registry advisories, without npm CLI's metadata summary. */
-export function auditCounts(report: unknown): { total: number; high: number; critical: number } {
+function npmAdvisories(report: unknown): NpmAdvisory[] {
   if (!report || typeof report !== 'object' || !('advisories' in report)
     || !report.advisories || typeof report.advisories !== 'object' || Array.isArray(report.advisories)) {
     throw new Error('pnpm audit returned an invalid advisory report');
   }
-  const counts = { total: 0, high: 0, critical: 0 };
-  for (const advisory of Object.values(report.advisories)) {
+  const list: NpmAdvisory[] = [];
+  for (const advisory of Object.values(report.advisories) as Array<Record<string, unknown> | null>) {
     if (!advisory || typeof advisory !== 'object' || !('severity' in advisory)
       || !['info', 'low', 'moderate', 'high', 'critical'].includes(String(advisory.severity))) {
       throw new Error('pnpm audit returned an invalid advisory severity');
     }
+    const text = (value: unknown): string | null => (typeof value === 'string' && value.trim() ? value.trim() : null);
+    list.push({
+      severity: String(advisory.severity),
+      id: text(advisory.github_advisory_id),
+      module: text(advisory.module_name),
+      patched: text(advisory.patched_versions),
+    });
+  }
+  return list;
+}
+
+/** The advisory count for one root. A held advisory id is left out of every number. */
+export function auditCounts(report: unknown, held: ReadonlySet<string> = new Set()): { total: number; high: number; critical: number } {
+  const counts = { total: 0, high: 0, critical: 0 };
+  for (const advisory of npmAdvisories(report)) {
+    if (advisory.id && held.has(advisory.id)) continue;
     counts.total++;
     if (advisory.severity === 'high') counts.high++;
     if (advisory.severity === 'critical') counts.critical++;
   }
   return counts;
+}
+
+/** A registry range that gives no release: absent, empty, or the registry's "no fix" form. */
+function namesNoFix(patched: string | null): boolean {
+  return patched === null || /^<\s*0\.0\.0$/.test(patched);
+}
+
+/**
+ * Every reason a root's npm holds are no longer justified by the audit report: the
+ * advisory no longer applies to this root, it is filed against another package, or the
+ * registry now lists a fixed version, in which case the update replaces the hold.
+ */
+export function npmHoldProblems(root: DependencyRoot, report: unknown): string[] {
+  const problems: string[] = [];
+  const reported = npmAdvisories(report);
+  for (const hold of root.npmAdvisoryHolds ?? []) {
+    for (const id of hold.advisories) {
+      const label = `${root.id}: the hold for ${id}`;
+      const found = reported.filter((advisory) => advisory.id === id);
+      if (found.length === 0) {
+        problems.push(`${label} is stale: the audit no longer reports the advisory. Remove the hold.`);
+        continue;
+      }
+      for (const advisory of found) {
+        if (advisory.module !== hold.package) {
+          problems.push(`${label} is for ${hold.package}, and the advisory is filed against ${advisory.module ?? 'an unnamed package'}.`);
+        } else if (!namesNoFix(advisory.patched)) {
+          problems.push(`${label} is stale: ${hold.package} has a fixed release (${advisory.patched}). Update ${hold.package} and remove the hold.`);
+        }
+      }
+    }
+  }
+  return problems;
 }
 
 function auditNpm(root: DependencyRoot): void {
@@ -294,12 +392,17 @@ function auditNpm(root: DependencyRoot): void {
   } catch {
     throw new Error(`${root.id}: pnpm audit did not return JSON${result.stderr ? ` (${result.stderr.trim()})` : ''}`);
   }
-  const { high, critical, total } = auditCounts(report);
-  console.log(`${root.id}: pnpm audit total=${total} high=${high} critical=${critical}`);
+  const held = new Set((root.npmAdvisoryHolds ?? []).flatMap((hold) => hold.advisories));
+  const problems = npmHoldProblems(root, report);
+  if (problems.length) throw new Error(`npm advisory hold gate:\n  ${problems.join('\n  ')}`);
+  const { high, critical, total } = auditCounts(report, held);
+  console.log(`${root.id}: pnpm audit total=${total} high=${high} critical=${critical}${held.size ? ` held=${[...held].join(',')}` : ''}`);
   if (high > 0 || critical > 0) {
     throw new Error(`${root.id}: pnpm audit found ${high} high and ${critical} critical vulnerabilities`);
   }
-  if (result.status !== 0 && total === 0) {
+  // A held advisory still makes pnpm exit non-zero, so the status is read against the
+  // whole report and not against the count that leaves the hold out.
+  if (result.status !== 0 && auditCounts(report).total === 0) {
     throw new Error(`${root.id}: pnpm audit failed with status ${result.status}`);
   }
 }

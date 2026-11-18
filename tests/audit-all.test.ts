@@ -5,12 +5,14 @@ import test from 'node:test';
 import {
   type AdvisoryException,
   type DependencyRoot,
+  type NpmAdvisoryHold,
   advisoryExceptionProblems,
   auditCounts,
   cargoAuditArgs,
   compareVersions,
   discoverAuthoritativeLocks,
   loadInventory,
+  npmHoldProblems,
   parseCargoLock,
   parseInventory,
   validateAdvisoryExceptions,
@@ -159,4 +161,63 @@ test('malformed or misplaced advisory exceptions are refused when the inventory 
   assert.throws(() => withException({}, { ...zipException, justification: ' ' }), /missing justification/);
   assert.throws(() => withException({}, { ...zipException, viaFixedIn: '>=2.14.1' }), /plain x\.y\.z/);
   assert.throws(() => withException({}, { ...zipException, tracking: [] }), /tracking link/);
+});
+
+const GLOB_ADVISORY = 'GHSA-fc5q-39xc-vjpf';
+
+const globHold: NpmAdvisoryHold = {
+  advisories: [GLOB_ADVISORY],
+  package: 'picomatch',
+  approvedBy: 'test',
+  justification: 'test fixture',
+  tracking: ['https://example.invalid/upstream'],
+};
+
+const npmRoot: DependencyRoot = {
+  id: 'root-npm',
+  ecosystem: 'npm',
+  directory: '.',
+  lockfile: 'pnpm-lock.yaml',
+  exposure: 'runtime-and-development',
+  owner: 'parent',
+  npmAdvisoryHolds: [globHold],
+};
+
+const advisory = (over: Record<string, unknown> = {}) => ({
+  severity: 'high', github_advisory_id: GLOB_ADVISORY, module_name: 'picomatch', patched_versions: null, ...over,
+});
+
+test('a held npm advisory is left out of the count, and every other finding still counts', () => {
+  const held = new Set([GLOB_ADVISORY]);
+  const report = { advisories: { 1: advisory(), 2: advisory({ github_advisory_id: 'GHSA-2222-3333-4444', module_name: 'other', severity: 'critical' }) } };
+  assert.deepEqual(auditCounts(report), { total: 2, high: 1, critical: 1 });
+  assert.deepEqual(auditCounts(report, held), { total: 1, high: 0, critical: 1 });
+  assert.deepEqual(npmHoldProblems(npmRoot, report), []);
+});
+
+test('the npm hold fails once a fixed release exists, the advisory stops applying or the package differs', () => {
+  const problems = (report: unknown) => npmHoldProblems(npmRoot, report).join('\n');
+  assert.equal(problems({ advisories: { 1: advisory({ patched_versions: '<0.0.0' }) } }), '');
+  assert.match(problems({ advisories: { 1: advisory({ patched_versions: '>=4.0.8' }) } }), /picomatch has a fixed release \(>=4\.0\.8\)\. Update picomatch and remove the hold/);
+  assert.match(problems({ advisories: {} }), /no longer reports the advisory\. Remove the hold/);
+  assert.match(problems({ advisories: { 1: advisory({ module_name: 'micromatch' }) } }), /is for picomatch, and the advisory is filed against micromatch/);
+});
+
+test('an npm hold is refused on a Cargo root, without an approver, or with a malformed id', () => {
+  const inventory = (root: Partial<DependencyRoot>) => ({ schemaVersion: 1 as const, roots: [{ ...npmRoot, ...root }] });
+  assert.doesNotThrow(() => parseInventory(inventory({})));
+  assert.throws(() => parseInventory(inventory({ ecosystem: 'cargo', lockfile: 'Cargo.lock' })), /npm roots only/);
+  assert.throws(() => parseInventory(inventory({ npmAdvisoryHolds: [{ ...globHold, approvedBy: '' }] })), /missing approvedBy/);
+  assert.throws(() => parseInventory(inventory({ npmAdvisoryHolds: [{ ...globHold, advisories: ['CVE-2026-112366'] }] })), /list of GHSA ids/);
+  assert.throws(() => parseInventory(inventory({ npmAdvisoryHolds: [{ ...globHold, tracking: [] }] })), /tracking link/);
+  assert.throws(() => parseInventory(inventory({ npmAdvisoryHolds: [globHold, globHold] })), /held twice/);
+});
+
+test('every live npm hold names an approver, a reason and where the fix is tracked', () => {
+  for (const root of loadInventory().roots) {
+    for (const hold of root.npmAdvisoryHolds ?? []) {
+      assert.equal(root.ecosystem, 'npm', root.id);
+      assert.ok(hold.approvedBy.trim() && hold.justification.trim().length >= 80 && hold.tracking.length > 0, root.id);
+    }
+  }
 });
