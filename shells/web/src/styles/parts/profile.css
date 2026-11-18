@@ -902,10 +902,10 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .feature-flag-cluster-sum {
   display: flex; align-items: center; cursor: pointer; list-style: none;
 }
-.profile-view .profile-group-sum::-webkit-details-marker,
-.profile-view .profile-row-sum::-webkit-details-marker,
-.profile-view .pconn-sync-choices-sum::-webkit-details-marker,
-.profile-view .feature-flag-cluster-sum::-webkit-details-marker { display: none; }
+.profile-view .profile-group-sum::after,
+.profile-view .profile-row-sum::after,
+.profile-view .pconn-sync-choices-sum::after,
+.profile-view .feature-flag-cluster-sum::after { content: none; }
 .profile-view .profile-group-sum:focus-visible,
 .profile-view .profile-row-sum:focus-visible,
 .profile-view .pconn-sync-choices-sum:focus-visible,
@@ -1035,7 +1035,7 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .ds-row-actions [aria-disabled="true"] { cursor: progress; }
 .ds-row-more { position: relative; pointer-events: auto; }
 .ds-row-more summary { display: grid; place-items: center; min-height: var(--ui-size-target); cursor: pointer; list-style: none; border-radius: var(--ui-radius-control); }
-.ds-row-more summary::-webkit-details-marker { display: none; }
+.ds-row-more summary::after { content: none; }
 .ds-row-more summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 /* Opens downward, so the first compact row cannot push it off the top of the
    card; a row near the foot opens it upward when the card's clip would cut it

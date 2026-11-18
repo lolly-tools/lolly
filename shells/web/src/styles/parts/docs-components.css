@@ -118,6 +118,7 @@ html[data-a11y-contrast="high"] .docs-content .doc-note--warning { --doc-note-to
   color: var(--ui-color-text-default);
 }
 :is(.docs-content, .docs-compact-nav) .doc-details > summary::-webkit-details-marker { display: none; }
+:is(.docs-content, .docs-compact-nav) .doc-details > summary::after { content: none; }
 :is(.docs-content, .docs-compact-nav) .doc-details > summary::marker { content: ''; }
 :is(.docs-content, .docs-compact-nav) .doc-details-glyph,
 :is(.docs-content, .docs-compact-nav) .doc-details-chev { display: flex; align-items: center; justify-content: center; color: var(--ui-color-text-muted); }

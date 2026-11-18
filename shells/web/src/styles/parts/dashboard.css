@@ -438,7 +438,7 @@
   margin: 0; padding: .8rem 1rem;
   cursor: pointer; list-style: none;                 /* it's a <summary> now */
 }
-.dash-cap-group-head::-webkit-details-marker { display: none; }
+.dash-cap-group-head::after { content: none; }
 .dash-cap-group-head:hover { background: hsl(var(--muted) / 0.5); }
 .dash-cap-group-icon {
   flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
