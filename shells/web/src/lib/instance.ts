@@ -102,8 +102,8 @@ let suspended = '';
 
 /**
  * Stop using the saved instance for this page load and return its base. The saved
- * choice stays in storage, so the next start asks that instance again; only the
- * person leaving it (lib/instance-leave.ts) forgets it. catalog/sync.ts calls this
+ * choice stays in storage, so the next start asks that instance again. Only the
+ * person leaving the instance (lib/instance-leave.ts) removes the choice. catalog/sync.ts calls this
  * when the instance's catalog is signed by a key this build does not trust, so the
  * app shows the tools built into it instead of none.
  */
