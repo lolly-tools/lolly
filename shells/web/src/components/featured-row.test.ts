@@ -333,7 +333,8 @@ test('the last opened favourite starts in the centre and opens exactly once', t 
   assert.equal(f.mount.querySelector('.is-centred')?.getAttribute('data-tool'), 'tool-4');
   f.mount.querySelector<HTMLButtonElement>('.featured-go')!.click();
   assert.deepEqual(f.opened, ['tool-4']);
-  assert.equal(f.mount.querySelector('.featured-go')!.getAttribute('aria-label'), 'Open Tool 4');
+  // The control says which cover it opens, in words a person can read.
+  assert.equal(f.mount.querySelector('.featured-go-label')!.textContent, 'Open Tool 4');
 });
 
 test('one item remains centred; two items can repeat in either direction', t => {

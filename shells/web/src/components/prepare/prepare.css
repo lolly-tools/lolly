@@ -202,7 +202,7 @@
 /* Rules and recipes: a fold, because most runs never need it. */
 .prep-fold { border-block-start: 1px solid var(--ui-color-border-default); padding-block-start: var(--sp-3); }
 .prep-fold-head { list-style: none; cursor: pointer; display: flex; align-items: center; gap: var(--sp-2); }
-.prep-fold-head::-webkit-details-marker { display: none; }
+.prep-fold-head::after { content: none; }
 .prep-fold-head .prep-sec-title { flex: 1 1 auto; }
 .prep-fold-chev { display: inline-flex; color: var(--ui-color-text-muted); transition: transform var(--ui-motion-overlay); }
 .prep-fold-chev svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }

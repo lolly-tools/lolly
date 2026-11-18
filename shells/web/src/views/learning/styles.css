@@ -865,9 +865,7 @@
   .learning-outline-disclosure[open] > summary::before {
     content: "▾";
   }
-  .learning-outline-disclosure > summary::-webkit-details-marker {
-    display: none;
-  }
+  .learning-outline-disclosure > summary::after { content: none; }
   .learning-outline-disclosure > summary strong {
     font-size: var(--ui-type-lead);
   }

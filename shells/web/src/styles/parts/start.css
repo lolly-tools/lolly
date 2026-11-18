@@ -1161,6 +1161,7 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
   cursor: pointer;
 }
 .ds-v-diff-sum::-webkit-details-marker { display: none; }
+.ds-v-diff-sum::after { content: none; }
 .ds-v-diff-sum::before {
   content: '';
   flex: none;

@@ -2128,7 +2128,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // breathing keyframes went with the rail; the bar's button is a plain pill.
     // 243 to 242 (plan 346): the Board's colour chips wear the faint edge token.
     // 242 to 241: the shared progress bar lost its outline (Andy, 2026-11-14).
-    pin: 241,
+    // 241 to 240: Cover Flow's Open control wears the chrome's bevel and elevation.
+    pin: 240,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

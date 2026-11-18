@@ -557,6 +557,7 @@
   color: hsl(var(--muted-foreground)); cursor: pointer; list-style: none;
 }
 .docs-sidebar-slot .sidebar-group > summary::-webkit-details-marker { display: none; }
+.docs-sidebar-slot .sidebar-group > summary::after { content: none; }
 .docs-sidebar-slot .sidebar-group > summary:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 .docs-sidebar-slot .sidebar-group > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 .docs-sidebar-slot .sidebar-chev { display: inline-flex; flex: none; transform: rotate(90deg); transition: transform var(--ui-motion-feedback); }

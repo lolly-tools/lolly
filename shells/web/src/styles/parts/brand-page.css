@@ -44,11 +44,7 @@
   .bp-include-box[hidden] { display: none; }
   .bp-includes { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-3); font-size: var(--ui-type-body); }
 
-  /* A flex summary loses the browser's marker, so these draw the same triangle. */
-  :is(.bp-files, .bp-disclose) > summary::before, .ca-agents .bp-more > summary::before { content: ''; flex: none; width: 0; height: 0; border-block: 4px solid transparent; border-inline-start: 6px solid currentColor; }
-  :is(.bp-files, .bp-disclose)[open] > summary::before, .ca-agents .bp-more[open] > summary::before { rotate: 90deg; }
-  :is(.bp-files, .bp-disclose) > summary, .ca-agents .bp-more > summary { list-style: none; gap: var(--sp-3); }
-  :is(.bp-files, .bp-disclose) > summary::-webkit-details-marker, .ca-agents .bp-more > summary::-webkit-details-marker { display: none; }
+  :is(.bp-files, .bp-disclose) > summary, .ca-agents .bp-more > summary { gap: var(--sp-3); }
   .bp-files > summary > span:first-of-type { flex: 1 1 auto; }
 
   .bp-files { border-top: 1px solid var(--ui-color-border-default); }

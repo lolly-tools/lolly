@@ -197,6 +197,20 @@
   color: hsl(var(--foreground));
 }
 .tmpl-chooser-tile-icon svg { width: 22px; height: 22px; }
+/* A tile with no picture yet holds the picture's place: the glyph sits in a box of
+   the thumb's own proportions, so every tile in the grid is the same kind of card
+   and nothing moves when a rendered preview arrives. The blank tile's glyph is the
+   tile's own child and takes the same box. */
+.tmpl-chooser-tile-media > .tmpl-chooser-tile-icon,
+.tmpl-chooser-tile > .tmpl-chooser-tile-icon {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  color: var(--ui-color-text-muted);
+}
+.tmpl-chooser-tile[data-motion-template] .tmpl-chooser-tile-icon { aspect-ratio: 16 / 9; }
+/* Among motion templates the blank tile is one row across the grid and keeps its small glyph. */
+.tmpl-chooser-grid:has([data-motion-template]:not([hidden])) [data-template-id="__blank__"] > .tmpl-chooser-tile-icon { width: 40px; height: 40px; aspect-ratio: auto; }
 .tmpl-chooser-tile-thumb {
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -219,10 +233,16 @@
   font-size: var(--fs-lg);
   font-weight: 600;
 }
+/* Two lines of description at most, at every width: the picture and the name choose
+   the template, and the whole sentence is the tile's tooltip. */
 .tmpl-chooser-tile-desc {
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
   line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 /* Preset chips (plans/142 WP-3): the tile picks the template base, a chip picks
@@ -357,12 +377,6 @@
   .tmpl-chooser-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .tmpl-chooser-tile { min-width: 0; gap: 6px; padding: 9px; }
   .tmpl-chooser-tile-name { font-size: var(--fs-md); }
-  .tmpl-chooser-tile-desc {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    overflow: hidden;
-  }
   .tmpl-chooser-presets { gap: 8px; }
   .tmpl-chooser-preset {
     min-height: 44px;

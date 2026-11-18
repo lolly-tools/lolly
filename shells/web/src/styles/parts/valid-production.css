@@ -26,7 +26,7 @@
 }
 @layer views {
   .valid-production > summary { display: flex; align-items: center; justify-content: space-between; list-style: none; min-height: var(--ui-size-target); }
-  .valid-production > summary::-webkit-details-marker { display: none; }
+  .valid-production > summary::after { content: none; }
   .valid-production > summary svg { width: 1em; height: 1em; transition: transform var(--ui-motion-duration-fast, 120ms); }
   .valid-production-help { display: inline-block; margin-block-end: var(--ui-space-control-inline); }
 }
