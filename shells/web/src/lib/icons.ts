@@ -108,6 +108,9 @@ const PATHS = {
   ring: '<circle cx="12" cy="12" r="9"/>',
   // compound sort-direction glyph (two <g> arrows, toggled by CSS via .sd-up/.sd-down)
   sortDir: '<g class="sd-up"><path d="M8 20V5"/><polyline points="4 9 8 5 12 9"/></g><g class="sd-down"><path d="M16 4v15"/><polyline points="12 15 16 19 20 15"/></g>',
+  // Lucide `list-filter`: three centred lines, each shorter. The View options button
+  // wears this one, so the button and Settings (sliders) do not share a mark.
+  listFilter: '<path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/>',
   // merged: projects.ts FILTER_ICON === gallery.ts FILTER_ICON
   filterLines: '<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
   // merged: projects.ts HISTORY_ICON === gallery.ts HISTORY_ICON

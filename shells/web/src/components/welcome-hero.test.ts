@@ -73,6 +73,34 @@ test('a blank install is offered Make it yours, and Lolly Demo Start making', as
   await done;
 });
 
+test('a blank install with a host to install through is offered colours in place of the button', async () => {
+  await fresh();
+  // The row only needs the host to exist until a colour is pressed.
+  const brandHost = {} as NonNullable<Parameters<typeof showWelcomeHero>[1]['brandHost']>;
+  const done = showWelcomeHero(gallery(), { audience: 'blank', ...PRIVACY, brandHost });
+  assert.equal(hero()!.querySelector('.welcome-hero-go'), null, 'no filled button: the colours carry the emphasis');
+  assert.equal(hero()!.querySelectorAll('.welcome-hero-swatch[data-colour]').length, 5);
+  assert.ok(hero()!.querySelector('input[type="color"].welcome-hero-own'), 'and a colour of the person\'s own');
+  for (const swatch of hero()!.querySelectorAll('.welcome-hero-swatch[data-colour]')) {
+    assert.ok(swatch.getAttribute('aria-label'), 'each colour has a name');
+    assert.equal(swatch.getAttribute('aria-pressed'), 'false');
+  }
+  assert.match(hero()!.querySelector('.welcome-hero-well-label')!.textContent ?? '', /Make it yours\s+One colour is enough/);
+  assert.equal(hero()!.querySelector('[data-well-undo]'), null, 'nothing to undo before a colour is chosen');
+  closeWelcomeHero();
+  await done;
+});
+
+test('Lolly Demo keeps Start making even with a host to install through', async () => {
+  await fresh();
+  const brandHost = {} as NonNullable<Parameters<typeof showWelcomeHero>[1]['brandHost']>;
+  const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY, brandHost });
+  assert.equal(hero()!.querySelector('.welcome-hero-go')!.getAttribute('data-choice'), 'make');
+  assert.equal(hero()!.querySelector('.welcome-hero-swatch'), null);
+  closeWelcomeHero();
+  await done;
+});
+
 test('Start making opens Design, and settles the welcome and the privacy notice', async () => {
   await fresh();
   const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY });

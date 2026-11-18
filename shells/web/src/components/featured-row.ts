@@ -27,6 +27,7 @@
 
 import { CoverflowGesture, CoverflowMotion, coverflowHaptics, coverflowWheel, type CoverflowGrid } from '../lib/coverflow-motion.ts';
 import { mountCoverflow, type CoverflowHandle } from './coverflow.ts';
+import { showOpenAtRest } from '../lib/coverflow-open-rest.ts';
 import { featuredStartIndex, recordFeaturedActivity, type FeaturedCollection } from '../lib/featured-activity.ts';
 import type { PreviewQueue } from '../lib/preview-queue.ts';
 import { escape } from '../utils.ts';
@@ -275,7 +276,7 @@ export function mountFeaturedRow(
       <div class="featured-viewport" tabindex="0" aria-label="${escape(opts.ariaLabel || opts.label || 'Featured tools')}">
         <ul class="featured-track">${entries.map((e, i) => tileMarkup(e, i === initialIndex, tileMenu)).join('')}</ul>
       </div>
-      <button type="button" class="featured-go">Open ${ARROW}</button>
+      <button type="button" class="featured-go"><span class="featured-go-label">${escape(tRaw('Open {name}', { name: entries[initialIndex]?.name ?? '' }))}</span>${ARROW}</button>
       <p class="visually-hidden featured-status" aria-live="polite" aria-atomic="true"></p>
       <div class="featured-grip" aria-hidden="true"><span class="featured-grip-bar"></span></div>
     </section>`;
@@ -676,8 +677,8 @@ export function mountFeaturedRow(
         flow = mountCoverflow(viewport, track, { initialIndex, onChange(index) {
           selectedIndex = index;
           if (flickIndex !== index) { if (flickIndex !== -1) flick(); flickIndex = index; }
-          const button = section.querySelector('.featured-go');
-          button?.setAttribute('aria-label', `Open ${entries[index]?.name ?? ''}`);
+          const label = section.querySelector('.featured-go-label');
+          if (label) label.textContent = tRaw('Open {name}', { name: entries[index]?.name ?? '' });
         } });
         cfMotion.reset(viewport.scrollLeft);
       }
@@ -1051,6 +1052,7 @@ export function mountFeaturedRow(
   // an ordinary, reliably clickable button - and it reads the cover to open off
   // `.is-centred` at click time.
   const goBtn = section.querySelector<HTMLElement>('.featured-go');
+  if (goBtn && coverflow) showOpenAtRest(viewport, goBtn, signal);
   goBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();

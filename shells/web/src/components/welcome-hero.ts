@@ -13,8 +13,11 @@
  *                  the featured poster, so the greeting and the product agree.
  *   One action     chosen by who is visiting: on a shipped design system (Lolly
  *                  Demo, lolly.tools) "Start making" opens Design on the lorikeet
- *                  poster (its brand-starter template); on a blank install "Make it yours" opens Design System
- *                  Setup, because there the brand is the point.
+ *                  poster (its brand-starter template); on a blank install "Make it
+ *                  yours" is a row of colours, because there the brand is the point.
+ *                  One press makes a design system from that colour and the gallery
+ *                  under the card repaints in place (lib/design-system/one-colour.ts).
+ *                  The card then stays, with Undo and the door to Design System Setup.
  *   Quiet lines    bring a file, the other audience's path, the privacy promise with
  *                  its "What we store" link, and a language chip only when the
  *                  detected language may be wrong.
@@ -56,6 +59,7 @@ import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { PickerHost } from '../views/picker.ts';
 import { openDropFilePicker } from '../lib/drop-file-picker.ts';
 import { holdWelcomeGate, markWelcomeDismissed } from '../lib/welcome-gate.ts';
+import type { OneColourHost, OneColourResult } from '../lib/design-system/one-colour.ts';
 
 /** Who the greeting is for: a shipped design system to try, or a blank install to brand. */
 export type WelcomeAudience = 'demo' | 'blank';
@@ -75,7 +79,25 @@ const SWIPE_SHARE = 0.3;
 /** A quicker flick than this (pixels per millisecond) dismisses however short it was. */
 const SWIPE_FLICK = 0.6;
 
+/**
+ * The colours the card offers on a blank install. The first three are the studio's own
+ * starting looks (lib/design-system/look-library.ts exampleLooks), so a colour chosen
+ * here is one the person meets again in Design System Setup.
+ */
+const WELL_COLOURS: ReadonlyArray<{ hex: string; name: () => string }> = [
+  { hex: '#39734D', name: () => t('green') },
+  { hex: '#2F62C9', name: () => t('blue') },
+  { hex: '#8551C8', name: () => t('purple') },
+  { hex: '#C4386F', name: () => t('pink') },
+  { hex: '#BE522A', name: () => t('orange') },
+];
+
+/** What the colour row shows: the colour in use, if one was chosen here, and whether a press is being applied. */
+interface WellState { picked: string | null; busy: boolean }
+
 let openPromise: Promise<HeroChoice> | null = null;
+/** True from the first colour chosen on the card until the card closes: the person is using the card. */
+let holding = false;
 let current: {
   el: HTMLElement; audience: WelcomeAudience;
   close: (choice: HeroChoice | null) => void; settle: () => void; repaint: (audience: WelcomeAudience) => void;
@@ -136,20 +158,46 @@ function languageRow(open: boolean): string {
  * button comes last, so the first Tab stop after the navigation is the action; the
  * stylesheet puts it in the card's corner.
  */
-function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: boolean, privacy: WelcomePrivacy): string {
+function wellMarkup(well: WellState): string {
+  const off = well.busy ? ' disabled' : '';
+  const picked = well.picked?.toLowerCase() ?? '';
+  const swatches = WELL_COLOURS.map(c => {
+    const on = c.hex.toLowerCase() === picked;
+    return `<button type="button" class="welcome-hero-swatch" data-colour="${c.hex}" style="--wh-swatch:${c.hex}" aria-label="${escapeHtml(c.name())}" title="${escapeHtml(c.name())}" aria-pressed="${on}"${off}></button>`;
+  }).join('');
+  // A colour of the person's own: the browser's picker behind a swatch-sized label.
+  const own = picked && !WELL_COLOURS.some(c => c.hex.toLowerCase() === picked);
+  const custom = `<label class="welcome-hero-swatch welcome-hero-swatch--own${own ? ' is-on' : ''}" title="${escapeHtml(t('Pick a colour'))}"${own ? ` style="--wh-swatch:${escapeHtml(picked)}"` : ''}>
+      <input type="color" class="welcome-hero-own" value="${escapeHtml(own ? picked : '#4f83cc')}" aria-label="${escapeHtml(t('Pick a colour'))}"${off}>
+      ${own ? '' : icon('palette', { size: 16 })}
+    </label>`;
+  return `<div class="welcome-hero-well" role="group" aria-labelledby="welcome-hero-well-label"${well.busy ? ' aria-busy="true"' : ''}>
+      <p class="welcome-hero-well-label" id="welcome-hero-well-label"><strong>${t('Make it yours')}</strong> <span>${t('One colour is enough')}</span></p>
+      <div class="welcome-hero-swatches">${swatches}${custom}</div>
+    </div>`;
+}
+
+function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: boolean, privacy: WelcomePrivacy, well: WellState | null): string {
   const primary = audience === 'demo'
     ? `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go" data-choice="make"><span class="btn-label">${t('Start making')}</span></button>`
+    : well ? wellMarkup(well)
     : `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go welcome-hero-go--sub" data-choice="brand"><span class="btn-label">${t('Make it yours')}</span><span class="welcome-hero-go-sub">${t('One colour is enough')}</span></button>`;
-  const other = audience === 'demo'
+  // With a colour chosen here the quiet links are the two ways on from that choice.
+  const chosen = audience === 'blank' && !!well?.picked;
+  const other = chosen
+    ? `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Open Design System Setup →')}</button>`
+    : audience === 'demo'
     ? `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Make it yours')}</button>`
     : `<button type="button" class="welcome-hero-link" data-choice="explore">${t('Explore the tools')}</button>`;
-  const file = withImport ? `<button type="button" class="welcome-hero-link" data-choice="import">${t('Bring a file')}</button>` : '';
+  const file = chosen
+    ? `<button type="button" class="welcome-hero-link" data-well-undo${well?.busy ? ' disabled' : ''}>${t('Undo')}</button>`
+    : withImport ? `<button type="button" class="welcome-hero-link" data-choice="import">${t('Bring a file')}</button>` : '';
   return `
     ${markSvg()}
     <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make the next thing beautiful.')}</h2>
-    <div class="welcome-hero-act">
+    <div class="welcome-hero-act${audience === 'blank' && well ? ' welcome-hero-act--well' : ''}">
       ${primary}
-      <p class="welcome-hero-more">${[file, other].filter(Boolean).join('<span class="welcome-hero-dot" aria-hidden="true">·</span>')}</p>
+      <p class="welcome-hero-more">${(chosen ? [other, file] : [file, other]).filter(Boolean).join('<span class="welcome-hero-dot" aria-hidden="true">·</span>')}</p>
     </div>
     <p class="welcome-hero-quiet">${privacyLine(privacy)}${languageMayBeWrong() || langsOpen ? ` ${languageRow(langsOpen)}` : ''}</p>
     <button type="button" class="welcome-hero-close" data-choice="dismiss" aria-label="${t('Close the welcome')}">${icon('close', { size: 18 })}</button>`;
@@ -240,6 +288,8 @@ export function showWelcomeHero(
     /** Acknowledge the privacy notice: every explicit choice does, since the band carries the promise. */
     ackPrivacy: () => void;
     profileApi?: WebProfileAPI; uploadHost?: PickerHost;
+    /** The host a colour chosen on the card is installed through. Without one the card keeps its button to Design System Setup. */
+    brandHost?: OneColourHost;
   },
 ): Promise<HeroChoice> {
   if (openPromise && current) {
@@ -254,6 +304,9 @@ export function showWelcomeHero(
   const pending = new Promise<HeroChoice>((resolve) => {
     let langsOpen = false;
     let audience = opts.audience;
+    // The colour row, on a blank install with a host to install through.
+    const well: WellState | null = opts.brandHost ? { picked: null, busy: false } : null;
+    let applied: OneColourResult | null = null;
     const el = document.createElement('section');
     el.className = 'welcome-hero';
     el.setAttribute('aria-labelledby', 'welcome-hero-title');
@@ -277,7 +330,7 @@ export function showWelcomeHero(
       releaseGate();
     };
     const paint = (focus?: string): void => {
-      card.innerHTML = heroMarkup(audience, !!opts.uploadHost, langsOpen, opts.privacy);
+      card.innerHTML = heroMarkup(audience, !!opts.uploadHost, langsOpen, opts.privacy, well);
       if (focus) card.querySelector<HTMLElement>(focus)?.focus({ preventScroll: true });
     };
     paint();
@@ -298,6 +351,7 @@ export function showWelcomeHero(
       if (!current) return;
       current = null;
       openPromise = null;
+      holding = false;
       clearTimeout(holdTimer);
       clearTimeout(drawTimer);
       seen?.disconnect();
@@ -327,6 +381,44 @@ export function showWelcomeHero(
     document.addEventListener('keydown', onKey);
     wireSwipe(card, () => close('dismiss'));
 
+    // A colour chosen on the card: install the design system the colour makes and let
+    // the gallery repaint under the card. The module arrives on the first press.
+    const applyColour = async (hex: string): Promise<void> => {
+      if (!well || well.busy || !opts.brandHost) return;
+      well.busy = true;
+      paint();
+      try {
+        const { startFromColour } = await import('../lib/design-system/one-colour.ts');
+        // A colour is an explicit choice made on the card that carries the privacy
+        // promise, so the notice is answered before the gallery repaints under the card.
+        opts.ackPrivacy();
+        const result = await startFromColour(opts.brandHost, hex, applied !== null);
+        if (!result) {
+          // This device already holds a design system of the person's own: the studio is the place to change one.
+          close('brand');
+          window.location.hash = '#/start';
+          return;
+        }
+        applied ??= result;
+        well.picked = hex;
+        holding = true;
+      } catch { /* the starter stands; the row is ready for another press */ }
+      well.busy = false;
+      if (el.isConnected || current) paint(`[data-colour="${hex}"], .welcome-hero-own`);
+    };
+    const undoColour = async (): Promise<void> => {
+      if (!well || well.busy || !applied) return;
+      well.busy = true;
+      paint();
+      try { await applied.undo(); applied = null; well.picked = null; holding = false; } catch { /* the chosen colour stands */ }
+      well.busy = false;
+      if (el.isConnected || current) paint('.welcome-hero-swatch');
+    };
+    el.addEventListener('change', (e) => {
+      const input = e.target instanceof HTMLInputElement && e.target.classList.contains('welcome-hero-own') ? e.target : null;
+      if (input) void applyColour(input.value);
+    });
+
     el.addEventListener('click', (e) => {
       const target = e.target instanceof Element ? e.target : null;
       const langBtn = target?.closest<HTMLButtonElement>('[data-lang]');
@@ -351,6 +443,9 @@ export function showWelcomeHero(
         paint('[data-lang]');
         return;
       }
+      const swatch = target?.closest<HTMLElement>('[data-colour]');
+      if (swatch) { void applyColour(swatch.dataset.colour ?? ''); return; }
+      if (target?.closest('[data-well-undo]')) { void undoColour(); return; }
       const chosen = target?.closest<HTMLElement>('[data-choice]');
       if (!chosen) return;
       const choice = chosen.dataset.choice as HeroChoice;
@@ -382,6 +477,20 @@ export function adoptWelcomeHero(root: HTMLElement | null): void {
 /** Whether a greeting is up, or waiting for its gallery. */
 export function welcomeHeroOpen(): boolean {
   return !!current;
+}
+
+/**
+ * Whether the person has chosen a colour on the card. From then on the install is no
+ * longer a blank one, so the welcome is no longer due, and the card still stays up: it
+ * holds Undo and the way on. The gallery asks before taking a card down as not due.
+ */
+export function welcomeHeroHolding(): boolean {
+  return holding && !!current;
+}
+
+/** The open greeting's own promise, which settles when the card closes; null when none is up. */
+export function welcomeHeroClosed(): Promise<HeroChoice> | null {
+  return current ? openPromise : null;
 }
 
 /** Take the greeting down without settling it (a host's safety hatch, and the tests'). */
