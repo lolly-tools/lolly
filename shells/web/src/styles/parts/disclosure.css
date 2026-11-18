@@ -439,11 +439,11 @@ details.section-card > .section-card-body,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  summary::after,
+  :where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *)::after,
   .input-section-summary::after,
   details.section-card > .section-card-summary::after { transition: none; }
 }
-html[data-a11y-motion="reduce"] summary::after,
+html[data-a11y-motion="reduce"] :where(summary):not(:where(.tool-canvas, #tool-content, .pro-export-canvas, .me-canvas, .me-scale, .docs-content, .docs-compact-nav) *)::after,
 html[data-a11y-motion="reduce"] details.section-card > .section-card-summary::after { transition: none; }
 html[data-a11y-motion="reduce"] .input-section-summary::after { transition: none; }
 
