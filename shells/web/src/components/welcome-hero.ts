@@ -13,8 +13,9 @@
  *                  the featured poster, so the greeting and the product agree.
  *   One action     chosen by who is visiting: on a shipped design system (Lolly
  *                  Demo, lolly.tools) "Start making" opens Design on the lorikeet
- *                  poster (its brand-starter template); on a blank install "Make it
- *                  yours" is a row of colours, because there the brand is the point.
+ *                  poster (its brand-starter template), under a row of colours; on a
+ *                  blank install the row of colours is the whole action ("Make it
+ *                  yours"), because there the brand is the point.
  *                  One press makes a design system from that colour and the gallery
  *                  under the card repaints in place (lib/design-system/one-colour.ts).
  *                  The card then stays, with Undo and the door to Design System Setup.
@@ -177,16 +178,18 @@ function wellMarkup(well: WellState): string {
 }
 
 function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: boolean, privacy: WelcomePrivacy, well: WellState | null): string {
+  const start = `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go" data-choice="make"><span class="btn-label">${t('Start making')}</span></button>`;
+  // Lolly Demo offers the colours too, above its Start making button.
   const primary = audience === 'demo'
-    ? `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go" data-choice="make"><span class="btn-label">${t('Start making')}</span></button>`
+    ? (well ? `${wellMarkup(well)}<span class="welcome-hero-row">${start}` : start)
     : well ? wellMarkup(well)
     : `<button type="button" class="btn btn--primary btn--labelled welcome-hero-go welcome-hero-go--sub" data-choice="brand"><span class="btn-label">${t('Make it yours')}</span><span class="welcome-hero-go-sub">${t('One colour is enough')}</span></button>`;
   // With a colour chosen here the quiet links are the two ways on from that choice.
-  const chosen = audience === 'blank' && !!well?.picked;
+  const chosen = !!well?.picked;
   const other = chosen
     ? `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Open Design System Setup →')}</button>`
     : audience === 'demo'
-    ? `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Make it yours')}</button>`
+    ? (well ? '' : `<button type="button" class="welcome-hero-link" data-choice="brand">${t('Make it yours')}</button>`)
     : `<button type="button" class="welcome-hero-link" data-choice="explore">${t('Explore the tools')}</button>`;
   const file = chosen
     ? `<button type="button" class="welcome-hero-link" data-well-undo${well?.busy ? ' disabled' : ''}>${t('Undo')}</button>`
@@ -194,9 +197,9 @@ function heroMarkup(audience: WelcomeAudience, withImport: boolean, langsOpen: b
   return `
     ${markSvg()}
     <h2 class="welcome-hero-title" id="welcome-hero-title">${t('Make the next thing beautiful.')}</h2>
-    <div class="welcome-hero-act${audience === 'blank' && well ? ' welcome-hero-act--well' : ''}">
+    <div class="welcome-hero-act${well ? ' welcome-hero-act--well' : ''}">
       ${primary}
-      <p class="welcome-hero-more">${(chosen ? [other, file] : [file, other]).filter(Boolean).join('<span class="welcome-hero-dot" aria-hidden="true">·</span>')}</p>
+      <p class="welcome-hero-more">${(chosen ? [other, file] : [file, other]).filter(Boolean).join('<span class="welcome-hero-dot" aria-hidden="true">·</span>')}</p>${audience === 'demo' && well ? '</span>' : ''}
     </div>
     <p class="welcome-hero-quiet">${privacyLine(privacy)}${languageMayBeWrong() || langsOpen ? ` ${languageRow(langsOpen)}` : ''}</p>
     <button type="button" class="welcome-hero-close" data-choice="dismiss" aria-label="${t('Close the welcome')}">${icon('close', { size: 18 })}</button>`;
@@ -419,7 +422,9 @@ export function showWelcomeHero(
       if (!well || well.busy || !applied) return;
       well.busy = true;
       paint();
-      try { await applied.undo(); applied = null; well.picked = null; holding = false; } catch { /* the chosen colour stands */ }
+      // The card stays held after Undo: the person is still using the card, whatever the
+      // welcome decision makes of the install on the mount that follows.
+      try { await applied.undo(); applied = null; well.picked = null; } catch { /* the chosen colour stands */ }
       well.busy = false;
       if (el.isConnected || current) paint('.welcome-hero-swatch');
     };

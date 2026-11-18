@@ -93,12 +93,14 @@ test('a blank install with a host to install through is offered colours in place
   await done;
 });
 
-test('Lolly Demo keeps Start making even with a host to install through', async () => {
+test('Lolly Demo keeps Start making and offers the colours above the button', async () => {
   await fresh();
   const brandHost = {} as NonNullable<Parameters<typeof showWelcomeHero>[1]['brandHost']>;
   const done = showWelcomeHero(gallery(), { audience: 'demo', ...PRIVACY, brandHost });
   assert.equal(hero()!.querySelector('.welcome-hero-go')!.getAttribute('data-choice'), 'make');
-  assert.equal(hero()!.querySelector('.welcome-hero-swatch'), null);
+  assert.equal(hero()!.querySelectorAll('.welcome-hero-swatch[data-colour]').length, 5);
+  assert.ok(hero()!.querySelector('button[data-well-own]'));
+  assert.equal(hero()!.querySelector('.welcome-hero-link[data-choice="brand"]'), null, 'the row replaces the Make it yours link');
   closeWelcomeHero();
   await done;
 });

@@ -138,6 +138,8 @@
    Each swatch is a target-sized button drawing a smaller disc, so the discs
    sit close while a finger still has room. */
 .welcome-hero-act--well { flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
+/* Lolly Demo: Start making and the quiet links share the row under the colours. */
+.welcome-hero-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-4) var(--sp-8); }
 .welcome-hero-well { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-7); }
 .welcome-hero-well-label { margin: 0; font-size: var(--fs-lg); line-height: 1.25; }
 .welcome-hero-well-label strong { font-weight: 600; }
@@ -341,6 +343,7 @@ html[data-a11y-motion="reduce"] .welcome-hero-close::before { transition: none; 
   .welcome-hero-close { margin-block: 0; }
   .welcome-hero-act { justify-content: center; margin-block-start: var(--sp-7); }
   .welcome-hero-act--well { align-items: center; }
+  .welcome-hero-row { justify-content: center; inline-size: 100%; }
   .welcome-hero-well { justify-content: center; }
   .welcome-hero-swatches { margin-inline-start: 0; justify-content: center; }
   .welcome-hero-go { flex: 1 1 100%; }

@@ -37,7 +37,7 @@ import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormatOf } from '../lib/featured-render.ts';
 import { toolSeedHref } from '../lib/seed-url.ts';
-import { galleryLookHref, renderGalleryLook } from '../lib/gallery-preview.ts';
+import { galleryLookHref, heldGalleryLook, renderGalleryLook } from '../lib/gallery-preview.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { dragTravel, type DragTravel } from '../lib/pointer-wrap.ts';
 import { currentTheme } from '../theme.ts';
@@ -1143,7 +1143,7 @@ export function mountFeaturedRow(
       }
     }
 
-    const addVariantImage = async (job: VariantJob, src: string): Promise<void> => {
+    const addVariantImage = async (job: VariantJob, src: string, held = false): Promise<void> => {
       // Append to the original tile AND its clone, so both stay in sync as they drift.
       const added: HTMLImageElement[] = [];
       track.querySelectorAll<HTMLElement>(`.ftile[data-tool="${CSS.escape(job.id)}"] .ftile-stage`).forEach((stage) => {
@@ -1157,6 +1157,8 @@ export function mountFeaturedRow(
         // in once ready - only the first kind needs the error handler's re-render, so only
         // that kind carries its job.
         if (isManifestLook(src)) lookJob.set(img, job);
+        // A cover held from before a repaint is marked, so the new draw replaces this picture.
+        if (held) img.dataset.held = String(job.index);
         img.src = src;
         stage.appendChild(img);
         added.push(img);
@@ -1196,11 +1198,21 @@ export function mountFeaturedRow(
         const thumb = await (job.tool?.galleryPreview && job.look
           ? renderGalleryLook(host, job.tool, job.index, job.look)
           : renderFeaturedVariant(host, job.id, job.formats, job.index, job.values));
-        if (!destroyed) await addVariantImage(job, thumb);
+        if (destroyed) return;
+        // Replace a held cover in place (the tile and its wrap copies), or add the look.
+        const stale = [...track.querySelectorAll<HTMLImageElement>(`.ftile[data-tool="${CSS.escape(job.id)}"] .ftile-img[data-held="${job.index}"]`)];
+        for (const img of stale) { img.src = thumb; delete img.dataset.held; }
+        if (!stale.length) await addVariantImage(job, thumb);
       } catch (e) {
         host.log?.('warn', `Featured variant failed for ${job.id}`, { error: String(e) });
       }
     };
+    // A cover drawn earlier in this visit stands in until its new one is ready
+    // (lib/gallery-preview.ts): a design system or theme change recolours tile by tile.
+    for (const job of jobs) {
+      const kept = job.tool?.galleryPreview && job.look ? heldGalleryLook(job.id, job.index) : null;
+      if (kept) void addVariantImage(job, kept, true);
+    }
     if (opts.previewQueue) {
       // Register the whole strip now so its extra templates cannot jump ahead
       // of covers in the grid (or another strip). Hidden rows park their work.

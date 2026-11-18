@@ -7,9 +7,12 @@
  * page through the one switch path, so the covers under the greeting change while
  * the person watches. Undo removes the system and puts the starter back.
  *
- * Only for an install still on the blank starter. A shipped brand (Lolly Demo)
- * has colourways and its own role words, which a fresh derive would drop, so that
- * audience keeps the door to Design System Setup.
+ * On a shipped brand to try (Lolly Demo on lolly.tools) the press makes a design
+ * system of the person's own as well: a fresh derive from their colour, under the
+ * name "My design system", with Lolly Demo's faces and logo slots carried so the
+ * covers keep their marks. Lolly Demo's colourways and role words are Lolly's and
+ * stay behind. The shipped system leaves the lists while the new one exists, as a
+ * first edit in the studio does, and Undo puts it back.
  *
  * Loaded on the first press, so a visit that never picks a colour pays nothing.
  */
@@ -62,7 +65,7 @@ export async function startFromColour(host: OneColourHost, primary: string, made
     if (await registry.get(DEFAULT_DESIGN_SYSTEM_ID)) return null;
   }
   const doc = designSystemFromColour(await host.tokens?.raw?.(), primary);
-  await installUserTokens(host, doc);
+  await installUserTokens(host, doc, { labelIfNew: 'My design system' });
   const made = await registry.activeId();
   await switchDesignSystem(host, made, { previous: before, route: 'gallery' });
   return {
