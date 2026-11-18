@@ -91,7 +91,7 @@
   display: inline-flex; align-items: center; gap: var(--sp-3); min-block-size: var(--ui-size-target);
   list-style: none; cursor: pointer; font-weight: 600;
 }
-.ds-issue-more > summary::-webkit-details-marker { display: none; }
+.ds-issue-more > summary::after { content: none; }
 .ds-issue-more[open] > summary .ds-issue-chev { rotate: 90deg; }
 .ds-issue-cover .ds-issue-chev { color: inherit; }
 .ds-issue-more > p { margin: 0 0 var(--sp-3); }
@@ -255,7 +255,7 @@
   list-style: none; cursor: pointer;
   font-size: var(--fs-lg); font-weight: 600;
 }
-.ds-issue-fold > summary::-webkit-details-marker { display: none; }
+.ds-issue-fold > summary::after { content: none; }
 .ds-issue-chev { inline-size: var(--ui-size-icon-md); block-size: var(--ui-size-icon-md); color: var(--ui-color-text-muted); }
 .ds-issue-fold[open] > summary .ds-issue-chev { rotate: 90deg; }
 .ds-role-list {
@@ -344,7 +344,7 @@
   min-block-size: var(--ui-size-target);
   list-style: none; cursor: pointer;
 }
-.ds-issue-print > summary::-webkit-details-marker { display: none; }
+.ds-issue-print > summary::after { content: none; }
 .ds-issue-print .plat-section-chev { flex: none; inline-size: var(--ui-size-icon-lg); block-size: var(--ui-size-icon-lg); color: var(--ui-color-text-muted); }
 .ds-issue-print[open] > summary .plat-section-chev { rotate: 90deg; }
 .ds-issue-print-body { display: grid; gap: var(--sp-5); padding-block-start: var(--sp-5); min-inline-size: 0; }

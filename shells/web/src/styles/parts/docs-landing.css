@@ -1106,7 +1106,8 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgb(238 145 56 / .13)}
 .faq-item{border:1px solid var(--border);border-radius:12px;background:var(--pale);overflow:hidden;transition:box-shadow .15s,border-color .15s}
 .faq-item[open]{box-shadow:0 6px 20px rgba(3,54,51,.12)}
 .faq-q{display:flex;align-items:center;justify-content:space-between;gap:1.25rem;padding:1.25rem 1.5rem;font-weight:700;color:var(--dark);font-size:1.0625rem;line-height:1.4;cursor:pointer;list-style:none}
-.faq-q::-webkit-details-marker{display:none}
+.faq-q::-webkit-details-marker{ display: none; }
+.faq-q::after{ content: none; }
 .faq-q:hover{color:var(--green)}
 .faq-chevron{flex-shrink:0;width:1.25rem;height:1.25rem;color:var(--green);transition:transform .2s}
 .faq-chevron svg{width:100%;height:100%}

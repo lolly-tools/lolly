@@ -23,7 +23,7 @@
   .dr-selection small { font-size: var(--fs-xs); color: var(--ui-color-text-muted); }
   .dr-input { margin-block-end: var(--sp-3); }
   .dr-input > summary { display: flex; gap: var(--sp-2); align-items: center; cursor: pointer; list-style: none; padding-block: var(--sp-2); border-radius: var(--radius-md); }
-  .dr-input > summary::-webkit-details-marker { display: none; }
+  .dr-input > summary::after { content: none; }
   .dr-input > summary:hover, .dr-input.is-reorder-target > summary { background: var(--ui-color-surface-muted); }
   .dr-input-title { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
   .dr-input-title strong { font-size: var(--fs-sm); font-weight: 500; overflow-wrap: anywhere; }

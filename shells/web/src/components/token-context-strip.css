@@ -6,7 +6,7 @@
 .token-context-strip .btn { max-width: 100%; white-space: normal; }
 .token-context-details { flex-basis: 100%; min-width: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
 .token-context-details > summary { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ui-size-control); cursor: pointer; list-style: none; }
-.token-context-details > summary::-webkit-details-marker { display: none; }
+.token-context-details > summary::after { content: none; }
 .token-context-details > summary > .section-card-chev { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .token-context-details > summary > .section-card-chev:dir(rtl) { transform: scaleX(-1); }
 .token-context-details[open] > summary > .section-card-chev { transform: rotate(90deg); }
