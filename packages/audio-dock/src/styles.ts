@@ -444,6 +444,11 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock:fullscreen .audio-dock-face, .audio-dock[data-fullscreen] .audio-dock-face {
   height: 100%; max-height: 100%; overflow-y: auto;
 }
+/* Full screen covers the status bar and the home indicator on a phone, so the header and
+   the transport keep clear of both. Immersive places its own header (below). */
+.audio-dock:fullscreen:not([data-immersive]) .audio-dock-face, .audio-dock[data-fullscreen]:not([data-immersive]) .audio-dock-face {
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 
 /* ── Brand silhouette over the viz (plans/147) ── the brand's MONO-REVERSE logo, painted
    under mix-blend-mode:difference so it reads over any preset colour while the effects

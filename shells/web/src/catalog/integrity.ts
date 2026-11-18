@@ -213,6 +213,25 @@ export async function assertToolIndexIntegrity(indexText: string): Promise<void>
   }
 }
 
+/** Whether a sync failed because a catalog did not verify, as opposed to a network fault. */
+export function isCatalogTrustFailure(error: unknown): boolean {
+  return error instanceof Error && /^(Catalog refused: |catalog integrity: )/.test(error.message);
+}
+
+/**
+ * An instance whose catalog this build cannot verify was set aside for this page load,
+ * and the tools built into the app are shown. The note stays up, because the tools on
+ * screen are not the ones the person's instance would have sent.
+ */
+export function noteInstanceCatalogSetAside(instanceBase: string): void {
+  if (typeof document === 'undefined' || !document.body) return;
+  let host = instanceBase;
+  try { host = new URL(instanceBase).host; } catch { /* keep the raw value */ }
+  document.documentElement.dataset.catalogInstance = 'set-aside';
+  trustBadge('lolly-instance-set-aside',
+    `${host} signs its tools with a key this app does not trust. These are the tools built into this app. To stop asking ${host}, leave the workspace in Settings.`);
+}
+
 /** A trust failure remains visible even when a previously accepted catalog is saved. */
 export function noteCatalogIntegrityFailure(error: unknown): void {
   if (typeof document === 'undefined' || !document.body) return;
