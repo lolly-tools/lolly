@@ -59,6 +59,7 @@ import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { PickerHost } from '../views/picker.ts';
 import { openDropFilePicker } from '../lib/drop-file-picker.ts';
 import { holdWelcomeGate, markWelcomeDismissed } from '../lib/welcome-gate.ts';
+import { overlayAbsorbsPopstate } from '../lib/overlay-back.ts';
 import type { OneColourHost, OneColourResult } from '../lib/design-system/one-colour.ts';
 
 /** Who the greeting is for: a shipped design system to try, or a blank install to brand. */
@@ -165,12 +166,10 @@ function wellMarkup(well: WellState): string {
     const on = c.hex.toLowerCase() === picked;
     return `<button type="button" class="welcome-hero-swatch" data-colour="${c.hex}" style="--wh-swatch:${c.hex}" aria-label="${escapeHtml(c.name())}" title="${escapeHtml(c.name())}" aria-pressed="${on}"${off}></button>`;
   }).join('');
-  // A colour of the person's own: the browser's picker behind a swatch-sized label.
+  // A colour of the person's own: Lolly's picker, opened from a swatch-sized button
+  // (components/welcome-colour-picker.ts). The button wears that colour once one is in use.
   const own = picked && !WELL_COLOURS.some(c => c.hex.toLowerCase() === picked);
-  const custom = `<label class="welcome-hero-swatch welcome-hero-swatch--own${own ? ' is-on' : ''}" title="${escapeHtml(t('Pick a colour'))}"${own ? ` style="--wh-swatch:${escapeHtml(picked)}"` : ''}>
-      <input type="color" class="welcome-hero-own" value="${escapeHtml(own ? picked : '#4f83cc')}" aria-label="${escapeHtml(t('Pick a colour'))}"${off}>
-      ${own ? '' : icon('palette', { size: 16 })}
-    </label>`;
+  const custom = `<button type="button" class="welcome-hero-swatch welcome-hero-swatch--own" data-well-own aria-haspopup="dialog" aria-expanded="false" aria-pressed="${!!own}" aria-label="${escapeHtml(t('Pick a colour'))}" title="${escapeHtml(t('Pick a colour'))}"${own ? ` style="--wh-swatch:${escapeHtml(picked)}"` : ''}${off}>${own ? '' : icon('palette', { size: 16 })}</button>`;
   return `<div class="welcome-hero-well" role="group" aria-labelledby="welcome-hero-well-label"${well.busy ? ' aria-busy="true"' : ''}>
       <p class="welcome-hero-well-label" id="welcome-hero-well-label"><strong>${t('Make it yours')}</strong> <span>${t('One colour is enough')}</span></p>
       <div class="welcome-hero-swatches">${swatches}${custom}</div>
@@ -352,12 +351,13 @@ export function showWelcomeHero(
       current = null;
       openPromise = null;
       holding = false;
+      picker?.close();
       clearTimeout(holdTimer);
       clearTimeout(drawTimer);
       seen?.disconnect();
       releaseGate();
       for (const ev of NAV_EVENTS) window.removeEventListener(ev, onNav);
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('keydown', onKey, true);
       // Every explicit choice settles the welcome, and the band carried the privacy
       // promise, so each also acknowledges the notice. A route change does neither.
       if (choice) { markWelcomeDismissed(); opts.ackPrivacy(); }
@@ -372,13 +372,22 @@ export function showWelcomeHero(
       paint();
     };
     current = { el, audience, close, settle, repaint };
-    const onNav = (): void => close(null);
+    // A route change takes the card down. An overlay closing on a touch screen pops a
+    // history entry of its own at the same address (lib/overlay-back.ts); the card's own
+    // colour picker does, and that is not a route change.
+    const onNav = (e: Event): void => { if (e.type !== 'popstate' || !overlayAbsorbsPopstate()) close(null); };
+    // The card's own colour picker, while one is open (see openPicker below).
+    let picker: { close(returnFocus?: boolean): void; isOpen(): boolean } | null = null;
     const onKey = (e: KeyboardEvent): void => {
       // Escape dismisses the greeting, unless another dialog is open above the page.
-      if (e.key === 'Escape' && !document.querySelector('dialog[open]')) close('dismiss');
+      // With the card's colour picker open, Escape belongs to the picker alone. This
+      // listener is in the capture phase, so it reads the picker before the picker's
+      // own listener has closed the popover.
+      if (e.key !== 'Escape' || picker?.isOpen()) return;
+      if (!document.querySelector('dialog[open]')) close('dismiss');
     };
     for (const ev of NAV_EVENTS) window.addEventListener(ev, onNav);
-    document.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey, true);
     wireSwipe(card, () => close('dismiss'));
 
     // A colour chosen on the card: install the design system the colour makes and let
@@ -404,7 +413,7 @@ export function showWelcomeHero(
         holding = true;
       } catch { /* the starter stands; the row is ready for another press */ }
       well.busy = false;
-      if (el.isConnected || current) paint(`[data-colour="${hex}"], .welcome-hero-own`);
+      if (el.isConnected || current) paint(`[data-colour="${hex}"], [data-well-own]`);
     };
     const undoColour = async (): Promise<void> => {
       if (!well || well.busy || !applied) return;
@@ -414,10 +423,13 @@ export function showWelcomeHero(
       well.busy = false;
       if (el.isConnected || current) paint('.welcome-hero-swatch');
     };
-    el.addEventListener('change', (e) => {
-      const input = e.target instanceof HTMLInputElement && e.target.classList.contains('welcome-hero-own') ? e.target : null;
-      if (input) void applyColour(input.value);
-    });
+    // The palette button opens Lolly's own picker under it; Apply there is a colour press.
+    const openPicker = async (button: HTMLElement): Promise<void> => {
+      if (picker?.isOpen()) { picker.close(true); return; }
+      const { openWelcomeColourPicker } = await import('./welcome-colour-picker.ts');
+      if (!button.isConnected || !current) return;
+      picker = openWelcomeColourPicker(button, well?.picked ?? WELL_COLOURS[1]!.hex, (hex) => { void applyColour(hex); });
+    };
 
     el.addEventListener('click', (e) => {
       const target = e.target instanceof Element ? e.target : null;
@@ -446,6 +458,8 @@ export function showWelcomeHero(
       const swatch = target?.closest<HTMLElement>('[data-colour]');
       if (swatch) { void applyColour(swatch.dataset.colour ?? ''); return; }
       if (target?.closest('[data-well-undo]')) { void undoColour(); return; }
+      const own = target?.closest<HTMLElement>('[data-well-own]');
+      if (own) { void openPicker(own); return; }
       const chosen = target?.closest<HTMLElement>('[data-choice]');
       if (!chosen) return;
       const choice = chosen.dataset.choice as HeroChoice;

@@ -170,16 +170,12 @@
 .welcome-hero-swatch > svg { grid-area: 1 / 1; position: relative; }
 .welcome-hero-swatch:hover::before { scale: 1.1; }
 /* The colour in use wears a ring a hairline off its edge, in the ink of the page. */
-.welcome-hero-swatch[aria-pressed="true"]::before,
-.welcome-hero-swatch--own.is-on::before {
+.welcome-hero-swatch[aria-pressed="true"]::before {
   box-shadow: var(--bevel), 0 0 0 2px var(--ui-color-surface-raised), 0 0 0 4px var(--ui-color-text-default);
 }
-.welcome-hero-swatch:focus-visible,
-.welcome-hero-swatch--own:has(:focus-visible) { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -4px; border-radius: var(--radius-pill); }
+.welcome-hero-swatch:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -4px; border-radius: var(--radius-pill); }
 .welcome-hero-swatch:disabled { cursor: progress; }
 .welcome-hero-well[aria-busy="true"] .welcome-hero-swatch::before { opacity: .6; }
-/* The person's own colour: the browser's picker, laid over the whole target and unseen. */
-.welcome-hero-own { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
 .welcome-hero-link:disabled { color: var(--ui-color-text-muted); cursor: progress; }
 .welcome-hero-go-sub { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
 .welcome-hero-more {

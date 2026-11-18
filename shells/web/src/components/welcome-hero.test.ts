@@ -80,7 +80,9 @@ test('a blank install with a host to install through is offered colours in place
   const done = showWelcomeHero(gallery(), { audience: 'blank', ...PRIVACY, brandHost });
   assert.equal(hero()!.querySelector('.welcome-hero-go'), null, 'no filled button: the colours carry the emphasis');
   assert.equal(hero()!.querySelectorAll('.welcome-hero-swatch[data-colour]').length, 5);
-  assert.ok(hero()!.querySelector('input[type="color"].welcome-hero-own'), 'and a colour of the person\'s own');
+  const own = hero()!.querySelector('button[data-well-own]');
+  assert.equal(own?.getAttribute('aria-haspopup'), 'dialog', 'and a colour of the person\'s own, from Lolly\'s picker');
+  assert.equal(hero()!.querySelector('input[type="color"]'), null, 'never the browser\'s colour dialog');
   for (const swatch of hero()!.querySelectorAll('.welcome-hero-swatch[data-colour]')) {
     assert.ok(swatch.getAttribute('aria-label'), 'each colour has a name');
     assert.equal(swatch.getAttribute('aria-pressed'), 'false');
