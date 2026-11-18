@@ -4,6 +4,8 @@
 @layer views {
 .token-context-strip > strong { min-width: 0; overflow-wrap: anywhere; }
 .token-context-strip .btn { max-width: 100%; white-space: normal; }
+/* These chips hold phrases ("Bundled with this app"), which read as sentences, not as one-word statuses. */
+.token-context-strip .chip--status { text-transform: none; }
 .token-context-details { flex-basis: 100%; min-width: 0; font-size: var(--fs-sm); color: var(--ui-color-text-muted); }
 .token-context-details > summary { display: flex; align-items: center; gap: var(--sp-2); min-height: var(--ui-size-control); cursor: pointer; list-style: none; }
 .token-context-details > summary::after { content: none; }

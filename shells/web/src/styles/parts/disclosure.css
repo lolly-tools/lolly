@@ -339,7 +339,9 @@ details.section-card:has(> .section-card-body) > .section-card-summary::after,
 details.section-card[open]:has(> .section-card-body) > .section-card-summary::after,
 .input-section[open] .input-section-summary::after {
   transform: rotate(45deg);
-  color: var(--ui-color-border-default);
+  /* Quieter than the shut arrow, and still plainly an arrow: in the border colour
+     the open section lost the one mark that says it folds. */
+  color: var(--ui-color-text-muted);
 }
 /* The caret is drawn, so it reads the same in every card; it points the other way
    in a right-to-left page, where a closed section opens towards the left. */
