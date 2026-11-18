@@ -104,7 +104,21 @@ fails when the lockfile shows the hold has outlived its fix: no vulnerable copy 
 left, another crate starts pulling one in, or the parent crate's fixed release
 resolves. The exception then has to be removed in the same change.
 
-No exception is held today. The last one, approved by Andy on 2026-10-17, held
+An npm advisory with no fixed release is held the same way, as an
+`npmAdvisoryHolds` entry on its npm root: the GitHub advisory ids, the package,
+who approved it, a written justification and the upstream links. The audit leaves
+a held advisory out of that root's count and of no other root's. The audit fails
+when the registry lists a fixed release, when the advisory stops applying to the
+root, or when the advisory is filed against a different package. The update then
+replaces the hold in the same change.
+
+One npm hold is in place, on the three npm roots: GHSA-fc5q-39xc-vjpf for
+`picomatch`, a denial of service through a crafted glob pattern. On 2026-11-17 the
+advisory was widened to every release through 4.0.7 with no fixed version.
+`picomatch` reaches these roots only through build and development tools, and
+`pnpm audit --prod` reports no finding.
+
+No Cargo exception is held today. The last one, approved by Andy on 2026-10-17, held
 RUSTSEC-2026-0367, RUSTSEC-2026-0368 and RUSTSEC-2026-0369 for `zip` 4.6.1, which
 reached `shells/tauri-desktop/src-tauri/Cargo.lock` only through
 `tauri-plugin-updater`. It was removed on 2026-11-02, when `tauri-plugin-updater`
