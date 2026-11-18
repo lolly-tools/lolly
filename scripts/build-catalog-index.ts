@@ -31,7 +31,7 @@ import { readFileSync, writeFileSync, statSync, existsSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
-  toolDirs, toolFile, listToolFiles, readToolManifest, catalogFile,
+  toolDirs, toolFile, listToolFiles, readToolManifest, catalogFile, contentRoots,
 } from '@lolly-tools/node-shell/content-roots';
 import { applyProfileArg } from './lib/profile-arg.ts';
 
@@ -94,6 +94,10 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   for (const f of INDEX_FIELDS) {
     if (manifest[f] !== undefined) entry[f] = manifest[f];
   }
+  // A profile may keep a tool and not offer it (profiles.json `unlist`). The id still
+  // opens by link, in a saved project and on the render route; the gallery, search and
+  // menus read this field and leave the tool out.
+  if (contentRoots().unlist.has(manifest.id)) entry.listed = false;
   // When this tool was first added to its pack (see ADDED_DATES above). Full index
   // only - it paints the info dialog, never the grid, so it stays off the slim cut.
   if (ADDED_DATES[manifest.id]) entry.added = ADDED_DATES[manifest.id];

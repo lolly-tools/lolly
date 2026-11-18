@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-18T11:33:21.707Z",
+  "generatedAt": "2026-11-18T11:53:07.973Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -13897,6 +13897,927 @@
           "description": "The quotation alone, centred on ink."
         }
       ]
+    },
+    {
+      "id": "battlecards",
+      "name": "Battlecards",
+      "description": "Turn any table into a deck of cards - one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
+      "version": "1.4.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "battlecard",
+        "sales",
+        "competitive",
+        "table",
+        "cards",
+        "pdf",
+        "pages",
+        "batch"
+      ],
+      "listed": false,
+      "added": "2026-08-28",
+      "formats": [
+        "pdf",
+        "svg",
+        "penpot",
+        "pdf-cmyk",
+        "emf",
+        "png",
+        "webp",
+        "avif",
+        "jpeg",
+        "tiff",
+        "cmyk-tiff"
+      ],
+      "width": 1200,
+      "height": 900,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"14.5 17.5 3 6 3 3 6 3 17.5 14.5\"/><line x1=\"13\" y1=\"19\" x2=\"19\" y2=\"13\"/><line x1=\"16\" y1=\"16\" x2=\"20\" y2=\"20\"/><line x1=\"19\" y1=\"21\" x2=\"21\" y2=\"19\"/></svg>",
+      "preview": "/catalog/previews/battlecards.svg",
+      "templates": [
+        {
+          "id": "brand-starter",
+          "name": "Sales notes",
+          "category": "Brand",
+          "description": "One conversation per card, ready to print or send.",
+          "galleryCover": true
+        }
+      ],
+      "paged": true,
+      "i18n": {
+        "ar": {
+          "name": "بطاقات المعركة",
+          "description": "حوّل أي جدول إلى مجموعة بطاقات - بطاقة لكل صف، جاهزة كملف PDF متعدد الصفحات. الصق مباشرة من جدول بياناتك أو مستندك أو محادثتك."
+        },
+        "bg": {
+          "name": "Боен картон",
+          "description": "Превърни всяка таблица в тесте карти - по една карта на ред, готово като многостраничен PDF. Постави директно от таблицата, документа или чата си."
+        },
+        "bn": {
+          "name": "ব্যাটলকার্ড",
+          "description": "যেকোনো টেবিলকে কার্ডের ডেকে পরিণত করুন - প্রতি সারিতে একটি কার্ড, বহু-পৃষ্ঠার PDF হিসেবে প্রস্তুত। আপনার স্প্রেডশিট, ডক বা চ্যাট থেকে সরাসরি পেস্ট করুন।"
+        },
+        "cs": {
+          "name": "Bitevní karty",
+          "description": "Proměň libovolnou tabulku v balíček karet - jedna karta na řádek, připravená jako vícestránkové PDF. Vlož přímo z tabulky, dokumentu nebo chatu."
+        },
+        "de": {
+          "name": "Battlecards",
+          "description": "Verwandelt jede Tabelle in einen Kartenstapel - eine Karte pro Zeile, fertig als mehrseitiges PDF. Direkt aus Ihrer Tabellenkalkulation, Ihrem Dokument oder Chat eingefügt."
+        },
+        "es": {
+          "name": "Battlecards",
+          "description": "Convierte cualquier tabla en un mazo de tarjetas - una tarjeta por fila, listas como PDF de varias páginas. Pega directo desde tu hoja de cálculo, documento o chat."
+        },
+        "fr": {
+          "name": "Battlecards",
+          "description": "Transformez n'importe quel tableau en jeu de cartes - une carte par ligne, prête en PDF multi-pages. Collez directement depuis votre tableur, document ou chat."
+        },
+        "hi": {
+          "name": "बैटलकार्ड्स",
+          "description": "किसी भी टेबल को कार्ड्स के डेक में बदलें - हर पंक्ति का एक कार्ड, मल्टी-पेज PDF के रूप में तैयार। अपनी स्प्रेडशीट, डॉक या चैट से सीधे पेस्ट करें।"
+        },
+        "id": {
+          "name": "Battlecards",
+          "description": "Ubah tabel apa pun menjadi setumpuk kartu - satu kartu per baris, siap sebagai PDF multihalaman. Tempel langsung dari spreadsheet, dokumen, atau chat Anda."
+        },
+        "it": {
+          "name": "Battlecard",
+          "description": "Trasforma qualsiasi tabella in un mazzo di carte - una carta per riga, pronta come PDF multipagina. Incolla direttamente dal tuo foglio di calcolo, documento o chat."
+        },
+        "ja": {
+          "name": "バトルカード",
+          "description": "どんな表もカードの束に変換 - 各行が1枚のカードとなり、複数ページのPDFとして仕上がります。スプレッドシート、ドキュメント、チャットからそのまま貼り付け可能。"
+        },
+        "ko": {
+          "name": "배틀카드",
+          "description": "어떤 표든 카드 뭉치로 변환하세요 - 행마다 카드 하나, 여러 페이지 PDF로 완성됩니다. 스프레드시트, 문서, 채팅에서 바로 붙여넣으세요."
+        },
+        "ms": {
+          "name": "Battlecards",
+          "description": "Ubah mana-mana jadual menjadi set kad - satu kad setiap baris, sedia sebagai PDF pelbagai halaman. Tampal terus daripada hamparan, dokumen atau sembang anda."
+        },
+        "nl": {
+          "name": "Battlecards",
+          "description": "Maak van elke tabel een stapel kaarten - één kaart per rij, klaar als meerpagina-PDF. Plak rechtstreeks vanuit je spreadsheet, document of chat."
+        },
+        "no": {
+          "name": "Battlecards",
+          "description": "Gjør en hvilken som helst tabell om til en kortstokk - ett kort per rad, klart som en flersides PDF. Lim rett inn fra regnearket, dokumentet eller chatten din."
+        },
+        "pl": {
+          "name": "Karty bitewne",
+          "description": "Zamień dowolną tabelę w talię kart - jedna karta na wiersz, gotowa jako wielostronicowy PDF. Wklej wprost z arkusza kalkulacyjnego, dokumentu lub czatu."
+        },
+        "pt": {
+          "name": "Battlecards",
+          "description": "Transforme qualquer tabela num baralho de cartões - um cartão por linha, pronto como PDF multipágina. Cole diretamente da sua planilha, documento ou chat."
+        },
+        "ro": {
+          "name": "Battlecards",
+          "description": "Transformă orice tabel într-un set de carduri - un card per rând, gata ca PDF cu mai multe pagini. Lipește direct din foaia de calcul, document sau chat."
+        },
+        "sv": {
+          "name": "Battlecards",
+          "description": "Gör om vilken tabell som helst till en kortlek - ett kort per rad, klart som en flersidig PDF. Klistra in direkt från ditt kalkylblad, dokument eller chatt."
+        },
+        "tl": {
+          "name": "Mga Battlecard",
+          "description": "Gawing deck ng mga card ang anumang table - isang card kada row, handa bilang multi-page na PDF. I-paste diretso mula sa iyong spreadsheet, doc, o chat."
+        },
+        "tr": {
+          "name": "Savaş Kartları",
+          "description": "Herhangi bir tabloyu bir kart destesine dönüştürün - her satır için bir kart, çok sayfalı bir PDF olarak hazır. Doğrudan hesap tablonuzdan, belgenizden veya sohbetinizden yapıştırın."
+        },
+        "uk": {
+          "name": "Бойові картки",
+          "description": "Перетворіть будь-яку таблицю на колоду карток - одна картка на рядок, готова як багатосторінковий PDF. Вставляйте прямо з таблиці, документа чи чату."
+        },
+        "ur": {
+          "name": "بیٹل کارڈز",
+          "description": "کسی بھی ٹیبل کو کارڈز کے ڈیک میں بدلیں - ہر قطار کا ایک کارڈ، ملٹی پیج PDF کے طور پر تیار۔ اپنی اسپریڈشیٹ، دستاویز یا چیٹ سے براہ راست پیسٹ کریں۔"
+        },
+        "vi": {
+          "name": "Battlecard",
+          "description": "Biến bất kỳ bảng nào thành bộ thẻ - mỗi hàng một thẻ, sẵn sàng thành PDF nhiều trang. Dán trực tiếp từ bảng tính, tài liệu hoặc trò chuyện của bạn."
+        },
+        "zh-hant": {
+          "name": "戰卡",
+          "description": "把任何表格變成一疊卡片 - 每列一張卡，可輸出為多頁 PDF。可直接從試算表、文件或聊天中貼上。"
+        },
+        "zh": {
+          "name": "作战卡",
+          "description": "将任意表格变成一叠卡片 - 每行一张卡,生成多页 PDF。可直接从电子表格、文档或聊天粘贴。"
+        }
+      }
+    },
+    {
+      "id": "brief",
+      "name": "Brief",
+      "description": "A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "brief",
+        "one-pager",
+        "account",
+        "research",
+        "markdown",
+        "sales",
+        "summary",
+        "pdf"
+      ],
+      "listed": false,
+      "formats": [
+        "pdf",
+        "png",
+        "svg",
+        "jpeg",
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"2.5\" width=\"16\" height=\"19\" rx=\"2\"/><line x1=\"8\" y1=\"7\" x2=\"16\" y2=\"7\"/><line x1=\"8\" y1=\"11\" x2=\"11\" y2=\"11\"/><line x1=\"13\" y1=\"11\" x2=\"16\" y2=\"11\"/><line x1=\"8\" y1=\"14.5\" x2=\"11\" y2=\"14.5\"/><line x1=\"13\" y1=\"14.5\" x2=\"16\" y2=\"14.5\"/><line x1=\"8\" y1=\"18\" x2=\"13\" y2=\"18\"/></svg>",
+      "preview": "/catalog/previews/brief.svg"
+    },
+    {
+      "id": "calendar-ics",
+      "name": "Calendar",
+      "description": "Turn event details into a calendar (.ics) file for any calendar app.",
+      "version": "1.3.0",
+      "status": "official",
+      "category": "event",
+      "tags": [
+        "calendar",
+        "ics",
+        "event",
+        "ical",
+        "invite",
+        "meeting",
+        "schedule",
+        "month",
+        "print"
+      ],
+      "listed": false,
+      "added": "2026-08-28",
+      "formats": [
+        "ics",
+        "png",
+        "svg",
+        "penpot",
+        "pdf",
+        "jpg",
+        "webp"
+      ],
+      "width": 760,
+      "height": 460,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 2v4\" /><path d=\"M16 2v4\" /><rect width=\"18\" height=\"18\" x=\"3\" y=\"4\" rx=\"2\" /><path d=\"M3 10h18\" /></svg>",
+      "preview": "/catalog/previews/calendar-ics.svg",
+      "templates": [
+        {
+          "id": "month",
+          "name": "Month on a wall",
+          "category": "Print",
+          "description": "A month grid sized for A4 landscape, with the dates already on it."
+        }
+      ],
+      "i18n": {
+        "ar": {
+          "name": "التقويم",
+          "description": "حول تفاصيل الفعالية إلى ملف تقويم (.ics) يعمل مع أي تطبيق تقويم."
+        },
+        "bg": {
+          "name": "Календар",
+          "description": "Превърни детайлите на събитието в календарен файл (.ics) за всяко календарно приложение."
+        },
+        "bn": {
+          "name": "ক্যালেন্ডার",
+          "description": "ইভেন্টের বিবরণকে যেকোনো ক্যালেন্ডার অ্যাপের জন্য একটি ক্যালেন্ডার (.ics) ফাইলে পরিণত করুন।"
+        },
+        "cs": {
+          "name": "Kalendář",
+          "description": "Převede podrobnosti akce na soubor kalendáře (.ics) pro jakoukoli kalendářovou aplikaci."
+        },
+        "de": {
+          "name": "Kalender",
+          "description": "Wandeln Sie Termindetails in eine Kalenderdatei (.ics) für jede Kalender-App um."
+        },
+        "es": {
+          "name": "Calendario",
+          "description": "Convierte los detalles de un evento en un archivo de calendario (.ics) para cualquier app de calendario."
+        },
+        "fr": {
+          "name": "Calendar",
+          "description": "Transforme les détails d'un événement en fichier calendrier (.ics) pour toute appli de calendrier."
+        },
+        "hi": {
+          "name": "Calendar",
+          "description": "इवेंट विवरण को किसी भी कैलेंडर ऐप के लिए कैलेंडर (.ics) फ़ाइल में बदलें।"
+        },
+        "id": {
+          "name": "Kalender",
+          "description": "Ubah detail acara menjadi berkas kalender (.ics) untuk aplikasi kalender apa pun."
+        },
+        "it": {
+          "name": "Calendario",
+          "description": "Trasforma i dettagli di un evento in un file calendario (.ics) per qualsiasi app di calendario."
+        },
+        "ja": {
+          "name": "カレンダー",
+          "description": "イベントの詳細を、どのカレンダーアプリでも使えるカレンダーファイル(.ics)に変換します。"
+        },
+        "ko": {
+          "name": "캘린더",
+          "description": "일정 정보를 어떤 캘린더 앱에서도 사용할 수 있는 캘린더 파일(.ics)로 변환합니다."
+        },
+        "ms": {
+          "name": "Calendar",
+          "description": "Tukar butiran acara kepada fail kalendar (.ics) untuk mana-mana aplikasi kalendar."
+        },
+        "nl": {
+          "name": "Calendar",
+          "description": "Zet evenementgegevens om in een kalenderbestand (.ics) voor elke agenda-app."
+        },
+        "no": {
+          "name": "Kalender",
+          "description": "Gjør hendelsesdetaljer om til en kalenderfil (.ics) for alle kalenderapper."
+        },
+        "pl": {
+          "name": "Kalendarz",
+          "description": "Zmień szczegóły wydarzenia w plik kalendarza (.ics) dla każdej aplikacji kalendarza."
+        },
+        "pt": {
+          "name": "Calendar",
+          "description": "Transforma os detalhes do evento em um arquivo de calendário (.ics) para qualquer app de calendário."
+        },
+        "ro": {
+          "name": "Calendar",
+          "description": "Transformă detaliile unui eveniment într-un fișier de calendar (.ics) pentru orice aplicație de calendar."
+        },
+        "sv": {
+          "name": "Calendar",
+          "description": "Omvandla evenemangsdetaljer till en kalenderfil (.ics) för valfri kalenderapp."
+        },
+        "tl": {
+          "name": "Calendar",
+          "description": "I-convert ang mga detalye ng event sa isang calendar file (.ics) na pwedeng gamitin sa kahit anong calendar app."
+        },
+        "tr": {
+          "name": "Takvim",
+          "description": "Etkinlik bilgilerini herhangi bir takvim uygulaması için bir takvim (.ics) dosyasına dönüştür."
+        },
+        "uk": {
+          "name": "Календар",
+          "description": "Перетворює деталі події на файл календаря (.ics) для будь-якого календарного застосунку."
+        },
+        "ur": {
+          "name": "کیلنڈر",
+          "description": "ایونٹ کی تفصیلات کو کسی بھی کیلنڈر ایپ کے لیے کیلنڈر (.ics) فائل میں تبدیل کریں۔"
+        },
+        "vi": {
+          "name": "Lịch",
+          "description": "Chuyển chi tiết sự kiện thành tệp lịch (.ics) dùng được cho mọi ứng dụng lịch."
+        },
+        "zh-hant": {
+          "name": "行事曆",
+          "description": "將活動詳情轉換成行事曆檔案（.ics），適用於任何行事曆應用程式。"
+        },
+        "zh": {
+          "name": "日历",
+          "description": "把活动详情转换成日历文件（.ics），适用于任何日历应用。"
+        }
+      }
+    },
+    {
+      "id": "email",
+      "name": "Email",
+      "description": "An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments, as received, a draft or sent. For mock-ups, slides and walkthroughs.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "email",
+        "mail",
+        "message",
+        "inbox",
+        "mock-up",
+        "sales",
+        "outreach"
+      ],
+      "listed": false,
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpeg",
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2.5\" y=\"5\" width=\"19\" height=\"14\" rx=\"2\"/><path d=\"M3 6.5l9 6.5 9-6.5\"/></svg>",
+      "preview": "/catalog/previews/email.svg"
+    },
+    {
+      "id": "pricing-table",
+      "name": "Pricing",
+      "description": "Plans as columns, features as rows, ticks and crosses, and one plan picked out as the recommended one.",
+      "version": "1.2.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "pricing",
+        "comparison",
+        "table",
+        "features",
+        "plans",
+        "marketing"
+      ],
+      "listed": false,
+      "added": "2026-08-28",
+      "formats": [
+        "png",
+        "svg",
+        "penpot",
+        "pdf",
+        "csv",
+        "json",
+        "jpg",
+        "webp",
+        "avif",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M3 8.5h18\" /><path d=\"M9 8.5V21\" /><path d=\"M12 14.2l1.7 1.7 3.3-3.6\" /></svg>",
+      "preview": "/catalog/previews/pricing-table.svg",
+      "examples": [
+        {
+          "label": "SaaS three tiers",
+          "values": {
+            "heading": "Simple, transparent pricing",
+            "subheading": "Every plan includes the whole toolkit. Pay for the seats and support you need.",
+            "highlight": 2,
+            "background": "{color.semantic.surface}",
+            "accent": "{color.semantic.primary}",
+            "data": {
+              "columns": [
+                "Feature",
+                "Starter",
+                "Team",
+                "Enterprise"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "$9 / month",
+                  "$29 / month",
+                  "Talk to us"
+                ],
+                [
+                  "Tagline",
+                  "For solo work",
+                  "For growing teams",
+                  "For the whole org"
+                ],
+                [
+                  "Button",
+                  "Start Starter",
+                  "Start Team",
+                  "Contact sales"
+                ],
+                [
+                  "Link",
+                  "https://example.com/starter",
+                  "https://example.com/team",
+                  "mailto:sales@example.com"
+                ],
+                [
+                  "Projects",
+                  "3",
+                  "Unlimited",
+                  "Unlimited"
+                ],
+                [
+                  "Team members",
+                  "1",
+                  "Up to 20",
+                  "Unlimited"
+                ],
+                [
+                  "Shared brand kit",
+                  "no",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Single sign-on",
+                  "no",
+                  "no",
+                  "yes"
+                ],
+                [
+                  "Support",
+                  "Community",
+                  "Email, next day",
+                  "> Named contact"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "label": "Two-product comparison",
+          "values": {
+            "heading": "How we compare",
+            "subheading": "The same job, side by side.",
+            "cta": "Switch today",
+            "highlight": 1,
+            "highlightLabel": "Our pick",
+            "layout": "cards",
+            "background": "{color.semantic.surface}",
+            "accent": "{color.semantic.primary}",
+            "data": {
+              "columns": [
+                "Feature",
+                "Lolly",
+                "The usual tool"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "Free",
+                  "$18 / month"
+                ],
+                [
+                  "Tagline",
+                  "Runs on your device",
+                  "Runs on their servers"
+                ],
+                [
+                  "Works offline",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Files stay on your machine",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Brand tokens built in",
+                  "yes",
+                  "no"
+                ],
+                [
+                  "Print-ready PDF",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Command line",
+                  "yes",
+                  "no"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "label": "Five-tier grid",
+          "values": {
+            "heading": "Pick your seat count",
+            "subheading": "Volume pricing, billed yearly.",
+            "layout": "grid",
+            "highlight": 0,
+            "cta": "",
+            "background": "{color.semantic.surface}",
+            "accent": "{color.semantic.primary}",
+            "data": {
+              "columns": [
+                "Feature",
+                "Solo",
+                "Duo",
+                "Squad",
+                "Studio",
+                "Agency"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "$0",
+                  "$12",
+                  "$40",
+                  "$120",
+                  "$400"
+                ],
+                [
+                  "Tagline",
+                  "1 seat",
+                  "2 seats",
+                  "10 seats",
+                  "40 seats",
+                  "Unlimited"
+                ],
+                [
+                  "Shared brand kit",
+                  "no",
+                  "yes",
+                  "yes",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Batch renders",
+                  "-",
+                  "100",
+                  "2,000",
+                  "20,000",
+                  "Unlimited"
+                ],
+                [
+                  "Single sign-on",
+                  "no",
+                  "no",
+                  "no",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Support",
+                  "Community",
+                  "Email",
+                  "Email",
+                  "> Priority",
+                  "> Named contact"
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "label": "Membership",
+          "values": {
+            "heading": "Membership",
+            "subheading": "One workshop a month, or all of them.",
+            "cta": "Join",
+            "highlight": 3,
+            "highlightLabel": "Best value",
+            "background": "{color.semantic.surface}",
+            "accent": "{color.semantic.primary}",
+            "data": {
+              "columns": [
+                "Feature",
+                "Visitor",
+                "Member",
+                "Patron"
+              ],
+              "rows": [
+                [
+                  "Price",
+                  "$0",
+                  "$15 / month",
+                  "$40 / month"
+                ],
+                [
+                  "Tagline",
+                  "Drop in",
+                  "Every month",
+                  "Everything, plus"
+                ],
+                [
+                  "Workshop seats",
+                  "1 a year",
+                  "1 a month",
+                  "Unlimited"
+                ],
+                [
+                  "Recordings",
+                  "no",
+                  "yes",
+                  "yes"
+                ],
+                [
+                  "Studio access",
+                  "no",
+                  "no",
+                  "yes"
+                ],
+                [
+                  "Guest pass",
+                  "no",
+                  "1 a year",
+                  "4 a year"
+                ]
+              ]
+            }
+          }
+        }
+      ],
+      "templates": [
+        {
+          "id": "buy-buttons",
+          "name": "Buy buttons",
+          "category": "Marketing",
+          "description": "Each plan's button carries its own price and its own link."
+        },
+        {
+          "id": "comparison-before-after",
+          "name": "Before and after",
+          "category": "Marketing",
+          "description": "The old way against the new one, with the new way featured."
+        },
+        {
+          "id": "comparison",
+          "name": "Us and them",
+          "category": "Marketing",
+          "description": "Two columns side by side, yours picked out."
+        },
+        {
+          "id": "feature-matrix",
+          "name": "Feature matrix",
+          "category": "Reference",
+          "description": "A flat grid of many plans, for a docs page or a one-pager."
+        },
+        {
+          "id": "saas",
+          "name": "SaaS plans",
+          "category": "Marketing",
+          "description": "Three tiers, one recommended, a button under each.",
+          "galleryCover": true
+        }
+      ],
+      "i18n": {
+        "ar": {
+          "name": "التسعير",
+          "description": "الخطط في أعمدة، والميزات في صفوف، مع علامات صح وخطأ، وخطة واحدة مميّزة بوصفها الموصى بها."
+        },
+        "bg": {
+          "name": "Цени",
+          "description": "Планове като колони, функции като редове, отметки и кръстчета, и един план, откроен като препоръчания."
+        },
+        "bn": {
+          "name": "মূল্য",
+          "description": "প্ল্যান কলামে, ফিচার সারিতে, টিক ও ক্রস চিহ্ন সহ, এবং একটি প্ল্যান প্রস্তাবিত হিসেবে হাইলাইট করা।"
+        },
+        "cs": {
+          "name": "Ceník",
+          "description": "Tarify jako sloupce, funkce jako řádky, zatržítka a křížky, a jeden tarif zvýrazněný jako doporučený."
+        },
+        "de": {
+          "name": "Preise",
+          "description": "Pläne als Spalten, Funktionen als Zeilen, Häkchen und Kreuze, und ein Plan als Empfehlung hervorgehoben."
+        },
+        "es": {
+          "name": "Precios",
+          "description": "Planes en columnas, funciones en filas, marcas de verificación y cruces, y un plan destacado como el recomendado."
+        },
+        "fr": {
+          "name": "Tarifs",
+          "description": "Les formules en colonnes, les fonctionnalités en lignes, des coches et des croix. Une formule est mise en avant comme recommandée."
+        },
+        "hi": {
+          "name": "प्राइसिंग",
+          "description": "प्लान कॉलम में, फ़ीचर पंक्तियों में, टिक और क्रॉस चिह्न के साथ, और एक प्लान को अनुशंसित के तौर पर हाइलाइट किया गया।"
+        },
+        "id": {
+          "name": "Harga",
+          "description": "Paket sebagai kolom, fitur sebagai baris, tanda centang dan silang, dan satu paket ditandai sebagai yang disarankan."
+        },
+        "it": {
+          "name": "Prezzi",
+          "description": "Piani in colonna, funzionalità in riga, segni di spunta e crocette, e un piano evidenziato come consigliato."
+        },
+        "ja": {
+          "name": "料金表",
+          "description": "プランを列、機能を行として並べ、チェックマークとバツ印で対応状況を示します。おすすめのプランは1つだけ強調表示できます。"
+        },
+        "ko": {
+          "name": "가격",
+          "description": "요금제는 열로, 기능은 행으로 정리하고, 체크와 엑스 표시를 넣어요. 추천 요금제 하나는 따로 강조할 수 있어요."
+        },
+        "ms": {
+          "name": "Harga",
+          "description": "Pelan sebagai lajur, ciri sebagai baris, tanda betul dan tanda silang, serta satu pelan ditonjolkan sebagai pilihan disyorkan."
+        },
+        "nl": {
+          "name": "Prijzen",
+          "description": "Abonnementen als kolommen, functies als rijen, vinkjes en kruisjes, en één abonnement uitgelicht als aanbevolen."
+        },
+        "no": {
+          "name": "Prising",
+          "description": "Planer som kolonner, funksjoner som rader, haker og kryss, og én plan fremhevet som den anbefalte."
+        },
+        "pl": {
+          "name": "Cennik",
+          "description": "Plany jako kolumny, funkcje jako wiersze, ptaszki i krzyżyki, i jeden plan wyróżniony jako polecany."
+        },
+        "pt": {
+          "name": "Preços",
+          "description": "Planos em colunas, recursos em linhas e marcas de certo e de errado, com um plano destacado como o recomendado."
+        },
+        "ro": {
+          "name": "Prețuri",
+          "description": "Planuri pe coloane, funcții pe rânduri, bife și X-uri, iar un plan este scos în evidență ca recomandat."
+        },
+        "sv": {
+          "name": "Prissättning",
+          "description": "Planer som kolumner, funktioner som rader, bockar och kryss, och en plan som markeras som den rekommenderade."
+        },
+        "tl": {
+          "name": "Presyo",
+          "description": "Mga plano bilang column, mga feature bilang row, mga tsek at ekis, at isang plano na naka-highlight bilang ang rekomendado."
+        },
+        "tr": {
+          "name": "Fiyatlandırma",
+          "description": "Planlar sütun, özellikler satır olur; onay ve çarpı işaretleri kullanılır, bir plan da önerilen olarak öne çıkar."
+        },
+        "uk": {
+          "name": "Тарифи",
+          "description": "Плани як колонки, функції як рядки, галочки та хрестики, і один план виділений як рекомендований."
+        },
+        "ur": {
+          "name": "قیمتیں",
+          "description": "پلانز کالمز کی صورت میں، خصوصیات قطاروں کی صورت میں، ٹِک اور کراس نشانات، اور ایک پلان کو تجویز کردہ کے طور پر نمایاں کیا گیا ہے۔"
+        },
+        "vi": {
+          "name": "Bảng Giá",
+          "description": "Xếp các gói dịch vụ theo cột, tính năng theo hàng, đánh dấu tích và dấu X, rồi làm nổi bật một gói được đề xuất."
+        },
+        "zh-hant": {
+          "name": "定價",
+          "description": "方案排成欄，功能排成列，搭配打勾與打叉符號，並將其中一個方案標為建議方案。"
+        },
+        "zh": {
+          "name": "定价",
+          "description": "以列显示套餐、以行显示功能，用勾号和叉号标示，并突出显示一个推荐套餐。"
+        }
+      }
+    },
+    {
+      "id": "quote",
+      "name": "Sales Quote",
+      "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "quote",
+        "sales",
+        "pricing",
+        "proposal",
+        "estimate",
+        "table",
+        "pdf"
+      ],
+      "listed": false,
+      "added": "2026-11-02",
+      "formats": [
+        "pdf",
+        "png",
+        "svg",
+        "jpeg",
+        "webp"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 2h9l4 4v16H6z\"/><path d=\"M15 2v4h4\"/><line x1=\"9\" y1=\"10\" x2=\"16\" y2=\"10\"/><line x1=\"9\" y1=\"13.5\" x2=\"16\" y2=\"13.5\"/><line x1=\"12\" y1=\"18\" x2=\"16\" y2=\"18\"/></svg>",
+      "preview": "/catalog/previews/quote.svg",
+      "templates": [
+        {
+          "id": "services",
+          "name": "Services quote",
+          "category": "Sales",
+          "description": "A complete quote: seven lines, a highlighted total and terms.",
+          "galleryCover": true
+        }
+      ]
+    },
+    {
+      "id": "scorecard",
+      "name": "Scorecard",
+      "description": "Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence behind it, and an overall score. Paste the rows from a spreadsheet, such as MEDDPICC for a deal.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "scorecard",
+        "meddpicc",
+        "qualification",
+        "evaluation",
+        "criteria",
+        "rating",
+        "sales",
+        "table"
+      ],
+      "listed": false,
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpeg",
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"3\" y1=\"6\" x2=\"21\" y2=\"6\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"3\" y1=\"18\" x2=\"21\" y2=\"18\"/><circle cx=\"15\" cy=\"6\" r=\"2\" fill=\"currentColor\"/><circle cx=\"9\" cy=\"12\" r=\"2\" fill=\"currentColor\"/><circle cx=\"18\" cy=\"18\" r=\"2\" fill=\"currentColor\"/></svg>",
+      "preview": "/catalog/previews/scorecard.svg"
+    },
+    {
+      "id": "week",
+      "name": "Week",
+      "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "everyone",
+      "tags": [
+        "calendar",
+        "week",
+        "schedule",
+        "meeting",
+        "availability",
+        "slots",
+        "planner"
+      ],
+      "listed": false,
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpeg",
+        "webp",
+        "mp4",
+        "webm",
+        "gif",
+        "html"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4.5\" width=\"18\" height=\"16.5\" rx=\"2\"/><line x1=\"3\" y1=\"9\" x2=\"21\" y2=\"9\"/><line x1=\"8\" y1=\"2.5\" x2=\"8\" y2=\"6\"/><line x1=\"16\" y1=\"2.5\" x2=\"16\" y2=\"6\"/><rect x=\"10.5\" y=\"12\" width=\"4\" height=\"5\" rx=\"0.8\" fill=\"currentColor\"/></svg>",
+      "preview": "/catalog/previews/week.svg"
     }
   ]
 }

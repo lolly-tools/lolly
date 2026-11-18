@@ -127,7 +127,7 @@ Brand packs and bundled assets carry their own licences and notices. SUSE's prop
 ## Current tools
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **67 tools** today - 65 listed in the gallery, plus 2 unlisted helpers (Asset Export, Theme swap). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **75 tools** today - 65 listed in the gallery, plus 10 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Pricing, Sales Quote, Scorecard, Theme swap, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|

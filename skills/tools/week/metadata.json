@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "toolId": "week",
+  "toolVersion": "1.1.0",
+  "toolVersionRange": "1.1.0",
+  "skillRevision": "1",
+  "origin": "generated",
+  "references": [
+    "reference/inputs.json"
+  ],
+  "files": {
+    "SKILL.md": {
+      "sha256": "25fc945495887198c85c9acfa6a21f7b5911d0e16ac46f203b7fe3f92855199e",
+      "bytes": 1881
+    },
+    "reference/inputs.json": {
+      "sha256": "40e9fe13ef476ec8529e4a72d1f4333d1a459c593f9462033ab2ad886805928c",
+      "bytes": 4946
+    }
+  }
+}

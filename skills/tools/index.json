@@ -182,6 +182,28 @@
     },
     {
       "version": 1,
+      "toolId": "battlecards",
+      "toolVersion": "1.4.0",
+      "toolVersionRange": "1.4.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "476117a7fc584f858414940eca1697823f14f87fc617603249183196a9e63448",
+          "bytes": 1785
+        },
+        "reference/inputs.json": {
+          "sha256": "5badda4f27116ab87f84cea58daf94ad4134b5c768f9a473906450e3705404f4",
+          "bytes": 3288
+        }
+      },
+      "path": "battlecards/SKILL.md"
+    },
+    {
+      "version": 1,
       "toolId": "booth-studio",
       "toolVersion": "0.4.1",
       "toolVersionRange": "0.4.1",
@@ -201,6 +223,50 @@
         }
       },
       "path": "booth-studio/SKILL.md"
+    },
+    {
+      "version": 1,
+      "toolId": "brief",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "9959fa62098eff3ee54b3a4d9d4b21cc7c9d366aecce58780c3cd6169ff6ab58",
+          "bytes": 1752
+        },
+        "reference/inputs.json": {
+          "sha256": "d3c13e49fa4c4c3366d4335cd6bb063268a70ca23fedda202496eab2b217b1e0",
+          "bytes": 4126
+        }
+      },
+      "path": "brief/SKILL.md"
+    },
+    {
+      "version": 1,
+      "toolId": "calendar-ics",
+      "toolVersion": "1.3.0",
+      "toolVersionRange": "1.3.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "7ba460c4300eb08b5c541913970e459fa01a4a3b4ed0035a7f06c05a0f06507d",
+          "bytes": 1841
+        },
+        "reference/inputs.json": {
+          "sha256": "6c63379e39dc83f618be3a59ab4fb83875b707f55aeb7710cdd10d59a19f1a81",
+          "bytes": 5516
+        }
+      },
+      "path": "calendar-ics/SKILL.md"
     },
     {
       "version": 1,
@@ -586,6 +652,28 @@
         }
       },
       "path": "doc-studio/SKILL.md"
+    },
+    {
+      "version": 1,
+      "toolId": "email",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "0fef01adde5fb79d9f2c2e366d8fa5d328d0f094fd992122acbfbac754b2601b",
+          "bytes": 1879
+        },
+        "reference/inputs.json": {
+          "sha256": "77e169d5a01a0566886936bbb24b90d180754cade937cc84e3ee32418b4a0e8f",
+          "bytes": 4522
+        }
+      },
+      "path": "email/SKILL.md"
     },
     {
       "version": 1,
@@ -981,6 +1069,33 @@
     },
     {
       "version": 1,
+      "toolId": "pricing-table",
+      "toolVersion": "1.2.0",
+      "toolVersionRange": "1.2.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json",
+        "reference/examples.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "3712523c3223fbcfbe1971ec4e7172b22d70bcf3e49324261cd20eb7c8f1c811",
+          "bytes": 1922
+        },
+        "reference/inputs.json": {
+          "sha256": "21f7863411e67a08fac3334e90f07e0062e319dfd59567186b0b42f7f0fb39fe",
+          "bytes": 5391
+        },
+        "reference/examples.json": {
+          "sha256": "d0b6d2ce1973c5b51df4f0a3628466dac5cf825711a07a5f2688d6f4e91d573c",
+          "bytes": 5472
+        }
+      },
+      "path": "pricing-table/SKILL.md"
+    },
+    {
+      "version": 1,
       "toolId": "print-sheet",
       "toolVersion": "2.1.0",
       "toolVersionRange": "2.1.0",
@@ -1059,6 +1174,28 @@
         }
       },
       "path": "qr-code/SKILL.md"
+    },
+    {
+      "version": 1,
+      "toolId": "quote",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "34074753ab48489b2727f1b2e9d049c60b789ef3e64868e2f3bd7e1cd893f8e0",
+          "bytes": 1985
+        },
+        "reference/inputs.json": {
+          "sha256": "117a812b22f0d8e8918aa284c6e1153166ea30822241975cd4695606a3e319db",
+          "bytes": 5541
+        }
+      },
+      "path": "quote/SKILL.md"
     },
     {
       "version": 1,
@@ -1213,6 +1350,28 @@
         }
       },
       "path": "scan-code/SKILL.md"
+    },
+    {
+      "version": 1,
+      "toolId": "scorecard",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "281001554b8d6b493c4e4b3994ff741fecc39eda2e3e0cc539b901c0129e2af3",
+          "bytes": 1895
+        },
+        "reference/inputs.json": {
+          "sha256": "a14116c654028bffd9b6a6f7db1a33d291095c1cadf4b3584d5841fee3e7425c",
+          "bytes": 5071
+        }
+      },
+      "path": "scorecard/SKILL.md"
     },
     {
       "version": 1,
@@ -1573,6 +1732,28 @@
         }
       },
       "path": "wayfinding-signage/SKILL.md"
+    },
+    {
+      "version": 1,
+      "toolId": "week",
+      "toolVersion": "1.1.0",
+      "toolVersionRange": "1.1.0",
+      "skillRevision": "1",
+      "origin": "generated",
+      "references": [
+        "reference/inputs.json"
+      ],
+      "files": {
+        "SKILL.md": {
+          "sha256": "25fc945495887198c85c9acfa6a21f7b5911d0e16ac46f203b7fe3f92855199e",
+          "bytes": 1881
+        },
+        "reference/inputs.json": {
+          "sha256": "40e9fe13ef476ec8529e4a72d1f4333d1a459c593f9462033ab2ad886805928c",
+          "bytes": 4946
+        }
+      },
+      "path": "week/SKILL.md"
     },
     {
       "version": 1,

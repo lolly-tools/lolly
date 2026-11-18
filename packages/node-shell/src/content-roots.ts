@@ -126,6 +126,10 @@ export interface ContentRoots {
   assetRoots: SharedAssetRoot[];
   /** Tool ids this profile drops (profiles.json `exclude`). */
   exclude: ReadonlySet<string>;
+  /** Tool ids this profile keeps but does not offer (profiles.json `unlist`): the id still
+   *  opens by link, in a saved project and on the render route, and the generated index
+   *  carries `listed: false` for the gallery, search and menus. */
+  unlist: ReadonlySet<string>;
   /** The profile's display label from profiles.json (`SUSE`), when it states one. */
   label?: string;
   /** Design systems this profile offers beside its own. Absent on every other profile. */
@@ -143,7 +147,7 @@ export interface AssetIndexFile {
 
 interface ProfileCompanion { catalog: string; label: string; tokens: string; assets: string[] }
 interface Profile {
-  label?: string; tools: string[]; catalog: string; assets?: string[]; exclude?: string[];
+  label?: string; tools: string[]; catalog: string; assets?: string[]; exclude?: string[]; unlist?: string[];
   brandTokens?: string; companions?: ProfileCompanion[];
 }
 interface ProfilesFile { default: string; profiles: Record<string, Profile> }
@@ -296,6 +300,7 @@ function materializedRoots(root: string): ContentRoots {
     // the plain join below.
     assetRoots: [],
     exclude: new Set<string>(),
+    unlist: new Set<string>(),
   };
 }
 
@@ -341,6 +346,7 @@ export function contentRoots(opts?: { profile?: string; root?: string }): Conten
     catalogRoot: join(root, profile.catalog),
     assetRoots: sharedRoots(root, profile.assets ?? [], name),
     exclude: new Set(profile.exclude ?? []),
+    unlist: new Set(profile.unlist ?? []),
     ...(typeof profile.label === 'string' && profile.label ? { label: profile.label } : {}),
     ...(profile.companions?.length ? {
       companions: profile.companions.map((c) => ({ label: c.label, tokens: c.tokens, catalogDir: join(root, c.catalog), assets: [...c.assets] })),
