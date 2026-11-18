@@ -218,18 +218,32 @@ export function isCatalogTrustFailure(error: unknown): boolean {
   return error instanceof Error && /^(Catalog refused: |catalog integrity: )/.test(error.message);
 }
 
+/** How long the set-aside note stays up when nobody taps it away. */
+const SET_ASIDE_NOTE_MS = 9000;
+let setAsideNoted = false;
+
 /**
  * An instance whose catalog this build cannot verify was set aside for this page load,
- * and the tools built into the app are shown. The note stays up, because the tools on
- * screen are not the ones the person's instance would have sent.
+ * and the tools built into the app are shown. Said once: the note leaves after a few
+ * seconds or on a tap, because a note that stays covers the controls below. The state
+ * stays readable on the root element for any surface that shows the state later.
  */
 export function noteInstanceCatalogSetAside(instanceBase: string): void {
   if (typeof document === 'undefined' || !document.body) return;
+  document.documentElement.dataset.catalogInstance = 'set-aside';
+  if (setAsideNoted) return;
+  setAsideNoted = true;
   let host = instanceBase;
   try { host = new URL(instanceBase).host; } catch { /* keep the raw value */ }
-  document.documentElement.dataset.catalogInstance = 'set-aside';
-  trustBadge('lolly-instance-set-aside',
-    `${host} signs its tools with a key this app does not trust. These are the tools built into this app. To stop asking ${host}, leave the workspace in Settings.`);
+  const id = 'lolly-instance-set-aside';
+  trustBadge(id, `${host} is signed with a key this app does not trust. Showing the tools built into this app.`);
+  const note = document.getElementById(id);
+  if (!note) return;
+  note.style.pointerEvents = 'auto';
+  note.style.cursor = 'pointer';
+  const dismiss = (): void => { note.remove(); };
+  note.addEventListener('click', dismiss, { once: true });
+  setTimeout(dismiss, SET_ASIDE_NOTE_MS);
 }
 
 /** A trust failure remains visible even when a previously accepted catalog is saved. */

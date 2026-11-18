@@ -27,16 +27,23 @@ test('a refused or mismatched catalog is a trust failure, and a network fault is
   assert.equal(isCatalogTrustFailure('Catalog refused: text only'), false);
 });
 
-test('the note says which instance was set aside and that the built-in tools are shown', () => {
+test('the note says which instance was set aside, once, and a tap takes it away', () => {
   noteInstanceCatalogSetAside('https://lolly.example.org/team');
   const note = document.getElementById('lolly-instance-set-aside');
   assert.ok(note);
   assert.equal(note.getAttribute('role'), 'status');
-  assert.match(note.textContent ?? '', /^lolly\.example\.org signs its tools with a key this app does not trust\./);
-  assert.match(note.textContent ?? '', /tools built into this app/);
+  assert.equal(note.textContent, 'lolly.example.org is signed with a key this app does not trust. Showing the tools built into this app.');
   assert.equal(document.documentElement.dataset.catalogInstance, 'set-aside');
   // It is not the refusal state: the bundled catalog verified and tools are on screen.
   assert.notEqual(document.documentElement.dataset.catalogTrust, 'refused');
+  // A note that stays covers the controls under it, so a tap removes it,
+  assert.equal(note.style.pointerEvents, 'auto');
+  note.dispatchEvent(new dom.window.Event('click'));
+  assert.equal(document.getElementById('lolly-instance-set-aside'), null);
+  // and a later sync in the same page load does not bring it back.
+  noteInstanceCatalogSetAside('https://lolly.example.org/team');
+  assert.equal(document.getElementById('lolly-instance-set-aside'), null);
+  assert.equal(document.documentElement.dataset.catalogInstance, 'set-aside');
 });
 
 test('sync sets the instance aside only on a trust failure and tries the bundled catalog once', () => {
