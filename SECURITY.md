@@ -112,11 +112,10 @@ when the registry lists a fixed release, when the advisory stops applying to the
 root, or when the advisory is filed against a different package. The update then
 replaces the hold in the same change.
 
-One npm hold is in place, on the three npm roots: GHSA-fc5q-39xc-vjpf for
-`picomatch`, a denial of service through a crafted glob pattern. On 2026-11-17 the
-advisory was widened to every release through 4.0.7 with no fixed version.
-`picomatch` reaches these roots only through build and development tools, and
-`pnpm audit --prod` reports no finding.
+No npm hold is in place today. The one hold so far, approved by Andy on 2026-11-18, was
+for GHSA-fc5q-39xc-vjpf against `picomatch`, which had been widened to every release
+with no fixed version. GitHub withdrew the advisory later the same day, the audit
+reported the hold as stale, and the hold was removed.
 
 No Cargo exception is held today. The last one, approved by Andy on 2026-10-17, held
 RUSTSEC-2026-0367, RUSTSEC-2026-0368 and RUSTSEC-2026-0369 for `zip` 4.6.1, which

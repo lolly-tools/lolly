@@ -88,6 +88,7 @@ function main(): void {
   }
   console.log(`tools        ${ids.length}`);
   if (roots.exclude.size) console.log(`excluded     ${[...roots.exclude].sort().join(', ')}`);
+  if (roots.unlist.size) console.log(`unlisted     ${[...roots.unlist].sort().join(', ')}`);
 
   const others = inventory().filter((p) => p.name !== roots.profile);
   if (others.length) {

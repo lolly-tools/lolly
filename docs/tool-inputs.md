@@ -31,7 +31,7 @@ Four declarations of four different types are four different controls. The first
 
 ![Colour Palette's sidebar - a swatch trigger, a harmony dropdown, a shades slider and a neutrals switch, one control per declared type](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3D%25232563eb%26harmony%3Dtetrad-4%26steps%3D9&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=%23tool-inputs&walker=1&dark=1&filename=at2-input-types-palette)
 
-The three moment types (`date`, `time` and `datetime-local`) are real input types with real controls. `certificate` declares a `date`, and `meeting-planner`, `calendar-ics` and the calendar payload of `qr-code` declare `datetime-local`.
+The three moment types (`date`, `time` and `datetime-local`) are real input types with real controls. `certificate` declares a `date`, and `meeting-planner` and the calendar payload of `qr-code` declare `datetime-local`.
 
 ### Tables
 

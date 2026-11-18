@@ -138,14 +138,14 @@ Lolly has three ways to work at volume, each for a different job:
 
 ::: cols
 ## A table becomes one document
-A tool with a table input, such as **Battlecards**, turns every row into a page. Paste a table from your spreadsheet and get one PDF. Fix rows in the spreadsheet and paste again.
+A tool built to paginate a table input turns every row into a page. Paste a table from your spreadsheet and get one PDF. Fix rows in the spreadsheet and paste again. Battlecards is the reference tool: it is in the open-source `community` folder and is not listed on lolly.tools.
 ## A CSV becomes one file per row
 **Batch** (`#/batch`) takes a CSV and renders one export for each row: name badges or certificates, one file each, delivered in a ZIP. See [Lolly Batch](/info/batch.html#make-many-versions-of-one-design).
 ## Several designs get one edit
 **Lolly Multi-edit** opens several saved sessions side by side for the same touch-up across different designs. See [Lolly Multi-edit](/info/batch.html#edit-several-saved-designs-together).
 :::
 
-A tool with several pages, such as Battlecards, Booklet, Print Sheet, Lolly Doc Studio or Lolly Markdown Slides, exports PNG, JPG, WebP, SVG and the other single-image formats as one file per page, in a ZIP when there are several. Print Sheet keeps its full sheet and cut marks at the chosen DPI.
+A tool with several pages, such as Booklet, Print Sheet, Lolly Doc Studio or Lolly Markdown Slides, exports PNG, JPG, WebP, SVG and the other single-image formats as one file per page, in a ZIP when there are several. Print Sheet keeps its full sheet and cut marks at the chosen DPI.
 
 From **Projects**, **Render folder** exports every saved session in a folder and its sub-folders as one nested ZIP, and **Render selection** does the same for any multi-selection; one saved session renders to its own file. A saved session can also be shared again as a tool link from Projects, which reopens it with the same settings.
 

@@ -288,7 +288,7 @@ The bridge grows by addition: new `host.*` APIs arrive in minor engine versions,
 - [`host.images`](/info/host-api.html#host-images) - decode, resize and re-encode images on the device. Read the result's `mime`, `width` and `height` rather than assuming the request was honoured exactly.
 - [`host.geom`](/info/host-api.html#host-geom) - exact vector geometry on SVG path strings: booleans, offset, stroke, simplify and measurement. Failures are returned, never thrown.
 - [`host.text.fontUrl`](/info/host-api.html#host-text) - resolve a font family the host knows to a file for `host.text.toPath()`, with the `variations` a variable face needs. It resolves `null` when no file is found, so keep your `<text>` fallback.
-- [`host.calc`](/info/host-api.html#host-calc) - work out spreadsheet formulas on the device, with `evaluate`, `table` and `functions`. Sales Quote (`quote`) is the reference tool.
+- [`host.calc`](/info/host-api.html#host-calc) - work out spreadsheet formulas on the device, with `evaluate`, `table` and `functions`. Sales Quote (`quote`, in the `community` folder and not listed on lolly.tools) is the reference tool.
 - [`host.audio.loudness`](/info/host-api.html#host-audio) and `host.audio.align` - EBU R128 loudness of a clip, and the offset between two recordings of one event. Both are optional members of `host.audio`, so check for each one.
 
 For example, with `host.geom`:

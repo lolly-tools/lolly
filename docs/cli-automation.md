@@ -279,7 +279,7 @@ Even bare, only some formats repeat byte for byte. Measured by hashing two conse
 |---|---|---|
 | **SVG**, **EMF**, **EPS**, **DXF** | **Yes.** Nothing in the format carries a clock or a random seed. | `qr-code --url=https://example.com` |
 | **JSON, CSV, VCF, MD** | **Yes**, for the format. | `color-palette --export=csv`, `chart --export=md`, `meeting-planner --export=json`; no public tool exports VCF |
-| **ICS** | **No.** RFC 5545 requires a `DTSTAMP`, which is the clock: two runs a second apart differ in exactly that line. | `calendar-ics --export=ics` |
+| **ICS** | **No.** RFC 5545 requires a `DTSTAMP`, which is the clock: two runs a second apart differ in exactly that line. | `meeting-planner --export=ics` |
 | **PNG** from an `<svg>`-based tool (the resvg tier) | **Yes.** | `qr-code --export=png` |
 | **PDF** | **No.** Every PDF carries `/CreationDate` and `/ModDate`: 128 bytes differed in a measured 57 KB file with `--c2pa=off`, all in the trailer and metadata. | `qr-code --export=pdf --c2pa=off` |
 | **JPG, WebP, HTML-layout PNG** (the paint tier) | **No.** The browser's paint and encode change run to run; even the file length moves. | `qr-code --export=jpg`, `qr-code --export=webp` |

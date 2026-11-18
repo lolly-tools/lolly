@@ -160014,7 +160014,8 @@ function materializedRoots(root2) {
     // nothing left to mount: catalogFile('packs/<name>/<rel>') finds those files by
     // the plain join below.
     assetRoots: [],
-    exclude: /* @__PURE__ */ new Set()
+    exclude: /* @__PURE__ */ new Set(),
+    unlist: /* @__PURE__ */ new Set()
   };
 }
 function contentRoots(opts) {
@@ -160052,6 +160053,7 @@ function contentRoots(opts) {
     catalogRoot: join2(root2, profile2.catalog),
     assetRoots: sharedRoots(root2, profile2.assets ?? [], name),
     exclude: new Set(profile2.exclude ?? []),
+    unlist: new Set(profile2.unlist ?? []),
     ...typeof profile2.label === "string" && profile2.label ? { label: profile2.label } : {},
     ...profile2.companions?.length ? {
       companions: profile2.companions.map((c) => ({ label: c.label, tokens: c.tokens, catalogDir: join2(root2, c.catalog), assets: [...c.assets] })),
@@ -186275,7 +186277,7 @@ function fail(id3, code, message, data) {
 // services/mcp/package.json
 var package_default = {
   name: "@lolly/mcp-server",
-  version: "1.2.0",
+  version: "1.2.1",
   private: true,
   description: "Lolly MCP server - exposes the on-brand tool catalog + render path to AI agents over the Model Context Protocol. Runtime deps: node:http + jsdom + @resvg/resvg-js + playwright-core (Tier B, Chromium via `pnpm run install:browser`) + @lolly/engine.",
   license: "MPL-2.0",
