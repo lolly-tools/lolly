@@ -162,7 +162,7 @@ In the web shell, a link that references a `file` input resolves as blank, and t
 
 ### Table
 
-A `table` input (a user-defined grid: column headings + rows, e.g. `battlecards`) is always **one compact param** - the header row first, then one `~`-separated segment per data row, cells `,`-separated and percent-escaped so prose cells full of commas survive:
+A `table` input (a user-defined grid: column headings + rows, e.g. `agenda`) is always **one compact param** - the header row first, then one `~`-separated segment per data row, cells `,`-separated and percent-escaped so prose cells full of commas survive:
 
 ```
 ?t=Pain,Summary,Strategy~Assurance,Is%20it%20open%3F,Table%20stakes%2C%20compete%20with%20why
@@ -171,7 +171,7 @@ A `table` input (a user-defined grid: column headings + rows, e.g. `battlecards`
 A JSON form (`{"columns":[…],"rows":[…]}`) also parses. Long tables ride the packed `z` link like any other big state. On the CLI the same value works inline, or `--<inputId>-data=table.csv` fills the input from a CSV / TSV / Markdown-table file (first row = headings):
 
 ```bash
-lolly battlecards --data-data=./cards.csv --output=deck.pdf
+lolly agenda --sessions-data=./sessions.csv --output=agenda.pdf
 ```
 
 ### Keyframe tracks

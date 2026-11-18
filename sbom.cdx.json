@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:eb11bf44-a889-4493-8425-458fe7ab7d75",
+  "serialNumber": "urn:uuid:1747ced2-7f9c-46ff-8f27-fa10fc037c9e",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-16T11:45:00.023Z",
+    "timestamp": "2026-11-18T10:50:32.764Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -8204,10 +8204,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/lolly-desktop@1.2.0",
+      "bom-ref": "pkg:cargo/lolly-desktop@1.2.1",
       "name": "lolly-desktop",
-      "version": "1.2.0",
-      "purl": "pkg:cargo/lolly-desktop@1.2.0",
+      "version": "1.2.1",
+      "purl": "pkg:cargo/lolly-desktop@1.2.1",
       "scope": "required",
       "licenses": [
         {
@@ -8351,10 +8351,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/lolly-mobile@1.1.3",
+      "bom-ref": "pkg:cargo/lolly-mobile@1.2.1",
       "name": "lolly-mobile",
-      "version": "1.1.3",
-      "purl": "pkg:cargo/lolly-mobile@1.1.3",
+      "version": "1.2.1",
+      "purl": "pkg:cargo/lolly-mobile@1.2.1",
       "scope": "required",
       "licenses": [
         {

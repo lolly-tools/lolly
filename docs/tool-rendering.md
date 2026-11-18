@@ -252,7 +252,7 @@ END:VEVENT
 END:VCALENDAR
 ```
 
-Reference wirings: `meeting-planner` and `calendar-ics` for ICS, `timezone` and `pricing-table` for CSV and `captions` for SRT and VTT. No public tool ships a `template.vcf` yet.
+Reference wirings: `meeting-planner` for ICS, `timezone` for CSV and `captions` for SRT and VTT. `calendar-ics` (ICS) and `pricing-table` (CSV) in the `community` folder do the same and are not listed on lolly.tools. No public tool ships a `template.vcf` yet.
 
 On the node CLI, a template whose root is an `<svg>` also renders to SVG and the other vector formats with no browser, and resvg draws PNG from that SVG. Vector and raster files from a template built from HTML need a browser engine, and so do JPG, WebP, most PDFs and video: the web shell, the desktop app or the node CLI's browser tier. [Render with the CLI](/info/cli-rendering.html) has the full list. The CMYK formats pair with the **Convert paths** toggle ([The `render` block](/info/tool-manifest.html#the-render-block)) for print files that need no installed fonts; `qr-code` offers both `pdf-cmyk` and `cmyk-tiff`, while `org-chart` and `logo-wall` offer only `pdf-cmyk`.
 

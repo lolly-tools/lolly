@@ -12,12 +12,14 @@
     "lolly-start": {
       "label": "Lolly Start (blank brand)",
       "tools": ["community", "brands/lolly-start/tools"],
+      "exclude": ["pricing-table", "week", "scorecard", "email", "brief", "quote", "battlecards", "calendar-ics"],
       "assets": ["community/emoji-packs", "community/fallback-fonts"],
       "catalog": "brands/lolly-start/catalog"
     },
     "lolly-demo": {
       "label": "Lolly Demo",
       "tools": ["community", "brands/lolly-demo/tools"],
+      "exclude": ["pricing-table", "week", "scorecard", "email", "brief", "quote", "battlecards", "calendar-ics"],
       "assets": ["community/emoji-packs", "community/fallback-fonts"],
       "catalog": "brands/lolly-demo/catalog"
     },
