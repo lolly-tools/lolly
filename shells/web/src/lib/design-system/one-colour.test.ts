@@ -20,7 +20,7 @@ test('the colour becomes the primary, as a first colour does in Design System Se
   const fresh = deriveBrandTokens({ primary: '#8551C8', name: 'My brand' }) as Rec;
   assert.deepEqual(baseOf(doc).color, baseOf(fresh).color, 'the colour groups are the derive\'s own');
   const primary = createTokenSet(doc, { theme: 'light' }).get('color.semantic.primary');
-  assert.equal(colorToHex(primary?.value ?? '').toLowerCase(), '#8551c8');
+  assert.equal((colorToHex(primary?.value ?? '') ?? '').toLowerCase(), '#8551c8');
 });
 
 test('the faces, the logo slots and the shape come across from the starter', () => {
