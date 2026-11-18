@@ -7,7 +7,21 @@
       "directory": ".",
       "lockfile": "pnpm-lock.yaml",
       "exposure": "runtime-and-development",
-      "owner": "parent"
+      "owner": "parent",
+      "npmAdvisoryHolds": [
+        {
+          "advisories": [
+            "GHSA-fc5q-39xc-vjpf"
+          ],
+          "package": "picomatch",
+          "approvedBy": "Andy Fitzsimon, by merging the pull request that added this hold",
+          "justification": "A regular expression denial of service through a crafted glob pattern (CVE-2026-112366). The advisory was widened on 2026-11-17 to every release through 4.0.7 and lists no fixed version, so there is no release to move to. picomatch reaches this root only through build and development tools (Vite, tinyglobby, the MCP inspector), which match glob patterns written in this repository. `pnpm audit --prod` reports no finding for this root. The hold fails the audit as soon as the registry lists a fixed release.",
+          "tracking": [
+            "https://github.com/advisories/GHSA-fc5q-39xc-vjpf",
+            "https://github.com/micromatch/picomatch/pull/194"
+          ]
+        }
+      ]
     },
     {
       "id": "tauri-desktop-npm",
@@ -15,7 +29,21 @@
       "directory": "shells/tauri-desktop",
       "lockfile": "shells/tauri-desktop/pnpm-lock.yaml",
       "exposure": "build-toolchain",
-      "owner": "shells/tauri-desktop"
+      "owner": "shells/tauri-desktop",
+      "npmAdvisoryHolds": [
+        {
+          "advisories": [
+            "GHSA-fc5q-39xc-vjpf"
+          ],
+          "package": "picomatch",
+          "approvedBy": "Andy Fitzsimon, by merging the pull request that added this hold",
+          "justification": "A regular expression denial of service through a crafted glob pattern (CVE-2026-112366). The advisory was widened on 2026-11-17 to every release through 4.0.7 and lists no fixed version, so there is no release to move to. picomatch reaches this root only through build and development tools (Vite, tinyglobby, the MCP inspector), which match glob patterns written in this repository. `pnpm audit --prod` reports no finding for this root. The hold fails the audit as soon as the registry lists a fixed release.",
+          "tracking": [
+            "https://github.com/advisories/GHSA-fc5q-39xc-vjpf",
+            "https://github.com/micromatch/picomatch/pull/194"
+          ]
+        }
+      ]
     },
     {
       "id": "tauri-mobile-npm",
@@ -23,7 +51,21 @@
       "directory": "shells/tauri-mobile",
       "lockfile": "shells/tauri-mobile/pnpm-lock.yaml",
       "exposure": "build-toolchain",
-      "owner": "shells/tauri-mobile"
+      "owner": "shells/tauri-mobile",
+      "npmAdvisoryHolds": [
+        {
+          "advisories": [
+            "GHSA-fc5q-39xc-vjpf"
+          ],
+          "package": "picomatch",
+          "approvedBy": "Andy Fitzsimon, by merging the pull request that added this hold",
+          "justification": "A regular expression denial of service through a crafted glob pattern (CVE-2026-112366). The advisory was widened on 2026-11-17 to every release through 4.0.7 and lists no fixed version, so there is no release to move to. picomatch reaches this root only through build and development tools (Vite, tinyglobby, the MCP inspector), which match glob patterns written in this repository. `pnpm audit --prod` reports no finding for this root. The hold fails the audit as soon as the registry lists a fixed release.",
+          "tracking": [
+            "https://github.com/advisories/GHSA-fc5q-39xc-vjpf",
+            "https://github.com/micromatch/picomatch/pull/194"
+          ]
+        }
+      ]
     },
     {
       "id": "tauri-desktop-cargo",
