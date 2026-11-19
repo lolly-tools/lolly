@@ -8,24 +8,13 @@ import './text/text.css';
 /**
  * The browsable component library (#/components).
  *
- * A dev/design surface, off every hot path (lazy-loaded). It renders the shell's
- * components - a "Primitives" section for the shared layer a multi-wave refactor
- * shipped (buttons.css, chips.css, lib/seg.ts, lib/icons.ts, mountModal,
- * mountZoomHud, mountViewTopbar, swatchTile, setTheme, wireTabs, sessionRow,
- * mountBodyPopover, backPillHtml, setupMobileSheet, staggerReveal, wireTileSelect,
- * .section-card, .note/.field-input), then the remaining
- * common-primitive families, then per-view - from the specimen data in
- * components-data.ts (originally generated from the component-audit workflow;
- * hand-maintained since the refactor landed; the written analysis + per-rec
- * shipped status is plans/76-component-audit.md). Each specimen is shown live where
- * the component is a pure render function, as a static markup sample where it's
- * only CSS, and as a labelled source snippet or a labelled design fixture where it needs the host bridge to run.
- *
- * Specimen data is HAND-MAINTAINED, so two guards in primitive-guards.test.ts
- * (R7) keep it from drifting away from the shell it documents: every `defined:`
- * path must resolve to a real file, and every class in a `css:` list must still
- * be live somewhere. `defined:` carries a path and the symbol name, never a line
- * number - those rotted on 65 of 70 entries before they were dropped.
+ * A reference for people who want to use Lolly's parts, off every hot path
+ * (lazy-loaded). It draws the specimens in views/components-data.ts, family by
+ * family in the data's own order. A specimen is shown three ways, and the card
+ * says which: interactive where a renderer below mounts the real component with
+ * safe local wiring, a static sample where the data carries markup or the renderer
+ * only draws, and a design fixture (views/components-fixtures.ts) where the real
+ * part cannot run without the app around the part.
  *
  * Category navigation and search make the inventory browsable. Downloads are
  * local .penpot archives with reusable components and applied design tokens.
@@ -67,7 +56,7 @@ import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { prepareSpecimenStage } from './components-staging.ts';
-import { COMPONENT_SECTIONS as AUDIT_SECTIONS, COMPONENT_ARTWORK, type Specimen } from './components-data.ts';
+import { COMPONENT_SECTIONS, COMPONENT_ARTWORK, type Section, type Specimen } from './components-data.ts';
 import { toolCardExample, wireThemeChoicesExample, audioDockExample, catalogTileExample, contextMenuExample, editableWheelExample, exportFieldsExample, objectCardsExample, projectTilesExample, selectionBarExample, wireObjectCardsExample } from './components-examples.ts';
 import { featuredRowExample, wireFeaturedRowExample } from './components-featured.ts';
 import { SVG as canvasIcons, icon as canvasIcon } from './free-canvas-icons.ts';
@@ -108,7 +97,8 @@ import { mountThemeFab } from '../components/theme-toggle.ts';
 import { listLollyUiTokens } from '../lib/lolly-ui-tokens.ts';
 import { attachDeliveryResult, releaseDeliveryFor } from '../lib/download-recovery.ts';
 import { componentFixture } from './components-fixtures.ts';
-import { copyText, importInfo, markupOf, tokensUsedBy } from './components-reference.ts';
+import { copyText } from '../lib/copy-text.ts';
+import { importInfo, markupOf, tokensUsedBy } from './components-reference.ts';
 
 // A demo palette for the colour specimens (not the live brand).
 const DEMO: PaletteEntry[] = [
@@ -203,7 +193,8 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
     // rather than pinning itself to the viewport corner.
     backPill: { render: () => backPillHtml({ class: '' }) },
     themeSeg: { render: () => themeSegmentHtml() },
-    soundSwitch: { render: () => soundSwitchHtml() },
+    // The switch, its volume and Neurospicy stack in a menu's column, as the profile menu holds them.
+    soundSwitch: { render: () => `<div class="cl-menu-column">${soundSwitchHtml()}</div>` },
     footerNav: { render: () => footerNav({ searchHtml: gallerySearchBox({ placeholder: t('Search'), ariaLabel: t('Search') }) }) },
     catGlyph: { render: () => `<span style="display:inline-flex;gap:.7rem;align-items:center">${['logos', 'photos', 'swatches', 'fonts'].map(categoryGlyph).join('')}</span>` },
     catSummary: { render: () => catalogSummaryBody([
@@ -225,7 +216,7 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
         return wrap;
       },
     },
-    shareTrigger: { interactive: true, render: () => triggerButton(t('Share…'), () => { openShareDialog({ toolId: 'qr-code', baseParts: ['url=https%3A%2F%2Fsuse.com'], currentFormat: 'png', title: t('Share this tool') }); }) },
+    shareTrigger: { interactive: true, render: () => triggerButton(t('Share…'), () => { openShareDialog({ toolId: 'qr-code', baseParts: ['url=https%3A%2F%2Flolly.tools'], currentFormat: 'png', title: t('Share this tool') }); }) },
     helpTip: {
       render: () => { const h = helpTip(t('Chroma is how vivid a colour is - grey at the centre, vivid at the rim.'), { href: '#/components', text: t('Learn more') }); return `<span class="help-tip-host" style="display:inline-flex;align-items:center;gap:.4rem">${t('Chroma')} ${h.button}${h.pop}</span>`; },
     },
@@ -391,14 +382,12 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
 // How a specimen is actually shown - not its nature, but what the card displays,
 // so the tag never promises interaction for an unwired render function.
 // Interactive specimens have safe local wiring; host-only states are fixtures.
-type Mode = 'live' | 'sample' | 'fixture' | 'source';
+type Mode = 'live' | 'sample' | 'fixture';
 function renderMode(s: Specimen, previews: LivePreviews): Mode {
   if (s.live && previews[s.live]) return previews[s.live]!.wire || previews[s.live]!.interactive ? 'live' : 'sample';
-  if (s.markup) return 'sample';
-  if (componentFixture(s)) return 'fixture';
-  return 'source';
+  return s.markup ? 'sample' : 'fixture';
 }
-const MODE_LABEL: Record<Mode, string> = { live: 'Interactive', sample: 'Static sample', fixture: 'Design fixture', source: 'Recipe' };
+const MODE_LABEL: Record<Mode, string> = { live: 'Interactive', sample: 'Static sample', fixture: 'Design fixture' };
 
 /** The card title: the specimen name with every parenthesised aside removed.
  *  Depth-aware, because the asides nest - `(.view-seg via segHtml())` - and a
@@ -422,7 +411,7 @@ const USE_CASES: Record<string, [string, string]> = {
   'Profile': ['#/profile', 'Profile'],
   'Gallery': ['#/', 'Tool gallery'],
   'Assets': ['#/a', 'Assets'],
-  'Projects / folders': ['#/p', 'Projects'],
+  'Projects & folders': ['#/p', 'Projects'],
   'Export panel': ['#/design', 'Design workspace'],
 };
 function useCaseLink(title: string): string {
@@ -430,29 +419,45 @@ function useCaseLink(title: string): string {
   return reference ? `<a class="cl-text-link" href="${reference[0]}" target="_blank" rel="noopener">Open ${reference[1]} ↗</a>` : '';
 }
 
+// The card: the part leads. Its name and how it is shown sit above the stage, one
+// sentence and the states it shows sit below, and the two things a person takes away
+// (the reference and the .penpot file) share one quiet line.
 function specimenShell(s: Specimen, idx: number, previews: LivePreviews): string {
   const mode = renderMode(s, previews);
-  const wide = s.wide || ['designSystems', 'colorAdvanced', 'designColumns', 'timelineBar', 'footerNav', 'icons', 'viewTopbar', 'sessionRow', 'objectCards', 'featuredRow'].includes(s.live || '');
+  const name = escape(displayName(s));
   const summary = s.description?.split(/(?<=\.)\s/)[0] || 'A shared part of the Lolly interface.';
-  return `<article class="cl-card${wide ? ' cl-card--wide' : ''}" data-cl-card="${idx}" aria-labelledby="cl-name-${idx}">
-    <div class="cl-card-top"><h3 class="cl-name" id="cl-name-${idx}">${escape(displayName(s))}</h3><span class="cl-kind cl-kind--${mode}">${MODE_LABEL[mode]}</span></div>
+  return `<article class="cl-card${s.wide ? ' cl-card--wide' : ''}" data-cl-card="${idx}" aria-labelledby="cl-name-${idx}">
+    <div class="cl-card-top"><h3 class="cl-name" id="cl-name-${idx}">${name}</h3><span class="cl-kind cl-kind--${mode}">${MODE_LABEL[mode]}</span></div>
     <div class="cl-stage" data-cl-stage="${idx}" data-cl-preview="${escape(s.live || 'markup')}"></div>
     <div class="cl-meta">
       <p class="cl-desc">${escape(summary)}</p>
-      ${s.eg?.length ? `<div class="cl-eg">${s.eg.slice(0, 3).map(e => `<span>${escape(e)}</span>`).join('')}</div>` : ''}
-      <details class="cl-details cl-ref" data-cl-ref="${idx}"><summary>Use this component</summary>
-        <p>${escape(s.description || '')}</p>
-        ${mode === 'fixture' ? '<p class="cl-ref-note">A design fixture: drawn for this library to show the shape. The real part needs the app around it, so the markup below is the fixture, not the production component.</p>' : ''}
-        <p class="cl-src">${escape(s.defined || '')}</p>
-        <div class="cl-ref-body" data-cl-ref-body hidden></div>
-        <p class="cl-ref-status" role="status" aria-live="polite"></p>
-      </details>
+      ${s.eg?.length ? `<p class="cl-eg">${s.eg.map(e => escape(e)).join(' · ')}</p>` : ''}
+      <div class="cl-card-actions">
+        <details class="cl-details cl-ref" data-cl-ref="${idx}"><summary>Use this component</summary>
+          <p>${escape(s.description || '')}</p>
+          ${mode === 'fixture' ? '<p class="cl-ref-note">A design fixture: drawn for this library to show the shape. The real part needs the app around it, so the markup below is the fixture, not the production component.</p>' : ''}
+          <p class="cl-src">${escape(s.defined || '')}</p>
+          <div class="cl-ref-body" data-cl-ref-body hidden></div>
+          <p class="cl-ref-status" role="status" aria-live="polite"></p>
+        </details>
+        <button type="button" class="btn btn--ghost btn--sm cl-download" data-cl-download="${idx}" data-export-hide aria-label="Download ${name} as .penpot" title="Download as .penpot">${icon('download', { size: 14 })}<span>.penpot</span></button>
+      </div>
+      <p class="cl-download-status" role="status" aria-live="polite" data-export-hide></p>
     </div>
-    <footer class="cl-card-footer" data-export-hide>
-      <button type="button" class="btn cl-download" data-cl-download="${idx}" aria-label="Download ${escape(displayName(s))} as .penpot">${icon('download', { size: 16 })}<span>Download as .penpot</span></button>
-      <p class="cl-download-status" role="status" aria-live="polite"></p>
-    </footer>
   </article>`;
+}
+
+// A family folds. Shut, its head is one entry of an index: the number, the name, how
+// many parts it holds and their names on one line. Open, the head is the family's
+// heading, with its introduction and its cards below. The cards are in the page from
+// the start, so counts and search see them; a stage is drawn when its family first opens.
+function familyHtml(sec: Section, index: number, cards: string): string {
+  const intro = `${sec.blurb ? `<p class="cl-section-intro">${escape(sec.blurb)}</p>` : ''}${useCaseLink(sec.title)}`;
+  return `<details class="cl-section cl-component-section cl-family" id="${sectionId(sec.title)}">
+    <summary class="cl-section-head"><span class="cl-section-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span><h2>${escape(sec.title)}</h2><span class="cl-section-kind">${sec.items.length} specimens · ${sec.group === 'common' ? 'Shared' : 'In context'}</span><span class="cl-family-list">${sec.items.map(item => `<span>${escape(displayName(item))}</span>`).join('')}</span></summary>
+    ${intro ? `<div class="cl-family-intro">${intro}</div>` : ''}
+    <div class="cl-grid">${cards}</div>
+  </details>`;
 }
 
 function foundationsHtml(): string {
@@ -532,9 +537,9 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
 
   // A flat, ordered list of every specimen with the section it belongs to - so the
   // stage-fill loop can address each by index without re-walking the tree.
-  const flat: Specimen[] = AUDIT_SECTIONS.flatMap(sec => sec.items);
+  const flat: Specimen[] = COMPONENT_SECTIONS.flatMap(sec => sec.items);
   let n = 0;
-  const jump = AUDIT_SECTIONS.map(sec => sectionLink(sectionId(sec.title), sec.title, sec.metaphor, sec.items.length)).join('');
+  const jump = COMPONENT_SECTIONS.map(sec => sectionLink(sectionId(sec.title), sec.title, sec.metaphor, sec.items.length)).join('');
   const interactive = flat.filter(s => renderMode(s, LIVE) === 'live').length;
   // The cover paints the ACTIVE design system's colours in the theme on screen (home
   // takes the dark set), or Lolly's neutral when the system has none. It used the
@@ -551,28 +556,33 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       <p class="cl-export-status" role="status" aria-live="polite"></p></div>
       <a class="cl-cover" href="#/components?section=cl-colour-tools" data-cl-jump="cl-colour-tools" aria-label="Explore colour tools"><div class="cl-cover-top"><span>COLOUR IS A GOOD PLACE TO START</span>${icon('arrowRight', { size: 18 })}</div><div class="cl-cover-art" aria-hidden="true">${palettePreviewSvgs(cover.colors, { roles: cover.roles })[0]?.svg ?? ''}</div><div class="cl-cover-bottom"><span>One palette. Many possibilities.</span><span>Explore ↗</span></div></a>
     </header>
-    <div class="cl-stats"><div><strong>${flat.length}</strong><span>Component specimens</span></div><div><strong>${AUDIT_SECTIONS.length}</strong><span>Component families</span></div><div><strong>${listLollyUiTokens().length}</strong><span>Semantic tokens</span></div><div><strong>${interactive}</strong><span>Interactive previews</span></div></div>
+    <div class="cl-stats"><div><strong>${flat.length}</strong><span>Component specimens</span></div><div><strong>${COMPONENT_SECTIONS.length}</strong><span>Component families</span></div><div><strong>${listLollyUiTokens().length}</strong><span>Semantic tokens</span></div><div><strong>${interactive}</strong><span>Interactive previews</span></div></div>
     <div class="cl-layout">
       <aside class="cl-sidebar"><p class="cl-eyebrow">In this library</p><nav aria-label="Library sections">${jump}<div class="cl-nav-divider"></div>${sectionLink('cl-foundations', 'Foundations', 'foundations')}${sectionLink('cl-tokens', 'Design tokens', 'tokens')}${sectionLink('cl-audit', 'UI & UX audit', 'audit')}</nav><div class="cl-sidebar-note"><strong>Take a part. Make it yours.</strong><p>Import any .penpot download from your Penpot dashboard. Open Assets for the component and Tokens for its values.</p></div></aside>
       <main class="cl-library" data-lolly-ui-library>
         <section class="cl-inventory" id="cl-inventory"><div class="cl-section-head"><div><p class="cl-eyebrow">The collection</p><h2>Made for making.</h2></div></div>
-          <div class="cl-toolbar"><label class="cl-search">${icon('search', { size: 18 })}<input type="search" class="cl-search-input" placeholder="Find a component, pattern or CSS hook…" aria-label="Search components"></label><label class="cl-filter-label"><span>Preview</span><select class="cl-mode-filter" aria-label="Filter by preview type"><option value="all">All previews</option><option value="live">Interactive</option><option value="sample">Static samples</option><option value="fixture">Design fixtures</option></select></label></div>
+          <div class="cl-toolbar"><label class="cl-search">${icon('search', { size: 18 })}<input type="search" class="cl-search-input" placeholder="Find a component, pattern or CSS hook…" aria-label="Search components"></label><label class="cl-filter-label"><span>Preview</span><select class="cl-mode-filter" aria-label="Filter by preview type"><option value="all">All previews</option><option value="live">Interactive</option><option value="sample">Static samples</option><option value="fixture">Design fixtures</option></select></label><button type="button" class="btn cl-fold-all">Expand all</button></div>
           <p class="cl-result-count" role="status" aria-live="polite">Showing ${flat.length} components</p>
           <div class="cl-empty" hidden><h3>No components found.</h3><p>Try another name, CSS hook or preview type.</p><button class="btn cl-reset" type="button">Clear filters</button></div>
-          ${AUDIT_SECTIONS.map((sec, i) => `<section class="cl-section cl-component-section" id="${sectionId(sec.title)}"><div class="cl-section-head"><h2><span class="cl-section-number">${String(i + 1).padStart(2, '0')}</span>${escape(sec.title)}</h2><span class="cl-section-kind">${sec.items.length} specimens · ${sec.group === 'common' ? 'Shared' : 'In context'}</span>${useCaseLink(sec.title)}</div>${sec.blurb && sec.title === 'Colour tools' ? `<p class="cl-section-intro">${escape(sec.blurb)}</p>` : ''}<div class="cl-grid">${sec.items.map(item => specimenShell(item, n++, LIVE)).join('')}</div></section>`).join('')}
+          ${COMPONENT_SECTIONS.map((sec, i) => familyHtml(sec, i, sec.items.map(item => specimenShell(item, n++, LIVE)).join(''))).join('')}
         </section>
         ${foundationsHtml()}${tokenExplorerHtml()}<details class="cl-audit-disclosure"><summary>About the library & export fidelity</summary>${auditHtml()}</details>
         <footer class="cl-page-footer"><strong>Lolly, by design.</strong><span>One system. Room for expression.</span></footer>
       </main>
     </div>`;
 
-  // Fill each stage. A live component renders through its LIVE renderer; a markup
-  // specimen drops in its sample; a host-bound one shows its source snippet. Any
-  // throw shows the error rather than a silent empty box - this is a component
-  // surface; failures are the point of looking.
-  flat.forEach((item, i) => {
+  // Draw a stage the first time its family opens. A live component renders through its
+  // LIVE renderer; a markup specimen drops in its sample; a host-bound one shows its
+  // design fixture. Any throw shows the error rather than a silent empty box - this is a
+  // component surface; failures are the point of looking. Drawing on demand keeps the
+  // page light, and a component that measures itself as it mounts is never mounted
+  // inside a shut family, where it would measure nothing.
+  const drawn = new Set<number>();
+  const fillStage = (i: number): void => {
+    const item = flat[i];
     const stage = viewEl.querySelector<HTMLElement>(`[data-cl-stage="${i}"]`);
-    if (!stage) return;
+    if (!item || !stage || drawn.has(i)) return;
+    drawn.add(i);
     try {
       if (item.live && LIVE[item.live]) {
         const spec = LIVE[item.live]!;
@@ -580,19 +590,37 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
         if (typeof out === 'string') stage.innerHTML = out;
         else stage.appendChild(out);
         spec.wire?.(stage, host);
-      } else if (item.markup || componentFixture(item)) {
-        stage.innerHTML = neutralizeMarkup(item.markup || componentFixture(item)!);
-      } else if (item.code) {
-        // Needs the host bridge to run - show the call as a source snippet.
-        stage.classList.add('cl-stage--plain');
-        stage.innerHTML = `<code class="cl-code">${escape(item.code)}</code>`;
       } else {
-        stage.innerHTML = `<span class="cl-broken">no sample</span>`;
+        const sample = item.markup || componentFixture(item);
+        stage.innerHTML = sample ? neutralizeMarkup(sample) : `<span class="cl-broken">no sample</span>`;
       }
       prepareSpecimenStage(stage, item, displayName(item));
     } catch (err) {
       stage.innerHTML = `<span class="cl-broken">render failed: ${escape(String((err as Error)?.message ?? err))}</span>`;
     }
+  };
+  const families = [...viewEl.querySelectorAll<HTMLDetailsElement>('details.cl-family')];
+  // Only the cards on show are drawn: a search that opens a family for two matches draws two.
+  const fillFamily = (family: Element): void => {
+    family.querySelectorAll<HTMLElement>('.cl-card:not([hidden]) [data-cl-stage]').forEach(stage => { fillStage(Number(stage.dataset.clStage)); });
+  };
+  const foldAll = viewEl.querySelector<HTMLButtonElement>('.cl-fold-all')!;
+  // One button opens every family on show, or shuts them all once none is shut.
+  const syncFoldAll = (): void => {
+    const shown = families.filter(family => !family.hidden);
+    foldAll.textContent = shown.some(family => !family.open) ? 'Expand all' : 'Collapse all';
+    foldAll.disabled = shown.length === 0;
+  };
+  const setFamily = (family: HTMLDetailsElement, open: boolean): void => {
+    family.open = open;
+    if (open) fillFamily(family);
+  };
+  families.forEach(family => { family.addEventListener('toggle', () => { if (family.open) fillFamily(family); syncFoldAll(); }); });
+  foldAll.addEventListener('click', () => {
+    const shown = families.filter(family => !family.hidden);
+    const open = shown.some(family => !family.open);
+    shown.forEach(family => { setFamily(family, open); });
+    syncFoldAll();
   });
 
   // The one nav affordance - now the shared back pill, which already names and
@@ -607,7 +635,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
 
   // The reference block fills the first time it opens: the rendered markup, the
   // import or stylesheet, and the tokens the matching rules read. On demand, so
-  // 142 cards cost nothing until one is wanted.
+  // the cards cost nothing until one is wanted.
   const tokenSearch = viewEl.querySelector<HTMLInputElement>('.cl-token-search input')!;
   const fillReference = (details: HTMLDetailsElement): void => {
     const idx = Number(details.dataset.clRef);
@@ -633,7 +661,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
         ? `<button type="button" class="cl-token-chip" data-cl-token-jump="${escape(v.slice(2).replaceAll('-', '.').replace(/^ui\./, ''))}" title="Find in the token table"><code>${escape(v)}</code></button>`
         : `<code>${escape(v)}</code>`).join('')}</div><p class="cl-ref-note">Read from the stylesheet rules this sample matches. <code>--ui-</code> tokens are in the table below; the rest come from the active brand.</p>`));
     }
-    body.innerHTML = parts.join('') || '<p class="cl-ref-note">Nothing to copy: this preview is a source recipe.</p>';
+    body.innerHTML = parts.join('') || '<p class="cl-ref-note">Nothing to copy from this preview.</p>';
     body.hidden = false;
   };
   viewEl.querySelectorAll<HTMLDetailsElement>('details[data-cl-ref]').forEach(details => {
@@ -661,6 +689,9 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   const search = viewEl.querySelector<HTMLInputElement>('.cl-search-input')!;
   const mode = viewEl.querySelector<HTMLSelectElement>('.cl-mode-filter')!;
   const cards = [...viewEl.querySelectorAll<HTMLElement>('[data-cl-card]')];
+  // A search or a preview filter opens the families that hold a match. Clearing the
+  // filter returns each family to the state the person chose.
+  let foldBeforeFilter: Map<HTMLDetailsElement, boolean> | null = null;
   const filter = (): void => {
     const terms = search.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
     let count = 0;
@@ -670,15 +701,29 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
       card.hidden = !terms.every(term => haystack.includes(term)) || (mode.value !== 'all' && renderMode(s, LIVE) !== mode.value);
       if (!card.hidden) count++;
     });
-    viewEl.querySelectorAll<HTMLElement>('.cl-component-section').forEach(section => { section.hidden = !section.querySelector('.cl-card:not([hidden])'); });
+    const filtering = terms.length > 0 || mode.value !== 'all';
+    if (filtering && !foldBeforeFilter) foldBeforeFilter = new Map(families.map(family => [family, family.open]));
+    families.forEach(family => {
+      const any = !!family.querySelector('.cl-card:not([hidden])');
+      family.hidden = !any;
+      if (filtering) setFamily(family, any);
+      else if (foldBeforeFilter) setFamily(family, foldBeforeFilter.get(family) ?? false);
+    });
+    if (!filtering) foldBeforeFilter = null;
+    syncFoldAll();
     viewEl.querySelector('.cl-result-count')!.textContent = `Showing ${count} of ${flat.length} components`;
     viewEl.querySelector<HTMLElement>('.cl-empty')!.hidden = count !== 0;
   };
   const viewParams = new URLSearchParams(_params || '');
   search.value = viewParams.get('q') ?? '';
   if (['all', 'live', 'sample', 'fixture'].includes(viewParams.get('mode') ?? '')) mode.value = viewParams.get('mode')!;
-  filter();
+  // The address says which families were open (`_open`), and a `section` link opens its own.
   bindDisclosureUrl(viewEl, viewParams);
+  const linked = viewParams.get('section');
+  const linkedFamily = linked && /^cl-[a-z0-9-]+$/.test(linked) ? families.find(family => family.id === linked) : undefined;
+  if (linkedFamily) linkedFamily.open = true;
+  families.forEach(family => { if (family.open) fillFamily(family); });
+  filter();
   const syncFilter = (): void => { filter(); updateRouteParams({ q: search.value || null, mode: mode.value }); };
   search.addEventListener('input', syncFilter); mode.addEventListener('change', syncFilter);
   viewEl.querySelector('.cl-reset')?.addEventListener('click', () => { search.value = ''; mode.value = 'all'; syncFilter(); search.focus(); });
@@ -688,6 +733,8 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
     if (!target) return;
     target.closest<HTMLDetailsElement>('.cl-audit-disclosure')?.setAttribute('open', '');
     if (target.hidden) { search.value = ''; mode.value = 'all'; filter(); }
+    const family = families.find(candidate => candidate === target);
+    if (family) setFamily(family, true);
     updateRouteParams({ section: target.id, q: search.value || null, mode: mode.value });
     target.scrollIntoView({ block: 'start' });
     target.tabIndex = -1; target.focus({ preventScroll: true });
@@ -703,7 +750,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   let exporting = false;
   const runDownload = async (button: HTMLButtonElement, indexes: number[], status: HTMLElement): Promise<void> => {
     if (exporting) return;
-    if (!indexes.length) { status.textContent = 'Choose at least one visible component.'; return; }
+    if (!indexes.length) { status.textContent = 'Open a family first. The download takes the components on screen.'; return; }
     exporting = true;
     resetDownloadRecovery();
     const buttons = [...viewEl.querySelectorAll<HTMLButtonElement>('[data-cl-download], .cl-export-penpot, .cl-token-export')];
@@ -728,10 +775,10 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
     }
   };
   viewEl.querySelectorAll<HTMLButtonElement>('[data-cl-download]').forEach(button => { button.addEventListener('click', () => {
-    void runDownload(button, [Number(button.dataset.clDownload)], button.closest('.cl-card-footer')!.querySelector<HTMLElement>('.cl-download-status')!);
+    void runDownload(button, [Number(button.dataset.clDownload)], button.closest('.cl-card')!.querySelector<HTMLElement>('.cl-download-status')!);
   }); });
   const exportButton = viewEl.querySelector<HTMLButtonElement>('.cl-export-penpot')!;
-  exportButton.addEventListener('click', () => { void runDownload(exportButton, cards.flatMap((card, i) => card.hidden ? [] : [i]), viewEl.querySelector<HTMLElement>('.cl-export-status')!); });
+  exportButton.addEventListener('click', () => { void runDownload(exportButton, cards.flatMap((card, i) => card.hidden || !card.closest<HTMLDetailsElement>('details.cl-family')?.open ? [] : [i]), viewEl.querySelector<HTMLElement>('.cl-export-status')!); });
   tokenSearch.addEventListener('input', event => {
     const query = (event.target as HTMLInputElement).value.trim().toLowerCase();
     let count = 0;
