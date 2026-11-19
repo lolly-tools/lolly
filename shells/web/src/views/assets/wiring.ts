@@ -23,7 +23,7 @@ import { exportSwatches, paletteEntriesToSwatches } from '../../lib/swatch-expor
 import type { SwatchExportFormat } from '../../lib/swatch-export.ts';
 import { staggerReveal } from '../../lib/reveal.ts';
 import { restyleIconTheme, treatmentFilterSvg } from '@lolly/engine';
-import { CAT_ICONS, applyAssetGround, isThemable, readAssetGround, setCatToggle, svgTextToDataUrl, writeAssetGround } from './shared.ts';
+import { CAT_ICONS, applyAssetGround, iconThemeById, iconThemeForGround, isThemable, readAssetGround, setCatToggle, svgTextToDataUrl, writeAssetGround } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { findFacetOption, withProviderFacet } from '../assets-provider.ts';
 
@@ -33,7 +33,7 @@ import { findFacetOption, withProviderFacet } from '../assets-provider.ts';
 // flipping between colours never re-fetches. Best-effort per tile - a failure leaves it.
 export async function retheemeGroup(cat: CatCtx, group: HTMLElement, themeId: string | null): Promise<void> {
   const { iconSvgCache } = cat;
-  const th = themeId ? cat.iconThemes.find(x => x.id === themeId) : null;
+  const th = iconThemeById(cat, themeId) ?? null;
   group.dataset.iconTheme = themeId ?? '';
   // Recolour every icon in the group concurrently. The old serial `for…await`
   // did up to ~111 network round-trips one after another on the first colour
@@ -62,6 +62,36 @@ export function syncAssetGround(cat: CatCtx): void {
   for (const btn of viewEl.querySelectorAll<HTMLElement>('.cat-ground')) {
     btn.classList.toggle('is-on', dark);
     btn.setAttribute('aria-pressed', String(dark));
+  }
+  void syncIconPairs(cat);
+}
+// The icon colours follow the ground (views/assets/shared.ts iconThemeForGround). After
+// the ground changes, every swatch in the view and in an open details sheet takes its
+// colourway's pairing for the new ground, and each group that has a pair chosen is drawn
+// in that colourway's pairing for the new ground. All in place, so scroll is kept.
+export async function syncIconPairs(cat: CatCtx): Promise<void> {
+  const { host, viewEl } = cat;
+  const ground = readAssetGround();
+  if (cat.iconThemeGround === ground || !cat.iconThemes.length || typeof host.assets._iconThemes !== 'function') return;
+  const themes = await host.assets._iconThemes(undefined, ground).catch(() => null);
+  // A second press while the read was out: the later call has the ground now.
+  if (!themes?.length || !cat.mounted || readAssetGround() !== ground || cat.iconThemeGround === ground) return;
+  cat.iconThemes = themes;
+  cat.iconThemeGround = ground;
+  cat.catIconTheme = iconThemeForGround(cat.catIconTheme, ground);
+  for (const root of [viewEl, cat.detailsDialog]) {
+    for (const btn of root?.querySelectorAll<HTMLElement>('.cat-dl-theme:not(.cat-dl-treat)') ?? []) {
+      const th = iconThemeById(cat, btn.dataset.theme);
+      if (!th) continue;
+      btn.dataset.theme = th.id;
+      const [base, accent] = btn.querySelectorAll<HTMLElement>('.cat-dl-duo i');
+      if (base) base.style.background = th.c2;
+      if (accent) accent.style.background = th.c1;
+    }
+  }
+  for (const group of viewEl.querySelectorAll<HTMLElement>('.cat-group')) {
+    const chosen = iconThemeForGround(group.dataset.iconTheme, ground);
+    if (chosen) void retheemeGroup(cat, group, chosen);
   }
 }
 // Inject the treatment <filter> defs once (a hidden 0×0 SVG in the view root) so the
@@ -473,6 +503,7 @@ export function wiringOps(cat: CatCtx) {
   return {
     retheemeGroup: bindOp(cat, retheemeGroup),
     syncAssetGround: bindOp(cat, syncAssetGround),
+    syncIconPairs: bindOp(cat, syncIconPairs),
     ensureTreatmentDefs: bindOp(cat, ensureTreatmentDefs),
     retreatGroup: bindOp(cat, retreatGroup),
     reapplyTreatment: bindOp(cat, reapplyTreatment),

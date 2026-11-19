@@ -640,7 +640,9 @@ button.cat-download { font: inherit; cursor: pointer; }
 .cat-dl-themes { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .cat-dl-theme { padding: 3px; border: 2px solid transparent; border-radius: var(--radius-pill); background: none; cursor: pointer; }
 .cat-dl-theme.is-active { border-color: hsl(var(--primary)); }
-.cat-dl-duo { display: inline-flex; width: 30px; height: 18px; border-radius: var(--radius-pill); overflow: hidden; border: 0; }
+/* The hairline is an outline so it draws over the two halves: a pairing for a dark ground
+   can hold white or a pale tint, which has no edge of its own on a light page. */
+.cat-dl-duo { display: inline-flex; width: 30px; height: 18px; border-radius: var(--radius-pill); overflow: hidden; border: 0; outline: 1px solid hsl(var(--foreground) / .16); outline-offset: -1px; }
 .cat-dl-duo i { flex: 1; }
 /* The radio rows are `.field-toggle` + `.field-radio` (fields.css) - box, dot, hover,
    focus ring and hit-area all come from the primitive. The only delta left here is the

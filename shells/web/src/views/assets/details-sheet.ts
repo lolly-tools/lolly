@@ -56,7 +56,7 @@ import { readTuneRecord, tuneLicence, tuneLicenceChoices, withTuneLicence } from
 import { lollyBadge } from '../../lib/lolly-badge.ts';
 import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, applyAssetGround, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, startableTemplate, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, applyAssetGround, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, iconThemeById, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, startableTemplate, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
@@ -727,7 +727,7 @@ export function paintPassport(dt: DetailsCtx): void {
     void (async () => {
       try {
         if (!dt.dBaseSvg) dt.dBaseSvg = await (await fetch(ref.url)).text();
-        const th = cat.iconThemes.find(x => x.id === dt.dTheme);
+        const th = iconThemeById(cat, dt.dTheme);
         const img = dlg.querySelector<HTMLImageElement>('.cat-thumb');
         if (img && th) img.src = svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg);
       } catch { /* leave the base preview */ }
@@ -859,7 +859,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       });
       try {
         if (!dt.dBaseSvg) dt.dBaseSvg = await (await fetch(ref.url)).text();
-        const th = dt.dTheme ? cat.iconThemes.find(x => x.id === dt.dTheme) : null;
+        const th = iconThemeById(cat, dt.dTheme) ?? null;
         const img = dlg.querySelector<HTMLImageElement>('.cat-thumb');
         if (img) img.src = th ? svgTextToDataUrl(restyleIconTheme(dt.dBaseSvg, th) || dt.dBaseSvg) : ref.url;
       } catch { /* recolour is best-effort - leaves the base preview */ }

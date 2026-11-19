@@ -171,6 +171,7 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   // mount (plans/99 M0) with the same trim+lowercase the input handler applies.
   cat.query = (new URLSearchParams(params).get('q') || '').trim().toLowerCase();
   cat.iconThemes = [];          // two-colour pairings for themable icons (styler)
+  cat.iconThemeGround = 'light'; // the ground those pairings are for; the Dark ground switch moves it
   cat.catIconTheme = null;    // colour applied to a themable category's grid (null = base)
   const iconSvgCache = new Map<string, string>(); cat.iconSvgCache = iconSvgCache;  // base SVG text per themable-icon id - the recolour source
   cat.photoTreatments = [];  // greyscale/duotone washes for raster photo groups (like iconThemes)
