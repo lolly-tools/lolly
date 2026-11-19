@@ -1,5 +1,8 @@
 {
  "v": 1,
+ "source": {
+  "fingerprint": "e7bcaa680bb4ca422a5c9b027c4c62b6"
+ },
  "contexts": {
   "5f9b09dd41775cee8fb84a47cdb463c6": "light",
   "420d603df4c1a6c6f800328880ae4728": "dark"
@@ -17,7 +20,7 @@
    }
   },
   "darkroom": {
-   "version": "2.5.3",
+   "version": "2.6.0",
    "light": {
     "templateId": "warm-portrait",
     "file": "/catalog/previews/covers/darkroom.light.webp"
@@ -28,7 +31,7 @@
    }
   },
   "filter": {
-   "version": "1.6.0",
+   "version": "1.7.0",
    "light": {
     "templateId": "colour-scanlines",
     "file": "/catalog/previews/covers/filter.light.webp"
@@ -39,7 +42,7 @@
    }
   },
   "chart": {
-   "version": "1.28.0",
+   "version": "1.31.0",
    "light": {
     "templateId": "brand-bars",
     "file": "/catalog/previews/covers/chart.light.svg"
@@ -82,55 +85,8 @@
     "file": "/catalog/previews/covers/quote-card.dark.webp"
    }
   },
-  "week": {
-   "version": "1.0.0",
-   "light": {
-    "file": "/catalog/previews/covers/week.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/week.dark.svg"
-   }
-  },
-  "scorecard": {
-   "version": "1.0.0",
-   "light": {
-    "file": "/catalog/previews/covers/scorecard.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/scorecard.dark.svg"
-   }
-  },
-  "email": {
-   "version": "1.0.0",
-   "light": {
-    "file": "/catalog/previews/covers/email.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/email.dark.svg"
-   }
-  },
-  "brief": {
-   "version": "1.0.0",
-   "light": {
-    "file": "/catalog/previews/covers/brief.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/brief.dark.svg"
-   }
-  },
-  "quote": {
-   "version": "1.0.1",
-   "light": {
-    "templateId": "services",
-    "file": "/catalog/previews/covers/quote.light.svg"
-   },
-   "dark": {
-    "templateId": "services",
-    "file": "/catalog/previews/covers/quote.dark.svg"
-   }
-  },
   "3d-studio": {
-   "version": "0.9.1",
+   "version": "0.11.0",
    "light": {
     "templateId": "studio-object",
     "file": "/catalog/previews/covers/3d-studio.light.webp"
@@ -151,17 +107,6 @@
     "file": "/catalog/previews/covers/timezone.dark.webp"
    }
   },
-  "pricing-table": {
-   "version": "1.1.2",
-   "light": {
-    "templateId": "saas",
-    "file": "/catalog/previews/covers/pricing-table.light.svg"
-   },
-   "dark": {
-    "templateId": "saas",
-    "file": "/catalog/previews/covers/pricing-table.dark.svg"
-   }
-  },
   "org-chart": {
    "version": "1.2.0",
    "light": {
@@ -172,23 +117,12 @@
    }
   },
   "meeting-planner": {
-   "version": "1.2.4",
+   "version": "1.3.1",
    "light": {
     "file": "/catalog/previews/covers/meeting-planner.light.svg"
    },
    "dark": {
     "file": "/catalog/previews/covers/meeting-planner.dark.svg"
-   }
-  },
-  "battlecards": {
-   "version": "1.3.3",
-   "light": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/battlecards.light.svg"
-   },
-   "dark": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/battlecards.dark.svg"
    }
   },
   "agenda": {
@@ -223,7 +157,7 @@
    }
   },
   "wayfinding-signage": {
-   "version": "1.2.5",
+   "version": "1.3.0",
    "light": {
     "file": "/catalog/previews/covers/wayfinding-signage.light.svg"
    },
@@ -232,7 +166,7 @@
    }
   },
   "logo-wall": {
-   "version": "1.8.1",
+   "version": "1.9.0",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/logo-wall.light.svg"
@@ -251,17 +185,6 @@
    "dark": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/diagram-builder.dark.svg"
-   }
-  },
-  "calendar-ics": {
-   "version": "1.2.4",
-   "light": {
-    "templateId": "month",
-    "file": "/catalog/previews/covers/calendar-ics.light.svg"
-   },
-   "dark": {
-    "templateId": "month",
-    "file": "/catalog/previews/covers/calendar-ics.dark.svg"
    }
   },
   "backdrop": {
@@ -340,7 +263,7 @@
    }
   },
   "link-card": {
-   "version": "1.0.4",
+   "version": "1.1.0",
    "light": {
     "templateId": "og",
     "file": "/catalog/previews/covers/link-card.light.webp"
@@ -351,7 +274,7 @@
    }
   },
   "stationery": {
-   "version": "1.0.4",
+   "version": "1.1.0",
    "light": {
     "templateId": "card-card-back",
     "file": "/catalog/previews/covers/stationery.light.svg"
@@ -406,7 +329,7 @@
    }
   },
   "multi-page-pdf": {
-   "version": "1.1.4",
+   "version": "1.2.0",
    "light": {
     "templateId": "annual-report",
     "file": "/catalog/previews/covers/multi-page-pdf.light.webp"
@@ -428,7 +351,7 @@
    }
   },
   "doc-studio": {
-   "version": "1.3.0",
+   "version": "1.4.0",
    "light": {
     "templateId": "field-report",
     "file": "/catalog/previews/covers/doc-studio.light.webp"
@@ -439,7 +362,7 @@
    }
   },
   "booth-studio": {
-   "version": "0.4.0",
+   "version": "0.4.1",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/booth-studio.light.webp"
@@ -450,7 +373,7 @@
    }
   },
   "flythrough": {
-   "version": "0.2.6",
+   "version": "0.2.7",
    "light": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/flythrough.light.webp"
@@ -494,7 +417,7 @@
    }
   },
   "street-map": {
-   "version": "0.5.3",
+   "version": "0.5.4",
    "light": {
     "templateId": "city-poster",
     "file": "/catalog/previews/covers/street-map.light.webp"

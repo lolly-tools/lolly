@@ -171,7 +171,7 @@ test('item 5: ambient animation pauses, but spinners/progress/recording keep run
   // Loading/progress/recording motion must never be paused - none of these appear in the sheet.
   // (export-shutter is deliberately NOT here: its will-change is released, but its transient
   // export animation is left running - so the class DOES appear, in the will-change block only.)
-  for (const functional of ['job-bar-fill', 'canvas-processing-spinner', 'gtile-icon-trace', 'tl-rec-dot', 'odl-indet']) {
+  for (const functional of ['job-bar-fill', 'canvas-processing-spinner', 'gtile-icon-wait', 'gtile-iconfill-trace', 'tl-rec-dot', 'odl-indet']) {
     assert.ok(!CSS_NO_COMMENTS.includes(functional), `${functional} must keep animating (loading/progress/recording feedback)`);
   }
   // And the export-shutter animation specifically is never paused (only its will-change is dropped).

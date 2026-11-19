@@ -47,7 +47,7 @@ For transparent lettering and logos, a template can declare `galleryTheme: "ligh
 
 A tool that needs a person's media or a recording before it can produce a useful image sets `galleryArt: "icon"` in its manifest. The gallery then shows the tool's icon instead of running a capture, downloading a model or showing an empty editor. A tool with no image export format uses its icon too, unless its manifest sets `galleryArt: "render"`. That draws the first page of a template as a PNG for the card, such as the top card of a clip or the opening slide of a deck, and leaves the tool's export list as it is.
 
-After changing a cover, run `pnpm run build:gallery-covers --url=<your dev server>` for each profile. It saves each cover, so a first visit paints at once instead of rendering live. A stale file is never shown: the gallery renders live when the tool version, design system or theme differs.
+After changing a cover, run `pnpm run build:gallery-covers --all`. The command starts a web shell for each profile, saves each cover and rewrites only the files that changed, so a first visit paints at once instead of rendering live. A stale file is never shown: the gallery renders live when the tool version, design system or theme differs. A change to a design system's tokens retires every baked cover of that profile at once, so `pnpm run validate:catalog` fails until the covers are baked again.
 
 ### Templates people save
 

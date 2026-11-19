@@ -19,6 +19,8 @@ interface BakedCoverFile { templateId?: string; file: string }
 
 export interface BakedCoverManifest {
   v: 1;
+  /** What the bake was drawn from, for scripts/validate-catalog.ts. The gallery does not read this. */
+  source?: { fingerprint: string };
   /** Context hash to the theme it was baked in. */
   contexts: Record<string, string>;
   covers: Record<string, { version: string } & Record<string, BakedCoverFile | string>>;
@@ -75,22 +77,44 @@ declare global {
   var __lollyCoverContext: string | undefined;
 }
 
+/** The baked files that fit one visitor's context, read once for a whole gallery paint. */
+export interface BakedCoverSet {
+  /** The address of this look's baked file, or null to render the look live. */
+  fileFor(tool: { id: string; version?: string }, index: number, templateId?: string): string | null;
+}
+
+/**
+ * Resolve the visitor's context once: one token read, one hash and one manifest. A gallery
+ * paint asks this before it queues any render, so a baked cover is a plain image the
+ * browser loads by itself and never waits its turn behind a live render. Null means this
+ * visitor gets no baked file at all (a colourway of their own, another design system, a
+ * bake that is out of date), and every cover is rendered live.
+ */
+export async function bakedCoverSet(host: Pick<HostV1, 'tokens' | 'profile'>): Promise<BakedCoverSet | null> {
+  if (typeof Image === 'undefined' || typeof crypto === 'undefined' || !crypto.subtle) return null;
+  try {
+    if (await newWorkTokenSelection(host as ColourwaySeedHost)) return null;
+    const hash = await coverContextHash(await previewContextSignature(host));
+    if (globalThis.__lollyBakeCovers) { globalThis.__lollyCoverContext = hash; return null; }
+    const manifest = await loadManifest();
+    if (manifest?.v !== 1 || !manifest.contexts?.[hash]) return null;
+    return {
+      fileFor(tool, index, templateId) {
+        const file = pickBakedCover(manifest, hash, tool, index, templateId);
+        return file ? instancePath(file) : null;
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function bakedCover(
   host: Pick<HostV1, 'tokens' | 'profile'>,
   tool: { id: string; version?: string },
   index: number,
   templateId?: string,
 ): Promise<string | null> {
-  if (typeof Image === 'undefined' || typeof crypto === 'undefined' || !crypto.subtle) return null;
-  try {
-    if (await newWorkTokenSelection(host as ColourwaySeedHost)) return null;
-    const hash = await coverContextHash(await previewContextSignature(host));
-    if (globalThis.__lollyBakeCovers) { globalThis.__lollyCoverContext = hash; return null; }
-    const file = pickBakedCover(await loadManifest(), hash, tool, index, templateId);
-    if (!file) return null;
-    const url = instancePath(file);
-    return await decodes(url) ? url : null;
-  } catch {
-    return null;
-  }
+  const url = (await bakedCoverSet(host))?.fileFor(tool, index, templateId);
+  return url && await decodes(url) ? url : null;
 }

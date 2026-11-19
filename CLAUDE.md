@@ -61,6 +61,7 @@ pnpm run build:catalog        # regenerate catalog/tools/index.json + asset chec
 # edit, use:
 pnpm run build:catalog:all    # rebuild every mounted profile's catalog, then restore the active one
 pnpm run validate:catalog:all # validate every mounted profile; exits 1 on drift. CI runs plain validate:catalog on the lolly-start view (public clone), so run this one locally before pushing a community tool.json edit
+pnpm run build:gallery-covers --profile=<name>  # bake the gallery covers (catalog/previews/covers/ + covers.json) for one profile; --all for every mounted one. It starts its own web shell. REQUIRED after a design system's token document changes: the gallery uses a baked cover only for a visitor whose context hash matches the bake, the hash takes in every token, so a token edit retires every cover at once and validate:catalog fails until the bake is run again. After a tool version or a cover changes it rewrites only the files that differ
 pnpm run build:info           # build the docs/info site once (docs/build.ts → shells/web/public/info/). Add --watch to rebuild on change; dev:web runs it in --watch, build:web runs it once. Plain `pnpm run dev` in shells/web does NOT build /info.
 ```
 

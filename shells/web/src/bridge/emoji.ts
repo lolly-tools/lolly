@@ -70,10 +70,19 @@ function catalogPackRef(id: string, version: string): AssetRef {
 }
 
 export interface EmojiAPIOptions {
-  /** When a pack may be brought onto the device. A test runs this at once. */
+  /** When the code offline drawing needs may be loaded. A test runs this at once. */
   whenIdle?(run: () => void): void;
+  /** When a pack may be brought onto the device: once the person is at work here
+   *  (lib/engagement.ts). A test runs this when it chooses. */
+  whenEngaged?(run: () => void): void;
   /** Loads the code offline drawing needs. A test counts the calls instead. */
   warmCode?(): unknown;
+}
+
+/** A connection the person, or the network, has marked as one to spare. */
+function spareConnection(): boolean {
+  const connection = (globalThis.navigator as { connection?: { saveData?: boolean; effectiveType?: string } } | undefined)?.connection;
+  return connection?.saveData === true || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType ?? '');
 }
 
 /** After the tool has painted and the page has gone quiet. */
@@ -91,6 +100,7 @@ export function createEmojiAPI(assets: EmojiAssets, options: EmojiAPIOptions = {
   let listing = "";
   let holding: string[] = [];
   let holdQueued = false;
+  let packsQueued = false;
   let codeWarmed = false;
   const held = new Set<string>();
 
@@ -145,26 +155,37 @@ export function createEmojiAPI(assets: EmojiAssets, options: EmojiAPIOptions = {
   }
 
   /**
-   * Get ready to draw with no network, away from the tool opening: the code the pass
-   * needs, then the catalog packs in force, once each. A pack is stored and nothing
-   * parses it until a glyph needs drawing. Save-Data skips the packs and keeps the code,
-   * which is small and is also what draws the placeholder.
+   * Get ready to draw with no network, away from the tool opening. Two parts, at two
+   * moments:
+   *
+   * - The code the pass needs comes after the first paint and an idle moment, for every
+   *   visitor. It is small, and it is also what draws the placeholder.
+   * - The catalog packs in force come once the person is at work here: after a first
+   *   edit, or a stay of half a minute (lib/engagement.ts). A pack is megabytes, and a
+   *   person who opened one tool and left had no use for it; storing it after every
+   *   first paint made a first tool open 2.5 MB heavier. A pack a document needs now
+   *   does not wait for any of this: `manifest` and `artwork` fetch it when a glyph is
+   *   drawn or the Emoji section opens. A pack is stored and nothing parses it until
+   *   then. Save-Data and a slow connection skip the packs.
    */
   function holdOnDevice(ids: string[]): void {
     if (ids.length) void assets._holdCatalogAssets?.(ids)?.catch(() => {});
     if (!assets._getBlob) return;
     holding = ids;
-    if (holdQueued) return;
-    holdQueued = true;
-    (options.whenIdle ?? afterFirstPaint)(() => {
-      holdQueued = false;
-      if (globalThis.navigator?.onLine === false) return;
-      if (!codeWarmed) {
+    if (!holdQueued) {
+      holdQueued = true;
+      (options.whenIdle ?? afterFirstPaint)(() => {
+        holdQueued = false;
+        if (globalThis.navigator?.onLine === false || codeWarmed) return;
         codeWarmed = true;
         void (options.warmCode ? options.warmCode() : import('./offline-code.ts').then(code => code.warmOfflineCode()));
-      }
-      const connection = (globalThis.navigator as { connection?: { saveData?: boolean } } | undefined)?.connection;
-      if (connection?.saveData) return;
+      });
+    }
+    if (packsQueued) return;
+    packsQueued = true;
+    const store = (): void => {
+      packsQueued = false;
+      if (globalThis.navigator?.onLine === false || spareConnection()) return;
       void (async () => {
         for (const id of holding) {
           if (held.has(id)) continue;
@@ -173,7 +194,9 @@ export function createEmojiAPI(assets: EmojiAssets, options: EmojiAPIOptions = {
           catch { held.delete(id); }
         }
       })();
-    });
+    };
+    if (options.whenEngaged) options.whenEngaged(store);
+    else void import('../lib/engagement.ts').then(({ whenEngaged }) => whenEngaged(store), () => { packsQueued = false; });
   }
 
   async function fetchBundle(pin: EmojiPackPinV1, from?: Entry): Promise<EmojiPackBundleV1 | null> {

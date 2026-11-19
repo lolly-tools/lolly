@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createPreviewQueue } from './preview-queue.ts';
+import { createPreviewQueue, holdWhileBusy } from './preview-queue.ts';
 
 function fixture(timeoutMs = 60_000) {
   const pending = new Set<() => void>();
@@ -121,4 +121,35 @@ test('a hold stops new renders until released, and holds count independently of 
   f.queue.setPaused(false);
   await f.drain();
   assert.deepEqual(seen, ['a', 'b']);
+});
+
+test('the queue is held while the person scrolls or types, and released after a short rest', (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const log: string[] = [];
+  const queue = { hold() { log.push('hold'); return () => { log.push('release'); }; } };
+  const listeners = new Map<string, () => void>();
+  const target = {
+    addEventListener(type: string, fn: () => void) { listeners.set(type, fn); },
+    removeEventListener(type: string) { listeners.delete(type); },
+  } as unknown as Pick<Window, 'addEventListener' | 'removeEventListener'>;
+  const undo = holdWhileBusy(queue, target, 350);
+  assert.deepEqual([...listeners.keys()].sort(), ['keydown', 'scroll', 'touchmove', 'wheel']);
+
+  listeners.get('scroll')!();
+  listeners.get('scroll')!();
+  listeners.get('wheel')!();
+  assert.deepEqual(log, ['hold'], 'one hold however many events arrive');
+  t.mock.timers.tick(349);
+  listeners.get('keydown')!();
+  t.mock.timers.tick(349);
+  assert.deepEqual(log, ['hold'], 'more activity keeps the one hold');
+  t.mock.timers.tick(1);
+  assert.deepEqual(log, ['hold', 'release'], 'the queue takes up again after the rest');
+
+  listeners.get('touchmove')!();
+  undo();
+  assert.deepEqual(log, ['hold', 'release', 'hold', 'release'], 'the undo releases a hold that is still open');
+  assert.equal(listeners.size, 0);
+  t.mock.timers.tick(1000);
+  assert.equal(log.length, 4, 'and nothing fires afterwards');
 });

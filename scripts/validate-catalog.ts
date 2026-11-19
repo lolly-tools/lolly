@@ -64,6 +64,7 @@ import { parseToolAssetId } from '@lolly-tools/node-shell/tool-asset-id';
 // own audits only when it IS the command (see its main guard).
 import { auditBundle, checkEmojiPackSpecimen, readPackFacts } from './check-emoji-packs.ts';
 import { applyProfileArg } from './lib/profile-arg.ts';
+import { coverSourceFingerprint } from './lib/cover-source.ts';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -2343,12 +2344,21 @@ for (const err of verifySharedRegions()) {
 
 // ─── Report ─────────────────────────────────────────────────────────────────
 
-// Baked gallery covers: a stale one only costs a live render, so this reminds, never fails.
+// Baked gallery covers. One tool's new version retires one cover, which costs a live
+// render and is a reminder. A changed token document retires all of them at once, and the
+// gallery shows no sign of that, so a bake drawn from other tokens is an error.
 if (existsSync(catalogFile('previews/covers.json')) && existsSync(catalogFile('tools/index.json'))) {
-  const baked = JSON.parse(readFileSync(catalogFile('previews/covers.json'), 'utf8')) as { covers?: Record<string, { version?: string }> };
+  const baked = JSON.parse(readFileSync(catalogFile('previews/covers.json'), 'utf8')) as { source?: { fingerprint?: string }; covers?: Record<string, { version?: string }> };
   const listed = JSON.parse(readFileSync(catalogFile('tools/index.json'), 'utf8')) as { tools?: Array<{ id: string; version?: string }> };
+  const bake = `pnpm run build:gallery-covers --profile=${contentRoots().profile}`;
+  const drawnFrom = baked.source?.fingerprint;
+  if (drawnFrom === undefined) {
+    warnings.push(`catalog/previews/covers.json: this bake does not record the tokens it was drawn from, so a retired bake cannot be seen here - run \`${bake}\``);
+  } else if (drawnFrom !== coverSourceFingerprint(readBrandAssetIndex().assets)) {
+    errors.push(`catalog/previews/covers.json: the covers were baked from other design system tokens, so no visitor is shown any of them - run \`${bake}\``);
+  }
   const stale = (listed.tools ?? []).filter((t) => baked.covers?.[t.id] && baked.covers[t.id]!.version !== t.version).map((t) => t.id);
-  if (stale.length) warnings.push(`catalog/previews/covers.json: ${stale.length} baked covers are stale (${stale.slice(0, 6).join(', ')}) - run \`pnpm run build:gallery-covers --url=<dev server>\``);
+  if (stale.length) warnings.push(`catalog/previews/covers.json: ${stale.length} baked covers are stale (${stale.slice(0, 6).join(', ')}) - run \`${bake}\``);
 }
 
 if (warnings.length) {

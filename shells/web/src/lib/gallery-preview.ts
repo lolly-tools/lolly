@@ -17,12 +17,23 @@ export interface GalleryPreviewSource {
   templates?: Array<{ id: string; name: string; galleryCover?: boolean; galleryTheme?: 'light' | 'dark'; values?: Record<string, unknown>; motion?: TemplateMotion }>;
 }
 
-/** Finish covers before nearby extra templates; captures also finish hidden looks. */
-export function galleryPreviewPriority(card: HTMLElement, cover: boolean, capture: boolean): number | null {
+/**
+ * Finish covers before any extra template; captures also finish hidden looks.
+ *
+ * An extra template is drawn only for a card the person has shown interest in (`wanted`:
+ * the pointer or the focus is on the card, or the card is on a touch screen). A first
+ * visit used to draw every look of every nearby card, about 350 ms of main-thread work
+ * each, for strips that most visitors never step through.
+ */
+export function galleryPreviewPriority(card: HTMLElement, cover: boolean, capture: boolean, wanted = true): number | null {
   const rect = (card.closest('.gtile') ?? card).getBoundingClientRect();
   if (!rect.width || !rect.height) return capture ? 3 : null;
   const near = rect.bottom >= -250 && rect.top <= window.innerHeight + 250;
-  return cover ? (near ? 0 : 1) : (near || capture || typeof IntersectionObserver === 'undefined' ? 2 : null);
+  if (cover) return near ? 0 : 1;
+  if (capture || typeof IntersectionObserver === 'undefined') return 2;
+  // Asked for by the person, so it goes ahead of covers far down the page and of the
+  // strip's ambient looks (2), and behind only the covers on the screen.
+  return near && wanted ? 0.5 : null;
 }
 
 export function galleryPreviewLooks(tool: GalleryPreviewSource): FeaturedVariant[] {

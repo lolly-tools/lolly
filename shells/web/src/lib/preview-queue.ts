@@ -83,3 +83,29 @@ export function createPreviewQueue(
 }
 
 export type PreviewQueue = ReturnType<typeof createPreviewQueue>;
+
+/**
+ * Hold a queue while the person scrolls the page or types, and take it up again after a
+ * short rest. One live render is a few hundred milliseconds of main-thread work, so none
+ * should start under a moving page. Returns the undo.
+ *
+ * The window's own scroll only: a strip that drifts sends scroll events all the time,
+ * and those do not bubble this far.
+ */
+export function holdWhileBusy(queue: Pick<PreviewQueue, 'hold'>, target: Pick<Window, 'addEventListener' | 'removeEventListener'> = window, restMs = 350): () => void {
+  let release: (() => void) | null = null;
+  let rest: ReturnType<typeof setTimeout> | undefined;
+  const busy = (): void => {
+    release ??= queue.hold();
+    clearTimeout(rest);
+    rest = setTimeout(() => { release?.(); release = null; }, restMs);
+  };
+  const types = ['scroll', 'wheel', 'touchmove', 'keydown'] as const;
+  for (const type of types) target.addEventListener(type, busy, { passive: true });
+  return () => {
+    for (const type of types) target.removeEventListener(type, busy);
+    clearTimeout(rest);
+    release?.();
+    release = null;
+  };
+}

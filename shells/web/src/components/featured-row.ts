@@ -38,6 +38,7 @@ import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormatOf } from '../lib/featured-render.ts';
 import { toolSeedHref } from '../lib/seed-url.ts';
 import { galleryLookHref, heldGalleryLook, renderGalleryLook } from '../lib/gallery-preview.ts';
+import { bakedCoverSet } from '../lib/gallery-covers.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { dragTravel, type DragTravel } from '../lib/pointer-wrap.ts';
 import { currentTheme } from '../theme.ts';
@@ -133,6 +134,10 @@ export interface FeaturedRowHandle {
 }
 
 const FADE_INTERVAL_MS = 4600;    // dwell on each look before cross-fading
+/** Looks one tile cross-fades through, the grid card's own limit. A tool with forty
+ *  templates used to queue forty live renders here on a first visit, for a rotation
+ *  that takes three minutes to come round. */
+const STRIP_LOOKS_MAX = 6;
 const DRIFT_PX_PER_SEC = 22;      // "slowly" - a calm, readable drift speed
 const RESUME_DELAY_MS = 900;      // after a manual scroll settles, ease back into drift
 const WHEEL_TO_VELOCITY = 14;     // px/s of spin added per unit of horizontal wheel delta
@@ -1130,6 +1135,7 @@ export function mountFeaturedRow(
       return { entry: e, id: e.id, formats: e.formats, canRender: !!fmt, variants: reduced ? (e.galleryPreview ? looks.slice(0, 1) : []) : looks };
     });
     const maxV = perTool.reduce((m, t) => Math.max(m, t.variants.length), 0);
+    const queued = new Map<string, number>();
     for (let i = 0; i < maxV; i++) {
       for (const t of perTool) {
         const v = t.variants[i];
@@ -1139,6 +1145,9 @@ export function mountFeaturedRow(
         // `index: i` keeps the ORIGINAL manifest position so the render cache key is
         // stable whichever looks the theme filters in/out.
         if (v.theme && (v.theme === 'dark') !== darkTheme) continue;
+        const count = queued.get(t.id) ?? 0;
+        if (count >= STRIP_LOOKS_MAX) continue;
+        queued.set(t.id, count + 1);
         jobs.push({ id: t.id, formats: t.formats, index: i, values: v.values, look: v, tool: t.entry });
       }
     }
@@ -1217,13 +1226,32 @@ export function mountFeaturedRow(
       // Register the whole strip now so its extra templates cannot jump ahead
       // of covers in the grid (or another strip). Hidden rows park their work.
       const firstByTool = new Set<string>();
+      const started = new Set<VariantJob>();
+      const startJob = (job: VariantJob): Promise<void> => {
+        if (started.has(job)) return Promise.resolve();
+        started.add(job);
+        return renderJob(job);
+      };
+      const coverJobs: VariantJob[] = [];
       for (const job of jobs) {
         const cover = !firstByTool.has(job.id);
         firstByTool.add(job.id);
+        if (cover) coverJobs.push(job);
         opts.previewQueue.add({
           priority: () => perfUiOn() || !visible ? null : cover ? (onScreen ? 0 : 1) : onScreen ? 2 : null,
-          stale: () => destroyed,
-          run: () => renderJob(job),
+          stale: () => destroyed || started.has(job),
+          run: () => startJob(job),
+        });
+      }
+      // A cover with a baked file is a plain picture, so it goes on at once and does not
+      // wait its turn in the queue (which is held behind the welcome and runs on idle).
+      // A capture keeps its live renders, so its baselines hold.
+      if (!captureNeutralPinned()) {
+        void bakedCoverSet(host).then((baked) => {
+          if (!baked || destroyed || perfUiOn()) return;
+          for (const job of coverJobs) {
+            if (job.tool?.galleryPreview && job.look && baked.fileFor(job.tool, job.index, job.look.templateId)) void startJob(job);
+          }
         });
       }
       resumeQueue = () => opts.previewQueue?.wake();
