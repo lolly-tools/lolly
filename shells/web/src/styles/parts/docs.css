@@ -152,7 +152,7 @@
    article - in the reader it opens the article itself, which is where a title
    belongs in one column. */
 .docs-content > .docs-page-title:first-child,
-.docs-content > .docs-eyebrow:first-child + .docs-page-title { margin-top: 0; }
+.docs-content > .docs-crumbs:first-child + .docs-page-title { margin-top: 0; }
 .docs-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
 .docs-content h3 { font-size: calc(1.15rem * var(--a11y-fs, 1)); color: var(--dark); margin-top: 1.75rem; margin-bottom: 0.5rem; }
 .docs-content h4 { font-size: calc(1rem * var(--a11y-fs, 1)); color: var(--muted); margin-top: 1.25rem; margin-bottom: 0.35rem; }
