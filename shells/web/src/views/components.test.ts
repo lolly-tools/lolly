@@ -52,6 +52,38 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     assert.equal(view.querySelectorAll('[data-cl-download]').length, total);
     assert.deepEqual([...view.querySelectorAll('.cl-broken')].map(n => n.textContent), []);
     assert.equal(view.querySelector('.cl-component-section')?.id, 'cl-token-workflows');
+    // Every family starts shut: the page opens as an index, and no specimen is drawn.
+    const families = [...view.querySelectorAll<HTMLDetailsElement>('details.cl-family')];
+    const drawn = (): number => [...view.querySelectorAll('.cl-stage')].filter(stage => stage.childNodes.length > 0).length;
+    assert.equal(families.length, COMPONENT_SECTIONS.length);
+    assert.deepEqual(families.filter(family => family.open), []);
+    assert.equal(drawn(), 0, 'nothing is drawn until a family opens');
+    assert.deepEqual([...families[0]!.querySelectorAll('.cl-family-list > span')].map(n => n.textContent), ['Token context', 'Typed token field', 'Token workspace'], 'a shut family lists its parts');
+    const foldAll = view.querySelector<HTMLButtonElement>('.cl-fold-all')!;
+    assert.equal(foldAll.textContent, 'Expand all');
+    // A search opens the families that hold a match, draws the matches alone, and
+    // clearing the search shuts them again.
+    const finder = view.querySelector<HTMLInputElement>('.cl-search-input')!;
+    finder.value = 'palette wheel'; finder.dispatchEvent(new dom.window.Event('input'));
+    const matches = view.querySelectorAll('.cl-card:not([hidden])').length;
+    assert.ok(matches > 0 && matches < total);
+    assert.ok(families.find(family => family.id === 'cl-colour-tools')!.open);
+    assert.deepEqual(families.filter(family => family.open && family.hidden), [], 'a family with no match is hidden, not open');
+    assert.equal(drawn(), matches, 'only the matches are drawn');
+    finder.value = ''; finder.dispatchEvent(new dom.window.Event('input'));
+    assert.deepEqual(families.filter(family => family.open), [], 'clearing the search puts every family back');
+    // A section link opens its family and draws that family alone.
+    view.querySelector<HTMLAnchorElement>('[data-cl-jump="cl-buttons"]')!.click();
+    const buttons = families.find(family => family.id === 'cl-buttons')!;
+    assert.equal(buttons.open, true);
+    assert.equal([...buttons.querySelectorAll('.cl-stage')].every(stage => stage.childNodes.length > 0), true);
+    assert.deepEqual(families.filter(family => family.open).map(family => family.id), ['cl-buttons']);
+    // Expand all draws every specimen, and the button then offers to shut them.
+    foldAll.click();
+    assert.equal(families.every(family => family.open), true);
+    assert.equal(drawn(), total);
+    assert.equal(foldAll.textContent, 'Collapse all');
+    assert.deepEqual([...view.querySelectorAll('.cl-broken')].map(n => n.textContent), []);
     assert.ok(view.querySelector('[data-cl-preview="wheel"]'));
     assert.equal(view.querySelectorAll('[data-cl-preview="audioDock"] .audio-dock').length, 1, 'use the production player shell');
     assert.equal(view.querySelector('[data-cl-preview="catSummary"]')?.textContent?.includes('reading…'), false);
@@ -136,9 +168,16 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     const previousCleanup = (view as HTMLElement & { _cleanup?: () => void })._cleanup;
     await mountComponents(view, host);
     previousCleanup?.();
+    view.querySelector<HTMLButtonElement>('.cl-fold-all')!.click();
     assert.ok(view.querySelector('[data-cl-preview="codeEditor"] textarea'), 'an old mount cannot dispose the current editor');
     const loadingCard = view.querySelector('[data-cl-preview="viewLoading"]')!.closest('.cl-card')!;
     assert.equal(loadingCard.querySelector('.cl-kind')?.textContent, 'Interactive');
+    // The address opens what it says: the families in `_open`, and a `section` link's own.
+    (view as HTMLElement & { _cleanup?: () => void })._cleanup?.();
+    await mountComponents(view, host, '_open=cl-buttons&section=cl-gallery');
+    assert.deepEqual([...view.querySelectorAll<HTMLDetailsElement>('details.cl-family[open]')].map(family => family.id), ['cl-buttons', 'cl-gallery']);
+    assert.equal([...view.querySelectorAll('.cl-stage')].filter(stage => stage.childNodes.length > 0).length,
+      view.querySelectorAll('#cl-buttons .cl-stage, #cl-gallery .cl-stage').length, 'only the open families are drawn');
   } finally {
     (view as HTMLElement & { _cleanup?: () => void })._cleanup?.();
     dom.window.close();

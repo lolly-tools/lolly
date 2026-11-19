@@ -59,8 +59,12 @@ for (const width of [1440, 390]) {
         const errors: string[] = [];
         page.on('pageerror', error => errors.push(error.message));
         await page.goto(`${origin}/?_appearance=${appearance}#/components`, { waitUntil: 'domcontentloaded' });
-        await page.locator('.cl-card').first().waitFor({ timeout: 60_000 });
+        await page.locator('.cl-card').first().waitFor({ state: 'attached', timeout: 60_000 });
         await page.waitForFunction(() => !document.querySelector('#view[data-route-mounting], dialog.view-loading[open]'));
+        // Every family starts shut and draws its specimens when it opens: open them all.
+        assert.equal(await page.locator('details.cl-family[open]').count(), 0);
+        await page.locator('.cl-fold-all').click();
+        await page.waitForFunction(() => [...document.querySelectorAll('.cl-stage')].every(stage => stage.childNodes.length > 0));
         const result = await page.evaluate(async () => {
           const moduleUrl = '/src/views/components-data.ts';
           const { COMPONENT_SECTIONS }: typeof import('../shells/web/src/views/components-data.ts') = await import(moduleUrl);

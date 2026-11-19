@@ -78,7 +78,27 @@
 .cl-empty p { color: var(--ui-color-text-muted); }
 .cl-component-section .cl-section-head { padding-bottom: 16px; border-bottom: 1px solid var(--ui-color-border-default); flex-wrap: wrap; }
 .cl-component-section .cl-section-head h2 { font-size: var(--ui-type-heading); }
-.cl-section-number { display: inline-block; margin-inline-end: 14px; color: var(--ui-color-text-muted); font: var(--ui-type-caption)/1 var(--font-mono); letter-spacing: 0; }
+.cl-section-number { color: var(--ui-color-text-muted); font: var(--ui-type-caption)/1 var(--font-mono); letter-spacing: 0; }
+/* A family folds. Shut, its head is one entry of an index: the number, the name, the
+   count and the names of its parts on one line, with the fold arrow at the far end.
+   Open, the same head is the family's heading and sets in the heading size. The arrow is
+   the shared one every summary draws (parts/disclosure.css). */
+.cl-section.cl-family { margin-bottom: 0; }
+.cl-section.cl-family[open] { margin-bottom: var(--ui-space-section); }
+.cl-family > summary.cl-section-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: baseline; gap: var(--ui-space-control-block) var(--ui-space-panel); margin-bottom: 0; padding-block: var(--ui-space-panel); }
+.cl-family > summary.cl-section-head h2 { font-size: var(--ui-type-lead); }
+.cl-family[open] > summary.cl-section-head h2 { font-size: var(--ui-type-heading); }
+.cl-family > summary.cl-section-head::after { grid-area: 1 / 4; align-self: center; margin-inline: 0 var(--sp-1); }
+.cl-family-list { grid-area: 2 / 2 / 3 / 5; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); line-height: 1.5; }
+/* The gap between names is the separator: several names hold a dot or a slash of their own. */
+.cl-family-list > span { margin-inline-end: var(--ui-space-panel); }
+.cl-family[open] .cl-family-list { display: none; }
+.cl-family > summary.cl-section-head:hover h2 { color: var(--ui-color-text-accent); }
+.cl-family-intro { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--ui-space-control-inline) var(--ui-space-panel); margin: var(--ui-space-panel) 0 24px; }
+.cl-family-intro .cl-section-intro { margin: 0; }
+.cl-family-intro .cl-text-link { padding-block: 0; }
+.cl-family > .cl-grid:first-of-type { margin-top: var(--ui-space-panel); }
+.cl-fold-all { min-height: var(--ui-size-target); white-space: nowrap; }
 .cl-section-kind { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
 /* Each card is as tall as its own content. Stretched to its row, a short card grew a
    blank middle, and opening one card's reference stretched its neighbour to match. */
