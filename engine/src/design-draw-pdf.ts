@@ -362,7 +362,7 @@ export function designDrawPdf(pages: readonly DesignPdfPage[], info: DesignPdfIn
       const space = gray ? '/DeviceGray' : '/DeviceRGB';
       objects.put(num, paint.kind === 'linear'
         ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint.x1, paint.y1, paint.x2, paint.y2].map(n).join(' ')}] /Function ${fn} /Extend [true true] >>`
-        : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 0.71] /Function ${fn} /Extend [true true] >>`);
+        : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 ${n(Math.SQRT1_2)}] /Function ${fn} /Extend [true true] >>`);
       return num;
     };
 
