@@ -1723,6 +1723,12 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   .table-del-row { opacity: .6; }
   .table-del-row:active { opacity: 1; }
 }
+/* A fingertip-sized hit area inside the row, so the row height does not grow. Positioned
+   so the reach resolves against this button, not the row. */
+@media (pointer: coarse) {
+  .table-del-row { position: relative; }
+  .table-del-row::before { content: ''; position: absolute; inset: calc((40px - 100%) / -2); }
+}
 /* Pop-out, pinned to the grid's top-right. Its own bar rather than an overlay on
    the corner cell, which already carries that column's remove-×. The negative
    margin pulls the icon down onto the grid's top edge so the bar costs almost no

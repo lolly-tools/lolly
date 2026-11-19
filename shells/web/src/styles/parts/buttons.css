@@ -228,11 +228,13 @@
 .close-btn--inherit:hover:not(:disabled) { background: color-mix(in oklab, currentColor 14%, transparent); color: inherit; }
 /* A removal reads as one on hover. */
 .close-btn--danger:hover:not(:disabled) { background: var(--ui-color-status-danger-surface); color: var(--ui-color-status-danger); }
-/* A finger gets the full target without the box growing, so a head or a row keeps one
-   height on every device: the reach widens to the target size around the same box. */
+/* A finger gets the full target on the standard size: the box itself grows, so the
+   target is real and never lies over the control next to it. (A wider reach drawn with a
+   pseudo-element was tried and took taps meant for a neighbour.) The small size keeps its
+   box so a dense row holds its height. A call site whose small button is the only way to
+   cancel something gives that button room of its own. */
 @media (pointer: coarse) {
-  .close-btn { position: relative; }
-  .close-btn::after { content: ""; position: absolute; inset: min(0px, calc((100% - var(--ui-size-target)) / 2)); }
+  .close-btn:not(.close-btn--sm) { width: var(--ui-size-target); height: var(--ui-size-target); }
 }
 
 /* Glass - the translucent "glass pill" recipe. Used to live ONLY on the combined

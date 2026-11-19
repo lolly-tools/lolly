@@ -172,6 +172,16 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .job-row .job-x { grid-column: 2; grid-row: 1 / -1; align-self: center; }
+
+/* The cancel is the shared close button (lib/close-button.ts) at its small size. It is
+   the only cancel for every background job, so on a touch screen its box takes the 44px
+   floor (the same floor as topbar.css's coarse-pointer block) and cannot be a thumb-miss. */
+@media (pointer: coarse) {
+  .job-x {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
 .job-row-bar-wrap { grid-column: 1; }
 .job-row-meta {
   grid-column: 1;
