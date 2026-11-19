@@ -258,6 +258,11 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   // Connected services logos (Simple Icons paths in lib/service-marks/), the same
   // one-template shape as the vendor marks above. 2026-09-30.
   'lib/service-marks.ts': 1,
+  // A picker option's own glyph (manifest options[].glyph, engine 1.348.0). The glyph is
+  // tool data: a tool brings its own pictures and the registry does not grow. One
+  // template; the path data is drawn only after passing the schema's pattern again.
+  // 2026-11-17.
+  'lib/option-picker.ts': 1,
   'views/free-canvas-fields.ts': 1,
   'views/multi-edit.ts': 1,
   'views/personalize-nudge.ts': 1,
@@ -659,6 +664,10 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  // The picker panel (display "picker", 2026-11-17): option labels, group headings and
+  // the input label through escape(), t() strings escape()d, the close glyph from the
+  // registry, and an option glyph only after it passes the schema's path pattern.
+  'lib/option-picker.ts': 1,
   'lib/design-system/rooms/colour-roles.ts': 3,   // 2026-11-06: the Colour roles room; every label goes through esc() in colour-roles-html.ts
   'views/read-extract.ts': 5, // Read and extract: static shell markup plus escapeHtml()-wrapped counts and messages, and renderExtractHtml output
   // The split layout's Swap sides button: one fixed registry icon, nothing interpolated.
@@ -2119,7 +2128,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // breathing keyframes went with the rail; the bar's button is a plain pill.
     // 243 to 242 (plan 346): the Board's colour chips wear the faint edge token.
     // 242 to 241: the shared progress bar lost its outline (Andy, 2026-11-14).
-    pin: 241,
+    // 241 to 240: Cover Flow's Open control wears the chrome's bevel and elevation.
+    pin: 240,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

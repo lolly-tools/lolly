@@ -72,6 +72,15 @@ export interface SelectOption {
   /** Export formats offered while this option is selected: a subset of
    *  render.formats, letting the option drive the export format bar. */
   formats?: string[];
+  /** Icon name from the web shell's registry, shown by `icon-toggle` and badged
+   *  pickers, and by a `picker` tile with no `glyph`. */
+  icon?: string;
+  /** SVG path data for a 24 by 24 box, drawn as an outline on a `picker` tile
+   *  and its trigger. At most 900 characters of path commands and numbers. */
+  glyph?: string;
+  /** A short heading. A `picker` select draws options that share one under that
+   *  heading, in manifest order, with groups in order of first appearance. */
+  group?: string;
 }
 
 /**
@@ -137,7 +146,7 @@ export interface InputSpec {
   min?: number;
   max?: number;
   step?: number;
-  display?: 'input' | 'slider' | 'select' | 'icon-toggle' | 'pill' | 'segmented' | 'curve';
+  display?: 'input' | 'slider' | 'select' | 'icon-toggle' | 'pill' | 'segmented' | 'picker' | 'curve';
   unit?: string;
   suffix?: string;
   /** Named columns and optional form controls for a string-valued table. */

@@ -267,9 +267,6 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   font-size: calc(12.5px * var(--a11y-fs)); font-weight: 600;
   color: hsl(var(--muted-foreground)); padding: 2px 2px;
 }
-.save-more > summary::-webkit-details-marker { display: none; }
-.save-more > summary::before { content: '▸'; display: inline-block; margin-right: 6px; transition: transform var(--dur-1); }
-.save-more[open] > summary::before { transform: rotate(90deg); }
 .save-more > summary:hover, .save-more > summary:focus-visible { color: hsl(var(--foreground)); outline: none; }
 
 .save-dialog-foot {

@@ -1219,7 +1219,7 @@
   align-items: baseline;
   gap: 0.25rem 0.6rem;
 }
-.lab-diag-summary::-webkit-details-marker { display: none; }
+.lab-diag-summary::after { content: none; }
 .lab-diag-summary::before {
   content: '';
   align-self: center;

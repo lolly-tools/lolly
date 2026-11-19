@@ -689,7 +689,7 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
   font-size: var(--ui-type-help);
   font-weight: var(--ui-type-weight-label);
 }
-.lp-details > summary::-webkit-details-marker { display: none; }
+.lp-details > summary::after { content: none; }
 .lp-details > summary > svg {
   flex: none;
   width: var(--ui-size-icon-sm);

@@ -2401,12 +2401,16 @@ export function mountAudioThumbs(
   /** Tiles this mount has already painted, so a late palette can colour them instead of
    *  leaving the grid half grey. Weak refs: a tile dropped by a re-render must not be
    *  held alive by this list. */
-  const painted = new Set<WeakRef<HTMLElement>>();
+  const painted: WeakRef<HTMLElement>[] = [];
 
   const repaintPainted = (): void => {
-    for (const ref of painted) {
+    // splice(0) takes the list and empties it, because paint() records the tile again.
+    // Walking a live set while paint() added to it never ended: each repaint appended an
+    // entry the walk then reached, so one tile painted before the pool arrived froze the
+    // page for good. A tile that has left the page is dropped here.
+    for (const ref of painted.splice(0)) {
       const el = ref.deref();
-      if (!el?.isConnected) { painted.delete(ref); continue; }
+      if (!el?.isConnected) continue;
       const id = el.dataset.audioThumb ?? '';
       const p = id ? memoPeaks(id) : null;
       if (p) paint(el, p);
@@ -2470,7 +2474,7 @@ export function mountAudioThumbs(
       shape: look.shape,
       label: String(lookup(id)?.meta?.name ?? id),
     });
-    painted.add(new WeakRef(el));
+    painted.push(new WeakRef(el));
     if (look.viz) void paintBakedCover(el, id, look.viz);
   };
 

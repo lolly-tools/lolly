@@ -105,6 +105,16 @@ export interface SelectOption {
   /** Icon name (shells/web/src/lib/icons.ts) shown instead of the label when the
    *  input renders as `display: 'icon-toggle'`. The engine only carries it. */
   icon?: string;
+  /** SVG path data for a 24 by 24 box, drawn as an outline in the web shell's
+   *  `display: 'picker'` tiles and trigger. It is tool data: a tool brings its
+   *  own pictures, and the schema allows path commands and numbers only. The
+   *  engine passes the value through. */
+  glyph?: string;
+  /** A short heading. A `display: 'picker'` select draws options that share one
+   *  under that heading, in manifest order, with groups in order of first
+   *  appearance. Translatable as `inputs.<id>.groups.<heading>`. The engine
+   *  passes the value through. */
+  group?: string;
   /** Short pill shown beside this option's label. Any option carrying a badge
    *  switches the select to a badged picker in the web shell (a radiogroup of
    *  labelled pills). A discovery hint, e.g. 'vector' / 'raster'. Engine only carries it. */
@@ -250,11 +260,13 @@ export interface InputSpec {
    *  compact button that cycles its options, labelled by each option's `icon`);
    *  `pill` is a boolean variant rendered as an inline chip toggle (the web shell
    *  flows consecutive pill booleans into one wrapped chip bar); `segmented`
-   *  renders a select as labelled tabs (a radiogroup of pills); `curve` is a
-   *  text variant holding a tone curve (engine/src/tone-curve.ts) - still a
-   *  plain text input to the engine and every shell, with a curve plot beside
-   *  it in the web sidebar. */
-  display?: 'input' | 'slider' | 'select' | 'icon-toggle' | 'pill' | 'segmented' | 'curve';
+   *  renders a select as labelled tabs (a radiogroup of pills); `picker`
+   *  renders a select as one button that opens a grid of option tiles under
+   *  their `group` headings (web shell only; other shells draw a plain select);
+   *  `curve` is a text variant holding a tone curve (engine/src/tone-curve.ts) -
+   *  still a plain text input to the engine and every shell, with a curve plot
+   *  beside it in the web sidebar. */
+  display?: 'input' | 'slider' | 'select' | 'icon-toggle' | 'pill' | 'segmented' | 'picker' | 'curve';
   // color
   palette?: string;
   swatchesOnly?: boolean;

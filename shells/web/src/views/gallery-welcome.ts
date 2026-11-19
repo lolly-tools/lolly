@@ -8,11 +8,12 @@ import { isWorkspaceTemplateRef, listWorkspaceTemplates, workspaceCompany, works
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 // The welcome is first content on a new public visit; fetch its code and CSS with boot.
 import * as welcome from '../components/welcome-dialog.ts';
-import { adoptWelcomeHero, closeWelcomeHero, showWelcomeHero, welcomeHeroOpen, type WelcomeAudience, type WelcomePrivacy } from '../components/welcome-hero.ts';
+import { adoptWelcomeHero, closeWelcomeHero, showWelcomeHero, welcomeHeroClosed, welcomeHeroHolding, welcomeHeroOpen, type WelcomeAudience, type WelcomePrivacy } from '../components/welcome-hero.ts';
 import { ackPrivacyNotice, connectedWorkspace, WORKSPACE_PRIVACY_HREF, workspacePrivacyLine } from './privacy-notice.ts';
 import { docsAppHref, t } from '../i18n.ts';
 import type { GalleryHost } from './gallery.ts';
 import type { PickerHost } from './picker.ts';
+import type { OneColourHost } from '../lib/design-system/one-colour.ts';
 
 /**
  * Whether a connected workspace published a template this person can start from. Such a
@@ -91,6 +92,14 @@ async function welcomeDue(host: GalleryHost, isCurrent: () => boolean): Promise<
   } catch { return false; }
 }
 
+/** The host a colour chosen on the greeting installs through, when this shell has a design system registry. */
+function brandHostOf(host: object): OneColourHost | undefined {
+  return isBrandHost(host) ? host : undefined;
+}
+function isBrandHost(host: object): host is OneColourHost {
+  return 'designSystems' in host && !!host.designSystems && 'tokens' in host && !!host.tokens;
+}
+
 /** The privacy promise the greeting carries: the notice's own words when a workspace keeps the work. */
 function welcomePrivacy(): WelcomePrivacy {
   const workspace = connectedWorkspace();
@@ -133,7 +142,7 @@ export function placeGalleryWelcome(root: HTMLElement | null, host: GalleryHost 
   if (!root || opts.classic || viewingAs() || isWelcomeDismissed()) return;
   const audience = rememberedAudience();
   if (!audience) return;
-  void showWelcomeHero(root, { audience, privacy: welcomePrivacy(), ackPrivacy: ackPrivacyNotice, profileApi: host.profile, uploadHost: host });
+  void showWelcomeHero(root, { audience, privacy: welcomePrivacy(), ackPrivacy: ackPrivacyNotice, profileApi: host.profile, uploadHost: host, brandHost: brandHostOf(host) });
 }
 
 type WelcomeModule = typeof welcome;
@@ -157,7 +166,11 @@ export function galleryWelcomeStep(
     const audience = await galleryWelcomeAudience(host, isCurrent);
     if (!audience) {
       // Not due (any more): a card opened from the last visit's answer goes, unsettled.
+      // A card the person has just chosen a colour on stays: the choice is why the
+      // welcome is no longer due, and the card holds Undo.
       rememberAudience(null);
+      // While that card is up the visit is still a welcome visit: the gallery's banner waits.
+      if (welcomeHeroHolding()) return { unbranded: true, welcome, closed: welcomeHeroClosed(), inPlace: true };
       closeWelcomeHero();
       return { unbranded: false };
     }
@@ -172,7 +185,7 @@ export function galleryWelcomeStep(
     if (!classic) {
       rememberAudience(audience);
       const root = opts.root?.() ?? document.querySelector<HTMLElement>('.gallery');
-      const closed = showWelcomeHero(root, { audience, privacy: welcomePrivacy(), ackPrivacy: ackPrivacyNotice, profileApi: host.profile, uploadHost: host });
+      const closed = showWelcomeHero(root, { audience, privacy: welcomePrivacy(), ackPrivacy: ackPrivacyNotice, profileApi: host.profile, uploadHost: host, brandHost: brandHostOf(host) });
       return { unbranded: true, welcome, closed, inPlace: true };
     }
     return { unbranded: true, welcome, closed: welcome.showWelcomeDialog(host.profile, host), inPlace: false };

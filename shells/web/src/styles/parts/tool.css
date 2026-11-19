@@ -4224,8 +4224,10 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   .fullscreen-toggle,
   .fullscreen-toggle-float { display: none !important; }
 
-  /* The desktop "collapsed" hide must not blank the sheet body on mobile. */
-  .tool-layout[data-sidebar="closed"] .sidebar-body { opacity: 1 !important; pointer-events: auto !important; }
+  /* The desktop "collapsed" hide must not blank the sheet body on mobile, nor the
+     tool's name and the controls beside the name: a sidebar closed on a wide screen
+     is remembered, and on a phone that left a blank row under Home. */
+  .tool-layout[data-sidebar="closed"] :is(.sidebar-body, .sidebar-title-wrap) { opacity: 1 !important; pointer-events: auto !important; }
   /* The sheet is full-width; don't pin the body to the desktop open width. */
   .sidebar-body { min-width: 0; }
 

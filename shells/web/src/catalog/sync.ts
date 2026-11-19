@@ -21,7 +21,7 @@
 
 import { AssetChecksumError } from '../bridge/assets.ts';
 import { duringAssetSync } from '../lib/asset-sync.ts';
-import { assertToolIndexIntegrity, catalogVerificationRequired, catalogVerificationAvailable, getCatalogSnapshot, noteCatalogIntegrityFailure } from './integrity.ts';
+import { assertToolIndexIntegrity, catalogVerificationRequired, catalogVerificationAvailable, getCatalogSnapshot, isCatalogTrustFailure, noteCatalogIntegrityFailure, noteInstanceCatalogSetAside } from './integrity.ts';
 import { currentLang, t } from '../i18n.ts';
 import { pinnedAssetIds, refreshPinnedToolFiles } from '../lib/offline-pins.ts';
 import { setBrandTrustedSites } from '../lib/trusted-sites.ts';
@@ -32,7 +32,7 @@ import { runBackgroundTasks } from '../lib/background-tasks.ts';
 // they are the only two edges to a ~7.9 KB module that also drags the upscale/matte
 // model tables along. Both call sites are async, so the import is invisible.
 const offlineManager = () => import('../lib/offline-manager.ts');
-import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
+import { adoptBootFetch, getInstanceBase, initInstanceBase, instanceFetch, instancePath, suspendInstanceBase, usesBrowserCors } from '../lib/instance.ts';
 import { CatalogRefusedError, catalogRefused, catalogRefusedBefore, isAccessRefused, noteCatalogAllowed, noteCatalogRefused } from '../lib/catalog-access.ts';
 import type { RenditionSpec } from '../../../../packages/core/src/delivery-v1.ts';
 import type { CompanionHost } from '../lib/design-system/companions.ts';
@@ -336,6 +336,16 @@ export async function syncCatalog(
       // Never paint an unverified localStorage fallback after rejecting a signed pair.
       delete window.__toolIndex;
       delete window.__toolIndexSlim;
+      // A remote instance signed by a key this build does not trust used to leave the
+      // app with no tools at all. Nothing of that instance's is used: the instance is
+      // set aside for this page load and the bundled catalog, which this build's own
+      // key signed, goes through the same verification. A second refusal ends below.
+      if (isCatalogTrustFailure(e) && getInstanceBase()) {
+        const setAside = suspendInstanceBase();
+        host.log('warn', 'Instance catalog not trusted; using the bundled catalog', { instance: setAside, error: String(e) });
+        noteInstanceCatalogSetAside(setAside);
+        return syncCatalog(host, onAssetsReady, maintenanceGate, signInRequired);
+      }
       noteCatalogIntegrityFailure(e);
       host.log('warn', 'Catalog verification failed', { error: String(e) });
       return;

@@ -645,7 +645,7 @@
   display: inline-flex; align-items: center; gap: var(--sp-3); list-style: none;
   min-height: calc(40px * var(--a11y-fs)); cursor: pointer;
 }
-.cat-edit-heading::-webkit-details-marker { display: none; }
+.cat-edit-heading::after { content: none; }
 .cat-edit-heading svg { width: 18px; height: 18px; }
 .cat-edit-heading:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
 .cat-edit-menu {

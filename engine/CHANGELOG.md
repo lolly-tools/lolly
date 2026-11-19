@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.348.0
+
+- A `select` input can declare `display: "picker"` (chrome only): the web sidebar draws one button showing the current option, and pressing it opens a panel of option tiles grouped under headings, a bottom sheet on a phone. Two optional option fields go with it. `options[].glyph` is SVG path data for a 24 by 24 box, drawn as an outline, at most 900 characters of path commands and numbers, so a tool brings its own pictures and the shell's icon registry does not grow. `options[].group` is a short heading; options that share one are drawn together in manifest order, groups in order of first appearance. Declared in both schema copies, the SDK's `SelectOption` and `InputSpec`, and the engine's input types. The engine, the CLI, the TUI and MCP carry the fields and keep a plain select.
+- A tool's translation sidecar may translate a group heading as `inputs.<id>.groups.<heading>`, keyed by the manifest's own heading. `applyManifestI18n` matches the manifest's words read before the overlay, so a second application changes nothing, and English falls back to the manifest string. `validate:catalog` reports a key whose heading no option carries.
+
 ## 1.347.0
 
 - The credit line Lolly's music asks for is now "Music made with Lolly (https://lolly.tools), CC BY 4.0" (Andy, 2026-11-15). `TUNE_CREDIT` in `tune-provenance.ts` holds the whole line and is the one constant every credit reads: the XMP `photoshop:Credit` and the credential's `photoshop:Credit` (`tagTuneFile`, `signTuneFile`), the licence sentence `TUNE_LICENCE_STATEMENT` ("… Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."), a saved tune's `attribution` in the web shell, and the docs' genre pages. `TUNE_CREDIT_LINE` is gone, since the line is now `TUNE_CREDIT` itself. The party to credit (`TUNE_ATTRIBUTION_NAME`, "Lolly") and the licence's address are unchanged.

@@ -133,6 +133,52 @@
 .welcome-hero-go:not(.welcome-hero-go--sub) > .btn-label { text-box: trim-both cap alphabetic; }
 /* The blank install's button carries a second, smaller line under its label. */
 .welcome-hero-go--sub { flex-direction: column; gap: 0; }
+/* The colour row on a blank install. The swatches are the card's one saturated
+   thing, so they carry the emphasis a filled button would: no dark pill here.
+   Each swatch is a target-sized button drawing a smaller disc, so the discs
+   sit close while a finger still has room. */
+.welcome-hero-act--well { flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
+/* Lolly Demo: Start making and the quiet links share the row under the colours. */
+.welcome-hero-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--sp-4) var(--sp-8); }
+.welcome-hero-well { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-7); }
+.welcome-hero-well-label { margin: 0; font-size: var(--fs-lg); line-height: 1.25; }
+.welcome-hero-well-label strong { font-weight: 600; }
+.welcome-hero-well-label span { color: var(--ui-color-text-muted); font-size: var(--fs-sm); margin-inline-start: var(--sp-3); }
+.welcome-hero-swatches { display: flex; flex-wrap: wrap; gap: var(--sp-1); margin-inline-start: calc(var(--wh-swatch-inset) * -1); }
+.welcome-hero-well { --wh-swatch-size: calc(28px * var(--a11y-fs)); --wh-swatch-inset: calc((var(--ui-size-target) - var(--wh-swatch-size)) / 2); }
+.welcome-hero-swatch {
+  position: relative;
+  box-sizing: border-box;
+  inline-size: var(--ui-size-target);
+  block-size: var(--ui-size-target);
+  padding: 0;
+  border: 0;
+  background: none;
+  display: grid;
+  place-items: center;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.welcome-hero-swatch::before {
+  content: '';
+  grid-area: 1 / 1;
+  inline-size: var(--wh-swatch-size);
+  block-size: var(--wh-swatch-size);
+  border-radius: var(--radius-pill);
+  background: var(--wh-swatch, var(--ui-color-surface-raised));
+  box-shadow: var(--bevel), var(--ui-elevation-control);
+  transition: scale var(--dur-1) ease, box-shadow var(--dur-1) ease;
+}
+.welcome-hero-swatch > svg { grid-area: 1 / 1; position: relative; }
+.welcome-hero-swatch:hover::before { scale: 1.1; }
+/* The colour in use wears a ring a hairline off its edge, in the ink of the page. */
+.welcome-hero-swatch[aria-pressed="true"]::before {
+  box-shadow: var(--bevel), 0 0 0 2px var(--ui-color-surface-raised), 0 0 0 4px var(--ui-color-text-default);
+}
+.welcome-hero-swatch:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -4px; border-radius: var(--radius-pill); }
+.welcome-hero-swatch:disabled { cursor: progress; }
+.welcome-hero-well[aria-busy="true"] .welcome-hero-swatch::before { opacity: .6; }
+.welcome-hero-link:disabled { color: var(--ui-color-text-muted); cursor: progress; }
 .welcome-hero-go-sub { font-size: var(--fs-xs); font-weight: 400; opacity: .85; }
 .welcome-hero-more {
   margin: 0;
@@ -266,6 +312,7 @@
   .welcome-hero.is-drawing .whm-stick { animation: none; }
   .welcome-hero-card.is-settling,
   .welcome-hero-link,
+  .welcome-hero-swatch::before,
   .welcome-hero-close::before { transition: none; }
 }
 html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-swirl,
@@ -273,6 +320,7 @@ html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-candy,
 html[data-a11y-motion="reduce"] .welcome-hero.is-drawing .whm-stick { animation: none; }
 html[data-a11y-motion="reduce"] .welcome-hero-card.is-settling,
 html[data-a11y-motion="reduce"] .welcome-hero-link,
+html[data-a11y-motion="reduce"] .welcome-hero-swatch::before,
 html[data-a11y-motion="reduce"] .welcome-hero-close::before { transition: none; }
 
 /* A phone: the mark beside the sentence at the sentence's two-line height, the
@@ -294,6 +342,10 @@ html[data-a11y-motion="reduce"] .welcome-hero-close::before { transition: none; 
   .welcome-hero-close { align-self: center; }
   .welcome-hero-close { margin-block: 0; }
   .welcome-hero-act { justify-content: center; margin-block-start: var(--sp-7); }
+  .welcome-hero-act--well { align-items: center; }
+  .welcome-hero-row { justify-content: center; inline-size: 100%; }
+  .welcome-hero-well { justify-content: center; }
+  .welcome-hero-swatches { margin-inline-start: 0; justify-content: center; }
   .welcome-hero-go { flex: 1 1 100%; }
   .welcome-hero-quiet { text-align: center; }
 }
