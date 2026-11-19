@@ -15,7 +15,7 @@
  */
 import type { JSDOM } from 'jsdom';
 import { serializeUrlState, serializeHdr, HDR_DEFAULTS, isToolUrl } from '@lolly/engine';
-import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims, svgExportSize } from '@lolly-tools/node-shell/raster';
+import { eligibleForResvgPng, eligibleForResvgTiff, rasterizeTierAPng, rasterizeTierATiff, rasterizeSvgToRgba, pxDims, svgExportSize } from '@lolly-tools/node-shell/raster';
 import type { DeepHdrRequest } from '@lolly-tools/node-shell/raster';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
@@ -32,6 +32,8 @@ interface Runtime {
   /** Draw every emoji in a freshly hydrated tree from the chosen set. */
   applyEmojiToDom(node: unknown): Promise<unknown>;
   export(node: unknown, format: string, opts?: object): Promise<Blob>;
+  /** The metadata record of the last export this runtime made, or null. */
+  readonly lastExportMeta?: Partial<import('@lolly-tools/core/host-v1').ExportMeta> | null;
 }
 interface Manifest { id: string; render?: { width?: number; height?: number } }
 
@@ -140,6 +142,18 @@ export async function renderRaster(opts: {
       // TUI. `imprinted` reflects whether the mark was actually embedded - the imprinted path
       // returns the plain PNG (no mark) below the watermark detection floor.
       const { bytes, imprinted } = await rasterizeTierAPng(svg, dims, manifest);
+      return { bytes, usedBrowser: false, imprinted };
+    }
+  }
+
+  // Tier A - TIFF from an SVG-native tool (plans/371, M1.3): the web shell's TIFF recipe
+  // over the same resvg pixels as the PNG above, written by the engine's own TIFF
+  // writer. The export's metadata is the record the runtime made for the SVG it has
+  // just exported, so the file gives the same title, author and design system.
+  if (!sampled && !floatEditing && eligibleForResvgTiff(fmt, dims)) {
+    const svg = await tryRenderSvg(runtime, dom, dims.slide, dims);
+    if (svg) {
+      const { bytes, imprinted } = await rasterizeTierATiff(svg, dims, manifest, runtime.lastExportMeta);
       return { bytes, usedBrowser: false, imprinted };
     }
   }

@@ -9,9 +9,9 @@ Most formats are written on this machine with nothing else installed. The rest n
 Each rung adds formats. The CLI takes the lowest rung that can write the format you asked for.
 :::
 
-1. **Nothing extra.** SVG, SVGZ, EMF, WMF, EPS, EPS-CMYK, DXF, HTML and the data formats (JSON, CSV, ICS, VCF, Markdown) are written in Node. So are `penpot` from an `<svg>`-based tool and Lottie, IDML and Premiere XML from a Lolly Design document. So is `pptx` from a Lolly Design document whose frames are built on a slide master, unless it composes text stories, and so are the audio and MIDI files a tool's own export hook writes, such as `lolly rondocode --export=mid`.
-2. **Pixels from a vector tool.** resvg turns an `<svg>`-based tool's own SVG into pixels, still with no browser. PNG, BMP and JPEG XL come from that frame, and so do the HDR stills (`--hdr=1` with `png` or `jpg`) and the float formats EXR and HDR.
-3. **Everything else.** JPG, WebP, other PPTX, video, most PDFs, PNG from page-layout tools, caption files (`srt`, `vtt`, `ttml`, `scc`), `ico` and `txt` need a paint engine: a running Lolly desktop app, an installed one the CLI starts in the background or the CLI's own headless Chromium.
+1. **Nothing extra.** SVG, SVGZ, EMF, WMF, EPS, EPS-CMYK, DXF, HTML and the data formats (JSON, CSV, ICS, VCF, Markdown) are written in Node. So are the caption files (`srt`, `vtt`, `ttml`, `scc`) and the palette files (`css`, `scss`, `gpl`), which a tool fills from a text template of its own. So are `penpot` from an `<svg>`-based tool and Lottie, IDML and Premiere XML from a Lolly Design document. So is `pptx` from a Lolly Design document whose frames are built on a slide master, unless it composes text stories, and so are the audio and MIDI files a tool's own export hook writes, such as `lolly rondocode --export=mid`.
+2. **Pixels from a vector tool.** resvg turns an `<svg>`-based tool's own SVG into pixels, still with no browser. PNG, TIFF, BMP and JPEG XL come from that frame, and so do the HDR stills (`--hdr=1` with `png` or `jpg`) and the float formats EXR and HDR.
+3. **Everything else.** JPG, WebP, AVIF, other PPTX, video, most PDFs, PNG and TIFF from page-layout tools, an HDR TIFF, `ico` and `txt` need a paint engine: a running Lolly desktop app, an installed one the CLI starts in the background or the CLI's own headless Chromium.
 
 `lolly list --json` reports which rungs this machine has, and why any is missing ([Discovery, for an agent](/info/cli-reference.html#discovery-for-an-agent)).
 
@@ -19,7 +19,7 @@ Each rung adds formats. The CLI takes the lowest rung that can write the format 
 
 The CLI renders in a headless DOM (jsdom), and those formats come straight from the template's own shapes and data, with no rasteriser. It carries the same HarfBuzz text shaping as the app (`host.text`), so text becomes true vector paths at export: EPS and DXF carry text as geometry that needs no fonts, and EMF keeps plain runs as editable text records unless you pass `--text=outline`. Font-driven tools, such as a wordmark built on `host.text`, render here too.
 
-Shaping reads `ttf` and `otf` fonts under the content root, from the catalog and the tool's own folder. A browser-only `woff2` face is refused with a clear error rather than shaped as blanks.
+Shaping reads `ttf`, `otf` and `woff2` fonts under the content root, from the catalog and the tool's own folder. A `woff2` face is decoded first, with the decoder the app uses.
 
 `penpot` packs the brand's colours and design tokens beside the vector shapes; type styles come from the app's own font-role read, so a CLI archive carries no library typographies. An HTML-layout tool has no root `<svg>` to build from, so it goes to the paint tier and reports that first.
 

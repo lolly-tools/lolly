@@ -170858,6 +170858,7 @@ __export(raster_exports, {
   deepSourceRefusal: () => deepSourceRefusal,
   drawnRootSvg: () => drawnRootSvg,
   eligibleForResvgPng: () => eligibleForResvgPng,
+  eligibleForResvgTiff: () => eligibleForResvgTiff,
   hdrTune: () => hdrTune,
   isDeepFormat: () => isDeepFormat,
   matchedExportFormat: () => matchedExportFormat,
@@ -170870,6 +170871,7 @@ __export(raster_exports, {
   rasterizeSvgToPng: () => rasterizeSvgToPng,
   rasterizeSvgToRgba: () => rasterizeSvgToRgba,
   rasterizeTierAPng: () => rasterizeTierAPng,
+  rasterizeTierATiff: () => rasterizeTierATiff,
   renderDeepRaster: () => renderDeepRaster,
   svgExportSize: () => svgExportSize
 });
@@ -170931,6 +170933,9 @@ function printPrepRefusal(format) {
 function eligibleForResvgPng(fmt6, dims) {
   return fmt6.toLowerCase() === "png" && !dims.durable && !dims.bleed && !dims.marks;
 }
+function eligibleForResvgTiff(fmt6, dims) {
+  return fmt6.toLowerCase() === "tiff" && !dims.durable && !dims.bleed && !dims.marks && !dims.hdr && !dims.hdrParam;
+}
 function drawnRootSvg(node) {
   let cur = node;
   for (let depth = 0; cur && depth < 8; depth++) {
@@ -170956,6 +170961,39 @@ async function rasterizeTierAPng(svg, dims, manifest) {
   const marked = dims.imprint ? await rasterizeSvgToImprintedPng(svg, width, height, idpi) : null;
   if (marked) return { bytes: marked, imprinted: true };
   return { bytes: await rasterizeSvgToPng(svg, width, height, idpi), imprinted: false };
+}
+async function rasterizeTierATiff(svg, dims, manifest, meta) {
+  const { embedWatermark: embedWatermark2, canCarryWatermark: canCarryWatermark2, LOSSLESS_STRENGTH: LOSSLESS_STRENGTH2, packTiff: packTiff2, CSS_DPI: CSS_DPI2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
+  const { width, height } = pxDims(dims, manifest);
+  const frame = await rasterizeSvgToRgba(svg, width, height);
+  const imprinted = !!dims.imprint && canCarryWatermark2(frame.width, frame.height);
+  const rgba2 = imprinted ? embedWatermark2(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH2 }) : frame.data;
+  const bytes2 = packTiff2(flattenOntoWhite(rgba2), {
+    width: frame.width,
+    height: frame.height,
+    samplesPerPixel: 3,
+    photometric: 2,
+    dpi: dims.unit && dims.unit !== "px" && dims.dpi ? dims.dpi : CSS_DPI2,
+    ...meta ? { meta, ...meta.description ? { description: meta.description } : {} } : {}
+  });
+  return { bytes: bytes2, imprinted };
+}
+function flattenOntoWhite(rgba2) {
+  const out = new Uint8Array(rgba2.length / 4 * 3);
+  for (let i = 0, j = 0; i < rgba2.length; i += 4, j += 3) {
+    const a = rgba2[i + 3];
+    if (a === 255) {
+      out[j] = rgba2[i];
+      out[j + 1] = rgba2[i + 1];
+      out[j + 2] = rgba2[i + 2];
+    } else {
+      const t = a / 255, u = 255 * (1 - t);
+      out[j] = rgba2[i] * t + u + 0.5 | 0;
+      out[j + 1] = rgba2[i + 1] * t + u + 0.5 | 0;
+      out[j + 2] = rgba2[i + 2] * t + u + 0.5 | 0;
+    }
+  }
+  return out;
 }
 function sizeSvg(svg, width, height) {
   const w = Math.max(1, Math.round(width));
@@ -171104,7 +171142,7 @@ var init_raster3 = __esm({
     init_exr();
     init_radiance();
     init_content_roots();
-    NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "lottie", "idml", "premiere-xml", "jxl", "jxl-lossless", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
+    NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "lottie", "idml", "premiere-xml", "jxl", "jxl-lossless", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md", "srt", "vtt", "ttml", "scc", "css", "scss", "gpl"];
     HOOK_OWNED_FORMATS = ["wav", "mp3", "m4a", "opus", "mid"];
     DEEP_FORMATS = ["exr", "hdr"];
     fontDirs = null;

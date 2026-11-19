@@ -13,7 +13,7 @@ import { dirname } from 'node:path';
 import { assertFormatBytes } from '@lolly-tools/node-shell/format-sniff';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
-import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
+import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, eligibleForResvgTiff, rasterizeTierAPng, rasterizeTierATiff, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
 import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
@@ -397,6 +397,15 @@ export async function exportToFile(
       // blank PNG - gate it (the hookErrors signal catches what a byte-count can't).
       assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt, bytes: png });
       return write(png);
+    }
+  }
+  // The TIFF twin of the branch above, identical to the CLI (plans/371, M1.3).
+  if (!floatScene && modelValues(runtime).editingRange !== 'hdr' && eligibleForResvgTiff(fmt, dims)) {
+    const svg = await renderSvg(runtime, dom, dims);
+    if (svg) {
+      const { bytes: tiff } = await rasterizeTierATiff(svg, dims, manifest as { render?: { width?: number; height?: number } }, runtime.lastExportMeta);
+      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt, bytes: tiff });
+      return write(tiff);
     }
   }
 

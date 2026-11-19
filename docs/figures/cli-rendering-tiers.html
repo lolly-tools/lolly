@@ -10,6 +10,9 @@
   shells/cli/src/environment.ts.
   Provenance: Authored with Claude Code (Anthropic, Claude Opus 5.5), directed by Andy Fitzsimon on
   2026-10-23. The C2PA signature added at bank time is the first provenance record of this file.
+  Revised with Claude Code (Anthropic, Claude Fable 5.2), directed by Andy Fitzsimon, 2026-11-19:
+  the caption and palette text formats join the first rung, and TIFF from an svg-based tool joins
+  the second (plan 371).
 -->
 <style>
 .crt{--crt-ink:hsl(var(--card-foreground,201.2 48.6% 6.9%));--crt-muted:hsl(var(--muted-foreground,207.7 10.6% 24.1%));
@@ -50,7 +53,7 @@
 <p class="crt-title">Nothing extra</p>
 <p class="crt-how">Node writes these from the tool's own shapes and data.</p>
 <ul class="crt-chips" aria-label="Formats">
-<li>SVG</li><li>SVGZ</li><li>EMF</li><li>WMF</li><li>EPS</li><li>DXF</li><li>HTML</li><li>JSON</li><li>CSV</li><li>ICS</li><li>VCF</li><li>MD</li><li>Penpot</li><li>Lottie</li><li>IDML</li><li>Premiere XML</li>
+<li>SVG</li><li>SVGZ</li><li>EMF</li><li>WMF</li><li>EPS</li><li>DXF</li><li>HTML</li><li>JSON</li><li>CSV</li><li>ICS</li><li>VCF</li><li>MD</li><li>SRT</li><li>VTT</li><li>TTML</li><li>SCC</li><li>CSS</li><li>SCSS</li><li>GPL</li><li>Penpot</li><li>Lottie</li><li>IDML</li><li>Premiere XML</li>
 </ul>
 <p class="crt-cmd"><b>Needs</b>the CLI</p>
 </div></li>
@@ -60,7 +63,7 @@
 <p class="crt-title">Pixels from a vector tool</p>
 <p class="crt-how">resvg draws an svg-based tool's own SVG, still with no browser.</p>
 <ul class="crt-chips" aria-label="Formats">
-<li>PNG</li><li>BMP</li><li>JPEG XL</li><li>HDR PNG</li><li>Gain-map JPG</li><li>EXR</li><li>HDR</li>
+<li>PNG</li><li>TIFF</li><li>BMP</li><li>JPEG XL</li><li>HDR PNG</li><li>Gain-map JPG</li><li>EXR</li><li>HDR</li>
 </ul>
 <p class="crt-cmd"><b>Needs</b>resvg, installed with the CLI</p>
 </div></li>
@@ -70,7 +73,7 @@
 <p class="crt-title">A paint engine</p>
 <p class="crt-how">Everything else, rendered by the first of these that answers.</p>
 <ul class="crt-chips" aria-label="Formats">
-<li>JPG</li><li>WebP</li><li>AVIF</li><li>TIFF</li><li>Most PDF</li><li>PPTX</li><li>MP4</li><li>WebM</li><li>GIF</li><li>APNG</li><li>PNG from page layouts</li><li>ICO</li><li>TXT</li>
+<li>JPG</li><li>WebP</li><li>AVIF</li><li>Most PDF</li><li>PPTX</li><li>MP4</li><li>WebM</li><li>GIF</li><li>APNG</li><li>PNG and TIFF from page layouts</li><li>ICO</li><li>TXT</li>
 </ul>
 <ol class="crt-order" aria-label="Renderer order">
 <li>The desktop app<span>already running</span></li>
