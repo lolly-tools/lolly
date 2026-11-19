@@ -181,11 +181,11 @@
 
 /* Close - the ONE cross button (lib/close-button.ts). Every control that closes,
    dismisses, clears or removes with a cross draws this glyph in this box, so a person
-   meets one close button. A call site keeps a class of its own for where the button
-   sits (position, margin, grid area) and nothing else; this layer sits under the chrome
+   meets one close button. A call site keeps a class of its own for the button's
+   position (offsets, margin, grid area) and nothing else; this layer sits under the chrome
    and view layers, so that class always wins.
-   The cross's ink is half of its icon box, so the glyph takes the large icon size to
-   read at the weight of the 16px icons beside it. */
+   The cross's ink is half of its icon box, so the glyph takes the large icon size and
+   reads at the weight of the 16px icons in the same row. */
 .close-btn {
   flex: none;
   display: inline-grid;
@@ -222,6 +222,10 @@
   color: var(--ui-color-text-default);
 }
 .close-btn--solid:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+/* On a ground that is not one of the page's surfaces (an inverted bubble, a coloured
+   notice) the button takes the text colour around it, so it reads on any ground. */
+.close-btn--inherit { color: color-mix(in oklab, currentColor 70%, transparent); }
+.close-btn--inherit:hover:not(:disabled) { background: color-mix(in oklab, currentColor 14%, transparent); color: inherit; }
 /* A removal reads as one on hover. */
 .close-btn--danger:hover:not(:disabled) { background: var(--ui-color-status-danger-surface); color: var(--ui-color-status-danger); }
 /* A finger gets the full target without the box growing, so a head or a row keeps one

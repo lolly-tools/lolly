@@ -901,7 +901,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/share-dialog.ts': 3,
   // Reviewed 2026-09-20: fixed registry icons only, with literal names and sizes.
   // Panel titles and labels use textContent; no user or tool values enter these sinks.
-  'components/docked-panel.ts': 1,
   'views/export-share.ts': 1,
   // The row list's innerHTML replace, modelled on profiles-manager.ts. Reviewed - 
   // every interpolated value (digest, name, fact line, reported-speech claim,
@@ -2179,7 +2178,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // --ui-type-* tokens.
     // 412 to 409 (plan 346): the Board's title, door notes and way out read
     // --ui-type-lead, --fs-md and --fs-sm.
-    pin: 409,
+    // 409 to 407: close buttons that set a text cross by font size draw the
+    // shared close button (lib/close-button.ts), which sizes an icon.
+    pin: 407,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },

@@ -35,6 +35,7 @@ test('size, ground and tone are classes; the call site adds a class for position
   assert.equal(closeButtonClass({ size: 'md' }), 'close-btn');
   assert.equal(closeButtonClass({ size: 'sm' }), 'close-btn close-btn--sm');
   assert.equal(closeButtonClass({ solid: true, danger: true }), 'close-btn close-btn--solid close-btn--danger');
+  assert.equal(closeButtonClass({ size: 'sm', inherit: true }), 'close-btn close-btn--sm close-btn--inherit');
   assert.equal(parse(closeButtonHtml({ size: 'sm', className: 'toast-close is-late' })).className, 'close-btn close-btn--sm toast-close is-late');
 });
 
@@ -83,7 +84,7 @@ test('the element form is the markup form', () => {
 test('the look is one rule in the button sheet, with a finger-sized target on touch', () => {
   const css = readFileSync(new URL('../styles/parts/buttons.css', import.meta.url), 'utf8');
   assert.equal(css.match(/^\.close-btn \{/gm)?.length, 1, 'one base rule');
-  for (const part of ['.close-btn--sm', '.close-btn--solid', '.close-btn--danger', '.close-btn:focus-visible', '.close-btn[hidden]']) {
+  for (const part of ['.close-btn--sm', '.close-btn--solid', '.close-btn--danger', '.close-btn--inherit', '.close-btn:focus-visible', '.close-btn[hidden]']) {
     assert.ok(css.includes(part), `${part} is styled`);
   }
   const coarse = css.slice(css.indexOf('@media (pointer: coarse)', css.indexOf('.close-btn {')));

@@ -99,6 +99,10 @@
 .cl-family-intro .cl-text-link { padding-block: 0; }
 .cl-family > .cl-grid:first-of-type { margin-top: var(--ui-space-panel); }
 .cl-fold-all { min-height: var(--ui-size-target); white-space: nowrap; }
+/* The close button specimen: its five forms in a row, two of them on the ground each is for. */
+.cl-close-demo { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--ui-space-panel); }
+.cl-close-demo-picture { display: grid; place-items: start end; width: calc(var(--ui-size-target) * 2); height: calc(var(--ui-size-target) * 1.5); padding: var(--sp-1); border-radius: var(--ui-radius-control); background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent-2, var(--primary)) / .55)); }
+.cl-close-demo-ink { display: inline-grid; place-items: center; padding: var(--sp-1); border-radius: var(--ui-radius-control); background: var(--ui-color-text-default); color: var(--ui-color-surface-canvas); }
 .cl-section-kind { color: var(--ui-color-text-muted); font-size: var(--ui-type-caption); }
 /* Each card is as tall as its own content. Stretched to its row, a short card grew a
    blank middle, and opening one card's reference stretched its neighbour to match. */

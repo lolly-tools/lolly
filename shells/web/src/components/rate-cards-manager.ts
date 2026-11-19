@@ -39,6 +39,7 @@ import {
 import type { RateCardsHost, RateCardEntry, RateCardIngestFailure } from '../lib/rate-cards.ts';
 import { mountModal } from './modal.ts';
 import { icon } from '../lib/icons.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { announce } from '../a11y.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -156,8 +157,7 @@ export function openRateCardsPanel(opts: RateCardsPanelOpts): Promise<void> {
       <div class="rcm">
         <header class="rcm-head">
           <h2 class="rcm-title">${escape(t('Rate cards'))}</h2>
-          <button type="button" class="rcm-close" data-rcm-close
-            aria-label="${escape(t('Close'))}">×</button>
+          ${closeButtonHtml({ className: 'rcm-close', attrs: { 'data-rcm-close': true } })}
         </header>
         <p class="rcm-intro">${escape(t('Drop the rate card your printer gave you. Lolly multiplies its numbers by quantities it counted - it never invents a price. Nothing leaves this device.'))}</p>
         <label class="updz rcm-drop">

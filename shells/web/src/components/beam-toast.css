@@ -45,21 +45,12 @@
   .beam-toast { animation: none; }
 }
 
+/* The shared close button (lib/close-button.ts); only its place is set here. */
 .beam-toast-close {
   position: absolute;
   top: 0.4rem;
   right: 0.5rem;
-  width: calc(26px * var(--a11y-fs));
-  height: calc(26px * var(--a11y-fs));
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  font-size: calc(14px * var(--a11y-fs));
-  line-height: 1;
 }
-.beam-toast-close:hover { background: hsl(var(--muted)); }
 
 .beam-toast-title {
   margin: 0 1.5rem 0.2rem 0;

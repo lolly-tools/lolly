@@ -83,6 +83,7 @@ import {
 import type { FetchSource, PressCondition } from '../lib/press-conditions.ts';
 import { originContradicted } from '../lib/press-profile-embed.ts';
 import { icon } from '../lib/icons.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { announce } from '../a11y.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -318,8 +319,7 @@ export function openProfilesPanel(opts: ProfilesPanelOpts): Promise<void> {
       <div class="labp">
         <header class="labp-head">
           <h2 class="labp-title">${escape(t('Colour profiles'))}</h2>
-          <button type="button" class="labp-close" data-labp-close
-            aria-label="${escape(t('Close'))}">×</button>
+          ${closeButtonHtml({ className: 'labp-close', attrs: { 'data-labp-close': true } })}
         </header>
         ${/* Says what a profile BECOMES and that it stays here. It used to say "from
               your printer" and "a fourth comparison target", both of which the code

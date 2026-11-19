@@ -289,20 +289,9 @@
 .gallery-search:focus {
   border-color: hsl(var(--ring));
 }
-/* ✕ clear button - shared by Tools + Catalogue (component-audit rec 11; previously
-   the gallery built this with inline JS styles and the catalog borrowed projects'
-   .projects-search-clear). Shown/hidden via the `hidden` attribute, so re-assert
-   the UA default against the `display:inline-flex` below. */
-.gallery-search-clear {
-  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
-  width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); display: inline-flex; align-items: center; justify-content: center;
-  border: 0; border-radius: var(--radius-round); background: transparent; color: hsl(var(--muted-foreground));
-  font-size: var(--fs-md); line-height: 1; cursor: pointer;
-  transition: background var(--dur-1), color var(--dur-1);
-}
-.gallery-search-clear[hidden] { display: none; }
-.gallery-search-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-.gallery-search-clear:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+/* The clear button, shared by Tools and Catalogue: the shared close button
+   (lib/close-button.ts) at its small size. Only its place in the field is set here. */
+.gallery-search-clear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); }
 
 /* Spotlight chord hint (plans/99 section 2f) - the ⌃␣ <kbd> chip right-aligned inside
    the box. Advertises Control-Space ONLY (⌘Space stays bound but silent - the

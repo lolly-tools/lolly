@@ -6,11 +6,11 @@
  * in styles/parts/buttons.css.
  *
  * A call site says what the press does (`label`), picks a size and passes a class of
- * its own for where the button sits. The look belongs to this component, so a call
+ * its own for the button's position. The look belongs to this component, so a call
  * site's stylesheet holds position and nothing else.
  */
 import { t } from '../i18n.ts';
-import { escape } from '../utils.ts';
+import { escape as escapeText } from '../utils.ts';
 import { icon } from './icons.ts';
 
 export type CloseButtonAttr = string | number | boolean | null | undefined;
@@ -27,7 +27,10 @@ export interface CloseButtonOptions {
   solid?: boolean;
   /** The press removes something: the hover turns to the danger colour. */
   danger?: boolean;
-  /** The call site's own class or classes: where the button sits, and a hook for code. */
+  /** Take the colour of the text around the button, for a ground that is not one of the
+   *  page's own surfaces: an inverted bubble, a coloured notice, a card with its own ink. */
+  inherit?: boolean;
+  /** The call site's own class or classes: the button's position, and a hook for code. */
   className?: string;
   /** Other attributes. `true` writes the bare attribute, and `false`, `null` and
    *  `undefined` write nothing. Values are escaped. */
@@ -40,20 +43,20 @@ const OWN_ATTRS = new Set(['type', 'class', 'aria-label']);
 
 /** The class list a close button carries, for a caller that must build the element itself. */
 export function closeButtonClass(o: CloseButtonOptions = {}): string {
-  return ['close-btn', o.size === 'sm' ? 'close-btn--sm' : '', o.solid ? 'close-btn--solid' : '', o.danger ? 'close-btn--danger' : '', o.className ?? '']
+  return ['close-btn', o.size === 'sm' ? 'close-btn--sm' : '', o.solid ? 'close-btn--solid' : '', o.danger ? 'close-btn--danger' : '', o.inherit ? 'close-btn--inherit' : '', o.className ?? '']
     .filter(Boolean).join(' ');
 }
 
 /** The close button as markup. */
 export function closeButtonHtml(o: CloseButtonOptions = {}): string {
   const label = o.label ?? t('Close');
-  const attrs = Object.entries(o.attrs ?? {}).map(([name, value]) => {
-    if (!ATTR_NAME.test(name) || OWN_ATTRS.has(name)) throw new Error(`closeButtonHtml: attribute "${name}" is not allowed`);
+  const attrs = Object.entries(o.attrs ?? {}).map(([key, value]) => {
+    if (!ATTR_NAME.test(key) || OWN_ATTRS.has(key)) throw new Error(`closeButtonHtml: attribute "${key}" is not allowed`);
     if (value === false || value === null || value === undefined) return '';
-    return value === true ? ` ${name}` : ` ${name}="${escape(value)}"`;
+    return value === true ? ` ${key}` : ` ${key}="${escapeText(value)}"`;
   }).join('');
-  const name = label ? ` aria-label="${escape(label)}"` : '';
-  return `<button type="button" class="${escape(closeButtonClass(o))}"${name}${attrs}>${icon('close')}</button>`;
+  const named = label ? ` aria-label="${escapeText(label)}"` : '';
+  return `<button type="button" class="${escapeText(closeButtonClass(o))}"${named}${attrs}>${icon('close')}</button>`;
 }
 
 /** The close button as an element, for code that builds its surface node by node. */

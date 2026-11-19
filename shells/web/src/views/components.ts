@@ -91,6 +91,7 @@ import { mountZoomHud } from '../components/zoom-hud.ts';
 import { viewTopbarHtml } from '../components/view-topbar.ts';
 import { mountBodyPopover, type BodyPopoverHandle } from '../components/body-popover.ts';
 import { backPillHtml, backHomeHtml, mountBackPill } from '../components/back-pill.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { mountHomeFab } from '../components/home-fab.ts';
 import { customSliderHtml, mountCustomSlider } from '../components/custom-slider.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
@@ -192,6 +193,8 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
     // Rendered in its in-flow form (no .home-full) so the specimen sits in the stage
     // rather than pinning itself to the viewport corner.
     backPill: { render: () => backPillHtml({ class: '' }) },
+    // The five ways the one close button is asked for, on the grounds each is for.
+    closeButton: { interactive: true, render: () => `<div class="cl-close-demo">${closeButtonHtml()}${closeButtonHtml({ size: 'sm', label: 'Clear search' })}<span class="cl-close-demo-picture">${closeButtonHtml({ solid: true })}</span>${closeButtonHtml({ size: 'sm', danger: true, label: 'Remove' })}<span class="cl-close-demo-ink">${closeButtonHtml({ size: 'sm', inherit: true, label: 'Dismiss' })}</span></div>` },
     themeSeg: { render: () => themeSegmentHtml() },
     // The switch, its volume and Neurospicy stack in a menu's column, as the profile menu holds them.
     soundSwitch: { render: () => `<div class="cl-menu-column">${soundSwitchHtml()}</div>` },
@@ -349,7 +352,7 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
     },
     exportSheet: {
       render: () => `<div class="export-popup" role="group" aria-label="${escape(t('Export'))}">
-        <div class="export-popup-head"><span class="export-popup-title">${t('Export')}</span><button type="button" class="export-popup-close" aria-label="${escape(t('Close'))}">&#x2715;</button></div>
+        <div class="export-popup-head"><span class="export-popup-title">${t('Export')}</span>${closeButtonHtml({ className: 'export-popup-close' })}</div>
         <div class="export-popup-body"><div class="tool-actions"><div class="export-actions-dock"><div class="export-action-buttons"><button type="button" class="btn btn--ghost">${t('Copy')}</button><button type="button" class="btn">${t('Save')}</button><button type="button" class="btn">${t('Share')}</button></div><div class="export-action-buttons"><button type="button" class="btn btn--ghost">${t('Save as')}</button><button type="button" class="btn btn--primary" data-action="download">${t('Download')}</button></div></div>${exportFieldsExample()}</div></div>
       </div>`,
     },
