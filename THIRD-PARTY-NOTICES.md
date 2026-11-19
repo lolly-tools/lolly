@@ -170,7 +170,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ```
 
-### prettier 3.9.10
+### prettier 3.10.1
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright © James Long and contributors
@@ -345,7 +345,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### dompurify 3.4.17
+### dompurify 3.4.18
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "(MPL-2.0 OR Apache-2.0)")`
 - Copyright: (c) Cure53 and other contributors
@@ -1585,7 +1585,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @tiptap/core 3.33.0
+### @tiptap/core 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1614,7 +1614,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/pm 3.33.0
+### @tiptap/pm 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1643,7 +1643,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/starter-kit 3.33.0
+### @tiptap/starter-kit 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1672,7 +1672,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-image 3.33.0
+### @tiptap/extension-image 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1701,7 +1701,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-placeholder 3.33.0
+### @tiptap/extension-placeholder 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1730,7 +1730,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table 3.33.0
+### @tiptap/extension-table 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1759,7 +1759,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-cell 3.33.0
+### @tiptap/extension-table-cell 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1788,7 +1788,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-header 3.33.0
+### @tiptap/extension-table-header 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1817,7 +1817,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-table-row 3.33.0
+### @tiptap/extension-table-row 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1846,7 +1846,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-text-align 3.33.0
+### @tiptap/extension-text-align 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -1875,7 +1875,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### @tiptap/extension-text-style 3.33.0
+### @tiptap/extension-text-style 3.34.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2025, Tiptap GmbH
@@ -2376,7 +2376,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-### @codemirror/lint 6.9.7
+### @codemirror/lint 6.9.8
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (C) 2018-2021 by Marijn Haverbeke <marijn@haverbeke.berlin> and others
@@ -2851,7 +2851,7 @@ SOFTWARE.
 license of the upstream project, https://github.com/evanw/kiwi.)
 ```
 
-### zxing-wasm 3.1.6
+### zxing-wasm 3.1.7
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2023 Ze-Zheng Wu
