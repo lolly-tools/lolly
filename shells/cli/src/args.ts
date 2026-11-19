@@ -122,6 +122,8 @@ export const RESERVED_SUBCOMMANDS = [
   'check',
   // `compose` lays slides out from the slide master's archetypes as a Design document (plan 291 W6).
   'compose',
+  // `app` serves a built web app locally and opens it in the installed browser.
+  'app',
 ] as const;
 
 /** The six on-device ML subcommands, named here rather than in src/ml-cli.ts so

@@ -47,6 +47,8 @@ export const CONTENT_FREE_COMMANDS: ReadonlySet<string> = new Set([
   'check',
   // `compose` lays slides out on a master: with no profile its ladder ends at the engine's neutral master.
   'compose',
+  // `app` serves a built web app, which carries its own tools and catalog.
+  'app',
 ]);
 
 /** Does this command need tools/ and catalog/ to be present? */
