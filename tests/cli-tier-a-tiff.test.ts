@@ -84,3 +84,10 @@ test('qr-code writes a tiff with a valid credential and no web shell built', asy
   // The credential the CLI stamps as its last byte operation is in the file.
   assert.ok(stdout.includes('c2pa'), 'a C2PA manifest is embedded');
 });
+
+test('a physical size with no DPI given states the 300 the pixels were drawn at', async () => {
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><rect width="10" height="10" fill="#000"/></svg>';
+  const { bytes } = await rasterizeTierATiff(svg, { width: 1, height: 1, unit: 'in' }, {});
+  const tiff = readTiff(bytes);
+  assert.deepEqual([tiff.width, tiff.height, tiff.dpi], [300, 300, 300]);
+});

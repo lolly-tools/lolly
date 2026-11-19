@@ -24,7 +24,7 @@
  * never an error: the run is slower and otherwise the same.
  */
 import module from 'node:module';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -90,10 +90,23 @@ function pruneOldVersions(dir: string, now: number): void {
     if (name === basename(dir) || !VERSION_DIR.test(name)) continue;
     const path = join(parent, name);
     try {
-      const stat = statSync(path);
-      if (stat.isDirectory() && now - stat.mtimeMs > STALE_VERSION_MS) rmSync(path, { recursive: true, force: true });
+      const stat = lstatSync(path);
+      if (ownDirectory(path) && now - stat.mtimeMs > STALE_VERSION_MS) rmSync(path, { recursive: true, force: true });
     } catch { /* another run removed the folder first */ }
   }
+}
+
+/**
+ * True when `path` is a real directory (not a link) that this user owns. A shared cache
+ * root can hold a link someone else made; a cache is never read from, written to or
+ * pruned through one.
+ */
+function ownDirectory(path: string): boolean {
+  try {
+    const stat = lstatSync(path);
+    if (!stat.isDirectory() || stat.isSymbolicLink()) return false;
+    return typeof process.getuid !== 'function' || stat.uid === process.getuid();
+  } catch { return false; }
 }
 
 function isDir(path: string): boolean {
@@ -123,6 +136,9 @@ export function enableStartupCache(): string | null {
     if (!choice) return null;
     const fresh = !existsSync(choice.dir);
     mkdirSync(choice.dir, { recursive: true, mode: 0o700 });
+    // The published package's folder sits under a directory other users may share
+    // (XDG_CACHE_HOME), so its three own levels must be real directories of this user.
+    if (choice.versioned && ![choice.dir, dirname(choice.dir), dirname(dirname(choice.dir))].every(ownDirectory)) return null;
     const result = module.enableCompileCache(choice.dir);
     const { ENABLED, ALREADY_ENABLED } = module.constants.compileCacheStatus;
     if (result.status !== ENABLED && result.status !== ALREADY_ENABLED) return null;

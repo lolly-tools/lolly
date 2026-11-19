@@ -299,7 +299,8 @@ export async function rasterizeTierATiff(
     : frame.data;
   const bytes = packTiff(flattenOntoWhite(rgba), {
     width: frame.width, height: frame.height, samplesPerPixel: 3, photometric: 2,
-    dpi: dims.unit && dims.unit !== 'px' && dims.dpi ? dims.dpi : CSS_DPI,
+    // A physical size with no DPI given is drawn at 300 (pxDims), so the tags say 300.
+    dpi: dims.unit && dims.unit !== 'px' ? (dims.dpi && dims.dpi > 0 ? dims.dpi : 300) : CSS_DPI,
     ...(meta ? { meta, ...(meta.description ? { description: meta.description } : {}) } : {}),
   });
   return { bytes, imprinted };
