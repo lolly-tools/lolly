@@ -138,7 +138,7 @@
 .docs-content h4 { line-height: 1.25; font-weight: 700; }
 .docs-content h1 {
   font-size: calc(3rem * var(--a11y-fs, 1)); color: var(--dark); line-height: 1.15; font-weight: 300;
-  margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem; padding-bottom: 2rem; /* closes on the divider: parts/docs-components.css */
 }
 .docs-content h2 {
   font-size: calc(1.75rem * var(--a11y-fs, 1)); font-weight: 350; color: var(--dark);
