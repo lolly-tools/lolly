@@ -28,6 +28,7 @@
  *     the flag (the markup renders before those async reads can answer).
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
@@ -69,7 +70,7 @@ export function offlineNudgeMarkup(profile: Profile | null | undefined): string 
     : t('Download the app and your tools once, and everything here keeps working with no connection - handy before a flight.');
   return `
     <aside class="personalize-nudge offline-nudge" role="note" aria-label="${escape(t('Offline downloads'))}">
-      <button type="button" class="personalize-nudge-close" aria-label="${escape(t('Dismiss'))}">&times;</button>
+      ${closeButtonHtml({ size: 'sm', className: 'personalize-nudge-close', label: t('Dismiss') })}
       <span class="personalize-nudge-icon" aria-hidden="true">${icon('plane')}</span>
       <div class="personalize-nudge-body">
         <p class="personalize-nudge-title">${escape(title)}</p>

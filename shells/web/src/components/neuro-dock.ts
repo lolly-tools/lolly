@@ -22,7 +22,6 @@ import {
 } from '../lib/audio-dock-singleton.ts';
 import { getNeurospicy, setNeurospicyEnabled, stopNeurospicy, type NeurospicyHost } from '../lib/neurospicy.ts';
 import { flagEnabledSync } from '../feature-flags.ts';
-import { setNeuroDockCollapsed } from '../lib/neuro-dock-pref.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { wobblyActive } from '../lib/wobble.ts';
 import type { SharedViz } from '../lib/neuro-share.ts';
@@ -91,14 +90,6 @@ export function showNeuroDock(host: NeurospicyHost, opts: boolean | NeuroDockSho
 /** Detach the music source (mode off), which hides the window. */
 export function hideNeuroDock(): void {
   releaseMusic();
-}
-
-/** Re-show + expand the music player - the "Show player" action for a mobile-hidden pill. */
-export function reopenNeuroDock(host: NeurospicyHost): void {
-  setNeuroDockCollapsed(false);
-  showNeuroDock(host);
-  audioDockController()?.setCollapse('full');
-  audioDockController()?.refresh();
 }
 
 /** Show the shared window in the EXPANDED (draggable + resizable) window - used by the

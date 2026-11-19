@@ -60,22 +60,6 @@
 .asset-picker-search:focus { border-color: hsl(var(--primary)); }
 .asset-picker-search::placeholder { color: hsl(var(--muted-foreground)); }
 
-.asset-picker-close {
-  background: none;
-  border: none;
-  font-size: calc(22px * var(--a11y-fs));
-  line-height: 1;
-  cursor: pointer;
-  color: hsl(var(--muted-foreground));
-  padding: 2px 6px;
-  border-radius: var(--radius);
-  transition: color var(--dur-1), background var(--dur-1);
-}
-.asset-picker-close:hover {
-  color: hsl(var(--foreground));
-  background: hsl(var(--accent));
-}
-
 /* ── Source tabs (Library / Saved creations / Tools) ─────────────────────── */
 .asset-picker-tabs {
   display: flex;
@@ -954,17 +938,6 @@
   font-size: var(--fs-lg);
   font-weight: 600;
 }
-.webcam-capture-close {
-  background: none;
-  border: none;
-  font-size: calc(20px * var(--a11y-fs));
-  line-height: 1;
-  cursor: pointer;
-  color: hsl(var(--muted-foreground));
-  padding: 2px 6px;
-  border-radius: var(--radius);
-}
-.webcam-capture-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
 .webcam-capture-stage {
   position: relative;
   display: flex;
@@ -1063,17 +1036,6 @@
   font-weight: 600;
 }
 .pdfpick-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pdfpick-close {
-  background: none;
-  border: none;
-  font-size: calc(20px * var(--a11y-fs));
-  line-height: 1;
-  cursor: pointer;
-  color: hsl(var(--muted-foreground));
-  padding: 2px 6px;
-  border-radius: var(--radius);
-}
-.pdfpick-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
 .pdfpick-sub { margin: 10px 16px 0; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
 .pdfpick-grid {
   display: grid;
@@ -1210,27 +1172,10 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--radius-round);
-  background: hsl(var(--background) / 0.85);
-  color: hsl(var(--muted-foreground));
-  font-size: var(--fs-xl);
-  line-height: 1;
-  cursor: pointer;
   opacity: 0;
-  transition: opacity var(--dur-1), color var(--dur-1), background var(--dur-1);
 }
 .asset-picker-card-user:hover .asset-picker-card-delete,
 .asset-picker-card-delete:focus-visible { opacity: 1; }
-.asset-picker-card-delete:hover {
-  color: hsl(var(--destructive-text));
-  background: hsl(var(--accent));
-}
 
 /* Per-card "Upscale" affordance. A raster library card adopts the same wrapper +
    pick-button split as a user card (padding moves onto the pick button so it fills

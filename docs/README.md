@@ -268,6 +268,7 @@ Original Lolly prose is CC BY-SA 4.0; imported Lolly Work prose and screenshots 
 | Verify It Yourself | [verify-yourself.md](verify-yourself.md) |
 | Privacy Policy | [privacy.md](privacy.md) |
 | Inclusive Design | [inclusive-design.md](inclusive-design.md) |
+| Lolly without AI | [without-ai.md](without-ai.md) |
 | Our AI Stance | [ai-stance.md](ai-stance.md) |
 | Generated once, rendered the same | [ai-features.md](ai-features.md) |
 | AI marking and the EU AI Act | [eu-ai-act.md](eu-ai-act.md) |

@@ -119,15 +119,6 @@
     padding: 0 4px 8px;
     border-bottom: 1px solid hsl(var(--border));
   }
-  .fmt-pop-head button {
-    width: 44px;
-    height: 44px;
-    border: 0;
-    border-radius: var(--radius);
-    background: transparent;
-    color: inherit;
-    font-size: 22px;
-  }
   .fmt-chip { min-height: 44px; padding-inline: 14px; }
   .fmt-show-all { min-height: 44px; }
 }

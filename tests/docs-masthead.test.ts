@@ -97,9 +97,9 @@ test('every article page opens with the masthead band, and the landing does not'
     // Exactly one h1, and it is inside the band, in the title row (plan 277 step 3c).
     const h1s = [...body.matchAll(/<h1[\s>]/g)];
     assert.equal(h1s.length, 1, `${f}: expected exactly one h1`);
-    // The section label (plan 354 D3, when the page sits in its section's rail), then the
+    // The trail (plan 354 D3, when the page sits below its section's own page), then the
     // title row. The sections left the band for the site bar (plan 354 D7).
-    assert.match(body, /<div class="docs-mast-inner">(?:<p class="docs-eyebrow">[\s\S]*?<\/p>)?<div class="mast-title"><h1[^>]*>/,
+    assert.match(body, /<div class="docs-mast-inner">(?:<ol class="docs-crumbs">[\s\S]*?<\/ol>)?<div class="mast-title"><h1[^>]*>/,
       `${f}: the h1 was not hoisted into the band's title row`);
     const band = body.slice(bandAt, wrapAt);
     assert.ok(!band.includes('<nav class="docs-pathways"'), `${f}: the band carries the sections again; they live in the bar`);

@@ -636,23 +636,47 @@ html[data-a11y-motion="reduce"] .docs-content .md-steps > ol.icon-list > li.ic {
 
 /* ── Where the page sits, and where reading goes next (plan 354 D3) ─────────
    Generated from the manifest by docs/build.ts (pageWayfinding), both readers:
-   the section label over the title, and Previous and Next after the article.
-   The label is the house eyebrow; the pager is two quiet cards at the reading
-   measure, the next one aligned to the inline end. */
-.docs-eyebrow {
+   the trail over the title, and Previous and Next after the article.
+   The trail is a breadcrumb and is drawn as one: the words as written at the small
+   text size, the section a link, a hairline chevron between the steps. It is a way
+   back up, not a label for the heading, so it is not set in capitals, not tracked
+   and not bold. The pager is two quiet cards at the reading measure, the next one
+   aligned to the inline end. */
+.docs-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
   margin: 0;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  letter-spacing: var(--ui-type-tracking-label);
-  text-transform: uppercase;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-md);
+  font-weight: 400;
+  line-height: 1.4;
   color: var(--ui-color-text-muted);
 }
-.docs-content > .docs-eyebrow { margin-bottom: var(--sp-4); }
-:is([dir="rtl"], :lang(hi), :lang(bn)) .docs-eyebrow { letter-spacing: normal; text-transform: none; }
-/* Below 1100 px the page bar above the article already names the section and the page,
-   and its sheet lists the groups, so the label would only repeat it and push the first
-   paragraph down (plan 354's phone layout). */
-@media (max-width: 1099px) { .docs-eyebrow { display: none; } }
+.docs-crumbs li { display: inline-flex; align-items: center; gap: var(--sp-2); margin: 0; padding: 0; }
+.docs-crumbs li::marker { content: none; }
+/* The step mark: two hairlines, the house arrow, pointing the way the text reads. */
+.docs-crumbs li + li::before {
+  content: "";
+  flex: none;
+  width: .4em;
+  height: .4em;
+  border-block-start: 1.5px solid currentColor;
+  border-inline-end: 1.5px solid currentColor;
+  rotate: 45deg;
+  opacity: .7;
+}
+[dir="rtl"] .docs-crumbs li + li::before { rotate: -45deg; }
+.docs-crumbs a { color: inherit; text-decoration: none; border-radius: var(--radius-xs); }
+.docs-crumbs a:hover,
+.docs-crumbs a:focus-visible { color: var(--ui-color-text-default); text-decoration: underline; text-underline-offset: .2em; }
+.docs-content > .docs-crumbs { margin-bottom: var(--sp-4); }
+/* Below 1100 px the page bar above the article already gives the section and the page,
+   and its sheet lists the groups, so the trail would only repeat the bar and push the
+   first paragraph down (plan 354's phone layout). */
+@media (max-width: 1099px) { .docs-crumbs { display: none; } }
 .docs-content .docs-pager {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

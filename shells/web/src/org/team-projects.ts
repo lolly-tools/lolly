@@ -26,6 +26,7 @@
  * Restore project (`PATCH { archived: false }`). The modal's project list and the
  * Projects view's shared section (org/project-sharing.ts) both show the switch.
  */
+import { closeButtonHtml } from '../lib/close-button.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { mountModal } from '../components/modal.ts';
 import { getSessionSource } from '../lib/session-source.ts';
@@ -34,7 +35,6 @@ import { historySettled } from '../lib/overlay-back.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import { styleTeamBack } from './team-back.ts';
-import { icon } from '../lib/icons.ts';
 import type { TeamProjectRef } from '../lib/session-source.ts';
 import { openTeamSession, teamOpenMessage } from './team-open.ts';
 import { buildNewProjectForm } from './team-project-form.ts';
@@ -200,7 +200,7 @@ export function openTeamProjectsModal(deps: TeamProjectsDeps): void {
       <div style="display:flex;align-items:center;gap:.5rem;padding:18px 14px 10px 22px;border-bottom:1px solid hsl(var(--border))">
         <h2 class="modal-title" data-team-title tabindex="-1" style="margin:0;flex:1 1 auto;min-width:0;outline:none">${escapeHtml(title)}</h2>
         ${canCreate ? `<button type="button" class="btn btn--sm" data-team-new hidden>${escapeHtml(t('New project'))}</button>` : ''}
-        <button type="button" class="save-dialog-close" data-team-close aria-label="${escapeHtml(t('Close'))}" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px">${icon('close', { size: 18 })}</button>
+        ${closeButtonHtml({ className: 'save-dialog-close', attrs: { 'data-team-close': true } })}
       </div>
       <div data-team-body style="flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:12px 22px 22px"><p class="projects-empty" style="margin:.5rem 0">${escapeHtml(t('Loading…'))}</p></div>
     </div>`,

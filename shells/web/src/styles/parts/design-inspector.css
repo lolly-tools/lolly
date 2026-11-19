@@ -88,7 +88,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.fc-insp-close { display: inline-flex; align-items: center; justify-content: center; }
 
 .fc-insp-scroll {
   flex: 1 1 auto;
@@ -367,8 +366,7 @@
   .fc-insp .color-trigger,
   .fc-insp .fc-seg-btn,
   .fc-insp-arr,
-  .fc-insp-tool,
-  .fc-insp-close { min-width: var(--ui-size-target); min-height: var(--ui-size-target); }
+  .fc-insp-tool { min-width: var(--ui-size-target); min-height: var(--ui-size-target); }
   .fc-insp .fc-posgrid { grid-template-columns: repeat(3, var(--ui-size-target)); grid-auto-rows: var(--ui-size-target); }
   .fc-insp :is(.fc-row > label, .fc-row:has(input[type="checkbox"]), .toggle-label) { min-height: 44px; }
   .fc-insp label:has(input[type="checkbox"]) { display: flex; align-items: center; flex: 1; min-height: 44px; cursor: pointer; }

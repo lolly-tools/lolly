@@ -19,6 +19,7 @@
 import { t } from '../i18n.ts';
 import { escape as escapeText } from '../utils.ts';
 import { icon, type IconName } from '../lib/icons.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 
 export type FormatCategory = 'image' | 'document' | 'motion' | 'audio' | 'other';
 
@@ -129,7 +130,7 @@ export function formatPanelHtml(
   formats: string[], current: string, label: LabelFn, recommended: readonly string[] = [],
 ): string {
   return `<div class="fmt-pop" data-fmt-panel hidden>
-    <div class="fmt-pop-head"><strong>${escapeText(t('Export format'))}</strong><button type="button" data-fmt-close aria-label="${escapeText(t('Close'))}">×</button></div>
+    <div class="fmt-pop-head"><strong>${escapeText(t('Export format'))}</strong>${closeButtonHtml({ attrs: { 'data-fmt-close': true } })}</div>
     <div data-fmt-panel-body>${formatPanelInnerHtml(formats, current, label, recommended)}</div>
   </div>`;
 }

@@ -44,6 +44,7 @@
  * default would quietly make dismissal mean "commit" wherever a caller forgot.
  */
 
+import { closeButtonHtml } from '../close-button.ts';
 import { svgContentBounds, trimSvgToContent, rasterContentBounds } from './trim-bounds.ts';
 import type { Box } from './trim-bounds.ts';
 import { escape } from '../../utils.ts';
@@ -457,7 +458,7 @@ export function mountTrimOffer(el: HTMLElement, proposal: TrimProposal, opts: Tr
         <span class="trimo-glyph" aria-hidden="true">${icon('crop', { size: 16 })}</span>
         <span class="trimo-title">${t('Trim to content')}</span>
         <span class="trimo-savings" id="${escape(savingsId)}" role="status" aria-live="polite" data-trimo-savings>${escape(savingsText(proposal))}</span>
-        <button type="button" class="trimo-x" data-trimo-act="cancel" aria-label="${escape(t('Cancel'))}" title="${escape(t('Cancel'))}">&#x2715;</button>
+        ${closeButtonHtml({ className: 'trimo-x', label: t('Cancel'), attrs: { 'data-trimo-act': 'cancel', title: t('Cancel') } })}
       </div>
       <div class="trimo-figs">
         <figure class="trimo-fig">

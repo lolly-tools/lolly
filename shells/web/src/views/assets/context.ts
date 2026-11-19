@@ -75,6 +75,8 @@ export interface CatCtx {
   typeFilter: TypeFilter;
   query: string;
   iconThemes: IconTheme[];
+  /** The ground `iconThemes` was read for (views/assets/shared.ts iconThemeForGround). */
+  iconThemeGround: 'light' | 'dark';
   catIconTheme: string | null;
   iconSvgCache: Map<string, string>;
   photoTreatments: PhotoTreatment[];

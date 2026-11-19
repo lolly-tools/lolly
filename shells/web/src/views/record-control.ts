@@ -3,6 +3,7 @@
 // live self-view + timer + capture-session orchestration for a tool declaring
 // render.capture. Extracted verbatim from tool.ts: a self-contained, module-level
 // subsystem that closes over only its param object plus these imports.
+import { closeButton } from '../lib/close-button.ts';
 import { announce } from '../a11y.ts';
 import { mountCoachHud, coachAudio, type CoachHud, type CoachTarget } from '../lib/audio-coaching.ts';
 import { frameLuma, coachVideo } from '../lib/video-coach-core.ts';
@@ -742,8 +743,7 @@ export function setupRecordControl({ stageEl, runtime, host, mode, markSessionDi
     actions.className = 'canvas-audio-dl-actions';
     const mp3Btn = Object.assign(document.createElement('button'), { type: 'button', className: 'btn-go canvas-audio-dl-mp3', textContent: 'Save MP3' });
     const natBtn = Object.assign(document.createElement('button'), { type: 'button', className: 'canvas-audio-dl-native', textContent: `Save .${nativeExt}` });
-    const xBtn = Object.assign(document.createElement('button'), { type: 'button', className: 'canvas-audio-dl-x', title: 'Dismiss', textContent: '✕' });
-    xBtn.setAttribute('aria-label', 'Dismiss');
+    const xBtn = closeButton({ size: 'sm', className: 'canvas-audio-dl-x', label: 'Dismiss', attrs: { title: 'Dismiss' } });
     // Say where the credential can be READ rather than implying parity: MP3's ID3v2
     // GEOB and M4A's BMFF box are the C2PA spec's own homes, while the Ogg and
     // Matroska bindings are Lolly's (c2pa-rs has a reader for neither). Since the

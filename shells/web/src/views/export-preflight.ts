@@ -35,6 +35,7 @@
  *
  * There is no currency, rate or price in this module, and none may be added.
  */
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escape, safeHref } from '../utils.ts';
 import { icon, type IconName } from '../lib/icons.ts';
@@ -384,7 +385,7 @@ function preflightModalHtml(view: PreflightView): string {
       ${icon('checklist', { className: 'section-card-icon' })}
       <span class="preflight-modal-title">${escape(t('Before you export'))}</span>
       <span class="preflight-verdict" data-preflight-verdict>${escape(view.verdict)}</span>
-      <button type="button" class="preflight-modal-close" data-preflight-close aria-label="${escape(t('Close'))}">&#x2715;</button>
+      ${closeButtonHtml({ className: 'preflight-modal-close', attrs: { 'data-preflight-close': true } })}
     </div>
     <div class="preflight-modal-body" data-preflight-body>${preflightBodyHtml(view)}</div>`;
 }

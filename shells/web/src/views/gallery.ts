@@ -2863,7 +2863,7 @@ function savedItem(entry: SavedEntry, bytes: number | undefined): string {
     subTag: 'small',
     subtitle,
     sizeBytes: bytes,
-    deleteAttr: `data-delete="${escape(entry.slot)}"`,
+    deleteAttr: { 'data-delete': entry.slot },
     deleteClass: 'saved-delete',
     deleteTitle: t('Delete'),
     deleteLabel: t('Delete'),

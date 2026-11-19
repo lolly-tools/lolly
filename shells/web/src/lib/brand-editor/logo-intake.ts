@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../close-button.ts';
 import { colorToHex } from '@lolly/engine';
 import { leadTokenSet } from '../design-system/leads.ts';
 import { LOGO_ORIENTATIONS, LOGO_SLUG_RE, LOGO_TREATMENTS, removeLogo, splitVariant, variantLabel } from '../brand-logos.ts';
@@ -83,7 +84,7 @@ export const candidateChipHtml = (bedit: BrandEditorCtx, c: LogoCandidateChip): 
         <div class="be-logo-chip-acts">
           ${sure ? `<button type="button" class="be-cta be-btn--sm" data-logo-place="${escapeText(c.key)}" data-variant="${escapeText(c.variant)}"${c.busy ? ' disabled' : ''}>${escapeText(act)}</button>` : ''}
           ${c.generated ? '' : `<button type="button" class="be-btn be-btn--sm" data-logo-menu="${escapeText(c.key)}" aria-expanded="${c.menuOpen ? 'true' : 'false'}"${c.busy ? ' disabled' : ''}>${t('Change slot')}</button>`}
-          <button type="button" class="be-logo-chip-x" data-logo-dismiss="${escapeText(c.key)}" aria-label="${escapeText(tRaw('Dismiss {name}', { name: c.file.name }))}">&#x2715;</button>
+          ${closeButtonHtml({ size: 'sm', className: 'be-logo-chip-x', label: tRaw('Dismiss {name}', { name: c.file.name }), attrs: { 'data-logo-dismiss': c.key } })}
         </div>
         ${c.menuOpen && !c.generated ? slotMenuHtml(bedit, c) : ''}
       </div>`;

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { injectStyleOnce } from '../lib/inject-style.ts';
 import type { AgentChange, AgentChangeTarget } from '@lolly-tools/core/agent-presence-v1';
 import type { CollabSessionState } from '../lib/collab-session.ts';
 import type { AgentRoster } from '../lib/agent-collaborators.ts';
@@ -22,7 +23,7 @@ export interface AgentChanges { reanchor(): void; dispose(): void }
 /** Temporary change outlines are chrome, outside the document and its exports. */
 export function mountAgentChanges(stage: HTMLElement, canvas: HTMLElement, source: AgentRoster, sharedLayer?: OverlayLayer | null): AgentChanges {
   const doc = stage.ownerDocument;
-  if (!doc.getElementById(STYLE_ID)) { const style = doc.createElement('style'); style.id = STYLE_ID; style.textContent = CSS; doc.head.appendChild(style); }
+  injectStyleOnce(STYLE_ID, CSS, doc);
   const layer = sharedLayer === undefined ? mountOverlayLayer(canvas, stage) : sharedLayer;
   const seen = new Map<string, string>();
   const decorations = new Map<string, Decoration[]>();

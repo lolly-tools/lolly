@@ -30,6 +30,7 @@
  * page on a wider screen. The markup is written once when it opens; after that only
  * attributes and text change, and Your instruments is built with DOM calls.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
@@ -221,7 +222,7 @@ export function openInstrumentBrowser(h: BrowserHost, track: BrowseTrack, opts: 
         <span class="msb-swatch" aria-hidden="true"></span>
         <h2 class="msb-title" id="${titleId}" data-origin-title>${escapeHtml(TRACK_TITLE()[track])}</h2>
         ${track === 'drums' ? `<button type="button" class="msb-chip msb-drums-on" data-drums-on aria-pressed="false">${escapeHtml(t('Drums on'))}</button>` : `<button type="button" class="msb-chip" data-yours title="${escapeHtml(t('Every instrument you starred or blocked, for every part'))}">${escapeHtml(t('Your instruments'))}</button>`}
-        <button type="button" class="btn btn--ghost btn--sm msb-close" data-close aria-label="${escapeHtml(t('Close'))}" title="${escapeHtml(t('Close'))}">${icon('close', { size: 18 })}</button>
+        ${closeButtonHtml({ className: 'msb-close', attrs: { 'data-close': true, title: t('Close') } })}
       </div>
       <p class="msb-now msb-origin-now" data-now></p>
       <p id="msb-how-${n}" hidden>${escapeHtml(track === 'drums' ? t('Plays two bars of this tune’s drums on this kit.') : t('Plays two bars of this tune’s part on this instrument, in the section chosen above.'))}</p>

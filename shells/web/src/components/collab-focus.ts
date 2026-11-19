@@ -67,6 +67,7 @@
  * can know: the outline's measured rect and the per-collaborator `--collab-color`.
  */
 
+import { injectStyleOnce } from '../lib/inject-style.ts';
 import { announce as defaultAnnounce } from '../a11y.ts';
 import { currentLang, loadNamespace, tRaw } from '../i18n.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
@@ -210,12 +211,7 @@ html[data-a11y-motion="reduce"] .collab-focus-box { transition: none; }
 
 /** Inject the sheet once per document. Idempotent by element id. */
 function ensureFocusStyles(doc: Document | null | undefined): void {
-  const d = doc ?? (typeof document !== 'undefined' ? document : null);
-  if (!d || d.getElementById(STYLE_ID)) return;
-  const style = d.createElement('style');
-  style.id = STYLE_ID;
-  style.textContent = CSS;
-  d.head.appendChild(style);
+  injectStyleOnce(STYLE_ID, CSS, doc);
 }
 
 // ── Focus addressing ──────────────────────────────────────────────────────────

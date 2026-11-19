@@ -4,6 +4,7 @@
  * sent. The instance compares the document with its mounted one and decides, so this
  * sheet reports that answer rather than guessing.
  */
+import { closeButtonHtml } from '../close-button.ts';
 import { mountModal } from '../../components/modal.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { icon } from '../icons.ts';
@@ -85,7 +86,7 @@ export async function openInstanceEditSheet(host: InstanceEditHost, record: Edit
         <h2 class="modal-title">${title}</h2>
         <p class="bp-intro">${t('Colours, colour roles and the brand page address.')}</p>
       </div>
-      <button type="button" class="bp-close" data-ie-close aria-label="${t('Close')}">${icon('close', { size: 20 })}</button>
+      ${closeButtonHtml({ className: 'bp-close', attrs: { 'data-ie-close': true } })}
     </header>
     <div class="ie-body" data-ie-body><p class="bp-note">${t('Comparing with the instance…')}</p></div>
     <footer class="bp-foot">
