@@ -69,7 +69,7 @@ import { swatch, swatchTile } from '../lib/swatches.ts';
 import { genAiPill } from '../lib/genai-pill.ts';
 import { lollyBadge } from '../lib/lolly-badge.ts';
 import { viewToggle } from '../components/view-toggle.ts';
-import { themeSegmentHtml } from '../components/theme-toggle.ts';
+import { themeSegmentHtml, wireThemeSegment } from '../components/theme-toggle.ts';
 import { soundSwitchHtml } from '../components/sound-toggle.ts';
 import { helpTip } from '../components/help-tip.ts';
 import { footerNav, gallerySearchBox } from '../components/footer-nav.ts';
@@ -85,7 +85,7 @@ import { stepsHtml } from './valid.ts';
 import { inputsDigestHtml } from './valid-made-from.ts';
 import { recordPanelsHtml } from './valid-record.ts';
 import type { PaletteEntry } from '../palette.ts';
-import { segHtml } from '../lib/seg.ts';
+import { segHtml, wireSeg } from '../lib/seg.ts';
 import { icon, iconNames, ICON_METAPHORS, type IconMetaphor } from '../lib/icons.ts';
 import { mountZoomHud } from '../components/zoom-hud.ts';
 import { viewTopbarHtml } from '../components/view-topbar.ts';
@@ -182,10 +182,9 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
     swatchCard: { render: () => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;width:100%">${swatch(DEMO[0]!)}${swatch({ ...DEMO[1]!, spot: { name: 'PANTONE 5535 C' } })}</div>` },
     palettePreview: {
       render: () => `<div class="cl-scenes">${palettePreviewSvgs(['#2453ff', '#30ba78', '#fe7c3f', '#e11d48']).map((scene, i) => `<div data-cl-scene="${i}"${i ? ' hidden' : ''}>${scene.svg}</div>`).join('')}${segHtml('cl-scene', [{ id: '0', label: 'Poster' }, { id: '1', label: 'Chart' }, { id: '2', label: 'UI card' }], '0', 'Palette preview')}</div>`,
-      wire: stage => stage.querySelectorAll<HTMLButtonElement>('.view-seg-btn').forEach((button, index) => { button.addEventListener('click', () => {
-        stage.querySelectorAll<HTMLElement>('[data-cl-scene]').forEach((scene, i) => { scene.hidden = i !== index; });
-        stage.querySelectorAll('.view-seg-btn').forEach((other, i) => { other.setAttribute('aria-pressed', String(i === index)); });
-      }); }),
+      wire: stage => wireSeg(stage, { onChange: value => {
+        stage.querySelectorAll<HTMLElement>('[data-cl-scene]').forEach(scene => { scene.hidden = scene.dataset.clScene !== value; });
+      } }),
     },
     genai: { render: () => `${genAiPill('full')} ${genAiPill('partial')} ${genAiPill('full', true)}` },
     lollyBadge: { render: () => `${lollyBadge('sm')} ${lollyBadge('lg')}` },
@@ -195,7 +194,8 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
     backPill: { render: () => backPillHtml({ class: '' }) },
     // The five ways the one close button is asked for, on the grounds each is for.
     closeButton: { interactive: true, render: () => `<div class="cl-close-demo">${closeButtonHtml()}${closeButtonHtml({ size: 'sm', label: 'Clear search' })}<span class="cl-close-demo-picture">${closeButtonHtml({ solid: true })}</span>${closeButtonHtml({ size: 'sm', danger: true, label: 'Remove' })}<span class="cl-close-demo-ink">${closeButtonHtml({ size: 'sm', inherit: true, label: 'Dismiss' })}</span></div>` },
-    themeSeg: { render: () => themeSegmentHtml() },
+    // The real control: a press changes the app's theme, as the control does wherever it is used.
+    themeSeg: { interactive: true, render: () => themeSegmentHtml(), wire: (stage, host) => wireThemeSegment(stage, host) },
     // The switch, its volume and Neurospicy stack in a menu's column, as the profile menu holds them.
     soundSwitch: { render: () => `<div class="cl-menu-column">${soundSwitchHtml()}</div>` },
     footerNav: { render: () => footerNav({ searchHtml: gallerySearchBox({ placeholder: t('Search'), ariaLabel: t('Search') }) }) },
@@ -237,11 +237,7 @@ function createPreviews(): { renderers: LivePreviews; dispose: () => void } {
     } as never) },
 
     // ── Primitives-section live renderers (component audit recs 1/5/6/8/11/12) ──
-    seg: { render: () => segHtml('cl-stored', [{ id: 'lch', label: 'LCH' }, { id: 'hex', label: 'Hex' }, { id: 'rgb', label: 'RGB' }], 'hex', t('Stored as')), wire: stage => {
-      stage.querySelectorAll<HTMLButtonElement>('.view-seg-btn').forEach(button => { button.addEventListener('click', () => {
-        stage.querySelectorAll('.view-seg-btn').forEach(other => { other.setAttribute('aria-pressed', String(other === button)); });
-      }); });
-    } },
+    seg: { render: () => segHtml('cl-stored', [{ id: 'lch', label: 'LCH' }, { id: 'hex', label: 'Hex' }, { id: 'rgb', label: 'RGB' }], 'hex', t('Stored as')), wire: stage => wireSeg(stage, { onChange: () => {} }) },
     icons: {
       render: () => `<div class="cl-icon-grid">${iconNames.map(name => `<div class="cl-icon-cell">${icon(name, { size: 20 })}<span>${escape(name)}</span></div>`).join('')}</div>`,
     },
