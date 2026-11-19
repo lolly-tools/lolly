@@ -103,10 +103,11 @@ url = "2"
 # ashpd's default `tokio` feature rides the same runtime tauri already embeds;
 # zbus runs on the tokio executor (default-rt OFF, so there is exactly one
 # reactor in the process). zbus 6 puts the object server and #[interface]
-# behind its `service` feature. ashpd 0.13 still uses zbus 5, so both majors
-# are in the graph; no zbus type crosses between the two.
+# behind its `service` feature. ashpd 0.14 uses zbus 6 as well; notify-rust
+# (through tauri-plugin-notification) still uses zbus 5, so both majors are in
+# the graph, and no zbus type crosses between the two.
 [target.'cfg(target_os = "linux")'.dependencies]
-ashpd = { version = "0.13", features = ["screenshot", "wallpaper", "settings"] }
+ashpd = { version = "0.14", features = ["screenshot", "wallpaper", "settings"] }
 zbus = { version = "6", default-features = false, features = ["tokio", "service"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
