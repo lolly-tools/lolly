@@ -446,14 +446,14 @@ function specimenShell(s: Specimen, idx: number, previews: LivePreviews): string
   </article>`;
 }
 
-// A family folds. Shut, its head is one entry of an index: the number, the name, how
-// many parts it holds and their names on one line. Open, the head is the family's
+// A family folds. Shut, its head is one entry of an index: the name, how many parts it
+// holds and their names on one line. Open, the head is the family's
 // heading, with its introduction and its cards below. The cards are in the page from
 // the start, so counts and search see them; a stage is drawn when its family first opens.
-function familyHtml(sec: Section, index: number, cards: string): string {
+function familyHtml(sec: Section, cards: string): string {
   const intro = `${sec.blurb ? `<p class="cl-section-intro">${escape(sec.blurb)}</p>` : ''}${useCaseLink(sec.title)}`;
   return `<details class="cl-section cl-component-section cl-family" id="${sectionId(sec.title)}">
-    <summary class="cl-section-head"><span class="cl-section-number" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span><h2>${escape(sec.title)}</h2><span class="cl-section-kind">${sec.items.length} specimens · ${sec.group === 'common' ? 'Shared' : 'In context'}</span><span class="cl-family-list">${sec.items.map(item => `<span>${escape(displayName(item))}</span>`).join('')}</span></summary>
+    <summary class="cl-section-head"><h2>${escape(sec.title)}</h2><span class="cl-section-kind">${sec.items.length} specimens · ${sec.group === 'common' ? 'Shared' : 'In context'}</span><span class="cl-family-list">${sec.items.map(item => `<span>${escape(displayName(item))}</span>`).join('')}</span></summary>
     ${intro ? `<div class="cl-family-intro">${intro}</div>` : ''}
     <div class="cl-grid">${cards}</div>
   </details>`;
@@ -563,7 +563,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
           <div class="cl-toolbar"><label class="cl-search">${icon('search', { size: 18 })}<input type="search" class="cl-search-input" placeholder="Find a component, pattern or CSS hook…" aria-label="Search components"></label><label class="cl-filter-label"><span>Preview</span><select class="cl-mode-filter" aria-label="Filter by preview type"><option value="all">All previews</option><option value="live">Interactive</option><option value="sample">Static samples</option><option value="fixture">Design fixtures</option></select></label><button type="button" class="btn cl-fold-all">Expand all</button></div>
           <p class="cl-result-count" role="status" aria-live="polite">Showing ${flat.length} components</p>
           <div class="cl-empty" hidden><h3>No components found.</h3><p>Try another name, CSS hook or preview type.</p><button class="btn cl-reset" type="button">Clear filters</button></div>
-          ${COMPONENT_SECTIONS.map((sec, i) => familyHtml(sec, i, sec.items.map(item => specimenShell(item, n++, LIVE)).join(''))).join('')}
+          ${COMPONENT_SECTIONS.map(sec => familyHtml(sec, sec.items.map(item => specimenShell(item, n++, LIVE)).join(''))).join('')}
         </section>
         ${foundationsHtml()}${tokenExplorerHtml()}<details class="cl-audit-disclosure"><summary>About the library & export fidelity</summary>${auditHtml()}</details>
         <footer class="cl-page-footer"><strong>Lolly, by design.</strong><span>One system. Room for expression.</span></footer>
