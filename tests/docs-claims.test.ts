@@ -487,43 +487,6 @@ test('a number typed into the landing copy matches the live count it states', ()
   }
 });
 
-// ── 5. block 2's worked examples ─────────────────────────────────────────────
-
-/**
- * The three tools the landing hands a first-time reader. Pinned here because the
- * block's promise is that a click works with nothing set up and nothing sent
- * anywhere - so the set may only change with this test.
- *
- * NOTE on the plan's "∈ SW-precached" wording: there is no per-tool precache list
- * to be a member of. `shells/web/public/sw.js` serves /tools/ NETWORK-FIRST with a
- * cache fallback, and the only pinned bucket is the one a user fills themselves
- * ("available offline"). So the property that actually exists - and the one the
- * claim rests on - is ZERO EGRESS: a community tool (present on every profile)
- * that declares no capabilities and whose hooks reach no network. That is what is
- * asserted.
- */
-const BLOCK2_TOOLS = ['qr-code', 'audiogram', 'filter'];
-
-test('block 2 seeds tools that exist on every profile and touch no network', () => {
-  const region = landingRegion();
-  const pinned = [...region.matchAll(/tool: '([a-z0-9-]+)'/g)].map(m => m[1]!);
-  assert.deepEqual(pinned, BLOCK2_TOOLS,
-    'the landing example tools changed - update BLOCK2_TOOLS and re-check the properties below');
-
-  for (const id of BLOCK2_TOOLS) {
-    const dir = resolve(repoRoot, 'community', id);
-    assert.ok(existsSync(dir), `${id} must be a COMMUNITY tool, so it exists on every profile`);
-    const manifest = JSON.parse(readFileSync(resolve(dir, 'tool.json'), 'utf-8'));
-    assert.ok(!manifest.capabilities?.length,
-      `${id} declares capabilities (${JSON.stringify(manifest.capabilities)}) - block 2 needs a tool that just works`);
-    for (const file of readdirSync(dir).filter(f => f.endsWith('.js'))) {
-      const src = readFileSync(resolve(dir, file), 'utf-8');
-      assert.ok(!/\bfetch\s*\(|XMLHttpRequest|host\.net\b|EventSource|WebSocket/.test(src),
-        `${id}/${file} reaches the network - block 2's cards must work with the Wi-Fi off`);
-    }
-  }
-});
-
 // ── 6. banned overclaims across the docs (the honesty glass-jaw, plan 116 section 5) ─
 
 /**

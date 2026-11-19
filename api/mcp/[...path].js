@@ -186823,9 +186823,6 @@ function assetIndex() {
 function fontsDir() {
   return catalogFile("fonts", content());
 }
-function previewsDir() {
-  return catalogFile("previews", content());
-}
 function contentUrl(url) {
   return contentUrlFile(url, content());
 }
@@ -203544,7 +203541,7 @@ var RESOURCE_TEMPLATES = [
   { uriTemplate: "lolly://design-system/skill/{name}", name: "Brand skill", description: "One brand skill as SKILL.md. The brand's body is unchanged; frontmatter metadata says which asset, revision and checksum it is.", mimeType: "text/markdown" },
   { uriTemplate: "lolly://design-system/skill/{name}/{path}", name: "Brand skill file", description: "A reference of one brand skill, its lolly.json companion, or coverage.json: what the skill says against what Lolly checks.", mimeType: "application/json" },
   { uriTemplate: "lolly://tool/{id}", name: "Tool details", description: "A tool manifest summary + input JSON Schema + examples.", mimeType: "application/json" },
-  { uriTemplate: "lolly://tool/{id}/preview", name: "Tool preview", description: "The tool's committed catalog preview (SVG), where one exists.", mimeType: "image/svg+xml" },
+  { uriTemplate: "lolly://tool/{id}/preview", name: "Tool preview", description: "The tool's committed gallery preview, where one exists: SVG text, or a WebP or PNG blob for a tool whose preview is a picture." },
   { uriTemplate: "lolly://asset/{id}", name: "Brand asset", description: "A catalog asset (logo, palette, font) resolved to bytes.", mimeType: "application/octet-stream" }
 ];
 function headTokensAsset2(assets) {
@@ -203582,15 +203579,27 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
+var PREVIEW_TYPES = { svg: "image/svg+xml", webp: "image/webp", png: "image/png" };
+function previewCandidates(id3, indexed) {
+  const catalog = Object.keys(PREVIEW_TYPES).map((ext) => `/catalog/previews/${id3}.${ext}`);
+  const cards = ["svg", "png"].map((ext) => `/tools/${id3}/card.${ext}`);
+  const plain = typeof indexed === "string" ? indexed.replace(/^\/tools\/([a-z0-9-]+)@[0-9a-f]{16}\//, "/tools/$1/").replace(/^(\/catalog\/previews\/[a-z0-9-]+)\.[0-9a-f]{16}(\.[a-z]+)$/, "$1$2") : null;
+  const first = plain !== null && [...cards, ...catalog].includes(plain) ? [plain] : [];
+  return [.../* @__PURE__ */ new Set([...first, ...catalog])];
+}
 async function previewResource(uri, id3) {
-  for (const file of [`${id3}.svg`, `${id3}.look0.svg`]) {
+  const entry2 = (await loadIndex().catch(() => null))?.tools.find((t) => t.id === id3);
+  for (const url of previewCandidates(id3, entry2?.preview)) {
+    const file = contentUrl(url);
+    if (!file) continue;
+    const mimeType = PREVIEW_TYPES[url.slice(url.lastIndexOf(".") + 1)];
     try {
-      const text13 = await readFile34(join36(previewsDir(), file), "utf8");
-      return { uri, mimeType: "image/svg+xml", text: text13 };
+      const bytes2 = await readFile34(file);
+      return mimeType === "image/svg+xml" ? { uri, mimeType, text: bytes2.toString("utf8") } : { uri, mimeType, blob: bytes2.toString("base64") };
     } catch {
     }
   }
-  throw new Error(`No SVG preview for tool: ${id3}`);
+  throw new Error(`No preview for tool: ${id3}`);
 }
 async function assetResource(uri, id3) {
   if (isHostedServer() && !isPublicBrandSkillAsset(assetIndex().assets.find((a) => a.id === id3))) throw new Error(`Asset not found: ${id3}`);

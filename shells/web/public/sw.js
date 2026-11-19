@@ -20,16 +20,15 @@
  *      this generation's cache, then the separate PIN_CACHE bucket that holds
  *      tools the user pinned "available offline" (lib/offline-pins.ts).
  *
- *   4. Preview images + the preview-look manifest under /catalog/previews/ →
+ *   4. Preview images and the gallery cover manifest under /catalog/previews/ →
  *      STALE-WHILE-REVALIDATE: serve the cached copy instantly (no blocking
  *      network on repeat loads, and they work offline) while a background fetch
  *      freshens the cache for next time. Previews are regenerable, non-critical
- *      art (a one-load-stale thumbnail is harmless, and a stale look self-heals -
- *      preview-bundle.ts rejects a sig mismatch and live-renders), so unlike the
- *      catalog INDEX they don't need to be fetch-fresh. This is the repeat-visit
- *      request cut: dozens of preview + manifest requests become cache hits. It
- *      is also the ONLY thing that caches bundle.json - nothing precaches it, so
- *      a cold load fetches it exactly once, from the page.
+ *      art (a one-load-stale thumbnail is harmless), so unlike the catalog INDEX
+ *      they don't need to be fetch-fresh. This is the repeat-visit request cut:
+ *      dozens of preview requests become cache hits. Nothing under
+ *      /catalog/previews/ is precached, so a cold load fetches each file once,
+ *      from the page.
  *
  *   5. The /info docs site → NETWORK-FIRST per URL out of its own persistent
  *      bucket (INFO_CACHE, filled by the offline download manager) - real
@@ -65,15 +64,10 @@
 // dead weight; the bump lets activate drop it rather than leave it on disk.
 // v16: the PWA share target ships (plan 202 WP4.3) - one POST branch in fetch,
 // plus SHARE_CACHE on the activate keep-list.
-// v15: /catalog/previews/bundle.json changed FORMAT (plans/155 Task 2.4) - it went from
-// a 2.64 MB payload with each look's SVG inlined to a 29 KB manifest of look URLs, and
-// left PRECACHE_URLS with it. A format change is exactly what a generation bump is for:
-// this SWR route caches the manifest in THIS bucket, so without the bump a returning
-// visitor is served the old inlined file first (stale-while-revalidate answers from
-// cache), and lib/preview-bundle.ts - which now reads only `src` - sees entries that
-// carry `svg` alone, returns null for every one of them, and the whole gallery falls
-// back to live engine renders for a load. It self-heals on the NEXT visit; the bump
-// means there is no first one to pay for it.
+// v15: the gallery's old preview-look manifest (/catalog/previews/bundle.json, since
+// removed) changed FORMAT and left PRECACHE_URLS. A format change is what a generation
+// bump is for: this SWR route caches in THIS bucket, so without the bump a returning
+// visitor is served the old file first.
 // v14: the Kokoro speech buckets ('transformers-cache', 'lolly-speech') join
 // the activate keep-list - before this, every SW update deleted the ~92 MB
 // model and the voice bins.
@@ -174,16 +168,16 @@ const NETWORK_TIMEOUT_MS = 2500;
 // meeting-planner map bundle (d3 + countries-110m) was paid by every visitor on install
 // regardless of ever opening that tool; it now caches network-first under /tools/ on
 // first actual use, so meeting-planner still works offline for anyone who's opened it
-// once online. The preview-look manifest was here too, on the same reasoning, and cost
-// the same way: it made every cold load fetch /catalog/previews/bundle.json TWICE (once
-// here, once from the page), for a file the /catalog/previews/ stale-while-revalidate
-// route below already caches on its first real use.
+// once online. The old preview-look manifest was here too, on the same reasoning, and
+// cost the same way: every cold load fetched it TWICE (once here, once from the page),
+// for a file the /catalog/previews/ stale-while-revalidate route below already caches
+// on its first real use.
 const PRECACHE_URLS = [
   SHELL_URL,
 ];
 
-// Preview images + the look manifest (bundle.json): stale-while-revalidate (see strategy
-// #4). Matched BEFORE the /catalog/ bypass, exactly like /catalog/fonts/ above.
+// Preview images and the cover manifest (covers.json): stale-while-revalidate (see
+// strategy #4). Matched BEFORE the /catalog/ bypass, exactly like /catalog/fonts/ above.
 const PREVIEW_PATTERN = /^\/catalog\/previews\//;
 
 // Cache-first: content-hashed Vite build output, plus the bundled variable fonts
@@ -302,7 +296,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Preview images + the look manifest under /catalog/previews/: stale-while-revalidate.
+  // Preview images and the cover manifest under /catalog/previews/: stale-while-revalidate.
   // Checked BEFORE the /catalog/ bypass so they're cached (repeat loads = cache hits, and
   // offline), while the catalog INDEX just below still bypasses to stay fetch-fresh.
   if (PREVIEW_PATTERN.test(url.pathname)) {
@@ -541,7 +535,7 @@ async function networkFirstInfo(event) {
 // Stale-while-revalidate for preview art: serve the cached copy immediately (fast, offline-
 // capable) and kick off a background fetch that refreshes the cache for next time. With
 // nothing cached yet, wait on the network. Only ok responses are cached, so a transient 404/
-// 5xx never poisons the cache. Used for /catalog/previews/ (thumbnails + the look manifest) -
+// 5xx never poisons the cache. Used for /catalog/previews/ (thumbnails + the cover manifest) -
 // regenerable art where one-load staleness is harmless, unlike the fetch-fresh catalog index.
 async function staleWhileRevalidate(event) {
   const { request } = event;

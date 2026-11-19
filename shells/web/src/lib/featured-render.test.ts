@@ -21,7 +21,7 @@ function spyHost(keys: string[]) {
 }
 
 test('isManifestLook separates a manifest URL from a live render', () => {
-  assert.equal(isManifestLook('/catalog/previews/demo.look0.svg'), true);
+  assert.equal(isManifestLook('/catalog/previews/covers/demo.light.webp'), true);
   assert.equal(isManifestLook(THUMB), false);
 });
 

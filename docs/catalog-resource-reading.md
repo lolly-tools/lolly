@@ -6,7 +6,7 @@ A signed catalog promises that every tool, preview and card a client shows is th
 
 Verified clients check each signed tool resource before handing its bytes to a model or library loader. Dynamic tool scripts and stylesheets receive a verified blob URL before the browser starts loading them. Cards and still or motion previews also receive a source only after their bytes verify.
 
-The signed envelope's optional `resources` map carries full SHA-256 digests for public previews, look bundles, social cards and documentation images. Generate these resources before signing the extracted build. A publisher upgrading an older envelope must sign again to supply those proofs. Without them, a preview stays unavailable and a look bundle falls back to the live renderer.
+The signed envelope's optional `resources` map carries full SHA-256 digests for public previews, social cards and documentation images. Generate these resources before signing the extracted build. A publisher upgrading an older envelope must sign again to supply those proofs. Without them, a preview stays unavailable.
 
 HTML cards keep their script-free sandbox and load verified linked resources. Active card content is refused where people can see the refusal.
 

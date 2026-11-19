@@ -78,11 +78,10 @@ test('preview, OG and docshot hash copies preserve exact bytes and final referen
     file(base, 'catalog/previews/demo.svg', image);
     file(base, 'catalog/og/demo.png', 'social card');
     file(base, 'info/shots/demo.svg', image);
-    file(base, 'tools/demo/card.html', '<img src="/catalog/previews/demo.svg"><img src="/tools/demo/look0.svg">');
-    file(base, 'tools/demo/look0.svg', image);
+    file(base, 'tools/demo/card.html', '<img src="/catalog/previews/demo.svg"><img src="/tools/demo/art.svg">');
+    file(base, 'tools/demo/art.svg', image);
     file(base, 'catalog/tools/index.json', JSON.stringify({ tools: [{ id: 'demo', preview: '/tools/demo/card.html' }] }));
     file(base, 'catalog/tools/index.slim.json', JSON.stringify({ tools: [{ id: 'demo', preview: '/catalog/previews/demo.svg' }] }));
-    file(base, 'catalog/previews/bundle.json', JSON.stringify({ 'demo:0': { src: '/tools/demo/look0.svg' }, 'demo:1': { src: '/catalog/previews/demo.svg' } }));
     file(base, 'tool/demo.html', '<meta property="og:image" content="https://example.test/catalog/og/demo.png">');
     file(base, 'info/intro.html', '<img src="/info/shots/demo.svg?fit=cover">');
     const first = await signed(base);
@@ -93,9 +92,8 @@ test('preview, OG and docshot hash copies preserve exact bytes and final referen
     assert.match(readFileSync(join(base, 'info/intro.html'), 'utf8'), new RegExp(`/info/shots/demo\\.${imageHash}\\.svg\\?fit=cover`));
     assert.match(readFileSync(join(base, 'tool/demo.html'), 'utf8'), /https:\/\/example.test\/catalog\/og\/demo\.[0-9a-f]{16}\.png/);
     assert.equal(JSON.parse(readFileSync(join(base, 'catalog/tools/index.json'), 'utf8')).tools[0].preview, `/tools/demo@${toolHash}/card.html`);
-    assert.equal(JSON.parse(readFileSync(join(base, 'catalog/previews/bundle.json'), 'utf8'))['demo:0'].src, `/tools/demo@${toolHash}/look0.svg`);
     assert.match(readFileSync(join(base, `tools/demo@${toolHash}/card.html`), 'utf8'), new RegExp(`/catalog/previews/demo\\.${imageHash}\\.svg`));
-    assert.ok(readFileSync(join(base, `tools/demo@${toolHash}/card.html`), 'utf8').includes('src="./look0.svg"'));
+    assert.ok(readFileSync(join(base, `tools/demo@${toolHash}/card.html`), 'utf8').includes('src="./art.svg"'));
     assert.deepEqual((await materializeCatalogDelivery(base)).toolDirs, first.toolDirs, 'repeating the pass preserves directory identities');
   } finally { rmSync(base, { recursive: true, force: true }); }
 });

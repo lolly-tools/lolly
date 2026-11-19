@@ -248,7 +248,9 @@ async function run(): Promise<void> {
   const opts = parseOpts(process.argv.slice(2));
   let files: string[];
   try {
-    files = readdirSync(PREVIEWS_DIR).filter((f) => /\.(svg|png|webp|jpg|jpeg|avif)$/i.test(f));
+    // Pre-rendered example looks (`<id>.look<n>.<ext>`) are left out: nothing reads them,
+    // and validate-catalog ignores any a pack still carries.
+    files = readdirSync(PREVIEWS_DIR).filter((f) => /\.(svg|png|webp|jpg|jpeg|avif)$/i.test(f) && !/\.look\d+\.[a-z0-9]+$/i.test(f));
   } catch {
     console.log('· No catalog/previews/ dir yet (run `pnpm run previews` first) - nothing to measure.');
     return;
@@ -279,7 +281,7 @@ async function run(): Promise<void> {
   const groupByTool = (list: Row[]): Map<string, string[]> => {
     const m = new Map<string, string[]>();
     for (const r of list) {
-      const id = r.file.replace(/\.look\d+/, '').replace(/\.[a-z0-9]+$/i, '');
+      const id = r.file.replace(/\.[a-z0-9]+$/i, '');
       m.set(id, [...(m.get(id) ?? []), r.file]);
     }
     return m;
