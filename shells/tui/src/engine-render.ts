@@ -400,7 +400,7 @@ export async function exportToFile(
     }
   }
   // The TIFF twin of the branch above, identical to the CLI (plans/371, M1.3).
-  if (!floatScene && modelValues(runtime).editingRange !== 'hdr' && eligibleForResvgTiff(fmt, dims)) {
+  if (!floatScene && (manifest as { id?: string }).id !== 'design' && modelValues(runtime).editingRange !== 'hdr' && eligibleForResvgTiff(fmt, dims)) {
     const svg = await renderSvg(runtime, dom, dims);
     if (svg) {
       const { bytes: tiff } = await rasterizeTierATiff(svg, dims, manifest as { render?: { width?: number; height?: number } }, runtime.lastExportMeta);

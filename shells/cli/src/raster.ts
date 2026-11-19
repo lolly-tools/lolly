@@ -150,7 +150,9 @@ export async function renderRaster(opts: {
   // over the same resvg pixels as the PNG above, written by the engine's own TIFF
   // writer. The export's metadata is the record the runtime made for the SVG it has
   // just exported, so the file gives the same title, author and design system.
-  if (!sampled && !floatEditing && eligibleForResvgTiff(fmt, dims)) {
+  // Never a Design page: its frames need the operations route, which draws them at the
+  // page's own size with outlined words (PR #1032). This branch is for SVG-native tools.
+  if (!sampled && !floatEditing && manifest.id !== 'design' && eligibleForResvgTiff(fmt, dims)) {
     const svg = await tryRenderSvg(runtime, dom, dims.slide, dims);
     if (svg) {
       const { bytes, imprinted } = await rasterizeTierATiff(svg, dims, manifest, runtime.lastExportMeta);
