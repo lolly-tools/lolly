@@ -21,12 +21,18 @@
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
+import { inflateSync } from 'node:zlib';
 import type { ExportMeta, IngredientCredential } from '@lolly-tools/core/host-v1';
 import { designOperationsRenderer, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 import { DESIGN_DRAW_VERSION } from '../../../engine/src/design-draw.ts';
+import { designStrokeSides } from '../../../engine/src/design-stroke.ts';
+import { round2 } from '../../../engine/src/design-draw-svg.ts';
+import { gradientSpecStops, parseGradientSpec } from '../../../engine/src/gradient-spec.ts';
+import { colorToHexString } from '../../../engine/src/css-color.ts';
 import { browserInstalled } from './browsers.ts';
 import { desktopInstalled, readRenderServer, rendererPreference } from './desktop-renderer.ts';
 import { cleanJpeg } from './pdf-images.ts';
+import { jpegSegmentBody, scanJpegSegments } from '@lolly/engine';
 import { rasterizeSvgToRgba } from './raster.ts';
 import { repoRoot } from './repo-root.ts';
 
@@ -79,6 +85,17 @@ export interface DesignStillDecision {
   ignored?: string;
 }
 
+/**
+ * The note a person reads when a Design page was drawn on this route: that no browser
+ * drew it, and how to get the browser's own render. One sentence pair, the same on the
+ * CLI and in the TUI.
+ */
+export function designStillNote(decision: DesignStillDecision): string {
+  const what = 'This Design page was drawn without a browser, by resvg from its drawing operations';
+  if (decision.because.startsWith(DESIGN_RASTER_ENV)) return `${what}, because ${DESIGN_RASTER_ENV}=resvg is set. Unset it for the browser's own render.`;
+  return `${what}, because no browser render tier is available here. For the browser's own render, install one: \`lolly install-browser\` with a built web shell (\`pnpm run build:web\`, or LOLLY_WEB_BASE set to a running one), or the Lolly desktop app.`;
+}
+
 export function designStillDecision(env: Record<string, string | undefined> = process.env, tier: () => { available: boolean; reason?: string } = browserTierState): DesignStillDecision {
   const { choice, ignored } = designRasterChoice(env);
   const extra = ignored !== undefined ? { ignored } : {};
@@ -123,18 +140,129 @@ function base64Bytes(body: string): Uint8Array | null {
   try { return new Uint8Array(Buffer.from(body, 'base64')); } catch { return null; }
 }
 
-/** The components of a JPEG's frame header (3 for RGB, 4 for CMYK), or 0 when none is read. */
-function jpegComponents(bytes: Uint8Array): number {
-  for (let at = 2; at + 9 < bytes.length;) {
-    if (bytes[at] !== 0xff) { at++; continue; }
-    const marker = bytes[at + 1]!;
-    if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) { at += 2; continue; }
-    const length = (bytes[at + 2]! << 8) | bytes[at + 3]!;
-    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) return bytes[at + 9]!;
-    if (marker === 0xda) return 0;
-    at += 2 + length;
+/**
+ * A JPEG's frame components (3 for RGB, 4 for CMYK) and its ICC profile, read with the
+ * engine's segment walker (which skips fill bytes), or null when the file cannot be walked.
+ */
+function jpegFacts(bytes: Uint8Array): { components: number; icc: Uint8Array | null } | null {
+  const scan = scanJpegSegments(bytes);
+  if (!scan) return null;
+  let components = 0;
+  const parts: Array<{ seq: number; body: Uint8Array }> = [];
+  for (const seg of scan.segments) {
+    const body = jpegSegmentBody(bytes, seg);
+    if (seg.marker >= 0xc0 && seg.marker <= 0xcf && seg.marker !== 0xc4 && seg.marker !== 0xc8 && seg.marker !== 0xcc && body.length >= 6) components = body[5]!;
+    if (seg.marker === 0xe2 && body.length > 14 && Buffer.from(body.subarray(0, 12)).toString('latin1') === 'ICC_PROFILE\0') parts.push({ seq: body[12]!, body: body.subarray(14) });
   }
-  return 0;
+  parts.sort((a, b) => a.seq - b.seq);
+  return { components, icc: parts.length ? new Uint8Array(Buffer.concat(parts.map((p) => p.body))) : null };
+}
+
+/** Whether `markup` holds an element of this name, with or without a namespace prefix. */
+const hasElement = (markup: string, name: string): boolean => new RegExp(`<(?:[^\\s<>/:="']+:)?${name}[\\s/>]`, 'iu').test(markup);
+
+/**
+ * Whether a vector picture's own size has a fraction. The drawing operations read a
+ * picture's size to place it (`imageDimensions` in engine/src/penpot-file.ts) and round
+ * an SVG's to whole pixels, so a contained 44.725 x 19.706 logo is placed at 45 x 20
+ * proportions, 1.3 px narrower than the browser draws it at 90 px tall.
+ */
+function fractionalSvgSize(markup: string): boolean {
+  const root = /<svg\b([^>]*)>/i.exec(markup)?.[1] ?? '';
+  const attr = (name: string) => new RegExp(`\\s${name}\\s*=\\s*["']([^"']*)["']`, 'i').exec(root)?.[1]?.trim();
+  const box = (attr('viewBox') ?? '').split(/[\s,]+/).map(Number);
+  const side = (name: 'width' | 'height', index: number): number => {
+    const own = attr(name);
+    if (own && /^\+?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?(px)?$/i.test(own)) return Number.parseFloat(own);
+    // A size in any other unit, or a percentage, is one this check cannot read exactly: a fraction.
+    if (own) return 0.5;
+    return box.length === 4 && Number.isFinite(box[index]) ? box[index]! : NaN;
+  };
+  return [side('width', 2), side('height', 3)].some((v) => Number.isFinite(v) && Math.abs(v - Math.round(v)) > 1e-6);
+}
+
+/** One tag of an ICC profile by its signature, or null. */
+function iccTag(icc: Uint8Array, sig: string): Uint8Array | null {
+  if (icc.length < 132) return null;
+  const view = new DataView(icc.buffer, icc.byteOffset, icc.byteLength);
+  const count = Math.min(view.getUint32(128), 256);
+  for (let i = 0; i < count; i++) {
+    const at = 132 + i * 12;
+    if (at + 12 > icc.length) break;
+    if (Buffer.from(icc.subarray(at, at + 4)).toString('latin1') !== sig) continue;
+    const offset = view.getUint32(at + 4), size = view.getUint32(at + 8);
+    return offset + size <= icc.length ? icc.subarray(offset, offset + size) : null;
+  }
+  return null;
+}
+
+/** A tone curve tag (`curv` or `para`) evaluated at one half, or NaN when unreadable. */
+function toneAtHalf(tag: Uint8Array | null): number {
+  if (!tag || tag.length < 12) return NaN;
+  const view = new DataView(tag.buffer, tag.byteOffset, tag.byteLength);
+  const type = Buffer.from(tag.subarray(0, 4)).toString('latin1');
+  if (type === 'curv') {
+    const count = view.getUint32(8);
+    if (count === 0) return 0.5;
+    if (count === 1) return tag.length >= 14 ? 0.5 ** (view.getUint16(12) / 256) : NaN;
+    if (tag.length < 12 + count * 2) return NaN;
+    const at = 0.5 * (count - 1), lo = Math.floor(at), hi = Math.min(count - 1, lo + 1), t = at - lo;
+    return (view.getUint16(12 + lo * 2) * (1 - t) + view.getUint16(12 + hi * 2) * t) / 65535;
+  }
+  if (type === 'para') {
+    const fn = view.getUint16(8);
+    const p = Array.from({ length: Math.min(7, Math.floor((tag.length - 12) / 4)) }, (_, i) => view.getInt32(12 + i * 4) / 65536);
+    const [g = NaN, a = 1, b = 0, c = 0, d = 0, e = 0, f = 0] = p;
+    const x = 0.5;
+    if (fn === 0) return x ** g;
+    if (fn === 1) return x >= -b / a ? (a * x + b) ** g : 0;
+    if (fn === 2) return x >= -b / a ? (a * x + b) ** g + c : c;
+    if (fn === 3) return x >= d ? (a * x + b) ** g : c * x;
+    if (fn === 4) return x >= d ? (a * x + b) ** g + e : c * x + f;
+  }
+  return NaN;
+}
+
+/**
+ * Whether an ICC profile draws as sRGB: its red, green and blue colorants within 0.003
+ * of sRGB's (D50) and each tone curve within 0.01 of sRGB's at one half (0.214). Read
+ * from the numbers, never the profile's description, which can say anything.
+ */
+function isSrgbProfile(icc: Uint8Array): boolean {
+  const colorants: Record<string, [number, number, number]> = { rXYZ: [0.4361, 0.2225, 0.0139], gXYZ: [0.3851, 0.7169, 0.0971], bXYZ: [0.1431, 0.0606, 0.7141] };
+  for (const [sig, want] of Object.entries(colorants)) {
+    const tag = iccTag(icc, sig);
+    if (!tag || tag.length < 20 || Buffer.from(tag.subarray(0, 4)).toString('latin1') !== 'XYZ ') return false;
+    const view = new DataView(tag.buffer, tag.byteOffset, tag.byteLength);
+    if (want.some((v, k) => Math.abs(view.getInt32(8 + k * 4) / 65536 - v) > 0.003)) return false;
+  }
+  return ['rTRC', 'gTRC', 'bTRC'].every((sig) => Math.abs(toneAtHalf(iccTag(icc, sig)) - 0.214) <= 0.01);
+}
+
+/**
+ * Why a PNG picture's colours would differ here, or null. The browser applies a PNG's
+ * own colour profile (iCCP) and its chromaticities (cHRM); resvg applies neither, so a
+ * Display P3 picture comes out with sRGB's reading of its numbers.
+ */
+function pngProfileRefusal(bytes: Uint8Array): string | null {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let srgb = false;
+  for (let at = 8; at + 8 <= bytes.length;) {
+    const length = view.getUint32(at), type = String.fromCharCode(...bytes.subarray(at + 4, at + 8));
+    const body = bytes.subarray(at + 8, at + 8 + length);
+    if (type === 'IDAT' || type === 'IEND') break;
+    if (type === 'sRGB') srgb = true;
+    if (type === 'iCCP') {
+      const nul = body.indexOf(0);
+      let icc: Uint8Array | null = null;
+      // An ICC profile is a few kilobytes; a larger one is not read (and not admitted).
+      try { icc = new Uint8Array(inflateSync(body.subarray(nul + 2), { maxOutputLength: 1 << 20 })); } catch { icc = null; }
+      if (!icc || !isSrgbProfile(icc)) return 'a PNG picture with a colour profile other than sRGB, which resvg does not apply';
+    }
+    if (type === 'cHRM' && !srgb) return 'a PNG picture with its own chromaticities, which resvg does not apply';
+    at += 12 + length;
+  }
+  return null;
 }
 
 /** Why one embedded picture would not draw here as the browser draws it, or null. */
@@ -145,18 +273,24 @@ function pictureRefusal(mime: string, bytes: Uint8Array | null, depth: number): 
     let orientation = 1;
     try { orientation = cleanJpeg(bytes).orientation; } catch { return 'a JPEG picture this route cannot read'; }
     if (orientation !== 1) return 'a JPEG picture turned by its Exif orientation, which resvg does not apply';
-    if (jpegComponents(bytes) === 4) return 'a CMYK JPEG picture, which resvg converts without its colour profile';
-    return null;
+    const facts = jpegFacts(bytes);
+    if (!facts) return 'a JPEG picture this route cannot read';
+    if (facts.components === 4) return 'a CMYK JPEG picture, which resvg converts without its colour profile';
+    return facts.icc && !isSrgbProfile(facts.icc) ? 'a JPEG picture with a colour profile other than sRGB, which resvg does not apply' : null;
   }
   if (mime === 'image/svg+xml') {
     const markup = new TextDecoder().decode(bytes);
-    if (/<text[\s>]/i.test(markup)) return 'a vector picture holding live text, which would be drawn without its font';
-    if (/<foreignObject[\s>]/i.test(markup)) return 'a vector picture holding HTML, which resvg does not draw';
+    if (hasElement(markup, 'text')) return 'a vector picture holding live text, which would be drawn without its font';
+    if (hasElement(markup, 'foreignObject')) return 'a vector picture holding HTML, which resvg does not draw';
+    // Measured on resvg-js 2.6.2: a picture inside a vector picture is left out entirely.
+    if (hasElement(markup, 'image')) return 'a vector picture holding a picture of its own, which resvg leaves out';
+    if (fractionalSvgSize(markup)) return 'a vector picture whose size is not a whole number of pixels, which the drawing operations round when they place it';
     const blended = premultipliedGradients(markup);
     if ('reason' in blended || blended.svg !== markup) return 'a vector picture with a gradient that blends through transparency, which resvg blends differently';
     return depth < 2 ? hrefRefusals(markup, depth + 1)[0] ?? null : 'a vector picture nested more than two deep';
   }
-  if (mime === 'image/png' || mime === 'image/gif') return null;
+  if (mime === 'image/png') return pngProfileRefusal(bytes);
+  if (mime === 'image/gif') return null;
   return `a picture of type ${mime || 'unknown'}, which resvg does not decode`;
 }
 
@@ -188,8 +322,8 @@ function hrefRefusals(svg: string, depth: number): string[] {
  */
 export function resvgRefusals(svg: string): string[] {
   const out = new Set<string>();
-  if (/<text[\s>]/i.test(svg)) out.add('the page keeps live text, which would be drawn without its font');
-  if (/<foreignObject[\s>]/i.test(svg)) out.add('the page holds HTML, which resvg does not draw');
+  if (hasElement(svg, 'text')) out.add('the page keeps live text, which would be drawn without its font');
+  if (hasElement(svg, 'foreignObject')) out.add('the page holds HTML, which resvg does not draw');
   for (const match of svg.matchAll(/mix-blend-mode\s*:\s*([a-z-]+)/gi)) {
     if (!RESVG_BLENDS.has(match[1]!.toLowerCase())) out.add(`the blend mode ${match[1]}, which resvg does not draw`);
   }
@@ -261,8 +395,132 @@ export function premultipliedGradients(svg: string): { svg: string } | { reason:
   return reason ? { reason } : { svg: out };
 }
 
+/**
+ * Design's radial gradient is CSS `radial-gradient(ellipse farthest-corner)`
+ * (`engine/src/gradient-spec.ts`), whose radius in the box's own units is the square root
+ * of one half. The operations SVG writes it to two places as 0.71, which the browser never
+ * draws: measured on the fidelity radial (white to transparent white, 130 x 90 px), the
+ * browser tier sits 0.12 levels from the exact ramp on average and resvg at 0.71 sits
+ * 0.84 from the browser. This route draws the exact radius instead.
+ */
+export function exactRadialRadius(svg: string): string {
+  return svg.replace(/<radialGradient( id="[^"]*")? cx="0\.5" cy="0\.5" r="0\.71"/g, '<radialGradient$1 cx="0.5" cy="0.5" r="0.7071068"');
+}
+
+/** A row's bounds in its frame, turned as its rotation turns them. */
+function turnedBounds(row: Record<string, unknown>, frame: Record<string, unknown>): { x0: number; y0: number; x1: number; y1: number } {
+  const n = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const w = n(row.w), h = n(row.h), angle = n(row.rot) * Math.PI / 180;
+  const tw = Math.abs(Math.cos(angle)) * w + Math.abs(Math.sin(angle)) * h, th = Math.abs(Math.sin(angle)) * w + Math.abs(Math.cos(angle)) * h;
+  const cx = n(row.x) - n(frame.x) + w / 2, cy = n(row.y) - n(frame.y) + h / 2;
+  return { x0: cx - tw / 2, y0: cy - th / 2, x1: cx + tw / 2, y1: cy + th / 2 };
+}
+
+/**
+ * The rows a rounded frame clips along one of its curves. Measured on the two fidelity
+ * boards (frame radius 48 with a 10 px border, and 32 with 8 px), the browser and resvg
+ * anti-alias that curve differently: against the exact coverage, the browser draws the
+ * clipped row 0.215 short on average (0.46 at worst) and resvg 0.041 short (0.17 at
+ * worst), and the frame's own edge is 0.134 over in the browser and 0.246 over in resvg.
+ * The browser tier also leaves a faint shadow (alpha 7 to 17) outside the rounded corner.
+ * Neither can be matched from here, so such a page goes to the browser tier.
+ */
+export function roundedFrameClips(rows: readonly unknown[], frameId: string): string[] {
+  const all = rows.filter((row): row is Record<string, unknown> => !!row && typeof row === 'object');
+  const frame = all.find((row) => row.kind === 'frame' && String(row.id ?? '') === frameId);
+  if (!frame || frame.clipChildren === false || frame.clipChildren === 'false') return [];
+  const n = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const w = n(frame.w), h = n(frame.h), shape = String(frame.shape ?? 'rect');
+  const curved = shape === 'ellipse' || shape === 'circle';
+  // Only `rounded` and `pill` round, as the operations read them (outlineOf in engine/src/design-draw.ts).
+  const radius = curved ? 0 : shape === 'pill' ? Math.min(w, h) / 2 : shape === 'rounded' ? Math.min(Math.max(0, n(frame.radius)), w / 2, h / 2) : 0;
+  if (!curved && radius <= 0) return [];
+  const sides = String(frame.stroke ?? '').trim() ? designStrokeSides(frame) : [0, 0, 0, 0];
+  const [top, right, bottom, left] = sides.map((v) => Math.max(0, v)) as [number, number, number, number];
+  const widest = Math.max(top, right, bottom, left);
+  // The clip is the padding box: inside the border, each corner an ellipse whose radii are
+  // the frame's radius less the two sides that meet there (CSS's inner border radius).
+  // A point within a pixel of a curve counts as on the curve.
+  const inner = { x0: left, y0: top, x1: w - right, y1: h - bottom };
+  // A corner no more than a pixel round is a curve all the same: any point in its box counts.
+  const beyond = (dx: number, dy: number, rx: number, ry: number): boolean =>
+    rx > 0 && ry > 0 && (rx <= 1 || ry <= 1 || (dx / (rx - 1)) ** 2 + (dy / (ry - 1)) ** 2 > 1);
+  const offCurve = (x: number, y: number): boolean => {
+    const rl = radius - left, rr = radius - right, rt = radius - top, rb = radius - bottom;
+    if (x < inner.x0 + rl && y < inner.y0 + rt) return beyond(inner.x0 + rl - x, inner.y0 + rt - y, rl, rt);
+    if (x > inner.x1 - rr && y < inner.y0 + rt) return beyond(x - (inner.x1 - rr), inner.y0 + rt - y, rr, rt);
+    if (x < inner.x0 + rl && y > inner.y1 - rb) return beyond(inner.x0 + rl - x, y - (inner.y1 - rb), rl, rb);
+    if (x > inner.x1 - rr && y > inner.y1 - rb) return beyond(x - (inner.x1 - rr), y - (inner.y1 - rb), rr, rb);
+    return false;
+  };
+  return all.filter((row) => row.kind !== 'frame' && String(row.frame ?? '') === frameId && !['true', '1'].includes(String(row.hidden)) && row.hidden !== true)
+    .filter((row) => {
+      // What the row paints past its box: a border of any alignment, a shadow, a blur.
+      const reach = (String(row.stroke ?? '').trim() ? Math.max(0, ...designStrokeSides(row)) : 0)
+        + (String(row.shadow ?? '').trim() && !['none', 'false', '0'].includes(String(row.shadow)) ? Math.abs(n(row.shadowX)) + Math.abs(n(row.shadowY)) + 3 * Math.abs(n(row.shadowBlur)) + 2 * Math.abs(n(row.z)) : 0)
+        + 3 * Math.abs(n(row.blur));
+      const t = turnedBounds(row, frame);
+      const b = { x0: t.x0 - reach, y0: t.y0 - reach, x1: t.x1 + reach, y1: t.y1 + reach };
+      const x0 = Math.max(b.x0, inner.x0), y0 = Math.max(b.y0, inner.y0), x1 = Math.min(b.x1, inner.x1), y1 = Math.min(b.y1, inner.y1);
+      if (x0 >= x1 || y0 >= y1) return false;
+      if (curved) {
+        // An ellipse's clip is the padding ellipse, inside the border's widest side.
+        const rx = w / 2 - widest, ry = h / 2 - widest;
+        return rx <= 1 || ry <= 1 || [x0, x1].some((x) => [y0, y1].some((y) => beyond(x - w / 2, y - h / 2, rx, ry)));
+      }
+      // The row's corners, held inside the clip box: a row the clip curves through has one off the curve.
+      return [x0, x1].some((x) => [y0, y1].some((y) => offCurve(x, y)));
+    })
+    .map((row) => String(row.id ?? ''));
+}
+
+/**
+ * Gradient stops at the places the browser draws them. A Design gradient interpolated
+ * in OKLab (the default) is baked into extra sRGB stops (`gradientSpecStops`), and the
+ * operations SVG writes each stop's offset to two places (whole percent) where the
+ * browser's CSS keeps a hundredth of a percent: a stop at 12.5% is written at 13%, 1.8 px off
+ * on a 360 px box, and the ramp around it differs by 3 levels. The rows still hold the
+ * spec, so each gradient's stops are written again here at full precision.
+ */
+export function exactGradientStops(svg: string, rows: readonly unknown[], frameId?: string): { svg: string } | { reason: string } {
+  const swaps = new Map<string, string>();
+  const markup = (stops: Array<{ offset: number; color: string; opacity: number }>, digits: (n: number) => number) =>
+    stops.map((st) => `<stop offset="${digits(st.offset)}" stop-color="${st.color}"${st.opacity < 1 ? ` stop-opacity="${digits(st.opacity)}"` : ''}/>`).join('');
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue;
+    const r = row as Record<string, unknown>;
+    // Only the page's own rows: its frame and the rows that sit on that frame.
+    if (frameId !== undefined && String(r.id ?? '') !== frameId && String(r.frame ?? '') !== frameId) continue;
+    const spec = r.grad;
+    if (typeof spec !== 'string' || !spec.trim()) continue;
+    const g = parseGradientSpec(spec);
+    if (!g || g.kind === 'conic') continue;
+    // The same stops the operations draw (gradientOf in engine/src/design-draw.ts).
+    const stops = gradientSpecStops(g).map((st) => {
+      const hex = colorToHexString(st.color);
+      return { offset: Math.max(0, Math.min(100, st.pos)) / 100, color: hex.slice(0, 7), opacity: hex.length === 9 ? Number.parseInt(hex.slice(7, 9), 16) / 255 : 1 };
+    });
+    if (stops.length < 2) continue;
+    // Every gradient is recorded, a rounding-free one too, so two that the page SVG
+    // writes alike but that differ exactly are refused rather than both rewritten.
+    const written = markup(stops, round2), exact = markup(stops, (n) => +n.toFixed(6));
+    const before = swaps.get(written);
+    if (before !== undefined && before !== exact) return { reason: 'two gradients the page SVG writes alike, whose exact stops differ' };
+    swaps.set(written, exact);
+  }
+  // Whole stop lists only: a gradient element whose stops are exactly one written list.
+  const out = svg.replace(/(<(linearGradient|radialGradient)\b[^>]*>)([\s\S]*?)(<\/\2>)/g, (whole, head: string, _tag: string, body: string, tail: string) => {
+    const exact = swaps.get(body);
+    return exact !== undefined && exact !== body ? `${head}${exact}${tail}` : whole;
+  });
+  return { svg: out };
+}
+
 /** The pixel box and resolution of a Design page's PNG. */
 export interface DesignStillSize { width: number; height: number; dpi: number }
+
+/** The largest side this route draws; anything larger goes to the browser tier, which has its own limit. */
+const MAX_SIDE = 16384;
 
 /** The export size controls a Design PNG reads, as the Node shells hold them. */
 export interface DesignStillDims { width?: number; height?: number; unit?: string; dpi?: number }
@@ -281,7 +539,9 @@ export function designStillSize(page: { width: number; height: number }, dims: D
   const physical = unit !== 'px';
   const dpi = physical ? (dims.dpi && dims.dpi > 0 ? dims.dpi : 300) : 96;
   const given = (v: number | undefined): v is number => typeof v === 'number' && v > 0;
-  if (!given(dims.width) && !given(dims.height)) return { width: Math.round(page.width), height: Math.round(page.height), dpi };
+  if (!given(dims.width) && !given(dims.height)) {
+    return page.width > MAX_SIDE || page.height > MAX_SIDE ? { reason: `the page is over ${MAX_SIDE} px a side` } : { width: Math.round(page.width), height: Math.round(page.height), dpi };
+  }
   if (!given(dims.width) || !given(dims.height)) return { reason: 'the export gives one side of its size only' };
   const toPx = (v: number): number => {
     if (!physical) return Math.round(v);
@@ -290,6 +550,7 @@ export function designStillSize(page: { width: number; height: number }, dims: D
   };
   const width = toPx(dims.width), height = toPx(dims.height);
   if (!(width > 0 && height > 0)) return { reason: `the export's unit "${unit}" is not one this route reads` };
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width > MAX_SIDE || height > MAX_SIDE) return { reason: `the requested size is over ${MAX_SIDE} px a side` };
   if (Math.abs(height - page.height * (width / page.width)) > 0.5) return { reason: `the requested size changes the page's proportions (the page is ${Math.round(page.width)} x ${Math.round(page.height)})` };
   return { width, height, dpi };
 }
@@ -346,6 +607,8 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
     .filter((row) => (row.layout === 'flex' || row.layout === 'grid') && (String(row.id ?? '') === frameId || String(row.frame ?? '') === frameId))
     .map((row) => String(row.id ?? ''));
   if (laidOut.length) return { refused: [`the page lays out ${laidOut.join(', ')} with flex or grid, which the export hook works out after the page is read`] };
+  const clipped = roundedFrameClips(req.rows ?? [], frameId);
+  if (clipped.length) return { refused: [`the frame's rounded edge clips ${clipped.join(', ')}, which resvg and the browser anti-alias differently`] };
   const ingredients: IngredientCredential[] = [];
   let drawnFrom: DesignExportRouteRecord | undefined;
   let svg: string;
@@ -370,7 +633,9 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
   if ('reason' in size) return { refused: [size.reason] };
   const limits = resvgRefusals(svg);
   if (limits.length) return { refused: limits };
-  const blended = premultipliedGradients(svg);
+  const stopped = exactGradientStops(exactRadialRadius(svg), req.rows ?? [], frameId);
+  if ('reason' in stopped) return { refused: [stopped.reason] };
+  const blended = premultipliedGradients(stopped.svg);
   if ('reason' in blended) return { refused: [blended.reason] };
   const { bytes, imprinted } = await designStillPng(blended.svg, size, { imprint: req.dims.imprint, meta: req.meta() ?? null });
   return { drawn: { bytes, imprinted, width: size.width, height: size.height, route: nodeResvgRoute(), ingredients } };

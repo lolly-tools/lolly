@@ -250,7 +250,7 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims)
  * the drawn page, or null for the browser render tier, with one line in the log either way.
  */
 async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): Promise<import('@lolly-tools/node-shell/design-still').DesignStillDrawn | null> {
-  const { designStillDecision, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
+  const { designStillDecision, designStillNote, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
   const { describeDesignExportRoute } = await import('../../../engine/src/design-export-route.ts');
   const { selectFramePage } = await import('@lolly/engine');
   const log = (line: string): void => { runtimeHosts.get(runtime)?.log?.('info', line); };
@@ -279,6 +279,9 @@ async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): 
   });
   if ('refused' in result) return toBrowser(result.refused);
   log(`${describeDesignExportRoute('png', result.drawn.route, [decision.because]).replace(/\.$/, '')}, ${result.drawn.width} x ${result.drawn.height} px, with no browser.`);
+  const notice = designStillNote(decision);
+  log(notice);
+  dims.onNote?.(notice);
   return result.drawn;
 }
 
@@ -287,6 +290,8 @@ async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): 
  *  the shared render dims (incl. the `password` PDF-lock param) with the TUI's
  *  Content-Credentials window. */
 export interface ExportDims extends RenderDims {
+  /** Told once about how the file was made when a person should know: a Design page drawn without a browser. */
+  onNote?: (message: string) => void;
   c2paDays?: number;
   /** The caller's own "no credential": none is stamped, and none stays in the file. */
   c2paOff?: boolean;

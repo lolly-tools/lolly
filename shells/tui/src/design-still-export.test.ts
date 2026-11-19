@@ -30,7 +30,10 @@ test('a one-frame Design document exports its PNG with no browser, and a documen
     const tool = await loadTool('design', toolFetchFile());
     const one = await createRuntime(tool, host, { boxes: rows as never });
     const out = join(dir, 'one.png');
-    await exportToFile(one, dom, tool.manifest, 'png', out, { c2paDays: 30 });
+    const notes: string[] = [];
+    await exportToFile(one, dom, tool.manifest, 'png', out, { c2paDays: 30, onNote: (message) => { notes.push(message); } });
+    assert.equal(notes.length, 1);
+    assert.match(notes[0]!, /drawn without a browser/, 'the person is told, in the status line the panel shows');
     const png = new Uint8Array(await readFile(out));
     const view = new DataView(png.buffer, png.byteOffset);
     assert.deepEqual([view.getUint32(16), view.getUint32(20)], [640, 400], 'the frame at its own size');

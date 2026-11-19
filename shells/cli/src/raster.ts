@@ -195,7 +195,7 @@ export async function renderRaster(opts: {
  * through `log`, with its reason, so the renderer is never chosen silently.
  */
 async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims & HdrStillRequest, log: (line: string) => void, initial?: Record<string, unknown>): Promise<RasterResult | null> {
-  const { designStillDecision, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
+  const { designStillDecision, designStillNote, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
   const { describeDesignExportRoute } = await import('../../../engine/src/design-export-route.ts');
   const decision = designStillDecision();
   if (decision.ignored !== undefined) warn('DESIGN_RASTER_IGNORED', `LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto or resvg), so the default applies.`);
@@ -225,6 +225,7 @@ async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims 
   if ('refused' in result) return toBrowser(result.refused);
   const { drawn } = result;
   log(`${describeDesignExportRoute('png', drawn.route, [decision.because]).replace(/\.$/, '')}, ${drawn.width} x ${drawn.height} px, with no browser.`);
+  note(`Note: ${designStillNote(decision)}`);
   return { bytes: drawn.bytes, usedBrowser: false, imprinted: drawn.imprinted, route: drawn.route, ingredients: drawn.ingredients };
 }
 

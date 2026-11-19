@@ -19,9 +19,11 @@ import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { embedC2pa, verifyC2pa } from '@lolly/engine';
-import { designRasterChoice, designStillDecision, designStillSize, premultipliedGradients, resvgRefusals, designResvgRenderer } from '../packages/node-shell/src/design-still.ts';
+import { designRasterChoice, designStillDecision, designStillNote, designStillSize, exactGradientStops, exactRadialRadius, premultipliedGradients, resvgRefusals, roundedFrameClips, designResvgRenderer } from '../packages/node-shell/src/design-still.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { uncomposedToolLinks } from '../shells/cli/src/raster.ts';
+import { compileDesignDraw } from '../engine/src/design-draw.ts';
+import { designDrawSvg } from '../engine/src/design-draw-svg.ts';
 import { encodePng } from './helpers/studio3d-glb.ts';
 
 const ROOT = repoRoot();
@@ -56,6 +58,8 @@ test('the pixel box is the one the browser tier draws, and a size it would crop 
   assert.deepEqual(designStillSize(page, { width: 100, height: 62.5, unit: 'mm' }), { width: 1181, height: 738, dpi: 300 }, 'a physical size with no dpi is drawn at 300');
   assert.match((designStillSize(page, { width: 1280 }) as { reason: string }).reason, /one side/);
   assert.match((designStillSize(page, { width: 400, height: 800 }) as { reason: string }).reason, /proportions \(the page is 640 x 400\)/);
+  assert.match((designStillSize(page, { width: 1e308, height: 1e308, unit: 'in' }) as { reason: string }).reason, /over 16384 px a side/, 'an overflowing size is refused, never drawn at some other size');
+  assert.match((designStillSize({ width: 20000, height: 100 }, {}) as { reason: string }).reason, /over 16384 px a side/);
 });
 
 test('resvg limits are refused by name: live text, HTML, pictures it does not decode or turn, an unknown blend', async () => {
@@ -67,6 +71,11 @@ test('resvg limits are refused by name: live text, HTML, pictures it does not de
   assert.match(resvgRefusals(wrap('<image href="data:image/webp;base64,UklGRg==" width="10" height="10"/>')).join(), /WebP/);
   assert.match(resvgRefusals(wrap('<image href="https://example.com/a.png" width="10" height="10"/>')).join(), /points outside the page/);
   assert.match(resvgRefusals(wrap('<g style="mix-blend-mode:plus-lighter"></g>')).join(), /plus-lighter/);
+  const asPicture = (markup: string) => `<image href="data:image/svg+xml;base64,${Buffer.from(markup).toString('base64')}" width="10" height="10"/>`;
+  assert.match(resvgRefusals(wrap(asPicture('<svg xmlns:s="http://www.w3.org/2000/svg"><s:text>Hi</s:text></svg>'))).join(), /live text/, 'a prefixed element is still found');
+  assert.match(resvgRefusals(wrap(asPicture(`<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="${png}" width="10" height="10"/></svg>`))).join(), /picture of its own/);
+  assert.match(resvgRefusals(wrap(asPicture('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44.725 19.706"><path d="M0 0h1v1z"/></svg>'))).join(), /not a whole number of pixels/);
+  assert.deepEqual(resvgRefusals(wrap(asPicture('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><path d="M0 0h1v1z"/></svg>'))), []);
   const lettered = Buffer.from(wrap('<text x="0" y="8">Logo</text>')).toString('base64');
   assert.match(resvgRefusals(wrap(`<image href="data:image/svg+xml;base64,${lettered}" width="10" height="10"/>`)).join(), /vector picture holding live text/);
   let sharp: typeof import('sharp').default | undefined;
@@ -74,6 +83,12 @@ test('resvg limits are refused by name: live text, HTML, pictures it does not de
   if (sharp) {
     const turned = await sharp({ create: { width: 4, height: 2, channels: 3, background: '#ff0000' } }).jpeg().withMetadata({ orientation: 6 }).toBuffer();
     assert.match(resvgRefusals(wrap(`<image href="data:image/jpeg;base64,${turned.toString('base64')}" width="10" height="10"/>`)).join(), /Exif orientation/);
+    const p3 = (format: 'png' | 'jpeg') => sharp!({ create: { width: 4, height: 2, channels: 3, background: '#ff0000' } }).withIccProfile('p3')[format]().toBuffer();
+    assert.match(resvgRefusals(wrap(`<image href="data:image/png;base64,${(await p3('png')).toString('base64')}" width="10" height="10"/>`)).join(), /PNG picture with a colour profile other than sRGB/);
+    assert.match(resvgRefusals(wrap(`<image href="data:image/jpeg;base64,${(await p3('jpeg')).toString('base64')}" width="10" height="10"/>`)).join(), /JPEG picture with a colour profile other than sRGB/);
+    const srgb = (format: 'png' | 'jpeg') => sharp!({ create: { width: 4, height: 2, channels: 3, background: '#ff0000' } }).withIccProfile('srgb')[format]().toBuffer();
+    assert.deepEqual(resvgRefusals(wrap(`<image href="data:image/png;base64,${(await srgb('png')).toString('base64')}" width="10" height="10"/>`)), [], 'an sRGB profile, read from its colorants and curves');
+    assert.deepEqual(resvgRefusals(wrap(`<image href="data:image/jpeg;base64,${(await srgb('jpeg')).toString('base64')}" width="10" height="10"/>`)), []);
     const upright = await sharp({ create: { width: 4, height: 2, channels: 3, background: '#ff0000' } }).jpeg().toBuffer();
     assert.deepEqual(resvgRefusals(wrap(`<image href="data:image/jpeg;base64,${upright.toString('base64')}" width="10" height="10"/>`)), []);
   }
@@ -92,6 +107,49 @@ test('a gradient that blends through transparency is rewritten so resvg blends i
   assert.ok(stops.every((s) => s[2] === '#0000ff'), 'a transparent stop takes the colour it blends towards, as premultiplying does');
   assert.deepEqual([stops[16]![1], stops[16]![3]], ['0.5', '0.5']);
   assert.deepEqual(premultipliedGradients(svg('<stop offset="0" stop-color="red" stop-opacity="0"/><stop offset="1" stop-color="#0000ff"/>')), { reason: 'a gradient whose stop colours this route cannot read' });
+});
+
+test('a gradient baked into extra stops keeps their exact places, as the browser\'s CSS does', () => {
+  // OKLab, the default space, bakes stops at 12.5% and 37.5%; the page SVG writes them as 0.13 and 0.38.
+  const rows = [
+    { id: 'page', kind: 'frame', x: 0, y: 0, w: 400, h: 200, bg: '#ffffff' },
+    { id: 'grad', kind: 'box', frame: 'page', x: 20, y: 20, w: 360, h: 160, grad: 'lin_90_f26b1d-0_2563d6-50_143d2b-100' },
+  ];
+  const svg = designDrawSvg(compileDesignDraw(rows as never, { width: 400, height: 200 }, { effects: true, colors: 'resolved' }), { assetHref: () => undefined, family: () => 'sans-serif', mono: 'monospace' });
+  assert.match(svg, /offset="0\.13"/, 'the page SVG rounds the stop');
+  const out = exactGradientStops(svg, rows);
+  assert.ok('svg' in out);
+  assert.match(out.svg, /offset="0\.125"/);
+  assert.match(out.svg, /offset="0\.375"/);
+  assert.doesNotMatch(out.svg, /offset="0\.13"/);
+  const plain = designDrawSvg(compileDesignDraw([rows[0], { ...rows[1], grad: 'lin.srgb_90_ff6b6b-0_4dabf7-100' }] as never, { width: 400, height: 200 }, { effects: true, colors: 'resolved' }), { assetHref: () => undefined, family: () => 'sans-serif', mono: 'monospace' });
+  assert.deepEqual(exactGradientStops(plain, [rows[0], { ...rows[1], grad: 'lin.srgb_90_ff6b6b-0_4dabf7-100' }]), { svg: plain }, 'stops at whole percents are left alone');
+});
+
+test('a radial gradient is drawn at the radius the browser draws, the square root of one half', () => {
+  const svg = '<defs><radialGradient id="lgx" cx="0.5" cy="0.5" r="0.71"><stop offset="0" stop-color="#ffffff"/></radialGradient></defs>';
+  assert.equal(exactRadialRadius(svg), svg.replace('r="0.71"', 'r="0.7071068"'));
+  assert.equal(exactRadialRadius('<radialGradient cx="0.25" cy="0.5" r="0.71">'), '<radialGradient cx="0.25" cy="0.5" r="0.71">', 'only the operations\' own centred form');
+});
+
+test('a row a rounded frame clips along its curve sends the page to the browser tier', () => {
+  const frame = { id: 'board', kind: 'frame', x: 0, y: 0, w: 640, h: 400, shape: 'rounded', radius: 48, stroke: '#364fc7', strokeW: 10 };
+  const on = (row: Record<string, unknown>) => ({ frame: 'board', kind: 'box', ...row });
+  assert.deepEqual(roundedFrameClips([frame, on({ id: 'edge', x: -30, y: 300, w: 200, h: 140 })], 'board'), ['edge'], 'over the bottom left curve');
+  assert.deepEqual(roundedFrameClips([frame, on({ id: 'side', x: 200, y: 300, w: 200, h: 140 })], 'board'), [], 'over a straight edge only');
+  assert.deepEqual(roundedFrameClips([frame, on({ id: 'inside', x: 240, y: 120, w: 160, h: 160 })], 'board'), [], 'well inside the curves');
+  assert.deepEqual(roundedFrameClips([{ ...frame, radius: 0 }, on({ id: 'edge', x: -30, y: 300, w: 200, h: 140 })], 'board'), [], 'square corners clip with straight edges');
+  assert.deepEqual(roundedFrameClips([{ ...frame, shape: 'rect' }, on({ id: 'edge', x: -30, y: 300, w: 200, h: 140 })], 'board'), [], 'a rect frame keeps square corners whatever its radius');
+  assert.deepEqual(roundedFrameClips([frame, on({ id: 'near', x: 60, y: 20, w: 20, h: 20, stroke: '#000000', strokeW: 30 })], 'board'), ['near'], 'a border that reaches the curve counts');
+  const thin = { ...frame, radius: 30, w: 100, h: 100, strokeW: 40, strokeTop: '2', strokeRight: '2', strokeBottom: '2', strokeLeft: '2' };
+  assert.deepEqual(roundedFrameClips([thin, on({ id: 'tl', x: 0, y: 0, w: 30, h: 30 })], 'board'), ['tl'], 'per-side borders set the inner curve');
+  assert.deepEqual(roundedFrameClips([{ ...frame, clipChildren: false }, on({ id: 'edge', x: -30, y: 300, w: 200, h: 140 })], 'board'), [], 'a frame that does not clip');
+  assert.deepEqual(roundedFrameClips([{ ...frame, shape: 'ellipse' }, on({ id: 'disc', x: 20, y: 20, w: 80, h: 80 })], 'board'), ['disc'], 'an ellipse frame curves everywhere');
+});
+
+test('a page drawn on this route says so in a note, with the way to the browser\'s own render', () => {
+  assert.match(designStillNote({ draw: 'here', because: 'LOLLY_DESIGN_RASTER=resvg asks for this route' }), /drawn without a browser.*Unset it for the browser's own render/);
+  assert.match(designStillNote({ draw: 'here', because: 'no browser render tier is available (no Chromium)' }), /drawn without a browser.*lolly install-browser/);
 });
 
 test('a picture made by another tool that this shell could not compose keeps its page off the route', () => {
@@ -134,6 +192,7 @@ test('with no browser tier the CLI writes the page itself, finished and credenti
     assert.equal(run.status, 0, run.stderr);
     assert.match(run.stderr, /Design PNG export: drawn from the drawing operations \(design-draw-v\d+\+resvg-js-[\d.]+\) because no browser render tier is available/);
     assert.match(run.stderr, /640 x 400 px, with no browser/);
+    assert.match(run.stderr, /Note: This Design page was drawn without a browser, by resvg from its drawing operations, because no browser render tier is available here/);
     const png = new Uint8Array(await readFile(out));
     const view = new DataView(png.buffer, png.byteOffset);
     assert.deepEqual([view.getUint32(16), view.getUint32(20)], [640, 400], 'the page at its own size, as the browser tier draws it');
@@ -173,6 +232,7 @@ test('a page the route does not draw goes to the browser tier with its reason, a
       { args: [`--boxes=${JSON.stringify(boxes.map((b) => (b.id === 'title' ? { ...b, fitText: true } : b)))}`, '--s=cover'], reason: /fit-text \(title\)/ },
       { args: [`--boxes=${JSON.stringify(boxes)}`], reason: /not a single frame/ },
       { args: [`--boxes=${JSON.stringify(boxes.map((b) => (b.id === 'cover' ? { ...b, layout: 'flex' } : b)))}`, '--s=cover'], reason: /lays out cover with flex or grid/ },
+      { args: [`--boxes=${JSON.stringify([...boxes.map((b) => (b.id === 'cover' ? { ...b, shape: 'rounded', radius: 48 } : b)), { id: 'corner', kind: 'box', x: -30, y: 300, w: 200, h: 140, bg: '#f76707', frame: 'cover' }])}`, '--s=cover'], reason: /rounded edge clips corner/ },
       { args: [`--boxes=${JSON.stringify(boxes)}`, '--s=cover', '--width=400', '--height=800'], reason: /changes the page's proportions/ },
       { args: [`--boxes=${JSON.stringify(boxes)}`, '--s=cover', '--durable'], reason: /durable credential/ },
     ];
@@ -204,6 +264,8 @@ test('with a browser tier present the page stays there unless LOLLY_DESIGN_RASTE
     assert.equal(asked.status, 0, asked.stderr);
     assert.match(asked.stderr, /drawn from the drawing operations \(design-draw-v\d+\+resvg-js-[\d.]+\) because LOLLY_DESIGN_RASTER=resvg asks for this route/);
     assert.ok(existsSync(out));
+    assert.match(asked.stderr, /Note: This Design page was drawn without a browser.*Unset it for the browser's own render/);
+    assert.doesNotMatch(kept.stderr, /drawn without a browser/, 'no note when the browser tier takes the page');
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
