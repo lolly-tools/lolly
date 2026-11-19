@@ -393,8 +393,8 @@ importers:
         specifier: workspace:*
         version: link:../../engine
       '@mediabunny/flac-encoder':
-        specifier: ^1.62.1
-        version: 1.62.1(mediabunny@1.62.1)
+        specifier: ^1.66.0
+        version: 1.66.0(mediabunny@1.66.0)
       '@pdf-lib/fontkit':
         specifier: ^1.1.1
         version: 1.1.1
@@ -477,8 +477,8 @@ importers:
         specifier: ^5.12.2
         version: 5.13.0
       mediabunny:
-        specifier: ^1.62.1
-        version: 1.62.1
+        specifier: ^1.66.0
+        version: 1.66.0
       onnxruntime-web:
         specifier: ^1.31.1
         version: 1.31.1
@@ -1056,8 +1056,8 @@ packages:
   '@marijn/find-cluster-break@1.0.4':
     resolution: {integrity: sha512-Wy0V7+SGUjnF9/TkiM1hKVDPj7jKXduPNboMVtHTA8dySMURWqfg/JZ9E2Sq8JgSJmkl7k7Qe9FLeMSrSraWmQ==}
 
-  '@mediabunny/flac-encoder@1.62.1':
-    resolution: {integrity: sha512-6y2JrjniW6336tcM1UCEY3eU47RmZkb7+BPrb2rne+xnzgQUhCVCMSM12GqmbQTfbmVYfZjiu2VQqNcZYiaoPw==}
+  '@mediabunny/flac-encoder@1.66.0':
+    resolution: {integrity: sha512-LbGOF9zz1u4uAsqV9v3RTbTKmfcGHVNKofqCPuJRrCU2PZcQtVd+M0GyZs5bPptauxcGUvWUaZIbUB0mMAa+Mw==}
     peerDependencies:
       mediabunny: ^1.0.0
 
@@ -2443,8 +2443,8 @@ packages:
   mdn-data@2.27.1:
     resolution: {integrity: sha512-9Yubnt3e8A0OKwxYSXyhLymGW4sCufcLG6VdiDdUGVkPhpqLxlvP5vl1983gQjJl3tqbrM731mjaZaP68AgosQ==}
 
-  mediabunny@1.62.1:
-    resolution: {integrity: sha512-lYzeerDwo9QLhBCipqQDXOSV7InvaIFplllZQviPO5rPwH+IUr8M1uvumk1olIUgMRGkPiInRriv25WFErUgMw==}
+  mediabunny@1.66.0:
+    resolution: {integrity: sha512-0Zff/qLkY1ZRyjBEt2vQjLeMigmU/dFKwJLpiPyCiskIel2f2R2kqMxaLYbeHN+rmyz4PVwwLSnU9anjUHHeJQ==}
 
   meshoptimizer@1.1.1:
     resolution: {integrity: sha512-oRFNWJRDA/WTrVj7NWvqa5HqE1t9MYDj2VaWirQCzCCrAd2GHrqR/sQezCxiWATPNlKTcRaPRHPJwIRoPBAp5g==}
@@ -3481,9 +3481,9 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.4': {}
 
-  '@mediabunny/flac-encoder@1.62.1(mediabunny@1.62.1)':
+  '@mediabunny/flac-encoder@1.66.0(mediabunny@1.66.0)':
     dependencies:
-      mediabunny: 1.62.1
+      mediabunny: 1.66.0
 
   '@modelcontextprotocol/client@2.2.0':
     dependencies:
@@ -4763,7 +4763,7 @@ snapshots:
 
   mdn-data@2.27.1: {}
 
-  mediabunny@1.62.1:
+  mediabunny@1.66.0:
     dependencies:
       '@types/dom-mediacapture-transform': 0.1.12
       '@types/dom-webcodecs': 0.1.13
