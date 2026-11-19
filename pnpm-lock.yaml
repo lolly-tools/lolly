@@ -18,7 +18,7 @@ overrides:
   react: ^19.2.8
   react-dom: ^19.2.8
   '@huggingface/transformers>sharp': ^0.35.5
-  '@huggingface/transformers>onnxruntime-node': ^1.31.1
+  '@huggingface/transformers>onnxruntime-node': ^1.30.0
   playwright-core: 1.63.0
 
 importers:
@@ -72,7 +72,7 @@ importers:
         specifier: ^0.28.2
         version: 0.28.2
       onnxruntime-node:
-        specifier: ^1.31.1
+        specifier: ^1.30.0
         version: 1.31.1
       playwright:
         specifier: 1.63.0
@@ -197,7 +197,7 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1
       onnxruntime-node:
-        specifier: ^1.31.1
+        specifier: ^1.30.0
         version: 1.31.1
       phonemizer:
         specifier: ^1.2.1
