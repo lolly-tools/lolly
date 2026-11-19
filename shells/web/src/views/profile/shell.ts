@@ -7,6 +7,7 @@
  * function as a value (an event listener), goes through `pv.<module>.<fn>`. Extracted verbatim
  * from mountProfile() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { updateRouteParams, routeParams } from '../../lib/url-state.ts';
 import { settingsNavHtml, wireSettingsNav } from '../../components/settings-nav.ts';
 import { THEMES, THEME_ICONS, THEME_LABELS } from '../../theme.ts';
@@ -112,7 +113,7 @@ export function renderShell(pv: ProfileViewCtx): void {
                       ? `<jelly-button variant="platinum" class="headshot-edit-jelly" id="headshot-upload">${t(pv.headshotUrl ? 'Edit' : 'Upload')}</jelly-button>`
                       : `<button type="button" class="headshot-edit" id="headshot-upload">${t(pv.headshotUrl ? 'Edit' : 'Upload')}</button>`}
                   </div>
-                  <button type="button" class="headshot-remove" id="headshot-remove" aria-label="${escapeText(t('Remove headshot'))}" title="${escapeText(t('Remove'))}"${pv.headshotUrl ? '' : ' hidden'}>&times;</button>
+                  ${closeButtonHtml({ size: 'sm', danger: true, solid: true, className: 'headshot-remove', label: t('Remove headshot'), attrs: { id: 'headshot-remove', title: t('Remove'), hidden: !pv.headshotUrl } })}
                   <input type="file" id="headshot-file" accept="image/png,image/jpeg,image/webp,image/avif,image/heic,image/heif,image/svg+xml" hidden>
                 </div>
                 <p class="profile-inline-error" id="headshot-error" style="color:hsl(var(--destructive-text));font-size:13px;margin:.4rem 0 0" hidden></p>

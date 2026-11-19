@@ -101,32 +101,10 @@
   font-weight: 600;
   font-size: calc(13.5px * var(--a11y-fs));
 }
-/* The only way to take a card off the stage by pointer, and on a phone every
-   card carries one at the top-right - so it gets a real touch target. The box is
-   32px (it has to stay small enough not to crowd the family name beside it) and
-   the ::after carries the rest: `inset: calc((44px - 100%) / -2)` resolves
-   against the button's own padding box, so the hit area is 44×44 and grows with
-   --a11y-fs along with the button. Six pixels of that overhangs the family
-   label, which is text, not a control. */
+/* The shared close button (lib/close-button.ts); only its place is set here. */
 .tycmp-x {
   position: relative;
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(32px * var(--a11y-fs));
-  height: calc(32px * var(--a11y-fs));
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius);
-  background: none;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
 }
-.tycmp-x::after { content: ''; position: absolute; inset: calc((44px - 100%) / -2); }
-.tycmp-x:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-.tycmp-x:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-.tycmp-x svg { width: var(--fs-lg); height: var(--fs-lg); }
 
 /* The card is programmatically focusable (tabindex="-1") so a repaint can hand
    the keyboard back to it rather than to its Remove - it must show where it is

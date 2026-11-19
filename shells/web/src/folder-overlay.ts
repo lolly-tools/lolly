@@ -12,6 +12,7 @@
  * gated dynamic import of ./pro/folder-export.js inside the export handler, so the
  * static graph stays /pro-free and the overlay loads from the (pro-free) gallery.
  */
+import { closeButtonHtml } from './lib/close-button.ts';
 import { escape } from './utils.ts';
 import { t, tRaw } from './i18n.ts';
 import { mountModal } from './components/modal.ts';
@@ -187,7 +188,7 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
         <h2 id="folder-overlay-title">${context === 'picker' ? 'Your images &amp; creations' : 'Saved sessions'}</h2>
         <div class="folder-overlay-head-actions">
           ${showCreateFolder ? `<button type="button" class="btn folder-newbtn" data-new-folder>+ New folder</button>` : ''}
-          <button type="button" class="gtile-iconbtn meta-dialog-close" aria-label="Close">&#x2715;</button>
+          ${closeButtonHtml({ className: 'meta-dialog-close' })}
         </div>
       </header>
       ${folders.length ? `<div class="folder-grid folder-grid--folders">${folderTiles}</div>` : ''}
@@ -213,7 +214,7 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
           ${allowBatchExport ? `<button type="button" class="btn folder-exportbtn" data-export-folder aria-label="Export folder as batch">Export as batch</button>` : ''}
           <button type="button" class="btn" data-rename-folder>Rename</button>
           <button type="button" class="btn folder-deletebtn" data-delete-folder>Delete folder</button>
-          <button type="button" class="gtile-iconbtn meta-dialog-close" aria-label="Close">&#x2715;</button>
+          ${closeButtonHtml({ className: 'meta-dialog-close' })}
         </div>
       </header>
       ${tiles ? `<div class="folder-grid">${tiles}</div>` : `<p class="folder-overlay-empty">This folder is empty - move items in from the “⋯” menu.</p>`}

@@ -251,13 +251,6 @@
 .cat-swatchbar-actions .btn svg, .cat-bulkbar-actions .btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
 .cat-bulk-danger.btn { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / .4); }
 .cat-bulk-danger.btn:hover { background: hsl(var(--destructive) / .1); border-color: hsl(var(--destructive)); }
-.cat-swatchbar-clear, .cat-bulkbar-clear {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: var(--radius-pill); cursor: pointer;
-  font-size: var(--fs-xl); line-height: 1; color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted) / .6); border: none;
-}
-.cat-swatchbar-clear:hover, .cat-bulkbar-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 /* Icon-only when the labels would wrap or overflow (lib/bulk-bar.ts fitBulkBar sets
    .is-compact by measuring). Labels are clipped, not removed, so each button keeps its
    accessible name; the label is also its tooltip. */
@@ -321,12 +314,7 @@ button.cat-download { font: inherit; cursor: pointer; }
 .cat-details::backdrop { background: #0008; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
 .cat-details-close {
   position: absolute; top: 10px; right: 12px; z-index: 4;
-  /* Box on the chrome icon scale (tokens.css) - its × is TYPE and already
-     scales, so a fixed box would clip it. */
-  width: calc(32px * var(--a11y-fs)); height: calc(32px * var(--a11y-fs)); border: none; border-radius: var(--radius-pill); cursor: pointer;
-  font-size: calc(20px * var(--a11y-fs)); line-height: 1; color: hsl(var(--foreground)); background: hsl(var(--muted) / .7);
 }
-.cat-details-close:hover { background: hsl(var(--muted)); }
 /* ONE CANVAS, EVERY ASSET TYPE - the expanded Neurospicy player's model applied here.
    Before this, each type invented its own layout inside this pane: an image centred a
    contained <img>, audio grew a flex column of meter + bar + swatches + player, lottie

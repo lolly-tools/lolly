@@ -8,6 +8,7 @@
  * words in a token document can do nothing but read as text. The only markup this file
  * writes from data is through `textContent`.
  */
+import { closeButtonHtml } from '../close-button.ts';
 import type { BrandPageHeldV1 } from '@lolly-tools/core/brand-page-v1';
 import type { BrandPageBuildV1, BrandPageExampleInputV1, BrandPageOutlineV1 } from '../../../../../engine/src/brand-page.ts';
 import { mountModal } from '../../components/modal.ts';
@@ -147,7 +148,7 @@ export async function openBrandPageSheet(host: BrandPageHost): Promise<void> {
         <h2 class="modal-title">${t('Publish a brand page')}</h2>
         <p class="bp-intro">${t('One address for people and for agents.')}</p>
       </div>
-      <button type="button" class="bp-close" data-bp-close aria-label="${t('Close')}">${icon('close', { size: 20 })}</button>
+      ${closeButtonHtml({ className: 'bp-close', attrs: { 'data-bp-close': true } })}
     </header>
     <div class="bp-body">
       <div class="bp-stage">

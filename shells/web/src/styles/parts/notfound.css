@@ -95,14 +95,10 @@
   /* Comfortable ~44px tap targets for the tappable controls. */
   .input-row select,
   .asset-picker-trigger,
-  .asset-clear,
   .color-trigger,
   .block-add,
   .tool-card-action {
     min-height: 44px;
-  }
-  .asset-clear {
-    width: 44px;
   }
 
   /* Bigger, easier-to-grab slider: a taller track and a thumb sized for a
@@ -126,8 +122,7 @@
   .nav-btn,
   .privacy-notice-dismiss { min-height: 44px; }
   .fullscreen-toggle,
-  .stage-nav-btn,
-  .export-popup-close { min-height: 44px; min-width: 44px; }
+  .stage-nav-btn { min-height: 44px; min-width: 44px; }
 
   /* Gallery touch targets: category pills (in the filter popover), the per-card
      icon buttons and footer links. */

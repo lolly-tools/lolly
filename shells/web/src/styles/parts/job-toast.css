@@ -139,34 +139,6 @@ html[data-a11y-motion="reduce"] .job-bar-fill { animation: none; transition: non
   .job-bar-fill { animation: none; transition: none; }
 }
 
-/* ── Cancel ✕ (pill + per-row) ──────────────────────────────────────────────*/
-.job-x {
-  flex: 0 0 auto;
-  /* Icon box rides the chrome icon scale with the glyph it holds. */
-  width: calc(24px * var(--a11y-fs));
-  height: calc(24px * var(--a11y-fs));
-  display: inline-flex; align-items: center; justify-content: center;
-  border: 0;
-  border-radius: var(--radius-round);
-  background: none;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  font-size: var(--fs-lg);
-  line-height: 1;
-}
-.job-x:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
-
-/* Touch hit-area (same 44pt HIG floor as topbar.css's coarse-pointer block).
-   min-width/min-height win over the explicit width/height above, so the glyph
-   stays put and only the tappable box grows. The only cancel for every
-   background job, so it can't be a coarse-pointer thumb-miss. */
-@media (pointer: coarse) {
-  .job-x {
-    min-width: 44px;
-    min-height: 44px;
-  }
-}
-
 /* ── Expanded panel ─────────────────────────────────────────────────────────*/
 .job-panel {
   border: 1px solid hsl(var(--border));

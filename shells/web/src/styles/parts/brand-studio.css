@@ -549,11 +549,6 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-font-name { font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .be-font-sub { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
 .be-font-badge { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: hsl(var(--primary-text)); }
-.be-font-del {
-  flex: 0 0 auto; border: 0; background: transparent; cursor: pointer; padding: .25rem .4rem;
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-md); border-radius: var(--radius-sm);
-}
-.be-font-del:hover { color: hsl(var(--destructive-text)); background: hsl(var(--destructive) / .1); }
 .be-font-empty { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); padding: .4rem .1rem; }
 .be-font-add { display: flex; gap: .5rem; flex-wrap: wrap; }
 /* One field shape for both doors into a family name: the management list's row
@@ -609,11 +604,6 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
 .be-logo-row > .be-logo-addmark { grid-row: span 3; }
 .be-logo-slot-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 1.2rem; align-self: end; }
 .be-logo-slot-name { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
-.be-logo-del {
-  border: 0; background: transparent; cursor: pointer; padding: .1rem .3rem; line-height: 1;
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-md); border-radius: var(--radius-sm);
-}
-.be-logo-del:hover { color: hsl(var(--destructive-text)); background: hsl(var(--destructive) / .1); }
 /* One fixed cell, so the artwork can never size the tile: an image's own size
    used to grow an auto track past the tile and crop a stacked mark. */
 .be-logo-drop {
@@ -733,16 +723,6 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
   color: hsl(var(--muted-foreground)); overflow-wrap: anywhere;
 }
 .be-logo-chip-acts { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .35rem; }
-/* A square box, not a bare glyph: this is the destructive control of the chip and
-   it sits a few pixels from the primary one. 28px at rest, a full 44px target on a
-   coarse pointer (plan 97 section 11) - the same treatment .labp-close takes. */
-.be-logo-chip-x {
-  flex: none; display: grid; place-items: center;
-  width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs));
-  border: 0; background: transparent; cursor: pointer; line-height: 1; border-radius: var(--radius-sm);
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-md);
-}
-.be-logo-chip-x:hover { color: hsl(var(--destructive-text)); background: hsl(var(--destructive) / .1); }
 /* The chip is focusable (tabindex="-1") so the keyboard has somewhere to sit while
    a placement is in flight and its buttons are disabled; it must show where it is. */
 .be-logo-chip:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
@@ -769,7 +749,6 @@ button.be-ramp-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--ring)), 
    height is lifted here rather than in the shared button primitive - this queue
    is the surface with a destructive control inches from a primary one. */
 @media (pointer: coarse) {
-  .be-logo-chip-x { width: 44px; height: 44px; }
   .be-logo-chip-acts .be-btn,
   .be-logo-chip-acts .be-cta { min-height: 44px; }
   /* The slot rows are two-part (name + "in use"), so they centre once they are
@@ -1249,11 +1228,6 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
   width: 16px; height: 16px; border-radius: var(--radius-xs); background: var(--sw, transparent);
   box-shadow: inset 0 0 0 1px hsl(var(--foreground) / .15);
 }
-.be-suggest-dismiss {
-  border: 0; background: transparent; color: hsl(var(--muted-foreground));
-  font-size: var(--fs-md); cursor: pointer; padding: .15rem .3rem;
-}
-.be-suggest-dismiss:hover { color: hsl(var(--foreground)); }
 
 /* ── The post-add chip (plan 137 C1). Same box as the suggestion row above - it
       is the same kind of row in the same panel - so only its own addition lives
@@ -1264,7 +1238,6 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
       for the whole of beat 1 rather than a link a dismiss takes away.) */
 @media (pointer: coarse) {
   .be-added .be-btn { min-height: 44px; }
-  .be-added .be-suggest-dismiss { min-width: 44px; min-height: 44px; }
 }
 
 /* ── The logo colours card (plan 320 S1): which of a placed logo's colours is
@@ -1458,23 +1431,11 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-typestage[hidden] { display: none; }
 .be-typestage-head { display: flex; align-items: baseline; gap: .6rem; }
 .be-typestage-title { margin: 0; font-size: var(--fs-lg); font-weight: 700; color: hsl(var(--foreground)); }
-/* The only pointer way to close the stage, so it carries a real touch target:
-   a 2rem box (any bigger and it dwarfs the title row) plus an ::after that
-   expands the hit area to 44×44 - `inset: calc((44px - 100%) / -2)` resolves
-   against the button's own padding box, so it tracks --a11y-fs with it. The
-   overhang lands in the head row's own gap, not on another control. */
+/* The shared close button (lib/close-button.ts); only its place is set here. */
 .be-typestage-x {
   position: relative;
-  margin-inline-start: auto; flex: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  width: calc(2rem * var(--a11y-fs)); height: calc(2rem * var(--a11y-fs));
-  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
-  background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer;
+  margin-inline-start: auto;
 }
-.be-typestage-x::after { content: ''; position: absolute; inset: calc((44px - 100%) / -2); }
-.be-typestage-x:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
-.be-typestage-x:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
-.be-typestage-x svg { width: var(--fs-lg); height: var(--fs-lg); }
 .be-typestage-search { display: flex; gap: .5rem; flex-wrap: wrap; }
 /* Pinned families - one press each (plan 182 section 6.4). A row of names under
    the field, so a fresh origin has something to press before it has something
@@ -1649,10 +1610,8 @@ button.be-lead:hover { background: hsl(var(--muted) / .7); }
 .be-tok-shadow-cf { flex: 0 0 auto; width: 34px; display: inline-flex; }
 .be-tok-shadow-cf .color-picker-field, .be-tok-shadow-cf .color-trigger { width: 100%; }
 .be-tok-del {
-  margin-inline-start: auto; border: 0; background: transparent; cursor: pointer;
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); padding: .2rem .35rem;
+  margin-inline-start: auto;
 }
-.be-tok-del:hover { color: hsl(var(--destructive-text)); }
 .be-tok-add { display: flex; gap: .5rem; flex-wrap: wrap; }
 /* `.field-select .field-select--sm` carries the box; the add-row only needs the
    kind picker to hug its content beside the flexible name field. */
@@ -1900,18 +1859,14 @@ code.tk-row-value { font-family: var(--ui-type-mono-family); }
   border-radius: var(--radius-pill); background: hsl(var(--popover));
   box-shadow: 0 0 0 1px hsl(var(--foreground) / .35);
 }
-/* Per-stop remove - a corner ✕ revealed on hover/focus (the stop-count stepper
-   covers shrink where hover doesn't exist). */
+/* The shared close button (lib/close-button.ts); its place and reveal are set here. */
 .be-grad-stopdel {
-  position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; padding: 0;
-  display: none; align-items: center; justify-content: center;
-  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill);
-  background: hsl(var(--popover)); color: hsl(var(--muted-foreground));
-  font-size: calc(.55rem * var(--a11y-fs)); line-height: 1; cursor: pointer;
+  position: absolute; top: -6px; right: -6px;
+  display: none;
 }
 .be-grad-stopwrap:hover .be-grad-stopdel,
-.be-grad-stopwrap:focus-within .be-grad-stopdel { display: inline-flex; }
-.be-grad-stopdel:hover { color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive) / .5); }
+.be-grad-stopwrap:focus-within .be-grad-stopdel,
+.be-grad-stopdel:focus-visible { display: inline-grid; }
 .be-grad-addstop {
   width: 22px; height: 22px; border: 1px solid hsl(var(--border)); border-radius: var(--radius-sm);
   background: transparent; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: var(--fs-md); line-height: 1;
@@ -2473,15 +2428,6 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
 .be-curve-head { display: flex; align-items: center; gap: .6rem; }
 .be-curve-title { font-size: var(--fs-sm); font-weight: 700; letter-spacing: .01em; color: hsl(var(--foreground)); margin-inline-end: auto; }
 .be-curve-head-actions { display: flex; align-items: center; gap: .4rem; }
-.be-curve-close {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: calc(1.5rem * var(--a11y-fs)); height: calc(1.5rem * var(--a11y-fs));
-  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .45);
-  background: hsl(var(--background)); color: hsl(var(--muted-foreground));
-  font-size: var(--fs-md); line-height: 1; cursor: pointer;
-}
-.be-curve-close:hover { color: hsl(var(--foreground)); background: hsl(var(--muted) / .5); }
-.be-curve-close:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 .be-curve-hint { margin: 0; font-size: var(--fs-xs); line-height: 1.45; color: hsl(var(--muted-foreground)); }
 .be-curve-mount { display: grid; gap: .5rem; }
 
@@ -2679,12 +2625,8 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
 }
 .be-bulkbar-del:disabled { opacity: .45; cursor: default; }
 .be-bulkbar-x {
-  border: 0; background: transparent; color: inherit; cursor: pointer;
-  font: inherit; font-size: var(--fs-lg);
   margin-inline-start: auto;
-  padding: .3rem .55rem; border-radius: var(--radius-pill);
 }
-.be-bulkbar-x:hover { background: hsl(var(--background) / .2); }
 /* Phone: the bar is a scrolling row rather than a wrap - it docks above the
    sheet handle (see the mobile block), where there is one line of room. */
 @media (max-width: 640px) {

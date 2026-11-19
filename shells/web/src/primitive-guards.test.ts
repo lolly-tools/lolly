@@ -1116,7 +1116,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'lib/export-panel-float.ts': 2,
   'lib/float-panel.ts': 2,
   'lib/gamut-slider.ts': 1,
-  'lib/page-filmstrip.ts': 1,
   'lib/recent-stack.ts': 1,
   'lib/recording-tips.ts': 2,
   // The revert path of an on-canvas cell edit: restores the element's OWN
@@ -1242,12 +1241,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // the top of this rule measured. The one place DOCUMENT text reaches the column -
   // the text/notes rows - is `escape(String(value ?? ''))` at both the attribute and
   // the textarea child, so the attacker-shaped half of the input is covered.
-  // 2 to 3 on 2026-09-23 (plans/273): the panel head gained a kind glyph,
-  // `kindMark.innerHTML = icon(SECTION_META[...].glyph)`. Same category as the
-  // close button's `innerHTML = icon('close')` on the line above it - `icon()`
-  // interpolates nothing, it looks a name up in a closed literal table and
-  // returns a fixed path string, and the name here is an InspectorSection key.
-  'views/design-inspector.ts': 2,
+  // The remaining sink draws the kind glyph from the closed icon table.
+  // The close button now uses lib/close-button.ts.
+  'views/design-inspector.ts': 1,
   'views/doc-editor.ts': 1,
   // 1 as of 2026-07-31: applyPreflight writes the "Before you export" card body.
   // Reviewed - every value at that sink comes from preflightBodyHtml, which
@@ -2135,7 +2131,7 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 243 to 242 (plan 346): the Board's colour chips wear the faint edge token.
     // 242 to 241: the shared progress bar lost its outline (Andy, 2026-11-14).
     // 241 to 240: Cover Flow's Open control wears the chrome's bevel and elevation.
-    pin: 240,
+    pin: 238,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,
@@ -2153,7 +2149,7 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // 92 → 91 on 2026-09-30: the Storage card's big archive button became a plain .btn.
     // 91 to 90 on 2026-10-21: the ink ribbon's 8px row left the Design system tab.
     // 90 to 89 (plan 346): the Board's colour chips take --radius-xs.
-    pin: 89,
+    pin: 87,
     count: (t) => (t.match(/border-radius:\s*\d+(?:\.\d+)?px\s*[;}!]/g) ?? []).length,
     fix: 'use var(--radius-xs|sm|md|lg) (derived from --radius) or var(--radius) for the base panel size',
   },
@@ -2178,9 +2174,9 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // --ui-type-* tokens.
     // 412 to 409 (plan 346): the Board's title, door notes and way out read
     // --ui-type-lead, --fs-md and --fs-sm.
-    // 409 to 407: close buttons that set a text cross by font size draw the
+    // 409 to 388: close buttons that set a text cross by font size draw the
     // shared close button (lib/close-button.ts), which sizes an icon.
-    pin: 407,
+    pin: 388,
     count: (t) => (t.match(/font-size:\s*calc\(\s*[\d.]+(?:px|rem)\s*\*\s*var\(--a11y-fs\)\s*\)/g) ?? []).length,
     fix: 'use var(--fs-2xs..xl) - the multiplier is inside the token, so the largeText contract holds by construction',
   },
@@ -2229,7 +2225,10 @@ test('R13 (plans/188): reusable content patterns read semantic Lolly UI roles', 
     ]],
     ['styles/parts/saved-list.css', [
       '--ui-color-surface-canvas', '--ui-color-surface-muted', '--ui-color-selection-surface',
-      '--ui-radius-panel', '--ui-radius-choice-round', '--ui-motion-feedback',
+      '--ui-radius-panel', '--ui-motion-feedback',
+    ]],
+    ['styles/parts/buttons.css', [
+      '--ui-color-text-muted', '--ui-radius-control', '--ui-motion-feedback',
     ]],
     ['styles/parts/projects.css', [
       '--ui-color-selection-border', '--ui-color-text-muted', '--ui-radius-control',
@@ -2239,7 +2238,7 @@ test('R13 (plans/188): reusable content patterns read semantic Lolly UI roles', 
       '--ui-radius-panel', '--ui-radius-surface', '--ui-edge-strong',
     ]],
     ['styles/parts/profile.css', [
-      '--ui-color-selection-surface', '--ui-radius-panel', '--ui-radius-choice-round',
+      '--ui-color-selection-surface', '--ui-radius-panel',
     ]],
   ];
   for (const [rel, roles] of required) {

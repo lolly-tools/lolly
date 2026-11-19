@@ -639,7 +639,7 @@
   min-height: calc(44px * var(--a11y-fs)); padding: var(--sp-3);
   background: hsl(var(--card)); border-bottom: 1px solid hsl(var(--border));
 }
-.cat-details-header .cat-details-close { position: static; margin-inline-start: auto; flex: none; }
+.cat-details-header .cat-details-close { position: static; margin-inline-start: auto; }
 .cat-edit-toolbar { position: relative; color: hsl(var(--foreground)); }
 .cat-edit-heading {
   display: inline-flex; align-items: center; gap: var(--sp-3); list-style: none;

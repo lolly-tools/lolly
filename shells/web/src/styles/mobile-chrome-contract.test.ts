@@ -20,8 +20,8 @@
  *      button are the two fixed surfaces that hang off the TOP edge; without
  *      var(--safe-top) they sit under the notch / Dynamic Island.
  *   4. COARSE-POINTER FLOORS - the job toast's ✕ and an undo toast's action are
- *      the only cancel/undo for their operation. Both are small text controls, so
- *      they carry the 44px HIG floor on a coarse pointer.
+ *      the only cancel/undo for their operation. The close button shares the
+ *      44px touch target; the undo action keeps its own coarse-pointer floor.
  *   5. SHEET CLAMPS - the two draggable bottom sheets size themselves in dvh,
  *      which does NOT shrink for the keyboard. Without the calc(100dvh -
  *      var(--vv-bottom)) clamp a "full" sheet's own drag grip and its lowest
@@ -294,9 +294,15 @@ test('the two top-anchored fixed surfaces clear the notch', () => {
 test('the job toast dismiss and the undo action keep the 44px coarse-pointer floor', () => {
   const file = 'styles/parts/job-toast.css';
   const coarse = rules(read(file)).filter((r) => r.at.some((a) => /pointer\s*:\s*coarse/.test(a)));
-  assert.ok(coarse.length >= 2, `${file}: only ${coarse.length} rules sit inside an @media (pointer: coarse) block - the touch hit-area floors have gone`);
+  assert.ok(coarse.length >= 1, `${file}: only ${coarse.length} rules sit inside an @media (pointer: coarse) block - the touch hit-area floors have gone`);
+  assert.match(read('lib/job-toast.ts'), /closeButtonHtml\(\{ size: 'sm', className: 'job-x'/,
+    'the job cancel uses the shared close button');
+  const sharedCoarse = rules(read('styles/parts/buttons.css')).filter((r) => r.at.some((a) => /pointer\s*:\s*coarse/.test(a)));
+  const reach = sharedCoarse.find((r) => r.selector === '.close-btn::after');
+  assert.ok(reach, 'the shared close button expands its touch target');
+  assert.equal(decl(reach, 'inset'), 'min(0px, calc((100% - var(--ui-size-target)) / 2))');
+  assert.match(read('styles/tokens.css'), /--ui-size-target:\s*44px;/, 'the shared target is 44px');
   for (const { cls, why } of [
-    { cls: 'job-x', why: 'the only cancel for every background job' },
     { cls: 'undo-toast-btn', why: 'the only undo for a deletion, and it expires' },
   ]) {
     const hits = coarse.filter((r) => targets(r, cls));

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { assetViewerKind } from '../../lib/asset-viewer-source.ts';
 import { mountAssetFormatViewer } from '../../components/asset-format-viewer.ts';
 import { mountAssetViewerDetails } from '../../components/asset-viewer-details.ts';
@@ -460,7 +461,7 @@ export function buildSheet(dt: DetailsCtx): void {
   const content = `
       <header class="cat-details-header">
         ${dt.controls.editingHtml()}
-        <button type="button" class="cat-details-close" data-act="close" aria-label="${escapeText(t('Close'))}">×</button>
+        ${closeButtonHtml({ className: 'cat-details-close', attrs: { 'data-act': 'close' } })}
       </header>
       <div class="cat-details-preview${zoomable ? ' is-zoomable' : ''}">
         <span class="cat-unsaved-pill" data-unsaved hidden>${t('Edits not saved')}</span>

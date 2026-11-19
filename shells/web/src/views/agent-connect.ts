@@ -16,6 +16,7 @@
  * untrusted text and only ever reach `textContent`.
  */
 
+import { closeButton } from '../lib/close-button.ts';
 import '../styles/script-audio.css';
 import '../styles/agent-connect.css';
 import { trapFocus, type FocusTrap } from '../lib/focus-trap.ts';
@@ -56,9 +57,7 @@ export function dialog(title: string): DialogParts {
   panel.setAttribute('aria-label', title);
   const head = el('header', 'script-audio-head');
   head.appendChild(el('span', undefined, title));
-  const closeBtn = el('button', 'script-audio-close', '×');
-  closeBtn.type = 'button';
-  closeBtn.setAttribute('aria-label', t('Close'));
+  const closeBtn = closeButton({ className: 'script-audio-close' });
   head.appendChild(closeBtn);
   const body = el('div', 'script-audio-body');
   const status = el('p', 'agent-connect-status');

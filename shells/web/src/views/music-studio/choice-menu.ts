@@ -13,9 +13,10 @@
  * dropdown unfolds from its button and the sheet rises, as the app's menus and sheets do,
  * except under reduced motion or the performance setting.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { t } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
-import { icon, type IconName } from '../../lib/icons.ts';
+import type { IconName } from '../../lib/icons.ts';
 import { iconNode } from '../../lib/icon-node.ts';
 import { mountBodyPopover } from '../../components/body-popover.ts';
 import { mountModal, type ModalHandle } from '../../components/modal.ts';
@@ -119,7 +120,7 @@ export function wireChoiceMenu<T extends string>(button: HTMLElement, opts: Choi
         <span class="msb-grip" aria-hidden="true"></span>
         <div class="msb-title-row">
           <h2 class="msb-title" id="${titleId}">${escapeHtml(opts.title)}</h2>
-          <button type="button" class="btn btn--ghost btn--sm msb-close" data-close aria-label="${escapeHtml(t('Close'))}" title="${escapeHtml(t('Close'))}">${icon('close', { size: 18 })}</button>
+          ${closeButtonHtml({ className: 'msb-close', attrs: { 'data-close': true, title: t('Close') } })}
         </div>
       </div>
       <div class="msb-body ms-choice-sheet-body">

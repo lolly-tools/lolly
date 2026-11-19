@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButton } from '../lib/close-button.ts';
 import { layoutOps } from './free-canvas/layout.ts';
 // free-canvas.js - the WYSIWYG direct-manipulation overlay for render.layout:'editor'.
 //
@@ -77,7 +78,7 @@ import { attachWobble } from '../lib/wobble.ts';
 import { isIframeMode } from '../lib/iframe-mode.ts';
 import { t } from '../i18n.ts';
 import { mountDesignGuides } from './design-guides.ts';
-import { SVG, icon } from './free-canvas-icons.ts';
+import { SVG } from './free-canvas-icons.ts';
 import { railSession, } from './free-canvas/shared.ts';
 import type { AddKind, CanvasCfg, ConnectCfg, DeepLinkState, FieldCfg, FontOption, ImportMode, InitFreeCanvasOpts, RuntimeApi, TouchPt } from './free-canvas/shared.ts';
 import type { FcCtx } from './free-canvas/context.ts';
@@ -1152,21 +1153,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   // A close (plans/184 section 6, S3): the chip read as a stuck error with no way to
   // put it away. Dismissed for THIS selection only - a new selection off the playhead
   // raises it again, since that is a new fact.
-  const offPlayheadX = document.createElement('button'); fc.offPlayheadX = offPlayheadX;
-  offPlayheadX.type = 'button';
-  offPlayheadX.className = 'btn btn--ghost btn--sm fc-offplayhead-x';
-  offPlayheadX.setAttribute('aria-label', t('Dismiss'));
-  // Parsed, not assigned as HTML: the raw-HTML sink inventory is pinned (primitive-guards
-  // R10), and a glyph from lib/icons.ts is an SVG document in its own right.
-  {
-    const Parser =
-      document.defaultView?.DOMParser ?? (globalThis as { DOMParser?: typeof DOMParser }).DOMParser;
-    const glyph = Parser
-      ? new Parser().parseFromString(icon('close'), 'image/svg+xml').documentElement
-      : null;
-    if (glyph && glyph.localName !== 'parsererror')
-      offPlayheadX.append(document.importNode(glyph, true));
-  }
+  const offPlayheadX = closeButton({ size: 'sm', className: 'fc-offplayhead-x', label: t('Dismiss') }); fc.offPlayheadX = offPlayheadX;
   offPlayheadEl.append(offPlayheadTxt, offPlayheadGo, offPlayheadX);
   overlay.appendChild(offPlayheadEl);
   fc.offPlayheadAtMs = 0;

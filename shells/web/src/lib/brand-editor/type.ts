@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../close-button.ts';
 import { displayFontFamily, italicFontFamily, listUserFonts, monoFontFamily, primaryFontFamily } from '../../user-fonts.ts';
 import type { FontRole, UserFontFamily } from '../../user-fonts.ts';
 import { collapsedFaceText, faceLine } from '../design-system/type-compare.ts';
@@ -36,7 +37,7 @@ export const fontRow = (bedit: BrandEditorCtx, f: UserFontFamily): string => {
       ${bedit.roles.roleControl(f.family, f.family === bedit.monoFamily, t('Code'), 'mono', 'data-mono', t('Use for code'), tRaw('Use {family} for code & data', { family: f.family }))}
       ${bedit.roles.roleControl(f.family, f.family === bedit.italicFamily, t('Italic'), 'italic', 'data-italic', t('Use for italic'), tRaw('Use {family} for italic text', { family: f.family }))}
       </span>
-      <button type="button" class="be-font-del" data-del="${escapeText(f.family)}" aria-label="${escapeText(tRaw('Remove {family}', { family: f.family }))}">&#x2715;</button>
+      ${closeButtonHtml({ size: 'sm', danger: true, className: 'be-font-del', label: tRaw('Remove {family}', { family: f.family }), attrs: { 'data-del': f.family } })}
     </li>`;
 };
 // The list of everything the person themself installed, plus one folded row

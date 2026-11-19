@@ -46,10 +46,6 @@
     width: 100%;
     min-height: var(--ui-size-target);
   }
-  .asset-picker-guided .asset-picker-close {
-    min-width: var(--ui-size-target);
-    min-height: var(--ui-size-target);
-  }
   .asset-picker-collection-hint {
     flex: none;
   }

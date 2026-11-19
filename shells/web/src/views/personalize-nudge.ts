@@ -23,6 +23,7 @@
  * (plans/137 A4). Same markup and the same flags in both.
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
 import { t } from '../i18n.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
@@ -46,7 +47,7 @@ export function personalizeNudgeMarkup(profile: Profile | null | undefined): str
   if (profile?.personalizeNudgeDismissed) return '';  // already seen it
   return `
     <aside class="personalize-nudge" role="note" aria-label="${t('Personalise your assets')}">
-      <button type="button" class="personalize-nudge-close" aria-label="${t('Dismiss')}">&times;</button>
+      ${closeButtonHtml({ size: 'sm', className: 'personalize-nudge-close', label: t('Dismiss') })}
       <span class="personalize-nudge-icon" aria-hidden="true">${SPARKLE_ICON}</span>
       <div class="personalize-nudge-body">
         <p class="personalize-nudge-title">${t('Add your details to what you make?')}</p>

@@ -6,6 +6,7 @@
 // it chooses the screen/window/tab, and a page can neither enumerate the options nor
 // pre-answer it. So this module has no preview to draw before the fact and nothing to
 // coach; it arms nothing, and the first tap goes straight to the picker.
+import { closeButton } from '../lib/close-button.ts';
 import { announce } from '../a11y.ts';
 import { icon } from '../lib/icons.ts';
 import { composeCropRect, cropPixelSize } from './screen-capture-crop.ts';
@@ -475,10 +476,7 @@ export function setupScreenCaptureControl({
     const saveBtn = Object.assign(document.createElement('button'), {
       type: 'button', className: 'btn-go', textContent: `Save .${ext} · ${fmtBytes(clip.size)}`,
     });
-    const xBtn = Object.assign(document.createElement('button'), {
-      type: 'button', className: 'canvas-audio-dl-x', title: 'Dismiss', textContent: '✕',
-    });
-    xBtn.setAttribute('aria-label', 'Dismiss');
+    const xBtn = closeButton({ size: 'sm', className: 'canvas-audio-dl-x', label: 'Dismiss', attrs: { title: 'Dismiss' } });
     actions.append(saveBtn, xBtn);
     dlBar.append(player, actions);
     stageEl.appendChild(dlBar);

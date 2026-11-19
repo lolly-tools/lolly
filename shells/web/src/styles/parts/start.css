@@ -548,21 +548,8 @@ html[data-layout="split"] .start--studio .ds-main > .ds-live {
 }
 .start-import-head .modal-title { flex: 1 1 auto; }
 .start-import-close {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
   margin-top: -10px;
-  border: 0;
-  border-radius: var(--radius);
-  background: none;
-  color: hsl(var(--muted-foreground));
-  font-size: calc(15px * var(--a11y-fs));
-  line-height: 1;
-  cursor: pointer;
 }
-.start-import-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 .start-import-panel {
   display: flex;
   flex-direction: column;
