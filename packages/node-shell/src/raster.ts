@@ -7,7 +7,6 @@
  */
 import { parseDimension, toPixels, fromU8Srgb, hdrViewTransform } from '@lolly/engine';
 import type { DeepFrame } from '@lolly/engine';
-import type { ExportMeta } from '@lolly-tools/core/host-v1';
 // DEEP RELATIVE IMPORTS, not the `@lolly/engine` barrel: exr.ts and radiance.ts are
 // deliberately engine-internal (their own module headers state it; see the bytes.ts /
 // gainmap.ts precedent recorded in plans/61-deeprichpixels.md section 9c). They are consumed by
@@ -195,18 +194,6 @@ export function eligibleForResvgPng(
   return fmt.toLowerCase() === 'png' && !dims.durable && !dims.bleed && !dims.marks;
 }
 
-/**
- * Tier-A TIFF eligibility, the TIFF twin of {@link eligibleForResvgPng}: a plain `tiff`
- * with no page geometry, no durable credential and no HDR request. An HDR TIFF carries
- * PQ samples under a Rec.2100 profile, which the web shell's export path writes, so that
- * request keeps going to the browser tier. `cmyk-tiff` is a separation and is not this.
- */
-export function eligibleForResvgTiff(
-  fmt: string, dims: { durable?: boolean; bleed?: unknown; marks?: unknown; hdr?: unknown; hdrParam?: unknown },
-): boolean {
-  return fmt.toLowerCase() === 'tiff' && !dims.durable && !dims.bleed && !dims.marks && !dims.hdr && !dims.hdrParam;
-}
-
 /** Children that never count as a template's drawing (the CLI bridge's rule). */
 const NON_DRAWABLE = new Set(['script', 'style', 'template', 'link', 'meta']);
 
@@ -272,55 +259,6 @@ export async function rasterizeTierAPng(
   const marked = dims.imprint ? await rasterizeSvgToImprintedPng(svg, width, height, idpi) : null;
   if (marked) return { bytes: marked, imprinted: true };
   return { bytes: await rasterizeSvgToPng(svg, width, height, idpi), imprinted: false };
-}
-
-/**
- * The Tier-A TIFF: the web shell's own TIFF recipe (`renderTiff` in
- * shells/web/src/bridge/export.ts) over resvg pixels, with no browser. An uncompressed
- * RGB TIFF from the engine's `packTiff`; transparency is flattened onto white, because
- * a baseline TIFF carries no alpha here; the Imprint uses the gentle lossless strength,
- * since nothing re-encodes the samples; the resolution is the export's DPI for a
- * physical unit and 96 otherwise; `meta` supplies the software, author and description
- * tags. Call only when `eligibleForResvgTiff` is true. `imprinted` is true only when the
- * mark was embedded: a frame below the detection floor is written unmarked.
- */
-export async function rasterizeTierATiff(
-  svg: string,
-  dims: PxDimsInput & { imprint?: boolean | null },
-  manifest: { render?: { width?: number; height?: number } },
-  meta?: Partial<ExportMeta> | null,
-): Promise<{ bytes: Uint8Array; imprinted: boolean }> {
-  const { embedWatermark, canCarryWatermark, LOSSLESS_STRENGTH, packTiff, CSS_DPI } = await import('@lolly/engine');
-  const { width, height } = pxDims(dims, manifest);
-  const frame = await rasterizeSvgToRgba(svg, width, height);
-  const imprinted = !!dims.imprint && canCarryWatermark(frame.width, frame.height);
-  const rgba = imprinted
-    ? embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH })
-    : frame.data;
-  const bytes = packTiff(flattenOntoWhite(rgba), {
-    width: frame.width, height: frame.height, samplesPerPixel: 3, photometric: 2,
-    // A physical size with no DPI given is drawn at 300 (pxDims), so the tags say 300.
-    dpi: dims.unit && dims.unit !== 'px' ? (dims.dpi && dims.dpi > 0 ? dims.dpi : 300) : CSS_DPI,
-    ...(meta ? { meta, ...(meta.description ? { description: meta.description } : {}) } : {}),
-  });
-  return { bytes, imprinted };
-}
-
-/** Straight RGBA to RGB over white, with the web shell's own rounding (`flattenRgb`). */
-function flattenOntoWhite(rgba: Uint8Array | Uint8ClampedArray): Uint8Array {
-  const out = new Uint8Array((rgba.length / 4) * 3);
-  for (let i = 0, j = 0; i < rgba.length; i += 4, j += 3) {
-    const a = rgba[i + 3]!;
-    if (a === 255) {
-      out[j] = rgba[i]!; out[j + 1] = rgba[i + 1]!; out[j + 2] = rgba[i + 2]!;
-    } else {
-      const t = a / 255, u = 255 * (1 - t);
-      out[j] = (rgba[i]! * t + u + 0.5) | 0;
-      out[j + 1] = (rgba[i + 1]! * t + u + 0.5) | 0;
-      out[j + 2] = (rgba[i + 2]! * t + u + 0.5) | 0;
-    }
-  }
-  return out;
 }
 
 /** Rewrite the root `<svg>` to render at exactly `width`×`height` px. See

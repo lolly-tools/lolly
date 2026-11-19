@@ -10,8 +10,8 @@ Each rung adds formats. The CLI takes the lowest rung that can write the format 
 :::
 
 1. **Nothing extra.** SVG, SVGZ, EMF, WMF, EPS, EPS-CMYK, DXF, HTML and the data formats (JSON, CSV, ICS, VCF, Markdown) are written in Node. So are the caption files (`srt`, `vtt`, `ttml`, `scc`) and the palette files (`css`, `scss`, `gpl`), which a tool fills from a text template of its own. So are `penpot` from an `<svg>`-based tool and Lottie, IDML and Premiere XML from a Lolly Design document. So is `pptx` from a Lolly Design document whose frames are built on a slide master, unless it composes text stories, and so are the audio and MIDI files a tool's own export hook writes, such as `lolly rondocode --export=mid`.
-2. **Pixels from a vector tool.** resvg turns an `<svg>`-based tool's own SVG into pixels, still with no browser. PNG, TIFF, BMP and JPEG XL come from that frame, and so do the HDR stills (`--hdr=1` with `png` or `jpg`) and the float formats EXR and HDR.
-3. **Everything else.** JPG, WebP, AVIF, other PPTX, video, most PDFs, PNG and TIFF from page-layout tools, an HDR TIFF, `ico` and `txt` need a paint engine: a running Lolly desktop app, an installed one the CLI starts in the background or the CLI's own headless Chromium.
+2. **Pixels from a vector tool.** resvg turns an `<svg>`-based tool's own SVG into pixels, still with no browser. PNG, BMP and JPEG XL come from that frame, and so do the HDR stills (`--hdr=1` with `png` or `jpg`) and the float formats EXR and HDR.
+3. **Everything else.** JPG, WebP, AVIF, TIFF, other PPTX, video, most PDFs, PNG from page-layout tools, `ico` and `txt` need a paint engine: a running Lolly desktop app, an installed one the CLI starts in the background or the CLI's own headless Chromium.
 
 `lolly list --json` reports which rungs this machine has, and why any is missing ([Discovery, for an agent](/info/cli-reference.html#discovery-for-an-agent)).
 
