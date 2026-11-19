@@ -901,54 +901,8 @@ function deviceLink(): string | undefined {
   return params ? `${location.origin}${location.pathname}${location.hash.split('?')[0]}?${params}` : undefined;
 }
 
-// Re-create <script> elements so the browser executes them.
-// Walk the canvas DOM for HTML comment markers left by annotateTemplate, convert
-// them into data-canvas-input attributes, then remove the comments.
-// Block-element outputs (e.g. <p> from {{markdown}}) are marked directly.
-// Plain text outputs get wrapped in a transparent <span> so they're clickable.
-export function resolveCanvasAnnotations(canvasEl: HTMLElement, fixed?: (id: string) => boolean): void {
-  const comments: Comment[] = [];
-  const walker = document.createTreeWalker(canvasEl, NodeFilter.SHOW_COMMENT);
-  let node: Node | null;
-  while ((node = walker.nextNode())) comments.push(node as Comment);
-
-  for (const comment of comments) {
-    if (!comment.parentNode) continue;
-    const text = (comment.nodeValue ?? '').trim();
-    const m = text.match(/^ci:(.+)$/);
-    if (!m) continue;
-    const id = m[1]!;
-
-    // Collect siblings until the matching closing comment.
-    const between: Node[] = [];
-    let closing: ChildNode | null = null;
-    let cur: ChildNode | null = comment.nextSibling;
-    while (cur) {
-      if (cur.nodeType === Node.COMMENT_NODE && (cur.nodeValue ?? '').trim() === `/ci:${id}`) {
-        closing = cur;
-        break;
-      }
-      between.push(cur);
-      cur = cur.nextSibling;
-    }
-
-    const elements = between.filter((n) => n.nodeType === Node.ELEMENT_NODE);
-    const isFixed = fixed?.(id) ?? false;
-    if (elements.length > 0) {
-      for (const el of elements) { (el as HTMLElement).dataset.canvasInput = id; if (isFixed) (el as HTMLElement).dataset.canvasFixed = ''; }
-    } else {
-      // Pure text - wrap in a span so it's individually clickable.
-      const span = document.createElement('span');
-      span.dataset.canvasInput = id;
-      if (isFixed) span.dataset.canvasFixed = '';
-      comment.parentNode.insertBefore(span, comment);
-      for (const n of between) span.appendChild(n);
-    }
-
-    comment.remove();
-    closing?.remove();
-  }
-}
+// The click-to-edit markers live in lib/canvas-annotations.ts; re-exported for the view's own imports.
+export { resolveCanvasAnnotations } from '../../lib/canvas-annotations.ts';
 
 export type ExportReport = (done: number, total: number) => void;
 

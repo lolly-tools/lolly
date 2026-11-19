@@ -15,6 +15,8 @@ import type { DeepFrame } from '@lolly/engine';
 import { packExr, type ExrPixelType } from '../../../engine/src/exr.ts';
 import { packRadiance } from '../../../engine/src/radiance.ts';
 import { catalogFile } from './content-roots.ts';
+import { placeSvg, type SvgPlacement } from './resvg-admission.ts';
+import type { ExportMeta } from '@lolly-tools/core/host-v1';
 
 /** Formats the DOM-free engine writes on its own (svg/emf/eps + text/data), plus the
  *  pro float formats (exr/hdr) the engine's own writers emit over a resvg-rasterised
@@ -120,22 +122,23 @@ export function pxDims(
  *  resvg's `fitTo` can only constrain one axis, so to honour both requested dimensions we
  *  set the root's width/height to the exact target box and render at that intrinsic size.
  *  The SVG's own viewBox + preserveAspectRatio then place the content (letterbox/meet as the
- *  tool authored it), matching the web/desktop raster rather than dropping the height.
- *  Text renders from the catalog fonts; the SVG's own background/transparency is kept.
+ *  tool authored it), unless `placement` says the page draws it width first from the top
+ *  (resvg-admission.ts `placeSvg`). Text renders from the catalog fonts; the SVG's own
+ *  background/transparency is kept.
  *
  *  `dpi` (physical units only) embeds a pHYs DPI chunk so a printer places the PNG at the
  *  requested physical size, matching the engine contract's "raster PNG embeds its DPI". resvg's own
  *  `asPng()` writes no pHYs, so when a DPI is asked for we route the same RGBA through the
  *  engine's `packPng` (as the imprinted path already does); with no DPI (px units) we keep
  *  resvg's byte-identical `asPng()`. */
-export async function rasterizeSvgToPng(svg: string, width: number, height: number, dpi?: number): Promise<Uint8Array> {
+export async function rasterizeSvgToPng(svg: string, width: number, height: number, dpi?: number, placement?: SvgPlacement): Promise<Uint8Array> {
   if (dpi && dpi > 0) {
     const { packPng } = await import('@lolly/engine');
-    const frame = await rasterizeSvgToRgba(svg, width, height);
+    const frame = await rasterizeSvgToRgba(svg, width, height, placement);
     return packPng(frame.data, { width: frame.width, height: frame.height, channels: 4, depth: 8, dpi });
   }
   const { Resvg } = await import('@resvg/resvg-js');
-  const r = new Resvg(sizeSvg(svg, width, height), {
+  const r = new Resvg(placeSvg(svg, width, height, placement), {
     fitTo: { mode: 'original' },
     font: { fontDirs: catalogFontDirs(), loadSystemFonts: true },
   });
@@ -237,42 +240,52 @@ export function svgExportSize(
  * The whole Tier-A PNG rasterisation, shared by CLI and TUI so the two terminal shells
  * emit byte-identical PNGs for the same input. Embeds the Imprint when asked (browser-free,
  * via `rasterizeSvgToImprintedPng`, which returns null below the watermark's detection floor
- * and then falls back to the plain path), and carries the physical-unit DPI onto BOTH the
- * imprinted and plain paths (pHYs chunk) so neither shell drops print size. Call only when
- * `eligibleForResvgPng` is true.
+ * and then falls back to the plain path), and finishes both paths with the browser's chunks
+ * (`finishTierAPng`: the DPI, provenance text, XMP and colour profile). Call only when
+ * `eligibleForResvgPng` is true and `admitForResvg` refused nothing.
  */
 export async function rasterizeTierAPng(
   svg: string,
   dims: PxDimsInput & { imprint?: boolean | null },
   manifest: { render?: { width?: number; height?: number } },
+  finish: TierAFinish = {},
 ): Promise<{ bytes: Uint8Array; imprinted: boolean }> {
   const { width, height } = pxDims(dims, manifest);
-  // Physical units only: px carries no DPI, matching resvg's plain output.
-  const idpi = dims.unit && dims.unit !== 'px' ? dims.dpi : undefined;
   // `imprinted` is never guessed: it is true only when the mark actually embedded (a frame
   // below the detection floor returns null and writes the plain PNG, reporting false).
-  const marked = dims.imprint ? await rasterizeSvgToImprintedPng(svg, width, height, idpi) : null;
-  if (marked) return { bytes: marked, imprinted: true };
-  return { bytes: await rasterizeSvgToPng(svg, width, height, idpi), imprinted: false };
+  // Neither path writes a DPI here: finishTierAPng gives every PNG its pHYs, as the browser does.
+  const marked = dims.imprint ? await rasterizeSvgToImprintedPng(svg, width, height, undefined, finish.placement) : null;
+  const bytes = marked ?? await rasterizeSvgToPng(svg, width, height, undefined, finish.placement);
+  return { bytes: await finishTierAPng(bytes, dims, finish), imprinted: !!marked };
 }
 
-/** Rewrite the root `<svg>` to render at exactly `width`×`height` px. See
- *  rasterizeSvgToPng's doc comment for why both axes are set this way. */
-function sizeSvg(svg: string, width: number, height: number): string {
-  const w = Math.max(1, Math.round(width));
-  const h = Math.max(1, Math.round(height));
-  const m = svg.match(/<svg\b([^>]*)>/);
-  if (!m) return svg;
-  let attrs = m[1]!;
-  // Keep a viewBox (the content coordinate space); synthesise one from the root's own
-  // width/height if it lacks one, so the content still scales to the target box.
-  if (!/\bviewBox=/.test(attrs)) {
-    const ow = attrs.match(/\bwidth="([\d.]+)"/)?.[1];
-    const oh = attrs.match(/\bheight="([\d.]+)"/)?.[1];
-    if (ow && oh) attrs += ` viewBox="0 0 ${ow} ${oh}"`;
-  }
-  attrs = attrs.replace(/\s(width|height)="[^"]*"/g, '');   // drop native size, keep viewBox + PAR
-  return svg.replace(/<svg\b[^>]*>/, `<svg${attrs} width="${w}" height="${h}">`);
+/** What the browser-free PNG needs beyond its SVG: where the page places the drawing, and the file's metadata. */
+export interface TierAFinish {
+  /** How the page lays the drawn root `<svg>` out (resvg-admission.ts `svgPlacement`). */
+  placement?: SvgPlacement;
+  /** The export's metadata record (`runtime.lastExportMeta`), for the text and XMP chunks. */
+  meta?: ExportMeta | null;
+  /** The colour profile to tag the file with; `none` writes none. sRGB by default. */
+  colorProfile?: string | null;
+}
+
+/**
+ * The chunks the browser's PNG carries after its encoder, written the same way and in
+ * the same order (shells/web/src/bridge/export-raster-finish.ts `finishPng`): pHYs at
+ * the export's DPI (96 for pixels, as CSS pixels are), the provenance text, the XMP
+ * packet and the colour profile. Each splice goes in right after IHDR, so the last one
+ * written comes first in the file, exactly as in the browser's file.
+ */
+export async function finishTierAPng(png: Uint8Array, dims: PxDimsInput, finish: TierAFinish = {}): Promise<Uint8Array> {
+  const { insertPngPhys, insertPngMeta, insertPngXmp, insertPngIcc, iccProfileBytes } = await import('@lolly/engine');
+  const physical = !!dims.unit && dims.unit !== 'px';
+  const dpi = dims.dpi && dims.dpi > 0 ? dims.dpi : physical ? 300 : 96;
+  let bytes = insertPngPhys(png, dpi) ?? png;
+  bytes = insertPngMeta(bytes, finish.meta);
+  bytes = insertPngXmp(bytes, finish.meta);
+  const icc = finish.colorProfile === 'none' ? null : iccProfileBytes(finish.colorProfile ?? 'srgb');
+  if (icc) bytes = await insertPngIcc(bytes, icc, 'sRGB');
+  return bytes;
 }
 
 /**
@@ -292,10 +305,10 @@ function sizeSvg(svg: string, width: number, height: number): string {
  * That is a property of the resvg source, not something this function papers over.
  */
 export async function rasterizeSvgToRgba(
-  svg: string, width: number, height: number,
+  svg: string, width: number, height: number, placement?: SvgPlacement,
 ): Promise<{ data: Uint8Array; width: number; height: number }> {
   const { Resvg } = await import('@resvg/resvg-js');
-  const r = new Resvg(sizeSvg(svg, width, height), {
+  const r = new Resvg(placeSvg(svg, width, height, placement), {
     fitTo: { mode: 'original' },
     font: { fontDirs: catalogFontDirs(), loadSystemFonts: true },
   });
@@ -337,10 +350,10 @@ export async function rasterizeSvgToRgba(
  * path is kept intact and this one is entered only when a mark was actually asked for.
  */
 export async function rasterizeSvgToImprintedPng(
-  svg: string, width: number, height: number, dpi?: number,
+  svg: string, width: number, height: number, dpi?: number, placement?: SvgPlacement,
 ): Promise<Uint8Array | null> {
   const { embedWatermark, canCarryWatermark, LOSSLESS_STRENGTH, packPng } = await import('@lolly/engine');
-  const frame = await rasterizeSvgToRgba(svg, width, height);
+  const frame = await rasterizeSvgToRgba(svg, width, height, placement);
   if (!canCarryWatermark(frame.width, frame.height)) return null;
   // PNG is lossless, so the gentler strength is enough, the same choice the web
   // shell's renderRaster makes for png/tiff (shells/web/src/bridge/export.ts).
@@ -362,10 +375,10 @@ export async function rasterizeSvgToImprintedPng(
  * provenance the format can hold, which is exactly why it is applied here.
  */
 export async function rasterizeSvgToBmp(
-  svg: string, width: number, height: number, opts: { imprint?: boolean } = {},
+  svg: string, width: number, height: number, opts: { imprint?: boolean; placement?: SvgPlacement } = {},
 ): Promise<Uint8Array> {
   const { embedWatermark, canCarryWatermark, LOSSLESS_STRENGTH, encodeBmp } = await import('@lolly/engine');
-  const frame = await rasterizeSvgToRgba(svg, width, height);
+  const frame = await rasterizeSvgToRgba(svg, width, height, opts.placement);
   const rgba = (opts.imprint !== false && canCarryWatermark(frame.width, frame.height))
     ? embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH })
     : frame.data;
@@ -465,6 +478,8 @@ export interface DeepRasterRequest {
   svg: string;
   width: number;
   height: number;
+  /** How the page places the drawing on the canvas (resvg-admission.ts). */
+  placement?: SvgPlacement;
   /** 'exr' | 'hdr'. */
   format: string;
   /** The `hdr=` request. Absent/null ⇒ refuse (see deepSourceRefusal). */
@@ -493,7 +508,7 @@ export async function renderDeepRaster(req: DeepRasterRequest): Promise<{ bytes:
   if (!isDeepFormat(fmt)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
   if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt));
 
-  const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height);
+  const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height, req.placement);
   const sdr = fromU8Srgb(raster.data, raster.width, raster.height);
   // rec2020-linear, unbounded, 1.0 == SDR reference white (203 nits).
   const frame: DeepFrame = hdrViewTransform(sdr, {

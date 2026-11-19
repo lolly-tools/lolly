@@ -15,8 +15,10 @@
  */
 import type { JSDOM } from 'jsdom';
 import { serializeUrlState, serializeHdr, HDR_DEFAULTS, isToolUrl } from '@lolly/engine';
-import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims, svgExportSize } from '@lolly-tools/node-shell/raster';
+import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims, svgExportSize, drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import type { DeepHdrRequest } from '@lolly-tools/node-shell/raster';
+import { admitTierA, resvgRefusalSentence, routeRefusals } from '@lolly-tools/node-shell/resvg-admission';
+import type { ResvgRefusal, SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
 import { pickFramePage } from './frame-page.ts';
@@ -29,11 +31,13 @@ interface Runtime {
   madeWith?(): boolean;
   getHydrated(): string;
   getModel(): unknown;
+  /** The metadata record the last export embedded, for the browser-free PNG's chunks. */
+  readonly lastExportMeta?: import('@lolly-tools/core/host-v1').ExportMeta | null;
   /** Draw every emoji in a freshly hydrated tree from the chosen set. */
   applyEmojiToDom(node: unknown): Promise<unknown>;
   export(node: unknown, format: string, opts?: object): Promise<Blob>;
 }
-interface Manifest { id: string; render?: { width?: number; height?: number } }
+interface Manifest { id: string; render?: { width?: number; height?: number; paged?: boolean } }
 
 export interface RasterResult {
   bytes: Uint8Array;
@@ -97,6 +101,11 @@ export async function renderRaster(opts: {
   /** A Design document's design system when it is not the content profile's (`--file`, a
    *  terminal system): the browser tier's page resolves token links in it (plan 291 M4). */
   designSystem?: Record<string, unknown>;
+  /** How much pixel work the tool's hooks did through the Node canvas so far (canvas.ts
+   *  `pixelWorkCount`); any at all keeps the PNG off the browser-free route. */
+  pixelWork?: () => number;
+  /** The tool's stylesheet, which the browser-free route reads for the drawing's layout. */
+  styles?: string | null;
 }): Promise<RasterResult> {
   const { runtime, dom, manifest } = opts;
   const floatEditing = (runtime.getModel() as ModelItem[]).some(item => item.id === 'editingRange' && item.value === 'hdr') || manifest.id === 'design' && !!opts.dims.hdr;
@@ -133,16 +142,43 @@ export async function renderRaster(opts: {
   // exit 0. run.ts now refuses those flags outright for any format that cannot carry
   // page geometry (PRINT_PREP_FORMATS), so this should be unreachable - it stays so the
   // silent no-op cannot come back if that allowlist ever widens.
+  //
+  // ADMISSION (plan 371): resvg draws here only an SVG it was measured to draw the way the
+  // browser does. Anything else is handed to Tier B with the reason printed, and where
+  // Tier B cannot run the job fails with that reason instead of writing a wrong picture.
+  let refused: ResvgRefusal[] | null = null;
   if (!sampled && !floatEditing && eligibleForResvgPng(fmt, dims)) {
-    const svg = await tryRenderSvg(runtime, dom, dims.slide, dims);
-    if (svg) {
-      // Shared Tier-A rasteriser (node-shell): imprint + physical-unit DPI, identical to the
-      // TUI. `imprinted` reflects whether the mark was actually embedded - the imprinted path
-      // returns the plain PNG (no mark) below the watermark detection floor.
-      const { bytes, imprinted } = await rasterizeTierAPng(svg, dims, manifest);
+    const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.pixelWork, opts.styles);
+    if (tierA && 'svg' in tierA) {
+      // Shared Tier-A rasteriser (node-shell): imprint, placement and the browser's PNG
+      // chunks, identical to the TUI. `imprinted` reflects whether the mark was actually
+      // embedded - the imprinted path returns the plain PNG (no mark) below the detection floor.
+      const { bytes, imprinted } = await rasterizeTierAPng(tierA.svg, dims, manifest, { placement: tierA.placement, meta: runtime.lastExportMeta ?? null });
       return { bytes, usedBrowser: false, imprinted };
     }
+    if (tierA) {
+      refused = tierA.refusals;
+      note(`Note: ${resvgRefusalSentence(refused)} Drawing the ${fmt.toUpperCase()} in the browser render tier.`);
+    }
   }
+  try {
+    return await renderTierB(opts, fmt, dims);
+  } catch (e) {
+    throw refused ? withRefusal(e, refused) : e;
+  }
+}
+
+/** A Tier-B failure for a job Tier A refused: both halves, the refusal first, one line. */
+function withRefusal(e: unknown, refusals: readonly ResvgRefusal[]): Error {
+  const message = (e as Error)?.message ?? String(e);
+  const err = new Error(`${resvgRefusalSentence(refusals)} The browser render tier, which draws it, could not run: ${message.split('\n')[0]}`) as Error & { code?: unknown; cause?: unknown };
+  err.cause = e;
+  if ((e as { code?: unknown })?.code !== undefined) err.code = (e as { code?: unknown }).code;
+  return err;
+}
+
+async function renderTierB(opts: Parameters<typeof renderRaster>[0], fmt: string, dims: RenderDims & HdrStillRequest): Promise<RasterResult> {
+  const { runtime, manifest } = opts;
 
   // Tier B - drive the built web shell in the scoped Chromium; capture the exact bytes
   // its own export path downloads (one render path, no drift vs web/desktop).
@@ -264,11 +300,22 @@ export function restoreToolLinks(model: readonly ModelItem[], initial: Record<st
  * for the export's shape in beforeExport (Logo Wall) draws the same picture into the
  * PNG as into the SVG. Only when the drawn root <svg> has a viewBox: without one the
  * SVG export would make a viewBox of the requested size, where the PNG has always
- * scaled the tool's own width and height (sizeSvg), and that would change the picture.
+ * scaled the tool's own width and height, and that would change the picture.
+ *
+ * The answer is the SVG to draw with the placement the page gives it, or the reasons
+ * resvg would draw it unlike the browser (resvg-admission.ts), which send the job to
+ * Tier B. `pixelWork` and `styles` feed that admission.
  */
-async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null, dims?: RenderDims): Promise<string | null> {
+async function tryRenderSvg(
+  runtime: Runtime, dom: JSDOM, slide: string | null | undefined, dims: RenderDims, manifest: Manifest, pixelWork?: () => number, styles?: string | null,
+): Promise<{ svg: string; placement: SvgPlacement } | { refusals: ResvgRefusal[] } | null> {
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) return null;
+  // Asked before the canvas is hydrated again: a hook that computed pictures can leave a
+  // tree large enough that a second copy of it is what exhausts the heap (a logo wall
+  // repeating a photo inlines the photo once per tile, 77 MB of SVG for 20 tiles).
+  const known = routeRefusals({ toolId: manifest.id, paged: !!manifest.render?.paged, canvasPixels: (pixelWork?.() ?? 0) > 0 });
+  if (known.length) return { refusals: known };
   try {
     canvas.innerHTML = runtime.getHydrated();
     // This tier re-hydrates a canvas of its own, so it runs the emoji pass of its
@@ -281,12 +328,23 @@ async function tryRenderSvg(runtime: Runtime, dom: JSDOM, slide?: string | null,
   // fall through to the browser tier and render the whole document there.
   const picked = pickFramePage(canvas, slide);
   const root = picked?.node ?? canvas;
-  try {
-    const blob = await runtime.export(root, 'svg', svgExportSize(root, dims));
-    return await blob.text();
-  } catch {
-    return null;
-  }
+  const { width, height } = pxDims(dims, manifest);
+  // The layout is read before the export, which rewrites the root's size.
+  return admitTierA({
+    root, drawn: drawnRootSvg(root), width, height,
+    ...(manifest.render ? { renderSize: manifest.render } : {}),
+    ...(styles !== undefined ? { styles } : {}),
+    ...(pixelWork ? { pixelWork } : {}),
+    toolId: manifest.id, paged: !!manifest.render?.paged,
+    exportSvg: async ({ onDraftMark, onFillNotice }) => {
+      try {
+        const blob = await runtime.export(root, 'svg', { ...svgExportSize(root, dims), onDraftMark, onFillNotice });
+        return await blob.text();
+      } catch {
+        return null;
+      }
+    },
+  });
 }
 
 /**
@@ -315,6 +373,8 @@ async function renderHdrStill(opts: {
   emoji?: { emoji?: string | null; emojiFx?: string | null; emojiStyle?: string | null };
   initial?: Record<string, unknown>;
   designSystem?: Record<string, unknown>;
+  pixelWork?: () => number;
+  styles?: string | null;
 }): Promise<RasterResult> {
   const { runtime, dom, manifest } = opts;
   const dims = opts.dims;
@@ -327,10 +387,13 @@ async function renderHdrStill(opts: {
 
   let frame: { data: Uint8Array; width: number; height: number };
   let usedBrowser = false;
-  const svg = await tryRenderSvg(runtime, dom, dims.slide, dims);
-  if (svg) {
+  // The same admission as the plain PNG: an SVG resvg would draw unlike the browser
+  // takes its source pixels from the browser tier instead.
+  const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.pixelWork, opts.styles);
+  if (tierA && 'refusals' in tierA) note(`Note: ${resvgRefusalSentence(tierA.refusals)} Taking the source pixels from the browser render tier.`);
+  if (tierA && 'svg' in tierA) {
     const { width, height } = pxDims(dims, manifest);
-    frame = await rasterizeSvgToRgba(svg, width, height);
+    frame = await rasterizeSvgToRgba(tierA.svg, width, height, tierA.placement);
   } else {
     const sourceDims: RenderDims = { ...dims, hdrParam: undefined, depth: undefined, imprint: false, c2pa: false };
     let bytes: Uint8Array;

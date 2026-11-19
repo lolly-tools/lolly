@@ -20,6 +20,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -81,17 +82,23 @@ function cliPng(toolId: string, dir: string): { status: number | null; stderr: s
   return { status: run.status, stderr: run.stderr, out };
 }
 
-test('the tools that wrap their root <svg> in a <div> still draw a sized PNG', async (t) => {
+test('a tool that wraps its root <svg> in a <div> draws a sized PNG, or says why it needs the browser', async (t) => {
   try { await import('sharp'); } catch { t.skip('sharp unavailable on this platform'); return; }
   const sharp = (await import('sharp')).default;
   const dir = await mkdtemp(join(tmpdir(), 'lolly-root-svg-wrapped-'));
   try {
-    for (const toolId of ['color-palette', 'contrast-check', 'print-sheet', 'signature']) {
-      const run = cliPng(toolId, dir);
-      assert.equal(run.status, 0, `${toolId}: ${run.stderr}`);
-      assert.doesNotMatch(run.stderr, /browser render tier/i, `${toolId} drew with no browser`);
-      const meta = await sharp(run.out).metadata();
-      assert.deepEqual([meta.width, meta.height], [1000, 1000], `${toolId} is 1000 x 1000`);
+    const run = cliPng('signature', dir);
+    assert.equal(run.status, 0, `signature: ${run.stderr}`);
+    assert.doesNotMatch(run.stderr, /browser render tier/i, 'signature drew with no browser');
+    const meta = await sharp(run.out).metadata();
+    assert.deepEqual([meta.width, meta.height], [1000, 1000], 'signature is 1000 x 1000');
+    // Measured outside the fidelity bands, or a paged document: the browser-free route
+    // refuses them (resvg-admission.ts), and with no browser tier nothing is written.
+    for (const [toolId, why] of [['color-palette', /has not been measured/], ['contrast-check', /has not been measured/], ['print-sheet', /a paged document/]] as const) {
+      const refused = cliPng(toolId, dir);
+      assert.equal(refused.status, 3, `${toolId}: ${refused.stderr}`);
+      assert.match(refused.stderr, why, toolId);
+      assert.equal(existsSync(refused.out), false, `${toolId} wrote no file`);
     }
   } finally {
     await rm(dir, { recursive: true, force: true });
@@ -103,31 +110,28 @@ const frameWith = (box: Record<string, unknown>) => [
   { ...box, frame: 'cover' },
 ];
 
-/** The PNG's alpha at its top-left corner: 0 when letterboxed, 255 when the frame was stretched to the corner. */
-async function cornerAlpha(boxes: unknown[], dir: string, name: string): Promise<{ alpha: number; size: [number, number] }> {
+/** The browser-free PNG of one Design frame, with no browser tier to hand it to. */
+function framePng(boxes: unknown[], dir: string, name: string): { status: number | null; stderr: string; written: boolean } {
   const out = join(dir, `${name}.png`);
   const run = spawnSync(process.execPath, ['shells/cli/bin/lolly.ts', 'design', `--boxes=${JSON.stringify(boxes)}`, '--s=cover',
     '--width=400', '--height=800', '--transparentBg=1', `--output=${out}`, '--no-provenance'], {
     cwd: ROOT, encoding: 'utf8',
     env: { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: dir, LOLLY_WEB_DIST: join(dir, 'no-web-build'), NO_COLOR: '1' },
   });
-  assert.equal(run.status, 0, run.stderr);
-  const sharp = (await import('sharp')).default;
-  const { data, info } = await sharp(out).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-  return { alpha: data[3]!, size: [info.width, info.height] };
+  return { status: run.status, stderr: run.stderr, written: existsSync(out) };
 }
 
-test('a Design frame\'s PNG is letterboxed whether it holds a shape or only text', async (t) => {
-  try { await import('sharp'); } catch { t.skip('sharp unavailable on this platform'); return; }
-  const dir = await mkdtemp(join(tmpdir(), 'lolly-root-svg-'));
-  try {
-    const shape = await cornerAlpha(frameWith({ id: 'p', kind: 'path', x: 40, y: 200, w: 200, h: 80, bg: '#1c7ed6', path: 'M0,0L200,0L200,80Z' }), dir, 'shape');
-    const text = await cornerAlpha(frameWith({ id: 't', kind: 'text', x: 40, y: 40, w: 560, h: 120, text: 'Words only', fontSize: 40 }), dir, 'text');
-    assert.deepEqual(shape.size, [400, 800]);
-    assert.deepEqual(text.size, [400, 800]);
-    assert.equal(text.alpha, 0, 'the text-only frame is letterboxed');
-    assert.equal(shape.alpha, text.alpha, 'the frame with a shape is drawn the same way');
-  } finally {
-    await rm(dir, { recursive: true, force: true });
+test('a Design frame\'s PNG is refused the same way whether it holds a shape or only text', (t) => {
+  // This route kept a frame's words live and letterboxed the frame, where the browser
+  // writes the frame at its own size (plan 371). It is not admitted (resvg-admission.ts);
+  // the operations route of PR #1032 is the one meant to draw a Design still here.
+  const dir = join(tmpdir(), `lolly-root-svg-${process.pid}`);
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const shape = framePng(frameWith({ id: 'p', kind: 'path', x: 40, y: 200, w: 200, h: 80, bg: '#1c7ed6', path: 'M0,0L200,0L200,80Z' }), dir, 'shape');
+  const text = framePng(frameWith({ id: 't', kind: 'text', x: 40, y: 40, w: 560, h: 120, text: 'Words only', fontSize: 40 }), dir, 'text');
+  for (const run of [shape, text]) {
+    assert.equal(run.status, 3, run.stderr);
+    assert.match(run.stderr, /The browser-free renderer \(resvg\) was not used because/);
+    assert.equal(run.written, false, 'nothing is written');
   }
 });

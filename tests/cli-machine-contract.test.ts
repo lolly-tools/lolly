@@ -94,7 +94,8 @@ function cli(args: string[], extraEnv: Record<string, string> = {}): Promise<{ s
   return new Promise((done) => {
     const child = spawn(process.execPath, [BIN, ...args], {
       cwd: root,
-      env: { ...process.env, LOLLY_ROOT: root, LOLLY_WEB_DIST: join(root, 'no-such-dist'), NO_COLOR: '1', ...extraEnv },
+      // LOLLY_RESVG_TOOLS: the browser-free PNG draws only measured tools; these fixtures are admitted by name.
+      env: { ...process.env, LOLLY_ROOT: root, LOLLY_WEB_DIST: join(root, 'no-such-dist'), LOLLY_RESVG_TOOLS: 'vec-tool,loud-tool', NO_COLOR: '1', ...extraEnv },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     const out: Buffer[] = [];

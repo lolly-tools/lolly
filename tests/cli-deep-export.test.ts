@@ -123,6 +123,9 @@ for (const [id, files] of Object.entries({
 }
 
 process.env.LOLLY_ROOT = root;
+// The browser-free raster route draws only tools measured against the browser; this
+// fixture's own assertions check what it draws, so it is admitted by name.
+process.env.LOLLY_RESVG_TOOLS = 'swatch';
 const { runToolCli } = await import('../shells/cli/src/run.ts');
 
 let seq = 0;

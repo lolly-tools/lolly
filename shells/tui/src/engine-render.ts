@@ -13,7 +13,9 @@ import { dirname } from 'node:path';
 import { assertFormatBytes } from '@lolly-tools/node-shell/format-sniff';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
-import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize } from '@lolly-tools/node-shell/raster';
+import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize, drawnRootSvg } from '@lolly-tools/node-shell/raster';
+import { admitTierA, isResvgRefusal, resvgRefusalSentence, routeRefusals, type ResvgRefusal, type SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
+import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
 import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
@@ -32,6 +34,8 @@ import type { JSDOM } from 'jsdom';
 export type Runtime = Awaited<ReturnType<typeof createRuntime>>;
 export type Manifest = Awaited<ReturnType<typeof loadTool>>['manifest'];
 const runtimeHosts = new WeakMap<Runtime, HostV1>();
+/** Each mounted tool's stylesheet, which the browser-free PNG reads for the drawing's layout. */
+const runtimeStyles = new WeakMap<Runtime, string | null>();
 
 /**
  * The tool a pasted lolly.tools link opens, with its settings, or why it opens
@@ -118,6 +122,7 @@ export async function mountTool(
   });
   selectCliBridgeTokens(host, runtime.tokenSelection);
   runtimeHosts.set(runtime, host);
+  runtimeStyles.set(runtime, tool.styles ?? null);
   await (await import('./document-emoji.ts')).seedEmoji(runtime,host,reserved,values);
   return { runtime, manifest: tool.manifest, reserved };
 }
@@ -242,6 +247,46 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims)
   }
 }
 
+/**
+ * The SVG the browser-free PNG draws, admitted the way the CLI's is (resvg-admission.ts
+ * `admitTierA`): placed as the page places it, or refused with the reasons when resvg
+ * would draw it unlike the browser. Null when this tool has no SVG to draw here.
+ */
+async function tierASvg(
+  runtime: Runtime, dom: JSDOM, manifest: Manifest, dims: ExportDims,
+): Promise<{ svg: string; placement: SvgPlacement } | { refusals: ResvgRefusal[] } | null> {
+  const host = runtimeHosts.get(runtime);
+  // Asked before the canvas is hydrated again, as the CLI does: a second copy of a
+  // picture-heavy tree is what can exhaust the heap.
+  const tool = manifest as { id: string; render?: { paged?: boolean } };
+  const known = routeRefusals({ toolId: tool.id, paged: !!tool.render?.paged, canvasPixels: pixelWorkCount(dom.window.document, host?.raster) > 0 });
+  if (known.length) return { refusals: known };
+  let canvas: HTMLElement;
+  try {
+    canvas = await hydrateCanvas(runtime, dom);
+    await runtime.applyEmojiToDom(canvas);
+  } catch {
+    return null;
+  }
+  const render = (manifest as { render?: { width?: number; height?: number } }).render;
+  const { width, height } = pxDims(dims, { ...(render ? { render } : {}) });
+  return admitTierA({
+    root: canvas, drawn: drawnRootSvg(canvas), width, height,
+    ...(render ? { renderSize: render } : {}),
+    styles: runtimeStyles.get(runtime) ?? null,
+    pixelWork: () => pixelWorkCount(dom.window.document, host?.raster),
+    toolId: tool.id, paged: !!tool.render?.paged,
+    exportSvg: async ({ onDraftMark, onFillNotice }) => {
+      try {
+        const blob = await runtime.export(canvas, 'svg', { ...svgExportSize(canvas, dims), onDraftMark, onFillNotice } as Parameters<Runtime['export']>[2]);
+        return await blob.text();
+      } catch {
+        return null;
+      }
+    },
+  });
+}
+
 /** Output size options for an export (mirrors the web/CLI: width/height are values in
  *  `unit`; a physical unit qualifies them so the engine converts per format). Extends
  *  the shared render dims (incl. the `password` PDF-lock param) with the TUI's
@@ -349,6 +394,8 @@ export async function exportToFile(
   }
 
   // 3. Engine-native formats (svg/emf/eps + text/data): the DOM-free path.
+  /** A browser-free raster format's refusal, carried to the web-shell tier's failure message. */
+  let refusedEarlier: ResvgRefusal[] | null = null;
   const floatScene = needsFloatScene(manifest.id, modelValues(runtime).editingRange, fmt, dims.hdrParam);
   if (NODE_FORMATS.includes(fmt) && !floatScene) {
     const canvas = await hydrateCanvas(runtime, dom);
@@ -358,11 +405,13 @@ export async function exportToFile(
     const qual = (v: number | undefined): string | number | undefined =>
       (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const drawn: DrawnHere = { pictures: [], route: null };
-    const opts: { width?: string | number; height?: string | number; dpi?: number; spotsAsProcess?: boolean; ingredientSink: IngredientCredential[]; onExportRoute: (record: DesignExportRouteRecord) => void } = {
+    const opts: { width?: string | number; height?: string | number; dpi?: number; spotsAsProcess?: boolean; toolStyles?: string | null; toolId?: string; ingredientSink: IngredientCredential[]; onExportRoute: (record: DesignExportRouteRecord) => void } = {
       width: qual(dims.width), height: qual(dims.height), ingredientSink: drawn.pictures, onExportRoute: (record) => { drawn.route = record; },
     };
     // eps-cmyk: the choice means one thing in every CMYK sink (EPS has no named plates, so its bytes do not move).
     if (dims.spotsAsProcess) opts.spotsAsProcess = true;
+    // The browser-free raster formats read the drawing's layout with the tool's stylesheet (resvg-admission.ts).
+    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(fmt)) Object.assign(opts, { toolStyles: runtimeStyles.get(runtime) ?? null, toolId: (manifest as { id: string }).id });
     if (u !== 'px' && dims.dpi) opts.dpi = dims.dpi;
     const query = currentQuery(runtime);
     try {
@@ -371,11 +420,13 @@ export async function exportToFile(
       assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt, bytes });
       return write(bytes, false, drawn);
     } catch (error) {
-      // HTML artwork needs the same vector walker used by web and CLI exports.
+      // HTML artwork needs the same vector walker used by web and CLI exports, and a
+      // raster the browser-free renderer refused (resvg-admission.ts) goes to that tier too.
       // A failed hook or an intervening edit cannot be retried as a fresh render.
-      if (!['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'penpot'].includes(fmt) ||
+      if ((!['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'penpot'].includes(fmt) && !isResvgRefusal(error)) ||
           (error as Error)?.name === 'RenderIntegrityError' || runtime.hookErrors.length ||
           currentQuery(runtime) !== query) throw error;
+      if (isResvgRefusal(error)) refusedEarlier = [...error.refusals];
     }
   }
 
@@ -386,18 +437,22 @@ export async function exportToFile(
   //     the pixels, so imprint-by-default never drags a PNG into the browser tier (the
   //     same fix shells/cli/src/raster.ts made). Only the DURABLE (neural TrustMark)
   //     mark still needs the web shell's export path, so that alone falls through.
+  //     Only an SVG resvg-admission.ts admits is drawn here; a refused one goes to the
+  //     web-shell tier below with the reason shown, and fails with it where that tier cannot run.
+  let refused: ResvgRefusal[] | null = refusedEarlier;
   if (!floatScene && modelValues(runtime).editingRange !== 'hdr' && eligibleForResvgPng(fmt, dims)) {
-    const svg = await renderSvg(runtime, dom, dims);
-    if (svg) {
+    const tierA = await tierASvg(runtime, dom, manifest, dims);
+    if (tierA && 'svg' in tierA) {
       // Shared Tier-A rasteriser (node-shell), identical to the CLI: imprint when asked
-      // (a frame below the detection floor returns the plain PNG unmarked, never fails)
-      // and the physical-unit DPI carried onto both the imprinted and plain paths.
-      const { bytes: png } = await rasterizeTierAPng(svg, dims, manifest as { render?: { width?: number; height?: number } });
+      // (a frame below the detection floor returns the plain PNG unmarked, never fails),
+      // the page's placement and the browser's PNG chunks.
+      const { bytes: png } = await rasterizeTierAPng(tierA.svg, dims, manifest as { render?: { width?: number; height?: number } }, { placement: tierA.placement, meta: runtime.lastExportMeta ?? null });
       // Tier A rasterises the runtime's own SVG, so a swallowed hook failure yields a
       // blank PNG - gate it (the hookErrors signal catches what a byte-count can't).
       assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt, bytes: png });
       return write(png);
     }
+    if (tierA) refused = tierA.refusals;
   }
 
   // 4. Everything else (jpg/webp/pdf/video, and HTML-layout raster): drive the built web
@@ -409,6 +464,12 @@ export async function exportToFile(
   // Node re-stamp in write(). This also carries any bleed/marks/imprint/pressProfile the
   // shared RenderDims holds through exportUrl.
   const webDims = { ...dims, c2pa: dims.c2paDays ? true : dims.c2paOff ? false : undefined, c2paDays: dims.c2paDays };
-  const { bytes } = await renderViaWebShell(id, currentQuery(runtime), fmt, webDims);
+  let bytes: Uint8Array;
+  try {
+    ({ bytes } = await renderViaWebShell(id, currentQuery(runtime), fmt, webDims));
+  } catch (error) {
+    if (!refused) throw error;
+    throw new Error(`${resvgRefusalSentence(refused)} The browser render tier, which draws it, could not run: ${String((error as Error)?.message ?? error).split('\n')[0]}`, { cause: error });
+  }
   return write(bytes, true);
 }

@@ -45,6 +45,8 @@ import { assertExportLocked, exportPasswordRefusal } from '@lolly-tools/node-she
 // (headless Chromium has no AV1 encoder, so an --export=avif used to write PNG).
 import { assertFormatBytes, sniffFormat, formatAllows } from '@lolly-tools/node-shell/format-sniff';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
+import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
+import { isResvgRefusal } from '@lolly-tools/node-shell/resvg-admission';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
 // url-shot: capture a live page via the scoped Chromium (shared with the TUI).
 import { captureUrl, captureParamsFrom } from '@lolly-tools/node-shell/url-capture';
@@ -201,6 +203,9 @@ export { needsBrowserTier };
 /** Shared print/security options plus the CLI-local text, HDR and imprint controls. */
 type CliExportOpts = ExportOpts & import('@lolly-tools/node-shell/pdf-finishing').PdfFinishingOpts & {
   fps?: number;
+  /** The tool's stylesheet and id, for the browser-free raster formats' admission (resvg-admission.ts). */
+  toolStyles?: string | null;
+  toolId?: string;
   password?: string;
   /** The resolved Imprint decision, forwarded to the DOM-free bridge for the one
    *  raster it produces there (BMP). Vector/data DOM-free formats ignore it. */
@@ -1257,6 +1262,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     const u = unit || 'px';
     const qual = (v: number | null | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const exportOpts: CliExportOpts = { width: qual(width), height: qual(height) };
+    // The browser-free raster formats (BMP, JPEG XL, EXR, HDR) read the drawing's layout with the tool's stylesheet.
+    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(targetFormat.toLowerCase())) Object.assign(exportOpts, { toolStyles: tool.styles ?? null, toolId: tool.manifest.id });
     if (targetFormat === 'pdf' && tool.manifest.id === 'design') {
       // The finishing pass needs the same resolved controls the browser receives.
       exportOpts.c2pa = wantC2pa;
@@ -1449,6 +1456,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         emoji: { emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam },
         initial: values as Record<string, unknown>,
         ...(pageDesignSystem ? { designSystem: pageDesignSystem } : {}),
+        // Pixel work the tool's hooks did through the Node canvas keeps the PNG off resvg.
+        pixelWork: () => pixelWorkCount(dom.window.document, host.raster),
+        styles: tool.styles ?? null,
       });
       const bytes = Buffer.from(res.bytes);
       usedBrowser = res.usedBrowser;
@@ -1581,7 +1591,8 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         if ((designPdfFallback || ['svg', 'svgz'].includes(targetFormat.toLowerCase())) && runtime.hookErrors.length) {
           assertRenderOk({ hookErrors: runtime.hookErrors, format: targetFormat, bytes: new Uint8Array() });
         }
-        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase())) || ['RenderIntegrityError', 'ExportHookError'].includes((e as Error)?.name)) throw e;
+        // A raster format the browser-free renderer refused (resvg-admission.ts) is handed on the same way.
+        if ((!designPdfFallback && !VECTOR_ESCALATABLE.has(targetFormat.toLowerCase()) && !isResvgRefusal(e)) || ['RenderIntegrityError', 'ExportHookError'].includes((e as Error)?.name)) throw e;
         domFreeError = e as Error;
         note(
           `Note: "${targetFormat}" has no browser-free path for this tool (${firstLine(domFreeError.message)}). ` +

@@ -77,6 +77,9 @@ await writeFile(join(root, 'tools', 'swatch', 'template.html'), SWATCH);
 // "Tool not found" page and wait out the idle timeout instead of being refused.
 process.env.LOLLY_ROOT = root;
 process.env.LOLLY_WEB_DIST = join(root, 'no-such-dist');
+// The browser-free raster route draws only tools measured against the browser; this
+// fixture's own assertions check what it draws, so it is admitted by name.
+process.env.LOLLY_RESVG_TOOLS = 'swatch';
 delete process.env.LOLLY_WEB_BASE;
 const { runToolCli } = await import('../shells/cli/src/run.ts');
 

@@ -112,7 +112,8 @@ const TOOLS: Array<[string, string, string]> = [
     hooks: { exportFile: true },
     inputs: [{ id: 'source', type: 'file', label: 'File' }],
   })],
-  ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool')],
+  // Its render size is its drawing's, so the browser-free route places it as the page does (resvg-admission.ts).
+  ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool', { render: { width: 240, height: 160, formats: ['svg', 'png'] } })],
   // A PAGED document - three [data-pdf-page] frames with real ids - for the `s=`
   // still-export slide filter (plan 112 section 10). Each page is its own <svg>, so a
   // filtered export has a CLI-native vector path while the unfiltered whole (three
@@ -148,6 +149,9 @@ await writeFile(join(root, 'tools', 'xform-tool', 'hooks.js'),
 
 process.env.LOLLY_ROOT = root;
 process.env.LOLLY_WEB_DIST = join(root, 'no-such-dist');
+// The browser-free raster route draws only tools measured against the browser; this
+// fixture's own assertions check what it draws, so it is admitted by name.
+process.env.LOLLY_RESVG_TOOLS = 'vec-tool,busy-tool,text-tool';
 delete process.env.LOLLY_WEB_BASE;
 delete process.env.LOLLY_STATE_DIR;
 delete process.env.LOLLY_TUI_DIR;

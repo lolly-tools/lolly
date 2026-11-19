@@ -110,7 +110,9 @@ test('--logos-file repeats, and --logos-files reads a list from a file or stdin'
   ok(list);
   assert.equal(images(await readFile(join(root, 'logos', 'list.svg'), 'utf8')).length, 3);
 
-  const piped = await cli(['run', 'logo-wall', '--logos-files=-', '--output=piped.png', '--no-provenance'], 'a.svg\nb.svg\nc.svg\nd.png\ne.png\n');
+  // Trimming and balancing read the logos' pixels through the Node canvas, which keeps a
+  // PNG off the browser-free renderer (resvg-admission.ts); both are off for the PNGs here.
+  const piped = await cli(['run', 'logo-wall', '--logos-files=-', '--trim=false', '--balance=false', '--output=piped.png', '--no-provenance'], 'a.svg\nb.svg\nc.svg\nd.png\ne.png\n');
   ok(piped);
   assert.match(piped.stderr, /Added 5 pictures/);
   const png = await readFile(join(root, 'logos', 'piped.png'));
@@ -151,7 +153,7 @@ test('an export at another shape fills it, in the SVG and in the PNG drawn from 
 
   // 1080 x 1920 as PNG: the logos reach the lower part of the picture, where a
   // letterboxed 16:9 wall would leave it empty.
-  const tall = await cli(['run', 'logo-wall', 'a.svg', 'b.svg', 'c.svg', 'd.png', 'e.png', '--width=1080', '--height=1920', '--output=tall.png', '--no-provenance']);
+  const tall = await cli(['run', 'logo-wall', 'a.svg', 'b.svg', 'c.svg', 'd.png', 'e.png', '--trim=false', '--balance=false', '--width=1080', '--height=1920', '--output=tall.png', '--no-provenance']);
   ok(tall);
   let sharp: typeof import('sharp')['default'];
   try { sharp = (await import('sharp')).default; } catch { t.skip('sharp unavailable on this platform'); return; }
@@ -162,6 +164,14 @@ test('an export at another shape fills it, in the SVG and in the PNG drawn from 
     for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * 4 + 3]! > 0) lower++;
   }
   assert.ok(lower > 1000, `logos drawn in the lowest quarter (${lower} px)`);
+
+  // With trimming on, a wall whose logos were measured with the canvas is not drawn here:
+  // with no browser tier it fails with that reason and writes nothing.
+  const measured = await cli(['run', 'logo-wall', 'a.svg', 'd.png', '--output=measured.png', '--no-provenance']);
+  if (/computed part of the picture with a 2D canvas/.test(measured.stderr)) {
+    assert.equal(measured.code, 3, measured.stderr);
+    assert.equal(existsSync(join(root, 'logos', 'measured.png')), false);
+  }
 });
 
 // Lolly Demo is the public demo design system (parent-owned, so on every clone): its
@@ -250,7 +260,7 @@ test('a legacy Illustrator SVG, its <svg> after a long DOCTYPE, is a picture eve
   ok(file);
   assert.deepEqual(images(await readFile(join(root, 'logos', 'ai-file.svg'), 'utf8')), ['svg+xml']);
 
-  const positional = await cli(['run', 'logo-wall', 'illustrator.svg', 'a.svg', '--output=ai-args.png', '--no-provenance']);
+  const positional = await cli(['run', 'logo-wall', 'illustrator.svg', 'a.svg', '--trim=false', '--balance=false', '--output=ai-args.png', '--no-provenance']);
   ok(positional);
   assert.match(positional.stderr, /Added 2 pictures to --logos/);
 
