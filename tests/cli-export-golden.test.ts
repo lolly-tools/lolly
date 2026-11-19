@@ -37,9 +37,14 @@
  *   the CLI svg branch calls the engine's injectSvgMeta, the same writer the web
  *   shell uses, so both write the same <metadata> block, rights and design-system
  *   record included.)
- *   • eps-cmyk on the CLI is naive rgbToCmyk only - emitEps's cmykPalette
- *     (brand palette CMYK overrides, built by the web shell's renderEps) is
- *     never passed, so brand colours separate differently here than on web.
+ *   (The old "eps-cmyk ignores the brand CMYK palette" divergence is GONE too:
+ *   bridge.ts passes emitEps a cmykPalette from the shared builder in
+ *   engine/src/cmyk-palette.ts, the one the web shell's CMYK sinks use, so a
+ *   brand's CMYK overrides and finishes separate the same way on both. This
+ *   fixture catalog holds no design tokens and the state directory is pinned
+ *   to an empty one below, so the palette is empty and the eps-cmyk golden
+ *   pins the press-profile separation of plain colours alone;
+ *   tests/cmyk-palette.test.ts covers the palette itself.)
  */
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -158,6 +163,9 @@ if (outfitAvailable) {
 // Pin the whole run → bridge module chain to the fixture BEFORE first import
 // (repoRoot() honours a marker-validated LOLLY_ROOT at first resolution).
 process.env.LOLLY_ROOT = root;
+// An empty state directory, so a terminal design system made active on this
+// machine (`lolly system use`) cannot lend these renders its tokens.
+process.env.LOLLY_STATE_DIR = join(root, 'state');
 const { runToolCli } = await import('../shells/cli/src/run.ts');
 
 let seq = 0;

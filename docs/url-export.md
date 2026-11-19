@@ -256,4 +256,4 @@ A saved session is a named snapshot of input values stored in the browser. `slot
 /t/qr-code?slot=homepage-qr&format=png&export
 ```
 
-A slot exists only on the device that saved the session. The CLI has no saved-session store, so it ignores `slot`; to move a session to another device, send its `.lolly` file ([What a link carries](/info/url-app-links.html#what-a-link-carries)).
+A slot exists only on the device that saved the session. A CLI render does not open one: `slot` there has no effect, and the CLI prints a warning saying so. To move a session to another device, send its `.lolly` file ([What a link carries](/info/url-app-links.html#what-a-link-carries)).
