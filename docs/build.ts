@@ -4795,7 +4795,7 @@ main.docs-content.docs-content>p:has(>img,>a>img,>picture){margin-inline:0;max-w
   .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(73.75rem + 14rem);padding-inline-end:calc(14rem + 2rem)}
 }
 @media print{.doc-pagebar,.docs-onpage{display:none!important}}
-.docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
+.docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem; font-weight:300;}
 
 /* Table */
 .table-wrap{overflow-x:auto;margin-bottom:2rem;box-shadow: 0 0 0 1px hsl(var(--border)), 0 .2rem .4rem #00000018; border-radius: 1.5em;}
