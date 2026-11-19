@@ -12,7 +12,8 @@ You may not need to install anything: [lolly.tools](/) runs in a current browser
 | iPhone and iPad | **Lolly Tools** on the [App Store](https://apps.apple.com/app/id6804131681) | 1.1.3 |
 | Android | [`lolly-latest.apk`](https://lolli.li/lolly-latest.apk) | %download{android} |
 | Windows | [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe), not code-signed yet | %download{windows} |
-| Linux | [Flatpak, RPM, `.deb`, Arch or AppImage](#linux) | 1.1.0 |
+| Linux | [The web app, installed from your browser](#linux) | Newest |
+| Linux packages | [Flatpak, RPM, `.deb`, Arch or AppImage](#linux) | 1.1.0 |
 | Your own server | [YunoHost](#yunohost) or [a container image](#a-container-image) | %download{yunohost} |
 
 lolly.tools always has the newest version. The 1.1.0 builds stay at 1.1.0 until each platform's web view passes the WebGPU check that later versions need. Every file links straight to `lolli.li`: a `lolly-latest.*` link always points at the newest build, and versioned files beside it never change. You can [check any file](#checking-what-you-downloaded) against the published checksums.
@@ -67,7 +68,9 @@ Windows SmartScreen warns before the first run. [Compare the file](#checking-wha
 <!--i:eti-box-->
 ## Linux
 
-Every Linux build is version 1.1.0, x86_64 unless the section says otherwise. Newer versions are held back from Linux because WebKitGTK, the web view the Linux app uses, has no WebGPU yet ([supported environments](/info/supported-environments.html)). Pick the one for your distribution:
+For the newest version on Linux, install the web app from your browser. Open [lolly.tools](/) in Chrome, Chromium, Edge or Brave and choose **Install app** from the address bar or the browser menu. Lolly opens in a window of its own with an icon in your launcher, keeps your work on your computer and runs offline after the first visit. The browser needs WebGPU, which a current GNOME or KDE desktop with working graphics drivers normally has. Nobody on the project has checked this route on a Linux desktop yet, so [supported environments](/info/supported-environments.html) does not list Linux as tested. A package that opens Lolly in your installed browser is being built.
+
+Every Linux package is version 1.1.0, x86_64 unless the section says otherwise. Newer versions are held back from Linux because WebKitGTK, the web view the Linux app uses, has no WebGPU yet ([supported environments](/info/supported-environments.html)). Pick the one for your distribution:
 
 | You run | Get |
 |---|---|
