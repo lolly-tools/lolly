@@ -1963,6 +1963,11 @@ button.fc-readout:empty { display: none; }
   -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; }
 .stage-nav .profile-link-mark,
 .stage-nav .profile-link-avatar { width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); }
+/* The count on the swirl. The shared badge hangs past its button's corner, and the rail
+   scrolls (overflow: auto), so that overhang was cut off at the rail's edge, most of all
+   at a larger text size. Inside the rail the badge sits within the button's own box. */
+.stage-nav .profile-link:has(.notification-badge:not([hidden])) { overflow: visible; }
+.stage-nav .notification-badge { top: 0; inset-inline-end: 0; }
 /* …but NOT in the editor's docked bar (.stage-nav--editor, set in tool-stage-nav.ts):
    the brand mark is the anchor there, the bar cannot fold, and the avatar is on loan
    from the top bar - so it sits last, at the pill's ordinary control size, exactly as

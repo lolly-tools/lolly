@@ -977,7 +977,7 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
   cursor: pointer;
   gap: 7px;
 }
-.export-cost > summary::-webkit-details-marker { display: none; }
+.export-cost > summary::after { content: none; }
 .export-cost > summary:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;

@@ -2419,6 +2419,11 @@ function unresolvedSidecarKey(manifest: any, key: string): string | null {
     const found = (input.options ?? []).some((o: any) => o.value === optMatch[1]);
     return found ? null : `references unknown option "${optMatch[1]}" on input "${inputId}"`;
   }
+  const groupMatch = /^groups\.(.+)$/.exec(rest);
+  if (groupMatch) {
+    const found = (input.options ?? []).some((o: { group?: unknown }) => o.group === groupMatch[1]);
+    return found ? null : `references unknown option group "${groupMatch[1]}" on input "${inputId}"`;
+  }
   if (rest === 'addMenu.label') return input.addMenu ? null : `input "${inputId}" has no addMenu`;
   if (rest === 'tableEditor.title') return input.tableEditor ? null : 'has no table editor';
   const tableFieldMatch = /^tableEditor\.fields\.([^.]+)\.label$/.exec(rest);

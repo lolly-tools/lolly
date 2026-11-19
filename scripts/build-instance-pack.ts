@@ -378,6 +378,7 @@ async function main(): Promise<void> {
     catalogRoot: catalogDir,
     assetRoots: [],
     exclude: new Set(),
+    unlist: new Set(),
   };
   for (const id of toolIds) {
     // Installed tools read their own cached files. Resolve an overlay before

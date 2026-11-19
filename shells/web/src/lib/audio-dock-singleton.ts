@@ -68,6 +68,14 @@ html[data-a11y-motion="reduce"] .audio-dock.neuro-managed.is-entering { animatio
      desktop placement), which lands controls off a phone's viewport. The phone
      placement is full-width by policy, so it must beat the inline geometry. */
   .audio-dock.neuro-managed { right: 8px !important; left: 8px !important; width: auto !important; max-width: none; }
+  /* A window state also writes an INLINE top and height, sized on a desktop or grown by a
+     resize. On a phone that carried the header, with Close and Collapse, up under the
+     status bar where no tap reaches. The window stays anchored above the bottom cluster
+     and is never taller than the space under the status bar; the face scrolls inside. */
+  .audio-dock.neuro-managed:not([data-fullscreen]):not(:fullscreen) {
+    top: auto !important; bottom: calc(6rem + var(--safe-bottom)) !important;
+    max-height: calc(100dvh - 6rem - var(--safe-bottom) - var(--safe-top) - 8px) !important;
+  }
   /* The header ▾ now collapses the window to this mini pill on touch too (the two-finger
      tap owns the visualiser menu, packages/audio-dock), so the pill IS the small player on
      phones - show it, pinned as a compact bottom-inset pill hugging the inline-end rather

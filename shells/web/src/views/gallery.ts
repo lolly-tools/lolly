@@ -54,7 +54,7 @@ import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreview
 import { createPreviewQueue, holdWhileBusy } from '../lib/preview-queue.ts';
 import { galleryWelcomeStep, placeGalleryWelcome } from './gallery-welcome.ts';
 import { isProgrammeMember } from '../lib/workspace-templates.ts';
-import { loadGalleryLook, placeBakedCovers } from './gallery-look-loader.ts';
+import { loadGalleryLook, placeBakedCovers, withHeldLook } from './gallery-look-loader.ts';
 import { hydratePaged } from './gallery-paged-deck.ts';
 import { renderFeaturedVariant, coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
@@ -1356,11 +1356,11 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         return { thumb, href };
       });
     };
-    slides.forEach((slide, i) => previewQueue.add({
+    slides.forEach((slide, i) => previewQueue.add(withHeldLook(gcar, slide, tool.id, i, {
       priority: () => previewPriority(gcar, i === 0),
       stale: () => !gcar.isConnected,
       run: () => renderSlide(slide),
-    }));
+    })));
     // A paged document also gets its single cover before we export the full deck.
     if (gcar.dataset.paged === '1') previewQueue.add({
       priority: () => previewPriority(gcar, false),

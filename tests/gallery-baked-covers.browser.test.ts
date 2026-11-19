@@ -34,18 +34,30 @@ test('a clean profile gets baked covers without a render, and no look it did not
     // The pointer rests off the grid, so no card is of interest.
     await page.mouse.move(2, 2);
     const baked = '.gtile .gcar-slide--ex:first-of-type img.gcar-img[src*="/catalog/previews/covers/"]';
-    await page.waitForFunction(
-      (sel) => [...document.querySelectorAll<HTMLImageElement>(sel)].filter((img) => img.complete && img.naturalWidth > 0).length >= 3,
-      baked, { timeout: 30_000 },
-    ).catch(() => { /* the count below reports what was there */ });
-    const seen = await page.evaluate((sel) => ({
-      baked: [...document.querySelectorAll<HTMLImageElement>(sel)].filter((img) => img.complete && img.naturalWidth > 0).length,
-      ready: document.querySelectorAll('.gtile .gcar-slide--ex:first-of-type.is-loaded').length,
-      extra: document.querySelectorAll('.gtile .gcar-slide--ex.is-loaded:not(:first-of-type)').length,
-      wanted: document.querySelectorAll('.gcar[data-looks-wanted]').length,
-      performanceUi: document.documentElement.hasAttribute('data-perf-ui'),
-    }), baked);
+    // A picture is complete a moment before its load event runs, and the card is marked
+    // ready in that event. More pictures arrive while the page is read, so the counts are
+    // taken in one step, at a moment when every finished picture has its mark. Read apart,
+    // or with only the pictures waited for, the counts could land between the two and
+    // fail on a healthy page.
+    const read = (sel: string) => {
+      const done = [...document.querySelectorAll<HTMLImageElement>(sel)].filter((img) => img.complete && img.naturalWidth > 0);
+      return {
+        baked: done.length,
+        ready: document.querySelectorAll('.gtile .gcar-slide--ex:first-of-type.is-loaded').length,
+        unmarked: done.filter((img) => !img.closest('.gcar-slide')?.classList.contains('is-loaded')).length,
+        extra: document.querySelectorAll('.gtile .gcar-slide--ex.is-loaded:not(:first-of-type)').length,
+        wanted: document.querySelectorAll('.gcar[data-looks-wanted]').length,
+        performanceUi: document.documentElement.hasAttribute('data-perf-ui'),
+      };
+    };
+    const settled = await page.waitForFunction(
+      `(() => { const seen = (${read.toString()})(${JSON.stringify(baked)}); return seen.baked >= 3 && seen.unmarked === 0 ? seen : null; })()`,
+      undefined, { timeout: 30_000 },
+    ).then((handle) => handle.jsonValue() as Promise<ReturnType<typeof read>>).catch(() => null);
+    // A page that never settled reports what was there, and the checks below say what is wrong.
+    const seen = settled ?? await page.evaluate(read, baked);
     assert.ok(seen.baked >= 3, `baked covers reached the cards of a clean profile (${JSON.stringify(seen)}). If none did, the bake no longer matches a visitor's context: run pnpm run build:gallery-covers --profile=<the profile this shell serves>`);
+    assert.equal(seen.unmarked, 0, 'a card with a baked cover is marked ready');
     assert.ok(seen.ready >= seen.baked, 'a card with a baked cover is marked ready');
     assert.equal(seen.wanted, 0, 'no card is of interest until the person points at one');
     assert.equal(seen.extra, 0, 'no extra look is drawn for a card nobody asked about');

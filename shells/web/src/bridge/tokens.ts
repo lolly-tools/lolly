@@ -206,7 +206,7 @@ export const JOURNAL_WRITER_META = 'journalWriter';
  *  and honour the brand lock. The record parameter mirrors bridge/assets.ts's
  *  UserAssetRecord for the fields we set - the same contract the picker's
  *  uploads write. */
-interface InstallTokensHost {
+export interface InstallTokensHost {
   assets: {
     _uploadUserAsset(record: {
       id: string;

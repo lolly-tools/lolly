@@ -633,6 +633,10 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 /* A sort with no column of its own (Date added) is still named in the header,
    so the list never reads as unsorted. */
 .listhead-sortnote { font-size: var(--fs-xs); color: var(--ui-color-text-muted); font-weight: 500; white-space: nowrap; }
+/* Sort direction: the disclosure arrow's two hairlines, pointing up or down. */
+.listhead-dir { display: inline-block; width: calc(6px * var(--a11y-fs)); height: calc(6px * var(--a11y-fs)); margin-inline-start: var(--sp-3); border-right: 1.25px solid currentColor; border-bottom: 1.25px solid currentColor; }
+.listhead-dir[data-dir="desc"] { transform: translateY(-2px) rotate(45deg); }
+.listhead-dir[data-dir="asc"] { transform: translateY(2px) rotate(-135deg); }
 
 /* "My library" label over the loose-session block at the root (plans/170
    keeping-model naming): a full-width grid row between the folder tiles and

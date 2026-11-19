@@ -401,7 +401,7 @@ export function openTemplateChooser(opts: ChooserOpts): Promise<Record<string, I
         ${tileChromeHtml(v, v.ref ?? '')}
         <span class="tmpl-chooser-tile-media">${media}</span>
         <span class="tmpl-chooser-tile-name">${ownMark}${escapeHtml(v.name)}</span>
-        ${v.description ? `<span class="tmpl-chooser-tile-desc">${escapeHtml(v.description)}</span>` : ''}
+        ${v.description ? `<span class="tmpl-chooser-tile-desc" title="${escapeHtml(v.description)}">${escapeHtml(v.description)}</span>` : ''}
         ${v.motion ? `<span class="tmpl-motion-beats">${escapeHtml(v.motion.beats.join(' → '))}</span><span class="tmpl-motion-actions"><button type="button" class="btn btn--sm" data-motion-play aria-pressed="false"${opts.host && opts.toolId === 'design' ? '' : ' disabled'}>${escapeHtml(t('Preview animation'))}</button><button type="button" class="btn btn--primary btn--sm">${escapeHtml(t('Use this'))} ↗</button></span>` : ''}
         ${chips}${restore}
       </${tag}>`;

@@ -1887,10 +1887,11 @@ var init_tool_schema = __esm({
                     enum: [
                       "select",
                       "icon-toggle",
-                      "segmented"
+                      "segmented",
+                      "picker"
                     ],
                     default: "select",
-                    description: "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3. 'segmented' renders the options as a row of side-by-side tabs (a radiogroup) instead of a dropdown - for a small, mutually-exclusive mode switch (2\u20134 options) like Hue/Saturation/Luminance; past ~4 a dropdown reads better."
+                    description: "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3. 'segmented' renders the options as a row of side-by-side tabs (a radiogroup) instead of a dropdown - for a small, mutually-exclusive mode switch (2\u20134 options) like Hue/Saturation/Luminance; past ~4 a dropdown reads better. 'picker' renders ONE button showing the current option (its `glyph`, its label and a chevron) that opens a panel of option tiles under their `group` headings, a bottom sheet on a phone - for a long list a person should recognise rather than read, such as chart types. The web shell draws it; other shells ignore the value and keep a plain select."
                   },
                   options: {
                     type: "array",
@@ -1925,7 +1926,19 @@ var init_tool_schema = __esm({
                         },
                         icon: {
                           type: "string",
-                          description: "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown."
+                          description: "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown. A 'picker' tile with no `glyph` draws this icon."
+                        },
+                        glyph: {
+                          type: "string",
+                          maxLength: 900,
+                          pattern: "^[MmLlHhVvCcSsQqTtAaZz0-9 ,.\\-]+$",
+                          description: "SVG path data for a 24 by 24 box: the option's picture on a 'picker' tile and its trigger, drawn as an outline (no fill, currentColor stroke, width 1.75, round caps and joins). Path commands and numbers only, so a tool brings its own pictures without growing the shell's icon registry. The web shell tests the same pattern again before drawing and draws nothing when it fails."
+                        },
+                        group: {
+                          type: "string",
+                          minLength: 1,
+                          maxLength: 60,
+                          description: "A short heading for a 'picker' select. Options with the same group are drawn together, in manifest order, under the heading, with groups in order of first appearance; options with no group come first, unlabelled. Translatable in a sidecar as inputs.<id>.groups.<heading>."
                         },
                         badge: {
                           type: "string",
@@ -4157,7 +4170,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.347.0";
+    ENGINE_VERSION = "1.348.0";
   }
 });
 
@@ -4477,6 +4490,7 @@ var init_tool_skill_v1 = __esm({
 // engine/src/loader.ts
 function applyManifestI18n(manifest, overlay) {
   const sections = new Map(manifest.inputs.map((input) => [input.id, input.section]));
+  const groups = new Map(manifest.inputs.flatMap((input) => (input.options ?? []).map((o) => [o, o.group])));
   for (const [key2, value2] of Object.entries(overlay)) {
     if (typeof value2 !== "string" || !value2) continue;
     if (key2 === "name") {
@@ -4508,6 +4522,11 @@ function applyManifestI18n(manifest, overlay) {
     if (optMatch) {
       const opt = input.options?.find((o) => o.value === optMatch[1]);
       if (opt) opt.label = value2;
+      continue;
+    }
+    const groupMatch = /^groups\.(.+)$/.exec(rest2);
+    if (groupMatch) {
+      for (const opt of input.options ?? []) if (groups.get(opt) === groupMatch[1]) opt.group = value2;
       continue;
     }
     if (rest2 === "addMenu.label") {
@@ -159995,7 +160014,8 @@ function materializedRoots(root2) {
     // nothing left to mount: catalogFile('packs/<name>/<rel>') finds those files by
     // the plain join below.
     assetRoots: [],
-    exclude: /* @__PURE__ */ new Set()
+    exclude: /* @__PURE__ */ new Set(),
+    unlist: /* @__PURE__ */ new Set()
   };
 }
 function contentRoots(opts) {
@@ -160033,6 +160053,7 @@ function contentRoots(opts) {
     catalogRoot: join2(root2, profile2.catalog),
     assetRoots: sharedRoots(root2, profile2.assets ?? [], name),
     exclude: new Set(profile2.exclude ?? []),
+    unlist: new Set(profile2.unlist ?? []),
     ...typeof profile2.label === "string" && profile2.label ? { label: profile2.label } : {},
     ...profile2.companions?.length ? {
       companions: profile2.companions.map((c) => ({ label: c.label, tokens: c.tokens, catalogDir: join2(root2, c.catalog), assets: [...c.assets] })),
@@ -186256,7 +186277,7 @@ function fail(id3, code, message, data) {
 // services/mcp/package.json
 var package_default = {
   name: "@lolly/mcp-server",
-  version: "1.2.0",
+  version: "1.2.1",
   private: true,
   description: "Lolly MCP server - exposes the on-brand tool catalog + render path to AI agents over the Model Context Protocol. Runtime deps: node:http + jsdom + @resvg/resvg-js + playwright-core (Tier B, Chromium via `pnpm run install:browser`) + @lolly/engine.",
   license: "MPL-2.0",

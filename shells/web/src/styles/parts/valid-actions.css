@@ -25,7 +25,7 @@
   .valid-actions-buttons, .valid-actions [data-actions-primary] { display: flex; align-items: center; gap: var(--ui-space-control-inline); }
   .valid-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--ui-space-control-inline); min-height: var(--ui-size-target); font-size: var(--ui-type-label); }
   .valid-actions-more > summary { list-style: none; cursor: pointer; }
-  .valid-actions-more > summary::-webkit-details-marker { display: none; }
+  .valid-actions-more > summary::after { content: none; }
   .valid-actions-more[open] > summary { background: var(--ui-color-selection-surface); }
   .valid-actions-more[open] > summary > svg:last-child { transform: rotate(180deg); }
   .valid-actions-menu {

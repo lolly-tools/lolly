@@ -26,7 +26,7 @@ import { segHtml, type SegOption } from '../lib/seg.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import type { FeaturedViewMode } from './featured-row.ts';
 
-const OPTIONS_ICON = icon('filterLines');
+const OPTIONS_ICON = icon('listFilter');
 const SORT_DIR_ICON = icon('sortDir');
 
 /** The top-bar button. `extraClass` is the view's own hook for its click wiring;

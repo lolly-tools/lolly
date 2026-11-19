@@ -11,7 +11,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { normalizeInstanceBase, instancePath, getInstanceBase, _setBaseForTests, setInstallTag, clientHeaderValue, setInstanceSession, hasInstanceSession, instanceFetch } from './instance.ts';
+import { normalizeInstanceBase, instancePath, getInstanceBase, suspendInstanceBase, suspendedInstanceBase, _setBaseForTests, setInstallTag, clientHeaderValue, setInstanceSession, hasInstanceSession, instanceFetch } from './instance.ts';
 
 // ── normalizeInstanceBase ────────────────────────────────────────────────────
 
@@ -339,4 +339,17 @@ test('the native hop loop reports the final address and drops credentials off or
     assert.match(source, /let final_url = response\.url\(\)\.to_string\(\);[\s\S]*?url: final_url,/,
       `${shell} reports the address the bytes came from`);
   }
+});
+
+test('an instance set aside for the page load stops being used and is still remembered', () => {
+  _setBaseForTests('https://lolly.example.org');
+  assert.equal(instancePath('/catalog/tools/index.json'), 'https://lolly.example.org/catalog/tools/index.json');
+  assert.equal(suspendInstanceBase(), 'https://lolly.example.org');
+  // Bundled, same-origin content from here on.
+  assert.equal(getInstanceBase(), '');
+  assert.equal(instancePath('/catalog/tools/index.json'), '/catalog/tools/index.json');
+  assert.equal(suspendedInstanceBase(), 'https://lolly.example.org');
+  // With no instance in use there is nothing to set aside, and the record stays.
+  assert.equal(suspendInstanceBase(), '');
+  assert.equal(suspendedInstanceBase(), 'https://lolly.example.org');
 });

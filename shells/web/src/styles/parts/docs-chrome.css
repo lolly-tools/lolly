@@ -334,6 +334,7 @@ html[data-a11y-motion="reduce"] .doc-pagebar-chev { transition: none; }
 .footer-sitemap .sitemap-disclosure > summary { justify-content: center; width: fit-content; max-width: 100%; margin: 0 auto; }
 .footer-sitemap .sitemap-section > summary { justify-content: space-between; padding-inline: 0.5rem; font-weight: 500; }
 .footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary::-webkit-details-marker { display: none; }
+.footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary::after { content: none; }
 .footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary::marker { content: ''; }
 .footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary:hover { background: var(--ui-color-surface-muted); }
 .footer-sitemap :is(.sitemap-disclosure, .sitemap-section) > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }

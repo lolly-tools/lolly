@@ -64,7 +64,30 @@ export async function galleryLookHref(toolId: string, look?: FeaturedVariant): P
       : `#/tool/${encodeURIComponent(toolId)}`;
 }
 
+/**
+ * The last cover drawn for each look in this visit. When the design system or the theme
+ * changes, the gallery mounts again and every cover has to be drawn again in the new
+ * colours, which takes seconds. A tile shows the cover held here until its new one is
+ * ready, so the gallery recolours tile by tile and never falls back to placeholders.
+ */
+const heldLooks = new Map<string, string>();
+const heldKey = (toolId: string, index: number): string => `${toolId}\u0000${index}`;
+
+/** The cover last drawn for this look in this visit, or null on a first draw. */
+export function heldGalleryLook(toolId: string, index: number): string | null {
+  return heldLooks.get(heldKey(toolId, index)) ?? null;
+}
+
 export async function renderGalleryLook(
+  host: HostV1 & { previews?: PreviewsAPI }, tool: GalleryPreviewSource,
+  index: number, look: FeaturedVariant,
+): Promise<string> {
+  const thumb = await drawGalleryLook(host, tool, index, look);
+  if (thumb) heldLooks.set(heldKey(tool.id, index), thumb);
+  return thumb;
+}
+
+async function drawGalleryLook(
   host: HostV1 & { previews?: PreviewsAPI }, tool: GalleryPreviewSource,
   index: number, look: FeaturedVariant,
 ): Promise<string> {

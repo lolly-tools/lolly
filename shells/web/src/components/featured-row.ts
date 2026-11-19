@@ -27,6 +27,7 @@
 
 import { CoverflowGesture, CoverflowMotion, coverflowHaptics, coverflowWheel, type CoverflowGrid } from '../lib/coverflow-motion.ts';
 import { mountCoverflow, type CoverflowHandle } from './coverflow.ts';
+import { showOpenAtRest } from '../lib/coverflow-open-rest.ts';
 import { featuredStartIndex, recordFeaturedActivity, type FeaturedCollection } from '../lib/featured-activity.ts';
 import type { PreviewQueue } from '../lib/preview-queue.ts';
 import { escape } from '../utils.ts';
@@ -36,7 +37,7 @@ import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormatOf } from '../lib/featured-render.ts';
 import { toolSeedHref } from '../lib/seed-url.ts';
-import { galleryLookHref, renderGalleryLook } from '../lib/gallery-preview.ts';
+import { galleryLookHref, heldGalleryLook, renderGalleryLook } from '../lib/gallery-preview.ts';
 import { bakedCoverSet } from '../lib/gallery-covers.ts';
 import { playSfx } from '../lib/sfx.ts';
 import { dragTravel, type DragTravel } from '../lib/pointer-wrap.ts';
@@ -280,7 +281,7 @@ export function mountFeaturedRow(
       <div class="featured-viewport" tabindex="0" aria-label="${escape(opts.ariaLabel || opts.label || 'Featured tools')}">
         <ul class="featured-track">${entries.map((e, i) => tileMarkup(e, i === initialIndex, tileMenu)).join('')}</ul>
       </div>
-      <button type="button" class="featured-go">Open ${ARROW}</button>
+      <button type="button" class="featured-go"><span class="featured-go-label">${escape(tRaw('Open {name}', { name: entries[initialIndex]?.name ?? '' }))}</span>${ARROW}</button>
       <p class="visually-hidden featured-status" aria-live="polite" aria-atomic="true"></p>
       <div class="featured-grip" aria-hidden="true"><span class="featured-grip-bar"></span></div>
     </section>`;
@@ -681,8 +682,8 @@ export function mountFeaturedRow(
         flow = mountCoverflow(viewport, track, { initialIndex, onChange(index) {
           selectedIndex = index;
           if (flickIndex !== index) { if (flickIndex !== -1) flick(); flickIndex = index; }
-          const button = section.querySelector('.featured-go');
-          button?.setAttribute('aria-label', `Open ${entries[index]?.name ?? ''}`);
+          const label = section.querySelector('.featured-go-label');
+          if (label) label.textContent = tRaw('Open {name}', { name: entries[index]?.name ?? '' });
         } });
         cfMotion.reset(viewport.scrollLeft);
       }
@@ -1056,6 +1057,7 @@ export function mountFeaturedRow(
   // an ordinary, reliably clickable button - and it reads the cover to open off
   // `.is-centred` at click time.
   const goBtn = section.querySelector<HTMLElement>('.featured-go');
+  if (goBtn && coverflow) showOpenAtRest(viewport, goBtn, signal);
   goBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1150,7 +1152,7 @@ export function mountFeaturedRow(
       }
     }
 
-    const addVariantImage = async (job: VariantJob, src: string): Promise<void> => {
+    const addVariantImage = async (job: VariantJob, src: string, held = false): Promise<void> => {
       // Append to the original tile AND its clone, so both stay in sync as they drift.
       const added: HTMLImageElement[] = [];
       track.querySelectorAll<HTMLElement>(`.ftile[data-tool="${CSS.escape(job.id)}"] .ftile-stage`).forEach((stage) => {
@@ -1164,6 +1166,8 @@ export function mountFeaturedRow(
         // in once ready - only the first kind needs the error handler's re-render, so only
         // that kind carries its job.
         if (isManifestLook(src)) lookJob.set(img, job);
+        // A cover held from before a repaint is marked, so the new draw replaces this picture.
+        if (held) img.dataset.held = String(job.index);
         img.src = src;
         stage.appendChild(img);
         added.push(img);
@@ -1203,11 +1207,21 @@ export function mountFeaturedRow(
         const thumb = await (job.tool?.galleryPreview && job.look
           ? renderGalleryLook(host, job.tool, job.index, job.look)
           : renderFeaturedVariant(host, job.id, job.formats, job.index, job.values));
-        if (!destroyed) await addVariantImage(job, thumb);
+        if (destroyed) return;
+        // Replace a held cover in place (the tile and its wrap copies), or add the look.
+        const stale = [...track.querySelectorAll<HTMLImageElement>(`.ftile[data-tool="${CSS.escape(job.id)}"] .ftile-img[data-held="${job.index}"]`)];
+        for (const img of stale) { img.src = thumb; delete img.dataset.held; }
+        if (!stale.length) await addVariantImage(job, thumb);
       } catch (e) {
         host.log?.('warn', `Featured variant failed for ${job.id}`, { error: String(e) });
       }
     };
+    // A cover drawn earlier in this visit stands in until its new one is ready
+    // (lib/gallery-preview.ts): a design system or theme change recolours tile by tile.
+    for (const job of jobs) {
+      const kept = job.tool?.galleryPreview && job.look ? heldGalleryLook(job.id, job.index) : null;
+      if (kept) void addVariantImage(job, kept, true);
+    }
     if (opts.previewQueue) {
       // Register the whole strip now so its extra templates cannot jump ahead
       // of covers in the grid (or another strip). Hidden rows park their work.

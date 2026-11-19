@@ -42,7 +42,7 @@
    }
   },
   "chart": {
-   "version": "1.30.1",
+   "version": "1.31.0",
    "light": {
     "templateId": "brand-bars",
     "file": "/catalog/previews/covers/chart.light.svg"
@@ -83,53 +83,6 @@
    "dark": {
     "templateId": "speaker",
     "file": "/catalog/previews/covers/quote-card.dark.webp"
-   }
-  },
-  "week": {
-   "version": "1.1.0",
-   "light": {
-    "file": "/catalog/previews/covers/week.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/week.dark.svg"
-   }
-  },
-  "scorecard": {
-   "version": "1.1.0",
-   "light": {
-    "file": "/catalog/previews/covers/scorecard.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/scorecard.dark.svg"
-   }
-  },
-  "email": {
-   "version": "1.1.0",
-   "light": {
-    "file": "/catalog/previews/covers/email.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/email.dark.svg"
-   }
-  },
-  "brief": {
-   "version": "1.1.0",
-   "light": {
-    "file": "/catalog/previews/covers/brief.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/brief.dark.svg"
-   }
-  },
-  "quote": {
-   "version": "1.1.0",
-   "light": {
-    "templateId": "services",
-    "file": "/catalog/previews/covers/quote.light.svg"
-   },
-   "dark": {
-    "templateId": "services",
-    "file": "/catalog/previews/covers/quote.dark.svg"
    }
   },
   "work-avatar": {
@@ -225,17 +178,6 @@
    "dark": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/print-sheet.dark.svg"
-   }
-  },
-  "pricing-table": {
-   "version": "1.2.0",
-   "light": {
-    "templateId": "saas",
-    "file": "/catalog/previews/covers/pricing-table.light.svg"
-   },
-   "dark": {
-    "templateId": "saas",
-    "file": "/catalog/previews/covers/pricing-table.dark.svg"
    }
   },
   "org-chart": {
@@ -421,17 +363,6 @@
     "file": "/catalog/previews/covers/captions.dark.webp"
    }
   },
-  "calendar-ics": {
-   "version": "1.3.0",
-   "light": {
-    "templateId": "month",
-    "file": "/catalog/previews/covers/calendar-ics.light.svg"
-   },
-   "dark": {
-    "templateId": "month",
-    "file": "/catalog/previews/covers/calendar-ics.dark.svg"
-   }
-  },
   "booth-studio": {
    "version": "0.4.1",
    "light": {
@@ -441,17 +372,6 @@
    "dark": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/booth-studio.dark.webp"
-   }
-  },
-  "battlecards": {
-   "version": "1.4.0",
-   "light": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/battlecards.light.svg"
-   },
-   "dark": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/battlecards.dark.svg"
    }
   },
   "backdrop": {

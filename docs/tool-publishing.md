@@ -120,5 +120,5 @@ Every tool below is in `community/`, so you can open it in Lolly and read it in 
 - `wayfinding-signage` - `blocks` rows whose label text shrinks to fit or shows a sponsor image, and a `size` select that sets the print page size; CMYK export.
 - `wordmark` - a hook shapes the text into one vector `<path>` through `host.text.toPath`, for true vector SVG with no font installed.
 - `lottie-digi-ad` - video and GIF output with `render.video` timing.
-- `battlecards` - `render.paginate`: one card per row of a pasted table.
+- `battlecards` (in the `community` folder, not listed on lolly.tools) - `render.paginate`: one card per row of a pasted table.
 - `strip-data` - an on-device utility with a `file` input and an `exportFile` hook.

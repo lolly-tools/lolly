@@ -155,7 +155,8 @@ export interface LoadToolOpts {
  *  Keys: "name", "description", "a11yLabel", "inputs.<id>.label",
  *  "inputs.<id>.help", "inputs.<id>.notice", "inputs.<id>.placeholder", "inputs.<id>.section",
  *  "inputs.<id>.suffix", "inputs.<id>.options.<value>" (select option label),
- *  "inputs.<id>.addMenu.label", "inputs.<id>.fields.<fieldId>.label" /
+ *  "inputs.<id>.groups.<heading>" (select option group heading, keyed by the
+ *  manifest's own heading), "inputs.<id>.addMenu.label", "inputs.<id>.fields.<fieldId>.label" /
  *  ".help" / ".placeholder" (blocks/vector sub-fields), and
  *  "inputs.<id>.fields.<fieldId>.options.<value>" (block sub-field option label),
  *  plus the walkthrough: "guide.title", "guide.tracks.<id>.label" / ".note" /
@@ -173,6 +174,9 @@ export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverl
   // Section metadata follows the authored association when its caption changes.
   // Keep original keys too: a partial overlay can leave other rows untranslated.
   const sections = new Map(manifest.inputs.map(input => [input.id, input.section]));
+  // Group headings are matched against the manifest's own words, read once here,
+  // so a heading already translated can never be matched by a second key.
+  const groups = new Map(manifest.inputs.flatMap(input => (input.options ?? []).map(o => [o, o.group] as const)));
   for (const [key, value] of Object.entries(overlay)) {
     if (typeof value !== 'string' || !value) continue;
     if (key === 'name') { manifest.name = value; continue; }
@@ -196,6 +200,11 @@ export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverl
     if (optMatch) {
       const opt = input.options?.find(o => o.value === optMatch[1]);
       if (opt) opt.label = value;
+      continue;
+    }
+    const groupMatch = /^groups\.(.+)$/.exec(rest);
+    if (groupMatch) {
+      for (const opt of input.options ?? []) if (groups.get(opt) === groupMatch[1]) opt.group = value;
       continue;
     }
     if (rest === 'addMenu.label') {

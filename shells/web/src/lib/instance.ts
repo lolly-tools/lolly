@@ -97,6 +97,27 @@ function instanceOrigin(value = base): string | null {
   } catch { return null; }
 }
 
+/** An instance set aside for this page load (suspendInstanceBase), or ''. */
+let suspended = '';
+
+/**
+ * Stop using the saved instance for this page load and return its base. The saved
+ * choice stays in storage, so the next start asks that instance again. Only the
+ * person leaving the instance (lib/instance-leave.ts) removes the choice. catalog/sync.ts calls this
+ * when the instance's catalog is signed by a key this build does not trust, so the
+ * app shows the tools built into it instead of none.
+ */
+export function suspendInstanceBase(): string {
+  const was = base;
+  if (was) { suspended = was; base = ''; instanceSession = null; }
+  return was;
+}
+
+/** The instance set aside for this page load, or '' when none was. */
+export function suspendedInstanceBase(): string {
+  return suspended;
+}
+
 /** The active instance base URL ('' = bundled same-origin content). */
 export function getInstanceBase(): string {
   return base;

@@ -1,7 +1,7 @@
 {
  "v": 1,
  "source": {
-  "fingerprint": "e2a2d89aad4afc318536ec59ad05ec52"
+  "fingerprint": "e7bcaa680bb4ca422a5c9b027c4c62b6"
  },
  "contexts": {
   "5f9b09dd41775cee8fb84a47cdb463c6": "light",
@@ -42,7 +42,7 @@
    }
   },
   "chart": {
-   "version": "1.30.1",
+   "version": "1.31.0",
    "light": {
     "templateId": "brand-bars",
     "file": "/catalog/previews/covers/chart.light.svg"
@@ -85,53 +85,6 @@
     "file": "/catalog/previews/covers/quote-card.dark.webp"
    }
   },
-  "week": {
-   "version": "1.1.0",
-   "light": {
-    "file": "/catalog/previews/covers/week.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/week.dark.svg"
-   }
-  },
-  "scorecard": {
-   "version": "1.1.0",
-   "light": {
-    "file": "/catalog/previews/covers/scorecard.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/scorecard.dark.svg"
-   }
-  },
-  "email": {
-   "version": "1.1.0",
-   "light": {
-    "file": "/catalog/previews/covers/email.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/email.dark.svg"
-   }
-  },
-  "brief": {
-   "version": "1.1.0",
-   "light": {
-    "file": "/catalog/previews/covers/brief.light.svg"
-   },
-   "dark": {
-    "file": "/catalog/previews/covers/brief.dark.svg"
-   }
-  },
-  "quote": {
-   "version": "1.1.0",
-   "light": {
-    "templateId": "services",
-    "file": "/catalog/previews/covers/quote.light.svg"
-   },
-   "dark": {
-    "templateId": "services",
-    "file": "/catalog/previews/covers/quote.dark.svg"
-   }
-  },
   "3d-studio": {
    "version": "0.11.0",
    "light": {
@@ -154,17 +107,6 @@
     "file": "/catalog/previews/covers/timezone.dark.webp"
    }
   },
-  "pricing-table": {
-   "version": "1.2.0",
-   "light": {
-    "templateId": "saas",
-    "file": "/catalog/previews/covers/pricing-table.light.svg"
-   },
-   "dark": {
-    "templateId": "saas",
-    "file": "/catalog/previews/covers/pricing-table.dark.svg"
-   }
-  },
   "org-chart": {
    "version": "1.2.0",
    "light": {
@@ -181,17 +123,6 @@
    },
    "dark": {
     "file": "/catalog/previews/covers/meeting-planner.dark.svg"
-   }
-  },
-  "battlecards": {
-   "version": "1.4.0",
-   "light": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/battlecards.light.svg"
-   },
-   "dark": {
-    "templateId": "brand-starter",
-    "file": "/catalog/previews/covers/battlecards.dark.svg"
    }
   },
   "agenda": {
@@ -254,17 +185,6 @@
    "dark": {
     "templateId": "brand-starter",
     "file": "/catalog/previews/covers/diagram-builder.dark.svg"
-   }
-  },
-  "calendar-ics": {
-   "version": "1.3.0",
-   "light": {
-    "templateId": "month",
-    "file": "/catalog/previews/covers/calendar-ics.light.svg"
-   },
-   "dark": {
-    "templateId": "month",
-    "file": "/catalog/previews/covers/calendar-ics.dark.svg"
    }
   },
   "backdrop": {

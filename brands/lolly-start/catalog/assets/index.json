@@ -23,8 +23,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-iI//in6YPZltVHhyp2vOSVyWAHhoLKj49k1XfqRHuNE=",
-          "size": 16481
+          "checksum": "sha256-yQjGexr4gvfUdF7bbMZc3GYs+CMgaYX4qIPYT0bEdF4=",
+          "size": 16418
         }
       ],
       "added": "2026-07-08"
