@@ -179,6 +179,58 @@
   filter: brightness(0.94);
 }
 
+/* Close - the ONE cross button (lib/close-button.ts). Every control that closes,
+   dismisses, clears or removes with a cross draws this glyph in this box, so a person
+   meets one close button. A call site keeps a class of its own for where the button
+   sits (position, margin, grid area) and nothing else; this layer sits under the chrome
+   and view layers, so that class always wins.
+   The cross's ink is half of its icon box, so the glyph takes the large icon size to
+   read at the weight of the 16px icons beside it. */
+.close-btn {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--ui-size-control);
+  height: var(--ui-size-control);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  line-height: 0;
+  cursor: pointer;
+  transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback);
+}
+.close-btn[hidden] { display: none; }
+.close-btn > svg {
+  width: var(--ui-size-icon-lg);
+  height: var(--ui-size-icon-lg);
+  flex: none;
+  pointer-events: none;
+}
+.close-btn:hover:not(:disabled) { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.close-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.close-btn:disabled { opacity: .5; cursor: not-allowed; }
+/* Small: in a row, a chip, a toast or a field. */
+.close-btn--sm { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); }
+.close-btn--sm > svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+/* Over a picture or other busy content the button carries a ground of its own. */
+.close-btn--solid {
+  border-radius: var(--ui-radius-pill);
+  background: color-mix(in oklab, var(--ui-color-surface-muted) 72%, transparent);
+  color: var(--ui-color-text-default);
+}
+.close-btn--solid:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+/* A removal reads as one on hover. */
+.close-btn--danger:hover:not(:disabled) { background: var(--ui-color-status-danger-surface); color: var(--ui-color-status-danger); }
+/* A finger gets the full target without the box growing, so a head or a row keeps one
+   height on every device: the reach widens to the target size around the same box. */
+@media (pointer: coarse) {
+  .close-btn { position: relative; }
+  .close-btn::after { content: ""; position: absolute; inset: min(0px, calc((100% - var(--ui-size-target)) / 2)); }
+}
+
 /* Glass - the translucent "glass pill" recipe. Used to live ONLY on the combined
    .tools-home.home-full selector (tool.css); every other back/topbar pill either
    hand-typed its own approximation or had no blur at all. Andy's exact recipe,

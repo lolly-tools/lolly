@@ -664,6 +664,10 @@ test('R9: lib/icons.ts glyph bodies are well-formed (balanced quotes and tags)',
 const RAW_HTML_SINK = /\.(?:inner|outer)HTML\s*\+?=(?!=)(?!\s*['"]\s*['"]\s*[;,)])|\binsertAdjacentHTML\s*\(/;
 
 const RAW_HTML_ALLOWED: Record<string, number> = {
+  // The one close button's element form (2026-11-19): the markup form parsed in a
+  // detached holder. Its label, class and attribute values are all escaped, and attribute names
+  // are held to a plain-name pattern.
+  'lib/close-button.ts': 1,
   // The picker panel (display "picker", 2026-11-17): option labels, group headings and
   // the input label through escape(), t() strings escape()d, the close glyph from the
   // registry, and an option glyph only after it passes the schema's path pattern.
