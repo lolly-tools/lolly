@@ -11,6 +11,7 @@
  * the DOM with wireMusicPlayerBody(), and repaint on external state changes
  * (master mute, mode toggle) with paintMusicPlayer().
  */
+import { injectStyleOnce } from '../lib/inject-style.ts';
 import {
   getNeurospicy, setNeurospicyLoop, setNeurospicyVolume, listLoops, isNeurospicyPlaying,
   toggleNeurospicyPlay, cycleNeurospicyLoop, setNeurospicyRepeat,
@@ -163,11 +164,8 @@ html[data-a11y-motion="reduce"] :is(.neuro-atmo-caret, .neuro-atmo-icon) { trans
 html[data-a11y-motion="reduce"] :is(.neuro-tbtn, .neuro-track, .neuro-picker-caret, .neuro-warn-tip) { transition: none; }`;
 
 function ensureStyles(): void {
-  if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
-  const style = document.createElement('style');
-  style.id = STYLE_ID;
-  style.textContent = CSS;
-  document.head.appendChild(style);
+  if (typeof document === 'undefined') return;
+  injectStyleOnce(STYLE_ID, CSS, document);
 }
 
 const WARN = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`;
@@ -444,13 +442,6 @@ function updateProgress(root: ParentNode, p = getNeurospicyProgress()): void {
 export function refreshMusicPlayer(root: ParentNode): void {
   paintMusicPlayer(root);
   startMeter(root);
-}
-
-/** Force the track dropdown shut - used when the dock minimizes (the picker now
- *  lives in the header, so collapsing the body wouldn't otherwise hide an open panel). */
-export function closeTrackPicker(root: ParentNode): void {
-  const wrap = playerRoot(root);
-  if (wrap) openPanel(wrap, false);
 }
 
 function openPanel(wrap: HTMLElement, open: boolean): void {

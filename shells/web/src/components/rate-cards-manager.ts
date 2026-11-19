@@ -38,6 +38,7 @@ import {
 } from '../lib/rate-cards.ts';
 import type { RateCardsHost, RateCardEntry, RateCardIngestFailure } from '../lib/rate-cards.ts';
 import { mountModal } from './modal.ts';
+import { wireFileDropZone } from '../lib/file-drop-zone.ts';
 import { icon } from '../lib/icons.ts';
 import { announce } from '../a11y.ts';
 import { escape } from '../utils.ts';
@@ -205,26 +206,6 @@ export function openRateCardsPanel(opts: RateCardsPanelOpts): Promise<void> {
       empty.hidden = rows.length > 0;
     }
 
-    async function take(files: FileList | null): Promise<void> {
-      if (!files?.length) return;
-      drop.classList.add('is-busy');
-      for (const f of Array.from(files)) {
-        const r = await ingestRateCard(opts.host, f).catch(
-          () => ({ error: 'not-a-rate-card' as const }),
-        );
-        if (isRateCardIngestFailure(r)) {
-          say(refusalMessage(r.error), 'error');
-          continue;
-        }
-        // A stored card - state the COUNTS, never money.
-        say(tRaw('Added {name} - {summary}.', { name: r.name, summary: pricedSummary(r).toLowerCase() }));
-        await opts.onChange?.();
-      }
-      drop.classList.remove('is-busy');
-      file.value = '';
-      await refresh();
-    }
-
     /** Download the empty scaffold for the user to fill in and drop back. Delivery
      *  goes through saveBlob → host.export.download, the verb the Tauri shells
      *  override with a native save, so the scaffold reaches a phone's Files app
@@ -237,17 +218,21 @@ export function openRateCardsPanel(opts: RateCardsPanelOpts): Promise<void> {
       say(t('Downloaded a blank rate card. Type your printer’s own numbers into it, then drop it back here.'));
     }
 
-    file.addEventListener('change', () => { void take(file.files); });
-    for (const evt of ['dragenter', 'dragover', 'dragleave', 'drop']) {
-      drop.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); });
-    }
-    for (const evt of ['dragenter', 'dragover']) {
-      drop.addEventListener(evt, () => drop.classList.add('is-dragover'));
-    }
-    for (const evt of ['dragleave', 'drop']) {
-      drop.addEventListener(evt, () => drop.classList.remove('is-dragover'));
-    }
-    drop.addEventListener('drop', (e) => { void take((e as DragEvent).dataTransfer?.files ?? null); });
+    wireFileDropZone(drop, file, {
+      async onFile(f) {
+        const r = await ingestRateCard(opts.host, f).catch(
+          () => ({ error: 'not-a-rate-card' as const }),
+        );
+        if (isRateCardIngestFailure(r)) {
+          say(refusalMessage(r.error), 'error');
+          return;
+        }
+        // A stored card - state the COUNTS, never money.
+        say(tRaw('Added {name} - {summary}.', { name: r.name, summary: pricedSummary(r).toLowerCase() }));
+        await opts.onChange?.();
+      },
+      onComplete: refresh,
+    });
 
     el.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
