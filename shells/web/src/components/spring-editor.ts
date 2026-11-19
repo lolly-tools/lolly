@@ -16,6 +16,7 @@
  * ends where it started.
  */
 import { t } from '../i18n.ts';
+import { svgEl } from '../lib/svg-el.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import '../styles/parts/easing-editor.css';
 import { kfEaseAt, kfSpring, kfSpringSettleMs, kfSpringToken, type KfSpring } from '@lolly/engine';
@@ -33,10 +34,6 @@ const toPx = (x: number): number => PAD_X + x * PLOT_W;
 // Held inside the drawn frame: a spring stiff enough to leave it still reads as a spike.
 const toPy = (y: number): number => OVER_PX + (1 - Math.max(-Y_OVER, Math.min(1 + Y_OVER, y))) * PLOT_H;
 const r3 = (n: number): string => String(Math.round(n * 1000) / 1000);
-
-const NS = 'http://www.w3.org/2000/svg';
-const svgEl = <K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagNameMap[K] =>
-  document.createElementNS(NS, name);
 
 export interface SpringEditorOptions {
   /** The spring to open on. */

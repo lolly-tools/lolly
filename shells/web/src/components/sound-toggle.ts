@@ -17,6 +17,7 @@
  * (lib/sfx-voices.ts) and persists as `sfxShape` (0 to 1) on the profile, the same way.
  * It stays usable while sound is off, so a listener can pick a shape before hearing anything.
  */
+import { injectStyleOnce } from '../lib/inject-style.ts';
 import { t } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
 import { escape as escapeHtml } from '../utils.ts';
@@ -158,11 +159,8 @@ html[data-a11y-motion="reduce"] .sound-switch-track.is-celebrating::after { anim
 .sound-shape-end[data-end="kiki"] { opacity: calc(.35 + .65 * var(--sound-shape, .5)); }
 .sound-shape-caption { font-size: .78rem; line-height: 1.3; color: hsl(var(--muted-foreground)); text-align: center; }`;
 function ensureSoundSwitchStyles(): void {
-  if (typeof document === 'undefined' || document.getElementById(SWITCH_STYLE_ID)) return;
-  const style = document.createElement('style');
-  style.id = SWITCH_STYLE_ID;
-  style.textContent = SWITCH_CSS;
-  document.head.appendChild(style);
+  if (typeof document === 'undefined') return;
+  injectStyleOnce(SWITCH_STYLE_ID, SWITCH_CSS, document);
 }
 
 /**
@@ -381,7 +379,4 @@ function wireNeurospicy(root: ParentNode, host: NeuroHost): void {
  */
 export function soundSegmentHtml(_headClass?: string): string {
   return soundSwitchHtml();  // _headClass ignored - the switch is self-contained (kept for call-site compat)
-}
-export function wireSoundSegment(root: ParentNode, host: NeuroHost): void {
-  wireSoundSwitch(root, host);
 }
