@@ -40,8 +40,8 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
   })) };
   try {
     const { mountComponents } = await import('./components.ts');
-    const { COMPONENT_SECTIONS: AUDIT_SECTIONS, COMPONENT_ARTWORK } = await import('./components-data.ts');
-    const total = AUDIT_SECTIONS.flatMap(s => s.items).length;
+    const { COMPONENT_SECTIONS, COMPONENT_ARTWORK } = await import('./components-data.ts');
+    const total = COMPONENT_SECTIONS.flatMap(s => s.items).length;
     await mountComponents(view, host);
     // This host has no token API, so the cover falls back to Lolly's neutral, never
     // the colour specimens' demo palette (Jungle, Klein and Persimmon).
@@ -100,7 +100,7 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     assert.equal(view.querySelectorAll('.cl-card:not([hidden])').length, total);
     search.value = 'btn primary'; search.dispatchEvent(new dom.window.Event('input'));
     assert.ok(view.querySelectorAll('.cl-card:not([hidden])').length < total);
-    const buttonIndex = AUDIT_SECTIONS.flatMap(s => s.items).findIndex(s => s.name.startsWith('Button system'));
+    const buttonIndex = COMPONENT_SECTIONS.flatMap(s => s.items).findIndex(s => s.name.startsWith('Button system'));
     assert.equal(view.querySelector<HTMLElement>(`[data-cl-card="${buttonIndex}"]`)!.hidden, false);
     const hash = location.hash;
     view.querySelector<HTMLAnchorElement>('[data-cl-jump="cl-tokens"]')!.click();
@@ -127,8 +127,8 @@ test('library mounts every specimen, filters and resets, keeps navigation local,
     assert.ok(entries.some(entry => entry.mainInstance === true));
     await new Promise(resolve => setTimeout(resolve, 0));
     assert.equal(button.disabled, false);
-    assert.match(button.closest('.cl-card-footer')!.textContent!, /File ready/);
-    assert.doesNotMatch(button.closest('.cl-card-footer')!.textContent!, /Downloaded\./);
+    assert.match(button.closest('.cl-card')!.querySelector('.cl-download-status')!.textContent!, /File ready/);
+    assert.doesNotMatch(button.closest('.cl-card')!.querySelector('.cl-download-status')!.textContent!, /Downloaded\./);
     (view as HTMLElement & { _cleanup?: () => void })._cleanup?.();
     const lastCarousel = featured.querySelector('.featured');
     filmstrip.click();

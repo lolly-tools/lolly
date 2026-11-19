@@ -1198,7 +1198,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // whose only interpolations are escape()d hexes/names/title/band plus a Number Lc.)
   'views/color-lab.ts': 21,
   'views/components-data.ts': 1,
-  'views/components.ts': 8, // +1 2026-09-06: the reference block's fill (components-reference.ts output, every value escape()d)
+  'views/components.ts': 6, // +1 2026-09-06: the reference block's fill (components-reference.ts output, every value escape()d). 8 to 6 on 2026-11-19: the source-snippet stage was unreachable and went, and the sample and the no-sample stages share one fill
   'views/components-examples.ts': 1, // shared bulkBarHtml renderer with literal demo actions; all labels escaped by the renderer
   // The cost card's body replace. Reviewed - costBodyHtml (views/cost-panel.ts)
   // escape()s every interpolated value: line/calc/amount cells, the source and
