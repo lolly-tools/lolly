@@ -676,7 +676,7 @@ async function renderTierA(
     const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute('viewBox');
     const sized: ExportOpts = svgSized ? { ...opts, width: size.svg!.width, height: size.svg!.height } : opts;
     // The float formats rasterise in the bridge, which reads the drawing's layout with the tool's stylesheet.
-    if (isDeepFormat(fmt)) { const loaded = await loadToolCached(toolId); Object.assign(sized, { toolStyles: loaded.styles ?? null, resvgTool: toolAdmission(loaded) }); }
+    if (isDeepFormat(fmt)) { const loaded = await loadToolCached(toolId); Object.assign(sized, { toolStyles: loaded.styles ?? null, resvgTool: toolAdmission(loaded), resvgPaged: !!loaded.manifest.render?.paged }); }
     let productionInputs: Record<string, string> | undefined;
     if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
       const { productionInputFacts } = await import('@lolly/engine');

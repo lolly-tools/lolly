@@ -14,7 +14,7 @@ import { assertFormatBytes } from '@lolly-tools/node-shell/format-sniff';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
 import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize, drawnRootSvg } from '@lolly-tools/node-shell/raster';
-import { acceptedWarning, acceptRefusals, admitTierA, BROWSER_FREE_FLAG, flagNotApplied, handedToBrowser, isResvgRefusal, noBrowserAdvice, REFUSAL_EFFECT, resvgRefusalSentence, routeRefusals, toolAdmission, toolResvgRoute, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedWarning, admitTierA, earlyStop, BROWSER_FREE_FLAG, flagNotApplied, handedToBrowser, isResvgRefusal, noBrowserAdvice, REFUSAL_EFFECT, resvgRefusalSentence, routeRefusals, toolAdmission, toolResvgRoute, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import { acceptedRoute, type NodeRouteRecord } from '@lolly-tools/node-shell/export-route';
 import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
@@ -268,8 +268,11 @@ async function tierASvg(
   // picture-heavy tree is what can exhaust the heap.
   const tool = manifest as { id: string; render?: { paged?: boolean } };
   const route = runtimeRoute.get(runtime) ?? { id: tool.id, browserFree: false, untrusted: false };
-  const known = acceptRefusals(routeRefusals({ tool: route, paged: !!tool.render?.paged, canvasPixels: pixelWorkCount(dom.window.document, host?.raster) > 0 }), accept);
-  if ('refused' in known) return { refusals: known.refused };
+  // With no browser tier to take the job, every reason is read, so the failure offers
+  // --allow-browser-free only where the flag would draw the picture.
+  const thorough = !accept && !(await import('@lolly-tools/node-shell/design-still')).browserTierState().available;
+  const known = routeRefusals({ tool: route, paged: !!tool.render?.paged, canvasPixels: pixelWorkCount(dom.window.document, host?.raster) > 0 });
+  if (earlyStop(known, { accept, thorough })) return { refusals: known };
   let canvas: HTMLElement;
   try {
     canvas = await hydrateCanvas(runtime, dom);
@@ -284,7 +287,7 @@ async function tierASvg(
     ...(render ? { renderSize: render } : {}),
     styles: runtimeStyles.get(runtime) ?? null,
     pixelWork: () => pixelWorkCount(dom.window.document, host?.raster),
-    tool: route, paged: !!tool.render?.paged, accept,
+    tool: route, paged: !!tool.render?.paged, accept, thorough,
     exportSvg: async ({ onDraftMark, onFillNotice }) => {
       try {
         const blob = await runtime.export(canvas, 'svg', { ...svgExportSize(canvas, dims), onDraftMark, onFillNotice } as Parameters<Runtime['export']>[2]);
@@ -330,6 +333,7 @@ async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): 
     rows: runtime.getModel().find((item) => item.id === 'boxes')?.value as unknown[] | undefined,
     dims,
     accept,
+    thorough: !!decision.noBrowser,
   });
   if ('refused' in result) return toBrowser(result.refusals);
   log(`${describeDesignExportRoute('png', result.drawn.route, [decision.because]).replace(/\.$/, '')}, ${result.drawn.width} x ${result.drawn.height} px, with no browser.`);
@@ -480,6 +484,7 @@ export async function exportToFile(
       Object.assign(opts, {
         toolStyles: runtimeStyles.get(runtime) ?? null,
         resvgTool: runtimeRoute.get(runtime) ?? { id: (manifest as { id: string }).id, browserFree: false, untrusted: false },
+        resvgPaged: !!(manifest as { render?: { paged?: boolean } }).render?.paged,
         allowBrowserFree: allowsBrowserFree(dims),
         // A picture drawn here only because the user accepted that it may differ: said, and recorded.
         onBrowserFreeAccepted: (accepted: ResvgRefusal[]) => {

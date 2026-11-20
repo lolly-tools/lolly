@@ -32,7 +32,8 @@ export type ResvgRefusalCode =
   | 'picture-type' | 'picture-orientation' | 'picture-colour' | 'picture-in-picture' | 'picture-outside'
   | 'picture-downscale' | 'gradient-opacity' | 'blend-in-filter' | 'noise-filter' | 'crisp-edges' | 'unreadable'
   // The Design page route's own reasons (design-still.ts).
-  | 'vector-picture' | 'clip-edge' | 'blend-mode' | 'missing-text' | 'tool-picture' | 'size' | 'request';
+  | 'vector-picture' | 'clip-edge' | 'blend-mode' | 'missing-text' | 'tool-picture' | 'size' | 'request'
+  | 'css-transform';
 
 export interface ResvgRefusal { code: ResvgRefusalCode; reason: string }
 
@@ -139,11 +140,13 @@ export const MAX_PICTURE_SHRINK = 2;
  */
 export const REFUSAL_EFFECT: Readonly<Record<ResvgRefusalCode, 'may-differ' | 'wrong'>> = Object.freeze({
   // May differ: measured outside the bands, or not measured at all.
-  'unmeasured': 'may-differ', 'fallback-faces': 'may-differ', 'live-text': 'may-differ',
-  'css-animation': 'may-differ', 'picture-colour': 'may-differ', 'picture-downscale': 'may-differ',
-  'gradient-opacity': 'may-differ', 'blend-in-filter': 'may-differ', 'noise-filter': 'may-differ',
-  'crisp-edges': 'may-differ', 'vector-picture': 'may-differ', 'clip-edge': 'may-differ',
+  'unmeasured': 'may-differ', 'fallback-faces': 'may-differ', 'picture-colour': 'may-differ',
+  'picture-downscale': 'may-differ', 'gradient-opacity': 'may-differ', 'blend-in-filter': 'may-differ',
+  'noise-filter': 'may-differ', 'crisp-edges': 'may-differ', 'vector-picture': 'may-differ', 'clip-edge': 'may-differ',
   // Would be wrong: resvg leaves something out, draws it blank or turned, or cannot make the file asked for.
+  // Live text can come out blank where no face is loaded, an animation can hold an element
+  // the browser shows at opacity 0, and resvg ignores a CSS transform (measured, resvg-js 2.6.2).
+  'live-text': 'wrong', 'css-animation': 'wrong', 'css-transform': 'wrong',
   'paged': 'wrong', 'draft-mark': 'wrong', 'canvas-pixels': 'wrong', 'layout': 'wrong',
   'css-variable': 'wrong', 'html': 'wrong', 'picture-type': 'wrong', 'picture-orientation': 'wrong',
   'picture-in-picture': 'wrong', 'picture-outside': 'wrong', 'unreadable': 'wrong',
@@ -441,7 +444,7 @@ function jpegRefusal(bytes: Uint8Array): ResvgRefusal | null {
   for (const seg of scan.segments) {
     const body = jpegSegmentBody(bytes, seg);
     const sof = seg.marker >= 0xc0 && seg.marker <= 0xcf && seg.marker !== 0xc4 && seg.marker !== 0xc8 && seg.marker !== 0xcc;
-    if (sof && body.length >= 6 && body[5] === 4) return { code: 'picture-colour', reason: 'a CMYK JPEG picture, which resvg converts without its colour profile' };
+    if (sof && body.length >= 6 && body[5] === 4) return { code: 'picture-type', reason: 'a CMYK JPEG picture, which this resvg build draws blank' };
     if (seg.marker === 0xe2 && body.length > 14 && Buffer.from(body.subarray(0, 12)).toString('latin1') === 'ICC_PROFILE\0') icc.push(body.subarray(14));
   }
   if (icc.length && !isEngineSrgb(new Uint8Array(Buffer.concat(icc)))) return { code: 'picture-colour', reason: 'a JPEG picture with its own colour profile, which resvg does not apply' };
@@ -522,7 +525,35 @@ function markupRefusals(bare: string, where: string): ResvgRefusal[] {
   if (/<(?:[\w-]+:)?foreignObject\b(?![^>]*\brequiredExtensions\s*=)/i.test(bare)) out.push({ code: 'html', reason: `${where} that holds HTML, which resvg does not draw` });
   if (/<(?:[\w-]+:)?feTurbulence\b/i.test(bare)) out.push({ code: 'noise-filter', reason: `${where} with a noise filter (feTurbulence), whose grain resvg draws differently` });
   if (gradientFades(bare)) out.push({ code: 'gradient-opacity', reason: `${where} with a gradient that fades through transparency, which resvg blends a few levels away from the browser` });
+  if (cssTransforms(bare)) out.push({ code: 'css-transform', reason: `${where} with a CSS transform, which resvg does not apply (the shape would be drawn where it started)` });
   return out;
+}
+
+/**
+ * A CSS transform (`transform`, `translate`, `rotate` or `scale` as a property, not the SVG
+ * `transform` attribute) in a style attribute or a `<style>` block. resvg ignores the
+ * property, so the shape is drawn untransformed: measured on resvg-js 2.6.2, a rectangle
+ * moved by `translateX` came out where it started, outside the picture.
+ */
+function cssTransforms(markup: string): boolean {
+  const property = /(^|[\s;{])(transform|translate|rotate|scale)\s*:(?!\s*none\b)/i;
+  for (const m of markup.matchAll(/\sstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) if (property.test(`;${m[1] ?? m[2] ?? ''}`)) return true;
+  // A transform inside @keyframes is the animation's, which is refused as an animation.
+  const outsideKeyframes = (css: string): string => css.replace(/@(?:-[a-z]+-)?keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/gi, '');
+  for (const m of markup.matchAll(/<(?:[\w-]+:)?style\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?style>/gi)) if (property.test(outsideKeyframes(m[1]!))) return true;
+  return false;
+}
+
+/**
+ * Everything this route finds inside one vector picture (a `data:image/svg+xml` source):
+ * an unresolvable variable, a picture held inside, live text, animation, snapped edges and
+ * the document checks. Shared with the Design page route (design-still.ts).
+ */
+export function vectorPictureFindings(markup: string, opts: { rewritten?: boolean } = { rewritten: true }): ResvgRefusal[] {
+  // This route rewrites a picture's variables to their fallbacks before drawing; a caller
+  // that draws the picture's own bytes (the Design route) gets the variable as a refusal.
+  const prepared = opts.rewritten === false ? (withoutDataUrls(markup).includes('var(') ? { refusal: { code: 'css-variable' as const, reason: 'a vector picture whose colours come from a CSS variable, which resvg cannot read' } } : { markup }) : preparedVectorPicture(markup);
+  return 'refusal' in prepared ? [prepared.refusal] : vectorPictureRefusals(prepared.markup);
 }
 
 /** A stop's opacity below one, read from stop-opacity, its style or an alpha in its colour. */
@@ -752,22 +783,40 @@ export async function admitTierA(args: {
   paged?: boolean;
   /** The user's `--allow-browser-free`: draw a picture whose every refusal only may differ (`acceptRefusals`). */
   accept?: boolean;
+  /**
+   * Read the whole drawing even after an early reason that only may differ, so a refusal
+   * lists every reason and the advice offers the flag only where the flag would draw the
+   * picture. The shells ask for this when no browser tier would take the job (`earlyStop`).
+   */
+  thorough?: boolean;
   exportSvg: (hooks: ExportFactHooks) => Promise<string | null>;
 }): Promise<{ svg: string; placement: SvgPlacement; accepted?: ResvgRefusal[] } | { refusals: ResvgRefusal[] } | null> {
   const { root, drawn, width, height } = args;
   const known = { ...(args.tool ? { tool: args.tool } : {}), paged: !!args.paged };
-  const before = acceptRefusals(routeRefusals({ ...known, canvasPixels: (args.pixelWork?.() ?? 0) > 0 }), args.accept);
-  if ('refused' in before) return { refusals: before.refused };
+  const before = routeRefusals({ ...known, canvasPixels: (args.pixelWork?.() ?? 0) > 0 });
+  if (earlyStop(before, args)) return { refusals: before };
   const layout = drawn ? readLayout(root, drawn, width, height, args.styles, args.renderSize) : { placement: { kind: 'fill' } as SvgPlacement, refusals: [] };
   const placement = layout.placement;
-  if (layout.refusals.length) return { refusals: [...before.accepted, ...layout.refusals] };
+  if (layout.refusals.length) return { refusals: [...before, ...layout.refusals] };
   let draftMark = false, fallbackFaces = false;
   const svg = await args.exportSvg({ onDraftMark: (on) => { draftMark = on; }, onFillNotice: () => { fallbackFaces = true; } });
-  if (svg === null) return null;
+  if (svg === null) return before.length ? { refusals: before } : null;
   const admitted = await admitForResvg(svg, width, height, { draftMark, fallbackFaces, canvasPixels: (args.pixelWork?.() ?? 0) > 0 }, placement);
-  const all = acceptRefusals(dedupeRefusals([...before.accepted, ...admitted.refusals]), args.accept);
+  const all = acceptRefusals(dedupeRefusals([...before, ...admitted.refusals]), args.accept);
   if ('refused' in all) return { refusals: all.refused };
   return { svg: admitted.svg, placement, ...(all.accepted.length ? { accepted: all.accepted } : {}) };
+}
+
+/**
+ * Whether the reasons found before the drawing is exported already settle the job: one
+ * that would be wrong always does (and keeps a picture-heavy tree from being hydrated a
+ * second time); one that only may differ does unless the user accepts differences or the
+ * caller asked for every reason (`thorough`).
+ */
+export function earlyStop(early: readonly ResvgRefusal[], opts: { accept?: boolean; thorough?: boolean }): boolean {
+  if (!early.length) return false;
+  if (early.some((r) => REFUSAL_EFFECT[r.code] === 'wrong')) return true;
+  return !opts.accept && !opts.thorough;
 }
 
 /** Refusals without repeats, in order. */

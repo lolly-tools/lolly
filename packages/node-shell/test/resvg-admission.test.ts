@@ -75,6 +75,9 @@ test('pictures resvg draws unlike the browser are refused by name', async () => 
   assert.deepEqual(await codes(svgDoc(`<image href="data:image/webp;base64,${b64(webp)}" width="10" height="10"/>`)), ['picture-type']);
   const animated = svgDoc('<style>@keyframes s{to{transform:rotate(1turn)}}.a{animation:s 3s infinite}</style><rect class="a" width="9" height="9"/>', 'viewBox="0 0 10 10"');
   assert.deepEqual(await codes(svgDoc(`<image href="data:image/svg+xml;base64,${b64(animated)}" width="10" height="10"/>`)), ['css-animation']);
+  // A CSS transform outside an animation is ignored by resvg, so the shape would be drawn where it started.
+  assert.deepEqual(await codes(svgDoc('<style>.m{transform:translateX(5px)}</style><rect class="m" width="4" height="4"/>', 'viewBox="0 0 10 10"')), ['css-transform']);
+  assert.deepEqual(await codes(svgDoc('<rect style="transform: none; fill: red" width="4" height="4"/><g transform="translate(2 2)"><rect width="1" height="1"/></g>', 'viewBox="0 0 10 10"')), [], 'none, and the SVG transform attribute, are fine');
   assert.deepEqual(await codes(svgDoc('<image href="https://example.com/a.png" width="10" height="10"/>')), ['picture-outside']);
   // Snapped edges inside a vector picture: where they land on the output is not read, so refused.
   const crisp = svgDoc('<rect x="0.3" width="3" height="9" shape-rendering="crispEdges"/>', 'viewBox="0 0 10 10"');

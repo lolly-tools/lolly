@@ -35,8 +35,9 @@ test('every reason is sorted into may differ or would be wrong, and the flag acc
     assert.ok('refused' in acceptRefusals(one, false), `${code}: refused without the flag`);
     assert.equal('accepted' in acceptRefusals(one, true), effect === 'may-differ', `${code}: ${effect}`);
   }
-  // The reasons the maintainer named as wrong rather than different are never accepted.
-  for (const code of ['picture-type', 'canvas-pixels', 'draft-mark', 'paged'] as const) assert.equal(REFUSAL_EFFECT[code], 'wrong', code);
+  // The reasons the maintainer named as wrong rather than different are never accepted, nor
+  // what resvg was measured to leave blank or misplace: live text, an animation, a CSS transform.
+  for (const code of ['picture-type', 'canvas-pixels', 'draft-mark', 'paged', 'live-text', 'css-animation', 'css-transform'] as const) assert.equal(REFUSAL_EFFECT[code], 'wrong', code);
   // One reason that would be wrong keeps the whole picture off the route.
   assert.ok('refused' in acceptRefusals([{ code: 'unmeasured', reason: 'a' }, { code: 'picture-type', reason: 'b' }], true));
   assert.deepEqual(acceptRefusals([], false), { accepted: [] }, 'nothing refused: the route draws, flag or not');
@@ -70,7 +71,19 @@ test('with the flag, a WebP picture, the DRAFT mark, canvas pixels and a paged d
     assert.ok(result && 'refusals' in result, `${what}: refused with the flag`);
     assert.ok(result.refusals.some((r) => r.code === code), `${what}: ${result.refusals.map((r) => r.code).join(', ')}`);
   }
-  assert.ok((await admitTierA({ root, drawn: null, width: 40, height: 20, tool: unmeasured, exportSvg: async () => plain }))! && 'refusals' in (await admitTierA({ root, drawn: null, width: 40, height: 20, tool: unmeasured, exportSvg: async () => plain }))!, 'no flag: refused as before');
+  const moved = plain.replace('<rect ', '<rect style="transform:translateX(30px)" ');
+  const transformed = await admit({}, moved);
+  assert.ok(transformed && 'refusals' in transformed && transformed.refusals.some((r) => r.code === 'css-transform'), 'a CSS transform resvg ignores is refused with the flag');
+  const noFlag = await admitTierA({ root, drawn: null, width: 40, height: 20, tool: unmeasured, exportSvg: async () => plain });
+  assert.ok(noFlag && 'refusals' in noFlag, 'no flag: refused as before');
+  // With no browser tier (`thorough`), the whole drawing is read, so the advice offers the
+  // flag only where the flag would draw the picture.
+  const quick = await admitTierA({ root, drawn: null, width: 40, height: 20, tool: unmeasured, exportSvg: async () => webp });
+  assert.deepEqual(quick && 'refusals' in quick ? quick.refusals.map((r) => r.code) : null, ['unmeasured'], 'a browser tier will take it: stopped at the first reason');
+  const full = await admitTierA({ root, drawn: null, width: 40, height: 20, tool: unmeasured, thorough: true, exportSvg: async () => webp });
+  assert.ok(full && 'refusals' in full);
+  assert.deepEqual(full.refusals.map((r) => r.code), ['unmeasured', 'picture-type']);
+  assert.doesNotMatch(noBrowserAdvice(full.refusals), /--allow-browser-free/);
   dom.window.close();
 });
 
@@ -112,6 +125,12 @@ test('the CLI refuses by default with both ways forward; with the flag it draws,
     assert.match(paged.stderr, /--allow-browser-free does not apply here: drawn without a browser, the picture would be wrong, not just different, because a paged document/);
     assert.match(paged.stderr, /To go on, install a browser render tier \(`lolly install-browser`, or the Lolly desktop app\): drawn without a browser, this picture would be wrong, not just different\./);
     assert.equal(existsSync(sheet), false);
+    // The same through the browser-free BMP, which reads the same facts.
+    const bmp = join(dir, 'sheet.bmp');
+    const pagedBmp = cli(dir, ['print-sheet', '--export=bmp', '--width=600', '--height=600', `--output=${bmp}`, '--allow-browser-free']);
+    assert.notEqual(pagedBmp.status, 0, pagedBmp.stderr);
+    assert.match(pagedBmp.stderr, /a paged document/);
+    assert.equal(existsSync(bmp), false);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -130,6 +149,21 @@ test('the flag changes nothing for a render the route admits', async () => {
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test('a Design page\'s vector picture is read inside: a picture it holds is left out, so the flag does not draw the page', async () => {
+  const { designSvgRefusals } = await import('../packages/node-shell/src/design-still.ts');
+  const inner = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><image href="data:image/png;base64,iVBORw0KGgo=" width="10" height="10"/></svg>';
+  const page = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><image href="data:image/svg+xml;base64,${Buffer.from(inner).toString('base64')}" width="10" height="10"/></svg>`;
+  const found = designSvgRefusals(page).map((r) => r.code);
+  assert.ok(found.includes('picture-in-picture'), found.join(', '));
+  assert.ok('refused' in acceptRefusals(designSvgRefusals(page), true));
+  const plainPicture = page.replace(Buffer.from(inner).toString('base64'), Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0h1v1z"/></svg>').toString('base64'));
+  assert.deepEqual(designSvgRefusals(plainPicture).map((r) => r.code), ['vector-picture'], 'a plain vector picture only differs at its edges');
+  // This route draws a picture's own bytes, so a variable it holds is refused, not rewritten.
+  const variable = page.replace(Buffer.from(inner).toString('base64'), Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path fill="var(--brand, #008657)" d="M0 0h1v1z"/></svg>').toString('base64'));
+  assert.ok(designSvgRefusals(variable).some((r) => r.code === 'css-variable'));
+  assert.ok('refused' in acceptRefusals(designSvgRefusals(variable), true));
 });
 
 test('a Design page refused only for its rounded clip is drawn with the flag, and its route record carries the acceptance', async () => {

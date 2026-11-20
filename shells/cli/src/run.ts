@@ -1269,7 +1269,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     // The browser-free raster formats (BMP, JPEG XL, EXR, HDR) read the drawing's layout with the tool's stylesheet.
     if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(targetFormat.toLowerCase())) {
       Object.assign(exportOpts, {
-        toolStyles: tool.styles ?? null, resvgTool,
+        toolStyles: tool.styles ?? null, resvgTool, resvgPaged: !!tool.manifest.render?.paged,
         allowBrowserFree: isOn(params['allow-browser-free']),
         // A picture drawn here only because the user accepted that it may differ: said, and recorded.
         onBrowserFreeAccepted: (accepted: ResvgRefusal[]) => {

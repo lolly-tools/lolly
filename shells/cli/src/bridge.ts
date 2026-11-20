@@ -103,7 +103,7 @@ import {
 // factories return null on a lean install so the capability stays honestly absent.
 import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
 import { createNodeRasterAPI, pixelWorkCount } from '@lolly-tools/node-shell/canvas';
-import { acceptRefusals, admitForResvg, dedupeRefusals, readLayout, ResvgRefusedError, routeRefusals, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptRefusals, admitForResvg, dedupeRefusals, earlyStop, readLayout, ResvgRefusedError, routeRefusals, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import type { DecodeLimits } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
@@ -252,6 +252,8 @@ interface CliExportRenderOpts extends ExportOpts {
   resvgTool?: ToolRouteFact;
   /** `--allow-browser-free`: draw a picture whose every refusal only may differ (resvg-admission.ts `acceptRefusals`). */
   allowBrowserFree?: boolean;
+  /** The tool is a paged document (`render.paged`), whose pages the browser-free route does not draw. */
+  resvgPaged?: boolean;
   /** Told what was accepted when such a picture is drawn, so the caller can warn and keep a record. */
   onBrowserFreeAccepted?: (accepted: ResvgRefusal[]) => void;
   c2pa?: boolean;
@@ -1219,11 +1221,14 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
       // thrown by type, and run.ts hands the job to the browser tier.
       const resvgSource = async (svg: Element, format: string, width: number, height: number): Promise<{ svg: string; placement: SvgPlacement }> => {
         const { placement, refusals: layout } = readLayout(node, svg, width, height, opts.toolStyles);
-        const early = acceptRefusals([
-          ...routeRefusals({ tool: opts.resvgTool ?? { id: 'unnamed', browserFree: false, untrusted: false }, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
+        const early = [
+          ...routeRefusals({ tool: opts.resvgTool ?? { id: 'unnamed', browserFree: false, untrusted: false }, paged: !!opts.resvgPaged, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
           ...layout,
-        ], opts.allowBrowserFree);
-        if ('refused' in early) throw new ResvgRefusedError(early.refused, format);
+        ];
+        // With no browser tier to take the job, every reason is read, so the failure offers
+        // --allow-browser-free only where the flag would draw the picture.
+        const thorough = !opts.allowBrowserFree && early.length > 0 && !(await import('@lolly-tools/node-shell/design-still')).browserTierState().available;
+        if (earlyStop(early, { accept: opts.allowBrowserFree, thorough })) throw new ResvgRefusedError(early, format);
         let fallbackFaces = false;
         if (opts.text !== 'live') {
           const res = await outlineSvgText(svg, host, {
@@ -1235,7 +1240,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         }
         const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const admitted = await admitForResvg(raw, width, height, { fallbackFaces }, placement);
-        const all = acceptRefusals(dedupeRefusals([...early.accepted, ...admitted.refusals]), opts.allowBrowserFree);
+        const all = acceptRefusals(dedupeRefusals([...early, ...admitted.refusals]), opts.allowBrowserFree);
         if ('refused' in all) throw new ResvgRefusedError(all.refused, format);
         if (all.accepted.length) opts.onBrowserFreeAccepted?.(all.accepted);
         return { svg: admitted.svg, placement };

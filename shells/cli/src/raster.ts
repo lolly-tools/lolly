@@ -18,7 +18,7 @@ import { serializeUrlState, serializeHdr, HDR_DEFAULTS, isToolUrl } from '@lolly
 import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims, svgExportSize, drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import type { DeepHdrRequest } from '@lolly-tools/node-shell/raster';
 import { acceptedRoute } from '@lolly-tools/node-shell/export-route';
-import { acceptedWarning, acceptRefusals, admitTierA, flagNotApplied, handedToBrowser, noBrowserAdvice, REFUSAL_EFFECT, resvgRefusalSentence, routeRefusals, toolResvgRoute, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedWarning, admitTierA, earlyStop, flagNotApplied, handedToBrowser, noBrowserAdvice, REFUSAL_EFFECT, resvgRefusalSentence, routeRefusals, toolResvgRoute, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import type { ResvgRefusal, SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
@@ -277,6 +277,7 @@ async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims 
     rows: (runtime.getModel() as ModelItem[]).find((item) => item.id === 'boxes')?.value as unknown[] | undefined,
     dims,
     accept,
+    thorough: !!decision.noBrowser,
   });
   if ('refused' in result) return toBrowser(result.refusals);
   const { drawn } = result;
@@ -408,13 +409,16 @@ export function uncomposedToolLinks(model: readonly ModelItem[], initial: Record
 async function tryRenderSvg(
   runtime: Runtime, dom: JSDOM, slide: string | null | undefined, dims: RenderDims, manifest: Manifest, tool: ToolRouteFact, pixelWork?: () => number, styles?: string | null, accept = false,
 ): Promise<{ svg: string; placement: SvgPlacement; accepted?: ResvgRefusal[] } | { refusals: ResvgRefusal[] } | null> {
+  // With no browser tier to take the job, every reason is read, so the failure offers
+  // --allow-browser-free only where the flag would draw the picture.
+  const thorough = !accept && !(await import('@lolly-tools/node-shell/design-still')).browserTierState().available;
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) return null;
   // Asked before the canvas is hydrated again: a hook that computed pictures can leave a
   // tree large enough that a second copy of it is what exhausts the heap (a logo wall
   // repeating a photo inlines the photo once per tile, 77 MB of SVG for 20 tiles).
-  const known = acceptRefusals(routeRefusals({ tool, paged: !!manifest.render?.paged, canvasPixels: (pixelWork?.() ?? 0) > 0 }), accept);
-  if ('refused' in known) return { refusals: known.refused };
+  const known = routeRefusals({ tool, paged: !!manifest.render?.paged, canvasPixels: (pixelWork?.() ?? 0) > 0 });
+  if (earlyStop(known, { accept, thorough })) return { refusals: known };
   try {
     canvas.innerHTML = runtime.getHydrated();
     // This tier re-hydrates a canvas of its own, so it runs the emoji pass of its
@@ -434,7 +438,7 @@ async function tryRenderSvg(
     ...(manifest.render ? { renderSize: manifest.render } : {}),
     ...(styles !== undefined ? { styles } : {}),
     ...(pixelWork ? { pixelWork } : {}),
-    tool, paged: !!manifest.render?.paged, accept,
+    tool, paged: !!manifest.render?.paged, accept, thorough,
     exportSvg: async ({ onDraftMark, onFillNotice }) => {
       try {
         const blob = await runtime.export(root, 'svg', { ...svgExportSize(root, dims), onDraftMark, onFillNotice });

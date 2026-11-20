@@ -32,7 +32,7 @@ import { desktopInstalled, readRenderServer, rendererPreference } from './deskto
 import { cleanJpeg } from './pdf-images.ts';
 import { jpegSegmentBody, scanJpegSegments } from '@lolly/engine';
 import { rasterizeSvgToRgba } from './raster.ts';
-import { acceptRefusals, BROWSER_FREE_FLAG, dedupeRefusals, resvgPackageVersion, type ResvgRefusal } from './resvg-admission.ts';
+import { acceptRefusals, BROWSER_FREE_FLAG, dedupeRefusals, REFUSAL_EFFECT, resvgPackageVersion, vectorPictureFindings, type ResvgRefusal } from './resvg-admission.ts';
 import { acceptedRoute } from './export-route.ts';
 import { repoRoot } from './repo-root.ts';
 
@@ -83,6 +83,8 @@ export interface DesignStillDecision {
   because: string;
   /** A `LOLLY_DESIGN_RASTER` value that is neither choice, to be reported once. */
   ignored?: string;
+  /** Set when the page is drawn here because no browser tier is available, so a refusal is final. */
+  noBrowser?: true;
 }
 
 /**
@@ -103,7 +105,7 @@ export function designStillDecision(env: Record<string, string | undefined> = pr
   if (choice === 'resvg') return { draw: 'here', because: `${DESIGN_RASTER_ENV}=resvg asks for this route`, ...extra };
   if (accept) return { draw: 'here', because: `--${BROWSER_FREE_FLAG} asks for this route`, ...extra };
   const state = tier();
-  if (!state.available) return { draw: 'here', because: `no browser render tier is available (${state.reason ?? 'none found'})`, ...extra };
+  if (!state.available) return { draw: 'here', because: `no browser render tier is available (${state.reason ?? 'none found'})`, noBrowser: true, ...extra };
   return { draw: 'browser', because: `a browser render tier is available and ${DESIGN_RASTER_ENV}=resvg was not given`, ...extra };
 }
 
@@ -235,7 +237,18 @@ function pngProfileRefusal(bytes: Uint8Array): string | null {
   return null;
 }
 
-/** Why one embedded picture would not draw here as the browser draws it, or null. */
+/** Why one embedded picture would not draw here as the browser draws it: none, or each reason. */
+function pictureRefusals(mime: string, bytes: Uint8Array | null): ResvgRefusal[] {
+  if (mime === 'image/svg+xml' && bytes) {
+    // What is inside the vector picture first (a picture of its own, live text, animation),
+    // which would leave something out, then the edges, which only differ.
+    return [...vectorPictureFindings(new TextDecoder().decode(bytes), { rewritten: false }), { code: 'vector-picture', reason: 'a vector picture, whose edges resvg and the browser anti-alias differently' }];
+  }
+  const one = pictureRefusal(mime, bytes);
+  return one ? [one] : [];
+}
+
+/** Why one embedded raster picture would not draw here as the browser draws it, or null. */
 function pictureRefusal(mime: string, bytes: Uint8Array | null): ResvgRefusal | null {
   if (!bytes) return { code: 'unreadable', reason: 'a picture whose bytes cannot be read' };
   if (mime === 'image/webp') return { code: 'picture-type', reason: 'a WebP picture, which this resvg build does not decode' };
@@ -245,7 +258,7 @@ function pictureRefusal(mime: string, bytes: Uint8Array | null): ResvgRefusal | 
     if (orientation !== 1) return { code: 'picture-orientation', reason: 'a JPEG picture turned by its Exif orientation, which resvg does not apply' };
     const facts = jpegFacts(bytes);
     if (!facts) return { code: 'unreadable', reason: 'a JPEG picture this route cannot read' };
-    if (facts.components === 4) return { code: 'picture-colour', reason: 'a CMYK JPEG picture, which resvg converts without its colour profile' };
+    if (facts.components === 4) return { code: 'picture-type', reason: 'a CMYK JPEG picture, which this resvg build draws blank' };
     return facts.icc && !isSrgbProfile(facts.icc) ? { code: 'picture-colour', reason: 'a JPEG picture with a colour profile other than sRGB, which resvg does not apply' } : null;
   }
   if (mime === 'image/svg+xml') {
@@ -277,8 +290,7 @@ function hrefRefusals(svg: string): ResvgRefusal[] {
     const base64 = /;base64/i.test(data[2] ?? '');
     let bytes: Uint8Array | null;
     try { bytes = base64 ? base64Bytes(data[3]!) : new TextEncoder().encode(decodeURIComponent(data[3]!)); } catch { bytes = null; }
-    const refusal = pictureRefusal(mime, bytes);
-    if (refusal) out.push(refusal);
+    out.push(...pictureRefusals(mime, bytes));
   }
   return out;
 }
@@ -510,6 +522,12 @@ export interface DesignStillRequest {
   dims: DesignStillDims & { imprint?: boolean | null; durable?: boolean; depth?: unknown };
   /** The user's `--allow-browser-free`: draw a page whose every refusal only may differ. */
   accept?: boolean;
+  /**
+   * Read the whole page even after a reason that only may differ, so a refusal lists every
+   * reason and the advice offers the flag only where the flag would draw the page. The
+   * shells ask for this when no browser tier would take the page (`DesignStillDecision.noBrowser`).
+   */
+  thorough?: boolean;
 }
 
 /** Errors that say the render itself is broken, which no other renderer may launder. */
@@ -534,14 +552,15 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
     .filter((row) => (row.layout === 'flex' || row.layout === 'grid') && (String(row.id ?? '') === frameId || String(row.frame ?? '') === frameId))
     .map((row) => String(row.id ?? ''));
   if (laidOut.length) return refuse([{ code: 'layout', reason: `the page lays out ${laidOut.join(', ')} with flex or grid, which the export hook works out after the page is read` }]);
-  // What only may differ is gathered and, with the user's --allow-browser-free, accepted.
+  // What only may differ is gathered as the page is read, so a refusal lists every reason
+  // and the advice offers --allow-browser-free only where the flag would draw the page; a
+  // reason that would be wrong ends the reading. With the flag, what was gathered is accepted.
   const accepted: ResvgRefusal[] = [];
   const weigh = (found: ResvgRefusal[]): { refused: string[]; refusals: ResvgRefusal[] } | null => {
-    if (!found.length) return null;
-    const decided = acceptRefusals([...accepted, ...found], req.accept);
-    if ('refused' in decided) return refuse(decided.refused);
-    accepted.splice(0, accepted.length, ...dedupeRefusals(decided.accepted));
-    return null;
+    accepted.splice(0, accepted.length, ...dedupeRefusals([...accepted, ...found]));
+    if (accepted.some((r) => REFUSAL_EFFECT[r.code] === 'wrong')) return refuse([...accepted]);
+    // Without the flag and with a browser tier to take the page, the first reason settles the job, as before.
+    return accepted.length && !req.accept && !req.thorough ? refuse([...accepted]) : null;
   };
   const clipped = roundedFrameClips(req.rows ?? [], frameId);
   const clipRefusal = weigh(clipped.length ? [{ code: 'clip-edge', reason: `the frame's rounded edge clips ${clipped.join(', ')}, which resvg and the browser anti-alias differently` }] : []);
@@ -559,15 +578,19 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
     });
     svg = await blob.text();
   } catch (error) {
-    if (error instanceof Error && FATAL.has(error.name)) throw error;
+    if (error instanceof Error && FATAL.has(error.name)) {
+      // A page already refused without the flag keeps that refusal, as it did before the rest was read.
+      if (!req.accept && accepted.length) return refuse([...accepted]);
+      throw error;
+    }
     const message = error instanceof Error ? error.message : String(error);
-    return refuse([{ code: 'request', reason: /\bbecause (.+)$/s.exec(message)?.[1]?.replace(/\.$/, '') ?? message }]);
+    return refuse([...accepted, { code: 'request', reason: /\bbecause (.+)$/s.exec(message)?.[1]?.replace(/\.$/, '') ?? message }]);
   }
-  if (drawnFrom?.route !== 'operations') return refuse([{ code: 'request', reason: 'the page was not written from the drawing operations' }]);
+  if (drawnFrom?.route !== 'operations') return refuse([...accepted, { code: 'request', reason: 'the page was not written from the drawing operations' }]);
   const page = viewBoxSize(svg);
-  if (!page) return refuse([{ code: 'unreadable', reason: 'the page SVG declares no size' }]);
+  if (!page) return refuse([...accepted, { code: 'unreadable', reason: 'the page SVG declares no size' }]);
   const size = designStillSize(page, req.dims);
-  if ('reason' in size) return refuse([{ code: 'size', reason: size.reason }]);
+  if ('reason' in size) return refuse([...accepted, { code: 'size', reason: size.reason }]);
   const limits = weigh(designSvgRefusals(svg));
   if (limits) return limits;
   const blended = premultipliedGradients(svg);
@@ -578,6 +601,9 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
   } else {
     drawable = blended.svg;
   }
+  // Every reason is read; without the flag, one that only may differ still sends the page on.
+  const decided = acceptRefusals(accepted, req.accept);
+  if ('refused' in decided) return refuse(decided.refused);
   const { bytes, imprinted } = await designStillPng(drawable, size, { imprint: req.dims.imprint, meta: req.meta() ?? null });
   const route = accepted.length ? acceptedRoute(nodeResvgRoute()) : nodeResvgRoute();
   return { drawn: { bytes, imprinted, width: size.width, height: size.height, route, ingredients, ...(accepted.length ? { accepted: [...accepted] } : {}) } };
