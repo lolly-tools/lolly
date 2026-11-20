@@ -569,7 +569,8 @@ export async function designStillPng(
   svg: string, size: DesignStillSize, opts: { imprint?: boolean | null; meta?: Partial<ExportMeta> | null } = {},
 ): Promise<{ bytes: Uint8Array; imprinted: boolean }> {
   const engine = await import('@lolly/engine');
-  const frame = await rasterizeSvgToRgba(svg, size.width, size.height);
+  // No font is loaded: the page holds no live text (refused above), so every machine draws the same pixels.
+  const frame = await rasterizeSvgToRgba(svg, size.width, size.height, { fonts: false });
   const imprinted = !!opts.imprint && engine.canCarryWatermark(frame.width, frame.height);
   const rgba = imprinted
     ? engine.embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: engine.LOSSLESS_STRENGTH })
