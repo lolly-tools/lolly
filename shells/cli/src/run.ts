@@ -1443,16 +1443,24 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     };
     const viaRaster = async (): Promise<Buffer> => {
       const { renderRaster } = await import('./raster.ts');
-      // A Design still is routed by the browser tier's own page (plan 326); one log line records that.
-      if (tool.manifest.id === 'design' && DESIGN_STILL_RASTER_FORMATS.includes(targetFormat.toLowerCase())) host.log('info', (await import('@lolly-tools/node-shell/export-route')).nodeRasterRoute(targetFormat));
+      // A Design PNG says which renderer drew it, and why, from its own route (plan 371,
+      // M3a); every other Design still is routed by the browser tier's own page (plan 326).
+      if (tool.manifest.id === 'design' && DESIGN_STILL_RASTER_FORMATS.includes(targetFormat.toLowerCase()) && targetFormat.toLowerCase() !== 'png') host.log('info', (await import('@lolly-tools/node-shell/export-route')).nodeRasterRoute(targetFormat));
       const res = await renderRaster({
         runtime, dom, manifest: tool.manifest, format: targetFormat, dims,
         emoji: { emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam },
         initial: values as Record<string, unknown>,
         ...(pageDesignSystem ? { designSystem: pageDesignSystem } : {}),
+        log: (line) => host.log('info', line),
       });
       const bytes = Buffer.from(res.bytes);
       usedBrowser = res.usedBrowser;
+      // A Design page drawn here records its route and the credentialed pictures it drew,
+      // as a page written from the operations as SVG does (plan 326).
+      if (res.route) routed.record = res.route;
+      for (const ingredient of res.ingredients ?? []) {
+        if (!opsIngredients.some((p) => p.activeLabel === ingredient.activeLabel)) opsIngredients.push(ingredient);
+      }
       // Tier B == the web shell; it owns c2pa for that path - UNLESS an identity is
       // configured, in which case it was told `c2pa=off` above and this shell stamps.
       // `nodeEncoded` is the third case: the browser supplied only SOURCE PIXELS for an

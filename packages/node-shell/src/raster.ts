@@ -297,12 +297,14 @@ function sizeSvg(svg: string, width: number, height: number): string {
  * That is a property of the resvg source, not something this function papers over.
  */
 export async function rasterizeSvgToRgba(
-  svg: string, width: number, height: number,
+  svg: string, width: number, height: number, opts: { fonts?: boolean } = {},
 ): Promise<{ data: Uint8Array; width: number; height: number }> {
   const { Resvg } = await import('@resvg/resvg-js');
+  // `fonts: false` loads no font at all, for a drawing whose words are already outlines:
+  // nothing then depends on the faces a machine happens to have, and no font is read.
   const r = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: 'original' },
-    font: { fontDirs: catalogFontDirs(), loadSystemFonts: true },
+    font: opts.fonts === false ? { loadSystemFonts: false } : { fontDirs: catalogFontDirs(), loadSystemFonts: true },
   });
   const img = r.render();
   const src = img.pixels;

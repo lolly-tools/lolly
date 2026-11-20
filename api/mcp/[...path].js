@@ -170992,11 +170992,11 @@ function sizeSvg(svg, width, height) {
   attrs = attrs.replace(/\s(width|height)="[^"]*"/g, "");
   return svg.replace(/<svg\b[^>]*>/, `<svg${attrs} width="${w}" height="${h}">`);
 }
-async function rasterizeSvgToRgba(svg, width, height) {
+async function rasterizeSvgToRgba(svg, width, height, opts = {}) {
   const { Resvg } = await import("@resvg/resvg-js");
   const r5 = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: "original" },
-    font: { fontDirs: catalogFontDirs(), loadSystemFonts: true }
+    font: opts.fonts === false ? { loadSystemFonts: false } : { fontDirs: catalogFontDirs(), loadSystemFonts: true }
   });
   const img = r5.render();
   const src = img.pixels;

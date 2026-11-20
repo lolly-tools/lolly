@@ -1036,12 +1036,15 @@ export function ToolView({ toolId, query, values, fromLink = false, session, bri
       // Spot inks as process: only a request travels (`_spots=process`), CMYK formats only.
       ...(spotsProcess && CMYK_FMTS.includes(fmt) ? { spotsAsProcess: true } : {}),
     };
+    // A note the export asks a person to read (a Design page drawn without a browser) joins the status line.
+    const notes: string[] = [];
+    const exportDims = { ...dims, onNote: (message: string) => { notes.push(message); } };
     const inBytes = fileRef?.size;   // transform utilities: for the before→after headline
     (async () => {
       try {
-        const n = await exportToFile(runtime, bridge.dom, manifest, fmt, outPath, dims);
+        const n = await exportToFile(runtime, bridge.dom, manifest, fmt, outPath, exportDims);
         if (transform) setLastExport({ in: inBytes, out: n });
-        setStatus(`✓ Wrote ${n.toLocaleString()} bytes → ${outPath}`);
+        setStatus(`✓ Wrote ${n.toLocaleString()} bytes → ${outPath}${notes.length ? ` ${notes.join(' ')}` : ''}`);
       } catch (e) {
         const msg = (e as Error).message;
         setStatus('Export failed: ' + msg);
