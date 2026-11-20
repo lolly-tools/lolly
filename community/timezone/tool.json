@@ -6,7 +6,7 @@
   "status": "official",
   "category": "event",
   "singleInstance": true,
-  "description": "Turn places and timezones into artwork that follows the design system. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
+  "description": "Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules.",
   "a11yLabel": "World timezone artwork with labelled places and local times",
   "tags": [
     "timezone",
