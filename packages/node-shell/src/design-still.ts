@@ -26,9 +26,6 @@ import type { ExportMeta, IngredientCredential } from '@lolly-tools/core/host-v1
 import { designOperationsRenderer, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 import { DESIGN_DRAW_VERSION } from '../../../engine/src/design-draw.ts';
 import { designStrokeSides } from '../../../engine/src/design-stroke.ts';
-import { round2 } from '../../../engine/src/design-draw-svg.ts';
-import { gradientSpecStops, parseGradientSpec } from '../../../engine/src/gradient-spec.ts';
-import { colorToHexString } from '../../../engine/src/css-color.ts';
 import { browserInstalled } from './browsers.ts';
 import { desktopInstalled, readRenderServer, rendererPreference } from './desktop-renderer.ts';
 import { cleanJpeg } from './pdf-images.ts';
@@ -161,26 +158,6 @@ function jpegFacts(bytes: Uint8Array): { components: number; icc: Uint8Array | n
 /** Whether `markup` holds an element of this name, with or without a namespace prefix. */
 const hasElement = (markup: string, name: string): boolean => new RegExp(`<(?:[^\\s<>/:="']+:)?${name}[\\s/>]`, 'iu').test(markup);
 
-/**
- * Whether a vector picture's own size has a fraction. The drawing operations read a
- * picture's size to place it (`imageDimensions` in engine/src/penpot-file.ts) and round
- * an SVG's to whole pixels, so a contained 44.725 x 19.706 logo is placed at 45 x 20
- * proportions, 1.3 px narrower than the browser draws it at 90 px tall.
- */
-function fractionalSvgSize(markup: string): boolean {
-  const root = /<svg\b([^>]*)>/i.exec(markup)?.[1] ?? '';
-  const attr = (name: string) => new RegExp(`\\s${name}\\s*=\\s*["']([^"']*)["']`, 'i').exec(root)?.[1]?.trim();
-  const box = (attr('viewBox') ?? '').split(/[\s,]+/).map(Number);
-  const side = (name: 'width' | 'height', index: number): number => {
-    const own = attr(name);
-    if (own && /^\+?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?(px)?$/i.test(own)) return Number.parseFloat(own);
-    // A size in any other unit, or a percentage, is one this check cannot read exactly: a fraction.
-    if (own) return 0.5;
-    return box.length === 4 && Number.isFinite(box[index]) ? box[index]! : NaN;
-  };
-  return [side('width', 2), side('height', 3)].some((v) => Number.isFinite(v) && Math.abs(v - Math.round(v)) > 1e-6);
-}
-
 /** One tag of an ICC profile by its signature, or null. */
 function iccTag(icc: Uint8Array, sig: string): Uint8Array | null {
   if (icc.length < 132) return null;
@@ -266,7 +243,7 @@ function pngProfileRefusal(bytes: Uint8Array): string | null {
 }
 
 /** Why one embedded picture would not draw here as the browser draws it, or null. */
-function pictureRefusal(mime: string, bytes: Uint8Array | null, depth: number): string | null {
+function pictureRefusal(mime: string, bytes: Uint8Array | null): string | null {
   if (!bytes) return 'a picture whose bytes cannot be read';
   if (mime === 'image/webp') return 'a WebP picture, which this resvg build does not decode';
   if (mime === 'image/jpeg') {
@@ -279,15 +256,13 @@ function pictureRefusal(mime: string, bytes: Uint8Array | null, depth: number): 
     return facts.icc && !isSrgbProfile(facts.icc) ? 'a JPEG picture with a colour profile other than sRGB, which resvg does not apply' : null;
   }
   if (mime === 'image/svg+xml') {
-    const markup = new TextDecoder().decode(bytes);
-    if (hasElement(markup, 'text')) return 'a vector picture holding live text, which would be drawn without its font';
-    if (hasElement(markup, 'foreignObject')) return 'a vector picture holding HTML, which resvg does not draw';
-    // Measured on resvg-js 2.6.2: a picture inside a vector picture is left out entirely.
-    if (hasElement(markup, 'image')) return 'a vector picture holding a picture of its own, which resvg leaves out';
-    if (fractionalSvgSize(markup)) return 'a vector picture whose size is not a whole number of pixels, which the drawing operations round when they place it';
-    const blended = premultipliedGradients(markup);
-    if ('reason' in blended || blended.svg !== markup) return 'a vector picture with a gradient that blends through transparency, which resvg blends differently';
-    return depth < 2 ? hrefRefusals(markup, depth + 1)[0] ?? null : 'a vector picture nested more than two deep';
+    // Measured against the browser tier on resvg-js 2.6.2: the 44.725 x 19.706 Lolly logo
+    // in a 204 x 90 box differs over 24 levels on 0.73% of its region (band 0.5%), along
+    // the edges of its letters, with its ink within 0.5% and its centroid within 0.04 px.
+    // The two renderers anti-alias a vector picture's edges differently. resvg also rounds
+    // a vector picture's own size to whole pixels before fitting it to its box, and leaves
+    // out a picture held inside one.
+    return 'a vector picture, whose edges resvg and the browser anti-alias differently';
   }
   if (mime === 'image/png') return pngProfileRefusal(bytes);
   if (mime === 'image/gif') return null;
@@ -295,9 +270,9 @@ function pictureRefusal(mime: string, bytes: Uint8Array | null, depth: number): 
 }
 
 /** Why the pictures an SVG references would not draw here, one reason each. */
-function hrefRefusals(svg: string, depth: number): string[] {
+function hrefRefusals(svg: string): string[] {
   const out: string[] = [];
-  for (const match of svg.matchAll(/\s(?:xlink:)?href\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) {
+  for (const match of svg.matchAll(/\s(?:[^\s:="'<>/]+:)?href\s*=\s*(?:"([^"]*)"|'([^']*)')/giu)) {
     const href = (match[1] ?? match[2] ?? '').trim();
     if (href.startsWith('#')) continue;
     const data = /^data:([^;,]*)((?:;[^;,]*)*),([\s\S]*)$/i.exec(href);
@@ -306,7 +281,7 @@ function hrefRefusals(svg: string, depth: number): string[] {
     const base64 = /;base64/i.test(data[2] ?? '');
     let bytes: Uint8Array | null;
     try { bytes = base64 ? base64Bytes(data[3]!) : new TextEncoder().encode(decodeURIComponent(data[3]!)); } catch { bytes = null; }
-    const refusal = pictureRefusal(mime, bytes, depth);
+    const refusal = pictureRefusal(mime, bytes);
     if (refusal) out.push(refusal);
   }
   return out;
@@ -327,7 +302,7 @@ export function resvgRefusals(svg: string): string[] {
   for (const match of svg.matchAll(/mix-blend-mode\s*:\s*([a-z-]+)/gi)) {
     if (!RESVG_BLENDS.has(match[1]!.toLowerCase())) out.add(`the blend mode ${match[1]}, which resvg does not draw`);
   }
-  for (const reason of hrefRefusals(svg, 0)) out.add(reason);
+  for (const reason of hrefRefusals(svg)) out.add(reason);
   return [...out];
 }
 
@@ -395,18 +370,6 @@ export function premultipliedGradients(svg: string): { svg: string } | { reason:
   return reason ? { reason } : { svg: out };
 }
 
-/**
- * Design's radial gradient is CSS `radial-gradient(ellipse farthest-corner)`
- * (`engine/src/gradient-spec.ts`), whose radius in the box's own units is the square root
- * of one half. The operations SVG writes it to two places as 0.71, which the browser never
- * draws: measured on the fidelity radial (white to transparent white, 130 x 90 px), the
- * browser tier sits 0.12 levels from the exact ramp on average and resvg at 0.71 sits
- * 0.84 from the browser. This route draws the exact radius instead.
- */
-export function exactRadialRadius(svg: string): string {
-  return svg.replace(/<radialGradient( id="[^"]*")? cx="0\.5" cy="0\.5" r="0\.71"/g, '<radialGradient$1 cx="0.5" cy="0.5" r="0.7071068"');
-}
-
 /** A row's bounds in its frame, turned as its rotation turns them. */
 function turnedBounds(row: Record<string, unknown>, frame: Record<string, unknown>): { x0: number; y0: number; x1: number; y1: number } {
   const n = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
@@ -472,48 +435,6 @@ export function roundedFrameClips(rows: readonly unknown[], frameId: string): st
       return [x0, x1].some((x) => [y0, y1].some((y) => offCurve(x, y)));
     })
     .map((row) => String(row.id ?? ''));
-}
-
-/**
- * Gradient stops at the places the browser draws them. A Design gradient interpolated
- * in OKLab (the default) is baked into extra sRGB stops (`gradientSpecStops`), and the
- * operations SVG writes each stop's offset to two places (whole percent) where the
- * browser's CSS keeps a hundredth of a percent: a stop at 12.5% is written at 13%, 1.8 px off
- * on a 360 px box, and the ramp around it differs by 3 levels. The rows still hold the
- * spec, so each gradient's stops are written again here at full precision.
- */
-export function exactGradientStops(svg: string, rows: readonly unknown[], frameId?: string): { svg: string } | { reason: string } {
-  const swaps = new Map<string, string>();
-  const markup = (stops: Array<{ offset: number; color: string; opacity: number }>, digits: (n: number) => number) =>
-    stops.map((st) => `<stop offset="${digits(st.offset)}" stop-color="${st.color}"${st.opacity < 1 ? ` stop-opacity="${digits(st.opacity)}"` : ''}/>`).join('');
-  for (const row of rows) {
-    if (!row || typeof row !== 'object') continue;
-    const r = row as Record<string, unknown>;
-    // Only the page's own rows: its frame and the rows that sit on that frame.
-    if (frameId !== undefined && String(r.id ?? '') !== frameId && String(r.frame ?? '') !== frameId) continue;
-    const spec = r.grad;
-    if (typeof spec !== 'string' || !spec.trim()) continue;
-    const g = parseGradientSpec(spec);
-    if (!g || g.kind === 'conic') continue;
-    // The same stops the operations draw (gradientOf in engine/src/design-draw.ts).
-    const stops = gradientSpecStops(g).map((st) => {
-      const hex = colorToHexString(st.color);
-      return { offset: Math.max(0, Math.min(100, st.pos)) / 100, color: hex.slice(0, 7), opacity: hex.length === 9 ? Number.parseInt(hex.slice(7, 9), 16) / 255 : 1 };
-    });
-    if (stops.length < 2) continue;
-    // Every gradient is recorded, a rounding-free one too, so two that the page SVG
-    // writes alike but that differ exactly are refused rather than both rewritten.
-    const written = markup(stops, round2), exact = markup(stops, (n) => +n.toFixed(6));
-    const before = swaps.get(written);
-    if (before !== undefined && before !== exact) return { reason: 'two gradients the page SVG writes alike, whose exact stops differ' };
-    swaps.set(written, exact);
-  }
-  // Whole stop lists only: a gradient element whose stops are exactly one written list.
-  const out = svg.replace(/(<(linearGradient|radialGradient)\b[^>]*>)([\s\S]*?)(<\/\2>)/g, (whole, head: string, _tag: string, body: string, tail: string) => {
-    const exact = swaps.get(body);
-    return exact !== undefined && exact !== body ? `${head}${exact}${tail}` : whole;
-  });
-  return { svg: out };
 }
 
 /** The pixel box and resolution of a Design page's PNG. */
@@ -633,9 +554,7 @@ export async function drawDesignStill(req: DesignStillRequest): Promise<{ drawn:
   if ('reason' in size) return { refused: [size.reason] };
   const limits = resvgRefusals(svg);
   if (limits.length) return { refused: limits };
-  const stopped = exactGradientStops(exactRadialRadius(svg), req.rows ?? [], frameId);
-  if ('reason' in stopped) return { refused: [stopped.reason] };
-  const blended = premultipliedGradients(stopped.svg);
+  const blended = premultipliedGradients(svg);
   if ('reason' in blended) return { refused: [blended.reason] };
   const { bytes, imprinted } = await designStillPng(blended.svg, size, { imprint: req.dims.imprint, meta: req.meta() ?? null });
   return { drawn: { bytes, imprinted, width: size.width, height: size.height, route: nodeResvgRoute(), ingredients } };

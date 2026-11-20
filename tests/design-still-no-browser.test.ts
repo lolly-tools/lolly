@@ -18,12 +18,12 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { embedC2pa, verifyC2pa } from '@lolly/engine';
-import { designRasterChoice, designStillDecision, designStillNote, designStillSize, exactGradientStops, exactRadialRadius, premultipliedGradients, resvgRefusals, roundedFrameClips, designResvgRenderer } from '../packages/node-shell/src/design-still.ts';
+import { JSDOM } from 'jsdom';
+import { embedC2pa, extractC2paStore, prepareC2paIngredientFromStore, verifyC2pa } from '@lolly/engine';
+import { designRasterChoice, designStillDecision, designStillNote, designStillSize, drawDesignStill, premultipliedGradients, resvgRefusals, roundedFrameClips, designResvgRenderer } from '../packages/node-shell/src/design-still.ts';
 import { repoRoot } from '../packages/node-shell/src/repo-root.ts';
 import { uncomposedToolLinks } from '../shells/cli/src/raster.ts';
-import { compileDesignDraw } from '../engine/src/design-draw.ts';
-import { designDrawSvg } from '../engine/src/design-draw-svg.ts';
+import { createCliBridge } from '../shells/cli/src/bridge.ts';
 import { encodePng } from './helpers/studio3d-glb.ts';
 
 const ROOT = repoRoot();
@@ -71,13 +71,12 @@ test('resvg limits are refused by name: live text, HTML, pictures it does not de
   assert.match(resvgRefusals(wrap('<image href="data:image/webp;base64,UklGRg==" width="10" height="10"/>')).join(), /WebP/);
   assert.match(resvgRefusals(wrap('<image href="https://example.com/a.png" width="10" height="10"/>')).join(), /points outside the page/);
   assert.match(resvgRefusals(wrap('<g style="mix-blend-mode:plus-lighter"></g>')).join(), /plus-lighter/);
+  // A vector picture of any kind: its edges are anti-aliased differently (the Lolly logo, 0.73% of its region over 24 levels).
   const asPicture = (markup: string) => `<image href="data:image/svg+xml;base64,${Buffer.from(markup).toString('base64')}" width="10" height="10"/>`;
-  assert.match(resvgRefusals(wrap(asPicture('<svg xmlns:s="http://www.w3.org/2000/svg"><s:text>Hi</s:text></svg>'))).join(), /live text/, 'a prefixed element is still found');
-  assert.match(resvgRefusals(wrap(asPicture(`<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><image href="${png}" width="10" height="10"/></svg>`))).join(), /picture of its own/);
-  assert.match(resvgRefusals(wrap(asPicture('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44.725 19.706"><path d="M0 0h1v1z"/></svg>'))).join(), /not a whole number of pixels/);
-  assert.deepEqual(resvgRefusals(wrap(asPicture('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><path d="M0 0h1v1z"/></svg>'))), []);
-  const lettered = Buffer.from(wrap('<text x="0" y="8">Logo</text>')).toString('base64');
-  assert.match(resvgRefusals(wrap(`<image href="data:image/svg+xml;base64,${lettered}" width="10" height="10"/>`)).join(), /vector picture holding live text/);
+  assert.match(resvgRefusals(wrap(asPicture('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><path d="M0 0h1v1z"/></svg>'))).join(), /vector picture, whose edges/);
+  const aliased = `<image xmlns:l="http://www.w3.org/1999/xlink" l:href="data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>').toString('base64')}" width="10" height="10"/>`;
+  assert.match(resvgRefusals(wrap(aliased)).join(), /vector picture, whose edges/, 'under any namespace prefix');
+  assert.match(resvgRefusals(wrap('<s:text xmlns:s="http://www.w3.org/2000/svg">Hi</s:text>')).join(), /live text/, 'a prefixed element is still found');
   let sharp: typeof import('sharp').default | undefined;
   try { sharp = (await import('sharp')).default; } catch { /* the Exif case needs sharp to write its JPEG */ }
   if (sharp) {
@@ -107,29 +106,6 @@ test('a gradient that blends through transparency is rewritten so resvg blends i
   assert.ok(stops.every((s) => s[2] === '#0000ff'), 'a transparent stop takes the colour it blends towards, as premultiplying does');
   assert.deepEqual([stops[16]![1], stops[16]![3]], ['0.5', '0.5']);
   assert.deepEqual(premultipliedGradients(svg('<stop offset="0" stop-color="red" stop-opacity="0"/><stop offset="1" stop-color="#0000ff"/>')), { reason: 'a gradient whose stop colours this route cannot read' });
-});
-
-test('a gradient baked into extra stops keeps their exact places, as the browser\'s CSS does', () => {
-  // OKLab, the default space, bakes stops at 12.5% and 37.5%; the page SVG writes them as 0.13 and 0.38.
-  const rows = [
-    { id: 'page', kind: 'frame', x: 0, y: 0, w: 400, h: 200, bg: '#ffffff' },
-    { id: 'grad', kind: 'box', frame: 'page', x: 20, y: 20, w: 360, h: 160, grad: 'lin_90_f26b1d-0_2563d6-50_143d2b-100' },
-  ];
-  const svg = designDrawSvg(compileDesignDraw(rows as never, { width: 400, height: 200 }, { effects: true, colors: 'resolved' }), { assetHref: () => undefined, family: () => 'sans-serif', mono: 'monospace' });
-  assert.match(svg, /offset="0\.13"/, 'the page SVG rounds the stop');
-  const out = exactGradientStops(svg, rows);
-  assert.ok('svg' in out);
-  assert.match(out.svg, /offset="0\.125"/);
-  assert.match(out.svg, /offset="0\.375"/);
-  assert.doesNotMatch(out.svg, /offset="0\.13"/);
-  const plain = designDrawSvg(compileDesignDraw([rows[0], { ...rows[1], grad: 'lin.srgb_90_ff6b6b-0_4dabf7-100' }] as never, { width: 400, height: 200 }, { effects: true, colors: 'resolved' }), { assetHref: () => undefined, family: () => 'sans-serif', mono: 'monospace' });
-  assert.deepEqual(exactGradientStops(plain, [rows[0], { ...rows[1], grad: 'lin.srgb_90_ff6b6b-0_4dabf7-100' }]), { svg: plain }, 'stops at whole percents are left alone');
-});
-
-test('a radial gradient is drawn at the radius the browser draws, the square root of one half', () => {
-  const svg = '<defs><radialGradient id="lgx" cx="0.5" cy="0.5" r="0.71"><stop offset="0" stop-color="#ffffff"/></radialGradient></defs>';
-  assert.equal(exactRadialRadius(svg), svg.replace('r="0.71"', 'r="0.7071068"'));
-  assert.equal(exactRadialRadius('<radialGradient cx="0.25" cy="0.5" r="0.71">'), '<radialGradient cx="0.25" cy="0.5" r="0.71">', 'only the operations\' own centred form');
 });
 
 test('a row a rounded frame clips along its curve sends the page to the browser tier', () => {
@@ -222,6 +198,43 @@ test('a credentialed picture on the page is recorded as an ingredient, as the SV
     assert.ok((credential.ingredients ?? []).some((i) => i.relationship === 'componentOf'), JSON.stringify(credential.ingredients));
   } finally {
     await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('a page drawn here lists every credentialed picture the document places, the other pages\' too, as the web shell lists them', async () => {
+  // The rule and the list of tests/design-ops-browser-match.test.ts (engine 1.349), through this route.
+  const signedPng = (title: string, rgb: [number, number, number]) => embedC2pa(encodePng(4, 4, () => [...rgb, 255]), 'png', { title, claimGenerator: 'Lolly test' });
+  const files: Record<string, { source: string; bytes: Uint8Array }> = {
+    'pictures/cover': { source: 'library', bytes: await signedPng('Cover photo', [30, 140, 80]) },
+    'pictures/second': { source: 'library', bytes: await signedPng('Second photo', [140, 30, 80]) },
+    'user/upload/third': { source: 'user', bytes: await signedPng('Third photo', [80, 30, 140]) },
+  };
+  const rows = [
+    { id: 'cover', kind: 'frame', x: 0, y: 0, w: 320, h: 200, bg: '#ffffff', order: 0 },
+    { id: 'p1', kind: 'image', frame: 'cover', x: 20, y: 20, w: 100, h: 100, image: 'pictures/cover' },
+    { id: 'second', kind: 'frame', x: 400, y: 0, w: 320, h: 200, bg: '#ffffff', order: 1 },
+    { id: 'p2', kind: 'image', frame: 'second', x: 420, y: 20, w: 100, h: 100, image: 'pictures/second' },
+    { id: 'p3', kind: 'image', frame: 'second', x: 540, y: 20, w: 100, h: 100, image: { id: 'user/upload/third', source: 'user' } },
+  ];
+  const dom = new JSDOM('<div data-frame-id="cover"><span>page</span><span>chrome</span></div>');
+  try {
+    const bridge = await createCliBridge({ dom: dom as never });
+    bridge.assets = {
+      ...bridge.assets,
+      get: async (id: string) => ({ id, source: files[id]!.source, type: 'raster', format: 'png', url: `file:///${encodeURIComponent(id)}.png` }),
+      bytes: async (ref: { id: string }) => files[ref.id]!.bytes,
+    } as never;
+    const page = dom.window.document.querySelector('[data-frame-id]')!;
+    const result = await drawDesignStill({
+      exportSvg: (node, opts) => bridge.export.render(node, 'svg', { ...opts, sourceDocument: { toolId: 'design', values: { boxes: rows } } } as never),
+      meta: () => null, page: page as unknown as Element, rows, dims: {},
+    });
+    assert.ok('drawn' in result, 'refused' in result ? result.refused.join('; ') : '');
+    const label = (bytes: Uint8Array) => { const store = extractC2paStore(bytes)!; return prepareC2paIngredientFromStore(store.store, store.format)!.activeLabel; };
+    assert.deepEqual(result.drawn.ingredients.map((i) => i.activeLabel), ['pictures/cover', 'pictures/second', 'user/upload/third'].map((id) => label(files[id]!.bytes)));
+    assert.ok(result.drawn.ingredients.every((i) => i.relationship === 'componentOf'));
+  } finally {
+    dom.window.close();
   }
 });
 
