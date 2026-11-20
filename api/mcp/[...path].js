@@ -579,11 +579,6 @@ var init_tool_schema = __esm({
               },
               description: "For onFrame (live camera) tools: AUTO-start the camera when the named input holds `value`, and stop it otherwise - so a reader/scanner turns the camera on when it loads in that mode (and when the user selects it) without a manual 'Use camera' tap. Prompts for permission the first time; a denial degrades to the tool's non-camera modes. Honoured only where a camera is usable."
             },
-            browserFree: {
-              type: "boolean",
-              default: false,
-              description: "The tool's browser-free raster (the Node shells' resvg route for PNG, BMP, JPEG XL, EXR, HDR and the HDR stills) was measured inside the fidelity bands against the browser tier. Set only from evidence by scripts/tool-browser-free.ts, never by hand. Absent or false: those formats come from the browser tier. Each render is still checked for the features resvg draws unlike the browser, and the receiving shell honours the flag only for a built-in tool: a sideloaded or remote tool never takes the route from its own manifest (engine 1.350+)."
-            },
             convertPaths: {
               type: "boolean",
               default: true,
@@ -4175,7 +4170,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.350.0";
+    ENGINE_VERSION = "1.349.0";
   }
 });
 
@@ -130513,15 +130508,51 @@ function imageDimensions(bytes2, mtype) {
   }
   const looksSvg = mtype === "image/svg+xml" || b.length > 5 && (b[0] === 60 || b[0] === 239 && b[3] === 60);
   if (looksSvg) {
-    const head2 = new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)));
-    const tag3 = /<svg\b([^>]*)>/i.exec(head2);
-    if (!tag3) return null;
-    const a = parseAttrs2(tag3[1]);
-    const vb = (a.viewbox ?? "").trim().split(/[\s,]+/).map(Number);
-    const vbW = vb.length === 4 && Number.isFinite(vb[2]) ? vb[2] : 0, vbH = vb.length === 4 && Number.isFinite(vb[3]) ? vb[3] : 0;
-    const w = parseLen(a.width, vbW, vbW), h = parseLen(a.height, vbH, vbH);
-    return w > 0 && h > 0 ? { w: Math.round(w), h: Math.round(h) } : null;
+    const size = svgIntrinsicSize(b);
+    return size ? { w: Math.round(size.w), h: Math.round(size.h) } : null;
   }
+  return null;
+}
+function svgRootFontPx(a) {
+  let styled, important = false;
+  for (const declaration of (a.style ?? "").split(";")) {
+    const m3 = /^\s*font-size\s*:\s*(.*?)\s*(!\s*important)?\s*$/i.exec(declaration);
+    if (!m3) continue;
+    const marked = m3[2] !== void 0;
+    if (marked || !important) {
+      styled = m3[1];
+      important ||= marked;
+    }
+  }
+  const given2 = styled ?? a["font-size"];
+  if (given2 === void 0) return 16;
+  const m2 = SVG_ROOT_LENGTH.exec(given2);
+  if (!m2) return 0;
+  const n7 = Number.parseFloat(m2[1]), unit2 = (m2[2] ?? "").toLowerCase();
+  const px3 = unit2 === "%" ? 16 * n7 / 100 : unit2 === "em" || unit2 === "rem" ? 16 * n7 : n7 * SVG_ROOT_UNIT_PX[unit2];
+  return Number.isFinite(px3) && px3 > 0 ? px3 : 0;
+}
+function svgIntrinsicSize(bytes2) {
+  const head2 = new TextDecoder().decode(bytes2.subarray(0, Math.min(bytes2.length, 8192)));
+  const tag3 = /<svg\b([^>]*)>/i.exec(head2);
+  if (!tag3) return null;
+  const a = parseAttrs2(tag3[1]);
+  const length2 = (value2) => {
+    const m2 = SVG_ROOT_LENGTH.exec(value2 ?? "");
+    if (!m2) return 0;
+    const unit2 = (m2[2] ?? "").toLowerCase();
+    if (unit2 === "%") return 0;
+    const n7 = Number.parseFloat(m2[1]) * (unit2 === "em" || unit2 === "rem" ? svgRootFontPx(a) : SVG_ROOT_UNIT_PX[unit2]);
+    return Number.isFinite(n7) && n7 > 0 ? n7 : 0;
+  };
+  const vb = (a.viewbox ?? "").trim().split(/[\s,]+/).map(Number);
+  const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2] > 0 ? vb[2] : 0;
+  const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3] > 0 ? vb[3] : 0;
+  const w = length2(a.width), h = length2(a.height);
+  if (w && h) return { w, h, natural: true };
+  if (w && vbW && vbH) return { w, h: w * vbH / vbW, natural: true };
+  if (h && vbW && vbH) return { w: h * vbW / vbH, h, natural: true };
+  if (vbW && vbH) return { w: vbW, h: vbH, natural: false };
   return null;
 }
 function svgToPenpotDoc(svgText, o) {
@@ -131172,7 +131203,7 @@ function penpotWorkspaceUrl(teamId, fileId, pageId, origin = "https://design.pen
   if (pageId) q.set("page-id", pageId);
   return `${origin}/#/workspace?${q.toString()}`;
 }
-var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN, MAX_SVG_TAGS, MAX_SHAPES, MAX_TEXT_PARAGRAPHS, isRec7, fin2, r4, IDENT, mul2, apply2, meanScale, isAxisAligned, K3, TEXT_DEFAULTS, str6, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS2;
+var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN, MAX_SVG_TAGS, MAX_SHAPES, MAX_TEXT_PARAGRAPHS, isRec7, fin2, r4, IDENT, mul2, apply2, meanScale, isAxisAligned, K3, TEXT_DEFAULTS, str6, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS2, SVG_ROOT_UNIT_PX, SVG_ROOT_LENGTH;
 var init_penpot_file = __esm({
   "engine/src/penpot-file.ts"() {
     "use strict";
@@ -131377,6 +131408,8 @@ var init_penpot_file = __esm({
     MARKER_CAP = { triangle: "triangle-arrow", open: "line-arrow", circle: "circle-marker", diamond: "diamond-marker", bar: "square-marker" };
     BAIL_TAGS2 = /* @__PURE__ */ new Set(["filter", "mask", "clippath", "pattern", "foreignobject", "use", "symbol", "marker", "textpath", "style", "switch", "animate", "animatetransform", "animatemotion", "set"]);
     SKIP_TAGS2 = /* @__PURE__ */ new Set(["title", "desc", "metadata", "defs"]);
+    SVG_ROOT_UNIT_PX = { "": 1, px: 1, pt: 4 / 3, pc: 16, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
+    SVG_ROOT_LENGTH = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm|em|rem|%)?\s*$/i;
   }
 });
 
@@ -147157,6 +147190,9 @@ function svgEscape(value2) {
 function round26(n7) {
   return Number.isFinite(n7) ? Math.round(n7 * 100) / 100 : 0;
 }
+function round42(n7) {
+  return Number.isFinite(n7) ? Math.round(n7 * 1e4) / 1e4 : 0;
+}
 function aspect(fit) {
   if (fit === "cover") return "xMidYMid slice";
   if (fit === "fill") return "none";
@@ -147250,9 +147286,9 @@ function wrapOp(op, inner) {
   return `<g${outer}><defs>${defs.join("")}</defs>${posed}</g>`;
 }
 function gradient(paint2) {
-  const stops = paint2.stops.map((s) => `<stop offset="${round26(s.offset)}" stop-color="${s.color}"` + (s.opacity < 1 ? ` stop-opacity="${round26(s.opacity)}"` : "") + "/>").join("");
+  const stops = paint2.stops.map((s) => `<stop offset="${round42(s.offset)}" stop-color="${s.color}"` + (s.opacity < 1 ? ` stop-opacity="${round42(s.opacity)}"` : "") + "/>").join("");
   const tag3 = paint2.kind === "linear" ? "linearGradient" : "radialGradient";
-  const head2 = paint2.kind === "linear" ? `<linearGradient gradientUnits="userSpaceOnUse" x1="${round26(paint2.x1)}" y1="${round26(paint2.y1)}" x2="${round26(paint2.x2)}" y2="${round26(paint2.y2)}"` : '<radialGradient cx="0.5" cy="0.5" r="0.71"';
+  const head2 = paint2.kind === "linear" ? `<linearGradient gradientUnits="userSpaceOnUse" x1="${round26(paint2.x1)}" y1="${round26(paint2.y1)}" x2="${round26(paint2.x2)}" y2="${round26(paint2.y2)}"` : `<radialGradient cx="0.5" cy="0.5" r="${FARTHEST_CORNER}"`;
   const body = `${head2}>${stops}</${tag3}>`;
   const id3 = `lg${contentId(body)}`;
   return { defs: `<defs>${body.replace(`<${tag3} `, `<${tag3} id="${id3}" `)}</defs>`, paint: `url(#${id3})` };
@@ -147461,6 +147497,7 @@ function designDrawSvg(page3, opts) {
   body.push(page3.clip && rows2 ? areaClip(page3.clip, rows2) : rows2);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${round26(page3.width)}" height="${round26(page3.height)}" viewBox="0 0 ${round26(page3.width)} ${round26(page3.height)}" role="img" aria-label="${svgEscape(opts.title ?? "")}">${body.join("")}</svg>`;
 }
+var FARTHEST_CORNER;
 var init_design_draw_svg = __esm({
   "engine/src/design-draw-svg.ts"() {
     "use strict";
@@ -147468,6 +147505,7 @@ var init_design_draw_svg = __esm({
     init_design_draw();
     init_path();
     init_design_stroke();
+    FARTHEST_CORNER = Math.round(Math.SQRT1_2 * 1e7) / 1e7;
   }
 });
 
@@ -154621,7 +154659,7 @@ function recognitionOf(ocr, recognizers) {
     min = Math.min(min, confidence);
   }
   const model2 = ocr.model?.trim() ? ocr.model : "unknown";
-  const out = { model: model2, confidence: round42(weighted / chars), minConfidence: round42(min), lines: ocr.lines.length };
+  const out = { model: model2, confidence: round43(weighted / chars), minConfidence: round43(min), lines: ocr.lines.length };
   const known3 = model2 === TEXT_LAYER_MODEL ? void 0 : recognizers?.get(model2);
   if (known3?.version) out.modelVersion = known3.version;
   if (known3?.languages?.length) out.languages = [...known3.languages];
@@ -154875,7 +154913,7 @@ function withFacts(entry2, facts2) {
   if (facts2.file) entry2.file = facts2.file;
   return entry2;
 }
-var ICON_AREA_SHARE, PHOTO_AREA_SHARE, BACKGROUND_AREA_SHARE, LABEL_MAX_WORDS2, CAPTION_MAX_PT, CAPTION_MAX_WORDS, DEFAULT_SLIDE, CAPTION_LEAD, CAPTION_LEAD_MAX_PT, LIGATURES, URL_ONLY2, NUMBER_MARKER2, ICON_FONT, HEX4, round7, paraText2, OCR_SAYS, round42;
+var ICON_AREA_SHARE, PHOTO_AREA_SHARE, BACKGROUND_AREA_SHARE, LABEL_MAX_WORDS2, CAPTION_MAX_PT, CAPTION_MAX_WORDS, DEFAULT_SLIDE, CAPTION_LEAD, CAPTION_LEAD_MAX_PT, LIGATURES, URL_ONLY2, NUMBER_MARKER2, ICON_FONT, HEX4, round7, paraText2, OCR_SAYS, round43;
 var init_content_inventory = __esm({
   "engine/src/content-inventory.ts"() {
     "use strict";
@@ -154902,7 +154940,7 @@ var init_content_inventory = __esm({
       "no-text-found": "OCR found no text in it",
       "text-found": "its text was read by OCR"
     };
-    round42 = (n7) => Math.round(Math.min(1, Math.max(0, n7)) * 1e4) / 1e4;
+    round43 = (n7) => Math.round(Math.min(1, Math.max(0, n7)) * 1e4) / 1e4;
   }
 });
 
@@ -155344,23 +155382,23 @@ function scoreExtract(labels, extract) {
     }
   }
   return {
-    cer: round43(charTotal === 0 ? 0 : charEdits / charTotal),
-    wer: round43(wordTotal === 0 ? 0 : wordEdits / wordTotal),
-    recall: round43(labels.length === 0 ? 1 : matched / labels.length),
-    order: round43(pairs2 === 0 ? 1 : pairsInOrder / pairs2),
-    origin: originStated === 0 ? null : round43(originAgreed / originStated),
+    cer: round44(charTotal === 0 ? 0 : charEdits / charTotal),
+    wer: round44(wordTotal === 0 ? 0 : wordEdits / wordTotal),
+    recall: round44(labels.length === 0 ? 1 : matched / labels.length),
+    order: round44(pairs2 === 0 ? 1 : pairsInOrder / pairs2),
+    origin: originStated === 0 ? null : round44(originAgreed / originStated),
     labelled: labels.length,
     matched
   };
 }
-var MATCH_CER, charsOf, wordsOf4, round43;
+var MATCH_CER, charsOf, wordsOf4, round44;
 var init_read_extract_quality = __esm({
   "engine/src/read-extract-quality.ts"() {
     "use strict";
     MATCH_CER = 0.34;
     charsOf = (text13) => Array.from(normaliseForScore(text13));
     wordsOf4 = (text13) => normaliseForScore(text13).split(" ").filter(Boolean);
-    round43 = (n7) => Math.round(n7 * 1e4) / 1e4;
+    round44 = (n7) => Math.round(n7 * 1e4) / 1e4;
   }
 });
 
@@ -160913,29 +160951,7 @@ function truthy5(v) {
   return t === "1" || t === "true" || t === "yes" || t === "on";
 }
 function deckSvgIntrinsicSize(bytes2) {
-  const head2 = new TextDecoder().decode(bytes2.subarray(0, Math.min(bytes2.length, 8192)));
-  const tag3 = /<svg\b([^>]*)>/i.exec(head2);
-  if (!tag3) return null;
-  const attr7 = (name) => {
-    const m2 = new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag3[1]);
-    return m2 ? m2[1] ?? m2[2] : void 0;
-  };
-  const length2 = (value2) => {
-    const m2 = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm)?\s*$/i.exec(value2 ?? "");
-    if (!m2) return 0;
-    const n7 = parseFloat(m2[1]) * (SVG_UNIT_PX[(m2[2] ?? "").toLowerCase()] ?? 0);
-    return Number.isFinite(n7) && n7 > 0 ? n7 : 0;
-  };
-  const vb = (attr7("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
-  const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2] > 0 ? vb[2] : 0;
-  const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3] > 0 ? vb[3] : 0;
-  const w = length2(attr7("width"));
-  const h = length2(attr7("height"));
-  if (w && h) return { w, h, natural: true };
-  if (w && vbW && vbH) return { w, h: w * vbH / vbW, natural: true };
-  if (h && vbW && vbH) return { w: h * vbW / vbH, h, natural: true };
-  if (vbW && vbH) return { w: vbW, h: vbH, natural: false };
-  return null;
+  return svgIntrinsicSize(bytes2);
 }
 function positionFractions(value2) {
   let fx = 0.5;
@@ -161097,12 +161113,13 @@ function deckTransition(v, notes) {
       return void 0;
   }
 }
-var hex25, GENERIC_FAMILY, STATIC_WEIGHT_NAMES, FACE_FAMILY_RE, STATIC_FACE_DIR, themeFamily, CUSTOM_PROP_RE, MAX_VAR_HOPS, MAX_GRAD_SPEC_CHARS, PICTURE_FITS, SVG_UNIT_PX;
+var hex25, GENERIC_FAMILY, STATIC_WEIGHT_NAMES, FACE_FAMILY_RE, STATIC_FACE_DIR, themeFamily, CUSTOM_PROP_RE, MAX_VAR_HOPS, MAX_GRAD_SPEC_CHARS, PICTURE_FITS;
 var init_pptx_deck = __esm({
   "packages/node-shell/src/pptx-deck.ts"() {
     "use strict";
     init_pptx2();
     init_css_color();
+    init_penpot_file();
     init_gradient_spec();
     init_css_color();
     init_text_svg();
@@ -161124,7 +161141,6 @@ var init_pptx_deck = __esm({
     MAX_VAR_HOPS = 4;
     MAX_GRAD_SPEC_CHARS = 4096;
     PICTURE_FITS = ["cover", "contain", "fill", "none", "scale-down"];
-    SVG_UNIT_PX = { "": 1, px: 1, pt: 4 / 3, pc: 16, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
   }
 });
 
@@ -171083,10 +171099,83 @@ var init_pdf_images = __esm({
   }
 });
 
+// packages/node-shell/src/browser-free-record.ts
+import { createHash as createHash4 } from "node:crypto";
+import { readFileSync as readFileSync6 } from "node:fs";
+function digestToolSources(read) {
+  const hash = createHash4("sha256");
+  for (const name of ["tool.json", "template.html", "styles.css", "hooks.js"]) {
+    const text13 = read(name);
+    hash.update(`${name}
+${text13 === null ? "\0absent" : text13}
+`);
+  }
+  return hash.digest("hex");
+}
+function toolSourceDigest(id3) {
+  return digestToolSources((name) => {
+    if (name === "tool.json") return toolFile(id3, name) ? readToolManifestText(id3) : null;
+    const path = toolFile(id3, name);
+    return path ? readFileSync6(path, "utf8") : null;
+  });
+}
+function parseBrowserFreeRecord(text13) {
+  if (text13.length >= BROWSER_FREE_MAX_CHARS) return { problem: `${BROWSER_FREE_FILE} is larger than a record` };
+  let value2;
+  try {
+    value2 = JSON.parse(text13);
+  } catch (err) {
+    return { problem: `${BROWSER_FREE_FILE} is not JSON (${err.message})` };
+  }
+  const r5 = value2;
+  if (!r5 || typeof r5 !== "object" || r5.version !== BROWSER_FREE_RECORD_VERSION) return { problem: `${BROWSER_FREE_FILE} is not a version ${BROWSER_FREE_RECORD_VERSION} record` };
+  if (!r5.tool || typeof r5.tool.id !== "string" || typeof r5.tool.version !== "string" || typeof r5.tool.digest !== "string") return { problem: `${BROWSER_FREE_FILE} does not say which tool it measured` };
+  if (r5.verdict !== "resvg" && r5.verdict !== "browser") return { problem: `${BROWSER_FREE_FILE} has no verdict` };
+  if (!Array.isArray(r5.cases)) return { problem: `${BROWSER_FREE_FILE} lists no cases` };
+  return { record: r5 };
+}
+function browserFreeStatus(record49, tool) {
+  if (record49.tool.id !== tool.id) return { admitted: false, stale: `the record names the ${record49.tool.id} tool` };
+  if (record49.verdict !== "resvg") return { admitted: false };
+  if (record49.tool.version !== tool.version) return { admitted: false, stale: `the record was measured on version ${record49.tool.version}, and the tool is now ${tool.version}` };
+  if (record49.tool.digest !== tool.digest) return { admitted: false, stale: "the tool's files changed since the record was measured" };
+  return { admitted: true };
+}
+function readBrowserFreeRecord(id3) {
+  let path;
+  try {
+    path = toolFile(id3, BROWSER_FREE_FILE);
+  } catch {
+    return null;
+  }
+  if (!path) return null;
+  try {
+    return parseBrowserFreeRecord(readFileSync6(path, "utf8"));
+  } catch (err) {
+    return { problem: `${BROWSER_FREE_FILE} could not be read (${err.message})` };
+  }
+}
+var BROWSER_FREE_FILE, BROWSER_FREE_RECORD_VERSION, BROWSER_FREE_MAX_CHARS;
+var init_browser_free_record = __esm({
+  "packages/node-shell/src/browser-free-record.ts"() {
+    "use strict";
+    init_content_roots();
+    BROWSER_FREE_FILE = "browser-free.json";
+    BROWSER_FREE_RECORD_VERSION = 1;
+    BROWSER_FREE_MAX_CHARS = 64e3;
+  }
+});
+
 // packages/node-shell/src/resvg-admission.ts
 function toolAdmission(tool) {
+  const id3 = tool.manifest.id;
   const untrusted = tool.trustClass === "sideloaded-consented" || tool.trustClass === "remote-untrusted";
-  return { id: tool.manifest.id, browserFree: !untrusted && tool.manifest.render?.browserFree === true, untrusted };
+  if (untrusted) return { id: id3, browserFree: false, untrusted };
+  const read = readBrowserFreeRecord(id3);
+  if (!read) return { id: id3, browserFree: false, untrusted };
+  if ("problem" in read) return { id: id3, browserFree: false, untrusted, stale: read.problem };
+  const status = browserFreeStatus(read.record, { id: id3, version: String(tool.manifest.version ?? ""), digest: toolSourceDigest(id3) });
+  return { id: id3, browserFree: status.admitted, untrusted, ...status.stale ? { stale: status.stale } : {} };
 }
 function resvgRefusalSentence(refusals) {
   const reasons = [...new Set(refusals.map((r5) => r5.reason))];
@@ -171098,7 +171187,7 @@ function isResvgRefusal(e) {
 function routeRefusals(facts2 = {}) {
   const out = [];
   if (facts2.tool && !facts2.tool.browserFree) {
-    out.push({ code: "unmeasured", reason: facts2.tool.untrusted ? `the ${facts2.tool.id} tool is sideloaded or remote, and such a tool cannot admit itself to this route` : `the ${facts2.tool.id} tool has not been measured inside the fidelity bands on this route (no render.browserFree)` });
+    out.push({ code: "unmeasured", reason: facts2.tool.untrusted ? `the ${facts2.tool.id} tool is sideloaded or remote, and such a tool cannot admit itself to this route` : facts2.tool.stale ? `the ${facts2.tool.id} tool's browser-free record no longer describes it (${facts2.tool.stale}); run scripts/tool-browser-free.ts again` : `the ${facts2.tool.id} tool has not been measured inside the fidelity bands on this route (no browser-free.json admits it)` });
   }
   if (facts2.paged) out.push({ code: "paged", reason: "a paged document, whose pages the browser writes at their print size" });
   if (facts2.draftMark) out.push({ code: "draft-mark", reason: "this experimental tool marks its exports DRAFT, and that mark is drawn by the browser" });
@@ -171500,6 +171589,7 @@ var init_resvg_admission = __esm({
     "use strict";
     init_src2();
     init_pdf_images();
+    init_browser_free_record();
     MAX_PICTURE_SHRINK = 2;
     ResvgRefusedError = class extends Error {
       code = "RESVG_REFUSED";
@@ -171790,7 +171880,7 @@ var init_raster3 = __esm({
     init_radiance();
     init_content_roots();
     init_resvg_admission();
-    NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "lottie", "idml", "premiere-xml", "jxl", "jxl-lossless", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md"];
+    NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "lottie", "idml", "premiere-xml", "jxl", "jxl-lossless", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md", "srt", "vtt", "ttml", "scc", "css", "scss", "gpl"];
     HOOK_OWNED_FORMATS = ["wav", "mp3", "m4a", "opus", "mid"];
     DEEP_FORMATS = ["exr", "hdr"];
     fontDirs = null;
@@ -171822,7 +171912,7 @@ __export(canvas_exports, {
   pixelWorkCount: () => pixelWorkCount,
   sniffImageMime: () => sniffImageMime
 });
-import { createHash as createHash4 } from "node:crypto";
+import { createHash as createHash5 } from "node:crypto";
 import { createRequire as createRequire2 } from "node:module";
 function registerCatalogFonts(mod) {
   if (fontsRegistered) return;
@@ -171863,7 +171953,7 @@ function hostedDecodeLimits() {
 function refuse3(limits, pic, record49, message) {
   limits.refusals?.push(message);
   if (limits.refused) {
-    const key2 = createHash4("sha256").update(pic.bytes).digest("hex");
+    const key2 = createHash5("sha256").update(pic.bytes).digest("hex");
     const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record49.limit);
     if (!seen) limits.refused.push({ ...record49, key: key2, ...pic.source ? { source: pic.source } : {} });
     else if (!seen.source && pic.source) seen.source = pic.source;
@@ -172317,7 +172407,7 @@ var init_canvas_launch = __esm({
 });
 
 // packages/node-shell/src/production-browser.ts
-import { createHash as createHash6 } from "node:crypto";
+import { createHash as createHash7 } from "node:crypto";
 async function observeProductionInputs(page3, toolId, ids2) {
   const requested = [...new Set(ids2)];
   const observations = [];
@@ -172342,7 +172432,7 @@ async function observeProductionInputs(page3, toolId, ids2) {
   }
   return (bytes2) => {
     if (overflow) return void 0;
-    const digest2 = createHash6("sha256").update(bytes2).digest("hex");
+    const digest2 = createHash7("sha256").update(bytes2).digest("hex");
     const matches3 = observations.filter((value2) => value2.artifactSha256 === digest2);
     if (!matches3.length || matches3.some((value2) => JSON.stringify(value2.inputs) !== JSON.stringify(matches3[0].inputs))) return void 0;
     return matches3[0].inputs;
@@ -172449,7 +172539,7 @@ var init_export_wait = __esm({
 });
 
 // packages/node-shell/src/export-lock.ts
-import { createHash as createHash7 } from "node:crypto";
+import { createHash as createHash8 } from "node:crypto";
 function standardPdfPasswordIsTypable(password) {
   return /^[\x20-\x7e]+$/.test(password);
 }
@@ -172470,7 +172560,7 @@ function exportPasswordRefusal(format, o = {}) {
   return null;
 }
 function md5(...parts) {
-  const hash = createHash7("md5");
+  const hash = createHash8("md5");
   for (const part of parts) hash.update(part);
   return new Uint8Array(hash.digest());
 }
@@ -173421,7 +173511,7 @@ __export(content_inventory_exports, {
   mediaFileName: () => mediaFileName,
   readContentInventory: () => readContentInventory
 });
-import { createHash as createHash8 } from "node:crypto";
+import { createHash as createHash9 } from "node:crypto";
 import { readFile as readFile6, stat as stat2 } from "node:fs/promises";
 import { join as join9 } from "node:path";
 async function inventoryXmlParser() {
@@ -173440,7 +173530,7 @@ function mediaFileName(sha2563, mime2) {
   return `${sha2563}.${MIME_EXT2[mime2.toLowerCase()] ?? "bin"}`;
 }
 function sha256Hex4(bytes2) {
-  return createHash8("sha256").update(bytes2).digest("hex");
+  return createHash9("sha256").update(bytes2).digest("hex");
 }
 function sameBytes3(a, b) {
   if (a.length !== b.length) return false;
@@ -173708,7 +173798,7 @@ __export(design_lolly_exports, {
   packageTime: () => packageTime,
   stampZipTimes: () => stampZipTimes
 });
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 import { readdir as readdir2, readFile as readFile7 } from "node:fs/promises";
 import { join as join10 } from "node:path";
 function mediaHashPrefixOfKey(key2) {
@@ -174188,7 +174278,7 @@ var init_design_lolly = __esm({
     init_lolly_file();
     init_pipeline();
     record40 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    sha256Hex5 = (bytes2) => createHash9("sha256").update(bytes2).digest("hex");
+    sha256Hex5 = (bytes2) => createHash10("sha256").update(bytes2).digest("hex");
     plural6 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     MEDIA_REF_RE = /^user\/media\/([0-9a-f]{64})$/;
     HASH_KEY_RE = /^[a-z][a-z0-9+.-]*:([0-9a-f]{8,64})$/i;
@@ -179394,7 +179484,7 @@ __export(text_measure_exports, {
   sfntVerticalMetrics: () => sfntVerticalMetrics,
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
-import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync8 } from "node:fs";
+import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync9 } from "node:fs";
 import { join as join26 } from "node:path";
 function firstFamily2(value2) {
   if (typeof value2 !== "string") return void 0;
@@ -179464,7 +179554,7 @@ function metricsOf(url, root2) {
     const file = fontFile(url, root2);
     let metrics = null;
     try {
-      if (file) metrics = sfntVerticalMetrics(new Uint8Array(readFileSync8(file)));
+      if (file) metrics = sfntVerticalMetrics(new Uint8Array(readFileSync9(file)));
     } catch {
       metrics = null;
     }
@@ -181005,7 +181095,7 @@ function designDrawPdf(pages, info = {}) {
       const num23 = objects.reserve();
       const fn = stopsFunction(paint3.stops, gray ? (s) => [s.opacity] : (s) => rgb2(s.color));
       const space = gray ? "/DeviceGray" : "/DeviceRGB";
-      objects.put(num23, paint3.kind === "linear" ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint3.x1, paint3.y1, paint3.x2, paint3.y2].map(n6).join(" ")}] /Function ${fn} /Extend [true true] >>` : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 0.71] /Function ${fn} /Extend [true true] >>`);
+      objects.put(num23, paint3.kind === "linear" ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint3.x1, paint3.y1, paint3.x2, paint3.y2].map(n6).join(" ")}] /Function ${fn} /Extend [true true] >>` : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 ${n6(Math.SQRT1_2)}] /Function ${fn} /Extend [true true] >>`);
       return num23;
     };
     const gradientFill = (paint3, box4) => {
@@ -181423,7 +181513,7 @@ async function designPageDrawing(values, frameId, host, opts = {}) {
       unread.add(ref2);
       return null;
     }
-    const size = imageDimensions(found.bytes, mime2) ?? (found.width && found.height ? { w: found.width, h: found.height } : null);
+    const size = (mime2 === "image/svg+xml" ? svgIntrinsicSize(found.bytes) : imageDimensions(found.bytes, mime2)) ?? (found.width && found.height ? { w: found.width, h: found.height } : null);
     pictures.set(ref2, { bytes: found.bytes, mime: mime2 });
     return size ? { width: size.w, height: size.h } : null;
   });
@@ -181518,10 +181608,32 @@ async function brandColourResolver(host) {
     return null;
   }
 }
+function placedRefs(values) {
+  const rows2 = Array.isArray(values.boxes) ? values.boxes : [];
+  const refs = [];
+  for (const row of rows2) {
+    const image = row && typeof row === "object" ? row.image : void 0;
+    if (typeof image === "string" && image) refs.push({ id: image });
+    else if (image && typeof image === "object" && typeof image.id === "string" && image.id) {
+      const { id: id3, pin } = image;
+      refs.push(pin === void 0 ? { id: id3 } : { id: id3, pin });
+    }
+  }
+  return refs;
+}
 async function designOpsNodeHost(host, ctx, outlined = true) {
   const text13 = host.text;
   if (!text13) return null;
-  const ingredients = [];
+  const drawn2 = [];
+  const credentialOf = (bytes2) => {
+    try {
+      const store = extractC2paStore(bytes2);
+      const ingredient = store && prepareC2paIngredientFromStore(store.store, store.format);
+      return ingredient ? { ...ingredient, relationship: "componentOf" } : null;
+    } catch {
+      return null;
+    }
+  };
   const picture = async (ref2) => {
     if (ref2.includes("?")) return null;
     const asset2 = await host.assets.get(ref2).catch(() => null);
@@ -181532,13 +181644,33 @@ async function designOpsNodeHost(host, ctx, outlined = true) {
     if (type === "lottie" || type === "video" || MOTION.test(asset2.url) || meta?.animated === true || Array.isArray(meta?.tags) && meta.tags.includes("animated")) return { media: "motion" };
     const bytes2 = await host.assets.bytes?.(asset2).catch(() => null);
     if (!bytes2) return null;
-    try {
-      const store = extractC2paStore(bytes2);
-      const ingredient = store && prepareC2paIngredientFromStore(store.store, store.format);
-      if (ingredient && !ingredients.some((p) => p.activeLabel === ingredient.activeLabel)) ingredients.push({ ...ingredient, relationship: "componentOf" });
-    } catch {
-    }
+    const ingredient = credentialOf(bytes2);
+    if (ingredient && !drawn2.some((p) => p.activeLabel === ingredient.activeLabel)) drawn2.push(ingredient);
     return { bytes: bytes2 };
+  };
+  const placed2 = async (values) => {
+    const out = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const ref2 of placedRefs(values)) {
+      let source;
+      try {
+        source = assetDependency(ref2);
+      } catch {
+        continue;
+      }
+      if (seen.has(source.key)) continue;
+      seen.add(source.key);
+      try {
+        const asset2 = await host.assets.get(source.id, source.pin ? { version: source.pin.version, ...source.pin.format ? { format: source.pin.format } : {} } : void 0);
+        if (asset2?.source !== "user" && asset2?.source !== "library") continue;
+        const bytes2 = await host.assets.bytes?.(asset2);
+        if (!bytes2 || bytes2.byteLength > MAX_CREDENTIAL_SCAN_BYTES) continue;
+        const ingredient = credentialOf(bytes2);
+        if (ingredient && !out.some((p) => p.activeLabel === ingredient.activeLabel)) out.push(ingredient);
+      } catch {
+      }
+    }
+    return out;
   };
   const fonts = await fontsOf(host);
   const resolveColor4 = await brandColourResolver(host);
@@ -181551,10 +181683,14 @@ async function designOpsNodeHost(host, ctx, outlined = true) {
       ...fonts ? { fonts } : {},
       ...resolveColor4 ? { resolveColor: resolveColor4 } : {}
     },
-    ingredients: () => [...ingredients]
+    ingredients: async (values) => {
+      const listed2 = await placed2(values);
+      for (const ingredient of drawn2) if (!listed2.some((p) => p.activeLabel === ingredient.activeLabel)) listed2.push(ingredient);
+      return listed2;
+    }
   };
 }
-var MOTION, SOUND;
+var MOTION, SOUND, MAX_CREDENTIAL_SCAN_BYTES;
 var init_design_ops_host = __esm({
   "packages/node-shell/src/design-ops-host.ts"() {
     "use strict";
@@ -181566,6 +181702,7 @@ var init_design_ops_host = __esm({
     init_text3();
     MOTION = /\.(json|lottie|mp4|m4v|mov|webm)($|\?|#)/i;
     SOUND = /\.(mp3|wav|ogg|m4a|flac)($|\?|#)/i;
+    MAX_CREDENTIAL_SCAN_BYTES = 64 * 1024 * 1024;
   }
 });
 
@@ -182096,6 +182233,7 @@ async function designOpsPdfNode(node, opts, host, ctx) {
   if (labels && geos.some((g2) => g2?.primitives.labels?.length) && (await labelsBeyondStandardFont(labels)).length) {
     return { reason: "the print marks hold letters the mark font does not have" };
   }
+  const ingredients = await use.ingredients(doc.values);
   try {
     const finished = await finishPdfX(out.pdf, opts, {
       intentKind: "srgb",
@@ -182104,7 +182242,7 @@ async function designOpsPdfNode(node, opts, host, ctx) {
     });
     const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
     host.log?.("info", `Design PDF export: ${ids2.length} pages drawn from the drawing operations without a browser.`);
-    return { pdf, ingredients: use.ingredients() };
+    return { pdf, ingredients };
   } catch (error2) {
     throw new PdfFinishingError(error2);
   }
@@ -182161,7 +182299,7 @@ async function designOpsSvgNode(node, opts, host, ctx) {
     return { reason: `the drawing could not be compiled (${error2 instanceof Error ? error2.message : String(error2)})` };
   }
   if (page3.findings.length) return { reason: `the page holds features the drawing operations do not carry yet: ${[...new Set(page3.findings.map((f) => `${f.feature} (${f.id})`))].join(", ")}` };
-  return { svg: page3.svg, ingredients: use.ingredients() };
+  return { svg: page3.svg, ingredients: await use.ingredients(doc.values) };
 }
 var init_design_ops_svg = __esm({
   "packages/node-shell/src/design-ops-svg.ts"() {
@@ -184908,7 +185046,7 @@ var init_forensic2 = __esm({
 });
 
 // packages/node-shell/src/check.ts
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 function fidelityNote(compared) {
   const excepted = compared.fidelity.excepted?.length ?? 0;
   return (excepted ? ` ${excepted === 1 ? "1 string is recorded as a deliberate edit" : `${excepted} strings are recorded as deliberate edits`} (excepted, not passed).` : "") + (compared.complete ? "" : " The comparison stopped at one of its limits, so the family is partial (see fidelity.coverage.partial).");
@@ -185371,7 +185509,7 @@ function rasterSize(bytes2) {
 }
 async function catalogPictureReader(profile2) {
   const { contentRoots: contentRoots2, contentUrlFile: contentUrlFile2, readAssetIndex: readAssetIndex2 } = await Promise.resolve().then(() => (init_content_roots(), content_roots_exports));
-  const { readFileSync: readFileSync10, statSync: statSync5 } = await import("node:fs");
+  const { readFileSync: readFileSync11, statSync: statSync5 } = await import("node:fs");
   let roots2;
   let byId;
   try {
@@ -185386,7 +185524,7 @@ async function catalogPictureReader(profile2) {
     const path = file ? contentUrlFile2(String(file.url), roots2) : null;
     if (!path) return null;
     try {
-      return statSync5(path).size <= CHECK_MAX_INPUT_BYTES ? new Uint8Array(readFileSync10(path)) : null;
+      return statSync5(path).size <= CHECK_MAX_INPUT_BYTES ? new Uint8Array(readFileSync11(path)) : null;
     } catch {
       return null;
     }
@@ -185983,7 +186121,7 @@ var init_check = __esm({
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
-    sha2562 = (bytes2) => createHash12("sha256").update(bytes2).digest("hex");
+    sha2562 = (bytes2) => createHash13("sha256").update(bytes2).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
     familyState = (state, reason2) => ({
       state,
@@ -187297,9 +187435,6 @@ function assetIndex() {
 function fontsDir() {
   return catalogFile("fonts", content());
 }
-function previewsDir() {
-  return catalogFile("previews", content());
-}
 function contentUrl(url) {
   return contentUrlFile(url, content());
 }
@@ -187451,7 +187586,7 @@ init_canvas();
 init_src2();
 init_inputs();
 init_design_export_route();
-import { createHash as createHash5 } from "node:crypto";
+import { createHash as createHash6 } from "node:crypto";
 function buildExportC2paOpts(o) {
   const { surface, manifest, model: model2, format, dims = {}, profile: profile2 = {} } = o;
   const days = o.days ?? 30;
@@ -187461,7 +187596,7 @@ function buildExportC2paOpts(o) {
   const readable2 = summarizeInputs(model2.filter((item2) => eligible.has(item2.id) && CREDENTIAL_READABLE_TYPES.has(item2.type)));
   const inputs = Object.fromEntries(model2.filter((item2) => eligible.has(item2.id)).map((item2) => [
     item2.id,
-    CREDENTIAL_READABLE_TYPES.has(item2.type) && readable2[item2.id] !== void 0 ? readable2[item2.id] : `sha256:${createHash5("sha256").update(JSON.stringify([item2.type, flattenValue(item2.value), item2.unit ?? ""])).digest("hex")}`
+    CREDENTIAL_READABLE_TYPES.has(item2.type) && readable2[item2.id] !== void 0 ? readable2[item2.id] : `sha256:${createHash6("sha256").update(JSON.stringify([item2.type, flattenValue(item2.value), item2.unit ?? ""])).digest("hex")}`
   ]));
   const unit2 = dims.unit || "px";
   const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
@@ -187810,7 +187945,7 @@ import { zipSync as zipSync2 } from "fflate";
 init_src2();
 init_repo_root();
 import { readFile as readFile8 } from "node:fs/promises";
-import { createHash as createHash10 } from "node:crypto";
+import { createHash as createHash11 } from "node:crypto";
 import { join as join12 } from "node:path";
 
 // packages/node-shell/src/press-separation.ts
@@ -187834,7 +187969,7 @@ function bundledPressSeparation() {
     if (error2.code !== "ENOENT") throw error2;
     return readFile8(join12(repoRoot(), "packages/node-shell/icc", BUNDLED_PRESS_PROFILE.file));
   }).then((bytes2) => {
-    if (createHash10("sha256").update(bytes2).digest("hex") !== BUNDLED_PRESS_PROFILE.sha256) return null;
+    if (createHash11("sha256").update(bytes2).digest("hex") !== BUNDLED_PRESS_PROFILE.sha256) return null;
     const profile2 = parseIccProfile(new Uint8Array(bytes2));
     return profile2 ? iccSeparation(profile2) : null;
   }).catch(() => null);
@@ -188823,7 +188958,7 @@ function loadAudioDspKernel() {
 import { Worker as Worker3 } from "node:worker_threads";
 import { existsSync as existsSync8 } from "node:fs";
 import { fileURLToPath as fileURLToPath6 } from "node:url";
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 
 // packages/rondo/src/limits.ts
 var RONDO_LIMITS = Object.freeze({
@@ -189073,7 +189208,7 @@ function runWorker2(job, caps, timeoutMs, limitText) {
   });
 }
 var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
-var digestOf = (song) => createHash11("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
+var digestOf = (song) => createHash12("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
 var copyOf2 = (k) => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
@@ -189091,7 +189226,7 @@ async function renderRondoSong(song, opts = {}) {
     throw new RondoAudioError(`This host renders songs up to ${maxSeconds} s long; ${seconds3} s was asked for.`, "rondo.limits.seconds");
   }
   const key2 = `${digestOf(song)}|${seconds3 ?? "natural"}|${maxSeconds}`;
-  const sourceDigest = createHash11("sha256").update(rondoSourceBytes(song)).digest("hex");
+  const sourceDigest = createHash12("sha256").update(rondoSourceBytes(song)).digest("hex");
   const report4 = (k, cached2) => ({
     sampleRate: k.sampleRate,
     channels: k.channels,
@@ -191478,7 +191613,7 @@ init_resvg_admission();
 // packages/node-shell/src/speech.ts
 init_session();
 init_src2();
-import { readFileSync as readFileSync6 } from "node:fs";
+import { readFileSync as readFileSync7 } from "node:fs";
 import { readFile as readFile14 } from "node:fs/promises";
 import { createRequire as createRequire4 } from "node:module";
 import { isAbsolute as isAbsolute2, join as join18 } from "node:path";
@@ -191736,7 +191871,7 @@ function voiceMatrix(modelsDir, voice) {
   const held = voiceMatrices.get(key2);
   if (held) return held;
   const path = modelFilePath(modelsDir, "kokoro", `voices/${voice}.bin`);
-  const raw = readFileSync6(path);
+  const raw = readFileSync7(path);
   const data = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength));
   if (data.byteLength !== KOKORO_VOICE_BYTES) {
     throw new Error(
@@ -192326,7 +192461,7 @@ init_text_bidi();
 // packages/node-shell/src/fallback-fonts-node.ts
 init_content_roots();
 init_fallback_fonts();
-import { existsSync as existsSync11, readFileSync as readFileSync7 } from "node:fs";
+import { existsSync as existsSync11, readFileSync as readFileSync8 } from "node:fs";
 import { join as join22 } from "node:path";
 var listed = /* @__PURE__ */ new Map();
 function diskFallbackPacks(roots2 = contentRoots()) {
@@ -192338,7 +192473,7 @@ function diskFallbackPacks(roots2 = contentRoots()) {
     const path = join22(shared.dir, "index.json");
     if (!existsSync11(path)) continue;
     try {
-      entries.push(...JSON.parse(readFileSync7(path, "utf8")).assets ?? []);
+      entries.push(...JSON.parse(readFileSync8(path, "utf8")).assets ?? []);
     } catch {
     }
   }
@@ -195391,7 +195526,7 @@ init_design_system2();
 init_src();
 init_content_roots();
 init_state_dir();
-import { existsSync as existsSync18, readFileSync as readFileSync9 } from "node:fs";
+import { existsSync as existsSync18, readFileSync as readFileSync10 } from "node:fs";
 import { isAbsolute as isAbsolute3, join as join32, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
@@ -195536,7 +195671,7 @@ function entriesOf(parsed) {
 function readPresetFile(file) {
   let text13;
   try {
-    text13 = readFileSync9(file, "utf8");
+    text13 = readFileSync10(file, "utf8");
   } catch (err) {
     throw new RebrandPresetError("preset.unreadable", `The preset file ${file} could not be read: ${err instanceof Error ? err.message : String(err)}`);
   }
@@ -200578,7 +200713,7 @@ init_design_brief2();
 
 // packages/node-shell/src/token-report.ts
 init_src2();
-import { createHash as createHash13 } from "node:crypto";
+import { createHash as createHash14 } from "node:crypto";
 var TOKEN_REPORT_LIMITS = Object.freeze({
   /** Rows a token list returns when the caller gives no limit. */
   listDefault: 50,
@@ -200603,7 +200738,7 @@ var TokenReportError = class extends Error {
 };
 var clampWhole = (value2, fallback, min, max) => typeof value2 === "number" && Number.isFinite(value2) ? Math.min(max, Math.max(min, Math.trunc(value2))) : fallback;
 function tokenRevision(doc) {
-  return `sha256:${createHash13("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
+  return `sha256:${createHash14("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
 }
 function storedTokenChoices(doc) {
   return resolveTokenSelection(doc, {}).choices;
@@ -202217,7 +202352,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash14 } from "node:crypto";
+import { createHash as createHash15 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -202722,7 +202857,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = stru
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash14("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash15("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -202787,7 +202922,7 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash15, createHmac, randomUUID as randomUUID3 } from "node:crypto";
+import { createHash as createHash16, createHmac, randomUUID as randomUUID3 } from "node:crypto";
 import { mkdtemp as mkdtemp4, readFile as readFile33, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
 import { join as join35 } from "node:path";
@@ -202799,7 +202934,7 @@ var ENTRY_LIMIT = 200;
 var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function bearerPrincipal(header) {
   const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
-  return bearer ? createHash15("sha256").update(bearer).digest("hex") : null;
+  return bearer ? createHash16("sha256").update(bearer).digest("hex") : null;
 }
 function privateFileScopeEnabled(env) {
   return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
@@ -202861,7 +202996,7 @@ var ResultFiles = class {
       this.directory ??= mkdtemp4(join35(tmpdir5(), "lolly-mcp-results-"));
       file = join35(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
-      const digest2 = createHash15("sha256").update(bytes2).digest("hex");
+      const digest2 = createHash16("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
       const filename = safeFileName(name);
       this.entries.set(id3, { owner: owner3, path, file, expires, size: bytes2.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
@@ -202890,7 +203025,7 @@ var ResultFiles = class {
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
     const bytes2 = await readFile33(entry2.file);
-    if (bytes2.byteLength !== entry2.size || createHash15("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    if (bytes2.byteLength !== entry2.size || createHash16("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
   }
@@ -204090,7 +204225,7 @@ var RESOURCE_TEMPLATES = [
   { uriTemplate: "lolly://design-system/skill/{name}", name: "Brand skill", description: "One brand skill as SKILL.md. The brand's body is unchanged; frontmatter metadata says which asset, revision and checksum it is.", mimeType: "text/markdown" },
   { uriTemplate: "lolly://design-system/skill/{name}/{path}", name: "Brand skill file", description: "A reference of one brand skill, its lolly.json companion, or coverage.json: what the skill says against what Lolly checks.", mimeType: "application/json" },
   { uriTemplate: "lolly://tool/{id}", name: "Tool details", description: "A tool manifest summary + input JSON Schema + examples.", mimeType: "application/json" },
-  { uriTemplate: "lolly://tool/{id}/preview", name: "Tool preview", description: "The tool's committed catalog preview (SVG), where one exists.", mimeType: "image/svg+xml" },
+  { uriTemplate: "lolly://tool/{id}/preview", name: "Tool preview", description: "The tool's committed gallery preview, where one exists: SVG text, or a WebP or PNG blob for a tool whose preview is a picture." },
   { uriTemplate: "lolly://asset/{id}", name: "Brand asset", description: "A catalog asset (logo, palette, font) resolved to bytes.", mimeType: "application/octet-stream" }
 ];
 function headTokensAsset2(assets) {
@@ -204128,15 +204263,27 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
+var PREVIEW_TYPES = { svg: "image/svg+xml", webp: "image/webp", png: "image/png" };
+function previewCandidates(id3, indexed) {
+  const catalog = Object.keys(PREVIEW_TYPES).map((ext) => `/catalog/previews/${id3}.${ext}`);
+  const cards = ["svg", "png"].map((ext) => `/tools/${id3}/card.${ext}`);
+  const plain = typeof indexed === "string" ? indexed.replace(/^\/tools\/([a-z0-9-]+)@[0-9a-f]{16}\//, "/tools/$1/").replace(/^(\/catalog\/previews\/[a-z0-9-]+)\.[0-9a-f]{16}(\.[a-z]+)$/, "$1$2") : null;
+  const first = plain !== null && [...cards, ...catalog].includes(plain) ? [plain] : [];
+  return [.../* @__PURE__ */ new Set([...first, ...catalog])];
+}
 async function previewResource(uri, id3) {
-  for (const file of [`${id3}.svg`, `${id3}.look0.svg`]) {
+  const entry2 = (await loadIndex().catch(() => null))?.tools.find((t) => t.id === id3);
+  for (const url of previewCandidates(id3, entry2?.preview)) {
+    const file = contentUrl(url);
+    if (!file) continue;
+    const mimeType = PREVIEW_TYPES[url.slice(url.lastIndexOf(".") + 1)];
     try {
-      const text13 = await readFile34(join36(previewsDir(), file), "utf8");
-      return { uri, mimeType: "image/svg+xml", text: text13 };
+      const bytes2 = await readFile34(file);
+      return mimeType === "image/svg+xml" ? { uri, mimeType, text: bytes2.toString("utf8") } : { uri, mimeType, blob: bytes2.toString("base64") };
     } catch {
     }
   }
-  throw new Error(`No SVG preview for tool: ${id3}`);
+  throw new Error(`No preview for tool: ${id3}`);
 }
 async function assetResource(uri, id3) {
   if (isHostedServer() && !isPublicBrandSkillAsset(assetIndex().assets.find((a) => a.id === id3))) throw new Error(`Asset not found: ${id3}`);
@@ -204235,7 +204382,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash16 } from "node:crypto";
+import { createHash as createHash17 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -204379,7 +204526,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes2) ? (await runJxl({ operation: "probe", bytes: bytes2 }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash16("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash17("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request3, signal, execution = "device") {
   return executeFileOperationV1(file, request3, {
@@ -204985,10 +205132,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash18 } from "node:crypto";
+import { createHash as createHash19 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash17 } from "node:crypto";
+import { createHash as createHash18 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -205121,7 +205268,7 @@ function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace3, scope2, subject) {
-  return createHash17("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash18("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -205591,10 +205738,10 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash18("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt6}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash19("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt6}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
-    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash18("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash19("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
     vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
@@ -205683,7 +205830,7 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { createHash as createHash19 } from "node:crypto";
+import { createHash as createHash20 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
@@ -205791,13 +205938,13 @@ async function proxyImage(reqUrl, opts) {
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
   }
-  const etag = `"${createHash19("sha256").update(bytes2).digest("hex")}"`;
+  const etag = `"${createHash20("sha256").update(bytes2).digest("hex")}"`;
   const headers = {
     "content-type": rawType,
     ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
     etag,
     vary: "Accept-Encoding",
-    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash19("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash20("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
     "content-security-policy": "sandbox",
     "x-content-type-options": "nosniff",
     "content-disposition": "inline",
@@ -206078,7 +206225,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash20 } from "node:crypto";
+import { createHash as createHash21 } from "node:crypto";
 
 // services/mcp/src/admission-namespace.ts
 function admissionNamespace(env) {
@@ -206446,7 +206593,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash20("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash21("sha256").update(auth).digest("hex");
       const refusal3 = await limited2(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal3) return send(res, refusal3);
       const spent = await overBudget(budget3);

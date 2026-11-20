@@ -13,7 +13,7 @@
  *
  * The same shape as scripts/tool-isolation.ts, which writes `isolate` from evidence, but the
  * evidence goes beside `tool.json` rather than into it (packages/node-shell/src/
- * browser-free-record.ts), so no engine or app ever reads it. A record's verdict is `resvg`
+ * browser-free-record.ts), a file no engine or app ever reads. A record's verdict is `resvg`
  * only when the tool has at least one case the per-render checks admit and every such case
  * is inside every plan 326 band against the browser tier (scripts/lib/browser-free/
  * compare.ts); otherwise `browser`. The cases live in scripts/data/browser-free-cases.json.

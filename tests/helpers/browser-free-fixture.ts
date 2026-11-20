@@ -2,7 +2,7 @@
 /**
  * A `browser-free.json` for a test fixture tool: the record scripts/tool-browser-free.ts
  * would write, with the fixture's own files as its digest. A fixture whose own test checks
- * what the browser-free route draws carries one; the route admits no tool without it.
+ * what the browser-free route draws carries one, since the route admits no tool without a record.
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

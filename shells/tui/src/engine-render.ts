@@ -333,7 +333,7 @@ export async function exportToFile(
   // The design-system record (plans/319): the export panel's Design system row sets it
   // per export, so the runtime's own exports and the Tier-B URL read one switch.
   if (typeof dims.madeWith === 'boolean') runtime.setMadeWith(dims.madeWith);
-  /** A Design page the Node bridge drew from the operations: its route and the credentialed pictures it drew (plan 326). */
+  /** A Design page the Node bridge drew from the operations: its route and every credentialed picture the document places, on any page (plan 326). */
   type DrawnHere = { pictures: IngredientCredential[]; route: DesignExportRouteRecord | null };
   const write = async (bytes: Uint8Array, viaWebShell = false, drawn?: DrawnHere): Promise<number> => {
     // Optionally stamp Content Credentials (C2PA) as the LAST byte operation - same rule

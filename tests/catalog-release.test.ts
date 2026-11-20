@@ -163,7 +163,6 @@ function neutralDist(dir: string, index: Record<string, unknown>): void {
     mkdirSync(join(dir, sub), { recursive: true });
   }
   writeFileSync(join(dir, 'catalog/tools/index.json'), '{}');
-  writeFileSync(join(dir, 'catalog/previews/bundle.json'), '{}');
   writeFileSync(join(dir, 'tools/qr-code/tool.json'), '{}');
   writeFileSync(join(dir, 'viz-presets/index.json'), JSON.stringify([{ id: 'geiss-collide' }]));
   writeFileSync(join(dir, 'viz-presets/geiss-collide.json'), '{}');

@@ -43,7 +43,7 @@ interface ProfilesFile { default: string; profiles: Record<string, Profile> }
 /** The per-profile catalog pipeline, exactly what `pnpm run build:catalog` runs.
  *  checksum-assets is told to skip the shared asset roots here, because those files
  *  are not per-brand: SHARED below stamps them once for every profile. */
-const BUILD = ['build-catalog-index.ts', 'checksum-assets.ts --skip-shared', 'build-preview-bundle.ts'];
+const BUILD = ['build-catalog-index.ts', 'checksum-assets.ts --skip-shared'];
 
 /** The shared half, run once before the per-profile loop. */
 const SHARED = 'checksum-assets.ts --shared-only';

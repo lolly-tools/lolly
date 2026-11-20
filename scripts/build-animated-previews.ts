@@ -26,21 +26,16 @@
  * (shells/web/src/lib/preview-media.ts owns that one policy). So an animated preview costs
  * a user who never hovers exactly nothing.
  *
- * It writes COMMITTED authored overrides in the tool dir, which win over any build-generated
- * preview and (unlike catalog/previews/*, which `pnpm run previews` regenerates) are never
- * clobbered:
- *   • kind:'looks' → tools/<id>/look<i>.png|.webm  (one clip per manifest example - the
- *                    example carousel tile; build-preview-bundle.ts references it and
- *                    build-previews skips regenerating that look)
- *   • kind:'card'  → tools/<id>/card.png|.webm     (the single gallery card; an APNG card.png
- *                    and a card.webm both resolve to `anim` in build-catalog-index, which
- *                    sniffs the acTL chunk to tell an animated card.png from a still one)
+ * It writes a COMMITTED authored override in the tool dir, which wins over any build-generated
+ * preview and (unlike catalog/previews/*, which `pnpm run previews` regenerates) is never
+ * clobbered: tools/<id>/card.png|.webm, the single gallery card. An APNG card.png and a
+ * card.webm both resolve to `anim` in build-catalog-index, which sniffs the acTL chunk to
+ * tell an animated card.png from a still one. The example looks are not clips: the gallery
+ * renders those live.
  *
  * Files are kept deliberately SMALL - a gallery tile is tiny. Each job picks a modest size /
  * low fps / short loop; the console prints the resulting KB against the plans/155 WP-5.2
- * budget (250 KB a look, 300 KB an APNG card, 400 KB a WebM) and flags a job that exceeds it.
- * Prefer a card-only clip over animating every example unless the tool's whole point is the
- * moving mascot.
+ * budget (300 KB an APNG card, 400 KB a WebM) and flags a job over that budget.
  *
  * Needs a running web shell - point --url at `pnpm run dev:web` (default localhost:5173). The
  * generator relies on the app's __lollyCaptureMotion hook (shells/web/src/views/tool.ts).
@@ -84,10 +79,10 @@ import { webGpuLaunchArgs } from '@lolly-tools/node-shell/webgpu-launch';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CANVAS_SEL = '#tool-canvas, #tool-content';
 
-/** One render job - a tool's example looks, or its single card, as a small looping clip. */
+/** One render job - a tool's single card, as a small looping clip. */
 interface Job {
   tool: string;
-  kind: 'looks' | 'card';
+  kind: 'card';
   /** Container: 'apng' (default) for a flat idle loop, 'webm' where APNG's per-frame PNGs
    *  would balloon. See the header for which is which. */
   format?: MotionFormat;
@@ -101,8 +96,6 @@ interface Job {
   wait?: number;
   /** kind:'card' - the look to render (falls back to the tool defaults when absent). */
   values?: Record<string, unknown>;
-  /** kind:'looks' - restrict to these example indices (default: all). */
-  only?: number[];
   /** palette size for the ffmpeg quantise pass (default 128; 0 disables → raw RGBA APNG).
    *  APNG only - a WebM is already inter-frame coded and has no palette. */
   colors?: number;
@@ -119,11 +112,9 @@ const FORMATS: Record<MotionFormat, { ext: string; mime: string }> = {
 
 /** plans/155 WP-5.2 byte budgets. Over-budget is reported, never silently written: a tile
  *  that costs more than the page it sits on is the thing this whole work package is fixing. */
-const BUDGET_KB: Record<string, number> = { 'apng-card': 300, 'apng-looks': 250, 'webm-card': 400, 'webm-looks': 400 };
+const BUDGET_KB: Record<string, number> = { 'apng-card': 300, 'webm-card': 400 };
 
-// The catalog's animated tiles. Prefer a single card clip (kind:'card') per tool to avoid a
-// pile of big files; kind:'looks' is for a tool whose whole point is the moving mascot (the
-// retired bag-video was the canon case).
+// The catalog's animated tiles: one card clip (kind:'card') per tool.
 //
 // The 2026-08-26 motion probe proposed several candidates. Only ONE is a job so far, and
 // deliberately: a candidate is not a job, each needs a person to look at the tool and write
@@ -239,29 +230,10 @@ async function runJob(context: BrowserContext, job: Job): Promise<void> {
 
   const ext = FORMATS[job.format ?? 'apng'].ext;
 
-  if (job.kind === 'card') {
-    const query = seedQuery(manifest, job.values ?? {});
-    const bytes = await renderMotion(context, job.tool, query, job);
-    if (bytes) await writeAndReport(join(toolDir, `card.${ext}`), bytes, job);
-    else console.log(`  ✗ ${job.tool} card - capture failed`);
-    return;
-  }
-
-  // looks
-  const looks: Array<{ values?: Record<string, unknown> }> =
-    (manifest as { examples?: unknown[]; featured?: { variants?: unknown[] } }).examples as never
-    ?? (manifest as { featured?: { variants?: unknown[] } }).featured?.variants as never
-    ?? [];
-  if (!looks.length) { console.log(`  · ${job.tool}: no examples - skipped`); return; }
-  for (let i = 0; i < looks.length; i++) {
-    if (job.only && !job.only.includes(i)) continue;
-    const values = looks[i]?.values;
-    if (!values || typeof values !== 'object') continue;
-    const query = seedQuery(manifest, values);
-    const bytes = await renderMotion(context, job.tool, query, job);
-    if (bytes) await writeAndReport(join(toolDir, `look${i}.${ext}`), bytes, job);
-    else console.log(`  ✗ ${job.tool} look${i} - capture failed`);
-  }
+  const query = seedQuery(manifest, job.values ?? {});
+  const bytes = await renderMotion(context, job.tool, query, job);
+  if (bytes) await writeAndReport(join(toolDir, `card.${ext}`), bytes, job);
+  else console.log(`  ✗ ${job.tool} card - capture failed`);
 }
 
 /** Only the look's OWN (dirty) inputs ride the URL - identical to seed-url.ts / build-previews. */

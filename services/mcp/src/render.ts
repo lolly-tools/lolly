@@ -58,7 +58,7 @@ import {
 } from './browser-jobs.ts';
 import { installBrowserEgressPolicy } from './egress.ts';
 
-/** A Design page the Node bridge drew from the operations: its route and the credentialed pictures it drew (plan 326). */
+/** A Design page the Node bridge drew from the operations: its route and every credentialed picture the document places, on any page (plan 326). */
 export interface DrawnHere { pictures: IngredientCredential[]; route: DesignExportRouteRecord | null }
 
 export { closeWebShell };
@@ -1104,7 +1104,7 @@ export async function stampC2pa(
   ingredients: C2paSourceIngredient[] = [],
   /** The design-system record the file's own metadata carries (plans/319), for the credential. */
   meta: Pick<ExportMeta, 'designSystem' | 'designVersion' | 'themes' | 'brandSkills' | 'brandPage'> | null = null,
-  /** What a browser-free render drew from the operations: its credentialed pictures and its route (plan 326). */
+  /** What a browser-free render drew from the operations: the document's credentialed pictures and its route (plan 326). */
   drawn: DrawnHere | null = null,
   /** What the browser's credential, which this one replaces, recorded about the pictures placed in the file. */
   carried: PlacedPictures | null = null,

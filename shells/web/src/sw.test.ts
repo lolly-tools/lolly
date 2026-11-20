@@ -324,11 +324,11 @@ describe('service worker: the app shell key', () => {
   test('install precaches the app shell and nothing else', async () => {
     // Whatever install writes into the generation bucket is a copy every later load is
     // served from until the next CACHE bump, so the list is the app shell alone.
-    // /catalog/previews/bundle.json used to be on it, and the cost was paid twice: a
-    // duplicate fetch on every cold load, and - when the file changed FORMAT (inlined
-    // SVG payload → manifest of URLs, the v15 bump) - a held copy of the old shape that
-    // lib/preview-bundle.ts can no longer read. Precached, that copy outlives the deploy;
-    // left to the /catalog/previews/ SWR route, it is one stale hop that self-heals.
+    // The old preview-look manifest used to be on it, and the cost was paid twice: a
+    // duplicate fetch on every cold load, and - when the file changed FORMAT (the v15
+    // bump) - a held copy of the old shape that the page could no longer read.
+    // Precached, that copy outlives the deploy; left to the /catalog/previews/ SWR
+    // route, it is one stale hop that self-heals.
     const h = loadServiceWorker();
     await h.install();
     const generation = [...h.caches.entries()].find(([name]) => name.startsWith('lolly-v'));
@@ -360,7 +360,7 @@ describe('service worker: the app shell key', () => {
     //
     // This list is the whole of PERSISTENT_CACHES, deliberately: every entry a
     // CACHE bump must NOT touch is asserted here, so the routine "bump the
-    // generation because sw.js changed" (v15 for the bundle.json format change)
+    // generation because sw.js changed" (v15 for the preview manifest format change)
     // is covered by a test rather than by reading the filter in activate. The two
     // added with that bump are 'lolly-installed' (sideloaded .lolly tools, which
     // have NO network home - wiping it uninstalls them) and 'lolly-ort-hf'.

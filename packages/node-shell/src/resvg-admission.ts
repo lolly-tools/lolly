@@ -48,7 +48,7 @@ export interface ResvgRouteFacts {
 /** Whether one tool may take this route at all, before any render is judged. */
 export interface ToolRouteFact {
   id: string;
-  /** The tool's `browser-free.json` admits it, and the shell trusts the tool to say so. */
+  /** The tool's `browser-free.json` admits the tool, and the shell trusts the tool's own files. */
   browserFree: boolean;
   /** A sideloaded or remote tool, which its own files cannot admit to the route. */
   untrusted: boolean;

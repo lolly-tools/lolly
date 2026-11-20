@@ -2268,52 +2268,6 @@ function appHref(lang: Lang, hash: string): string {
 }
 
 /**
- * Block 2 - "Make something, right now". Three worked examples from the reader's
- * own life; the caption names the SCENE, never the tool ("A code for the party",
- * not "QR Code Generator").
- *
- * Each card is a plain link into the app carrying the example's own inputs, so a
- * click opens the tool already filled in - the same "you get the config you saw"
- * contract the gallery's example carousel has, expressed as a URL because a
- * static page has no gallery to click.
- *
- * The three tools are pinned in tests/docs-claims.test.ts. All three are
- * community tools (present on every profile), declare no capabilities, and make
- * no network request of any kind - so this block keeps working with the Wi-Fi
- * off, which is the claim block 3 makes one screen further down.
- *
- * The picture is the tool's OWN preview of that exact look, copied out of the
- * active brand's catalog at build time (build(): /info/examples/). Faithful by
- * construction: what the card shows is what the click gives you. A profile whose
- * catalog has no preview for a look renders the card without its picture rather
- * than a broken image.
- */
-interface Scene { tool: string; look: string; query: string; scene: string; line: string; alt: string }
-const LANDING_SCENES: Scene[] = [
-  // The prefilled URL is the VISITOR's job, not ours (plans/168 WP-5): the card sells
-  // "a code for the invitation", so the first artifact a stranger makes must be that
-  // invitation. rsvp.example is a reserved example domain (RFC 2606) - obviously not a
-  // real organisation's link, per the no-invented-history rule.
-  { tool: 'qr-code', look: 'qr-code.look0.svg',
-    query: 'url=https%3A%2F%2Frsvp.example%2Fmidsummer-party&color=%231a1a2e&background=%23faf7f2',
-    scene: 'A code for the invitation',
-    line: 'Print it on the invite or pin it to the noticeboard, and everyone lands in the right place.',
-    alt: 'A square QR code in dark ink on warm paper' },
-  // Slot 2 is the audiogram (Andy, 2026-08-17): the camera-shy path deserves featuring.
-  // The query seeds the manifest's own look0 example so the preview and the click agree.
-  { tool: 'audiogram', look: 'audiogram.look0.svg',
-    query: 'title=Slow%20is%20smooth%2C%20smooth%20is%20fast&subtitle=The%20Build%20Notes%20podcast%20%C2%B7%20Ep.%2041&style=bars',
-    scene: 'Feeling shy? Your voice is plenty',
-    line: 'A voice note becomes a finished video: moving waveform, your words on the cover, your colours. No camera, no makeup needed.',
-    alt: 'An audiogram video cover with a title and a sound waveform' },
-  { tool: 'filter', look: 'filter.look1.svg',
-    query: 'effect=duotone',
-    scene: 'A photo, ready for the poster',
-    line: 'Drop in a picture and it takes on your two colours, so the poster looks like it was planned.',
-    alt: 'A photograph recoloured in two flat brand colours' },
-];
-
-/**
  * The FAQ, its own page since plans/177 (/info/start/faq.html): the same native
  * <details> accordion the landing used to inline, plus the deep-link opener.
  * NAMED function (not an inline arrow) so scripts/check-docs-nav.ts can recover
@@ -7465,25 +7419,9 @@ async function build() {
     console.log(`✓  /info/diagrams/ (${copyDiagrams(diagramsSrc, resolve(outDir, 'diagrams'))} specification diagrams)`);
   }
 
-  // Block 2's worked examples (plan 117): each card shows the tool's OWN preview of
-  // the exact look its link seeds, so what the reader sees is what the click gives
-  // them. Copied verbatim out of the ACTIVE brand's catalog - these are signed
-  // artifacts, so they are copied, never rewritten - and mirrored, not accumulated.
-  // A brand whose catalog has no preview for a look ships that card without a
-  // picture, which is why this is a warning, not a fail.
+  // The landing's worked-example pictures are retired. An older local build can still
+  // hold the folder, so it is removed rather than left to ride into the offline download.
   rmSync(resolve(outDir, 'examples'), { recursive: true, force: true });
-  const previewDir = catalogFile('previews');
-  const havePreviews = LANDING_SCENES.filter(s => existsSync(resolve(previewDir, s.look)));
-  if (havePreviews.length) {
-    mkdirSync(resolve(outDir, 'examples'), { recursive: true });
-    for (const s of havePreviews) copyFileSync(resolve(previewDir, s.look), resolve(outDir, 'examples', s.look));
-    console.log(`✓  /info/examples/ (${havePreviews.length} worked-example previews)`);
-  }
-  for (const s of LANDING_SCENES) {
-    if (!existsSync(resolve(previewDir, s.look))) {
-      console.warn(`⚠  landing example: this brand's catalog has no ${s.look} - the "${s.scene}" card ships without its picture`);
-    }
-  }
 
   // Banked art - the signed mastheads and figures, served verbatim at
   // /info/mastheads/ and /info/figures/ (the shots precedent). The page inlines a

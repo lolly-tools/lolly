@@ -36,7 +36,12 @@ import type { ExportMeta } from '@lolly-tools/core/host-v1';
 // `idml` and `premiere-xml` sit beside `lottie` for the same reason: the CLI bridge
 // writes them with engine/src/design-idml.ts and design-premiere.ts from the authored
 // document the runtime hands over (`sourceDocument`), so no browser is needed for them.
-export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'penpot', 'lottie', 'idml', 'premiere-xml', 'jxl', 'jxl-lossless', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
+// The caption and palette text formats (srt, vtt, ttml, scc, css, scss, gpl) are here for
+// the reason csv and ics are: the engine hydrates a sibling text template and hands the
+// host the finished text (`DATA_FORMATS` in engine/src/runtime.ts), so nothing is drawn.
+// They were missing, which sent `--export=css` to a browser that had no part in the job.
+// tests/cli-node-formats.test.ts fails when the engine gains a text format this list lacks.
+export const NODE_FORMATS = ['svg', 'svgz', 'emf', 'wmf', 'eps', 'eps-cmyk', 'dxf', 'penpot', 'lottie', 'idml', 'premiere-xml', 'jxl', 'jxl-lossless', 'bmp', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md', 'srt', 'vtt', 'ttml', 'scc', 'css', 'scss', 'gpl'];
 
 /**
  * Audio and MIDI formats a tool's own `exportStill` hook writes (the Rondocode
