@@ -144,6 +144,7 @@ test('the router keeps a loader in #view instead of fading or clearing it', asyn
   const { readFileSync } = await import('node:fs');
   const main = readFileSync(new URL('../main.ts', import.meta.url), 'utf8');
   assert.match(main, /const holdingLoader = view\.querySelector\(':scope > p\.loading'\) !== null;/);
-  assert.match(main, /!returning && !holdingLoader\)\s*\n\s*\? beginViewFade\(view\)/);
+  // A tool open holds the snapshot still (view-fade.ts); the loader guard is the same.
+  assert.match(main, /!returning && !holdingLoader\)\s*\n\s*\? beginViewFade\(view, \{ hold: route\.name === 'tool' \}\)/);
   assert.match(main, /route\.name !== prevRouteName && !holdingLoader\) view\.replaceChildren\(\);/);
 });

@@ -28,7 +28,7 @@ import { showGalleryWelcome } from './views/gallery-welcome.ts';
 import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
-import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
+import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref, prefersReducedMotion } from './lib/a11y-prefs.ts';
 import { hydrateHand } from './lib/hand-pref.ts';
 import { startLayoutPosture } from './lib/layout-posture.ts';
 import { startFoldSegments } from './lib/fold-segment.ts';
@@ -79,7 +79,7 @@ import { initSelectPreview } from './select-preview.ts';
 import { installDepthSeam } from './lib/depth-seam.ts';
 import { recordTool, recordBatch, bumpMetric, recordFormat } from './metrics.ts';
 import { announce } from './a11y.ts';
-import { beginViewFade } from './view-fade.ts';
+import { afterNextPaint, beginViewFade } from './view-fade.ts';
 import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
 import { installDropHold, viewFailed, viewLoading, viewReady, type DropNote } from './lib/drop-early.ts';
 import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView, rememberViewOnLeave } from './lib/back-nav.ts';
@@ -503,6 +503,14 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   mountedRouteSig = routeSig;
   routeLoading?.close();
   if (routeSig !== prevSig && !isIframeMode()) recordFeaturedRoute(route);
+  // Opening a tool from another view: let the pressed card paint first (view-fade.ts).
+  // Everything below up to the first await can run in the task of the click, and on a
+  // slow phone it held the first frame back far enough that the card's pressed state was
+  // never seen. Reduced motion keeps the immediate swap it always had.
+  if (route.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool' && !prefersReducedMotion()) {
+    await afterNextPaint();
+    if (navigation !== navigationSeq) return;
+  }
 
   // Remember the view being left so the next view's back pill can name it and
   // return there (lib/back-nav.ts). Only on a genuine view change: the routes
@@ -579,8 +587,11 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // leaves it in place until the incoming view replaces it, as a cold deep link does,
   // so the loading card's own check sees it and one loader shows, not two.
   const holdingLoader = view.querySelector(':scope > p.loading') !== null;
+  // Opening a tool holds the snapshot still and fades it out quickly once the tool has
+  // rendered (view-fade.ts): a tool mount is long, and the outgoing view's own animations
+  // kept the main thread busy for all of it (plan 371, M2b).
   const fade = (prevRouteName && route.name !== prevRouteName && !returning && !holdingLoader)
-    ? beginViewFade(view)
+    ? beginViewFade(view, { hold: route.name === 'tool' })
     : null;
 
   // Scoping classes, from ROUTES: every class any route declares is toggled on

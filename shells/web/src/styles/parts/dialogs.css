@@ -66,6 +66,13 @@
 .view-loading-mark .lolly-mark__spin-1 { animation: view-loading-spin 2.4s linear infinite; }
 .view-loading-mark .lolly-mark__spin-2 { animation: view-loading-spin 4.6s linear infinite reverse; }
 .view-loading-mark .lolly-mark__spin-3 { animation: view-loading-spin 7s linear infinite; }
+/* The mark carries both shadings and the theme shows one (components.css). The hidden
+   one must not spin: an animation on a display:none ring has nothing to draw, so the
+   browser cannot run it on the compositor and ran it on the main thread instead, a
+   style pass for the whole page on every frame while the card was up. The shown rings
+   spin on the compositor and keep turning while the main thread is busy. */
+:root:not([data-theme="dark"], [data-theme="brand"]) .view-loading-mark .lolly-mark__reverse :is(.lolly-mark__spin-1, .lolly-mark__spin-2, .lolly-mark__spin-3),
+:is([data-theme="dark"], [data-theme="brand"]) .view-loading-mark .lolly-mark__primary :is(.lolly-mark__spin-1, .lolly-mark__spin-2, .lolly-mark__spin-3) { animation: none; }
 @keyframes view-loading-spin { to { transform: rotate(360deg); } }
 @keyframes view-loading-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
 @media (prefers-reduced-motion: reduce) {

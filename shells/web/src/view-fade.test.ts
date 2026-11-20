@@ -13,6 +13,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 
 const dom = new JSDOM('<!doctype html><html><body><main id="view" class="app-view gallery-view"></main></body></html>', { pretendToBeVisual: true });
@@ -28,7 +29,7 @@ globalThis.matchMedia = ((q: string) => ({
   onchange: null, dispatchEvent: () => false,
 })) as unknown as typeof globalThis.matchMedia;
 
-const { beginViewFade } = await import('./view-fade.ts');
+const { afterNextPaint, beginViewFade, VIEW_FADE_HOLD_CLASS } = await import('./view-fade.ts');
 
 /** A fresh #view seeded with some content, detached overlays cleared. */
 function freshView(): HTMLElement {
@@ -96,6 +97,88 @@ test('supersede: a second fade drops the first overlay so they never stack', () 
   first!.commit();
   assert.equal(document.querySelectorAll('.view-fade').length, 1, 'superseded commit is a no-op on the live overlay');
   second!.commit();
+});
+
+test('hold: a tool open marks the snapshot to be held still before the nodes move in', () => {
+  reduceMotion = false;
+  const view = freshView();
+  // The class must be on the overlay when the outgoing nodes arrive, so none of their
+  // animations runs a frame in it (parts/base.css pauses them under .view-fade--hold).
+  const classesSeen: string[] = [];
+  const proto = dom.window.HTMLElement.prototype;
+  const append = proto.appendChild;
+  proto.appendChild = function <T extends Node>(this: HTMLElement, node: T): T {
+    if (this.classList.contains('view-fade')) classesSeen.push(this.className);
+    return append.call(this, node) as T;
+  };
+  let handle: ReturnType<typeof beginViewFade>;
+  try { handle = beginViewFade(view, { hold: true }); }
+  finally { proto.appendChild = append; }
+  assert.ok(handle!, 'a held fade still returns a handle');
+  const overlay = document.querySelector('.view-fade') as HTMLElement;
+  assert.ok(overlay.classList.contains(VIEW_FADE_HOLD_CLASS));
+  assert.ok(classesSeen.length > 0 && classesSeen.every(c => c.split(' ').includes(VIEW_FADE_HOLD_CLASS)),
+    'every outgoing node moved into an overlay that was already held');
+  assert.equal(view.childNodes.length, 0);
+  handle!.commit();
+});
+
+test('hold: other navigations keep the ordinary fade, and reduced motion still makes no snapshot', () => {
+  reduceMotion = false;
+  const plain = beginViewFade(freshView());
+  assert.equal(document.querySelector('.view-fade')!.classList.contains(VIEW_FADE_HOLD_CLASS), false);
+  plain!.commit();
+
+  reduceMotion = true;
+  const view = freshView();
+  assert.equal(beginViewFade(view, { hold: true }), null, 'reduced motion: no snapshot, held or not');
+  assert.equal(document.querySelector('.view-fade'), null);
+  assert.ok(view.textContent?.includes('old content'));
+  reduceMotion = false;
+});
+
+test('the router holds the snapshot for a tool open and for nothing else', () => {
+  const main = readFileSync(new URL('./main.ts', import.meta.url), 'utf8');
+  const calls = [...main.matchAll(/beginViewFade\(([^)]*\)?)\)/g)].map(m => m[1]!.replace(/\s+/g, ' ').trim());
+  assert.deepEqual(calls, ["view, { hold: route.name === 'tool' }"],
+    'navigate() makes one snapshot, held only when the incoming route is a tool');
+  // The pressed card paints before the teardown, for a tool open from another view and
+  // only with motion allowed: reduced motion keeps its immediate swap.
+  const wait = main.indexOf('await afterNextPaint();');
+  assert.ok(wait > 0, 'navigate() waits for a painted frame on a tool open');
+  const guard = main.slice(main.lastIndexOf('if (', wait), wait);
+  assert.match(guard, /route\.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool' && !prefersReducedMotion\(\)/);
+  assert.ok(wait < main.indexOf('view._cleanup?.()', main.indexOf('async function navigate(')), 'before the outgoing view is torn down');
+  assert.ok(wait < main.indexOf('beginViewFade(view'), 'and before the snapshot is taken');
+});
+
+test('afterNextPaint: after a frame, at once on a hidden page', async () => {
+  let painted = false;
+  requestAnimationFrame(() => { painted = true; });
+  await afterNextPaint();
+  assert.equal(painted, true, 'resolves only after the next frame');
+
+  // With a task scheduler the wait ends as a user-blocking task, ahead of queued timers.
+  const priorities: string[] = [];
+  (globalThis as { scheduler?: unknown }).scheduler = {
+    postTask(cb: () => void, o: { priority: string }) { priorities.push(o.priority); queueMicrotask(cb); },
+  };
+  try { await afterNextPaint(); }
+  finally { delete (globalThis as { scheduler?: unknown }).scheduler; }
+  assert.deepEqual(priorities, ['user-blocking']);
+
+  const visibility = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(document), 'visibilityState')!;
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
+  try {
+    let settled = false;
+    const p = afterNextPaint().then(() => { settled = true; });
+    await Promise.resolve();
+    assert.equal(settled, true, 'a hidden page gets no frame, so the navigation does not wait for one');
+    await p;
+  } finally {
+    delete (document as unknown as Record<string, unknown>).visibilityState;
+    Object.defineProperty(Object.getPrototypeOf(document), 'visibilityState', visibility);
+  }
 });
 
 test('commit tears the overlay down (safety-net timeout, since jsdom fires no transitionend)', async () => {
