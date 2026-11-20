@@ -6,10 +6,6 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
-## 1.350.0
-
-- A tool manifest may declare `render.browserFree: true`: the tool's browser-free raster (the Node shells' resvg route for PNG, BMP, JPEG XL, EXR, HDR and the HDR stills) was measured inside the plan 326 fidelity bands against the browser tier. `scripts/tool-browser-free.ts` writes it from evidence, as `scripts/tool-isolation.ts` writes `isolate`; nobody sets it by hand. Declared in both schema copies and the SDK's `RenderSpec`. The engine only admits the field: the CLI, the TUI and MCP read it (`toolAdmission` in `packages/node-shell/src/resvg-admission.ts`), honour it only for a built-in tool, and still judge each render feature by feature. A tool that carries the field needs this engine, since an older one's schema refuses the key. 1.349.0 is taken by PR #1035 (exact SVG picture sizes and gradient stops), so the two need merging in order.
-
 ## 1.348.0
 
 - A `select` input can declare `display: "picker"` (chrome only): the web sidebar draws one button showing the current option, and pressing it opens a panel of option tiles grouped under headings, a bottom sheet on a phone. Two optional option fields go with it. `options[].glyph` is SVG path data for a 24 by 24 box, drawn as an outline, at most 900 characters of path commands and numbers, so a tool brings its own pictures and the shell's icon registry does not grow. `options[].group` is a short heading; options that share one are drawn together in manifest order, groups in order of first appearance. Declared in both schema copies, the SDK's `SelectOption` and `InputSpec`, and the engine's input types. The engine, the CLI, the TUI and MCP carry the fields and keep a plain select.

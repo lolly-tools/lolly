@@ -40,6 +40,7 @@ import sharp from 'sharp';
 import { findJpegSegment, scanJpegSegments, JPEG_APP_IDS } from '../engine/src/jpeg-segments.ts';
 import { ISO_GAINMAP_URN } from '../engine/src/gainmap-jpeg.ts';
 import { extractC2paStore } from '../engine/src/c2pa-extract.ts';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 // ─── self-contained fixture repo ────────────────────────────────────────────
 
@@ -65,10 +66,12 @@ await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({ 
 await mkdir(join(root, 'tools', 'swatch'), { recursive: true });
 await writeFile(join(root, 'tools', 'swatch', 'tool.json'), JSON.stringify({
   id: 'swatch', name: 'swatch', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
-  render: { width: W, height: H, formats: ['svg', 'png', 'jpg'], browserFree: true }, // browserFree: the fixture's own assertions check what the browser-free route draws.
+  render: { width: W, height: H, formats: ['svg', 'png', 'jpg'] },
   inputs: [{ id: 'fill', type: 'color', label: 'Fill', default: '#ffffff' }],
 }));
 await writeFile(join(root, 'tools', 'swatch', 'template.html'), SWATCH);
+// Admitted to the browser-free route by its own record; the assertions below check the drawing.
+writeBrowserFreeFixture(join(root, 'tools', 'swatch'));
 
 // Pin the run chain to the fixture BEFORE the first import, and pin the browser tier
 // to a directory with no built shell so it is deterministically absent. LOLLY_WEB_BASE

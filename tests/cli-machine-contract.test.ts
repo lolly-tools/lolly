@@ -26,6 +26,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BIN = join(HERE, '..', 'shells', 'cli', 'bin', 'lolly.ts');
@@ -40,7 +41,7 @@ function manifest(id: string, extra: Record<string, unknown> = {}): string {
   return JSON.stringify({
     id, name: id, version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
     description: `${id} description`,
-    render: { width: 120, height: 80, formats: ['svg', 'png'], browserFree: true }, // browserFree: the fixture's own assertions check what the browser-free route draws.
+    render: { width: 120, height: 80, formats: ['svg', 'png'] },
     inputs: [{ id: 'label', type: 'text', label: 'Label', default: 'Hamburg' }],
     ...extra,
   });
@@ -89,6 +90,9 @@ await writeFile(join(root, 'tools', 'loud-tool', 'hooks.js'),
   '  console.info("more noise");\n' +
   '  return {};\n' +
   '}\n');
+// Admitted to the browser-free route by their own records, written after the hooks so the
+// digest is over the final files.
+for (const id of ['vec-tool', 'loud-tool']) writeBrowserFreeFixture(join(root, 'tools', id));
 
 function cli(args: string[], extraEnv: Record<string, string> = {}): Promise<{ stdout: Buffer; stderr: string; code: number }> {
   return new Promise((done) => {

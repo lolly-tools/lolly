@@ -22,6 +22,7 @@
  */
 import { decodeDataUrl, iccProfileBytes, imageDimensions, jpegSegmentBody, scanJpegSegments } from '@lolly/engine';
 import { cleanJpeg } from './pdf-images.ts';
+import { browserFreeStatus, readBrowserFreeRecord, toolSourceDigest } from './browser-free-record.ts';
 
 export type ResvgRefusalCode =
   | 'unmeasured' | 'paged' | 'draft-mark' | 'canvas-pixels' | 'fallback-faces' | 'layout' | 'css-variable' | 'css-animation' | 'live-text' | 'html'
@@ -47,27 +48,40 @@ export interface ResvgRouteFacts {
 /** Whether one tool may take this route at all, before any render is judged. */
 export interface ToolRouteFact {
   id: string;
-  /** The manifest's `render.browserFree`, honoured for this tool's trust class. */
+  /** The tool's `browser-free.json` admits it, and the shell trusts the tool to say so. */
   browserFree: boolean;
-  /** A sideloaded or remote tool, which its own manifest cannot admit to the route. */
+  /** A sideloaded or remote tool, which its own files cannot admit to the route. */
   untrusted: boolean;
+  /** Why a record that once admitted the tool no longer does (browser-free-record.ts). */
+  stale?: string;
 }
 
 /**
- * Which tools this route draws: those whose manifest carries `render.browserFree`, which
- * `scripts/tool-browser-free.ts` writes only when every measured case of the tool came
- * out inside the plan 326 bands against the browser tier, the way `isolate` is written
- * from evidence by `scripts/tool-isolation.ts`. Plain vector drawing that one tool draws
- * inside the bands another can draw outside them (Colour Palette's swatch edges came out
- * 0.7% to 1.7% over 24 levels where the band is 0.5%), so admission is per tool.
+ * Which tools this route draws: those with a `browser-free.json` beside `tool.json` whose
+ * verdict is `resvg` and which still describes the tool (browser-free-record.ts). The
+ * record is written by `scripts/tool-browser-free.ts` only when every measured case of the
+ * tool came out inside the plan 326 bands against the browser tier, the way `isolate` is
+ * written from evidence by `scripts/tool-isolation.ts`. Plain vector drawing that one tool
+ * draws inside the bands another can draw outside them (Colour Palette's swatch edges came
+ * out 0.7% to 1.7% over 24 levels where the band is 0.5%), so admission is per tool.
  *
- * Trust is the receiving shell's, never the manifest's: a sideloaded or remote tool
- * (`sideloaded-consented`, `remote-untrusted`, the classes `isolate` forces into strict
- * isolation) is never admitted by its own flag.
+ * The record lives outside `tool.json` so that no engine or app reads it: an app on any
+ * engine keeps every tool. Trust is the receiving shell's, never the tool's: a sideloaded
+ * or remote tool (`sideloaded-consented`, `remote-untrusted`, the classes `isolate` forces
+ * into strict isolation) is never admitted, whatever its folder holds, and the record is
+ * read only from the active profile's own tool packs through the resolver.
  */
-export function toolAdmission(tool: { manifest: { id: string; render?: { browserFree?: boolean } }; trustClass?: string }): ToolRouteFact {
+export function toolAdmission(tool: { manifest: { id: string; version?: string }; trustClass?: string }): ToolRouteFact {
+  const id = tool.manifest.id;
   const untrusted = tool.trustClass === 'sideloaded-consented' || tool.trustClass === 'remote-untrusted';
-  return { id: tool.manifest.id, browserFree: !untrusted && tool.manifest.render?.browserFree === true, untrusted };
+  if (untrusted) return { id, browserFree: false, untrusted };
+  const read = readBrowserFreeRecord(id);
+  if (!read) return { id, browserFree: false, untrusted };
+  if ('problem' in read) return { id, browserFree: false, untrusted, stale: read.problem };
+  // The digest is over the tool's files as the resolver serves them. The loaded tool's own
+  // template is not the file: a shell annotates it for click-to-edit before it mounts.
+  const status = browserFreeStatus(read.record, { id, version: String(tool.manifest.version ?? ''), digest: toolSourceDigest(id) });
+  return { id, browserFree: status.admitted, untrusted, ...(status.stale ? { stale: status.stale } : {}) };
 }
 
 /**
@@ -108,7 +122,9 @@ export function routeRefusals(facts: ResvgRouteFacts = {}): ResvgRefusal[] {
   if (facts.tool && !facts.tool.browserFree) {
     out.push({ code: 'unmeasured', reason: facts.tool.untrusted
       ? `the ${facts.tool.id} tool is sideloaded or remote, and such a tool cannot admit itself to this route`
-      : `the ${facts.tool.id} tool has not been measured inside the fidelity bands on this route (no render.browserFree)` });
+      : facts.tool.stale
+        ? `the ${facts.tool.id} tool's browser-free record no longer describes it (${facts.tool.stale}); run scripts/tool-browser-free.ts again`
+        : `the ${facts.tool.id} tool has not been measured inside the fidelity bands on this route (no browser-free.json admits it)` });
   }
   if (facts.paged) out.push({ code: 'paged', reason: 'a paged document, whose pages the browser writes at their print size' });
   if (facts.draftMark) out.push({ code: 'draft-mark', reason: 'this experimental tool marks its exports DRAFT, and that mark is drawn by the browser' });

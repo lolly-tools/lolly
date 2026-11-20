@@ -1,20 +1,24 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * tool-browser-free - decide, from evidence, which tools the Node shells may draw as a
- * PNG with resvg and no browser, and write the manifest `render.browserFree` flag.
+ * PNG with resvg and no browser, and write each tool's `browser-free.json` record.
  *
- *   node scripts/tool-browser-free.ts                    # report: each tool's flag and its cases
+ *   node scripts/tool-browser-free.ts                    # report: each measured tool's record and whether it admits
  *   node scripts/tool-browser-free.ts --verify           # + draw every case through both tiers and compare
- *   node scripts/tool-browser-free.ts --verify --write   # + set or clear the flag where the evidence says
+ *   node scripts/tool-browser-free.ts --verify --write   # + write each tool's record from the evidence
  *   node scripts/tool-browser-free.ts --write --from=<dir>   # reuse a finished --verify run's results.json
  *
  *   --tools=a,b   only these tools      --out=<dir>   where the run's files go (default: a temp folder)
+ *   --web-commit=<sha>   the commit the compared web shell was built from (default: this checkout's HEAD)
  *
- * The same shape as scripts/tool-isolation.ts, which writes `isolate`. A tool is flagged
- * only when it has at least one case the per-render checks admit, and every such case is
- * inside every plan 326 band against the browser tier (scripts/lib/browser-free/compare.ts).
- * The cases live in scripts/data/browser-free-cases.json. The flag admits a tool; each
- * render is still judged by packages/node-shell/src/resvg-admission.ts.
+ * The same shape as scripts/tool-isolation.ts, which writes `isolate` from evidence, but the
+ * evidence goes beside `tool.json` rather than into it (packages/node-shell/src/
+ * browser-free-record.ts), so no engine or app ever reads it. A record's verdict is `resvg`
+ * only when the tool has at least one case the per-render checks admit and every such case
+ * is inside every plan 326 band against the browser tier (scripts/lib/browser-free/
+ * compare.ts); otherwise `browser`. The cases live in scripts/data/browser-free-cases.json.
+ * The record admits a tool; each render is still judged by packages/node-shell/src/
+ * resvg-admission.ts.
  *
  * Needs a built web shell (LOLLY_WEB_DIST, or shells/web/dist), a Chromium the node shell
  * can launch, and sharp. Without them it says so by name and writes nothing. Each case
@@ -23,17 +27,17 @@
  * never part of ordinary CI. The cases use the lolly-demo pictures, so run it with
  * LOLLY_PROFILE=lolly-demo; a case whose picture the active profile lacks is reported.
  */
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { createHash } from 'node:crypto';
-import { compareVersions, rangeFloor } from './tool-requires.ts';
+import { BANDS } from './lib/browser-free/compare.ts';
+import { BROWSER_FREE_FILE, BROWSER_FREE_RECORD_VERSION, browserFreeStatus, readBrowserFreeRecord, toolSourceDigest, type BrowserFreeRecordV1 } from '../packages/node-shell/src/browser-free-record.ts';
+import { toolFile } from '../packages/node-shell/src/content-roots.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_ROOTS = ['community', 'brands/suse/tools', 'brands/lolly-start/tools', 'brands/lolly-demo/tools'];
 const CASES_FILE = join(ROOT, 'scripts', 'data', 'browser-free-cases.json');
 const HOOK = join(ROOT, 'scripts', 'lib', 'browser-free', 'tier-hook.ts');
 
@@ -61,62 +65,6 @@ export function browserFreeVerdict(outcomes: readonly CaseOutcome[]): { eligible
   return { eligible: drawn.length > 0 && outside.length === 0 && errors.length === 0, drawn: drawn.length, inside: drawn.length - outside.length, outside, refused: outcomes.filter((o) => !o.drawn && !o.error).length, errors };
 }
 
-/** The engine that admits `render.browserFree`: an older one's schema refuses the key, so a flagged tool requires this one. */
-export const BROWSER_FREE_SINCE = '1.350.0';
-
-/** Raise a manifest's `engineVersion` floor to `floor` when it states a lower one, keeping the file's formatting. */
-export function withEngineFloor(raw: string, floor: string): string {
-  const line = /("engineVersion"\s*:\s*")([^"]*)(")/.exec(raw);
-  if (!line) throw new Error('manifest has no engineVersion');
-  const current = rangeFloor(line[2]);
-  return current && compareVersions(current, floor) >= 0 ? raw : raw.replace(line[0], `${line[1]}^${floor}${line[3]}`);
-}
-
-/**
- * Set or clear `render.browserFree` textually, keeping the file's formatting: an existing
- * key takes the new value or is removed with its comma, and a new one goes first in the
- * render block. The result is parsed back and must say what was asked.
- */
-export function rewriteBrowserFree(raw: string, on: boolean): string {
-  const key = /"browserFree"\s*:\s*(?:true|false)/;
-  let out: string;
-  if (on && key.test(raw)) out = raw.replace(key, '"browserFree": true');
-  else if (on) {
-    const render = /("render"\s*:\s*\{)(\n?)([ \t]*)/.exec(raw);
-    if (!render) throw new Error('manifest declares no render block');
-    const [whole, open, newline, indent] = render;
-    const empty = /^\s*\}/.test(raw.slice(render.index + whole.length));
-    out = raw.replace(whole, newline ? `${open}\n${indent}"browserFree": true${empty ? '' : ','}\n${indent}` : `${open}"browserFree": true${empty ? '' : ','}`);
-  } else {
-    out = raw
-      .replace(/\n[ \t]*"browserFree"\s*:\s*(?:true|false)[ \t]*,/, '')
-      .replace(/"browserFree"\s*:\s*(?:true|false)\s*,\s*/, '')
-      .replace(/,\s*"browserFree"\s*:\s*(?:true|false)/, '')
-      .replace(/"browserFree"\s*:\s*(?:true|false)/, '');
-  }
-  const parsed = JSON.parse(out) as { render?: { browserFree?: unknown } };
-  if ((parsed.render?.browserFree === true) !== on || (!on && parsed.render && 'browserFree' in parsed.render)) throw new Error('could not rewrite render.browserFree');
-  return out;
-}
-
-/** What the evidence for one tool was measured over: its own files, with the two fields this script writes left out. */
-export function toolDigest(dir: string): string {
-  const parts: string[] = [];
-  for (const name of ['tool.json', 'template.html', 'styles.css', 'hooks.js']) {
-    const file = join(dir, name);
-    if (!existsSync(file)) continue;
-    let text = readFileSync(file, 'utf8');
-    if (name === 'tool.json') {
-      const manifest = JSON.parse(text) as { engineVersion?: unknown; render?: { browserFree?: unknown } };
-      delete manifest.engineVersion;
-      if (manifest.render) delete manifest.render.browserFree;
-      text = JSON.stringify(manifest);
-    }
-    parts.push(`${name}\n${text}`);
-  }
-  return createHash('sha256').update(parts.join('\n')).digest('hex');
-}
-
 /**
  * Outcomes reused with `--from` count only when they cover every current case of the tool,
  * with the same arguments, over the same tool files. Anything else is reported as missing
@@ -135,14 +83,6 @@ export function staleEvidence(outcomes: readonly CaseOutcome[], cases: readonly 
 
 export function loadCases(file = CASES_FILE): BrowserFreeCase[] {
   return (JSON.parse(readFileSync(file, 'utf8')) as { cases: BrowserFreeCase[] }).cases;
-}
-
-function toolDirs(root: string): string[] {
-  const abs = resolve(ROOT, root);
-  if (!existsSync(abs)) return [];
-  return readdirSync(abs)
-    .filter((d) => !d.startsWith('_') && !d.startsWith('.') && statSync(join(abs, d)).isDirectory() && existsSync(join(abs, d, 'tool.json')))
-    .map((d) => join(abs, d));
 }
 
 /** Why the measurement cannot run here, or null when it can. */
@@ -174,7 +114,7 @@ export async function verifyCases(cases: readonly BrowserFreeCase[], out: string
   const { layoutRegions } = await import('./lib/browser-free/regions.ts');
   const { getBrowser, closeBrowser } = await import('../packages/node-shell/src/browsers.ts');
   const { rasterizeSvgToRgba } = await import('../packages/node-shell/src/raster.ts');
-  const { toolFile, readAssetIndex, contentUrlFile } = await import('../packages/node-shell/src/content-roots.ts');
+  const { readAssetIndex, contentUrlFile } = await import('../packages/node-shell/src/content-roots.ts');
   for (const d of ['resvg', 'browser', 'svg', 'tagged', 'no-web']) mkdirSync(join(out, d), { recursive: true });
 
   // {alphaPng}: the demo's wide picture as a PNG with transparency, 1075 x 656.
@@ -189,10 +129,10 @@ export async function verifyCases(cases: readonly BrowserFreeCase[], out: string
 
   const outcomes: CaseOutcome[] = [];
   const stamp = (o: CaseOutcome, c: BrowserFreeCase): void => {
-    const file = toolFile(c.tool, 'tool.json');
-    outcomes.push({ ...o, args: c.args, ...(file ? { digest: toolDigest(dirname(file)) } : {}) });
+    outcomes.push({ ...o, args: c.args, ...(toolFile(c.tool, 'tool.json') ? { digest: toolSourceDigest(c.tool) } : {}) });
   };
   const browser = await getBrowser();
+  chromiumVersion = browser.version();
   const page = await browser.newPage();
   try {
     for (const c of cases) {
@@ -227,7 +167,35 @@ export async function verifyCases(cases: readonly BrowserFreeCase[], out: string
     await closeBrowser();
   }
   writeFileSync(join(out, 'results.json'), JSON.stringify(outcomes, null, 2));
+  writeFileSync(join(out, 'run.json'), JSON.stringify({ chromium: chromiumVersion }, null, 2));
   return outcomes;
+}
+
+let chromiumVersion = 'unknown';
+
+/** The record a run writes for one tool. `run` holds what the whole run compared. */
+export function recordFor(tool: { id: string; version: string; digest: string }, outcomes: readonly CaseOutcome[], run: BrowserFreeRecordV1['measured']): BrowserFreeRecordV1 {
+  return {
+    version: BROWSER_FREE_RECORD_VERSION,
+    tool,
+    verdict: browserFreeVerdict(outcomes).eligible ? 'resvg' : 'browser',
+    measured: run,
+    cases: outcomes.map((o) => ({
+      name: o.name, args: o.args ?? [],
+      result: o.error ? 'error' : !o.drawn ? 'refused' : o.inBands ? 'inside' : 'outside',
+      ...(o.error ? { detail: o.error } : o.refusal ? { detail: o.refusal } : o.faults?.length ? { detail: o.faults.join('; ') } : {}),
+    })),
+  };
+}
+
+/** The commit this checkout is at, for the record's web shell field when none is given. */
+function headCommit(): string {
+  const r = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' });
+  return r.status === 0 ? r.stdout.trim() : 'unknown';
+}
+
+function resvgVersion(): string {
+  try { return (createRequire(join(ROOT, 'packages', 'node-shell', 'package.json'))('@resvg/resvg-js/package.json') as { version: string }).version; } catch { return 'unknown'; }
 }
 
 export async function run(argv = process.argv.slice(2)): Promise<number> {
@@ -237,44 +205,49 @@ export async function run(argv = process.argv.slice(2)): Promise<number> {
   const only = argv.find((a) => a.startsWith('--tools='))?.slice('--tools='.length).split(',').filter(Boolean);
   const cases = loadCases().filter((c) => !only || only.includes(c.tool));
   let outcomes: CaseOutcome[] | null = null;
-  if (fromArg) outcomes = JSON.parse(readFileSync(join(fromArg, 'results.json'), 'utf8')) as CaseOutcome[];
+  let runDir: string | null = null;
+  if (fromArg) { outcomes = JSON.parse(readFileSync(join(fromArg, 'results.json'), 'utf8')) as CaseOutcome[]; runDir = fromArg; }
   else if (verify) {
     const missing = missingPrerequisite();
     if (missing) {
-      console.log(`tool-browser-free: skipped, ${missing}. Nothing was measured and no manifest was changed.`);
+      console.log(`tool-browser-free: skipped, ${missing}. Nothing was measured and no record was written.`);
       return 0;
     }
-    const out = argv.find((a) => a.startsWith('--out='))?.slice('--out='.length) ?? mkdtempSync(join(tmpdir(), 'lolly-browser-free-'));
-    console.log(`tool-browser-free: ${cases.length} case(s), files in ${out}`);
-    outcomes = await verifyCases(cases, out);
+    runDir = argv.find((a) => a.startsWith('--out='))?.slice('--out='.length) ?? mkdtempSync(join(tmpdir(), 'lolly-browser-free-'));
+    console.log(`tool-browser-free: ${cases.length} case(s), files in ${runDir}`);
+    outcomes = await verifyCases(cases, runDir);
   }
-  const byTool = new Map<string, CaseOutcome[]>();
-  for (const o of outcomes ?? []) byTool.set(o.tool, [...(byTool.get(o.tool) ?? []), o]);
-  const measured = new Set(cases.map((c) => c.tool));
-  let set = 0, cleared = 0;
-  for (const root of DEFAULT_ROOTS) {
-    for (const dir of toolDirs(root)) {
-      const manifestPath = join(dir, 'tool.json');
-      const raw = readFileSync(manifestPath, 'utf8');
-      const manifest = JSON.parse(raw) as { id: string; render?: { browserFree?: boolean; formats?: string[] } };
-      const state = manifest.render?.browserFree === true;
-      if (!state && !measured.has(manifest.id)) continue;
-      if (only && !only.includes(manifest.id)) continue;
-      const results = byTool.get(manifest.id);
-      const stale = results ? staleEvidence(results, cases, manifest.id, toolDigest(dir)) : null;
-      const verdict = results ? browserFreeVerdict(stale ? [...results, { name: 'evidence', tool: manifest.id, drawn: false, error: stale }] : results) : null;
-      const mark = !verdict ? ' ' : verdict.eligible === state ? ' ' : verdict.eligible ? '+' : '-';
-      const detail = verdict ? ` drawn ${verdict.drawn}, inside ${verdict.inside}, refused ${verdict.refused}${verdict.outside.length ? `, outside: ${verdict.outside.join(' ')}` : ''}${verdict.errors.length ? `, errors: ${verdict.errors.join('; ')}` : ''}` : '';
-      console.log(`${mark} ${manifest.id.padEnd(24)} browserFree=${state}${detail}`);
-      // A tool whose cases could not all run is left as it is: missing evidence is not evidence.
-      if (write && verdict && !verdict.errors.length && verdict.eligible !== state) {
-        const next = verdict.eligible ? withEngineFloor(rewriteBrowserFree(raw, true), BROWSER_FREE_SINCE) : rewriteBrowserFree(raw, false);
-        writeFileSync(manifestPath, next);
-        if (verdict.eligible) set++; else cleared++;
-      }
+  const ran = runDir && existsSync(join(runDir, 'run.json')) ? JSON.parse(readFileSync(join(runDir, 'run.json'), 'utf8')) as { chromium?: string } : {};
+  const measured: BrowserFreeRecordV1['measured'] = {
+    date: new Date().toISOString().slice(0, 10),
+    profile: process.env.LOLLY_PROFILE ?? 'default',
+    webShell: argv.find((a) => a.startsWith('--web-commit='))?.slice('--web-commit='.length) ?? headCommit(),
+    renderers: { resvg: resvgVersion(), engine: (await import('../engine/src/version.ts')).ENGINE_VERSION, chromium: ran.chromium ?? 'unknown' },
+    bands: { threshold: BANDS.threshold, fillThreshold: BANDS.fillThreshold, regionShare: BANDS.regionShare, inkShare: BANDS.inkShare, inkShift: BANDS.inkShift, gradientLevels: BANDS.gradientLevels },
+  };
+  let written = 0;
+  for (const id of [...new Set(cases.map((c) => c.tool))].sort()) {
+    const manifestPath = toolFile(id, 'tool.json');
+    if (!manifestPath) { console.log(`  ${id.padEnd(24)} not in this profile`); continue; }
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { id: string; version: string };
+    const digest = toolSourceDigest(id);
+    const current = readBrowserFreeRecord(id);
+    const status = current && 'record' in current ? browserFreeStatus(current.record, { id, version: manifest.version, digest }) : null;
+    const now = current === null ? 'no record' : 'problem' in current ? `unreadable record (${current.problem})` : status?.admitted ? 'admitted' : status?.stale ? `stale (${status.stale})` : `verdict ${current.record.verdict}`;
+    const results = outcomes?.filter((o) => o.tool === id);
+    if (!results?.length) { console.log(`  ${id.padEnd(24)} ${now}`); continue; }
+    const stale = staleEvidence(results, cases, id, digest);
+    const verdict = browserFreeVerdict(stale ? [...results, { name: 'evidence', tool: id, drawn: false, error: stale }] : results);
+    const detail = `drawn ${verdict.drawn}, inside ${verdict.inside}, refused ${verdict.refused}${verdict.outside.length ? `, outside: ${verdict.outside.join(' ')}` : ''}${verdict.errors.length ? `, errors: ${verdict.errors.join('; ')}` : ''}`;
+    console.log(`${verdict.eligible ? '+' : '-'} ${id.padEnd(24)} ${now}; evidence: ${verdict.eligible ? 'resvg' : 'browser'} (${detail})`);
+    // A tool whose cases could not all run keeps its record: missing evidence is not evidence.
+    if (write && !verdict.errors.length) {
+      const record = recordFor({ id, version: manifest.version, digest }, results, measured);
+      writeFileSync(join(dirname(manifestPath), BROWSER_FREE_FILE), `${JSON.stringify(record, null, 2)}\n`);
+      written++;
     }
   }
-  if (write) console.log(`${set} tool(s) flagged, ${cleared} cleared. Run \`pnpm run build:catalog:all\` and \`pnpm run validate:catalog:all\` next.`);
+  if (write) console.log(`${written} record(s) written. Run \`pnpm run build:catalog:all\` and \`pnpm run validate:catalog:all\` next.`);
   return 0;
 }
 

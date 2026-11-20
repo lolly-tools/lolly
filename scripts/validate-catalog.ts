@@ -85,6 +85,7 @@ import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../en
 import { colourwaySurfaceIconThemes } from '../engine/src/brand-treatments.ts';
 import { checkToolIntents, parseToolIntents } from '../engine/src/intent.ts';
 import { TOOL_INTENTS_FILE } from '../packages/core/src/intent-v1.ts';
+import { BROWSER_FREE_FILE, browserFreeStatus, parseBrowserFreeRecord, toolSourceDigest } from '../packages/node-shell/src/browser-free-record.ts';
 // The head-vs-version asset rule and the reserved head slug (plans/97 section 6a). Imported
 // rather than re-stated: if the validator's idea of "this is a version asset" drifts
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
@@ -174,6 +175,7 @@ const slideMasterSchema = readJson('schemas/slide-master-v1.schema.json');
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateTool = ajv.compile<any>(toolSchema);
 const validateToolIntents = ajv.compile<any>(readJson('schemas/tool-intents-v1.schema.json'));
+const validateBrowserFree = ajv.compile<any>(readJson('schemas/browser-free-v1.schema.json'));
 const validateAsset = ajv.compile<any>(assetSchema);
 const validateTokens = ajv.compile<any>(tokensSchema);
 const validateRateCard = ajv.compile<any>(rateCardSchema);
@@ -329,6 +331,23 @@ for (const dir of toolDirs) {
       }
       for (const issue of checkToolIntents({ ...manifest, intents: parsedIntents.intents })) {
         errors.push(`[${dir}] ${TOOL_INTENTS_FILE} ${issue.path}: ${issue.message}`);
+      }
+    }
+  }
+  // A tool's optional browser-free.json (the evidence for the Node shells' resvg route,
+  // scripts/tool-browser-free.ts): the shape is an error, a record that no longer describes
+  // the tool only a warning, since a tool edit must not wait on a browser to re-measure.
+  const recordPath = toolFile(dir, BROWSER_FREE_FILE);
+  if (recordPath) {
+    const recordText = readFileSync(recordPath, 'utf8');
+    const parsedRecord = parseBrowserFreeRecord(recordText);
+    if ('problem' in parsedRecord) errors.push(`[${dir}] ${parsedRecord.problem}`);
+    else if (!validateBrowserFree(JSON.parse(recordText))) {
+      for (const err of validateBrowserFree.errors ?? []) errors.push(`[${dir}] ${BROWSER_FREE_FILE} ${err.instancePath} ${err.message}`);
+    } else {
+      const status = browserFreeStatus(parsedRecord.record, { id: manifest.id, version: manifest.version, digest: toolSourceDigest(dir) });
+      if (status.stale && parsedRecord.record.verdict === 'resvg') {
+        warnings.push(`[${dir}] ${BROWSER_FREE_FILE} is stale (${status.stale}): the CLI, TUI and MCP draw this tool's PNG in the browser tier until \`LOLLY_PROFILE=lolly-demo node scripts/tool-browser-free.ts --verify --write --tools=${dir}\` runs again`);
       }
     }
   }

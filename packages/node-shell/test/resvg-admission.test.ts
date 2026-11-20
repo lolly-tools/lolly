@@ -124,19 +124,19 @@ test('a picture shrunk past the measured limit is refused, through every transfo
   assert.deepEqual(await codes(svgDoc(`<g transform="scale(0.5)"><image href="${pic}" width="300" height="300"/></g>`), 100, 100), ['picture-downscale']);
 });
 
-test('the render facts refuse on their own, and a tool without render.browserFree is refused', () => {
-  const tool = (browserFree: boolean | undefined, trustClass?: string) => toolAdmission({ manifest: { id: 'qr-code', render: browserFree === undefined ? {} : { browserFree } }, ...(trustClass ? { trustClass } : {}) });
-  assert.deepEqual(routeRefusals({ tool: tool(true) }), []);
-  assert.deepEqual(routeRefusals({ tool: tool(true, 'builtin-verified') }), []);
-  assert.deepEqual(routeRefusals({ tool: tool(true, 'development-unsigned') }), [], 'an unsigned local catalog is the CLI\'s everyday case');
-  assert.match(routeRefusals({ tool: tool(undefined) })[0]!.reason, /has not been measured inside the fidelity bands on this route \(no render\.browserFree\)/);
-  assert.deepEqual(routeRefusals({ tool: tool(false) }).map((r) => r.code), ['unmeasured']);
-  // Trust is the shell's: a sideloaded or remote tool never admits itself, as with `isolate`.
+test('the render facts refuse on their own, and a tool its record does not admit is refused', () => {
+  const fact = (browserFree: boolean, extra: { untrusted?: boolean; stale?: string } = {}) => ({ id: 'qr-code', browserFree, untrusted: !!extra.untrusted, ...(extra.stale ? { stale: extra.stale } : {}) });
+  assert.deepEqual(routeRefusals({ tool: fact(true) }), []);
+  assert.match(routeRefusals({ tool: fact(false) })[0]!.reason, /has not been measured inside the fidelity bands on this route \(no browser-free\.json admits it\)/);
+  assert.match(routeRefusals({ tool: fact(false, { stale: 'the tool\'s files changed since the record was measured' }) })[0]!.reason, /browser-free record no longer describes it .*run scripts\/tool-browser-free\.ts again/);
+  // A tool with no record is not admitted, and trust is the shell's: a sideloaded or remote
+  // tool is never admitted, whatever its folder holds, as with `isolate`.
+  assert.deepEqual(toolAdmission({ manifest: { id: 'no-such-tool-here', version: '1.0.0' } }), { id: 'no-such-tool-here', browserFree: false, untrusted: false });
   for (const trustClass of ['sideloaded-consented', 'remote-untrusted']) {
-    assert.deepEqual(tool(true, trustClass), { id: 'qr-code', browserFree: false, untrusted: true });
-    assert.match(routeRefusals({ tool: tool(true, trustClass) })[0]!.reason, /sideloaded or remote, and such a tool cannot admit itself/);
+    assert.deepEqual(toolAdmission({ manifest: { id: 'qr-code', version: '2.8.0' }, trustClass }), { id: 'qr-code', browserFree: false, untrusted: true });
+    assert.match(routeRefusals({ tool: fact(false, { untrusted: true }) })[0]!.reason, /sideloaded or remote, and such a tool cannot admit itself/);
   }
-  assert.deepEqual(routeRefusals({ tool: tool(false), paged: true, draftMark: true, canvasPixels: true, fallbackFaces: true }).map((r) => r.code),
+  assert.deepEqual(routeRefusals({ tool: fact(false), paged: true, draftMark: true, canvasPixels: true, fallbackFaces: true }).map((r) => r.code),
     ['unmeasured', 'paged', 'draft-mark', 'canvas-pixels', 'fallback-faces']);
   const err = new ResvgRefusedError(routeRefusals({ draftMark: true }), 'bmp');
   assert.ok(isResvgRefusal(err));

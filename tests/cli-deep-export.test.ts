@@ -44,6 +44,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 const exec = promisify(execFile);
 
@@ -67,7 +68,7 @@ after(() => rm(root, { recursive: true, force: true }));
 function manifest(id: string, overrides: Record<string, unknown> = {}): string {
   return JSON.stringify({
     id, name: id, version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
-    render: { width: 40, height: 20, formats: ['svg', 'png'], browserFree: true }, // browserFree: the fixture's own assertions check what the browser-free route draws.
+    render: { width: 40, height: 20, formats: ['svg', 'png'] },
     inputs: [],
     ...overrides,
   });
@@ -102,7 +103,7 @@ await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({ 
 for (const [id, files] of Object.entries({
   swatch: {
     'tool.json': manifest('swatch', {
-      render: { width: 40, height: 20, formats: ['svg', 'png'], browserFree: true }, // browserFree: the fixture's own assertions check what the browser-free route draws.
+      render: { width: 40, height: 20, formats: ['svg', 'png'] },
       inputs: [{ id: 'fill', type: 'color', label: 'Fill', default: '#ffffff' }],
     }),
     'template.html': SWATCH('{{fill}}'),
@@ -121,6 +122,9 @@ for (const [id, files] of Object.entries({
     await writeFile(join(root, 'tools', id, name), content);
   }
 }
+// The browser-free route draws only a tool its browser-free.json admits; this fixture's
+// own assertions check what the route draws.
+writeBrowserFreeFixture(join(root, 'tools', 'swatch'));
 
 process.env.LOLLY_ROOT = root;
 const { runToolCli } = await import('../shells/cli/src/run.ts');
