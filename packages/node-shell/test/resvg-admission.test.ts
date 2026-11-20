@@ -8,6 +8,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { JSDOM } from 'jsdom';
 import {
@@ -15,6 +18,8 @@ import {
   ResvgRefusedError, resvgRefusalSentence, routeRefusals, svgPlacement, toolAdmission,
 } from '../src/resvg-admission.ts';
 import { finishTierAPng, rasterizeSvgToRgba } from '../src/raster.ts';
+import { BROWSER_FREE_FILE, BROWSER_FREE_MAX_BYTES, browserFreeRecordProblem, browserFreeStatus, readBrowserFreeText } from '../src/browser-free-record.ts';
+import { toolFile } from '../src/content-roots.ts';
 
 const svgDoc = (body: string, attrs = 'viewBox="0 0 100 100"'): string => `<svg xmlns="http://www.w3.org/2000/svg" ${attrs}>${body}</svg>`;
 const b64 = (s: string | Uint8Array): string => Buffer.from(s).toString('base64');
@@ -124,6 +129,40 @@ test('a picture shrunk past the measured limit is refused, through every transfo
   assert.deepEqual(await codes(svgDoc(`<g transform="scale(0.5)"><image href="${pic}" width="300" height="300"/></g>`), 100, 100), ['picture-downscale']);
 });
 
+test('a record admits the tool only as the resolver serves it, and only a whole record counts', async () => {
+  const { loadTool } = await import('@lolly/engine');
+  const { readToolText } = await import('../src/content-roots.ts');
+  const tool = await loadTool('qr-code', readToolText);
+  assert.deepEqual(toolAdmission(tool), { id: 'qr-code', browserFree: true, untrusted: false });
+  // The same id and version loaded from other files does not take this tool's record.
+  for (const changed of [{ template: `${tool.template} ` }, { styles: `${tool.styles ?? ''} ` }, { hooksSource: `${tool.hooksSource ?? ''} ` }]) {
+    const fact = toolAdmission({ ...tool, ...changed });
+    assert.equal(fact.browserFree, false);
+    assert.match(fact.stale!, /loaded from files other than the ones its record was measured on/);
+  }
+  // A record the schema refuses is no record at render time either.
+  const record = JSON.parse(readFileSync(toolFile('qr-code', BROWSER_FREE_FILE)!, 'utf8'));
+  assert.equal(browserFreeRecordProblem(record), null);
+  assert.match(browserFreeRecordProblem({ ...record, measured: undefined })!, /when and against what/);
+  assert.match(browserFreeRecordProblem({ ...record, cases: [] })!, /lists no cases/);
+  assert.match(browserFreeRecordProblem({ ...record, cases: [null] })!, /not a measured case/);
+  assert.match(browserFreeRecordProblem({ ...record, extra: 1 })!, /key a record does not carry/);
+  assert.match(browserFreeRecordProblem({ ...record, tool: { ...record.tool, digest: 'x' } })!, /which tool/);
+  // A resvg verdict stands only on its own cases.
+  const digest = record.tool.digest as string;
+  const onlyRefused = { ...record, cases: [{ name: 'a', args: [], result: 'refused' }] };
+  assert.match(browserFreeStatus(onlyRefused, { id: 'qr-code', version: record.tool.version, digest }).stale!, /do not support its verdict/);
+  // A file the record limit or larger is refused from its size, before it is read.
+  const dir = mkdtempSync(join(tmpdir(), 'browser-free-'));
+  try {
+    const big = join(dir, BROWSER_FREE_FILE);
+    writeFileSync(big, ' '.repeat(BROWSER_FREE_MAX_BYTES));
+    assert.deepEqual(readBrowserFreeText(big), { problem: `${BROWSER_FREE_FILE} is larger than a record` });
+    writeFileSync(big, '{}');
+    assert.deepEqual(readBrowserFreeText(big), { text: '{}' });
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
 test('the render facts refuse on their own, and a tool its record does not admit is refused', () => {
   const fact = (browserFree: boolean, extra: { untrusted?: boolean; stale?: string } = {}) => ({ id: 'qr-code', browserFree, untrusted: !!extra.untrusted, ...(extra.stale ? { stale: extra.stale } : {}) });
   assert.deepEqual(routeRefusals({ tool: fact(true) }), []);
@@ -131,9 +170,9 @@ test('the render facts refuse on their own, and a tool its record does not admit
   assert.match(routeRefusals({ tool: fact(false, { stale: 'the tool\'s files changed since the record was measured' }) })[0]!.reason, /browser-free record no longer describes it .*run scripts\/tool-browser-free\.ts again/);
   // A tool with no record is not admitted, and trust is the shell's: a sideloaded or remote
   // tool is never admitted, whatever its folder holds, as with `isolate`.
-  assert.deepEqual(toolAdmission({ manifest: { id: 'no-such-tool-here', version: '1.0.0' } }), { id: 'no-such-tool-here', browserFree: false, untrusted: false });
+  assert.deepEqual(toolAdmission({ manifest: { id: 'no-such-tool-here', version: '1.0.0' }, template: '<svg/>' }), { id: 'no-such-tool-here', browserFree: false, untrusted: false });
   for (const trustClass of ['sideloaded-consented', 'remote-untrusted']) {
-    assert.deepEqual(toolAdmission({ manifest: { id: 'qr-code', version: '2.8.0' }, trustClass }), { id: 'qr-code', browserFree: false, untrusted: true });
+    assert.deepEqual(toolAdmission({ manifest: { id: 'qr-code', version: '2.8.0' }, template: '<svg/>', trustClass }), { id: 'qr-code', browserFree: false, untrusted: true });
     assert.match(routeRefusals({ tool: fact(false, { untrusted: true }) })[0]!.reason, /sideloaded or remote, and such a tool cannot admit itself/);
   }
   assert.deepEqual(routeRefusals({ tool: fact(false), paged: true, draftMark: true, canvasPixels: true, fallbackFaces: true }).map((r) => r.code),

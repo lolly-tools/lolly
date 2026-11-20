@@ -50,7 +50,7 @@ test('a record admits only the version and files it was measured on', () => {
   assert.deepEqual(browserFreeStatus(record, tool), { admitted: true });
   assert.match(browserFreeStatus(record, { ...tool, version: '2.9.0' }).stale!, /measured on version 2\.8\.0, and the tool is now 2\.9\.0/);
   assert.match(browserFreeStatus(record, { ...tool, digest: 'b'.repeat(64) }).stale!, /files changed/);
-  assert.match(browserFreeStatus(record, { ...tool, id: 'gradient' }).stale!, /names the qr-code tool/);
+  assert.match(browserFreeStatus(record, { ...tool, id: 'gradient' }).stale!, /record is for the qr-code tool/);
   assert.deepEqual(browserFreeStatus(recordFor(tool, [drawn('a', false)], run), tool), { admitted: false }, 'a browser verdict admits nothing and is not stale');
 });
 

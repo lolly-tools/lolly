@@ -171101,7 +171101,7 @@ var init_pdf_images = __esm({
 
 // packages/node-shell/src/browser-free-record.ts
 import { createHash as createHash4 } from "node:crypto";
-import { readFileSync as readFileSync6 } from "node:fs";
+import { closeSync, fstatSync, openSync, readFileSync as readFileSync6, readSync } from "node:fs";
 function digestToolSources(read) {
   const hash = createHash4("sha256");
   for (const name of ["tool.json", "template.html", "styles.css", "hooks.js"]) {
@@ -171119,24 +171119,56 @@ function toolSourceDigest(id3) {
     return path ? readFileSync6(path, "utf8") : null;
   });
 }
+function browserFreeRecordProblem(value2) {
+  if (!isObject3(value2) || value2.version !== BROWSER_FREE_RECORD_VERSION) return `is not a version ${BROWSER_FREE_RECORD_VERSION} record`;
+  if (!onlyKeys(value2, ["version", "tool", "verdict", "measured", "cases"])) return "has a key a record does not carry";
+  const { tool, verdict: verdict2, measured, cases } = value2;
+  if (!isObject3(tool) || !onlyKeys(tool, ["id", "version", "digest"]) || typeof tool.id !== "string" || !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(tool.id) || !shortString(tool.version, 40, 1) || typeof tool.digest !== "string" || !/^[0-9a-f]{64}$/.test(tool.digest)) return "does not say which tool it measured";
+  if (verdict2 !== "resvg" && verdict2 !== "browser") return "has no verdict";
+  if (!isObject3(measured) || !onlyKeys(measured, ["date", "profile", "webShell", "renderers", "bands"]) || typeof measured.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(measured.date) || !shortString(measured.profile, 80) || !shortString(measured.webShell, 80)) return "does not say when and against what it was measured";
+  const { renderers, bands } = measured;
+  if (!isObject3(renderers) || !onlyKeys(renderers, ["resvg", "engine", "chromium"]) || !shortString(renderers.resvg, 40) || !shortString(renderers.engine, 40) || !shortString(renderers.chromium, 80)) return "does not list the renderers it compared";
+  if (!isObject3(bands) || !onlyKeys(bands, BAND_KEYS) || !BAND_KEYS.every((k) => typeof bands[k] === "number" && Number.isFinite(bands[k]))) return "does not list the bands it applied";
+  if (!Array.isArray(cases) || cases.length < 1 || cases.length > 200) return "lists no cases";
+  for (const c of cases) {
+    if (!isObject3(c) || !onlyKeys(c, ["name", "args", "result", "detail"]) || !shortString(c.name, 120) || !Array.isArray(c.args) || c.args.length > 40 || !c.args.every((arg) => shortString(arg, 16e3)) || typeof c.result !== "string" || !RESULTS.includes(c.result) || c.detail !== void 0 && !shortString(c.detail, 2e3)) return "has a case that is not a measured case";
+  }
+  return null;
+}
 function parseBrowserFreeRecord(text13) {
-  if (text13.length >= BROWSER_FREE_MAX_CHARS) return { problem: `${BROWSER_FREE_FILE} is larger than a record` };
+  if (text13.length >= BROWSER_FREE_MAX_BYTES) return { problem: `${BROWSER_FREE_FILE} is larger than a record` };
   let value2;
   try {
     value2 = JSON.parse(text13);
   } catch (err) {
     return { problem: `${BROWSER_FREE_FILE} is not JSON (${err.message})` };
   }
-  const r5 = value2;
-  if (!r5 || typeof r5 !== "object" || r5.version !== BROWSER_FREE_RECORD_VERSION) return { problem: `${BROWSER_FREE_FILE} is not a version ${BROWSER_FREE_RECORD_VERSION} record` };
-  if (!r5.tool || typeof r5.tool.id !== "string" || typeof r5.tool.version !== "string" || typeof r5.tool.digest !== "string") return { problem: `${BROWSER_FREE_FILE} does not say which tool it measured` };
-  if (r5.verdict !== "resvg" && r5.verdict !== "browser") return { problem: `${BROWSER_FREE_FILE} has no verdict` };
-  if (!Array.isArray(r5.cases)) return { problem: `${BROWSER_FREE_FILE} lists no cases` };
-  return { record: r5 };
+  const problem = browserFreeRecordProblem(value2);
+  return problem ? { problem: `${BROWSER_FREE_FILE} ${problem}` } : { record: value2 };
+}
+function readBrowserFreeText(path) {
+  const fd = openSync(path, "r");
+  try {
+    const { size } = fstatSync(fd);
+    if (size >= BROWSER_FREE_MAX_BYTES) return { problem: `${BROWSER_FREE_FILE} is larger than a record` };
+    const buffer = Buffer.alloc(size);
+    let read = 0;
+    while (read < size) {
+      const n7 = readSync(fd, buffer, read, size - read, read);
+      if (n7 === 0) break;
+      read += n7;
+    }
+    return { text: buffer.subarray(0, read).toString("utf8") };
+  } finally {
+    closeSync(fd);
+  }
 }
 function browserFreeStatus(record49, tool) {
-  if (record49.tool.id !== tool.id) return { admitted: false, stale: `the record names the ${record49.tool.id} tool` };
+  if (record49.tool.id !== tool.id) return { admitted: false, stale: `the record is for the ${record49.tool.id} tool` };
   if (record49.verdict !== "resvg") return { admitted: false };
+  if (!record49.cases.some((c) => c.result === "inside") || record49.cases.some((c) => c.result === "outside" || c.result === "error")) {
+    return { admitted: false, stale: "the record's cases do not support its verdict" };
+  }
   if (record49.tool.version !== tool.version) return { admitted: false, stale: `the record was measured on version ${record49.tool.version}, and the tool is now ${tool.version}` };
   if (record49.tool.digest !== tool.digest) return { admitted: false, stale: "the tool's files changed since the record was measured" };
   return { admitted: true };
@@ -171150,23 +171182,30 @@ function readBrowserFreeRecord(id3) {
   }
   if (!path) return null;
   try {
-    return parseBrowserFreeRecord(readFileSync6(path, "utf8"));
+    const read = readBrowserFreeText(path);
+    return "problem" in read ? read : parseBrowserFreeRecord(read.text);
   } catch (err) {
     return { problem: `${BROWSER_FREE_FILE} could not be read (${err.message})` };
   }
 }
-var BROWSER_FREE_FILE, BROWSER_FREE_RECORD_VERSION, BROWSER_FREE_MAX_CHARS;
+var BROWSER_FREE_FILE, BROWSER_FREE_RECORD_VERSION, BROWSER_FREE_MAX_BYTES, isObject3, onlyKeys, shortString, BAND_KEYS, RESULTS;
 var init_browser_free_record = __esm({
   "packages/node-shell/src/browser-free-record.ts"() {
     "use strict";
     init_content_roots();
     BROWSER_FREE_FILE = "browser-free.json";
     BROWSER_FREE_RECORD_VERSION = 1;
-    BROWSER_FREE_MAX_CHARS = 64e3;
+    BROWSER_FREE_MAX_BYTES = 64e3;
+    isObject3 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    onlyKeys = (v, keys2) => Object.keys(v).every((k) => keys2.includes(k));
+    shortString = (v, max, min = 0) => typeof v === "string" && v.length >= min && v.length <= max;
+    BAND_KEYS = ["threshold", "fillThreshold", "regionShare", "inkShare", "inkShift", "gradientLevels"];
+    RESULTS = ["inside", "outside", "refused", "error"];
   }
 });
 
 // packages/node-shell/src/resvg-admission.ts
+import { readFileSync as readFileSync7 } from "node:fs";
 function toolAdmission(tool) {
   const id3 = tool.manifest.id;
   const untrusted = tool.trustClass === "sideloaded-consented" || tool.trustClass === "remote-untrusted";
@@ -171175,7 +171214,26 @@ function toolAdmission(tool) {
   if (!read) return { id: id3, browserFree: false, untrusted };
   if ("problem" in read) return { id: id3, browserFree: false, untrusted, stale: read.problem };
   const status = browserFreeStatus(read.record, { id: id3, version: String(tool.manifest.version ?? ""), digest: toolSourceDigest(id3) });
+  if (status.admitted && !loadedFromResolver(id3, tool)) {
+    return { id: id3, browserFree: false, untrusted, stale: "the tool was loaded from files other than the ones its record was measured on" };
+  }
   return { id: id3, browserFree: status.admitted, untrusted, ...status.stale ? { stale: status.stale } : {} };
+}
+function loadedFromResolver(id3, tool) {
+  const file = (name) => {
+    try {
+      const path = toolFile(id3, name);
+      return path ? readFileSync7(path, "utf8") : null;
+    } catch {
+      return null;
+    }
+  };
+  if (tool.template !== file("template.html")) return false;
+  if ((tool.styles ?? null) !== file("styles.css")) return false;
+  const hooks = tool.manifest.hooks;
+  if (hooks && hooks.module !== true && (tool.hooksSource ?? null) !== file("hooks.js")) return false;
+  if (typeof tool.hooksSource === "string" && tool.hooksSource !== file("hooks.js")) return false;
+  return true;
 }
 function resvgRefusalSentence(refusals) {
   const reasons = [...new Set(refusals.map((r5) => r5.reason))];
@@ -171590,6 +171648,7 @@ var init_resvg_admission = __esm({
     init_src2();
     init_pdf_images();
     init_browser_free_record();
+    init_content_roots();
     MAX_PICTURE_SHRINK = 2;
     ResvgRefusedError = class extends Error {
       code = "RESVG_REFUSED";
@@ -177545,7 +177604,7 @@ function isApi3(e) {
   return e.memory instanceof WebAssembly.Memory && ["pdf_a11y_alloc", "pdf_a11y_free", "pdf_a11y_run", "pdf_a11y_result_ptr", "pdf_a11y_result_len"].every((k) => typeof e[k] === "function");
 }
 function readFinding(raw) {
-  if (!isObject3(raw) || typeof raw.message !== "string" || typeof raw.pattern !== "string") throw new Error("malformed finding");
+  if (!isObject4(raw) || typeof raw.message !== "string" || typeof raw.pattern !== "string") throw new Error("malformed finding");
   const values = Array.isArray(raw.values) ? raw.values.filter((v) => Array.isArray(v) && typeof v[0] === "string" && typeof v[1] === "string").map(([k, v]) => [k, v]) : [];
   const out = { message: raw.message, pattern: raw.pattern, values };
   if (typeof raw.page === "number" && Number.isInteger(raw.page) && raw.page >= 0) out.page = raw.page + 1;
@@ -177557,9 +177616,9 @@ function readFinding(raw) {
 }
 function parsePdfAccessibilityReport(json) {
   const raw = JSON.parse(json);
-  if (!isObject3(raw) || raw.v !== 1 || typeof raw.pages !== "number" || !Array.isArray(raw.rules)) throw new Error("malformed report");
+  if (!isObject4(raw) || raw.v !== 1 || typeof raw.pages !== "number" || !Array.isArray(raw.rules)) throw new Error("malformed report");
   const rules = raw.rules.map((r5) => {
-    if (!isObject3(r5) || typeof r5.id !== "string" || typeof r5.category !== "string" || typeof r5.status !== "string" || !STATUSES2.has(r5.status)) {
+    if (!isObject4(r5) || typeof r5.id !== "string" || typeof r5.category !== "string" || typeof r5.status !== "string" || !STATUSES2.has(r5.status)) {
       throw new Error("malformed rule");
     }
     return {
@@ -177638,7 +177697,7 @@ async function createPdfA11yKernel(wasm) {
       } catch {
         throw new PdfKeepTextError("damaged", "The result summary could not be read.");
       }
-      if (!isObject3(summary) || summary.v !== 1) throw new PdfKeepTextError("damaged", "The result summary could not be read.");
+      if (!isObject4(summary) || summary.v !== 1) throw new PdfKeepTextError("damaged", "The result summary could not be read.");
       return { bytes: out.slice(4 + headLength), summary };
     } finally {
       api.pdf_a11y_free(pointer2);
@@ -177648,7 +177707,7 @@ async function createPdfA11yKernel(wasm) {
     return retired;
   } };
 }
-var PDF_A11Y_MAX_BYTES, MAX_RESULT2, OP_CHECK, OP_REDACT, STATUSES2, PdfAccessibilityError, PdfKeepTextError, isObject3, REFUSAL, KEEP_TEXT_REFUSAL;
+var PDF_A11Y_MAX_BYTES, MAX_RESULT2, OP_CHECK, OP_REDACT, STATUSES2, PdfAccessibilityError, PdfKeepTextError, isObject4, REFUSAL, KEEP_TEXT_REFUSAL;
 var init_pdf_a11y = __esm({
   "packages/node-shell/src/pdf-a11y.ts"() {
     "use strict";
@@ -177673,7 +177732,7 @@ var init_pdf_a11y = __esm({
         this.code = code;
       }
     };
-    isObject3 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    isObject4 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     REFUSAL = /^(not-pdf|encrypted|damaged): ?(.*)$/s;
     KEEP_TEXT_REFUSAL = /^(not-pdf|encrypted|damaged|refused|bad-request): ?(.*)$/s;
   }
@@ -179484,7 +179543,7 @@ __export(text_measure_exports, {
   sfntVerticalMetrics: () => sfntVerticalMetrics,
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
-import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync9 } from "node:fs";
+import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync10 } from "node:fs";
 import { join as join26 } from "node:path";
 function firstFamily2(value2) {
   if (typeof value2 !== "string") return void 0;
@@ -179554,7 +179613,7 @@ function metricsOf(url, root2) {
     const file = fontFile(url, root2);
     let metrics = null;
     try {
-      if (file) metrics = sfntVerticalMetrics(new Uint8Array(readFileSync9(file)));
+      if (file) metrics = sfntVerticalMetrics(new Uint8Array(readFileSync10(file)));
     } catch {
       metrics = null;
     }
@@ -183204,7 +183263,7 @@ var init_production2 = __esm({
 });
 
 // packages/node-shell/src/desktop-renderer.ts
-import { constants, existsSync as existsSync19, accessSync, statSync as statSync4, lstatSync, openSync, fstatSync, readSync, closeSync } from "node:fs";
+import { constants, existsSync as existsSync19, accessSync, statSync as statSync4, lstatSync, openSync as openSync2, fstatSync as fstatSync2, readSync as readSync2, closeSync as closeSync2 } from "node:fs";
 import { homedir as homedir5, tmpdir as tmpdir4 } from "node:os";
 import { basename as basename3, delimiter, join as join33 } from "node:path";
 import { spawn as spawn3, spawnSync } from "node:child_process";
@@ -183345,14 +183404,14 @@ function readTextOrNull(path) {
     const before = lstatSync(path, { bigint: true });
     if (!before.isFile() || before.isSymbolicLink() || before.size > 8192n) return null;
     if (process.platform !== "win32" && ((before.mode & 0o077n) !== 0n || typeof process.getuid === "function" && before.uid !== BigInt(process.getuid()))) return null;
-    descriptor = openSync(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
-    const opened = fstatSync(descriptor, { bigint: true });
+    descriptor = openSync2(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+    const opened = fstatSync2(descriptor, { bigint: true });
     if (!opened.isFile() || opened.size > 8192n || before.dev !== opened.dev || before.ino !== opened.ino) return null;
     if (process.platform !== "win32" && ((opened.mode & 0o077n) !== 0n || opened.uid !== before.uid)) return null;
     const buffer = Buffer.alloc(8193);
     let used = 0;
     while (used < buffer.length) {
-      const count4 = readSync(descriptor, buffer, used, buffer.length - used, null);
+      const count4 = readSync2(descriptor, buffer, used, buffer.length - used, null);
       if (count4 === 0) break;
       used += count4;
     }
@@ -183360,7 +183419,7 @@ function readTextOrNull(path) {
   } catch {
     return null;
   } finally {
-    if (descriptor !== void 0) closeSync(descriptor);
+    if (descriptor !== void 0) closeSync2(descriptor);
   }
 }
 function readRenderServer(probe = {}) {
@@ -185509,7 +185568,7 @@ function rasterSize(bytes2) {
 }
 async function catalogPictureReader(profile2) {
   const { contentRoots: contentRoots2, contentUrlFile: contentUrlFile2, readAssetIndex: readAssetIndex2 } = await Promise.resolve().then(() => (init_content_roots(), content_roots_exports));
-  const { readFileSync: readFileSync11, statSync: statSync5 } = await import("node:fs");
+  const { readFileSync: readFileSync12, statSync: statSync5 } = await import("node:fs");
   let roots2;
   let byId;
   try {
@@ -185524,7 +185583,7 @@ async function catalogPictureReader(profile2) {
     const path = file ? contentUrlFile2(String(file.url), roots2) : null;
     if (!path) return null;
     try {
-      return statSync5(path).size <= CHECK_MAX_INPUT_BYTES ? new Uint8Array(readFileSync11(path)) : null;
+      return statSync5(path).size <= CHECK_MAX_INPUT_BYTES ? new Uint8Array(readFileSync12(path)) : null;
     } catch {
       return null;
     }
@@ -191613,7 +191672,7 @@ init_resvg_admission();
 // packages/node-shell/src/speech.ts
 init_session();
 init_src2();
-import { readFileSync as readFileSync7 } from "node:fs";
+import { readFileSync as readFileSync8 } from "node:fs";
 import { readFile as readFile14 } from "node:fs/promises";
 import { createRequire as createRequire4 } from "node:module";
 import { isAbsolute as isAbsolute2, join as join18 } from "node:path";
@@ -191871,7 +191930,7 @@ function voiceMatrix(modelsDir, voice) {
   const held = voiceMatrices.get(key2);
   if (held) return held;
   const path = modelFilePath(modelsDir, "kokoro", `voices/${voice}.bin`);
-  const raw = readFileSync7(path);
+  const raw = readFileSync8(path);
   const data = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength));
   if (data.byteLength !== KOKORO_VOICE_BYTES) {
     throw new Error(
@@ -192461,7 +192520,7 @@ init_text_bidi();
 // packages/node-shell/src/fallback-fonts-node.ts
 init_content_roots();
 init_fallback_fonts();
-import { existsSync as existsSync11, readFileSync as readFileSync8 } from "node:fs";
+import { existsSync as existsSync11, readFileSync as readFileSync9 } from "node:fs";
 import { join as join22 } from "node:path";
 var listed = /* @__PURE__ */ new Map();
 function diskFallbackPacks(roots2 = contentRoots()) {
@@ -192473,7 +192532,7 @@ function diskFallbackPacks(roots2 = contentRoots()) {
     const path = join22(shared.dir, "index.json");
     if (!existsSync11(path)) continue;
     try {
-      entries.push(...JSON.parse(readFileSync8(path, "utf8")).assets ?? []);
+      entries.push(...JSON.parse(readFileSync9(path, "utf8")).assets ?? []);
     } catch {
     }
   }
@@ -195526,7 +195585,7 @@ init_design_system2();
 init_src();
 init_content_roots();
 init_state_dir();
-import { existsSync as existsSync18, readFileSync as readFileSync10 } from "node:fs";
+import { existsSync as existsSync18, readFileSync as readFileSync11 } from "node:fs";
 import { isAbsolute as isAbsolute3, join as join32, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
@@ -195671,7 +195730,7 @@ function entriesOf(parsed) {
 function readPresetFile(file) {
   let text13;
   try {
-    text13 = readFileSync10(file, "utf8");
+    text13 = readFileSync11(file, "utf8");
   } catch (err) {
     throw new RebrandPresetError("preset.unreadable", `The preset file ${file} could not be read: ${err instanceof Error ? err.message : String(err)}`);
   }

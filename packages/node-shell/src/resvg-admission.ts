@@ -22,7 +22,9 @@
  */
 import { decodeDataUrl, iccProfileBytes, imageDimensions, jpegSegmentBody, scanJpegSegments } from '@lolly/engine';
 import { cleanJpeg } from './pdf-images.ts';
+import { readFileSync } from 'node:fs';
 import { browserFreeStatus, readBrowserFreeRecord, toolSourceDigest } from './browser-free-record.ts';
+import { toolFile } from './content-roots.ts';
 
 export type ResvgRefusalCode =
   | 'unmeasured' | 'paged' | 'draft-mark' | 'canvas-pixels' | 'fallback-faces' | 'layout' | 'css-variable' | 'css-animation' | 'live-text' | 'html'
@@ -69,19 +71,50 @@ export interface ToolRouteFact {
  * engine keeps every tool. Trust is the receiving shell's, never the tool's: a sideloaded
  * or remote tool (`sideloaded-consented`, `remote-untrusted`, the classes `isolate` forces
  * into strict isolation) is never admitted, whatever its folder holds, and the record is
- * read only from the active profile's own tool packs through the resolver.
+ * read only from the active profile's own tool packs through the resolver. The record holds
+ * only for the files it was measured on, so the loaded tool's own template, stylesheet and
+ * hooks must be the resolver's files: a tool loaded from anywhere else is not admitted.
+ * Call this with the tool as loaded, before a shell annotates its template.
  */
-export function toolAdmission(tool: { manifest: { id: string; version?: string }; trustClass?: string }): ToolRouteFact {
+export function toolAdmission(tool: AdmittedTool): ToolRouteFact {
   const id = tool.manifest.id;
   const untrusted = tool.trustClass === 'sideloaded-consented' || tool.trustClass === 'remote-untrusted';
   if (untrusted) return { id, browserFree: false, untrusted };
   const read = readBrowserFreeRecord(id);
   if (!read) return { id, browserFree: false, untrusted };
   if ('problem' in read) return { id, browserFree: false, untrusted, stale: read.problem };
-  // The digest is over the tool's files as the resolver serves them. The loaded tool's own
-  // template is not the file: a shell annotates it for click-to-edit before it mounts.
   const status = browserFreeStatus(read.record, { id, version: String(tool.manifest.version ?? ''), digest: toolSourceDigest(id) });
+  if (status.admitted && !loadedFromResolver(id, tool)) {
+    return { id, browserFree: false, untrusted, stale: 'the tool was loaded from files other than the ones its record was measured on' };
+  }
   return { id, browserFree: status.admitted, untrusted, ...(status.stale ? { stale: status.stale } : {}) };
+}
+
+/** A loaded tool (engine LoadedTool), with the fields admission reads. */
+export interface AdmittedTool {
+  manifest: { id: string; version?: string; hooks?: { module?: boolean } | unknown };
+  trustClass?: string;
+  /** The template as loaded, before any annotation. */
+  template: string;
+  styles?: string | null;
+  hooksSource?: string | null;
+}
+
+/** Whether the loaded texts are the files the resolver serves for this tool, which the record's digest covers. */
+function loadedFromResolver(id: string, tool: AdmittedTool): boolean {
+  const file = (name: string): string | null => {
+    try {
+      const path = toolFile(id, name);
+      return path ? readFileSync(path, 'utf8') : null;
+    } catch { return null; }
+  };
+  if (tool.template !== file('template.html')) return false;
+  if ((tool.styles ?? null) !== file('styles.css')) return false;
+  // A module hook is loaded by URL, never as text; every other declared hook is the text.
+  const hooks = tool.manifest.hooks as { module?: boolean } | undefined;
+  if (hooks && hooks.module !== true && (tool.hooksSource ?? null) !== file('hooks.js')) return false;
+  if (typeof tool.hooksSource === 'string' && tool.hooksSource !== file('hooks.js')) return false;
+  return true;
 }
 
 /**

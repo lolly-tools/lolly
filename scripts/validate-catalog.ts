@@ -88,7 +88,7 @@ import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../en
 import { colourwaySurfaceIconThemes } from '../engine/src/brand-treatments.ts';
 import { checkToolIntents, parseToolIntents } from '../engine/src/intent.ts';
 import { TOOL_INTENTS_FILE } from '../packages/core/src/intent-v1.ts';
-import { BROWSER_FREE_FILE, browserFreeStatus, parseBrowserFreeRecord, toolSourceDigest } from '../packages/node-shell/src/browser-free-record.ts';
+import { BROWSER_FREE_FILE, browserFreeStatus, parseBrowserFreeRecord, readBrowserFreeText, toolSourceDigest } from '../packages/node-shell/src/browser-free-record.ts';
 // The head-vs-version asset rule and the reserved head slug (plans/97 section 6a). Imported
 // rather than re-stated: if the validator's idea of "this is a version asset" drifts
 // from the shells', it either passes a pack that cannot resolve or fails one that can.
@@ -342,8 +342,9 @@ for (const dir of toolDirs) {
   // the tool only a warning, since a tool edit must not wait on a browser to re-measure.
   const recordPath = toolFile(dir, BROWSER_FREE_FILE);
   if (recordPath) {
-    const recordText = readFileSync(recordPath, 'utf8');
-    const parsedRecord = parseBrowserFreeRecord(recordText);
+    const recordRead = readBrowserFreeText(recordPath);
+    const recordText = 'text' in recordRead ? recordRead.text : '';
+    const parsedRecord = 'problem' in recordRead ? recordRead : parseBrowserFreeRecord(recordText);
     if ('problem' in parsedRecord) errors.push(`[${dir}] ${parsedRecord.problem}`);
     else if (!validateBrowserFree(JSON.parse(recordText))) {
       for (const err of validateBrowserFree.errors ?? []) errors.push(`[${dir}] ${BROWSER_FREE_FILE} ${err.instancePath} ${err.message}`);

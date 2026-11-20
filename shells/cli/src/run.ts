@@ -463,6 +463,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // directly rather than through parseUrlState (which treats it as reserved
   // and never surfaces it in `values`).
   const tool = await loadToolOrThrow(toolId, fetchFile, { lang: normalizeLang(params.lang) ?? undefined });
+  // Whether the browser-free route may draw this tool, judged on the files as loaded,
+  // before the annotation below changes the template.
+  const resvgTool = toolAdmission(tool);
   // Annotate the template as the web shell does (plans/222): the paint markers it
   // adds let a colour input bound to a brand token bind the exported shape to that
   // token even on this DOM-free path. Harmless otherwise - the data attributes have
@@ -1263,7 +1266,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     const qual = (v: number | null | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const exportOpts: CliExportOpts = { width: qual(width), height: qual(height) };
     // The browser-free raster formats (BMP, JPEG XL, EXR, HDR) read the drawing's layout with the tool's stylesheet.
-    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(targetFormat.toLowerCase())) Object.assign(exportOpts, { toolStyles: tool.styles ?? null, resvgTool: toolAdmission(tool) });
+    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(targetFormat.toLowerCase())) Object.assign(exportOpts, { toolStyles: tool.styles ?? null, resvgTool });
     if (targetFormat === 'pdf' && tool.manifest.id === 'design') {
       // The finishing pass needs the same resolved controls the browser receives.
       exportOpts.c2pa = wantC2pa;
@@ -1460,7 +1463,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         // Pixel work the tool's hooks did through the Node canvas keeps the PNG off resvg.
         pixelWork: () => pixelWorkCount(dom.window.document, host.raster),
         styles: tool.styles ?? null,
-        tool: toolAdmission(tool),
+        tool: resvgTool,
       });
       const bytes = Buffer.from(res.bytes);
       usedBrowser = res.usedBrowser;
