@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 .compare-page, .compare-panel { color: var(--ui-color-text-default); }
-.compare-page { max-width: 76rem; margin: 5rem auto 3rem; padding: 1rem; }
+/* The top margin clears the floating back row, which sits below the status bar. */
+.compare-page { max-width: 76rem; margin: calc(5rem + var(--safe-top)) auto 3rem; padding: 1rem; }
 .compare-sources, .compare-identities, .compare-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .compare-source { min-width: 0; display: grid; gap: .75rem; }
 .compare-source textarea { width: 100%; min-height: 12rem; resize: vertical; box-sizing: border-box; }

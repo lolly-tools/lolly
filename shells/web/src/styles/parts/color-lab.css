@@ -55,7 +55,10 @@
   /* Bled to the page's own padding so the opaque strip reaches the edges and no
      sliver of scrolling content shows beside it. */
   margin: -1rem -1.25rem 0;
-  padding: 0.4rem 1.25rem;
+  /* The strip sticks to the very top of the screen, so the status bar's height is
+     part of its padding: the back pill and the theme switch stay below the clock
+     while the opaque strip still reaches the edge (0 where there is no inset). */
+  padding: calc(0.4rem + var(--safe-top)) 1.25rem 0.4rem;
   background: hsl(var(--background));
 }
 .lab-back .tools-home.home-full { position: static; }
@@ -1146,7 +1149,7 @@
 
 @media (max-width: 640px) {
   .lab { padding: 0.75rem 0.85rem 5rem; gap: 1.75rem; }
-  .lab-back { margin: -0.75rem -0.85rem 0; padding: 0.4rem 0.85rem; }
+  .lab-back { margin: -0.75rem -0.85rem 0; padding: calc(0.4rem + var(--safe-top)) 0.85rem 0.4rem; }
   .lab-subject {
     grid-template-columns: 1fr;
     grid-template-areas: 'swatch' 'brand' 'picker';

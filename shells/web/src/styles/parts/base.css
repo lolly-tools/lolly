@@ -297,8 +297,12 @@ em, i, cite { font-family: var(--font-italic, var(--font-brand)); }
     padding: 48px 0
   }
   
+  /* Batch is a full-screen layer whose header is its first row, so the layer's own
+     padding takes in the status bar and the home indicator. Both insets are 0 on a
+     screen without them, where this is the 1em it always was. Stated here because
+     this important rule is the one that decides the padding (pro/pro.css cannot). */
   .pro-wrap {
-    padding: 1em 0 !important
+    padding: calc(1em + var(--safe-top)) 0 max(1em, var(--safe-bottom)) !important
   }
   
   .pro-col-head {

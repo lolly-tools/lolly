@@ -16,7 +16,7 @@
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: 3.25rem 1.25rem 0; /* top clears the fixed back pill */
+  padding: calc(3.25rem + var(--safe-top)) 1.25rem 0; /* top clears the fixed back pill, which sits below the status bar */
 }
 .ask-view .plat-header { flex: none; }
 /* The header stays wordmark-only - the eye goes to the Lolly mark on the Ask
