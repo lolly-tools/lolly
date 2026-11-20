@@ -297,10 +297,10 @@ export async function mountDocs(
       // heading alone, styled by docs.css like any other h1 in the article.
       h1.classList.add('docs-page-title');
       node.prepend(h1);
-      // The section label the built band carries over its title (docs/build.ts
-      // pageWayfinding), from the same place: the reader shows the section as /info does.
-      const eyebrow = [...doc.querySelectorAll('.docs-eyebrow')].find((e) => !fragment.contains(e));
-      if (eyebrow) node.prepend(document.importNode(eyebrow, true));
+      // The trail the built band carries over its title (docs/build.ts pageWayfinding),
+      // from the same place: the reader shows the page's place as /info does.
+      const trail = [...doc.querySelectorAll('.docs-crumbs')].find((e) => !fragment.contains(e));
+      if (trail) node.prepend(document.importNode(trail, true));
     }
   }
 

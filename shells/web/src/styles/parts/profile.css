@@ -703,20 +703,6 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .store-sess-tag { font-size: var(--fs-2xs); padding: 0 5px; margin-left: .35rem; border-radius: var(--ui-radius-pill); background: var(--ui-color-selection-surface); color: var(--ui-color-text-accent); }
 .profile-view .store-sess-sub { font-size: var(--fs-xs); color: var(--ui-color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .profile-view .store-sess .session-size { margin: 0; flex: none; }
-.profile-view .store-sess-del {
-  flex: none; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
-  border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-choice-round); background: var(--ui-color-surface-canvas);
-  color: var(--ui-color-text-muted); cursor: pointer; font-size: var(--fs-sm); line-height: 1; opacity: .6;
-  transition: opacity var(--ui-motion-feedback), color var(--ui-motion-feedback), border-color var(--ui-motion-feedback);
-}
-.profile-view .store-sess:hover .store-sess-del, .profile-view .store-sess-del:focus-visible { opacity: 1; }
-/* No hover on touch, so the delete icon needs to be reachable without it. */
-@media (hover: none) {
-  .profile-view .store-sess-del { opacity: 1; }
-}
-.profile-view .store-sess-del:hover,
-.profile-view .headshot-remove:hover{ color: hsl(var(--destructive-text)); border-color: hsl(var(--destructive)); }
-.profile-view .store-sess-del:disabled { opacity: .4; cursor: default; }
 
 /* Floating multi-select action bar (sessions only). */
 .store-selbar {
@@ -784,10 +770,6 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .profile-view .headshot-edit-jelly:focus-within { opacity: 1; }
 .profile-view .headshot-remove {
   position: absolute; top: 4px; right: 4px; z-index: 2;
-  width: 24px; height: 24px; border-radius: var(--radius-round);
-  border: 1px solid hsl(var(--border)); background: hsl(var(--background));
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-xl); line-height: 1; cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
 }
 .profile-view .headshot-remove[hidden] { display: none; }
 
@@ -1061,7 +1043,6 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 .bd-head { display: flex; align-items: start; justify-content: space-between; gap: var(--sp-5); }
 .bd-eyebrow { margin: 0 0 var(--sp-4); font-size: var(--ui-type-caption); letter-spacing: .08em; color: var(--ui-color-text-muted); }
 .brand-download .modal-title { margin: 0; font-size: var(--ui-type-heading); line-height: 1.2; overflow-wrap: anywhere; }
-.bd-close { display: grid; place-items: center; width: var(--ui-size-target); height: var(--ui-size-target); flex-shrink: 0; border: 0; border-radius: var(--ui-radius-control); background: var(--ui-color-surface-muted); }
 .bd-intro, .bd-help { font-size: var(--ui-type-body); line-height: 1.5; color: var(--ui-color-text-muted); }
 .bd-modes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); padding: 0; margin: var(--ui-space-panel) 0; border: 0; }
 .bd-modes label { display: flex; align-items: start; gap: var(--sp-4); padding: var(--ui-space-panel); border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); cursor: pointer; }

@@ -957,9 +957,6 @@ html[data-a11y-motion="reduce"] .share-meter-toast { animation: none; }
 }
 .preflight-modal-close {
   margin-inline-start: 4px;
-  border: none; background: none; cursor: pointer;
-  font-size: calc(18px * var(--a11y-fs)); line-height: 1;
-  color: hsl(var(--muted-foreground)); padding: var(--sp-1) var(--sp-3);
 }
 .preflight-modal-body {
   display: flex; flex-direction: column; gap: var(--sp-4);

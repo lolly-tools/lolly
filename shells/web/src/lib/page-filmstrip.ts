@@ -12,6 +12,7 @@
 // anything is missing, so a non-paged tool (or a shell change) can never be broken by it.
 // Thumbnails are scaled clones of the real [data-pdf-page] nodes, rebuilt on each render.
 
+import { closeButton } from './close-button.ts';
 import { isTypingTarget } from './typing-target.ts';
 
 export interface Filmstrip {
@@ -202,12 +203,7 @@ export function mountFilmstrip(
 
         // Delete - only when the slide maps to a removable sidebar block (the builder).
         if (blockOf(page)) {
-          const del = document.createElement('button');
-          del.type = 'button';
-          del.className = 'pagestrip-del';
-          del.setAttribute('aria-label', `Delete slide ${i + 1}`);
-          del.title = 'Delete slide';
-          del.innerHTML = '&#215;';
+          const del = closeButton({ size: 'sm', danger: true, solid: true, className: 'pagestrip-del', label: `Delete slide ${i + 1}`, attrs: { title: 'Delete slide' } });
           del.addEventListener('click', e => { e.stopPropagation(); deletePage(page); });
           thumb.appendChild(del);
         }

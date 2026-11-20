@@ -505,7 +505,7 @@ test('readSystemName names the ACTIVE system, not whichever tokens asset the sto
 // ── Pure: markup ─────────────────────────────────────────────────────────────
 
 test('compareCardsHtml paints the face ONLY when the card is ready', () => {
-  const ready = compareCardsHtml([card({ state: 'ready' })], 'Hamburgefonstiv', t);
+  const ready = compareCardsHtml([card({ state: 'ready' })], 'Hamburgefonstiv', t, tRaw);
   assert.ok(ready.includes(`font-family:'__ds-preview-inter-0-1'`), 'a ready card shows the real face');
   assert.ok(!ready.includes('tycmp-skel'));
   assert.ok(!ready.includes('Shown in the interface face.'));
@@ -514,7 +514,7 @@ test('compareCardsHtml paints the face ONLY when the card is ready', () => {
   // specimen. Not a line of type in the interface face - that is the one
   // unforgivable bug in a comparison, and the words under it were never enough.
   for (const state of ['idle', 'loading', 'failed'] as const) {
-    const html = compareCardsHtml([card({ state })], 'Hamburgefonstiv', t);
+    const html = compareCardsHtml([card({ state })], 'Hamburgefonstiv', t, tRaw);
     assert.ok(!html.includes('font-family'), `a ${state} card must not paint a face it does not have`);
     assert.ok(html.includes('tycmp-skel'), `a ${state} card draws the placeholder instead`);
     assert.ok(!html.includes('Hamburgefonstiv'), 'and does not set the specimen at all');
@@ -523,7 +523,7 @@ test('compareCardsHtml paints the face ONLY when the card is ready', () => {
 
   // The one exception: nothing is EVER coming for this family, so the interface
   // face is all there is, and the card says so in words.
-  const dead = compareCardsHtml([card({ state: 'failed', reason: 'no-source' })], 'Hamburgefonstiv', t);
+  const dead = compareCardsHtml([card({ state: 'failed', reason: 'no-source' })], 'Hamburgefonstiv', t, tRaw);
   assert.ok(!dead.includes('font-family'));
   assert.ok(dead.includes('Hamburgefonstiv'), 'the specimen still stands');
   assert.ok(dead.includes('Shown in the interface face.'));
@@ -533,16 +533,16 @@ test('compareCardsHtml renders no disabled control, ever - the state chooses the
   // plan 182 section 6.2. "Use this face" used to be on every card and greyed out on
   // four of them, so the loudest thing on a card somebody had just asked for was
   // a dead button. It is now simply absent until there is a face to choose.
-  const ready = compareCardsHtml([card({ state: 'ready' })], 'Aa', t);
+  const ready = compareCardsHtml([card({ state: 'ready' })], 'Aa', t, tRaw);
   assert.ok(ready.includes('data-tycmp-select="tycmp-card-1"'));
 
   for (const state of ['idle', 'loading', 'failed'] as const) {
-    const html = compareCardsHtml([card({ state })], 'Aa', t);
+    const html = compareCardsHtml([card({ state })], 'Aa', t, tRaw);
     assert.equal(html.includes('data-tycmp-select'), false, `${state} offers no Use this face at all`);
   }
   // A press in flight is not repeatable - but the guard is select()'s own
   // `card.busy` check, not an attribute that makes the button read as broken.
-  const busy = compareCardsHtml([card({ state: 'ready', busy: true })], 'Aa', t);
+  const busy = compareCardsHtml([card({ state: 'ready', busy: true })], 'Aa', t, tRaw);
   assert.match(busy, /data-tycmp-select="tycmp-card-1"[^>]*aria-busy="true"/);
 
   const every: CompareCard[] = [
@@ -557,7 +557,7 @@ test('compareCardsHtml renders no disabled control, ever - the state chooses the
     card({ kind: 'upload', needsFetch: false, state: 'failed', reason: 'decode-failed' }),
   ];
   for (const c of every) {
-    const html = compareCardsHtml([c], 'Aa', t);
+    const html = compareCardsHtml([c], 'Aa', t, tRaw);
     const where = `${c.state}/${c.reason ?? '-'}`;
     assert.equal(/disabled/.test(html), false, `a disabled control in ${where}`);
     const buttons = [...html.matchAll(/data-tycmp-(?:select|preview)=/g)].length;
@@ -566,16 +566,16 @@ test('compareCardsHtml renders no disabled control, ever - the state chooses the
 });
 
 test('compareCardsHtml offers Fetch before a fetch, Try again after a failure, and neither with no source', () => {
-  assert.ok(compareCardsHtml([card()], 'Aa', t).includes('Fetch from Google'));
-  assert.ok(compareCardsHtml([card({ state: 'idle', reason: 'declined' })], 'Aa', t).includes('Fetch from Google'),
+  assert.ok(compareCardsHtml([card()], 'Aa', t, tRaw).includes('Fetch from Google'));
+  assert.ok(compareCardsHtml([card({ state: 'idle', reason: 'declined' })], 'Aa', t, tRaw).includes('Fetch from Google'),
     'a decline is not a refusal - the offer stands on the card');
-  assert.ok(compareCardsHtml([card({ state: 'failed', reason: 'fetch-failed' })], 'Aa', t).includes('Try again'));
+  assert.ok(compareCardsHtml([card({ state: 'failed', reason: 'fetch-failed' })], 'Aa', t, tRaw).includes('Try again'));
 
-  const dead = compareCardsHtml([card({ state: 'failed', reason: 'no-source' })], 'Aa', t);
+  const dead = compareCardsHtml([card({ state: 'failed', reason: 'no-source' })], 'Aa', t, tRaw);
   assert.ok(!dead.includes('Try again'), 'a button that cannot succeed is worse than no button');
   assert.ok(dead.includes('No source we can fetch for this family. A font file installs it.'));
 
-  const local = compareCardsHtml([card({ kind: 'upload', needsFetch: false })], 'Aa', t);
+  const local = compareCardsHtml([card({ kind: 'upload', needsFetch: false })], 'Aa', t, tRaw);
   assert.ok(!local.includes('Fetch from Google'), 'a file on this device has nothing to fetch');
 });
 
@@ -588,10 +588,10 @@ test('every card state carries exactly one sentence saying where it is', () => {
     [{ state: 'failed', reason: 'fetch-failed' }, 'Could not fetch this face from Google Fonts.'],
   ];
   for (const [over, sentence] of notes) {
-    assert.ok(compareCardsHtml([card(over)], 'Aa', t).includes(sentence),
+    assert.ok(compareCardsHtml([card(over)], 'Aa', t, tRaw).includes(sentence),
       `expected "${sentence}" on ${over.state}/${over.reason ?? '-'}`);
   }
-  assert.equal(compareCardsHtml([card({ state: 'ready' })], 'Aa', t).includes('tycmp-note'), false,
+  assert.equal(compareCardsHtml([card({ state: 'ready' })], 'Aa', t, tRaw).includes('tycmp-note'), false,
     'a face you can see explains itself');
 });
 
@@ -602,7 +602,7 @@ test('compareCardsHtml escapes a hostile family, label, chip and specimen', () =
     chips: ['<b>SUBSET</b>'],
     provenance: '"><svg onload=alert(1)>',
     state: 'ready',
-  })], '</p><script>alert(1)</script>', t);
+  })], '</p><script>alert(1)</script>', t, tRaw);
 
   assert.ok(!html.includes('<img src=x'), 'the family never reaches the sink as markup');
   assert.ok(!html.includes('<script>'), 'nor the label, chip, provenance or specimen text');
@@ -614,7 +614,7 @@ test('compareCardsHtml hides the repeated specimen from the accessibility tree',
   // The same string, six times, in six cards: a screen-reader user already has
   // it in the labelled field they typed it into. The RENDERING is the visual
   // property being compared; the text is not new information per card.
-  const html = compareCardsHtml([card({ state: 'ready' })], 'Aa', t);
+  const html = compareCardsHtml([card({ state: 'ready' })], 'Aa', t, tRaw);
   assert.match(html, /class="tycmp-specimen"[^>]*aria-hidden="true"/);
 });
 
@@ -632,7 +632,7 @@ test('an ampersand in a family or a file name is escaped ONCE, not twice', () =>
   // user hears "Remove Q&amp;A Sans".
   const holder = parseCards(compareCardsHtml([card({
     family: 'Q&A Sans', provenance: 'Q&A logo.ttf', state: 'ready',
-  })], 'Aa', t));
+  })], 'Aa', t, tRaw));
 
   const remove = holder.querySelector('[data-tycmp-remove]') as HTMLElement;
   assert.equal(remove.getAttribute('aria-label'), 'Remove Q&A Sans');
@@ -648,7 +648,7 @@ test('the source chips a stage did not write are still escaped on the way in', (
   // sink (t() escaped its own params), a SOURCE's chip does not.
   const holder = parseCards(compareCardsHtml([card({
     kind: 'upload', needsFetch: false, chips: ['<b>SUBSET</b>'], state: 'ready',
-  })], 'Aa', t));
+  })], 'Aa', t, tRaw));
   const chips = [...holder.querySelectorAll('.tycmp-chip')].map((n) => n.textContent);
   assert.deepEqual(chips, ['From a file', '<b>SUBSET</b>']);
   assert.equal(holder.querySelector('.tycmp-chip b'), null, 'the source authored text, not markup');
@@ -660,14 +660,14 @@ test('a card names itself and points at the sentence that explains the state it 
   // land in, because pressing the previous button is what caused it. The reason
   // hangs off the <article>, which focusInCard parks the keyboard on.
   const described = (c: CompareCard): string => {
-    const holder = parseCards(compareCardsHtml([c], 'Aa', t));
+    const holder = parseCards(compareCardsHtml([c], 'Aa', t, tRaw));
     const article = holder.querySelector('[data-tycmp-card]') as HTMLElement;
     return (article.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean)
       .map((id) => [...holder.querySelectorAll('[id]')].find((n) => n.id === id)?.textContent ?? '')
       .join(' ');
   };
 
-  const holder = parseCards(compareCardsHtml([card({ state: 'loading' })], 'Aa', t));
+  const holder = parseCards(compareCardsHtml([card({ state: 'loading' })], 'Aa', t, tRaw));
   const article = holder.querySelector('[data-tycmp-card]') as HTMLElement;
   assert.equal(article.getAttribute('aria-label'), 'Inter');
   assert.equal(article.getAttribute('tabindex'), '-1', 'a repaint can hand the keyboard back to the card');
@@ -678,7 +678,7 @@ test('a card names itself and points at the sentence that explains the state it 
   assert.match(dead, /No source we can fetch for this family\./);
   assert.match(dead, /Shown in the interface face\./);
 
-  const ready = parseCards(compareCardsHtml([card({ state: 'ready' })], 'Aa', t));
+  const ready = parseCards(compareCardsHtml([card({ state: 'ready' })], 'Aa', t, tRaw));
   assert.equal((ready.querySelector('[data-tycmp-card]') as HTMLElement).getAttribute('aria-describedby'), null,
     'a face you can see needs no explanation');
 });
@@ -689,7 +689,7 @@ test('describedby ids are per MOUNT as well as per card, so two stages cannot co
   assert.ok(a.ok && b.ok);
   // `no-source` is the state that carries BOTH addressed sentences (the note and
   // the interface-face line), so it is the one that can collide in two ways.
-  const idsOf = (c: CompareCard): string[] => [...parseCards(compareCardsHtml([{ ...c, state: 'failed', reason: 'no-source' }], 'Aa', t))
+  const idsOf = (c: CompareCard): string[] => [...parseCards(compareCardsHtml([{ ...c, state: 'failed', reason: 'no-source' }], 'Aa', t, tRaw))
     .querySelectorAll('[id]')].map((n) => n.id);
   const first = idsOf(a.card);
   assert.ok(first.length >= 2, `the note and the fallback both carry ids, got ${first}`);

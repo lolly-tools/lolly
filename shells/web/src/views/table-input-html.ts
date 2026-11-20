@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../lib/close-button.ts';
 import type { InputModelItem } from '../../../../engine/src/inputs.ts';
 import { escape as esc } from '../utils.ts';
 import { inputTableValue } from './block-table.ts';
@@ -7,7 +8,7 @@ import { tableField } from '../../../../engine/src/table-edit.ts';
 import { t as translate } from '../i18n.ts';
 export const TABLE_VIRTUALIZE_ROWS = 50;
 export function tableRowActions(row: number, movable: boolean): string {
-  return `<td class="table-rowctl">${movable && row > 0 ? `<button type="button" class="table-btn" data-table-move-up="${row}" aria-label="Move row ${row + 1} up">↑</button>` : ''}<button type="button" class="table-del-row" data-table-del-row="${row}" aria-label="Remove row ${row + 1}">✕</button></td>`;
+  return `<td class="table-rowctl">${movable && row > 0 ? `<button type="button" class="table-btn" data-table-move-up="${row}" aria-label="Move row ${row + 1} up">↑</button>` : ''}${closeButtonHtml({ size: 'sm', danger: true, className: 'table-del-row', label: `Remove row ${row + 1}`, attrs: { 'data-table-del-row': row } })}</td>`;
 }
 export function tableInputHtml(input: InputModelItem): string {
   // A user-defined grid: columns AND rows are data (unlike blocks, whose
@@ -30,7 +31,7 @@ export function tableInputHtml(input: InputModelItem): string {
     .map(
       (c, ci) => `<th>
           <input class="table-cell table-cell--head" ${cellAttrs(-1, ci)} value="${esc(c)}" ${fixed ? 'readonly tabindex="-1"' : ''} aria-label="Column ${ci + 1} heading">
-          ${fixed ? '' : `<button type="button" class="table-del-col" data-table-del-col="${ci}" aria-label="Remove column ${esc(c || String(ci + 1))}">&#x2715;</button>`}
+          ${fixed ? '' : closeButtonHtml({ size: 'sm', danger: true, className: 'table-del-col', label: `Remove column ${c || String(ci + 1)}`, attrs: { 'data-table-del-col': ci } })}
         </th>`
     )
     .join('');

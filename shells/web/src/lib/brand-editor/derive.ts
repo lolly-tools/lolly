@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `bedit.<module>.<fn>`. Extracted verbatim
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../close-button.ts';
 import { RAMP_STEPS_MAX, RAMP_STEPS_MIN, SCHEME_KINDS, colorToHex, colorToHexString, deserializeCurve, generateAnalogous, generateSchemeAccents, parseColor as parseCssColor } from '@lolly/engine';
 import { nameColor } from '../color-namer.ts';
 import { palettePreviewSvgs } from '../palette-preview.ts';
@@ -339,7 +340,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
             </span>
             <button type="button" class="be-btn" data-be-added-primary>${t('Use as primary?')}</button>
             <button type="button" class="be-btn" data-be-added-tune>${t('Fine-tune')}</button>
-            <button type="button" class="be-suggest-dismiss" data-be-added-dismiss aria-label="${escapeText(t('Dismiss'))}">&#x2715;</button>
+            ${closeButtonHtml({ size: 'sm', className: 'be-suggest-dismiss', label: t('Dismiss'), attrs: { 'data-be-added-dismiss': true } })}
           </div>
         </section>
         <div class="be-logo-colours" data-be-logo-colours="color" hidden></div>
@@ -480,7 +481,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
               <span class="be-curve-title" data-be-curve-title></span>
               <div class="be-curve-head-actions">
                 <button type="button" class="be-btn be-btn--sm be-curve-rebuild" data-be-curve-rebuild>${t('Rebuild from colour')}</button>
-                <button type="button" class="be-curve-close" data-be-curve-close aria-label="${escapeText(t('Close the curve editor'))}" title="${escapeText(t('Close'))}">✕</button>
+                ${closeButtonHtml({ className: 'be-curve-close', label: t('Close the curve editor'), attrs: { 'data-be-curve-close': true, title: t('Close') } })}
               </div>
             </div>
             <p class="be-curve-hint">${t('Drag a point to reshape this ramp. Lightness, chroma and hue each have their own curve - switch with L / C / H. The shades below rebake live; the number of shades follows the slider above.')}</p>
@@ -610,7 +611,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
       <section class="be-panel be-typestage" data-be-typestage hidden aria-labelledby="be-typestage-title">
         <div class="be-typestage-head">
           <h3 class="be-typestage-title" id="be-typestage-title" data-be-typestage-title></h3>
-          <button type="button" class="be-typestage-x" data-be-typestage-close aria-label="${escapeText(t('Close without choosing'))}">${icon('close', { size: 14 })}</button>
+          ${closeButtonHtml({ size: 'sm', className: 'be-typestage-x', label: t('Close without choosing'), attrs: { 'data-be-typestage-close': true } })}
         </div>
         <form class="be-typestage-search" data-be-typestage-search>
           <label class="visually-hidden" for="be-typestage-q">${t('Font name')}</label>
@@ -705,7 +706,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
         <button type="button" class="be-bulkbar-btn" data-be-bulk-dup>${t('Duplicate')}</button>
         <button type="button" class="be-bulkbar-btn" data-be-bulk-copy>${t('Copy values')}</button>
         <button type="button" class="be-bulkbar-del" data-be-bulk-del>${t('Delete')}</button>
-        <button type="button" class="be-bulkbar-x" data-be-bulk-cancel aria-label="${escapeText(t('Cancel selection'))}">✕</button>
+        ${closeButtonHtml({ size: 'sm', inherit: true, className: 'be-bulkbar-x', label: t('Cancel selection'), attrs: { 'data-be-bulk-cancel': true } })}
       </div>
       <div class="be-editor" data-be-editor hidden>
         <div class="be-editor-card" role="dialog" aria-label="${escapeText(t('Edit swatch'))}">

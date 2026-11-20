@@ -20,6 +20,7 @@
  * to Your uploads rather than evaporating.
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import '../styles/script-audio.css';   // async CSS chunk (lazy dialog - not on the landing)
 import { pcmToWavBlob } from '../lib/pcm-wav.ts';
 import {
@@ -507,7 +508,7 @@ export function openScriptAudioDialog(host: ScriptAudioHost): Promise<AssetRef |
       <div class="script-audio-panel">
         <header class="script-audio-head">
           <span>${t('Script audio')}</span>
-          <button type="button" class="script-audio-close" aria-label="${escapeHtml(t('Close'))}">&times;</button>
+          ${closeButtonHtml({ className: 'script-audio-close' })}
         </header>
         <div class="script-audio-body">
           <label class="script-audio-label" for="script-audio-text">${t('Script')}</label>

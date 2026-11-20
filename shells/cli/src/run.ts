@@ -1214,7 +1214,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // detection floor. Reported, never silently dropped - but as a note, not a warning,
   // unless the caller explicitly asked for the mark (see the provenance block above).
   let imprintFloorSkip = false;
-  // A Design page drawn here from the drawing operations: its route and the credentialed pictures it drew (plan 326).
+  // A Design page drawn here from the drawing operations: its route and every credentialed picture the document places, on any page, as the web shell lists them (plan 326).
   const opsIngredients: IngredientCredential[] = [];
   const routed: { record?: DesignExportRouteRecord } = {};
 
@@ -1370,8 +1370,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     exportOpts.onTextFallback = (run) => textFallbacks.push(run);
     const fillNotices: string[] = [];
     exportOpts.onFillNotice = (notice) => { if (!fillNotices.includes(notice)) fillNotices.push(notice); };
-    // A Design page this shell draws from the operations hands back its route and any
-    // credentialed picture's manifest, which the stamp below records (plan 326).
+    // A Design page this shell draws from the operations hands back its route and the
+    // manifest of every credentialed picture the document places, on any page, which the
+    // stamp below records, as the web shell does (plan 326).
     exportOpts.ingredientSink = opsIngredients;
     exportOpts.onExportRoute = (record) => { routed.record = record; };
 
@@ -2052,7 +2053,9 @@ export const CLI_FLAGS = new Set([
  */
 const UNSUPPORTED_RESERVED: Record<string, string> = {
   copy: 'the CLI cannot reach a clipboard',
-  slot: 'saved slots are a GUI concept; the CLI is ephemeral',
+  // The CLI can read this device's saved projects (`lolly projects`), but a render
+  // takes its state from flags and links, never from a saved slot.
+  slot: 'a render does not open a saved session; `lolly projects show <slot>` prints one',
   full: 'there is no viewport to go full-bleed in',
   iframe: 'a CLI render is already the output alone, with no shell chrome to remove',
   options: 'the options panel is a GUI affordance',
@@ -2061,6 +2064,11 @@ const UNSUPPORTED_RESERVED: Record<string, string> = {
   // Presentation mode (plan 112) is a view state of a fullscreen shell. `s`, its
   // companion, IS honoured here - as the still-export slide filter - so it is not listed.
   present: 'there is no fullscreen to present into; `--s=<slide>` still selects one slide of a render',
+  // These three arrived after the list did and were read by nothing here, so a link
+  // carrying one rendered exactly as if it were absent, with no message.
+  kiosk: 'it loops a presentation, and there is no presentation to loop',
+  template: 'the CLI does not apply a template entry; give its values as flags',
+  preset: 'it applies only with template, which the CLI does not apply',
 };
 
 /**

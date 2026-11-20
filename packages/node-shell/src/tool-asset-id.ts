@@ -4,10 +4,9 @@
  * `/tools/<tool-id>/assets/<file>`, the path the site already serves the file at.
  *
  * Why it exists: a tool's example looks (manifest `examples`) are carried in the
- * catalog index, the first-paint slim index (as each look's signature) and the
- * preview bundle, so a look that brought its own pictures as data: URLs put their
- * bytes in all three. Logo Wall's eleven placeholder logos were about 37 KB of
- * base64 in each. Named by path, a picture is a few dozen bytes there, and its
+ * catalog index, so a look that brought its own pictures as data: URLs put their
+ * bytes there (and, while the pre-rendered looks existed, in two more files). Logo
+ * Wall's eleven placeholder logos were about 37 KB of base64 in each. Named by path, a picture is a few dozen bytes there, and its
  * bytes are read only when the look is drawn.
  *
  * The grammar is deliberately narrow: one file directly in the tool's `assets`

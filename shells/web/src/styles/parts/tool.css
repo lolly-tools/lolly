@@ -118,13 +118,6 @@
   font-size: var(--fs-md); font-weight: 700; text-transform: uppercase;
   letter-spacing: var(--ui-type-tracking-label); color: var(--ui-color-text-muted);
 }
-.export-popup-close {
-  border: none; background: none; cursor: pointer; padding: var(--sp-2) var(--sp-4);
-  border-radius: var(--ui-radius-control);
-  font-size: calc(18px * var(--a11y-fs)); line-height: 1; color: var(--ui-color-text-muted);
-}
-.export-popup-close:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
-.export-popup-close:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 /* A tab beside other panels in the right sidebar stays open while the sidebar is on
    (lib/export-panel-float.ts), so it has nothing to close. */
 .export-popup.is-dock-tab .export-popup-close { display: none; }
@@ -723,19 +716,6 @@
 }
 .tool-notice-text { flex: 1; min-width: 0; }
 .tool-notice-text strong { font-weight: 600; }
-.tool-notice-close {
-  flex-shrink: 0;
-  border: none;
-  background: none;
-  color: hsl(var(--foreground) / 0.55);
-  cursor: pointer;
-  font-size: var(--fs-md);
-  line-height: 1;
-  padding: 2px 5px;
-  border-radius: var(--radius-sm);
-}
-.tool-notice-close:hover,
-.embed-editor-close:hover{ color: hsl(var(--foreground)); background: hsl(var(--accent)); }
 /* The partner kit's line heads the Design system section (plans/82 M8,
    views/tool/partner-kit-line.ts): read-only, with Detach or Attach. */
 .partner-kit-line {
@@ -1647,8 +1627,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   color: hsl(var(--muted-foreground)); border-radius: var(--radius);
   font-size: var(--fs-sm); transition: color var(--dur-1), background var(--dur-1);
 }
-.block-remove:hover,
-.block-asset-clear:hover{ color: hsl(var(--destructive-text, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+.block-remove:hover{ color: hsl(var(--destructive-text, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
 
 .block-add {
   align-self: flex-start;
@@ -1712,25 +1691,12 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 /* A fingertip needs the whole cell to be the target, not an 18px glyph. */
 @media (pointer: coarse) { .table-cell--emoji { min-height: 40px; } }
 .table-del-col {
-  position: absolute; top: 50%; right: 2px; transform: translateY(-50%);
-  width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
-  background: none; border: none; cursor: pointer; border-radius: var(--radius);
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-2xs); opacity: 0;
-  transition: opacity var(--dur-1), color var(--dur-1);
+  position: absolute; top: 50%; right: 2px; transform: translateY(-50%); opacity: 0;
 }
 .table-grid th:hover .table-del-col, .table-del-col:focus-visible { opacity: 1; }
-/* No hover to reveal it on touch, so keep it visible at a calmer resting opacity. */
+/* Keep the column remove button visible on touch. */
 @media (hover: none) {
-  .table-del-col { opacity: .6; }
-  .table-del-col:active { opacity: 1; }
-}
-/* A fingertip-sized hit area via a ::before the same width/height as the button, so
-   the column header keeps its own box (`.table-cell--head`'s padding-right already
-   reserves the icon's own space; growing the button itself would eat into that). */
-@media (pointer: coarse) {
-  .table-del-col::before {
-    content: ''; position: absolute; inset: calc((40px - 100%) / -2);
-  }
+  .table-del-col { opacity: 1; }
 }
 .table-rowctl { width: 24px; }
 /* Fixed-schema tables keep city entry roomy and optional details scrollable. */
@@ -1748,28 +1714,21 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .table-grid tr[data-table-ghost] { opacity: .55; }
 .table-grid tr[data-table-ghost]:focus-within,
 .table-grid tr[data-table-ghost]:hover { opacity: 1; }
-.table-del-row {
-  /* Positioned (not just for layout) so the coarse-pointer ::before below resolves
-     its inset against THIS box, not the row it sits in. */
-  position: relative;
-  width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
-  background: none; border: none; cursor: pointer; border-radius: var(--radius);
-  color: hsl(var(--muted-foreground)); font-size: var(--fs-2xs); opacity: 0;
-  transition: opacity var(--dur-1), color var(--dur-1);
-}
+/* The shared close button (lib/close-button.ts) in its removal tone. It shows while the
+   pointer is on its row, and whenever the keyboard reaches the button. */
+.table-del-row { opacity: 0; }
 .table-grid tbody tr:hover .table-del-row, .table-del-row:focus-visible { opacity: 1; }
 /* No hover to reveal it on touch, so keep it visible at a calmer resting opacity. */
 @media (hover: none) {
   .table-del-row { opacity: .6; }
   .table-del-row:active { opacity: 1; }
 }
-/* A fingertip-sized hit area via a ::before, so the row height doesn't grow. */
+/* A fingertip-sized hit area inside the row, so the row height does not grow. Positioned
+   so the reach resolves against this button, not the row. */
 @media (pointer: coarse) {
-  .table-del-row::before {
-    content: ''; position: absolute; inset: calc((40px - 100%) / -2);
-  }
+  .table-del-row { position: relative; }
+  .table-del-row::before { content: ''; position: absolute; inset: calc((40px - 100%) / -2); }
 }
-.table-del-col:hover, .table-del-row:hover { color: hsl(var(--destructive-text, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
 /* Pop-out, pinned to the grid's top-right. Its own bar rather than an overlay on
    the corner cell, which already carries that column's remove-×. The negative
    margin pulls the icon down onto the grid's top edge so the bar costs almost no
@@ -2123,11 +2082,6 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.block-asset-clear {
-  flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
-  background: none; cursor: pointer; color: hsl(var(--muted-foreground));
-  font-size: var(--fs-xs); transition: color var(--dur-1), background var(--dur-1);
-}
 /* ✦ Edit - shown only for a block image that came from a Lolly link. */
 .block-asset-edit {
   flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
@@ -2379,14 +2333,12 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   background: hsl(var(--muted));
   overflow: hidden;
 }
-/* Clear (✕) overlays the preview's top-right rather than taking a column. */
+/* Clear overlays the preview's top-right rather than taking a column. It is the shared
+   close button (lib/close-button.ts) with a ground of its own; only its place is set here. */
 .asset-slot-preview .asset-clear {
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 28px;
-  height: 28px;
-  background: hsl(var(--background) / 0.82);
 }
 /* ── Caption: names the loaded asset (the pick tab names the SOURCE, not the file). */
 .asset-slot-caption {
@@ -2483,24 +2435,6 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   justify-content: center;
   font-size: calc(28px * var(--a11y-fs));
   color: hsl(var(--muted-foreground));
-}
-
-.asset-clear {
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border: 1px solid hsl(var(--input));
-  border-radius: var(--radius);
-  background: hsl(var(--background));
-  cursor: pointer;
-  color: hsl(var(--muted-foreground));
-  font-size: var(--fs-md);
-  transition: color var(--dur-1), border-color var(--dur-1);
-}
-
-.asset-clear:hover {
-  color: hsl(var(--destructive-text));
-  border-color: hsl(var(--destructive));
 }
 
 /* Provenance line for an image that came from a pasted Lolly link: a "✦ from
@@ -2664,13 +2598,6 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .embed-editor-spark { color: hsl(var(--primary-text)); font-size: var(--fs-xl); flex: none; }
 .embed-editor-title { margin: 0; font-size: calc(15px * var(--a11y-fs)); font-weight: 600; flex: 1; min-width: 0; }
 .embed-editor-from { color: hsl(var(--muted-foreground)); font-weight: 400; }
-.embed-editor-close {
-  flex: none; background: none; border: none;
-  font-size: calc(22px * var(--a11y-fs)); line-height: 1; cursor: pointer;
-  color: hsl(var(--muted-foreground));
-  padding: var(--sp-1) var(--sp-3); border-radius: var(--radius);
-  transition: color var(--dur-1), background var(--dur-1);
-}
 .embed-editor-body {
   flex: 1; min-height: 0;
   display: grid;
@@ -2770,24 +2697,6 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   font-size: var(--fs-sm);
   font-family: var(--font-mono);
   color: hsl(var(--muted-foreground));
-}
-
-.file-clear {
-  flex: none;
-  width: 26px;
-  height: 26px;
-  border: 1px solid hsl(var(--input));
-  border-radius: var(--radius);
-  background: hsl(var(--background));
-  cursor: pointer;
-  color: hsl(var(--muted-foreground));
-  font-size: var(--fs-sm);
-  transition: color var(--dur-1), border-color var(--dur-1);
-}
-
-.file-clear:hover {
-  color: hsl(var(--destructive-text));
-  border-color: hsl(var(--destructive));
 }
 
 /* ─── "Runs on your device" badge (privacy:'on-device' utilities) ─────────── */
@@ -3424,7 +3333,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 }
 .canvas-audio-dl audio { width: 100%; height: 34px; }
 .canvas-audio-dl-actions { display: flex; gap: var(--sp-3); align-items: center; }
-.canvas-audio-dl-actions button {
+.canvas-audio-dl-actions button:not(.close-btn) {
   padding: var(--sp-3) var(--sp-6);
   border-radius: var(--radius-pill);
   border: 1px solid hsl(var(--border));
@@ -3435,9 +3344,9 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   font-weight: 600;
   cursor: pointer;
 }
-.canvas-audio-dl-actions button:hover { border-color: hsl(var(--primary)); }
-.canvas-audio-dl-actions button:disabled { opacity: 0.6; cursor: progress; }
-.canvas-audio-dl-x { margin-left: auto; padding: 6px 10px !important; }
+.canvas-audio-dl-actions button:not(.close-btn):hover { border-color: hsl(var(--primary)); }
+.canvas-audio-dl-actions button:not(.close-btn):disabled { opacity: 0.6; cursor: progress; }
+.canvas-audio-dl-x { margin-left: auto; }
 @media (prefers-reduced-motion: reduce) {
   .canvas-record-btn[data-state="recording"] .canvas-record-square,
   .tool-stage.is-recording::after { animation: none; }
@@ -3756,19 +3665,10 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   padding: 0; border: 0; background: none; cursor: pointer;
   width: 100%; text-align: left;
 }
-/* Per-slide delete - a small × in the thumbnail's top-right, revealed on hover/focus. */
-.pagestrip-del {
-  position: absolute; top: 4px; right: 4px;
-  width: 20px; height: 20px; padding: 0;
-  display: flex; align-items: center; justify-content: center;
-  border: 0; border-radius: var(--radius-round);
-  background: rgba(0, 0, 0, 0.55); color: #fff;
-  font-size: calc(15px * var(--a11y-fs)); line-height: 1; cursor: pointer;
-  opacity: 0; transition: opacity var(--dur-1), background var(--dur-1);
-}
+/* The shared close button (lib/close-button.ts); its place and reveal are set here. */
+.pagestrip-del { position: absolute; top: 4px; right: 4px; opacity: 0; }
 .pagestrip-thumb:hover .pagestrip-del,
 .pagestrip-del:focus-visible { opacity: 1; }
-.pagestrip-del:hover { background: hsl(0 72% 48%); }
 .pagestrip-frame {
   position: relative; width: 100%; display: block;
   border-radius: var(--radius-sm); overflow: hidden;

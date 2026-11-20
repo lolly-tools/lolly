@@ -70,6 +70,10 @@ export interface SegOption {
   label: string;
   count?: number;
   controls?: string;
+  /** Icon markup from lib/icons.ts `icon()`, drawn before the label. The label stays the
+   *  button's name and becomes its tooltip, so a caller's stylesheet may hide the label's
+   *  text at a narrow width and the control still says what each option is. */
+  icon?: string;
 }
 
 /** Render a segmented control. `name` seeds the `data-be-seg` hook the brand
@@ -103,7 +107,46 @@ export const segHtml = (
       const count = x.count === undefined ? '' : panel
         ? ` <b class="lp-seg-count">${escape(x.count)}</b>`
         : ` ${escape(x.count)}`;
-      return `<button type="button"${btnCls} data-val="${escape(x.id)}"${hook}${state}>${escape(x.label)}${count}</button>`;
+      const face = x.icon ? `<span class="seg-icon" aria-hidden="true">${x.icon}</span><span class="seg-label">${escape(x.label)}</span>` : escape(x.label);
+      const tip = x.icon ? ` title="${escape(x.label)}"` : '';
+      return `<button type="button"${btnCls} data-val="${escape(x.id)}"${hook}${state}${tip}>${face}${count}</button>`;
     }).join('')}
   </div>`;
 };
+
+/** Mark the pressed option of every segmented control under `root` whose value hook is
+ *  `attr` (`data-val`, which every control carries, when the caller gave none). */
+export function syncSeg(root: ParentNode, value: string, attr = 'data-val'): void {
+  for (const button of root.querySelectorAll<HTMLElement>(`[data-be-seg] [${attr}]`)) {
+    button.setAttribute('aria-pressed', String(button.getAttribute(attr) === value));
+  }
+}
+
+export interface WireSegOptions {
+  /** The value hook the control was drawn with. Defaults to `data-val`. */
+  attr?: string;
+  /** The person chose another option. The control has already marked the choice. */
+  onChange(value: string, button: HTMLElement): void;
+  /** Stop listening when this signal aborts. */
+  signal?: AbortSignal;
+  /** Keep the press from the surface that holds the control, for a menu that closes on
+   *  any click inside. */
+  stopPropagation?: boolean;
+}
+
+/** The one wiring for a segmented control drawn by `segHtml`: a press marks the option
+ *  and hands its value on. `root` is the control, or any element that holds the control.
+ *  A press on the option that is already chosen changes nothing. */
+export function wireSeg(root: Element, o: WireSegOptions): void {
+  const attr = o.attr ?? 'data-val';
+  root.addEventListener('click', (event) => {
+    const button = (event.target as Element | null)?.closest<HTMLElement>(`[data-be-seg] [${attr}]`);
+    if (!button || !root.contains(button)) return;
+    if (o.stopPropagation) event.stopPropagation();
+    if ((button as HTMLButtonElement).disabled || button.getAttribute('aria-pressed') === 'true') return;
+    for (const other of button.closest('[data-be-seg]')!.querySelectorAll<HTMLElement>(`[${attr}]`)) {
+      other.setAttribute('aria-pressed', String(other === button));
+    }
+    o.onChange(button.getAttribute(attr) ?? '', button);
+  }, o.signal ? { signal: o.signal } : undefined);
+}

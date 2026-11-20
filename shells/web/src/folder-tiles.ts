@@ -9,6 +9,7 @@
  * Previews are stored-thumb + metadata only: we never live-render here. A batch
  * session has no single thumbnail, so it shows a package glyph plus metadata badges.
  */
+import { closeButtonHtml, type CloseButtonAttr } from './lib/close-button.ts';
 import { escape, safeHref } from './utils.ts';
 import { icon } from './lib/icons.ts';
 import { tRaw } from './i18n.ts';
@@ -369,8 +370,8 @@ export interface SessionRowOpts {
   /** Size chip; only rendered when there are bytes to show (matches both views). */
   sizeBytes?: number;
   sizeClass?: string;
-  /** Delete button; only rendered when an attribute is supplied. */
-  deleteAttr?: string;
+  /** Delete button; accepts a bare attribute name or unescaped attribute values. */
+  deleteAttr?: string | Readonly<Record<string, CloseButtonAttr>>;
   deleteClass?: string;
   deleteLabel?: string;
   deleteTitle?: string;
@@ -407,7 +408,7 @@ export function sessionRow(entry: SessionEntry, opts: SessionRowOpts): string {
     ? `<span class="${opts.sizeClass ?? 'session-size'}">${fmtBytes(opts.sizeBytes)}</span>`
     : '';
   const deleteBtn = opts.deleteAttr
-    ? `<button type="button"${clsAttr(opts.deleteClass)} ${opts.deleteAttr}${opts.deleteTitle ? ` title="${escape(opts.deleteTitle)}"` : ''} aria-label="${escape(opts.deleteLabel ?? '')}">&#x2715;</button>`
+    ? closeButtonHtml({ size: 'sm', danger: true, className: opts.deleteClass, label: opts.deleteLabel ?? '', attrs: { ...(typeof opts.deleteAttr === 'string' ? { [opts.deleteAttr]: true } : opts.deleteAttr), title: opts.deleteTitle || undefined } })
     : '';
 
   return `

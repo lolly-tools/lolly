@@ -2,8 +2,8 @@
 /**
  * `/tools/<tool-id>/assets/<file>` as an asset id: a picture a tool ships in its own
  * folder (packages/node-shell/src/tool-asset-id.ts). Example looks name their
- * pictures this way so the catalog index, the slim index and the preview bundle
- * carry a short path rather than the picture's bytes.
+ * pictures this way so the catalog index carries a short path rather than the
+ * picture's bytes.
  *
  *  - the grammar is one file directly in a tool's assets folder, with a picture
  *    extension, and nothing that could leave that folder;

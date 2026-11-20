@@ -15,6 +15,7 @@ import { setPrimaryFont, setMonoFont } from '../user-fonts.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { announce } from '../a11y.ts';
 import { t, tRaw } from '../i18n.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 
 export interface FontsManagerOptions {
   host: HostV1;
@@ -178,7 +179,7 @@ export async function mountFontsManager(container: HTMLElement, opts: FontsManag
             <div class="fonts-item-actions">
               <button type="button" class="fonts-item-btn fonts-set-primary" data-set-primary="${font.id}" aria-label="Set as primary font">Primary</button>
               <button type="button" class="fonts-item-btn fonts-set-mono" data-set-mono="${font.id}" aria-label="Set as mono font">Mono</button>
-              <button type="button" class="fonts-item-delete" data-delete-font="${font.id}" aria-label="Delete font">×</button>
+              ${closeButtonHtml({ size: 'sm', danger: true, className: 'fonts-item-delete', label: 'Delete font', attrs: { 'data-delete-font': font.id } })}
             </div>
           </div>
         `

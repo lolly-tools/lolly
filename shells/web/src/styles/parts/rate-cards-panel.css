@@ -12,17 +12,6 @@
 
 .rcm-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .rcm-title { margin: 0; font-size: calc(1.05rem * var(--a11y-fs)); font-weight: 650; }
-.rcm-close {
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--card));
-  color: hsl(var(--foreground));
-  border-radius: 0.5rem;
-  font-size: calc(1.1rem * var(--a11y-fs));
-  line-height: 1;
-  padding: 0.15rem 0.5rem;
-  cursor: pointer;
-}
-.rcm-close:hover { background: hsl(var(--muted)); }
 
 .rcm-intro { margin: 0; color: hsl(var(--muted-foreground)); font-size: calc(0.9rem * var(--a11y-fs)); }
 
@@ -89,7 +78,6 @@
 .rcm-remove:hover { background: hsl(var(--muted)); }
 
 @media (pointer: coarse) {
-  .rcm-close { min-width: 44px; min-height: 44px; }
   .rcm-new { min-height: 44px; }
   .rcm-remove { min-height: 40px; }
 }

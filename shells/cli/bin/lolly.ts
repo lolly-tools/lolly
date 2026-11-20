@@ -20,13 +20,21 @@
 
 import { argv } from 'node:process';
 import { readFile } from 'node:fs/promises';
-import { parseToolUrl, normalizeLang } from '@lolly/engine';
-import { runToolCli, listToolsCli, showToolInputsCli, listAssetsCli, readStdin } from '../src/run.ts';
 import { INTENT_BOOL_FLAGS, INTENT_VALUE_FLAGS, parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS, READ_VALUE_FLAGS, CHECK_VALUE_FLAGS, READ_BOOL_FLAGS, CHECK_BOOL_FLAGS, MEASURE_VALUE_FLAGS, MEASURE_BOOL_FLAGS, COMPOSE_VALUE_FLAGS, COMPOSE_BOOL_FLAGS, refuseUnknownFlags } from '../src/args.ts';
 import { EXIT, exitCodeFor, usageError } from '../src/exit-codes.ts';
 import { configureOutput, strictExitCode, note, writeOut, keepConsoleOffStdout } from '../src/output.ts';
 import { beginCommand, emitError, jsonRequested, envelopeEmitted } from '../src/envelope.ts';
 import { assertContentRoot, needsContentRoot } from '../src/content-root.ts';
+import { enableStartupCache } from '../src/startup-cache.ts';
+
+// The compile cache goes on before the engine loads (plans/371, M1.1). The two imports
+// below bring in every engine module, so they are loaded on first use: `--version` and
+// `--help` need neither, and every other command compiles them through the cache.
+enableStartupCache();
+const loadEngine = () => import('@lolly/engine');
+const loadRun = () => import('../src/run.ts');
+/** stdin, read once, for the commands that take a function to call when they want the bytes. */
+const readStdin = async (): Promise<Buffer> => (await loadRun()).readStdin();
 
 const USAGE = `lolly - constraint-first asset generation from the terminal.
 
@@ -490,7 +498,8 @@ try {
       await writeOut(verbHelp(args) ?? USAGE);
     }
   } else if (args.some(a => a === '--version' || a === '-v')) {
-    const { ENGINE_VERSION } = await import('@lolly/engine');
+    // The version module alone: the whole engine is not needed to print one string.
+    const { ENGINE_VERSION } = await import('../../../engine/src/version.ts');
     const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
     await writeOut(`lolly ${pkg.version} (engine ${ENGINE_VERSION})\n`);
   } else {
@@ -526,7 +535,7 @@ async function main(): Promise<void> {
     } else {
       beginCommand('list', false);
       assertContentRoot();
-      await listToolsCli();
+      await (await loadRun()).listToolsCli();
     }
     return;
   }
@@ -688,14 +697,14 @@ async function main(): Promise<void> {
   }
 
   if (cmd === 'list') {
-    await listToolsCli({ json: g.json, query: flags.q, limit: flags.limit === undefined ? undefined : Number(flags.limit) });
+    await (await loadRun()).listToolsCli({ json: g.json, query: flags.q, limit: flags.limit === undefined ? undefined : Number(flags.limit) });
     return;
   }
 
   if (cmd === 'describe') {
     const toolId = positionals[1];
     if (!toolId) throw usageError('usage: lolly describe <tool-id>', 'MISSING_ARGUMENT');
-    await showToolInputsCli(toolId, { lang: normalizeLang(flags.lang) ?? undefined, json: g.json, full: isOn(flags.all) });
+    await (await loadRun()).showToolInputsCli(toolId, { lang: (await loadEngine()).normalizeLang(flags.lang) ?? undefined, json: g.json, full: isOn(flags.all) });
     return;
   }
 
@@ -899,7 +908,7 @@ async function main(): Promise<void> {
   // `assets`: list catalog asset ids so they can be passed to any `asset`-type input
   // (the engine already resolves an id → the embedded asset).
   if (cmd === 'assets') {
-    await listAssetsCli(positionals[1], { type: flags.type, json: g.json });
+    await (await loadRun()).listAssetsCli(positionals[1], { type: flags.type, json: g.json });
     return;
   }
 
@@ -979,7 +988,7 @@ async function main(): Promise<void> {
   // query were --flags (the URL-mode-as-CLI principle). Any --flag=val after the URL
   // overrides the URL's params - "the URL as settings, then edit".
   if (/^https?:\/\//i.test(cmd ?? '')) {
-    const ref = parseToolUrl(cmd!);
+    const ref = (await loadEngine()).parseToolUrl(cmd!);
     if (!ref) throw usageError(`Not a recognised Lolly tool URL: ${cmd}`, 'BAD_URL');
     const urlParams = Object.fromEntries(new URLSearchParams(ref.query));
     // No `profile` remap any more: url-mode's `profile` IS the press condition and so is
@@ -1013,7 +1022,7 @@ async function main(): Promise<void> {
   const files = positionals.slice(1);
   if (flagKeys.length === 0 && files.length === 0) {
     beginCommand('describe', g.json);
-    await showToolInputsCli(toolId, { lang: normalizeLang(flags.lang) ?? undefined, json: g.json });
+    await (await loadRun()).showToolInputsCli(toolId, { lang: (await loadEngine()).normalizeLang(flags.lang) ?? undefined, json: g.json });
     return;
   }
   await render(toolId, flags, undefined, repeated, undefined, files);
@@ -1053,7 +1062,7 @@ async function render(
   delete params['password-stdin'];
 
   if (/\.lolly$/i.test(toolId)) { const {runDesignToolPackage} = await import('../src/design-tool.ts'); await runDesignToolPackage(toolId, flags); return; }
-  await runToolCli({
+  await (await loadRun()).runToolCli({
     toolId,
     params,
     repeated,

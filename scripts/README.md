@@ -40,11 +40,10 @@ The manifest is always the source of truth; `catalog/tools/index.json` and the a
 |---|---|---|---|
 | `build-catalog-index.ts` | part of `build:catalog` | Regenerates `catalog/tools/index.json` from every `tool.json` in the active profile's tool packs. | DESTRUCTIVE, submodule |
 | `checksum-assets.ts` | part of `build:catalog` | Recomputes the content checksums in `catalog/assets/index.json`. | DESTRUCTIVE, submodule |
-| `build-preview-bundle.ts` | part of `build:catalog`, `previews` | Builds the preview-look bundle the gallery's featured hero row and example carousels render from. | DESTRUCTIVE, submodule |
 | `validate-catalog.ts` | `validate:catalog` | Validates every `tool.json` and asset entry against the schemas, then checks the invariants schemas cannot express: checksums, file existence, `bindToProfile` fields, palette references, `replacedBy` chains, and canonical-input divergence (a warning, never an error). | |
 | `build-catalog-all.ts` | `build:catalog:all`, `validate:catalog:all` (`--check`) | Rebuilds or checks **every mounted profile's** catalog by passing `--profile=<name>` to the underlying build for each one in turn. This is the one to run after any community `tool.json` edit, because the index is generated per brand. Skips a profile whose packs are not mounted rather than failing. | DESTRUCTIVE, submodule |
 | `sign-catalog.ts` | none | Produces `catalog/tools/index.sig.json`, the ECDSA P-256/SHA-256 integrity envelope `engine/src/catalog-integrity.ts` verifies before executing tool code. Deliberately not part of `build:catalog`, and no key lives in the repo: pass `--keyfile` or set `LOLLY_CATALOG_SIGNING_KEY`. `--gen-key` writes a fresh keypair into the gitignored `keys/` and refuses to overwrite an existing one. `--min-seq <n>` or `LOLLY_CATALOG_MIN_SEQ` can only raise the computed sequence. The flag takes precedence; accept integers from 0 to `Number.MAX_SAFE_INTEGER`. | submodule, API key |
-| `build-readme-tools.ts` | `build:readme-tools` | Regenerates the "Current tools" section of the root `README.md` between its marker comments, from the active profile's `catalog/tools/index.json`. | DESTRUCTIVE |
+| `build-readme-tools.ts` | `build:readme-tools` | Regenerates the tool list in the root `TOOLS.md` between its marker comments, from the active profile's `catalog/tools/index.json`. The README links to that page. | DESTRUCTIVE |
 | `sync-shared-hooks.ts` | `sync:shared` | Rewrites every `// === lolly:shared <name> ===` region in a tool's `hooks.js` from its canonical source in `community/_shared/`. Idempotent, refuses CRLF files, fails loudly on malformed or nested regions. | DESTRUCTIVE, submodule |
 
 ## Profiles and brands
@@ -72,7 +71,7 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `build-previews.ts` | part of `previews` | Captures each tool's gallery preview, keeping SVG where it can and rasterising where it cannot. | DESTRUCTIVE, submodule, browser |
+| `build-previews.ts` | part of `previews` | Captures each tool's gallery preview, keeping SVG where it can and rasterising where it cannot. A blank card is captured again from the example look that reads best; the example looks themselves are drawn live by the gallery and get no files. | DESTRUCTIVE, submodule, browser |
 | `build-animated-previews.ts` | `previews:animated` | Gives an animating tool a looping APNG instead of a frozen still, exported through the engine's own `renderApng` path. Writes committed authored overrides in the tool dir, which win over build-generated previews. | DESTRUCTIVE, submodule, browser |
 | `build-thumbnails.ts` | `optimize:thumbnails` | Derives the raster thumbnail sizes for catalog assets listed in `catalog/assets/index.json`. | DESTRUCTIVE, submodule |
 | `optimize-previews.ts` | `optimize:previews` | Runs svgo over every generated `catalog/previews/*.svg` in place. | DESTRUCTIVE, submodule |

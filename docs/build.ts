@@ -418,6 +418,7 @@ const pages: Page[] = [
   { slug: 'verify-yourself', title: 'Verify It Yourself', src: 'verify-yourself.md', pathway: 'trust', canonicalPath: 'trust/verify-yourself', contentLicense: 'CC-BY-SA-4.0', description: 'Check this site\'s claims against a real export, step by step. No account, no trust required, and nothing you cannot run yourself.' },
   { slug: 'privacy', title: 'Privacy Policy', src: 'privacy.md', pathway: 'trust', canonicalPath: 'trust/privacy', contentLicense: 'CC-BY-SA-4.0', description: 'What happens to your files and data: what stays on your device, every request the app can make, what the lolly.tools services keep and whom to ask.' },
   { slug: 'inclusive-design', title: 'Inclusive Design', src: 'inclusive-design.md', pathway: 'trust', canonicalPath: 'trust/inclusive-design', contentLicense: 'CC-BY-SA-4.0', description: 'Accessibility, language coverage and the ethical commitments Lolly holds itself to, with the tests that fail the build when one is broken.' },
+  { slug: 'without-ai', title: 'Lolly without AI', src: 'without-ai.md', pathway: 'trust', canonicalPath: 'trust/without-ai', contentLicense: 'CC-BY-SA-4.0', description: 'Lolly fills a template with your own words, pictures and data, the same way every time. Where a model can appear, how each result is marked and how to keep every one of them out.' },
   { slug: 'ai-stance', title: 'Our AI Stance', src: 'ai-stance.md', pathway: 'trust', canonicalPath: 'trust/ai-stance', contentLicense: 'CC-BY-SA-4.0', description: 'AI is welcome as labour and refused as impersonation. Where Lolly stands on generated content, and the machinery that enforces each commitment.', register: 'stage' },
   { slug: 'ai-features', title: 'Generated once, rendered the same', src: 'ai-features.md', pathway: 'trust', canonicalPath: 'trust/ai-features', contentLicense: 'CC-BY-SA-4.0', description: 'Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not.' },
   { slug: 'eu-ai-act', title: 'AI marking and the EU AI Act', src: 'eu-ai-act.md', pathway: 'trust', canonicalPath: 'trust/eu-ai-act', contentLicense: 'CC-BY-SA-4.0', description: 'Article 50\'s transparency duties and the Commission\'s Code of Practice ask for signed, tamper-evident marks. How Lolly preserves arriving AI marks, declares its own AI operations and verifies files on-device.' },
@@ -996,6 +997,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { slug: 'input-not-impersonation', label: 'Input, not impersonation' },
       { slug: 'creative-rights', label: 'Creative rights and credits' },
       { slug: 'inclusive-design', label: 'Inclusive Design' },
+      { slug: 'without-ai', label: 'Lolly without AI' },
       { slug: 'ai-stance', label: 'Our AI Stance' },
       { slug: 'ai-features', label: 'Generated once, rendered the same' },
       { slug: 'eu-ai-act', label: 'AI marking and the EU AI Act' },
@@ -2264,52 +2266,6 @@ function renderFormatsPage(md: string, lang: Lang): string {
 function appHref(lang: Lang, hash: string): string {
   return lang === 'en' ? `/${hash}` : `/?lang=${lang}${hash}`;
 }
-
-/**
- * Block 2 - "Make something, right now". Three worked examples from the reader's
- * own life; the caption names the SCENE, never the tool ("A code for the party",
- * not "QR Code Generator").
- *
- * Each card is a plain link into the app carrying the example's own inputs, so a
- * click opens the tool already filled in - the same "you get the config you saw"
- * contract the gallery's example carousel has, expressed as a URL because a
- * static page has no gallery to click.
- *
- * The three tools are pinned in tests/docs-claims.test.ts. All three are
- * community tools (present on every profile), declare no capabilities, and make
- * no network request of any kind - so this block keeps working with the Wi-Fi
- * off, which is the claim block 3 makes one screen further down.
- *
- * The picture is the tool's OWN preview of that exact look, copied out of the
- * active brand's catalog at build time (build(): /info/examples/). Faithful by
- * construction: what the card shows is what the click gives you. A profile whose
- * catalog has no preview for a look renders the card without its picture rather
- * than a broken image.
- */
-interface Scene { tool: string; look: string; query: string; scene: string; line: string; alt: string }
-const LANDING_SCENES: Scene[] = [
-  // The prefilled URL is the VISITOR's job, not ours (plans/168 WP-5): the card sells
-  // "a code for the invitation", so the first artifact a stranger makes must be that
-  // invitation. rsvp.example is a reserved example domain (RFC 2606) - obviously not a
-  // real organisation's link, per the no-invented-history rule.
-  { tool: 'qr-code', look: 'qr-code.look0.svg',
-    query: 'url=https%3A%2F%2Frsvp.example%2Fmidsummer-party&color=%231a1a2e&background=%23faf7f2',
-    scene: 'A code for the invitation',
-    line: 'Print it on the invite or pin it to the noticeboard, and everyone lands in the right place.',
-    alt: 'A square QR code in dark ink on warm paper' },
-  // Slot 2 is the audiogram (Andy, 2026-08-17): the camera-shy path deserves featuring.
-  // The query seeds the manifest's own look0 example so the preview and the click agree.
-  { tool: 'audiogram', look: 'audiogram.look0.svg',
-    query: 'title=Slow%20is%20smooth%2C%20smooth%20is%20fast&subtitle=The%20Build%20Notes%20podcast%20%C2%B7%20Ep.%2041&style=bars',
-    scene: 'Feeling shy? Your voice is plenty',
-    line: 'A voice note becomes a finished video: moving waveform, your words on the cover, your colours. No camera, no makeup needed.',
-    alt: 'An audiogram video cover with a title and a sound waveform' },
-  { tool: 'filter', look: 'filter.look1.svg',
-    query: 'effect=duotone',
-    scene: 'A photo, ready for the poster',
-    line: 'Drop in a picture and it takes on your two colours, so the poster looks like it was planned.',
-    alt: 'A photograph recoloured in two flat brand colours' },
-];
 
 /**
  * The FAQ, its own page since plans/177 (/info/start/faq.html): the same native
@@ -4252,9 +4208,13 @@ html[data-a11y-motion="reduce"] .docs-content .md-cards ul.icon-list>li.ic:hover
    a page's print edition beside it as an app button, on the title's last line
    rather than over the article's first. On a phone the button wraps under the title. */
 .mast-title{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem 2rem}
-/* The section label over the title (pageWayfinding): tucked to the title, a row of
-   the band's own. */
-.docs-mast-inner .docs-eyebrow{margin-bottom:-.9rem}
+/* The trail over the title (pageWayfinding): a row of the band's own. It keeps a
+   clear gap from the title, because it is a way back up and not a label for the heading. */
+.docs-mast-inner .docs-crumbs{margin-bottom:-.5rem}
+/* A page with no trail keeps the trail's row, so the title sits at one height on every
+   page and a decorated band keeps its art clear of the title. The trail is hidden below
+   1100px, so the row is kept only at that width and wider. */
+@media(min-width:1100px){.docs-mast-inner>.mast-title:first-child{margin-top:calc(var(--fs-md) * 1.4 + .9rem)}}
 .mast-title h1{flex:1 1 18rem;min-width:0}
 .mast-title .docs-edition-bar{margin:0 0 .35rem}
 /* The pathways strip at the top of the band (docs-chrome.css, which also makes it
@@ -4789,7 +4749,7 @@ main.docs-content.docs-content>p:has(>img,>a>img,>picture){margin-inline:0;max-w
   .page-has-rail .docs-masthead .docs-mast-inner,.page-has-rail .docs-strip-band .docs-mast-inner{max-width:calc(73.75rem + 14rem);padding-inline-end:calc(14rem + 2rem)}
 }
 @media print{.doc-pagebar,.docs-onpage{display:none!important}}
-.docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border); font-weight:300;}
+.docs-content h1{font-size:calc(3rem * var(--a11y-fs));color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem; font-weight:300;}
 
 /* Table */
 .table-wrap{overflow-x:auto;margin-bottom:2rem;box-shadow: 0 0 0 1px hsl(var(--border)), 0 .2rem .4rem #00000018; border-radius: 1.5em;}
@@ -6392,7 +6352,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'operators', label: 'Instance configuration, SSO and signing', slugs: ['connector-origins', 'work-enterprise-identity', 'work-identity-providers', 'work-customer-setup', 'work-configuration', 'work-c2pa'] },
   { hub: 'operators', label: 'Operations, monitoring and recovery', slugs: ['work-operations', 'work-metrics', 'work-production-readiness', 'work-telemetry', 'work-audit'] },
   { hub: 'operators', label: 'Updates, qualification and release history', slugs: ['catalog-resource-reading', 'deploy-delivery', 'work-release-1-2-0', 'work-release-1-1-3', 'work-release-1-1-2', 'work-past-releases', 'work-instance-pack-production', 'work-shell-deployment-workflow'] },
-  { hub: 'trust', label: 'Principles, rights and AI', slugs: ['status-quo', 'tenets', 'input-not-impersonation', 'creative-rights', 'inclusive-design', 'ai-stance', 'ai-features', 'eu-ai-act', 'beatrice-warde', 'shoulders-of-giants'] },
+  { hub: 'trust', label: 'Principles, rights and AI', slugs: ['status-quo', 'tenets', 'input-not-impersonation', 'creative-rights', 'inclusive-design', 'without-ai', 'ai-stance', 'ai-features', 'eu-ai-act', 'beatrice-warde', 'shoulders-of-giants'] },
   { hub: 'trust', label: 'Credentials and verification', slugs: ['content-credentials-identity', 'what-verify-checks', 'verify-ai-evidence', 'content-credentials-engineering', 'security', 'verify-yourself'] },
   { hub: 'trust', label: 'Privacy, data and trust boundaries', slugs: ['threat-model', 'reading-files', 'parser-inventory', 'server-surface', 'privacy', 'work-security-platform', 'work-data-lifecycle'] },
 ];
@@ -6642,6 +6602,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'verify-yourself': 'check',
   'privacy': 'eyeoff',
   'inclusive-design': 'people',
+  'without-ai': 'check',
   'ai-stance': 'sparkle',
   'ai-features': 'sparkle',
   'eu-ai-act': 'document',
@@ -6787,16 +6748,22 @@ function repeatsPathwayTitle(groupLabel: string, pathwayTitle: string): boolean 
 }
 
 /**
- * The page's section and the next step for reading (plan 354 D3): the section label
- * over the title ("Create · Collaborate and export") and Previous and Next at the
- * article's end, both generated from the manifest's rail order and never written into
- * page text. The search index and the Markdown twins read the page before this chrome
- * is added, so neither carries the label or the pager. A page outside its section's
- * own rail (a borrowed or loose page) gets neither.
+ * The page's place in its section and the next step for reading (plan 354 D3): the trail over the
+ * title ("Create > Collaborate and export") and Previous and Next at the article's end,
+ * both generated from the manifest's rail order and never written into page text. The
+ * search index and the Markdown twins read the page before this chrome is added, so
+ * neither carries the trail or the pager. A page outside its section's own rail (a
+ * borrowed or loose page) gets neither.
+ *
+ * The trail is a breadcrumb, so it holds the steps ABOVE the page and never the page's
+ * own name. A section's own page gets no trail: its title is the section, and a line
+ * that says the title again over the title is decoration, not wayfinding. The section
+ * is a link to its page. A group is a heading in the rail with no page of its own, so it
+ * is text.
  */
-function pageWayfinding(lang: Lang, page: Page): { eyebrow: string; pager: string } {
+function pageWayfinding(lang: Lang, page: Page): { trail: string; pager: string } {
   const pathway = page.pathway;
-  if (!pathway) return { eyebrow: '', pager: '' };
+  if (!pathway) return { trail: '', pager: '' };
   const sb = SIDEBARS[pathway];
   const own = sb.groups.filter((g) => g.label !== 'Also in other sections');
   const hub = PATHWAY_HUB[pathway];
@@ -6804,10 +6771,14 @@ function pageWayfinding(lang: Lang, page: Page): { eyebrow: string; pager: strin
   const order: Array<{ slug: string; label: string }> = [{ slug: hub, label: sb.title }];
   for (const g of own) for (const it of g.items) if (it.slug !== hub) order.push(it);
   const at = order.findIndex((it) => it.slug === page.slug);
-  if (at < 0) return { eyebrow: '', pager: '' };
+  if (at < 0) return { trail: '', pager: '' };
   const group = own.find((g) => g.items.some((it) => it.slug === page.slug));
-  const groupLabel = group && page.slug !== hub && !repeatsPathwayTitle(group.label, sb.title) ? group.label : '';
-  const eyebrow = `<p class="docs-eyebrow"><span>${esc(t(sb.title))}</span>${groupLabel ? `<span aria-hidden="true"> · </span><span>${esc(t(groupLabel))}</span>` : ''}</p>`;
+  const says = (a: string, b: string): boolean => a.trim().toLowerCase() === b.trim().toLowerCase();
+  const repeatsPage = (label: string): boolean => says(label, page.title) || says(label, order[at]!.label);
+  const groupLabel = group && !repeatsPathwayTitle(group.label, sb.title) && !repeatsPage(group.label) ? group.label : '';
+  const trail = page.slug === hub || repeatsPage(sb.title)
+    ? ''
+    : `<ol class="docs-crumbs"><li><a href="${localeHref(lang, hub)}">${esc(t(sb.title))}</a></li>${groupLabel ? `<li>${esc(t(groupLabel))}</li>` : ''}</ol>`;
   const link = (it: { slug: string; label: string } | undefined, dir: 'prev' | 'next'): string => it
     ? `<a class="docs-pager-link docs-pager-${dir}" href="${localeHref(lang, it.slug)}" rel="${dir}"><span class="docs-pager-dir">${esc(t(dir === 'prev' ? 'Previous' : 'Next'))}</span><span class="docs-pager-title">${esc(t(it.label))}</span></a>`
     : '<span class="docs-pager-link docs-pager-empty" aria-hidden="true"></span>';
@@ -6816,7 +6787,7 @@ function pageWayfinding(lang: Lang, page: Page): { eyebrow: string; pager: strin
   const pager = prev || next
     ? `<nav class="docs-pager" aria-label="${esc(t('Previous and next pages'))}">${link(prev, 'prev')}${link(next, 'next')}</nav>`
     : '';
-  return { eyebrow, pager };
+  return { trail, pager };
 }
 
 function buildSidebar(lang: Lang, page: Page, activeHref: string) {
@@ -6997,13 +6968,13 @@ function pageNavParts(lang: Lang, page: Page, activeHref: string, content: strin
  * page record, and anything a reader has bookmarked. Rebuilding the heading from
  * page.title instead would have quietly renamed every one of them.
  */
-function docsMasthead(content: string, slug: string, top: { strip: string; edition: string; eyebrow?: string }): { band: string; rest: string; canvas: boolean } | null {
+function docsMasthead(content: string, slug: string, top: { strip: string; edition: string; trail?: string }): { band: string; rest: string; canvas: boolean } | null {
   const m = /<h1(\s[^>]*)?>([\s\S]*?)<\/h1>/.exec(content);
   if (!m) return null; // a page with no h1 keeps its plain top
   const rest = content.slice(0, m.index) + content.slice(m.index + m[0].length);
   // The band's two rows (plan 277 step 3c, decisions D15 and D16): the pathways strip,
   // then the title row, where the h1 keeps its element and id and a print edition sits beside the heading.
-  const heading = `${top.strip}${top.eyebrow ?? ''}<div class="mast-title">${m[0]}${top.edition}</div>`;
+  const heading = `${top.strip}${top.trail ?? ''}<div class="mast-title">${m[0]}${top.edition}</div>`;
   const art = mastheadArt(slug, heading);
   if (art) return { band: art, rest, canvas: false };
   // The band carries words only: the sections and the title. Its drifting chip field
@@ -7137,8 +7108,8 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // (buildLandingContent). The print edition stays at the top of such a page's <main>,
   // or beside the strip on an immersive page, whose own bands begin at once.
   const strip = pathwaysStrip(lang, activeHref, page.pathway, !!isLanding);
-  const nav = (isLanding || page.generated || page.immersive) ? { eyebrow: '', pager: '' } : pageWayfinding(lang, page);
-  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip: '', edition, eyebrow: nav.eyebrow });
+  const nav = (isLanding || page.generated || page.immersive) ? { trail: '', pager: '' } : pageWayfinding(lang, page);
+  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip: '', edition, trail: nav.trail });
   const article = mast ? mast.rest : content;
   const lead = mast ? '' : edition;
   const reading = readingAttr(content) + lightboxAttr(content);
@@ -7448,25 +7419,9 @@ async function build() {
     console.log(`✓  /info/diagrams/ (${copyDiagrams(diagramsSrc, resolve(outDir, 'diagrams'))} specification diagrams)`);
   }
 
-  // Block 2's worked examples (plan 117): each card shows the tool's OWN preview of
-  // the exact look its link seeds, so what the reader sees is what the click gives
-  // them. Copied verbatim out of the ACTIVE brand's catalog - these are signed
-  // artifacts, so they are copied, never rewritten - and mirrored, not accumulated.
-  // A brand whose catalog has no preview for a look ships that card without a
-  // picture, which is why this is a warning, not a fail.
+  // The landing's worked-example pictures are retired. An older local build can still
+  // hold the folder, so it is removed rather than left to ride into the offline download.
   rmSync(resolve(outDir, 'examples'), { recursive: true, force: true });
-  const previewDir = catalogFile('previews');
-  const havePreviews = LANDING_SCENES.filter(s => existsSync(resolve(previewDir, s.look)));
-  if (havePreviews.length) {
-    mkdirSync(resolve(outDir, 'examples'), { recursive: true });
-    for (const s of havePreviews) copyFileSync(resolve(previewDir, s.look), resolve(outDir, 'examples', s.look));
-    console.log(`✓  /info/examples/ (${havePreviews.length} worked-example previews)`);
-  }
-  for (const s of LANDING_SCENES) {
-    if (!existsSync(resolve(previewDir, s.look))) {
-      console.warn(`⚠  landing example: this brand's catalog has no ${s.look} - the "${s.scene}" card ships without its picture`);
-    }
-  }
 
   // Banked art - the signed mastheads and figures, served verbatim at
   // /info/mastheads/ and /info/figures/ (the shots precedent). The page inlines a

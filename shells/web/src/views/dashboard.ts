@@ -24,6 +24,7 @@
  *   caps          → lib/capabilities-data.ts
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { bindDisclosureUrl, updateRouteParams } from '../lib/url-state.ts';
 import '../styles/parts/platform.css'; // shared dashboard chrome (.plat-* / .cap-*)
 import '../styles/parts/dashboard.css'; // this view's layout + signature pieces
@@ -235,8 +236,7 @@ async function capabilitiesSection(): Promise<string> {
                aria-controls="dash-cap-results"
                placeholder="${escape(t('Search {n} capabilities - try “cmyk”, “figma”, “offline”', { n: totalCards }))}"
                aria-label="${escape(t('Search capabilities'))}">
-        <button type="button" class="dash-cap-search-clear" data-cap-search-clear hidden
-                aria-label="${escape(t('Clear search'))}">✕</button>
+        ${closeButtonHtml({ size: 'sm', className: 'dash-cap-search-clear', label: t('Clear search'), attrs: { 'data-cap-search-clear': true, hidden: true } })}
       </div>
       <p class="dash-cap-count" id="dash-cap-results" data-cap-count role="status" aria-live="polite" hidden></p>`;
   // Shown only when a query matches nothing - an accordion of collapsed, empty
@@ -254,7 +254,7 @@ async function capabilitiesSection(): Promise<string> {
           <header class="dash-cap-modal-head">
             <span class="dash-cap-modal-icon" data-cap-modal-icon aria-hidden="true"></span>
             <h3 class="dash-cap-modal-title" data-cap-modal-title></h3>
-            <button type="button" class="dash-cap-modal-close" data-cap-modal-close aria-label="${escape(t('Close'))}">✕</button>
+            ${closeButtonHtml({ className: 'dash-cap-modal-close', attrs: { 'data-cap-modal-close': true } })}
           </header>
           <div class="dash-cap-modal-panes">
             <figure class="dash-cap-modal-shot" data-cap-modal-shot hidden>

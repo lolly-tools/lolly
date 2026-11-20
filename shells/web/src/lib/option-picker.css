@@ -227,27 +227,6 @@
   font-size: var(--ui-type-section);
   font-weight: var(--ui-type-weight-section);
 }
-/* Close: the quiet icon button the export sheet closes with
-   (parts/tool.css .export-popup-close), at the finger target size. */
-.option-picker-close {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: var(--ui-size-target);
-  min-height: var(--ui-size-target);
-  border: 0;
-  background: none;
-  border-radius: var(--ui-radius-control);
-  color: var(--ui-color-text-muted);
-  cursor: pointer;
-}
-.option-picker-close svg {
-  width: calc(18px * var(--a11y-fs));
-  height: calc(18px * var(--a11y-fs));
-}
-.option-picker-close:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
-.option-picker-close:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 
 /* Windows High Contrast and other forced palettes erase the tinted fill and the
    inset ring, which leaves the chosen tile looking like the rest. A system-colour

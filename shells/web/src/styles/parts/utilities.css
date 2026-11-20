@@ -4,20 +4,14 @@
  * rules still win any tie. Generated from a per-site cascade-safety audit (GO sites only).
  */
 
-/* was .u-flex-center - 14 rules */
+/* Shared centring for the remaining controls. */
 .fc-pop-gitem,
 .stage-nav-btn, .stage-nav-pct,
 .folder-cell--batch, .folder-cell--empty,
 .profile-view .segmented-btn,
-.profile-view .headshot-remove,
-.userimg-delete,
-.userimg-lightbox-close,
-.saved-delete,
 .fullscreen-toggle,
 .block-remove,
 .block-asset-trigger,
-.asset-clear,
-.file-clear,
 .history-fab-count {
   display: flex;
   align-items: center;

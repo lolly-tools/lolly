@@ -42,6 +42,23 @@ export function round2(n: number): number {
   return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
 }
 
+/**
+ * A gradient stop's offset or opacity to four places, as the browser holds the stop:
+ * Design writes its CSS stops to a hundredth of a percent (`gradientSpecToCss`) and
+ * their alpha as eight-bit hex, and four places keep both. Two places moved a baked
+ * OKLab stop at 12.5% to 13%, 1.8 px on a 360 px box. The PDF writer keeps four too.
+ */
+function round4(n: number): number {
+  return Number.isFinite(n) ? Math.round(n * 10000) / 10000 : 0;
+}
+
+/**
+ * CSS's `ellipse farthest-corner` radius in the box's own units: the square root of one
+ * half (`radial-gradient` in `gradientSpecToCss`), to seven places. Written as 0.71 the
+ * ramp sat 0.84 levels from the browser's on the fidelity radial.
+ */
+const FARTHEST_CORNER = Math.round(Math.SQRT1_2 * 1e7) / 1e7;
+
 /** The `preserveAspectRatio` one Design `fit` asks for. */
 function aspect(fit: string): string {
   if (fit === 'cover') return 'xMidYMid slice';
@@ -178,12 +195,12 @@ export function wrapOp(op: WrapState, inner: string): string {
 
 /** A gradient as its definition and the `url(#id)` paint; the id hashes the definition. */
 function gradient(paint: Exclude<DrawPaint, { kind: 'color' }>): { defs: string; paint: string } {
-  const stops = paint.stops.map((s) => `<stop offset="${round2(s.offset)}" stop-color="${s.color}"`
-    + (s.opacity < 1 ? ` stop-opacity="${round2(s.opacity)}"` : '') + '/>').join('');
+  const stops = paint.stops.map((s) => `<stop offset="${round4(s.offset)}" stop-color="${s.color}"`
+    + (s.opacity < 1 ? ` stop-opacity="${round4(s.opacity)}"` : '') + '/>').join('');
   const tag = paint.kind === 'linear' ? 'linearGradient' : 'radialGradient';
   const head = paint.kind === 'linear'
     ? `<linearGradient gradientUnits="userSpaceOnUse" x1="${round2(paint.x1)}" y1="${round2(paint.y1)}" x2="${round2(paint.x2)}" y2="${round2(paint.y2)}"`
-    : '<radialGradient cx="0.5" cy="0.5" r="0.71"';
+    : `<radialGradient cx="0.5" cy="0.5" r="${FARTHEST_CORNER}"`;
   const body = `${head}>${stops}</${tag}>`;
   const id = `lg${contentId(body)}`;
   return { defs: `<defs>${body.replace(`<${tag} `, `<${tag} id="${id}" `)}</defs>`, paint: `url(#${id})` };

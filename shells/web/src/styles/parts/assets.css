@@ -639,7 +639,7 @@
   min-height: calc(44px * var(--a11y-fs)); padding: var(--sp-3);
   background: hsl(var(--card)); border-bottom: 1px solid hsl(var(--border));
 }
-.cat-details-header .cat-details-close { position: static; margin-inline-start: auto; flex: none; }
+.cat-details-header .cat-details-close { position: static; margin-inline-start: auto; }
 .cat-edit-toolbar { position: relative; color: hsl(var(--foreground)); }
 .cat-edit-heading {
   display: inline-flex; align-items: center; gap: var(--sp-3); list-style: none;
@@ -744,6 +744,14 @@
 .cat-dl-img { max-width: 100%; max-height: 130px; object-fit: contain; }
 .cat-dl-section { margin-bottom: 14px; }
 .cat-dl-label { display: block; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); margin-bottom: 6px; }
+/* An icon group's Colours row: the swatches, then the Dark ground switch that decides
+   which pairing each colourway offers (views/assets/filters.ts groundSwitchHtml). */
+.cat-group-colours-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-6); }
+/* In the toolbar the switch sits on the toolbar's own raised pill. Here it stands on the
+   page, so it carries a surface at rest to read as a control, and the house on-state of
+   a chosen option (parts/tool.css .badge-select-opt.is-on) while the ground is dark. */
+.cat-group-colours-row .cat-ground { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.cat-group-colours-row .cat-ground.is-on { background: hsl(var(--primary) / .14); box-shadow: var(--ui-effect-selected); color: hsl(var(--primary-text)); }
 .cat-dl-hint { color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
 .cat-dl-select { width: 100%; }
 .cat-dl-field { display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }

@@ -9,7 +9,7 @@
 // Mirrors the colour-field popover lifecycle (Escape closes + refocuses the
 // trigger, outside-click disarms) so it matches the app's escape-to-close idiom.
 import './help-tip.css';
-import { icon } from '../lib/icons.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { escape, safeHref } from '../utils.ts';
 import { linkInputLabels } from './input-labels.ts';
 
@@ -25,10 +25,7 @@ const INFO_ICON =
 // and screen-reader users close a tip with Escape, or with a second press of the info
 // button, both of which this file already wires. aria-hidden with tabindex="-1" is
 // not focusable, so nothing is stranded behind the hidden attribute either.
-const CLOSE_BUTTON =
-  `<button type="button" class="help-tip-close" tabindex="-1" aria-hidden="true">`
-  + icon('close', { size: 11, strokeWidth: 2.4 })
-  + `</button>`;
+const CLOSE_BUTTON = closeButtonHtml({ size: 'sm', inherit: true, label: '', className: 'help-tip-close', attrs: { tabindex: -1, 'aria-hidden': 'true' } });
 
 let _seq = 0;
 

@@ -33,7 +33,7 @@ import { familyFromTokenValue, listUserFonts } from '../../user-fonts.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
-import { CHEVRON, HEADSHOT_ID, downloadName, gridAdmits, isThemable } from './shared.ts';
+import { CHEVRON, HEADSHOT_ID, downloadName, gridAdmits, iconThemeForGround, isThemable, readAssetGround } from './shared.ts';
 import type { CatFont } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { providerGroups } from '../assets-provider.ts';
@@ -249,7 +249,10 @@ export async function reload(cat: CatCtx): Promise<void> {
 
   // Colour pairings for the themable-icon styler - only if the catalog supplies them.
   if (cat.allAssets.some(isThemable) && typeof host.assets._iconThemes === 'function') {
-    cat.iconThemes = await host.assets._iconThemes().catch(() => [] as IconTheme[]);
+    const ground = readAssetGround();
+    cat.iconThemes = await host.assets._iconThemes(undefined, ground).catch(() => [] as IconTheme[]);
+    cat.iconThemeGround = ground;
+    cat.catIconTheme = iconThemeForGround(cat.catIconTheme, ground);
   }
   // Photo colour treatments (greyscale/duotone) for raster groups - the bitmap sibling
   // of the icon colours; only fetched when the catalogue actually holds raster assets.

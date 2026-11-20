@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: MPL-2.0
 /**
- * README "Current tools" generator.
+ * The tool list generator (TOOLS.md, linked from the README).
  *
  * Run as: pnpm run build:readme-tools  (or directly: node scripts/build-readme-tools.ts)
  *
  * Regenerates the count sentence + tool table between the
  * `<!-- tools-table:start -->` / `<!-- tools-table:end -->` markers in
- * README.md from the active profile's `tools/index.json` (resolved through
+ * TOOLS.md from the active profile's `tools/index.json` (resolved through
  * `content-roots`, not the retired `catalog/` view), so the table reflects
  * whichever profile `LOLLY_PROFILE` (or the resolver's own precedence) picks.
  * The table lists LISTED tools only (alphabetical); unlisted helpers are
@@ -21,7 +21,9 @@ import { fileURLToPath } from 'node:url';
 import { catalogFile, contentRoots } from '@lolly-tools/node-shell/content-roots';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const README_PATH = join(ROOT, 'README.md');
+// The list has a page of its own. It was the last two thirds of the README, which is
+// also the docs site's About page, and it made a short introduction read as a long one.
+const README_PATH = join(ROOT, 'TOOLS.md');
 const INDEX_PATH = catalogFile('tools/index.json');
 const START_MARK = '<!-- tools-table:start -->';
 const END_MARK = '<!-- tools-table:end -->';
@@ -87,15 +89,15 @@ const table = [
 const readme = readFileSync(README_PATH, 'utf8');
 const start = readme.indexOf(START_MARK);
 const end = readme.indexOf(END_MARK);
-if (start < 0 || end < 0) fail(`README.md is missing the ${START_MARK} / ${END_MARK} markers.`);
-if (end < start) fail('README.md has the tools-table markers in the wrong order.');
+if (start < 0 || end < 0) fail(`TOOLS.md is missing the ${START_MARK} / ${END_MARK} markers.`);
+if (end < start) fail('TOOLS.md has the tools-table markers in the wrong order.');
 
 const next =
   readme.slice(0, start + START_MARK.length) + '\n' + sentence + '\n\n' + table + '\n' + readme.slice(end);
 
 if (next === readme) {
-  console.log(`README.md tools section already current (${tools.length} tools, ${listed.length} listed).`);
+  console.log(`TOOLS.md tools section already current (${tools.length} tools, ${listed.length} listed).`);
 } else {
   writeFileSync(README_PATH, next);
-  console.log(`README.md tools section regenerated (${tools.length} tools, ${listed.length} listed, ${unlisted.length} unlisted).`);
+  console.log(`TOOLS.md tools section regenerated (${tools.length} tools, ${listed.length} listed, ${unlisted.length} unlisted).`);
 }

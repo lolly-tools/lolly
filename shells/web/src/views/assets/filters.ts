@@ -132,6 +132,17 @@ export function uploadsSectionHtml(cat: CatCtx, items: AssetRef[]): string {
       </div>
     </section>`;
 }
+// The Dark ground switch. The ground behind every asset follows the app's scheme; this
+// switch puts it on dark (or back on light), so artwork drawn for the other surface can
+// be checked, and the icon colours a colourway offers follow it (shared.ts
+// iconThemeForGround). One label, pressed while the ground is dark, so the button reads
+// the same way in either theme. The toolbar holds one and so does each icon group's
+// Colours row, beside the pairs it changes; wiring.ts syncAssetGround keeps them in step.
+function groundSwitchHtml(): string {
+  const dark = readAssetGround() === 'dark';
+  const label = t('Dark ground');
+  return `<button type="button" class="cat-showhidden cat-ground${dark ? ' is-on' : ''}" aria-pressed="${dark}" aria-label="${escapeText(label)}" title="${escapeText(label)}">${icon('moon', { size: 15 })}<span class="cat-btn-label">${label}</span></button>`;
+}
 export function assetsSectionHtml(cat: CatCtx): string {
   const { collapsed } = cat;
   const hiddenItems = cat.allAssets.filter(a => cat.hiddenSet.has(assetBaseId(a.id)));
@@ -196,6 +207,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
     parts.push(cat.tiles.groupSection(group.key, `${group.source} · ${group.label}`, items.length,
       () => assetGridHtml(cat, group.key, items)));
   }
+  const groundSwitch = groundSwitchHtml();
   for (const g of LIB_GROUPS) {
     const items = buckets.get(g.key) && sortAssets(buckets.get(g.key)!, cat.catSort, cat.catSortRev);
     if (!items?.length) continue;
@@ -206,7 +218,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
     const themableGroup = cat.iconThemes.length > 0 && items.some(isThemable);
     const treatableGroup = !themableGroup && cat.photoTreatments.length > 0 && items.some(a => a.type === 'raster');
     const colourRow = themableGroup
-      ? `<div class="cat-dl-section cat-group-colours"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(cat.catIconTheme)}</div>`
+      ? `<div class="cat-dl-section cat-group-colours"><span class="cat-dl-label">${t('Colours')}</span><div class="cat-group-colours-row">${cat.thumbs.iconSwatchRow(cat.catIconTheme)}${groundSwitch}</div></div>`
       : treatableGroup
         ? `<div class="cat-dl-section cat-group-colours"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(cat.catPhotoTreatment)}</div>`
         : '';
@@ -269,12 +281,6 @@ export function assetsSectionHtml(cat: CatCtx): string {
   // plain way to see everything, and it stays reachable while searching. A catalog with
   // one system has no scope, so the toolbar has no extra button.
   const allSystemsLabel = t('All design systems');
-  // The ground behind every asset follows the app's scheme; this switch puts it on dark
-  // (or back on light), so artwork drawn for the other surface can be checked. One
-  // label, pressed while the ground is dark, so the button reads the same way in
-  // either theme (views/assets/shared.ts readAssetGround).
-  const darkGround = readAssetGround() === 'dark';
-  const groundLabel = t('Dark ground');
   // Reserve the counter's width for the widest string it can ever show, so switching filters
   // (which only ever shrink the number) never re-widths the centred toolbar pill and shifts the
   // filter buttons. Floor the digit count at 4 - a few thousand assets - so the reservation
@@ -290,7 +296,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
           ? (tn('1 asset found', '{n} assets found', { n: visible.length }))
           : (tn('1 asset', '{n} assets', { n: visible.length }))}</span>
         ${cat.scope ? `<button type="button" class="cat-showhidden cat-allsystems${cat.allSystems ? ' is-on' : ''}" aria-pressed="${cat.allSystems}" aria-label="${escapeText(allSystemsLabel)}" title="${escapeText(allSystemsLabel)}">${icon('layersStack', { size: 15 })}<span class="cat-btn-label">${allSystemsLabel}</span></button>` : ''}
-        <button type="button" class="cat-showhidden cat-ground${darkGround ? ' is-on' : ''}" aria-pressed="${darkGround}" aria-label="${escapeText(groundLabel)}" title="${escapeText(groundLabel)}">${icon('moon', { size: 15 })}<span class="cat-btn-label">${groundLabel}</span></button>
+        ${groundSwitchHtml()}
         ${cat.query ? '' : `<button type="button" class="cat-showhidden cat-collapse-all" aria-label="${escapeText(collapseLabel)}" title="${escapeText(collapseLabel)}">${anyExpanded ? CAT_ICONS.collapse : CAT_ICONS.expand}<span class="cat-btn-label">${collapseLabel}</span></button>`}
         ${hiddenItems.length && !cat.query ? `<button type="button" class="cat-showhidden${cat.showHidden ? ' is-on' : ''}" aria-pressed="${cat.showHidden}" aria-label="${escapeText(showHiddenLabel)}" title="${escapeText(showHiddenLabel)}">${cat.showHidden ? CAT_ICONS.eyeOff : CAT_ICONS.eye}<span class="cat-btn-label">${showHiddenLabel}</span></button>` : ''}
       </div>`;

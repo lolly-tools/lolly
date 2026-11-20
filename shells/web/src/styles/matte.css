@@ -37,17 +37,6 @@
   font-size: var(--fs-lg);
   font-weight: 600;
 }
-.matte-close {
-  background: none;
-  border: none;
-  font-size: calc(20px * var(--a11y-fs));
-  line-height: 1;
-  cursor: pointer;
-  color: hsl(var(--muted-foreground));
-  padding: 2px 6px;
-  border-radius: var(--radius);
-}
-.matte-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
 .matte-body {
   display: flex;
   flex-direction: column;

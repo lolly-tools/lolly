@@ -96,7 +96,7 @@ let versions: { engine: string; cli: string } | null = null;
 /** Engine + CLI versions, read once. The CLI version comes from its own package.json. */
 export async function toolVersions(): Promise<{ engine: string; cli: string }> {
   if (versions) return versions;
-  const { ENGINE_VERSION } = await import('@lolly/engine');
+  const { ENGINE_VERSION } = await import('../../../engine/src/version.ts');
   let cli = '0.0.0';
   try {
     const pkg = JSON.parse(

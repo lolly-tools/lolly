@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { flushAddressWrites, replaceRouteUrl, updateRouteParams } from '../../lib/url-state.ts';
 import { acquireCollabSession } from '../../lib/collab-session-source.ts';
 import { mountPeerViewport } from '../tool-peer-view.ts';
@@ -325,7 +326,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
     ? `
     <div class="tool-notice" role="status" id="dropped-assets-notice">
       <span class="tool-notice-text">${droppedLines.join(' ')}</span>
-      <button type="button" class="tool-notice-close" id="dropped-assets-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'dropped-assets-dismiss' } })}
     </div>`
     : ''; tview.droppedNotice = droppedNotice;
 
@@ -336,7 +337,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
     <div class="tool-notice" role="status" id="capture-hint-notice">
       ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - docsAppHref() over a build-time slug constant, always '#/docs/…' */ ''}
       <span class="tool-notice-text">${t('Compose a shot and copy its recipe here. Saving it to a file needs the desktop app or browser extension.')} <a href="${escapeText(docsAppHref('create/extension'))}" target="_blank" rel="noopener">${t('Get the extension')}</a></span>
-      <button type="button" class="tool-notice-close" id="capture-hint-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'capture-hint-dismiss' } })}
     </div>`
     : ''; tview.captureNotice = captureNotice;
 
@@ -365,7 +366,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
               )
       }
         ${madeWithOnDevice ? ` <button type="button" class="tool-notice-link" id="made-with-switch">${t('Switch to {name}', { name: escapeText(madeWith.label) })}</button>` : ''}</span>
-      <button type="button" class="tool-notice-close" id="made-with-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>
+      ${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'made-with-dismiss' } })}
     </div>`
     : ''; tview.madeWithNotice = madeWithNotice;
 
@@ -539,7 +540,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
           <div class="export-popup" role="dialog" aria-modal="true" data-canvas-keys="off" aria-label="${escapeText(t('Export'))}">
             <div class="export-popup-head">
               <span class="export-popup-title">${t('Export')}</span>
-              <button type="button" class="export-popup-close" data-export-close aria-label="${escapeText(t('Close'))}">&#x2715;</button>
+              ${closeButtonHtml({ className: 'export-popup-close', attrs: { 'data-export-close': true } })}
             </div>
             <div class="export-popup-body" id="export-popup-body"></div>
           </div>

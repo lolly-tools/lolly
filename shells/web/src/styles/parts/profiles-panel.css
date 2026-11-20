@@ -42,7 +42,6 @@
 @media (pointer: coarse) {
   .labp-cond-btn { min-height: 44px; }
   .labp-remove { min-height: 32px; padding-inline: 0.35rem; }
-  .labp-close { min-width: 44px; min-height: 44px; }
 }
 
 /* ── The `+` that opens all of this (views/color-lab.ts, `.lab-limit-add`) ────

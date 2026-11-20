@@ -362,11 +362,23 @@ test('colourway icon colours are offered and baked, and a palette id still bakes
     put: async (store: string, value: unknown, key: string) => { if (store === 'asset-blob') stored.set(key, value); },
   };
   const api = createAssetsAPI(db as never, { designSystemDocument: async () => demo }) as unknown as ReturnType<typeof createAssetsAPI> & {
-    _iconThemes(): Promise<Array<{ id: string }>>; _knownIconThemes(): Promise<Array<{ id: string }>>;
+    _iconThemes(forAssetId?: string, ground?: 'light' | 'dark'): Promise<Array<{ id: string; label?: string; c1: string; c2: string }>>;
+    _knownIconThemes(): Promise<Array<{ id: string }>>;
   };
-  const offered = (await api._iconThemes()).map((t) => t.id);
+  const light = await api._iconThemes();
+  const offered = light.map((t) => t.id);
   assert.deepEqual(offered, ['colourway-spearmint', 'colourway-morning', 'colourway-spring', 'colourway-beach', 'colourway-afternoon', 'colourway-midnight']);
   const { colourwaySurfaceIconThemes } = await import('../../../../engine/src/brand-treatments.ts');
+  // On a dark ground the strip offers each colourway's pairing for a dark ground: the
+  // same colourways in the same order under the same names, with that pairing's colours.
+  const dark = await api._iconThemes(undefined, 'dark');
+  assert.deepEqual(dark.map((t) => t.id), offered.map((id) => `${id}--on-dark`));
+  assert.deepEqual(dark.map((t) => t.label), light.map((t) => t.label), 'named as the colourway, not as "on dark"');
+  for (const pair of dark) {
+    const engine = colourwaySurfaceIconThemes(demo).find((t) => t.id === pair.id)!;
+    assert.deepEqual([pair.c1, pair.c2], [engine.c1, engine.c2], pair.id);
+  }
+  assert.deepEqual(await api._iconThemes(undefined, 'light'), light);
   assert.deepEqual((await api._knownIconThemes()).map((t) => t.id), [...colourwaySurfaceIconThemes(demo).map((t) => t.id), 'brand', 'ember'],
     'every colourway pairing resolves, dark ones included, then a palette a catalog still ships');
 
@@ -389,6 +401,7 @@ test('colourway icon colours are offered and baked, and a palette id still bakes
   try {
     const off = createAssetsAPI(db as never, { designSystemDocument: async () => demo }) as unknown as typeof api & { _photoTreatments(): Promise<unknown[]> };
     assert.deepEqual(await off._iconThemes(), [], 'no icon colours offered');
+    assert.deepEqual(await off._iconThemes(undefined, 'dark'), [], 'nor on a dark ground');
     assert.deepEqual(await off._photoTreatments(), [], 'no photo washes offered');
     const kept = await off.get('demo/icons/star?theme=colourway-morning');
     assert.match(await (await readObjectUrl(kept.url)).text(), /fill="#fac044"/, 'an existing pick keeps its colours');

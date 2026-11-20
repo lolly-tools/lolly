@@ -10,6 +10,7 @@
  */
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { mountModal } from './modal.ts';
 
 /** A saved session offered for one-click resume (plans/142 W4): the slot's
@@ -75,8 +76,7 @@ export async function openRecentsDialog(opts: { savedCount?: number; sessions?: 
     <div class="recents-dialog">
       <div class="recents-dialog-head">
         <h2 class="recents-dialog-title">${t('Your recent work')}</h2>
-        <button type="button" class="recents-dialog-close" data-recents-close
-          aria-label="${escape(t('Close'))}">&#x2715;</button>
+        ${closeButtonHtml({ className: 'recents-dialog-close', attrs: { 'data-recents-close': true } })}
       </div>
       ${sessionsRail}
       ${rail || (sessionsRail ? '' : `<p class="recents-dialog-empty">${t('Exports you download will show here for quick reopening.')}</p>`)}

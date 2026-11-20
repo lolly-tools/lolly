@@ -402,12 +402,7 @@
 .dash-cap-search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
 .dash-cap-search-clear {
   position: absolute; right: .5rem;
-  width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs));
-  border: 0; border-radius: var(--radius-round); cursor: pointer;
-  background: hsl(var(--muted) / .6); color: hsl(var(--muted-foreground));
-  font-size: var(--fs-sm); line-height: 1;
 }
-.dash-cap-search-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 .dash-cap-count {
   margin: -.35rem 0 .6rem .9rem;
   color: hsl(var(--muted-foreground)); font-size: calc(.76rem * var(--a11y-fs));
@@ -549,8 +544,6 @@
 .dash-cap-modal-icon { flex: 0 0 auto; display: inline-flex; width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
 .dash-cap-modal-icon svg { width: 100%; height: 100%; display: block; }
 .dash-cap-modal-title { flex: 1 1 auto; margin: 0; font-size: calc(1.2rem * var(--a11y-fs)); font-weight: 700; letter-spacing: -.015em; }
-.dash-cap-modal-close { flex: 0 0 auto; width: calc(32px * var(--a11y-fs)); height: calc(32px * var(--a11y-fs)); border: 0; border-radius: var(--radius-round); background: hsl(var(--muted) / .5); color: hsl(var(--muted-foreground)); font-size: calc(15px * var(--a11y-fs)); line-height: 1; cursor: pointer; }
-.dash-cap-modal-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 
 .dash-cap-modal-panes { display: grid; }
 /* Shot first and slightly wider than the prose: it is the subject, and a

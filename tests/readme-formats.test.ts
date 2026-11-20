@@ -24,7 +24,13 @@ test('README format counts match the /info register', () => {
 
   const readme = readFileSync(resolve(ROOT, 'README.md'), 'utf8');
   const m = /\*\*(\d+) in, (\d+) out\*\* \((\d+) round-trip/.exec(readme);
-  assert.ok(m, 'README must state "**N in, M out** (K round-trip" once');
+  // The README is a short introduction and links to the format guide for the numbers.
+  // It may state them again, and then they must be the register's. What it may never do
+  // is state a count in another form, where this test could not hold the count true.
+  if (!m) {
+    assert.doesNotMatch(readme, /\b\d+\s+(?:in|out|formats?|round-trip)\b/i, 'README states a format count this test cannot check');
+    return;
+  }
   assert.equal(Number(m[1]), inCount, `README says ${m[1]} in; register has ${inCount}`);
   assert.equal(Number(m[2]), outCount, `README says ${m[2]} out; register has ${outCount}`);
   assert.equal(Number(m[3]), both, `README says ${m[3]} round-trip; register has ${both}`);
