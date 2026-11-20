@@ -32,6 +32,8 @@ import type { JSDOM } from 'jsdom';
 export type Runtime = Awaited<ReturnType<typeof createRuntime>>;
 export type Manifest = Awaited<ReturnType<typeof loadTool>>['manifest'];
 const runtimeHosts = new WeakMap<Runtime, HostV1>();
+/** The values each runtime was mounted from, so an export can tell which tool links this shell dropped. */
+const runtimeInitial = new WeakMap<Runtime, Record<string, unknown>>();
 
 /**
  * The tool a pasted lolly.tools link opens, with its settings, or why it opens
@@ -118,6 +120,7 @@ export async function mountTool(
   });
   selectCliBridgeTokens(host, runtime.tokenSelection);
   runtimeHosts.set(runtime, host);
+  runtimeInitial.set(runtime, initial as Record<string, unknown>);
   await (await import('./document-emoji.ts')).seedEmoji(runtime,host,reserved,values);
   return { runtime, manifest: tool.manifest, reserved };
 }
@@ -242,11 +245,53 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims)
   }
 }
 
+/**
+ * The TUI half of the Design PNG route (plan 371, M3a; `design-still.ts` in node-shell):
+ * the drawn page, or null for the browser render tier, with one line in the log either way.
+ */
+async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): Promise<import('@lolly-tools/node-shell/design-still').DesignStillDrawn | null> {
+  const { designStillDecision, designStillNote, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
+  const { describeDesignExportRoute } = await import('../../../engine/src/design-export-route.ts');
+  const { selectFramePage } = await import('@lolly/engine');
+  const log = (line: string): void => { runtimeHosts.get(runtime)?.log?.('info', line); };
+  const decision = designStillDecision();
+  if (decision.ignored !== undefined) log(`LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto or resvg), so the default applies.`);
+  const toBrowser = (reasons: string[]): null => { log(`Design PNG export: handed to the browser render tier because ${reasons.join('; ')}.`); return null; };
+  if (decision.draw === 'browser') return toBrowser([decision.because]);
+  const canvas = await hydrateCanvas(runtime, dom);
+  await runtime.applyEmojiToDom(canvas);
+  const pages = [...canvas.querySelectorAll('[data-pdf-page]')];
+  const pick = selectFramePage(pages.map((p) => p.getAttribute('data-frame-id')), dims.slide);
+  const page = pick.kind === 'page' ? pages[pick.index]! : pick.kind === 'none' && pages.length === 1 ? pages[0]! : null;
+  if (!page) return toBrowser([pick.kind === 'unmatched' ? `s=${pick.address.raw} matches no frame in this document` : `the document has ${pages.length} frames and the export names none`]);
+  const initial = runtimeInitial.get(runtime), frameId = page.getAttribute('data-frame-id');
+  if (initial && frameId) {
+    const { uncomposedToolLinks } = await import('../../cli/src/raster.ts');
+    const uncomposed = uncomposedToolLinks(runtime.getModel() as never, initial, frameId);
+    if (uncomposed.length) return toBrowser([`the picture in ${uncomposed.join(', ')} is made by another tool, which this shell could not compose`]);
+  }
+  const result = await drawDesignStill({
+    exportSvg: (node, opts) => runtime.export(node, 'svg', opts),
+    meta: () => runtime.lastExportMeta,
+    page,
+    rows: runtime.getModel().find((item) => item.id === 'boxes')?.value as unknown[] | undefined,
+    dims,
+  });
+  if ('refused' in result) return toBrowser(result.refused);
+  log(`${describeDesignExportRoute('png', result.drawn.route, [decision.because]).replace(/\.$/, '')}, ${result.drawn.width} x ${result.drawn.height} px, with no browser.`);
+  const notice = designStillNote(decision);
+  log(notice);
+  dims.onNote?.(notice);
+  return result.drawn;
+}
+
 /** Output size options for an export (mirrors the web/CLI: width/height are values in
  *  `unit`; a physical unit qualifies them so the engine converts per format). Extends
  *  the shared render dims (incl. the `password` PDF-lock param) with the TUI's
  *  Content-Credentials window. */
 export interface ExportDims extends RenderDims {
+  /** Told once about how the file was made when a person should know: a Design page drawn without a browser. */
+  onNote?: (message: string) => void;
   c2paDays?: number;
   /** The caller's own "no credential": none is stamped, and none stays in the file. */
   c2paOff?: boolean;
@@ -376,6 +421,19 @@ export async function exportToFile(
       if (!['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'penpot'].includes(fmt) ||
           (error as Error)?.name === 'RenderIntegrityError' || runtime.hookErrors.length ||
           currentQuery(runtime) !== query) throw error;
+    }
+  }
+
+  // 3a. A Design page's PNG with no browser (plan 371, M3a), the CLI's route: drawn here
+  //     when no browser tier is available or LOLLY_DESIGN_RASTER=resvg asks for it, and
+  //     only for a page it draws as the browser draws that page. This panel exports the whole
+  //     document, so a page is drawn here only when `s` picks one or the document holds
+  //     exactly one frame, which is the page the browser tier writes for that document.
+  if (manifest.id === 'design' && fmt === 'png' && !floatScene && modelValues(runtime).editingRange !== 'hdr') {
+    const still = await designStillHere(runtime, dom, dims);
+    if (still) {
+      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt, bytes: still.bytes });
+      return write(still.bytes, false, { pictures: still.ingredients, route: still.route });
     }
   }
 

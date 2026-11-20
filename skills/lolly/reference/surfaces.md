@@ -25,7 +25,9 @@ Contract (`services/mcp/src/render-get.ts`):
   existence leak.
 - **Browser-free formats only**, the `TIER_A` set: `svg`, `emf`, `eps`,
   `eps-cmyk`, `dxf`, `exr`, `hdr`, `penpot`, `html`, `md`, `txt`, `json`, `csv`,
-  `ics`, `vcf`. Plus `png` for SVG-native tools (a tool whose formats include
+  `ics`, `vcf`, and the caption and palette files `srt`, `vtt`, `ttml`, `scc`,
+  `css`, `scss`, `gpl` (for a tool that declares them, such as `captions` and
+  `color-palette`). Plus `png` for SVG-native tools (a tool whose formats include
   `svg`). Any other format returns a 400 telling you to use the app or
   `lolly_render`.
 - **Content Credentials are off here**, always, so the vector and PNG output is

@@ -79,7 +79,8 @@ const SOURCE_URL = 'https://github.com/lolly-tools/lolly';
  */
 export const RENDER_GET_FORMATS: readonly string[] = [
   'svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'penpot',
-  'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'png',
+  'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf',
+  'srt', 'vtt', 'ttml', 'scc', 'css', 'scss', 'gpl', 'png',
 ];
 
 /** Content-Type per format - mimeForFormat in services/mcp/src/render.ts (test-pinned). */
@@ -99,11 +100,21 @@ export const RENDER_GET_MIME: Readonly<Record<string, string>> = {
   csv: 'text/csv',
   ics: 'text/calendar',
   vcf: 'text/vcard',
+  srt: 'text/plain',
+  vtt: 'text/vtt',
+  ttml: 'application/ttml+xml',
+  scc: 'text/plain',
+  css: 'text/css',
+  scss: 'text/x-scss',
+  gpl: 'text/plain',
   png: 'image/png',
 };
 
 /** Served with `; charset=utf-8` - isTextFormat in services/mcp/src/render.ts (test-pinned). */
-export const RENDER_GET_TEXT: readonly string[] = ['svg', 'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'eps', 'eps-cmyk', 'dxf'];
+export const RENDER_GET_TEXT: readonly string[] = [
+  'svg', 'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'eps', 'eps-cmyk', 'dxf',
+  'srt', 'vtt', 'ttml', 'scc', 'css', 'scss', 'gpl',
+];
 
 /**
  * Byte-stable on the render route - the set docs/mcp.md "Reproducibility" promises.

@@ -5,12 +5,19 @@
  *
  * - SVG, SVGZ and PDF pages the drawing operations carry are written here, with no
  *   browser (`design-ops-svg.ts`, `design-ops-pdf.ts`): route `operations`.
- * - Every still raster goes to the browser tier, the headless Chromium driving the web
- *   shell, which routes the page itself and stamps the credential with the route it took.
- *   Node has no GPU route: the drawing operations reach pixels only through WebGPU, and
- *   a CPU substitute is ruled out (plan 295 section 2). A qualified native adapter would
- *   plug in at `nodeRasterRoute`, admitting the same evaluation the web shell admits and
- *   handing its RGBA to the Node PNG writer before the post-stamp in shells/cli/src/run.ts.
+ * - A PNG of an admitted page is drawn here when no browser tier is available or
+ *   `LOLLY_DESIGN_RASTER=resvg` asks for it (plan 371, M3a, `design-still.ts`): the
+ *   operations SVG with outlined words, drawn by resvg. It records route `operations`
+ *   with a renderer that gives both the drawing operations' version and the resvg build.
+ * - Every other still raster goes to the browser tier, the headless Chromium driving the
+ *   web shell, which routes the page itself and stamps the credential with the route it
+ *   took. Node has no GPU route: the drawing operations reach the GPU only through
+ *   WebGPU, and plan 295 section 2 rules out a CPU stand-in for the GPU page renderer.
+ *   The resvg route is not one: it draws the vector page an SVG export writes, the way
+ *   Tier A draws an SVG-native tool, and records a renderer of its own. A qualified
+ *   native adapter would plug in at `nodeRasterRoute`, admitting the
+ *   same evaluation the web shell admits and handing its RGBA to the Node PNG writer
+ *   before the post-stamp in shells/cli/src/run.ts.
  *
  * `LOLLY_EXPORT_ROUTE` (`auto`, `ops` or `legacy`) is the internal override. `legacy`
  * sends Design pages to the browser tier's compatibility renderer; the value is passed

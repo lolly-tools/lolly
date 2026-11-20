@@ -23,7 +23,7 @@ Every endpoint offers the same twenty-three tools. They differ in who can connec
 
 | Endpoint | Who can connect | What it makes |
 |---|---|---|
-| `https://lolly.tools/api/mcp`, the **open** endpoint | Anyone. No token and no sign-in; calls are limited per address and per day (see [Limits on the open endpoint](#limits-on-the-open-endpoint)). | Vector (`svg`, `emf`, `eps`, `eps-cmyk`, `dxf`, `penpot`), data and text (`html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`) and, for SVG-native tools, `png` plus the float formats `exr` and `hdr` (with `hdr` set). |
+| `https://lolly.tools/api/mcp`, the **open** endpoint | Anyone. No token and no sign-in; calls are limited per address and per day (see [Limits on the open endpoint](#limits-on-the-open-endpoint)). | Vector (`svg`, `emf`, `eps`, `eps-cmyk`, `dxf`, `penpot`), data and text (`html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`), captions (`srt`, `vtt`, `ttml`, `scc`), palettes (`css`, `scss`, `gpl`) and, for SVG-native tools, `png` plus the float formats `exr` and `hdr` (with `hdr` set). |
 | `https://mcp.lolly.tools/mcp`, the **full** endpoint | Whoever holds the access token from the operator, by OAuth or bearer. | Everything a tool declares: vector, every raster format, print PDF (CMYK and crop marks included) and animation and video (`gif`, `apng`, `webm`, `mp4`). |
 | **Your own machine**, over stdio or local HTTP | You. No token is needed over stdio. | Every format, once the scoped browser is installed with `pnpm run mcp:install-browser`. In a checkout, the server builds the web shell it renders through on first use. |
 
@@ -474,7 +474,7 @@ Its scope is narrow:
 
 - **No auth, no accounts, no state.** It renders public tool and catalog data only, and nothing is stored per request.
 - **Official and community tools only.** Anything else is a 404.
-- **Browser-free formats only**: `svg`, `emf`, `eps`, `eps-cmyk`, `dxf`, `exr`, `hdr`, `penpot`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`, plus `png` for SVG-native tools such as `qr-code`. A format that needs the browser tier returns a `400`; use `lolly_render` or the app for those.
+- **Browser-free formats only**: `svg`, `emf`, `eps`, `eps-cmyk`, `dxf`, `exr`, `hdr`, `penpot`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`, the caption files `srt`, `vtt`, `ttml` and `scc` for a tool such as `captions`, the palette files `css`, `scss` and `gpl` for `color-palette`, plus `png` for SVG-native tools such as `qr-code`. A format that needs the browser tier returns a `400`; use `lolly_render` or the app for those.
 - **Content Credentials are off here**, because each signing changes the bytes. Public calendar files use the catalog's build time for `DTSTAMP`, and an empty Calendar start date uses that build's date at 09:00, so set the event date explicitly when sharing a calendar link. Authenticated `lolly_render` and local exports keep their usual export behaviour.
 - **Rate-limited per address**, against the same daily budget as the open MCP endpoint. A `png` is capped at 2048 x 2048 pixels of area.
 - **Themes.** `_themes`, the theme per token group as JSON (`_themes={"":"dark"}`), renders a tool this route can draw, such as `qr-code`, with its token colours in that theme. A value that is not such JSON is a `400`, and a choice the design system does not declare draws that group's default theme with no warning. Lolly Design needs the browser tier, so this route refuses a Lolly Design document in any theme; export one in each theme with `lolly run <file.lolly> --themes=light,dark` on the CLI.
