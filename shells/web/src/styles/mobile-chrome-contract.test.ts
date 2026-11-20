@@ -20,7 +20,7 @@
  *      button are the two fixed surfaces that hang off the TOP edge; without
  *      var(--safe-top) they sit under the notch / Dynamic Island.
  *   4. COARSE-POINTER FLOORS - the job toast's ✕ and an undo toast's action are
- *      the only cancel/undo for their operation. Both are small text controls, so
+ *      the only cancel/undo for their operation. Both are small controls, so
  *      they carry the 44px HIG floor on a coarse pointer.
  *   5. SHEET CLAMPS - the two draggable bottom sheets size themselves in dvh,
  *      which does NOT shrink for the keyboard. Without the calc(100dvh -

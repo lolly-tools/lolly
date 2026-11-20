@@ -6,6 +6,7 @@
  * never appears here: an instance's settings name an environment variable, and the
  * token stays with the person who minted the token.
  */
+import { closeButtonHtml } from '../close-button.ts';
 import { mountModal } from '../../components/modal.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { icon } from '../icons.ts';
@@ -55,7 +56,7 @@ export function openConnectAgentSheet(host: BrandPageHost): Promise<void> {
         <h2 class="modal-title">${t('Connect an agent')}</h2>
         <p class="bp-intro">${t('Choose how much an agent can do.')}</p>
       </div>
-      <button type="button" class="bp-close" data-ca-close aria-label="${t('Close')}">${icon('close', { size: 20 })}</button>
+      ${closeButtonHtml({ className: 'bp-close', attrs: { 'data-ca-close': true } })}
     </header>
     <div class="ca-body">
       <section class="ca-option">

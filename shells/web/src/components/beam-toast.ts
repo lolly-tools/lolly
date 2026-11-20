@@ -86,6 +86,7 @@ import { escape } from '../utils.ts';
 import { announce } from '../a11y.ts';
 import { currentLang, loadNamespace, tRaw } from '../i18n.ts';
 import { fmtBytes } from '../lib/format.ts';
+import { closeButtonHtml } from '../lib/close-button.ts';
 import type {
   BeamCancelReason,
   BeamDeclineReason,
@@ -329,11 +330,9 @@ function renderCard(card: Card, extraQueued: number): string {
     body = card.terminal.kind === 'complete'
       ? `<p class="beam-toast-terminal">${escape(tRaw(offer.role === 'receiver' ? STRINGS.savedToLibrary : STRINGS.sent, { items: itemsPhrase(offer.kind, card.terminal.itemCount) }))}</p>`
       : `<p class="beam-toast-terminal beam-toast-terminal--err">${escape(reasonCopy(card.terminal.reason, card.accepted))}</p>`;
-    // The ✕ dismisses ONLY once a beam is done deciding - see the file header's
-    // queueing note for why an in-flight or undecided beam never gets one. The glyph
-    // itself isn't copy (a screen reader is told "Close" via `aria-label`, from
-    // STRINGS) - `data-dynamic` here means "skip the leaf text, keep the attrs".
-    closeBtn = `<button type="button" class="beam-toast-close" data-action="close" data-dynamic="true" aria-label="${escape(tRaw(STRINGS.close))}">✕</button>`;
+    // The close button dismisses ONLY once a beam is done deciding - see the file
+    // header's queueing note for why an in-flight or undecided beam never gets one.
+    closeBtn = closeButtonHtml({ size: 'sm', className: 'beam-toast-close', label: tRaw(STRINGS.close), attrs: { 'data-action': 'close' } });
   } else if (!card.accepted) {
     if (offer.role === 'receiver') {
       const prompt = tRaw(STRINGS.consentPrompt, {

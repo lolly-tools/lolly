@@ -9,6 +9,7 @@
  * registry is passed in rather than owned here.
  */
 
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { mountModal } from '../components/modal.ts';
 import type { ModalHandle } from '../components/modal.ts';
 import { t, tRaw } from '../i18n.ts';
@@ -39,7 +40,7 @@ export function userImageThumb(ref: AssetRef): string {
       <button type="button" class="userimg-view" data-view-userimg="${escapeHtml(ref.id)}" title="${escapeHtml(name)}" aria-label="${escapeHtml(tRaw('View {name}', { name }))}">
         ${media}
       </button>
-      <button type="button" class="userimg-delete" data-delete-userimg="${escapeHtml(ref.id)}" title="${escapeHtml(t('Delete'))}" aria-label="${escapeHtml(tRaw('Delete {name}', { name }))}">&#x2715;</button>
+      ${closeButtonHtml({ size: 'sm', danger: true, solid: true, className: 'userimg-delete', label: tRaw('Delete {name}', { name }), attrs: { 'data-delete-userimg': ref.id, title: t('Delete') } })}
     </div>
   `;
 }
@@ -64,7 +65,7 @@ export function openImageLightbox(ref: AssetRef, modals: ProfileModalRegistry): 
       : `<img class="userimg-lightbox-img${isVector ? ' is-vector' : ''}" src="${escapeHtml(ref.url)}" alt="${escapeHtml(name)}">`;
 
   const content = `
-    <button type="button" class="userimg-lightbox-close" aria-label="${escapeHtml(t('Close'))}">&#x2715;</button>
+    ${closeButtonHtml({ solid: true, className: 'userimg-lightbox-close' })}
     ${media}
     <div class="userimg-lightbox-caption">
       <span class="userimg-lightbox-name">${escapeHtml(name)}</span>

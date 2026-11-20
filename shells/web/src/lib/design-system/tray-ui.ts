@@ -41,6 +41,7 @@
  * pair and the focus moves are not optional here.
  */
 
+import { closeButtonHtml } from '../close-button.ts';
 import '../../styles/parts/tray.css'; // .ds-tray* rules - rides this module's lazy chunk
 
 import { escape } from '../../utils.ts';
@@ -209,8 +210,7 @@ function rowHtml(c: Candidate, opts: TrayHtmlOpts): string {
       </span>
       <span class="ds-tray-acts">
         ${add ? `<button type="button" class="be-btn ds-tray-add" data-ds-tray-add="${escape(c.id)}">${add}</button>` : ''}
-        <button type="button" class="ds-tray-x" data-ds-tray-dismiss="${escape(c.id)}"
-          aria-label="${escape(tRaw('Dismiss {value}', { value: c.value }))}">${icon('close')}</button>
+        ${closeButtonHtml({ size: 'sm', className: 'ds-tray-x', label: tRaw('Dismiss {value}', { value: c.value }), attrs: { 'data-ds-tray-dismiss': c.id } })}
       </span>
     </li>`;
 }
@@ -284,8 +284,7 @@ export function mountTrayUi(shell: HTMLElement, ctx: TrayUiCtx): TrayUi {
     <div class="ds-tray-head">
       <span class="ds-tray-title">${t('Tray')}</span>
       <span class="ds-tray-count" data-ds-tray-count></span>
-      <button type="button" class="ds-tray-x ds-tray-close" data-ds-tray-close
-        aria-label="${escape(t('Close the tray'))}">${icon('close')}</button>
+      ${closeButtonHtml({ className: 'ds-tray-x ds-tray-close', label: t('Close the tray'), attrs: { 'data-ds-tray-close': true } })}
     </div>
     <div class="ds-tray-body">
       <p class="ds-tray-sub">${t('Found in the sources scanned here. Nothing joins the design system until you add it.')}</p>

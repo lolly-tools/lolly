@@ -184,8 +184,6 @@ html[data-a11y-previews="hidden"] .app-history-cover img { filter: saturate(.5) 
 .app-history-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .app-history-bulk-danger.btn { color: hsl(var(--destructive-text)); }
 .app-history-bulk-danger.btn:hover { background: hsl(var(--destructive) / .1); }
-.app-history-bulkbar-clear { display: inline-flex; align-items: center; justify-content: center; flex: none; width: var(--ui-size-control); height: var(--ui-size-control); padding: 0; border: 0; border-radius: var(--ui-radius-choice-round); background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); cursor: pointer; }
-.app-history-bulkbar-clear:hover { background: var(--ui-color-border-default); }
 .app-history-bulkbar.is-compact .app-history-bulkbar-actions .btn > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @media (max-width: 960px) {

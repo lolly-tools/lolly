@@ -16,6 +16,7 @@
  *
  * Every function takes the shared `cat: CatCtx` first (see context.ts).
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import {
   apcaVerdict, contrastRatio, describeColor, formatOklch, oklchToHex, rampOklab, wcagLevel,
   APCA_SRGB_ONLY,
@@ -204,7 +205,7 @@ export function sheetHtml(cat: CatCtx, f: SwatchFacts, nav: { prev: boolean; nex
   const flag = entry.spot ? 'SPOT' : Array.isArray(entry.cmyk) ? 'CMYK' : '';
   const lab = desc ? `#/lab?c=${encodeURIComponent(f.subject)}` : '';
   return `
-    <button type="button" class="cat-details-close" data-act="close" aria-label="${escapeText(t('Close'))}">×</button>
+    ${closeButtonHtml({ solid: true, className: 'cat-details-close', attrs: { 'data-act': 'close' } })}
     <div class="cat-details-preview cat-swatch-preview">
       ${nav.prev ? `<button type="button" class="cat-details-nav cat-details-prev" data-swatch-nav="prev" aria-label="${escapeText(t('Previous swatch'))}">${CHEVRON_LEFT}</button>` : ''}
       ${nav.next ? `<button type="button" class="cat-details-nav cat-details-next" data-swatch-nav="next" aria-label="${escapeText(t('Next swatch'))}">${CHEVRON_RIGHT}</button>` : ''}

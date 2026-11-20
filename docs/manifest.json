@@ -2023,6 +2023,18 @@
       "group": "Principles, rights and AI"
     },
     {
+      "slug": "without-ai",
+      "title": "Lolly without AI",
+      "src": "without-ai.md",
+      "description": "Lolly fills a template with your own words, pictures and data, the same way every time. Where a model can appear, how each result is marked and how to keep every one of them out.",
+      "section": "trust",
+      "path": "trust/without-ai",
+      "icon": "check",
+      "aliases": [],
+      "contentLicense": "CC-BY-SA-4.0",
+      "group": "Principles, rights and AI"
+    },
+    {
       "slug": "ai-stance",
       "title": "Our AI Stance",
       "src": "ai-stance.md",

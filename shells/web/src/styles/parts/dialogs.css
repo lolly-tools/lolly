@@ -198,11 +198,6 @@ html[data-a11y-motion="reduce"] .view-loading-mark .lolly-mark__spin-3 { animati
   padding: 16px 20px; border-bottom: 1px solid hsl(var(--border));
 }
 .save-dialog-head h2 { margin: 0; flex: 1 1 auto; font-size: var(--fs-xl); font-weight: 700; }
-.save-dialog-close {
-  flex: none; width: 30px; height: 30px; border: 0; border-radius: var(--radius);
-  background: none; color: hsl(var(--muted-foreground)); font-size: 22px; line-height: 1; cursor: pointer;
-}
-.save-dialog-close:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
 
 .save-dialog-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
 

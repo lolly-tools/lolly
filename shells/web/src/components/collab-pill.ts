@@ -63,6 +63,7 @@
  * - a render must stay byte-identical whether or not anyone is watching (section 4.6, section 8).
  */
 
+import { injectStyleOnce } from '../lib/inject-style.ts';
 import { announce as announceLive } from '../a11y.ts';
 // `tRaw` throughout, not `t`: every string in this file lands in `textContent`, an
 // attribute or `announce()` - never an HTML sink - and t()'s param escaping would
@@ -448,11 +449,8 @@ html[data-a11y-motion="reduce"] .collab-follow-action { transition: none; }
 }`;
 
 function ensureStyles(): void {
-  if (typeof document === 'undefined' || document.getElementById(STYLE_ID)) return;
-  const style = document.createElement('style');
-  style.id = STYLE_ID;
-  style.textContent = CSS;
-  document.head.appendChild(style);
+  if (typeof document === 'undefined') return;
+  injectStyleOnce(STYLE_ID, CSS, document);
 }
 
 // ── Pure helpers (exported: the focus overlay and the projects badge need the

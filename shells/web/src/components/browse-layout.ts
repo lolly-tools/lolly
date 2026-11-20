@@ -22,9 +22,8 @@
  * (the favourites strip shows only in Grid, for example) through `onChange`.
  */
 import { icon } from '../lib/icons.ts';
-import { escape as escapeHtml } from '../utils.ts';
 import { t } from '../i18n.ts';
-import { segHtml } from '../lib/seg.ts';
+import { segHtml, syncSeg } from '../lib/seg.ts';
 import { captureNeutralPinned } from '../lib/capture-neutral.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
 import { viewOptionsSection, type CardSizeView } from './view-options.ts';
@@ -152,12 +151,13 @@ export function layoutSection(group: string, value: BrowseLayout, modes: readonl
 export function layoutControlHtml(group: string, value: BrowseLayout, attr = 'data-layout-mode'): string {
   const labels: Record<BrowseLayout, string> = { grid: t('Grid'), card: t('Card'), list: t('List') };
   const icons = { grid: 'grid', card: 'panelLeft', list: 'menuLines' } as const;
-  return `<div class="view-seg be-seg view-seg--layout browse-layout-control" role="group" aria-label="${escapeHtml(t('Layout'))}" data-be-seg="${escapeHtml(group)}">${BROWSE_LAYOUTS.map(mode => `<button type="button" class="view-seg-btn" ${attr}="${mode}" aria-pressed="${mode === value}" title="${escapeHtml(labels[mode])}"><span aria-hidden="true">${icon(icons[mode])}</span><span class="browse-layout-label">${escapeHtml(labels[mode])}</span></button>`).join('')}</div>`;
+  return segHtml(group, BROWSE_LAYOUTS.map(mode => ({ id: mode, label: labels[mode], icon: icon(icons[mode]) })), value, t('Layout'),
+    { attr, extraClass: 'view-seg--layout browse-layout-control' });
 }
 
 /** Keep visible choices and an open options panel in agreement. */
 export function syncLayoutControls(root: Element, mode: BrowseLayout, attr = 'data-layout-mode'): void {
-  for (const button of root.querySelectorAll<HTMLElement>(`[${attr}]`)) button.setAttribute('aria-pressed', String(button.getAttribute(attr) === mode));
+  syncSeg(root, mode, attr);
   root.querySelector('.view-options-size')?.toggleAttribute('hidden', mode === 'list');
 }
 
@@ -180,7 +180,7 @@ export function densityHtml(group: string, value: BrowseDensity, hidden = false)
 export function wireLayoutControl(panel: HTMLElement, o: { view: LayoutView; current: BrowseLayout; onChange(mode: BrowseLayout): void }): void {
   let current = o.current;
   const sync = (): void => {
-    for (const b of panel.querySelectorAll<HTMLElement>('[data-layout-mode]')) b.setAttribute('aria-pressed', String(b.dataset.layoutMode === current));
+    syncSeg(panel, current, 'data-layout-mode');
     panel.querySelector('.view-options-size')?.toggleAttribute('hidden', current === 'list');
     panel.querySelector('[data-be-seg="featured-view"]')?.closest('.filter-pop-sort')?.toggleAttribute('hidden', current !== 'grid');
   };
@@ -205,7 +205,7 @@ export function wireDensityControl(panel: HTMLElement, o: { view: LayoutView; cu
     const density = parseDensity((event.target as Element | null)?.closest<HTMLElement>('[data-density-mode]')?.dataset.densityMode);
     if (!density || density === current) return;
     current = density;
-    for (const b of panel.querySelectorAll<HTMLElement>('[data-density-mode]')) b.setAttribute('aria-pressed', String(b.dataset.densityMode === current));
+    syncSeg(panel, current, 'data-density-mode');
     writeDensity(o.view, density);
     o.onChange(density);
   });

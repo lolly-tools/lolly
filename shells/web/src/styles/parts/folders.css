@@ -43,14 +43,6 @@
 .recents-dialog { display: flex; flex-direction: column; gap: 14px; min-width: min(480px, 82vw); padding: 16px 20px 20px; }
 .recents-dialog-head { display: flex; align-items: center; gap: 10px; }
 .recents-dialog-title { margin: 0; flex: 1 1 auto; font-size: calc(1.05rem * var(--a11y-fs)); }
-.recents-dialog-close {
-  flex: none; width: 30px; height: 30px; border: 0; border-radius: var(--radius);
-  background: none; color: var(--ui-color-text-muted); font-size: 22px; line-height: 1; cursor: pointer;
-}
-.recents-dialog-close:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
-@media (pointer: coarse) {
-  .recents-dialog-close { min-width: 44px; min-height: 44px; }
-}
 .recents-dialog-empty { margin: 0; color: var(--ui-color-text-muted); font-size: calc(.85rem * var(--a11y-fs)); }
 .recents-dialog-go { align-self: flex-start; }
 .folder-exports-title {

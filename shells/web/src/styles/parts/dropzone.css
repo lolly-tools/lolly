@@ -76,16 +76,6 @@
 /* Pushed to the end rather than given a colour of its own: the number is the finding,
    not a status. */
 .trimo-savings { margin-inline-start: auto; color: hsl(var(--muted-foreground)); font-size: calc(.8rem * var(--a11y-fs)); }
-/* Backing out of the question entirely - the pointer twin of Escape (the two
-   buttons below both CHOOSE a file; this one chooses none). Sized as a real
-   target rather than a decorative glyph. */
-.trimo-x {
-  flex: none; display: grid; place-items: center;
-  width: calc(28px * var(--a11y-fs)); height: calc(28px * var(--a11y-fs));
-  border: 0; border-radius: var(--radius-sm); background: transparent; cursor: pointer; line-height: 1;
-  color: hsl(var(--muted-foreground)); font-size: calc(.8rem * var(--a11y-fs));
-}
-.trimo-x:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
 
 /* Before and after, side by side, folding to one column when the mount is narrow
    (a bottom sheet on a phone) rather than at a device breakpoint. */
@@ -129,7 +119,6 @@
 /* Touch: every control in the card is a real 44px target (plan 97 section 11). The
    stepper is a text field as well as a target, so it grows in height only. */
 @media (pointer: coarse) {
-  .trimo-x { width: 44px; height: 44px; }
   .trimo-actions .btn { min-height: 44px; }
   .trimo-pad-input { min-height: 44px; }
 }

@@ -482,15 +482,6 @@
 .labp { display: flex; flex-direction: column; gap: 0.7rem; }
 .labp-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .labp-title { margin: 0; font-size: calc(1.1rem * var(--a11y-fs)); }
-.labp-close {
-  border: 0;
-  background: none;
-  color: hsl(var(--muted-foreground));
-  font-size: calc(1.4rem * var(--a11y-fs));
-  line-height: 1;
-  cursor: pointer;
-}
-.labp-close:hover { color: hsl(var(--foreground)); }
 .labp-intro, .labp-hint, .labp-msg {
   margin: 0;
   font-size: var(--fs-md);

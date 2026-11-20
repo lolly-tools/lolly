@@ -28,6 +28,7 @@
  * var (every panel opens at the last-dragged size); collapse via initialExpanded /
  * onUi so the owner can remember it per cell (collapsed by default on first open).
  */
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { controlHtml, readControlValue } from './controls.ts';
 import { colorFieldHtml, wireColorField } from '../components/color-field.ts';
 import { escapeHtml } from '../lib/util/escape.ts';
@@ -120,7 +121,7 @@ export function openBlocksEditor({ input, value, host, assetPicker = false, onCh
       ? `<div class="pro-blk-preview" data-blk-preview>
            <div class="pro-blk-preview-head">
              <span class="pro-blk-preview-title">Live preview</span>
-             <button type="button" class="pro-blk-preview-x" data-blk-prev-close title="Close preview" aria-label="Close preview">✕</button>
+             ${closeButtonHtml({ size: 'sm', className: 'pro-blk-preview-x', label: 'Close preview', attrs: { 'data-blk-prev-close': true, title: 'Close preview' } })}
            </div>
            <div class="pro-blk-preview-stage" data-blk-prev-stage>
              <p class="pro-blk-preview-msg">Rendering…</p>
@@ -133,7 +134,7 @@ export function openBlocksEditor({ input, value, host, assetPicker = false, onCh
         <h2 class="pro-blk-title">${esc(input.label ?? input.id)}</h2>
         <div class="pro-blk-head-actions">
           ${previewToggle}
-          <button type="button" class="pro-blk-x" data-blk-close aria-label="Close">✕</button>
+          ${closeButtonHtml({ className: 'pro-blk-x', attrs: { 'data-blk-close': true } })}
         </div>
       </div>
       ${previewPane}
@@ -242,7 +243,7 @@ export function openBlocksEditor({ input, value, host, assetPicker = false, onCh
           <button type="button" class="pro-blk-toggle" data-blk-toggle data-bi="${i}" aria-expanded="${expanded[i] ? 'true' : 'false'}" title="${expanded[i] ? 'Collapse' : 'Expand'} block">
             ${CHEV_SVG}<span class="pro-blk-card-n">Block ${i + 1}</span>${prev ? `<span class="pro-blk-card-prev">${esc(prev)}</span>` : ''}
           </button>
-          <button type="button" class="pro-blk-del" data-blk-del data-bi="${i}" title="Remove block" aria-label="Remove block ${i + 1}">✕</button>
+          ${closeButtonHtml({ size: 'sm', danger: true, className: 'pro-blk-del', label: `Remove block ${i + 1}`, attrs: { 'data-blk-del': true, 'data-bi': i, title: 'Remove block' } })}
         </div>
         <div class="pro-blk-card-body">${body}</div>
       </div>`;

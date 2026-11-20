@@ -3,7 +3,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { mountFeaturedRow, type FeaturedEntry, type FeaturedRowHandle, type FeaturedViewMode } from '../components/featured-row.ts';
 import { coverFormats } from '../lib/featured-render.ts';
 import { galleryPreviewLooks } from '../lib/gallery-preview.ts';
-import { segHtml } from '../lib/seg.ts';
+import { segHtml, syncSeg, wireSeg } from '../lib/seg.ts';
 import type { GalleryTool } from './gallery.ts';
 
 export function featuredRowExample(): string {
@@ -53,12 +53,9 @@ export function wireFeaturedRowExample(stage: HTMLElement, host: HostV1): () => 
     row = mountFeaturedRow(mount, entries, host, {
       viewMode: mode, staticStrip: mode === 'gallery', ariaLabel: 'Featured tools',
     });
-    buttons.forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.val === mode)); });
   };
-  buttons.forEach(button => { button.addEventListener('click', () => {
-    if (button.getAttribute('aria-pressed') === 'true') return;
-    show(button.dataset.val as FeaturedViewMode);
-  }, { signal: controller.signal }); });
+  wireSeg(stage, { signal: controller.signal, onChange: value => { show(value as FeaturedViewMode); } });
+  syncSeg(stage, 'coverflow');
   show('coverflow');
   return () => { controller.abort(); row?.destroy(); };
 }

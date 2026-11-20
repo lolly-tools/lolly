@@ -294,7 +294,7 @@ test('B1: the export actions wait for the system to hold something', async () =>
 
 test('B3: the source picker has a visible way out, and its file tile says it in plain words', async () => {
   const src = await startSource();
-  assert.match(src, /class="start-import-close" data-ds-src-close/,
+  assert.match(src, /closeButtonHtml\(\{ className: 'start-import-close', attrs: \{ 'data-ds-src-close': true \} \}\)/,
     'the dialog carries a close control, not just Escape and a backdrop tap');
   assert.match(src, /\[data-ds-src-close\]'\)\) \{[\s\S]{0,80}closeImport\(start\)/,
     'and the delegate the picker already has routes it');

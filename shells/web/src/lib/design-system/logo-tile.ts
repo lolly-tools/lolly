@@ -15,6 +15,7 @@
  * Pure markup and maths, so the Logos room (lib/brand-editor/logos.ts) and its
  * tests read the same answers.
  */
+import { closeButtonHtml } from '../close-button.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { TREATMENT_META, splitVariant, variantLabel, type LogoSlot } from '../brand-logos.ts';
@@ -72,7 +73,7 @@ export function logoTileHtml(variant: string, identity: string, slot: LogoSlot |
   // (brand-studio.css), the same construction the shared dropzone uses.
   return `<div class="be-logo-slot${slot ? ' is-filled' : ''}" data-be-logo="${escapeText(variant)}" data-treatment="${treatment ?? 'custom'}" data-shape="${logoTileShape(variant)}">
         <div class="be-logo-slot-head"><span class="be-logo-slot-name">${escapeText(name)}</span>
-          ${slot && !slot.shipped ? `<button type="button" class="be-logo-del" data-logo-del="${escapeText(variant)}" data-identity="${escapeText(identity)}" aria-label="${escapeText(tRaw('Remove the {name} mark', { name: fullName }))}">&#x2715;</button>` : ''}</div>
+          ${slot && !slot.shipped ? closeButtonHtml({ size: 'sm', danger: true, className: 'be-logo-del', label: tRaw('Remove the {name} mark', { name: fullName }), attrs: { 'data-logo-del': variant, 'data-identity': identity } }) : ''}</div>
         <label class="be-logo-drop" data-file-drop data-drop-label="${escapeText(slot ? t('Drop to replace') : t('Drop to add'))}">
           ${body}
           <input type="file" class="be-logo-file visually-hidden" data-logo-file="${escapeText(variant)}" data-identity="${escapeText(identity)}" accept="image/png,image/jpeg,image/svg+xml,image/webp" aria-label="${escapeText(tRaw('Replace the {name} mark', { name: fullName }))}">

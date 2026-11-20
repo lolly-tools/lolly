@@ -13,6 +13,7 @@
  * the picker's storeUserUpload. Nothing here writes outside those funnels.
  */
 
+import { closeButtonHtml } from './close-button.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { colorToHex, createTokenSet, isAlias, readColourRoles } from '@lolly/engine';
 import {
@@ -876,7 +877,7 @@ export function mountTokensPanel(mount: HTMLElement, ctx: StudioTabCtx): StudioP
             <span class="tk-prev" data-tk-prev>${tok.kind === 'shadow' ? '' : tokenPreviewHtml(KIND_TYPE[tok.kind], tok.raw, { path: tok.key })}</span>
             <span class="tk-name-stack"><span class="be-tok-name">${escape(tok.name)}</span>${refBtn(`{${tok.key}}`)}</span>
             <span class="be-tok-editor">${tokenValueEditor(tok)}</span>
-            <button type="button" class="be-tok-del" data-tok-del="${pathAttr(tok)}" aria-label="${escape(tRaw('Delete {name}', { name: tok.name }))}">&#x2715;</button>
+            ${closeButtonHtml({ size: 'sm', danger: true, className: 'be-tok-del', label: tRaw('Delete {name}', { name: tok.name }), attrs: { 'data-tok-del': tok.path.join('␟') } })}
           </div>`).join('')}
       </div>`).join('');
     wireShadowFields();
@@ -1268,7 +1269,7 @@ export function mountGradientsPanel(mount: HTMLElement, ctx: GradientsCtx): Stud
     return `<span class="be-grad-stopwrap">
         <button type="button" class="be-grad-stop-chip${isRef ? ' is-ref' : ''}" data-grad-stop="${i}" data-grad-path="${p}"
           style="--sw:${escape(stopCss(s))}" title="${escape(swName)}" aria-label="${escape(label)}" aria-haspopup="dialog"></button>
-        ${removable ? `<button type="button" class="be-grad-stopdel" data-grad-stopdel="${i}" data-grad-path="${p}" aria-label="${escape(tRaw('Remove {label}', { label }))}">&#x2715;</button>` : ''}
+        ${removable ? closeButtonHtml({ size: 'sm', danger: true, className: 'be-grad-stopdel', label: tRaw('Remove {label}', { label }), attrs: { 'data-grad-stopdel': i, 'data-grad-path': tok.path.join('␟') } }) : ''}
       </span>`;
   };
   const rowHtml = (tok: StudioToken): string => {
@@ -1287,7 +1288,7 @@ export function mountGradientsPanel(mount: HTMLElement, ctx: GradientsCtx): Stud
             <label class="be-grad-angle"><input type="number" value="${tok.angle ?? 180}" step="15" data-grad-angle data-grad-path="${p}" aria-label="${escape(tRaw('{name} angle', { name: tok.name }))}">°</label>
           </span>
         </span>
-        <button type="button" class="be-tok-del" data-grad-del="${p}" aria-label="${escape(tRaw('Delete {name}', { name: tok.name }))}">&#x2715;</button>
+        ${closeButtonHtml({ size: 'sm', danger: true, className: 'be-tok-del', label: tRaw('Delete {name}', { name: tok.name }), attrs: { 'data-grad-del': tok.path.join('␟') } })}
       </div>`;
   };
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../lib/close-button.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
@@ -1828,8 +1829,7 @@ export async function mountProjects(
       return `
         <div class="movepicker-head">
           <h2 class="movepicker-title">${escape(title)}</h2>
-          <button type="button" class="movepicker-close" aria-label="${escape(t('Close'))}">✕</button>
-        </div>
+          ${closeButtonHtml({ className: 'movepicker-close' })}</div>
         <nav class="movepicker-crumbs" aria-label="${escape(t('Folder path'))}">
           <button type="button" class="movepicker-crumb${cursor == null ? ' is-current' : ''}" data-cursor="">${t('Projects')}</button>
           ${path.map(f => `<span class="projects-crumb-sep" aria-hidden="true">/</span><button type="button" class="movepicker-crumb${f.id === cursor ? ' is-current' : ''}" data-cursor="${escape(f.id)}">${escape(f.name)}</button>`).join('')}

@@ -88,36 +88,13 @@
     text-decoration: underline;
   }
 
-  /* The X in the corner. Inherits the pop's (inverted) text colour rather than the
-     chrome's, because the bubble paints popover-foreground as its background. */
+  /* The close button in the corner: the shared one (lib/close-button.ts), taking the
+     pop's (inverted) text colour because the bubble paints popover-foreground as its
+     background. Only its place is set here. */
   .help-tip-close {
     position: absolute;
     top: var(--sp-2);
     inset-inline-end: var(--sp-2);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--sp-7);
-    height: var(--sp-7);
-    padding: 0;
-    border: none;
-    border-radius: var(--radius-round);
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    opacity: 0.6;
-    transition:
-      opacity var(--dur-1) ease,
-      background var(--dur-1) ease;
-  }
-  .help-tip-close:hover {
-    opacity: 1;
-    background: hsl(var(--popover) / 0.15);
-  }
-  .help-tip-close svg {
-    display: block;
-    width: var(--fs-sm);
-    height: var(--fs-sm);
   }
   /* A hover-revealed tip still carries [hidden]: leaving the info button takes the pop
      with it, so the X could never be reached. Draw it only on a pop a click or tap left

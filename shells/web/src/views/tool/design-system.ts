@@ -7,6 +7,7 @@
  * a value (an event listener), goes through `tview.<module>.<fn>`. Extracted verbatim
  * from mountTool() by scripts/split-closure.ts.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
@@ -26,7 +27,7 @@ export const onDesignSystemChanged = (tview: ToolViewCtx, e: Event): void => {
   el.className = 'tool-notice';
   el.id = 'ds-switched-notice';
   el.setAttribute('role', 'status');
-  el.innerHTML = `<span class="tool-notice-text">${t('Switched to <strong>{name}</strong>. Reload this tool to render with it.', { name: escapeText(rec.label) })} <button type="button" class="tool-notice-link" id="ds-switched-reload">${t('Reload')}</button></span><button type="button" class="tool-notice-close" id="ds-switched-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>`;
+  el.innerHTML = `<span class="tool-notice-text">${t('Switched to <strong>{name}</strong>. Reload this tool to render with it.', { name: escapeText(rec.label) })} <button type="button" class="tool-notice-link" id="ds-switched-reload">${t('Reload')}</button></span>${closeButtonHtml({ size: 'sm', inherit: true, className: 'tool-notice-close', label: t('Dismiss this message'), attrs: { id: 'ds-switched-dismiss' } })}`;
   body.prepend(el);
   el.querySelector('#ds-switched-reload')?.addEventListener('click', () => {
     // The same document at the same address, so a team document stays one.

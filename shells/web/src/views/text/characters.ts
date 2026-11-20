@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import type { EmojiPopoverOptions } from '../../components/emoji-picker.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { typographyFamilies } from '../../../../../engine/src/tokens.ts';
@@ -48,7 +49,7 @@ export async function mountCharacters(
   const id = `characters-${crypto.randomUUID()}`;
   container.innerHTML = `<div class="text-character-heading"><div><h2>Find a character</h2><p class="text-muted">Pick a symbol or emoji to copy it. Insert it in your text when you’re ready.</p></div><label class="text-font-choice" data-font-label>${icon('font', { className: 'text-icon' })}<span>Font</span><select data-font aria-label="Brand font">${available.map((f) => `<option>${esc(f)}</option>`).join('')}</select></label></div>
     <div class="text-tabs text-character-tabs" role="tablist" aria-label="Character collection"><button type="button" role="tab" aria-selected="true" aria-controls="${id}-font" data-kind="font">${icon('font', { className: 'text-icon' })}Brand characters</button><button type="button" role="tab" aria-selected="false" tabindex="-1" aria-controls="${id}-emoji" data-kind="emoji">${icon('smile', { className: 'text-icon' })}Emoji</button></div>
-    <div class="text-character-layout"><div class="text-character-browser"><section id="${id}-font" data-glyphs role="tabpanel" aria-label="Brand characters"><label class="text-search-field">${icon('search', { className: 'text-icon' })}<input type="search" data-search aria-label="Find a character" placeholder="Search symbols, names or U+ codes"><button type="button" class="btn btn--ghost text-icon-button" data-clear-search aria-label="Clear character search" hidden>${icon('close', { className: 'text-icon' })}</button></label>
+    <div class="text-character-layout"><div class="text-character-browser"><section id="${id}-font" data-glyphs role="tabpanel" aria-label="Brand characters"><label class="text-search-field">${icon('search', { className: 'text-icon' })}<input type="search" data-search aria-label="Find a character" placeholder="Search symbols, names or U+ codes">${closeButtonHtml({ size: 'sm', className: 'text-icon-button', label: 'Clear character search', attrs: { 'data-clear-search': true, hidden: true } })}</label>
     ${segHtml(
       'character-filter',
       [

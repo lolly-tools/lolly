@@ -22,6 +22,7 @@
  * it found it.
  */
 import { t } from '../i18n.ts';
+import { svgEl } from '../lib/svg-el.ts';
 import { cubicBezierAt, easingPoints, easingToWire } from '../lib/transitions.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import '../styles/parts/easing-editor.css';
@@ -49,10 +50,6 @@ const toPy = (y: number): number => OVER_PX + (1 - y) * PLOT_H;
 /** The curve the editor opens on when the field is UNAUTHORED - a shape to push
  *  around, never a value: nothing is written until the user moves something. */
 const SEED: Pts = [0.33, 1, 0.68, 1];
-
-const NS = 'http://www.w3.org/2000/svg';
-const svgEl = <K extends keyof SVGElementTagNameMap>(name: K): SVGElementTagNameMap[K] =>
-  document.createElementNS(NS, name);
 
 const round3 = (n: number): number => Math.round(n * 1000) / 1000;
 

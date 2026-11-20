@@ -28,9 +28,9 @@
  * stays down. Built on mountModal (components/modal.ts): a sheet from the bottom on a
  * phone (parts/music-browser.css) and a centred panel on a wider screen.
  */
+import { closeButtonHtml } from '../../lib/close-button.ts';
 import { t } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
-import { icon } from '../../lib/icons.ts';
 import { mountModal } from '../../components/modal.ts';
 import { GENRE_GROUPS, genreIconSvg, genreTitle, type GenreCategory } from '../../lib/genre-icons.ts';
 import { paintGenreTiles } from './genre-colours.ts';
@@ -147,7 +147,7 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
       <div class="msb-title-row">
         <h2 class="msb-title" id="${titleId}">${escapeHtml(t('Genre'))}</h2>
         ${h.setGenrePref ? `<button type="button" class="msb-chip msg-manage-btn" data-manage-toggle aria-pressed="false" title="${escapeHtml(t('Star favourite genres and hide the ones you never want'))}">${escapeHtml(t('Manage'))}</button>` : ''}
-        <button type="button" class="btn btn--ghost btn--sm msb-close" data-close aria-label="${escapeHtml(t('Close'))}" title="${escapeHtml(t('Close'))}">${icon('close', { size: 18 })}</button>
+        ${closeButtonHtml({ className: 'msb-close', attrs: { 'data-close': true, title: t('Close') } })}
       </div>
       <input type="search" class="field-input msg-search" data-genre-search placeholder="${escapeHtml(t('Search genres'))}" aria-label="${escapeHtml(t('Search genres'))}" autocomplete="off" spellcheck="false">
     </div>

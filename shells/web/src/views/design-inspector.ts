@@ -1,3 +1,4 @@
+import { closeButton } from '../lib/close-button.ts';
 import { webSectionRows } from './design-web-section.ts';
 import { createStrokeRows, STROKE_PLACEMENT_FIELDS } from './design-inspector-stroke.ts';
 import { sceneSummary } from './design-inspector-scene.ts';
@@ -694,13 +695,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   colTitle.textContent = t('Inspector');
   const headTools = document.createElement('span');
   headTools.className = 'export-popup-tools';
-  const closeBtn = document.createElement('button');
-  closeBtn.type = 'button';
-  closeBtn.className = 'export-popup-close fc-insp-close';
-  closeBtn.setAttribute('data-act-col', 'close');
-  closeBtn.setAttribute('aria-label', t('Hide inspector'));
-  closeBtn.title = t('Hide inspector');
-  closeBtn.innerHTML = icon('close', { size: 18 });
+  const closeBtn = closeButton({ className: 'export-popup-close fc-insp-close', label: t('Hide inspector'), attrs: { 'data-act-col': 'close', title: t('Hide inspector') } });
   closeBtn.addEventListener('click', () => { setOpen(false); opts.onClose?.(); });
   headTools.append(closeBtn);
   headBar.append(colTitle, headTools);

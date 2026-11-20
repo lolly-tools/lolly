@@ -1509,7 +1509,14 @@
     },
     {
       "file": "tests/docs-nav-budget.test.ts",
-      "fullName": "a page names its section over the title and ends with Previous and Next in rail order",
+      "fullName": "no trail says its own page title again, and a section's own page has no trail",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-nav-budget.test.ts",
+      "fullName": "a page shows its trail over the title and ends with Previous and Next in rail order",
       "reason": "no built /info on disk - run `pnpm run build:info`",
       "capability": "docs-build",
       "owner": "tests"
