@@ -26,6 +26,9 @@ import type { RightsEvaluationV1 } from '@lolly-tools/core/rights-v1';
 import type { EmojiSetInfoV1 } from '@lolly-tools/core/emoji-v1';
 import type { ExportBrandSkill, ExportFormat, ExportMeta, ExportOpts, Profile, InputFile, HostV1, IngredientCredential } from '@lolly-tools/core/host-v1';
 import type { DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
+// Deep relative import, as resources.ts does for the design brief: the engine keeps its
+// table of text formats out of the barrel, and this server reads it rather than a copy.
+import { DATA_FORMATS } from '../../../engine/src/runtime.ts';
 
 import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
@@ -63,6 +66,16 @@ export interface DrawnHere { pictures: IngredientCredential[]; route: DesignExpo
 
 export { closeWebShell };
 
+/** The text formats the engine fills from a tool's sibling template (`DATA_FORMATS` in
+ *  engine/src/runtime.ts): json, csv, ics and vcf, then the caption files srt, vtt, ttml
+ *  and scc and the palette files css, scss and gpl. The engine hands the host finished
+ *  text and nothing is drawn, so each one renders here with no browser. This list used
+ *  to be typed out by hand and fell behind the engine: an MCP render of `captions` to
+ *  srt went looking for a browser. Reading the engine's table keeps the two together,
+ *  and test/text-formats.test.ts pins what the public GET route serves for each one,
+ *  so a new engine format fails that test until its headers have been looked at. */
+export const ENGINE_TEXT_FORMATS: readonly string[] = Object.keys(DATA_FORMATS);
+
 /** Formats the pure engine can produce without a browser engine (NODE_FORMATS).
  *  Includes the PRO FLOAT formats exr / .hdr (plans/61-deeprichpixels.md section 6 B3): those
  *  are the engine's own OpenEXR / Radiance writers over a resvg raster of the tool's
@@ -72,8 +85,9 @@ export { closeWebShell };
  *  `penpot` belongs here for the same reason emf/eps do (plans/178): the .penpot
  *  writer is pure engine over the tool's own `<svg>` - no rasteriser and no browser
  *  anywhere in the path - so an SVG-native tool's archive builds in-process. An
- *  HTML-layout tool has no root `<svg>` and escalates to Tier B, exactly as emf does. */
-export const TIER_A = new Set(['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'penpot', 'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf']);
+ *  HTML-layout tool has no root `<svg>` and escalates to Tier B, exactly as emf does.
+ *  The text formats at the end are the engine's own list, above. */
+export const TIER_A = new Set(['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'penpot', 'html', 'md', 'txt', ...ENGINE_TEXT_FORMATS]);
 
 /** Longest raster edge the resvg fast path will produce. A content-sized SVG
  *  (unbounded text → a viewBox that scales with input length) must never dictate
@@ -326,12 +340,24 @@ export function mimeForFormat(fmt: string): string {
     case 'csv': return 'text/csv';
     case 'ics': return 'text/calendar';
     case 'vcf': return 'text/vcard';
+    // The caption and palette files, with the types the engine's DATA_FORMATS gives
+    // them (test-pinned). SubRip, Scenarist and GIMP palettes have no registered type
+    // of their own, so they go as plain text.
+    case 'srt': case 'scc': case 'gpl': return 'text/plain';
+    case 'vtt': return 'text/vtt';
+    case 'ttml': return 'application/ttml+xml';
+    case 'css': return 'text/css';
+    case 'scss': return 'text/x-scss';
     default: return 'application/octet-stream';
   }
 }
 
+/** Formats whose bytes are UTF-8 text: the render route adds `charset=utf-8`, and
+ *  `lolly_render` returns them as text rather than base64. */
+const TEXT_FORMATS = new Set(['svg', 'html', 'md', 'txt', 'eps', 'eps-cmyk', 'dxf', ...ENGINE_TEXT_FORMATS]);
+
 export function isTextFormat(fmt: string): boolean {
-  return ['svg', 'html', 'md', 'txt', 'json', 'csv', 'ics', 'vcf', 'eps', 'eps-cmyk', 'dxf'].includes(normFormat(fmt));
+  return TEXT_FORMATS.has(normFormat(fmt));
 }
 
 /** Target pixel width for the resvg raster path, honouring physical units. */
@@ -947,8 +973,8 @@ async function getBrowser(): Promise<import('playwright-core').Browser> {
           throw new RenderError(
             hosted
               ? `This format needs the browser render tier, which isn't enabled on this hosted ` +
-                `endpoint. What renders here: vector formats (svg, eps, emf), the data formats ` +
-                `(html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg - it works ` +
+                `endpoint. What renders here: vector formats (svg, eps, emf), the data and text formats ` +
+                `(${['html', 'md', ...ENGINE_TEXT_FORMATS].join(', ')}), and png for SVG-native tools. Try svg - it works ` +
                 `for every tool - or png for a simple vector tool (e.g. qr-code).`
               : `Chromium is not installed for the Tier-B render path. Run ` +
                 `\`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), ` +

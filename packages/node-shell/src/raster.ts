@@ -139,7 +139,7 @@ export function pxDims(
 export async function rasterizeSvgToPng(svg: string, width: number, height: number, dpi?: number, placement?: SvgPlacement): Promise<Uint8Array> {
   if (dpi && dpi > 0) {
     const { packPng } = await import('@lolly/engine');
-    const frame = await rasterizeSvgToRgba(svg, width, height, placement);
+    const frame = await rasterizeSvgToRgba(svg, width, height, { placement });
     return packPng(frame.data, { width: frame.width, height: frame.height, channels: 4, depth: 8, dpi });
   }
   const { Resvg } = await import('@resvg/resvg-js');
@@ -310,12 +310,14 @@ export async function finishTierAPng(png: Uint8Array, dims: PxDimsInput, finish:
  * That is a property of the resvg source, not something this function papers over.
  */
 export async function rasterizeSvgToRgba(
-  svg: string, width: number, height: number, placement?: SvgPlacement,
+  svg: string, width: number, height: number, opts: { fonts?: boolean; placement?: SvgPlacement } = {},
 ): Promise<{ data: Uint8Array; width: number; height: number }> {
   const { Resvg } = await import('@resvg/resvg-js');
-  const r = new Resvg(placeSvg(svg, width, height, placement), {
+  // `fonts: false` loads no font at all, for a drawing whose words are already outlines:
+  // nothing then depends on the faces a machine happens to have, and no font is read.
+  const r = new Resvg(placeSvg(svg, width, height, opts.placement), {
     fitTo: { mode: 'original' },
-    font: { fontDirs: catalogFontDirs(), loadSystemFonts: true },
+    font: opts.fonts === false ? { loadSystemFonts: false } : { fontDirs: catalogFontDirs(), loadSystemFonts: true },
   });
   const img = r.render();
   const src = img.pixels;
@@ -358,7 +360,7 @@ export async function rasterizeSvgToImprintedPng(
   svg: string, width: number, height: number, dpi?: number, placement?: SvgPlacement,
 ): Promise<Uint8Array | null> {
   const { embedWatermark, canCarryWatermark, LOSSLESS_STRENGTH, packPng } = await import('@lolly/engine');
-  const frame = await rasterizeSvgToRgba(svg, width, height, placement);
+  const frame = await rasterizeSvgToRgba(svg, width, height, { placement });
   if (!canCarryWatermark(frame.width, frame.height)) return null;
   // PNG is lossless, so the gentler strength is enough, the same choice the web
   // shell's renderRaster makes for png/tiff (shells/web/src/bridge/export.ts).
@@ -383,7 +385,7 @@ export async function rasterizeSvgToBmp(
   svg: string, width: number, height: number, opts: { imprint?: boolean; placement?: SvgPlacement } = {},
 ): Promise<Uint8Array> {
   const { embedWatermark, canCarryWatermark, LOSSLESS_STRENGTH, encodeBmp } = await import('@lolly/engine');
-  const frame = await rasterizeSvgToRgba(svg, width, height, opts.placement);
+  const frame = await rasterizeSvgToRgba(svg, width, height, { placement: opts.placement });
   const rgba = (opts.imprint !== false && canCarryWatermark(frame.width, frame.height))
     ? embedWatermark(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH })
     : frame.data;
@@ -513,7 +515,7 @@ export async function renderDeepRaster(req: DeepRasterRequest): Promise<{ bytes:
   if (!isDeepFormat(fmt)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
   if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt));
 
-  const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height, req.placement);
+  const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height, { placement: req.placement });
   const sdr = fromU8Srgb(raster.data, raster.width, raster.height);
   // rec2020-linear, unbounded, 1.0 == SDR reference white (203 nits).
   const frame: DeepFrame = hdrViewTransform(sdr, {

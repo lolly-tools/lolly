@@ -1547,7 +1547,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         const height = px(opts.height, parseFloat(svg.getAttribute('height') as string) || 720);
         if (width * height > 8_000_000 || width > 16384 || height > 16384) throw new Error('JPEG XL encoding is limited to 8 megapixels.');
         const source = await resvgSource(svg, format, width, height);
-        const frame = await rasterizeSvgToRgba(source.svg, width, height, source.placement);
+        const frame = await rasterizeSvgToRgba(source.svg, width, height, { placement: source.placement });
         const pixels = opts.imprint !== false && canCarryWatermark(width, height)
           ? embedWatermark(frame.data, { width, height, ...(format === 'jxl-lossless' ? { strength: LOSSLESS_STRENGTH } : {}) }) : frame.data;
         const result = await runJxl({ operation: 'encode', bytes: pixels, width, height, options: { quality: opts.quality, lossless: format === 'jxl-lossless' } });

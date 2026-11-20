@@ -157,7 +157,7 @@ export async function verifyCases(cases: readonly BrowserFreeCase[], out: string
       const manifest = JSON.parse(readFileSync(toolFile(c.tool, 'tool.json')!, 'utf8')) as { render?: { width?: number } };
       const result = await compareCase({
         sharp, browserPng, resvgPng, regions, svgFile: existsSync(svgFile) ? svgFile : null, placement, renderWidth: manifest.render?.width ?? width,
-        drawWithoutWords: (svg, w, h, p) => rasterizeSvgToRgba(svg, w, h, p),
+        drawWithoutWords: (svg, w, h, p) => rasterizeSvgToRgba(svg, w, h, { placement: p }),
       });
       stamp({ name: c.name, tool: c.tool, drawn: true, inBands: result.inBands, faults: result.faults.map((f) => f.detail) }, c);
       console.log(`  ${c.name.padEnd(44)} ${result.inBands ? 'inside' : `OUTSIDE: ${result.faults.slice(0, 2).map((f) => f.detail).join('; ')}`}${result.metadataEqual ? '' : ` (metadata differs: ${result.metadataDiffers.join(', ')})`}`);

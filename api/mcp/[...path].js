@@ -56314,9 +56314,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
             const { extractC2paStore: extractC2paStore2, prepareC2paIngredientFromStore: prepareC2paIngredientFromStore2 } = await Promise.resolve().then(() => (init_c2pa_verify(), c2pa_verify_exports));
             const comma = url.indexOf(",");
             const body = url.slice(comma + 1);
-            const base642 = /;[ ]*base64[\t\n\f\r ]*$/i.test(url.slice(0, comma));
+            const base64 = /;[ ]*base64[\t\n\f\r ]*$/i.test(url.slice(0, comma));
             const text13 = (b) => b.replace(/[\t\n\f\r ]/g, "");
-            const bytes2 = !base642 ? percentDecodedBytes(body) : base64ToBytes(text13(body.includes("%") ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join("") : body));
+            const bytes2 = !base64 ? percentDecodedBytes(body) : base64ToBytes(text13(body.includes("%") ? Array.from(percentDecodedBytes(body), (c) => String.fromCharCode(c)).join("") : body));
             const found = extractC2paStore2(bytes2);
             const ing = found ? prepareC2paIngredientFromStore2(found.store, found.format) : null;
             if (ing) {
@@ -63967,15 +63967,15 @@ function gapAt(scan2, t) {
   if (scan2.budget-- <= 0) return null;
   const { c1, c2 } = scan2;
   const p = evalCubic(c1, t);
-  const near2 = nearest2(c2, p.x, p.y);
-  const u = near2.t, q = near2.point;
+  const near = nearest2(c2, p.x, p.y);
+  const u = near.t, q = near.point;
   const beyond = u <= 0 || u >= 1;
   let d = beyond ? endDirection(c2, u <= 0 ? 0 : 1) : tangentAt(c2, u);
   if (d.x === 0 && d.y === 0) d = { x: c2[6] - c2[0], y: c2[7] - c2[1] };
   const len2 = hypot(d.x, d.y);
   if (!(len2 > 0)) return null;
   const g2 = (d.x * (p.y - q.y) - d.y * (p.x - q.x)) / len2;
-  return { t, u, g: g2, beyond, d: near2.distance, sp: len2 / scan2.size, nx: -d.y / len2, ny: d.x / len2, o: 1, px: p.x, py: p.y, qx: q.x, qy: q.y };
+  return { t, u, g: g2, beyond, d: near.distance, sp: len2 / scan2.size, nx: -d.y / len2, ny: d.x / len2, o: 1, px: p.x, py: p.y, qx: q.x, qy: q.y };
 }
 function endDirection(c, end) {
   if (end === 0) {
@@ -64089,13 +64089,13 @@ function endContact(scan2, curve, end) {
   if (out.length > MAX_HITS) return;
   const own4 = curve === 1 ? c1 : c2, other = curve === 1 ? c2 : c1;
   const x = own4[6 * end], y = own4[6 * end + 1];
-  const near2 = nearest2(other, x, y);
-  if (near2.distance > tol) return;
-  let u = near2.t;
+  const near = nearest2(other, x, y);
+  if (near.distance > tol) return;
+  let u = near.t;
   for (const e of [0, 1]) {
     if (hypot(other[6 * e] - x, other[6 * e + 1] - y) <= tol) u = e;
   }
-  out.push(curve === 1 ? { t1: end, t2: u, x, y } : { t1: u, t2: end, x: near2.point.x, y: near2.point.y });
+  out.push(curve === 1 ? { t1: end, t2: u, x, y } : { t1: u, t2: end, x: near.point.x, y: near.point.y });
 }
 function touchPoint(scan2, samples) {
   const { noise, tol } = scan2;
@@ -64302,16 +64302,16 @@ function reachFrom(idx, px3, py) {
   const dx = Math.max(b.x0 - px3, px3 - b.x1, 0), dy = Math.max(b.y0 - py, py - b.y1, 0);
   return 2 * (diag + hypot(dx, dy)) + 1;
 }
-function castRay(idx, px3, py, ux, uy, ref2, near2, budget3, complete = false, bundle = null) {
-  const twin = near2 * 100;
+function castRay(idx, px3, py, ux, uy, ref2, near, budget3, complete = false, bundle = null) {
+  const twin = near * 100;
   const reach2 = reachFrom(idx, px3, py);
   const qx = px3 + ux * reach2, qy = py + uy * reach2;
   const nx = -uy, ny = ux;
   const hitTol = Math.max(
-    near2,
+    near,
     64 * Number.EPSILON * Math.max(Math.abs(px3), Math.abs(py), Math.abs(qx), Math.abs(qy), 1)
   );
-  const look3 = Math.max(hitTol, 4 * twin, near2 * 32);
+  const look3 = Math.max(hitTol, 4 * twin, near * 32);
   const rx0 = Math.min(px3, qx) - look3, rx1 = Math.max(px3, qx) + look3;
   const ry0 = Math.min(py, qy) - look3, ry1 = Math.max(py, qy) + look3;
   let far = 0, net = 0, ok3 = true;
@@ -64322,7 +64322,7 @@ function castRay(idx, px3, py, ux, uy, ref2, near2, budget3, complete = false, b
     const b = ic.box;
     if (b.x1 < rx0 || b.x0 > rx1 || b.y1 < ry0 || b.y0 > ry1) continue;
     const c = ic.c;
-    if (Math.abs(nx * (c[0] - px3) + ny * (c[1] - py)) < near2 && Math.abs(nx * (c[2] - px3) + ny * (c[3] - py)) < near2 && Math.abs(nx * (c[4] - px3) + ny * (c[5] - py)) < near2 && Math.abs(nx * (c[6] - px3) + ny * (c[7] - py)) < near2) {
+    if (Math.abs(nx * (c[0] - px3) + ny * (c[1] - py)) < near && Math.abs(nx * (c[2] - px3) + ny * (c[3] - py)) < near && Math.abs(nx * (c[4] - px3) + ny * (c[5] - py)) < near && Math.abs(nx * (c[6] - px3) + ny * (c[7] - py)) < near) {
       ok3 = false;
       if (!complete) return { far, net, ok: ok3 };
       continue;
@@ -64339,20 +64339,20 @@ function castRay(idx, px3, py, ux, uy, ref2, near2, budget3, complete = false, b
         net += Math.sign(tg.x * ref2.x + tg.y * ref2.y);
         continue;
       }
-      if (ref2 && off <= near2) {
+      if (ref2 && off <= near) {
         net += Math.sign(tg.x * ref2.x + tg.y * ref2.y);
         continue;
       }
       const cr = hit.dir ?? Math.sign(ux * tg.y - uy * tg.x);
       if (s < 0) {
-        if (off <= near2 * 32 && !complete) {
+        if (off <= near * 32 && !complete) {
           ok3 = false;
           return { far, net, ok: ok3 };
         }
         continue;
       }
       const sideless = cr === 0;
-      if (sideless || t < T_GUARD || t > 1 - T_GUARD || ref2 !== null && off <= near2 * 32) {
+      if (sideless || t < T_GUARD || t > 1 - T_GUARD || ref2 !== null && off <= near * 32) {
         ok3 = false;
         if (!complete) return { far, net, ok: ok3 };
         if (sideless || t > 1 - T_GUARD) continue;
@@ -64389,7 +64389,7 @@ function booleanPath(a, b, op, opts = {}) {
   if (!boxA || !boxB) return withEmptyOperand(A, B, op);
   const span = Math.max(boxA.x1 - boxA.x0, boxA.y1 - boxA.y0, boxB.x1 - boxB.x0, boxB.y1 - boxB.y0, 1);
   const weld = Math.max(tol, JOIN_EPS) * span;
-  const near2 = weld * 0.01;
+  const near = weld * 0.01;
   if (boxA.x1 + weld < boxB.x0 || boxB.x1 + weld < boxA.x0 || boxA.y1 + weld < boxB.y0 || boxB.y1 + weld < boxA.y0) return disjointResult(A, B, op);
   const idxA = buildIndex(A), idxB = buildIndex(B);
   if (idxA.curves.length > MAX_CURVES || idxB.curves.length > MAX_CURVES) {
@@ -64426,8 +64426,8 @@ function booleanPath(a, b, op, opts = {}) {
     const tm = decideAt(e);
     const m2 = evalCubic(e, tm);
     const ref2 = midTangent(e, tm);
-    const wa = sideWindings(idxA, m2.x, m2.y, ref2.x, ref2.y, near2, budget3, bundleOf(i, true));
-    const wb = sideWindings(idxB, m2.x, m2.y, ref2.x, ref2.y, near2, budget3, bundleOf(i, false));
+    const wa = sideWindings(idxA, m2.x, m2.y, ref2.x, ref2.y, near, budget3, bundleOf(i, true));
+    const wb = sideWindings(idxB, m2.x, m2.y, ref2.x, ref2.y, near, budget3, bundleOf(i, false));
     const left = combine(wa.left !== 0, wb.left !== 0, op);
     const right = combine(wa.right !== 0, wb.right !== 0, op);
     if (left === right) continue;
@@ -64461,7 +64461,7 @@ function selfUnionChecked(p, opts = {}) {
   if (!box4 || !idx.curves.length) return [];
   const span = Math.max(box4.x1 - box4.x0, box4.y1 - box4.y0, 1);
   const weld = Math.max(tol, JOIN_EPS) * span;
-  const near2 = weld * 0.01;
+  const near = weld * 0.01;
   if (idx.curves.length > MAX_CURVES) return null;
   const budget3 = newBudget();
   const splits = idx.curves.map(() => []);
@@ -64472,7 +64472,7 @@ function selfUnionChecked(p, opts = {}) {
     const tm = decideAt(probe);
     const m2 = evalCubic(probe, tm);
     const ref2 = midTangent(probe, tm);
-    const w = sideWindings(idx, m2.x, m2.y, ref2.x, ref2.y, near2, budget3);
+    const w = sideWindings(idx, m2.x, m2.y, ref2.x, ref2.y, near, budget3);
     return [filled(w.left, rule) ? only : reverseContour(only)];
   }
   const kept2 = [];
@@ -64494,7 +64494,7 @@ function selfUnionChecked(p, opts = {}) {
         else bundle.set(src[j], [ranges2[j]]);
       }
     }
-    const w = sideWindings(idx, m2.x, m2.y, ref2.x, ref2.y, near2, budget3, bundle);
+    const w = sideWindings(idx, m2.x, m2.y, ref2.x, ref2.y, near, budget3, bundle);
     const left = filled(w.left, rule), right = filled(w.right, rule);
     if (left === right) continue;
     kept2.push(left ? c : reverseCubic(c));
@@ -64508,17 +64508,17 @@ function windingNumber(p, x, y) {
   const box4 = idx.box;
   if (!box4 || !idx.curves.length) return 0;
   const span = Math.max(box4.x1 - box4.x0, box4.y1 - box4.y0, 1);
-  const near2 = Math.max(EPS2, JOIN_EPS) * span * 0.01;
+  const near = Math.max(EPS2, JOIN_EPS) * span * 0.01;
   const budget3 = newBudget();
   let last = 0;
   for (const d2 of RAY_DIRS) {
-    const cast2 = castRay(idx, x, y, d2[0], d2[1], null, near2, budget3);
+    const cast2 = castRay(idx, x, y, d2[0], d2[1], null, near, budget3);
     if (cast2.ok) return cast2.far;
     last = cast2.far;
     if (budget3.work <= 0) return last;
   }
   const d = RAY_DIRS[0];
-  const cast = castRay(idx, x, y, d[0], d[1], null, near2, budget3, true);
+  const cast = castRay(idx, x, y, d[0], d[1], null, near, budget3, true);
   return cast.ok || budget3.work > 0 ? cast.far : last;
 }
 function pointInPath(p, x, y, rule = "nonzero") {
@@ -64874,8 +64874,8 @@ function pinContact(ci, cj, s0, s1, weld, budget3) {
       d = lo + R2 * (hi - lo);
       fd = gap(d);
     }
-    const near2 = fc.d <= fd.d ? { s: c, ...fc } : { s: d, ...fd };
-    if (near2.d < best.d) best = near2;
+    const near = fc.d <= fd.d ? { s: c, ...fc } : { s: d, ...fd };
+    if (near.d < best.d) best = near;
   }
   return best.d <= weld ? [best.s, best.t] : null;
 }
@@ -65023,7 +65023,7 @@ function rayDirections(rx, ry) {
   const out = RAY_DIRS.filter((d) => Math.abs(d[0] * ry - d[1] * rx) >= 0.25 * mag);
   return out.length ? out : RAY_DIRS.slice();
 }
-function sideWindings(idx, px3, py, rx, ry, near2, budget3, bundle = null) {
+function sideWindings(idx, px3, py, rx, ry, near, budget3, bundle = null) {
   const dirs = rayDirections(rx, ry);
   const sidesOf = (d2, cast2) => {
     const g2 = d2[0] * ry - d2[1] * rx;
@@ -65031,13 +65031,13 @@ function sideWindings(idx, px3, py, rx, ry, near2, budget3, bundle = null) {
   };
   let last = null;
   for (const d2 of dirs) {
-    const cast2 = castRay(idx, px3, py, d2[0], d2[1], { x: rx, y: ry }, near2, budget3, false, bundle);
+    const cast2 = castRay(idx, px3, py, d2[0], d2[1], { x: rx, y: ry }, near, budget3, false, bundle);
     if (cast2.ok) return sidesOf(d2, cast2);
     last = sidesOf(d2, cast2);
     if (budget3.work <= 0) return last;
   }
   const d = dirs[0];
-  const cast = castRay(idx, px3, py, d[0], d[1], { x: rx, y: ry }, near2, budget3, true, bundle);
+  const cast = castRay(idx, px3, py, d[0], d[1], { x: rx, y: ry }, near, budget3, true, bundle);
   return cast.ok || budget3.work > 0 ? sidesOf(d, cast) : last ?? { left: 0, right: 0 };
 }
 function coincidence(a, b, weld) {
@@ -66473,8 +66473,8 @@ function isOffsetMaterial(src, p, distance4) {
   const slack = Math.max(Math.abs(distance4), 1) * 1e-9;
   const want = Math.abs(distance4);
   const inside2 = () => windingNumber(src, p.x, p.y) !== 0;
-  const near2 = () => distanceToPath(src, p.x, p.y);
-  return distance4 > 0 ? inside2() || near2() <= want + slack : inside2() && near2() >= want - slack;
+  const near = () => distanceToPath(src, p.x, p.y);
+  return distance4 > 0 ? inside2() || near() <= want + slack : inside2() && near() >= want - slack;
 }
 function distanceToPath(p, x, y) {
   let best = Infinity;
@@ -75478,8 +75478,8 @@ function dofBlur(cam, z) {
   if (cameraTilted(cam)) {
     const kappa = Math.cos((cam.rx ?? 0) * DEG) * Math.cos((cam.ry ?? 0) * DEG);
     const camZ = typeof cam.z === "number" && Number.isFinite(cam.z) ? cam.z : 0;
-    const near2 = (1 - KF_GUARD_U) * P;
-    const effAt = (v) => Math.min(P / Math.max(P - kappa * (v - camZ), near2), KF_EFF_MAX);
+    const near = (1 - KF_GUARD_U) * P;
+    const effAt = (v) => Math.min(P / Math.max(P - kappa * (v - camZ), near), KF_EFF_MAX);
     return clamp(a * DOF_K * Math.abs(zz - f) * effAt(zz) * effAt(f) * Math.abs(kappa) / P, 0, KF_MAX_BLUR);
   }
   const blur2 = a * DOF_K * Math.abs(zz - f) * projectDepth(cam, zz).eff * projectDepth(cam, f).eff / P;
@@ -107348,16 +107348,16 @@ function asEllipse(segs) {
   if (w < 0.5 || h < 0.5) return null;
   const cx2 = (minX + maxX) / 2, cy3 = (minY + maxY) / 2;
   const normal2 = (p) => [(p[0] - cx2) * 2 / w, (p[1] - cy3) * 2 / h];
-  const near2 = (a, b) => Math.abs(a[0] - b[0]) < 3e-3 && Math.abs(a[1] - b[1]) < 3e-3;
-  const cardinal = (p) => [[1, 0], [0, 1], [-1, 0], [0, -1]].some((q) => near2(p, q));
-  if (!near2(normal2(points[4]), normal2(first))) return null;
-  if (segs.some((s) => s.op === "l" && !near2(normal2(s.pts), normal2(first)))) return null;
+  const near = (a, b) => Math.abs(a[0] - b[0]) < 3e-3 && Math.abs(a[1] - b[1]) < 3e-3;
+  const cardinal = (p) => [[1, 0], [0, 1], [-1, 0], [0, -1]].some((q) => near(p, q));
+  if (!near(normal2(points[4]), normal2(first))) return null;
+  if (segs.some((s) => s.op === "l" && !near(normal2(s.pts), normal2(first)))) return null;
   const k = 0.5522847498307936;
   for (const [i, curve] of curves2.entries()) {
     const start = normal2(points[i]), end = normal2(points[i + 1]);
     if (!cardinal(start) || !cardinal(end) || Math.abs(start[0] * end[0] + start[1] * end[1]) > 3e-3) return null;
     const c1 = normal2(curve.pts.slice(0, 2)), c2 = normal2(curve.pts.slice(2, 4));
-    if (!near2(c1, [start[0] + k * end[0], start[1] + k * end[1]]) || !near2(c2, [end[0] + k * start[0], end[1] + k * start[1]])) return null;
+    if (!near(c1, [start[0] + k * end[0], start[1] + k * end[1]]) || !near(c2, [end[0] + k * start[0], end[1] + k * start[1]])) return null;
   }
   return { x: minX, y: minY, w, h };
 }
@@ -110934,7 +110934,7 @@ function spotHealPremultiplied(rgba2, coverage, width, height, opts) {
   const wx0 = Math.max(0, bx0 - ring2), wy0 = Math.max(0, by0 - ring2);
   const wx1 = Math.min(W, bx1 + ring2), wy1 = Math.min(H, by1 + ring2);
   const ww = wx1 - wx0, wh = wy1 - wy0, wn = ww * wh;
-  const role = new Uint8Array(wn), near2 = new Uint8Array(wn);
+  const role = new Uint8Array(wn), near = new Uint8Array(wn);
   const prefix = new Int32Array(Math.max(ww, wh) + 1);
   const value2 = new Float32Array(wn * 4);
   for (let y = 0; y < wh; y++) for (let x = 0; x < ww; x++) role[y * ww + x] = coverage[(wy0 + y) * width + (wx0 + x)] ? HOLE : OUTSIDE;
@@ -110943,12 +110943,12 @@ function spotHealPremultiplied(rgba2, coverage, width, height, opts) {
     for (let x = 0; x < ww; x++) prefix[x + 1] = prefix[x] + (role[y * ww + x] === HOLE ? 1 : 0);
     for (let x = 0; x < ww; x++) {
       const lo = Math.max(0, x - ring2), hi = Math.min(ww, x + ring2 + 1);
-      near2[y * ww + x] = prefix[hi] - prefix[lo] > 0 ? 1 : 0;
+      near[y * ww + x] = prefix[hi] - prefix[lo] > 0 ? 1 : 0;
     }
   }
   for (let x = 0; x < ww; x++) {
     prefix[0] = 0;
-    for (let y = 0; y < wh; y++) prefix[y + 1] = prefix[y] + near2[y * ww + x];
+    for (let y = 0; y < wh; y++) prefix[y + 1] = prefix[y] + near[y * ww + x];
     for (let y = 0; y < wh; y++) {
       const lo = Math.max(0, y - ring2), hi = Math.min(wh, y + ring2 + 1);
       if (role[y * ww + x] === OUTSIDE && prefix[hi] - prefix[lo] > 0) role[y * ww + x] = RING;
@@ -116673,8 +116673,8 @@ function mergeCoLocatedMarks(groups, rows2, frames) {
   const together2 = (a, b, lockup) => a.some((one) => {
     const box4 = boxOf7.get(one);
     return box4 !== void 0 && b.some((other) => {
-      const near2 = boxOf7.get(other);
-      return near2 !== void 0 && (samePlace(box4, near2) || lockup && sideBySide(box4, near2));
+      const near = boxOf7.get(other);
+      return near !== void 0 && (samePlace(box4, near) || lockup && sideBySide(box4, near));
     });
   });
   const inherited4 = (group) => group.members.every((id3) => {
@@ -116784,8 +116784,8 @@ function cornerRepeatShares(frames, tolerance) {
     const slides = /* @__PURE__ */ new Set();
     for (const other of marks) {
       if (other.corner !== mark.corner) continue;
-      const near2 = Math.abs(other.box.x - mark.box.x) <= tolerance && Math.abs(other.box.y - mark.box.y) <= tolerance && Math.abs(other.box.w - mark.box.w) <= tolerance && Math.abs(other.box.h - mark.box.h) <= tolerance;
-      if (!near2 && !samePlace(other.box, mark.box)) continue;
+      const near = Math.abs(other.box.x - mark.box.x) <= tolerance && Math.abs(other.box.y - mark.box.y) <= tolerance && Math.abs(other.box.w - mark.box.w) <= tolerance && Math.abs(other.box.h - mark.box.h) <= tolerance;
+      if (!near && !samePlace(other.box, mark.box)) continue;
       slides.add(other.slideId);
     }
     out.set(mark.id, slides.size / pictureSlides.length);
@@ -121422,8 +121422,8 @@ function glyphLineOf(item2, short) {
     if (last) {
       const overlap2 = Math.min(last.x1, b.x1) - Math.max(last.x0, b.x0);
       const apart2 = Math.max(last.y0, b.y0) - Math.min(last.y1, b.y1);
-      const near2 = apart2 <= Math.max(last.y1 - last.y0, b.y1 - b.y0);
-      if (near2 && (overlap2 > 0.3 * Math.min(last.x1 - last.x0, b.x1 - b.x0) || b.x0 >= last.x0 && b.x1 <= last.x1)) {
+      const near = apart2 <= Math.max(last.y1 - last.y0, b.y1 - b.y0);
+      if (near && (overlap2 > 0.3 * Math.min(last.x1 - last.x0, b.x1 - b.x0) || b.x0 >= last.x0 && b.x1 <= last.x1)) {
         last.x0 = Math.min(last.x0, b.x0);
         last.y0 = Math.min(last.y0, b.y0);
         last.x1 = Math.max(last.x1, b.x1);
@@ -133426,7 +133426,7 @@ function textDocument(doc, bytes2, text13, structured, json, rules, budget3) {
         doc.scope.limitations.push("The structured node limit was reached.");
         break;
       }
-      const { node, path, field: field2, base64: base642, depth } = queue2[cursor];
+      const { node, path, field: field2, base64, depth } = queue2[cursor];
       if (depth > 64) {
         doc.scope.status = "partial";
         doc.scope.limitations.push("Nested content beyond 64 levels was not inspected.");
@@ -133457,7 +133457,7 @@ function textDocument(doc, bytes2, text13, structured, json, rules, budget3) {
         const raw = text13.slice(start, end);
         const suffix2 = /\r?\n$/.exec(raw)?.[0] ?? "";
         const encode = (v) => JSON.stringify(v) + suffix2;
-        if (base642) {
+        if (base64) {
           const decoded = base64Text(value2);
           if (decoded === void 0) {
             doc.scope.status = "partial";
@@ -139440,14 +139440,14 @@ function checkGuestMarks(boxes2, kit, measure3 = {}) {
       else {
         const band = inflate2(region, rules.clearSpace.value * placed2.visibleH);
         const background = (l) => !isMark(l) && l.reach !== "anywhere" && l.solid && beneath(l, mark) && outlineHolds(l.row, boxOf3(l.row), region);
-        const near2 = layers.filter((l) => neighbour(l, mark) && l.kind !== "frame" && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && l.paints && (l.reach === "anywhere" || overlaps2(inflate2(l.rect, l.margin), band)) && !background(l));
-        const exact = near2.filter((l) => l.reach === "exact");
+        const near = layers.filter((l) => neighbour(l, mark) && l.kind !== "frame" && !NOT_ON_PAGE.has(l.kind) && l.kind !== "group" && l.paints && (l.reach === "anywhere" || overlaps2(inflate2(l.rect, l.margin), band)) && !background(l));
+        const exact = near.filter((l) => l.reach === "exact");
         if (exact.length && placed2.exact) {
           const first = exact[0];
           const message = exact.length === 1 ? `\u201C${first.label}\u201D sits inside ${company}'s clear space.` : `\u201C${first.label}\u201D and ${exact.length - 1} other ${exact.length === 2 ? "layer sit" : "layers sit"} inside ${company}'s clear space.`;
           add3(mark, "clear-space", "", message, { value: first.label, expected: `${rules.clearSpace.value} of the mark's height`, related: exact.map((l) => l.id).filter(Boolean) });
-        } else if (near2.some((l) => l.reach !== "exact")) note2("clear-space-unmodelled");
-        else if (near2.length) note2("clear-space");
+        } else if (near.some((l) => l.reach !== "exact")) note2("clear-space-unmodelled");
+        else if (near.length) note2("clear-space");
       }
     }
     const allowed = rules.treatments;
@@ -150353,12 +150353,12 @@ function colourStats(pass, box4, counter) {
   const sum = sums.get(bestKey);
   const ink = sum && best > 0 ? [sum[0] / best, sum[1] / best, sum[2] / best] : groundRgb(ground, box4.x + box4.w / 2, box4.y + box4.h / 2);
   let other = 0;
-  let near2 = 0;
+  let near = 0;
   for (const { i, x, y } of seen) {
     const r5 = image.data[i] ?? 0;
     const gg = image.data[i + 1] ?? 0;
     const b = image.data[i + 2] ?? 0;
-    if (Math.abs(r5 - ink[0]) + Math.abs(gg - ink[1]) + Math.abs(b - ink[2]) <= NEAR_INK) near2++;
+    if (Math.abs(r5 - ink[0]) + Math.abs(gg - ink[1]) + Math.abs(b - ink[2]) <= NEAR_INK) near++;
     const g2 = groundRgb(ground, x, y);
     const d = [ink[0] - g2[0], ink[1] - g2[1], ink[2] - g2[2]];
     const p = [(image.data[i] ?? 0) - g2[0], (image.data[i + 1] ?? 0) - g2[1], (image.data[i + 2] ?? 0) - g2[2]];
@@ -150367,7 +150367,7 @@ function colourStats(pass, box4, counter) {
     const miss = Math.abs(p[0] - t * d[0]) + Math.abs(p[1] - t * d[1]) + Math.abs(p[2] - t * d[2]);
     if (miss > BLEND_MISS) other++;
   }
-  return { samples, dominantShare: samples ? near2 / samples : 0, distinct: counts.size, ink, otherShare: samples ? other / samples : 0 };
+  return { samples, dominantShare: samples ? near / samples : 0, distinct: counts.size, ink, otherShare: samples ? other / samples : 0 };
 }
 function label3(on3, gw, gh, eight) {
   const labels = new Int32Array(gw * gh).fill(-1);
@@ -151422,14 +151422,14 @@ function strokeRatioOf(image, box4, ink) {
     let inRun = false;
     for (let x = x0; x < x1; x++) {
       const i = (y * image.width + x) * 4;
-      const near2 = Math.abs((image.data[i] ?? 0) - rgb3[0]) + Math.abs((image.data[i + 1] ?? 0) - rgb3[1]) + Math.abs((image.data[i + 2] ?? 0) - rgb3[2]) <= TEXT_INK_NEAR;
-      if (near2) {
+      const near = Math.abs((image.data[i] ?? 0) - rgb3[0]) + Math.abs((image.data[i + 1] ?? 0) - rgb3[1]) + Math.abs((image.data[i + 2] ?? 0) - rgb3[2]) <= TEXT_INK_NEAR;
+      if (near) {
         pixels3++;
         if (!inRun) runs2++;
         if (y < top) top = y;
         if (y > bottom) bottom = y;
       }
-      inRun = near2;
+      inRun = near;
     }
   }
   return runs2 && bottom >= top ? pixels3 / runs2 / (bottom - top + 1) : null;
@@ -151845,7 +151845,7 @@ function lineGlyphsOf(image, box4, text13) {
   const lineRgb = lineInk ? rgbOfHex(lineInk) : null;
   const ownShare = (a, b) => {
     if (!lineRgb) return 0;
-    let near2 = 0;
+    let near = 0;
     let all = 0;
     for (let c = Math.max(0, a); c <= Math.min(cols - 1, b); c++) {
       const x = x0 + c * stride;
@@ -151854,15 +151854,15 @@ function lineGlyphsOf(image, box4, text13) {
         all++;
         const i = ((y0 + r5) * image.width + x) * 4;
         const d = Math.abs((image.data[i] ?? 0) - lineRgb[0]) + Math.abs((image.data[i + 1] ?? 0) - lineRgb[1]) + Math.abs((image.data[i + 2] ?? 0) - lineRgb[2]);
-        if (d <= TEXT_INK_NEAR) near2++;
+        if (d <= TEXT_INK_NEAR) near++;
       }
     }
-    return all ? near2 / all : 0;
+    return all ? near / all : 0;
   };
   const fillOf3 = (hex4, a, b) => {
     const rgb3 = rgbOfHex(hex4);
     if (!rgb3) return 0;
-    let near2 = 0;
+    let near = 0;
     let all = 0;
     for (let c = Math.max(0, a); c <= Math.min(cols - 1, b); c++) {
       const x = x0 + c * stride;
@@ -151871,10 +151871,10 @@ function lineGlyphsOf(image, box4, text13) {
         all++;
         const i = ((y0 + r5) * image.width + x) * 4;
         const d = Math.abs((image.data[i] ?? 0) - rgb3[0]) + Math.abs((image.data[i + 1] ?? 0) - rgb3[1]) + Math.abs((image.data[i + 2] ?? 0) - rgb3[2]);
-        if (d <= TEXT_INK_NEAR) near2++;
+        if (d <= TEXT_INK_NEAR) near++;
       }
     }
-    return all ? near2 / all : 0;
+    return all ? near / all : 0;
   };
   const raw = chars.map(() => null);
   const candidate = chars.map(() => false);
@@ -154134,10 +154134,10 @@ function reframeSvg(svg, region, width, height, overlay = "") {
   })();
   return svg.slice(0, tag3.start) + open3 + body;
 }
-function rasterAsSvg(mime2, base642, width, height) {
+function rasterAsSvg(mime2, base64, width, height) {
   if (!/^image\/[a-z0-9.+-]+$/i.test(mime2)) throw new Error(`Not an image type: ${mime2}`);
-  if (!/^[A-Za-z0-9+/=]*$/.test(base642)) throw new Error("Image data is not base64.");
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><image href="data:${mime2};base64,${base642}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none"/></svg>`;
+  if (!/^[A-Za-z0-9+/=]*$/.test(base64)) throw new Error("Image data is not base64.");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><image href="data:${mime2};base64,${base64}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none"/></svg>`;
 }
 function niceGridSpacing(extent2, lines = 10) {
   if (!(extent2 > 0)) return 1;
@@ -163960,10 +163960,10 @@ async function inspectPptx(bytes2, opts, parseXml) {
     const swatches = opts?.swatches;
     if (Array.isArray(swatches) && swatches.length > 0) {
       for (const c of colors) {
-        const near2 = nearestBrandColor2(c.hex, swatches);
-        if (near2) {
-          c.suggested = `#${near2.hex.slice(1, 7).toUpperCase()}`;
-          c.review = near2.review;
+        const near = nearestBrandColor2(c.hex, swatches);
+        if (near) {
+          c.suggested = `#${near.hex.slice(1, 7).toUpperCase()}`;
+          c.review = near.review;
         }
       }
       result.themeSuggestion = hashThemeSuggestion(suggestRebrandTheme2(swatches, opts?.fonts));
@@ -164680,15 +164680,15 @@ async function reconstructFlattenedSlide(input) {
   const bleedOf = (box4) => {
     const W = picture.width;
     const H = picture.height;
-    const near2 = (v, edge) => Math.abs(v - edge) <= BLEED_EDGE * Math.max(W, H);
-    const tall = near2(box4.y, 0) && near2(box4.y + box4.h, H);
-    const wide = near2(box4.x, 0) && near2(box4.x + box4.w, W);
+    const near = (v, edge) => Math.abs(v - edge) <= BLEED_EDGE * Math.max(W, H);
+    const tall = near(box4.y, 0) && near(box4.y + box4.h, H);
+    const wide = near(box4.x, 0) && near(box4.x + box4.w, W);
     const busy = (b) => b.w > 1 && b.h > 1 && detailShare(canvas, b) >= ON_PICTURE_DETAIL;
     let out2 = box4;
-    if (tall && near2(box4.x + box4.w, W) && box4.x > 0 && busy({ x: 0, y: 0, w: box4.x, h: H })) out2 = { ...out2, x: 0, w: out2.x + out2.w };
-    if (tall && near2(box4.x, 0) && box4.x + box4.w < W && busy({ x: box4.x + box4.w, y: 0, w: W - box4.x - box4.w, h: H })) out2 = { ...out2, w: W - out2.x };
-    if (wide && near2(box4.y + box4.h, H) && box4.y > 0 && busy({ x: 0, y: 0, w: W, h: box4.y })) out2 = { ...out2, y: 0, h: out2.y + out2.h };
-    if (wide && near2(box4.y, 0) && box4.y + box4.h < H && busy({ x: 0, y: box4.y + box4.h, w: W, h: H - box4.y - box4.h })) out2 = { ...out2, h: H - out2.y };
+    if (tall && near(box4.x + box4.w, W) && box4.x > 0 && busy({ x: 0, y: 0, w: box4.x, h: H })) out2 = { ...out2, x: 0, w: out2.x + out2.w };
+    if (tall && near(box4.x, 0) && box4.x + box4.w < W && busy({ x: box4.x + box4.w, y: 0, w: W - box4.x - box4.w, h: H })) out2 = { ...out2, w: W - out2.x };
+    if (wide && near(box4.y + box4.h, H) && box4.y > 0 && busy({ x: 0, y: 0, w: W, h: box4.y })) out2 = { ...out2, y: 0, h: out2.y + out2.h };
+    if (wide && near(box4.y, 0) && box4.y + box4.h < H && busy({ x: 0, y: box4.y + box4.h, w: W, h: H - box4.y - box4.h })) out2 = { ...out2, h: H - out2.y };
     return out2;
   };
   const pagePicture = async (region, read) => {
@@ -165249,8 +165249,8 @@ function snapInks(paras) {
   const inks = [];
   const to = /* @__PURE__ */ new Map();
   for (const hex4 of ranked) {
-    const near2 = inks.find((ink) => channelsApart2(ink, hex4) <= SAME_INK);
-    if (near2) to.set(hex4, near2);
+    const near = inks.find((ink) => channelsApart2(ink, hex4) <= SAME_INK);
+    if (near) to.set(hex4, near);
     else {
       inks.push(hex4);
       to.set(hex4, hex4);
@@ -166111,8 +166111,8 @@ function tracesFrame(k, n7) {
     cx2 + (x - cx2) * Math.cos(rad) - (y - cy3) * Math.sin(rad),
     cy3 + (x - cx2) * Math.sin(rad) + (y - cy3) * Math.cos(rad)
   ]);
-  const near2 = (a, b) => Math.abs(a[0] - b[0]) < 0.5 && Math.abs(a[1] - b[1]) < 0.5;
-  return k.points.every((p) => corners3.some((c) => near2(p, c))) && corners3.every((c) => k.points.some((p) => near2(p, c)));
+  const near = (a, b) => Math.abs(a[0] - b[0]) < 0.5 && Math.abs(a[1] - b[1]) < 0.5;
+  return k.points.every((p) => corners3.some((c) => near(p, c))) && corners3.every((c) => k.points.some((p) => near(p, c)));
 }
 function clipRead(n7) {
   const rot = n7.rot ?? 0;
@@ -170866,822 +170866,6 @@ var init_radiance = __esm({
   }
 });
 
-// packages/node-shell/src/pdf-images.ts
-function isPng2(bytes2) {
-  return bytes2.length > 8 && bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71;
-}
-function isJpeg(bytes2) {
-  return bytes2.length > 3 && bytes2[0] === 255 && bytes2[1] === 216 && bytes2[2] === 255;
-}
-function refusal2(message) {
-  const err = new Error(`pdf: ${message}`);
-  err.name = "PdfTransformError";
-  return err;
-}
-function startsWith2(bytes2, text13) {
-  if (bytes2.length < text13.length) return false;
-  for (let i = 0; i < text13.length; i++) if (bytes2[i] !== text13.charCodeAt(i)) return false;
-  return true;
-}
-function ppi(value2) {
-  return Number.isFinite(value2) && value2 >= 10 && value2 <= 1e4 ? value2 : 0;
-}
-function readExifFacts(payload) {
-  const facts2 = { orientation: 1, ppiX: 0, ppiY: 0 };
-  const t = payload.subarray(6);
-  const little = t[0] === 73 && t[1] === 73;
-  if (t.length < 8 || !little && !(t[0] === 77 && t[1] === 77)) return facts2;
-  const u167 = (o) => o < 0 || o + 2 > t.length ? -1 : little ? t[o] | t[o + 1] << 8 : t[o] << 8 | t[o + 1];
-  const u327 = (o) => o < 0 || o + 4 > t.length ? -1 : little ? (t[o] | t[o + 1] << 8 | t[o + 2] << 16) + t[o + 3] * 16777216 : t[o] * 16777216 + (t[o + 1] << 16 | t[o + 2] << 8 | t[o + 3]);
-  if (u167(2) !== 42) return facts2;
-  const ifd = u327(4);
-  const entries = Math.min(512, Math.max(0, u167(ifd)));
-  let x = 0, y = 0, unit2 = 2;
-  const rational = (at) => {
-    const offset = u327(at), num23 = u327(offset), den = u327(offset + 4);
-    return num23 > 0 && den > 0 ? num23 / den : 0;
-  };
-  for (let k = 0; k < entries; k++) {
-    const e = ifd + 2 + k * 12;
-    if (e + 12 > t.length) break;
-    const tag3 = u167(e), type = u167(e + 2);
-    if (tag3 === 274 && type === 3) facts2.orientation = u167(e + 8);
-    else if (tag3 === 282 && type === 5) x = rational(e + 8);
-    else if (tag3 === 283 && type === 5) y = rational(e + 8);
-    else if (tag3 === 296 && type === 3) unit2 = u167(e + 8);
-  }
-  if (!(facts2.orientation >= 1 && facts2.orientation <= 8)) facts2.orientation = 1;
-  const scale = unit2 === 2 ? 1 : unit2 === 3 ? 2.54 : 0;
-  facts2.ppiX = ppi(x * scale);
-  facts2.ppiY = ppi(y * scale);
-  return facts2;
-}
-function cleanJpeg(src) {
-  const scan2 = scanJpegSegments(src);
-  const segments = scan2?.segments ?? [];
-  if (!scan2 || scan2.sos === null || scan2.truncated && segments.at(-1)?.marker !== 218) {
-    throw refusal2("this JPEG is damaged and cannot be placed on a page");
-  }
-  const keep2 = [src.subarray(0, 2)];
-  let width = 0, height = 0, orientation = 1, droppedMetadata = false;
-  let jfifX = 0, jfifY = 0, exifX = 0, exifY = 0;
-  segments.forEach((seg5, n7) => {
-    const { marker } = seg5;
-    const payload = jpegSegmentBody(src, seg5);
-    let kept2 = true;
-    if (marker === 216) {
-      kept2 = false;
-    } else if (marker === 224) {
-      if (startsWith2(payload, "JFIF\0") && payload.length >= 12) {
-        const unit2 = payload[7], scale = unit2 === 1 ? 1 : unit2 === 2 ? 2.54 : 0;
-        jfifX = ppi((payload[8] << 8 | payload[9]) * scale);
-        jfifY = ppi((payload[10] << 8 | payload[11]) * scale);
-      }
-    } else if (marker === 225) {
-      if (startsWith2(payload, "Exif\0")) ({ orientation, ppiX: exifX, ppiY: exifY } = readExifFacts(payload));
-      kept2 = false;
-    } else if (marker === 226) {
-      kept2 = startsWith2(payload, "ICC_PROFILE\0");
-    } else if (marker === 238) {
-      kept2 = startsWith2(payload, "Adobe");
-    } else if (marker >= 227 && marker <= 239 || marker === 254) {
-      kept2 = false;
-    } else if (marker >= 192 && marker <= 207 && marker !== 196 && marker !== 200 && marker !== 204 && payload.length >= 5) {
-      height = payload[1] << 8 | payload[2];
-      width = payload[3] << 8 | payload[4];
-    }
-    if (kept2) keep2.push(src.subarray(seg5.start, seg5.end));
-    else if (marker !== 216) droppedMetadata = true;
-    if (marker === 218) keep2.push(src.subarray(seg5.end, segments[n7 + 1]?.start ?? src.length));
-  });
-  if (!width || !height) throw refusal2("this JPEG has no readable image size");
-  if (scan2.eoi === null) keep2.push(new Uint8Array([255, 217]));
-  const total = keep2.reduce((sum, part) => sum + part.length, 0);
-  const bytes2 = new Uint8Array(total);
-  let at = 0;
-  for (const part of keep2) {
-    bytes2.set(part, at);
-    at += part.length;
-  }
-  let droppedTrailing = false;
-  for (let j = scan2.trailerStart ?? src.length; j + 2 < src.length; j++) {
-    if (src[j] === 255 && src[j + 1] === 216 && src[j + 2] === 255) {
-      droppedTrailing = true;
-      break;
-    }
-  }
-  return {
-    bytes: bytes2,
-    width,
-    height,
-    orientation,
-    ppiX: jfifX || exifX,
-    ppiY: jfifY || exifY,
-    droppedMetadata,
-    droppedTrailing
-  };
-}
-function readPngFacts(bytes2) {
-  const u327 = (o) => bytes2[o] * 16777216 + (bytes2[o + 1] << 16 | bytes2[o + 2] << 8 | bytes2[o + 3]);
-  if (!isPng2(bytes2) || bytes2.length < 33 || !startsWith2(bytes2.subarray(12), "IHDR")) throw refusal2("this PNG is damaged and cannot be placed on a page");
-  const facts2 = { width: u327(16), height: u327(20), ppiX: 0, ppiY: 0, animated: false };
-  let at = 33;
-  for (let n7 = 0; n7 < 4096 && at + 12 <= bytes2.length; n7++) {
-    const length2 = u327(at), type = bytes2.subarray(at + 4, at + 8);
-    if (startsWith2(type, "IDAT") || startsWith2(type, "IEND")) break;
-    if (startsWith2(type, "acTL")) facts2.animated = true;
-    if (startsWith2(type, "pHYs") && length2 === 9 && at + 17 <= bytes2.length && bytes2[at + 16] === 1) {
-      facts2.ppiX = ppi(u327(at + 8) * 0.0254);
-      facts2.ppiY = ppi(u327(at + 12) * 0.0254);
-    }
-    at += 12 + length2;
-  }
-  if (!facts2.width || !facts2.height) throw refusal2("this PNG has no readable image size");
-  return facts2;
-}
-function orientationMatrix(o, x, y, w, h) {
-  switch (o) {
-    case 2:
-      return [-w, 0, 0, h, x + w, y];
-    case 3:
-      return [-w, 0, 0, -h, x + w, y + h];
-    case 4:
-      return [w, 0, 0, -h, x, y + h];
-    case 5:
-      return [0, -h, -w, 0, x + w, y + h];
-    case 6:
-      return [0, -h, w, 0, x, y + h];
-    case 7:
-      return [0, h, w, 0, x, y];
-    case 8:
-      return [0, h, -w, 0, x + w, y];
-    default:
-      return [w, 0, 0, h, x, y];
-  }
-}
-function layoutImagePage(w, h, pageSize, margin) {
-  if (pageSize === "a4" || pageSize === "letter") {
-    let [pw2, ph2] = PAPER[pageSize];
-    if (w > h) [pw2, ph2] = [ph2, pw2];
-    const m2 = Math.min(Math.max(0, Number(margin) || 0), 144, pw2 / 2 - 1, ph2 / 2 - 1);
-    const scale2 = Math.min((pw2 - 2 * m2) / w, (ph2 - 2 * m2) / h);
-    const bw = w * scale2, bh = h * scale2;
-    return { width: pw2, height: ph2, box: { x: (pw2 - bw) / 2, y: (ph2 - bh) / 2, w: bw, h: bh } };
-  }
-  let scale = 1;
-  if (Math.max(w, h) > MAX_PAGE_PT) scale = MAX_PAGE_PT / Math.max(w, h);
-  else if (Math.min(w, h) < MIN_PAGE_PT) scale = Math.min(MIN_PAGE_PT / Math.min(w, h), MAX_PAGE_PT / Math.max(w, h));
-  const pw = w * scale, ph = h * scale;
-  return { width: pw, height: ph, box: { x: 0, y: 0, w: pw, h: ph } };
-}
-function plural5(n7, one, many = `${one}s`) {
-  return `${n7} ${n7 === 1 ? one : many}`;
-}
-async function imagesToPdf(images, opts = {}) {
-  const list4 = Array.isArray(images) ? images.filter((image) => image?.bytes?.length) : [];
-  if (!list4.length) throw refusal2("choose at least one PNG or JPEG image");
-  if (list4.length > MAX_IMAGES) throw refusal2(`a PDF can be built from at most ${MAX_IMAGES} images at a time`);
-  const pageSize = opts.pageSize === "a4" || opts.pageSize === "letter" ? opts.pageSize : "image";
-  const { PDFDocument: PDFDocument5, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = await import("pdf-lib");
-  const doc = await PDFDocument5.create({ updateMetadata: false });
-  let stripped = 0, trailing = 0, turned = 0;
-  for (const [index2, image] of list4.entries()) {
-    const input = image.bytes instanceof Uint8Array ? image.bytes : new Uint8Array(image.bytes);
-    let embedded, width, height, orientation = 1, ppiX, ppiY;
-    if (isJpeg(input)) {
-      const jpeg = cleanJpeg(input);
-      embedded = await doc.embedJpg(jpeg.bytes);
-      ({ width, height, orientation, ppiX, ppiY } = jpeg);
-      if (jpeg.droppedMetadata) stripped++;
-      if (jpeg.droppedTrailing) trailing++;
-      if (orientation !== 1) turned++;
-    } else if (isPng2(input)) {
-      const png = readPngFacts(input);
-      if (png.animated) throw refusal2(`image ${index2 + 1} is an animated PNG; save it as a still image first`);
-      if (png.width * png.height > MAX_PNG_PIXELS) {
-        throw refusal2(`image ${index2 + 1} has ${Math.round(png.width * png.height / 1e6)} million pixels; resize it below 40 million first`);
-      }
-      embedded = await doc.embedPng(input);
-      ({ width, height, ppiX, ppiY } = png);
-    } else {
-      throw refusal2(`image ${index2 + 1} is not a PNG or JPEG; convert it first`);
-    }
-    const storedW = width * 72 / (ppiX || ppiY || DEFAULT_PPI);
-    const storedH = height * 72 / (ppiY || ppiX || DEFAULT_PPI);
-    const sideways = orientation >= 5;
-    const layout2 = layoutImagePage(sideways ? storedH : storedW, sideways ? storedW : storedH, pageSize, Number(opts.margin) || 0);
-    const page3 = doc.addPage([layout2.width, layout2.height]);
-    const name = page3.node.newXObject("Im", embedded.ref);
-    const { x, y, w, h } = layout2.box;
-    page3.pushOperators(pushGraphicsState(), concatTransformationMatrix(...orientationMatrix(orientation, x, y, w, h)), drawObject(name), popGraphicsState());
-  }
-  const bytes2 = await doc.save({ useObjectStreams: true });
-  const notes = [];
-  if (turned) notes.push(`Turned ${plural5(turned, "photo")} upright using the camera orientation.`);
-  if (stripped) notes.push(`Left out photo details such as location and camera data from ${plural5(stripped, "image")}.`);
-  if (trailing) notes.push(`Left out extra pictures stored after the main image in ${plural5(trailing, "file")}.`);
-  return { bytes: bytes2, pages: list4.length, turned, metadataLeftOut: stripped, extraPicturesLeftOut: trailing, notes };
-}
-var MAX_PAGE_PT, MIN_PAGE_PT, DEFAULT_PPI, MAX_PNG_PIXELS, MAX_IMAGES, PAPER;
-var init_pdf_images = __esm({
-  "packages/node-shell/src/pdf-images.ts"() {
-    "use strict";
-    init_src2();
-    MAX_PAGE_PT = 14400;
-    MIN_PAGE_PT = 3;
-    DEFAULT_PPI = 96;
-    MAX_PNG_PIXELS = 4e7;
-    MAX_IMAGES = 2e3;
-    PAPER = {
-      a4: [595.28, 841.89],
-      letter: [612, 792]
-    };
-  }
-});
-
-// packages/node-shell/src/browser-free-record.ts
-import { createHash as createHash4 } from "node:crypto";
-import { closeSync, fstatSync, openSync, readFileSync as readFileSync6, readSync } from "node:fs";
-function digestToolSources(read) {
-  const hash = createHash4("sha256");
-  for (const name of ["tool.json", "template.html", "styles.css", "hooks.js"]) {
-    const text13 = read(name);
-    hash.update(`${name}
-${text13 === null ? "\0absent" : text13}
-`);
-  }
-  return hash.digest("hex");
-}
-function toolSourceDigest(id3) {
-  return digestToolSources((name) => {
-    if (name === "tool.json") return toolFile(id3, name) ? readToolManifestText(id3) : null;
-    const path = toolFile(id3, name);
-    return path ? readFileSync6(path, "utf8") : null;
-  });
-}
-function browserFreeRecordProblem(value2) {
-  if (!isObject3(value2) || value2.version !== BROWSER_FREE_RECORD_VERSION) return `is not a version ${BROWSER_FREE_RECORD_VERSION} record`;
-  if (!onlyKeys(value2, ["version", "tool", "verdict", "measured", "cases"])) return "has a key a record does not carry";
-  const { tool, verdict: verdict2, measured, cases } = value2;
-  if (!isObject3(tool) || !onlyKeys(tool, ["id", "version", "digest"]) || typeof tool.id !== "string" || !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(tool.id) || !shortString(tool.version, 40, 1) || typeof tool.digest !== "string" || !/^[0-9a-f]{64}$/.test(tool.digest)) return "does not say which tool it measured";
-  if (verdict2 !== "resvg" && verdict2 !== "browser") return "has no verdict";
-  if (!isObject3(measured) || !onlyKeys(measured, ["date", "profile", "webShell", "renderers", "bands"]) || typeof measured.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(measured.date) || !shortString(measured.profile, 80) || !shortString(measured.webShell, 80)) return "does not say when and against what it was measured";
-  const { renderers, bands } = measured;
-  if (!isObject3(renderers) || !onlyKeys(renderers, ["resvg", "engine", "chromium"]) || !shortString(renderers.resvg, 40) || !shortString(renderers.engine, 40) || !shortString(renderers.chromium, 80)) return "does not list the renderers it compared";
-  if (!isObject3(bands) || !onlyKeys(bands, BAND_KEYS) || !BAND_KEYS.every((k) => typeof bands[k] === "number" && Number.isFinite(bands[k]))) return "does not list the bands it applied";
-  if (!Array.isArray(cases) || cases.length < 1 || cases.length > 200) return "lists no cases";
-  for (const c of cases) {
-    if (!isObject3(c) || !onlyKeys(c, ["name", "args", "result", "detail"]) || !shortString(c.name, 120) || !Array.isArray(c.args) || c.args.length > 40 || !c.args.every((arg) => shortString(arg, 16e3)) || typeof c.result !== "string" || !RESULTS.includes(c.result) || c.detail !== void 0 && !shortString(c.detail, 2e3)) return "has a case that is not a measured case";
-  }
-  return null;
-}
-function parseBrowserFreeRecord(text13) {
-  if (text13.length >= BROWSER_FREE_MAX_BYTES) return { problem: `${BROWSER_FREE_FILE} is larger than a record` };
-  let value2;
-  try {
-    value2 = JSON.parse(text13);
-  } catch (err) {
-    return { problem: `${BROWSER_FREE_FILE} is not JSON (${err.message})` };
-  }
-  const problem = browserFreeRecordProblem(value2);
-  return problem ? { problem: `${BROWSER_FREE_FILE} ${problem}` } : { record: value2 };
-}
-function readBrowserFreeText(path) {
-  const fd = openSync(path, "r");
-  try {
-    const { size } = fstatSync(fd);
-    if (size >= BROWSER_FREE_MAX_BYTES) return { problem: `${BROWSER_FREE_FILE} is larger than a record` };
-    const buffer = Buffer.alloc(size);
-    let read = 0;
-    while (read < size) {
-      const n7 = readSync(fd, buffer, read, size - read, read);
-      if (n7 === 0) break;
-      read += n7;
-    }
-    return { text: buffer.subarray(0, read).toString("utf8") };
-  } finally {
-    closeSync(fd);
-  }
-}
-function browserFreeStatus(record49, tool) {
-  if (record49.tool.id !== tool.id) return { admitted: false, stale: `the record is for the ${record49.tool.id} tool` };
-  if (record49.verdict !== "resvg") return { admitted: false };
-  if (!record49.cases.some((c) => c.result === "inside") || record49.cases.some((c) => c.result === "outside" || c.result === "error")) {
-    return { admitted: false, stale: "the record's cases do not support its verdict" };
-  }
-  if (record49.tool.version !== tool.version) return { admitted: false, stale: `the record was measured on version ${record49.tool.version}, and the tool is now ${tool.version}` };
-  if (record49.tool.digest !== tool.digest) return { admitted: false, stale: "the tool's files changed since the record was measured" };
-  return { admitted: true };
-}
-function readBrowserFreeRecord(id3) {
-  let path;
-  try {
-    path = toolFile(id3, BROWSER_FREE_FILE);
-  } catch {
-    return null;
-  }
-  if (!path) return null;
-  try {
-    const read = readBrowserFreeText(path);
-    return "problem" in read ? read : parseBrowserFreeRecord(read.text);
-  } catch (err) {
-    return { problem: `${BROWSER_FREE_FILE} could not be read (${err.message})` };
-  }
-}
-var BROWSER_FREE_FILE, BROWSER_FREE_RECORD_VERSION, BROWSER_FREE_MAX_BYTES, isObject3, onlyKeys, shortString, BAND_KEYS, RESULTS;
-var init_browser_free_record = __esm({
-  "packages/node-shell/src/browser-free-record.ts"() {
-    "use strict";
-    init_content_roots();
-    BROWSER_FREE_FILE = "browser-free.json";
-    BROWSER_FREE_RECORD_VERSION = 1;
-    BROWSER_FREE_MAX_BYTES = 64e3;
-    isObject3 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    onlyKeys = (v, keys2) => Object.keys(v).every((k) => keys2.includes(k));
-    shortString = (v, max, min = 0) => typeof v === "string" && v.length >= min && v.length <= max;
-    BAND_KEYS = ["threshold", "fillThreshold", "regionShare", "inkShare", "inkShift", "gradientLevels"];
-    RESULTS = ["inside", "outside", "refused", "error"];
-  }
-});
-
-// packages/node-shell/src/resvg-admission.ts
-import { readFileSync as readFileSync7 } from "node:fs";
-function toolAdmission(tool) {
-  const id3 = tool.manifest.id;
-  const untrusted = tool.trustClass === "sideloaded-consented" || tool.trustClass === "remote-untrusted";
-  if (untrusted) return { id: id3, browserFree: false, untrusted };
-  const read = readBrowserFreeRecord(id3);
-  if (!read) return { id: id3, browserFree: false, untrusted };
-  if ("problem" in read) return { id: id3, browserFree: false, untrusted, stale: read.problem };
-  const status = browserFreeStatus(read.record, { id: id3, version: String(tool.manifest.version ?? ""), digest: toolSourceDigest(id3) });
-  if (status.admitted && !loadedFromResolver(id3, tool)) {
-    return { id: id3, browserFree: false, untrusted, stale: "the tool was loaded from files other than the ones its record was measured on" };
-  }
-  return { id: id3, browserFree: status.admitted, untrusted, ...status.stale ? { stale: status.stale } : {} };
-}
-function loadedFromResolver(id3, tool) {
-  const file = (name) => {
-    try {
-      const path = toolFile(id3, name);
-      return path ? readFileSync7(path, "utf8") : null;
-    } catch {
-      return null;
-    }
-  };
-  if (tool.template !== file("template.html")) return false;
-  if ((tool.styles ?? null) !== file("styles.css")) return false;
-  const hooks = tool.manifest.hooks;
-  if (hooks && hooks.module !== true && (tool.hooksSource ?? null) !== file("hooks.js")) return false;
-  if (typeof tool.hooksSource === "string" && tool.hooksSource !== file("hooks.js")) return false;
-  return true;
-}
-function resvgRefusalSentence(refusals) {
-  const reasons = [...new Set(refusals.map((r5) => r5.reason))];
-  return `The browser-free renderer (resvg) was not used because ${reasons.join("; ")}.`;
-}
-function isResvgRefusal(e) {
-  return e instanceof ResvgRefusedError || !!e && typeof e === "object" && e.code === "RESVG_REFUSED";
-}
-function routeRefusals(facts2 = {}) {
-  const out = [];
-  if (facts2.tool && !facts2.tool.browserFree) {
-    out.push({ code: "unmeasured", reason: facts2.tool.untrusted ? `the ${facts2.tool.id} tool is sideloaded or remote, and such a tool cannot admit itself to this route` : facts2.tool.stale ? `the ${facts2.tool.id} tool's browser-free record no longer describes it (${facts2.tool.stale}); run scripts/tool-browser-free.ts again` : `the ${facts2.tool.id} tool has not been measured inside the fidelity bands on this route (no browser-free.json admits it)` });
-  }
-  if (facts2.paged) out.push({ code: "paged", reason: "a paged document, whose pages the browser writes at their print size" });
-  if (facts2.draftMark) out.push({ code: "draft-mark", reason: "this experimental tool marks its exports DRAFT, and that mark is drawn by the browser" });
-  if (facts2.canvasPixels) out.push({ code: "canvas-pixels", reason: "the tool computed part of the picture with a 2D canvas, which this shell emulates and the browser draws natively" });
-  if (facts2.fallbackFaces) out.push({ code: "fallback-faces", reason: "some characters came from fallback faces, where the browser picks faces of its own" });
-  return out;
-}
-function svgPlacement(svg, canvasW, canvasH, styleOf, renderSize) {
-  const computed = (name) => {
-    try {
-      return styleOf?.(svg)?.getPropertyValue(name)?.trim() ?? "";
-    } catch {
-      return "";
-    }
-  };
-  const spec = (name) => computed(name) || svg.getAttribute(name)?.trim() || "auto";
-  const full = (value2, canvas, render2) => {
-    if (value2 === "100%") return true;
-    const px3 = /^(\d+(?:\.\d+)?)(px)?$/.exec(value2);
-    return !!px3 && (near(Number(px3[1]), canvas) || render2 !== void 0 && near(Number(px3[1]), render2));
-  };
-  const w = spec("width"), h = spec("height");
-  const widthFull = w === "auto" || full(w, canvasW, renderSize?.width);
-  if (widthFull && full(h, canvasH, renderSize?.height)) return { kind: "fill" };
-  if (widthFull && h === "auto") {
-    const vb = viewBoxOf2(svg.getAttribute("viewBox"));
-    if (!vb) return { kind: "unknown", reason: `its size is ${w} by ${h} with no viewBox to give it a shape` };
-    if (computed("max-height") === "100%" && canvasW * vb[3] / vb[2] > canvasH) return { kind: "fill" };
-    return { kind: "top" };
-  }
-  return { kind: "unknown", reason: `its box is ${w} by ${h} on a ${canvasW} by ${canvasH} canvas, a layout the page around it decides` };
-}
-function paintsGround(style) {
-  if (!style) return false;
-  const colour = (style.getPropertyValue("background-color") || "").trim().toLowerCase();
-  const image = (style.getPropertyValue("background-image") || "").trim().toLowerCase();
-  const short = (style.getPropertyValue("background") || "").trim().toLowerCase();
-  const clear = (v) => !v || v === "transparent" || v === "none" || v === "initial" || /^rgba\([^)]*,\s*0\)$/.test(v);
-  return !clear(colour) || !clear(image) || !clear(short);
-}
-function layoutAdmission(root2, svg, canvasW, canvasH, styleOf, renderSize) {
-  const placement2 = svgPlacement(svg, canvasW, canvasH, styleOf, renderSize);
-  const style = (el) => {
-    try {
-      return styleOf?.(el) ?? null;
-    } catch {
-      return null;
-    }
-  };
-  if (placement2.kind === "unknown") return { placement: placement2, refusals: [{ code: "layout", reason: `the tool's drawing is laid out by the page around it (${placement2.reason})` }] };
-  if (paintsGround(style(svg))) return { placement: placement2, refusals: [{ code: "layout", reason: "the drawing has a background set by the stylesheet, which resvg does not paint" }] };
-  const vb = viewBoxOf2(svg.getAttribute("viewBox"));
-  const uncovered = placement2.kind === "top" && !!vb && Math.abs(canvasW * vb[3] / vb[2] - canvasH) > 0.5;
-  if (uncovered) {
-    for (let el = svg.parentElement; el && el !== root2.parentElement; el = el.parentElement) {
-      if (paintsGround(style(el))) return { placement: placement2, refusals: [{ code: "layout", reason: "the drawing leaves part of the canvas to a wrapper that paints its own ground" }] };
-      if (el === root2) break;
-    }
-  }
-  return { placement: placement2, refusals: [] };
-}
-function withStyleSheet(doc, css2, read) {
-  if (!doc || !css2) return read();
-  const sheet = doc.createElement("style");
-  sheet.textContent = css2;
-  (doc.head ?? doc.documentElement).appendChild(sheet);
-  try {
-    return read();
-  } finally {
-    sheet.remove();
-  }
-}
-function viewBoxOf2(value2) {
-  const n7 = (value2 ?? "").trim().split(/[\s,]+/).map(Number);
-  return n7.length === 4 && n7.every(Number.isFinite) && n7[2] > 0 && n7[3] > 0 ? n7 : null;
-}
-function placeSvg2(svg, width, height, placement2 = { kind: "fill" }) {
-  const w = Math.max(1, Math.round(width));
-  const h = Math.max(1, Math.round(height));
-  const m2 = svg.match(/<svg\b([^>]*)>/);
-  if (!m2) return svg;
-  let attrs = m2[1];
-  if (!/\bviewBox=/.test(attrs)) {
-    const ow = attrs.match(/\bwidth="([\d.]+)"/)?.[1];
-    const oh = attrs.match(/\bheight="([\d.]+)"/)?.[1];
-    if (ow && oh) attrs += ` viewBox="0 0 ${ow} ${oh}"`;
-  }
-  attrs = attrs.replace(/\s(width|height)="[^"]*"/g, "");
-  const vb = placement2.kind === "top" ? viewBoxOf2(/\bviewBox="([^"]*)"/.exec(attrs)?.[1]) : null;
-  if (!vb) return svg.replace(/<svg\b[^>]*>/, `<svg${attrs} width="${w}" height="${h}">`);
-  const inner = +(w * vb[3] / vb[2]).toFixed(6);
-  const at = svg.search(/<svg\b/);
-  const end = svg.lastIndexOf("</svg>");
-  if (end < at) return svg;
-  return `${svg.slice(0, at)}<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">` + svg.slice(at, end + 6).replace(/<svg\b[^>]*>/, `<svg${attrs} x="0" y="0" width="${w}" height="${inner}">`) + `</svg>${svg.slice(end + 6)}`;
-}
-function base64(bytes2) {
-  return Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength).toString("base64");
-}
-function withoutDataUrls(svg) {
-  return svg.replace(/=\s*"data:[^"]*"/gi, '=""').replace(/=\s*'data:[^']*'/gi, "=''");
-}
-function varFallbacks(markup) {
-  let failed2 = false;
-  const declared = (name) => new RegExp(`${name.replace(/[-]/g, "\\-")}\\s*:`).test(markup);
-  const resolve8 = (value2, depth) => {
-    if (depth > 8) {
-      failed2 = true;
-      return value2;
-    }
-    let out = "", cursor = 0;
-    for (; ; ) {
-      const at = value2.indexOf("var(", cursor);
-      if (at < 0) return out + value2.slice(cursor);
-      out += value2.slice(cursor, at);
-      let end = at + 4, level2 = 1;
-      for (; end < value2.length && level2; end++) {
-        if (value2[end] === "(") level2++;
-        else if (value2[end] === ")") level2--;
-      }
-      if (level2) {
-        failed2 = true;
-        return out + value2.slice(at);
-      }
-      const body = value2.slice(at + 4, end - 1);
-      const comma = body.indexOf(",");
-      const name = (comma < 0 ? body : body.slice(0, comma)).trim();
-      if (comma < 0 || !/^--[\w-]+$/.test(name) || declared(name)) {
-        failed2 = true;
-        out += value2.slice(at, end);
-      } else out += resolve8(body.slice(comma + 1).trim(), depth + 1);
-      cursor = end;
-    }
-  };
-  const next2 = markup.replace(/var\([^"'<>]*/g, (run3) => run3.includes("var(") ? resolve8(run3, 0) : run3);
-  return failed2 ? null : next2;
-}
-function isEngineSrgb(icc) {
-  const srgb2 = iccProfileBytes("srgb");
-  return !!srgb2 && srgb2.length === icc.length && srgb2.every((b, i) => icc[i] === b);
-}
-function jpegRefusal(bytes2) {
-  let orientation = 1;
-  try {
-    orientation = cleanJpeg(bytes2).orientation;
-  } catch {
-    return { code: "unreadable", reason: "a JPEG picture this route cannot read" };
-  }
-  if (orientation !== 1) return { code: "picture-orientation", reason: "a JPEG picture turned by its Exif orientation, which resvg does not apply" };
-  const scan2 = scanJpegSegments(bytes2);
-  if (!scan2) return { code: "unreadable", reason: "a JPEG picture this route cannot read" };
-  const icc = [];
-  for (const seg5 of scan2.segments) {
-    const body = jpegSegmentBody(bytes2, seg5);
-    const sof = seg5.marker >= 192 && seg5.marker <= 207 && seg5.marker !== 196 && seg5.marker !== 200 && seg5.marker !== 204;
-    if (sof && body.length >= 6 && body[5] === 4) return { code: "picture-colour", reason: "a CMYK JPEG picture, which resvg converts without its colour profile" };
-    if (seg5.marker === 226 && body.length > 14 && Buffer.from(body.subarray(0, 12)).toString("latin1") === "ICC_PROFILE\0") icc.push(body.subarray(14));
-  }
-  if (icc.length && !isEngineSrgb(new Uint8Array(Buffer.concat(icc)))) return { code: "picture-colour", reason: "a JPEG picture with its own colour profile, which resvg does not apply" };
-  return null;
-}
-async function pngRefusal(bytes2) {
-  const { inflateSync: inflateSync3 } = await import("node:zlib");
-  const view = new DataView(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
-  let srgb2 = false;
-  for (let at = 8; at + 8 <= bytes2.length; ) {
-    const length2 = view.getUint32(at), type = String.fromCharCode(...bytes2.subarray(at + 4, at + 8));
-    if (type === "IDAT" || type === "IEND") break;
-    const body = bytes2.subarray(at + 8, at + 8 + length2);
-    if (type === "sRGB") srgb2 = true;
-    if (type === "iCCP") {
-      let icc = null;
-      try {
-        icc = new Uint8Array(inflateSync3(body.subarray(body.indexOf(0) + 2), { maxOutputLength: 1 << 20 }));
-      } catch {
-        icc = null;
-      }
-      if (!icc || !isEngineSrgb(icc)) return { code: "picture-colour", reason: "a PNG picture with its own colour profile, which resvg does not apply" };
-    }
-    if (type === "cHRM" && !srgb2) return { code: "picture-colour", reason: "a PNG picture with its own chromaticities, which resvg does not apply" };
-    if (type === "acTL") return ANIMATED_PICTURE;
-    at += 12 + length2;
-  }
-  return null;
-}
-function gifAnimates(bytes2) {
-  const text13 = Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength).toString("latin1");
-  if (text13.includes("NETSCAPE2.0") || text13.includes("ANIMEXTS1.0")) return true;
-  let controls = 0;
-  for (let i = text13.indexOf("!\xF9"); i >= 0; i = text13.indexOf("!\xF9", i + 2)) if (++controls > 1) return true;
-  return false;
-}
-function vectorPictureRefusals(markup) {
-  const out = [];
-  const bare = withoutDataUrls(markup);
-  if (/<(?:[\w-]+:)?image[\s/>]/i.test(markup)) out.push({ code: "picture-in-picture", reason: "a vector picture that holds a picture of its own, which resvg leaves out" });
-  if (hasLiveText(bare)) out.push({ code: "live-text", reason: "a vector picture with live text, which each renderer sets in its own faces" });
-  if (hasAnimation(bare)) out.push({ code: "css-animation", reason: "a vector picture that animates, which the browser draws at a moment of its animation and resvg draws still" });
-  if (/crispEdges/i.test(bare)) out.push({ code: "crisp-edges", reason: "a vector picture with snapped edges (crispEdges), which resvg can round a pixel apart from the browser" });
-  out.push(...markupRefusals(bare, "a vector picture"));
-  return out;
-}
-function preparedVectorPicture(markup) {
-  if (!withoutDataUrls(markup).includes("var(")) return { markup };
-  const next2 = varFallbacks(markup);
-  return next2 === null ? { refusal: { code: "css-variable", reason: "a vector picture whose colours come from a CSS variable it does not resolve itself" } } : { markup: next2 };
-}
-function markupRefusals(bare, where) {
-  const out = [];
-  if (/var\(/.test(bare)) out.push({ code: "css-variable", reason: `${where} with a CSS variable left unresolved, which resvg cannot read` });
-  if (/<(?:[\w-]+:)?foreignObject\b(?![^>]*\brequiredExtensions\s*=)/i.test(bare)) out.push({ code: "html", reason: `${where} that holds HTML, which resvg does not draw` });
-  if (/<(?:[\w-]+:)?feTurbulence\b/i.test(bare)) out.push({ code: "noise-filter", reason: `${where} with a noise filter (feTurbulence), whose grain resvg draws differently` });
-  if (gradientFades(bare)) out.push({ code: "gradient-opacity", reason: `${where} with a gradient that fades through transparency, which resvg blends a few levels away from the browser` });
-  return out;
-}
-function stopFades(attrs) {
-  const opacity = /\sstop-opacity\s*=\s*["']\s*([\d.]+%?)/i.exec(attrs)?.[1] ?? /stop-opacity\s*:\s*([\d.]+%?)/i.exec(attrs)?.[1];
-  if (opacity !== void 0 && (opacity.endsWith("%") ? Number.parseFloat(opacity) < 100 : Number(opacity) < 1)) return true;
-  const color6 = /\sstop-color\s*=\s*["']([^"']*)/i.exec(attrs)?.[1] ?? /stop-color\s*:\s*([^;"']*)/i.exec(attrs)?.[1] ?? "";
-  const c = color6.trim().toLowerCase();
-  if (c === "transparent") return true;
-  if (/^#[0-9a-f]{4}$/.test(c)) return c[4] !== "f";
-  if (/^#[0-9a-f]{8}$/.test(c)) return c.slice(7) !== "ff";
-  const alpha = /^(?:rgba?|hsla?)\(([^)]*)\)$/.exec(c)?.[1]?.split(/[\s,/]+/).filter(Boolean)[3];
-  return alpha !== void 0 && (alpha.endsWith("%") ? Number.parseFloat(alpha) < 100 : Number(alpha) < 1);
-}
-function gradientFades(markup) {
-  for (const m2 of markup.matchAll(/<(?:[\w-]+:)?(?:linear|radial)Gradient\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?(?:linear|radial)Gradient>/gi)) {
-    for (const stop of m2[1].matchAll(/<(?:[\w-]+:)?stop\b([^>]*)>/gi)) if (stopFades(stop[1])) return true;
-  }
-  return false;
-}
-async function admitForResvg(svg, width, height, facts2 = {}, placement2 = { kind: "fill" }) {
-  const refusals = [...routeRefusals(facts2)];
-  const add3 = (r5) => {
-    if (r5 && !refusals.some((x) => x.code === r5.code && x.reason === r5.reason)) refusals.push(r5);
-  };
-  const jobs = [];
-  const out = svg.replace(HREF, (whole, lead, _q, dq, sq) => {
-    const href = (dq ?? sq ?? "").trim();
-    if (!href || href.startsWith("#")) return whole;
-    if (!/^data:/i.test(href)) {
-      add3({ code: "picture-outside", reason: "a picture that points outside the SVG, which this route does not fetch" });
-      return whole;
-    }
-    let decoded = null;
-    try {
-      decoded = decodeDataUrl(href);
-    } catch {
-      decoded = null;
-    }
-    if (!decoded) {
-      add3({ code: "unreadable", reason: "a picture whose bytes cannot be read" });
-      return whole;
-    }
-    const { bytes: bytes2, mtype } = decoded;
-    if (mtype === "image/svg+xml") {
-      const markup = new TextDecoder().decode(bytes2);
-      const prepared3 = preparedVectorPicture(markup);
-      if ("refusal" in prepared3) {
-        add3(prepared3.refusal);
-        return whole;
-      }
-      for (const r5 of vectorPictureRefusals(prepared3.markup)) add3(r5);
-      return prepared3.markup === markup ? whole : `${lead}"data:image/svg+xml;base64,${base64(new TextEncoder().encode(prepared3.markup))}"`;
-    }
-    if (mtype === "image/webp" || bytes2.length > 12 && Buffer.from(bytes2.subarray(8, 12)).toString("latin1") === "WEBP") {
-      add3({ code: "picture-type", reason: "a WebP picture, which this resvg build does not decode (it would be left blank)" });
-    } else if (mtype === "image/jpeg" || mtype === "image/jpg") {
-      add3(jpegRefusal(bytes2));
-    } else if (mtype === "image/png") {
-      jobs.push(pngRefusal(bytes2).then(add3));
-    } else if (mtype === "image/gif") {
-      if (gifAnimates(bytes2)) add3(ANIMATED_PICTURE);
-    } else {
-      add3({ code: "picture-type", reason: `a picture of type ${mtype || "unknown"}, which resvg does not decode` });
-    }
-    return whole;
-  });
-  await Promise.all(jobs);
-  const bare = withoutDataUrls(out);
-  if (hasLiveText(bare)) add3({ code: "live-text", reason: "text the outliner left live (a character no face here covers), which resvg sets in other faces than the browser" });
-  if (hasAnimation(bare)) add3({ code: "css-animation", reason: "the drawing animates, and the browser draws a moment of the animation where resvg draws it still" });
-  for (const r5 of markupRefusals(bare, "the drawing")) add3(r5);
-  if (crispRectsOffGrid(bare, width, height, placement2)) add3({ code: "crisp-edges", reason: "rectangles with snapped edges (crispEdges) between whole pixels, which resvg rounds a pixel apart from the browser" });
-  for (const r5 of await treeRefusals(placeSvg2(out, width, height, placement2))) add3(r5);
-  return { svg: out, refusals };
-}
-function crispRectsOffGrid(markup, width, height, placement2) {
-  if (!/crispEdges/i.test(markup)) return false;
-  const root2 = /<svg\b([^>]*)>/i.exec(markup)?.[1] ?? "";
-  const vb = viewBoxOf2(/\sviewBox\s*=\s*"([^"]*)"/i.exec(root2)?.[1]);
-  if (!vb) return true;
-  let sx = width / vb[2], sy = height / vb[3], ox = 0, oy = 0;
-  const par = /\spreserveAspectRatio\s*=\s*"([^"]*)"/i.exec(root2)?.[1]?.trim() ?? "xMidYMid meet";
-  if (placement2.kind === "top") {
-    sx = sy = width / vb[2];
-  } else if (!par.startsWith("none")) {
-    const k = par.includes("slice") ? Math.max(sx, sy) : Math.min(sx, sy);
-    const slack = (size, view, align) => align === "Min" ? 0 : align === "Max" ? size - view * k : (size - view * k) / 2;
-    ox = slack(width, vb[2], /x(Min|Mid|Max)/.exec(par)?.[1] ?? "Mid");
-    oy = slack(height, vb[3], /Y(Min|Mid|Max)/.exec(par)?.[1] ?? "Mid");
-    sx = sy = k;
-  }
-  const crisp = (attrs) => /crispEdges/i.test(attrs) ? true : /shape-rendering\s*[=:]\s*["']?\s*(auto|geometricPrecision|optimizeSpeed)/i.test(attrs) ? false : null;
-  const offGrid = (v) => Math.abs(v - Math.round(v)) > 0.01;
-  const stack = [{ crisp: crisp(root2) ?? false, moved: false }];
-  for (const tag3 of markup.slice(markup.indexOf(">", markup.search(/<svg\b/i)) + 1).matchAll(/<(\/?)([\w:-]+)([^>]*?)(\/?)>/g)) {
-    const [, close, name, attrs = "", selfClose] = tag3;
-    if (close) {
-      if (stack.length > 1) stack.pop();
-      continue;
-    }
-    const top = stack[stack.length - 1];
-    const here = { crisp: crisp(attrs) ?? top.crisp, moved: top.moved || /\stransform\s*=/.test(attrs) || name === "svg" };
-    if (name === "rect" && here.crisp) {
-      if (here.moved) return true;
-      const n7 = (a) => {
-        const v = attrOf3(attrs, a);
-        return v === void 0 ? 0 : /^-?[\d.]+(e-?\d+)?$/i.test(v) ? Number(v) : NaN;
-      };
-      const [x, y, w, h] = [n7("x"), n7("y"), n7("width"), n7("height")];
-      if (![x, y, w, h].every(Number.isFinite)) return true;
-      if ([(x - vb[0]) * sx + ox, (x + w - vb[0]) * sx + ox, (y - vb[1]) * sy + oy, (y + h - vb[1]) * sy + oy].some(offGrid)) return true;
-    }
-    if (!selfClose) stack.push(here);
-  }
-  return false;
-}
-function matrixOf(attrs) {
-  const m2 = /\stransform="matrix\(([^)]*)\)"/.exec(attrs)?.[1]?.split(/[\s,]+/).map(Number);
-  return m2 && m2.length === 6 && m2.every(Number.isFinite) ? m2 : IDENTITY7;
-}
-async function treeRefusals(svg) {
-  const { Resvg } = await import("@resvg/resvg-js");
-  let tree;
-  try {
-    tree = new Resvg(svg, { font: { loadSystemFonts: false } }).toString();
-  } catch {
-    return [{ code: "unreadable", reason: "an SVG resvg cannot read" }];
-  }
-  const out = [];
-  const root2 = /<svg\b([^>]*)>/.exec(tree)?.[1] ?? "";
-  const vb = viewBoxOf2(attrOf3(root2, "viewBox"));
-  const W = Number(attrOf3(root2, "width")), H = Number(attrOf3(root2, "height"));
-  let rootM = IDENTITY7;
-  if (vb && W > 0 && H > 0) {
-    const par = attrOf3(root2, "preserveAspectRatio") ?? "xMidYMid meet";
-    const sx = W / vb[2], sy = H / vb[3];
-    const s = par.startsWith("none") ? null : par.includes("slice") ? Math.max(sx, sy) : Math.min(sx, sy);
-    rootM = s === null ? [sx, 0, 0, sy, -vb[0] * sx, -vb[1] * sy] : [s, 0, 0, s, -vb[0] * s, -vb[1] * s];
-  }
-  const stack = [{ m: rootM, filtered: false }];
-  let blend2 = false, shrunk = 0;
-  for (const tag3 of tree.matchAll(/<(\/?)([\w:-]+)([^>]*?)(\/?)>/g)) {
-    const [, close, name, attrs = "", selfClose] = tag3;
-    if (name === "svg") continue;
-    if (close) {
-      if (stack.length > 1) stack.pop();
-      continue;
-    }
-    const top = stack[stack.length - 1];
-    const m2 = multiply(top.m, matrixOf(attrs));
-    const filtered = top.filtered || /\sfilter="/.test(attrs);
-    const mode3 = /mix-blend-mode:\s*([\w-]+)/.exec(attrs)?.[1];
-    if (mode3 && mode3 !== "normal" && filtered) blend2 = true;
-    if (name === "image") {
-      const href = /\s(?:xlink:)?href="([^"]*)"/.exec(attrs)?.[1]?.replace(/\s+/g, "") ?? "";
-      const data = /^data:(image\/(?:png|jpeg|jpg|gif));base64,(.*)$/i.exec(href);
-      if (data) {
-        const size = imageDimensions(new Uint8Array(Buffer.from(data[2], "base64")), data[1].toLowerCase());
-        const bw = Number(attrOf3(attrs, "width")), bh = Number(attrOf3(attrs, "height"));
-        if (size && size.w > 0 && size.h > 0 && bw > 0 && bh > 0) {
-          const par = attrOf3(attrs, "preserveAspectRatio") ?? "xMidYMid meet";
-          const fx = bw / size.w, fy = bh / size.h;
-          const k = par.startsWith("none") ? null : par.includes("slice") ? Math.max(fx, fy) : Math.min(fx, fy);
-          const scaleX = Math.hypot(m2[0], m2[1]) * (k ?? fx), scaleY = Math.hypot(m2[2], m2[3]) * (k ?? fy);
-          const shrink = 1 / Math.max(1e-9, Math.min(scaleX, scaleY));
-          if (shrink > shrunk) shrunk = shrink;
-        }
-      }
-    }
-    if (!selfClose) stack.push({ m: m2, filtered });
-  }
-  if (gradientFades(tree)) out.push({ code: "gradient-opacity", reason: "the drawing with a gradient that fades through transparency, which resvg blends a few levels away from the browser" });
-  if (blend2) out.push({ code: "blend-in-filter", reason: "a blend mode inside a filtered group, which resvg composites unlike the browser (a dark band along an edge)" });
-  if (shrunk > MAX_PICTURE_SHRINK) out.push({ code: "picture-downscale", reason: `a picture drawn at 1/${shrunk.toFixed(2)} of its own size (the limit here is 1/${MAX_PICTURE_SHRINK}), which resvg shrinks with visible grain` });
-  return out;
-}
-function readLayout(root2, svg, width, height, styles, renderSize) {
-  const doc = svg.ownerDocument;
-  const win = doc?.defaultView;
-  const styleOf = win?.getComputedStyle ? (el) => win.getComputedStyle(el) : void 0;
-  return withStyleSheet(doc, styles, () => layoutAdmission(root2, svg, width, height, styleOf, renderSize));
-}
-var MAX_PICTURE_SHRINK, ResvgRefusedError, near, HREF, ANIMATED_PICTURE, hasLiveText, hasAnimation, IDENTITY7, multiply, attrOf3;
-var init_resvg_admission = __esm({
-  "packages/node-shell/src/resvg-admission.ts"() {
-    "use strict";
-    init_src2();
-    init_pdf_images();
-    init_browser_free_record();
-    init_content_roots();
-    MAX_PICTURE_SHRINK = 2;
-    ResvgRefusedError = class extends Error {
-      code = "RESVG_REFUSED";
-      refusals;
-      constructor(refusals, format = "png") {
-        super(`${resvgRefusalSentence(refusals)} This ${format.toUpperCase()} needs the browser render tier.`);
-        this.name = "ResvgRefusedError";
-        this.refusals = refusals;
-      }
-    };
-    near = (a, b) => Math.abs(a - b) <= 0.5;
-    HREF = /(\s(?:xlink:)?href\s*=\s*)("([^"]*)"|'([^']*)')/gi;
-    ANIMATED_PICTURE = { code: "css-animation", reason: "an animated picture (APNG or GIF), which the browser draws at a moment of its animation and resvg draws at its first frame" };
-    hasLiveText = (markup) => {
-      for (const m2 of markup.matchAll(/<(?:[\w-]+:)?text\b[^>]*>([\s\S]*?)<\/(?:[\w-]+:)?text>/gi)) {
-        if (m2[1].replace(/<[^>]*>/g, "").trim()) return true;
-      }
-      return false;
-    };
-    hasAnimation = (markup) => /@keyframes\b/i.test(markup) || /(^|[\s;{"'])animation(-name)?\s*:\s*(?!none\b)/i.test(markup) || /<(?:[\w-]+:)?(animate|animateTransform|animateMotion|set)\b/i.test(markup);
-    IDENTITY7 = [1, 0, 0, 1, 0, 0];
-    multiply = (m2, n7) => [
-      m2[0] * n7[0] + m2[2] * n7[1],
-      m2[1] * n7[0] + m2[3] * n7[1],
-      m2[0] * n7[2] + m2[2] * n7[3],
-      m2[1] * n7[2] + m2[3] * n7[3],
-      m2[0] * n7[4] + m2[2] * n7[5] + m2[4],
-      m2[1] * n7[4] + m2[3] * n7[5] + m2[5]
-    ];
-    attrOf3 = (attrs, name) => new RegExp(`\\s${name}="([^"]*)"`).exec(attrs)?.[1];
-  }
-});
-
 // packages/node-shell/src/raster.ts
 var raster_exports = {};
 __export(raster_exports, {
@@ -171695,7 +170879,6 @@ __export(raster_exports, {
   deepSourceRefusal: () => deepSourceRefusal,
   drawnRootSvg: () => drawnRootSvg,
   eligibleForResvgPng: () => eligibleForResvgPng,
-  finishTierAPng: () => finishTierAPng,
   hdrTune: () => hdrTune,
   isDeepFormat: () => isDeepFormat,
   matchedExportFormat: () => matchedExportFormat,
@@ -171747,14 +170930,14 @@ function pxDims(dims, manifest) {
   };
   return { width: toPx(dims.width, render2.width ?? 1280), height: toPx(dims.height, render2.height ?? 720), dpi };
 }
-async function rasterizeSvgToPng(svg, width, height, dpi, placement2) {
+async function rasterizeSvgToPng(svg, width, height, dpi) {
   if (dpi && dpi > 0) {
     const { packPng: packPng2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
-    const frame = await rasterizeSvgToRgba(svg, width, height, placement2);
+    const frame = await rasterizeSvgToRgba(svg, width, height);
     return packPng2(frame.data, { width: frame.width, height: frame.height, channels: 4, depth: 8, dpi });
   }
   const { Resvg } = await import("@resvg/resvg-js");
-  const r5 = new Resvg(placeSvg2(svg, width, height, placement2), {
+  const r5 = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: "original" },
     font: { fontDirs: catalogFontDirs(), loadSystemFonts: true }
   });
@@ -171788,28 +170971,32 @@ function svgExportSize(root2, dims) {
   const width = qual(dims.width), height = qual(dims.height);
   return width !== void 0 && height !== void 0 ? { width, height } : {};
 }
-async function rasterizeTierAPng(svg, dims, manifest, finish3 = {}) {
+async function rasterizeTierAPng(svg, dims, manifest) {
   const { width, height } = pxDims(dims, manifest);
-  const marked = dims.imprint ? await rasterizeSvgToImprintedPng(svg, width, height, void 0, finish3.placement) : null;
-  const bytes2 = marked ?? await rasterizeSvgToPng(svg, width, height, void 0, finish3.placement);
-  return { bytes: await finishTierAPng(bytes2, dims, finish3), imprinted: !!marked };
+  const idpi = dims.unit && dims.unit !== "px" ? dims.dpi : void 0;
+  const marked = dims.imprint ? await rasterizeSvgToImprintedPng(svg, width, height, idpi) : null;
+  if (marked) return { bytes: marked, imprinted: true };
+  return { bytes: await rasterizeSvgToPng(svg, width, height, idpi), imprinted: false };
 }
-async function finishTierAPng(png, dims, finish3 = {}) {
-  const { insertPngPhys: insertPngPhys2, insertPngMeta: insertPngMeta2, insertPngXmp: insertPngXmp2, insertPngIcc: insertPngIcc2, iccProfileBytes: iccProfileBytes2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
-  const physical = !!dims.unit && dims.unit !== "px";
-  const dpi = dims.dpi && dims.dpi > 0 ? dims.dpi : physical ? 300 : 96;
-  let bytes2 = insertPngPhys2(png, dpi) ?? png;
-  bytes2 = insertPngMeta2(bytes2, finish3.meta);
-  bytes2 = insertPngXmp2(bytes2, finish3.meta);
-  const icc = finish3.colorProfile === "none" ? null : iccProfileBytes2(finish3.colorProfile ?? "srgb");
-  if (icc) bytes2 = await insertPngIcc2(bytes2, icc, "sRGB");
-  return bytes2;
+function sizeSvg(svg, width, height) {
+  const w = Math.max(1, Math.round(width));
+  const h = Math.max(1, Math.round(height));
+  const m2 = svg.match(/<svg\b([^>]*)>/);
+  if (!m2) return svg;
+  let attrs = m2[1];
+  if (!/\bviewBox=/.test(attrs)) {
+    const ow = attrs.match(/\bwidth="([\d.]+)"/)?.[1];
+    const oh = attrs.match(/\bheight="([\d.]+)"/)?.[1];
+    if (ow && oh) attrs += ` viewBox="0 0 ${ow} ${oh}"`;
+  }
+  attrs = attrs.replace(/\s(width|height)="[^"]*"/g, "");
+  return svg.replace(/<svg\b[^>]*>/, `<svg${attrs} width="${w}" height="${h}">`);
 }
-async function rasterizeSvgToRgba(svg, width, height, placement2) {
+async function rasterizeSvgToRgba(svg, width, height, opts = {}) {
   const { Resvg } = await import("@resvg/resvg-js");
-  const r5 = new Resvg(placeSvg2(svg, width, height, placement2), {
+  const r5 = new Resvg(sizeSvg(svg, width, height), {
     fitTo: { mode: "original" },
-    font: { fontDirs: catalogFontDirs(), loadSystemFonts: true }
+    font: opts.fonts === false ? { loadSystemFonts: false } : { fontDirs: catalogFontDirs(), loadSystemFonts: true }
   });
   const img = r5.render();
   const src = img.pixels;
@@ -171837,9 +171024,9 @@ async function rasterizeSvgToRgba(svg, width, height, placement2) {
   }
   return { data: out, width: img.width, height: img.height };
 }
-async function rasterizeSvgToImprintedPng(svg, width, height, dpi, placement2) {
+async function rasterizeSvgToImprintedPng(svg, width, height, dpi) {
   const { embedWatermark: embedWatermark2, canCarryWatermark: canCarryWatermark2, LOSSLESS_STRENGTH: LOSSLESS_STRENGTH2, packPng: packPng2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
-  const frame = await rasterizeSvgToRgba(svg, width, height, placement2);
+  const frame = await rasterizeSvgToRgba(svg, width, height);
   if (!canCarryWatermark2(frame.width, frame.height)) return null;
   const marked = embedWatermark2(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH2 });
   return packPng2(marked, {
@@ -171852,7 +171039,7 @@ async function rasterizeSvgToImprintedPng(svg, width, height, dpi, placement2) {
 }
 async function rasterizeSvgToBmp(svg, width, height, opts = {}) {
   const { embedWatermark: embedWatermark2, canCarryWatermark: canCarryWatermark2, LOSSLESS_STRENGTH: LOSSLESS_STRENGTH2, encodeBmp: encodeBmp2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
-  const frame = await rasterizeSvgToRgba(svg, width, height, opts.placement);
+  const frame = await rasterizeSvgToRgba(svg, width, height);
   const rgba2 = opts.imprint !== false && canCarryWatermark2(frame.width, frame.height) ? embedWatermark2(frame.data, { width: frame.width, height: frame.height, strength: LOSSLESS_STRENGTH2 }) : frame.data;
   return encodeBmp2(rgba2, frame.width, frame.height);
 }
@@ -171887,7 +171074,7 @@ async function renderDeepRaster(req) {
   const fmt6 = req.format.toLowerCase();
   if (!isDeepFormat(fmt6)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
   if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt6));
-  const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height, req.placement);
+  const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height);
   const sdr = fromU8Srgb(raster.data, raster.width, raster.height);
   const frame = hdrViewTransform(sdr, {
     targets: req.hdr.targets ?? [],
@@ -171938,7 +171125,6 @@ var init_raster3 = __esm({
     init_exr();
     init_radiance();
     init_content_roots();
-    init_resvg_admission();
     NODE_FORMATS = ["svg", "svgz", "emf", "wmf", "eps", "eps-cmyk", "dxf", "penpot", "lottie", "idml", "premiere-xml", "jxl", "jxl-lossless", "bmp", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "md", "srt", "vtt", "ttml", "scc", "css", "scss", "gpl"];
     HOOK_OWNED_FORMATS = ["wav", "mp3", "m4a", "opus", "mid"];
     DEEP_FORMATS = ["exr", "hdr"];
@@ -171951,492 +171137,6 @@ var init_raster3 = __esm({
         this.name = "DeepSourceError";
       }
     };
-  }
-});
-
-// packages/node-shell/src/canvas.ts
-var canvas_exports = {};
-__export(canvas_exports, {
-  HOSTED_DECODE_BUDGET_PIXELS: () => HOSTED_DECODE_BUDGET_PIXELS,
-  HOSTED_DECODE_MAX_PIXELS: () => HOSTED_DECODE_MAX_PIXELS,
-  ImagePixelLimitError: () => ImagePixelLimitError,
-  createNodeRasterAPI: () => createNodeRasterAPI,
-  decodeRefusalWarnings: () => decodeRefusalWarnings,
-  decodeToCanvas: () => decodeToCanvas,
-  hostedDecodeLimits: () => hostedDecodeLimits,
-  installNodeCanvas: () => installNodeCanvas,
-  isCanvasAvailable: () => isCanvasAvailable,
-  nodeCanvas: () => nodeCanvas,
-  pictureName: () => pictureName,
-  pixelWorkCount: () => pixelWorkCount,
-  sniffImageMime: () => sniffImageMime
-});
-import { createHash as createHash5 } from "node:crypto";
-import { createRequire as createRequire2 } from "node:module";
-function registerCatalogFonts(mod) {
-  if (fontsRegistered) return;
-  fontsRegistered = true;
-  try {
-    mod.GlobalFonts?.loadFontsFromDir(catalogFile("fonts"));
-  } catch {
-  }
-}
-function isCanvasAvailable() {
-  try {
-    createRequire2(import.meta.url).resolve("@napi-rs/canvas");
-    return true;
-  } catch {
-    return false;
-  }
-}
-function loadCanvasModule() {
-  canvasModule ??= Promise.resolve().then(() => (init_mcp_fn_absent_runtime(), mcp_fn_absent_runtime_exports)).then((m2) => m2.default ?? m2);
-  return canvasModule;
-}
-async function bareCanvas() {
-  if (!isCanvasAvailable()) return null;
-  try {
-    return await loadCanvasModule();
-  } catch {
-    return null;
-  }
-}
-async function nodeCanvas() {
-  const mod = await bareCanvas();
-  if (mod) registerCatalogFonts(mod);
-  return mod;
-}
-function hostedDecodeLimits() {
-  return { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [], refused: [] };
-}
-function refuse3(limits, pic, record49, message) {
-  limits.refusals?.push(message);
-  if (limits.refused) {
-    const key2 = createHash5("sha256").update(pic.bytes).digest("hex");
-    const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record49.limit);
-    if (!seen) limits.refused.push({ ...record49, key: key2, ...pic.source ? { source: pic.source } : {} });
-    else if (!seen.source && pic.source) seen.source = pic.source;
-  }
-  throw new ImagePixelLimitError(message);
-}
-function admit2(limits, pic, w, h) {
-  if (!limits) return;
-  const area2 = w * h;
-  if (limits.maxPixels && area2 > limits.maxPixels) {
-    refuse3(limits, pic, { limit: "picture", width: w, height: h }, `A ${w} x ${h} picture was not decoded: this server decodes pictures of up to ${pixels(limits.maxPixels)} pixels.`);
-  }
-  const used = limits.used ?? 0;
-  if (limits.budgetPixels && used + area2 > limits.budgetPixels) {
-    refuse3(limits, pic, { limit: "budget", width: w, height: h }, `A ${w} x ${h} picture was not decoded: this render has used ${pixels(used)} of the ${pixels(limits.budgetPixels)} pixels it may decode.`);
-  }
-  limits.used = used + area2;
-}
-function whichPictures(group, label5) {
-  const named = group.map(label5).filter((x) => !!x);
-  if (!named.length) return "";
-  const shown = named.slice(0, 8);
-  const rest2 = group.length - shown.length;
-  const list4 = rest2 > 0 ? `${shown.join(", ")} and ${rest2} more` : shown.length > 1 ? `${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}` : shown[0];
-  return ` (${list4})`;
-}
-function decodeRefusalWarnings(limits) {
-  const refused2 = limits?.refused ?? [];
-  const out = [];
-  const size = (r5) => `${r5.width} x ${r5.height}`;
-  const count4 = (n7) => n7 === 1 ? "A picture was" : `${n7} pictures were`;
-  const over = refused2.filter((r5) => r5.limit === "picture");
-  if (over.length === 1) {
-    const r5 = over[0];
-    out.push(`A ${size(r5)} picture${r5.source ? ` (${r5.source})` : ""} was not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels.`);
-  } else if (over.length > 1) {
-    out.push(`${over.length} pictures were not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels, and these are larger${whichPictures(over, (r5) => r5.source ? `${r5.source} at ${size(r5)}` : size(r5))}.`);
-  }
-  const budget3 = refused2.filter((r5) => r5.limit === "budget");
-  if (budget3.length) {
-    out.push(`${count4(budget3.length)} not decoded: ${budget3.length === 1 ? "it" : "each"} would have taken this render past the ${pixels(limits?.budgetPixels ?? 0)} pixels it may decode${whichPictures(budget3, (r5) => r5.source)}.`);
-  }
-  const unknown2 = refused2.filter((r5) => r5.limit === "unknown-size");
-  if (unknown2.length) {
-    out.push(`${count4(unknown2.length)} not decoded: this server decodes only pictures whose size it can read first${whichPictures(unknown2, (r5) => r5.source)}.`);
-  }
-  return out;
-}
-function loadSharp2() {
-  sharpModule2 ??= import("sharp").then((m2) => m2.default ?? m2).catch(() => null);
-  return sharpModule2;
-}
-function sniffImageMime(bytes2) {
-  for (const [mime2, test] of MIME_BY_MAGIC) {
-    try {
-      if (test(bytes2)) return mime2;
-    } catch {
-    }
-  }
-  if (isSvgDocument(bytes2)) return "image/svg+xml";
-  return "application/octet-stream";
-}
-async function decodeToCanvas(bytes2, mime2, limits, source) {
-  const sniffed = sniffImageMime(bytes2);
-  const svg = sniffed === "image/svg+xml";
-  const kind = sniffed !== "application/octet-stream" ? sniffed : mime2 && mime2 !== "image/svg+xml" ? mime2 : sniffed;
-  const pic = { bytes: bytes2, source };
-  const mod = svg ? await nodeCanvas() : await bareCanvas();
-  if (!mod) return null;
-  const buf = Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
-  const sharp = svg ? null : await loadSharp2();
-  if (!svg && limited(limits)) {
-    const size = await headerSize(buf, kind, sharp);
-    if (!size) refuse3(limits, pic, { limit: "unknown-size" }, "A picture was not decoded: its size could not be read before decoding, and this server decodes only pictures whose size it knows.");
-    admit2(limits, pic, size.w, size.h);
-  }
-  if (sharp) {
-    try {
-      const { data, info } = await sharp(buf).rotate().ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-      const canvas = mod.createCanvas(info.width, info.height);
-      const cx2 = canvas.getContext("2d");
-      const px3 = new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength);
-      cx2.putImageData(new mod.ImageData(px3, info.width, info.height), 0, 0);
-      return canvas;
-    } catch {
-    }
-  }
-  try {
-    const img = await mod.loadImage(buf);
-    const w = Math.max(1, img.width), h = Math.max(1, img.height);
-    if (svg) admit2(limits, pic, w, h);
-    const canvas = mod.createCanvas(w, h);
-    canvas.getContext("2d").drawImage(img, 0, 0);
-    return canvas;
-  } catch (err) {
-    if (err instanceof ImagePixelLimitError) throw err;
-    return null;
-  }
-}
-async function headerSize(buf, kind, sharp) {
-  if (sharp) {
-    try {
-      const meta = await sharp(buf).metadata();
-      if (meta.width && meta.height) return { w: meta.width, h: meta.height };
-    } catch {
-    }
-  }
-  const dims = imageDimensions(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), kind);
-  return dims && dims.w > 0 && dims.h > 0 ? dims : null;
-}
-async function sourceBytes(src, opts = {}) {
-  if (src instanceof Uint8Array) return src;
-  if (typeof src === "string") {
-    if (opts.readUrl) return opts.readUrl(src);
-    if (src.startsWith("data:")) {
-      const comma = src.indexOf(",");
-      if (comma < 0) throw new Error("host.raster: malformed data: URL.");
-      const meta = src.slice(5, comma);
-      const body = src.slice(comma + 1);
-      return /;base64/i.test(meta) ? new Uint8Array(Buffer.from(body, "base64")) : new TextEncoder().encode(decodeURIComponent(body));
-    }
-    const res = await fetch(src);
-    if (!res.ok) throw new Error(`host.raster: could not read ${src} (HTTP ${res.status}).`);
-    return new Uint8Array(await res.arrayBuffer());
-  }
-  if (typeof src.arrayBuffer === "function") return new Uint8Array(await src.arrayBuffer());
-  const ref2 = src;
-  if (ref2 && typeof ref2.url === "string") return sourceBytes(ref2.url, opts);
-  throw new Error("host.raster: unreadable source.");
-}
-function shownUrl(url) {
-  const s = url.trim();
-  if (!WEB_URL.test(s)) return s;
-  try {
-    const u = new URL(s);
-    if (u.host) return `${u.protocol}//${u.host}${u.pathname}`;
-  } catch {
-  }
-  return s.replace(/[?#].*$/s, "").replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/]*@/i, "$1");
-}
-function pictureName(src) {
-  const fromUrl = (url) => {
-    if (/^\s*(data|blob):/i.test(url)) return void 0;
-    const last = shownUrl(url).replace(/[?#].*$/s, "").split("/").filter(Boolean).pop();
-    let name = last ?? "";
-    try {
-      name = decodeURIComponent(name);
-    } catch {
-    }
-    if (!name || /^[a-z][a-z0-9+.-]*:$/i.test(name)) return void 0;
-    return shortName(name);
-  };
-  if (typeof src === "string") return fromUrl(src);
-  if (!src || typeof src !== "object" || src instanceof Uint8Array) return void 0;
-  const ref2 = src;
-  for (const v of [ref2.meta?.name, ref2.name]) if (typeof v === "string" && v.trim()) return shortName(shownUrl(v));
-  if (typeof ref2.id === "string" && ref2.id.trim() && !/^\s*(data|blob):/i.test(ref2.id)) return shortName(shownUrl(ref2.id));
-  return typeof ref2.url === "string" ? fromUrl(ref2.url) : void 0;
-}
-async function encodeCanvas(canvas, format, quality) {
-  const fmt6 = format === "jpg" ? "jpeg" : format;
-  const mime2 = `image/${fmt6}`;
-  const q = typeof quality === "number" && Number.isFinite(quality) ? Math.max(1, Math.min(100, Math.round(quality <= 1 ? quality * 100 : quality))) : void 0;
-  const buf = q === void 0 ? canvas.toBuffer(mime2) : canvas.toBuffer(mime2, q);
-  return { bytes: new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), mime: mime2 };
-}
-function createNodeRasterAPI(opts = {}) {
-  if (!isCanvasAvailable()) return null;
-  const api = {
-    canRaster() {
-      return isCanvasAvailable();
-    },
-    async measure(src) {
-      const bytes2 = await sourceBytes(src, opts);
-      const mime2 = sniffImageMime(bytes2);
-      const sharp = mime2 === "image/svg+xml" ? null : await loadSharp2();
-      if (sharp) {
-        const meta = await sharp(Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength)).rotate().metadata();
-        if (meta.width && meta.height) {
-          return {
-            width: meta.width,
-            height: meta.height,
-            mime: mime2,
-            ...meta.pages !== void 0 ? { animated: meta.pages > 1 } : {}
-          };
-        }
-      }
-      const canvas = await decodeToCanvas(bytes2, mime2, opts.limits, pictureName(src));
-      if (!canvas) throw new Error("host.raster: these bytes are not a decodable image here.");
-      return { width: canvas.width, height: canvas.height, mime: mime2 };
-    },
-    async decode(src) {
-      countPixelWork(api);
-      const bytes2 = await sourceBytes(src, opts);
-      const canvas = await decodeToCanvas(bytes2, void 0, opts.limits, pictureName(src));
-      if (!canvas) throw new Error("host.raster: these bytes are not a decodable image here.");
-      return canvas;
-    },
-    async encode(source, opts2) {
-      if (!opts2?.format) throw new Error("host.raster.encode: `format` is required (webp | jpeg | png).");
-      countPixelWork(api);
-      const mod = await nodeCanvas();
-      if (!mod) throw new Error("host.raster: no canvas in this install.");
-      let canvas;
-      const frame = source;
-      if (typeof source?.getContext === "function") {
-        canvas = source;
-      } else if (ArrayBuffer.isView(frame?.data) && typeof frame.width === "number") {
-        canvas = mod.createCanvas(frame.width, frame.height);
-        canvas.getContext("2d").putImageData(new mod.ImageData(frame.data, frame.width, frame.height), 0, 0);
-      } else {
-        const bmp = source;
-        canvas = mod.createCanvas(Math.max(1, bmp.width), Math.max(1, bmp.height));
-        canvas.getContext("2d").drawImage(bmp, 0, 0);
-      }
-      const { bytes: bytes2, mime: mime2 } = await encodeCanvas(canvas, opts2.format, opts2.quality);
-      return { bytes: bytes2, mime: mime2, width: canvas.width, height: canvas.height };
-    }
-  };
-  return api;
-}
-function countPixelWork(owner3) {
-  if (!owner3) return;
-  const box4 = owner3;
-  box4[PIXEL_WORK] = (box4[PIXEL_WORK] ?? 0) + 1;
-}
-function pixelWorkCount(...owners) {
-  return owners.reduce((sum, owner3) => sum + (owner3?.[PIXEL_WORK] ?? 0), 0);
-}
-function registerFontsOnText(mod, cx2) {
-  const ctx = cx2;
-  for (const name of ["fillText", "strokeText", "measureText"]) {
-    const fn = ctx[name];
-    if (typeof fn !== "function") continue;
-    ctx[name] = (...args) => {
-      registerCatalogFonts(mod);
-      return fn.apply(cx2, args);
-    };
-  }
-  let font;
-  for (let owner3 = cx2; owner3 && !font; owner3 = Object.getPrototypeOf(owner3)) {
-    font = Object.getOwnPropertyDescriptor(owner3, "font");
-  }
-  if (font?.get && font.set) {
-    const { get: get4, set } = font;
-    Object.defineProperty(cx2, "font", {
-      configurable: true,
-      enumerable: true,
-      get() {
-        return get4.call(cx2);
-      },
-      set(v) {
-        registerCatalogFonts(mod);
-        set.call(cx2, v);
-      }
-    });
-  }
-}
-function drawable(img) {
-  const backed = img?.[BACKING];
-  return backed ?? img;
-}
-async function blobBytes(v) {
-  if (v instanceof Uint8Array) return v;
-  if (typeof v === "string") {
-    const blob = blobUrls.get(v);
-    if (blob) return new Uint8Array(await blob.arrayBuffer());
-    if (v.startsWith("data:")) return sourceBytes(v);
-    return null;
-  }
-  if (v && typeof v.arrayBuffer === "function") return new Uint8Array(await v.arrayBuffer());
-  return null;
-}
-async function installNodeCanvas(win, target2 = globalThis, opts = {}) {
-  const mod = await bareCanvas();
-  if (!mod) return false;
-  target2[LIMITS3] = opts.limits;
-  const limitsNow = () => target2[LIMITS3];
-  const proto = win?.HTMLCanvasElement?.prototype;
-  if (proto && !proto["_lollyNodeCanvas"]) {
-    proto["_lollyNodeCanvas"] = true;
-    const back = (el) => {
-      let c = el[BACKING];
-      const w = Math.max(1, Math.round(Number(el.width) || 300));
-      const h = Math.max(1, Math.round(Number(el.height) || 150));
-      if (!c || c.width !== w || c.height !== h) {
-        const cap = limitsNow()?.maxPixels;
-        if (cap && w * h > cap) throw new ImagePixelLimitError(`A ${w} x ${h} canvas was not made: this server makes canvases of up to ${pixels(cap)} pixels.`);
-        c = mod.createCanvas(w, h);
-        const cx2 = c.getContext("2d");
-        const orig = cx2.drawImage.bind(cx2);
-        cx2.drawImage = (img, ...rest2) => {
-          orig(drawable(img), ...rest2);
-        };
-        const read = cx2.getImageData.bind(cx2);
-        const owner3 = el.ownerDocument;
-        cx2.getImageData = (x, y, w0, h0) => {
-          countPixelWork(owner3);
-          return read(x, y, w0, h0);
-        };
-        registerFontsOnText(mod, cx2);
-        el[BACKING] = c;
-      }
-      return c;
-    };
-    proto["getContext"] = function getContext(kind) {
-      if (kind !== "2d") return null;
-      try {
-        return back(this).getContext("2d");
-      } catch (err) {
-        if (err instanceof ImagePixelLimitError) return null;
-        throw err;
-      }
-    };
-    proto["toDataURL"] = function toDataURL(mime2 = "image/png", quality) {
-      countPixelWork(this.ownerDocument);
-      const q = typeof quality === "number" ? Math.max(1, Math.min(100, Math.round(quality * 100))) : void 0;
-      let out;
-      try {
-        out = q === void 0 ? back(this).toBuffer(mime2) : back(this).toBuffer(mime2, q);
-      } catch (err) {
-        if (err instanceof ImagePixelLimitError) return "data:,";
-        throw err;
-      }
-      return `data:${mime2};base64,${out.toString("base64")}`;
-    };
-    proto["toBlob"] = function toBlob(cb, mime2 = "image/png", quality) {
-      countPixelWork(this.ownerDocument);
-      try {
-        const q = typeof quality === "number" ? Math.max(1, Math.min(100, Math.round(quality * 100))) : void 0;
-        const buf = q === void 0 ? back(this).toBuffer(mime2) : back(this).toBuffer(mime2, q);
-        cb(new Blob([new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)], { type: mime2 }));
-      } catch {
-        cb(null);
-      }
-    };
-  }
-  const URLCtor = target2["URL"];
-  if (URLCtor && typeof URLCtor.createObjectURL !== "function") {
-    let n7 = 0;
-    URLCtor.createObjectURL = (blob) => {
-      const url = `blob:lolly-node/${Date.now().toString(36)}-${n7++}`;
-      blobUrls.set(url, blob);
-      return url;
-    };
-    URLCtor.revokeObjectURL = (url) => {
-      blobUrls.delete(url);
-    };
-  }
-  if (typeof target2["Image"] !== "function") {
-    class NodeImage {
-      width = 0;
-      height = 0;
-      naturalWidth = 0;
-      naturalHeight = 0;
-      complete = false;
-      onload = null;
-      onerror = null;
-      [BACKING];
-      #src = "";
-      get src() {
-        return this.#src;
-      }
-      set src(v) {
-        this.#src = String(v);
-        void (async () => {
-          try {
-            const bytes2 = await blobBytes(v);
-            const canvas = bytes2 ? await decodeToCanvas(bytes2, void 0, limitsNow()) : null;
-            if (!canvas) throw new Error("undecodable");
-            this[BACKING] = canvas;
-            this.width = this.naturalWidth = canvas.width;
-            this.height = this.naturalHeight = canvas.height;
-            this.complete = true;
-            this.onload?.();
-          } catch (err) {
-            this.onerror?.(err);
-          }
-        })();
-      }
-    }
-    target2["Image"] = NodeImage;
-  }
-  if (typeof target2["createImageBitmap"] !== "function") {
-    target2["createImageBitmap"] = async (src) => {
-      const bytes2 = await blobBytes(src);
-      const canvas = bytes2 ? await decodeToCanvas(bytes2, void 0, limitsNow()) : null;
-      if (!canvas) throw new Error("createImageBitmap: these bytes are not a decodable image here.");
-      return canvas;
-    };
-  }
-  if (typeof target2["ImageData"] !== "function") target2["ImageData"] = mod.ImageData;
-  return true;
-}
-var fontsRegistered, canvasModule, ImagePixelLimitError, HOSTED_DECODE_MAX_PIXELS, HOSTED_DECODE_BUDGET_PIXELS, pixels, limited, sharpModule2, MIME_BY_MAGIC, WEB_URL, shortName, PIXEL_WORK, BACKING, blobUrls, LIMITS3;
-var init_canvas = __esm({
-  "packages/node-shell/src/canvas.ts"() {
-    "use strict";
-    init_src2();
-    init_content_roots();
-    init_format_sniff2();
-    fontsRegistered = false;
-    canvasModule = null;
-    ImagePixelLimitError = class extends Error {
-      name = "ImagePixelLimitError";
-    };
-    HOSTED_DECODE_MAX_PIXELS = 4096 * 4096;
-    HOSTED_DECODE_BUDGET_PIXELS = 4 * HOSTED_DECODE_MAX_PIXELS;
-    pixels = (n7) => n7.toLocaleString("en");
-    limited = (limits) => !!(limits && (limits.maxPixels || limits.budgetPixels));
-    sharpModule2 = null;
-    MIME_BY_MAGIC = [
-      ["image/png", (b) => b[0] === 137 && b[1] === 80 && b[2] === 78 && b[3] === 71],
-      ["image/jpeg", (b) => b[0] === 255 && b[1] === 216 && b[2] === 255],
-      ["image/gif", (b) => b[0] === 71 && b[1] === 73 && b[2] === 70],
-      ["image/webp", (b) => b[0] === 82 && b[1] === 73 && b[8] === 87 && b[9] === 69],
-      ["image/avif", (b) => b[4] === 102 && b[5] === 116 && b[6] === 121 && b[7] === 112]
-    ];
-    WEB_URL = /^[a-z][a-z0-9+.-]*:\/\//i;
-    shortName = (name) => name.length > 80 ? `${name.slice(0, 77)}...` : name;
-    PIXEL_WORK = /* @__PURE__ */ Symbol.for("lolly.nodeCanvas.pixelWork");
-    BACKING = /* @__PURE__ */ Symbol.for("lolly.nodeCanvas.backing");
-    blobUrls = /* @__PURE__ */ new Map();
-    LIMITS3 = /* @__PURE__ */ Symbol.for("lolly.nodeCanvas.limits");
   }
 });
 
@@ -172466,7 +171166,7 @@ var init_canvas_launch = __esm({
 });
 
 // packages/node-shell/src/production-browser.ts
-import { createHash as createHash7 } from "node:crypto";
+import { createHash as createHash5 } from "node:crypto";
 async function observeProductionInputs(page3, toolId, ids2) {
   const requested = [...new Set(ids2)];
   const observations = [];
@@ -172491,7 +171191,7 @@ async function observeProductionInputs(page3, toolId, ids2) {
   }
   return (bytes2) => {
     if (overflow) return void 0;
-    const digest2 = createHash7("sha256").update(bytes2).digest("hex");
+    const digest2 = createHash5("sha256").update(bytes2).digest("hex");
     const matches3 = observations.filter((value2) => value2.artifactSha256 === digest2);
     if (!matches3.length || matches3.some((value2) => JSON.stringify(value2.inputs) !== JSON.stringify(matches3[0].inputs))) return void 0;
     return matches3[0].inputs;
@@ -172598,7 +171298,7 @@ var init_export_wait = __esm({
 });
 
 // packages/node-shell/src/export-lock.ts
-import { createHash as createHash8 } from "node:crypto";
+import { createHash as createHash6 } from "node:crypto";
 function standardPdfPasswordIsTypable(password) {
   return /^[\x20-\x7e]+$/.test(password);
 }
@@ -172619,7 +171319,7 @@ function exportPasswordRefusal(format, o = {}) {
   return null;
 }
 function md5(...parts) {
-  const hash = createHash8("md5");
+  const hash = createHash6("md5");
   for (const part of parts) hash.update(part);
   return new Uint8Array(hash.digest());
 }
@@ -173570,7 +172270,7 @@ __export(content_inventory_exports, {
   mediaFileName: () => mediaFileName,
   readContentInventory: () => readContentInventory
 });
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash7 } from "node:crypto";
 import { readFile as readFile6, stat as stat2 } from "node:fs/promises";
 import { join as join9 } from "node:path";
 async function inventoryXmlParser() {
@@ -173589,7 +172289,7 @@ function mediaFileName(sha2563, mime2) {
   return `${sha2563}.${MIME_EXT2[mime2.toLowerCase()] ?? "bin"}`;
 }
 function sha256Hex4(bytes2) {
-  return createHash9("sha256").update(bytes2).digest("hex");
+  return createHash7("sha256").update(bytes2).digest("hex");
 }
 function sameBytes3(a, b) {
   if (a.length !== b.length) return false;
@@ -173857,7 +172557,7 @@ __export(design_lolly_exports, {
   packageTime: () => packageTime,
   stampZipTimes: () => stampZipTimes
 });
-import { createHash as createHash10 } from "node:crypto";
+import { createHash as createHash8 } from "node:crypto";
 import { readdir as readdir2, readFile as readFile7 } from "node:fs/promises";
 import { join as join10 } from "node:path";
 function mediaHashPrefixOfKey(key2) {
@@ -173886,8 +172586,8 @@ function closestRef(key2, refs) {
 function unusedKeyNote(unused, refs) {
   if (!unused.length) return "";
   const named = unused.map((key2) => {
-    const near2 = closestRef(key2, refs);
-    return near2 ? `${key2} (did you mean ${near2}?)` : key2;
+    const near = closestRef(key2, refs);
+    return near ? `${key2} (did you mean ${near}?)` : key2;
   });
   return ` No layer names ${listOf(named)}, so ${unused.length === 1 ? "that file was" : "those files were"} not used.`;
 }
@@ -174112,7 +172812,7 @@ async function packageDesign(input, opts = {}) {
     }
   });
   if (pathProblems.length)
-    throw new DesignPackageError("path.invalid", `${plural6(pathProblems.length, "path layer")} will not decode: ${listOf(pathProblems)}.`, { layers: pathProblems });
+    throw new DesignPackageError("path.invalid", `${plural5(pathProblems.length, "path layer")} will not decode: ${listOf(pathProblems)}.`, { layers: pathProblems });
   const media = /* @__PURE__ */ new Map();
   for (const [ref2] of keyLayers) {
     const held = [...keys2.values()].find((h) => mediaRefFor(h.sha256) === ref2);
@@ -174208,22 +172908,22 @@ async function packageDesign(input, opts = {}) {
       const hint = [unresolved.size ? hints.asset : "", missingUploads.size || hashed ? hints.upload : ""].filter(Boolean).join("; ");
       throw new DesignPackageError(
         "media.missing",
-        `${plural6(missing.length, "picture")} ${missing.length === 1 ? "has" : "have"} no bytes: ${listOf(missing.map((m2) => `${m2.ref} (${listOf(m2.layers, 3)})`))}.${unusedNote(missing.map((m2) => m2.ref))} ${hint[0].toUpperCase()}${hint.slice(1)}, or ${hints.allowMissing} to write them as references.`,
+        `${plural5(missing.length, "picture")} ${missing.length === 1 ? "has" : "have"} no bytes: ${listOf(missing.map((m2) => `${m2.ref} (${listOf(m2.layers, 3)})`))}.${unusedNote(missing.map((m2) => m2.ref))} ${hint[0].toUpperCase()}${hint.slice(1)}, or ${hints.allowMissing} to write them as references.`,
         { missing, ...unusedAssets.length ? { unusedAssets } : {} }
       );
     }
     if (unknownList.length)
       throw new DesignPackageError(
         "reference.unknown",
-        `${plural6(unknownList.length, "catalog id")} ${unknownList.length === 1 ? "is" : "are"} not in the ${catalog?.profile ?? "active"} profile: ${listOf(unknownList.map((m2) => `${m2.ref} (${listOf(m2.layers, 3)})`))}.${unusedNote(unknownList.map((m2) => m2.ref))}`,
+        `${plural5(unknownList.length, "catalog id")} ${unknownList.length === 1 ? "is" : "are"} not in the ${catalog?.profile ?? "active"} profile: ${listOf(unknownList.map((m2) => `${m2.ref} (${listOf(m2.layers, 3)})`))}.${unusedNote(unknownList.map((m2) => m2.ref))}`,
         { unknown: unknownList, ...unusedAssets.length ? { unusedAssets } : {} }
       );
   } else {
     for (const m2 of missing) warnings2.push({ code: "media.missing", message: `${m2.ref} is written as a reference with no bytes (${listOf(m2.layers, 3)}).` });
     for (const m2 of unknownList) warnings2.push({ code: "reference.unknown", message: `${m2.ref} is not in the ${catalog?.profile ?? "active"} profile (${listOf(m2.layers, 3)}).` });
   }
-  if (unchecked) warnings2.push({ code: "reference.unchecked", message: `No content profile resolved, so ${plural6(unchecked, "catalog reference")} could not be checked.` });
-  if (external) warnings2.push({ code: "reference.external", message: `${plural6(external, "layer")} draw${external === 1 ? "s" : ""} a picture from a URL, left as written.` });
+  if (unchecked) warnings2.push({ code: "reference.unchecked", message: `No content profile resolved, so ${plural5(unchecked, "catalog reference")} could not be checked.` });
+  if (external) warnings2.push({ code: "reference.external", message: `${plural5(external, "layer")} draw${external === 1 ? "s" : ""} a picture from a URL, left as written.` });
   for (const key2 of unusedAssets) warnings2.push({ code: "asset.unused", message: `No layer names ${key2}; its file was not carried.` });
   const values = { ...expanded.values, boxes: rows2 };
   const first = rows2.find((r5) => r5.kind === "frame");
@@ -174324,7 +173024,7 @@ function verifyReadback(bytes2, want) {
   }
   return { ok: true, layers: want.rows, media: carried, label: want.label, filename: want.filename };
 }
-var record40, sha256Hex5, plural6, MEDIA_REF_RE, HASH_KEY_RE, listOf, DesignPackageError, DESIGN_PACKAGE_HINTS, IMAGE_MIME, layerIdOf;
+var record40, sha256Hex5, plural5, MEDIA_REF_RE, HASH_KEY_RE, listOf, DesignPackageError, DESIGN_PACKAGE_HINTS, IMAGE_MIME, layerIdOf;
 var init_design_lolly = __esm({
   "packages/node-shell/src/design-lolly.ts"() {
     "use strict";
@@ -174337,8 +173037,8 @@ var init_design_lolly = __esm({
     init_lolly_file();
     init_pipeline();
     record40 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
-    sha256Hex5 = (bytes2) => createHash10("sha256").update(bytes2).digest("hex");
-    plural6 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
+    sha256Hex5 = (bytes2) => createHash8("sha256").update(bytes2).digest("hex");
+    plural5 = (n7, one, many = `${one}s`) => `${n7} ${n7 === 1 ? one : many}`;
     MEDIA_REF_RE = /^user\/media\/([0-9a-f]{64})$/;
     HASH_KEY_RE = /^[a-z][a-z0-9+.-]*:([0-9a-f]{8,64})$/i;
     listOf = (items2, max = 6) => items2.slice(0, max).join(", ") + (items2.length > max ? ` and ${items2.length - max} more` : "");
@@ -174761,6 +173461,239 @@ var init_jxl2 = __esm({
     init_jxl();
     queue = Promise.resolve();
     pending2 = 0;
+  }
+});
+
+// packages/node-shell/src/pdf-images.ts
+function isPng2(bytes2) {
+  return bytes2.length > 8 && bytes2[0] === 137 && bytes2[1] === 80 && bytes2[2] === 78 && bytes2[3] === 71;
+}
+function isJpeg(bytes2) {
+  return bytes2.length > 3 && bytes2[0] === 255 && bytes2[1] === 216 && bytes2[2] === 255;
+}
+function refusal2(message) {
+  const err = new Error(`pdf: ${message}`);
+  err.name = "PdfTransformError";
+  return err;
+}
+function startsWith2(bytes2, text13) {
+  if (bytes2.length < text13.length) return false;
+  for (let i = 0; i < text13.length; i++) if (bytes2[i] !== text13.charCodeAt(i)) return false;
+  return true;
+}
+function ppi(value2) {
+  return Number.isFinite(value2) && value2 >= 10 && value2 <= 1e4 ? value2 : 0;
+}
+function readExifFacts(payload) {
+  const facts2 = { orientation: 1, ppiX: 0, ppiY: 0 };
+  const t = payload.subarray(6);
+  const little = t[0] === 73 && t[1] === 73;
+  if (t.length < 8 || !little && !(t[0] === 77 && t[1] === 77)) return facts2;
+  const u167 = (o) => o < 0 || o + 2 > t.length ? -1 : little ? t[o] | t[o + 1] << 8 : t[o] << 8 | t[o + 1];
+  const u327 = (o) => o < 0 || o + 4 > t.length ? -1 : little ? (t[o] | t[o + 1] << 8 | t[o + 2] << 16) + t[o + 3] * 16777216 : t[o] * 16777216 + (t[o + 1] << 16 | t[o + 2] << 8 | t[o + 3]);
+  if (u167(2) !== 42) return facts2;
+  const ifd = u327(4);
+  const entries = Math.min(512, Math.max(0, u167(ifd)));
+  let x = 0, y = 0, unit2 = 2;
+  const rational = (at) => {
+    const offset = u327(at), num23 = u327(offset), den = u327(offset + 4);
+    return num23 > 0 && den > 0 ? num23 / den : 0;
+  };
+  for (let k = 0; k < entries; k++) {
+    const e = ifd + 2 + k * 12;
+    if (e + 12 > t.length) break;
+    const tag3 = u167(e), type = u167(e + 2);
+    if (tag3 === 274 && type === 3) facts2.orientation = u167(e + 8);
+    else if (tag3 === 282 && type === 5) x = rational(e + 8);
+    else if (tag3 === 283 && type === 5) y = rational(e + 8);
+    else if (tag3 === 296 && type === 3) unit2 = u167(e + 8);
+  }
+  if (!(facts2.orientation >= 1 && facts2.orientation <= 8)) facts2.orientation = 1;
+  const scale = unit2 === 2 ? 1 : unit2 === 3 ? 2.54 : 0;
+  facts2.ppiX = ppi(x * scale);
+  facts2.ppiY = ppi(y * scale);
+  return facts2;
+}
+function cleanJpeg(src) {
+  const scan2 = scanJpegSegments(src);
+  const segments = scan2?.segments ?? [];
+  if (!scan2 || scan2.sos === null || scan2.truncated && segments.at(-1)?.marker !== 218) {
+    throw refusal2("this JPEG is damaged and cannot be placed on a page");
+  }
+  const keep2 = [src.subarray(0, 2)];
+  let width = 0, height = 0, orientation = 1, droppedMetadata = false;
+  let jfifX = 0, jfifY = 0, exifX = 0, exifY = 0;
+  segments.forEach((seg5, n7) => {
+    const { marker } = seg5;
+    const payload = jpegSegmentBody(src, seg5);
+    let kept2 = true;
+    if (marker === 216) {
+      kept2 = false;
+    } else if (marker === 224) {
+      if (startsWith2(payload, "JFIF\0") && payload.length >= 12) {
+        const unit2 = payload[7], scale = unit2 === 1 ? 1 : unit2 === 2 ? 2.54 : 0;
+        jfifX = ppi((payload[8] << 8 | payload[9]) * scale);
+        jfifY = ppi((payload[10] << 8 | payload[11]) * scale);
+      }
+    } else if (marker === 225) {
+      if (startsWith2(payload, "Exif\0")) ({ orientation, ppiX: exifX, ppiY: exifY } = readExifFacts(payload));
+      kept2 = false;
+    } else if (marker === 226) {
+      kept2 = startsWith2(payload, "ICC_PROFILE\0");
+    } else if (marker === 238) {
+      kept2 = startsWith2(payload, "Adobe");
+    } else if (marker >= 227 && marker <= 239 || marker === 254) {
+      kept2 = false;
+    } else if (marker >= 192 && marker <= 207 && marker !== 196 && marker !== 200 && marker !== 204 && payload.length >= 5) {
+      height = payload[1] << 8 | payload[2];
+      width = payload[3] << 8 | payload[4];
+    }
+    if (kept2) keep2.push(src.subarray(seg5.start, seg5.end));
+    else if (marker !== 216) droppedMetadata = true;
+    if (marker === 218) keep2.push(src.subarray(seg5.end, segments[n7 + 1]?.start ?? src.length));
+  });
+  if (!width || !height) throw refusal2("this JPEG has no readable image size");
+  if (scan2.eoi === null) keep2.push(new Uint8Array([255, 217]));
+  const total = keep2.reduce((sum, part) => sum + part.length, 0);
+  const bytes2 = new Uint8Array(total);
+  let at = 0;
+  for (const part of keep2) {
+    bytes2.set(part, at);
+    at += part.length;
+  }
+  let droppedTrailing = false;
+  for (let j = scan2.trailerStart ?? src.length; j + 2 < src.length; j++) {
+    if (src[j] === 255 && src[j + 1] === 216 && src[j + 2] === 255) {
+      droppedTrailing = true;
+      break;
+    }
+  }
+  return {
+    bytes: bytes2,
+    width,
+    height,
+    orientation,
+    ppiX: jfifX || exifX,
+    ppiY: jfifY || exifY,
+    droppedMetadata,
+    droppedTrailing
+  };
+}
+function readPngFacts(bytes2) {
+  const u327 = (o) => bytes2[o] * 16777216 + (bytes2[o + 1] << 16 | bytes2[o + 2] << 8 | bytes2[o + 3]);
+  if (!isPng2(bytes2) || bytes2.length < 33 || !startsWith2(bytes2.subarray(12), "IHDR")) throw refusal2("this PNG is damaged and cannot be placed on a page");
+  const facts2 = { width: u327(16), height: u327(20), ppiX: 0, ppiY: 0, animated: false };
+  let at = 33;
+  for (let n7 = 0; n7 < 4096 && at + 12 <= bytes2.length; n7++) {
+    const length2 = u327(at), type = bytes2.subarray(at + 4, at + 8);
+    if (startsWith2(type, "IDAT") || startsWith2(type, "IEND")) break;
+    if (startsWith2(type, "acTL")) facts2.animated = true;
+    if (startsWith2(type, "pHYs") && length2 === 9 && at + 17 <= bytes2.length && bytes2[at + 16] === 1) {
+      facts2.ppiX = ppi(u327(at + 8) * 0.0254);
+      facts2.ppiY = ppi(u327(at + 12) * 0.0254);
+    }
+    at += 12 + length2;
+  }
+  if (!facts2.width || !facts2.height) throw refusal2("this PNG has no readable image size");
+  return facts2;
+}
+function orientationMatrix(o, x, y, w, h) {
+  switch (o) {
+    case 2:
+      return [-w, 0, 0, h, x + w, y];
+    case 3:
+      return [-w, 0, 0, -h, x + w, y + h];
+    case 4:
+      return [w, 0, 0, -h, x, y + h];
+    case 5:
+      return [0, -h, -w, 0, x + w, y + h];
+    case 6:
+      return [0, -h, w, 0, x, y + h];
+    case 7:
+      return [0, h, w, 0, x, y];
+    case 8:
+      return [0, h, -w, 0, x + w, y];
+    default:
+      return [w, 0, 0, h, x, y];
+  }
+}
+function layoutImagePage(w, h, pageSize, margin) {
+  if (pageSize === "a4" || pageSize === "letter") {
+    let [pw2, ph2] = PAPER[pageSize];
+    if (w > h) [pw2, ph2] = [ph2, pw2];
+    const m2 = Math.min(Math.max(0, Number(margin) || 0), 144, pw2 / 2 - 1, ph2 / 2 - 1);
+    const scale2 = Math.min((pw2 - 2 * m2) / w, (ph2 - 2 * m2) / h);
+    const bw = w * scale2, bh = h * scale2;
+    return { width: pw2, height: ph2, box: { x: (pw2 - bw) / 2, y: (ph2 - bh) / 2, w: bw, h: bh } };
+  }
+  let scale = 1;
+  if (Math.max(w, h) > MAX_PAGE_PT) scale = MAX_PAGE_PT / Math.max(w, h);
+  else if (Math.min(w, h) < MIN_PAGE_PT) scale = Math.min(MIN_PAGE_PT / Math.min(w, h), MAX_PAGE_PT / Math.max(w, h));
+  const pw = w * scale, ph = h * scale;
+  return { width: pw, height: ph, box: { x: 0, y: 0, w: pw, h: ph } };
+}
+function plural6(n7, one, many = `${one}s`) {
+  return `${n7} ${n7 === 1 ? one : many}`;
+}
+async function imagesToPdf(images, opts = {}) {
+  const list4 = Array.isArray(images) ? images.filter((image) => image?.bytes?.length) : [];
+  if (!list4.length) throw refusal2("choose at least one PNG or JPEG image");
+  if (list4.length > MAX_IMAGES) throw refusal2(`a PDF can be built from at most ${MAX_IMAGES} images at a time`);
+  const pageSize = opts.pageSize === "a4" || opts.pageSize === "letter" ? opts.pageSize : "image";
+  const { PDFDocument: PDFDocument5, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject } = await import("pdf-lib");
+  const doc = await PDFDocument5.create({ updateMetadata: false });
+  let stripped = 0, trailing = 0, turned = 0;
+  for (const [index2, image] of list4.entries()) {
+    const input = image.bytes instanceof Uint8Array ? image.bytes : new Uint8Array(image.bytes);
+    let embedded, width, height, orientation = 1, ppiX, ppiY;
+    if (isJpeg(input)) {
+      const jpeg = cleanJpeg(input);
+      embedded = await doc.embedJpg(jpeg.bytes);
+      ({ width, height, orientation, ppiX, ppiY } = jpeg);
+      if (jpeg.droppedMetadata) stripped++;
+      if (jpeg.droppedTrailing) trailing++;
+      if (orientation !== 1) turned++;
+    } else if (isPng2(input)) {
+      const png = readPngFacts(input);
+      if (png.animated) throw refusal2(`image ${index2 + 1} is an animated PNG; save it as a still image first`);
+      if (png.width * png.height > MAX_PNG_PIXELS) {
+        throw refusal2(`image ${index2 + 1} has ${Math.round(png.width * png.height / 1e6)} million pixels; resize it below 40 million first`);
+      }
+      embedded = await doc.embedPng(input);
+      ({ width, height, ppiX, ppiY } = png);
+    } else {
+      throw refusal2(`image ${index2 + 1} is not a PNG or JPEG; convert it first`);
+    }
+    const storedW = width * 72 / (ppiX || ppiY || DEFAULT_PPI);
+    const storedH = height * 72 / (ppiY || ppiX || DEFAULT_PPI);
+    const sideways = orientation >= 5;
+    const layout2 = layoutImagePage(sideways ? storedH : storedW, sideways ? storedW : storedH, pageSize, Number(opts.margin) || 0);
+    const page3 = doc.addPage([layout2.width, layout2.height]);
+    const name = page3.node.newXObject("Im", embedded.ref);
+    const { x, y, w, h } = layout2.box;
+    page3.pushOperators(pushGraphicsState(), concatTransformationMatrix(...orientationMatrix(orientation, x, y, w, h)), drawObject(name), popGraphicsState());
+  }
+  const bytes2 = await doc.save({ useObjectStreams: true });
+  const notes = [];
+  if (turned) notes.push(`Turned ${plural6(turned, "photo")} upright using the camera orientation.`);
+  if (stripped) notes.push(`Left out photo details such as location and camera data from ${plural6(stripped, "image")}.`);
+  if (trailing) notes.push(`Left out extra pictures stored after the main image in ${plural6(trailing, "file")}.`);
+  return { bytes: bytes2, pages: list4.length, turned, metadataLeftOut: stripped, extraPicturesLeftOut: trailing, notes };
+}
+var MAX_PAGE_PT, MIN_PAGE_PT, DEFAULT_PPI, MAX_PNG_PIXELS, MAX_IMAGES, PAPER;
+var init_pdf_images = __esm({
+  "packages/node-shell/src/pdf-images.ts"() {
+    "use strict";
+    init_src2();
+    MAX_PAGE_PT = 14400;
+    MIN_PAGE_PT = 3;
+    DEFAULT_PPI = 96;
+    MAX_PNG_PIXELS = 4e7;
+    MAX_IMAGES = 2e3;
+    PAPER = {
+      a4: [595.28, 841.89],
+      letter: [612, 792]
+    };
   }
 });
 
@@ -177585,6 +176518,471 @@ var init_ai_detect = __esm({
   }
 });
 
+// packages/node-shell/src/canvas.ts
+var canvas_exports = {};
+__export(canvas_exports, {
+  HOSTED_DECODE_BUDGET_PIXELS: () => HOSTED_DECODE_BUDGET_PIXELS,
+  HOSTED_DECODE_MAX_PIXELS: () => HOSTED_DECODE_MAX_PIXELS,
+  ImagePixelLimitError: () => ImagePixelLimitError,
+  createNodeRasterAPI: () => createNodeRasterAPI,
+  decodeRefusalWarnings: () => decodeRefusalWarnings,
+  decodeToCanvas: () => decodeToCanvas,
+  hostedDecodeLimits: () => hostedDecodeLimits,
+  installNodeCanvas: () => installNodeCanvas,
+  isCanvasAvailable: () => isCanvasAvailable,
+  nodeCanvas: () => nodeCanvas,
+  pictureName: () => pictureName,
+  sniffImageMime: () => sniffImageMime
+});
+import { createHash as createHash11 } from "node:crypto";
+import { createRequire as createRequire3 } from "node:module";
+function registerCatalogFonts(mod) {
+  if (fontsRegistered) return;
+  fontsRegistered = true;
+  try {
+    mod.GlobalFonts?.loadFontsFromDir(catalogFile("fonts"));
+  } catch {
+  }
+}
+function isCanvasAvailable() {
+  try {
+    createRequire3(import.meta.url).resolve("@napi-rs/canvas");
+    return true;
+  } catch {
+    return false;
+  }
+}
+function loadCanvasModule() {
+  canvasModule ??= Promise.resolve().then(() => (init_mcp_fn_absent_runtime(), mcp_fn_absent_runtime_exports)).then((m2) => m2.default ?? m2);
+  return canvasModule;
+}
+async function bareCanvas() {
+  if (!isCanvasAvailable()) return null;
+  try {
+    return await loadCanvasModule();
+  } catch {
+    return null;
+  }
+}
+async function nodeCanvas() {
+  const mod = await bareCanvas();
+  if (mod) registerCatalogFonts(mod);
+  return mod;
+}
+function hostedDecodeLimits() {
+  return { maxPixels: HOSTED_DECODE_MAX_PIXELS, budgetPixels: HOSTED_DECODE_BUDGET_PIXELS, used: 0, refusals: [], refused: [] };
+}
+function refuse3(limits, pic, record49, message) {
+  limits.refusals?.push(message);
+  if (limits.refused) {
+    const key2 = createHash11("sha256").update(pic.bytes).digest("hex");
+    const seen = limits.refused.find((r5) => r5.key === key2 && r5.limit === record49.limit);
+    if (!seen) limits.refused.push({ ...record49, key: key2, ...pic.source ? { source: pic.source } : {} });
+    else if (!seen.source && pic.source) seen.source = pic.source;
+  }
+  throw new ImagePixelLimitError(message);
+}
+function admit2(limits, pic, w, h) {
+  if (!limits) return;
+  const area2 = w * h;
+  if (limits.maxPixels && area2 > limits.maxPixels) {
+    refuse3(limits, pic, { limit: "picture", width: w, height: h }, `A ${w} x ${h} picture was not decoded: this server decodes pictures of up to ${pixels(limits.maxPixels)} pixels.`);
+  }
+  const used = limits.used ?? 0;
+  if (limits.budgetPixels && used + area2 > limits.budgetPixels) {
+    refuse3(limits, pic, { limit: "budget", width: w, height: h }, `A ${w} x ${h} picture was not decoded: this render has used ${pixels(used)} of the ${pixels(limits.budgetPixels)} pixels it may decode.`);
+  }
+  limits.used = used + area2;
+}
+function whichPictures(group, label5) {
+  const named = group.map(label5).filter((x) => !!x);
+  if (!named.length) return "";
+  const shown = named.slice(0, 8);
+  const rest2 = group.length - shown.length;
+  const list4 = rest2 > 0 ? `${shown.join(", ")} and ${rest2} more` : shown.length > 1 ? `${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}` : shown[0];
+  return ` (${list4})`;
+}
+function decodeRefusalWarnings(limits) {
+  const refused2 = limits?.refused ?? [];
+  const out = [];
+  const size = (r5) => `${r5.width} x ${r5.height}`;
+  const count4 = (n7) => n7 === 1 ? "A picture was" : `${n7} pictures were`;
+  const over = refused2.filter((r5) => r5.limit === "picture");
+  if (over.length === 1) {
+    const r5 = over[0];
+    out.push(`A ${size(r5)} picture${r5.source ? ` (${r5.source})` : ""} was not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels.`);
+  } else if (over.length > 1) {
+    out.push(`${over.length} pictures were not decoded: this server decodes pictures of up to ${pixels(limits?.maxPixels ?? 0)} pixels, and these are larger${whichPictures(over, (r5) => r5.source ? `${r5.source} at ${size(r5)}` : size(r5))}.`);
+  }
+  const budget3 = refused2.filter((r5) => r5.limit === "budget");
+  if (budget3.length) {
+    out.push(`${count4(budget3.length)} not decoded: ${budget3.length === 1 ? "it" : "each"} would have taken this render past the ${pixels(limits?.budgetPixels ?? 0)} pixels it may decode${whichPictures(budget3, (r5) => r5.source)}.`);
+  }
+  const unknown2 = refused2.filter((r5) => r5.limit === "unknown-size");
+  if (unknown2.length) {
+    out.push(`${count4(unknown2.length)} not decoded: this server decodes only pictures whose size it can read first${whichPictures(unknown2, (r5) => r5.source)}.`);
+  }
+  return out;
+}
+function loadSharp3() {
+  sharpModule3 ??= import("sharp").then((m2) => m2.default ?? m2).catch(() => null);
+  return sharpModule3;
+}
+function sniffImageMime(bytes2) {
+  for (const [mime2, test] of MIME_BY_MAGIC) {
+    try {
+      if (test(bytes2)) return mime2;
+    } catch {
+    }
+  }
+  if (isSvgDocument(bytes2)) return "image/svg+xml";
+  return "application/octet-stream";
+}
+async function decodeToCanvas(bytes2, mime2, limits, source) {
+  const sniffed = sniffImageMime(bytes2);
+  const svg = sniffed === "image/svg+xml";
+  const kind = sniffed !== "application/octet-stream" ? sniffed : mime2 && mime2 !== "image/svg+xml" ? mime2 : sniffed;
+  const pic = { bytes: bytes2, source };
+  const mod = svg ? await nodeCanvas() : await bareCanvas();
+  if (!mod) return null;
+  const buf = Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength);
+  const sharp = svg ? null : await loadSharp3();
+  if (!svg && limited(limits)) {
+    const size = await headerSize(buf, kind, sharp);
+    if (!size) refuse3(limits, pic, { limit: "unknown-size" }, "A picture was not decoded: its size could not be read before decoding, and this server decodes only pictures whose size it knows.");
+    admit2(limits, pic, size.w, size.h);
+  }
+  if (sharp) {
+    try {
+      const { data, info } = await sharp(buf).rotate().ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      const canvas = mod.createCanvas(info.width, info.height);
+      const cx2 = canvas.getContext("2d");
+      const px3 = new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength);
+      cx2.putImageData(new mod.ImageData(px3, info.width, info.height), 0, 0);
+      return canvas;
+    } catch {
+    }
+  }
+  try {
+    const img = await mod.loadImage(buf);
+    const w = Math.max(1, img.width), h = Math.max(1, img.height);
+    if (svg) admit2(limits, pic, w, h);
+    const canvas = mod.createCanvas(w, h);
+    canvas.getContext("2d").drawImage(img, 0, 0);
+    return canvas;
+  } catch (err) {
+    if (err instanceof ImagePixelLimitError) throw err;
+    return null;
+  }
+}
+async function headerSize(buf, kind, sharp) {
+  if (sharp) {
+    try {
+      const meta = await sharp(buf).metadata();
+      if (meta.width && meta.height) return { w: meta.width, h: meta.height };
+    } catch {
+    }
+  }
+  const dims = imageDimensions(new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), kind);
+  return dims && dims.w > 0 && dims.h > 0 ? dims : null;
+}
+async function sourceBytes(src, opts = {}) {
+  if (src instanceof Uint8Array) return src;
+  if (typeof src === "string") {
+    if (opts.readUrl) return opts.readUrl(src);
+    if (src.startsWith("data:")) {
+      const comma = src.indexOf(",");
+      if (comma < 0) throw new Error("host.raster: malformed data: URL.");
+      const meta = src.slice(5, comma);
+      const body = src.slice(comma + 1);
+      return /;base64/i.test(meta) ? new Uint8Array(Buffer.from(body, "base64")) : new TextEncoder().encode(decodeURIComponent(body));
+    }
+    const res = await fetch(src);
+    if (!res.ok) throw new Error(`host.raster: could not read ${src} (HTTP ${res.status}).`);
+    return new Uint8Array(await res.arrayBuffer());
+  }
+  if (typeof src.arrayBuffer === "function") return new Uint8Array(await src.arrayBuffer());
+  const ref2 = src;
+  if (ref2 && typeof ref2.url === "string") return sourceBytes(ref2.url, opts);
+  throw new Error("host.raster: unreadable source.");
+}
+function shownUrl(url) {
+  const s = url.trim();
+  if (!WEB_URL.test(s)) return s;
+  try {
+    const u = new URL(s);
+    if (u.host) return `${u.protocol}//${u.host}${u.pathname}`;
+  } catch {
+  }
+  return s.replace(/[?#].*$/s, "").replace(/^([a-z][a-z0-9+.-]*:\/\/)[^/]*@/i, "$1");
+}
+function pictureName(src) {
+  const fromUrl = (url) => {
+    if (/^\s*(data|blob):/i.test(url)) return void 0;
+    const last = shownUrl(url).replace(/[?#].*$/s, "").split("/").filter(Boolean).pop();
+    let name = last ?? "";
+    try {
+      name = decodeURIComponent(name);
+    } catch {
+    }
+    if (!name || /^[a-z][a-z0-9+.-]*:$/i.test(name)) return void 0;
+    return shortName(name);
+  };
+  if (typeof src === "string") return fromUrl(src);
+  if (!src || typeof src !== "object" || src instanceof Uint8Array) return void 0;
+  const ref2 = src;
+  for (const v of [ref2.meta?.name, ref2.name]) if (typeof v === "string" && v.trim()) return shortName(shownUrl(v));
+  if (typeof ref2.id === "string" && ref2.id.trim() && !/^\s*(data|blob):/i.test(ref2.id)) return shortName(shownUrl(ref2.id));
+  return typeof ref2.url === "string" ? fromUrl(ref2.url) : void 0;
+}
+async function encodeCanvas(canvas, format, quality) {
+  const fmt6 = format === "jpg" ? "jpeg" : format;
+  const mime2 = `image/${fmt6}`;
+  const q = typeof quality === "number" && Number.isFinite(quality) ? Math.max(1, Math.min(100, Math.round(quality <= 1 ? quality * 100 : quality))) : void 0;
+  const buf = q === void 0 ? canvas.toBuffer(mime2) : canvas.toBuffer(mime2, q);
+  return { bytes: new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength), mime: mime2 };
+}
+function createNodeRasterAPI(opts = {}) {
+  if (!isCanvasAvailable()) return null;
+  return {
+    canRaster() {
+      return isCanvasAvailable();
+    },
+    async measure(src) {
+      const bytes2 = await sourceBytes(src, opts);
+      const mime2 = sniffImageMime(bytes2);
+      const sharp = mime2 === "image/svg+xml" ? null : await loadSharp3();
+      if (sharp) {
+        const meta = await sharp(Buffer.from(bytes2.buffer, bytes2.byteOffset, bytes2.byteLength)).rotate().metadata();
+        if (meta.width && meta.height) {
+          return {
+            width: meta.width,
+            height: meta.height,
+            mime: mime2,
+            ...meta.pages !== void 0 ? { animated: meta.pages > 1 } : {}
+          };
+        }
+      }
+      const canvas = await decodeToCanvas(bytes2, mime2, opts.limits, pictureName(src));
+      if (!canvas) throw new Error("host.raster: these bytes are not a decodable image here.");
+      return { width: canvas.width, height: canvas.height, mime: mime2 };
+    },
+    async decode(src) {
+      const bytes2 = await sourceBytes(src, opts);
+      const canvas = await decodeToCanvas(bytes2, void 0, opts.limits, pictureName(src));
+      if (!canvas) throw new Error("host.raster: these bytes are not a decodable image here.");
+      return canvas;
+    },
+    async encode(source, opts2) {
+      if (!opts2?.format) throw new Error("host.raster.encode: `format` is required (webp | jpeg | png).");
+      const mod = await nodeCanvas();
+      if (!mod) throw new Error("host.raster: no canvas in this install.");
+      let canvas;
+      const frame = source;
+      if (typeof source?.getContext === "function") {
+        canvas = source;
+      } else if (ArrayBuffer.isView(frame?.data) && typeof frame.width === "number") {
+        canvas = mod.createCanvas(frame.width, frame.height);
+        canvas.getContext("2d").putImageData(new mod.ImageData(frame.data, frame.width, frame.height), 0, 0);
+      } else {
+        const bmp = source;
+        canvas = mod.createCanvas(Math.max(1, bmp.width), Math.max(1, bmp.height));
+        canvas.getContext("2d").drawImage(bmp, 0, 0);
+      }
+      const { bytes: bytes2, mime: mime2 } = await encodeCanvas(canvas, opts2.format, opts2.quality);
+      return { bytes: bytes2, mime: mime2, width: canvas.width, height: canvas.height };
+    }
+  };
+}
+function registerFontsOnText(mod, cx2) {
+  const ctx = cx2;
+  for (const name of ["fillText", "strokeText", "measureText"]) {
+    const fn = ctx[name];
+    if (typeof fn !== "function") continue;
+    ctx[name] = (...args) => {
+      registerCatalogFonts(mod);
+      return fn.apply(cx2, args);
+    };
+  }
+  let font;
+  for (let owner3 = cx2; owner3 && !font; owner3 = Object.getPrototypeOf(owner3)) {
+    font = Object.getOwnPropertyDescriptor(owner3, "font");
+  }
+  if (font?.get && font.set) {
+    const { get: get4, set } = font;
+    Object.defineProperty(cx2, "font", {
+      configurable: true,
+      enumerable: true,
+      get() {
+        return get4.call(cx2);
+      },
+      set(v) {
+        registerCatalogFonts(mod);
+        set.call(cx2, v);
+      }
+    });
+  }
+}
+function drawable(img) {
+  const backed = img?.[BACKING];
+  return backed ?? img;
+}
+async function blobBytes(v) {
+  if (v instanceof Uint8Array) return v;
+  if (typeof v === "string") {
+    const blob = blobUrls.get(v);
+    if (blob) return new Uint8Array(await blob.arrayBuffer());
+    if (v.startsWith("data:")) return sourceBytes(v);
+    return null;
+  }
+  if (v && typeof v.arrayBuffer === "function") return new Uint8Array(await v.arrayBuffer());
+  return null;
+}
+async function installNodeCanvas(win, target2 = globalThis, opts = {}) {
+  const mod = await bareCanvas();
+  if (!mod) return false;
+  target2[LIMITS3] = opts.limits;
+  const limitsNow = () => target2[LIMITS3];
+  const proto = win?.HTMLCanvasElement?.prototype;
+  if (proto && !proto["_lollyNodeCanvas"]) {
+    proto["_lollyNodeCanvas"] = true;
+    const back = (el) => {
+      let c = el[BACKING];
+      const w = Math.max(1, Math.round(Number(el.width) || 300));
+      const h = Math.max(1, Math.round(Number(el.height) || 150));
+      if (!c || c.width !== w || c.height !== h) {
+        const cap = limitsNow()?.maxPixels;
+        if (cap && w * h > cap) throw new ImagePixelLimitError(`A ${w} x ${h} canvas was not made: this server makes canvases of up to ${pixels(cap)} pixels.`);
+        c = mod.createCanvas(w, h);
+        const cx2 = c.getContext("2d");
+        const orig = cx2.drawImage.bind(cx2);
+        cx2.drawImage = (img, ...rest2) => {
+          orig(drawable(img), ...rest2);
+        };
+        registerFontsOnText(mod, cx2);
+        el[BACKING] = c;
+      }
+      return c;
+    };
+    proto["getContext"] = function getContext(kind) {
+      if (kind !== "2d") return null;
+      try {
+        return back(this).getContext("2d");
+      } catch (err) {
+        if (err instanceof ImagePixelLimitError) return null;
+        throw err;
+      }
+    };
+    proto["toDataURL"] = function toDataURL(mime2 = "image/png", quality) {
+      const q = typeof quality === "number" ? Math.max(1, Math.min(100, Math.round(quality * 100))) : void 0;
+      let out;
+      try {
+        out = q === void 0 ? back(this).toBuffer(mime2) : back(this).toBuffer(mime2, q);
+      } catch (err) {
+        if (err instanceof ImagePixelLimitError) return "data:,";
+        throw err;
+      }
+      return `data:${mime2};base64,${out.toString("base64")}`;
+    };
+    proto["toBlob"] = function toBlob(cb, mime2 = "image/png", quality) {
+      try {
+        const q = typeof quality === "number" ? Math.max(1, Math.min(100, Math.round(quality * 100))) : void 0;
+        const buf = q === void 0 ? back(this).toBuffer(mime2) : back(this).toBuffer(mime2, q);
+        cb(new Blob([new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)], { type: mime2 }));
+      } catch {
+        cb(null);
+      }
+    };
+  }
+  const URLCtor = target2["URL"];
+  if (URLCtor && typeof URLCtor.createObjectURL !== "function") {
+    let n7 = 0;
+    URLCtor.createObjectURL = (blob) => {
+      const url = `blob:lolly-node/${Date.now().toString(36)}-${n7++}`;
+      blobUrls.set(url, blob);
+      return url;
+    };
+    URLCtor.revokeObjectURL = (url) => {
+      blobUrls.delete(url);
+    };
+  }
+  if (typeof target2["Image"] !== "function") {
+    class NodeImage {
+      width = 0;
+      height = 0;
+      naturalWidth = 0;
+      naturalHeight = 0;
+      complete = false;
+      onload = null;
+      onerror = null;
+      [BACKING];
+      #src = "";
+      get src() {
+        return this.#src;
+      }
+      set src(v) {
+        this.#src = String(v);
+        void (async () => {
+          try {
+            const bytes2 = await blobBytes(v);
+            const canvas = bytes2 ? await decodeToCanvas(bytes2, void 0, limitsNow()) : null;
+            if (!canvas) throw new Error("undecodable");
+            this[BACKING] = canvas;
+            this.width = this.naturalWidth = canvas.width;
+            this.height = this.naturalHeight = canvas.height;
+            this.complete = true;
+            this.onload?.();
+          } catch (err) {
+            this.onerror?.(err);
+          }
+        })();
+      }
+    }
+    target2["Image"] = NodeImage;
+  }
+  if (typeof target2["createImageBitmap"] !== "function") {
+    target2["createImageBitmap"] = async (src) => {
+      const bytes2 = await blobBytes(src);
+      const canvas = bytes2 ? await decodeToCanvas(bytes2, void 0, limitsNow()) : null;
+      if (!canvas) throw new Error("createImageBitmap: these bytes are not a decodable image here.");
+      return canvas;
+    };
+  }
+  if (typeof target2["ImageData"] !== "function") target2["ImageData"] = mod.ImageData;
+  return true;
+}
+var fontsRegistered, canvasModule, ImagePixelLimitError, HOSTED_DECODE_MAX_PIXELS, HOSTED_DECODE_BUDGET_PIXELS, pixels, limited, sharpModule3, MIME_BY_MAGIC, WEB_URL, shortName, BACKING, blobUrls, LIMITS3;
+var init_canvas = __esm({
+  "packages/node-shell/src/canvas.ts"() {
+    "use strict";
+    init_src2();
+    init_content_roots();
+    init_format_sniff2();
+    fontsRegistered = false;
+    canvasModule = null;
+    ImagePixelLimitError = class extends Error {
+      name = "ImagePixelLimitError";
+    };
+    HOSTED_DECODE_MAX_PIXELS = 4096 * 4096;
+    HOSTED_DECODE_BUDGET_PIXELS = 4 * HOSTED_DECODE_MAX_PIXELS;
+    pixels = (n7) => n7.toLocaleString("en");
+    limited = (limits) => !!(limits && (limits.maxPixels || limits.budgetPixels));
+    sharpModule3 = null;
+    MIME_BY_MAGIC = [
+      ["image/png", (b) => b[0] === 137 && b[1] === 80 && b[2] === 78 && b[3] === 71],
+      ["image/jpeg", (b) => b[0] === 255 && b[1] === 216 && b[2] === 255],
+      ["image/gif", (b) => b[0] === 71 && b[1] === 73 && b[2] === 70],
+      ["image/webp", (b) => b[0] === 82 && b[1] === 73 && b[8] === 87 && b[9] === 69],
+      ["image/avif", (b) => b[4] === 102 && b[5] === 116 && b[6] === 121 && b[7] === 112]
+    ];
+    WEB_URL = /^[a-z][a-z0-9+.-]*:\/\//i;
+    shortName = (name) => name.length > 80 ? `${name.slice(0, 77)}...` : name;
+    BACKING = /* @__PURE__ */ Symbol.for("lolly.nodeCanvas.backing");
+    blobUrls = /* @__PURE__ */ new Map();
+    LIMITS3 = /* @__PURE__ */ Symbol.for("lolly.nodeCanvas.limits");
+  }
+});
+
 // engine/src/label-artwork.ts
 var label_artwork_exports = {};
 __export(label_artwork_exports, {
@@ -177604,7 +177002,7 @@ function isApi3(e) {
   return e.memory instanceof WebAssembly.Memory && ["pdf_a11y_alloc", "pdf_a11y_free", "pdf_a11y_run", "pdf_a11y_result_ptr", "pdf_a11y_result_len"].every((k) => typeof e[k] === "function");
 }
 function readFinding(raw) {
-  if (!isObject4(raw) || typeof raw.message !== "string" || typeof raw.pattern !== "string") throw new Error("malformed finding");
+  if (!isObject3(raw) || typeof raw.message !== "string" || typeof raw.pattern !== "string") throw new Error("malformed finding");
   const values = Array.isArray(raw.values) ? raw.values.filter((v) => Array.isArray(v) && typeof v[0] === "string" && typeof v[1] === "string").map(([k, v]) => [k, v]) : [];
   const out = { message: raw.message, pattern: raw.pattern, values };
   if (typeof raw.page === "number" && Number.isInteger(raw.page) && raw.page >= 0) out.page = raw.page + 1;
@@ -177616,9 +177014,9 @@ function readFinding(raw) {
 }
 function parsePdfAccessibilityReport(json) {
   const raw = JSON.parse(json);
-  if (!isObject4(raw) || raw.v !== 1 || typeof raw.pages !== "number" || !Array.isArray(raw.rules)) throw new Error("malformed report");
+  if (!isObject3(raw) || raw.v !== 1 || typeof raw.pages !== "number" || !Array.isArray(raw.rules)) throw new Error("malformed report");
   const rules = raw.rules.map((r5) => {
-    if (!isObject4(r5) || typeof r5.id !== "string" || typeof r5.category !== "string" || typeof r5.status !== "string" || !STATUSES2.has(r5.status)) {
+    if (!isObject3(r5) || typeof r5.id !== "string" || typeof r5.category !== "string" || typeof r5.status !== "string" || !STATUSES2.has(r5.status)) {
       throw new Error("malformed rule");
     }
     return {
@@ -177697,7 +177095,7 @@ async function createPdfA11yKernel(wasm) {
       } catch {
         throw new PdfKeepTextError("damaged", "The result summary could not be read.");
       }
-      if (!isObject4(summary) || summary.v !== 1) throw new PdfKeepTextError("damaged", "The result summary could not be read.");
+      if (!isObject3(summary) || summary.v !== 1) throw new PdfKeepTextError("damaged", "The result summary could not be read.");
       return { bytes: out.slice(4 + headLength), summary };
     } finally {
       api.pdf_a11y_free(pointer2);
@@ -177707,7 +177105,7 @@ async function createPdfA11yKernel(wasm) {
     return retired;
   } };
 }
-var PDF_A11Y_MAX_BYTES, MAX_RESULT2, OP_CHECK, OP_REDACT, STATUSES2, PdfAccessibilityError, PdfKeepTextError, isObject4, REFUSAL, KEEP_TEXT_REFUSAL;
+var PDF_A11Y_MAX_BYTES, MAX_RESULT2, OP_CHECK, OP_REDACT, STATUSES2, PdfAccessibilityError, PdfKeepTextError, isObject3, REFUSAL, KEEP_TEXT_REFUSAL;
 var init_pdf_a11y = __esm({
   "packages/node-shell/src/pdf-a11y.ts"() {
     "use strict";
@@ -177732,7 +177130,7 @@ var init_pdf_a11y = __esm({
         this.code = code;
       }
     };
-    isObject4 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+    isObject3 = (v) => !!v && typeof v === "object" && !Array.isArray(v);
     REFUSAL = /^(not-pdf|encrypted|damaged): ?(.*)$/s;
     KEEP_TEXT_REFUSAL = /^(not-pdf|encrypted|damaged|refused|bad-request): ?(.*)$/s;
   }
@@ -179543,7 +178941,7 @@ __export(text_measure_exports, {
   sfntVerticalMetrics: () => sfntVerticalMetrics,
   textMeasureSpecOfRow: () => textMeasureSpecOfRow
 });
-import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync10 } from "node:fs";
+import { existsSync as existsSync14, readdirSync as readdirSync2, readFileSync as readFileSync8 } from "node:fs";
 import { join as join26 } from "node:path";
 function firstFamily2(value2) {
   if (typeof value2 !== "string") return void 0;
@@ -179613,7 +179011,7 @@ function metricsOf(url, root2) {
     const file = fontFile(url, root2);
     let metrics = null;
     try {
-      if (file) metrics = sfntVerticalMetrics(new Uint8Array(readFileSync10(file)));
+      if (file) metrics = sfntVerticalMetrics(new Uint8Array(readFileSync8(file)));
     } catch {
       metrics = null;
     }
@@ -183263,7 +182661,7 @@ var init_production2 = __esm({
 });
 
 // packages/node-shell/src/desktop-renderer.ts
-import { constants, existsSync as existsSync19, accessSync, statSync as statSync4, lstatSync, openSync as openSync2, fstatSync as fstatSync2, readSync as readSync2, closeSync as closeSync2 } from "node:fs";
+import { constants, existsSync as existsSync19, accessSync, statSync as statSync4, lstatSync, openSync, fstatSync, readSync, closeSync } from "node:fs";
 import { homedir as homedir5, tmpdir as tmpdir4 } from "node:os";
 import { basename as basename3, delimiter, join as join33 } from "node:path";
 import { spawn as spawn3, spawnSync } from "node:child_process";
@@ -183404,14 +182802,14 @@ function readTextOrNull(path) {
     const before = lstatSync(path, { bigint: true });
     if (!before.isFile() || before.isSymbolicLink() || before.size > 8192n) return null;
     if (process.platform !== "win32" && ((before.mode & 0o077n) !== 0n || typeof process.getuid === "function" && before.uid !== BigInt(process.getuid()))) return null;
-    descriptor = openSync2(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
-    const opened = fstatSync2(descriptor, { bigint: true });
+    descriptor = openSync(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+    const opened = fstatSync(descriptor, { bigint: true });
     if (!opened.isFile() || opened.size > 8192n || before.dev !== opened.dev || before.ino !== opened.ino) return null;
     if (process.platform !== "win32" && ((opened.mode & 0o077n) !== 0n || opened.uid !== before.uid)) return null;
     const buffer = Buffer.alloc(8193);
     let used = 0;
     while (used < buffer.length) {
-      const count4 = readSync2(descriptor, buffer, used, buffer.length - used, null);
+      const count4 = readSync(descriptor, buffer, used, buffer.length - used, null);
       if (count4 === 0) break;
       used += count4;
     }
@@ -183419,7 +182817,7 @@ function readTextOrNull(path) {
   } catch {
     return null;
   } finally {
-    if (descriptor !== void 0) closeSync2(descriptor);
+    if (descriptor !== void 0) closeSync(descriptor);
   }
 }
 function readRenderServer(probe = {}) {
@@ -185105,7 +184503,7 @@ var init_forensic2 = __esm({
 });
 
 // packages/node-shell/src/check.ts
-import { createHash as createHash13 } from "node:crypto";
+import { createHash as createHash12 } from "node:crypto";
 function fidelityNote(compared) {
   const excepted = compared.fidelity.excepted?.length ?? 0;
   return (excepted ? ` ${excepted === 1 ? "1 string is recorded as a deliberate edit" : `${excepted} strings are recorded as deliberate edits`} (excepted, not passed).` : "") + (compared.complete ? "" : " The comparison stopped at one of its limits, so the family is partial (see fidelity.coverage.partial).");
@@ -185568,7 +184966,7 @@ function rasterSize(bytes2) {
 }
 async function catalogPictureReader(profile2) {
   const { contentRoots: contentRoots2, contentUrlFile: contentUrlFile2, readAssetIndex: readAssetIndex2 } = await Promise.resolve().then(() => (init_content_roots(), content_roots_exports));
-  const { readFileSync: readFileSync12, statSync: statSync5 } = await import("node:fs");
+  const { readFileSync: readFileSync10, statSync: statSync5 } = await import("node:fs");
   let roots2;
   let byId;
   try {
@@ -185583,7 +184981,7 @@ async function catalogPictureReader(profile2) {
     const path = file ? contentUrlFile2(String(file.url), roots2) : null;
     if (!path) return null;
     try {
-      return statSync5(path).size <= CHECK_MAX_INPUT_BYTES ? new Uint8Array(readFileSync12(path)) : null;
+      return statSync5(path).size <= CHECK_MAX_INPUT_BYTES ? new Uint8Array(readFileSync10(path)) : null;
     } catch {
       return null;
     }
@@ -186180,7 +185578,7 @@ var init_check = __esm({
       const n7 = typeof v === "string" && v.trim() !== "" ? Number(v) : v;
       return typeof n7 === "number" && Number.isFinite(n7) ? n7 : fallback;
     };
-    sha2562 = (bytes2) => createHash13("sha256").update(bytes2).digest("hex");
+    sha2562 = (bytes2) => createHash12("sha256").update(bytes2).digest("hex");
     zero = () => ({ error: 0, warn: 0, info: 0 });
     familyState = (state, reason2) => ({
       state,
@@ -187574,6 +186972,7 @@ init_schema();
 
 // services/mcp/src/render.ts
 init_src2();
+init_runtime();
 
 // packages/node-shell/src/render-integrity.ts
 var RenderIntegrityError = class extends Error {
@@ -187638,14 +187037,12 @@ function utf83(bytes2) {
 
 // services/mcp/src/render.ts
 init_raster3();
-init_resvg_admission();
-init_canvas();
 
 // packages/node-shell/src/c2pa-opts.ts
 init_src2();
 init_inputs();
 init_design_export_route();
-import { createHash as createHash6 } from "node:crypto";
+import { createHash as createHash4 } from "node:crypto";
 function buildExportC2paOpts(o) {
   const { surface, manifest, model: model2, format, dims = {}, profile: profile2 = {} } = o;
   const days = o.days ?? 30;
@@ -187655,7 +187052,7 @@ function buildExportC2paOpts(o) {
   const readable2 = summarizeInputs(model2.filter((item2) => eligible.has(item2.id) && CREDENTIAL_READABLE_TYPES.has(item2.type)));
   const inputs = Object.fromEntries(model2.filter((item2) => eligible.has(item2.id)).map((item2) => [
     item2.id,
-    CREDENTIAL_READABLE_TYPES.has(item2.type) && readable2[item2.id] !== void 0 ? readable2[item2.id] : `sha256:${createHash6("sha256").update(JSON.stringify([item2.type, flattenValue(item2.value), item2.unit ?? ""])).digest("hex")}`
+    CREDENTIAL_READABLE_TYPES.has(item2.type) && readable2[item2.id] !== void 0 ? readable2[item2.id] : `sha256:${createHash4("sha256").update(JSON.stringify([item2.type, flattenValue(item2.value), item2.unit ?? ""])).digest("hex")}`
   ]));
   const unit2 = dims.unit || "px";
   const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
@@ -188004,7 +187401,7 @@ import { zipSync as zipSync2 } from "fflate";
 init_src2();
 init_repo_root();
 import { readFile as readFile8 } from "node:fs/promises";
-import { createHash as createHash11 } from "node:crypto";
+import { createHash as createHash9 } from "node:crypto";
 import { join as join12 } from "node:path";
 
 // packages/node-shell/src/press-separation.ts
@@ -188028,7 +187425,7 @@ function bundledPressSeparation() {
     if (error2.code !== "ENOENT") throw error2;
     return readFile8(join12(repoRoot(), "packages/node-shell/icc", BUNDLED_PRESS_PROFILE.file));
   }).then((bytes2) => {
-    if (createHash11("sha256").update(bytes2).digest("hex") !== BUNDLED_PRESS_PROFILE.sha256) return null;
+    if (createHash9("sha256").update(bytes2).digest("hex") !== BUNDLED_PRESS_PROFILE.sha256) return null;
     const profile2 = parseIccProfile(new Uint8Array(bytes2));
     return profile2 ? iccSeparation(profile2) : null;
   }).catch(() => null);
@@ -188155,7 +187552,7 @@ function pointsPath(str11, close) {
   for (let i = 2; i + 1 < nums.length; i += 2) d += ` L${nums[i]},${nums[i + 1]}`;
   return d + (close ? " Z" : "");
 }
-var IDENTITY8 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+var IDENTITY7 = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
 function matMul7(m2, n7) {
   return {
     a: m2.a * n7.a + m2.c * n7.b,
@@ -188167,7 +187564,7 @@ function matMul7(m2, n7) {
   };
 }
 function parseTransformList(str11) {
-  let m2 = IDENTITY8;
+  let m2 = IDENTITY7;
   const re = /(matrix|translate|scale|rotate|skewX|skewY)\s*\(([^)]*)\)/gi;
   for (const hit of str11.matchAll(re)) {
     const fn = (hit[1] ?? "").toLowerCase();
@@ -188177,20 +187574,20 @@ function parseTransformList(str11) {
       return typeof v === "number" && Number.isFinite(v) ? v : d;
     };
     let local2 = null;
-    if (fn === "translate") local2 = { ...IDENTITY8, e: g2(0, 0), f: g2(1, 0) };
+    if (fn === "translate") local2 = { ...IDENTITY7, e: g2(0, 0), f: g2(1, 0) };
     else if (fn === "scale") {
       const sx = g2(0, 1);
-      local2 = { ...IDENTITY8, a: sx, d: a.length > 1 ? g2(1, sx) : sx };
+      local2 = { ...IDENTITY7, a: sx, d: a.length > 1 ? g2(1, sx) : sx };
     } else if (fn === "rotate") {
       const rad = g2(0, 0) * Math.PI / 180, cos2 = Math.cos(rad), sin2 = Math.sin(rad);
       const rot = { a: cos2, b: sin2, c: -sin2, d: cos2, e: 0, f: 0 };
       if (a.length >= 3) {
         const cx2 = g2(1, 0), cy3 = g2(2, 0);
-        local2 = matMul7(matMul7({ ...IDENTITY8, e: cx2, f: cy3 }, rot), { ...IDENTITY8, e: -cx2, f: -cy3 });
+        local2 = matMul7(matMul7({ ...IDENTITY7, e: cx2, f: cy3 }, rot), { ...IDENTITY7, e: -cx2, f: -cy3 });
       } else local2 = rot;
     } else if (fn === "matrix" && a.length >= 6) local2 = { a: g2(0, 1), b: g2(1, 0), c: g2(2, 0), d: g2(3, 1), e: g2(4, 0), f: g2(5, 0) };
-    else if (fn === "skewx") local2 = { ...IDENTITY8, c: Math.tan(g2(0, 0) * Math.PI / 180) };
-    else if (fn === "skewy") local2 = { ...IDENTITY8, b: Math.tan(g2(0, 0) * Math.PI / 180) };
+    else if (fn === "skewx") local2 = { ...IDENTITY7, c: Math.tan(g2(0, 0) * Math.PI / 180) };
+    else if (fn === "skewy") local2 = { ...IDENTITY7, b: Math.tan(g2(0, 0) * Math.PI / 180) };
     if (local2) m2 = matMul7(m2, local2);
   }
   return m2;
@@ -188681,7 +188078,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     }
     prims.push({ type: "path", subpaths, fill: rgbObj(rgb3), stroke, fillRule: "nonzero" });
   }
-  await visit2(svgEl, IDENTITY8, null);
+  await visit2(svgEl, IDENTITY7, null);
   return { width: Math.round(canvasW), height: Math.round(canvasH), prims };
 }
 function mapSeg(seg5, mapPt) {
@@ -189017,7 +188414,7 @@ function loadAudioDspKernel() {
 import { Worker as Worker3 } from "node:worker_threads";
 import { existsSync as existsSync8 } from "node:fs";
 import { fileURLToPath as fileURLToPath6 } from "node:url";
-import { createHash as createHash12 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 
 // packages/rondo/src/limits.ts
 var RONDO_LIMITS = Object.freeze({
@@ -189267,7 +188664,7 @@ function runWorker2(job, caps, timeoutMs, limitText) {
   });
 }
 var secondsText = (ms) => ms < 1e4 ? (ms / 1e3).toFixed(1) : String(Math.round(ms / 1e3));
-var digestOf = (song) => createHash12("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
+var digestOf = (song) => createHash10("sha256").update(`${song.lang}\0${song.code}`).digest("hex");
 var copyOf2 = (k) => ({
   ...k,
   channels: [k.channels[0].slice(), k.channels[1].slice()],
@@ -189285,7 +188682,7 @@ async function renderRondoSong(song, opts = {}) {
     throw new RondoAudioError(`This host renders songs up to ${maxSeconds} s long; ${seconds3} s was asked for.`, "rondo.limits.seconds");
   }
   const key2 = `${digestOf(song)}|${seconds3 ?? "natural"}|${maxSeconds}`;
-  const sourceDigest = createHash12("sha256").update(rondoSourceBytes(song)).digest("hex");
+  const sourceDigest = createHash10("sha256").update(rondoSourceBytes(song)).digest("hex");
   const report4 = (k, cached2) => ({
     sampleRate: k.sampleRate,
     channels: k.channels,
@@ -190239,7 +189636,7 @@ async function captureUrl(params2, format, dims, opts = {}) {
           } } : {}
         });
         if (shot.distance <= VECTOR_SHOT_MAX_DISTANCE) {
-          return { bytes: new TextEncoder().encode(sizeSvg(shot.svg, clipW, clipH)), mime: "image/svg+xml", notes: shot.warnings };
+          return { bytes: new TextEncoder().encode(sizeSvg2(shot.svg, clipW, clipH)), mime: "image/svg+xml", notes: shot.warnings };
         }
         notes.push(`The vector capture differed from the page in ${Math.round(shot.distance * 100)}% of the frame, so the SVG holds a screenshot instead.`);
       } catch (e) {
@@ -190273,7 +189670,7 @@ async function captureUrl(params2, format, dims, opts = {}) {
     });
   }
 }
-function sizeSvg(svg, width, height) {
+function sizeSvg2(svg, width, height) {
   return svg.replace(/<svg\b[^>]*>/, (open3) => open3.replace(/\swidth="[^"]*"/, ` width="${width}"`).replace(/\sheight="[^"]*"/, ` height="${height}"`));
 }
 async function injectCss(page3, css2) {
@@ -190302,7 +189699,7 @@ init_media_sniff();
 init_png();
 init_jxl2();
 init_src2();
-import { createRequire as createRequire3 } from "node:module";
+import { createRequire as createRequire2 } from "node:module";
 var MIME = {
   jpeg: "image/jpeg",
   jpg: "image/jpeg",
@@ -190318,16 +189715,16 @@ var MIME = {
 };
 function isImagesAvailable() {
   try {
-    createRequire3(import.meta.url).resolve("sharp");
+    createRequire2(import.meta.url).resolve("sharp");
     return true;
   } catch {
     return false;
   }
 }
-var sharpModule3 = null;
-function loadSharp3() {
-  sharpModule3 ??= import("sharp").then((m2) => m2.default ?? m2);
-  return sharpModule3;
+var sharpModule2 = null;
+function loadSharp2() {
+  sharpModule2 ??= import("sharp").then((m2) => m2.default ?? m2);
+  return sharpModule2;
 }
 async function toBuffer(input) {
   if (input instanceof Uint8Array) return Buffer.from(input.buffer, input.byteOffset, input.byteLength);
@@ -190340,7 +189737,7 @@ function q100(quality) {
 function createNodeImagesAPI() {
   if (!isImagesAvailable()) return null;
   async function open3(input) {
-    const sharp = await loadSharp3();
+    const sharp = await loadSharp2();
     const buf = await toBuffer(input);
     if (!buf.length) throw new Error("host.images: empty input - nothing to decode.");
     if (sniffLayeredRaster(buf) === "psd") {
@@ -191667,12 +191064,11 @@ function createNodePdfRedact() {
 
 // shells/cli/src/bridge.ts
 init_canvas();
-init_resvg_admission();
 
 // packages/node-shell/src/speech.ts
 init_session();
 init_src2();
-import { readFileSync as readFileSync8 } from "node:fs";
+import { readFileSync as readFileSync6 } from "node:fs";
 import { readFile as readFile14 } from "node:fs/promises";
 import { createRequire as createRequire4 } from "node:module";
 import { isAbsolute as isAbsolute2, join as join18 } from "node:path";
@@ -191930,7 +191326,7 @@ function voiceMatrix(modelsDir, voice) {
   const held = voiceMatrices.get(key2);
   if (held) return held;
   const path = modelFilePath(modelsDir, "kokoro", `voices/${voice}.bin`);
-  const raw = readFileSync8(path);
+  const raw = readFileSync6(path);
   const data = new Float32Array(raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength));
   if (data.byteLength !== KOKORO_VOICE_BYTES) {
     throw new Error(
@@ -192520,7 +191916,7 @@ init_text_bidi();
 // packages/node-shell/src/fallback-fonts-node.ts
 init_content_roots();
 init_fallback_fonts();
-import { existsSync as existsSync11, readFileSync as readFileSync9 } from "node:fs";
+import { existsSync as existsSync11, readFileSync as readFileSync7 } from "node:fs";
 import { join as join22 } from "node:path";
 var listed = /* @__PURE__ */ new Map();
 function diskFallbackPacks(roots2 = contentRoots()) {
@@ -192532,7 +191928,7 @@ function diskFallbackPacks(roots2 = contentRoots()) {
     const path = join22(shared.dir, "index.json");
     if (!existsSync11(path)) continue;
     try {
-      entries.push(...JSON.parse(readFileSync9(path, "utf8")).assets ?? []);
+      entries.push(...JSON.parse(readFileSync7(path, "utf8")).assets ?? []);
     } catch {
     }
   }
@@ -193511,37 +192907,6 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         const filled2 = fillNotice(fillUses);
         if (filled2) opts.onFillNotice?.(filled2);
       };
-      const resvgSource = async (svg, format2, width, height) => {
-        const { placement: placement2, refusals: layout3 } = readLayout(node, svg, width, height, opts.toolStyles);
-        const early = [
-          ...routeRefusals({ tool: opts.resvgTool ?? { id: "unnamed", browserFree: false, untrusted: false }, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
-          ...layout3
-        ];
-        if (early.length) throw new ResvgRefusedError(early, format2);
-        let fallbackFaces = false;
-        if (opts.text !== "live") {
-          const res = await outlineSvgText(svg, host, {
-            getComputedStyle: w.getComputedStyle ? (el) => {
-              try {
-                return w.getComputedStyle(el);
-              } catch {
-                return null;
-              }
-            } : null
-          });
-          for (const f of res.fallbacks) opts.onTextFallback?.(f);
-          const filled2 = fillNotice(res.filled);
-          if (filled2) {
-            fallbackFaces = true;
-            opts.onFillNotice?.(filled2);
-          }
-        }
-        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
-        const admitted3 = await admitForResvg(raw, width, height, { fallbackFaces }, placement2);
-        if (admitted3.refusals.length) throw new ResvgRefusedError(admitted3.refusals, format2);
-        return { svg: admitted3.svg, placement: placement2 };
-      };
-      opts.onDraftMark?.(!!opts.watermark);
       const unavailable = node.matches("[data-export-error]") ? node : node.querySelector("[data-export-error]");
       if (format !== "html" && unavailable) throw new Error(unavailable.getAttribute("data-export-error") || "The tool is not ready to export.");
       if (opts.dataText !== void 0) {
@@ -193722,20 +193087,17 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "exr" || format === "hdr") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("EXR/HDR export needs the template's root drawable to be a vector image (HTML-layout tools have no browser-free raster here - use the desktop app or the web shell)");
+        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { renderDeepRaster: renderDeepRaster2, deepFormatMime: deepFormatMime2 } = await Promise.resolve().then(() => (init_raster3(), raster_exports));
         const dpi = opts.dpi ?? 300;
         const px3 = (v, fallback) => {
           const d = parseDimension(v);
           return d ? Math.max(1, Math.round(toPixels(d, dpi))) : fallback;
         };
-        const width = px3(opts.width, parseFloat(svg.getAttribute("width")) || 1280);
-        const height = px3(opts.height, parseFloat(svg.getAttribute("height")) || 720);
-        const source = opts.hdr ? await resvgSource(svg, format, width, height) : { svg: "", placement: void 0 };
         const { bytes: bytes2, mime: mime2 } = await renderDeepRaster2({
-          svg: source.svg,
-          width,
-          height,
-          ...source.placement ? { placement: source.placement } : {},
+          svg: raw,
+          width: px3(opts.width, parseFloat(svg.getAttribute("width")) || 1280),
+          height: px3(opts.height, parseFloat(svg.getAttribute("height")) || 720),
           format,
           hdr: opts.hdr ?? null,
           depth: opts.depth,
@@ -193749,6 +193111,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         if (opts.durable) throw new Error("JPEG XL neural watermarking needs the browser engine.");
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("JPEG XL HTML rendering needs a browser engine.");
+        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { rasterizeSvgToRgba: rasterizeSvgToRgba2 } = await Promise.resolve().then(() => (init_raster3(), raster_exports));
         const { runJxl: runJxl2 } = await Promise.resolve().then(() => (init_jxl2(), jxl_exports));
         const { jxlWithXmp: jxlWithXmp2 } = await Promise.resolve().then(() => (init_jxl_container(), jxl_container_exports));
@@ -193761,8 +193124,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
         const width = px3(opts.width, parseFloat(svg.getAttribute("width")) || 1280);
         const height = px3(opts.height, parseFloat(svg.getAttribute("height")) || 720);
         if (width * height > 8e6 || width > 16384 || height > 16384) throw new Error("JPEG XL encoding is limited to 8 megapixels.");
-        const source = await resvgSource(svg, format, width, height);
-        const frame = await rasterizeSvgToRgba2(source.svg, width, height, source.placement);
+        const frame = await rasterizeSvgToRgba2(raw, width, height);
         const pixels3 = opts.imprint !== false && canCarryWatermark2(width, height) ? embedWatermark2(frame.data, { width, height, ...format === "jxl-lossless" ? { strength: LOSSLESS_STRENGTH2 } : {} }) : frame.data;
         const result = await runJxl2({ operation: "encode", bytes: pixels3, width, height, options: { quality: opts.quality, lossless: format === "jxl-lossless" } });
         return new Blob([jxlWithXmp2(result.bytes, (await Promise.resolve().then(() => (init_image_meta(), image_meta_exports))).buildExportXmp(opts.meta))], { type: "image/jxl" });
@@ -193770,16 +193132,19 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       if (format === "bmp") {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("BMP export requires an <svg> in the template (HTML-layout tools need a browser engine - use the desktop app)");
+        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const { rasterizeSvgToBmp: rasterizeSvgToBmp2 } = await Promise.resolve().then(() => (init_raster3(), raster_exports));
         const dpi = opts.dpi ?? 300;
         const px3 = (v, fallback) => {
           const d = parseDimension(v);
           return d ? Math.max(1, Math.round(toPixels(d, dpi))) : fallback;
         };
-        const width = px3(opts.width, parseFloat(svg.getAttribute("width")) || 1280);
-        const height = px3(opts.height, parseFloat(svg.getAttribute("height")) || 720);
-        const source = await resvgSource(svg, format, width, height);
-        const bytes2 = await rasterizeSvgToBmp2(source.svg, width, height, { imprint: opts.imprint !== false, placement: source.placement });
+        const bytes2 = await rasterizeSvgToBmp2(
+          raw,
+          px3(opts.width, parseFloat(svg.getAttribute("width")) || 1280),
+          px3(opts.height, parseFloat(svg.getAttribute("height")) || 720),
+          { imprint: opts.imprint !== false }
+        );
         return new Blob([bytes2], { type: "image/bmp" });
       }
       const { NODE_FORMATS: NODE_FORMATS2 } = await Promise.resolve().then(() => (init_raster3(), raster_exports));
@@ -194546,7 +193911,8 @@ function browserQueueOptions(env = process.env) {
 }
 
 // services/mcp/src/render.ts
-var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
+var ENGINE_TEXT_FORMATS = Object.keys(DATA_FORMATS);
+var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", ...ENGINE_TEXT_FORMATS]);
 var MAX_RASTER_EDGE_PX = 1e4;
 var DAY_MS = 864e5;
 async function readBackCredential(bytes2, setting, deliveredFormat) {
@@ -194668,12 +194034,28 @@ function mimeForFormat(fmt6) {
       return "text/calendar";
     case "vcf":
       return "text/vcard";
+    // The caption and palette files, with the types the engine's DATA_FORMATS gives
+    // them (test-pinned). SubRip, Scenarist and GIMP palettes have no registered type
+    // of their own, so they go as plain text.
+    case "srt":
+    case "scc":
+    case "gpl":
+      return "text/plain";
+    case "vtt":
+      return "text/vtt";
+    case "ttml":
+      return "application/ttml+xml";
+    case "css":
+      return "text/css";
+    case "scss":
+      return "text/x-scss";
     default:
       return "application/octet-stream";
   }
 }
+var TEXT_FORMATS = /* @__PURE__ */ new Set(["svg", "html", "md", "txt", "eps", "eps-cmyk", "dxf", ...ENGINE_TEXT_FORMATS]);
 function isTextFormat(fmt6) {
-  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt6));
+  return TEXT_FORMATS.has(normFormat(fmt6));
 }
 function targetPx(width, unit2, dpi) {
   if (!width || width <= 0) return void 0;
@@ -194801,23 +194183,8 @@ function resolveEmojiSetName(named, sets) {
 async function renderTierA(toolId, values, fmt6, opts, profile2, emoji, productionContract, tokenSelection, size = {}) {
   return withHost(profile2, async (dom, host, run3) => {
     const { runtime, canvas, warnings: warnings2 } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, size.canvas);
-    let resvg;
-    if (size.admit) {
-      const root2 = drawnRootSvg(canvas);
-      const { width: aw, height: ah } = size.admit;
-      const tool = await loadToolCached(toolId);
-      const layout2 = root2 && aw && ah ? readLayout(canvas, root2, aw, ah, tool.styles, tool.manifest.render) : { placement: { kind: "fill" }, refusals: [] };
-      const placement2 = layout2.placement;
-      const early = [...routeRefusals({ tool: toolAdmission(tool), paged: !!tool.manifest.render.paged, canvasPixels: pixelWorkCount(dom.window.document, host.raster) > 0 }), ...layout2.refusals];
-      if (early.length) throw new RenderError(new ResvgRefusedError(early).message);
-      resvg = { facts: {}, placement: placement2 };
-    }
     const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute("viewBox");
     const sized = svgSized ? { ...opts, width: size.svg.width, height: size.svg.height } : opts;
-    if (isDeepFormat(fmt6)) {
-      const loaded = await loadToolCached(toolId);
-      Object.assign(sized, { toolStyles: loaded.styles ?? null, resvgTool: toolAdmission(loaded) });
-    }
     let productionInputs;
     if (productionContract?.requirements.some((requirement) => requirement.kind === "input")) {
       const { productionInputFacts: productionInputFacts2 } = await Promise.resolve().then(() => (init_src2(), src_exports));
@@ -194832,22 +194199,11 @@ async function renderTierA(toolId, values, fmt6, opts, profile2, emoji, producti
     let blob;
     const drawn2 = { pictures: [], route: null };
     try {
-      blob = await runtime.export(canvas, fmt6, {
-        ...sized,
-        ingredientSink: drawn2.pictures,
-        onExportRoute: (record49) => {
-          drawn2.route = record49;
-        },
-        ...resvg ? { onDraftMark: (on3) => {
-          resvg.facts.draftMark = on3;
-        }, onFillNotice: () => {
-          resvg.facts.fallbackFaces = true;
-        } } : {}
-      });
-      if (resvg) resvg.facts.canvasPixels = pixelWorkCount(dom.window.document, host.raster) > 0;
+      blob = await runtime.export(canvas, fmt6, { ...sized, ingredientSink: drawn2.pictures, onExportRoute: (record49) => {
+        drawn2.route = record49;
+      } });
     } catch (e) {
       if (e instanceof DeepSourceError) throw new RenderError(e.message);
-      if (isResvgRefusal(e)) throw new RenderError(e.message);
       throw e;
     }
     const bytes2 = new Uint8Array(await blob.arrayBuffer());
@@ -194872,8 +194228,7 @@ async function renderTierA(toolId, values, fmt6, opts, profile2, emoji, producti
       // The metadata the export embedded, so the credential stamped below names
       // the same design system and colourway (plans/319).
       meta: runtime.lastExportMeta,
-      svgSized,
-      ...resvg ? { resvg } : {}
+      svgSized
     };
   }, tokenSelection ? { tokenSelection } : {});
 }
@@ -194887,12 +194242,9 @@ function maxRasterPixelsFor(env, hosted) {
   }
   return hosted ? HOSTED_MAX_RASTER_PIXELS : void 0;
 }
-async function svgToPng(svg, width, background, maxPixels, height, admit3) {
+async function svgToPng(svg, width, background, maxPixels, height) {
   const { Resvg } = await import("@resvg/resvg-js");
-  const both = !!(width && width > 0 && height && height > 0);
-  const size = (markup) => both ? admit3 ? placeSvg2(markup, width, height, admit3.placement) : sizeRootSvg(markup, width, height) : markup;
-  const source = svg;
-  svg = size(svg);
+  if (width && width > 0 && height && height > 0) svg = sizeRootSvg(svg, width, height);
   const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
   const iw = probe.width, ih = probe.height;
   if (!(iw > 0) || !(ih > 0)) throw new RenderError("SVG has no rasterisable size");
@@ -194901,11 +194253,6 @@ async function svgToPng(svg, width, background, maxPixels, height, admit3) {
   const capScale = Math.min(edgeScale, areaScale);
   const wantScale = width && width > 0 ? width / iw : 1;
   const scale = Math.min(wantScale, capScale);
-  if (admit3) {
-    const admitted3 = await admitForResvg(source, Math.max(1, Math.round(iw * scale)), Math.max(1, Math.round(ih * scale)), admit3.facts, admit3.placement);
-    if (admitted3.refusals.length) throw new RenderError(new ResvgRefusedError(admitted3.refusals).message);
-    svg = size(admitted3.svg);
-  }
   if (iw * scale < 1 || ih * scale < 1) {
     throw new RenderError("SVG aspect ratio is too extreme to rasterise within the size cap - export svg instead.");
   }
@@ -195013,7 +194360,7 @@ async function getBrowser2() {
         if (/executable doesn't exist|Executable doesn't exist|please run/i.test(msg3)) {
           const hosted = isHostedServer(process.env);
           throw new RenderError(
-            hosted ? `This format needs the browser render tier, which isn't enabled on this hosted endpoint. What renders here: vector formats (svg, eps, emf), the data formats (html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg - it works for every tool - or png for a simple vector tool (e.g. qr-code).` : `Chromium is not installed for the Tier-B render path. Run \`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
+            hosted ? `This format needs the browser render tier, which isn't enabled on this hosted endpoint. What renders here: vector formats (svg, eps, emf), the data and text formats (${["html", "md", ...ENGINE_TEXT_FORMATS].join(", ")}), and png for SVG-native tools. Try svg - it works for every tool - or png for a simple vector tool (e.g. qr-code).` : `Chromium is not installed for the Tier-B render path. Run \`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
           );
         }
         throw err;
@@ -195310,24 +194657,21 @@ async function renderCandidateBytes(toolId, query2, o = {}) {
     try {
       const requested = exportOpts(merged);
       const both = requested.width !== void 0 && requested.height !== void 0;
-      const px3 = targetPx(merged.width, merged.unit, merged.dpi);
-      const pxBoth = both ? targetPx(merged.height, merged.unit, merged.dpi) : void 0;
       const svg = await renderTierA(toolId, values, "svg", exportOpts({ ...merged, width: void 0, height: void 0, unit: "px" }), profile2, emoji, productionContract, st.tokenSelection, {
         canvas: canvasSize,
-        ...both ? { svg: { width: requested.width, height: requested.height } } : {},
-        admit: { ...px3 ? { width: px3 } : {}, ...pxBoth ? { height: pxBoth } : {} }
+        ...both ? { svg: { width: requested.width, height: requested.height } } : {}
       });
       placed2 = svg.ingredients;
       evaluation = svg.rights;
       recorded2 = svg.meta;
       warnings2.push(...svg.warnings);
+      const px3 = targetPx(merged.width, merged.unit, merged.dpi);
       const pxH = svg.svgSized ? targetPx(merged.height, merged.unit, merged.dpi) : void 0;
-      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px3, merged.background, o.maxRasterPixels, pxH, svg.resvg);
+      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px3, merged.background, o.maxRasterPixels, pxH);
       if (png.reduced) {
         warnings2.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels.toLocaleString("en")}-pixel raster limit. Ask for svg for a file that scales to any size.`);
       }
-      const finished2 = await finishTierAPng(png.png, { ...merged.unit ? { unit: merged.unit } : {}, ...merged.dpi ? { dpi: merged.dpi } : {} }, { meta: svg.meta, colorProfile: merged.colorProfile ?? null });
-      out = { bytes: finished2, mime: "image/png", tier: "A(resvg)", productionInputs: svg.productionInputs };
+      out = { bytes: png.png, mime: "image/png", tier: "A(resvg)", productionInputs: svg.productionInputs };
     } catch (e) {
       if (o.noBrowser) {
         throw e instanceof RenderError ? e : new RenderError(`SVG\u2192PNG render failed: ${e.message}`);
@@ -195585,7 +194929,7 @@ init_design_system2();
 init_src();
 init_content_roots();
 init_state_dir();
-import { existsSync as existsSync18, readFileSync as readFileSync11 } from "node:fs";
+import { existsSync as existsSync18, readFileSync as readFileSync9 } from "node:fs";
 import { isAbsolute as isAbsolute3, join as join32, resolve as resolve5 } from "node:path";
 var PRESET_ASSET_TAGS = ["slides", "rebrand-preset"];
 var PRESET_FILE_VERSION = 1;
@@ -195730,7 +195074,7 @@ function entriesOf(parsed) {
 function readPresetFile(file) {
   let text13;
   try {
-    text13 = readFileSync11(file, "utf8");
+    text13 = readFileSync9(file, "utf8");
   } catch (err) {
     throw new RebrandPresetError("preset.unreadable", `The preset file ${file} could not be read: ${err instanceof Error ? err.message : String(err)}`);
   }
@@ -198061,7 +197405,7 @@ async function sampleColors(src, opts, ctx) {
   const samples = points.map(([x, y]) => {
     if (!(x >= f.x && y >= f.y && x <= f.x + f.w && y <= f.y + f.h)) return { x, y, hex: null, note: "outside the document" };
     const c = sampleDisc(img, (x - box4.x) * (width / box4.w), (y - box4.y) * (height / box4.h), radius * pxPerUnit);
-    const near2 = c.hex ? nearestSwatch(c.hex, opts.swatches) : null;
+    const near = c.hex ? nearestSwatch(c.hex, opts.swatches) : null;
     return {
       x,
       y,
@@ -198069,7 +197413,7 @@ async function sampleColors(src, opts, ctx) {
       rgb: c.rgb,
       alpha: c.alpha,
       oklab: c.oklab,
-      ...near2 ? { nearest: { name: near2.swatch.name ?? null, path: near2.swatch.path ?? null, ref: near2.swatch.ref ?? null, value: near2.swatch.value, deltaE: near2.deltaE, verdict: near2.verdict } } : {}
+      ...near ? { nearest: { name: near.swatch.name ?? null, path: near.swatch.path ?? null, ref: near.swatch.ref ?? null, value: near.swatch.value, deltaE: near.deltaE, verdict: near.verdict } } : {}
     };
   });
   return { radius, samples };
@@ -198996,15 +198340,15 @@ var ToolCodeError = class extends Error {
     this.code = code;
   }
 };
-function base64Bytes(base642) {
-  const compact = base642.replace(/\s/g, "");
+function base64Bytes(base64) {
+  const compact = base64.replace(/\s/g, "");
   const padding = compact.endsWith("==") ? 2 : compact.endsWith("=") ? 1 : 0;
   return Math.max(0, Math.floor(compact.length * 3 / 4) - padding);
 }
 function fileArgLength(value2) {
   if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return 0;
-  const base642 = value2.base64;
-  return typeof base642 === "string" ? base642.replace(/\s/g, "").length : 0;
+  const base64 = value2.base64;
+  return typeof base64 === "string" ? base64.replace(/\s/g, "").length : 0;
 }
 function readFileArg2(value2, opts) {
   if (!value2 || typeof value2 !== "object" || Array.isArray(value2))
@@ -200772,7 +200116,7 @@ init_design_brief2();
 
 // packages/node-shell/src/token-report.ts
 init_src2();
-import { createHash as createHash14 } from "node:crypto";
+import { createHash as createHash13 } from "node:crypto";
 var TOKEN_REPORT_LIMITS = Object.freeze({
   /** Rows a token list returns when the caller gives no limit. */
   listDefault: 50,
@@ -200797,7 +200141,7 @@ var TokenReportError = class extends Error {
 };
 var clampWhole = (value2, fallback, min, max) => typeof value2 === "number" && Number.isFinite(value2) ? Math.min(max, Math.max(min, Math.trunc(value2))) : fallback;
 function tokenRevision(doc) {
-  return `sha256:${createHash14("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
+  return `sha256:${createHash13("sha256").update(canonicalJson(doc ?? null)).digest("hex")}`;
 }
 function storedTokenChoices(doc) {
   return resolveTokenSelection(doc, {}).choices;
@@ -200898,9 +200242,9 @@ function traceToken(inspection, path, depth = TOKEN_REPORT_LIMITS.depthDefault) 
 function similarTokenPaths(inspection, path, count4 = 5) {
   const wanted = path.toLowerCase();
   const leaf = wanted.split(".").pop() ?? wanted;
-  const near2 = inspection.tokens.filter((t) => t.path.toLowerCase().includes(wanted));
-  const others = inspection.tokens.filter((t) => !near2.includes(t) && leaf && t.path.toLowerCase().split(".").pop() === leaf);
-  return [...near2, ...others].slice(0, count4).map((t) => t.path);
+  const near = inspection.tokens.filter((t) => t.path.toLowerCase().includes(wanted));
+  const others = inspection.tokens.filter((t) => !near.includes(t) && leaf && t.path.toLowerCase().split(".").pop() === leaf);
+  return [...near, ...others].slice(0, count4).map((t) => t.path);
 }
 function tokenReport(doc, opts) {
   const requested = {
@@ -200915,8 +200259,8 @@ function tokenReport(doc, opts) {
   if (opts.token !== void 0) {
     const found = traceToken(inspection, opts.token, opts.depth);
     if (!found) {
-      const near2 = similarTokenPaths(inspection, opts.token);
-      throw new TokenReportError("token.unknown", `This document has no token ${opts.token}.${near2.length ? ` Similar paths: ${near2.join(", ")}.` : " Pass query to search the paths."}`);
+      const near = similarTokenPaths(inspection, opts.token);
+      throw new TokenReportError("token.unknown", `This document has no token ${opts.token}.${near.length ? ` Similar paths: ${near.join(", ")}.` : " Pass query to search the paths."}`);
     }
     trace = found;
   }
@@ -202411,7 +201755,7 @@ init_src2();
 init_src();
 init_file_v1();
 init_design_lolly();
-import { createHash as createHash15 } from "node:crypto";
+import { createHash as createHash14 } from "node:crypto";
 
 // schemas/design-package-v1.schema.json
 var design_package_v1_schema_default = {
@@ -202916,7 +202260,7 @@ async function callPackage(args, resolveDesign, env = process.env, limits = stru
       } catch (err) {
         throw new ToolCodeError("input.unsupported", `The compiled document could not be packaged: ${err instanceof Error ? err.message : String(err)}`);
       }
-      const sha2563 = createHash15("sha256").update(packed2.bytes).digest("hex");
+      const sha2563 = createHash14("sha256").update(packed2.bytes).digest("hex");
       const name2 = "document.lolly";
       const structured = { legacy: true, manifest: packed2.manifest, bytes: packed2.bytes.byteLength, sha256: sha2563 };
       const block2 = { type: "resource", resource: { uri: resourceUri2("package", sha2563, name2), mimeType: LOLLY_MIME2, blob: Buffer.from(packed2.bytes).toString("base64") } };
@@ -202981,7 +202325,7 @@ function isFileTransform(manifest) {
 // services/mcp/src/result-files.ts
 init_file_v1();
 init_delivery_v1();
-import { createHash as createHash16, createHmac, randomUUID as randomUUID3 } from "node:crypto";
+import { createHash as createHash15, createHmac, randomUUID as randomUUID3 } from "node:crypto";
 import { mkdtemp as mkdtemp4, readFile as readFile33, writeFile as writeFile7, unlink, rm as rm6 } from "node:fs/promises";
 import { tmpdir as tmpdir5 } from "node:os";
 import { join as join35 } from "node:path";
@@ -202993,7 +202337,7 @@ var ENTRY_LIMIT = 200;
 var PATH_PATTERN = /^\/api\/mcp\/files\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function bearerPrincipal(header) {
   const bearer = /^Bearer\s+(.+)$/i.exec(header ?? "")?.[1]?.trim();
-  return bearer ? createHash16("sha256").update(bearer).digest("hex") : null;
+  return bearer ? createHash15("sha256").update(bearer).digest("hex") : null;
 }
 function privateFileScopeEnabled(env) {
   return env.LOLLY_MCP_PRIVATE_FILES === "1" && !!env.LOLLY_MCP_TOKEN?.trim() && !env.VERCEL && (env.LOLLY_MCP_REPLICAS === void 0 || env.LOLLY_MCP_REPLICAS === "1");
@@ -203055,7 +202399,7 @@ var ResultFiles = class {
       this.directory ??= mkdtemp4(join35(tmpdir5(), "lolly-mcp-results-"));
       file = join35(await this.directory, id3);
       await writeFile7(file, bytes2, { flag: "wx", mode: 384 });
-      const digest2 = createHash16("sha256").update(bytes2).digest("hex");
+      const digest2 = createHash15("sha256").update(bytes2).digest("hex");
       const dt = await signDeliveryToken({ v: 1, kid: "mcp1", exp: expires, cls: "person-private" }, path, { canonicalHost: base.host, subject: owner3 }, await this.key(base.host, secret));
       const filename = safeFileName(name);
       this.entries.set(id3, { owner: owner3, path, file, expires, size: bytes2.byteLength, sha256: digest2, mime: /^[\w.+-]+\/[\w.+-]+(?:;[\x20-\x7e]*)?$/.test(mime2) ? mime2 : "application/octet-stream", name: filename });
@@ -203084,7 +202428,7 @@ var ResultFiles = class {
     const status = await verifyDeliveryToken(token2, path, { canonicalHost: host, cls: "person-private", pattern: PATH_PATTERN, subject: owner3, maxSkewSec: 0 }, /* @__PURE__ */ new Map([["mcp1", await this.key(host, secret)]]), Math.floor(this.now() / 1e3));
     if (status !== "ok") return null;
     const bytes2 = await readFile33(entry2.file);
-    if (bytes2.byteLength !== entry2.size || createHash16("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
+    if (bytes2.byteLength !== entry2.size || createHash15("sha256").update(bytes2).digest("hex") !== entry2.sha256) throw new Error("Private result integrity check failed.");
     if (entry2.expires <= Math.floor(this.now() / 1e3)) return null;
     return { bytes: bytes2, mime: entry2.mime, name: entry2.name, etag: `"${entry2.sha256}"` };
   }
@@ -204441,7 +203785,7 @@ init_file_operation_v1();
 init_file_v1();
 import { open as open2 } from "node:fs/promises";
 import { basename as basename4 } from "node:path";
-import { createHash as createHash17 } from "node:crypto";
+import { createHash as createHash16 } from "node:crypto";
 
 // packages/core/src/image-operation-v1.ts
 var DEFAULT_IMAGE_OPTIONS = { maxEdge: 0, quality: 0.92, background: "#ffffff" };
@@ -204585,7 +203929,7 @@ async function describeOperationFile(file, signal) {
   const format = detected === "jpg" ? "jpeg" : detected ?? file.name.split(".").pop()?.toLowerCase() ?? "unknown";
   const jxl = isJxl(bytes2) ? (await runJxl({ operation: "probe", bytes: bytes2 }, signal)).info : void 0;
   const dimensions = jxl ? { w: jxl.width, h: jxl.height } : imageDimensions(bytes2, file.type);
-  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash17("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
+  return { name: file.name, format, formatSource: detected ? "detected" : "declared", mime: mime[format] ?? (file.type || "application/octet-stream"), size: file.size, sha256: createHash16("sha256").update(bytes2).digest("hex"), ...dimensions ? { width: dimensions.w, height: dimensions.h } : {} };
 }
 async function runNodeFileOperation(file, request3, signal, execution = "device") {
   return executeFileOperationV1(file, request3, {
@@ -205191,10 +204535,10 @@ async function dispatch(req, context = {}) {
 
 // services/mcp/src/render-get.ts
 init_src2();
-import { createHash as createHash19 } from "node:crypto";
+import { createHash as createHash18 } from "node:crypto";
 
 // services/mcp/src/rate-limit.ts
-import { createHash as createHash18 } from "node:crypto";
+import { createHash as createHash17 } from "node:crypto";
 var RateLimitUnavailableError = class extends Error {
   code = "rate-limit-unavailable";
   constructor(message = "Durable rate limiter is unavailable") {
@@ -205327,7 +204671,7 @@ function createRateLimiter(env, namespace3 = "mcp", onWrite) {
   return new MemoryRateLimiter();
 }
 function digestKey(namespace3, scope2, subject) {
-  return createHash18("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
+  return createHash17("sha256").update(namespace3).update("\0").update(scope2).update("\0").update(subject).digest("hex");
 }
 function normalizeRestUrl(raw) {
   let url;
@@ -205797,10 +205141,10 @@ async function renderGet(path, query2, opts) {
   for (const key2 of dropped) params2.delete(key2);
   const sorted = new URLSearchParams(params2);
   sorted.sort();
-  const etag = `"${createHash19("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt6}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
+  const etag = `"${createHash18("sha256").update(`${ENGINE_VERSION}|${index2.version}|${index2.generatedAt}|${match.toolId}.${fmt6}?${sorted.toString()}`).digest("hex").slice(0, 32)}"`;
   const cacheHeaders = {
     ...deliveryHeaders("public-bounded", { tokenBearing: true }),
-    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash19("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
+    "cache-tag": renderTags([tag("x", "public-bounded"), tag("t", match.toolId), tag("e", ENGINE_VERSION.toLowerCase()), tag("c", createHash18("sha256").update(`${index2.version}|${index2.generatedAt}`).digest("hex").slice(0, 12))], "comma"),
     vary: "Accept-Encoding",
     etag,
     "x-robots-tag": "noindex"
@@ -205889,7 +205233,7 @@ function renderFailure(e) {
 }
 
 // services/mcp/src/image-proxy.ts
-import { createHash as createHash20 } from "node:crypto";
+import { createHash as createHash19 } from "node:crypto";
 init_delivery_v1();
 var PATH_RE2 = /\/fetch-image$/;
 function matchImageProxyPath(path) {
@@ -205997,13 +205341,13 @@ async function proxyImage(reqUrl, opts) {
     if (name === "TimeoutError" || name === "AbortError") return errorResponse2(504, "That address took too long to answer.");
     return errorResponse2(502, `Couldn't fetch that URL: ${e.message}`);
   }
-  const etag = `"${createHash20("sha256").update(bytes2).digest("hex")}"`;
+  const etag = `"${createHash19("sha256").update(bytes2).digest("hex")}"`;
   const headers = {
     "content-type": rawType,
     ...deliveryHeaders(privateResponse ? "person-private" : "public-bounded", { boundedAgeSec: cacheAge, tokenBearing: true }),
     etag,
     vary: "Accept-Encoding",
-    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash20("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
+    ...!privateResponse ? { "cache-tag": renderTags([tag("x", "public-bounded"), tag("u", createHash19("sha256").update(parsed.toString()).digest("hex").slice(0, 12))], "comma") } : {},
     "content-security-policy": "sandbox",
     "x-content-type-options": "nosniff",
     "content-disposition": "inline",
@@ -206284,7 +205628,7 @@ function errorPage(message) {
 }
 
 // services/mcp/src/gateway.ts
-import { createHash as createHash21 } from "node:crypto";
+import { createHash as createHash20 } from "node:crypto";
 
 // services/mcp/src/admission-namespace.ts
 function admissionNamespace(env) {
@@ -206652,7 +205996,7 @@ function createGateway(env = process.env, options2 = {}) {
         return;
       }
       const auth = String(req.headers["authorization"] || "anonymous");
-      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash21("sha256").update(auth).digest("hex");
+      const principal = open3 ? `ip:${clientIp(req, env)}` : createHash20("sha256").update(auth).digest("hex");
       const refusal3 = await limited2(limiter, "mcp", principal, positiveInt(env.LOLLY_MCP_RPM, open3 ? 60 : 120));
       if (refusal3) return send(res, refusal3);
       const spent = await overBudget(budget3);

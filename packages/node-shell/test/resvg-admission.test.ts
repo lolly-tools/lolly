@@ -213,7 +213,7 @@ test('a wrapper that paints a ground under an uncovered band, or a stylesheet gr
 test('placeSvg draws a top placement from the top, where the default centres it', async () => {
   const svg = svgDoc('<rect width="200" height="100" fill="#000"/>', 'viewBox="0 0 200 100" width="200" height="100"');
   assert.match(placeSvg(svg, 200, 200, { kind: 'top' }), /^<svg xmlns="http:\/\/www.w3.org\/2000\/svg" width="200" height="200" viewBox="0 0 200 200"><svg [^>]*viewBox="0 0 200 100" x="0" y="0" width="200" height="100">/);
-  const top = await rasterizeSvgToRgba(svg, 200, 200, { kind: 'top' });
+  const top = await rasterizeSvgToRgba(svg, 200, 200, { placement: { kind: 'top' } });
   const centred = await rasterizeSvgToRgba(svg, 200, 200);
   const alphaAt = (d: Uint8Array, y: number) => d[(y * 200 + 100) * 4 + 3];
   assert.equal(alphaAt(top.data, 10), 255);
@@ -223,7 +223,7 @@ test('placeSvg draws a top placement from the top, where the default centres it'
   // The drawing stays its own viewport: a 100% rect keeps the drawing's height, and what
   // lies past its bottom edge stays clipped, as in the browser.
   const full = svgDoc('<rect width="100%" height="100%" fill="#000"/><rect y="100" width="200" height="50" fill="#f00"/>', 'viewBox="0 0 200 100" width="200" height="100"');
-  const placed = await rasterizeSvgToRgba(full, 200, 200, { kind: 'top' });
+  const placed = await rasterizeSvgToRgba(full, 200, 200, { placement: { kind: 'top' } });
   assert.equal(alphaAt(placed.data, 99), 255);
   assert.equal(alphaAt(placed.data, 120), 0, 'nothing below the drawing: the 100% rect did not grow and the overflow stayed clipped');
 });

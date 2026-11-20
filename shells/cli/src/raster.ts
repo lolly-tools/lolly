@@ -31,11 +31,11 @@ interface Runtime {
   madeWith?(): boolean;
   getHydrated(): string;
   getModel(): unknown;
-  /** The metadata record the last export embedded, for the browser-free PNG's chunks. */
-  readonly lastExportMeta?: import('@lolly-tools/core/host-v1').ExportMeta | null;
   /** Draw every emoji in a freshly hydrated tree from the chosen set. */
   applyEmojiToDom(node: unknown): Promise<unknown>;
   export(node: unknown, format: string, opts?: object): Promise<Blob>;
+  /** The metadata record of the last export this runtime made, or null. */
+  readonly lastExportMeta?: import('@lolly-tools/core/host-v1').ExportMeta | null;
 }
 interface Manifest { id: string; render?: { width?: number; height?: number; paged?: boolean } }
 
@@ -51,6 +51,10 @@ export interface RasterResult {
    *  "tear the browser down"; the Content Credential is still stamped in Node, because
    *  the file the browser produced is not the file being written. */
   nodeEncoded?: boolean;
+  /** A Design page drawn here (plan 371, M3a): the route the credential records. */
+  route?: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord;
+  /** ...and the credentialed pictures that page drew, for the credential's ingredients. */
+  ingredients?: import('@lolly-tools/core/host-v1').IngredientCredential[];
 }
 
 /** The `hdr=` / `depth=` half of a render request. `RenderDims` deliberately does not
@@ -108,6 +112,8 @@ export async function renderRaster(opts: {
   styles?: string | null;
   /** Whether this tool may take the browser-free route (resvg-admission.ts `toolAdmission`). */
   tool: ToolRouteFact;
+  /** Where the line that says which renderer drew a Design PNG goes. */
+  log?: (line: string) => void;
 }): Promise<RasterResult> {
   const { runtime, dom, manifest } = opts;
   const floatEditing = (runtime.getModel() as ModelItem[]).some(item => item.id === 'editingRange' && item.value === 'hdr') || manifest.id === 'design' && !!opts.dims.hdr;
@@ -138,6 +144,9 @@ export async function renderRaster(opts: {
   // the detection floor comes back null and writes the ordinary PNG - the browser
   // could not have marked it either.
   //
+  // A Design page is not this branch's: its PNG has a route of its own just below, which
+  // draws the page at the size the browser tier draws it and records that route.
+  //
   // Print prep falls through too, as a BACKSTOP. resvg is handed the tool's own SVG and
   // knows nothing about a bleed box or crop marks, so Tier A used to accept --bleed /
   // --marks and produce bytes identical to a run without them: no marks, no warning,
@@ -149,7 +158,10 @@ export async function renderRaster(opts: {
   // browser does. Anything else is handed to Tier B with the reason printed, and where
   // Tier B cannot run the job fails with that reason instead of writing a wrong picture.
   let refused: ResvgRefusal[] | null = null;
-  if (!sampled && !floatEditing && eligibleForResvgPng(fmt, dims)) {
+  if (!sampled && !floatEditing && manifest.id === 'design' && fmt === 'png') {
+    const still = await renderDesignStill(runtime, dom, dims, opts.log ?? ((line) => note(`[info] ${line}`)), opts.initial);
+    if (still) return still;
+  } else if (!sampled && !floatEditing && eligibleForResvgPng(fmt, dims)) {
     const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.tool, opts.pixelWork, opts.styles);
     if (tierA && 'svg' in tierA) {
       // Shared Tier-A rasteriser (node-shell): imprint, placement and the browser's PNG
@@ -209,6 +221,48 @@ async function renderTierB(opts: Parameters<typeof renderRaster>[0], fmt: string
   const { renderViaWebShell } = await import('@lolly-tools/node-shell/webshell-render');
   const { bytes } = await renderViaWebShell(manifest.id, query, fmt, dims);
   return { bytes, usedBrowser: true };
+}
+
+/**
+ * A Design PNG drawn here from the drawing operations through resvg (plan 371, M3a), or
+ * null for the browser render tier. Drawn here when no browser tier is available, where
+ * the export would otherwise fail, or when LOLLY_DESIGN_RASTER=resvg asks for it; and
+ * only for a page this route draws as the browser draws that page. Each decision is one line
+ * through `log`, with its reason, so the renderer is never chosen silently.
+ */
+async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims & HdrStillRequest, log: (line: string) => void, initial?: Record<string, unknown>): Promise<RasterResult | null> {
+  const { designStillDecision, designStillNote, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
+  const { describeDesignExportRoute } = await import('../../../engine/src/design-export-route.ts');
+  const decision = designStillDecision();
+  if (decision.ignored !== undefined) warn('DESIGN_RASTER_IGNORED', `LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto or resvg), so the default applies.`);
+  const toBrowser = (reasons: string[]): null => {
+    log(`Design PNG export: handed to the browser render tier because ${reasons.join('; ')}.`);
+    return null;
+  };
+  if (decision.draw === 'browser') return toBrowser([decision.because]);
+  const canvas = dom.window.document.getElementById('canvas');
+  if (!canvas) return toBrowser(['this shell has no canvas to draw the page from']);
+  canvas.innerHTML = runtime.getHydrated();
+  await runtime.applyEmojiToDom(canvas);
+  // A bad --s is a usage error, as on every other path, never a reason to draw elsewhere.
+  const picked = pickFramePage(canvas, dims.slide);
+  // A picture made by another tool that this shell could not compose is an empty slot in
+  // the document here; the browser tier composes it (restoreToolLinks), so the page goes there.
+  const frameId = picked?.node.getAttribute('data-frame-id');
+  const uncomposed = initial && frameId ? uncomposedToolLinks(runtime.getModel() as ModelItem[], initial, frameId) : [];
+  if (uncomposed.length) return toBrowser([`the picture in ${uncomposed.join(', ')} is made by another tool, which this shell could not compose`]);
+  const result = await drawDesignStill({
+    exportSvg: (node, exportOpts) => runtime.export(node, 'svg', exportOpts),
+    meta: () => runtime.lastExportMeta ?? null,
+    page: picked?.node ?? null,
+    rows: (runtime.getModel() as ModelItem[]).find((item) => item.id === 'boxes')?.value as unknown[] | undefined,
+    dims,
+  });
+  if ('refused' in result) return toBrowser(result.refused);
+  const { drawn } = result;
+  log(`${describeDesignExportRoute('png', drawn.route, [decision.because]).replace(/\.$/, '')}, ${drawn.width} x ${drawn.height} px, with no browser.`);
+  note(`Note: ${designStillNote(decision)}`);
+  return { bytes: drawn.bytes, usedBrowser: false, imprinted: drawn.imprinted, route: drawn.route, ingredients: drawn.ingredients };
 }
 
 /** The emoji params of a render, spelled as the URL spells them, with the empty ones left out. */
@@ -286,6 +340,28 @@ export function restoreToolLinks(model: readonly ModelItem[], initial: Record<st
     });
     return changed ? { ...input, value } : input;
   });
+}
+
+/**
+ * The inputs, and the rows of one Design page, whose tool link this shell dropped: the
+ * ones `restoreToolLinks` would put back. A row counts when it is the page's frame or
+ * sits on that page; any other input counts wherever it is, since it may draw on any page.
+ */
+export function uncomposedToolLinks(model: readonly ModelItem[], initial: Record<string, unknown>, frameId: string): string[] {
+  const restored = restoreToolLinks(model, initial);
+  const out: string[] = [];
+  restored.forEach((input, i) => {
+    const before = model[i]!;
+    if (input === before) return;
+    if (input.type !== 'blocks' || !Array.isArray(input.value)) { out.push(input.id); return; }
+    const rows = before.value as unknown[];
+    input.value.forEach((row, j) => {
+      if (row === rows[j] || !row || typeof row !== 'object') return;
+      const r = row as Record<string, unknown>;
+      if (String(r.id ?? '') === frameId || String(r.frame ?? '') === frameId) out.push(String(r.id ?? j));
+    });
+  });
+  return out;
 }
 
 /**
@@ -396,7 +472,7 @@ async function renderHdrStill(opts: {
   if (tierA && 'refusals' in tierA) note(`Note: ${resvgRefusalSentence(tierA.refusals)} Taking the source pixels from the browser render tier.`);
   if (tierA && 'svg' in tierA) {
     const { width, height } = pxDims(dims, manifest);
-    frame = await rasterizeSvgToRgba(tierA.svg, width, height, tierA.placement);
+    frame = await rasterizeSvgToRgba(tierA.svg, width, height, { placement: tierA.placement });
   } else {
     const sourceDims: RenderDims = { ...dims, hdrParam: undefined, depth: undefined, imprint: false, c2pa: false };
     let bytes: Uint8Array;
