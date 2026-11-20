@@ -192,6 +192,11 @@
   width: calc(22px * var(--a11y-fs));
   height: calc(22px * var(--a11y-fs));
 }
+/* The count on the swirl hangs past the button's corner, so the round clip above cut
+   the badge in half. parts/topbar.css lifts the clip for a button with a count, but that
+   sheet is layered and this one is not, so the lift has to be restated here to win. The
+   mark and the headshot are round by themselves and need no clip. */
+.design-topbar .profile-link:has(.notification-badge:not([hidden])) { overflow: visible; }
 /* Icon only in the bar: the name would push Export off a narrow window. */
 .design-topbar .profile-link-name { display: none; }
 

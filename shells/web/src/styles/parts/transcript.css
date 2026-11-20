@@ -14,6 +14,8 @@
      edge; the padding lifts the footer out of the iOS home-indicator strip
      (0px where there is no inset - the stu-sheet idiom). */
   padding-bottom: var(--safe-bottom, 0px);
+  /* And the header out from under the status bar, the same way. */
+  padding-top: var(--safe-top, 0px);
   background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
   border-left: 1px solid hsl(var(--border));
   /* No drop shadow declared here: when docked, .edge-dock casts its own; the mobile

@@ -469,6 +469,8 @@ button.cat-download { font: inherit; cursor: pointer; }
   position: fixed; inset: 0; z-index: 60;
   display: flex; flex-direction: column; gap: .5rem;
   margin: 0; padding: clamp(.75rem, 3vw, 2rem);
+  /* The whole screen, so the top padding takes in the status bar (0 where there is none). */
+  padding-top: calc(clamp(.75rem, 3vw, 2rem) + var(--safe-top));
   background: hsl(var(--background));
 }
 

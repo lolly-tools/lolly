@@ -26,7 +26,7 @@
      the asset grids are happy at the same measure. Narrower than the verify
      report, which has to fit several boxed sections side by side. */
   width: 100%; max-width: min(1080px, 94vw); margin: 0 auto;
-  padding: 3.25rem 1.25rem 5rem; /* top clears the fixed back pill */
+  padding: calc(3.25rem + var(--safe-top)) 1.25rem 5rem; /* top clears the fixed back pill, which sits below the status bar */
 }
 
 /* ─── drop zone ─────────────────────────────────────────────────────────────── */

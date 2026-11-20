@@ -2,6 +2,14 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
+  <!-- The cascade layer order, stated in the document before any stylesheet.
+       styles/app.css states the same line, but a layer is ranked where it is
+       first named, and a production build can link a view chunk's stylesheet
+       ahead of the main one: both Tauri shells do. There `views` was first named
+       by that chunk and so ranked below `chrome`, and every chrome rule beat the
+       view rule written to override it. Keep in step with styles/app.css
+       (styles/layer-order-contract.test.ts). -->
+  <style>@layer perf, vendor, base, primitives, chrome, views, overrides, a11y;</style>
   <!-- Canonical-origin guard. Runs before the deferred module scripts, so it
        fires while the head parses. The lolly.* domain family funnels to the
        canonical host (lolly.tools on this SUSE build) via Vercel redirects, but

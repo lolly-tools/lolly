@@ -715,6 +715,8 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
   border-left: 1px solid hsl(var(--border));
   box-shadow: -14px 0 44px hsl(0 0% 0% / .28);
   animation: pro-blk-slide .18s ease;
+  /* Full height, so its header starts under the status bar unless the panel pads. */
+  padding-top: var(--safe-top);
 }
 @keyframes pro-blk-slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
 /* 561-640px windows fall between this and the clamp() floor above, otherwise left

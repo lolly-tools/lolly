@@ -188,7 +188,7 @@ html[data-a11y-previews="hidden"] .app-history-cover img { filter: saturate(.5) 
 
 @media (max-width: 960px) {
   .app-history.has-detail .app-history-content { grid-template-columns: minmax(0, 1fr); }
-  .app-history.has-detail .app-history-detail { position: fixed; inset: 0 0 0 auto; top: 0; width: min(100%, 420px); height: 100dvh; box-sizing: border-box; z-index: var(--ui-layer-overlay); box-shadow: var(--ui-elevation-sheet); }
+  .app-history.has-detail .app-history-detail { position: fixed; inset: 0 0 0 auto; top: 0; width: min(100%, 420px); height: 100dvh; box-sizing: border-box; padding-top: var(--safe-top, 0px); z-index: var(--ui-layer-overlay); box-shadow: var(--ui-elevation-sheet); }
 }
 @media (max-width: 640px) {
   .app-history { padding-inline: var(--sp-7); padding-block-start: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4)); }
