@@ -2034,7 +2034,7 @@ const ASSURE_DOC_LINKS = (lang: Lang) => {
 function importBand(lang: Lang, opts: { cta?: boolean } = {}): string {
   const showCta = opts.cta !== false;
   const importData = loadSiteJson('import.json', lang) as {
-    eyebrow: string; heading: string; lead: string;
+    heading: string; lead: string;
     sources: { mono: string; name: string; fmt: string; color: string }[];
     flow: { icon: string; title: string; desc: string }[];
     points: { icon: string; title: string; desc: string }[];
@@ -2045,7 +2045,6 @@ function importBand(lang: Lang, opts: { cta?: boolean } = {}): string {
     <div class="import-lede reveal">
       ${credentialedMascot('/info/mascots/kookaburra.webp', 'import-mascot')}
       <div class="import-lede-text">
-        <span class="import-eyebrow">${esc(importData.eyebrow)}</span>
         <h2>${esc(importData.heading)}</h2>
         <p class="import-lead">${inline(importData.lead)}</p>
       </div>
@@ -2762,13 +2761,12 @@ function coversScript(): string {
  */
 function workBand(lang: Lang): string {
   const w = loadLandingJson<WorkJson>('work.json');
-  void lang;
   // Source order is the reading order: the copy, the points, then the two links. The
   // stylesheet lifts the links beside the copy on a wide screen.
   return `<section class="work-section" id="work">
   <div class="work-inner reveal">
     <div class="work-copy">
-      <p class="work-eyebrow">${esc(w.eyebrow)}</p>
+      ${crumbsHtml([{ label: w.eyebrow, href: localeHref(lang, 'organisation') }], 'work-crumbs')}
       <h2 class="work-heading">${esc(w.heading)}</h2>
       <p class="work-line">${esc(w.line)}</p>
     </div>
@@ -3138,9 +3136,8 @@ function renderFormatSideDoor(model: FormatPageModel, lang: Lang): string {
     : t('This format carries no Content Credential');
   const feats = model.featureLabels
     .map((label) => `<li>${esc(label)}</li>`).join('');
-  const cat = FMT_CAT_ICON[model.category] || '';
   return `<article class="sidedoor page-format">
-    <div class="sidedoor-eyebrow">${cat}<span>${esc(t('Format'))} · ${esc(model.category)}</span></div>
+    ${crumbsHtml([{ label: t('Formats'), href: localeHref(lang, 'formats') }, { label: model.category }])}
     <h1>${esc(model.name)}</h1>
     <p class="sidedoor-full">${esc(model.full)}</p>
     <p class="sidedoor-dir">${sideDoorDirLine(model.dir)}</p>
@@ -3184,7 +3181,7 @@ function renderConvertSideDoor(model: ConvertPageModel, lang: Lang): string {
   const carryLine = `${t('What carries over')}: ${carryNames}${carryTail}`;
   const outFeats = model.outFeatureLabels.map((label) => `<li>${esc(label)}</li>`).join('');
   return `<article class="sidedoor page-convert">
-    <div class="sidedoor-eyebrow">${DOC_ICONS.convert}<span>${esc(t('Convert'))}</span></div>
+    ${crumbsHtml([{ label: t('Formats'), href: localeHref(lang, 'formats') }])}
     <h1>${esc(model.title)}</h1>
     <div class="sidedoor-convert-cols">
       <div class="sidedoor-col">
@@ -3396,8 +3393,7 @@ function renderMusicGenrePage(copy: GenreCopy, group: GenreCategory, lang: Lang)
     ],
   };
   return `<article class="sidedoor music-genre">
-    <nav class="music-crumbs" aria-label="${esc(t('Breadcrumb'))}"><a href="${esc(localeHref(lang, MUSIC_HUB))}">${esc(t('Free background music'))}</a> <span aria-hidden="true">/</span> <span>${esc(musicGroupLabel(group))}</span></nav>
-    <div class="sidedoor-eyebrow">${genreIconSvg(mood, 24)}<span>${esc(t('Background music'))} · ${esc(title)}</span></div>
+    ${crumbsHtml([{ label: t('Free background music'), href: localeHref(lang, MUSIC_HUB) }, { label: musicGroupLabel(group) }])}
     <h1>${esc(copy.title)}</h1>
     <p class="sidedoor-lead">${esc(copy.lead)}</p>
     ${musicSampleHtml(mood, sample)}
@@ -3855,8 +3851,9 @@ ${LANDING_CSS}
 .docs-wrap{display:grid;grid-template-columns:13.75rem 1fr;max-width:73.75rem;margin:0 auto;min-height:calc(100vh - 3.5rem - 60px)}
 .docs-sidebar{padding:2rem 1.25rem;border-right:1px solid var(--border);position:sticky;top:var(--site-bar-h);height:calc(100vh - var(--site-bar-h));overflow-y:auto}
 /* Format / convert side-door pages (plan 116 workstream A). */
-.sidedoor-eyebrow{display:flex;align-items:center;gap:.5rem;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--green);margin-bottom:.75rem}
-.sidedoor-eyebrow svg{width:1.25rem;height:1.25rem}
+/* A generated page opens on the same trail as every other page (crumbsHtml). It has no
+   page bar on a phone to give the way back, so its trail shows at every width. */
+.sidedoor>.docs-crumbs{display:flex;margin:0 0 1rem}
 .sidedoor .sidedoor-full{color:var(--muted);font-size:1.0625rem;margin:-1rem 0 1.25rem}
 .sidedoor-dir{font-weight:600;margin:0 0 1rem}
 .sidedoor-lead{font-size:1.0625rem;line-height:1.7;margin-bottom:1.5rem}
@@ -3884,8 +3881,6 @@ ${LANDING_CSS}
 .sidedoor-foot-link{font-weight:700;text-decoration:none;color:var(--green)}
 .sidedoor-foot-link:hover{text-decoration:underline}
 /* The music genre pages and the background music hub (renderMusicGenrePage, musicGridHtml). */
-.music-crumbs{font-size:.8125rem;color:var(--muted);margin:0 0 1rem}
-.music-crumbs a{color:inherit}
 .music-sample{margin:0 0 1.25rem;padding:1rem 1.15rem;background:hsl(var(--card));border:1px solid var(--border);border-radius:.75rem}
 .music-sample audio{display:block;width:100%}
 .music-sample figcaption{margin-top:.6rem;font-size:.875rem;line-height:1.5;color:var(--muted)}
@@ -6761,6 +6756,14 @@ function repeatsPathwayTitle(groupLabel: string, pathwayTitle: string): boolean 
  * is a link to its page. A group is a heading in the rail with no page of its own, so it
  * is text.
  */
+/** The one breadcrumb trail: the steps above a page, each a link where the step has a page
+ *  of its own and plain text where it does not. Never the page's own name. */
+function crumbsHtml(steps: ReadonlyArray<{ label: string; href?: string }>, extraClass = ''): string {
+  if (!steps.length) return '';
+  const items = steps.map((s) => `<li>${s.href ? `<a href="${esc(s.href)}">${esc(s.label)}</a>` : esc(s.label)}</li>`).join('');
+  return `<ol class="docs-crumbs${extraClass ? ` ${extraClass}` : ''}">${items}</ol>`;
+}
+
 function pageWayfinding(lang: Lang, page: Page): { trail: string; pager: string } {
   const pathway = page.pathway;
   if (!pathway) return { trail: '', pager: '' };
@@ -6778,7 +6781,7 @@ function pageWayfinding(lang: Lang, page: Page): { trail: string; pager: string 
   const groupLabel = group && !repeatsPathwayTitle(group.label, sb.title) && !repeatsPage(group.label) ? group.label : '';
   const trail = page.slug === hub || repeatsPage(sb.title)
     ? ''
-    : `<ol class="docs-crumbs"><li><a href="${localeHref(lang, hub)}">${esc(t(sb.title))}</a></li>${groupLabel ? `<li>${esc(t(groupLabel))}</li>` : ''}</ol>`;
+    : crumbsHtml([{ label: t(sb.title), href: localeHref(lang, hub) }, ...(groupLabel ? [{ label: t(groupLabel) }] : [])]);
   const link = (it: { slug: string; label: string } | undefined, dir: 'prev' | 'next'): string => it
     ? `<a class="docs-pager-link docs-pager-${dir}" href="${localeHref(lang, it.slug)}" rel="${dir}"><span class="docs-pager-dir">${esc(t(dir === 'prev' ? 'Previous' : 'Next'))}</span><span class="docs-pager-title">${esc(t(it.label))}</span></a>`
     : '<span class="docs-pager-link docs-pager-empty" aria-hidden="true"></span>';

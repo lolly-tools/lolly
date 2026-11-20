@@ -462,7 +462,7 @@ function familyHtml(sec: Section, cards: string): string {
 function foundationsHtml(): string {
   const colors = [['surface.canvas', 'Canvas'], ['text.default', 'Ink'], ['action.primary', 'Action'], ['surface.muted', 'Quiet']];
   return `<section class="cl-section cl-foundations" id="cl-foundations">
-    <div class="cl-section-head"><div><p class="cl-eyebrow">01 / Foundations</p><h2>A shared visual language.</h2></div><a href="#/components?section=cl-tokens" data-cl-jump="cl-tokens" class="cl-text-link">Explore all tokens ↗</a></div>
+    <div class="cl-section-head"><div><h2>Foundations</h2></div><a href="#/components?section=cl-tokens" data-cl-jump="cl-tokens" class="cl-text-link">Explore all tokens ↗</a></div>
     <p class="cl-section-intro">Purposeful colour. Expressive type. A consistent rhythm from the smallest control to the whole page.</p>
     <div class="cl-foundation-grid">
       <article class="cl-foundation"><span class="cl-eyebrow">Colour / semantic</span><div class="cl-colors">${colors.map(([path, name]) => `<div><span style="background:var(--ui-color-${path!.replaceAll('.', '-')})" aria-hidden="true"></span><strong>${name}</strong><code>${path}</code></div>`).join('')}</div><p>Choose a role, then let the active theme supply the colour.</p></article>
@@ -473,7 +473,7 @@ function foundationsHtml(): string {
 }
 
 function auditHtml(): string {
-  return `<section class="cl-section cl-audit" id="cl-audit"><div class="cl-section-head"><div><p class="cl-eyebrow">03 / UI & UX audit</p><h2>Clarity, at every scale.</h2></div><span class="cl-section-kind">4 November 2026</span></div>
+  return `<section class="cl-section cl-audit" id="cl-audit"><div class="cl-section-head"><div><h2>UI and UX audit</h2></div><span class="cl-section-kind">4 November 2026</span></div>
     <p class="cl-section-intro">A review of this library’s structure, component coverage and design handoff. Implementation findings are separated from checks that still need a browser.</p>
     <div class="cl-audit-grid">
       <article><span class="cl-audit-state">Updated</span><h3>Hierarchy & density</h3><p>Long implementation notes competed with the component itself. Colour tools and the Design workspace lead the collection, with names above previews and usage notes available on demand.</p></article>
@@ -492,7 +492,7 @@ function auditHtml(): string {
 
 function tokenExplorerHtml(): string {
   const tokens = listLollyUiTokens();
-  return `<section class="cl-section" id="cl-tokens"><div class="cl-section-head"><div><p class="cl-eyebrow">02 / Design tokens</p><h2>Decisions you can edit.</h2></div><button class="btn cl-token-export" type="button">Download tokens.json</button></div>
+  return `<section class="cl-section" id="cl-tokens"><div class="cl-section-head"><div><h2>Design tokens</h2></div><button class="btn cl-token-export" type="button">Download tokens.json</button></div>
     <p class="cl-section-intro">${tokens.length} semantic roles connect the interface to its foundations. The .penpot files also carry the component’s measured values as applied tokens.</p>
     <details class="cl-token-browser"><summary>Browse the complete token reference <span>${tokens.length} roles</span></summary>
       <label class="cl-search cl-token-search">${icon('search', { size: 18 })}<input type="search" placeholder="Find a token…" aria-label="Find a design token"></label>
@@ -549,7 +549,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
   viewEl.innerHTML = `
     ${backHomeHtml({ class: 'home-full cl-back' })}<div class="gallery-topright"></div>
     <header class="cl-head">
-      <div class="cl-head-copy"><p class="cl-eyebrow">Lolly / Design system</p><h1 class="cl-title">Small parts.<br><span>Distinctly Lolly.</span></h1>
+      <div class="cl-head-copy"><h1 class="cl-title">Component library</h1>
       <p class="cl-sub">Colour instruments, tactile controls and creative workspaces. Try the parts, inspect their tokens, and take them into Penpot.</p>
       <div class="cl-head-actions"><a class="btn btn--primary" href="#/components?section=cl-inventory" data-cl-jump="cl-inventory">Explore components ${icon('arrowRight', { size: 16 })}</a><button type="button" class="btn cl-export-penpot" data-export-hide>Download visible collection</button></div>
       <p class="cl-export-status" role="status" aria-live="polite"></p></div>
@@ -559,7 +559,7 @@ export async function mountComponents(viewEl: HTMLElement, host: HostV1, _params
     <div class="cl-layout">
       <aside class="cl-sidebar"><p class="cl-eyebrow">In this library</p><nav aria-label="Library sections">${jump}<div class="cl-nav-divider"></div>${sectionLink('cl-foundations', 'Foundations', 'foundations')}${sectionLink('cl-tokens', 'Design tokens', 'tokens')}${sectionLink('cl-audit', 'UI & UX audit', 'audit')}</nav><div class="cl-sidebar-note"><strong>Take a part. Make it yours.</strong><p>Import any .penpot download from your Penpot dashboard. Open Assets for the component and Tokens for its values.</p></div></aside>
       <main class="cl-library" data-lolly-ui-library>
-        <section class="cl-inventory" id="cl-inventory"><div class="cl-section-head"><div><p class="cl-eyebrow">The collection</p><h2>Made for making.</h2></div></div>
+        <section class="cl-inventory" id="cl-inventory"><div class="cl-section-head"><div><h2>Components</h2></div></div>
           <div class="cl-toolbar"><label class="cl-search">${icon('search', { size: 18 })}<input type="search" class="cl-search-input" placeholder="Find a component, pattern or CSS hook…" aria-label="Search components"></label><label class="cl-filter-label"><span>Preview</span><select class="cl-mode-filter" aria-label="Filter by preview type"><option value="all">All previews</option><option value="live">Interactive</option><option value="sample">Static samples</option><option value="fixture">Design fixtures</option></select></label><button type="button" class="btn cl-fold-all">Expand all</button></div>
           <p class="cl-result-count" role="status" aria-live="polite">Showing ${flat.length} components</p>
           <div class="cl-empty" hidden><h3>No components found.</h3><p>Try another name, CSS hook or preview type.</p><button class="btn cl-reset" type="button">Clear filters</button></div>
