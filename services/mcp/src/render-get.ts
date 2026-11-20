@@ -26,7 +26,13 @@
  *  - Every 200 carries `Content-Security-Policy: sandbox`: html/svg output is
  *    tool-authored markup fed by query params and must never execute in the
  *    lolly.tools origin when navigated to directly (as an `<img src>` the header
- *    is moot; this guards direct navigation).
+ *    is moot; this guards direct navigation). ttml is XML a browser opens as a
+ *    document too, so it gets the same header, and its writer escapes every cue.
+ *    `X-Content-Type-Options: nosniff` holds each body to its stated type, so scss
+ *    and the plain-text caption and palette files are never used as a stylesheet.
+ *    css is one, but only to a page that links it, and its body comes from the
+ *    engine's palette writer: slugged names and checked colours, nothing else.
+ *    test/text-formats.test.ts holds these headers and that body to a hostile query.
  *  - Self-hosters can switch the route off entirely: LOLLY_DISABLE_RENDER_GET=1
  *    makes every /tool/<id>.<ext> URL return 404.
  *

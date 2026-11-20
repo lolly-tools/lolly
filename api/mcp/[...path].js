@@ -186972,6 +186972,7 @@ init_schema();
 
 // services/mcp/src/render.ts
 init_src2();
+init_runtime();
 
 // packages/node-shell/src/render-integrity.ts
 var RenderIntegrityError = class extends Error {
@@ -193910,7 +193911,8 @@ function browserQueueOptions(env = process.env) {
 }
 
 // services/mcp/src/render.ts
-var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
+var ENGINE_TEXT_FORMATS = Object.keys(DATA_FORMATS);
+var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "penpot", "html", "md", "txt", ...ENGINE_TEXT_FORMATS]);
 var MAX_RASTER_EDGE_PX = 1e4;
 var DAY_MS = 864e5;
 async function readBackCredential(bytes2, setting, deliveredFormat) {
@@ -194032,12 +194034,28 @@ function mimeForFormat(fmt6) {
       return "text/calendar";
     case "vcf":
       return "text/vcard";
+    // The caption and palette files, with the types the engine's DATA_FORMATS gives
+    // them (test-pinned). SubRip, Scenarist and GIMP palettes have no registered type
+    // of their own, so they go as plain text.
+    case "srt":
+    case "scc":
+    case "gpl":
+      return "text/plain";
+    case "vtt":
+      return "text/vtt";
+    case "ttml":
+      return "application/ttml+xml";
+    case "css":
+      return "text/css";
+    case "scss":
+      return "text/x-scss";
     default:
       return "application/octet-stream";
   }
 }
+var TEXT_FORMATS = /* @__PURE__ */ new Set(["svg", "html", "md", "txt", "eps", "eps-cmyk", "dxf", ...ENGINE_TEXT_FORMATS]);
 function isTextFormat(fmt6) {
-  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt6));
+  return TEXT_FORMATS.has(normFormat(fmt6));
 }
 function targetPx(width, unit2, dpi) {
   if (!width || width <= 0) return void 0;
@@ -194342,7 +194360,7 @@ async function getBrowser2() {
         if (/executable doesn't exist|Executable doesn't exist|please run/i.test(msg3)) {
           const hosted = isHostedServer(process.env);
           throw new RenderError(
-            hosted ? `This format needs the browser render tier, which isn't enabled on this hosted endpoint. What renders here: vector formats (svg, eps, emf), the data formats (html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg - it works for every tool - or png for a simple vector tool (e.g. qr-code).` : `Chromium is not installed for the Tier-B render path. Run \`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
+            hosted ? `This format needs the browser render tier, which isn't enabled on this hosted endpoint. What renders here: vector formats (svg, eps, emf), the data and text formats (${["html", "md", ...ENGINE_TEXT_FORMATS].join(", ")}), and png for SVG-native tools. Try svg - it works for every tool - or png for a simple vector tool (e.g. qr-code).` : `Chromium is not installed for the Tier-B render path. Run \`pnpm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
           );
         }
         throw err;
