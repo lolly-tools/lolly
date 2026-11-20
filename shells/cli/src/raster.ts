@@ -17,7 +17,7 @@ import type { JSDOM } from 'jsdom';
 import { serializeUrlState, serializeHdr, HDR_DEFAULTS, isToolUrl } from '@lolly/engine';
 import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims, svgExportSize, drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import type { DeepHdrRequest } from '@lolly-tools/node-shell/raster';
-import { admitTierA, resvgRefusalSentence, routeRefusals } from '@lolly-tools/node-shell/resvg-admission';
+import { admitTierA, resvgRefusalSentence, routeRefusals, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import type { ResvgRefusal, SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
@@ -106,6 +106,8 @@ export async function renderRaster(opts: {
   pixelWork?: () => number;
   /** The tool's stylesheet, which the browser-free route reads for the drawing's layout. */
   styles?: string | null;
+  /** Whether this tool may take the browser-free route (resvg-admission.ts `toolAdmission`). */
+  tool: ToolRouteFact;
 }): Promise<RasterResult> {
   const { runtime, dom, manifest } = opts;
   const floatEditing = (runtime.getModel() as ModelItem[]).some(item => item.id === 'editingRange' && item.value === 'hdr') || manifest.id === 'design' && !!opts.dims.hdr;
@@ -148,7 +150,7 @@ export async function renderRaster(opts: {
   // Tier B cannot run the job fails with that reason instead of writing a wrong picture.
   let refused: ResvgRefusal[] | null = null;
   if (!sampled && !floatEditing && eligibleForResvgPng(fmt, dims)) {
-    const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.pixelWork, opts.styles);
+    const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.tool, opts.pixelWork, opts.styles);
     if (tierA && 'svg' in tierA) {
       // Shared Tier-A rasteriser (node-shell): imprint, placement and the browser's PNG
       // chunks, identical to the TUI. `imprinted` reflects whether the mark was actually
@@ -307,14 +309,14 @@ export function restoreToolLinks(model: readonly ModelItem[], initial: Record<st
  * Tier B. `pixelWork` and `styles` feed that admission.
  */
 async function tryRenderSvg(
-  runtime: Runtime, dom: JSDOM, slide: string | null | undefined, dims: RenderDims, manifest: Manifest, pixelWork?: () => number, styles?: string | null,
+  runtime: Runtime, dom: JSDOM, slide: string | null | undefined, dims: RenderDims, manifest: Manifest, tool: ToolRouteFact, pixelWork?: () => number, styles?: string | null,
 ): Promise<{ svg: string; placement: SvgPlacement } | { refusals: ResvgRefusal[] } | null> {
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) return null;
   // Asked before the canvas is hydrated again: a hook that computed pictures can leave a
   // tree large enough that a second copy of it is what exhausts the heap (a logo wall
   // repeating a photo inlines the photo once per tile, 77 MB of SVG for 20 tiles).
-  const known = routeRefusals({ toolId: manifest.id, paged: !!manifest.render?.paged, canvasPixels: (pixelWork?.() ?? 0) > 0 });
+  const known = routeRefusals({ tool, paged: !!manifest.render?.paged, canvasPixels: (pixelWork?.() ?? 0) > 0 });
   if (known.length) return { refusals: known };
   try {
     canvas.innerHTML = runtime.getHydrated();
@@ -335,7 +337,7 @@ async function tryRenderSvg(
     ...(manifest.render ? { renderSize: manifest.render } : {}),
     ...(styles !== undefined ? { styles } : {}),
     ...(pixelWork ? { pixelWork } : {}),
-    toolId: manifest.id, paged: !!manifest.render?.paged,
+    tool, paged: !!manifest.render?.paged,
     exportSvg: async ({ onDraftMark, onFillNotice }) => {
       try {
         const blob = await runtime.export(root, 'svg', { ...svgExportSize(root, dims), onDraftMark, onFillNotice });
@@ -375,6 +377,7 @@ async function renderHdrStill(opts: {
   designSystem?: Record<string, unknown>;
   pixelWork?: () => number;
   styles?: string | null;
+  tool: ToolRouteFact;
 }): Promise<RasterResult> {
   const { runtime, dom, manifest } = opts;
   const dims = opts.dims;
@@ -389,7 +392,7 @@ async function renderHdrStill(opts: {
   let usedBrowser = false;
   // The same admission as the plain PNG: an SVG resvg would draw unlike the browser
   // takes its source pixels from the browser tier instead.
-  const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.pixelWork, opts.styles);
+  const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.tool, opts.pixelWork, opts.styles);
   if (tierA && 'refusals' in tierA) note(`Note: ${resvgRefusalSentence(tierA.refusals)} Taking the source pixels from the browser render tier.`);
   if (tierA && 'svg' in tierA) {
     const { width, height } = pxDims(dims, manifest);

@@ -112,7 +112,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "b029be0ccde3d15f4b11b2f48587fd9317bf222af7f5bd510cd39436aa7f40ca",
+          "sha256": "1f7d0a322ee61a14f3e94c1b8f02deb4094a363a157622613fec79ce1d4f5686",
           "bytes": 1787
         },
         "reference/inputs.json": {
@@ -813,8 +813,8 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "0e5726d627d43279b5e9f3bfbceb3eb9e12bef0e0aa59c9e7c1a7a8f7d54296e",
-          "bytes": 2528
+          "sha256": "d6b48bcb759a9507ba8c14951f54067ee373faca1960de60d22b784dcc1de28e",
+          "bytes": 2530
         },
         "reference/inputs.json": {
           "sha256": "3260cb8b6ccf0557f4bc89f05cceb6ef6fea8edb6c9d42a490bf39c04ddc2767",
@@ -943,7 +943,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "11c650c88abb108d85c677c6d412edcb9ca9afd27408e21af655c76b1d4f1720",
+          "sha256": "7222ced21c5e766c2d260691a990e9a1d0ed18839495da13632d493b7003588f",
           "bytes": 2159
         },
         "reference/inputs.json": {
@@ -1161,8 +1161,8 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "8b99ae0f8f78f46de032d9b782a42119465b8785dd72757590a3d916b15a283b",
-          "bytes": 2870
+          "sha256": "e7facac39708c10b790bd62f236771e5e6c78c637437f39adf3f5c7bc6a49f7c",
+          "bytes": 2872
         },
         "reference/inputs.json": {
           "sha256": "33c4f6941c035b66d9dd35363137afdfb9c32888776b34f8da9da2b8b9a057be",
@@ -1430,8 +1430,8 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "ea3b4677ef36235e717a19850005d2634f1384b4b0fc8f4836305666f5fd95a6",
-          "bytes": 1749
+          "sha256": "25334c9b7f809a91dbe658523df3bc662d35b4bcaae2bf5383edd893bc68122f",
+          "bytes": 1751
         },
         "reference/inputs.json": {
           "sha256": "c44a9a6c5f93b5e3a49554bbd0451d0ddf44823a8823efa9f4d8d83c4db7f97e",
@@ -1768,7 +1768,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "17bbbf50b95a2cbe30798eb0c0c6e65509da3c0954faf731d0c42360f6d1a571",
+          "sha256": "9cd8e229fbd757c23d30a6a2d0066184db6c3c6762c020fd647a18852b6b2526",
           "bytes": 1819
         },
         "reference/inputs.json": {

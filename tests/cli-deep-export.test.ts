@@ -67,7 +67,7 @@ after(() => rm(root, { recursive: true, force: true }));
 function manifest(id: string, overrides: Record<string, unknown> = {}): string {
   return JSON.stringify({
     id, name: id, version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
-    render: { width: 40, height: 20, formats: ['svg', 'png'] },
+    render: { width: 40, height: 20, formats: ['svg', 'png'], browserFree: true }, // browserFree: the fixture's own assertions check what the browser-free route draws.
     inputs: [],
     ...overrides,
   });
@@ -102,7 +102,7 @@ await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({ 
 for (const [id, files] of Object.entries({
   swatch: {
     'tool.json': manifest('swatch', {
-      render: { width: 40, height: 20, formats: ['svg', 'png'] },
+      render: { width: 40, height: 20, formats: ['svg', 'png'], browserFree: true }, // browserFree: the fixture's own assertions check what the browser-free route draws.
       inputs: [{ id: 'fill', type: 'color', label: 'Fill', default: '#ffffff' }],
     }),
     'template.html': SWATCH('{{fill}}'),
@@ -123,9 +123,6 @@ for (const [id, files] of Object.entries({
 }
 
 process.env.LOLLY_ROOT = root;
-// The browser-free raster route draws only tools measured against the browser; this
-// fixture's own assertions check what it draws, so it is admitted by name.
-process.env.LOLLY_RESVG_TOOLS = 'swatch';
 const { runToolCli } = await import('../shells/cli/src/run.ts');
 
 let seq = 0;

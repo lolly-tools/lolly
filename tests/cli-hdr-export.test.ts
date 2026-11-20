@@ -65,7 +65,7 @@ await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({ 
 await mkdir(join(root, 'tools', 'swatch'), { recursive: true });
 await writeFile(join(root, 'tools', 'swatch', 'tool.json'), JSON.stringify({
   id: 'swatch', name: 'swatch', version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
-  render: { width: W, height: H, formats: ['svg', 'png', 'jpg'] },
+  render: { width: W, height: H, formats: ['svg', 'png', 'jpg'], browserFree: true }, // browserFree: the fixture's own assertions check what the browser-free route draws.
   inputs: [{ id: 'fill', type: 'color', label: 'Fill', default: '#ffffff' }],
 }));
 await writeFile(join(root, 'tools', 'swatch', 'template.html'), SWATCH);
@@ -77,9 +77,6 @@ await writeFile(join(root, 'tools', 'swatch', 'template.html'), SWATCH);
 // "Tool not found" page and wait out the idle timeout instead of being refused.
 process.env.LOLLY_ROOT = root;
 process.env.LOLLY_WEB_DIST = join(root, 'no-such-dist');
-// The browser-free raster route draws only tools measured against the browser; this
-// fixture's own assertions check what it draws, so it is admitted by name.
-process.env.LOLLY_RESVG_TOOLS = 'swatch';
 delete process.env.LOLLY_WEB_BASE;
 const { runToolCli } = await import('../shells/cli/src/run.ts');
 

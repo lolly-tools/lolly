@@ -11,8 +11,8 @@ import assert from 'node:assert/strict';
 import { deflateSync } from 'node:zlib';
 import { JSDOM } from 'jsdom';
 import {
-  admitForResvg, isResvgRefusal, layoutAdmission, MAX_PICTURE_SHRINK, measuredOnResvg, placeSvg, readLayout,
-  ResvgRefusedError, resvgRefusalSentence, routeRefusals, svgPlacement,
+  admitForResvg, isResvgRefusal, layoutAdmission, MAX_PICTURE_SHRINK, placeSvg, readLayout,
+  ResvgRefusedError, resvgRefusalSentence, routeRefusals, svgPlacement, toolAdmission,
 } from '../src/resvg-admission.ts';
 import { finishTierAPng, rasterizeSvgToRgba } from '../src/raster.ts';
 
@@ -124,10 +124,19 @@ test('a picture shrunk past the measured limit is refused, through every transfo
   assert.deepEqual(await codes(svgDoc(`<g transform="scale(0.5)"><image href="${pic}" width="300" height="300"/></g>`), 100, 100), ['picture-downscale']);
 });
 
-test('the render facts refuse on their own, and an unmeasured tool is refused', () => {
-  assert.deepEqual(routeRefusals({ toolId: 'qr-code' }), []);
-  assert.equal(measuredOnResvg('color-palette'), false);
-  assert.deepEqual(routeRefusals({ toolId: 'color-palette', paged: true, draftMark: true, canvasPixels: true, fallbackFaces: true }).map((r) => r.code),
+test('the render facts refuse on their own, and a tool without render.browserFree is refused', () => {
+  const tool = (browserFree: boolean | undefined, trustClass?: string) => toolAdmission({ manifest: { id: 'qr-code', render: browserFree === undefined ? {} : { browserFree } }, ...(trustClass ? { trustClass } : {}) });
+  assert.deepEqual(routeRefusals({ tool: tool(true) }), []);
+  assert.deepEqual(routeRefusals({ tool: tool(true, 'builtin-verified') }), []);
+  assert.deepEqual(routeRefusals({ tool: tool(true, 'development-unsigned') }), [], 'an unsigned local catalog is the CLI\'s everyday case');
+  assert.match(routeRefusals({ tool: tool(undefined) })[0]!.reason, /has not been measured inside the fidelity bands on this route \(no render\.browserFree\)/);
+  assert.deepEqual(routeRefusals({ tool: tool(false) }).map((r) => r.code), ['unmeasured']);
+  // Trust is the shell's: a sideloaded or remote tool never admits itself, as with `isolate`.
+  for (const trustClass of ['sideloaded-consented', 'remote-untrusted']) {
+    assert.deepEqual(tool(true, trustClass), { id: 'qr-code', browserFree: false, untrusted: true });
+    assert.match(routeRefusals({ tool: tool(true, trustClass) })[0]!.reason, /sideloaded or remote, and such a tool cannot admit itself/);
+  }
+  assert.deepEqual(routeRefusals({ tool: tool(false), paged: true, draftMark: true, canvasPixels: true, fallbackFaces: true }).map((r) => r.code),
     ['unmeasured', 'paged', 'draft-mark', 'canvas-pixels', 'fallback-faces']);
   const err = new ResvgRefusedError(routeRefusals({ draftMark: true }), 'bmp');
   assert.ok(isResvgRefusal(err));

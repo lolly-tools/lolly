@@ -40,7 +40,7 @@ function manifest(id: string, extra: Record<string, unknown> = {}): string {
   return JSON.stringify({
     id, name: id, version: '1.0.0', engineVersion: '^1.0.0', status: 'community',
     description: `${id} description`,
-    render: { width: 120, height: 80, formats: ['svg', 'png'] },
+    render: { width: 120, height: 80, formats: ['svg', 'png'], browserFree: true }, // browserFree: the fixture's own assertions check what the browser-free route draws.
     inputs: [{ id: 'label', type: 'text', label: 'Label', default: 'Hamburg' }],
     ...extra,
   });
@@ -94,8 +94,7 @@ function cli(args: string[], extraEnv: Record<string, string> = {}): Promise<{ s
   return new Promise((done) => {
     const child = spawn(process.execPath, [BIN, ...args], {
       cwd: root,
-      // LOLLY_RESVG_TOOLS: the browser-free PNG draws only measured tools; these fixtures are admitted by name.
-      env: { ...process.env, LOLLY_ROOT: root, LOLLY_WEB_DIST: join(root, 'no-such-dist'), LOLLY_RESVG_TOOLS: 'vec-tool,loud-tool', NO_COLOR: '1', ...extraEnv },
+      env: { ...process.env, LOLLY_ROOT: root, LOLLY_WEB_DIST: join(root, 'no-such-dist'), NO_COLOR: '1', ...extraEnv },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     const out: Buffer[] = [];

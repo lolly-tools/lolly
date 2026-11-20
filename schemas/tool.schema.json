@@ -502,6 +502,11 @@
           },
           "description": "For onFrame (live camera) tools: AUTO-start the camera when the named input holds `value`, and stop it otherwise - so a reader/scanner turns the camera on when it loads in that mode (and when the user selects it) without a manual 'Use camera' tap. Prompts for permission the first time; a denial degrades to the tool's non-camera modes. Honoured only where a camera is usable."
         },
+        "browserFree": {
+          "type": "boolean",
+          "default": false,
+          "description": "The tool's browser-free raster (the Node shells' resvg route for PNG, BMP, JPEG XL, EXR, HDR and the HDR stills) was measured inside the fidelity bands against the browser tier. Set only from evidence by scripts/tool-browser-free.ts, never by hand. Absent or false: those formats come from the browser tier. Each render is still checked for the features resvg draws unlike the browser, and the receiving shell honours the flag only for a built-in tool: a sideloaded or remote tool never takes the route from its own manifest (engine 1.350+)."
+        },
         "convertPaths": {
           "type": "boolean",
           "default": true,

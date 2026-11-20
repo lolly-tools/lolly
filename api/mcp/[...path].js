@@ -579,6 +579,11 @@ var init_tool_schema = __esm({
               },
               description: "For onFrame (live camera) tools: AUTO-start the camera when the named input holds `value`, and stop it otherwise - so a reader/scanner turns the camera on when it loads in that mode (and when the user selects it) without a manual 'Use camera' tap. Prompts for permission the first time; a denial degrades to the tool's non-camera modes. Honoured only where a camera is usable."
             },
+            browserFree: {
+              type: "boolean",
+              default: false,
+              description: "The tool's browser-free raster (the Node shells' resvg route for PNG, BMP, JPEG XL, EXR, HDR and the HDR stills) was measured inside the fidelity bands against the browser tier. Set only from evidence by scripts/tool-browser-free.ts, never by hand. Absent or false: those formats come from the browser tier. Each render is still checked for the features resvg draws unlike the browser, and the receiving shell honours the flag only for a built-in tool: a sideloaded or remote tool never takes the route from its own manifest (engine 1.350+)."
+            },
             convertPaths: {
               type: "boolean",
               default: true,
@@ -4170,7 +4175,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.348.0";
+    ENGINE_VERSION = "1.350.0";
   }
 });
 
@@ -171079,10 +171084,9 @@ var init_pdf_images = __esm({
 });
 
 // packages/node-shell/src/resvg-admission.ts
-function measuredOnResvg(toolId) {
-  if (RESVG_MEASURED_TOOLS.has(toolId)) return true;
-  const extra = typeof process !== "undefined" ? process.env.LOLLY_RESVG_TOOLS : void 0;
-  return !!extra && extra.split(",").some((id3) => id3.trim() === toolId);
+function toolAdmission(tool) {
+  const untrusted = tool.trustClass === "sideloaded-consented" || tool.trustClass === "remote-untrusted";
+  return { id: tool.manifest.id, browserFree: !untrusted && tool.manifest.render?.browserFree === true, untrusted };
 }
 function resvgRefusalSentence(refusals) {
   const reasons = [...new Set(refusals.map((r5) => r5.reason))];
@@ -171093,7 +171097,9 @@ function isResvgRefusal(e) {
 }
 function routeRefusals(facts2 = {}) {
   const out = [];
-  if (facts2.toolId !== void 0 && !measuredOnResvg(facts2.toolId)) out.push({ code: "unmeasured", reason: `the ${facts2.toolId} tool has not been measured inside the fidelity bands on this route` });
+  if (facts2.tool && !facts2.tool.browserFree) {
+    out.push({ code: "unmeasured", reason: facts2.tool.untrusted ? `the ${facts2.tool.id} tool is sideloaded or remote, and such a tool cannot admit itself to this route` : `the ${facts2.tool.id} tool has not been measured inside the fidelity bands on this route (no render.browserFree)` });
+  }
   if (facts2.paged) out.push({ code: "paged", reason: "a paged document, whose pages the browser writes at their print size" });
   if (facts2.draftMark) out.push({ code: "draft-mark", reason: "this experimental tool marks its exports DRAFT, and that mark is drawn by the browser" });
   if (facts2.canvasPixels) out.push({ code: "canvas-pixels", reason: "the tool computed part of the picture with a 2D canvas, which this shell emulates and the browser draws natively" });
@@ -171488,20 +171494,12 @@ function readLayout(root2, svg, width, height, styles, renderSize) {
   const styleOf = win?.getComputedStyle ? (el) => win.getComputedStyle(el) : void 0;
   return withStyleSheet(doc, styles, () => layoutAdmission(root2, svg, width, height, styleOf, renderSize));
 }
-var RESVG_MEASURED_TOOLS, MAX_PICTURE_SHRINK, ResvgRefusedError, near, HREF, ANIMATED_PICTURE, hasLiveText, hasAnimation, IDENTITY7, multiply, attrOf3;
+var MAX_PICTURE_SHRINK, ResvgRefusedError, near, HREF, ANIMATED_PICTURE, hasLiveText, hasAnimation, IDENTITY7, multiply, attrOf3;
 var init_resvg_admission = __esm({
   "packages/node-shell/src/resvg-admission.ts"() {
     "use strict";
     init_src2();
     init_pdf_images();
-    RESVG_MEASURED_TOOLS = /* @__PURE__ */ new Set([
-      "asset-export",
-      "gradient",
-      "logo-wall",
-      "qr-code",
-      "signature",
-      "wordmark"
-    ]);
     MAX_PICTURE_SHRINK = 2;
     ResvgRefusedError = class extends Error {
       code = "RESVG_REFUSED";
@@ -193322,7 +193320,7 @@ async function createCliBridge({ profile: profile2 = {}, dom, catalogAssets: cat
       const resvgSource = async (svg, format2, width, height) => {
         const { placement: placement2, refusals: layout3 } = readLayout(node, svg, width, height, opts.toolStyles);
         const early = [
-          ...routeRefusals({ ...opts.toolId ? { toolId: opts.toolId } : {}, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
+          ...routeRefusals({ tool: opts.resvgTool ?? { id: "unnamed", browserFree: false, untrusted: false }, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
           ...layout3
         ];
         if (early.length) throw new ResvgRefusedError(early, format2);
@@ -194616,13 +194614,16 @@ async function renderTierA(toolId, values, fmt6, opts, profile2, emoji, producti
       const tool = await loadToolCached(toolId);
       const layout2 = root2 && aw && ah ? readLayout(canvas, root2, aw, ah, tool.styles, tool.manifest.render) : { placement: { kind: "fill" }, refusals: [] };
       const placement2 = layout2.placement;
-      const early = [...routeRefusals({ toolId, paged: !!tool.manifest.render.paged, canvasPixels: pixelWorkCount(dom.window.document, host.raster) > 0 }), ...layout2.refusals];
+      const early = [...routeRefusals({ tool: toolAdmission(tool), paged: !!tool.manifest.render.paged, canvasPixels: pixelWorkCount(dom.window.document, host.raster) > 0 }), ...layout2.refusals];
       if (early.length) throw new RenderError(new ResvgRefusedError(early).message);
       resvg = { facts: {}, placement: placement2 };
     }
     const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute("viewBox");
     const sized = svgSized ? { ...opts, width: size.svg.width, height: size.svg.height } : opts;
-    if (isDeepFormat(fmt6)) Object.assign(sized, { toolStyles: (await loadToolCached(toolId)).styles ?? null, toolId });
+    if (isDeepFormat(fmt6)) {
+      const loaded = await loadToolCached(toolId);
+      Object.assign(sized, { toolStyles: loaded.styles ?? null, resvgTool: toolAdmission(loaded) });
+    }
     let productionInputs;
     if (productionContract?.requirements.some((requirement) => requirement.kind === "input")) {
       const { productionInputFacts: productionInputFacts2 } = await Promise.resolve().then(() => (init_src2(), src_exports));

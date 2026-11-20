@@ -32,7 +32,7 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
 import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg, finishTierAPng } from '@lolly-tools/node-shell/raster';
-import { admitForResvg, isResvgRefusal, placeSvg, readLayout, ResvgRefusedError, routeRefusals, type ResvgRouteFacts, type SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
+import { admitForResvg, isResvgRefusal, placeSvg, readLayout, ResvgRefusedError, routeRefusals, toolAdmission, type ResvgRouteFacts, type SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
 import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
 import { buildExportC2paOpts, placedPicturesIn, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
@@ -639,7 +639,7 @@ async function renderTierA(
         ? readLayout(canvas, root, aw, ah, tool.styles, tool.manifest.render)
         : { placement: { kind: 'fill' } as SvgPlacement, refusals: [] };
       const placement = layout.placement;
-      const early = [...routeRefusals({ toolId, paged: !!tool.manifest.render.paged, canvasPixels: pixelWorkCount(dom.window.document, host.raster) > 0 }), ...layout.refusals];
+      const early = [...routeRefusals({ tool: toolAdmission(tool), paged: !!tool.manifest.render.paged, canvasPixels: pixelWorkCount(dom.window.document, host.raster) > 0 }), ...layout.refusals];
       if (early.length) throw new RenderError(new ResvgRefusedError(early).message);
       resvg = { facts: {}, placement };
     }
@@ -650,7 +650,7 @@ async function renderTierA(
     const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute('viewBox');
     const sized: ExportOpts = svgSized ? { ...opts, width: size.svg!.width, height: size.svg!.height } : opts;
     // The float formats rasterise in the bridge, which reads the drawing's layout with the tool's stylesheet.
-    if (isDeepFormat(fmt)) Object.assign(sized, { toolStyles: (await loadToolCached(toolId)).styles ?? null, toolId });
+    if (isDeepFormat(fmt)) { const loaded = await loadToolCached(toolId); Object.assign(sized, { toolStyles: loaded.styles ?? null, resvgTool: toolAdmission(loaded) }); }
     let productionInputs: Record<string, string> | undefined;
     if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
       const { productionInputFacts } = await import('@lolly/engine');

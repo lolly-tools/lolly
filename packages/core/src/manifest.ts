@@ -228,6 +228,11 @@ export interface RenderSpec {
    *  resolution control. The runtime reads it at go-live and re-applies to the live
    *  stream whenever it changes, so the camera resolution follows a slider. */
   liveMaxEdgeInput?: string;
+  /** The tool's browser-free raster (the Node shells' resvg route) was measured
+   *  inside the fidelity bands against the browser tier (engine 1.350). Written
+   *  from evidence by scripts/tool-browser-free.ts, never by hand. Honoured only
+   *  for a built-in tool; each render is still checked feature by feature. */
+  browserFree?: boolean;
   convertPaths?: boolean;
   /** Multi-page ("carousel") editor config; names the number-input ids driving page count/size. */
   pages?: { count: string; width: string; height: string; gap?: number; min?: number; max?: number };

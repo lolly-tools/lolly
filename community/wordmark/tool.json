@@ -4,7 +4,7 @@
   "description": "Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed.",
   "a11yLabel": "Wordmark reading {{default text \"Wordmark\"}}",
   "version": "1.0.3",
-  "engineVersion": "^1.214.0",
+  "engineVersion": "^1.350.0",
   "status": "community",
   "category": "everyone",
   "tags": ["wordmark", "logo", "type", "font", "lockup", "svg"],
@@ -15,6 +15,7 @@
     { "label": "Mono reverse", "values": { "text": "lolly.tools", "font": "mono", "weight": 500, "tracking": 4, "size": 120, "color": "#ffffff" }, "theme": "dark" }
   ],
   "render": {
+    "browserFree": true,
     "width": 1200,
     "height": 400,
     "formats": ["svg", "penpot", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "png", "jpeg", "webp", "avif"],

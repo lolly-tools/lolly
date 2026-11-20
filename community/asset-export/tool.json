@@ -4,7 +4,7 @@
   "description": "Render any catalog asset - or a Lolly tool link - out to any format and size.",
   "a11yLabel": "Exported asset",
   "version": "1.2.0",
-  "engineVersion": "^1.341.0",
+  "engineVersion": "^1.350.0",
   "renditionOf": { "input": "src", "action": "c2pa.converted" },
   "status": "official",
   "category": "everyone",
@@ -62,6 +62,7 @@
     }
   ],
   "render": {
+    "browserFree": true,
     "width": 1000,
     "height": 1000,
     "formats": [

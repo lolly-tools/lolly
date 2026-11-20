@@ -103,7 +103,7 @@ import {
 // factories return null on a lean install so the capability stays honestly absent.
 import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
 import { createNodeRasterAPI, pixelWorkCount } from '@lolly-tools/node-shell/canvas';
-import { admitForResvg, readLayout, ResvgRefusedError, routeRefusals, type SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
+import { admitForResvg, readLayout, ResvgRefusedError, routeRefusals, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import type { DecodeLimits } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
@@ -247,8 +247,9 @@ interface CliExportRenderOpts extends ExportOpts {
   onDraftMark?: (on: boolean) => void;
   /** The tool's stylesheet, which the browser-free raster formats read for the drawing's layout. */
   toolStyles?: string | null;
-  /** The tool being exported, for the browser-free raster formats' admission (resvg-admission.ts). */
-  toolId?: string;
+  /** Whether the tool may take the browser-free raster route (resvg-admission.ts `toolAdmission`).
+   *  A caller that says nothing gets no route. */
+  resvgTool?: ToolRouteFact;
   c2pa?: boolean;
   durable?: boolean;
   dataText?: string;
@@ -1215,7 +1216,7 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
       const resvgSource = async (svg: Element, format: string, width: number, height: number): Promise<{ svg: string; placement: SvgPlacement }> => {
         const { placement, refusals: layout } = readLayout(node, svg, width, height, opts.toolStyles);
         const early = [
-          ...routeRefusals({ ...(opts.toolId ? { toolId: opts.toolId } : {}), draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
+          ...routeRefusals({ tool: opts.resvgTool ?? { id: 'unnamed', browserFree: false, untrusted: false }, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
           ...layout,
         ];
         if (early.length) throw new ResvgRefusedError(early, format);

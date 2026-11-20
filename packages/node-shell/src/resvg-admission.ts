@@ -32,8 +32,8 @@ export interface ResvgRefusal { code: ResvgRefusalCode; reason: string }
 
 /** Facts about the render that the SVG itself does not carry. */
 export interface ResvgRouteFacts {
-  /** The tool being drawn, checked against the tools measured on this route. */
-  toolId?: string;
+  /** The tool being drawn and whether it may take this route (`toolAdmission`). */
+  tool?: ToolRouteFact;
   /** The tool is a paged document (`render.paged`). */
   paged?: boolean;
   /** The export carries the experimental DRAFT mark (the runtime's resolved `watermark`). */
@@ -44,27 +44,30 @@ export interface ResvgRouteFacts {
   fallbackFaces?: boolean;
 }
 
-/**
- * The tools whose every case drawn on this route was inside the plan 326 bands against
- * the browser tier (plan 371 round 2, lolly-demo, macOS, resvg-js 2.6.2). A tool not
- * listed goes to the browser tier: plain vector drawing that one tool draws inside the
- * bands another can draw outside them (Colour Palette's swatch edges came out 0.7% to
- * 1.7% over 24 levels where the band is 0.5%), so admission is by evidence, per tool,
- * the way a tool's `isolate` flag is. Adding a tool means measuring it first.
- */
-export const RESVG_MEASURED_TOOLS: ReadonlySet<string> = new Set([
-  'asset-export', 'gradient', 'logo-wall', 'qr-code', 'signature', 'wordmark',
-]);
+/** Whether one tool may take this route at all, before any render is judged. */
+export interface ToolRouteFact {
+  id: string;
+  /** The manifest's `render.browserFree`, honoured for this tool's trust class. */
+  browserFree: boolean;
+  /** A sideloaded or remote tool, which its own manifest cannot admit to the route. */
+  untrusted: boolean;
+}
 
 /**
- * Whether a tool has been measured inside the bands on this route (`RESVG_MEASURED_TOOLS`),
- * or is named in `LOLLY_RESVG_TOOLS` (comma separated): a tool measured outside this
- * repository, or a test fixture whose own test checks what it draws.
+ * Which tools this route draws: those whose manifest carries `render.browserFree`, which
+ * `scripts/tool-browser-free.ts` writes only when every measured case of the tool came
+ * out inside the plan 326 bands against the browser tier, the way `isolate` is written
+ * from evidence by `scripts/tool-isolation.ts`. Plain vector drawing that one tool draws
+ * inside the bands another can draw outside them (Colour Palette's swatch edges came out
+ * 0.7% to 1.7% over 24 levels where the band is 0.5%), so admission is per tool.
+ *
+ * Trust is the receiving shell's, never the manifest's: a sideloaded or remote tool
+ * (`sideloaded-consented`, `remote-untrusted`, the classes `isolate` forces into strict
+ * isolation) is never admitted by its own flag.
  */
-export function measuredOnResvg(toolId: string): boolean {
-  if (RESVG_MEASURED_TOOLS.has(toolId)) return true;
-  const extra = typeof process !== 'undefined' ? process.env.LOLLY_RESVG_TOOLS : undefined;
-  return !!extra && extra.split(',').some((id) => id.trim() === toolId);
+export function toolAdmission(tool: { manifest: { id: string; render?: { browserFree?: boolean } }; trustClass?: string }): ToolRouteFact {
+  const untrusted = tool.trustClass === 'sideloaded-consented' || tool.trustClass === 'remote-untrusted';
+  return { id: tool.manifest.id, browserFree: !untrusted && tool.manifest.render?.browserFree === true, untrusted };
 }
 
 /**
@@ -102,7 +105,11 @@ export function isResvgRefusal(e: unknown): e is ResvgRefusedError {
 /** The refusals that come from the render rather than from the SVG. */
 export function routeRefusals(facts: ResvgRouteFacts = {}): ResvgRefusal[] {
   const out: ResvgRefusal[] = [];
-  if (facts.toolId !== undefined && !measuredOnResvg(facts.toolId)) out.push({ code: 'unmeasured', reason: `the ${facts.toolId} tool has not been measured inside the fidelity bands on this route` });
+  if (facts.tool && !facts.tool.browserFree) {
+    out.push({ code: 'unmeasured', reason: facts.tool.untrusted
+      ? `the ${facts.tool.id} tool is sideloaded or remote, and such a tool cannot admit itself to this route`
+      : `the ${facts.tool.id} tool has not been measured inside the fidelity bands on this route (no render.browserFree)` });
+  }
   if (facts.paged) out.push({ code: 'paged', reason: 'a paged document, whose pages the browser writes at their print size' });
   if (facts.draftMark) out.push({ code: 'draft-mark', reason: 'this experimental tool marks its exports DRAFT, and that mark is drawn by the browser' });
   if (facts.canvasPixels) out.push({ code: 'canvas-pixels', reason: 'the tool computed part of the picture with a 2D canvas, which this shell emulates and the browser draws natively' });
@@ -606,13 +613,13 @@ export async function admitTierA(args: {
   styles?: string | null;
   /** Pixel work the tool's hooks did through the Node canvas (canvas.ts `pixelWorkCount`). */
   pixelWork?: () => number;
-  /** The tool (`RESVG_MEASURED_TOOLS`) and whether it is a paged document. */
-  toolId?: string;
+  /** The tool (`toolAdmission`) and whether it is a paged document. */
+  tool?: ToolRouteFact;
   paged?: boolean;
   exportSvg: (hooks: ExportFactHooks) => Promise<string | null>;
 }): Promise<{ svg: string; placement: SvgPlacement } | { refusals: ResvgRefusal[] } | null> {
   const { root, drawn, width, height } = args;
-  const known = { ...(args.toolId !== undefined ? { toolId: args.toolId } : {}), paged: !!args.paged };
+  const known = { ...(args.tool ? { tool: args.tool } : {}), paged: !!args.paged };
   const before = routeRefusals({ ...known, canvasPixels: (args.pixelWork?.() ?? 0) > 0 });
   if (before.length) return { refusals: before };
   const layout = drawn ? readLayout(root, drawn, width, height, args.styles, args.renderSize) : { placement: { kind: 'fill' } as SvgPlacement, refusals: [] };

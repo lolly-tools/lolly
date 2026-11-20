@@ -47,6 +47,8 @@ A working tool needs two files. This one makes a social card with a heading and 
 }
 ```
 
+Two flags are written from evidence and never by hand. `isolate: true` lets the hooks run in a Worker ([Tool hooks](/info/tool-hooks.html)). `render.browserFree: true` lets the CLI, the terminal app and the MCP server draw a PNG of an `<svg>`-based tool with no browser: `node scripts/tool-browser-free.ts --verify --write` sets it only when every measured case of the tool draws inside the fidelity bands against the browser, and each export is still checked for the features that renderer draws differently.
+
 ## template.html
 
 ```html
@@ -78,7 +80,7 @@ Try the folder in one of two ways:
 :::
 
 ::: note An HTML template needs the browser tier on the command line
-The template's root is an `<svg>`, so the command line renders it with no browser. A template built from HTML renders the same way in the web and desktop apps, and needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
+The template's root is an `<svg>`, so the command line writes its SVG with no browser, and its PNG too once the tool carries `render.browserFree`. A template built from HTML renders the same way in the web and desktop apps, and needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
 :::
 
 <!--i:eti-folder-plus-->

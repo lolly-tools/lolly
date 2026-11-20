@@ -14,7 +14,7 @@ import { assertFormatBytes } from '@lolly-tools/node-shell/format-sniff';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
 import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize, drawnRootSvg } from '@lolly-tools/node-shell/raster';
-import { admitTierA, isResvgRefusal, resvgRefusalSentence, routeRefusals, type ResvgRefusal, type SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
+import { admitTierA, isResvgRefusal, resvgRefusalSentence, routeRefusals, toolAdmission, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
@@ -36,6 +36,8 @@ export type Manifest = Awaited<ReturnType<typeof loadTool>>['manifest'];
 const runtimeHosts = new WeakMap<Runtime, HostV1>();
 /** Each mounted tool's stylesheet, which the browser-free PNG reads for the drawing's layout. */
 const runtimeStyles = new WeakMap<Runtime, string | null>();
+/** Each mounted tool's admission to the browser-free raster route (resvg-admission.ts). */
+const runtimeRoute = new WeakMap<Runtime, ToolRouteFact>();
 
 /**
  * The tool a pasted lolly.tools link opens, with its settings, or why it opens
@@ -123,6 +125,7 @@ export async function mountTool(
   selectCliBridgeTokens(host, runtime.tokenSelection);
   runtimeHosts.set(runtime, host);
   runtimeStyles.set(runtime, tool.styles ?? null);
+  runtimeRoute.set(runtime, toolAdmission(tool));
   await (await import('./document-emoji.ts')).seedEmoji(runtime,host,reserved,values);
   return { runtime, manifest: tool.manifest, reserved };
 }
@@ -259,7 +262,8 @@ async function tierASvg(
   // Asked before the canvas is hydrated again, as the CLI does: a second copy of a
   // picture-heavy tree is what can exhaust the heap.
   const tool = manifest as { id: string; render?: { paged?: boolean } };
-  const known = routeRefusals({ toolId: tool.id, paged: !!tool.render?.paged, canvasPixels: pixelWorkCount(dom.window.document, host?.raster) > 0 });
+  const route = runtimeRoute.get(runtime) ?? { id: tool.id, browserFree: false, untrusted: false };
+  const known = routeRefusals({ tool: route, paged: !!tool.render?.paged, canvasPixels: pixelWorkCount(dom.window.document, host?.raster) > 0 });
   if (known.length) return { refusals: known };
   let canvas: HTMLElement;
   try {
@@ -275,7 +279,7 @@ async function tierASvg(
     ...(render ? { renderSize: render } : {}),
     styles: runtimeStyles.get(runtime) ?? null,
     pixelWork: () => pixelWorkCount(dom.window.document, host?.raster),
-    toolId: tool.id, paged: !!tool.render?.paged,
+    tool: route, paged: !!tool.render?.paged,
     exportSvg: async ({ onDraftMark, onFillNotice }) => {
       try {
         const blob = await runtime.export(canvas, 'svg', { ...svgExportSize(canvas, dims), onDraftMark, onFillNotice } as Parameters<Runtime['export']>[2]);
@@ -405,13 +409,13 @@ export async function exportToFile(
     const qual = (v: number | undefined): string | number | undefined =>
       (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const drawn: DrawnHere = { pictures: [], route: null };
-    const opts: { width?: string | number; height?: string | number; dpi?: number; spotsAsProcess?: boolean; toolStyles?: string | null; toolId?: string; ingredientSink: IngredientCredential[]; onExportRoute: (record: DesignExportRouteRecord) => void } = {
+    const opts: { width?: string | number; height?: string | number; dpi?: number; spotsAsProcess?: boolean; toolStyles?: string | null; resvgTool?: ToolRouteFact; ingredientSink: IngredientCredential[]; onExportRoute: (record: DesignExportRouteRecord) => void } = {
       width: qual(dims.width), height: qual(dims.height), ingredientSink: drawn.pictures, onExportRoute: (record) => { drawn.route = record; },
     };
     // eps-cmyk: the choice means one thing in every CMYK sink (EPS has no named plates, so its bytes do not move).
     if (dims.spotsAsProcess) opts.spotsAsProcess = true;
     // The browser-free raster formats read the drawing's layout with the tool's stylesheet (resvg-admission.ts).
-    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(fmt)) Object.assign(opts, { toolStyles: runtimeStyles.get(runtime) ?? null, toolId: (manifest as { id: string }).id });
+    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(fmt)) Object.assign(opts, { toolStyles: runtimeStyles.get(runtime) ?? null, resvgTool: runtimeRoute.get(runtime) ?? { id: (manifest as { id: string }).id, browserFree: false, untrusted: false } });
     if (u !== 'px' && dims.dpi) opts.dpi = dims.dpi;
     const query = currentQuery(runtime);
     try {
