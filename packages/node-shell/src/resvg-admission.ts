@@ -23,13 +23,16 @@
 import { decodeDataUrl, iccProfileBytes, imageDimensions, jpegSegmentBody, scanJpegSegments } from '@lolly/engine';
 import { cleanJpeg } from './pdf-images.ts';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { browserFreeStatus, readBrowserFreeRecord, toolSourceDigest } from './browser-free-record.ts';
 import { toolFile } from './content-roots.ts';
 
 export type ResvgRefusalCode =
   | 'unmeasured' | 'paged' | 'draft-mark' | 'canvas-pixels' | 'fallback-faces' | 'layout' | 'css-variable' | 'css-animation' | 'live-text' | 'html'
   | 'picture-type' | 'picture-orientation' | 'picture-colour' | 'picture-in-picture' | 'picture-outside'
-  | 'picture-downscale' | 'gradient-opacity' | 'blend-in-filter' | 'noise-filter' | 'crisp-edges' | 'unreadable';
+  | 'picture-downscale' | 'gradient-opacity' | 'blend-in-filter' | 'noise-filter' | 'crisp-edges' | 'unreadable'
+  // The Design page route's own reasons (design-still.ts).
+  | 'vector-picture' | 'clip-edge' | 'blend-mode' | 'missing-text' | 'tool-picture' | 'size' | 'request';
 
 export interface ResvgRefusal { code: ResvgRefusalCode; reason: string }
 
@@ -126,6 +129,88 @@ function loadedFromResolver(id: string, tool: AdmittedTool): boolean {
  * (inside the 0.5% band, with little to spare); from 4.2 the band failed (2% and more).
  */
 export const MAX_PICTURE_SHRINK = 2;
+
+/**
+ * What drawing a refused picture with resvg anyway would give: `may-differ`, a picture a
+ * person could tell apart from the app's (edges, a colour shift, a moment of an
+ * animation, other faces), which `--allow-browser-free` may accept; or `wrong`, a picture
+ * that is not the one asked for (something left blank or out, a mark missing, the wrong
+ * size), which no flag accepts. One table for the tool route and the Design page route.
+ */
+export const REFUSAL_EFFECT: Readonly<Record<ResvgRefusalCode, 'may-differ' | 'wrong'>> = Object.freeze({
+  // May differ: measured outside the bands, or not measured at all.
+  'unmeasured': 'may-differ', 'fallback-faces': 'may-differ', 'live-text': 'may-differ',
+  'css-animation': 'may-differ', 'picture-colour': 'may-differ', 'picture-downscale': 'may-differ',
+  'gradient-opacity': 'may-differ', 'blend-in-filter': 'may-differ', 'noise-filter': 'may-differ',
+  'crisp-edges': 'may-differ', 'vector-picture': 'may-differ', 'clip-edge': 'may-differ',
+  // Would be wrong: resvg leaves something out, draws it blank or turned, or cannot make the file asked for.
+  'paged': 'wrong', 'draft-mark': 'wrong', 'canvas-pixels': 'wrong', 'layout': 'wrong',
+  'css-variable': 'wrong', 'html': 'wrong', 'picture-type': 'wrong', 'picture-orientation': 'wrong',
+  'picture-in-picture': 'wrong', 'picture-outside': 'wrong', 'unreadable': 'wrong',
+  'blend-mode': 'wrong', 'missing-text': 'wrong', 'tool-picture': 'wrong', 'size': 'wrong', 'request': 'wrong',
+});
+
+let resvgVersionCache: string | null = null;
+
+/** The installed `@resvg/resvg-js` version, read from its own package file. */
+export function resvgPackageVersion(): string {
+  if (resvgVersionCache === null) {
+    try {
+      const pkg = createRequire(import.meta.url)('@resvg/resvg-js/package.json') as { version?: unknown };
+      resvgVersionCache = typeof pkg.version === 'string' && pkg.version ? pkg.version : 'unknown';
+    } catch {
+      resvgVersionCache = 'unknown';
+    }
+  }
+  return resvgVersionCache;
+}
+
+/** The renderer a tool's picture drawn on this route records (export-route.ts `NodeRouteRecord`, with no `route`). */
+export const toolResvgRoute = (): { renderer: string } => ({ renderer: `resvg-js-${resvgPackageVersion()}` });
+
+/** The flag that accepts a browser-free picture which may differ (CLI and TUI only). */
+export const BROWSER_FREE_FLAG = 'allow-browser-free';
+
+/**
+ * The one decision for both routes: draw here or hand the job to the browser tier. With
+ * no refusal the route draws. With `accept` (the user's `--allow-browser-free`) it also
+ * draws when every refusal only may differ, and hands back what it accepted so the shell
+ * can warn and record it; a refusal that would be wrong always goes to the browser.
+ */
+export function acceptRefusals(refusals: readonly ResvgRefusal[], accept: boolean | undefined): { accepted: ResvgRefusal[] } | { refused: ResvgRefusal[] } {
+  if (!refusals.length) return { accepted: [] };
+  if (accept && refusals.every((r) => REFUSAL_EFFECT[r.code] === 'may-differ')) return { accepted: [...refusals] };
+  return { refused: [...refusals] };
+}
+
+const reasonsOf = (refusals: readonly (ResvgRefusal | string)[]): string => [...new Set(refusals.map((r) => (typeof r === 'string' ? r : r.reason)))].join('; ');
+
+/** The line a shell prints when the browser tier takes a job this route refused, or chose not to draw. */
+export function handedToBrowser(what: string, refusals: readonly (ResvgRefusal | string)[]): string {
+  return `${what} export: handed to the browser render tier because ${reasonsOf(refusals)}.`;
+}
+
+/**
+ * The way forward when no browser tier could take a refused job, in one sentence: install
+ * one, or (only when every reason may differ) accept a browser-free picture that may differ.
+ */
+export function noBrowserAdvice(refusals: readonly ResvgRefusal[]): string {
+  const install = 'install a browser render tier (`lolly install-browser`, or the Lolly desktop app)';
+  return refusals.length && refusals.every((r) => REFUSAL_EFFECT[r.code] === 'may-differ')
+    ? `To go on, ${install} for the app's own render, or pass --${BROWSER_FREE_FLAG} to accept a browser-free render that may differ.`
+    : `To go on, ${install}: drawn without a browser, this picture would be wrong, not just different.`;
+}
+
+/** The warning a shell prints for a picture drawn here because the user accepted the difference. */
+export function acceptedWarning(what: string, accepted: readonly ResvgRefusal[]): string {
+  return `this ${what} was drawn without a browser because --${BROWSER_FREE_FLAG} was given, and it may differ from the app's: ${reasonsOf(accepted)}.`;
+}
+
+/** The note for a `--allow-browser-free` that could not apply, because a reason would make the picture wrong. */
+export function flagNotApplied(refusals: readonly ResvgRefusal[]): string {
+  const wrong = refusals.filter((r) => REFUSAL_EFFECT[r.code] === 'wrong');
+  return `--${BROWSER_FREE_FLAG} does not apply here: drawn without a browser, the picture would be wrong, not just different, because ${reasonsOf(wrong)}.`;
+}
 
 /** The sentence a refused job prints or fails with. */
 export function resvgRefusalSentence(refusals: readonly ResvgRefusal[]): string {
@@ -665,20 +750,31 @@ export async function admitTierA(args: {
   /** The tool (`toolAdmission`) and whether it is a paged document. */
   tool?: ToolRouteFact;
   paged?: boolean;
+  /** The user's `--allow-browser-free`: draw a picture whose every refusal only may differ (`acceptRefusals`). */
+  accept?: boolean;
   exportSvg: (hooks: ExportFactHooks) => Promise<string | null>;
-}): Promise<{ svg: string; placement: SvgPlacement } | { refusals: ResvgRefusal[] } | null> {
+}): Promise<{ svg: string; placement: SvgPlacement; accepted?: ResvgRefusal[] } | { refusals: ResvgRefusal[] } | null> {
   const { root, drawn, width, height } = args;
   const known = { ...(args.tool ? { tool: args.tool } : {}), paged: !!args.paged };
-  const before = routeRefusals({ ...known, canvasPixels: (args.pixelWork?.() ?? 0) > 0 });
-  if (before.length) return { refusals: before };
+  const before = acceptRefusals(routeRefusals({ ...known, canvasPixels: (args.pixelWork?.() ?? 0) > 0 }), args.accept);
+  if ('refused' in before) return { refusals: before.refused };
   const layout = drawn ? readLayout(root, drawn, width, height, args.styles, args.renderSize) : { placement: { kind: 'fill' } as SvgPlacement, refusals: [] };
   const placement = layout.placement;
-  if (layout.refusals.length) return { refusals: layout.refusals };
+  if (layout.refusals.length) return { refusals: [...before.accepted, ...layout.refusals] };
   let draftMark = false, fallbackFaces = false;
   const svg = await args.exportSvg({ onDraftMark: (on) => { draftMark = on; }, onFillNotice: () => { fallbackFaces = true; } });
   if (svg === null) return null;
   const admitted = await admitForResvg(svg, width, height, { draftMark, fallbackFaces, canvasPixels: (args.pixelWork?.() ?? 0) > 0 }, placement);
-  return admitted.refusals.length ? { refusals: admitted.refusals } : { svg: admitted.svg, placement };
+  const all = acceptRefusals(dedupeRefusals([...before.accepted, ...admitted.refusals]), args.accept);
+  if ('refused' in all) return { refusals: all.refused };
+  return { svg: admitted.svg, placement, ...(all.accepted.length ? { accepted: all.accepted } : {}) };
+}
+
+/** Refusals without repeats, in order. */
+export function dedupeRefusals(refusals: readonly ResvgRefusal[]): ResvgRefusal[] {
+  const out: ResvgRefusal[] = [];
+  for (const r of refusals) if (!out.some((x) => x.code === r.code && x.reason === r.reason)) out.push(r);
+  return out;
 }
 
 /** `layoutAdmission` with the tool's stylesheet in force, read through the element's own window. */

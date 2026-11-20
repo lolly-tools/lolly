@@ -46,7 +46,8 @@ import { assertExportLocked, exportPasswordRefusal } from '@lolly-tools/node-she
 import { assertFormatBytes, sniffFormat, formatAllows } from '@lolly-tools/node-shell/format-sniff';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
 import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
-import { isResvgRefusal, toolAdmission, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedWarning, isResvgRefusal, noBrowserAdvice, toolAdmission, toolResvgRoute, type ResvgRefusal, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedRoute } from '@lolly-tools/node-shell/export-route';
 import { cleanControlChars } from '@lolly-tools/node-shell/verdict-report';
 // url-shot: capture a live page via the scoped Chromium (shared with the TUI).
 import { captureUrl, captureParamsFrom } from '@lolly-tools/node-shell/url-capture';
@@ -1224,7 +1225,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   let imprintFloorSkip = false;
   // A Design page drawn here from the drawing operations: its route and every credentialed picture the document places, on any page, as the web shell lists them (plan 326).
   const opsIngredients: IngredientCredential[] = [];
-  const routed: { record?: DesignExportRouteRecord } = {};
+  const routed: { record?: DesignExportRouteRecord | import('@lolly-tools/node-shell/export-route').NodeRouteRecord } = {};
 
   if (isCaptureTool(tool.manifest)) {
     // Capture tools (url-shot): drive the scoped Chromium straight at the target URL - 
@@ -1266,7 +1267,17 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     const qual = (v: number | null | undefined): string | number | undefined => (typeof v === 'number' && v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
     const exportOpts: CliExportOpts = { width: qual(width), height: qual(height) };
     // The browser-free raster formats (BMP, JPEG XL, EXR, HDR) read the drawing's layout with the tool's stylesheet.
-    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(targetFormat.toLowerCase())) Object.assign(exportOpts, { toolStyles: tool.styles ?? null, resvgTool });
+    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(targetFormat.toLowerCase())) {
+      Object.assign(exportOpts, {
+        toolStyles: tool.styles ?? null, resvgTool,
+        allowBrowserFree: isOn(params['allow-browser-free']),
+        // A picture drawn here only because the user accepted that it may differ: said, and recorded.
+        onBrowserFreeAccepted: (accepted: ResvgRefusal[]) => {
+          warn('BROWSER_FREE_ACCEPTED', acceptedWarning(targetFormat.toUpperCase(), accepted), 'gate');
+          routed.record = acceptedRoute(toolResvgRoute());
+        },
+      });
+    }
     if (targetFormat === 'pdf' && tool.manifest.id === 'design') {
       // The finishing pass needs the same resolved controls the browser receives.
       exportOpts.c2pa = wantC2pa;
@@ -1465,6 +1476,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
         pixelWork: () => pixelWorkCount(dom.window.document, host.raster),
         styles: tool.styles ?? null,
         tool: resvgTool,
+        allowBrowserFree: isOn(params['allow-browser-free']),
         log: (line) => host.log('info', line),
       });
       const bytes = Buffer.from(res.bytes);
@@ -2006,6 +2018,8 @@ export function exportFailure(format: string, failure: Error, domFreeError: Erro
   const parts = [`Cannot export "${format}".`];
   if (domFreeError) parts.push(`No browser-free path: ${firstLine(domFreeError.message)}`);
   parts.push(`${domFreeError ? 'And the full render tier is unavailable' : 'Reason'}: ${firstLine(failure.message)}`);
+  // A job the browser-free route refused: the way forward (resvg-admission.ts noBrowserAdvice).
+  if (domFreeError && isResvgRefusal(domFreeError)) parts.push(noBrowserAdvice(domFreeError.refusals));
   parts.push('No file was written. Pass --html-fallback if an HTML artifact under a .html name is genuinely useful to you.');
   // A TYPED marker, not prose: `lolly smoke` (browser-free by budget rule) uses it to tell
   // "this tool needs the render tier I am not allowed to launch" from a real render bug,
@@ -2035,6 +2049,9 @@ export const CLI_FLAGS = new Set([
   // The enrolled signing identity (contract section 1.3). Both take a PATH - never key
   // material, which would be visible in `ps` to every user on the machine.
   'sign-key', 'sign-cert',
+  // `--allow-browser-free`: draw a picture the browser-free route refused only because it
+  // may differ (resvg-admission.ts REFUSAL_EFFECT), with a warning and a credential record.
+  'allow-browser-free',
   // The browser tier's diagnostic switch: keeps the headless page's console and network
   // log and writes them beside the output when a Tier-B render fails. Listed here so it
   // is never reported as "not an input of <tool>".

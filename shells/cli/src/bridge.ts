@@ -103,7 +103,7 @@ import {
 // factories return null on a lean install so the capability stays honestly absent.
 import { createNodePdfRedact } from '@lolly-tools/node-shell/pdf-redact';
 import { createNodeRasterAPI, pixelWorkCount } from '@lolly-tools/node-shell/canvas';
-import { admitForResvg, readLayout, ResvgRefusedError, routeRefusals, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptRefusals, admitForResvg, dedupeRefusals, readLayout, ResvgRefusedError, routeRefusals, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import type { DecodeLimits } from '@lolly-tools/node-shell/canvas';
 // host.speech (Kokoro TTS + Whisper transcription). RELATIVE for the same MCP-bundle
 // reason; it resolves transformers.js lazily and returns null when the runtime is
@@ -250,6 +250,10 @@ interface CliExportRenderOpts extends ExportOpts {
   /** Whether the tool may take the browser-free raster route (resvg-admission.ts `toolAdmission`).
    *  A caller that says nothing gets no route. */
   resvgTool?: ToolRouteFact;
+  /** `--allow-browser-free`: draw a picture whose every refusal only may differ (resvg-admission.ts `acceptRefusals`). */
+  allowBrowserFree?: boolean;
+  /** Told what was accepted when such a picture is drawn, so the caller warns and records it. */
+  onBrowserFreeAccepted?: (accepted: ResvgRefusal[]) => void;
   c2pa?: boolean;
   durable?: boolean;
   dataText?: string;
@@ -1215,11 +1219,11 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
       // thrown by type, and run.ts hands the job to the browser tier.
       const resvgSource = async (svg: Element, format: string, width: number, height: number): Promise<{ svg: string; placement: SvgPlacement }> => {
         const { placement, refusals: layout } = readLayout(node, svg, width, height, opts.toolStyles);
-        const early = [
+        const early = acceptRefusals([
           ...routeRefusals({ tool: opts.resvgTool ?? { id: 'unnamed', browserFree: false, untrusted: false }, draftMark: !!opts.watermark, canvasPixels: pixelWorkCount(node.ownerDocument, host.raster) > 0 }),
           ...layout,
-        ];
-        if (early.length) throw new ResvgRefusedError(early, format);
+        ], opts.allowBrowserFree);
+        if ('refused' in early) throw new ResvgRefusedError(early.refused, format);
         let fallbackFaces = false;
         if (opts.text !== 'live') {
           const res = await outlineSvgText(svg, host, {
@@ -1231,7 +1235,9 @@ async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-
         }
         const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const admitted = await admitForResvg(raw, width, height, { fallbackFaces }, placement);
-        if (admitted.refusals.length) throw new ResvgRefusedError(admitted.refusals, format);
+        const all = acceptRefusals(dedupeRefusals([...early.accepted, ...admitted.refusals]), opts.allowBrowserFree);
+        if ('refused' in all) throw new ResvgRefusedError(all.refused, format);
+        if (all.accepted.length) opts.onBrowserFreeAccepted?.(all.accepted);
         return { svg: admitted.svg, placement };
       };
       opts.onDraftMark?.(!!opts.watermark);

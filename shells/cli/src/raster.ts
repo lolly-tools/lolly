@@ -17,7 +17,8 @@ import type { JSDOM } from 'jsdom';
 import { serializeUrlState, serializeHdr, HDR_DEFAULTS, isToolUrl } from '@lolly/engine';
 import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims, svgExportSize, drawnRootSvg } from '@lolly-tools/node-shell/raster';
 import type { DeepHdrRequest } from '@lolly-tools/node-shell/raster';
-import { admitTierA, resvgRefusalSentence, routeRefusals, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedRoute } from '@lolly-tools/node-shell/export-route';
+import { acceptedWarning, acceptRefusals, admitTierA, flagNotApplied, handedToBrowser, noBrowserAdvice, REFUSAL_EFFECT, resvgRefusalSentence, routeRefusals, toolResvgRoute, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
 import type { ResvgRefusal, SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
 import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
@@ -51,8 +52,9 @@ export interface RasterResult {
    *  "tear the browser down"; the Content Credential is still stamped in Node, because
    *  the file the browser produced is not the file being written. */
   nodeEncoded?: boolean;
-  /** A Design page drawn here (plan 371, M3a): the route the credential records. */
-  route?: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord;
+  /** A Design page drawn here (plan 371, M3a), or a picture drawn here because the user
+   *  accepted a browser-free render (`--allow-browser-free`): the route the credential records. */
+  route?: import('@lolly-tools/node-shell/export-route').NodeRouteRecord | import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord;
   /** ...and the credentialed pictures that page drew, for the credential's ingredients. */
   ingredients?: import('@lolly-tools/core/host-v1').IngredientCredential[];
 }
@@ -112,6 +114,8 @@ export async function renderRaster(opts: {
   styles?: string | null;
   /** Whether this tool may take the browser-free route (resvg-admission.ts `toolAdmission`). */
   tool: ToolRouteFact;
+  /** `--allow-browser-free`: draw a picture whose every refusal only may differ, with a warning. */
+  allowBrowserFree?: boolean;
   /** Where the line that says which renderer drew a Design PNG goes. */
   log?: (line: string) => void;
 }): Promise<RasterResult> {
@@ -157,24 +161,33 @@ export async function renderRaster(opts: {
   // ADMISSION (plan 371): resvg draws here only an SVG it was measured to draw the way the
   // browser does. Anything else is handed to Tier B with the reason printed, and where
   // Tier B cannot run the job fails with that reason instead of writing a wrong picture.
+  //
+  // `--allow-browser-free` lets the user take a picture whose every refusal only may differ
+  // (resvg-admission.ts `REFUSAL_EFFECT`): it is drawn here with a warning, and the
+  // credential records the acceptance. A refusal that would be wrong still goes to Tier B.
   let refused: ResvgRefusal[] | null = null;
+  const accept = !!opts.allowBrowserFree;
   if (!sampled && !floatEditing && manifest.id === 'design' && fmt === 'png') {
-    const still = await renderDesignStill(runtime, dom, dims, opts.log ?? ((line) => note(`[info] ${line}`)), opts.initial);
-    if (still) return still;
+    const still = await renderDesignStill(runtime, dom, dims, opts.log ?? ((line) => note(`[info] ${line}`)), opts.initial, accept);
+    if (still && 'bytes' in still) return still;
+    if (still) refused = still.refusals;
   } else if (!sampled && !floatEditing && eligibleForResvgPng(fmt, dims)) {
-    const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.tool, opts.pixelWork, opts.styles);
+    const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.tool, opts.pixelWork, opts.styles, accept);
     if (tierA && 'svg' in tierA) {
       // Shared Tier-A rasteriser (node-shell): imprint, placement and the browser's PNG
       // chunks, identical to the TUI. `imprinted` reflects whether the mark was actually
       // embedded - the imprinted path returns the plain PNG (no mark) below the detection floor.
       const { bytes, imprinted } = await rasterizeTierAPng(tierA.svg, dims, manifest, { placement: tierA.placement, meta: runtime.lastExportMeta ?? null });
-      return { bytes, usedBrowser: false, imprinted };
+      if (!tierA.accepted) return { bytes, usedBrowser: false, imprinted };
+      warn('BROWSER_FREE_ACCEPTED', acceptedWarning(fmt.toUpperCase(), tierA.accepted), 'gate');
+      return { bytes, usedBrowser: false, imprinted, route: acceptedRoute(toolResvgRoute()) };
     }
     if (tierA) {
       refused = tierA.refusals;
-      note(`Note: ${resvgRefusalSentence(refused)} Drawing the ${fmt.toUpperCase()} in the browser render tier.`);
+      note(`Note: ${handedToBrowser(fmt.toUpperCase(), refused)}`);
     }
   }
+  if (refused && accept && refused.some((r) => REFUSAL_EFFECT[r.code] === 'wrong')) note(`Note: ${flagNotApplied(refused)}`);
   try {
     return await renderTierB(opts, fmt, dims);
   } catch (e) {
@@ -182,10 +195,14 @@ export async function renderRaster(opts: {
   }
 }
 
-/** A Tier-B failure for a job Tier A refused: both halves, the refusal first, one line. */
+/**
+ * A Tier-B failure for a job Tier A refused, in one line: the refusal, the way forward
+ * (install a browser tier, or accept a picture that may differ when every reason only
+ * may differ), then why the browser tier could not run.
+ */
 function withRefusal(e: unknown, refusals: readonly ResvgRefusal[]): Error {
   const message = (e as Error)?.message ?? String(e);
-  const err = new Error(`${resvgRefusalSentence(refusals)} The browser render tier, which draws it, could not run: ${message.split('\n')[0]}`) as Error & { code?: unknown; cause?: unknown };
+  const err = new Error(`${resvgRefusalSentence(refusals)} ${noBrowserAdvice(refusals)} The browser render tier could not run: ${message.split('\n')[0]}`) as Error & { code?: unknown; cause?: unknown };
   err.cause = e;
   if ((e as { code?: unknown })?.code !== undefined) err.code = (e as { code?: unknown }).code;
   return err;
@@ -230,18 +247,20 @@ async function renderTierB(opts: Parameters<typeof renderRaster>[0], fmt: string
  * only for a page this route draws as the browser draws that page. Each decision is one line
  * through `log`, with its reason, so the renderer is never chosen silently.
  */
-async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims & HdrStillRequest, log: (line: string) => void, initial?: Record<string, unknown>): Promise<RasterResult | null> {
+async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims & HdrStillRequest, log: (line: string) => void, initial?: Record<string, unknown>, accept = false): Promise<RasterResult | { refusals: ResvgRefusal[] } | null> {
   const { designStillDecision, designStillNote, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
   const { describeDesignExportRoute } = await import('../../../engine/src/design-export-route.ts');
-  const decision = designStillDecision();
+  const decision = designStillDecision(process.env, undefined, accept);
   if (decision.ignored !== undefined) warn('DESIGN_RASTER_IGNORED', `LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto or resvg), so the default applies.`);
-  const toBrowser = (reasons: string[]): null => {
-    log(`Design PNG export: handed to the browser render tier because ${reasons.join('; ')}.`);
-    return null;
+  // A page this route chose not to draw (a browser tier is there) is not a refusal; a page
+  // it could not draw is, and its reasons reach the failure if the browser tier cannot run.
+  if (decision.draw === 'browser') { log(handedToBrowser('Design PNG', [decision.because])); return null; }
+  const toBrowser = (refusals: ResvgRefusal[]): { refusals: ResvgRefusal[] } => {
+    log(handedToBrowser('Design PNG', refusals));
+    return { refusals };
   };
-  if (decision.draw === 'browser') return toBrowser([decision.because]);
   const canvas = dom.window.document.getElementById('canvas');
-  if (!canvas) return toBrowser(['this shell has no canvas to draw the page from']);
+  if (!canvas) return toBrowser([{ code: 'request', reason: 'this shell has no canvas to draw the page from' }]);
   canvas.innerHTML = runtime.getHydrated();
   await runtime.applyEmojiToDom(canvas);
   // A bad --s is a usage error, as on every other path, never a reason to draw elsewhere.
@@ -250,18 +269,20 @@ async function renderDesignStill(runtime: Runtime, dom: JSDOM, dims: RenderDims 
   // the document here; the browser tier composes it (restoreToolLinks), so the page goes there.
   const frameId = picked?.node.getAttribute('data-frame-id');
   const uncomposed = initial && frameId ? uncomposedToolLinks(runtime.getModel() as ModelItem[], initial, frameId) : [];
-  if (uncomposed.length) return toBrowser([`the picture in ${uncomposed.join(', ')} is made by another tool, which this shell could not compose`]);
+  if (uncomposed.length) return toBrowser([{ code: 'tool-picture', reason: `the picture in ${uncomposed.join(', ')} is made by another tool, which this shell could not compose` }]);
   const result = await drawDesignStill({
     exportSvg: (node, exportOpts) => runtime.export(node, 'svg', exportOpts),
     meta: () => runtime.lastExportMeta ?? null,
     page: picked?.node ?? null,
     rows: (runtime.getModel() as ModelItem[]).find((item) => item.id === 'boxes')?.value as unknown[] | undefined,
     dims,
+    accept,
   });
-  if ('refused' in result) return toBrowser(result.refused);
+  if ('refused' in result) return toBrowser(result.refusals);
   const { drawn } = result;
   log(`${describeDesignExportRoute('png', drawn.route, [decision.because]).replace(/\.$/, '')}, ${drawn.width} x ${drawn.height} px, with no browser.`);
-  note(`Note: ${designStillNote(decision)}`);
+  if (drawn.accepted) warn('BROWSER_FREE_ACCEPTED', acceptedWarning('Design PNG', drawn.accepted), 'gate');
+  else note(`Note: ${designStillNote(decision)}`);
   return { bytes: drawn.bytes, usedBrowser: false, imprinted: drawn.imprinted, route: drawn.route, ingredients: drawn.ingredients };
 }
 
@@ -385,15 +406,15 @@ export function uncomposedToolLinks(model: readonly ModelItem[], initial: Record
  * Tier B. `pixelWork` and `styles` feed that admission.
  */
 async function tryRenderSvg(
-  runtime: Runtime, dom: JSDOM, slide: string | null | undefined, dims: RenderDims, manifest: Manifest, tool: ToolRouteFact, pixelWork?: () => number, styles?: string | null,
-): Promise<{ svg: string; placement: SvgPlacement } | { refusals: ResvgRefusal[] } | null> {
+  runtime: Runtime, dom: JSDOM, slide: string | null | undefined, dims: RenderDims, manifest: Manifest, tool: ToolRouteFact, pixelWork?: () => number, styles?: string | null, accept = false,
+): Promise<{ svg: string; placement: SvgPlacement; accepted?: ResvgRefusal[] } | { refusals: ResvgRefusal[] } | null> {
   const canvas = dom.window.document.getElementById('canvas');
   if (!canvas) return null;
   // Asked before the canvas is hydrated again: a hook that computed pictures can leave a
   // tree large enough that a second copy of it is what exhausts the heap (a logo wall
   // repeating a photo inlines the photo once per tile, 77 MB of SVG for 20 tiles).
-  const known = routeRefusals({ tool, paged: !!manifest.render?.paged, canvasPixels: (pixelWork?.() ?? 0) > 0 });
-  if (known.length) return { refusals: known };
+  const known = acceptRefusals(routeRefusals({ tool, paged: !!manifest.render?.paged, canvasPixels: (pixelWork?.() ?? 0) > 0 }), accept);
+  if ('refused' in known) return { refusals: known.refused };
   try {
     canvas.innerHTML = runtime.getHydrated();
     // This tier re-hydrates a canvas of its own, so it runs the emoji pass of its
@@ -413,7 +434,7 @@ async function tryRenderSvg(
     ...(manifest.render ? { renderSize: manifest.render } : {}),
     ...(styles !== undefined ? { styles } : {}),
     ...(pixelWork ? { pixelWork } : {}),
-    tool, paged: !!manifest.render?.paged,
+    tool, paged: !!manifest.render?.paged, accept,
     exportSvg: async ({ onDraftMark, onFillNotice }) => {
       try {
         const blob = await runtime.export(root, 'svg', { ...svgExportSize(root, dims), onDraftMark, onFillNotice });
@@ -454,6 +475,7 @@ async function renderHdrStill(opts: {
   pixelWork?: () => number;
   styles?: string | null;
   tool: ToolRouteFact;
+  allowBrowserFree?: boolean;
 }): Promise<RasterResult> {
   const { runtime, dom, manifest } = opts;
   const dims = opts.dims;
@@ -468,11 +490,16 @@ async function renderHdrStill(opts: {
   let usedBrowser = false;
   // The same admission as the plain PNG: an SVG resvg would draw unlike the browser
   // takes its source pixels from the browser tier instead.
-  const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.tool, opts.pixelWork, opts.styles);
-  if (tierA && 'refusals' in tierA) note(`Note: ${resvgRefusalSentence(tierA.refusals)} Taking the source pixels from the browser render tier.`);
+  const tierA = await tryRenderSvg(runtime, dom, dims.slide, dims, manifest, opts.tool, opts.pixelWork, opts.styles, !!opts.allowBrowserFree);
+  if (tierA && 'refusals' in tierA) note(`Note: ${handedToBrowser(`${opts.format.toUpperCase()} source pixels`, tierA.refusals)}`);
+  let accepted: ResvgRefusal[] | undefined;
   if (tierA && 'svg' in tierA) {
     const { width, height } = pxDims(dims, manifest);
     frame = await rasterizeSvgToRgba(tierA.svg, width, height, { placement: tierA.placement });
+    if (tierA.accepted) {
+      accepted = tierA.accepted;
+      warn('BROWSER_FREE_ACCEPTED', acceptedWarning(`HDR ${opts.format.toUpperCase()}`, accepted), 'gate');
+    }
   } else {
     const sourceDims: RenderDims = { ...dims, hdrParam: undefined, depth: undefined, imprint: false, c2pa: false };
     let bytes: Uint8Array;
@@ -512,7 +539,7 @@ async function renderHdrStill(opts: {
       ...(dims.depth !== undefined ? { depth: dims.depth } : {}),
       log,
     });
-    return { bytes, usedBrowser, imprinted: imprint, nodeEncoded: true };
+    return { bytes, usedBrowser, imprinted: imprint, nodeEncoded: true, ...(accepted ? { route: acceptedRoute(toolResvgRoute()) } : {}) };
   }
 
   const res = await encodeGainMapJpeg(frame, {
@@ -525,7 +552,7 @@ async function renderHdrStill(opts: {
     ...(dims.depth !== undefined ? { depth: dims.depth } : {}),
     log,
   });
-  return { bytes: res.bytes, usedBrowser, imprinted: imprint, nodeEncoded: true };
+  return { bytes: res.bytes, usedBrowser, imprinted: imprint, nodeEncoded: true, ...(accepted ? { route: acceptedRoute(toolResvgRoute()) } : {}) };
 }
 
 // ── Tier A: a native .pptx from a Design document, with no browser ─────────────
