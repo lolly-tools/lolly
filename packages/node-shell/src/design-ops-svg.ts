@@ -48,6 +48,7 @@ export async function designOpsSvgNode(node: Element | null | undefined, opts: E
     return { reason: `the drawing could not be compiled (${error instanceof Error ? error.message : String(error)})` };
   }
   if (page.findings.length) return { reason: `the page holds features the drawing operations do not carry yet: ${[...new Set(page.findings.map((f) => `${f.feature} (${f.id})`))].join(', ')}` };
-  // A credentialed picture's manifest rides the export's credential as an ingredient, as on the web shell.
-  return { svg: page.svg, ingredients: use.ingredients() };
+  // Every credentialed picture the document places rides the export's credential as an
+  // ingredient, the pictures on other pages too, as on the web shell.
+  return { svg: page.svg, ingredients: await use.ingredients(doc.values) };
 }

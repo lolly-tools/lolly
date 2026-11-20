@@ -134,9 +134,9 @@ interface Tool {
   capabilities: string[];
   hasCard: boolean;
   hasPreview: boolean;
-  // Example LOOKS (manifest.examples, or the featured.variants alias) - each pre-rendered
-  // to catalog/previews/<id>.look<i>.svg so the gallery shows them from the bundle instead
-  // of live-rendering + fetching each look's assets on first load.
+  // Example LOOKS (manifest.examples, or the featured.variants alias). A blank card is
+  // re-captured from the one that reads best (recaptureFromBestLook); none is written as
+  // a file of its own, because the gallery renders the looks live.
   looks: Look[];
 }
 
@@ -246,9 +246,7 @@ async function main(): Promise<void> {
   try {
     for (const tool of tools) {
       // A committed authored override (tools/<id>/card.svg|png) wins over a generated
-      // DEFAULT preview (see entryFromManifest), so there's nothing to render there - but
-      // the tool's example LOOKS still need pre-rendering (an authored-card tool like
-      // pose-geeko still has a live example carousel), so we fall through to captureLooks.
+      // DEFAULT preview (see entryFromManifest), so there's nothing to render there.
       if (tool.hasCard) {
         results.push({ ok: false, reason: 'card override' });
         console.log(`  · ${tool.id.padEnd(20)} skipped (card override)`);
@@ -258,9 +256,6 @@ async function main(): Promise<void> {
         const mark = r.ok ? '✓' : '·';
         console.log(`  ${mark} ${tool.id.padEnd(20)} ${r.ok ? `→ ${rel(r.file)}` : `skipped (${r.reason})`}`);
       }
-      // Pre-render each example look → catalog/previews/<id>.look<i>.svg|png. Best-effort:
-      // a look that fails just isn't bundled, and the gallery live-renders it as before.
-      await captureLooks(context, baseUrl, tool);
     }
   } finally {
     await context.close();
@@ -492,14 +487,12 @@ const RASTER_MAX_DIM = 1024;
 // siblings came to be committed (plans/155 finding 3). Encoding at the point of capture
 // means a fallback is tile-sized even when nothing sweeps up after it: that same 7.5 MB
 // capture comes out of this function at 7 KB.
-// Preview byte budgets (mirror validate-catalog.ts PREVIEW_MAX_BYTES / LOOK_MAX_BYTES): a
-// card paints in the first viewport, a look in the carousel, both on a cold mobile load.
+// Preview byte budget (mirrors validate-catalog.ts PREVIEW_MAX_BYTES): a card paints in
+// the first viewport on a cold mobile load.
 const CARD_BUDGET_BYTES = 300 * 1024;
-const LOOK_BUDGET_BYTES = 150 * 1024;
 
 async function finalizePreview(
   base: string, ext: string, bytes: Buffer, meta: { id: string; name: string },
-  budgetBytes = CARD_BUDGET_BYTES,
 ): Promise<{ ext: string; bytes: Buffer }> {
   if (ext === 'svg') return { ext, bytes: Buffer.from(await stampVector(bytes, meta)) };
   try {
@@ -510,7 +503,7 @@ async function finalizePreview(
     //
     // Budget-aware (plans/155 task 2.3): q80 at the 1024 cap is the common case and fits on
     // the FIRST attempt for an ordinary photo, so nothing changes for it. But a dense capture
-    // - a colourful halftone SCREEN is ~500 KB at q80/1024 - would sail past the 300/150 KB
+    // - a colourful halftone SCREEN is ~500 KB at q80/1024 - would sail past the 300 KB
     // gate, and the fix used to be a manual re-encode that the next `loldev previews` /
     // dev:web backfill silently clobbered back to 500 KB. Stepping quality then dimension
     // down until it fits means a re-capture is stable under budget on its own. A preview that
@@ -523,7 +516,7 @@ async function finalizePreview(
         .png()
         .toBuffer();
       out = Buffer.from(await stampBitmap(new Uint8Array(resized), 'webp', meta, { webpQuality: quality }));
-      if (out.length <= budgetBytes) break;
+      if (out.length <= CARD_BUDGET_BYTES) break;
     }
     return { ext: 'webp', bytes: out };
   } catch (e) {
@@ -535,7 +528,7 @@ async function finalizePreview(
   }
 }
 
-// A tool (or look) carries exactly ONE preview form. When we write one, drop any stale
+// A tool carries exactly ONE preview form. When we write one, drop any stale
 // file in the other formats - including .webp, which optimize-preview-webp produces from a
 // .png, so a tool that flips raster→vector on a re-render can't leave a webp behind.
 async function clearSiblings(base: string, keepExt: string): Promise<void> {
@@ -552,30 +545,9 @@ function done(page: Page, result: CaptureResult): CaptureResult {
   return result;
 }
 
-// ── Pre-render example looks ────────────────────────────────────────────────
-// Each manifest example/variant look is rendered to catalog/previews/<id>.look<i>.svg (or
-// a stamped .webp when isExpensiveThumbSvg says the vector form is dense/expensive to
-// paint - never a .png), which build-preview-bundle.ts rolls into
-// bundle.json. The gallery then shows the look instantly from the bundle instead of
-// live-rendering it + fetching its assets on first load. All best-effort: any look that
-// fails to render simply isn't bundled and the gallery live-renders it exactly as before.
-
-async function captureLooks(context: BrowserContext, baseUrl: string, tool: Tool): Promise<void> {
-  if (!tool.looks.length) return;
-  const manifest = await loadManifest(tool.id);
-  if (!manifest) return; // no manifest to seed from
-  let ok = 0;
-  for (let i = 0; i < tool.looks.length; i++) {
-    // A committed authored look override (tools/<id>/look<i>.{png,webp,svg}) - e.g. an
-    // animated APNG - wins in the preview bundle and must never be clobbered. Skip it (and
-    // skip the wasted render). Mirrors the card-override skip in the main capture loop.
-    if (['png', 'webp', 'svg'].some((ext) => toolFile(tool.id, `look${i}.${ext}`))) continue;
-    const query = lookQuery(manifest, tool.looks[i]);
-    if (query === null) continue;
-    if (await captureLookAt(context, baseUrl, tool, i, query).catch(() => false)) ok++;
-  }
-  if (ok) console.log(`    ↳ ${ok}/${tool.looks.length} look${ok === 1 ? '' : 's'} pre-rendered`);
-}
+// ── Seeded captures from example looks ──────────────────────────────────────
+// A blank card is re-captured from one of the tool's example looks (recaptureFromBestLook
+// below). These helpers build that look's URL and take the picture.
 
 /** The tool's manifest as buildInputModel wants it, or null when it can't be read. */
 async function loadManifest(toolId: string): Promise<Parameters<typeof buildInputModel>[0] | null> {
@@ -617,17 +589,9 @@ function lookQuery(manifest: Parameters<typeof buildInputModel>[0], look: Look |
   return params.toString();
 }
 
-async function captureLookAt(context: BrowserContext, baseUrl: string, tool: Tool, i: number, query: string): Promise<boolean> {
-  const cap = await captureSeeded(context, baseUrl, tool, query, { measure: false });
-  if (!cap) return false;
-  await writeLookPreview(tool.id, i, cap.ext, cap.bytes);
-  return true;
-}
-
 /**
- * Render one seeded URL and return the thumbnail as it would be written. Shared by
- * "pre-render a look" and "re-capture a blank card from a look" so both take the same
- * picture; `measure` is opt-in because only the fallback needs the (rasterise + probe) cost.
+ * Render one seeded URL and return the thumbnail as it would be written, measured when
+ * `measure` is set (the rasterise + probe cost the blank-card fallback needs).
  */
 async function captureSeeded(
   context: BrowserContext, baseUrl: string, tool: Tool, query: string, o: { measure: boolean },
@@ -645,8 +609,8 @@ async function captureSeeded(
     );
     await page.waitForTimeout(700);
     // Same vector-screenshot capture the default fallback uses (mountTool's __lollyCaptureThumb) -
-    // no Save, so it doesn't pollute IndexedDB with a session per look. The force flag makes it
-    // vectorise HTML-layout tools too.
+    // no Save, so it doesn't pollute IndexedDB with a session per capture. The force flag makes
+    // it vectorise HTML-layout tools too.
     await page.evaluate(() => { (globalThis as { __lollyForceVectorThumb?: boolean }).__lollyForceVectorThumb = true; });
     const cap = await prepareThumb(page, await captureVectorThumb(page));
     if (cap && o.measure) cap.measure = await measureCapture(page, cap);
@@ -654,21 +618,6 @@ async function captureSeeded(
   } finally {
     page.close().catch(() => {});
   }
-}
-
-// Write catalog/previews/<id>.look<i>.<ext>, clearing a stale sibling in the other format
-// (so a look never has both an .svg and a raster). Mirrors writePreview for looks.
-async function writeLookPreview(toolId: string, i: number, ext: string, bytes: Buffer): Promise<string> {
-  const base = `${toolId}.look${i}`;
-  // Same as writePreview: an SVG look gets a C2PA credential, a raster look is encoded to
-  // a stamped tile-sized WebP right here rather than left as a full-resolution capture -
-  // under the tighter LOOK budget (a look is smaller on screen than the card).
-  const final = await finalizePreview(base, ext, bytes, { id: base, name: toolId }, LOOK_BUDGET_BYTES);
-  const file = join(PREVIEWS_DIR, `${base}.${final.ext}`);
-  await mkdir(dirname(file), { recursive: true });
-  await writeUnlessSamePicture(file, final.ext, final.bytes);
-  await clearSiblings(base, final.ext);
-  return file;
 }
 
 // Read the most-recent captured thumbnail for a tool straight out of IndexedDB
@@ -904,8 +853,8 @@ async function toolList(): Promise<Tool[]> {
     // half of the 60 MB leak (plans/155 finding 3): a backfill that never stopped
     // backfilling. .png stays for the pre-WebP files still on disk.
     hasPreview: ['svg', 'webp', 'png'].some((ext) => existsSync(join(PREVIEWS_DIR, `${t.id}.${ext}`))),
-    // resolveLooks(): examples is canonical, featured.variants is the pre-examples alias - 
-    // MUST mirror resolveExamples() in featured-row.ts + resolveLooks() in build-preview-bundle.ts.
+    // examples is canonical, featured.variants is the pre-examples alias - the same order
+    // as resolveExamples() in featured-row.ts.
     looks: t.examples ?? t.featured?.variants ?? [],
   }));
   if (opts.only.length) {

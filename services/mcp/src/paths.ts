@@ -65,11 +65,6 @@ export function fontsDir(): string {
   return catalogFile('fonts', content());
 }
 
-/** Committed gallery previews (resources.ts serves them as `lolly://preview/{id}`). */
-export function previewsDir(): string {
-  return catalogFile('previews', content());
-}
-
 /** A site-absolute content url (`/catalog/assets/...`, `/tools/<id>/...`) onto disk -
  *  the form an asset's `formats[].url` carries. null when the url names neither
  *  namespace, or when the file is not in this profile's packs. */

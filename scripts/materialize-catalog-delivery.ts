@@ -99,7 +99,7 @@ function rewriteReferences(text: string, addresses: Map<string, string>): string
   return text.replace(/\/(?:catalog\/(?:previews|og)\/|info\/shots\/|tools\/)[A-Za-z0-9_./@+,-]+/g, path => addresses.get(path) ?? path);
 }
 
-/** Full byte digests for public previews, including their generated look bundle. */
+/** Full byte digests for public previews and their JSON manifests (covers.json). */
 export function catalogPublicResources(rootPath: string): Record<string, string> {
   const root = realpathSync(rootPath), resources: Record<string, string> = {};
   let count = 0;
@@ -164,9 +164,9 @@ function rewriteHtmlTree(root: string, directory: string, addresses: Map<string,
   }
 }
 
-/** Catalog indexes and the look bundle now point at files that actually exist. */
+/** Catalog indexes now point at files that actually exist. */
 function rewriteCatalogReferences(root: string, addresses: Map<string, string>): void {
-  for (const path of ['catalog/tools/index.json', 'catalog/tools/index.slim.json', 'catalog/previews/bundle.json']) {
+  for (const path of ['catalog/tools/index.json', 'catalog/tools/index.slim.json']) {
     const file = pathIn(root, path);
     if (!existsSync(file)) continue;
     const before = readFileSync(file, 'utf8'), after = rewriteReferences(before, addresses);

@@ -8,7 +8,7 @@ Some rules hold for every table:
 
 - **Presence flags.** `export`, `copy`, `full`, `iframe`, `options`, `nostage`, `present` and `kiosk` are presence flags. Their value is ignored; what matters is whether the key appears in the link.
 - **Reserved namespaces.** Any name that starts with `_` is skipped before input matching, and no tool input or `urlKey` may claim one, so future reserved names come from there and can never collide with a tool's inputs. Parameters that start with `pkg.` are kept for Linux package metadata in the same way.
-- **The CLI.** Each name works on the command line as `--name=value`, unless its row says web only. A row marked CLI only has no meaning in a browser.
+- **The CLI.** Each name works on the command line as `--name=value`, unless its row says web only. A web-only name changes nothing in a CLI render, and the CLI prints a warning saying so; with `--strict` that warning makes the run exit 2. A row marked CLI only has no meaning in a browser.
 
 <!--i:eti-external-link-->
 ## What happens on open
@@ -31,15 +31,15 @@ Some rules hold for every table:
 ::: details More on iframe, present, s and kiosk
 **`iframe`** is for a tool shown inside another page: a Lolly Design slide, a docs page, a second screen or a kiosk. It keeps no saved session, no history entry, no sounds and no changes to the address. `export`, `copy`, `options`, `present` and `slot` are ignored when it is set. Which pages may frame the app is set by the deployment.
 
-**`present`** turns a frame document (Lolly Design) into a deck: its frames become slides in presentation order (`order`, then `x` to break a tie). A timed document that is not made of frames mounts normally and starts its sequence transport instead. The CLI accepts the flag and does nothing with it, because there is no screen to present on.
+**`present`** turns a frame document (Lolly Design) into a deck: its frames become slides in presentation order (`order`, then `x` to break a tie). A timed document that is not made of frames mounts normally and starts its sequence transport instead. The CLI warns that the flag had no effect, because there is no screen to present on.
 
 **`s`** takes `s=2` as the 1-based position in presentation order. Any other value (`s=slide1`, a ULID) is a frame id, and an `.N` suffix (`s=2.3`) picks a build step. Without `present`, the editor centres that frame when it opens. As a still-export filter, `?s=2&format=png` renders just that slide, which gives every slide an image link, and `lolly design --s=2 --export=png` means the same thing, because both shells resolve the address with the same engine code. Build steps are for the presenter only: a still export always shows every build. Formats that carry the whole deck (`pdf`, `zip`, `pptx`, `html`, `scorm`) and the motion formats, where time picks the frame, are rendered whole, and the CLI reports that it ignored the filter. An address that matches no slide never falls back to slide 1: the web app exports the whole deck and reports the mismatch, and the CLI exits 2 and writes nothing.
 
 **`kiosk`** makes the presenter wrap at the ends and a timed document's transport loop, so `?present&kiosk` is digital signage; pair it with each frame's `dur` for the dwell time. The flag was called `loop` until 2026-08-28. `loop` is an input id in several tools, so the name could not be reserved; old `?present&loop` links no longer loop and need `kiosk` instead.
 
-**`template` and `preset`** read the entry's values inside the app; they are never packed into the link. An unknown or missing template id opens the tool as usual, and an unknown preset applies the template's base values alone. A bare `?template=` opens the chooser itself. The CLI has no chooser, so it ignores both.
+**`template` and `preset`** read the entry's values inside the app; they are never packed into the link. An unknown or missing template id opens the tool as usual, and an unknown preset applies the template's base values alone. A bare `?template=` opens the chooser itself. The CLI does not apply a template entry, so it warns that both had no effect; give the entry's values as flags instead.
 
-**`slot`** is ignored by the CLI, which has no saved-session store.
+**`slot`** has no effect on a CLI render, and the CLI warns about the flag. The projects saved on this computer are read with `lolly projects list` and `lolly projects show <slot>`.
 :::
 
 <!--i:eti-file-->
@@ -48,7 +48,7 @@ Some rules hold for every table:
 | Param | Where | What it does |
 |---|---|---|
 | `format` | web + CLI | The output format (`png`, `svg`, `pdf`, …). Used by `export` and `copy`. It takes any value in the tool's `render.formats`. [Every format value](/info/url-export.html#download-a-file) lists the values, and [Every format Lolly can open and make](/info/formats.html) says what each format is for. |
-| `filename` | web only | Name of the downloaded file, without the extension. Defaults to the tool id. |
+| `filename` | web + CLI | Name of the downloaded file, without the extension. Defaults to the tool id. On the CLI, `--filename=<name>` writes the file to the working directory under exactly that name, so include the extension; `--output` wins if both are given, with a warning. A `filename` in a link that holds a path is refused there and nothing is written. |
 | `output` | CLI only | The path to write the file to. Defaults to stdout. |
 | `width` / `w` | web + CLI | Output width, as a value in `unit`. Also fills in the export panel. [How to use](/info/url-export.html#set-the-size) |
 | `height` / `h` | web + CLI | Output height, as a value in `unit`. Also fills in the export panel. |
@@ -224,7 +224,7 @@ The codes are `en` (the default), `es`, `de`, `fr`, `zh` (Simplified), `zh-hant`
 | Param | Where | What it does |
 |---|---|---|
 | `z` | web + CLI | A packed link: the whole readable query, compressed and base64url-encoded. [Packed links](/info/url-mode.html#packed-links-z) |
-| `zx` | web only | An encrypted link: the packed state encrypted under a password the link never holds. [Encrypted links](/info/url-mode.html#encrypted-links-zx) |
+| `zx` | web + CLI | An encrypted link: the packed state encrypted under a password the link never holds. The CLI takes the password as `--link-password`; a missing or wrong password exits 6 and renders nothing. [Encrypted links](/info/url-mode.html#encrypted-links-zx) |
 | `_v` | web + CLI | The tool version the link was made against, such as `1.0.0`. Ignored when it does not match, so a link keeps working. |
 | `pkg.*` | web + CLI | Kept for Linux package metadata (`pkg.name`, `pkg.version`, `pkg.dest` and the like). Skipped before input matching, so no tool input can use one. The web app's `rpm` and `tar.gz` export reads these values from its export panel, not from a link. |
 

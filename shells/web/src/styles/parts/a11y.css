@@ -224,7 +224,7 @@
     · TEXT BAKED INTO AN IMAGE. The per-tool and per-view OG share cards
       (catalog/og/), tool `thumb.png` and the `card.html` animated banners
       (lib/preview-media.ts), the catalog preview SVGs
-      (catalog/previews/bundle.json) and the /info docs screenshots (docs/shots)
+      (catalog/previews/) and the /info docs screenshots (docs/shots)
       are all pixels - or font-sizes fixed at capture time - by the time the shell
       shows them. A whole-UI zoom would have magnified every one; a type
       multiplier cannot touch any. That is the price of the mechanism that keeps

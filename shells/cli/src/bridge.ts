@@ -1181,9 +1181,9 @@ export async function createCliBridge(
 const rootSvgOf = drawnRootSvg;
 /**
  * What a Design page drawn from the operations hands back to run.ts, which stamps the
- * credential (plan 326): the route that drew it, through `onExportRoute`, and each
- * credentialed picture's manifest, into `ingredientSink`. Both survive the runtime's
- * copies of the options because they are references.
+ * credential (plan 326): the route that drew it, through `onExportRoute`, and the manifest
+ * of each credentialed picture the document places, on any page, into `ingredientSink`.
+ * Both survive the runtime's copies of the options because they are references.
  */
 async function noteDesignOps(opts: object, ingredients: readonly import('@lolly-tools/core/host-v1').IngredientCredential[]): Promise<void> {
   const o = opts as { ingredientSink?: import('@lolly-tools/core/host-v1').IngredientCredential[]; onExportRoute?: (record: import('../../../engine/src/design-export-route.ts').DesignExportRouteRecord) => void };

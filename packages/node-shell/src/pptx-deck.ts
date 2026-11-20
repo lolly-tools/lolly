@@ -38,6 +38,7 @@
 import { EMU_PER_PX, MAX_TABLE_COLS, MAX_TABLE_ROWS } from "../../../engine/src/pptx.ts";
 import { parseColorToSrgb8 } from "../../../engine/src/css-color.ts";
 import { parseSvgPath } from "../../../engine/src/svg-path.ts";
+import { svgIntrinsicSize } from "../../../engine/src/penpot-file.ts";
 import { gradientSpecStops, parseGradientSpec } from "../../../engine/src/gradient-spec.ts";
 import { colorToHexString } from "../../../engine/src/css-color.ts";
 import { SUSE_FONT_DIR } from "./text-svg.ts";
@@ -655,38 +656,14 @@ function truthy(v: unknown): boolean {
   return t === '1' || t === 'true' || t === 'yes' || t === 'on';
 }
 
-/** CSS pixels per unit for the absolute lengths an SVG root's width and height can carry. */
-const SVG_UNIT_PX: Record<string, number> = { '': 1, px: 1, pt: 4 / 3, pc: 16, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
-
 /**
  * An SVG's intrinsic size, read the way an `<img>` reads one: absolute width and
  * height first, then the viewBox for the aspect. Unrounded, because a wordmark's
  * viewBox (210.179 by 37.666) loses a percent of its aspect when rounded to pixels.
+ * The engine's `svgIntrinsicSize` holds the rule, so a deck and a Design page agree.
  */
 export function deckSvgIntrinsicSize(bytes: Uint8Array): DeckIntrinsicSize | null {
-  const head = new TextDecoder().decode(bytes.subarray(0, Math.min(bytes.length, 8192)));
-  const tag = /<svg\b([^>]*)>/i.exec(head);
-  if (!tag) return null;
-  const attr = (name: string): string | undefined => {
-    const m = new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i').exec(tag[1]!);
-    return m ? (m[1] ?? m[2]) : undefined;
-  };
-  const length = (value: string | undefined): number => {
-    const m = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm)?\s*$/i.exec(value ?? '');
-    if (!m) return 0;
-    const n = parseFloat(m[1]!) * (SVG_UNIT_PX[(m[2] ?? '').toLowerCase()] ?? 0);
-    return Number.isFinite(n) && n > 0 ? n : 0;
-  };
-  const vb = (attr('viewBox') ?? '').trim().split(/[\s,]+/).map(Number);
-  const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2]! > 0 ? vb[2]! : 0;
-  const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3]! > 0 ? vb[3]! : 0;
-  const w = length(attr('width'));
-  const h = length(attr('height'));
-  if (w && h) return { w, h, natural: true };
-  if (w && vbW && vbH) return { w, h: (w * vbH) / vbW, natural: true };
-  if (h && vbW && vbH) return { w: (h * vbW) / vbH, h, natural: true };
-  if (vbW && vbH) return { w: vbW, h: vbH, natural: false };
-  return null;
+  return svgIntrinsicSize(bytes);
 }
 
 /** A position keyword (`left top`, `center`) or `x% y%` as fractions, read the way CSS object-position reads a value. */
