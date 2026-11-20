@@ -252,7 +252,7 @@ interface CliExportRenderOpts extends ExportOpts {
   resvgTool?: ToolRouteFact;
   /** `--allow-browser-free`: draw a picture whose every refusal only may differ (resvg-admission.ts `acceptRefusals`). */
   allowBrowserFree?: boolean;
-  /** Told what was accepted when such a picture is drawn, so the caller warns and records it. */
+  /** Told what was accepted when such a picture is drawn, so the caller can warn and keep a record. */
   onBrowserFreeAccepted?: (accepted: ResvgRefusal[]) => void;
   c2pa?: boolean;
   durable?: boolean;

@@ -14,7 +14,8 @@ import { assertFormatBytes } from '@lolly-tools/node-shell/format-sniff';
 // The DOM-free/raster format split + the resvg fast path + the export C2PA payload,
 // shared with the CLI (one implementation, no drift).
 import { NODE_FORMATS, needsFloatScene, pxDims, eligibleForResvgPng, rasterizeTierAPng, canCarryPrintPrep, printPrepRefusal, svgExportSize, drawnRootSvg } from '@lolly-tools/node-shell/raster';
-import { admitTierA, isResvgRefusal, resvgRefusalSentence, routeRefusals, toolAdmission, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedWarning, acceptRefusals, admitTierA, BROWSER_FREE_FLAG, flagNotApplied, handedToBrowser, isResvgRefusal, noBrowserAdvice, REFUSAL_EFFECT, resvgRefusalSentence, routeRefusals, toolAdmission, toolResvgRoute, type ResvgRefusal, type SvgPlacement, type ToolRouteFact } from '@lolly-tools/node-shell/resvg-admission';
+import { acceptedRoute, type NodeRouteRecord } from '@lolly-tools/node-shell/export-route';
 import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
 import { buildExportC2paOpts } from '@lolly-tools/node-shell/c2pa-opts';
 import { assertRenderOk } from '@lolly-tools/node-shell/render-integrity';
@@ -260,14 +261,15 @@ export async function renderSvg(runtime: Runtime, dom: JSDOM, dims?: ExportDims)
  */
 async function tierASvg(
   runtime: Runtime, dom: JSDOM, manifest: Manifest, dims: ExportDims,
-): Promise<{ svg: string; placement: SvgPlacement } | { refusals: ResvgRefusal[] } | null> {
+): Promise<{ svg: string; placement: SvgPlacement; accepted?: ResvgRefusal[] } | { refusals: ResvgRefusal[] } | null> {
+  const accept = allowsBrowserFree(dims);
   const host = runtimeHosts.get(runtime);
   // Asked before the canvas is hydrated again, as the CLI does: a second copy of a
   // picture-heavy tree is what can exhaust the heap.
   const tool = manifest as { id: string; render?: { paged?: boolean } };
   const route = runtimeRoute.get(runtime) ?? { id: tool.id, browserFree: false, untrusted: false };
-  const known = routeRefusals({ tool: route, paged: !!tool.render?.paged, canvasPixels: pixelWorkCount(dom.window.document, host?.raster) > 0 });
-  if (known.length) return { refusals: known };
+  const known = acceptRefusals(routeRefusals({ tool: route, paged: !!tool.render?.paged, canvasPixels: pixelWorkCount(dom.window.document, host?.raster) > 0 }), accept);
+  if ('refused' in known) return { refusals: known.refused };
   let canvas: HTMLElement;
   try {
     canvas = await hydrateCanvas(runtime, dom);
@@ -282,7 +284,7 @@ async function tierASvg(
     ...(render ? { renderSize: render } : {}),
     styles: runtimeStyles.get(runtime) ?? null,
     pixelWork: () => pixelWorkCount(dom.window.document, host?.raster),
-    tool: route, paged: !!tool.render?.paged,
+    tool: route, paged: !!tool.render?.paged, accept,
     exportSvg: async ({ onDraftMark, onFillNotice }) => {
       try {
         const blob = await runtime.export(canvas, 'svg', { ...svgExportSize(canvas, dims), onDraftMark, onFillNotice } as Parameters<Runtime['export']>[2]);
@@ -298,26 +300,28 @@ async function tierASvg(
  * The TUI half of the Design PNG route (plan 371, M3a; `design-still.ts` in node-shell):
  * the drawn page, or null for the browser render tier, with one line in the log either way.
  */
-async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): Promise<import('@lolly-tools/node-shell/design-still').DesignStillDrawn | null> {
+async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): Promise<import('@lolly-tools/node-shell/design-still').DesignStillDrawn | { refusals: ResvgRefusal[] } | null> {
   const { designStillDecision, designStillNote, drawDesignStill } = await import('@lolly-tools/node-shell/design-still');
   const { describeDesignExportRoute } = await import('../../../engine/src/design-export-route.ts');
   const { selectFramePage } = await import('@lolly/engine');
   const log = (line: string): void => { runtimeHosts.get(runtime)?.log?.('info', line); };
-  const decision = designStillDecision();
+  const accept = allowsBrowserFree(dims);
+  const decision = designStillDecision(process.env, undefined, accept);
   if (decision.ignored !== undefined) log(`LOLLY_DESIGN_RASTER=${decision.ignored} is not a value this shell reads (auto or resvg), so the default applies.`);
-  const toBrowser = (reasons: string[]): null => { log(`Design PNG export: handed to the browser render tier because ${reasons.join('; ')}.`); return null; };
-  if (decision.draw === 'browser') return toBrowser([decision.because]);
+  // A page this route chose not to draw (a browser tier is there) is not a refusal; a page it could not draw is.
+  if (decision.draw === 'browser') { log(handedToBrowser('Design PNG', [decision.because])); return null; }
+  const toBrowser = (refusals: ResvgRefusal[]): { refusals: ResvgRefusal[] } => { log(handedToBrowser('Design PNG', refusals)); return { refusals }; };
   const canvas = await hydrateCanvas(runtime, dom);
   await runtime.applyEmojiToDom(canvas);
   const pages = [...canvas.querySelectorAll('[data-pdf-page]')];
   const pick = selectFramePage(pages.map((p) => p.getAttribute('data-frame-id')), dims.slide);
   const page = pick.kind === 'page' ? pages[pick.index]! : pick.kind === 'none' && pages.length === 1 ? pages[0]! : null;
-  if (!page) return toBrowser([pick.kind === 'unmatched' ? `s=${pick.address.raw} matches no frame in this document` : `the document has ${pages.length} frames and the export names none`]);
+  if (!page) return toBrowser([{ code: 'request', reason: pick.kind === 'unmatched' ? `s=${pick.address.raw} matches no frame in this document` : `the document has ${pages.length} frames and the export names none` }]);
   const initial = runtimeInitial.get(runtime), frameId = page.getAttribute('data-frame-id');
   if (initial && frameId) {
     const { uncomposedToolLinks } = await import('../../cli/src/raster.ts');
     const uncomposed = uncomposedToolLinks(runtime.getModel() as never, initial, frameId);
-    if (uncomposed.length) return toBrowser([`the picture in ${uncomposed.join(', ')} is made by another tool, which this shell could not compose`]);
+    if (uncomposed.length) return toBrowser([{ code: 'tool-picture', reason: `the picture in ${uncomposed.join(', ')} is made by another tool, which this shell could not compose` }]);
   }
   const result = await drawDesignStill({
     exportSvg: (node, opts) => runtime.export(node, 'svg', opts),
@@ -325,13 +329,23 @@ async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): 
     page,
     rows: runtime.getModel().find((item) => item.id === 'boxes')?.value as unknown[] | undefined,
     dims,
+    accept,
   });
-  if ('refused' in result) return toBrowser(result.refused);
+  if ('refused' in result) return toBrowser(result.refusals);
   log(`${describeDesignExportRoute('png', result.drawn.route, [decision.because]).replace(/\.$/, '')}, ${result.drawn.width} x ${result.drawn.height} px, with no browser.`);
-  const notice = designStillNote(decision);
+  const notice = result.drawn.accepted ? acceptedWarning('Design PNG', result.drawn.accepted) : designStillNote(decision);
   log(notice);
   dims.onNote?.(notice);
   return result.drawn;
+}
+
+/**
+ * Whether this export accepts a browser-free picture that may differ: the export's own
+ * choice, else `lolly tui --allow-browser-free`, read from the TUI's arguments.
+ */
+function allowsBrowserFree(dims: ExportDims): boolean {
+  if (typeof dims.allowBrowserFree === 'boolean') return dims.allowBrowserFree;
+  return process.argv.some((arg) => new RegExp(`^--${BROWSER_FREE_FLAG}(?:=(?:1|true|on|yes))?$`).test(arg));
 }
 
 /** Output size options for an export (mirrors the web/CLI: width/height are values in
@@ -341,6 +355,8 @@ async function designStillHere(runtime: Runtime, dom: JSDOM, dims: ExportDims): 
 export interface ExportDims extends RenderDims {
   /** Told once about how the file was made when a person should know: a Design page drawn without a browser. */
   onNote?: (message: string) => void;
+  /** Accept a browser-free picture that may differ (`--allow-browser-free`); unset reads the TUI's own arguments. */
+  allowBrowserFree?: boolean;
   c2paDays?: number;
   /** The caller's own "no credential": none is stamped, and none stays in the file. */
   c2paOff?: boolean;
@@ -379,7 +395,7 @@ export async function exportToFile(
   // per export, so the runtime's own exports and the Tier-B URL read one switch.
   if (typeof dims.madeWith === 'boolean') runtime.setMadeWith(dims.madeWith);
   /** A Design page the Node bridge drew from the operations: its route and every credentialed picture the document places, on any page (plan 326). */
-  type DrawnHere = { pictures: IngredientCredential[]; route: DesignExportRouteRecord | null };
+  type DrawnHere = { pictures: IngredientCredential[]; route: DesignExportRouteRecord | NodeRouteRecord | null };
   const write = async (bytes: Uint8Array, viaWebShell = false, drawn?: DrawnHere): Promise<number> => {
     // Optionally stamp Content Credentials (C2PA) as the LAST byte operation - same rule
     // as the CLI/web. NEVER on transform utilities (strip-data's whole job is to REMOVE
@@ -460,7 +476,20 @@ export async function exportToFile(
     // eps-cmyk: the choice means one thing in every CMYK sink (EPS has no named plates, so its bytes do not move).
     if (dims.spotsAsProcess) opts.spotsAsProcess = true;
     // The browser-free raster formats read the drawing's layout with the tool's stylesheet (resvg-admission.ts).
-    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(fmt)) Object.assign(opts, { toolStyles: runtimeStyles.get(runtime) ?? null, resvgTool: runtimeRoute.get(runtime) ?? { id: (manifest as { id: string }).id, browserFree: false, untrusted: false } });
+    if (['bmp', 'jxl', 'jxl-lossless', 'exr', 'hdr'].includes(fmt)) {
+      Object.assign(opts, {
+        toolStyles: runtimeStyles.get(runtime) ?? null,
+        resvgTool: runtimeRoute.get(runtime) ?? { id: (manifest as { id: string }).id, browserFree: false, untrusted: false },
+        allowBrowserFree: allowsBrowserFree(dims),
+        // A picture drawn here only because the user accepted that it may differ: said, and recorded.
+        onBrowserFreeAccepted: (accepted: ResvgRefusal[]) => {
+          const warning = acceptedWarning(fmt.toUpperCase(), accepted);
+          runtimeHosts.get(runtime)?.log?.('warn', warning);
+          dims.onNote?.(warning);
+          drawn.route = acceptedRoute(toolResvgRoute());
+        },
+      });
+    }
     if (u !== 'px' && dims.dpi) opts.dpi = dims.dpi;
     const query = currentQuery(runtime);
     try {
@@ -486,10 +515,11 @@ export async function exportToFile(
   //     exactly one frame, which is the page the browser tier writes for that document.
   if (manifest.id === 'design' && fmt === 'png' && !floatScene && modelValues(runtime).editingRange !== 'hdr') {
     const still = await designStillHere(runtime, dom, dims);
-    if (still) {
+    if (still && 'bytes' in still) {
       assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt, bytes: still.bytes });
       return write(still.bytes, false, { pictures: still.ingredients, route: still.route });
     }
+    if (still) refusedEarlier = [...(refusedEarlier ?? []), ...still.refusals];
   }
 
   // 3b. PNG from an SVG-native tool: rasterise the engine's own SVG via resvg - no
@@ -512,10 +542,19 @@ export async function exportToFile(
       // Tier A rasterises the runtime's own SVG, so a swallowed hook failure yields a
       // blank PNG - gate it (the hookErrors signal catches what a byte-count can't).
       assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt, bytes: png });
-      return write(png);
+      if (!tierA.accepted) return write(png);
+      // Drawn only because the user accepted that it may differ: said, and recorded in the credential.
+      const warning = acceptedWarning(fmt.toUpperCase(), tierA.accepted);
+      runtimeHosts.get(runtime)?.log?.('warn', warning);
+      dims.onNote?.(warning);
+      return write(png, false, { pictures: [], route: acceptedRoute(toolResvgRoute()) });
     }
-    if (tierA) refused = tierA.refusals;
+    if (tierA) {
+      refused = [...(refused ?? []), ...tierA.refusals];
+      runtimeHosts.get(runtime)?.log?.('info', handedToBrowser(fmt.toUpperCase(), tierA.refusals));
+    }
   }
+  if (refused && allowsBrowserFree(dims) && refused.some((r) => REFUSAL_EFFECT[r.code] === 'wrong')) runtimeHosts.get(runtime)?.log?.('info', flagNotApplied(refused));
 
   // 4. Everything else (jpg/webp/pdf/video, and HTML-layout raster): drive the built web
   //    shell in Chromium so the bytes are identical to a web/desktop Download.
@@ -531,7 +570,7 @@ export async function exportToFile(
     ({ bytes } = await renderViaWebShell(id, currentQuery(runtime), fmt, webDims));
   } catch (error) {
     if (!refused) throw error;
-    throw new Error(`${resvgRefusalSentence(refused)} The browser render tier, which draws it, could not run: ${String((error as Error)?.message ?? error).split('\n')[0]}`, { cause: error });
+    throw new Error(`${resvgRefusalSentence(refused)} ${noBrowserAdvice(refused)} The browser render tier could not run: ${String((error as Error)?.message ?? error).split('\n')[0]}`, { cause: error });
   }
   return write(bytes, true);
 }

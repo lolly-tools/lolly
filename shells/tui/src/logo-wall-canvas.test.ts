@@ -59,7 +59,7 @@ test('the TUI balances, trims and fills an export of another shape', { skip: SKI
     /computed part of the picture with a 2D canvas/);
   // A BMP comes from the same pixels: refused the same way, and handed to the web-shell tier.
   await assert.rejects(exportToFile(runtime, dom, manifest, 'bmp', join(root, 'measured.bmp'), { width: 1080, height: 1920 }),
-    /computed part of the picture with a 2D canvas.*The browser render tier, which draws it, could not run/);
+    /computed part of the picture with a 2D canvas.*The browser render tier could not run/);
 
   // With both off, the wall is drawn here, laid out for the export's shape. A fresh
   // session: pixel work is counted per document, for as long as the document lives.
