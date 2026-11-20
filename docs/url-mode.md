@@ -157,11 +157,11 @@ Both tags decode everywhere, and the tag versions the codec so a later variant c
 
 A password can lock a link, with no server and no account. Tick **Password-protect this link** in the Share dialog and set a password, and the link changes to the `zx` form. On-visit flags still ride alongside in readable form.
 
-The state is compressed, then encrypted with AES-256-GCM under a key derived from the password with PBKDF2-SHA256. Opening the link asks for the password and decrypts in the recipient's browser. A wrong password asks again; cancelling loads the tool at its defaults.
+The state is compressed, then encrypted with AES-256-GCM under a key derived from the password with PBKDF2-SHA256. Opening the link asks for the password and decrypts in the recipient's browser. A wrong password asks again; cancelling loads the tool at its defaults. The CLI takes the password as a flag, `--zx=<token> --link-password=<password>`, and never falls back to the defaults: a missing or wrong password exits 6 and renders nothing.
 
 - **The password never travels.** The link holds only the ciphertext with a random salt and IV. Send the password another way. Nothing stores the password, so nothing can recover a lost one.
-- **It opens interactively only.** An encrypted link opens in Lolly, but it cannot be embedded as an image, because the embed path renders without a person to ask. It renders at the defaults there.
-- **It is its own codec.** `zx` is `<tag><base64url>` of `salt‖iv‖ciphertext`, versioned apart from `z`. `expandQuery` never touches it: decryption happens only where the app can ask for the password.
+- **It cannot be embedded.** An encrypted link opens in Lolly, but it cannot be embedded as an image, because the embed path renders without a person to ask. It renders at the defaults there.
+- **It is its own codec.** `zx` is `<tag><base64url>` of `salt‖iv‖ciphertext`, versioned apart from `z`. `expandQuery` never touches it: decryption happens only where a password is given, when the app asks for one or the CLI is passed `--link-password`.
 
 <!--i:eti-map-pin-->
 ## Where to go next
