@@ -2582,6 +2582,9 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 }
 .embed-editor-panel {
   position: absolute; inset: 5vh 5vw;
+  /* 5vh is 44px on a phone, less than its status bar, so the top edge never rises above
+     the inset. On a screen with no inset this is the 5vh above. */
+  top: max(5vh, calc(var(--safe-top) + var(--sp-2)));
   display: flex; flex-direction: column;
   background: hsl(var(--popover));
   color: hsl(var(--popover-foreground));

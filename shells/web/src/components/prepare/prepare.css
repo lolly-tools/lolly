@@ -10,7 +10,9 @@
    Atoms come from the primitives (.btn, .field-*, .chip, .card). Tokens only, so every
    theme and brand palette follows with no work here. */
 
-.prepare-view { padding: 88px 28px 48px; }
+/* The top padding clears the floating back row, which sits below the status bar
+   (the inset is 0 on a screen without one). */
+.prepare-view { padding: calc(88px + var(--safe-top)) 28px 48px; }
 .prepare-page { max-width: 1180px; margin: 0 auto; }
 /* With the inspection panel docked at the edge the page no longer needs the width the
    aside took, and a shorter measure keeps the text column readable. */
@@ -250,7 +252,7 @@
   .prep-compare-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
-  .prepare-view { padding: 82px 12px 32px; }
+  .prepare-view { padding: calc(82px + var(--safe-top)) 12px 32px; }
   .prep-card { padding: var(--sp-4); }
   .prep-file { grid-template-columns: auto minmax(0, 1fr); }
   .prep-file-actions { grid-column: 2; justify-content: flex-start; }

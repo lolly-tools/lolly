@@ -15,7 +15,9 @@
     align-items: center;
     gap: var(--sp-3);
     min-height: calc(52px * var(--a11y-fs));
-    padding: var(--sp-1) var(--sp-4);
+    /* The bar is the first row of a view that starts at the top of the screen, so its
+       padding takes in the status bar (0 without an inset). */
+    padding: calc(var(--sp-1) + var(--safe-top)) var(--sp-4) var(--sp-1);
     border-bottom: 1px solid var(--ui-color-border-default);
   }
   .rb-mode-slot:empty { display: none; }
