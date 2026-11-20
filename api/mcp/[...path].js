@@ -4170,7 +4170,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.348.0";
+    ENGINE_VERSION = "1.349.0";
   }
 });
 
@@ -130508,15 +130508,51 @@ function imageDimensions(bytes2, mtype) {
   }
   const looksSvg = mtype === "image/svg+xml" || b.length > 5 && (b[0] === 60 || b[0] === 239 && b[3] === 60);
   if (looksSvg) {
-    const head2 = new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)));
-    const tag3 = /<svg\b([^>]*)>/i.exec(head2);
-    if (!tag3) return null;
-    const a = parseAttrs2(tag3[1]);
-    const vb = (a.viewbox ?? "").trim().split(/[\s,]+/).map(Number);
-    const vbW = vb.length === 4 && Number.isFinite(vb[2]) ? vb[2] : 0, vbH = vb.length === 4 && Number.isFinite(vb[3]) ? vb[3] : 0;
-    const w = parseLen(a.width, vbW, vbW), h = parseLen(a.height, vbH, vbH);
-    return w > 0 && h > 0 ? { w: Math.round(w), h: Math.round(h) } : null;
+    const size = svgIntrinsicSize(b);
+    return size ? { w: Math.round(size.w), h: Math.round(size.h) } : null;
   }
+  return null;
+}
+function svgRootFontPx(a) {
+  let styled, important = false;
+  for (const declaration of (a.style ?? "").split(";")) {
+    const m3 = /^\s*font-size\s*:\s*(.*?)\s*(!\s*important)?\s*$/i.exec(declaration);
+    if (!m3) continue;
+    const marked = m3[2] !== void 0;
+    if (marked || !important) {
+      styled = m3[1];
+      important ||= marked;
+    }
+  }
+  const given2 = styled ?? a["font-size"];
+  if (given2 === void 0) return 16;
+  const m2 = SVG_ROOT_LENGTH.exec(given2);
+  if (!m2) return 0;
+  const n7 = Number.parseFloat(m2[1]), unit2 = (m2[2] ?? "").toLowerCase();
+  const px3 = unit2 === "%" ? 16 * n7 / 100 : unit2 === "em" || unit2 === "rem" ? 16 * n7 : n7 * SVG_ROOT_UNIT_PX[unit2];
+  return Number.isFinite(px3) && px3 > 0 ? px3 : 0;
+}
+function svgIntrinsicSize(bytes2) {
+  const head2 = new TextDecoder().decode(bytes2.subarray(0, Math.min(bytes2.length, 8192)));
+  const tag3 = /<svg\b([^>]*)>/i.exec(head2);
+  if (!tag3) return null;
+  const a = parseAttrs2(tag3[1]);
+  const length2 = (value2) => {
+    const m2 = SVG_ROOT_LENGTH.exec(value2 ?? "");
+    if (!m2) return 0;
+    const unit2 = (m2[2] ?? "").toLowerCase();
+    if (unit2 === "%") return 0;
+    const n7 = Number.parseFloat(m2[1]) * (unit2 === "em" || unit2 === "rem" ? svgRootFontPx(a) : SVG_ROOT_UNIT_PX[unit2]);
+    return Number.isFinite(n7) && n7 > 0 ? n7 : 0;
+  };
+  const vb = (a.viewbox ?? "").trim().split(/[\s,]+/).map(Number);
+  const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2] > 0 ? vb[2] : 0;
+  const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3] > 0 ? vb[3] : 0;
+  const w = length2(a.width), h = length2(a.height);
+  if (w && h) return { w, h, natural: true };
+  if (w && vbW && vbH) return { w, h: w * vbH / vbW, natural: true };
+  if (h && vbW && vbH) return { w: h * vbW / vbH, h, natural: true };
+  if (vbW && vbH) return { w: vbW, h: vbH, natural: false };
   return null;
 }
 function svgToPenpotDoc(svgText, o) {
@@ -131167,7 +131203,7 @@ function penpotWorkspaceUrl(teamId, fileId, pageId, origin = "https://design.pen
   if (pageId) q.set("page-id", pageId);
   return `${origin}/#/workspace?${q.toString()}`;
 }
-var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN, MAX_SVG_TAGS, MAX_SHAPES, MAX_TEXT_PARAGRAPHS, isRec7, fin2, r4, IDENT, mul2, apply2, meanScale, isAxisAligned, K3, TEXT_DEFAULTS, str6, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS2;
+var PENPOT_MIME, PENPOT_ROOT_ID, PENPOT_FILE_VERSION, PENPOT_FEATURES, PENPOT_MIGRATIONS, MTYPE_EXT, PENPOT_IMAGE_MTYPES, BLEND_MODES, STROKE_CAPS, TOKEN_TYPE_MAP, BG_BLUR_SIGMA_A2, BG_BLUR_SIGMA_B2, MAX_SVG_LEN, MAX_SVG_TAGS, MAX_SHAPES, MAX_TEXT_PARAGRAPHS, isRec7, fin2, r4, IDENT, mul2, apply2, meanScale, isAxisAligned, K3, TEXT_DEFAULTS, str6, H_ALIGN, MARKER_CAP, BAIL_TAGS2, SKIP_TAGS2, SVG_ROOT_UNIT_PX, SVG_ROOT_LENGTH;
 var init_penpot_file = __esm({
   "engine/src/penpot-file.ts"() {
     "use strict";
@@ -131372,6 +131408,8 @@ var init_penpot_file = __esm({
     MARKER_CAP = { triangle: "triangle-arrow", open: "line-arrow", circle: "circle-marker", diamond: "diamond-marker", bar: "square-marker" };
     BAIL_TAGS2 = /* @__PURE__ */ new Set(["filter", "mask", "clippath", "pattern", "foreignobject", "use", "symbol", "marker", "textpath", "style", "switch", "animate", "animatetransform", "animatemotion", "set"]);
     SKIP_TAGS2 = /* @__PURE__ */ new Set(["title", "desc", "metadata", "defs"]);
+    SVG_ROOT_UNIT_PX = { "": 1, px: 1, pt: 4 / 3, pc: 16, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
+    SVG_ROOT_LENGTH = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm|em|rem|%)?\s*$/i;
   }
 });
 
@@ -147152,6 +147190,9 @@ function svgEscape(value2) {
 function round26(n7) {
   return Number.isFinite(n7) ? Math.round(n7 * 100) / 100 : 0;
 }
+function round42(n7) {
+  return Number.isFinite(n7) ? Math.round(n7 * 1e4) / 1e4 : 0;
+}
 function aspect(fit) {
   if (fit === "cover") return "xMidYMid slice";
   if (fit === "fill") return "none";
@@ -147245,9 +147286,9 @@ function wrapOp(op, inner) {
   return `<g${outer}><defs>${defs.join("")}</defs>${posed}</g>`;
 }
 function gradient(paint2) {
-  const stops = paint2.stops.map((s) => `<stop offset="${round26(s.offset)}" stop-color="${s.color}"` + (s.opacity < 1 ? ` stop-opacity="${round26(s.opacity)}"` : "") + "/>").join("");
+  const stops = paint2.stops.map((s) => `<stop offset="${round42(s.offset)}" stop-color="${s.color}"` + (s.opacity < 1 ? ` stop-opacity="${round42(s.opacity)}"` : "") + "/>").join("");
   const tag3 = paint2.kind === "linear" ? "linearGradient" : "radialGradient";
-  const head2 = paint2.kind === "linear" ? `<linearGradient gradientUnits="userSpaceOnUse" x1="${round26(paint2.x1)}" y1="${round26(paint2.y1)}" x2="${round26(paint2.x2)}" y2="${round26(paint2.y2)}"` : '<radialGradient cx="0.5" cy="0.5" r="0.71"';
+  const head2 = paint2.kind === "linear" ? `<linearGradient gradientUnits="userSpaceOnUse" x1="${round26(paint2.x1)}" y1="${round26(paint2.y1)}" x2="${round26(paint2.x2)}" y2="${round26(paint2.y2)}"` : `<radialGradient cx="0.5" cy="0.5" r="${FARTHEST_CORNER}"`;
   const body = `${head2}>${stops}</${tag3}>`;
   const id3 = `lg${contentId(body)}`;
   return { defs: `<defs>${body.replace(`<${tag3} `, `<${tag3} id="${id3}" `)}</defs>`, paint: `url(#${id3})` };
@@ -147456,6 +147497,7 @@ function designDrawSvg(page3, opts) {
   body.push(page3.clip && rows2 ? areaClip(page3.clip, rows2) : rows2);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${round26(page3.width)}" height="${round26(page3.height)}" viewBox="0 0 ${round26(page3.width)} ${round26(page3.height)}" role="img" aria-label="${svgEscape(opts.title ?? "")}">${body.join("")}</svg>`;
 }
+var FARTHEST_CORNER;
 var init_design_draw_svg = __esm({
   "engine/src/design-draw-svg.ts"() {
     "use strict";
@@ -147463,6 +147505,7 @@ var init_design_draw_svg = __esm({
     init_design_draw();
     init_path();
     init_design_stroke();
+    FARTHEST_CORNER = Math.round(Math.SQRT1_2 * 1e7) / 1e7;
   }
 });
 
@@ -154616,7 +154659,7 @@ function recognitionOf(ocr, recognizers) {
     min = Math.min(min, confidence);
   }
   const model2 = ocr.model?.trim() ? ocr.model : "unknown";
-  const out = { model: model2, confidence: round42(weighted / chars), minConfidence: round42(min), lines: ocr.lines.length };
+  const out = { model: model2, confidence: round43(weighted / chars), minConfidence: round43(min), lines: ocr.lines.length };
   const known3 = model2 === TEXT_LAYER_MODEL ? void 0 : recognizers?.get(model2);
   if (known3?.version) out.modelVersion = known3.version;
   if (known3?.languages?.length) out.languages = [...known3.languages];
@@ -154870,7 +154913,7 @@ function withFacts(entry2, facts2) {
   if (facts2.file) entry2.file = facts2.file;
   return entry2;
 }
-var ICON_AREA_SHARE, PHOTO_AREA_SHARE, BACKGROUND_AREA_SHARE, LABEL_MAX_WORDS2, CAPTION_MAX_PT, CAPTION_MAX_WORDS, DEFAULT_SLIDE, CAPTION_LEAD, CAPTION_LEAD_MAX_PT, LIGATURES, URL_ONLY2, NUMBER_MARKER2, ICON_FONT, HEX4, round7, paraText2, OCR_SAYS, round42;
+var ICON_AREA_SHARE, PHOTO_AREA_SHARE, BACKGROUND_AREA_SHARE, LABEL_MAX_WORDS2, CAPTION_MAX_PT, CAPTION_MAX_WORDS, DEFAULT_SLIDE, CAPTION_LEAD, CAPTION_LEAD_MAX_PT, LIGATURES, URL_ONLY2, NUMBER_MARKER2, ICON_FONT, HEX4, round7, paraText2, OCR_SAYS, round43;
 var init_content_inventory = __esm({
   "engine/src/content-inventory.ts"() {
     "use strict";
@@ -154897,7 +154940,7 @@ var init_content_inventory = __esm({
       "no-text-found": "OCR found no text in it",
       "text-found": "its text was read by OCR"
     };
-    round42 = (n7) => Math.round(Math.min(1, Math.max(0, n7)) * 1e4) / 1e4;
+    round43 = (n7) => Math.round(Math.min(1, Math.max(0, n7)) * 1e4) / 1e4;
   }
 });
 
@@ -155339,23 +155382,23 @@ function scoreExtract(labels, extract) {
     }
   }
   return {
-    cer: round43(charTotal === 0 ? 0 : charEdits / charTotal),
-    wer: round43(wordTotal === 0 ? 0 : wordEdits / wordTotal),
-    recall: round43(labels.length === 0 ? 1 : matched / labels.length),
-    order: round43(pairs2 === 0 ? 1 : pairsInOrder / pairs2),
-    origin: originStated === 0 ? null : round43(originAgreed / originStated),
+    cer: round44(charTotal === 0 ? 0 : charEdits / charTotal),
+    wer: round44(wordTotal === 0 ? 0 : wordEdits / wordTotal),
+    recall: round44(labels.length === 0 ? 1 : matched / labels.length),
+    order: round44(pairs2 === 0 ? 1 : pairsInOrder / pairs2),
+    origin: originStated === 0 ? null : round44(originAgreed / originStated),
     labelled: labels.length,
     matched
   };
 }
-var MATCH_CER, charsOf, wordsOf4, round43;
+var MATCH_CER, charsOf, wordsOf4, round44;
 var init_read_extract_quality = __esm({
   "engine/src/read-extract-quality.ts"() {
     "use strict";
     MATCH_CER = 0.34;
     charsOf = (text13) => Array.from(normaliseForScore(text13));
     wordsOf4 = (text13) => normaliseForScore(text13).split(" ").filter(Boolean);
-    round43 = (n7) => Math.round(n7 * 1e4) / 1e4;
+    round44 = (n7) => Math.round(n7 * 1e4) / 1e4;
   }
 });
 
@@ -160908,29 +160951,7 @@ function truthy5(v) {
   return t === "1" || t === "true" || t === "yes" || t === "on";
 }
 function deckSvgIntrinsicSize(bytes2) {
-  const head2 = new TextDecoder().decode(bytes2.subarray(0, Math.min(bytes2.length, 8192)));
-  const tag3 = /<svg\b([^>]*)>/i.exec(head2);
-  if (!tag3) return null;
-  const attr7 = (name) => {
-    const m2 = new RegExp(`(?:^|\\s)${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(tag3[1]);
-    return m2 ? m2[1] ?? m2[2] : void 0;
-  };
-  const length2 = (value2) => {
-    const m2 = /^\s*([0-9]*\.?[0-9]+(?:e[+-]?\d+)?)\s*(px|pt|pc|in|cm|mm)?\s*$/i.exec(value2 ?? "");
-    if (!m2) return 0;
-    const n7 = parseFloat(m2[1]) * (SVG_UNIT_PX[(m2[2] ?? "").toLowerCase()] ?? 0);
-    return Number.isFinite(n7) && n7 > 0 ? n7 : 0;
-  };
-  const vb = (attr7("viewBox") ?? "").trim().split(/[\s,]+/).map(Number);
-  const vbW = vb.length === 4 && Number.isFinite(vb[2]) && vb[2] > 0 ? vb[2] : 0;
-  const vbH = vb.length === 4 && Number.isFinite(vb[3]) && vb[3] > 0 ? vb[3] : 0;
-  const w = length2(attr7("width"));
-  const h = length2(attr7("height"));
-  if (w && h) return { w, h, natural: true };
-  if (w && vbW && vbH) return { w, h: w * vbH / vbW, natural: true };
-  if (h && vbW && vbH) return { w: h * vbW / vbH, h, natural: true };
-  if (vbW && vbH) return { w: vbW, h: vbH, natural: false };
-  return null;
+  return svgIntrinsicSize(bytes2);
 }
 function positionFractions(value2) {
   let fx = 0.5;
@@ -161092,12 +161113,13 @@ function deckTransition(v, notes) {
       return void 0;
   }
 }
-var hex25, GENERIC_FAMILY, STATIC_WEIGHT_NAMES, FACE_FAMILY_RE, STATIC_FACE_DIR, themeFamily, CUSTOM_PROP_RE, MAX_VAR_HOPS, MAX_GRAD_SPEC_CHARS, PICTURE_FITS, SVG_UNIT_PX;
+var hex25, GENERIC_FAMILY, STATIC_WEIGHT_NAMES, FACE_FAMILY_RE, STATIC_FACE_DIR, themeFamily, CUSTOM_PROP_RE, MAX_VAR_HOPS, MAX_GRAD_SPEC_CHARS, PICTURE_FITS;
 var init_pptx_deck = __esm({
   "packages/node-shell/src/pptx-deck.ts"() {
     "use strict";
     init_pptx2();
     init_css_color();
+    init_penpot_file();
     init_gradient_spec();
     init_css_color();
     init_text_svg();
@@ -161119,7 +161141,6 @@ var init_pptx_deck = __esm({
     MAX_VAR_HOPS = 4;
     MAX_GRAD_SPEC_CHARS = 4096;
     PICTURE_FITS = ["cover", "contain", "fill", "none", "scale-down"];
-    SVG_UNIT_PX = { "": 1, px: 1, pt: 4 / 3, pc: 16, in: 96, cm: 96 / 2.54, mm: 96 / 25.4 };
   }
 });
 
@@ -180531,7 +180552,7 @@ function designDrawPdf(pages, info = {}) {
       const num23 = objects.reserve();
       const fn = stopsFunction(paint3.stops, gray ? (s) => [s.opacity] : (s) => rgb2(s.color));
       const space = gray ? "/DeviceGray" : "/DeviceRGB";
-      objects.put(num23, paint3.kind === "linear" ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint3.x1, paint3.y1, paint3.x2, paint3.y2].map(n6).join(" ")}] /Function ${fn} /Extend [true true] >>` : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 0.71] /Function ${fn} /Extend [true true] >>`);
+      objects.put(num23, paint3.kind === "linear" ? `<< /ShadingType 2 /ColorSpace ${space} /Coords [${[paint3.x1, paint3.y1, paint3.x2, paint3.y2].map(n6).join(" ")}] /Function ${fn} /Extend [true true] >>` : `<< /ShadingType 3 /ColorSpace ${space} /Coords [0 0 0 0 0 ${n6(Math.SQRT1_2)}] /Function ${fn} /Extend [true true] >>`);
       return num23;
     };
     const gradientFill = (paint3, box4) => {
@@ -180949,7 +180970,7 @@ async function designPageDrawing(values, frameId, host, opts = {}) {
       unread.add(ref2);
       return null;
     }
-    const size = imageDimensions(found.bytes, mime2) ?? (found.width && found.height ? { w: found.width, h: found.height } : null);
+    const size = (mime2 === "image/svg+xml" ? svgIntrinsicSize(found.bytes) : imageDimensions(found.bytes, mime2)) ?? (found.width && found.height ? { w: found.width, h: found.height } : null);
     pictures.set(ref2, { bytes: found.bytes, mime: mime2 });
     return size ? { width: size.w, height: size.h } : null;
   });
@@ -181044,10 +181065,32 @@ async function brandColourResolver(host) {
     return null;
   }
 }
+function placedRefs(values) {
+  const rows2 = Array.isArray(values.boxes) ? values.boxes : [];
+  const refs = [];
+  for (const row of rows2) {
+    const image = row && typeof row === "object" ? row.image : void 0;
+    if (typeof image === "string" && image) refs.push({ id: image });
+    else if (image && typeof image === "object" && typeof image.id === "string" && image.id) {
+      const { id: id3, pin } = image;
+      refs.push(pin === void 0 ? { id: id3 } : { id: id3, pin });
+    }
+  }
+  return refs;
+}
 async function designOpsNodeHost(host, ctx, outlined = true) {
   const text13 = host.text;
   if (!text13) return null;
-  const ingredients = [];
+  const drawn2 = [];
+  const credentialOf = (bytes2) => {
+    try {
+      const store = extractC2paStore(bytes2);
+      const ingredient = store && prepareC2paIngredientFromStore(store.store, store.format);
+      return ingredient ? { ...ingredient, relationship: "componentOf" } : null;
+    } catch {
+      return null;
+    }
+  };
   const picture = async (ref2) => {
     if (ref2.includes("?")) return null;
     const asset2 = await host.assets.get(ref2).catch(() => null);
@@ -181058,13 +181101,33 @@ async function designOpsNodeHost(host, ctx, outlined = true) {
     if (type === "lottie" || type === "video" || MOTION.test(asset2.url) || meta?.animated === true || Array.isArray(meta?.tags) && meta.tags.includes("animated")) return { media: "motion" };
     const bytes2 = await host.assets.bytes?.(asset2).catch(() => null);
     if (!bytes2) return null;
-    try {
-      const store = extractC2paStore(bytes2);
-      const ingredient = store && prepareC2paIngredientFromStore(store.store, store.format);
-      if (ingredient && !ingredients.some((p) => p.activeLabel === ingredient.activeLabel)) ingredients.push({ ...ingredient, relationship: "componentOf" });
-    } catch {
-    }
+    const ingredient = credentialOf(bytes2);
+    if (ingredient && !drawn2.some((p) => p.activeLabel === ingredient.activeLabel)) drawn2.push(ingredient);
     return { bytes: bytes2 };
+  };
+  const placed2 = async (values) => {
+    const out = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const ref2 of placedRefs(values)) {
+      let source;
+      try {
+        source = assetDependency(ref2);
+      } catch {
+        continue;
+      }
+      if (seen.has(source.key)) continue;
+      seen.add(source.key);
+      try {
+        const asset2 = await host.assets.get(source.id, source.pin ? { version: source.pin.version, ...source.pin.format ? { format: source.pin.format } : {} } : void 0);
+        if (asset2?.source !== "user" && asset2?.source !== "library") continue;
+        const bytes2 = await host.assets.bytes?.(asset2);
+        if (!bytes2 || bytes2.byteLength > MAX_CREDENTIAL_SCAN_BYTES) continue;
+        const ingredient = credentialOf(bytes2);
+        if (ingredient && !out.some((p) => p.activeLabel === ingredient.activeLabel)) out.push(ingredient);
+      } catch {
+      }
+    }
+    return out;
   };
   const fonts = await fontsOf(host);
   const resolveColor4 = await brandColourResolver(host);
@@ -181077,10 +181140,14 @@ async function designOpsNodeHost(host, ctx, outlined = true) {
       ...fonts ? { fonts } : {},
       ...resolveColor4 ? { resolveColor: resolveColor4 } : {}
     },
-    ingredients: () => [...ingredients]
+    ingredients: async (values) => {
+      const listed2 = await placed2(values);
+      for (const ingredient of drawn2) if (!listed2.some((p) => p.activeLabel === ingredient.activeLabel)) listed2.push(ingredient);
+      return listed2;
+    }
   };
 }
-var MOTION, SOUND;
+var MOTION, SOUND, MAX_CREDENTIAL_SCAN_BYTES;
 var init_design_ops_host = __esm({
   "packages/node-shell/src/design-ops-host.ts"() {
     "use strict";
@@ -181092,6 +181159,7 @@ var init_design_ops_host = __esm({
     init_text3();
     MOTION = /\.(json|lottie|mp4|m4v|mov|webm)($|\?|#)/i;
     SOUND = /\.(mp3|wav|ogg|m4a|flac)($|\?|#)/i;
+    MAX_CREDENTIAL_SCAN_BYTES = 64 * 1024 * 1024;
   }
 });
 
@@ -181622,6 +181690,7 @@ async function designOpsPdfNode(node, opts, host, ctx) {
   if (labels && geos.some((g2) => g2?.primitives.labels?.length) && (await labelsBeyondStandardFont(labels)).length) {
     return { reason: "the print marks hold letters the mark font does not have" };
   }
+  const ingredients = await use.ingredients(doc.values);
   try {
     const finished = await finishPdfX(out.pdf, opts, {
       intentKind: "srgb",
@@ -181630,7 +181699,7 @@ async function designOpsPdfNode(node, opts, host, ctx) {
     });
     const pdf = opts.strongPassword ? await encryptPdfStrong(finished, opts.strongPassword) : finished;
     host.log?.("info", `Design PDF export: ${ids2.length} pages drawn from the drawing operations without a browser.`);
-    return { pdf, ingredients: use.ingredients() };
+    return { pdf, ingredients };
   } catch (error2) {
     throw new PdfFinishingError(error2);
   }
@@ -181687,7 +181756,7 @@ async function designOpsSvgNode(node, opts, host, ctx) {
     return { reason: `the drawing could not be compiled (${error2 instanceof Error ? error2.message : String(error2)})` };
   }
   if (page3.findings.length) return { reason: `the page holds features the drawing operations do not carry yet: ${[...new Set(page3.findings.map((f) => `${f.feature} (${f.id})`))].join(", ")}` };
-  return { svg: page3.svg, ingredients: use.ingredients() };
+  return { svg: page3.svg, ingredients: await use.ingredients(doc.values) };
 }
 var init_design_ops_svg = __esm({
   "packages/node-shell/src/design-ops-svg.ts"() {

@@ -1214,7 +1214,7 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
   // detection floor. Reported, never silently dropped - but as a note, not a warning,
   // unless the caller explicitly asked for the mark (see the provenance block above).
   let imprintFloorSkip = false;
-  // A Design page drawn here from the drawing operations: its route and the credentialed pictures it drew (plan 326).
+  // A Design page drawn here from the drawing operations: its route and every credentialed picture the document places, on any page, as the web shell lists them (plan 326).
   const opsIngredients: IngredientCredential[] = [];
   const routed: { record?: DesignExportRouteRecord } = {};
 
@@ -1370,8 +1370,9 @@ async function runToolCliCandidate({ toolId, inputValues, params, repeated = {},
     exportOpts.onTextFallback = (run) => textFallbacks.push(run);
     const fillNotices: string[] = [];
     exportOpts.onFillNotice = (notice) => { if (!fillNotices.includes(notice)) fillNotices.push(notice); };
-    // A Design page this shell draws from the operations hands back its route and any
-    // credentialed picture's manifest, which the stamp below records (plan 326).
+    // A Design page this shell draws from the operations hands back its route and the
+    // manifest of every credentialed picture the document places, on any page, which the
+    // stamp below records, as the web shell does (plan 326).
     exportOpts.ingredientSink = opsIngredients;
     exportOpts.onExportRoute = (record) => { routed.record = record; };
 
