@@ -4,7 +4,7 @@ import { langFabHtml } from '../components/lang-menu.ts';
 import { icon } from '../lib/icons.ts';
 import { escapeHtml as esc } from '../lib/util/escape.ts';
 import { t } from '../i18n.ts';
-import { formatPanelHtml, formatTriggerHtml } from '../components/export-format-picker.ts';
+import { formatTriggerHtml } from '../components/export-format-picker.ts';
 import { fmtLabel } from '../lib/export-format-info.ts';
 
 export function batchChrome(state: { format: string; unit: string; dpi: number }, formats: string[], units: string[]): string {
@@ -27,7 +27,6 @@ export function batchChrome(state: { format: string; unit: string; dpi: number }
         <div class="pro-format pro-format-picker" id="pro-format-field"><span>${t('Default format')}</span>
           <select id="pro-format" hidden aria-hidden="true" tabindex="-1">${options(formats, state.format)}</select>
           ${formatTriggerHtml(state.format, fmtLabel)}
-          ${formatPanelHtml(formats, state.format, fmtLabel)}
         </div>
         <label class="pro-format" id="pro-unit-field">${t('Unit')}
           <select id="pro-unit" class="field-select field-select--auto field-select--sm" aria-label="${t('Units for the Width & Height columns')}">${units.map(u => `<option value="${u}"${u === state.unit ? ' selected' : ''}>${u}</option>`).join('')}</select>
