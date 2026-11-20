@@ -199,7 +199,7 @@ Read-only context, no render:
   `lolly_check` checks against; the CLI tries `--file` and the terminal's active
   system first. Read it before composing anything on-brand.
 - `lolly://tool/{id}` and `lolly://tool/{id}/preview`: one tool's schema, or its
-  preview SVG.
+  gallery preview (SVG, or a WebP or PNG blob).
 - `lolly://asset/{id}`: one asset's bytes.
 
 ### Prompts

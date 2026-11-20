@@ -126,9 +126,8 @@ export function gate(): boolean {
   }
   ok('tests passed');
 
-  // build:catalog re-rolls catalog/previews/bundle.json (pure filesystem, no
-  // browser). The heavy Playwright card/look render is a separate, opt-in
-  // `pnpm run previews`. Every ship target feeds a live site, so build each
+  // build:catalog is pure filesystem work, no browser. The heavy Playwright card
+  // render is a separate, opt-in `pnpm run previews`. Every ship target feeds a live site, so build each
   // target profile's catalog rather than whichever profile this checkout resolves
   // to, and a push cannot break the site nobody is developing in.
   const profiles = shipProfiles();

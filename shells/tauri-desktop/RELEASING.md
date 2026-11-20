@@ -55,7 +55,7 @@ first). They are the gallery's tool thumbnails.
 ```bash
 pnpm run build:ort         # REQUIRED FIRST - previews drives a web build, which hard-fails without it
 pnpm exec playwright install chromium   # once; the generator renders in a real browser
-pnpm run previews          # build-previews + optimize-preview-webp + build-preview-bundle
+pnpm run previews          # build-previews + optimize-preview-webp
 ```
 
 **They are NOT in the default packaged build.** `LOLLY_EMBED_CATALOG` defaults to

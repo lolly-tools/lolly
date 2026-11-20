@@ -272,7 +272,6 @@ export function assertDistState({ outDirDefault, mode }) {
       }
       mustNot('models', 'runtime-downloaded models must never embed (pruneEmbeddedDownloads)');
       if (mode === 'neutral') {
-        must('catalog/previews/bundle.json', 'gallery thumbnails embed so first run paints instead of live-rendering every tile');
         mustNot('catalog/og', 'the neutral seed carries no og cards');
         mustNot('catalog/assets/lolly/loops', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');
         mustNot('catalog/assets/lolly/modules', 'excluded asset family (NEUTRAL_EXCLUDED_ASSET_PREFIXES)');
