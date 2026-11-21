@@ -1803,7 +1803,7 @@ button.fc-readout:empty { display: none; }
 .stage-nav {
   position: absolute;
   top: calc(var(--chrome-top) + var(--vv-top, 0px));
-  right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+  right: calc(var(--chrome-inset-right) + var(--vv-right, 0px));
   z-index: 20;
   display: flex;
   align-items: center;

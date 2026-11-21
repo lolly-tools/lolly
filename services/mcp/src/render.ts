@@ -34,7 +34,9 @@ import type { ToolManifest } from '../../../engine/src/loader.ts';
 // Relative imports (not `@lolly-tools/node-shell/...`): this file is inlined into the
 // Vercel MCP bundle, where a bare workspace specifier would dangle (see bridge.ts).
 import { assertRenderOk, RenderIntegrityError } from '@lolly-tools/node-shell/render-integrity';
-import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg } from '@lolly-tools/node-shell/raster';
+import { isDeepFormat, DeepSourceError, needsFloatScene, drawnRootSvg, finishTierAPng } from '@lolly-tools/node-shell/raster';
+import { admitForResvg, isResvgRefusal, placeSvg, readLayout, ResvgRefusedError, routeRefusals, toolAdmission, type ResvgRouteFacts, type SvgPlacement } from '@lolly-tools/node-shell/resvg-admission';
+import { pixelWorkCount } from '@lolly-tools/node-shell/canvas';
 import { buildExportC2paOpts, placedPicturesIn, recordedDesignInFile } from '@lolly-tools/node-shell/c2pa-opts';
 import { withoutSvgCredentials } from '@lolly-tools/node-shell/lolly-file';
 import { needsBrowserTier } from '@lolly-tools/node-shell/browser-tier';
@@ -649,15 +651,32 @@ async function renderTierA(
   productionContract?: import('@lolly/engine').ProductionSpec,
   tokenSelection?: Record<string, string>,
   size: TierASize = {},
-): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null; svgSized: boolean }> {
+): Promise<{ bytes: Uint8Array; mime: string; ingredients: C2paSourceIngredient[]; drawn: DrawnHere; rights: RightsEvaluationV1; warnings: string[]; productionInputs?: Record<string, string>; meta: ExportMeta | null; svgSized: boolean; resvg?: { facts: ResvgRouteFacts; placement: SvgPlacement } }> {
   return withHost(profile, async (dom, host, run) => {
     const { runtime, canvas, warnings } = await mountAndDraw(dom, host, toolId, values, emoji, tokenSelection, size.canvas);
+    // The PNG route's admission (resvg-admission.ts), read off this DOM before the export
+    // rewrites the root's size. A refusal known here spares the SVG export.
+    let resvg: { facts: ResvgRouteFacts; placement: SvgPlacement } | undefined;
+    if (size.admit) {
+      const root = drawnRootSvg(canvas);
+      const { width: aw, height: ah } = size.admit;
+      const tool = await loadToolCached(toolId);
+      const layout = root && aw && ah
+        ? readLayout(canvas, root, aw, ah, tool.styles, tool.manifest.render)
+        : { placement: { kind: 'fill' } as SvgPlacement, refusals: [] };
+      const placement = layout.placement;
+      const early = [...routeRefusals({ tool: toolAdmission(tool), paged: !!tool.manifest.render.paged, canvasPixels: pixelWorkCount(dom.window.document, host.raster) > 0 }), ...layout.refusals];
+      if (early.length) throw new RenderError(new ResvgRefusedError(early).message);
+      resvg = { facts: {}, placement };
+    }
     // The PNG fast path's SVG takes the requested size only when the drawn root <svg>
     // has a viewBox, as the CLI's and the TUI's do: without one the export would make
     // a viewBox of that size, where the PNG has always scaled the tool's own size.
     // The root only: a Design shape's inline <svg viewBox> is not the drawing's root.
     const svgSized = !!size.svg && !!drawnRootSvg(canvas)?.hasAttribute('viewBox');
     const sized: ExportOpts = svgSized ? { ...opts, width: size.svg!.width, height: size.svg!.height } : opts;
+    // The float formats rasterise in the bridge, which reads the drawing's layout with the tool's stylesheet.
+    if (isDeepFormat(fmt)) { const loaded = await loadToolCached(toolId); Object.assign(sized, { toolStyles: loaded.styles ?? null, resvgTool: toolAdmission(loaded), resvgPaged: !!loaded.manifest.render?.paged }); }
     let productionInputs: Record<string, string> | undefined;
     if (productionContract?.requirements.some(requirement => requirement.kind === 'input')) {
       const { productionInputFacts } = await import('@lolly/engine');
@@ -671,13 +690,20 @@ async function renderTierA(
     // The bridge hands back what it drew from the operations, for the stamp at the end of `render`.
     const drawn: DrawnHere = { pictures: [], route: null };
     try {
-      blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, { ...sized, ingredientSink: drawn.pictures, onExportRoute: (record: DesignExportRouteRecord) => { drawn.route = record; } } as ExportOpts);
+      blob = await runtime.export(canvas as unknown as Element, fmt as ExportFormat, {
+        ...sized, ingredientSink: drawn.pictures, onExportRoute: (record: DesignExportRouteRecord) => { drawn.route = record; },
+        ...(resvg ? { onDraftMark: (on: boolean) => { resvg!.facts.draftMark = on; }, onFillNotice: () => { resvg!.facts.fallbackFaces = true; } } : {}),
+      } as ExportOpts);
+      if (resvg) resvg.facts.canvasPixels = pixelWorkCount(dom.window.document, host.raster) > 0;
     } catch (e) {
       // A deep-format refusal ("this render has no float pixels behind it") is a
       // CLIENT-side answer about the request, not a server fault. Without this it
       // reached the GET route as a 500 "Render failed" and the caller could not
       // tell a policy refusal from a crash.
       if (e instanceof DeepSourceError) throw new RenderError(e.message);
+      // The browser-free renderer refused this raster (resvg-admission.ts): an answer about
+      // the request too, which the caller reads as words, or the browser tier takes over.
+      if (isResvgRefusal(e)) throw new RenderError(e.message);
       throw e;
     }
     const bytes = new Uint8Array(await blob.arrayBuffer());
@@ -709,6 +735,7 @@ async function renderTierA(
       // the same design system and colourway (plans/319).
       meta: runtime.lastExportMeta,
       svgSized,
+      ...(resvg ? { resvg } : {}),
     };
   }, tokenSelection ? { tokenSelection } : {});
 }
@@ -718,6 +745,9 @@ async function renderTierA(
 interface TierASize {
   canvas?: CanvasSize | null;
   svg?: { width: string | number; height: string | number };
+  /** This SVG feeds the resvg PNG: read what the admission needs (resvg-admission.ts),
+   *  with the output size in pixels when the request gives both sides. */
+  admit?: { width?: number; height?: number };
 }
 
 /** Pixel area of the PNG preview `lolly_render` attaches to an SVG answer. The
@@ -752,9 +782,12 @@ export function maxRasterPixelsFor(env: NodeJS.ProcessEnv, hosted: boolean): num
  *  area cap, not the caller, chose the size. With a `height` as well, the root
  *  <svg> is drawn at exactly `width` x `height` px, its own viewBox and
  *  preserveAspectRatio placing the content, the way the CLI's PNG is. */
-async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number, height?: number): Promise<{ png: Uint8Array; width: number; height: number; reduced: boolean }> {
+async function svgToPng(svg: string, width: number | undefined, background: string | undefined, maxPixels?: number, height?: number, admit?: { facts: ResvgRouteFacts; placement: SvgPlacement }): Promise<{ png: Uint8Array; width: number; height: number; reduced: boolean }> {
   const { Resvg } = await import('@resvg/resvg-js');
-  if (width && width > 0 && height && height > 0) svg = sizeRootSvg(svg, width, height);
+  const both = !!(width && width > 0 && height && height > 0);
+  const size = (markup: string): string => both ? (admit ? placeSvg(markup, width!, height!, admit.placement) : sizeRootSvg(markup, width!, height!)) : markup;
+  const source = svg;
+  svg = size(svg);
   // Cheap parse-only probe for the intrinsic size (viewBox/width/height) - no raster.
   const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
   const iw = probe.width, ih = probe.height;
@@ -764,6 +797,13 @@ async function svgToPng(svg: string, width: number | undefined, background: stri
   const capScale = Math.min(edgeScale, areaScale);
   const wantScale = width && width > 0 ? width / iw : 1;
   const scale = Math.min(wantScale, capScale);
+  // The browser-free route draws only an SVG it may (resvg-admission.ts), measured at the
+  // size it is drawn: after the server's caps, which can shrink a picture further.
+  if (admit) {
+    const admitted = await admitForResvg(source, Math.max(1, Math.round(iw * scale)), Math.max(1, Math.round(ih * scale)), admit.facts, admit.placement);
+    if (admitted.refusals.length) throw new RenderError(new ResvgRefusedError(admitted.refusals).message);
+    svg = size(admitted.svg);
+  }
   // Beyond MAX_RASTER_EDGE_PX:1 aspect the capped raster's short edge drops
   // below one pixel. resvg refuses a zero-size target, so refuse honestly here.
   if (iw * scale < 1 || ih * scale < 1) {
@@ -1355,22 +1395,26 @@ async function renderCandidateBytes(toolId: string, query: string, o: RenderOpts
     try {
       const requested = exportOpts(merged);
       const both = requested.width !== undefined && requested.height !== undefined;
+      const px = targetPx(merged.width, merged.unit, merged.dpi);
+      const pxBoth = both ? targetPx(merged.height, merged.unit, merged.dpi) : undefined;
       const svg = await renderTierA(toolId, values, 'svg', exportOpts({ ...merged, width: undefined, height: undefined, unit: 'px' }), profile, emoji, productionContract, st.tokenSelection, {
         canvas: canvasSize,
         ...(both ? { svg: { width: requested.width!, height: requested.height! } } : {}),
+        admit: { ...(px ? { width: px } : {}), ...(pxBoth ? { height: pxBoth } : {}) },
       });
       // The raster below is that SVG, so it placed the same artwork.
       placed = svg.ingredients;
       evaluation = svg.rights;
       recorded = svg.meta;
       warnings.push(...svg.warnings);
-      const px = targetPx(merged.width, merged.unit, merged.dpi);
       const pxH = svg.svgSized ? targetPx(merged.height, merged.unit, merged.dpi) : undefined;
-      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels, pxH);
+      const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background, o.maxRasterPixels, pxH, svg.resvg);
       if (png.reduced) {
         warnings.push(`PNG reduced to ${png.width} x ${png.height} px to stay within this server's ${o.maxRasterPixels!.toLocaleString('en')}-pixel raster limit. Ask for svg for a file that scales to any size.`);
       }
-      out = { bytes: png.png, mime: 'image/png', tier: 'A(resvg)', productionInputs: svg.productionInputs };
+      // The chunks the browser's PNG carries: DPI, provenance text, XMP and colour profile.
+      const finished = await finishTierAPng(png.png, { ...(merged.unit ? { unit: merged.unit } : {}), ...(merged.dpi ? { dpi: merged.dpi } : {}) }, { meta: svg.meta, colorProfile: merged.colorProfile ?? null });
+      out = { bytes: finished, mime: 'image/png', tier: 'A(resvg)', productionInputs: svg.productionInputs };
     } catch (e) {
       if (o.noBrowser) {
         // No silent Tier-B escalation on the browser-free contract. Surface the

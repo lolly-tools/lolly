@@ -448,6 +448,10 @@
     top: calc(var(--vv-top, 0px) + var(--safe-top, 0px) + var(--sheet-inset) - 1px);
     left: var(--vv-left, 0px);
     width: 100%;
+    /* The panel reaches both screen edges; its controls stand inside a side the system
+       holds (a status column reported as a safe-area inset, 0px where there is none). */
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
     height: calc(var(--sheet-h) - var(--sheet-inset) + 1px);
     box-sizing: border-box;
     display: flex;

@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "tool": {
+    "id": "signature",
+    "version": "1.0.1",
+    "digest": "3e66036ee3b3d048da5e15cdd98448a3aa91ff958eb842f40da2a9fc58d11293"
+  },
+  "verdict": "resvg",
+  "measured": {
+    "date": "2026-11-20",
+    "profile": "lolly-demo",
+    "webShell": "b7977cd6fa",
+    "renderers": {
+      "resvg": "2.6.2",
+      "engine": "1.348.0",
+      "chromium": "153.0.8010.12"
+    },
+    "bands": {
+      "threshold": 24,
+      "fillThreshold": 72,
+      "regionShare": 0.005,
+      "inkShare": 0.25,
+      "inkShift": 1.5,
+      "gradientLevels": 2
+    }
+  },
+  "cases": [
+    {
+      "name": "signature-default",
+      "args": [],
+      "result": "inside"
+    },
+    {
+      "name": "signature-marker",
+      "args": [
+        "--strokes=M240,206L271,175L302,149L331,130L372,121L406,138L434,175L450,208L463,241L475,272L491,306L526,304L549,272L568,244L589,216L613,192L640,175L684,168L715,177L746,197L777,224L808,256L837,289L864,320L888,343L920,361L953,344L959,334",
+        "--color=#111111",
+        "--penWidth=18",
+        "--smoothing=70"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "signature-3600",
+      "args": [
+        "--width=3600",
+        "--height=1200"
+      ],
+      "result": "inside"
+    },
+    {
+      "name": "signature-150px",
+      "args": [
+        "--width=150",
+        "--height=50"
+      ],
+      "result": "inside"
+    }
+  ]
+}

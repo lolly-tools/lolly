@@ -22,6 +22,9 @@
 .asset-picker-panel {
   position: fixed;
   inset: 5vh 5vw;
+  /* Clear of a side the system holds: its status column can be wider than this margin. */
+  left: max(5vw, calc(var(--safe-left) + 8px));
+  right: max(5vw, calc(var(--safe-right) + 8px));
   z-index: 1001;
   background: var(--ui-color-surface-overlay);
   color: var(--ui-color-text-default);
@@ -1265,6 +1268,9 @@
     border-radius: 0;
     padding-top: var(--safe-top);
     padding-bottom: var(--safe-bottom);
+    /* The sheet fills the screen; each side keeps its controls inside that side's inset. */
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
   }
 }
 @media (pointer: coarse) {

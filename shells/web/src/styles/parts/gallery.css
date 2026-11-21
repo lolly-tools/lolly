@@ -105,8 +105,9 @@
      inset and `--chrome-h` grows with Large text, so the prompt cannot slide
      under either the native Tauri switcher or the top-right controls. */
   top: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4) + var(--vv-top, 0px));
-  right: calc(2em + var(--vv-right, 0px));
-  width: min(340px, calc(100vw - 2rem));
+  /* Stands inside a side the system holds, as the cluster above does (tokens.css). */
+  right: calc(max(2em, var(--safe-right) + 0.5rem) + var(--vv-right, 0px));
+  width: min(340px, calc(100vw - 2rem - var(--safe-left) - var(--safe-right)));
   padding: 15px 16px 14px;
   display: grid;
   grid-template-columns: auto 1fr;
@@ -187,7 +188,8 @@
     position: relative;
     top: auto; right: auto;
     width: auto;
-    margin: calc(4.4rem + var(--safe-top)) .6rem 12px;
+    /* The side terms end the card where the top bar ends, inside a side the system holds. */
+    margin: calc(4.4rem + var(--safe-top)) calc(.6rem + var(--safe-right)) 12px calc(.6rem + var(--safe-left));
     box-shadow: none;
   }
   .gallery:not(.has-featured) .personalize-nudge:not([hidden]) ~ .tool-masonry { padding-top: 0; }
@@ -993,7 +995,11 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 
 .gtile:hover .tool-card-icon svg { opacity: 1; }
 .gtile:hover .gtile-desc { color: hsl(var(--foreground)); }
-.gtile.is-navigating { opacity: 0.6; }
+/* The pressed card while its tool opens. The dim rides filter, like the hidden tools'
+   dim above, and for the same reason: the entrance cascade's card-in fill pins the
+   opacity property at 1, so an opacity dim never showed on a card the cascade had
+   revealed. opacity: 1 keeps .is-navigating's own 0.45 below from stacking on it. */
+.gtile.is-navigating { opacity: 1; filter: opacity(0.6); }
 /* Cold-load entrance: a quick, satisfying cascade. JS arms the reveal
    (.reveal-armed → tiles start hidden) and an IntersectionObserver adds .is-in
    per tile with a staggered --reveal-delay. So the above-the-fold batch cascades
@@ -2153,7 +2159,7 @@ html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: 
 .gallery-topright {
   position: fixed;
   z-index: 99999;
-  right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+  right: calc(var(--chrome-inset-right) + var(--vv-right, 0px));
   top: calc(var(--chrome-top) + var(--vv-top, 0px));
   /* Inset past the edge dock (lib/edge-dock.ts) logically, so it flips with RTL; 0px when
      nothing is docked. margin-inline-end offsets a right-anchored fixed element inward. */

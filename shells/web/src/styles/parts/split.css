@@ -285,6 +285,27 @@ html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor) 
   max-height: calc(100dvh - var(--split-top, 50dvh) - var(--split-gutter, 16px));
 }
 
+/* ── A side the system holds ─────────────────────────────────────────────────
+   Some devices keep a status column on one side edge for the whole session and
+   report the column as a left or right safe-area inset. The control pane reaches
+   that edge and its controls stand inside the column; so does the export panel
+   that rises in the pane. Physical sides, chosen as the rail's are at the foot of
+   this sheet: the pane is on the left for a right hand in a left-to-right
+   language. On a tabletop the pane spans the width, so each side reads its own. */
+html[data-layout="split"] .tool-layout:not(.is-editor) > .sidebar,
+html[data-layout="split"] .tool-layout:not(.is-editor) .export-overlay {
+  padding-left: var(--pane-safe-left, 0px);
+  padding-right: var(--pane-safe-right, 0px);
+}
+html[data-layout="split"]:not([data-hand="left"]):not([dir="rtl"]) .tool-layout:not(.is-editor),
+html[data-layout="split"][data-hand="left"][dir="rtl"] .tool-layout:not(.is-editor) { --pane-safe-left: var(--safe-left); }
+html[data-layout="split"][data-hand="left"]:not([dir="rtl"]) .tool-layout:not(.is-editor),
+html[data-layout="split"][dir="rtl"]:not([data-hand="left"]) .tool-layout:not(.is-editor) { --pane-safe-right: var(--safe-right); }
+html[data-layout="split"][data-posture="tabletop"] .tool-layout:not(.is-editor) {
+  --pane-safe-left: var(--safe-left);
+  --pane-safe-right: var(--safe-right);
+}
+
 /* ── Design (the editor layout) ──────────────────────────────────────────────
    The right-hand column (lib/edge-dock.ts) is the control pane, styled in
    edge-dock.css; #view steps aside for it, so the stage only has to stay in the
@@ -709,6 +730,10 @@ html[data-layout="split"]:not([data-posture="tabletop"]) .tool-layout.is-editor 
   top: var(--stage-reserve-top, 0px) !important;
   width: auto !important;
   left: auto !important;
+  /* At the screen edge, also on a side the system holds. The status column a
+     device keeps there (the iPhone Duo's clock and status icons) occupies only
+     the top of that side, and the rail starts below, so the rail keeps the edge
+     and the artwork keeps its width (Andy, 2026-11-21). */
   right: var(--sp-4) !important;
 }
 html[data-layout="split"][data-hand="left"]:not([dir="rtl"]):not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar-dock,

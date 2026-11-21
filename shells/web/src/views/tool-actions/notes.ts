@@ -12,7 +12,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { isAudioFormat as isAudioFmt } from '../../lib/audio-encode.js';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { madeWithWords } from '../../lib/made-with.ts';
-import { isC2paFmt, type ProfileStore } from './shared.ts';
+import { isC2paFmt, isImprintFmt, type ProfileStore } from './shared.ts';
 import type { TuneSource } from '../../lib/tune-provenance.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
@@ -118,9 +118,21 @@ function madeWithCarrier(ta: ActionsCtx): 'file' | 'credential' | null {
 }
 
 /**
- * Write the card's two lines for the switch's current state and the chosen format.
- * Hidden when there is nothing to record, or when the format will carry none of it,
- * so the card never names words a file will not hold.
+ * The Content claims fold shows while a card inside the fold applies. This card is
+ * one of them, and the card's state arrives after the format rows are set.
+ */
+function syncClaimsFold(ta: ActionsCtx, section: HTMLElement): void {
+  const fold = ta.el?.querySelector<HTMLElement>('[data-protection-section]');
+  if (!fold) return;
+  const fmt = ta.formatEl?.value ?? ta.initialFmt ?? '';
+  const others = fmt === 'pdf' || fmt === 'pdf-cmyk' || fmt === 'zip' || isC2paFmt(fmt) || isImprintFmt(fmt) || ta.hasLicence;
+  fold.style.display = others || !section.hidden ? 'flex' : 'none';
+}
+
+/**
+ * Write the card's record line for the switch's current state and the chosen format.
+ * Hidden when there is nothing to record, or when the format has no place for the
+ * record, so the card never shows words a file will not hold.
  */
 export function paintMadeWith(ta: ActionsCtx): void {
   const section = ta.el?.querySelector<HTMLElement>('[data-madewith-section]');
@@ -129,25 +141,21 @@ export function paintMadeWith(ta: ActionsCtx): void {
   const carrier = madeWithCarrier(ta);
   if (!preview || !carrier) {
     section.hidden = true;
+    syncClaimsFold(ta, section);
     return;
   }
   const on = ta.runtime.madeWith();
   const toggle = section.querySelector<HTMLInputElement>('[data-action="madewith"]');
   if (toggle) toggle.checked = on;
   const record = section.querySelector<HTMLElement>('[data-madewith-record]');
-  const description = section.querySelector<HTMLElement>('[data-madewith-description]');
   // Text sinks, so tRaw: the label is typed text and is shown exactly as written.
   if (record) {
     record.textContent = on
       ? tRaw('Records: {words}', { words: madeWithWords(preview.record) })
       : t('Records nothing about the design system.');
   }
-  if (description) {
-    // A format whose record lives only in the credential has no description to write.
-    description.hidden = carrier !== 'file';
-    description.textContent = tRaw('Description: {text}', { text: on ? preview.description : preview.plainDescription });
-  }
   section.hidden = false;
+  syncClaimsFold(ta, section);
 }
 
 /** Repaint when the format or the credential changes what the file will carry. */
