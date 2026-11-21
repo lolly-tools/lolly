@@ -61328,7 +61328,7 @@ SOFTWARE.
 pffft (the FFT inside the wasm) is BSD-style (UCAR/NCAR + contributors) - the full text is carried in shells/web/src/vendor/gtcrn/LICENSE.pffft.txt and in the vendored file's header.
 ```
 
-### libopenmpt (compiled WASM) 0.8.7 (Emscripten build)
+### libopenmpt (compiled WASM) 0.8.10 (Emscripten build)
 
 - SPDX-License-Identifier: `BSD-3-Clause`
 - Files: `shells/web/src/vendor/libopenmpt/libopenmpt.mjs`

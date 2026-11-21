@@ -13,12 +13,12 @@
     },
     {
       "name": "libopenmpt-wasm",
-      "version": "0.8.7",
+      "version": "0.8.10",
       "license": "BSD-3-Clause",
       "path": "shells/web/src/vendor/libopenmpt/libopenmpt.mjs",
-      "sha256": "eefd22838a75987983582c5cc8b8371d721a1a06711cbaa6baf16704743b3b2f",
+      "sha256": "43b00b85466d3ebe5cb6693f87810f42487cc4b921d623cec8f5e665054a8e24",
       "repository": "https://lib.openmpt.org/",
-      "source": "https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.7+release.makefile.tar.gz",
+      "source": "https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.10+release.makefile.tar.gz",
       "localChanges": false
     },
     {

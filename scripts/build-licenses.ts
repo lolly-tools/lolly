@@ -789,7 +789,7 @@ const MANIFEST: {
     },
     {
       name: 'libopenmpt (compiled WASM)',
-      version: '0.8.7 (Emscripten build)',
+      version: '0.8.10 (Emscripten build)',
       spdx: 'BSD-3-Clause',
       copyright:
         '© 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque',
