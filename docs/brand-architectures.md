@@ -1,8 +1,8 @@
 # Brand architectures
 
-Organisations arrange their brands in different ways. One company shows a single masterbrand everywhere and gives each division a colour. Another puts its name above every product. A third endorses a brand it bought for a year or two, and a fourth keeps each brand entirely apart. Brand architecture is the name for that arrangement.
+Brand architecture is how an organisation arranges its brands. One company shows one masterbrand everywhere with a colour per division, another puts its name above every product, a third endorses a brand it bought for a year or two and a fourth keeps each brand apart.
 
-Lolly does not ask you which arrangement you have. It gives you a few building blocks, and each arrangement uses them in its own way. Below, each arrangement shows how it looks in the wild, what to do in Lolly today, step by step, and what Lolly cannot do for it yet, with the way to work until then. The logos show well-known organisations that use each arrangement; the step-by-step examples use invented organisations.
+Lolly does not ask which arrangement you have. It gives you a few building blocks, and each arrangement uses them in its own way. Each section gives the steps in Lolly today, what Lolly cannot do yet and how to work until then. The logos show real organisations; the step-by-step examples use invented ones.
 
 ::: figure brand-architectures-spectrum
 From a branded house, in which the parent is the brand, to a house of brands, in which each brand stands alone. Choose a column to go to its section.
@@ -11,11 +11,11 @@ From a branded house, in which the parent is the brand, to a house of brands, in
 <!--i:eti-help-->
 ## Which arrangement are you?
 
-Find the line that sounds most like your work. Most organisations match more than one line: an agency works in white label for its clients and in co-branding at an event, so start from the job in front of you.
+Find the line that sounds most like your work. Most organisations match more than one: an agency works in white label for clients and in co-branding at events. Start from the job in front of you.
 
 | If this sounds like you | Start with |
 | --- | --- |
-| One name on everything, with teams or divisions that differ by colour or by a descriptor. A public body whose departments share one crest often works this way, and so does a small team or one person with one brand. | [Monolithic](#monolithic) |
+| One name on everything, with teams or divisions that differ by colour or a descriptor. Also a public body whose departments share one crest, or a small team or one person with one brand. | [Monolithic](#monolithic) |
 | One name above several products, each with its own colour and mark | [Expanded](#expanded) |
 | One brand whose lead colour changes from piece to piece, or across a series | [Rotating lead colour](#rotating-lead-colour) |
 | A parent with businesses, faculties, chapters or branches that show the parent's name, as many universities, federations of charities and membership bodies do | [Driven](#driven) |
@@ -28,20 +28,20 @@ Find the line that sounds most like your work. Most organisations match more tha
 | A partner, reseller or supplier who was sent another organisation's brand | [Working with partners](/info/partners.html#work-in-a-brand-you-were-given) |
 | A holiday look, a launch or a yearly conference theme | [Seasons and campaigns](#seasons-and-campaigns) |
 
-Not sure? Start with one design system. [A colourway, a logo identity, or a design system of its own](#a-colourway-a-logo-identity-or-a-design-system-of-its-own) helps you choose the smallest block, and a part can move to a design system of its own later.
+If unsure, start with one design system. [A colourway, a logo identity, or a design system of its own](#a-colourway-a-logo-identity-or-a-design-system-of-its-own) helps you choose the smallest block. A part can move to a design system of its own later.
 
 <!--i:eti-box-->
 ## The building blocks
 
 | Block | What it holds | Where |
 | --- | --- | --- |
-| **Design system** | Colours, type, logos, the rest of the tokens, and versions. Tools, pages and exports follow the active one. | [Lolly Design System Setup](/info/brand-studio.html), and **Settings → Preferences → Design systems** to switch or remove |
-| **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and the open tool redraws with no reload |
-| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour. One is canonical. Each person can take a colourway as their own, which colours the app around them and starts their new work in that colourway; without a choice the app uses the canonical one. Tools that draw several colours at once, such as Lolly Chart and Mesh Gradient, draw on every lead together. | Made and edited in the **Colours** room: open **Colour roles**, then the **Colourways** row. Chosen per artefact in a tool's **Design system** section, which redraws the open tool with no reload, and taken as your own in **Settings → Appearance**. Rebuilding the palette keeps every colourway. See [Colourways](/info/colourways.html) |
+| **Design system** | Colours, type, logos, the other tokens and versions. Tools, pages and exports follow the active one. | [Lolly Design System Setup](/info/brand-studio.html), and **Settings → Preferences → Design systems** to switch or remove |
+| **Looks** | Light and dark. Every artefact can be drawn in either. | Built in; the studio derives both. A tool's **Design system** section switches the look when the look changes that tool, and redraws with no reload |
+| **Colourways** | Several lead colours in one design system, each with the colour that sits on it and a partner colour. One is canonical. A person can take a colourway as their own: it colours the app and starts their new work. Without a choice the app uses the canonical one. Tools that draw several colours at once, such as Lolly Chart and Mesh Gradient, draw on every lead. | Made and edited in the **Colours** room: open **Colour roles**, then the **Colourways** row. Chosen per artefact in a tool's **Design system** section, with no reload, and taken as your own in **Settings → Appearance**. Rebuilding the palette keeps every colourway. See [Colourways](/info/colourways.html) |
 | **Logo identities** | Several named sets of logos in one design system. The main set is "Your logo". | **Logos** room, **+ Add another logo** |
 | **Custom marks** | Marks under your own names: a crest, a favicon, a finished lockup, a partner's logo you use often. They belong to the design system and travel in its file. | **Logos** room, **Custom marks** |
 | **House rules** | Approved colour pairings, type per role and other rules a composition is checked against. | Written in the token file and listed in the studio's **Rules** room, where **Add rule** adds rules for the example pieces. `lolly check` checks house rules on a saved Lolly Design document; see [Rules](/info/brand-studio.html#rules) |
-| **Brand skills** | The brand's written standards, one skill per discipline (overall brand, photography, motion and others), for people and AI agents to read. Guidance, not checks: house rules are what Lolly checks. Each design system keeps its own skills under its own name, and colourways share them. A design system without skills of its own has a baseline that Lolly writes from its tokens and house rules. | The **Skills** room in Lolly Design System Setup, which reads each skill and downloads it for an agent; `lolly system skills` and Lolly's MCP server list them too. See [Brand skills](/info/brand-skills.html) |
+| **Brand skills** | The brand's written standards, one skill per discipline (overall brand, photography, motion and others), for people and AI agents to read. Lolly checks house rules, not skills. Each design system keeps its own skills under its own name, and colourways share them. A design system without skills of its own has a baseline that Lolly writes from its tokens and house rules. | The **Skills** room in Lolly Design System Setup, which reads each skill and downloads it for an agent; `lolly system skills` and Lolly's MCP server list them too. See [Brand skills](/info/brand-skills.html) |
 | **Versions** | Permanent named copies of a design system. A link can pin one with `designv`. | **Versions & publishing** in the **More** menu of Lolly Design System Setup's bar; after the first publish, the **Versions** room joins the rooms. See [Versions](/info/brand-studio.html#versions) |
 | **Several design systems** | Any number on one device, one active at a time. A design system travels as a single file. An organisation that runs its own Lolly can supply one to everyone. | **Settings → Preferences → Design systems**; [Move a brand between devices](/info/brand-studio.html#move-a-brand-between-devices) |
 | **Reusable tools** | A finished Lolly Design document turned into a tool with the inputs you choose. The `.lolly` file carries the resolved colours, fonts and images, so another person's active design system cannot restyle the fixed artwork. | In Lolly Design, **Share with rules**; see [Share a design with rules](/info/create-a-tool.html) |
@@ -50,7 +50,7 @@ Not sure? Start with one design system. [A colourway, a logo identity, or a desi
 <!--i:eti-table-->
 ## Arrangements at a glance
 
-A common way to group arrangements is by how much of the parent brand the audience sees: the parent **unifies** everything, **subsets** into tailored businesses, **endorses** a brand of its own, or **detaches** from the parent altogether. Three more needs cut across the groups: co-branding, white label and seasons.
+Arrangements group by how much of the parent brand the audience sees: the parent **unifies** everything, **subsets** into tailored businesses, **endorses** a brand of its own or **detaches** altogether. Co-branding, white label and seasons cut across the groups.
 
 | Group | Arrangement | What the audience sees | Use in Lolly today | Not yet |
 | --- | --- | --- | --- | --- |
@@ -69,7 +69,7 @@ A common way to group arrangements is by how much of the parent brand the audien
 <!--i:eti-stamp-->
 ## Unify: one brand, many parts
 
-Every part of the business feeds one brand. This suits an organisation that wants the most awareness from every piece it makes, and it gives new products the parent's reputation from the first day.
+Every part of the business feeds one brand. This suits an organisation that wants the most awareness from every piece, and new products get the parent's reputation from the first day.
 
 ### Monolithic
 
@@ -84,19 +84,19 @@ Monolithic brands in the wild: FedEx, GE, Intel and Apple.
 **What to do today:**
 
 1. Make **one design system** for Northwind in [Lolly Design System Setup](/info/brand-studio.html).
-2. Give each division a **colourway**. In the **Colours** room, open **Colour roles**, press **+ Add** in the **Colourways** row and choose the division's colour from the palette's colours. Choose a colourway's chip to set its roles, and press **Make default** on the colourway most work should start in.
-3. People in Freight take the Freight colourway as their own under **Settings → Appearance**. The app they work in takes on the Freight teal, and every piece they start begins in Freight ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)).
-4. For one piece in another division's colour, pick that colourway's dot in the tool's **Design system** section, which shows the colourway dots in every tool that draws the lead colour.
+2. Give each division a **colourway**. In the **Colours** room, open **Colour roles**, press **+ Add** in the **Colourways** row and choose the division's colour from the palette. Choose a colourway's chip to set its roles, and press **Make default** on the colourway most work should start in.
+3. People in Freight take the Freight colourway as their own under **Settings → Appearance**. The app takes on the Freight teal, and every new piece starts in Freight ([Make a colourway your own](/info/colourways.html#make-a-colourway-your-own)).
+4. For one piece in another division's colour, pick that colourway's dot in the tool's **Design system** section. Every tool that draws the lead colour shows the dots.
 5. Write each descriptor as text in the template, or add the finished descriptor lockup as a **custom mark** per division.
 6. Use **house rules** to approve the division colours.
 
 With the export panel's **Design system** card ticked, an export records the colourway that drew the file, and its description gives the colourway beside the tool, as in *Poster (Freight colourway)*. See [The design-system record](/info/exporting.html#the-design-system-record).
 
-**Not yet:** an organisation cannot set a division's colourway for the people in the division. **Until then:** tell each division which colourway is theirs. One choice in **Settings → Appearance** sets the colourway for each person, and [Sync](/info/sync.html) carries the choice to their other devices.
+**Not yet:** an organisation cannot set a division's colourway for the people in the division. **Until then:** tell each division which colourway is theirs. Each person chooses the colourway once in **Settings → Appearance**, and [Sync](/info/sync.html) carries the choice to their other devices.
 
 ### Expanded
 
-The masterbrand stays above each product, and every product adds a mark and a colour of its own. Software companies often work this way, because a buyer who trusts one product can find the next one under the same name.
+The masterbrand stays above each product, and every product adds a mark and a colour of its own. Software companies often work this way: a buyer who trusts one product finds the next under the same name.
 
 ::: figure brand-architectures-expanded
 Expanded brands in the wild: Atlassian, Adobe and Google.
@@ -124,7 +124,7 @@ Lolly Demo, Lolly's own demonstration design system, has six colourways. Spearmi
 
 **What to do today:**
 
-1. Make **one design system** with a **colourway** for each lead colour, in the **Colours** room. Each colourway carries its own lead, the colour that sits on it, and a partner, in both light and dark; the room's **Light** and **Dark** switch chooses which look you edit.
+1. Make **one design system** with a **colourway** for each lead colour, in the **Colours** room. Each colourway carries its own lead, the colour that sits on the lead and a partner, in light and dark; the room's **Light** and **Dark** switch chooses which look you edit.
 2. Mark one colourway canonical with **Make default**. An artefact that chooses none uses the canonical colourway, and so does the app, until a person takes another colourway as their own in **Settings → Appearance**.
 3. For a series, give each [Lolly batch](/info/batch.html#colourways-and-themes-per-row) row its colourway in the CSV's `_themes` column, such as `{"colourway":"beach"}`. Each row renders in its own colourway, and so does a tool placed inside it, such as a QR code. A saved session keeps its colourway in multi-edit, in a batch and in a Lolly Design document export.
 4. To export one piece in several colourways from the command line, list them on a `lolly run` command: `--themes=Spearmint,Beach --output=post.png` writes `post-Spearmint.png` and `post-Beach.png` ([One document, every theme](/info/cli-decks.html#one-document-every-theme)).
@@ -136,7 +136,7 @@ Pieces that show the whole family at once draw on every lead, canonical first: L
 <!--i:eti-building-->
 ## Subset: a parent with tailored businesses
 
-The parent's name leads, and each business tailors its material to its own audience. This suits a group that works in several industries at once. Universities with faculties, federations of local charities and membership bodies with branches often work the same way.
+The parent's name leads, and each business tailors its material to its own audience. This suits a group that works in several industries at once. Universities with faculties, federations of local charities and membership bodies with branches often work this way too.
 
 ### Driven
 
@@ -160,7 +160,7 @@ Driven brands in the wild: Tata, Virgin and Mitsubishi.
 
 ### Appended
 
-A brand keeps its own mark and adds the parent's endorsement. After an acquisition this is usually a stage of one to three years, before the brand moves fully into the parent or goes its own way.
+A brand keeps its own mark and adds the parent's endorsement. After an acquisition this usually lasts one to three years, before the brand moves into the parent or goes its own way.
 
 ::: figure brand-architectures-appended
 Appended brands in the wild: Broadcom and Meta.
@@ -175,7 +175,7 @@ Appended brands in the wild: Broadcom and Meta.
 3. **Publish a version** while the endorsement runs, and give the version the period in its name, such as *Ferro by Halcyon, 2026 to 2027*.
 4. When the endorsement ends, replace the custom mark and publish a new version.
 
-An export drawn from a published version records that version, and *Recreate with these settings* in [Lolly Verify](/#/verify) reopens the tool in the same version. A link that you write with `designv` draws in that version on a device that holds the version; Lolly never writes `designv` into a share link ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)).
+An export drawn from a published version records that version, and *Recreate with these settings* in [Lolly Verify](/#/verify) reopens the tool in the same version. A link you write with `designv` draws in that version on a device that holds the version; Lolly never writes `designv` into a share link ([Reserved URL parameters](/info/url-parameters.html#design-system-language-and-emoji)).
 
 **Not yet:** Lolly does not generate an endorsement lockup from the two marks, and a design system cannot carry the date an endorsement ends. **Until then:** the version's name records the period, and replacing the custom mark ends the endorsement for new work.
 
@@ -195,7 +195,7 @@ Apparent brands in the wild: Microsoft and Sony.
 2. **Export** its design system, and bring the file in again as each brand's own design system. Rename each in the studio's header and give each its own marks and colours.
 3. Keep the shared start's **Tokens (.json)** file for the next step.
 
-**Not yet:** copies drift apart. Nothing keeps the shared type, grid and motion in step across the brands as the shared start changes. **Until then:** after each change to the shared start, each brand runs **Review an upstream update** with the earlier file and the new one, as in [Driven](#driven).
+**Not yet:** copies drift apart. Nothing keeps the shared type, grid and motion in step as the shared start changes. **Until then:** after each change to the shared start, each brand runs **Review an upstream update** with the earlier file and the new one, as in [Driven](#driven).
 
 <!--i:eti-unlink-->
 ## Detach: brands that stand alone
@@ -219,7 +219,7 @@ Shadow brands in the wild: the Volkswagen Group, and the luxury lines of Honda a
 
 ### Discrete
 
-Brands with no visible relationship at all, often worked on by the same people.
+Brands with no visible relationship, often worked on by the same people.
 
 ::: figure brand-architectures-discrete
 Discrete brands in the wild: Unilever and Procter & Gamble.
@@ -230,7 +230,7 @@ Discrete brands in the wild: Unilever and Procter & Gamble.
 1. Make a **design system per brand** on the same device: **Make a new one** in **Settings → Preferences → Design systems**, or open each brand's file.
 2. Switch per job in **Settings → Preferences → Design systems**, or from the strip of covers in **Settings → Design system**. One active design system applies to the whole device. A link that carries `ds=` switches the device to that design system.
 3. Keep each brand's work in a folder of its own in **Projects**.
-4. Open a saved piece while another design system is active, and a notice at the top of the tool gives the design system the piece was made with, with a button to switch to it when it is on the device.
+4. Open a saved piece while another design system is active, and a notice at the top of the tool shows the design system the piece was made with. A button offers the switch when that design system is on the device.
 5. A Lolly workspace supplies one design system to everyone who joins it, so each brand that needs a workspace has its own.
 
 **Not yet:** an artefact does not own its design system, so two brands cannot be open side by side, and a workspace cannot supply a different design system to different groups of people. **Until then:** finish one brand's piece, then switch. In a terminal, each command takes one design system: `lolly system use <id>` switches the terminal, and `--file=<tokens.json>` holds a design system for one Lolly Design run ([Which design system a command uses](/info/cli-decks.html#which-design-system-a-command-uses)).
@@ -268,7 +268,7 @@ One set of assets re-skinned for each client, where no client may see another cl
 4. Give each client their own design-system file, or a reusable tool made with [Share with rules](/info/create-a-tool.html), which carries the client's resolved colours, fonts and images.
 5. Check what an export says about how it was made before you send the file ([Exporting](/info/exporting.html)). An export from a tool records the name of the client's design system: the export panel's **Design system** card shows that name before the file is written; untick the card when a file must not carry the name. Batch and folder exports show no card, so their files carry no name.
 
-**Not yet:** nothing keeps one client's material out of another client's work automatically. Lolly runs on your device, so the gap is a guardrail against mixing material, not access control: anyone at the device can switch. **Until then:** for complete separation, give each client a browser profile of its own, or a separate user account on the computer for the desktop app. Each one holds its own design systems, uploads and saved work.
+**Not yet:** nothing keeps one client's material out of another client's work automatically. Lolly runs on your device, so the missing piece is a guardrail against mixing material, not access control: anyone at the device can switch. **Until then:** for complete separation, give each client a browser profile of its own, or a separate user account on the computer for the desktop app. Each one holds its own design systems, uploads and saved work.
 
 ### Seasons and campaigns
 
@@ -301,9 +301,9 @@ A product name built up part by part, from a product line to a variant, with a d
 
 Real names often leave a part out. Microsoft SQL Server 2022 Enterprise goes from the company straight to the descriptor, with no domain. Sony Interactive Entertainment sells its pro controller as PlayStation DualSense Edge, with no company name in front. PlayStation is the domain, like Walkman for Sony's portable players, DualSense is the invented descriptor and Edge is its edition.
 
-The descriptor comes in two styles. Brands that sell to businesses tend to use a descriptive word, such as Tracker or SQL Server, so a buyer can tell at once what the product does. Consumer brands tend to use an invented term, such as Ondaro or DualSense, which can be registered as a trademark where a plain description is hard to protect.
+Brands that sell to businesses tend to use a descriptive word, such as Tracker or SQL Server, so a buyer can tell at once what the product does. Consumer brands tend to use an invented term, such as Ondaro or DualSense, which can be registered as a trademark where a plain description is hard to protect.
 
-An invented term also travels when a product line changes owner, which matters to a group with a [detach](#detach-brands-that-stand-alone) strategy. A descriptive name leans on the company name, which stays with the seller; an invented term is the part buyers know. IBM introduced ThinkPad in 1992 and sold its PC business to Lenovo in 2005, and Lenovo still sells ThinkPad laptops.
+An invented term also travels when a product line changes owner, which matters to a group with a [detach](#detach-brands-that-stand-alone) strategy. A descriptive name depends on the company name, which stays with the seller; an invented term is the part buyers know. IBM introduced ThinkPad in 1992 and sold its PC business to Lenovo in 2005, and Lenovo still sells ThinkPad laptops.
 
 ::: figure brand-architectures-portable-name
 When a product line changes owner, the company part of its name usually changes. A descriptive name then loses the part buyers knew, and an invented term moves with the product. ThinkPad moved from IBM to Lenovo in 2005.
@@ -320,7 +320,7 @@ Choose the smallest block that holds the difference.
 2. **The colour differs and the part has its own logo:** a **colourway** and a **logo identity** in the same design system.
 3. **The part has its own assets, its own tools, its own rules or its own written standards:** a **design system of its own**, which carries its own brand skills.
 
-A part can move down this list as it grows. Moving down means copying material into a new design system; Lolly does not move it for you.
+A part can move down this list as it grows. Moving down means copying material into a new design system; Lolly does not move the material for you.
 
 <!--i:eti-info-->
 ## About the logos

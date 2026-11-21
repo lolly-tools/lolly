@@ -2,8 +2,8 @@
 
 `lw` runs a Lolly Work instance from a terminal: people and invitations, asset sources, the
 catalog, renders and delivery, audit and governance. It calls the same API as the console, so
-the two stay in step, and anything an admin does in the console can go in a script. To render
-artwork from a terminal, use the `lolly` command instead ([the Lolly CLI](https://lolly.tools/info/build/cli.html)).
+anything an admin does in the console can go in a script. To render artwork, use the `lolly`
+command ([the Lolly CLI](https://lolly.tools/info/build/cli.html)).
 
 <!--i:eti-keyboard-->
 ## Install and sign in
@@ -12,8 +12,7 @@ Run `lw` from a Lolly Work checkout as `pnpm run cli <args>` or `node cli/lw.ts`
 once in the checkout to get the plain `lw` the examples use.
 
 ::: note Run `lw` from a checkout
-`lw` is not in the container image or the Helm pod, so you cannot run `lw` from inside the
-deployment.
+`lw` is not in the container image or the Helm pod. You cannot run `lw` inside the deployment.
 :::
 
 ```bash
@@ -23,10 +22,10 @@ lw summary
 lw --json audit head                        # machine output
 ```
 
-Plain `lw login` prints a short code and the instance's `/activate` URL. Open that URL in any
-browser where you are already signed in, type the code and approve; the CLI collects an ordinary
-session on its next poll. Codes are database rows, so any replica can answer, and the flow works
-on every deployment. The session is stored at `~/.config/lolly-work/session` (mode 0600).
+Plain `lw login` prints a short code and the instance's `/activate` URL. Open that URL in a
+browser where you are signed in, type the code and approve. The CLI collects a session on its
+next poll. Codes are database rows, so any replica can answer and the flow works on every
+deployment. The session is stored at `~/.config/lolly-work/session` (mode 0600).
 
 ```bash
 lw login --cookie 'lw_session=…'            # paste a browser session (works everywhere)
@@ -79,8 +78,8 @@ lw preview --groups marketing,contractors   # what such a member receives
 
 `lw links create <toolId> [key=value …]` mints a link to a render of that tool with those
 params. `--kind` is `embed` (the default), `share` or `download`; `--format` and `--hours <n>`
-set the format and the lifetime. `--open` lets recipients change the params: each new set they
-put on the link renders a new asset, within the tool's policy. An open link needs
+set the format and the lifetime. `--open` lets recipients change the params. Each new set renders
+a new asset within the tool's policy. An open link needs
 `export.server` for the tool as well as `link.create` ([open links](api.md#share-links)).
 
 ```bash
@@ -95,15 +94,14 @@ lw instance pack dist-packs/acme.lolly   # host the signed pack (owner) - served
 lw instance pack-rm                      # stop hosting it
 ```
 
-The pack is cut in the OSS repo (`node scripts/build-instance-pack.ts --brand <name>
---keyfile …`) with this deployment as its instance base; the upload refuses a pack that
-points anywhere else. An unsigned pack is hosted but labelled dev-only - a key-pinned
+The pack is built in the OSS repo (`node scripts/build-instance-pack.ts --brand <name>
+--keyfile …`) with this deployment as its instance base. The upload refuses a pack that
+points anywhere else. An unsigned pack is hosted but labelled dev-only, and a key-pinned
 app build will refuse that engine version.
 
-Lolly Work treats the pack as a signed byte artifact, not as a second token processor.
-It does not parse, rewrite or filter `tokens.json`: the shell-reserved
-`lolly.foundation` and `lolly.ui` namespaces (including aliases between them) download
-exactly as the OSS builder produced them.
+Lolly Work stores the pack as signed bytes. It does not parse, rewrite or filter
+`tokens.json`. The shell-reserved `lolly.foundation` and `lolly.ui` namespaces, including
+aliases between them, download exactly as the OSS builder produced them.
 
 <!--i:eti-mail-->
 ## Invitations
@@ -126,10 +124,10 @@ lw invite rm <id>            # revoke
   account, `invites-not-allowed` or `domain-not-allowed` for a new address that
   `policy.invites` does not allow.
 
-It then prints the sign-in address to share. Nothing is emailed. `--group` repeats, and a
-comma-separated value also works. An invited person joins the groups at their first
-sign-in. Groups must already exist as local groups, and the caller needs `grant.edit` as
-well. See [identity](identity.md#who-may-sign-in).
+It then prints the sign-in address to share. Nothing is emailed. `--group` repeats or takes a
+comma-separated list. An invited person joins the groups at their first sign-in. Groups must
+already exist as local groups, and the caller also needs `grant.edit`. See
+[identity](identity.md#who-may-sign-in).
 
 <!--i:eti-lock-->
 ## Service tokens
@@ -142,16 +140,16 @@ lw tokens revoke <id>
 LW_TOKEN=lwt_… lw export --out governance.json    # any command, authenticated as the automation
 ```
 
-A token outranks a stored session cookie when both are present - automation acts as the
-automation, never as whoever last signed in on the machine. Tokens drive the action-gated
-API (export/apply, providers, fleet, audit); the member-workflow commands refuse them. A scoped
-token reaches only what its scopes open, and other commands answer `403 TOKEN_SCOPE`. The scopes
-are in the [automation guide](automation-api.md#before-you-start-a-token-and-a-permission).
+A token outranks a stored session cookie when both are present. Automation never acts as
+whoever last signed in on the machine. Tokens drive the action-gated API (export/apply,
+providers, fleet, audit). The member-workflow commands refuse them. A scoped token reaches only
+what its scopes open, and other commands answer `403 TOKEN_SCOPE`. The scopes are in the
+[automation guide](automation-api.md#before-you-start-a-token-and-a-permission).
 
-Naming `--scopes` without `--role` gives the token the `automation` role, which carries what
-the scopes need without an admin's other authority; that role always needs scopes. A `--tools`
+`--scopes` without `--role` gives the token the `automation` role. That role carries what the
+scopes need and none of an admin's other authority, and it always needs scopes. A `--tools`
 list needs the `render` or `documents` scope. `--days <n>` sets the lifetime.
-`lw tokens limits <id>` shows a token's calls a minute and renders a day and a month, and
+`lw tokens limits <id>` shows a token's calls a minute and renders a day and a month.
 `--calls-per-minute`, `--renders-per-day` and `--renders-per-month` set each to a number,
 `none` or `default`. With `--programme <id>`, `create`, `revoke`, `limits` and the list act on
 a partner programme's agent tokens ([partners' agents](partner-agents.md)).
@@ -192,14 +190,14 @@ lw renders deliver <renderId> --destination <id> --name "Launch poster" --idempo
 
 The [render resource guide](renders.md) explains the request JSON, persisted
 status, restart recovery and retained output. Retrying creates a new resource
-linked to the original. Output and evidence downloads require an explicit file
+linked to the original. Output and evidence downloads need an explicit file
 path. [Execution evidence](renders.md#execution-evidence) records observed source,
 context and asset digests with explicit coverage limits. For new outputs the
 evidence file also holds the [render identity](renders.md#render-identity). Add
 `--callback-url <url>` to `submit` to [be told when it finishes](renders.md#be-told-when-a-render-finishes).
 `deliver` sends the finished output to an [organisation destination](delivery.md#delivering-an-automation-output).
 
-For multiple rows with individual recovery and output receipts:
+For many rows, each with its own recovery and output receipt:
 
 ```bash
 lw render-batches submit batch.json --idempotency-key campaign-v1 --json
@@ -211,9 +209,9 @@ lw render-batches retry <batchId> --idempotency-key campaign-v1-retry --json
 ```
 
 The [batch guide](renders.md#batches-with-durable-rows) defines shared inputs and
-row keys. Retry creates a new parent and replaces only unsuccessful rows;
-successful children keep their original output. `archive` downloads a finished
-batch as one ZIP with a manifest of every row, or download each child through
+row keys. Retry creates a new parent and replaces only unsuccessful rows.
+Successful children keep their original output. `archive` downloads a finished
+batch as one ZIP with a manifest of every row. To download one child, use
 `lw renders output <childRenderId> --out <file>`. A request file can name a data
 source with [`bind`](renders.md#fill-the-rows-from-a-data-source) in place of `rows`,
 and `submit` takes `--callback-url <url>` here too.
@@ -227,11 +225,11 @@ lw approvals artifact <id> --out card.png   # the file an export review carries
 lw approvals artifact <id> --out card.png --reviewed   # the bytes as reviewed
 ```
 
-`artifact` works for an eligible reviewer, for someone who acted on the request, and for the
+`artifact` works for an eligible reviewer, for someone who acted on the request and for the
 requester once the request is approved. It checks the whole file against its recorded digest before
-writing anything, and says whether the approval is recorded in that file. These commands need a person's session from `lw login`. A service token cannot read
-approvals, because a decision about a file is a person's act. Decide in the console, where the file
-is on screen. See [review an exported file](approvals.md#review-an-exported-file).
+writing anything. It says whether the approval is recorded in that file. These commands need a
+person's session from `lw login`. A service token cannot read approvals, because a decision about
+a file is a person's act. Decide in the console, where the file is on screen. See [review an exported file](approvals.md#review-an-exported-file).
 
 <!--i:eti-globe-->
 ## Brand pages
@@ -245,7 +243,7 @@ lw brand-pages history <id>
 lw brand-pages unpublish <id> [--remove-files]    # the address then answers 410
 ```
 
-`publish` checks the digests here first, and it sends only the files `brand.json` lists. A link in the folder is refused. Run the same command again after an interruption and it sends only the missing parts. With a chain set, the revision waits for a person's approval, and only a person can publish.
+`publish` checks the digests here first and sends only the files `brand.json` lists. A link in the folder is refused. After an interruption, run the same command again to send only the missing parts. With a chain set, the revision waits for a person's approval, and only a person can publish.
 
 <!--i:eti-folder-move-->
 ## Moving from a hosted render API
@@ -284,11 +282,11 @@ lw deliveries publish <completedRenderJobId> \
 
 `destinations` prints only the safe descriptors available to the current principal: label,
 kind, formats, byte ceiling and public/private result visibility. It cannot read or edit an
-endpoint, bucket, prefix or credential. `deliveries publish` sends a job id and destination id,
-not the output bytes: Lolly Work consumes that principal's retained render result directly, checks
-its digest and Content Credential again, and records the relationship on the receipt. An
-optional `--format` is an equality assertion against the completed render, never a conversion
-or override. See [outbound delivery](delivery.md).
+endpoint, bucket, prefix or credential. `deliveries publish` sends a job id and a destination id,
+not the output bytes. Lolly Work reads that principal's retained render result, checks its digest
+and Content Credential again and records the relationship on the receipt. An optional `--format`
+must equal the completed render's format. It never converts or overrides the format. See
+[outbound delivery](delivery.md).
 
 <!--i:eti-shield-check-->
 ## Governance
@@ -318,8 +316,8 @@ lw scim token revoke <id>
 Owner-only (`scim.manage`).
 
 ::: warning Copy the secret at once
-The secret is stored only as its hash and is unrecoverable, so the mint is the one moment you
-can copy the bearer.
+The secret is stored only as its hash and cannot be recovered. You can copy the bearer only
+when you mint the token.
 :::
 
 The IdP then drives `/scim/v2` with that bearer. See
@@ -343,13 +341,13 @@ lw users offboard-preview <id>    # direct issuance counts and what remains to r
 lw users offboard <id>            # disable, end sessions, revoke direct issuance (content is kept)
 ```
 
-`retention run` also runs daily on a long-lived server; on serverless, cron it with a service
-token (`LW_TOKEN=… lw retention run`). It also removes unfinished project-file uploads more
-than an hour past their expiry, and expired [scoped uploads](#resumable-uploads), and reports
-how many as `swept`; the long-lived server does
-that at boot and daily even with no retention policy. `users erase` is owner-only and answers a data-subject
-request - the person's projects must be archived first, and the audit chain keeps its opaque
-user id (the mapping to a person is what is removed). See [operations](operations.md).
+`retention run` also runs daily on a long-lived server. On serverless, run it from cron with a
+service token (`LW_TOKEN=… lw retention run`). It also removes unfinished project-file uploads
+more than an hour past their expiry and expired [scoped uploads](#resumable-uploads), and
+reports the count as `swept`. A long-lived server removes those at boot and daily, even with no
+retention policy. `users erase` is owner-only and answers a data-subject request. The person's
+projects must be archived first. The audit chain keeps the opaque user id; the erasure removes
+the mapping from that id to a person. See [operations](operations.md).
 
 <!--i:eti-link-->
 ## Catalog providers
@@ -371,24 +369,23 @@ lw providers publish <id> --in <export-file> [--name <name>]   # owner-grantable
 lw providers rm <id>
 ```
 
-Every kind, what each supports and how to connect one is in
-[Connect an asset source](providers/README.md), including how to read a preview. The
-first-connection walkthrough is [install section 9](install.md#9-connect-a-source), and the
-catalog side is in [catalog](catalog.md).
+[Connect an asset source](providers/README.md) lists every kind, what each supports, how to
+connect one and how to read a preview. The first-connection walkthrough is
+[install section 9](install.md#9-connect-a-source). The catalog side is in [catalog](catalog.md).
 
-- **`preview`** builds a throwaway source from the flags, checks its health and maps up to ten
-  files, then discards the record, so no id is needed or created. The credential is prompted
-  hidden even for a dry run. `--json` prints the raw response, and exit code `2` means the
-  health check failed.
-- **`preview --shape`** returns no sample. It reports the call the driver made and the field
-  labels and value types the service returned, compared with what the driver reads; never a
-  value. `--remote-id <id>` adds a report on the per-file detail call.
+- **`preview`** builds a temporary source from the flags, checks its health, maps up to ten
+  files and discards the record. No id is needed or created. The credential prompt is hidden
+  even for a dry run. `--json` prints the raw response, and exit code `2` means the health
+  check failed.
+- **`preview --shape`** returns no sample. It reports the call the driver made, and the field
+  labels and value types the service returned, compared with what the driver reads. It never
+  reports a value. `--remote-id <id>` adds a report on the per-file detail call.
   [Check a source on your own tenant](providers/tenant-check.md#read-the-shape-report) explains
   the report.
-- **`credential --expires`** records the vendor's expiry date, so `lw providers list` warns
-  from 14 days before.
+- **`credential --expires`** records the vendor's expiry date. `lw providers list` warns from
+  14 days before that date.
 - **`drift`** compares each materialized copy with the source's current change stamp. It is the
-  cadence check during an exit ([Leave a DAM](offboarding.md)), and it is read-only, so it is
+  recurring check during an exit ([Leave a DAM](offboarding.md)). It is read-only, so it is
   safe on a schedule.
 
 ::: details Reading drift output
@@ -405,7 +402,7 @@ It compares the `sourceUpdatedAt` stamped on each copy with the `updatedAt` the 
 now. A copy taken when the source carried no timestamp is compared with its `materializedAt`
 instead. It stores nothing and re-materializes nothing.
 
-`compared` counts only the copies that got a real answer. Every other copy is counted and
+`compared` counts only the copies that could be compared. Every other copy is counted and
 printed under its own reason:
 
 ```text
@@ -415,15 +412,15 @@ not compared: 1 copy(ies) whose remote id is no longer in the listing at all.
 read with care: 3 comparison(s) used a stamp that names no timezone (shape NN/NN/NNNN NN:NN) - it was read in THIS server's timezone, so those answers can be off by its UTC offset.
 ```
 
-The stamp **shapes** are printed, never the stamps: digits become `N` and letters `A`
-(`NNNNNNNNNN` is an epoch integer, `NN/NN/NNNN NN:NN` a local date and time with no zone), so a
+The stamp **shapes** are printed, never the stamps. Digits become `N` and letters `A`:
+`NNNNNNNNNN` is an epoch integer, `NN/NN/NNNN NN:NN` a local date and time with no zone. A
 line tells a driver fix the format without leaking an upstream value.
 :::
 
 <!--i:eti-file-plus-->
 ## Catalog submit
 
-Put a local file into this instance's catalog, and work the review queue
+Add a local file to this instance's catalog and work the review queue
 ([catalog](catalog.md#submitting-an-asset)):
 
 ```bash
@@ -435,19 +432,19 @@ lw catalog approve inst/ab12cd34
 lw catalog return  inst/ab12cd34 --body "wrong logo lockup"
 ```
 
-`submit` needs the `catalog.submit` action (the author role carries that action). With no
-`policy.submit.chain` configured the asset is live on return; with one, it prints the state as
-`submitted` and waits for `approve` or `return`. Identical bytes are reported as a duplicate
-and nothing is stored a second time:
+`submit` needs the `catalog.submit` action, which the author role carries. With no
+`policy.submit.chain` configured, the asset is live on return. With a chain, the command prints the
+state as `submitted` and waits for `approve` or `return`. Identical bytes are reported as a
+duplicate and nothing is stored a second time:
 
 ```text
 already in the catalog as inst/ab12cd34 (identical bytes; nothing stored)
 ```
 
-`queue` lists what is waiting, tagged `mine` or `inbox` depending on whether it is your own
-submission or one your groups may act on; `--all` includes what has already been published or
-returned. `edit` corrects a pending submission's declared metadata before it goes out - name,
-type, tags, description and the org's own fields, never the bytes or the exposure - and is
+`queue` lists what is waiting, tagged `mine` for your own submissions or `inbox` for ones your
+groups may act on. `--all` includes what has already been published or returned. `edit`
+corrects a pending submission's declared metadata before it goes out: name, type, tags,
+description and the org's own fields. It never changes the bytes or the exposure. Each edit is
 audited with its before and after. `approve` and `return` go through the approvals engine, so
 you cannot decide your own submission.
 
@@ -464,15 +461,15 @@ lw upload ./brochure.pdf --scope automation-input  # bytes for /api/v1/inspect o
 lw upload ./photo.jpg --scope file                 # a file reference you can also read back
 ```
 
-`--name` sets the file name (the file's own by default) and `--content-type` its media type,
-which is otherwise guessed from the extension. The command reads the file one part at a time
-and keeps the upload id under `~/.config/lolly-work/uploads/` until the upload finishes. If it
-stops, run the same command again: it asks which parts arrived and sends only the rest. An
-upload left for more than 15 minutes expires, and the next run starts it again. A scoped
+`--name` sets the file name (the file's own by default) and `--content-type` its media type
+(guessed from the extension by default). The command reads the file one part at a time and
+keeps the upload id under `~/.config/lolly-work/uploads/` until the upload finishes. If the
+upload stops, run the same command again. It asks which parts arrived and sends only the rest.
+An upload left for more than 15 minutes expires, and the next run starts it again. A scoped
 upload prints the id and checksum to name it by, for example
 `POST /api/v1/catalog/submit?name=…&uploadId=…&checksum=…`. A service token (`LW_TOKEN`) may
-use `--scope`; a project file needs a signed-in person. `--scope` needs an instance that turns
-on `policy.uploads.enabled`; until then it answers `uploads are off`.
+use `--scope`. A project file needs a signed-in person. `--scope` needs an instance that turns
+on `policy.uploads.enabled`. Until then the command answers `uploads are off`.
 
 <!--i:eti-tag-->
 ## Org-defined metadata
@@ -486,11 +483,11 @@ lw catalog meta lolly/logo/primary --field region=EMEA --field campaign="Autumn 
 lw catalog meta inst/ab12cd34 --field region= --name "Campaign Hero 2026" --tags campaign,hero
 ```
 
-`--field` is repeatable and takes `fieldId=value`; an empty value (`--field region=`) clears
-one. `meta` needs `catalog.edit`. `--name`, `--tags` and `--label` apply to an instance-owned
-`inst/*` asset only - a federated asset keeps the name its source gives it, and a pack asset is
-a file on disk - while `--field` applies to any asset you can see. Defining the fields
-themselves is `policy.edit` and belongs to the governance document
+`--field` repeats and takes `fieldId=value`. An empty value (`--field region=`) clears the
+field. `meta` needs `catalog.edit`. `--name`, `--tags` and `--label` apply only to an
+instance-owned `inst/*` asset. A federated asset keeps its source's name, and a pack asset is a
+file on disk. `--field` applies to any asset you can see. Defining the fields needs
+`policy.edit` and belongs to the governance document
 ([governance](governance.md#policy-as-code)), not to this command.
 
 <!--i:eti-layers-->
@@ -508,10 +505,10 @@ lw catalog collection launch-kit --members inst/ab12cd34      # replaces the mem
 lw catalog collection launch-kit --rm
 ```
 
-`--members` is comma-separated and **the order you type is the order the set keeps**; passing
-it replaces the whole list rather than appending, so the command is idempotent. `--groups`
+`--members` is comma-separated and **the order you type is the order the set keeps**. A new list
+replaces the old one instead of appending, so the command is idempotent. `--groups`
 takes group names or `*` for everyone, and `--label` is the description. Both need
-`catalog.collection.manage`, and a save is refused if it identifies an asset you cannot see.
+`catalog.collection.manage`, and a save is refused if it lists an asset you cannot see.
 
 <!--i:eti-history-->
 ## Versions and supersession
@@ -528,11 +525,11 @@ lw catalog supersede inst/ab12cd34 inst/ef56ab78    # retire in favour of anothe
 lw catalog supersede inst/ab12cd34 --rm             # and undo that
 ```
 
-`--asset` turns `submit` into a new version rather than a new asset, the id and URL stay
-put and the prior bytes stay readable at `?v=N`. It needs `catalog.edit` (replacing published
-bytes is curation, not contribution), and the descriptive flags are refused with it - use
-`lw catalog meta` for those. `version-rm` answers `409` for the served version and for a held
-asset. `supersede` writes `replacedBy`, which is advice to consumers and not a takedown.
+`--asset` makes `submit` add a new version of that asset. The id and URL stay the same, and
+the prior bytes stay readable at `?v=N`. It needs `catalog.edit` and refuses the descriptive
+flags; use `lw catalog meta` for those. `version-rm` answers `409` for the served version and
+for a held asset. `supersede` writes `replacedBy`, which advises consumers and is not a
+takedown.
 
 <!--i:eti-megaphone-->
 ## Messaging
@@ -546,7 +543,7 @@ lw msg send --title "Update by Aug 15" \
 
 `--starts` is when the message begins to show and `--ends` when it stops. Each takes a date and
 time with its zone (`Z` or an offset), so the moment is the same wherever `lw` runs. `lw` refuses an
-`--ends` in the past, and one that is not later than `--starts`.
+`--ends` in the past or not later than `--starts`.
 
 ::: warning A sent message cannot be ended
 Set `--ends` to give a message its last day.
@@ -577,16 +574,16 @@ lw c2pa init [--org "Acme"] [--out ./c2pa] [--days 365]
 ```
 
 `lw audit retire-key` records a retired-key boundary in the audit log after
-`LW_SESSION_SECRET` was rotated, so the rows signed under the old value read as
-retired rather than as a broken chain. It runs with the server's own environment: the
-container image carries it as `node scripts/audit-retire-key.ts`. Pass the head you recorded
-before the rotation with `--expect-head`. It refuses (exit 2, nothing written) when the rows
-do not look like a key change; `--allow-interleaved` and `--no-witness` override two of those
-checks, and the audit boundary records the rotation. See [audit](audit.md#rotating-the-session-secret).
+`LW_SESSION_SECRET` was rotated. Rows signed under the old value then read as retired, not as
+a broken chain. It runs with the server's own environment. The container image carries it as
+`node scripts/audit-retire-key.ts`. Pass the head you recorded before the rotation with
+`--expect-head`. It refuses (exit 2, nothing written) when the rows do not look like a key
+change. `--allow-interleaved` and `--no-witness` override two of those checks, and the audit
+boundary records the rotation. See [audit](audit.md#rotating-the-session-secret).
 
 `lw c2pa init` mints a self-contained signing identity (root + leaf) so exports can be signed
-with zero corporate PKI, and prints exactly what to wire where. If you have a corporate CA,
-skip it and use your own chain. See [c2pa](c2pa.md).
+without a corporate PKI. It prints what to configure where. If you have a corporate CA, skip
+this command and use your own chain. See [c2pa](c2pa.md).
 
 <!--i:eti-sliders-->
 ## Global flags
@@ -598,8 +595,8 @@ skip it and use your own chain. See [c2pa](c2pa.md).
 | `--json` | machine-readable output |
 
 Exit codes: `1` on any API error or usage mistake (including `migrate --check` with a
-pending schema), `2` specifically for a broken audit chain or a failing provider health
-check - so both are usable as monitoring checks.
+pending schema), and `2` for a broken audit chain or a failing provider health check. Both
+work as monitoring checks.
 
 A few commands add their own: `intent resolve` exits `4` when a surface is not ready,
 `render-api check` and `compare` exit `2` when a template cannot run or a render differs,

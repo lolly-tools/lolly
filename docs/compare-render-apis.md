@@ -2,7 +2,7 @@
 
 _Last checked: 5 November 2026._
 
-If you generate images from templates through an API today, this page says what changes if you run that production yourself: on your own device, in CI or on a server you control. [Move from a hosted render API](/info/work-move-from-render-api.html) is the how.
+If you generate images from templates through an API, this page says what changes when you run that production on your own device, in CI or on a server you control. [Move from a hosted render API](/info/work-move-from-render-api.html) gives the steps.
 
 <!--i:eti-award-->
 ## What hosted rendering APIs do better
@@ -19,13 +19,13 @@ If that is the arrangement you want, those services are a sound choice.
 <!--i:eti-home-->
 ## What self-hosting gives you
 
-- **Your content stays on your systems.** Inputs, assets and outputs live on infrastructure you chose. Rendering on a device or in CI needs no service at all.
+- **Your content stays on your systems.** Inputs, assets and outputs live on infrastructure you chose. Rendering on a device or in CI needs no service.
 - **The rules live in the tool.** Colours, type, logos and locked inputs come from your [design system](/info/brand-studio.html), so a caller can only change what you allow. [Lolly Work](/info/compare.html#what-runs-where) applies tool visibility and input policies to every request.
-- **The same tool everywhere.** A tool renders on a laptop, in a CI job or on a server from the same inputs, and people can edit the same tool in the app.
-- **Records you hold.** [Render receipts](/info/work-renders.html#evidence-and-identity), an audit trail, and Content Credentials where you configure a signing identity.
-- **Open source and no meter.** You run the code, and what you pay for is your own infrastructure.
+- **The same tool everywhere.** A tool renders from the same inputs on a laptop, in a CI job or on a server. People can edit the same tool in the app.
+- **Records you hold.** [Render receipts](/info/work-renders.html#evidence-and-identity), an audit trail and Content Credentials where you configure a signing identity.
+- **Open source and no meter.** You run the code and pay only for your own infrastructure.
 
-You take on the work those services do for you. A durable server needs a persistent database and output storage, and tools that need a browser need the Chromium worker. [Install Lolly Work](/info/work-install.html) describes both.
+You take on the work those services do for you. A durable server needs a persistent database and output storage. Tools that need a browser need the Chromium worker. [Install Lolly Work](/info/work-install.html) describes both.
 
 <!--i:eti-table-->
 ## How the jobs line up
@@ -55,14 +55,14 @@ Lolly's own output kinds are listed in [Exporting](/info/exporting.html). On a W
 | Animations, videos, collections, screenshots | Not on the migration API | Not on the migration API | Not on the migration API |
 
 ::: note Built from public documentation
-All of this was built from each vendor's public documentation and has not been run against a live account. [The move guide](/info/work-move-from-render-api.html#check-it-on-your-own-account) has a short check list if you hold one.
+This was built from each vendor's public documentation and has not been run against a live account. If you hold an account, [the move guide](/info/work-move-from-render-api.html#check-it-on-your-own-account) has a short check list.
 :::
 
-Moving is not all or nothing. You can move one template and keep the rest where they are, and [leaving Lolly](/info/work-move-from-render-api.html#leave-lolly-too) stays just as open: tools are plain files and the CLI renders them with no server.
+You can move one template and keep the rest where they are. [Leaving Lolly](/info/work-move-from-render-api.html#leave-lolly-too) is as open: tools are plain files and the CLI renders them with no server.
 
 <!--i:eti-building-->
 ## Who runs the service
 
-With Lolly, an individual renders locally, or a team runs Lolly Work on its own infrastructure. Submitting a server job sends its inputs and required assets to that instance, which is different from the on-device path.
+With Lolly, an individual renders locally, or a team runs Lolly Work on its own infrastructure. A server job sends its inputs and required assets to that instance. The on-device path does not.
 
 Bannerbear and Placid are trademarks of their owners. This page describes where the products overlap, from their public documentation, and is not affiliated with either.

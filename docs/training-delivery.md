@@ -1,6 +1,6 @@
 # Deliver and update a course
 
-You have built a course and downloaded its ZIP from **Export course**. This page covers what comes next. [Build a course](/info/training-creators.html) covers making the course itself.
+Publish, test and update a course after you download its ZIP from **Export course**. [Build a course](/info/training-creators.html) covers making the course.
 
 <!--i:eti-file-->
 ## Choose a format for each customer
@@ -29,18 +29,18 @@ Experimental. For an LMS with a compatible Tin Can launch, which must supply the
 Experimental. For a cmi5 LMS, using the cmi5 launch and authorization process. Do not assume it is interchangeable with Tin Can.
 :::
 
-An LMS's published list of formats does not settle the settings or conventions of a particular tenant. Litmos, for example, lists SCORM 1.2, SCORM 2004 and xAPI/Tin Can support ([Litmos content support](https://www.litmos.com/platform/content-authoring/)), and Moodle documents SCORM 1.2 support without native SCORM 2004 support ([Moodle SCORM FAQ](https://docs.moodle.org/502/en/SCORM_FAQ)).
+An LMS's published format list does not settle the settings or conventions of a particular tenant. For example, Litmos lists SCORM 1.2, SCORM 2004 and xAPI/Tin Can support ([Litmos content support](https://www.litmos.com/platform/content-authoring/)), and Moodle documents SCORM 1.2 support without native SCORM 2004 support ([Moodle SCORM FAQ](https://docs.moodle.org/502/en/SCORM_FAQ)).
 
 ::: note Not yet tested in a real LMS
 Lolly's generated packages have not yet completed acceptance testing in a real LMS tenant.
 :::
 
-You never enter LRS credentials in the authoring screen. An xAPI package expects the customer's LMS to provide the launch authorization, so a standalone xAPI ZIP opened outside that launch creates no learning record. If the connection drops, the learner's browser keeps unsent progress where storage allows, and the next LMS launch of the same attempt delivers it unless the LMS already has newer progress. [Learning integration](/info/learning-integration.html#experimental-xapi-recovery) has the recovery rules.
+You never enter LRS credentials in the authoring screen. The customer's LMS provides the launch authorization for an xAPI package. A standalone xAPI ZIP opened outside that launch creates no learning record. If the connection drops, the learner's browser keeps unsent progress where storage allows. The next LMS launch of the same attempt delivers that progress, unless the LMS already has newer progress. [Learning integration](/info/learning-integration.html#experimental-xapi-recovery) has the recovery rules.
 
 ::: details LMS presets and the Tested label
 Each named LMS in the destination list is a preset: a versioned record that selects one delivery format and holds its import steps, any confirmed limits and its test evidence. A saved package records the preset and version it was built for. Choosing a preset never changes the course content or the files in the package.
 
-The destination shows **Standard target**, with "This LMS has not been tested", until a preset carries recorded evidence for that exact format and a named LMS version. **Tested** needs a recorded import, learner launch, media check, completion and resume; a successful ZIP import alone does not earn the label. **Website** and **Other LMS** are standard targets and never show **Tested**. No preset is marked **Tested** yet.
+The destination shows **Standard target**, with "This LMS has not been tested", until a preset carries recorded evidence for that exact format and a named LMS version. **Tested** needs a recorded import, learner launch, media check, completion and resume; a successful ZIP import alone is not enough. **Website** and **Other LMS** are standard targets and never show **Tested**. No preset is marked **Tested** yet.
 
 When a preset records a confirmed upload limit, the package check uses it unless you enter your own. Presets never hold credentials, tenant addresses or learner details.
 :::
@@ -48,18 +48,18 @@ When a preset records a confirmed upload limit, the package check uses it unless
 <!--i:eti-globe-->
 ## Publish on your own website
 
-Choose **Website** as the delivery format. Extract the ZIP and upload all its files together to a static HTTP(S) site, keeping the relative paths, then link to its `index.html`. A site builder can embed that URL:
+Choose **Website** as the delivery format. Extract the ZIP and upload all its files to a static HTTP(S) site, keeping the relative paths. Link to its `index.html`. A site builder can embed that URL:
 
 ```html
 <iframe src="/courses/product-introduction/index.html"
         title="Product introduction" width="100%" height="800"></iframe>
 ```
 
-Test the hosted URL: images, media, resources, small screens, completion and reopening. Opening the files straight from disk is not a supported way to launch. No Lolly server or special runtime is needed, and access control belongs to your hosting platform.
+Test the hosted URL: images, media, resources, small screens, completion and reopening. Opening the files straight from disk is not a supported way to launch. Launching the files from disk is not supported. No Lolly server or special runtime is needed. Access control belongs to your hosting platform.
 
-Progress is kept in the learner's browser, for this course version, URL path and browser profile. It does not follow the learner to another device, clearing site data removes it and people who share a browser profile share it too. If browser storage cannot open, the player says that progress lasts only while the page stays open. Embedding the course on a different origin may restrict browser storage, so test on the real host page.
+Progress is kept in the learner's browser, per course version, URL path and browser profile. Progress does not follow the learner to another device. Clearing site data removes the progress, and people who share a browser profile share the progress too. If browser storage cannot open, the player says that progress lasts only while the page stays open. Embedding the course on a different origin may restrict browser storage, so test on the real host page.
 
-This is convenient local progress, not an authenticated training record.
+This is local progress, not an authenticated training record.
 
 ::: warning A new release starts progress afresh
 Keep existing versions at their existing paths when learners' browser progress matters.
@@ -70,7 +70,7 @@ Keep existing versions at their existing paths when learners' browser progress m
 <!--i:eti-flask-->
 ## Test in your LMS
 
-Import the ZIP into a test course before you assign real learners, and use the same downloaded file for every repeat of the checks.
+Import the ZIP into a test course before you assign real learners. Use the same downloaded file each time you repeat the checks.
 
 ::: check Before real learners see the course
 - Launch as a new test learner. The course starts incomplete and the first lesson opens.
@@ -87,13 +87,13 @@ Record the package checksum, the LMS name and edition, the browser, the date and
 <!--i:eti-refresh-->
 ## Update a course without changing an existing release
 
-Edit the draft, preview it, add version notes, choose **Export course**, run the checks and save a new version. The new ZIP becomes another saved version. Your customer decides when and how to replace the package in their LMS; Lolly never updates an imported course by itself.
+Edit and preview the draft, add version notes, choose **Export course**, run the checks and save a new version. The new ZIP becomes another saved version. Your customer decides when and how to replace the package in their LMS. Lolly never updates an imported course by itself.
 
 Expand **Saved versions**, then use **Download SCORM 1.2 ZIP**, or the button for the matching format, to recover the exact stored file. **Package details** shows the checksums for comparing files and for acceptance records.
 
-To supply an existing version in another format, choose **Export this version for another destination** on that saved version, select the destination, then check and download. This uses the version's frozen content, even if the current draft or the original source has changed since. A format already built for that version downloads its existing file again.
+To supply an existing version in another format, choose **Export this version for another destination** on that saved version, select the destination, then check and download. This uses the version's frozen content, even if the draft or the original source has changed since. A format already built for that version downloads its existing file again.
 
-Test a replacement with the LMS administrator before applying it to an active course. Progress belongs to the release that created it: the player starts fresh when it receives saved state from a different release, and an LMS may reset or keep its own course status according to its replacement policy.
+Test a replacement with the LMS administrator before applying it to an active course. The player starts fresh when it receives saved state from a different release. An LMS may reset or keep its own course status, according to its replacement policy.
 
 ::: warning Saved versions live on this device
 Use Lolly's device backup before clearing site data or moving to another device, and keep a separate copy of each delivered ZIP and its version notes.
@@ -116,4 +116,4 @@ Team storage, shared review and approval in Lolly Work are not part of this loca
 | Package will not import | Check the chosen standard, edition and package size with the LMS administrator, and keep the original ZIP structure intact. |
 | LMS still shows incomplete | Check that every required lesson was acknowledged, **Finish** was selected and the player confirmed the save. Note the exact package version and any visible error for investigation. |
 
-To build packages from the command line instead of the app, see [Build courses from the command line](/info/learning-integration.html#build-courses-from-the-command-line).
+To build packages from the command line, see [Build courses from the command line](/info/learning-integration.html#build-courses-from-the-command-line).

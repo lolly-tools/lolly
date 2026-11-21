@@ -1,6 +1,6 @@
 # Tool skills
 
-An AI agent does better work with a tool when it knows what the tool is for and how its inputs behave. Every tool therefore has a **skill**: guidance an agent can read before it fills in the inputs. This page is for tool authors who want to write that guidance and ship it with a tool.
+Every tool has a **skill**: guidance an agent reads before it fills in the inputs, on what the tool is for and how its inputs behave. Tool authors can write that guidance and ship it with a tool.
 
 ::: note Guidance grants nothing
 Guidance describes operations. Access to a person's document comes separately, from an invitation they choose to make.
@@ -31,7 +31,7 @@ skill/workflow.md
 }
 ```
 
-References must be Markdown or JSON paths inside `skill/`, with no path traversal. The generated `reference/inputs.json` holds the tool's actual input definitions.
+References must be Markdown or JSON paths inside `skill/`, with no path traversal. The generated `reference/inputs.json` holds the tool's input definitions.
 
 | Limit | Value |
 | --- | --- |
@@ -45,15 +45,15 @@ An incompatible or malformed authored skill falls back to the manifest baseline,
 ## Where agents find skills
 
 - **On the docs site.** The overall skill is at `/info/skills/lolly/SKILL.md`. Public tool skills are at `/info/skills/tools/<id>/SKILL.md`, each with a `metadata.json`, and `/info/skills/tools/index.json` lists them. The metadata records the tool version, the compatible version range, the skill revision and each reference file with its byte size and SHA-256 hash.
-- **Over MCP.** The resources are `lolly://skill` and `lolly://tool/{id}/skill`. The second resolves the tool the server has actually mounted and includes the reference contents.
+- **Over MCP.** The resources are `lolly://skill` and `lolly://tool/{id}/skill`. The second resolves the tool the server has mounted and includes the reference contents.
 - **In tool bundles and offline pins**, which carry authored guidance and references. A generated baseline needs only the installed manifest.
 
-Copied agent instructions embed the actual compatible guidance and say which version it came from. Public links help agents discover skills; they are not the authority over a private or installed revision.
+Copied agent instructions embed the compatible guidance and name its version. Public links help agents discover skills; they are not the authority over a private or installed revision.
 
 <!--i:eti-eye-->
 ## What people see
 
-In the app, **Share** lets a person name an agent and copy instructions for that agent. A tool without a supported live connection offers a guidance handoff instead: an editable link plus the compatible pair of skills. Inviting an agent into a shared document is a Lolly Work feature, covered on [Document agent invitations](/info/work-document-agents.html), and [AI agents](/info/ai-agents.html) covers connecting an agent to Lolly.
+In the app, **Share** lets a person name an agent and copy instructions for that agent. A tool without a supported live connection offers a guidance handoff instead: an editable link plus the compatible pair of skills. Inviting an agent into a shared document is a Lolly Work feature ([Document agent invitations](/info/work-document-agents.html)). [AI agents](/info/ai-agents.html) covers connecting an agent to Lolly.
 
 For live editing, the agent uses the adapter and capabilities the open editor reports. A Lolly Design layer adapter supports layer operations, and an input adapter supports the declared JSON input values. File bytes and device actions need their own supported routes. A read-only grant refuses changes at the operation boundary. The agent reads the current revision, checks the document's identity and inspects the result after each permitted change. The live context supplies the open editor's effective design system.
 
@@ -62,4 +62,4 @@ A design system's own guidance is a separate layer: the brand's standards, one s
 <!--i:eti-refresh-->
 ## Regenerate after a change
 
-Run `node scripts/gen-agent-skill.ts` after changing authored guidance or manifests; `--check` verifies every public output and the overall `.claude` copy. Public generation reads the community and lolly-start packs explicitly, so a private pack on your machine cannot add private guidance to the public index. Pack materialisation and catalog signing carry tool-local files through the existing content paths.
+Run `node scripts/gen-agent-skill.ts` after changing authored guidance or manifests; `--check` verifies every public output and the overall `.claude` copy. Public generation reads the community and lolly-start packs by name, so a private pack on your machine cannot add guidance to the public index. Pack materialisation and catalog signing carry tool-local files through the existing content paths.
