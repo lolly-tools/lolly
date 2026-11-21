@@ -162,7 +162,7 @@ updates:
   # not a finished change: taking one means rebuilding the kernel, regenerating
   # its LICENSES.txt and security/cargo-licenses.json, then the SBOM and the
   # notices. dependabot-auto-merge.yml leaves cargo PRs alone, so none of these
-  # lands unattended, and check:cargo-licenses fails on a crate version the map
+  # merges unattended, and check:cargo-licenses fails on a crate version the map
   # lacks for every kernel it reads (layout-kernel is not one of them yet).
   # Minor and patch bumps are grouped into one PR per kernel.
   #
