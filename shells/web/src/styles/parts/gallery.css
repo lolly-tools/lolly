@@ -995,7 +995,11 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 
 .gtile:hover .tool-card-icon svg { opacity: 1; }
 .gtile:hover .gtile-desc { color: hsl(var(--foreground)); }
-.gtile.is-navigating { opacity: 0.6; }
+/* The pressed card while its tool opens. The dim rides filter, like the hidden tools'
+   dim above, and for the same reason: the entrance cascade's card-in fill pins the
+   opacity property at 1, so an opacity dim never showed on a card the cascade had
+   revealed. opacity: 1 keeps .is-navigating's own 0.45 below from stacking on it. */
+.gtile.is-navigating { opacity: 1; filter: opacity(0.6); }
 /* Cold-load entrance: a quick, satisfying cascade. JS arms the reveal
    (.reveal-armed → tiles start hidden) and an IntersectionObserver adds .is-in
    per tile with a staggered --reveal-delay. So the above-the-fold batch cascades
