@@ -1,9 +1,9 @@
 # Agents in an open document
 
-An AI agent can work inside a document you already have open. It reads the document, makes alternatives and edits alongside you and any other collaborators. You watch each change as it happens, the agent appears in People with its own name, and every edit it makes is one step in your history.
+An AI agent can read, edit and make alternatives in a document you have open, alongside other collaborators. You see each change live: the agent appears in People with its own name, and each of its edits is one step in your history.
 
 ::: note Lolly Work has its own agent invitations
-This page covers Lolly's open-source agent relay, which any Lolly deployment can run. A Lolly Work instance invites agents under your Lolly Work identity instead, with its own access level, expiry and revocation; see [Invite an agent to a document](/info/work-document-agents.html).
+Any Lolly deployment can run the open-source agent relay described here. A Lolly Work instance invites agents under your Lolly Work identity instead, with its own access level, expiry and revocation. See [Invite an agent to a document](/info/work-document-agents.html).
 :::
 
 There are five ways in:
@@ -19,59 +19,59 @@ There are five ways in:
 <!--i:eti-mail-->
 ## Invite an agent from Share
 
-On an instance with an agent relay, the person who has the document open hands the agent an invitation:
+On an instance with an agent relay, the person with the document open gives the agent an invitation:
 
 ::: timeline
-- <!--i:people--> **Open Share > Invite an agent.** Choose **Can edit** or **Can read**, and give the agent a name if you like; People shows that name when the agent joins. **Can edit** appears only when you can edit the document yourself.
+- <!--i:people--> **Open Share > Invite an agent.** Choose **Can edit** or **Can read**. You can name the agent; People shows that name. **Can edit** appears only when you can edit the document yourself.
 - <!--i:link--> **Choose Copy agent instructions.** The instructions carry the invitation, the tool's guidance and the setup steps for each kind of agent.
-- <!--i:sparkle--> **Paste them to your agent.** The agent calls `lolly_live_connect` with the `invitation` and its `client` name, and joins this document, even when several documents and agents use the same relay.
-- <!--i:check--> **Watch it work.** The agent appears in People, and each change it makes arrives as one undo step labelled with its name.
+- <!--i:sparkle--> **Paste them to your agent.** The agent calls `lolly_live_connect` with the `invitation` and its `client` name, and joins this document even when several documents and agents share the relay.
+- <!--i:check--> **Watch it work.** The agent appears in People. Each change arrives as one undo step labelled with the agent's name.
 :::
 
-The invitation works for ten minutes before an agent joins. A joined connection closes after thirty minutes without a request, and ends when the inviting editor closes. A new invitation starts another connection.
+An invitation expires if no agent joins within ten minutes. A joined connection closes after thirty minutes without a request, or when the inviting editor closes. A new invitation starts another connection.
 
 How the agent connects depends on what it runs in:
 
-- **ChatGPT** needs the Lolly plugin installed first, because pasting instructions into a chat cannot install tools. [Install Lolly in ChatGPT](/info/mcp.html#install-lolly-in-chatgpt) has the steps. The installed plugin then passes the same `invitation` on every call.
-- **A client that takes a remote MCP URL with bearer headers** can use the relay's `/live/mcp` endpoint directly, with the invitation token as its bearer credential, and call `lolly_live_connect` with `client` only. That endpoint lists only the nine document tools. It has no access to server files, server tokens or rendering outside the invited document.
+- **ChatGPT** needs the Lolly plugin installed first. Pasted instructions cannot install tools. [Install Lolly in ChatGPT](/info/mcp.html#install-lolly-in-chatgpt) has the steps. The plugin then passes the same `invitation` on every call.
+- **A client that takes a remote MCP URL with bearer headers** can use the relay's `/live/mcp` endpoint with the invitation token as its bearer credential, and call `lolly_live_connect` with `client` only. That endpoint lists only the nine document tools. It has no access to server files, server tokens or rendering outside the invited document.
 - **Lolly's local MCP server** calls `lolly_live_connect` with the invitation once, and later calls use that local connection.
 
-On an instance with no relay, Share offers **Agent instructions** instead: the Lolly skill, the tool's guidance and a link that carries the current inputs. That handoff gives the agent no access to the open document; it works from the link.
+On an instance with no relay, Share offers **Agent instructions** instead: the Lolly skill, the tool's guidance and a link that carries the current inputs. That handoff gives the agent no access to the open document. The agent works from the link.
 
 <!--i:eti-chat-->
 ## Ask an agent in the desktop app
 
 ::: note Arrives with the next desktop build
-Lolly 1.2.0 has no new desktop build, so the desktop app you can download today does not offer **Ask an agent** yet.
+Lolly 1.2.0 has no new desktop build. The desktop app you can download today does not offer **Ask an agent** yet.
 :::
 
-The desktop app can hand one request to an agent tool you already use in a terminal, with nothing to set up. Open Lolly Design and choose **Ask an agent** in the Lolly menu.
+The desktop app can send one request to an agent tool you already use in a terminal, with no setup. Open Lolly Design and choose **Ask an agent** in the Lolly menu.
 
 ::: timeline
-- <!--i:search--> **Lolly looks on this computer.** Opening the panel is what starts the search, for Claude Code and Codex, which Lolly can ask, and for Gemini CLI, GitHub Copilot CLI, agent apps and local model servers, which it lists but does not ask yet. Nothing is looked for before you open the panel.
-- <!--i:shieldcheck--> **Allow the agent once.** Before the first request to each agent the panel says where the request goes, under whose account and who pays: Claude Code sends it to Anthropic and Codex to OpenAI, under the account that tool is signed in with, paid by your plan with that provider.
-- <!--i:sparkle--> **Say what to change.** Lolly sends your request with the open document, as the same read model a connected agent gets, with uploaded pictures left out.
-- <!--i:check--> **Watch the change arrive.** The agent appears in People while it works. Its answer becomes one step in your history, so Undo takes it back. If you edit the document while the agent works, your edit wins and the answer is not applied.
+- <!--i:search--> **Lolly looks on this computer.** The search starts only when you open the panel. Lolly can ask Claude Code and Codex. Lolly lists Gemini CLI, GitHub Copilot CLI, agent apps and local model servers, but does not ask them yet.
+- <!--i:shieldcheck--> **Allow the agent once.** Before the first request to each agent, the panel says where the request goes, under whose account and who pays. Claude Code sends to Anthropic and Codex to OpenAI, under the account that tool is signed in with, paid by your plan with that provider.
+- <!--i:sparkle--> **Say what to change.** Lolly sends your request with the open document, in the same read model a connected agent gets. Uploaded pictures are left out.
+- <!--i:check--> **Watch the change arrive.** The agent appears in People while it works. Its answer is one step in your history, and Undo takes the answer back. If you edit the document while the agent works, your edit wins and the answer is not applied.
 :::
 
-The agent runs with no tools: it cannot read your files, run commands or browse. Lolly starts it from a fixed command with your request on its input, in an empty temporary folder, with only the environment variables it needs to find its own sign-in (API keys set in the environment stay behind), and stops it after five minutes or when you press **Stop**. The answer can only add, duplicate, remove, reorder or change layers, and Lolly checks every change before the document takes any of them. If the tool is not signed in, the panel says so; sign in to it in a terminal and ask again.
+The agent runs with no tools: it cannot read your files, run commands or browse. Lolly starts the agent from a fixed command with your request on its input, in an empty temporary folder. The agent gets only the environment variables it needs to find its own sign-in; API keys set in the environment stay behind. Lolly stops the agent after five minutes or when you press **Stop**. The answer can only add, duplicate, remove, reorder or change layers. Lolly checks every change before the document takes any of them. If the tool is not signed in, the panel says so; sign in to the tool in a terminal and ask again.
 
-On a managed instance the organisation's AI policy decides whether **Ask an agent** and **Allow AI control** appear at all ([Manage organisation AI policy](/info/work-ai-policy.html)).
+On a managed instance the organisation's AI policy decides whether **Ask an agent** and **Allow AI control** appear ([Manage organisation AI policy](/info/work-ai-policy.html)).
 
 <!--i:eti-monitor-->
 ## In the desktop app
 
-Open Lolly Design, choose **Connect an AI agent** in the Lolly menu and turn on **Allow AI control on this device**, which is off by default. While it is on, the app listens on this computer only, and an agent using Lolly's local MCP server finds the app with no code: `lolly_live_connect` connects at once.
+Open Lolly Design, choose **Connect an AI agent** in the Lolly menu and turn on **Allow AI control on this device**. The setting is off by default. While the setting is on, the app listens on this computer only. An agent using Lolly's local MCP server then needs no code: `lolly_live_connect` connects at once.
 
 <!--i:eti-keyboard-->
 ## In a browser with a pairing code
 
 An agent using Lolly's local MCP server can pair with Lolly Design in a browser. `lolly_live_connect` returns a code such as `52817-K7QF-9XMB`. The person opens Lolly Design, chooses **Connect an AI agent** and types the code. The code works once, and three wrong codes end the pairing.
 
-The page then connects to the agent's server on `127.0.0.1`, which accepts pages from lolly.tools, from the sites listed in `LOLLY_LIVE_ORIGINS` and from localhost. On an instance with a relay, **Connect an AI agent** opens Share to make an invitation instead.
+The page then connects to the agent's server on `127.0.0.1`. That server accepts pages from lolly.tools, the sites listed in `LOLLY_LIVE_ORIGINS` and localhost. On an instance with a relay, **Connect an AI agent** opens Share to make an invitation instead.
 
 ::: note Only in a development or specially made build
-The content security policy of the served builds does not allow that connection yet, so this path works in a development build, or in a self-hosted build made with `VITE_LIVE_AGENT=1` whose policy allows `ws://127.0.0.1:*`.
+The served builds' content security policy does not allow that connection yet. This path works in a development build, or in a self-hosted build made with `VITE_LIVE_AGENT=1` whose policy allows `ws://127.0.0.1:*`.
 :::
 
 <!--i:eti-hammer-->
@@ -91,12 +91,12 @@ The nine document tools are the same whichever way the agent joined:
 | `lolly_live_undo` | Undoes the agent's own newest edit. When the newest change is the person's, the call is refused and nothing changes. |
 | `lolly_live_disconnect` | Ends the connection. The person can also end it from the editor at any time. |
 
-In Lolly Design the agent edits layers. In any other tool it edits the tool's declared inputs with plain JSON values; files and uploaded pictures cannot be supplied that way. `lolly_live_context` and `lolly_live_document` list the inputs the agent can change (`editableInputIds`) and the ones left out (`omittedInputs`).
+In Lolly Design the agent edits layers. In any other tool it edits the declared inputs with plain JSON values. Files and uploaded pictures cannot be supplied that way. `lolly_live_context` and `lolly_live_document` list the inputs the agent can change (`editableInputIds`) and the ones left out (`omittedInputs`).
 
 A few Design patterns cover most requests:
 
 - **A slide alternative.** Find the source artboard, read its children, then use a `duplicate` operation with a new artboard id and a complete `childIds` map. Patch the new title and positions in the same apply.
-- **New content in a frame.** Add a `text` or `image` layer with `$in` set to that artboard's id; the coordinates are relative to that frame. An agent can supply its own picture as an inline data image in the `image` field, within the request's 4 MB limit.
+- **New content in a frame.** Add a `text` or `image` layer with `$in` set to that artboard's id. Coordinates are relative to that frame. An agent can supply its own picture as an inline data image in the `image` field, within the request's 4 MB limit.
 - **Text in the house style.** `$style` resolves against the editor's current design brief.
 - **A check before you finish.** Look at the result with `lolly_live_look`.
 
@@ -109,7 +109,7 @@ The connection keeps its latest 128 receipts. Older transaction ids are refused,
 <!--i:eti-eye-->
 ## What you see while it works
 
-The agent appears beside people in **People**, with an **AI agent** tag, its own colour and its current activity. Changed layers carry temporary outlines and a note naming the agent. These cues stay outside the artwork and exports.
+The agent appears in **People** with an **AI agent** tag, its own colour and its current activity. Changed layers carry temporary outlines and a note naming the agent. These cues stay outside the artwork and exports.
 
 You stay in charge of the session:
 
@@ -117,20 +117,20 @@ You stay in charge of the session:
 - **Disconnect agent** in People ends the connection, and **End agent invitations** in Share ends every invitation you made.
 - Agent edits use the ordinary collaboration and history path: other people keep editing, and the agent cannot undo a newer history entry of yours.
 
-Agent presence travels on the inviter's own collaboration connection. Lolly Work 1.1.0 and later keep the agent roster in presence. Older Lolly Work servers drop that roster, so other people on those servers see the agent's edits without its name in People or the change cues. Agent edit labels name the agent; the inviting member remains the collaboration author.
+Agent presence travels on the inviter's own collaboration connection. Lolly Work 1.1.0 and later keep the agent roster in presence. Older Lolly Work servers drop that roster. Other people on those servers see the agent's edits without its name in People or the change cues. Agent edit labels name the agent; the inviting member remains the collaboration author.
 
 <!--i:eti-globe-->
 ## Site tools in the browser (WebMCP)
 
 In a browser that supports site tools (`document.modelContext`), Lolly registers actions that the browser's agent can call on the open page. They use the page's signed-in workspace session, follow the current view and end when the page closes. OpenAI's [Site tools guide](https://learn.chatgpt.com/docs/webmcp) describes compatible clients. Registration runs in the top-level app; embedded tool pages register nothing. Browsers without site tools keep the normal interface.
 
-Start with `lolly_read_context` to learn the active project, tool, design system, inspected asset and available document actions. Use `lolly_search_tools` and `lolly_describe_tool` to find tool ids and exact engine input definitions. Search results include device availability, formats and links; describing the mounted tool includes its current values, and other tools show their engine defaults.
+Start with `lolly_read_context` to learn the active project, tool, design system, inspected asset and available document actions. Use `lolly_search_tools` and `lolly_describe_tool` to find tool ids and exact engine input definitions. Search results include device availability, formats and links. Describing the mounted tool includes its current values; other tools show their engine defaults.
 
-In a mounted Lolly Design editor, `lolly_read_document` and `lolly_find_layers` return stable layer ids, selection, canvas size and revision, and `lolly_read_document_context` gives the exact layer field definitions and supported authoring operations. `lolly_apply_document_changes` requires `documentId`, `ifRevision`, `transactionId` and a history `label`; keep the same transaction id and arguments when retrying. Changes use the live editor's validation and become one undo step. `lolly_preview_document` returns the rendered SVG, and `lolly_undo_document_changes` takes back only the browser agent's newest step.
+In a mounted Lolly Design editor, `lolly_read_document` and `lolly_find_layers` return stable layer ids, selection, canvas size and revision. `lolly_read_document_context` gives the exact layer field definitions and supported authoring operations. `lolly_apply_document_changes` requires `documentId`, `ifRevision`, `transactionId` and a history `label`; keep the same transaction id and arguments when retrying. Changes use the live editor's validation and become one undo step. `lolly_preview_document` returns the rendered SVG, and `lolly_undo_document_changes` takes back only the browser agent's newest step.
 
-Each applied change also returns `feedback`, the same creation feedback a person sees in Lolly Design's **Before you export** card: a short summary, the writing score and band (with the ones before the change) and the house-rule findings that are new or changed on the layers the change touched, each with its layer id. `lolly_check_document` reads the whole report without changing anything. The report holds every house-rule finding, the writing score for the visible text with its strongest flagged phrases (each with its layer id) and the count of hidden layers left out. The writing score is a signal, not a verdict. The feedback is guidance to act on: read it, revise the named layers where it applies and check again. No change is refused because of the feedback.
+Each applied change also returns `feedback`, the same feedback a person sees in Lolly Design's **Before you export** card. It has a short summary, the writing score and band before and after the change, and the house-rule findings that are new or changed on the touched layers, each with its layer id. `lolly_check_document` reads the whole report without changing anything. The report holds every house-rule finding, the writing score for the visible text with its strongest flagged phrases and their layer ids, and the count of hidden layers left out. The writing score is a signal, not a verdict. Read the feedback, revise the named layers where it applies and check again. No change is refused because of the feedback.
 
-The browser agent appears in People on its first document action, where the person can pause or disconnect the agent. Leaving the document closes its agent session, and late requests cannot act in the next view. Other tools support discovery and inspection through these site tools; their inputs stay editable through the ordinary interface.
+The browser agent appears in People on its first document action. The person can pause or disconnect the agent there. Leaving the document closes its agent session, and late requests cannot act in the next view. Other tools support discovery and inspection through these site tools; their inputs stay editable through the ordinary interface.
 
 ::: details Projects and assets through site tools
 `lolly_read_project` returns paged folders, session summaries and asset ids for the current project. At the Projects root it lists local project folders. `lolly_search_assets` and `lolly_describe_asset` need an explicit `scope`: `project`, `uploads` or `catalog`. Project scope includes local subfolders or the current shared project's ready files. Shared project caches do not appear in uploads scope. Describing a shared file verifies its checksum and prepares the ordinary local asset reference for placement.
@@ -143,7 +143,7 @@ The MCP server and project invitations keep working for agents that work indepen
 <!--i:eti-cpu-->
 ## Run a document relay
 
-An operator who wants Share invitations on a self-hosted instance runs the relay alongside the web shell.
+To offer Share invitations on a self-hosted instance, run the relay alongside the web shell.
 
 **The service.** Run the long-lived MCP service with `pnpm run mcp:http`. Its `/live/invitations`, `/live/editor`, `/live/rpc` and `/live/mcp` routes provide invitations, outbound browser WebSockets and scoped document calls. For a relay-only process, run `node services/mcp/src/live-http.ts`, which exposes the invitation routes and `/healthz`; the public rendering gateway stays separate.
 

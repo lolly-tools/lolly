@@ -1,6 +1,6 @@
 # Document model draft
 
-This is a draft specification for review, dated 2026-09-24. It describes what a complete, portable Lolly tool is made of, so that any shell can open one and do the same things with the tool. If you build a shell, write tools at scale or review how Lolly records its work, read the chapter that touches your work and send what you find.
+This draft specification for review, dated 2026-09-24, describes what a complete, portable Lolly tool is made of, so any shell can open one and do the same things with the tool. If you build a shell, write tools at scale or review how Lolly records its work, read the chapter for your work and send what you find.
 
 ::: note Not normative yet
 Nothing in this draft is normative until the status chapter records that the review happened.
@@ -13,11 +13,11 @@ Nothing in this draft is normative until the status chapter records that the rev
 
 A Lolly document is a complete tool: its typed interface, the content someone authored, its dependencies, rules and behaviour, and the operations it offers. The [glossary](/info/glossary.html) defines a tool as a directory holding a manifest, a template and optional hooks. A document is that material plus the state a person authored and the results of running the tool.
 
-Four records carry a document: a **definition**, an **instance**, an **evaluation** and an **artifact**. Each carries its own schema version, and a reader may upgrade a record when it reads one. [Records and identity](/info/spec/document-model/records.html) shows the contract in this repository that already holds each one today.
+Four records carry a document: a **definition**, an **instance**, an **evaluation** and an **artifact**. Each carries its own schema version, and a reader may upgrade a record when reading one. [Records and identity](/info/spec/document-model/records.html) shows which contract in this repository holds each record today.
 
-An **operation** is what a tool can do: render, transform, extract, inspect, present or perform an authorised action. One tool may offer several, and the operation is the shared interface whatever produces the result underneath. A valid tool never needs a canvas. The on-device utilities take a file in and hand bytes out. Unpack, Prepare, Batch, Lolly Verify and the Lolly Rebrand review are web app routes rather than manifest tools; each gets a typed operation adapter with a typed outcome, and none of them needs a drawing surface.
+An **operation** is what a tool can do: render, transform, extract, inspect, present or perform an authorised action. One tool may offer several. The operation is the shared interface, whatever produces the result. A valid tool never needs a canvas. The on-device utilities take a file in and hand bytes out. Unpack, Prepare, Batch, Lolly Verify and the Lolly Rebrand review are web app routes, not manifest tools. Each gets a typed operation adapter with a typed outcome, and none needs a drawing surface.
 
-Compositions, timelines and recorded sessions are optional. An authored instance and one evaluation of it keep separate identities, so a new organisation policy never rewrites what someone authored. Rules travel with a tool and may also arrive from a Lolly Work instance, which supplies the applicable rules and the authority that accepts a result. Governance never decides what a render or an operation means, because that meaning belongs to the definition. Outside a governed instance, the person at the keyboard holds the acceptance authority.
+Compositions, timelines and recorded sessions are optional. An authored instance and one evaluation of it keep separate identities, so a new organisation policy never rewrites what someone authored. Rules travel with a tool and may also come from a Lolly Work instance, which also supplies the authority that accepts a result. Governance never decides what a render or an operation means; the definition does. Outside a governed instance, the person at the keyboard holds the acceptance authority.
 
 <!--i:eti-gauge-->
 ## Status
@@ -25,17 +25,17 @@ Compositions, timelines and recorded sessions are optional. An authored instance
 | State | What it covers |
 |---|---|
 | Decided | Thirteen confirmed directions (D1 to D13), fifteen resolutions from evidence (R1 to R15) and six answered questions (Q1 to Q6). Nine corrections from the final review (C1 to C9) are folded in. |
-| Open | The review of the chapters themselves. The draft notice stays until the status chapter records that people have read them. |
+| Open | The review of the chapters. The draft notice stays until the status chapter records that people have read them. |
 | Not built | Every type, every schema and every fixture. This draft adds nothing to `packages/core` and nothing to `schemas/`. |
 
 The chapters cite each point by an id. A **D** id is a confirmed direction. An **R** id is a resolution proposed from evidence, which stands unless the review overturns that resolution. A **C** id is a correction the final review made before drafting started. A **Q** id is a question the maintainer answered on 2026-10-16, accepting the recommended defaults for Q1 to Q5 and recording Q6 as decided: the specification is public from its first draft.
 
-A focused review of digital asset management on 2026-10-15, and a production review after it, added requirements: exact source files, imported evidence, review scope, current source and processing authority, typed content and locale bindings, explicit action targets and asynchronous readiness among them. The four records and the Lolly Design, Lolly Chart and Agenda pilots stay as they are. Cases 30 to 44 describe the new requirements, which are not yet contract fixtures. The [status chapter](/info/spec/document-model/status.html) records the review's scope and the remaining work.
+A review of digital asset management on 2026-10-15, and a production review after it, added requirements, among them exact source files, imported evidence, review scope, current source and processing authority, typed content and locale bindings, explicit action targets and asynchronous readiness. The four records and the Lolly Design, Lolly Chart and Agenda pilots stay as they are. Cases 30 to 44 describe the new requirements, which are not yet contract fixtures. The [status chapter](/info/spec/document-model/status.html) records the review's scope and the remaining work.
 
 <!--i:eti-folder-shared-->
 ## Where to read the specification
 
-The specification is its own web document, twelve chapters long. [Read it in the app](/#/document-model), with the chapter list, the headings and a search field beside the text. The same chapters are on this site:
+The specification is a web document of twelve chapters. [Read it in the app](/#/document-model), with the chapter list, the headings and a search field. The same chapters are on this site:
 
 ::: cols
 ## The model
@@ -57,19 +57,19 @@ The specification is its own web document, twelve chapters long. [Read it in the
 - [Status and open points](/info/spec/document-model/status.html): decided, corrected, open and not built, with a dated change log.
 :::
 
-The twelve chapters are also written out in order as one file, [document-model.md](/info/spec/document-model/document-model.md), for reading offline or handing to an agent.
+The twelve chapters, in order, are also one file, [document-model.md](/info/spec/document-model/document-model.md), to read offline or hand to an agent.
 
 <!--i:eti-pen-->
 ## How to review a chapter
 
-Read a chapter, then send what you found, quoting the chapter and heading. Open an issue on [the repository](https://github.com/lolly-tools/lolly/issues).
+Read a chapter, then open an issue on [the repository](https://github.com/lolly-tools/lolly/issues) that quotes the chapter and heading.
 
 <!--i:eti-eye-off-->
 ## What this draft does not claim
 
 - No conformance for any shell. A conformance suite produces a measured report and an authority records an acceptance; the two are never merged (R8).
 - No threshold. The comparator probe in the conformance chapter shows only that one whole-image number cannot separate a lost caption from a half-pixel shift. Calibration comes after review (R9).
-- No frozen type. The counterexamples in the proof cases must pass as contract fixtures before anything is added to `packages/core` or `schemas/`. The shared core types `DependencyGraphV1`, `ComponentDefinitionV1`, `OutcomeV1` and `FindingV1` follow the same rule: they may be added after those fixtures pass, and not earlier.
+- No frozen type. The counterexamples in the proof cases must pass as contract fixtures before anything is added to `packages/core` or `schemas/`. The shared core types `DependencyGraphV1`, `ComponentDefinitionV1`, `OutcomeV1` and `FindingV1` follow the same rule.
 - No determinism or reproducibility claim beyond the ones [Determinism](/info/determinism.html) and [Reproducibility](/info/reproducibility.html) already make.
 - No cloud dependency. The core evaluates on the device. A governed client that loses its connection must keep enforcing the policy it holds (R7). The web app does not do that yet: once its cached copy is 24 hours old and the server cannot be reached, it fails closed ([policy chapter](/info/spec/document-model/policy.html)).
 - Nothing about spatial output or fabrication beyond an extension boundary. Both stay written explorations, and this draft commits to building neither (D5).

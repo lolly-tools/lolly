@@ -1,6 +1,6 @@
 # Lolly compared, tool by tool
 
-If you already use another product, these pages say whether Lolly replaces that product, works alongside it or does not fit your work. Each one starts with what the other product does better.
+These pages say whether Lolly replaces another product, works alongside that product or does not fit your work. Each page starts with what the other product does better.
 
 _Last checked: 28 September 2026._
 
@@ -15,7 +15,7 @@ _Last checked: 28 September 2026._
 - [Lolly and rendering APIs](/info/compare-render-apis.html) - automated generation on your device, in CI or on your own server, and [how to move](/info/work-move-from-render-api.html) from Bannerbear or Placid.
 - [Lolly and online file converters](/info/compare-converters.html) - format conversion on your own device.
 
-For the capability-by-capability view, see [How Lolly compares](/info/positioning.html). Each comparison is dated; a claim that no longer matches either product needs correcting.
+[How Lolly compares](/info/positioning.html) has the capability-by-capability view. Each comparison is dated. A claim that no longer matches either product needs correcting.
 
 <!--i:eti-map-pin-->
 ## What runs where
@@ -45,9 +45,9 @@ Standalone use keeps files on the device. Choosing shared projects, a work colla
 <!--i:eti-info-->
 ## What every comparison assumes
 
-These limits apply to every page in this set, so they are stated once here:
+These limits apply to every page in this set:
 
 - **Lolly Work collabs run on a single server node today.** Their scale and operating history differ from the long-established hosted products. [Lolly Work status and roadmap](/info/work-status.html) records the current limits.
-- **The site at [lolly.work](https://lolly.work) is a demo sandbox.** A durable organisation deployment needs persistent storage and an operator; [Install Lolly Work](/info/work-install.html) covers both.
+- **The site at [lolly.work](https://lolly.work) is a demo sandbox.** A durable organisation deployment needs persistent storage and an operator. [Install Lolly Work](/info/work-install.html) covers both.
 - **There is no per-seat software licence charge** for Lolly or a self-hosted Lolly Work. Hosting, storage and operations still cost money.
-- **A signature is not a trusted signer.** A verifier must trust the certificate that signed a file before it shows the signer as trusted; [Content Credentials Identity](/info/content-credentials-identity.html) explains how.
+- **A signature is not a trusted signer.** A verifier shows the signer as trusted only when the verifier trusts the certificate that signed the file. [Content Credentials Identity](/info/content-credentials-identity.html) explains how.

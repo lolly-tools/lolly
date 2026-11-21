@@ -1,10 +1,10 @@
 # Brand pages
 
-A brand page is one published folder that works as a press kit and an agent kit. A person sees the logos, colours, type, colourways, rules and real examples. An agent, a partner's tool or a build reads the same facts from files beside the page.
+A brand page is one published folder that works as a press kit and an agent kit. People see the logos, colours, type, colourways, rules and examples; an agent, a partner's tool or a build reads the same facts from files beside the page.
 
 The folder is static: no scripts, no tracking and nothing loaded from another site. You can host the folder anywhere that serves files.
 
-[See the Lolly Demo brand page](/brand/lolly-demo/). The web build makes that page with the same command described below, for the Lolly Demo design system only.
+[See the Lolly Demo brand page](/brand/lolly-demo/). The web build makes that page with the same command, for the Lolly Demo design system only.
 
 **Publishing a page**, in four steps:
 
@@ -39,7 +39,7 @@ The folder is static: no scripts, no tracking and nothing loaded from another si
 
 Either route writes a folder, and nothing goes public until you put the folder on a host or choose **Publish to** on an instance that serves brand pages.
 
-**In the app.** Open [Lolly Design System Setup](/info/brand-studio.html#publish-a-brand-page) and choose **Publish a brand page**, under Versions & publishing. You see the live page, every file that goes public, what was held back and why, and the checks. **Download folder** saves a ZIP. An instance that serves brand pages also offers **Publish to** its address.
+**In the app.** Open [Lolly Design System Setup](/info/brand-studio.html#publish-a-brand-page) and choose **Publish a brand page**, under Versions & publishing. You see the live page, the checks, every file that goes public and what was held back and why. **Download folder** saves a ZIP. An instance that serves brand pages also offers **Publish to** its address.
 
 **In a terminal.**
 
@@ -53,11 +53,11 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 `index.html` opens from disk, and "Not published here" at the foot of the page lists everything left out, with the reason.
 :::
 
-The same design system and options always give the same bytes, because nothing in the folder records a clock or a random id, so a version-control diff shows only what really changed.
+The same design system and options always give the same bytes: nothing in the folder records a clock or a random id. A version-control diff shows only what changed.
 
 ### Host the folder
 
-Any static host works. The page's links are relative, so its address needs a trailing slash: `/brand/acme/`, not `/brand/acme`. Most static hosts redirect a folder address to the form with the slash. With nginx you can add the redirect yourself:
+The page's links are relative, so its address needs a trailing slash: `/brand/acme/`, not `/brand/acme`. Most static hosts redirect a folder address to the form with the slash. With nginx you can add the redirect yourself:
 
 ```nginx
 location = /brand/acme { absolute_redirect off; return 308 /brand/acme/$is_args$args; }
@@ -85,7 +85,7 @@ The rights recorded in your catalog decide which bytes go in the folder. Everyth
 | Logo with no licence on record | Held back, unless you name the logo with `--include`, which records your stated choice. |
 | Logo under a brand lock | Never. `--include` does not change this. |
 | Font file | Only when a recorded licence allows passing the file on and the font's own embedding field does not restrict the file. `--include` does not change this. |
-| Font you cannot publish | The file stays out. The page gives the family's name, can link to where to get the face, and shows a specimen as outlined vector text, so readers still see the face. |
+| Font you cannot publish | The file stays out. The page lists the family, can link to where to get the face and shows a specimen as outlined vector text. |
 | Brand skills | Public skills only. An `audience: internal` skill never appears, not even by name. |
 | Reviewers' names | Never. A public file does not name who reviewed a rule. |
 | A managed design system | Held until its manager allows publishing, stated with `--manager-allows`. |
@@ -121,7 +121,7 @@ This reads what your catalog states. Lolly does not check that you own a mark, a
 <!--i:eti-link-->
 ## Lead back from your files
 
-Your exports can record your page's address, so a file someone finds later leads back to the source. This is off until you turn it on, per design system. The setting adds one thing, the address, to the [design-system record](/info/exporting.html#the-design-system-record). Nothing else in the file changes.
+Your exports can record your page's address, so a file someone finds later leads back to the source. The setting is off by default and set per design system. The setting adds the address to the [design-system record](/info/exporting.html#the-design-system-record) and changes nothing else in the file.
 
 **In the app.** **On exports**, in the same sheet, has a switch: *Record the page address in exports*. For a folder you host yourself, type the address under *Where it will live*, then turn the switch on once the page is live there. For an instance that serves pages, the switch opens after you publish, and it uses the address the instance gives back. Turn the switch off and later exports hold no address.
 
@@ -129,10 +129,10 @@ Your exports can record your page's address, so a file someone finds later leads
 
 **For a managed design system.** A managed design system is read-only on people's devices, so its manager sets this for everyone. On a Lolly Work instance that [lets you edit it](/info/work-design-system-administration.html#edit-this-instance-from-the-studio), choose **Edit for** that instance, turn the switch on in the same sheet, then choose **Send to** that instance. With no instance, set the address in the source tokens, at `$extensions["com.suse.lolly"].exportRecord.brandPage`. Everyone using that system then records the address, and each person's card shows the address and can leave it out. A content profile's tokens work the same way.
 
-**The setting does not travel.** A record in a signed file reads as the signer's own. If the setting moved with the design system, importing someone's pack would write their address into your signed exports, and a hostile pack could point everyone's files at a page of its choosing. So the setting stays with the design system it was turned on for.
+**The setting does not travel.** A record in a signed file reads as the signer's own. If the setting moved with the design system, importing someone's pack would write their address into your signed exports, and a hostile pack could point everyone's files at a page of its choosing.
 
 ::: details Where the setting stays off
-- A `.lolly` pack, a Lolly file that carries a design system, a tokens file imported or given for one run, **Try these colours**, a restored backup, and a copy or fork of a design system all arrive with the setting off, with the same bytes as a source that never held the setting. This holds for a pack made from a managed system too. The one exception is the editing copy from **Edit for** an instance, which is the manager's own source: it starts with the address that instance records, so sending does not clear the address.
+- A `.lolly` pack, a Lolly file that carries a design system, a tokens file imported or given for one run, **Try these colours**, a restored backup and a copy or fork of a design system all arrive with the setting off, with the same bytes as a source that never held the setting. This holds for a pack made from a managed system too. The one exception is the editing copy from **Edit for** an instance, which is the manager's own source: it starts with the address that instance records, so sending does not clear the address.
 - Importing over a design system that has the setting on turns the setting off, because the material was replaced.
 - Exported packs and tokens files leave the setting out.
 - Editing your own design system keeps your setting.
@@ -240,7 +240,7 @@ Five rules for your agent:
 
 To bring a `DESIGN.md` into Lolly, run `lolly system import DESIGN.md`, which reads the tokens into a new design system. `--dry-run` reads the file and changes nothing. [DESIGN.md in Design Tokens](/info/design-tokens.html#design-md) says what maps to what.
 
-To draw with the brand rather than read about the brand, use [Lolly's MCP server](/info/mcp.html) or the [CLI](/info/cli-rendering.html). A page cannot render anything by itself, and runs no tools or hooks.
+To draw with the brand, use [Lolly's MCP server](/info/mcp.html) or the [CLI](/info/cli-rendering.html). A page cannot render anything and runs no tools or hooks.
 
 <!--i:eti-hammer-->
 ## What is not built yet

@@ -1,8 +1,8 @@
 # Free background music generator
 
-Need background music for a video, a podcast, a stream, a game or a presentation? Lolly's [music generator](/#/music) makes a new track in any of more than 50 genres, from lofi and jazz to synthwave and drum and bass, right on your device. Music you make comes under the [Creative Commons Attribution 4.0 International licence (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/): free for any use, including commercial use, as long as you credit Lolly with the line **Music made with Lolly (https://lolly.tools), CC BY 4.0**.
+Lolly's [music generator](/#/music) makes new background music for a video, a podcast, a stream, a game or a presentation, in more than 50 genres from lofi and jazz to synthwave and drum and bass, on your device. Music you make comes under the [Creative Commons Attribution 4.0 International licence (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/): free for any use, including commercial use, as long as you credit Lolly with the line **Music made with Lolly (https://lolly.tools), CC BY 4.0**.
 
-Choose a genre below to hear a short sample, read what the genre sounds like, and open the music generator in that genre with one click.
+Choose a genre to hear a short sample, read what the genre sounds like and open the music generator in that genre.
 
 <!--i:eti-music-->
 ## Choose a genre
@@ -27,9 +27,9 @@ Music you make in the music generator comes under the [Creative Commons Attribut
 
 > **Music made with Lolly (https://lolly.tools), CC BY 4.0**
 
-Put the credit in a video's description or end credits, a podcast's show notes, a stream's description, a game's credits screen, or a presentation's last slide.
+Put the credit in a video's description or end credits, a podcast's show notes, a stream's description, a game's credits screen or a presentation's last slide.
 
-Looking for copyright-free background music? Music made here is not copyright-free: it comes under CC BY 4.0, a licence that asks for the credit. The music is free to use, even commercially, and royalty-free as long as you include the credit.
+Music made here is not copyright-free: it comes under CC BY 4.0, a licence that asks for the credit. The music is free to use, even commercially, and royalty-free as long as you include the credit.
 
 <!--i:eti-shield-check-->
 ## Made on your device, with no AI
@@ -44,7 +44,7 @@ Looking for copyright-free background music? Music made here is not copyright-fr
 
 ### Is the music free?
 
-Yes. The music generator costs nothing to use, and music you make in the generator is free for any use, as long as you credit Lolly.
+Yes. The music generator costs nothing, and music you make is free for any use, as long as you credit Lolly.
 
 ### What licence is the music under?
 
@@ -60,11 +60,11 @@ Yes. The CC BY 4.0 licence asks for credit. Use the line **Music made with Lolly
 
 ### Is the music copyright-free?
 
-No, and the difference matters. The music comes under CC BY 4.0, a licence that asks for the credit, so the music is not copyright-free. The music is free to use, even commercially, and royalty-free as long as you include the credit.
+No. The music comes under CC BY 4.0, a licence that asks for the credit. The music is free to use, even commercially, and royalty-free as long as you include the credit.
 
 ### Is the music made with AI?
 
-No. Lolly's composer follows rules written for each genre, and it plays the notes on instruments modelled in code. No trained model writes or plays anything. Every downloaded file records that in its Content Credentials as algorithmic media, so a checker such as [Lolly Verify](/#/verify) does not flag the music as AI.
+No. Lolly's composer follows rules written for each genre and plays the notes on instruments modelled in code. No trained model writes or plays anything. Every downloaded file records the music as algorithmic media in its Content Credentials, so a checker such as [Lolly Verify](/#/verify) does not flag the music as AI.
 
 ### Does the music use samples or loops?
 
@@ -76,7 +76,7 @@ M4A (AAC), a small file that plays almost anywhere, and WAV, an uncompressed fil
 
 ### Can I make a longer track or a loop?
 
-Yes. Tune sets the length of the track in bars, and a track ends the way a song does, with its own outro. Save the track to your assets and pick the tune as a video's music bed in Lolly, and the tune loops to fill the video.
+Yes. Tune sets the length of the track in bars, and a track ends with its own outro. Save the track to your assets and pick the tune as a video's music bed in Lolly; the tune loops to fill the video.
 
 ### Which browsers does the music generator work in?
 
