@@ -610,6 +610,11 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
 }
 /* The press answers under the finger before the command does. */
 .lp-seg > button:active { filter: brightness(.96); }
+/* The pill form, for a switch that stands alone at the head of a column and
+   chooses what the column shows (Design's Selection / Canvas). Same control,
+   same states; only the corners change, to match the pill tabs of the dock above. */
+.lp-seg--pill { border-radius: var(--radius-round); }
+.lp-seg--pill > button { min-height: calc(1.75rem * var(--a11y-fs, 1)); border-radius: var(--radius-round); }
 .lp-seg > button:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
 /* A count inside a half ("To review 5"): the number is what changes, so it is
    the weight that reads first. */
