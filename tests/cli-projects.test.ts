@@ -50,6 +50,27 @@ test('project discovery, private export and explicit copy use the shared records
   assert.equal((await run(['show', 'fixture/with spaces'])).result.label, 'Conference');
 });
 
+test('a session whose picture is a file (format 5): export inlines it, copy points at the same file, a rename keeps it', async () => {
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const { previewRefFor } = await import('../engine/src/session-preview.ts');
+  const { sessionPicturePath, readSessionRecord } = await import('../packages/node-shell/src/session-store.ts');
+  const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=='), c => c.charCodeAt(0));
+  const preview = (await previewRefFor(png, 'image/png', { route: 'export-raster' }))!;
+  await mkdir(join(state, 'saved-state', 'previews'), { recursive: true });
+  await writeFile(sessionPicturePath(state, preview), png);
+  await writeSessionRecord(state, { slot: 'pictured', label: 'Pictured', data: { __toolId: 'batch-fixture' }, preview });
+  const run = async (args: string[]) => JSON.parse((await exec(process.execPath, [entry, 'projects', ...args, '--json'], { env })).stdout);
+  const out = join(root, 'pictured.json');
+  await run(['export', 'pictured', `--output=${out}`]);
+  const exported = JSON.parse(await readFile(out, 'utf8'));
+  assert.equal(exported.thumb, `data:image/png;base64,${btoa(String.fromCharCode(...png))}`, 'the export carries the picture inline, as it always did');
+  assert.equal(exported.preview, undefined);
+  const copy = await run(['copy', 'pictured', '--label=Copy']);
+  assert.equal((await readSessionRecord(state, copy.result.slot))?.preview?.key, preview.key, 'the copy points at the same picture file');
+  await writeSessionRecord(state, { slot: 'pictured', label: 'Renamed', data: { __toolId: 'batch-fixture', __label: 'Renamed' } });
+  assert.equal((await readSessionRecord(state, 'pictured'))?.preview?.key, preview.key, 'a write with no picture keeps the one the record had');
+});
+
 test('run reads private input JSON from stdin and explicit flags win', async () => {
   const child = spawn(
     process.execPath,

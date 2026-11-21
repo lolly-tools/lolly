@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { resolveStateDir } from '@lolly-tools/node-shell/state-dir';
 import {
@@ -7,7 +7,10 @@ import {
   readSessionRecord,
   writeSessionRecord,
   sessionFilePath,
+  sessionPicturePath,
+  type SessionRecord,
 } from '@lolly-tools/node-shell/session-store';
+import { pictureDataUrl } from '../../../engine/src/session-preview.ts';
 import { emitResult } from './envelope.ts';
 import { usageError } from './exit-codes.ts';
 import { isOn } from './args.ts';
@@ -55,7 +58,9 @@ export async function projectsCli(
     else if (command === 'export') {
       if (!flags.output)
         throw usageError('projects export needs --output=file.json.', 'MISSING_ARGUMENT');
-      await writeFile(flags.output, JSON.stringify(record, null, 2) + '\n', {
+      // The exported record keeps the shape it always had: a picture stored as a file
+      // (session format 5) goes back inline as the `thumb` data URL.
+      await writeFile(flags.output, JSON.stringify(await withInlinePicture(dir, record), null, 2) + '\n', {
         mode: 0o600,
         flag: 'wx',
       });
@@ -85,4 +90,17 @@ export async function projectsCli(
   }
   if (json) await emitResult(result);
   else process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+}
+
+/** A record with its picture file read back into the `thumb` data URL, for a JSON
+ *  export whose readers expect the picture inline. A missing file leaves no picture. */
+async function withInlinePicture(dir: string, record: SessionRecord): Promise<SessionRecord> {
+  if (!record.preview) return record;
+  const { preview, ...rest } = record;
+  try {
+    const bytes = new Uint8Array(await readFile(sessionPicturePath(dir, preview)));
+    return { ...rest, thumb: pictureDataUrl(bytes, preview.type) };
+  } catch {
+    return { ...rest, thumb: rest.thumb ?? null };
+  }
 }
