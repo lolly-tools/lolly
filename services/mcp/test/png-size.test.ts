@@ -9,7 +9,8 @@
  *    band across the middle;
  *  - a tool whose root <svg> has a viewBox (QR Code) is drawn at the requested
  *    width and height, its own viewBox placing the content, as the CLI draws it;
- *  - a request with one side keeps the scaling the PNG always had.
+ *  - a request with one side keeps the scaling the PNG always had;
+ *  - a wall whose logos are measured with a canvas is refused on that route.
  *
  * Run with: node --test services/mcp/test/png-size.test.ts
  */
@@ -30,7 +31,9 @@ function pngSize(bytes: Uint8Array): [number, number] {
 const logo = (w: number): string => 'data:image/svg+xml;base64,' + Buffer.from(
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect x="${200 - w / 2}" y="60" width="${w}" height="80" fill="#222222"/></svg>`,
 ).toString('base64');
-const wall = 'logos=' + encodeURIComponent(JSON.stringify([320, 60, 200, 120, 260].map((w) => ({ logo: logo(w) })))) + '&balance=false&transparentBg=true';
+// Trimming and balancing measure each logo's ink with a 2D canvas, which keeps the PNG off
+// the browser-free renderer (resvg-admission.ts): both are off here, so the sizing is tested.
+const wall = 'logos=' + encodeURIComponent(JSON.stringify([320, 60, 200, 120, 260].map((w) => ({ logo: logo(w) })))) + '&balance=false&trim=false&transparentBg=true';
 
 test('a Logo Wall PNG at 1080 x 1920 is the tall wall, as its SVG is', { skip: NO_WALL }, async () => {
   const svg = await render('logo-wall', wall, { format: 'svg', width: 1080, height: 1920, noBrowser: true });
@@ -47,6 +50,11 @@ test('a Logo Wall PNG at 1080 x 1920 is the tall wall, as its SVG is', { skip: N
     for (let x = 0; x < info.width; x++) if (data[(y * info.width + x) * 4 + 3]! > 0) lower++;
   }
   assert.ok(lower > 1000, `logos drawn in the lowest quarter (${lower} px)`);
+
+  // With trimming on (the default) the hook reads pixels, and with no browser tier the
+  // PNG is refused with that reason rather than drawn from the Node canvas's pixels.
+  await assert.rejects(render('logo-wall', wall.replace('&trim=false', ''), { format: 'png', width: 1080, height: 1920, noBrowser: true }),
+    /computed part of the picture with a 2D canvas/);
 });
 
 test('a PNG follows the requested height for a tool with a viewBox, and one side keeps its scaling', { skip: NO_QR }, async () => {
@@ -61,4 +69,16 @@ test('a PNG follows the requested height for a tool with a viewBox, and one side
   const own = new TextDecoder().decode((await render('qr-code', query, { format: 'svg', noBrowser: true })).bytes);
   const [, , vw, vh] = /viewBox="([^"]+)"/.exec(own)![1]!.split(/[\s,]+/).map(Number);
   assert.equal(h, Math.round(600 * vh! / vw!), 'the height follows the tool\'s own shape');
+});
+
+test('a picture the server\'s raster cap would shrink past half is refused, measured after the cap', { skip: !toolFile('asset-export', 'tool.json') && 'asset-export is not in this profile' }, async () => {
+  const sharp = (await import('sharp')).default;
+  const photo = await sharp({ create: { width: 400, height: 400, channels: 3, background: '#2a7' } }).png().toBuffer();
+  const query = 'src=' + encodeURIComponent('data:image/png;base64,' + photo.toString('base64')) + '&fit=contain';
+  // At its own size the picture is drawn one to one.
+  const plain = await render('asset-export', query, { format: 'png', width: 400, height: 400, noBrowser: true });
+  assert.equal(plain.tier, 'A(resvg)');
+  // A 10,000-pixel cap draws the same request at 100 x 100: a shrink of 4, past the limit of 2.
+  await assert.rejects(render('asset-export', query, { format: 'png', width: 400, height: 400, noBrowser: true, maxRasterPixels: 10_000 }),
+    /a picture drawn at 1\/4\.00 of its own size/);
 });

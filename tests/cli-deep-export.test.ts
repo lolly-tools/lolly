@@ -44,6 +44,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 const exec = promisify(execFile);
 
@@ -121,6 +122,9 @@ for (const [id, files] of Object.entries({
     await writeFile(join(root, 'tools', id, name), content);
   }
 }
+// The browser-free route draws only a tool its browser-free.json admits; this fixture's
+// own assertions check what the route draws.
+writeBrowserFreeFixture(join(root, 'tools', 'swatch'));
 
 process.env.LOLLY_ROOT = root;
 const { runToolCli } = await import('../shells/cli/src/run.ts');

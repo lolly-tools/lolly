@@ -23,6 +23,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const root = await mkdtemp(join(tmpdir(), 'lolly-ga-contract-'));
@@ -112,7 +113,8 @@ const TOOLS: Array<[string, string, string]> = [
     hooks: { exportFile: true },
     inputs: [{ id: 'source', type: 'file', label: 'File' }],
   })],
-  ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool')],
+  // Its render size is its drawing's, so the browser-free route places it as the page does (resvg-admission.ts).
+  ['busy-tool', BUSY_TEMPLATE, manifest('busy-tool', { render: { width: 240, height: 160, formats: ['svg', 'png'] } })],
   // A PAGED document - three [data-pdf-page] frames with real ids - for the `s=`
   // still-export slide filter (plan 112 section 10). Each page is its own <svg>, so a
   // filtered export has a CLI-native vector path while the unfiltered whole (three
@@ -146,6 +148,9 @@ await writeFile(join(root, 'tools', 'xform-tool', 'hooks.js'),
   '  return { bytes: new TextEncoder().encode(text), filename: "shouted.txt", mime: "text/plain" };\n' +
   '}\n');
 
+// The fixtures whose PNGs these assertions check carry the record that admits them to the
+// browser-free route, written last so the digest is over their final files.
+for (const id of ['vec-tool', 'busy-tool', 'text-tool']) writeBrowserFreeFixture(join(root, 'tools', id));
 process.env.LOLLY_ROOT = root;
 process.env.LOLLY_WEB_DIST = join(root, 'no-such-dist');
 delete process.env.LOLLY_WEB_BASE;

@@ -23,7 +23,7 @@
  * sends Design pages to the browser tier's compatibility renderer; the value is passed
  * to that tier's page, so `ops` asks the browser tier for its GPU route.
  */
-import { designExportRouteFields, designOperationsRenderer, parseDesignExportRouteChoice, type DesignExportRouteChoice, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
+import { designExportRouteFields, designOperationsRenderer, parseDesignExportRouteChoice, type DesignExportRoute, type DesignExportRouteChoice, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
 import { DESIGN_DRAW_VERSION } from '../../../engine/src/design-draw.ts';
 
 /** The override this process asks for, `auto` when unset or unreadable. */
@@ -34,9 +34,35 @@ export function nodeExportRouteChoice(env: Record<string, string | undefined> = 
 /** The record for a page this shell wrote from the drawing operations. */
 export const nodeOperationsRoute = (): DesignExportRouteRecord => ({ route: 'operations', renderer: designOperationsRenderer(DESIGN_DRAW_VERSION) });
 
+/**
+ * What the credential records when the user accepted a browser-free picture outside the
+ * measured set (`--allow-browser-free`, resvg-admission.ts `acceptRefusals`).
+ */
+export const BROWSER_FREE_ACCEPTED = 'browser-free render outside the measured set';
+
+/**
+ * The route record the Node shells hand the credential: the engine's record (`route` and
+ * `renderer`) with one key node-shell adds, `accepted`, set only when the user accepted a
+ * browser-free picture outside the measured set. A tool other than Design has no `route`
+ * (the engine's route vocabulary is Design's), so its record carries the `renderer` and
+ * `accepted` only, and only when something was accepted.
+ */
+export interface NodeRouteRecord {
+  route?: DesignExportRoute;
+  renderer: string;
+  accepted?: typeof BROWSER_FREE_ACCEPTED;
+}
+
+/** The record for a picture drawn here although its refusals were only accepted, never admitted. */
+export const acceptedRoute = <T extends { renderer: string }>(record: T): T & { accepted: typeof BROWSER_FREE_ACCEPTED } => ({ ...record, accepted: BROWSER_FREE_ACCEPTED });
+
 /** The credential keys for a Node-drawn page (none when the browser tier drew it and stamped its own). */
-export const nodeRouteEnvironment = (record: DesignExportRouteRecord | null | undefined): Record<string, string> =>
-  designExportRouteFields(record) as Record<string, string>;
+export function nodeRouteEnvironment(record: NodeRouteRecord | DesignExportRouteRecord | null | undefined): Record<string, string> {
+  if (!record) return {};
+  const accepted = (record as NodeRouteRecord).accepted === BROWSER_FREE_ACCEPTED;
+  const base = record.route ? designExportRouteFields(record as DesignExportRouteRecord) as Record<string, string> : accepted && record.renderer ? { renderer: String(record.renderer).slice(0, 200) } : {};
+  return accepted ? { ...base, accepted: BROWSER_FREE_ACCEPTED } : base;
+}
 
 /** One log line for a Design still on Node: the browser tier draws it, and why. */
 export function nodeRasterRoute(format: string): string {
