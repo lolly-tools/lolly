@@ -26,7 +26,7 @@
  */
 import type { SessionPreviewRef } from '../../../../engine/src/session-preview.ts';
 import { readPreviewRef } from '../../../../engine/src/session-preview.ts';
-import { escape } from '../utils.ts';
+import { escape as escapeHtml } from '../utils.ts';
 import { staleTile } from '../lib/preview-events.ts';
 
 /** What a tile may know about its picture. */
@@ -58,19 +58,17 @@ export function previewImg(source: PictureSource | null | undefined, attrs: stri
     ensureReader();
     // No width or height attributes: the tile's stylesheet sizes the element exactly
     // as it sized an <img src> before; a presentational size would override that rule.
-    return `<img ${attrs} data-preview-key="${ref.key}" data-preview-type="${escape(ref.type)}"${ref.route ? ` data-preview-route="${escape(ref.route)}"` : ''}`
-      + `${source.slot ? ` data-preview-slot="${escape(source.slot)}"` : ''}${source.toolId ? ` data-preview-tool="${escape(source.toolId)}"` : ''}`
-      + `${empty ? ` data-preview-empty="${escape(empty)}"` : ''}>`;
+    return `<img ${attrs} data-preview-key="${ref.key}" data-preview-type="${escapeHtml(ref.type)}"${ref.route ? ` data-preview-route="${escapeHtml(ref.route)}"` : ''}`
+      + `${source.slot ? ` data-preview-slot="${escapeHtml(source.slot)}"` : ''}${source.toolId ? ` data-preview-tool="${escapeHtml(source.toolId)}"` : ''}`
+      + `${empty ? ` data-preview-empty="${escapeHtml(empty)}"` : ''}>`;
   }
   const src = source.thumb || source.url;
-  return src ? `<img ${attrs} src="${escape(src)}">` : '';
+  return src ? `<img ${attrs} src="${escapeHtml(src)}">` : '';
 }
 
 /** Where the reader gets bytes: the live host's state (the Tauri file store, or the
  *  web preview store) and, for pictures only the web store holds, the database. */
-export interface PictureReader {
-  (ref: SessionPreviewRef): Promise<Blob | null>;
-}
+export type PictureReader = (ref: SessionPreviewRef) => Promise<Blob | null>;
 
 let reader: PictureReader | null = null;
 /** Install the byte source (bridge/index.ts does, once the host exists). Tests

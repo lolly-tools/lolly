@@ -48,7 +48,7 @@ test('every read-write transaction that names the state store is opened with sco
       // The lean list's own repair writes only lean rows; it reads `state`, writes none.
       if (path === 'bridge/state-list.ts' && scope.includes('STATE_LIST')) continue;
       const constant = /\b(STORES|REVISION_STORES|RELIEF_STORES|MOVE_STORES)\b/.exec(scope)?.[1];
-      const constantNamesState = !!constant && (constant !== 'STORES' || new RegExp(`const STORES = [^;]*'state'`).test(text) || /REVISION_STORES as STORES/.test(text));
+      const constantNamesState = !!constant && (constant !== 'STORES' || /const STORES = [^;]*'state'/.test(text) || /REVISION_STORES as STORES/.test(text));
       const namesState = /'state'/.test(scope) || constantNamesState;
       if (namesState) offenders.push(`${path}: ${match[0].slice(0, 90)}`);
     }

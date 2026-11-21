@@ -78,7 +78,7 @@ const heldKey = (toolId: string, index: number): string => `${toolId}\u0000${ind
  *  the new draw finds the look in the store again. */
 export function heldGalleryLook(toolId: string, index: number): string | null {
   const held = heldLooks.get(heldKey(toolId, index)) ?? null;
-  return held && held.startsWith('blob:') && !srcStillLive(held) ? null : held;
+  return held?.startsWith('blob:') && !srcStillLive(held) ? null : held;
 }
 
 export async function renderGalleryLook(

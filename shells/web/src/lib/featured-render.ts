@@ -18,6 +18,7 @@
 // loads then. A cache hit never loads it at all.
 import { newWorkTokenSelection, type ColourwaySeedHost } from './colourway-seed.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import type { PreparedPicture } from '../bridge/preview-store.ts';
 
 type FeaturedHost = HostV1;
 
@@ -94,7 +95,7 @@ export async function renderFeaturedVariant(
     const vw = Number((values as { width?: unknown }).width);
     const vh = Number((values as { height?: unknown }).height);
     const opts = { tokenSelection: tokenSelection ?? undefined, previewTimeMs, recipe: key, rasterFallback: rasterFormatOf(formats), ...(vw > 0 && vh > 0 ? { width: vw, height: vh } : {}) };
-    let picture;
+    let picture: PreparedPicture;
     try {
       picture = await previewSeams.render(host, toolId, primary, values, opts);
     } catch (e) {
@@ -160,7 +161,7 @@ export async function renderFeaturedPages(
     if (srcs.every((src): src is string => !!src)) return srcs;
   }
   const { renderPagePictures } = await import('./preview-render.ts');
-  let pictures;
+  let pictures: PreparedPicture[];
   try {
     pictures = await renderPagePictures(host, toolId, primary);
   } catch (e) {

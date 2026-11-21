@@ -50,7 +50,9 @@ async function measureLibrary(): Promise<unknown> {
     const record = value as { data?: unknown; thumb?: unknown; preview?: unknown };
     sessions.record.push(textBytes(record));
     sessions.data.push(textBytes(record.data));
-    (sessions.byKind[kindOf(record.thumb)] ??= []).push(textBytes(record.thumb));
+    const kind = kindOf(record.thumb);
+    sessions.byKind[kind] = sessions.byKind[kind] ?? [];
+    sessions.byKind[kind].push(textBytes(record.thumb));
     if (record.preview) sessions.withReference++;
   });
   const revisionPreviews: number[] = [];

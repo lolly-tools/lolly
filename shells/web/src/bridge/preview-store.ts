@@ -169,24 +169,27 @@ export async function putPictureBytes(tx: PictureTx, picture: PreparedPicture): 
 
 /**
  * Pictures a save stored a moment before the record that points at them is
- * written, kept in memory until then. Between the two transactions another tab may
- * let go of the picture's last other owner, and the bytes would go with it; the
- * record write then stores them again from here rather than lose the picture.
+ * written, kept in memory until that save has finished. Between the two
+ * transactions another tab may let go of the picture's last other owner, and the
+ * bytes would go with it; the record write then stores them again from here rather
+ * than lose the picture. Each hold lasts exactly as long as its save, however long
+ * that takes, so the memory held is the pictures of the saves in progress.
  */
-const staged = new Map<string, { picture: PreparedPicture; until: number }>();
-const STAGED_MS = 2 * 60_000;
-const STAGED_MAX = 64;
-export function holdStaged(picture: PreparedPicture): void {
-  const now = Date.now();
-  for (const [key, entry] of staged) if (entry.until < now) staged.delete(key);
-  staged.delete(picture.ref.key);
-  staged.set(picture.ref.key, { picture, until: now + STAGED_MS });
-  while (staged.size > STAGED_MAX) staged.delete(staged.keys().next().value!);
+const staged = new Map<string, { picture: PreparedPicture; holds: number }>();
+export function holdStaged(picture: PreparedPicture): () => void {
+  const key = picture.ref.key;
+  const entry = staged.get(key) ?? { picture, holds: 0 };
+  entry.holds++;
+  staged.set(key, entry);
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    if (--entry.holds <= 0 && staged.get(key) === entry) staged.delete(key);
+  };
 }
 function stagedPicture(key: string): PreparedPicture | null {
-  const entry = staged.get(key);
-  if (!entry || entry.until < Date.now()) { staged.delete(key); return null; }
-  return entry.picture;
+  return staged.get(key)?.picture ?? null;
 }
 
 /** Delete a picture when no owner points at it any more. */

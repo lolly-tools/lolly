@@ -127,7 +127,8 @@ test('two saves of the same picture at once share one write: the second never tr
   assert.equal(await state.pictureDataUrl!({ slot: 'poster:2' }), png('same'));
 });
 
-test('the picture sweep removes nothing after a walk that could not read every record, and keeps a file a corrupt record points at', async (context) => {
+test('the picture sweep removes nothing after a walk that could not read every record, keeps a file a corrupt record points at, and removes a file only when two walks ten minutes apart found no record', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-11-21T09:00:00Z') });
   const { fs, bytes, text } = memoryFs();
   text.set('saved-state/slotname-v1.marker', '1');
   const first = createFsStateAPI(fs);
@@ -141,21 +142,37 @@ test('the picture sweep removes nothing after a walk that could not read every r
   const read = fs.readTextFile;
   let failB = false;
   fs.readTextFile = async (path) => { if (failB && path.endsWith('poster%3Ab.json')) throw new Error('busy'); return read(path); };
-  context.mock.timers.enable({ apis: ['setTimeout'] });
-  // A later launch lists, then sweeps a moment later; this time poster:b cannot be read.
-  const later = createFsStateAPI(fs);
-  await later.list();
+  // Each launch lists, then sweeps a moment later.
+  const launch = async () => { await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(); };
   failB = true;
-  context.mock.timers.tick(3000);
-  await settle();
+  await launch();
   assert.equal(bytes.size, 4, 'an incomplete walk removes nothing, not even the orphan');
+  assert.equal(text.has('saved-state/previews/orphans.txt'), false, 'and notes nothing');
   failB = false;
-  const next = createFsStateAPI(fs);
-  await next.list();
-  context.mock.timers.tick(3000);
-  await settle();
+  await launch();
+  assert.equal(bytes.size, 4, 'a first complete walk only notes the orphan');
+  assert.match(text.get('saved-state/previews/orphans.txt')!, new RegExp(`^${orphan.ref.key} `));
+  context.mock.timers.tick(11 * 60_000);
+  await launch();
   const left = [...bytes.keys()].map(path => path.split('/').pop()!.split('.')[0]).sort();
-  assert.deepEqual(left, [a.ref.key, b.ref.key, named.ref.key].sort(), 'a complete walk removes only the orphan');
+  assert.deepEqual(left, [a.ref.key, b.ref.key, named.ref.key].sort(), 'a walk ten minutes later removes only the orphan');
+});
+
+test('a record another window writes while a walk runs keeps its picture: the second walk sees the record', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-11-21T09:00:00Z') });
+  const { fs, bytes, text } = memoryFs();
+  text.set('saved-state/slotname-v1.marker', '1');
+  const picture = await prepared(png('shared'));
+  bytes.set(`saved-state/previews/${picture.ref.key}.png`, picture.bytes);
+  const launch = async () => { await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(); };
+  await launch();
+  assert.ok(bytes.size === 1 && text.get('saved-state/previews/orphans.txt')?.startsWith(picture.ref.key), 'no record names the file yet: noted');
+  // Another window copies a session by reference, naming the file.
+  text.set('saved-state/poster%3Ab.json', JSON.stringify({ slot: 'poster:b', toolId: 'poster', data: { __toolId: 'poster' }, thumb: null, preview: { ...picture.ref }, updatedAt: '2026-11-21T09:01:00.000Z' }));
+  context.mock.timers.tick(11 * 60_000);
+  await launch();
+  assert.equal(bytes.size, 1, 'the picture stays');
+  assert.equal(text.get('saved-state/previews/orphans.txt'), '', 'and is no longer noted');
 });
 
 test('a long-running app sweeps the pictures a session let go of, so saving new pictures does not grow the folder without bound', async (context) => {
@@ -164,15 +181,19 @@ test('a long-running app sweeps the pictures a session let go of, so saving new 
   text.set('saved-state/slotname-v1.marker', '1');
   const state = createFsStateAPI(fs);
   const save = async (tag: string) => state.save('poster:1', { __toolId: 'poster', title: 'same work' }, await prepared(png(tag)));
+  const keyOf = async (tag: string) => (await prepared(png(tag))).ref.key;
+  // Three rounds of twenty saves of the same session, eleven minutes apart; each
+  // round of let-go pictures starts a sweep a minute later.
   for (let i = 0; i < 21; i++) await save(`first-${i}`);
-  assert.equal(bytes.size, 21);
-  // Ten minutes and more later the same session is saved twenty more times.
-  context.mock.timers.tick(11 * 60_000);
-  await settle();
+  context.mock.timers.tick(11 * 60_000); await settle();
   for (let i = 0; i < 20; i++) await save(`second-${i}`);
-  context.mock.timers.tick(60_000);
-  await settle();
-  assert.equal(bytes.size, 20, 'the first round went; the newest twenty wait out their grace');
+  context.mock.timers.tick(60_000); await settle();
+  assert.equal(bytes.size, 41, 'the first round is only noted on its first walk');
+  context.mock.timers.tick(11 * 60_000); await settle();
+  for (let i = 0; i < 20; i++) await save(`third-${i}`);
+  context.mock.timers.tick(60_000); await settle();
+  for (let i = 0; i < 21; i++) assert.equal(bytes.has(`saved-state/previews/${await keyOf(`first-${i}`)}.png`), false, `first-${i} went`);
+  assert.equal(bytes.size, 40, 'at most the two newest rounds remain');
   const record = JSON.parse(text.get('saved-state/poster%3A1.json')!);
   assert.ok(bytes.has(`saved-state/previews/${record.preview.key}.png`), 'the picture the record points at is kept');
 });
@@ -196,4 +217,23 @@ test('a save or a delete that lands while old pictures move wins: the move never
   assert.equal(one.data.title, 'edited');
   assert.equal(one.preview.key, fresh.ref.key, 'its own new picture, not the old one moved over it');
   assert.equal(text.has('saved-state/poster%3A2.json'), false, 'the deleted session stays deleted');
+});
+
+test('a picture from outside is read as the web store reads one: an SVG only through the sanitiser, refused where there is none', async () => {
+  const { fs, text, bytes } = memoryFs();
+  const state = createFsStateAPI(fs);
+  const T = '2026-11-21T09:00:00.000Z';
+  const svg = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" onload="alert(1)"><rect width="8" height="8"/></svg>')}`;
+  // Node has no DOMParser, so the sanitiser cannot run: the SVG is not kept at all.
+  await state.restore!('poster:svg', { __toolId: 'poster', title: 'from a backup' }, svg, T, T);
+  const record = JSON.parse(text.get('saved-state/poster%3Asvg.json')!);
+  assert.equal(record.thumb, null);
+  assert.equal(record.preview, undefined);
+  assert.equal(record.data.title, 'from a backup', 'the session itself arrives');
+  // A raster from outside is kept, as a file named by its bytes.
+  await state.restore!('poster:png', { __toolId: 'poster', title: 'raster' }, png('outside'), T, T);
+  const raster = JSON.parse(text.get('saved-state/poster%3Apng.json')!);
+  assert.equal(raster.preview.route, 'received');
+  assert.equal(bytes.size, 1);
+  assert.equal(await state.pictureDataUrl!({ slot: 'poster:png' }), png('outside'));
 });

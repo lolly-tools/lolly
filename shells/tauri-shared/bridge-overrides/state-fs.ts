@@ -69,7 +69,7 @@ import {
   type SessionPreviewRef,
 } from '../../../engine/src/session-preview.ts';
 import type { SavedStateData, WebStateAPI } from '../../web/src/bridge/state.ts';
-import type { PictureInput, PreparedPicture } from '../../web/src/bridge/preview-store.ts';
+import { preparePicture, type PictureInput, type PreparedPicture } from '../../web/src/bridge/preview-store.ts';
 
 /**
  * The slice of a filesystem this module needs, paths relative to the app data dir.
@@ -131,6 +131,11 @@ const STATE_DIR = 'saved-state';
 const PREVIEW_DIR = `${STATE_DIR}/previews`;
 /** Pictures let go of before a sweep of the picture files is due. */
 const SWEEP_AFTER = 20;
+/** Picture files no record pointed at, with when a walk first found each. Not a
+ *  .json name, so no reader of saved-state takes it for a record. */
+const ORPHANS_FILE = `${PREVIEW_DIR}/orphans.txt`;
+/** How long a picture file must stay without a record before a sweep removes the file. */
+const ORPHAN_AGE_MS = 10 * 60_000;
 
 const previewPath = (ref: Pick<SessionPreviewRef, 'key' | 'type'>): string => `${PREVIEW_DIR}/${ref.key}.${previewFileExt(ref.type)}`;
 
@@ -324,10 +329,12 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
   /** Write one record. `times` given (a restore) keeps the session's own update
    *  and save times; otherwise the update time is now, and the save time is now
    *  only when the work changed, so a rename keeps it (matching the web bridge). */
-  /** Picture files this window wrote in the last ten minutes, with the time: the
-   *  sweep leaves them, since their record may be a moment from being written. */
+  /** Picture files this window wrote or pointed a record at in the last ten
+   *  minutes, with the time: the sweep leaves them, since a record naming them may
+   *  be a moment from being written, or written after the sweep's walk began. */
   const writtenHere = new Map<string, number>();
   const WRITTEN_GRACE_MS = 10 * 60_000;
+  const touched = (key: string): void => { writtenHere.set(key, Date.now()); };
   /** Picture writes in flight, by key: two saves of the same picture share one write
    *  rather than the second truncating a file the first has just verified. */
   const writing = new Map<string, Promise<boolean>>();
@@ -368,13 +375,20 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
    *  (a received picture, or a device whose adapter cannot write files). */
   async function pictureFields(input: PictureInput): Promise<{ thumb: string | null; preview?: SessionPreviewRef } | null> {
     if (input == null) return null;
-    if (typeof input === 'string') return decodePictureDataUrl(input) ? { thumb: input } : null;
+    if (typeof input === 'string') {
+      // A picture from outside (a backup, a pack, sync) is read the way the web store
+      // reads one: decoded, and an SVG passed through the app's sanitiser first.
+      const received = await preparePicture(input, 'received').catch(() => null);
+      return received && isPrepared(received) ? pictureFields(received) : null;
+    }
     if (isPrepared(input)) {
-      if (await writePicture(input)) return { thumb: null, preview: input.ref };
+      if (await writePicture(input)) { touched(input.ref.key); return { thumb: null, preview: input.ref }; }
       return { thumb: pictureDataUrl(input.bytes, input.ref.type, input.form) };
     }
     const ref = readPreviewRef(input);
-    return ref && await readPicture(ref) ? { thumb: null, preview: ref } : null;
+    if (!ref || !await readPicture(ref)) return null;
+    touched(ref.key);
+    return { thumb: null, preview: ref };
   }
 
   async function writeRecord(slot: string, data: SavedStateData, picture: PictureInput, times?: { updatedAt: string; savedAt: string }): Promise<void> {
@@ -402,6 +416,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       ? (priorRef ? { thumb: null, preview: priorRef } : typeof prior.thumb === 'string' ? { thumb: prior.thumb } : null)
       : null;
     const fields = given ?? carried ?? { thumb: null };
+    if (fields.preview) touched(fields.preview.key);
     const record: FsStateRecord = {
       slot,
       toolId: data.__toolId,
@@ -472,8 +487,14 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     await sweepPictures();
   }
 
-  /** Remove picture files no record points at. Only after a complete walk of the
-   *  records: a record that could not be read might point at any of them. */
+  /**
+   * Remove picture files no record points at. Only after a complete walk of the
+   * records (a record that could not be read might point at any of them), and only
+   * a file that a walk at least ten minutes earlier also found with no record: a
+   * record written by another window while one walk ran is seen by the next. The
+   * first sighting of each such file is kept in previews/orphans.txt, so the two
+   * walks may be in different launches.
+   */
   async function sweepPictures(): Promise<void> {
     let files: string[];
     try { files = await fs.readDirNames(PREVIEW_DIR); } catch { return; }
@@ -483,11 +504,25 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     for (const { raw } of records) { const ref = sessionPreviewRef(raw); if (ref) named.add(ref.key); }
     const now = Date.now();
     for (const [key, at] of writtenHere) if (now - at > WRITTEN_GRACE_MS) writtenHere.delete(key);
+    const seen = new Map<string, number>();
+    try {
+      for (const line of (await fs.readTextFile(ORPHANS_FILE)).split('\n')) {
+        const [key, at] = line.split(' ');
+        if (key && /^[0-9a-f]{32}$/.test(key) && Number.isFinite(Number(at))) seen.set(key, Number(at));
+      }
+    } catch { /* none yet */ }
+    const next = new Map<string, number>();
     for (const file of files) {
       const key = file.split('.')[0] ?? '';
       if (!/^[0-9a-f]{32}$/.test(key) || named.has(key) || writtenHere.has(key) || writing.has(key)) continue;
-      try { await fs.remove(`${PREVIEW_DIR}/${file}`); } catch { /* kept */ }
+      const first = seen.get(key);
+      if (first !== undefined && now - first >= ORPHAN_AGE_MS) {
+        try { await fs.remove(`${PREVIEW_DIR}/${file}`); continue; } catch { /* kept; asked again next time */ }
+      }
+      next.set(key, first ?? now);
     }
+    const text = [...next].map(([key, at]) => `${key} ${at}`).join('\n');
+    if (text || seen.size) { try { await writeDocument(fs, ORPHANS_FILE, text); } catch { /* the next walk starts the count again */ } }
   }
 
   return {

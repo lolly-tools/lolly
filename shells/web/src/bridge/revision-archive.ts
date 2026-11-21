@@ -4,7 +4,7 @@ import { putStateRecord, recordDataUrl, withPicture } from './state-rows.ts';
 import { revisionPreviewSize, withoutPicture } from './revision-records.ts';
 import {
   PREVIEW_BLOBS, PREVIEW_INDEX, bindOwner, dataUrlOfRow, isPrepared, ownerRef, preparePicture, revisionOwner, scopeFor, txHasPreviews,
-  type PictureTx, type PreparedPicture, type PreviewBlobRow, type PreviewIndexRow, type SessionPreviewRef,
+  type PreparedPicture, type PreviewBlobRow, type PreviewIndexRow, type SessionPreviewRef,
 } from './preview-store.ts';
 import type { RevisionEntry } from './revision-history.ts';
 import type { RecoveryEntry } from './revision-recovery.ts';
@@ -16,6 +16,7 @@ import { collectAssetRefs } from './asset-ref-collector.ts';
 import { REVISION_STORES, type DocumentHead, type RevisionTransaction, documentVersion, holdsUnsavedWork, savedRevision } from './revision-records.ts';
 import { validateRevisionArchive, type RevisionArchive, type RevisionArchiveAPI, type RevisionArchiveSummary } from './revision-archive-format.ts';
 import type { SavedStateData, StateRecord } from './state.ts';
+import { readPreviewRef } from '../../../../engine/src/session-preview.ts';
 import { isDiscardedSlot, isTrashedSlot } from '../lib/batch-slots.ts';
 import { incomingIsNewer, sessionSavedAt } from '../lib/backup-sessions.ts';
 
@@ -56,12 +57,13 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
         if (entry.reason === 'save') pinned.add(entry.id);
         cursor = await cursor.continue();
       }
-      // A state whose picture the archive will not carry as its head's preview has
+      // A state whose own picture the archive will not carry as its head's preview
+      // (an SVG, a picture over the limit, or a newer picture than the head's) has
       // the picture told to the caller instead, from this same transaction.
       if (options.picture) {
         const carried = new Set(rows.filter(row => row.preview).map(row => row.entry.id));
         for (const { document, state } of archive.documents) {
-          if (document.head && document.hash === document.workingHash && carried.has(document.head)) continue;
+          if (document.head && document.hash === document.workingHash && carried.has(document.head) && await headHolds(tx, document.head, state)) continue;
           const url = await recordDataUrl(tx, state);
           if (url) options.picture(document.slot, url);
         }
@@ -303,12 +305,15 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
     if (!fits(entry.bytes)) { summary.historyLeftOut!++; return; }
     await putDraft(entry, data);
   };
-  /** The incoming state as a record with its picture: its head's preview when the
-   *  state is its head, else its own picture from sessions.json, else none. */
+  /** The incoming state as a record with its picture: its own picture from
+   *  sessions.json when the backup carried one (the backup writes it only when the
+   *  head's preview is not that picture), else its head's preview when the state is
+   *  its head, else none. */
   const incomingRecord = async (document: DocumentHead, extra: Partial<StateRecord> = {}): Promise<StateRecord> => {
+    const base = { ...withoutPicture(incomingState), documentId: document.documentId, ...extra } as StateRecord;
+    if (ownPicture) return withPicture(tx, base, ownPicture);
     const picture = document.head && document.hash === document.workingHash ? await headPicture(tx, document.head) : {};
-    const record = { ...withoutPicture(incomingState), ...picture, documentId: document.documentId, ...extra } as StateRecord;
-    return !picture.preview && !picture.thumb && ownPicture ? withPicture(tx, record, ownPicture) : record;
+    return { ...base, ...picture } as StateRecord;
   };
   const addDocument = async (document: DocumentHead): Promise<void> => {
     await docs.put(document);
@@ -380,6 +385,19 @@ async function archivePreview(tx: { objectStore(name: string): { get(key: string
   }
   const legacy = await tx.objectStore('revision-previews').get(id) as string | undefined;
   return typeof legacy === 'string' ? legacy : undefined;
+}
+
+/** The head revision's preview is the state's own picture: the same stored bytes,
+ *  or the same legacy data URL. A state with no picture has nothing else to carry. */
+async function headHolds(tx: { objectStore(name: string): { get(key: string): Promise<unknown> }; objectStoreNames: DOMStringList | { contains(name: string): boolean } }, head: string, state: StateRecord): Promise<boolean> {
+  const own = readPreviewRef(state.preview);
+  if (own) {
+    if (!txHasPreviews(tx)) return false;
+    const row = await tx.objectStore(PREVIEW_INDEX).get(revisionOwner(head)) as PreviewIndexRow | undefined;
+    return row?.content === own.key;
+  }
+  if (typeof state.thumb === 'string' && state.thumb) return await tx.objectStore('revision-previews').get(head) === state.thumb;
+  return true;
 }
 
 /** The picture fields for a state whose current data is its head revision: a

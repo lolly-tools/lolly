@@ -159,17 +159,21 @@ test('a save keeps its picture when another tab lets go of the picture\'s only o
     const tx = original(names as never, mode);
     if (interfere && Array.isArray(names) && names.length === 1 && names[0] === 'preview-blobs') {
       interfere = false;
-      const done = tx.done.then(() => otherTab.delete('poster:1'));
+      // Meanwhile the other tab saves seventy other pictures, then lets go: the hold
+      // lasts as long as this save, whatever the other tab does meanwhile.
+      const done = tx.done.then(async () => {
+        for (let i = 0; i < 70; i++) await otherTab.save(`poster:busy-${i}`, { __toolId: 'poster', title: `busy ${i}` }, await prepared(png(`busy-${i}`)));
+        await otherTab.delete('poster:1');
+      });
       return Object.assign(Object.create(Object.getPrototypeOf(tx)), tx, { done });
     }
     return tx;
   }) as typeof db.transaction;
   await here.save('poster:2', { __toolId: 'poster', title: 'second' }, picture);
   assert.equal(interfere, false, 'the other tab did let go in between');
-  const [row] = await here.list();
-  assert.equal(row!.slot, 'poster:2');
+  const row = (await here.list()).find(r => r.slot === 'poster:2');
   assert.equal(row!.preview?.key, picture.ref.key, 'the record still points at its picture');
-  assert.equal(count('preview-blobs'), 1, 'and the bytes are there');
+  assert.equal(count('preview-blobs'), 71, 'and the bytes are there');
   assert.equal(await here.pictureDataUrl!({ slot: 'poster:2' }), png('shared'));
 });
 

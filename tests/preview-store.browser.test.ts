@@ -121,8 +121,8 @@ test('the writer: a photo-like raster is lossy WebP, thin saturated lines go los
 test('version 26 to 27: the step adds empty stores and drops the old render cache; the idle move then keeps every picture', { skip, timeout: 90_000 }, async () => {
   const { context, page } = await blankPage();
   try {
-    const result = await page.evaluate(async (png) => {
-      const seed = await (0, eval)(`(${png.seed})`)(png.png) as { pngUrl: string; svg: string };
+    const seed = await page.evaluate(SEED_V26, PNG);
+    const result = await page.evaluate(async (seed) => {
       const { openDB, DB_VERSION } = await import(String('/src/bridge/db.ts'));
       const db = await openDB();
       const afterUpgrade = { version: db.version, shipped: DB_VERSION, stores: [...db.objectStoreNames], thumbs: (await db.getAll('state')).filter((r: { thumb?: string }) => r.thumb).length, lean: await db.count('state-list') };
@@ -142,7 +142,7 @@ test('version 26 to 27: the step adds empty stores and drops the old render cach
         exportsRow: await db.get('exports', 'e1'),
         seed,
       };
-    }, { png: PNG, seed: SEED_V26.toString() });
+    }, seed);
     assert.equal(result.afterUpgrade.version, result.afterUpgrade.shipped);
     assert.ok(result.afterUpgrade.stores.includes('preview-blobs') && result.afterUpgrade.stores.includes('state-list'));
     assert.ok(!result.afterUpgrade.stores.includes('generated-previews'), 'the old render cache is dropped, not migrated');
@@ -165,8 +165,8 @@ test('a version 27 step that fails leaves the app working on the version 26 data
   const warnings: string[] = [];
   page.on('console', message => { if (message.type() === 'warning') warnings.push(message.text()); });
   try {
+    await page.evaluate(SEED_V26, PNG);
     const result = await page.evaluate(async (png) => {
-      await (0, eval)(`(${png.seed})`)(png.png);
       // The step fails: creating its first store throws, so the upgrade aborts.
       const create = IDBDatabase.prototype.createObjectStore;
       IDBDatabase.prototype.createObjectStore = function (name: string, options?: IDBObjectStoreParameters) {
@@ -179,9 +179,9 @@ test('a version 27 step that fails leaves the app working on the version 26 data
       const { createStateAPI } = await import(String('/src/bridge/state.ts'));
       const state = createStateAPI(db);
       const rows = await state.list();
-      await state.save('poster:new', { __toolId: 'poster', title: 'new' }, `data:image/png;base64,${png.png}`);
+      await state.save('poster:new', { __toolId: 'poster', title: 'new' }, `data:image/png;base64,${png}`);
       return { version: db.version, stores: [...db.objectStoreNames], rows: rows.length, kept: (await db.get('state', 'poster:new'))?.thumb };
-    }, { png: PNG, seed: SEED_V26.toString() });
+    }, PNG);
     assert.equal(result.version, 26, 'opened as it was');
     assert.ok(!result.stores.includes('preview-blobs'));
     assert.ok(result.stores.includes('generated-previews'), 'nothing was dropped');
@@ -198,14 +198,14 @@ test('a blocked step waits without writing: the version 26 data stays intact and
     const holder = await context.newPage();
     await holder.route(`${origin}/`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>holder</title>' }));
     await holder.goto(`${origin}/`);
-    await holder.evaluate(async (png) => {
-      await (0, eval)(`(${png.seed})`)(png.png);
+    await holder.evaluate(SEED_V26, PNG);
+    await holder.evaluate(async () => {
       // An old tab that never answers the version change.
       await new Promise<void>((resolve) => {
         const request = indexedDB.open('lolly', 26);
         request.onsuccess = () => { (globalThis as { held?: IDBDatabase }).held = request.result; request.result.onversionchange = () => {}; resolve(); };
       });
-    }, { png: PNG, seed: SEED_V26.toString() });
+    });
     const page = await context.newPage();
     await page.route(`${origin}/`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>blocked</title>' }));
     await page.goto(`${origin}/`);

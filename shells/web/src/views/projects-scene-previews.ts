@@ -5,7 +5,7 @@
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
 import { previewImg, type PictureSource } from '../components/preview-image.ts';
-import { escape } from '../utils.ts';
+import { escape as escapeHtml } from '../utils.ts';
 import { t } from '../i18n.ts';
 interface SceneEntry {slot:string;toolId:string;thumb?:string|null;preview?:unknown;updatedAt:string}
 /** A stored picture or a drawn one already belongs to the row. */
@@ -77,9 +77,9 @@ export function recentExportsRailHtml(items: ReadonlyArray<{ href: string; pictu
           ${collapsed ? '' : `<div class="folder-exports-rail">
             ${items.map(x => `
               ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - exportReopenHref() builds a fixed '#/tool/<id>' hash route */ ''}
-              <a class="folder-export-tile" href="${escape(x.href)}" data-open-export
-                 title="${escape(x.caption)} · ${escape(new Date(x.at).toLocaleDateString())}">
-                ${previewImg(x.picture, `alt="${escape(x.caption)}" loading="lazy"`)}
+              <a class="folder-export-tile" href="${escapeHtml(x.href)}" data-open-export
+                 title="${escapeHtml(x.caption)} · ${escapeHtml(new Date(x.at).toLocaleDateString())}">
+                ${previewImg(x.picture, `alt="${escapeHtml(x.caption)}" loading="lazy"`)}
               </a>`).join('')}
           </div>`}
         </section>`;

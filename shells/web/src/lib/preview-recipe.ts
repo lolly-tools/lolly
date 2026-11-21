@@ -31,7 +31,7 @@ const SIGNATURE_FIELDS: ReadonlyArray<'firstname' | 'lastname' | 'email' | 'phon
  * pictures everyone sees.
  */
 export function profileSignature(profile: Profile | null | undefined): string {
-  if (!profile || !profile.useDetails) return '';
+  if (!profile?.useDetails) return '';
   return JSON.stringify(SIGNATURE_FIELDS.map((f) => profile[f] ?? ''));
 }
 

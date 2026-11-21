@@ -294,3 +294,31 @@ test("a backup's state picture is given to the state it belongs to, never to thi
   assert.equal((await phone.state.load('qr-code:s') as { url: string }).url, 'https://example.com/newer', 'the newer copy stays');
   assert.equal(row.preview, undefined, 'and the older copy\'s picture is not put on it');
 });
+
+test("a state picture newer than its head's preview travels too, and is the one restored; the same picture is not written twice", async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-01T09:00:00Z') }); timers = context.mock.timers;
+  const { packBackupSessions } = await import('./backup-sessions.ts');
+  const { preparePicture, isPrepared } = await import('../bridge/preview-store.ts');
+  const { attachSessionPicture } = await import('./preview-cache.ts');
+  const { strFromU8 } = await import('fflate');
+  const pngOf = (tag: string) => `data:image/png;base64,${btoa(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==') + tag)}`;
+  const capture = await preparePicture(pngOf('capture'), 'legacy'), redraw = await preparePicture(pngOf('redraw'), 'legacy');
+  assert.ok(capture && isPrepared(capture) && redraw && isPrepared(redraw));
+  const laptop = await browser();
+  const t = Date.parse('2026-09-01T09:00:00Z');
+  const head = await write(laptop, 'qr-code:p', 'https://example.com/p', 'save', t);
+  await laptop.history.attachPreview(head.id, capture);
+  const same: Record<string, Uint8Array> = {};
+  await packBackupSessions(laptop.state, same as never, { mode: 'manual' });
+  assert.equal((JSON.parse(strFromU8(same['sessions.json']!)) as Array<{ slot: string; thumb?: string | null }>).find(row => row.slot === 'qr-code:p')!.thumb ?? null, null,
+    "the head's preview is the state's picture: carried once, in the archive");
+  // An idle redraw gives the state a newer picture; the head keeps the capture.
+  const before = await laptop.db.get('state', 'qr-code:p') as { updatedAt: string; thumb?: string | null; preview?: unknown };
+  assert.ok(await attachSessionPicture(laptop.db, 'qr-code:p', before, redraw));
+  const files: Record<string, Uint8Array> = {};
+  await packBackupSessions(laptop.state, files as never, { mode: 'manual' });
+  assert.equal((JSON.parse(strFromU8(files['sessions.json']!)) as Array<{ slot: string; thumb?: string }>).find(row => row.slot === 'qr-code:p')!.thumb, pngOf('redraw'));
+  const phone = await browser();
+  await restoreBackupSessions(phone.state, files as Record<string, Uint8Array<ArrayBuffer>>, { mode: 'manual' });
+  assert.equal(await phone.state.pictureDataUrl!({ slot: 'qr-code:p' }), pngOf('redraw'), "the state's own picture, not the head's");
+});

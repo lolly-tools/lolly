@@ -259,9 +259,9 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
   const full = modernDb(db);
   /** The picture a write carries, prepared before any transaction opens. Prepared
    *  bytes are stored first in a transaction of their own, so the record write can
-   *  reference them, and held in memory until it does (holdStaged); bytes nothing
-   *  ends up referencing are swept after an hour. */
-  const stagePicture = async (picture: PictureInput): Promise<{ preview?: SessionPreviewRef; thumb?: string } | null> => {
+   *  reference them, and held in memory until the save finishes (holdStaged);
+   *  bytes nothing ends up referencing are swept after an hour. */
+  const stagePicture = async (picture: PictureInput, holds: Array<() => void>): Promise<{ preview?: SessionPreviewRef; thumb?: string } | null> => {
     // No preview store (a database the upgrade could not reach, the memory driver):
     // the picture stays on the record as a data URL, exactly as before plan 373.
     if (!full && typeof picture === 'string') return picture ? { thumb: picture } : null;
@@ -270,7 +270,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
     if (!full) return isPrepared(prepared) ? { thumb: pictureDataUrl(prepared.bytes, prepared.ref.type, prepared.form) } : null;
     if (isPrepared(prepared)) {
       const { putPictureBytes, holdStaged } = await import('./preview-store.ts');
-      holdStaged(prepared as PreparedPicture);
+      holds.push(holdStaged(prepared as PreparedPicture));
       const tx = full.transaction([PREVIEW_BLOBS], 'readwrite');
       await putPictureBytes(tx, prepared as PreparedPicture);
       await tx.done;
@@ -278,7 +278,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
     }
     return { preview: prepared };
   };
-  const makeRecord = async (slot: string, data: SavedStateData, picture: PictureInput, at?: string, saved: SavedAtRule = 'auto'): Promise<StateRecord> => {
+  const makeRecord = async (slot: string, data: SavedStateData, picture: PictureInput, at?: string, saved: SavedAtRule = 'auto', holds: Array<() => void> = []): Promise<StateRecord> => {
     const prior = await db.get('state', slot).catch(() => undefined);
     const now = at ?? new Date().toISOString();
     const priorSaved = prior ? prior.savedAt ?? prior.updatedAt : undefined;
@@ -289,7 +289,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
           : sameWork ? priorSaved : now;
     // The picture: the one given, else the prior record's when the work is the same
     // (a rename, a re-save of unchanged work), else none until a capture attaches one.
-    const given = picture === undefined || picture === null ? null : await stagePicture(picture);
+    const given = picture === undefined || picture === null ? null : await stagePicture(picture, holds);
     const carried = !given && sameWork && prior
       ? (sessionPreviewRef(prior) ? { preview: sessionPreviewRef(prior)! } : prior.thumb ? { thumb: prior.thumb } : null)
       : null;
@@ -329,17 +329,24 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
       checkpoint: async (slot, data, options) => revisions.commit(await makeRecord(slot, data, null, undefined, options.reason === 'save' ? 'now' : 'carry'), options),
     } satisfies RevisionHistoryAPI } : {}),
     async save(slot, data, picture = null) {
-      const record = await makeRecord(slot, data, picture);
-      await write(record);
-      redrawIfRefused(record, picture);
+      // The picture's bytes are held until the record that points at them is written.
+      const holds: Array<() => void> = [];
+      try {
+        const record = await makeRecord(slot, data, picture, undefined, 'auto', holds);
+        await write(record);
+        redrawIfRefused(record, picture);
+      } finally { for (const release of holds) release(); }
     },
 
     async restore(slot, data, picture, updatedAt, savedAt) {
       const at = Number.isFinite(Date.parse(updatedAt)) ? updatedAt : undefined;
       const saved = savedAt && Number.isFinite(Date.parse(savedAt)) ? savedAt : at;
-      const record = await makeRecord(slot, data, picture, at, saved ? { time: saved } : 'auto');
-      await write(record);
-      redrawIfRefused(record, picture);
+      const holds: Array<() => void> = [];
+      try {
+        const record = await makeRecord(slot, data, picture, at, saved ? { time: saved } : 'auto', holds);
+        await write(record);
+        redrawIfRefused(record, picture);
+      } finally { for (const release of holds) release(); }
     },
 
     async load(slot) {
