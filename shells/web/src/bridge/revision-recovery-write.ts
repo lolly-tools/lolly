@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { putStateRecord } from './state-rows.ts';
-import { scopeFor, type PictureTx } from './preview-store.ts';
+import { scopeFor } from './preview-store.ts';
 /** Load recovery writes only when an author saves or replaces work. */
 import type { IDBPDatabase } from 'idb';
 import type { StateRecord } from './state.ts';
@@ -175,7 +175,7 @@ async function replaceOnce(db: IDBPDatabase, record: StateRecord, before: Docume
       if (documentVersion(doc) !== documentVersion(before))
         throw new Error(t('This document changed during replacement. Reopen it before trying again.'));
       if (snapshot && incoming === JSON.stringify(snapshot.data)) {
-        await putStateRecord(tx as unknown as PictureTx, { ...record, data: snapshot.data, documentId: doc.documentId }, snapshot.bytes);
+        await putStateRecord(tx, { ...record, data: snapshot.data, documentId: doc.documentId }, snapshot.bytes);
         // The same data saved from outside the editor is a save too: a state a
         // recovery draft wrote now counts as saved (plan 277 P1, review B1). The
         // version is kept, so an editor with this document open does not diverge.
@@ -209,7 +209,7 @@ async function replaceOnce(db: IDBPDatabase, record: StateRecord, before: Docume
       }
       await docs.put({ ...doc, version: crypto.randomUUID(), workingHash: '' });
     }
-    await putStateRecord(tx as unknown as PictureTx, { ...record, ...(doc ? { documentId: doc.documentId } : {}) });
+    await putStateRecord(tx, { ...record, ...(doc ? { documentId: doc.documentId } : {}) });
     await tx.done;
   } catch (error) {
     try {

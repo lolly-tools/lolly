@@ -15,7 +15,7 @@ import { pictureDataUrl } from '../../../../engine/src/session-preview.ts';
 import type { IDBPDatabase } from 'idb';
 import {
   PREVIEW_BLOBS, STATE_LIST, hasPreviewStores, isPrepared, preparePicture, scopeFor, readPictureRow, blobOfRow, dataUrlOfRow,
-  type PictureInput, type PictureTx, type PreparedPicture, type SessionPreviewRef,
+  type PictureInput, type PreparedPicture, type SessionPreviewRef,
 } from './preview-store.ts';
 import { putStateRecord, deleteStateRecord, recordDataUrl, type StateListRow } from './state-rows.ts';
 import type { RightsDecisionV1 } from '@lolly-tools/core/rights-v1';
@@ -211,10 +211,11 @@ export function workOf(data: unknown): string {
 
 /** The full database the preview store and the lean list need. A narrow test stub
  *  or the memory driver lacks `transaction` and keeps the pre-373 behaviour. */
+function isFullDb(db: StateDb | IDBPDatabase): db is IDBPDatabase {
+  return typeof (db as Partial<IDBPDatabase>).transaction === 'function' && !!(db as Partial<IDBPDatabase>).objectStoreNames;
+}
 function modernDb(db: StateDb): IDBPDatabase | null {
-  const full = db as unknown as Partial<IDBPDatabase>;
-  return typeof full.transaction === 'function' && full.objectStoreNames && hasPreviewStores(full as IDBPDatabase)
-    && full.objectStoreNames.contains(STATE_LIST) ? full as IDBPDatabase : null;
+  return isFullDb(db) && hasPreviewStores(db) && db.objectStoreNames.contains(STATE_LIST) ? db : null;
 }
 
 /** A list row as `list()` returns it: the lean row without its bookkeeping. */
@@ -248,10 +249,10 @@ function entryOfRecord(r: StateRecord): StateListEntry {
 /** A picture that arrived from outside (a pack, a backup, sync, beam) and could not
  *  be kept (an SVG the sanitiser would not pass, bytes that are not a picture)
  *  leaves the session with none; it is drawn here from its own document on idle
- *  time instead (lib/preview-idle.ts), so the tile does not stay empty. */
+ *  time instead (lib/preview-events.ts), so the tile does not stay empty. */
 function redrawIfRefused(record: StateRecord, picture: PictureInput): void {
   if (typeof picture !== 'string' || !picture || record.preview || record.thumb || typeof document === 'undefined') return;
-  void import('../lib/preview-idle.ts').then(({ queueStaleTile }) => queueStaleTile({ slot: record.slot, toolId: record.toolId })).catch(() => {});
+  void import('../lib/preview-events.ts').then(({ staleTile }) => staleTile({ slot: record.slot, toolId: record.toolId })).catch(() => {});
 }
 
 export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebStateAPI {
@@ -268,7 +269,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
     if (!full) return isPrepared(prepared) ? { thumb: pictureDataUrl(prepared.bytes, prepared.ref.type, prepared.form) } : null;
     if (isPrepared(prepared)) {
       const { putPictureBytes } = await import('./preview-store.ts');
-      const tx = full.transaction([PREVIEW_BLOBS], 'readwrite') as unknown as PictureTx;
+      const tx = full.transaction([PREVIEW_BLOBS], 'readwrite');
       await putPictureBytes(tx, prepared as PreparedPicture);
       await tx.done;
       return { preview: prepared.ref };
@@ -310,7 +311,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
    *  preview store is here, else straight into `state` as before. */
   const writePlain = async (record: StateRecord): Promise<void> => {
     if (!full) { await db.put('state', indexSavedWork(record)); return; }
-    const tx = full.transaction(scopeFor(full, ['state']), 'readwrite') as unknown as PictureTx;
+    const tx = full.transaction(scopeFor(full, ['state']), 'readwrite');
     await putStateRecord(tx, record);
     await tx.done;
   };
@@ -376,7 +377,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
       if (!record) return null;
       if (!full) return record.thumb ?? null;
       const tx = full.transaction([PREVIEW_BLOBS]);
-      return recordDataUrl(tx as never, record);
+      return recordDataUrl(tx, record);
     },
 
     async emojiStamp(slot) {
@@ -396,7 +397,7 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
     async delete(slot) {
       if (revisions) await revisions.delete(slot);
       else if (full) {
-        const tx = full.transaction(scopeFor(full, ['state']), 'readwrite') as unknown as PictureTx;
+        const tx = full.transaction(scopeFor(full, ['state']), 'readwrite');
         await deleteStateRecord(tx, slot);
         await tx.done;
       } else await db.delete('state', slot);

@@ -21,8 +21,10 @@
  * person's eyes.
  */
 import type { IDBPDatabase } from 'idb';
+import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { prefersReducedMotion } from './a11y-prefs.ts';
 import { renderBusy } from './render-busy.ts';
+import { onStaleTile, type StaleTile } from './preview-events.ts';
 
 /** Most tiles one visit to a view redraws. */
 const REDRAWS_PER_VISIT = 20;
@@ -123,12 +125,18 @@ let migrationStarted = false;
  * the export log, then pictures no record points at. Safe to stop at any point
  * (each step is one transaction) and resumes where it stopped on the next load.
  */
-export function startPreviewMigration(db: IDBPDatabase): void {
+export function startPreviewMigration(given?: IDBPDatabase): void {
   // A measurement hook (scripts/seed-preview-library.ts holds the move back to
   // measure a library as it was), like the preview build's __lollyForceVectorThumb.
   if ((globalThis as { __lollyPreviewMoveHold?: boolean }).__lollyPreviewMoveHold) return;
-  if (migrationStarted || !db.objectStoreNames.contains('preview-index')) return;
+  if (migrationStarted) return;
   migrationStarted = true;
+  void (given ? Promise.resolve(given) : import('../bridge/db.ts').then(m => m.openDB())).then(db => {
+    if (db.objectStoreNames.contains('preview-index')) migrateOnIdle(db);
+  }).catch(() => { migrationStarted = false; });
+}
+
+function migrateOnIdle(db: IDBPDatabase): void {
   watchBattery();
   let stage = 0;
   onIdle(async stop => {
@@ -149,19 +157,17 @@ export function startPreviewMigration(db: IDBPDatabase): void {
 }
 
 /** A session tile whose picture is stale or missing, asking for a redraw. */
-export function queueStaleTile(tile: { slot: string; toolId?: string; key?: string }): void {
+export function queueStaleTile(tile: StaleTile): void {
   if (!tile.slot || done.has(tile.slot)) return;
   queued.set(tile.slot, tile);
   watchBattery();
   if (!running) { running = true; onIdle(drainOne); }
 }
 
-/** The host the redraw renders with (set by the bridge once it exists). */
-let redrawHost: RedrawHost | null = null;
-export interface RedrawHost {
-  state: { load(slot: string): Promise<unknown>; save(slot: string, data: never, picture?: unknown): Promise<void>; list?: () => Promise<unknown> };
-}
-export function setRedrawHost(host: RedrawHost | null): void { redrawHost = host; }
+/** The host the redraw renders with: the live web host (lib/host-ref.ts), or one a
+ *  test sets. */
+let redrawHost: HostV1 | null = null;
+export function setRedrawHost(host: HostV1 | null): void { redrawHost = host; }
 
 async function drainOne(stop: () => boolean): Promise<boolean> {
   const route = currentRoute();
@@ -186,7 +192,7 @@ async function drainOne(stop: () => boolean): Promise<boolean> {
  * record changed while it drew.
  */
 async function redrawSession(tile: { slot: string; key?: string }): Promise<void> {
-  const host = redrawHost ?? (await import('./host-ref.ts')).getHostRef() as unknown as RedrawHost | null;
+  const host = redrawHost ?? (await import('./host-ref.ts')).getHostRef();
   if (!host) return;
   const { isBatchSlot } = await import('./batch-slots.ts');
   if (isBatchSlot(tile.slot)) return;
@@ -197,7 +203,7 @@ async function redrawSession(tile: { slot: string; key?: string }): Promise<void
   const active = await db.get('profile', 'active-design-system').catch(() => undefined);
   if (before.designSystem?.id && typeof active === 'string' && active && active !== before.designSystem.id) return;
   const { renderSessionPicture } = await import('./preview-render.ts');
-  const picture = await renderSessionPicture(host as never, before.data);
+  const picture = await renderSessionPicture(host, before.data);
   if (!picture) return;
   const after = await db.get('state', tile.slot) as { updatedAt?: string; data?: unknown } | undefined;
   if (!after || after.updatedAt !== before.updatedAt) return;
@@ -220,3 +226,6 @@ async function redrawSession(tile: { slot: string; key?: string }): Promise<void
 export function resetPreviewIdle(): void {
   queued.clear(); done.clear(); running = false; redrawsThisVisit = 0; lastRoute = ''; migrationStarted = false;
 }
+
+// Reports made before this module loaded (lib/preview-events.ts) arrive now.
+onStaleTile(queueStaleTile);

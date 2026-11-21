@@ -4,7 +4,9 @@
  *  to `changed` with its slot, so the caller can patch that one tile in place. */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
-import type { PictureSource } from '../components/preview-image.ts';
+import { previewImg, type PictureSource } from '../components/preview-image.ts';
+import { escape } from '../utils.ts';
+import { t } from '../i18n.ts';
 interface SceneEntry {slot:string;toolId:string;thumb?:string|null;preview?:unknown;updatedAt:string}
 /** A stored picture or a drawn one already belongs to the row. */
 const pictured=(row:SceneEntry):boolean=>!!(row.thumb||row.preview);
@@ -61,4 +63,24 @@ export async function projectRecentExports():Promise<Array<{href:string;picture:
     const {listExports,exportReopenHref}=await import('../lib/export-history.ts');
     return (await listExports(12)).filter(item=>item.thumb||item.preview).map(item=>({href:exportReopenHref(item),picture:{preview:item.preview,thumb:item.thumb},caption:item.filename||item.label,at:item.at}));
   }catch{return [];}
+}
+
+/** The Recent exports rail at the root of Projects (plans/133 WP-10): the downloads
+ *  log's reopen tiles, each picture read through components/preview-image.ts. */
+export function recentExportsRailHtml(items: ReadonlyArray<{ href: string; picture: PictureSource; caption: string; at: number }>, collapsed: boolean): string {
+  return `
+        <section class="projects-exports folder-exports">
+          <button type="button" class="projects-exports-head" data-recents-toggle aria-expanded="${!collapsed}">
+            <span class="folder-exports-title">${t('Recent exports')}</span>
+            <span class="projects-exports-count">${items.length}</span>
+          </button>
+          ${collapsed ? '' : `<div class="folder-exports-rail">
+            ${items.map(x => `
+              ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - exportReopenHref() builds a fixed '#/tool/<id>' hash route */ ''}
+              <a class="folder-export-tile" href="${escape(x.href)}" data-open-export
+                 title="${escape(x.caption)} · ${escape(new Date(x.at).toLocaleDateString())}">
+                ${previewImg(x.picture, `alt="${escape(x.caption)}" loading="lazy"`)}
+              </a>`).join('')}
+          </div>`}
+        </section>`;
 }

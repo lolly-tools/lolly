@@ -1634,7 +1634,7 @@ export async function ingestBeamItem(
   ctx.written.push({ kind: 'session', slot });
   // A session that came with no picture (beam carries raster only, so an SVG
   // picture stays home) gets one drawn here on idle time, from its own document.
-  if (!thumb) void import('./preview-idle.ts').then(({ queueStaleTile }) => queueStaleTile({ slot, toolId })).catch(() => {});
+  if (!thumb) void import('./preview-events.ts').then(({ staleTile }) => staleTile({ slot, toolId })).catch(() => {});
 
   return { kind: 'session', slot, label: sessionLabel, rewritten, unresolved };
 }

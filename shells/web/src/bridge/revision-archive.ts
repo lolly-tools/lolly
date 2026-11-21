@@ -127,7 +127,7 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
           const picture = pictures.get(row.entry.id);
           if (row.preview && !await revisionPreviewSize(tx, row.entry.id)) {
             if (picture && usage.previews + picture.bytes.byteLength <= budgets.previews) {
-              if (await bindOwner(tx as unknown as PictureTx, revisionOwner(row.entry.id), 'revision', picture)) usage.previews += picture.bytes.byteLength;
+              if (await bindOwner(tx, revisionOwner(row.entry.id), 'revision', picture)) usage.previews += picture.bytes.byteLength;
             } else if (!picture && !txHasPreviews(tx) && usage.previews + row.preview.length <= budgets.previews) {
               usage.previews += row.preview.length;
               await tx.objectStore('revision-previews').put(row.preview, row.entry.id);
@@ -287,7 +287,7 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
   const addDocument = async (document: DocumentHead): Promise<void> => {
     await docs.put(document);
     const picture = document.head && document.hash === document.workingHash ? await headPicture(tx, document.head) : {};
-    await putStateRecord(tx as unknown as PictureTx, { ...withoutPicture(incomingState), ...picture, documentId: document.documentId });
+    await putStateRecord(tx, { ...withoutPicture(incomingState), ...picture, documentId: document.documentId });
   };
   if (plan.kind === 'add' || plan.kind === 'copy') {
     await addDocument({ ...row.document, slot: plan.slot });
@@ -321,7 +321,7 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
     await keep(plan.localSnapshot, state, 'kept', document);
     const picture = document.head && document.hash === document.workingHash ? await headPicture(tx, document.head) : {};
     await docs.put(document);
-    await putStateRecord(tx as unknown as PictureTx, { ...withoutPicture(incomingState), ...picture, documentId: document.documentId, openedAt: state?.openedAt,
+    await putStateRecord(tx, { ...withoutPicture(incomingState), ...picture, documentId: document.documentId, openedAt: state?.openedAt,
       createdAt: state?.createdAt ?? incomingState.createdAt });
     summary.replaced!++;
     return;
@@ -330,7 +330,7 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
   // backup's document, marked as saved outside the editor so it is adopted on open.
   if (!current && state) {
     await docs.put({ ...row.document, slot: plan.slot, workingHash: '' });
-    await putStateRecord(tx as unknown as PictureTx, { ...state, documentId: row.document.documentId });
+    await putStateRecord(tx, { ...state, documentId: row.document.documentId });
   }
   await keep(plan.incoming, incomingState, 'import', current ?? { ...row.document, slot: plan.slot });
   // "Kept this browser's newer copy" is said only when this copy is the newer one.

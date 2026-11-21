@@ -129,13 +129,6 @@ export async function createBridge(): Promise<WebHost> {
 
   // Order matters: assets depends on db; export depends on host for watermark style.
   host.state = createStateAPI(db, REVISION_STORES.every(name => db.objectStoreNames.contains(name)) ? createRevisionStore(db) : undefined);
-  // Pictures written before the one preview store (plan 373) move into it on idle
-  // time, a few records per slice, after the first paint. Nothing waits on it: until
-  // a record has moved, it is read the way it always was.
-  if (db.objectStoreNames.contains('preview-index')) {
-    const start = setTimeout(() => { void import('../lib/preview-idle.ts').then(m => m.startPreviewMigration(db)).catch(() => {}); }, 4000);
-    (start as { unref?: () => void }).unref?.();
-  }
   host.profile = createProfileAPI(db);
   // Shell-internal like previews (not part of HostV1): Content Credentials device
   // identity + CA cert. A lazy facade - all five methods are async, and its only

@@ -7,7 +7,7 @@ import type { RecoveryStore } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
 import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction, revisionPreviewSize, dropRevisionPreview } from './revision-records.ts';
 import { putStateRecord, deleteStateRecord, withPicture } from './state-rows.ts';
-import { bindOwner, isPrepared, preparePicture, revisionOwner, scopeFor, txHasPreviews, type PictureInput, type PictureTx, type SessionPreviewRef } from './preview-store.ts';
+import { bindOwner, isPrepared, preparePicture, revisionOwner, scopeFor, txHasPreviews, type PictureInput, type SessionPreviewRef } from './preview-store.ts';
 import { pictureDataUrl, PREVIEW_MAX_BYTES } from '../../../../engine/src/session-preview.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
 import { DISCARDED_SLOT_PREFIX, DISCARD_RETENTION_MS, discardedAt, isHiddenSlot } from '../lib/batch-slots.ts';
@@ -107,7 +107,7 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
       if (keepable && usage.previews + cost - priorSize <= budgets.previews) {
         if (modern) {
           // Bound first, then the legacy copy goes: the new form exists before the old leaves.
-          if (await bindOwner(tx as unknown as PictureTx, revisionOwner(id), 'revision', picture)) {
+          if (await bindOwner(tx, revisionOwner(id), 'revision', picture)) {
             await tx.objectStore('revision-previews').delete(id);
             usage.previews += cost - priorSize;
           }
@@ -122,7 +122,7 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
       const head = await tx.objectStore('revision-documents').get(row.slot) as DocumentHead | undefined;
       const state = await tx.objectStore('state').get(row.slot) as StateRecord | undefined;
       if (state && head?.head === id && (head.workingHash ?? head.hash) === row.hash && state.documentId === row.documentId) {
-        await putStateRecord(tx as unknown as PictureTx, await withPicture(tx as unknown as PictureTx, state, picture));
+        await putStateRecord(tx, await withPicture(tx, state, picture));
       }
       await tx.done;
       noteWritten(usage.previews - before);
@@ -157,7 +157,7 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
         await tx.objectStore('revision-documents').delete(slot);
       }
       await recovery.clearCommitted(tx, slot, true);
-      await deleteStateRecord(tx as unknown as PictureTx, slot);
+      await deleteStateRecord(tx, slot);
       await tx.done;
     },
     async sweep() {

@@ -10,7 +10,7 @@ import { captureRevision } from './revision-capture.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
 import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction, documentVersion, savedPointer, writeCurrentState, pictureOf, withoutPicture, revisionHasPreview } from './revision-records.ts';
 import { putStateRecord } from './state-rows.ts';
-import { bindOwner, revisionOwner, scopeFor, txHasPreviews, type PictureTx } from './preview-store.ts';
+import { bindOwner, revisionOwner, scopeFor, txHasPreviews } from './preview-store.ts';
 import { readPreviewRef, PREVIEW_MAX_BYTES } from '../../../../engine/src/session-preview.ts';
 import {
   DELETIONS_PER_WRITE, EVICTIONS_PER_WRITE, EVICT_AT, EVICT_TO, evictUnopened, keptRevisions, noteWritten, planThinning, plannedBytes,
@@ -169,7 +169,7 @@ async function adoptState(tx: RevisionTransaction, current: StateRecord | undefi
     if (!size || size > PREVIEW_MAX_BYTES) return;
     const usage = await readUsage(tx);
     if (usage.previews + size > budgets.previews) return;
-    if (await bindOwner(tx as unknown as PictureTx, revisionOwner(revisionId), 'revision', ref)) await writeUsage(tx, { ...usage, previews: usage.previews + size });
+    if (await bindOwner(tx, revisionOwner(revisionId), 'revision', ref)) await writeUsage(tx, { ...usage, previews: usage.previews + size });
     return;
   }
   const thumb = current.thumb;

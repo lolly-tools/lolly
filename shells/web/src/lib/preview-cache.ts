@@ -17,8 +17,7 @@
  */
 import type { IDBPDatabase } from 'idb';
 import {
-  PREVIEW_BLOBS, PREVIEW_INDEX, PREVIEW_STORES, bindOwner, cacheOwner, hasPreviewStores, pictureSrc, putPictureBytes, releaseOwner, scopeFor,
-  type PictureTx, type PreparedPicture, type PreviewIndexRow, type SessionPreviewRef,
+  PREVIEW_BLOBS, PREVIEW_INDEX, PREVIEW_STORES, bindOwner, cacheOwner, hasPreviewStores, pictureSrc, putPictureBytes, releaseOwner, scopeFor, type PreparedPicture, type PreviewIndexRow, type SessionPreviewRef,
 } from '../bridge/preview-store.ts';
 
 const DAY = 86_400_000;
@@ -57,7 +56,7 @@ export async function storePreview(recipe: string, picture: PreparedPicture): Pr
   const db = await database();
   if (db) {
     try {
-      const tx = db.transaction([...PREVIEW_STORES], 'readwrite') as unknown as PictureTx;
+      const tx = db.transaction([...PREVIEW_STORES], 'readwrite');
       await bindOwner(tx, cacheOwner(recipe), 'cache', picture);
       await tx.done;
       counts.writes++;
@@ -118,7 +117,7 @@ export async function sweepPreviewCache(budget?: number): Promise<number> {
   let removed = 0;
   for (const row of rows) {
     if (total <= limit) break;
-    const tx = db.transaction([...PREVIEW_STORES], 'readwrite') as unknown as PictureTx;
+    const tx = db.transaction([...PREVIEW_STORES], 'readwrite');
     await releaseOwner(tx, row.id);
     await tx.done;
     total -= row.size ?? 0; removed++;
@@ -140,7 +139,7 @@ export async function clearPreviewCache(): Promise<void> {
 export async function attachSessionPicture(db: IDBPDatabase, slot: string, updatedAt: string, picture: PreparedPicture): Promise<SessionPreviewRef | null> {
   if (!hasPreviewStores(db)) return null;
   const { putStateRecord, withPicture } = await import('../bridge/state-rows.ts');
-  const tx = db.transaction(scopeFor(db, ['state']), 'readwrite') as unknown as PictureTx;
+  const tx = db.transaction(scopeFor(db, ['state']), 'readwrite');
   const record = await tx.objectStore('state').get(slot) as import('../bridge/state.ts').StateRecord | undefined;
   if (!record || record.updatedAt !== updatedAt) { await tx.done; return null; }
   await putPictureBytes(tx, picture);

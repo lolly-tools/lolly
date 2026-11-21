@@ -31,8 +31,7 @@ import type { IDBPDatabase } from 'idb';
 import type { StateRecord } from './state.ts';
 import type { ExportEntry } from '../lib/export-history.ts';
 import {
-  PREVIEW_BLOBS, PREVIEW_INDEX, STATE_LIST, bindOwner, exportOwner, isPrepared, ownerRef, preparePicture, revisionOwner, scopeFor,
-  type PictureTx, type PreparedPicture, type PreviewBlobRow,
+  PREVIEW_BLOBS, PREVIEW_INDEX, STATE_LIST, bindOwner, exportOwner, isPrepared, ownerRef, preparePicture, revisionOwner, scopeFor, type PreparedPicture, type PreviewBlobRow,
 } from './preview-store.ts';
 import { leanRow, putStateRecord, withPicture, type StateListRow } from './state-rows.ts';
 import { sessionPreviewRef } from '../../../../engine/src/session-record.ts';
@@ -141,7 +140,7 @@ export async function migrateSessions(db: IDBPDatabase, options: MigrationOption
       const picture = await preparePicture(record.thumb, 'legacy').catch(() => null);
       if (picture && isPrepared(picture)) prepared.set(record.slot, picture);
     }
-    const tx = db.transaction(scopeFor(db, ['state']), 'readwrite') as unknown as PictureTx;
+    const tx = db.transaction(scopeFor(db, ['state']), 'readwrite');
     let last = meta?.last;
     for (const read of records) {
       const current = await tx.objectStore('state').get(read.slot) as StateRecord | undefined;
@@ -181,7 +180,7 @@ export async function migrateStragglers(db: IDBPDatabase, options: MigrationOpti
     if (!read || !holdsLegacyPicture(read) || sessionPreviewRef(read)) continue;
     const picture = await preparePicture(read.thumb, 'legacy').catch(() => null);
     if (!picture || !isPrepared(picture)) continue;
-    const tx = db.transaction(scopeFor(db, ['state']), 'readwrite') as unknown as PictureTx;
+    const tx = db.transaction(scopeFor(db, ['state']), 'readwrite');
     const current = await tx.objectStore('state').get(row.slot) as StateRecord | undefined;
     if (current && current.updatedAt === read.updatedAt) await putStateRecord(tx, await withPicture(tx, current, picture));
     await tx.done;
@@ -212,7 +211,7 @@ export async function migrateRevisionPreviews(db: IDBPDatabase, options: Migrati
       const picture = await preparePicture(value, 'legacy').catch(() => null);
       if (picture && isPrepared(picture)) prepared.set(id, picture);
     }
-    const tx = db.transaction(['revision-previews', 'revision-usage', 'revisions', PREVIEW_BLOBS, PREVIEW_INDEX], 'readwrite') as unknown as PictureTx;
+    const tx = db.transaction(['revision-previews', 'revision-usage', 'revisions', PREVIEW_BLOBS, PREVIEW_INDEX], 'readwrite');
     const usage = { bytes: 0, previews: 0, ...(await tx.objectStore('revision-usage').get('total') as { bytes?: number; previews?: number } | undefined) };
     for (const id of keys) {
       after = id;
@@ -245,7 +244,7 @@ export async function migrateExportPictures(db: IDBPDatabase, options: Migration
     if (typeof entry.thumb !== 'string' || !entry.thumb) continue;
     const picture = await preparePicture(entry.thumb, 'legacy').catch(() => null);
     if (!picture || !isPrepared(picture)) continue;
-    const tx = db.transaction(['exports', PREVIEW_BLOBS, PREVIEW_INDEX], 'readwrite') as unknown as PictureTx;
+    const tx = db.transaction(['exports', PREVIEW_BLOBS, PREVIEW_INDEX], 'readwrite');
     const current = await tx.objectStore('exports').get(entry.id) as ExportEntry | undefined;
     if (current && current.thumb === entry.thumb) {
       const ref = await bindOwner(tx, exportOwner(entry.id), 'export', picture);

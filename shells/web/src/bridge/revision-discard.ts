@@ -16,7 +16,7 @@ import type { RecoveryStore } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
 import { type DocumentHead, type SavedPointer, documentVersion, holdsUnsavedWork, savedRevision } from './revision-records.ts';
 import { putStateRecord } from './state-rows.ts';
-import { ownerRef, revisionOwner, scopeFor, type PictureTx, type SessionPreviewRef } from './preview-store.ts';
+import { ownerRef, revisionOwner, scopeFor, type SessionPreviewRef } from './preview-store.ts';
 import { readRevision } from './revision-read.ts';
 import { MOVE_STORES, moveSlot, purgeDiscarded } from './revision-maintenance.ts';
 import { discardedSlot } from '../lib/batch-slots.ts';
@@ -70,7 +70,7 @@ export async function discardUnsaved(db: IDBPDatabase, recovery: RecoveryStore, 
     for (const draft of await drafts.index('slot').getAll(slot) as Array<{ id: string; diverged: boolean }>)
       if (!draft.diverged) await drafts.put({ ...draft, diverged: true });
     const ref = await ownerRef(tx, revisionOwner(saved.id));
-    await putStateRecord(tx as unknown as PictureTx, restoredRecord(record, data, entry, saved, current.saved !== undefined, ref ?? legacy));
+    await putStateRecord(tx, restoredRecord(record, data, entry, saved, current.saved !== undefined, ref ?? legacy));
     // The saved revision becomes the head again. The discarded checkpoints keep
     // their place in the document's history; the next checkpoint follows the save.
     await tx.objectStore('revision-documents').put({ ...current, head: entry.id, hash: entry.hash, workingHash: entry.hash,

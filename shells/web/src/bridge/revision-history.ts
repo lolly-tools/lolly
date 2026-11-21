@@ -2,7 +2,7 @@
 /** Local revision storage (plan 221). No transport, DOM, or global database opens. */
 import type { IDBPDatabase } from 'idb';
 import { putStateRecord } from './state-rows.ts';
-import { ownerSrc, revisionOwner, scopeFor, type PictureInput, type PictureTx } from './preview-store.ts';
+import { ownerSrc, revisionOwner, scopeFor, type PictureInput } from './preview-store.ts';
 import type { AppHistoryAPI } from './app-history.ts';
 import type { RevisionArchiveAPI } from './revision-archive-format.ts';
 import type { RevisionFidelityAPI } from './revision-fidelity.ts';
@@ -131,7 +131,7 @@ export function createRevisionStore(db: IDBPDatabase): RevisionStore {
       const tx = db.transaction(scopeFor(db, ['state', 'revision-documents', 'revisions']), 'readwrite');
       const doc = await tx.objectStore('revision-documents').get(slot) as DocumentHead | undefined;
       const record = await tx.objectStore('state').get(slot) as StateRecord | undefined;
-      if (record) await putStateRecord(tx as unknown as PictureTx, { ...record, openedAt: new Date().toISOString() });
+      if (record) await putStateRecord(tx, { ...record, openedAt: new Date().toISOString() });
       const unsaved = !!record && holdsUnsavedWork(doc, doc ? await savedRevision(tx, doc) : null);
       await tx.done;
       return { record: record ?? null, head: doc?.head ?? null, version: documentVersion(doc), unsaved,

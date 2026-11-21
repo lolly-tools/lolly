@@ -1785,6 +1785,10 @@ async function boot(): Promise<void> {
   // the first-run welcome to close as well.
   // Scripted exports fetch their own resources; offline warming can exhaust a worker's request budget.
   if (!scriptedExport && !isIframeMode()) catalogReady.then(() => afterWelcomeIdle(() => { void syncCorePrefetch(host as unknown as Parameters<typeof syncCorePrefetch>[0]); }));
+  // Pictures written before the one preview store (plan 373) move into it a few
+  // records per idle slice; nothing waits on it, and a record reads the old way until
+  // it has moved (lib/preview-idle.ts says when the move holds back).
+  if (!scriptedExport && !isIframeMode()) afterWelcomeIdle(() => { void import('./lib/preview-idle.ts').then(m => m.startPreviewMigration()).catch(() => {}); });
   // Hosted design systems (plans/186 section 3.6): once a day, and when the tab
   // comes back to the front after a day away, ask each host whether its design
   // system moved. Idle-scheduled and best-effort - a host that is away, or a

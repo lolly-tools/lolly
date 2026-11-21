@@ -11,6 +11,7 @@
  * from the stored bytes in the form it always had.
  */
 import type { SessionPreviewRef } from '../../../../engine/src/session-preview.ts';
+import { heldObjectUrl } from './preview-urls.ts';
 
 export interface RowWithPicture {
   slot?: string;
@@ -35,4 +36,16 @@ export async function rowPictureDataUrl(state: PictureState, row: RowWithPicture
   if (!state.pictureDataUrl) return null;
   if (row.preview) return state.pictureDataUrl(row.preview).catch(() => null);
   return null;
+}
+
+/**
+ * A picture to embed inside another SVG (a folder's cover mosaic): a data URL or
+ * nothing, since an SVG loaded in an `<img>` cannot fetch anything. A stored picture
+ * qualifies only when its data URL is already at hand (an SVG a tile has read); a
+ * raster's object URL cannot be used there.
+ */
+export function embeddablePictureSrc(p: { thumb?: string | null; preview?: SessionPreviewRef | null; url?: string | null } | null | undefined): string {
+  const held = p?.preview ? heldObjectUrl(p.preview.key) : null;
+  const src = p?.thumb || held || p?.url || '';
+  return src.startsWith('data:') ? src : '';
 }

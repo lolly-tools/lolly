@@ -14,6 +14,7 @@
  * On a database without the new stores (an upgrade that could not run), the same
  * calls write the record alone, with its picture as a data URL as before.
  */
+import type { IDBPTransaction } from 'idb';
 import { indexSavedWork } from './history-index.ts';
 import type { StateRecord } from './state.ts';
 import {
@@ -80,7 +81,7 @@ export function leanRow(record: StateRecord, bytes = recordBytes(record)): State
 }
 
 const inScope = (tx: PictureTx, name: string): boolean => tx.objectStoreNames.contains(name);
-const dbHas = (tx: PictureTx, name: string): boolean => !!(tx as unknown as { db?: { objectStoreNames: DOMStringList } }).db?.objectStoreNames.contains(name);
+const dbHas = (tx: PictureTx, name: string): boolean => !!(tx.db as { objectStoreNames?: DOMStringList } | undefined)?.objectStoreNames?.contains(name);
 
 /** Refuse a write whose transaction left out a store this database has: the lean
  *  row or the picture row would drift from the record. */
@@ -146,7 +147,7 @@ export async function withPicture(tx: PictureTx, record: StateRecord, picture: P
 
 /** The picture a record shows, as a data URL, for a format that still carries one.
  *  Reads the stored bytes for a reference, or returns the legacy field. */
-export async function recordDataUrl(tx: { objectStore(name: string): { get(key: string): Promise<unknown> }; objectStoreNames: { contains(name: string): boolean } | DOMStringList }, record: Pick<StateRecord, 'preview' | 'thumb'>): Promise<string | null> {
+export async function recordDataUrl(tx: Pick<IDBPTransaction<unknown, string[], IDBTransactionMode>, 'objectStore' | 'objectStoreNames'>, record: Pick<StateRecord, 'preview' | 'thumb'>): Promise<string | null> {
   const ref = readPreviewRef(record.preview);
   if (ref && tx.objectStoreNames.contains(PREVIEW_BLOBS)) {
     const row = await tx.objectStore(PREVIEW_BLOBS).get(ref.key) as PreviewBlobRow | undefined;

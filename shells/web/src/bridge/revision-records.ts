@@ -2,7 +2,7 @@
 import type { IDBPTransaction } from 'idb';
 import type { SavedStateData, StateRecord } from './state.ts';
 import { putStateRecord } from './state-rows.ts';
-import { revisionOwner, txHasPreviews, ownerRef, ownerSize, releaseOwner, type PictureTx } from './preview-store.ts';
+import { revisionOwner, txHasPreviews, ownerRef, ownerSize, releaseOwner } from './preview-store.ts';
 
 /** The stores a history write names. Open a write with `scopeFor(db, ...)`
  *  (preview-store.ts), which adds the lean list and the preview stores where this
@@ -128,7 +128,7 @@ export async function revisionHasPreview(tx: RevisionTransaction, id: string): P
 /** Remove a revision's picture in both forms and return the bytes it counted. */
 export async function dropRevisionPreview(tx: RevisionTransaction, id: string): Promise<number> {
   const size = await revisionPreviewSize(tx, id);
-  if (txHasPreviews(tx)) await releaseOwner(tx as unknown as PictureTx, revisionOwner(id));
+  if (txHasPreviews(tx)) await releaseOwner(tx, revisionOwner(id));
   await tx.objectStore('revision-previews').delete(id);
   return size;
 }

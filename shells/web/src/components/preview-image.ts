@@ -21,11 +21,13 @@
  * A raster comes back as an object URL and SVG as a data URL (lib/preview-urls.ts
  * says why SVG is never a blob: URL). A picture whose bytes are missing turns into
  * the view's empty placeholder, and a session tile whose picture came from another
- * build or another device asks for a redraw on idle time (lib/preview-idle.ts).
+ * build or another device asks for a redraw on idle time (lib/preview-events.ts,
+ * taken by lib/preview-idle.ts).
  */
 import type { SessionPreviewRef } from '../../../../engine/src/session-preview.ts';
 import { readPreviewRef } from '../../../../engine/src/session-preview.ts';
 import { escape } from '../utils.ts';
+import { staleTile } from '../lib/preview-events.ts';
 
 /** What a tile may know about its picture. */
 export interface PictureSource {
@@ -166,8 +168,5 @@ async function fill(img: HTMLImageElement): Promise<void> {
 }
 
 async function requestRedraw(img: HTMLImageElement): Promise<void> {
-  try {
-    const { queueStaleTile } = await import('../lib/preview-idle.ts');
-    queueStaleTile({ slot: img.dataset.previewSlot!, toolId: img.dataset.previewTool, key: img.dataset.previewKey });
-  } catch { /* a redraw is an extra */ }
+  staleTile({ slot: img.dataset.previewSlot!, toolId: img.dataset.previewTool, key: img.dataset.previewKey });
 }

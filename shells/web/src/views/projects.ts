@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
-import { rowPicture } from '../lib/session-picture.ts';
-import { previewImg, type PictureSource } from '../components/preview-image.ts';
-import { heldObjectUrl } from '../lib/preview-urls.ts';
+import { embeddablePictureSrc, rowPicture } from '../lib/session-picture.ts';
 import { closeButtonHtml } from '../lib/close-button.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
-import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
+import { createProjectScenePreviews, projectRecentExports, recentExportsRailHtml } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu, removeProjectAsset } from './projects-asset-actions.ts';
 import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } from './projects-asset-view.ts';
@@ -331,7 +329,7 @@ export async function mountProjects(
   // Recent-exports rail (plans/133 WP-10): the downloads log's reopen tiles,
   // rendered at the ROOT of /p now that this view is the one folder manager.
   // Collapsible, remembered per device (a convenience, not state that matters).
-  let recentExports: Array<{ href: string; picture: PictureSource; caption: string; at: number }> = [];
+  let recentExports: Awaited<ReturnType<typeof projectRecentExports>> = [];
   const RECENTS_COLLAPSED_KEY = 'lolly-projects-recents-collapsed';
   let recentsCollapsed = ((): boolean => { try { return localStorage.getItem(RECENTS_COLLAPSED_KEY) === '1'; } catch { return false; } })();
 
@@ -637,21 +635,7 @@ export async function mountProjects(
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
         ${looseTiles}${blueprintTile()}${templatesRootTile()}${trashTile}
       </div>
-      ${recentExports.length ? `
-        <section class="projects-exports folder-exports">
-          <button type="button" class="projects-exports-head" data-recents-toggle aria-expanded="${!recentsCollapsed}">
-            <span class="folder-exports-title">${t('Recent exports')}</span>
-            <span class="projects-exports-count">${recentExports.length}</span>
-          </button>
-          ${recentsCollapsed ? '' : `<div class="folder-exports-rail">
-            ${recentExports.map(x => `
-              ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - exportReopenHref() builds a fixed '#/tool/<id>' hash route */ ''}
-              <a class="folder-export-tile" href="${escape(x.href)}" data-open-export
-                 title="${escape(x.caption)} · ${escape(new Date(x.at).toLocaleDateString())}">
-                ${previewImg(x.picture, `alt="${escape(x.caption)}" loading="lazy"`)}
-              </a>`).join('')}
-          </div>`}
-        </section>` : ''}`);
+      ${recentExports.length ? recentExportsRailHtml(recentExports, recentsCollapsed) : ''}`);
   }
 
 
@@ -2315,11 +2299,7 @@ export async function mountProjects(
     // Up to four member previews, resolved the same way the grid tile's mosaic is.
     const thumbs = folder.items.slice(0, 4).map(i => {
       const p = previewForRef(i.ref);
-      // A stored picture embeds only when its data URL is already at hand (an SVG a
-      // tile has read): a raster's object URL cannot be fetched from inside an SVG.
-      const held = p && 'preview' in p && p.preview ? heldObjectUrl(p.preview.key) : null;
-      const src = p && 'thumb' in p && p.thumb ? p.thumb : held ? held : p && 'url' in p && p.url ? p.url : '';
-      return typeof src === 'string' && src.startsWith('data:') ? src : '';
+      return embeddablePictureSrc(p);
     });
     // Body x14..166, y30..112; cells inset 8 with a 4px gutter.
     const CELL_W = 66, CELL_H = 31;
@@ -2394,8 +2374,7 @@ export async function mountProjects(
       return {
         id: e.slot,
         name,
-        preview: e.thumb || undefined,
-        picture: { preview: e.preview, thumb: e.thumb, slot: e.slot, toolId: e.toolId },
+        preview: e.thumb || undefined, picture: { preview: e.preview, thumb: e.thumb, slot: e.slot, toolId: e.toolId },
         href: resumeHref(e),
         featured: { blurb: name !== tn ? tn : undefined },
       };

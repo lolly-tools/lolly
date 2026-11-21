@@ -73,14 +73,14 @@ export async function renderSessionPicture(host: HostV1, data: Record<string, un
   const toolId = typeof data.__toolId === 'string' ? data.__toolId : '';
   if (!toolId) return null;
   const [{ rowFromToolSession }, { displayFormatOf, rasterFormatOf }, { getTool }] = await Promise.all([
-    import('../pro/folder-rows.ts'), import('./featured-render.ts'), import('../bridge/tool-loader.ts'),
+    import('../pro/folder-rows.ts'), import('./preview-formats.ts'), import('../bridge/tool-loader.ts'),
   ]);
   const tool = await getTool(toolId);
   const formats = tool.manifest.render?.formats;
   const primary = displayFormatOf(formats);
   if (!primary) return null;
-  const row = rowFromToolSession(data as Parameters<typeof rowFromToolSession>[0]) as unknown as { values?: Record<string, unknown>; artifactDigest?: string };
-  const values = row.values ?? {};
+  const row = rowFromToolSession(data as Parameters<typeof rowFromToolSession>[0]);
+  const values = (row.values ?? {}) as Record<string, unknown>;
   const opts = row.artifactDigest ? { artifactDigest: row.artifactDigest } : {};
   try {
     return await renderLookPicture(host, toolId, primary, values, opts);
