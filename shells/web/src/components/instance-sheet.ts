@@ -147,7 +147,6 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
       const current = getInstanceBase();
       return `
         <h2 class="modal-title">${t('Where should Lolly get its tools?')}</h2>
-        <p class="modal-msg">${t('Choose what this install reads its catalogue and tools from.')}</p>
         <div class="instance-choices">
           <button type="button" class="instance-choice" data-act="choose-bundled">
             <span class="instance-choice-icon">${icon('package', { size: 20 })}</span>
