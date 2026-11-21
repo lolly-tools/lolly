@@ -45,7 +45,8 @@ test('the browser tier keeps a Design PNG unless none is here or the route is as
   const absent = () => ({ available: false, reason: 'no Chromium' });
   assert.equal(designStillDecision({}, present).draw, 'browser');
   assert.match(designStillDecision({}, present).because, /browser render tier is available/);
-  assert.deepEqual(designStillDecision({}, absent), { draw: 'here', because: 'no browser render tier is available (no Chromium)' });
+  assert.deepEqual(designStillDecision({}, absent), { draw: 'here', because: 'no browser render tier is available (no Chromium)', noBrowser: true });
+  assert.deepEqual(designStillDecision({}, present, true), { draw: 'here', because: '--allow-browser-free asks for this route' }, 'the flag asks for this route as LOLLY_DESIGN_RASTER=resvg does');
   assert.equal(designStillDecision({ LOLLY_DESIGN_RASTER: 'resvg' }, present).draw, 'here');
   assert.deepEqual(designStillDecision({ LOLLY_DESIGN_RASTER: 'gpu' }, present), { draw: 'browser', because: designStillDecision({}, present).because, ignored: 'gpu' });
 });

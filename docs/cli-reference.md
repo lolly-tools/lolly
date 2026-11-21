@@ -91,7 +91,7 @@ These work on every command:
 | `-h`, `--help`, `-v`, `--version` | Recognised anywhere in the arguments. |
 | `--` | Ends option parsing. Everything after it is positional, which is the only way to pass a `longtext` value that itself starts with `--`. |
 
-A flag that takes a value is refused in its bare form rather than read as `"1"`: `lolly qr-code --output` is an error, not a file called `1`. `NO_COLOR` is honoured alongside the terminal check. Render flags are listed in [Render with the CLI](/info/cli-rendering.html#flags).
+A flag that takes a value is refused in its bare form rather than read as `"1"`: `lolly qr-code --output` is an error, not a file called `1`. `NO_COLOR` is honoured alongside the terminal check. Render flags are listed in [Render with the CLI](/info/cli-rendering.html#flags). One of them, `--allow-browser-free`, accepts a picture drawn without a browser that may differ from the app's, where the CLI would otherwise refuse it; the CLI warns and records the acceptance in the Content Credential, and still refuses a picture that would be wrong.
 
 <!--i:eti-cpu-->
 ## Environment variables

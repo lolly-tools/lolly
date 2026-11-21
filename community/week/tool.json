@@ -1,7 +1,7 @@
 {
   "id": "week",
   "name": "Week",
-  "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.",
+  "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked, for a slide or a walkthrough.",
   "a11yLabel": "Week calendar: {{default heading \"a week\"}}",
   "version": "1.1.0",
   "engineVersion": "^1.343.0",

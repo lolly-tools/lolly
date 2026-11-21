@@ -7,7 +7,7 @@ description: "Operate the Lolly Prompt Card tool (prompt-card) using its declare
 
 Tool ID: `prompt-card`. Tool version: `1.1.0`. Engine range: `^1.0.0`.
 
-Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens.
+Typeset a long prompt into one image for a multimodal model - image input is often cheaper than the same words as text tokens.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

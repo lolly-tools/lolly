@@ -58,8 +58,9 @@ export function refreshPrintUi(ta: ActionsCtx): void {
   if (protectionEl) {
     // Print marks live in their own section now (data-printmarks-only), so the
     // protection wrapper's visibility does NOT include isPrintFmt.
+    const madeWithShown = el!.querySelector<HTMLElement>('[data-madewith-section]')?.hidden === false;
     const anyValid =
-      fmt === 'pdf' || fmt === 'pdf-cmyk' || fmt === 'zip' || isC2paFmt(fmt) || isImprintFmt(fmt) || ta.hasLicence;
+      fmt === 'pdf' || fmt === 'pdf-cmyk' || fmt === 'zip' || isC2paFmt(fmt) || isImprintFmt(fmt) || ta.hasLicence || madeWithShown;
     protectionEl.style.display = anyValid ? 'flex' : 'none';
   }
   // The audio / loudness / HDR fold: every child is gated by its own format flag, so
