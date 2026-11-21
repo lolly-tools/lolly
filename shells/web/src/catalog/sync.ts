@@ -295,11 +295,6 @@ export async function prepareAssetCatalogFetch(signInRequired?: () => Promise<bo
  * no remembered refusal, the sync starts at once as it always has.
  * A prepared conditional asset response can overlap bridge startup; only the same
  * instance may adopt it, and its validator is stored when the sync consumes the response.
- *
- * `toolsAfter`, when given, holds back the full tool index (the largest catalog file)
- * until it settles. main.ts passes it on a cold gallery visit that paints from the slim
- * index, so the full index does not share the link with the gallery's own code (plan
- * 371). The asset index is not held back: the first paint reads its brand metadata.
  */
 export async function syncCatalog(
   host: SyncHost,
@@ -307,7 +302,6 @@ export async function syncCatalog(
   maintenanceGate?: () => Promise<unknown>,
   signInRequired?: () => Promise<boolean>,
   preparedAssets?: Promise<PreparedAssetFetch>,
-  toolsAfter?: Promise<unknown>,
 ): Promise<void> {
   // Load the persisted instance base BEFORE the first fetch. Wired here (not in
   // main.ts) so the sync bootstrap is self-contained: every entry point that
@@ -329,10 +323,9 @@ export async function syncCatalog(
     const assetsReady = duringAssetSync(allowed ? allowed.then(go => go ? runSync() : undefined) : runSync());
     if (allowed && !await allowed) return;
     setOffline(false);
-    const tools = (): Promise<void> => toolsAfter ? toolsAfter.then(() => syncTools(host), () => syncTools(host)) : syncTools(host);
     await Promise.all([
       assetsReady,
-      catalogVerificationAvailable() ? Promise.resolve() : onAssetsReady ? assetsReady.catch(() => {}).then(tools) : tools(),
+      catalogVerificationAvailable() ? Promise.resolve() : onAssetsReady ? assetsReady.catch(() => {}).then(() => syncTools(host)) : syncTools(host),
     ]);
   } catch (e) {
     if (e instanceof CatalogRefusedError || catalogRefused()) {

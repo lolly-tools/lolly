@@ -88,7 +88,6 @@ import { startWebGpuCheck, webGpuChecked } from './lib/webgpu/device.ts';
 import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
 import { takeViewInput } from './lib/view-input.ts';
 import { createLateGate } from './lib/late-gate.ts';
-import { holdToolIndex, type ToolIndexHold } from './lib/tool-index-hold.ts';
 import { handOverBootSet } from './lib/sw-boot-set.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
@@ -1288,12 +1287,12 @@ function catalogHostOf(host: Awaited<ReturnType<typeof createBridge>>) {
 /** Start the catalog once the shell's instance choice is settled. `signInRequired`
  *  is the control-plane gate, asked only by an instance that refused its catalog
  *  before (catalog/sync.ts), so a signed-out visitor sends no catalog requests. */
-function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>, preparedAssets?: ReturnType<typeof prepareAssetCatalogFetch>, toolsAfter?: Promise<void>): Promise<void> {
+function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>, preparedAssets?: ReturnType<typeof prepareAssetCatalogFetch>): Promise<void> {
   const welcomeRoute = parseRoute().name;
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
     ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery' && !webGpuStop && !lateGate.stopped()).catch(console.error) : undefined;
-  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets, toolsAfter)
+  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets)
     .then(async () => { try { await mergeInstalledToolsIntoIndex(); } catch { /* no installed tools / no index yet */ } });
 }
 
@@ -1370,13 +1369,6 @@ async function boot(): Promise<void> {
   const firstRoute = bootRoute.name;
   if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   let slimIndexReady = coldGallery && !isTauriShell() ? loadSlimToolIndex() : null;
-  // A cold gallery visit that paints from the slim index holds the full tool index (the
-  // largest catalog file) until the first mount, so it does not share the link with the
-  // gallery's code (plan 371, lib/tool-index-hold.ts). Released after the first navigate
-  // and before any wait on catalogReady; the hold also lets go by itself, so a slim
-  // request that never answers holds nothing up.
-  let toolIndexHold: ToolIndexHold | undefined;
-  const releaseToolIndex = (): void => { toolIndexHold?.release(); };
 
   const hostReady = createBridge();
   // The optional deployment control plane's probe (src/org/) is a time-boxed fetch
@@ -1412,10 +1404,9 @@ async function boot(): Promise<void> {
   // No storage sync starts until its design-system migration has finished.
   const earlyAssets = !isTauriShell() && coldGallery && firstRoute === 'gallery'
     ? prepareAssetCatalogFetch(signInRequired) : undefined;
-  if (slimIndexReady && firstRoute === 'gallery') toolIndexHold = holdToolIndex(slimIndexReady);
   const host = await hostReady;
   // Web can sync while profile and chrome initialize. Tauri starts later (see above).
-  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets, toolIndexHold?.after) : null;
+  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets) : null;
   trackVisualViewport();
   initMobilePlatformFit();
   // A Design 3D scene box keeps its uploads as asset ids inside its scene query, and only
@@ -2027,7 +2018,7 @@ async function boot(): Promise<void> {
   // decision (views/gallery.ts), so the boot hold on the welcome gate can go.
   const firstNavigate = async (): Promise<void> => {
     paintedLang = loadedLang();
-    try { await navigate(host, { force: true }); } finally { settleWelcomeDecision(); releaseToolIndex(); }
+    try { await navigate(host, { force: true }); } finally { settleWelcomeDecision(); }
   };
 
   if (fastPath) {
@@ -2053,7 +2044,6 @@ async function boot(): Promise<void> {
       }
     });
   } else {
-    releaseToolIndex();
     await catalogReady;
     await firstNavigate();
   }
