@@ -78,6 +78,8 @@ export function setPictureReader(read: PictureReader | null): void { reader = re
 
 let installed = false;
 let io: IntersectionObserver | null = null;
+/** Bind any picture tiles already in the document (a view that kept its markup). */
+export function bindPreviewImages(): void { ensureReader(); }
 const READ_MARGIN = '600px';
 
 /** Bound elements, so a tile reinserted by its view is not read twice. */
@@ -87,28 +89,39 @@ let reads = 0;
 export function pictureReadCount(): number { return reads; }
 
 function ensureReader(): void {
-  if (installed || typeof document === 'undefined' || typeof MutationObserver === 'undefined') return;
-  installed = true;
-  if (typeof IntersectionObserver !== 'undefined') {
-    io = new IntersectionObserver(entries => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        io!.unobserve(entry.target);
-        void fill(entry.target as HTMLImageElement);
-      }
-    }, { rootMargin: READ_MARGIN });
+  if (typeof document === 'undefined') return;
+  if (!installed) {
+    installed = true;
+    if (typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          io!.unobserve(entry.target);
+          void fill(entry.target as HTMLImageElement);
+        }
+      }, { rootMargin: READ_MARGIN });
+    }
   }
-  const watch = (node: Node): void => {
-    if (node.nodeType !== 1) return;
-    const el = node as Element;
-    if (el.matches('img[data-preview-key]')) observe(el as HTMLImageElement);
-    else if (el.firstElementChild) for (const img of el.querySelectorAll<HTMLImageElement>('img[data-preview-key]')) observe(img);
-  };
-  new MutationObserver(records => {
-    for (const record of records) for (const node of record.addedNodes) watch(node);
-  }).observe(document.documentElement, { childList: true, subtree: true });
-  // Markup inserted before the observer existed (the first paint).
-  for (const img of document.querySelectorAll<HTMLImageElement>('img[data-preview-key]')) observe(img);
+  scheduleSweep();
+}
+
+/**
+ * Bind the tiles a view has just written. A view inserts the markup previewImg()
+ * returned right after building it, or a moment later, so the document is swept on
+ * the next frame and twice more shortly after. Only after markup was built: no
+ * observer watches the whole document, so an editor's own DOM work costs nothing.
+ */
+let sweepPending = false;
+function scheduleSweep(): void {
+  if (sweepPending) return;
+  sweepPending = true;
+  const sweep = (): void => { for (const img of document.querySelectorAll<HTMLImageElement>('img[data-preview-key]')) observe(img); };
+  const frame = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (fn: () => void) => setTimeout(fn, 16);
+  frame(() => {
+    sweep();
+    setTimeout(sweep, 300);
+    setTimeout(() => { sweep(); sweepPending = false; }, 1500);
+  });
 }
 
 function observe(img: HTMLImageElement): void {
