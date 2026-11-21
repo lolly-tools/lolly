@@ -35,11 +35,18 @@
       "typeEscapes": 37
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1680,
+      "lines": 1701,
       "largestFunctionLines": 1001,
       "importFanIn": 6,
-      "importFanOut": 34,
+      "importFanOut": 36,
       "typeEscapes": 13
+    },
+    "shells/web/src/lib/lofi-voices.ts": {
+      "lines": 1734,
+      "largestFunctionLines": 92,
+      "importFanIn": 19,
+      "importFanOut": 7,
+      "typeEscapes": 0
     },
     "shells/web/src/lib/rebrand/controller.ts": {
       "lines": 2292,
@@ -70,14 +77,14 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/design-inspector.ts": {
-      "lines": 1557,
-      "largestFunctionLines": 2011,
+      "lines": 1551,
+      "largestFunctionLines": 2006,
       "importFanIn": 1,
-      "importFanOut": 33,
+      "importFanOut": 34,
       "typeEscapes": 0
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1833,
+      "lines": 1835,
       "largestFunctionLines": 1705,
       "importFanIn": 1,
       "importFanOut": 75,
@@ -108,7 +115,7 @@
       "lines": 2776,
       "largestFunctionLines": 2036,
       "importFanIn": 8,
-      "importFanOut": 46,
+      "importFanOut": 47,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
