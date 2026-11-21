@@ -125,6 +125,10 @@ button, input, select, textarea, optgroup {
    the scrollbar width. A no-op with overlay scrollbars (macOS default); a real fix with
    classic ones. */
 html { scrollbar-gutter: stable; }
+/* iOS WebKit enlarges some runs of text by a rule of its own once the window has changed
+   width (a fold, a turn), so one screen size drew two type sizes depending on what came
+   before. The shell sets every size itself, and Large text is --a11y-fs (parts/a11y.css). */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 body {
   margin: 0;

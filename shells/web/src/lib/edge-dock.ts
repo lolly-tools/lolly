@@ -478,6 +478,10 @@ function onTabKey(e: KeyboardEvent, id: PanelId, fulls: PanelId[]): void {
  */
 function applySplit(): void {
   if (!body) return;
+  // Tabs fill the column one at a time and have no split. A window resize calls this
+  // for any column, and two tabs are also two slots: sized here, the tab on screen was
+  // left at half height until the next relayout.
+  if (body.querySelector('.edge-dock-tabs')) return;
   // The split is between the two FULL panels only; a compact bar sits outside it.
   const slots = body.querySelectorAll<HTMLElement>('.edge-dock-slot:not(.edge-dock-slot--compact)');
   if (slots.length !== 2) return;
@@ -864,8 +868,8 @@ function bindResize(): void {
     if (occupants.size) { applyWidth(); applySplit(); }
   };
   window.addEventListener('resize', guard);
-  // The layout class (lib/layout-posture.ts) settles a beat after the resize that
-  // caused it, so the same guard runs again once it has: entering two panes for a
+  // The layout class (lib/layout-posture.ts) also changes with no resize (a fold
+  // report, a posture change), so the same guard runs then: entering two panes for a
   // tool with its own sidebar takes the column away.
   onLayoutChange(guard);
   // The split panes also move without any resize (a divider drag, Swap sides), and
