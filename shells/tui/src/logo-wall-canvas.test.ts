@@ -8,7 +8,8 @@
  *    being skipped with a "needs pixel access" warning;
  *  - a PNG export at 1080 x 1920 is drawn from an SVG laid out for that shape, so
  *    the logos reach the lower part of the picture rather than sitting in a 16:9
- *    band across its middle;
+ *    band across its middle, once the logos are not measured with the canvas (a
+ *    wall that is gets the browser tier, plan 371);
  *  - the canvas size (engine 1.293) follows the link's size at mount and the
  *    Export panel's size after, so the terminal preview is the wall the export
  *    writes.
@@ -27,6 +28,10 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const root = await mkdtemp(join(tmpdir(), 'lolly-tui-logo-wall-'));
 after(() => rm(root, { recursive: true, force: true }));
 process.env.LOLLY_STATE_DIR = join(root, 'state');
+// No browser tier here, so a PNG the browser-free route refuses fails with its reason
+// instead of reaching for a web shell build on whichever machine runs this.
+process.env.LOLLY_WEB_DIST = join(root, 'no-web');
+delete process.env.LOLLY_WEB_BASE;
 
 const { isCanvasAvailable } = await import('@lolly-tools/node-shell/canvas');
 const SKIP = !isCanvasAvailable() ? '@napi-rs/canvas is not installed here'
@@ -48,8 +53,20 @@ test('the TUI balances, trims and fills an export of another shape', { skip: SKI
   const { runtime, manifest } = await mountTool('logo-wall', host, '', { logos, transparentBg: true });
   assert.doesNotMatch(logs.join('\n'), /needs pixel access/);
 
+  // Balancing and trimming read the logos' pixels through that canvas, which the browser
+  // draws natively, so the browser-free PNG refuses this wall (resvg-admission.ts).
+  await assert.rejects(exportToFile(runtime, dom, manifest, 'png', join(root, 'measured.png'), { width: 1080, height: 1920 }),
+    /computed part of the picture with a 2D canvas/);
+  // A BMP comes from the same pixels: refused the same way, and handed to the web-shell tier.
+  await assert.rejects(exportToFile(runtime, dom, manifest, 'bmp', join(root, 'measured.bmp'), { width: 1080, height: 1920 }),
+    /computed part of the picture with a 2D canvas.*The browser render tier could not run/);
+
+  // With both off, the wall is drawn here, laid out for the export's shape. A fresh
+  // session: pixel work is counted per document, for as long as the document lives.
+  const fresh = await createTuiBridge({});
+  const plain = await mountTool('logo-wall', fresh.host, '', { logos, transparentBg: true, balance: false, trim: false });
   const out = join(root, 'tall.png');
-  await exportToFile(runtime, dom, manifest, 'png', out, { width: 1080, height: 1920 });
+  await exportToFile(plain.runtime, fresh.dom, plain.manifest, 'png', out, { width: 1080, height: 1920 });
   const sharp = (await import('sharp')).default;
   const { data, info } = await sharp(out).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   assert.deepEqual([info.width, info.height], [1080, 1920]);
