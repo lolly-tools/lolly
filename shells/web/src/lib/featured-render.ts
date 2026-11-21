@@ -53,6 +53,14 @@ export function coverFormats(tool: { formats?: readonly string[]; galleryArt?: '
   return tool.galleryArt === 'render' && !displayFormatOf(tool.formats) ? ['png'] : tool.formats;
 }
 
+/** Where the picture comes from and goes: the preview store and the offscreen
+ *  writer. Replaced in tests, which have no IndexedDB and no render stage. */
+export const previewSeams = {
+  cached: async (key: string): Promise<string | null> => (await import('./preview-cache.ts')).cachedPreview(key),
+  store: async (key: string, picture: import('../bridge/preview-store.ts').PreparedPicture): Promise<string> => (await import('./preview-cache.ts')).storePreview(key, picture),
+  render: async (...args: Parameters<typeof import('./preview-render.ts').renderLookPicture>) => (await import('./preview-render.ts')).renderLookPicture(...args),
+};
+
 // In-flight renders, keyed by recipe. The featured hero row and the gallery carousel
 // both ask for the same look during the post-load window; without this, each ~350ms
 // offscreen render (+ main-thread raster) runs twice concurrently. Both callers share
@@ -60,7 +68,7 @@ export function coverFormats(tool: { formats?: readonly string[]; galleryArt?: '
 const inflight = new Map<string, Promise<string>>();
 
 /** The recipe key of one look (exported for tests). */
-export async function lookRecipe(host: FeaturedHost, toolId: string, values: Record<string, unknown>, previewTimeMs?: number): Promise<{ key: string; context: string; tokenSelection: unknown }> {
+export async function lookRecipe(host: FeaturedHost, toolId: string, values: Record<string, unknown>, previewTimeMs?: number, scope?: string): Promise<{ key: string; context: string; tokenSelection: unknown }> {
   const { previewContextDigest, previewRecipeKey, catalogToolVersion } = await import('./preview-recipe.ts');
   // A cover opens as the person's own colourway, so it is drawn in that colourway too.
   const tokenSelection = await newWorkTokenSelection(host as ColourwaySeedHost);
@@ -72,6 +80,7 @@ export async function lookRecipe(host: FeaturedHost, toolId: string, values: Rec
     ...(tokenSelection ? { colourway: tokenSelection } : {}),
     ...(previewTimeMs !== undefined ? { frame: previewTimeMs } : {}),
     ...(vw > 0 && vh > 0 ? { size: { width: vw, height: vh } } : {}),
+    ...(scope ? { scope } : {}),
   });
   return { key, context, tokenSelection };
 }
@@ -86,8 +95,10 @@ export async function lookRecipe(host: FeaturedHost, toolId: string, values: Rec
  * - an svg-less tool, or one the HTML→SVG walker can't handle - and the tool also has a
  * raster format, it falls back to raster so the preview still shows rather than vanishing.
  *
- * `variantIndex` and `keyPrefix` are kept for the callers' own bookkeeping; the store
- * finds a picture by what was drawn, not by who asked.
+ * The store finds a picture by what was drawn, not by who asked: `variantIndex` and
+ * the plain `keyPrefix` names are the callers' own bookkeeping. A prefix that names a
+ * brand scope (`template@<tag>`, the template chooser's mounted brand slots) is part
+ * of what was drawn, so it enters the recipe.
  */
 export async function renderFeaturedVariant(
   host: FeaturedHost,
@@ -95,34 +106,33 @@ export async function renderFeaturedVariant(
   formats: readonly string[] | undefined,
   _variantIndex: number | string,
   values: Record<string, unknown>,
-  _keyPrefix = 'featured',
+  keyPrefix = 'featured',
   previewTimeMs?: number,
 ): Promise<string> {
   const primary = displayFormatOf(formats);
   if (!primary) throw new Error(`no displayable export format for ${toolId}`);
-  const { key, context, tokenSelection } = await lookRecipe(host, toolId, values, previewTimeMs);
-  const { cachedPreview, storePreview } = await import('./preview-cache.ts');
-  const hit = await cachedPreview(key);
+  const scope = keyPrefix.startsWith('template@') ? keyPrefix.slice('template@'.length) : undefined;
+  const { key, context, tokenSelection } = await lookRecipe(host, toolId, values, previewTimeMs, scope);
+  const hit = await previewSeams.cached(key);
   if (hit) return hit;
   const running = inflight.get(key);
   if (running) return running;
   const job = (async () => {
-    const { renderLookPicture } = await import('./preview-render.ts');
     const vw = Number((values as { width?: unknown }).width);
     const vh = Number((values as { height?: unknown }).height);
     const opts = { tokenSelection: tokenSelection ?? undefined, previewTimeMs, recipe: key, ...(vw > 0 && vh > 0 ? { width: vw, height: vh } : {}) };
     let picture;
     try {
-      picture = await renderLookPicture(host, toolId, primary, values, opts);
+      picture = await previewSeams.render(host, toolId, primary, values, opts);
     } catch (e) {
       const raster = rasterFormatOf(formats);
       if (primary !== 'svg' || !raster || raster === primary) throw e;
-      picture = await renderLookPicture(host, toolId, raster, values, opts);
+      picture = await previewSeams.render(host, toolId, raster, values, opts);
     }
     // The brand changed while this rendered: the picture belongs to the old one.
     const { previewContextDigest } = await import('./preview-recipe.ts');
     if (context !== await previewContextDigest(host)) throw new Error('Preview brand changed during rendering');
-    return storePreview(key, picture);
+    return previewSeams.store(key, picture);
   })();
   inflight.set(key, job);
   try { return await job; } finally { inflight.delete(key); }

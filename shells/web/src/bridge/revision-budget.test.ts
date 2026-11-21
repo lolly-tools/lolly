@@ -46,7 +46,14 @@ function device() {
 }
 type Device = ReturnType<typeof device>;
 const qr = (url: string, extra: Record<string, unknown> = {}): SavedStateData => ({ __toolId: 'qr-code', __label: 'Launch', payload: 'url', url, ...extra });
-const thumb = (n: number): string => `data:image/png;base64,${'A'.repeat(n)}`;
+/** A real PNG of `n` bytes (padding after its end chunk) as a data URL: the preview
+ *  store keeps only bytes that are the picture they claim (plan 373). */
+const PNG_HEAD = atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==');
+const thumb = (n: number): string => `data:image/png;base64,${btoa(PNG_HEAD + 'A'.repeat(Math.max(0, n - PNG_HEAD.length)))}`;
+/** The bytes a thumb(n) costs the History preview budget once it is stored. */
+const thumbBytes = (n: number): number => Math.max(n, PNG_HEAD.length);
+/** The Projects tile's picture, as the data URL a pack would carry. */
+const tileOf = async (dev: { state: { pictureDataUrl?: (ref: { slot: string }) => Promise<string | null> } }, slot: string): Promise<string | null | undefined> => dev.state.pictureDataUrl?.({ slot });
 async function auto(dev: Device, slot: string, data: SavedStateData) {
   const cursor = await dev.history.current(slot);
   return dev.history.checkpoint(slot, data, { reason: 'automatic', expectedHead: cursor.head, expectedVersion: cursor.version });
@@ -82,7 +89,7 @@ test('previews go first: older automatic checkpoints lose their previews, explic
   assert.equal(await dev.history.preview(autos[1]!), null);
   assert.ok(await dev.history.preview(autos[2]!), 'the newest keeps its own');
   assert.deepEqual(revisionsOf(dev, 'qr-code:p').map(row => row.id).sort(), [saved.id, ...autos].sort(), 'no checkpoint was touched');
-  assert.equal((await dev.history.usage()).previews, 2 * thumb(2000).length, 'usage counts exactly what is kept');
+  assert.equal((await dev.history.usage()).previews, 2 * thumbBytes(2000), 'usage counts exactly what is kept');
 });
 
 test('the Projects tile keeps its picture when the preview budget has no room', async () => {
@@ -91,7 +98,7 @@ test('the Projects tile keeps its picture when the preview budget has no room', 
   const entry = await auto(dev, 'qr-code:t', qr('https://example.com/t'));
   await dev.history.attachPreview(entry.id, thumb(2000));
   assert.equal(await dev.history.preview(entry.id), null, 'History has no room for the preview');
-  assert.equal((await dev.state.list()).find(row => row.slot === 'qr-code:t')?.thumb, thumb(2000), 'the tile is not history: it has its picture');
+  assert.equal(await tileOf(dev, 'qr-code:t'), thumb(2000), 'the tile is not history: it has its picture');
   assert.equal((await dev.history.usage()).previews, 0);
 });
 
@@ -104,7 +111,7 @@ test('the tile keeps its last picture through later drafts and checkpoints until
   const cursor = await dev.history.current('qr-code:k');
   await dev.history.recovery.save('qr-code:k', qr('https://example.com/2'), { writerId: 'tab', expectedHead: cursor.head, expectedVersion: cursor.version });
   const second = await auto(dev, 'qr-code:k', qr('https://example.com/2'));
-  const tile = async (): Promise<string | null | undefined> => (await dev.state.list()).find(row => row.slot === 'qr-code:k')?.thumb;
+  const tile = async (): Promise<string | null | undefined> => await tileOf(dev, 'qr-code:k');
   assert.equal(await tile(), thumb(100), 'a tool closed before its capture arrived still leaves a picture');
   await dev.history.attachPreview(second.id, thumb(120));
   assert.equal(await tile(), thumb(120));
@@ -125,7 +132,7 @@ test('an explicit save is never refused by a full budget: it is written as the c
   const opened = await dev.history.open('qr-code:s');
   assert.equal(opened.unsaved, false, 'the record counts as saved');
   assert.equal(opened.adopt, true, 'and the next editor that can records it');
-  assert.equal((await dev.state.list()).find(row => row.slot === 'qr-code:s')?.thumb, thumb(40), 'the tile keeps the picture it had');
+  assert.equal(await tileOf(dev, 'qr-code:s'), thumb(40), 'the tile keeps the picture it had');
   assert.equal((await dev.history.discard('qr-code:s')).outcome, 'unchanged', 'Leave without saving has nothing newer to undo');
 
   // The same through the editor's controller, for a creation that has no history yet.

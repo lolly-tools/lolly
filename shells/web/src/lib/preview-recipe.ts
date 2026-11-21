@@ -111,6 +111,9 @@ export interface PreviewRecipe {
   frame?: string | number;
   /** Rendered at a per-look width and height instead of the tool's canvas. */
   size?: { width: number; height: number };
+  /** A brand scope the render was made under beyond the design system (the template
+   *  chooser's mounted brand slots). */
+  scope?: string;
 }
 
 /** Canonical JSON: object keys sorted at every level, so equal recipes hash equal. */

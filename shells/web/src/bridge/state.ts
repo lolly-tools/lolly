@@ -245,6 +245,15 @@ function entryOfRecord(r: StateRecord): StateListEntry {
   };
 }
 
+/** A picture that arrived from outside (a pack, a backup, sync, beam) and could not
+ *  be kept (an SVG the sanitiser would not pass, bytes that are not a picture)
+ *  leaves the session with none; it is drawn here from its own document on idle
+ *  time instead (lib/preview-idle.ts), so the tile does not stay empty. */
+function redrawIfRefused(record: StateRecord, picture: PictureInput): void {
+  if (typeof picture !== 'string' || !picture || record.preview || record.thumb || typeof document === 'undefined') return;
+  void import('../lib/preview-idle.ts').then(({ queueStaleTile }) => queueStaleTile({ slot: record.slot, toolId: record.toolId })).catch(() => {});
+}
+
 export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebStateAPI {
   const full = modernDb(db);
   /** The picture a write carries, prepared before any transaction opens. Prepared
@@ -318,13 +327,17 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
       checkpoint: async (slot, data, options) => revisions.commit(await makeRecord(slot, data, null, undefined, options.reason === 'save' ? 'now' : 'carry'), options),
     } satisfies RevisionHistoryAPI } : {}),
     async save(slot, data, picture = null) {
-      await write(await makeRecord(slot, data, picture));
+      const record = await makeRecord(slot, data, picture);
+      await write(record);
+      redrawIfRefused(record, picture);
     },
 
     async restore(slot, data, picture, updatedAt, savedAt) {
       const at = Number.isFinite(Date.parse(updatedAt)) ? updatedAt : undefined;
       const saved = savedAt && Number.isFinite(Date.parse(savedAt)) ? savedAt : at;
-      await write(await makeRecord(slot, data, picture, at, saved ? { time: saved } : 'auto'));
+      const record = await makeRecord(slot, data, picture, at, saved ? { time: saved } : 'auto');
+      await write(record);
+      redrawIfRefused(record, picture);
     },
 
     async load(slot) {
