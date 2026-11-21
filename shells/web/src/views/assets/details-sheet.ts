@@ -57,7 +57,7 @@ import { readTuneRecord, tuneLicence, tuneLicenceChoices, withTuneLicence } from
 import { lollyBadge } from '../../lib/lolly-badge.ts';
 import { projectRefSubject } from '../../org/project-catalog-submit.ts';
 import { openCatalogSubmit, uploadSubject } from '../../lib/catalog-submit.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, applyAssetGround, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, iconThemeById, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, startableTemplate, svgTextToDataUrl } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, PAUSE_ICON, PLAY_ICON, SHIELD_ICON, applyAssetGround, attachZoom, groundSwitchHtml, readAssetGround, writeAssetGround, catalogAddedText, emojiPackMeta, emojiPackPin, iconThemeById, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, startableTemplate, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
@@ -525,7 +525,7 @@ export function buildSheet(dt: DetailsCtx): void {
         ${dt.rondo.rondoSectionHtml()}
         <div class="cat-details-tech" data-usage hidden></div>
         ${(isTextAsset && !dt.isSkillAsset) || canOcr || canReadDoc || canReadVector ? `<div class="cat-details-tsig" data-tsig hidden></div>` : ''}
-        ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span>${cat.thumbs.iconSwatchRow(dt.dTheme)}</div>` : ''}
+        ${themable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colours')}</span><div class="cat-group-colours-row">${cat.thumbs.iconSwatchRow(dt.dTheme)}${groundSwitchHtml()}</div></div>` : ''}
         ${treatable ? `<div class="cat-dl-section"><span class="cat-dl-label">${t('Colour')}</span>${cat.thumbs.treatmentSwatchRow(dt.dTreatment)}</div>` : ''}
       </div>`; dt.content = content;
   let destroyModelPreview: (() => void) | undefined;
@@ -835,6 +835,13 @@ export function wireSheetEvents(dt: DetailsCtx): void {
         motionBtn.setAttribute('aria-label', playing ? t('Pause') : t('Play'));
         motionBtn.title = playing ? t('Pause') : t('Play');
       }
+      return;
+    }
+    // Dark ground: the same switch as the grid's, beside the pairs it changes. The grid,
+    // this sheet and every other switch follow through syncAssetGround.
+    if (target.closest('.cat-ground')) {
+      writeAssetGround(readAssetGround() === 'dark' ? 'light' : 'dark');
+      cat.wiring.syncAssetGround();
       return;
     }
     // Colour treatment swatch (raster photos): wash the preview in place via the live CSS
