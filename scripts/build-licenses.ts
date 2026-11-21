@@ -732,9 +732,22 @@ const MANIFEST: {
       version: '0.186.1 (r186)',
       spdx: 'MIT',
       copyright: 'Copyright © 2010-2026 three.js authors',
-      files: 'tools/chart/lib/three-chart.min.js',
+      files: 'tools/chart/lib/three-chart.min.js, tools/timezone/lib/renderer.min.js',
       text: `Copyright © 2010-2026 three.js authors\n\n${MIT_BODY}`,
-      note: "Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives, the PMREM generator and the RoundedBoxGeometry addon, and is rebuilt by scripts/build-chart-three.ts.",
+      note: "Chart's lazy WebGL build carries only its scene, geometry, material and lighting primitives, the PMREM generator and the RoundedBoxGeometry addon, and is rebuilt by scripts/build-chart-three.ts. The Timezone renderer bundles the parts of three.js it uses with its own code; scripts/build-timezone.ts rebuilds it, and the committed file reproduces byte for byte from three 0.186.1.",
+      where: 'web',
+    },
+    {
+      name: 'd3-geo and d3-array (Timezone bundles)',
+      version: 'd3-geo 3.1.1, d3-array 3.2.4',
+      spdx: 'ISC',
+      copyright: 'Copyright 2010-2024 Mike Bostock (d3-geo); Copyright 2010-2023 Mike Bostock (d3-array)',
+      files: 'tools/timezone/hooks.js, tools/timezone/lib/renderer.min.js',
+      text: [
+        readFileSync(join(ROOT, 'community/timezone/licenses/D3-ISC.txt'), 'utf8').trim(),
+        readFileSync(join(ROOT, 'community/timezone/licenses/D3-array-ISC.txt'), 'utf8').trim(),
+      ].join('\n\n---\n\n'),
+      note: 'Bundled into the Timezone hooks and renderer by scripts/build-timezone.ts. Both files reproduce byte for byte from these versions. The licence texts are the upstream files, kept beside the tool in tools/timezone/licenses/.',
       where: 'web',
     },
     {
@@ -767,6 +780,26 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'React and ReactDOM (UMD production builds)',
+      version: '18.3.1',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) Facebook, Inc. and its affiliates.',
+      files: 'tools/sandbox/lib/react.production.min.js, tools/sandbox/lib/react-dom.production.min.js',
+      text: `Copyright (c) Facebook, Inc. and its affiliates.\n\n${MIT_BODY}`,
+      note: 'The umd/*.production.min.js files of the react and react-dom 18.3.1 npm packages, unchanged (SHA-256 pinned in security/vendor-artifacts.json). The Sandbox tool loads them for the code it runs.',
+      where: 'web',
+    },
+    {
+      name: 'Babel standalone (@babel/standalone)',
+      version: '8.0.4',
+      spdx: 'MIT',
+      copyright: 'Copyright (c) 2014-present Sebastian McKenzie and other contributors',
+      files: 'tools/sandbox/lib/babel.min.js',
+      text: `Copyright (c) 2014-present Sebastian McKenzie and other contributors\n\n${MIT_BODY}`,
+      note: 'The babel.min.js file of the @babel/standalone 8.0.4 npm package, unchanged (SHA-256 pinned in security/vendor-artifacts.json). The Sandbox tool uses it to compile JSX and TypeScript in the browser.',
+      where: 'web',
+    },
+    {
       name: 'signalsmith-stretch (WASM)',
       version: '1.3.2',
       spdx: 'MIT',
@@ -796,6 +829,27 @@ const MANIFEST: {
       files: 'shells/web/src/vendor/libopenmpt/libopenmpt.mjs',
       text: LIBOPENMPT_TEXT,
       note: 'Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only - see scripts/build-libopenmpt-wasm.sh.',
+      where: 'web',
+    },
+    {
+      name: 'libjxl JPEG XL codec (compiled WASM)',
+      version: '0.13.0 (5a7da83447212fe4900fc29ce97430b881caa67e) with Brotli 1.2.1, Highway 1.2.0 and skcms 96d9171c94b9; Emscripten 4.0.23',
+      spdx: 'BSD-3-Clause AND MIT AND (Apache-2.0 OR BSD-3-Clause) AND (MIT OR NCSA)',
+      copyright: 'The JPEG XL Project Authors; the Brotli Authors; Google LLC (Highway, skcms); Emscripten authors',
+      files: 'packages/node-shell/wasm/jxl/lolly-jxl.wasm, packages/node-shell/wasm/jxl/vendor/lolly-jxl.mjs',
+      text: (
+        [
+          ['libjxl', 'LICENSE.libjxl'],
+          ['libjxl additional IP rights grant (patents)', 'PATENTS.libjxl'],
+          ['Brotli', 'LICENSE.brotli'],
+          ['Highway (Apache-2.0 OR BSD-3-Clause; the Apache-2.0 text follows)', 'LICENSE.highway'],
+          ['skcms', 'LICENSE.skcms'],
+          ['Emscripten runtime glue', 'LICENSE.emscripten'],
+        ] as [string, string][]
+      )
+        .map(([title, file]) => `${title}:\n\n${readFileSync(join(ROOT, 'packages/node-shell/wasm/jxl', file), 'utf8').trim()}`)
+        .join('\n\n---\n\n'),
+      note: 'libjxl with Brotli, Highway and skcms at the libjxl v0.13.0 submodule pointers (Brotli db24a98aed38, the v1.2.1 tag; Highway 457c891775a7, the 1.2.0 tag), compiled with Lolly\'s adapter (scripts/jxl/adapter.cc) by scripts/build-jxl-wasm.sh. The upstream sources are unchanged. Licence files, hashes and build notes are in packages/node-shell/wasm/jxl/; the commits are also in security/vendor-artifacts.json.',
       where: 'web',
     },
     {
@@ -951,10 +1005,11 @@ const ZXING_CPP_WASM_ENTRY: Entry = {
 
 // The upstream HarfBuzz WASM is a distinct shipped component carried inside the
 // harfbuzzjs npm package, so it sits next to the npm web group rather than in
-// the MANIFEST above.
+// the MANIFEST above. The harfbuzzjs version comes from the lockfile, like the
+// npm entry it follows, so the label cannot fall behind the installed package.
 const HARFBUZZ_WASM_ENTRY: Entry = {
   name: 'HarfBuzz (compiled WASM)',
-  version: '(bundled in harfbuzzjs 1.4.0)',
+  version: `(bundled in harfbuzzjs ${lockedVersion('harfbuzzjs') ?? 'version not locked'})`,
   spdx: 'MIT (HarfBuzz "Old MIT")',
   copyright: '© Google, Behdad Esfahbod, Red Hat, et al.',
   files: 'node_modules/harfbuzzjs/dist/harfbuzz.wasm, harfbuzz-subset.wasm (shipped)',
