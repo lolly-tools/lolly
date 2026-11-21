@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.350.0', () => {
+test('ENGINE_VERSION is 1.349.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -622,8 +622,7 @@ test('ENGINE_VERSION is 1.350.0', () => {
   // 1.347.0 makes the music credit line "Music made with Lolly (https://lolly.tools), CC BY 4.0". Capture is unchanged.
   // 1.348.0 adds the select display "picker" with option glyphs and groups (chrome only). Capture is unchanged.
   // 1.349.0 places a vector picture by its unrounded size and writes gradient stops as CSS holds them. Capture is unchanged.
-  // 1.350.0 refreshes the official C2PA trust list (8 more anchors). Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.350.0');
+  assert.equal(ENGINE_VERSION, '1.349.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
