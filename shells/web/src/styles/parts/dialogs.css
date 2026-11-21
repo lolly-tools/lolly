@@ -73,6 +73,10 @@
    spin on the compositor and keep turning while the main thread is busy. */
 :root:not([data-theme="dark"], [data-theme="brand"]) .view-loading-mark .lolly-mark__reverse :is(.lolly-mark__spin-1, .lolly-mark__spin-2, .lolly-mark__spin-3),
 :is([data-theme="dark"], [data-theme="brand"]) .view-loading-mark .lolly-mark__primary :is(.lolly-mark__spin-1, .lolly-mark__spin-2, .lolly-mark__spin-3) { animation: none; }
+/* A tool open shows the card on the plain ground the view it left gives way to: there
+   is nothing behind it to dim, and a dimmed ground would brighten at once as the tool
+   arrives. The card keeps its own shadow. */
+.view-loading--plain::backdrop { background: transparent; }
 @keyframes view-loading-spin { to { transform: rotate(360deg); } }
 @keyframes view-loading-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
 @media (prefers-reduced-motion: reduce) {

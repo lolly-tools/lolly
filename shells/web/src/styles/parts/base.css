@@ -311,6 +311,11 @@ em, i, cite { font-family: var(--font-italic, var(--font-brand)); }
     animation-iteration-count: 1 !important;
     transition: none !important;
   }
+  /* After its short beat a held snapshot clears to the plain ground: view-fade.ts
+     leaveAt() marks everything but the top bar (and what holds it) with this class. Out
+     of layout and paint altogether, because drawing the view that was left at all, not
+     its motion, was most of the cost of a tool open on a slow phone. */
+  .view-fade-gone { display: none !important; }
 
   /* Tool view is full-bleed - the sidebar provides its own visual edge. */
   .app-view.tool-view {

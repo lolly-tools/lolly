@@ -172,3 +172,41 @@ test('the pressed card shows its dim while the entrance cascade still holds its 
     assert.equal(live, 'opacity(0.6)', 'and shows in the live gallery, before the snapshot is taken');
   } finally { await b.close(); }
 });
+
+test('after the beat: the view leaves layout and paint, the top bar stays, the card stands on the plain ground', { skip: SKIP }, async () => {
+  const b = await (browser as { chromium: any }).chromium.launch({ headless: true });
+  try {
+    const page = await b.newPage({ reducedMotion: 'no-preference' });
+    await page.setContent(`<!doctype html><html><head>
+      <style>${sheet('base.css')}</style><style>${sheet('components.css')}</style><style>${sheet('dialogs.css')}</style>
+      </head><body>
+      <div class="view-fade view-fade--hold app-view"><div class="gallery">
+        <div class="gallery-topbar"><a class="profile-link" id="bar">me</a></div>
+        <div class="tool-masonry view-fade-gone" id="cards"><article class="gtile">QR</article></div>
+      </div></div>
+      <dialog class="modal view-loading view-loading--plain" id="plain"></dialog>
+      <dialog class="modal view-loading" id="dim"></dialog>
+      </body></html>`);
+    const r = await page.evaluate(() => {
+      const plain = document.getElementById('plain') as HTMLDialogElement;
+      plain.showModal();
+      const plainBackdrop = getComputedStyle(plain, '::backdrop').backgroundColor;
+      plain.close();
+      const dim = document.getElementById('dim') as HTMLDialogElement;
+      dim.showModal();
+      const dimBackdrop = getComputedStyle(dim, '::backdrop').backgroundColor;
+      return {
+        cards: getComputedStyle(document.getElementById('cards')!).display,
+        cardBox: (document.querySelector('.gtile') as HTMLElement).getClientRects().length,
+        bar: getComputedStyle(document.getElementById('bar')!).display,
+        plainBackdrop, dimBackdrop,
+      };
+    });
+    assert.equal(r.cards, 'none', 'what leaves is out of layout');
+    assert.equal(r.cardBox, 0, 'and has no box to paint');
+    assert.notEqual(r.bar, 'none', 'the top bar stays');
+    assert.equal(r.plainBackdrop, 'rgba(0, 0, 0, 0)', 'the plain card dims nothing');
+    assert.notEqual(r.dimBackdrop, 'rgba(0, 0, 0, 0)', 'every other loading card keeps its backdrop');
+  } finally { await b.close(); }
+});
+

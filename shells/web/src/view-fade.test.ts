@@ -29,7 +29,7 @@ globalThis.matchMedia = ((q: string) => ({
   onchange: null, dispatchEvent: () => false,
 })) as unknown as typeof globalThis.matchMedia;
 
-const { afterNextPaint, beginViewFade, VIEW_FADE_HOLD_CLASS } = await import('./view-fade.ts');
+const { afterNextPaint, beginViewFade, reclaimViewFade, viewSettled, SETTLE_PENDING_ATTR, VIEW_FADE_GONE_CLASS, VIEW_FADE_HOLD_CLASS } = await import('./view-fade.ts');
 
 /** A fresh #view seeded with some content, detached overlays cleared. */
 function freshView(): HTMLElement {
@@ -123,7 +123,7 @@ test('hold: a tool open marks the snapshot to be held still before the nodes mov
   handle!.commit();
 });
 
-test('hold: other navigations keep the ordinary fade, and reduced motion still makes no snapshot', () => {
+test('hold: other navigations keep the ordinary fade; under reduced motion only a held snapshot is made, and it goes at once', () => {
   reduceMotion = false;
   const plain = beginViewFade(freshView());
   assert.equal(document.querySelector('.view-fade')!.classList.contains(VIEW_FADE_HOLD_CLASS), false);
@@ -131,23 +131,103 @@ test('hold: other navigations keep the ordinary fade, and reduced motion still m
 
   reduceMotion = true;
   const view = freshView();
-  assert.equal(beginViewFade(view, { hold: true }), null, 'reduced motion: no snapshot, held or not');
+  assert.equal(beginViewFade(view), null, 'reduced motion: no snapshot for an ordinary navigation');
   assert.equal(document.querySelector('.view-fade'), null);
-  assert.ok(view.textContent?.includes('old content'));
+  const held = beginViewFade(view, { hold: true });
+  assert.ok(held, 'a tool open covers its mount the same way under reduced motion');
+  held!.commit();
+  assert.equal(document.querySelector('.view-fade'), null, 'and the snapshot goes at once, with no fade');
   reduceMotion = false;
+});
+
+/** A view shaped like the gallery: the top bar inside the view's wrapper, cards beside the bar. */
+function galleryView(): HTMLElement {
+  for (const n of document.querySelectorAll('.view-fade')) n.remove();
+  const view = document.getElementById('view')!;
+  view.className = 'app-view gallery-view';
+  view.innerHTML = '<div class="gallery"><div class="gallery-topbar"><a class="profile-link">me</a></div>'
+    + '<div class="featured-mount">cover</div><div class="tool-masonry"><article class="gtile is-navigating" data-tool-id="qr-code">QR</article></div></div>'
+    + '<footer class="search">search</footer>';
+  return view;
+}
+
+test('leaveAt: after the beat everything but the top bar leaves paint, and the callback runs then', async () => {
+  reduceMotion = false;
+  const handle = beginViewFade(galleryView(), { hold: true, source: 'gallery' })!;
+  let shown = 0;
+  handle.leaveAt(performance.now() + 30, () => { shown++; });
+  const overlay = document.querySelector('.view-fade')!;
+  assert.equal(overlay.querySelectorAll('.' + VIEW_FADE_GONE_CLASS).length, 0, 'still on screen during the beat');
+  await new Promise((r) => setTimeout(r, 60));
+  assert.equal(shown, 1, 'the card is shown in the same moment');
+  const gone = [...overlay.querySelectorAll('.' + VIEW_FADE_GONE_CLASS)].map((el) => el.className.split(' ')[0]);
+  assert.deepEqual(gone.sort(), ['featured-mount', 'search', 'tool-masonry']);
+  assert.equal(overlay.querySelector('.gallery-topbar')!.classList.contains(VIEW_FADE_GONE_CLASS), false, 'the top bar stays');
+  assert.equal(overlay.querySelector('.gallery')!.classList.contains(VIEW_FADE_GONE_CLASS), false, 'and so does what holds it');
+  handle.commit();
+});
+
+test('leaveAt: a tool ready before the beat cancels it, and a passed beat leaves at once', async () => {
+  reduceMotion = false;
+  const early = beginViewFade(galleryView(), { hold: true })!;
+  let shown = 0;
+  early.leaveAt(performance.now() + 30, () => { shown++; });
+  early.commit();
+  await new Promise((r) => setTimeout(r, 60));
+  assert.equal(shown, 0, 'no card when the tool was ready first');
+
+  const late = beginViewFade(galleryView(), { hold: true })!;
+  late.leaveAt(performance.now() - 1, () => { shown++; });
+  assert.equal(shown, 1, 'the beat had passed: the view leaves in the same task');
+  late.commit();
+});
+
+test('reclaim: a Back to the source puts the snapshot back, and only the new handle drops it', () => {
+  reduceMotion = false;
+  const view = galleryView();
+  const tool = beginViewFade(view, { hold: true, source: 'gallery-sig' })!;
+  tool.leaveAt(performance.now() - 1);
+  assert.equal(reclaimViewFade('other-sig'), null, 'another view does not take it');
+  const back = reclaimViewFade('gallery-sig')!;
+  assert.ok(back, 'the view it came from does');
+  const overlay = document.querySelector('.view-fade')!;
+  assert.equal(overlay.querySelectorAll('.' + VIEW_FADE_GONE_CLASS).length, 0, 'everything is back on screen');
+  assert.equal(overlay.querySelector('.is-navigating'), null, 'and the card is no longer pressed');
+  assert.equal(back.place.anchor?.selector, '.gtile[data-tool-id="qr-code"]', 'the pressed card anchors the view');
+  tool.commit();
+  assert.ok(document.querySelector('.view-fade'), 'the superseded tool open does not take it away');
+  back.fade.commit();
+  assert.equal(document.querySelector('.view-fade'), null, 'the remounted view drops it at once, no fade');
+});
+
+test('viewSettled: resolves when no picture on screen is still loading', async () => {
+  await viewSettled(freshView(), { scrollY: 0 }, 200);
+});
+
+test('the gallery names what it has not drawn yet, under the attribute viewSettled reads', () => {
+  const gallery = readFileSync(new URL('./views/gallery.ts', import.meta.url), 'utf8');
+  assert.equal(SETTLE_PENDING_ATTR, 'data-settle-pending');
+  assert.match(gallery, /viewEl\.setAttribute\('data-settle-pending', '\.gtile-hero--preview:not\(\.is-ready\), \.gcar:not\(\.has-art\)'\)/);
+  assert.match(gallery, /cleanups\.push\(\(\) => viewEl\.removeAttribute\('data-settle-pending'\)\)/, 'and takes it away when it leaves');
+  const main = readFileSync(new URL('./main.ts', import.meta.url), 'utf8');
+  assert.match(main, /await viewSettled\(view, reclaimed\.place\)/, 'a reclaimed view waits for its place and its pictures');
 });
 
 test('the router holds the snapshot for a tool open and for nothing else', () => {
   const main = readFileSync(new URL('./main.ts', import.meta.url), 'utf8');
   const calls = [...main.matchAll(/beginViewFade\(([^)]*\)?)\)/g)].map(m => m[1]!.replace(/\s+/g, ' ').trim());
-  assert.deepEqual(calls, ["view, { hold: route.name === 'tool' }"],
-    'navigate() makes one snapshot, held only when the incoming route is a tool');
-  // The pressed card paints before the teardown, for a tool open from another view and
-  // only with motion allowed: reduced motion keeps its immediate swap.
+  assert.deepEqual(calls, ['view, holdTool ? { hold: true, source: prevSig } : {}'],
+    'navigate() makes one snapshot, held (with its source) only when the incoming route is a tool');
+  assert.match(main, /const holdTool = route\.name === 'tool';/);
+  assert.match(main, /reclaimViewFade\(routeSig\)/, 'a Back to the source takes the snapshot back');
+  assert.match(main, /heldFade\.leaveAt\(navStart \+ TOOL_OPEN_BEAT_MS, \(\) => loading\?\.show\(\)\)/,
+    'the view leaves and the card shows in one moment, after the beat');
+  // The pressed card paints before the teardown, for a tool open from another view,
+  // with or without reduced motion.
   const wait = main.indexOf('await afterNextPaint();');
   assert.ok(wait > 0, 'navigate() waits for a painted frame on a tool open');
   const guard = main.slice(main.lastIndexOf('if (', wait), wait);
-  assert.match(guard, /route\.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool' && !prefersReducedMotion\(\)/);
+  assert.match(guard, /route\.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool'\)/);
   assert.ok(wait < main.indexOf('view._cleanup?.()', main.indexOf('async function navigate(')), 'before the outgoing view is torn down');
   assert.ok(wait < main.indexOf('beginViewFade(view'), 'and before the snapshot is taken');
 });
