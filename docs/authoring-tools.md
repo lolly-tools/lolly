@@ -1,12 +1,12 @@
 # Build a tool
 
-A Lolly tool is a small folder of data. `tool.json` lists what people can change. `template.html` draws the result. A `hooks.js` file is added only when the picture needs a calculation the template cannot do.
+A Lolly tool is a small folder of data: `tool.json` lists what people can change and `template.html` draws the result. Add a `hooks.js` file only when the picture needs a calculation the template cannot do.
 
-From that folder Lolly builds the sidebar, draws the canvas and offers the export formats you allow. The same folder runs unchanged in the web app, the desktop apps and the command line, because each of them reads the folder through one engine.
+From that folder Lolly builds the sidebar, draws the canvas and offers the export formats you allow. The same folder runs unchanged in the web app, the desktop apps and the command line, because each reads the folder through one engine.
 
 ![tool.json, template.html and the optional hooks.js feed one engine, which builds the sidebar controls, draws the live canvas and writes the exported files.](/info/diagrams/concepts/tool-lifecycle.svg)
 
-You do not need code to make a tool. If you already have a finished design, [Share with rules](/info/create-a-tool.html) turns a Lolly Design document into a tool when you choose the parts people may edit. Those tools are ordinary tool folders too, compiled for you and run by the strict sideload runtime; [Design tool contract](/info/design-tool-contract.html) covers how.
+You do not need code to make a tool. [Share with rules](/info/create-a-tool.html) turns a finished Lolly Design document into a tool when you choose the parts people may edit. The result is an ordinary tool folder, compiled for you and run by the strict sideload runtime ([Design tool contract](/info/design-tool-contract.html)).
 
 This guide is for writing the folder yourself.
 
@@ -66,7 +66,7 @@ A working tool needs two files. This one makes a social card with a heading and 
 ```
 :::
 
-Each declared input becomes a control in the sidebar, a URL parameter and a CLI flag, all with the same `id`. The template prints the current values into `{{heading}}` and `{{background}}`, escaped for you. The seven top-level fields in `tool.json` are the ones the schema requires; [Tool manifests](/info/tool-manifest.html) covers the rest.
+Each declared input becomes a control in the sidebar, a URL parameter and a CLI flag, all with the same `id`. The template prints the current values into `{{heading}}` and `{{background}}`, escaped. The seven top-level fields in `tool.json` are the ones the schema requires; [Tool manifests](/info/tool-manifest.html) covers the rest.
 
 ::: figure authoring-tools-first-tool
 The hello card rendered with `--heading="Hello, Lolly"`: one rectangle in the background colour and one line of text.
@@ -80,7 +80,7 @@ Try the folder in one of two ways:
 :::
 
 ::: note An HTML template needs the browser tier on the command line
-The template's root is an `<svg>`, so the command line writes its SVG with no browser, and its PNG too once a measured `browser-free.json` admits the tool. A template built from HTML renders the same way in the web and desktop apps, and needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
+The template's root is an `<svg>`, so the command line writes its SVG with no browser, and its PNG too once a measured `browser-free.json` admits the tool. An HTML template renders the same way in the web and desktop apps, but needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
 :::
 
 <!--i:eti-folder-plus-->
@@ -109,9 +109,9 @@ Only `tool.json` and `template.html` are required. Add the others when the tool 
 <!--i:eti-palette-->
 ## Draw in the design system's colours
 
-A tool written for any design system takes its colours from seven CSS variables on the canvas, each with a fallback for a design system that leaves one out: `var(--brand-primary, #2a1a5e)` for the lead colour, then `--brand-on-primary`, `--brand-secondary`, `--brand-surface`, `--brand-text`, `--brand-muted` and `--brand-edge`. Lolly fills them from the design system the person has open, in the piece's look and colourway, in the web app, the desktop apps and the command line alike.
+A tool written for any design system takes its colours from seven CSS variables on the canvas, each with a fallback for a design system that leaves one out: `var(--brand-primary, #2a1a5e)` for the lead colour, then `--brand-on-primary`, `--brand-secondary`, `--brand-surface`, `--brand-text`, `--brand-muted` and `--brand-edge`. Lolly fills them from the design system the person has open, in the piece's look and colourway, in the web app, the desktop apps and the command line.
 
-Some design systems call their colours by their own words, such as a textile brand's Main, Accent, Supporting and Tertiary. These are [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called), and a tool needs no change for them. The design system says which role Lolly reads as each slot, so `--brand-primary` holds whichever role is read as the lead colour. A role that fills no slot is read by name only: no tool draws that role unless a person chooses it in a colour field. A pick stays linked to the role, and the template and hooks receive the role's colour for the piece's look and colourway, never the link.
+Some design systems name their colours in their own words, such as a textile brand's Main, Accent, Supporting and Tertiary. These are [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called), and a tool needs no change for them. The design system says which role Lolly reads as each slot, so `--brand-primary` holds whichever role is read as the lead colour. A role that fills no slot is read by name only: no tool draws that role unless a person chooses it in a colour field. A pick stays linked to the role, and the template and hooks receive the role's colour for the piece's look and colourway, never the link.
 
 [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) lists every variable, including each role's own `--brand-<id>`, and which token paints each one.
 
@@ -136,4 +136,4 @@ Each guide below has a public reference tool in `community/` that you can open i
 <!--i:eti-sparkles-->
 ## Build with an agent
 
-An AI agent can write the folder for you. Give it the intended output, a few representative input values, the design system and any source artwork. Ask it to build ordinary tool data against the manifest and host contracts, then to validate and render the result with the CLI. The guides above are what you review its work against. [AI agents](/info/ai-agents.html) covers connecting an agent to Lolly, and [Tool skills](/info/tool-skills.html) covers the guidance a tool gives the agents that use the tool.
+An AI agent can write the folder. Give the agent the intended output, a few sample input values, the design system and any source artwork. Ask it to build ordinary tool data against the manifest and host contracts, then to validate and render the result with the CLI. Review its work against the guides above. [AI agents](/info/ai-agents.html) covers connecting an agent to Lolly, and [Tool skills](/info/tool-skills.html) covers the guidance a tool gives the agents that use the tool.

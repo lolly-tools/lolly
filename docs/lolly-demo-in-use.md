@@ -3,7 +3,7 @@
 Where Lolly Demo shows up while you work, and what travels inside your files.
 
 ::: figure lolly-demo-in-use-map
-The chrome keeps Spearmint whatever the colourway; a PNG carries the record and the credentials.
+The chrome stays Spearmint in every colourway. A PNG carries the record and the credentials.
 :::
 
 Choose Light, Dark or Brand in [Settings → Appearance](/#/settings?focus=appearance-section).
@@ -29,7 +29,7 @@ Clinic stays with Lolly whichever design system is active.
 ## Switch to your own
 
 ::: figure lolly-demo-in-use-swap
-Your design system takes the room; the craft stays.
+Your design system replaces Lolly Demo. The craft stays.
 :::
 
 - <!--i:upload--> [Put your brand in](/info/quickstart.html#put-your-brand-in), from one colour, a tokens file or a finished design.

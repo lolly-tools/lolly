@@ -1,15 +1,15 @@
 # AI Agents
 
-An AI agent is good at deciding what a file should say. Lolly is good at making that file look right, in your design system, the same way every time. The agent fills in a tool's inputs and Lolly draws the result, so layout, type and colour come from the tool and never drift.
+An AI agent decides what a file says and fills in a tool's inputs. Lolly draws the result in your design system, and layout, type and colour come from the tool, so they never drift.
 
-No image model is involved. A finished QR code, badge, chart or slide deck comes back as a real file, with an editable link a person can open to adjust it by hand.
+No image model is involved. A finished QR code, badge, chart or slide deck comes back as a file, with an editable link a person can open to adjust the design by hand.
 
 There are four ways to connect an agent to Lolly, and you can mix them:
 
 ::: cols
 ## A link
 
-A tool's settings fit in a URL. The agent writes the link and a person opens it to see the finished design, ready to export or edit. Nothing needs installing. See [URL Mode](/info/url-mode.html).
+A tool's settings fit in a URL. The agent writes the link and a person opens it to export or edit the finished design. Nothing needs installing. See [URL Mode](/info/url-mode.html).
 
 ## The CLI
 
@@ -43,7 +43,7 @@ The agent lists the tools, reads the QR tool's inputs, renders it and hands back
 
 [Connect a client](/info/mcp.html#connect-a-client) has the setup for other clients and for the full endpoint.
 
-An agent that can only write text does the same job with a link. This one opens the QR tool with the address already filled in:
+An agent that can only write text does the same job with a link. This one opens the QR tool with the address filled in:
 
 ```
 https://lolly.tools/t/qr-code?url=https://example.com
@@ -71,7 +71,7 @@ The CLI writes vector, data and PNG files from SVG-native tools with no browser.
 <!--i:eti-sliders-->
 ## Read a tool's inputs before you fill them
 
-Do not guess parameter names. Each tool's manifest lists every input id, type and default, and it is served at `/tools/<id>/tool.json`. On the MCP server, `lolly_describe_tool` returns the same thing as a JSON Schema. On the CLI:
+Do not guess parameter names. Each tool's manifest, served at `/tools/<id>/tool.json`, lists every input id, type and default. On the MCP server, `lolly_describe_tool` returns the same as a JSON Schema. On the CLI:
 
 ```bash
 pnpm run cli qr-code   # prints inputs, defaults and supported formats
@@ -98,19 +98,19 @@ Report each result with one of six words: `complete`, `partial`, `approximate`, 
 
 A few more habits help:
 
-- **Read the feedback on a Lolly Design document and revise.** `lolly_check` (or `lolly check`) lists the design system's house rules that a layer does not follow and gives a writing score for the visible text as `verify.writing-score`. In an open document, `lolly_apply_document_changes` returns the same feedback after each change and `lolly_check_document` returns the whole report. Revise the layers the feedback names, then check again. The writing score is a signal, not a verdict: it never changes the exit code, and nothing in the feedback blocks a render.
+- **Read the feedback on a Lolly Design document and revise.** `lolly_check` (or `lolly check`) lists the design system's house rules that a layer does not follow and gives a writing score for the visible text as `verify.writing-score`. In an open document, `lolly_apply_document_changes` returns the same feedback after each change and `lolly_check_document` returns the whole report. Revise the layers the feedback names, then check again. The writing score never changes the exit code, and nothing in the feedback blocks a render.
 - **Start from what the piece has to do.** When the task gives a purpose rather than a tool, `lolly_resolve_intent` on the MCP server, or `lolly intent` on the CLI, chooses a tool for each surface, says why and lists what it could not fill. No model is involved, and the same request gives the same answer. See [Start from what the piece has to do](/info/visual-intent.html#if-you-are-writing-an-agent).
-- **Validate links you build yourself.** MCP compile, build and render calls refuse unknown fields and bad values with exact paths. A hand-written URL is read leniently for older links, so check one with `lolly_validate` before you share the link.
+- **Validate links you build yourself.** MCP compile, build and render calls refuse unknown fields and bad values with exact paths. A hand-written URL is read leniently for older links, so check one with `lolly_validate` before sharing.
 - **`_v` records a version; it does not pin one.** A newer tool still renders the link, and the CLI warns that it ignores `_v`. To catch a change from a tool update, render the same inputs again and compare.
 - **Use catalog assets, not uploads.** A picture someone uploaded lives on their device and cannot travel in a link. Reference catalog assets by id; the MCP resource `lolly://assets` lists them.
 - **One design, many outputs.** Change `format`, `unit` or `width` to get the same design as an SVG, a print PDF and a social MP4.
 - **Short links.** Some tools define short `urlKey` aliases and tilde-separated lists; see [Inputs in URLs](/info/url-inputs.html).
-- **Embed a render as an image.** `https://lolly.tools/tool/<id>.<ext>?<inputs>` with an image extension (`png`, `jpg`, `jpeg`, `webp` and `svg`, plus animated `gif` and `apng`) drops into HTML as an `<img src>`. Inside the web app it renders on the device. On the open web, deployments that leave [hot-link render URLs](/info/mcp.html#hot-link-render-urls) switched on serve the browser-free formats for real, so the link works in a README or a wiki.
+- **Embed a render as an image.** `https://lolly.tools/tool/<id>.<ext>?<inputs>` with an image extension (`png`, `jpg`, `jpeg`, `webp` and `svg`, plus animated `gif` and `apng`) drops into HTML as an `<img src>`. Inside the web app it renders on the device. On the open web, deployments that leave [hot-link render URLs](/info/mcp.html#hot-link-render-urls) switched on serve the browser-free formats, so the link works in a README or a wiki.
 
 <!--i:eti-help-->
 ## When a tool will not hand back a file
 
-- **Utilities that show rather than export.** `countdown-timer`, `strip-data`, `text-helper` and `compress-pdf` set `render.export: false`, so `&export` and `&copy` do nothing. `color-palette` is not one of them: the community Lolly Palette Lab exports images, PDF, palette files and data. A brand pack can narrow any community tool's formats, so read the manifest or `lolly_describe_tool` rather than assuming.
+- **Utilities that show rather than export.** `countdown-timer`, `strip-data`, `text-helper` and `compress-pdf` set `render.export: false`, so `&export` and `&copy` do nothing. `color-palette` is not one of them: the community Lolly Palette Lab exports images, PDF, palette files and data. A brand pack can narrow any community tool's formats, so read the manifest or `lolly_describe_tool`.
 - **Experimental tools** (`status: "experimental"` in the manifest) watermark their exports by default until they are promoted. On-device utilities are exempt.
 - **Tools that take your own file**, such as `strip-data`, transform bytes in memory. A file cannot travel in a URL, so use `lolly_transform` on the MCP server or the CLI.
 
@@ -127,7 +127,7 @@ A few more habits help:
 <!--i:eti-code-->
 ## For machine readers
 
-Each deployment publishes the same set of files for agents, at the site root and under `/info/`. An agent pointed at a self-hosted instance finds that instance's own endpoints in its own discovery record. Start with these rather than scraping pages.
+Each deployment publishes the same set of files for agents, at the site root and under `/info/`. An agent pointed at a self-hosted instance finds that instance's own endpoints in its discovery record. Start with these rather than scraping pages.
 
 ::: details Machine-readable entry points
 | File | What it is for |
