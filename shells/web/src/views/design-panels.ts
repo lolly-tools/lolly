@@ -24,6 +24,13 @@ export function mountDesignPanels(opts: {
   // without them (a test double) keeps the bottom sheets. Its layout listener is added
   // BEFORE the fold's, so on a fold the panel lets the layers list go before the control
   // pane asks for it, and on the way back takes it only after the pane has let it go.
+  // The app placing or opening a column for a layout is not the person bringing that
+  // column forward: `active` keeps their last choice through these.
+  const quietly = (run: () => void): void => {
+    const was = adjusting;
+    adjusting = true;
+    try { run(); } finally { adjusting = was; }
+  };
   let phone: DesignPhonePanelHandle | null = null;
   let phoneWasOpen = false;
   const layoutEl = stage.closest<HTMLElement>('.tool-layout');
@@ -46,7 +53,7 @@ export function mountDesignPanels(opts: {
       // comes back here.
       const leaving = phone;
       phone = null;
-      inspector.leavePhone();
+      quietly(() => inspector.leavePhone());
       leaving.destroy();
       put('--design-panel-reserve-top', 0);
       split.sync();
@@ -58,13 +65,27 @@ export function mountDesignPanels(opts: {
   // panels read the navigator through the split's view of the navigator.
   const split = mountDesignSplit({
     navigator: () => opts.navigator, inspector: () => inspector,
-    openInspector: () => { inspector.setOpen(true, 'host'); }, syncPanels: () => schedule(), stage,
+    openInspector: () => { quietly(() => inspector.setOpen(true, 'host')); }, syncPanels: () => schedule(), stage,
   });
   const navigator = split.navigatorForPanels(opts.navigator);
   // The person opening the navigator brings its tab forward in two panes. Every open
   // change reaches sync() below, so that is where the transition is caught.
   let navWasOpen = navigator.isOpen();
   let active: Panel = design.isTimelineOpen() ? 'timeline' : navigator.isOpen() ? 'navigator' : 'inspector';
+  // Whether a person has brought a panel forward yet. Until one has, a list restored
+  // open beside the inspector stands behind it, as the control pane shows the two at
+  // launch (the list joins in the background, views/design-split.ts).
+  let chosen = false;
+  // The columns the one-at-a-time rule closed, as against the ones a person closed. A
+  // window with room for both again gets these back (sync), so a visit to the phone
+  // layout, or a fold and unfold, leaves the wide arrangement as it was. A column the
+  // person opened while narrow is open already and stays; one they closed themselves
+  // was never held.
+  const held = new Set<'navigator' | 'inspector'>();
+  // The list's width when the rule closed the list: closed, the list reports none, and
+  // the question on the way back is whether both fit with the list open.
+  let heldNavWidth = 0;
+  let wasExclusive = false;
   let wasEditing = false;
   let timelineOpen = design.isTimelineOpen();
   let sheetHeight = 0;
@@ -92,18 +113,39 @@ export function mountDesignPanels(opts: {
   done.className = 'design-text-done';
   stage.append(actions);
 
+  /** One column at a time: a compact window, or a desk too narrow for both. In two panes
+   *  the inspector and the layers are tabs of one control pane, so opening one never has
+   *  to close the other. */
+  function exclusive(navWidth = navigator.width()): boolean {
+    if (isSplitLayout()) return false;
+    return compactDesignViewport() || !designPanelsFit(window.innerWidth, navWidth, Math.max(340, edgeDockWidth()));
+  }
+  /** Room for both again: the columns the rule closed come back, behind the one the
+   *  person last brought forward. Nothing is recorded as their choice (`adjusting`). */
+  function restoreHeld(): void {
+    if (inspector.isOpen()) held.delete('inspector');
+    if (navigator.isOpen()) held.delete('navigator');
+    if (!held.size || exclusive(held.has('navigator') ? Math.max(heldNavWidth, navigator.width()) : navigator.width())) return;
+    adjusting = true;
+    if (held.has('inspector')) inspector.setOpen(true, 'host');
+    if (held.has('navigator')) navigator.setOpen(true);
+    adjusting = false;
+    held.clear();
+  }
   function activate(panel: Panel, enforce = true): void {
     if (adjusting || disposed) return;
     active = panel;
-    if (!enforce) return;
+    chosen = true;
+    if (enforce) keepOne(panel);
+  }
+  /** Where one column shows at a time, close the others and hold them for the way back. */
+  function keepOne(panel: Panel): void {
+    if (adjusting || disposed) return;
     const compact = compactDesignViewport();
-    // In two panes the inspector and the layers are tabs of one control pane, so
-    // opening one never has to close the other.
-    const exclusive = !isSplitLayout() && (compact || !designPanelsFit(window.innerWidth, navigator.width(), Math.max(340, edgeDockWidth())));
-    if (!exclusive) return;
+    if (!exclusive()) return;
     adjusting = true;
-    if (panel !== 'navigator') navigator.setOpen(false);
-    if (panel !== 'inspector') inspector.setOpen(false, 'host');
+    if (panel !== 'navigator' && navigator.isOpen()) { held.add('navigator'); heldNavWidth = navigator.width(); navigator.setOpen(false); }
+    if (panel !== 'inspector' && inspector.isOpen()) { held.add('inspector'); inspector.setOpen(false, 'host'); }
     if (compact && panel !== 'timeline' && design.isTimelineOpen()) design.toggleTimeline();
     adjusting = false;
     sync();
@@ -138,13 +180,23 @@ export function mountDesignPanels(opts: {
       if (design.isTimelineOpen()) design.toggleTimeline();
     }
     wasEditing = editing;
-    if (navigator.isOpen() !== navWasOpen) { navWasOpen = navigator.isOpen(); split.sync(navWasOpen); }
+    if (!chosen && active === 'navigator' && inspector.isOpen()) active = 'inspector';
+    restoreHeld();
+    // In two panes an opened list is the tab shown when the list is what the person
+    // last brought forward; a list that came back beside the inspector joins behind.
+    if (navigator.isOpen() !== navWasOpen) { navWasOpen = navigator.isOpen(); split.sync(navWasOpen && active === 'navigator'); }
+    // Out of one-at-a-time into two panes with the list last brought forward: the pane
+    // took the list in behind the inspector as the layout changed, so the list's tab is
+    // shown now.
+    const nowExclusive = exclusive();
+    if (wasExclusive && !nowExclusive && navigator.isOpen() && active === 'navigator') split.sync(true);
+    wasExclusive = nowExclusive;
     layers.setAttribute('aria-pressed', String(navigator.isOpen()));
     inspect.setAttribute('aria-pressed', String(inspector.isOpen()));
     const currentTimeline = design.isTimelineOpen();
     if (currentTimeline && !timelineOpen) { timelineOpen = currentTimeline; activate('timeline'); }
     timelineOpen = design.isTimelineOpen();
-    if ((navigator.isOpen() && inspector.isOpen()) || (compact && timelineOpen && (navigator.isOpen() || inspector.isOpen()))) activate(active);
+    if ((navigator.isOpen() && inspector.isOpen()) || (compact && timelineOpen && (navigator.isOpen() || inspector.isOpen()))) keepOne(active);
     // The phone panel shows what the two columns say: the open one's tab, or its peek.
     if (phone) {
       if (inspector.isOpen()) phone.show('inspect');

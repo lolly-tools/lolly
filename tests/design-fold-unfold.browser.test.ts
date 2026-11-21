@@ -137,4 +137,72 @@ test('Design, a desktop window narrowed past the phone breakpoint and back: the 
   }
 });
 
+/** Which of the two columns are open, and in two panes which tab is the one shown. */
+const columns = (page: Page) => page.evaluate(() => {
+  const shown = (sel: string): boolean => {
+    const el = document.querySelector<HTMLElement>(sel);
+    return !!el && !el.hidden && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
+  };
+  return {
+    tabs: [...document.querySelectorAll('.edge-dock-tab')].map(t => t.textContent),
+    front: document.querySelector('.edge-dock-tab[aria-selected="true"]')?.textContent ?? null,
+    inspector: shown('.fc-insp'),
+    layers: shown('.fc-nav'),
+  };
+});
+
+// The phone layout shows either the inspector or the layers list. What that rule
+// closed comes back with the room, behind the one last brought forward; a column
+// opened on purpose while folded stays.
+test('Design with both columns, folded and open again: both are back, the same one in front', { skip, timeout: 120000 }, async () => {
+  const browser = await getBrowser({ graphics: 'auto' });
+  const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 951, height: 669 }, hasTouch: true });
+  try {
+    const page = await context.newPage();
+    await page.goto(`${origin}/t/design?${DOC.replace('_nav=0', '_nav=1')}`);
+    await page.waitForFunction(() => !!(window as EditorWindow).lolly?.ui);
+    await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
+    await page.locator('#tool-canvas [data-box-id="disc"]').waitFor();
+    await atRest(page);
+    const open = await columns(page);
+    assert.ok(open.tabs.includes('Inspector') && open.tabs.includes('Layers'), `both are tabs of the control pane: ${open.tabs}`);
+
+    await resize(page, 466, 678);
+    await resize(page, 951, 669);
+    assert.deepEqual(await columns(page), open, 'unfolded again, both tabs and the same one shown');
+
+    // Folded, the person asks for the list. Open again, the list is the tab shown and
+    // the inspector is still a tab of the pane.
+    await resize(page, 466, 678);
+    await page.locator('.design-phone-panel [data-tab="layers"]').click();
+    await atRest(page);
+    await resize(page, 951, 669);
+    const after = await columns(page);
+    assert.deepEqual([...after.tabs].sort(), [...open.tabs].sort());
+    assert.equal(after.front, 'Layers');
+  } finally {
+    await context.close();
+  }
+});
+
+test('Design with both columns on a desk, narrowed to a phone and back: both are open again', { skip, timeout: 120000 }, async () => {
+  const browser = await getBrowser({ graphics: 'auto' });
+  const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1440, height: 900 } });
+  try {
+    const page = await context.newPage();
+    await page.goto(`${origin}/t/design?${DOC.replace('_nav=0', '_nav=1')}`);
+    await page.waitForFunction(() => !!(window as EditorWindow).lolly?.ui);
+    await page.locator('dialog.view-loading[open]').waitFor({ state: 'hidden' });
+    await page.locator('#tool-canvas [data-box-id="disc"]').waitFor();
+    await atRest(page);
+    const wide = await columns(page);
+    assert.equal(wide.inspector && wide.layers, true, 'both columns are open on the desk');
+    await resize(page, 600, 800);
+    await resize(page, 1440, 900);
+    assert.deepEqual(await columns(page), wide);
+  } finally {
+    await context.close();
+  }
+});
+
 test.after(async () => { await closeBrowser(); });
