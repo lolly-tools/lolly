@@ -220,3 +220,33 @@ test('a cached asset index keeps its conditional request', async () => {
     assert.equal(lastAssetHeaders.get('If-None-Match'), '"cached-assets"');
   } finally { assetStatus = 200; }
 });
+
+// ── The full tool index after the first mount (plan 371) ─────────────────────
+
+test('a held tool index waits for its gate while the asset index syncs at once', async () => {
+  localStorage.clear();
+  assetStatus = 200;
+  const calls: Call[] = [];
+  const gate = deferred();
+  const tools = toolRequests, assets = assetRequests;
+  const sync = syncCatalog(mockHost(calls), () => calls.push({ name: 'assets-ready' }), undefined, undefined, undefined, gate.promise);
+  let done = false;
+  void sync.then(() => { done = true; });
+  await settle();
+  assert.equal(assetRequests, assets + 1, 'the asset index is not held: the first paint reads brand metadata from it');
+  assert.ok(calls.some(call => call.name === 'assets-ready'), 'the welcome decision still opens on the assets');
+  assert.equal(toolRequests, tools, 'the full tool index waits for the first mount');
+  assert.equal(done, false, 'and so does the sync main.ts calls catalogReady');
+  gate.open();
+  await within(sync, 2000, 'syncCatalog after the gate opened');
+  assert.equal(toolRequests, tools + 1, 'the full tool index loads once the gate opens');
+  assert.equal(window.__toolIndex?.tools.length, 1);
+});
+
+test('a held tool index loads even when its gate fails', async () => {
+  localStorage.clear();
+  assetStatus = 200;
+  const tools = toolRequests;
+  await within(syncCatalog(mockHost([]), undefined, undefined, undefined, undefined, Promise.reject(new Error('mount failed'))), 2000, 'syncCatalog');
+  assert.equal(toolRequests, tools + 1);
+});

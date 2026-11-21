@@ -72,7 +72,7 @@ import { mountViewAsBanner, stopViewAs, viewingAs } from './org/view-as.ts';
 // every public one - answers dormant from a negative cache or one 404 and never loads
 // the 47 KB of gate/policy/injectable code behind it (plans/155 WP-3). Governance
 // comes from its own registry leaf for the same reason.
-import { initOrgProbeFirst } from './org/probe.ts';
+import { cleanAnswerRemembered, initOrgProbeFirst, onGateShown } from './org/probe.ts';
 import { setApprovalPdfPreview } from './lib/approval-request.ts';
 import { initSyncAutoPush, maybeApplyNewerAtBoot } from './lib/sync-service.ts';
 import type { BackupDeps } from './lib/sync-engine.ts';
@@ -87,6 +87,8 @@ import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView, remembe
 import { startWebGpuCheck, webGpuChecked } from './lib/webgpu/device.ts';
 import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
 import { takeViewInput } from './lib/view-input.ts';
+import { createLateGate } from './lib/late-gate.ts';
+import { holdToolIndex, type ToolIndexHold } from './lib/tool-index-hold.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
 // module scope. All five are REGISTRATIONS - a Share-dialog row, the opener that row
@@ -469,8 +471,26 @@ function stopForWebGpu(error: unknown): void {
   showWebGpuCard();
 }
 
+/** The sign-in gate when it arrives after the first paint (lib/late-gate.ts). */
+const lateGate = createLateGate({
+  view: () => document.getElementById('view') as ViewElement | null,
+  reset: () => { routeLoading?.close(); routeLoading = null; mountedRouteSig = ''; viewFailed(); },
+  settleChrome: () => applySearchBarRoute('none', parseRoute().name),
+  viewClasses: () => VIEW_CLASS_OWNERS.keys(),
+  snapshots: () => document.querySelectorAll('body > .view-fade'),
+});
+
+/**
+ * While boot has painted before the control-plane probe answered (plan 371), the pending
+ * answer: only the browse routes in {@link ROUTES_BEFORE_PROBE} mount before it, so no
+ * tool, project or settings view opens ahead of a gate or of a control plane's policy.
+ */
+let probeAnswerPending: Promise<unknown> | null = null;
+const ROUTES_BEFORE_PROBE: ReadonlySet<RouteName> = new Set<RouteName>(['gallery', 'utilities', 'docs']);
+
 async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<void> {
   if (webGpuStop) { showWebGpuCard(); return; }
+  if (lateGate.stopped()) return;
   const route = parseRoute();
   const appearance = urlThemeOverride();
   applyTheme(appearance ?? localStorage.getItem('theme') ?? 'light', false, false);
@@ -631,6 +651,13 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // The WebGPU startup check runs alongside boot (see boot()). A route that can run a
   // tool or a GPU operation waits for it here, under the loading card, and never mounts
   // if it fails; the gallery, utilities and docs paint without waiting.
+  // Boot painted before the probe answered: a route other than the browse routes waits
+  // for the answer here, under the loading card, and never mounts over a gate.
+  if (probeAnswerPending && !ROUTES_BEFORE_PROBE.has(route.name)) {
+    await probeAnswerPending;
+    if (navigation !== navigationSeq) { fade?.commit(); return; }
+    if (lateGate.stopped()) { fade?.commit(); lateGate.replace(); return; }
+  }
   if (!ROUTES[route.name].beforeWebGpu) {
     try { await webGpuChecked(); } catch (error) { fade?.commit(); stopForWebGpu(error); return; }
     // A newer navigation started while this one waited, and owns the view now. Not
@@ -938,7 +965,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     }
   }
   } catch (err) {
-    if (err instanceof NavigationSuperseded || navigation !== navigationSeq) { fade?.commit(); return; }
+    if (err instanceof NavigationSuperseded || navigation !== navigationSeq) { fade?.commit(); if (lateGate.stopped()) lateGate.replace(); return; }
     // Fade the outgoing snapshot out either way, so it can't linger over the
     // reload card (or the fresh shell after a stale-chunk reload).
     fade?.commit();
@@ -946,6 +973,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     // and whatever the mount had installed before it threw is torn down too. A GPU
     // operation's own failure is not that, and takes the path below.
     if (webGpuFailed()) { replaceViewWithWebGpuCard(); return; }
+    if (lateGate.stopped()) { lateGate.replace(); return; }
     console.error('View mount failed:', err);
     if (import.meta.env.PROD && looksLikeChunkError(err)) { recoverFromStaleShell(); return; }
     showReloadCard('This view didn’t finish loading. Reload to try again.');
@@ -956,12 +984,15 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     if (navigation === navigationSeq) view.removeAttribute(ROUTE_MOUNTING_ATTR);
   }
 
-  if (navigation !== navigationSeq) { fade?.commit(); return; }
+  // A superseded mount that settles after a sign-in gate arrived is torn down as well.
+  if (navigation !== navigationSeq) { fade?.commit(); if (lateGate.stopped()) lateGate.replace(); return; }
 
   // The startup check failed while this view was still mounting. stopForWebGpu ran
   // before the mount had painted or installed its cleanup, so the mount has just
   // painted over the card: stop it and put the card back.
   if (webGpuFailed()) { fade?.commit(); replaceViewWithWebGpuCard(); return; }
+  // A sign-in gate arrived while this view was still mounting: the same, for the gate.
+  if (lateGate.stopped()) { fade?.commit(); lateGate.replace(); return; }
 
   // The mount settled: its document.title is set and any URL canonicalisation
   // (the tool view's /t/<id> rewrite) is done - snapshot it as the candidate
@@ -1214,12 +1245,12 @@ function catalogHostOf(host: Awaited<ReturnType<typeof createBridge>>) {
 /** Start the catalog once the shell's instance choice is settled. `signInRequired`
  *  is the control-plane gate, asked only by an instance that refused its catalog
  *  before (catalog/sync.ts), so a signed-out visitor sends no catalog requests. */
-function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>, preparedAssets?: ReturnType<typeof prepareAssetCatalogFetch>): Promise<void> {
+function startBootCatalog(host: Awaited<ReturnType<typeof createBridge>>, coldGallery: boolean, signInRequired: () => Promise<boolean>, preparedAssets?: ReturnType<typeof prepareAssetCatalogFetch>, toolsAfter?: Promise<void>): Promise<void> {
   const welcomeRoute = parseRoute().name;
   const catalogHost = catalogHostOf(host);
   const welcomeFirst = coldGallery && welcomeRoute === 'gallery'
-    ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery' && !webGpuStop).catch(console.error) : undefined;
-  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets)
+    ? () => showGalleryWelcome(catalogHost, () => parseRoute().name === 'gallery' && !webGpuStop && !lateGate.stopped()).catch(console.error) : undefined;
+  return syncCatalog(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets, toolsAfter)
     .then(async () => { try { await mergeInstalledToolsIntoIndex(); } catch { /* no installed tools / no index yet */ } });
 }
 
@@ -1227,6 +1258,11 @@ async function boot(): Promise<void> {
   // Capture export intent before mounting can rewrite the address.
   const bootRoute = parseRoute();
   const scriptedExport = new URLSearchParams('params' in bootRoute ? bootRoute.params ?? '' : '').has('export');
+  // The gallery's code is a graph of about 58 chunks that the first navigate() used to
+  // request only after every await below (713 ms of a 2,063 ms cold phone boot, plan
+  // 371). Start it now for a route that shows the gallery; navigate()'s own import
+  // reuses this one. Not awaited, and still a lazy chunk: nothing joins the boot chunk.
+  if (bootRoute.name === 'gallery' || bootRoute.name === 'utilities') void import('./views/gallery.ts').catch(() => {});
   mountViewAsBanner(document, () => stopViewAs(instanceFetch));
   installToolByteVerification();
   installVerifiedPreviews();
@@ -1291,6 +1327,13 @@ async function boot(): Promise<void> {
   const firstRoute = bootRoute.name;
   if ((firstRoute === 'gallery' || firstRoute === 'utilities') && !isWelcomeDismissed()) expectWelcomeDecision();
   let slimIndexReady = coldGallery && !isTauriShell() ? loadSlimToolIndex() : null;
+  // A cold gallery visit that paints from the slim index holds the full tool index (the
+  // largest catalog file) until the first mount, so it does not share the link with the
+  // gallery's code (plan 371, lib/tool-index-hold.ts). Released after the first navigate
+  // and before any wait on catalogReady; the hold also lets go by itself, so a slim
+  // request that never answers holds nothing up.
+  let toolIndexHold: ToolIndexHold | undefined;
+  const releaseToolIndex = (): void => { toolIndexHold?.release(); };
 
   const hostReady = createBridge();
   // The optional deployment control plane's probe (src/org/) is a time-boxed fetch
@@ -1326,9 +1369,10 @@ async function boot(): Promise<void> {
   // No storage sync starts until its design-system migration has finished.
   const earlyAssets = !isTauriShell() && coldGallery && firstRoute === 'gallery'
     ? prepareAssetCatalogFetch(signInRequired) : undefined;
+  if (slimIndexReady && firstRoute === 'gallery') toolIndexHold = holdToolIndex(slimIndexReady, earlyAssets);
   const host = await hostReady;
   // Web can sync while profile and chrome initialize. Tauri starts later (see above).
-  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets) : null;
+  const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets, toolIndexHold?.after) : null;
   trackVisualViewport();
   initMobilePlatformFit();
   // A Design 3D scene box keeps its uploads as asset ids inside its scene query, and only
@@ -1837,14 +1881,36 @@ async function boot(): Promise<void> {
   // NOT the answer: the panel reads the registry once, at mount, with no change
   // notification, so anyone opening a tool before that callback fired got no Send
   // section at all.
-  const org = await orgPromise;
+  //
+  // A deployment whose last probe answer here was "no control plane" lets the browse
+  // routes (gallery, utilities, docs) paint before the next answer (plan 371, decided
+  // 2026-11-20; org/probe.ts, "THE LAST ANSWER"). Every other route, a tool and its Send
+  // section included, waits for the answer in navigate(). The probe still runs: a gate it
+  // now reports is drawn in place of whatever painted, in the same task, and no route
+  // mounts again (lib/late-gate.ts). With no record, or any other record, boot waits here
+  // exactly as before. The record is keyed by the instance base, so it is read once the
+  // base has loaded (memoised; on web that happened long ago). A probe that finished
+  // before this line has already written its own answer, so a gate is never missed here.
+  await initInstanceBase();
+  const paintBeforeProbe = cleanAnswerRemembered();
+  if (paintBeforeProbe) {
+    onGateShown(gate => lateGate.stop(gate));
+    probeAnswerPending = orgPromise.then(late => { if (late?.gate) lateGate.stop(null); probeAnswerPending = null; });
+  }
+  const org = paintBeforeProbe ? null : await orgPromise;
   if (org?.gate) { settleWelcomeDecision(); return; }
-  if (window.top === window && typeof (document as Document & { modelContext?: { registerTool?: unknown } }).modelContext?.registerTool === 'function') {
-    void import('./lib/site-tools-discovery.ts').then(module => module.installSiteTools(host)).catch(error => console.warn('[lolly:site-tools]', error));
-  }
-  if (org?.config?.branding?.revision) {
-    void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), org.config!.branding!.revision, () => parseRoute().name)).catch(console.error);
-  }
+  // What waits for the gate decision: now on the waiting path, on the answer otherwise.
+  const orgDecided = paintBeforeProbe ? orgPromise : Promise.resolve(org);
+  void orgDecided.then(decided => {
+    if (decided?.gate) return;
+    if (window.top === window && typeof (document as Document & { modelContext?: { registerTool?: unknown } }).modelContext?.registerTool === 'function') {
+      void import('./lib/site-tools-discovery.ts').then(module => module.installSiteTools(host)).catch(error => console.warn('[lolly:site-tools]', error));
+    }
+    const revision = decided?.config?.branding?.revision;
+    if (revision) {
+      void import('./lib/design-system/brand-refresh.ts').then(module => module.mountBrandRefresh(host, catalogHostOf(host), revision, () => parseRoute().name)).catch(console.error);
+    }
+  });
 
   // The footer's "Open" button (components/footer-nav.ts) is an action, not a route: it
   // opens the OS file picker that feeds the SAME chooser a dropped file gets, so a
@@ -1861,9 +1927,14 @@ async function boot(): Promise<void> {
   // change the address and leave the old view on screen.
   let markRoutesListening = (): void => {};
   const routesListening = new Promise<void>((resolve) => { markRoutesListening = resolve; });
+  // The chooser also waits for the gate decision, and never opens over a gate: a file
+  // picked while a late gate arrived goes nowhere.
+  const chooserReady = routesListening.then(() => orgDecided).then(decided =>
+    (decided?.gate || lateGate.stopped() ? new Promise<never>(() => {}) : undefined));
   document.addEventListener('click', (e) => {
     if (!(e.target instanceof Element) || !e.target.closest('[data-open-file]')) return;
-    openDropFilePicker(host as unknown as Parameters<typeof openDropFilePicker>[0], { ready: routesListening });
+    if (lateGate.stopped()) return;
+    openDropFilePicker(host as unknown as Parameters<typeof openDropFilePicker>[0], { ready: chooserReady });
   }, true);
 
   const routeName = parseRoute().name;
@@ -1913,7 +1984,7 @@ async function boot(): Promise<void> {
   // decision (views/gallery.ts), so the boot hold on the welcome gate can go.
   const firstNavigate = async (): Promise<void> => {
     paintedLang = loadedLang();
-    try { await navigate(host, { force: true }); } finally { settleWelcomeDecision(); }
+    try { await navigate(host, { force: true }); } finally { settleWelcomeDecision(); releaseToolIndex(); }
   };
 
   if (fastPath) {
@@ -1939,8 +2010,20 @@ async function boot(): Promise<void> {
       }
     });
   } else {
+    releaseToolIndex();
     await catalogReady;
     await firstNavigate();
+  }
+
+  // A late answer that found a control plane with no gate has applied its policies by
+  // now (org/index.ts), and the listing views read some of them as they mount, so a
+  // listing view mounts again; if the instance's home view moved the address, this is
+  // where it opens. A view that can hold work keeps what it has until it is next opened.
+  if (paintBeforeProbe) {
+    void orgPromise.then(late => {
+      if (!late || late.gate) return;
+      if (_lastRouteName === 'gallery' || _lastRouteName === 'utilities' || _lastRouteName === 'dashboard') refreshMountedView();
+    });
   }
 
   // The locale catalog is the second thing that can land after the first paint, and
@@ -1967,7 +2050,9 @@ async function boot(): Promise<void> {
   // snapshot a sibling device left newer. Never blocks boot.
   const syncDeps = (): BackupDeps => ({ host: host as unknown as BackupDeps['host'], storage: localStorage });
   initSyncAutoPush(syncDeps);
-  void maybeApplyNewerAtBoot(syncDeps());
+  // The newer-snapshot prompt and the file intake below waited for the gate decision when
+  // boot did, and they still do: neither opens over a gate.
+  void orgDecided.then(decided => { if (!decided?.gate) void maybeApplyNewerAtBoot(syncDeps()); });
 
   // Android share-target (ACTION_SEND → Lolly): poll the native stash and route
   // shared files through the universal drop chooser. Placed after the first
@@ -1976,7 +2061,8 @@ async function boot(): Promise<void> {
   // body-mounted). A feature-detected no-op everywhere but the Android WebView.
   // drop-router (the sniff + chooser module) is itself dynamic-imported off the boot
   // path now; its heavy import/ingest dependencies are also lazy.
-  void import('./lib/drop-router.ts').then((m) => {
+  void orgDecided.then(decided => (decided?.gate ? null : import('./lib/drop-router.ts'))).then((m) => {
+    if (!m) return null;
     const pickerHost = host as unknown as Parameters<typeof m.openDropChooser>[1];
     // A file dropped while Lolly loaded that nothing on the page took (see installDropHold).
     openFrontDoor = files => { void m.openDropChooser(files, pickerHost); };

@@ -66,7 +66,7 @@ import { setOrgGovernanceResolver, type FlagGovernance } from './governance.ts';
 // The probe half of this seam, in its own leaf so boot can run it without loading
 // this module - see org/probe.ts's header. The helpers below are shared, not
 // duplicated: one definition of "tolerant, time-boxed, JSON-only".
-import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, probeInstance, rememberAbsent, safeFetch } from './probe.ts';
+import { PROBE_TIMEOUT_MS, isRecentlyAbsent, jsonBody, noteGateShown, probeInstance, rememberAbsent, safeFetch } from './probe.ts';
 // Import from the LEAF module, not the '@lolly/engine' barrel: org/index.ts is on the boot
 // static-import chain (jelly → feature-flags → org), so a barrel import drags the whole
 // engine (render/c2pa/handlebars/ajv, ~555KB) onto first paint. tool-url.ts only pulls the
@@ -1010,6 +1010,8 @@ function renderGate(auth: AuthConfig, instanceName?: string): boolean {
   // this shell in via any browser where the person already has a session.
   const slot = view.querySelector<HTMLElement>('#org-gate-device');
   if (slot) wireDeviceCodeSignIn(slot);
+  // A view that painted before the probe answered is stopped here, in the same task.
+  noteGateShown(view.querySelector('.org-gate'));
   // Local backups remain in authenticated Settings. A signed-out visitor cannot
   // establish custody of saved sessions or documents derived into templates/tools.
   return true;

@@ -10,7 +10,7 @@ import { aiAllowed, callAiApi } from '../lib/ai-policy.ts';
 
 import { setHostRef } from '../lib/host-ref.ts';
 import { pendingAssetSync } from '../lib/asset-sync.ts';
-import type { HostV1, AssetRef, AssetPickerOpts, RecorderAPI } from '@lolly-tools/core/host-v1';
+import type { HostV1, AssetRef, AssetPickerOpts, CalcAPI, RecorderAPI } from '@lolly-tools/core/host-v1';
 import type { PickerHost } from '../views/picker.ts';
 // Deep engine imports, NOT the `@lolly/engine` barrel: this module is on the
 // boot path, and engine/src/index.ts is one shared facade whose retained export
@@ -93,6 +93,22 @@ interface WebHost extends HostV1 {
 function memo<T>(load: () => Promise<T>): () => Promise<T> {
   let p: Promise<T> | null = null;
   return () => (p ??= load());
+}
+
+/**
+ * `host.calc` as a facade over a module that loads on the first formula. Awaiting the
+ * import inside createBridge held every boot behind its round trip (181 to 201 ms on
+ * the plan 371 phone profile) for a module most sessions never use. A failed load is
+ * asked again on the next call rather than remembered.
+ */
+export function lazyCalcAPI(load: () => Promise<CalcAPI>): CalcAPI {
+  let pending: Promise<CalcAPI> | null = null;
+  const api = (): Promise<CalcAPI> => (pending ??= load().catch((error: unknown) => { pending = null; throw error; }));
+  return {
+    evaluate: async request => (await api()).evaluate(request),
+    table: async (table, options) => (await api()).table(table, options),
+    functions: async () => (await api()).functions(),
+  };
 }
 
 export async function createBridge(): Promise<WebHost> {
@@ -325,7 +341,7 @@ export async function createBridge(): Promise<WebHost> {
   };
   // Font files (v1.262): inspection and the Skera worker load on first use.
   // Spreadsheet formulas: the formula module loads on first use.
-  host.calc = (await import('./gridcraft-calc.ts')).createWebCalcAPI();
+  host.calc = lazyCalcAPI(async () => (await import('./gridcraft-calc.ts')).createWebCalcAPI());
   const loadFonts = memo(async () => (await import('./fonts.ts')).createWebFontsAPI());
   host.fonts = {
     inspect: async (bytes) => (await loadFonts()).inspect(bytes),

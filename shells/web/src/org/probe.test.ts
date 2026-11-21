@@ -22,8 +22,8 @@ globalThis.localStorage = {
   setItem: (k: string, v: string) => { store.set(k, String(v)); },
   removeItem: (k: string) => { store.delete(k); },
   clear: () => store.clear(),
-  key: () => null,
-  length: 0,
+  key: (i: number) => [...store.keys()][i] ?? null,
+  get length() { return store.size; },
 } as unknown as Storage;
 
 type Handler = (url: string, init?: RequestInit) => Response | Promise<Response>;
@@ -35,7 +35,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
   return router(String(input), init);
 }) as typeof fetch;
 
-const { probeInstance, initOrgProbeFirst, isRecentlyAbsent, AUTH_PROBE_BUDGET_MS, PROBE_TIMEOUT_MS } = await import('./probe.ts');
+const { probeInstance, initOrgProbeFirst, isRecentlyAbsent, cleanAnswerRemembered, onGateShown, noteGateShown, AUTH_PROBE_BUDGET_MS, CLEAN_ANSWER_TTL_MS, PROBE_TIMEOUT_MS } = await import('./probe.ts');
 
 const ABSENT_KEY = 'lolly:org-absent:same-origin';
 const SLOW_KEY = 'lolly:org-probe-unanswered:same-origin';
@@ -250,3 +250,186 @@ for (const status of [401, 403, 429]) {
     assert.ok(!store.has(ABSENT_KEY));
   });
 }
+
+// ── The last answer (plan 371): paint before the probe only after a clean answer ─────
+
+/** Node has no page, so the origin part of the key is empty here. */
+const LAST_KEY = 'lolly:org-last-answer:|same-origin';
+const lastAnswer = (): { v: number; answer: string; at: number } | null =>
+  store.has(LAST_KEY) ? JSON.parse(store.get(LAST_KEY)!) : null;
+
+for (const [label, answer] of [['a 404', () => new Response('', { status: 404 })], ['the SPA\'s own HTML', () => html(200)]] as const) {
+  test(`${label} is remembered as "no control plane", so the next boot may paint first`, async () => {
+    assert.equal(cleanAnswerRemembered(), false, 'no record: boot waits');
+    router = answer;
+    await probeInstance();
+    assert.equal(lastAnswer()?.answer, 'absent');
+    assert.equal(cleanAnswerRemembered(), true);
+  });
+}
+
+test('a control plane is remembered as one, and replaces an earlier clean answer', async () => {
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  assert.equal(cleanAnswerRemembered(), true);
+  router = () => json({ mode: 'gated', provider: 'oidc', loginPath: '/login' });
+  await probeInstance();
+  assert.equal(lastAnswer()?.answer, 'control-plane');
+  assert.equal(cleanAnswerRemembered(), false, 'a gated deployment never paints first');
+});
+
+test('a probe with no answer writes nothing: never "no control plane", and an earlier gate stands', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  router = after(60_000, () => html(404));
+  await run(t, probeInstance(), AUTH_PROBE_BUDGET_MS + 1000);
+  assert.equal(lastAnswer(), null, 'a timeout is not an answer');
+  assert.equal(cleanAnswerRemembered(), false);
+
+  router = () => json(config);
+  await run(t, probeInstance(), AUTH_PROBE_BUDGET_MS);
+  for (const silent of [after(60_000, () => html(404)), () => html(503), () => { throw new TypeError('Failed to fetch'); }]) {
+    router = silent as Handler;
+    await run(t, probeInstance(), AUTH_PROBE_BUDGET_MS + 1000);
+    assert.equal(lastAnswer()?.answer, 'control-plane', 'a silent probe does not clear what a control plane said');
+    assert.equal(cleanAnswerRemembered(), false);
+  }
+});
+
+for (const status of [401, 403, 429, 500, 503]) {
+  test(`a ${status} writes no answer`, async (t) => {
+    t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+    router = () => html(status);
+    await run(t, probeInstance(), AUTH_PROBE_BUDGET_MS);
+    assert.equal(lastAnswer(), null);
+    assert.equal(cleanAnswerRemembered(), false);
+  });
+}
+
+test('JSON that is not an auth config writes no answer', async () => {
+  router = () => json({ hello: 'world' });
+  await probeInstance();
+  assert.equal(lastAnswer(), null);
+});
+
+test('a clean answer lasts its lifetime and no longer', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  assert.equal(CLEAN_ANSWER_TTL_MS, 30 * 24 * 60 * 60 * 1000);
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  const at = Date.now();
+  assert.equal(cleanAnswerRemembered(at + CLEAN_ANSWER_TTL_MS - 1), true);
+  assert.equal(cleanAnswerRemembered(at + CLEAN_ANSWER_TTL_MS), false, 'expired: boot waits again');
+});
+
+test('a damaged, foreign or future record is not believed', () => {
+  const now = Date.now();
+  for (const raw of [
+    'not json',
+    'null',
+    JSON.stringify({ answer: 'absent', at: now }),
+    JSON.stringify({ v: 2, answer: 'absent', at: now }),
+    JSON.stringify({ v: 1, answer: 'none', at: now }),
+    JSON.stringify({ v: 1, answer: 'absent', at: 'now' }),
+    JSON.stringify({ v: 1, answer: 'absent', at: null }),
+    JSON.stringify({ v: 1, answer: 'absent', at: now + 10 * 60 * 1000 }),
+  ]) {
+    store.set(LAST_KEY, raw);
+    assert.equal(cleanAnswerRemembered(now), false, raw);
+  }
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'absent', at: now }));
+  assert.equal(cleanAnswerRemembered(now), true, 'the well-formed record is');
+});
+
+test('the record is kept per origin and instance base', async () => {
+  const realLocation = Object.getOwnPropertyDescriptor(globalThis, 'location');
+  const setOrigin = (origin: string) => Object.defineProperty(globalThis, 'location', { value: { origin }, configurable: true, writable: true });
+  try {
+    setOrigin('https://a.example');
+    router = () => new Response('', { status: 404 });
+    await probeInstance();
+    assert.ok(store.has('lolly:org-last-answer:https://a.example|same-origin'));
+    assert.equal(cleanAnswerRemembered(), true);
+    setOrigin('https://b.example');
+    assert.equal(cleanAnswerRemembered(), false, 'another origin has its own record');
+  } finally {
+    if (realLocation) Object.defineProperty(globalThis, 'location', realLocation);
+    else delete (globalThis as { location?: unknown }).location;
+  }
+});
+
+test('a device that has seen a managed AI policy here never paints first', async () => {
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  store.set('lolly:managed-ai:same-origin', '1');
+  assert.equal(cleanAnswerRemembered(), false);
+});
+
+test('a clean answer from a slower tab does not undo a later control-plane answer', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+  const now = Date.now();
+  // Another tab learned of a control plane a moment after this tab's probe answered.
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'control-plane', at: now + 5000 }));
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  assert.equal(lastAnswer()?.answer, 'control-plane');
+  assert.equal(cleanAnswerRemembered(), false);
+  // A clean answer stamped after the control plane's does replace the record.
+  t.mock.timers.setTime(now + 10_000);
+  await probeInstance();
+  assert.equal(lastAnswer()?.answer, 'absent');
+});
+
+test('the gate listener hears the drawn gate, and a failing listener cannot break the renderer', () => {
+  const seen: Array<unknown> = [];
+  const gate = { marker: 'gate' } as unknown as Element;
+  onGateShown(node => { seen.push(node); });
+  noteGateShown(gate);
+  assert.deepEqual(seen, [gate]);
+  onGateShown(() => { throw new Error('listener broke'); });
+  const error = console.error;
+  console.error = () => {};
+  try { assert.doesNotThrow(() => noteGateShown(gate)); } finally { console.error = error; }
+  onGateShown(null);
+  noteGateShown(gate);
+  assert.equal(seen.length, 1);
+});
+
+test('a device that has seen a control plane here never paints first again, even after a later clean answer', async () => {
+  // A control plane answers on this origin (a gated workspace that members sign in to).
+  router = () => json({ mode: 'gated', provider: 'oidc', loginPath: '/login' });
+  const error = console.error;
+  const warn = console.warn;
+  console.error = () => {};
+  console.warn = () => {};
+  try { await initOrgProbeFirst(); } finally { console.error = error; console.warn = warn; }
+  assert.equal(store.get('lolly:managed-ai:same-origin'), '1', 'the first control-plane answer marks the device');
+  // The control plane goes away, then comes back with a gate. In between the probe saw a 404.
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  assert.equal(lastAnswer()?.answer, 'absent');
+  assert.equal(cleanAnswerRemembered(), false, 'saved work made under accounts is never painted ahead of the gate');
+  // A forged clean record changes nothing on such a device either.
+  store.set(LAST_KEY, JSON.stringify({ v: 1, answer: 'absent', at: Date.now() }));
+  assert.equal(cleanAnswerRemembered(), false);
+});
+
+test('a control plane met under another instance base also keeps boot waiting (saved work is per origin)', async () => {
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  assert.equal(cleanAnswerRemembered(), true);
+  store.set('lolly:managed-ai:https://a.example', '1');
+  assert.equal(cleanAnswerRemembered(), false, 'a managed instance used from this origin');
+  store.delete('lolly:managed-ai:https://a.example');
+  store.set('lolly:org-last-answer:|https://a.example', JSON.stringify({ v: 1, answer: 'control-plane', at: Date.now() }));
+  assert.equal(cleanAnswerRemembered(), false, 'a control plane answered for another base');
+  store.delete('lolly:org-last-answer:|https://a.example');
+  assert.equal(cleanAnswerRemembered(), true);
+});
+
+test('storage that cannot be listed counts as having met a control plane', async () => {
+  router = () => new Response('', { status: 404 });
+  await probeInstance();
+  const key = localStorage.key;
+  (localStorage as { key: (i: number) => string | null }).key = () => { throw new Error('blocked'); };
+  try { assert.equal(cleanAnswerRemembered(), false); } finally { (localStorage as { key: typeof key }).key = key; }
+});
