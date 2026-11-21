@@ -42,9 +42,9 @@
       "typeEscapes": 13
     },
     "shells/web/src/lib/lofi-voices.ts": {
-      "lines": 1734,
+      "lines": 1673,
       "largestFunctionLines": 92,
-      "importFanIn": 19,
+      "importFanIn": 20,
       "importFanOut": 7,
       "typeEscapes": 0
     },
@@ -89,6 +89,13 @@
       "importFanIn": 1,
       "importFanOut": 75,
       "typeEscapes": 8
+    },
+    "shells/web/src/views/music-studio.ts": {
+      "lines": 1500,
+      "largestFunctionLines": 1654,
+      "importFanIn": 1,
+      "importFanOut": 45,
+      "typeEscapes": 0
     },
     "shells/web/src/views/picker.ts": {
       "lines": 2389,

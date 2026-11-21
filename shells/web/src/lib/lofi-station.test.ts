@@ -105,6 +105,8 @@ class FakeCtx {
   createOscillator(): FakeOsc { const n = new FakeOsc(); this.oscs.push(n); return n; }
   createBiquadFilter(): FakeFilter { return new FakeFilter(); }
   createStereoPanner(): FakePanner { return new FakePanner(); }
+  createChannelSplitter(): FakeNode { return new FakeNode(); }
+  createChannelMerger(): FakeNode { return new FakeNode(); }
   createBufferSource(): FakeSource { const n = new FakeSource(); this.sources.push(n); return n; }
   createBuffer(channels: number, n: number): { getChannelData: (c: number) => Float32Array; length: number } {
     const data = Array.from({ length: channels }, () => new Float32Array(n));
