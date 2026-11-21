@@ -1253,7 +1253,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 1 as of 2026-08-26: the grouped format picker's refresh() rebuilds the
   // category accordion after a setFormats narrowing. Reviewed - format ids and
   // labels are escape()d, category labels are escape(t(…)) literals, and the
-  // chevron comes from the shared icon() generator.
+  // chevron comes from the shared icon() generator. Still 1 on 2026-11-20, when
+  // the panel moved onto mountBodyPopover: the same paint() now fills the whole
+  // open panel, adding the head, an escape(t(…)) literal and the shared close button.
   'components/export-format-picker.ts': 1,
   'views/export-preflight.ts': 1,
   // 41 as of 2026-08-07: +1 for the Line tool's drawLineRubber (connectLayer.innerHTML,

@@ -579,7 +579,7 @@
   "shells/web/src/components/easing-editor.ts": 5,
   "shells/web/src/components/emoji-pack-import.ts": 1,
   "shells/web/src/components/emoji-picker.test.ts": 1,
-  "shells/web/src/components/emoji-picker.ts": 8,
+  "shells/web/src/components/emoji-picker.ts": 7,
   "shells/web/src/components/emoji-set-browser.ts": 1,
   "shells/web/src/components/emoji-style-control.ts": 5,
   "shells/web/src/components/featured-row.ts": 15,

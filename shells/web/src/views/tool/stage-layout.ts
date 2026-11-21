@@ -1338,6 +1338,10 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       placeActions();
       applyModality();
       settleSheet();
+      // The layout is decided inside the resize event, ahead of the listeners that
+      // move a docked sheet back to its overlay, and that move restyles the sheet
+      // again. The frame that follows settles whatever they started, before any paint.
+      requestAnimationFrame(settleSheet);
     };
     mqMobile.addEventListener('change', onBreakpoint);
     tview.exportTeardown = () => {
