@@ -54,6 +54,11 @@ export const GENRE_SLUG: Readonly<Record<LofiMood, string>> = {
   botanica: 'botanica', arnhem: 'arnhem-land', oompa: 'oompa', mandopop: 'mandopop', cpop: 'c-pop',
   breakbeat: 'breakbeat', funkyHouse: 'funky-house', ukGarage: 'uk-garage',
   privateSchool: 'private-school-piano', noosa: 'noosacore', jungle: 'jungle', trailer: 'trailer',
+  italo: 'italo-disco', balearic: 'balearic',
+  // Lofi's newer flavours have no page of their own yet (the picker reaches them from
+  // Lofi's chips); the addresses are held for them.
+  lofiFocus: 'focus-lofi', lofiDrift: 'drift-lofi', lofiSoul: 'slow-jam-lofi', lofiFunk: 'retro-bounce-lofi',
+  lofiJazz: 'bookstore-lofi', lofiZen: 'zen-lofi', lofiCinema: 'cinematic-lofi',
 };
 
 /** One question and its answer. */

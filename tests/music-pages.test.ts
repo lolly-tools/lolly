@@ -25,7 +25,7 @@ import {
   plainText, questionsFromMarkdown, registerProblems, type MusicRegister, type SampleSet,
 } from '../docs/music-pages.ts';
 import { GENRE_GROUPS } from '../shells/web/src/lib/genre-icons.ts';
-import { LOFI_MOODS } from '../engine/src/lofi-compose.ts';
+import { LOFI_FLAVOURS, LOFI_MOODS } from '../engine/src/lofi-compose.ts';
 import { verifyC2pa } from '../engine/src/c2pa-verify.ts';
 import { TUNE_CREDIT, TUNE_LICENCE_STATEMENT, isTuneDeclaration } from '../engine/src/tune-provenance.ts';
 
@@ -38,7 +38,9 @@ const SAMPLE_BUDGET = 12.5e6;
 
 test('every genre the picker lists has page copy, and its related genres are real genres', () => {
   assert.deepEqual(registerProblems(register, listed), []);
-  assert.equal(new Set(listed).size, LOFI_MOODS.length, 'the picker lists every genre the composer has, once');
+  // Lofi's seven newer flavours are reached from Lofi's chips and have no page yet (LOFI_FLAVOURS).
+  assert.equal(new Set(listed).size, LOFI_MOODS.length - LOFI_FLAVOURS.length, 'every genre the composer has is listed once, bar Lofi\'s newer flavours');
+  for (const f of LOFI_FLAVOURS) assert.ok(!listed.includes(f), `${f} is a flavour of Lofi, not a page`);
 });
 
 test('every genre has a readable, unique address', () => {

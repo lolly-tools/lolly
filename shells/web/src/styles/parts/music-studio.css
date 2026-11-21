@@ -313,6 +313,9 @@
   @keyframes ms-kick-back { from { transform: rotate(-40deg); } }
   @keyframes ms-kick-on { from { transform: rotate(40deg); } }
 
+  /* Lofi's flavours: one row of chips under the bar, scrolling sideways when it runs out of width. */
+  .ms-flavours { display: flex; gap: var(--sp-1); overflow-x: auto; scrollbar-width: none; padding: var(--sp-2) 2px 2px; }
+  .ms-flavours[hidden] { display: none; }
   .ms-bar-end { margin-inline-start: auto; display: inline-flex; align-items: center; gap: var(--sp-2); }
   .ms-icon { display: inline-flex; align-items: center; justify-content: center; min-width: var(--ui-size-target); min-height: var(--ui-size-target); padding-inline: var(--sp-1); }
 

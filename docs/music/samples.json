@@ -748,16 +748,17 @@
       "bpm": 124,
       "key": "A♭ minor",
       "file": "electro.m4a",
-      "bytes": 205328,
-      "sha256": "686f6d27da8487e64f9910f0a7059a3f38808f956509c166b41781975015d047",
+      "bytes": 205877,
+      "sha256": "3095ede77816630238d855fffd7f316c6d07265b447eca599f8d02156faf8237",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Electro, seed 3.",
       "measured": {
-        "rmsDb": -19.9,
+        "scratches": 0,
+        "rmsDb": -19.7,
         "peakDb": -2.8,
-        "dipDb": -2.6,
-        "liftDb": 3.5,
-        "lowDb": -2.9,
-        "stereo": 0.97
+        "dipDb": -2.5,
+        "liftDb": 3.7,
+        "lowDb": -3,
+        "stereo": 0.96
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
     },
@@ -770,14 +771,15 @@
       "bpm": 139,
       "key": "A♭ major",
       "file": "dubstep.m4a",
-      "bytes": 203888,
-      "sha256": "7fdfe4baddc4d92fbcb7afb629555b9def3219e5097cebfd13cd21565ac95d07",
+      "bytes": 205045,
+      "sha256": "ef2c10650163ee11e58ecf3a6fa6838e9f2691794d46c1376d417cb28d286827",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Dubstep, seed 5.",
       "measured": {
-        "rmsDb": -19.2,
+        "scratches": 0,
+        "rmsDb": -19,
         "peakDb": -4.7,
-        "dipDb": -4.3,
-        "liftDb": 3.5,
+        "dipDb": -3.9,
+        "liftDb": 3.8,
         "lowDb": -2.1,
         "stereo": 0.95
       },
@@ -792,16 +794,17 @@
       "bpm": 145,
       "key": "G minor",
       "file": "brostep.m4a",
-      "bytes": 204244,
-      "sha256": "e7d5eea09544fa8ff8a583b4509687ccfa157c8e1c8d481b0e0b3f7e717aa5e0",
+      "bytes": 204626,
+      "sha256": "70e18cbd41d3692d521412eb9761c517fd42c4aad9aedf356734b97423c28099",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Brostep, seed 1.",
       "measured": {
+        "scratches": 0,
         "rmsDb": -20,
         "peakDb": -3.9,
-        "dipDb": -4.3,
+        "dipDb": -4.2,
         "liftDb": 1.3,
-        "lowDb": -2.5,
-        "stereo": 0.97
+        "lowDb": -2.6,
+        "stereo": 0.96
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
     },
@@ -814,15 +817,16 @@
       "bpm": 172,
       "key": "A♭ minor",
       "file": "drum-and-bass.m4a",
-      "bytes": 206987,
-      "sha256": "533cec2b6912a6fc0272a62e77dde85fd3b9a9a5dad9aa292ffa226eec73bded",
+      "bytes": 205570,
+      "sha256": "6b987c00a98fa8c3de5103dbdc254b7c1275a1a49f43291bd0d42a7087079a3d",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style D&B, seed 2.",
       "measured": {
-        "rmsDb": -16.8,
-        "peakDb": -4.4,
-        "dipDb": -3.6,
-        "liftDb": 3.6,
-        "lowDb": -1.3,
+        "scratches": 0,
+        "rmsDb": -17.1,
+        "peakDb": -4.1,
+        "dipDb": -3.3,
+        "liftDb": 3.3,
+        "lowDb": -1.4,
         "stereo": 0.98
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
@@ -1168,16 +1172,16 @@
       "bpm": 129,
       "key": "A♭ major",
       "file": "breakbeat.m4a",
-      "bytes": 206805,
-      "sha256": "ebd3b23e65cd268370ff7d01f8eadb831a6b948a970cf111942c8e6fb16a3ed0",
+      "bytes": 206650,
+      "sha256": "7c6fefd0a04adbc4521802af80dadb7a3016bd8eb5ce58b8e4ee3a1c27d4961d",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Breakbeat, seed 5.",
       "measured": {
         "scratches": 3,
         "rmsDb": -19.7,
         "peakDb": -4.2,
-        "dipDb": -3,
+        "dipDb": -2.8,
         "liftDb": 1.4,
-        "lowDb": -2.9,
+        "lowDb": -3,
         "stereo": 0.98
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
@@ -1315,6 +1319,52 @@
         "liftDb": 3.6,
         "lowDb": -1.3,
         "stereo": 0.88
+      }
+    },
+    {
+      "style": "italo",
+      "seed": 6,
+      "bars": 64,
+      "anchorBar": 12,
+      "anchorSection": "drop",
+      "bpm": 122,
+      "key": "F♯ minor",
+      "file": "italo-disco.m4a",
+      "bytes": 203677,
+      "sha256": "1d7513930dbe57203771b9573d462f4ebe5c77113a1f0ae6d89d4e8eeedfd0fc",
+      "declaration": "Made with Lolly's music generator (procedural, no AI). Style Italo disco, seed 6.",
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0.",
+      "measured": {
+        "scratches": 0,
+        "rmsDb": -20.6,
+        "peakDb": -2.3,
+        "dipDb": -2.6,
+        "liftDb": 4.3,
+        "lowDb": -3.1,
+        "stereo": 0.98
+      }
+    },
+    {
+      "style": "balearic",
+      "seed": 4,
+      "bars": 64,
+      "anchorBar": 12,
+      "anchorSection": "drop",
+      "bpm": 100,
+      "key": "B minor",
+      "file": "balearic.m4a",
+      "bytes": 203669,
+      "sha256": "bdef8c56e3c582e4b0f4f7b621e8d23dd9afed5028c5bab67ececdee127cebc0",
+      "declaration": "Made with Lolly's music generator (procedural, no AI). Style Balearic, seed 4.",
+      "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0.",
+      "measured": {
+        "scratches": 0,
+        "rmsDb": -20,
+        "peakDb": -2.4,
+        "dipDb": -3.7,
+        "liftDb": 4.8,
+        "lowDb": -2.3,
+        "stereo": 0.97
       }
     }
   ]

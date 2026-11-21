@@ -87,6 +87,7 @@ import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { genreTitle, shuffleIconSvg } from '../lib/genre-icons.ts';
 import { openGenrePicker } from './music-studio/genre-picker.ts';
 import { genreHeroHtml, wireGenreHero, wireGenreLock } from './music-studio/genre-hero.ts';
+import { lofiFlavoursHtml, wireLofiFlavours } from './music-studio/lofi-flavours.ts';
 import { autoLabel, composedTag, laneHeadName, sentenceCase, styleKitName, trackName as partName } from './music-studio/track-names.ts';
 import { createStudioHistory, historyButtonsHtml, historyKey, paintHistoryButtons, redoneLine, stableJson, undoneLine } from './music-studio/studio-history.ts';
 import { auditionMoment, createFxLayer, drawChips, fxMoments, momentLabel, placeChips, pressMoment, CHIP, type FxMoment, type PlacedChip } from './music-studio/fx-moments.ts';
@@ -326,6 +327,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
         ${iconBtn('data-link', 'link', t('Copy a link to this track'))}
       </span>
     </div>
+    ${lofiFlavoursHtml()}
     <div class="ms-sections">
       <details class="section-card ms-sec" data-sec="tune">
         ${sectionHead('music', t('Tune'), '<span class="section-card-value" data-tune-value></span>')}
@@ -422,6 +424,8 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   const say = (text: string): void => { hint.textContent = text; };
   /** The genre button, the bar's hero, and the lock beside it (views/music-studio/genre-hero.ts). */
   const hero = wireGenreHero(q<HTMLElement>('[data-genre]'), host);
+  /** Lofi's flavour chips under the bar, shown while a flavour of Lofi plays (views/music-studio/lofi-flavours.ts). */
+  const flavours = wireLofiFlavours(q<HTMLElement>('[data-flavours]'), (mood) => setStyle(mood));
   const lock = wireGenreLock(q<HTMLElement>('[data-genre-lock]'), { locked: () => !shuffleGenres, setLocked: (on) => saveShuffleGenres(!on), genre: () => state.mood, say });
   /** The buttons over the Ear candy lane's chips: a name to point at, and a press that plays
    *  on from the moment while the track plays, or plays the moment alone while stopped. */
@@ -1341,6 +1345,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   /** The genre button (its icon and name) and the shuffle button's words, in step with the state. */
   const paintGenre = (): void => {
     hero.paint(state.mood);
+    flavours.paint(state.mood);
     lock.paint();
     const shuffle = q<HTMLElement>('[data-shuffle]');
     const label = shuffleGenres
@@ -1829,6 +1834,7 @@ export function mountMusicStudio(view: HTMLElement & { _cleanup?: () => void }, 
   writeLink(); meta(); paintSummaries(); paintGenre(); paintSilent(); sizeSeed(); fitHeight(); fit(); viz.frame();
   // The genre lights up as the page opens, so a shared link says at once what it plays.
   hero.paint(state.mood, { lit: true });
+  flavours.paint(state.mood);
   paintHistoryButtons(page, studioHistory);
   void loadPrefs();
   // A kept tune's address (from Projects, lib/music-project.ts) opens that tune exactly as

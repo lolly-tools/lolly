@@ -23,7 +23,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
-import { genreIconNode, genreTitle } from '../../lib/genre-icons.ts';
+import { genreIconNode, genreTitle, isLofiFlavour } from '../../lib/genre-icons.ts';
 import type { LofiMood } from '../../../../../engine/src/lofi-compose.ts';
 import { genreWashes, type GenreTile } from './genre-colours.ts';
 import { genreTagline } from './genre-taglines.ts';
@@ -103,7 +103,8 @@ export function wireGenreHero(button: HTMLElement, host: unknown): GenreHero {
   return {
     paint(mood, opts = {}) {
       const changed = shown !== null && shown !== mood;
-      const title = genreTitle(mood);
+      // A flavour of Lofi reads as Lofi first: "Lofi · Late night".
+      const title = isLofiFlavour(mood) ? `Lofi · ${genreTitle(mood)}` : genreTitle(mood);
       shown = mood;
       iconBox?.replaceChildren(genreIconNode(mood, 20));
       if (name) name.textContent = title;
