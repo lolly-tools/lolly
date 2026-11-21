@@ -106,3 +106,94 @@ test('what an older desktop build sees: it lists only .json names and finds no t
   assert.equal(record.thumb ?? null, null, 'no picture for them: the tool icon shows; the document opens');
   assert.equal(record.data.title, 'a');
 });
+
+const settle = async (): Promise<void> => { for (let i = 0; i < 50; i++) await new Promise(r => setImmediate(r)); };
+
+test('two saves of the same picture at once share one write: the second never truncates a file the first verified', async () => {
+  const { fs, bytes } = memoryFs();
+  let writes = 0;
+  const write = fs.writeFile!;
+  fs.writeFile = async (path, value) => { writes++; await new Promise(r => setTimeout(r, 20)); await write(path, value); };
+  const state = createFsStateAPI(fs);
+  const picture = await prepared(png('same'));
+  await Promise.all([
+    state.save('poster:1', { __toolId: 'poster', title: 'a' }, picture),
+    state.save('poster:2', { __toolId: 'poster', title: 'b' }, picture),
+  ]);
+  assert.equal(writes, 1, 'one write of the file');
+  const rows = await state.list();
+  assert.ok(rows.every(row => row.preview?.key === picture.ref.key), 'both records point at it');
+  assert.equal(bytes.size, 1);
+  assert.equal(await state.pictureDataUrl!({ slot: 'poster:2' }), png('same'));
+});
+
+test('the picture sweep removes nothing after a walk that could not read every record, and keeps a file a corrupt record points at', async (context) => {
+  const { fs, bytes, text } = memoryFs();
+  text.set('saved-state/slotname-v1.marker', '1');
+  const first = createFsStateAPI(fs);
+  const a = await prepared(png('a')), b = await prepared(png('b')), orphan = await prepared(png('orphan')), named = await prepared(png('named'));
+  await first.save('poster:a', { __toolId: 'poster', title: 'a' }, a);
+  await first.save('poster:b', { __toolId: 'poster', title: 'b' }, b);
+  bytes.set(`saved-state/previews/${orphan.ref.key}.png`, orphan.bytes);
+  bytes.set(`saved-state/previews/${named.ref.key}.png`, named.bytes);
+  // A record cut short on disk that still holds the key of the picture it points at.
+  text.set('saved-state/poster%3Acut.json', `{"slot":"poster:cut","preview":{"key":"${named.ref.key}","type":"image/png"`);
+  const read = fs.readTextFile;
+  let failB = false;
+  fs.readTextFile = async (path) => { if (failB && path.endsWith('poster%3Ab.json')) throw new Error('busy'); return read(path); };
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  // A later launch lists, then sweeps a moment later; this time poster:b cannot be read.
+  const later = createFsStateAPI(fs);
+  await later.list();
+  failB = true;
+  context.mock.timers.tick(3000);
+  await settle();
+  assert.equal(bytes.size, 4, 'an incomplete walk removes nothing, not even the orphan');
+  failB = false;
+  const next = createFsStateAPI(fs);
+  await next.list();
+  context.mock.timers.tick(3000);
+  await settle();
+  const left = [...bytes.keys()].map(path => path.split('/').pop()!.split('.')[0]).sort();
+  assert.deepEqual(left, [a.ref.key, b.ref.key, named.ref.key].sort(), 'a complete walk removes only the orphan');
+});
+
+test('a long-running app sweeps the pictures a session let go of, so saving new pictures does not grow the folder without bound', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-11-21T09:00:00Z') });
+  const { fs, bytes, text } = memoryFs();
+  text.set('saved-state/slotname-v1.marker', '1');
+  const state = createFsStateAPI(fs);
+  const save = async (tag: string) => state.save('poster:1', { __toolId: 'poster', title: 'same work' }, await prepared(png(tag)));
+  for (let i = 0; i < 21; i++) await save(`first-${i}`);
+  assert.equal(bytes.size, 21);
+  // Ten minutes and more later the same session is saved twenty more times.
+  context.mock.timers.tick(11 * 60_000);
+  await settle();
+  for (let i = 0; i < 20; i++) await save(`second-${i}`);
+  context.mock.timers.tick(60_000);
+  await settle();
+  assert.equal(bytes.size, 20, 'the first round went; the newest twenty wait out their grace');
+  const record = JSON.parse(text.get('saved-state/poster%3A1.json')!);
+  assert.ok(bytes.has(`saved-state/previews/${record.preview.key}.png`), 'the picture the record points at is kept');
+});
+
+test('a save or a delete that lands while old pictures move wins: the move never writes a stale copy or brings a deleted session back', async (context) => {
+  const { fs, text } = memoryFs();
+  text.set('saved-state/slotname-v1.marker', '1');
+  const legacy = (slot: string, title: string) => JSON.stringify({ slot, toolId: 'poster', toolVersion: '1', label: title, data: { __toolId: 'poster', title }, thumb: png(`legacy-${title}`),
+    updatedAt: '2026-10-01T00:00:00.000Z', createdAt: '2026-10-01T00:00:00.000Z', formatVersion: 4 });
+  text.set('saved-state/poster%3A1.json', legacy('poster:1', 'one'));
+  text.set('saved-state/poster%3A2.json', legacy('poster:2', 'two'));
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const state = createFsStateAPI(fs);
+  await state.list();
+  const fresh = await prepared(png('fresh'));
+  await state.save('poster:1', { __toolId: 'poster', title: 'edited' }, fresh);
+  await state.delete('poster:2');
+  context.mock.timers.tick(3000);
+  await settle();
+  const one = JSON.parse(text.get('saved-state/poster%3A1.json')!);
+  assert.equal(one.data.title, 'edited');
+  assert.equal(one.preview.key, fresh.ref.key, 'its own new picture, not the old one moved over it');
+  assert.equal(text.has('saved-state/poster%3A2.json'), false, 'the deleted session stays deleted');
+});

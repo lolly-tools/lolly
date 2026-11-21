@@ -129,6 +129,8 @@ type ParsedRecord = Partial<FsStateRecord>;
 
 const STATE_DIR = 'saved-state';
 const PREVIEW_DIR = `${STATE_DIR}/previews`;
+/** Pictures let go of before a sweep of the picture files is due. */
+const SWEEP_AFTER = 20;
 
 const previewPath = (ref: Pick<SessionPreviewRef, 'key' | 'type'>): string => `${PREVIEW_DIR}/${ref.key}.${previewFileExt(ref.type)}`;
 
@@ -275,30 +277,60 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
   // on-disk JSON size, matching the web shell's Blob-size estimate). Reused by
   // list / sizes / _getAssetRefs so we walk the directory a single way.
   async function readAllRecords(): Promise<{ raw: ParsedRecord; bytes: number }[]> {
+    return (await scanRecords()).records;
+  }
+
+  /** The same walk, saying whether every record was read. A record that would not
+   *  parse still counts as read: any picture key in its text is collected in
+   *  `keysInText`, so the picture sweep never takes a file such a record points at.
+   *  A directory or file that could not be read leaves `complete` false. */
+  async function scanRecords(): Promise<{ records: { raw: ParsedRecord; bytes: number }[]; complete: boolean; keysInText: Set<string> }> {
     await ensureMigrated();
+    const keysInText = new Set<string>();
     let names: string[];
     try {
       names = await fs.readDirNames(STATE_DIR);
     } catch {
-      return [];
+      return { records: [], complete: false, keysInText };
     }
     const out: { raw: ParsedRecord; bytes: number }[] = [];
+    let complete = true;
     for (const name of names) {
       if (!name?.endsWith('.json')) continue;
+      let text: string;
+      try { text = await fs.readTextFile(`${STATE_DIR}/${name}`); } catch { complete = false; continue; }
       try {
-        const text = await fs.readTextFile(`${STATE_DIR}/${name}`);
         out.push({ raw: JSON.parse(text) as ParsedRecord, bytes: new Blob([text]).size });
-      } catch { /* skip corrupt entries */ }
+      } catch {
+        // Corrupt entries are skipped by every reader, but never treated as naming nothing.
+        for (const key of text.match(/[0-9a-f]{32}/g) ?? []) keysInText.add(key);
+      }
     }
-    return out;
+    return { records: out, complete, keysInText };
+  }
+
+  /** One write at a time per session in this window: a save, a delete and the
+   *  picture move never interleave their read and write of the same file. */
+  const slotQueue = new Map<string, Promise<unknown>>();
+  function withSlot<T>(slot: string, run: () => Promise<T>): Promise<T> {
+    const prior = slotQueue.get(slot) ?? Promise.resolve();
+    const next = prior.catch(() => {}).then(run);
+    const settled = next.catch(() => {});
+    slotQueue.set(slot, settled);
+    void settled.then(() => { if (slotQueue.get(slot) === settled) slotQueue.delete(slot); });
+    return next;
   }
 
   /** Write one record. `times` given (a restore) keeps the session's own update
    *  and save times; otherwise the update time is now, and the save time is now
    *  only when the work changed, so a rename keeps it (matching the web bridge). */
-  /** Picture files written by this app since it started: the orphan sweep leaves
-   *  them, since their record may be a moment from being written. */
-  const writtenHere = new Set<string>();
+  /** Picture files this window wrote in the last ten minutes, with the time: the
+   *  sweep leaves them, since their record may be a moment from being written. */
+  const writtenHere = new Map<string, number>();
+  const WRITTEN_GRACE_MS = 10 * 60_000;
+  /** Picture writes in flight, by key: two saves of the same picture share one write
+   *  rather than the second truncating a file the first has just verified. */
+  const writing = new Map<string, Promise<boolean>>();
 
   /** Read a picture file back, or null when it is missing or its bytes do not hash
    *  to its name (a torn write never shows as a picture). */
@@ -312,15 +344,23 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
 
   /** Write a picture file once, then read it back; true only when the file on disk
    *  holds exactly these bytes. Nothing points at it until this answers true. */
-  async function writePicture(picture: PreparedPicture): Promise<boolean> {
-    if (!fs.writeFile || !fs.readFile) return false;
-    try {
-      if (await readPicture(picture.ref)) return true;
-      if (!await fs.exists(PREVIEW_DIR)) await fs.mkdirRecursive(PREVIEW_DIR);
-      writtenHere.add(picture.ref.key);
-      await fs.writeFile(previewPath(picture.ref), picture.bytes);
-      return !!await readPicture(picture.ref);
-    } catch { return false; }
+  function writePicture(picture: PreparedPicture): Promise<boolean> {
+    if (!fs.writeFile || !fs.readFile) return Promise.resolve(false);
+    const key = picture.ref.key;
+    const inFlight = writing.get(key);
+    if (inFlight) return inFlight;
+    const write = (async () => {
+      try {
+        if (await readPicture(picture.ref)) { writtenHere.set(key, Date.now()); return true; }
+        if (!await fs.exists(PREVIEW_DIR)) await fs.mkdirRecursive(PREVIEW_DIR);
+        writtenHere.set(key, Date.now());
+        await fs.writeFile!(previewPath(picture.ref), picture.bytes);
+        return !!await readPicture(picture.ref);
+      } catch { return false; }
+    })();
+    writing.set(key, write);
+    void write.finally(() => writing.delete(key));
+    return write;
   }
 
   /** A record's picture fields from what a caller handed in: a picture written as a
@@ -339,6 +379,10 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
 
   async function writeRecord(slot: string, data: SavedStateData, picture: PictureInput, times?: { updatedAt: string; savedAt: string }): Promise<void> {
     await ensureMigrated();
+    await withSlot(slot, () => writeRecordNow(slot, data, picture, times));
+  }
+
+  async function writeRecordNow(slot: string, data: SavedStateData, picture: PictureInput, times?: { updatedAt: string; savedAt: string }): Promise<void> {
     // Re-saves reuse the slot: carry the original creation time forward off the
     // existing file (matching the web bridge's IndexedDB read-before-write).
     let prior: ParsedRecord | undefined;
@@ -372,6 +416,21 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       ...sessionVersionStamp(),
     };
     await writeDocument(fs, slotPath(slot), JSON.stringify(record, null, 2));
+    if (priorRef && priorRef.key !== fields.preview?.key) pictureLeft();
+  }
+
+  /** A record let go of a picture file (a new picture, or the session deleted).
+   *  After a few of those a sweep is due, so a long-running app does not keep every
+   *  picture a session ever had. */
+  let leftSinceSweep = 0;
+  let sweepTimer: ReturnType<typeof setTimeout> | null = null;
+  function pictureLeft(): void {
+    if (++leftSinceSweep < SWEEP_AFTER || sweepTimer) return;
+    sweepTimer = setTimeout(() => {
+      sweepTimer = null;
+      leftSinceSweep = 0;
+      void sweepPictures().catch(() => { /* the next one tries again */ });
+    }, 60_000);
   }
 
   /**
@@ -398,24 +457,35 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       const ref = await previewRefFor(decoded.bytes, decoded.type, { route: 'legacy' });
       if (!ref || !await writePicture({ ref, bytes: decoded.bytes, form: decoded.form })) continue;
       const path = slotPath(read.slot!);
-      try {
-        const text = await fs.readTextFile(path);
-        const current = JSON.parse(text) as ParsedRecord & Record<string, unknown>;
-        if (current.thumb !== read.thumb || current.updatedAt !== read.updatedAt) continue;
-        await writeDocument(fs, path, JSON.stringify({ ...current, thumb: null, preview: ref }, null, 2));
-      } catch { /* left as it was; read the old way */ }
+      await withSlot(read.slot!, async () => {
+        try {
+          // Read again inside the session's queue: a save, a restore or a delete that
+          // landed since the list read wins, and this record is left for next time.
+          const text = await fs.readTextFile(path);
+          const current = JSON.parse(text) as ParsedRecord & Record<string, unknown>;
+          if (current.thumb !== read.thumb || current.updatedAt !== read.updatedAt || current.savedAt !== read.savedAt
+            || sessionPreviewRef(current) || JSON.stringify(current.data) !== JSON.stringify(read.data)) return;
+          await writeDocument(fs, path, JSON.stringify({ ...current, thumb: null, preview: ref }, null, 2));
+        } catch { /* left as it was; read the old way */ }
+      });
     }
     await sweepPictures();
   }
 
+  /** Remove picture files no record points at. Only after a complete walk of the
+   *  records: a record that could not be read might point at any of them. */
   async function sweepPictures(): Promise<void> {
     let files: string[];
     try { files = await fs.readDirNames(PREVIEW_DIR); } catch { return; }
-    const named = new Set<string>();
-    for (const { raw } of await readAllRecords()) { const ref = sessionPreviewRef(raw); if (ref) named.add(ref.key); }
+    const { records, complete, keysInText } = await scanRecords();
+    if (!complete) return;
+    const named = new Set<string>(keysInText);
+    for (const { raw } of records) { const ref = sessionPreviewRef(raw); if (ref) named.add(ref.key); }
+    const now = Date.now();
+    for (const [key, at] of writtenHere) if (now - at > WRITTEN_GRACE_MS) writtenHere.delete(key);
     for (const file of files) {
       const key = file.split('.')[0] ?? '';
-      if (!/^[0-9a-f]{32}$/.test(key) || named.has(key) || writtenHere.has(key)) continue;
+      if (!/^[0-9a-f]{32}$/.test(key) || named.has(key) || writtenHere.has(key) || writing.has(key)) continue;
       try { await fs.remove(`${PREVIEW_DIR}/${file}`); } catch { /* kept */ }
     }
   }
@@ -500,9 +570,14 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
 
     async delete(slot) {
       await ensureMigrated();
-      const path = slotPath(slot);
-      const ok = await fs.exists(path);
-      if (ok) await fs.remove(path);
+      await withSlot(slot, async () => {
+        const path = slotPath(slot);
+        if (!await fs.exists(path)) return;
+        let hadPicture = false;
+        try { hadPicture = !!sessionPreviewRef(JSON.parse(await fs.readTextFile(path)) as ParsedRecord); } catch { /* removed all the same */ }
+        await fs.remove(path);
+        if (hadPicture) pictureLeft();
+      });
     },
 
     // "Clear all my data" (plan 277 P2): every saved-state file goes, the Trash's

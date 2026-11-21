@@ -258,3 +258,40 @@ test('Projects reads a stored picture into the tile as it comes near the screen,
     assert.match(result.filter, /saturate\(0\.5\) contrast\(0\.5\)/, 'Hide colourful previews still calms the picture, and does not hide the tile');
   } finally { await context.close(); await closeBrowser(); }
 });
+
+test('a history-backed session keeps its SVG picture through a backup and a restore on another device, through the sanitiser', { skip, timeout: 90_000 }, async () => {
+  const { context, page } = await blankPage();
+  try {
+    const result = await page.evaluate(async () => {
+      const [{ memoryDb }, { createStateAPI }, { createRevisionStore }, backup, store] = await Promise.all([
+        import(String('/src/bridge/idb-memory.test-utils.ts')), import(String('/src/bridge/state.ts')), import(String('/src/bridge/revision-history.ts')),
+        import(String('/src/lib/backup-sessions.ts')), import(String('/src/bridge/preview-store.ts')),
+      ]);
+      const device = () => { const { db } = memoryDb(); return createStateAPI(db, createRevisionStore(db)); };
+      const laptop = device();
+      const svg = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="48"><rect width="64" height="48" fill="#0c322c"/><circle cx="32" cy="24" r="10" fill="#30ba78" onclick="alert(1)"/></svg>')}`;
+      const picture = await store.preparePicture(svg, 'legacy');
+      const cursor = await laptop.history!.current('poster:svg');
+      const entry = await laptop.history!.checkpoint('poster:svg', { __toolId: 'poster', title: 'vector' }, { reason: 'save', expectedHead: cursor.head, expectedVersion: cursor.version });
+      await laptop.history!.attachPreview(entry.id, picture);
+      const files: Record<string, Uint8Array> = {};
+      await backup.packBackupSessions(laptop as never, files as never, { mode: 'manual' });
+      const decode = (bytes: Uint8Array) => JSON.parse(new TextDecoder().decode(bytes));
+      const sessions = decode(files['sessions.json']!) as Array<{ slot: string; thumb?: string }>;
+      const archive = decode(files['revision-history.json']!) as { revisions: Array<{ preview?: string }> };
+      const phone = device();
+      await backup.restoreBackupSessions(phone as never, files as never, { mode: 'manual' });
+      const row = (await phone.list()).find((r: { slot: string }) => r.slot === 'poster:svg') as { preview?: { key: string; type: string; route?: string } } | undefined;
+      const url = row?.preview ? await phone.pictureDataUrl!(row.preview) : null;
+      const text = url ? decodeURIComponent(url.slice(url.indexOf(',') + 1)) : '';
+      return { carried: sessions.find(r => r.slot === 'poster:svg')?.thumb === svg, archivePreviews: archive.revisions.filter(r => r.preview).length,
+        type: row?.preview?.type, route: row?.preview?.route, circle: text.includes('<circle'), script: /onclick|alert/.test(text) };
+    });
+    assert.equal(result.carried, true, 'the SVG rides beside its state in sessions.json');
+    assert.equal(result.archivePreviews, 0, 'the archive format is unchanged');
+    assert.equal(result.type, 'image/svg+xml', 'restored as SVG');
+    assert.equal(result.route, 'received');
+    assert.equal(result.circle, true, 'the same picture');
+    assert.equal(result.script, false, 'with the event handler the sanitiser removes');
+  } finally { await context.close(); await closeBrowser(); }
+});

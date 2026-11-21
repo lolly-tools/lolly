@@ -19,6 +19,7 @@ import type { IDBPDatabase } from 'idb';
 import {
   PREVIEW_BLOBS, PREVIEW_INDEX, PREVIEW_STORES, bindOwner, cacheOwner, hasPreviewStores, pictureSrc, putPictureBytes, releaseOwner, scopeFor, type PreparedPicture, type PreviewIndexRow, type SessionPreviewRef,
 } from '../bridge/preview-store.ts';
+import { readPreviewRef } from '../../../../engine/src/session-preview.ts';
 
 const DAY = 86_400_000;
 const CACHE_CEILING = 64 * 1024 * 1024;
@@ -136,12 +137,15 @@ export async function clearPreviewCache(): Promise<void> {
  * only when the record has not changed since the picture was drawn. The record's
  * times do not move: a new picture is not new work.
  */
-export async function attachSessionPicture(db: IDBPDatabase, slot: string, updatedAt: string, picture: PreparedPicture): Promise<SessionPreviewRef | null> {
+export async function attachSessionPicture(db: IDBPDatabase, slot: string, before: { updatedAt: string; thumb?: string | null; preview?: unknown }, picture: PreparedPicture): Promise<SessionPreviewRef | null> {
   if (!hasPreviewStores(db)) return null;
   const { putStateRecord, withPicture } = await import('../bridge/state-rows.ts');
   const tx = db.transaction(scopeFor(db, ['state']), 'readwrite');
   const record = await tx.objectStore('state').get(slot) as import('../bridge/state.ts').StateRecord | undefined;
-  if (!record || record.updatedAt !== updatedAt) { await tx.done; return null; }
+  // Unchanged since the picture was drawn: the same times and the same picture. A
+  // capture attached meanwhile keeps the times, so the picture is compared too.
+  const keyOf = (value: unknown): string | null => readPreviewRef(value)?.key ?? null;
+  if (!record || record.updatedAt !== before.updatedAt || (record.thumb ?? null) !== (before.thumb ?? null) || keyOf(record.preview) !== keyOf(before.preview)) { await tx.done; return null; }
   await putPictureBytes(tx, picture);
   const next = await withPicture(tx, record, picture);
   await putStateRecord(tx, next);

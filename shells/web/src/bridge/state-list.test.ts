@@ -174,3 +174,27 @@ test('a thousand sessions: the lean list hands the page at most 0.5 MB, a small 
   assert.ok(leanBytes <= 512 * 1024, `the plan's bound: ${leanBytes} bytes`);
   assert.ok(leanBytes * 10 < fullBytes, `lean ${leanBytes} against full ${fullBytes}`);
 });
+
+test('a picture attached while the pass prepares the old one is kept; the old picture is never moved over it', async () => {
+  const { db } = library(1, () => png('old'));
+  const store = await import('./preview-store.ts');
+  const { attachSessionPicture } = await import('../lib/preview-cache.ts');
+  const newer = await store.preparePicture(png('newer'), 'legacy');
+  assert.ok(newer && store.isPrepared(newer));
+  let attached = false;
+  assert.equal(await list.migrateSessions(db, {
+    batch: 4,
+    // Between the pass reading the record and writing it, a capture attaches a
+    // picture. Attaching keeps the record's times.
+    beforeWrite: async () => {
+      if (attached) return;
+      const read = await db.get('state', 'poster:1000') as StateRecord;
+      attached = !!await attachSessionPicture(db, 'poster:1000', { updatedAt: read.updatedAt, thumb: read.thumb, preview: read.preview }, newer);
+    },
+  }), true);
+  assert.ok(attached);
+  const state = createStateAPI(db as unknown as StateDb);
+  const row = (await state.list())[0]!;
+  assert.equal(row.preview?.key, newer.ref.key, 'the newer picture');
+  assert.equal(await state.pictureDataUrl!(row.preview!), png('newer'));
+});

@@ -230,3 +230,67 @@ test('a restore stores checkpoints deflated, so restored history costs its defla
   assert.equal((await phone.history.usage()).checkpoints, rows.reduce((sum, row) => sum + row.stored!, 0));
   assert.equal((await phone.history.read(head.id))?.url, `${long}2`, 'and reads back, verified against its hash');
 });
+
+test("a history-backed session's own picture travels beside it in sessions.json when the archive does not carry it, and comes back on restore", async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-01T09:00:00Z') }); timers = context.mock.timers;
+  const { packBackupSessions } = await import('./backup-sessions.ts');
+  const { preparePicture, isPrepared } = await import('../bridge/preview-store.ts');
+  const { strFromU8 } = await import('fflate');
+  const laptop = await browser();
+  const t = Date.parse('2026-09-01T09:00:00Z');
+  // A vector picture: the archive keeps raster previews only, so it never travels there.
+  const svg = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="48"><rect width="64" height="48" fill="#0c322c"/></svg>')}`;
+  const vector = await preparePicture(svg, 'legacy');
+  // A raster picture over the per-entry limit: the Projects tile keeps it, History does not.
+  const big = `data:image/png;base64,${btoa(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==') + 'x'.repeat(300 * 1024))}`;
+  const raster = await preparePicture(big, 'legacy');
+  assert.ok(vector && isPrepared(vector) && raster && isPrepared(raster));
+  const v = await write(laptop, 'qr-code:vector', 'https://example.com/v', 'save', t);
+  await laptop.history.attachPreview(v.id, vector);
+  const r = await write(laptop, 'qr-code:raster', 'https://example.com/r', 'save', t);
+  await laptop.history.attachPreview(r.id, raster);
+  const files: Record<string, Uint8Array> = {};
+  await packBackupSessions(laptop.state, files as never, { mode: 'manual' });
+  const sessions = JSON.parse(strFromU8(files['sessions.json']!)) as Array<{ slot: string; thumb?: string }>;
+  const archive = JSON.parse(strFromU8(files['revision-history.json']!)) as { revisions: Array<{ preview?: string }>; documents: Array<{ state: { thumb?: unknown } }> };
+  assert.equal(sessions.find(row => row.slot === 'qr-code:vector')!.thumb, svg, 'the SVG beside its state, byte for byte');
+  assert.equal(sessions.find(row => row.slot === 'qr-code:raster')!.thumb, big);
+  assert.equal(archive.revisions.filter(row => row.preview).length, 0, 'the archive itself is unchanged: no SVG and nothing over the limit in it');
+  assert.ok(archive.documents.every(row => !row.state.thumb), 'and its states still carry no picture');
+
+  // Restored on another device: the raster comes back here (the SVG path needs the
+  // browser's sanitiser and is covered in tests/preview-store.browser.test.ts).
+  const phone = await browser();
+  await restoreBackupSessions(phone.state, files as Record<string, Uint8Array<ArrayBuffer>>, { mode: 'manual' });
+  const row = (await phone.state.list()).find(entry => entry.slot === 'qr-code:raster')!;
+  assert.ok(row.preview, 'the state has its picture back');
+  assert.equal(await phone.state.pictureDataUrl!(row.preview!), big, 'the same picture');
+  // A backup with no such field (an older build's) restores as it always did.
+  const older = { ...files, 'sessions.json': strToU8(JSON.stringify(sessions.map(({ thumb: _t, ...rest }) => rest))) };
+  const tablet = await browser();
+  await restoreBackupSessions(tablet.state, older as Record<string, Uint8Array<ArrayBuffer>>, { mode: 'manual' });
+  assert.equal((await tablet.state.list()).find(entry => entry.slot === 'qr-code:raster')!.preview, undefined, 'no picture, as before');
+});
+
+test("a backup's state picture is given to the state it belongs to, never to this device's kept newer copy", async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-01T09:00:00Z') }); timers = context.mock.timers;
+  const { packBackupSessions } = await import('./backup-sessions.ts');
+  const { preparePicture, isPrepared } = await import('../bridge/preview-store.ts');
+  const t = Date.parse('2026-09-01T09:00:00Z');
+  const big = `data:image/png;base64,${btoa(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==') + 'y'.repeat(300 * 1024))}`;
+  const raster = await preparePicture(big, 'legacy');
+  assert.ok(raster && isPrepared(raster));
+  const laptop = await browser(), phone = await browser();
+  const older = await write(laptop, 'qr-code:s', 'https://example.com/older', 'save', t);
+  await laptop.history.attachPreview(older.id, raster);
+  const files: Record<string, Uint8Array> = {};
+  await packBackupSessions(laptop.state, files as never, { mode: 'manual' });
+  // The phone has the same session, saved later, with no picture yet.
+  const archive = JSON.parse(new TextDecoder().decode(files['revision-history.json']!));
+  await phone.history.backup.restore(JSON.parse(JSON.stringify({ ...archive, revisions: archive.revisions, documents: archive.documents })));
+  await write(phone, 'qr-code:s', 'https://example.com/newer', 'save', t + 3_600_000);
+  await restoreBackupSessions(phone.state, files as Record<string, Uint8Array<ArrayBuffer>>, { mode: 'manual' });
+  const row = (await phone.state.list()).find(entry => entry.slot === 'qr-code:s')!;
+  assert.equal((await phone.state.load('qr-code:s') as { url: string }).url, 'https://example.com/newer', 'the newer copy stays');
+  assert.equal(row.preview, undefined, 'and the older copy\'s picture is not put on it');
+});

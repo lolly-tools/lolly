@@ -131,9 +131,14 @@ async function writeRevisionArchive(sink: PartSink, history: RevisionArchive, li
  */
 export async function writeBackupSessions(state: BackupState, sink: PartSink, options: BackupHistoryMode, limit = MAX_REVISION_ARCHIVE_BYTES): Promise<PackedSessions> {
   let leftOut = 0;
+  // A history-backed state's own picture when its head preview does not travel in
+  // the archive (an SVG): written beside the state in sessions.json, where builds
+  // before plan 373 skip the row and newer ones give it back to the state.
+  const pictures = new Map<string, string>();
   const archive = async (maxBytes: number): Promise<RevisionArchive> => {
     leftOut = 0;
-    return state.history!.backup.export({ maxBytes, leftOut: count => { leftOut = count; } });
+    pictures.clear();
+    return state.history!.backup.export({ maxBytes, leftOut: count => { leftOut = count; }, picture: (slot, url) => { pictures.set(slot, url); } });
   };
   let history = options.mode !== 'sync' && state.history ? await archive(limit) : null;
   if (history) {
@@ -153,7 +158,11 @@ export async function writeBackupSessions(state: BackupState, sink: PartSink, op
   const slots: string[] = [];
   try {
     const rows = jsonArrayWriter(chunk => part.write(chunk), 2);
-    for (const row of history?.documents ?? []) { await rows.item({ ...row.state }); slots.push(row.state.slot); }
+    for (const row of history?.documents ?? []) {
+      const thumb = pictures.get(row.state.slot);
+      await rows.item({ ...row.state, ...(thumb ? { thumb } : {}) });
+      slots.push(row.state.slot);
+    }
     const captured = new Set(slots);
     // Each other session is read, written and let go in turn, never all held at once.
     for (const row of await state.list()) {
@@ -194,7 +203,10 @@ export async function restoreBackupSessions(state: BackupState, files: Record<st
   if (options.mode !== 'sync' && state.history && files['revision-history.json'] && !history) throw new Error('Invalid revision history in this backup.');
   const sessions: unknown = readJson(files, 'sessions.json') ?? [];
   if (!Array.isArray(sessions)) throw new Error('Invalid saved-session list in this backup.');
-  const summary = history ? await state.history!.backup.restore(history, { sameId: sameIdRule(options) }) : null;
+  // A history-backed state's own picture rides beside it in sessions.json.
+  const pictures = new Map<string, string>();
+  if (history) for (const row of sessions) if (row && typeof row.slot === 'string' && typeof row.thumb === 'string' && row.thumb) pictures.set(row.slot, row.thumb);
+  const summary = history ? await state.history!.backup.restore(history, { sameId: sameIdRule(options), pictures }) : null;
   // restore() has validated this shape and every immutable hash before writing.
   const captured = new Set(history ? (history as RevisionArchive).documents.map(row => row.document.slot) : []);
   // Sessions this import wrote: the archive's creations added, replaced or placed

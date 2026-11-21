@@ -19,6 +19,10 @@ export interface LookRenderOptions {
   previewTimeMs?: number;
   width?: number;
   height?: number;
+  /** The unit width and height are in (px when absent). */
+  unit?: string;
+  /** Raster resolution for a physical unit. */
+  dpi?: number;
   recipe?: string;
   /** The tool's raster format, drawn when its SVG is over the per-picture limit, so
    *  the raster is the tool's own raster render. */
@@ -30,7 +34,7 @@ export interface LookRenderOptions {
 export async function renderLookPicture(host: HostV1, toolId: string, format: string, values: Record<string, unknown>, opts: LookRenderOptions = {}): Promise<PreparedPicture> {
   const { renderRowToBlob } = await import('../pro/render-export.ts');
   const writer = await import('./preview-writer.ts');
-  const dims = opts.width && opts.height ? { width: opts.width, height: opts.height } : {};
+  const dims = opts.width && opts.height ? { width: opts.width, height: opts.height, ...(opts.unit ? { unit: opts.unit } : {}), ...(opts.dpi ? { dpi: opts.dpi } : {}) } : {};
   const { blob } = await renderRowToBlob(
     // values arrives as JSON (Record<string, unknown>); the render row types it as
     // InputValue - the runtime coerces per the input's declared type, so cast the row.
@@ -70,10 +74,32 @@ export async function renderPagePictures(host: HostV1, toolId: string, format: s
   return out;
 }
 
+/** The longest side, in pixels, a redraw of a physical-size session is drawn at:
+ *  twice the largest tile side, so the picture is sharp on a 2x screen. */
+const REDRAW_LONG_SIDE = 1440;
+const INCH: Record<string, number> = { in: 1, mm: 25.4, cm: 2.54, pt: 72 };
+
+/**
+ * The size a saved session was made at, for drawing it again: the same width,
+ * height and unit, so the tool lays out for the same canvas and the picture has
+ * the same shape. A physical size is drawn at a resolution that fills a tile on a
+ * 2x screen, never above the session's own. Empty when the session kept the
+ * tool's own size.
+ */
+export function sessionRenderSize(row: { outWidth?: number; outHeight?: number; unit?: string; dpi?: number }): Pick<LookRenderOptions, 'width' | 'height' | 'unit' | 'dpi'> {
+  const { outWidth: width, outHeight: height } = row;
+  if (!(width && width > 0 && height && height > 0)) return {};
+  const unit = row.unit && row.unit in INCH ? row.unit : 'px';
+  if (unit === 'px') return { width, height };
+  const longest = Math.max(width, height) / INCH[unit]!;
+  const dpi = Math.min(row.dpi && row.dpi > 0 ? row.dpi : 300, Math.max(72, Math.ceil(REDRAW_LONG_SIDE / longest)));
+  return { width, height, unit, dpi };
+}
+
 /**
  * Draw a saved session again, for a tile whose picture is stale or missing: the
- * session's own values through the same row a Projects download renders. SVG
- * first when the tool exports SVG, else its first raster format.
+ * session's own values and size through the same row a Projects download renders.
+ * SVG first when the tool exports SVG, else its first raster format.
  */
 export async function renderSessionPicture(host: HostV1, data: Record<string, unknown>): Promise<PreparedPicture | null> {
   const toolId = typeof data.__toolId === 'string' ? data.__toolId : '';
@@ -87,7 +113,7 @@ export async function renderSessionPicture(host: HostV1, data: Record<string, un
   if (!primary) return null;
   const row = rowFromToolSession(data as Parameters<typeof rowFromToolSession>[0]);
   const values = (row.values ?? {}) as Record<string, unknown>;
-  const opts = { rasterFallback: rasterFormatOf(formats), ...(row.artifactDigest ? { artifactDigest: row.artifactDigest } : {}) };
+  const opts = { rasterFallback: rasterFormatOf(formats), ...sessionRenderSize(row), ...(row.artifactDigest ? { artifactDigest: row.artifactDigest } : {}) };
   try {
     return await renderLookPicture(host, toolId, primary, values, opts);
   } catch {

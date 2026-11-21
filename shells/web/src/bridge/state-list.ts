@@ -113,6 +113,17 @@ export interface MigrationOptions {
   stop?: () => boolean;
   /** Records read per step. */
   batch?: number;
+  /** Called after a step's pictures are prepared, before its write opens: the gap
+   *  in which another tab can write. Tests land a write there. */
+  beforeWrite?: () => Promise<void>;
+}
+
+/** The record still as it was read: same update time and the same picture fields.
+ *  Attaching a picture keeps a record's times (a new picture is not new work), so
+ *  the time alone cannot say whether a newer picture arrived meanwhile. */
+function unchangedSince(current: StateRecord, read: StateRecord): boolean {
+  return current.updatedAt === read.updatedAt && (current.thumb ?? null) === (read.thumb ?? null)
+    && (sessionPreviewRef(current)?.key ?? null) === (sessionPreviewRef(read)?.key ?? null);
 }
 
 /**
@@ -140,11 +151,12 @@ export async function migrateSessions(db: IDBPDatabase, options: MigrationOption
       const picture = await preparePicture(record.thumb, 'legacy').catch(() => null);
       if (picture && isPrepared(picture)) prepared.set(record.slot, picture);
     }
+    await options.beforeWrite?.();
     const tx = db.transaction(scopeFor(db, ['state']), 'readwrite');
     let last = meta?.last;
     for (const read of records) {
       const current = await tx.objectStore('state').get(read.slot) as StateRecord | undefined;
-      if (current && current.updatedAt !== read.updatedAt && holdsLegacyPicture(current) && (retries.get(read.slot) ?? 0) < 3) {
+      if (current && !unchangedSince(current, read) && holdsLegacyPicture(current) && (retries.get(read.slot) ?? 0) < 3) {
         // Written since it was read and still holding its old picture: read it
         // again on the next step rather than move a picture from a stale copy.
         retries.set(read.slot, (retries.get(read.slot) ?? 0) + 1);
@@ -152,7 +164,7 @@ export async function migrateSessions(db: IDBPDatabase, options: MigrationOption
       }
       last = read.slot;
       if (!current) continue;
-      const picture = current.updatedAt === read.updatedAt ? prepared.get(read.slot) : undefined;
+      const picture = unchangedSince(current, read) ? prepared.get(read.slot) : undefined;
       const ref = sessionPreviewRef(current);
       if (picture) await putStateRecord(tx, await withPicture(tx, current, picture));
       else if (ref && holdsLegacyPicture(current)) {
@@ -180,9 +192,10 @@ export async function migrateStragglers(db: IDBPDatabase, options: MigrationOpti
     if (!read || !holdsLegacyPicture(read) || sessionPreviewRef(read)) continue;
     const picture = await preparePicture(read.thumb, 'legacy').catch(() => null);
     if (!picture || !isPrepared(picture)) continue;
+    await options.beforeWrite?.();
     const tx = db.transaction(scopeFor(db, ['state']), 'readwrite');
     const current = await tx.objectStore('state').get(row.slot) as StateRecord | undefined;
-    if (current && current.updatedAt === read.updatedAt) await putStateRecord(tx, await withPicture(tx, current, picture));
+    if (current && unchangedSince(current, read)) await putStateRecord(tx, await withPicture(tx, current, picture));
     await tx.done;
   }
 }

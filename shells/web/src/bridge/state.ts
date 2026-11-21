@@ -259,7 +259,8 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
   const full = modernDb(db);
   /** The picture a write carries, prepared before any transaction opens. Prepared
    *  bytes are stored first in a transaction of their own, so the record write can
-   *  reference them; bytes nothing ends up referencing are swept after an hour. */
+   *  reference them, and held in memory until it does (holdStaged); bytes nothing
+   *  ends up referencing are swept after an hour. */
   const stagePicture = async (picture: PictureInput): Promise<{ preview?: SessionPreviewRef; thumb?: string } | null> => {
     // No preview store (a database the upgrade could not reach, the memory driver):
     // the picture stays on the record as a data URL, exactly as before plan 373.
@@ -268,7 +269,8 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
     if (!prepared) return null;
     if (!full) return isPrepared(prepared) ? { thumb: pictureDataUrl(prepared.bytes, prepared.ref.type, prepared.form) } : null;
     if (isPrepared(prepared)) {
-      const { putPictureBytes } = await import('./preview-store.ts');
+      const { putPictureBytes, holdStaged } = await import('./preview-store.ts');
+      holdStaged(prepared as PreparedPicture);
       const tx = full.transaction([PREVIEW_BLOBS], 'readwrite');
       await putPictureBytes(tx, prepared as PreparedPicture);
       await tx.done;

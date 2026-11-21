@@ -144,3 +144,52 @@ test('state API on a database without the preview store keeps pictures on the re
   const [row] = await state.list();
   assert.equal(row!.thumb, png('old'));
 });
+
+test('a save keeps its picture when another tab lets go of the picture\'s only other owner between storing the bytes and writing the record', async () => {
+  const { db, count } = setup();
+  const here = createStateAPI(db as unknown as StateDb);
+  const otherTab = createStateAPI(db as unknown as StateDb);
+  const picture = await prepared(png('shared'));
+  await otherTab.save('poster:1', { __toolId: 'poster', title: 'first' }, picture);
+  // The bytes a save stores in a transaction of its own; once that commits, the
+  // other tab deletes poster:1, the picture's only owner, and the bytes go with it.
+  const original = db.transaction.bind(db);
+  let interfere = true;
+  (db as unknown as { transaction: typeof db.transaction }).transaction = ((names: string | string[], mode?: IDBTransactionMode) => {
+    const tx = original(names as never, mode);
+    if (interfere && Array.isArray(names) && names.length === 1 && names[0] === 'preview-blobs') {
+      interfere = false;
+      const done = tx.done.then(() => otherTab.delete('poster:1'));
+      return Object.assign(Object.create(Object.getPrototypeOf(tx)), tx, { done });
+    }
+    return tx;
+  }) as typeof db.transaction;
+  await here.save('poster:2', { __toolId: 'poster', title: 'second' }, picture);
+  assert.equal(interfere, false, 'the other tab did let go in between');
+  const [row] = await here.list();
+  assert.equal(row!.slot, 'poster:2');
+  assert.equal(row!.preview?.key, picture.ref.key, 'the record still points at its picture');
+  assert.equal(count('preview-blobs'), 1, 'and the bytes are there');
+  assert.equal(await here.pictureDataUrl!({ slot: 'poster:2' }), png('shared'));
+});
+
+test('an idle redraw is not attached over a picture that arrived while it drew', async () => {
+  const { db } = setup();
+  const state = createStateAPI(db as unknown as StateDb);
+  const { attachSessionPicture } = await import('../lib/preview-cache.ts');
+  await state.save('poster:1', { __toolId: 'poster', title: 'a' }, await prepared(png('first')));
+  const before = await db.get('state', 'poster:1') as StateRecord;
+  // A capture attaches a new picture meanwhile; attaching keeps the record's times.
+  const capture = await prepared(png('capture'));
+  const tx = db.transaction(store.scopeFor(db, ['state']), 'readwrite');
+  await rows.putStateRecord(tx, await rows.withPicture(tx, await tx.objectStore('state').get('poster:1') as StateRecord, capture));
+  await tx.done;
+  assert.equal((await db.get('state', 'poster:1') as StateRecord).updatedAt, before.updatedAt);
+  const redraw = await prepared(png('redraw'));
+  assert.equal(await attachSessionPicture(db, 'poster:1', { updatedAt: before.updatedAt, thumb: before.thumb, preview: before.preview }, redraw), null);
+  assert.equal(await state.pictureDataUrl!({ slot: 'poster:1' }), png('capture'), 'the capture stays');
+  // Unchanged since it was read: the redraw is attached.
+  const now = await db.get('state', 'poster:1') as StateRecord;
+  assert.ok(await attachSessionPicture(db, 'poster:1', { updatedAt: now.updatedAt, thumb: now.thumb, preview: now.preview }, redraw));
+  assert.equal(await state.pictureDataUrl!({ slot: 'poster:1' }), png('redraw'));
+});

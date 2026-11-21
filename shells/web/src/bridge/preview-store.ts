@@ -167,6 +167,28 @@ export async function putPictureBytes(tx: PictureTx, picture: PreparedPicture): 
   if (!back || back.size !== bytes.byteLength) throw new Error('The picture could not be stored.');
 }
 
+/**
+ * Pictures a save stored a moment before the record that points at them is
+ * written, kept in memory until then. Between the two transactions another tab may
+ * let go of the picture's last other owner, and the bytes would go with it; the
+ * record write then stores them again from here rather than lose the picture.
+ */
+const staged = new Map<string, { picture: PreparedPicture; until: number }>();
+const STAGED_MS = 2 * 60_000;
+const STAGED_MAX = 64;
+export function holdStaged(picture: PreparedPicture): void {
+  const now = Date.now();
+  for (const [key, entry] of staged) if (entry.until < now) staged.delete(key);
+  staged.delete(picture.ref.key);
+  staged.set(picture.ref.key, { picture, until: now + STAGED_MS });
+  while (staged.size > STAGED_MAX) staged.delete(staged.keys().next().value!);
+}
+function stagedPicture(key: string): PreparedPicture | null {
+  const entry = staged.get(key);
+  if (!entry || entry.until < Date.now()) { staged.delete(key); return null; }
+  return entry.picture;
+}
+
 /** Delete a picture when no owner points at it any more. */
 async function collect(tx: PictureTx, key: string): Promise<void> {
   if (await tx.objectStore(PREVIEW_INDEX).index('content').count(key)) return;
@@ -175,14 +197,19 @@ async function collect(tx: PictureTx, key: string): Promise<void> {
 
 /**
  * Point an owner at a picture, inside the caller's transaction. Prepared bytes are
- * stored first; a bare reference binds only when its bytes are already here (a
- * reference copied from another device's record points at nothing on this one).
+ * stored first; a bare reference binds only when its bytes are already here, or
+ * held from a save a moment ago (a reference copied from another device's record
+ * points at nothing on this one).
  * Returns the reference that was bound, or null when nothing could be.
  */
 export async function bindOwner(tx: PictureTx, owner: string, kind: OwnerKind, picture: PreparedPicture | SessionPreviewRef): Promise<SessionPreviewRef | null> {
   const ref = isPrepared(picture) ? picture.ref : picture;
   if (isPrepared(picture)) await putPictureBytes(tx, picture);
-  else if (!await tx.objectStore(PREVIEW_BLOBS).count(ref.key)) return null;
+  else if (!await tx.objectStore(PREVIEW_BLOBS).count(ref.key)) {
+    const held = stagedPicture(ref.key);
+    if (!held) return null;
+    await putPictureBytes(tx, held);
+  }
   const index = tx.objectStore(PREVIEW_INDEX);
   const prior = await index.get(owner) as PreviewIndexRow | undefined;
   const size = isPrepared(picture) ? picture.bytes.byteLength : ref.bytes ?? (await tx.objectStore(PREVIEW_BLOBS).get(ref.key) as PreviewBlobRow | undefined)?.size;

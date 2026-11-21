@@ -198,7 +198,7 @@ async function redrawSession(tile: { slot: string; key?: string }): Promise<void
   if (isBatchSlot(tile.slot)) return;
   const { openDB } = await import('../bridge/db.ts');
   const db = await openDB();
-  const before = await db.get('state', tile.slot) as { updatedAt?: string; designSystem?: { id: string }; data?: Record<string, unknown> } | undefined;
+  const before = await db.get('state', tile.slot) as { updatedAt?: string; thumb?: string | null; preview?: unknown; designSystem?: { id: string }; data?: Record<string, unknown> } | undefined;
   if (!before?.data) return;
   const active = await db.get('profile', 'active-design-system').catch(() => undefined);
   if (before.designSystem?.id && typeof active === 'string' && active && active !== before.designSystem.id) return;
@@ -208,7 +208,7 @@ async function redrawSession(tile: { slot: string; key?: string }): Promise<void
   const after = await db.get('state', tile.slot) as { updatedAt?: string; data?: unknown } | undefined;
   if (!after || after.updatedAt !== before.updatedAt) return;
   const { attachSessionPicture } = await import('./preview-cache.ts');
-  const ref = await attachSessionPicture(db, tile.slot, before.updatedAt!, picture);
+  const ref = await attachSessionPicture(db, tile.slot, { updatedAt: before.updatedAt!, thumb: before.thumb ?? null, preview: before.preview }, picture);
   if (!ref || prefersReducedMotion()) return;
   const { pictureSrcFor } = await import('../components/preview-image.ts');
   const src = await pictureSrcFor(ref);

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { IDBPDatabase } from 'idb';
-import { putStateRecord } from './state-rows.ts';
+import { putStateRecord, recordDataUrl, withPicture } from './state-rows.ts';
 import { revisionPreviewSize, withoutPicture } from './revision-records.ts';
 import {
   PREVIEW_BLOBS, PREVIEW_INDEX, bindOwner, dataUrlOfRow, isPrepared, ownerRef, preparePicture, revisionOwner, scopeFor, txHasPreviews,
@@ -56,6 +56,16 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
         if (entry.reason === 'save') pinned.add(entry.id);
         cursor = await cursor.continue();
       }
+      // A state whose picture the archive will not carry as its head's preview has
+      // the picture told to the caller instead, from this same transaction.
+      if (options.picture) {
+        const carried = new Set(rows.filter(row => row.preview).map(row => row.entry.id));
+        for (const { document, state } of archive.documents) {
+          if (document.head && document.hash === document.workingHash && carried.has(document.head)) continue;
+          const url = await recordDataUrl(tx, state);
+          if (url) options.picture(document.slot, url);
+        }
+      }
       const chosen = admit(rows.map(row => ({ id: row.entry.id, at: row.entry.at, bytes: row.bytes })), limit - fixed - 1024, pinned);
       if (rows.filter(row => pinned.has(row.entry.id)).reduce((sum, row) => sum + row.bytes, fixed) > limit)
         throw new Error('Complete revision history exceeds the 384 MiB backup limit. No partial history backup was created.');
@@ -87,6 +97,15 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
           const picture = await preparePicture(row.preview, 'received').catch(() => null);
           if (picture && isPrepared(picture)) pictures.set(row.entry.id, picture);
         }
+      }
+      // Each state's own picture from sessions.json, for a state whose head preview
+      // is not in the archive. Received: an SVG passes the sanitiser first.
+      const statePictures = new Map<string, PreparedPicture>();
+      for (const { state } of archive.documents) {
+        const url = options.pictures?.get(state.slot);
+        if (!url) continue;
+        const picture = await preparePicture(url, 'received').catch(() => null);
+        if (picture && isPrepared(picture)) statePictures.set(state.slot, picture);
       }
       const tx = db.transaction(scopeFor(db, REVISION_STORES), 'readwrite'); void tx.done.catch(() => {});
       try {
@@ -156,7 +175,7 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
         const draftsAdmitted = admit(incomingDrafts.map(row => ({ id: row.entry.id, at: row.entry.at, bytes: row.entry.bytes })), budgets.recovery - recoveryBytes - reserved, new Set());
         summary.historyLeftOut! += draftsAdmitted.leftOut;
         for (const row of incomingDrafts) if (draftsAdmitted.ids.has(row.entry.id)) await putDraft(row.entry, row.data);
-        for (const plan of plans) await applyPlan(tx, plan, summary, putDraft, fits);
+        for (const plan of plans) await applyPlan(tx, plan, summary, putDraft, fits, statePictures.get(plan.row.state.slot));
         await tx.objectStore('revision-usage').put(usage, 'total');
         await tx.objectStore('revision-usage').put(recoveryBytes, 'recovery');
         await tx.done;
@@ -273,7 +292,7 @@ function draftOf(plan: Plan, snapshot: Snapshot, state: StateRecord, side: 'impo
 }
 
 async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionArchiveSummary,
-  putDraft: (entry: RecoveryEntry, data: unknown) => Promise<void>, fits: (bytes: number) => boolean): Promise<void> {
+  putDraft: (entry: RecoveryEntry, data: unknown) => Promise<void>, fits: (bytes: number) => boolean, ownPicture?: PreparedPicture): Promise<void> {
   const docs = tx.objectStore('revision-documents'), states = tx.objectStore('state');
   const { row } = plan;
   const incomingState = { ...row.state, slot: plan.slot };
@@ -284,10 +303,16 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
     if (!fits(entry.bytes)) { summary.historyLeftOut!++; return; }
     await putDraft(entry, data);
   };
+  /** The incoming state as a record with its picture: its head's preview when the
+   *  state is its head, else its own picture from sessions.json, else none. */
+  const incomingRecord = async (document: DocumentHead, extra: Partial<StateRecord> = {}): Promise<StateRecord> => {
+    const picture = document.head && document.hash === document.workingHash ? await headPicture(tx, document.head) : {};
+    const record = { ...withoutPicture(incomingState), ...picture, documentId: document.documentId, ...extra } as StateRecord;
+    return !picture.preview && !picture.thumb && ownPicture ? withPicture(tx, record, ownPicture) : record;
+  };
   const addDocument = async (document: DocumentHead): Promise<void> => {
     await docs.put(document);
-    const picture = document.head && document.hash === document.workingHash ? await headPicture(tx, document.head) : {};
-    await putStateRecord(tx, { ...withoutPicture(incomingState), ...picture, documentId: document.documentId });
+    await putStateRecord(tx, await incomingRecord(document));
   };
   if (plan.kind === 'add' || plan.kind === 'copy') {
     await addDocument({ ...row.document, slot: plan.slot });
@@ -319,10 +344,9 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
     const document: DocumentHead = { ...base, slot: plan.slot, head: row.document.head, hash: row.document.hash,
       workingHash: row.document.workingHash, version: crypto.randomUUID(), ...(row.document.saved !== undefined ? { saved: row.document.saved } : {}) };
     await keep(plan.localSnapshot, state, 'kept', document);
-    const picture = document.head && document.hash === document.workingHash ? await headPicture(tx, document.head) : {};
+    const record = await incomingRecord(document, { openedAt: state?.openedAt, createdAt: state?.createdAt ?? incomingState.createdAt });
     await docs.put(document);
-    await putStateRecord(tx, { ...withoutPicture(incomingState), ...picture, documentId: document.documentId, openedAt: state?.openedAt,
-      createdAt: state?.createdAt ?? incomingState.createdAt });
+    await putStateRecord(tx, record);
     summary.replaced!++;
     return;
   }
