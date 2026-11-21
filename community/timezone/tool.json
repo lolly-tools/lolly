@@ -1,7 +1,7 @@
 {
   "id": "timezone",
   "name": "Timezone",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "engineVersion": "^1.186.0",
   "status": "official",
   "category": "event",
@@ -207,7 +207,7 @@
       "type": "text",
       "default": "",
       "section": "Time",
-      "help": "Optional reference clock. IANA identifier, e.g. Europe/London. Scheduled times use UTC when blank."
+      "help": "Optional reference clock: a city (Nuremberg) or an IANA identifier (Europe/London). Scheduled times use UTC when blank."
     },
     {
       "id": "ambiguity",
@@ -236,6 +236,14 @@
       "max": 1440,
       "step": 1,
       "display": "slider"
+    },
+    {
+      "id": "showHourQuality",
+      "label": "Mark early and late hours",
+      "type": "boolean",
+      "default": false,
+      "section": "Time",
+      "help": "Each place's time turns amber before 08:00 and from 20:00, and red before 06:00 and from 22:00, in that place's own time."
     },
     {
       "id": "clockStyle",
