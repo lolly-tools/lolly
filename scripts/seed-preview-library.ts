@@ -26,6 +26,7 @@
  * Reads and prints sizes and times only, never a picture or a label.
  */
 import { chromium } from 'playwright';
+import { webGpuLaunchArgs } from '../packages/node-shell/src/webgpu-launch.ts';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -46,7 +47,8 @@ const pictures = mix.map(entry => entry.kind === 'svg'
   ? `data:image/svg+xml,${encodeURIComponent(readFileSync(join(seedDir, `${entry.index}.svg`), 'utf8'))}`
   : `data:image/png;base64,${readFileSync(join(seedDir, `${entry.index}.png`)).toString('base64')}`);
 
-const browser = await chromium.launch({ headless: true, args: ['--enable-unsafe-webgpu', '--use-webgpu-adapter=swiftshader', '--js-flags=--expose-gc'] });
+// The shell needs WebGPU (the shared flags), and the heap is read after a forced collection.
+const browser = await chromium.launch({ headless: true, args: [...webGpuLaunchArgs('software'), '--js-flags=--expose-gc'] });
 const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1440, height: 900 } });
 await context.addInitScript(() => { (globalThis as { __lollyPreviewMoveHold?: boolean }).__lollyPreviewMoveHold = true; });
 const page = await context.newPage();
