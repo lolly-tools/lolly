@@ -21,7 +21,7 @@ import { escape as escapeText } from '../../utils.js';
 import { costPanelHtml } from '../cost-panel.ts';
 import { formatOptionsHtml } from '../export-depth.ts';
 import { durableCardHtml, isDurableFmt } from '../export-durable-card.ts';
-import { formatPanelHtml, formatTriggerHtml, wireFormatPicker } from '../export-format-picker.ts';
+import { formatTriggerHtml, wireFormatPicker } from '../export-format-picker.ts';
 import { packageOptionsHtml, saveAsBridge, saveAsButtonHtml } from '../export-package-options.ts';
 import { preflightRowHtml } from '../export-preflight.ts';
 import { jellyActive } from '../../lib/jelly.ts';
@@ -29,7 +29,7 @@ import { DEFAULT_PRINT_MARKS, fmtLabel, formatExperience, isC2paFmt, isCmykFmt, 
 import { bindOp, type ActionsCtx } from './context.ts';
 
 export function buildFormatOptions(ta: ActionsCtx): void {
-  const { ICON_H, ICON_W, c2paInitDays, c2paInitOn, canPackage, experience, exportDefaults, formats, initialFmt, manifest } = ta;
+  const { ICON_H, ICON_W, c2paInitDays, c2paInitOn, canPackage, exportDefaults, formats, initialFmt, manifest } = ta;
   // Tier 1 - filename · format. The format selector is the highest-priority
   // control; the filename rides alongside it as the natural "name.format" pair.
   //
@@ -57,7 +57,6 @@ export function buildFormatOptions(ta: ActionsCtx): void {
             ${formatOptions}
           </select>
           ${formatTriggerHtml(initialFmt ?? formats[0] ?? '', fmtLabel)}
-          ${formatPanelHtml(formats, initialFmt ?? formats[0] ?? '', fmtLabel, experience.current?.().recommendedFormats)}
         `
             : ''
         }

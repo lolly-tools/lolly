@@ -15,11 +15,18 @@
  * auto-pick keep talking to it unchanged, and this module mirrors it - chips
  * write select.value and dispatch 'change'; a programmatic 'change' re-syncs
  * the chips. Category labels resolve through t() at render time.
+ *
+ * The dropdown is a mountBodyPopover panel, which owns its open and close: the
+ * outside press, Escape, focus back to the trigger, resize, a route change and
+ * system Back on a touch device. It mounts in the trigger's own row, where the
+ * in-flow panel used to sit, so the rules that dress it from an ancestor (the
+ * export sheet's button look, the phone sheet, Batch's wider panel) still apply.
  */
 import { t } from '../i18n.ts';
 import { escape as escapeText } from '../utils.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { closeButtonHtml } from '../lib/close-button.ts';
+import { mountBodyPopover } from './body-popover.ts';
 
 export type FormatCategory = 'image' | 'document' | 'motion' | 'audio' | 'other';
 
@@ -126,13 +133,56 @@ export function formatPanelInnerHtml(
     .join('');
 }
 
-export function formatPanelHtml(
-  formats: string[], current: string, label: LabelFn, recommended: readonly string[] = [],
+/** The open panel's content: the phone sheet's head (hidden on a desktop) and the chips. */
+function formatPanelHtml(
+  formats: string[], current: string, label: LabelFn, recommended: readonly string[], expanded: boolean,
 ): string {
-  return `<div class="fmt-pop" data-fmt-panel hidden>
-    <div class="fmt-pop-head"><strong>${escapeText(t('Export format'))}</strong>${closeButtonHtml({ attrs: { 'data-fmt-close': true } })}</div>
-    <div data-fmt-panel-body>${formatPanelInnerHtml(formats, current, label, recommended)}</div>
-  </div>`;
+  return `<div class="fmt-pop-head"><strong>${escapeText(t('Export format'))}</strong>${closeButtonHtml({ attrs: { 'data-fmt-close': true } })}</div>
+    <div data-fmt-panel-body>${formatPanelInnerHtml(formats, current, label, recommended, expanded)}</div>`;
+}
+
+/**
+ * Where the panel goes: 6px under the trigger's row with the row's end edge, the
+ * place the stylesheet gave the in-flow panel, flipped above the row and then
+ * clamped when the drop would leave the viewport. A row already nearer an edge
+ * than the margin keeps the panel on its own edge.
+ *
+ * The coordinates go through custom properties rather than inline `top`/`left`,
+ * so a phone sheet the stylesheet lays out with `inset` keeps that box. The panel
+ * is position:fixed, and the export sheet around it carries a transform, which
+ * makes the sheet the box `fixed` resolves against: the panel is measured where
+ * the browser drew it and moved by the difference.
+ */
+export function placeFormatPanel(el: HTMLElement, row: HTMLElement): void {
+  const M = 8;
+  const GAP = 6;
+  const r = row.getBoundingClientRect();
+  el.style.setProperty('--fmt-row-w', `${r.width}px`);
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let top = r.bottom + GAP;
+  if (h > 0 && top + h > vh - M) {
+    const above = r.top - GAP - h;
+    top = above >= M ? above : Math.max(M, vh - h - M);
+  }
+  const rtl = getComputedStyle(row).direction === 'rtl';
+  const low = Math.min(M, Math.max(0, r.left));
+  const high = vw - Math.min(M, Math.max(0, vw - r.right));
+  const left = Math.max(low, Math.min(rtl ? r.left : r.right - w, high - w));
+  // Not rounded, here or in the width above: the row sits on fractional pixels, and
+  // the in-flow panel followed the row exactly.
+  const set = (x: number, y: number): void => {
+    el.style.setProperty('--fmt-left', `${x}px`);
+    el.style.setProperty('--fmt-top', `${y}px`);
+  };
+  set(left, top);
+  const box = el.getBoundingClientRect();
+  if (!box.width && !box.height) return;
+  const dx = left - box.left;
+  const dy = top - box.top;
+  if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) set(left + dx, top + dy);
 }
 
 export interface FormatPickerApi {
@@ -145,7 +195,7 @@ export interface FormatPickerApi {
 
 /**
  * Wire the trigger + dropdown to the (hidden) native select. `root` is the
- * export panel element holding all three. Returns null when the tool has a
+ * export panel element holding both. Returns null when the tool has a
  * single format (no select rendered).
  */
 export function wireFormatPicker(
@@ -153,55 +203,34 @@ export function wireFormatPicker(
   options: { recommended?: readonly string[] } = {},
 ): FormatPickerApi | null {
   const trigger = root.querySelector<HTMLButtonElement>('[data-fmt-trigger]');
-  const panel = root.querySelector<HTMLElement>('[data-fmt-panel]');
-  if (!trigger || !panel || !select) return null;
-  const doc = trigger.ownerDocument;
+  if (!trigger || !select) return null;
+  const row = trigger.parentElement ?? root;
   let recommended = [...(options.recommended ?? [])];
   let expanded = false;
+  let panel: HTMLDivElement | null = null;
 
-  const body = (): HTMLElement => panel.querySelector<HTMLElement>('[data-fmt-panel-body]') ?? panel;
-  const paint = (formats: string[], current: string): void => {
-    body().innerHTML = formatPanelInnerHtml(formats, current, label, recommended, expanded);
-  };
-
-  // Tapping anywhere outside the open dropdown closes it, like any menu.
-  const onOutside = (e: Event): void => {
-    const target = e.target as Node;
-    if (panel.contains(target) || trigger.contains(target)) return;
-    setOpen(false);
-  };
-  const setOpen = (open: boolean): void => {
-    if (open) {
-      expanded = false;
-      paint([...select.options].map(o => o.value), select.value);
-    }
-    panel.hidden = !open;
-    trigger.setAttribute('aria-expanded', String(open));
-    if (open) doc.addEventListener('pointerdown', onOutside, true);
-    else doc.removeEventListener('pointerdown', onOutside, true);
+  const offered = (): string[] => [...select.options].map(o => o.value);
+  const paint = (formats = offered(), current = select.value): void => {
+    if (panel) panel.innerHTML = formatPanelHtml(formats, current, label, recommended, expanded);
   };
 
   const sync = (): void => {
     const cur = select.value;
     const lbl = trigger.querySelector('[data-fmt-trigger-label]');
     if (lbl) lbl.textContent = label(cur);
-    panel.querySelectorAll<HTMLButtonElement>('.fmt-chip').forEach(chip => {
+    panel?.querySelectorAll<HTMLButtonElement>('.fmt-chip').forEach(chip => {
       chip.setAttribute('aria-pressed', String(chip.dataset.fmt === cur));
     });
   };
 
-  const onTrigger = (): void => setOpen(panel.hidden);
-  trigger.addEventListener('click', onTrigger);
-
   const onPanel = (e: MouseEvent): void => {
     if ((e.target as HTMLElement).closest('[data-fmt-close]')) {
-      setOpen(false);
-      trigger.focus();
+      popover.close(true);
       return;
     }
     if ((e.target as HTMLElement).closest('[data-fmt-show-all]')) {
       expanded = true;
-      paint([...select.options].map(o => o.value), select.value);
+      paint();
       return;
     }
     const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.fmt-chip');
@@ -209,22 +238,39 @@ export function wireFormatPicker(
       select.value = chip.dataset.fmt;
       select.dispatchEvent(new Event('change', { bubbles: true }));
       sync();
-      setOpen(false);
-      trigger.focus();
+      popover.close(true);
     }
   };
-  panel.addEventListener('click', onPanel);
 
-  // Escape closes the dropdown first; a second Escape reaches the sheet's own
-  // document-level close handler (stopPropagation keeps them sequential).
-  const onKey = (e: KeyboardEvent): void => {
-    if (e.key !== 'Escape' || panel.hidden) return;
-    e.stopPropagation();
-    setOpen(false);
-    trigger.focus();
+  // Mounted after the trigger in its own row, so Tab still runs trigger, chips, then
+  // the rest of the sheet, as it did for the in-flow panel, and focus stays on the
+  // trigger when the panel opens. Capture, because the export sheet closes itself on
+  // an Escape it hears on document: the panel takes that Escape first, and the sheet
+  // closes on the next one.
+  const popover = mountBodyPopover(trigger, (el) => {
+    panel = el;
+    el.dataset.fmtPanel = '';
+    expanded = false;
+    paint();
+    el.addEventListener('click', onPanel);
+    return null;
+  }, {
+    className: 'fmt-pop',
+    role: 'none',
+    container: row,
+    capture: true,
+    trapFocus: false,
+    trackScroll: true,
+    trackSize: true,
+    position: (el) => placeFormatPanel(el, row),
+    onClose: () => { panel = null; },
+  });
+
+  const onTrigger = (): void => {
+    if (popover.isOpen()) popover.close(true);
+    else popover.open();
   };
-  trigger.addEventListener('keydown', onKey);
-  panel.addEventListener('keydown', onKey);
+  trigger.addEventListener('click', onTrigger);
 
   // Programmatic changes (matchExportFormat auto-pick, setFormats fallback)
   // land on the select; mirror them.
@@ -233,11 +279,8 @@ export function wireFormatPicker(
 
   return {
     destroy(): void {
-      setOpen(false);
+      popover.close();
       trigger.removeEventListener('click', onTrigger);
-      panel.removeEventListener('click', onPanel);
-      trigger.removeEventListener('keydown', onKey);
-      panel.removeEventListener('keydown', onKey);
       select.removeEventListener('change', sync);
     },
     refresh(formats: string[], current: string): void {
@@ -248,7 +291,7 @@ export function wireFormatPicker(
     setRecommended(formats: readonly string[]): void {
       recommended = [...formats];
       expanded = false;
-      paint([...select.options].map(o => o.value), select.value);
+      paint();
       sync();
     },
   };
