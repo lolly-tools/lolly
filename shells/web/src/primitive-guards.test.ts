@@ -1243,7 +1243,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // the textarea child, so the attacker-shaped half of the input is covered.
   // The remaining sink draws the kind glyph from the closed icon table.
   // The close button now uses lib/close-button.ts.
-  'views/design-inspector.ts': 1,
+  'views/design-inspector.ts': 2, // + the Selection / Canvas switch: segHtml output, which escapes every value
   'views/doc-editor.ts': 1,
   // 1 as of 2026-07-31: applyPreflight writes the "Before you export" card body.
   // Reviewed - every value at that sink comes from preflightBodyHtml, which
