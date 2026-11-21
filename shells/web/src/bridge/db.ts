@@ -522,9 +522,11 @@ async function openResilient(): Promise<IDBPDatabase> {
  * version step had; nothing is written while it waits.
  */
 async function openWithoutPreviewStore(error: unknown): Promise<IDBPDatabase | null> {
-  const code = (error as { code?: string }).code;
+  // Our own wait errors carry a string code; a DOMException's numeric legacy code
+  // is not one of them.
+  const code = (error as { code?: unknown }).code;
   const name = (error as { name?: string }).name;
-  const upgradeFailed = !code && (name === 'AbortError' || name === 'UnknownError' || name === 'QuotaExceededError' || name === 'InvalidStateError');
+  const upgradeFailed = typeof code !== 'string' && (name === 'AbortError' || name === 'UnknownError' || name === 'QuotaExceededError' || name === 'InvalidStateError');
   if (!upgradeFailed || databaseUpdateRequired || clearSignal.databaseSealed()) return null;
   try {
     const existing = await currentVersion();

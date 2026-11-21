@@ -87,8 +87,8 @@ function canvasOf(width: number, height: number): HTMLCanvasElement | OffscreenC
   return canvas;
 }
 
-function context2d(canvas: HTMLCanvasElement | OffscreenCanvas): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
-  const ctx = canvas.getContext('2d', { willReadFrequently: true } as CanvasRenderingContext2DSettings) as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+function context2d(canvas: HTMLCanvasElement | OffscreenCanvas, alpha = true): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D {
+  const ctx = canvas.getContext('2d', { willReadFrequently: true, alpha } as CanvasRenderingContext2DSettings) as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
   if (!ctx) throw new Error('No 2D canvas for the preview.');
   return ctx;
 }
@@ -178,6 +178,13 @@ export async function rasterPicture(source: Blob | HTMLCanvasElement | Offscreen
   if (source instanceof Blob && 'close' in image && typeof image.close === 'function') image.close();
   const original = ctx.getImageData(0, 0, width, height).data;
   const route: PreviewRoute = facts.route ?? 'export-raster';
+  // A picture with no transparency is encoded from an opaque canvas, so the file
+  // carries no alpha channel it does not need. The pixels are the same.
+  let encoder: HTMLCanvasElement | OffscreenCanvas = canvas;
+  if (opaque(original)) {
+    encoder = canvasOf(width, height);
+    context2d(encoder, false).drawImage(canvas as CanvasImageSource, 0, 0);
+  }
   const finish = async (blob: Blob): Promise<PreparedPicture | null> => {
     const bytes = await bytesOf(blob);
     const ref = await previewRefFor(bytes, blob.type as PreviewType, { route, ...(facts.recipe ? { recipe: facts.recipe } : {}) });
@@ -186,26 +193,26 @@ export async function rasterPicture(source: Blob | HTMLCanvasElement | Offscreen
   const faithful = async (blob: Blob): Promise<boolean> =>
     pictureDifference(original, (await pixelsOf(blob, width, height)).data) <= DIFFERENCE_BOUND;
 
-  const lossy = await encode(canvas, 'image/webp', WEBP_QUALITY);
+  const lossy = await encode(encoder, 'image/webp', WEBP_QUALITY);
   if (lossy.type !== 'image/webp') {
     // No WebP encoder (WebKit): PNG is exact. An opaque PNG over the limit may be a
     // JPEG that passes the same bound; anything else stays PNG over the limit.
-    const png = lossy.type === 'image/png' ? lossy : await encode(canvas, 'image/png');
+    const png = lossy.type === 'image/png' ? lossy : await encode(encoder, 'image/png');
     if (png.size <= PREVIEW_MAX_BYTES || !opaque(original)) return finish(png);
-    const jpeg = await encode(canvas, 'image/jpeg', JPEG_QUALITY);
+    const jpeg = await encode(encoder, 'image/jpeg', JPEG_QUALITY);
     if (jpeg.type === 'image/jpeg' && jpeg.size <= PREVIEW_MAX_BYTES && await faithful(jpeg)) return finish(jpeg);
     return finish(png);
   }
   if (!await faithful(lossy)) {
-    const lossless = await encode(canvas, 'image/webp', 1);
+    const lossless = await encode(encoder, 'image/webp', 1);
     // Quality 1.0 is lossless WebP in Chromium; where it is not, the check below
     // still decides, and the PNG is the exact form to fall back to.
     if (lossless.type === 'image/webp' && await faithful(lossless)) return finish(lossless);
-    return finish(await encode(canvas, 'image/png'));
+    return finish(await encode(encoder, 'image/png'));
   }
   if (lossy.size <= PREVIEW_MAX_BYTES) return finish(lossy);
   for (const quality of STEP_DOWN) {
-    const smaller = await encode(canvas, 'image/webp', quality);
+    const smaller = await encode(encoder, 'image/webp', quality);
     if (smaller.size <= PREVIEW_MAX_BYTES && await faithful(smaller)) return finish(smaller);
   }
   // Nothing under the limit is identical to the eye: keep the faithful one.

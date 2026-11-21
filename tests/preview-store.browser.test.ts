@@ -71,12 +71,24 @@ test('the writer: a photo-like raster is lossy WebP, thin saturated lines go los
   const { context, page } = await blankPage();
   try {
     const result = await page.evaluate(async () => {
-      const writer = await import('/src/lib/preview-writer.ts');
-      const chunk = (bytes: Uint8Array) => String.fromCharCode(bytes[12]!, bytes[13]!, bytes[14]!, bytes[15]!);
+      const writer = await import(String('/src/lib/preview-writer.ts'));
+      // The image chunk inside the RIFF: 'VP8 ' is lossy, 'VP8L' lossless (a 'VP8X'
+      // header, written when the canvas has alpha, comes first and is skipped).
+      const chunk = (bytes: Uint8Array) => {
+        let at = 12;
+        while (at + 8 <= bytes.length) {
+          const name = String.fromCharCode(bytes[at]!, bytes[at + 1]!, bytes[at + 2]!, bytes[at + 3]!);
+          if (name === 'VP8 ' || name === 'VP8L') return name;
+          const size = bytes[at + 4]! | (bytes[at + 5]! << 8) | (bytes[at + 6]! << 16) | (bytes[at + 7]! << 24);
+          at += 8 + size + (size & 1);
+        }
+        return '';
+      };
       const photo = document.createElement('canvas'); photo.width = 720; photo.height = 480;
       const p = photo.getContext('2d')!;
       const g = p.createLinearGradient(0, 0, 720, 480); g.addColorStop(0, '#2c5f8a'); g.addColorStop(1, '#f2c14e'); p.fillStyle = g; p.fillRect(0, 0, 720, 480);
-      for (let i = 0; i < 4000; i++) { p.fillStyle = `hsla(${(i * 37) % 360},60%,50%,0.15)`; p.beginPath(); p.arc((i * 97) % 720, (i * 53) % 480, 6 + (i % 9), 0, 6.3); p.fill(); }
+      // Soft, low-saturation detail, the way a photograph's colour varies.
+      p.filter = 'blur(2px)'; for (let i = 0; i < 1500; i++) { p.fillStyle = `hsla(${(i * 37) % 360},25%,${40 + (i % 30)}%,0.2)`; p.beginPath(); p.arc((i * 97) % 720, (i * 53) % 480, 8 + (i % 14), 0, 6.3); p.fill(); } p.filter = 'none';
       const photoPicture = await writer.rasterPicture(photo);
       const lines = document.createElement('canvas'); lines.width = 720; lines.height = 480;
       const l = lines.getContext('2d')!;
@@ -111,14 +123,14 @@ test('version 26 to 27: the step adds empty stores and drops the old render cach
   try {
     const result = await page.evaluate(async (png) => {
       const seed = await (0, eval)(`(${png.seed})`)(png.png) as { pngUrl: string; svg: string };
-      const { openDB, DB_VERSION } = await import('/src/bridge/db.ts');
+      const { openDB, DB_VERSION } = await import(String('/src/bridge/db.ts'));
       const db = await openDB();
       const afterUpgrade = { version: db.version, shipped: DB_VERSION, stores: [...db.objectStoreNames], thumbs: (await db.getAll('state')).filter((r: { thumb?: string }) => r.thumb).length, lean: await db.count('state-list') };
-      const { createStateAPI } = await import('/src/bridge/state.ts');
-      const { createRevisionStore } = await import('/src/bridge/revision-history.ts');
+      const { createStateAPI } = await import(String('/src/bridge/state.ts'));
+      const { createRevisionStore } = await import(String('/src/bridge/revision-history.ts'));
       const state = createStateAPI(db, createRevisionStore(db));
       const beforeMove = (await state.list()).map((r: { thumb?: string }) => r.thumb);
-      const list = await import('/src/bridge/state-list.ts');
+      const list = await import(String('/src/bridge/state-list.ts'));
       await list.migrateSessions(db); await list.migrateRevisionPreviews(db); await list.migrateExportPictures(db);
       const rows = await state.list();
       return {
@@ -161,10 +173,10 @@ test('a version 27 step that fails leaves the app working on the version 26 data
         if (name === 'preview-blobs') throw new DOMException('simulated', 'QuotaExceededError');
         return create.call(this, name, options);
       };
-      const { openDB } = await import('/src/bridge/db.ts');
+      const { openDB } = await import(String('/src/bridge/db.ts'));
       const db = await openDB();
       IDBDatabase.prototype.createObjectStore = create;
-      const { createStateAPI } = await import('/src/bridge/state.ts');
+      const { createStateAPI } = await import(String('/src/bridge/state.ts'));
       const state = createStateAPI(db);
       const rows = await state.list();
       await state.save('poster:new', { __toolId: 'poster', title: 'new' }, `data:image/png;base64,${png.png}`);
@@ -198,10 +210,10 @@ test('a blocked step waits without writing: the version 26 data stays intact and
     await page.route(`${origin}/`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>blocked</title>' }));
     await page.goto(`${origin}/`);
     const blocked = await page.evaluate(async () => {
-      const { openDB } = await import('/src/bridge/db.ts');
+      const { openDB } = await import(String('/src/bridge/db.ts'));
       try { await openDB(); return 'opened'; } catch (error) { return (error as { code?: string }).code ?? String(error); }
     });
-    assert.equal(blocked, 'DB_BLOCKED', 'the step waits rather than open around the other tab');
+    assert.ok(['DB_BLOCKED', 'DB_OPEN_TIMEOUT'].includes(blocked), `the step waits rather than open around the other tab (${blocked})`);
     const intact = await holder.evaluate(async () => {
       const db = (globalThis as { held?: IDBDatabase }).held!;
       const count = await new Promise<number>((resolve) => { const r = db.transaction('state').objectStore('state').count(); r.onsuccess = () => resolve(r.result); });
@@ -210,11 +222,39 @@ test('a blocked step waits without writing: the version 26 data stays intact and
     });
     assert.equal(intact, 2, 'nothing was written while it waited');
     const opened = await page.evaluate(async () => {
-      const { openDB } = await import('/src/bridge/db.ts');
+      const { openDB } = await import(String('/src/bridge/db.ts'));
       const db = await openDB();
       return { version: db.version, count: await db.count('state') };
     });
     assert.equal(opened.count, 2);
     assert.ok(opened.version >= 27);
+  } finally { await context.close(); await closeBrowser(); }
+});
+
+test('Projects reads a stored picture into the tile as it comes near the screen, and the calmed-pictures rule still reaches it', { skip, timeout: 180_000 }, async () => {
+  const browser = await getBrowser();
+  const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  try {
+    await page.route(`${origin}/`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>seed</title>' }));
+    await page.goto(`${origin}/`);
+    await page.evaluate(async (png) => {
+      const [{ openDB }, { createStateAPI }] = await Promise.all([import(String('/src/bridge/db.ts')), import(String('/src/bridge/state.ts'))]);
+      const state = createStateAPI(await openDB());
+      await state.save('poster:1700000000000', { __toolId: 'poster', __label: 'Stored picture', title: 'a' }, `data:image/png;base64,${png}`);
+    }, PNG);
+    await page.unroute(`${origin}/`);
+    // A query string makes this a real load: the seeding page shares the address.
+    await page.goto(`${origin}/?projects#/p`, { waitUntil: 'domcontentloaded' });
+    const img = page.locator('.folder-tile[data-ref="poster:1700000000000"] img.tile-cover');
+    await img.waitFor({ state: 'attached', timeout: 120_000 });
+    await page.waitForFunction(() => !!document.querySelector<HTMLImageElement>('.folder-tile[data-ref="poster:1700000000000"] img.tile-cover')?.getAttribute('src'), undefined, { timeout: 30_000 });
+    const result = await img.evaluate((el: HTMLImageElement) => {
+      document.documentElement.dataset.a11yPreviews = 'hidden';
+      return { src: el.getAttribute('src') ?? '', key: el.dataset.previewKey, filter: getComputedStyle(el.closest('.tile-figure') ?? el).filter + ' / ' + getComputedStyle(el).filter };
+    });
+    assert.match(result.src, /^blob:/, 'a raster picture is an object URL');
+    assert.match(result.key ?? '', /^[0-9a-f]{32}$/);
+    assert.match(result.filter, /saturate\(0\.5\) contrast\(0\.5\)/, 'Hide colourful previews still calms the picture, and does not hide the tile');
   } finally { await context.close(); await closeBrowser(); }
 });

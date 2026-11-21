@@ -53,7 +53,7 @@ const page = await context.newPage();
 
 async function measureList(): Promise<{ ms: number; bytes: number; rows: number; withPicture: number; heap: number | null }> {
   return page.evaluate(async () => {
-    const [{ openDB }, { createStateAPI }] = await Promise.all([import('/src/bridge/db.ts'), import('/src/bridge/state.ts')]);
+    const [{ openDB }, { createStateAPI }] = await Promise.all([import(String('/src/bridge/db.ts')), import(String('/src/bridge/state.ts'))]);
     const db = await openDB();
     const state = createStateAPI(db);
     const gc = (globalThis as { gc?: () => void }).gc;
@@ -70,13 +70,15 @@ async function measureList(): Promise<{ ms: number; bytes: number; rows: number;
 
 async function measureProjects(): Promise<{ firstTileMs: number; settledMs: number; pictureReads: number; tiles: number }> {
   const started = Date.now();
-  await page.goto(`${url}/#/p`, { waitUntil: 'domcontentloaded' });
+  // A fresh load each time (the query string differs from the page before), so the
+  // first paint is measured from a cold start of the view.
+  await page.goto(`${url}/?measure=${started}#/p`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.folder-tile[data-kind="session"]', { timeout: 120_000 });
   const firstTileMs = Date.now() - started;
   await page.waitForTimeout(1500);
   const settledMs = Date.now() - started;
   const { pictureReads, tiles } = await page.evaluate(async () => {
-    const reader = await import('/src/components/preview-image.ts');
+    const reader = await import(String('/src/components/preview-image.ts'));
     return { pictureReads: reader.pictureReadCount(), tiles: document.querySelectorAll('.folder-tile[data-kind="session"]').length };
   });
   return { firstTileMs, settledMs, pictureReads, tiles };
@@ -86,7 +88,7 @@ async function measureProjects(): Promise<{ firstTileMs: number; settledMs: numb
 await page.route(`${url}/`, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>seed</title>' }));
 await page.goto(`${url}/`);
 const seeded = await page.evaluate(async ({ count, pictures, docBytes }) => {
-  const [{ openDB }, { indexSavedWork }] = await Promise.all([import('/src/bridge/db.ts'), import('/src/bridge/history-index.ts')]);
+  const [{ openDB }, { indexSavedWork }] = await Promise.all([import(String('/src/bridge/db.ts')), import(String('/src/bridge/history-index.ts'))]);
   const db = await openDB();
   const filler = 'x'.repeat(Math.max(0, docBytes - 64));
   let pictureBytes = 0;
@@ -113,9 +115,9 @@ const beforeList = await measureList();
 const beforeProjects = await measureProjects();
 
 // 3. The move, to the end.
-await page.goto(`${url}/#/settings`, { waitUntil: 'domcontentloaded' });
+await page.goto(`${url}/?move=1#/settings`, { waitUntil: 'domcontentloaded' });
 const move = await page.evaluate(async () => {
-  const [{ openDB }, list] = await Promise.all([import('/src/bridge/db.ts'), import('/src/bridge/state-list.ts')]);
+  const [{ openDB }, list] = await Promise.all([import(String('/src/bridge/db.ts')), import(String('/src/bridge/state-list.ts'))]);
   const db = await openDB();
   const t0 = performance.now();
   await list.migrateSessions(db, { batch: 16 });

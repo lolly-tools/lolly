@@ -45,12 +45,12 @@ test('equal bytes are stored once; owners share them and the picture leaves with
   await tx.done;
   assert.equal(count('preview-blobs'), 1, 'one picture for three owners');
   assert.equal(count('preview-index'), 3);
-  tx = db.transaction([...store.PREVIEW_STORES], 'readwrite') as never;
+  tx = db.transaction([...store.PREVIEW_STORES], 'readwrite') as unknown as import('./preview-store.ts').PictureTx;
   await store.releaseOwner(tx, store.sessionOwner('one'));
   await store.releaseOwner(tx, store.revisionOwner('r1'));
   await tx.done;
   assert.equal(count('preview-blobs'), 1, 'still held by the export');
-  tx = db.transaction([...store.PREVIEW_STORES], 'readwrite') as never;
+  tx = db.transaction([...store.PREVIEW_STORES], 'readwrite') as unknown as import('./preview-store.ts').PictureTx;
   await store.releaseOwner(tx, store.exportOwner('e1'));
   await tx.done;
   assert.equal(count('preview-blobs'), 0, 'gone with its last owner');
@@ -59,15 +59,15 @@ test('equal bytes are stored once; owners share them and the picture leaves with
 test('rebinding an owner frees the picture it held, and a bare reference binds only to bytes that are here', async () => {
   const { db, count } = setup();
   const a = await prepared(png('a')), b = await prepared(png('b'));
-  let tx = db.transaction([...store.PREVIEW_STORES], 'readwrite') as never;
+  let tx = db.transaction([...store.PREVIEW_STORES], 'readwrite') as unknown as import('./preview-store.ts').PictureTx;
   await store.bindOwner(tx, 'session:x', 'session', a);
   await store.bindOwner(tx, 'session:x', 'session', b);
   await tx.done;
   assert.equal(count('preview-blobs'), 1, 'the replaced picture went');
-  tx = db.transaction([...store.PREVIEW_STORES], 'readwrite') as never;
+  tx = db.transaction([...store.PREVIEW_STORES], 'readwrite') as unknown as import('./preview-store.ts').PictureTx;
   const bound = await store.bindOwner(tx, 'session:y', 'session', { ...a.ref });
   await tx.done;
-  assert.equal(bound, null, 'a reference to bytes that are not here names nothing');
+  assert.equal(bound, null, 'a reference to bytes that are not here binds nothing');
 });
 
 test('preparePicture: data URLs become bytes with a route; junk is null; a received SVG is refused without a sanitiser', async () => {
@@ -87,26 +87,26 @@ test('preparePicture: data URLs become bytes with a route; junk is null; a recei
 test('putStateRecord writes the record, its lean row and its picture row together', async () => {
   const { db, stores } = setup();
   const picture = await prepared(svg('lean'));
-  const tx = db.transaction(store.scopeFor(db, ['state']), 'readwrite') as never;
+  const tx = db.transaction(store.scopeFor(db, ['state']), 'readwrite') as unknown as import('./preview-store.ts').PictureTx;
   const record = { slot: 's1', toolId: 'poster', toolVersion: '1', label: 'Hello', data: { __toolId: 'poster', title: 'x', __export_filename: 'hello' }, thumb: null, updatedAt: '2026-11-21T10:00:00.000Z' } as StateRecord;
   await rows.putStateRecord(tx, await rows.withPicture(tx, record, picture));
-  await (tx as { done: Promise<void> }).done;
+  await tx.done;
   const lean = stores.get('state-list')!.get(JSON.stringify('s1'))!.value as Record<string, unknown>;
   assert.equal(lean.label, 'Hello');
   assert.equal(lean.filename, 'hello');
   assert.equal((lean.preview as { key: string }).key, picture.ref.key);
   assert.ok(!('data' in lean), 'the lean row carries no document');
   assert.equal(stores.get('preview-index')!.has(JSON.stringify('session:s1')), true);
-  const tx2 = db.transaction(store.scopeFor(db, ['state']), 'readwrite') as never;
+  const tx2 = db.transaction(store.scopeFor(db, ['state']), 'readwrite') as unknown as import('./preview-store.ts').PictureTx;
   await rows.deleteStateRecord(tx2, 's1');
-  await (tx2 as { done: Promise<void> }).done;
+  await tx2.done;
   assert.equal(stores.get('state-list')!.size, 0);
   assert.equal(stores.get('preview-blobs')!.size, 0, 'the picture left with the session');
 });
 
 test('a session write whose transaction left out the lean list is refused, so the two never drift', async () => {
   const { db } = setup();
-  const tx = db.transaction(['state'], 'readwrite') as never;
+  const tx = db.transaction(['state'], 'readwrite') as unknown as import('./preview-store.ts').PictureTx;
   await assert.rejects(() => rows.putStateRecord(tx, { slot: 'z', toolId: 'a', toolVersion: '1', label: 'z', data: {}, thumb: null, updatedAt: 'x' } as unknown as StateRecord), /scopeFor/);
 });
 

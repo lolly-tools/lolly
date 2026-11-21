@@ -114,7 +114,9 @@ export function memoryDb(options: { without?: readonly string[] } = {}) {
       index,
     };
   };
-  const db: Record<string, unknown> & { objectStoreNames: { contains(name: string): boolean } } = {
+  // The transaction hands back its database (idb's `tx.db`), set once `db` exists.
+  let self: unknown = null;
+  const db = {
     objectStoreNames: { contains: (name: string) => stores.has(name) },
     transaction(names: string | string[]) {
       const list = Array.isArray(names) ? names : [names];
@@ -126,7 +128,7 @@ export function memoryDb(options: { without?: readonly string[] } = {}) {
       setTimeout(() => { if (!finished) { finished = true; settle(true); } });
       return {
         done,
-        db,
+        get db() { return self; },
         objectStoreNames: nameList(list),
         store: store(list[0]!),
         objectStore(name: string) { if (!list.includes(name)) throw new Error(`${name} is not in this transaction`); return store(name); },
@@ -142,5 +144,6 @@ export function memoryDb(options: { without?: readonly string[] } = {}) {
     add: (name: string, value: unknown, key?: Key) => store(name).add(value, key),
     delete: (name: string, key: Key) => store(name).delete(key),
   };
+  self = db;
   return { db, stores };
 }

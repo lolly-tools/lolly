@@ -26,7 +26,7 @@ test('the content key is the SHA-256 of the bytes, first 16 bytes, and equal byt
   const a = await previewContentKey(pngBytes());
   assert.match(a, /^[0-9a-f]{32}$/);
   assert.equal(await previewContentKey(pngBytes()), a, 'stable for the same bytes');
-  const other = pngBytes(); other[other.length - 5] ^= 1;
+  const other = pngBytes(); other[other.length - 5] = other[other.length - 5]! ^ 1;
   assert.notEqual(await previewContentKey(other), a, 'one changed byte is another key');
   // Independent of how the bytes arrived: the same picture as two data URL forms.
   const fromBase64 = decodePictureDataUrl(`data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(SVG)))}`)!;
