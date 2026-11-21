@@ -23,14 +23,15 @@
 
 .job-toast {
   position: fixed;
-  right: 1rem;
+  /* Inside a side the system holds: the toast carries the only cancel for its job. */
+  right: calc(1rem + var(--safe-right));
   /* Inset past the edge dock logically (RTL-correct); 0px when nothing is docked. */
   margin-inline-end: var(--dock-w, 0px);
   /* Same --vv-bottom/--safe-bottom idiom as .perf-hud below, so the toast clears
      the iOS home-indicator gesture zone instead of sitting flush in it. */
   bottom: calc(var(--vv-bottom, 0px) + var(--safe-bottom) + 1rem);
   z-index: 9500;                 /* above content + the bottom snackbars (9000), below topbar dropdowns (99999+) and modals (top layer) */
-  width: min(360px, calc(100vw - 2rem));
+  width: min(360px, calc(100vw - 2rem - var(--safe-left) - var(--safe-right)));
   color: hsl(var(--foreground));
   font-family: inherit;
   /* The shared candy hues (tokens.css); aliased locally so the pill mini-bar and

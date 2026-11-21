@@ -35,7 +35,8 @@
   .settings-nav-link[aria-current="page"] { background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: var(--ui-edge-faint), var(--ui-elevation-control); }
   .settings-nav-link:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
   :is(.profile-view, .dashboard-view) > .settings-header {
-    padding: calc(var(--chrome-top) + var(--chrome-h) + 1rem) .5rem 0;
+    /* The side terms keep the heading out from under a status column on that side. */
+    padding: calc(var(--chrome-top) + var(--chrome-h) + 1rem) calc(.5rem + var(--safe-right)) 0 calc(.5rem + var(--safe-left));
   }
   /* The Settings panels' own gutter (dashboard.css --dash-gutter), so the header
      and the Design system column share one left edge. */
