@@ -7,7 +7,7 @@ description: "Operate the Lolly Certificate tool (certificate) using its declare
 
 Tool ID: `certificate`. Tool version: `1.2.2`. Engine range: `^1.293.0`.
 
-Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.
+Completion and award certificates: four styles, print and social sizes, and motion - one name at a time, or a roster from a CSV.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

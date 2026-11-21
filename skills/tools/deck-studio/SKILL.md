@@ -7,7 +7,7 @@ description: "Operate the Lolly Markdown Slides tool (deck-studio) using its dec
 
 Tool ID: `deck-studio`. Tool version: `1.2.4`. Engine range: `^1.56.0`.
 
-Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and the design system theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.
+Turn Markdown or a JSON spec into a native, editable PowerPoint deck. Exports .pptx (editable), plus PDF and PNG.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

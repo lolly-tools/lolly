@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-18T11:53:12.596Z",
+  "generatedAt": "2026-11-20T15:27:30.467Z",
   "tools": [
     {
       "id": "3d",
@@ -146,7 +146,7 @@
     {
       "id": "3d-studio",
       "name": "3D Studio",
-      "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls.",
+      "description": "Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows.",
       "version": "0.11.0",
       "status": "official",
       "category": "designer",
@@ -1035,7 +1035,7 @@
     {
       "id": "audiogram",
       "name": "Audiogram",
-      "description": "Turn a voice clip or song into a video in your design system's colours that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social.",
+      "description": "Turn a voice clip or song into a video in your design system's colours that moves with the sound.",
       "version": "2.8.0",
       "status": "community",
       "category": "everyone",
@@ -1256,7 +1256,7 @@
     {
       "id": "backdrop",
       "name": "Backdrop",
-      "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds.",
+      "description": "Backdrops from your design system's colours: sixteen GPU effects. Export stills or motion loops for heroes, walls and meeting backgrounds.",
       "version": "1.1.3",
       "status": "official",
       "category": "everyone",
@@ -1483,7 +1483,7 @@
     {
       "id": "booth-studio",
       "name": "Booth",
-      "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
+      "description": "Dress a 3D event booth with sponsor artwork. Pick a booth design and render a still or a turntable for a sponsor pitch.",
       "version": "0.4.1",
       "status": "experimental",
       "category": "event",
@@ -1632,7 +1632,7 @@
     {
       "id": "captions",
       "name": "Captions",
-      "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
+      "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, and export burned-in frames plus .srt and .vtt.",
       "version": "1.1.1",
       "status": "community",
       "category": "everyone",
@@ -1832,7 +1832,7 @@
     {
       "id": "certificate",
       "name": "Certificate",
-      "description": "Completion and award certificates in the active design system and its colourway: four styles, print and social sizes, and motion for sharing - one name at a time, or a whole roster from a CSV in Bulk from rows.",
+      "description": "Completion and award certificates: four styles, print and social sizes, and motion - one name at a time, or a roster from a CSV.",
       "version": "1.2.2",
       "status": "community",
       "category": "everyone",
@@ -2087,7 +2087,7 @@
     {
       "id": "chart",
       "name": "Chart",
-      "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active design system.",
+      "description": "Charts from first paste to advanced visualisation - 35 vector families, 3-D scenes, flights, motion and styles from the design system.",
       "version": "1.31.0",
       "status": "official",
       "category": "designer",
@@ -2642,7 +2642,7 @@
     {
       "id": "claim",
       "name": "Claim",
-      "description": "Claim your name on any media you've already made - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file - all on your device, before you upload it anywhere.",
+      "description": "Claim your name on any media - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials, on your device.",
       "version": "2.0.2",
       "status": "official",
       "category": "utility",
@@ -2955,7 +2955,7 @@
     {
       "id": "color-palette",
       "name": "Palette Lab",
-      "description": "Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
+      "description": "Grow a palette from one seed colour - harmony accents, OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
       "version": "2.3.5",
       "status": "community",
       "category": "utility",
@@ -3322,7 +3322,7 @@
     {
       "id": "contrast-check",
       "name": "Contrast",
-      "description": "Check a text and background pair, or every pairing in the design system palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.",
+      "description": "Check a text and background pair, or every pairing in the palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.",
       "version": "1.2.1",
       "status": "community",
       "category": "utility",
@@ -3789,7 +3789,7 @@
     {
       "id": "darkroom",
       "name": "Darkroom",
-      "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Reuse a look through LUT export or Grade a video. Opens Photoshop and GIMP layers for positioning, blending and image export.",
+      "description": "Grade photos and video with film looks, Adobe XMP presets, .cube LUTs and your design system colours. Opens Photoshop and GIMP layers.",
       "version": "2.6.0",
       "status": "community",
       "category": "designer",
@@ -4095,7 +4095,7 @@
     {
       "id": "deck-studio",
       "name": "Markdown Slides",
-      "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and the design system theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
+      "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck. Exports .pptx (editable), plus PDF and PNG.",
       "version": "1.2.4",
       "status": "community",
       "category": "designer",
@@ -5479,7 +5479,7 @@
     {
       "id": "filter",
       "name": "Filter",
-      "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
+      "description": "Photo effects: halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster).",
       "version": "1.7.0",
       "status": "official",
       "category": "designer",
@@ -5790,7 +5790,7 @@
     {
       "id": "finish-preview",
       "name": "Finishes",
-      "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+      "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork, then export the spot plate. The on-screen sheen is presentation only.",
       "version": "1.2.0",
       "status": "official",
       "category": "designer",
@@ -6018,7 +6018,7 @@
     {
       "id": "flythrough",
       "name": "Flythrough",
-      "description": "Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video.",
+      "description": "Fly a 3D camera through a screenshot. The picture lifts into layers at real depth; a timeline of poses animates the move. Export as video.",
       "version": "0.2.7",
       "status": "official",
       "category": "designer",
@@ -6552,7 +6552,7 @@
     {
       "id": "gradient",
       "name": "Gradient",
-      "description": "Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.",
+      "description": "Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. Export stills or join-free video loops.",
       "version": "1.3.1",
       "status": "official",
       "category": "everyone",
@@ -6842,7 +6842,7 @@
     {
       "id": "growth",
       "name": "Growth",
-      "description": "Differential growth: a line that repels itself until it folds into coral. Seed it from a ring, a burst, headline letterforms or a logo, and export the result as real, plotter-ready SVG paths.",
+      "description": "Differential growth: a line that folds into coral. Seed it from a ring, a burst, letterforms or a logo, and export plotter-ready SVG paths.",
       "version": "1.1.4",
       "status": "community",
       "category": "designer",
@@ -7205,7 +7205,7 @@
     {
       "id": "jump",
       "name": "Jump",
-      "description": "A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives inside the link you share.",
+      "description": "A one-link landing page: your links, heading, portrait and colours - and the whole page lives inside the link you share.",
       "version": "1.2.2",
       "status": "community",
       "category": "utility",
@@ -9053,7 +9053,7 @@
     {
       "id": "prompt-card",
       "name": "Prompt Card",
-      "description": "Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the same words as text tokens.",
+      "description": "Typeset a long prompt into one image for a multimodal model - image input is often cheaper than the same words as text tokens.",
       "version": "1.1.0",
       "status": "official",
       "category": "utility",
@@ -9229,7 +9229,7 @@
     {
       "id": "qr-code",
       "name": "QR Code",
-      "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
+      "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 - plus retail and logistics barcodes from EAN-13 to MaxiCode.",
       "version": "2.8.0",
       "status": "official",
       "category": "everyone",
@@ -10031,7 +10031,7 @@
     {
       "id": "rondocode",
       "name": "Rondocode",
-      "description": "Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio with Content Credentials that record it, as stems, as a MIDI file of its notes, or keep its source.",
+      "description": "Write music as code and hear it as you type. Export the song as audio with Content Credentials, as stems, as a MIDI file, or keep its source.",
       "version": "1.1.0",
       "status": "community",
       "category": "utility",
@@ -10176,7 +10176,7 @@
     {
       "id": "sandbox",
       "name": "Sandbox",
-      "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
+      "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox.",
       "version": "1.9.0",
       "status": "official",
       "category": "utility",
@@ -10328,7 +10328,7 @@
     {
       "id": "scan-code",
       "name": "Scan",
-      "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+      "description": "Read QR codes and barcodes on-device. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
       "version": "0.1.3",
       "status": "experimental",
       "category": "utility",
@@ -10491,7 +10491,7 @@
     {
       "id": "screencap",
       "name": "Screen Capture",
-      "description": "Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured.",
+      "description": "Screenshot or record your screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured.",
       "version": "1.1.3",
       "status": "community",
       "category": "utility",
@@ -11239,7 +11239,7 @@
     {
       "id": "spatial-photo",
       "name": "Spatial Photo",
-      "description": "Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with real parallax, atmosphere and focus.",
+      "description": "Drop in one photo and move a camera through it: depth is read on your device.",
       "version": "0.1.4",
       "status": "experimental",
       "category": "designer",
@@ -11971,7 +11971,7 @@
     {
       "id": "synth",
       "name": "Synth",
-      "description": "A visual instrument you play. Four scenes run live on the GPU: fluid ink, a particle swarm that flies at your headline or your logo, a feedback field, and your own camera. Every colour comes out of the design system palette, and the picture moves to your pointer, to a music track, and to a MIDI controller. Export a still or a join-free loop.",
+      "description": "A visual instrument you play. The picture moves to your pointer, a music track and a MIDI controller. Export a still or a join-free loop.",
       "version": "0.2.4",
       "status": "experimental",
       "category": "designer",
@@ -12343,7 +12343,7 @@
     {
       "id": "timezone",
       "name": "Timezone",
-      "description": "Turn places and timezones into artwork that follows the design system. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
+      "description": "Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules.",
       "version": "1.1.2",
       "status": "official",
       "category": "event",
@@ -13625,7 +13625,7 @@
     {
       "id": "work-avatar",
       "name": "Work Avatar",
-      "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your design system's colours and type.",
+      "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn, in your design system's colours and type.",
       "version": "1.2.4",
       "status": "community",
       "category": "everyone",
@@ -14055,7 +14055,7 @@
     {
       "id": "brief",
       "name": "Brief",
-      "description": "A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.",
+      "description": "A one-page brief from Markdown: a title line, labelled points and notes. Paste what an assistant wrote, or write your own.",
       "version": "1.1.0",
       "status": "community",
       "category": "everyone",
@@ -14239,7 +14239,7 @@
     {
       "id": "email",
       "name": "Email",
-      "description": "An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments, as received, a draft or sent. For mock-ups, slides and walkthroughs.",
+      "description": "An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments. For mock-ups, slides and walkthroughs.",
       "version": "1.1.0",
       "status": "community",
       "category": "everyone",
@@ -14713,7 +14713,7 @@
     {
       "id": "quote",
       "name": "Sales Quote",
-      "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type. Paste the lines from a spreadsheet or your CRM.",
+      "description": "A sales quote from a table of line items: each line's total, the subtotal, a discount, tax and the amount due, worked out as you type.",
       "version": "1.1.0",
       "status": "community",
       "category": "everyone",
@@ -14753,7 +14753,7 @@
     {
       "id": "scorecard",
       "name": "Scorecard",
-      "description": "Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence behind it, and an overall score. Paste the rows from a spreadsheet, such as MEDDPICC for a deal.",
+      "description": "Score a deal, a vendor or a plan against your criteria: each with a bar, a score and the evidence, and an overall score.",
       "version": "1.1.0",
       "status": "community",
       "category": "everyone",
@@ -14788,7 +14788,7 @@
     {
       "id": "week",
       "name": "Week",
-      "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.",
+      "description": "A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked, for a slide or a walkthrough.",
       "version": "1.1.0",
       "status": "community",
       "category": "everyone",
