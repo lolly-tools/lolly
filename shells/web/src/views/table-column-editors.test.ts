@@ -125,6 +125,7 @@ function mountDom(): { dom: JSDOM; anchor: HTMLElement } {
   g.window = dom.window;
   g.document = dom.window.document;
   g.HTMLElement = dom.window.HTMLElement;
+  g.Node = dom.window.Node;
   g.CustomEvent = dom.window.CustomEvent;
   g.getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
   return { dom, anchor: dom.window.document.getElementById('cell') as HTMLElement };
@@ -162,6 +163,9 @@ test('an outside press closes it even when something upstream stops propagation'
   const { dom, anchor } = mountDom();
   const { openEmojiPopover } = await import('../components/emoji-picker.ts');
   const pop = await openEmojiPopover(anchor, () => {}, { defineElement: stubDefine });
+  // The shared popover arms its outside press a tick after the open, so the press
+  // that opened the popover cannot also close the popover.
+  await new Promise((resolve) => { dom.window.setTimeout(resolve, 0); });
 
   const elsewhere = dom.window.document.createElement('div');
   dom.window.document.body.append(elsewhere);

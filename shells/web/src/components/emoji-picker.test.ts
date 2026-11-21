@@ -55,6 +55,7 @@ function mountDom(): { dom: JSDOM; anchor: HTMLElement } {
   g.window = dom.window;
   g.document = dom.window.document;
   g.HTMLElement = dom.window.HTMLElement;
+  g.Node = dom.window.Node;
   g.CustomEvent = dom.window.CustomEvent;
   g.MutationObserver = dom.window.MutationObserver;
   g.requestAnimationFrame = dom.window.requestAnimationFrame.bind(dom.window);
@@ -482,6 +483,71 @@ test('the picker module imports no engine emoji module at the top level', () => 
   const imports = source.match(/^import .*$/gm) ?? [];
   assert.equal(imports.some((line) => /emoji-(dom|pack|style|inline|svg|treatment)/.test(line)), false,
     'the pass arrives from the caller, so this chunk never pulls the engine tables onto the page');
+});
+
+// -- the shared popover's lifecycle ------------------------------------------
+
+test('a cell inside an open dialog mounts the popover in that dialog, above its backdrop', async () => {
+  const { dom } = mountDom();
+  const { openEmojiPopover, closeEmojiPopover } = await import('./emoji-picker.ts');
+  const doc = dom.window.document;
+  const dialog = doc.createElement('dialog');
+  dialog.setAttribute('open', '');
+  const cell = doc.createElement('button');
+  dialog.append(cell);
+  doc.body.append(dialog);
+  try {
+    const pop = await openEmojiPopover(cell, () => {}, { defineElement: definePicker(dom) });
+    assert.equal(pop.parentElement, dialog);
+    assert.equal(cell.getAttribute('aria-expanded'), 'true');
+  } finally { closeEmojiPopover(); dom.window.close(); }
+  assert.equal(cell.getAttribute('aria-expanded'), 'false');
+});
+
+test('Escape stops at the picker: a listener the page put on document first never hears it', async () => {
+  const { dom, anchor } = mountDom();
+  const { openEmojiPopover } = await import('./emoji-picker.ts');
+  const doc = dom.window.document;
+  let heard = 0;
+  const page = (e: Event): void => { if ((e as KeyboardEvent).key === 'Escape') heard++; };
+  doc.addEventListener('keydown', page);
+  try {
+    const pop = await openEmojiPopover(anchor, () => {}, { defineElement: definePicker(dom) });
+    const picker = pop.querySelector('unicode-emoji-picker')!;
+    picker.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+    assert.equal(pop.isConnected, false);
+    assert.equal(heard, 0);
+    assert.equal(doc.activeElement, anchor, 'focus goes back to the cell');
+  } finally { doc.removeEventListener('keydown', page); dom.window.close(); }
+});
+
+test('Tab is left to the picker, and an outside press still closes it', async () => {
+  const { dom, anchor } = mountDom();
+  const { openEmojiPopover } = await import('./emoji-picker.ts');
+  const doc = dom.window.document;
+  const pop = await openEmojiPopover(anchor, () => {}, {
+    defineElement: definePicker(dom),
+    selection: { host: {} as never, value: () => ({ primary: 'twemoji' }) as never, set: async () => {} },
+  });
+  const change = pop.querySelector<HTMLButtonElement>('.emoji-change-set')!;
+  change.focus();
+  const tab = new dom.window.KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true });
+  change.dispatchEvent(tab);
+  assert.equal(tab.defaultPrevented, false, 'no trap holds Tab on the one control outside the shadow root');
+  await new Promise((resolve) => { dom.window.setTimeout(resolve, 0); });
+  doc.body.dispatchEvent(new dom.window.Event('pointerdown', { bubbles: true }));
+  assert.equal(pop.isConnected, false);
+  assert.equal(anchor.getAttribute('aria-expanded'), 'false');
+  dom.window.close();
+});
+
+test('a route change closes the popover', async () => {
+  const { dom, anchor } = mountDom();
+  const { openEmojiPopover } = await import('./emoji-picker.ts');
+  const pop = await openEmojiPopover(anchor, () => {}, { defineElement: definePicker(dom) });
+  dom.window.dispatchEvent(new dom.window.Event('lolly:navigate'));
+  assert.equal(pop.isConnected, false);
+  dom.window.close();
 });
 
 test('panel scrolling while the picker downloads retains the requested popover', async () => {

@@ -111,6 +111,87 @@ test('an unmeasurable panel keeps the plain drop (nothing to reason from)', () =
 });
 
 
+/** A popover with two buttons in it, opened from a real trigger, for the listener
+ *  options. `before` runs ahead of the open, as a host surface's own wiring does. */
+function live(options: Partial<BodyPopoverOptions>, before?: (doc: Document) => void) {
+  const d = new JSDOM('<!doctype html><html><body><div id="host"><button id="trigger">Open</button><div id="stopper">canvas</div></div></body></html>', { pretendToBeVisual: true });
+  const w = d.window;
+  (globalThis as Record<string, unknown>).window = w;
+  (globalThis as Record<string, unknown>).document = w.document;
+  (globalThis as Record<string, unknown>).HTMLElement = w.HTMLElement;
+  (globalThis as Record<string, unknown>).Node = w.Node;
+  before?.(w.document);
+  const trigger = w.document.getElementById('trigger') as HTMLButtonElement;
+  const handle = mountBodyPopover(trigger, (el) => {
+    el.innerHTML = '<button id="first">One</button><button id="last">Two</button>';
+    return el.querySelector<HTMLElement>('#first');
+  }, { className: 'test-pop', ...options });
+  const key = (target: Element, k: string): KeyboardEvent => {
+    const event = new w.KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+    target.dispatchEvent(event);
+    return event;
+  };
+  const press = (target: Element): void => { target.dispatchEvent(new w.Event('pointerdown', { bubbles: true })); };
+  const tick = (): Promise<void> => new Promise((resolve) => { w.setTimeout(resolve, 0); });
+  return { w, doc: w.document, trigger, handle, key, press, tick };
+}
+
+test('capture: Escape inside the panel closes it before a host listener on document hears it', () => {
+  let hostHeard = 0;
+  const onHost = (e: Event): void => { if ((e as KeyboardEvent).key === 'Escape') hostHeard += 1; };
+  const t = live({ capture: true }, (doc) => doc.addEventListener('keydown', onHost));
+  t.handle.open();
+  t.key(t.doc.getElementById('first')!, 'Escape');
+  assert.equal(t.handle.isOpen(), false);
+  assert.equal(hostHeard, 0, 'the host surface keeps its Escape for the next press');
+  assert.equal(t.doc.activeElement, t.trigger, 'focus goes back to the trigger');
+});
+
+test('without capture a host listener registered first on document still hears the same Escape', () => {
+  let hostHeard = 0;
+  const onHost = (e: Event): void => { if ((e as KeyboardEvent).key === 'Escape') hostHeard += 1; };
+  const t = live({}, (doc) => doc.addEventListener('keydown', onHost));
+  t.handle.open();
+  t.key(t.doc.getElementById('first')!, 'Escape');
+  assert.equal(t.handle.isOpen(), false);
+  assert.equal(hostHeard, 1, 'the default is unchanged for every other caller');
+});
+
+test('capture: a press on a surface that stops pointerdown still closes the panel', async () => {
+  const t = live({ capture: true });
+  t.doc.getElementById('stopper')!.addEventListener('pointerdown', (e) => e.stopPropagation());
+  t.handle.open();
+  await t.tick();
+  t.press(t.doc.getElementById('stopper')!);
+  assert.equal(t.handle.isOpen(), false);
+  t.handle.open();
+  await t.tick();
+  t.press(t.trigger);
+  assert.equal(t.handle.isOpen(), true, 'a press on the trigger is left to its own click');
+  t.handle.close();
+  const bubbling = live({});
+  bubbling.doc.getElementById('stopper')!.addEventListener('pointerdown', (e) => e.stopPropagation());
+  bubbling.handle.open();
+  await bubbling.tick();
+  bubbling.press(bubbling.doc.getElementById('stopper')!);
+  assert.equal(bubbling.handle.isOpen(), true, 'without capture the stopped press never reaches the shell');
+  bubbling.handle.close();
+});
+
+test('trapFocus: false focuses what render returns and leaves Tab to the browser', () => {
+  const t = live({ trapFocus: false });
+  t.handle.open();
+  assert.equal(t.doc.activeElement?.id, 'first');
+  const tab = t.key(t.doc.getElementById('last')!, 'Tab');
+  assert.equal(tab.defaultPrevented, false, 'Tab carries on past the last control');
+  t.handle.close();
+  const trapped = live({});
+  trapped.handle.open();
+  assert.equal(trapped.doc.activeElement?.id, 'first');
+  assert.equal(trapped.key(trapped.doc.getElementById('last')!, 'Tab').defaultPrevented, true, 'the default trap still holds Tab');
+  trapped.handle.close();
+});
+
 test('expanding popover content stays inside the viewport and stops tracking on close', () => {
   let resize: (() => void) | undefined;
   let disconnected = false;
