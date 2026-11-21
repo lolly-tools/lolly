@@ -144,6 +144,23 @@ test('the router keeps a loader in #view instead of fading or clearing it', asyn
   const { readFileSync } = await import('node:fs');
   const main = readFileSync(new URL('../main.ts', import.meta.url), 'utf8');
   assert.match(main, /const holdingLoader = view\.querySelector\(':scope > p\.loading'\) !== null;/);
-  assert.match(main, /!returning && !holdingLoader\)\s*\n\s*\? beginViewFade\(view\)/);
+  // A tool open holds the snapshot (view-fade.ts); the loader guard is the same.
+  assert.match(main, /!returning && !holdingLoader\)\s*\n\s*\? beginViewFade\(view, holdTool \? \{ hold: true, source: prevSig \} : \{\}\)/);
   assert.match(main, /route\.name !== prevRouteName && !holdingLoader\) view\.replaceChildren\(\);/);
 });
+
+test('a tool open shows the card on demand, on the plain ground, with no timer of its own', async () => {
+  const loading = beginViewLoading(Infinity, { plain: true });
+  await pause(20);
+  try {
+    assert.equal(card(), null, 'an infinite delay waits for show()');
+    loading.show();
+    assert.ok(card()?.open, 'show() puts the card up at once');
+    assert.ok(card()!.classList.contains('view-loading--plain'), 'without the dimming backdrop (parts/dialogs.css)');
+    loading.show();
+    assert.equal(document.querySelectorAll('dialog.view-loading').length, 1, 'a second show() adds nothing');
+  } finally { loading.close(); }
+  loading.show();
+  assert.equal(card(), null, 'show() after close() shows nothing');
+});
+
