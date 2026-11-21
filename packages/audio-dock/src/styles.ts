@@ -141,6 +141,23 @@ export const DOCK_CSS = `
    margin:auto drift; the wider thumb simply overhangs into the popover's padding. */
 .audio-dock-volrange { writing-mode: vertical-lr; direction: rtl; width: 6px; height: 120px; }
 .audio-dock-volpct { font: 700 .62rem/1 var(--font-mono, ui-monospace, monospace); color: var(--dock-muted); }
+.audio-dock-volmain { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.audio-dock-volname, .audio-dock-popctl:empty { display: none; }
+/* One controls popover (DockHost.controlsPopover): the master volume as a row like the
+   other sliders, then the other volumes and the source's switches, choices and sliders. */
+.audio-dock[data-ctlpop="true"] .audio-dock-volpop { align-items: stretch; gap: 10px; width: min(280px, calc(100% - 12px)); padding: 12px;
+  max-height: calc(100% - 12px); overflow-y: auto; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volmain { flex-direction: row; gap: 10px; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volname { display: block; }
+.audio-dock[data-ctlpop-open]:not([data-collapse="mini"]) { min-height: 384px; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volrange { writing-mode: horizontal-tb; direction: inherit; flex: 1; width: auto; height: auto; min-width: 0; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volpct { flex: 0 0 30px; text-align: right; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volpop .audio-dock-vol span { flex: 0 0 3.6em; }
+.audio-dock[data-ctlpop="true"] .audio-dock-volpop .audio-dock-volumes { padding: 0; }
+.audio-dock-popctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.audio-dock-popctl .audio-dock-vol { flex: 1 1 100%; }
+.audio-dock-popctl .audio-dock-choice { flex-wrap: wrap; border-radius: 12px; }
+.audio-dock-popctl .audio-dock-choice button { flex: 1 1 40%; }
 .audio-dock-play {
   width: 46px; height: 46px; background: var(--dock-accent); color: var(--dock-accent-fg);
 }
@@ -305,6 +322,17 @@ html[data-a11y-contrast="high"] .audio-dock input[type="range"]::-moz-range-trac
 .audio-dock-src[aria-current="true"] { background: hsl(0 0% 100% / .12); font-weight: 700; }
 .audio-dock-src[disabled] { opacity: .5; cursor: default; }
 .audio-dock-src-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a grid of tiles: the generated stations, a genre a tile, its icon over its name */
+.audio-dock-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 4px; padding: 2px 0 4px; }
+.audio-dock-tiles[hidden] { display: none; }
+.audio-dock-tile { flex-direction: column; justify-content: center; gap: 5px; min-height: 58px; padding: 8px 4px 6px; text-align: center;
+  background: hsl(0 0% 100% / .05); font-size: .7rem; }
+.audio-dock-tile[hidden] { display: none; }
+.audio-dock-tile .audio-dock-src-name { flex: none; max-width: 100%; }
+.audio-dock-tile-icon { display: inline-flex; color: var(--dock-muted); }
+.audio-dock-tile-icon svg { width: 20px; height: 20px; }
+.audio-dock-tile[aria-current="true"] { background: var(--dock-accent); color: var(--dock-accent-fg); }
+.audio-dock-tile[aria-current="true"] .audio-dock-tile-icon { color: inherit; }
 .audio-dock-src-mood { flex: 0 0 auto; font-size: .62rem; text-transform: uppercase; letter-spacing: .02em;
   color: var(--dock-muted); font-family: var(--font-mono, ui-monospace, monospace); }
 

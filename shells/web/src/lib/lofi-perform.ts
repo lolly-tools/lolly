@@ -81,11 +81,12 @@ const LOOSE: Partial<Record<LofiNote['voice'], number>> = { kick: 3, snare: 4, r
 /** How much each stroke's strength varies (one deviation, as a fraction). */
 const STRENGTH = 0.07;
 /** The styles played by machines, where the grid is the feel: they stay tight (a fifth of the looseness). */
-const MACHINE = new Set<LofiMood>(['acid', 'electro', 'dubstep', 'brostep', 'dnb', 'chiptune', 'sherbert', 'synthwave', 'nudisco', 'kpop', 'sugar', 'amapiano', 'funkyHouse', 'ukGarage', 'privateSchool']);
+const MACHINE = new Set<LofiMood>(['acid', 'electro', 'dubstep', 'brostep', 'dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave', 'chiptune', 'sherbert', 'synthwave', 'nudisco', 'kpop', 'sugar', 'amapiano', 'funkyHouse', 'ukGarage', 'privateSchool']);
 /** Each style's pocket (ms): where its snare and its hats sit against the grid. */
 const POCKET: Partial<Record<LofiMood, { snare?: number; hat?: number }>> = {
   hiphop: { snare: 14, hat: 4 }, rnb: { snare: 10 }, soul: { snare: 8 }, triphop: { snare: 12 },
   warm: { snare: 12, hat: 5 }, lateNight: { snare: 14, hat: 6 }, rainy: { snare: 12, hat: 5 }, sings: { snare: 8 },
+  lofiFocus: { snare: 10, hat: 4 }, lofiDrift: { snare: 14, hat: 6 }, lofiSoul: { snare: 14, hat: 6 }, lofiFunk: { snare: 8, hat: 3 }, lofiJazz: { snare: 10, hat: -2 }, lofiZen: { snare: 12, hat: 5 }, lofiCinema: { snare: 12, hat: 5 }, balearic: { snare: 8, hat: 3 },
   jazz: { hat: -3 }, swing: { hat: -3 }, punk: { hat: -4 }, metal: { hat: -2 }, rock: { hat: -2 }, grunge: { snare: 6 }, stoner: { snare: 10 },
   // Lofi house is a sampler played by hand and left unquantised: a lazy clap and hats a little late.
   lofiHouse: { snare: 8, hat: 5 },

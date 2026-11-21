@@ -52,7 +52,7 @@ const LEADS: Record<LiveLead, InstrumentIcon> = {
   surf: 'guitar', chorus: 'guitar', yidaki: 'wind', turntable: 'disc',
 };
 const BASSES: Record<LofiStyle['bass'], InstrumentIcon> = {
-  round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', warp: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform',
+  round: 'audioWaveform', synth: 'audioWaveform', deep: 'audioWaveform', warp: 'audioWaveform', wobble: 'audioWaveform', growl: 'audioWaveform', reese: 'audioWaveform', screech: 'audioWaveform', electro: 'audioWaveform', acid: 'audioWaveform', fog: 'audioWaveform', jump: 'audioWaveform',
   upright: 'bowed', slap: 'guitar', picked: 'guitar', croak: 'guitar', motown: 'guitar',
   pulse: 'gamepad', eight: 'drum', log: 'drum', didgeridoo: 'wind', tuba: 'horn',
 };
