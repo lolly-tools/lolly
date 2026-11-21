@@ -810,7 +810,7 @@
         "bounds": "128 MiB encoded input/output; 16 MP decode, 8 MP encode, 16384 per edge; 384 MiB codec allocation budget and 768 MiB WASM ceiling; one worker, 120-second deadline; XML limited to 1 MiB and 4096 boxes",
         "directTests": "`tests/jxl.test.ts`, `tests/jxl.browser.test.ts`",
         "fuzzCoverage": "`jxl` mutates real grayscale, P3, PQ, animation and auxiliary-channel fixtures through the disposable worker and bounded XML reader",
-        "notes": "Pinned libjxl 0.12.0 parses compressed images. Animation and extra channels are refused for still decode; compressed metadata is not inflated by the XML reader. Cancellation terminates the worker. Native browser support is not required."
+        "notes": "Pinned libjxl 0.13.0 parses compressed images. Animation and extra channels are refused for still decode; compressed metadata is not inflated by the XML reader. Cancellation terminates the worker. Native browser support is not required."
       }
     },
     "packages/node-shell/src/jxl-codec.ts": {
@@ -823,7 +823,7 @@
         "bounds": "128 MiB encoded input/output; 16 MP decode, 8 MP encode, 16384 per edge; 384 MiB codec allocation budget and 768 MiB WASM ceiling; one worker, 120-second deadline; XML limited to 1 MiB and 4096 boxes",
         "directTests": "`tests/jxl.test.ts`, `tests/jxl.browser.test.ts`",
         "fuzzCoverage": "`jxl` mutates real grayscale, P3, PQ, animation and auxiliary-channel fixtures through the disposable worker and bounded XML reader",
-        "notes": "Pinned libjxl 0.12.0 parses compressed images. Animation and extra channels are refused for still decode; compressed metadata is not inflated by the XML reader. Cancellation terminates the worker. Native browser support is not required."
+        "notes": "Pinned libjxl 0.13.0 parses compressed images. Animation and extra channels are refused for still decode; compressed metadata is not inflated by the XML reader. Cancellation terminates the worker. Native browser support is not required."
       }
     },
     "engine/src/deep-png.ts": {
@@ -1319,7 +1319,7 @@
         "bounds": "192 MiB input, 64 megapixels, 256 MiB for any one buffer, and a refusal before development when input, sensor data and the 16-bit frame together would pass 480 MiB; 512 MiB WASM memory cap with a 1 MiB stack; 24 warnings of 400 characters; a trap retires the instance; the web shell runs it on a worker with a 3 minute budget",
         "directTests": "`tests/camera-raw.test.ts`, `tests/camera-raw-cli.test.ts`, `shells/web/src/bridge/camera-raw-worker-client.test.ts`, the vendored crate's own `cargo test` (134 unit and 86 integration tests, including hostile-file and truncation tests), `scripts/camera-raw-corpus.ts`",
         "fuzzCoverage": "`camera-raw` mutates small synthetic Bayer DNG and TIFF/EP files through the Node loader. Real files from `scripts/camera-raw-corpus.ts` are decoded by that script, not fuzzed.",
-        "notes": "Pinned storytold photocraft raw 97a83f07 (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md; the JPEG XL decoder is left out. DNG colour is exact; every other format is a per-file fit to the embedded JPEG and is labelled approximate colour. The decoder forbids unsafe code and denies unwrap, expect and panic."
+        "notes": "Pinned storytold photocraft raw 97a83f07 with three later upstream hostile-input fixes (MIT OR Apache-2.0), clean-room caveats recorded in its UPSTREAM.md; the JPEG XL decoder is left out. DNG colour is exact; every other format is a per-file fit to the embedded JPEG and is labelled approximate colour. The decoder forbids unsafe code and denies unwrap, expect and panic."
       }
     },
     "packages/node-shell/src/indd.ts": {

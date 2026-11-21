@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Portable, single-thread libjxl. Scratch toolchain only; no global installation.
 set -euo pipefail
-JXL_COMMIT=a7a9c787341cf703dede03c2009fa460cae5e5df
+JXL_COMMIT=5a7da83447212fe4900fc29ce97430b881caa67e
 EMSDK_COMMIT=c0bb220cb6e6f4e0fabb6f6db9efd53390ef5e56
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK="${1:-/tmp/lolly-jxl-build}"
@@ -13,7 +13,7 @@ test "$(git -C "$WORK/emsdk" rev-parse HEAD)" = "$EMSDK_COMMIT"
 "$WORK/emsdk/emsdk" install 4.0.23
 "$WORK/emsdk/emsdk" activate 4.0.23
 source "$WORK/emsdk/emsdk_env.sh"
-if [ ! -d "$WORK/libjxl" ]; then git clone --depth 1 --branch v0.12.0 https://github.com/libjxl/libjxl.git "$WORK/libjxl"; fi
+if [ ! -d "$WORK/libjxl" ]; then git clone --depth 1 --branch v0.13.0 https://github.com/libjxl/libjxl.git "$WORK/libjxl"; fi
 test "$(git -C "$WORK/libjxl" rev-parse HEAD)" = "$JXL_COMMIT"
 git -C "$WORK/libjxl" submodule update --init --depth 1 third_party/brotli third_party/highway third_party/skcms
 emcmake cmake -S "$ROOT/scripts/jxl" -B "$WORK/build" -G Ninja \

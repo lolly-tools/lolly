@@ -1,6 +1,6 @@
 # Vendored libopenmpt (WebAssembly)
 
-`libopenmpt.mjs` is a self-contained Emscripten build of **libopenmpt 0.8.7** used to decode
+`libopenmpt.mjs` is a self-contained Emscripten build of **libopenmpt 0.8.10** used to decode
 tracker modules (`.mod`, `.xm`, `.s3m`, `.it`, `.stm`, `.mtm`, …) to PCM for the Neurospicy
 player and for baking module music into video exports. It is driven headlessly (bytes → PCM)
 by `shells/web/src/lib/mod-worker.ts`; there is no live-player wrapper.
@@ -12,7 +12,20 @@ scripts/build-libopenmpt-wasm.sh
 ```
 
 ## Provenance
-- libopenmpt **0.8.7** - makefile-flavour release tarball from lib.openmpt.org
+- libopenmpt **0.8.10** - makefile-flavour release tarball from lib.openmpt.org. The release
+  page publishes no checksum, so the pinned SHA-256 was taken from two downloads that agreed, and
+  the files carrying the security fixes (`soundlib/SampleFormats.cpp`, `WAVTools.cpp`,
+  `tuning.cpp`, `Load_symmod.cpp`, `Snd_fx.cpp`) match the `libopenmpt-0.8.10` tag of the
+  OpenMPT Git mirror.
+- 0.8.9 and 0.8.10 are security releases. 0.8.9 fixes a possible heap out-of-bounds write while
+  loading SymMOD files with IMA ADPCM WAV samples (GHSA-fxf7-wc37-p2cx) and a possible heap
+  out-of-bounds read while loading custom tunings from MPTM files. 0.8.10 fixes a possible
+  division by zero for an embedded IMA ADPCM WAV sample that claims 0 channels and an oversized
+  allocation from a WAV fact chunk. libopenmpt picks the loader from the bytes, not the file
+  name, so an upload named `.mod` can still reach the SymMOD or MPTM loader.
+- The same script at 0.8.7 reproduced the previous committed module byte for byte. Rendered at
+  48 kHz, seven catalog modules and libopenmpt's own `test.mod`, `test.s3m`, `test.xm` and
+  `test.mptm` give identical float PCM with 0.8.7 and 0.8.10.
 - Emscripten **6.0.2**, with SDK source commit `ca38f487f28b7c3c16f8f70cd0e012099ac4b7e2` pinned in the build script.
 - The source archive is SHA-256 checked before extraction. The distributed artifact's exact hash is in `security/vendor-artifacts.json` and verified during SBOM generation.
 - Build target: `CONFIG=emscripten EMSCRIPTEN_TARGET=wasm`, then linked

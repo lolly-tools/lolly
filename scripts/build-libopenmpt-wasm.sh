@@ -19,10 +19,10 @@
 # Usage:  scripts/build-libopenmpt-wasm.sh [workdir]
 set -euo pipefail
 
-LIBOPENMPT_VERSION="0.8.7"           # pinned; see https://lib.openmpt.org/files/libopenmpt/src/
+LIBOPENMPT_VERSION="0.8.10"          # pinned; see https://lib.openmpt.org/files/libopenmpt/src/
 EMSDK_VERSION="6.0.2"
 EMSDK_COMMIT="ca38f487f28b7c3c16f8f70cd0e012099ac4b7e2"
-SOURCE_SHA256="8a6c0a70b034740f6cdd7b53de65181c3bca82183d084a53ed7fd678ba1a38ab"
+SOURCE_SHA256="95073a10d33d0ed4352f41b68edccb9636002d2626f9fd2e00b191fcaabdd876"
 SR_NOTE="decode samplerate is chosen at runtime by the worker, not baked in"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
