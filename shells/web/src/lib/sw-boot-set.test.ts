@@ -49,9 +49,15 @@ function container(controlled: boolean) {
   return { c: c as unknown as ServiceWorkerContainer, posted, take: () => { c.controller = worker; listeners.get('controllerchange')?.(); }, listeners };
 }
 
-test('a controlled page hands over at once', () => {
+const now = (fn: () => void): void => fn();
+
+test('a controlled page hands over at the next idle moment, not before', () => {
   const { c, posted } = container(true);
-  handOverBootSet(c, page(), () => entries, ORIGIN);
+  const queued: Array<() => void> = [];
+  handOverBootSet(c, page(), () => entries, ORIGIN, fn => queued.push(fn));
+  assert.equal(posted.length, 0, 'nothing is posted while the page is still busy');
+  assert.equal(queued.length, 1);
+  queued[0]!();
   assert.equal(posted.length, 1);
   assert.deepEqual(posted[0], { type: BOOT_SET_MESSAGE, urls: bootSetUrls(page(), entries, ORIGIN) });
 });
@@ -59,7 +65,7 @@ test('a controlled page hands over at once', () => {
 test('a first visit hands over when the new worker takes control, with what has loaded by then', () => {
   const { c, posted, take, listeners } = container(false);
   const loaded = [...entries];
-  handOverBootSet(c, page(), () => loaded, ORIGIN);
+  handOverBootSet(c, page(), () => loaded, ORIGIN, now);
   assert.equal(posted.length, 0, 'nothing to post to before a worker controls the page');
   assert.ok(listeners.has('controllerchange'));
   loaded.push({ name: `${ORIGIN}/_app/late-d4.js` });

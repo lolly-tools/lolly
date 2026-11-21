@@ -13,6 +13,11 @@
  * has loaded; the worker stores those it lacks. Only same-origin `/_app/` and `/fonts/`
  * paths are sent, the worker checks them again, and it fetches them through the HTTP
  * cache, so nothing is downloaded twice.
+ *
+ * The post waits for an idle moment (at most {@link HANDOVER_IDLE_MS}): where a host's
+ * headers leave nothing in the HTTP cache, the worker's fetches are full downloads, and
+ * made right as a first visit's worker takes control they shared the link with the
+ * gallery's own code (measured 2026-11-21: 300 ms later on the phone profile).
  */
 
 export const BOOT_SET_MESSAGE = 'lolly:boot-set';
@@ -34,14 +39,24 @@ export function bootSetUrls(doc: Document, entries: readonly { name: string }[],
   return [...out].sort();
 }
 
-/** Post the boot set to the controlling worker, now or once one takes control. */
-export function handOverBootSet(container: ServiceWorkerContainer, doc: Document, entries: () => readonly { name: string }[], origin: string): void {
+/** The longest the post waits for an idle moment. */
+export const HANDOVER_IDLE_MS = 10_000;
+
+type Idle = (fn: () => void) => void;
+const whenIdle: Idle = fn => {
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(() => fn(), { timeout: HANDOVER_IDLE_MS });
+  else setTimeout(fn, 2000);
+};
+
+/** Post the boot set to the controlling worker at the next idle moment, now or once one takes control. */
+export function handOverBootSet(container: ServiceWorkerContainer, doc: Document, entries: () => readonly { name: string }[], origin: string, idle: Idle = whenIdle): void {
   const send = (): void => {
     const worker = container.controller;
     if (!worker) return;
     const urls = bootSetUrls(doc, entries(), origin);
     if (urls.length) worker.postMessage({ type: BOOT_SET_MESSAGE, urls });
   };
-  if (container.controller) send();
-  else container.addEventListener('controllerchange', send, { once: true });
+  const later = (): void => idle(send);
+  if (container.controller) later();
+  else container.addEventListener('controllerchange', later, { once: true });
 }
