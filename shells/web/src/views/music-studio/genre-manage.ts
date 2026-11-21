@@ -13,7 +13,7 @@
  */
 import { t, tRaw } from '../../i18n.ts';
 import { iconNode } from '../../lib/icon-node.ts';
-import { GENRE_GROUPS, genreIconNode, genreTitle, type GenreCategory } from '../../lib/genre-icons.ts';
+import { PICKER_GROUPS, cardTitle, genreIconNode, type GenreCategory } from '../../lib/genre-icons.ts';
 import { showUndoToast } from '../../lib/undo-toast.ts';
 import type { GenrePrefKind, GenrePrefs } from '../../lib/music-prefs.ts';
 import type { LofiMood } from '../../../../../engine/src/lofi-compose.ts';
@@ -72,7 +72,7 @@ export function genreManageList(doc: Document, deps: GenreManageDeps): GenreMana
   intro.textContent = t('Star a genre to keep it at the top of the picker and hear it more often in shuffles. Hide one to leave it out of the picker and of shuffles.');
   el.append(intro);
   const all: Array<{ row: HTMLElement; mood: LofiMood; title: string; section: HTMLElement }> = [];
-  for (const group of GENRE_GROUPS) {
+  for (const group of PICKER_GROUPS) {
     const section = doc.createElement('section');
     section.className = 'msg-group';
     const head = doc.createElement('h3');
@@ -84,7 +84,7 @@ export function genreManageList(doc: Document, deps: GenreManageDeps): GenreMana
     list.className = 'msg-manage-rows';
     list.setAttribute('role', 'list');
     for (const mood of group.moods) {
-      const title = genreTitle(mood);
+      const title = cardTitle(mood);
       const row = doc.createElement('li');
       row.className = 'msg-manage-row';
       row.dataset.manageRow = mood;

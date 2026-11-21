@@ -513,7 +513,7 @@ function notesOf(plan: ChopPlan, evs: Ev[], at: ChopAt): LofiNote[] {
 // ── the styles' drums with a break chopped in ─────────────────────────────────
 
 /** The genres that chop a break, by the composer's mood. */
-const STYLE_OF: Readonly<Record<string, BreakStyle>> = { jungle: 'jungle', dnb: 'dnb', breakbeat: 'breakbeat', hiphop: 'hiphop', triphop: 'triphop' };
+const STYLE_OF: Readonly<Record<string, BreakStyle>> = { jungle: 'jungle', dnb: 'dnb', dnbJump: 'dnb', dnbDark: 'dnb', dnbLiquid: 'dnb', dnbDeep: 'dnb', dnbRave: 'dnb', breakbeat: 'breakbeat', hiphop: 'hiphop', triphop: 'triphop' };
 /** A tune's chopping, or null when its genre does not chop or its seed keeps the kit. */
 export function chopsOf(mood: string, seed: number, bpm: number): ChopPlan | null {
   const style = STYLE_OF[mood];
