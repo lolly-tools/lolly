@@ -16,7 +16,7 @@ test('the saved width, height and unit are kept; a physical size gets a resoluti
   assert.deepEqual(sessionRenderSize({ outWidth: 1080, outHeight: 1920, unit: 'px' }), { width: 1080, height: 1920 });
   // A4 portrait: the longest side, 11.69 in, at 124 dpi is 1450 pixels.
   assert.deepEqual(sessionRenderSize({ outWidth: 210, outHeight: 297, unit: 'mm', dpi: 300 }), { width: 210, height: 297, unit: 'mm', dpi: 124 });
-  // A business card is small: drawn at its own 300 dpi, never above it.
+  // A business card is small: drawn at its own 300 dpi, never above the session's dpi.
   assert.deepEqual(sessionRenderSize({ outWidth: 85, outHeight: 55, unit: 'mm' }), { width: 85, height: 55, unit: 'mm', dpi: 300 });
   assert.deepEqual(sessionRenderSize({ outWidth: 85, outHeight: 55, unit: 'mm', dpi: 150 }), { width: 85, height: 55, unit: 'mm', dpi: 150 });
   // A banner metres long still gets a readable picture.

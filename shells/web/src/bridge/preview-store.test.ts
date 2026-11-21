@@ -152,7 +152,7 @@ test('a save keeps its picture when another tab lets go of the picture\'s only o
   const picture = await prepared(png('shared'));
   await otherTab.save('poster:1', { __toolId: 'poster', title: 'first' }, picture);
   // The bytes a save stores in a transaction of its own; once that commits, the
-  // other tab deletes poster:1, the picture's only owner, and the bytes go with it.
+  // other tab deletes poster:1, the picture's only owner, and its bytes are collected.
   const original = db.transaction.bind(db);
   let interfere = true;
   (db as unknown as { transaction: typeof db.transaction }).transaction = ((names: string | string[], mode?: IDBTransactionMode) => {

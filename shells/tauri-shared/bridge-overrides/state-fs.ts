@@ -460,7 +460,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       await withSlot(read.slot!, async () => {
         try {
           // Read again inside the session's queue: a save, a restore or a delete that
-          // landed since the list read wins, and this record is left for next time.
+          // written since the list read wins, and this record is left for next time.
           const text = await fs.readTextFile(path);
           const current = JSON.parse(text) as ParsedRecord & Record<string, unknown>;
           if (current.thumb !== read.thumb || current.updatedAt !== read.updatedAt || current.savedAt !== read.savedAt

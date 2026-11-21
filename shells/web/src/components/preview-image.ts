@@ -57,7 +57,7 @@ export function previewImg(source: PictureSource | null | undefined, attrs: stri
   if (ref) {
     ensureReader();
     // No width or height attributes: the tile's stylesheet sizes the element exactly
-    // as it sized an <img src> before, and a presentational size would override it.
+    // as it sized an <img src> before; a presentational size would override that rule.
     return `<img ${attrs} data-preview-key="${ref.key}" data-preview-type="${escape(ref.type)}"${ref.route ? ` data-preview-route="${escape(ref.route)}"` : ''}`
       + `${source.slot ? ` data-preview-slot="${escape(source.slot)}"` : ''}${source.toolId ? ` data-preview-tool="${escape(source.toolId)}"` : ''}`
       + `${empty ? ` data-preview-empty="${escape(empty)}"` : ''}>`;
