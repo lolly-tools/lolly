@@ -8,7 +8,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
-import { BOOT_SET_MESSAGE, bootSetUrls, handOverBootSet } from './sw-boot-set.ts';
+import { BOOT_SET_MESSAGE, HANDOVER_WAIT_MS, bootSetUrls, handOverBootSet, whenQuiet } from './sw-boot-set.ts';
 
 const ORIGIN = 'https://lolly.tools';
 
@@ -72,6 +72,27 @@ test('a first visit hands over when the new worker takes control, with what has 
   take();
   assert.equal(posted.length, 1);
   assert.ok((posted[0] as { urls: string[] }).urls.includes('/_app/late-d4.js'));
+});
+
+test('the post waits until the page has loaded nothing for two seconds, or thirty have passed', () => {
+  let clock = 0;
+  const timers: Array<() => void> = [];
+  const loaded: Array<{ responseEnd: number }> = [{ responseEnd: 0 }];
+  const ran: number[] = [];
+  const quiet = whenQuiet(() => loaded, () => clock, fn => { timers.push(fn); }, fn => fn());
+  quiet(() => ran.push(clock));
+  // Still loading: a resource finished just now, so the check comes back in a second.
+  clock = 1500; loaded.push({ responseEnd: 1400 });
+  timers.shift()!();
+  assert.deepEqual(ran, []);
+  clock = 3500; timers.shift()!();
+  assert.deepEqual(ran, [3500], 'two seconds after the last resource finished');
+  // A page that never goes quiet still hands over after the wait runs out.
+  clock = 0; const busy: Array<{ responseEnd: number }> = [];
+  const ranBusy: number[] = []; const busyTimers: Array<() => void> = [];
+  whenQuiet(() => busy, () => clock, fn => { busyTimers.push(fn); }, fn => fn())(() => ranBusy.push(clock));
+  for (let t = 1000; t <= HANDOVER_WAIT_MS && !ranBusy.length; t += 1000) { clock = t; busy.push({ responseEnd: t }); busyTimers.shift()!(); }
+  assert.deepEqual(ranBusy, [HANDOVER_WAIT_MS]);
 });
 
 test('the message type matches the worker, and main.ts hands over after registering', () => {

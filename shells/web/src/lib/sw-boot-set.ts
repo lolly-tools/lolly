@@ -14,10 +14,13 @@
  * paths are sent, the worker checks them again, and it fetches them through the HTTP
  * cache, so nothing is downloaded twice.
  *
- * The post waits for an idle moment (at most {@link HANDOVER_IDLE_MS}): where a host's
- * headers leave nothing in the HTTP cache, the worker's fetches are full downloads, and
- * made right as a first visit's worker takes control they shared the link with the
- * gallery's own code (measured 2026-11-21: 300 ms later on the phone profile).
+ * The post waits until the page's own network has been quiet for {@link QUIET_MS} (at
+ * most {@link HANDOVER_WAIT_MS}), then for an idle moment. Where a host's headers leave
+ * nothing in the HTTP cache the worker's fetches are full downloads, and made as soon as
+ * a first visit's worker took control they shared the link with the gallery's code (300 ms
+ * later to interactive on the phone profile), and made at the first idle moment with the
+ * featured images (largest paint 1 s later). The cache only has to be full by the next
+ * visit, so waiting costs nothing.
  */
 
 export const BOOT_SET_MESSAGE = 'lolly:boot-set';
@@ -39,17 +42,30 @@ export function bootSetUrls(doc: Document, entries: readonly { name: string }[],
   return [...out].sort();
 }
 
-/** The longest the post waits for an idle moment. */
-export const HANDOVER_IDLE_MS = 10_000;
+/** How long no resource of the page may have finished loading before the post. */
+export const QUIET_MS = 2000;
+/** The longest the post waits for that quiet, from when it could first be made. */
+export const HANDOVER_WAIT_MS = 30_000;
 
 type Idle = (fn: () => void) => void;
-const whenIdle: Idle = fn => {
-  if (typeof requestIdleCallback === 'function') requestIdleCallback(() => fn(), { timeout: HANDOVER_IDLE_MS });
-  else setTimeout(fn, 2000);
-};
+
+/** Run `fn` once the page's resources have been quiet for QUIET_MS (or the wait runs out), at an idle moment. */
+export function whenQuiet(entries: () => readonly { responseEnd?: number }[], now: () => number = () => performance.now(),
+  later: (fn: () => void, ms: number) => void = (fn, ms) => { setTimeout(fn, ms); },
+  idle: (fn: () => void) => void = fn => { if (typeof requestIdleCallback === 'function') requestIdleCallback(() => fn(), { timeout: 5000 }); else fn(); }): Idle {
+  return fn => {
+    const until = now() + HANDOVER_WAIT_MS;
+    const check = (): void => {
+      const last = entries().reduce((max, e) => Math.max(max, e.responseEnd ?? 0), 0);
+      if (now() - last >= QUIET_MS || now() >= until) idle(fn);
+      else later(check, 1000);
+    };
+    check();
+  };
+}
 
 /** Post the boot set to the controlling worker at the next idle moment, now or once one takes control. */
-export function handOverBootSet(container: ServiceWorkerContainer, doc: Document, entries: () => readonly { name: string }[], origin: string, idle: Idle = whenIdle): void {
+export function handOverBootSet(container: ServiceWorkerContainer, doc: Document, entries: () => readonly { name: string; responseEnd?: number }[], origin: string, idle: Idle = whenQuiet(entries)): void {
   const send = (): void => {
     const worker = container.controller;
     if (!worker) return;
