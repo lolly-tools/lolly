@@ -9,7 +9,7 @@ You may not need to install anything: [lolly.tools](/) runs in a current browser
 |---|---|---|
 | Mac with Apple silicon (M1 and later) | [`lolly-latest.dmg`](https://lolli.li/lolly-latest.dmg) | %download{macos} |
 | Mac with Intel (last build, no updates) | [`Lolly_1.1.0_x64.dmg`](https://lolli.li/Lolly_1.1.0_x64.dmg) | %download{macos-intel} |
-| iPhone and iPad | **Lolly Tools** on the [App Store](https://apps.apple.com/app/id6804131681) | 1.1.3 |
+| iPhone and iPad | **Lolly** on the [App Store](https://apps.apple.com/app/id6836763603) | 1.2.1 |
 | Android | [`lolly-latest.apk`](https://lolli.li/lolly-latest.apk) | %download{android} |
 | Windows | [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe), not code-signed yet | %download{windows} |
 | Linux | [The web app, installed from your browser](#linux) | Newest |
@@ -38,7 +38,7 @@ Download the disk image, open it and drag Lolly to Applications. The current dow
 
 **iOS and iPadOS 26 or later. From the App Store.**
 
-Lolly for iPhone and iPad is **Lolly Tools** on the [App Store](https://apps.apple.com/app/id6804131681). The App Store signs the app and keeps it up to date, so there is no separate file to download or check.
+Lolly for iPhone and iPad is **Lolly** on the [App Store](https://apps.apple.com/app/id6836763603). The App Store signs the app and keeps it up to date, so there is no separate file to download or check.
 
 You can also open [the web app](/) in Safari. **Share, then Add to Home Screen** gives the web app an icon of its own. The web app needs WebGPU; [supported environments](/info/supported-environments.html) lists what has been tested so far. To build and sign the app yourself, see [Building for iOS](/info/ios-build.html).
 
