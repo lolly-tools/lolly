@@ -4170,7 +4170,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.349.0";
+    ENGINE_VERSION = "1.351.0";
   }
 });
 
@@ -132395,6 +132395,32 @@ var init_fs_token = __esm({
   }
 });
 
+// engine/src/session-preview.ts
+function readPreviewRef(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  const { key: key2, type, width, height, route, recipe, bytes: bytes2 } = value2;
+  if (typeof key2 !== "string" || !HEX32.test(key2)) return null;
+  if (typeof type !== "string" || !PREVIEW_TYPES.includes(type)) return null;
+  const side2 = (n7) => typeof n7 === "number" && Number.isInteger(n7) && n7 >= 0 && n7 <= MAX_SIDE;
+  if (!side2(width) || !side2(height)) return null;
+  const ref2 = { key: key2, type, width, height };
+  if (typeof route === "string" && PREVIEW_ROUTES.includes(route)) ref2.route = route;
+  if (typeof recipe === "string" && HEX32.test(recipe)) ref2.recipe = recipe;
+  if (typeof bytes2 === "number" && Number.isInteger(bytes2) && bytes2 > 0 && bytes2 <= 64 * 1024 * 1024) ref2.bytes = bytes2;
+  return ref2;
+}
+var PREVIEW_TYPES, PREVIEW_ROUTES, PREVIEW_MAX_BYTES, MAX_SIDE, HEX32;
+var init_session_preview = __esm({
+  "engine/src/session-preview.ts"() {
+    "use strict";
+    PREVIEW_TYPES = ["image/svg+xml", "image/webp", "image/png", "image/jpeg", "image/gif", "image/avif"];
+    PREVIEW_ROUTES = ["export-svg", "export-raster", "baked", "operations-svg", "tool-svg", "received", "legacy", "stand-in"];
+    PREVIEW_MAX_BYTES = 256 * 1024;
+    MAX_SIDE = 32768;
+    HEX32 = /^[0-9a-f]{32}$/;
+  }
+});
+
 // engine/src/session-record.ts
 function sessionVersionStamp() {
   return { formatVersion: SESSION_FORMAT_VERSION, engineVersion: ENGINE_VERSION };
@@ -132424,6 +132450,9 @@ function sessionEmojiStamp(record49) {
   if (typeof emoji !== "string" || !emoji.trim()) return null;
   return { emoji: emoji.trim(), emojifx: typeof emojifx === "string" ? emojifx.trim() : "", ...typeof emojistyle === "string" ? { emojistyle } : {} };
 }
+function sessionPreviewRef(record49) {
+  return readPreviewRef(record49?.preview);
+}
 function migrateSessionRecord(record49, log) {
   if (!record49 || typeof record49 !== "object") return null;
   const data = record49.data;
@@ -132445,8 +132474,9 @@ var init_session_record = __esm({
   "engine/src/session-record.ts"() {
     "use strict";
     init_version();
-    SESSION_FORMAT_VERSION = 4;
-    SESSION_READER_VERSION = 4;
+    init_session_preview();
+    SESSION_FORMAT_VERSION = 5;
+    SESSION_READER_VERSION = 5;
     DECISION_KINDS = /* @__PURE__ */ new Set(["output-licence", "separate-permission", "acknowledged"]);
   }
 });
@@ -147749,8 +147779,8 @@ function sizeOf(spec) {
   checkKeys(spec.size, /* @__PURE__ */ new Set(["width", "height"]), "/size", "size");
   const width = Math.round(numberAt2(spec.size.width, "/size/width"));
   const height = Math.round(numberAt2(spec.size.height, "/size/height"));
-  if (!(width > 0) || width > MAX_SIDE) throw new Error(`/size/width: expected a page width from 1 to ${MAX_SIDE} px.`);
-  if (!(height > 0) || height > MAX_SIDE) throw new Error(`/size/height: expected a page height from 1 to ${MAX_SIDE} px.`);
+  if (!(width > 0) || width > MAX_SIDE2) throw new Error(`/size/width: expected a page width from 1 to ${MAX_SIDE2} px.`);
+  if (!(height > 0) || height > MAX_SIDE2) throw new Error(`/size/height: expected a page height from 1 to ${MAX_SIDE2} px.`);
   return { width, height };
 }
 function distance2(a, b) {
@@ -148028,7 +148058,7 @@ function composeDesignSlides(spec, ctx) {
   const theme = groundAt(raw.theme, "/theme") ?? "light";
   const surfaceAuto = themesAt(raw.themes, "/themes").length > 1;
   const gap = raw.gap === void 0 ? DEFAULT_GAP : numberAt2(raw.gap, "/gap");
-  if (gap < 0 || gap > MAX_SIDE) throw new Error(`/gap: expected a number from 0 to ${MAX_SIDE} px.`);
+  if (gap < 0 || gap > MAX_SIDE2) throw new Error(`/gap: expected a number from 0 to ${MAX_SIDE2} px.`);
   if (raw.footer !== void 0 && typeof raw.footer !== "string") throw new Error("/footer: expected the footer text.");
   if (raw.pageNumbers !== void 0 && typeof raw.pageNumbers !== "boolean") throw new Error("/pageNumbers: expected true or false.");
   if (raw.transition !== void 0 && (typeof raw.transition !== "string" || !DESIGN_COMPOSE_TRANSITIONS.includes(raw.transition))) {
@@ -149082,7 +149112,7 @@ function composeArchetypeCatalog(master) {
     return entry2;
   });
 }
-var DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_GAP, MAX_SLIDES2, MAX_SIDE, PER_ROW, SPEC_KEYS, SLIDE_KEYS, FURNITURE_KEYS, RESERVED2, CONTENT_KEYS, EMPHASIS_MODES, CASE_MODES, HEADLINE_SLOT_ROLES, HEADLINE_RULE_ROLES, PHOTO_COVER, ACCENT_CONTRAST, FURNITURE_KINDS2, COUNTER, REWORDED, STYLE_ROW_FIELDS2, record36, seg4, plural3, strings3, luminanceContrast, LARGE_TEXT_ROLES, NOTES_EMPTY_LINE, COMPOSE_COLOUR_FIELDS, SURFACE_TOKENS, INK_TOKENS, ACCENT_TOKENS, THEME_INK_CONTRAST, varies;
+var DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_GAP, MAX_SLIDES2, MAX_SIDE2, PER_ROW, SPEC_KEYS, SLIDE_KEYS, FURNITURE_KEYS, RESERVED2, CONTENT_KEYS, EMPHASIS_MODES, CASE_MODES, HEADLINE_SLOT_ROLES, HEADLINE_RULE_ROLES, PHOTO_COVER, ACCENT_CONTRAST, FURNITURE_KINDS2, COUNTER, REWORDED, STYLE_ROW_FIELDS2, record36, seg4, plural3, strings3, luminanceContrast, LARGE_TEXT_ROLES, NOTES_EMPTY_LINE, COMPOSE_COLOUR_FIELDS, SURFACE_TOKENS, INK_TOKENS, ACCENT_TOKENS, THEME_INK_CONTRAST, varies;
 var init_design_compose = __esm({
   "engine/src/design-compose.ts"() {
     "use strict";
@@ -149106,7 +149136,7 @@ var init_design_compose = __esm({
     DEFAULT_HEIGHT = 1080;
     DEFAULT_GAP = 160;
     MAX_SLIDES2 = 500;
-    MAX_SIDE = 1e5;
+    MAX_SIDE2 = 1e5;
     PER_ROW = 4;
     SPEC_KEYS = /* @__PURE__ */ new Set(["size", "theme", "themes", "slides", "$styles", "footer", "pageNumbers", "transition", "gap", "furniture", "emphasis", "case"]);
     SLIDE_KEYS = /* @__PURE__ */ new Set(["archetype", "id", "name", "ground", "source", "slots", "cells", "notes", "furniture", "under", "over", "intent", "emphasis", "case"]);
@@ -180936,7 +180966,7 @@ function designStillSize(page3, dims) {
   const dpi = physical ? dims.dpi && dims.dpi > 0 ? dims.dpi : 300 : 96;
   const given2 = (v) => typeof v === "number" && v > 0;
   if (!given2(dims.width) && !given2(dims.height)) {
-    return page3.width > MAX_SIDE2 || page3.height > MAX_SIDE2 ? { reason: `the page is over ${MAX_SIDE2} px a side` } : { width: Math.round(page3.width), height: Math.round(page3.height), dpi };
+    return page3.width > MAX_SIDE3 || page3.height > MAX_SIDE3 ? { reason: `the page is over ${MAX_SIDE3} px a side` } : { width: Math.round(page3.width), height: Math.round(page3.height), dpi };
   }
   if (!given2(dims.width) || !given2(dims.height)) return { reason: "the export gives one side of its size only" };
   const toPx = (v) => {
@@ -180946,7 +180976,7 @@ function designStillSize(page3, dims) {
   };
   const width = toPx(dims.width), height = toPx(dims.height);
   if (!(width > 0 && height > 0)) return { reason: `the export's unit "${unit2}" is not one this route reads` };
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width > MAX_SIDE2 || height > MAX_SIDE2) return { reason: `the requested size is over ${MAX_SIDE2} px a side` };
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width > MAX_SIDE3 || height > MAX_SIDE3) return { reason: `the requested size is over ${MAX_SIDE3} px a side` };
   if (Math.abs(height - page3.height * (width / page3.width)) > 0.5) return { reason: `the requested size changes the page's proportions (the page is ${Math.round(page3.width)} x ${Math.round(page3.height)})` };
   return { width, height, dpi };
 }
@@ -181029,7 +181059,7 @@ async function designStillPng(svg, size, opts = {}) {
   if (icc) png = await engine.insertPngIcc(png, icc, "sRGB");
   return { bytes: png, imprinted };
 }
-var DESIGN_RASTER_ENV, resvgVersion, designResvgRenderer, nodeResvgRoute, RESVG_BLENDS, hasElement, blendsThroughOpacity, GRADIENT_SAMPLES, MAX_SIDE2, FATAL;
+var DESIGN_RASTER_ENV, resvgVersion, designResvgRenderer, nodeResvgRoute, RESVG_BLENDS, hasElement, blendsThroughOpacity, GRADIENT_SAMPLES, MAX_SIDE3, FATAL;
 var init_design_still = __esm({
   "packages/node-shell/src/design-still.ts"() {
     "use strict";
@@ -181052,7 +181082,7 @@ var init_design_still = __esm({
     hasElement = (markup, name) => new RegExp(`<(?:[^\\s<>/:="']+:)?${name}[\\s/>]`, "iu").test(markup);
     blendsThroughOpacity = (a, b) => a.opacity !== b.opacity && (a.rgb[0] !== b.rgb[0] || a.rgb[1] !== b.rgb[1] || a.rgb[2] !== b.rgb[2]);
     GRADIENT_SAMPLES = 32;
-    MAX_SIDE2 = 16384;
+    MAX_SIDE3 = 16384;
     FATAL = /* @__PURE__ */ new Set(["RenderIntegrityError", "ExportHookError"]);
   }
 });
@@ -192942,7 +192972,9 @@ async function writeSessionRecord(stateDir2, write) {
     toolVersion: write.toolVersion ?? write.data.__toolVersion,
     label: write.label ?? write.data.__label,
     data: write.data,
-    thumb: write.thumb ?? prior?.thumb ?? null,
+    // The picture given replaces the record's; none given keeps the prior one, in
+    // whichever form it had (a session saved by the desktop app keeps its file).
+    ...write.thumb !== void 0 || write.preview !== void 0 ? { thumb: write.preview ? null : write.thumb ?? null, ...write.preview ? { preview: write.preview } : {} } : { thumb: prior?.preview ? null : prior?.thumb ?? null, ...prior?.preview ? { preview: prior.preview } : {} },
     updatedAt: write.updatedAt ?? now2,
     createdAt: prior?.createdAt ?? now2,
     emoji: write.emoji === void 0 ? prior?.emoji : write.emoji ?? void 0,
@@ -192987,6 +193019,7 @@ function normalise5(raw) {
     label: typeof raw.label === "string" && raw.label ? raw.label : typeof data.__label === "string" ? data.__label : void 0,
     data,
     thumb: typeof raw.thumb === "string" ? raw.thumb : null,
+    ...sessionPreviewRef(raw) ? { preview: sessionPreviewRef(raw) } : {},
     updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : "",
     ...typeof raw.createdAt === "string" ? { createdAt: raw.createdAt } : {},
     ...typeof raw.formatVersion === "number" ? { formatVersion: raw.formatVersion } : {},
@@ -204862,9 +204895,9 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
-var PREVIEW_TYPES = { svg: "image/svg+xml", webp: "image/webp", png: "image/png" };
+var PREVIEW_TYPES2 = { svg: "image/svg+xml", webp: "image/webp", png: "image/png" };
 function previewCandidates(id3, indexed) {
-  const catalog = Object.keys(PREVIEW_TYPES).map((ext) => `/catalog/previews/${id3}.${ext}`);
+  const catalog = Object.keys(PREVIEW_TYPES2).map((ext) => `/catalog/previews/${id3}.${ext}`);
   const cards = ["svg", "png"].map((ext) => `/tools/${id3}/card.${ext}`);
   const plain = typeof indexed === "string" ? indexed.replace(/^\/tools\/([a-z0-9-]+)@[0-9a-f]{16}\//, "/tools/$1/").replace(/^(\/catalog\/previews\/[a-z0-9-]+)\.[0-9a-f]{16}(\.[a-z]+)$/, "$1$2") : null;
   const first = plain !== null && [...cards, ...catalog].includes(plain) ? [plain] : [];
@@ -204875,7 +204908,7 @@ async function previewResource(uri, id3) {
   for (const url of previewCandidates(id3, entry2?.preview)) {
     const file = contentUrl(url);
     if (!file) continue;
-    const mimeType = PREVIEW_TYPES[url.slice(url.lastIndexOf(".") + 1)];
+    const mimeType = PREVIEW_TYPES2[url.slice(url.lastIndexOf(".") + 1)];
     try {
       const bytes2 = await readFile34(file);
       return mimeType === "image/svg+xml" ? { uri, mimeType, text: bytes2.toString("utf8") } : { uri, mimeType, blob: bytes2.toString("base64") };
