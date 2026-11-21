@@ -143,7 +143,8 @@ export async function verifyCases(cases: readonly BrowserFreeCase[], out: string
       const resvgPng = join(out, 'resvg', `${c.name}.png`), browserPng = join(out, 'browser', `${c.name}.png`), svgFile = join(out, 'svg', `${c.name}.svg`);
       const a = runCli('A', c, args, resvgPng, {}, join(out, 'no-web'));
       if (a.tier !== 'A' || a.status !== 0) {
-        const refusal = /not used because ([\s\S]*?)\. (?:Drawing|Taking)/.exec(a.stderr)?.[1]?.replace(/\s+/g, ' ');
+        // The hand-off line, or the failure the CLI gives with no browser tier (resvg-admission.ts).
+        const refusal = (/handed to the browser render tier because (.*)\.$/m.exec(a.stderr) ?? /was not used because ([\s\S]*?)\. To go on/.exec(a.stderr))?.[1]?.replace(/\s+/g, ' ');
         stamp(refusal ? { name: c.name, tool: c.tool, drawn: false, refusal } : { name: c.name, tool: c.tool, drawn: false, error: a.stderr.split('\n').filter(Boolean).slice(-1)[0] ?? `exit ${a.status}` }, c);
         console.log(`  ${c.name.padEnd(44)} refused: ${refusal ?? 'error'}`);
         continue;
