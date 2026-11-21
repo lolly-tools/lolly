@@ -2,7 +2,7 @@
 
 Lolly's browser, command line and Node shells share one committed `camera-raw.wasm` and a small TypeScript wrapper (`packages/node-shell/src/camera-raw.ts`). It develops a camera raw file into a picture on the device, with no upload.
 
-The source decoder is PhotoCraft's MIT OR Apache-2.0 `photocraft-raw` crate at commit `97a83f074f5407841a1444ee3f9be478ce03368b`. Its source, licence choices, NOTICE, edits and clean-room caveats are under `vendor/photocraft-raw/`. The JPEG XL decoder is left out. The Lolly byte adapter in `src/` is MPL-2.0.
+The source decoder is PhotoCraft's MIT OR Apache-2.0 `photocraft-raw` crate at commit `97a83f074f5407841a1444ee3f9be478ce03368b`, plus three later upstream fixes for hostile input (edit 4 in `vendor/photocraft-raw/UPSTREAM.md`). Its source, licence choices, NOTICE, edits and clean-room caveats are under `vendor/photocraft-raw/`. The JPEG XL decoder is left out. The Lolly byte adapter in `src/` is MPL-2.0.
 
 ## What it returns
 

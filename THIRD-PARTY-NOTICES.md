@@ -57561,7 +57561,7 @@ SOFTWARE.
 
 ```
 
-### storytold photocraft camera raw decoder 0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b; pinned Cargo.lock)
+### storytold photocraft camera raw decoder 0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b with upstream fixes 06bedca787a4, c004e38e759a and 4c33a7b8f216; pinned Cargo.lock)
 
 - SPDX-License-Identifier: `MPL-2.0 AND MIT`
 - Files: `packages/node-shell/wasm/camera-raw/camera-raw.wasm`
