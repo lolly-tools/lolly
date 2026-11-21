@@ -20,6 +20,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -71,27 +72,34 @@ test('the CLI\'s SVG export finds its root with the same rule', async () => {
   assert.doesNotMatch(bridge, /function rootSvgOf\(/, 'no second copy of the rule');
 });
 
-/** The PNG the CLI draws for a tool at 1000 x 1000, browser-free. */
+/** The PNG the CLI draws for a tool at 1000 x 1000, browser-free: no web shell, served or built, and no desktop app. */
 function cliPng(toolId: string, dir: string): { status: number | null; stderr: string; out: string } {
   const out = join(dir, `${toolId}.png`);
+  const env: Record<string, string | undefined> = { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: dir, LOLLY_WEB_DIST: join(dir, 'no-web-build'), LOLLY_RENDERER: 'chromium', NO_COLOR: '1' };
+  delete env.LOLLY_WEB_BASE;
   const run = spawnSync(process.execPath, ['shells/cli/bin/lolly.ts', toolId, '--width=1000', '--height=1000', `--output=${out}`, '--no-provenance'], {
-    cwd: ROOT, encoding: 'utf8',
-    env: { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: dir, LOLLY_WEB_DIST: join(dir, 'no-web-build'), NO_COLOR: '1' },
+    cwd: ROOT, encoding: 'utf8', env,
   });
   return { status: run.status, stderr: run.stderr, out };
 }
 
-test('the tools that wrap their root <svg> in a <div> still draw a sized PNG', async (t) => {
+test('a tool that wraps its root <svg> in a <div> draws a sized PNG, or says why it needs the browser', async (t) => {
   try { await import('sharp'); } catch { t.skip('sharp unavailable on this platform'); return; }
   const sharp = (await import('sharp')).default;
   const dir = await mkdtemp(join(tmpdir(), 'lolly-root-svg-wrapped-'));
   try {
-    for (const toolId of ['color-palette', 'contrast-check', 'print-sheet', 'signature']) {
-      const run = cliPng(toolId, dir);
-      assert.equal(run.status, 0, `${toolId}: ${run.stderr}`);
-      assert.doesNotMatch(run.stderr, /browser render tier/i, `${toolId} drew with no browser`);
-      const meta = await sharp(run.out).metadata();
-      assert.deepEqual([meta.width, meta.height], [1000, 1000], `${toolId} is 1000 x 1000`);
+    const run = cliPng('signature', dir);
+    assert.equal(run.status, 0, `signature: ${run.stderr}`);
+    assert.doesNotMatch(run.stderr, /browser render tier/i, 'signature drew with no browser');
+    const meta = await sharp(run.out).metadata();
+    assert.deepEqual([meta.width, meta.height], [1000, 1000], 'signature is 1000 x 1000');
+    // Measured outside the fidelity bands, or a paged document: the browser-free route
+    // refuses them (resvg-admission.ts), and with no browser tier nothing is written.
+    for (const [toolId, why] of [['color-palette', /has not been measured/], ['contrast-check', /has not been measured/], ['print-sheet', /a paged document/]] as const) {
+      const refused = cliPng(toolId, dir);
+      assert.equal(refused.status, 3, `${toolId}: ${refused.stderr}`);
+      assert.match(refused.stderr, why, toolId);
+      assert.equal(existsSync(refused.out), false, `${toolId} wrote no file`);
     }
   } finally {
     await rm(dir, { recursive: true, force: true });

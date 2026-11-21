@@ -50,6 +50,8 @@
     "./motion-inspect": "./src/motion-inspect.ts",
     "./export-wait": "./src/export-wait.ts",
     "./raster": "./src/raster.ts",
+    "./resvg-admission": "./src/resvg-admission.ts",
+    "./browser-free-record": "./src/browser-free-record.ts",
     "./hdr": "./src/hdr.ts",
     "./format-sniff": "./src/format-sniff.ts",
     "./images": "./src/images.ts",

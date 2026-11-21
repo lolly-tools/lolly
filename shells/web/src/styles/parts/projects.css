@@ -10,6 +10,8 @@
    the spacer holds Batch out on the right, and the row wraps on a narrow screen. */
 .projects-roothead {
   display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-3);
+  /* The row sits just under the top bar, beside a status column the system may hold on a side. */
+  padding-left: var(--safe-left); padding-right: var(--safe-right);
 }
 .projects-batch-btn {
   font-weight: 500;

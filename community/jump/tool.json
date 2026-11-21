@@ -1,7 +1,7 @@
 {
   "id": "jump",
   "name": "Jump",
-  "description": "A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives inside the link you share.",
+  "description": "A one-link landing page: your links, heading, portrait and colours - and the whole page lives inside the link you share.",
   "a11yLabel": "Jump page {{default heading \"Links\"}} holding {{default linkCount \"no\"}} links",
   "version": "1.2.2",
   "engineVersion": "^1.82.0",

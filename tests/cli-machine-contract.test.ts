@@ -26,6 +26,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { writeBrowserFreeFixture } from './helpers/browser-free-fixture.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BIN = join(HERE, '..', 'shells', 'cli', 'bin', 'lolly.ts');
@@ -89,6 +90,9 @@ await writeFile(join(root, 'tools', 'loud-tool', 'hooks.js'),
   '  console.info("more noise");\n' +
   '  return {};\n' +
   '}\n');
+// Admitted to the browser-free route by their own records, written after the hooks so the
+// digest is over the final files.
+for (const id of ['vec-tool', 'loud-tool']) writeBrowserFreeFixture(join(root, 'tools', id));
 
 function cli(args: string[], extraEnv: Record<string, string> = {}): Promise<{ stdout: Buffer; stderr: string; code: number }> {
   return new Promise((done) => {

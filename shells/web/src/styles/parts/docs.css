@@ -493,7 +493,8 @@
   top: calc(var(--chrome-top) * 2 + var(--chrome-h) + var(--vv-top, 0px));
   z-index: 45;
   margin: 0 -1.5rem 1.75rem;
-  padding: 0.6rem 1.5rem 0;
+  /* The ground reaches the edge; the links stand inside a side the system holds. */
+  padding: 0.6rem calc(1.5rem + var(--safe-right)) 0 calc(1.5rem + var(--safe-left));
   background: color-mix(in srgb, var(--ui-color-surface-canvas) 92%, transparent);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
@@ -707,9 +708,9 @@ html[data-a11y-motion="reduce"] .docs-top-ground { transition: none; }
 /* Full-bleed puts the sections row right under the app's top row in landing mode, at
    the page's own inset (the top row holds the back pill, the tabs and the avatar, so
    the row can no longer sit beside them). */
-.docs-reader--landing .docs-pathways-slot { margin: var(--docs-chrome-clear) 0 0; padding-inline: 1.5rem; }
+.docs-reader--landing .docs-pathways-slot { margin: var(--docs-chrome-clear) 0 0; padding-left: calc(1.5rem + var(--safe-left)); padding-right: calc(1.5rem + var(--safe-right)); }
 @media (max-width: 700px) {
-  .docs-reader--landing .docs-pathways-slot { padding-inline: 1rem; margin-top: var(--docs-chrome-clear); }
+  .docs-reader--landing .docs-pathways-slot { padding-left: calc(1rem + var(--safe-left)); padding-right: calc(1rem + var(--safe-right)); margin-top: var(--docs-chrome-clear); }
 }
 
 /* ── The three-zone formats table (#/docs/formats) ────────────────────────────

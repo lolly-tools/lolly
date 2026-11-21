@@ -461,7 +461,7 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
               <div class="dash-activity">${renderActivity(metrics, tools as Array<{ id: string } & Record<string, unknown>>)}</div>
             </section>
             <section class="plat-section dash-section dash-card dash-yours" id="dash-yours" hidden>
-              ${sectionHead(t('Yours'), 'dash-yours-h', t('Your starred tools, ready to pick up where you left off. Recent creations and exports stay below.'))}
+              ${sectionHead(t('Yours'), 'dash-yours-h')}
               <div class="dash-yours-tools" data-yours-tools></div>
             </section>
             <section class="plat-section dash-section dash-card dash-recent" id="dash-recent" data-flag="${escape(dashFlag('dash-recent'))}" hidden>
