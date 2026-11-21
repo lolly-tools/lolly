@@ -29,7 +29,6 @@ import { drawMeterBars, drawMeterBaseline } from '../lib/audio-meter.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
 import { SOMAFM_HOME } from '../lib/radio.ts';
 import { escape } from '../utils.ts';
-import { mountBodyPopover, type BodyPopoverHandle } from './body-popover.ts';
 // The transport glyphs come from the shared registry, so this player and the catalog's
 // audio preview cannot drift into looking like different controls.
 import { icon, hasIcon } from '../lib/icons.ts';
@@ -79,10 +78,7 @@ const CSS = `
 .neuro-picker-caret { flex: 0 0 auto; color: hsl(var(--muted-foreground)); transition: transform .15s ease; }
 .neuro-picker[data-open="true"] .neuro-picker-caret { transform: rotate(180deg); }
 .neuro-chip { flex: 0 0 auto; font-size: .62rem; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
-/* The open panel rides in a mountBodyPopover wrapper, which placeTrackPanel puts 6px
-   above the player at its width: the place this panel's own absolute inset gave the panel. */
-.neuro-picker-pop { position: fixed; z-index: 5; }
-.neuro-picker-panel { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--popover, var(--card))); box-shadow: 0 8px 28px rgb(0 0 0 / .28); }
+.neuro-picker-panel { position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); z-index: 5; display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--popover, var(--card))); box-shadow: 0 8px 28px rgb(0 0 0 / .28); }
 .neuro-picker-panel[hidden] { display: none; }
 .neuro-search { width: 100%; padding: 7px 10px; border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--background)); color: hsl(var(--foreground)); font-size: .82rem; }
 .neuro-search:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
@@ -448,63 +444,19 @@ export function refreshMusicPlayer(root: ParentNode): void {
   startMeter(root);
 }
 
-/**
- * Where the open panel goes: across the box the in-flow panel spanned (the picker's
- * nearest positioned ancestor, the dock) and 6px above it, kept below the viewport's
- * top edge. Placed again whenever its height changes, so a search that shortens the
- * list moves the top edge and the search box under the list stays where it is. The
- * box `fixed` resolves against can be the dock itself, when the dock is transformed,
- * so the panel is measured where the browser drew it and moved by the difference.
- */
-export function placeTrackPanel(el: HTMLElement, picker: HTMLElement): void {
-  const box = (picker.offsetParent as HTMLElement | null) ?? picker;
-  const r = box.getBoundingClientRect();
-  const cs = getComputedStyle(box);
-  const left = r.left + (Number.parseFloat(cs.borderLeftWidth) || 0);
-  el.style.width = `${box.clientWidth}px`;
-  const top = Math.max(8, r.top + (Number.parseFloat(cs.borderTopWidth) || 0) - 6 - (el.getBoundingClientRect().height || el.offsetHeight));
-  el.style.left = `${left}px`;
-  el.style.top = `${top}px`;
-  const drawn = el.getBoundingClientRect();
-  if (!drawn.width && !drawn.height) return;
-  if (Math.abs(drawn.left - left) > 0.01) el.style.left = `${2 * left - drawn.left}px`;
-  if (Math.abs(drawn.top - top) > 0.01) el.style.top = `${2 * top - drawn.top}px`;
-}
-
-/**
- * The track panel's open and close, on the shared popover. The panel is a live part of
- * the player: the list is rebuilt into it whenever the library changes, so the popover
- * borrows the element while open and hands it back hidden on close. It mounts inside
- * the picker, so the player's own queries and the Tab redirect below still find the panel.
- */
-function trackPanel(wrap: HTMLElement): BodyPopoverHandle | null {
+function openPanel(wrap: HTMLElement, open: boolean): void {
   const picker = wrap.querySelector<HTMLElement>('[data-mp-picker]');
   const btn = wrap.querySelector<HTMLButtonElement>('[data-mp-picker-btn]');
   const panel = wrap.querySelector<HTMLElement>('[data-mp-panel]');
-  if (!picker || !btn || !panel) return null;
-  return mountBodyPopover(btn, (el) => {
-    el.append(panel);
-    panel.hidden = false;
-    picker.dataset.open = 'true';
-    return panel.querySelector<HTMLInputElement>('[data-mp-search]');
-  }, {
-    className: 'neuro-picker-pop',
-    role: 'none',
-    container: picker,
-    position: (el) => placeTrackPanel(el, picker),
-    trackScroll: true,
-    trackSize: true,
-    // The dock minimises on an Escape it hears on document; the panel takes that one first.
-    capture: true,
-    // The panel follows the trigger in the tab order, and Tab from the search box is
-    // sent back to the first row below.
-    trapFocus: false,
-    onClose: () => {
-      panel.hidden = true;
-      picker.append(panel);
-      picker.dataset.open = 'false';
-    },
-  });
+  if (!picker || !btn || !panel) return;
+  picker.dataset.open = String(open);
+  btn.setAttribute('aria-expanded', String(open));
+  panel.hidden = !open;
+  if (open) wrap.querySelector<HTMLInputElement>('[data-mp-search]')?.focus();
+  // `wrap.ownerDocument`, not `document`: the visualizer popout mounts this player in a
+  // SECOND window, where the module-global `document` is the opener's and its
+  // activeElement is never inside this panel.
+  else if (panel.contains(wrap.ownerDocument.activeElement)) btn.focus(); // return focus to the trigger
 }
 
 /**
@@ -628,11 +580,10 @@ export function wireMusicPlayerBody(root: ParentNode, host: NeurospicyHost): voi
   }
 
   // Searchable dropdown open/close.
-  const popover = trackPanel(wrap);
   wrap.querySelector<HTMLButtonElement>('[data-mp-picker-btn]')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (popover?.isOpen()) popover.close(true);
-    else popover?.open();
+    const open = wrap.querySelector<HTMLElement>('[data-mp-picker]')?.dataset.open === 'true';
+    openPanel(wrap, !open);
   });
   search?.addEventListener('input', (e) => {
     e.stopPropagation();
@@ -655,7 +606,13 @@ export function wireMusicPlayerBody(root: ParentNode, host: NeurospicyHost): voi
     const empty = list?.querySelector<HTMLElement>('.neuro-empty');
     if (empty) empty.hidden = shown > 0;
   });
+  // Escape anywhere in the open panel (search box OR a track button) closes just the
+  // panel and stops the event so the dock's global Escape doesn't also minimize.
   wrap.querySelector<HTMLElement>('[data-mp-picker]')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && wrap.querySelector<HTMLElement>('[data-mp-picker]')?.dataset.open === 'true') {
+      e.stopPropagation();
+      openPanel(wrap, false);
+    }
     // The search box sits at the panel's BOTTOM (the panel opens upward), AFTER the
     // list in DOM - so Tab from it would silently leave the still-open panel.
     // Redirect it to the first visible row (a category head or track) instead.
@@ -665,7 +622,19 @@ export function wireMusicPlayerBody(root: ParentNode, host: NeurospicyHost): voi
       if (first) { e.preventDefault(); first.focus(); }
     }
   });
+  // Click-away closes the panel. Bound to the wrap's OWN document so a player mounted
+  // in the visualizer's popout window listens to clicks in that window: the opener's
+  // document neither sees the popout's clicks (so the panel would never close) nor
+  // should close it on unrelated clicks back in the app (so it would close at random).
   const ownDoc = wrap.ownerDocument;
+  ownDoc.addEventListener('click', (e) => {
+    if (!wrap.isConnected) return;
+    const t = e.target;
+    // `instanceof Node` is unreliable across documents - each realm has its own Node - 
+    // so check for the shape the call below actually needs instead.
+    const isNode = !!t && typeof (t as Node).nodeType === 'number';
+    if (!isNode || !wrap.querySelector('[data-mp-picker]')?.contains(t as Node)) openPanel(wrap, false);
+  });
 
   const rebuildList = (): void => {
     void listLoops(host).then((loops) => {
@@ -707,7 +676,7 @@ export function wireMusicPlayerBody(root: ParentNode, host: NeurospicyHost): voi
           btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             await setNeurospicyLoop(host, btn.dataset.id!);
-            popover?.close(true);
+            openPanel(wrap, false);
             after();
           });
         }
