@@ -3,16 +3,16 @@
   "tool": {
     "id": "qr-code",
     "version": "2.8.0",
-    "digest": "d298cba365710349c39f6902a2567e484113b844f7ed516e1e21a24320cf019c"
+    "digest": "de55f7c57f592ad0427e4e5404233f30d7d4d886286f7ee63f00d684b5951814"
   },
   "verdict": "resvg",
   "measured": {
-    "date": "2026-11-20",
+    "date": "2026-11-21",
     "profile": "lolly-demo",
-    "webShell": "b7977cd6fa",
+    "webShell": "e20c15820bb9de99e7181cc2e251829425c74da9",
     "renderers": {
       "resvg": "2.6.2",
-      "engine": "1.348.0",
+      "engine": "1.349.0",
       "chromium": "153.0.8010.12"
     },
     "bands": {
