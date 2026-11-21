@@ -1,9 +1,6 @@
 # How a Lolly Work deployment fits together
 
-This page is for whoever runs Lolly Work once it is installed. It explains the
-parts, which ones you can leave out and what changes between Kubernetes, Compose,
-systemd and YunoHost. The commands are in the install guides; start at
-[Run Lolly Work](self-host.md).
+The commands are in the install guides; start at [Run Lolly Work](self-host.md).
 
 Every deployment runs the same server. It answers the console at `/admin`, the API
 and share links, and, when you mount one, the Lolly web app at `/`. PostgreSQL
@@ -37,7 +34,7 @@ Two packaged routes build on these shapes. The
 boots into Lolly Work on K3s. The [ready-made package](ready-made-package.md) is a
 finished Compose directory with Caddy and password sign-in.
 
-The Lolly Work repository also keeps an optional serverless function adapter, qualified in
+The Lolly Work repository also has an optional serverless function adapter, qualified in
 CI, for operators who choose that kind of target. It bundles its pack and has no
 live co-editing and no Chromium worker; its runbook is `deploy/vercel/README.md` in
 that repository.
@@ -157,7 +154,7 @@ volume, a web app volume, an optional Chromium render-worker tier; and a migrate
   suggested alerts as a `PrometheusRule`, and `metrics.grafanaDashboard.enabled` a
   Grafana dashboard for the sidecar. Both are off by default and read only what
   `/metrics` exports ([metrics and alerts](metrics.md)). For admission policy, the
-  repository carries a [Kubewarden policy set](admission-policy.md) that you apply
+  repository has a [Kubewarden policy set](admission-policy.md) that you apply
   separately.
 
 ::: details Turning on the render worker
@@ -332,7 +329,7 @@ applies.
 
 `deploy/vm/` runs a private instance on one server. Caddy handles TLS and routing.
 The Lolly Work server, built from `deploy/compose/Dockerfile`, runs the live co-editing
-gateway in its own process, and a PostgreSQL database holds the records and the
+gateway in its own process, and a PostgreSQL database stores the records and the
 asset bytes. For repeatable VM creation, use the
 [UpCloud and Evroc modules](cloud-deployment.md); the default VM deployment keeps an
 external database and the existing public API proxy.
@@ -367,7 +364,7 @@ connection pooler cannot keep the lock after the runner leaves.
 <!--i:eti-badge-check-->
 ## Verifying the images
 
-Release images (`v*` tags) are signed keylessly in CI and carry SBOM and provenance
+Release images (`v*` tags) are signed keylessly in CI and have SBOM and provenance
 attestations. Checking them needs no key from the project: the signature binds to the
 release workflow's own identity.
 
@@ -379,7 +376,7 @@ cosign verify ghcr.io/lolly-tools/lolly-work-server:<version> \
 
 The same check covers `lolly-work-render-worker`. A cluster can enforce it at
 admission with Kyverno or the Sigstore policy controller, so an unsigned or re-tagged
-image never schedules. The source SBOM (`sbom.cdx.json`) stays in the repository
+image never schedules. The source SBOM (`sbom.cdx.json`) is in the repository
 beside the per-image attestations. The exact identity of each release is in
 [official installation routes](official-installations.md#release-verification).
 

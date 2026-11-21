@@ -1,6 +1,6 @@
 # Choose a deployment
 
-Lolly does its work on each person's device, so deploying it is mostly about how the app reaches people, not where renders run. This page helps an IT or platform team pick one of three ways, then points to the guide for each.
+Lolly does its work on each person's device, so deploying it is mostly about how the app reaches people, not where renders run.
 
 ::: figure deployment-three-ways
 Three ways to deploy Lolly. All three use the same build, so teams can mix them.
@@ -32,13 +32,13 @@ The web build is plain static files, which makes this the simplest and most port
 LOLLY_PROFILE=lolly-demo pnpm run build:web    # output: shells/web/dist/
 ```
 
-[Build Guide](/info/build-guide.html#build-the-web-app) explains what `build:web` runs. Then serve `shells/web/dist/` from any static host, CDN or internal file server. Without the optional services, the host needs only three things in place: the routes, the headers and the brand.
+[Build Guide](/info/build-guide.html#build-the-web-app) explains what `build:web` runs. Then serve `shells/web/dist/` from any static host, CDN or internal file server. Without the optional services, the host needs only three things: the routes, the headers and the brand.
 
 ### Any static host, including air-gapped
 
 Once loaded, the web app keeps working offline. **Settings → Available offline** turns that best-effort caching into a guarantee: people download the whole app, their tools, the catalog (whole or by tag) and the docs ahead of a disconnection, with a progress bar and per-part sizes.
 
-That makes this the air-gapped path too. Put the static bundle behind your firewall, or into an app your device management delivers, and nothing phones home. The build writes `dist/precache.json`, the app's own file list, and `/info/manifest.json`, the docs site's. The download manager reads both, so keep them in the deployed bundle.
+Put the static bundle behind your firewall, or into an app your device management delivers, and nothing phones home. The build writes `dist/precache.json`, the app's own file list, and `/info/manifest.json`, the docs site's. The download manager reads both, so keep them in the deployed bundle.
 
 ### The routes
 
@@ -49,7 +49,7 @@ How one origin answers each kind of address. Real files 404 when missing; only a
 :::
 
 - **The app.** A single catch-all rewrite sends unknown paths to `index.html`, so client-side routes and link deep links work.
-- **Clean routes keep their own pages.** Point each clean route at the prerendered per-view HTML the build writes, so a shared link carries real share-card tags instead of the generic shell: `/d` to `/view/d.html`, `/t/:id` to `/t/:id.html` and the rest. `deploy/docker/public.nginx.conf`, the public VM recipe, carries the full current set, and `tests/deployment-public-vm.test.ts` fails when one goes missing, so copy from that file rather than from a list here. In nginx, a single `try_files $uri $uri.html …` fallback covers most of them; only the routes whose file name differs need naming.
+- **Clean routes keep their own pages.** Point each clean route at the prerendered per-view HTML the build writes, so a shared link has real share-card tags instead of the generic shell: `/d` to `/view/d.html`, `/t/:id` to `/t/:id.html` and the rest. `deploy/docker/public.nginx.conf`, the public VM recipe, has the full current set, and `tests/deployment-public-vm.test.ts` fails when one goes missing, so copy from that file rather than from a list here. In nginx, a single `try_files $uri $uri.html …` fallback covers most of them; only the routes whose file name differs need naming.
 - **Documentation routes come before the app fallback.** Both a public static host and a private Lolly Work instance serving a signed shell need the complete built `/info/` tree. Resolve `/info/` to its `index.html`, directory pages to their own index and article HTML and Markdown twins to the real files. Keep the manifest, search indexes, styles, scripts and fonts together. A missing documentation file must return 404, not the app's `index.html`.
 - **Discovery routes.** Keep the `/docs` aliases and machine-readable discovery routes that `public.nginx.conf` declares. Map `/robots.txt` to your crawl policy and `/sitemap.xml` to `/info/sitemap.xml`, and serve Markdown and discovery files with their correct content types. Check these at the candidate origin before you publish. Documentation being reachable does not change authentication for workspace records, uploads or private APIs, and the built pages keep their public documentation canonical URLs.
 
@@ -70,7 +70,7 @@ The two `Cross-Origin-*` headers keep the app cross-origin isolated. Browsers gi
 The app still loads without the two `Cross-Origin-*` headers, so a missing pair does not show at a glance.
 :::
 
-The CSP matters most, and not for the reason you might expect. Tool hooks run through `new Function` by design, so `script-src` keeps `'unsafe-eval'`; removing it would break shipping tools, and that is a documented, accepted residual. The directive doing the work is `connect-src`: script that can run still cannot send data to a host outside a fixed allowlist. `tests/security-headers.test.ts` pins the policy across every shipped copy of the configuration and fails the build if they drift. [Threat model](/info/threat-model.html) sets out what the policy does and does not contain.
+The CSP matters most. Tool hooks run through `new Function` by design, so `script-src` keeps `'unsafe-eval'`; removing it would break shipping tools, and that is a documented, accepted residual. The directive doing the work is `connect-src`: script that can run still cannot send data to a host outside a fixed allowlist. `tests/security-headers.test.ts` pins the policy across every shipped copy of the configuration and fails the build if they drift. [Threat model](/info/threat-model.html) sets out what the policy does and does not contain.
 
 `deploy/docker/security-headers.conf` is the copyable form: six `add_header … always` lines plus an `include` of the cache headers in `deploy/docker/delivery-headers.conf`, ready to translate into whatever your host uses. With nginx, take the whole file rather than retyping the lines.
 
@@ -80,7 +80,7 @@ nginx drops **all** inherited `add_header` directives inside any location that d
 
 **One path gets a second policy.** `/any-site/` serves the app under the same policy with one change: `frame-src` admits any `https:` page and the loopback. A person's **Allow pages from any site** setting (Settings, Trusted sites) reloads the app at that path, so Lolly Design can show pages beyond the few video and map players the base policy allows. The reference nginx configurations express this as a second entry in the `$lolly_csp` map keyed on `$request_uri`; the discontinued static YunoHost package in this repository uses `conf/any-site-headers.inc` with its own location.
 
-Serve the pair together. To withdraw the option, give `/any-site/` the base policy: the app reads the policy that path really carries and offers the setting only where `frame-src` admits `https:`.
+Serve the pair together. To withdraw the option, give `/any-site/` the base policy: the app reads the actual policy of that path and offers the setting only where `frame-src` admits `https:`.
 
 ::: warning Never leave `/any-site/` without a policy
 A path with no Content-Security-Policy restricts nothing, and the app treats the option as offered.
@@ -90,7 +90,7 @@ To let the app reach your own storage, such as SharePoint or S3, add those origi
 
 ### Which brand ships
 
-Set `LOLLY_PROFILE=<name>` on the build so the deployment carries the brand you mean, not whichever profile the resolver would pick; a private pack that is not in the clone can never ship. `pnpm run build:web` writes a real `tools/` and `catalog/` tree into `dist/` from that profile, so the deployed site serves both as plain files and nothing resolves a profile to answer a request. A smaller instance build can carry its `/info` guides in English only with `LOLLY_INFO_LOCALES=en`; [Delivery deployment](/info/deploy-delivery.html#build-and-retain-actual-files) covers that and the other size options.
+Set `LOLLY_PROFILE=<name>` on the build so the deployment has the brand you mean, not whichever profile the resolver would pick; a private pack that is not in the clone can never ship. `pnpm run build:web` writes a real `tools/` and `catalog/` tree into `dist/` from that profile, so the deployed site serves both as plain files and nothing resolves a profile to answer a request. A smaller instance build can ship its `/info` guides in English only with `LOLLY_INFO_LOCALES=en`; [Delivery deployment](/info/deploy-delivery.html#build-and-retain-actual-files) covers that and the other size options.
 
 A service that does read tool source at request time, such as the MCP service's `/tool/<id>.<ext>` render route, needs the packs in its image and the same `LOLLY_PROFILE` in its runtime environment, not only at build time. [Profiles, brands and tool configuration](/info/configuration.html) covers the resolver, and how to change or remove a design system the deployment supplies (see [Removing a catalogue design system](/info/configuration.html#removing-a-catalogue-design-system)).
 
@@ -112,12 +112,12 @@ None of these is needed for an ordinary local render or download. [Server surfac
 
 Route the app's `/api/mcp`, `/api/ca` and `/api/penpot` paths to them. MCP also answers the two `/.well-known/oauth-*` discovery paths, `/api/fetch-image` and the public `GET /tool/<id>.<ext>` render route, so route those to the same service. Keep the app's catch-all for everything else, written to **exclude the API prefix** and listed last so it cannot swallow the service routes. `deploy/docker/public.caddy` routes all of these and is a working example.
 
-The CA holds policy on the server (certificate-day limits, allowed providers) and never sees a signing key; keys are made and kept on each person's device. [Content Credentials identity](/info/content-credentials-identity.html) covers running the CA, and [MCP server](/info/mcp.html) covers the endpoint and its access rules.
+The CA has its policy on the server (certificate-day limits, allowed providers) and never sees a signing key; keys are made and kept on each person's device. [Content Credentials identity](/info/content-credentials-identity.html) covers running the CA, and [MCP server](/info/mcp.html) covers the endpoint and its access rules.
 
 <!--i:eti-building-->
 ## Organisation services with Lolly Work
 
-Choose Lolly Work when a deployment needs organisation single sign-on, SCIM provisioning, access policies, a shared catalog and projects, work collabs, approvals or governed delivery. It is part of the Lolly project, in a [separate repository](https://github.com/lolly-tools/lolly-work), with its own service and admin console. It serves the same web app and works with connected desktop and mobile apps, and local rendering stays available. It needs a persistent database and blob storage for shared work; its server renders and batches use the same engine, and browser formats need its optional render worker. The Helm chart in this repository does not install Lolly Work.
+Choose Lolly Work when a deployment needs organisation single sign-on, SCIM provisioning, access policies, a shared catalog and projects, work collabs, approvals or governed delivery. It is part of the Lolly project, in a [separate repository](https://github.com/lolly-tools/lolly-work), with its own service and admin console. It serves the same web app and works with connected desktop and mobile apps, and local rendering is still available. It needs a persistent database and blob storage for shared work; its server renders and batches use the same engine, and browser formats need its optional render worker. The Helm chart in this repository does not install Lolly Work.
 
 - [Install Lolly Work](/info/work-install.html): Helm, Compose, systemd and YunoHost.
 - [Lolly Work deployment options](/info/work-deployment.html): production topology, storage and backups.

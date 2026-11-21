@@ -1,7 +1,6 @@
 # Install Lolly Work on Kubernetes
 
-This page is for a platform team adding Lolly Work to a Kubernetes cluster. You can
-try it in one command, then install it for production with your own PostgreSQL,
+You can try Lolly Work in one command, then install it for production with your own PostgreSQL,
 identity provider and recoverable asset storage. The chart targets any conformant
 cluster and is exercised on RKE2 and K3s.
 
@@ -88,7 +87,7 @@ What you get:
 - working renders and the console at `/admin`
 
 The pod requests 100m of CPU and 192 MiB of memory. Every choice in
-`values-eval.yaml` carries a comment saying what it trades.
+`values-eval.yaml` has a comment saying what it trades.
 
 ::: details Check the evaluation from a terminal
 `values-eval.yaml` sets `instance.baseUrl` to `http://localhost:8787`, which is what
@@ -241,7 +240,7 @@ Backup coverage is in [keep Lolly Work running](operations.md#backup-and-restore
 
 Later image-only releases use the
 [guarded application update workflow](https://github.com/lolly-tools/lolly-work/blob/main/deploy/helm/APP-UPDATES.md);
-database migrations, infrastructure and content changes stay separate operations.
+database migrations, infrastructure and content changes are separate operations.
 
 <!--i:eti-download-->
 ## Install from the chart repository or Rancher

@@ -23,7 +23,7 @@ right people see them. Nothing in the check writes to the source. Allow about ha
 
 [Google Drive](gdrive.md) has no open checklist in its driver, but it has its own
 [acceptance check](#google-drive) to run before go-live. The other sources (S3, git, Dropbox and
-Microsoft 365) carry no checklist in their drivers.
+Microsoft 365) have no checklist in their drivers.
 
 <!--i:eti-checklist-->
 ## Before you start
@@ -77,12 +77,12 @@ Read its three groups in this order:
 1. **EXPECTED BY THIS DRIVER, ABSENT**: the guesses that did not match. Each entry reads
    `key|alternatives (CONSTANT_NAME)`. `(none)` means every guess matched.
 2. **IN THE RESPONSE, NOT MAPPED**: every other field your tenant returned. The right name for an
-   absent guess usually appears here, and so does any custom field carrying a date.
+   absent guess usually appears here, and so does any custom field with a date.
 3. **MAPPED BY THIS DRIVER**: confirmed.
 
-Names are combined across every record on the page, so a field that only some records carry
+Names are combined across every record on the page, so a field that only some records have
 does not read as absent. `--remote-id` adds a second report on the per-file detail call, the one
-that carries the download link; it fetches information about one file, never its bytes.
+that has the download link; it fetches information about one file, never its bytes.
 
 ### Check the bytes
 
@@ -150,7 +150,7 @@ the exact text of any error and the product version.
   URL templates.
 - `health ok` proves the files root URL and the credential together. On a `404`, compare the
   printed path with the URL your browser shows for the folder.
-- The shape report asks with `<d:propname/>`, so it lists every property the server holds. If
+- The shape report asks with `<d:propname/>`, so it lists every property the server has. If
   the server refuses that request, a note in the report gives the error and the NOT MAPPED group
   is empty.
 - After the sync, the sections should be the subfolders, one level each. A note about
@@ -180,7 +180,7 @@ the exact text of any error and the product version.
   ([Leave a DAM](../offboarding.md#canto-and-image-relay-which-driver-do-you-exit-through)).
 - Write down the authorize and token URLs you used. `oauth token refresh failed (400)` means the
   token endpoint wants a different request.
-- Run the detail report with `--remote-id`. It shows which field carries the download link and
+- Run the detail report with `--remote-id`. It shows which field has the download link and
   how the single-file response is wrapped.
 - The format segment is `download`. Repeat the byte check per file type, since one type may come
   from a different link.
@@ -198,7 +198,7 @@ the exact text of any error and the product version.
   lifetime.
 - The format segment is `download`. Repeat the byte check per file type: office and design files
   often come through a different link from images.
-- If a resource carries both an expiry date and a review date, report it: the driver takes the
+- If a resource has both an expiry date and a review date, report it: the driver takes the
   first it finds.
 :::
 

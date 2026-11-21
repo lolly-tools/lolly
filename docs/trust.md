@@ -11,7 +11,7 @@ Most software asks for your trust. This section does the opposite: every claim L
 <!--i:eti-stamp-->
 ## Where did this content come from?
 
-The media Lolly renders carries [Content Credentials](/info/content-credentials-identity.html) by default. When a file arrives with a history already attached, Lolly keeps it rather than flattening it, so the chain survives an edit. Drop any file on [Lolly Verify](/#/verify) and the record comes back, worked out on your device:
+The media Lolly renders has [Content Credentials](/info/content-credentials-identity.html) by default. When a file arrives with a history already attached, Lolly keeps that history, so the chain survives an edit. Drop any file on [Lolly Verify](/#/verify) and the record comes back, worked out on your device:
 
 ![The full Lolly Verify verdict for a generated storm image - the image itself, a green Made with Lolly pill, the intact-credential and unchanged-bytes badges and the provenance scorecard](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1240&height=940&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-masthead)
 
@@ -56,12 +56,12 @@ Lolly renders on your device. That is not a privacy setting added afterwards: it
 
 Nothing to sell you, nothing to take. Four commitments, stated once and checkable:
 
-- <!--i:check--> **Free, and it stays free.** A version that has been released is licensed so it can never be taken back. The free Lolly always exists, whatever happens next; the exact mechanism is on [How Lolly compares](/info/positioning.html).
+- <!--i:check--> **Free, and it stays free.** A released version is licensed so it can never be taken back. The free Lolly always exists; the exact mechanism is on [How Lolly compares](/info/positioning.html).
 - <!--i:code--> **Open source.** Read it, run it, fork it, keep a copy.
 - <!--i:eyeoff--> **Blind by design.** The Lolly app sends no analytics, usage reports or crash reports, so nobody, the makers included, can see what you make or how you use the app; see the [Privacy Policy](/info/privacy.html). A tool that cannot see you has nothing to sell about you.
-- <!--i:checklist--> **Your vote, visible.** Anything that touches the internet happens because you chose it, at the moment you chose it, and the code that keeps that promise is open.
+- <!--i:checklist--> **Your vote, visible.** Anything that touches the internet happens by your choice, at the moment you choose, and the code that keeps that promise is open.
 
-A Lolly Work server, which an organisation runs for its members, is different. When your app is connected to one, the server keeps an audit log of sign-ins and other governed actions such as approvals. It records which app versions connect to it and, while you are signed in, from which devices. It can also store usage events made of labels such as a tool id, never your inputs, at a level the organisation sets, from a client that sends them. Lolly's own apps send none today. See [Telemetry and dashboards](/info/work-telemetry.html).
+A Lolly Work server, which an organisation runs for its members, is different. When your app is connected to one, the server keeps an audit log of sign-ins and other governed actions such as approvals. It records which app versions connect and, while you are signed in, from which devices. It can also store usage events made of labels such as a tool id, never your inputs, at a level the organisation sets, from a client that sends them. Lolly's own apps send none today. See [Telemetry and dashboards](/info/work-telemetry.html).
 
 **We built Lolly for ourselves.** SUSE needed thousands of on-brand files, made without handing anything to outside services. So we built a tool that does all of it on the device, and released it as open source, like everything else we make. We keep maintaining it because we use it every day. **There is no obligation:** everything here works with or without us.
 

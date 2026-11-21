@@ -54,7 +54,7 @@ finished renders, read its own requests and withdraw them. The request goes to t
 escalation chain, or else to a chain the programme lists (`approvalChains` on `PUT
 /api/v1/programmes/:id`, with the programme's `name`); a partner's agent never reaches an internal
 chain by name. A delivery to a destination that needs approval waits for the approval when the token
-holds the scope, and is refused with `403 HUMAN_APPROVAL_REQUIRED` when it does not.
+has the scope, and is refused with `403 HUMAN_APPROVAL_REQUIRED` when it does not.
 
 The approver's notice gives the company and the label you wrote on the token, for example
 "Northwind IT's agent (Rita's agent) asked for your review", followed by the step. The approval card
@@ -72,12 +72,12 @@ as the price or the logo. This is off by default. Set it in the tool's policy un
 covers**: **This file only**, the default, or **Every file from one version of a published
 template**. A new version, or a change to what is open or fixed, needs a new approval.
 
-A partner's clean render from that template version then carries the template's approval record in
+A partner's clean render from that template version then has the template's approval record in
 its own Content Credential: the approval, its date, the template's id and version and the
-fingerprint of the example file the reviewer saw. It never holds this file's own fingerprint, a name
+fingerprint of the example file the reviewer saw. It never has this file's own fingerprint, a name
 or a person. [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records) reads the
 record as "Approved as a template: inst/price-sheet v3 (SVG)". A render that is still marked, one in
-a format the approval did not cover and one from an instance with no signer carry no record.
+a format the approval did not cover and one from an instance with no signer have no record.
 
 <!--i:eti-sliders-->
 ## Every option

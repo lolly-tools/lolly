@@ -7,7 +7,7 @@ PostgreSQL, the matching Lolly web app and automatic HTTPS, with email and passw
 sign-in for the first owner.
 
 It suits a fresh VM, an UpCloud server, a private server or a Dokploy host. It
-carries no private brand pack and no production-instance configuration.
+includes no private brand pack and no production-instance configuration.
 
 The package pins Lolly Work 1.1.3 and the matching Lolly 1.1.3 web app. The web app has the
 publisher's catalogue key built in, while Lolly Work signs each person's catalogue with a key
@@ -101,7 +101,7 @@ The provider must verify the owner's email. If the client needs a secret, provid
 `LW_IDP_CLIENT_SECRET` through your workstation's secret environment, never as a
 command argument.
 
-The folder holds `compose.yaml`, a `Caddyfile`, the exact release record and a
+The folder has `compose.yaml`, a `Caddyfile`, the exact release record and a
 mode-0600 `.env` with fresh database, session, link and credential secrets.
 
 - Copy it securely to a dedicated private folder on the server, keeping the `.env`

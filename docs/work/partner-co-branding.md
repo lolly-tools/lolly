@@ -71,7 +71,7 @@ revision it records. A contact who may edit makes the same change from their hom
 <!--i:eti-palette-->
 ## Keep a company's partner kit
 
-A partner kit holds a company's own logo rules for use inside your work: its logos for light and
+A partner kit has a company's own logo rules for use inside your work: its logos for light and
 dark surfaces and its mark, up to 12 colours in named roles, and optional rules for clear space,
 minimum size and allowed treatments. Lolly Work keeps one kit for each company, as a file only that
 company's people and agents receive; a change is a new revision.
@@ -136,7 +136,7 @@ arrangement. Add a finished lockup as a custom mark
 When Rita exports, the export panel's **Design system** card shows what the file records, and
 anyone who checks the file in [Lolly Verify](/info/what-verify-checks.html#partner) reads the same
 company as its **Partner** fact. The partner record is
-about the company, never Rita: it holds no person, contact details, address or currency.
+about the company, never Rita: it has no person, contact details, address or currency.
 
 ![The export panel's Design system card, reading Records: Lolly Demo, Colourway: Spearmint, Partner: Northwind IT (Resellers, EMEA)](shots/partner-export-record.svg)
 
@@ -199,7 +199,7 @@ the `logos` and the `limits` the server enforces. Each logo goes up on its own,
 next revision, so the three logos bring Northwind IT to revision 4.
 :::
 
-**Rita** still sees nothing, but every piece she makes from now on can carry these details.
+**Rita** still sees nothing, but every piece she makes from now on can include these details.
 
 Next: [4. Publish the data sheet](partner-templates.md#4-publish-the-data-sheet).
 

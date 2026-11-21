@@ -1,7 +1,6 @@
 # Roles and grants
 
-This page is for the admin deciding who can do what in Lolly Work, and for anyone checking why
-a person can or cannot do something. Lolly Work has two layers: a small fixed set of roles that
+Lolly Work has two layers: a small fixed set of roles that
 follow your directory groups, and grants that adjust a role for one group, one person or one
 resource. When they disagree, deny wins.
 
@@ -29,7 +28,7 @@ Each role adds to the role below. Grants sit over the roles: any matching deny w
 A person's role comes from their effective group set (provider groups plus local groups): the
 highest match in the order `owner`, `admin`, `brand-manager`, `approver`, `author`, `member`,
 `viewer`, using the groups mapped in `idp.roleGroups`, otherwise `member`. For `owner`, `admin`,
-`approver` and `author`, a group of the same name counts when that role has no mapping. A person holds
+`approver` and `author`, a group of the same name counts when that role has no mapping. A person has
 one role, so someone mapped to both `brand-manager` and `approver` is a brand manager; add `approval.act`
 with a [grant](#grants) when one person needs both. Mapping your own group names is on [Sign-in and
 sessions](identity.md#groups-role).
@@ -77,7 +76,7 @@ lw grants add group:contractors export.download 'tool:price-card' --effect deny
 lw grants rm  group:brand policy.edit '*'
 ```
 
-The same API sits behind `GET/POST/DELETE /api/v1/grants` and the console's **Grants** view,
+The same API is behind `GET/POST/DELETE /api/v1/grants` and the console's **Grants** view,
 so the console and CLI always offer the same things.
 
 | Field | Form |
@@ -106,7 +105,7 @@ People in a partner programme, and a programme's agent tokens, can only ever be 
 list of actions, whatever a role default or a grant says: reading the catalog, using tools, their
 own sessions and comments, joining live editing, creating projects, exporting, asking for an export
 review, making links and submitting files. Every admin action is refused for them. A grant that
-cannot apply to partners carries a `partnerScope` note in `GET /api/v1/grants` and in the answer
+cannot apply to partners has a `partnerScope` note in `GET /api/v1/grants` and in the answer
 when it is made. [Partner programmes](partner-programmes.md#what-partners-can-never-do) lists the
 actions.
 
@@ -166,7 +165,7 @@ lw grants add group:contractors export.download 'tool:campaign-banner' --effect 
 ```
 
 The contractor opens the campaign banner tool and works on the banner. Deny wins over their member
-default, so the file cannot leave as a download. org-config carries the tool's own answer in
+default, so the file cannot leave as a download. org-config has the tool's own answer in
 `tools["campaign-banner"].can`, where it differs from the deployment-wide `can` bit, and Lolly
 offers **Request approval** or nothing in place of **Download** for that tool only. Preview shows
 the same answer beside the tool. Lolly versions from before this answer existed read only the
@@ -177,7 +176,7 @@ Add the same pair for each tool the rule covers.
 ### Let a team contribute assets
 
 `catalog.submit` is the action behind [catalog submit](catalog.md#submitting-an-asset), the one
-route by which a member's file enters the catalog. The `author` role carries it, and one row
+route by which a member's file enters the catalog. The `author` role has this action, and one row
 lets a team contribute while everyone else reads:
 
 ```bash
@@ -193,7 +192,7 @@ groups plus separation of duties ([approvals](approvals.md)). How the review que
 
 `catalog.edit` is the action behind [org-defined metadata](catalog.md#org-defined-metadata):
 filling in the fields your organisation defines, and correcting an instance-owned asset's
-name, description and tags. It sits with `admin` rather than `author`, because contributing an
+name, description and tags. It belongs to `admin` rather than `author`, because contributing an
 asset and editing what the whole catalog says about one are different authorities.
 
 ```bash
@@ -202,7 +201,7 @@ lw grants add group:brand catalog.edit '*' --effect allow
 
 Two things it does not give:
 
-- **Defining** the fields is `policy.edit`, because a taxonomy is governance and lives in the
+- **Defining** the fields is `policy.edit`, because a taxonomy is governance and is in the
   [governance document](governance.md#policy-as-code).
 - It reaches only assets the caller can already see. The editor asks the same exposure question
   that link minting asks, and a submission still under review is edited through the review
@@ -220,7 +219,7 @@ an asset in favour of another (`replacedBy`). `catalog.submit` contributes an as
 
 `catalog.collection.manage` is the action behind [collections](catalog.md#collections):
 creating a named, ordered set of catalog assets, choosing the groups that may see the set, and
-deleting a set. The action sits with `admin` for the same reason `catalog.edit` does.
+deleting a set. The action belongs to `admin` for the same reason `catalog.edit` does.
 
 ```bash
 lw grants add group:brand catalog.collection.manage '*' --effect allow
@@ -236,13 +235,13 @@ Two rules close the gap a shared set could open:
   is a member default while curating is an admin action, so this second check binds everyone
   who shares the set. A refusal reports how many members were unseen, never which ids.
 
-Reading collections needs nothing extra: the per-caller catalog feed carries the collections a
+Reading collections needs nothing extra: the per-caller catalog feed includes the collections a
 caller's groups admit, with members narrowed to the assets that caller is already served.
 
 ### Narrow an organisation destination
 
 `delivery.create` is the right to send to a fixed organisation destination, and every member
-carries that right. A deny takes one destination away from a group:
+has that right. A deny takes one destination away from a group:
 
 ```bash
 lw grants add group:contractors delivery.create 'destination:campaign-archive' --effect deny
@@ -275,7 +274,7 @@ editing grants is otherwise an admin action. Attempting it returns `403 OWNER_ON
 same guard applies when a [governance document](governance.md#policy-as-code) is applied.
 
 Only an owner may create or remove an owner-mapped local group, assign owner membership, or
-change an owner account's local groups. The same applies to groups that hold owner-only
+change an owner account's local groups. The same applies to groups that have owner-only
 grants. Admins may manage groups within their own role.
 
 <!--i:eti-user-check-->
@@ -310,10 +309,10 @@ removes their guests at once.
 | Taking `link.create-guest` off the **inviter** (a deny grant, a role change, leaving the group that carried it or disabling the account) | Removes every guest **that inviter** admitted, on the guest's next operation or keepalive, and leaves other people's guests alone. It covers links nobody can list. |
 
 The `inputAccess` lever works one way for guests: governing an input **at all** locks it for
-them. A guest carries only the synthetic `guests` group and never inherits the member-side
+them. A guest has only the synthetic `guests` group and never inherits the member-side
 `editable` fallback (`vetoOps` and `inputIsGoverned`, `INPUT_LOCKED`), so even
 `{"groups": ["guests"], "level": "editable"}` resolves to locked in a live room. An input with
-**no** rules stays editable for everyone, guests included.
+**no** rules is editable for everyone, guests included.
 
 <!--i:eti-eye-->
 ## Checking your work
@@ -327,7 +326,7 @@ lw preview --groups marketing,contractors
 The console's **Preview** view and `GET /api/v1/org-config/preview?groups=…` give the same
 answer. The preview reports the resolved role, permissions, tool visibility, per-input
 governance and profile policy for that set of groups. It runs through the production code path,
-so it cannot drift from what the member actually receives.
+so it cannot drift from what the member receives.
 
 For a partner programme or one of its companies, **See what they get** gives the same answer
 before anyone is invited, and **View as partner** opens the app itself as one of its partners

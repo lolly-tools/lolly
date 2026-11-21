@@ -2,7 +2,7 @@
 
 <a id="work-instance-configuration"></a>
 
-A Lolly Work server takes its settings from three places. Knowing which one holds a setting tells you
+A Lolly Work server takes its settings from three places. Knowing which one has a setting tells you
 whether changing it needs a restart, and whether the value is safe to keep in version control.
 
 ::: figure work-configuration-layers
@@ -100,7 +100,7 @@ Helm defaults to production; the evaluation overlay and example JSON select eval
 | `homeView` | *unset* | the view a signed-in member's Lolly opens on when they arrive at the bare address: `tools` (the tools gallery) or `projects` (their Projects). Unset means tools. A link to a tool, a team project or a view still opens where it points, and choosing Tools later still shows the tools. Sent to members' shells in `GET /api/v1/org-config` as `home`; a shell that predates the setting ignores `home` |
 | `homeUrl` | *unset* | optional destination for the Home button and arrival at the bare address, overriding `homeView`. A root-relative URL such as `/#/p?team=project-id`, or an HTTPS URL for an organisation's own landing page. Credentials, protocol-relative URLs and executable schemes are refused. Explicit document and view links keep their destinations |
 
-`pack` supports materialized trees, modern `profiles.json` roots and legacy brand layouts. Selection lives in the Store; mounted files are never rewritten. See [Design-system administration](design-system-administration.md) for persistence requirements and explicit tokens selection.
+`pack` supports materialized trees, modern `profiles.json` roots and legacy brand layouts. Selection is kept in the Store; mounted files are never rewritten. See [Design-system administration](design-system-administration.md) for persistence requirements and explicit tokens selection.
 
 The publication fence records both the generation and the mounted release digest. Startup
 verifies this identity before `/readyz` succeeds; `/healthz` remains a liveness check.
@@ -110,7 +110,7 @@ higher positive `catalogPublicationGeneration` for the reviewed release once. Ke
 existing fence and sequence history; deleting them would remove rollback protection.
 
 **What production mode needs from a pack.** A positive generation, from one of two places: set
-`catalogPublicationGeneration`, or mount a pack whose `catalog/tools/index.sig.json` carries a
+`catalogPublicationGeneration`, or mount a pack whose `catalog/tools/index.sig.json` has a
 signed sequence and set `catalogPublicKey` to the key that verifies the signature. The demo pack in the
 image is unsigned, so production with the demo pack needs `catalogPublicationGeneration: 1`.
 Without either, `/readyz` answers `503` with `"catalog": "failed"` and the log says which
@@ -193,7 +193,7 @@ For people who cannot use the instance's other sign-ins. Add one entry to `idp.a
 - The sign-in and link routes use the `auth` [rate-limit bucket](#ratelimit), per client IP, on
   top of the lockout. A browser that runs out gets a page saying to wait a minute.
 - The forms are served with `Referrer-Policy: strict-origin`, not `no-referrer`: a form post
-  from a `no-referrer` page carries `Origin: null`, which the CSRF check refuses. A proxy in
+  from a `no-referrer` page has `Origin: null`, which the CSRF check refuses. A proxy in
   front must not replace that header on `/api/auth/`. The YunoHost package's nginx set
   `no-referrer` on `/api/` up to `1.2.0~ynh1`, which broke email and password sign-in,
   invitation joins and password-protected share links there; from `1.2.0~ynh2` it keeps the
@@ -318,16 +318,16 @@ than `instanceBudgetBytes`. Anything else is refused at startup. Budgets count f
 and unfinished uploads that have not expired, each at its size plus 4096 bytes for its database
 rows, so many tiny files fill a budget too; a file reference also counts the size of its
 `derivedFrom` and report as JSON. One person's unfinished project-file uploads may declare twice
-`maxFileBytes` in all, one owner may hold 16 unfinished uploads at once, and one person may
+`maxFileBytes` in all, one owner may have 16 unfinished uploads at once, and one person may
 download twice the project files' `instanceBudgetBytes` a day (counted per server process).
 
-The defaults are sized for a small hosted Postgres that also holds the file bytes (the `pg`
+The defaults are sized for a small hosted Postgres that also stores the file bytes (the `pg`
 blob driver); a small hosted plan can stop accepting writes once its storage allowance is used.
 Raise them only with the storage to match.
 
-Scoped uploads live in the same blob store as project files, under a separate instance
+Scoped uploads are in the same blob store as project files, under a separate instance
 budget, so the two instance budgets add up: with both defaults the blob store may hold 512 MiB
-of uploads instead of 256 MiB. A begin needs `tool.use` or `catalog.submit`, and members hold
+of uploads instead of 256 MiB. A begin needs `tool.use` or `catalog.submit`, and members have
 `tool.use` by default, so most members and service tokens can use that room. Size both budgets
 against the storage before turning uploads on.
 
@@ -369,7 +369,7 @@ Room for a 500 MiB recording in a project, lifting the file cap and its budgets 
 | `catalog.versionKeep` | `0` | how many versions of one instance asset to keep, head included. `0` keeps every version; a positive number trims oldest-first and deletes the trimmed bytes. The served version is never trimmed, and a held asset is never trimmed at all |
 | `catalog.partnerRights` | *decided once* | `gate` or `report`: whether the licence each file records decides what reaches people in a partner programme. Absent, the instance decides at its first start on the release that added the setting: `gate` with no accounts yet, `report` when upgraded with accounts. The setting always wins. See [partner programmes](partner-programmes.md#licences) |
 
-Submit is **open to authors** by default: anyone holding `catalog.submit` may submit. Name a
+Submit is **open to authors** by default: anyone with `catalog.submit` may submit. Name a
 `submit.chain` when the org wants review. Quota scopes are
 group names, and a submission is charged to every group its submitter belongs to, so extra
 memberships only tighten a member's budget. See [catalog](catalog.md#submitting-an-asset).
@@ -423,14 +423,14 @@ repository end to end. If you point `instance.pack` at a pack you do not fully c
 back to `false` and add a Chromium worker for the hooked tools.
 
 **The browser sandbox.** The Chromium worker always runs its browser sandbox. A bounded launch begins at startup, and the
-worker's `/readyz` stays unavailable until the browser connects; failed startup or recovery
+worker's `/readyz` is unavailable until the browser connects; failed startup or recovery
 stops the worker, with no unsandboxed fallback. Qualify the exact Linux image and target runtime
 with the existing non-root, seccomp and container permissions before rollout, and keep a host
 that refuses the sandbox out of service until its runtime is qualified.
 
 **At capacity.** The worker answers `503 RENDER_BUSY` with `Retry-After` at once, with no internal
-queue, so saturation stays visible to the autoscaler. Readiness follows the browser, not capacity:
-a full worker stays ready, its `/readyz` reports `atCapacity: true`, and a job already under way
+queue, so saturation is visible to the autoscaler. Readiness follows the browser, not capacity:
+a full worker is still ready, its `/readyz` reports `atCapacity: true`, and a job already under way
 can still make its next call, such as the raster of the SVG it has just rendered. Its concurrency, timeouts and startup budget are set in its own environment (see
 [Render worker](#render-worker)); on Helm, `renderWorker.maxConcurrent` and
 `renderWorker.browserStartupTimeoutMs` set the first and the last. The worker HMAC key and the C2PA private key are secrets; see
@@ -620,7 +620,7 @@ instance without one sends no purge tags and makes no provider calls.
 | `providers[].options` | - | Bunny: `pullZoneId`, `regions` (`["europe"]` or absent). Cloudflare: `zoneId`, `plan` (`free` default, `pro`, `business`, `enterprise`) |
 | `providers[].jurisdiction` | - | facts you state about the provider; they fill what Lolly Work cannot know and never contradict what it does know |
 
-A configuration that breaks the jurisdiction rule, carries an unknown key or marks the
+A configuration that breaks the jurisdiction rule, has an unknown key or marks the
 instance's own hostname `publicOnly` stops the server at boot. See [Put a CDN in front of Lolly Work](edge-cdn.md)
 for the rule, the settings that must stay off on each provider, purges and the probe.
 
@@ -655,7 +655,7 @@ An unknown key or an impossible limit stops the server at boot.
 ## `submit`
 
 The instance-side half of catalog submit: a single optional pre-store scan hook. Everything an
-*org* tunes about submit lives under `policy.submit` above; this block is operator-only and
+*org* tunes about submit is under `policy.submit` above; this block is operator-only and
 never reaches the policy-as-code document or any shell.
 
 | Key | Default | What it does |
@@ -686,7 +686,7 @@ finishes](renders.md#be-told-when-a-render-finishes).
 
 ## `notify`
 
-Notification egress. Absent (the default) means dormant: zero egress. Sends only to
+Notification egress. Absent (the default) means zero egress. Sends only to
 endpoints you configure, never phone-home; delivery is fire-and-forget, so an unreachable
 relay never fails or slows a request. What gets sent, and to whom, is written up in
 [operations](operations.md#notifications).
@@ -714,12 +714,12 @@ Every page and answer says so: the request page says the instance does not send 
 the console never shows "Emailed" for a mail that did not go.
 :::
 
-Email turns on only when all three hold: `people.email` is `true`, `smtp` is set, and the
+Email turns on only when all three are true: `people.email` is `true`, `smtp` is set, and the
 server's mail sender can confirm that the relay accepted each message. This release's sender
 sends and forgets, so it cannot confirm.
 
 Still to be built: that confirming sender; plain-text mails sent as "Ana via Example Studio"
-from the `smtp.from` address, which never carry text a person wrote (such as a request note) and
+from the `smtp.from` address, which never include text a person wrote (such as a request note) and
 end with "Not expecting this? You can ignore this email." and a link to stop emails from the
 instance; and caps of 50 invitation emails a day per inviter, one email per address a day, and
 one per request to each approver.
@@ -851,7 +851,7 @@ The release notice. Owners and admins see one in the console when a newer Lolly 
 published, with the upgrade steps for how this instance was installed
 ([upgrade](platform-deployment.md#upgrade)). For it, the server reads the published chart
 repository index once a day, at a random time, and when an admin presses **Check now** on
-**Settings**. It is the same plain request any `helm repo update` makes, and it carries nothing
+**Settings**. It is the same plain request any `helm repo update` makes, and it includes nothing
 about this instance or its people. The index is not signed, so the notice is information only; the
 upgrade steps check the chart's own signature. Lolly Work never upgrades itself.
 
@@ -904,7 +904,7 @@ requests. They do not define the identity provider or delivery destination polic
 
 **Config-managed entries.** Deploy-time (GitOps / air-gap) provider entries, upserted at boot as `managedBy: 'config'`
 and read-only in the API. Each entry: `id` (lowercase, dash-separated), `kind`, `label`,
-optional `credentialRef` (the *name* of the env var holding the secret), `enabled`,
+optional `credentialRef` (the *name* of the env var with the secret), `enabled`,
 `options`, `mapping`, `exposure`, `sync`. Duplicate ids, unknown kinds and missing labels
 are startup errors. A provider's `sync.maxAssets` (a whole number) caps how many assets one
 sync federates from that provider. See [catalog](catalog.md).
