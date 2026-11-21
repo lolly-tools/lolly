@@ -1,8 +1,6 @@
 # Design-system administration
 
-This page is for the owner or admin who chooses which design system a Lolly Work deployment
-serves, replaces or retires one, and connects its published rules to tools. Members' apps and
-server renders all use the one design system you select here.
+Members' apps and server renders all use the one design system you select here.
 
 Two words matter on this page:
 
@@ -41,7 +39,7 @@ replaces the selected design system ([Partner kits](partner-programmes.md#partne
 
 ### Offer a second design system
 
-A source's catalog can carry a second design system for members to try, so they can switch to it in
+A source's catalog can include a second design system for members to try, so they can switch to it in
 **Settings → Design systems** without a second deployment. The selected source stays the default on a
 fresh browser and keeps its lock. The choice is per browser and is not stored on the server, and
 members who never choose it see no difference. No setting here turns this on: it comes from the
@@ -120,7 +118,7 @@ lw brand apply download-review.json
 
 Someone with `brand.edit` can change this instance's colours, colour roles and brand page address
 in Lolly and send the result. Lolly Work serves it with no pack rebuild, no redeploy and no terminal.
-Admins and owners hold `brand.edit`, and so does the `brand-manager` role
+Admins and owners have `brand.edit`, and so does the `brand-manager` role
 ([Roles and grants](permissions.md#roles)).
 
 1. Open the design system in Lolly. A managed system stays read-only, and this person also sees
@@ -134,7 +132,7 @@ page address. A document that changes anything else is refused, and the answer s
 Type, logos, tools and anything else still go through the source: edit the mounted source, build
 and validate the catalogue, build the signed release and pack, redeploy every replica, upload a new
 signed connect pack, review rule mappings again and republish the brand page. Changes in the copy
-that an edit cannot carry stay on your device, and the sheet says so.
+that an edit cannot include stay on your device, and the sheet says so.
 
 Each send is an immutable revision with a digest, who sent the revision and when. **This Deploy →
 Design system** shows whether the instance is serving an edit, the history, what each revision
@@ -159,19 +157,19 @@ does it, stays yours.
   A person must make the request, so a service token gets `403 HUMAN_APPROVAL_REQUIRED`. With this off,
   an edit goes live when it is sent.
 - **After a new image, ask someone to look at this instance's edits.** The edit stays live meanwhile.
-  People who hold `brand.edit` get a message and can keep the edit or roll it back. With this off, the
+  People who have `brand.edit` get a message and can keep the edit or roll it back. With this off, the
   console shows a quiet note and nobody is asked.
 
 ### After a new image
 
-An edit records the tokens the image held when the edit was made. A new image with the same tokens changes nothing.
+An edit records the tokens the image had when the edit was made. A new image with the same tokens changes nothing.
 When the tokens differ, the edit's changes apply to the new document:
 
 - **The edit stays on top.** The new image's other changes come through, and the console shows a quiet
   note. If the image and the edit changed the same thing, the note lists that, and the edit wins.
 - **An edit that can no longer apply is not half applied.** If something it changes has gone, such as a
   colour, a colour role or an alias target, Lolly Work serves the new image's own tokens, whole. The console
-  lists what has gone, and people who hold `brand.edit` get a message whichever way the switch is set.
+  lists what has gone, and people who have `brand.edit` get a message whichever way the switch is set.
   The revision stays in the history. Send a new edit, or choose **Clear this edit**.
 - **A stored edit that cannot be read** serves the image's own colours, and the console says so. The edit
   comes back when storage can be read.
@@ -198,10 +196,10 @@ that route, so Lolly compares the tokens with the catalogue's checksum and the r
 
 ### Edits and the connect download
 
-A connect pack holds a copy of the tokens, so the pack you uploaded no longer matches once an edit is
+A connect pack has a copy of the tokens, so the pack you uploaded no longer matches once an edit is
 live. Offering that pack would put the old colours back on every device that imports the pack.
 
-**A pack this instance's key signed** carries the edit in a derived copy: the token document changes,
+**A pack this instance's key signed** gets the edit in a derived copy: the token document changes,
 Lolly Work signs the result with the same key and every other part keeps its bytes. The pack you uploaded is
 kept. A derived copy is made only when an edit goes live, never for one awaiting approval, and a
 rollback brings your pack back.
@@ -222,7 +220,7 @@ Build instance packs with Lolly's `scripts/build-instance-pack.ts`. Lolly Work c
 address and the opaque tokens document against the selected source, and keeps the uploaded
 archive bytes exactly as they are: signed bytes are never rewritten. Verifying the signature is
 the importing client's job, and Lolly Work's `signed` flag only reports that `pack.sig` is present.
-Unsigned uploads are allowed only in development mode. Under a live edit, a pack may hold either the
+Unsigned uploads are allowed only in development mode. Under a live edit, a pack may have either the
 image's own tokens or the edited ones ([Edits and the connect download](#edits-and-the-connect-download)).
 
 - Changing the default withdraws a download bound to another source or source revision. Upload a
@@ -283,7 +281,7 @@ interface restrictions.
 **What a member sees.** A confirmed required violation blocks the output. Missing required facts
 produce a visibly marked **DRAFT**, for synchronous, durable, batch and earlier job renders alike.
 Durable output metadata records the rule disposition, the `runtime-inputs` scope and the revision,
-and downloads carry `x-lolly-brand-check` and a draft filename. Reports bind to the output receipt
+and downloads include `x-lolly-brand-check` and a draft filename. Reports bind to the output receipt
 and include the rule results.
 
 A checked input report is not a visual or brand approval: pixel colours, actual font rendering,
@@ -367,7 +365,7 @@ and examples. Agents and other tools read the same facts from the files beside t
 serves a folder that Lolly made. It does not make pages, so it needs no engine update for this feature.
 
 Brand pages are off by default. With `brandPages.enabled` off, every brand page route answers as if the feature
-were not there. [`brandPages`](configuration.md#brandpages) holds the limits.
+were not there. [`brandPages`](configuration.md#brandpages) has the limits.
 
 ```bash
 lolly system publish --out ./brand-page      # in Lolly: make the folder
@@ -417,7 +415,7 @@ sandbox allow-same-origin allow-downloads allow-popups allow-popups-to-escape-sa
 ```
 
 Every other file, SVG included, gets the same inert headers as other stored bytes. The media type comes from the file
-name, never from the manifest. Answers carry an `ETag`, and every view checks that it still has the current file, so
+name, never from the manifest. Answers have an `ETag`, and every view checks that it still has the current file, so
 an unpublish takes effect at once. Other sites may read the files, but not the page, with `Access-Control-Allow-Origin: *`.
 
 ### Revisions and unpublishing
@@ -438,7 +436,7 @@ shared origin `/.well-known/` belongs to the web shell, so the route tables in t
 to the server. A proxy you write yourself needs the same rule, and if it has none, use the address under `/api/v1`.
 
 The route tables also send `/brand/<id>` and everything under that path to the server, and they leave the bare `/brand`
-page and its own files to the web shell. A page id never holds a dot, so these paths never overlap.
+page and its own files to the web shell. A page id never has a dot, so these paths never overlap.
 
 ### The read-only MCP endpoint
 

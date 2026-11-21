@@ -34,7 +34,7 @@ Start in audit mode, with curated image verification policies:
 - the [secure supply chain guidance](https://docs.kubewarden.io/admission-controller/1.38/en/howtos/security-hardening/secure-supply-chain.html)
   for policy and image provenance;
 - Lolly's own publisher identity, configured separately from the Application Collection
-  publisher. The [Kubewarden policy set for Lolly Work](admission-policy.md) carries it, with
+  publisher. The [Kubewarden policy set for Lolly Work](admission-policy.md) includes it, with
   the pod requirements and a preflight check.
 
 ::: warning Test failure before you enforce
@@ -101,7 +101,7 @@ A platform qualification record should list:
 - measured memory, execution deadline, cancellation and concurrency limits;
 - tests for malformed input, tenant isolation, restart, drain and rollback.
 
-SUSE image trust stays useful for host services and dependencies, but a generic Wasm
+SUSE image trust is still useful for host services and dependencies, but a generic Wasm
 component is not automatically an Application Collection artifact or a Rancher-supported
 runtime. Check the actual support matrix of the product you choose.
 

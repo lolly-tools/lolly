@@ -6,7 +6,7 @@ This page is for the developer or admin who renders images through Bannerbear or
 Every adapter on this page comes from each vendor's public documentation and from fixtures built from those docs. None has been run against a real Bannerbear or Placid account. If you hold an account, the [check list](#check-it-on-your-own-account) takes under an hour, and it is the check that counts for your move.
 :::
 
-[Lolly and rendering APIs](/info/compare-render-apis.html) compares the services. This page is the how.
+[Lolly and rendering APIs](/info/compare-render-apis.html) compares the services.
 
 **What you'll do**, in four steps:
 
@@ -42,11 +42,11 @@ export BANNERBEAR_KEY=...
 lw render-api inventory --from bannerbear-v5 --token-env BANNERBEAR_KEY --out ./move
 ```
 
-`--from` takes `bannerbear-v5`, `bannerbear-v2` or `placid`. The key is read from the environment variable you name, goes only to the vendor's API host, and is never printed. The folder holds:
+`--from` takes `bannerbear-v5`, `bannerbear-v2` or `placid`. The key is read from the environment variable you name, goes only to the vendor's API host, and is never printed. The folder has:
 
 - `inventory.json`: every template and its layers.
 - `coverage.md`: what maps, what does not and why, one table per template.
-- `templates/`: each template's raw record. For Bannerbear V5 this holds the design.
+- `templates/`: each template's raw record. For Bannerbear V5 this includes the design.
 - `previews/`: each preview picture. Your key is not sent with these downloads.
 - `mappings.draft.json`: a first mapping to review.
 
@@ -75,7 +75,7 @@ lw render-api sample --from placid --template ospo24ysn --token-env PLACID_KEY \
 lolly import ./move/templates/6EZ9nQX0lzpWwqAgzB.json --output=design.json --mapping=mapping.json
 ```
 
-You can also open the JSON in [Design Import](/info/design-import.html#bannerbear-templates). Text, rectangles, circles and image containers become editable layers, and the report names everything left out. Check the result against the preview, then make it a tool with [Share with rules](/info/create-a-tool.html). `--mapping` writes the entry below with the final input ids, so prefer it to the draft for this source.
+You can also open the JSON in [Design Import](/info/design-import.html#bannerbear-templates). Text, rectangles, circles and image containers become editable layers, and the report lists everything left out. Check the result against the preview, then make it a tool with [Share with rules](/info/create-a-tool.html). `--mapping` writes the entry below with the final input ids, so prefer it to the draft for this source.
 
 **Bannerbear V2 and Placid.** Their APIs return field names and a preview, not a design, so nothing can import the layout. Rebuild each template as a tool, by hand or with an agent, with the preview in view. Keep one input per field in `coverage.md`.
 
@@ -108,11 +108,11 @@ A mapping says which tool serves a vendor template, and which input each vendor 
 
 - **`layers`** gives each layer and property, then the input. Request-level fields use the pseudo layers `$request`, `$template` and `$modifications`, for example `"$modifications": { "width": "width" }`.
 - **`ignore`** lists properties you have decided to drop, as `layer.property`.
-- **`fixed`** holds inputs this template always sends, whatever the request says.
+- **`fixed`** has inputs this template always sends, whatever the request says.
 
 **A property the mapping does not name is refused by name**, with `422 PROPERTY_NOT_MAPPED` and the list. Nothing a client sends is dropped silently, so a surprise shows up as an error during testing rather than as a wrong image later.
 
-Check a mapping against this instance before you rely on it:
+Before you rely on a mapping, check it against this instance:
 
 ```bash
 lw render-api check --mapping mapping.json
@@ -162,9 +162,9 @@ Set `LW_RENDER_API_URL_SECRET` as well, for result URLs. Then change the base UR
 | `https://api.placid.app/api/rest/images` | `https://work.example.com/compat/placid/api/rest/images` |
 | `https://api.placid.app/u/{uuid}` | `https://work.example.com/compat/placid/u/{uuid}` |
 
-Authentication is the same header, `Authorization: Bearer`, carrying a [service token](enterprise-identity.md#service-tokens) with the `render` scope. A person's session is refused. Everything runs as a [durable render](renders.md), so tool visibility, input policy, validation and audit apply, and a locked input is refused at submission with `INPUT_LOCKED`. Every response keeps the vendor's fields and adds a `lolly` member with the record id and render ids.
+Authentication is the same header, `Authorization: Bearer`, containing a [service token](enterprise-identity.md#service-tokens) with the `render` scope. A person's session is refused. Everything runs as a [durable render](renders.md), so tool visibility, input policy, validation and audit apply, and a locked input is refused at submission with `INPUT_LOCKED`. Every response keeps the vendor's fields and adds a `lolly` member with the record id and render ids.
 
-Move one template at a time, because a template that has no mapping answers `404` here while the vendor keeps serving that template. Send each client to whichever host holds its template, and keep the vendor account until the last one has moved and the references are safe.
+Move one template at a time, because a template that has no mapping answers `404` here while the vendor keeps serving that template. Send each client to whichever host has its template, and keep the vendor account until the last one has moved and the references are safe.
 
 <!--i:eti-checklist-->
 ## What runs and what is refused
@@ -188,12 +188,12 @@ Formats depend on the deployment: JPG and PDF need the [render worker](configura
 `webhook_url` and `webhook_success` post the vendor's object when the render finishes, through the same durable outbox as native callbacks, with the same retries. A failed render sends the object too, with its failed status.
 
 - List the receiver's origin in `automation.callbacks.allowedOrigins` and set `LW_WEBHOOK_SECRET`. Any other URL is refused with `403 CALLBACK_URL_NOT_ALLOWED`.
-- Each post also carries `x-lolly-signature`, `x-lolly-timestamp` and `x-lolly-delivery-id`, so a receiver can start checking them. Neither vendor documents signing for these webhooks, so a receiver that ignores the headers still works.
+- Each post also includes `x-lolly-signature`, `x-lolly-timestamp` and `x-lolly-delivery-id`, so a receiver can start checking them. Neither vendor documents signing for these webhooks, so a receiver that ignores the headers still works.
 
 <!--i:eti-lock-->
 ## Result URLs
 
-Clients built for hosted APIs store a result URL and embed it, so `image_url` and `files` hold signed URLs that need no token. This is a tradeoff, and the opposite of what [job result tokens](automation-api.md#callbacks) do, which moved out of URLs because a URL ends up in logs.
+Clients built for hosted APIs store and embed a result URL, so `image_url` and `files` are signed URLs that need no token. This is a tradeoff, and the opposite of what [job result tokens](automation-api.md#callbacks) do, which moved out of URLs because a URL ends up in logs.
 
 ::: warning Treat a result URL as a secret
 **The URL is the credential.** Anyone holding it can fetch the file until it expires. **Revoking a token does not revoke its URLs.** Delete the records as well.

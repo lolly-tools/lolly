@@ -153,6 +153,8 @@ class ComposedHost implements DockHost {
   get repeat(): DockRepeat | undefined { return this.musicSrc?.repeat; }
   get volume(): DockVolume | undefined { return this.musicSrc?.volume; }
   get volumes(): DockVolume[] | undefined { return this.musicSrc?.volumes; }
+  /** One controls popover on the speaker button, when the music source asks for one. */
+  get controlsPopover(): boolean | undefined { return this.musicSrc?.controlsPopover; }
   /** The current source's own controls (a Lofi station's mood, drums, texture, share). */
   controls(): DockControl[] { return this.musicSrc?.controls?.() ?? []; }
 

@@ -1,7 +1,6 @@
 # Approvals
 
-This page is for the admin who sets up who reviews what in Lolly Work, and for reviewers who
-act on requests. An approval chain is an ordered list of steps, and each step gives the groups
+An approval chain is an ordered list of steps, and each step gives the groups
 who may approve it and a rule for when it is done. Chains are kept simple: no workflow
 engine, no branching graph and no parallel steps.
 
@@ -42,7 +41,7 @@ Chains apply to work in these places:
 
 - **Catalog submissions** go through the chain that `policy.submit.chain` gives
   ([catalog](catalog.md#submitting-an-asset)).
-- **A tool's exports** go through the chain its policy names in `enforce.escalation`
+- **A tool's exports** go through the chain its policy sets in `enforce.escalation`
   ([review an exported file](#review-an-exported-file)).
 - **Brand page revisions** wait on the chain `brandPages.approvalChain` gives
   ([host a brand page](design-system-administration.md#who-may-publish)).
@@ -66,7 +65,7 @@ version, and existing requests keep the snapshot they were submitted under.
 ### Who may act
 
 Acting needs `approval.act` **and** membership of the step's approver groups, subject to
-separation of duties. The `approver` role carries `approval.act`. A custom reviewer group whose
+separation of duties. The `approver` role has `approval.act`. A custom reviewer group whose
 members have only the member role needs an explicit allow grant, for example `approval.act` on
 `chain:brand-review`, and a deny still wins ([Roles and grants](permissions.md)). Nomination
 choices, new nominations, notifications and the generic inbox also respect these permissions.
@@ -104,7 +103,7 @@ These are enforced in code and covered by tests:
   eligibility, so they always get the specific reason (`SEPARATION_OF_DUTIES`).
 - **Eligibility by group.** An actor's groups must overlap the step's approver groups
   (`NOT_ELIGIBLE`). Nomination is routing and notification, not exclusivity: any eligible
-  member of the team may act, and nominees just get a notice.
+  member of the team may act, and nominees only get a notice.
 - **No step is skippable.** A step completes by its rule, then the next one starts; the whole
   approval is `approved` only after the last step.
 - **A reject is terminal.** `onReject: 'return-to-submitter'` means the submitter opens a
@@ -125,7 +124,7 @@ download is that file, with a signed record of the approval added when the reque
 
 **Set it up.** Choose an approval chain for the tool in its policy (**Approval chain for exports**
 in the console, or `enforce.escalation`). To route a group's exports through review, deny them
-`export.download`; a member who holds `export.request` then sees **Request approval** in place of
+`export.download`; a member who has `export.request` then sees **Request approval** in place of
 Download.
 
 ::: note Review guides the work and does not contain it
@@ -150,7 +149,7 @@ hold: **Request approval**, then **In review**, then **Download approved file**,
 that gives the file, such as "Approved Nov 5, 2026. SVG, 600 × 600."
 
 Change an input, the format, the width or the height and the control goes back to **Request approval**, and the line below reads "Changed since approval." with
-**See request**, which still holds the approved file. A new request at the new size shows **In
+**See request**, which still has the approved file. A new request at the new size shows **In
 review**, and going back to the approved size offers that file again. A rejected request says "Not
 approved." with **See why**. Download approved file fetches the stored bytes and runs no export, so
 the file is the one that was reviewed.
@@ -162,22 +161,22 @@ format alone and its line gives no size.
 
 Requests you can decide and decisions on your own requests appear in the app's notifications.
 **Review** opens the file, its facts, a comment, **Approve** and **Reject**, under the same rules as
-the console, which stays the place for chains and history. A saved session with a request shows
+the console, which is the place for chains and history. A saved session with a request shows
 **In review** or **Approved** on its card in Projects and in its info sheet.
 
-The app shows this queue and sheet to anyone who holds `export.request` or `approval.act`, including
+The app shows this queue and sheet to anyone who has `export.request` or `approval.act`, including
 a grant on one chain alone. This only tells the app to look: the routes still decide who may read a
 file, request or act.
 
 **Add to project** on an approved request puts the file in a project. A device folder keeps a
 reference to your own copy in Assets, and that copy links back to the request. A shared project
-receives a file copy, which does not carry the link. Neither reaches the organisation catalog.
+receives a file copy, which does not include the link. Neither reaches the organisation catalog.
 
 **Record the approval in the file.** When this server has a [signing identity](c2pa.md), the dialog
 offers **Record this approval in the file's Content Credentials**, ticked. The reviewed bytes stay
 frozen. When the request is approved, the approved file is those bytes plus a signed credential
 update, with the reviewed file's credential as its parent. The update records three facts: the
-approval id, the date of the decision and the reviewed file's SHA-256. It holds no names, emails,
+approval id, the date of the decision and the reviewed file's SHA-256. It has no names, emails,
 groups, comments or chain names. Like any credential, it also states the signer, the signing time
 and the steps opened and published. The artwork does not change.
 
@@ -206,7 +205,7 @@ The record is written only when all of these hold, and the card says which one d
 Work says **recorded** only after reading the update back: the credential is intact, the record says
 what was asked and the bytes outside the credential match the reviewed file. In every other case the
 approved file is the reviewed file. A PDF keeps the reviewed file as an exact prefix, with the update
-as one more incremental revision. A PDF that holds other attachments is left as reviewed.
+as one more incremental revision. A PDF that has other attachments is left as reviewed.
 
 **What the record holds.**
 
@@ -220,7 +219,7 @@ as one more incremental revision. A PDF that holds other attachments is left as 
 - The fingerprint a decision is bound to, and the actions taken.
 
 **What a request does and does not add to the file.** Asking for a review adds nothing. The reviewed
-file holds what the export wrote, including any Content Credentials or Lolly Imprint turned on at the
+file has what the export wrote, including any Content Credentials or Lolly Imprint turned on at the
 export bar, and Work adds no watermark. An experimental tool keeps its usual mark, so the reviewer
 sees the artwork as it will leave.
 
@@ -302,7 +301,7 @@ form requests a review of one selected instance file; the API supports bounded s
 ## Watermarking preview output
 
 An overlay can set `enforce.watermark: 'until-approved'` and pair it with a chain. Server renders of
-that tool then carry the PREVIEW pattern until a request for the same tool version, format and input
+that tool then show the PREVIEW pattern until a request for the same tool version, format and input
 values is approved. An approved match lifts the pattern everywhere, including share links. Work adds
 no PREVIEW pattern to the file under review itself, because that is the file being approved. [A watermark that follows approval](governance.md#a-watermark-that-follows-approval)
 has the rule and its limits.
@@ -312,7 +311,7 @@ has the rule and its limits.
 
 `POST /api/v1/approvals/match` tells a signed-in person the state of a tool, a format and a set of
 input values, so an app can show the right action on its export bar. Send
-`{ toolId, format, query }`, with the inputs as a URL-mode query. The answer holds no file and no
+`{ toolId, format, query }`, with the inputs as a URL-mode query. The answer has no file and no
 values, and Work keeps none of the values you send.
 
 | `state` | Meaning |

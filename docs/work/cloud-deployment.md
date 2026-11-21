@@ -223,7 +223,7 @@ Use TCP liveness for frequent checks and signed-in HTTP readiness for meaningful
 service checks, and keep container logs bounded. Collect `/metrics` with its token, along with
 database and disk pressure, render queue failures, source sync health and agent
 activity, without recording access tokens or document bodies. A deploy counts as
-successful only after a restore and rollback rehearsal, not just healthy processes.
+successful only after a restore and rollback rehearsal, not healthy processes alone.
 
 Before moving asset bytes to object storage, compare the provider's feature list with
 the asset driver and your backup needs. Evroc documents its

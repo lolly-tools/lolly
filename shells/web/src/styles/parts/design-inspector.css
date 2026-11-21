@@ -192,6 +192,24 @@
 .fc-insp-area > span { color: var(--ui-color-text-muted); }
 .fc-insp-area textarea { width: 100%; box-sizing: border-box; resize: vertical; }
 
+/* A labelled door (Size) lines up with the field rows around it. A `.lp-row`
+   reserves a glyph cell before its label; a door has no glyph, and the empty
+   cell pushed "Size" in from the other labels. The door row is drawn without
+   the cell (design-inspector.ts doorRow), so its label takes the width a
+   `.fc-row` label does and the door starts on the fields' x. */
+.fc-insp .lp-row.fc-insp-door:not(.lp-row--wide) {
+  grid-template-columns: calc(var(--lp-label) + var(--ui-size-icon-sm) + var(--sp-2)) minmax(0, 1fr);
+  column-gap: var(--ui-space-control-inline);
+}
+/* panel.css places a label in the second track and a control in the third. */
+.fc-insp .lp-row.fc-insp-door:not(.lp-row--wide) > .lp-label { grid-column: 1; }
+.fc-insp .lp-row.fc-insp-door:not(.lp-row--wide) > .lp-control { grid-column: 2; }
+
+/* One corner for every control in the column. A select and a colour swatch take
+   the app's field radius while a door and a number field took the panel's
+   smaller one, so three controls in one section had three shapes. */
+.fc-insp :is(.lp-door, .fc-cbtn, .num-field) { border-radius: var(--ui-radius-panel); }
+
 /* A door onto something that is not a field: the picker, the timeline. Full width,
    left-aligned, so it reads as a row rather than a stray button. */
 .fc-insp-door .fc-cbtn { width: 100%; justify-content: flex-start; gap: var(--sp-2); }
@@ -373,20 +391,15 @@
   .fc-insp :is(input:not([type="checkbox"]):not([type="range"]), select, .num-field, .color-trigger, .emoji-style-control button) { min-height: 44px; }
 }
 
-/* The Selection / Document route switch rides the panel rail's chip anatomy
-   (panel.css `.lp-rail`). Two differences, and only two: these two share the
-   width because there are exactly two of them and neither is the default, and
-   they carry aria-pressed rather than aria-current because they are a toggle
-   pair rather than a scroll position. */
-.fc-insp-tabs button { flex: 1 1 0; justify-content: center; }
-.fc-insp-tabs button[aria-pressed="true"] {
-  background: var(--ui-color-selection-surface);
-  color: var(--ui-color-text-default);
-}
+/* The Selection / Canvas switch is the panel's segmented control (panel.css
+   `.lp-seg`, drawn by lib/seg.ts). This wrapper only places the control: the
+   column's gutter on each side and the full width, so the two halves are equal. */
+.fc-insp-tabs { flex: none; display: flex; padding: var(--sp-2) var(--sp-3); }
+.fc-insp-tabs > .lp-seg { flex: 1 1 auto; }
 .fc-insp-scroll > .fc-row { padding: 8px 12px; }
 .fc-insp details > summary { cursor: pointer; padding-block: 8px; }
 @media (any-pointer: coarse) {
-  .fc-insp-tabs button, .fc-insp details > summary { min-height: 44px; }
+  .fc-insp-tabs .lp-seg > button, .fc-insp details > summary { min-height: 44px; }
   .fc-insp .emoji-style-control button, .fc-insp .badge-select-opt { min-height: 44px; min-width: 44px; }
 }
 

@@ -422,7 +422,7 @@ export function strayaBirds(plan: StrayaPlan, at: BirdBar, notes: LofiNote[]): v
 // ── the didgeridoo's cameo in the bass genres ────────────────────────────────
 
 /** The bass genres the didgeridoo now and then turns up in, over or between the bass stacks. */
-export const DIDGE_CAMEO = new Set(['dubstep', 'brostep', 'dnb']);
+export const DIDGE_CAMEO = new Set(['dubstep', 'brostep', 'dnb', 'dnbJump', 'dnbDark', 'dnbRave']);
 
 /** Where a tune's cameo falls: in a drop (the first or the second) at a phrase's end, or in the breakdown's middle; or none. */
 export interface Cameo { section: 'drop' | 'break'; alt: boolean; bar: number; /** A Yidaki's kind. */ kind: number; figure: number; second: boolean }

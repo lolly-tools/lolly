@@ -1,7 +1,5 @@
 # Security & Verification
 
-This page is for security reviewers. It covers the standards Lolly implements, the primitives it uses, how a file earns the word "trusted", how all of it is tested and where the guarantees stop.
-
 The short version: **verification runs entirely on the device, the cryptography is standards-based and built on the platform's own WebCrypto, and every claim is backed by a test**: known-answer vectors, adversarial forgery and replay tests, fuzzing and conformance against independent tools.
 
 <!--i:eti-monitor-->

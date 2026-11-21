@@ -47,10 +47,10 @@ licence gate on, a render that uses a missing file is refused.
 DAM, and everything inside it, to the programme or to one company in it, until an optional end
 date. Its people then get those files even when the source is otherwise for your own people, and
 nothing else from that source. Choose the source, then the folder: the list shows every folder the
-source's last sync found, with how many files each holds.
+source's last sync found, with how many files each has.
 
 Nothing is chosen at first, and **All of it** comes last, so pressing the button without looking
-never gives the whole source away. When the folder you choose holds other folders, the line above
+never gives the whole source away. When the folder you choose has other folders, the line above
 the button lists them, so you can check what comes with your choice before you press the button.
 When the end date passes, the files go at once. When you give a folder, the form says how many of
 its files record no licence.
@@ -142,7 +142,7 @@ here.
 ### 2. Give the programme its tools and logos
 
 **Console.** Open **Choose what they get**. Tick the tools, here **Certificate** and **QR Code**,
-and the **Logos for partners** collection, which holds the logos the data sheet uses.
+and the **Logos for partners** collection, which has the logos the data sheet uses.
 
 **`lw`.** A collection reaches the programme when its groups include the programme's group:
 
