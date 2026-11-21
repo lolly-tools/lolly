@@ -18,8 +18,8 @@ export function compactDesignViewport(): boolean {
 /**
  * Design's phone panel: the inspector and the layers list as the two tabs of the tool
  * view's drop-down panel (views/design-phone-panel.ts). The phone layout only, read the
- * way every tool's drop-down panel reads it (phoneLayoutQuery: the width at once, two
- * panes once settled), so a landscape phone or a small tablet keeps the compact bottom
+ * way every tool's drop-down panel reads it (phoneLayoutQuery: the width now, less
+ * two panes), so a landscape phone or a small tablet keeps the compact bottom
  * sheets, two panes keep the control pane, and a window narrowed to a phone gets the
  * panel in the same frame rather than a bottom sheet first.
  */

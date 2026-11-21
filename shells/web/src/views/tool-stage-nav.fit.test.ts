@@ -250,6 +250,27 @@ test('a Fit-all is not a view the user chose - isUserZoomed stays false, a gestu
   } finally { h.teardown(); }
 });
 
+test('the app bringing the selection into view is not a view the user chose', () => {
+  // Design's phone panel asks for this as it opens. Marked as the person's own view, the
+  // framing outlived the phone layout: an unfolded foldable kept the phone's zoom.
+  const big: Rect = { x: -200, y: 0, w: 1600, h: 540 };
+  const fitted = mount([{ x: 0, y: 0, w: 960, h: 540 }], big);
+  try {
+    fitted.nav.fit();
+    fitted.stage.dispatchEvent(new dom.window.Event('fc-reveal-selection'));
+    assert.equal(fitted.nav.isZoomed(), true, 'the selection was framed');
+    assert.equal(fitted.nav.isUserZoomed(), false, 'and the next change of stage size may frame the work again');
+  } finally { fitted.teardown(); }
+
+  const zoomed = mount([{ x: 0, y: 0, w: 960, h: 540 }], big);
+  try {
+    press('=');
+    assert.equal(zoomed.nav.isUserZoomed(), true);
+    zoomed.stage.dispatchEvent(new dom.window.Event('fc-reveal-selection'));
+    assert.equal(zoomed.nav.isUserZoomed(), true, 'a view the person chose stays theirs');
+  } finally { zoomed.teardown(); }
+});
+
 test('Shift+2 zooms to the selection; with nothing selected it consumes the key and holds still', () => {
   const h = mount([{ x: 0, y: 0, w: 960, h: 540 }], { x: 400, y: 300, w: 100, h: 60 });
   try {

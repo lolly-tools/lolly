@@ -9,7 +9,9 @@
  * The sizes are the plan's test matrix: an iPhone Duo inner screen (626 x 890 and
  * 890 x 626), its outer screen (466 x 678), a book-style Android inner screen
  * (about 790 x 820), plus the cases that must NOT change: a phone, a tablet, and a
- * mouse-driven desktop window. As with the accessibility preferences, the invariant
+ * mouse-driven desktop window. The fold cases use the sizes measured on the iPhone
+ * Duo simulator, 951 x 669 open and 466 x 678 shut, and the order of events its
+ * WebKit sends. As with the accessibility preferences, the invariant
  * that matters most is ADDITIVITY: outside split there is no attribute and no
  * custom property at all.
  */
@@ -265,7 +267,7 @@ test('window.__lollyFold at boot is read on start', () => {
   } finally { stop(); }
 });
 
-test('a resize is gathered, then decided once; a folded posture media query is read without the JS API', async () => {
+test('a resize is decided on the same turn; a folded posture media query is read without the JS API', () => {
   reset();
   size(1280, 800);
   coarse = true;
@@ -273,21 +275,21 @@ test('a resize is gathered, then decided once; a folded posture media query is r
   try {
     assert.equal(currentLayout().layout, 'desktop');
     size(890, 626);
+    let seenByALaterListener = '';
+    const later = (): void => { seenByALaterListener = currentLayout().layout; };
+    win.addEventListener('resize', later);
     win.dispatchEvent(new win.Event('resize'));
-    win.dispatchEvent(new win.Event('resize'));
-    assert.equal(currentLayout().layout, 'desktop', 'not yet: the burst is still settling');
-    await new Promise((r) => setTimeout(r, 120));
-    assert.equal(currentLayout().layout, 'split');
+    win.removeEventListener('resize', later);
+    assert.equal(seenByALaterListener, 'split', 'a view listening to the same resize reads the class of the new size');
     assert.equal(currentLayout().source, 'size');
     folded = true;
     size(823, 707);
     win.dispatchEvent(new win.Event('resize'));
-    await new Promise((r) => setTimeout(r, 120));
     assert.equal(currentLayout().posture, 'book');
   } finally { stop(); }
 });
 
-test('a window that can no longer hold two panes leaves them at once, with no settle', () => {
+test('a window that can no longer hold two panes leaves them at once, and one that can takes them at once', () => {
   reset();
   size(768, 1024);
   coarse = true;
@@ -300,10 +302,102 @@ test('a window that can no longer hold two panes leaves them at once, with no se
     assert.equal(root().hasAttribute('data-layout'), false);
     size(1440, 1000);
     win.dispatchEvent(new win.Event('resize'));
+    assert.equal(currentLayout().layout, 'desktop');
     size(768, 1024);
     win.dispatchEvent(new win.Event('resize'));
-    assert.equal(currentLayout().layout, 'phone', 'entering two panes still waits for the burst to settle');
+    assert.equal(currentLayout().layout, 'split', 'a wide window is never left out of two panes for a beat');
+    assert.equal(root().dataset.layout, 'split');
   } finally { stop(); }
+});
+
+// ── Open, folded, open: the class is a function of the window, not of its history ──
+
+/** The Duo's two screens, as its WebKit reports them. */
+const DUO_OPEN = [951, 669] as const;
+const DUO_SHUT = [466, 678] as const;
+
+/** A stand-in for `window.visualViewport`: an event target, which is all the module asks of one. */
+function installVisualViewport(): EventTarget {
+  const vv = new win.EventTarget();
+  Object.defineProperty(win, 'visualViewport', { value: vv, configurable: true });
+  return vv;
+}
+function removeVisualViewport(): void {
+  Object.defineProperty(win, 'visualViewport', { value: undefined, configurable: true });
+}
+const snapshot = (): string => JSON.stringify({ state: currentLayout(), layout: root().dataset.layout ?? null, posture: root().dataset.posture ?? null, fold: foldProps() });
+
+test('open, folded, open: the third layout is the first', () => {
+  reset();
+  size(...DUO_OPEN);
+  const stop = startLayoutPosture(win);
+  try {
+    const first = snapshot();
+    assert.equal(currentLayout().layout, 'split');
+    size(...DUO_SHUT);
+    win.dispatchEvent(new win.Event('resize'));
+    assert.equal(currentLayout().layout, 'phone');
+    assert.equal(root().hasAttribute('data-layout'), false);
+    size(...DUO_OPEN);
+    win.dispatchEvent(new win.Event('resize'));
+    assert.equal(snapshot(), first);
+  } finally { stop(); }
+});
+
+test('unfolding as WebKit reports the change: a size in between, then the last size with no window resize', () => {
+  reset();
+  const vv = installVisualViewport();
+  size(...DUO_OPEN);
+  const stop = startLayoutPosture(win);
+  try {
+    const first = snapshot();
+    size(...DUO_SHUT);
+    win.dispatchEvent(new win.Event('resize'));
+    assert.equal(currentLayout().layout, 'phone');
+
+    // Measured on the simulator: the window resize arrives, then the width goes back to
+    // the outer screen's for a moment, then the inner screen's size returns. The last
+    // two changes come with a visual viewport resize only.
+    const heard: string[] = [];
+    const listen = (): void => { heard.push(`${win.innerWidth}x${win.innerHeight}:${currentLayout().layout}`); };
+    win.addEventListener('resize', listen);
+    size(...DUO_OPEN);
+    win.dispatchEvent(new win.Event('resize'));
+    size(DUO_SHUT[0], DUO_OPEN[1]);
+    vv.dispatchEvent(new win.Event('resize'));
+    assert.equal(currentLayout().layout, 'phone', 'the size in between is a phone, and is followed too');
+    size(...DUO_OPEN);
+    vv.dispatchEvent(new win.Event('resize'));
+    win.removeEventListener('resize', listen);
+
+    assert.equal(snapshot(), first, 'the layout at rest is the one the app started with');
+    assert.deepEqual(heard, ['951x669:split', '466x669:phone', '951x669:split'],
+      'the rest of the shell hears a window resize for each size, with the class already decided');
+  } finally { stop(); removeVisualViewport(); }
+});
+
+test('folding as WebKit reports the change: the resize event carries a size in between', () => {
+  reset();
+  const vv = installVisualViewport();
+  size(678, 466);
+  const stop = startLayoutPosture(win);
+  try {
+    assert.equal(currentLayout().layout, 'desktop', 'the outer screen on its side is wider than a phone');
+    let resizes = 0;
+    const count = (): void => { resizes++; };
+    win.addEventListener('resize', count);
+    size(466, 466);
+    win.dispatchEvent(new win.Event('resize'));
+    size(...DUO_SHUT);
+    vv.dispatchEvent(new win.Event('resize'));
+    assert.equal(resizes, 2, 'one from the browser, one sent for the size the browser left out');
+    // A pinch zoom or a keyboard moves the visual viewport and leaves the window alone.
+    vv.dispatchEvent(new win.Event('resize'));
+    vv.dispatchEvent(new win.Event('resize'));
+    win.removeEventListener('resize', count);
+    assert.equal(resizes, 2, 'a visual viewport change at the same window size sends nothing');
+    assert.equal(currentLayout().layout, 'phone');
+  } finally { stop(); removeVisualViewport(); }
 });
 
 test('stop() takes every attribute back off <html>', () => {
@@ -331,6 +425,29 @@ test('phoneLayoutQuery: the 640px query, minus split', () => {
     assert.equal(isPhoneLayout(), false, '626px wide, but two panes, so not the phone layout');
     assert.equal(phoneLayoutQuery(win).matches, false);
   } finally { stop(); }
+});
+
+test('phoneLayoutQuery asks the window afresh: a query list held from before a resize is not believed', () => {
+  reset();
+  coarse = false;
+  // WebKit: a MediaQueryList keeps the answer it had before the resize for as long as
+  // the resize listeners run. This stub fixes each list's answer when the list is made.
+  const original = win.matchMedia;
+  const held = ((q: string) => {
+    const max = /max-width:\s*(\d+)px/.exec(q);
+    const matches = max ? win.innerWidth <= Number(max[1]) : false;
+    return { matches, media: q, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false };
+  }) as unknown as typeof globalThis.matchMedia;
+  win.matchMedia = held;
+  size(390, 844);
+  const stop = startLayoutPosture(win);
+  try {
+    const q = phoneLayoutQuery(win);
+    assert.equal(q.matches, true);
+    size(1280, 800);
+    win.dispatchEvent(new win.Event('resize'));
+    assert.equal(q.matches, false, 'the window is wide now, whatever the list from before says');
+  } finally { stop(); win.matchMedia = original; }
 });
 
 test('phoneLayoutQuery fires change when split arrives, and only on a real change', () => {
