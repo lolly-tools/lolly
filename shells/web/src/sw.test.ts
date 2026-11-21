@@ -439,6 +439,24 @@ describe('service worker: the boot set a first visit loaded (plan 371)', () => {
     assert.equal([...generation(h).entries.keys()].some(k => k.includes('/_app/')), false);
   });
 
+  test('the immutable routes match without Vary, and the hand-over never replaces a stored copy', async () => {
+    const h = loadServiceWorker();
+    await h.install();
+    const cache = generation(h);
+    const asked: unknown[] = [];
+    const match = cache.match.bind(cache);
+    cache.match = (req: { url?: string } | string, opts?: unknown) => { asked.push(opts); return match(req); };
+    // A copy the page stored itself (a module script request) is kept as it is.
+    cache.entries.set('https://lolly.tools/_app/web-boot-a1.js', 'stored by the page');
+    h.server.set('/_app/web-boot-a1.js', 'fetched again');
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/web-boot-a1.js'] });
+    assert.equal(cache.entries.get('https://lolly.tools/_app/web-boot-a1.js'), 'stored by the page');
+    assert.deepEqual(h.fetched, [], 'nothing fetched for a file already stored');
+    assert.equal(await subresource(h, 'https://lolly.tools/_app/web-boot-a1.js'), 'stored by the page');
+    assert.ok(asked.length >= 2 && asked.every(o => (o as { ignoreVary?: boolean } | undefined)?.ignoreVary === true),
+      'both the hand-over check and the cache-first route match with ignoreVary');
+  });
+
   test('a build file that redirects is never stored under the chunk address', async () => {
     const h = loadServiceWorker();
     await h.install();

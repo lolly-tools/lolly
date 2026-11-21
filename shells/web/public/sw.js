@@ -302,7 +302,8 @@ async function cacheBootSet(urls) {
     if (!wanted.includes(url.href)) wanted.push(url.href);
   }
   await Promise.all(wanted.map(async href => {
-    if (await cache.match(href)) return;
+    // Any copy already stored, whichever request stored it, stays: never replace it.
+    if (await cache.match(href, IMMUTABLE_MATCH)) return;
     try {
       // No redirects: a build file that redirects (to a sign-in page, say) is not that file,
       // and storing the page under the chunk's address would break every later load.
@@ -438,10 +439,18 @@ async function receiveShare(event) {
 // bucket the offline download manager fills - so a pre-downloaded install
 // serves every chunk/font offline even when this CACHE generation is fresh
 // and empty (immutable content-hashed filenames make the fallback safe).
+// The immutable routes match WITHOUT the response's Vary: a content-hashed build file or
+// an app font on this origin is the same bytes for every request. A host that answers
+// with `Vary: Origin` (vite preview does) would otherwise keep a copy stored from one kind
+// of request (the boot-set hand-over's plain fetch) from ever answering another (a module
+// script or a font, which carry an Origin header): the second visit missed, and offline
+// every boot file came back 503.
+const IMMUTABLE_MATCH = { ignoreVary: true };
+
 async function cacheFirst(event) {
   const { request } = event;
   const cache = await caches.open(CACHE);
-  const cached = await cache.match(request);
+  const cached = await cache.match(request, IMMUTABLE_MATCH);
   if (cached) return cached;
   const downloaded = await caches.match(request, { cacheName: APP_CACHE }).catch(() => undefined);
   if (downloaded) {
