@@ -211,7 +211,7 @@ Content Credentials and the Imprint are on by default, as in the app. They cost 
 How much bigger a QR code file gets than its bare render, for each mark.
 :::
 
-With both on, the file carries a statement of its origin that any C2PA reader can check. The statement names you if you have [set up an identity](/info/cli-signing.html). The mark survives a re-encode or a screenshot; a metadata credential does not. `--no-provenance` turns both off and gives the "bare" sizes below.
+With both on, the file carries a statement of its origin that any C2PA reader can check. The statement identifies you if you have [set up an identity](/info/cli-signing.html). The mark survives a re-encode or a screenshot; a metadata credential does not. `--no-provenance` turns both off and gives the "bare" sizes below.
 
 ::: details The measurements
 Measured in August 2026 on one machine (Apple silicon, Node tier, five runs per case, best to worst shown). Your numbers will differ; the pattern will not.

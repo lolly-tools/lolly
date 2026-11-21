@@ -1,6 +1,6 @@
 # JPEG XL
 
-Engine 1.213 adds still JPEG XL imports, exports and Convert operations through the same pinned libjxl 0.12.0 WASM on web and Node. Native browser support is not required. The codec loads on demand and is available offline after its worker and WASM have been cached.
+Engine 1.213 adds still JPEG XL imports, exports and Convert operations through the same pinned libjxl WASM on web and Node (0.13.0 since 2026-11-21; see `packages/node-shell/wasm/jxl/README.md`). Native browser support is not required. The codec loads on demand and is available offline after its worker and WASM have been cached.
 
 ## Source and editing view
 

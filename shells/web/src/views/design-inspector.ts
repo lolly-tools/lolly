@@ -1,4 +1,5 @@
 import { closeButton } from '../lib/close-button.ts';
+import { segHtml as panelSegHtml, syncSeg, wireSeg } from '../lib/seg.ts';
 import { webSectionRows } from './design-web-section.ts';
 import { createStrokeRows, STROKE_PLACEMENT_FIELDS } from './design-inspector-stroke.ts';
 import { sceneSummary } from './design-inspector-scene.ts';
@@ -703,16 +704,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   let documentView = false;
   let advancedTextOpen = false;
-  const tabs = document.createElement('nav');
-  tabs.className = 'lp-rail fc-insp-tabs';
-  tabs.setAttribute('aria-label', t('Inspector settings'));
-  const selectionTab = document.createElement('button');
-  const documentTab = document.createElement('button');
-  for (const [button, label, value] of [[selectionTab, t('Selection'), false], [documentTab, t('Canvas'), true]] as const) {
-    button.type = 'button'; button.textContent = label;
-    button.addEventListener('click', () => { documentView = value; sync(true); });
-    tabs.appendChild(button);
-  }
+  // The Selection / Canvas switch is the panel's own segmented control (lib/seg.ts),
+  // the same one every other two-way choice in a panel uses.
+  const tabs = document.createElement('div');
+  tabs.className = 'fc-insp-tabs';
+  tabs.innerHTML = panelSegHtml('inspector-scope', [{ id: 'selection', label: t('Selection') }, { id: 'canvas', label: t('Canvas') }], 'selection', t('Inspector settings'), { variant: 'panel', extraClass: 'lp-seg--pill' });
+  wireSeg(tabs, { onChange: (value) => { documentView = value === 'canvas'; sync(true); } });
   el.appendChild(tabs);
 
   const scroll = document.createElement('div');
@@ -1085,7 +1082,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   /** A door with its own eyebrow, so the label reads as a label and the value as
    *  the thing the door will change. */
   const doorRow = (label: string, value: string, act: string, glyph: IconName): string =>
-    `<div class="lp-row fc-row fc-insp-door"><span class="lp-row-icon"></span>`
+    `<div class="lp-row fc-row fc-insp-door">`
     + `<span class="lp-label">${label}</span>`
     + `<span class="lp-control"><button type="button" class="lp-door fc-cbtn" data-act="${escape(act)}">`
     + `${icon(glyph)}<span>${escape(value)}</span>${icon('chevronRight')}</button></span></div>`;
@@ -1973,8 +1970,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     emojiMounted?.destroy();
     emojiMounted = null;
     paintHead(g);
-    selectionTab.setAttribute('aria-pressed', String(!documentView));
-    documentTab.setAttribute('aria-pressed', String(documentView));
+    syncSeg(tabs, documentView ? 'canvas' : 'selection');
     // One section. The head is a GRID whose last column is the caret, so a
     // section action (Edit text) goes in the `auto` column before it and the
     // fold control keeps one x for every section in the column. It used to be a
