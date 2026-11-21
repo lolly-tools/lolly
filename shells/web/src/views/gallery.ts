@@ -448,6 +448,11 @@ function createGalleryLifecycle(viewEl: HTMLElement) {
   // Arrow keys walk the cards once one has focus (lib/arrow-nav.ts), landing on each
   // card's name link, so browsing never means tabbing through every dot and "+ New".
   cleanups.push(wireArrowNav(viewEl, { items: '.gtile', primary: '.gtile-name' }));
+  // What a card looks like before its preview is drawn. A Back from a tool that is still
+  // opening shows the old snapshot until this gallery looks the same (view-fade.ts
+  // viewSettled, which reads this attribute), so no card shows empty at the swap.
+  viewEl.setAttribute('data-settle-pending', '.gtile-hero--preview:not(.is-ready), .gcar:not(.has-art)');
+  cleanups.push(() => viewEl.removeAttribute('data-settle-pending'));
   (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
     for (const fn of cleanups.splice(0)) { try { fn(); } catch { /* best-effort teardown */ } }
   };
