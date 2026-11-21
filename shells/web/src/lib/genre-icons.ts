@@ -12,7 +12,7 @@
 import type { LofiMood } from '../../../../engine/src/lofi-compose.ts';
 import { icon, type IconName } from './icons.ts';
 import { musicIconBody, strokeSvg, strokeSvgNode, type InstrumentIcon } from './instrument-icons.ts';
-import { LOFI_MOOD_LABEL, LOFI_ONLY_MOODS } from './neurospicy-lofi.ts';
+import { GENRE_FAMILIES, LOFI_MOOD_LABEL, LOFI_ONLY_MOODS, genreFamilyOf, flavourLabel, genreCardOf } from './neurospicy-lofi.ts';
 
 /** Glyphs only the generator draws. Lucide (ISC): shuffle, disc-3, headphones,
  *  ice-cream-cone, flower, mountain, radio, speaker, castle, sailboat, tree-palm and clapperboard. Lolly's own: a wrapped sweet, a surfboard,
@@ -67,6 +67,7 @@ export const GENRE_ICON: Record<LofiMood, GenreGlyph> = {
   jungle: { own: 'palm' },
   trailer: { own: 'clapperboard' },
   italo: { own: 'mirrorball' }, balearic: { own: 'sunset' },
+  dnbJump: { set: 'zap' }, dnbDark: { set: 'moon' }, dnbLiquid: { set: 'waves' }, dnbDeep: { inst: 'audioWaveform' }, dnbRave: { set: 'sparkle' },
   lofiFocus: { set: 'timer' }, lofiDrift: { set: 'cloud' }, lofiSoul: { set: 'heart' }, lofiFunk: { set: 'zap' }, lofiJazz: { inst: 'piano' }, lofiZen: { own: 'flower' }, lofiCinema: { own: 'clapperboard' },
 };
 
@@ -105,25 +106,30 @@ const GROUP_MOODS: Record<GenreCategory, readonly LofiMood[]> = {
 };
 
 /**
- * Lofi is one genre with flavours (Andy, 2026-11-21): Warm, Late night and Rainy, which
- * were stations of their own, and the seven added that day. The picker shows one Lofi
- * card (`LOFI_CARD`, the flavour a newcomer to Lofi starts on) and the genre button's
- * flavour chips move between them. Each flavour keeps its own id, so an old link or saved
- * tune still plays the flavour it was made with.
+ * Lofi and drum and bass are each one genre with flavours (Andy, 2026-11-21;
+ * lib/neurospicy-lofi.ts GENRE_FAMILIES). The picker shows one card for a family (its
+ * first flavour, the one a newcomer starts on) and the chips under the genre button move
+ * between the flavours. Each flavour keeps its own id, so an old link or saved tune still
+ * plays the flavour it was made with.
  */
 export const LOFI_FAMILY: readonly LofiMood[] = LOFI_ONLY_MOODS;
-export const LOFI_CARD: LofiMood = 'warm';
-/** Whether `mood` is a flavour of Lofi. */
-export const isLofiFlavour = (mood: LofiMood): boolean => LOFI_FAMILY.includes(mood);
-/** A genre's card in the picker: Lofi's one card for any of its flavours, otherwise the genre itself. */
-export const genreCard = (mood: LofiMood): LofiMood => (isLofiFlavour(mood) ? LOFI_CARD : mood);
-/** A card's title: "Lofi" for Lofi's card, otherwise the genre's. */
-export const cardTitle = (card: LofiMood): string => (card === LOFI_CARD ? 'Lofi' : genreTitle(card));
+export const LOFI_CARD: LofiMood = LOFI_ONLY_MOODS[0]!;
+/** Whether `mood` is a flavour of a genre that has flavours. */
+export const isFlavour = (mood: LofiMood): boolean => genreFamilyOf(mood) !== undefined;
+/** A genre's card in the picker: its family's one card for any flavour, otherwise the genre itself. */
+export const genreCard = (mood: LofiMood): LofiMood => genreCardOf(mood);
+/** A card's title: the family's for a family's card ("Lofi", "D&B"), otherwise the genre's. */
+export const cardTitle = (card: LofiMood): string => (genreFamilyOf(card)?.moods[0] === card ? genreFamilyOf(card)!.title : genreTitle(card));
+/** A genre's full title where a flavour should read as its genre first: "Lofi · Late night", "D&B · Dark". */
+export function fullTitle(mood: LofiMood): string {
+  const family = genreFamilyOf(mood);
+  return family ? `${family.title} · ${flavourLabel(mood)}` : genreTitle(mood);
+}
 
-/** Which group each genre is listed under (every flavour of Lofi with the calm styles). */
+/** Which group each genre is listed under (a flavour with its genre's first flavour). */
 export const GENRE_CATEGORY = Object.fromEntries([
   ...GENRE_CATEGORIES.flatMap(id => GROUP_MOODS[id].map(mood => [mood, id] as const)),
-  ...LOFI_FAMILY.map(mood => [mood, 'chill'] as const),
+  ...GENRE_FAMILIES.flatMap(f => f.moods.map(mood => [mood, GENRE_CATEGORIES.find(id => GROUP_MOODS[id].includes(f.moods[0]!))!] as const)),
 ]) as Record<LofiMood, GenreCategory>;
 
 /**

@@ -109,7 +109,7 @@ test('Sherbert\'s future chords vary through a drop, and every other note compos
   // come from the chords' own stream. The console's FM effects (lofi-console.ts) are left out
   // too; they draw from their own stream, but a spin or a moment takes the place of the coin or
   // jump it overlaps, so seeds 1, 2, 7 and 2024 were pinned again when the two met (2026-11-15).
-  const before: Record<number, number> = { 1: 3274130453, 2: 1816301300, 3: 4283640468, 7: 1275669258, 2024: 595900707 };
+  const before: Record<number, number> = { 1: 2267950884, 2: 1816301300, 3: 321757180, 7: 2898653115, 2024: 44921894 };
   for (const [seed, want] of Object.entries(before)) {
     const bars = composeLofiTune(Number(seed), 'sherbert');
     assert.equal(fingerprint(bars.map(b => ({ ...b, notes: b.notes.filter(n => n.voice !== 'keys' && n.voice !== 'fm') }))), want, `sherbert ${seed}: every note but the keys`);

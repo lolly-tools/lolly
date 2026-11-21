@@ -55,8 +55,9 @@ export const GENRE_SLUG: Readonly<Record<LofiMood, string>> = {
   breakbeat: 'breakbeat', funkyHouse: 'funky-house', ukGarage: 'uk-garage',
   privateSchool: 'private-school-piano', noosa: 'noosacore', jungle: 'jungle', trailer: 'trailer',
   italo: 'italo-disco', balearic: 'balearic',
-  // Lofi's newer flavours have no page of their own yet (the picker reaches them from
-  // Lofi's chips); the addresses are held for them.
+  // A genre's newer flavours have no page of their own yet (the picker reaches them from
+  // the genre's chips); the addresses are held for them.
+  dnbJump: 'jump-up-drum-and-bass', dnbDark: 'dark-drum-and-bass', dnbLiquid: 'liquid-drum-and-bass', dnbDeep: 'deep-drum-and-bass', dnbRave: 'rave-drum-and-bass',
   lofiFocus: 'focus-lofi', lofiDrift: 'drift-lofi', lofiSoul: 'slow-jam-lofi', lofiFunk: 'retro-bounce-lofi',
   lofiJazz: 'bookstore-lofi', lofiZen: 'zen-lofi', lofiCinema: 'cinematic-lofi',
 };

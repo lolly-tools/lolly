@@ -8,8 +8,9 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { GENRE_CATEGORIES, GENRE_CATEGORY, GENRE_GROUPS, GENRE_ICON, LOFI_CARD, LOFI_FAMILY, PICKER_GROUPS, cardTitle, genreCard, genreIconSvg, genreTitle, isLofiFlavour, shuffleIconSvg } from './genre-icons.ts';
+import { GENRE_CATEGORIES, GENRE_CATEGORY, GENRE_GROUPS, GENRE_ICON, LOFI_CARD, LOFI_FAMILY, PICKER_GROUPS, cardTitle, genreCard, fullTitle, genreIconSvg, genreTitle, isFlavour, shuffleIconSvg } from './genre-icons.ts';
 import { LOFI_STATION_MOODS, lofiStationName } from './neurospicy-lofi.ts';
+import { GENRE_FLAVOURS } from '../../../../engine/src/lofi-compose.ts';
 
 test('every genre has an icon with shapes in it, and a title', () => {
   for (const mood of LOFI_STATION_MOODS) {
@@ -29,11 +30,11 @@ test('every genre has an icon with shapes in it, and a title', () => {
 test('every genre is in exactly one group, and the groups come in their order', () => {
   assert.deepEqual(GENRE_GROUPS.map(g => g.id), ['chill', 'rock', 'soul', 'club', 'bass', 'world']);
   assert.deepEqual([...GENRE_CATEGORIES], GENRE_GROUPS.map(g => g.id));
-  // The seven newer flavours of Lofi have no page or card of their own: Lofi is one card,
-  // and its chips reach them (LOFI_FAMILY).
-  const newer = LOFI_FAMILY.filter(m => !['warm', 'lateNight', 'rainy'].includes(m));
-  assert.equal(newer.length, 7);
-  for (const mood of newer) assert.equal(GENRE_CATEGORY[mood], 'chill', `${mood} is a flavour of Lofi, with the calm styles`);
+  // The newer flavours of Lofi and of drum and bass have no page or card of their own:
+  // each genre is one card, and its chips reach them (GENRE_FLAVOURS).
+  const newer = LOFI_STATION_MOODS.filter(m => GENRE_FLAVOURS.includes(m));
+  assert.equal(newer.length, 12, 'seven of Lofi and five of drum and bass');
+  for (const mood of newer) assert.equal(GENRE_CATEGORY[mood], GENRE_CATEGORY[genreCard(mood)], `${mood} is listed with its genre`);
   const paged = LOFI_STATION_MOODS.filter(m => !newer.includes(m));
   for (const mood of paged) {
     const homes = GENRE_GROUPS.filter(g => g.moods.includes(mood)).map(g => g.id);
@@ -70,14 +71,21 @@ test('the shuffle icon is the crossing arrows', () => {
   assert.equal((shuffleIconSvg(26).match(/<path /g) ?? []).length, 5);
 });
 
-test('Lofi is one card in the picker, whichever flavour plays', () => {
+test('Lofi and drum and bass are each one card in the picker, whichever flavour plays', () => {
   const cards = PICKER_GROUPS.flatMap(g => g.moods);
   assert.equal(cards.length, 59, 'the paged genres, with Warm, Late night and Rainy as one card');
-  assert.equal(cards.filter(isLofiFlavour).length, 1);
+  assert.deepEqual(cards.filter(isFlavour).sort(), ['dnb', 'warm'], 'one card for each genre with flavours');
   assert.equal(cardTitle(LOFI_CARD), 'Lofi');
+  assert.equal(cardTitle('dnb'), 'D&B');
   for (const mood of LOFI_FAMILY) assert.equal(genreCard(mood), LOFI_CARD, `${mood} is on Lofi's card`);
+  for (const mood of ['dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave'] as const) assert.equal(genreCard(mood), 'dnb', `${mood} is on drum and bass's card`);
   assert.equal(genreCard('lofiHouse'), 'lofiHouse', 'lofi house is a genre of its own');
+  assert.equal(genreCard('jungle'), 'jungle', 'jungle is a genre of its own');
   assert.equal(LOFI_FAMILY.length, 10);
+  assert.equal(fullTitle('lateNight'), 'Lofi · Late night');
+  assert.equal(fullTitle('dnb'), 'D&B · Rolling');
+  assert.equal(fullTitle('dnbLiquid'), 'D&B · Soaring');
+  assert.equal(fullTitle('ska'), 'Ska');
   for (const g of PICKER_GROUPS) {
     const titles = g.moods.map(cardTitle);
     assert.deepEqual(titles, [...titles].sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' })), g.id);

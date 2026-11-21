@@ -59,7 +59,7 @@ export interface DrumKit {
 const JAZZ = new Set<LofiMood>(['jazz', 'swing']);
 const BAND = new Set<LofiMood>(['blues', 'country', 'rock', 'punk', 'ska', 'metal', 'soul', 'funk', 'reggae', 'spanish', 'straya', 'afrobeat', 'kora', 'persian', 'guzheng', 'koto', 'citypop', 'fantasy', 'grunge', 'stoner', 'shoegaze', 'salsa', 'surf', 'yacht', 'oompa', 'mandopop']);
 const DUSTY = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'lofiFocus', 'lofiDrift', 'lofiSoul', 'lofiFunk', 'lofiJazz', 'lofiZen', 'lofiCinema', 'triphop', 'dream', 'lofiHouse']);
-const SUBS = new Set<LofiMood>(['dubstep', 'brostep', 'dnb', 'amapiano']);
+const SUBS = new Set<LofiMood>(['dubstep', 'brostep', 'dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave', 'amapiano']);
 /** The styles whose sound is the electronic kit's own synthesised metal. */
 const SYNTH_METAL = new Set<LofiMood>(['acid', 'electro', 'chiptune', 'sherbert']);
 

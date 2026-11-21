@@ -66,7 +66,7 @@ test('a station plays one tune after another, each seed following from the last'
 });
 
 test('the dance genres: their tempo, a build with a riser and a roll, then a drop that opens on a crash', () => {
-  const BPM = { sugar: [116, 130], sherbert: [136, 150], chiptune: [128, 150], nudisco: [115, 124], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
+  const BPM = { sugar: [116, 130], sherbert: [130, 160], chiptune: [128, 150], nudisco: [115, 124], synthwave: [92, 118], acid: [122, 130], electro: [118, 126], dubstep: [138, 142], brostep: [145, 150], dnb: [170, 176] } as const;
   for (const mood of ['sugar', 'sherbert', 'chiptune', 'nudisco', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb'] as const) for (const seed of SEEDS.slice(0, 6)) {
     const bars = composeLofiTune(seed, mood);
     const t = bars[0]!.tune;
@@ -121,7 +121,7 @@ test('sherbert: half-time future bass, an 808 in every drop, chords that bend an
     const bars = composeLofiTune(seed, 'sherbert');
     const st = bars[0]!.tune.style;
     const where = `sherbert ${seed}`;
-    assert.ok(bars[0]!.tune.bpm >= 136 && bars[0]!.tune.bpm <= 150, `${where}: ${bars[0]!.tune.bpm} bpm`);
+    assert.ok(bars[0]!.tune.bpm >= 130 && bars[0]!.tune.bpm <= 160, `${where}: ${bars[0]!.tune.bpm} bpm`);
     assert.equal(st.groove, 'halfStep', `${where}: half-time`);
     const drops = bars.filter(b => b.section === 'drop');
     assert.ok(drops.every(b => (b.voices?.bass ?? st.bass) === 'eight'), `${where}: the 808 under every drop`);
@@ -885,7 +885,7 @@ test('adding lofi house changed no other style: its draws come from a stream of 
   // (RETIRED_LEADS): its vibes play in its place.
   // Drum and bass's drops gained their answers on 2026-11-21 (BASS_PLANS.dnb: jump-up stabs
   // or a foghorn in a phrase's second half), so its pin moved again.
-  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 3513053445, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
+  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 3255044627, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
@@ -1029,8 +1029,10 @@ test('the shouts come from a stream of their own: the rest of every tune compose
   // phrases, each tune is unchanged.
   const before: Record<string, number> = {
     'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 123733926, 'hiphop.7': 307798947,
-    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 3513053445, 'dubstep.7': 1198571479, 'brostep.7': 1216733133, 'sherbert.7': 3954562497,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 3255044627, 'dubstep.7': 1198571479, 'brostep.7': 1216733133, 'sherbert.7': 1787953580,
   };
+  // The same day drum and bass gained chopped voices among its leads and a bass attack
+  // into its drops, and Sherbert a wider tempo and more chop voices: both pins moved.
   // The foghorn joined dubstep's and brostep's trades on 2026-11-21 and drum and bass gained
   // its answers (jump-up stabs or a foghorn), so those three pins moved again that day.
   // Dubstep's and brostep's drops trade their bass now (BASS_PLANS, 2026-11-13): a partner's

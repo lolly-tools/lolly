@@ -26,7 +26,7 @@ import { BreakRecorder, sliceStart, stretchSlice, type BreakKit } from './lofi-b
 import type { VoiceKit } from './lofi-voices.ts';
 
 /** The genres that chop a break. */
-const STYLE_OF: Partial<Record<LofiMood, BreakStyle>> = { jungle: 'jungle', dnb: 'dnb', breakbeat: 'breakbeat', hiphop: 'hiphop', triphop: 'triphop' };
+const STYLE_OF: Partial<Record<LofiMood, BreakStyle>> = { jungle: 'jungle', dnb: 'dnb', dnbJump: 'dnb', dnbDark: 'dnb', dnbLiquid: 'dnb', dnbDeep: 'dnb', dnbRave: 'dnb', breakbeat: 'breakbeat', hiphop: 'hiphop', triphop: 'triphop' };
 /**
  * Each style's break against the station's drums, and its high-pass floor (Hz). Set so a
  * drop's sub sits against its breaks (K-weighted, under 120 Hz against over 150) as the

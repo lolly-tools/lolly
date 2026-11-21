@@ -32,7 +32,7 @@ import { closeButtonHtml } from '../../lib/close-button.ts';
 import { t } from '../../i18n.ts';
 import { escape as escapeHtml } from '../../utils.ts';
 import { mountModal } from '../../components/modal.ts';
-import { LOFI_CARD, PICKER_GROUPS, cardTitle, genreCard, genreIconSvg, isLofiFlavour, type GenreCategory } from '../../lib/genre-icons.ts';
+import { PICKER_GROUPS, cardTitle, genreCard, genreIconSvg, type GenreCategory } from '../../lib/genre-icons.ts';
 import { paintGenreTiles } from './genre-colours.ts';
 import { genreManageList, type GenreManageList } from './genre-manage.ts';
 import { cascade, motionOn } from './instrument-popup.ts';
@@ -115,7 +115,7 @@ export function cardToward<T extends Placed>(cards: readonly T[], from: T, key: 
 export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement | null; onClose?: () => void; host?: unknown } = {}): { close(): void } {
   const n = ++opened;
   const wide = window.matchMedia(WIDE).matches;
-  // Lofi's flavours share one card: the card is pressed while any of them plays.
+  // A genre's flavours share one card: the card is pressed while any of them plays.
   const now = genreCard(h.current());
   const titleId = `msg-title-${n}`;
   const titles = CATEGORY_TITLE();
@@ -276,8 +276,8 @@ export function openGenrePicker(h: GenrePickerHost, opts: { opener?: HTMLElement
     const pick = PICKER_GROUPS.flatMap(g => g.moods).find(m => m === mood);
     if (!pick) return;
     modal.close('picked');
-    // Lofi's card keeps the flavour playing, or starts on its first; the chips under the bar change flavour.
-    if (pick === LOFI_CARD && isLofiFlavour(h.current())) return;
+    // A genre with flavours keeps the flavour playing, or starts on its first; the chips under the bar change flavour.
+    if (pick === genreCard(h.current())) { if (pick !== h.current()) return; }
     h.pick(pick);
   });
   // The arrow keys move through the cards on show; the card left focused is their one Tab stop.

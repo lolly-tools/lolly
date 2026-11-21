@@ -32,10 +32,10 @@ import {
 } from './neurospicy.ts';
 import {
   isLofiId, lofiId, lofiMoodOf, lofiTune, nextLofiTune, prevLofiTune, lofiLinkValue, currentLofiBar, playsOnStation, savedTuneOf, currentLofiRecipe,
-  lofiPosition, musicEditorHash, LOFI_ONLY_MOODS, LOFI_MOOD_LABEL, isSingsMood,
+  lofiPosition, musicEditorHash, genreFamilyOf, flavourLabel, isSingsMood,
 } from './neurospicy-lofi.ts';
 import { positionWords } from './neuro-position.ts';
-import { LOFI_CARD, LOFI_FAMILY, PICKER_GROUPS, cardTitle, genreIconSvg, isLofiFlavour, type GenreCategory } from './genre-icons.ts';
+import { PICKER_GROUPS, cardTitle, genreCard, genreIconSvg, type GenreCategory } from './genre-icons.ts';
 import { LOFI_KEYS_NAME, LOFI_LEAD_NAME, LOFI_BASS_NAME } from './lofi-names.ts';
 import { applySoundMaster } from './sound-master.ts';
 import {
@@ -807,10 +807,11 @@ class NeurospicyDockHost implements DockHost {
       },
     };
     if (!mood && !saved) return id ? [share] : [];
-    // Lofi's flavours are chosen here; every other genre is a tile in the track list.
-    const moodControl: DockControl[] = !mood || isSingsMood(mood) ? [] : [{
-      kind: 'choice', id: 'lofi-mood', label: 'Lofi flavour',
-      options: LOFI_ONLY_MOODS.map((m) => ({ id: m, label: LOFI_MOOD_LABEL[m] })),
+    // A genre's flavours are chosen here; every genre is a tile in the track list.
+    const family = mood ? genreFamilyOf(mood) : undefined;
+    const moodControl: DockControl[] = !mood || !family ? [] : [{
+      kind: 'choice', id: 'lofi-mood', label: `${family.title} flavour`,
+      options: family.moods.map((m) => ({ id: m, label: flavourLabel(m) })),
       get: () => lofiMoodOf(getNeurospicy().loopId) ?? mood,
       set: (m) => this.select(lofiId(m as NonNullable<typeof mood>)),
     }];
@@ -969,7 +970,7 @@ class NeurospicyDockHost implements DockHost {
       kind: 'music',
       group: GENRE_GROUP_LABEL[g.id],
       icon: genreIconSvg(mood, 20),
-      ...(mood === LOFI_CARD ? { also: LOFI_FAMILY.filter((m) => m !== mood).map(lofiId) } : {}),
+      ...(genreFamilyOf(mood) ? { also: genreFamilyOf(mood)!.moods.filter((m) => m !== mood).map(lofiId) } : {}),
     })));
     const out: DockSource[] = [];
     let placed = false;
@@ -993,9 +994,10 @@ class NeurospicyDockHost implements DockHost {
   }
 
   private async select(id: string): Promise<void> {
-    // Lofi's tile keeps the flavour that is playing; another flavour is chosen in the controls.
+    // A genre's one tile keeps the flavour that is playing; another flavour is chosen in the controls.
     const playing = lofiMoodOf(getNeurospicy().loopId);
-    if (id === lofiId(LOFI_CARD) && playing && isLofiFlavour(playing)) return;
+    const asked = lofiMoodOf(id);
+    if (playing && asked && playing !== asked && genreFamilyOf(asked) && genreCard(playing) === asked) return;
     await setNeurospicyLoop(this.nhost, id);
     this.emitChange();
   }

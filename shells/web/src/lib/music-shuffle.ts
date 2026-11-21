@@ -21,7 +21,7 @@
  */
 import { lofiStream, LOFI_KEYS, LOFI_LEADS, LOFI_BASSES, type LofiBar, type LofiMood, type LofiStyle } from '../../../../engine/src/lofi-compose.ts';
 import { LOFI_MIX, type LofiMix } from './lofi-station.ts';
-import { LOFI_ONLY_MOODS, LOFI_STATION_MOODS } from './neurospicy-lofi.ts';
+import { LOFI_STATION_MOODS, genreFamilyOf, genreCardOf } from './neurospicy-lofi.ts';
 import { isBlocked, isFavourite, styleInstruments, type MusicPrefs } from './music-prefs.ts';
 
 const PARTS = ['keys', 'lead', 'bass'] as const;
@@ -152,21 +152,22 @@ function sectionChanges(rand: () => number, track: readonly LofiBar[], pool: Poo
  * and with no favourite among the genres it may move to, the very draw it always was.
  */
 export function shuffleGenre(rand: () => number, opts: { after?: LofiMood; hidden?: ReadonlySet<string>; favourites?: ReadonlySet<string> } = {}): LofiMood {
-  // Lofi is one genre with flavours (lib/neurospicy-lofi.ts LOFI_ONLY_MOODS): it is drawn as
-  // one, under its first flavour's id (the one its picker card stars and hides), and the
-  // flavour is then drawn from all of them, so ten flavours are not ten shares of a shuffle.
-  const lofi = LOFI_ONLY_MOODS[0]!;
-  const inLofi = (m: LofiMood | undefined): boolean => m !== undefined && LOFI_ONLY_MOODS.includes(m);
-  const one = shuffleGenreCard(rand, { ...opts, after: inLofi(opts.after) ? lofi : opts.after });
-  if (one !== lofi) return one;
-  const flavours = LOFI_ONLY_MOODS.filter(m => m !== opts.after);
-  return choose(rand, flavours) ?? lofi;
+  // A genre with flavours (lib/neurospicy-lofi.ts GENRE_FAMILIES: Lofi, drum and bass) is
+  // drawn as one genre, under its first flavour's id (the one its picker card stars and
+  // hides), and the flavour is then drawn from all of them, so ten flavours are not ten
+  // shares of a shuffle.
+  const one = shuffleGenreCard(rand, { ...opts, after: opts.after === undefined ? undefined : genreCardOf(opts.after) });
+  const family = genreFamilyOf(one);
+  if (!family) return one;
+  // A flavour the person hid is passed over, unless that leaves none.
+  const flavours = family.moods.filter(m => m !== opts.after);
+  const shown = opts.hidden?.size ? flavours.filter(m => !opts.hidden!.has(m)) : flavours;
+  return choose(rand, shown.length ? shown : flavours) ?? one;
 }
 
-/** A genre as the picker lists them, Lofi's flavours as one. */
-function shuffleGenreCard(rand: () => number, opts: { after?: LofiMood; hidden?: ReadonlySet<string>; favourites?: ReadonlySet<string> }): LofiMood {
-  const others = LOFI_STATION_MOODS.filter(m => m !== opts.after && (m === LOFI_ONLY_MOODS[0] || !LOFI_ONLY_MOODS.includes(m)));
-  // A hidden genre is never drawn; with every genre hidden, the draw is as it was.
+/** A genre as the picker lists them, a family's flavours as one. */
+function shuffleGenreCard(rand: () => number, opts: { after?: LofiMood | undefined; hidden?: ReadonlySet<string>; favourites?: ReadonlySet<string> }): LofiMood {
+  const others = LOFI_STATION_MOODS.filter(m => m !== opts.after && genreCardOf(m) === m);
   const shown = opts.hidden?.size ? others.filter(m => !opts.hidden!.has(m)) : others;
   const moods = shown.length ? shown : others;
   const fav = opts.favourites;

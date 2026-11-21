@@ -24,7 +24,7 @@ import { renderModToAudioBuffer, isModuleFormat } from './mod-render.ts';
 import { RADIO_STATIONS, radioStation, isRadioId, radioAvailable, resolveStreamUrl } from './radio.ts';
 import { isSfxMuted } from './sfx.ts';
 import {
-  isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_ONLY_MOODS, LOFI_STATION_MOODS,
+  isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_STATION_MOODS, genreFamilyOf, genreCardOf,
   playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, isSingsMood, lofiPosition, seekLofi,
   type LofiPrefs, type LofiLink,
 } from './neurospicy-lofi.ts';
@@ -765,18 +765,17 @@ async function playLofi(): Promise<void> {
 
 /**
  * Another station for Shuffle genres: any genre but the one playing, each as likely as
- * the next. Lofi's flavours are one genre in the draw, and a flavour is then drawn from
- * all of them, so its ten flavours are not ten shares.
+ * the next. A genre with flavours (Lofi, drum and bass) is one genre in the draw, and a
+ * flavour is then drawn from all of its flavours, so ten flavours are not ten shares.
  */
 export function shuffledStation(after: string, rand: () => number = Math.random): string {
   const current = LOFI_STATION_MOODS.find((m) => lofiId(m) === after);
-  const lofi = LOFI_ONLY_MOODS[0]!;
-  const inLofi = current !== undefined && LOFI_ONLY_MOODS.includes(current);
-  const genres = LOFI_STATION_MOODS.filter((m) => (m === lofi || !LOFI_ONLY_MOODS.includes(m)) && m !== (inLofi ? lofi : current));
-  const genre = genres[Math.floor(rand() * genres.length)] ?? lofi;
-  if (genre !== lofi) return lofiId(genre);
-  const flavours = LOFI_ONLY_MOODS.filter((m) => m !== current);
-  return lofiId(flavours[Math.floor(rand() * flavours.length)] ?? lofi);
+  const playing = current === undefined ? undefined : genreCardOf(current);
+  const genres = LOFI_STATION_MOODS.filter((m) => genreCardOf(m) === m && m !== playing);
+  const genre = genres[Math.floor(rand() * genres.length)] ?? LOFI_STATION_MOODS[0]!;
+  const family = genreFamilyOf(genre);
+  if (!family) return lofiId(genre);
+  return lofiId(family.moods[Math.floor(rand() * family.moods.length)] ?? genre);
 }
 /** Shuffle genres on or off: when on, a station moves to another genre each time a tune ends. */
 export function setLofiShuffle(host: NeurospicyHost, on: boolean): void {

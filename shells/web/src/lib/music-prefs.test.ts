@@ -17,7 +17,7 @@ import {
   isBlocked, loadMusicPrefs, loadShuffleGenres, setMusicPref, setPartInstrument, setShuffleGenres, styleInstruments, substituteFor, swapKey, type MusicPart, type MusicPrefs,
   loadRecentGenres, noteRecentGenre, RECENT_GENRES, loadGenrePrefs, setGenrePref,
 } from './music-prefs.ts';
-import { LOFI_ONLY_MOODS, LOFI_STATION_MOODS } from './neurospicy-lofi.ts';
+import { LOFI_STATION_MOODS, genreFamilyOf, genreCardOf } from './neurospicy-lofi.ts';
 import { FAVOURITE_GENRE_WEIGHT, shuffleGenre, shuffleMusic } from './music-shuffle.ts';
 import { isOverNote } from '../../../../engine/src/lofi-compose.ts';
 import { composeTrack, musicStateParams, parseMusicState, type MusicState } from './music-state.ts';
@@ -324,18 +324,22 @@ test('a shuffle never draws a hidden genre, the genre lock and Shift still keep 
   assert.ok(LOFI_STATION_MOODS.includes(shuffleMusic(seeded(3), { bars: 16, after: 'jazz', hidden: all }).mood), 'every genre hidden: a shuffle still plays one');
 });
 
-/** The genres a shuffle draws from: every station, with Lofi's flavours as one (its first flavour's id). */
-const GENRE_CARDS = LOFI_STATION_MOODS.filter(m => m === LOFI_ONLY_MOODS[0] || !LOFI_ONLY_MOODS.includes(m));
+/** The genres a shuffle draws from: every station, with a genre's flavours as one (its first flavour's id). */
+const GENRE_CARDS = LOFI_STATION_MOODS.filter(m => genreCardOf(m) === m);
 
 test('with no favourite genre to draw, the genre draw is the one it always was', () => {
   // The rule before favourites: one number, any genre but the one playing and the hidden ones, alike.
-  // Lofi's flavours are one genre in the draw (its first flavour's id), and a second number picks the flavour.
+  // A genre's flavours are one genre in the draw (its first flavour's id), and a second number picks the flavour.
   const unweighted = (rand: () => number, after: string, hidden: ReadonlySet<string>): string => {
     const others = GENRE_CARDS.filter(m => m !== after);
     const shown = others.filter(m => !hidden.has(m));
     const moods = shown.length ? shown : others;
     const card = moods[Math.floor(rand() * moods.length)]!;
-    return card === LOFI_ONLY_MOODS[0] ? LOFI_ONLY_MOODS[Math.floor(rand() * LOFI_ONLY_MOODS.length)]! : card;
+    const family = genreFamilyOf(card);
+    if (!family) return card;
+    const flavours = family.moods.filter(m => !hidden.has(m));
+    const from = flavours.length ? flavours : family.moods;
+    return from[Math.floor(rand() * from.length)]!;
   };
   const hidden = new Set(GENRE_CARDS.filter((_, i) => i % 4 === 1));
   for (let i = 0; i < 400; i++) {
@@ -360,7 +364,7 @@ test('a starred genre comes up about three times as often as any other, a hidden
   const draws = 60_000;
   for (let i = 0; i < draws; i++) {
     const drawn = shuffleGenre(rand, { after: 'ska', hidden, favourites });
-    const g = LOFI_ONLY_MOODS.includes(drawn) ? LOFI_ONLY_MOODS[0]! : drawn;   // Lofi's flavours count as the one genre they are
+    const g = genreCardOf(drawn);   // a genre's flavours count as the one genre they are
     counts.set(g, (counts.get(g) ?? 0) + 1);
   }
   assert.ok(!counts.has('ska') && !counts.has('rock') && !counts.has('punk'), 'never the genre playing, never a hidden genre');
