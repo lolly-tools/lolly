@@ -1369,7 +1369,7 @@ async function boot(): Promise<void> {
   // No storage sync starts until its design-system migration has finished.
   const earlyAssets = !isTauriShell() && coldGallery && firstRoute === 'gallery'
     ? prepareAssetCatalogFetch(signInRequired) : undefined;
-  if (slimIndexReady && firstRoute === 'gallery') toolIndexHold = holdToolIndex(slimIndexReady, earlyAssets);
+  if (slimIndexReady && firstRoute === 'gallery') toolIndexHold = holdToolIndex(slimIndexReady);
   const host = await hostReady;
   // Web can sync while profile and chrome initialize. Tauri starts later (see above).
   const earlyCatalog = !isTauriShell() ? startBootCatalog(host, coldGallery, signInRequired, earlyAssets, toolIndexHold?.after) : null;

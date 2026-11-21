@@ -14,7 +14,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { holdToolIndex } from './tool-index-hold.ts';
+import { holdToolIndex, SLIM_HOLD_LIMIT_MS } from './tool-index-hold.ts';
 
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -32,12 +32,15 @@ async function released(after: Promise<void>): Promise<boolean> {
   return done;
 }
 
-test('a slim index that paints keeps the full index held until release()', async () => {
-  const slim = pending(), assets = pending();
-  const hold = holdToolIndex(slim.promise, assets.promise);
+test('a slim index that paints keeps the full index held until release(), past the time limit', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const slim = pending();
+  const hold = holdToolIndex(slim.promise);
   slim.resolve({ tools: [{ id: 'qr-code' }] });
-  assets.resolve({ response: null });
-  assert.equal(await released(hold.after), false, 'held through the first mount');
+  await Promise.resolve();
+  t.mock.timers.tick(SLIM_HOLD_LIMIT_MS + 1);
+  t.mock.timers.reset();
+  assert.equal(await released(hold.after), false, 'held through the first mount, however long it takes');
   hold.release();
   assert.equal(await released(hold.after), true);
 });
@@ -45,22 +48,27 @@ test('a slim index that paints keeps the full index held until release()', async
 test('a slim index that brings nothing lets the full index go at once', async () => {
   for (const settle of [(p: ReturnType<typeof pending>) => p.resolve(null), (p: ReturnType<typeof pending>) => p.reject(new Error('offline'))]) {
     const slim = pending();
-    const hold = holdToolIndex(slim.promise, pending().promise);
+    const hold = holdToolIndex(slim.promise, 60_000);
     settle(slim);
     assert.equal(await released(hold.after), true);
   }
 });
 
-test('a slim request that has not answered when the asset index does lets the full index go', async () => {
-  const slim = pending(), assets = pending();
-  const hold = holdToolIndex(slim.promise, assets.promise);
-  assert.equal(await released(hold.after), false);
-  assets.resolve({ response: null });
-  assert.equal(await released(hold.after), true, 'a slim request that never answers holds nothing up');
+test('a slim request that has not settled within the time limit lets the full index go', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const hold = holdToolIndex(pending().promise);
+  t.mock.timers.tick(SLIM_HOLD_LIMIT_MS - 1);
+  t.mock.timers.reset();
+  assert.equal(await released(hold.after), false, 'not before the limit');
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const late = holdToolIndex(pending().promise);
+  t.mock.timers.tick(SLIM_HOLD_LIMIT_MS);
+  t.mock.timers.reset();
+  assert.equal(await released(late.after), true, 'a slim request that never answers holds nothing up');
 });
 
 test('release() is safe to repeat', async () => {
-  const hold = holdToolIndex(pending().promise);
+  const hold = holdToolIndex(pending().promise, 60_000);
   hold.release();
   hold.release();
   assert.equal(await released(hold.after), true);
@@ -82,7 +90,7 @@ test('the gallery code starts at the top of boot, for the routes that show the g
 });
 
 test('the hold is passed to the catalog sync and released after the first mount and before any wait on the catalog', () => {
-  assert.match(boot, /if \(slimIndexReady && firstRoute === 'gallery'\) toolIndexHold = holdToolIndex\(slimIndexReady, earlyAssets\);/);
+  assert.match(boot, /if \(slimIndexReady && firstRoute === 'gallery'\) toolIndexHold = holdToolIndex\(slimIndexReady\);/);
   assert.match(boot, /startBootCatalog\(host, coldGallery, signInRequired, earlyAssets, toolIndexHold\?\.after\)/);
   assert.match(main, /return syncCatalog\(catalogHost, welcomeFirst, welcomeSettled, signInRequired, preparedAssets, toolsAfter\)/);
   assert.match(boot, /try \{ await navigate\(host, \{ force: true \}\); \} finally \{ settleWelcomeDecision\(\); releaseToolIndex\(\); \}/);
