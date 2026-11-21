@@ -171,6 +171,16 @@ test('Design with both columns, folded and open again: both are back, the same o
     await resize(page, 951, 669);
     assert.deepEqual(await columns(page), open, 'unfolded again, both tabs and the same one shown');
 
+    // Folded, the panel is put down to its peek to see the canvas. The peek is the
+    // panel at rest and not a wish to lose the column: open again, both are back.
+    await resize(page, 466, 678);
+    assert.equal(await page.locator('.design-phone-panel').getAttribute('data-snap'), 'half', 'the phone panel shows the column in front');
+    await page.keyboard.press('Escape');
+    await atRest(page);
+    assert.equal(await page.locator('.design-phone-panel').getAttribute('data-snap'), 'peek');
+    await resize(page, 951, 669);
+    assert.deepEqual(await columns(page), open, 'after the peek, both tabs and the same one shown');
+
     // Folded, the person asks for the list. Open again, the list is the tab shown and
     // the inspector is still a tab of the pane.
     await resize(page, 466, 678);

@@ -85,6 +85,10 @@ export function mountDesignPanels(opts: {
   // The list's width when the rule closed the list: closed, the list reports none, and
   // the question on the way back is whether both fit with the list open.
   let heldNavWidth = 0;
+  // The column that was showing when the phone panel went down to its peek. The peek is
+  // the panel at rest on a phone and not a wish to lose the column, so that one comes
+  // back with the room too, as the person's own (the phone's close was recorded as theirs).
+  const peeked = new Set<'navigator' | 'inspector'>();
   let wasExclusive = false;
   let wasEditing = false;
   let timelineOpen = design.isTimelineOpen();
@@ -103,8 +107,14 @@ export function mountDesignPanels(opts: {
   button(t('Add'), b => { activate('timeline'); design.openAddMenu?.(b); });
   // On a phone these pick the panel's tab and open it, or fold it back to its peek. Focus
   // goes into the panel with it, and Escape brings it back to the button.
-  const layers = button(t('Layer/Page'), () => { navigator.setOpen(!navigator.isOpen()); if (navigator.isOpen()) phone?.show('layers', { focus: true }); else phone?.collapse(); });
-  const inspect = button(t('Inspect'), () => { inspector.setOpen(!inspector.isOpen()); if (inspector.isOpen()) phone?.show('inspect', { focus: true }); else phone?.collapse(); });
+  const layers = button(t('Layer/Page'), () => {
+    if (phone && navigator.isOpen()) { peek(); phone.collapse(); return; }
+    navigator.setOpen(!navigator.isOpen()); if (navigator.isOpen()) phone?.show('layers', { focus: true }); else phone?.collapse();
+  });
+  const inspect = button(t('Inspect'), () => {
+    if (phone && inspector.isOpen()) { peek(); phone.collapse(); return; }
+    inspector.setOpen(!inspector.isOpen()); if (inspector.isOpen()) phone?.show('inspect', { focus: true }); else phone?.collapse();
+  });
   button(t('More'), opts.more);
   const done = button(t('Done'), () => {
     if (stage.classList.contains('is-text-editing')) design.finishTextEditing?.();
@@ -123,14 +133,23 @@ export function mountDesignPanels(opts: {
   /** Room for both again: the columns the rule closed come back, behind the one the
    *  person last brought forward. Nothing is recorded as their choice (`adjusting`). */
   function restoreHeld(): void {
-    if (inspector.isOpen()) held.delete('inspector');
-    if (navigator.isOpen()) held.delete('navigator');
-    if (!held.size || exclusive(held.has('navigator') ? Math.max(heldNavWidth, navigator.width()) : navigator.width())) return;
+    if (inspector.isOpen()) { held.delete('inspector'); peeked.delete('inspector'); }
+    if (navigator.isOpen()) { held.delete('navigator'); peeked.delete('navigator'); }
+    if (!held.size && !peeked.size) return;
+    const listBack = held.has('navigator') || peeked.has('navigator');
+    if (exclusive(listBack ? Math.max(heldNavWidth, navigator.width()) : navigator.width())) return;
     adjusting = true;
     if (held.has('inspector')) inspector.setOpen(true, 'host');
     if (held.has('navigator')) navigator.setOpen(true);
     adjusting = false;
     held.clear();
+    // Opened as the person's, so what is remembered agrees with what is shown, and
+    // without changing which panel they last brought forward.
+    const front = active, had = chosen;
+    if (peeked.has('inspector')) inspector.setOpen(true, 'user');
+    if (peeked.has('navigator')) navigator.setOpen(true);
+    active = front; chosen = had;
+    peeked.clear();
   }
   function activate(panel: Panel, enforce = true): void {
     if (adjusting || disposed) return;
@@ -150,16 +169,19 @@ export function mountDesignPanels(opts: {
     adjusting = false;
     sync();
   }
+  /** The phone panel down to its peek: the column showing closes, and is kept for the
+   *  way back to a window with room. */
+  function peek(): void {
+    if (inspector.isOpen()) { if (phone) peeked.add('inspector'); inspector.setOpen(false, 'user'); }
+    if (navigator.isOpen()) { if (phone) { peeked.add('navigator'); heldNavWidth = navigator.width(); } navigator.setOpen(false); }
+  }
   /** The person chose a tab, or dragged or tapped the phone panel open or shut. */
   function onPhoneChange(tab: PhoneTab, open: boolean): void {
     if (open) {
       if (tab === 'inspect') inspector.setOpen(true, 'user');
       else navigator.setOpen(true);
       phone?.show(tab);
-    } else {
-      if (inspector.isOpen()) inspector.setOpen(false, 'user');
-      if (navigator.isOpen()) navigator.setOpen(false);
-    }
+    } else peek();
   }
   function put(name: string, value: number): boolean {
     const next = value > 0 ? `${Math.round(value)}px` : '';
