@@ -284,17 +284,17 @@
       "bpm": 143,
       "key": "A♭ minor",
       "file": "chiptune.m4a",
-      "bytes": 203605,
-      "sha256": "c98391a5cd7b938c3dc0a00bcb680f486609ec7bf769769d29404ed895400b1d",
+      "bytes": 203866,
+      "sha256": "0c3e128bf8529c82bac6fe0f88e759f7166ea896ece132a7e20f0275b184baa0",
       "declaration": "Made with Lolly's music generator (procedural, no AI). Style Chiptune, seed 3.",
       "measured": {
         "scratches": 0,
-        "rmsDb": -17.9,
-        "peakDb": -3.6,
-        "dipDb": -4.1,
-        "liftDb": 0.5,
-        "lowDb": -3.3,
-        "stereo": 0.98
+        "rmsDb": -18,
+        "peakDb": -4.3,
+        "dipDb": -3.2,
+        "liftDb": 0,
+        "lowDb": -4.6,
+        "stereo": 0.97
       },
       "licence": "Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/. Credit: Music made with Lolly (https://lolly.tools), CC BY 4.0."
     },

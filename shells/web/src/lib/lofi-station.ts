@@ -216,11 +216,17 @@ const LEAD_TRIM: Partial<Record<LiveLead, number>> = { angel: -0.2, balafon: 2.2
  * dont destroy the genre"; 2026-11-13, of lofi house: "the lead is quiet and the bass is
  * loud").
  */
-const LEAD_SEAT: Partial<Record<LofiMood, number>> = { dnbJump: -1.8, dnbDark: -1.8, dnbLiquid: -1.8, dnbDeep: -1.8, dnbRave: -1.8, acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -6, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, arnhem: 3.0, sugar: -1.0, swing: -0.7, synthwave: -6, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5, noosa: -6.5, breakbeat: -3, funkyHouse: -3, ukGarage: -2, privateSchool: -4, jungle: -3 };
+const LEAD_SEAT: Partial<Record<LofiMood, number>> = { dnbJump: -1.8, dnbDark: -1.8, dnbLiquid: -1.8, dnbDeep: -1.8, dnbRave: -1.8, acid: -2.6, afrobeat: 0.3, amapiano: -6.2, blues: -3.7, brostep: -10.2, chiptune: -3.5, citypop: 1.2, country: -2.5, dnb: -1.8, dream: -12.0, dubstep: -5.5, electro: -0.7, fantasy: -8.8, funk: 3.7, guzheng: -6.2, hiphop: 0.1, jazz: -0.8, kora: -1.7, koto: -2.8, kpop: -0.2, lateNight: -1.7, metal: -0.8, nudisco: -2.8, persian: -3.4, punk: -1.0, rainy: 0.3, reggae: -3.3, rnb: -2.1, rock: -1.5, sherbert: 0.3, sings: -3.2, ska: -2.9, soul: 0.6, spanish: -0.4, straya: -1.3, arnhem: 3.0, sugar: -1.0, swing: -0.7, synthwave: -6, triphop: -1.6, warm: -1.8, grunge: 1.5, stoner: 3, shoegaze: 0, lofiHouse: -9.5, salsa: 1, surf: -4, yacht: 0.5, botanica: -0.5, noosa: -6.5, breakbeat: -3, funkyHouse: -3, ukGarage: -2, privateSchool: -4, jungle: -3 };
 /** Each genre's seat for its bass (dB): the styles whose bass is the star play it louder than the rest. The club
  *  genres' are set so the mix under 150 Hz sits against the whole as their records' does (docs/generated-music.md):
  *  breakbeat's back, garage's a little up, private school's log drum kept soft; jungle's sub sits about 3.5 LU
  *  under its breaks (K-weighted), as eight jungle records' drops do. */
+/**
+ * Where a style's drums sit against the rest of its band (dB). A console's drums are a
+ * tick of its noise channel under the tune: chiptune's stems measured the other way
+ * round, the drums 6 dB over the lead and 12 dB over the arpeggio (2026-11-21).
+ */
+const DRUM_SEAT: Partial<Record<LofiMood, number>> = { chiptune: -5 };
 const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2, breakbeat: -4.5, ukGarage: 1, privateSchool: -1.5, jungle: -3, trailer: -3 };
 /**
  * The didgeridoo's cameo in the bass genres (engine/src/lofi-straya.ts), against its own level:
@@ -745,7 +751,8 @@ export class LofiStation {
   private play({ at, spb, note, bar, lanes }: Queued): void {
     const t = Math.max(at, this.ctx.currentTime);
     // A featured bird is a hook laid over the band, not the band: an outro's fade leaves it whole.
-    const vel = note.vel * ((note.voice === 'magpie' || note.voice === 'kookaburra') && readBird(note.mod ?? 0).featured ? 1 : bar.level);
+    const seated = DRUMS.has(note.voice) ? 10 ** ((DRUM_SEAT[bar.tune.mood] ?? 0) / 20) : 1;
+    const vel = note.vel * seated * ((note.voice === 'magpie' || note.voice === 'kookaburra') && readBird(note.mod ?? 0).featured ? 1 : bar.level);
     if (DRUMS.has(note.voice) && !this.settings.drums) return;
     // An oompa band plays its own drums, unless a person chose a kit (lib/lofi-oompa.ts).
     if (DRUMS.has(note.voice) && OB.bandDrums(bar, this.settings.kit) && OB.drum(this.kit, lanes.drums, note, t, vel, bar, this.kitOf(bar.tune))) return;

@@ -70,7 +70,8 @@ const CEILING = ((): Float32Array<ArrayBuffer> => {
 /** The finish for `mood` in front of `into`: returns where the station's compressor connects (`into` itself for a style with none). */
 export function finish(ctx: BaseAudioContext, mood: LofiMood, into: AudioNode): AudioNode {
   const f = FINISH[mood];
-  if (!f) return into;
+  // A context with no channel splitter (a test's stand-in, an old engine) plays the mix as it is.
+  if (!f || typeof ctx.createChannelSplitter !== 'function') return into;
   const input = ctx.createBiquadFilter();
   input.type = 'highshelf';
   input.frequency.value = f.airFrom;
