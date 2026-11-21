@@ -5,7 +5,8 @@
  * scripts/gen-engine-modules.ts and scripts/build-readme-tools.ts.
  *
  * Run as: node scripts/gen-web-src-readme.ts          (rewrite in place)
- *         node scripts/gen-web-src-readme.ts --check  (exit 1 on drift)
+ *         node scripts/gen-web-src-readme.ts --check  (exit 3 when the list is out of date)
+ *         node scripts/gen-web-src-readme.ts --stats  (print the counts; writes nothing)
  *
  * WHY. That README opens with a per-directory table of file and line counts and
  * a "largest files" table, both hand-written. maintainability-2026-07-29.md item
@@ -13,11 +14,20 @@
  * the numbers a new contributor uses to decide where to look first. A stale
  * "3,563 lines, no tests" sends someone to the wrong file.
  *
- * Two generated blocks, each between its own markers:
- *   <!-- web-src-dirs:start -->    per-directory source / test / CSS counts
- *   <!-- web-src-largest:start -->  the largest source files + their test status
+ * WHAT IS COMMITTED, AND WHAT IS NOT (plan 371, 2026-11-21). Line counts moved
+ * with almost every web change, so every pull request that committed them
+ * conflicted with every other one on the same lines, even with a bot regenerating
+ * them after each merge. The committed block now holds only what changes when a
+ * file crosses the size line: the source files of {@link LARGE_LINES} lines or
+ * more, in path order, one line each, with no counts. Two pull requests that touch
+ * different files therefore touch different lines, and the check can be strict
+ * again. The counts themselves (per directory, and the largest files by size) are
+ * printed by --stats and never written.
  *
- * The prose around them is hand-written and untouched - only the tables move.
+ *   <!-- web-src-largest:start -->  the large source files + their test status
+ *
+ * The prose around it is hand-written and untouched. A README that still holds the
+ * old per-directory counts block has it removed on the next write.
  *
  * "Direct test coverage" is deliberately mechanical: a sibling `<name>.test.ts`,
  * or any file under the shell's tree whose text imports the module by basename.
@@ -39,8 +49,10 @@ const DIRS_END = '<!-- web-src-dirs:end -->';
 const BIG_START = '<!-- web-src-largest:start -->';
 const BIG_END = '<!-- web-src-largest:end -->';
 
-/** How many of the largest source files to list. */
+/** How many of the largest source files --stats prints. */
 const LARGEST_N = 20;
+/** A source file this long or longer is listed in the committed README. */
+const LARGE_LINES = 2500;
 
 interface FileRow { rel: string; lines: number }
 
@@ -147,28 +159,29 @@ function existingNotes(readme: string): Map<string, string> {
   const j = readme.indexOf(BIG_END);
   const block = i >= 0 && j > i ? readme.slice(i, j) : readme;
   for (const line of block.split('\n')) {
-    const m = /^\|\s*[\d,]+\s*\|\s*`([^`]+)`\s*\|\s*(.*?)\s*\|\s*$/.exec(line);
+    // `| <file> | <note> |`, or the older `| <lines> | <file> | <note> |`.
+    const m = /^\|\s*(?:[\d,]+\s*\|\s*)?`([^`]+)`\s*\|\s*(.*?)\s*\|\s*$/.exec(line);
     if (m) notes.set(m[1] as string, m[2] as string);
   }
   return notes;
 }
 
-function largestTable(readme: string): string {
+const sourceFiles = (): FileRow[] => ALL.filter((f) => isSource(f.rel) && !isDecl(f.rel) && /\.ts$/.test(f.rel));
+
+/** The committed list: every large source file, in path order, with no counts. */
+function largeList(readme: string): string {
   const notes = existingNotes(readme);
-  const largest = ALL.filter((f) => isSource(f.rel) && !isDecl(f.rel) && /\.ts$/.test(f.rel))
-    .sort((a, b) => b.lines - a.lines)
-    .slice(0, LARGEST_N);
-  const tested = testedSet(largest.filter(f => !notes.has(f.rel)));
-  const rows = largest
-    .map((f) => {
-      const note = notes.get(f.rel) ?? (tested.has(f.rel) ? 'yes' : '**none**');
-      return `| ${fmt(f.lines)} | \`${f.rel}\` | ${note} |`;
-    });
-  return [
-    '| Lines | File | Direct test coverage |',
-    '|---|---|---|',
-    ...rows,
-  ].join('\n');
+  const large = sourceFiles().filter((f) => f.lines >= LARGE_LINES).sort((a, b) => a.rel.localeCompare(b.rel, 'en'));
+  const tested = testedSet(large.filter(f => !notes.has(f.rel)));
+  const rows = large.map((f) => `| \`${f.rel}\` | ${notes.get(f.rel) ?? (tested.has(f.rel) ? 'yes' : '**none**')} |`);
+  return ['| File | Direct test coverage |', '|---|---|', ...rows].join('\n');
+}
+
+/** The counts, for --stats only: never written to the README. */
+function largestBySize(): string {
+  const rows = sourceFiles().sort((a, b) => b.lines - a.lines).slice(0, LARGEST_N)
+    .map((f) => `| ${fmt(f.lines)} | \`${f.rel}\` |`);
+  return ['| Lines | File |', '|---|---|', ...rows].join('\n');
 }
 
 function replaceBlock(text: string, start: string, end: string, body: string): string {
@@ -180,16 +193,26 @@ function replaceBlock(text: string, start: string, end: string, body: string): s
   return `${text.slice(0, i + start.length)}\n${body}\n${text.slice(j)}`;
 }
 
+/** Take out the old per-directory counts block, markers and all, when the README still holds that block. */
+function withoutDirsBlock(text: string): string {
+  const i = text.indexOf(DIRS_START);
+  const j = text.indexOf(DIRS_END);
+  if (i < 0 || j < i) return text;
+  return text.slice(0, i) + text.slice(j + DIRS_END.length).replace(/^\n+/, '');
+}
+
 function render(current: string): string {
-  let next = replaceBlock(current, DIRS_START, DIRS_END, dirsTable());
-  next = replaceBlock(next, BIG_START, BIG_END, largestTable(current));
-  return next;
+  return replaceBlock(withoutDirsBlock(current), BIG_START, BIG_END, largeList(current));
 }
 
 function main(): void {
   if (!existsSync(README) || !statSync(README).isFile()) {
     console.error(`✗ ${relative(ROOT, README)} is missing - regenerate it with pnpm run build:web-src-readme`);
     process.exit(1);
+  }
+  if (process.argv.includes('--stats')) {
+    console.log(`${dirsTable()}\n\nLargest source files:\n\n${largestBySize()}`);
+    return;
   }
   const current = readFileSync(README, 'utf8');
   let next: string;
@@ -201,25 +224,17 @@ function main(): void {
 
   if (process.argv.includes('--check')) {
     if (next !== current) {
-      // Pull requests and the pre-push hook pass --allow-drift: other merges move these
-      // counts, and .github/workflows/generated-readmes.yml regenerates them after each
-      // merge. Missing markers or a failing generator still exit 1 above.
-      if (process.argv.includes('--allow-drift')) {
-        const note = 'shells/web/src/README.md stats differ from the tree. Nothing to do in this change: '
-          + '.github/workflows/generated-readmes.yml regenerates them after the merge.';
-        console.log(process.env.GITHUB_ACTIONS === 'true' ? `::warning title=Generated README drift::${note}` : note);
-        return;
-      }
-      console.error(
-        'shells/web/src/README.md stats are stale. Run `pnpm run build:web-src-readme` and commit the result.',
-      );
-      process.exit(1);
+      // Exit 3, not 1: scripts/check-pushed-generated.ts tells this out-of-date list
+      // (which it refuses) from an older generator's count drift (which it only reports).
+      console.error('shells/web/src/README.md large-file list does not match the tree. '
+        + 'Run `pnpm run build:web-src-readme` and commit the result.');
+      process.exit(3);
     }
-    console.log('shells/web/src/README.md stats are current.');
+    console.log('shells/web/src/README.md large-file list is current.');
     return;
   }
   writeFileSync(README, next);
-  console.log(`shells/web/src/README.md stats regenerated (top ${LARGEST_N} files).`);
+  console.log(`shells/web/src/README.md large-file list written (source files of ${fmt(LARGE_LINES)} lines or more).`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) main();
