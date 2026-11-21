@@ -55,6 +55,10 @@
  * entries on activate (a one-time clear of anything already gone stale).
  */
 
+// v19: the page hands over the build files it loaded before this worker took control
+// (the boot chunks, the boot stylesheet, the preloaded fonts), and the worker stores the
+// ones it lacks (cacheBootSet, the 'lolly:boot-set' message). A first visit loads those
+// files before any worker exists, so until now a second visit fetched all of them again.
 // v18: /brand (the static brand standards page) joins BYPASS_PATTERNS. A worker from
 // before this one stores a /brand visit under the shell key, so the bump drops that
 // generation on activate and the offline app boots into the app again.
@@ -75,7 +79,7 @@
 // gains a cache-first rule, and three page-owned unversioned buckets join
 // lolly-pins: lolly-app (pre-downloaded build assets), lolly-ort (the ONNX
 // runtime for /verify's deep scan), lolly-info (the /info docs site).
-const CACHE = 'lolly-v18';
+const CACHE = 'lolly-v19';
 
 // Tools pinned "available offline": the page writes /tools/<id>/* copies into
 // this SEPARATE, unversioned bucket (shells/web/src/lib/offline-pins.ts - keep
@@ -272,6 +276,45 @@ self.addEventListener('activate', event => {
       Promise.all(keys.filter(k => k !== CACHE && !PERSISTENT_CACHES.includes(k)).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
+});
+
+// The build files a page loaded before this worker controlled it. A first visit
+// downloads the boot chunks, the boot stylesheet and the preloaded fonts before any
+// worker exists, so none of them passed through the cache-first route below, and a
+// second visit fetched every one of them again (plan 371: second-visit first paint
+// 623 ms against 259 ms once they were cached). The page posts their addresses once
+// it is controlled; only immutable build paths on this origin are accepted, at most
+// BOOT_SET_MAX of them, and a file already stored is skipped. The fetch here is
+// answered by the browser's HTTP cache (or a 304 revalidation where the host sends
+// no-cache), so this does not download the files a second time.
+const BOOT_SET_MAX = 200;
+const BOOT_SET_MESSAGE = 'lolly:boot-set';
+
+async function cacheBootSet(urls) {
+  const cache = await caches.open(CACHE);
+  const wanted = [];
+  for (const raw of urls.slice(0, BOOT_SET_MAX)) {
+    if (typeof raw !== 'string') continue;
+    let url;
+    try { url = new URL(raw, self.location.origin); } catch { continue; }
+    if (url.origin !== self.location.origin || url.search || url.hash) continue;
+    if (!IMMUTABLE_PATTERNS.some(p => p.test(url.pathname))) continue;
+    if (!wanted.includes(url.href)) wanted.push(url.href);
+  }
+  await Promise.all(wanted.map(async href => {
+    if (await cache.match(href)) return;
+    try {
+      const response = await fetch(href, { credentials: 'same-origin' });
+      if (response && response.ok) await cache.put(href, response);
+    } catch { /* offline or gone: the cache-first route fills it on the next real use */ }
+  }));
+}
+
+self.addEventListener('message', event => {
+  const data = event.data;
+  if (!data || data.type !== BOOT_SET_MESSAGE || !Array.isArray(data.urls)) return;
+  // Only a page of this origin can reach this worker; the list is still checked above.
+  event.waitUntil(cacheBootSet(data.urls));
 });
 
 self.addEventListener('fetch', event => {

@@ -89,6 +89,7 @@ import { STARTUP_PENDING_ATTRIBUTE } from './lib/startup-motion.ts';
 import { takeViewInput } from './lib/view-input.ts';
 import { createLateGate } from './lib/late-gate.ts';
 import { holdToolIndex, type ToolIndexHold } from './lib/tool-index-hold.ts';
+import { handOverBootSet } from './lib/sw-boot-set.ts';
 
 // The collab + nearby wiring, installed once the critical load is done rather than at
 // module scope. All five are REGISTRATIONS - a Share-dialog row, the opener that row
@@ -2566,7 +2567,13 @@ if ('serviceWorker' in navigator) {
       .then(registrations => Promise.all(registrations.map(registration => registration.unregister())))
       .catch(() => {});
   } else {
-    onWindowLoad(() => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+    // Once the worker controls this page, it is handed the build files the page already
+    // loaded, so the next visit finds them in its cache (lib/sw-boot-set.ts, plan 371).
+    onWindowLoad(() => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(() => handOverBootSet(navigator.serviceWorker, document, () => performance.getEntriesByType('resource'), location.origin))
+        .catch(() => {});
+    });
   }
 }
 
