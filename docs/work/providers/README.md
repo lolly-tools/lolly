@@ -48,7 +48,7 @@ How to read the columns:
 - **Exit** means [materialize, then cut over](../offboarding.md). Orange Logic copies its
   renditions but refuses a cutover, because it has no access to protected originals.
 - **Unconfirmed live** lists what still comes from vendor documentation rather than from a live
-  service. Nine drivers carry such a checklist; Brandfolder's two availability field names are
+  service. Nine drivers have such a checklist; Brandfolder's two availability field names are
   also unconfirmed. Before you rely on one of those sources,
   [check it on your own tenant](tenant-check.md).
 
@@ -138,7 +138,7 @@ made and the field labels and value types the service returned, compared with th
 driver reads. It never prints a value, so you can send the output to someone else. The seven
 drivers whose field names still come from vendor documentation support it: `webdav`, `canto`,
 `imagerelay`, `intelligencebank`, `acquia-dam`, `cloudinary` and `orange-logic`. Add
-`--remote-id <id>` for a second report on the per-file detail call, which carries the download
+`--remote-id <id>` for a second report on the per-file detail call, which includes the download
 link; `imagerelay`, `intelligencebank`, `acquia-dam`, `cloudinary` and `orange-logic` make that
 call. [Check a source on your own tenant](tenant-check.md) explains how to read the report.
 

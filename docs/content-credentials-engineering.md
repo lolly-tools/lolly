@@ -1,7 +1,5 @@
 # Content Credentials engineering
 
-This page is for engineers and operators who integrate, audit or deploy Lolly's signing path. It covers how a device key becomes a verified signer, the engine contracts behind signing and verifying, the CA service and its protocol and the threat model.
-
 For what a reader sees, start with [Content Credentials](/info/content-credentials-identity.html) and [What Lolly Verify checks](/info/what-verify-checks.html). To deploy the CA, the canonical runbook is the [CA README](https://github.com/lolly-tools/lolly/blob/main/services/ca/README.md).
 
 ::: note Versions and line numbers
@@ -23,7 +21,7 @@ It routes to the shell's `signFreshC2pa`, which asks `host.identity.signer()` fi
 
 A hook that calls it can therefore put the person's CA-verified identity onto bytes of its own choosing. That is the point of the API, because the tool *is* the author here, so **tool review is the control**: the same control that covers a `{{{x}}}` in a template. Four shipping tools call `host.c2pa.sign`: `community/redact`, `community/claim`, `community/sign` and `community/rondocode`.
 
-Its companion `host.c2pa.readIngredients` (v1.104) reads every manifest a file already carries and packages each one as an ingredient, so a tool that signs an existing file carries those credentials forward instead of orphaning them. `claim`, `sign` and `rondocode` use the companion too. The engine side stays ordinary options (`opts.signer`, `opts.trustAnchors`) on existing pure functions.
+Its companion `host.c2pa.readIngredients` (v1.104) reads every manifest a file already has and packages each one as an ingredient, so a tool that signs an existing file carries those credentials forward instead of orphaning them. `claim`, `sign` and `rondocode` use the companion too. The engine side stays ordinary options (`opts.signer`, `opts.trustAnchors`) on existing pure functions.
 
 <!--i:eti-user-check-->
 ## Why the certificate identifies a person, not the app
@@ -80,7 +78,7 @@ Two passes stay safe: the chain bytes are captured once per embed, so they are b
 
 `recordApprovalInCredential(reviewed, format, { approvalId, decidedAt, signer })` adds a signed update over a reviewed file. The update's manifest takes the reviewed credential as its one `parentOf` ingredient, records `c2pa.opened` then `c2pa.published`, and carries the `tools.lolly.approval` assertion: `{ version: 1, approvalId, decidedAt, reviewedSha256 }`. The writer refuses any other field and refuses a record with no credentialed parent. PNG, JPEG, SVG and PDF have an update route. A PDF gets one more incremental revision, and the reviewed file stays an exact prefix.
 
-It returns `recorded` only after a readback: `verifyC2pa` finds an intact credential holding that record, and `artworkUnchanged` finds the bytes outside the credential equal. Anything else is `not-recorded` with a reason, and the caller keeps the reviewed bytes. `verifyC2pa` reports the record as `approval`, beside `state`. An update's export facts (`environment`, `author`, `rights`, AI disclosures) are read from its parent once the parent matches the hash the update signed. A parent that does not match fails `ingredient.manifest.mismatch`. `tests/c2pa-approval-record.test.ts` holds the proofs, cross-checked with `c2patool`.
+It returns `recorded` only after a readback: `verifyC2pa` finds an intact credential holding that record, and `artworkUnchanged` finds the bytes outside the credential equal. Anything else is `not-recorded` with a reason, and the caller keeps the reviewed bytes. `verifyC2pa` reports the record as `approval`, beside `state`. An update's export facts (`environment`, `author`, `rights`, AI disclosures) are read from its parent once the parent matches the hash the update signed. A parent that does not match fails `ingredient.manifest.mismatch`. `tests/c2pa-approval-record.test.ts` has the proofs, cross-checked with `c2patool`.
 
 ### `engine/src/c2pa-verify.ts`
 
@@ -152,7 +150,7 @@ The shell embeds it two ways: through the standalone raster encoders' `opts.impr
 
 Two open pixel-watermark decoders behind a one-time consent: about 90 MB of detector models, offered by one banner per batch, after which the scan runs on each file without asking again (`shells/web/src/lib/trustmark.ts` and `contentseal.ts`, with `engine/src/contentseal.ts` for the DOM-free decode maths). TrustMark is a real decode checked by error correction. Content Seal has no error-correcting check, so it reports an amber statistical "likely", always with the caveat that Meta's proprietary Muse variant is a different watermark. [What Lolly Verify checks](/info/what-verify-checks.html#deep-scan-trustmark-and-content-seal) has the reader's detail.
 
-TrustMark's *write* side is one switch in the export panel, off by default for the same reason its scan is opt-in: a neural pass plus that one-time model download. It sits in the Content protection card shown below.
+TrustMark's *write* side is one switch in the export panel, off by default for the same reason its scan is opt-in: a neural pass plus that one-time model download. It is in the Content protection card shown below.
 
 <!--i:eti-pin-->
 ## Trust anchors

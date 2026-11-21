@@ -36,7 +36,7 @@ For a supported exit into Lolly Work, the sequence is:
 - <!--i:lock--> **Cut over.** `lw providers cutover` moves identities from `ext/*` to `inst/*`, writes aliases for every old address and turns the provider off.
 :::
 
-Connecting each kind is in [the provider guides](providers/README.md), one per kind.
+Connecting each kind is in [the provider guides](providers/README.md).
 
 <!--i:eti-home-->
 ## Self-host Lolly Work with S3 storage
@@ -48,7 +48,7 @@ your own address and sign-in. The public demo's memory storage is not a migratio
 
 ::: warning Choose the blob store before the first copy
 Choose where the bytes will live before the first materialize. Changing `blobs.driver` later does
-not transfer existing blobs; plan an explicit storage migration if the instance already holds files.
+not transfer existing blobs; plan an explicit storage migration if the instance already has files.
 :::
 
 PostgreSQL (`pg`) is the default blob
@@ -88,7 +88,7 @@ Keep the DAM connected while you rehearse a small, permitted copy into that stor
 original checksums, every required attachment, mapped approval and availability, and member
 access. Inventory unmapped metadata, taxonomy, rights evidence, history and publishing links;
 obtain separate exports or replacement processes for the records the connector does not carry.
-The [per-DAM readiness table](#exit-readiness-by-kind) determines whether cutover is supported.
+The [per-DAM readiness table](#exit-readiness-by-kind) says whether cutover is supported.
 
 Back up PostgreSQL, the object store, configuration and the secrets needed for recovery together,
 then rehearse a restore with the [backup and restore guide](operations.md#backup-and-restore).
@@ -179,7 +179,7 @@ Lolly Work cutover's old-address aliases do not apply to this separate transfer.
 <!--i:eti-help-->
 ## Canto and Image Relay: which driver do you exit through?
 
-Image Relay tenants may be moved to Canto, so one set of customers can sit across two APIs.
+Image Relay tenants may be moved to Canto, so one set of customers can span two APIs.
 Check which API serves your tenant before you plan: the exit driver follows the tenant, not the
 logo.
 
@@ -263,7 +263,7 @@ the instance's BlobStore, checksums them, checks each one for an embedded [Conte
 Credential](c2pa.md), and creates an **instance asset** (`inst/<id>`) with a permanent `origin`:
 provider, provider kind, remote id, filename, `sourceUpdatedAt` and `materializedAt`. Provenance
 stays accurate after the DAM is gone. The command reports how many assets were copied, how many
-the exposure slice skipped, how many carry an embedded credential and any per-asset failures.
+the exposure slice skipped, how many have an embedded credential and any per-asset failures.
 A copied asset keeps its `ext/*` identity and its federated entry; only the bytes change hands,
 served from the local copy. To copy a single asset, use
 `POST /api/v1/catalog/providers/:id/import`, or the provider's asset list in the console.
@@ -276,7 +276,7 @@ sessions) keeps resolving. It then disables a provider stored in the database; a
 one is turned off by removing it from `instance.json`. Deleting the provider afterwards deletes
 nothing, because the copies are instance-owned.
 
-After cutover, every format of a copied `inst/*` entry carries a **checksum and size**, so
+After cutover, every format of a copied `inst/*` entry has a **checksum and size**, so
 migrated assets gain the integrity checks and offline pinning that a federated `ext/*` entry
 cannot have while its bytes live upstream.
 

@@ -2,7 +2,7 @@
 
 Connect an IntelligenceBank DAM and its assets appear in the Lolly Work catalog, with its own
 expiry and review dates and workflow states carried across. No custom-field mapping is
-needed. IntelligenceBank stays the source: Lolly Work reads through the current v3 Graph API and
+needed. IntelligenceBank is the source: Lolly Work reads through the current v3 Graph API and
 never writes back.
 
 <!--i:eti-checklist-->

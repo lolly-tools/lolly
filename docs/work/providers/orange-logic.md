@@ -1,7 +1,7 @@
 # Orange Logic integration with Lolly (kind: `orange-logic`)
 
 Connect an Orange Logic DAM so people can search it from Lolly Work and use the renditions it
-already publishes, such as its `TR1` and `WebHigh` images, in their designs. Orange Logic stays
+already publishes, such as its `TR1` and `WebHigh` images, in their designs. Orange Logic is still
 the source. Lolly Work reads through its public Search API and you decide which Lolly Work groups see which
 results.
 
@@ -38,7 +38,7 @@ turn on semantic search or treat a semantic result set as the full catalog.
 - **A dedicated account** allowed to use bearer authentication, the Search fields and the
   rendition formats you need. Choose an upstream subset that is right to share through Lolly Work.
 - **An administrator query** and explicit Lolly Work exposure groups. A shared service account does
-  not carry each member's own upstream permissions.
+  not have each member's own upstream permissions.
 
 Use the advanced **Providers > Orange Logic** form or `lw`.
 
@@ -127,9 +127,9 @@ Contributors changing the driver follow its
   of the source's edit and checksum fields and the rendition code, so a rename keeps the asset
   and a changed source needs a refresh. This is not retrieval of past revisions or proof that a
   rendition never changes.
-- **Renditions only.** A record without any requested format stays searchable with no file to
+- **Renditions only.** A record without any requested format is still searchable, with no file to
   download. A document preview does not make a PDF or PowerPoint original available.
-- **Substitutions refused.** Substituted or watermarked formats, and paths carrying warnings, are
+- **Substitutions refused.** Substituted or watermarked formats, and paths with warnings, are
   left out. Before fetching, Lolly Work checks the record and the mapped policy again; a missing,
   changed, substituted or disallowed file fails clearly.
 - **Public rendition links** are refreshed on access and never stored in the catalog. That does

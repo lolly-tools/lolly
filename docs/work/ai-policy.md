@@ -1,9 +1,7 @@
 # Manage organisation AI policy
 
-This page is for the admin deciding whether members may use Lolly's model-backed features on a
-Lolly Work deployment, and how to stop them at once. Managed AI is off by default. It is a
-service switch for the whole deployment, not a personal preference, and it covers the features
-below.
+Managed AI is off by default. It is a service switch for the whole deployment, not a personal
+preference, and it covers the features below.
 
 <!--i:eti-sparkles-->
 ## What managed AI covers
@@ -77,7 +75,7 @@ capability or shipping a reviewed replacement.
 Lolly Rondocode runs its singing models inside its own editor frame. The shell checks `sing` when a song
 asks for the model files, and again before it downloads any that are missing. Withdrawing the
 capability refuses later requests; a request that already passed those checks can still finish,
-and files the frame already holds are not recalled. Approve `sing` only for a Lolly 1.1.1 or later
+and files the frame already has are not recalled. Approve `sing` only for a Lolly 1.1.1 or later
 shell. An older shell refuses a lease that asks for a capability it does not know, so every AI
 capability stays off there until the shell is updated.
 

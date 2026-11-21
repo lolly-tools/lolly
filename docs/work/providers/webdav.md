@@ -1,8 +1,8 @@
 # WebDAV / Nextcloud (kind: `webdav`)
 
 Share one folder from a file server you run, such as Nextcloud, and its files appear in the
-Lolly Work catalog for the groups you choose. Lolly Work reads the folder and never writes to it, so
-the server stays the place where files are added and approved.
+Lolly Work catalog for the groups you choose. Lolly Work reads the folder and never writes there, so
+the server is still where files are added and approved.
 
 The kind is the protocol, not a vendor. Nextcloud is the documented path; ownCloud, Apache
 `mod_dav`, Sabre/DAV and any other server that answers RFC 4918 `PROPFIND` use the same kind
@@ -27,7 +27,7 @@ config-managed entries ([YunoHost](../install.md#7-yunohost)).
    Create new app password**. Nextcloud shows it once. Never use the account password: an
    account with two-factor sign-in rejects it at the DAV endpoint, and an app password can be
    revoked on its own.
-3. **The account's login name.** The DAV path carries the login, which can differ from the
+3. **The account's login name.** The DAV path includes the login, which can differ from the
    display name; **Settings > Personal info** shows both, and the login is the last part of
    the Files URL. That is `options.username`.
 4. **The server root** as `options.baseUrl`, such as `https://cloud.example`, including any
@@ -55,7 +55,7 @@ config-managed entries ([YunoHost](../install.md#7-yunohost)).
 1. Open **Assets & tools > Providers** at `/admin#/providers` and choose **Guided connection**
    on the WebDAV storage card.
 2. Enter the server type and URL, the folder to expose, the catalog mapping and the member
-   groups. Group and section fields take one exact name per line; a comma stays part of the
+   groups. Group and section fields take one exact name per line; a comma is part of the
    name. An empty folder exposes the whole files root and empty groups expose the files to
    every member, so check both.
 
@@ -81,7 +81,7 @@ config-managed entries ([YunoHost](../install.md#7-yunohost)).
    it checks health again and enables the source.
 
 An admin can save a disabled source and hand the credential and the enable to an owner.
-Disabling the source from its row stops federation. A config-managed source stays read-only
+Disabling the source from its row stops federation. A config-managed source is read-only
 here: change your deployment and redeploy.
 
 <!--i:eti-lock-->
@@ -141,7 +141,7 @@ Generic WebDAV:
 :::
 
 **Availability dates.** WebDAV has no approval status, so curate a folder of approved files.
-If your server returns a custom DAV property carrying a date, name it in
+If your server returns a custom DAV property with a date, name it in
 `mapping.availabilityFields` to import an
 [availability window](../catalog.md#imported-availability-windows). Give the local name without
 the namespace prefix (`embargo-until`, not `x:embargo-until`). Setting it switches the listing
