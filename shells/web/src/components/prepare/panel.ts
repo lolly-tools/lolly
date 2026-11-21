@@ -23,6 +23,7 @@ import { fmtBytes } from '../../lib/format.ts';
 import { icon } from '../../lib/icons.ts';
 import { escape as htmlEscape } from '../../utils.ts';
 import { t } from '../../i18n.ts';
+import { helpTip, wireHelpTips, unwireHelpTips } from '../help-tip.ts';
 import { renderPreparationReview, preparationChoices } from './review.ts';
 import { renderPreparationOutputs } from './outputs.ts';
 import { renderInspectorShell, renderInspectorEmpty, renderInspectorStats, renderCoverage, renderReport, renderRules, setInspectorStatus, type InspectorTone } from './inspector.ts';
@@ -78,10 +79,16 @@ class PreparationPanel {
     this.root = root; this.host = host; this.files = files;
     const uid = Math.random().toString(36).slice(2, 8);
     root.classList.add('prepare-panel');
+    // The limits and the storage notes are needed by few people, so one help tip has all three.
+    const sourcesTip = helpTip([
+      t('Read here, on this device. Originals are never changed.'),
+      t('Text, JSON, YAML, HAR and ZIP are inspected. Supported DOCX files can have selected core and custom properties, Company, Manager, Template, hyperlink base, application name and version, and document statistics removed; other Office findings remain inspect-only. PDF, PNG, JPG and SVG can have hidden metadata removed. Up to 100 files, 32 MiB each and 64 MiB in total; text inspection stops at 1 MiB per file.'),
+      t('Originals, private values and replacement maps stay in this view’s memory. They are not saved to history, links or recipes. Leaving or clearing this view releases its working state.'),
+    ].join(' '));
     root.innerHTML = `<div class="prepare-layout">
       <div class="prep-main">
         <section class="card prep-card prep-sources" aria-labelledby="prep-sources-${uid}">
-          <header class="prep-card-head"><h2 class="prep-card-title" id="prep-sources-${uid}">${t('Sources')}</h2><p class="prep-card-sub">${t('Read here, on this device. Originals are never changed.')}</p></header>
+          <header class="prep-card-head help-tip-host"><h2 class="prep-card-title" id="prep-sources-${uid}">${t('Sources')}</h2>${sourcesTip.button}${sourcesTip.pop}</header>
           <label class="prep-drop" data-drop>
             <span class="prep-drop-icon" aria-hidden="true">${icon('upload')}</span>
             <span class="prep-drop-lead" data-drop-lead>${t('Drop files to inspect them')}</span>
@@ -99,13 +106,12 @@ class PreparationPanel {
             <button type="button" class="btn btn--sm" data-inspect>${t('Inspect now')}</button>
             <p class="prep-status" role="status" aria-live="polite" data-status></p>
           </div>
-          <p class="prep-limits">${t('Text, JSON, YAML, HAR and ZIP are inspected. Supported DOCX files can have selected core and custom properties, Company, Manager, Template, hyperlink base, application name and version, and document statistics removed; other Office findings remain inspect-only. PDF, PNG, JPG and SVG can have hidden metadata removed. Up to 100 files, 32 MiB each and 64 MiB in total; text inspection stops at 1 MiB per file.')}</p>
         </section>
         <section class="card prep-card prep-copies" data-output aria-label="${t('Prepared copies')}" hidden></section>
-        <p class="prep-footnote">${t('Originals, private values and replacement maps stay in this view’s memory. They are not saved to history, links or recipes. Leaving or clearing this view releases its working state.')}</p>
       </div>
       <aside class="prep-side" data-side aria-label="${t('Inspection')}"></aside>
     </div>`;
+    wireHelpTips(root);
     this.main = this.root.querySelector<HTMLElement>('.prep-main')!;
     this.side = this.root.querySelector<HTMLElement>('[data-side]')!;
     this.output = this.main.querySelector<HTMLElement>('[data-output]')!;
@@ -411,6 +417,7 @@ class PreparationPanel {
     if (this.disposed) return;
     this.disposed = true;
     this.listeners.splice(0).forEach(off => { off(); });
+    unwireHelpTips(this.root);
     clearTimeout(this.inspectTimer); clearTimeout(this.applyTimer);
     this.work?.abort(); this.work = undefined;
     this.undock?.(); this.undock = undefined;
