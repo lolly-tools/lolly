@@ -150,6 +150,24 @@ test('a file dropped on the page after the gate reaches no intake', () => {
   assert.deepEqual(seen, [], 'after the gate no handler sees the drag');
 });
 
+test('a dialog something under way opens on the page after the gate is closed and removed before it paints', async () => {
+  const { gate, doc, drawGate } = page();
+  gate.stop(drawGate());
+  // A file chooser whose module was still loading when the gate arrived.
+  const chooser = doc.createElement('dialog');
+  chooser.setAttribute('open', '');
+  chooser.textContent = 'Open this file in';
+  doc.body.append(chooser);
+  const wrapped = doc.createElement('div');
+  wrapped.innerHTML = '<dialog open>nested</dialog>';
+  doc.body.append(wrapped);
+  await microtasks();
+  assert.equal(chooser.isConnected, false, 'the late chooser is gone');
+  assert.equal(wrapped.querySelector('dialog'), null, 'and so is a dialog inside something added late');
+  assert.equal(doc.querySelectorAll('dialog[open]').length, 0, 'no dialog is open over the gate');
+  assert.ok(doc.querySelector('#view > .org-gate'), 'the gate stays');
+});
+
 test('a gate reported with no markup leaves the view empty, never as it was', () => {
   const { gate, view } = page();
   gate.stop(null);
@@ -207,7 +225,9 @@ test('only the browse routes mount before the probe answers; every other route w
   assert.ok(wait < navigateBody.indexOf("case 'tool':"), 'before any view mounts');
   const block = navigateBody.slice(wait, navigateBody.indexOf('if (!ROUTES[route.name].beforeWebGpu)', wait));
   assert.match(block, /await probeAnswerPending;/);
-  assert.match(block, /if \(lateGate\.stopped\(\)\) \{ fade\?\.commit\(\); lateGate\.replace\(\); return; \}/, 'and never mounts over a gate');
+  // Unconditional, after the wait: a navigation paused elsewhere (the tool-open paint wait) when the
+  // answer arrived finds probeAnswerPending already cleared and must still not mount.
+  assert.match(block, /\}\n[^\n]*\n[^\n]*\n {2}if \(lateGate\.stopped\(\)\) \{ fade\?\.commit\(\); lateGate\.replace\(\); return; \}/, 'and never mounts over a gate');
   assert.match(bootBody, /probeAnswerPending = orgPromise\.then\(late => \{ if \(late\?\.gate\) lateGate\.stop\(null\); probeAnswerPending = null; \}\);/);
   assert.doesNotMatch(main, /location\.reload\(\)[^\n]*gate|reloadIntoGate/, 'a late gate stays: no reload that a failing probe could turn back into dormancy');
 });

@@ -304,9 +304,11 @@ async function cacheBootSet(urls) {
   await Promise.all(wanted.map(async href => {
     if (await cache.match(href)) return;
     try {
-      const response = await fetch(href, { credentials: 'same-origin' });
-      if (response && response.ok) await cache.put(href, response);
-    } catch { /* offline or gone: the cache-first route fills it on the next real use */ }
+      // No redirects: a build file that redirects (to a sign-in page, say) is not that file,
+      // and storing the page under the chunk's address would break every later load.
+      const response = await fetch(href, { credentials: 'same-origin', redirect: 'error' });
+      if (response && response.ok && !response.redirected) await cache.put(href, response);
+    } catch { /* offline, gone or redirected: the cache-first route fills it on the next real use */ }
   }));
 }
 

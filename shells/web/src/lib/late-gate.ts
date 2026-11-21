@@ -26,7 +26,9 @@
  * Files dragged onto the page are swallowed from then on, in the capture phase on the
  * window, ahead of any handler: a view's drop listener on the router's view (the
  * gallery's intake) is detached by navigation, which a gate never emits, and the chooser
- * it would open lives on the body, outside the view.
+ * it would open lives on the body, outside the view. A dialog that something already
+ * under way opens on the body after the gate (a file chooser whose module was still
+ * loading, any modal) is closed and removed as it is added, before it is painted.
  */
 
 /** The router's view element: a mounted view leaves its teardown here. */
@@ -91,6 +93,19 @@ export function createLateGate(deps: LateGateDeps): LateGate {
       guard.observe(view, { childList: true });
       const swallow = (event: Event): void => { event.preventDefault(); event.stopImmediatePropagation(); };
       for (const type of ['dragenter', 'dragover', 'drop']) win.addEventListener(type, swallow, true);
+      const body = view.ownerDocument.body;
+      if (body) {
+        new win.MutationObserver(records => {
+          for (const record of records) for (const node of record.addedNodes) {
+            if (!(node instanceof win.Element)) continue;
+            const dialogs = node.tagName === 'DIALOG' ? [node] : [...node.querySelectorAll('dialog')];
+            for (const dialog of dialogs as HTMLDialogElement[]) {
+              if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open');
+              dialog.remove();
+            }
+          }
+        }).observe(body, { childList: true });
+      }
     }
   };
 

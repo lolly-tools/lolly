@@ -690,8 +690,10 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   if (probeAnswerPending && !ROUTES_BEFORE_PROBE.has(route.name)) {
     await probeAnswerPending;
     if (navigation !== navigationSeq) { fade?.commit(); return; }
-    if (lateGate.stopped()) { fade?.commit(); lateGate.replace(); return; }
   }
+  // Checked whether or not this navigation waited above: one that started before the
+  // answer and was paused elsewhere (the tool-open paint wait) finds the wait already gone.
+  if (lateGate.stopped()) { fade?.commit(); lateGate.replace(); return; }
   if (!ROUTES[route.name].beforeWebGpu) {
     try { await webGpuChecked(); } catch (error) { fade?.commit(); stopForWebGpu(error); return; }
     // A newer navigation started while this one waited, and owns the view now. Not

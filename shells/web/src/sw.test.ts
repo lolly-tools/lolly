@@ -93,6 +93,8 @@ interface Harness {
   message: (data: unknown) => Promise<void>;
   /** Every pathname the worker fetched from the network, in order. */
   fetched: string[];
+  /** Paths the network answers with a redirect. */
+  redirects: Set<string>;
 }
 
 /** Evaluate the real sw.js in a sandbox and hand back its registered handlers. */
@@ -103,6 +105,8 @@ function loadServiceWorker(): Harness {
   const offline = { value: false };
   const server = new Map<string, string>();
   const fetched: string[] = [];
+  /** Paths the network answers with a redirect (to a sign-in page, say). */
+  const redirects = new Set<string>();
 
   const cachesApi = {
     async open(name: string) {
@@ -125,10 +129,14 @@ function loadServiceWorker(): Harness {
       location: { origin: 'https://lolly.tools' },
     },
     caches: cachesApi,
-    fetch: async (req: { url: string } | string) => {
+    fetch: async (req: { url: string } | string, init: { redirect?: string } = {}) => {
       if (offline.value) throw new TypeError('Failed to fetch');
       const path = new URL(typeof req === 'string' ? req : req.url).pathname;
       fetched.push(path);
+      if (redirects.has(path)) {
+        if (init.redirect === 'error') throw new TypeError('Failed to fetch: redirect');
+        return { ...makeResponse('<!doctype html><title>Sign in</title>'), redirected: true };
+      }
       const body = server.get(path);
       return body === undefined ? makeResponse('not found', { status: 404 }) : makeResponse(body);
     },
@@ -170,6 +178,7 @@ function loadServiceWorker(): Harness {
       await work;
     },
     fetched,
+    redirects,
   };
 }
 
@@ -428,6 +437,14 @@ describe('service worker: the boot set a first visit loaded (plan 371)', () => {
     await h.message(null);
     assert.deepEqual(h.fetched, [], 'nothing outside the immutable build paths is fetched or stored');
     assert.equal([...generation(h).entries.keys()].some(k => k.includes('/_app/')), false);
+  });
+
+  test('a build file that redirects is never stored under the chunk address', async () => {
+    const h = loadServiceWorker();
+    await h.install();
+    h.redirects.add('/_app/web-boot-a1.js');
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/web-boot-a1.js'] });
+    assert.equal(generation(h).entries.has('https://lolly.tools/_app/web-boot-a1.js'), false, 'no sign-in page under a JavaScript address');
   });
 
   test('caps the list, keeps failures out of the cache, and survives the network being away', async () => {
