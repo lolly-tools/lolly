@@ -6,6 +6,12 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.350.0
+
+- The official C2PA trust list in `c2pa-trust.ts` is refreshed from c2pa-org/conformance-public at commit `285d98e4b575198180c1d6404a7ee1a317e04911` (list issued 2026-11-20). Six certificates are added: Samsung C2PA Root CA G1, Castlabs C2PA ECC P-384 Root CA, RealReel C2PA Root CA, Aretiico C2PA Issuing CA G1, and a reissued Verimago Root CA and Verimago Claim Signing Issuing CA beside the earlier pair. None is removed. The frozen CAI list and the Google root are unchanged. `c2paTrustAnchors()` returns 60 anchors where it returned 54.
+- Held back (2026-11-21, the maintainer's decision): NETLOCK ECC C2PA Root CA G2 and NETLOCK ECC C2PA Claim Signing G2 CA 1. The official PEM lists them, but the official `C2PA-TRUST-LIST.json` gives both an empty `ServiceStatus` and `StatusStartingTime`, where its schema allows only the trusted or untrusted URI, so the list states no status for them. They come in once the list says trusted; `tests/c2pa-trust.test.ts` pins both directions.
+- Behaviour change for verification only: a credential whose chain reaches one of the six new certificates now reads as trusted in `verifyC2pa`, `lolly validate`, the TUI, MCP `lolly_verify` and the web Verify view, where it read as valid but untrusted. No exported bytes change.
+
 ## 1.349.0
 
 - A vector picture on a Design page is placed by its own size, unrounded, as the browser places one. `svgIntrinsicSize(bytes)` (new, `penpot-file.ts`, not on the barrel) reads an SVG root the way an `<img>` reads one: an absolute width and height first (px, pt, pc, in, cm, mm, and em or rem at 16 px), then one of them with the viewBox's aspect for the other, then the viewBox alone, with `natural` false. A percentage is no size of its own. `designPageDrawing` reads a picture's size through this rule, so the SVG, the PDF and the resvg PNG drawn from the operations place a contained 44.725 by 19.706 logo 204 px wide in a 90 px tall box, as the browser does, where the rounded 45 by 20 placed the logo 202 px wide.
