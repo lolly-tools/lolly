@@ -24,7 +24,6 @@ export function mountPrepare(view: HTMLElement & { _cleanup?: () => void }, host
     <div class="gallery-topright">${langFabHtml()}</div>
     <div class="prepare-page">
       <header class="plat-header">
-        <span class="section-header-eyebrow">${t('On this device')}</span>
         <h1 class="plat-title">${t('Prepare for sharing')}</h1>
         <p class="plat-sub">${t('Find private text, credentials and hidden data in a copy before it leaves your hands. Suggestions are yours to accept, and nothing is uploaded.')}</p>
       </header>

@@ -179,7 +179,6 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
         <div class="start-back-row">${backPill}${homeFab}</div>
         <div class="gallery-topright">${langFabHtml()}</div>
         <header class="start-head">
-          <p class="start-eyebrow">${t('Brand')}</p>
           <h1 class="start-title">${t('This brand is set')}</h1>
           <p class="start-sub">${t('This build ships with a fixed brand. Explore its usage rules and examples below.')}</p>
         </header>
@@ -208,7 +207,6 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
         <div class="start-back-row">${backPill}${homeFab}</div>
         <div class="gallery-topright">${langFabHtml()}</div>
         <header class="start-head">
-          <p class="start-eyebrow">${t('Design system')}</p>
           <h1 class="start-title">${escapeText(active.label)}</h1>
           <p class="start-sub" data-ds-readonly-line>${t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')}</p>
           <p class="start-sub start-manager" data-ds-manager hidden></p>
