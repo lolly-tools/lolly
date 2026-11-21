@@ -32,7 +32,7 @@ control plane gives an organisation the same freedom.
 
 ![The admin console overview: 14-day activity, what needs attention, top tools and fleet](shots/overview-dashboard.svg)
 
-Each screenshot in these docs is itself a signed Lolly export: the console rendered to a
+Each screenshot in these docs is a signed Lolly export: the console rendered to a
 vector SVG and signed with a C2PA Content Credential by the deployment's own signing
 identity. Hover the imprint in a shot's corner to read what its file claims, then choose
 **Check it yourself** to verify the exact bytes on your machine.
@@ -75,7 +75,7 @@ behaves exactly as it does on its own.
 
 A connected shell polls one document, `/api/v1/org-config`. It says who the person is, which
 tools they see, which inputs are locked, which profile fields are managed and which feature
-flags apply. It is filtered for the caller's groups and carries an `ETag` tied to the policy
+flags apply. It is filtered for the caller's groups and has an `ETag` tied to the policy
 version, so a quiet poll answers `304`. [Checking your work](permissions.md#checking-your-work)
 shows how to preview it for any set of groups.
 

@@ -1,6 +1,6 @@
 # Content Credentials
 
-Every file Lolly makes can carry a Content Credential: a signed [C2PA](https://c2pa.org) record, written on your device, of what made the file, from what and when. Change the file afterwards and the signature stops matching, and any C2PA verifier says so. A credential cannot stop an edit. It makes the edit visible.
+Every file Lolly makes can have a Content Credential: a signed [C2PA](https://c2pa.org) record, written on your device, of what made the file, from what and when. Change the file afterwards and the signature stops matching, and any C2PA verifier says so. A credential cannot stop an edit. It makes the edit visible.
 
 You get this without an account. By default Lolly signs each export with a key made for that one file, so the record is intact but anonymous. If you want your files to name you, enrol once in **Settings**.
 
@@ -62,8 +62,8 @@ So the lifetime is your choice, offered where the certificate is actually made.
 
 ![The C2PA Credentials card carrying its own Expires picker, so the window is chosen on the export that uses it](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26options%26c2pa%3D90%26imprint%3D1&width=1440&height=900&dpi=192&waitMs=2200&format=svg&css=%23tool-inputs%2C%23sidebar-utils%7Bdisplay%3Anone%7D&cropSelector=.export-c2pa%5Bdata-c2pa-only%5D&walker=1&dark=1&filename=cc-c2pa-lifetime)
 
-- **Not enrolled.** The self-signed certificate is made fresh for each export, so the export panel's Content Credentials card carries the lifetime picker: 7, 30, 90 or 365 days, default 30. This works fully offline.
-- **Enrolled.** The certificate is fixed at enrolment, so the lifetime picker sits in **Settings → Content Credentials** beside the provider buttons. On the default CA it offers the same 7, 30, 90 or 365 days (default 30), and the CA clamps the chosen value to that set. The export panel then shows *"Signed as \<email\> · verified until \<date\>"* in place of the picker, with a renew nudge when expiry is near. A per-export choice cannot exist here: you cannot sign with validity your certificate does not have, and re-issuing at export time would break offline signing.
+- **Not enrolled.** The self-signed certificate is made fresh for each export, so the export panel's Content Credentials card has the lifetime picker: 7, 30, 90 or 365 days, default 30. This works fully offline.
+- **Enrolled.** The certificate is fixed at enrolment, so the lifetime picker is in **Settings → Content Credentials** beside the provider buttons. On the default CA it offers the same 7, 30, 90 or 365 days (default 30), and the CA clamps the chosen value to that set. The export panel then shows *"Signed as \<email\> · verified until \<date\>"* in place of the picker, with a renew nudge when expiry is near. A per-export choice cannot exist here: you cannot sign with validity your certificate does not have, and re-issuing at export time would break offline signing.
 
 On the default CA, expiry is the only way a certificate is recalled.
 

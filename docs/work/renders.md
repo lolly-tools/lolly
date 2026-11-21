@@ -76,7 +76,7 @@ service token, so disabling the member, revoking the token or removing the grant
 work from running. The owner can still cancel after losing a tool grant. These routes share
 `rateLimit.automation`. A service token minted with scopes reaches them with `render`, and
 sends an output with `delivery` ([service tokens](enterprise-identity.md#service-tokens)). An
-agent holding such a token can submit and follow the same renders and batches, and cancel a
+agent with such a token can submit and follow the same renders and batches, and cancel a
 render, over the organisation MCP endpoint ([connect an agent over MCP](automation-api.md#connect-an-agent-over-mcp)).
 
 <!--i:eti-layers-->
@@ -141,7 +141,7 @@ A batch retry makes a new parent that reuses the rows that succeeded and re-runs
 The retry creates a new parent with `retryOf`, reuses successful child jobs and creates new
 linked renders only for the rows that did not succeed. The old manifest stays unchanged.
 Retried rows use current policy and content while reused rows keep their original bytes, so a
-retried batch can hold outputs from different content versions. A direct `lw renders retry`
+retried batch can include outputs from different content versions. A direct `lw renders retry`
 creates an independent render; use the batch retry to get a new parent manifest with the
 replacements.
 
@@ -175,13 +175,13 @@ source, `query` and `as` rules as [`/api/v1/batch`](automation-api.md#make-many-
 }
 ```
 
-`keyField` is the column that holds each row's key, and that column is not passed to the tool as an
+`keyField` is the column that has each row's key, and that column is not passed to the tool as an
 input. Without one the rows are named `row-1`, `row-2` and so on, in source order. A source that
-cannot be read, has an unusable or repeated key, or does not hold 1 to 200 rows answers
+cannot be read, has an unusable or repeated key, or does not have 1 to 200 rows answers
 `400 DATA_BINDING_ERROR` and creates nothing. Each row then passes the same input checks as a typed
 row.
 
-The source is read once, at submission, by a caller who holds the grants, and the rows are kept on
+The source is read once, at submission, by a caller who has the grants, and the rows are kept on
 the batch. An idempotent replay identifies the batch by its source, so it returns the original batch
 and reads nothing. A retry reruns the rows the batch already has, even if the source has changed
 since.
@@ -192,12 +192,12 @@ since.
 wait for the whole archive. Members are named `<row key>.<format>`, and each is checked against its
 receipt before any of it is written.
 
-`manifest.json`, the last member, holds an entry per row: its key, render id, state and whether the
+`manifest.json`, the last member, has an entry per row: its key, render id, state and whether the
 row is in the archive, with the file name, size and SHA-256 when it is, and a reason when it is not.
 The reason is `NOT_SUCCEEDED`, `OUTPUT_EXPIRED`, `OUTPUT_UNAVAILABLE` or `OUTPUT_INTEGRITY`, and a row
-that failed also carries its error.
+that failed also includes its error.
 
-An archive holds at most 2 GiB, and a larger batch answers `413 ARCHIVE_TOO_LARGE` before any byte is
+An archive is at most 2 GiB, and a larger batch answers `413 ARCHIVE_TOO_LARGE` before any byte is
 sent: download those rows from their own output URLs. If something breaks after streaming has
 started, the connection closes, and the truncated file has no central directory for an extractor to
 read.
@@ -288,7 +288,7 @@ requirements and creates a new record. Batch children have the same checks and k
 outcomes.
 
 Draft requests without `verification` keep ordinary export behaviour, including PDF export where
-a worker is configured. New durable draft receipts also carry inspection results, which may show
+a worker is configured. New durable draft receipts also include inspection results, which may show
 failed or undetermined checks; older receipts without `inspection` have unknown check coverage. A
 verified request always runs fresh and never reuses a draft cache entry.
 
@@ -356,7 +356,7 @@ binds that request to what the successful attempt resolved, and the output descr
   outside the host.
 - Replaying an idempotency key still compares the typed request alone, so it returns the
   original job with its original identity.
-- The identity carries the receipt's limitations, except worker network budget notes, which vary
+- The identity includes the receipt's limitations, except worker network budget notes, which vary
   between attempts. A worker render adds `worker-resources-outside-identity`, because the
   worker's own resource reads are not bound. The catalog version is coarse: it also moves when an
   unrelated catalog asset changes.
@@ -443,7 +443,7 @@ asked for one, and no other event. A successful render alone publishes nothing t
 <!--i:eti-hammer-->
 ## Production still checks and permitted repairs
 
-A durable request can carry `production` beside `verification`. `output-v1` keeps its contract,
+A durable request can include `production` beside `verification`. `output-v1` keeps its contract,
 and the additional `lolly/production-still-v1` engine profile checks explicit requirements on the
 final file. It can also try a bounded set of input alternatives you permit, to repair a failed
 check.
@@ -489,7 +489,7 @@ so updating the engine pin does not add video rendering to Lolly Work.
   check regresses or nothing improves, and never exceed eight attempts.
 - `lw renders submit` accepts this JSON unchanged, and batch expansion and retry keep the same
   contract and repair choices.
-- `evidence.production` holds final-byte measurements and their artifact, contract and report
+- `evidence.production` has final-byte measurements and their artifact, contract and report
   digests, and `productionAttempts` keeps the repair reports.
 - Required failures or undetermined checks raise `PRODUCTION_VERIFICATION_FAILED` with bounded
   diagnostics on the durable record, and no output is published. The publication runner repeats

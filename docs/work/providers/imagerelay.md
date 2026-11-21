@@ -1,7 +1,7 @@
 # Image Relay integration with Lolly (kind: `imagerelay`)
 
 Connect an Image Relay DAM and its files appear in the Lolly Work catalog for the groups you
-choose, with an expiry date if you keep one in a custom field. Image Relay stays the source:
+choose, with an expiry date if you keep one in a custom field. Image Relay is the source:
 Lolly Work reads through an app you register and never writes back.
 
 Canto acquired Image Relay in September 2024. If your tenant has moved to Canto, use the

@@ -63,13 +63,16 @@ on:
       - 'shells/*/package.json'
       - 'shells/*/pnpm-lock.yaml'
       - 'shells/*/src-tauri/Cargo.lock'
+      - 'packages/node-shell/wasm/*/Cargo.lock'
       - 'services/*/package.json'
       - 'security/npm-licenses.json'
       - 'security/cargo-licenses.json'
+      - 'security/vendor-artifacts.json'
       - 'community/*/lib/*.min.js'
       - 'scripts/build-sbom.ts'
       - 'scripts/build-licenses.ts'
       - 'scripts/lib/pnpm-lock.ts'
+      - 'scripts/lib/vendor-artifacts.ts'
       - '.github/workflows/sbom-refresh.yml'
   workflow_dispatch:
 

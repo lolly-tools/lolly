@@ -1,7 +1,6 @@
 # Share renders and links
 
-This page is for anyone who hands Lolly output to someone else: a colleague, a partner or an
-agency. Lolly Work can render a tool on the server, then wrap the result, a library asset or a whole
+Lolly Work can render a tool on the server, then wrap the result, a library asset or a whole
 collection in a signed link that expires and that you can turn off at any time. Your
 organisation's input locks apply before anything renders, so a locked logo stays locked in
 every shared file.
@@ -53,7 +52,7 @@ Failures are distinct: `403 BAD_SIGNATURE`, `410 LINK_EXPIRED`, `410 LINK_REVOKE
 `401 PASSWORD_REQUIRED`, `401 PASSWORD_INCORRECT` and `429 PASSWORD_LOCKED`. An API client gets
 them as JSON. A browser (a request that accepts `text/html`) gets a short page that says what
 happened in words: the link does not work, has ended, was turned off by the person who shared
-it, or has had too many wrong passwords.
+the link, or has had too many wrong passwords.
 
 ### Guest links in a browser
 
@@ -67,16 +66,16 @@ sets the `lw_guest` cookie, records one `guest.admit` audit entry and answers `3
 app at the link's tool, with the inputs the link was made with (`/#/tool/<toolId>?…`, under
 `instance.appUrl` on a split deployment). The app lets a guest past its sign-in screen. A
 wrong password shows the landing again with the reason and keeps the typed name. When guest
-links are switched off (`policy.guestLinks.enabled: false`), or the person who made the link
-can no longer share it, the page says that and admits nobody.
+links are switched off (`policy.guestLinks.enabled: false`), or the link's maker
+can no longer share the link, the page says that and admits nobody.
 
-An API client that sends no `Accept: text/html` keeps the older answer: `GET /l/:id` with an
+An API client that sends no `Accept: text/html` gets the older answer: `GET /l/:id` with an
 optional `&name=` sets the cookie and returns `{ kind, toolId, sessionRef, guest }` as JSON.
 What a guest session can do is on [Sign-in and sessions](identity.md#guest-sessions).
 
 ### Password links
 
-A link made with a `password` asks for it, and the password never has to sit in the link's
+A link made with a `password` asks for the password, which never has to be in the link's
 address:
 
 - A browser that opens the link gets a short page with a password field, which posts to the
@@ -87,7 +86,7 @@ address:
   form gets a `303` back to the link; JSON gets `200 {"ok": true}`.
 - The cookie stands in for the password and nothing else. The signature, the expiry and
   revocation are still checked on every request, and one link's cookie never opens another.
-- A collection link's item and **Download all** addresses carry no password: the cookie opens
+- A collection link's item and **Download all** addresses have no password: the cookie opens
   them.
 - A password link answers `private, no-store`, because the cookie, not the address, decides
   who reads the file.
@@ -98,7 +97,7 @@ address:
 ::: warning Keep a link's password out of its address
 Adding `&pw=<password>` to the link is deprecated. A password in an address stays in browser
 history and in server, proxy and CDN logs. It still opens the link for one more release: the
-answer carries a `Deprecation` header and sets the same cookie, and the server logs one warning
+answer has a `Deprecation` header and sets the same cookie, and the server logs one warning
 per link. Move anything that builds `&pw=` links to the form or the `POST`.
 :::
 
@@ -112,7 +111,7 @@ per link. Move anything that builds `&pw=` links to the form or the `POST`.
 POST /api/v1/links   { "kind": "download", "target": { "assetId": "inst/hero", "format": "png" } }
 ```
 
-Two checks, at two different times:
+Two checks, at two times:
 
 - **Exposure, when the link is made.** The person making it must be able to see the asset:
   instance-asset groups, provider group visibility and the provider's exposure slice, exactly
@@ -124,7 +123,7 @@ Two checks, at two different times:
   so a held asset keeps serving.
 
 `download` sets `Content-Disposition: attachment`; `share` and `embed` serve inline. Either way
-the file carries the same private, no-CDN cache headers as `/catalog/*`, plus a
+the file has the same private, no-CDN cache headers as `/catalog/*`, plus a
 content-security policy that sandboxes it and allows no script, so a shared SVG cannot run as
 the person who opens the link. An old federated id keeps resolving after [leaving a
 DAM](offboarding.md) through its alias. Expiry, passwords, revocation, audit and `link.visit`
@@ -143,8 +142,8 @@ the zip, and `embed` is refused (`400`). The same two checks apply to every memb
 What the page shows and how members drop out are on [collection
 links](catalog.md#collection-links).
 
-With the [licence gate](partner-programmes.md#licences) on, a link a partner makes carries only
-what their gated feed holds. A link your own people make leaves held files out unless its maker
+With the [licence gate](partner-programmes.md#licences) on, a link a partner makes includes only
+what their gated feed has. A link your own people make leaves held files out unless its maker
 chooses to include them, with a note ([links, ZIPs and
 credits](partner-programmes.md#links-zips-and-credits)).
 
@@ -202,7 +201,7 @@ batches](renders.md).
 ## Preview watermarking
 
 `enforce.watermark` on a tool overlay adds a diagonal, tiling **PREVIEW** brick pattern to the
-SVG root before any rasterisation, so both `svg` and `png` carry the pattern. Alternating brick rows
+SVG root before any rasterisation, so both `svg` and `png` have the pattern. Alternating brick rows
 use `#0002` and `#fff2`, so the watermark reads on light and dark artwork alike. Each setting is in
 [the enforce block](governance.md#the-enforce-block). `until-approved` lifts the pattern everywhere,
 share links included, once [a matching request is approved](governance.md#a-watermark-that-follows-approval).
@@ -210,7 +209,7 @@ share links included, once [a matching request is approved](governance.md#a-wate
 <!--i:eti-badge-check-->
 ## Provenance
 
-Every server render that used catalog assets carries a machine-readable ingredients list in
+Every server render that used catalog assets has a machine-readable ingredients list in
 the C2PA shape, embedded with no extra dependencies:
 
 - SVG: a `<metadata>` JSON island.
@@ -221,7 +220,7 @@ Both survive ordinary copying and can be read with `exiftool` or `pngcheck`. Eac
 `c2pa` field is the upstream manifest when the source supplied one, and `null` when it did not,
 so "«filename» from «provider» was used" still travels with the export, labelled as unsigned.
 
-With a signing identity configured, exports carry a real, signed C2PA Content Credential
+With a signing identity configured, exports have a real, signed C2PA Content Credential
 instead of the unsigned island. Setting one up is one command: [Configure Lolly Work export
 signing](c2pa.md).
 

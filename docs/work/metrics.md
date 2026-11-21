@@ -140,7 +140,7 @@ metrics:
 | `LollyWorkNotificationsFailing` | warning | Every delivery on a channel in the last hour failed, for 15 minutes | `lw_notify_total` |
 | `LollyWorkRateLimitBucketsHigh` | warning | The limiter has tracked over 80% of `rateLimit.maxBuckets` addresses for 15 minutes | `lw_rate_limit_buckets` |
 
-Each alert carries a `severity` label, a summary and a description that says what to
+Each alert has a `severity` label, a summary and a description that says what to
 check first. Some limits to know:
 
 - `LollyWorkRenderFailures` cannot tell a failing render worker (502), a busy one
@@ -196,7 +196,7 @@ metrics:
     enabled: true
 ```
 
-The ConfigMap carries the label `grafana_dashboard: "1"`, which the Grafana sidecar of
+The ConfigMap has the label `grafana_dashboard: "1"`, which the Grafana sidecar of
 kube-prometheus-stack watches by default. Change `metrics.grafanaDashboard.labels` for
 another sidecar, set `metrics.grafanaDashboard.namespace` if the sidecar watches one
 namespace only, and use `metrics.grafanaDashboard.annotations` for a folder

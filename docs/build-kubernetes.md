@@ -31,7 +31,7 @@ From Lolly 1.1.1, every release publishes signed, attested `linux/amd64` images 
 Lolly 1.2.0 published no `lolly-mcp-browser` image, so `lolly-mcp-browser:1.1.3` stays current until the next release ships one again. The other four images are at 1.2.0.
 :::
 
-They carry the profile lolly.tools ships: [Lolly Demo](/info/lolly-demo.html) (`lolly-demo`) from 1.1.2, and the neutral `lolly-start` in 1.1.1. Each release lists every image's digest in its `images.json`. The [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) shows how to verify them with cosign, mirror them and pin a digest.
+They include the profile lolly.tools ships: [Lolly Demo](/info/lolly-demo.html) (`lolly-demo`) from 1.1.2, and the neutral `lolly-start` in 1.1.1. Each release lists every image's digest in its `images.json`. The [published images guide](https://github.com/lolly-tools/lolly/blob/main/deploy/docker/README.md#published-images) shows how to verify them with cosign, mirror them and pin a digest.
 
 Build your own image instead (see [Build your own image](#build-your-own-image)) for another brand profile, your own signing key or another base image.
 
@@ -70,12 +70,12 @@ helm upgrade --install lolly ./deploy/helm -n lolly \
 
 ### What the chart deploys
 
-`web` is on by default: two stateless replicas behind a ClusterIP service, a TLS-ready ingress you turn on with a hostname and `/healthz` liveness and readiness probes. The web app holds no state on the server (everything lives in each browser's IndexedDB), so replicas are interchangeable and you can raise the count freely. `mcp` and `ca` stay off until you turn them on.
+`web` is on by default: two stateless replicas behind a ClusterIP service, a TLS-ready ingress you turn on with a hostname and `/healthz` liveness and readiness probes. The web app has no state on the server (everything is in each browser's IndexedDB), so replicas are interchangeable and you can raise the count freely. `mcp` and `ca` stay off until you turn them on.
 
 Every pod gets the same secure defaults:
 
 - runs as non-root under `RuntimeDefault` seccomp, with all capabilities dropped and no privilege escalation;
-- no SELinux or AppArmor setting of its own, so the node's policy applies. Run SELinux nodes, such as SLES 16 or openSUSE Leap 16, where you can: the browser sandbox profile below leaves SELinux on. Lolly Work's render worker carries an opt-in AppArmor profile for nodes that still run AppArmor ([admission policy](/info/work-admission-policy.html));
+- no SELinux or AppArmor setting of its own, so the node's policy applies. Run SELinux nodes, such as SLES 16 or openSUSE Leap 16, where you can: the browser sandbox profile below leaves SELinux on. Lolly Work's render worker has an opt-in AppArmor profile for nodes that still run AppArmor ([admission policy](/info/work-admission-policy.html));
 - a read-only root filesystem, with writable `emptyDir` volumes only where nginx needs them;
 - no ServiceAccount token mounted, because none of the components talk to the Kubernetes API;
 - soft pod anti-affinity, which spreads replicas without blocking a single-node cluster;
@@ -176,7 +176,7 @@ The Dockerfile has two stages:
 - **verify:** `node:26-bookworm`, pinned by digest, with no network. It checks the WebGPU release gate, then verifies the receipt, every file, the signed catalog and the delivery configuration against the source commit, profile and public pin you supplied. A changed, extra, missing or symbolic-link file, or a different source, profile or key, fails the build. `--no-cache-filter verify` repeats these checks on every build.
 - **runtime:** `ghcr.io/nginx/nginx-unprivileged`, also pinned by digest, running as uid 101 on port **8080**. The verified frontend goes to `/usr/share/nginx/html`, `deploy/docker/nginx.conf` becomes `conf.d/default.conf`, and `security-headers.conf` and the delivery header files go into `/etc/nginx/`.
 
-The content profile (`lolly-demo`, `lolly-start` or `suse` with the private pack mounted at compile time) is fixed when the frontend is compiled and signed. `--build-arg LOLLY_PROFILE` must name the same profile, and the verify stage refuses another. Nothing is read at serve time, which is why the chart mounts no pack, configuration or secret for the web app; changing brand means a new signed frontend, a new image and a rolled deployment. Model files are the exception: the image ships none, and an optional read-only volume at `/usr/share/nginx/html/models` serves them (the published images guide gives its layout).
+The content profile (`lolly-demo`, `lolly-start` or `suse` with the private pack mounted at compile time) is fixed when the frontend is compiled and signed. `--build-arg LOLLY_PROFILE` must set the same profile, and the verify stage refuses another. Nothing is read at serve time, which is why the chart mounts no pack, configuration or secret for the web app; changing brand means a new signed frontend, a new image and a rolled deployment. Model files are the exception: the image ships none, and an optional read-only volume at `/usr/share/nginx/html/models` serves them (the published images guide gives its layout).
 
 `mcp.Dockerfile`, `mcp-browser.Dockerfile`, `ca.Dockerfile` and `penpot.Dockerfile` also build from the repository root and run their entry point on Node as the non-root `node` user: MCP, CA and Penpot on a digest-pinned `node:26-alpine`, and the browser MCP image on `node:26-bookworm-slim` with a lockfile-scoped Chromium. Build them only if you turn those components on and do not use the published images.
 
@@ -192,7 +192,7 @@ The web app is a single-page app, so the server has real work to do. Deep links 
 nginx drops inherited `add_header` lines inside any location that declares its own, so each location needs the repeated `include`. [Choose a deployment](/info/deployment.html#the-headers-you-must-serve) explains the trap.
 :::
 
-The file also carries an unauthenticated `/healthz` for the chart's probes, explicit `types` for `.wasm`, `.avif` and `.webmanifest`, read-only CORS for `/models/` and the short clean-route aliases (`/d`, `/v`, `/a`, `/start`, `/batch` and the rest) that mirror the other shipped web server configurations. Mirror every clean route when you write your own.
+The file also has an unauthenticated `/healthz` for the chart's probes, explicit `types` for `.wasm`, `.avif` and `.webmanifest`, read-only CORS for `/models/` and the short clean-route aliases (`/d`, `/v`, `/a`, `/start`, `/batch` and the rest) that mirror the other shipped web server configurations. Mirror every clean route when you write your own.
 
 ::: details Use a SUSE nginx base image
 The runtime stage uses the upstream unprivileged nginx image so a plain `docker build` works with no registry credentials. To use a curated SUSE base instead, replace that one `FROM` line and leave the `COPY` lines alone. Two free and paid sources exist:
@@ -204,7 +204,7 @@ Check two things against whichever base you pick. The frontend must be copied wh
 :::
 
 ::: details Pull from the SUSE Application Collection
-The Collection's OCI registry is `dp.apps.rancher.io` (images under `/containers/<name>`, charts under `/charts/<name>`); `apps.rancher.io` is the catalog where you create credentials, and `docs.apps.rancher.io` holds its documentation. Pulls are never anonymous. You need a SUSE Customer Center account (`scc.suse.com`), then a personal **access token** (Settings, Access tokens) or an organisation **service account** (Settings, Service accounts).
+The Collection's OCI registry is `dp.apps.rancher.io` (images under `/containers/<name>`, charts under `/charts/<name>`); `apps.rancher.io` is the catalog where you create credentials, and `docs.apps.rancher.io` has its documentation. Pulls are never anonymous. You need a SUSE Customer Center account (`scc.suse.com`), then a personal **access token** (Settings, Access tokens) or an organisation **service account** (Settings, Service accounts).
 
 The free tier limits pulls, and its terms differ between personal tokens and service accounts, so unattended in-cluster pulls may need a paid organisation subscription. The terms can change; check the current ones on `apps.rancher.io`. If a subscription is not an option, use the free SUSE BCI image above.
 
@@ -225,13 +225,13 @@ kubectl create secret docker-registry application-collection \
   -n lolly
 ```
 
-The Collection carries charts for stateful services such as redis, postgresql, prometheus and cert-manager, but neither a generic static web server chart nor a Lolly chart: nginx is there as an image only. For the current registry paths, tags, chart versions and value keys, see the [Application Collection docs](https://docs.apps.rancher.io) and run `helm show values oci://dp.apps.rancher.io/charts/<chart>` before relying on any default.
+The Collection has charts for stateful services such as redis, postgresql, prometheus and cert-manager, but neither a generic static web server chart nor a Lolly chart: nginx is there as an image only. For the current registry paths, tags, chart versions and value keys, see the [Application Collection docs](https://docs.apps.rancher.io) and run `helm show values oci://dp.apps.rancher.io/charts/<chart>` before relying on any default.
 :::
 
 <!--i:eti-lock-->
 ## TLS with cert-manager
 
-Let cert-manager issue the Ingress certificate. Install it from wherever your platform takes charts. The Application Collection carries it as a real chart, installed with the pull secret from the section above:
+Let cert-manager issue the Ingress certificate. Install it from wherever your platform takes charts. The Application Collection has it as a real chart, installed with the pull secret from the section above:
 
 ```bash
 helm install cert-manager oci://dp.apps.rancher.io/charts/cert-manager \

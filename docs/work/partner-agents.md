@@ -30,7 +30,7 @@ Copy the secret and hand it to the partner's agent before you close the card.
 - **Scopes.** `render` and `catalog.read` by default; `documents` and `files` may be added, and so
   may `approvals.request` ([Partner approvals](partner-approvals.md#requests-from-partners-agents)).
   `delivery` and `audit.read` are refused for programme tokens: a delivery sends to your own
-  destinations, and the audit holds people's names.
+  destinations, and the audit has people's names.
 - **Tools.** A list inside the programme's own.
 - **Expiry.** 90 days by default, between 1 and 365. The list marks a token with under 14 days
   left as expiring; no notice is sent.
@@ -63,7 +63,7 @@ cannot hold is refused whole.
 **What agents did**, on the same page, totals what each token did over the last 4 weeks or the
 last 7 days, and **Download CSV** gives the same counts week by week or day by day: calls, renders,
 batches, deliveries, approval requests and refusals, with totals per company and for the programme.
-The counts hold no input values, prompts, titles, file names or agent names.
+The counts include no input values, prompts, titles, file names or agent names.
 
 ![What agents did over the last 4 weeks: calls, renders, batches, deliveries, approvals and refusals for Rita's agent, for Northwind IT and for Resellers, EMEA, then renders by tool](shots/partner-agent-usage.svg)
 
