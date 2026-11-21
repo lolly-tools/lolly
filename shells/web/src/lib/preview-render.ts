@@ -20,6 +20,9 @@ export interface LookRenderOptions {
   width?: number;
   height?: number;
   recipe?: string;
+  /** The tool's raster format, drawn when its SVG is over the per-picture limit, so
+   *  the raster is the tool's own raster render. */
+  rasterFallback?: string | null;
 }
 
 /** Draw one look at an exact format and make it a picture. Throws when the render
@@ -39,6 +42,9 @@ export async function renderLookPicture(host: HostV1, toolId: string, format: st
   if (format === 'svg') {
     const svg = await writer.svgPicture(blob, facts);
     if (svg) return svg;
+    // Over the limit: the tool's own raster render when it has one; else the tool's SVG
+    // drawn into the tile by the browser, the closest picture there is.
+    if (opts.rasterFallback && opts.rasterFallback !== 'svg') return renderLookPicture(host, toolId, opts.rasterFallback, values, { ...opts, rasterFallback: null });
     const raster = await writer.rasterPicture(new Blob([blob], { type: 'image/svg+xml' }), { ...facts, vector: true });
     if (raster) return raster;
     throw new Error(`The SVG preview of ${toolId} could not be drawn.`);
@@ -81,12 +87,12 @@ export async function renderSessionPicture(host: HostV1, data: Record<string, un
   if (!primary) return null;
   const row = rowFromToolSession(data as Parameters<typeof rowFromToolSession>[0]);
   const values = (row.values ?? {}) as Record<string, unknown>;
-  const opts = row.artifactDigest ? { artifactDigest: row.artifactDigest } : {};
+  const opts = { rasterFallback: rasterFormatOf(formats), ...(row.artifactDigest ? { artifactDigest: row.artifactDigest } : {}) };
   try {
     return await renderLookPicture(host, toolId, primary, values, opts);
   } catch {
     const raster = rasterFormatOf(formats);
     if (primary !== 'svg' || !raster) return null;
-    return renderLookPicture(host, toolId, raster, values, opts).catch(() => null);
+    return renderLookPicture(host, toolId, raster, values, { ...opts, rasterFallback: null }).catch(() => null);
   }
 }
