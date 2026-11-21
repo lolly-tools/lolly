@@ -106,7 +106,7 @@ export function isDanceMood(mood: LofiMood): mood is DanceMood { return (DANCE_M
  *  flock, a flock flying over), whose `mod`s lofi-coast-birds.ts reads. `scratch` is a DJ's scratch on one of
  *  Lolly's own sounds (hip-hop, R&B, breakbeat, jungle, trip-hop, and rarely funk, nu-disco and UK garage), its
  *  `mod` read by lofi-scratch.ts readScratch. */
-export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge' | 'fm' | 'wave' | 'pad' | 'siren' | 'whipbird' | 'lorikeet' | 'scratch' | 'impact' | 'braam' | 'subdrop';
+export type LofiVoice = 'keys' | 'bass' | 'lead' | 'kick' | 'snare' | 'rim' | 'hat' | 'openHat' | 'crash' | 'tom' | 'perc' | 'riser' | 'coin' | 'magpie' | 'kookaburra' | 'hey' | 'soar' | 'sparkle' | 'game' | 'bwah' | 'phaser' | 'blip' | 'tag' | 'layer' | 'fill' | 'nature' | 'grain' | 'glitch' | 'didge' | 'fm' | 'wave' | 'pad' | 'siren' | 'whipbird' | 'lorikeet' | 'scratch' | 'impact' | 'braam' | 'subdrop' | 'vox';
 export const LOFI_DRUM_VOICES: readonly LofiVoice[] = ['kick', 'snare', 'rim', 'hat', 'openHat', 'crash', 'tom', 'perc'];
 /** The percussion a `perc` note plays, by its `mod`: an egg shaker, a tambourine, congas (pitched by `midi`), a cowbell, clapsticks;
  *  and the world styles' hand drums and bells, whose `midi` is the stroke: the tombak (1 tom, 2 bak, 3 a snapped
@@ -806,6 +806,20 @@ export function composeLofiTune(seed: number, mood: LofiMood, fixed: Partial<Lof
 /** How softly a quiet verse is played, against its chorus. */
 const QUIET_VERSE = 0.55;
 /** The styles whose bass is three parts at once: the main bass, a travelling line and percussive stabs, with the soar's harmony. */
+/**
+ * Drum and bass's chopped voice: short stabs of a sung vowel that answer the bass in a
+ * drop, as a producer cuts a vocal into pieces and plays them as a new tune. How many
+ * tunes have them, by flavour (a `vox` note; the station sings each on the chop voice).
+ * The figures are [sixteenth, length in sixteenths, the chord tone sung (0 root, 1 third,
+ * 2 fifth, 3 the octave)], two bars each: the phrase's second and fourth bars.
+ */
+const VOX_CHANCE: Partial<Record<LofiMood, number>> = { dnb: 0.6, dnbJump: 0.5, dnbDark: 0.25, dnbLiquid: 0.9, dnbDeep: 0.35, dnbRave: 0.9 };
+const VOX_FIGURES: ReadonlyArray<readonly [Figure3, Figure3]> = [
+  [[[2, 1, 2], [3, 1, 2], [6, 2, 3], [10, 1, 1], [12, 3, 2]], [[2, 1, 2], [3, 1, 2], [6, 2, 3], [11, 1, 2], [12, 1, 3], [14, 2, 1]]],
+  [[[0, 2, 3], [3, 1, 2], [6, 1, 2], [7, 1, 1], [12, 4, 0]], [[0, 2, 3], [3, 1, 2], [8, 1, 1], [10, 1, 2], [12, 4, 3]]],
+  [[[4, 1, 1], [5, 1, 1], [6, 2, 2], [10, 2, 3], [14, 2, 2]], [[4, 1, 1], [5, 1, 1], [6, 2, 2], [10, 1, 3], [11, 1, 2], [12, 1, 1], [14, 2, 0]]],
+  [[[1, 1, 2], [4, 3, 3], [10, 1, 2], [11, 1, 2], [14, 2, 1]], [[1, 1, 2], [4, 3, 3], [8, 1, 1], [10, 2, 2], [13, 3, 0]]],
+];
 /** The styles whose bass attacks through the end of a build (see the bass attack in composeTuneBars). */
 const BASS_ATTACK = new Set<LofiMood>(['dnb', 'dnbJump', 'dnbDark', 'dnbRave']);
 const BASS_LAYERED = new Set<LofiMood>(['dnb', ...DNB_FLAVOURS, 'dubstep', 'brostep', 'electro']);
@@ -3308,6 +3322,16 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   // The console's newer sounds and the shouts' ad-libs (EXTRA_FX) draw from their own
   // stream, so adding them moved no other note of any tune.
   const extra = EXTRA_FX.has(mood) ? mulberry32((seed ^ 0x3e7a) >>> 0) : null;
+  // Drum and bass's chopped voice (VOX_FIGURES), from a stream of its own: whether the tune has one, and its two figures.
+  const voxPlan = ((): { figs: readonly [Figure3, Figure3]; alt: readonly [Figure3, Figure3] } | null => {
+    const odds = VOX_CHANCE[mood];
+    if (odds === undefined) return null;
+    const r = mulberry32((seed ^ 0xc409) >>> 0);
+    const on = r() < odds;
+    const figs = VOX_FIGURES[Math.floor(r() * VOX_FIGURES.length)]!;
+    const alt = VOX_FIGURES[Math.floor(r() * VOX_FIGURES.length)]!;
+    return on ? { figs, alt } : null;
+  })();
   // The layered basses (BASS_LAYERS) draw from a stream of their own too.
   const layers = BASS_LAYERED.has(mood) ? mulberry32((seed ^ 0xba55) >>> 0) : null;
   const layerPlan = layers ? { travel: [pick2(layers, TRAVELS), pick2(layers, TRAVELS)] as const, stabs: [pick2(layers, STABS_BASS), pick2(layers, STABS_BASS)] as const } : null;
@@ -3642,10 +3666,23 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
           notes.push({ voice: 'soar', midi: low + (part.alt ? third : 7), beat: 0, dur: left - 0.2, vel: 0.32 });
         } else notes.push({ voice: 'soar', midi: low, beat: 0, dur: left - 0.2, vel: 0.5 });
       }
+      // Italo disco's synth toms: a run down the drum machine's toms into every eighth bar of a
+      // drop, and a shorter one into every fourth.
+      if (mood === 'italo' && part.section === 'drop' && has('snare') && inSection % 4 === 3) {
+        const run: ReadonlyArray<readonly [number, number]> = inSection % 8 === 7 ? [[10, 62], [11, 62], [12, 57], [13, 57], [14, 52], [15, 47]] : [[13, 60], [14, 55], [15, 50]];
+        for (const [step, midi] of run) notes.push({ voice: 'tom', midi, beat: sb(step), dur: 0, vel: 0.7 + (step - 10) * 0.03 });
+      }
+      // The chopped voice answers the bass in a drop's second and fourth bars, where the tune's
+      // own lead is not a chopped voice already (two would talk over each other).
+      if (voxPlan && part.section === 'drop' && has('fx') && !String(leadV).startsWith('chop') && inSection % 2 === 1) {
+        const fig = (part.alt ? voxPlan.alt : voxPlan.figs)[(inSection >> 1) % 2]!;
+        const tones = [chord.tones[0] ?? chord.root, chord.tones[1] ?? chord.root, chord.tones[2] ?? chord.root, (chord.tones[0] ?? chord.root) + 12];
+        for (const [step, len, tone] of fig) notes.push({ voice: 'vox', midi: placeIn(tones[tone]!, 64, 76), beat: sb(step), dur: len / 4 - 0.02, vel: step % 4 === 0 ? 0.8 : 0.68 });
+      }
       // The bass attack (drum and bass, bar its soaring and deep flavours): in a build's last
       // two bars the bass barks in, slowly then twice as fast, climbing the chord, and stops
       // half a bar before the drop, which leaves the gap a drop falls out of.
-      if (BASS_ATTACK.has(mood) && build && has('bass') && part.bars >= 4 && i >= part.bars - 2) {
+      if (BASS_ATTACK.has(mood) && build && part.bars >= 4 && i >= part.bars - 2) {
         const low = placeIn(chord.root, 36, 47);
         const steps: ReadonlyArray<readonly [number, number, number, number]> = i === part.bars - 2
           ? [[0, 3, 0, 0], [8, 3, 1, 3], [12, 2, 0, 5]]

@@ -123,6 +123,16 @@ test('Shuffle genres moves to another genre, and counts Lofi\'s flavours as one 
   assert.equal(seen.size, genres, 'every other genre comes up');
   const share = (seen.get('lofi') ?? 0) / 20000;
   assert.ok(Math.abs(share - 1 / genres) < 0.01, `Lofi is one share of a shuffle, not ten (${(share * 100).toFixed(1)}%)`);
+  // A hidden genre never comes up, a hidden flavour neither, and a starred genre comes up about three times as often.
+  const prefs = { hidden: new Set(['rock', 'lofiZen']), favourites: new Set(['ska']) };
+  let ska = 0, soul = 0;
+  for (let i = 0; i < 30000; i++) {
+    const to = lofiMoodOf(shuffledStation('lofi:jazz', rand, prefs))!;
+    assert.ok(to !== 'rock' && to !== 'lofiZen', `${to} is hidden`);
+    if (to === 'ska') ska++;
+    if (to === 'soul') soul++;
+  }
+  assert.ok(ska / soul > 2.3 && ska / soul < 3.8, `a starred genre came up ${(ska / soul).toFixed(2)} times as often`);
   // From a flavour of Lofi, the next genre is not Lofi again.
   for (let i = 0; i < 500; i++) assert.ok(!LOFI_ONLY_MOODS.includes(lofiMoodOf(shuffledStation('lofi:rainy', rand))!));
 });

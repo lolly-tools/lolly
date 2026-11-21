@@ -226,6 +226,8 @@ const BASS_SEAT: Partial<Record<LofiMood, number>> = { lofiHouse: 7.5, salsa: -2
  * The didgeridoo's cameo in the bass genres (engine/src/lofi-straya.ts), against its own level:
  * measured K-weighted in its bar, it sits about 3 to 4 dB under the bass stack it plays over.
  */
+/** The chopped voice's level in drum and bass, against a lead's. */
+const VOX_LEVEL = 0.6;
 const DIDGE_CAMEO_LEVEL: Partial<Record<LofiMood, number>> = { dubstep: 0.52, brostep: 0.52, dnb: 0.84, dnbJump: 0.84, dnbDark: 0.84, dnbRave: 0.84 };
 /**
  * Each genre's seat for the console's FM effects (dB, against Sugar's): its hook's loudness
@@ -970,6 +972,13 @@ export class LofiStation {
         if (LP.LATIN_PERCUSSION.includes(latin)) { LP.perc(k, lanes.drums, t, note.midi, vel, latin, len); break; }
         if ((note.mod ?? 0) >= W.WORLD_PERC_FROM) W.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
         else V.perc(k, lanes.drums, t, note.midi, vel, note.mod ?? 0);
+        break;
+      }
+      case 'vox': {
+        // Drum and bass's chopped voice (the composer's VOX_FIGURES): sung by the tune's chop
+        // singers in the chop's seat, a little under a lead.
+        const seat = this.leadSeat(lanes.lead, bar.tune.mood, 'chop');
+        for (const s of C.castOf('chop', bar)) C.chop(k, s.pan ? this.leadSeat(lanes.lead, bar.tune.mood, 'chop', s.pan) : seat, t + s.late, note.midi + s.shift, vel * VOX_LEVEL * s.level, len, 0, spb, (bar.tune.seed ^ s.salt) >>> 0, bar.index * 1000 + Math.round(note.beat * 48), s);
         break;
       }
       case 'hey':

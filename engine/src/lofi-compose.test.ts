@@ -885,7 +885,7 @@ test('adding lofi house changed no other style: its draws come from a stream of 
   // (RETIRED_LEADS): its vibes play in its place.
   // Drum and bass's drops gained their answers on 2026-11-21 (BASS_PLANS.dnb: jump-up stabs
   // or a foghorn in a phrase's second half), so its pin moved again.
-  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 3255044627, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
+  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 1629253665, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
@@ -1029,7 +1029,7 @@ test('the shouts come from a stream of their own: the rest of every tune compose
   // phrases, each tune is unchanged.
   const before: Record<string, number> = {
     'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 123733926, 'hiphop.7': 307798947,
-    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 3255044627, 'dubstep.7': 1198571479, 'brostep.7': 1216733133, 'sherbert.7': 1787953580,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1629253665, 'dubstep.7': 1198571479, 'brostep.7': 1216733133, 'sherbert.7': 1787953580,
   };
   // The same day drum and bass gained chopped voices among its leads and a bass attack
   // into its drops, and Sherbert a wider tempo and more chop voices: both pins moved.
@@ -1188,3 +1188,42 @@ test('a slash chord transposes with its bass, and a six-nine keeps its nine', ()
   assert.equal(transposeChordName('Am6/9', -2), 'Gm6/9');
 });
 
+
+test('drum and bass: chopped voices answer the bass in a drop, and the bass attacks into the drop', () => {
+  let withVox = 0, attacks = 0, tunes = 0;
+  for (const mood of ['dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave'] as const) for (const seed of SEEDS.slice(0, 8)) {
+    const bars = composeLofiTune(seed, mood);
+    tunes++;
+    const vox = bars.flatMap(b => b.notes.filter(n => n.voice === 'vox').map(n => [b, n] as const));
+    if (vox.length) withVox++;
+    for (const [b, n] of vox) {
+      assert.equal(b.section, 'drop', `${mood} ${seed}: a chop only in a drop`);
+      assert.ok(n.midi >= 64 && n.midi <= 76, `${mood} ${seed}: a chop sung at ${n.midi}`);
+      assert.ok(!String(b.voices?.lead ?? b.tune.style.lead).startsWith('chop'), `${mood} ${seed}: no chop layer over a chopped lead`);
+    }
+    // The attack: bass shots in a build's last two bars, none in its last half bar.
+    const builds = bars.filter(b => b.section === 'build');
+    const shots = builds.flatMap(b => b.notes.filter(n => n.voice === 'bwah'));
+    if (shots.length) attacks++;
+    bars.forEach((b, k) => {
+      if (b.section !== 'build' || bars[k + 1]?.section === 'build') return;
+      for (const n of b.notes) if (n.voice === 'bwah') assert.ok(n.beat < 2, `${mood} ${seed}: the bass stops half a bar before the drop`);
+    });
+    if (mood === 'dnbLiquid' || mood === 'dnbDeep') assert.equal(shots.length, 0, `${mood}: no attack in the soaring and deep flavours`);
+  }
+  assert.ok(withVox >= tunes * 0.25, `chopped voices in ${withVox} of ${tunes} tunes`);
+  assert.ok(attacks >= 24, `the bass attacks in ${attacks} tunes`);
+  // Other styles have neither.
+  for (const mood of ['dubstep', 'jungle', 'sherbert'] as const) assert.ok(composeLofiTune(7, mood).every(b => b.notes.every(n => n.voice !== 'vox')), `${mood}: no chop layer`);
+});
+
+test('Italo disco: a sequenced bass in octaves and synth toms running into every fourth bar of a drop', () => {
+  for (const seed of SEEDS.slice(0, 6)) {
+    const bars = composeLofiTune(seed, 'italo');
+    assert.ok(bars[0]!.tune.bpm >= 116 && bars[0]!.tune.bpm <= 128, `italo ${seed}: ${bars[0]!.tune.bpm} bpm`);
+    const drop = bars.filter(b => b.section === 'drop');
+    assert.ok(drop.some(b => b.notes.filter(n => n.voice === 'tom').length >= 3), `italo ${seed}: a tom run`);
+    const bass = drop.flatMap(b => b.notes.filter(n => n.voice === 'bass'));
+    assert.ok(bass.length > 60, `italo ${seed}: a running bass`);
+  }
+});

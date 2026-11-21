@@ -19,11 +19,41 @@ interface Finish {
   /** A shelf over `airFrom` (dB). */
   air: number;
   airFrom: number;
+  /** How far the whole mix is raised (dB) into a soft ceiling, for the styles whose records are loud; 0 is the ceiling alone. */
+  lift?: number;
 }
 
 const FINISH: Partial<Record<LofiMood, Finish>> = {
-  sherbert: { side: 3, from: 500, air: 4, airFrom: 4800 },
+  sherbert: { side: 3, from: 500, air: 4, airFrom: 4800, lift: 3 },
+  // The bass styles: produced drops sit about 10 dB louder than these did, with 5 dB less
+  // between their peaks and their average. A 3 dB lift into a soft ceiling goes part of the
+  // way and leaves the drums their snap. Drum and bass's tops were 15 to 22 dB narrower than
+  // its middle above 1 kHz, where its records are wide.
+  dubstep: { side: 2, from: 600, air: 1, airFrom: 6000, lift: 3 },
+  brostep: { side: 2, from: 600, air: 1, airFrom: 6000, lift: 3 },
+  electro: { side: 2, from: 600, air: 1, airFrom: 6000, lift: 3 },
+  dnb: { side: 5, from: 600, air: 2, airFrom: 5500, lift: 3 },
+  dnbJump: { side: 5, from: 600, air: 2, airFrom: 5500, lift: 3 },
+  dnbDark: { side: 5, from: 600, air: 1.5, airFrom: 5500, lift: 3 },
+  dnbLiquid: { side: 6, from: 500, air: 2.5, airFrom: 5500, lift: 2 },
+  dnbDeep: { side: 4, from: 600, air: 1, airFrom: 5500, lift: 2 },
+  dnbRave: { side: 5, from: 600, air: 2, airFrom: 5500, lift: 3 },
+  // Italo disco and Balearic measured nearly one channel (correlation 0.97): their chords and echoes are opened out.
+  italo: { side: 4, from: 400, air: 1.5, airFrom: 6000, lift: 0 },
+  balearic: { side: 5, from: 300, air: 1.5, airFrom: 6000, lift: 0 },
 };
+
+/** A soft ceiling: a straight line up to 0.7 of full level, then a curve that never passes 0.98. */
+const CEILING = ((): Float32Array<ArrayBuffer> => {
+  const c = new Float32Array(2049);
+  for (let i = 0; i < c.length; i++) {
+    const x = (i / (c.length - 1)) * 4 - 2;   // drawn for -2 to 2: a peak over full level still meets the curve
+    const a = Math.abs(x);
+    const y = a <= 0.7 ? a : 0.7 + 0.28 * Math.tanh((a - 0.7) / 0.28);
+    c[i] = Math.sign(x) * y;
+  }
+  return c;
+})();
 
 /** The finish for `mood` in front of `into`: returns where the station's compressor connects (`into` itself for a style with none). */
 export function finish(ctx: BaseAudioContext, mood: LofiMood, into: AudioNode): AudioNode {
@@ -59,6 +89,13 @@ export function finish(ctx: BaseAudioContext, mood: LofiMood, into: AudioNode): 
   side.connect(hp).connect(more);
   more.connect(merge, 0, 0);
   more.connect(flip).connect(merge, 0, 1);
-  merge.connect(into);
+  if (f.lift === undefined) { merge.connect(into); return input; }
+  const up = ctx.createGain();
+  // The shaper reads -1 to 1 across its curve, and the curve is drawn for -2 to 2, so the signal goes in at half.
+  up.gain.value = 0.5 * 10 ** (f.lift / 20);
+  const ceiling = ctx.createWaveShaper();
+  ceiling.curve = CEILING;
+  ceiling.oversample = '2x';
+  merge.connect(up).connect(ceiling).connect(into);
   return input;
 }

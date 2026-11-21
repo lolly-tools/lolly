@@ -754,7 +754,11 @@ async function playLofi(): Promise<void> {
   await startLofi(a.ctx, a.input, id, state.lofi, () => {
     if (state.loopId !== id || !activeHost) return;
     // Shuffle genres: the next tune comes from another genre, whatever repeat says.
-    if (state.lofi.shuffle) void setNeurospicyLoop(activeHost, shuffledStation(id));
+    if (state.lofi.shuffle) {
+      // The genres the person starred and hid in the music generator steer the draw here too.
+      const host = activeHost;
+      void host.profile.get().catch(() => ({})).then((p) => setNeurospicyLoop(host, shuffledStation(id, Math.random, genreLists(p))));
+    }
     else if (!state.repeat) void cycleNeurospicyLoop(activeHost, 1, { skipStreams: true });
   });
   // The station loads on first use; the selection may have moved on meanwhile.
@@ -768,14 +772,25 @@ async function playLofi(): Promise<void> {
  * the next. A genre with flavours (Lofi, drum and bass) is one genre in the draw, and a
  * flavour is then drawn from all of its flavours, so ten flavours are not ten shares.
  */
-export function shuffledStation(after: string, rand: () => number = Math.random): string {
+export function shuffledStation(after: string, rand: () => number = Math.random, prefs: { hidden?: ReadonlySet<string>; favourites?: ReadonlySet<string> } = {}): string {
   const current = LOFI_STATION_MOODS.find((m) => lofiId(m) === after);
   const playing = current === undefined ? undefined : genreCardOf(current);
-  const genres = LOFI_STATION_MOODS.filter((m) => genreCardOf(m) === m && m !== playing);
-  const genre = genres[Math.floor(rand() * genres.length)] ?? LOFI_STATION_MOODS[0]!;
+  const others = LOFI_STATION_MOODS.filter((m) => genreCardOf(m) === m && m !== playing);
+  // A hidden genre is passed over (unless every genre is hidden); a starred one is three times as likely, as in the music generator's shuffle.
+  const shown = others.filter((m) => !prefs.hidden?.has(m));
+  const pool = (shown.length ? shown : others).flatMap((m) => (prefs.favourites?.has(m) ? [m, m, m] : [m]));
+  const genre = pool[Math.floor(rand() * pool.length)] ?? LOFI_STATION_MOODS[0]!;
   const family = genreFamilyOf(genre);
   if (!family) return lofiId(genre);
-  return lofiId(family.moods[Math.floor(rand() * family.moods.length)] ?? genre);
+  const flavours = family.moods.filter((m) => !prefs.hidden?.has(m));
+  const from = flavours.length ? flavours : family.moods;
+  return lofiId(from[Math.floor(rand() * from.length)] ?? genre);
+}
+/** The starred and hidden genres on a profile record (Profile.music), read here so the player never loads the composer. */
+function genreLists(profile: object): { hidden: ReadonlySet<string>; favourites: ReadonlySet<string> } {
+  const music = (profile as { music?: { favouriteGenres?: unknown; hiddenGenres?: unknown } }).music;
+  const ids = (list: unknown): Set<string> => new Set(Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string') : []);
+  return { hidden: ids(music?.hiddenGenres), favourites: ids(music?.favouriteGenres) };
 }
 /** Shuffle genres on or off: when on, a station moves to another genre each time a tune ends. */
 export function setLofiShuffle(host: NeurospicyHost, on: boolean): void {
