@@ -712,11 +712,7 @@ if (!slimIndex) {
     if (toolsIndex.tools[i]?.id !== entry.id) {
       errors.push(`tools/index.slim.json: "${entry.id}" is at position ${i}, tools/index.json has "${toolsIndex.tools[i]?.id}" there - the order IS the gallery's layout; run \`pnpm run build:catalog\``);
     }
-    // `looks` was a list of signatures for the retired pre-rendered looks. A pack whose
-    // index was built before they went (suse, until its own rebuild) still carries it,
-    // and it says nothing the full entry does not, so it is left out of the comparison.
-    const { looks: _retiredLooks, ...current } = entry;
-    if (JSON.stringify(current) !== JSON.stringify(slimEntry(full))) {
+    if (JSON.stringify(entry) !== JSON.stringify(slimEntry(full))) {
       errors.push(`tools/index.slim.json: "${entry.id}" drifted from its tools/index.json entry - run \`pnpm run build:catalog\``);
     }
     // THE WHOLE-POINT INVARIANT, the twin of the template-`values` guard above: the
