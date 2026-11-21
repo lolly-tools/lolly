@@ -23,6 +23,33 @@ async function run(values: Record<string, unknown> = {}, host = baseHost()) {
   return { runtime, data, svg: runtime.getHydratedString('{{{_artwork}}}') };
 }
 describe('Timezone tool', () => {
+  it('marks early, late and night hours only when asked, in colour and in words', async () => {
+    // 07:00 in London: 08:00 in Nuremberg, 23:00 the day before in San Francisco,
+    // 17:00 in Noosa.
+    const rows = { locations: [{ place: 'London, GB' }, { place: 'Nuremberg, DE' }, { place: 'San Francisco, US' }, { place: 'Noosa, AU' }], eventTime: '2026-06-10T07:00' };
+    const plain = await run(rows);
+    assert.deepEqual(plain.data.locations.map((p: any) => p.hourQuality), ['edge', 'ok', 'night', 'ok']);
+    assert.doesNotMatch(plain.svg, /#f59e0b|#ef4444|· early|· night/, 'nothing is marked unless the document asks');
+    const marked = await run({ ...rows, showHourQuality: true });
+    assert.match(marked.svg, /#f59e0b/, 'the early hour is amber');
+    assert.match(marked.svg, /#ef4444/, 'the night hour is red');
+    assert.match(marked.svg, /· early/);
+    assert.match(marked.svg, /· night/);
+  });
+  it('reads a bare name as the large city of that name, and still asks when two are close', async () => {
+    const { data } = await run({ locations: [{ place: 'London' }, { place: 'San Francisco' }, { place: 'Springfield' }] });
+    assert.deepEqual(data.locations.slice(0, 2).map((p: any) => [p.timezone, p.error]), [['Europe/London', null], ['America/Los_Angeles', null]]);
+    assert.match(data.locations[2].error, /several timezones/);
+  });
+  it('takes a city as the reference clock, as Meeting Planner took its host city', async () => {
+    const city = await run({ referenceZone: 'Nuremberg', locations: [{ place: 'London, GB' }], eventTime: '2026-06-10T10:00' });
+    const zone = await run({ referenceZone: 'Europe/Berlin', locations: [{ place: 'London, GB' }], eventTime: '2026-06-10T10:00' });
+    assert.equal(city.data.referenceTimezone, 'Europe/Berlin');
+    assert.equal(city.data.instant, zone.data.instant);
+    assert.equal(city.data.error, null);
+    const unknown = await run({ referenceZone: 'Nowhereville', locations: [{ place: 'London, GB' }] });
+    assert.ok(unknown.data.error, 'a clock that is neither a city nor a zone is still reported');
+  });
   it('starts with six editable city examples and no duplicate dimensions or font controls', async () => {
     const runtime = await createRuntime(tool, baseHost());
     const state = JSON.parse(runtime.getHydratedText('{{{_state}}}'));
