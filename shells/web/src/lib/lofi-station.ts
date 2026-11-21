@@ -176,7 +176,7 @@ const VARIANT: { keys: Record<LofiStyle['keys'], number>; lead: Record<LiveLead,
   // The reese is drum and bass's whole low end, so it sits about 4 dB up (Andy, 2026-11-08).
   // The tuba had sat 8.8 dB under the round bass (soloed, K-weighted, in nine styles where a
   // bass plays whole: 8.1 to 9.9 dB), so it takes the whole difference (bassVariant says where).
-  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 2.75 },
+  bass: { round: 1, upright: 1.05, synth: 1.2, wobble: 1, growl: 1.8, reese: 1.6, slap: 1.6, screech: 1.7, pulse: 1, electro: 1, picked: 1, croak: 1, eight: 1, acid: 1, motown: 1, didgeridoo: 1.1, log: 1, deep: 1, warp: 1, tuba: 2.75, fog: 1, jump: 1 },
   snare: { snare: 1, brush: 1.15, rim: 1.8, clap: 2.3, stack: 1, snap: 2 },
   hats: { hat: 1, shaker: 1.15, ride: 0.8, none: 0 },
 };
@@ -819,7 +819,7 @@ export class LofiStation {
       case 'bass': {
         // A wobble's, growl's or screech's swing is cycles a beat (the voice wants Hz); the
         // other basses' `mod` is how the note is played, passed as it is.
-        const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech';
+        const swings = bassV === 'wobble' || bassV === 'growl' || bassV === 'screech' || bassV === 'fog' || bassV === 'jump';
         const mod = swings ? (note.mod ?? 0) / spb : (note.mod ?? 0);
         const level = vel * bassVariant(bassV, bar) * 10 ** ((BASS_SEAT[bar.tune.mood] ?? 0) / 20);
         // The Didgeridoo: its drone, on the player that also plays its rhythm when the drone turns into one.

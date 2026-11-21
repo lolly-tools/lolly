@@ -170,7 +170,7 @@ export const isRetiredLead = (lead: string): lead is RetiredLead => Object.hasOw
 export function liveLead(lead: typeof LOFI_LEADS[number]): LiveLead {
   return isRetiredLead(lead) ? RETIRED_LEADS[lead] : lead as LiveLead;
 }
-export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'didgeridoo', 'log', 'deep', 'warp', 'tuba'] as const;
+export const LOFI_BASSES = ['round', 'upright', 'synth', 'wobble', 'growl', 'reese', 'slap', 'screech', 'pulse', 'electro', 'picked', 'croak', 'eight', 'acid', 'motown', 'didgeridoo', 'log', 'deep', 'warp', 'tuba', 'fog', 'jump'] as const;
 /**
  * Bass ids an old link or saved tune may still carry, each with the bass that now plays them.
  * The bass `yidaki` was the didgeridoo's deep drone; that drone is now the Didgeridoo
@@ -786,16 +786,21 @@ interface BassPlan {
 }
 const BASS_PLANS: Partial<Record<DanceMood, BassPlan>> = {
   dubstep: {
-    trade: { pool: ['wobble', 'growl', 'screech'], phrases: [[[0, 0, 1, 1], 5], [[0, 0, 0, 1], 3], [[0, 0, 0, 0], 1]] },
+    trade: { pool: ['wobble', 'growl', 'screech', 'fog'], phrases: [[[0, 0, 1, 1], 5], [[0, 0, 0, 1], 3], [[0, 0, 0, 0], 1]] },
     over: { chance: 0.55, at: 1, every: 4, call: 0.6, fill: 0.5, texture: 0.4, in: ['drop'] },
   },
   brostep: {
-    trade: { pool: ['growl', 'screech', 'wobble'], phrases: [[[0, 0, 1, 1], 4], [[0, 0, 1, 2], 2], [[0, 0, 0, 1], 2], [[0, 1, 0, 2], 1]] },
+    trade: { pool: ['growl', 'screech', 'wobble', 'fog'], phrases: [[[0, 0, 1, 1], 4], [[0, 0, 1, 2], 2], [[0, 0, 0, 1], 2], [[0, 1, 0, 2], 1]] },
     over: { chance: 0.6, at: 1, every: 4, call: 0.6, fill: 0.5, texture: 0.4, in: ['drop'] },
   },
-  dnb: { over: { chance: 0.4, at: 5, every: 8, call: 0.7, fill: 0.35, texture: 0, in: ['drop'] } },
+  // Drum and bass keeps its reese for most of a drop and is answered at a phrase's end, or
+  // for its second half, by jump-up stabs or a foghorn.
+  dnb: {
+    trade: { pool: ['reese', 'jump', 'fog'], phrases: [[[0, 0, 0, 0], 2], [[0, 0, 0, 1], 4], [[0, 0, 1, 1], 2], [[0, 0, 1, 2], 1]] },
+    over: { chance: 0.4, at: 5, every: 8, call: 0.7, fill: 0.35, texture: 0, in: ['drop'] },
+  },
   // Breakbeat keeps its rolling reese, answered now and then at a phrase's end by a growl or an electro bass.
-  breakbeat: { trade: { pool: ['reese', 'growl', 'electro'], phrases: [[[0, 0, 0, 0], 4], [[0, 0, 0, 1], 1]] } },
+  breakbeat: { trade: { pool: ['reese', 'growl', 'electro', 'jump'], phrases: [[[0, 0, 0, 0], 4], [[0, 0, 0, 1], 1]] } },
   // Sugar's croak used to play alone, as a verse's or a second drop's bass now and then:
   // a bright, buzzy string with little weight. The croak now calls over the slap instead.
   sugar: { over: { chance: 0.35, at: 3, every: 4, call: 0.75, fill: 0, texture: 0.5, in: ['verse', 'drop'] } },
@@ -2299,6 +2304,20 @@ const ROLLERS: readonly Figure[] = [
   [[0, 3, 0, 0], [3, 1, 0, 0], [6, 4, 0, 7], [10, 2, 0, 0], [14, 2, 0, 12]],
   [[0, 2, 0, 0], [3, 2, 0, 12], [6, 2, 0, 0], [10, 3, 0, 7], [13, 2, 0, 0]],
 ];
+/** The foghorn: one long, flat note held under the bar and stopped dead, or two (mod is how slowly its vowel drifts, in swings a beat). */
+const FOGS: readonly Figure[] = [
+  [[0, 14, 0.25, 0]],
+  [[0, 8, 0.25, 0], [8, 7, 0.5, 0]],
+  [[0, 6, 0.25, 0], [6, 2, 0.25, 0], [8, 7, 0.5, 3]],
+  [[0, 11, 0.25, 0], [12, 3, 0.5, 3]],
+];
+/** Jump-up stabs: short barks around the snare, with a note held and gated into a stutter (mod is the stutter's rate, in gates a beat). */
+const JUMPS: readonly Figure[] = [
+  [[0, 2, 0, 0], [3, 1, 0, 0], [6, 2, 0, 12], [10, 1, 0, 0], [11, 1, 0, 0], [14, 2, 0, 7]],
+  [[0, 1, 0, 0], [2, 1, 0, 0], [3, 1, 0, 12], [6, 4, 2, 0], [12, 1, 0, 10], [14, 2, 0, 12]],
+  [[0, 4, 4, 0], [6, 1, 0, 12], [7, 1, 0, 0], [10, 2, 0, 3], [13, 1, 0, 0], [14, 2, 0, 12]],
+  [[0, 2, 0, 0], [4, 1, 0, 12], [6, 1, 0, 0], [8, 6, 3, 0], [14, 1, 0, 7], [15, 1, 0, 12]],
+];
 /** Slap bass: thumbed roots (0), popped octaves (1), dead notes (a quiet thumb), and a walk into the next chord. */
 const SLAPS: readonly Figure[] = [
   // Sixteenth-note funk: thumbs, popped octaves, dead notes between, a slide and a bend.
@@ -3006,7 +3025,7 @@ function composeDanceTune(seed: number, mood: DanceMood, fixed: Partial<LofiStyl
   const verseKeysDrawn = lean.verseKeys ? weightedPick(rng, lean.verseKeys) : undefined;
   const verseKeys = fixed.keys ?? verseKeysDrawn;
   // A reese holds a note under the break, or rolls along with the drums.
-  const figuresOf = (b: LofiStyle['bass']): readonly Figure[] => clubFigures(mood, b, club) ?? jungleFigures(mood, b) ?? (b === 'wobble' ? WOBBLES : b === 'growl' ? GROWLS : b === 'slap' ? SLAPS
+  const figuresOf = (b: LofiStyle['bass']): readonly Figure[] => clubFigures(mood, b, club) ?? jungleFigures(mood, b) ?? (b === 'wobble' ? WOBBLES : b === 'fog' ? FOGS : b === 'jump' ? JUMPS : b === 'growl' ? GROWLS : b === 'slap' ? SLAPS
     : MOOD_BASS[mood] && b === lean.bass[0]![0] ? MOOD_BASS[mood]!
     : b === 'log' ? LOGS : b === 'deep' ? HOUSE_BASS
     : b === 'didgeridoo' ? DIDGES : b === 'electro' ? RIFFS : b === 'pulse' ? BLIPS : b === 'screech' ? SCREECHES : b === 'picked' ? ROCKBASS : b === 'croak' ? CROAKS : b === 'upright' ? RUMBA : b === 'eight' ? (mood === 'sherbert' ? SUBS : EIGHTS) : b === 'synth' ? OCTAVES : b === 'round' ? RIDDIMS : b === 'motown' ? SOUL : b === 'acid' ? ACIDS

@@ -783,8 +783,8 @@ test('the croak is laid over a bass and never plays on its own: never a bass sty
   }
 });
 
-test('a dubstep or brostep drop trades its bass phrase by phrase; drum and bass keeps its reese', () => {
-  for (const [mood, pool, lo, hi] of [['dubstep', ['wobble', 'growl', 'screech'], 0.25, 0.6], ['brostep', ['growl', 'screech', 'wobble'], 0.35, 0.8]] as const) {
+test('a dubstep or brostep drop trades its bass phrase by phrase; drum and bass keeps its reese and is answered', () => {
+  for (const [mood, pool, lo, hi] of [['dubstep', ['wobble', 'growl', 'screech', 'fog'], 0.25, 0.6], ['brostep', ['growl', 'screech', 'wobble', 'fog'], 0.35, 0.8]] as const) {
     let changes = 0, barsSeen = 0, two = 0, drops = 0;
     for (const seed of PHRASE_SEEDS_40) {
       const bars = composeLofiTune(seed, mood);
@@ -808,9 +808,20 @@ test('a dubstep or brostep drop trades its bass phrase by phrase; drum and bass 
     assert.ok(rate >= lo && rate <= hi, `${mood}: the bass changes ${rate.toFixed(2)} times a bar`);
     assert.ok(two >= drops * 0.75, `${mood}: most drops have a bass answering their own (${two} of ${drops})`);
   }
-  for (const seed of PHRASE_SEEDS_40.slice(0, 12)) {
-    assert.ok(composeLofiTune(seed, 'dnb').filter(b => b.section === 'drop').every(b => bassOf(b) === 'reese'), `dnb ${seed}: the reese holds every drop`);
+  // Drum and bass keeps its reese for most of a drop: jump-up stabs or a foghorn answer in
+  // a phrase's second half at most, and never open a drop.
+  let reese = 0, dnbBars = 0, answered = 0;
+  for (const seed of PHRASE_SEEDS_40) {
+    const drop = composeLofiTune(seed, 'dnb').filter(b => b.section === 'drop');
+    for (const b of drop) {
+      assert.ok(['reese', 'jump', 'fog'].includes(bassOf(b)), `dnb ${seed} bar ${b.index}: a reese, jump-up stabs or a foghorn`);
+      dnbBars++;
+      if (bassOf(b) === 'reese') reese++;
+    }
+    if (drop.some(b => bassOf(b) !== 'reese')) answered++;
   }
+  assert.ok(reese >= dnbBars * 0.6, `dnb: the reese holds most of every drop (${reese} of ${dnbBars} bars)`);
+  assert.ok(answered >= 20, `dnb: most tunes have an answer to the reese (${answered} of 40)`);
 });
 
 test('lofi house: a soft kick on every beat that comes in full at the drop, a filter that opens and closes, a loud bass on the offbeats, and a quiet, sparse lead', () => {
@@ -872,7 +883,9 @@ test('adding lofi house changed no other style: its draws come from a stream of 
   // agreed D&B tunes may change: lofi-breaks.ts dnbKitBar), so its pin moved then; every
   // other note of it is as it was. Amapiano's drew the soft lead, retired on 2026-11-14
   // (RETIRED_LEADS): its vibes play in its place.
-  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 1758158366, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
+  // Drum and bass's drops gained their answers on 2026-11-21 (BASS_PLANS.dnb: jump-up stabs
+  // or a foghorn in a phrase's second half), so its pin moved again.
+  const before: Record<string, number> = { 'nudisco.7': 2308739195, 'citypop.7': 832681177, 'amapiano.7': 1275618927, 'jazz.7': 3436312216, 'dnb.7': 3513053445, 'grunge.7': 2971831676, 'warm.7': 1548052373 };
   for (const [key, want] of Object.entries(before)) {
     const [mood, seed] = key.split('.') as [Parameters<typeof composeLofiTune>[1], string];
     assert.equal(fingerprint(withoutPhrases(composeLofiTune(Number(seed), mood))), want, `${key} composes as it did`);
@@ -1016,8 +1029,10 @@ test('the shouts come from a stream of their own: the rest of every tune compose
   // phrases, each tune is unchanged.
   const before: Record<string, number> = {
     'punk.7': 2506933748, 'rock.7': 2592240155, 'metal.7': 864814450, 'funk.7': 2782109403, 'soul.7': 123733926, 'hiphop.7': 307798947,
-    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 1758158366, 'dubstep.7': 2238141904, 'brostep.7': 1362639215, 'sherbert.7': 3954562497,
+    'kpop.7': 1246354836, 'electro.7': 4141735150, 'dnb.7': 3513053445, 'dubstep.7': 1198571479, 'brostep.7': 1216733133, 'sherbert.7': 3954562497,
   };
+  // The foghorn joined dubstep's and brostep's trades on 2026-11-21 and drum and bass gained
+  // its answers (jump-up stabs or a foghorn), so those three pins moved again that day.
   // Dubstep's and brostep's drops trade their bass now (BASS_PLANS, 2026-11-13): a partner's
   // bars play its own figure and the stabs fall in its gaps, so those two pins moved with them.
   // Drum and bass's drops edit their kick and snare bar by bar (2026-11-14), so its pin moved too.

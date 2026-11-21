@@ -30,6 +30,9 @@
  * is one channel (correlation 0.998 to 1 below 120 Hz), their bass mids wide (0.6 to 0.8
  * from 150 Hz to 2 kHz in dubstep and drum and bass, about 0.9 to 0.97 in house and
  * garage), where every bass here was one channel throughout.
+ *
+ * The takes sit about 3 dB higher against the sub than they first did (2026-11-21): whole
+ * drops measured 4 dB short of produced ones from 250 Hz to 2 kHz while the sub matched.
  */
 import type { LofiBar, LofiMood, LofiNote, LofiSection } from '../../../../engine/src/lofi-compose.ts';
 import { mulberry32 } from '../../../../engine/src/zzfx-compose.ts';
@@ -62,10 +65,10 @@ export interface StackPlan {
  * their records, and Sugar's slap is a played bass guitar.
  */
 export const STACKS: Partial<Record<LofiMood, StackPlan>> = {
-  dubstep: { xover: 110, mono: 200, width: 0.9, cents: 10, late: 0.006, sub: 1, take: 1.05, soft: 0.8, top: 0.5 },
-  brostep: { xover: 120, mono: 200, width: 0.9, cents: 12, late: 0.006, sub: 0.75, take: 0.98, soft: 0.75, top: 0.8 },
-  dnb: { xover: 120, mono: 180, width: 0.7, cents: 8, late: 0.005, sub: 1.2, take: 0.92, soft: 0.8, top: 0.4 },
-  electro: { xover: 120, mono: 180, width: 0.6, cents: 8, late: 0.004, sub: 0.9, take: 0.55, soft: 0.55, top: 0.25 },
+  dubstep: { xover: 110, mono: 200, width: 0.9, cents: 10, late: 0.006, sub: 1, take: 1.5, soft: 0.9, top: 0.5 },
+  brostep: { xover: 120, mono: 200, width: 0.9, cents: 12, late: 0.006, sub: 0.75, take: 1.4, soft: 0.85, top: 0.8 },
+  dnb: { xover: 120, mono: 180, width: 0.7, cents: 8, late: 0.005, sub: 1.2, take: 1.25, soft: 0.85, top: 0.4 },
+  electro: { xover: 120, mono: 180, width: 0.6, cents: 8, late: 0.004, sub: 0.9, take: 0.7, soft: 0.6, top: 0.3 },
   lofiHouse: { xover: 140, mono: 200, width: 0.3, cents: 5, late: 0.004, sub: 0.85, take: 0.82, soft: 0.8, top: 0 },
   nudisco: { xover: 130, mono: 200, width: 0.35, cents: 6, late: 0.004, sub: 0.45, take: 0.52, soft: 0.5, top: 0 },
   // The club genres (engine/src/lofi-club.ts). Breakbeat's rolling reese is as wide as drum
@@ -166,7 +169,7 @@ function busOf(k: VoiceKit, lane: AudioNode, mood: LofiMood, seed: number): Bus 
     const [push, ws] = drivenBy(ctx, 2.4, k.hq === true);
     const lp = ctx.createBiquadFilter();
     lp.type = 'lowpass';
-    lp.frequency.value = 7000;
+    lp.frequency.value = 10500;
     hp.connect(push);
     ws.connect(lp).connect(top).connect(into);
     return hp;
