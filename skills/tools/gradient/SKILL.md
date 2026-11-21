@@ -7,7 +7,7 @@ description: "Operate the Lolly Gradient tool (gradient) using its declared inpu
 
 Tool ID: `gradient`. Tool version: `1.3.1`. Engine range: `^1.0.0`.
 
-Five ways to build a gradient from the design system swatches: soft radial Blend, a real Coons-patch mesh as crisp SVG (Subdivide) or a smooth raster (Mesh), freeform Warp points and the animated Flow waves. Drag everything right on the canvas; export stills or join-free video loops.
+Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. Export stills or join-free video loops.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

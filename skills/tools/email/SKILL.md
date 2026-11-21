@@ -7,7 +7,7 @@ description: "Operate the Lolly Email tool (email) using its declared inputs and
 
 Tool ID: `email`. Tool version: `1.1.0`. Engine range: `^1.343.0`.
 
-An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments, as received, a draft or sent. For mock-ups, slides and walkthroughs.
+An email as it shows in a mail app: sender, recipients, subject, a Markdown body and attachments. For mock-ups, slides and walkthroughs.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
