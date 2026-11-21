@@ -1,7 +1,7 @@
 {
   "id": "filter",
   "name": "Filter",
-  "description": "One tool for photo effects: pick halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). Design system overlays, live camera and exports to as many formats as each effect supports.",
+  "description": "Photo effects: halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster).",
   "a11yLabel": "{{effect}} filter of the chosen image",
   "version": "1.7.0",
   "engineVersion": "^1.341.0",
