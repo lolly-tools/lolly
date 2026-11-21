@@ -6,6 +6,7 @@ import { showScrubReadout, hideScrubReadout } from '../components/scrub-readout.
 import { playScrubTick } from '../lib/sfx.ts';
 import { cssEscape } from '../lib/util/escape.ts';
 import { exportTargetNode } from '../lib/export-target.ts';
+import type { PreparedPicture } from '../bridge/preview-store.ts';
 
 /** Strip-scale → export → reapply wrapper shared by the tool mount and action helpers.
  *  `size` is the pixel size this export renders at, when the caller knows it: a tool whose
@@ -189,6 +190,72 @@ export function addScrubBehavior(
   });
 }
 
+/** The node a picture of this tool is taken of, and its laid-out size: the first
+ *  page of a paged tool, the active artboard of a framed one, else the canvas. */
+function previewTarget(manifest: ToolManifest, canvasEl: HTMLElement | null): { node: HTMLElement | null; width: number; height: number } {
+  const firstPage = manifest.render.paged === true ? (canvasEl?.querySelector<HTMLElement>('[data-pdf-page]') ?? null) : null;
+  let node = canvasEl;
+  if (firstPage) node = firstPage;
+  else {
+    const flat = flatExportNode(canvasEl);
+    if (flat && flat !== canvasEl) node = flat;
+  }
+  return { node, width: node?.offsetWidth || manifest.render.width || 600, height: node?.offsetHeight || manifest.render.height || 600 };
+}
+
+/**
+ * The picture a save keeps (plan 373): the preview writer's live source. One rule
+ * for every tool, whatever export format is selected: the tool's own SVG export
+ * when the tool exports SVG and the result fits one entry (256 KiB), otherwise a
+ * raster of the same canvas through the export path, encoded by the writer
+ * (lib/preview-writer.ts: WebP at 0.9 with a fidelity check, lossless where that
+ * check fails, PNG where the browser has no WebP encoder). The picture records the
+ * route that drew it. Never throws; null when no picture could be made.
+ */
+export async function capturePreview(
+  manifest: ToolManifest,
+  canvasEl: HTMLElement | null,
+  runtime: Runtime,
+  exportUnscaled: ExportUnscaled,
+  shutter = true
+): Promise<PreparedPicture | null> {
+  try {
+    const writer = await import('../lib/preview-writer.ts');
+    const { node, width: nw, height: nh } = previewTarget(manifest, canvasEl);
+    if (manifest.id === '3d-studio' && node) {
+      try {
+        const { captureStudioCanvas } = await import('../lib/studio3d/mount.ts');
+        const canvas = captureStudioCanvas(node);
+        if (canvas) return await writer.rasterPicture(canvas);
+      } catch { /* the ordinary export below */ }
+    }
+    const formats = manifest.render.formats ?? [];
+    if (formats.includes('svg')) {
+      try {
+        const blob = await exportUnscaled(
+          () => runtime.export(exportTargetNode(node), 'svg', { width: nw, height: nh, embedMeta: false, thumbnail: true }),
+          { shutter }
+        );
+        const picture = await writer.svgPicture(blob);
+        if (picture) return picture;
+      } catch { /* the raster below */ }
+    }
+    const { PREVIEW_TILE } = await import('../../../../engine/src/session-preview.ts');
+    // Rendered at the tile's size by the export path itself (a re-render, so vector
+    // content stays sharp), then encoded by the writer.
+    const scale = Math.min(PREVIEW_TILE.width / nw, PREVIEW_TILE.height / nh);
+    const tw = Math.max(1, Math.round(nw * scale));
+    const th = Math.max(1, Math.round(nh * scale));
+    const png = await exportUnscaled(
+      () => runtime.export(exportTargetNode(node), 'png', { width: tw, height: th, embedMeta: false, thumbnail: true }),
+      { shutter }
+    );
+    return await writer.rasterPicture(png);
+  } catch {
+    return null;
+  }
+}
+
 // Cap on a vector thumbnail's raw SVG size. Dense vector output (e.g. a halftone
 // with thousands of dots) can serialise to megabytes; above this we fall back to
 // the raster path so a single thumbnail never bloats storage unbounded.
@@ -199,6 +266,12 @@ const SVG_THUMB_MAX_BYTES = 1_500_000;
 // genuinely stalled, in which case the save proceeds thumbnail-less rather than hanging.
 export const THUMB_CAPTURE_TIMEOUT_MS = 8000;
 
+/**
+ * A picture of the mounted canvas as a data URL, for the catalog preview build
+ * (scripts/build-previews.ts reads it through `__lollyCaptureThumb`). Saved work
+ * uses capturePreview above; this keeps the build's own rule (an SVG of any size
+ * when asked for one, which the build then optimises, else a PNG).
+ */
 export async function captureThumbnail(
   manifest: ToolManifest,
   canvasEl: HTMLElement | null,

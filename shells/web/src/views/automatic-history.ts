@@ -16,6 +16,7 @@ import type { RevisionHistoryAPI, RevisionEntry } from '../bridge/revision-histo
 import type { SavedStateData } from '../bridge/state.ts';
 import type { RevisionCursor } from '../bridge/revision-records.ts';
 import { captureRevision, type RevisionCapture } from '../bridge/revision-capture.ts';
+import type { PictureInput } from '../bridge/preview-store.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { t, tRaw } from '../i18n.ts';
 
@@ -44,7 +45,9 @@ export interface AutomaticHistory {
    * changed since that save, unless the tool has closed. The Save action calls it
    * once for each recorded save, with null when no picture came, so whatever waits
    * on that picture (mountActionHistory) is released. */
-  attachSaveThumbnail(thumb: string | null): Promise<void>;
+  /** The Save action's picture: prepared bytes from the preview writer, or null
+   *  when none came (a data URL from an older caller is accepted too). */
+  attachSaveThumbnail(thumb: PictureInput): Promise<void>;
   /** Whether edits made now reach History as checkpoints a person can open as a
    * copy, so a discard can promise that History keeps them: not while history is
    * paused for this creation, checkpoints are paused, or recovery cannot write. */
@@ -104,7 +107,7 @@ export function createAutomaticHistory(opts: {
   setSlot(slot: string): void;
   snapshot(): SavedStateData;
   load(slot: string): Promise<SavedStateData | null>;
-  capture(): Promise<string | null>;
+  capture(): Promise<PictureInput>;
   /** Write the record without history (the state bridge's save): the path an
    * explicit save takes when history cannot record the document. */
   store?(slot: string, data: SavedStateData): Promise<void>;

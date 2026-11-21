@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { rowPictureDataUrl, type PictureState } from './session-picture.ts';
 import type { RevisionArchiveAPI, RevisionArchive, RevisionArchiveSummary } from '../bridge/revision-archive-format.ts';
 import { MAX_REVISION_ARCHIVE_BYTES } from '../bridge/revision-limits.ts';
 import { entrySink, readJson, type BundleEntry, type PartSink, type PartWriter } from './bundle.ts';
@@ -160,8 +161,11 @@ export async function writeBackupSessions(state: BackupState, sink: PartSink, op
       if (captured.has(row.slot) || isJournalSlot(row.slot) || (options.mode === 'sync' && isDiscardedSlot(row.slot))) continue;
       const data = await state.load(row.slot);
       if (!data) continue;
+      // The picture travels as the data URL sessions.json always carried, rebuilt from
+      // the stored bytes (plan 373 changes storage at rest, not this format).
+      const thumb = await rowPictureDataUrl(state as PictureState, row);
       await rows.item({ slot: row.slot, toolId: row.toolId, toolVersion: row.toolVersion,
-        label: row.label ?? null, thumb: row.thumb ?? null, updatedAt: row.updatedAt ?? null,
+        label: row.label ?? null, thumb, updatedAt: row.updatedAt ?? null,
         ...(row.savedAt ? { savedAt: row.savedAt } : {}), data });
       slots.push(row.slot);
     }

@@ -14,7 +14,13 @@
  * crashing at boot on a device. Type-only, so nothing from the web shell is pulled
  * into this module at runtime.
  *
- * Storage: <app data dir>/saved-state/<slot>.json
+ * Storage: <app data dir>/saved-state/<slot>.json, and each session's picture once,
+ * by the hash of its bytes, at <app data dir>/saved-state/previews/<key>.<ext>
+ * (plan 373). The record carries a short `preview` reference. A picture file is
+ * written and read back before any record points at it, so a record never names a
+ * file that is not there. Older desktop builds list only `*.json` names, so the
+ * `previews` directory is invisible to them; a record they read with no `thumb`
+ * shows the tool icon and opens as usual.
  *
  * WHY THIS FILE LIVES IN THE PARENT REPO, AND WHY IT TAKES AN `fs` ADAPTER
  * Desktop and mobile previously carried byte-identical copies of this logic, so a
@@ -47,12 +53,23 @@
  *   writeDocumentAtomic?(path, text) → Promise<void>   (crash-safe; see below)
  *   readDirNames(path)        → Promise<string[]>   (entry names, not entries)
  *   remove(path)              → Promise<void>
+ *   readFile?(path)           → Promise<Uint8Array>  (picture files; optional)
+ *   writeFile?(path, bytes)   → Promise<void>        (picture files; optional)
+ *
+ * Without readFile and writeFile a picture stays on the record as a data URL, the
+ * way every record carried it before plan 373.
  */
 
 import { stripAssetModifiers, sessionVersionStamp, migrateSessionRecord, encodeFsToken } from '@lolly/engine';
 import { assetDependency } from '../../../engine/src/asset-version.ts';
 import { textFontAssetIds } from '../../../engine/src/text-assets.ts';
+import { sessionPreviewRef } from '../../../engine/src/session-record.ts';
+import {
+  decodePictureDataUrl, pictureDataUrl, previewContentKey, previewFileExt, previewRefFor, readPreviewRef,
+  type SessionPreviewRef,
+} from '../../../engine/src/session-preview.ts';
 import type { SavedStateData, WebStateAPI } from '../../web/src/bridge/state.ts';
+import type { PictureInput, PreparedPicture } from '../../web/src/bridge/preview-store.ts';
 
 /**
  * The slice of a filesystem this module needs, paths relative to the app data dir.
@@ -74,6 +91,10 @@ export interface StateFs {
   /** Entry NAMES, not entry objects - all this module reads. */
   readDirNames(path: string): Promise<string[]>;
   remove(path: string): Promise<void>;
+  /** Binary reads and writes for picture files. Optional: without them a picture
+   *  stays on its record as a data URL. */
+  readFile?(path: string): Promise<Uint8Array>;
+  writeFile?(path: string, bytes: Uint8Array): Promise<void>;
 }
 
 /** One saved session as written to disk. Mirrors the web bridge's StateRecord;
@@ -84,7 +105,11 @@ interface FsStateRecord {
   toolVersion: string | undefined;
   label: string | undefined;
   data: SavedStateData;
+  /** A legacy data URL: records written before plan 373, and any picture this
+   *  device could not write as a file. */
   thumb: string | null;
+  /** The picture by reference, its bytes under saved-state/previews/. */
+  preview?: SessionPreviewRef;
   updatedAt: string;
   /** First-save time, carried forward across re-saves (mirrors the web bridge) - 
    *  the "Date added" sort key. Optional: older files have none. */
@@ -103,6 +128,13 @@ interface FsStateRecord {
 type ParsedRecord = Partial<FsStateRecord>;
 
 const STATE_DIR = 'saved-state';
+const PREVIEW_DIR = `${STATE_DIR}/previews`;
+
+const previewPath = (ref: Pick<SessionPreviewRef, 'key' | 'type'>): string => `${PREVIEW_DIR}/${ref.key}.${previewFileExt(ref.type)}`;
+
+function isPrepared(value: unknown): value is PreparedPicture {
+  return !!value && typeof value === 'object' && (value as PreparedPicture).bytes instanceof Uint8Array && !!readPreviewRef((value as PreparedPicture).ref);
+}
 // Written once the legacy-filename migration has completed cleanly (below), so it
 // never re-walks the directory on subsequent launches. Not a `.json`, so the
 // record readers skip it.
@@ -264,7 +296,48 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
   /** Write one record. `times` given (a restore) keeps the session's own update
    *  and save times; otherwise the update time is now, and the save time is now
    *  only when the work changed, so a rename keeps it (matching the web bridge). */
-  async function writeRecord(slot: string, data: SavedStateData, thumb: string | null, times?: { updatedAt: string; savedAt: string }): Promise<void> {
+  /** Picture files written by this app since it started: the orphan sweep leaves
+   *  them, since their record may be a moment from being written. */
+  const writtenHere = new Set<string>();
+
+  /** Read a picture file back, or null when it is missing or its bytes do not hash
+   *  to its name (a torn write never shows as a picture). */
+  async function readPicture(ref: Pick<SessionPreviewRef, 'key' | 'type'>): Promise<Uint8Array | null> {
+    if (!fs.readFile) return null;
+    try {
+      const bytes = await fs.readFile(previewPath(ref));
+      return bytes.length && await previewContentKey(bytes) === ref.key ? bytes : null;
+    } catch { return null; }
+  }
+
+  /** Write a picture file once, then read it back; true only when the file on disk
+   *  holds exactly these bytes. Nothing points at it until this answers true. */
+  async function writePicture(picture: PreparedPicture): Promise<boolean> {
+    if (!fs.writeFile || !fs.readFile) return false;
+    try {
+      if (await readPicture(picture.ref)) return true;
+      if (!await fs.exists(PREVIEW_DIR)) await fs.mkdirRecursive(PREVIEW_DIR);
+      writtenHere.add(picture.ref.key);
+      await fs.writeFile(previewPath(picture.ref), picture.bytes);
+      return !!await readPicture(picture.ref);
+    } catch { return false; }
+  }
+
+  /** A record's picture fields from what a caller handed in: a picture written as a
+   *  file and referenced, a reference whose file is here, or a data URL kept as one
+   *  (a received picture, or a device whose adapter cannot write files). */
+  async function pictureFields(input: PictureInput): Promise<{ thumb: string | null; preview?: SessionPreviewRef } | null> {
+    if (input == null) return null;
+    if (typeof input === 'string') return decodePictureDataUrl(input) ? { thumb: input } : null;
+    if (isPrepared(input)) {
+      if (await writePicture(input)) return { thumb: null, preview: input.ref };
+      return { thumb: pictureDataUrl(input.bytes, input.ref.type, input.form) };
+    }
+    const ref = readPreviewRef(input);
+    return ref && await readPicture(ref) ? { thumb: null, preview: ref } : null;
+  }
+
+  async function writeRecord(slot: string, data: SavedStateData, picture: PictureInput, times?: { updatedAt: string; savedAt: string }): Promise<void> {
     await ensureMigrated();
     // Re-saves reuse the slot: carry the original creation time forward off the
     // existing file (matching the web bridge's IndexedDB read-before-write).
@@ -275,14 +348,24 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     } catch { /* unreadable prior record - stamp fresh */ }
     const now = times?.updatedAt ?? new Date().toISOString();
     const priorSaved = prior ? validTime(prior.savedAt) ?? validTime(prior.updatedAt) : undefined;
-    const savedAt = times?.savedAt ?? (prior && priorSaved && workOf(prior.data) === workOf(data) ? priorSaved : now);
+    const sameWork = !!prior && workOf(prior.data) === workOf(data);
+    const savedAt = times?.savedAt ?? (prior && priorSaved && sameWork ? priorSaved : now);
+    // The picture given, else the prior record's when the work is unchanged (a rename),
+    // else none until a capture attaches one (the web bridge's rule).
+    const priorRef = prior ? sessionPreviewRef(prior) : null;
+    const given = await pictureFields(picture);
+    const carried = !given && sameWork && prior
+      ? (priorRef ? { thumb: null, preview: priorRef } : typeof prior.thumb === 'string' ? { thumb: prior.thumb } : null)
+      : null;
+    const fields = given ?? carried ?? { thumb: null };
     const record: FsStateRecord = {
       slot,
       toolId: data.__toolId,
       toolVersion: data.__toolVersion,
       label: data.__label,
       data,
-      thumb,
+      thumb: fields.thumb,
+      ...(fields.preview ? { preview: fields.preview } : {}),
       updatedAt: now,
       createdAt: prior?.createdAt ?? now,
       savedAt,
@@ -291,17 +374,88 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     await writeDocument(fs, slotPath(slot), JSON.stringify(record, null, 2));
   }
 
+  /**
+   * Move this device's legacy data-URL pictures into picture files, one record at a
+   * time, after a list has read them (the record's own bytes are in hand then). A
+   * record is rewritten only when its file still holds the text that was read, and
+   * every other field of it is kept as it was: the record gains `preview` and its
+   * `thumb` becomes null, nothing else changes. The file is written and verified
+   * first. Then picture files no record names are removed, except those this app
+   * wrote since it started.
+   */
+  let moveStarted = false;
+  function schedulePictureMove(raws: ParsedRecord[]): void {
+    if (moveStarted || !fs.writeFile || !fs.readFile) return;
+    moveStarted = true;
+    const pending = raws.filter(raw => typeof raw.slot === 'string' && typeof raw.thumb === 'string' && raw.thumb && !sessionPreviewRef(raw));
+    setTimeout(() => { void movePictures(pending).catch(() => { /* the next launch tries again */ }); }, 3000);
+  }
+
+  async function movePictures(pending: ParsedRecord[]): Promise<void> {
+    for (const read of pending) {
+      const decoded = decodePictureDataUrl(read.thumb);
+      if (!decoded) continue;
+      const ref = await previewRefFor(decoded.bytes, decoded.type, { route: 'legacy' });
+      if (!ref || !await writePicture({ ref, bytes: decoded.bytes, form: decoded.form })) continue;
+      const path = slotPath(read.slot!);
+      try {
+        const text = await fs.readTextFile(path);
+        const current = JSON.parse(text) as ParsedRecord & Record<string, unknown>;
+        if (current.thumb !== read.thumb || current.updatedAt !== read.updatedAt) continue;
+        await writeDocument(fs, path, JSON.stringify({ ...current, thumb: null, preview: ref }, null, 2));
+      } catch { /* left as it was; read the old way */ }
+    }
+    await sweepPictures();
+  }
+
+  async function sweepPictures(): Promise<void> {
+    let files: string[];
+    try { files = await fs.readDirNames(PREVIEW_DIR); } catch { return; }
+    const named = new Set<string>();
+    for (const { raw } of await readAllRecords()) { const ref = sessionPreviewRef(raw); if (ref) named.add(ref.key); }
+    for (const file of files) {
+      const key = file.split('.')[0] ?? '';
+      if (!/^[0-9a-f]{32}$/.test(key) || named.has(key) || writtenHere.has(key)) continue;
+      try { await fs.remove(`${PREVIEW_DIR}/${file}`); } catch { /* kept */ }
+    }
+  }
+
   return {
-    async save(slot, data, thumb = null) {
-      await writeRecord(slot, data, thumb);
+    async save(slot, data, picture = null) {
+      await writeRecord(slot, data, picture);
     },
 
     // A backup import or a Trash move writes through here, keeping the session's
     // own times, so the newer-copy rule compares when the work was saved.
-    async restore(slot, data, thumb, updatedAt, savedAt) {
+    async restore(slot, data, picture, updatedAt, savedAt) {
       const at = validTime(updatedAt);
       const saved = validTime(savedAt) ?? at;
-      await writeRecord(slot, data, thumb, at && saved ? { updatedAt: at, savedAt: saved } : undefined);
+      await writeRecord(slot, data, picture, at && saved ? { updatedAt: at, savedAt: saved } : undefined);
+    },
+
+    async picture(ref) {
+      let target: SessionPreviewRef | null = 'key' in ref ? readPreviewRef(ref) : null;
+      if (!target && 'slot' in ref) {
+        try { target = sessionPreviewRef(JSON.parse(await fs.readTextFile(slotPath(ref.slot))) as ParsedRecord); } catch { target = null; }
+      }
+      if (!target) return null;
+      const bytes = await readPicture(target);
+      return bytes ? new Blob([bytes.slice().buffer as ArrayBuffer], { type: target.type }) : null;
+    },
+
+    async pictureDataUrl(ref) {
+      let target: SessionPreviewRef | null = 'key' in ref ? readPreviewRef(ref) : null;
+      let legacy: string | null = null;
+      if (!target && 'slot' in ref) {
+        try {
+          const raw = JSON.parse(await fs.readTextFile(slotPath(ref.slot))) as ParsedRecord;
+          target = sessionPreviewRef(raw);
+          legacy = typeof raw.thumb === 'string' ? raw.thumb : null;
+        } catch { return null; }
+      }
+      if (!target) return legacy;
+      const bytes = await readPicture(target);
+      return bytes ? pictureDataUrl(bytes, target.type) : legacy;
     },
 
     async load(slot) {
@@ -322,6 +476,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
 
     async list() {
       const records = await readAllRecords();
+      schedulePictureMove(records.map(({ raw }) => raw));
       return records
         .map(({ raw }) => ({
           // A record that reached disk always carries these; the parsed type is
@@ -333,7 +488,9 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
           toolVersion: raw.toolVersion ?? '',
           label: raw.label,
           filename: raw.data?.__export_filename || null,
-          thumb: raw.thumb ?? null,
+          // A reference when the record has one; the legacy data URL otherwise.
+          thumb: sessionPreviewRef(raw) ? null : raw.thumb ?? null,
+          ...(sessionPreviewRef(raw) ? { preview: sessionPreviewRef(raw)! } : {}),
           updatedAt: raw.updatedAt ?? '',
           ...(raw.createdAt ? { createdAt: raw.createdAt } : {}),
           ...(raw.savedAt ? { savedAt: raw.savedAt } : {}),
@@ -359,6 +516,11 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       for (const name of names) {
         if (!name?.endsWith('.json')) continue;
         try { await fs.remove(`${STATE_DIR}/${name}`); } catch { /* keep clearing the rest */ }
+      }
+      let pictures: string[] = [];
+      try { pictures = await fs.readDirNames(PREVIEW_DIR); } catch { /* none */ }
+      for (const name of pictures) {
+        try { await fs.remove(`${PREVIEW_DIR}/${name}`); } catch { /* keep clearing the rest */ }
       }
     },
 

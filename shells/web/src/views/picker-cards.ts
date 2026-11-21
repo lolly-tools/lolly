@@ -9,6 +9,8 @@
  * handling for [data-tool-id], [data-quickadd-tool], [data-session-slot],
  * [data-template-ref] and [data-quickadd-template].
  */
+import { previewImg } from '../components/preview-image.ts';
+import type { SessionPreviewRef } from '../bridge/preview-store.ts';
 import { t, tRaw } from '../i18n.ts';
 import { escapeHtml } from '../lib/html.ts';
 import { svgDataUrl } from '../lib/format.ts';
@@ -42,6 +44,8 @@ export interface PickerSession {
   toolName: string;
   toolIcon: string | null;
   thumb: string | null;
+  /** The session's stored picture (components/preview-image.ts reads it). */
+  preview?: SessionPreviewRef | null;
   updatedAt: string;
 }
 
@@ -117,14 +121,15 @@ export function sessionCard(s: PickerSession): string {
   const name = s.label || s.toolName || s.toolId;
   return `
     <button type="button" class="asset-picker-card asset-picker-sessitem" data-session-slot="${escapeHtml(s.slot)}" title="${escapeHtml(name)}">
-      ${sessionThumb(s.thumb, s.toolIcon)}
+      ${sessionThumb(s.thumb, s.toolIcon, s.preview)}
       <span class="asset-picker-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
       <span class="asset-picker-sessitem-when">${escapeHtml(relTimeAt(s.updatedAt, Date.now(), t))}</span>
     </button>
   `;
 }
 
-export function sessionThumb(thumb: string | null, iconSvg: string | null): string {
+export function sessionThumb(thumb: string | null, iconSvg: string | null, preview?: SessionPreviewRef | null): string {
+  if (preview) return previewImg({ preview }, 'class="asset-picker-thumb" alt="" loading="lazy" decoding="async"', 'asset-picker-thumb asset-picker-thumb-stub');
   if (typeof thumb === 'string' && thumb) {
     if (thumb.startsWith('data:')) {
       return `<img class="asset-picker-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" decoding="async">`;

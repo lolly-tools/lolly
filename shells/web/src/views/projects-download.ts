@@ -12,6 +12,7 @@
  * profile. Those three are getters because the view's reload() replaces them, and a job
  * reads them after its first await, as the code did when it was part of the view.
  */
+import { rowPictureDataUrl, type PictureState } from '../lib/session-picture.ts';
 import { ENGINE_VERSION } from '@lolly/engine';
 import type { AssetRef, HostV1, Profile } from '@lolly-tools/core/host-v1';
 import { t, tRaw, tn } from '../i18n.ts';
@@ -124,7 +125,8 @@ export async function downloadOriginals(view: ProjectDownloadView, label: string
           if (isBatchSlot(it.ref)) {
             entries[unique(`${it.dir}${slug(name) || 'batch'}.json`)] = new TextEncoder().encode(JSON.stringify(data, null, 2));
           } else {
-            const { blob } = await buildLollyFile({ session: data, toolId: e.toolId, name, thumb: e.thumb, userAssets, resolveEmojiPack, creator, appVersion, engineVersion: ENGINE_VERSION, ...(designSystem ? { designSystem } : {}) });
+            const thumb = await rowPictureDataUrl(host.state as PictureState, e);
+            const { blob } = await buildLollyFile({ session: data, toolId: e.toolId, name, thumb, userAssets, resolveEmojiPack, creator, appVersion, engineVersion: ENGINE_VERSION, ...(designSystem ? { designSystem } : {}) });
             entries[unique(`${it.dir}${slug(name) || 'session'}.lolly`)] = new Uint8Array(await blob.arrayBuffer());
           }
         } else {
@@ -181,11 +183,13 @@ export async function downloadProject(view: ProjectDownloadView, id: string, sha
       if (!e || !data) { skipped++; job.progress(sessions.length + skipped, members.length); continue; }
       const key = `s${sessions.length + 1}`;
       keys.set(slot, key);
+      // The stored picture rebuilt as the data URL the pack has always carried.
+      const thumb = await rowPictureDataUrl(host.state as PictureState, e);
       sessions.push({
         key, toolId: e.toolId, data,
         ...(e.toolVersion ? { toolVersion: e.toolVersion } : {}),
         ...(e.label || e.filename ? { label: e.label || e.filename || '' } : {}),
-        ...(e.thumb ? { thumb: e.thumb } : {}),
+        ...(thumb ? { thumb } : {}),
       });
       job.progress(sessions.length + skipped, members.length);
     }

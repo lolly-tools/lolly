@@ -611,8 +611,9 @@ export function destroyToolStudio(container?: Element): void {
     if (!container || entry.container === container) destroy(entry);
 }
 
-/** Save the mounted preview without preparing a second export scene or shader set. */
-export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHeight = 560): string | null {
+/** Draw the mounted preview into a canvas fitted inside the tile, without
+ *  preparing a second export scene or shader set. The preview writer encodes it. */
+export function captureStudioCanvas(root: HTMLElement, maxWidth = 720, maxHeight = 560): HTMLCanvasElement | null {
   const canvas = root.querySelector<HTMLCanvasElement>('canvas.lolly-studio-canvas');
   const entry = canvas && owners.get(canvas);
   if (!canvas || !entry?.ready || entry.capturing || entry.closed) return null;
@@ -624,5 +625,10 @@ export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHei
   const context = output.getContext('2d');
   if (!context) return null;
   context.drawImage(canvas, 0, 0, output.width, output.height);
-  return output.toDataURL('image/png');
+  return output;
+}
+
+/** The same picture as a PNG data URL (the catalog preview build's capture). */
+export function captureStudioThumbnail(root: HTMLElement, maxWidth = 720, maxHeight = 560): string | null {
+  return captureStudioCanvas(root, maxWidth, maxHeight)?.toDataURL('image/png') ?? null;
 }

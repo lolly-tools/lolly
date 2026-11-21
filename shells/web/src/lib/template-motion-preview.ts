@@ -8,7 +8,7 @@ import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import type { TemplateMotion } from './template-motion.ts';
-import { previewContextSignature } from './preview-context.ts';
+import { previewContextSignature } from './preview-recipe.ts';
 import { t } from '../i18n.ts';
 
 let activeStop: (() => void) | undefined;

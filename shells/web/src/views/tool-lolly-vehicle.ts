@@ -118,13 +118,15 @@ export function makeLollyVehicle(
     const thumb = session
       ? await host.state
           .list()
-          .then((rows) => {
+          .then(async (rows) => {
             const mine = (
-              rows as unknown as { toolId: string; thumb: string | null; updatedAt?: string }[]
+              rows as unknown as { slot: string; toolId: string; thumb: string | null; preview?: import('../bridge/preview-store.ts').SessionPreviewRef; updatedAt?: string }[]
             )
-              .filter((r) => r.toolId === toolId && typeof r.thumb === 'string')
+              .filter((r) => r.toolId === toolId && (typeof r.thumb === 'string' || !!r.preview))
               .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
-            return mine[0]?.thumb ?? null;
+            // The stored picture rebuilt as the data URL the manifest field has always carried.
+            const { rowPictureDataUrl } = await import('../lib/session-picture.ts');
+            return rowPictureDataUrl(host.state as never, mine[0]);
           })
           .catch(() => null)
       : null;

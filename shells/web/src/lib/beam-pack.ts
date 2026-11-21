@@ -122,6 +122,7 @@
  * falls back to hashing in place. The API is async either way, so no caller can tell.
  */
 
+import { rowPictureDataUrl, type PictureState } from './session-picture.ts';
 import { textFontAssetIds, mapTextFontAssets } from '../../../../engine/src/text-assets.ts';
 import { isJxl } from '../../../../engine/src/jxl.ts';
 import { extractC2paStore, sniffFormat } from '../../../../engine/src/c2pa-extract.ts';
@@ -992,6 +993,9 @@ export async function buildBeamOffer(source: BeamPackSource): Promise<BuiltBeamO
 
   // Sessions LAST - every asset they reference has landed and been re-keyed by the
   // time the receiver rewrites their refs.
+  // The picture as the data URL beam has always carried, rebuilt from the stored
+  // bytes; the receiver keeps only a raster one, as before.
+  const sessionThumb = sessionRow ? await rowPictureDataUrl(host.state as PictureState, sessionRow) : null;
   if (sessionBytes && sessionData && sessionSlot) {
     const index = items.length;
     const itemId = itemIdFor(index, sessionSlot);
@@ -1004,7 +1008,7 @@ export async function buildBeamOffer(source: BeamPackSource): Promise<BuiltBeamO
       checksum: await sriSha256(sessionBytes),
       ...(typeof sessionData.__toolId === 'string' ? { toolId: sessionData.__toolId } : {}),
       ...(typeof sessionData.__toolVersion === 'string' ? { toolVersion: sessionData.__toolVersion } : {}),
-      ...(sessionRow?.thumb ? { thumb: sessionRow.thumb } : {}),
+      ...(sessionThumb ? { thumb: sessionThumb } : {}),
       uses: { user: assets.map(r => r.id), library: [...libraryIds] },
     };
     entries.push(entry);
@@ -1628,6 +1632,9 @@ export async function ingestBeamItem(
     throw new BeamPackError('store-failed', `${sessionLabel}: ${err instanceof Error ? err.message : String(err)}`);
   }
   ctx.written.push({ kind: 'session', slot });
+  // A session that came with no picture (beam carries raster only, so an SVG
+  // picture stays home) gets one drawn here on idle time, from its own document.
+  if (!thumb) void import('./preview-idle.ts').then(({ queueStaleTile }) => queueStaleTile({ slot, toolId })).catch(() => {});
 
   return { kind: 'session', slot, label: sessionLabel, rewritten, unresolved };
 }

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
-import { indexSavedWork } from './history-index.ts';
+import { putStateRecord } from './state-rows.ts';
+import { scopeFor, type PictureTx } from './preview-store.ts';
 /** Load recovery writes only when an author saves or replaces work. */
 import type { IDBPDatabase } from 'idb';
 import type { StateRecord } from './state.ts';
@@ -87,7 +88,7 @@ async function writeDraft(
   refs: string[],
   budget: number
 ): Promise<RecoveryEntry> {
-  const tx = db.transaction(STORES, 'readwrite');
+  const tx = db.transaction(scopeFor(db, STORES), 'readwrite');
   void tx.done.catch(() => {});
   try {
     const docs = tx.objectStore('revision-documents');
@@ -126,7 +127,7 @@ async function writeDraft(
         // A document that recovery creates was never explicitly saved (plan 277 P1).
         ...(doc ? {} : { saved: null }),
       });
-      await writeCurrentState(tx, record, snapshot.data, documentId);
+      await writeCurrentState(tx, record, snapshot.data, documentId, snapshot.bytes);
     }
     await tx.done;
     return entry;
@@ -165,7 +166,7 @@ export async function replaceRecovery(db: IDBPDatabase, record: StateRecord): Pr
 
 async function replaceOnce(db: IDBPDatabase, record: StateRecord, before: DocumentHead | undefined,
   snapshot: { data: StateRecord['data']; hash: string; bytes: number } | null, incoming: string | null, budget: number): Promise<void> {
-  const tx = db.transaction(STORES, 'readwrite');
+  const tx = db.transaction(scopeFor(db, STORES), 'readwrite');
   void tx.done.catch(() => {});
   try {
     const docs = tx.objectStore('revision-documents');
@@ -174,9 +175,7 @@ async function replaceOnce(db: IDBPDatabase, record: StateRecord, before: Docume
       if (documentVersion(doc) !== documentVersion(before))
         throw new Error(t('This document changed during replacement. Reopen it before trying again.'));
       if (snapshot && incoming === JSON.stringify(snapshot.data)) {
-        await tx
-          .objectStore('state')
-          .put(indexSavedWork({ ...record, data: snapshot.data, documentId: doc.documentId }));
+        await putStateRecord(tx as unknown as PictureTx, { ...record, data: snapshot.data, documentId: doc.documentId }, snapshot.bytes);
         // The same data saved from outside the editor is a save too: a state a
         // recovery draft wrote now counts as saved (plan 277 P1, review B1). The
         // version is kept, so an editor with this document open does not diverge.
@@ -210,9 +209,7 @@ async function replaceOnce(db: IDBPDatabase, record: StateRecord, before: Docume
       }
       await docs.put({ ...doc, version: crypto.randomUUID(), workingHash: '' });
     }
-    await tx
-      .objectStore('state')
-      .put(indexSavedWork({ ...record, ...(doc ? { documentId: doc.documentId } : {}) }));
+    await putStateRecord(tx as unknown as PictureTx, { ...record, ...(doc ? { documentId: doc.documentId } : {}) });
     await tx.done;
   } catch (error) {
     try {

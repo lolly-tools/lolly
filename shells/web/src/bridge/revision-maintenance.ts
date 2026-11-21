@@ -5,8 +5,10 @@ import type { IDBPDatabase } from 'idb';
 import type { RevisionEntry, RevisionStore } from './revision-history.ts';
 import type { RecoveryStore } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
-import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction } from './revision-records.ts';
-import { indexSavedWork } from './history-index.ts';
+import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction, revisionPreviewSize, dropRevisionPreview } from './revision-records.ts';
+import { putStateRecord, deleteStateRecord, withPicture } from './state-rows.ts';
+import { bindOwner, isPrepared, preparePicture, revisionOwner, scopeFor, txHasPreviews, type PictureInput, type PictureTx, type SessionPreviewRef } from './preview-store.ts';
+import { pictureDataUrl, PREVIEW_MAX_BYTES } from '../../../../engine/src/session-preview.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
 import { DISCARDED_SLOT_PREFIX, DISCARD_RETENTION_MS, discardedAt, isHiddenSlot } from '../lib/batch-slots.ts';
 import {
@@ -14,10 +16,9 @@ import {
   revisionBudgets, sweepDrafts, writeUsage,
 } from './revision-budget.ts';
 
-/** A preview History keeps: a small raster data URL. */
+/** Where the preview store is missing (an upgrade that could not run), History
+ * keeps what it kept before plan 373: a small raster data URL. */
 const KEEPABLE_PREVIEW = /^data:image\/(png|jpeg|webp);base64,/;
-/** A picture the Projects tile may show: any image data URL, as a save writes one. */
-const TILE_PICTURE = /^data:image\//;
 
 /** Automatic checkpoints older than this are what Settings > Storage offers to remove. */
 export const PRUNE_AGE_MS = 30 * 86_400_000;
@@ -40,13 +41,15 @@ export async function moveSlot(tx: RevisionTransaction, from: string, to: string
     for (const row of await tx.objectStore('revisions').index('documentId').getAll(doc.documentId)) await tx.objectStore('revisions').put({ ...row, slot: to });
   }
   for (const row of await tx.objectStore('revision-recovery').index('slot').getAll(from)) await tx.objectStore('revision-recovery').put({ ...row, slot: to });
-  await tx.objectStore('state').put(indexSavedWork({ ...state, slot: to }));
-  await tx.objectStore('state').delete(from);
+  // The picture moves by reference: the new slot binds it before the old one lets go.
+  await putStateRecord(tx, { ...state, slot: to });
+  await deleteStateRecord(tx, from);
 }
 
 /** Discarded creations keep their history for DISCARD_RETENTION_MS, as the trash
  * does, then go for good: on a later discard, and when History opens. */
 export async function purgeDiscarded(db: IDBPDatabase, recovery: RecoveryStore, now: number): Promise<number> {
+  // Keys only: a discarded creation's record is never read to find it.
   const slots = await db.getAllKeys('state', IDBKeyRange.bound(DISCARDED_SLOT_PREFIX, `${DISCARDED_SLOT_PREFIX}\uffff`)) as string[];
   const maintenance = revisionMaintenance(db, recovery);
   let removed = 0;
@@ -72,37 +75,55 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
       for (const ref of await recovery.assetRefs()) refs.add(ref);
       return refs;
     },
-    async attachPreview(id, thumb) {
-      const keepable = KEEPABLE_PREVIEW.test(thumb) && thumb.length <= 256 * 1024;
-      if (!keepable && !TILE_PICTURE.test(thumb)) return;
+    async attachPreview(id, input) {
+      // Decoded and hashed before the transaction opens; awaiting either inside it
+      // would commit it early.
+      const picture = await preparePicture(input as PictureInput, 'received');
+      if (!picture) return;
+      const prepared = isPrepared(picture) ? picture : null;
+      const modern = txHasPreviews({ objectStoreNames: db.objectStoreNames });
+      const legacy = !modern && prepared ? pictureDataUrl(prepared.bytes, prepared.ref.type, prepared.form) : null;
+      const size = prepared ? prepared.bytes.byteLength : (picture as SessionPreviewRef).bytes ?? 0;
+      // Any picture within the per-entry limit is kept, SVG included. Without the
+      // preview store, History keeps only what it kept before: a small raster data URL.
+      const keepable = modern ? size > 0 && size <= PREVIEW_MAX_BYTES : !!legacy && KEEPABLE_PREVIEW.test(legacy) && legacy.length <= 256 * 1024;
       const budgets = await revisionBudgets();
-      const tx = db.transaction(RELIEF_STORES, 'readwrite');
+      const tx = db.transaction(scopeFor(db, RELIEF_STORES), 'readwrite');
       const row = await tx.objectStore('revisions').get(id) as RevisionEntry | undefined;
       if (!row) return;
-      const previews = tx.objectStore('revision-previews');
-      const prior = await previews.get(id) as string | undefined;
       const usage = await readUsage(tx);
       const before = usage.previews;
-      const size = new TextEncoder().encode(thumb).byteLength, priorSize = prior ? new TextEncoder().encode(prior).byteLength : 0;
+      const priorSize = await revisionPreviewSize(tx, id);
+      const cost = legacy ? new TextEncoder().encode(legacy).byteLength : size;
       // Previews are the budget that fills first (plan 277 P4 section 5): past 90 %,
       // older automatic checkpoints give up their previews, down to 85 %, before
       // this one is refused.
-      if (keepable && usage.previews + size - priorSize > EVICT_AT * budgets.previews) {
+      if (keepable && usage.previews + cost - priorSize > EVICT_AT * budgets.previews) {
         const kept = await keptRevisions(tx); kept.add(id);
-        await evictPreviews(tx, usage, usage.previews + size - priorSize - EVICT_TO * budgets.previews, kept, EVICTIONS_PER_WRITE);
+        await evictPreviews(tx, usage, usage.previews + cost - priorSize - EVICT_TO * budgets.previews, kept, EVICTIONS_PER_WRITE);
       }
       // A preview that still does not fit, or is too big to keep, is skipped:
       // text-only history stays usable.
-      if (keepable && usage.previews + size - priorSize <= budgets.previews) {
-        await previews.put(thumb, id);
-        usage.previews += size - priorSize;
+      if (keepable && usage.previews + cost - priorSize <= budgets.previews) {
+        if (modern) {
+          // Bound first, then the legacy copy goes: the new form exists before the old leaves.
+          if (await bindOwner(tx as unknown as PictureTx, revisionOwner(id), 'revision', picture)) {
+            await tx.objectStore('revision-previews').delete(id);
+            usage.previews += cost - priorSize;
+          }
+        } else {
+          await tx.objectStore('revision-previews').put(legacy, id);
+          usage.previews += cost - priorSize;
+        }
       }
       await writeUsage(tx, usage);
       // The Projects tile is not history: it gets its picture whether or not the
       // preview was kept.
       const head = await tx.objectStore('revision-documents').get(row.slot) as DocumentHead | undefined;
       const state = await tx.objectStore('state').get(row.slot) as StateRecord | undefined;
-      if (state && head?.head === id && (head.workingHash ?? head.hash) === row.hash && state.documentId === row.documentId) await tx.objectStore('state').put({ ...state, thumb });
+      if (state && head?.head === id && (head.workingHash ?? head.hash) === row.hash && state.documentId === row.documentId) {
+        await putStateRecord(tx as unknown as PictureTx, await withPicture(tx as unknown as PictureTx, state, picture));
+      }
       await tx.done;
       noteWritten(usage.previews - before);
     },
@@ -117,28 +138,26 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
       await tx.store.put({ ...entry, reason: 'save', milestone: label }); await tx.done;
     },
     async move(from, to) {
-      const tx = db.transaction(MOVE_STORES, 'readwrite');
+      const tx = db.transaction(scopeFor(db, MOVE_STORES), 'readwrite');
       await moveSlot(tx, from, to);
       await tx.done;
     },
     async delete(slot) {
-      const tx = db.transaction(STORES, 'readwrite');
+      const tx = db.transaction(scopeFor(db, STORES), 'readwrite');
       const doc = await tx.objectStore('revision-documents').get(slot) as DocumentHead | undefined;
       if (doc) {
         const usage = await tx.objectStore('revision-usage').get('total') ?? { bytes: 0, previews: 0 };
         for (const row of await tx.objectStore('revisions').index('documentId').getAll(doc.documentId) as RevisionEntry[]) {
-          const preview = await tx.objectStore('revision-previews').get(row.id) as string | undefined;
           usage.bytes -= row.stored ?? row.bytes;
-          usage.previews -= preview ? new TextEncoder().encode(preview).byteLength : 0;
+          usage.previews -= await dropRevisionPreview(tx, row.id);
           await tx.objectStore('revisions').delete(row.id);
           await tx.objectStore('revision-payloads').delete(row.id);
-          await tx.objectStore('revision-previews').delete(row.id);
         }
         await tx.objectStore('revision-usage').put(usage, 'total');
         await tx.objectStore('revision-documents').delete(slot);
       }
       await recovery.clearCommitted(tx, slot, true);
-      await tx.objectStore('state').delete(slot);
+      await deleteStateRecord(tx as unknown as PictureTx, slot);
       await tx.done;
     },
     async sweep() {
@@ -151,7 +170,7 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
       const cutoff = new Date(Date.now() - PRUNE_AGE_MS).toISOString();
       let removed = 0, bytes = 0;
       for (;;) {
-        const tx = db.transaction(RELIEF_STORES, 'readwrite');
+        const tx = db.transaction(scopeFor(db, RELIEF_STORES), 'readwrite');
         const usage = await readUsage(tx), kept = await keptRevisions(tx);
         const before = usage.bytes + usage.previews;
         let batch = 0;

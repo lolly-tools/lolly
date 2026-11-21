@@ -118,10 +118,12 @@ export async function inspect(ctx: LearningCtx): Promise<void> {
         entry?.label ||
         String(source.values?.title || source.values?.name || `${source.toolId} creation`);
       const pages = Array.isArray(source.values?.slides) ? source.values.slides.length : undefined;
-      const thumb =
-        entry?.thumb && source.capturedAt && entry.updatedAt <= source.capturedAt
-          ? entry.thumb
-          : undefined;
+      const current = !!entry && !!source.capturedAt && entry.updatedAt <= source.capturedAt;
+      // A stored picture is read here (this view shows it at once); a legacy row
+      // still carries its data URL.
+      const thumb = !current ? undefined
+        : entry.preview ? (await (await import('../../components/preview-image.ts')).pictureSrcFor(entry.preview)) ?? undefined
+          : entry.thumb ?? undefined;
       ctx.sourceDisplay[block.id] = {
         name,
         preview: thumb && /^\s*<(\?xml|svg)/i.test(thumb) ? svgDataUrl(thumb) : thumb,

@@ -31,6 +31,7 @@
  *   - A preference or the active design system: the store's choice stays.
  */
 
+import { rowPictureDataUrl, type PictureState } from './session-picture.ts';
 import { PREF_KEYS, type exportBackup } from '../data-transfer.ts';
 import { packBackupAsset, unpackBackupAsset } from './backup-asset-record.ts';
 import { sessionSavedAt } from './backup-sessions.ts';
@@ -159,8 +160,11 @@ export async function collectLocalRecords(deps: RecordDeps, only?: ReadonlySet<s
     if (isDiscardedSlot(row.slot) || isJournalSlot(row.slot) || !want('session', row.slot)) continue;
     const data = await host.state.load(row.slot);
     if (!data) continue;
+    // The picture travels as the data URL the record always carried, rebuilt from
+    // the stored bytes (plan 373 changes storage at rest, not this format).
+    const thumb = await rowPictureDataUrl(host.state as PictureState, row);
     add(await makeRecord('session', row.slot, {
-      toolId: row.toolId, toolVersion: row.toolVersion, label: row.label ?? null, thumb: row.thumb ?? null,
+      toolId: row.toolId, toolVersion: row.toolVersion, label: row.label ?? null, thumb,
       updatedAt: row.updatedAt ?? null, ...(row.savedAt ? { savedAt: row.savedAt } : {}), data,
     }));
   }

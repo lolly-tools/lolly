@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /** A brand plus an explicit collection. The nested payload reuses .lolly's
  * integrity, asset closure, sanitisation and collision-safe asset ingest. */
+import { rowPictureDataUrl, type PictureState } from '../session-picture.ts';
 import { strToU8, type Unzipped } from 'fflate';
 import { exportBrandPack, type BrandTransferHost } from '../../brand-transfer.ts';
 import { buildLollyFile, readLollyFile, ingestLollyFile, type LollyFileContents, type LollyLibraryAsset, type LollyToolBundle } from '../lolly-pack.ts';
@@ -67,7 +68,7 @@ export async function buildBrandPackage(
     const data = await host.state.load(slot);
     if (typeof row?.toolId !== 'string' || !row.toolId || !data) throw new Error(`The selected session “${row?.label || slot}” is no longer available.`);
     opts.progress?.(`Adding ${row.label || row.toolId}…`);
-    sessions.push({ toolId: row.toolId, label: nameOf(row.label, row.toolId), thumb: row.thumb ?? null, data });
+    sessions.push({ toolId: row.toolId, label: nameOf(row.label, row.toolId), thumb: await rowPictureDataUrl(host.state as PictureState, row), data });
   }
   const selected = new Set(selection.assets);
   // A catalogue item referenced from a session travels only when its licence lets

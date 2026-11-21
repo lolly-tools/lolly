@@ -36,7 +36,7 @@ import { wireDurableConsent } from '../export-durable-card.ts';
 import { wirePreflight } from '../export-preflight.ts';
 import type { SourceIngredient } from '@lolly-tools/core/host-v1';
 import type { IdentityStatus, RunExportOpts } from '../tool.ts';
-import { addScrubBehavior, captureThumbnail, exportTargetNode } from '../tool-action-helpers.ts';
+import { addScrubBehavior, capturePreview, exportTargetNode } from '../tool-action-helpers.ts';
 import { ZIP_BUNDLE, c2paBoxOptedOut, extFor, fmtLabel, isC2paFmt, isCmykFmt, isPrintFmt } from './shared.ts';
 import type { MediaFrameLike } from './shared.ts';
 import { holdStageView } from '../../lib/stage-lod.ts';
@@ -1556,7 +1556,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
             format: fmt, query: shareUrlState(runtime.getModel()), ...(ta.activeSlot ? { slot: ta.activeSlot } : {}) };
           void import('../../lib/export-activity.ts').then(({ recordExportActivity }) => recordExportActivity({
             allowed: true, entry, bytes: downloadedBlob,
-            capture: () => captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, fmt, false),
+            capture: () => capturePreview(manifest, canvasEl, runtime, exportUnscaled, false),
           })).catch(() => {});
         }
         // Auto-save the SAME credentialed bytes into the personal library (the

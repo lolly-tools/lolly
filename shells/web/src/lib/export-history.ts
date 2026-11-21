@@ -10,6 +10,8 @@
  */
 import { openDB } from '../bridge/db.ts';
 import { indexExport } from '../bridge/history-index.ts';
+import type { PictureInput, SessionPreviewRef } from '../bridge/preview-store.ts';
+import { pictureDataUrl } from '../../../../engine/src/session-preview.ts';
 
 export interface ExportEntry {
   id: string;
@@ -17,7 +19,11 @@ export interface ExportEntry {
   label: string;        // tool name (fallback caption)
   filename: string;     // the download filename (preferred caption)
   format: string;
-  thumb: string | null; // data-URL preview
+  /** The picture as a data URL: entries written before plan 373 (until the idle
+   *  move reaches them), and every entry where the preview store is missing. */
+  thumb: string | null;
+  /** The picture by reference into the preview store (`export:<id>` owns it). */
+  preview?: SessionPreviewRef;
   query: string;        // serialised URL-state → reopen link
   at: number;           // epoch ms
   /** Hex SHA-256 of the exact bytes downloaded - lets /verify match a file back to
@@ -31,21 +37,36 @@ export interface ExportEntry {
 const STORE = 'exports';
 const CAP = 24;         // keep the most recent N; older ones are pruned
 
-/** Record one export. Fire-and-forget; swallows all errors. */
-export async function recordExport(e: Omit<ExportEntry, 'id'>): Promise<void> {
+/** Record one export. Fire-and-forget; swallows all errors. The picture may be
+ *  prepared bytes from the preview writer or a data URL; it is stored once in the
+ *  preview store and the entry keeps a reference. */
+export async function recordExport(e: Omit<ExportEntry, 'id' | 'thumb' | 'preview'> & { thumb?: PictureInput }): Promise<void> {
   try {
     const db = await openDB();
     if (!db.objectStoreNames.contains(STORE)) return;
     const id = `${e.at}-${Math.random().toString(36).slice(2, 8)}`;
-    await db.put(STORE, indexExport({ ...e, id }));
-    // Prune to the newest CAP so the log (and its thumbnails) stay bounded.
-    const all = (await db.getAll(STORE)) as ExportEntry[];
+    const store = await import('../bridge/preview-store.ts');
+    const picture = await store.preparePicture(e.thumb, 'received').catch(() => null);
+    const modern = store.hasPreviewStores(db);
+    const tx = db.transaction(modern ? [STORE, ...store.PREVIEW_STORES] : [STORE], 'readwrite');
+    let entry: ExportEntry = { ...e, id, thumb: null };
+    if (picture && modern) {
+      const ref = await store.bindOwner(tx as never, store.exportOwner(id), 'export', picture);
+      if (ref) entry = { ...entry, preview: ref };
+    } else if (picture && store.isPrepared(picture)) {
+      entry = { ...entry, thumb: pictureDataUrl(picture.bytes, picture.ref.type, picture.form) };
+    }
+    await tx.objectStore(STORE).put(indexExport(entry));
+    // Prune to the newest CAP so the log (and its pictures) stay bounded.
+    const all = (await tx.objectStore(STORE).getAll()) as ExportEntry[];
     if (all.length > CAP) {
       all.sort((a, b) => b.at - a.at);
-      const tx = db.transaction(STORE, 'readwrite');
-      await Promise.all(all.slice(CAP).map((old) => tx.store.delete(old.id)));
-      await tx.done;
+      for (const old of all.slice(CAP)) {
+        await tx.objectStore(STORE).delete(old.id);
+        if (modern) await store.releaseOwner(tx as never, store.exportOwner(old.id));
+      }
     }
+    await tx.done;
   } catch { /* history is best-effort */ }
 }
 

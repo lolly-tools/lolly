@@ -25,7 +25,7 @@ import { trackHostChanges } from '../lib/sync-changes.ts';
 // Loads at boot on purpose: it also installs the notice a tab shows when another
 // tab's "Clear all my data" stops it (plan 277 review B6).
 import { guardHostWrites } from '../lib/clear-elsewhere.ts';
-import type { PreviewsAPI } from './previews.ts';
+import type { PreviewCacheAPI } from '../lib/preview-cache.ts';
 import { createAssetsAPI, assertQuotaRoom, captureUserAssetCredentials } from './assets.ts';
 import { provideFallbackFontSource } from './fallback-font-source.ts';
 import type { BrandAdoptionAPI } from './brand-adoption.ts';
@@ -80,7 +80,7 @@ interface WebHost extends HostV1 {
   tokens?: ReturnType<typeof createTokensAPI>;
   readonly shell: 'web';
   identity: Awaited<ReturnType<typeof import('./identity.ts')['createIdentityAPI']>>;
-  previews: PreviewsAPI;
+  previews: PreviewCacheAPI;
   /** The design systems this device holds (plans/186) - web-only host helper,
    *  not part of the tool-facing contract; tools see `host.tokens.list()`. */
   designSystems: DesignSystemRegistry;
@@ -129,6 +129,12 @@ export async function createBridge(): Promise<WebHost> {
 
   // Order matters: assets depends on db; export depends on host for watermark style.
   host.state = createStateAPI(db, REVISION_STORES.every(name => db.objectStoreNames.contains(name)) ? createRevisionStore(db) : undefined);
+  // Pictures written before the one preview store (plan 373) move into it on idle
+  // time, a few records per slice, after the first paint. Nothing waits on it: until
+  // a record has moved, it is read the way it always was.
+  if (db.objectStoreNames.contains('preview-index')) {
+    setTimeout(() => { void import('../lib/preview-idle.ts').then(m => m.startPreviewMigration(db)).catch(() => {}); }, 4000);
+  }
   host.profile = createProfileAPI(db);
   // Shell-internal like previews (not part of HostV1): Content Credentials device
   // identity + CA cert. A lazy facade - all five methods are async, and its only
@@ -144,15 +150,12 @@ export async function createBridge(): Promise<WebHost> {
     signer: async () => (await loadIdentity()).signer(),
     forget: async () => (await loadIdentity()).forget(),
   } as WebHost['identity'];
-  // Web-only host-UI helper (not in the tool-facing contract): cache of
-  // profile-personalized gallery thumbnails. The gallery feature-detects it.
-  const loadPreviews = memo(async () => (await import('./previews.ts')).createPreviewsAPI(db));
+  // Web-only host-UI helper (not in the tool-facing contract): the cache side of
+  // the one preview store (plan 373), for Settings > Storage and the dashboard.
+  const loadPreviews = memo(async () => (await import('../lib/preview-cache.ts')).createPreviewCacheAPI());
   host.previews = {
     list: async () => (await loadPreviews()).list(),
     size: async () => (await loadPreviews()).size(),
-    get: async id => (await loadPreviews()).get(id),
-    put: async (id, entry) => (await loadPreviews()).put(id, entry),
-    delete: async id => (await loadPreviews()).delete(id),
     clear: async () => (await loadPreviews()).clear(),
   };
   const loadFileHistory = memo(async () => (await import('../lib/file-history-backup.ts')).createFileHistoryBackup(db));

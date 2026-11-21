@@ -81,7 +81,7 @@ import type { WebStateAPI } from '../bridge/state.ts';
 import type { WebProfileAPI } from '../bridge/profile.ts';
 import type { createAssetsAPI } from '../bridge/assets.ts';
 import type { WebTokensAPI } from '../bridge/tokens.ts';
-import type { PreviewsAPI } from '../bridge/previews.ts';
+import type { PreviewCacheAPI } from '../lib/preview-cache.ts';
 export { showGalleryWelcome } from './gallery-welcome.ts';
 
 /**
@@ -220,7 +220,7 @@ export type GalleryHost = HostV1 & {
   profile: WebProfileAPI;
   assets: ReturnType<typeof createAssetsAPI>;
   tokens?: WebTokensAPI;
-  previews?: PreviewsAPI;
+  previews?: PreviewCacheAPI;
 };
 
 // Section order for the filter pills. 'utility' is intentionally absent: the

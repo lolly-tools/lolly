@@ -2,6 +2,7 @@
 import { updateRouteParams } from '../lib/url-state.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { SavedStateData, WebStateAPI } from '../bridge/state.ts';
+import type { PictureInput } from '../bridge/preview-store.ts';
 import type { RevisionCursor } from '../bridge/revision-records.ts';
 import { createAutomaticHistory, type AutomaticHistory, type SaveOutcome } from './automatic-history.ts';
 import { THUMB_CAPTURE_TIMEOUT_MS, flatExportNode } from './tool-action-helpers.ts';
@@ -69,15 +70,15 @@ function quietAndIdle(ms: number): Promise<void> {
   }, ms));
 }
 
-/** PNG data URL of a canvas the size of a preview, or null where drawing is unavailable. */
-function drawPreview(paint: (ctx: CanvasRenderingContext2D, width: number, height: number) => void): string | null {
+/** A canvas the size of a preview, painted, or null where drawing is unavailable. */
+function drawPreview(paint: (ctx: CanvasRenderingContext2D, width: number, height: number) => void): HTMLCanvasElement | null {
   const canvas = document.createElement('canvas');
   canvas.width = 360; canvas.height = 280;
   let ctx: CanvasRenderingContext2D | null = null;
   try { ctx = canvas.getContext('2d'); } catch { return null; }
   if (!ctx) return null;
   paint(ctx, canvas.width, canvas.height);
-  try { return canvas.toDataURL('image/png'); } catch { return null; }
+  return canvas;
 }
 
 /**
@@ -85,7 +86,7 @@ function drawPreview(paint: (ctx: CanvasRenderingContext2D, width: number, heigh
  * (Text keeps its document in its own workspace), or one whose picture the export
  * renderer cannot make (Jump's animated backdrop). Costs a few milliseconds.
  */
-export function wordsPreview(words: readonly string[]): string | null {
+export function wordsCanvas(words: readonly string[]): HTMLCanvasElement | null {
   const text = words.map(word => word.trim()).filter(Boolean).join('\n');
   if (!text) return null;
   return drawPreview((ctx, width, height) => {
@@ -127,11 +128,17 @@ export function documentWords(inputs: readonly { id: string; type?: string }[], 
 
 /** Photograph the rendered artboard without resizing the live stage, playing a
  * shutter, or re-running export hooks. The controller rejects a changed generation.
- * Where there is no artboard, or the photograph fails, the document's words stand in. */
-async function capture(host: HostV1, canvas: HTMLElement | null, words?: () => readonly string[]): Promise<string | null> {
+ * Where there is no artboard, or the photograph fails, the document's words stand in
+ * (a picture that records itself as a stand-in, not as the tool's render). The
+ * preview writer encodes either (lib/preview-writer.ts). */
+async function capture(host: HostV1, canvas: HTMLElement | null, words?: () => readonly string[]): Promise<PictureInput> {
   if (document.visibilityState === 'hidden') return null;
   const node = flatExportNode(canvas);
-  const fallback = (): string | null => (words ? wordsPreview(words()) : null);
+  const writer = await import('../lib/preview-writer.ts');
+  const fallback = async (): Promise<PictureInput> => {
+    const drawn = words ? wordsCanvas(words()) : null;
+    return drawn ? writer.rasterPicture(drawn, { route: 'stand-in' }).catch(() => null) : null;
+  };
   if (!node) return fallback();
   if (node.getElementsByTagName('*').length > PREVIEW_MAX_ELEMENTS) return null;
   const width = node.clientWidth || 600, height = node.clientHeight || 400;
@@ -140,9 +147,7 @@ async function capture(host: HostV1, canvas: HTMLElement | null, words?: () => r
   try {
     blob = await host.export.render(node, 'png', { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)), embedMeta: false, thumbnail: true });
   } catch { return fallback(); }
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(blob);
-  });
+  return writer.rasterPicture(blob).catch(() => null);
 }
 
 /**
@@ -192,7 +197,7 @@ export function mountActionHistory(opts: {
   // A preview after a checkpoint waits for the person to pause, and is skipped when
   // they carry on or when one was taken a short while ago (see PREVIEW_TIMING).
   let changes = 0, lastPreview = 0;
-  const preview = async (): Promise<string | null> => {
+  const preview = async (): Promise<PictureInput> => {
     if (lastPreview && Date.now() - lastPreview < PREVIEW_TIMING.intervalMs) return null;
     const seen = changes;
     await quietAndIdle(PREVIEW_TIMING.quietMs);

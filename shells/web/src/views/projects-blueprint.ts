@@ -4,6 +4,7 @@
  * as live sessions and folders. Lifted out of the view whole. It needs only the host's
  * state, the folder store and a repaint, so the mount lends it those.
  */
+import { rowPicture } from '../lib/session-picture.ts';
 import { tRaw } from '../i18n.ts';
 import { announce } from '../a11y.ts';
 import { BATCH_SLOT_PREFIX, PTPL_SLOT_PREFIX, isBatchSlot } from '../lib/batch-slots.ts';
@@ -23,7 +24,7 @@ export type BlueprintView = { host: { state: WebStateAPI }; store: ReturnType<ty
 export async function instantiateBlueprint(tp: ProjectTemplate, parent: string | null, view: BlueprintView): Promise<void> {
   const h = view.host;
   const rows = await h.state.list().catch(() => [] as Entry[]);
-  const thumbOf = new Map(rows.map(r => [r.slot, r.thumb]));
+  const pictureOf = new Map(rows.map(r => [r.slot, rowPicture(r)]));
   const live = new Set(rows.map(r => r.slot));
   const slotMap = new Map<string, string>();
   let i = 0;
@@ -42,7 +43,7 @@ export async function instantiateBlueprint(tp: ProjectTemplate, parent: string |
       const toolId = String((data as { __toolId?: unknown }).__toolId || original.split(':')[0] || 'session');
       slot = `${toolId}:${Date.now()}-${++i}`;
     }
-    await h.state.save(slot, data, thumbOf.get(it.ref) ?? undefined);
+    await h.state.save(slot, data, pictureOf.get(it.ref) ?? undefined);
     live.add(slot);
     slotMap.set(it.ref, slot);
   }

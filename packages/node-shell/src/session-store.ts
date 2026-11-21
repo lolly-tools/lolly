@@ -29,7 +29,8 @@ import type { SessionEmojiStamp } from '../../../engine/src/session-record.ts';
 // Deep relative imports, not the `@lolly/engine` barrel: the CLI bridge reaches this
 // module and the MCP function bundle follows every import from there.
 import { decodeFsToken, encodeFsToken } from '../../../engine/src/fs-token.ts';
-import { migrateSessionRecord, sessionVersionStamp, sessionRightsDecisions, sessionEmojiStamp } from '../../../engine/src/session-record.ts';
+import { migrateSessionRecord, sessionVersionStamp, sessionRightsDecisions, sessionEmojiStamp, sessionPreviewRef } from '../../../engine/src/session-record.ts';
+import { previewFileExt, type SessionPreviewRef } from '../../../engine/src/session-preview.ts';
 
 /** The directory the shells share, under the resolved state directory. */
 export const SESSION_SUBDIR = 'saved-state';
@@ -55,11 +56,22 @@ export interface SessionRecord {
   toolVersion?: string;
   label?: string;
   data: SessionData;
+  /** A legacy data URL: records written before session format 5. */
   thumb?: string | null;
+  /** The picture by reference (session format 5); its bytes sit under
+   *  `saved-state/previews/` beside the records (see `sessionPicturePath`). */
+  preview?: SessionPreviewRef;
   updatedAt: string;
   createdAt?: string;
   formatVersion?: number;
   engineVersion?: string;
+}
+
+/** Where a session's picture file sits, the layout the Tauri shells write
+ *  (shells/tauri-shared/bridge-overrides/state-fs.ts). Every session in one state
+ *  directory shares the files, so a copied session names the same file. */
+export function sessionPicturePath(stateDir: string, ref: Pick<SessionPreviewRef, 'key' | 'type'>): string {
+  return join(sessionsDir(stateDir), 'previews', `${ref.key}.${previewFileExt(ref.type)}`);
 }
 
 /** A record as parsed back off disk - untrusted, so read every field defensively. */
@@ -156,7 +168,12 @@ export interface SessionWrite {
   expectedUpdatedAt?: string | null;
   slot: string;
   data: SessionData;
+  /** The picture: a legacy data URL. Left out (with `preview`), the prior record's
+   *  picture is kept. */
   thumb?: string | null;
+  /** The picture by reference. Left out (with `thumb`), the prior record's picture is
+   *  kept; given, it replaces whatever the record had. */
+  preview?: SessionPreviewRef | null;
   /** Defaults to `data.__toolId`. */
   toolId?: string;
   /** Defaults to `data.__toolVersion`. */
@@ -182,7 +199,11 @@ export async function writeSessionRecord(stateDir: string, write: SessionWrite):
     toolVersion: write.toolVersion ?? write.data.__toolVersion,
     label: write.label ?? write.data.__label,
     data: write.data,
-    thumb: write.thumb ?? prior?.thumb ?? null,
+    // The picture given replaces the record's; none given keeps the prior one, in
+    // whichever form it had (a session saved by the desktop app keeps its file).
+    ...(write.thumb !== undefined || write.preview !== undefined
+      ? { thumb: write.preview ? null : write.thumb ?? null, ...(write.preview ? { preview: write.preview } : {}) }
+      : { thumb: prior?.preview ? null : prior?.thumb ?? null, ...(prior?.preview ? { preview: prior.preview } : {}) }),
     updatedAt: write.updatedAt ?? now,
     createdAt: prior?.createdAt ?? now,
     emoji: write.emoji === undefined ? prior?.emoji : write.emoji ?? undefined,
@@ -229,6 +250,7 @@ function normalise(raw: ParsedRecord | null): SessionRecord | null {
     label: typeof raw.label === 'string' && raw.label ? raw.label : (typeof data.__label === 'string' ? data.__label : undefined),
     data,
     thumb: typeof raw.thumb === 'string' ? raw.thumb : null,
+    ...(sessionPreviewRef(raw) ? { preview: sessionPreviewRef(raw)! } : {}),
     updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : '',
     ...(typeof raw.createdAt === 'string' ? { createdAt: raw.createdAt } : {}),
     ...(typeof raw.formatVersion === 'number' ? { formatVersion: raw.formatVersion } : {}),
