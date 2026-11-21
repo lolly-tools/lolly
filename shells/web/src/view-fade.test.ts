@@ -123,7 +123,7 @@ test('hold: a tool open marks the snapshot to be held still before the nodes mov
   handle!.commit();
 });
 
-test('hold: other navigations keep the ordinary fade; under reduced motion only a held snapshot is made, and it goes at once', () => {
+test('hold: other navigations keep the ordinary fade, and reduced motion makes no snapshot, held or not', () => {
   reduceMotion = false;
   const plain = beginViewFade(freshView());
   assert.equal(document.querySelector('.view-fade')!.classList.contains(VIEW_FADE_HOLD_CLASS), false);
@@ -132,11 +132,9 @@ test('hold: other navigations keep the ordinary fade; under reduced motion only 
   reduceMotion = true;
   const view = freshView();
   assert.equal(beginViewFade(view), null, 'reduced motion: no snapshot for an ordinary navigation');
+  assert.equal(beginViewFade(view, { hold: true }), null, 'nor for a tool open: the immediate swap it always had');
   assert.equal(document.querySelector('.view-fade'), null);
-  const held = beginViewFade(view, { hold: true });
-  assert.ok(held, 'a tool open covers its mount the same way under reduced motion');
-  held!.commit();
-  assert.equal(document.querySelector('.view-fade'), null, 'and the snapshot goes at once, with no fade');
+  assert.ok(view.textContent?.includes('old content'));
   reduceMotion = false;
 });
 
@@ -222,12 +220,13 @@ test('the router holds the snapshot for a tool open and for nothing else', () =>
   assert.match(main, /reclaimViewFade\(routeSig\)/, 'a Back to the source takes the snapshot back');
   assert.match(main, /heldFade\.leaveAt\(navStart \+ TOOL_OPEN_BEAT_MS, \(\) => loading\?\.show\(\)\)/,
     'the view leaves and the card shows in one moment, after the beat');
-  // The pressed card paints before the teardown, for a tool open from another view,
-  // with or without reduced motion.
+  // The pressed card paints before the teardown, for a tool open from another view and
+  // only with motion allowed: reduced motion keeps its immediate swap.
   const wait = main.indexOf('await afterNextPaint();');
   assert.ok(wait > 0, 'navigate() waits for a painted frame on a tool open');
-  const guard = main.slice(main.lastIndexOf('if (', wait), wait);
-  assert.match(guard, /route\.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool'\)/);
+  const guards = main.slice(main.lastIndexOf("if (route.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool')", wait), wait);
+  assert.match(guards, /^if \(route\.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool'\) \{/);
+  assert.match(guards, /if \(!prefersReducedMotion\(\)\) \{\s*$/, 'the wait is skipped under reduced motion');
   assert.ok(wait < main.indexOf('view._cleanup?.()', main.indexOf('async function navigate(')), 'before the outgoing view is torn down');
   assert.ok(wait < main.indexOf('beginViewFade(view'), 'and before the snapshot is taken');
 });

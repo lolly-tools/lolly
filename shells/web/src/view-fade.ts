@@ -32,8 +32,8 @@
  * all but the top bar, and the plain ground and the loading card stay until the tool's
  * first render is ready: drawing the gallery at all while a tool mounts was most of the
  * cost on a slow phone. The tool then comes in with a short fade. A Back during the
- * mount takes the snapshot back ({@link reclaimViewFade}). Under reduced motion the
- * sequence is the same, with a still mark and no fade.
+ * mount takes the snapshot back ({@link reclaimViewFade}). Reduced motion keeps the
+ * immediate swap it always had: no snapshot, no wait, a still mark.
  */
 
 import { prefersReducedMotion } from './lib/a11y-prefs.ts';
@@ -55,8 +55,8 @@ export interface ViewFadeOptions {
   /**
    * Hold the snapshot still: end every animation and transition inside it at once, and
    * fade it out quickly (--dur-1, 120 ms, parts/base.css) when commit() runs. For a tool
-   * open, where the incoming mount is long. Made under reduced motion too, where it
-   * covers the mount the same way and goes without a fade.
+   * open, where the incoming mount is long. Reduced motion makes no snapshot, held or
+   * not: it keeps the immediate swap it always had.
    */
   hold?: boolean;
   /** The route signature of the view being left, so a Back to it can take the snapshot
@@ -220,7 +220,8 @@ function handleFor(snap: Snapshot, owner: object, instant: boolean): ViewFade {
         overlay.remove();
         if (active === snap) active = null;
       };
-      // Reduced motion, and a view put back by a Back, swap at once.
+      // A view put back by a Back swaps at once (and reduced motion, should it change
+      // while a snapshot is up).
       if (instant || prefersReducedMotion()) { done(); return; }
       // Next frame: the incoming view has painted underneath at full opacity, so the
       // shared chrome is already solid. Fade the old pixels out to reveal it.
@@ -276,12 +277,10 @@ export function reclaimViewFade(source: string): { fade: ViewFade; place: ViewPl
 /**
  * Snapshot the current contents of `view` into a pinned overlay and empty `view`.
  * Returns a handle whose commit() fades the snapshot out, or null when no fade
- * should run (reduced motion, unless held; nothing to snapshot; or no document body).
- * Under reduced motion a held snapshot still covers the mount, and goes without a fade.
+ * should run (reduced motion, nothing to snapshot, or no document body).
  */
 export function beginViewFade(view: HTMLElement, options: ViewFadeOptions = {}): ViewFade | null {
-  const reduced = prefersReducedMotion();
-  if ((reduced && !options.hold) || !document.body || !view.firstChild) return null;
+  if (prefersReducedMotion() || !document.body || !view.firstChild) return null;
 
   // A still-running fade from a previous navigation: drop it now so overlays can't
   // pile up (each is a full-viewport layer - two would double-composite the chrome).
@@ -335,5 +334,5 @@ export function beginViewFade(view: HTMLElement, options: ViewFadeOptions = {}):
   overlay.scrollTop = scrollY;
   const snap: Snapshot = { overlay, source: options.source, scrollY, gone: [], owner: {} };
   active = snap;
-  return handleFor(snap, snap.owner, reduced);
+  return handleFor(snap, snap.owner, false);
 }

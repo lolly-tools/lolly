@@ -28,7 +28,7 @@ import { showGalleryWelcome } from './views/gallery-welcome.ts';
 import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
-import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
+import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref, prefersReducedMotion } from './lib/a11y-prefs.ts';
 import { hydrateHand } from './lib/hand-pref.ts';
 import { startLayoutPosture } from './lib/layout-posture.ts';
 import { startFoldSegments } from './lib/fold-segment.ts';
@@ -506,15 +506,17 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   mountedRouteSig = routeSig;
   routeLoading?.close();
   if (routeSig !== prevSig && !isIframeMode()) recordFeaturedRoute(route);
-  // Opening a tool from another view: let the pressed card paint first (view-fade.ts).
-  // Everything below up to the first await can run in the task of the click, and on a
-  // slow phone it held the first frame back far enough that the card's pressed state was
-  // never seen. The tool view's chunks start downloading now rather than after the wait
-  // and the teardown. The same under reduced motion: a pressed card is not motion.
+  // Opening a tool from another view: the tool view's chunks start downloading now rather
+  // than after the teardown, and the pressed card paints first (view-fade.ts): everything
+  // below up to the first await can run in the task of the click, and on a slow phone it
+  // held the first frame back far enough that the pressed state was never seen. Reduced
+  // motion keeps the immediate swap it always had; the wait would cost it a frame.
   if (route.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool') {
     void import('./views/tool.ts').catch(() => { /* the mount's own import reports it */ });
-    await afterNextPaint();
-    if (navigation !== navigationSeq) return;
+    if (!prefersReducedMotion()) {
+      await afterNextPaint();
+      if (navigation !== navigationSeq) return;
+    }
   }
 
   // Remember the view being left so the next view's back pill can name it and

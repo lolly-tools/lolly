@@ -179,6 +179,7 @@ test('after the beat: the view leaves layout and paint, the top bar stays, the c
     const page = await b.newPage({ reducedMotion: 'no-preference' });
     await page.setContent(`<!doctype html><html><head>
       <style>${sheet('base.css')}</style><style>${sheet('components.css')}</style><style>${sheet('dialogs.css')}</style>
+      <style>:root { --dur-1: .12s; --ease-out: cubic-bezier(.32, .72, 0, 1); }</style>
       </head><body>
       <div class="view-fade view-fade--hold app-view"><div class="gallery">
         <div class="gallery-topbar"><a class="profile-link" id="bar">me</a></div>
@@ -195,7 +196,10 @@ test('after the beat: the view leaves layout and paint, the top bar stays, the c
       const dim = document.getElementById('dim') as HTMLDialogElement;
       dim.showModal();
       const dimBackdrop = getComputedStyle(dim, '::backdrop').backgroundColor;
+      plain.showModal();
+      const entrance = plain.getAnimations().map(a => ({ name: (a as CSSAnimation).animationName, from: (a.effect as KeyframeEffect).getKeyframes()[0]?.opacity }));
       return {
+        entrance,
         cards: getComputedStyle(document.getElementById('cards')!).display,
         cardBox: (document.querySelector('.gtile') as HTMLElement).getClientRects().length,
         bar: getComputedStyle(document.getElementById('bar')!).display,
@@ -207,6 +211,24 @@ test('after the beat: the view leaves layout and paint, the top bar stays, the c
     assert.notEqual(r.bar, 'none', 'the top bar stays');
     assert.equal(r.plainBackdrop, 'rgba(0, 0, 0, 0)', 'the plain card dims nothing');
     assert.notEqual(r.dimBackdrop, 'rgba(0, 0, 0, 0)', 'every other loading card keeps its backdrop');
+    assert.deepEqual(r.entrance, [{ name: 'view-loading-plain-in', from: '0.5' }],
+      'the plain card is visible from its first frame: its entrance starts half opaque, not from nothing');
+  } finally { await b.close(); }
+});
+
+test('reduced motion: the plain card appears without an entrance', { skip: SKIP }, async () => {
+  const b = await (browser as { chromium: any }).chromium.launch({ headless: true });
+  try {
+    for (const how of ['system', 'app'] as const) {
+      const page = await b.newPage({ reducedMotion: how === 'system' ? 'reduce' : 'no-preference' });
+      await page.setContent(`<!doctype html><html><head><style>${sheet('dialogs.css')}</style>
+        <style>:root { --dur-1: .12s; --ease-out: cubic-bezier(.32, .72, 0, 1); }</style></head><body>
+        <dialog class="modal view-loading view-loading--plain" id="plain"></dialog></body></html>`);
+      if (how === 'app') await page.evaluate(() => { document.documentElement.dataset.a11yMotion = 'reduce'; });
+      const name = await page.evaluate(() => { const d = document.getElementById('plain') as HTMLDialogElement; d.showModal(); return getComputedStyle(d).animationName; });
+      assert.equal(name, 'none', `${how}: no entrance`);
+      await page.close();
+    }
   } finally { await b.close(); }
 });
 
