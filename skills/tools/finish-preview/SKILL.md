@@ -7,7 +7,7 @@ description: "Operate the Lolly Finishes tool (finish-preview) using its declare
 
 Tool ID: `finish-preview`. Tool version: `1.2.0`. Engine range: `^1.0.0`.
 
-Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.
+Preview foil, spot UV, emboss and soft-touch finishes on your artwork, then export the spot plate. The on-screen sheen is presentation only.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 
