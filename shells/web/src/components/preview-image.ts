@@ -6,9 +6,9 @@
  * A view writes its tile markup as it always did, with `previewImg()` in place of
  * a hand-written `<img src="${thumb}">`. What that produces depends on the row:
  *
- *  - a picture reference (session format 5): an `<img>` with no `src` yet, its
- *    content key in `data-preview-key`, and its intrinsic width and height so the
- *    tile keeps its shape before the picture arrives. The reader fills it when it
+ *  - a picture reference (session format 5): an `<img>` with no `src` yet and its
+ *    content key in `data-preview-key`; the tile's stylesheet gives it its shape, as
+ *    it always did. The reader fills it when it
  *    comes within a screen of the viewport, so a Projects view of 5,000 sessions
  *    reads the pictures of the tiles near the screen and no others;
  *  - a legacy data URL or a catalog URL: an `<img src>` exactly as before;
@@ -56,10 +56,11 @@ export function previewImg(source: PictureSource | null | undefined, attrs: stri
   const ref = readPreviewRef(source.preview);
   if (ref) {
     ensureReader();
-    const size = ref.width > 0 && ref.height > 0 ? ` width="${ref.width}" height="${ref.height}"` : '';
+    // No width or height attributes: the tile's stylesheet sizes the element exactly
+    // as it sized an <img src> before, and a presentational size would override it.
     return `<img ${attrs} data-preview-key="${ref.key}" data-preview-type="${escape(ref.type)}"${ref.route ? ` data-preview-route="${escape(ref.route)}"` : ''}`
       + `${source.slot ? ` data-preview-slot="${escape(source.slot)}"` : ''}${source.toolId ? ` data-preview-tool="${escape(source.toolId)}"` : ''}`
-      + `${empty ? ` data-preview-empty="${escape(empty)}"` : ''}${size}>`;
+      + `${empty ? ` data-preview-empty="${escape(empty)}"` : ''}>`;
   }
   const src = source.thumb || source.url;
   return src ? `<img ${attrs} src="${escape(src)}">` : '';
@@ -158,7 +159,7 @@ async function fill(img: HTMLImageElement): Promise<void> {
   const key = img.dataset.previewKey;
   const type = img.dataset.previewType;
   if (!key || !type) return;
-  const ref = readPreviewRef({ key, type, width: Number(img.getAttribute('width')) || 0, height: Number(img.getAttribute('height')) || 0 });
+  const ref = readPreviewRef({ key, type, width: 0, height: 0 });
   if (!ref) return;
   const src = await pictureSrcFor(ref);
   if (img.dataset.previewKey !== key) return;

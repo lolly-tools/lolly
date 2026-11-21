@@ -63,27 +63,41 @@ async function measureList(): Promise<{ ms: number; bytes: number; rows: number;
     const t0 = performance.now();
     const rows = await state.list();
     const ms = performance.now() - t0;
-    const bytes = new Blob([JSON.stringify(rows)]).size;
+    // Row by row: a list of thousands with pictures inline passes V8's longest string.
+    let bytes = 0;
+    for (const row of rows) bytes += new TextEncoder().encode(JSON.stringify(row)).byteLength;
     const heap = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize ?? null;
     const withPicture = rows.filter((row: { thumb?: unknown; preview?: unknown }) => row.thumb || row.preview).length;
     return { ms, bytes, rows: rows.length, withPicture, heap };
   });
 }
 
-async function measureProjects(): Promise<{ firstTileMs: number; settledMs: number; pictureReads: number; tiles: number }> {
+async function measureProjects(): Promise<{ firstTileMs: number | null; settledMs: number | null; pictureReads: number; shown: number; tiles: number; timedOut?: true }> {
+  // A page of its own, so a view that never paints (a library too heavy to list the
+  // old way) is measured as that and closed, and the run goes on.
+  const view = await context.newPage();
   const started = Date.now();
-  // A fresh load each time (the query string differs from the page before), so the
-  // first paint is measured from a cold start of the view.
-  await page.goto(`${url}/?measure=${started}#/p`, { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('.folder-tile[data-kind="session"]', { timeout: 120_000 });
-  const firstTileMs = Date.now() - started;
-  await page.waitForTimeout(1500);
-  const settledMs = Date.now() - started;
-  const { pictureReads, tiles } = await page.evaluate(async () => {
-    const reader = await import(String('/src/components/preview-image.ts'));
-    return { pictureReads: reader.pictureReadCount(), tiles: document.querySelectorAll('.folder-tile[data-kind="session"]').length };
-  });
-  return { firstTileMs, settledMs, pictureReads, tiles };
+  try {
+    // A fresh load each time (the query string differs), so the first paint is
+    // measured from a cold start of the view.
+    await view.goto(`${url}/?measure=${started}#/p`, { waitUntil: 'domcontentloaded' });
+    try {
+      await view.waitForSelector('.folder-tile[data-kind="session"]', { timeout: 120_000 });
+    } catch {
+      return { firstTileMs: null, settledMs: null, pictureReads: 0, shown: 0, tiles: 0, timedOut: true };
+    }
+    const firstTileMs = Date.now() - started;
+    await view.waitForTimeout(1500);
+    const settledMs = Date.now() - started;
+    const counts = await view.evaluate(() => ({
+      // Pictures read from the store: tiles whose reference has been filled. A tile far
+      // below the screen keeps its reference unread until it comes near.
+      pictureReads: document.querySelectorAll('img[data-preview-key][src]').length,
+      shown: document.querySelectorAll('.folder-tile[data-kind="session"] img[src]').length,
+      tiles: document.querySelectorAll('.folder-tile[data-kind="session"]').length,
+    }));
+    return { firstTileMs, settledMs, ...counts };
+  } finally { await view.close().catch(() => {}); }
 }
 
 // 1. Seed, on an empty page of the same origin (the app does not boot here).
