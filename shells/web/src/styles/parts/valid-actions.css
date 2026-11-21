@@ -3,8 +3,9 @@
   .verify-view.has-valid-actions .valid-layout { padding-top: calc(var(--valid-actions-height, 7rem) + 5rem + env(safe-area-inset-top)); }
   .valid-actions {
     position: fixed; z-index: var(--ui-layer-chrome);
-    inset-inline: 0; top: calc(4rem + env(safe-area-inset-top));
-    width: min(65rem, calc(100% - var(--ui-space-panel) * 2)); margin-inline: auto;
+    /* Centred in what a system bar on either side leaves; each side reads its own inset. */
+    left: var(--safe-left); right: var(--safe-right); top: calc(4rem + env(safe-area-inset-top));
+    width: min(65rem, calc(100% - var(--ui-space-panel) * 2 - var(--safe-left) - var(--safe-right))); margin-inline: auto;
     display: flex; align-items: center; flex-wrap: wrap; gap: var(--ui-space-control-inline) var(--ui-space-panel);
     padding: var(--ui-space-control-inline) var(--ui-space-panel);
     border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-surface);
