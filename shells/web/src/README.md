@@ -9,8 +9,8 @@ Roughly 938,000 lines of TypeScript, tests included, and 69,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 632 files, 231,985 lines | 351 files, 104,797 lines | 12 files, 1,678 lines |
-| `lib/` | 1042 files, 227,133 lines | 656 files, 123,384 lines | 14 files, 2,103 lines |
+| `views/` | 632 files, 232,004 lines | 351 files, 104,795 lines | 12 files, 1,678 lines |
+| `lib/` | 1043 files, 227,202 lines | 657 files, 123,449 lines | 14 files, 2,103 lines |
 | `bridge/` | 272 files, 60,107 lines | 156 files, 32,779 lines | none |
 | `components/` | 140 files, 32,631 lines | 71 files, 17,345 lines | 24 files, 1,612 lines |
 | `org/` | 88 files, 22,038 lines | 62 files, 18,307 lines | none |
@@ -19,9 +19,9 @@ Roughly 938,000 lines of TypeScript, tests included, and 69,000 lines of CSS.
 | `catalog/` | 12 files, 2,178 lines | 12 files, 1,362 lines | none |
 | `capture/` | 6 files, 798 lines | none | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 13 files, 2,296 lines | 154 files, 62,489 lines |
+| `styles/` | none | 13 files, 2,296 lines | 154 files, 62,487 lines |
 
-Plus 54 `.ts`/`.js` files at the top level of `src/`, 20,580 lines all told, of which 28 are tests and 3 are ambient declarations. `main.ts` is 2,512 of that.
+Plus 54 `.ts`/`.js` files at the top level of `src/`, 20,586 lines all told, of which 28 are tests and 3 are ambient declarations. `main.ts` is 2,518 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -73,8 +73,8 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,652 | `views/design-import.ts` | **none** |
 | 2,638 | `views/design-inspector.ts` | yes |
 | 2,615 | `views/timeline-math.ts` | yes |
+| 2,518 | `main.ts` | yes |
 | 2,515 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
-| 2,512 | `main.ts` | yes |
 | 2,505 | `components/color-field.ts` | yes |
 | 2,448 | `views/free-canvas-math.ts` | yes |
 | 2,291 | `lib/drop-router.ts` | yes |

@@ -7,7 +7,7 @@ description: "Operate the Lolly Brief tool (brief) using its declared inputs and
 
 Tool ID: `brief`. Tool version: `1.1.0`. Engine range: `^1.343.0`.
 
-A one-page brief from Markdown: a title line, labelled points and notes, laid out as a page. Paste what an assistant wrote, or write your own.
+A one-page brief from Markdown: a title line, labelled points and notes. Paste what an assistant wrote, or write your own.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

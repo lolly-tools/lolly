@@ -1,7 +1,7 @@
 {
   "id": "screencap",
   "name": "Screen Capture",
-  "description": "Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured.",
+  "description": "Screenshot or record your screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured.",
   "a11yLabel": "Screen capture, ready to crop and export",
   "version": "1.1.3",
   "engineVersion": ">=1.54.0 <2.0.0",

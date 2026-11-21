@@ -466,7 +466,7 @@ async function encodeCanvas(canvas: NodeCanvas, format: string, quality?: number
  */
 export function createNodeRasterAPI(opts: NodeRasterOptions = {}): RasterAPI | null {
   if (!isCanvasAvailable()) return null;
-  return {
+  const api: RasterAPI = {
     canRaster(): boolean {
       return isCanvasAvailable();
     },
@@ -488,6 +488,7 @@ export function createNodeRasterAPI(opts: NodeRasterOptions = {}): RasterAPI | n
       return { width: canvas.width, height: canvas.height, mime };
     },
     async decode(src: RasterSource): Promise<ImageBitmap> {
+      countPixelWork(api);
       const bytes = await sourceBytes(src, opts);
       const canvas = await decodeToCanvas(bytes, undefined, opts.limits, pictureName(src));
       if (!canvas) throw new Error('host.raster: these bytes are not a decodable image here.');
@@ -495,6 +496,7 @@ export function createNodeRasterAPI(opts: NodeRasterOptions = {}): RasterAPI | n
     },
     async encode(source: ImageBitmap | RasterFrame, opts: ImageEncodeOpts): Promise<ImageResult> {
       if (!opts?.format) throw new Error('host.raster.encode: `format` is required (webp | jpeg | png).');
+      countPixelWork(api);
       const mod = await nodeCanvas();
       if (!mod) throw new Error('host.raster: no canvas in this install.');
       let canvas: NodeCanvas;
@@ -516,6 +518,24 @@ export function createNodeRasterAPI(opts: NodeRasterOptions = {}): RasterAPI | n
       return { bytes, mime, width: canvas.width, height: canvas.height };
     },
   };
+  return api;
+}
+
+/**
+ * How many times a tool hook read pixels out of this module: `getImageData`, `toDataURL`
+ * or `toBlob` on a realm `<canvas>` (counted on its document), or a `host.raster` decode
+ * or encode (counted on that API). Skia stands in for the browser's canvas here, and its
+ * resampling and decoding are not the browser's, so a picture a hook computed this way
+ * is one the browser-free raster route does not draw (resvg-admission.ts).
+ */
+const PIXEL_WORK = Symbol.for('lolly.nodeCanvas.pixelWork');
+function countPixelWork(owner: object | null | undefined): void {
+  if (!owner) return;
+  const box = owner as Record<symbol, number | undefined>;
+  box[PIXEL_WORK] = (box[PIXEL_WORK] ?? 0) + 1;
+}
+export function pixelWorkCount(...owners: Array<object | null | undefined>): number {
+  return owners.reduce((sum, owner) => sum + ((owner as Record<symbol, number | undefined> | null | undefined)?.[PIXEL_WORK] ?? 0), 0);
 }
 
 // ─── the realm shim (jsdom + the Node globals a tool hook actually reaches for) ─
@@ -632,6 +652,11 @@ export async function installNodeCanvas(
         const cx = c.getContext('2d') as NodeCanvasCtx & { drawImage: (...a: unknown[]) => void };
         const orig = cx.drawImage.bind(cx);
         cx.drawImage = (img: unknown, ...rest: unknown[]): void => { orig(drawable(img), ...(rest as number[])); };
+        // Pixels read back out of the canvas are pixel work (countPixelWork); taking a
+        // context alone is not, since tools take one to feature-detect a canvas.
+        const read = cx.getImageData.bind(cx);
+        const owner = (el as { ownerDocument?: object | null }).ownerDocument;
+        cx.getImageData = (x: number, y: number, w0: number, h0: number) => { countPixelWork(owner); return read(x, y, w0, h0); };
         registerFontsOnText(mod, cx);
         el[BACKING] = c;
       }
@@ -644,7 +669,8 @@ export async function installNodeCanvas(
         throw err;
       }
     };
-    proto['toDataURL'] = function toDataURL(this: WithBacking, mime = 'image/png', quality?: number): string {
+    proto['toDataURL'] = function toDataURL(this: WithBacking & { ownerDocument?: object | null }, mime = 'image/png', quality?: number): string {
+      countPixelWork(this.ownerDocument);
       const q = typeof quality === 'number' ? Math.max(1, Math.min(100, Math.round(quality * 100))) : undefined;
       let out: Buffer;
       try { out = q === undefined ? back(this).toBuffer(mime) : back(this).toBuffer(mime, q); } catch (err) {
@@ -653,7 +679,8 @@ export async function installNodeCanvas(
       }
       return `data:${mime};base64,${out.toString('base64')}`;
     };
-    proto['toBlob'] = function toBlob(this: WithBacking, cb: (b: unknown) => void, mime = 'image/png', quality?: number): void {
+    proto['toBlob'] = function toBlob(this: WithBacking & { ownerDocument?: object | null }, cb: (b: unknown) => void, mime = 'image/png', quality?: number): void {
+      countPixelWork(this.ownerDocument);
       try {
         const q = typeof quality === 'number' ? Math.max(1, Math.min(100, Math.round(quality * 100))) : undefined;
         const buf = q === undefined ? back(this).toBuffer(mime) : back(this).toBuffer(mime, q);

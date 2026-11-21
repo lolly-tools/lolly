@@ -57,6 +57,7 @@ import { syncJellyNavToggle, UTILITIES_FLAG_ID, type ViewToggleKey } from './com
 import { installGlobalReveal } from './lib/reveal.ts';
 import { installDetailsFold, installFoldSettle } from './lib/disclosure-motion.ts';
 import { isTauriShell } from './lib/instance-choice.ts';
+import { settlePageScroll } from './lib/page-scroll-settle.ts';
 // The memoised instance-base load. Boot has no wiring of its own to do here (every
 // syncing entry point awaits the same promise itself) - it needs the handle only to
 // hold the control-plane probe back until the base it fetches through is known.
@@ -1005,6 +1006,10 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     view.scrollTop = 0;
   }
 
+  // The iPhone's web view can be left resting out of place after a navigation,
+  // with nothing in the page to show for the fault; the native side checks.
+  settlePageScroll(route.name);
+
   // The incoming view is mounted and scrolled to top - fade the outgoing snapshot
   // out over it. A no-op when there was no fade (same-view refresh, reduced motion).
   fade?.commit();
@@ -1769,6 +1774,7 @@ async function boot(): Promise<void> {
   };
   catalogReady.then(() => afterWelcomeIdle(checkHosted));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkHosted(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') settlePageScroll('foreground'); });
   // The Neurospicy dock mounts ABOVE, before this sync starts - on a cold install its
   // track list would be built from a not-yet-synced catalog. Rebuild it once assets land.
   // Same `neuroState` gate as that mount (Task 3.3): with the module never loaded there

@@ -23,7 +23,7 @@ import { categoryGlyph } from '../../lib/category-icons.ts';
 import { icon } from '../../lib/icons.ts';
 import type { PaletteEntry } from '../../palette.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
-import { ASSET_PAGE_SIZE, CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, isThemable, readAssetGround, showMoreHtml } from './shared.ts';
+import { ASSET_PAGE_SIZE, CAT_ICONS, CHEVRON, TYPE_FILTERS, emojiPackMeta, groundSwitchHtml, isThemable, showMoreHtml } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 import { matchesAssetSource } from '../../lib/asset-source-tree.ts';
 import { providerBrowserHtml, providerGroups } from '../assets-provider.ts';
@@ -131,17 +131,6 @@ export function uploadsSectionHtml(cat: CatCtx, items: AssetRef[]): string {
         ${items.length ? assetGridHtml(cat, key, items) : ''}
       </div>
     </section>`;
-}
-// The Dark ground switch. The ground behind every asset follows the app's scheme; this
-// switch puts it on dark (or back on light), so artwork drawn for the other surface can
-// be checked, and the icon colours a colourway offers follow it (shared.ts
-// iconThemeForGround). One label, pressed while the ground is dark, so the button reads
-// the same way in either theme. The toolbar holds one and so does each icon group's
-// Colours row, beside the pairs it changes; wiring.ts syncAssetGround keeps them in step.
-function groundSwitchHtml(): string {
-  const dark = readAssetGround() === 'dark';
-  const label = t('Dark ground');
-  return `<button type="button" class="cat-showhidden cat-ground${dark ? ' is-on' : ''}" aria-pressed="${dark}" aria-label="${escapeText(label)}" title="${escapeText(label)}">${icon('moon', { size: 15 })}<span class="cat-btn-label">${label}</span></button>`;
 }
 export function assetsSectionHtml(cat: CatCtx): string {
   const { collapsed } = cat;

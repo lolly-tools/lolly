@@ -6,7 +6,7 @@
   "status": "official",
   "singleInstance": true,
   "category": "designer",
-  "description": "Turn SVG artwork and 3D models into coordinated images, alone or arranged together in one scene. Shape materials, lighting, focus and transparent shadows with guided or expert controls.",
+  "description": "Turn SVG artwork and 3D models into images, alone or together in one scene. Shape materials, lighting, focus and shadows.",
   "a11yLabel": "3D studio rendering with {{studio}} lighting",
   "tags": [
     "3d",
