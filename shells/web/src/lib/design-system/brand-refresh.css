@@ -1,7 +1,7 @@
 @layer chrome {
   .brand-refresh-note {
     position: fixed;
-    inset: auto 1rem 1rem auto;
+    inset: auto calc(1rem + var(--safe-right)) 1rem auto;
     z-index: 100;
     max-width: min(32rem, calc(100vw - 2rem));
     padding: 1rem;

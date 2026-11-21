@@ -344,7 +344,7 @@
 .profile-link {
     position: absolute;
     z-index:99999;
-    right: var(--chrome-inset);
+    right: var(--chrome-inset-right);
     top: var(--chrome-top);
     display: inline-flex;
     align-items: center;
@@ -437,7 +437,7 @@ html[data-a11y-motion="reduce"] .profile-link .profile-link-mark .lolly-mark__sp
     position: fixed;
     /* Re-pin to the visible top-right while the page is pinch-zoomed. */
     top: calc(var(--chrome-top) + var(--vv-top, 0px));
-    right: calc(var(--chrome-inset) + var(--vv-right, 0px));
+    right: calc(var(--chrome-inset-right) + var(--vv-right, 0px));
   }
 }
 

@@ -21,6 +21,8 @@
 .pro-header {
   display: flex; align-items: center; gap: .75rem; flex: none;
   min-height: 76px; padding: .75rem 1rem;
+  /* The rows reach the screen edge; their controls stand inside a side the system holds. */
+  padding-left: calc(1rem + var(--safe-left)); padding-right: calc(1rem + var(--safe-right));
   border-bottom: 1px solid hsl(var(--border));
 }
 .pro-header .pro-back { flex: none; position: static; margin: 0; }
@@ -31,6 +33,7 @@
 .pro-toolbar, .pro-table-tools {
   flex: none; display: flex; align-items: center; gap: .6rem;
   padding: .75rem 1rem; min-width: 0;
+  padding-left: calc(1rem + var(--safe-left)); padding-right: calc(1rem + var(--safe-right));
 }
 .pro-toolbar { border-bottom: 1px solid hsl(var(--border)); }
 .pro-toolbar-group { display: flex; flex: 1; align-items: center; flex-wrap: wrap; gap: .75rem; min-width: 0; }
@@ -63,16 +66,16 @@
 .pro-wrap .btn--labelled { min-height: 34px; }
 .pro-wrap .btn--sm.btn--labelled { min-height: 30px; }
 @media (max-width: 720px) {
-  .pro-header { min-height: 64px; padding: .6rem .75rem; gap: .5rem; }
+  .pro-header { min-height: 64px; padding: .6rem calc(.75rem + var(--safe-right)) .6rem calc(.75rem + var(--safe-left)); gap: .5rem; }
   .pro-heading p { display: none; }
   .pro-header #pro-sessions { padding: .4rem .5rem; font-size: calc(.75rem * var(--a11y-fs)); }
   .pro-header #pro-sessions svg { display: none; }
-  .pro-toolbar { position: relative; padding: .6rem .75rem; justify-content: space-between; }
+  .pro-toolbar { position: relative; padding: .6rem calc(.75rem + var(--safe-right)) .6rem calc(.75rem + var(--safe-left)); justify-content: space-between; }
   .pro-hamburger { display: inline-flex; }
   .pro-toolbar-group { display: none; position: absolute; top: 100%; left: .75rem; right: .75rem; padding: 1rem; z-index: 20; background: hsl(var(--popover)); border: 1px solid hsl(var(--border)); border-radius: var(--ui-radius-panel); box-shadow: var(--ui-elevation-control); }
   .pro-toolbar.is-open .pro-toolbar-group { display: flex; }
   .pro-toolbar-group .pro-zip { flex-basis: 100%; }
-  .pro-table-tools { flex-wrap: nowrap; overflow-x: auto; padding: .6rem .75rem; }
+  .pro-table-tools { flex-wrap: nowrap; overflow-x: auto; padding: .6rem calc(.75rem + var(--safe-right)) .6rem calc(.75rem + var(--safe-left)); }
   .pro-tools-spacer { display: none; }
   .pro-selection-bar { margin: 0 .75rem .5rem; }
   .pro-selection-hint { display: none; }
@@ -709,7 +712,9 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
 /* Right-docked, non-modal panel - the grid stays visible beside it (no dim). */
 .pro-blocks-panel {
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 10000;
-  width: clamp(320px, 33vw, 460px);
+  /* The side term holds the controls inside a side the system has claimed. */
+  width: calc(clamp(320px, 33vw, 460px) + var(--safe-right));
+  padding-right: var(--safe-right);
   display: flex; flex-direction: column;
   background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
   border-left: 1px solid hsl(var(--border));
