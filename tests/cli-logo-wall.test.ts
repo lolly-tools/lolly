@@ -166,8 +166,9 @@ test('an export at another shape fills it, in the SVG and in the PNG drawn from 
   assert.ok(lower > 1000, `logos drawn in the lowest quarter (${lower} px)`);
 
   // With trimming on, a wall whose logos were measured with the canvas is not drawn here:
-  // with no browser tier it fails with that reason and writes nothing.
-  const measured = await cli(['run', 'logo-wall', 'a.svg', 'd.png', '--output=measured.png', '--no-provenance']);
+  // with no browser tier (none served, none built, no desktop app) it fails with that
+  // reason and writes nothing.
+  const measured = await cli(['run', 'logo-wall', 'a.svg', 'd.png', '--output=measured.png', '--no-provenance'], undefined, { LOLLY_WEB_BASE: '', LOLLY_RENDERER: 'chromium' });
   if (/computed part of the picture with a 2D canvas/.test(measured.stderr)) {
     assert.equal(measured.code, 3, measured.stderr);
     assert.equal(existsSync(join(root, 'logos', 'measured.png')), false);

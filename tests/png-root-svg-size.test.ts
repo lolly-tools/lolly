@@ -72,12 +72,13 @@ test('the CLI\'s SVG export finds its root with the same rule', async () => {
   assert.doesNotMatch(bridge, /function rootSvgOf\(/, 'no second copy of the rule');
 });
 
-/** The PNG the CLI draws for a tool at 1000 x 1000, browser-free. */
+/** The PNG the CLI draws for a tool at 1000 x 1000, browser-free: no web shell, served or built, and no desktop app. */
 function cliPng(toolId: string, dir: string): { status: number | null; stderr: string; out: string } {
   const out = join(dir, `${toolId}.png`);
+  const env: Record<string, string | undefined> = { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: dir, LOLLY_WEB_DIST: join(dir, 'no-web-build'), LOLLY_RENDERER: 'chromium', NO_COLOR: '1' };
+  delete env.LOLLY_WEB_BASE;
   const run = spawnSync(process.execPath, ['shells/cli/bin/lolly.ts', toolId, '--width=1000', '--height=1000', `--output=${out}`, '--no-provenance'], {
-    cwd: ROOT, encoding: 'utf8',
-    env: { ...process.env, LOLLY_PROFILE: 'lolly-start', LOLLY_STATE_DIR: dir, LOLLY_WEB_DIST: join(dir, 'no-web-build'), NO_COLOR: '1' },
+    cwd: ROOT, encoding: 'utf8', env,
   });
   return { status: run.status, stderr: run.stderr, out };
 }
