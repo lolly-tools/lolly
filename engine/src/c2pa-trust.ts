@@ -854,12 +854,21 @@ x3sizPOefAIye4i1uTYYdbiXHBTuetSuMmuWtRld1howmo5dLeOE5PUoyToTqwyL
 `;
 
 
-// The OFFICIAL C2PA trust list, vendored verbatim (fetched 2026-11-21 from
+// The OFFICIAL C2PA trust list, vendored verbatim apart from the two held back below (fetched 2026-11-21 from
 // https://raw.githubusercontent.com/c2pa-org/conformance-public/refs/heads/main/trust-list/C2PA-TRUST-LIST.pem,
 // conformance-public commit 285d98e4b575198180c1d6404a7ee1a317e04911, list issued 2026-11-20). The newer conformance list (Google ICAs, DigiCert-for-C2PA,
 // SSL.com 2025, Xiaomi, Huawei, Trufo, TrustAsia, Encypher, …) - largely
 // DISJOINT from the frozen CAI list above, so both are pinned (C2PA guidance:
-// use both, distinguish them). To refresh: re-fetch this URL as-is.
+// use both, distinguish them). To refresh: re-fetch this URL as-is, then hold
+// back any certificate whose entry in the matching C2PA-TRUST-LIST.json has no
+// stated ServiceStatus.
+//
+// HELD BACK (2026-11-21, the maintainer's decision): the two NETLOCK
+// certificates in that copy, "NETLOCK ECC C2PA Root CA G2" and "NETLOCK ECC
+// C2PA Claim Signing G2 CA 1". The official JSON gives both an empty
+// ServiceStatus and StatusStartingTime, where its own schema allows only the
+// trusted or untrusted URI, so the list states no status for them. Add them
+// back once the list says trusted. tests/c2pa-trust.test.ts pins this.
 const C2PA_OFFICIAL_TRUST_LIST_PEM = `Subject	CN=Google C2PA Media Services 1P ICA G3, O=Google LLC, C=US
 -----BEGIN CERTIFICATE-----
 MIIC3DCCAmOgAwIBAgIUQfqlIUd2IVjaf5ss/439Fgke7j4wCgYIKoZIzj0EAwMw
@@ -1514,45 +1523,6 @@ Af8CAQIwHQYDVR0OBBYEFHNKe2PoAANQBj4/25eRv2VY4Fy7MB8GA1UdIwQYMBaA
 FHNKe2PoAANQBj4/25eRv2VY4Fy7MAoGCCqGSM49BAMDA2kAMGYCMQDUlNJD49Ux
 zwBccYHiz0wgmbIXBDdgpVrLfWTQnbi21BhfPBQ6j0HJ24FY36L5oj8CMQCv5+bK
 gBIkJq9USBx2FjjDkukYjQMI/WDD6SH6QGTdotsH3cQQ6bjr9C+0ruxxx08=
------END CERTIFICATE-----
-
-Subject	CN=NETLOCK ECC C2PA Root CA G2, O=NETLOCK Kft., C=HU
------BEGIN CERTIFICATE-----
-MIICNDCCAbmgAwIBAgIOaqKfZwAQVgLG28qDBwwwCgYIKoZIzj0EAwMwSjELMAkG
-A1UEBhMCSFUxFTATBgNVBAoMDE5FVExPQ0sgS2Z0LjEkMCIGA1UEAwwbTkVUTE9D
-SyBFQ0MgQzJQQSBSb290IENBIEcyMB4XDTI2MDkxMDEyMTUzNVoXDTQ2MDkxMDEy
-MTUzNVowSjELMAkGA1UEBhMCSFUxFTATBgNVBAoMDE5FVExPQ0sgS2Z0LjEkMCIG
-A1UEAwwbTkVUTE9DSyBFQ0MgQzJQQSBSb290IENBIEcyMHYwEAYHKoZIzj0CAQYF
-K4EEACIDYgAEHTmQ+x+UmVGeF6yhIW+YX2ualZU7c4ayVbKUM5NdkB5Clho0rBaM
-20GiJfzpL77AYdpwi+32I6FHcAJvBej66teQBGFwgfWzDoB3sB5/R2EWVHfTYVl0
-45r0HSrYhz3bo2YwZDASBgNVHRMBAf8ECDAGAQH/AgEBMA4GA1UdDwEB/wQEAwIB
-BjAdBgNVHQ4EFgQUAA29AZpM22CQ0AsG4HvJxJsJRZUwHwYDVR0jBBgwFoAUAA29
-AZpM22CQ0AsG4HvJxJsJRZUwCgYIKoZIzj0EAwMDaQAwZgIxAP94aUUQG/w4O7nm
-tIxiQ5u2ncc+qFwIF0/k1Y6iK/cZ+qtr7kv9jUkC+WMKOMuWAQIxAMgGKZiheGUy
-MXItIzxnAcpKnDQ086cMWNi2tWDlKSqX+k8GB1mdrJmObqnKeZTbeg==
------END CERTIFICATE-----
-
-Subject	CN=NETLOCK ECC C2PA Claim Signing G2 CA 1, O=NETLOCK Kft., C=HU
------BEGIN CERTIFICATE-----
-MIIDYzCCAumgAwIBAgIOaqKfZwARyv+zZG6aaCUwCgYIKoZIzj0EAwMwSjELMAkG
-A1UEBhMCSFUxFTATBgNVBAoMDE5FVExPQ0sgS2Z0LjEkMCIGA1UEAwwbTkVUTE9D
-SyBFQ0MgQzJQQSBSb290IENBIEcyMB4XDTI2MDkxMDEzMTMzOFoXDTMxMDkxMTEz
-MTMzOFowVTELMAkGA1UEBhMCSFUxFTATBgNVBAoMDE5FVExPQ0sgS2Z0LjEvMC0G
-A1UEAwwmTkVUTE9DSyBFQ0MgQzJQQSBDbGFpbSBTaWduaW5nIEcyIENBIDEwdjAQ
-BgcqhkjOPQIBBgUrgQQAIgNiAAQn7hIuwc6rA0c10MMseTJAFJsAKiaTK/j3gdhr
-DR4cBqelMltU6mAjVM1TQpDUz9Gd7p7ytQL1klyOA171OpkC9diLjSaYmuSAz6V5
-+Yyc41VwBt59M/xCrae2yyUOU0ijggGJMIIBhTASBgNVHRMBAf8ECDAGAQH/AgEA
-MA4GA1UdDwEB/wQEAwIBBjApBgNVHSUEIjAgBgorBgEEAYPoXgIBBggrBgEFBQcD
-BAYIKwYBBQUHAyQwHQYDVR0OBBYEFD78hIEkbyQZC/GeemPvrtZ0u1WUMB8GA1Ud
-IwQYMBaAFAANvQGaTNtgkNALBuB7ycSbCUWVMEgGA1UdHwRBMD8wPaA7oDmGN2h0
-dHA6Ly9jcmwuZWNjLm5ldGxvY2suaHUvaW5kZXguY2dpP2NybD1lY2NjMnBhcm9v
-dGNhZzIwgZAGCCsGAQUFBwEBBIGDMIGAMDoGCCsGAQUFBzABhi5odHRwOi8vb2Nz
-cC5lY2MubmV0bG9jay5odS9lY2NjMnBhcm9vdGNhZzIuY2dpMEIGCCsGAQUFBzAC
-hjZodHRwOi8vYWlhLmVjYy5uZXRsb2NrLmh1L2luZGV4LmNnaT9jYT1lY2NjMnBh
-cm9vdGNhZzIwFwYDVR0gBBAwDjAMBgorBgEEAYPoXgEBMAoGCCqGSM49BAMDA2gA
-MGUCMBgrHv4tU9usRTsH9fYOVuHIvLUv/pupbz3htwGedmNU+BcjyhBBBPHLbGjn
-PiGwegIxAM8uUME5bh24GdbXYuiSfop69Yh9u+cJsix+CVPmDDaPuP/x3yfVk5PS
-pCuVsRVMcw==
 -----END CERTIFICATE-----
 
 Subject	CN=Samsung C2PA Root CA G1, O=Samsung Electronics Co., Ltd., C=KR
