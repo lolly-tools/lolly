@@ -19,16 +19,16 @@
 <!--i:eti-pen-tool-->
 ## Your work stays yours
 
-Lolly is a creative tool: people come here to make things that represent them. That shapes every accommodation below in one way: **adjusting the app never adjusts your work**.
+Lolly is a creative tool: people come here to make things that represent them. That shapes every accommodation below: **adjusting the app never adjusts your work**.
 
-Accessibility preferences restyle Lolly's own interface: menus, cards, navigation and type. They are built never to reach inside the tool canvas or the export stages, and automated tests fail the build if a preference's styles reach either. You should never have to choose between a comfortable app and a faithful render.
+Accessibility preferences restyle Lolly's own interface: menus, cards, navigation and type. They are built never to reach inside the tool canvas or the export stages, and automated tests fail the build if a preference's styles reach either.
 
 <!--i:eti-sliders-->
 ## Accessibility settings
 
 Lolly follows the platform's own signals, such as system dark mode and the reduced-motion preference. Form fields also follow the system's increased-contrast and forced-colours modes, and the iPhone and iPad app follows the system text size. On top of those, Lolly ships four opt-in preferences of its own, on one plain card in **Settings**:
 
-- <!--i:pause--> **Reduce motion** turns off transitions, slides and animated flourishes in the app. It works beside your operating system's reduced-motion setting and never overrides it: either one is enough to calm the app, and turning Lolly's switch off hands the choice back to the system setting. With it on, a swipe in present mode still changes the slide, without the slide following your finger. Animated exports keep moving exactly as designed.
+- <!--i:pause--> **Reduce motion** turns off transitions, slides and animated flourishes in the app. It never overrides your operating system's reduced-motion setting: either one is enough to calm the app, and turning Lolly's switch off hands the choice back to the system setting. With it on, a swipe in present mode still changes the slide, without the slide following your finger. Animated exports keep moving exactly as designed.
 - <!--i:sunburst--> **High contrast** strengthens borders, text and focus rings around your work. Words drawn in your design system's main colour reach APCA Lc 75, and the keyboard focus ring grows to 3px with a band of page colour on each side. Your brand colours and canvas stay exactly as you set them.
 - <!--i:font--> **Large text** grows the app's type and icon glyphs by a fifth, and the top row and standard controls grow to hold them. The docs follow it too, in the app and at lolly.tools/info. On an iPhone or iPad with a larger system text size, the larger of the two applies.
 - <!--i:eyeoff--> **Hide colourful previews** swaps the gallery's preview artwork for calm icon and text cards, and softens project thumbnails by halving their colour and contrast, so they stay recognisable without the colour noise. Full colour returns the moment you step inside a tool, so high-stimulus imagery appears only in the place you chose to work.
@@ -48,13 +48,13 @@ Under Reduce motion, whether it comes from the system or from Lolly's own switch
 - the docs pages read the same switch.
 :::
 
-The same card holds **Dominant hand**. On a foldable, an iPhone Duo or a near-square touch screen, where Lolly shows a tool in two panes, the controls sit on the side away from the hand you draw with ([Foldables and iPhone Duo](/info/using.html#foldables-and-iphone-duo)).
+The same card has **Dominant hand**. On a foldable, an iPhone Duo or a near-square touch screen, where Lolly shows a tool in two panes, the controls are on the side away from the hand you draw with ([Foldables and iPhone Duo](/info/using.html#foldables-and-iphone-duo)).
 
-You can set these right now: [open your Accessibility settings](/#/settings?focus=a11y-section). That link opens the card directly. In Settings, Accessibility has its own entry in the side list, and the app's search finds each switch by the words people reach for, such as motion, contrast or bigger text, so someone who can barely read the page as it is can still find the switches.
+You can set these right now: [open your Accessibility settings](/#/settings?focus=a11y-section). In Settings, Accessibility has its own entry in the side list, and the app's search finds each switch by the words people reach for, such as motion, contrast or bigger text, so someone who can barely read the page as it is can still find the switches.
 
 Around the preferences, the app is built to work with a keyboard and a screen reader:
 
-- **Names and states.** Controls carry accessible names and pressed states, and changes are announced to screen readers.
+- **Names and states.** Controls have accessible names and pressed states, and changes are announced to screen readers.
 - **Keyboard paths.** A **Skip to content** link moves focus to the page's content. Overlays close on Escape, the drawing tools answer single keypresses, the arrow keys nudge whatever you have selected, and keyboard focus is visible, strengthened further under high contrast.
 - **Cover Flow.** When you move the gallery's Cover Flow, your screen reader announces the centred tool and its position, such as "Chart, 2 of 6", once the covers come to rest.
 - **The first-visit greeting.** It is a band at the top of the gallery, not a dialog, so it takes no focus: the keyboard reaches its action in reading order, and Escape puts the greeting away.
@@ -67,7 +67,7 @@ Around the preferences, the app is built to work with a keyboard and a screen re
 
 Neurodivergent people are not one audience with one need. The same brain that is overwhelmed by a wall of colourful thumbnails on a hard day may seek strong sensory input on another, so Lolly accommodates in both directions, always opt-in:
 
-- <!--i:moon--> **Turning it down.** Reduce motion and Hide colourful previews strip the interface back to icons, text and one accent colour. Navigation stays calm for people with ADHD, autistic people and dyslexic people who find dense, varied imagery hard to scan. Nothing you need (favourites, pinning, actions) is taken away in the calmer presentation.
+- <!--i:moon--> **Turning it down.** Reduce motion and Hide colourful previews strip the interface back to icons, text and one accent colour. Navigation is calm for people with ADHD, autistic people and dyslexic people who find dense, varied imagery hard to scan. Nothing you need (favourites, pinning, actions) is taken away in the calmer presentation.
 - <!--i:neurobeat--> **Turning it up.** Neurospicy Mode is a deliberate sensory layer, with focus music Lolly composes as it plays, an atmosphere mixer with individually levelled ambient beds, a visualiser and interface sound effects, for people who focus best with rich input. It is off by default and never plays before you ask.
 - <!--i:sliders--> **Sound has a shape.** Some people find wet, bubbly sounds hard to bear and others find ticks and scratches hard to bear, so a slider under the Sound switch moves every interface sound between the two: round drops and bass at the Bouba end, dry ticks and metal at the Kiki end, the chimes in between. Each end leaves out what the other end is made of, and no interface sound ever speaks.
 - <!--i:sliders--> **Sound is separable.** Every audible layer has its own switch, so "visuals calm, sound rich" and the reverse are both real configurations, not a single accessibility bundle someone else composed for you.
@@ -94,8 +94,8 @@ New text reaches the other languages in the next translation pass. In 1.2.0, tex
 ## Cultural inclusion
 
 - <!--i:palette--> lolly.tools opens in [Lolly Demo](/info/lolly-demo.html), Lolly's own demo design system, with the neutral Lolly Starter one switch away. Lolly exists so your own identity, palette and type replace ours in minutes.
-- <!--i:pentool--> Type is treated as a cultural surface. Uploaded and Google fonts are shaped with proper text shaping across scripts, so names, diacritics and non-Latin text export as correctly drawn outlines rather than missing-glyph boxes or substitutions. Scripts Lolly has no font for yet, such as Tamil, Ethiopic or Syriac, go into a PDF, EPS or WMF as a picture of the words; the [1.2.0 release notes](https://github.com/lolly-tools/lolly/releases/tag/v1.2.0) list the cases.
-- <!--i:sparkle--> Emoji in your text are drawn from a set you choose rather than whichever one the machine happens to have, and each set carries its own credit. When a brand treatment recolours them, skin tones, flags and custom symbols keep their own colours by default.
+- <!--i:pentool--> Type is treated as a cultural surface. Uploaded and Google fonts are shaped properly across scripts, so names, diacritics and non-Latin text export as correctly drawn outlines rather than missing-glyph boxes or substitutions. Scripts Lolly has no font for yet, such as Tamil, Ethiopic or Syriac, go into a PDF, EPS or WMF as a picture of the words; the [1.2.0 release notes](https://github.com/lolly-tools/lolly/releases/tag/v1.2.0) list the cases.
+- <!--i:sparkle--> Emoji in your text are drawn from a set you choose rather than whichever one the machine happens to have, and each set has its own credit. When a brand treatment recolours them, skin tones, flags and custom symbols keep their own colours by default.
 - <!--i:people--> Copy avoids idioms and culture-bound references that translate poorly, and translators receive clean, bare strings rather than sentences with markup fragments baked in.
 
 <!--i:eti-monitor-->
@@ -107,9 +107,9 @@ The web app needs WebGPU to start: a browser that can create a WebGPU adapter an
 ## Ethical commitments
 
 - <!--i:lock--> **Privacy by architecture.** Your work stays on your device, there are no trackers or analytics in the codebase, and the few network touchpoints are listed in the [Privacy Policy](/info/privacy.html). Accessibility and language preferences are stored on your own device, and are copied only into a backup or Sync copy you make yourself: a person's disability or language is never telemetry. The app does fetch the translation for your language from its own address, like any other part of the app.
-- <!--i:server--> **Organisation servers are separate.** A Lolly Work server, which an organisation runs for its members, can store usage events made of labels such as a tool id, at a level the organisation sets, from a client the organisation connects. Lolly's own apps send it none today, and those events never carry accessibility or language settings; see [Telemetry and dashboards](/info/work-telemetry.html).
-- <!--i:shieldcheck--> **Honest provenance.** Exports can carry Content Credentials, and AI-generated content is labelled as such. Audiences deserve to know how media was made, and creators deserve tools that can prove their work is theirs. See [Our AI Stance](/info/ai-stance.html).
-- <!--i:check--> **No dark patterns.** Preferences are plain switches that do what they say, they stay dormant until you choose them and platform conventions (native scrolling, browser shortcuts, standard dialogs) are respected rather than hijacked.
+- <!--i:server--> **Organisation servers are separate.** A Lolly Work server, which an organisation runs for its members, can store usage events made of labels such as a tool id, at a level the organisation sets, from a client the organisation connects. Lolly's own apps send it none today, and those events never include accessibility or language settings; see [Telemetry and dashboards](/info/work-telemetry.html).
+- <!--i:shieldcheck--> **Honest provenance.** Exports can have Content Credentials, and AI-generated content is labelled as such. Audiences deserve to know how media was made, and creators deserve tools that can prove their work is theirs. See [Our AI Stance](/info/ai-stance.html).
+- <!--i:check--> **No dark patterns.** Preferences are plain switches that do what they say, they are off until you choose them and platform conventions (native scrolling, browser shortcuts, standard dialogs) are respected rather than hijacked.
 - <!--i:convert--> **Good for everyone's work.** The same properties that make a tool usable on a hard day make it faster on every other day. Constraint-first tools spend almost none of your attention on choices a template should have made, and on-device rendering keeps you working on a bad connection or a locked-down machine. [How Lolly compares](/info/positioning.html) makes the longer case.
 
 <!--i:eti-flask-->

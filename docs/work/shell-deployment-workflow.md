@@ -1,7 +1,7 @@
 # Shell deployment workflow
 
-This page is for an operator who serves the Lolly web app from a private Lolly Work instance
-and wants to publish a newer, qualified build of it without rebuilding the Lolly Work image.
+An operator who serves the Lolly web app from a private Lolly Work instance can
+publish a newer, qualified build of it without rebuilding the Lolly Work image.
 The accepted image, engine pin, pack and public key stay as they are; only the web app
 moves forward. The deployment is resumable, so an interrupted run picks up where it
 stopped without repeating a change it already made.
@@ -133,7 +133,7 @@ require release-ready. A public-ready receipt never claims full-suite success.
 
 Changing the CI policy itself needs full qualification. The producer checks the
 complete source change against the retained engine baseline, so a request limited to the
-web app cannot carry a dependency change, and the fast CI check does not override build
+web app cannot include a dependency change, and the fast CI check does not override build
 compatibility.
 
 <a id="publishing-without-a-work-restart"></a>

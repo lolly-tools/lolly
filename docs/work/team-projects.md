@@ -1,12 +1,8 @@
 # Team projects
 
-This page is for members and project managers who share work through Lolly Work. A
-**project** is a folder of saved tool sessions; a **session** is one tool with its inputs,
+A **project** is a folder of saved tool sessions; a **session** is one tool with its inputs,
 saved so colleagues can open the same work. Both live in the instance's store, so a session
 saved on a laptop opens on a phone after sign-in.
-
-By the end you will know who sees a project, what each project role allows, how saving and
-shared files work and what happens when two people save at once.
 
 <!--i:eti-eye-->
 ## Who sees a project
@@ -19,7 +15,7 @@ console.
 
 ::: details Which groups Lolly offers when you share a project
 When Lolly offers a visibility choice, it reads the list from `sharing.groups` in
-`GET /api/v1/org-config`. That list holds the member's own groups, sorted, minus the groups
+`GET /api/v1/org-config`. That list has the member's own groups, sorted, minus the groups
 that make someone an admin or owner: the names under `admin` and `owner` in `idp.roleGroups`,
 or the literal `admin` and `owner` when that role has no mapping. Admins and owners already
 see every project, so sharing with their groups adds nobody. Other role groups stay in the
@@ -62,28 +58,28 @@ Each project role adds to the one below it; the workspace role and deny grants s
 
 Adding someone gives them a role even on a private project. The workspace role still applies on top: an account with the workspace
 `viewer` role cannot save, whatever its project role, and a deny grant on `session.edit` or
-`project.manage` holds here as anywhere else ([Roles and grants](permissions.md)). A viewer who
+`project.manage` applies here as anywhere else ([Roles and grants](permissions.md)). A viewer who
 tries to save gets `403 READ_ONLY`; someone who cannot see the project gets `403 FORBIDDEN`.
 
 Live editing follows the same roles. A viewer joins a room as an observer, and only an editor
-or higher holds a writer seat or invites others into the room. A guest-edit link to a session
+or higher has a writer seat or invites others into the room. A guest-edit link to a session
 needs editor on its project, when the link is made and again on every gesture and keepalive of
 each guest it let in. Removing the person who made the link from the project, making them a
 viewer, or making the project private ends those guests' seats.
 
 **Managing people.** Each row of `GET /api/v1/projects` and the document from
-`GET /api/v1/sessions/:id` carry `myRole`, the caller's effective project role, so Lolly can
+`GET /api/v1/sessions/:id` have `myRole`, the caller's effective project role, so Lolly can
 show the right controls.
 
 - `GET /api/v1/projects/:id/members` lists the owner and everyone added, for anyone who can
-  see the project. Managers also see each person's email and the open invitations that carry
+  see the project. Managers also see each person's email and the open invitations that include
   the project.
 - For everyone else, a person with no first or last name is shown by the part of their address
   before the "@", never the whole address. The same applies to `updatedByName` in the project
   and session lists.
 - Managers change a role with `PATCH /api/v1/projects/:id/members/:userId` and remove someone
   with `DELETE` on the same path.
-- Anyone may remove themselves, which is how to leave a project; the caller's own row carries
+- Anyone may remove themselves, which is how to leave a project; the caller's own row has
   `isMe: true`. The owner has no member role and cannot be removed; hand the project on first.
 
 Inviting people, invite links and requests for access are on [Invite people and handle
@@ -105,7 +101,7 @@ select or **Remove** for access the project cannot take away:
 That access comes from a group or a workspace role, so it changes with the project's
 visibility and share settings or in the directory, not in the members list.
 
-- The rows never carry an email address, and names never fall back to one.
+- The rows never include an email address, and names never fall back to one.
 - A manager who is not an admin learns only that admins can open the project
   (`adminAccess: 'note'`), never who they are. Anyone who may create a project manages it, so
   listing the admins there would show any member what `GET /api/v1/users` refuses them. For
@@ -152,7 +148,7 @@ those images, and Lolly warns about that when you save.
 | Save changes | editor on the project and `session.edit` |
 | Delete a session | `session.delete`, editor on the project and either to be the person who created it or a manager of the project |
 
-Admins and owners hold `project.manage` by default, so a deny grant on it also stops them
+Admins and owners have `project.manage` by default, so a deny grant on it also stops them
 deleting a colleague's session. Deletion leaves a tombstone, so a stale copy cannot
 bring the session back.
 
@@ -168,7 +164,7 @@ reference](api.md#projects-and-sessions).
 <!--i:eti-folder-shared-->
 ## Shared files
 
-A project can hold files: the images and other uploads its sessions use, kept by the instance
+A project can have files: the images and other uploads its sessions use, kept by the instance
 so every member gets the same bytes. A session refers to a file by the asset id
 `user/team/<fileId>`.
 
@@ -191,7 +187,7 @@ finished. Each part is checked against the digest declared at the start, and the
 checked before it is listed. Only finished files are listed, newest first, and only the
 uploader can send parts or finish an upload. An unfinished upload expires 15 minutes after it
 starts or after its last accepted part, and at the latest 24 hours after it starts
-(`policy.projectFiles.uploadTtlHours`), so an upload a closed tab left behind stops holding
+(`policy.projectFiles.uploadTtlHours`), so an upload a closed tab left behind stops taking up
 room within minutes. Once it is an hour past its expiry it is removed with its parts, when
 someone next starts an upload or when retention runs. The protocol is in [Resumable
 uploads](resumable-uploads.md).
@@ -207,7 +203,7 @@ uploads](resumable-uploads.md).
 
 Finished files and unexpired unfinished uploads both count, each at its size plus 4 KiB for its
 database rows, so many tiny files fill a budget too. The defaults suit a small hosted
-PostgreSQL, which holds the file bytes as well. The file list reports `projectUsedBytes` and
+PostgreSQL, which stores the file bytes as well. The file list reports `projectUsedBytes` and
 `instanceRemainingBytes` so Lolly can say how much room is left.
 
 **Deleting.** Deleting a file that a live session in the project still uses is refused with
@@ -229,10 +225,10 @@ to share them.
 <!--i:eti-history-->
 ## Who changed what
 
-Project rows in `GET /api/v1/projects` carry `updatedAt` and `updatedByName`: the newest of the
+Project rows in `GET /api/v1/projects` have `updatedAt` and `updatedByName`: the newest of the
 last session save and the last rename, visibility or archive change, and the name of the person
-who made it (`null` when nobody has changed the project since it was created). Session rows in
-`GET /api/v1/projects/:id/sessions` carry `updatedByName` beside `updatedBy`. Lolly shows these
+who made that change (`null` when nobody has changed the project since it was created). Session rows in
+`GET /api/v1/projects/:id/sessions` have `updatedByName` beside `updatedBy`. Lolly shows these
 in its lists, so a team working one after another can see who saved last.
 
 <!--i:eti-link-->
@@ -242,7 +238,7 @@ A team project opens at `<app>/#/team/project/<projectId>`, which shows Lolly's 
 view on that project. A team session opens at `<app>/#/team/<sessionId>`: Lolly loads the
 session, opens its tool with the saved inputs and remembers the revision for the next save.
 
-The link carries only the session id, and opening one needs the same visibility as reading the
+The link has only the session id, and opening one needs the same visibility as reading the
 session through the API. A signed-out reader goes through the sign-in gate first and returns to
 the session afterwards. Collaboration invites in the inbox use this link too.
 

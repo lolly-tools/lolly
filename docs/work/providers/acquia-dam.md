@@ -2,7 +2,7 @@
 
 Connect an Acquia DAM (Widen) collective and its assets appear in the Lolly Work catalog, with
 Widen's own release and expiry dates and approval statuses carried across. No
-custom-field mapping is needed. Widen stays the source: Lolly Work reads with your token and never
+custom-field mapping is needed. Widen is the source: Lolly Work reads with your token and never
 writes back.
 
 <!--i:eti-checklist-->

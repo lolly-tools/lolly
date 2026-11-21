@@ -36,7 +36,7 @@ recognised secret field.
 
 **What it checks.** The checker distinguishes configuration from proof. A configured OIDC issuer
 does not prove MFA or authorised membership; a SIEM URL does not prove receipt or
-retention. Those checks stay `unverified` because the checker cannot see that
+retention. Those checks are `unverified` because the checker cannot see that
 evidence. The checks it runs automatically are:
 
 - **Configuration.** Recognised credential fields and private keys appear only
@@ -49,15 +49,15 @@ evidence. The checks it runs automatically are:
   retention, a finite deleted-document retention (`policy.retention.deletedDocumentsDays`,
   checked from 1.2.0), an HTTPS SIEM endpoint and a submission scanner that rejects
   unanswered scans and runs locally or over HTTPS. A missing setting, or audit retention
-  under 180 days, stays `unverified` rather than failing. The retention keys are in
+  under 180 days, is `unverified` rather than failing. The retention keys are in
   [configuration](configuration.md#telemetry-activity-and-retention).
 - **Rendered manifests.** Every image is pinned by SHA-256 digest. There are no
   Secret resources and no inline credential values. Exactly one Lolly Work server reads
   the assessed configuration from a read-only mount and runs as non-root with a
   read-only root filesystem, no privilege escalation and all capabilities
   dropped. It uses `/healthz` and `/readyz` for its probes. Every ingress host
-  has TLS; with no Ingress in the manifests, TLS stays `unverified`. Database
-  durability always stays `unverified`.
+  has TLS; with no Ingress in the manifests, TLS is `unverified`. Database
+  durability is always `unverified`.
 
 A deployment that allows longer sessions, or turns on telemetry, managed AI,
 guest editing, nearby discovery or in-process hook rendering by choice, fails
@@ -86,8 +86,7 @@ of evidence, not a sign-off.
 **Manual items.** The report always lists six manual items: identity, release, security,
 operations and change, plus a combined privacy and AI item. They were written for the maintainers'
 own rollout, and their wording refers to checks and records from that
-environment. Use your own checklist in their place. The report still lists
-them. Useful evidence includes:
+environment. Use your own checklist in their place. Useful evidence includes:
 
 - the exact release and its scan results;
 - sign-in and offboarding tests with test accounts;

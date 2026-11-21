@@ -1,8 +1,8 @@
 # Preview a project transfer
 
-See everything a move would involve, without changing anything. This page is for the project
-manager preparing to move a project to another Lolly Work instance. The preview lists the
-project's folders, current sessions, ready shared files and explicit memberships.
+See everything a move to another Lolly Work instance would involve, without changing anything.
+The preview lists the project's folders, current sessions, ready shared files and explicit
+memberships.
 
 ::: note This preview moves nothing
 Export, import and moving a project are not built. A saved preview cannot restore a project or
@@ -14,9 +14,9 @@ guide](operations.md).
 <!--i:eti-search-->
 ## Inspect a project
 
-Sign in with a person's account that manages the project and holds `project.manage`. An explicit
+Sign in with a person's account that manages the project and has `project.manage`. An explicit
 deny grant still applies. Agent invitations and service tokens cannot request this preview, even
-when a request also carries a person's session cookie.
+when a request also includes a person's session cookie.
 
 In the admin console:
 

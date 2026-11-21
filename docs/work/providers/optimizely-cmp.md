@@ -1,9 +1,9 @@
 # Optimizely CMP integration with Lolly (kind: `optimizely-cmp`)
 
 Connect the Optimizely CMP web DAM your website already uses, and its assets appear in the
-Lolly Work catalog. Optimizely stays the owner of those assets. If you turn on publishing,
-finished Lolly exports can also go the other way: into CMP, carrying their Content Credentials
-onto the website.
+Lolly Work catalog. Optimizely still owns those assets. If you turn on publishing,
+finished Lolly exports can also go the other way: into CMP and onto the website with their
+Content Credentials.
 
 <!--i:eti-checklist-->
 ## Onboarding
@@ -86,7 +86,7 @@ lw providers publish acme-cmp --in ./summit-badge.png --name "Summit Badge"
 ```
 
 Only exports Lolly made can be published. The server checks that the file's Content Credential
-carries Lolly's export assertion, so a federated or catalog asset can never be pushed out, and
+has Lolly's export assertion, so a federated or catalog asset can never be pushed out, and
 the instance needs an export signer ([c2pa](../c2pa.md)). Each publish is audited with the export's
 provenance chain. The upload request and response formats are modelled on CMP's documentation
 and are not yet confirmed against a live tenant.
@@ -105,6 +105,6 @@ and are not yet confirmed against a live tenant.
 Do not run `cutover` against this source; keep its `ext/*` identities and the website's dependencies under CMP's authority.
 :::
 
-You can [self-host Lolly Work with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) while retaining the CMP connection. That deployment choice does not migrate CMP or replace its web delivery. If retiring CMP is a separate project, obtain and verify a vendor export and plan the website's links and publishing changes separately. [Leave a DAM](../offboarding.md) records the connector limits and the supported exit paths for other sources.
+You can [self-host Lolly Work with S3 storage](../offboarding.md#self-host-lolly-work-with-s3-storage) while retaining the CMP connection. That deployment choice does not migrate CMP or replace its web delivery. If retiring CMP is a separate project, obtain and verify a vendor export and plan the website's links and publishing changes separately. [Leave a DAM](../offboarding.md) lists the connector limits and the supported exit paths for other sources.
 
 Compare [offboarding destinations](../offboarding.md#choose-your-offboarding-path), starting with open-source services you can run. Each route remains subject to this source's limits.

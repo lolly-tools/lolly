@@ -90,16 +90,16 @@ name. The role order is owner, admin, brand-manager, approver, author, member an
 the highest matching role wins. Accounts that match nothing stay members. An empty role
 mapping turns off that role's literal legacy group; roles left out of a hand-written
 configuration keep the documented legacy defaults. `brand-manager` has no legacy group, so
-only the groups you enter for it hold it ([roles](permissions.md#roles)).
+only the groups you enter for it have the role ([roles](permissions.md#roles)).
 
 Local groups and provider groups share the mapping. Additional issuers keep subjects
 apart, but **not group names**, so use distinct provider group names if two issuers should
-carry different authority. Explicit deny grants still override a mapped role.
+have different authority. Explicit deny grants still override a mapped role.
 
 ![OIDC configuration and exact customer group mappings in Customer setup](shots/customer-setup-identity.svg)
 
 This example prepares OIDC settings while keeping development sign-in and its starting
-`owner` group. The installed sign-in evidence below the form stays separate from the
+`owner` group. The installed sign-in evidence below the form is separate from the
 draft.
 
 Enter the exact groups the first real owner will have. Generation refuses a preview that
@@ -156,7 +156,7 @@ contract.
 
 Set the pack path as it appears **inside the running server or container**, and mount or
 deploy the files there. Use an extracted `tools/` and `catalog/` tree or a supported profile
-source, then apply and restart before you inspect the new path. The pack carries the design
+source, then apply and restart before you inspect the new path. The pack has the design
 system people work with; choosing and retiring design systems for the whole deployment is
 in [design-system administration](design-system-administration.md).
 
@@ -229,7 +229,7 @@ minutes; refresh to pick up a long render.
 
 Choose **Generate validated configuration** after editing. Review the patch and the exact
 callback, then download `lolly-setup.json` for an instance-file deployment or
-`lolly-setup.helm.json` for Helm. The files hold non-secret configuration; handle them as
+`lolly-setup.helm.json` for Helm. The files have non-secret configuration; handle them as
 deployment files.
 
 **An instance JSON file.** Run from the Lolly Work checkout:
@@ -275,7 +275,7 @@ settings match the generated configuration, not that every integration test pass
 the identity and sample checks again after relevant changes.
 :::
 
-If the browser holds a draft you have not exported, leaving the page asks whether to keep or
+If the browser has a draft you have not exported, leaving the page asks whether to keep or
 discard the draft.
 
 **The production cutover.** Use the real owner session, choose production and turn off

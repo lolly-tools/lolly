@@ -31,7 +31,7 @@ GET /api/v1/audit?action=approval.submit&limit=50
 
 Responses include `total` for the retained log, `matched` for the full filtered history, and
 `nextBefore` for an older matching page; keep the filters when following that cursor. Rows within
-each page stay in ascending sequence order. Invalid or reversed date ranges are rejected. Actor
+each page are in ascending sequence order. Invalid or reversed date ranges are rejected. Actor
 filtering uses stored IDs rather than a broader identity-directory lookup.
 
 The chain verdict covers the complete retained chain, not the filtered rows, because filtered
@@ -69,7 +69,7 @@ edits record before and after *shapes*.
 ### The keyed MAC
 
 The hash links alone could be recomputed by someone who edits the database. So every row also
-carries a **keyed MAC**: an HMAC of its hash under a key derived at boot from
+has a **keyed MAC**: an HMAC of its hash under a key derived at boot from
 `LW_SESSION_SECRET`, which the database never holds. A database holder who edits a row and
 recomputes the public chain from there on still cannot produce MACs that verify, and every
 verification path (`/api/v1/audit`, the head, the Prometheus gauge, `lw audit verify`) checks
