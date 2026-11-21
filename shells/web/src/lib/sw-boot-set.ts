@@ -27,7 +27,13 @@
 
 export const BOOT_SET_MESSAGE = 'lolly:boot-set';
 
-/** Same-origin build and font paths among the page's loaded resources and its own tags. */
+/**
+ * Same-origin build and font paths: the document's own script and stylesheet tags first
+ * (the boot chunk, the boot stylesheet, the preloaded fonts), then the loaded resources in
+ * the order they started. The worker keeps at most 200, and a cold visit loads more build
+ * files than that, so the order decides what is kept; sorted by name, the boot chunk
+ * (`web-boot-*`) fell past the cap and every second visit downloaded it again.
+ */
 export function bootSetUrls(doc: Document, entries: readonly { name: string }[], origin: string): string[] {
   const out = new Set<string>();
   const add = (raw: string | null | undefined): void => {
@@ -37,11 +43,11 @@ export function bootSetUrls(doc: Document, entries: readonly { name: string }[],
       if (url.origin === origin && !url.search && /^\/(?:_app|fonts)\//.test(url.pathname)) out.add(url.pathname);
     } catch { /* not an address */ }
   };
-  for (const entry of entries) add(entry.name);
   for (const el of doc.querySelectorAll<HTMLScriptElement | HTMLLinkElement>('script[src], link[href]')) {
     add('src' in el ? el.src : el.href);
   }
-  return [...out].sort();
+  for (const entry of entries) add(entry.name);
+  return [...out];
 }
 
 /** How long no resource of the page may have finished loading before the post. */

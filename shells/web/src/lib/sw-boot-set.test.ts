@@ -32,10 +32,16 @@ const entries = [
   { name: 'https://elsewhere.example/_app/y.js' },
 ];
 
-test('only same-origin build and font paths, without queries, sorted and once each', () => {
+test('only same-origin build and font paths, without queries, once each: the document\'s own tags first', () => {
   assert.deepEqual(bootSetUrls(page(), entries, ORIGIN), [
-    '/_app/gallery-c3.js', '/_app/web-boot-a1.js', '/_app/web-boot-b2.css', '/fonts/SUSE%5Bwght%5D.woff2',
+    '/_app/web-boot-b2.css', '/fonts/SUSE%5Bwght%5D.woff2', '/_app/web-boot-a1.js', '/_app/gallery-c3.js',
   ]);
+});
+
+test('the boot files stay inside the worker\'s cap however many build files a visit loaded', () => {
+  const many = Array.from({ length: 260 }, (_, i) => ({ name: `${ORIGIN}/_app/a-chunk-${String(i).padStart(3, '0')}.js` }));
+  const urls = bootSetUrls(page(), [...many, { name: `${ORIGIN}/_app/web-boot-a1.js` }], ORIGIN).slice(0, 200);
+  for (const boot of ['/_app/web-boot-a1.js', '/_app/web-boot-b2.css', '/fonts/SUSE%5Bwght%5D.woff2']) assert.ok(urls.includes(boot), boot);
 });
 
 function container(controlled: boolean) {
