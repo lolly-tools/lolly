@@ -2,7 +2,7 @@
 
 _Last checked: 28 September 2026._
 
-If your team designs in Penpot, Lolly works alongside Penpot: both are open source and both read the same design tokens. This page says which job each one is for.
+If your team designs in Penpot, Lolly works alongside Penpot. Both are open source and read the same design tokens. This page says which job each one is for.
 
 <!--i:eti-award-->
 ## What Penpot does better

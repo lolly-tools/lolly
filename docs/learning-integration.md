@@ -1,17 +1,19 @@
 # Learning integration
 
-This page is for developers who host Lolly courses, connect them to another platform or build course packages from a script. It sets out what a course package contains, how website progress is stored and reported, the versioned browser event a host page can listen for and the command-line build. Course creators start with [Build a course](/info/training-creators.html) and [Deliver and update a course](/info/training-delivery.html). In the app, courses stay hidden until someone turns on the **Training and courses** feature, which is off by default; [Build a course](/info/training-creators.html) says where.
+Developers who host Lolly courses, connect them to another platform or build course packages from a script learn here what a package contains, how website progress is stored and reported, the versioned browser event a host page can listen for and the command-line build.
+
+Course creators start with [Build a course](/info/training-creators.html) and [Deliver and update a course](/info/training-delivery.html). In the app, courses stay hidden until someone turns on the **Training and courses** feature, off by default; [Build a course](/info/training-creators.html) says where.
 
 A learning module is a versioned course document. The engine validates it and compiles finished content through renderers and asset resolution the shell supplies. The player runs that compiled content in the preview, in static website packages, in SCORM 1.2 and SCORM 2004 4th Edition packages and in the experimental Tin Can and cmi5 packages.
 
-Course packaging belongs to the module, not to each tool. Tools expose the media formats they support, and the shell derives the available course renditions from those formats, the device's codecs and the export policy, so no tool implements an LMS runtime. Folder and selection export first accounts for every candidate and asks for an explicit teaching order. The compiler never leaves out an unavailable required source.
+Course packaging belongs to the module. Tools expose the media formats they support. The shell derives the available course renditions from those formats, the device's codecs and the export policy, so no tool implements an LMS runtime. Folder and selection export first accounts for every candidate and asks for an explicit teaching order. The compiler never leaves out an unavailable required source.
 
 <!--i:eti-globe-->
 ## Website delivery today
 
 Serve every extracted package file from the same static HTTP(S) directory. `index.html` loads the local player and media without a Lolly service. All paths are relative. A normal link or an iframe can launch the course. Serve HTML, JavaScript, CSS and media with their normal content types. No service worker or offline installation is included.
 
-The static adapter stores progress in IndexedDB. Its key includes the current origin's URL path, module activity and release. Browser profile isolation, site-data deletion, private browsing and third-party iframe restrictions apply. Simultaneous writes from another tab cause an explicit conflict rather than silently overwriting a newer attempt. An inability to open storage produces a visible session-only fallback. A later failed write stays a visible failure with a retry; it does not claim a durable save.
+The static adapter stores progress in IndexedDB. Its key includes the current origin's URL path, module activity and release. Browser profile isolation, site-data deletion, private browsing and third-party iframe restrictions apply. Simultaneous writes from another tab cause an explicit conflict rather than silently overwriting a newer attempt. If storage cannot open, a visible session-only fallback takes over. A later failed write stays a visible failure with a retry; it does not claim a durable save.
 
 ::: note A website package keeps no learner records
 The host platform controls access to the files. This release supplies no learner identity, accounts, enrolment, grades, analytics endpoint or server progress record. It does not ask the creator for LRS credentials. Use an LMS target when the receiving LMS owns those responsibilities.
@@ -29,7 +31,7 @@ A quiz supplies a prompt, `single`, `multiple` or `true-false` mode, two to eigh
 Successful static saves include quiz choices in IndexedDB, while the public progress event keeps its completion-only fields.
 
 ::: details How quiz answers fit the attempt tuple
-The compact v1 attempt tuple accepts an optional sixth field holding two hexadecimal digits per quiz, in compiled order. Each bit marks a selected option, and `00` means no submitted answer. The largest document, 1000 blocks, fits within the existing 4096-character suspend limit. Old tuples stay readable, and bookmarks from another release are discarded.
+The compact v1 attempt tuple accepts an optional sixth field holding two hexadecimal digits per quiz, in compiled order. Each bit marks a selected option, and `00` means no submitted answer. The largest document, 1000 blocks, fits within the 4096-character suspend limit. Old tuples stay readable, and bookmarks from another release are discarded.
 :::
 
 <!--i:eti-gauge-->
@@ -80,7 +82,7 @@ It establishes neither learner identity nor proof that a person paid attention. 
 <!--i:eti-history-->
 ## Experimental xAPI recovery
 
-The Tin Can and cmi5 players keep unsent statements and progress in the browser's IndexedDB where storage allows, so a later launch can still deliver what a dropped connection or a closed page left behind. The record belongs to one attempt: the LRS endpoint, activity, learner and registration. It never holds the xAPI authorization, the launch URL or the cmi5 fetch URL.
+The Tin Can and cmi5 players keep unsent statements and progress in the browser's IndexedDB where storage allows, so a later launch can deliver what a dropped connection or a closed page left behind. The record belongs to one attempt: the LRS endpoint, activity, learner and registration. It never holds the xAPI authorization, the launch URL or the cmi5 fetch URL.
 
 A later launch of the same attempt replays the record only once that launch is authorized.
 
@@ -144,6 +146,6 @@ Cross-origin hosting will need a separately versioned message protocol with an e
 <!--i:eti-badge-check-->
 ## Package verification
 
-The export preflight freezes the course and prepares the actual ZIP before publication. The final compressed size is checked against the author-supplied destination limit. Changing the draft or destination invalidates readiness. A saved version stores its exact artifact and checksum. Another target uses its frozen content and media, and an existing target downloads its existing bytes.
+The export preflight freezes the course and prepares the ZIP before publication. The final compressed size is checked against the author-supplied destination limit. Changing the draft or destination invalidates readiness. A saved version stores its exact artifact and checksum. Another target uses its frozen content and media, and an existing target downloads its existing bytes.
 
 Static browser integration tests cover resume, completion, storage conflicts, release isolation and the observation event. The LMS adapters have local lifecycle and package tests, and the xAPI recovery tests replay records across simulated page loads. Acceptance in a real LMS tenant has not been completed, and the experimental xAPI output makes no conformance claim.

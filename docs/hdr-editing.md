@@ -1,9 +1,11 @@
 # Wide colour and HDR editing
 
-You shot a sunset in HDR, or your brand green only looks right on a wide-gamut screen, and you do not want an 8-bit editing step to flatten either. **Wide colour** means a wider range of colours than ordinary sRGB, such as Display P3 or Rec.2020. **HDR** also allows brightness above ordinary white. Lolly can keep both through editing in Lolly Design, Lolly Darkroom and Sequence, then write an HDR file or an ordinary SDR copy from the same document.
+Lolly Design, Lolly Darkroom and Sequence can keep wide colour and HDR through editing with no 8-bit step. They can then write an HDR file or an ordinary SDR copy from the same document.
+
+**Wide colour** means a wider range of colours than ordinary sRGB, such as Display P3 or Rec.2020. **HDR** also allows brightness above ordinary white.
 
 ::: note This is not the export panel's HDR card
-That card brightens ordinary artwork for HDR screens, and [Export a file](/info/exporting.html#hdr-bright-colours) describes the card.
+That card brightens ordinary artwork for HDR screens. See [Export a file](/info/exporting.html#hdr-bright-colours).
 :::
 
 <!--i:eti-sliders-->
@@ -14,12 +16,12 @@ That card brightens ordinary artwork for HDR screens, and [Export a file](/info/
 
 Standard editing stays the default. The choice is saved with the document, and Sequence follows it for video.
 
-A brand swatch can hold an sRGB face and a Display P3 or Rec.2020 face. A standard document uses the sRGB face and a wide colour document the wider one; new swatch picks keep their token reference, so switching the document's range picks the right face. A compatible display shows the P3 colours, but your display never changes the saved colour or the exported master.
+A brand swatch can hold an sRGB face and a Display P3 or Rec.2020 face. A standard document uses the sRGB face and a wide colour document the wider one. New swatch picks keep their token reference, so switching the document's range picks the right face. A compatible display shows the P3 colours. Your display never changes the saved colour or the exported master.
 
 <!--i:eti-image-upload-->
 ## Bring in originals
 
-Choose an image through the image picker. PNG, JPEG XL, TIFF, OpenEXR and Radiance originals keep their source bytes. TIFF, EXR and Radiance files get a display PNG while the editor decodes the original into linear floating-point pixels. A generic library HDR import can still serve as a 3D environment; choose an image slot to bring an HDR file in as a 2D image.
+Choose an image through the image picker. PNG, JPEG XL, TIFF, OpenEXR and Radiance originals keep their source bytes. TIFF, EXR and Radiance files get a display PNG while the editor decodes the original into linear floating-point pixels. A generic library HDR import can still serve as a 3D environment. To bring an HDR file in as a 2D image, choose an image slot.
 
 What each part edits in float:
 
@@ -52,7 +54,7 @@ The editing range and the output range are separate choices:
 | TIFF | Linear float32 or 16-bit PQ; needs an opaque background |
 | HDR MP4 / WebM | 10-bit PQ through a supported WebCodecs encoder |
 
-A browser without a usable 10-bit video encoder reports that limitation; it never hands back an SDR file for an HDR request. Ordinary metadata and Content Credentials stay on the normal export path where the format supports them. JPEG XL signing and durable pixel credentials on float stills are not available.
+A browser without a usable 10-bit video encoder reports that limit and never returns an SDR file for an HDR request. Ordinary metadata and Content Credentials stay on the normal export path where the format supports them. JPEG XL signing and durable pixel credentials on float stills are not available.
 
 ::: details Supported source files
 Float images and video frames are limited to 8,388,608 pixels, including UHD, with 16,384 pixels per edge and 128 MiB of encoded input. JPEG XL still encoding has its own 8 MP limit, and cached float layers have a 256 MiB budget.
@@ -67,5 +69,5 @@ Float images and video frames are limited to 8,388,608 pixels, including UHD, wi
 ::: details What the float path refuses
 This release supports flat Lolly Design artboards and affine Sequence camera moves. Perspective, 3D scene boxes, slide scene capture, blur and filter effects and depth shadows are refused in the float export path. HDR image layers can animate scale but not their box dimensions yet. Export one Lolly Design artboard at a time, and remove Lolly Design still clip paths first. Lolly Darkroom perspective correction, live camera HDR and before and after comparison are not available.
 
-These refusals keep the source intact rather than quietly reducing it to an 8-bit intermediate. HDR display calibration and checks on physical mobile devices are still outstanding.
+A refusal keeps the source from being quietly reduced to an 8-bit intermediate. HDR display calibration and checks on physical mobile devices are still outstanding.
 :::

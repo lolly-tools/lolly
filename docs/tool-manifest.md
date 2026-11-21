@@ -1,6 +1,6 @@
 # Tool manifests
 
-`tool.json` is the one file Lolly reads to know what a tool is: its name, what people can change, which files it can export and how it appears in the gallery. This page is the field reference. Look up the field you need; [Build a tool](/info/authoring-tools.html) shows a complete small manifest first.
+`tool.json` tells Lolly what a tool is: its name, what people can change, which files it can export and how it appears in the gallery. This page is the field reference; [Build a tool](/info/authoring-tools.html) shows a complete small manifest first.
 
 <!--i:eti-file-->
 ## The manifest (`tool.json`)
@@ -17,33 +17,33 @@ Every manifest is validated against `schemas/tool.schema.json`. Seven fields are
 | `render` | At minimum `{ width, height, formats }`. See [The `render` block](#the-render-block). |
 | `inputs` | The input declarations. See [Tool inputs](/info/tool-inputs.html). |
 
-The schema does not require `description`, `category` and `tags`, but give every tool all three: the gallery's About card reads the description, and search and filters use the other two.
+The schema does not require `description`, `category` and `tags`. Give every tool all three: the gallery's About card reads the description, and search and filters use the other two.
 
-None of these fields stay private to the repository. The About card is the manifest read back to whoever is deciding whether to open the tool: name, category and status from identity, the export chips and canvas size from `render`, the version and a `capabilities` line whenever the tool declares any.
+The About card shows the manifest to people deciding whether to open the tool: name, category and status, the export chips and canvas size from `render`, the version and a `capabilities` line when the tool declares any.
 
 ![The About card for the Filter tool, listing its exports grouped as vector, raster and video chips, its 1080 by 1080 canvas and its version, all read straight from the manifest](/t/url-shot?url=%2F%23%2F%3Ftool%3Dfilter&width=1440&height=1200&dpi=192&waitMs=2200&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&format=svg&walker=1&cropSelector=.meta-dialog-body&dark=1&filename=at2-manifest-about-card)
 
 ### Listing and identity
 
-- `listed` - boolean, default `true`. Whether the tool appears in the gallery listing: the grid, search, favourites and the featured and utility strips. Set `false` for a tool that is a mechanism reached from context rather than a place someone browses to, such as `asset-export`, which opens from **Download** on an asset in Assets. An unlisted tool still loads through `#/tool/<id>`, URL mode and the CLI.
-- `featured` - `{ blurb?, order? }`. Its presence, even as `{}`, puts the tool in the gallery's **Featured** row. `blurb` is the one-line hook shown over the tile, and `order` sorts the row in ascending order; tools without one follow in catalog order.
-- `new` - boolean. Keeps the gallery's **New** badge on the tool. Without it, newness comes from catalog order: the most recently added tools wear the badge, and it expires as later tools ship.
-- `deprecated` and `replacedBy` - retire a tool gently. The id stays a permanent contract, so saved links and sessions still open the tool. A deprecated tool must also be `listed: false`, which the validator checks, and `replacedBy` gives the successor's id, which must exist in the same profile.
-- `a11yLabel` - the accessible description of the rendered output. The preview canvas reaches screen readers as one `role="img"`, and this is its label. It is a Handlebars string filled with the current input values, so it stays accurate while the person edits: `"QR code linking to {{url}}"`. Use `{{default x "fallback"}}` for empty inputs. Without it the label is `"<name> preview"`. Keep it short and factual, because it replaces the canvas contents for a screen-reader user.
+- `listed` - boolean, default `true`. Whether the tool appears in the gallery grid, search, favourites and the featured and utility strips. Set `false` for a tool reached only from context, such as `asset-export`, which opens from **Download** on an asset in Assets. An unlisted tool still loads through `#/tool/<id>`, URL mode and the CLI.
+- `featured` - `{ blurb?, order? }`. Its presence, even as `{}`, puts the tool in the gallery's **Featured** row. `blurb` is the one line shown over the tile. `order` sorts the row ascending; tools without one follow in catalog order.
+- `new` - boolean. Keeps the gallery's **New** badge on the tool. Without it, the most recently added tools in catalog order get the badge, and it expires as later tools ship.
+- `deprecated` and `replacedBy` - retire a tool. The id stays a permanent contract, so saved links and sessions still open the tool. A deprecated tool must also be `listed: false`; the validator checks this. `replacedBy` gives the successor's id, which must exist in the same profile.
+- `a11yLabel` - the accessible label of the rendered output. Screen readers meet the preview canvas as one `role="img"` with this label. It is a Handlebars string filled with the current input values: `"QR code linking to {{url}}"`. Use `{{default x "fallback"}}` for empty inputs. Without it the label is `"<name> preview"`. Keep the label short and factual: a screen-reader user hears it in place of the canvas contents.
 
 `templates` and `galleryArt` are on [Tool templates](/info/tool-starters.html), `extends` on [Composition and brand overlays](/info/tool-composition.html) and `designTool` on [Design tool contract](/info/design-tool-contract.html).
 
 ### What the tool needs from the host
 
-- `requires` - the optional `host.*` APIs your hooks call **without** checking for them first, such as `["text", "tokens"]`. The runtime refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys the tool out there. An API you check for (`if (host.text)`) is a progressive enhancement and must not be listed. `node scripts/tool-requires.ts --write` reads `hooks.js`, writes the list and raises `engineVersion` to the release that added the newest API you depend on; `validate:catalog` warns when the manifest and the hooks disagree.
+- `requires` - the optional `host.*` APIs your hooks call **without** checking for them first, such as `["text", "tokens"]`. On a shell that lacks one, the runtime refuses to mount the tool before any hook runs, and the gallery greys the tool out. An API you check for (`if (host.text)`) is a progressive enhancement and must not be listed. `node scripts/tool-requires.ts --write` reads `hooks.js`, writes the list and raises `engineVersion` to the release that added the newest API you depend on; `validate:catalog` warns when the manifest and the hooks disagree.
 - `capabilities` - device abilities, from `network`, `filesystem`, `clipboard`, `camera`, `microphone`, `ffmpeg`, `wasm`, `capture`, `compose` and `screen`. The host exposes the matching APIs only to tools that declare them, and shells use the list to label or disable a tool they cannot serve. A tool without `network` cannot call `host.net.fetch`; a tool that uses [`composes`](/info/tool-composition.html) declares `compose`; a tool that records through `host.recorder` declares `microphone`.
 - `network` - `{ "allowlist": [...] }`, the https URLs `host.net.fetch` may reach. No allowlist means no fetch. See [Network access](/info/tool-hooks.html#network-access-host-net).
-- `hooks` - boolean flags for `onInit`, `onInput`, `onFrame`, `onLevel`, `beforeExport`, `afterExport`, `exportFile` and `exportStill`. Any `true` flag means `hooks.js` must define that function. The list is closed: the schema rejects any other hook name. [Tool hooks and host capabilities](/info/tool-hooks.html) covers each hook.
-- `privacy` - `"on-device"` marks a utility that processes the person's own file entirely on the device. The tool shows the **Runs on your device - nothing is uploaded** badge, may never be `experimental` and exports no provenance metadata and no watermark. [Assets and file utilities](/info/tool-files.html#producing-output-the-exportfile-hook-privacy-on-device) owns the details.
+- `hooks` - boolean flags for `onInit`, `onInput`, `onFrame`, `onLevel`, `beforeExport`, `afterExport`, `exportFile` and `exportStill`. Any `true` flag means `hooks.js` must define that function. The schema rejects any other hook name. [Tool hooks and host capabilities](/info/tool-hooks.html) covers each hook.
+- `privacy` - `"on-device"` marks a utility that processes the person's own file only on the device. The tool shows the **Runs on your device - nothing is uploaded** badge, may never be `experimental` and exports no provenance metadata and no watermark. [Assets and file utilities](/info/tool-files.html#producing-output-the-exportfile-hook-privacy-on-device) has the details.
 - `isolate` - boolean. Asks the shell to run a built-in tool's hooks in a Worker. See [Run hooks in a Worker](/info/tool-hooks.html#run-hooks-in-a-worker-isolate).
-- `singleInstance` - boolean. Set `true` when only one copy of the tool can run on a page, for example a tool that holds a WebGL context or keeps a handle on `window` (the 3D viewers, `spatial-photo`, `synth`). Lolly Multi-edit then shows its cells as still previews one after another instead of live copies. The single-tool view, URL mode and the CLI are unaffected.
+- `singleInstance` - boolean. Set `true` when only one copy of the tool can run on a page, for example a tool that holds a WebGL context or keeps a handle on `window` (the 3D viewers, `spatial-photo`, `synth`). Lolly Multi-edit then shows its cells as still previews, one after another, instead of live copies. The single-tool view, URL mode and the CLI are unaffected.
 - `composes` - embed another tool's render as an image. Requires the `compose` capability. See [Composition and brand overlays](/info/tool-composition.html).
-- `renditionOf` - `{ "input": "image", "action": "c2pa.color_adjustments" }`, for a tool whose output is a changed copy of one picture the person gives it, such as a colour grade, a filter or a format conversion. `input` is the id of a top-level `asset` input, and `action` is one of `c2pa.color_adjustments`, `c2pa.filtered`, `c2pa.converted`, `c2pa.resized`, `c2pa.cropped` or `c2pa.edited`. When that picture carries a Content Credential of its own, the export's credential records the picture as its parent and opens it first, and `action` takes the place of the step that says the file was made new. Every other picture stays a component. A picture with no credential changes nothing. `unlessSet` lists inputs that replace the picture as the source while they hold anything, as Darkroom's layer stack does (`"unlessSet": ["layers"]`); while one does, the export is not recorded as a rendition. A live camera frame or a recording replaces the picture too, without being listed. The field needs engine 1.341, and `@lolly-tools/core/rendition-v1` holds the action list and the reference check the validators share. Darkroom, Filter and Asset Export declare the field.
+- `renditionOf` - `{ "input": "image", "action": "c2pa.color_adjustments" }`, for a tool whose output is a changed copy of one picture the person gives it, such as a colour grade, a filter or a format conversion. `input` is the id of a top-level `asset` input, and `action` is one of `c2pa.color_adjustments`, `c2pa.filtered`, `c2pa.converted`, `c2pa.resized`, `c2pa.cropped` or `c2pa.edited`. When that picture carries a Content Credential of its own, the export's credential records the picture as its parent and opens it first, and `action` replaces the step that says the file was made new. Every other picture stays a component. A picture with no credential changes nothing. `unlessSet` lists inputs that, while they hold any value, replace the picture as the source, as Darkroom's layer stack does (`"unlessSet": ["layers"]`); the export is then not recorded as a rendition. A live camera frame or a recording also replaces the picture, without being listed. The field needs engine 1.341. `@lolly-tools/core/rendition-v1` holds the action list and the reference check the validators share. Darkroom, Filter and Asset Export declare the field.
 
 ### Design-system behaviour
 
@@ -53,24 +53,24 @@ None of these fields stay private to the repository. The About card is the manif
 <!--i:eti-download-->
 ## The `render` block
 
-Most of what `render` declares reaches people in one place: the export popup. Formats, page size and unit, the **Convert paths** toggle and the Content Credentials card all come from keys below.
+Most `render` keys show up in the export popup: formats, page size and unit, the **Convert paths** toggle and the Content Credentials card.
 
 ![The export popup - format and size fields, a Convert paths toggle and a pre-ticked Content Credentials card](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Foptions&width=1440&height=900&dpi=192&waitMs=2200&css=.export-popup%7Bwidth%3A360px!important%7D&walker=1&format=svg&cropSelector=.export-popup&dark=1&filename=auth-export-popup)
 
-`render` carries `width`, `height` and `formats`. The `render.formats` enum in `schemas/tool.schema.json` is the authority on the format ids, which cover vector, raster, print, document, motion, audio, data and font output; [URL Mode](/info/url-mode.html) says what each id produces. The optional keys follow, grouped by what they change.
+`render` carries `width`, `height` and `formats`. The `render.formats` enum in `schemas/tool.schema.json` is the source of truth for the format ids, which cover vector, raster, print, document, motion, audio, data and font output. [URL Mode](/info/url-mode.html) says what each id produces. The optional keys follow, grouped by what they change.
 
 ### Export controls
 
 - `actions` - the action buttons to show, from `copy`, `download`, `save` and `share`. Default `['copy','download','save']`.
 - `export` - set `false` for a utility or interactive tool with no export. The download, copy, format and size bar disappears, and **Save** shows only when the tool has inputs.
-- `filenameFrom` - input ids whose current values name the exported file, slugified in order (`ana-kovac`, or a URL's host and path). The tool name is the fallback when every listed value is empty, and the Batch grid builds each row's file name from the same inputs. `qr-code` and `certificate` declare one.
+- `filenameFrom` - input ids whose current values name the exported file, slugified in order (`ana-kovac`, or a URL's host and path). When every listed value is empty, the tool name is used. The Batch grid builds each row's file name from the same inputs. `qr-code` and `certificate` declare one.
 - `dims` - set `false` to hide the export size fields.
-- `units` - default `true`. Set `false` to offer **pixels only**: the physical unit selector (`mm`, `cm`, `in`, `pt`) and the DPI field disappear, so an on-screen pixel is an exported pixel. Use it for screen assets and favicons, where a print size would contradict the true raster resolution.
+- `units` - default `true`. Set `false` to offer **pixels only**: the physical unit selector (`mm`, `cm`, `in`, `pt`) and the DPI field disappear, and one on-screen pixel is one exported pixel. Use it for screen assets and favicons, where a print size would contradict the true raster resolution. Use it for screen assets and favicons.
 - `convertPaths` - default `true`. A tool that exports a vector format gets a **Convert paths** toggle that outlines text to paths in SVG, PDF and PDF CMYK, so the file renders the same without the fonts installed. Set `false` to never outline, as a capture tool that outlines its text while capturing (`url-shot`) or a camera effect (`filter`) does.
 - `transparentBg` - default `false`. Adds a **No BG** toggle to the export bar. The engine adds it to the input model, so hooks can react in `onInit` and `onInput` (`chart`).
-- `c2pa` - default `true`: Content Credentials are on unless someone turns them off. The card in the export popup starts ticked for every format that can carry one (`pdf`, `png`, `apng`, `jpg`, `gif`, `svg`, `tiff`, `cmyk-tiff`, `webp`, `mp4`, `webm` and zip members). The file is signed on the device, so viewers report an unverified credential unless the person has [enrolled an identity](/info/content-credentials-identity.html). Set `false` to opt the tool out; `privacy: "on-device"` tools are always off. A `?c2pa=` link or saved value overrides this for one export.
-- `aspectWarning` - `{ min?, max?, message }`. An amber caution in the export popup when the chosen page aspect (`width ÷ height`) falls outside the bounds. It guards against a size that breaks the layout and never appears in the output. `multi-page-pdf` declares `{ "max": 1, "message": "…" }` for portrait only.
-- `followsCanvasSize` - default `false`, engine v1.293. The tool lays itself out for the canvas size: when someone picks another export size, the runtime runs `onInput` with `id: '__canvasSize'` and repaints, so the canvas shows the layout the export writes. Hooks read the size as `ctx.canvasSize` and templates as `@canvasSize` ([When the canvas size changes](/info/tool-hooks.html#when-the-canvas-size-changes)). Raise `engineVersion` to `^1.293.0` with it (`logo-wall`).
+- `c2pa` - default `true`. The card in the export popup starts ticked for every format that can carry one (`pdf`, `png`, `apng`, `jpg`, `gif`, `svg`, `tiff`, `cmyk-tiff`, `webp`, `mp4`, `webm` and zip members). The file is signed on the device, so viewers report an unverified credential unless the person has [enrolled an identity](/info/content-credentials-identity.html). Set `false` to opt the tool out; `privacy: "on-device"` tools are always off. A `?c2pa=` link or saved value overrides this for one export.
+- `aspectWarning` - `{ min?, max?, message }`. An amber caution in the export popup when the chosen page aspect (`width ÷ height`) falls outside the bounds, warning of a size that breaks the layout. The caution never appears in the output. `multi-page-pdf` declares `{ "max": 1, "message": "…" }` for portrait only.
+- `followsCanvasSize` - default `false`, engine v1.293. The tool lays itself out for the canvas size. When someone picks another export size, the runtime runs `onInput` with `id: '__canvasSize'` and repaints, so the canvas shows the layout the export writes. Hooks read the size as `ctx.canvasSize` and templates as `@canvasSize` ([When the canvas size changes](/info/tool-hooks.html#when-the-canvas-size-changes)). Raise `engineVersion` to `^1.293.0` with it (`logo-wall`).
 - `preview` - `{ format?, auto? }`. For a tool whose live canvas is a placeholder until an explicit, expensive render runs, such as a capture tool that screenshots a page in `beforeExport`. The shell adds a `[data-preview]` control, and `auto: true` renders one frame on load. `url-shot` declares one.
 - `video` - `{ wait?, duration? }` in seconds, default `1` and `5`. Capture timing when `webm`, `mp4`, `gif` or `apng` is among the formats (`lottie-digi-ad`).
 
@@ -86,45 +86,45 @@ Most of what `render` declares reaches people in one place: the export popup. Fo
 | `document` | No sidebar. A multi-page rich-text editor with a formatting ribbon on the canvas. The render canvas and export controls stay. | `doc-studio` |
 | `deck` | Keeps the sidebar and adds an on-canvas slide editor with a thumbnail rail. | None in `community/` yet; `deck-studio` uses the default layout with `paged` |
 
-In all five, the data stays flat and expressible as URL parameters, so the CLI and URL mode render exactly what the editor shows.
+In all five, the data stays flat and expressible as URL parameters, so the CLI and URL mode render what the editor shows.
 
 ::: details How the editor, document and deck layouts work
-- **`editor`** drives one `blocks` input whose rows carry `canvas` geometry (x, y, width, height and rotation). The shell provides the pasteboard: boxes dragged past the artboard stay visible and selectable, faded outside the frame, which keeps its shadow as the export boundary. Exports stay bounded by the canvas in every format, and the template does nothing to opt in. The `canvas` keys are on [Structured inputs and canvas controls](/info/tool-structured-inputs.html#editor-canvas-connectors-grid-fixed-size-canvas-connect-grid-fixedcanvas).
-- **`document`** drives one `blocks` input (`content`) of content blocks: heading, text, lolly and table. The editor offers paragraph styles H1 to H4, bold, italic, lists and colour, per-block width, alignment, move and delete, click-to-edit text and rich HTML paste that becomes headings, lists and tables. **Pagination lives in the tool's hook**: blocks flow into fixed-size `[data-pdf-page]` boxes, the paged export `multi-page-pdf` also uses, so the CLI and URL mode render the same document with no editor.
-- **`deck`** mounts a live overlay over one `blocks` input whose rows are slides, so a slide's text, colour and images can be edited in place. Edit mode renders one active slide plus small thumbnails to keep the page light, and the overlay restores a full-deck render before export.
+- **`editor`** drives one `blocks` input whose rows carry `canvas` geometry (x, y, width, height and rotation). The shell provides the pasteboard: boxes dragged past the artboard stay visible and selectable, faded outside the frame. The frame's shadow marks the export boundary. Exports stay bounded by the canvas in every format, with no opt-in in the template. The `canvas` keys are on [Structured inputs and canvas controls](/info/tool-structured-inputs.html#editor-canvas-connectors-grid-fixed-size-canvas-connect-grid-fixedcanvas).
+- **`document`** drives one `blocks` input (`content`) of content blocks: heading, text, lolly and table. The editor offers paragraph styles H1 to H4, bold, italic, lists and colour, per-block width, alignment, move and delete, click-to-edit text and rich HTML paste that becomes headings, lists and tables. **Pagination lives in the tool's hook**: blocks flow into fixed-size `[data-pdf-page]` boxes, which the paged export `multi-page-pdf` also uses, so the CLI and URL mode render the same document with no editor.
+- **`deck`** mounts a live overlay over one `blocks` input whose rows are slides, so a slide's text, colour and images can be edited in place. Edit mode renders one active slide plus small thumbnails. The overlay restores a full-deck render before export.
 :::
 
 - `sidebar` - default `true`. Set `false` when the template edits its own inputs on the canvas (`sandbox`). The inputs stay in the synced input model (URL, saved sessions, collaboration, CLI) but get no sidebar, and a tool that exports keeps its export controls.
-- `webPreview` - default `false`. For a web-page tool with no export: the preview becomes a real viewport that fills the pane's width, reflows when the pane resizes and scrolls, instead of a scaled artboard (`jump`, `scan-code`).
+- `webPreview` - default `false`. For a web-page tool with no export: the preview becomes a viewport that fills the pane's width, reflows when the pane resizes and scrolls, instead of a scaled artboard (`jump`, `scan-code`).
 - `urlSync` - default `true`. Set `false` to keep live edits out of the address bar. Explicit URL inputs and generated share links still work, and local recovery uses the session slot.
-- `denseSections` - `input.section` labels whose short controls the web sidebar lays out two to a row. A presentation hint only: the input model, URL encoding and every headless render are untouched, and the grid falls back to one column on a narrow panel or with large text.
-- `sectionIcons` - maps an `input.section` label to a shell icon name, drawn before the label on the folded section head. A tool with many sections (`chart` declares seventeen) can then be scanned by glyph as well as by word. Same contract as `denseSections`: an unknown icon name draws nothing, and the CLI and TUI ignore the map. Give each section an icon from the shell registry, keep a section's fields consecutive and put primary content before secondary settings. Translated section captions keep their icon and density.
-- `themeChoicesAfter` - the id of an input. The web sidebar draws the design system's choices for the piece (colourway, mode and any other theme group) right after that input's row, inside its section, instead of in the separate **Design system** section. It is keyed by input id, so a translated section caption cannot move the choices. Same contract as `sectionIcons`: an id that matches no input leaves the separate section in place, and the CLI and TUI ignore the key (`snippet`).
+- `denseSections` - `input.section` labels whose short controls the web sidebar lays out two to a row. The input model, URL encoding and every headless render are untouched. The grid falls back to one column on a narrow panel or with large text.
+- `sectionIcons` - maps an `input.section` label to a shell icon name, drawn before the label on the folded section head. A tool with many sections (`chart` declares seventeen) can then be scanned by glyph. Same contract as `denseSections`: an unknown icon name draws nothing, and the CLI and TUI ignore the map. Give each section an icon from the shell registry, keep a section's fields consecutive and put primary content before secondary settings. Translated section captions keep their icon and density.
+- `themeChoicesAfter` - the id of an input. The web sidebar draws the design system's choices for the piece (colourway, mode and any other theme group) after that input's row, inside its section, instead of in the separate **Design system** section. It is keyed by input id, so a translated section caption cannot move the choices. Same contract as `sectionIcons`: an id that matches no input leaves the separate section in place, and the CLI and TUI ignore the key (`snippet`).
 
 ### Live camera
 
 These keys apply only to tools with an `onFrame` hook; others ignore them.
 
-- `liveMaxEdge` - the longest edge, in pixels, of the camera frame handed to the hook. The shell scales the camera down to a small default that suits a vector trace, so a raster effect (the `filter` tool's pixel-stretch) raises it for sharper output. The shell never upscales past the native camera frame, and caps the value at its own ceiling. `liveMaxEdgeInput` points at a number input whose value overrides it, so resolution can be a slider that re-applies to the live stream.
+- `liveMaxEdge` - the longest edge, in pixels, of the camera frame handed to the hook. The shell scales the camera down to a small default suited to a vector trace. A raster effect (the `filter` tool's pixel-stretch) raises the value for sharper output. The shell never upscales past the native camera frame, and caps the value at its own ceiling. `liveMaxEdgeInput` points at a number input whose value overrides it, so resolution can be a slider that re-applies to the live stream.
 - `liveDefault` - an animated SVG catalog asset the shell plays as a moving subject when no camera is in use (`filter`).
 - `liveFacing` - the camera that opens first: `user` (front, the default) or `environment` (rear).
 - `liveCameraWhen` - `{ input, value }`. Starts the camera while that input holds that value and stops it otherwise (`scan-code` in camera mode).
 
 ### Print and pages
 
-`width` and `height` are in the export's unit, and physical units come with a DPI; [Reserved URL parameters](/info/url-parameters.html) covers `unit`, `dpi`, bleed and marks in links. PDF exports a true page size. The CMYK formats (`pdf-cmyk`, `cmyk-tiff`) pair with **Convert paths** for print files that need no installed fonts. A `select` option can carry `width`, `height` and `unit` to set the export page size from a dropdown, as `wayfinding-signage`'s **Sign size** does.
+`width` and `height` are in the export's unit, and physical units come with a DPI. [Reserved URL parameters](/info/url-parameters.html) covers `unit`, `dpi`, bleed and marks in links. PDF exports a true page size. The CMYK formats (`pdf-cmyk`, `cmyk-tiff`) pair with **Convert paths** for print files that need no installed fonts. A `select` option can carry `width`, `height` and `unit` to set the export page size from a dropdown, as `wayfinding-signage`'s **Sign size** does.
 
-- `printMarks` - unset by default. The print-finishing card (crop marks, registration marks, bleed) is offered for print-capable formats; its master toggle starts off for RGB vector output (`pdf`, `svg`, `eps`) and on for the separating press formats (`pdf-cmyk`, `cmyk-tiff`, `eps-cmyk`). Set `true` to declare print intent, which turns the card on by default for every print-capable format. Set `false` to remove the card, the usual choice for a multi-page document, whose output is a paginated RGB document rather than one marked plate. Physical units alone never turn marks or bleed on: an explicit `bleed=` or `marks=` link, a toggle or declared print intent does.
+- `printMarks` - unset by default. The print-finishing card (crop marks, registration marks, bleed) is offered for print-capable formats; its master toggle starts off for RGB vector output (`pdf`, `svg`, `eps`) and on for the separating press formats (`pdf-cmyk`, `cmyk-tiff`, `eps-cmyk`). Set `true` to declare print intent, which turns the card on by default for every print-capable format. Set `false` to remove the card, the usual choice for a multi-page document. Physical units alone never turn marks or bleed on: an explicit `bleed=` or `marks=` link, a toggle or declared print intent does.
 - `paged` - default `false`. Marks a multi-page tool that lays out several `[data-pdf-page]` boxes. The gallery shows each page as its own preview slide instead of example looks.
-- `paginate` - `{ "source": "<tableInputId>" }`. The engine paginates for you: it fills your template once per row of the named `table` input and wraps each in its own `[data-pdf-page]` box. Author one page. `battlecards` is the reference: a hook-free, one-card template that turns any pasted table into a multi-page PDF.
-- `filmstrip` - `"left"` (default) or `"bottom"`: the edge the page thumbnail rail of a `paged` tool runs along. Use `bottom` for wide pages that are few in number, such as cards or slides, where a left rail takes width the page needs. `battlecards` uses `bottom`.
-- `pages` - `{ count, width, height, gap?, min?, max? }`. Turns an `editor` tool into a **multi-page canvas**, the social-carousel pattern: a horizontal strip of same-size page frames, with boxes placed across all of them. Box coordinates stay one flat, global array; the hook works out which page each box belongs to and emits one `[data-pdf-page]` frame per page, so headless renders match and export fans out to a multi-page PDF or one still per page. Requires `layout: "editor"` and `paged: true`. Each property holds the id of the number input its value comes from.
+- `paginate` - `{ "source": "<tableInputId>" }`. The engine fills your template once per row of the named `table` input and wraps each in its own `[data-pdf-page]` box. Author one page. `battlecards` is the reference: a hook-free, one-card template that turns any pasted table into a multi-page PDF.
+- `filmstrip` - `"left"` (default) or `"bottom"`: the edge the page thumbnail rail of a `paged` tool runs along. Use `bottom` for a few wide pages, such as cards or slides. `battlecards` uses `bottom`.
+- `pages` - `{ count, width, height, gap?, min?, max? }`. Turns an `editor` tool into a **multi-page canvas**, the social-carousel pattern: a horizontal strip of same-size page frames, with boxes placed across all of them. Box coordinates stay one flat, global array. The hook works out which page each box belongs to and emits one `[data-pdf-page]` frame per page, so headless renders match and export gives a multi-page PDF or one still per page. Requires `layout: "editor"` and `paged: true`. Each property holds the id of the number input its value comes from.
 
 ::: details What `paginate` gives each page
 Each filled page gets a `page` object:
 
 - `page.index`, `page.number` and `page.count`.
-- `page.first`: the row's first cell, the natural page title.
+- `page.first`: the row's first cell, usually the page title.
 - `page.cells`: `[{ column, value, col }]` for every column. `col` is the cell's original column index, stable even when the template shows only some columns.
 - `page.fields`: the cells after the first, labelled with the person's own column headings.
 - `page.byColumn`: the trimmed, lower-cased column name mapped to the row's cell, for lookups such as `{{lookup page.byColumn "icon"}}`.
@@ -133,7 +133,7 @@ A template can make any cell editable on the canvas by stamping it `data-cell="{
 :::
 
 ::: details How a multi-page PDF is built
-A template marks its page boxes with `data-pdf-page`. Each marked element becomes one true PDF page, sized to its own CSS box, so a cover, content that flows across pages and a back page render as real pages rather than one tall image. Pages are drawn as vectors with text outlined to paths, and the document can carry an open `password`. Without any `[data-pdf-page]` box the export falls back to the single-page renderer. The multi-page path skips print finishing, so pair it with `printMarks: false`. `multi-page-pdf` is the reference layout: a cover, flowing `blocks` content and a back page.
+A template marks its page boxes with `data-pdf-page`. Each marked element becomes one PDF page, sized to its own CSS box. A cover, content that flows across pages and a back page render as separate pages, not one tall image. Pages are drawn as vectors with text outlined to paths, and the document can carry an open `password`. Without any `[data-pdf-page]` box the export falls back to the single-page renderer. The multi-page path skips print finishing, so pair it with `printMarks: false`. `multi-page-pdf` is the reference layout: a cover, flowing `blocks` content and a back page.
 :::
 
 The recording key (`capture`) and the speech-to-text key are on [Tool hooks and host capabilities](/info/tool-hooks.html), and `portable` is on [Templates and rendering](/info/tool-rendering.html#animated-html).
@@ -165,13 +165,13 @@ Editor bindings use adapters the shell supports: `canvas` places image reference
 Declaring an export format in `render.formats` does not claim the tool can convert any file into that format. Conversion in Assets is a separate feature.
 
 ::: details What Convert in Assets offers
-Assets also offers **Convert**, which lists the transformations the source and the device support before showing their settings. That list comes from concrete file operations, separately from `openWith` and `render.formats`. An on-device utility conversion keeps its watermark and provenance policy. PDF page splitting produces a ZIP of static single-page PDFs, and PDF page rendering produces a ZIP of PNG images. Their fidelity notes and refusal conditions appear before conversion.
+Assets also offers **Convert**, which lists the transformations the source and the device support before showing their settings. That list comes from file operations, not from `openWith` or `render.formats`. An on-device utility conversion keeps its watermark and provenance policy. PDF page splitting produces a ZIP of static single-page PDFs, and PDF page rendering produces a ZIP of PNG images. Their fidelity notes and refusal conditions appear before conversion.
 :::
 
 <!--i:eti-palette-->
 ## Colours that are the content
 
-A design system can offer several colourways, and a person picks one per piece in the tool sidebar's **Design system** section. Every colour a tool links to the design system follows that choice, which is what most tools want. A tool whose colours are its content, such as a tonal ramp or a palette pinned to a dataset, can opt out:
+A person picks one colourway per piece in the tool sidebar's **Design system** section, and every colour a tool links to the design system follows that choice. A tool whose colours are its content, such as a tonal ramp or a palette pinned to a dataset, can opt out:
 
 ```json
 { "tokenAxes": { "colourway": "ignore" } }
@@ -181,16 +181,16 @@ The keys are the kinds of theme group in [What a theme group means](/info/design
 
 The pin covers every colour the render reads, so a print export uses the CMYK or spot build the design system authored for the canonical option. `"mode": "ignore"` keeps a print piece in the canonical look; in a design system with no `mode` group, its light and dark themes with no group count as the mode.
 
-When a link or the CLI asks for an option the tool ignores, `lolly run` prints a `THEME_CHOICE_IGNORED` warning and an MCP render adds the same sentence to its warnings, so the request is never dropped silently.
+When a link or the CLI asks for an option the tool ignores, `lolly run` prints a `THEME_CHOICE_IGNORED` warning and an MCP render adds the same sentence to its warnings.
 
 ::: warning Raise `engineVersion` with `tokenAxes`
 Engines older than the field refuse a manifest that declares `tokenAxes`, so raise `engineVersion` to the release that added the field, as listed in `engine/CHANGELOG.md`.
 :::
 
-A switch redraws the mounted tool in place, with no reload. Linked colours and `var(--brand-*)` variables follow by themselves. A hook that keeps colours it read from `host.tokens` reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) shows.
+A switch redraws the mounted tool without a reload. Linked colours and `var(--brand-*)` variables follow automatically. A hook that keeps colours it read from `host.tokens` reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) shows.
 
 ::: details How Lolly decides which theme groups a tool offers
-The sidebar offers a group only when switching it changes what the tool draws, so a tool that never reads a colour a group changes needs no field: the group does not appear. Lolly works this out from the tool's own files and its current values.
+The sidebar offers a group only when switching the group changes what the tool draws. A tool that never reads a colour a group changes needs no field. Lolly works this out from the tool's own files and current values.
 
 The colours a tool reads are the canvas variables its template, styles, hooks and portable presentation use (`var(--brand-primary)` and the rest), the token references its inputs link and the references its hooks pass to `host.tokens.resolve`. A reference a hook finishes at run time, such as `'{asset.logo.' + variant + '}'`, counts every token under its fixed start.
 
@@ -200,7 +200,7 @@ A hook that reads the colour list or the token set, a reference built from no fi
 <!--i:eti-images-->
 ## Example looks (`examples`)
 
-A tool ships one gallery preview, but `examples` lets its tile show range: an array of example input values, each rendered live on the device through the same off-screen path an export takes, as a horizontally scrolling preview strip. When the tool is `featured`, the looks also cross-fade in the hero row. Each look is cached, so later visits are instant. Leave `examples` out when one preview says enough.
+`examples` lets a tool's gallery tile show range: an array of example input values, each rendered live on the device through the same off-screen path an export takes, as a horizontally scrolling preview strip. Each look is cached, and a `featured` tool also cross-fades the looks in the hero row. Each look is cached, so later visits are instant. Leave `examples` out when one preview says enough.
 
 ```jsonc
 "examples": [
@@ -209,20 +209,20 @@ A tool ships one gallery preview, but `examples` lets its tile show range: an ar
 ]
 ```
 
-- **Key `values` by input `id`, never by `urlKey`.** Example values seed the runtime the way batch rows do, by input id only. A `urlKey` belongs to URL transport, so a value keyed by one would render the tool's default look. When you copy a compact share link into an example, translate each short key back to its input id.
+- **Key `values` by input `id`, never by `urlKey`.** Example values seed the runtime the way batch rows do, by input id only. A `urlKey` is for URL transport only; a value keyed by one renders the tool's default look. When you copy a compact share link into an example, translate each short key back to its input id.
 - `label` records the look's intent and is not shown to people. `theme` (`light` or `dark`) is only for looks that draw ink on a **transparent** background, such as a reverse logo; the clashing theme leaves that look out of the strip. Leave it out when the look draws its own background.
 - `width` and `height` in `values` set that example's preview size, even when the tool declares no such inputs.
 - An `asset` value must be a **reference object**, never a bare string: `{ "source": "library", "id": "your/asset/id", "_unresolved": true }`, optionally with a `?theme=` suffix on a themable icon id. A `blocks` value is an array of row objects keyed by the block's field ids.
-- A look that needs pictures of its own, such as placeholder logos, can ship them in the tool's `assets/` folder and name each one by its path: `{ "source": "remote", "id": "/tools/your-tool/assets/sample.svg", "_unresolved": true }`. The file must sit directly in that folder and end in `.svg`, `.png`, `.jpg` or `.webp`. Every shell reads it from the tool's own files, and the catalog index carries only the path. A `data:` URL works too, but its bytes then ride in the catalog index, the gallery's first-paint index and the preview bundle. Lolly Logo Wall's example look is the reference.
+- A look that needs pictures of its own, such as placeholder logos, can ship them in the tool's `assets/` folder and name each one by its path: `{ "source": "remote", "id": "/tools/your-tool/assets/sample.svg", "_unresolved": true }`. The file must sit directly in that folder and end in `.svg`, `.png`, `.jpg` or `.webp`. Every shell reads it from the tool's own files, and the catalog index carries only the path. A `data:` URL works too, but its bytes then travel in the catalog index, the gallery's first-paint index and the preview bundle. Lolly Logo Wall's example look is the reference.
 
-`pnpm run validate:catalog` checks every look. `values` keys must be declared input ids, with a pointed error that gives the right id when a `urlKey` is used. Catalog asset references must exist, a tool asset path must name a file in the tool's own `assets/` folder, and a `?theme=` suffix must be a real icon theme. Blocks row keys must be declared fields. The validator also warns when a tool declares looks but no format the gallery can show (`svg`, `png`, `jpg`, `jpeg`, `webp`), and when a strip has more than 8 looks: each look is a live render, so keep to a handful of different ones.
+`pnpm run validate:catalog` checks every look. `values` keys must be declared input ids; when a `urlKey` is used, the error gives the right id. Catalog asset references must exist, a tool asset path must name a file in the tool's own `assets/` folder, and a `?theme=` suffix must be a real icon theme. Blocks row keys must be declared fields. The validator also warns when a tool declares looks but no format the gallery can show (`svg`, `png`, `jpg`, `jpeg`, `webp`), and when a strip has more than 8 looks: each look is a live render, so keep to a handful of different ones.
 
 The older alias `featured.variants` still renders but is deprecated. Write `examples`.
 
 <!--i:eti-tag-->
 ## What a tool is for (`intents.json`)
 
-A tool can say which purposes it serves in an optional `intents.json` beside its manifest, so someone can [start from what a piece has to do](/info/visual-intent.html) rather than from the tool's name. A tool with no such file is not offered for an intent, and everything else about the tool works as before. Declare a purpose only where the tool serves that purpose well.
+An optional `intents.json` beside the manifest says which purposes a tool serves, so someone can [start from what a piece has to do](/info/visual-intent.html) rather than from the tool's name. A tool with no such file is not offered for an intent, and everything else about the tool works as before. Declare a purpose only where the tool serves that purpose well; a tool with no such file is not offered for an intent.
 
 ```json
 {
@@ -244,11 +244,11 @@ A tool can say which purposes it serves in an optional `intents.json` beside its
 - `set` gives input values this purpose starts from. Use it to blank sample wording the caller did not supply, or a claim such as "Most popular", or to pick a mode, as QR Code does with `"payload": "event"` for `invite`. Content in the request overrides these values.
 - `surfaces` maps a named surface to the input values that draw it, for what the tool's own options cannot say. Deck Studio uses this because its `size` options state a shape but no pixels. An empty object means the tool lays itself out at that size.
 
-Most tools need no `surfaces` entry. A select option that states `width` and `height` answers for itself, and a tool that declares `render.followsCanvasSize` fits any size. A tool whose own size has the same shape as a surface fits that surface too.
+Most tools need no `surfaces` entry. A select option that states `width` and `height` already gives the size, and a tool that declares `render.followsCanvasSize` fits any size. A tool whose own size has the same shape as a surface fits that surface too.
 
-The file is separate from the manifest on purpose. Loading a tool never reads `intents.json`, so adding one needs no new manifest key and no change to `engineVersion`, and an older app simply ignores the file. A brand overlay can carry its own `intents.json`, which wins over the community file like any other overlay file. Signing covers the file with the rest of the tool.
+Loading a tool never reads `intents.json`. Adding one needs no new manifest key and no change to `engineVersion`, and an older app ignores the file. A brand overlay can carry its own `intents.json`, which wins over the community file like any other overlay file. Signing covers the file with the rest of the tool.
 
-`validate:catalog` checks every `intents.json`: the shape (`schemas/tool-intents-v1.schema.json`), then what the schema cannot say, through `checkToolIntents`. That catches an input that does not exist, a select value that is not on offer, a repeated purpose, a required input no role can fill and an `intents.json` in a folder with no manifest.
+`validate:catalog` checks every `intents.json`: the shape (`schemas/tool-intents-v1.schema.json`), then what the schema cannot check, through `checkToolIntents`. That catches an input that does not exist, a select value that is not on offer, a repeated purpose, a required input no role can fill and an `intents.json` in a folder with no manifest.
 
 ::: note The checks do not look at the file
 Render each declaration through `lolly intent --render` and look at the file as well: an input that takes plain text only sometimes, or falls back to a sample, passes every check here.
@@ -257,7 +257,7 @@ Render each declaration through `lolly intent --render` and look at the file as 
 <!--i:eti-help-->
 ## A short walkthrough (`guide`)
 
-Some tools are not finished when the render is. An email signature is finished when it is pasted into the mail app's settings, and nothing on the canvas shows that step. `guide` is a few steps for that last stretch. The shell shows them in a dialog behind a help button beside the tool's name, and opens the dialog once by itself the first time a device opens the tool.
+`guide` gives a few steps for work that comes after the render, such as pasting an email signature into the mail app's settings. The shell shows them in a dialog behind a help button beside the tool's name, and opens the dialog once by itself the first time a device opens the tool.
 
 ```jsonc
 "guide": {
@@ -278,7 +278,7 @@ Some tools are not finished when the render is. An email signature is finished w
 }
 ```
 
-- **One track per route someone might take**, such as a computer and a phone. One track renders as a numbered list; two or more render as tabs, so the alternative is visible. Up to four tracks of eight steps each.
-- **Steps are plain text.** `**bold**` is the only markup, for the control a step points at; everything else is escaped. Link to the docs from a step when the long version is what people need, because the guide is a nudge, not documentation.
+- **One track per route someone might take**, such as a computer and a phone. One track renders as a numbered list; two or more render as tabs. Up to four tracks of eight steps each.
+- **Steps are plain text.** `**bold**` is the only markup, for the control a step points at; everything else is escaped. Link to the docs from a step when people need the long version.
 - **A track `id` is a contract, like an input id.** Translation keys are built from it (`guide.tracks.<id>.label`, `.note` and `.steps.<index>`, plus `guide.title`), so renaming one orphans its translations.
 - Point at controls the shell has. If a step says "set the format to HTML", keep `html` in `render.formats`.

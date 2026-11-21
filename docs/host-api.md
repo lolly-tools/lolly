@@ -1,18 +1,18 @@
 # Host API
 
-You are writing a tool's `hooks.js` and need something the template cannot do alone: read the person's profile, place a brand asset, shape a headline into outlines or hand back a finished file. Every hook receives one object, `host`, that does those jobs for you.
+Every hook in a tool's `hooks.js` receives one object, `host`, for the jobs a template cannot do alone: read the person's profile, place a brand asset, outline a headline or hand back a finished file.
 
-The same hook runs unchanged in the web app, the desktop and mobile apps, the CLI, the TUI and the MCP server. Each of them implements `host` in its own way, so your tool never touches the DOM outside its template, the network or storage directly. (The TUI reuses the CLI's implementation, so anything this page says of the CLI applies to the TUI too.)
+The same hook runs unchanged in the web app, the desktop and mobile apps, the CLI, the TUI and the MCP server. Each implements `host` its own way, so a tool never touches the DOM outside its template, the network or storage directly. The TUI reuses the CLI's implementation, so what this page says of the CLI applies to the TUI.
 
 ::: figure host-api-bridge
-A tool hands every outside job to `host`. Six members exist on every shell; the rest are optional and grouped by job below. Each shell implements the same contract its own way.
+A tool hands every outside job to `host`. Six members exist on every shell; the rest are optional, grouped by job.
 :::
 
 Every shell provides six members: `profile`, `assets`, `state`, `clipboard`, `export` and `log`. The rest are optional.
 
-Unless a section says otherwise, an API works on the device and sends nothing anywhere. Where the engine does the work, as it does for colour, geometry, connectors, codecs, audio analysis and layout, every shell runs the same engine code, so the web app and the CLI get the same numbers and the same bytes.
+Unless a section says otherwise, an API works on the device and sends nothing anywhere. For colour, geometry, connectors, codecs, audio analysis and layout, every shell runs the same engine code, so the web app and the CLI get the same numbers and bytes.
 
-To type-check and test against this contract without cloning Lolly, install the SDK: `npm i -D @lolly-tools/core`. It installs the `HostV1` types, `validateTool` and `createMockHost` ([package page](https://www.npmjs.com/package/@lolly-tools/core)). The canonical declarations are in `packages/core/src/host-v1.ts`, a stable barrel over one file per API in `packages/core/src/host-v1/`, and an API snapshot test rejects accidental signature drift.
+To type-check and test against this contract without cloning Lolly, install the SDK: `npm i -D @lolly-tools/core`. It has the `HostV1` types, `validateTool` and `createMockHost` ([package page](https://www.npmjs.com/package/@lolly-tools/core)). The canonical declarations are in `packages/core/src/host-v1.ts`, a stable barrel over one file per API in `packages/core/src/host-v1/`. An API snapshot test rejects accidental signature drift.
 
 ```js
 function onInit({ model, host }) {
@@ -27,7 +27,7 @@ function onInit({ model, host }) {
 ## Rules of the contract
 
 - **Additive only.** Methods may be added in a minor version, and are never removed or changed in signature without a major version. When v2 ships, v1 keeps working.
-- **Check, or declare `requires`.** Check for an optional API before you call it (`host.text?.toPath`). When your hooks call one without checking, list it in the manifest's `requires` (`["text", "tokens"]`): the runtime then refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys the tool out there. `node scripts/tool-requires.ts --write` reads your `hooks.js` and writes the list. See [Tool manifests](/info/tool-manifest.html). `HOST_V1_OPTIONAL_APIS` in `packages/core/src/host-v1/apis.ts` is the complete list of optional APIs.
+- **Check, or declare `requires`.** Check for an optional API before you call it (`host.text?.toPath`). When your hooks call one without checking, list it in the manifest's `requires` (`["text", "tokens"]`). The runtime then refuses to mount the tool on a shell that lacks one, before any hook runs, and the gallery greys the tool out there. `node scripts/tool-requires.ts --write` reads your `hooks.js` and writes the list. See [Tool manifests](/info/tool-manifest.html). `HOST_V1_OPTIONAL_APIS` in `packages/core/src/host-v1/apis.ts` is the complete list of optional APIs.
 - **Device and network access needs a capability.** `net` (`network`), `capture` (`capture`), `compose` (`compose`) and `recorder` (`microphone`, `camera` or `screen`) need a matching flag in the manifest's `capabilities`. Every other optional API takes no flag and is present only on a shell that provides that API.
 - **No platform-specific methods.** If only one shell can do something, it sits behind a `capabilities` flag, and shells that cannot fulfil it expose a stub or an error.
 - **Identify the host.** `host.version` is `'1'`; `host.shell` is one of `web`, `tauri-desktop`, `tauri-mobile` or `cli`.
@@ -53,18 +53,18 @@ function onInit({ model, host }) {
 
 ### `host.profile`
 
-The person's details. Tools read them; the person manages them in the host's own interface. Most tools never call this directly: declare `bindToProfile: "firstname"` on an input and the host fills it in for you.
+The person's details. Tools read them; the person manages them in the host's interface. Most tools never call this API: declare `bindToProfile: "firstname"` on an input and the host fills the value in.
 
 | Method | Returns | Notes |
 |---|---|---|
 | `get()` | `Promise<Profile>` | Current profile |
 | `subscribe(fn)` | `() => void` | Calls `fn(profile)` on change; returns an unsubscribe |
 
-`Profile`: the fields a tool reads are `firstname, lastname, email, phone, title, org, city, country, lang, headshot (AssetRef), useDetails` and `custom`. `useDetails` is the opt-in that gates embedding author and contact details into export provenance. The rest are app preferences and interface records, not a tool concern: `featureFlags` (the person's local interface flags), `a11y`, `appearance`, `emoji`, `saveRenders`, `exportHome`, favourites, hidden tools, templates and assets, trusted sites and similar records.
+`Profile`: the fields a tool reads are `firstname, lastname, email, phone, title, org, city, country, lang, headshot (AssetRef), useDetails` and `custom`. `useDetails` is the opt-in for embedding author and contact details in export provenance. The other fields are app preferences and interface records that tools do not need: `featureFlags` (the person's local interface flags), `a11y`, `appearance`, `emoji`, `saveRenders`, `exportHome`, favourites, hidden tools, templates and assets, trusted sites and similar records.
 
 ### `host.assets`
 
-The bridge to the catalog and the person's own library. For an `asset`-typed input the host builds the picker from your manifest declaration, so you rarely call `pick()` yourself. Use the `url` of an `AssetRef` in your template through the `asset` helper (`{{asset logo}}`).
+The bridge to the catalog and the person's own library. For an `asset`-typed input the host builds the picker from the manifest, so you rarely call `pick()`. Use an `AssetRef`'s `url` in the template through the `asset` helper (`{{asset logo}}`).
 
 ::: details `host.assets` members
 | Method | Returns | Notes |
@@ -80,14 +80,14 @@ The bridge to the catalog and the person's own library. For an `asset`-typed inp
 
 `AssetQuery` / `AssetPickerOpts`: `type` (`vector`·`raster`·`video`·`audio`·`lottie`·`model`·`lut`·`palette`·`tokens`·`font`·`profile`·`ratecard`·`text`·`data`), `namespace` (for example `lolly/logo`), `tags` (AND), `includeDeprecated` and `motion` (v1.154, widens an image query to admit video). The picker adds `types` (v1.191, several types in one picker), `title`, `allowUpload` and `current`.
 
-`add({ name, bytes, mime? })` saves a file the person made with your tool, such as a render or a song file, into their Assets. It uses the same ingest as an upload: the extension decides the format, and a duplicate of something already in the library is offered back rather than stored twice. Call it only when the person asks to save. The web shell refuses a call on a page nobody has touched (`assets.add.no-gesture`), limits a burst of saves (`assets.add.rate`) and confirms each save with a toast that offers Undo. Check for `host.assets.add` and keep your download as the fallback, because the Node shells have no asset library and leave the method out.
+`add({ name, bytes, mime? })` saves a file the person made with your tool, such as a render or a song, into their Assets. It uses the upload ingest: the extension decides the format, and a duplicate of a library item is offered back instead of stored twice. Call the method only when the person asks to save. The web shell refuses a call on a page nobody has touched (`assets.add.no-gesture`), limits a burst of saves (`assets.add.rate`) and confirms each save with a toast that offers Undo. The Node shells have no asset library and leave the method out, so check for `host.assets.add` and keep your download as the fallback.
 
 `AssetRef`: `{ source: 'library'|'user'|'remote', id, type, format, url, width?, height?, version?, checksum?, meta? }`.
 :::
 
 ### `host.state`
 
-Per-tool saved state: IndexedDB on the web, the filesystem on Tauri and memory on the CLI. **Never use `localStorage`.** The host already saves and loads people's sessions, so reach for this only for state the tool manages itself.
+Per-tool saved state: IndexedDB on the web, the filesystem on Tauri and memory on the CLI. **Never use `localStorage`.** The host already saves and loads sessions. Use this API only for state the tool manages itself.
 
 | Method | Returns |
 |---|---|
@@ -107,7 +107,7 @@ Per-tool saved state: IndexedDB on the web, the filesystem on Tauri and memory o
 
 ### `host.export`
 
-The host owns the renderer, so tools do not bundle their own. `render` turns the tool's DOM into a file, `file` delivers bytes the tool made itself, and `imprint` marks an existing raster.
+The host owns the renderer; tools do not bundle one. `render` turns the tool's DOM into a file, `file` delivers bytes the tool made itself, and `imprint` marks an existing raster.
 
 ::: details `host.export` members
 | Method | Returns | Notes |
@@ -121,7 +121,7 @@ The host owns the renderer, so tools do not bundle their own. `render` turns the
 | `canShare(opts?)` *(optional, v1.126)* | `boolean` | Synchronous: will `share()` reach a share sheet for a file of this type on this shell? Show a "Send to" control only when this is `true` |
 | `checkLayout(node)` *(optional)* | `Promise<{ ok, issues }>` | Measure declared text layout before export |
 
-`format` is a format id. The `render.formats` enum in `schemas/tool.schema.json` is the full set: the catalog validator enforces it, a tool's manifest says which ids it offers, and [Every format Lolly can open and make](/info/formats.html) and [Export a file](/info/exporting.html) describe each one. The `ExportFormat` type in `packages/core/src/host-v1/export.ts` does not match the schema (it has no `webp`, `avif`, `tiff`, `pptx` or `zip`, for example), so check the schema, not the type. The unit maths is in `engine/src/units.ts`.
+`format` is a format id. The `render.formats` enum in `schemas/tool.schema.json` is the full set. The catalog validator enforces the enum, a tool's manifest lists the ids it offers, and [Every format Lolly can open and make](/info/formats.html) and [Export a file](/info/exporting.html) describe each one. The `ExportFormat` type in `packages/core/src/host-v1/export.ts` does not match the schema: it lacks `webp`, `avif`, `tiff`, `pptx` and `zip`, among others. Check the schema, not the type. The unit maths is in `engine/src/units.ts`.
 :::
 
 ::: details `ExportOpts` fields
@@ -158,16 +158,16 @@ The host owns the renderer, so tools do not bundle their own. `render` turns the
 :::
 
 ::: details The design-system record in `meta`
-When the runtime assembles `meta` with the record on, it reads `host.tokens.snapshot()` through the document's own theme choice and records the snapshot's `system`, its `version` unless that is the working head, and every theme choice except the light or dark one. A manifest that ignores an axis kind through `tokenAxes` records no choice of that kind. When a colourway is recorded, `description` gives the colourway beside the tool (`"Made with https://lolly.tools : Chart (Beach colourway)"`); a description bound with `bindToMeta` is left as written.
+When the runtime assembles `meta` with the record on, it reads `host.tokens.snapshot()` with the document's theme choice and records the snapshot's `system`, its `version` unless that is the working head, and every theme choice except the light or dark one. A manifest that ignores an axis kind through `tokenAxes` records no choice of that kind. When a colourway is recorded, `description` gives the colourway beside the tool (`"Made with https://lolly.tools : Chart (Beach colourway)"`); a description bound with `bindToMeta` is left as written.
 
 When its publisher opted in, the snapshot's optional `brandPage` adds that address to the record, read from the working head.
 
-A shell writes the record as flat `designSystem`, `designSystemLabel`, `designVersion` and `themes` keys of the `tools.lolly.export` credential assertion (`designRecordEnvironment`), as `lolly:` XMP or SVG properties (`designRecordXml`) and as PDF keywords (`pdfKeywords`). `runtime.madeWithPreview()` returns the record and both descriptions without exporting, for a shell to show before anything is written, and `runtime.lastExportMeta` is the metadata the last export embedded, for a shell that stamps the credential afterwards. [Exporting](/info/exporting.html#the-design-system-record) describes what a person sees. An export whose `brandSkills` were handed over also records them, as a `brandSkills` JSON key in the assertion, a `lolly:BrandSkills` property and one `Guided by: <name> <revision>` PDF keyword per skill; the description is unchanged.
+A shell writes the record as flat `designSystem`, `designSystemLabel`, `designVersion` and `themes` keys of the `tools.lolly.export` credential assertion (`designRecordEnvironment`), as `lolly:` XMP or SVG properties (`designRecordXml`) and as PDF keywords (`pdfKeywords`). `runtime.madeWithPreview()` returns the record and both descriptions without exporting, for a shell to show before anything is written. `runtime.lastExportMeta` is the metadata the last export embedded, for a shell that stamps the credential afterwards. [Exporting](/info/exporting.html#the-design-system-record) describes what a person sees. An export whose `brandSkills` were handed over also records them, as a `brandSkills` JSON key in the assertion, a `lolly:BrandSkills` property and one `Guided by: <name> <revision>` PDF keyword per skill; the description is unchanged.
 :::
 
 ### File inputs
 
-A `file`-typed input (the person's own file, picked into memory) arrives as an **`InputFile`**: `{ __file: true, name, mime, size, bytes (Uint8Array), url }`. The hook reads `bytes` directly. There is no `host.*` call, because the bytes ride in the input value: the portable `host` surface has no file-read API, so the same hook runs on every shell. A `file` value never serialises to a URL and is never persisted. The `exportFile` hook transforms those bytes and returns `{ bytes, mime, filename }`, which the shell delivers through `host.export.file`. `strip-data` is the reference; [Build a tool](/info/authoring-tools.html) has the full pattern.
+A `file`-typed input (the person's own file, picked into memory) arrives as an **`InputFile`**: `{ __file: true, name, mime, size, bytes (Uint8Array), url }`. The hook reads `bytes` directly, with no `host.*` call. The bytes ride in the input value and the portable `host` surface has no file-read API, so the same hook runs on every shell. A `file` value never serialises to a URL and is never persisted. The `exportFile` hook transforms those bytes and returns `{ bytes, mime, filename }`, which the shell delivers through `host.export.file`. `strip-data` is the reference; [Build a tool](/info/authoring-tools.html) has the full pattern.
 
 ### `host.log`
 
@@ -195,20 +195,20 @@ Design tokens (DTCG) for the active theme. The host's colour pickers draw their 
 | `snapshot()` *(optional, v1.184)* | `Promise<TokensSnapshot>` | One immutable copy of the render context: the raw effective DTCG document for the resolved version, the active system, that version and the theme selection. For an exporter that keeps tokens and themes in its file, such as `.penpot` |
 :::
 
-**The family of leads.** A tool that uses several colours at once, such as chart series or a gradient's shuffle, can draw on every colourway's lead rather than one primary. `family()` lists them whatever colourway the artefact uses, and the artefact's own one has `active: true`. Treat fewer than two members as no family, and draw exactly as you would on a shell without the member:
+**The family of leads.** A tool that uses several colours at once, such as chart series or a gradient's shuffle, can draw on every colourway's lead instead of one primary. `family()` lists them whatever colourway the artefact uses; the artefact's own has `active: true`. Treat fewer than two members as no family, and draw as you would on a shell without the member:
 
 ```js
 const family = typeof host.tokens?.family === 'function' ? await host.tokens.family('primary') : [];
 const leads = family.length >= 2 ? family.map((m) => m.value) : [];
 ```
 
-Put the leads ahead of the colours you would otherwise draw, never in their place. A design system with two colourways and no spectrum of its own still needs a full categorical palette, and two leads alone would repeat from the third series on. For chart series, prefer the brand's own `color.spectrum.*` tokens from `host.tokens.colors()` (they carry measured print inks), top up with [`host.color.distinct()`](#host-color) anchored on `{color.semantic.primary}` and keep your shipped palette as the fallback; `chart` is the reference.
+Put the leads ahead of your other colours, never in their place. Two leads alone would repeat from the third series on, so a design system with two colourways and no spectrum of its own still needs a full categorical palette. For chart series, prefer the brand's own `color.spectrum.*` tokens from `host.tokens.colors()` (they carry measured print inks), top up with [`host.color.distinct()`](#host-color) anchored on `{color.semantic.primary}` and keep your shipped palette as the fallback; `chart` is the reference.
 
-The web shell, the CLI and the hook Worker answer `family()` and `axes()` with the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`, so a hook that keeps colours it read there reads them again when `onInput` runs with `id: '__tokens'`, as [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes) describes. A hook can also compare `{color.semantic.primary}`, and any other slot it depends on, on each `onInput` and read again when the value changed, which catches an edit to the design system too. Lolly Chart, Mesh Gradient and Filter do both.
+The web shell, the CLI and the hook Worker answer `family()` and `axes()` with the same engine functions, scoped to the artefact's choices like every other read. The canvas carries the same family as CSS variables, `--brand-lead-1` onwards, described in [Authoring tools](/info/authoring-tools.html). A colourway or look switch re-points the slots without running `onInit`. A hook that keeps colours from its first read reads them again when `onInput` runs with `id: '__tokens'` (see [When the theme or colourway changes](/info/tool-hooks.html#when-the-theme-or-colourway-changes)). A hook can also compare `{color.semantic.primary}` and any other slot it uses on each `onInput`, and read again when a value changed. That also catches an edit to the design system. Lolly Chart, Mesh Gradient and Filter do both.
 
 ### `host.text`
 
-Shape a text run and outline it into an SVG path with HarfBuzz, with correct kerning, ligatures and GPOS/GSUB. It needs no DOM: the web app, the CLI and the TUI all provide it, and in the Node shells fonts resolve off disk. The `wordmark` tool uses it to outline display type for crisp vector export.
+Shape a text run with HarfBuzz (kerning, ligatures, GPOS/GSUB) and outline the run as an SVG path. It needs no DOM: the web app, the CLI and the TUI provide it, and in the Node shells fonts resolve from disk. The `wordmark` tool uses it to outline display type for vector export.
 
 ::: details `host.text` members
 | Method | Returns |
@@ -224,20 +224,20 @@ Shape a text run and outline it into an SVG path with HarfBuzz, with correct ker
 
 `TextPathResult`: `{ d, advanceWidth, bbox, notdef? }`, with the baseline at `y=0` and Y pointing down; `bbox` is `null` for whitespace-only runs.
 
-`features` are OpenType tags (for example `['liga=0', 'salt=1']`) handed straight to HarfBuzz, so ligature and stylistic-alternate toggles bake into the outlined path (engine v1.12). `letterSpacing` (px, v1.12) adds uniform tracking to the pen advance, so letter-spaced type stays vector in SVG, PDF and EMF instead of falling back to a live `<text>` element.
+`features` are OpenType tags (for example `['liga=0', 'salt=1']`) passed to HarfBuzz, so ligature and stylistic-alternate toggles bake into the outlined path (engine v1.12). `letterSpacing` (px, v1.12) adds uniform tracking to the pen advance, so letter-spaced type stays vector in SVG, PDF and EMF instead of falling back to a live `<text>` element.
 
 **Variable fonts and fallback (v1.29–1.30).**
 
 - `variations`: OpenType axis settings as HarfBuzz strings (`['wght=700']`). Without them a variable face shapes at its *default instance*, so a bold run would outline as regular. Unlisted axes take their default.
-- `fallbackFonts`: an ordered `[{ fontUrl, variations?, fill? }]` chain for characters `fontUrl` has no glyph for, the job the browser's own fallback does. Webfont families arrive as **disjoint subsets** (Google Fonts' `latin` file has no `Ł`; its `latin-ext` file has no ASCII), so one face cannot outline `"Łódź"`. A face marked `fill` *(v1.319)* draws only what every face before it cannot: the run is split by grapheme cluster and each cluster goes to the first face that maps all of the cluster, as a browser walks a `font-family` list.
+- `fallbackFonts`: an ordered `[{ fontUrl, variations?, fill? }]` chain for characters `fontUrl` has no glyph for. Webfont families arrive as **disjoint subsets** (Google Fonts' `latin` file has no `Ł`; its `latin-ext` file has no ASCII), so one face cannot outline `"Łódź"`. A face marked `fill` *(v1.319)* draws only what every face before it cannot: the run is split by grapheme cluster and each cluster goes to the first face that maps all of the cluster, as a browser walks a `font-family` list.
 - `notdef`: how many glyphs fell back to `.notdef` (no glyph anywhere in the chain). Outlining draws blanks, so if this is non-zero keep a live `<text>` fallback. Older hosts leave it out; treat that as `0`.
-- `direction` *(optional, v1.316)*: `ltr` or `rtl`, the direction of the paragraph the run sits in, which decides where a closing full stop or a Latin word inside Arabic goes. Without it, a run with right-to-left characters reads from its first strong character. The path always reads left to right from x=0, so to anchor a right-to-left line at its right edge, place it `advanceWidth` to the left of that edge. Older hosts ignore the field and shape the run in one direction.
-- `axisDefaults(fontUrl)`: the font's default axis values (`{ wght: 400 }`, or `{}` for a static font). A caller that embeds the raw file into a renderer with no axis control (jsPDF) gets exactly this instance, so it needs the defaults to know the weight it will actually get. Check for `axisDefaults` before calling.
+- `direction` *(optional, v1.316)*: `ltr` or `rtl`, the direction of the paragraph the run sits in, which decides where a closing full stop or a Latin word inside Arabic goes. Without it, a run with right-to-left characters reads from its first strong character. The path always reads left to right from x=0, so to set a right-to-left line by its right edge, place the path `advanceWidth` to the left of that edge. Older hosts ignore the field and shape the run in one direction.
+- `axisDefaults(fontUrl)`: the font's default axis values (`{ wght: 400 }`, or `{}` for a static font). A caller that embeds the raw file in a renderer with no axis control (jsPDF) gets this default instance, and reads the defaults to know its weight. Check for `axisDefaults` before calling.
 :::
 
 ### `host.fonts`
 
-*Optional, v1.262.* Read a font file's own tables and subset it to chosen text. The web, desktop, CLI, TUI and MCP shells provide it, and the same engine code answers on each, so the facts and the bytes match. Convert Font is the reference tool.
+*Optional, v1.262.* Read a font file's own tables and subset it to chosen text. The web, desktop, CLI, TUI and MCP shells provide it with the same engine code, so the facts and bytes match. Convert Font is the reference tool.
 
 ::: details `host.fonts` members
 | Method | Returns | Notes |
@@ -250,7 +250,7 @@ Shape a text run and outline it into an SVG path with HarfBuzz, with correct ker
 
 ### `host.emoji`
 
-*Optional, v1.196.* The pinned vector emoji sets this shell's catalog mounts, so text in a render draws its emoji from the set the person chose rather than from the operating system's font. The runtime calls it for you after every paint and again inside an export, so most tools never call these methods. The web, desktop, CLI and TUI shells provide the API. A shell with no set mounted leaves it out, and the render shows the engine's neutral placeholder, never a system glyph.
+*Optional, v1.196.* The pinned vector emoji sets this shell's catalog mounts, so text in a render draws its emoji from the set the person chose, not from the operating system's font. The runtime calls the API after every paint and again inside an export, so most tools never call these methods. The web, desktop, CLI and TUI shells provide the API. A shell with no set mounted leaves it out, and the render shows the engine's neutral placeholder, never a system glyph.
 
 The host supplies storage and transport only. Every decision about what to draw (sequence lookup, admission, fallback through the saved pins, the brand treatment and sizing) is the engine's, so a run of text looks the same on every shell.
 
@@ -288,16 +288,16 @@ The host supplies storage and transport only. Every decision about what to draw 
 | `solveApca(hue, chroma, targetLc, bgHex, opts?)` | `{ hex, lc, reachable, … }` | **v1.107.** The inverse of `apca`: the lightness at this hue and chroma that reads closest to `targetLc` on `bgHex`, as gamut-mapped hex plus the Lc it achieves. `reachable` is `false` when the target is beyond what the hue can carry, and the answer is then the closest achievable. Check for it |
 | `paletteExport(swatches, format, opts?)` · `paletteExportBytes(swatches, 'ase')` | `string` · `Uint8Array` | **v1.108.** Serialise a swatch list as DTCG tokens JSON, CSS custom properties, CSS utility classes, SCSS or a GIMP `.gpl` palette, or as a binary Adobe `.ase` file. The same serialisers as the brand editor's swatch download. Check for each |
 
-**Which colour strings are accepted** differs by vintage. The metrics and generators (`deltaE`, `contrast`, `apca`, `ramp`, `breaks`, `distinct`, `schemes`) take hex (`#rgb`…`#rrggbbaa`) or `oklch()`/`lch()`, the forms token values take; resolve anything else first. The metrics (`deltaE`, `contrast`, `apca`) return `NaN` on unparseable input; `ramp` throws; `schemes` falls back to a neutral mid-blue seed; and `distinct` ignores an unparseable anchor and still returns colours. `mix` goes through the engine's full **CSS Color 4** parser, so it also accepts `rgb()`, `hsl()`, `hwb()`, `lab()`, `oklab()`, the CSS named colours and `color(display-p3 …)` / `color(rec2020 …)` / `color(prophoto-rgb …)` / `color(a98-rgb …)` / `color(srgb-linear …)` / `color(xyz-d50|xyz-d65 …)`, `none` components included; it returns `null` rather than guessing when either side does not parse.
+**Which colour strings are accepted** differs by vintage. The metrics and generators (`deltaE`, `contrast`, `apca`, `ramp`, `breaks`, `distinct`, `schemes`) take hex (`#rgb`…`#rrggbbaa`) or `oklch()`/`lch()`, the forms token values take; resolve anything else first. The metrics (`deltaE`, `contrast`, `apca`) return `NaN` on unparseable input; `ramp` throws; `schemes` falls back to a neutral mid-blue seed; `distinct` ignores an unparseable anchor and still returns colours. `mix` goes through the engine's full **CSS Color 4** parser, so it also accepts `rgb()`, `hsl()`, `hwb()`, `lab()`, `oklab()`, the CSS named colours and `color(display-p3 …)` / `color(rec2020 …)` / `color(prophoto-rgb …)` / `color(a98-rgb …)` / `color(srgb-linear …)` / `color(xyz-d50|xyz-d65 …)`, `none` components included; it returns `null` when either side does not parse.
 :::
 
 ::: details Gradient specs
-An authored gradient is **one URL-safe string**: `lin_90_30ba78-0_efefef-100` is "linear, 90°, brand green at 0%, fog at 100%". A gradient has to survive the same round trip every other input does (editor, block row, shared link, CLI, identical render). The grammar is `<kind>_<angle>_<colour>-<pos>_<colour>-<pos>…`:
+An authored gradient is **one URL-safe string**: `lin_90_30ba78-0_efefef-100` is "linear, 90°, brand green at 0%, fog at 100%". A gradient survives the same round trip as every other input (editor, block row, shared link, CLI, identical render). The grammar is `<kind>_<angle>_<colour>-<pos>_<colour>-<pos>…`:
 
 - **Kind**: `lin` / `rad` / `con` (or the long `linear`/`radial`/`conic`).
-- **Interpolation space**, as a dot suffix on the kind: `lin.srgb`, `lin.oklch.longer`. The spaces you can name are `oklab` (the default), `oklch`, `lab`, `lch`, `srgb`, `srgb-linear` and `hsl`; a polar space takes an optional hue travel (`shorter` default, `longer`, `increasing`, `decreasing`). The list is closed, so a typo reads as "unknown" rather than quietly picking a space nobody meant.
+- **Interpolation space**, as a dot suffix on the kind: `lin.srgb`, `lin.oklch.longer`. The spaces you can name are `oklab` (the default), `oklch`, `lab`, `lch`, `srgb`, `srgb-linear` and `hsl`; a polar space takes an optional hue travel (`shorter` default, `longer`, `increasing`, `decreasing`). The list is closed, so a typo reads as "unknown".
 - **Angle** in degrees, CSS convention: `0` is to the top, `90` to the right. It is the gradient line for `linear`, the `from` angle for `conic` and unused for `radial`.
-- **Stops**: up to 12, each a bare hex (`30ba78`, no `#`), a CSS colour name or `transparent`, then `-<pos>` in percent. Parsing is lenient (a leading `#`, an `@` separator, a missing angle, unpositioned stops and upper case all read fine) and writing is strict, so the round trip is byte-stable. Fewer than two usable stops answers `null`; a caller should fall back to a flat fill rather than paint something half-specified.
+- **Stops**: up to 12, each a bare hex (`30ba78`, no `#`), a CSS colour name or `transparent`, then `-<pos>` in percent. Parsing is lenient (a leading `#`, an `@` separator, a missing angle, unpositioned stops and upper case all read fine) and writing is strict, so the round trip is byte-stable. Fewer than two usable stops answers `null`; a caller should then fall back to a flat fill.
 
 Read and written by `parseGradientSpec` / `formatGradientSpec` in the engine, and baked to CSS by `gradientCss`. The Design tool's per-box gradient fill is the reference consumer.
 :::
@@ -307,7 +307,7 @@ Read and written by `parseGradientSpec` / `formatGradientSpec` in the engine, an
 
 ### `host.images`
 
-*Optional, v1.60.* Decode, resize and re-encode: the "HEIC to JPEG, compress to WebP, downscale" job as a first-class API. Encoded bytes (or a Blob) go in, and encoded bytes plus dimensions come out, so the shell owns the codec and the engine never sees a canvas or an `<img>`. Fall back gracefully where it is absent.
+*Optional, v1.60.* Decode, resize and re-encode images, for jobs such as HEIC to JPEG, compress to WebP or downscale. Encoded bytes (or a Blob) go in; encoded bytes plus dimensions come out. The shell owns the codec, and the engine never sees a canvas or an `<img>`. Fall back where the API is absent.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -315,11 +315,11 @@ Read and written by `parseGradientSpec` / `formatGradientSpec` in the engine, an
 | `resize(input, opts)` | `Promise<ImageResult>` | Downscale with the aspect kept; it **never upscales**. `maxEdge` caps the longest edge; explicit `width`/`height` fit within that box |
 | `encode(input, opts)` | `Promise<ImageResult>` | Re-encode at full oriented size. `format` is `webp` · `jpeg` · `png`, a narrower set than it can *read* |
 
-An animated source flattens to its first frame. Read the *result's* `mime`, `width` and `height` rather than assuming the request was honoured, because a shell may fall back (PNG where WebP encoding is unsupported).
+An animated source flattens to its first frame. Read the *result's* `mime`, `width` and `height`: a shell may fall back, for example to PNG where WebP encoding is unsupported.
 
 ### `host.raster`
 
-*Optional, v1.105.* The sibling of `host.images` for tools that composite, sample or change pixels *themselves* (Lolly Darkroom, the Filter tool, the logo composers, Redact). Where `images` converts bytes to bytes with no pixel access, this hands back drawable pixels. Fall back to your placeholder where it is absent. The headless CLI provides it when the optional Skia canvas (`@napi-rs/canvas`) resolves, which is what lets `lolly redact` repaint pixels locally; on a lean install without it the member stays undefined.
+*Optional, v1.105.* The sibling of `host.images` for tools that composite, sample or change pixels *themselves* (Lolly Darkroom, the Filter tool, the logo composers, Redact). `images` converts bytes to bytes with no pixel access; this API hands back drawable pixels. Fall back to your placeholder where the API is absent. The headless CLI provides the API when the optional Skia canvas (`@napi-rs/canvas`) resolves, which lets `lolly redact` repaint pixels locally. On a lean install without that canvas the member stays undefined.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -328,14 +328,14 @@ An animated source flattens to its first frame. Read the *result's* `mime`, `wid
 | `decode(src)` | `Promise<ImageBitmap>` | A drawable bitmap: EXIF baked in, HEIC/AVIF through the shell's fallback, SVG through its reliable path, all behind a decode-bomb guard. Valid on a main-thread `<canvas>` **and** a Worker `OffscreenCanvas`, unlike an `<img>`. Call `.close()` when done |
 | `encode(source, opts)` | `Promise<ImageResult>` | Finished pixels to bytes. Takes an `ImageBitmap` (the cheap path, when you only composited) or a `RasterFrame` of raw RGBA (when you pulled pixels to do your own maths; a live `MediaFrame` passes straight through) |
 
-`src` is a URL (including `blob:`/`data:`), an `AssetRef` or raw bytes or a Blob. Building and drawing *into* a canvas is left out of this API: `new OffscreenCanvas(w, h)` is a realm global a hook constructs directly, so a round trip through the host would buy nothing.
+`src` is a URL (including `blob:`/`data:`), an `AssetRef` or raw bytes or a Blob. Building and drawing *into* a canvas is not part of this API: a hook constructs the realm global `new OffscreenCanvas(w, h)` directly.
 
 ### `host.codec`
 
-*Optional, v1.100.* Encode a float pixel frame into finished image bytes at real bit depth. It is the counterpart of `host.export.render`, which rasterises the DOM to 8-bit. A tool that computes its own high-precision pixels, such as a float grading pipeline or a renderer with real headroom, hands over a linear Float32 RGBA frame and gets back a 16-bit PNG, an OpenEXR or Radiance HDR master or an error-diffused 8-bit PNG, depths the browser's 8-bit canvas cannot originate. Fall back to the ordinary 8-bit export where it is absent. Lolly Darkroom is the reference consumer.
+*Optional, v1.100.* Encode a float pixel frame into finished image bytes at real bit depth. `host.export.render` rasterises the DOM to 8-bit. A tool that computes its own high-precision pixels, such as a float grading pipeline, hands over a linear Float32 RGBA frame. It gets back a 16-bit PNG, an OpenEXR or Radiance HDR master or an error-diffused 8-bit PNG, depths the browser's 8-bit canvas cannot make. Fall back to the ordinary 8-bit export where the API is absent. Lolly Darkroom is the reference consumer.
 
 ::: details `host.codec` members
-A **`CodecFrame`** is `{ width, height, data: Float32Array, space? }`. `data` is RGBA interleaved, linear light, un-premultiplied and unbounded. `space` carries the working primaries with the buffer: `'srgb-linear'` (the default), `'display-p3-linear'` or `'rec2020-linear'`. The maths is the engine's own writers, so the shell only forwards, and web and CLI produce byte-identical output from the same frame.
+A **`CodecFrame`** is `{ width, height, data: Float32Array, space? }`. `data` is RGBA interleaved, linear light, un-premultiplied and unbounded. `space` carries the working primaries with the buffer: `'srgb-linear'` (the default), `'display-p3-linear'` or `'rec2020-linear'`. The engine's own writers do the maths and the shell only forwards, so web and CLI produce byte-identical output from the same frame.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -350,18 +350,18 @@ A **`CodecFrame`** is `{ width, height, data: Float32Array, space? }`. `data` is
 
 The SDR encoders (`png16` and `dither8`) gamma-encode and clamp at their display boundary. `exr` and `radiance` keep the unbounded linear values. Every method is async, so a shell can move the encode to a Worker.
 
-This pairs with a tool's **`exportStill`** hook. A tool declares `exportStill` in its manifest `hooks`, and the runtime calls it before `host.export.render` with `{ node, format, opts, host }`. Returning `{ bytes, mime }` short-circuits the export to those bytes (computed in float through `host.codec`). Returning `null` declines and falls through to the normal DOM raster path for that format, so a tool owns only the formats it has real depth for. Like the `exportFile` transform path, tool-supplied bytes carry no watermark and no engine provenance.
+This pairs with a tool's **`exportStill`** hook. A tool declares `exportStill` in its manifest `hooks`, and the runtime calls it before `host.export.render` with `{ node, format, opts, host }`. Returning `{ bytes, mime }` makes those bytes the export (computed in float through `host.codec`). Returning `null` falls through to the normal DOM raster path for that format, so a tool handles only the formats it has real depth for. Like the `exportFile` transform path, tool-supplied bytes carry no watermark and no engine provenance.
 :::
 
 ### `host.layers`
 
-*Optional, v1.102.* Write a set of positioned RGBA layers as a layered Photoshop **PSD** with the engine's own writer, so the file opens in Photoshop, GIMP and Krita. One method today. Like every `export.file` path, the result is never watermarked or provenance-stamped, because it is the person's own file.
+*Optional, v1.102.* Write a set of positioned RGBA layers as a layered Photoshop **PSD** with the engine's own writer. The file opens in Photoshop, GIMP and Krita. Like every `export.file` path, the result is never watermarked or provenance-stamped, because it is the person's own file.
 
 | Method | Returns | Notes |
 |---|---|---|
 | `writePsd(doc)` | `Promise<Uint8Array>` | 8-bit RGB PSD. `doc` is `{ width, height, layers }`, layers **bottom to top** |
 
-A `LayerWrite` is `{ name, x, y, width, height, pixels, opacity?, blend?, visible? }`: `pixels` is RGBA8, un-premultiplied sRGB (what a canvas `getImageData` gives), and `width`/`height` must match the buffer. `blend` takes a CSS `mix-blend-mode` value. The read side is **not** part of this API: PSD and XCF *import* is a shell ingest flow (the drop router turns each layer into a library asset), not something a running tool does.
+A `LayerWrite` is `{ name, x, y, width, height, pixels, opacity?, blend?, visible? }`: `pixels` is RGBA8, un-premultiplied sRGB (what a canvas `getImageData` gives), and `width`/`height` must match the buffer. `blend` takes a CSS `mix-blend-mode` value. The read side is **not** part of this API: PSD and XCF *import* is a shell ingest flow, where the drop router turns each layer into a library asset.
 
 ### `host.scan`
 
@@ -383,11 +383,11 @@ A **`ScanHit`** is `{ format, rawValue, rawBytes?, corners? }`. `rawValue` is un
 
 ### `host.geom`
 
-*Optional, v1.64.* Path booleans, offsetting, stroke-to-fill outlining, pen-tool spline lowering, simplification and hit testing: the engine's geometry kernel, which keeps everything as real Béziers (nothing flattens, samples or rasterises). Every method is **pure and synchronous**, so a pen tool's geometry is identical in the browser, in Tauri and headless on the CLI.
+*Optional, v1.64.* Path booleans, offsetting, stroke-to-fill outlining, pen-tool spline lowering, simplification and hit testing: the engine's geometry kernel. Everything stays as Béziers; nothing is flattened, sampled or rasterised. Every method is **pure and synchronous**, so a pen tool's geometry is identical in the browser, in Tauri and headless on the CLI.
 
-The currency both ways is an **SVG path-data string**, which already lives in your template, your saved state and your URL. `parse` and `toPathData` expose the structured form (contours of whole cubics, 8 numbers each) for callers that want to walk or edit curves themselves.
+Paths go in and come out as an **SVG path-data string**, the form your template, saved state and URL already have. `parse` and `toPathData` expose the structured form (contours of whole cubics, 8 numbers each) for callers that walk or edit curves themselves.
 
-**Failures are returned, never thrown.** Every method answers `{ ok: true, … }` or `{ ok: false, code, message }`, because a throw out of `onInit` or `onInput` is caught, logged and discarded by the runtime, which would leave a tool unresponsive rather than telling the person anything. A path result carries `{ d, contours, curves }`; a measurement result carries `{ value }`.
+**Failures are returned, never thrown.** Every method answers `{ ok: true, … }` or `{ ok: false, code, message }`. The runtime catches, logs and discards a throw out of `onInit` or `onInput`, which would leave a tool unresponsive and tell the person nothing. A path result carries `{ d, contours, curves }`; a measurement result carries `{ value }`.
 
 ::: details `host.geom` members
 | Member | Result | Notes |
@@ -414,12 +414,12 @@ The currency both ways is an **SVG path-data string**, which already lives in yo
 | `encodeAuthored(path \| paths)` | string | One versioned, delimiter-safe string, so authored geometry survives an input value, a `blocks` sub-field and a share link unchanged |
 | `decodeAuthored(value)` | authored paths | Always a list. `invalid-argument` on garbage or a newer format version; `too-large` past `limits().maxNodes` |
 
-`code` on a failure tells you what to do: `'invalid-path'` (malformed `d`; reject it, do not retry), `'too-large'` (well-formed but past the ceilings above), `'limit'` (the answer exists and this engine declines to guess at it past its bounded-work ceiling; retry with simpler operands or a coarser `tolerance`), `'invalid-argument'`, `'unsupported'` (a spline kind this engine knows the name of but cannot lower yet) and `'internal'` (a bug; report the failure). **`ok: true` with `d: ''` is an answer**, not a failure: a non-overlapping intersection and an offset shrunk past its inradius are both legitimately empty. There is no degraded fallback anywhere in the API, so you are never handed a plausible-looking wrong path. Path data is parsed defensively (bounded size, command count, curve count and coordinate magnitude, with a grammar that rejects rather than guesses), so a `d` from a paste or a URL parameter is safe to hand straight in.
+`code` on a failure tells you what to do: `'invalid-path'` (malformed `d`; reject it, do not retry), `'too-large'` (well-formed but past the ceilings above), `'limit'` (the answer exists and this engine declines to guess at it past its bounded-work ceiling; retry with simpler operands or a coarser `tolerance`), `'invalid-argument'`, `'unsupported'` (a spline kind this engine knows the name of but cannot lower yet) and `'internal'` (a bug; report the failure). **`ok: true` with `d: ''` is an answer**, not a failure: a non-overlapping intersection and an offset shrunk past its inradius are both validly empty. The API has no degraded fallback, so it never returns a plausible-looking wrong path. Path data is parsed defensively (bounded size, command count, curve count and coordinate magnitude, with a grammar that rejects instead of guessing), so a `d` from a paste or a URL parameter is safe to pass in.
 :::
 
 ### `host.connectors`
 
-*Optional, v1.106.* Export-safe connector, line and arrow geometry: the engine's connector module behind a tool-facing surface, attached verbatim by every shell, so web, Tauri and CLI emit identical arrows. A canvas tool's `hooks.js` renders its connectors in one line, and a headless `--export` keeps them. Pure and synchronous, like `color` and `geom`. Everything below `build` is optional, so check for each member, not just the surface.
+*Optional, v1.106.* Export-safe connector, line and arrow geometry from the engine's connector module. Every shell attaches the module verbatim, so web, Tauri and CLI emit identical arrows. A canvas tool's `hooks.js` renders its connectors in one line, and a headless `--export` keeps them. Pure and synchronous, like `color` and `geom`. Every member after `build` is optional, so check for each member as well as the surface.
 
 ::: details `host.connectors` members
 | Member | Returns | Notes |
@@ -445,7 +445,7 @@ The currency both ways is an **SVG path-data string**, which already lives in yo
 
 ### `host.pdf`
 
-Inspect a PDF, remove its metadata and make it smaller. The metadata and structural work is pure pdf-lib, so it runs even in the lean CLI; image recompression uses a browser canvas. `strip-data` and `compress-pdf` are built on this API. Check for each method (for example `host.pdf?.compress`): an older shell may provide `analyze` and `strip` but not `compress`, or no `host.pdf` at all.
+Inspect a PDF, remove its metadata and make it smaller. The metadata and structural work is pure pdf-lib, so it runs in the lean CLI too; image recompression uses a browser canvas. `strip-data` and `compress-pdf` are built on this API. Check for each method (for example `host.pdf?.compress`): an older shell may provide `analyze` and `strip` but not `compress`, or no `host.pdf` at all.
 
 ::: details `host.pdf` members
 | Method | Returns | Notes |
@@ -464,7 +464,7 @@ Inspect a PDF, remove its metadata and make it smaller. The metadata and structu
 
 ### `host.pptx`
 
-PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips with fflate and injects its `DOMParser`, so the engine's OOXML reader and patcher need no zip or DOM code of their own. `rebrand-deck` is built on this API. Check for `host.pptx?.rebrand`, because an older shell may lack it entirely.
+PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips with fflate and injects its `DOMParser`, so the engine's OOXML reader and patcher need no zip or DOM code of their own. `rebrand-deck` is built on this API. Check for `host.pptx?.rebrand`: an older shell may lack the API.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -491,7 +491,7 @@ PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips 
 
 ### `host.textTools`
 
-*Optional, v1.191.* Portable text operations: the list a text utility offers, running one operation and highlighting code. The web, desktop, CLI and TUI shells provide the API, and the Text (`text-helper`) and Snippet tools are built on this API.
+*Optional, v1.191.* Portable text operations: the list a text utility offers, running one operation and highlighting code. The web, desktop, CLI and TUI shells provide the API. The Text (`text-helper`) and Snippet tools are built on the API.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -501,7 +501,7 @@ PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips 
 
 ### `host.calc`
 
-*Optional, added in the engine minor after 1.301.* Spreadsheet formulas, worked out on the device. The web, desktop, CLI, TUI and MCP shells provide `host.calc`. A pinned formula engine (GridCraft's calculation crates) runs as a small WebAssembly module that loads the first time a formula needs working out, and nothing is sent anywhere. Quote is the reference tool: a cell of its line-items table that starts with `=` is a formula.
+*Optional, added in the engine minor after 1.301.* Spreadsheet formulas, worked out on the device. The web, desktop, CLI, TUI and MCP shells provide `host.calc`. A pinned formula engine (GridCraft's calculation crates) runs as a small WebAssembly module. The module loads the first time a formula needs working out, and nothing is sent anywhere. Quote is the reference tool: a cell of its line-items table that starts with `=` is a formula.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -509,7 +509,7 @@ PowerPoint inspection and surgical rebranding (engine `1.58`). The shell unzips 
 | `table({ columns, rows }, { clock? })` | `Promise<CalcTableResultV1>` | Work out a `table` input. The heading row is row 1, so the first data row is row 2 and `=B2*C2` multiplies that row's second and third cells. A lone `=` is text. Cells that read as plain numbers count as numbers. Returns the table with each formula replaced by its value as text (numbers to 15 digits, as Excel's General format shows them), the raw `values`, the cells that gave an `errors` entry, and how many `formulas` there were |
 | `functions()` | `Promise<CalcFunctionV1[]>` | Every function the engine knows, with its argument counts, category and a `volatile` mark |
 
-**Volatile functions.** `NOW`, `TODAY`, `RAND`, `RANDBETWEEN` and `RANDARRAY` change from one calculation to the next, and `OFFSET`, `INDIRECT`, `INFO` and `CELL` are treated the same way. They stay live while a person edits: a call without a `clock` reads the current time and a fresh random seed. Every result carries the `clock` (`{ now, seed }`) it read, and `volatile` says whether any formula needed one. The module imports nothing and reads neither the time nor a random source, so the same request with the same clock always returns the same values. At export the values are frozen: a tool exports what it last computed and never evaluates again, which would read a different moment. The runtime backs this up: hooks run when an input changes, and an export draws the page those hooks last produced.
+**Volatile functions.** `NOW`, `TODAY`, `RAND`, `RANDBETWEEN` and `RANDARRAY` change from one calculation to the next, and `OFFSET`, `INDIRECT`, `INFO` and `CELL` are treated the same way. They stay live while a person edits: a call without a `clock` reads the current time and a fresh random seed. Every result carries the `clock` (`{ now, seed }`) it read, and `volatile` says whether any formula needed one. The module imports nothing and reads neither the time nor a random source, so the same request with the same clock always returns the same values. At export the values are frozen: a tool exports what it last computed and never evaluates again. Hooks run when an input changes, and an export draws the page those hooks last produced.
 
 ```js
 async function onInput({ model }) {
@@ -520,16 +520,16 @@ async function onInput({ model }) {
 }
 ```
 
-**Functions.** About 510 functions are present: 78 maths and trigonometry, 110 statistical, 55 financial, 54 engineering, 44 text, 43 compatibility, 29 lookup, 25 date and time, 16 information, 12 database, 11 logical, plus the evaluator's own (`IF`, `IFS`, `LET`, `LAMBDA`, `MAP`, `REDUCE`, `INDEX`, `OFFSET`, `INDIRECT`, `TEXT`, `SUBTOTAL`, `AGGREGATE` and the dynamic-array family such as `FILTER`, `SORT`, `UNIQUE` and `SEQUENCE`). Three are deliberately left out to keep the module small: `REGEXTEST`, `REGEXEXTRACT` and `REGEXREPLACE`, which evaluate to `#NAME?`. The engine is not conformance-tested against Excel. Lolly checks it against 16 Excel-saved workbooks (63,000 cells) with 8 known differences, listed in `scripts/data/xlsx-formula-corpus.json`.
+**Functions.** About 510 functions are present: 78 maths and trigonometry, 110 statistical, 55 financial, 54 engineering, 44 text, 43 compatibility, 29 lookup, 25 date and time, 16 information, 12 database, 11 logical, plus the evaluator's own (`IF`, `IFS`, `LET`, `LAMBDA`, `MAP`, `REDUCE`, `INDEX`, `OFFSET`, `INDIRECT`, `TEXT`, `SUBTOTAL`, `AGGREGATE` and the dynamic-array family such as `FILTER`, `SORT`, `UNIQUE` and `SEQUENCE`). Three are left out to keep the module small: `REGEXTEST`, `REGEXEXTRACT` and `REGEXREPLACE`, which evaluate to `#NAME?`. The engine is not conformance-tested against Excel. Lolly checks the engine against 16 Excel-saved workbooks (63,000 cells) with 8 known differences, listed in `scripts/data/xlsx-formula-corpus.json`.
 
 **Limits.** Up to 64 sheets, 400,000 cells and 100,000 formulas in one request, 8,192 characters per formula, and 100,000 cells in a table. An array over about 4 million cells is `#NUM!`, and a formula that makes more than 100,000 lambda calls ends in `#CALC!`. Structured table references (`Table1[Col]`) are not supported in `evaluate`.
 
-**Spreadsheet files.** `readXlsx` takes an optional `recalc` function for the same engine. With `recalcWhen: 'missing'`, which the shells use, only formulas the file saved no result for are worked out. That is what files written by libraries look like, and they arrive filled in instead of blank. Every other formula keeps the value its author saw, and the formulas that depend on it use that value. Pass `recalcWhen: 'always'` to work out every formula. Formulas saved by programs without dynamic arrays are read the way those programs did: a range where one value is wanted is cut down to its own row or column and never spills. Array formulas, data tables and formulas with table or workbook references keep their saved result. The read reports how many formulas it recomputed, how many kept their result and whether any was volatile.
+**Spreadsheet files.** `readXlsx` takes an optional `recalc` function for the same engine. With `recalcWhen: 'missing'`, which the shells use, only formulas with no saved result are worked out. Files written by libraries look like that, and they arrive filled in instead of blank. Every other formula keeps the value its author saw, and formulas that depend on it use that value. Pass `recalcWhen: 'always'` to work out every formula. Formulas saved by programs without dynamic arrays are read the way those programs did: a range where one value is wanted is cut down to its own row or column and never spills. Array formulas, data tables and formulas with table or workbook references keep their saved result. The read reports how many formulas it recomputed, how many kept their result and whether any was volatile.
 
 <!--i:eti-mic-->
 ## Sound, speech and camera
 
-Five APIs cover sound and video, and each faces a different way:
+Five APIs cover sound and video:
 
 | API | Direction | For |
 |---|---|---|
@@ -541,7 +541,7 @@ Five APIs cover sound and video, and each faces a different way:
 
 ### `host.media`
 
-*Optional, v1.4.* A live camera frame source for **motion-reactive** tools, such as a filter that responds to movement. It is progressive enhancement, not a gated capability: a tool offers a "live" control only where a camera exists and works as an ordinary still-image tool everywhere else, so do **not** list `camera` in the manifest's `capabilities`. Check for `host.media?.isAvailable()`. The web shell and Tauri (its webview) provide it through `getUserMedia`; the headless CLI does not.
+*Optional, v1.4.* A live camera frame source for **motion-reactive** tools, such as a filter that responds to movement. It is progressive enhancement, not a gated capability: a tool offers a "live" control only where a camera exists and works as a still-image tool elsewhere, so do **not** list `camera` in the manifest's `capabilities`. Check for `host.media?.isAvailable()`. The web shell and Tauri (its webview) provide it through `getUserMedia`; the headless CLI does not.
 
 | Method | Returns |
 |---|---|
@@ -550,9 +550,9 @@ Five APIs cover sound and video, and each faces a different way:
 | `stop()` | `void`: release one `start()`; the camera stops at the last release |
 | `subscribe(cb)` | `() => void`: receive frames; returns an unsubscribe function |
 
-A **`MediaFrame`** is `{ width, height, data: Uint8ClampedArray (RGBA), t }`: plain pixels, no DOM types, so the engine stays platform-agnostic, and the shell owns the `MediaStream`, the `<video>` and the grab loop, as it does for `capture`. `data` is valid only during the callback, so read it synchronously. Frames are downscaled and throttled, and pause while the document is hidden.
+A **`MediaFrame`** is `{ width, height, data: Uint8ClampedArray (RGBA), t }`: plain pixels with no DOM types. The shell owns the `MediaStream`, the `<video>` and the grab loop, as it does for `capture`. `data` is valid only during the callback, so read it synchronously. Frames are downscaled and throttled, and pause while the document is hidden.
 
-You rarely call `subscribe` yourself. Declare an **`onFrame`** hook and the runtime drives it once per camera frame; the shell's "Go live" toggle calls `runtime.startLive()` and `runtime.stopLive()`, and no camera outlives the tool. [Motion-reactive tools](/info/tool-hooks.html#motion-reactive-tools-onframe) has the pattern; the `filter` tool is the reference.
+You rarely call `subscribe` yourself. Declare an **`onFrame`** hook and the runtime calls it once per camera frame; the shell's "Go live" toggle calls `runtime.startLive()` and `runtime.stopLive()`, and no camera outlives the tool. [Motion-reactive tools](/info/tool-hooks.html#motion-reactive-tools-onframe) has the pattern; the `filter` tool is the reference.
 
 ::: details `host.media.trim` options
 `trim(bytes, opts)` cuts, converts or turns an uploaded audio or video file with the shell's own codecs, and resolves to `{ bytes, mime, container, durationBefore, durationAfter, lossless, report? }`. The web shell provides the method; the CLI does not, so check for `host.media?.trim`. The Trim tool (`community/trim`) is the reference.
@@ -568,12 +568,12 @@ You rarely call `subscribe` yourself. Declare an **`onFrame`** hook and the runt
 | `cut` *(v1.262)* | How a clip starts when `start` falls between key frames. `exact` (the default) starts at `start`: MP4 and MOV copy from the key frame before and write an edit list that tells players to skip the frames before `start`, and other containers re-encode the picture. `reencode` re-encodes the picture in every container, so nothing before `start` is kept. `keyframe` copies from the key frame before, so the clip may begin early. A picture re-encoded for another reason always starts at `start` |
 | `maxShortEdge`, `targetBytes` *(v1.262)* | A sharing copy: the largest shorter edge in pixels (never enlarged) and a file size to aim for. A copy that already fits the size is kept; otherwise the picture is re-encoded at a bitrate meant to fit, never above the source's own |
 
-From engine **1.262** the result carries a `report`, measured on the written bytes rather than predicted. `tracks` lists every source track as `copy` (the written packets are byte-identical to the source's), `re-encode` or `drop`, with stable reason codes such as `cut-between-key-frames`, `codec-not-in-container` or `rotation-needs-pixels` for the tool to put into words. `actualStart` and `keyFrameGap` show where the clip really begins, and `hiddenLeadIn` gives the seconds of picture an MP4 or MOV copy keeps before `actualStart` for players to skip, which editors and upload sites that ignore edit lists show. `sync` compares when sound and picture start and end against the same range of the source, within one frame or audio packet, and matches the two tracks packet for packet when both were copied. `orientation` checks the displayed size against the requested turn, `color` compares the declared colour information, and `target` says whether a size limit was met and how many files it took; the smallest is the one returned. A track the person kept is never left out without a word: when a browser cannot copy or re-encode a track, `trim` rejects with the reason.
+From engine **1.262** the result carries a `report`, measured on the written bytes. `tracks` lists every source track as `copy` (the written packets are byte-identical to the source's), `re-encode` or `drop`, with stable reason codes such as `cut-between-key-frames`, `codec-not-in-container` or `rotation-needs-pixels` for the tool to put into words. `actualStart` and `keyFrameGap` show where the clip begins. `hiddenLeadIn` gives the seconds of picture an MP4 or MOV copy keeps before `actualStart` for players to skip; editors and upload sites that ignore edit lists show those seconds. `sync` compares when sound and picture start and end against the same range of the source, within one frame or audio packet, and matches the two tracks packet for packet when both were copied. `orientation` checks the displayed size against the requested turn, `color` compares the declared colour information, and `target` says whether a size limit was met and how many files it took. The smallest file is returned. A kept track is never dropped silently: when a browser cannot copy or re-encode a track, `trim` rejects with the reason.
 :::
 
 ### `host.recorder`
 
-*Optional, v1.17; capability `microphone`, `camera` or `screen`.* Record the microphone (and optionally the camera or the screen) to a finished media Blob, plus a DOM-free **level meter** for a sound check before recording. The shell owns `getUserMedia` and `MediaRecorder`, and the engine only ever sees plain numbers (`AudioLevel`) and finished Blobs, never a `MediaStream` or a `<video>`. Recording prompts for a permission a shell may be unable to grant, so it **is** gated: declare `"microphone"` (and `"camera"` for video) in `capabilities`. The headless CLI provides no recorder. `voice-recorder` is the reference tool.
+*Optional, v1.17; capability `microphone`, `camera` or `screen`.* Record the microphone (and optionally the camera or the screen) to a finished media Blob, plus a DOM-free **level meter** for a sound check before recording. The shell owns `getUserMedia` and `MediaRecorder`; the engine sees only plain numbers (`AudioLevel`) and finished Blobs. Recording prompts for a permission a shell may be unable to grant, so it **is** gated: declare `"microphone"` (and `"camera"` for video) in `capabilities`. The headless CLI provides no recorder. `voice-recorder` is the reference tool.
 
 ::: details `host.recorder` members
 | Member | Type | Notes |
@@ -583,18 +583,18 @@ From engine **1.262** the result carries a `report`, measured on the written byt
 | `record(opts?)` | `Promise<RecordSession>` | Open a capture session (prompts the first time); resolves once recording |
 | `still(opts?)` *(v1.54)* | `Promise<Blob>` | One frame as an encoded image: `'screen'` (default) prompts the display picker, `'camera'` takes a camera frame. DOM-free: the shell owns the stream and the grab |
 
-`MeterAPI`: `start()` (begin the mic and level loop, prompting once; reference-counted and idempotent like `media`), `stop()` (release one `start()`; the mic stops at the last release) and `subscribe(cb) → () => void` (receive `AudioLevel` frames; throttled, paused while the document is hidden). The web shell opens the meter **raw**, with noise suppression, automatic gain and echo cancellation off, so the level and the noise cues reflect the real room. `record()` keeps suppression on for a clean file, so the two use separate streams (the grant is per origin, so a sound check then a recording still prompts only once).
+`MeterAPI`: `start()` (begin the mic and level loop, prompting once; reference-counted and idempotent like `media`), `stop()` (release one `start()`; the mic stops at the last release) and `subscribe(cb) → () => void` (receive `AudioLevel` frames; throttled, paused while the document is hidden). The web shell opens the meter **raw**, with noise suppression, automatic gain and echo cancellation off, so the level and the noise cues reflect the room. `record()` keeps suppression on for a clean file, so the two use separate streams. The grant is per origin, so a sound check then a recording prompts only once.
 
-`RecordOpts`: `audio` (default `true`), `video` (default `false`; an audio and video clip when `true`), `source` (`'device'` default, or `'screen'` to record the display, gated by the `screen` capability), `systemAudio`, `format` (`'webm' | 'mp4'`, a hint: the shell falls back across containers, so read the returned Blob's `type`), `maxEdge` (video downscale, longest edge in px), `frame` (v1.165, `{width, height}`, video only: the camera is cover-cropped and scaled into a canvas of exactly that size and the canvas is what gets recorded, so a take can match a target such as the artboard's export dimensions; the self-view shows the same framing), `maxMs` (a hard length ceiling; the session stops itself) and `meta` (provenance stamped into the Blob).
+`RecordOpts`: `audio` (default `true`), `video` (default `false`; an audio and video clip when `true`), `source` (`'device'` default, or `'screen'` to record the display, gated by the `screen` capability), `systemAudio`, `format` (`'webm' | 'mp4'`, a hint: the shell falls back across containers, so read the returned Blob's `type`), `maxEdge` (video downscale, longest edge in px), `frame` (v1.165, `{width, height}`, video only: the camera is cover-cropped and scaled into a canvas of that size and the canvas is recorded, so a take can match a target such as the artboard's export dimensions; the self-view shows the same framing), `maxMs` (a hard length ceiling; the session stops itself) and `meta` (provenance stamped into the Blob).
 
 `RecordSession`: `subscribe(cb)` (live `AudioLevel` during the take, the same shape as the meter, so coaching updates while recording), `stop() → Promise<Blob>` (finalise and resolve the media Blob) and `cancel()` (discard and release the devices; no Blob).
 
-An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0..1` linear except `dbfs`): `{ rms, peak, dbfs, clipping, t }`, plus the optional **v1.19** background-noise cues `noiseFloor` / `snr` / `hum` / `hiss`. A tool rarely subscribes itself: it declares an `onLevel` hook and the runtime drives it from the meter and the take. [Recording tools](/info/tool-hooks.html#recording-tools-render-capture-onlevel) has the `onLevel` pattern.
+An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0..1` linear except `dbfs`): `{ rms, peak, dbfs, clipping, t }`, plus the optional **v1.19** background-noise cues `noiseFloor` / `snr` / `hum` / `hiss`. A tool rarely subscribes itself: it declares an `onLevel` hook, and the runtime calls the hook from the meter and the take. [Recording tools](/info/tool-hooks.html#recording-tools-render-capture-onlevel) has the `onLevel` pattern.
 :::
 
 ### `host.audio`
 
-*Optional, v1.71.* Decode a finished clip and get back a **per-frame reactivity track**: loudness, a bass, mid and treble split, a log-spaced spectrum, brightness, onset strength, a tempo, beat times and, if you ask, raw time-domain windows. It is the primitive behind visuals that move with the music rather than sweeping a playhead over a static shape. Where `host.recorder.meter` reports the **live** microphone one sample at a time, a tool *drawing* a clip needs frame 200's bass while it is still rendering frame 1. Fall back to a static waveform where it is absent.
+*Optional, v1.71.* Decode a finished clip and get back a **per-frame reactivity track**: loudness, a bass, mid and treble split, a log-spaced spectrum, brightness, onset strength, a tempo, beat times and, if you ask, raw time-domain windows. Use it for visuals that move with the music. `host.recorder.meter` reports the **live** microphone one sample at a time; a tool *drawing* a clip needs frame 200's bass while it renders frame 1. Fall back to a static waveform where the API is absent.
 
 ::: details `host.audio` members
 | Method | Returns |
@@ -608,7 +608,7 @@ An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0.
 
 `src` is a URL (including `blob:` / `data:`), an `AssetRef` or raw encoded bytes; the last lets a `file` input's in-memory upload be analysed without being stored first.
 
-`AudioAnalyseOpts`: `fps` (analysis frames per second, default 30; match your export fps), `bands` (spectrum bins per frame, default 64), `buckets` (static overview columns, default 128), `start` / `window` (seconds; trim to the clip you are actually showing, clamped rather than erroring) and `samples` (**opt in** to raw time-domain windows of N samples per frame, rounded up to a power of two).
+`AudioAnalyseOpts`: `fps` (analysis frames per second, default 30; match your export fps), `bands` (spectrum bins per frame, default 64), `buckets` (static overview columns, default 128), `start` / `window` (seconds; trim to the clip you show, clamped instead of erroring) and `samples` (**opt in** to raw time-domain windows of N samples per frame, rounded up to a power of two).
 
 `AudioAnalysis`: `duration` (of the **whole** source, not the analysed window), `sampleRate`, `channels`, the `start` / `window` / `fps` actually used, `peaks` (the overview waveform), `frames`, `bpm` and `beats`.
 
@@ -616,18 +616,18 @@ An **`AudioLevel`** is the audio counterpart to `MediaFrame` (all amplitudes `0.
 
 Design around three behaviours:
 
-- Everything is normalised `0..1` across the analysed window **except `peak`**, which stays absolute so you can still tell that a source clipped. Normalisation is what lets a quiet voice memo and a mastered single both fill the frame.
+- Everything is normalised `0..1` across the analysed window **except `peak`**, which stays absolute so you can tell that a source clipped. Normalisation lets a quiet voice memo and a mastered single both fill the frame.
 - `bass` / `mid` / `treb` share **one** scale, so they read as a balance. Normalised separately, a bass-only clip would report treble pinned at 1.0.
-- **`bpm` is `null` when there is no rhythm to find**, and that is the common answer for speech, ambience and pads. Never treat null as 120: a visual built on a wrong beat grid looks far worse than one built on none.
+- **`bpm` is `null` when there is no rhythm to find**, and that is the common answer for speech, ambience and pads. Never treat null as 120: a visual on a wrong beat grid looks worse than one on none.
 
-The shell owns the decoder; the maths is the engine's `analysePcm`, attached rather than reimplemented. What differs is *coverage*: the web shell gets everything `decodeAudioData` supports, while the Node shells (CLI and TUI) decode **WAV**, Lolly's own **ZzFXM** songs and **rondocode** songs (rendered in a `worker_threads` Worker the shell can stop), and refuse anything needing a platform codec by name, rather than calling whatever ffmpeg happens to be on `PATH`.
+The shell owns the decoder; every shell attaches the engine's `analysePcm` for the maths. Only *coverage* differs: the web shell gets everything `decodeAudioData` supports, while the Node shells (CLI and TUI) decode **WAV**, Lolly's own **ZzFXM** songs and **rondocode** songs (rendered in a `worker_threads` Worker the shell can stop). They refuse by name anything that needs a platform codec, and never call an ffmpeg found on `PATH`.
 
-**Computed audio.** `decode` returns `{ sampleRate, channels, seconds, findings, run }`, one `Float32Array` per channel. For a recorded clip that is the decoded file. For audio that is computed rather than recorded, the shell renders the source first: a rondocode song (an asset of format `rondo`, its `.rondo.json` bytes or a `https://rondocode.com/#s=` link), a ZzFXM song or a tracker module. `opts.seconds` sets the length of a computed source; a rondocode song renders exactly that long, or its own arrangement when no length is asked for. A song's code never runs in the tool's realm. The song runs in the `vm` execution class (QuickJS in WebAssembly, `packages/rondo`), and `run` records that class with the renderer's version and seed, so a tool can credit what made the sound. `findings` lists each part the shell could not play and why: a sung part without the voice models, a live microphone, a sample loaded into the editor and not saved with the song. Silence is never passed off as a complete render. Check for `host.audio.decode`, because the method is optional.
+**Computed audio.** `decode` returns `{ sampleRate, channels, seconds, findings, run }`, one `Float32Array` per channel. For a recorded clip that is the decoded file. For computed audio, the shell renders the source first: a rondocode song (an asset of format `rondo`, its `.rondo.json` bytes or a `https://rondocode.com/#s=` link), a ZzFXM song or a tracker module. `opts.seconds` sets the length of a computed source; a rondocode song renders exactly that long, or its own arrangement when no length is asked for. A song's code never runs in the tool's realm. The song runs in the `vm` execution class (QuickJS in WebAssembly, `packages/rondo`), and `run` records that class with the renderer's version and seed, so a tool can credit what made the sound. `findings` lists each part the shell could not play and why: a sung part without the voice models, a live microphone, a sample loaded into the editor and not saved with the song. Silence is never passed off as a complete render. Check for `host.audio.decode`; the method is optional.
 :::
 
 ### `host.speech`
 
-*Optional, v1.96.* Turn a tool's own text into spoken audio, with no upload: on-device Kokoro TTS returns mono PCM plus word timings, which a shell can play, mix under a video export or hand straight back to `audio.analyse`. The word timings are what a caption or karaoke-highlight tool keys off. Hide the voiceover control where it is absent. The headless CLI provides it too, over the same models on onnxruntime-node, so a hook that speaks its own text renders headless. `lolly speak` and `lolly transcribe` are its discovery surface there, and a model that is not staged refuses by name instead of downloading itself.
+*Optional, v1.96.* Turn a tool's own text into spoken audio, with no upload: on-device Kokoro TTS returns mono PCM plus word timings, which a shell can play, mix under a video export or pass to `audio.analyse`. Caption and karaoke-highlight tools use the word timings. Hide the voiceover control where the API is absent. The headless CLI provides it too, with the same models on onnxruntime-node, so a hook that speaks its own text renders headless. There, `lolly speak` and `lolly transcribe` expose the API, and a model that is not staged refuses by name instead of downloading itself.
 
 ::: details `host.speech` members
 | Method | Returns | Notes |
@@ -654,14 +654,14 @@ Transcription (v1.99) is the reverse: audio in, text plus word timings out, thro
 
 ### `host.viz`
 
-*Optional, v1.72.* Availability and attribution only. A tool is data: it has no element to hand over and no business holding a GL context, so it renders a `[data-lolly-viz]` placeholder carrying its parameters, and the **shell** owns the canvas behind that placeholder. That is the same contract `[data-lottie-src]` uses, and it lets the context and its loaded preset survive the `innerHTML` rebuild every keystroke causes. A shell without this, or without WebGL2, means the tool draws its ordinary canvas style, never that it refuses to render.
+*Optional, v1.72.* Availability and attribution only. A tool is data and has no GL context, so it renders a `[data-lolly-viz]` placeholder carrying its parameters, and the **shell** owns the canvas behind that placeholder. `[data-lottie-src]` uses the same contract. The GL context and its loaded preset then survive the `innerHTML` rebuild every keystroke causes. On a shell without this API, or without WebGL2, the tool draws its ordinary canvas style and never refuses to render.
 
 | Method | Returns | Notes |
 |---|---|---|
 | `isAvailable()` | `boolean` | Synchronous, so a hook can branch on it before deciding what to analyse |
 | `presets()` | `Promise<VizPresetInfo[]>` | Lolly's own first, then the artist pack; empty when that pack is not staged in this build |
 
-A `VizPresetInfo` is `{ id, name, author, calm }`. `author` is not decoration: twenty years of MilkDrop craft ships alongside Lolly's own presets, so credit only a preset the shell **confirms** it has. Naming an artist whose work is not on screen is worse than crediting nobody. `calm` marks a preset safe to offer under reduced motion.
+A `VizPresetInfo` is `{ id, name, author, calm }`. `author` is for credit: twenty years of MilkDrop craft ships alongside Lolly's own presets, so credit only a preset the shell **confirms** it has. Naming an artist whose work is not on screen is worse than crediting nobody. `calm` marks a preset safe to offer under reduced motion.
 
 <!--i:eti-globe-->
 ## Reaching outside the tool
@@ -672,7 +672,7 @@ A `VizPresetInfo` is `{ id, name, author, calm }`. `author` is not decoration: t
 
 ### `host.capture`
 
-*Capability `capture`.* Rasterise a live URL to an image with a real browser engine. Only shells with an authoritative engine fulfil it: Tauri's webview, a headless-Chromium CLI or the browser extension. The plain web app cannot read cross-origin pixels, so it exposes a stub that throws. Capture is slow and has side effects, so call it from an explicit action, not on every keystroke. The `url-shot` tool calls `page()`.
+*Capability `capture`.* Rasterise a live URL to an image with a browser engine. Only shells with an authoritative engine fulfil it: Tauri's webview, a headless-Chromium CLI or the browser extension. The plain web app cannot read cross-origin pixels, so it exposes a stub that throws. Capture is slow and has side effects, so call it from an explicit action, not on every keystroke. The `url-shot` tool calls `page()`.
 
 | Method | Returns |
 |---|---|
@@ -686,13 +686,13 @@ A `VizPresetInfo` is `{ id, name, author, calm }`. `author` is not decoration: t
 
 Windowing and vector capture (v1.45):
 
-- `scrollDepth` frames a region (a 0..1 fraction of scroll height, or a px offset when > 1); `rangeTo` extends the shot *down* the page to that scroll position, producing a tall strip, the frame a scroll animation pans over. `crop` trims insets (each a `0..0.9` fraction). The returned ref's `width`/`height` are the **actual captured box** after crop and extension, so size your composite from the *result*, never the request. Hosts may also report `meta.pageWidth`/`pageHeight`/`scrollYPx` (treat them as optional).
-- `vector(spec)` returns a **true vector** SVG `AssetRef` (`type: 'vector'`): geometry, not pixels, crisp at any zoom and re-editable. Hosts walk the live page into SVG with the export walker (`shells/web/src/capture/page-walk.ts`) and outline its text from the page's own font files; text in a font the page did not load from a file (a system font) stays live `<text>`. A canvas, a video frame or an effect SVG has no form for comes from a screenshot of the same moment, and a capture that differs from that screenshot by too much falls back: the desktop app to a print of the page, the CLI and the extension to the screenshot. Same windowing as `page()`. Check for `host.capture.vector` and fall back to `page()` where it is absent.
+- `scrollDepth` frames a region (a 0..1 fraction of scroll height, or a px offset when > 1); `rangeTo` extends the shot *down* the page to that scroll position, producing a tall strip for a scroll animation to pan over. `crop` trims insets (each a `0..0.9` fraction). The returned ref's `width`/`height` are the **actual captured box** after crop and extension, so size your composite from the *result*, never the request. Hosts may also report `meta.pageWidth`/`pageHeight`/`scrollYPx` (treat them as optional).
+- `vector(spec)` returns a **true vector** SVG `AssetRef` (`type: 'vector'`): geometry that stays sharp at any zoom and can be edited. Hosts walk the live page into SVG with the export walker (`shells/web/src/capture/page-walk.ts`) and outline its text from the page's own font files; text in a font the page did not load from a file (a system font) stays live `<text>`. A canvas, a video frame or an effect SVG has no form for comes from a screenshot of the same moment, and a capture that differs from that screenshot by too much falls back: the desktop app to a print of the page, the CLI and the extension to the screenshot. Same windowing as `page()`. Check for `host.capture.vector` and fall back to `page()` where it is absent.
 :::
 
 ### `host.compose`
 
-*Capability `compose`.* Render another tool's output to an embeddable asset: **tool composition**, or nested exports. The runtime resolves a manifest's `composes` entries through it and exposes each as `{{asset <id>}}`, so you rarely call it directly. A shell that cannot render a child to bytes (the no-raster CLI for a raster child, for example) leaves it out, and composition degrades gracefully.
+*Capability `compose`.* Render another tool's output to an embeddable asset: **tool composition**, or nested exports. The runtime resolves a manifest's `composes` entries through it and exposes each as `{{asset <id>}}`, so you rarely call the API yourself. A shell that cannot render a child to bytes (for example the no-raster CLI for a raster child) leaves the API out, and composition degrades gracefully.
 
 | Method | Returns |
 |---|---|
@@ -700,22 +700,22 @@ Windowing and vector capture (v1.45):
 | `renderUrl(url, opts?)` | `Promise<AssetRef \| null>` |
 
 ::: details `ComposeSpec` and pasted tool links
-`ComposeSpec`: `{ toolId, inputs, format?, width?, height?, unit?, dpi?, transient?, settleMs? }` (`width`/`height` are in `unit`: `px` by default, or `mm`/`cm`/`in`/`pt`). The last two arrived in **v1.5**. `transient: true` skips the host's render cache entirely for a one-shot bake (a design import turning 30-odd scenes into stored assets), which means the *caller* owns the returned `url` and must release it once the bytes are copied. `settleMs` shortens the wait after mounting before the child is captured, for a child you know carries no images, Lottie or video to decode (advisory; a host may clamp or ignore the value).
+`ComposeSpec`: `{ toolId, inputs, format?, width?, height?, unit?, dpi?, transient?, settleMs? }` (`width`/`height` are in `unit`: `px` by default, or `mm`/`cm`/`in`/`pt`). The last two arrived in **v1.5**. `transient: true` skips the host's render cache for a one-shot bake (a design import turning 30-odd scenes into stored assets). The *caller* then owns the returned `url` and must release it once the bytes are copied. `settleMs` shortens the wait after mounting before the child is captured, for a child you know carries no images, Lottie or video to decode (advisory; a host may clamp or ignore the value).
 
-`render` returns an `AssetRef` whose `url` is a `blob:` or `data:` URL, so the embedded render behaves like any other asset: an **SVG** child stays a true vector through the parent's SVG and PDF exports (and rasterises crisply for PNG), while **raster** children (`png`/`jpg`/`webp`) embed as images. SVG is the format the declarative `composes` path is built for. The `icon` tool calls `render` from its `exportStill` hook with `transient: true` to bake each member of an icon kit. The child render is guarded against depth and cycles and is never watermarked or provenance-stamped, because it is an intermediate. [Build a tool](/info/authoring-tools.html) has the `composes` manifest shape.
+`render` returns an `AssetRef` whose `url` is a `blob:` or `data:` URL, so the embedded render behaves like any other asset: an **SVG** child stays vector through the parent's SVG and PDF exports (and rasterises sharply for PNG), while **raster** children (`png`/`jpg`/`webp`) embed as images. The declarative `composes` path is built for SVG. The `icon` tool calls `render` from its `exportStill` hook with `transient: true` to bake each member of an icon kit. The child render is guarded against depth and cycles and is never watermarked or provenance-stamped, because it is an intermediate. [Build a tool](/info/authoring-tools.html) has the `composes` manifest shape.
 
-`renderUrl(url, opts?)` is the **end-user** counterpart to `render`, added in **engine v1.3**, so check for `host.compose?.renderUrl`. When a person pastes a Lolly tool *link* (an embed URL, a hash share route or a pretty path) into an asset picker, the host parses it against the tool's manifest (typed inputs coerce exactly as [URL mode](/info/url-mode.html) would), renders that tool and returns an `AssetRef` whose `id` is the **canonical embed URL** (`https://lolly.tools/tool/<id>.<ext>?…`). That id *is* the asset's persistent identity: it round-trips through URL mode and saved sessions, and the runtime feeds it back here to re-render on load, so a tool-sourced image survives a reload and travels inside a shared link, like a library asset id. `ComposeUrlOpts` (`format` · `width` · `height` · `unit` · `dpi`) overrides take precedence over anything parsed from the URL and are folded into the returned id. Like `render`, the child is never watermarked or provenance-stamped. It returns `null` when the URL is not a recognised tool URL or the tool cannot render (the caller leaves the slot empty); a pasted link can only render a tool that already ships in this build.
+`renderUrl(url, opts?)` is the **end-user** counterpart to `render`, added in **engine v1.3**, so check for `host.compose?.renderUrl`. When a person pastes a Lolly tool *link* (an embed URL, a hash share route or a pretty path) into an asset picker, the host parses it against the tool's manifest (typed inputs coerce as [URL mode](/info/url-mode.html) would), renders that tool and returns an `AssetRef` whose `id` is the **canonical embed URL** (`https://lolly.tools/tool/<id>.<ext>?…`). That id *is* the asset's persistent identity: it round-trips through URL mode and saved sessions, and the runtime passes it back here to re-render on load. A tool-sourced image therefore survives a reload and travels inside a shared link, like a library asset id. `ComposeUrlOpts` (`format` · `width` · `height` · `unit` · `dpi`) override anything parsed from the URL and are folded into the returned id. Like `render`, the child is never watermarked or provenance-stamped. It returns `null` when the URL is not a recognised tool URL or the tool cannot render (the caller leaves the slot empty); a pasted link can only render a tool that already ships in this build.
 :::
 
 ### `host.models`
 
-*Optional, v1.246.* Hand a tool the bytes of named files of an on-device model family. It is for a tool that runs a model in a context of its own, where the shell's model store is out of reach: the Rondocode utility's editor frame has an opaque origin, with no IndexedDB and no network of its own, so it asks here for the singing models its songs need. The web and desktop shells provide it; the Node shells do not.
+*Optional, v1.246.* Hand a tool the bytes of named files of an on-device model family. It serves a tool that runs a model in its own context, out of reach of the shell's model store. For example, the Rondocode utility's editor frame has an opaque origin with no IndexedDB and no network, so it asks here for the singing models its songs need. The web and desktop shells provide it; the Node shells do not.
 
 | Method | Returns | Notes |
 |---|---|---|
 | `files(family, paths, opts?)` | `Promise<Record<string, Uint8Array> \| null>` | The bytes of each path, keyed as asked. `null` when the person declines the download or an AI policy forbids the family |
 
-The shell decides everything about the download. When a named file is not on the device, it offers the family's download in place first, with the size and the licence facts, and nothing moves until the person says yes. A download made there is the same download Settings offers under **Available offline**, so Settings shows it as downloaded afterwards. A family tools may not read, or a path that is not one of the family's files, is refused by name: the promise rejects. Each value is the only view of its own `ArrayBuffer`, so the caller can transfer `bytes.buffer` to a frame without a copy.
+The shell controls the download. When a named file is not on the device, the shell first offers the family's download in place, with the size and the licence facts, and nothing moves until the person says yes. That download is the one Settings offers under **Available offline**, so Settings then shows the family as downloaded. A family tools may not read, or a path outside the family's files, is refused by name: the promise rejects. Each value is the only view of its own `ArrayBuffer`, so the caller can transfer `bytes.buffer` to a frame without a copy.
 
 ::: details Which families a tool can read
 Only `sing` is readable: rondocode's singing models, named by their path in the family (`rondocode/vec-768.onnx`, `supertonic/onnx/tts.json`, `supertonic/voice_styles/F1.json`). The download in Settings is the int8 path with all three voices, about 1.1 GB. The full-size aligner and the full-size Supertonic vector estimator and vocoder are fallbacks: asking for one that is not on the device brings up a consent line of its own, with its size. `runtime/<file>` asks for the onnxruntime-web WebAssembly binary the shell itself runs (`runtime/ort-wasm-simd-threaded.jsep.wasm`), for a frame that cannot load the shell's `/ort/` files. That binary matches the shell's own onnxruntime-web version, so the caller's bundled glue must be the same version. `ModelFilesOpts` takes `reason` (a short phrase the offer shows after "needed for:"), `onProgress` (`{ loaded, total }` for whatever is moving: the download first when one is needed, then the read) and `signal` (an `AbortSignal`; the call rejects with `AbortError` between steps).
@@ -724,9 +724,9 @@ Only `sing` is readable: rondocode's singing models, named by their path in the 
 <!--i:eti-cpu-->
 ## On-device AI models
 
-Three APIs run a model on the device: `upscale` enlarges a picture, `matte` cuts out its subject and `ocr` reads its text. They share one pattern. The shell owns the ONNX runtime, the one-time model download (made only with the person's consent) and the memory bound, and the tool only ever sees pixels. A run can take many seconds on a weak device, so it is never driven from a time-boxed hook: a shell offers it as an explicit, cancellable action with progress, whose result becomes an asset. Hide the control where the API is absent.
+Three APIs run a model on the device: `upscale` enlarges a picture, `matte` cuts out its subject and `ocr` reads its text. They share one pattern: the shell owns the ONNX runtime, the one-time model download (made only with the person's consent) and the memory bound, and the tool sees only pixels. A run can take many seconds on a weak device, so it is never driven from a time-boxed hook: a shell offers it as an explicit, cancellable action with progress, whose result becomes an asset. Hide the control where the API is absent.
 
-The headless CLI provides `upscale` and `matte` too, with onnxruntime-node and sharp in place of the browser's runtime and canvas, so a hook that uses them renders headless. The member stays undefined on a lean install that carries neither, and a model that is not staged refuses by name rather than downloading itself. The CLI attaches `ocr` once the model weights are staged.
+The headless CLI provides `upscale` and `matte` too, with onnxruntime-node and sharp in place of the browser's runtime and canvas, so a hook that uses them renders headless. The member stays undefined on a lean install that carries neither, and a model that is not staged refuses by name instead of downloading itself. The CLI attaches `ocr` once the model weights are staged.
 
 What each records in the file differs, because what each invents differs:
 
@@ -773,12 +773,12 @@ A **`MatteFrame`** is `{ width, height, data: Uint8ClampedArray }`: RGBA, 8-bit,
 | `canRun(src, opts?)` | `Promise<MatteFeasibility>` | Whether this device can do the job, before any bytes move |
 | `run(frame, opts?)` | `Promise<MatteFrame>` | Cut out the subject. Rejects (`AbortError`) on `opts.signal`; never half-produces |
 
-Two models tier the picker: `u2netp` (U²-Net lite, ~4.5 MB, the default and the one that works on any subject) and `modnet` (MODNet, ~26 MB, tuned for people and weaker on everything else). Both ship under Apache-2.0. The roster leaves out the popular non-commercial models such as BRIA RMBG. It also **narrows** over time (`isnet-general` was retired in 2026-08, the BiRefNet pair in 2026-08), so read `models()` rather than hard-coding an id; a shell that no longer carries the id you pass falls back to its default and logs, rather than failing the run. `MatteOpts` takes `model`, `maxEdge` (a cap on the output's longest edge), `signal` and `onProgress`. `MatteFeasibility` mirrors `UpscaleFeasibility`: `ok`, `reason`, `message`, `suggestedMaxEdge` and `suggestedModel`.
+Two models tier the picker: `u2netp` (U²-Net lite, ~4.5 MB, the default, for any subject) and `modnet` (MODNet, ~26 MB, tuned for people and weaker on other subjects). Both ship under Apache-2.0. The roster leaves out non-commercial models such as BRIA RMBG. It also **narrows** over time (`isnet-general` was retired in 2026-08, the BiRefNet pair in 2026-08), so read `models()` instead of hard-coding an id. A shell that no longer carries the id you pass falls back to its default and logs; the run does not fail. `MatteOpts` takes `model`, `maxEdge` (a cap on the output's longest edge), `signal` and `onProgress`. `MatteFeasibility` mirrors `UpscaleFeasibility`: `ok`, `reason`, `message`, `suggestedMaxEdge` and `suggestedModel`.
 :::
 
 ### `host.ocr`
 
-*Optional, v1.127.* Read the text in an image: a plain RGBA frame goes in, and lines of text with boxes and confidences come out. Recognition is a best-effort read, so show the text as a draft the person can correct. OCR reads pixels, so signals carried by digital text (invisible characters, homoglyphs, a text watermark) do not survive. The web and desktop shells provide the API.
+*Optional, v1.127.* Read the text in an image: a plain RGBA frame goes in, and lines of text with boxes and confidences come out. Recognition is best effort, so show the text as a draft the person can correct. OCR reads pixels, so signals carried by digital text (invisible characters, homoglyphs, a text watermark) do not survive. The web and desktop shells provide the API.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -797,7 +797,7 @@ Ordinary exports get their Content Credentials through `host.export`, which owns
 
 ### `host.c2pa`
 
-*Optional, v1.85.* Embed a **freshly signed** C2PA manifest into finished bytes. It exists for the redacted-derivative path, where carrying the source's manifest forward would re-embed a pixel-accurate thumbnail of the unredacted original, so the output is signed as a **new work** instead, and the caller says so in its interface. Check for `host.c2pa?.sign`. Signing uses the enrolled device identity when one is valid, else an ephemeral on-device key.
+*Optional, v1.85.* Embed a **freshly signed** C2PA manifest into finished bytes. It serves the redacted-derivative path. Carrying the source's manifest forward there would re-embed a pixel-accurate thumbnail of the unredacted original, so the output is signed as a **new work**, and the caller says so in its interface. Check for `host.c2pa?.sign`. Signing uses the enrolled device identity when one is valid, else an ephemeral on-device key.
 
 | Method | Returns | Notes |
 |---|---|---|
@@ -821,4 +821,4 @@ Hooks can also run in a Worker:
 
 Verified built-ins and visibly unsigned development tools can still reach the page realm, and for verified built-ins the signed catalog is the trust boundary. See the [Threat model](/info/threat-model.html#trust-boundaries).
 
-Async hook results are time-boxed, and a late `onInit` or `onInput` result can still apply. [Tool hooks](/info/tool-hooks.html) owns the budgets, the late-result rule and how export hooks fail. `afterExport`, the cleanup guarantee, is always awaited and its errors are only logged. `onFrame` and `onLevel` run once per frame or level sample and are not time-boxed; the runtime drops a sample if the previous one is still rendering.
+Async hook results are time-boxed, and a late `onInit` or `onInput` result can still apply. [Tool hooks](/info/tool-hooks.html) covers the budgets, the late-result rule and how export hooks fail. `afterExport`, the cleanup guarantee, is always awaited and its errors are only logged. `onFrame` and `onLevel` run once per frame or level sample and are not time-boxed; the runtime drops a sample if the previous one is still rendering.

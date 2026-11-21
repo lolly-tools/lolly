@@ -1,8 +1,8 @@
 # Meet Lolly Demo
 
-Lolly Demo is Lolly's own design system, the one lolly.tools opens with, which is why everything starts out green. Your brand is the show. Lolly is the Studio.
+Lolly Demo is Lolly's own design system. lolly.tools opens with Lolly Demo, so everything starts out green. Your brand is the show. Lolly is the Studio.
 
-Lolly Demo is a sample. Switch to **Lolly Starter**, a blank design system, or to your own in [Settings → Design systems](/#/settings?focus=design-systems-section), and [Start](/info/quickstart.html#put-your-brand-in) shows how to make one.
+Lolly Demo is a sample. Switch to **Lolly Starter**, a blank design system, or to your own in [Settings → Design systems](/#/settings?focus=design-systems-section). [Start](/info/quickstart.html#put-your-brand-in) shows how to make your own.
 
 ::: figure lolly-demo-parts
 Choose a part to open its standards.
@@ -19,7 +19,7 @@ Choose a part to open its standards.
 - <!--g:brand--> ![The Lolly wordmark in Green Apple on Spearmint](/brand/horizontal-on-brand.svg) Wordmark on brand
 
 ::: figure lolly-demo-mark
-Three rings: you, Lolly, and Lolly at scale.
+Three rings: you, Lolly and Lolly at scale.
 :::
 
 ## Opal and its colourways
@@ -35,7 +35,7 @@ A name for every colour, never a number. Green leads.
 
 ## Fauna
 
-Australian wildlife at work in the studio, each with a part of the work to look after.
+Australian wildlife, each looking after one part of the work.
 
 - ![A koala holding a spearmint lolly](/info/mascots/koala.webp) **Koala** Builders
 - ![A smiling quokka sitting up with a spearmint lolly](/info/mascots/quokka.webp) **Quokka** Creators
