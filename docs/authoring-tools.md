@@ -47,6 +47,8 @@ A working tool needs two files. This one makes a social card with a heading and 
 }
 ```
 
+`isolate: true` is written from evidence, never by hand ([Tool hooks](/info/tool-hooks.html)). The evidence that the CLI, the terminal app and the MCP server may draw an `<svg>`-based tool's PNG with no browser lives beside the manifest in `browser-free.json`: `node scripts/tool-browser-free.ts --verify --write` writes it from cases measured against the browser, and only a record whose verdict is `resvg` and whose tool version and files still match admits the tool. Apps never read the file, so it costs no `engineVersion`.
+
 ## template.html
 
 ```html
@@ -78,7 +80,7 @@ Try the folder in one of two ways:
 :::
 
 ::: note An HTML template needs the browser tier on the command line
-The template's root is an `<svg>`, so the command line renders it with no browser. A template built from HTML renders the same way in the web and desktop apps, and needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
+The template's root is an `<svg>`, so the command line writes its SVG with no browser, and its PNG too once a measured `browser-free.json` admits the tool. A template built from HTML renders the same way in the web and desktop apps, and needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
 :::
 
 <!--i:eti-folder-plus-->
@@ -100,6 +102,7 @@ Only `tool.json` and `template.html` are required. Add the others when the tool 
 | `i18n/<lang>.json` | Translated labels, help and options. | [Publish and localize a tool](/info/tool-publishing.html#localizing-a-tool) |
 | `SKILL.md`, `skill.json`, `skill/` | Guidance for agents that use the tool. | [Tool skills](/info/tool-skills.html) |
 | `intents.json` | The purposes the tool serves. Without this file the tool is not offered for an intent. | [Tool manifests](/info/tool-manifest.html#what-a-tool-is-for-intents-json) |
+| `browser-free.json` | The measured evidence that the command line may draw the tool's PNG with no browser. Written by `scripts/tool-browser-free.ts`, never by hand. | [Render with the CLI](/info/cli-rendering.html) |
 | `lib/` | Vendored scripts and data the tool loads. | |
 | `assets/` | Tool-local images and fonts. | [Assets and file utilities](/info/tool-files.html) |
 

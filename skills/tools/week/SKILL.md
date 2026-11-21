@@ -7,7 +7,7 @@ description: "Operate the Lolly Week tool (week) using its declared inputs and s
 
 Tool ID: `week`. Tool version: `1.1.0`. Engine range: `^1.343.0`.
 
-A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked. Paste the events as a table, for a slide or a walkthrough.
+A week of a calendar: busy time, the slots you proposed, the ones declined and the meeting that's booked, for a slide or a walkthrough.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

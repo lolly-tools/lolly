@@ -7,7 +7,7 @@ description: "Operate the Lolly Booth tool (booth-studio) using its declared inp
 
 Tool ID: `booth-studio`. Tool version: `0.4.1`. Engine range: `^1.0.0`.
 
-Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.
+Dress a 3D event booth with sponsor artwork. Pick a booth design and render a still or a turntable for a sponsor pitch.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

@@ -1,7 +1,7 @@
 {
   "id": "rondocode",
   "name": "Rondocode",
-  "description": "Write music as code and hear it as you type: synths, patterns and a mix in rondocode's live editor. Export the song as audio with Content Credentials that record it, as stems, as a MIDI file of its notes, or keep its source.",
+  "description": "Write music as code and hear it as you type. Export the song as audio with Content Credentials, as stems, as a MIDI file, or keep its source.",
   "version": "1.1.0",
   "engineVersion": "^1.246.0",
   "status": "community",

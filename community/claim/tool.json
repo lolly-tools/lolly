@@ -1,7 +1,7 @@
 {
   "id": "claim",
   "name": "Claim",
-  "description": "Claim your name on any media you've already made - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file - all on your device, before you upload it anywhere.",
+  "description": "Claim your name on any media - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials, on your device.",
   "a11yLabel": "Embed credentials into your files",
   "version": "2.0.2",
   "engineVersion": "^1.104.0",

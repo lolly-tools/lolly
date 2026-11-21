@@ -7,7 +7,7 @@ description: "Operate the Lolly Spatial Photo tool (spatial-photo) using its dec
 
 Tool ID: `spatial-photo`. Tool version: `0.1.4`. Engine range: `^1.152.0`.
 
-Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with real parallax, atmosphere and focus.
+Drop in one photo and move a camera through it: depth is read on your device.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

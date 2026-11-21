@@ -10,6 +10,7 @@ import { t } from '../../i18n.ts';
 import { mountZoomHud } from '../../components/zoom-hud.ts';
 import type { TextSignalPanel } from '../valid-text.ts';
 import { icon } from '../../lib/icons.ts';
+import { escape as escapeText } from '../../utils.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { perfUiOn } from '../../feature-flags.ts';
 import { halfWindow, offsetToUv } from '../../lib/loupe-gl.ts';
@@ -380,6 +381,19 @@ export const groundFlipped = (): boolean => readAssetGround() !== appScheme();
 /** Mark an element whose assets sit on the other ground (the grid, the details sheet). */
 export function applyAssetGround(el: Element | null | undefined): void {
   el?.toggleAttribute('data-ground-flipped', groundFlipped());
+}
+
+// The Dark ground switch. The ground behind every asset follows the app's scheme; this
+// switch puts it on dark (or back on light), so artwork drawn for the other surface can
+// be checked, and the icon colours a colourway offers follow it (iconThemeForGround).
+// One label, pressed while the ground is dark, so the button reads the same way in
+// either theme. The toolbar holds one, so does each icon group's Colours row and so
+// does an asset's own Colours row in the details sheet; wiring.ts syncAssetGround
+// keeps them in step.
+export function groundSwitchHtml(): string {
+  const dark = readAssetGround() === 'dark';
+  const label = t('Dark ground');
+  return `<button type="button" class="cat-showhidden cat-ground${dark ? ' is-on' : ''}" aria-pressed="${dark}" aria-label="${escapeText(label)}" title="${escapeText(label)}">${icon('moon', { size: 15 })}<span class="cat-btn-label">${label}</span></button>`;
 }
 // The icon colours a colourway gives depend on the ground. On a light ground a strip
 // offers the colourway's own pairing (`colourway-<id>`); on a dark ground it offers that
