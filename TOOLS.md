@@ -3,7 +3,7 @@
 Every tool in the gallery, in alphabetical order. [Open Lolly](https://lolly.tools) to use one, or go back to the [README](README.md).
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **75 tools** today - 65 listed in the gallery, plus 10 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Pricing, Sales Quote, Scorecard, Theme swap, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **75 tools** today - 64 listed in the gallery, plus 11 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Meeting Planner, Pricing, Sales Quote, Scorecard, Theme swap, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
@@ -42,7 +42,6 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 65 listed in th
 | Logo Wall | Arrange a pile of logos into a clean, even sponsor grid - the “NASCAR” wall. |
 | Lottie Ad | Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size. |
 | Markdown Slides | Turn Markdown or a JSON spec into a native, editable PowerPoint deck. Exports .pptx (editable), plus PDF and PNG. |
-| Meeting Planner | Plan a global meeting and see the time for every teammate's timezone. |
 | Pages | Reorder, rotate, extract, delete, merge or split PDF pages, or turn images into a PDF, on your device. |
 | Palette Lab | Grow a palette from one seed colour - harmony accents, OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export. |
 | Print Sheet | Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin. |

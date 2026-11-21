@@ -982,8 +982,8 @@
     {
       "version": 1,
       "toolId": "meeting-planner",
-      "toolVersion": "1.3.1",
-      "toolVersionRange": "1.3.1",
+      "toolVersion": "1.3.2",
+      "toolVersionRange": "1.3.2",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -991,7 +991,7 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "20058209e05df397710f08bfce2d54dfa7d6958cc84e7a1a6194fee822533fa8",
+          "sha256": "d336fa031e8aec2127f829e4b4d2bbd0b9956afdedce00320a0a8aab8db09a2b",
           "bytes": 2063
         },
         "reference/inputs.json": {
@@ -1621,8 +1621,8 @@
     {
       "version": 1,
       "toolId": "timezone",
-      "toolVersion": "1.1.2",
-      "toolVersionRange": "1.1.2",
+      "toolVersion": "1.2.0",
+      "toolVersionRange": "1.2.0",
       "skillRevision": "1",
       "origin": "generated",
       "references": [
@@ -1631,12 +1631,12 @@
       ],
       "files": {
         "SKILL.md": {
-          "sha256": "dddb784b6f5a37d49a82ae333cd177a3e88f948e391321ba68359b3e4b744f3b",
-          "bytes": 2569
+          "sha256": "30595e901d732f17987c97cec105e8353e5c45448cc246c5b6ba4ca698a246a7",
+          "bytes": 2602
         },
         "reference/inputs.json": {
-          "sha256": "a428c119f1b11bc454781c004c4ff43bea2a9990d041335f5a4d31c8d2024361",
-          "bytes": 10503
+          "sha256": "a75ff639337cdef4d05188764849ae1dbcbc60725f633537ea6b91a28b335958",
+          "bytes": 10808
         },
         "reference/examples.json": {
           "sha256": "d3d358bde0ef3f9776ee5ffab10236bf4bb3b64b5a92fe52c7cc7d311293c44f",
