@@ -59,7 +59,8 @@ export function syncAssetGround(cat: CatCtx): void {
   applyAssetGround(viewEl.querySelector('.catalog'));
   applyAssetGround(cat.detailsDialog);
   const dark = readAssetGround() === 'dark';
-  for (const btn of viewEl.querySelectorAll<HTMLElement>('.cat-ground')) {
+  const switches = [...viewEl.querySelectorAll<HTMLElement>('.cat-ground'), ...(cat.detailsDialog?.querySelectorAll<HTMLElement>('.cat-ground') ?? [])];
+  for (const btn of switches) {
     btn.classList.toggle('is-on', dark);
     btn.setAttribute('aria-pressed', String(dark));
   }

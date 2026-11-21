@@ -1,11 +1,11 @@
 # CLI reference
 
-The facts a script or an agent looks up: exit codes, the `--json` envelope, global flags and environment variables. It also covers verifying a file, the document and picture verbs, where local state lives and shell completion. The [lolly CLI](/info/cli.html) page is the place to start.
+Scripts and agents look up exit codes, the `--json` envelope, global flags, environment variables, file verification, the document and picture verbs, where local state lives and shell completion here. Start at the [lolly CLI](/info/cli.html) page.
 
 <!--i:eti-checklist-->
 ## Exit codes
 
-Every command answers with one code per outcome, so a pipeline can branch on the code instead of reading stderr. The meanings were fixed when the CLI reached general availability: a new code can be added, but an existing one does not change meaning without a major version.
+Every command returns one code per outcome, so a pipeline can branch on the code instead of reading stderr. The meanings are fixed: a new code can be added, but an existing code does not change meaning without a major version.
 
 | Code | Name | Meaning | What to do |
 |---|---|---|---|
@@ -30,7 +30,7 @@ Every command answers with one code per outcome, so a pipeline can branch on the
 - a render whose sources still need a rights decision; it still writes its file. `learning build` does the same and lists those blocks in `result.rightsDecisionsRequired`.
 :::
 
-Messages go to stderr; `--verbose` (or `DEBUG=1`) adds stack traces. An input that fails validation lists each field at fault. Several commands take a list of files, and then the exit code is the worst one's.
+Messages go to stderr; `--verbose` (or `DEBUG=1`) adds stack traces. An input that fails validation lists each field at fault. When a command takes a list of files, the exit code is the worst file's.
 
 <!--i:eti-code-->
 ## The --json envelope
@@ -39,7 +39,7 @@ Messages go to stderr; `--verbose` (or `DEBUG=1`) adds stack traces. An input th
 
 It is **not** available on a render, because a render's stdout is the file; asking for both is a usage error. `lolly speak --out=- --json` is refused for the same reason.
 
-Every command answers in the same envelope, except `ocr`, `detect-ai` and `reword`, which still emit a smaller `{ "ok": true, "command": …, … }` document with no `schemaVersion` or `warnings`:
+Every command uses this envelope, except `ocr`, `detect-ai` and `reword`, which emit a smaller `{ "ok": true, "command": …, … }` document with no `schemaVersion` or `warnings`:
 
 ```json
 {
@@ -62,7 +62,7 @@ The envelope covers the **failure** path too. A missing file, an unknown tool or
 "error": { "code": "UNAVAILABLE_HERE", "exit": 3, "kind": "FORMAT_UNAVAILABLE", "message": "…" }
 ```
 
-Branch on `error.kind` and `error.exit`, never on `error.message`, whose wording can change. `ok` mirrors the exit code, so a real answer can be `ok: false`: `validate` reporting no credential exits `5` with a full `result`.
+Branch on `error.kind` and `error.exit`, never on `error.message`, whose wording can change. `ok` mirrors the exit code, so a valid answer can be `ok: false`: `validate` reporting no credential exits `5` with a full `result`.
 
 **Compatibility rules.** Keys may be added inside `result`, `error` and `warnings` at any time, and enum values may be added, so ignore unknown keys and keep a default branch. `schemaVersion` goes up only when a key is removed, retyped or changes meaning.
 
@@ -73,7 +73,7 @@ lolly list --json                 # every tool, and what this installation can d
 lolly describe qr-code --json     # one tool's full input schema
 ```
 
-`list --json` carries a `result.environment` block: the engine and CLI versions, the content root, the host capabilities this shell provides, the browser-free formats and a per-tier report (`domFree`, `raster`, `desktop`, `browser`, `images`) with the reason each missing tier is missing. Each tool carries `capabilities`, `unmetCapabilities`, `nativeFormats` and `runnableHere`, so an agent can tell that `screencap` will exit `3` here **before** it tries.
+`list --json` carries a `result.environment` block: the engine and CLI versions, the content root, the host capabilities this shell provides, the browser-free formats and a per-tier report (`domFree`, `raster`, `desktop`, `browser`, `images`) with the reason for each missing tier. Each tool carries `capabilities`, `unmetCapabilities`, `nativeFormats` and `runnableHere`, so an agent can tell that `screencap` will exit `3` here **before** it tries.
 
 `describe --json` returns each input's declared spec plus three things the manifest cannot know: `flag` (the command-line spelling), `urlParam` (the compact alias, when the tool declares one) and `syntax` (how to write a non-scalar value). For an input whose id is also a reserved flag (`width`, `height`, `format`), `flag` is `--input.<id>=` and `shadowedByReservedParam` is `true`, because the bare id would set the export size instead.
 
@@ -91,7 +91,7 @@ These work on every command:
 | `-h`, `--help`, `-v`, `--version` | Recognised anywhere in the arguments. |
 | `--` | Ends option parsing. Everything after it is positional, which is the only way to pass a `longtext` value that itself starts with `--`. |
 
-A flag that takes a value is refused in its bare form rather than read as `"1"`: `lolly qr-code --output` is an error, not a file called `1`. `NO_COLOR` is honoured alongside the terminal check. Render flags are listed in [Render with the CLI](/info/cli-rendering.html#flags).
+A flag that takes a value is refused in its bare form rather than read as `"1"`: `lolly qr-code --output` is an error, not a file called `1`. `NO_COLOR` is honoured alongside the terminal check. Render flags are listed in [Render with the CLI](/info/cli-rendering.html#flags). One of them, `--allow-browser-free`, accepts a picture drawn without a browser that may differ from the app's, where the CLI would otherwise refuse it; the CLI warns and records the acceptance in the Content Credential, and still refuses a picture that would be wrong.
 
 <!--i:eti-cpu-->
 ## Environment variables
@@ -121,7 +121,7 @@ Where a flag and a variable set the same thing, the flag wins. `--trust-anchor` 
 <!--i:eti-badge-check-->
 ## Verify a file (lolly validate)
 
-`lolly validate` is the read side of [Content Credentials](/info/content-credentials-identity.html), entirely on this machine:
+`lolly validate` is the read side of [Content Credentials](/info/content-credentials-identity.html) and runs on this machine:
 
 ```bash
 lolly validate ./poster.pdf
@@ -131,11 +131,11 @@ lolly validate ./poster.pdf --trust-anchor=./corp-root.pem
 lolly validate ./poster.svg --no-default-anchors    # trust only what you pinned
 ```
 
-The summary says whether the file was made with Lolly and is unchanged since. The exit code is `0` when the file matches what was signed, including an expired certificate (Lolly signs with short-lived on-device certificates, so any other rule would fail every gate on its own correct output within a month); `4` when a credential is present and the bytes no longer match it; `5` when there is no credential; and `2` when the path could not be read. `--strict` makes an expired certificate exit `4`, and `--require=none` turns off verdict-based exit codes ("just tell me what is in this file").
+The summary says whether the file was made with Lolly and is unchanged since. The exit code is `0` when the file matches what was signed, even with an expired certificate. Lolly signs with short-lived on-device certificates, so any other rule would fail every gate on Lolly's own correct output within a month. The code is `4` when a credential is present and the bytes no longer match the credential, `5` when there is no credential and `2` when the path could not be read. `--strict` makes an expired certificate exit `4`. `--require=none` turns off verdict-based exit codes ("just tell me what is in this file").
 
 ### Which anchors produced the verdict
 
-Trust only means something next to "trusted by what", so every report says which anchor set it used. The default is the **Lolly CA root**, the **vendored C2PA known-certificate list** (camera makers and the big generators) and anything you pinned. That is the same set the app's Verify view uses, so one word means one thing everywhere:
+Every report says which anchor set it used. The default is the **Lolly CA root**, the **vendored C2PA known-certificate list** (camera makers and the big generators) and anything you pinned. The app's Verify view uses the same set:
 
 ```bash
 $ lolly validate ./qr.svg
@@ -150,7 +150,7 @@ $ lolly validate ./qr.svg --no-default-anchors
   Trust anchors: no built-in anchors · pinned: none · Lolly CA root NOT pinned
 ```
 
-Both exit `0`: this file is signed with an on-device key that chains to nothing, which is the expected state for a terminal render, not damage. [Signing from the terminal](/info/cli-signing.html) shows how to sign with a name a recipient can verify.
+Both exit `0`. The file is signed with an on-device key that chains to nothing. That is expected for a terminal render and is not damage. [Signing from the terminal](/info/cli-signing.html) shows how to sign with a name a recipient can verify.
 
 ::: details Every lolly validate flag
 | Flag | Meaning |
@@ -166,11 +166,11 @@ Both exit `0`: this file is signed with an on-device key that chains to nothing,
 
 ### --metadata: what else is in this file
 
-`--metadata` answers the question people have before sending a file on. On top of the credential verdict it reports:
+Use `--metadata` before you send a file on. Besides the credential verdict, it reports:
 
 - **Embedded metadata**: EXIF, XMP and IPTC fields, a GPS fix if the file records one, an AI source-type *declaration* if the generator wrote one and any bytes after the container's end. Fields the engine considers personally identifying are marked.
 - **PDF structure**: pages, page sizes, fonts, images, annotations, the Info dictionary, whether an XMP packet is present and how much text can be extracted. Pages with no text layer are named as scans that need OCR.
-- **Text in the file but not visible on the page**: the classic failed redaction, where a black bar covers words that are still in the content stream. The report says where those words are and quotes them back. It cannot say why they are there.
+- **Text in the file but not visible on the page**: a failed redaction, where a black bar covers words that are still in the content stream. The report says where those words are and quotes them back. It cannot say why they are there.
 
 ```bash
 lolly validate ./contract.pdf --metadata
@@ -217,7 +217,7 @@ A logical asset input such as `image://brand/logo`, `catalog://lolly/logo/primar
 <!--i:eti-pin-->
 ## Start from what the piece has to do
 
-`lolly intent` takes a JSON file, or `-` for standard input, that says what a piece has to do, where it will be seen and what it has to say. It answers with the tool for each surface, the input values, what is missing and why. `--render` makes a file for each ready surface and writes the answer beside them as `intent-resolution.json`. [Start from what the piece has to do](/info/visual-intent.html) has the format.
+`lolly intent` takes a JSON file, or `-` for standard input, that says what a piece has to do, where it will be seen and what it has to say. It answers with the tool for each surface, the input values, what is missing and why. `--render` makes a file for each ready surface and writes the answer next to the files as `intent-resolution.json`. [Start from what the piece has to do](/info/visual-intent.html) has the format.
 
 ```bash
 lolly intent certificate.json
@@ -227,12 +227,12 @@ lolly intent certificate.json --render --record-prompt
 lolly intent certificate.json --render --no-record-intent
 ```
 
-With `--render`, each file's Content Credential records the purpose, surface, tool, language, rules and vocabulary versions and the intent digest, with occasion, audience, region and the prompt as fingerprints only. `--record-prompt` records the prompt's own words instead of its fingerprint. `--no-record-intent` records nothing about the intent. `--c2pa=off` writes no credential, or `--c2pa=<days>` sets its lifetime. Each run says what it recorded, read back from the finished file, and `--json` gives the same as `intentRecord` on each entry in `rendered`. [What goes in the file](/info/visual-intent.html#what-goes-in-the-file) has the detail.
+With `--render`, each file's Content Credential records the purpose, surface, tool, language, rules and vocabulary versions and the intent digest, with occasion, audience, region and the prompt as fingerprints only. `--record-prompt` records the prompt's own words instead of its fingerprint. `--no-record-intent` records nothing about the intent. `--c2pa=off` writes no credential; `--c2pa=<days>` sets its lifetime. Each run says what it recorded, read back from the finished file. `--json` gives the same as `intentRecord` on each entry in `rendered`. [What goes in the file](/info/visual-intent.html#what-goes-in-the-file) has the detail.
 
 <!--i:eti-download-->
 ## Bring a design in from another service (lolly import)
 
-`lolly import <template.json>` turns a Bannerbear V5 image template into a Design document on this device and prints what was left out, one note per line. `--output=<file>` writes the frames and report, `--mapping=<file>` writes the entry `lw render-api` reads, and `--json` prints the whole result. See [Bannerbear templates](/info/design-import.html#bannerbear-templates). Bannerbear V2 and Placid return no design, so `lolly import` refuses them.
+`lolly import <template.json>` turns a Bannerbear V5 image template into a Design document on this device and prints what was left out, one note per line. `--output=<file>` writes the frames and report. `--mapping=<file>` writes the entry `lw render-api` reads. `--json` prints the result. See [Bannerbear templates](/info/design-import.html#bannerbear-templates). Bannerbear V2 and Placid return no design, so `lolly import` refuses them.
 
 ::: note Not run against a live account
 The importer is built from public documentation and has not run against a live account.
@@ -241,7 +241,7 @@ The importer is built from public documentation and has not run against a live a
 <!--i:eti-crop-->
 ## Look at a picture in its own coordinates
 
-The MCP server's looking tools are CLI verbs too, over the same code, so a script sees what an agent sees. Each takes an SVG, PNG, JPEG, GIF or WebP file, or `-` for standard input:
+The MCP server's looking tools are also CLI verbs on the same code, so a script sees what an agent sees. Each takes an SVG, PNG, JPEG, GIF or WebP file, or `-` for standard input:
 
 ```bash
 lolly design --z=… --export=svg | lolly look - --output=look.png
@@ -257,18 +257,18 @@ lolly trace photo.jpg --max-lines=20 --design-layers --json
 <!--i:eti-folder-shared-->
 ## Where saved sessions live
 
-A `lolly` run is short-lived: state a tool saves stays in memory for that run. What it does read is the saved sessions this machine already has. One directory serves the desktop app, the TUI and the CLI, picked in this order:
+State a tool saves during a `lolly` run stays in memory for that run. The run does read the saved sessions this machine already has. One directory serves the desktop app, the TUI and the CLI, picked in this order:
 
 1. `$LOLLY_STATE_DIR`, when you name one.
 2. `$LOLLY_TUI_DIR`, the old name for the same thing. It still works and prints a one-line note naming its replacement.
 3. The desktop app's data directory, when the app is installed: `~/Library/Application Support/tools.lolly.Desktop` on macOS, `$XDG_DATA_HOME/tools.lolly.Desktop` (or `~/.local/share/...`) on Linux, `%APPDATA%\tools.lolly.Desktop` on Windows.
 4. `~/.lolly`.
 
-Sessions sit in `saved-state/<slot>.json` there, in the record the desktop app writes. A project saved in the app loads in the terminal by its slot, and one saved in the TUI opens in the app.
+Sessions are in `saved-state/<slot>.json` in that directory, in the record the desktop app writes. A project saved in the app loads in the terminal by its slot, and one saved in the TUI opens in the app.
 
-`lolly` writes a tool's saved state to disk only when rung 1 or 2 sets the directory, so a headless render leaves no files that nobody asked for in your home directory or the app's store. Name a directory and a state-saving tool becomes scriptable across runs.
+`lolly` writes a tool's saved state to disk only when step 1 or 2 sets the directory. A headless render then leaves no unrequested files in your home directory or the app's store. Name a directory to make a state-saving tool scriptable across runs.
 
-Terminal design systems are kept differently. `lolly system init`, `import`, `add` and `use` store them under `design-systems/`, with the list in `design-systems.json`, in whichever directory the order above picks. A bare `lolly` in a terminal also records there that you have seen its start screen.
+Terminal design systems are kept differently. `lolly system init`, `import`, `add` and `use` store them under `design-systems/`, with the list in `design-systems.json`, in the directory the order above picks. A bare `lolly` in a terminal also records there that you have seen its start screen.
 
 <!--i:eti-globe-->
 ## Publish a brand page
@@ -293,7 +293,7 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 | `--name=<name>`, `--id=<id>` | Override the name and the id. |
 :::
 
-**What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A logo whose rights record says `own-work`, with its owner and terms, travels as "Owner-published, not an open licence" ([Publish your own marks](/info/brand-page.html#publish-your-own-marks)). A font file needs a recorded licence that allows passing the file on, and `--include` does not change that: the page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.
+**What is held back.** A logo with no recorded licence stays out unless you name the logo with `--include`. A logo whose rights record says `own-work`, with its owner and terms, travels as "Owner-published, not an open licence" ([Publish your own marks](/info/brand-page.html#publish-your-own-marks)). A font file needs a recorded licence that allows passing the file on; `--include` does not change this rule. The page gives the name of the face and draws its specimen as vector outlines. Internal brand skills never appear. The command, `brand.json` and the page each list what was held back and why.
 
 **What is checked.** `checks.json` holds contrast measurements of the colour pairs in every colourway and mode, and house rule checks on example documents. They do not judge a finished piece.
 

@@ -352,6 +352,12 @@ Export options:
                            HTML under a .html name instead of failing. Off by default - 
                            without it a format that cannot be produced is an error, never
                            a different file under the name you asked for.
+  --allow-browser-free     OPT IN: draw a PNG, BMP, JPEG XL, EXR or HDR without a browser
+                           where the browser-free route refused it only because it may
+                           differ from the app's. Warns, and records the acceptance in the
+                           credential. Never for a picture that would be wrong (a WebP left
+                           blank, a missing DRAFT mark, a paged document, canvas pixels).
+                           \`lolly tui --allow-browser-free\` is the same choice in the TUI
   --bleed=3mm --marks=crop,reg,bars        print prep (routes through the full render tier)
   --press-profile=fogra39  CMYK press condition for pdf-cmyk / cmyk-tiff. \`--profile=\`
                            is its alias, matching URL mode's reserved \`profile\` param.

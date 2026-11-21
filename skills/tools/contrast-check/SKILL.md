@@ -7,7 +7,7 @@ description: "Operate the Lolly Contrast tool (contrast-check) using its declare
 
 Tool ID: `contrast-check`. Tool version: `1.2.1`. Engine range: `^1.0.0`.
 
-Check a text and background pair, or every pairing in the design system palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.
+Check a text and background pair, or every pairing in the palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.
 
 Read the overall Lolly skill first. Describe this exact tool before composing inputs. Use only declared input IDs or URL aliases; validate structured values before rendering.
 

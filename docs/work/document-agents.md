@@ -1,8 +1,8 @@
 # Invite an agent
 
-You can let an AI agent read or edit a shared Lolly Design document, or a whole shared project, on
-your behalf. The agent works with your permissions for a period you choose, from one hour to
-seven days, and you can revoke it at any time.
+Let an AI agent read or edit a shared Lolly Design document, or a shared project, on your
+behalf. The agent works with your permissions for a period you choose, from one hour to seven
+days, and you can revoke the invitation at any time.
 
 Everyone in the document sees the agent's name next to yours, and Lolly Work records every call
 it makes. Admins can review all agent activity under **Agents** in the console.
@@ -13,7 +13,7 @@ it makes. Admins can review all agent activity under **Agents** in the console.
 - Read the document or project you invited it to.
 - Edit alongside your collaborators, if you gave it editor access.
 - With editor access to a project, create sessions, upload files and sort outputs into folders.
-- Act only within your current permissions, which it can never exceed.
+- Act only within your current permissions.
 
 ## An agent cannot
 
@@ -42,8 +42,8 @@ belongs to your Lolly Work instance; Lolly's public [MCP server](https://lolly.t
 for rendering is a different service.
 
 Lolly Work has one more MCP endpoint: the [organisation MCP endpoint](automation-api.md#connect-an-agent-over-mcp) at
-`/api/v1/mcp`, for automation that holds a service token and works across the instance. The two do
-not share credentials. A connection key works only on this endpoint, `/api/workspace/mcp`, for one
+`/api/v1/mcp`, for automation that holds a service token and works across the instance. A
+connection key works only on this endpoint, `/api/workspace/mcp`, for one
 document or project under your own access. A service token works only on `/api/v1/mcp`. Only the
 organisation endpoint can render and send a finished file to a destination.
 
@@ -87,7 +87,7 @@ In the console's Activity timeline, agents stay distinct from people. Each deleg
 identifies the agent and links its inviter to People. You can filter by one agent, and filtering
 by a person or group also includes their invited agents. An invitation or revocation stays
 attributed to the person who made that change. Older agent events that already identify the
-inviter are shown as agent activity without rewriting the audit chain; where the inviter is
+inviter are shown as agent activity without rewriting the audit chain. Where the inviter is
 unknown, the attribution is left blank.
 
 ::: note What the record cannot show
@@ -97,8 +97,6 @@ agent, or who later used a forwarded connection key.
 
 <!--i:eti-link-->
 ## Connect the agent
-
-This part is for whoever sets up the agent's MCP client.
 
 - **Endpoint.** Streamable HTTP MCP at `/api/workspace/mcp`, answering with JSON and offering no
   SSE stream. It accepts MCP protocol versions 2025-03-26, 2025-06-18 and 2025-11-25.
@@ -174,8 +172,8 @@ Document room presence is a snapshot of the current host. Project-only MCP reque
 occupy a document room, and hosts without a room bridge report presence as unavailable.
 
 The view reads at most 10,001 agent audit events for the chosen period, reports the newest
-10,000, inspects at most 500 agents and shows 100 recent events. Both coverage limits are stated
-in the view; shorten the period or use the audit log when one is reached. It refreshes every 15
+10,000, inspects at most 500 agents and shows 100 recent events. The view states both coverage
+limits. When one is reached, shorten the period or use the audit log. It refreshes every 15
 seconds while visible, keeps a table you are searching or have focused, and stops after you
 navigate away or lose permission. The same data comes from
 [`GET /api/v1/agents/activity`](api.md#agent-activity), with no credentials, tool arguments or
@@ -187,8 +185,7 @@ document contents.
 The Agents inventory shows the last client report in the selected period. Unknown clients keep
 the application name they sent; older or unnamed connections show **Not reported**. Search and
 CSV export include the client, its version and any model the client reported. Activity badges
-belong only to requests carrying that report, so older tool calls are not labelled after the
-fact.
+appear only on requests that carried that report. Older tool calls are not labelled later.
 
 ::: details Recognised clients and models
 Recognisable marks: Claude, Codex, Gemini, Qwen, GLM, DeepSeek, Jev, Laya, Kolibri and Mistral
@@ -204,8 +201,8 @@ client.
 
 Lolly reads the standard MCP `initialize.params.clientInfo` fields `name`, `title` and
 `version`. A client can also send request-local metadata in
-`params._meta["io.modelcontextprotocol/clientInfo"]`. To report the model it is using, a client
-sends the optional Lolly extension:
+`params._meta["io.modelcontextprotocol/clientInfo"]`. To report its model, a client sends the
+optional Lolly extension:
 
 ```json
 {
@@ -221,11 +218,10 @@ signal.
 :::
 
 The [MCP initialization spec](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)
-identifies the client application, not necessarily its model: Cursor can report a Claude model
-while remaining a Cursor client, and a plain Claude Code or Codex client name implies no exact
-model.
+identifies the client application, not necessarily its model. Cursor can report a Claude model
+and stay a Cursor client. A plain Claude Code or Codex client name implies no exact model.
 
-Only bounded display fields enter the audit metadata; client icons, website URLs and other
+Only bounded display fields enter the audit metadata. Client icons, website URLs and other
 implementation fields are discarded. A reconnect without client information clears the earlier
 report. Nothing caches a "last client" against a reusable key, so calls from another client never
 inherit an earlier client's identity.

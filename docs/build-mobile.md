@@ -1,6 +1,6 @@
 # Build the mobile apps
 
-This page is for a developer who wants to run the Android app on an emulator or a phone, or build a signed APK and AAB. One mobile shell, `shells/tauri-mobile`, serves Android and iOS; iOS has its own page, [Building for iOS](/info/ios-build.html).
+Run the Android app on an emulator or a phone, or build a signed APK and AAB. One mobile shell, `shells/tauri-mobile`, serves Android and iOS; iOS has its own page, [Building for iOS](/info/ios-build.html).
 
 You need a checkout from [Get the source](/info/contributing-setup.html), plus the Rust toolchain and Tauri CLI from [Build the desktop app](/info/build-desktop.html#prerequisites).
 
@@ -72,7 +72,7 @@ pnpm run dev:android
 <!--i:eti-package-->
 ## Production build
 
-Build with the public content profile. Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` from your private credential store; the production frontend wrapper signs the exact catalog embedded in the app.
+Build with the public content profile. Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` from your private credential store. The production frontend wrapper signs the exact catalog embedded in the app.
 
 ```bash
 export LOLLY_PROFILE=lolly-start

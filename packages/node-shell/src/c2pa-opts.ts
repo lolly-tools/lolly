@@ -17,7 +17,8 @@ import { summarizeInputs, CREDENTIAL_READABLE_TYPES, matchesShowIf, ENGINE_VERSI
 import { modelToValues, flattenValue } from '../../../engine/src/inputs.ts';
 import type { embedC2pa, C2paIntentRecord, C2paSigner, DesignRecord, PlacedPictures } from '@lolly/engine';
 import type { ExportMeta, Profile } from '@lolly-tools/core/host-v1';
-import { designExportRouteFields, type DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
+import type { DesignExportRouteRecord } from '../../../engine/src/design-export-route.ts';
+import { nodeRouteEnvironment, type NodeRouteRecord } from './export-route.ts';
 
 /** The (unexported-by-name) options bag `embedC2pa` accepts. */
 export type ExportC2paOpts = NonNullable<Parameters<typeof embedC2pa>[2]>;
@@ -81,10 +82,12 @@ export interface BuildExportC2paOpts {
   specVersion?: ExportC2paOpts['specVersion'];
   /**
    * Which renderer drew a Design page in this shell and its version (plan 326), written
-   * as the same `route` and `renderer` keys the web shell writes. Absent for every
-   * export outside the route selector, so their credentials are unchanged.
+   * as the same `route` and `renderer` keys the web shell writes, and `accepted` when the
+   * user accepted a browser-free picture outside the measured set (export-route.ts
+   * `NodeRouteRecord`). Absent for every export outside the route selector, so their
+   * credentials are unchanged.
    */
-  route?: DesignExportRouteRecord | null;
+  route?: NodeRouteRecord | DesignExportRouteRecord | null;
   /**
    * What the piece was asked to do, for a render that started from an intent (plan 350
    * W4b). Absent for every other export, so their credentials are unchanged.
@@ -142,7 +145,7 @@ export function buildExportC2paOpts(o: BuildExportC2paOpts): ExportC2paOpts {
       surface,
       format, tool: name,
       ...designRecordEnvironment(o.meta),
-      ...designExportRouteFields(o.route),
+      ...nodeRouteEnvironment(o.route),
       date: new Date().toISOString(),
       ...(sizeLine ? { dimensions: sizeLine } : {}),
       ...(Object.keys(inputs).length ? { inputs } : {}),

@@ -3,6 +3,7 @@ mod public_network;
 mod atomic_write;
 #[path = "../../../tauri-shared/tauri-embedded-assets.rs"]
 mod embedded_assets;
+mod page_scroll;
 mod remote_fetch;
 mod site_fetch;
 #[cfg(feature = "webgpu-probe")]
@@ -251,6 +252,7 @@ pub fn run() {
             atomic_write::write_document_atomic,
             site_fetch::site_fetch,
             remote_fetch::remote_fetch,
+            page_scroll::page_scroll_settle,
             mobile_poll_events,
             mobile_take_open_file
         ]))

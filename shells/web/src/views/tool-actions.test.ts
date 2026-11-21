@@ -2510,19 +2510,20 @@ const PERSIMMON_PREVIEW = {
   plainDescription: 'Made with https://lolly.tools : Chart',
 };
 
-test('the Design system card is pre-checked, outside Protection, and shows the exact words it writes', async () => {
+test('the Design system card is pre-checked, inside Content claims, and shows the exact words the export writes', async () => {
   const h = mount({ seqMs: null, formats: ['png'], madeWith: { preview: PERSIMMON_PREVIEW } });
   await settle();
   const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
   assert.ok(card, 'the card is rendered');
   assert.equal(card.hidden, false);
-  assert.equal(card.closest('[data-protection-section]'), null, 'never folded into the collapsed Protection group');
+  const fold = card.closest('[data-protection-section]') as HTMLElement;
+  assert.ok(fold, 'the card is inside the Content claims fold');
+  assert.equal(fold.style.display, 'flex', 'the fold shows while the card applies');
+  assert.equal(card.querySelector('[data-madewith-description]'), null, 'no description line; the help tip explains');
   const toggle = card.querySelector('[data-action="madewith"]') as HTMLInputElement;
   assert.equal(toggle.checked, true, 'pre-checked');
   assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon',
     'the label is typed text, shown exactly as it will be written');
-  assert.equal(card.querySelector('[data-madewith-description]')!.textContent,
-    'Description: Made with https://lolly.tools : Chart (Persimmon colourway)');
   h.dispose();
 });
 
@@ -2532,7 +2533,6 @@ test('a recorded brand page shows on the card in the same line, and unticking th
   await settle();
   const card = h.panel.querySelector('[data-madewith-section]') as HTMLElement;
   assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon · Brand page: https://acme.example/brand/acme/');
-  assert.equal(card.querySelector('[data-madewith-description]')!.textContent, 'Description: Made with https://lolly.tools : Chart (Persimmon colourway)', 'the description does not change');
   const toggle = card.querySelector('[data-action="madewith"]') as HTMLInputElement;
   toggle.checked = false;
   toggle.dispatchEvent(new Event('change', { bubbles: true }));
@@ -2550,7 +2550,6 @@ test('unticking the card turns the runtime switch off and shows the plain descri
   assert.equal(h.madeWith(), false);
   assert.equal(card.hidden, false, 'still visible, so it can be ticked again');
   assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records nothing about the design system.');
-  assert.equal(card.querySelector('[data-madewith-description]')!.textContent, 'Description: Made with https://lolly.tools : Chart');
   h.dispose();
 });
 
@@ -2632,7 +2631,6 @@ test('on HTML the record reaches only the credential: no description line, and n
   assert.equal(c2pa.checked, true, 'on by default');
   assert.equal(card.hidden, false);
   assert.equal(card.querySelector('[data-madewith-record]')!.textContent, 'Records: Acme <Client> · Colourway: Persimmon');
-  assert.equal((card.querySelector('[data-madewith-description]') as HTMLElement).hidden, true, 'an HTML file has no description to write');
   c2pa.checked = false;
   c2pa.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
   assert.equal(card.hidden, true, 'with the credential off, an HTML file carries none of the record');

@@ -1,23 +1,21 @@
 # Sign-in and sessions
 
-This page is for the person who decides how colleagues sign in to Lolly Work. By the end you
-will know which sign-in methods to offer, who gets in, how long someone stays signed in and
-how to end their access.
+Choose how colleagues sign in to Lolly Work, who gets in, how long a session lasts and how to
+end access.
 
 <!--i:eti-help-->
 ## How a sign-in works
 
-Every sign-in answers two questions. Your identity provider answers the first: who is this?
-Lolly Work answers the second: do they belong here? Lolly Work checks its admission rules on every
-sign-in, before it writes an account. When both answers are yes, Lolly Work finds the person's
-account, or creates one, and sets a session cookie.
+Your identity provider proves who a person is. Lolly Work then checks its admission rules on
+every sign-in, before it writes an account. When both pass, Lolly Work finds or creates the
+person's account and sets a session cookie.
 
 ::: figure work-identity-two-questions
 The provider proves who someone is; Lolly Work decides whether they belong, then links the account and starts a session.
 :::
 
-A session is a signed token. Lolly Work keeps no table of live sessions, only a small store of
-revoked ones (sign-outs and back-channel logouts).
+A session is a signed token. Lolly Work keeps no table of live sessions. It keeps a small store
+of revoked ones (sign-outs and back-channel logouts).
 
 | Principal | Cookie | Comes from | Lasts |
 |---|---|---|---|
@@ -43,22 +41,22 @@ link signature or an OAuth state.
 | Device code | the CLI and native apps | [below](#device-code-sign-in) |
 | Dev provider | local development, demos and tests only | [The dev provider](identity-providers.md#the-dev-provider) |
 
-Each method ends the same way: the same admission checks, the same role derivation, the same
-cookie and an `auth.login` audit row.
+Every method ends with the same admission checks, role derivation and cookie, and an
+`auth.login` audit row.
 
 ### Email and password
 
-Some people cannot use the instance's identity providers. A Google Workspace administrator,
-for example, can restrict which third-party apps the organisation's accounts may sign in to.
-For those people, add one `kind: "password"` entry to `idp.additional`
+Some people cannot use the instance's identity providers, for example when a Google Workspace
+administrator restricts which third-party apps its accounts may sign in to. For them, add one
+`kind: "password"` entry to `idp.additional`
 ([configuration](configuration.md#email-and-password-kind-password)):
 
 ```json
 "additional": [{ "id": "email", "kind": "password", "label": "Email and password" }]
 ```
 
-The sign-in chooser then offers **Sign in with email and password**, a form the server
-renders. With no other sign-in configured, `/api/auth/login` is that form.
+The sign-in chooser then offers **Sign in with email and password**, a server-rendered form.
+With no other sign-in configured, `/api/auth/login` is that form.
 
 There is no sign-up and no email is sent. A person gets a password like this:
 
@@ -69,16 +67,16 @@ There is no sign-up and no email is sent. A person gets a password like this:
 - <!--i:lock--> The person opens the link, sees their address and chooses a password: 12 to 256 characters, and not the address. The same page asks for an optional name (1 to 80 characters), which becomes the account's display name in People lists, presence and notices.
 :::
 
-An invitation can do this in one link. When the admin ticks **Can set a password**, the invite
-link itself offers **Set a password** ([setting a password from the
+When the admin ticks **Can set a password** on an invitation, the invite link itself offers
+**Set a password** ([setting a password from the
 link](invitations.md#setting-a-password-from-the-link)).
 
-A forgotten password works the same way: ask the person who invited you for a new link. The
-old password keeps working until the new one is set. Setting it ends every session the
-account had, so a password that got out stops working everywhere at once.
+For a forgotten password, ask the person who invited you for a new link. The old password
+keeps working until the new one is set. Setting the new password ends every session the
+account had.
 
 ::: warning A password link signs in whoever holds it
-Because of that, some links are owner-only:
+Some links are therefore owner-only:
 
 - a link that leads to an owner: an owner's account, a `bootstrapOwners` address or an
   invitation into an owner group;
@@ -86,32 +84,30 @@ Because of that, some links are owner-only:
   the issuer's own account.
 :::
 
-Each link is judged again when it is opened and when it is used, on its issuer's standing at
-that moment. If the issuer has been disabled or is no longer an admin, or the address now
-needs an owner, the link stops working, and an `auth.password.link.refused` audit row says
-why. An owner signs in with a password only when an owner issued the link that set that password.
+Each link is checked again when it is opened and when it is used, against its issuer's
+standing at that moment. If the issuer is disabled or no longer an admin, or the address now
+needs an owner, the link stops working and an `auth.password.link.refused` audit row says why. An owner signs in with a password only when an owner issued the link that set that password.
 
 A password sign-in finishes like any other: admission runs, an open invitation is accepted
 and its groups join, and the sign-in joins the existing person who holds the same verified
 email ([one person, several sign-ins](#one-person-several-sign-ins)), unless that person's
 only verified sign-ins are pinned to a directory. A password brings no provider groups.
 
-Lolly Work stores a password sign-in as unverified, because an admin typed the address and no
-mailbox proved the address. A later sign-in through another provider therefore never joins an account
+Lolly Work stores a password sign-in as unverified, because no mailbox proved the address an
+admin typed. A later sign-in through another provider therefore never joins an account
 by a password's address. A person who wants both adds the other sign-in from their profile
 while signed in with the password.
 
-Removing the email and password sign-in from a person, from their profile or in the console,
-deletes the password; a new one needs a new link. The sign-in an account was created with
-cannot be removed. **Disable access** is the way to stop that one, and it also cancels the
-person's unused links.
+Removing a person's email and password sign-in, from their profile or in the console, deletes
+the password. A new password needs a new link. The sign-in an account was created with cannot
+be removed. To stop that one, use **Disable access**, which also cancels the person's unused
+links.
 
 ::: details How password guessing is slowed, and how passwords are stored
-Guessing is slowed twice over:
+Guessing is slowed in two ways:
 
 - Every attempt uses the `auth` rate-limit bucket.
-- Ten attempts in a row without a success lock the address for 15 minutes, and a success
-  resets the count. An attempt is counted before its password is checked, so a burst of
+- Ten failed attempts in a row lock the address for 15 minutes. A success resets the count. An attempt is counted before its password is checked, so a burst of
   parallel guesses gets no more than ten checks. Attempts during a lock are not counted.
 
 An admin or owner can **Unlock** a person from the console without making them choose a new
@@ -135,13 +131,12 @@ admission. The same command lets a locked-out bootstrap owner back in.
 
 ### Passkeys
 
-A person who already has an account can add a passkey and use it as another way in. Passkeys
-are offered when `instance.baseUrl` is `https` on a host name, or `http://localhost`. A base
+A person with an account can add a passkey as another way in. Passkeys are offered when `instance.baseUrl` is `https` on a host name, or `http://localhost`. A base
 URL that is an IP address turns them off.
 
 - **Adding one.** In Lolly, **Settings** shows **Account security** for a signed-in member,
   which opens `/api/auth/security`. Adding or removing a passkey needs a sign-in within the
-  last 10 minutes; otherwise the page asks the person to sign in again first. A person can
+  last 10 minutes, or the page asks the person to sign in again first. A person can
   hold at most 10 passkeys, and the device must verify the user with a screen lock,
   fingerprint, face or security key.
 - **Signing in.** When passkeys are on, the sign-in page offers **Sign in with a passkey**
@@ -154,7 +149,7 @@ URL that is an IP address turns them off.
 
 ::: warning Signing out everywhere leaves a passkey working
 A passkey is a local credential with no provider session, so a provider logout leaves the
-passkey in place too. To stop passkey sign-in, disable the account or
+passkey in place. To stop passkey sign-in, disable the account or
 send SCIM `active=false`.
 :::
 
@@ -172,13 +167,13 @@ instance, signs in with a code:
 - <!--i:check--> The device's next poll collects an ordinary session cookie for that person.
 :::
 
-The approving browser session is the whole authority. The flow never touches provider
-credentials and works the same over OpenID Connect and the dev provider. Before it sets the
+The approving browser session is the only authority. The flow never touches provider
+credentials and works the same over OpenID Connect and the dev provider. Before setting the
 cookie, the server checks the person's admission, invitation and disabled state again, so an
 account closed during the flow gets nothing (`denied`). Codes last ten minutes and work once.
 Pending codes are listed in the console's Fleet view, where an admin can deny one but never
-approve one. Codes are database rows, so any replica answers the poll: high availability
-needs no sticky sessions, and function-only deployments have the flow too.
+approve one. Codes are database rows, so any replica answers the poll. High availability needs
+no sticky sessions, and function-only deployments support the flow.
 
 <!--i:eti-shield-check-->
 ## Who may sign in
@@ -205,14 +200,13 @@ The checks run in this order, and the first one that applies decides:
 2. **Directory pins.** When `hostedDomain` is set, Google's `hd` claim must equal that domain.
    When `tenantId` is set, Entra's `tid` claim must equal that tenant ID. A mismatch or a missing claim always
    refuses, whatever the lists say.
-3. **No admission block.** With no `idp.admission`, every verified sign-in is admitted. This
-   is the behaviour from before admission existed, and production setup shows a warning about
-   that setting.
+3. **No admission block.** With no `idp.admission`, every verified sign-in is admitted, and
+   production setup shows a warning.
 4. **Unverified email.** An email the provider does not vouch for (below) is refused before
    the lists are read, so the refusal never reveals whether an address is listed or invited.
 5. **The lists.** An open invitation for the email (while `invitations` is not `false`), the
-   email in `emails`, or its domain in `domains` admits the person. Emails compare without
-   regard to case. The domain is the part after the last `@`, matched exactly, so
+   email in `emails`, or its domain in `domains` admits the person. Emails compare
+   case-insensitively. The domain is the part after the last `@`, matched exactly, so
    `example.com` does not admit `sub.example.com`. An empty policy (`{}`) admits invitations
    only.
 6. **Partner programmes.** A partner domain that is proved and not paused admits a verified
@@ -223,7 +217,7 @@ The checks run in this order, and the first one that applies decides:
 
 ::: note A hostedDomain pin refuses invited people outside it
 With `hostedDomain` set, only accounts in that Google Workspace get past step 2, invited
-people included. To let in people from outside it, add a second Google registration without
+people included. To let in people from outside that Workspace, add a second Google registration without
 `hostedDomain` (an `idp.additional` entry) and admit those people by exact `emails` or by
 invitation, never by `domains`.
 :::
@@ -231,8 +225,8 @@ invitation, never by `domains`.
 The refusal page starts with the workspace name ("Example Studio is invite only"), shows the
 account the person used, and says to sign in with the account the invitation went to or to
 ask an admin. It links to `/api/auth/login?prompt=select_account` so a browser holding
-several accounts can pick another; behind a proxy only the proxy can switch accounts, so the
-link is left out. With `policy.requests.join` on, a person refused as not invited can also
+several accounts can pick another. Behind a proxy the link is left out, because only the proxy
+can switch accounts. With `policy.requests.join` on, a person refused as not invited can also
 [ask to join](invitations.md#asking-to-join). The page never shows which emails or domains
 are listed.
 
@@ -240,8 +234,8 @@ Removing someone from the lists blocks their next sign-in, and the console's dis
 sessions at once ([offboarding](#offboarding-disable-and-revocation)).
 
 **Invitations** admit one address each, with optional groups and an end date. Inviting,
-invite links, requests to join and requests for access have their own page: [Invite people
-and handle requests](invitations.md).
+invite links and requests to join or for access are on [Invite people and handle
+requests](invitations.md).
 
 ### Verified email
 
@@ -254,7 +248,7 @@ provider's `emailVerification` says how:
   pinned to your own directory that omits the claim, such as Entra single-tenant with
   `tenantId` set.
 
-`email_verified` vouches for the `email` claim and nothing else. When `claimMap.email` points
+`email_verified` vouches only for the `email` claim. When `claimMap.email` points
 at another claim (`preferred_username`, `upn`), the mapped value counts as verified only when
 it equals the `email` claim. Otherwise the address is unverified under `claim`, and you must
 choose `trusted` on purpose for a provider whose usernames you control. A reverse proxy is the
@@ -300,7 +294,7 @@ Once real owner groups exist, empty the list.
 ## Session length and renewal
 
 A member session lasts `policy.sessionTtlHours`. With `policy.sessionMaxHours` set, a person
-who keeps working is not sent back to sign in when it ends:
+who keeps working is not sent back to sign in when the session ends:
 
 ::: timeline
 - <!--i:usercheck--> **Sign in.** The cookie records `authAt`, when the sign-in that started its chain happened.
@@ -309,9 +303,9 @@ who keeps working is not sent back to sign in when it ends:
 - <!--i:lock--> **Sign in again.** After the cap, the person starts a new chain.
 :::
 
-`sessionMaxHours` is optional. Absent, it equals `sessionTtlHours` and nothing is renewed. It
-must be at least `sessionTtlHours` and at most 720. A typical setting keeps the session short
-and the cap at a few days, for example `sessionTtlHours: 12` with `sessionMaxHours: 72`.
+`sessionMaxHours` is optional. When absent, it equals `sessionTtlHours` and nothing is
+renewed. It must be at least `sessionTtlHours` and at most 720. A typical setting keeps the session short and the cap at a few days, for example `sessionTtlHours: 12` with `sessionMaxHours: 72`. A typical setting is
+`sessionTtlHours: 12` with `sessionMaxHours: 72`.
 
 ::: details The renewal rules in detail
 - Qualifying requests are every API write, and reads of the documents the apps poll:
@@ -343,10 +337,9 @@ and the cap at a few days, for example `sessionTtlHours: 12` with `sessionMaxHou
 <!--i:eti-link-->
 ## One person, several sign-ins
 
-A person may sign in with Google one day and GitHub the next. Both sign-ins belong to one
-account: the same projects, groups, inbox and role. Each sign-in is an identity (one provider
-subject, such as `github:4242`), and `user_identities` (migration 0039) links each identity
-to one account. The session cookie always identifies the account's own `users.sub`, the
+One account can have several sign-ins, such as Google and GitHub, with the same projects,
+groups, inbox and role. Each sign-in is an identity (one provider subject, such as
+`github:4242`). `user_identities` (migration 0039) links each identity to one account. The session cookie always identifies the account's own `users.sub`, the
 subject it was created with, whichever sign-in was used.
 
 **How a sign-in finds its account.** After the provider proves who the person is, and before
@@ -356,7 +349,7 @@ anything is written, the server looks in this order and stops at the first answe
 2. an account created with this subject before identities were recorded (the identity row is
    written now);
 3. when the provider links by email and confirmed the address, exactly one account that
-   already holds a confirmed identity with the same address. The new identity joins it, and
+   already holds a confirmed identity with the same address. The new identity joins that account, and
    the audit log records `identity.link` with `via: "email"`;
 4. otherwise a new account, created with this subject.
 
@@ -367,9 +360,9 @@ Step 3 has two guards:
   an owner can sort it out.
 - When every confirmed identity holding the address came through a provider pinned to a
   directory (`hostedDomain` or `tenantId`), only a provider with the same pin may join that account.
-  The pin is what ties the account to the organisation's directory, and GitHub never checks
-  an address again once it has verified it, so a former holder of a reassigned mailbox could
-  still present it there. Such a sign-in gets an account of its own, the log records
+  The pin ties the account to the organisation's directory. GitHub never checks a verified
+  address again, so a former holder of a reassigned mailbox could
+  still present that address there. Such a sign-in gets an account of its own, the log records
   `identity.link-held` with `reason: "pinned"`, and the person can still add it by hand.
 
 Admission still runs before any write, and a sign-in linked to a disabled person is refused.
@@ -380,11 +373,11 @@ account's own sign-in has been used within `idp.linkedStandingDays` (default 30)
 a person deleted at their work provider can no longer get in through a linked personal
 sign-in.
 
-A sign-in that is not the account's own leaves the account's name and email alone. Provider
-groups are kept per sign-in, and the account carries the groups of every sign-in used within
-`idp.linkedStandingDays`. So a GitHub sign-in neither clears the groups a work provider sent
-nor keeps them alive: when the work provider drops a group, the next sign-in there removes
-it, and when the work sign-in goes unused for the window, its groups lapse. A sign-in added
+A sign-in that is not the account's own leaves the account's name and email unchanged.
+Provider groups are kept per sign-in, and the account carries the groups of every sign-in used
+within `idp.linkedStandingDays`. A GitHub sign-in therefore neither clears a work provider's
+groups nor keeps them alive. When the work provider drops a group, the next sign-in there
+removes that group. When the work sign-in goes unused for the window, its groups lapse. A sign-in added
 by hand asserts no groups until its first real sign-in.
 
 **Which providers link by email.** Per provider, `linkByEmail` decides:
@@ -411,9 +404,9 @@ claim, never an explicit negative or malformed one.
 
 **Adding a sign-in by hand.** A signed-in person opens
 `GET /api/auth/link?idp=<id>&returnTo=<path>`. Lolly Work runs that provider with the account
-picker, because the browser is often still signed in to the account already linked, and
-links the identity it returns to the current account, whatever its email. The session that
-started the link must be the one that finishes it, and a link never starts a new session. An
+picker, since the browser is often still signed in to the linked account. It links the
+returned identity to the current account, whatever its email. The same session
+must start and finish the link, and a link never starts a new session. An
 identity that already belongs to someone else is refused with a 409 page and an
 `identity.link-refused` audit row. A new link writes `identity.link` with `via: "self"`.
 
@@ -440,7 +433,7 @@ its `linkPath`.
 
 An invitation is accepted by whichever account signs in with the invited address, including
 an existing account that reaches it through a newly linked sign-in. Adding a sign-in from the
-profile accepts it at once when that provider vouches for the invited address and links by
+profile accepts the invitation at once when that provider vouches for the invited address and links by
 email (`invite.accept` with `via: "link"`).
 
 ::: details Accounts from before migration 0039
@@ -495,8 +488,8 @@ an enabled development login. It also checks installed OpenID Connect discovery 
 retained SCIM creation and sign-in events by durable subject and account ID, without
 displaying tokens.
 
-Group membership is also how governance targets people: overlay visibility, approval-chain
-eligibility, provider exposure and grant principals (`group:<name>`) all read groups. What
+Governance also targets people by group: overlay visibility, approval-chain eligibility,
+provider exposure and grant principals (`group:<name>`) all read groups. What
 each role may do is in [Roles and grants](permissions.md).
 
 <!--i:eti-lock-->
@@ -513,10 +506,10 @@ POST /api/v1/users/:id/disabled     # { disabled: true }   (or SCIM active=false
 `resolveMember` rejects a disabled account on every request, and disabling also bumps the
 person's **session epoch**, a counter each session token carries from when it was minted. A
 token minted before the bump is refused from that moment, so every live session of the
-disabled person ends on its next request, with no window to ride out. SCIM `active=false`
-does exactly this. The share, embed, download and collection links the person made stop
-serving at the same moment (`410 LINK_MAKER_DISABLED`), and serve again if the account is
-re-enabled; their guest links already stop with the inviter. The bounded offboarding
+disabled person ends on its next request. SCIM `active=false` does the same. The share,
+embed, download and collection links the person made stop serving at the same moment
+(`410 LINK_MAKER_DISABLED`) and serve again if the account is re-enabled. Their guest links
+already stop with the inviter. The bounded offboarding
 operation, which revokes the person's links and tokens for good, is in [Account data
 controls](account-lifecycle.md). Both preserve another active owner.
 
@@ -531,9 +524,7 @@ Every way a session can end:
 | Provider back-channel logout | the sessions from one provider session (`sid`) | your provider ([setup](enterprise-identity.md#2-register-the-client)) |
 | Session expiry | the session, at `sessionTtlHours`, or the cap with renewal | automatic |
 
-Details that matter:
-
-- **Sign out on all devices** takes the person's own session cookie only. A service token or
+- **Sign out on all devices** accepts only the person's own session cookie. A service token or
   an agent acting for someone gets `401`. It allows five calls an hour per person
   (`429 RATE_LIMITED`, `retry-after`), clears this browser's cookies as sign-out does
   (`204`), and is audited as `user.sessions.revoked` with the person as both actor and
@@ -549,7 +540,7 @@ Details that matter:
   that window.
 - An admin cannot end one chosen session of another person, only all of them.
 
-Ownership transfer, retained content and personal-data review are separate actions; see
+Ownership transfer, retained content and personal-data review are separate actions in
 [Account data controls](account-lifecycle.md).
 
 <!--i:eti-user-check-->
@@ -557,9 +548,9 @@ Ownership transfer, retained content and personal-data review are separate actio
 
 A guest-edit link admits someone with no account. The server sets an `lw_guest` cookie scoped
 to that link's tool, and its session when the link identifies one, for whatever remains of
-the link's lifetime. Guests carry the `guest` role, which grants nothing by default: their
-access comes entirely from the link. `policy.guestLinks.maxTtlHours` caps the lifetime, and
-`guestLinks.enabled: false` refuses new guest links outright.
+the link's lifetime. Guests carry the `guest` role, which grants nothing by default. Their
+access comes only from the link. `policy.guestLinks.maxTtlHours` caps the lifetime, and
+`guestLinks.enabled: false` refuses new guest links.
 
 How a guest joins is in [Share renders and links](sharing.md#guest-links-in-a-browser), and
 what a guest can do in a live room is in [Roles and grants](permissions.md#guest-write-authority).

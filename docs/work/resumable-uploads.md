@@ -1,18 +1,17 @@
 # Upload large files
 
 Send a large file to Lolly Work in parts that survive a dropped connection or a server restart.
-After an interruption you ask which parts arrived and send only the rest, so a long upload
-never starts over from the beginning. Lolly Work checks every part against the checksum you declared
-before storing the part.
+After an interruption, send only the parts that did not arrive. Lolly Work checks every part
+against the checksum you declared before storing the part.
 
 Three kinds of upload use the same parts:
 
-- **Project files.** Members share files inside a team project, and a session saved in a project
-  keeps its images there (`user/team/<file id>`), so every member who opens it gets the same
-  bytes and a render reads them through its read ticket.
+- **Project files.** Members share files inside a team project. A session saved in a project
+  keeps its images there (`user/team/<file id>`). Every member who opens the session gets the
+  same bytes, and a render reads them through its read ticket.
 - **Catalog submission.** An original for `POST /api/v1/catalog/submit`.
 - **Automation input.** The bytes for `/api/v1/inspect` and `/api/v1/optimize`, as an upload or a
-  readable [file reference](api.md#file-references). Those routes still take a small file inline
+  readable [file reference](api.md#file-references). Those routes also take a small file inline
   as `bytesBase64`.
 
 ![A resumable upload: begin with the size and checksums, send 1 MiB parts in any order, ask what arrived after a drop, send only the missing parts, then finalize, where every byte is checked.](/info/diagrams/work-integrations/upload-parts.svg)
@@ -45,18 +44,18 @@ lw upload ./master.tif --scope catalog-submission  # an original to submit to th
 ```
 
 `lw upload` reads the file one part at a time and keeps each unfinished upload's id under
-`~/.config/lolly-work/uploads/`. If it stops, run the same command again and it carries on.
+`~/.config/lolly-work/uploads/`. If the upload stops, run the same command again to carry on.
 Every option is on the [`lw` CLI page](cli.md#resumable-uploads).
 
 `--scope` takes `catalog-submission`, `automation-input` or `file`. Two more scopes exist for
 other parts of Lolly Work:
 
 - **`approval-artifact`** carries the file of an [export review](approvals.md#review-an-exported-file).
-  The web app uses it, it follows `policy.approvalArtifacts` rather than `policy.uploads`, only a
-  signed-in person with `export.request` can use it, and the request takes the bytes when it is
-  created.
+  The web app uses this scope. It follows `policy.approvalArtifacts`, not `policy.uploads`. Only
+  a signed-in person with `export.request` can use the scope, and the request takes the bytes
+  when it is created.
 - **`brand-page`** carries a [brand page](design-system-administration.md#host-a-brand-page)
-  bundle. `lw brand-pages publish` uses it, and it follows `brandPages.enabled`.
+  bundle. `lw brand-pages publish` uses this scope, which follows `brandPages.enabled`.
 
 <!--i:eti-code-->
 ## Upload from your own client
@@ -66,7 +65,7 @@ other parts of Lolly Work:
 2. **Send the parts,** in parallel, in any order and again after a failure.
 3. **After an interruption,** ask `GET .../parts`. The answer lists the parts still `missing`,
    `receivedParts` and `receivedBytes`, the `offset` (the bytes in the unbroken run of stored
-   parts from the start) and `expiresAt`. Asking does not keep an upload alive; only an accepted
+   parts from the start) and `expiresAt`. Asking does not keep an upload alive. Only an accepted
    part does.
 4. **Send each missing part, then finalize.** A finalize that answers `409 UPLOAD_INCOMPLETE`
    means a part is still missing: ask again. A `404` or `410` means the upload is gone or
@@ -93,7 +92,7 @@ reference's `derivedFrom` and report count too, at their size as JSON. A stalled
 holds more than it declared, and an expired one counts for nothing.
 
 An hour after an upload expires, the sweep removes its parts and then its record. The sweep runs
-before each new begin, in `POST /api/v1/retention/run`, and daily on a long-lived server.
+before each new begin, in `POST /api/v1/retention/run` and daily on a long-lived server.
 
 <!--i:eti-user-check-->
 ## Who can read what
@@ -108,22 +107,22 @@ before each new begin, in `POST /api/v1/retention/run`, and daily on a long-live
 A scoped upload is named by reference only, and only by its owner. The reference carries the
 checksum too, so an id cannot stand in for other bytes. Any reference the owner cannot use
 (another owner's, another scope's, unfinished or expired) gets the same `404`, so ids reveal
-nothing. Nobody downloads a catalog submission original or an automation input; a file reference
-is the one kind its owner reads back.
+nothing. Nobody downloads a catalog submission original or an automation input. A file
+reference is the one kind its owner reads back.
 
-A service token can use scoped uploads; a project file needs a signed-in person. A revoked
+A service token can use scoped uploads. A project file needs a signed-in person. A revoked
 service token can no longer name its uploads, which then expire on schedule.
 
 **Erasing an account** removes that person's unfinished project uploads and every scoped upload
 they own. If any remains, for example because the person is still uploading, the erasure answers
-`409 ERASE_UPLOADS_REMAIN` before it changes the account, and can be run again.
+`409 ERASE_UPLOADS_REMAIN` before it changes the account. The erasure can then run again.
 
 <!--i:eti-history-->
 ## Why parts, not tus
 
 ::: details The decision, recorded on 2026-10-17
-Project files already used begin, parts and finalize, and they had taken the place of a separate
-per-session relay that was designed but never built. Two things were missing: a client that lost
+Project files already used begin, parts and finalize. They had replaced a per-session relay
+that was designed but never built. Two things were missing: a client that lost
 its place could not ask which parts had arrived, and migration 0041 capped a project file at
 256 MiB. Catalog submission and automation had no way to send a file larger than one request.
 
@@ -138,7 +137,7 @@ The constraints that decided the protocol:
 
 [tus 1.0](https://tus.io/protocols/resumable-upload) creates an upload with `POST`, reports
 progress with `HEAD` and appends with `PATCH` at an offset, with extensions for expiry,
-per-request checksums, termination and parallel uploads joined by concatenation. Adopting it
+per-request checksums, termination and parallel uploads joined by concatenation. Adopting tus
 would have meant:
 
 - A `PATCH` carries bytes at an offset the client chooses, and a server may keep part of a body
@@ -147,20 +146,20 @@ would have meant:
   the stored unit would stop being a part checked against its declared checksum.
 - The checksum extension is optional per request, and SHA-1 is the algorithm a server must
   support. Lolly Work checks SHA-256 before it stores a byte, against a checksum declared at the begin.
-- Core tus sends one `PATCH` at a time; parallel parts need the concatenation extension, a second
+- Core tus sends one `PATCH` at a time. Parallel parts need the concatenation extension, a second
   resource model.
 - Its headers need CORS exposure and pass-through by every proxy in front of Lolly Work.
 - The shell would need a second upload client.
 
-So Lolly Work kept the parts protocol and added the resume report, taking from tus the ideas that
+Lolly Work kept the parts protocol and added the resume report. From tus it took the ideas that
 apply: a declared length and metadata at the begin, an offset to carry on from (`offset` is what
 tus calls `Upload-Offset`), a readable expiry (`expiresAt`, like `Upload-Expires`) and
-termination by `DELETE`. Only bytes that match a declared checksum are stored, the unit stored is
+termination by `DELETE`. Only bytes that match a declared checksum are stored. The unit stored is
 the unit checked, and no driver needs to append. A 1 MiB part is under every request cap above,
 so one client works on Kubernetes, behind nginx and on a serverless host. Migration 0075 replaced
 0041's 256 MiB check with the 4 GiB ceiling for both tables.
 
-`server/src/uploads/parts.ts` is the shared primitive: the manifest rules, storing a verified
+`server/src/uploads/parts.ts` has the shared primitive: the manifest rules, storing a verified
 part, the resume report, the running checksum that spares finalize a second read, the finalize
 check and the verified read. Each kind of upload keeps its own record, authorization, budget and
 lifetime. A session-scoped area that expires with its session would be one more scope on the
@@ -169,20 +168,20 @@ same primitive.
 What follows from the decision:
 
 - A tus client cannot talk to Lolly Work directly. A translation layer could accept `PATCH` requests
-  that end on part boundaries and store them as parts; none is built.
+  that end on part boundaries and store them as parts. None is built.
 - The resume report reads one blob stat per part, eight at a time, so reporting on a 4 GiB
   upload costs 4,096 stats.
-- Catalog submission and the document routes still read the whole file into memory to process
-  it, bounded by `policy.submit.maxBytes` and `policy.uploads.maxFileBytes`. Resumable transfer
+- Catalog submission and the document routes still read the whole file into memory for
+  processing, bounded by `policy.submit.maxBytes` and `policy.uploads.maxFileBytes`. Resumable transfer
   does not make them stream.
 - Parts are separate blobs, so the Postgres driver's 500 MiB limit on one blob does not limit a
-  file. The default budgets stay sized for a small hosted Postgres that also holds the bytes;
-  raise them only with the storage to match.
+  file. The default budgets stay sized for a small hosted Postgres that also holds the bytes.
+  Raise them only with the storage to match.
 
 The behaviour is pinned by `tests/upload-parts.test.ts` (the primitive, including a store that
 reports an ETag in place of a SHA-256), `tests/resumable-uploads.test.ts` (the resume report,
 scoped routes and access rules, budgets, the off default, both consumers, erasure, the sweeps,
-`lw upload` carrying on after a dropped connection, and an interrupted 500 MiB upload finishing
+`lw upload` carrying on after a dropped connection and an interrupted 500 MiB upload finishing
 through a restarted server, also on Postgres with `LW_TEST_DATABASE_URL`) and
 `tests/upload-store-conformance.ts` (one set of record rules for the memory and Postgres stores).
 :::

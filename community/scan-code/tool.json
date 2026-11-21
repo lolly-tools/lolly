@@ -1,7 +1,7 @@
 {
   "id": "scan-code",
   "name": "Scan",
-  "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+  "description": "Read QR codes and barcodes on-device. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
   "a11yLabel": "{{default a11yScan \"Code reader\"}}",
   "version": "0.1.3",
   "engineVersion": ">=1.153.0",
