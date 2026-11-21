@@ -24,7 +24,7 @@ import { renderModToAudioBuffer, isModuleFormat } from './mod-render.ts';
 import { RADIO_STATIONS, radioStation, isRadioId, radioAvailable, resolveStreamUrl } from './radio.ts';
 import { isSfxMuted } from './sfx.ts';
 import {
-  isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_STATION_MOODS,
+  isLofiId, lofiId, lofiTracks, startLofi, stopLofi, lofiLive, applyLofiPrefs, queueLofiSeed, retiredTrackStation, LOFI_DEFAULTS, LOFI_ONLY_MOODS, LOFI_STATION_MOODS,
   playsOnStation, rememberSavedTune, currentLofiRecipe, lofiTune, isSingsMood, lofiPosition, seekLofi,
   type LofiPrefs, type LofiLink,
 } from './neurospicy-lofi.ts';
@@ -752,7 +752,10 @@ async function playLofi(): Promise<void> {
   a.gain.gain.value = state.volume;
   // A saved tune repeats on the station; in forward mode the player moves on when it ends.
   await startLofi(a.ctx, a.input, id, state.lofi, () => {
-    if (state.loopId === id && !state.repeat && activeHost) void cycleNeurospicyLoop(activeHost, 1, { skipStreams: true });
+    if (state.loopId !== id || !activeHost) return;
+    // Shuffle genres: the next tune comes from another genre, whatever repeat says.
+    if (state.lofi.shuffle) void setNeurospicyLoop(activeHost, shuffledStation(id));
+    else if (!state.repeat) void cycleNeurospicyLoop(activeHost, 1, { skipStreams: true });
   });
   // The station loads on first use; the selection may have moved on meanwhile.
   if (state.loopId !== id || !state.enabled || paused || isSfxMuted()) { stopLofi(); return; }
@@ -760,6 +763,25 @@ async function playLofi(): Promise<void> {
   notifyPlaying();
 }
 
+/**
+ * Another station for Shuffle genres: any genre but the one playing, each as likely as
+ * the next. Lofi's flavours are one genre in the draw, and a flavour is then drawn from
+ * all of them, so its ten flavours are not ten shares.
+ */
+export function shuffledStation(after: string, rand: () => number = Math.random): string {
+  const current = LOFI_STATION_MOODS.find((m) => lofiId(m) === after);
+  const lofi = LOFI_ONLY_MOODS[0]!;
+  const inLofi = current !== undefined && LOFI_ONLY_MOODS.includes(current);
+  const genres = LOFI_STATION_MOODS.filter((m) => (m === lofi || !LOFI_ONLY_MOODS.includes(m)) && m !== (inLofi ? lofi : current));
+  const genre = genres[Math.floor(rand() * genres.length)] ?? lofi;
+  if (genre !== lofi) return lofiId(genre);
+  const flavours = LOFI_ONLY_MOODS.filter((m) => m !== current);
+  return lofiId(flavours[Math.floor(rand() * flavours.length)] ?? lofi);
+}
+/** Shuffle genres on or off: when on, a station moves to another genre each time a tune ends. */
+export function setLofiShuffle(host: NeurospicyHost, on: boolean): void {
+  state.lofi = { ...state.lofi, shuffle: on }; persistLocal(); void persistProfile(host);
+}
 /** Lofi drums on or off, for every station, from now on. */
 export function setLofiDrums(host: NeurospicyHost, on: boolean): void {
   state.lofi = { ...state.lofi, drums: on }; persistLocal(); void persistProfile(host);

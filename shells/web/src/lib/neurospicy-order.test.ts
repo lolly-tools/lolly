@@ -106,3 +106,23 @@ test('the play-through advance skips radio, a pressed Next does not', async () =
   await cycleNeurospicyLoop(host, 1, { skipStreams: true });
   assert.equal(getNeurospicy().loopId, loops[0]!.id);
 });
+
+test('Shuffle genres moves to another genre, and counts Lofi\'s flavours as one genre', async () => {
+  const { shuffledStation } = await import('./neurospicy.ts');
+  const { LOFI_ONLY_MOODS, LOFI_STATION_MOODS, lofiMoodOf } = await import('./neurospicy-lofi.ts');
+  let n = 1;
+  const rand = (): number => { n = (n * 1664525 + 1013904223) >>> 0; return n / 2 ** 32; };
+  const seen = new Map<string, number>();
+  for (let i = 0; i < 20000; i++) {
+    const to = lofiMoodOf(shuffledStation('lofi:jazz', rand))!;
+    assert.notEqual(to, 'jazz', 'never the genre playing');
+    const genre = LOFI_ONLY_MOODS.includes(to) ? 'lofi' : to;
+    seen.set(genre, (seen.get(genre) ?? 0) + 1);
+  }
+  const genres = LOFI_STATION_MOODS.length - LOFI_ONLY_MOODS.length + 1 - 1;   // Lofi once, jazz left out
+  assert.equal(seen.size, genres, 'every other genre comes up');
+  const share = (seen.get('lofi') ?? 0) / 20000;
+  assert.ok(Math.abs(share - 1 / genres) < 0.01, `Lofi is one share of a shuffle, not ten (${(share * 100).toFixed(1)}%)`);
+  // From a flavour of Lofi, the next genre is not Lofi again.
+  for (let i = 0; i < 500; i++) assert.ok(!LOFI_ONLY_MOODS.includes(lofiMoodOf(shuffledStation('lofi:rainy', rand))!));
+});

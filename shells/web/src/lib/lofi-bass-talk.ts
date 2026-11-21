@@ -27,6 +27,17 @@
  */
 import { EPS, drivenBy, mtof, noiseAt, osc, sub, type Tone, type VoiceKit } from './lofi-voices.ts';
 
+/** The basses this module plays. */
+export const TALK_BASSES = new Set<string>(['wobble', 'growl', 'fog', 'jump']);
+
+/** A talking bass note: `rate` is how fast its mouth moves, in swings a second. */
+export function bass(style: string, k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, rate: number, tone: Tone): void {
+  if (style === 'wobble') wobble(k, out, t, midi, vel, dur, rate, tone);
+  else if (style === 'growl') growl(k, out, t, midi, vel, dur, rate, tone);
+  else if (style === 'fog') fog(k, out, t, midi, vel, dur, rate, tone);
+  else jump(k, out, t, midi, vel, dur, rate, tone);
+}
+
 /** A vowel: three peaks (Hz) and each peak's level. */
 type Vowel = readonly [readonly [number, number, number], readonly [number, number, number]];
 const V = {

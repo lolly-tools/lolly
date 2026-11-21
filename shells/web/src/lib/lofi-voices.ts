@@ -62,7 +62,6 @@ import { readBird } from '../../../../engine/src/lofi-straya.ts';
 import { kookaburraFamily, magpieFamily } from './lofi-bush-birds.ts';
 import { DidgePlayer } from './lofi-didge-player.ts';
 import { future } from './lofi-future.ts';
-import * as TALK from './lofi-bass-talk.ts';
 
 export interface VoiceKit {
   ctx: BaseAudioContext;
@@ -1086,16 +1085,12 @@ function kalimba(k: VoiceKit, out: AudioNode, t: number, midi: number, vel: numb
 // ── bass ──────────────────────────────────────────────────────────────────────
 
 /**
- * A bass note. `mod` is the note's movement (LofiNote.mod): for a wobble or a growl the
+ * A bass note (the wobble, the growl, the foghorn and jump-up are the talking basses,
+ * played by lib/lofi-bass-talk.ts, which the station calls itself). `mod` is the note's movement (LofiNote.mod): for a wobble or a growl the
  * filter's swing in Hz (the station turns cycles a beat into Hz), on a slap bass 1 for a
  * popped note.
  */
 export function bass(style: LofiStyle['bass'], k: VoiceKit, out: AudioNode, t: number, midi: number, vel: number, dur: number, mod = 0, tone: Tone = PLAIN_TONE): void {
-  // The talking basses (lib/lofi-bass-talk.ts): a rough source through a mouth of fixed vowels.
-  if (style === 'wobble') { TALK.wobble(k, out, t, midi, vel, dur, mod, tone); return; }
-  if (style === 'growl') { TALK.growl(k, out, t, midi, vel, dur, mod, tone); return; }
-  if (style === 'fog') { TALK.fog(k, out, t, midi, vel, dur, mod, tone); return; }
-  if (style === 'jump') { TALK.jump(k, out, t, midi, vel, dur, mod, tone); return; }
   if (style === 'reese') { reese(k, out, t, midi, vel, dur, tone); return; }
   if (style === 'slap') { fmSlap(k, out, t, midi, vel, dur, Math.round(mod), tone); return; }
   if (style === 'screech') { screech(k, out, t, midi, vel, dur, mod, tone); return; }

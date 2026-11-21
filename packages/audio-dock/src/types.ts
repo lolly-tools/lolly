@@ -56,6 +56,12 @@ export interface DockSource {
   mood?: string;
   /** Rendered but non-selectable (e.g. a station that is offline right now). */
   unavailable?: boolean;
+  /** An inline SVG for the source. A group whose sources all have one is drawn as a grid
+   *  of tiles (the generated stations, a genre a tile) instead of rows. */
+  icon?: string;
+  /** Other ids this source stands for: it shows as current while any of them plays (one
+   *  tile for a genre with several flavours). */
+  also?: string[];
 }
 
 /** A required-credit line for a source provider (e.g. SomaFM asks that its
@@ -380,6 +386,11 @@ export interface DockHost {
    *  narration host maps it to its audio element / utterance volume. Absent ⇒ no
    *  volume button. Reuses DockVolume; a host uses id 'master'. */
   volume?: DockVolume;
+  /** When true, the speaker button opens ONE controls popover: the master volume as a
+   *  row, then `volumes`, then the source's switches, choices and sliders, and only the
+   *  icon actions stay in the body. Absent ⇒ the popover is the upright volume slider
+   *  and the controls sit under the transport, as before. */
+  controlsPopover?: boolean;
   /** The current source's own controls (see {@link DockControl}), rendered under the
    *  transport. Absent, or an empty list, ⇒ no block. */
   controls?(): DockControl[];

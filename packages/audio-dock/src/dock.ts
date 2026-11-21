@@ -57,6 +57,7 @@ const ICON = {
   compress: SVG('<path d="M8 3v3a2 2 0 0 1-2 2H3M16 3v3a2 2 0 0 0 2 2h3M8 21v-3a2 2 0 0 0-2-2H3M16 21v-3a2 2 0 0 1 2-2h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   // repeat = loop the current track; forward = play through the list.
   repeat: SVG('<path d="m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  controls: SVG('<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="2"/>'),
   volume: SVG('<path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   volumeMuted: SVG('<path d="M11 5 6 9H2v6h4l5 4V5Z" fill="currentColor"/><path d="m16 9 5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   forward: SVG('<path d="M12 12H3M16 6H3M12 18H3M16 6l5 6-5 6V6Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
@@ -297,8 +298,12 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
       </div>
     </div>
     <div class="audio-dock-volpop" data-volpop hidden role="group" aria-label="Volume">
-      <input type="range" class="audio-dock-volrange" data-vol-range min="0" max="1" step="0.01" value="1" aria-label="Volume" aria-orientation="vertical">
-      <span class="audio-dock-volpct" data-vol-pct>100%</span>
+      <div class="audio-dock-volmain">
+        <span class="audio-dock-volname" data-vol-name></span>
+        <input type="range" class="audio-dock-volrange" data-vol-range min="0" max="1" step="0.01" value="1" aria-label="Volume" aria-orientation="vertical">
+        <span class="audio-dock-volpct" data-vol-pct>100%</span>
+      </div>
+      <div class="audio-dock-popctl" data-pop-controls></div>
     </div>
     <div class="audio-dock-vizmenu" data-vizmenu hidden role="menu" aria-label="Visualiser settings">
       <div class="audio-dock-vizmenu-top">
@@ -341,6 +346,41 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   const atmoRows = q<HTMLElement>('[data-atmo-rows]')!;
   const volumesEl = q<HTMLElement>('[data-volumes]')!;
   const controlsEl = q<HTMLElement>('[data-controls]')!;
+  /**
+   * One controls popover (DockHost.controlsPopover): the speaker button opens a panel
+   * holding the master volume as a row, the other volumes and the source's switches,
+   * choices and sliders, so the window's body is the transport, the actions and the
+   * lists. Without it the popover is the upright volume slider alone, as it was.
+   */
+  const popControlsEl = q<HTMLElement>('[data-pop-controls]')!;
+  let popMode = false;
+  let controlsSig = '';
+  /** Whether the host asks for the one popover now. A host can gain or lose its music source after the dock is built, so this is read each time. */
+  function onePopover(): boolean {
+    const on = !!host.controlsPopover;
+    if (on === popMode) return on;
+    popMode = on;
+    const pop = q<HTMLElement>('[data-volpop]');
+    const range = q<HTMLInputElement>('[data-vol-range]');
+    if (on) {
+      root.setAttribute('data-ctlpop', 'true');
+      pop?.setAttribute('aria-label', 'Controls');
+      range?.removeAttribute('aria-orientation');
+      popControlsEl.before(volumesEl);
+      q<HTMLElement>('.audio-dock-volmain')?.classList.add('audio-dock-vol');
+    } else {
+      root.removeAttribute('data-ctlpop');
+      pop?.setAttribute('aria-label', 'Volume');
+      range?.setAttribute('aria-orientation', 'vertical');
+      range?.style.removeProperty('--fill');
+      controlsEl.after(volumesEl);
+      popControlsEl.innerHTML = '';
+      q<HTMLElement>('.audio-dock-volmain')?.classList.remove('audio-dock-vol');
+      root.removeAttribute('data-ctlpop-open');
+    }
+    controlsSig = '';
+    return on;
+  }
   const volBtn = q<HTMLButtonElement>('[data-vol-btn]');
   const volPop = q<HTMLElement>('[data-volpop]');
   const volRange = q<HTMLInputElement>('[data-vol-range]');
@@ -650,6 +690,14 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
         if (isRadio && !caps.radio) continue;
         if (!isRadio && !caps.music) continue;
         html += `<li class="audio-dock-group" data-group-head="${esc(g)}">${esc(g)}</li>`;
+        // A group whose sources all carry an icon is a grid of tiles (a genre each), not rows.
+        if (byGroup.get(g)!.every((r) => r.icon)) {
+          html += `<li class="audio-dock-tiles" data-tiles="${esc(g)}">` + byGroup.get(g)!.map((r) =>
+            `<button type="button" class="audio-dock-src audio-dock-tile" data-src-id="${esc(r.id)}" data-group="${esc(g)}" data-search="${esc(`${r.title} ${r.mood ?? ''} ${g}`.toLowerCase())}"`
+            + `${r.also?.length ? ` data-src-also="${esc(r.also.join(' '))}"` : ''}${r.unavailable ? ' disabled' : ''} title="${esc(r.title)}">`
+            + `<span class="audio-dock-tile-icon" aria-hidden="true">${r.icon}</span><span class="audio-dock-src-name">${esc(r.title)}</span></button>`).join('') + `</li>`;
+          continue;
+        }
         for (const r of byGroup.get(g)!) {
           const searchKey = `${r.title} ${r.mood ?? ''}`.toLowerCase();
           html += `<li data-group="${esc(g)}" data-search="${esc(searchKey)}">`
@@ -683,13 +731,13 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function paintCurrentSource(): void {
     const cur = host.sources?.currentId?.() ?? '';
     for (const b of srcList.querySelectorAll<HTMLElement>('[data-src-id]')) {
-      b.setAttribute('aria-current', String(b.dataset.srcId === cur));
+      b.setAttribute('aria-current', String(b.dataset.srcId === cur || (b.dataset.srcAlso ?? '').split(' ').includes(cur)));
     }
   }
   function applySearch(): void {
     const query = (srcSearch.hidden ? '' : srcSearch.value.trim().toLowerCase());
     const shown = new Map<string, number>();
-    for (const li of srcList.querySelectorAll<HTMLElement>('li[data-group]')) {
+    for (const li of srcList.querySelectorAll<HTMLElement>('[data-group][data-search]')) {
       const g = li.dataset.group ?? '';
       const hit = !query || (li.dataset.search ?? '').includes(query);
       li.hidden = !hit;
@@ -697,6 +745,9 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     }
     for (const head of srcList.querySelectorAll<HTMLElement>('li[data-group-head]')) {
       head.hidden = (shown.get(head.dataset.groupHead ?? '') ?? 0) === 0;
+    }
+    for (const grid of srcList.querySelectorAll<HTMLElement>('li[data-tiles]')) {
+      grid.hidden = (shown.get(grid.dataset.tiles ?? '') ?? 0) === 0;
     }
   }
 
@@ -717,7 +768,6 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   // Rebuilt only when the SET of controls changes (another source, other options);
   // otherwise just repainted in place, so a slider being dragged or a button being
   // pressed is never replaced mid-gesture.
-  let controlsSig = '';
   function controlList(): DockControl[] {
     try { return host.controls?.() ?? []; } catch { return []; }
   }
@@ -742,17 +792,20 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   }
   function renderControls(): void {
     const list = controlList();
+    const inPop = onePopover();
     const iconOf = (c: DockControl): string | undefined => (c.kind === 'toggle' || c.kind === 'action' ? c.icon : undefined);
     const sig = list.map((c) => `${c.kind}:${c.id}:${c.label}${iconOf(c) ? ':icon' : ''}${c.kind === 'choice' ? `:${c.options.map((o) => `${o.id}=${o.label}`).join(',')}` : ''}`).join('|');
     if (sig !== controlsSig) {
       controlsSig = sig;
       // The icon buttons together in one row at the end, with a line for what an action says.
       const icons = list.filter((c) => iconOf(c));
-      controlsEl.innerHTML = list.filter((c) => !iconOf(c)).map(controlHtml).join('')
+      const plain = list.filter((c) => !iconOf(c)).map(controlHtml).join('');
+      if (inPop) popControlsEl.innerHTML = plain;
+      controlsEl.innerHTML = (inPop ? '' : plain)
         + (icons.length ? `<div class="audio-dock-icons" role="group" aria-label="Actions"><span class="audio-dock-said" role="status" aria-live="polite" data-said></span>${icons.map(controlHtml).join('')}</div>` : '');
     }
     const active = doc.activeElement;
-    for (const el of controlsEl.querySelectorAll<HTMLElement>('[data-ctl]')) {
+    for (const el of [...controlsEl.querySelectorAll<HTMLElement>('[data-ctl]'), ...popControlsEl.querySelectorAll<HTMLElement>('[data-ctl]')]) {
       const c = list.find((x) => x.id === el.dataset.ctl);
       if (!c) continue;
       if (c.kind === 'choice') el.setAttribute('aria-pressed', String(el.dataset.ctlOpt === c.get()));
@@ -807,11 +860,16 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     if (!show || !host.volume) { closeVolPop(); return; }
     const v = host.volume.get();
     const muted = v <= 0.001;
-    volBtn.innerHTML = muted ? ICON.volumeMuted : ICON.volume;
+    volBtn.innerHTML = onePopover() ? ICON.controls : muted ? ICON.volumeMuted : ICON.volume;
     volBtn.classList.toggle('is-muted', muted);
     const pct = Math.round(v * 100);
-    volBtn.setAttribute('aria-label', `Volume ${pct}%`);
-    volBtn.setAttribute('title', `Volume ${pct}%`);
+    const inPop = onePopover();
+    const what = inPop ? `Controls. Volume ${pct}%` : `Volume ${pct}%`;
+    volBtn.setAttribute('aria-label', what);
+    volBtn.setAttribute('title', what);
+    const nameEl = q<HTMLElement>('[data-vol-name]');
+    if (nameEl) nameEl.textContent = host.volume.label;
+    if (inPop) setFill(volRange);
     // Don't fight the slider while the user is dragging it.
     if (volRange && doc.activeElement !== volRange) volRange.value = String(v);
     const pctEl = q<HTMLElement>('[data-vol-pct]');
@@ -820,6 +878,8 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   function openVolPop(): void {
     if (!host.volume || !volPop || !volBtn) return;
     paintVolume();
+    // The panel needs room: a short window grows while the panel is open.
+    if (onePopover()) { renderControls(); paintVolumes(); root.setAttribute('data-ctlpop-open', ''); }
     volPop.hidden = false;
     volBtn.setAttribute('aria-expanded', 'true');
     // Sit centred over the button, clamped inside the dock (root is overflow:hidden).
@@ -828,13 +888,16 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
     const pw = volPop.offsetWidth || 46;
     const ph = volPop.offsetHeight || 150;
     const x = Math.max(6, Math.min(b.left - r.left + b.width / 2 - pw / 2, r.width - pw - 6));
-    const y = Math.max(6, b.top - r.top - ph - 8);
+    // The controls panel is taller than the room over the button in a small window: it opens under the button then.
+    const over = b.top - r.top - ph - 8;
+    const y = over >= 6 || !onePopover() ? Math.max(6, over) : Math.min(b.bottom - r.top + 8, Math.max(6, r.height - ph - 6));
     volPop.style.left = `${x}px`;
     volPop.style.top = `${y}px`;
     volRange?.focus();
   }
   function closeVolPop(): void {
     if (volPop && !volPop.hidden) volPop.hidden = true;
+    root.removeAttribute('data-ctlpop-open');
     volBtn?.setAttribute('aria-expanded', 'false');
   }
 
@@ -1503,37 +1566,39 @@ export function createAudioDock(opts: AudioDockOptions): DockController {
   });
   volRange?.addEventListener('change', () => host.volume?.commit?.(Number(volRange.value)));
   srcSearch.addEventListener('input', () => applySearch());
-  controlsEl.addEventListener('click', (e) => {
-    const el = (e.target as HTMLElement).closest?.<HTMLElement>('button[data-ctl]');
-    if (!el) return;
-    const c = controlFor(el);
-    if (!c) return;
-    if (c.kind === 'choice') void Promise.resolve(c.set(el.dataset.ctlOpt ?? '')).then(refresh);
-    else if (c.kind === 'toggle') void Promise.resolve(c.set(!c.get())).then(refresh);
-    else if (c.kind === 'action') {
-      void Promise.resolve(c.run()).then((said) => {
-        if (!said || !el.isConnected) return;
-        // An icon button keeps its icon; what it said shows beside the row instead.
-        const line = c.icon ? controlsEl.querySelector<HTMLElement>('[data-said]') : null;
-        const target = line ?? el;
-        target.textContent = said;
-        setTimeout(() => { if (target.isConnected) target.textContent = line ? '' : c.label; }, 1600);
-      });
-    }
-    refresh();
-  });
-  controlsEl.addEventListener('input', (e) => {
-    const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('input[data-ctl]');
-    if (!range) return;
-    const c = controlFor(range);
-    if (c?.kind === 'range') { c.set(Number(range.value)); setFill(range); }
-  });
-  controlsEl.addEventListener('change', (e) => {
-    const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('input[data-ctl]');
-    if (!range) return;
-    const c = controlFor(range);
-    if (c?.kind === 'range') c.commit?.(Number(range.value));
-  });
+  for (const box of [controlsEl, popControlsEl]) {
+  box.addEventListener('click', (e) => {
+      const el = (e.target as HTMLElement).closest?.<HTMLElement>('button[data-ctl]');
+      if (!el) return;
+      const c = controlFor(el);
+      if (!c) return;
+      if (c.kind === 'choice') void Promise.resolve(c.set(el.dataset.ctlOpt ?? '')).then(refresh);
+      else if (c.kind === 'toggle') void Promise.resolve(c.set(!c.get())).then(refresh);
+      else if (c.kind === 'action') {
+        void Promise.resolve(c.run()).then((said) => {
+          if (!said || !el.isConnected) return;
+          // An icon button keeps its icon; what it said shows beside the row instead.
+          const line = c.icon ? controlsEl.querySelector<HTMLElement>('[data-said]') : null;
+          const target = line ?? el;
+          target.textContent = said;
+          setTimeout(() => { if (target.isConnected) target.textContent = line ? '' : c.label; }, 1600);
+        });
+      }
+      refresh();
+    });
+    box.addEventListener('input', (e) => {
+      const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('input[data-ctl]');
+      if (!range) return;
+      const c = controlFor(range);
+      if (c?.kind === 'range') { c.set(Number(range.value)); setFill(range); }
+    });
+    box.addEventListener('change', (e) => {
+      const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('input[data-ctl]');
+      if (!range) return;
+      const c = controlFor(range);
+      if (c?.kind === 'range') c.commit?.(Number(range.value));
+    });
+  }
   volumesEl.addEventListener('input', (e) => {
     const range = (e.target as HTMLElement).closest?.<HTMLInputElement>('[data-vol-id]');
     if (!range) return;

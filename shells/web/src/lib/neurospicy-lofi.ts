@@ -42,7 +42,8 @@ export function lofiStationName(mood: LofiMood): string {
 }
 
 /** What a listener sets for every Lofi station: whether the drums play, and how dusty it sounds. */
-export interface LofiPrefs { drums: boolean; texture: number }
+/** `shuffle`: move to another genre when a tune ends (the player's Shuffle genres switch). */
+export interface LofiPrefs { drums: boolean; texture: number; shuffle?: boolean }
 export const LOFI_DEFAULTS: LofiPrefs = { drums: true, texture: 0.5 };
 
 export function isLofiId(id: string): boolean { return lofiMoodOf(id) !== null; }

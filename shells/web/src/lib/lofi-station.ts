@@ -41,6 +41,7 @@ import * as BL from './lofi-bass-layers.ts';
 import * as BS from './lofi-bass-stack.ts';
 import * as R from './lofi-winds.ts';
 import * as H from './lofi-house.ts';
+import * as TALK from './lofi-bass-talk.ts';
 import * as C from './lofi-chop.ts';
 import * as SF from './lofi-surf.ts';
 import * as CO from './lofi-combo.ts';
@@ -831,6 +832,7 @@ export class LofiStation {
           if (bassV === 'tuba') OB.tuba(kit, OB.bandLane(kit, out, bar), bar.tune.seed, at, midi, vel, len, mod, lvl / Math.max(0.05, vel));
           else if (bassV === 'log') W.bass(kit, out, at, midi, lvl, len, mod, tn);
           else if (H.HOUSE_BASSES.has(bassV)) H.bass(kit, out, at, midi, lvl, len, tn);
+          else if (TALK.TALK_BASSES.has(bassV)) TALK.bass(bassV, kit, out, at, midi, lvl, len, mod, tn);
           else if (GA.GARAGE_BASSES.has(bassV)) GA.bass(kit, out, at, midi, lvl, len, mod, spb, tn);
           else V.bass(bassV, kit, out, at, midi, lvl, len, mod, tn);
         };
