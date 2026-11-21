@@ -714,6 +714,13 @@
   border: 1px solid hsl(var(--destructive) / 0.3);
   border-radius: var(--radius);
 }
+/* A notice that only informs (a tool that moved into another one): a primary tint
+   inside a plain edge, where the plain notice warns in the destructive colour. The
+   accent stays off the outline, which is kept for focus and selection. */
+.tool-notice--info {
+  background: hsl(var(--primary) / 0.08);
+  border-color: hsl(var(--border));
+}
 .tool-notice-text { flex: 1; min-width: 0; }
 .tool-notice-text strong { font-weight: 600; }
 /* The partner kit's line heads the Design system section (plans/82 M8,

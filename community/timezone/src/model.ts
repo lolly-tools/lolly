@@ -20,6 +20,9 @@ export interface Place {
   offsetMinutes?: number;
   localISO?: string;
   dayOffset?: number;
+  /** How sociable the local hour is: night is before 06:00 or from 22:00, edge is
+   *  before 08:00 or from 20:00. The rule Meeting Planner drew its times by. */
+  hourQuality?: 'ok' | 'edge' | 'night';
 }
 export interface Palette {
   background: string;
@@ -170,6 +173,13 @@ export function resolvePlace(row: Inputs, index: number, colors: string[]): Plac
             return false;
           }
         });
+      // A name shared by a large city and small ones means the large one: London is
+      // London, GB without the country, as a map search would answer. Ten times the
+      // next largest in another zone is the bar; closer than that still asks.
+      const ranked = [...matches].sort((a, b) => +b[7] - +a[7]);
+      const rival = ranked.find((c) => c[4] !== ranked[0]?.[4]);
+      if (ranked[0] && rival && +ranked[0][7] >= 10 * Math.max(1, +rival[7]))
+        matches = matches.filter((c) => c[4] === ranked[0][4]);
       const zones = new Set(matches.map((c) => c[4]));
       if (zones.size > 1)
         throw new Error(
@@ -379,13 +389,38 @@ export function updateTimes(state: State, instant: Date) {
       day: 'numeric',
       month: 'short',
     }).format(instant);
+    const hour = +s.hour;
+    p.hourQuality = hour < 6 || hour >= 22 ? 'night' : hour < 8 || hour >= 20 ? 'edge' : 'ok';
     p.dayOffset = Math.round((Date.UTC(+s.year, +s.month - 1, +s.day) - refDay) / 86400000);
   }
+}
+/** The reference clock as an IANA zone. A city is accepted too ("Nuremberg",
+ *  "London, GB") and read from the offline list, as a row's place is; anything that
+ *  is not found is passed on, and the zone check reports the error. */
+export function referenceZoneOf(value: string): string {
+  if (!value || value === 'UTC' || value.includes('/')) return value;
+  const found = resolvePlace({ place: value }, 0, ['#000000']);
+  return found.error || !found.timezone ? value : found.timezone;
+}
+/** The colour a place's time is drawn in: the place's own, or amber and red for an
+ *  early, late or night hour when the document asks for that mark. */
+export function timeColor(s: State, p: Place): string {
+  if (s.inputs.showHourQuality !== true && s.inputs.showHourQuality !== 'true') return p.color;
+  return p.hourQuality === 'night' ? '#ef4444' : p.hourQuality === 'edge' ? '#f59e0b' : p.color;
+}
+/** The same mark in words, for a reader who cannot tell the colours apart. */
+export function hourWord(s: State, p: Place): string {
+  if (s.inputs.showHourQuality !== true && s.inputs.showHourQuality !== 'true') return '';
+  const hour = +(p.localISO || '').slice(11, 13);
+  if (p.hourQuality === 'night') return 'night';
+  if (p.hourQuality === 'edge') return hour < 12 ? 'early' : 'late';
+  return '';
 }
 export async function makeState(inputs: Inputs, host: any, now = new Date()): Promise<State> {
   inputs = { ...inputs };
   for (const key of ['heading', 'eyebrow', 'annotation', 'footer', 'referenceZone'])
     inputs[key] = String(inputs[key] || '').trim();
+  inputs.referenceZone = referenceZoneOf(inputs.referenceZone);
   const palette = await brand(host, inputs);
   const state: State = {
     inputs,

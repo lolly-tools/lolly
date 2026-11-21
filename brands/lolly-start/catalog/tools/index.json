@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-20T15:27:29.854Z",
+  "generatedAt": "2026-11-21T17:12:31.135Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -12727,9 +12727,12 @@
       "id": "meeting-planner",
       "name": "Meeting Planner",
       "description": "Plan a global meeting and see the time for every teammate's timezone.",
-      "version": "1.3.1",
+      "version": "1.3.2",
       "status": "official",
       "category": "event",
+      "listed": false,
+      "deprecated": true,
+      "replacedBy": "timezone",
       "tags": [
         "map",
         "team",
@@ -13053,7 +13056,7 @@
       "id": "timezone",
       "name": "Timezone",
       "description": "Turn places and timezones into artwork. Rotate a vector atlas or a WebGL globe, then export artwork, a camera tour or structured schedules.",
-      "version": "1.1.2",
+      "version": "1.2.0",
       "status": "official",
       "category": "event",
       "tags": [
