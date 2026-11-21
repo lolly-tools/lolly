@@ -13,12 +13,12 @@ ROUTES table in main.ts. Two facts to keep in step with the code:
 
 <a id="search"></a>
 
-Press **Ctrl-Space** and type two letters: Lolly shows the tools, saved work, assets and settings that match. One field, always in the same place at the foot of the screen, reaches all of them.
+Press **Ctrl-Space** and type two letters. Lolly shows the tools, saved work, assets and settings that match.
 
 <!--i:eti-search-->
 ## Open search
 
-The field sits in the middle of the bar at the foot of the window, between **Open** and **Settings** on one side and the **Verify** shortcut to Lolly Verify and **Docs** on the other. Press **Ctrl-Space** from any screen that shows the bar, or click the field.
+The field is in the middle of the bar at the foot of the window. **Open** and **Settings** are on one side. The **Verify** shortcut to Lolly Verify and **Docs** are on the other. Press **Ctrl-Space** on any screen that shows the bar, or click the field.
 
 <!--
 SHOT NOTE (srch-footer-closed): the bar `footerNav()` writes is
@@ -43,7 +43,7 @@ Batch moved out of this bar to the Projects top bar.
 - Lolly Design System Setup and Ask Lolly, which has its own question field
 :::
 
-Where the bar steps aside, **Ctrl-Space** does nothing; those screens keep their own controls. Outside the app, the installed apps answer `lolly://` links from a launcher, a Shortcut or a terminal, and on Linux the GNOME Shell search provider and KRunner list Lolly's tools by name; see [The lolly:// scheme](/info/url-app-links.html#the-lolly-scheme).
+Where the bar steps aside, **Ctrl-Space** does nothing. Outside the app, the installed apps answer `lolly://` links from a launcher, a Shortcut or a terminal. On Linux, the GNOME Shell search provider and KRunner list Lolly's tools by name. See [The lolly:// scheme](/info/url-app-links.html#the-lolly-scheme).
 
 <!--i:eti-grid-->
 ## What it finds
@@ -59,21 +59,21 @@ Matches are sorted into groups, always in the same order:
 | **Docs** | Every published page and heading of these guides, with the page you meant ahead of its own sections. | `export` |
 | **Ask Lolly** | Always last: one row that hands what you typed to [Ask Lolly](/info/ask.html), which answers with a quoted section of the guides. | any question |
 
-Matching folds case and accents, so `cafe` finds "Café". Search does not list the app's own workbenches yet, such as Lolly Verify, Convert, Unpack, the Lolly Colour Lab and the spreadsheet; open them from the **Utilities** tab, or Lolly Verify from the bar.
+Matching ignores case and accents, so `cafe` finds "Café". Search does not list the app's own workbenches yet, such as Lolly Verify, Convert, Unpack, the Lolly Colour Lab and the spreadsheet. Open them from the **Utilities** tab, or open Lolly Verify from the bar.
 
 <!--i:eti-link-->
 ## What happens when you pick a result
 
-On the Tools gallery, Utilities, Assets and Projects, the grid you are looking at filters itself as you type. In Settings and in the guides, the screen behind stays as it is. Either way, the group for the screen you are on leads the panel, with room for more rows. The Tools, Utilities, Projects and Assets groups end with a **See all in …** row that opens a full results view.
+On the Tools gallery, Utilities, Assets and Projects, the grid filters as you type. In Settings and the guides, the screen behind does not change. On every screen, the group for that screen comes first in the panel and shows more rows. The Tools, Utilities, Projects and Assets groups end with a **See all in …** row that opens a full results view.
 
 ![the search panel open above the bar, with results grouped by kind for a typed query, the tools grid behind it already filtered to match](/t/url-shot?url=%2F%23%2F&width=1440&height=820&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&drive=press%3Ac%7Con%3D.gallery-search%3Bpress%3Ah%3Bpress%3Aa%3Bpress%3Ar%3Bpress%3At%3Bwait%3A900&walker=1&format=svg&dark=1&filename=srch-spotlight-results)
 
-Every result is an ordinary link you can bookmark or paste: a tool opens at `#/tool/<id>`, and `#/settings?tab=<device|brand|caps|activity>` opens Settings on that tab. A **Projects** result points at a saved slot on this device (`#/tool/<tool>?slot=…`), so that link works only on this device.
+Every result is a link you can bookmark or paste. A tool opens at `#/tool/<id>`, and `#/settings?tab=<device|brand|caps|activity>` opens Settings on that tab. A **Projects** result points at a saved slot on this device (`#/tool/<tool>?slot=…`), so that link works only on this device.
 
 <!--i:eti-keyboard-->
 ## Keyboard
 
-- **Ctrl-Space** jumps to the field. A small `⌃␣` chip in the empty field is the reminder, on a wide screen with a mouse or trackpad. Cmd-Space also works where the system lets it through, but macOS keeps it for Spotlight, so Ctrl-Space is the one to learn.
+- **Ctrl-Space** jumps to the field. On a wide screen with a mouse or trackpad, a small `⌃␣` chip in the empty field shows the shortcut. Cmd-Space also works where the system allows, but macOS keeps Cmd-Space for Spotlight. Use Ctrl-Space.
 - The **arrow keys** walk every row across every group.
 - **Enter** opens the highlighted row, and **Cmd/Ctrl-Enter** opens it in a new tab.
 - **Escape** backs out a step at a time: it closes the panel, then clears what you typed, then leaves the field.
@@ -81,11 +81,11 @@ Every result is an ordinary link you can bookmark or paste: a tool opens at `#/t
 <!--i:eti-gauge-->
 ## Limits
 
-- It searches names, labels and tags, never contents.
-- Results only navigate. Nothing in the panel deletes, renames or changes a setting for you.
-- It keeps no history and shows nothing before you type. Below two characters the panel stays closed.
-- Matching is by exact substring, and it does not correct a typo.
-- It runs on your device, from data already there. The exception is **Docs**: the first search fetches this site's search index, the same file the site's own search uses, and what you type is never part of that request. Offline, the Docs group is missing.
+- Search reads names, labels and tags, never contents.
+- Results only navigate. Nothing in the panel deletes, renames or changes a setting.
+- Search keeps no history and shows nothing before you type. Below two characters the panel stays closed.
+- Matching is by exact substring. Typos are not corrected.
+- Search runs on your device, from data already there, except for **Docs**. The first search fetches this site's search index, the same file the site's own search uses. What you type is never part of that request. Offline, the Docs group is missing.
 
 ---
 

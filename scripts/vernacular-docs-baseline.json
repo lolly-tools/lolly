@@ -1,7 +1,6 @@
 {
-  "docs/animating.md": 3,
   "docs/parser-inventory.md": 3,
-  "docs/rebrand.md": 8,
+  "docs/rebrand.md": 3,
   "docs/site/formats-catalog.json": 3,
   "docs/spec/document-model/01-constitution.md": 3,
   "docs/spec/document-model/03-source-and-patches.md": 8,
@@ -13,6 +12,5 @@
   "docs/spec/document-model/09-extensions.md": 4,
   "docs/spec/document-model/10-packaging.md": 2,
   "docs/spec/document-model/11-proof-cases.md": 2,
-  "docs/spec/document-model/12-status.md": 4,
-  "docs/text-composition.md": 3
+  "docs/spec/document-model/12-status.md": 4
 }

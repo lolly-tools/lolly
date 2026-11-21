@@ -1,6 +1,6 @@
 # Build Guide
 
-This page is for a developer who wants to build one of Lolly's apps from source. Pick the app below; each guide lists the toolchain it needs, the commands and what the build produces. To host what you build, read [Choose a deployment](/info/deployment.html).
+Each guide below builds one of Lolly's apps from source, with its toolchain, commands and build output. To host what you build, read [Choose a deployment](/info/deployment.html).
 
 <!--i:eti-map-pin-->
 ## Choose a guide
@@ -31,7 +31,7 @@ Check [Supported environments](/info/supported-environments.html) before you shi
 pnpm run build:web    # output: shells/web/dist/
 ```
 
-`build:web` is a chain, so a plain `vite build` inside `shells/web` is not enough on its own. In order, it:
+`build:web` is a chain; a plain `vite build` inside `shells/web` is not enough. In order, the chain:
 
 1. copies the ONNX runtime's WebAssembly and loader files into `shells/web/public/ort/` (`build:ort`; the files are gitignored and regenerated each build);
 2. builds the `/info` docs site (`build:info`);
@@ -62,4 +62,4 @@ A Tauri build writes its frontend to `shells/tauri-{desktop,mobile}/dist/`, whic
 <!--i:eti-help-->
 ## If something fails
 
-Run `pnpm run doctor`. It reads the checkout without changing it and prints the exact repair command for each problem it finds. [Get the source](/info/contributing-setup.html#if-something-fails) lists the common setup failures, such as a Node version too old for type stripping.
+Run `pnpm run doctor`. It reads the checkout without changing it and prints the exact repair command for each problem. [Get the source](/info/contributing-setup.html#if-something-fails) lists the common setup failures, such as a Node version too old for type stripping.

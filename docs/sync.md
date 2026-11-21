@@ -1,11 +1,11 @@
 # Sync your devices
 
-Keep your projects, your brand and your settings the same on your computer, your phone and your tablet. Lolly copies your work to one place that you choose, and to nowhere else. You need no Lolly account for this.
+Keep your projects, brand and settings the same on your computer, phone and tablet. Lolly copies your work only to one place you choose. You need no Lolly account.
 
 <!--i:eti-folder-shared-->
 ## Your storage is the only server involved
 
-When you turn on sync, you choose one place to hold your work. It can be a cloud drive (Dropbox, Google Drive or OneDrive), your own Nextcloud or WebDAV server or your own S3 bucket. The app on each device talks to that storage directly.
+The place you choose can be a cloud drive (Dropbox, Google Drive or OneDrive), your own Nextcloud or WebDAV server or your own S3 bucket. The app on each device talks to that storage directly.
 
 ![A computer and a phone or tablet each sync their local work directly with the shared backup copy in your chosen storage.](/info/diagrams/concepts/personal-sync.svg)
 
@@ -15,7 +15,7 @@ When you turn on sync, you choose one place to hold your work. It can be a cloud
 
 The [Privacy](/info/privacy.html) page lists every network request the app makes.
 
-The storage you connect for sync can also take files you send from the export panel, and make a share link for them there. [Export a file](/info/exporting.html#how-export-works) covers **Send to** and **Links you've shared**.
+From the export panel, you can also send files to the storage you connect for sync and make share links for them. [Export a file](/info/exporting.html#how-export-works) covers **Send to** and **Links you've shared**.
 
 <!--i:eti-refresh-->
 ## Turn on sync
@@ -55,32 +55,32 @@ In a browser, these buttons and the ones further down say "this browser" instead
 <!--i:eti-shield-check-->
 ## How sync keeps your work safe
 
-**Changes go up by themselves.** Lolly uploads a few seconds after you change something, and again when you leave the app. If you are offline, the change waits and goes up when you are back online. The sync section shows when changes are waiting.
+**Changes go up by themselves.** Lolly uploads a few seconds after you change something, and again when you leave the app. Offline, the change waits until you are back online. The sync section shows when changes are waiting.
 
-**Nothing is overwritten by surprise.** Before each upload, Lolly checks the copy in your storage. If another device changed it and this device has changes of its own, automatic sync stops and asks you to choose.
+**Nothing is overwritten by surprise.** Before each upload, Lolly checks the copy in your storage. If another device changed that copy and this device has changes of its own, automatic sync stops and asks you to choose.
 
 ![Another device synced newer work while this device has changes too, so sync stops and asks you. Use the synced copy saves this device first; Keep this device keeps the copy it replaces.](/info/diagrams/concepts/sync-conflict.svg)
 
 - **Use the synced copy** updates this device, and saves this device's own changes to your storage first.
 - **Keep this device** makes this device the synced copy, and keeps the copy it replaces.
 
-**Applying a newer copy can be undone.** When another device has synced newer changes, Lolly offers to apply them. Before it does, it saves this device as **Before your last apply**. Items deleted on the other device are removed here too, and things you made on this device since it last synced are kept.
+**Applying a newer copy can be undone.** When another device has synced newer changes, Lolly offers to apply them. Before applying them, Lolly saves this device as **Before your last apply**. Items deleted on the other device are removed here too, and things you made on this device since it last synced are kept.
 
-**You can go back to an earlier copy.** Your storage keeps one copy a day for the last seven days, plus the copy from before your last apply. **Restore an earlier copy** goes back to one, and your provider's own version history can keep more. You can also download any of these copies from your storage and open it in Lolly, or pick it in **Import data…**: it is added to the device like a backup, and an encrypted copy asks for your passphrase.
+**You can go back to an earlier copy.** Your storage keeps one copy a day for the last seven days, plus the copy from before your last apply. **Restore an earlier copy** goes back to one of them. Your provider's own version history can keep more. You can also download one of these copies and open the copy in Lolly, or pick the copy in **Import data…**. The copy is added to the device like a backup. An encrypted copy asks for your passphrase.
 
-The rules for how a copy meets the work already on a device are in [Data transfer](/info/data-transfer.html#import-rules).
+[Data transfer](/info/data-transfer.html#import-rules) has the rules for how a copy meets the work already on a device.
 
 <!--i:eti-lock-->
 ## Encryption is optional
 
 Turn on encryption when you do not trust the place you sync to.
 
-- Enter a passphrase under **Sync across devices**. Your work is then encrypted on your device before it is uploaded, and your storage only holds data it cannot read.
+- Enter a passphrase under **Sync across devices**. Your work is then encrypted on your device before upload. Your storage holds only data it cannot read.
 - Every device needs the same passphrase.
 - The passphrase stays on the device. It is never uploaded and never in a backup.
 
 ::: warning If you lose the passphrase, nobody can open the synced copies
-Lolly cannot recover them. That is why encryption is not on by default.
+Lolly cannot recover them, so encryption is off by default.
 :::
 
 <!--i:eti-map-pin-->
@@ -128,7 +128,7 @@ Lolly can see only the files it created in your Drive.
 
 - **In a browser,** the sign-in lasts for one visit. Sync works as soon as you sign in, and automatic sync pauses until you sign in again on your next visit.
 - **On iPhone and iPad,** Google Drive works when the app includes a Google app for iOS.
-- **On Android,** Google no longer accepts a browser sign-in from apps, so the app asks Google Play services on your phone instead, which hands the answer straight to the app. You agree once, and after that the app gets access without asking again. A phone without Google Play services (for example a de-Googled phone) cannot use Google Drive, so choose another storage there.
+- **On Android,** Google does not accept a browser sign-in from apps. The app asks Google Play services on your phone, which hands the answer to the app. You agree once. After that, the app gets access without asking. A phone without Google Play services, such as a de-Googled phone, cannot use Google Drive. Choose another storage there.
 
 ::: details Use your own Google app
 On a Lolly site with no Google app, use your own:
@@ -157,7 +157,7 @@ Lolly can see only its own app folder in your OneDrive. Personal accounts and wo
 2. In Lolly, enter the endpoint, region, bucket, key and an optional prefix, then press **Save & test**.
 
 - **In the apps,** no more setup is needed. The endpoint must have an `https://` address on the public internet.
-- **In a browser,** it works only on a Lolly you host yourself. Its admin must allow the bucket, and the bucket needs a CORS rule that allows the site with the methods `GET`, `PUT` and `HEAD`, the headers `authorization`, `content-type`, `x-amz-content-sha256`, `x-amz-date`, `if-match` and `if-none-match`, and that exposes `ETag` and `Last-Modified`.
+- **In a browser,** it works only on a Lolly you host yourself. Its admin must allow the bucket. The bucket needs a CORS rule that allows the site with the methods `GET`, `PUT` and `HEAD` and the headers `authorization`, `content-type`, `x-amz-content-sha256`, `x-amz-date`, `if-match` and `if-none-match`. The rule must also expose `ETag` and `Last-Modified`.
 
 ### A file you move yourself
 
@@ -166,15 +166,15 @@ Open **Settings → Preferences → Storage → Move to another device** and pre
 <!--i:eti-gauge-->
 ## Limits
 
-- **Size.** A synced copy larger than 2 GB, or larger than 256 MB when sent from an app, is refused with a message, and so is a single item larger than 512 MB. Every upload sends the whole copy, so a large library uploads slowly.
+- **Size.** Lolly refuses, with a message, a synced copy larger than 2 GB (256 MB when sent from an app) and a single item larger than 512 MB. Every upload sends the whole copy, so a large library uploads slowly.
 - **One person.** Sync keeps one person's devices in step. For two people working on the same thing, see [Working together](/info/collaborate.html).
 - **Android sign-in.** If Android closes the app while a sign-in page is open, start the sign-in again.
 
 ::: details For people who host Lolly or build the apps
-Each provider needs a registration before its sign-in can work. None of these registrations is a server: each one only tells the provider which return addresses to trust. The sign-in answer comes back to the Lolly site in a browser, to the app itself on the desktop, to `tools.lolly.mobile:/oauth2redirect` in the mobile app and through Google Play services for Google Drive on Android.
+Each provider needs a registration before its sign-in can work. None of these registrations is a server. Each one only tells the provider which return addresses to trust. The sign-in answer comes back to the Lolly site in a browser, to the app itself on the desktop, to `tools.lolly.mobile:/oauth2redirect` in the mobile app and through Google Play services for Google Drive on Android.
 
 - **Dropbox:** one app. Add `<site>/oauth-return.html` for the web and `tools.lolly.mobile:/oauth2redirect` for the mobile apps (the desktop apps need nothing). Build values: `VITE_DROPBOX_CLIENT_ID`, and `VITE_DROPBOX_MOBILE=1` once the mobile redirect is added.
-- **Google:** a **Web application** client for the site (`VITE_GOOGLE_CLIENT_ID`), a **Desktop app** client for the desktop apps (`VITE_GOOGLE_DESKTOP_CLIENT_ID` and its secret, which Google treats as not confidential for installed apps) and an **iOS** client for bundle id `tools.lolly.mobile` (`VITE_GOOGLE_IOS_CLIENT_ID`). For Android, an **Android** client for package `tools.lolly.mobile` with the SHA-1 fingerprint of each signing certificate (debug, release and, if you use it, the Play App Signing key); no client id goes into the build, only `VITE_GOOGLE_ANDROID_SIGN_IN=1`. The Android sign-in uses Google's Play services library, which is not open source. A build for de-Googled phones or F-Droid sets the Gradle property `lollyGooglePlayServices=false`, and Google Drive is then unavailable in that build.
+- **Google:** a **Web application** client for the site (`VITE_GOOGLE_CLIENT_ID`), a **Desktop app** client for the desktop apps (`VITE_GOOGLE_DESKTOP_CLIENT_ID` and its secret, which Google treats as not confidential for installed apps) and an **iOS** client for bundle id `tools.lolly.mobile` (`VITE_GOOGLE_IOS_CLIENT_ID`). For Android, an **Android** client for package `tools.lolly.mobile` with the SHA-1 fingerprint of each signing certificate (debug, release and, if you use it, the Play App Signing key). No client id goes into the build, only `VITE_GOOGLE_ANDROID_SIGN_IN=1`. The Android sign-in uses Google's Play services library, which is not open source. A build for de-Googled phones or F-Droid sets the Gradle property `lollyGooglePlayServices=false`, and Google Drive is then unavailable in that build.
 - **Microsoft (Entra):** one app registration, with the scopes `Files.ReadWrite.AppFolder`, `User.Read` and `offline_access`, open to personal and work or school accounts. Under **Single-page application**, add `<site>/oauth-return.html` (`VITE_MS_CLIENT_ID`). Under **Mobile and desktop applications**, add `http://localhost/oauth-return` for the desktop apps (`VITE_MS_DESKTOP_CLIENT_ID`) and `tools.lolly.mobile:/oauth2redirect` for the mobile apps (`VITE_MS_MOBILE_CLIENT_ID`).
 - **A self-hosted site** must add the download origins used by OneDrive personal accounts to its content policy's `connect-src`. These can include hosts under `*.files.1drv.com` and `my.microsoftpersonalcontent.com`. Set `VITE_CONNECTOR_ORIGINS` to the exact HTTPS origins your accounts use, rebuild the frontend and deploy the rendered server headers as described in [Configure connector origins](/info/connector-origins.html). Wildcards are not accepted in that setting.
 :::

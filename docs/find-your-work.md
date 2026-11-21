@@ -1,8 +1,8 @@
 # Find and recover your work
 
-Something is missing: a design you never saved, a file you downloaded, last week's version, or everything after the browser was cleared. Start with the table, then follow the section it points to.
+Find a design you never saved, a file you downloaded, last week's version or your work after the browser was cleared. Start with the table.
 
-Personal work stays in the browser or app you made it in, on that device, unless you turn on [Sync](/info/sync.html). An organisation using optional Lolly Work also keeps **Team projects** on its server, covered below.
+Personal work stays in the browser or app you made it in, on that device, unless you turn on [Sync](/info/sync.html). An organisation using the optional Lolly Work also keeps **Team projects** on its server.
 
 | What you did | Where to look |
 |---|---|
@@ -17,7 +17,7 @@ Where your work lives: the browser's own storage holds Projects, History and Tra
 :::
 
 ::: details Find shared work in Lolly Work (optional)
-Open your organisation's Lolly and sign in, then look in **Projects → Team projects**. Shared sessions are held by that instance and appear according to your access. Signing in can restore access to those sessions on another device; it does not restore your personal library or device backup.
+Open your organisation's Lolly, sign in and look in **Projects → Team projects**. That instance has shared sessions and shows the ones you have access to. Signing in on another device can restore access to those sessions. Signing in does not restore your personal library or device backup.
 
 In a [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), wait for **Saved to work** before leaving. If a shared project is missing, check that you are connected to the right instance and ask its operator about access or retention. Clearing browser data removes local copies, not the organisation's server copy. See [Use Lolly at your organisation](/info/organisation.html).
 :::
@@ -27,9 +27,9 @@ In a [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), 
 
 1. Press **Home** at the top left of the tool.
 2. Open the **Projects** tab at the top of the home screen (the folder icon on a phone).
-3. Look on the first screen. Everything you saved to **My library** is there, and each project is a folder. To search every folder at once, type in **Search all projects…** at the foot of the screen.
+3. Everything you saved to **My library** is on the first screen. Each project is a folder. To search every folder, type in **Search all projects…** at the foot of the screen.
 
-An item is named after the file name you typed in the export panel, or after its tool, such as **QR Code**, if you typed none. Open the item and every setting is back, ready to change and export again. To keep new work this way, see [Saving & continuing](/info/using.html#saving-continuing).
+An item takes the file name you typed in the export panel. With no file name, it takes its tool's name, such as **QR Code**. Opening the item brings back every setting. To save new work, see [Saving & continuing](/info/using.html#saving-continuing).
 
 ::: note Not in Projects?
 - It may be in **Trash**: see [Get back something you deleted](#get-back-something-you-deleted).
@@ -48,13 +48,13 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Folders that nest.** Group saved sessions into folders, and folders inside folders, as deep as you like. Create a folder, rename it or drag a tile onto another folder to move it; a breadcrumb walks you back up. Sessions saved without a folder appear directly at the **Projects** root.
-- <!--i:clock--> **Sort your own way.** **View options**, the sliders button at the top right, offers **Grid** or **List** and sorts by **Name**, **Date added**, **Last modified** (the default), **Size** and, inside a folder, **By tool**. Folders always come first; the sort orders sessions and folders within their own group.
-- <!--i:document--> **File new work straight in.** **New asset** opens the shared picker. Choose **Templates** to start from a saved template: open it to edit, or use **+ Add** to save a new creation immediately.
-- <!--i:checklist--> **Multi-select (desktop).** Tick a tile's checkbox, drag a selection box across empty space or **Shift/Cmd-click**; **right-click** a tile for its context menu. The selection bar then offers **Render selection**, **Move to…**, **New folder**, **Delete** (which moves to Trash), **Edit together** for two to eight single-tool sessions, side by side under one sidebar, and **Edit as sheet**, which opens a selection of any size or mix as rows in the batch grid.
-- <!--i:download--> **Render a whole folder or selection.** **Render folder** exports every saved session in a folder - including its sub-folders - as one nested `.zip`. **Render selection** does the same for any multi-selection, and a single session renders straight to its own file.
-- <!--i:link--> **Jump straight to a tool's saved work.** Tick one or more tools on the Tools gallery and choose **View sessions** from the selection bar - Projects opens showing only the sessions made with those tools, with a **Clear** to get back to the full view.
-- <!--i:link--> **Share a saved session.** Right-click a session (on a phone, press the **•••** on its tile) → **Share link** to copy a link that reopens it with the same settings; pictures from your device do not travel with a link (the full Share dialog: see [Sharing your work](/info/using.html#sharing-your-work)).
+- <!--i:folder--> **Folders that nest.** Put saved sessions in folders, and folders inside folders, to any depth. Create or rename a folder, or drag a tile onto a folder to move the tile. A breadcrumb takes you back up. Sessions saved without a folder are at the **Projects** root.
+- <!--i:clock--> **Sort your own way.** **View options**, the sliders button at the top right, offers **Grid** or **List** and sorts by **Name**, **Date added**, **Last modified** (the default), **Size** and, inside a folder, **By tool**. Folders always come first. Sessions and folders are each sorted within their own group.
+- <!--i:document--> **File new work straight in.** **New asset** opens the shared picker. Choose **Templates** to start from a saved template. Open the template to edit, or press **+ Add** to save a new creation at once.
+- <!--i:checklist--> **Multi-select (desktop).** Tick a tile's checkbox, drag a selection box across empty space or **Shift/Cmd-click**. For a tile's context menu, **right-click** the tile. The selection bar offers **Render selection**, **Move to…**, **New folder** and **Delete** (to Trash). Its **Edit together** opens two to eight single-tool sessions side by side under one sidebar. **Edit as sheet** opens a selection of any size or mix as rows in the batch grid.
+- <!--i:download--> **Render a whole folder or selection.** **Render folder** exports every saved session in a folder and its sub-folders as one nested `.zip`. **Render selection** does the same for a multi-selection. A single session renders to its own file.
+- <!--i:link--> **Jump straight to a tool's saved work.** Tick one or more tools on the Tools gallery and choose **View sessions** from the selection bar. Projects then shows only the sessions made with those tools. **Clear** brings back the full view.
+- <!--i:link--> **Share a saved session.** Right-click a session (on a phone, press **•••** on its tile) and choose **Share link**. The link reopens the session with the same settings. Pictures from your device do not travel with a link. For the full Share dialog, see [Sharing your work](/info/using.html#sharing-your-work).
 - <!--i:pentool--> **Rename or copy one.** The same menu has **Rename**, **Duplicate** (a copy in the same folder) and **Move to…**.
 
 ![The View options popover in Projects: Layout with Grid and List, and Sort by set to Last modified, beside a button that reverses the order](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
@@ -83,11 +83,11 @@ not visible in the closed menu, so the alt does not list them.
 <!--i:eti-refresh-->
 ## If you closed the tab or left the tool
 
-What comes back depends on how you left and which tool you used:
+What comes back depends on how you left and on the tool:
 
-- **You closed the tab, or came back another time.** Unsaved work is gone, except in the [tools that save as you work](#which-tools-save-as-you-work): open that work from **Projects**.
-- **You reloaded the page in the same tab.** Your settings come back from the page address. In tools that do not save as you work, pictures and files you added from your device, and single-line text longer than 150 characters, do not come back, because the address does not hold them.
-- **You pressed Home, or the back button at the top left.** If you changed something since you last saved, downloaded or copied, an **Unsaved edits** dialog asks whether to save first. **Save & leave** saves the work and takes you to **Projects**, or back to the project folder you opened the work from. **Leave anyway** discards your changes: a saved item goes back to how you last saved it, and a creation you never saved leaves **Projects**. **Cancel** keeps you in the tool.
+- **You closed the tab, or came back another time.** Unsaved work is gone, except in the [tools that save as you work](#which-tools-save-as-you-work). Open that work from **Projects**.
+- **You reloaded the page in the same tab.** Your settings come back from the page address. In tools that do not save as you work, the address does not hold pictures and files from your device or single-line text longer than 150 characters, so these do not come back.
+- **You pressed Home, or the back button at the top left.** If you changed something since you last saved, downloaded or copied, an **Unsaved edits** dialog asks whether to save first. **Save & leave** saves the work and takes you to **Projects**, or back to the project folder you opened the work from. **Leave anyway** discards your changes. A saved item goes back to its last save, and a creation you never saved leaves **Projects**. **Cancel** keeps you in the tool.
 
 ::: warning Closing the tab does not ask first
 Closing the tab, reloading and your browser's own Back button never ask. To be sure, press **Save as**, or **Save** in the export panel, before you leave a tool.
@@ -105,21 +105,21 @@ In tools that save as you work, History keeps a copy of the discarded edits for 
 :::
 
 ::: details Which tools save as you work
-In the web app, every tool that makes a document saves as you work: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox and the rest. These tools do not:
+In the web app, every tool that makes a document saves as you work, such as Lolly Design, Lolly Chart, QR Code, Text and Lolly Sandbox. These tools do not:
 
 - tools that work on a file you bring, such as Redact, Sign or Convert Image, because Lolly never keeps a copy of that file;
 - tools that record from your camera, microphone or screen, such as Record, Lolly Screen Capture and Lolly Voice Recorder;
 - a tool with nothing to change, such as Countdown.
 
-In the other tools, your first change files the work in **Projects** as if you had saved, and later changes are kept as you work once the tool has finished drawing. An unsaved creation is still in Projects after you close the tab, and reopens with its changes marked unsaved.
+In the other tools, your first change files the work in **Projects** as if you had saved. Later changes are kept once the tool has finished drawing. An unsaved creation stays in Projects after you close the tab and reopens with its changes marked unsaved.
 
 **Leave anyway** still discards those changes. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
 
-3D and Lolly Darkroom save as you work, but they do not keep a file you load into them, such as a 3D model or a LUT. History and **Save** keep the file's name, type and size, not the file. When you open the work again, a note says which file it was, and the tool works without it until you load it again. Keep your original files.
+3D and Lolly Darkroom save as you work, but they do not keep a file you load into them, such as a 3D model or a LUT. History and **Save** keep the file's name, type and size, not the file. When you open the work again, a note says which file, and the tool works without the file until you load that file again. Keep your original files.
 
-With [Sync](/info/sync.html) on, a creation filed this way goes to your other devices like anything else in Projects. Its versions stay on the device where they were made.
+With [Sync](/info/sync.html) on, a creation filed this way goes to your other devices. Its versions stay on the device where they were made.
 
-If a creation is open in two tabs and you save in both, the last save is kept. The work it replaced is not lost: it is under **Protected drafts** in the creation's History, with **Open draft as a copy**.
+If a creation is open in two tabs and you save in both, the last save is kept. The replaced work is under **Protected drafts** in the creation's History, with **Open draft as a copy**.
 
 This works in the web app only, not in the desktop or mobile apps, and not while you work live with someone else.
 :::
@@ -127,19 +127,19 @@ This works in the web app only, not in the desktop or mobile apps, and not while
 <!--i:eti-download-->
 ## Find a file you downloaded
 
-In a browser, **Download** hands the file to your browser, which saves it in its downloads folder (usually **Downloads**) or asks you where. Lolly is not told where the file went, so look in your browser's list of downloads.
+In a browser, **Download** hands the file to your browser. The browser saves the file in its downloads folder (usually **Downloads**) or asks you where. Lolly is not told where the file went, so look in your browser's list of downloads.
 
-If no file appeared, look in the export panel while you are still in the tool. Under **Download**, a line gives the file name and the time, with **Retry download**, and in Chrome, Edge and other Chromium browsers **Save file…** to choose a folder yourself. The line and its file last until you leave the tool, reload or export again.
+If no file appeared, look in the export panel while you are still in the tool. Under **Download**, a line gives the file name and the time, with **Retry download**. In Chrome, Edge and other Chromium browsers, the line also offers **Save file…** to choose a folder. The line and its file last until you leave the tool, reload or export again.
 
 Lolly also keeps two things after each download:
 
 - **A copy of the file**, in **Assets** under **Your uploads**, while **Save my renders to my library** is on under **Settings → Your renders** (**Settings** is at the foot of the home screen). The setting starts on. A video, or a file over 50 MB, asks first, and a zip is not copied.
-- **The settings you used**, for your last 24 downloads. **Recent exports**, below your saved work in **Projects**, reopens the tool with those settings so you can make the file again, though pictures and files you added from your device are not included. The same list is under **Settings → Activity & stats → Latest exports** and on the **Changes** tab of **History**.
+- **The settings you used**, for your last 24 downloads. **Recent exports**, below your saved work in **Projects**, reopens the tool with those settings. Pictures and files you added from your device are not included. The same list is under **Settings → Activity & stats → Latest exports** and on the **Changes** tab of **History**.
 
 ::: details In the desktop and mobile apps
-- **Desktop app:** **Download** saves straight into a **Lolly** folder inside your **Downloads** folder, without a dialog. The line under **Download** says where it went, such as "Saved to Downloads/Lolly", with **Show in folder**. **Open Exports Folder**, in the **Window** or **Exports** menu, opens the folder at any time. A file with the same name as an earlier one is saved as "name (1)".
-- **iPhone and iPad:** the file is saved in the **Files** app, under **Lolly**, and the share sheet opens so you can send it on. The line under **Download** reads "Saved to Files → Lolly".
-- **Android:** the share menu opens so you can choose where the file goes.
+- **Desktop app:** **Download** saves into a **Lolly** folder inside your **Downloads** folder, with no dialog. The line under **Download** says where the file went, such as "Saved to Downloads/Lolly", with **Show in folder**. **Open Exports Folder**, in the **Window** or **Exports** menu, opens the folder at any time. A file with the same name as an earlier one is saved as "name (1)".
+- **iPhone and iPad:** the file is saved in the **Files** app, under **Lolly**, and the share sheet opens. The line under **Download** reads "Saved to Files → Lolly".
+- **Android:** the share menu opens. Choose where the file goes.
 
 On iPhone, iPad and Android, a new file replaces an earlier one with the same name.
 :::
@@ -148,12 +148,12 @@ On iPhone, iPad and Android, a new file replaces an earlier one with the same na
 ## Go back to an earlier version
 
 - **During this visit:** **Undo** steps back through your last 100 changes, until you leave the tool or reload. See [Undo and redo](/info/using.html#undo-and-redo).
-- **In [tools that save as you work](#which-tools-save-as-you-work):** earlier versions of each creation are kept. Follow the steps below.
-- **Everything on the device:** with [Sync](/info/sync.html) on, **Restore an earlier copy**, under **Settings → Connected services**, brings back one of the last seven daily copies, or the copy from before your last apply. Everything on this device then matches that copy, not just one design.
+- **In [tools that save as you work](#which-tools-save-as-you-work):** earlier versions of each creation are kept.
+- **Everything on the device:** with [Sync](/info/sync.html) on, **Restore an earlier copy**, under **Settings → Connected services**, brings back one of the last seven daily copies or the copy from before your last apply. Everything on this device then matches that copy.
 
 To open an earlier version:
 
-1. Press **History**, the clock button beside **Undo** and **Redo**. In Lolly Design, **History** is in the top bar; on a phone, press **•••** and then **History**. In tools without **Undo**, such as Text and Lolly Sandbox, **History** is beside **Home** at the top left.
+1. Press **History**, the clock button beside **Undo** and **Redo**. In Lolly Design, **History** is in the top bar. On a phone, press **•••** and then **History**. In tools without **Undo**, such as Text and Lolly Sandbox, **History** is beside **Home** at the top left.
 2. Find the version by its date and time. **Automatic checkpoint** rows are taken as you work; **Saved version** rows are the times you saved.
 3. Press **Open as a copy**. The version opens as a new creation, and the one you had open stays as it was. The copy is in **Projects**, with "(copy)" after its name.
 
@@ -162,17 +162,17 @@ To keep a version by name, press **Name version**, type a name and press **Keep 
 ::: details The History panel and the History page
 The **History** panel also lists **Recovered work** rows, and **Protected drafts** holds your latest edits between checkpoints, with **Open draft as a copy**. **Lolly Compare** and **Check assets** help you choose before you open a copy. Switch **This creation** to **All history on this device** to see every creation.
 
-Automatic checkpoints thin out with age: one a minute for the last hour, one an hour for the last day, one a day for 30 days, then one a week. Saved versions and named versions are all kept. Deleting a creation moves its versions to **Trash** too, and **Delete forever** removes them.
+Automatic checkpoints thin out with age: one a minute for the last hour, one an hour for the last day, one a day for 30 days, then one a week. All saved and named versions are kept. Deleting a creation moves its versions to **Trash** too, and **Delete forever** removes them.
 
-When History storage fills up, the oldest automatic checkpoints of creations you have not opened for 30 days are removed first. A save is always kept, even then: it is written as the current work, and History says that this save is not kept as a version. **Settings → Storage** shows how much History uses.
+When History storage fills up, the oldest automatic checkpoints of creations you have not opened for 30 days are removed first. Even then, a save is always kept. It is written as the current work, and History says that this save is not kept as a version. **Settings → Storage** shows how much History uses.
 
-The **History** page (`#/history`) covers every creation in this browser. To open it, press the clock button at the top right of the home screen or of **Projects**, choose **Saved sessions** in the profile menu (on a phone, the round logo button at the top right), or press **Open app history** in a tool's History panel. The desktop and mobile apps keep no History page, so there the home screen's clock button and **Saved sessions** open **Your recent work** instead: your latest saved sessions and exports, with a link to Projects.
+The **History** page (`#/history`) covers every creation in this browser. To open the page, press the clock button at the top right of the home screen or of **Projects**, choose **Saved sessions** in the profile menu (on a phone, the round logo button at the top right) or press **Open app history** in a tool's History panel. The desktop and mobile apps have no History page. There, the home screen's clock button and **Saved sessions** open **Your recent work**: your latest saved sessions and exports, with a link to Projects.
 
 - **Recent** lists your creations, newest first, with **Resume**.
 - **Changes** puts checkpoints, downloads and Convert results on one timeline. A download has **Reopen settings**.
 - **Milestones** lists named versions.
 
-Each creation is a tile led by its picture, and **Grid** or **List** switches the layout. Filter by project, tool and date (behind **Filters** on a phone). A tile's menu (right-click or long-press) offers **Resume**, **Versions**, **Show in Projects** and **Move to Trash**. To remove several, select them and choose **Move to Trash**, which offers Undo.
+Each creation is a tile with its picture. **Grid** or **List** switches the layout. Filter by project, tool and date (behind **Filters** on a phone). A tile's menu (right-click or long-press) offers **Resume**, **Versions**, **Show in Projects** and **Move to Trash**. To remove several, select them and choose **Move to Trash**, which offers Undo.
 :::
 
 <!--i:eti-folder-move-->
@@ -187,7 +187,7 @@ Each creation is a tile led by its picture, and **Grid** or **List** switches th
 A share link carries your settings, but not pictures or files you added from your device.
 
 ::: note Importing adds and deletes nothing
-Folders, favourites and templates in the file are added beside the ones already on the other device. When a saved item is on both, the copy saved more recently is kept. Your details and settings on that device stay as they are; empty ones are filled in from the file. **Bring it to this device**, in Sync, works the same way.
+Folders, favourites and templates in the file are added to the ones already on the other device. When a saved item is on both, the copy saved more recently is kept. Your details and settings on that device stay as they are. Empty ones are filled in from the file. **Bring it to this device**, in Sync, works the same way.
 :::
 
 To move everything once:
@@ -197,13 +197,13 @@ To move everything once:
 3. On the new device, open **Settings → Storage**, press **Import data…**, choose the file and press **Import**.
 
 ::: note What stays behind
-Sign-ins, keys and the sync passphrase stay on each device. The list of recent downloads, offline downloads and AI models do not travel by any route. Version history travels only in an **Export my data** file, not through Sync or a `.lolly`. When the history is too large for one file, the oldest automatic checkpoints are left out and the export line says how many. A copy Sync keeps in your storage can be downloaded and opened, or picked in **Import data…**, like a backup file; an encrypted copy asks for your passphrase.
+Sign-ins, keys and the sync passphrase stay on each device. The list of recent downloads, offline downloads and AI models do not travel by any route. Version history travels only in an **Export my data** file, not through Sync or a `.lolly`. When the history is too large for one file, the oldest automatic checkpoints are left out and the export line says how many. You can download and open a copy that Sync keeps in your storage, or pick the copy in **Import data…**, like a backup file. An encrypted copy asks for your passphrase.
 :::
 
 ::: details What the backup file holds
-The file is named `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (the name parts come from your profile and are dropped if unset; `<n>` is a per-day counter so same-day exports don't collide). It contains your profile, with your folders, Trash, templates and favourites; every saved session with its thumbnail; your uploaded images, fonts, logos and the copies of your downloads; your design systems; your preferences (theme, sidebar width, local activity stats); saved versions and results from Convert; and, from the web app, the version history of your creations.
+The file is named `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`. The name parts come from your profile and are dropped if unset. `<n>` counts the exports made on the same day. It contains your profile, with your folders, Trash, templates and favourites; every saved session with its thumbnail; your uploaded images, fonts, logos and the copies of your downloads; your design systems; your preferences (theme, sidebar width, local activity stats); saved versions and results from Convert; and, from the web app, the version history of your creations.
 
-The catalogue cache isn't included - it re-downloads itself on the new device. Each part is checksummed, so a file damaged in transit is caught on import rather than restored half-broken. Saved sessions re-link to your imported images automatically. The web, desktop and mobile apps read the same file; the terminal app writes a simpler backup of its own, which this format does not read. **Export my data & render everything** makes the same file plus a second zip with every saved session rendered to its output. (Full format spec: [Data transfer](/info/data-transfer.html).)
+The catalogue cache is not included. The new device downloads the cache again. Each part is checksummed, so import catches a file damaged in transit. Saved sessions re-link to your imported images. The web, desktop and mobile apps read the same file. The terminal app writes a simpler backup of its own, which this format does not read. **Export my data & render everything** makes the same file plus a second zip with every saved session rendered to its output. The full format is in [Data transfer](/info/data-transfer.html).
 :::
 
 <!--i:eti-globe-->
@@ -219,11 +219,11 @@ When the app starts, Lolly asks the browser not to clear its storage when the de
 
 If the browser did not agree, it may clear saved work as well as downloads when space runs low, so keep a recent **Export my data** file.
 
-**Settings → Storage** shows how much space each kind of data uses. Its **History** row counts automatic checkpoints, their previews and recovery drafts; **Remove automatic checkpoints older than 30 days** frees that space and keeps saved and named versions. **Clear cache** drops downloaded catalogue files, which download again when needed. **Clear all my data** asks you to type a word, turns off Sync, then removes everything Lolly keeps in this browser: your profile and settings, saved sessions with their history and the Trash, uploads, fonts and design systems, the download log, Convert results, downloaded AI models and offline copies. Files you downloaded stay where you saved them. The app then starts as on a first visit.
+**Settings → Storage** shows how much space each kind of data uses. Its **History** row counts automatic checkpoints, their previews and recovery drafts. **Remove automatic checkpoints older than 30 days** frees that space and keeps saved and named versions. **Clear cache** drops downloaded catalogue files, which download again when needed. **Clear all my data** asks you to type a word, turns off Sync, then removes everything Lolly keeps in this browser: your profile and settings, saved sessions with their history and the Trash, uploads, fonts and design systems, the download log, Convert results, downloaded AI models and offline copies. Files you downloaded stay where you saved them. The app then starts as on a first visit.
 
 ![The storage card on a phone-width screen: every category of on-device data named, with the Clear all my data button at the bottom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-In the desktop and mobile apps, saved sessions are files in the app's own data folder and the rest is in the app's own storage, so clearing a web browser does not touch them.
+In the desktop and mobile apps, saved sessions are files in the app's own data folder, and everything else is in the app's own storage. Clearing a web browser does not touch these.
 
 ::: details Where the desktop and mobile apps keep saved sessions
 One file per saved session, in a `saved-state` folder:
@@ -239,7 +239,7 @@ Pictures, design systems and the list of recent downloads stay in the app's inte
 <!--i:eti-trash-->
 ## Get back something you deleted
 
-Deleting a saved session, a folder, one of your uploads or one of your fonts in the app moves it to **Trash** for 30 days, wherever you delete it: **Projects**, **Assets**, **Settings → Storage** or a tool's list of saved sessions. A folder goes with everything in it, as one entry, and a session keeps its version history while it is there. Straight after, a message offers **Undo**. Later:
+Deleting a saved session, a folder, one of your uploads or one of your fonts in the app moves it to **Trash** for 30 days, wherever you delete it: **Projects**, **Assets**, **Settings → Storage** or a tool's list of saved sessions. A folder and everything in the folder go to Trash as one entry. A session keeps its version history in Trash. Straight after you delete, a message offers **Undo**. Later:
 
 1. Open **Trash**: the **Trash** tile in **Projects**, the **Trash** button in **Assets → Your uploads**, or the **Trash** row in **Settings → Storage**. All three open the same list.
 2. Press **Restore** beside the item. It goes back to its folder, and a font gets back the roles it had in its design system.

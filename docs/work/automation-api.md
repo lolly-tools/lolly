@@ -2,10 +2,9 @@
 
 <a id="automate-with-the-work-api"></a>
 
-Your Lolly Work server can render on-brand files for a script, a pipeline or an agent, with the same
-tools, design system and policy the Lolly apps use. This page takes you from a token to a
-finished file, then covers the rest of the automation surface: schemas, the document verbs,
-background jobs, batches and provider assets.
+Your Lolly Work server renders on-brand files for a script, a pipeline or an agent, with the same
+tools, design system and policy as the Lolly apps. This page goes from a token to a finished file,
+then covers schemas, the document verbs, background jobs, batches and provider assets.
 
 Every other route the console, the `lw` CLI and the apps call is in the
 [Lolly Work API reference](api.md).
@@ -17,7 +16,7 @@ Every other route the console, the `lw` CLI and the apps call is in the
 
 ::: steps
 - <!--i:eti-lock--> **[Get a token](#before-you-start-a-token-and-a-permission)** An owner mints one with only the reach it needs. The secret, `lwt_…`, is shown once.
-- <!--i:eti-search--> **[Ask what the token may do](#find-out-what-you-can-do)** The formats this server renders, and whether the token may render at all.
+- <!--i:eti-search--> **[Ask what the token may do](#find-out-what-you-can-do)** The formats this server renders, and whether the token may render.
 - <!--i:eti-sliders--> **[Read the tool's inputs](#read-a-tool-s-effective-schema)** The inputs this caller may set, after policy and design-system rules.
 - <!--i:eti-download--> **[Render](#render-and-the-other-document-verbs)** The tool, the format and the inputs go in, and the file comes back.
 :::
@@ -32,12 +31,11 @@ curl -H "Authorization: Bearer $LW_TOKEN" -H 'content-type: application/json' \
 ```
 
 ::: check `qr.svg` holds the file
-The answer is the file itself, with its media type, an `x-lolly-cache-key` header and an
+The answer is the file, with its media type, an `x-lolly-cache-key` header and an
 `x-lolly-brand-check` header (see [design-system rules](#design-system-rules)).
 :::
 
-Add `?async=1`
-to get a job instead, which you can poll or have the server call you back about.
+Add `?async=1` to get a job instead. Poll the job, or have the server call you back.
 
 ::: figure work-automation-api-journey
 The path a script takes: a token, a check of what the token may do and which inputs it may set,
@@ -47,10 +45,10 @@ then a render that answers with the file or with a job.
 <!--i:eti-lock-->
 ## Before you start: a token and a permission
 
-**The token.** Service tokens are minted by owners (`token.manage`), from the console or
-`lw tokens create --label <name> --scopes <scope,...> [--tools <id,...>] [--days <n>]`. The label
-says which automation holds the token, up to 80 characters. A token lasts 90 days unless you
-choose 1 to 365. Send it as `Authorization: Bearer lwt_…`; the `lw` CLI reads it from `LW_TOKEN`
+**The token.** Owners (`token.manage`) mint service tokens from the console or
+`lw tokens create --label <name> --scopes <scope,...> [--tools <id,...>] [--days <n>]`. The label,
+up to 80 characters, is the name of the automation that has the token. A token lasts 90 days unless you
+choose 1 to 365. Send it as `Authorization: Bearer lwt_…`. The `lw` CLI reads it from `LW_TOKEN`
 or `--token`. The routes are in [service tokens](api.md#service-tokens).
 
 **The scopes.** Scopes say which routes a token may reach:
@@ -66,36 +64,36 @@ or `--token`. The routes are in [service tokens](api.md#service-tokens).
 | `approvals.request` | opt-in: filing an export review on this token's own finished render, reading those requests and withdrawing them. Deciding stays with people ([requests from agents](partner-approvals.md#requests-from-partners-agents)) |
 
 Every scoped token can read `GET /api/v1/discovery`, `GET /api/v1/discovery/me` and
-`GET /api/auth/session`. Any other route answers `403 TOKEN_SCOPE`, and new routes stay closed
-until a release adds them to a scope. `--tools` limits the token to the tools you list, wherever a
-request gives a tool id: schemas, renders, batches, jobs and the document verbs. Scopes and the tool list are
-fixed when the token is minted, so a change means a new token.
+`GET /api/auth/session`. Any other route answers `403 TOKEN_SCOPE`. A new route stays closed
+until a release adds it to a scope. `--tools` limits the token to the listed tools wherever a
+request gives a tool id: schemas, renders, batches, jobs and the document verbs. Scopes and the
+tool list are fixed when the token is minted. To change them, mint a new token.
 
-**The role.** A token with scopes and no `--role` takes the `automation` role, which holds
+**The role.** A token with scopes and no `--role` takes the `automation` role. That role holds
 `tool.use`, `export.server`, `delivery.create`, `catalog.read` and `audit.export`, so a `render`
-token needs no admin authority. No person can hold this role. You can also combine scopes with
-another role, and then a route must pass both: a `viewer` token with the `render` scope still
-cannot render, because a scope only narrows. A token with no scopes reaches all that its role
-allows, as before, and needs `--role`, which is any role but `guest` or `automation`.
+token needs no admin authority. No person can hold this role. Scopes can also go with another
+role, and then a route must pass both. A scope only narrows: a `viewer` token with the `render`
+scope still cannot render. A token with no scopes reaches all that its role allows and needs
+`--role`, which is any role but `guest` or `automation`.
 
 **The permission.** Rendering on the server needs `tool.use` for the tool and `export.server`.
-Admins and the `automation` role hold `export.server` by default and a grant can give it to anyone
-else, so a token with the `member` role cannot render until someone grants that permission. The
-other verbs need `tool.use` for any tool they name. A deny grant on `user:svc_<id>` applies to a
-scoped token as it does to any other.
+Admins and the `automation` role hold `export.server` by default. A grant can give it to anyone
+else. A token with the `member` role cannot render until someone grants that permission. The
+other verbs need `tool.use` for any tool they name. A deny grant on `user:svc_<id>` also applies to
+a scoped token.
 
 **What a token is.** A token acts as its own account, with its role and no groups. Its jobs and
 [file references](api.md#file-references) belong to the token, not to the owner who minted the
 token. A token is refused wherever a person has to decide or act, such as deciding an approval,
 a delivery to a destination that needs approval and live collaboration. A token holding
-`approvals.request` may ask for that approval, and its delivery then waits for a person instead of
+`approvals.request` may ask for that approval. Its delivery then waits for a person instead of
 being refused.
 [Who can call what](api.md#who-can-call-what) lists every credential.
 
 On an `open` instance, a caller with no credential may also use and render any tool that no
 visibility rule hides. On a `gated` instance, every route on this page except the public
-`GET /api/v1/discovery` answers `401` without a credential; a job's result token counts as one
-for that job's result.
+`GET /api/v1/discovery` answers `401` without a credential. A job's result token counts as a
+credential for that job's result.
 
 <!--i:eti-search-->
 ## Find out what you can do
@@ -107,30 +105,29 @@ for that job's result.
 | `GET /api/v1/discovery/tools?limit=&cursor=` | as above | The tools the caller can use, sorted by id, 25 a page by default and at most 100. Each entry has `name`, `version`, `renderer`, the server `formats` the caller may request, `can.render`, its schema URL and `unavailable` entries. `next` is an opaque cursor, or `null` on the last page |
 | `GET /api/v1/schema/:toolId?view=&format=&template=` | `tool.use` | The caller's effective input schema (below). `view=raw` returns the tool's own schema and needs `policy.edit`. `format` selects the output format whose design-system rules apply. Without it, the schema carries only the rules that apply to every format. `template=inst/<id>` describes a render that starts from that published template, for a template the caller's feed carries ([templates by purpose](partner-programmes.md#templates-by-purpose)) |
 
-Discovery lives under `/api/v1` rather than `/.well-known/`, because on a shared origin
-`/.well-known/` belongs to the web shell, whose static `/.well-known/lolly.json` describes the
-shell. In the same way, the list of [brand pages](design-system-administration.md#find-the-pages-on-an-instance) lives at
+Discovery lives under `/api/v1`, not `/.well-known/`. On a shared origin, `/.well-known/` belongs
+to the web shell, whose static `/.well-known/lolly.json` describes the shell. For the same reason,
+the list of [brand pages](design-system-administration.md#find-the-pages-on-an-instance) lives at
 `/api/v1/brand-pages/public`. The one exact path `/.well-known/lolly-brand.json` also answers, as a Lolly convention.
 
 <!--i:eti-sliders-->
 ## Read a tool's effective schema
 
-`GET /api/v1/schema/:toolId` answers with `apiVersion` and `schema`. The schema is the
-effective one for this caller, built from the tool, the tool policy that applies to the caller,
-the design-system choice rules for the format and the deployment's render probe:
+`GET /api/v1/schema/:toolId` answers with `apiVersion` and `schema`. The schema is this caller's
+effective schema. It combines the tool, the caller's tool policy, the design-system choice rules
+for the format and the deployment's render probe:
 
-- An input the policy hides is absent from `properties` and `required`, and the response omits
-  that input.
+- The response omits an input the policy hides, including from `properties` and `required`.
 - A locked input has `readOnly: true` and, when the rule carries a value, that value as `const`
-  and `default`. The server applies it, so leave it out of requests: sending it is refused with
-  `INPUT_LOCKED`.
+  and `default`. The server applies the locked value. Leave the input out of requests: sending it
+  is refused with `INPUT_LOCKED`.
 - A choice input gains an `enum` of the values the policy allows, narrowed to the tool's own
   options when it declares some. A reviewed design-system choice rule does the same, with
   `reason` naming the rule.
 
-The `ETag` header moves with any change to the effective contract, so `If-None-Match` answers
-`304` while the contract holds. A script can cache the schema and re-check it for the price of
-one header.
+The `ETag` header changes with any change to the effective contract, so `If-None-Match` answers
+`304` while the contract holds. A script can cache the schema and re-check the schema with one
+header.
 
 ::: details The rest of the schema response
 The response adds `view`, `toolId`, `tool` (`name`, `version`), `versions` (`engine`, `tool`,
@@ -174,9 +171,9 @@ curl -X POST "$LW_BASE/api/v1/intents/resolve" \
 lw intent resolve intent.json   # exits 0 when every surface is ready, 4 otherwise
 ```
 
-The answer has the shape in [Reading the answer](/info/visual-intent.html#reading-the-answer), the one `lolly intent` and `lolly_resolve_intent` give. No model is in this path: the same request and the same tools give the same answer, and a prompt is carried and never read.
+The answer has the shape in [Reading the answer](/info/visual-intent.html#reading-the-answer), the same as `lolly intent` and `lolly_resolve_intent`. No model is in this path. The same request and the same tools give the same answer. A prompt is carried and never read.
 
-**What this caller gets.** The route uses the rules the render routes use, so the answer is about this caller on this instance:
+**What this caller gets.** The route applies the render routes' rules, so the answer is true for this caller on this instance:
 
 - A tool appears only when the caller may render that tool: the `render` scope, `tool.use`, `export.server`, the token's tool list and tool visibility all apply. A hidden tool appears nowhere in the answer, and preferring one reads like preferring a tool that does not exist.
 - A tool appears only when this deployment and tool policy leave it a format. Many tools with a declared purpose lay out HTML or run hooks, so an instance with no render worker offers few of them and can answer `refused`. Discovery's `unavailable` says which tools need the worker.
@@ -188,11 +185,11 @@ The answer has the shape in [Reading the answer](/info/visual-intent.html#readin
 
 The route applies the design-system rules every format shares. A rule for one format is checked when that format renders, so a render can still refuse a value with `INPUT_NOT_ALLOWED`.
 
-**Nothing is kept.** The route writes no audit record, as `POST /api/v1/validate` writes none. It has no background mode, because a job record would hold the request, so `?async=1` and `Prefer: respond-async` change nothing. The prompt and other free text come back to the caller who sent them and are not stored or logged. The route shares the automation rate limit.
+**Nothing is kept.** The route writes no audit record, like `POST /api/v1/validate`. It has no background mode, because a job record would hold the request: `?async=1` and `Prefer: respond-async` change nothing. The prompt and other free text go back to the caller and are not stored or logged. The route shares the automation rate limit.
 
-**What a render records.** A render on Work does not record the intent in its Content Credential. `recordPrompt` is carried in the answer and has no effect here. Recording an intent in a file is available from [the command line and the MCP server](/info/visual-intent.html#what-goes-in-the-file).
+**What a render records.** A render on Work does not record the intent in its Content Credential. `recordPrompt` is carried in the answer and has no effect here. To record an intent in a file, use [the command line and the MCP server](/info/visual-intent.html#what-goes-in-the-file).
 
-A request the parser refuses answers `400 INTENT_INVALID` with `errors`, a list of `{ code, path, message }`. A body over 512 KiB answers `413 PAYLOAD_TOO_LARGE`. A caller who can render no tool here answers `403 FORBIDDEN`.
+A request the parser refuses answers `400 INTENT_INVALID` with `errors`, a list of `{ code, path, message }`. A body over 512 KiB answers `413 PAYLOAD_TOO_LARGE`. A caller who can render no tool here gets `403 FORBIDDEN`.
 
 <!--i:eti-download-->
 ## Render and the other document verbs
@@ -212,7 +209,7 @@ The automation surface mirrors the open-source engine's document verbs:
 
 Inputs travel as JSON in `inputs`, not as URL merge fields. Schema, compile, package and render
 all enforce the caller's `tool.use` decision and the tool-visibility overlay, so a document verb
-cannot be used to discover a tool hidden from that caller.
+cannot reveal a tool hidden from that caller.
 
 **Policy.** Compile, validate, package and the rows of a batch check inputs against the same
 policy the schema shows:
@@ -228,9 +225,9 @@ policy the schema shows:
 
 ### Design-system rules
 
-Design-system rules can apply to some output formats only. Compile, validate and package take an
-optional `format`, one the tool declares, and then apply that format's rules, as the schema read
-with the same `format` shows. Without one they apply only the rules every format shares. A batch
+A design-system rule can apply to some output formats only. Compile, validate and package take an
+optional `format` the tool declares, and apply that format's rules, as the schema read with the
+same `format` shows. Without one, they apply only the rules every format shares. A batch
 row is checked against the rules for the batch's `format`, and a render against the rules for
 its own format.
 
@@ -251,7 +248,7 @@ looks. Policy editors publish the rules through
   [upload](api.md#uploads), for a file too large for one request;
 - `file: { id, checksum }`, one of the caller's [file references](api.md#file-references).
 
-`/optimize` with `output: "file"` keeps its output as a new file reference of the caller and
+`/optimize` with `output: "file"` saves its output as a new file reference for the caller and
 answers `{ file, bytes, savedBytes, stages }` instead of `bytesBase64`.
 
 <!--i:eti-url-->
@@ -262,15 +259,15 @@ share link carries them. It suits an image tag or a script with no JSON body.
 
 Who may call it: a member who may use the tool and holds `export.server`; a guest whose link
 opens that tool; or, on an `open` instance, anyone without signing in, for a tool visible to
-everyone. A service token cannot call this route, because it reads only a session or a guest
-link; a script with a token uses `POST /api/v1/render`. A query that is not in canonical order
-is answered `308` to the canonical one.
+everyone. A service token cannot call this route, because the route reads only a session or a
+guest link. A script with a token uses `POST /api/v1/render`. A query that is not in canonical
+order gets a `308` to the canonical one.
 
 For worker-backed renders, asset inputs use the same URL encoding as the Lolly shell. A
 `user/team/<fileId>` reference is resolved to that project's file endpoint only when the
 submitter can read the project and the file belongs to the render's scoped read ticket. The
 worker receives no general session credentials. Private files outside that scope stay out of
-reach; inline baked assets keep their original bytes.
+reach. Inline baked assets keep their original bytes.
 
 <!--i:eti-clock-->
 ## Run work in the background
@@ -287,7 +284,7 @@ Any document verb, render or package takes `?async=1`, or `Prefer: respond-async
 | `POST /api/v1/jobs/:id/deliveries` | sends a completed render to an [outbound destination](api.md#outbound-delivery) without a download and upload round trip; the delivery shares the immutable result and records the job id |
 
 Jobs belong to the member or service token that created them. Repeating a request with the same
-`Idempotency-Key` returns its existing job; reusing that key for different request bytes returns
+`Idempotency-Key` returns its existing job. Reusing that key for different request bytes returns
 `409 IDEMPOTENCY_KEY_REUSED`.
 
 ### Callbacks
@@ -296,26 +293,26 @@ A job can call you back when it settles. `callbackUrl` is used only when it exac
 instance's own webhook endpoint, `notify.webhook.url` ([configuration](configuration.md#notify)), or
 uses an origin listed in [`automation.callbacks.allowedOrigins`](configuration.md#automation).
 Each callback carries `x-lolly-timestamp` and an `x-lolly-signature` header signed with
-`LW_WEBHOOK_SECRET`, and its body is `{ jobId, state, resultUrl, resultToken, deliveryId }`.
+`LW_WEBHOOK_SECRET`. The body is `{ jobId, state, resultUrl, resultToken, deliveryId }`.
 
 `resultToken` is a 24-hour token for that one job's result. Send it as the `x-lw-job-token`
-header on `GET /api/v1/jobs/:id/result`, and the receiver needs no session of its own. A
+header on `GET /api/v1/jobs/:id/result`. The receiver then needs no session of its own. A
 completed job resource carries the same `resultToken`, and `null` before then.
 
 ::: warning A token in the result URL reaches logs, and stops working later
-The token used to travel in the URL, as `resultUrl?token=…`, and a URL ends up in access, proxy
-and CDN logs. In Lolly Work 1.1.2 and 1.2.0, `resultUrl` still carries `?token=` and the result route still
-accepts the query token, answering with a `Deprecation` header
-([RFC 9745](https://www.rfc-editor.org/rfc/rfc9745)). A later release drops the query from
-`resultUrl` and refuses a query token, so move receivers to the header now.
+A token in a URL, as in `resultUrl?token=…`, ends up in access, proxy and CDN logs. In Lolly
+Work 1.1.2 and 1.2.0, `resultUrl` still carries `?token=`, and the result route still accepts the
+query token with a `Deprecation` header ([RFC 9745](https://www.rfc-editor.org/rfc/rfc9745)). A
+later release drops the query from `resultUrl` and refuses a query token. Move receivers to the
+header now.
 :::
 
-Callbacks go through a durable outbox. The write that settles a job also stores its callback,
-and any Lolly Work process sends callbacks that are due, so a callback left unanswered by a restart is
-sent again afterwards.
+Callbacks go through a durable outbox. The write that settles a job also stores its callback.
+Any Lolly Work process sends callbacks that are due, so a callback cut off by a restart is sent
+again.
 
 Every attempt for one job carries the same id, in `x-lolly-delivery-id` and as `deliveryId` in
-the signed body. Act on each id once: that is the idempotency contract of a signed-HTTPS
+the signed body. Act on each id once. That is the idempotency contract of a signed-HTTPS
 delivery. Each attempt has a fresh timestamp, signature, result URL and result token. A refusal,
 a timeout or a dropped connection is retried after 5 s, 30 s, 2 min, 10 min and 30 min, six
 attempts in all.
@@ -333,13 +330,13 @@ The job reports `callback: { id, state, attempts, lastOutcome, lastStatus, nextA
 
 `POST /api/v1/batch { toolId, format, rows, keepGoing?, retries?, concurrency?, priority? }`
 always creates a job and produces one ZIP. Requested concurrency is capped at four in this
-process, priority at 0 to 9 and retries at three. Progress is exposed as `{ done, total }`, and
-the ZIP's `manifest.json` records every row outcome.
+process, priority at 0 to 9 and retries at three. Progress shows as `{ done, total }`. The ZIP's
+`manifest.json` records every row outcome.
 
 In place of `rows`, `bind: { source, query?, as? }` reads JSON or CSV from a governed provider:
 
-- `as` may be the JSON Schema the schema route returns, and every row is also checked against
-  the actual tool before it is queued;
+- `as` may be the JSON Schema the schema route returns. Every row is also checked against the
+  tool before the row is queued;
 - `query` is a typed, nested equality selector, forwarded to the provider and enforced again over
   the returned objects;
 - CSV follows RFC 4180, including quoted commas, escaped quotes and embedded newlines, and its
@@ -351,7 +348,7 @@ For batches whose rows each need their own durable record, use
 <!--i:eti-globe-->
 ## Assets from providers
 
-Provider references are resolved during compile, before the render cache identity is worked out:
+Provider references are resolved during compile, before the render cache identity is computed:
 
 - `image://brand`, `catalog://` and `library://` stay local and work offline.
 - `cms://<provider-id>/<remote-id>` uses that enabled catalog provider's stored credential,
@@ -359,57 +356,57 @@ Provider references are resolved during compile, before the render cache identit
 - `net://<operator-allowed-origin>/<path>` reaches only origins present in provider
   configuration.
 
-Both remote kinds are bounded in time and bytes, content-addressed, and pass through immutable
-resize, format-conversion and metadata-strip stages.
+Both remote kinds are bounded in time and bytes and content-addressed. They pass through
+immutable resize, format-conversion and metadata-strip stages.
 
 <!--i:eti-badge-check-->
 ## Durable renders
 
-`POST /api/v1/renders` submits a persistent single-tool request that survives a restart. List or
-get its state, retrieve its verified output, cancel it, or create a retry through the same API.
-The standalone server recovers expired leases; function-only hosts refuse new submissions.
+`POST /api/v1/renders` submits a persistent single-tool request that survives a restart. List or get its state, retrieve its verified output, cancel it, or create a retry through the same API. The same
+API lists renders, reads a render's state and verified output, cancels a render or creates a retry.
+The standalone server recovers expired leases. Function-only hosts refuse new submissions.
 [Recoverable renders](renders.md) has the request contract, routes, limits and deployment
 requirements.
 
 - **Evidence.** New durable outputs expose a partial execution receipt at
   `GET /api/v1/renders/:id/evidence`: loaded source hashes, prepared context, observed asset byte
-  digests and the output digest under the same lease. The receipt lists its own coverage gaps; it
-  is not a complete dependency lock. The download includes the output's
+  digests and the output digest under the same lease. The receipt lists its own coverage gaps.
+  The receipt is not a complete dependency lock. The download includes the output's
   [render identity](renders.md#render-identity), which binds the typed request to the resolved
   tool source, engine version, sources and effective policy.
 - **Verification.** Render and batch requests accept `verification: "output-v1"`, or
-  `verification: { profile: "output-v1", widthPx: 1200, heightPx: 630 }`. These assertions read
-  the final file back before publication. Failed required checks keep `error.inspection` and
-  publish no output. The [verification profile](renders.md#verify-the-produced-file) lists
-  formats and measurement limits; a passing check is not design approval.
+  `verification: { profile: "output-v1", widthPx: 1200, heightPx: 630 }`. These checks read the
+  final file back before publication. Failed required checks keep `error.inspection` and publish
+  no output. The [verification profile](renders.md#verify-the-produced-file) lists formats and
+  measurement limits. A passing check is not design approval.
 - **Production checks.** Durable render and batch requests accept
   `production: { contract, referenceBase64?, repair? }` for the engine's
-  `lolly/production-still-v1` profile; `lolly/production-motion-v1` is not accepted. The
+  `lolly/production-still-v1` profile. `lolly/production-motion-v1` is not accepted. The
   contract and repair choices are part of request identity and retries. A contract can protect a
   runtime input with `kind: "input"`, a declared input id in `location` and a canonical JSON
-  SHA-256 in `expected`; such a check needs observed runtime values, which file-only inspection
+  SHA-256 in `expected`. Such a check needs observed runtime values, which file-only inspection
   cannot reconstruct. Failed required checks return no artifact and keep
   `PRODUCTION_VERIFICATION_FAILED` diagnostics on the render record. See
   [production still checks](renders.md#production-still-checks-and-permitted-repairs).
-- **Callbacks.** `callbackUrl` on a render or batch request sends one signed `POST` when it finishes,
-  through the same outbox as job callbacks, and a batch calls back once. The URL is refused at
-  submission unless this instance accepts that URL. See [be told when a render finishes](renders.md#be-told-when-a-render-finishes).
+- **Callbacks.** `callbackUrl` on a render or batch request sends one signed `POST` when the
+  request finishes, through the same outbox as job callbacks. A batch calls back once. The URL is
+  refused at submission unless this instance accepts that URL. See [be told when a render finishes](renders.md#be-told-when-a-render-finishes).
 - **Delivery.** `POST /api/v1/renders/:id/deliveries` sends a finished output to an organisation
   destination by reference, under the same rules as a job output
   ([delivering an automation output](delivery.md#delivering-an-automation-output)).
 - **Render batches.** `POST /api/v1/render-batches` creates a parent and up to 200 independent
   child renders in one atomic step, from typed rows or from a governed data source with `bind`. Read
   its ordered rows and output receipts, download a JSON manifest or the outputs as one ZIP, cancel
-  unfinished rows, or retry a terminal batch while keeping its successful children. The
+  unfinished rows or retry a terminal batch while keeping its successful children. The
   [batch API](renders.md#batches-with-durable-rows) is separate from the `/api/v1/batch` job and
   ZIP contract.
 
 <!--i:eti-sparkles-->
 ## Connect an agent over MCP
 
-`/api/v1/mcp` is the organisation MCP endpoint. An agent connects with a service token and can then do what that token can do across this instance. MCP (Model Context Protocol) is the standard way AI clients connect to tools.
+`/api/v1/mcp` is the organisation MCP endpoint: an agent connects with a service token and can do what that token can do on this instance. MCP (Model Context Protocol) is the standard way AI clients connect to tools.
 
-Each tool call runs the HTTP route the table names, as the token. The scope check, the token's role and tool list, tool visibility, input policy and validation are the ones those routes always apply, so the endpoint adds no authority of its own.
+Each tool call runs the HTTP route the table names, as the token. Those routes apply their usual scope check, the token's role and tool list, tool visibility, input policy and validation. The endpoint adds no authority of its own.
 
 ```bash
 lw tokens create --label brand-agent --scopes render --tools qr-code,event-card
@@ -439,7 +436,7 @@ lw mcp config --base https://work.example.com
 | `deliver_render` | Send a finished render to a destination | `POST /api/v1/renders/:id/deliveries` | `delivery` and `render` |
 
 - **Only a service token.** A person's session and an invitation key are refused with `401`. A person connects an agent through [a document or project invitation](document-agents.md), which is a different endpoint. A revoked or expired token stops at its next call.
-- **Tools the token can reach.** `tools/list` leaves out a tool its scopes do not open or its role cannot do. A tool called by name gets the route's own refusal, such as `TOKEN_SCOPE` or `FORBIDDEN`. A token with no scopes gets the tools its role allows. A role that may render only through a grant on one tool does not see the render tools listed, and its calls still work.
+- **Tools the token can reach.** `tools/list` leaves out a tool its scopes do not open or its role cannot do. A tool called by name gets the route's own refusal, such as `TOKEN_SCOPE` or `FORBIDDEN`. A token with no scopes gets the tools its role allows. A role that may render only through a grant on one tool does not see the render tools listed, but its calls still work.
 - **Policy.** `describe_tool` leaves out hidden inputs and shows locked ones as `readOnly` with their value. A durable render checks policy at each attempt, so a locked input sent to `render_tool` records a failed attempt with `INPUT_LOCKED`. Call `validate` first to see a problem at once.
 - **Errors.** A refused call returns `isError: true` with `{ code, message, status }` and the route's own details, using the same codes as HTTP.
 - **Sending a file.** `deliver_render` sends this token's own finished render, unchanged, and needs a Content Credential on the file, as [delivery](delivery.md) does for any send. A destination with an approval chain refuses a token with `HUMAN_APPROVAL_REQUIRED` and sends nothing, unless the token holds `approvals.request`: then the delivery waits for a person's approval.
@@ -460,13 +457,12 @@ the document verbs, `POST /api/v1/intents/resolve`, renders, batches and jobs, `
 outbound delivery `POST`s. That includes the public `GET /api/v1/discovery`, so reading it never
 costs a sign-in attempt. The bucket is admission control, not pricing. A service token can also carry its own limits on
 calls a minute and renders a day or a month. A token in a partner programme starts with 120 calls
-a minute and 2,000 renders a day; any other token has none unless an owner sets them
+a minute and 2,000 renders a day. Any other token has none unless an owner sets them
 ([limits and usage](partner-agents.md#limits-and-usage)). Sizes are in
 [configuration](configuration.md#ratelimit).
 
-Errors keep the `{ "error": { "code", "message" } }` shape. The table below holds the codes an
-automation script meets most; the [common codes](api.md#common-error-codes) cover sign-in,
-permissions and links.
+Errors keep the `{ "error": { "code", "message" } }` shape. The [common codes](api.md#common-error-codes)
+cover sign-in, permissions and links.
 
 ::: details The codes an automation script meets most
 | Code | Status | Meaning |
