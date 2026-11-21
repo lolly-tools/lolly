@@ -1,8 +1,8 @@
 # Brand skills
 
-A brand skill is a brand's standards for one discipline, written as an Agent Skill and carried with the design system. An Agent Skill is a Markdown file, with optional text references, in the open [Agent Skills](https://agentskills.io) format. Lolly keeps the brand's text as written and hands the skill to the agent doing the work: through Lolly's MCP server, or as a folder for an agent tool on your own machine.
+A brand skill is a brand's standards for one discipline, carried with the design system as a Markdown file, with optional text references, in the open [Agent Skills](https://agentskills.io) format. Lolly keeps the brand's text as written and hands the skill to an agent through Lolly's MCP server or as a folder for an agent tool on your own machine.
 
-This page is for brand owners who write standards and for people who connect agents to Lolly. A brand skill guides and never gives a pass or a fail: Lolly checks work against the design system's house rules.
+A brand skill guides and never gives a pass or a fail. Lolly checks work against the design system's house rules.
 
 <!--i:eti-layers-->
 ## Three layers of guidance
@@ -13,14 +13,14 @@ This page is for brand owners who write standards and for people who connect age
 | Tool skill | How to operate one tool | The tool's author, over a baseline Lolly generates from the manifest | `lolly://tool/{id}/skill`; see [Tool Skills](/info/tool-skills.html) |
 | Brand skill | What the brand wants, one discipline at a time | The brand | `lolly://design-system/skills`, or `lolly system skills` |
 
-Each layer keeps to its own subject. A brand skill does not explain a tool, and the Lolly skill does not speak for a brand.
+A brand skill does not explain a tool, and the Lolly skill does not speak for a brand.
 
-Lolly also generates a **baseline** skill for every design system from its design brief: named colours, approved pairings, type, logos per surface, icon themes, media families and the house rules Lolly checks. Its name ends in `-baseline` (`lolly-demo-baseline` for Lolly Demo). The baseline is marked as generated and states values rather than intent. The brand's own skills take precedence on anything they cover. Lolly writes the baseline on request and does not store a copy.
+Lolly generates a **baseline** skill for every design system from its design brief: named colours, approved pairings, type, logos per surface, icon themes, media families and the house rules Lolly checks. Its name ends in `-baseline` (`lolly-demo-baseline` for Lolly Demo). The baseline is marked as generated and states values, not intent. The brand's own skills take precedence on anything they cover. Lolly writes the baseline on request and does not store a copy.
 
 <!--i:eti-lolly-->
 ## The Lolly Demo skills
 
-Lolly Demo, Lolly's own example brand, carries three public skills. They are the worked example on this page.
+Lolly Demo, Lolly's own example brand, carries three public skills.
 
 | Asset id | Name | Discipline | For |
 | --- | --- | --- | --- |
@@ -48,13 +48,13 @@ Read one: lolly system skill <name>
 <!--i:eti-pen-->
 ## Write a skill Lolly carries well
 
-- **Plain Markdown is enough.** Frontmatter is optional. When a file has none, Lolly supplies `name` and `description` from the catalog record whenever it hands the skill out. When a file has its own frontmatter, Lolly keeps the brand's fields and adds only its own `metadata` keys.
-- **One discipline per skill.** Overall brand, photography, motion, iconography and so on, each in a skill of its own. An agent editing a photograph then reads the photography skill, and an agent making a QR code does not.
+- **Plain Markdown is enough.** Frontmatter is optional. When a file has none, Lolly supplies `name` and `description` from the catalog record when it hands the skill out. When a file has its own frontmatter, Lolly keeps the brand's fields and adds only its own `metadata` keys.
+- **One discipline per skill.** Overall brand, photography, motion, iconography and the rest each get a skill of their own. An agent editing a photograph then reads the photography skill. An agent making a QR code does not.
 - **Write the overall skill first.** A discipline skill can open by sending the reader there, as the Lolly Demo photography skill does: "Read the Lolly Demo brand standards first."
 - **One file or a folder.** A single `SKILL.md`, or `SKILL.md` with up to 16 reference files one level down in `references/` (`.md`, `.json`, `.csv` or `.txt`). Keep `SKILL.md` under about 500 lines and about 5,000 tokens, and move detail into references.
-- **No scripts.** A skill with a `scripts/` folder or a code file (`.js`, `.py`, `.sh` and the like) is refused with a reason. A brand skill is guidance, not a program.
+- **No scripts.** A skill with a `scripts/` folder or a code file (`.js`, `.py`, `.sh` and the like) is refused with a reason.
 - **Images by catalog asset id.** Write a link whose target is the asset id, such as `[the horizontal lockup](lolly/logo/horizontal)`. Lolly points the link at the catalog file when it hands the skill out. Image files inside a skill are refused.
-- **State measurable facts plainly.** "Liquorice #09141a is the ink" can be compared with the tokens; "a dark, confident ink" cannot. Write hex values, the design system's own font family names, percentages and milliseconds as they are.
+- **State measurable facts plainly.** Lolly can compare "Liquorice #09141a is the ink" with the tokens. Lolly cannot compare "a dark, confident ink". Write hex values, the design system's own font family names, percentages and milliseconds as they are.
 - **Keep to brand intent.** Lolly flags lines that ask the reader to set aside other instructions, claim permissions, list allowed tools or ask the reader to run code. A skill cannot grant any of those.
 - **Prefer catalog assets to external links.** Lolly never fetches an external link and cannot tell whether an agent can open one. An owner can record that an external URL means a catalog asset (`references` in the record below).
 
@@ -79,7 +79,7 @@ Read the Lolly Demo brand standards first. This skill covers photographs only.
 <!--i:eti-clipboard-->
 ## The catalog record
 
-A skill is a catalog asset of `type: "skill"`. Its id reads `<namespace>/skill/<slug>` and, like every asset id, is permanent: a new revision changes the record, never the id. The entry needs:
+A skill is a catalog asset of `type: "skill"`. Its id reads `<namespace>/skill/<slug>` and, like every asset id, is permanent. A new revision changes the record, never the id. The entry needs:
 
 - `tier: "core"`, so the skill is available offline wherever its design system is;
 - a `license`;
@@ -105,7 +105,7 @@ The skill's own fields live in `meta.skill`:
 | `generated` | No | `true` only on a baseline Lolly wrote. |
 
 ::: details The Lolly Demo photography entry
-The whole catalog entry, with its checksum and size left for the build to fill:
+The catalog entry, with its checksum and size left for the build to fill:
 
 ```json
 {
@@ -159,7 +159,7 @@ The CLI and an MCP server on your own machine read the brand pack from your disk
 <!--i:eti-checklist-->
 ## What the coverage map says
 
-`lolly system skill coverage <name>`, and the MCP file `lolly://design-system/skill/{name}/coverage.json`, set what a skill says against the design system. Each row has one status:
+`lolly system skill coverage <name>` and the MCP file `lolly://design-system/skill/{name}/coverage.json` compare what a skill says with the design system. Each row has one status:
 
 | Status | Means |
 | --- | --- |
@@ -195,7 +195,7 @@ How to read the map:
 The same report carries the owner lint: missing frontmatter, a long body, a repeated heading, an unclosed code fence, the external sites the skill links to and the scope hints listed under [Write a skill Lolly carries well](#write-a-skill-lolly-carries-well).
 
 ::: note The coverage map is not a check
-`lolly check`, `lolly system check` and the MCP tool `lolly_check` apply the house rules. Nothing in the coverage map is a check result, and a map where every row reads `agree` does not mean Lolly approved the skill or the work made with the skill.
+`lolly check`, `lolly system check` and the MCP tool `lolly_check` apply the house rules. Nothing in the coverage map is a check result. A map where every row reads `agree` does not mean Lolly approved the skill or the work made with the skill.
 :::
 
 <!--i:eti-sparkles-->
@@ -211,9 +211,9 @@ The same report carries the owner lint: missing frontmatter, a long body, a repe
 
 The design brief (`lolly://design-context`, or `lolly system context --json`) carries a `skills` section with the same index and the addresses each skill is read from. In the brief, `coverage.skills` is `declared` when the design system has authored skills and `generated` when only the baseline exists.
 
-An agent reads the index first, then the overall brand skill, then the skill for the discipline at hand. Skills speak for brand intent only. They never grant an agent permissions, tools or access to a document, and the Lolly skill tells agents the same.
+An agent reads the index first, then the overall brand skill, then the skill for the discipline at hand. Skills speak for brand intent only. They never grant an agent permissions, tools or access to a document. The Lolly skill tells agents the same.
 
-In the web app, Lolly Design System Setup lists the active design system's skills in its **Skills** room (`#/start?area=skills`). **Download skill (.zip)** writes the folder described below, and **Copy as one file** puts the same text on the clipboard for a chat window. The agent instructions a tool's **Share** copies link the active design system's public skills that apply to that tool, as addresses on this instance: the overall brand skill always, and the others by their `appliesTo`.
+In the web app, Lolly Design System Setup lists the active design system's skills in its **Skills** room (`#/start?area=skills`). **Download skill (.zip)** writes the folder described below. **Copy as one file** puts the same text on the clipboard for a chat window. The agent instructions that a tool's **Share** copies link the active design system's public skills for that tool, as addresses on this instance: the overall brand skill always, and the others by their `appliesTo`.
 
 When an agent lists the skills it read and followed, through the `brandSkills` argument of `lolly_render`, the export records each one with its revision as *Guided by*, never as a check. [The design-system record](/info/exporting.html#the-design-system-record) covers where the file holds the list and how to leave it out.
 
@@ -247,7 +247,7 @@ A file that bundled mode leaves out is listed with the reason, as in `lolly/logo
 
 ### Check that a copy is current
 
-An exported folder is a snapshot. Nothing updates the folder, and it goes out of date when the brand publishes a new revision.
+An exported folder is a snapshot. Nothing updates the folder. The folder goes out of date when the brand publishes a new revision.
 
 Its frontmatter carries these `metadata` keys:
 
@@ -267,13 +267,13 @@ lolly system skill check ./skills/lolly-demo-photography
 # Up to date: revision 1.0.
 ```
 
-The check compares the copy's SHA-256, or its catalog version when either side lacks a checksum, with the design system's current skill, and gives both revisions when the copy is behind. For a copy with no `lolly-asset` key, the check reports that Lolly cannot tell where the copy came from.
+The check compares the copy's SHA-256 with the design system's current skill. When either side lacks a checksum, the check compares the catalog version. When the copy is behind, the check gives both revisions. For a copy with no `lolly-asset` key, the check reports that Lolly cannot tell where the copy came from.
 
 <!--i:eti-gauge-->
 ## Limits
 
 - **Size.** `SKILL.md` is at most 64 KiB. With its references, a skill stays within 512 KiB, and it has at most 16 references.
-- **Text only.** References are `.md`, `.json`, `.csv` or `.txt` files directly under `references/`. No images, no scripts and no other folders. A file that breaks a rule is refused with a reason: Lolly never admits part of a skill or quietly drops a file.
+- **Text only.** References are `.md`, `.json`, `.csv` or `.txt` files directly under `references/`. No images, no scripts and no other folders. A file that breaks a rule is refused with a reason. Lolly never admits part of a skill or quietly drops a file.
 - **Lolly does not edit the brand's text.** It never rewrites the stored bytes, never fetches an external link and never corrects wording. Lint findings go to the owner.
 - **The coverage map is narrow.** It compares 3- and 6-digit hex values, declared font family names and a short list of statement kinds. A colour written as RGB, CMYK, a Pantone number or a name alone is not compared.
 - **The CLI and MCP server read the content profile.** `lolly system skills` lists the active content profile's skills, whichever terminal design system is active. Both list `appliesTo` and leave the choice of skills to the agent.

@@ -42,7 +42,10 @@
   /* Padding, not margin: a top margin here collapses through the view into the body
      and moves the whole page down, floating navigation and all. The top clears the
      floating navigation by the same tokens the navigation is placed with. */
-  padding: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-7)) var(--sp-7) var(--sp-7);
+  --wh-gutter: var(--sp-7);
+  /* The side terms end the card where the navigation above ends, inside a side the
+     system holds (its clock and status column on a folding phone). */
+  padding: calc(var(--chrome-top) + var(--chrome-h) + var(--wh-gutter)) calc(var(--wh-gutter) + var(--safe-right)) var(--wh-gutter) calc(var(--wh-gutter) + var(--safe-left));
 }
 .welcome-hero-card {
   /* The rhythm: one padding, one line for the sentence, and the mark sized from them. */
@@ -351,6 +354,6 @@ html[data-a11y-motion="reduce"] .welcome-hero-close::before { transition: none; 
 }
 @media (max-width: 760px) {
   .welcome-hero,
-  .welcome-hero-leaving { padding: calc(var(--chrome-top) + var(--chrome-h) + var(--sp-4)) var(--sp-4) var(--sp-4); }
+  .welcome-hero-leaving { --wh-gutter: var(--sp-4); }
 }
 }

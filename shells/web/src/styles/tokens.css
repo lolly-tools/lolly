@@ -74,6 +74,13 @@
      Desktop --safe-top is 0, so this computes byte-identically there. */
   --chrome-top: calc(0.5rem + var(--safe-top));    /* distance from the top of the viewport */
   --chrome-inset: 2rem;    /* distance from the left/right edge */
+  /* The same distance, measured from a side the system has claimed. Some devices
+     hold a vertical bar on one side edge for the whole session (the iPhone Duo's
+     clock and status column; a notch in landscape), reported as a left or right
+     safe-area inset. A control pinned to that edge stands just inside the bar,
+     with the page gutter as the floor. With no inset each is --chrome-inset. */
+  --chrome-inset-left: max(var(--chrome-inset), calc(var(--safe-left) + 0.5rem));
+  --chrome-inset-right: max(var(--chrome-inset), calc(var(--safe-right) + 0.5rem));
 
   /* How much TALLER the top row is than at rest - 0 unless largeText is on.
      The row floats over the page, so several views hold content clear of it with

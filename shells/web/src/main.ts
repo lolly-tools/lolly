@@ -28,7 +28,7 @@ import { showGalleryWelcome } from './views/gallery-welcome.ts';
 import { openDropFilePicker } from './lib/drop-file-picker.ts';
 import { expectWelcomeDecision, isWelcomeDismissed, settleWelcomeDecision, welcomeSettled } from './lib/welcome-gate.ts';
 import { initTheme, applyTheme, urlThemeOverride } from './theme.ts';
-import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref } from './lib/a11y-prefs.ts';
+import { hydrateA11yPrefs, currentA11yPrefs, setA11yPref, prefersReducedMotion } from './lib/a11y-prefs.ts';
 import { hydrateHand } from './lib/hand-pref.ts';
 import { startLayoutPosture } from './lib/layout-posture.ts';
 import { startFoldSegments } from './lib/fold-segment.ts';
@@ -80,7 +80,7 @@ import { initSelectPreview } from './select-preview.ts';
 import { installDepthSeam } from './lib/depth-seam.ts';
 import { recordTool, recordBatch, bumpMetric, recordFormat } from './metrics.ts';
 import { announce } from './a11y.ts';
-import { beginViewFade } from './view-fade.ts';
+import { afterNextPaint, beginViewFade, reclaimViewFade, TOOL_OPEN_BEAT_MS, viewSettled } from './view-fade.ts';
 import { beginViewLoading, type ViewLoading } from './components/view-loading.ts';
 import { installDropHold, viewFailed, viewLoading, viewReady, type DropNote } from './lib/drop-early.ts';
 import { noteLeavingHref, takeLeavingHref, recordLeave, noteMountedView, rememberViewOnLeave } from './lib/back-nav.ts';
@@ -503,6 +503,8 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // falls back to the outgoing view's mount-time URL.
   const leftHref = takeLeavingHref();
   if (!opts.force && routeSig === mountedRouteSig) return;
+  // A tool open measures its exit beat from here, about the moment of the click.
+  const navStart = performance.now();
   const outgoing = document.getElementById('view') as ViewElement | null;
   if (!opts.force && mountedRouteSig && route.name === 'tool' && outgoing?._applyWorkspace) {
     const previous = JSON.parse(mountedRouteSig) as Array<string | null>;
@@ -524,6 +526,18 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   mountedRouteSig = routeSig;
   routeLoading?.close();
   if (routeSig !== prevSig && !isIframeMode()) recordFeaturedRoute(route);
+  // Opening a tool from another view: the tool view's chunks start downloading now rather
+  // than after the teardown, and the pressed card paints first (view-fade.ts): everything
+  // below up to the first await can run in the task of the click, and on a slow phone it
+  // held the first frame back far enough that the pressed state was never seen. Reduced
+  // motion keeps the immediate swap it always had; the wait would cost it a frame.
+  if (route.name === 'tool' && _lastRouteName && _lastRouteName !== 'tool') {
+    void import('./views/tool.ts').catch(() => { /* the mount's own import reports it */ });
+    if (!prefersReducedMotion()) {
+      await afterNextPaint();
+      if (navigation !== navigationSeq) return;
+    }
+  }
 
   // Remember the view being left so the next view's back pill can name it and
   // return there (lib/back-nav.ts). Only on a genuine view change: the routes
@@ -600,9 +614,16 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // leaves it in place until the incoming view replaces it, as a cold deep link does,
   // so the loading card's own check sees it and one loader shows, not two.
   const holdingLoader = view.querySelector(':scope > p.loading') !== null;
-  const fade = (prevRouteName && route.name !== prevRouteName && !returning && !holdingLoader)
-    ? beginViewFade(view)
-    : null;
+  // Opening a tool holds the snapshot (view-fade.ts, plan 371 M2b): a still picture for a
+  // short beat, then the plain ground and the loading card until the tool has rendered,
+  // then a short fade. A Back to the view a still-mounting tool was opened from takes
+  // that snapshot back, so the view shows at once while it mounts again underneath.
+  const reclaimed = holdingLoader ? null : reclaimViewFade(routeSig);
+  const holdTool = route.name === 'tool';
+  const fade = reclaimed?.fade ?? ((prevRouteName && route.name !== prevRouteName && !returning && !holdingLoader)
+    ? beginViewFade(view, holdTool ? { hold: true, source: prevSig } : {})
+    : null);
+  const heldFade = holdTool && !reclaimed ? fade : null;
 
   // Scoping classes, from ROUTES: every class any route declares is toggled on
   // EVERY navigation, so the outgoing view's class comes off as the incoming
@@ -641,8 +662,21 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   const browsingBoot = !prevRouteName && (route.name === 'gallery' || route.name === 'utilities');
   // A framed tool (`?iframe`) shows no loading dialog: a modal takes the keyboard from
   // the page around it, which is a presenting deck's arrow keys.
-  const loading = scriptedExport || browsingBoot || isIframeMode() ? null : beginViewLoading();
+  const loading = scriptedExport || browsingBoot || isIframeMode() ? null
+    : beginViewLoading(heldFade ? Infinity : undefined, { plain: !!heldFade });
   routeLoading = loading;
+  // A held tool open: after the beat the view it left goes from the screen and the card
+  // shows in the same moment, so the screen is never empty; a tool ready sooner skips
+  // both. Escape until then goes back to that view, as Back does.
+  const escapeBack = (e: KeyboardEvent): void => {
+    if (e.key !== 'Escape' || e.defaultPrevented) return;
+    e.preventDefault();
+    history.back();
+  };
+  if (heldFade) {
+    heldFade.leaveAt(navStart + TOOL_OPEN_BEAT_MS, () => loading?.show());
+    document.addEventListener('keydown', escapeBack, true);
+  }
   // The same span as the card, on every route: set until this mount settles. Only the
   // current navigation clears it, so a superseded mount finishing late cannot mark the
   // newer one as mounted.
@@ -979,6 +1013,7 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
     showReloadCard('This view didn’t finish loading. Reload to try again.');
     return;
   } finally {
+    document.removeEventListener('keydown', escapeBack, true);
     loading?.close();
     if (routeLoading === loading) routeLoading = null;
     if (navigation === navigationSeq) view.removeAttribute(ROUTE_MOUNTING_ATTR);
@@ -1029,6 +1064,13 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // The iPhone's web view can be left resting out of place after a navigation,
   // with nothing in the page to show for the fault; the native side checks.
   settlePageScroll(route.name);
+
+  // A view put back by a Back: give it the scroll position the snapshot showed, and let
+  // its pictures in view load before the snapshot goes, so nothing is drawn twice.
+  if (reclaimed) {
+    await viewSettled(view, reclaimed.place);
+    if (navigation !== navigationSeq) { fade?.commit(); return; }
+  }
 
   // The incoming view is mounted and scrolled to top - fade the outgoing snapshot
   // out over it. A no-op when there was no fade (same-view refresh, reduced motion).

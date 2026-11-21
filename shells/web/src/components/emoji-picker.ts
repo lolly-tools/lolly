@@ -25,7 +25,14 @@
  * <body> and positioning it `fixed` in viewport coordinates escapes every one of
  * those, the same conclusion components/color-field.ts reached - which is also
  * where fixedContainingBlockOrigin comes from, for the rare page whose <body>
- * itself traps `fixed`.
+ * itself traps `fixed`. A cell inside an open native <dialog> mounts the popover
+ * in that dialog instead, the only place that paints above its backdrop.
+ *
+ * The popover is a mountBodyPopover panel, which owns its open and close: the
+ * outside press, Escape, focus back to the cell, resize, scroll, a route change
+ * and system Back on a touch device. Both listeners run in the capture phase,
+ * because canvas and drag layers stop pointerdown for their own handling, and
+ * Tab is left to the picker, whose controls sit in its shadow root.
  *
  * ## The grid draws the chosen set (plan 252)
  *
@@ -39,6 +46,7 @@ import './emoji-picker.css';
 import { mountEmojiChoice } from './emoji-choice.ts';
 import type { EmojiSelection } from './emoji-choice.ts';
 import { fixedContainingBlockOrigin } from './color-field.ts';
+import { mountBodyPopover } from './body-popover.ts';
 import { tRaw } from '../i18n.ts';
 
 /**
@@ -362,33 +370,36 @@ export async function openEmojiPopover(
 ): Promise<HTMLElement> {
   closeEmojiPopover();
 
-  const pop = document.createElement('div');
-  pop.className = 'emoji-pop';
-  pop.setAttribute('role', 'dialog');
-  pop.setAttribute('aria-label', tRaw('Pick an emoji'));
-  document.body.append(pop);
-
-  anchor.setAttribute('aria-expanded', 'true');
-  const watchAnchor = new window.MutationObserver(() => { if (!anchor.isConnected) close(); });
-  watchAnchor.observe(document.body, { childList: true, subtree: true });
-  let listeners: (() => void) | null = null;
+  let pop!: HTMLDivElement;
   let surface: (() => void) | null = null;
-  const close = (): void => {
-    watchAnchor.disconnect();
-    anchor.setAttribute('aria-expanded', 'false');
-    listeners?.();
-    listeners = null;
-    surface?.();
-    surface = null;
-    const restoreFocus = pop.contains(document.activeElement);
-    pop.remove();
-    if (restoreFocus && anchor.isConnected) anchor.focus({ preventScroll: true });
-    if (current?.close === close) current = null;
-  };
-  current = { close };
+  // A cell the view rebuilds away leaves no anchor to close back to.
+  const watchAnchor = new window.MutationObserver(() => { if (!anchor.isConnected) close(); });
+  const dialog = anchor.closest<HTMLElement>('dialog[open]');
+  const popover = mountBodyPopover(anchor, (el) => { pop = el; return null; }, {
+    className: 'emoji-pop',
+    role: 'dialog',
+    ariaLabel: tRaw('Pick an emoji'),
+    ...(dialog ? { container: dialog } : {}),
+    position: (el) => position(el, anchor),
+    trackScroll: true,
+    capture: true,
+    trapFocus: false,
+    onClose: () => {
+      watchAnchor.disconnect();
+      surface?.();
+      surface = null;
+      const restoreFocus = pop.contains(document.activeElement);
+      if (restoreFocus && anchor.isConnected) anchor.focus({ preventScroll: true });
+      if (current === record) current = null;
+    },
+  });
+  const close = (): void => { popover.close(); };
+  const record = { close };
+  current = record;
 
   // Dismissal is armed before either catalog or component download starts.
-  listeners = arm(pop, anchor, close);
+  popover.open();
+  watchAnchor.observe(document.body, { childList: true, subtree: true });
   const stop = await mountEmojiChoice(pop, options.selection, async (body) => {
     await (options.defineElement ?? defineEmojiPicker)();
     if (!pop.isConnected || !anchor.isConnected) return () => {};
@@ -419,38 +430,6 @@ function position(pop: HTMLElement, anchor: HTMLElement): void {
   const at = placeEmojiPopover(a, p, { width: window.innerWidth, height: window.innerHeight });
   pop.style.left = `${at.left - origin.x}px`;
   pop.style.top = `${at.top - origin.y}px`;
-}
-
-/** Wire the three ways out. Returns the teardown. */
-function arm(pop: HTMLElement, anchor: HTMLElement, close: () => void): () => void {
-  const onDown = (e: Event): void => {
-    // A press inside the picker's shadow DOM retargets to the host element, so
-    // contains() on the wrapper is enough to tell inside from outside.
-    const target = e.target as Node | null;
-    if (pop.contains(target) || anchor.contains(target)) return;
-    close();
-  };
-  const onKey = (e: KeyboardEvent): void => {
-    if (e.key !== 'Escape') return;
-    close();
-    anchor.focus();
-  };
-  // A compact panel can still be settling while the picker downloads. Follow the
-  // anchor through that scroll instead of cancelling a tap before focus enters it.
-  const onScroll = (): void => { if (!anchor.isConnected) close(); else position(pop, anchor); };
-  // CAPTURE for the pointer press: canvas and drag layers stop pointerdown for
-  // their own handling, which starves a bubble-phase closer and leaves the
-  // popover open over nothing.
-  document.addEventListener('pointerdown', onDown, true);
-  document.addEventListener('keydown', onKey, true);
-  window.addEventListener('scroll', onScroll, true);
-  window.addEventListener('resize', onScroll);
-  return () => {
-    document.removeEventListener('pointerdown', onDown, true);
-    document.removeEventListener('keydown', onKey, true);
-    window.removeEventListener('scroll', onScroll, true);
-    window.removeEventListener('resize', onScroll);
-  };
 }
 
 /** The same picker as a persistent browsing surface. Picking does not dismiss it. */

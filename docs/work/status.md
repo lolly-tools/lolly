@@ -1,6 +1,6 @@
 # What Lolly Work does today
 
-Lolly Work is the server an organisation runs beside Lolly. People keep making things on
+Lolly Work is the server an organisation runs beside Lolly; people still make things on
 their own devices. Lolly Work adds the parts a team shares: one sign-in, shared projects, a
 governed library of brand assets, server renders, links you can turn off, approvals and an
 audit trail.
@@ -29,7 +29,7 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
   your own metadata fields, collections, versions, expiry and holds, plus 15 kinds of DAM and
   storage source. See [Catalog and content](catalog.md).
 - **Rules for tools.** Lock, restrict or hide a tool's inputs per group. Govern feature flags
-  and managed AI. Keep the whole policy as one document. See
+  and managed AI. Keep the policy as one document. See
   [Policy and governance](governance.md).
 - **Renders and links.** Server renders in SVG and PNG, and JPG and PDF with a render worker.
   Durable render jobs and batches that recover after a restart, with signed callbacks, batches
@@ -51,8 +51,8 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
   default, and let a brand manager change the instance's colours with no pack rebuild. See
   [Host a brand page](design-system-administration.md#host-a-brand-page) and
   [Edit this instance from the studio](design-system-administration.md#edit-this-instance-from-the-studio).
-- **Records.** Content Credentials signing, a hash-chained audit log, telemetry intake and
-  dashboards, and SIEM forwarding. Lolly's own apps do not send telemetry events today, so the usage
+- **Records.** Content Credentials signing, a hash-chained audit log, SIEM forwarding and
+  telemetry intake with dashboards. Lolly's own apps do not send telemetry events today, so the usage
   charts stay empty until a client sends them. See [Audit log](audit.md) and [Telemetry and dashboards](telemetry.md).
 - **Agents.** Invite an MCP agent to one document or one project, under your own identity.
   See [Invite an agent to a document](document-agents.md). A service token, narrowed to scopes
@@ -63,22 +63,22 @@ What Lolly Work %work{version} does, what to check on your own systems before yo
   chart (with an optional render-worker tier) and Compose. See
   [Configure your first Lolly Work instance](customer-setup.md) and [Install Lolly Work](install.md).
 
-Try the hosted demo at lolly.work before you install. It renders for real: `GET
-/render/<toolId>.<format>` serves live output. It holds sample data that does not persist and
-runs apart from private workspaces, so use it for a trial, not as a production instance.
+Try the hosted demo at lolly.work before you install. `GET
+/render/<toolId>.<format>` serves live output. The demo holds sample data that does not persist and
+runs apart from private workspaces. Use the demo for a trial, not as a production instance.
 
 <!--i:eti-search-->
 ## Check on your own systems first
 
-Lolly Work's tests use recorded fixtures for identity providers and DAMs. They check the code against
-each vendor's published contract. They cannot show that your tenant matches that
+Lolly Work's tests check the code against each vendor's published contract, using recorded
+fixtures for identity providers and DAMs. They cannot show that your tenant matches that
 contract, so run these checks before you rely on an integration.
 
 Brandfolder has successful integration use reported at SUSE, including administrator change management, in [the deployment account](/info/suse-brandfolder.html) recorded on 31 October 2026. That is evidence for the connected workflow. It does not qualify every optional field, another tenant or the separate outbound Brandfolder delivery adapter.
 
 - **Identity.** Check your registered callbacks, real owner groups, SCIM subject correlation,
   denied groups, revocation and source disable. [Customer setup](customer-setup.md) walks
-  through each one and shows which integrations it has actually observed.
+  through each check and shows which integrations it has observed.
 - **Sources.** Each [provider guide](providers/README.md) says what has been confirmed against
   a real tenant and what to verify on yours: field names, approval mapping and original-file
   checksums. [Check a source on your own tenant](providers/tenant-check.md) gives the steps.
@@ -103,23 +103,21 @@ Brandfolder has successful integration use reported at SUSE, including administr
 - **Moving off a hosted render API.** The Bannerbear V5, Bannerbear V2 and Placid adapters, off
   by default, come from those vendors' public documentation and fixtures and have not run against
   a live account. [The move from a hosted render API](move-from-render-api.md) has a check list
-  for anyone who holds one.
+  for anyone who holds such an account.
 - **Shell and pack on Kubernetes.** Bring a built web shell on a volume you populate; brand
   packs are bring-your-own too (`pack.type` defaults to `none`). A wrong shell path fails at
   boot rather than serving an ungoverned app.
 
 ![The client fleet view: which shell and engine versions are talking to this deployment](shots/client-fleet.svg)
 
-The console's Fleet view lists the Lolly versions that talk to your server, which helps
-when you match clients to a release.
+The console's Fleet view lists the Lolly versions that talk to your server, for matching
+clients to a release.
 
 <!--i:eti-calendar-->
 ## In the next release
 
-Nothing is finished on Lolly Work's main branch beyond %work{version} yet. The items this list held
-before 1.2.0 shipped in 1.2.0 and are now under the two lists above: the organisation MCP endpoint,
-scoped service tokens, more for durable renders, approval of one exported file, resolving a visual
-intent, brand pages, colour edits and the hosted render API adapters. The
+Nothing is finished on Lolly Work's main branch beyond %work{version} yet. The items this list held before 1.2.0 shipped in 1.2.0 and are now under the two lists above: the organisation MCP endpoint, scoped service tokens, more for durable renders, approval of one exported file, resolving a visual intent, brand pages, colour edits and the hosted render API adapters. Everything this list
+held before 1.2.0 shipped in 1.2.0 and appears in the two lists above. The
 [release notes](release-1-2-0.md) give the details.
 
 <!--i:eti-hammer-->
@@ -140,7 +138,7 @@ intent, brand pages, colour edits and the hosted render API adapters. The
 - **General event subscriptions.** Callbacks announce the end of the job that asked for one. A feed
   of other events, with subscriptions and replay, is not built.
 - **Delivery operations.** A replica-safe background claimant for queued deliveries,
-  retention for staged retry bytes, and destination setup in the console or CLI.
+  retention for staged retry bytes and destination setup in the console or CLI.
 - **Moving a project between instances.** Lolly Work previews what a move would involve; export
   and import are not built. See [Preview a project transfer](project-portability.md).
 - **Several server nodes for live editing.** The live-editing server runs on one node.

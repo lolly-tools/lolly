@@ -29,6 +29,17 @@
  * is re-mounted, so the document, the selection, the zoom, a scrolled panel and a
  * focused field with its caret all survive a fold, an unfold or a rotation.
  *
+ * The class is a function of the window as it is NOW, never of how the window got
+ * there. It is decided again on the same turn as every signal, so no listener of a
+ * resize ever reads a class left over from the size before. Two WebKit habits, both
+ * measured on an iPhone Duo, are why (startLayoutPosture):
+ *   - a fold or a turn can send its one `resize` event at a size in between (466 x 466
+ *     on the way from 678 x 466 to 466 x 678) and the size it comes to rest at with
+ *     only a visual viewport `resize`, so that event is followed too, and a window
+ *     `resize` is sent on its behalf for the rest of the shell;
+ *   - a MediaQueryList held from before the resize still gives its old answer inside
+ *     the `resize` event, so `phoneLayoutQuery` asks the window afresh on every read.
+ *
  * index.html's pre-paint script carries a copy of the size rule (and the segment and
  * native checks) so the first frame is already split; layout-posture-contract.test.ts
  * keeps the two in step.
@@ -96,8 +107,6 @@ export const NATIVE_FOLD_EVENT = 'lolly:fold';
 export const NATIVE_FOLD_GLOBAL = '__lollyFold';
 /** The posture media query, read when `navigator.devicePosture` is missing. */
 export const FOLDED_QUERY = '(device-posture: folded)';
-/** How long a burst of resize events is gathered before the class is decided again. */
-export const LAYOUT_SETTLE_MS = 80;
 
 const NONE: LayoutState = { layout: 'desktop', posture: null, fold: null, orientation: null, source: null };
 
@@ -295,10 +304,13 @@ export interface LayoutQuery {
  * the media query takes this instead, and leaves split to the pane layout.
  */
 export function phoneLayoutQuery(win: Window = window): LayoutQuery {
-  const mq = win.matchMedia(`(max-width: ${PHONE_MAX_WIDTH}px)`);
+  const media = `(max-width: ${PHONE_MAX_WIDTH}px)`;
+  // Held for its change events only. Its own `matches` is the answer from before the
+  // resize while WebKit runs the resize listeners, so every read asks again.
+  const mq = win.matchMedia(media);
   const fns = new Map<() => void, () => void>();
   const q: LayoutQuery = {
-    get matches() { return mq.matches && !isSplitLayout(); },
+    get matches() { return win.matchMedia(media).matches && !isSplitLayout(); },
     media: mq.media,
     addEventListener(_type, fn) {
       if (fns.has(fn)) return;
@@ -334,15 +346,13 @@ function keepFocusInView(win: Window): void {
 }
 
 /**
- * Start following the window: decide once now, apply it, then decide again after
- * every resize burst, segment change, posture change and native fold report. Returns
- * the stop. Idempotent: a second start returns the running stop.
+ * Start following the window: decide once now, apply it, then decide again on the same
+ * turn as every resize, viewport change, pointer change, posture change and native fold
+ * report. Returns the stop. Idempotent: a second start returns the running stop.
  */
 export function startLayoutPosture(win: Window = window): () => void {
   if (running) return running;
-  let timer: ReturnType<typeof setTimeout> | null = null;
   const decide = (): void => {
-    timer = null;
     const next = computeLayout(readSignals(win));
     const prev = current ?? NONE;
     if (current && sameState(prev, next)) return;
@@ -353,43 +363,51 @@ export function startLayoutPosture(win: Window = window): () => void {
     }
     keepFocusInView(win);
   };
-  const settle = (): void => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(decide, LAYOUT_SETTLE_MS);
-  };
-  // A native report or a posture change is one event, not a burst: decide at once,
-  // so the hinge and the divider meet on the same frame as the fold.
-  const now = (): void => { if (timer) { clearTimeout(timer); timer = null; } decide(); };
-  // A window that can no longer hold two panes leaves them at once: a phone-width page
-  // still drawn in two panes for the settle time squeezes every pane into a sliver, a
-  // visible flash. Entering two panes, and any other change, waits for the burst to end.
+  // The size the shell last heard about through a window `resize`.
+  let heardW = win.innerWidth;
+  let heardH = win.innerHeight;
+  // At once, with no gathering of a burst: this listener is added at boot, ahead of
+  // every view's, so each view's own resize listener reads the class of the new size.
+  // A class decided later left a wide window that was not yet two panes, and Design
+  // built the desk layout in that gap and kept parts of that layout after the fold.
   const onResize = (): void => {
-    if (current?.layout === 'split' && computeLayout(readSignals(win)).layout !== 'split') now();
-    else settle();
+    heardW = win.innerWidth;
+    heardH = win.innerHeight;
+    decide();
+  };
+  // WebKit can bring the window to its final size with only this event (see the header).
+  // The shell lays out from window `resize`, so one is sent for a size nobody heard of.
+  // A pinch zoom or a keyboard changes the visual viewport alone and sends nothing.
+  const onViewport = (): void => {
+    if (win.innerWidth === heardW && win.innerHeight === heardH) { decide(); return; }
+    // From the window's own Event (a jsdom test host keeps Node's global one).
+    win.dispatchEvent(new (win as Window & typeof globalThis).Event('resize'));
   };
   const onNative = (e: Event): void => {
     const detail = (e as CustomEvent).detail;
     // The event carries the value; keep the global in step for a reader that
     // arrives later, as the native shell does itself.
     (win as Window & Record<string, unknown>)[NATIVE_FOLD_GLOBAL] = detail === undefined ? null : detail;
-    now();
+    decide();
   };
   const pointer = typeof win.matchMedia === 'function' ? win.matchMedia(SPLIT_POINTER_QUERY) : null;
   const folded = typeof win.matchMedia === 'function' ? win.matchMedia(FOLDED_QUERY) : null;
   const posture = (win.navigator as Navigator & PostureNavigator).devicePosture;
+  const viewport = win.visualViewport ?? null;
   win.addEventListener('resize', onResize);
   win.addEventListener(NATIVE_FOLD_EVENT, onNative);
-  pointer?.addEventListener?.('change', settle);
-  folded?.addEventListener?.('change', now);
-  posture?.addEventListener?.('change', now);
+  viewport?.addEventListener('resize', onViewport);
+  pointer?.addEventListener?.('change', decide);
+  folded?.addEventListener?.('change', decide);
+  posture?.addEventListener?.('change', decide);
   decide();
   running = () => {
-    if (timer) clearTimeout(timer);
     win.removeEventListener('resize', onResize);
     win.removeEventListener(NATIVE_FOLD_EVENT, onNative);
-    pointer?.removeEventListener?.('change', settle);
-    folded?.removeEventListener?.('change', now);
-    posture?.removeEventListener?.('change', now);
+    viewport?.removeEventListener('resize', onViewport);
+    pointer?.removeEventListener?.('change', decide);
+    folded?.removeEventListener?.('change', decide);
+    posture?.removeEventListener?.('change', decide);
     running = null;
     current = null;
     applyLayoutState(base(PHONE_MAX_WIDTH + 1), win.document);

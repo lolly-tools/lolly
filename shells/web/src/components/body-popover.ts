@@ -27,7 +27,11 @@
  * folder-overlay.ts's tile context menus. `container` (default `document.body`)
  * lets a popover opened from WITHIN a native `<dialog open>` mount inside that
  * dialog instead - required for it to paint above the dialog's own `::backdrop`
- * (only the top-layer dialog's own subtree renders above its backdrop).
+ * (only the top-layer dialog's own subtree renders above its backdrop). The same
+ * option mounts a panel in its trigger's own row when the stylesheet rules that
+ * dress it are scoped to that row (the export format picker), and `trapFocus: false`
+ * then keeps the Tab order an in-place panel always had. `capture` is for a panel
+ * opened over a surface that stops pointerdown or takes Escape on `document` first.
  *
  * On a touch device an open popover also takes system Back, via the shared overlay
  * stack (lib/overlay-back.ts) that mountModal registers on too: one press closes the
@@ -102,6 +106,28 @@ export interface BodyPopoverOptions {
   trackSize?: boolean;
   /** Arrow and Home/End focus within actual menu lists in this panel. */
   menuNavigation?: boolean | MenuNavigationOptions;
+  /**
+   * Listen for the outside press and for Escape in the capture phase, ahead of every
+   * other listener on the page. Off by default.
+   *
+   * Two surfaces need this. A design canvas or a drag layer stops pointerdown for its own
+   * handling, so a bubbling listener on `document` never hears a press there and the
+   * panel stays open over nothing. And a host that closes itself on Escape from a
+   * listener on `document` (the export sheet) registered that listener before this
+   * panel opened, so it runs first on the same node and one Escape would close the
+   * host and the panel together. In the capture phase this panel hears both first,
+   * and the Escape it takes goes no further.
+   */
+  capture?: boolean;
+  /**
+   * Hold Tab inside the panel. Default true. Pass false to leave Tab to the browser,
+   * for a panel that sits in the tab order right after its trigger (mounted in the
+   * trigger's own row through `container`), where Tab has always carried on to the
+   * controls after it, or for a panel whose controls live in a shadow root, which the
+   * trap cannot see into: it would hold Tab on the few controls outside the shadow
+   * root, or on none. The focus `render` returns is still applied.
+   */
+  trapFocus?: boolean;
   /** Called AFTER a close that actually closed something, whichever route took it:
    *  the caller's own `close()`, Escape, an outside pointerdown, or a route change.
    *  For a caller whose content is not owned by the popover - the timeline inspector
@@ -279,6 +305,7 @@ export function mountBodyPopover(
 ): BodyPopoverHandle {
   const position = opts.position ?? defaultPosition;
   const container = opts.container ?? document.body;
+  const capture = opts.capture === true;
   let menu: HTMLDivElement | null = null;
   let outside: ((e: PointerEvent) => void) | null = null;
   let trap: FocusTrap | null = null;
@@ -325,8 +352,8 @@ export function mountBodyPopover(
     if (!menu) return;
     back?.release();
     back = null;
-    if (outside) document.removeEventListener('pointerdown', outside);
-    document.removeEventListener('keydown', onKey);
+    if (outside) document.removeEventListener('pointerdown', outside, capture);
+    document.removeEventListener('keydown', onKey, capture);
     window.removeEventListener('resize', onResizeEvt);
     if (opts.trackScroll) window.removeEventListener('scroll', onScroll, true);
     sizeObserver?.disconnect();
@@ -371,8 +398,8 @@ export function mountBodyPopover(
     // Deferred so the very click that opened the popover doesn't also fire as
     // its own outside-click dismissal.
     const listener = outside;
-    setTimeout(() => { if (outside === listener) document.addEventListener('pointerdown', listener); }, 0);
-    document.addEventListener('keydown', onKey);
+    setTimeout(() => { if (outside === listener) document.addEventListener('pointerdown', listener, capture); }, 0);
+    document.addEventListener('keydown', onKey, capture);
     window.addEventListener('resize', onResizeEvt);
     if (opts.trackScroll) window.addEventListener('scroll', onScroll, true);
     NAV_EVENTS.forEach(ev => window.addEventListener(ev, onNavEvent));
@@ -396,7 +423,8 @@ export function mountBodyPopover(
     el.addEventListener('click', (e) => {
       if ((e.target as Element).closest?.('a[href]')) back?.disown();
     }, true);
-    trap = trapFocus(el, { initialFocus: initialFocus ?? null, inertBackground: false });
+    if (opts.trapFocus === false) initialFocus?.focus();
+    else trap = trapFocus(el, { initialFocus: initialFocus ?? null, inertBackground: false });
   }
 
   const handle: BodyPopoverHandle = { open, close, isOpen: () => menu !== null };

@@ -660,7 +660,7 @@ const MANIFEST: {
     },
     {
       name: 'storytold photocraft camera raw decoder',
-      version: '0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b; pinned Cargo.lock)',
+      version: '0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b with upstream fixes 06bedca787a4, c004e38e759a and 4c33a7b8f216; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',
       copyright: 'The ArtCraft Team and the PhotoCraft contributors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/camera-raw/camera-raw.wasm',
@@ -789,7 +789,7 @@ const MANIFEST: {
     },
     {
       name: 'libopenmpt (compiled WASM)',
-      version: '0.8.7 (Emscripten build)',
+      version: '0.8.10 (Emscripten build)',
       spdx: 'BSD-3-Clause',
       copyright:
         '© 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque',

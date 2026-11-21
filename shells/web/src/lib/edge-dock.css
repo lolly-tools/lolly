@@ -12,8 +12,14 @@
   display: flex; flex-direction: column;
   background-color: color-mix(in srgb, var(--ui-color-surface-muted) 60%, var(--ui-color-surface-raised));
   box-shadow: var(--ui-elevation-panel);
-
+  /* The column reaches the screen edge; its controls stand inside a side the system
+     holds (a status column reported as a safe-area inset). The rules below say which
+     side the column is on. */
+  padding-left: var(--dock-safe-left, 0px);
+  padding-right: var(--dock-safe-right, 0px);
 }
+html:not([dir="rtl"]) .edge-dock { --dock-safe-right: var(--safe-right); }
+html[dir="rtl"] .edge-dock { --dock-safe-left: var(--safe-left); }
 /* Inset padding so each docked occupant reads as a distinct card/pane (the column
    background shows around it), not an edge-to-edge slab. */
 .edge-dock-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden;  box-sizing: border-box; }
@@ -140,6 +146,9 @@ html[data-layout="split"] .edge-dock {
   box-shadow: var(--ui-elevation-sidebar);
 }
 html[data-layout="split"]:not([data-hand="left"]) .edge-dock { inset-inline-end: auto; inset-inline-start: 0; }
+/* Away from the hand the pane is on the other edge, so the other side's inset applies. */
+html[data-layout="split"]:not([data-posture="tabletop"]):not([data-hand="left"]):not([dir="rtl"]) .edge-dock { --dock-safe-right: 0px; --dock-safe-left: var(--safe-left); }
+html[data-layout="split"]:not([data-posture="tabletop"]):not([data-hand="left"])[dir="rtl"] .edge-dock { --dock-safe-left: 0px; --dock-safe-right: var(--safe-right); }
 /* The view steps aside on the side the pane is on. */
 html[data-layout="split"]:not([data-hand="left"]) #view { margin-inline-end: 0; margin-inline-start: var(--dock-w, 0px); }
 html[data-layout="split"] .edge-dock-grip,
@@ -161,6 +170,8 @@ html[data-layout="split"][data-posture="tabletop"] .edge-dock {
   inset: auto 0 0 0;
   top: calc(var(--split-top, 50dvh) + var(--split-gutter, 16px));
   width: auto;
+  --dock-safe-left: var(--safe-left);
+  --dock-safe-right: var(--safe-right);
 }
 /* Sequence open on a tabletop: the timeline is the deck, so the pane steps aside. */
 html[data-layout="split"][data-posture="tabletop"]:has(.tool-layout.is-editor .tl-panel:not([hidden])) .edge-dock { display: none; }

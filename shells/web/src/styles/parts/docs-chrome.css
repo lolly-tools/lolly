@@ -203,7 +203,8 @@ html[data-a11y-motion="reduce"] .site-fab:active { transform: none; }
   position: sticky;
   z-index: 40;
   box-sizing: border-box;
-  padding: var(--sp-3) 0;
+  /* The side terms keep the bar's buttons inside a side the system holds. */
+  padding: var(--sp-3) var(--safe-right) var(--sp-3) var(--safe-left);
   /* Holds the hairline's place, so the bar keeps its height; ::before draws the line. */
   border-bottom: 1px solid transparent;
 }

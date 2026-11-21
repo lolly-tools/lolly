@@ -295,8 +295,9 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   let lastTap = 0;
   let spaceDown = false;          // desktop: hold Space to drag-pan
   let mousePanPt: Point | null = null;          // desktop: previous mouse point while panning
-  // The current transform is a Fit-all framing (not a view a person chose). Set only by
-  // fitContent; cleared by reset() and by every user-driven zoom/pan below.
+  // The current transform is a framing the app chose (not a view a person chose). Set by
+  // fitContent, and kept by revealSelection; cleared by reset() and by every user-driven
+  // zoom/pan below.
   let contentFit = false;
   // Zoom-out floor widened by the last Fit-all, as a fit-multiplier. 1 = no widening.
   let contentFloor = 1;
@@ -645,8 +646,13 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     const pad = 12;
     const view = { x: sr.left + pad, y: sr.top + pad, w: sr.width - 2 * pad, h: sr.height - 2 * pad };
     if (!(view.w > 0) || !(view.h > 0)) return;
-    if (r.w > view.w || r.h > view.h) { focusRect(r.x, r.y, r.w, r.h, SEL_MARGIN); return; }
-    revealRect(r, view);
+    // The app moves the view here, not a person. A view that was a fit stays one, so the
+    // next change of stage size frames the work again: unfolding a phone used to keep
+    // the phone's framing, because this pan had marked the view as the person's own.
+    const wasFit = !isUserZoomed();
+    if (r.w > view.w || r.h > view.h) focusRect(r.x, r.y, r.w, r.h, SEL_MARGIN);
+    else revealRect(r, view);
+    if (wasFit) contentFit = true;
   }
 
   // Zoom to the current selection's AABB. Deliberately the same framing routine the

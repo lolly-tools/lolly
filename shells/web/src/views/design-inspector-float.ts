@@ -414,8 +414,8 @@ export function wireDesignInspectorFloat(
   window.addEventListener('resize', onResize);
   window.visualViewport?.addEventListener('resize', onResize);
   window.visualViewport?.addEventListener('scroll', onResize);
-  // Two panes come and go a moment after the resize that caused them (layout-posture's
-  // settle), with no resize of their own: a sheet placed in that moment moves then.
+  // Two panes also come and go with no resize at all (a fold report, a posture
+  // change): a sheet placed for the layout before moves then.
   const offLayout = onLayoutChange(onResize);
   const onSheetKey = (event: KeyboardEvent): void => {
     if (!sheet || event.key !== 'Escape' || event.defaultPrevented || document.querySelector('dialog[open]')) return;

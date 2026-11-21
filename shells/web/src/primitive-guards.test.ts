@@ -1243,7 +1243,7 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // the textarea child, so the attacker-shaped half of the input is covered.
   // The remaining sink draws the kind glyph from the closed icon table.
   // The close button now uses lib/close-button.ts.
-  'views/design-inspector.ts': 1,
+  'views/design-inspector.ts': 2, // + the Selection / Canvas switch: segHtml output, which escapes every value
   'views/doc-editor.ts': 1,
   // 1 as of 2026-07-31: applyPreflight writes the "Before you export" card body.
   // Reviewed - every value at that sink comes from preflightBodyHtml, which
@@ -1253,7 +1253,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // 1 as of 2026-08-26: the grouped format picker's refresh() rebuilds the
   // category accordion after a setFormats narrowing. Reviewed - format ids and
   // labels are escape()d, category labels are escape(t(…)) literals, and the
-  // chevron comes from the shared icon() generator.
+  // chevron comes from the shared icon() generator. Still 1 on 2026-11-20, when
+  // the panel moved onto mountBodyPopover: the same paint() now fills the whole
+  // open panel, adding the head, an escape(t(…)) literal and the shared close button.
   'components/export-format-picker.ts': 1,
   'views/export-preflight.ts': 1,
   // 41 as of 2026-08-07: +1 for the Line tool's drawLineRubber (connectLayer.innerHTML,

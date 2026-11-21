@@ -794,7 +794,7 @@
   /* --ldock-w: the free-canvas rail's docked left panel (set on <html> while the
      timeline is open - see dockRailForTimeline), the mirror of the right dock's
      --dock-w inset. Unset everywhere else, so this resolves to the plain inset. */
-  left: calc(var(--chrome-inset) + var(--vv-left, 0px) + var(--ldock-w, 0px));
+  left: calc(var(--chrome-inset-left) + var(--vv-left, 0px) + var(--ldock-w, 0px));
   z-index: 99999;
 }
 
@@ -4023,6 +4023,10 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     position: fixed;
     top: calc(var(--vv-top, 0px) + var(--safe-top, 0px)); left: var(--vv-left, 0px); right: auto;
     width: 100% !important;           /* override the desktop inline width */
+    /* The sheet reaches both screen edges; its controls stand inside a side the system
+       holds (a status column reported as a safe-area inset, 0px where there is none). */
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
     height: var(--sheet-h);
     max-height: 92dvh;
     display: flex;
@@ -4233,7 +4237,9 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--sp-7) var(--sp-7) var(--sp-6);
+    /* A tall sheet's head reaches the status column the system may hold on a side,
+       so the title and the close stand inside that side. */
+    padding: var(--sp-7) calc(var(--sp-7) + var(--safe-right)) var(--sp-6) calc(var(--sp-7) + var(--safe-left));
     border-bottom: 0;
     flex-shrink: 0;
   }

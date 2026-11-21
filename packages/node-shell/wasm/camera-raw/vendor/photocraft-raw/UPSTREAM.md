@@ -24,8 +24,28 @@ brand assets, fonts or models are included.
    the removed encoder. `tests/it/hostile.rs`: the JPEG XL sample is a six-byte stand-in and
    `originals_develop` expects it to be unsupported.
 
-Everything else is unchanged. All 134 unit tests and 86 integration tests pass natively
-(`cargo test --release` in this directory).
+4. Three later upstream fixes for hostile input are applied unchanged, from the
+   `storytold/photocraft` commits below. After them `src/sensor.rs` and `src/opcodes.rs` equal
+   upstream's blobs at those commits (`5c83066c21c` and `9722a411584`); `tests/it/hostile.rs`
+   gains upstream's new test beside edit 3.
+   - `06bedca787a48e282b7a5d70e2987b094d8b8729` (#11042): a lossy (compression 34892) DNG tile
+     that carries an Extended XMP APP1 segment is refused before zune-jpeg parses it, because
+     zune-jpeg re-sorts every pending Extended XMP fragment after each marker (quadratic time).
+     Known gaps, not fixed here, where the scan reads markers differently from zune-jpeg 0.5.15:
+     zune-jpeg reads `FF 00` before a marker as fill bytes, while the scan reads it as a marker
+     with a length, so APP1 segments written as `FF 00 FF E1 ...` are missed; and zune-jpeg reads
+     a length after a restart marker in the header, while the scan treats `FF D0` to `FF D7` as
+     standalone, so `FF D0 00 04 FF DA` ends the scan at a decoy start of scan that zune-jpeg
+     skips. In both cases zune-jpeg still collects the fragments. A tile that triggers the slow
+     path costs time inside the decode, not memory safety.
+   - `c004e38e759a2be63fa1b7b39695ec4e32b9cc3e` (#11041): tiles that name the same byte range at
+     the same geometry are decoded once and shared, instead of once per tile.
+   - `4c33a7b8f216afba3873909b61a8ca25a2bb6fc7` (#11023): at most 64 GainMap opcodes are kept
+     from one list; the rest are named as not applied, as MapPolynomial already was.
+
+Everything else is unchanged. All 136 unit tests and 87 integration tests pass natively
+(`cargo test --release` in this directory). The three fixes leave the developed pixels and
+metadata of the pinned raw.pixls.us corpus and the synthetic test files byte for byte the same.
 
 ## Provenance and clean-room caveats
 
@@ -74,6 +94,7 @@ its previews in an ISO base media container, which the crate reads only as a box
 
 ## Updating
 
-Replace `src/` and `tests/` from a new upstream commit, reapply the three edits above, change the
+Replace `src/` and `tests/` from a new upstream commit, reapply edits 1 to 3 above (edit 4 is
+already upstream after `4c33a7b8f216`), change the
 commit here, then run `cargo test --release` in this directory, `pnpm run build:camera-raw`,
 `node --test tests/camera-raw.test.ts` and `node scripts/camera-raw-corpus.ts`.

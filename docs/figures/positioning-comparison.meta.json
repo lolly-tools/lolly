@@ -1,11 +1,11 @@
 {
   "generator": {
-    "name": "Codex"
+    "name": "Claude Code"
   },
   "model": {
-    "name": "GPT-6",
-    "identifier": "gpt-6",
-    "vendor": "OpenAI"
+    "name": "Claude Fable 5.2",
+    "identifier": "claude-fable-5-2",
+    "vendor": "Anthropic"
   },
   "oversight": "prompt_guided",
   "source": "compositeWithTrainedAlgorithmicMedia",

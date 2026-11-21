@@ -1,8 +1,8 @@
 # Manage
 
-Lolly runs on each person's device. When a team needs sign-in, shared projects, governed assets, reviews and server jobs, an organisation adds **Lolly Work**, the open-source organisation server of the same project. These pages are for whoever sets up and looks after that server.
+Lolly runs on each person's device. These pages are for whoever runs **Lolly Work**, the project's open-source organisation server for sign-in, shared projects, governed assets, reviews and server jobs.
 
-Start with [Use Lolly at your organisation](/info/organisation.html) to see what members get, or [Lolly Work architecture](/info/work-overview.html) for what the server is responsible for.
+Start with [Use Lolly at your organisation](/info/organisation.html) to see what members get, or [Lolly Work architecture](/info/work-overview.html) for what the server does.
 
 <!--i:eti-lock-->
 ## Set access and policy
@@ -16,7 +16,7 @@ Start with [Use Lolly at your organisation](/info/organisation.html) to see what
 <!--i:eti-link-->
 ## Connect assets and review work
 
-- [Use Lolly with your existing DAM](/info/use-with-dam.html) explains source authority and connected production. [The SUSE Brandfolder account](/info/suse-brandfolder.html) records the adoption experience, and [Plan a DAM transition](/info/dam-transition.html) covers an optional later move.
+- [Use Lolly with your existing DAM](/info/use-with-dam.html) explains source authority and connected production. [The SUSE Brandfolder account](/info/suse-brandfolder.html) records one adoption. [Plan a DAM transition](/info/dam-transition.html) covers an optional later move.
 
 - [Design-system administration](/info/work-design-system-administration.html) covers source inventory, reviewed changes and rollback.
 - [Catalog and content](/info/work-catalog.html) covers shared assets and exposure rules. [Provider guides](/info/work-provider-guides.html) gives each source platform's setup and verification requirements.
