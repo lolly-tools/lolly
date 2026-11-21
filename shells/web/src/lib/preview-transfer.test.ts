@@ -5,7 +5,7 @@
  * URL they always carried. Pictures now live once in the preview store, so these
  * pin both directions: what an older build wrote comes in and shows, and what this
  * build writes from stored bytes is byte for byte what an older build wrote (so an
- * older build reads it). Raster pictures are compared byte for byte; an SVG from
+ * older build reads the file). Raster pictures are compared byte for byte; an SVG from
  * outside is sanitised before it is stored, so it is compared as a picture.
  *
  * Run directly:  node --import ./tests/css-stub.mjs --test shells/web/src/lib/preview-transfer.test.ts

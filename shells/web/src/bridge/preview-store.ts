@@ -135,7 +135,7 @@ export async function preparePicture(input: PictureInput, route: PreviewRoute = 
     if (decoded.type === 'image/svg+xml' && route === 'received') {
       // An SVG from outside (a pack, a backup, a sync record, a beam) is stored only
       // after the app's SVG sanitiser (bridge/svg-sanitize.ts: DOMPurify's SVG
-      // profile, the treatment an uploaded SVG gets) has read it. Shown only in an
+      // profile, the treatment an uploaded SVG gets) has read the SVG. Shown only in an
       // <img> as a data: URL it could do nothing anyway; sanitising keeps a stored
       // picture safe for any later use. Fails closed: no sanitiser, no picture.
       try {
@@ -176,7 +176,7 @@ async function collect(tx: PictureTx, key: string): Promise<void> {
 /**
  * Point an owner at a picture, inside the caller's transaction. Prepared bytes are
  * stored first; a bare reference binds only when its bytes are already here (a
- * reference copied from another device's record names nothing on this one).
+ * reference copied from another device's record points at nothing on this one).
  * Returns the reference that was bound, or null when nothing could be.
  */
 export async function bindOwner(tx: PictureTx, owner: string, kind: OwnerKind, picture: PreparedPicture | SessionPreviewRef): Promise<SessionPreviewRef | null> {
@@ -191,7 +191,7 @@ export async function bindOwner(tx: PictureTx, owner: string, kind: OwnerKind, p
   return ref;
 }
 
-/** Remove an owner's picture row, and the picture with it when nothing else holds it. */
+/** Remove an owner's picture row, and the picture too when no other owner holds the picture. */
 export async function releaseOwner(tx: PictureTx, owner: string): Promise<void> {
   const index = tx.objectStore(PREVIEW_INDEX);
   const prior = await index.get(owner) as PreviewIndexRow | undefined;

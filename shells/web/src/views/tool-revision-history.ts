@@ -147,7 +147,9 @@ async function capture(host: HostV1, canvas: HTMLElement | null, words?: () => r
   try {
     blob = await host.export.render(node, 'png', { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)), embedMeta: false, thumbnail: true });
   } catch { return fallback(); }
-  return writer.rasterPicture(blob).catch(() => null);
+  // Encoded by the writer's rule; where this browser cannot encode at all, the export
+  // path's own PNG is kept as it came.
+  return (await writer.rasterPicture(blob).catch(() => null)) ?? writer.bytesPicture(blob);
 }
 
 /**

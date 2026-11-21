@@ -206,11 +206,11 @@ function previewTarget(manifest: ToolManifest, canvasEl: HTMLElement | null): { 
 /**
  * The picture a save keeps (plan 373): the preview writer's live source. One rule
  * for every tool, whatever export format is selected: the tool's own SVG export
- * when the tool exports SVG and the result fits one entry (256 KiB), otherwise a
+ * when the tool exports SVG and the result is within one entry's limit (256 KiB), otherwise a
  * raster of the same canvas through the export path, encoded by the writer
  * (lib/preview-writer.ts: WebP at 0.9 with a fidelity check, lossless where that
  * check fails, PNG where the browser has no WebP encoder). The picture records the
- * route that drew it. Never throws; null when no picture could be made.
+ * route that drew the picture. Never throws; null when no picture could be made.
  */
 export async function capturePreview(
   manifest: ToolManifest,

@@ -412,7 +412,7 @@ type ExportStage = HTMLDivElement & { _lottieCleanup?: () => void };
  *        `dpi` sets raster resolution for physical units.
  */
 /** Render one row to a file. A render that is not a preview counts as busy
- *  (lib/render-busy.ts), so idle preview work waits for it. */
+ *  (lib/render-busy.ts), so idle preview work waits until the render ends. */
 export async function renderRowToBlob(row: BatchRow, host: HostV1, opts: RenderRowOpts = {}): Promise<RenderRowResult> {
   const end = opts.thumbnail ? null : (await import('../lib/render-busy.ts')).beginRender();
   try { return await renderRowToBlobOnce(row, host, opts); } finally { end?.(); }

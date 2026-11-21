@@ -38,11 +38,12 @@ import { clearSignal } from '../lib/clear-signal.ts';
 import { viewingAs, VIEW_AS_DB } from '../org/view-as.ts';
 
 const DB_NAME = viewingAs() ? VIEW_AS_DB : 'lolly';
-const DB_VERSION = 27;
+/** The schema version this build opens. Exported for the upgrade journeys' tests. */
+export const DB_VERSION = 27;
 /** The last version without the preview store (plan 373). When the step to 27
  *  cannot run (it failed, or another tab blocks it past every retry), the app opens
  *  at this version and works on the data as it was, with pictures kept on the
- *  records the old way, and says so in the log. */
+ *  records the old way, and writes a warning to the log. */
 const PRE_PREVIEW_VERSION = 26;
 let databaseUpdateRequired = false;
 

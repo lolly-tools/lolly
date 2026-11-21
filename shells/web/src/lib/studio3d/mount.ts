@@ -612,7 +612,7 @@ export function destroyToolStudio(container?: Element): void {
 }
 
 /** Draw the mounted preview into a canvas fitted inside the tile, without
- *  preparing a second export scene or shader set. The preview writer encodes it. */
+ *  preparing a second export scene or shader set. The preview writer encodes the canvas. */
 export function captureStudioCanvas(root: HTMLElement, maxWidth = 720, maxHeight = 560): HTMLCanvasElement | null {
   const canvas = root.querySelector<HTMLCanvasElement>('canvas.lolly-studio-canvas');
   const entry = canvas && owners.get(canvas);

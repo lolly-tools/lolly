@@ -70,7 +70,7 @@ export async function projectsCli(
         toolVersion: record.toolVersion,
         emoji: record.emoji,
         data: { ...record.data, __label: label },
-        // The copy names the same picture: one file in this directory serves both.
+        // The copy points at the same picture: one file in this directory serves both.
         thumb: record.thumb,
         preview: record.preview ?? null,
         rightsDecisions: record.rightsDecisions,

@@ -35,7 +35,7 @@ export type PreviewType = typeof PREVIEW_TYPES[number];
 /** Which renderer drew a picture. A picture says how it was made, so a reader can
  *  tell a faithful render from bytes another build or another device supplied.
  *  `stand-in` is a picture of the document's words, drawn where a tool has nothing
- *  to photograph: it is not the tool's render, and says so. */
+ *  to photograph: not the tool's render, and the route tells a reader that. */
 export const PREVIEW_ROUTES = ['export-svg', 'export-raster', 'baked', 'operations-svg', 'tool-svg', 'received', 'legacy', 'stand-in'] as const;
 export type PreviewRoute = typeof PREVIEW_ROUTES[number];
 

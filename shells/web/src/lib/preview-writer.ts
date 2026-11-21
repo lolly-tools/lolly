@@ -14,7 +14,7 @@
  *     case lossy WebP's colour sampling cannot keep), lossless WebP is stored
  *     instead. A WebP over 256 KiB steps down to 0.85, 0.8 and 0.75 while it stays
  *     under the same difference bound; when nothing within the limit passes, the
- *     faithful picture is kept over the limit rather than a worse one under it.
+ *     faithful picture is kept over the limit rather than a worse picture within the limit.
  *  4. Where the browser cannot encode WebP (Safari and the WebKit apps return PNG
  *     when asked), the picture is PNG, and an opaque PNG over the limit is tried as
  *     JPEG at 0.92 under the same bound.
@@ -48,9 +48,16 @@ export interface WriterFacts {
   vector?: boolean;
 }
 
-/** Bytes of a Blob as a Uint8Array. */
+/** Bytes of a Blob as a Uint8Array (through a FileReader where a Blob has no
+ *  arrayBuffer, as in older embedded engines). */
 async function bytesOf(blob: Blob): Promise<Uint8Array> {
-  return new Uint8Array(await blob.arrayBuffer());
+  if (typeof blob.arrayBuffer === 'function') return new Uint8Array(await blob.arrayBuffer());
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(blob);
+  });
 }
 
 /** An SVG export as a picture when it fits one entry, else null (the caller then
@@ -59,6 +66,15 @@ export async function svgPicture(svg: Blob | string, facts: WriterFacts = {}): P
   const bytes = typeof svg === 'string' ? new TextEncoder().encode(svg) : await bytesOf(svg);
   if (!bytes.length || bytes.byteLength > PREVIEW_MAX_BYTES) return null;
   const ref = await previewRefFor(bytes, 'image/svg+xml', { route: facts.route ?? 'export-svg', ...(facts.recipe ? { recipe: facts.recipe } : {}) });
+  return ref ? { ref, bytes } : null;
+}
+
+/** A render's own bytes as a picture, unencoded: the fallback where this browser
+ *  cannot decode or encode (no canvas at all). The type is read from the bytes. */
+export async function bytesPicture(blob: Blob, facts: WriterFacts = {}): Promise<PreparedPicture | null> {
+  const bytes = await bytesOf(blob);
+  const type = (blob.type || 'image/png') as PreviewType;
+  const ref = await previewRefFor(bytes, type, { route: facts.route ?? 'export-raster', ...(facts.recipe ? { recipe: facts.recipe } : {}) });
   return ref ? { ref, bytes } : null;
 }
 

@@ -10,10 +10,10 @@
  * 15 KB signature beside every picture). The cache is held to 64 MiB or 5 % of the
  * browser's quota, whichever is smaller, least recently used first; a picture a
  * saved session also holds is counted here but not deleted by the sweep, because
- * its other owner keeps it.
+ * its other owner keeps the picture.
  *
  * Every call is best-effort: a failed read is a miss and a failed write is logged
- * and forgotten, so a preview never breaks the view that asked for it.
+ * and forgotten, so a preview never breaks the view that asked.
  */
 import type { IDBPDatabase } from 'idb';
 import {
@@ -61,6 +61,9 @@ export async function storePreview(recipe: string, picture: PreparedPicture): Pr
       await bindOwner(tx, cacheOwner(recipe), 'cache', picture);
       await tx.done;
       counts.writes++;
+      // Held to its limit as it grows, not only after a quota error: team and collab
+      // tiles add an entry for every revision they show.
+      if (counts.writes % 50 === 0) void sweepPreviewCache().catch(() => 0);
       const src = await pictureSrc(db, picture.ref.key);
       if (src) return src;
     } catch (error) {
@@ -103,7 +106,7 @@ export async function previewStoreBytes(): Promise<number> {
   } catch { return 0; }
 }
 
-/** Drop cache rows, least recently used first, until the cache fits `budget`. A
+/** Drop cache rows, least recently used first, until the cache is within `budget`. A
  *  picture another owner still holds stays. Returns how many rows went. */
 export async function sweepPreviewCache(budget?: number): Promise<number> {
   const db = await database();

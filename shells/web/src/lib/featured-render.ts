@@ -96,7 +96,7 @@ export async function lookRecipe(host: FeaturedHost, toolId: string, values: Rec
  * raster format, it falls back to raster so the preview still shows rather than vanishing.
  *
  * The store finds a picture by what was drawn, not by who asked: `variantIndex` and
- * the plain `keyPrefix` names are the callers' own bookkeeping. A prefix that names a
+ * the plain `keyPrefix` labels are the callers' own bookkeeping. A prefix that carries a
  * brand scope (`template@<tag>`, the template chooser's mounted brand slots) is part
  * of what was drawn, so it enters the recipe.
  */

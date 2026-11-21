@@ -8,7 +8,7 @@ void previewContextSignature;
 const { previewSeams, lookRecipe } = await import('../lib/featured-render.ts');
 /** The preview store as these tests see it (plan 373): a cache whose every lookup is
  *  recorded and answered by `answer`, and a render that must never run. The keys are
- *  recipe hashes, so a test names the look it expects through `keyOf`. */
+ *  recipe hashes, so a test finds the look it expects through `keyOf`. */
 function stubStore(answer: (key: string) => string | null | Promise<string | null>) {
   const keys: string[] = [];
   previewSeams.cached = async (key: string) => { keys.push(key); return answer(key); };

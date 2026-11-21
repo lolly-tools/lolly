@@ -3,7 +3,7 @@
  * The desktop and mobile apps keep each session's picture once, as a file named by
  * the hash of its bytes, under saved-state/previews/ (plan 373). The record keeps a
  * short reference. These drive the shared state bridge over an in-memory adapter:
- * the file is written and read back before any record names it, a torn file never
+ * the file is written and read back before any record points at the file, a torn file never
  * shows, a rename keeps the picture, an adapter with no binary file calls keeps the
  * old data URL, this device's old data-URL pictures move into files with every
  * other field of the record kept, and what an older desktop build would read.
@@ -84,7 +84,7 @@ test("this device's old data-URL pictures move into files after a list, keeping 
   const state = createFsStateAPI(fs);
   const before = await state.list();
   assert.equal(before[0]!.thumb, png('legacy'), 'shown the old way until it moves');
-  // The move waits a moment after the list; wait for it.
+  // The move waits a moment after the list; wait for the move.
   for (let i = 0; i < 100 && ![...bytes.keys()].length; i++) await new Promise(r => setTimeout(r, 50));
   for (let i = 0; i < 100 && JSON.parse(text.get('saved-state/poster%3A9.json')!).thumb; i++) await new Promise(r => setTimeout(r, 20));
   const after = JSON.parse(text.get('saved-state/poster%3A9.json')!);

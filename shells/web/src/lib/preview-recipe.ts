@@ -66,7 +66,7 @@ export async function shortHash(text: string): Promise<string> {
   return [...new Uint8Array(digest)].slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-/** Context digests kept per token set object, then per the cheap parts around it. */
+/** Context digests kept per token set object, then per the cheap parts around the set. */
 const digests = new WeakMap<object, Map<string, Promise<string>>>();
 let digestComputations = 0;
 /** How many times a context digest was actually computed (a test counts these). */

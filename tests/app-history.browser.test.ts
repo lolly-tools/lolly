@@ -124,10 +124,18 @@ test('v23 upgrade preserves saved payloads and download settings while adding me
       tx.objectStore('profile').put({ name: 'Keep profile' }, 'test');
       await new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); }); old.close();
       const dbPath = '/src/bridge/db.ts', queryPath = '/src/bridge/app-history.ts';
-      const db = await (await import(dbPath)).openDB();
-      return { version: db.version, count: await db.count('state'), saved: await db.get('state', 'legacy'), exported: await db.get('exports', 'download'), profile: await db.get('profile', 'test'), page: await (await import(queryPath)).queryAppHistory(db, {}, { folders: [] }) };
+      const dbModule = await import(dbPath);
+      const db = await dbModule.openDB();
+      return { version: db.version, shipped: dbModule.DB_VERSION, stores: [...db.objectStoreNames], lean: await db.count('state-list'), count: await db.count('state'), saved: await db.get('state', 'legacy'), exported: await db.get('exports', 'download'), profile: await db.get('profile', 'test'), page: await (await import(queryPath)).queryAppHistory(db, {}, { folders: [] }) };
     });
-    assert.equal(result.version, 24); assert.equal(result.count, 20_001); assert.equal(result.saved.data.body.length, 100_000); assert.equal(result.saved.data.headline, 'Original');
+    // The database upgrades from 23 to the version this build ships, through every step
+    // in one go. The plan 373 step adds its stores empty: no record is read or rewritten
+    // inside the upgrade (the lean list is built later, on idle time).
+    assert.equal(result.version, result.shipped); assert.ok(result.shipped >= 27);
+    assert.ok(['preview-blobs', 'preview-index', 'state-list'].every(name => result.stores.includes(name)));
+    assert.ok(!result.stores.includes('generated-previews'), 'the old render cache is gone');
+    assert.equal(result.lean, 0, 'the upgrade itself builds no lean rows');
+    assert.equal(result.count, 20_001); assert.equal(result.saved.data.body.length, 100_000); assert.equal(result.saved.data.headline, 'Original');
     assert.equal(result.exported.query, 'headline=original'); assert.equal(result.profile.name, 'Keep profile'); assert.equal(result.page.entries[0].title, 'Kept'); assert.ok(result.exported.historyKey);
   } finally { await browser.close(); }
 });

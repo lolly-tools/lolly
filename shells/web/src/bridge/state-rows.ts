@@ -92,7 +92,7 @@ function checkScope(tx: PictureTx): void {
 
 /**
  * Write one session record with its lean row and picture row. A record that
- * names a picture binds `session:<slot>` to it; a record that names none
+ * carries a picture reference binds `session:<slot>` to the picture; one that carries none
  * releases the slot's row. A reference whose bytes are not here is dropped from
  * the record rather than kept pointing at nothing. `bytes` is the record's size
  * when the caller already measured it (a checkpoint knows its canonical length),

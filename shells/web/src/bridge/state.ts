@@ -260,13 +260,12 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
    *  bytes are stored first in a transaction of their own, so the record write can
    *  reference them; bytes nothing ends up referencing are swept after an hour. */
   const stagePicture = async (picture: PictureInput): Promise<{ preview?: SessionPreviewRef; thumb?: string } | null> => {
+    // No preview store (a database the upgrade could not reach, the memory driver):
+    // the picture stays on the record as a data URL, exactly as before plan 373.
+    if (!full && typeof picture === 'string') return picture ? { thumb: picture } : null;
     const prepared = await preparePicture(picture, 'received').catch(() => null);
     if (!prepared) return null;
-    if (!full) {
-      // No preview store: the picture stays on the record as a data URL, as before.
-      if (isPrepared(prepared)) return { thumb: pictureDataUrl(prepared.bytes, prepared.ref.type, prepared.form) };
-      return typeof picture === 'string' ? { thumb: picture } : null;
-    }
+    if (!full) return isPrepared(prepared) ? { thumb: pictureDataUrl(prepared.bytes, prepared.ref.type, prepared.form) } : null;
     if (isPrepared(prepared)) {
       const { putPictureBytes } = await import('./preview-store.ts');
       const tx = full.transaction([PREVIEW_BLOBS], 'readwrite') as unknown as PictureTx;

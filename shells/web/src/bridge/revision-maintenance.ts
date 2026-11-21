@@ -49,7 +49,7 @@ export async function moveSlot(tx: RevisionTransaction, from: string, to: string
 /** Discarded creations keep their history for DISCARD_RETENTION_MS, as the trash
  * does, then go for good: on a later discard, and when History opens. */
 export async function purgeDiscarded(db: IDBPDatabase, recovery: RecoveryStore, now: number): Promise<number> {
-  // Keys only: a discarded creation's record is never read to find it.
+  // Keys only: no discarded creation's record is read here.
   const slots = await db.getAllKeys('state', IDBKeyRange.bound(DISCARDED_SLOT_PREFIX, `${DISCARDED_SLOT_PREFIX}\uffff`)) as string[];
   const maintenance = revisionMaintenance(db, recovery);
   let removed = 0;

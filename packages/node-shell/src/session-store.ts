@@ -69,7 +69,7 @@ export interface SessionRecord {
 
 /** Where a session's picture file sits, the layout the Tauri shells write
  *  (shells/tauri-shared/bridge-overrides/state-fs.ts). Every session in one state
- *  directory shares the files, so a copied session names the same file. */
+ *  directory shares the files, so a copied session points at the same file. */
 export function sessionPicturePath(stateDir: string, ref: Pick<SessionPreviewRef, 'key' | 'type'>): string {
   return join(sessionsDir(stateDir), 'previews', `${ref.key}.${previewFileExt(ref.type)}`);
 }

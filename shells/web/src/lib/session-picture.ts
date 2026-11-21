@@ -6,7 +6,7 @@
  * for a record not moved yet, as a legacy data URL (`thumb`). Code that writes the
  * session again (a rename, a copy, a move to the Trash) hands `rowPicture(row)`
  * back to save or restore, which keeps the same stored picture without reading
- * it. Code that writes a format which still carries a data URL (a `.lolly`, a
+ * the bytes. Code that writes a format which still carries a data URL (a `.lolly`, a
  * backup, device sync, beam) asks `rowPictureDataUrl`, which rebuilds the field
  * from the stored bytes in the form it always had.
  */

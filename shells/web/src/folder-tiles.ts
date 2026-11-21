@@ -30,7 +30,7 @@ export interface SessionEntry {
   filename?: string | null;
   /** A legacy data URL, for a record whose picture has not moved yet. */
   thumb?: string | null;
-  /** The picture by reference (session format 5); components/preview-image.ts reads it. */
+  /** The picture by reference (session format 5), read by components/preview-image.ts. */
   preview?: SessionPreviewRef | null;
   updatedAt?: string | null;
 }

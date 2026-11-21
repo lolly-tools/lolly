@@ -44,7 +44,7 @@ export interface PickerSession {
   toolName: string;
   toolIcon: string | null;
   thumb: string | null;
-  /** The session's stored picture (components/preview-image.ts reads it). */
+  /** The session's stored picture, read by components/preview-image.ts. */
   preview?: SessionPreviewRef | null;
   updatedAt: string;
 }

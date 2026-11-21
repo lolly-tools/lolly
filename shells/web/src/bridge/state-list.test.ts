@@ -93,7 +93,7 @@ test('a record written while the pass holds a stale copy is read again, never mo
     const out = await original(...args);
     if (!interfered && args[0] === 'state') {
       interfered = true;
-      // Another tab saves poster:1000 with a new picture after the pass read it.
+      // Another tab saves poster:1000 with a new picture after the pass read that record.
       const row = stores.get('state')!.get(JSON.stringify('poster:1000'))!;
       row.value = { ...(row.value as object), thumb: png('newer'), updatedAt: '2026-11-21T00:00:00.000Z' };
     }

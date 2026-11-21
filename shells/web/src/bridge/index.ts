@@ -133,7 +133,8 @@ export async function createBridge(): Promise<WebHost> {
   // time, a few records per slice, after the first paint. Nothing waits on it: until
   // a record has moved, it is read the way it always was.
   if (db.objectStoreNames.contains('preview-index')) {
-    setTimeout(() => { void import('../lib/preview-idle.ts').then(m => m.startPreviewMigration(db)).catch(() => {}); }, 4000);
+    const start = setTimeout(() => { void import('../lib/preview-idle.ts').then(m => m.startPreviewMigration(db)).catch(() => {}); }, 4000);
+    (start as { unref?: () => void }).unref?.();
   }
   host.profile = createProfileAPI(db);
   // Shell-internal like previews (not part of HostV1): Content Credentials device

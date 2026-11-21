@@ -152,7 +152,7 @@ export async function queryAppHistory(db: IDBPDatabase, query: AppHistoryQuery, 
 }
 
 /** An `<img>` source for a History row's picture: an object URL into the preview
- *  store (plan 373), or the row's legacy data URL until the idle move reaches it.
+ *  store (plan 373), or the row's legacy data URL until the idle move reaches that row.
  *  A creation's picture is read by its record's reference, never by reading the
  *  record's document. */
 export async function appHistoryPreview(db: IDBPDatabase, row: AppHistoryRow): Promise<string | null> {

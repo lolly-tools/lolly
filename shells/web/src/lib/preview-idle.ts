@@ -77,13 +77,37 @@ function watchBattery(): void {
   }).catch(() => {});
 }
 
+/** A timer that never keeps a test process alive. */
+function later(fn: () => void, ms: number): ReturnType<typeof setTimeout> {
+  const timer = setTimeout(fn, ms);
+  (timer as { unref?: () => void }).unref?.();
+  return timer;
+}
+
+/** Wait until the work might be allowed again: the tab comes back, the route
+ *  changes, or (for a render or a power state, which send no event) a while passes. */
+function wake(fn: () => void): void {
+  let woken = false;
+  const go = (): void => {
+    if (woken) return;
+    woken = true;
+    window.removeEventListener('hashchange', go);
+    document.removeEventListener('visibilitychange', go);
+    clearTimeout(timer);
+    fn();
+  };
+  window.addEventListener('hashchange', go);
+  document.addEventListener('visibilitychange', go);
+  const timer = later(go, 15_000);
+}
+
 /** Run `step` on idle slices until it reports done or work stops being allowed. */
 function onIdle(step: (deadline: () => boolean) => Promise<boolean>): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof window.addEventListener !== 'function') return;
   const idle = (window as Window & { requestIdleCallback?: (cb: (d: { timeRemaining(): number }) => void, o?: { timeout: number }) => number }).requestIdleCallback;
-  const schedule = (fn: () => void): void => { if (idle) idle(() => fn(), { timeout: 5000 }); else setTimeout(fn, 400); };
+  const schedule = (fn: () => void): void => { if (idle) idle(() => fn(), { timeout: 5000 }); else later(fn, 400); };
   const run = (): void => {
-    if (!previewWorkAllowed()) { setTimeout(() => schedule(run), 3000); return; }
+    if (!previewWorkAllowed()) { wake(() => schedule(run)); return; }
     const started = performance.now();
     void step(() => performance.now() - started > 40 || !previewWorkAllowed()).then(finished => {
       if (!finished) schedule(run);
@@ -100,6 +124,9 @@ let migrationStarted = false;
  * (each step is one transaction) and resumes where it stopped on the next load.
  */
 export function startPreviewMigration(db: IDBPDatabase): void {
+  // A measurement hook (scripts/seed-preview-library.ts holds the move back to
+  // measure a library as it was), like the preview build's __lollyForceVectorThumb.
+  if ((globalThis as { __lollyPreviewMoveHold?: boolean }).__lollyPreviewMoveHold) return;
   if (migrationStarted || !db.objectStoreNames.contains('preview-index')) return;
   migrationStarted = true;
   watchBattery();

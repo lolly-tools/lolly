@@ -17,8 +17,8 @@
  * Storage: <app data dir>/saved-state/<slot>.json, and each session's picture once,
  * by the hash of its bytes, at <app data dir>/saved-state/previews/<key>.<ext>
  * (plan 373). The record carries a short `preview` reference. A picture file is
- * written and read back before any record points at it, so a record never names a
- * file that is not there. Older desktop builds list only `*.json` names, so the
+ * written and read back before any record points at the file, so a record never
+ * points at a file that is not there. Older desktop builds list only `*.json` names, so the
  * `previews` directory is invisible to them; a record they read with no `thumb`
  * shows the tool icon and opens as usual.
  *

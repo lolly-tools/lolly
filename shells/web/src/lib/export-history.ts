@@ -22,7 +22,7 @@ export interface ExportEntry {
   /** The picture as a data URL: entries written before plan 373 (until the idle
    *  move reaches them), and every entry where the preview store is missing. */
   thumb: string | null;
-  /** The picture by reference into the preview store (`export:<id>` owns it). */
+  /** The picture by reference into the preview store, owned by `export:<id>`. */
   preview?: SessionPreviewRef;
   query: string;        // serialised URL-state → reopen link
   at: number;           // epoch ms
