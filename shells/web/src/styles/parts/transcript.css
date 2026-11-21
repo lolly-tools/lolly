@@ -8,7 +8,10 @@
 
 .tr-panel {
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 10000;
-  width: clamp(300px, 30vw, 420px);
+  /* The surface reaches the screen edge; the side term holds its controls inside a
+     side the system has claimed, as the two block terms below do. */
+  width: calc(clamp(300px, 30vw, 420px) + var(--safe-right));
+  padding-right: var(--safe-right);
   display: flex; flex-direction: column;
   /* Full-height STRETCH like .pro-blocks-panel, so the surface reaches the screen
      edge; the padding lifts the footer out of the iOS home-indicator strip

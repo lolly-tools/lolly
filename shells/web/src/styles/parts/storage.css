@@ -237,7 +237,7 @@
 .userimg-lightbox-close {
   position: fixed;
   top: calc(16px + var(--safe-top, 0px));
-  right: 16px;
+  right: calc(16px + var(--safe-right));
 }
 
 .btn-danger {

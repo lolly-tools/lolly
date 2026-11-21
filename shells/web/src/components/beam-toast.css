@@ -25,10 +25,11 @@
 .beam-toast {
   position: fixed;
   z-index: 100000;
-  right: 1.25rem;
+  /* Inside a side the system holds, as the bottom term clears the home indicator. */
+  right: calc(1.25rem + var(--safe-right));
   /* Clears a phone's home-indicator/gesture strip. */
   bottom: calc(1.25rem + var(--safe-bottom, 0px));
-  width: min(22rem, calc(100vw - 2.5rem));
+  width: min(22rem, calc(100vw - 2.5rem - var(--safe-left) - var(--safe-right)));
   padding: 0.9rem 1.1rem 1rem;
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 1.1);
