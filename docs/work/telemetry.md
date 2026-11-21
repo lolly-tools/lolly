@@ -1,7 +1,7 @@
 # Telemetry and dashboards
 
 Lolly Work can count what people do in Lolly so admins can see which tools are used and what gets
-exported. It never records what anyone typed or made: each event carries a short, fixed list of
+exported. It never records what anyone typed or made: each event has a short, fixed list of
 labels, such as a tool id or a file format.
 
 ::: note Lolly's own apps do not send these events today
@@ -73,7 +73,7 @@ the answer on. Both keys are in
 | `session.shell` | `shell`, `seconds` |
 
 An unknown event id is dropped. `seconds` is a numeric label for
-seat-utility rollups. No label anywhere in the list holds free text, so the first rule holds
+seat-utility rollups. No label in the list is free text, so the first rule holds
 without anyone having to review what is sent.
 
 Clients send events to `POST /api/v1/telemetry`, rate-limited per IP (`rateLimit.telemetry`, default
@@ -98,7 +98,7 @@ over the last 14 days, with a data table under every chart.
 ![The admin console overview: 14-day activity, what needs attention, top tools and fleet](shots/overview-dashboard.svg)
 
 **Activity** is one timeline over two existing records: the audit log (the authoritative "who
-did what") and *attributed* usage telemetry, meaning only events that carry a user id, so the
+did what") and *attributed* usage telemetry, meaning only events that have a user id, so the
 feed can show who acted. Nothing new is collected to build the feed. With no client sending
 events, the feed shows the audit log alone. It offers facets for category and actor.
 
@@ -115,8 +115,7 @@ groups, shell and engine-version range ([messages](api.md#approvals-and-inbox)).
 ## Downloads and what members see
 
 What the deploy shows members about its own measurement is a policy choice, and the console
-states its posture in the interface rather than hiding it: an internal deploy shows utilisation
-in full.
+states its posture in the interface: an internal deploy shows utilisation in full.
 
 Since Lolly 1.2.0, when a Lolly Work workspace is connected, the app's first-run privacy line
 says what the workspace keeps: what a person saves to its projects or shares through it, and a
@@ -148,7 +147,7 @@ to alert on is in [operations](operations.md#monitoring), and
 
 The same series can also be pushed over OTLP to a platform team's OpenTelemetry
 Collector, beside traces and logs. That export is off unless an endpoint is set, and it
-carries no usage events and nothing about identity; see
+includes no usage events and nothing about identity; see
 [OpenTelemetry export](operations.md#opentelemetry-export).
 
 <!--i:eti-link-->

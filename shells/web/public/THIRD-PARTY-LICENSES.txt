@@ -56757,7 +56757,7 @@ SOFTWARE.
 
 
 --------------------------------------------------------------------------------
-storytold photocraft camera raw decoder 0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b; pinned Cargo.lock)
+storytold photocraft camera raw decoder 0.18.0 (97a83f074f5407841a1444ee3f9be478ce03368b with upstream fixes 06bedca787a4, c004e38e759a and 4c33a7b8f216; pinned Cargo.lock)
 SPDX-License-Identifier: MPL-2.0 AND MIT
 Files: packages/node-shell/wasm/camera-raw/camera-raw.wasm
 Copyright: The ArtCraft Team and the PhotoCraft contributors, reproduced in the notices below.
@@ -60498,7 +60498,7 @@ SOFTWARE.
 pffft (the FFT inside the wasm) is BSD-style (UCAR/NCAR + contributors) - the full text is carried in shells/web/src/vendor/gtcrn/LICENSE.pffft.txt and in the vendored file's header.
 
 --------------------------------------------------------------------------------
-libopenmpt (compiled WASM) 0.8.7 (Emscripten build)
+libopenmpt (compiled WASM) 0.8.10 (Emscripten build)
 SPDX-License-Identifier: BSD-3-Clause
 Files: shells/web/src/vendor/libopenmpt/libopenmpt.mjs
 Copyright: © 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque

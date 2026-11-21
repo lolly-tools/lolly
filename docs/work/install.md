@@ -136,7 +136,7 @@ link per person. Open a printed link:
 - **The Lolly web app** at `/`, only when a built copy is present (next step).
 
 The web app, with its sign-in gate, locked tool inputs and locked profile, comes
-from the open-source Lolly repository, which Lolly Work never builds. To add it, clone
+from the open-source Lolly repository, which Lolly Work never builds. To add the web app, clone
 Lolly beside Lolly Work once:
 
 ```bash
@@ -497,7 +497,7 @@ sudo -u lolly cp instance.example.json instance.json    # then edit it (section 
 
 The service reads its secrets from one file. `EnvironmentFile` does no shell
 expansion, so write the values already resolved. `DATABASE_URL` goes here too,
-because it carries the database password and this is the file with mode `0600`.
+because it contains the database password and this is the file with mode `0600`.
 Put the password from section 3 in place of `<password>`:
 
 ```bash
@@ -587,7 +587,7 @@ already made:
   the shared secret and the server reads each member's groups and this app's role
   permissions from the host's LDAP. Development sign-in is off.
 - Roles are the app's YunoHost permissions (`owner`, `admin`, `approver`, `author`),
-  managed in Users › Groups and permissions. The first owner holds `owner` and
+  managed in Users › Groups and permissions. The first owner has `owner` and
   YunoHost admins start as admins. Every YunoHost group becomes a Lolly Work group, so
   overlays and approval chains can target them straight away.
 - Secrets are generated at install and kept in the app's `.env`. `NODE_ENV` is
@@ -605,7 +605,7 @@ itself.
 ::: details Connect a Nextcloud on the same server
 If a Nextcloud app is installed on the same YunoHost, the package finds it
 (`yunohost app list`) and prefills its address under **Configuration > Nextcloud**. The
-connection stays off until you finish it:
+connection stays off until you finish these steps:
 
 1. Create a dedicated Nextcloud account.
 2. Share the brand folder with it read-only.
@@ -617,7 +617,7 @@ Switching it on adds two config-managed entries to `instance.json`: a
 [WebDAV delivery destination](delivery.md#configure-a-fixed-webdav-destination) that
 writes approved exports beneath a folder you name, which must already exist. The delivery
 destination is limited to the `admins` group until you list other groups in the panel. The
-Nextcloud may also sit on another server, because the panel accepts any HTTPS address.
+Nextcloud may also be on another server, because the panel accepts any HTTPS address.
 Both entries read the app password from the service environment, and the server reaches
 the Nextcloud over its own address, which resolves to a private network address on a
 shared host, so the package lists that origin as an allowed private origin for providers.

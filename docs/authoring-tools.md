@@ -80,7 +80,7 @@ Try the folder in one of two ways:
 :::
 
 ::: note An HTML template needs the browser tier on the command line
-The template's root is an `<svg>`, so the command line writes its SVG with no browser, and its PNG too once a measured `browser-free.json` admits the tool. A template built from HTML renders the same way in the web and desktop apps, and needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
+The template's root is an `<svg>`, so the command line writes its SVG with no browser, and its PNG too once a measured `browser-free.json` admits the tool. An HTML template renders the same way in the web and desktop apps, but needs the CLI's browser tier on the command line ([Render with the CLI](/info/cli-rendering.html)).
 :::
 
 <!--i:eti-folder-plus-->
@@ -111,7 +111,7 @@ Only `tool.json` and `template.html` are required. Add the others when the tool 
 
 A tool written for any design system takes its colours from seven CSS variables on the canvas, each with a fallback for a design system that leaves one out: `var(--brand-primary, #2a1a5e)` for the lead colour, then `--brand-on-primary`, `--brand-secondary`, `--brand-surface`, `--brand-text`, `--brand-muted` and `--brand-edge`. Lolly fills them from the design system the person has open, in the piece's look and colourway, in the web app, the desktop apps and the command line.
 
-Some design systems name their colours in their own words, such as a textile brand's Main, Accent, Supporting and Tertiary. These are [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called), and a tool needs no change for them. The design system says which role Lolly reads as each slot, so `--brand-primary` holds whichever role is read as the lead colour. A role that fills no slot is read by name only: no tool draws that role unless a person chooses it in a colour field. A pick stays linked to the role, and the template and hooks receive the role's colour for the piece's look and colourway, never the link.
+Some design systems use their own words for their colours, such as a textile brand's Main, Accent, Supporting and Tertiary. These are [colour roles](/info/brand-studio.html#colour-roles-what-the-colours-are-called), and a tool needs no change for them. The design system says which role Lolly reads as each slot, so `--brand-primary` holds whichever role is read as the lead colour. A role that fills no slot is read by name only: no tool draws that role unless a person chooses it in a colour field. A pick stays linked to the role, and the template and hooks receive the role's colour for the piece's look and colourway, never the link.
 
 [Templates and rendering](/info/tool-rendering.html#design-system-colours-in-templates-and-styles) lists every variable, including each role's own `--brand-<id>`, and which token paints each one.
 

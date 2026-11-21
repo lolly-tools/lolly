@@ -1,8 +1,6 @@
 # Sign-in provider recipes
 
-This page is for the operator connecting a sign-in provider to Lolly Work: the configuration
-for each provider, how several providers share one instance and how a reverse proxy can sign
-people in. Who gets in and how sessions behave are on [Sign-in and sessions](identity.md).
+Who gets in and how sessions behave are on [Sign-in and sessions](identity.md).
 The full rollout, with logout and optional assurance, is [Set up enterprise
 identity](enterprise-identity.md).
 
@@ -76,7 +74,7 @@ further issuers beside the primary.
   script, so every existing sign-in link (the console gate, Lolly's own sign-in gate) gains
   the buttons with no client change. `?idp=<id>` picks one directly, and `/api/auth/config`
   and `GET /api/v1/instance` list `providers` for clients that draw their own.
-- The provider that **starts** a flow finishes it, because its id travels in the signed state
+- The provider that **starts** a flow finishes that flow, because its id travels in the signed state
   token.
 - An additional provider's subjects are stored namespaced (`<id>:<sub>`), so two issuers
   handing out the same bare subject never collide in one account. The primary's subjects stay
@@ -300,7 +298,7 @@ exists. Role still comes from groups, never from a direct assignment.
   after the login itself is dropped (YunoHost gives every account a primary group of its own
   name).
 - The directory fails closed: configured but not answering means `502 DIRECTORY_UNAVAILABLE`
-  and no session, never a session with fewer groups than the person holds.
+  and no session, never a session with fewer groups than the person has.
 - The client is `server/src/iam/ldap.ts`: plain `ldap://` over TCP, meant for the loopback of
   the host that owns the directory.
 
@@ -310,8 +308,8 @@ session only; ending the proxy's own session is up to the proxy.
 ::: details YunoHost, worked through
 SSOwat authenticates against the portal, strips any `ynh_*` header and any `Authorization:
 Basic` a client sent, then sets `YNH_USER`, `YNH_USER_EMAIL` and `YNH_USER_FULLNAME` for a
-signed-in user. Each user's LDAP entry carries `memberOf` (YunoHost groups) and `permission`
-(the app permissions the user holds), which the two `groupMap` rules above turn into groups.
+signed-in user. Each user's LDAP entry has `memberOf` (YunoHost groups) and `permission`
+(the app permissions the user has), which the two `groupMap` rules above turn into groups.
 A YunoHost group `marketing` becomes the Lolly Work group `marketing`, and the app permissions
 `lolly-work.owner`, `.admin`, `.approver` and `.author` become the role groups. Roles are
 therefore managed in YunoHost's own Users, Groups and permissions screen, and take effect at

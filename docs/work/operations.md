@@ -51,7 +51,7 @@ new writes either.
 
 ### Who applies migrations
 
-Two store drivers sit behind one interface and pass the same conformance tests:
+Two store drivers share one interface and pass the same conformance tests:
 
 | Driver | When | Notes |
 |---|---|---|
@@ -132,7 +132,7 @@ catalogue signed with that key. Nothing in the web app is patched or rebuilt.
   runs, so believing that address about its catalogue key trusts nobody new. A web app on
   lolly.tools or on any other static host never asks for the key and keeps the key built
   into its release.
-- **Only for that key.** The instance key verifies only a catalogue that carries its key
+- **Only for that key.** The instance key verifies only a catalogue that has its key
   ID. A catalogue signed by any other key, or not signed at all, is refused as before.
 - **One operator per address.** A proxy that sends this address's `/api/` paths to a
   service run by someone else would let that party offer a key. Serve Lolly Work and its web
@@ -155,7 +155,7 @@ the instance key into the web app it installs.
 
 **The desktop and mobile apps** keep the key built into each app when connected to an
 instance, so this instance's own catalogue reaches only an app built with this instance's
-key. Pairing an app with a server, which is planned, can carry the key ID beside the
+key. Pairing an app with a server, which is planned, can include the key ID beside the
 server's certificate fingerprint, so the app can check the key it reads against one it
 was given in person. The same limit applies to an
 [edit from the studio](design-system-administration.md#what-apps-get): a store app does not receive one.
@@ -163,7 +163,7 @@ was given in person. The same limit applies to an
 <!--i:eti-history-->
 ## Backup and restore
 
-The database holds durable records and, with `blobs.driver: "pg"`, stored asset
+The database has durable records and, with `blobs.driver: "pg"`, stored asset
 bytes. It is one part of a complete restore:
 
 | Recovery input | Keep and check |
@@ -365,7 +365,7 @@ port 4318, and refusing at boot is clearer than sending HTTP to a gRPC port.
 | Metrics | the series `GET /metrics` serves, with the same names, labels and help text: counters as monotonic sums, gauges as gauges. Alerts written against `/metrics`, such as the [monitoring](#monitoring) list, can use the same names |
 | Logs | the server's structured log records: the message, its level, the method, route, status and duration of an access line, and an error's type. A record made during a traced request carries that request's trace and span ids |
 
-Each export also carries a resource: `service.name`, `service.version`,
+Each export also includes a resource: `service.name`, `service.version`,
 `service.instance.id` (random per process), the `telemetry.sdk.*` and
 `process.runtime.*` attributes, and your `OTEL_RESOURCE_ATTRIBUTES`. Lolly Work adds no host
 name; a home server's host name is often a person's name. Add `host.name` yourself if
@@ -381,7 +381,7 @@ identity leaves the instance. Each exported attribute comes from a fixed list in
 server. A value read from a request is kept only when it belongs to a known set (the
 HTTP method) or follows a naming rule (a tool id, a format).
 
-- No URL path and no query string. A span carries the route pattern, so
+- No URL path and no query string. A span has the route pattern, so
   `/api/v1/users/:id` and never the id.
 - No header, cookie, session, bearer token, client address or user agent.
 - No request or response body, and no database statement text or parameter.
@@ -391,7 +391,7 @@ HTTP method) or follows a naming rule (a tool id, a format).
 - No user id, email address or display name anywhere.
 
 Lolly Work's test suite runs the export against a capturing receiver, sends requests that
-carry emails, cookies, bearer tokens, forwarded addresses, query values, bodies and
+include emails, cookies, bearer tokens, forwarded addresses, query values, bodies and
 user ids, and fails if any of them appears in the bytes of any export, in either
 encoding.
 
@@ -436,12 +436,12 @@ grows with contributions, not with the number of assets.
 
 Do the sums before they surprise you. A brand team replacing 200 hero images four
 times a year at 8 MiB each adds roughly 6 GiB a year, on top of the originals. Where
-the bytes live decides the cost. With `blobs.driver: "pg"` the history sits in your
+the bytes live decides the cost. With `blobs.driver: "pg"` the history is in your
 database and in every database backup, which is usually the number that matters
 first. With `"s3"` it goes to object storage, which is cheap but still yours to manage
 over time. See [configuration](configuration.md#blobs).
 
-Two ways to bound it, and they combine:
+Two ways to bound the growth, and they combine:
 
 - **Retention.** Set `policy.catalog.versionKeep` to the number of versions to keep per
   asset, the current one included. Trimming happens when a new version arrives, oldest
@@ -453,7 +453,7 @@ Two ways to bound it, and they combine:
 - **Deleting a version by hand.** `lw catalog version-rm <assetId> <n>`, refused for the
   served version and for an asset on hold.
 
-Neither replaces watching the store. `GET /metrics` carries the stored and read
+Neither replaces watching the store. `GET /metrics` shows the stored and read
 totals, and with `blobs.driver: "pg"` the server raises its own alert at the
 thresholds in the next section.
 
@@ -462,7 +462,7 @@ thresholds in the next section.
 
 With `blobs.driver: "pg"`, project files and instance assets are `bytea` rows in
 PostgreSQL. That keeps an instance to one database to run and back up. Moving the
-bytes to object storage pays off only once the database holds enough of them, so the
+bytes to object storage pays off only once the database has enough of them, so the
 server measures two figures and raises an alert when either reaches its threshold:
 
 | Figure | Threshold | Metric |
@@ -482,7 +482,7 @@ is built. The alert needs no monitoring stack:
 - Each email is recorded in the `instance_blob_months` table, so a restart or a second
   replica does not send it again.
 
-The monthly read figure lives in the same table. Each server writes the bytes it has
+The monthly read figure is in the same table. Each server writes the bytes it has
 read there about once a minute while reads continue, whenever the figures are read
 and when it shuts down, so the month's total survives restarts and adds up across
 replicas. A crash loses only the reads not yet written. `lw_blob_read_bytes_total`
@@ -547,7 +547,7 @@ written to the asset store and no record was created.
   `clamdscan -` pattern). It suits a single-node install: one configuration block, no
   new service.
 - **`http`** posts the bytes and reads any 2xx as clean and any other status as a
-  refusal, with the response body as the reason. The request carries
+  refusal, with the response body as the reason. The request includes
   `x-lolly-submit-sha256` so a gateway can cache its own verdicts. It suits
   serverless shapes and ICAP gateways.
 
@@ -556,7 +556,7 @@ at all, through a timeout, a refused connection or a missing program. The defaul
 `reject`, refuses submissions rather than quietly turning the gate off. Set `allow`
 only if you would rather take the bytes than block contributions during an outage.
 
-The verdict is audited under `catalog.submit` either way. A refusal carries the code and
+The verdict is audited under `catalog.submit` either way. A refusal has the code and
 the scanner's reason. An accepted submission records what the hook did as `scan`:
 
 - `clean`: the hook answered and passed the bytes.
@@ -591,9 +591,9 @@ Mail is plain text through your own relay (`notify.smtp`, see
 skipped. Webhook events are posted to `notify.webhook.url` as JSON, with an
 `x-lolly-timestamp` header and `x-lolly-signature: sha256=<hmac(timestamp.body)>` keyed
 by `LW_WEBHOOK_SECRET`. Check both and refuse old timestamps, and forgeries and replays
-fail on arrival. Delivery tries once more, then counts the failure
-(`lw_notify_total{outcome="failed"}`) and logs it; it never blocks or fails the request
-that triggered the delivery. Neither channel reports home: both targets are your own, named in
+fail on arrival. Delivery tries once more, then counts and logs the failure
+(`lw_notify_total{outcome="failed"}`); it never blocks or fails the request
+that triggered the delivery. Neither channel reports home: both targets are your own, set in
 your configuration and reached only when your members act.
 
 <!--i:eti-external-link-->
@@ -676,7 +676,7 @@ administrator's side. Three routes, easiest first:
    - Upload refuses any pack whose instance address is not this deployment, so nobody can
      quietly host a pack that enrols devices somewhere else.
    - An app built with a pinned key refuses an unsigned or wrongly signed pack.
-   - A deployment can also carry the pack in its own mount and host it from startup
+   - A deployment can also keep the pack in its own mount and host it from startup
      (`instance.connectPack`). The same inspection applies, and an owner's upload wins.
 2. **The first-run instance sheet** in the desktop and mobile apps: the person types this
    instance's address, and the app checks `GET /api/v1/instance` and
@@ -699,7 +699,7 @@ cookie also works for the private catalog and the collaboration sockets.
 - **`X-Lolly-Client` is the only signal a connected app sends**: the app kind and version,
   the engine version and the platform, on requests the person's own use already makes.
   There is no heartbeat and no reporting home, and a device that stops using the
-  instance simply stops appearing. While its person is signed in, and only then, the app
+  instance stops appearing. While its person is signed in, and only then, the app
   adds an `install/<id>` token, so the install appears by name in the Fleet view. Rename
   and forget there only change the row; the device is never touched.
 
@@ -707,7 +707,7 @@ cookie also works for the private catalog and the collaboration sockets.
 
 People enrol from their app; the instance never reaches out to a device. While signed
 in, your policy applies, and work saved here (projects, sessions, submissions and audit)
-lives on the server. Either side can end it alone:
+is stored on the server. Either side can end it alone:
 
 - The person leaves from the app: **Leave** on the **Lolly instance** card in **Settings**
   removes the organisation's brand, tools, cached catalog and install ID. Personal work

@@ -39,8 +39,8 @@ and publish its templates ([Partner templates](partner-templates.md#publish-a-te
 <!--i:eti-eye-->
 ## Check what they get
 
-On the programme's page, or a company's, **See what they get** shows the programme or the company
-as its partners get it: the tools, the files and the templates with what each lets them change,
+On the programme's page, or a company's, **See what they get** shows what partners get from the
+programme or the company: the tools, the files and the templates with what each lets them change,
 each drawn with the company's details. Check here before anyone is invited. A drawing is a
 watermarked preview and nothing is saved.
 
@@ -83,7 +83,7 @@ own ([Add people by domain](partner-programmes.md#add-people-by-domain)).
 
 They get the tools and files of both. For each input, a company's rule overrides its programme's
 rule, and across two programmes the stricter rule wins. Someone in two companies may get no company
-details filled in, because Lolly Work cannot always tell which company a piece is for, so put each
+details filled in, because Lolly Work cannot always tell which company a piece is for. Put each
 person in one company where you can.
 
 <!--i:eti-unlink-->
@@ -207,7 +207,7 @@ lw people import resellers-emea roster.csv --apply    # does it
 **Rita** signs in, and her home opens with Northwind IT's card first, then the data sheet.
 **Use** opens the sheet with Northwind IT's logo and contact line in place and one field, **Your
 price**. When she exports, the **Design system** card reads "Records: Lolly Demo · Colourway:
-Spearmint · Partner: Northwind IT (Resellers, EMEA)". The partner record holds Northwind IT and
+Spearmint · Partner: Northwind IT (Resellers, EMEA)". The partner record has Northwind IT and
 the programme, never Rita herself; the details line in the artwork shows the contact you set in
 step 3.
 

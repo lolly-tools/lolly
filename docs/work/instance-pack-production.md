@@ -87,7 +87,7 @@ Keep the original build, CI and qualification evidence with the pack.
 
 The complete manifest may list up to 120,000 files, the same bound Lolly Work applies
 to a shell release manifest. The catalogue delivery inventory inside the tree
-keeps its own bound of 100,000 rows.
+has its own bound of 100,000 rows.
 
 **What release mode checks.** Release mode requires a modern signed catalogue with a sequence and tool
 directory hashes. It runs the source-pinned Lolly verifier, checks the complete

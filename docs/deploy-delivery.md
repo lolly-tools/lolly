@@ -38,7 +38,7 @@ Hide internal purge tags from the browser. Keep CSP, COOP, COEP, CORP and Referr
 <!--i:eti-package-->
 ## Build and retain actual files
 
-The release pass creates files such as `asset.<sha16>.webp`, signed `/tools/<id>@<sha16>/` directories and `index.<sha16>.json` copies, and rewrites only the extracted release's references. The full hashes stay in the signed envelope and the asset checksums; the suffix is an address, not proof of integrity.
+The release pass creates files such as `asset.<sha16>.webp`, signed `/tools/<id>@<sha16>/` directories and `index.<sha16>.json` copies, and rewrites only the extracted release's references. The full hashes are in the signed envelope and the asset checksums; the suffix is an address, not proof of integrity.
 
 A release goes out in this order:
 
@@ -95,7 +95,7 @@ Turn off edge resizing, transcoding, metadata stripping and re-signing. Also tur
 
 Display renditions are generated and signed once. Each keeps its credits and an original parent or source hash, and has its own catalog checksums. Selection, placement and export use the original formats. See [Authoring assets](/info/authoring-assets.html#delivery-addresses-and-display-renditions).
 
-Model manifests carry every file's full SHA-256 and a directory hash. Install a model only after all decoded bytes match the expected length and full hash. An interrupted download can keep a partial copy, but resuming must check its range and the final whole-file hash before the model is available offline. A 16-character address suffix, a response header or a finished progress bar cannot replace that check.
+Model manifests include every file's full SHA-256 and a directory hash. Install a model only after all decoded bytes match the expected length and full hash. An interrupted download can keep a partial copy, but resuming must check its range and the final whole-file hash before the model is available offline. A 16-character address suffix, a response header or a finished progress bar cannot replace that check.
 
 ::: details Model downloads through an object store: CORS rules
 Public model responses use a constant `Access-Control-Allow-Origin: *`, including for requests with no `Origin` header, and never send `Access-Control-Allow-Credentials` or `Set-Cookie`. That keeps the public cache key independent of the reader's origin; only `Accept-Encoding` may vary. Configure the object store to allow anonymous GET and HEAD requests and to expose `ETag`, `Content-Range` and `Accept-Ranges`, so browsers can validate resumed downloads.
@@ -164,7 +164,7 @@ DELIVERY_CATALOG_PUBLIC_KEY_JWK="$(cat catalog-public.jwk)" \
 Without `--samples`, the probe also checks its built-in shell samples for lolly.tools and lolly.ing. Your receipt would then depend on those hosts, and they would receive your probe's address. A file holding `[]` runs the catalog checks alone.
 :::
 
-The probe verifies the signature first and takes every expected hash from the signed index. It checks the hashed indexes, a daily rotation of hashed tool, preview and asset files with the legacy names they replace, a warm 304 for each and one missing address per hashed family, which must answer 404 without being stored. Requests carry no cookies or bearer tokens. A derived sample replaces one from your list at the same address only when it checks everything that sample does, so a reviewed credential, range, C2PA, CORS or age check still runs. A catalog that refuses anonymous readers or carries an instance scope yields no samples, so private catalogs still need a reviewed sample list.
+The probe verifies the signature first and takes every expected hash from the signed index. It checks the hashed indexes, a daily rotation of hashed tool, preview and asset files with the legacy names they replace, a warm 304 for each and one missing address per hashed family, which must answer 404 without being stored. Requests carry no cookies or bearer tokens. A derived sample replaces one from your list at the same address only when it checks everything that sample does, so a reviewed credential, range, C2PA, CORS or age check still runs. A catalog that refuses anonymous readers or has an instance scope yields no samples, so private catalogs still need a reviewed sample list.
 
 Include identity and compressed bytes, cold 200 and warm 304 requests, ranges, model hashes, signed images, anonymous refusals and two different authorised readers of private resources. A failed check blocks qualification, and `--observe` records gaps without qualifying the deployment. Repeat after every release and proxy configuration change, and keep a working rollback release. Follow your own production handoff and identity checks before any change to a live deployment.
 

@@ -58,10 +58,10 @@ export interface DrumKit {
 /** The kinds of music, by how their drums are played. */
 const JAZZ = new Set<LofiMood>(['jazz', 'swing']);
 const BAND = new Set<LofiMood>(['blues', 'country', 'rock', 'punk', 'ska', 'metal', 'soul', 'funk', 'reggae', 'spanish', 'straya', 'afrobeat', 'kora', 'persian', 'guzheng', 'koto', 'citypop', 'fantasy', 'grunge', 'stoner', 'shoegaze', 'salsa', 'surf', 'yacht', 'oompa', 'mandopop']);
-const DUSTY = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'triphop', 'dream', 'lofiHouse']);
-const SUBS = new Set<LofiMood>(['dubstep', 'brostep', 'dnb', 'amapiano']);
+const DUSTY = new Set<LofiMood>(['warm', 'lateNight', 'rainy', 'lofiFocus', 'lofiDrift', 'lofiSoul', 'lofiFunk', 'lofiJazz', 'lofiZen', 'lofiCinema', 'triphop', 'dream', 'lofiHouse']);
+const SUBS = new Set<LofiMood>(['dubstep', 'brostep', 'dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave', 'amapiano']);
 /** The styles whose sound is the electronic kit's own synthesised metal. */
-const SYNTH_METAL = new Set<LofiMood>(['acid', 'electro', 'chiptune', 'sherbert']);
+const SYNTH_METAL = new Set<LofiMood>(['acid', 'electro', 'chiptune', 'sherbert', 'italo']);
 
 /** A small seeded random source, its own stream, so drawing a kit moves nothing else. */
 function kitRandom(seed: number, mood: string): () => number {
@@ -96,6 +96,7 @@ export function drumKit(seed: number, mood: LofiMood): DrumKit {
         : band ? (mood === 'rock' ? pick(['acoustic', 'acoustic', 'punch'] as const) : 'acoustic')
       : mood === 'hiphop' ? pick(['boom', 'punch', 'sub'] as const)
         : mood === 'lofiHouse' ? 'house'
+        : mood === 'italo' ? 'punch'
         : mood === 'botanica' || mood === 'noosa' ? pick(['tight', 'boom', 'tight'] as const)
         : mood === 'privateSchool' ? 'boom'
         : mood === 'breakbeat' || mood === 'funkyHouse' || mood === 'ukGarage' ? pick(['punch', 'punch', 'tight'] as const)

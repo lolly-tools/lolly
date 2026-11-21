@@ -1997,6 +1997,66 @@
         "dnb",
         "fantasy"
       ]
+    },
+    {
+      "id": "italo",
+      "name": "Italo disco",
+      "title": "Free Italo disco background music generator: make your own, free with credit",
+      "description": "Make Italo disco background music in your browser: an octave synth bass, arpeggios, claps and a cowbell. CC BY 4.0: free for any use, with credit.",
+      "lead": "A sequenced synth bass running in octaves, bright arpeggios and a kick on every beat. Lolly writes a new Italo disco tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's Italo disco is the early eighties sound of a drum machine and a sequencer: a kick on every beat, claps on two and four, open hats on the offbeats, and a cowbell or a tambourine in the drops. Nothing is sampled. Every sound is synthesised on your device.",
+        "The bass is a synth bass stepping between a note and its octave in running sixteenths, with a step into the next chord at the end of the bar. Plucked arpeggios, synth brass or saw chords carry the harmony, and a synth lead, a pulse, bells or a wordless voice sings a simple tune over them.",
+        "A tune opens on an eight-bar intro, builds, drops, breaks down and drops again. Tunes play at about 116 to 128 beats a minute, three times in four in a minor key, with the chords changing every two bars."
+      ],
+      "uses": [
+        "Retro fashion and lookbook videos",
+        "Roller disco and party playlists",
+        "Workout and spin classes",
+        "Night drive videos",
+        "Eighties themed events"
+      ],
+      "faq": [
+        {
+          "q": "How is Italo disco different from nu-disco here?",
+          "a": "Italo disco is the machine sound: a sequenced bass in strict octaves, arpeggios and a mostly minor key. Nu-disco is filtered disco with a wah guitar and a looser bass. Try one seed in both and listen to the bass."
+        }
+      ],
+      "related": [
+        "nudisco",
+        "synthwave",
+        "citypop"
+      ]
+    },
+    {
+      "id": "balearic",
+      "name": "Balearic",
+      "title": "Free Balearic background music generator: make your own, free with credit",
+      "description": "Make Balearic sunset background music in your browser: a slow groove, nylon guitar, Rhodes and hand drums. CC BY 4.0: free for any use, with credit.",
+      "lead": "Sunset music: a slow, easy groove with hand drums, a deep round bass, Rhodes and pads, and a nylon guitar. Lolly writes a new Balearic tune from every seed, in your browser, and you can change every part of the track.",
+      "sound": [
+        "Lolly's Balearic is the unhurried music of a terrace at sunset. A soft kick and a rimshot or finger snaps keep an easy bossa pulse, with a shaker throughout and congas or a woodblock joining in. The room is large, so every note has air after its end.",
+        "A round bass plays a few long notes with space between them. Rhodes, warm pads, a nylon guitar or a grand piano hold lush chords that change every two bars. The tune goes to a plucked or blown instrument from around the sea: nylon guitar, kora, vibes, harp, tar, ney, flute or a trumpet.",
+        "A tune opens on an eight-bar intro, builds gently, opens out, breaks down and opens out again. Tunes play at about 90 to 110 beats a minute, a little more often in a minor key than a major one."
+      ],
+      "uses": [
+        "Travel and holiday videos",
+        "Hotel, spa and restaurant background music",
+        "Yoga and stretching classes",
+        "Property and interior tours",
+        "Evening and dinner playlists"
+      ],
+      "faq": [
+        {
+          "q": "Can I add the sea to a Balearic tune?",
+          "a": "Yes. Turn on the waves chip in the Ear candy section and the sea comes and goes a few times in a tune, faded in and out. It is never a constant bed, so the music stays in front."
+        }
+      ],
+      "related": [
+        "botanica",
+        "noosa",
+        "yacht"
+      ]
     }
   ]
 }

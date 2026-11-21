@@ -1,7 +1,7 @@
 # Google Drive (kind: `gdrive`)
 
 Connect one Google Drive folder, including a shared drive folder, and its files appear in the
-Lolly Work catalog for the groups you choose. The console walks you through it: the folder and
+Lolly Work catalog for the groups you choose. The console walks you through setup: the folder and
 groups, consent in the browser with a Google client you register, a test of one real file, then
 activation. Lolly Work reads the folder and never writes to Drive.
 

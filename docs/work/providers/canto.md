@@ -36,7 +36,7 @@ what to look at. Contributors changing the driver follow its
   (`https://acme.canto.com` means `"domain": "com"`). It picks the API host and the regional
   OAuth server together.
 - Optionally, **an album id** to federate one album.
-- If you keep expiry dates, **the custom field** that holds them.
+- If you keep expiry dates, **the custom field** that has them.
 
 <!--i:eti-lock-->
 ## Credential shape
@@ -81,9 +81,9 @@ by hand against your App ID and Secret. `lw providers auth` refuses this kind; s
 | `minGapMs` | The gap between calls, default `350` (about three a second). |
 :::
 
-**`mapping.availabilityFields`** imports expiry: name the custom field that holds the date (here
+**`mapping.availabilityFields`** imports expiry: name the custom field that has the date (here
 `"Expiry Date"`, which becomes an
-[availability window](../catalog.md#imported-availability-windows) `availableUntil`). Without it,
+[availability window](../catalog.md#imported-availability-windows) `availableUntil`). Without the mapping,
 the manual `catalog.expire` control is the only expiry. An Image Relay tenant that already set
 this keeps its settings; only the field name changes.
 
@@ -108,7 +108,7 @@ lw providers health acme-canto
 ## Notes / limits
 
 - **Listing walks schemes.** Canto lists per scheme (image, video, audio, document,
-  presentation, other), so each catalog id carries its scheme (`image:AB12C`). An album-scoped
+  presentation, other), so each catalog id includes its scheme (`image:AB12C`). An album-scoped
   sync pages the album once instead.
 - **Originals on request.** Files are fetched when used, streamed, pinned to the `canto.com`,
   `canto.global` and `canto.de` hosts, and never stored. The driver sends its own `User-Agent`

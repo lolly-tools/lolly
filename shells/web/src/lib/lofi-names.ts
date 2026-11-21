@@ -37,7 +37,7 @@ export const LOFI_HATS_NAME: Record<LofiStyle['hats'], string> = { hat: 'hi-hat'
 export const LOFI_BASS_NAME: Record<LofiStyle['bass'], string> = {
   round: 'rolling bass', upright: 'upright bass', synth: 'synth bass', wobble: 'wobble bass', growl: 'growl bass',
   reese: 'reese bass', slap: 'slap bass', screech: 'screech bass', pulse: 'chip bass', electro: 'electro bass',
-  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass', didgeridoo: 'didgeridoo', log: 'log drum', deep: 'deep-house bass', warp: 'warp bass', tuba: 'tuba',
+  picked: 'bass guitar', croak: 'croak bass', eight: '808', acid: 'acid bass', motown: 'soul bass', didgeridoo: 'didgeridoo', log: 'log drum', deep: 'deep-house bass', warp: 'warp bass', tuba: 'tuba', fog: 'foghorn bass', jump: 'jump-up bass',
 };
 
 /**

@@ -1,7 +1,7 @@
 # Cloudinary integration with Lolly (kind: `cloudinary`)
 
 Connect one Cloudinary product environment and its media appears in the Lolly Work catalog,
-with original downloads by stable asset ID and access decided by Lolly Work groups. Cloudinary stays
+with original downloads by stable asset ID and access decided by Lolly Work groups. Cloudinary is
 the source. Members' browsers only ever see Lolly Work URLs, never a Cloudinary link or secret.
 
 | You get | Not included |
@@ -40,7 +40,7 @@ note.
   the credential can see. Legacy fixed-folder restrictions are not supported.
 
 Use the advanced **Providers > Cloudinary** form or `lw`. Lolly Work exposure decides who sees what,
-because a shared service credential does not carry each member's own folder permissions.
+because a shared service credential does not include each member's own folder permissions.
 
 <!--i:eti-lock-->
 ## Credential shape
@@ -91,7 +91,7 @@ enters the catalog.
 :::
 
 **Approval.** `approvedTag` is a convention your administrators define, not a moderation result
-or a licence. Without it, approval stays unknown and `requireApproved` exposes nothing.
+or a licence. Without the tag, approval is unknown and `requireApproved` exposes nothing.
 
 **Dates.** Availability field names read contextual metadata by default; the `context.` prefix
 is optional. `metadata.` reads structured metadata and needs `includeMetadata: true` plus the
@@ -109,7 +109,7 @@ lw providers sync cloud-media
 lw providers enable cloud-media
 ```
 
-The credential prompt is hidden. Shape reports hold field names and types, never values.
+The credential prompt is hidden. Shape reports list field names and types, never values.
 
 ::: check Before you enable the source
 Check the mapped sample, groups and source scope, and finish the tenant check from Onboarding

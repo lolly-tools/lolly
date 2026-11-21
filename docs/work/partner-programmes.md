@@ -1,9 +1,8 @@
 # Partner programmes
 
-This page is for the admin who gives outside partners a way into Lolly Work: distributors,
-software partners, resellers, agencies, or whatever your organisation calls the people it works
-with. A partner programme is your own name for one kind of partner, and it decides what that
-kind of partner gets. Lolly Work has no fixed list of partner types.
+A partner programme is your own name for one kind of outside partner, such as distributors,
+software partners, resellers or agencies, and it decides what that kind of partner gets. Lolly
+Work has no fixed list of partner types.
 
 Someone in a programme sees only what their programmes include. Your own people are unaffected.
 
@@ -64,7 +63,7 @@ delivery sends to your own destinations. So a partner's app offers no **New grou
 to**.
 
 A grant that cannot apply to partners is marked. `GET /api/v1/grants` and the answer to a new grant
-carry `partnerScope`: "Does not apply to partner programme members: `<action>` is not available to
+have `partnerScope`: "Does not apply to partner programme members: `<action>` is not available to
 partners."
 
 <!--i:eti-folder-plus-->
@@ -108,7 +107,7 @@ To give one asset to a programme without a collection, submit it with the progra
 for example `lw catalog submit ./price-sheet.pdf --name "Price sheet" --groups programme-resellers-emea`.
 Anyone with `programme.manage` may submit into a programme's group without joining the programme.
 To give a whole connected provider, add the programme's group to the provider's exposure groups.
-To give one folder of it, use [Provider folders](#provider-folders).
+To give one of its folders, use [Provider folders](#provider-folders).
 
 Per-input locks work for programmes as for any group: add a rule for `programme-<id>` in the
 tool's overlay ([Policy and governance](governance.md#per-input-access)).
@@ -117,13 +116,13 @@ tool's overlay ([Policy and governance](governance.md#per-input-access)).
 ## Provider folders
 
 **Provider folders** on the programme's page gives one folder of a connected source, and
-everything inside it, to the programme or to one company in it, until an optional end date. Its
+everything inside the folder, to the programme or to one of its companies, until an optional end date. Its
 people then get those files even when the source is otherwise for your own people, and nothing
 else from that source. Choose the source, then the folder: the list shows every folder the
-source's last sync found, with how many files each holds.
+source's last sync found, with how many files each has.
 
 Nothing is chosen at first, and **All of it** comes last, so pressing the button without looking
-never gives the whole source away. When the folder you choose holds other folders, the line
+never gives the whole source away. When the folder you choose has other folders, the line
 above the button lists them, for example "This includes Internal (2) and Internal/Roadmaps (1)",
 so you can check what comes with your choice before you press the button.
 
@@ -165,7 +164,7 @@ templates, rules tools, user tools and brand skills, plus a company's own files 
 
 **What the gate covers.** For a person or an agent token in a programme: the catalog feed, the
 files themselves, browsing, search (including live results from a provider), the organisation
-MCP's asset search and the links they make. A held file is simply absent, and nothing tells a
+MCP's asset search and the links they make. A held file is absent, and nothing tells a
 partner that more may come. A server render or compile that uses a held file, through a template's
 values, the company's details or the caller's own values, answers `422 ASSET_HELD` with each file:
 "This render uses a file that is not available to you: `<ids>`." In report mode, renders are
@@ -221,14 +220,14 @@ Nothing is written unless every file qualifies: a file outside the audience's fe
 
 ### Links, ZIPs and credits
 
-- **A link a partner makes** carries only what their gated feed holds. A held file is refused when
+- **A link a partner makes** includes only what their gated feed has. A held file is refused when
   they make the link.
 - **A link your own people make** leaves held files out, unless its maker chose them. A dry run
   (`POST /api/v1/links?dryRun=1`) lists what travels and what is held, with the reason, and writes
   nothing. Staff may then include held files with `includeHeld: true` and a note; partners cannot.
   A held file left out is never counted as "no longer available".
 - **Every collection ZIP** a link serves starts with `CREDITS.txt` and `credits.json`, the same
-  credits a `.lolly` pack carries. A held file a member of staff chose to carry is credited
+  credits a `.lolly` pack has. A held file a member of staff chose to carry is credited
   "included by the sender, who chose to carry bytes held back by default".
 - **The collection link page** shows one credit line for a file whose licence asks for a credit,
   with the licence and the source.
@@ -277,7 +276,7 @@ same report from a terminal, and `lw catalog rights` records marks and licences.
 A template gives a programme a ready piece to finish, such as a product data sheet where a reseller
 adds only their price. Partners find it on their home, under **From** and your workspace's name, and
 in the tool's **Start** chooser, and **Use** opens the template. Only what the template leaves open is offered;
-everything else is simply not there, with no note about why.
+everything else is not there, with no note about why.
 
 ![The Templates card for Resellers, EMEA: the Partner data sheet with its logo and details line taken from the company, a Pricing template and the switch that keeps Pricing to its templates](shots/partner-programme-templates.svg)
 
@@ -289,7 +288,7 @@ joining the programme. There are two kinds:
   admins have; a programme manager without it asks a colleague on the brand team to submit the
   template, then publishes it from the card. Untick what partners may not change. The card
   counts what stays open, for example "Partners can change 1 of 9 inputs". With every input ticked
-  there are no rules and partners can change everything. **Colourway and mode** sits below the
+  there are no rules and partners can change everything. **Colourway and mode** is below the
   inputs and starts ticked: partners may pick another of your brand's colourways and switch
   between light and dark, which moves every colour the tool takes from the design system. Untick
   it to keep the template's own.
@@ -355,7 +354,7 @@ may use.
 <!--i:eti-building-->
 ## Companies
 
-A programme can hold companies: the partner organisations in it, such as one reseller or one
+A programme can have companies: its partner organisations, such as one reseller or one
 distributor. Add one under **Companies** on the programme's page. Each company has a group,
 `company-<id>`, shown by its name in the console, so an input rule, a collection or a grant can
 point at one company the way it points at a whole programme. A person can be added to a company when they
@@ -452,8 +451,8 @@ company:" followed by the inputs.
   made with.
 
 Group defaults in a tool policy seed new work only when they are saved in the current
-`[{ groups, values }]` shape. A policy that still holds defaults in the older flat shape applies
-none of them, and the policy editor marks it, with a choice to apply them when you next save.
+`[{ groups, values }]` shape. A policy that still has defaults in the older flat shape applies
+none of them, and the policy editor marks that policy, with a choice to apply them when you next save.
 
 For example, to fill a data sheet's partner logo by mode and its details line from the contact:
 
@@ -478,7 +477,7 @@ the card mentions a rule or a policy.
 
 ### Partner kits
 
-A partner kit holds a company's own logo rules for use inside your work: its logos for light and
+A partner kit has a company's own logo rules for use inside your work: its logos for light and
 dark surfaces and its mark, up to 12 colours in named roles, and optional rules for clear space,
 minimum size and allowed treatments. Lolly Work keeps one kit for each company, as a file only that
 company's people and agents receive; a change is a new revision.
@@ -538,15 +537,15 @@ signing in and to be added, already in with nothing to do, or not possible, with
 address that is not one, a company the programme does not have, an end date that has passed, a
 line listed twice, an admin or an owner). **Add** then does it in one step and shows a result for each line. Adding the
 same list again changes nothing. People who already sign in are added at once, and a company the
-line gives them is set too. Everyone else gets an invitation carrying the programme's and
+line gives them is set too. Everyone else gets an invitation with the programme's and
 company's groups, open until their end date or for at most 366 days.
 
 Lolly Work sends no email, so the result offers one message for everyone the list invited: where
 to sign in, the sign-ins on offer, the end date and your `instance.inviteNote`, with a copy
-button. Send it once by email or chat. Each person's own invite link stays in **People** →
+button. Send it once by email or chat. Each person's own invite link is in **People** →
 **Invitations** for anyone you would rather invite one by one.
 
-The programme's **People** list shows everyone in it: who signs in, and who is invited and has not
+The programme's **People** list shows everyone in the programme: who signs in, and who is invited and has not
 signed in yet, with their company and end date. End dates read as the day in UTC, for example
 "Ends 30 Jun 2027 (UTC)".
 
@@ -557,7 +556,7 @@ People also join a programme through its group:
 - **From your identity provider.** A provider group or a SCIM group with the same name puts people
   in the programme the same way.
 
-Joining a programme also adds the `partner` group. Leaving a programme keeps it, so a former
+Joining a programme also adds the `partner` group. Leaving a programme keeps that group, so a former
 partner sees only your design system's essentials rather than everything internal. To make an
 account internal, remove `partner` from that person in **People**.
 
@@ -606,7 +605,7 @@ the programme in **People** sticks.
 **Staff are never moved by a domain on its own.** Joining a programme limits someone to its tools and
 assets, so an account that already signs in here and is not a partner keeps its access when you add
 its domain, at that moment and at every later sign-in. That protects your own people when a domain
-also carries staff: a second corporate domain, a subsidiary, or a domain in
+also has staff: a second corporate domain, a subsidiary, or a domain in
 `idp.admission.domains`. When you do mean to move them, for example while moving a partner from
 `idp.admission.domains` to a domain here, tick **Also move these accounts into the programme as
 partners** in the preview. The move is recorded in Audit as `programme.domain.move-staff`, with the
@@ -628,7 +627,7 @@ An end date on a line, or on a domain, ends access through the programme at the 
 in UTC, without anyone having to remember. The server checks every minute, takes the programme's
 and company's groups off the account, keeps the `partner` group and withdraws an invitation the
 line made that nobody has accepted. Each ending is audited as `programme.member.end`. A domain's
-end date also stops anyone new joining through it, audited as `programme.domain.rule.end`. A
+end date also stops anyone new joining through that domain, audited as `programme.domain.rule.end`. A
 deployment that runs as serverless functions calls `POST /api/v1/programmes/sweep` on a schedule
 instead.
 
@@ -643,7 +642,7 @@ It asks the same code the app does, so what you see is what they get. Anyone wit
 `programme.manage` can preview a programme and its companies.
 
 **See what they get** on a company's page previews that company. Preview then adds the company's
-card, with its details revision and every detail, and draws each template as the company gets it,
+card, with its details revision and every detail, and draws each template as it reaches the company,
 with the company's logo and details in place. A drawing is a watermarked preview and nothing is
 saved. Policy editors may draw for any groups; programme managers only for a programme or company.
 A template the groups do not get answers `404`. Under each input taken from the company, Preview
@@ -676,7 +675,7 @@ Each view's start is audited as `programme.view-as`, and **Stop viewing** as
 
 Someone in two programmes gets the tools and assets of both. Input rules combine as described
 next. Someone in two companies may get no company details filled in
-([Which company](#company-details-in-templates)), so put each person in one company where you can.
+([Which company](#company-details-in-templates)). Put each person in one company where you can.
 
 <!--i:eti-lock-->
 ## Input rules for partners
@@ -763,7 +762,7 @@ their history stay, because files already made record them.
 An end can wait for a day you choose. In the End card, choose **At the end of a day** under when,
 then the day; the button reads "Schedule the end for 30 November 2026". A domain always ends now.
 The end runs at the end of that day in UTC, by the server's minute check, and is credited to the
-person who scheduled the end. A programme or company holds one scheduled end at a time
+person who scheduled the end. A programme or company has one scheduled end at a time
 (`409 EXIT_SCHEDULED`). The scheduled end shows on the programme's page, or the company's, with
 **Change** for a new date or notice and **Cancel the end**. From a terminal,
 `lw people exit --programme <id>` or `--company <id>` takes `--at YYYY-MM-DD`; the API takes `at`
@@ -786,7 +785,7 @@ date sends the same notice to that person.
 ### Reopen an end
 
 An end made by mistake can be reopened from its receipt within 30 days. An ended programme or
-company reads "Ended on 8 November 2026 by" and the name of the person who ended it, with the
+company reads "Ended on 8 November 2026 by" and the name of the person who ended the partnership, with the
 receipt below as counts. While the 30 days run, the page offers **Reopen**, with **Give their
 projects back** ticked. Reopen first shows who signs in again, what comes back and what stays
 ended, then reopens in a second step. After the 30 days, the page says Reopen is no longer offered
@@ -823,11 +822,11 @@ system and colourway ([The design-system record](/info/exporting.html#the-design
 
 **Never recorded:** the person, a contact's email or phone, the address, the currency, a token or
 an agent's name or model. A kit is recorded by its id and revision only: never its colours, rules
-or files. The kit keys are written only when the record holds the company and the piece carries
+or files. The kit keys are written only when the record has the company and the piece has
 that company's kit.
 
 The app records a company once it has details, with the revision of those details, so a file says
-which details it was made with and the company page's history shows what that revision held; a
+which details it was made with and the company page's history shows what that revision had; a
 server render records the company with revision 0 before any details are saved. A programme with
 no company records the programme alone: "Partner programme: Resellers, EMEA". Someone in two
 companies records no company, and the programme alone when only one programme applies. Someone in
@@ -835,7 +834,7 @@ no programme records no partner. The **Design system** card's one switch leaves
 the partner out together with the rest of the record.
 
 A server render records the same keys in its Content Credential, so a file a partner's agent makes
-over the API or MCP says what a file made in the app says. A durable render's record carries the
+over the API or MCP says what a file made in the app says. A durable render's record has the
 same words, for example `partner: "Partner: Northwind IT"`.
 
 <!--i:eti-sparkles-->
@@ -863,7 +862,7 @@ role, the programme's and company's groups and the `partner` group.
 - **Scopes.** `render` and `catalog.read` by default; `documents` and `files` may be added, and so
   may `approvals.request` ([Approvals for agents](#approvals-for-agents)). `delivery` and
   `audit.read` are refused for programme tokens (`400 SCOPE_NOT_FOR_PROGRAMME`): a delivery sends
-  to your own destinations, and the audit holds people's names.
+  to your own destinations, and the audit has people's names.
 - **Tools.** A list inside the programme's own, else `400 TOOL_NOT_IN_PROGRAMME`.
 - **Expiry.** 90 days by default, between 1 and 365. The list marks a token with under 14 days
   left as expiring; no notice is sent.
@@ -886,8 +885,8 @@ Every token placed in a programme meets three limits:
 | Renders a day, in UTC | 2,000 | `--renders-per-day <n>` | `--renders-per-day <n>` |
 | Renders a month, in UTC | No cap | `--renders-per-month <n>` | `--renders-per-month <n>` |
 
-The **Agent tokens** card shows each limit with where the figure comes from and today's use
-against it, with what a limit turned away this week and when. **Change limits** sets a token's own
+The **Agent tokens** card shows each limit with where the figure comes from and today's use,
+with what a limit turned away this week and when. **Change limits** sets a token's own
 figures; a blank field takes the programme's. **Change the programme's limits** sets the figures
 every token there starts with. The token's own figure wins, then its programme's, then the instance
 default (`automation.tokenLimits`). `none` removes a cap and `default` takes the next level's figure.
@@ -905,7 +904,7 @@ last 7 days, and **Download CSV** gives the same counts week by week or day by d
 by day or week, for up to 92 days: calls, renders (by tool, format and outcome for the renders
 that keep a record, the durable ones), batches, deliveries,
 approval requests and refusals by code, with totals per company and for the programme. `--csv` gives
-the same as a spreadsheet. The counts hold no input values, prompts, titles, file names or agent
+the same as a spreadsheet. The counts include no input values, prompts, titles, file names or agent
 names.
 
 ![What agents did over the last 4 weeks: calls, renders, batches, deliveries, approvals and refusals for Rita's agent, for Northwind IT and for Resellers, EMEA, then renders by tool](shots/partner-agent-usage.svg)
@@ -958,7 +957,7 @@ requests and withdraw them. Deciding stays with people. The request goes to the 
 escalation chain, or else to a chain the programme lists (`approvalChains` on `PUT
 /api/v1/programmes/:id`, with the programme's `name`); a partner's agent never reaches an internal
 chain by name. A delivery to a destination that needs approval waits for the approval when the token
-holds the scope, and is refused with `403 HUMAN_APPROVAL_REQUIRED` when it does not. The approver's
+has the scope, and is refused with `403 HUMAN_APPROVAL_REQUIRED` when it does not. The approver's
 notice gives the company and the label you wrote on the token, for example "Northwind IT's agent
 (Rita's agent) asked for your review", followed by the step. The approval card adds that an agent
 asked, and that the file under review is the agent's own render, exactly as Lolly Work made the
@@ -966,16 +965,16 @@ file.
 
 A tool's policy can also let one approval cover a template's variants: with `enforce.approvalCovers`
 set to `template-variants`, approving one version of a published template that lists what partners
-may change clears every partner's render from it, whatever the inputs the template leaves open, such
+may change clears every partner's render from that version, whatever the inputs the template leaves open, such
 as the price or the logo. This is off by default. Set it in the tool's policy under **One approval
 covers**: **This file only**, the default, or **Every file from one version of a published
 template**. A new version, or a change to what is open or fixed, needs a new approval. A partner's
-clean render from that template version then carries the template's approval record in its own
+clean render from that template version then has the template's approval record in its own
 Content Credential: the approval, its date, the template's id and version and the fingerprint of the
-example file the reviewer saw. It never holds this file's own fingerprint, a name or a person.
+example file the reviewer saw. It never includes this file's own fingerprint, a name or a person.
 [Lolly Verify](/info/what-verify-checks.html#approval-and-intent-records) reads the record as
 "Approved as a template: inst/price-sheet v3 (SVG)". A render that is still marked, one in a format
-the approval did not cover and one from an instance with no signer carry no record.
+the approval did not cover and one from an instance with no signer have no record.
 
 <!--i:eti-gauge-->
 ## Limits and quotas
@@ -1094,7 +1093,7 @@ asset version and any warnings, never the file. A contact's change that waits fo
 `approval.submit`. A kit is audited as `programme.company.kit`, with the revisions and the
 source, never the files or colours. Licences are audited as `catalog.rights.mark`, `.unmark`, `.licence` and
 `.licence.remove`, and choices as `programme.rights.share-anyway` (one row per file) and
-`programme.rights.withdraw`. A link that carries held files records them, with the note, on its
+`programme.rights.withdraw`. A link that includes held files records them, with the note, on its
 `link.create`. Ends are audited as `programme.exit`, `programme.member.leave`,
 `programme.exit.schedule`, `.change`, `.cancel` and `.notice`, `programme.member.notice`,
 `programme.exit.reopen` and `programme.member.reopen`; what an exit or a reopen does to each kind of

@@ -3,8 +3,7 @@
 <a id="put-a-cdn-in-front-of-work"></a>
 
 A CDN can serve Lolly Work's public files from places near your visitors and take load off the
-server. This page is for the operator who wants to put Bunny or Cloudflare in front of an
-instance. Lolly Work never needs a CDN: an instance with no edge configured keeps working as before,
+server. Lolly Work never needs a CDN: an instance with no edge configured keeps working as before,
 air-gapped included.
 
 A CDN sees more than it stores. It answers every request on the hostname it fronts, so it decrypts
@@ -24,7 +23,7 @@ none of them. Lolly Work therefore decides which provider may front which hostna
 ## What a CDN may cache
 
 Lolly Work labels every response with a delivery class. A CDN may store only the public classes, and only
-for a request that carried no credential of any kind (no cookie, no `Authorization` header, no
+for a request that had no credential of any kind (no cookie, no `Authorization` header, no
 `x-lw-*` header and no install token):
 
 - the app's hashed bundles, which never change under their name;
@@ -174,7 +173,7 @@ With a provider configured, Lolly Work adds purge tags to public answers: `CDN-T
 | `x_<class>` | the delivery class |
 | `o_<instance>` | everything this instance put on the edge |
 
-A private or signed-in answer never carries a tag, and without a configured provider no answer
+A private or signed-in answer never has a tag, and without a configured provider no answer
 does. Before 1.2.0, brand chrome and the hashed connect pack sent `Cache-Tag` and `Surrogate-Key`
 on every answer, so a CDN that purged by those tags without an `edge` provider loses them on
 upgrade.
@@ -185,7 +184,7 @@ policy editor or a governance apply (`t_` and the card's URL). Purges wait in an
 batches within each provider's documented budget (Cloudflare Free allows 5 tag purges a minute;
 Bunny 5 a second after a burst of 120) and retry with backoff, honouring `Retry-After`. A purge never
 holds up or reverses the change: a hidden tool is hidden at the origin at once, and a public card an
-edge still holds expires within an hour even if every purge fails.
+edge still has expires within an hour even if every purge fails.
 
 ```sh
 lw edge status                              # providers, credential fingerprints, recent purges
@@ -221,8 +220,8 @@ checks that:
 Signed in as an owner on `--base`, it also reads the zone through the provider's API and reports
 each setting above. It exits non-zero on any failure.
 
-Some provider behaviour is not settled by the providers' documentation, so the probe measures it
-rather than trusting it: how Bunny separates several tags in `CDN-Tag` and how its tag purge
+Some provider behaviour is not settled by the providers' documentation, so the probe measures
+how Bunny separates several tags in `CDN-Tag` and how its tag purge
 matches them, whether Bunny honours `private` and `no-store` and reads `CDN-Cache-Control`, and
 whether Cloudflare honours `no-transform`.
 

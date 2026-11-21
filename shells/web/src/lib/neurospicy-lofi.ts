@@ -20,15 +20,38 @@ import type { LofiStation } from './lofi-station.ts';
 
 export const LOFI_PREFIX = 'lofi:';
 /** The stations, in picker order. Kept here (not imported) so this module never loads the composer. */
-export const LOFI_STATION_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'sherbert', 'kpop', 'straya', 'arnhem', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'rnb', 'nudisco', 'lofiHouse', 'hiphop', 'triphop', 'reggae', 'ska', 'spanish', 'rock', 'punk', 'grunge', 'stoner', 'metal', 'country', 'blues', 'jazz', 'swing', 'fantasy', 'dream', 'shoegaze', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa', 'jungle', 'trailer', 'warm', 'lateNight', 'rainy'];
+export const LOFI_STATION_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'sherbert', 'kpop', 'straya', 'arnhem', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'rnb', 'nudisco', 'lofiHouse', 'hiphop', 'triphop', 'reggae', 'ska', 'spanish', 'rock', 'punk', 'grunge', 'stoner', 'metal', 'country', 'blues', 'jazz', 'swing', 'fantasy', 'dream', 'shoegaze', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa', 'jungle', 'trailer', 'italo', 'balearic', 'warm', 'lateNight', 'rainy', 'lofiFocus', 'lofiDrift', 'lofiSoul', 'lofiFunk', 'lofiJazz', 'lofiZen', 'lofiCinema'];
 /** The Lofi moods: the stations the Mood control moves between. */
-export const LOFI_ONLY_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy'];
+export const LOFI_ONLY_MOODS: readonly LofiMood[] = ['warm', 'lateNight', 'rainy', 'lofiFocus', 'lofiDrift', 'lofiSoul', 'lofiFunk', 'lofiJazz', 'lofiZen', 'lofiCinema'];
+/** Drum and bass and its flavours: the rolling one (`dnb`) first. */
+export const DNB_MOODS: readonly LofiMood[] = ['dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave'];
+/**
+ * The genres that are one genre with flavours: one card in a picker, one tile in the
+ * player, one share of a shuffle, with chips that move between the flavours. The first
+ * flavour is the one the card starts on, and the id a star or a hide is kept under.
+ */
+export const GENRE_FAMILIES: ReadonlyArray<{ title: string; moods: readonly LofiMood[] }> = [
+  { title: 'Lofi', moods: LOFI_ONLY_MOODS },
+  { title: 'D&B', moods: DNB_MOODS },
+];
+/** The family `mood` is a flavour of, if any. */
+export function genreFamilyOf(mood: LofiMood): { title: string; moods: readonly LofiMood[] } | undefined {
+  return GENRE_FAMILIES.find((f) => f.moods.includes(mood));
+}
+/** A genre as a shuffle draws them: a family's first flavour for any of its flavours. */
+export const genreCardOf = (mood: LofiMood): LofiMood => genreFamilyOf(mood)?.moods[0] ?? mood;
+/** A flavour's name on its chip: the genre's own first flavour has a name of its own there. */
+export function flavourLabel(mood: LofiMood): string {
+  return mood === 'dnb' ? 'Rolling' : LOFI_MOOD_LABEL[mood].replace(/ D&B$/, '');
+}
 /** The Lolly Sings family: the melody-first station and its dance genres, which the Style control moves between. */
-export const LOFI_SINGS_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'sherbert', 'kpop', 'straya', 'arnhem', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'rnb', 'nudisco', 'lofiHouse', 'hiphop', 'triphop', 'reggae', 'ska', 'spanish', 'rock', 'punk', 'grunge', 'stoner', 'metal', 'country', 'blues', 'jazz', 'swing', 'fantasy', 'dream', 'shoegaze', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa', 'jungle', 'trailer'];
+export const LOFI_SINGS_MOODS: readonly LofiMood[] = ['sings', 'sugar', 'sherbert', 'kpop', 'straya', 'arnhem', 'persian', 'guzheng', 'koto', 'kora', 'afrobeat', 'amapiano', 'chiptune', 'citypop', 'funk', 'soul', 'rnb', 'nudisco', 'lofiHouse', 'hiphop', 'triphop', 'reggae', 'ska', 'spanish', 'rock', 'punk', 'grunge', 'stoner', 'metal', 'country', 'blues', 'jazz', 'swing', 'fantasy', 'dream', 'shoegaze', 'synthwave', 'acid', 'electro', 'dubstep', 'brostep', 'dnb', 'dnbJump', 'dnbDark', 'dnbLiquid', 'dnbDeep', 'dnbRave', 'salsa', 'surf', 'yacht', 'botanica', 'oompa', 'mandopop', 'cpop', 'breakbeat', 'funkyHouse', 'ukGarage', 'privateSchool', 'noosa', 'jungle', 'trailer', 'italo', 'balearic'];
 export const LOFI_MOOD_LABEL: Record<LofiMood, string> = {
   warm: 'Warm', lateNight: 'Late night', rainy: 'Rainy', sings: 'Lolly Sings',
   sugar: 'Sugar', sherbert: 'Sherbert', persian: 'Persian', guzheng: 'Guzheng', koto: 'Koto', kora: 'Kora', afrobeat: 'Afrobeat', amapiano: 'Amapiano', chiptune: 'Chiptune', citypop: 'City pop', nudisco: 'Nu-disco', lofiHouse: 'Lofi house', triphop: 'Trip hop', funk: 'Funk', soul: 'Soul', rnb: 'R&B', ska: 'Ska', punk: 'Punk', grunge: 'Grunge', stoner: 'Stoner rock', shoegaze: 'Shoegaze', acid: 'Acid', hiphop: 'Hip hop', reggae: 'Reggae', spanish: 'Spanish guitar', rock: 'Rock', country: 'Country', blues: 'Blues', jazz: 'Jazz', swing: 'Swing', straya: 'Straya', arnhem: 'Arnhem Land', fantasy: 'Fantasy', dream: 'Dreamscape', kpop: 'K-pop', metal: 'Metal', synthwave: 'Synthwave', electro: 'Electro', dubstep: 'Dubstep', brostep: 'Brostep', dnb: 'D&B', salsa: 'Salsa', surf: 'Surf rock', yacht: 'Yacht rock', botanica: 'Botanica', oompa: 'Oompa', mandopop: 'Mandopop', cpop: 'C-Pop',
-  breakbeat: 'Breakbeat', funkyHouse: 'Funky house', ukGarage: 'UK garage', privateSchool: 'Private school piano', noosa: 'Noosacore', jungle: 'Jungle', trailer: 'Trailer',
+  breakbeat: 'Breakbeat', funkyHouse: 'Funky house', ukGarage: 'UK garage', privateSchool: 'Private school piano', noosa: 'Noosacore', jungle: 'Jungle', trailer: 'Trailer', italo: 'Italo disco', balearic: 'Balearic',
+  dnbJump: 'Bouncy D&B', dnbDark: 'Dark D&B', dnbLiquid: 'Soaring D&B', dnbDeep: 'Deep D&B', dnbRave: 'Rave D&B',
+  lofiFocus: 'Focus', lofiDrift: 'Drift', lofiSoul: 'Slow jam', lofiFunk: 'Retro bounce', lofiJazz: 'Bookstore', lofiZen: 'Zen', lofiCinema: 'Cinematic',
 };
 
 /** Whether `mood` belongs to the Lolly Sings family. */
@@ -41,7 +64,8 @@ export function lofiStationName(mood: LofiMood): string {
 }
 
 /** What a listener sets for every Lofi station: whether the drums play, and how dusty it sounds. */
-export interface LofiPrefs { drums: boolean; texture: number }
+/** `shuffle`: move to another genre when a tune ends (the player's Shuffle genres switch). */
+export interface LofiPrefs { drums: boolean; texture: number; shuffle?: boolean }
 export const LOFI_DEFAULTS: LofiPrefs = { drums: true, texture: 0.5 };
 
 export function isLofiId(id: string): boolean { return lofiMoodOf(id) !== null; }
