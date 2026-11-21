@@ -20,7 +20,7 @@
  * The record admits a tool; each render is still judged by packages/node-shell/src/
  * resvg-admission.ts.
  *
- * Needs a built web shell (LOLLY_WEB_DIST, or shells/web/dist), a Chromium the node shell
+ * Needs a built web shell (LOLLY_WEB_DIST, or shells/web/dist) or a served one (LOLLY_WEB_BASE), a Chromium the node shell
  * can launch, and sharp. Without them it says so by name and writes nothing. Each case
  * runs the real CLI twice (about a second for resvg, about seven for the browser tier), so
  * this is a maintainer's job after a change to a tool's drawing or to the route, and is
@@ -88,7 +88,7 @@ export function loadCases(file = CASES_FILE): BrowserFreeCase[] {
 /** Why the measurement cannot run here, or null when it can. */
 function missingPrerequisite(): string | null {
   const dist = process.env.LOLLY_WEB_DIST || join(ROOT, 'shells', 'web', 'dist');
-  if (!existsSync(join(dist, 'index.html'))) return `no built web shell at ${dist} (run \`pnpm run build:web\`, or set LOLLY_WEB_DIST)`;
+  if (!process.env.LOLLY_WEB_BASE && !existsSync(join(dist, 'index.html'))) return `no built web shell at ${dist} (run \`pnpm run build:web\`, set LOLLY_WEB_DIST, or serve one at LOLLY_WEB_BASE)`;
   try { createRequire(join(ROOT, 'packages', 'node-shell', 'package.json')).resolve('sharp'); } catch { return 'sharp is not installed'; }
   return null;
 }
@@ -99,7 +99,8 @@ function runCli(tier: 'A' | 'B', c: BrowserFreeCase, args: string[], out: string
     cwd: ROOT, encoding: 'utf8', timeout: 300_000, maxBuffer: 64 << 20,
     env: {
       ...process.env, NO_COLOR: '1', LOLLY_RENDERER: 'chromium', BROWSER_FREE_ALL: '1', BROWSER_FREE_TIER: tier,
-      ...(tier === 'A' ? { LOLLY_WEB_DIST: noWeb } : {}), ...env,
+      // The resvg run has no browser tier to fall back on, built or served.
+      ...(tier === 'A' ? { LOLLY_WEB_DIST: noWeb, LOLLY_WEB_BASE: '' } : {}), ...env,
     },
   });
   const stderr = r.stderr ?? '';
