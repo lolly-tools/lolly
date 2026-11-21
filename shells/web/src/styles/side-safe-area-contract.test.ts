@@ -288,15 +288,12 @@ test('the phone sheets keep their controls beside the bar on each side', () => {
   assert.match(panel, SAFE_RIGHT, 'the phone .tmpl-chooser-panel is inset by --safe-right');
 });
 
-test("Design's upright rail stands inside the side it is pinned to", () => {
-  // split.css pins the rail to the canvas pane's outer edge with !important, on
-  // the right for a right hand and on the left for a left hand.
+test("Design's upright rail keeps the screen edge", () => {
+  // The rail starts below the status column a device holds at the top of a side,
+  // so the rail is deliberately not inset: an inset left a dead strip beside the
+  // rail and put the rail over the artwork.
   const dock = rules(read('styles/parts/split.css')).filter((r) => targets(r, 'fc-toolbar-dock'));
-  const pinned = (prop: 'left' | 'right'): string[] => dock.flatMap((r) => decls(r.body))
-    .filter(([p, v]) => p === prop && !/^auto\b/.test(v) && /--sp-4/.test(v) && !/--vv-/.test(v)).map(([, v]) => v);
-  const right = pinned('right');
-  const left = pinned('left');
-  assert.ok(right.length > 0 && left.length > 0, 'split.css must pin the upright rail on each side');
-  for (const v of right) assert.match(v, SAFE_RIGHT, `the rail's right offset "${v}" must reference --safe-right`);
-  for (const v of left) assert.match(v, SAFE_LEFT, `the rail's left offset "${v}" must reference --safe-left`);
+  const offsets = dock.flatMap((r) => decls(r.body)).filter(([p, v]) => (p === 'left' || p === 'right') && /--sp-4/.test(v)).map(([, v]) => v);
+  assert.ok(offsets.length >= 2, 'split.css pins the upright rail on each side');
+  for (const v of offsets) assert.doesNotMatch(v, /--safe-(left|right)/, `the rail's offset "${v}" stays at the edge`);
 });

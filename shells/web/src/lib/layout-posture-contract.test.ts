@@ -293,9 +293,7 @@ test('ON A FOLD: the browse footer, its search panel and the privacy strip keep 
 test('RAIL: upright on the canvas pane\'s outer edge, pinned in the chrome layer, mirrored for the left hand and RTL', () => {
   const pin = ALL_RULES.filter((r) => r.rel === SPLIT_CSS && r.at.includes('@layer chrome') && /\.fc-toolbar-dock$/.test(r.selector.trim()) && /:not\(\[data-posture="tabletop"\]\)/.test(r.selector));
   assert.ok(pin.length >= 2, 'a right-edge rule and a left-edge rule');
-  // Each side adds its own safe-area inset: the rail stands inside a status column the
-  // system holds on that edge (styles/side-safe-area-contract.test.ts pins the pairing).
-  const right = pin.find((r) => /right:\s*calc\(var\(--sp-4\) \+ var\(--safe-right\)\)\s*!important/.test(r.body));
+  const right = pin.find((r) => /right:\s*var\(--sp-4\)\s*!important/.test(r.body));
   assert.ok(right, 'the default is the right edge, for a right hand');
   const left = pin.find((r) => /left:\s*calc\(var\(--stage-reserve-left/.test(r.body));
   assert.ok(left, 'a rail on the left starts where the page navigator\'s column ends');

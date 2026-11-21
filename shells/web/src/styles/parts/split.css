@@ -730,12 +730,15 @@ html[data-layout="split"]:not([data-posture="tabletop"]) .tool-layout.is-editor 
   top: var(--stage-reserve-top, 0px) !important;
   width: auto !important;
   left: auto !important;
-  /* Inside a side the system holds: the whole rail is controls, so the column moves. */
-  right: calc(var(--sp-4) + var(--safe-right)) !important;
+  /* At the screen edge, also on a side the system holds. The status column a
+     device keeps there (the iPhone Duo's clock and status icons) occupies only
+     the top of that side, and the rail starts below, so the rail keeps the edge
+     and the artwork keeps its width (Andy, 2026-11-21). */
+  right: var(--sp-4) !important;
 }
 html[data-layout="split"][data-hand="left"]:not([dir="rtl"]):not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar-dock,
 html[data-layout="split"][dir="rtl"]:not([data-hand="left"]):not([data-posture="tabletop"]) .tool-layout.is-editor .tool-stage .fc-toolbar-dock {
-  left: calc(var(--stage-reserve-left, 0px) - var(--ldock-rail-w, 0px) + var(--sp-4) + var(--safe-left)) !important;
+  left: calc(var(--stage-reserve-left, 0px) - var(--ldock-rail-w, 0px) + var(--sp-4)) !important;
   right: auto !important;
 }
 /* A modal dialog keeps to the page beside the controls on a reported fold
