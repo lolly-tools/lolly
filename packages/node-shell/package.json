@@ -182,7 +182,10 @@
     "./layout-kernel-node": "./src/layout-kernel-node.ts",
     "./layout-kernel.wasm": "./wasm/layout-kernel/layout-kernel.wasm",
     "./layout-host-node": "./src/layout-host-node.ts",
-    "./enrollment-trust": "./src/enrollment-trust.ts"
+    "./enrollment-trust": "./src/enrollment-trust.ts",
+    "./web-app-routes": "./src/web-app-routes.ts",
+    "./web-app-server": "./src/web-app-server.ts",
+    "./installed-browser": "./src/installed-browser.ts"
   },
   "files": [
     "src",

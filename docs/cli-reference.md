@@ -107,6 +107,7 @@ Where a flag and a variable set the same thing, the flag wins. `--trust-anchor` 
 | `LOLLY_DESKTOP_BIN`, `LOLLY_RENDER_SERVER` | An app executable in an unusual place, or the app's `render.json` directly. |
 | `LOLLY_BROWSER_PATH`, `LOLLY_BROWSER_CHANNEL` | A browser binary to use, or an installed channel such as `chrome`, instead of the downloaded Chromium. |
 | `PLAYWRIGHT_BROWSERS_PATH` | Where `lolly install-browser` puts Chromium. |
+| `LOLLY_BROWSER` | The browser `lolly app` opens, as a path or a command name ([below](#open-the-app-in-your-installed-browser-lolly-app)). It has no effect on rendering. |
 | `LOLLY_WEB_DIST`, `LOLLY_WEB_BASE` | A built web shell somewhere else, or the address of one you serve. |
 | `LOLLY_EXPORT_IDLE_TIMEOUT`, `LOLLY_CLI_TIMEOUT` | Seconds without progress before a Chromium export stops; the desktop renderer's timeout. |
 | `LOLLY_TIER_B_DEBUG` | `1` keeps the headless page's logs, like `--tier-b-debug`. |
@@ -298,6 +299,33 @@ The source is `--file=<tokens>`, then a content profile you name with `--profile
 **What is checked.** `checks.json` holds contrast measurements of the colour pairs in every colourway and mode, and house rule checks on example documents. They do not judge a finished piece.
 
 The same input gives the same bytes, so you can build twice and compare the folders.
+
+<!--i:eti-monitor-->
+## Open the app in your installed browser (lolly app)
+
+`lolly app` serves a built Lolly web app from this machine and opens the app as a window of a browser you already have: Google Chrome, Chromium, Microsoft Edge, Brave or Vivaldi.
+
+```bash
+lolly app --dir=shells/web/dist      # in a checkout, after pnpm run build:web
+lolly app --port=47500               # another local port
+```
+
+::: note A first step, not yet a Linux release
+The command is the launcher for a Linux app that runs in the installed browser, where WebGPU is available. Nobody has tested the launcher on a Linux desktop yet, and no package installs the launcher. It runs on macOS for development.
+:::
+
+| Part | What happens |
+|---|---|
+| Address | `http://127.0.0.1:47474`, reachable from this machine only. The browser stores your projects for one address, so `--port` starts with none of them. |
+| Web app | `--dir=<path>` is a directory that holds `index.html`. Without the flag the command looks for `web/` beside the `lolly` executable, then `shells/web/dist` in a checkout. |
+| Browser | `LOLLY_BROWSER` first, then Chrome, Chromium, Edge, Brave and Vivaldi on `PATH`, then the Flatpak builds of Chrome, Chromium, Edge and Brave. |
+| Profile | The window uses a browser profile of its own: `$XDG_DATA_HOME/lolly/browser`, or `~/.local/share/lolly/browser`. Your everyday browser profile is not read. |
+| Security | The same Content-Security-Policy and security headers as [lolly.tools](https://lolly.tools), read from the same file. Requests for any other host name are refused. |
+| End | The command ends when that browser closes. Ctrl+C stops the server. |
+
+When a Lolly is already running on the port, a second `lolly app` opens a new window there and exits 0. When another program holds the port, the command exits 3 and asks for `--port`. The port never changes by itself, because a new port would show an empty project list.
+
+With no supported browser, the command says which browsers work, opens the address in your default browser as an ordinary tab and keeps serving until you stop the command. No browser flag forces WebGPU on. A browser without WebGPU shows the app's own explanation.
 
 <!--i:eti-keyboard-->
 ## Shell completion (lolly completion)
