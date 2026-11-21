@@ -72,7 +72,11 @@ export function whenQuiet(entries: () => readonly { responseEnd?: number }[], no
   };
 }
 
-/** Post the boot set to the controlling worker at the next idle moment, now or once one takes control. */
+/**
+ * Post the boot set to the controlling worker at the next quiet moment: now when a worker
+ * controls the page, and again whenever a new worker takes control (an update activates a
+ * new generation that does not have the old one's cache). The worker skips what it holds.
+ */
 export function handOverBootSet(container: ServiceWorkerContainer, doc: Document, entries: () => readonly { name: string; responseEnd?: number }[], origin: string, idle: Idle = whenQuiet(entries)): void {
   const send = (): void => {
     const worker = container.controller;
@@ -82,5 +86,5 @@ export function handOverBootSet(container: ServiceWorkerContainer, doc: Document
   };
   const later = (): void => idle(send);
   if (container.controller) later();
-  else container.addEventListener('controllerchange', later, { once: true });
+  container.addEventListener('controllerchange', later);
 }

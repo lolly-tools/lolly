@@ -101,6 +101,14 @@ test('the post waits until the page has loaded nothing for a moment, or the wait
   assert.deepEqual(ranBusy, [HANDOVER_WAIT_MS]);
 });
 
+test('a page already controlled posts again when an updated worker takes control', () => {
+  const { c, posted, take } = container(true);
+  handOverBootSet(c, page(), () => entries, ORIGIN, now);
+  assert.equal(posted.length, 1, 'to the worker in control now');
+  take();
+  assert.equal(posted.length, 2, 'and to the new generation, which does not have the old cache');
+});
+
 test('the message type matches the worker, and main.ts hands over after registering', () => {
   const sw = readFileSync(new URL('../../public/sw.js', import.meta.url), 'utf8');
   assert.match(sw, new RegExp(`const BOOT_SET_MESSAGE = '${BOOT_SET_MESSAGE}';`));

@@ -95,6 +95,8 @@ interface Harness {
   fetched: string[];
   /** Paths the network answers with a redirect. */
   redirects: Set<string>;
+  /** Paths the network answers with a text/html body. */
+  htmlPaths: Set<string>;
 }
 
 /** Evaluate the real sw.js in a sandbox and hand back its registered handlers. */
@@ -107,6 +109,8 @@ function loadServiceWorker(): Harness {
   const fetched: string[] = [];
   /** Paths the network answers with a redirect (to a sign-in page, say). */
   const redirects = new Set<string>();
+  /** Paths the network answers with a text/html body. */
+  const htmlPaths = new Set<string>();
 
   const cachesApi = {
     async open(name: string) {
@@ -138,6 +142,7 @@ function loadServiceWorker(): Harness {
         return { ...makeResponse('<!doctype html><title>Sign in</title>'), redirected: true };
       }
       const body = server.get(path);
+      if (body !== undefined && htmlPaths.has(path)) return makeResponse(body, { headers: { 'content-type': 'text/html' } });
       return body === undefined ? makeResponse('not found', { status: 404 }) : makeResponse(body);
     },
     // The worker constructs responses from a string (the offline sentinel) and
@@ -179,6 +184,7 @@ function loadServiceWorker(): Harness {
     },
     fetched,
     redirects,
+    htmlPaths,
   };
 }
 
@@ -455,6 +461,15 @@ describe('service worker: the boot set a first visit loaded (plan 371)', () => {
     assert.equal(await subresource(h, 'https://lolly.tools/_app/web-boot-a1.js'), 'stored by the page');
     assert.ok(asked.length >= 2 && asked.every(o => (o as { ignoreVary?: boolean } | undefined)?.ignoreVary === true),
       'both the hand-over check and the cache-first route match with ignoreVary');
+  });
+
+  test('a page in place of a build file (text/html) is never stored', async () => {
+    const h = loadServiceWorker();
+    await h.install();
+    h.server.set('/_app/web-boot-a1.js', '<!doctype html><title>Sign in</title>');
+    h.htmlPaths.add('/_app/web-boot-a1.js');
+    await h.message({ type: 'lolly:boot-set', urls: ['/_app/web-boot-a1.js'] });
+    assert.equal(generation(h).entries.has('https://lolly.tools/_app/web-boot-a1.js'), false);
   });
 
   test('a build file that redirects is never stored under the chunk address', async () => {

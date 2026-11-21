@@ -308,7 +308,12 @@ async function cacheBootSet(urls) {
       // No redirects: a build file that redirects (to a sign-in page, say) is not that file,
       // and storing the page under the chunk's address would break every later load.
       const response = await fetch(href, { credentials: 'same-origin', redirect: 'error' });
-      if (response && response.ok && !response.redirected) await cache.put(href, response);
+      if (!response || !response.ok || response.redirected) return;
+      // A page (a sign-in screen a proxy put in place of the file) is never a build file or a font.
+      if (/text\/html/i.test(response.headers.get('content-type') || '')) return;
+      // Checked again: a page request may have stored a copy while this fetch ran, and that copy stays.
+      if (await cache.match(href, IMMUTABLE_MATCH)) return;
+      await cache.put(href, response);
     } catch { /* offline, gone or redirected: the cache-first route fills it on the next real use */ }
   }));
 }
