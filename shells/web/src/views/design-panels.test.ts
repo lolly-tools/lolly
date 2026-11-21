@@ -151,3 +151,91 @@ test('on a phone the inspector and the layers list are the two tabs of one drop-
     assert.equal(navEl.parentElement, stage, 'the layers list is home');
   } finally { handle.destroy(); flush(); layout.remove(); delete (window as unknown as { matchMedia?: unknown }).matchMedia; }
 });
+
+// A window that shows a single column (a phone, a fold, a narrowed desk) closes the
+// other. With room again, the columns that rule closed come back, and no others.
+function columns(open: { inspector: boolean; navigator: boolean }) {
+  width(1440);
+  const stage = document.createElement('div'), canvas = document.createElement('div');
+  stage.append(canvas); document.body.append(stage);
+  let inspectorOpen = open.inspector, navigatorOpen = open.navigator;
+  const handle = mountDesignPanels({
+    stage, canvas,
+    design: { isTimelineOpen: () => false, toggleTimeline() {}, setColumnWidths() {} } as unknown as Parameters<typeof mountDesignPanels>[0]['design'],
+    // As the view wires them (views/tool/session.ts): an opened column is activated.
+    navigator: {
+      isOpen: () => navigatorOpen, width: () => navigatorOpen ? 220 : 0,
+      setOpen(value: boolean) { navigatorOpen = value; if (value) handle.activate('navigator'); handle.sync(); },
+    } as unknown as Parameters<typeof mountDesignPanels>[0]['navigator'],
+    inspector: {
+      isOpen: () => inspectorOpen,
+      setOpen(value: boolean) { inspectorOpen = value; if (value) handle.activate('inspector'); handle.sync(); return value; },
+    } as unknown as Parameters<typeof mountDesignPanels>[0]['inspector'],
+    more() {},
+  });
+  flush();
+  return {
+    state: () => ({ inspector: inspectorOpen, navigator: navigatorOpen }),
+    // The person's own open and close, through the column's door.
+    person(panel: 'inspector' | 'navigator', value: boolean) {
+      if (panel === 'inspector') { inspectorOpen = value; if (value) handle.activate('inspector'); }
+      else { navigatorOpen = value; if (value) handle.activate('navigator'); }
+      handle.sync(); flush();
+    },
+    close() { handle.destroy(); flush(); stage.remove(); },
+  };
+}
+
+test('both columns open, a narrow window and back: both are open again', () => {
+  const f = columns({ inspector: true, navigator: true });
+  try {
+    width(390);
+    const narrow = f.state();
+    assert.equal(Number(narrow.inspector) + Number(narrow.navigator), 1, 'one column at a time while narrow');
+    width(1440);
+    assert.deepEqual(f.state(), { inspector: true, navigator: true });
+    // And it holds a second time round.
+    width(390); width(1440);
+    assert.deepEqual(f.state(), { inspector: true, navigator: true });
+  } finally { f.close(); }
+});
+
+test('a column opened on purpose while narrow stays, beside the one that made way', () => {
+  const f = columns({ inspector: true, navigator: false });
+  try {
+    width(390);
+    f.person('navigator', true);
+    assert.deepEqual(f.state(), { inspector: false, navigator: true }, 'the list took the inspector’s place');
+    width(1440);
+    assert.deepEqual(f.state(), { inspector: true, navigator: true });
+  } finally { f.close(); }
+});
+
+test('a column the person closed while narrow stays closed, and nothing opens that was never open', () => {
+  const f = columns({ inspector: true, navigator: false });
+  try {
+    width(390);
+    f.person('inspector', false);
+    width(1440);
+    assert.deepEqual(f.state(), { inspector: false, navigator: false });
+  } finally { f.close(); }
+  const g = columns({ inspector: true, navigator: true });
+  try {
+    width(390);
+    const shown = g.state().inspector ? 'inspector' : 'navigator';
+    g.person(shown, false);
+    width(1440);
+    assert.deepEqual(g.state(), { inspector: shown !== 'inspector', navigator: shown !== 'navigator' }, 'only the column the rule closed comes back');
+  } finally { g.close(); }
+});
+
+test('a desk too narrow for both columns does not open and close them in turn', () => {
+  const f = columns({ inspector: true, navigator: false });
+  try {
+    width(700);
+    f.person('navigator', true);
+    const first = f.state();
+    for (let i = 0; i < 3; i++) { window.dispatchEvent(new Event('resize')); flush(); }
+    assert.deepEqual(f.state(), first);
+  } finally { f.close(); }
+});
