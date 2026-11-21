@@ -1041,7 +1041,6 @@ html[data-a11y-motion="reduce"] .profile-view .profile-theme:hover { transform: 
 /* Brand download uses the same tokens in the dialog's body-mounted top layer. */
 .brand-download { width: min(760px, calc(100vw - 32px)); max-width: none; max-height: calc(100dvh - 40px); padding: var(--ui-space-page); overflow: auto; color: var(--ui-color-text-default); background: var(--ui-color-surface-raised); }
 .bd-head { display: flex; align-items: start; justify-content: space-between; gap: var(--sp-5); }
-.bd-eyebrow { margin: 0 0 var(--sp-4); font-size: var(--ui-type-caption); letter-spacing: .08em; color: var(--ui-color-text-muted); }
 .brand-download .modal-title { margin: 0; font-size: var(--ui-type-heading); line-height: 1.2; overflow-wrap: anywhere; }
 .bd-intro, .bd-help { font-size: var(--ui-type-body); line-height: 1.5; color: var(--ui-color-text-muted); }
 .bd-modes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); padding: 0; margin: var(--ui-space-panel) 0; border: 0; }

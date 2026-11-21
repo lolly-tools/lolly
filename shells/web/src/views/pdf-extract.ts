@@ -628,7 +628,6 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
         <input type="file" accept=".pdf,.ai,.svg,.html,.htm,.idml,.af,.afdesign,.afphoto,.afpub,.penpot,.fig,.pptx,.psd,.psb,.xcf,application/pdf,image/svg+xml" hidden>
         <span class="pdfx-drop-icon" aria-hidden="true">${icon('document', { size: 32 })}</span>
         <strong>${t('Drop a design file here')}</strong>
-        <span>${t('pdf · svg · idml · penpot · fig · pptx · psd · nothing leaves your device')}</span>
       </div>
 
       <div class="pdfx-out" data-out hidden></div>
