@@ -19,8 +19,10 @@
  * nothing in the HTTP cache the worker's fetches are full downloads, and made as soon as
  * a first visit's worker took control they shared the link with the gallery's code (300 ms
  * later to interactive on the phone profile), and made at the first idle moment with the
- * featured images (largest paint 1 s later). The cache only has to be full by the next
- * visit, so waiting costs nothing.
+ * featured images (largest paint 1 s later). A first visit's network seldom goes quiet
+ * soon (it warms other parts for many seconds), so the wait is short: past the featured
+ * images on the phone profile (largest paint at 2.9 to 3.9 s), early enough that a visit
+ * a few seconds later finds the boot set (with a 30 s cap it often did not).
  */
 
 export const BOOT_SET_MESSAGE = 'lolly:boot-set';
@@ -43,9 +45,9 @@ export function bootSetUrls(doc: Document, entries: readonly { name: string }[],
 }
 
 /** How long no resource of the page may have finished loading before the post. */
-export const QUIET_MS = 2000;
+export const QUIET_MS = 1500;
 /** The longest the post waits for that quiet, from when it could first be made. */
-export const HANDOVER_WAIT_MS = 30_000;
+export const HANDOVER_WAIT_MS = 8000;
 
 type Idle = (fn: () => void) => void;
 

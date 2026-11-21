@@ -74,7 +74,7 @@ test('a first visit hands over when the new worker takes control, with what has 
   assert.ok((posted[0] as { urls: string[] }).urls.includes('/_app/late-d4.js'));
 });
 
-test('the post waits until the page has loaded nothing for two seconds, or thirty have passed', () => {
+test('the post waits until the page has loaded nothing for a moment, or the wait runs out', () => {
   let clock = 0;
   const timers: Array<() => void> = [];
   const loaded: Array<{ responseEnd: number }> = [{ responseEnd: 0 }];
@@ -85,8 +85,8 @@ test('the post waits until the page has loaded nothing for two seconds, or thirt
   clock = 1500; loaded.push({ responseEnd: 1400 });
   timers.shift()!();
   assert.deepEqual(ran, []);
-  clock = 3500; timers.shift()!();
-  assert.deepEqual(ran, [3500], 'two seconds after the last resource finished');
+  clock = 2900; timers.shift()!();
+  assert.deepEqual(ran, [2900], 'a moment after the last resource finished');
   // A page that never goes quiet still hands over after the wait runs out.
   clock = 0; const busy: Array<{ responseEnd: number }> = [];
   const ranBusy: number[] = []; const busyTimers: Array<() => void> = [];
