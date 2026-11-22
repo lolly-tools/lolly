@@ -407,12 +407,22 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
 
   /** The picture a record lost to an older writer (a 1.2.1 CLI or TUI rename or
    *  copy), found again by its work when the picture file is still here. */
-  async function relinked(raw: ParsedRecord): Promise<SessionPreviewRef | null> {
+  async function relinked(raw: ParsedRecord, names?: ReadonlySet<string>): Promise<SessionPreviewRef | null> {
     if (!mayHaveLostPicture(raw) || !raw.data || !fs.readFile) return null;
     try {
-      const ref = readPreviewLink(await fs.readTextFile(linkPath(await sessionWorkKey(raw.data))));
-      return ref && await fs.exists(previewPath(ref)) ? ref : null;
+      const workKey = await sessionWorkKey(raw.data);
+      // With the folder's names at hand, a record with no link costs no file read.
+      if (names && !names.has(previewLinkName(workKey))) return null;
+      const ref = readPreviewLink(await fs.readTextFile(linkPath(workKey)));
+      if (!ref) return null;
+      const file = previewPath(ref).slice(PREVIEW_DIR.length + 1);
+      return (names ? names.has(file) : await fs.exists(previewPath(ref))) ? ref : null;
     } catch { return null; }
+  }
+
+  /** The picture folder's names, read once for a pass over many records. */
+  async function pictureNames(): Promise<Set<string>> {
+    try { return new Set(await fs.readDirNames(PREVIEW_DIR)); } catch { return new Set(); }
   }
 
   async function writeRecord(slot: string, data: SavedStateData, picture: PictureInput, times?: { updatedAt: string; savedAt: string }): Promise<void> {
@@ -495,8 +505,9 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
    *  when the file still holds what was read and the picture verifies. Every other
    *  field stays as that writer wrote the record. */
   async function relinkRecords(lost: ParsedRecord[]): Promise<void> {
+    const names = lost.length ? await pictureNames() : new Set<string>();
     for (const read of lost) {
-      const ref = await relinked(read);
+      const ref = await relinked(read, names);
       if (!ref || !await readPicture(ref)) continue;
       await withSlot(read.slot!, async () => {
         try {
@@ -548,9 +559,10 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     const { records, complete, keysInText } = await scanRecords();
     if (!complete) return;
     const named = new Set<string>(keysInText);
+    const names = new Set(files);
     for (const { raw } of records) {
       // A record an older writer saved without its reference still owns its picture.
-      const ref = sessionPreviewRef(raw) ?? await relinked(raw);
+      const ref = sessionPreviewRef(raw) ?? await relinked(raw, names);
       if (ref) named.add(ref.key);
     }
     const now = Date.now();
@@ -645,10 +657,11 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       schedulePictureMove(records.map(({ raw }) => raw));
       // Records an older writer saved without their reference show their picture again.
       const found = new Map<string, SessionPreviewRef>();
-      for (const { raw } of records) {
-        if (!raw.slot || !mayHaveLostPicture(raw)) continue;
-        const ref = await relinked(raw);
-        if (ref) found.set(raw.slot, ref);
+      const lost = records.filter(({ raw }) => raw.slot && mayHaveLostPicture(raw));
+      const names = lost.length ? await pictureNames() : null;
+      for (const { raw } of lost) {
+        const ref = await relinked(raw, names!);
+        if (ref) found.set(raw.slot!, ref);
       }
       return records
         .map(({ raw }) => (found.has(raw.slot ?? '') ? { ...raw, preview: found.get(raw.slot!)! } : raw))
