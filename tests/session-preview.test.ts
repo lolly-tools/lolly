@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import {
   readPreviewRef, previewContentKey, decodePictureDataUrl, pictureDataUrl, pictureSize, pictureMatchesType,
   previewRefFor, previewFileExt, PREVIEW_MAX_BYTES, PREVIEW_TYPES,
-  sessionWork, sessionWorkKey, previewLinkName, readPreviewLink, mayHaveLostPicture,
+  sessionWork, sessionWorkKey, previewLinkName, readPreviewLink, readPreviewLinks, withPreviewLink, mayHaveLostPicture, PREVIEW_LINK_ENTRIES,
 } from '../engine/src/session-preview.ts';
 import {
   sessionPreviewRef, migrateSessionRecord, SESSION_FORMAT_VERSION, SESSION_READER_VERSION, sessionVersionStamp,
@@ -132,9 +132,17 @@ test('a picture link is keyed by the work, which a rename leaves alone, and read
   assert.equal(await sessionWorkKey({ ...work, __label: 'Renamed', __export_filename: 'renamed' }), key, 'a rename keeps the key');
   assert.notEqual(await sessionWorkKey({ ...work, title: 'b' }), key, 'changed work is another key');
   assert.equal(previewLinkName(key), `w-${key}.ref`);
-  const ref = { key: 'd'.repeat(32), type: 'image/webp', width: 720, height: 560 };
-  assert.deepEqual(readPreviewLink(JSON.stringify(ref)), ref);
-  for (const junk of [null, 1, '', '{', '[]', JSON.stringify({ ...ref, key: 'x' }), 'x'.repeat(5000)]) assert.equal(readPreviewLink(junk), null);
+  const ref = { key: 'd'.repeat(32), type: 'image/webp' as const, width: 720, height: 560 };
+  const other = { ...ref, key: 'e'.repeat(32) };
+  // One entry per session: a session gets its own back; a copy (a new slot) the newest.
+  let text = withPreviewLink(null, 'poster:1', ref);
+  text = withPreviewLink(text, 'poster:imported', other);
+  assert.deepEqual(readPreviewLink(text, 'poster:1'), ref, 'a rename of poster:1 gets its own picture, not the newer import');
+  assert.deepEqual(readPreviewLink(text, 'poster:copy'), other, 'a copy gets the newest picture of the same document');
+  assert.equal(withPreviewLink(text, 'poster:1', ref).length, withPreviewLink(withPreviewLink(text, 'poster:1', ref), 'poster:1', ref).length, 'setting an entry again does not grow the link');
+  for (let i = 0; i < 40; i++) text = withPreviewLink(text, `poster:${i + 10}`, other);
+  assert.equal(readPreviewLinks(text)!.length, PREVIEW_LINK_ENTRIES, 'bounded');
+  for (const junk of [null, 1, '', '{', '[]', JSON.stringify(ref), JSON.stringify({ v: 1, slots: [['poster:1', { ...ref, key: 'x' }]] }), 'x'.repeat(70000)]) assert.equal(readPreviewLink(junk, 'poster:1'), null);
   assert.equal(mayHaveLostPicture({ formatVersion: 4, thumb: null }), true, 'a format 4 record with no picture');
   assert.equal(mayHaveLostPicture({ thumb: null }), true, 'a record from before version stamps');
   assert.equal(mayHaveLostPicture({ formatVersion: 5, thumb: null }), false, 'a format 5 record with no picture has none');

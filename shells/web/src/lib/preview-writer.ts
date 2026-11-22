@@ -187,6 +187,36 @@ export async function pngPicture(blob: Blob, size?: { width: number; height: num
 }
 
 /**
+ * A picture within a byte limit a receiver sets (Beam's receivers drop a picture
+ * over 512 K characters of data URL): drawn as `pngPicture` draws, then WebP at
+ * falling quality, else JPEG for an opaque picture where no WebP encoder exists. A
+ * thumbnail a little softer than the stored picture is better than none, and the
+ * receiver draws its own picture on idle time anyway. Null when nothing fits.
+ */
+export async function compactPicture(blob: Blob, maxBytes: number, size?: { width: number; height: number }): Promise<Blob | null> {
+  const vector = blob.type === 'image/svg+xml';
+  const image = await decode(blob);
+  const natural = size && size.width > 0 && size.height > 0 ? size : sizeOf(image);
+  if (!natural.width || !natural.height) return null;
+  const { width, height } = fitTile(natural.width, natural.height, PREVIEW_TILE, vector);
+  const canvas = canvasOf(width, height);
+  const ctx = context2d(canvas);
+  ctx.drawImage(image as CanvasImageSource, 0, 0, width, height);
+  if ('close' in image && typeof image.close === 'function') image.close();
+  for (const quality of [WEBP_QUALITY, ...STEP_DOWN]) {
+    const webp = await encode(canvas, 'image/webp', quality);
+    if (webp.type !== 'image/webp') break;
+    if (webp.size <= maxBytes) return webp;
+  }
+  if (!opaque(ctx.getImageData(0, 0, width, height).data)) return null;
+  for (const quality of [JPEG_QUALITY, ...STEP_DOWN]) {
+    const jpeg = await encode(canvas, 'image/jpeg', quality);
+    if (jpeg.type === 'image/jpeg' && jpeg.size <= maxBytes) return jpeg;
+  }
+  return null;
+}
+
+/**
  * A raster picture from a render: a Blob (PNG from the export path, or an SVG to
  * rasterise), a canvas, or a decoded image. Fitted inside 720 x 560 and encoded by
  * the rule in the header.

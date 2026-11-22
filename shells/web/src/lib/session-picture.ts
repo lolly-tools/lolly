@@ -52,32 +52,58 @@ export async function rowPicturePng(state: PictureState, row: RowWithPicture | n
   return (await asPng(url, row?.preview).catch(() => null)) ?? url;
 }
 
+/** The longest picture data URL Beam's receivers keep (MAX_THUMB_CHARS in lib/beam-pack.ts). */
+export const BEAM_PICTURE_CHARS = 512 * 1024;
+
 /**
  * A session's picture as a raster data URL, for a receiver that takes raster
- * pictures only (Beam: PNG, JPEG, WebP, GIF or AVIF). A raster picture is passed
- * through; an SVG is drawn into a PNG in the browser. Null when no raster can be
- * made (the receiver would have dropped an SVG anyway).
+ * pictures only (Beam: PNG, JPEG, WebP, GIF or AVIF, up to `maxChars`). A raster
+ * picture within the limit is passed through; an SVG is drawn into a PNG in the
+ * browser; a picture still over the limit is drawn again smaller in bytes
+ * (lib/preview-writer.ts `compactPicture`). Null when nothing fits, where the
+ * receiver would have dropped the picture anyway.
  */
-export async function rowPictureRaster(state: PictureState, row: RowWithPicture | null | undefined): Promise<string | null> {
+export async function rowPictureRaster(state: PictureState, row: RowWithPicture | null | undefined, maxChars = BEAM_PICTURE_CHARS): Promise<string | null> {
   const url = await rowPictureDataUrl(state, row);
   if (!url) return null;
-  if (!/^data:image\/svg\+xml[;,]/i.test(url)) return url;
-  return asPng(url, row?.preview).catch(() => null);
+  const vector = /^data:image\/svg\+xml[;,]/i.test(url);
+  if (!vector && url.length <= maxChars) return url;
+  const png = vector ? await asPng(url, row?.preview).catch(() => null) : null;
+  if (png && png.length <= maxChars) return png;
+  return compact(url, row?.preview, maxChars).catch(() => null);
+}
+
+const blobOfDataUrl = async (url: string): Promise<Blob | null> => {
+  const { decodePictureDataUrl } = await import('../../../../engine/src/session-preview.ts');
+  const decoded = decodePictureDataUrl(url);
+  return decoded ? new Blob([decoded.bytes.slice().buffer as ArrayBuffer], { type: decoded.type }) : null;
+};
+const sizeOfRef = (ref?: SessionPreviewRef | null): { width: number; height: number } | undefined =>
+  ref && ref.width > 0 && ref.height > 0 ? { width: ref.width, height: ref.height } : undefined;
+async function base64Url(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return `data:${blob.type};base64,${btoa(binary)}`;
 }
 
 async function asPng(url: string, ref?: SessionPreviewRef | null): Promise<string | null> {
   if (/^data:image\/png;base64,/i.test(url)) return url;
-  const { decodePictureDataUrl } = await import('../../../../engine/src/session-preview.ts');
-  const decoded = decodePictureDataUrl(url);
-  if (!decoded) return null;
+  const blob = await blobOfDataUrl(url);
+  if (!blob) return null;
   const { pngPicture } = await import('./preview-writer.ts');
-  const size = ref && ref.width > 0 && ref.height > 0 ? { width: ref.width, height: ref.height } : undefined;
-  const png = await pngPicture(new Blob([decoded.bytes.slice().buffer as ArrayBuffer], { type: decoded.type }), size);
-  if (!png) return null;
-  const bytes = new Uint8Array(await png.arrayBuffer());
-  let binary = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  return `data:image/png;base64,${btoa(binary)}`;
+  const png = await pngPicture(blob, sizeOfRef(ref));
+  return png ? base64Url(png) : null;
+}
+
+async function compact(url: string, ref: SessionPreviewRef | null | undefined, maxChars: number): Promise<string | null> {
+  const blob = await blobOfDataUrl(url);
+  if (!blob) return null;
+  const { compactPicture } = await import('./preview-writer.ts');
+  // Base64 is four characters for three bytes, plus the header.
+  const picture = await compactPicture(blob, Math.floor((maxChars - 64) * 3 / 4), sizeOfRef(ref));
+  const out = picture ? await base64Url(picture) : null;
+  return out && out.length <= maxChars ? out : null;
 }
 
 /**

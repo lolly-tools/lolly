@@ -321,8 +321,17 @@ test('an SVG-first session: its .lolly thumbnail is a PNG the Linux thumbnailer 
       const bytes = new Uint8Array(await blob.arrayBuffer());
       let binary = '';
       for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-      return { stored: row.preview?.type, png, raster, file: btoa(binary) };
+      // A small SVG that draws a large picture (fine noise): its PNG passes Beam's limit.
+      const noise = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4"/></filter><rect width="640" height="480" filter="url(#n)"/></svg>')}`;
+      await state.save('poster:noise', { __toolId: 'poster', title: 'noise' }, await store.preparePicture(noise, 'legacy'));
+      const noiseRow = (await state.list()).find((r: { slot: string }) => r.slot === 'poster:noise');
+      const noisePng = await pictures.rowPicturePng(state, noiseRow);
+      const noiseRaster = await pictures.rowPictureRaster(state, noiseRow);
+      return { stored: row.preview?.type, png, raster, file: btoa(binary), noisePngChars: noisePng?.length ?? 0, noiseRaster: noiseRaster ?? '' };
     });
+    assert.ok(result.noisePngChars > 512 * 1024, `the noise picture's PNG is ${result.noisePngChars} characters, over Beam's limit`);
+    assert.match(result.noiseRaster.slice(0, 40), /^data:image\/(?:webp|jpeg);base64,/, 'Beam gets it smaller in bytes instead');
+    assert.ok(result.noiseRaster.length <= 512 * 1024);
     assert.equal(result.stored, 'image/svg+xml', 'the session keeps its picture as SVG');
     // Beam: the receiver's test in 1.2.1 (THUMB_DATA_URL and MAX_THUMB_CHARS in lib/beam-pack.ts).
     assert.match(result.raster ?? '', /^data:image\/(?:png|jpeg|jpg|webp|gif|avif);base64,[A-Za-z0-9+/=\s]*$/);

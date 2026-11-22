@@ -66,7 +66,7 @@ import { textFontAssetIds } from '../../../engine/src/text-assets.ts';
 import { sessionPreviewRef } from '../../../engine/src/session-record.ts';
 import {
   decodePictureDataUrl, mayHaveLostPicture, pictureDataUrl, previewContentKey, previewFileExt, previewLinkName, previewRefFor,
-  readPreviewLink, readPreviewRef, sessionWorkKey, type SessionPreviewRef,
+  readPreviewLink, readPreviewLinks, readPreviewRef, sessionWorkKey, withPreviewLink, type SessionPreviewRef,
 } from '../../../engine/src/session-preview.ts';
 import type { SavedStateData, WebStateAPI } from '../../web/src/bridge/state.ts';
 import { preparePicture, type PictureInput, type PreparedPicture } from '../../web/src/bridge/preview-store.ts';
@@ -393,14 +393,23 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
 
   const linkPath = (workKey: string): string => `${PREVIEW_DIR}/${previewLinkName(workKey)}`;
 
-  /** Remember which picture shows this work (engine `previewLinkName`), so a record
-   *  an older writer saves again without its reference finds the picture again. */
-  async function writeLink(data: unknown, ref: SessionPreviewRef): Promise<void> {
+  /** Link files this window wrote in the last ten minutes: the sweep leaves them, as
+   *  it leaves a picture written here, since their record may be a moment away. */
+  const linksWrittenHere = new Map<string, number>();
+
+  /** Remember which picture this session's work was saved with (engine
+   *  `previewLinkName`), so a record an older writer saves again without its
+   *  reference finds the picture again. */
+  async function writeLink(slot: string, data: unknown, ref: SessionPreviewRef): Promise<void> {
     try {
-      const path = linkPath(await sessionWorkKey(data));
-      const text = JSON.stringify({ key: ref.key, type: ref.type, width: ref.width, height: ref.height, ...(ref.route ? { route: ref.route } : {}) });
-      try { if (await fs.readTextFile(path) === text) return; } catch { /* none yet */ }
+      const name = previewLinkName(await sessionWorkKey(data));
+      const path = `${PREVIEW_DIR}/${name}`;
+      let prior: string | null = null;
+      try { prior = await fs.readTextFile(path); } catch { /* none yet */ }
+      const text = withPreviewLink(prior, slot, ref);
+      if (text === prior) return;
       if (!await fs.exists(PREVIEW_DIR)) await fs.mkdirRecursive(PREVIEW_DIR);
+      linksWrittenHere.set(name, Date.now());
       await writeDocument(fs, path, text);
     } catch { /* the record keeps its own reference either way */ }
   }
@@ -413,7 +422,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       const workKey = await sessionWorkKey(raw.data);
       // With the folder's names at hand, a record with no link costs no file read.
       if (names && !names.has(previewLinkName(workKey))) return null;
-      const ref = readPreviewLink(await fs.readTextFile(linkPath(workKey)));
+      const ref = readPreviewLink(await fs.readTextFile(linkPath(workKey)), raw.slot);
       if (!ref) return null;
       const file = previewPath(ref).slice(PREVIEW_DIR.length + 1);
       return (names ? names.has(file) : await fs.exists(previewPath(ref))) ? ref : null;
@@ -465,7 +474,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       ...sessionVersionStamp(),
     };
     await writeDocument(fs, slotPath(slot), JSON.stringify(record, null, 2));
-    if (fields.preview) await writeLink(data, fields.preview);
+    if (fields.preview) await writeLink(slot, data, fields.preview);
     if (priorRef && priorRef.key !== fields.preview?.key) pictureLeft();
   }
 
@@ -538,7 +547,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
           if (current.thumb !== read.thumb || current.updatedAt !== read.updatedAt || current.savedAt !== read.savedAt
             || sessionPreviewRef(current) || JSON.stringify(current.data) !== JSON.stringify(read.data)) return;
           await writeDocument(fs, path, JSON.stringify({ ...current, thumb: null, preview: ref }, null, 2));
-          await writeLink(current.data, ref);
+          await writeLink(read.slot!, current.data, ref);
         } catch { /* left as it was; read the old way */ }
       });
     }
@@ -560,12 +569,25 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     if (!complete) return;
     const named = new Set<string>(keysInText);
     const names = new Set(files);
+    const liveWork = new Set<string>();
     for (const { raw } of records) {
-      // A record an older writer saved without its reference still owns its picture.
-      const ref = sessionPreviewRef(raw) ?? await relinked(raw, names);
+      const ref = sessionPreviewRef(raw);
       if (ref) named.add(ref.key);
+      if (raw.data === undefined) continue;
+      const link = previewLinkName(await sessionWorkKey(raw.data));
+      liveWork.add(link);
+      // A record an older writer saved without its reference still owns the picture
+      // its link holds. A link that cannot be read stops the sweep: it might hold any
+      // picture; one that cannot be parsed counts every key in its text.
+      if (ref || !mayHaveLostPicture(raw) || !names.has(link)) continue;
+      let text: string;
+      try { text = await fs.readTextFile(`${PREVIEW_DIR}/${link}`); } catch { return; }
+      const found = readPreviewLink(text, raw.slot);
+      if (found) named.add(found.key);
+      else for (const key of text.match(/[0-9a-f]{32}/g) ?? []) named.add(key);
     }
     const now = Date.now();
+    for (const [name, at] of linksWrittenHere) if (now - at > WRITTEN_GRACE_MS) linksWrittenHere.delete(name);
     for (const [key, at] of writtenHere) if (now - at > WRITTEN_GRACE_MS) writtenHere.delete(key);
     const seen = new Map<string, number>();
     try {
@@ -585,13 +607,15 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       }
       next.set(key, first ?? now);
     }
-    // A link whose picture file is gone has nothing left to find.
+    // A link goes when no record has its work any more, or when every picture it
+    // holds is gone; one written here in the last ten minutes waits.
     const present = new Set(files.filter(file => !removed.has(file)));
     for (const file of files) {
-      if (!/^w-[0-9a-f]{32}\.ref$/.test(file)) continue;
+      if (!/^w-[0-9a-f]{32}\.ref$/.test(file) || linksWrittenHere.has(file)) continue;
       try {
-        const ref = readPreviewLink(await fs.readTextFile(`${PREVIEW_DIR}/${file}`));
-        if (!ref || !present.has(previewPath(ref).slice(PREVIEW_DIR.length + 1))) await fs.remove(`${PREVIEW_DIR}/${file}`);
+        const live = liveWork.has(file) && (readPreviewLinks(await fs.readTextFile(`${PREVIEW_DIR}/${file}`)) ?? [])
+          .some(entry => present.has(previewPath(entry.ref).slice(PREVIEW_DIR.length + 1)));
+        if (!live) await fs.remove(`${PREVIEW_DIR}/${file}`);
       } catch { /* kept */ }
     }
     const text = [...next].map(([key, at]) => `${key} ${at}`).join('\n');

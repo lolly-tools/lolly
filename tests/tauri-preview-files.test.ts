@@ -281,3 +281,39 @@ test('a 1.2.1 CLI or TUI rename or copy of a moved session: the picture is found
   await launch();
   assert.ok(bytes.has(`saved-state/previews/${picture.ref.key}.png`));
 });
+
+test('links stay honest: a renamed session gets its own picture back, not one another session with the same document saved later; an unreadable link stops the sweep; links for work no record has go', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-11-22T09:00:00Z') });
+  const { fs, bytes, text } = memoryFs();
+  text.set('saved-state/slotname-v1.marker', '1');
+  const mine = await prepared(png('mine')), imported = await prepared(png('imported'));
+  const work = { __toolId: 'poster', title: 'shared', __label: 'Mine' };
+  const app = createFsStateAPI(fs);
+  await app.save('poster:1', work, mine);
+  await app.restore!('poster:imported', { ...work, __label: 'From a backup' }, imported, '2026-11-22T09:05:00.000Z', '2026-11-22T09:05:00.000Z');
+  const saved = JSON.parse(text.get('saved-state/poster%3A1.json')!);
+  text.set('saved-state/poster%3A1.json', writtenBy121(saved, 'poster:1', { ...work, __label: 'Renamed' }, 'Renamed'));
+  const launch = async () => { const rows = await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(); return rows; };
+  let rows = await launch();
+  assert.equal(rows.find(r => r.slot === 'poster:1')?.preview?.key, mine.ref.key, 'its own picture');
+
+  // Many saves of one session with new work and the same picture leave one link.
+  const busy = createFsStateAPI(fs);
+  for (let i = 0; i < 30; i++) await busy.save('poster:busy', { __toolId: 'poster', title: `draft ${i}` }, mine);
+  const links = () => [...text.keys()].filter(path => /previews\/w-[0-9a-f]{32}\.ref$/.test(path)).length;
+  assert.ok(links() >= 30);
+  context.mock.timers.tick(11 * 60_000);
+  rows = await launch();
+  assert.equal(links(), 2, 'one link for the shared document, one for the busy session');
+
+  // A record that lost its reference, whose link cannot be read: nothing is swept.
+  const lost = JSON.parse(text.get('saved-state/poster%3Aimported.json')!);
+  text.set('saved-state/poster%3Aimported.json', writtenBy121(lost, 'poster:imported', { ...work, __label: 'Imported renamed' }, 'Imported renamed'));
+  text.set('saved-state/poster%3A1.json', JSON.stringify({ ...JSON.parse(text.get('saved-state/poster%3A1.json')!), data: { ...work, title: 'moved on' } }));
+  const read = fs.readTextFile;
+  fs.readTextFile = async (path) => { if (/previews\/w-/.test(path)) throw new Error('busy'); return read(path); };
+  await launch();
+  context.mock.timers.tick(11 * 60_000);
+  await launch();
+  assert.ok(bytes.has(`saved-state/previews/${imported.ref.key}.png`), 'kept while its link could not be read');
+});

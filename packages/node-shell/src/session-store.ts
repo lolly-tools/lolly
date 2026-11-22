@@ -31,7 +31,7 @@ import type { SessionEmojiStamp } from '../../../engine/src/session-record.ts';
 import { decodeFsToken, encodeFsToken } from '../../../engine/src/fs-token.ts';
 import { migrateSessionRecord, sessionVersionStamp, sessionRightsDecisions, sessionEmojiStamp, sessionPreviewRef } from '../../../engine/src/session-record.ts';
 import {
-  mayHaveLostPicture, previewFileExt, previewLinkName, readPreviewLink, sessionWorkKey, type SessionPreviewRef,
+  mayHaveLostPicture, previewFileExt, previewLinkName, readPreviewLink, sessionWorkKey, withPreviewLink, type SessionPreviewRef,
 } from '../../../engine/src/session-preview.ts';
 
 /** The directory the shells share, under the resolved state directory. */
@@ -110,18 +110,20 @@ const linkFile = (stateDir: string, workKey: string): string => join(sessionsDir
 async function withFoundPicture(stateDir: string, record: SessionRecord): Promise<SessionRecord> {
   if (!mayHaveLostPicture(record)) return record;
   try {
-    const ref = readPreviewLink(await readFile(linkFile(stateDir, await sessionWorkKey(record.data)), 'utf8'));
+    const ref = readPreviewLink(await readFile(linkFile(stateDir, await sessionWorkKey(record.data)), 'utf8'), record.slot);
     if (ref && (await stat(sessionPicturePath(stateDir, ref))).isFile()) return { ...record, thumb: null, preview: ref };
   } catch { /* no link, or no picture: the record as it is */ }
   return record;
 }
 
-/** Remember which picture shows this work, as the desktop app does. Best effort. */
-async function writeLink(stateDir: string, data: SessionData, ref: SessionPreviewRef): Promise<void> {
+/** Remember which picture this session's work was saved with, as the desktop app
+ *  does. Best effort. */
+async function writeLink(stateDir: string, slot: string, data: SessionData, ref: SessionPreviewRef): Promise<void> {
   try {
     const path = linkFile(stateDir, await sessionWorkKey(data));
-    const text = JSON.stringify({ key: ref.key, type: ref.type, width: ref.width, height: ref.height, ...(ref.route ? { route: ref.route } : {}) });
-    if (await readFile(path, 'utf8').catch(() => null) === text) return;
+    const prior = await readFile(path, 'utf8').catch(() => null);
+    const text = withPreviewLink(prior, slot, ref);
+    if (prior === text) return;
     await mkdir(join(sessionsDir(stateDir), 'previews'), { recursive: true });
     const temp = `${path}.${randomUUID()}.tmp`;
     try {
@@ -256,7 +258,7 @@ export async function writeSessionRecord(stateDir: string, write: SessionWrite):
     }
     await rename(temp, path);
   } finally { await rm(temp, { force: true }); }
-  if (record.preview) await writeLink(stateDir, record.data, record.preview);
+  if (record.preview) await writeLink(stateDir, record.slot, record.data, record.preview);
   return record;
 }
 

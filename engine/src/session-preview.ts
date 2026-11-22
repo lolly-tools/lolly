@@ -263,20 +263,50 @@ export async function sessionWorkKey(data: unknown): Promise<string> {
 
 /**
  * A picture link: a small file beside the picture files, named by the work key,
- * holding the reference of the picture that shows that work. Builds before session
- * format 5 (the 1.2.1 CLI and TUI) write a record again from the fields they know, so
- * a rename or a copy there drops `preview`; a reader of format 5 finds the picture
- * again through the link, since a rename does not change the work. Never `.json`, so
- * no reader of `saved-state/` takes a link for a record.
+ * holding the picture each session with that work was last saved with. Builds before
+ * session format 5 (the 1.2.1 CLI and TUI) write a record again from the fields they
+ * know, so a rename or a copy there drops `preview`; a reader of format 5 finds the
+ * picture again through the link, since a rename does not change the work. A session
+ * gets its own entry back (a rename keeps the slot); a copy, under a new slot, gets the
+ * newest entry, a picture of the same document. Never `.json`, so no reader of
+ * `saved-state/` takes a link for a record.
  */
 export function previewLinkName(workKey: string): string {
   return `w-${workKey}.ref`;
 }
 
-/** The reference a link file holds, read totally: null for anything else. */
-export function readPreviewLink(text: unknown): SessionPreviewRef | null {
-  if (typeof text !== 'string' || text.length > 4096) return null;
-  try { return readPreviewRef(JSON.parse(text)); } catch { return null; }
+/** Entries a link keeps, newest last: enough for the copies of one document. */
+export const PREVIEW_LINK_ENTRIES = 16;
+
+/** A link file's entries, read totally: null when the text is not a link. */
+export function readPreviewLinks(text: unknown): Array<{ slot: string; ref: SessionPreviewRef }> | null {
+  if (typeof text !== 'string' || text.length > 64 * 1024) return null;
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return null; }
+  const entries = (parsed as { v?: unknown; slots?: unknown } | null)?.slots;
+  if ((parsed as { v?: unknown } | null)?.v !== 1 || !Array.isArray(entries)) return null;
+  const out: Array<{ slot: string; ref: SessionPreviewRef }> = [];
+  for (const entry of entries.slice(-PREVIEW_LINK_ENTRIES)) {
+    if (!Array.isArray(entry) || typeof entry[0] !== 'string' || !entry[0] || entry[0].length > 1024) continue;
+    const ref = readPreviewRef(entry[1]);
+    if (ref) out.push({ slot: entry[0], ref });
+  }
+  return out;
+}
+
+/** The picture a link holds for a session: its own entry, else (a copy) the newest. */
+export function readPreviewLink(text: unknown, slot?: string): SessionPreviewRef | null {
+  const entries = readPreviewLinks(text);
+  if (!entries?.length) return null;
+  return entries.find(entry => entry.slot === slot)?.ref ?? entries[entries.length - 1]!.ref;
+}
+
+/** A link's text with this session's entry set to `ref`, newest last, bounded. */
+export function withPreviewLink(text: unknown, slot: string, ref: SessionPreviewRef): string {
+  const kept = (readPreviewLinks(text) ?? []).filter(entry => entry.slot !== slot);
+  const plain = { key: ref.key, type: ref.type, width: ref.width, height: ref.height, ...(ref.route ? { route: ref.route } : {}) };
+  const slots = [...kept.map(entry => [entry.slot, entry.ref] as const), [slot, plain] as const].slice(-PREVIEW_LINK_ENTRIES);
+  return JSON.stringify({ v: 1, slots });
 }
 
 /** Whether a record could have lost its picture reference to an older writer: no
