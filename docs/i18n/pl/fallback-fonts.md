@@ -1,14 +1,15 @@
 # Czcionki zastępcze
 
-Czcionki systemu projektowego często pokrywają tylko część pism świata. Lolly Demo ustawia nagłówki w Outfit, a tekst w SUSE, i żadna z tych czcionek nie ma liter cyrylicy, greki, arabskiego, hebrajskiego, dewanagari, bengalskiego, tajskiego, chińskiego, japońskiego ani koreańskiego. Gdy dokument zawiera litery, których czcionki jego systemu projektowego nie potrafią narysować, Lolly rysuje je otwartą czcionką Noto, dzięki czemu eksport zachowuje je jako wektorowe kontury, zamiast zamieniać słowa w obraz.
+Gdy czcionki systemu projektowego nie potrafią narysować litery, Lolly rysuje ją otwartą czcionką Noto, więc eksport zachowuje literę jako kontur wektorowy zamiast obrazu. Czcionki Lolly Demo, Outfit dla nagłówków i SUSE dla tekstu, nie mają liter cyrylicy, greckich, arabskich, hebrajskich, dewanagari, bengalskich, tajskich, chińskich, japońskich ani koreańskich.
 
-Czcionki systemu projektowego zawsze mają pierwszeństwo, w kolejności, w jakiej system je wymienia. Outfit nie ma liter wietnamskich, więc wietnamski nagłówek bierze je z SUSE, następnej czcionki z listy Lolly Demo. Czcionka zastępcza rysuje tylko znaki, których żadna z tych czcionek nie potrafi narysować, więc czcionka marki zachowuje każdą swoją literę, cyfrę i znak, nawet wewnątrz słowa w innym piśmie. Czcionka marki, która ma dany znak chiński, zachowuje także ten znak.
+Czcionki systemu projektowego zawsze mają pierwszeństwo, w kolejności na liście. Outfit nie ma liter wietnamskich, więc wietnamski nagłówek bierze je z SUSE, następnej czcionki na liście Lolly Demo. Czcionka zastępcza rysuje tylko znaki, których nie potrafi narysować żadna z tych czcionek. Czcionka marki zachowuje każdą literę, cyfrę i znak, które ma, w tym znaki chińskie, nawet wewnątrz słowa zapisanego innym pismem.
 
-## Co jest w zestawie
+<!--i:eti-package-->
+## Co jest dołączone
 
-Piętnaście czcionek, wszystkie z Google Fonts w przypiętym commicie i wszystkie na licencji SIL Open Font License 1.1. Przy każdym pliku podano rozmiar pobrania.
+Piętnaście czcionek, wszystkie z Google Fonts z ustalonego commita. Przy każdym pliku podany jest rozmiar pobierania.
 
-| Pismo | Czcionka | Wersja | Pobranie |
+| Pismo | Czcionka | Wersja | Pobieranie |
 |---|---|---|---|
 | Arabskie, w tym litery urdu i perskie | Noto Sans Arabic | 2.012 | 211 KB |
 | Hebrajskie | Noto Sans Hebrew | 3.001 | 37 KB |
@@ -17,68 +18,86 @@ Piętnaście czcionek, wszystkie z Google Fonts w przypiętym commicie i wszystk
 | Tajskie | Noto Sans Thai | 2.002 | 62 KB |
 | Cyrylica | Noto Sans, litery cyrylicy | 2.015 | 115 KB, kursywa 132 KB |
 | Greckie | Noto Sans, litery greckie | 2.015 | 77 KB, kursywa 83 KB |
-| Łacińskie, w tym wietnamskie i inne litery z akcentami | Noto Sans, litery łacińskie | 2.015 | 316 KB, kursywa 350 KB |
-| Chiński uproszczony, znaki GB 2312 | Noto Sans SC | 2.004 | 2,0 MB |
-| Chiński tradycyjny, znaki Big5 | Noto Sans TC | 2.004 | 3,8 MB |
-| Japońskie, znaki Shift_JIS | Noto Sans JP | 2.004 | 2,2 MB |
-| Koreańskie, każda sylaba hangul i znaki KS X 1001 | Noto Sans KR | 2.004 | 2,5 MB |
+| Łacińskie, w tym wietnamskie i inne litery ze znakami diakrytycznymi | Noto Sans, litery łacińskie | 2.015 | 316 KB, kursywa 350 KB |
+| Chińskie uproszczone, znaki GB 2312 | Noto Sans SC | 2.004 | 2.0 MB |
+| Chińskie tradycyjne, znaki Big5 | Noto Sans TC | 2.004 | 3.8 MB |
+| Japońskie, znaki Shift_JIS | Noto Sans JP | 2.004 | 2.2 MB |
+| Koreańskie, każda sylaba hangul i znaki KS X 1001 | Noto Sans KR | 2.004 | 2.5 MB |
 
-Oś grubości każdej czcionki jest zachowana w całości, więc każda grubość, o którą prosi projekt, nadal się rysuje, a pogrubiony nagłówek chiński, japoński lub koreański jest pogrubiony. Oś szerokości czcionek Noto Sans jest ustawiona na stałe na normalną, co zmniejsza każdy plik o połowę; czcionki chińskie, japońskie i koreańskie nie mają osi szerokości. Noto Sans jest podzielona według pisma, więc słowo cyrylicą pobiera tylko litery cyrylicy. Kontury są oryginalnymi konturami z upstreamu, bez zmian.
+Każda czcionka zachowuje wszystkie grubości na swojej osi grubości, więc pogrubiony nagłówek chiński, japoński lub koreański jest pogrubiony. Czcionki Noto Sans mają oś szerokości ustawioną na stałe na normalną, co zmniejsza każdy plik o połowę. Czcionki chińskie, japońskie i koreańskie nie mają osi szerokości. Noto Sans jest podzielona według pisma, więc słowo w cyrylicy powoduje pobranie tylko liter cyrylicy. Kontury pozostają niezmienione względem źródła.
 
-Czcionki leżą w jednym wspólnym folderze, `community/fallback-fonts`, serwowanym każdemu systemowi projektowemu z `/catalog/packs/fallback-fonts/`, tak samo jak wspólne zestawy emoji. `scripts/import-fallback-fonts.ts` buduje pliki z czcionek upstreamu przypiętych w `scripts/data/fallback-fonts.json`, sprawdza każdy plik z upstreamu względem zapisanego SHA-256 i zapisuje teksty licencji obok czcionek.
+::: details Gdzie znajdują się czcionki i jak są budowane
+Czcionki znajdują się w jednym wspólnym folderze, `community/fallback-fonts`, udostępnianym każdemu systemowi projektowemu z `/catalog/packs/fallback-fonts/`, tak jak zestawy emoji. `scripts/import-fallback-fonts.ts` buduje pliki z czcionek źródłowych przypiętych w `scripts/data/fallback-fonts.json`, sprawdza każdy plik źródłowy względem zapisanego SHA-256 i zapisuje teksty licencji obok czcionek.
+:::
 
+<!--i:eti-globe-->
 ## Chiński, japoński i koreański
 
-Pełna czcionka chińska, japońska lub koreańska ma od 9,6 MB do 17,8 MB, więc każdą z nich przycięto do narodowego zestawu znaków, z którego jej czytelnicy korzystają na co dzień, plus interpunkcji, kany, form pełnej szerokości i symboli zwykłego tekstu:
+Pełna czcionka chińska, japońska lub koreańska ma od 9,6 MB do 17,8 MB. Każda jest przycięta do krajowego zestawu znaków oraz interpunkcji, kany, form o pełnej szerokości i symboli używanych w tekście ciągłym:
 
-- Chiński uproszczony: GB 2312, 6763 powszechne hanzi i jego symbole, łącznie 7522 znaki.
-- Chiński tradycyjny: Big5, jego 13 053 hanzi i symbole, łącznie 13 629 znaków. Hongkoński Zestaw Znaków Uzupełniających nie jest uwzględniony.
-- Japoński: Shift_JIS tak, jak czytają go Windows i sieć, czyli JIS X 0208 z dodatkami NEC i IBM, których potrzebują nazwiska takie jak 髙 i 﨑, każda kana i półszerokie katakana, łącznie 7432 znaki.
-- Koreański: wszystkie 11 172 sylaby hangul i KS X 1001 z jego 4888 hanja, łącznie 17 082 znaki.
+- Chiński uproszczony: GB 2312, 6763 popularne znaki hanzi i symbole tego zestawu, łącznie 7522 znaki.
+- Chiński tradycyjny: Big5, 13 053 znaki hanzi i symbole tego zestawu, łącznie 13 629 znaków. Hong Kong Supplementary Character Set nie jest dołączony.
+- Japoński: Shift_JIS w postaci odczytywanej przez Windows i przeglądarki, czyli JIS X 0208 z rozszerzeniami NEC i IBM potrzebnymi w nazwach zawierających na przykład 髙 i 﨑, wszystkie znaki kany i katakana o połowie szerokości, łącznie 7432 znaki.
+- Koreański: wszystkie 11 172 sylaby hangul i KS X 1001 z 4888 znakami hanja, łącznie 17 082 znaki.
 
-Liter łacińskich, greckich i cyrylicy w tych czterech czcionkach brakuje, ponieważ rysują je czcionki systemu projektowego i czcionki wymienione wyżej. Zestawy są odczytywane z plików indeksu Encoding Standard w przypiętym commicie, więc przebudowa daje te same pliki.
+Te cztery czcionki pomijają litery łacińskie, greckie i cyrylicę, które rysują czcionki systemu projektowego i czcionki wymienione powyżej. Zestawy pochodzą z plików indeksowych Encoding Standard z ustalonego commita, więc ponowne zbudowanie daje te same pliki.
 
-Chiński, japoński i koreański dzielą większość znaków, ale każdy wiele z nich rysuje inaczej. Ten sam znak 直 pisze się w jeden sposób po chińsku, a w inny po japońsku. Dlatego jeden przebieg tekstu bierze wszystkie wspólne znaki z jednej z tych czcionek, nigdy z dwóch, a Lolly wybiera ją w tej kolejności:
+Chiński, japoński i koreański współdzielą większość znaków, ale wiele z nich rysują inaczej. Na przykład 直 zapisuje się inaczej po chińsku niż po japońsku. Jeden fragment tekstu bierze wszystkie współdzielone znaki z jednej z tych czcionek, nigdy z dwóch. Lolly wybiera tę czcionkę w następującej kolejności:
 
-1. Język przebiegu, z `lang` jego elementu lub najbliższego elementu wokół niego w dokumencie. Ustawia go ustawienie języka narzędzia, takie jak Language w certyfikacie. Język własnego interfejsu Lolly i język systemu projektowego się nie liczą, więc dokument eksportuje się tak samo dla wszystkich.
-2. Pismo przebiegu: kana oznacza japoński, a hangul koreański. Gdy sam przebieg nie ma żadnego z nich, czytany jest cały dokument, więc nagłówek z samych kanji w japońskim dokumencie jest rysowany po japońsku. Dokument, który zawiera zarówno kanę, jak i hangul, niczego tu nie rozstrzyga.
-3. Znak używany tylko w chińskim tradycyjnym, taki jak 體 lub 說, w przebiegu lub w dokumencie, oznacza chiński tradycyjny, chyba że ten sam tekst zawiera też znak używany tylko w chińskim uproszczonym.
+1. Język fragmentu, z `lang` jego elementu lub najbliższego elementu nadrzędnego w dokumencie. Ustawia go wybór języka w narzędziu, na przykład Language w certyfikacie. Język interfejsu Lolly i język systemu projektowego nie są brane pod uwagę, więc dokument eksportuje się tak samo dla każdego.
+2. Pismo fragmentu: kana oznacza japoński, a hangul koreański. Gdy fragment nie zawiera żadnego z nich, Lolly odczytuje dokument, więc nagłówek z samym kanji w japońskim dokumencie jest rysowany po japońsku. Dokument zawierający zarówno kanę, jak i hangul nie rozstrzyga niczego na tym etapie.
+3. Znak używany tylko w chińskim tradycyjnym, na przykład 體 lub 說, we fragmencie albo w pozostałej części dokumentu, oznacza chiński tradycyjny, chyba że ten sam tekst zawiera też znak używany tylko w chińskim uproszczonym.
 4. W przeciwnym razie chiński uproszczony.
 
-Znak, którego wybrana czcionka nie ma, nigdy nie jest brany z jednej z trzech pozostałych. Zostaje obrazem, jak opisano niżej. Kana lub hangul, których wybrana czcionka nie ma, na przykład koreańskie słowa w wierszu oznaczonym jako japoński, mogą nadal pochodzić z czcionki japońskiej lub koreańskiej, ale tylko wtedy, gdy ta czcionka nie narysowałaby żadnego wspólnego znaku z tego wiersza.
+Znak, którego wybrana czcionka nie ma, nigdy nie jest pobierany z jednej z pozostałych trzech. Pozostaje obrazem. Kana lub hangul, których wybrana czcionka nie ma, na przykład koreańskie słowa w wierszu oznaczonym jako japoński, nadal mogą pochodzić z czcionki japońskiej lub koreańskiej, ale tylko wtedy, gdy ta czcionka nie rysowałaby żadnego współdzielonego znaku wiersza.
 
-Na stronie kanwa zawierająca dwa z tych języków wymienia obie czcionki, a przeglądarka rysuje wspólne znaki pierwszą z nich. Eksport rysuje każdy przebieg jego własną.
+Na stronie kanwa zawierająca dwa z tych języków wymienia obie czcionki, a przeglądarka rysuje współdzielone znaki pierwszą z nich. Eksport rysuje każdy fragment jego własną czcionką.
 
-## Kiedy czcionka się pobiera
+<!--i:eti-download-->
+## Kiedy pobiera się czcionka
 
-Nic się nie pobiera, dopóki dokument nie zawiera znaku, którego nie potrafi narysować żadna czcionka jego systemu projektowego. Dokument po angielsku lub w dowolnym języku, który pokrywa jego system projektowy, nigdy nie pobiera czcionki zastępczej. Symbol w angielskim wierszu, taki jak ★ lub ※, nigdy nie pobiera czcionki chińskiej, japońskiej ani koreańskiej.
+Nic się nie pobiera, dopóki dokument nie zawiera znaku, którego nie potrafi narysować żadna czcionka jego systemu projektowego. Symbol w angielskim wierszu, na przykład ★ lub ※, nigdy nie powoduje pobrania czcionki chińskiej, japońskiej ani koreańskiej.
 
-Gdy dokument potrzebuje takiej czcionki po raz pierwszy, Lolly pobiera tę jedną czcionkę, dla tego jednego pisma, i zachowuje ją na Twoim urządzeniu. Dokument japoński pobiera samą czcionkę japońską, 2,2 MB, a tradycyjny chiński czcionkę tradycyjną, 3,8 MB. Od tego momentu pismo rysuje się offline, a czcionka zostaje po uporządkowaniu katalogu. Czcionka jest przechowywana razem z własnymi plikami katalogu, nigdy wśród czcionek, które wgrałeś, więc nie pojawia się na liście czcionek Twojej marki.
+Gdy dokument po raz pierwszy potrzebuje czcionki zastępczej, Lolly pobiera tę jedną czcionkę i zachowuje ją na Twoim urządzeniu. Dokument japoński pobiera tylko czcionkę japońską, 2,2 MB, a dokument w chińskim tradycyjnym czcionkę tradycyjną o rozmiarze 3,8 MB. Od tej pory pismo jest rysowane offline, a czcionka pozostaje podczas porządkowania katalogu. Czcionka jest przechowywana z plikami katalogu, nigdy wśród przesłanych przez Ciebie czcionek, i nie pojawia się na liście czcionek marki.
 
-Wiersz poleceń, aplikacja terminalowa i serwer MCP czytają te same pliki z dysku, więc nie potrzebują pobierania.
+Wiersz poleceń, aplikacja terminalowa i serwer MCP odczytują te same pliki z dysku, więc nie wymagają pobierania.
 
+<!--i:eti-eye-->
 ## Na stronie i w eksporcie
 
-Strona używa tej samej czcionki zastępczej co eksport. Bez tego przeglądarka rysuje takie litery czcionką systemową, a eksport używa Noto, i wiersz, który je zawiera, zmienia szerokość między jednym a drugim. Lolly dodaje czcionkę zastępczą na koniec listy czcionek systemu projektowego tylko na tej kanwie, po własnych czcionkach systemu projektowego i przed każdą czcionką systemową. Narzędzie, które ustawia własną listę czcionek, w swoich stylach lub na swoich elementach, dostaje czcionkę zastępczą w tym samym miejscu: po czcionkach, które podaje lista, i przed każdą czcionką systemową. Kanwa, którą system projektowy pokrywa, zachowuje swoją listę czcionek dokładnie jak wcześniej.
+Strona używa tej samej czcionki zastępczej co eksport, więc wiersz zawierający takie litery ma tę samą szerokość w obu. Tylko na tej kanwie Lolly dodaje czcionkę zastępczą po czcionkach systemu projektowego i przed każdą czcionką systemową. Narzędzie, które ustawia własną listę czcionek w stylach lub elementach, otrzymuje czcionkę zastępczą w tym samym miejscu. Kanwa, której znaki obsługuje system projektowy, zachowuje niezmienioną listę czcionek.
 
-Strona zostawia listę czcionek bez zmian, gdy zaczyna się od czcionki systemowej, takiej jak `system-ui` lub Helvetica, ponieważ eksport rysuje taki tekst czcionkami systemu projektowego, a strona nie.
+Strona nie zmienia listy czcionek, gdy zaczyna się ona od czcionki systemowej, takiej jak `system-ui` lub Helvetica, ponieważ eksport rysuje ten tekst czcionkami systemu projektowego, a strona nie.
 
-W PDF słowa stają się konturami rysowanymi czcionką zastępczą, niezależnie od wybranego ustawienia tekstu, ponieważ żywy tekst PDF nie może nieść pisma, którego osadzona czcionka nie ma. W SVG, EMF, EPS, DXF i WMF stają się konturami zawsze, gdy tekst jest zamieniany na kontury; przy tekście pozostawionym jako żywy rysują je własne czcionki czytelnika, jak dotąd. Gdy czcionka zastępcza narysowała część eksportu, panel eksportu pokazuje uwagę taką jak:
+W PDF słowa stają się konturami w czcionce zastępczej przy dowolnym ustawieniu tekstu, ponieważ żywy tekst PDF nie może zawierać pisma, którego nie ma w osadzonej czcionce. W SVG, EMF, EPS, DXF i WMF stają się konturami zawsze wtedy, gdy tekst jest zamieniany na kontury. Przy zachowaniu żywego tekstu rysują je własne czcionki czytnika. Gdy czcionka zastępcza narysowała część eksportu, panel eksportu pokazuje informację taką jak:
 
 > Tekst japoński jest rysowany czcionką Noto Sans JP, ponieważ czcionki tego systemu projektowego nie mają tych liter.
 
-Wiersz poleceń wypisuje to samo zdanie jako uwagę.
+Wiersz poleceń wypisuje to samo zdanie jako informację.
 
-## Co zostaje obrazem
+<!--i:eti-image-->
+## Co pozostaje obrazem
 
-Znak spoza czterech narodowych zestawów nie ma czcionki zastępczej. Rzadkie znaki, takie jak 𠮷, znaki dodane dla Hongkongu przez jego zestaw uzupełniający i pisma bez czcionki zastępczej, takie jak tamilskie, etiopskie lub syryjskie, są traktowane tak samo. W PDF wiersz, który zawiera taki znak, trafia jako obraz 300 dpi, a panel eksportu wymienia pisma. W SVG przebieg zostaje żywym tekstem, który rysują własne czcionki czytelnika.
+Znak spoza czterech krajowych zestawów, na przykład 𠮷 lub znak z uzupełniającego zestawu Hongkongu, nie ma czcionki zastępczej. Rzadkie znaki, takie jak 𠮷, znaki dodane dla Hongkongu w jego zestawie uzupełniającym i pisma bez czcionki zastępczej, takie jak tamilskie, etiopskie lub syryjskie, są traktowane tak samo. Czcionki zastępczej nie ma też pismo takie jak tamilskie, etiopskie lub syryjskie. W PDF wiersz zawierający taki tekst trafia jako obraz 300 dpi, a panel eksportu wymienia pisma. W SVG fragment pozostaje żywym tekstem, który rysują własne czcionki czytnika.
 
-## Kontrola przed eksportem
+::: details W eksportach EPS, WMF i EMF
+EPS, WMF lub EMF z włączonym **Outline fonts** nie ma żywego tekstu, do którego mógłby się odwołać, więc fragment również trafia jako obraz 300 dpi. Obraz nanosi kolor tekstu tylko tam, gdzie są litery, więc tło jest widoczne między nimi. Panel eksportu wymienia pisma. Obraz jest rysowany tylko bez obrotu i pochylenia, więc obrócony lub pochylony fragment zatrzymuje eksport z komunikatem, który go cytuje. W WMF lub EMF obraz to para operacji bitmapowych: maska i naniesienie koloru. Microsoft Office i LibreOffice rysują je zgodnie z zamierzeniem. Aplikacja, która je ignoruje, na przykład Inkscape, pokazuje słowa na białym prostokącie.
 
-Karta **Before you export** w Lolly Design oraz kontrole `render` polecenia `lolly check` zgłaszają tekst, którego żadna czcionka nie narysuje. Czcionki zastępcze liczą tak jak eksport, z tych samych list znaków każdej czcionki, więc tekst rysowany przez czcionkę zastępczą nie jest zgłaszany. Pismo bez czcionki zastępczej, takie jak tamilskie, oraz znak chiński, japoński lub koreański spoza zestawów narodowych nadal są zgłaszane, ponieważ eksport rysuje je jako obraz albo jako żywy tekst. Kontrola czyta te listy z katalogu i nie pobiera żadnej czcionki.
+EMF z wyłączonym **Outline fonts** zachowuje taki fragment jako żywy tekst, który rysują własne czcionki czytnika. Wyjątkiem jest fragment, którego żywy tekst EMF nie potrafi zapisać, na przykład tekst z odstępami między literami. Lolly zamienia ten fragment na kontury, więc fragment, którego nie potrafi narysować żadna czcionka, również trafia tam jako obraz.
+:::
 
-## Licencje i uznania autorstwa
+::: warning Eksport DXF zatrzymuje się przy tekście, którego nie potrafi narysować żadna czcionka
+DXF trafia do maszyn tnących i oprogramowania CAD, które potrzebują konturów, więc fragment, którego nie potrafi narysować żadna czcionka, zatrzymuje eksport DXF. Komunikat cytuje fragment i podaje jego pismo. Dodaj czcionkę z tymi literami lub wyeksportuj SVG albo PDF.
+:::
 
-Każda czcionka zastępcza jest na licencji SIL Open Font License 1.1, a każdy wpis katalogu zapisuje tę licencję wraz ze skrótem tekstu licencji, więc reguły praw w [Creative rights and credits](/info/creative-rights.html) odczytują licencję jak każdej innej czcionki. Teksty licencji leżą obok czcionek. Pliki Noto Sans nie deklarują Reserved Font Name. Czcionki chińskie, japońskie i koreańskie pochodzą od Adobe i zastrzegają nazwę Source; przycięte pliki zachowują nazwy Noto, które tej nazwy nie używają.
+<!--i:eti-checklist-->
+## Sprawdzenie przed eksportem
 
-Licencja mówi, że jej warunki nie dotyczą dokumentów wykonanych za pomocą czcionek. Eksport zawiera tylko narysowane kontury używanych liter, tak samo jak w przypadku własnych czcionek systemu projektowego, a Lolly nie dodaje dla czcionki zastępczej żadnego programu czcionki, żadnej linii uznania ani nowego wpisu Content Credentials.
+Karta **Before you export** w Lolly Design i kontrole `render` w `lolly check` zgłaszają tekst, którego nie potrafi narysować żadna czcionka. Uwzględniają czcionki zastępcze tak samo jak eksport, na podstawie tych samych list znaków poszczególnych czcionek, więc tekst rysowany czcionką zastępczą nie jest zgłaszany. Pismo bez czcionki zastępczej, takie jak tamilskie, oraz znak chiński, japoński lub koreański spoza krajowych zestawów nadal są zgłaszane, ponieważ eksport rysuje je jako obraz lub żywy tekst, a eksport DXF się na nich zatrzymuje. Kontrola odczytuje te listy z katalogu i nie pobiera żadnej czcionki.
+
+<!--i:eti-stamp-->
+## Licencje i oznaczenia autorstwa
+
+Każda czcionka zastępcza jest objęta SIL Open Font License 1.1. Każdy wpis katalogu zapisuje tę licencję ze skrótem jej tekstu, więc reguły praw w [Prawach twórców i oznaczeniach autorstwa](/info/creative-rights.html) odczytują licencję jak licencję każdej innej czcionki. Teksty licencji znajdują się obok czcionek. Pliki Noto Sans nie deklarują żadnej Reserved Font Name. Czcionki chińskie, japońskie i koreańskie należą do Adobe i zastrzegają nazwę Source. Przycięte pliki zachowują swoje nazwy Noto, które nie używają tej nazwy.
+
+Licencja stwierdza, że jej warunki nie dotyczą dokumentów utworzonych przy użyciu czcionek. Eksport zawiera tylko kontury użytych liter, tak jak w przypadku czcionek systemu projektowego. Lolly nie dodaje programu czcionki, informacji o autorstwie ani nowego wpisu w poświadczeniu treści dla czcionki zastępczej.

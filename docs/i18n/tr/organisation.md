@@ -1,92 +1,100 @@
 # Lolly'yi kuruluşunda kullan
 
-Kuruluşun kendi Lolly'sini işletebilir: seçtiği araçlar ve tasarım sistemleriyle aynı uygulama. Bu sayfa ona nasıl ulaşacağını, nasıl giriş yapacağını ve bunu yaptığında nelerin değiştiğini gösterir.
+Kuruluşun kendi Lolly'sini çalıştırabilir: seçtiği araçlar ve tasarım sistemleriyle aynı uygulama. Nasıl ulaşacağını, nasıl oturum açacağını ve nelerin değiştiğini öğren.
 
-Kuruluşun kurulumunu planlıyorsan, [Use Lolly with your existing DAM](/info/use-with-dam.html), insanlar Lolly'de içerik üretmeye başlarken onaylı bir kitaplığın yerinde nasıl kalabileceğini açıklar. [Content sovereignty](/info/content-sovereignty.html), oluşturma, yönetişim, depolama ve taşınabilirlik üzerindeki daha geniş denetimi anlatır.
+Kuruluşun kurulumunu planlarken [Lolly'yi mevcut DAM sisteminle kullan](/info/use-with-dam.html), insanlar Lolly'de içerik üretirken onaylı bir kitaplığın nasıl yerinde kalabileceğini açıklar. [İçerik egemenliği](/info/content-sovereignty.html), üretim, yönetişim, depolama ve taşınabilirlik üzerindeki daha geniş denetimi anlatır.
 
 ::: note Kuruluşundan neye ihtiyacın var
-Kuruluşunun Lolly'sinin web adresi, ya da kuruluşunun hazırladığı bir `.lolly` kurulum dosyası. lolly.tools tek başına bir kuruluşa bağlanmaz.
+Lolly'sinin web adresi veya kuruluşunun hazırladığı bir `.lolly` kurulum dosyası. lolly.tools tek başına bir kuruluşa bağlanmaz.
 :::
 
-## Bir tarayıcıda
+<!--i:eti-globe-->
+## Tarayıcıda
 
-Kuruluşunun verdiği adresi aç. Sayfa girişi isterse **Sign in** düğmesine bas ve açtığı giriş sayfasını izle. Ondan sonra, kuruluşunun araçları ve tasarım sistemleriyle her Lolly gibi çalışır.
+Kuruluşunun sana verdiği adresi aç. Sayfa oturum açmanı isterse **Sign in** düğmesine bas ve açılan oturum açma sayfasındaki adımları izle. Sonrasında Lolly, kuruluşunun araçları ve tasarım sistemleriyle her zamanki gibi çalışır.
 
-Ayrıca lolly.tools'tan da başlayabilirsin: **Settings** görünümünü aç, **Lolly instance** kartında **Open a workspace** düğmesine bas, adresi gir ve **Open this instance** düğmesine bas. Tarayıcı kuruluşunun kendi adresine gider; çünkü bir tarayıcı başka bir Lolly'nin araçlarını lolly.tools'tan yükleyemez.
+lolly.tools üzerinden de başlayabilirsin: **Settings** görünümünü aç ve **Lolly instance** kartında **Open a workspace** düğmesine bas, adresi gir ve **Open this instance** düğmesine bas. Tarayıcı kuruluşunun kendi adresine gider; çünkü bir tarayıcı, lolly.tools üzerinden başka bir Lolly'nin araçlarını yükleyemez.
 
-![Settings içindeki Lolly instance kartı: kuruluşunun çalışma alanını açtığın veya uygulamanın araçlarını nereden aldığını değiştirdiğin yer](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
+![Settings içindeki Lolly instance kartı; burada kuruluşunun çalışma alanını açar veya uygulamanın araçlarını nereden aldığını değiştirirsin](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
+<!--i:eti-monitor-->
 ## Masaüstü veya mobil uygulamada
 
-Uygulama paketlenmiş araçlarıyla başlar. Bağlanmak için **Settings** görünümünü aç ve **Lolly instance** kartında **Change** düğmesine bas. Sayfa **Where should Lolly get its tools?** diye sorar.
+Uygulama, beraberinde gelen araçlarla başlar. Bağlanmak için **Settings** görünümünü aç ve **Lolly instance** kartındaki **Change** düğmesine bas. Açılan panelde **Where should Lolly get its tools?** sorusu yer alır.
 
-1. **Bir Lolly örneğine bağlan**'ı seç.
-2. Kuruluşunun web adresini gir ve **Kontrol et ve bağlan**'a bas.
-3. **Bu örneği kullan**'a bas. Sonraki ekran, **Verilerini içe aktar (isteğe bağlı)**, kaydedilmiş çalışmayı bir Lolly yedeğinden aktarır; hiçbiri yoksa **Atla**'ya bas.
+1. **Connect to a Lolly instance** seçeneğini seç.
+2. Kuruluşunun web adresini gir ve **Check & connect** düğmesine bas.
+3. **Use this instance** düğmesine bas. Sonraki ekran olan **Import your data (optional)**, kayıtlı işleri bir Lolly yedeğinden taşır. Yedeğin yoksa **Skip** düğmesine bas.
 4. Uygulama isterse oturum aç.
 
-Bağlı bir örnekten gelen araçlar, uygulamanın kendi araçlarıyla aynı güvenle çalışır, bu yüzden yalnızca güvendiğin bir örneğe bağlan. Kuruluşun bunun yerine sana, uygulamayı senin için bağlayan bir `.lolly` kurulum dosyası gönderebilir.
+Bağlı bir örneğin araçları, uygulamanın kendi araçlarıyla aynı güven düzeyinde çalışır; bu yüzden yalnızca güvendiğin bir örneğe bağlan. Kuruluşun bunun yerine uygulamayı senin için bağlayan bir `.lolly` kurulum dosyası gönderebilir.
 
-Sonra geçiş yapmak için yine **Change** düğmesini ya da aynı karttaki **Leave** düğmesini kullan.
+Daha sonra geçiş yapmak için yeniden **Change** düğmesini veya aynı karttaki **Leave** düğmesini kullan.
 
-### Kodla giriş yapma
+### Kodla oturum açma
 
-Masaüstü ve mobil uygulamalarda, kuruluşunun Lolly'si kodla girişi destekliyorsa giriş ekranı kısa bir kod da sunar. **Open sign-in in browser** düğmesine bas, giriş yap ve kodu orada onayla. Ya da gösterdiği adresi zaten oturum açtığın bir telefonda veya bilgisayarda aç ve kodu gir. Kod yaklaşık on dakika geçerlidir.
+Masaüstü ve mobil uygulamalarda, kuruluşunun Lolly'si kodla oturum açmayı destekliyorsa oturum açma ekranı kısa bir kod da sunar. **Open sign-in in browser** düğmesine bas, oturum aç ve kodu orada onayla. Ya da ekranda gösterilen adresi, zaten oturum açtığın bir telefon veya bilgisayarda aç ve kodu gir. Kod yaklaşık on dakika geçerlidir.
 
-## Orada neyin farklı olduğu
+<!--i:eti-sliders-->
+## Orada neler farklı
 
-- **Bazı denetimler senin için ayarlanır.** Kuruluşunun yönettiği bir denetim **Managed by** ve kuruluşun adını ya da **Managed by your organisation** gösterir. Sabit bir denetim değiştirilemez, bir menü seçeneklerinin yalnızca bir kısmını sunabilir ve **Set by** ile başlayan bir satır hangi kuralın neden geçerli olduğunu söyleyebilir. Bazı denetimler hiç gösterilmez.
-- **Bazı tasarım sistemleri kilitlidir.** Kuruluşunun sağladığı bir tasarım sistemi kilit gösterir ve salt okunur kalır. Değişiklik denemek için **Settings → Preferences → Design systems** içinde düzenlenebilir bir kopya yap.
-- **Yalnızca onun araçları listelenir.** Kuruluşunun sunmadığı bir araç hiç gösterilmez.
-- **Paylaşılan projeler.** Kuruluşun seninle proje paylaşıyorsa **Projects** bir **Team projects** karosu gösterir. Bu oturumlar kuruluşun sunucusunda yaşar. Üzerinde çalışmak için birini aç ya da mümkünse **Share** üzerinden bir [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) başlat.
-- **Bazı dışa aktarmalar onay gerektirebilir.** Kuruluşun onay istediğinde **Request approval**, **Download** düğmesinin yerini alır ve bir araç daha az biçim sunabilir.
+- **Bazı denetimler senin için ayarlanmıştır.** Kuruluşunun yönettiği bir denetim, **Managed by** ile kuruluşun adını veya **Managed by your organisation** ifadesini gösterir. Sabitlenmiş bir denetim değiştirilemez ve bir menü yalnızca bazı seçeneklerini sunabilir. Bazı denetimler gizlidir. Kuruluşunun konsolu, bir denetimi hangi kuralın neden sabitlediğini kaydeder. Kuruluşunun Lolly'sini yöneten kişiye sor.
+- **Bazı tasarım sistemleri kilitlidir.** Kuruluşunun sağladığı tasarım sistemi bir kilit gösterir ve salt okunur kalır. Değişiklikleri denemek için **Settings → Preferences → Design systems** içinde düzenlenebilir bir kopya oluştur.
+- **Yalnızca kuruluşunun araçları listelenir.** Kuruluşunun sunmadığı bir araç gösterilmez.
+- **Paylaşılan projeler.** Kuruluşun seninle proje paylaşıyorsa **Projects**, bir **Team projects** kutucuğu gösterir. Bu oturumlar kuruluşun sunucusunda bulunur. Üzerinde çalışmak için birini aç veya kullanılabiliyorsa **Share** üzerinden bir [kurumsal işbirliği](/info/collaborate.html#collabs-through-lolly-work-optional) başlat.
+- **Bazı dışa aktarmalar onay gerektirebilir.** Kuruluşunun onay istediği durumlarda **Request approval**, **Download** düğmesinin yerini alır ve araç daha az biçim sunabilir.
+- **Ana ekranın şablonlarla açılabilir.** Kuruluşun, bir iş ortağı şirket için yapabileceği gibi, sana şablonlar yayımlıyorsa ana ekranın ilk ziyaret karşılaması yerine bunlarla açılır. Her şablon bir karttır; devam etmek için **Your copy**, şablon değiştiğinde ise **New version** bulunur. Bkz. [İş ortağı şablonları](/info/work-partner-templates.html).
 
 ### Ne nerede kalır
 
 ::: cols
 ## Bu cihazda
 
-- Kendi kayıtların, [Sync](/info/sync.html) açmadıkça
-- Kendi yaptığın tasarım sistemleri
-- Yaptığın ve indirdiğin her şey
+- [Sync](/info/sync.html) özelliğini açmadığın sürece kendi kayıtların
+- Kendin oluşturduğun tasarım sistemleri
+- Ürettiğin ve indirdiğin her şey
 
 ## Kuruluşunun sunucusunda
 
-- Giriş kimliğin ve cihaz bilgin
-- Team projects, paylaşılan oturumlar ve bir work collab içindeki canlı düzenlemeler
+- Oturum açma kimliğin ve cihaz bilgilerin
+- Ekip projeleri, paylaşılan oturumlar ve kurumsal işbirliğindeki canlı düzenlemeler
 - Paylaşılan kitaplığa yüklediğin varlıklar
-- Onay istekleri ve onaylanmış teslimatlar
-- Kuruluşunun açtığı yerde kullanım olayları
+- Onay istekleri ve onaylı teslimatlar
+- Oturum açmalarının ve orada yaptıklarının kaydı
 :::
 
-[Privacy](/info/privacy.html#organisation-services-with-lolly-work) sunucunun neleri sakladığını ve bu veriyi kimin denetlediğini listeler.
+Bir çalışma alanı bağlıyken uygulamanın ilk ekranındaki gizlilik satırı da aynı şeyi söyler. Lolly'nin kendi uygulamaları çalışma alanına kullanım olayı göndermez. [Gizlilik](/info/privacy.html#organisation-services-with-lolly-work), sunucunun neleri sakladığını ve bu verileri kimin kontrol ettiğini listeler.
 
+<!--i:eti-building-->
 ## Lolly Work neler ekler
 
-Kuruluşunun sunucusu, aynı açık kaynak projesinin kuruluş yazılımı olan **Lolly Work**'ü çalıştırır. Uygulamayı tek başına kullandığında ne bir iş hesabına ne de Lolly Work'e ihtiyaç duyar.
+Kuruluşunun sunucusu, aynı açık kaynaklı projenin kuruluş yazılımı olan **Lolly Work**'ü çalıştırır. Tek başına kullandığında uygulama ne iş hesabı ne de Lolly Work gerektirir.
 
 ::: details Lolly Work neler ekleyebilir
-Kuruluşun [Lolly Work](https://github.com/lolly-tools/lolly-work)'ü Lolly'nin yanında barındırır ve hangi özelliklerin açılacağını seçer:
+Kuruluşun, [Lolly Work](https://github.com/lolly-tools/lolly-work)'ü Lolly'nin yanında barındırır ve hangi özellikleri açacağını seçer:
 
-- **Giriş ve erişim.** Kuruluş çapında çoklu oturum açma (SSO), grup tabanlı izinler ve yönetilen profil alanları. Yöneticiler SCIM ile hesap sağlayıp devre dışı bırakabilir.
-- **Paylaşılan iş.** Team projects, paylaşılan oturumlar ve kuruluşun sunucusu üzerinden canlı düzenlemeli [work collab](/info/collaborate.html#collabs-through-lolly-work-optional)'lar.
-- **Paylaşılan bir varlık kitaplığı.** Erişim kuralları, sürümler ve incelemeyle yüklenen varlıklar, koleksiyonlar ve bağlı kitaplıklar.
+- **Oturum açma ve erişim.** Kurumsal tek oturum açma, grup tabanlı izinler ve yönetilen profil alanları. Yöneticiler SCIM üzerinden hesap oluşturabilir ve hesapları devre dışı bırakabilir.
+- **Paylaşılan işler.** Kuruluşun sunucusu üzerinden canlı düzenlemeyle ekip projeleri, paylaşılan oturumlar ve [kurumsal işbirlikleri](/info/collaborate.html#collabs-through-lolly-work-optional).
+- **Paylaşılan varlık kitaplığı.** Erişim kuralları, sürümler ve incelemeyle yüklenmiş varlıklar, koleksiyonlar ve bağlı kitaplıklar.
 - **İnceleme ve teslimat.** Onay adımları, süresi dolan veya iptal edilebilen yönetilen bağlantılar ve kuruluşun izin verdiği hedeflere teslimat.
-- **Yönetim.** Örneğin telemetri politikası altında kullanım raporlama ve yönetilen eylemlerin denetim kaydı.
-
-Hizmeti kuruyorsan [Deployment](/info/deployment.html#organisation-services-with-lolly-work) ile başla. [lolly.work](https://lolly.work) adresindeki herkese açık demo bir kum havuzudur; saklaman gereken iş için kuruluşunun kendi adresini kullan.
+- **Yönetim.** Yönetim kurallarına tabi eylemlerin denetim kaydı ve kullanım olayı gönderen istemciler için örneğin telemetri politikası kapsamında kullanım raporları. Lolly'nin kendi uygulamaları şu anda kullanım olayı göndermez.
 :::
 
+Hizmeti kurmak için [Dağıtım](/info/deployment.html#organisation-services-with-lolly-work) ile başla. [lolly.work](https://lolly.work) adresindeki herkese açık demo bir deneme ortamıdır. Saklaman gereken işler için kuruluşunun kendi adresini kullan.
+
+<!--i:eti-palette-->
 ## Başka bir kuruluşun markası
 
-Bir ortak, müşteri veya sponsor sana markasını bir adres yerine tasarım sistemi dosyası (`.lolly`) olarak gönderebilir. Bu türden bir dosyayı açmak uygulamayı hiçbir şeye bağlamaz: onların tasarım sistemini bu cihazda seninkinin yanına ekler. Kendi kuruluşundan gelen bir kurulum dosyası farklıdır, çünkü uygulamayı kuruluşun Lolly'sine bağlar; önizleme, bir dosyayı açmanın ne yapacağını hiçbir şey değişmeden önce gösterir. Başka bir kuruluşun markasında çalışmanın iki yanını da [Ortaklarla çalışma](/info/partners.html) anlatır.
+Bir iş ortağı, müşteri veya sponsor sana adres yerine markasını bir tasarım sistemi dosyası (`.lolly`) olarak gönderebilir. Bu dosyayı açmak uygulamayı hiçbir yere bağlamaz. Dosya, onların tasarım sistemini bu cihazda seninkinin yanına ekler. Kendi kuruluşundan gelen bir kurulum dosyası, uygulamayı kuruluşun Lolly'sine bağlar. Bir şey değişmeden önce önizleme, dosyayı açmanın ne yapacağını gösterir. [İş ortaklarıyla çalışma](/info/partners.html), başka bir kuruluşun markasıyla çalışmanın iki tarafını da ele alır.
 
+<!--i:eti-unlink-->
 ## Ayrılma
 
-**Settings** içindeki **Lolly instance** kartında **Leave**, kuruluşunun tasarım sistemini, araçlarını ve kataloğunu kaldırır. Kendi işin kalır. Onun araçlarıyla yaptığın her şey, yeniden bağlanana kadar bir daha açılmaz.
+**Settings** içindeki **Lolly instance** kartında yer alan **Leave**, kuruluşunun tasarım sistemini, araçlarını ve kataloğunu kaldırır. Kendi işin kalır. Kuruluşun araçlarıyla yaptığın hiçbir şey, yeniden bağlanana kadar açılmaz. Kuruluşunun Lolly'si sunuyorsa aynı karttaki **Sign out everywhere**, bu cihaz dahil her cihazdaki oturumlarını sonlandırır.
 
-Kuruluşa kaydettiğin her şey, erişim ve saklama politikaları altında kuruluşta kalır. Ayrılmak veya bu cihazı temizlemek o sunucu kopyasını silmez. Kuruluşunun kendi adresindeki bir tarayıcıda ayrılacak bir şey yoktur: bunun yerine farklı bir adres aç.
+Kuruluşa kaydettiğin her şey, kuruluşun erişim ve saklama politikaları kapsamında kuruluşta kalır. Ayrılmak veya bu cihazı temizlemek, sunucudaki kopyayı silmez. Kuruluşunun kendi adresindeki bir tarayıcıda ayrılacağın bir bağlantı yoktur: bunun yerine farklı bir adres aç.
 
-## Kime sorulur
+<!--i:eti-help-->
+## Kime sormalı
 
-Kuruluşunun sunucusuna neyin ulaştığı, paylaşılan projelerini kimin görebildiği ve hangi ayarların sabit olduğu, kuruluşunun kararlarıdır. Kuruluşunun Lolly'sini kim yönetiyorsa ona sor. [Gizlilik](/info/privacy.html), Lolly'nin kendisinin verilerinle ne yaptığını kapsar.
+Kuruluşunun sunucusuna nelerin ulaştığına, paylaşılan projelerini kimlerin görebileceğine ve hangi ayarların sabit olduğuna kuruluşun karar verir. Kuruluşunun Lolly'sini yöneten kişiye sor. [Gizlilik](/info/privacy.html), Lolly'nin kendisinin verilerinle ne yaptığını anlatır.

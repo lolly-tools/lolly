@@ -1,50 +1,53 @@
-# Lolly Rondocode-sånger
+# Lolly Rondocode-låtar
 
 <a id="rondocode-songs"></a>
 
-En rondocode-sång är musik skriven som kod: synthar, mönster och en mix, spelad medan du skriver. Lolly kan spela en sång under en video, och verktyget **Rondocode** låter dig skriva en och exportera den som ljud. Båda registrerar sången i filens Content Credentials, så att musiken säger var den kommer ifrån.
+En rondocode-låt är musik skriven som kod: syntar, mönster och en mix, som spelas medan du skriver. Lolly kan spela en låt under en video, och verktyget **Rondocode** skriver låtar och exporterar dem som ljud; båda registrerar låten i filens Content Credentials.
 
-## Spela en sång i Lolly
+<!--i:eti-music-->
+## Spela en låt i Lolly
 
-Tillgångsväljaren tar en sång som en `.rondo`- eller `.rondo.json`-fil, eller som en inklistrad delningslänk från `rondocode.com`. En sång är kod som gör sitt eget ljud, så den spelas i den längd dess klipp ber om. Den kan vara **musikbädden** under en videoexport eller spelas i Neurospicy Modes ambienta spelare.
+Tillgångsväljaren tar emot en låt som en `.rondo`- eller `.rondo.json`-fil eller som en inklistrad delningslänk från `rondocode.com`. En låt spelas så länge som dess klipp begär. Den kan vara **bakgrundsmusiken** under en videoexport eller spelas i Neurospicy Modes stämningsspelare.
 
-Sångens kod körs i Lollys sandlåda, utan nätverk och utan åtkomst till dina filer. Varje del som en rendering inte kan spela, som en levande mikrofon, eller sång utan röstmodellerna, listas i tillgångens detaljer.
+Låtens kod körs i Lollys sandlåda, utan nätverk och utan tillgång till dina filer. Varje del som en rendering inte kan spela, till exempel en livemikrofon eller sång utan röstmodellerna, listas i tillgångens detaljer.
 
-Från terminalen tar `lolly mix` en sång som hela ljudspåret; se [CLI-rendering](/info/cli-rendering.html).
+Från terminalen tar `lolly mix` en låt som hela ljudspåret; se [CLI-rendering](/info/cli-rendering.html).
 
-## Skriv och exportera en sång
+<!--i:eti-code-->
+## Skriv och exportera en låt
 
-Öppna verktyget **Rondocode** från **Utilities** för att skriva en sång i rondocodes levande redigerare och höra den medan du skriver. Exportera den som **WAV**, **MP3**, **M4A**, **Opus** eller **FLAC**, som en ZIP med stems, som **MIDI**, eller som en inspelning av det som spelas. Från terminalen skriver `lolly rondocode --export=mid` samma MIDI-fil. **Export length** anger hur många sekunder en ljudexport varar. Själva sångfilen (`.rondo.json`) är din kod som skriven och bär inget tillagt.
+Öppna verktyget **Rondocode** från **Utilities** för att skriva en låt i rondocodes liveredigerare och höra den medan du skriver. Exportera den som **WAV**, **MP3**, **M4A**, **Opus** eller **FLAC**, som en ZIP med delspår, som **MIDI** eller som en inspelning av det som spelas. Från terminalen skriver `lolly rondocode --export=mid` samma MIDI-fil. **Export length** anger hur många sekunder en ljudexport varar. Låtfilen (`.rondo.json`) är din kod som du skrev den, utan tillägg.
 
-En sång kan sjunga sin text med `sing()`. Sången görs på din enhet av nedladdade röstmodeller, och en fil som håller syntetiserad sång deklarerar alltid sången som AI-genererad (se [AI-funktioner](/info/ai-features.html)).
+En låt kan sjunga sin text med `sing()`. Nedladdade röstmodeller skapar sången på din enhet. En fil som innehåller syntetiserad sång anger alltid att sången är AI-genererad (se [AI-funktioner](/info/ai-features.html)).
 
-## Sånger i credentialen
+<!--i:eti-badge-check-->
+## Låtar i intyget
 
-En video- eller ljudexport som spelar en rondocode-sång registrerar varje sång i sina Content Credentials som en källa:
+En video- eller ljudexport som spelar en rondocode-låt registrerar varje låt i sina Content Credentials som en källa:
 
-- sångens namn;
-- SHA-256 av dess `.rondo.json`-fil;
-- hur den renderades: i Lollys sandlåda, exekveringsklassen `vm`, med renderarens version och seed, och varje del renderingen inte kunde spela.
+- låtens namn;
+- SHA-256 för dess `.rondo.json`-fil;
+- hur den renderades: i Lollys sandlåda, körningsklassen `vm`, med renderarens version och slumpfrö och varje del som renderingen inte kunde spela.
 
-Musik som beräknats från en sångs kod märks som algoritmiskt medium, så Lolly Verify flaggar den inte som AI. Innan du exporterar listar en rad under **Download** sångerna credentialen kommer att registrera; efter exporten rapporterar samma rad vad en läsning av den levererade filen hittade. Avmarkera **C2PA Credentials** för att lämna posten utanför. En stillbild registrerar ingen sång, eftersom den inte bär något ljud. `lolly mix` och [MCP-servern](/info/mcp.html) skriver samma post.
+Musik som beräknas från en låts kod märks som algoritmiska medier, så Lolly Verify flaggar den inte som AI. Innan du exporterar listar en rad under **Download** de låtar som intyget kommer att registrera. Efter exporten rapporterar samma rad vad en läsning av den levererade filen hittade. Avmarkera **C2PA Credentials** för att utelämna posten. En stillbild registrerar ingen låt, eftersom den saknar ljud. En stillbild registrerar ingen låt. `lolly mix` och [MCP-servern](/info/mcp.html) skriver samma post.
 
-## Filer från verktyget Rondocode
+<!--i:eti-file-->
+## Filer från Rondocode-verktyget
 
-De flesta verktyg på enheten skriver ingen credential, eftersom de omvandlar en fil du redan äger. Lolly Rondocode gör nytt ljud, så varje ljudfil det skriver bär Content Credentials som registrerar sången som sin källa: dess namn, SHA-256 av dess `.rondo.json`-fil och var dess kod kördes. Det gäller WAV, MP3, M4A, Opus, FLAC, varje stem i en stems-ZIP och en inspelning av det som spelas.
+De flesta verktyg som körs på enheten skriver inget intyg, eftersom de omvandlar en fil du redan äger. Lolly Rondocode skapar nytt ljud, så varje ljudfil det skriver innehåller Content Credentials som registrerar låten som dess källa: WAV, MP3, M4A, Opus, FLAC, varje delspår i en ZIP med delspår och en inspelning av det som spelas.
 
-- Redigerarens egna renderingar körs i dess privata ram (exekveringsklassen `frame`) och registrerar redigerarens version.
-- En rendering gjord av CLI eller en delningslänk körs i klassen `vm` och registrerar renderarens version och seed.
+- Redigerarens egna renderingar körs i dess privata ram (körningsklassen `frame`) och registrerar redigerarens version.
+- En rendering som skapas av CLI eller en delningslänk körs i klassen `vm` och registrerar renderarens version och slumpfrö.
 - En WAV anger också samma sak i sin RIFF-kommentar.
-- Musik som beräknats från sångens kod är algoritmiskt medium och märks inte som AI.
 
-När en sång sjunger deklarerar filen den sången som AI-genererad i maskinläsbar form. Credentialens digitala källtyp är sammansatt media gjort med tränade modeller, posten listar de sjungna delarna, och en C2PA AI-redovisning per modell identifierar varje modell sången passerat: Supertonic-3 text till tal, wav2vec 2.0-fonemjusteraren, ContentVec-kodaren och RVC-rösten, med arkivet och den commit Lolly hostar den från. En fil som håller syntetiserad sång sparas aldrig utan den deklarationen.
+När en låt sjunger är AI-deklarationen maskinläsbar. Intygets digitala källtyp är sammansatta medier skapade med tränade modeller, posten listar de sjungna delarna och en C2PA AI-deklaration per modell identifierar varje modell som sången passerade: Supertonic-3 text till tal, fonemjusteraren wav2vec 2.0, ContentVec-kodaren och RVC-rösten, med det kodförråd och den commit som Lolly tillhandahåller den från.
 
-### Vad MIDI-filen innehåller
+### Det som MIDI-filen innehåller
 
-MIDI-filen är en Standard MIDI File, format 1. Det första spåret innehåller tempot och ett 4/4-taktartstecken, och efter det finns ett spår för varje synt, uppkallat efter synten. Varje ton behåller sin start, längd och velocity. En synt vars namn läses som ett instrument, som en bas, stråkar, en pad eller ett piano, får det matchande General MIDI-instrumentet, och ett trumliknande namn hamnar på kanal 10. En stämning som inte är tolvtonig avrundas till närmaste halvton med en pitch bend.
+MIDI-filen är en Standard MIDI File, format 1. Det första spåret innehåller tempot och taktarten 4/4, följt av ett spår per synt, uppkallat efter synten. Varje not behåller sin start, längd och anslagsstyrka. En synt vars namn tolkas som ett instrument, till exempel bas, stråkar, pad eller piano, får motsvarande General MIDI-instrument, och ett trumliknande namn hamnar på kanal 10. En stämning som inte är tolvtonig avrundas till närmaste halvton med en tonhöjdsböjning.
 
-En MIDI-fil kan inte rymma hur en sång låter. Syntinställningarna, filtren, effekterna, bussarna, samplingarna och sången finns inte med, så en DAW spelar tonerna med sina egna instrument. Tempot läses från sångens cykler per sekund, där en cykel är en takt på fyra slag, eftersom sångens egen taktart inte ingår i det som renderaren lämnar tillbaka.
+En MIDI-fil kan inte innehålla syntinställningar, filter, effekter, bussar, samplingar eller sång, så en DAW spelar noterna med sina egna instrument. Tempot läses från låtens cykler per sekund med en cykel som en takt på fyra slag, eftersom låtens egen taktart inte ingår i det som renderaren lämnar tillbaka.
 
-En MIDI-fil har ingen plats för en credential, så en texthändelse i filen bär uttalandet i stället, och exportpanelen säger det. Panelen beskriver allt detta innan du exporterar, och efter varje export läser redigeraren tillbaka den sparade filen och rapporterar bara vad den läsningen hittade.
+En MIDI-fil har ingen plats för ett intyg, så en texthändelse i filen innehåller uppgiften, och exportpanelen berättar det för dig. Panelen beskriver allt detta innan du exporterar. Efter varje export läser redigeraren tillbaka den sparade filen och rapporterar bara vad den läsningen hittade.
 
 För vad Content Credentials registrerar i allmänhet, se [Exportera en fil](/info/exporting.html#content-credentials-c2pa).

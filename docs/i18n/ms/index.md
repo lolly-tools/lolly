@@ -1,4 +1,3 @@
 # Lolly - Teks halaman pendaratan
 
-Hasilkan fail siap. Kekalkan kawalan ke atas kandungan anda.
-Grafik, dokumen, video dan cetakan dalam warna dan fon anda sendiri: tanpa akaun, tanpa kad, peribadi dan sumber terbuka.
+Buat grafik, dokumen, video dan cetakan siap dalam warna dan tipografi anda sendiri. Peribadi, sumber terbuka, tiada akaun diperlukan.

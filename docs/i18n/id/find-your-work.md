@@ -1,45 +1,46 @@
-# Temukan dan pulihkan karya Anda
+# Menemukan dan memulihkan pekerjaan Anda
 
-Ada yang hilang: desain yang tidak pernah Anda simpan, file yang Anda unduh, versi minggu lalu, atau semuanya setelah browser dibersihkan. Mulai dengan tabel, lalu ikuti bagian yang ditunjuknya.
+Temukan desain yang belum pernah Anda simpan, file yang Anda unduh, versi minggu lalu atau pekerjaan Anda setelah browser dibersihkan. Mulai dari tabel.
 
-Pekerjaan pribadi tetap di browser atau aplikasi tempat Anda membuatnya, di perangkat itu, kecuali Anda mengaktifkan [Sync](/info/sync.html). Organisasi yang memakai Lolly Work opsional juga menyimpan **Team projects** di servernya, dibahas di bawah.
+Pekerjaan pribadi tetap di browser atau aplikasi tempat Anda membuatnya, pada perangkat itu, kecuali Anda mengaktifkan [Sync](/info/sync.html). Organisasi yang menggunakan Lolly Work opsional juga menyimpan **Team projects** di servernya.
 
-| Apa yang Anda lakukan | Di mana harus mencari |
+| Yang Anda lakukan | Tempat mencari |
 |---|---|
-| Menekan **Simpan sebagai** atau **Simpan** | **Proyek** |
-| Menekan **Unduh** | Unduhan browser Anda, dan sebuah salinan di **Aset** |
-| Tidak keduanya, di satu [tool yang menyimpan sambil Anda bekerja](#which-tools-save-as-you-work) | **Proyek** dan **History** |
-| Tidak keduanya, di tool yang tidak begitu | Hanya tab tempat Anda bekerja, sampai Anda menutup tab itu |
-| Menghapusnya di aplikasi | **Sampah**, di **Proyek**, **Aset** atau **Pengaturan → Penyimpanan**, selama 30 hari |
+| Menekan **Save as** atau **Save** | **Projects** |
+| Menekan **Download** | Unduhan browser Anda, dan salinannya di **Assets** |
+| Tidak keduanya, di [alat yang menyimpan saat Anda bekerja](#which-tools-save-as-you-work) | **Projects** dan **History** |
+| Tidak keduanya, di alat yang tidak menyimpan saat Anda bekerja | Hanya tab tempat Anda bekerja, sampai Anda menutup tab |
+| Menghapusnya di aplikasi | **Trash**, di **Projects**, **Assets** atau **Settings → Storage**, selama 30 hari |
 
 ::: figure find-your-work-places
-Di mana pekerjaan Anda berada: penyimpanan browser sendiri menyimpan Projects, History, dan Trash; unduhan masuk ke folder perangkat Anda; Sync dan file cadangan adalah salinan di luar browser.
+Tempat pekerjaan Anda tersimpan: penyimpanan browser sendiri menampung Projects, History dan Trash; unduhan masuk ke folder perangkat Anda; Sync dan file cadangan adalah salinan di luar browser.
 :::
 
-::: details Temukan pekerjaan bersama di Lolly Work (opsional)
-Buka Lolly organisasi Anda dan login, lalu lihat di **Projects → Team projects**. Sesi bersama disimpan oleh instans itu dan muncul sesuai akses Anda. Login dapat memulihkan akses ke sesi tersebut di perangkat lain; ia tidak memulihkan pustaka pribadi atau cadangan perangkat Anda.
+::: details Menemukan pekerjaan bersama di Lolly Work (opsional)
+Buka Lolly organisasi Anda, masuk dan lihat di **Projects → Team projects**. Instans tersebut memiliki sesi bersama dan menampilkan sesi yang dapat Anda akses. Masuk di perangkat lain dapat memulihkan akses ke sesi tersebut. Masuk tidak memulihkan pustaka pribadi atau cadangan perangkat Anda.
 
-Dalam [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), tunggu **Saved to work** sebelum pergi. Jika proyek bersama hilang, periksa bahwa Anda terhubung ke instans yang benar dan tanyakan kepada operatornya tentang akses atau retensi. Membersihkan data browser menghapus salinan lokal, bukan salinan server organisasi. Lihat [Use Lolly at your organisation](/info/organisation.html).
+Dalam [kolaborasi work](/info/collaborate.html#collabs-through-lolly-work-optional), tunggu **Saved to work** sebelum keluar. Jika proyek bersama tidak ada, periksa apakah Anda terhubung ke instans yang benar dan tanyakan kepada operatornya tentang akses atau retensi. Menghapus data browser menghapus salinan lokal, bukan salinan di server organisasi. Lihat [Menggunakan Lolly di organisasi Anda](/info/organisation.html).
 :::
 
-## Temukan sesuatu yang Anda simpan
+<!--i:eti-search-->
+## Menemukan sesuatu yang Anda simpan
 
-1. Tekan **Beranda** di kiri atas tool.
-2. Buka tab **Proyek** di bagian atas layar utama (ikon folder di ponsel).
-3. Lihat di layar pertama. Karya yang tersimpan ke **Pustaka saya** ada di sana, dan setiap proyek adalah sebuah folder. Untuk mencari di semua folder sekaligus, ketik di **Cari semua proyek…** di bagian bawah layar.
+1. Tekan **Home** di kiri atas alat.
+2. Buka tab **Projects** di bagian atas layar beranda (ikon folder di ponsel).
+3. Semua yang Anda simpan ke **My library** ada di layar pertama. Setiap proyek adalah folder. Untuk mencari di semua folder, ketik di **Search all projects…** di bagian bawah layar.
 
-Item dinamai sesuai nama file yang Anda ketik di panel ekspor, atau sesuai alatnya, seperti **QR Code**, bila Anda tidak mengetik apa pun. Buka item dan setiap pengaturan kembali, siap diubah dan diekspor lagi. Untuk menyimpan pekerjaan baru dengan cara ini, lihat [Saving & continuing](/info/using.html#saving-continuing).
+Item menggunakan nama file yang Anda ketik di panel ekspor. Tanpa nama file, item menggunakan nama alatnya, seperti **QR Code**. Membuka item memulihkan setiap pengaturan. Untuk menyimpan pekerjaan baru, lihat [Menyimpan & melanjutkan](/info/using.html#saving-continuing).
 
-::: note Tidak ada di Proyek?
-- Mungkin ada di **Sampah**: lihat [Dapatkan kembali sesuatu yang Anda hapus](#get-back-something-you-deleted).
-- Browser lain, jendela privat atau perangkat lain mulai kosong, kecuali Anda menggunakan [Sync](/info/sync.html) atau [memindahkan karya Anda](#move-your-work-to-another-device).
-- Jika Anda hanya menekan **Unduh**, lihat [Temukan berkas yang Anda unduh](#find-a-file-you-downloaded).
+::: note Tidak ada di Projects?
+- Mungkin ada di **Trash**: lihat [Mengembalikan sesuatu yang Anda hapus](#get-back-something-you-deleted).
+- Browser lain, jendela privat atau perangkat lain dimulai dalam keadaan kosong, kecuali Anda menggunakan [Sync](/info/sync.html) atau [memindahkan pekerjaan Anda](#move-your-work-to-another-device).
+- Jika Anda hanya menekan **Download**, lihat [Menemukan file yang Anda unduh](#find-a-file-you-downloaded).
 :::
 
-::: details Bekerja dengan Proyek
-Anda juga bisa membuka tampilan **Proyek** dari **Pengaturan → Penyimpanan → Sesi tersimpan → Atur dalam Proyek**. Ini bekerja seperti pengelola file:
+::: details Bekerja dengan Projects
+Anda juga dapat membuka tampilan **Projects** dari **Settings → Storage → Saved sessions → Organise in Projects**. Cara kerjanya seperti pengelola file:
 
-![Proyek sebelum ada apa pun yang disimpan: ubin Folder baru, Aset baru dan Templat, jam History di kanan atas dan bilah Cari semua proyek… di bagian bawah](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
+![Projects sebelum ada yang disimpan: ubin New folder, New asset dan Templates, jam History di kanan atas dan bilah Search all projects di bagian bawah](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
 <!--
 SHOT NOTE (projects): build-docs-shots.ts gives every shot a fresh browser
 context with no storage seeding, so this frame is always the empty Projects
@@ -47,16 +48,16 @@ root. The alt says so. Revisit (and re-caption) if the pipeline gains a
 storage-seeding hook.
 -->
 
-- <!--i:folder--> **Folder yang bersarang.** Kelompokkan sesi tersimpan ke folder, dan folder di dalam folder, sedalam yang Anda mau. Buat folder, ganti namanya, atau seret ubin ke folder lain untuk memindahkannya; breadcrumb membawa Anda naik kembali. Sesi yang disimpan tanpa folder muncul langsung di akar **Projects**.
-- <!--i:clock--> **Urutkan sesuka Anda.** **View options**, tombol penggeser di kanan atas, menawarkan **Grid** atau **List** dan mengurutkan menurut **Name**, **Date added**, **Last modified** (default), **Size**, dan, di dalam folder, **By tool**. Folder selalu didahulukan apa pun urutan yang aktif - urutan hanya menyusun sesi dan folder di dalam kelompoknya sendiri.
-- <!--i:document--> **Simpan pekerjaan baru langsung.** **New asset** membuka pemilih bersama. Pilih **Templates** untuk memulai dari templat tersimpan: buka untuk menyunting, atau gunakan **+ Add** untuk langsung menyimpan karya baru.
-- <!--i:checklist--> **Multi-pilih (desktop).** Centang kotak ubin, seret kotak pilihan melintasi ruang kosong, atau **Shift/Cmd-klik**; **klik kanan** ubin untuk menu konteksnya. Bilah pilihan kemudian menawarkan **Render selection**, **Move to…**, **New folder**, **Delete** (yang memindahkan ke Trash), **Edit together** untuk dua hingga delapan sesi satu alat, berdampingan di bawah satu sidebar, dan **Edit as sheet**, yang membuka pilihan dengan ukuran atau campuran apa pun sebagai baris di grid batch.
-- <!--i:download--> **Render seluruh folder atau pilihan.** **Render folder** mengekspor setiap sesi tersimpan di folder - termasuk sub-foldernya - sebagai satu `.zip` bersarang. **Render selection** melakukan hal yang sama untuk multi-pilihan mana pun, dan satu sesi dirender langsung ke file-nya sendiri.
-- <!--i:link--> **Lompat langsung ke pekerjaan tersimpan sebuah alat.** Centang satu alat atau lebih di galeri Tools dan pilih **View sessions** dari bilah pilihan - Projects terbuka hanya menampilkan sesi yang dibuat dengan alat-alat itu, dengan **Clear** untuk kembali ke tampilan penuh.
-- <!--i:link--> **Bagikan sesi tersimpan.** Klik kanan sesi (di ponsel, tekan **•••** pada ubinnya) → **Share link** untuk menyalin tautan yang membuka kembali dengan pengaturan yang sama; gambar dari perangkat Anda tidak ikut dalam tautan (dialog Share lengkap: lihat [Sharing your work](/info/using.html#sharing-your-work)).
-- <!--i:pentool--> **Ganti nama atau salin.** Klik kanan sesi (di ponsel, tekan **•••** pada ubinnya) untuk **Rename**, **Duplicate** (salinan di folder yang sama), dan **Move to…**.
+- <!--i:folder--> **Folder bersarang.** Letakkan sesi tersimpan di dalam folder, dan folder di dalam folder, hingga kedalaman berapa pun. Buat atau ganti nama folder, atau seret ubin ke folder untuk memindahkannya. Breadcrumb membawa Anda kembali ke atas. Sesi yang disimpan tanpa folder berada di akar **Projects**.
+- <!--i:clock--> **Urutkan sesuai keinginan Anda.** **View options**, tombol penggeser di kanan atas, menawarkan **Grid** atau **List** dan mengurutkan berdasarkan **Name**, **Date added**, **Last modified** (default), **Size** dan, di dalam folder, **By tool**. Folder selalu di urutan pertama. Sesi dan folder diurutkan dalam grupnya masing-masing.
+- <!--i:document--> **Langsung masukkan pekerjaan baru.** **New asset** membuka pemilih bersama. Pilih **Templates** untuk memulai dari templat tersimpan. Buka templat untuk menyuntingnya, atau tekan **+ Add** untuk langsung menyimpan karya baru.
+- <!--i:checklist--> **Pilih beberapa (desktop).** Centang kotak centang ubin, seret kotak pilihan melintasi ruang kosong atau **Shift/Cmd-klik**. Untuk menu konteks ubin, **klik kanan** ubin. Bilah pilihan menawarkan **Render selection**, **Move to…**, **New folder** dan **Delete** (ke Trash). **Edit together** membuka dua hingga delapan sesi alat tunggal berdampingan di bawah satu bilah sisi. **Edit as sheet** membuka pilihan dengan jumlah atau campuran apa pun sebagai baris dalam grid batch.
+- <!--i:download--> **Render seluruh folder atau pilihan.** **Render folder** mengekspor setiap sesi tersimpan dalam folder dan subfoldernya sebagai satu `.zip` bersarang. **Render selection** melakukan hal yang sama untuk pilihan beberapa item. Satu sesi dirender ke filenya sendiri.
+- <!--i:link--> **Langsung ke pekerjaan tersimpan milik alat.** Centang satu atau beberapa alat di galeri Tools dan pilih **View sessions** dari bilah pilihan. Projects lalu hanya menampilkan sesi yang dibuat dengan alat tersebut. **Clear** mengembalikan tampilan lengkap.
+- <!--i:link--> **Bagikan sesi tersimpan.** Klik kanan sesi (di ponsel, tekan **•••** pada ubinnya) dan pilih **Share link**. Tautan membuka kembali sesi dengan pengaturan yang sama. Gambar dari perangkat Anda tidak ikut dalam tautan. Untuk dialog Share lengkap, lihat [Berbagi pekerjaan Anda](/info/using.html#sharing-your-work).
+- <!--i:pentool--> **Ganti nama atau salin satu item.** Menu yang sama memiliki **Rename**, **Duplicate** (salinan di folder yang sama) dan **Move to…**.
 
-![Popover View options di Proyek: Layout dengan Grid dan List, dan Sort by diatur ke Last modified, di samping sebuah tombol yang membalik urutannya](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
+![Popover View options di Projects: Layout dengan Grid dan List, serta Sort by yang diatur ke Last modified, di samping tombol yang membalik urutan](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
 <!--
 SHOT NOTE (misc-projects-sort): trigger button confirmed as
 `.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
@@ -79,166 +80,174 @@ not visible in the closed menu, so the alt does not list them.
 
 :::
 
-## Jika Anda menutup tab atau meninggalkan tool
+<!--i:eti-refresh-->
+## Jika Anda menutup tab atau meninggalkan alat
 
-Apa yang kembali bergantung pada bagaimana Anda meninggalkannya dan tool mana yang Anda gunakan:
+Apa yang kembali bergantung pada cara Anda keluar dan alatnya:
 
-- **Anda menutup tab, atau kembali di lain waktu.** Pekerjaan yang belum disimpan hilang, kecuali di [alat yang menyimpan saat Anda bekerja](#which-tools-save-as-you-work): buka pekerjaan itu dari **Projects**.
-- **Anda memuat ulang halaman di tab yang sama.** Pengaturan Anda kembali dari alamat halaman. Pada alat yang tidak menyimpan saat Anda bekerja, gambar dan file yang Anda tambahkan dari perangkat, dan teks satu baris yang lebih panjang dari 150 karakter, tidak kembali, karena alamat tidak memuatnya.
-- **Anda menekan Home, atau tombol kembali di kiri atas.** Bila Anda mengubah sesuatu sejak terakhir menyimpan, mengunduh, atau menyalin, dialog **Unsaved edits** menanyakan apakah akan menyimpan dulu. **Save & leave** menyimpan pekerjaan dan membawa Anda ke **Projects**, atau kembali ke folder proyek tempat Anda membuka pekerjaan itu. **Leave anyway** membuang perubahan Anda: item tersimpan kembali ke keadaan terakhir disimpan, dan karya yang tidak pernah disimpan meninggalkan **Projects**. **Cancel** menahan Anda di alat.
+- **Anda menutup tab, atau kembali di lain waktu.** Pekerjaan yang belum disimpan hilang, kecuali di [alat yang menyimpan saat Anda bekerja](#which-tools-save-as-you-work). Buka pekerjaan itu dari **Projects**.
+- **Anda memuat ulang halaman di tab yang sama.** Pengaturan Anda kembali dari alamat halaman. Di alat yang tidak menyimpan saat Anda bekerja, alamat tidak memuat gambar dan file dari perangkat Anda atau teks satu baris yang lebih dari 150 karakter, jadi semua ini tidak kembali.
+- **Anda menekan Home, atau tombol kembali di kiri atas.** Jika Anda mengubah sesuatu sejak terakhir menyimpan, mengunduh atau menyalin, dialog **Unsaved edits** menanyakan apakah ingin menyimpan lebih dulu. **Save & leave** menyimpan pekerjaan dan membawa Anda ke **Projects**, atau kembali ke folder proyek tempat Anda membuka pekerjaan. **Leave anyway** membuang perubahan Anda. Item tersimpan kembali ke penyimpanan terakhirnya, dan karya yang belum pernah Anda simpan keluar dari **Projects**. **Cancel** membuat Anda tetap di alat.
 
-Lolly hanya bertanya ketika Anda menekan **Beranda** atau tombol kembali di dalam sebuah tool. Menutup tab, memuat ulang dan tombol Back milik browser Anda sendiri tidak pernah bertanya. Untuk memastikan, tekan **Simpan sebagai**, atau **Simpan** di panel ekspor, sebelum Anda meninggalkan sebuah tool.
+::: warning Menutup tab tidak bertanya lebih dulu
+Menutup tab, memuat ulang dan tombol Back milik browser tidak pernah bertanya. Agar pasti, tekan **Save as**, atau **Save** di panel ekspor, sebelum Anda meninggalkan alat.
+:::
 
-Bila pemulihan otomatis tidak tersedia, catatan di samping kontrol penyuntingan menyatakan apa yang perlu disimpan:
+Jika pemulihan otomatis tidak tersedia, catatan di samping kontrol penyuntingan menyatakan apa yang perlu disimpan:
 
-- Pada alat yang bekerja dengan file yang Anda bawa, simpan pengaturan Anda dan simpan juga file aslinya.
-- Pada alat perekam, atau utilitas tanpa aksi Save, simpan atau unduh hasilnya sebelum pergi.
-- Aplikasi desktop dan seluler menyatakan saat Anda perlu menyimpan secara manual.
-- Dalam kolaborasi privat, orang yang mengundang menyimpan dokumen dan riwayatnya, termasuk perubahan orang lain. Orang yang bergabung bekerja pada salinan sementara dan sebaiknya menyimpan salinan terpisah sebelum sesi berakhir.
+- Di alat yang bekerja pada file yang Anda bawa, simpan pengaturan Anda dan simpan juga file aslinya.
+- Di alat perekaman, atau utilitas tanpa aksi Save, simpan atau unduh hasilnya sebelum keluar.
+- Aplikasi desktop dan seluler memberi tahu kapan Anda perlu menyimpan secara manual.
+- Dalam kolaborasi privat, orang yang mengundang menyimpan dokumen dan riwayatnya, termasuk perubahan dari orang lain. Orang yang bergabung bekerja pada salinan sementara dan sebaiknya menyimpan salinan terpisah sebelum sesi berakhir.
 
 ::: note Tidak sengaja keluar tanpa menyimpan?
-Di tool yang menyimpan sambil Anda bekerja, History menyimpan sebuah salinan editan yang dibuang. Buka halaman **History**, temukan di bawah **Changes** dan tekan **Open as a copy**. Di tool lain, perubahannya hilang.
+Di alat yang menyimpan saat Anda bekerja, History menyimpan salinan suntingan yang dibuang selama 30 hari. Buka halaman **History**, temukan di bawah **Changes** dan tekan **Open as a copy**. Di alat lain, perubahan tersebut hilang.
 :::
 
-::: details Tool mana yang menyimpan sambil Anda bekerja
-Di aplikasi web, setiap tool yang menghasilkan sebuah dokumen menyimpan sambil Anda bekerja: Lolly Design, Lolly Chart, QR Code, Text, Lolly Sandbox dan yang lainnya. Tool berikut tidak:
+::: details Alat mana yang menyimpan saat Anda bekerja
+Di aplikasi web, setiap alat yang membuat dokumen menyimpan saat Anda bekerja, seperti Lolly Design, Lolly Chart, QR Code, Text dan Lolly Sandbox. Alat berikut tidak:
 
-- alat yang bekerja dengan file yang Anda bawa, seperti Redact, Sign, atau Convert Image, karena Lolly tidak pernah menyimpan salinan file itu;
-- alat yang merekam dari kamera, mikrofon, atau layar Anda, seperti Record, Lolly Screen Capture, dan Lolly Voice Recorder;
-- alat tanpa yang bisa diubah, seperti Countdown.
+- alat yang bekerja pada file yang Anda bawa, seperti Redact, Sign atau Convert Image, karena Lolly tidak pernah menyimpan salinan file tersebut;
+- alat yang merekam dari kamera, mikrofon atau layar Anda, seperti Record, Lolly Screen Capture dan Lolly Voice Recorder;
+- alat tanpa sesuatu yang dapat diubah, seperti Countdown.
 
-Pada alat lain, perubahan pertama Anda menyimpan pekerjaan di **Projects** seolah Anda menyimpannya, dan perubahan berikutnya disimpan seiring Anda bekerja setelah alat selesai menggambar. Karya yang belum disimpan tetap ada di Projects setelah Anda menutup tab, dan terbuka kembali dengan perubahannya ditandai belum disimpan.
+Di alat lainnya, perubahan pertama Anda memasukkan pekerjaan ke **Projects** seolah Anda telah menyimpannya. Perubahan berikutnya disimpan setelah alat selesai menggambar. Karya yang belum disimpan tetap ada di Projects setelah Anda menutup tab dan terbuka kembali dengan perubahannya ditandai belum disimpan.
 
-**Leave anyway** tetap membuang perubahan itu, dan History menyimpan salinan suntingan yang dibuang selama 30 hari. Membuka alat lagi dari layar beranda memulai karya baru; buka yang sebelumnya dari Projects.
+**Leave anyway** tetap membuang perubahan tersebut. Membuka alat lagi dari layar beranda memulai karya baru; buka karya sebelumnya dari Projects.
 
-3D dan Lolly Darkroom menyimpan saat Anda bekerja, tetapi tidak menyimpan file yang Anda muat ke dalamnya, seperti model 3D atau LUT. History dan **Save** menyimpan nama, tipe, dan ukuran file, bukan file-nya. Saat Anda membuka pekerjaan lagi, catatan menyatakan file mana itu, dan alat bekerja tanpanya sampai Anda memuatnya lagi. Simpan file asli Anda.
+3D dan Lolly Darkroom menyimpan saat Anda bekerja, tetapi tidak menyimpan file yang Anda muat ke dalamnya, seperti model 3D atau LUT. History dan **Save** menyimpan nama, jenis dan ukuran file, bukan filenya. Saat Anda membuka pekerjaan lagi, catatan menyebutkan file yang dimaksud, dan alat bekerja tanpa file itu hingga Anda memuatnya lagi. Simpan file asli Anda.
 
-Dengan [Sync](/info/sync.html) aktif, sebuah kreasi yang diajukan dengan cara ini ikut ke perangkat lain Anda seperti hal lain di Proyek. Versinya tetap berada di perangkat tempat ia dibuat.
+Dengan [Sync](/info/sync.html) aktif, karya yang disimpan dengan cara ini dikirim ke perangkat Anda yang lain. Versinya tetap di perangkat tempat versi itu dibuat.
 
-Jika sebuah kreasi terbuka di dua tab dan Anda menyimpan di keduanya, simpanan terakhir yang dipertahankan. Karya yang digantikannya tidak hilang: karya itu ada di bawah **Protected drafts** dalam History kreasi itu, dengan **Open draft as a copy**.
+Jika karya terbuka di dua tab dan Anda menyimpan di keduanya, penyimpanan terakhir yang dipertahankan. Pekerjaan yang digantikan ada di bawah **Protected drafts** dalam History karya itu, dengan **Open draft as a copy**.
 
-Ini hanya berfungsi di aplikasi web, tidak di aplikasi desktop atau mobile, dan tidak saat Anda bekerja live bersama orang lain.
+Ini hanya berfungsi di aplikasi web, bukan di aplikasi desktop atau seluler, dan tidak saat Anda bekerja langsung dengan orang lain.
 :::
 
-## Temukan berkas yang Anda unduh
+<!--i:eti-download-->
+## Menemukan file yang Anda unduh
 
-Di sebuah browser, **Unduh** menyerahkan berkas ke browser Anda, yang menyimpannya di folder unduhannya (biasanya **Downloads**) atau menanyakan di mana. Lolly tidak diberi tahu ke mana berkas itu pergi, jadi lihat di daftar unduhan browser Anda.
+Di browser, **Download** menyerahkan file ke browser Anda. Browser menyimpan file di folder unduhannya (biasanya **Downloads**) atau menanyakan lokasinya. Lolly tidak diberi tahu ke mana file disimpan, jadi lihat daftar unduhan browser Anda.
 
-Jika tidak ada berkas yang muncul, lihat di panel ekspor selagi Anda masih di tool itu. Di bawah **Unduh**, sebuah baris memberikan nama berkas dan waktunya, dengan **Retry download**, dan di Chrome, Edge dan browser Chromium lainnya **Save file…** untuk memilih folder sendiri. Baris itu dan berkasnya bertahan sampai Anda meninggalkan tool, memuat ulang atau mengekspor lagi.
+Jika tidak ada file yang muncul, lihat panel ekspor selagi Anda masih di alat. Di bawah **Download**, satu baris menampilkan nama file dan waktu, dengan **Retry download**. Di Chrome, Edge dan browser Chromium lainnya, baris itu juga menawarkan **Save file…** untuk memilih folder. Baris dan filenya bertahan sampai Anda meninggalkan alat, memuat ulang atau mengekspor lagi.
 
 Lolly juga menyimpan dua hal setelah setiap unduhan:
 
-- **Sebuah salinan berkas**, di **Aset** di bawah **Unggahan Anda**, selama **Simpan render saya ke pustaka saya** aktif di bawah **Pengaturan → Render Anda** (**Pengaturan** ada di bagian bawah layar utama). Pengaturan ini mulai dalam keadaan aktif. Sebuah video, atau berkas di atas 50 MB, bertanya dulu, dan sebuah zip tidak disalin.
-- **Pengaturan yang Anda gunakan**, untuk 24 unduhan terakhir Anda. **Ekspor terbaru**, di bawah karya tersimpan Anda di **Proyek**, membuka lagi tool itu dengan pengaturan tersebut sehingga Anda bisa membuat berkasnya lagi, meski gambar dan berkas yang Anda tambahkan dari perangkat Anda tidak disertakan. Daftar yang sama ada di bawah **Pengaturan → Aktivitas & statistik → Ekspor terbaru** dan di tab **Changes** pada **History**. Daftar ini menyimpan pengaturan, bukan berkasnya.
+- **Salinan file**, di **Assets** di bawah **Your uploads**, selama **Save my renders to my library** aktif di bawah **Settings → Your renders** (**Settings** ada di bagian bawah layar beranda). Pengaturan ini aktif sejak awal. Video, atau file di atas 50 MB, meminta persetujuan lebih dulu, dan zip tidak disalin.
+- **Pengaturan yang Anda gunakan**, untuk 24 unduhan terakhir Anda. **Recent exports**, di bawah pekerjaan tersimpan Anda di **Projects**, membuka kembali alat dengan pengaturan tersebut. Gambar dan file yang Anda tambahkan dari perangkat tidak disertakan. Daftar yang sama ada di bawah **Settings → Activity & stats → Latest exports** dan pada tab **Changes** di **History**.
 
-::: details Di aplikasi desktop dan mobile
-- **Aplikasi desktop:** **Unduh** langsung menyimpan ke sebuah folder **Lolly** di dalam folder **Downloads** Anda, tanpa dialog. Baris di bawah **Unduh** menyatakan ke mana berkas itu pergi, seperti "Saved to Downloads/Lolly", disertai **Show in folder**. **Open Exports Folder**, di menu **Window** atau **Exports**, membuka folder itu kapan saja. Sebuah berkas dengan nama sama seperti yang sebelumnya disimpan sebagai "name (1)".
-- **iPhone dan iPad:** berkas itu disimpan di aplikasi **Files**, di bawah **Lolly**, dan share sheet terbuka sehingga Anda bisa mengirimkannya. Baris di bawah **Unduh** berbunyi "Saved to Files → Lolly".
-- **Android:** menu berbagi terbuka sehingga Anda bisa memilih ke mana berkas itu pergi.
+::: details Di aplikasi desktop dan seluler
+- **Aplikasi desktop:** **Download** menyimpan ke folder **Lolly** di dalam folder **Downloads** Anda, tanpa dialog. Baris di bawah **Download** menyatakan tempat file disimpan, seperti "Saved to Downloads/Lolly", dengan **Show in folder**. **Open Exports Folder**, di menu **Window** atau **Exports**, membuka folder kapan saja. File dengan nama yang sama seperti file sebelumnya disimpan sebagai "name (1)".
+- **iPhone dan iPad:** file disimpan di aplikasi **Files**, di bawah **Lolly**, dan lembar berbagi terbuka. Baris di bawah **Download** bertuliskan "Saved to Files → Lolly".
+- **Android:** menu berbagi terbuka. Pilih tempat file disimpan.
 
-Di iPhone, iPad dan Android, berkas baru menggantikan yang sebelumnya dengan nama yang sama.
+Di iPhone, iPad dan Android, file baru menggantikan file sebelumnya yang bernama sama.
 :::
 
+<!--i:eti-history-->
 ## Kembali ke versi sebelumnya
 
-- **Selama kunjungan ini:** **Undo** mundur melalui 100 perubahan terakhir Anda, sampai Anda meninggalkan tool atau memuat ulang. Lihat [Undo dan redo](/info/using.html#undo-and-redo).
-- **Di [tool yang menyimpan sambil Anda bekerja](#which-tools-save-as-you-work):** versi sebelumnya dari setiap kreasi dipertahankan. Ikuti langkah-langkah di bawah.
-- **Semua yang ada di perangkat:** dengan [Sync](/info/sync.html) aktif, **Restore an earlier copy**, di bawah **Pengaturan → Layanan terhubung**, mengembalikan salah satu dari tujuh salinan harian terakhir, atau salinan dari sebelum penerapan terakhir Anda. Semua yang ada di perangkat ini kemudian cocok dengan salinan itu, bukan hanya satu desain.
+- **Selama kunjungan ini:** **Undo** mundur melalui 100 perubahan terakhir Anda, sampai Anda meninggalkan alat atau memuat ulang. Lihat [Undo dan redo](/info/using.html#undo-and-redo).
+- **Di [alat yang menyimpan saat Anda bekerja](#which-tools-save-as-you-work):** versi sebelumnya dari setiap karya disimpan.
+- **Semua yang ada di perangkat:** dengan [Sync](/info/sync.html) aktif, **Restore an earlier copy**, di bawah **Settings → Connected services**, mengembalikan salah satu dari tujuh salinan harian terakhir atau salinan sebelum penerapan terakhir Anda. Semua yang ada di perangkat ini lalu sesuai dengan salinan tersebut.
 
 Untuk membuka versi sebelumnya:
 
-1. Tekan **History**, tombol jam di samping **Undo** dan **Redo**. Di Lolly Design, **History** ada di bilah atas; di ponsel, tekan **•••** lalu **History**. Di tool tanpa **Undo**, seperti Text dan Lolly Sandbox, **History** ada di samping **Beranda** di kiri atas.
-2. Temukan versi itu berdasarkan tanggal dan waktunya. Baris **Automatic checkpoint** diambil sambil Anda bekerja; baris **Saved version** adalah waktu-waktu Anda menyimpan.
-3. Tekan **Open as a copy**. Versi itu terbuka sebagai sebuah kreasi baru, dan yang tadinya Anda buka tetap seperti semula. Salinannya ada di **Proyek**, dengan "(copy)" setelah namanya.
+1. Tekan **History**, tombol jam di samping **Undo** dan **Redo**. Di Lolly Design, **History** ada di bilah atas. Di ponsel, tekan **•••** lalu **History**. Di alat tanpa **Undo**, seperti Text dan Lolly Sandbox, **History** ada di samping **Home** di kiri atas.
+2. Temukan versi berdasarkan tanggal dan waktunya. Baris **Automatic checkpoint** diambil saat Anda bekerja; baris **Saved version** adalah waktu Anda menyimpan.
+3. Tekan **Open as a copy**. Versi terbuka sebagai karya baru, dan karya yang sebelumnya Anda buka tetap seperti semula. Salinan ada di **Projects**, dengan "(copy)" setelah namanya.
 
-Untuk mempertahankan sebuah versi dengan nama, tekan **Name version**, ketik sebuah nama dan tekan **Keep milestone**. Versi yang diberi nama terdaftar di halaman **History**, di bawah **Milestones**.
+Untuk menyimpan versi dengan nama, tekan **Name version**, ketik nama dan tekan **Keep milestone**. Versi bernama dicantumkan di halaman **History**, di bawah **Milestones**.
 
 ::: details Panel History dan halaman History
-Panel **History** juga mencantumkan baris **Recovered work**, dan **Protected drafts** menyimpan editan terbaru Anda di antara checkpoint, dengan **Open draft as a copy**. **Lolly Compare** dan **Check assets** membantu Anda memilih sebelum membuka sebuah salinan. Alihkan **This creation** ke **All history on this device** untuk melihat setiap kreasi.
+Panel **History** juga mencantumkan baris **Recovered work**, dan **Protected drafts** menyimpan suntingan terbaru Anda di antara checkpoint, dengan **Open draft as a copy**. **Lolly Compare** dan **Check assets** membantu Anda memilih sebelum membuka salinan. Ganti **This creation** ke **All history on this device** untuk melihat setiap karya.
 
-Automatic checkpoint makin jarang seiring waktu: satu per menit untuk satu jam terakhir, satu per jam untuk satu hari terakhir, satu per hari selama 30 hari, lalu satu per minggu. Saved version dan versi bernama semuanya dipertahankan. Menghapus sebuah kreasi juga memindahkan versinya ke **Sampah**, dan **Hapus permanen** menghapusnya.
+Checkpoint otomatis makin jarang seiring bertambahnya usia: satu per menit untuk satu jam terakhir, satu per jam untuk satu hari terakhir, satu per hari selama 30 hari, lalu satu per minggu. Semua versi tersimpan dan bernama tetap disimpan. Menghapus karya juga memindahkan versinya ke **Trash**, dan **Delete forever** menghapusnya.
 
-Ketika penyimpanan History penuh, automatic checkpoint tertua dari kreasi yang belum Anda buka selama 30 hari dihapus lebih dulu. Sebuah simpanan selalu dipertahankan, bahkan saat itu: simpanan itu ditulis sebagai karya saat ini, dan History menyatakan bahwa simpanan ini tidak dipertahankan sebagai sebuah versi. **Pengaturan → Penyimpanan** menampilkan berapa banyak yang digunakan History.
+Saat penyimpanan History penuh, checkpoint otomatis tertua dari karya yang belum Anda buka selama 30 hari dihapus lebih dulu. Meski demikian, hasil penyimpanan selalu dipertahankan. Hasilnya ditulis sebagai pekerjaan saat ini, dan History menyatakan bahwa penyimpanan ini tidak disimpan sebagai versi. **Settings → Storage** menunjukkan berapa banyak ruang yang digunakan History.
 
-Halaman **History** (`#/history`) mencakup setiap karya di browser ini. Untuk membukanya, tekan tombol jam di kanan atas layar beranda atau **Projects**, pilih **Saved sessions** di menu profil (di ponsel, tombol logo bulat di kanan atas), atau tekan **Open app history** di panel History alat. Aplikasi desktop dan seluler tidak memiliki halaman History, jadi di sana tombol jam layar beranda dan **Saved sessions** membuka **Your recent work**: sesi tersimpan dan ekspor terbaru Anda, dengan tautan ke Projects.
+Halaman **History** (`#/history`) mencakup setiap karya di browser ini. Untuk membuka halaman, tekan tombol jam di kanan atas layar beranda atau **Projects**, pilih **Saved sessions** di menu profil (di ponsel, tombol logo bulat di kanan atas) atau tekan **Open app history** di panel History alat. Aplikasi desktop dan seluler tidak memiliki halaman History. Di sana, tombol jam layar beranda dan **Saved sessions** membuka **Your recent work**: sesi tersimpan dan ekspor terbaru Anda, dengan tautan ke Projects.
 
-- **Terbaru** mendaftar kreasi Anda, yang terbaru lebih dulu, dengan **Lanjutkan**.
-- **Changes** menempatkan checkpoint, unduhan dan hasil Convert pada satu garis waktu. Sebuah unduhan memiliki **Reopen settings**.
-- **Milestones** mendaftar versi yang diberi nama.
+- **Recent** mencantumkan karya Anda, yang terbaru lebih dulu, dengan **Resume**.
+- **Changes** menempatkan checkpoint, unduhan dan hasil Convert pada satu garis waktu. Unduhan memiliki **Reopen settings**.
+- **Milestones** mencantumkan versi bernama.
 
-Filter berdasarkan proyek, tool dan tanggal (di balik **Filters** di ponsel). Halaman History tidak memiliki tombol hapus; untuk menghapus sebuah item, gunakan Proyek.
+Setiap karya berupa ubin dengan gambarnya. **Grid** atau **List** mengganti tata letak. Saring berdasarkan proyek, alat dan tanggal (di balik **Filters** di ponsel). Menu ubin (klik kanan atau tekan lama) menawarkan **Resume**, **Versions**, **Show in Projects** dan **Move to Trash**. Untuk menghapus beberapa, pilih itemnya lalu pilih **Move to Trash**, yang menawarkan Undo.
 :::
 
-## Pindahkan karya Anda ke perangkat lain
+<!--i:eti-folder-move-->
+## Memindahkan pekerjaan Anda ke perangkat lain
 
 | Untuk | Gunakan |
 |---|---|
-| Menjaga perangkat Anda tetap selaras | **Sync across devices**, di bawah **Pengaturan → Layanan terhubung**: lihat [Sinkronkan perangkat Anda](/info/sync.html) |
-| Memindahkan semuanya sekaligus | **Export my data** dan **Import data…**, di bawah |
-| Menyerahkan satu desain atau satu proyek | Sebuah berkas `.lolly`: **Ekspor**, lalu **Bagikan**, lalu **Download .lolly**; untuk seluruh proyek, **Download project (.lolly)** di menu folder tersebut. Tekan **Buka** di perangkat lain. Lihat [Berkas .lolly](/info/using.html#the-lolly-file) |
+| Menjaga perangkat Anda tetap sinkron | **Sync across devices**, di bawah **Settings → Connected services**: lihat [Menyinkronkan perangkat Anda](/info/sync.html) |
+| Memindahkan semuanya sekali | **Export my data** dan **Import data…**, di bawah |
+| Menyerahkan satu desain atau satu proyek | File `.lolly`: **Export**, lalu **Share**, lalu **Download .lolly**; untuk seluruh proyek, **Download project (.lolly)** di menu folder. Tekan **Open** di perangkat lain. Lihat [File .lolly](/info/using.html#the-lolly-file) |
 
-Sebuah share link membawa pengaturan Anda, tetapi tidak gambar atau berkas yang Anda tambahkan dari perangkat Anda.
+Tautan berbagi membawa pengaturan Anda, tetapi tidak membawa gambar atau file yang Anda tambahkan dari perangkat.
 
-::: note Mengimpor tidak menambah atau menghapus apa pun
-Folder, favorit dan template dalam berkas itu ditambahkan di samping yang sudah ada di perangkat lain. Ketika sebuah item tersimpan ada di keduanya, salinan yang disimpan lebih baru dipertahankan. Detail dan pengaturan Anda di perangkat itu tetap seperti apa adanya; yang kosong diisi dari berkas itu. **Bring it to this device**, di Sync, bekerja dengan cara yang sama.
+::: note Mengimpor menambahkan dan tidak menghapus apa pun
+Folder, favorit dan templat dalam file ditambahkan ke yang sudah ada di perangkat lain. Jika item tersimpan ada di keduanya, salinan yang disimpan lebih baru dipertahankan. Detail dan pengaturan Anda di perangkat itu tetap seperti semula. Yang kosong diisi dari file. **Bring it to this device**, di Sync, bekerja dengan cara yang sama.
 :::
 
-Untuk memindahkan semuanya sekaligus:
+Untuk memindahkan semuanya sekali:
 
-1. Di perangkat lama, buka **Pengaturan → Penyimpanan** dan, di bawah **Pindah ke perangkat lain**, tekan **Export my data**. Lolly mengunduh satu berkas `.zip` yang namanya dimulai dengan `LollyTools-`.
-2. Bawa berkas itu lewat USB, email ke diri sendiri, AirDrop atau folder bersama.
-3. Di perangkat baru, buka **Pengaturan → Penyimpanan**, tekan **Import data…**, pilih berkasnya dan tekan **Impor**.
+1. Di perangkat lama, buka **Settings → Storage** dan, di bawah **Move to another device**, tekan **Export my data**. Lolly mengunduh satu file `.zip` yang namanya diawali `LollyTools-`.
+2. Pindahkan file melalui USB, email ke diri sendiri, AirDrop atau folder bersama.
+3. Di perangkat baru, buka **Settings → Storage**, tekan **Import data…**, pilih file dan tekan **Import**.
 
-::: note Apa yang tertinggal
-Login, kunci dan passphrase sync tetap di setiap perangkat. Daftar unduhan terbaru, unduhan offline dan model AI tidak ikut lewat jalur mana pun. Riwayat versi hanya berpindah dalam sebuah berkas **Export my data**, bukan lewat Sync atau sebuah `.lolly`. Ketika riwayatnya terlalu besar untuk satu berkas, automatic checkpoint tertua ditinggalkan dan baris ekspor menyatakan berapa banyak. Sebuah salinan yang disimpan Sync di penyimpanan Anda dapat diunduh dan dibuka, atau dipilih di **Import data…**, seperti sebuah berkas cadangan; sebuah salinan terenkripsi meminta passphrase Anda.
+::: note Yang tetap tertinggal
+Status masuk, kunci dan frasa sandi sinkronisasi tetap di setiap perangkat. Daftar unduhan terbaru, unduhan offline dan model AI tidak ikut dipindahkan melalui jalur apa pun. Riwayat versi hanya ikut dalam file **Export my data**, bukan melalui Sync atau `.lolly`. Jika riwayat terlalu besar untuk satu file, checkpoint otomatis tertua tidak disertakan dan baris ekspor menyatakan jumlahnya. Anda dapat mengunduh dan membuka salinan yang disimpan Sync di penyimpanan Anda, atau memilih salinan itu di **Import data…**, seperti file cadangan. Salinan terenkripsi meminta frasa sandi Anda.
 :::
 
-::: details Apa yang dimuat berkas backup
-Berkas itu dinamai `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (bagian namanya berasal dari profil Anda dan dihilangkan jika tidak diatur; `<n>` adalah penghitung per hari sehingga ekspor di hari yang sama tidak bertabrakan). Berkas itu berisi profil Anda, beserta folder, Sampah, template dan favorit Anda; setiap sesi tersimpan beserta thumbnail-nya; gambar, font, logo yang Anda unggah dan salinan unduhan Anda; design system Anda; preferensi Anda (tema, lebar sidebar, statistik aktivitas lokal); versi tersimpan dan hasil dari Convert; dan, dari aplikasi web, riwayat versi kreasi Anda.
+::: details Isi file cadangan
+File bernama `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`. Bagian nama berasal dari profil Anda dan dihilangkan jika belum diatur. `<n>` menghitung ekspor yang dibuat pada hari yang sama. Isinya meliputi profil Anda, beserta folder, Trash, templat dan favorit; setiap sesi tersimpan beserta thumbnail-nya; gambar, font, logo yang Anda unggah dan salinan unduhan Anda; design system Anda; preferensi Anda (tema, lebar bilah sisi, statistik aktivitas lokal); versi tersimpan dan hasil Convert; serta, dari aplikasi web, riwayat versi karya Anda.
 
-Cache katalog tidak disertakan - ia mengunduh ulang sendiri di perangkat baru. Setiap bagian diberi checksum, jadi file yang rusak dalam perjalanan tertangkap saat impor, bukan dipulihkan setengah rusak. Sesi tersimpan terhubung kembali ke gambar yang Anda impor secara otomatis. Aplikasi web, desktop, dan seluler membaca file yang sama; aplikasi terminal menulis cadangan yang lebih sederhana miliknya sendiri, yang tidak dibaca format ini. **Export my data & render everything** membuat file yang sama ditambah zip kedua dengan setiap sesi tersimpan dirender ke keluarannya. (Spesifikasi format lengkap: [Data transfer](/info/data-transfer.html).)
+Cache katalog tidak disertakan. Perangkat baru mengunduh cache lagi. Setiap bagian memiliki checksum, sehingga impor mendeteksi file yang rusak dalam perjalanan. Sesi tersimpan ditautkan kembali ke gambar yang Anda impor. Aplikasi web, desktop dan seluler membaca file yang sama. Aplikasi terminal menulis cadangannya sendiri yang lebih sederhana, yang tidak dapat dibaca oleh format ini. **Export my data & render everything** membuat file yang sama ditambah zip kedua dengan setiap sesi tersimpan dirender menjadi keluarannya. Format lengkap ada di [Transfer data](/info/data-transfer.html).
 :::
 
-## Jika Anda menghapus data browser Anda
+<!--i:eti-globe-->
+## Jika Anda menghapus data browser
 
-Di aplikasi web, Lolly menyimpan semuanya di penyimpanan browser Anda untuk situs ini: karya tersimpan, gambar, font, design system, riwayat versi dan unduhan offline. Menghapus data situs ini di browser Anda menghapus semua itu, dan Lolly tidak bisa mengembalikan satu pun darinya. Yang tersisa adalah yang sudah keluar dari browser: berkas yang Anda unduh, sebuah berkas **Export my data**, sebuah salinan [Sync](/info/sync.html) dan tautan yang Anda bagikan.
+Di aplikasi web, Lolly menyimpan semuanya dalam penyimpanan browser Anda untuk situs ini: pekerjaan tersimpan, gambar, font, design system, riwayat versi dan unduhan offline. Menghapus data situs ini di browser menghapus semuanya, dan Lolly tidak dapat mengembalikan apa pun darinya. Yang tersisa adalah yang sudah keluar dari browser: file yang Anda unduh, file **Export my data**, salinan [Sync](/info/sync.html) dan tautan yang Anda bagikan.
 
 ::: warning Sebelum Anda menghapus data browser
-Tekan **Export my data** di bawah **Pengaturan → Penyimpanan**, dan simpan berkasnya di tempat lain.
+Tekan **Export my data** di bawah **Settings → Storage**, dan simpan file di tempat lain.
 :::
 
-Saat aplikasi dimulai, Lolly meminta browser agar tidak menghapus penyimpanannya ketika perangkat kehabisan ruang, dan browser yang memutuskan. Di bawah **Settings → Available offline**, baris yang diawali **Protected** berarti browser setuju. "The browser may clear downloads if the device runs low on space" berarti tidak, dan **Protect downloads** meminta lagi.
+Saat aplikasi dimulai, Lolly meminta browser agar tidak menghapus penyimpanannya saat ruang perangkat hampir habis, dan browser yang memutuskan. Di bawah **Settings → Available offline**, baris yang diawali **Protected** berarti browser menyetujui. "The browser may clear downloads if the device runs low on space" berarti browser tidak menyetujui, dan **Protect downloads** meminta lagi.
 
-Jika browser tidak setuju, ia mungkin menghapus pekerjaan tersimpan serta unduhan saat ruang menipis, jadi simpan file **Export my data** yang terbaru.
+Jika browser tidak menyetujui, browser dapat menghapus pekerjaan tersimpan serta unduhan saat ruang hampir habis, jadi simpan file **Export my data** yang baru.
 
-**Pengaturan → Penyimpanan** menampilkan berapa banyak ruang yang digunakan tiap jenis data. Baris **History**-nya menghitung automatic checkpoint, pratinjaunya, dan draf pemulihan; **Remove automatic checkpoints older than 30 days** membebaskan ruang itu dan mempertahankan saved version serta versi bernama. **Hapus cache** membuang berkas katalog yang diunduh, yang akan diunduh lagi saat dibutuhkan. **Hapus semua data saya** meminta Anda mengetik sebuah kata, mematikan Sync, lalu menghapus semua yang disimpan Lolly di browser ini: profil dan pengaturan Anda, sesi tersimpan beserta riwayat dan Sampahnya, unggahan, font dan design system, log unduhan, hasil Convert, model AI yang diunduh dan salinan offline. Berkas yang Anda unduh tetap ada di tempat Anda menyimpannya. Aplikasi kemudian mulai seperti pada kunjungan pertama.
+**Settings → Storage** menunjukkan ruang yang digunakan setiap jenis data. Baris **History** menghitung checkpoint otomatis, pratinjaunya dan draf pemulihan. **Remove automatic checkpoints older than 30 days** mengosongkan ruang tersebut dan mempertahankan versi tersimpan dan bernama. **Clear cache** menghapus file katalog yang diunduh, yang akan diunduh lagi saat diperlukan. **Clear all my data** meminta Anda mengetik sebuah kata, menonaktifkan Sync, lalu menghapus semua yang disimpan Lolly di browser ini: profil dan pengaturan Anda, sesi tersimpan beserta riwayatnya dan Trash, unggahan, font dan design system, log unduhan, hasil Convert, model AI yang diunduh dan salinan offline. File yang Anda unduh tetap di tempat Anda menyimpannya. Aplikasi lalu dimulai seperti pada kunjungan pertama.
 
-![Kartu penyimpanan pada layar selebar ponsel: setiap kategori data di perangkat disebutkan, dengan tombol Clear all my data di bagian bawah](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
+![Kartu penyimpanan pada layar selebar ponsel: setiap kategori data di perangkat diberi nama, dengan tombol Clear all my data di bagian bawah](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-selbar%2C.profile-row-value%2C.profile-group-value%2C%23store-hero-num%2C%23store-headroom%7Bdisplay%3Anone%7D&format=svg&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dwork%5D%3Esummary%3Bclick%3A%5Bdata-store-group%3Dcaches%5D%3Esummary&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Di aplikasi desktop dan mobile, sesi tersimpan adalah berkas-berkas di folder data milik aplikasi itu sendiri dan sisanya ada di penyimpanan milik aplikasi itu sendiri, sehingga menghapus sebuah browser web tidak menyentuhnya.
+Di aplikasi desktop dan seluler, sesi tersimpan berupa file di folder data milik aplikasi, dan semua yang lain berada di penyimpanan milik aplikasi. Membersihkan browser web tidak menyentuhnya.
 
-::: details Tempat aplikasi desktop dan mobile menyimpan sesi tersimpan
-Satu berkas per sesi tersimpan, di dalam sebuah folder `saved-state`:
+::: details Tempat aplikasi desktop dan seluler menyimpan sesi tersimpan
+Satu file per sesi tersimpan, di folder `saved-state`:
 
 - macOS: `~/Library/Application Support/tools.lolly.Desktop/saved-state/`
 - Windows: `%APPDATA%\tools.lolly.Desktop\saved-state\`
 - Linux: `~/.local/share/tools.lolly.Desktop/saved-state/`, atau path yang sama di bawah `$XDG_DATA_HOME`
-- iPhone, iPad dan Android: di dalam penyimpanan milik aplikasi itu sendiri, yang tidak ditampilkan oleh aplikasi Files
+- iPhone, iPad dan Android: di dalam penyimpanan milik aplikasi, yang tidak ditampilkan aplikasi Files
 
-Gambar, design system dan daftar unduhan terbaru tetap ada di penyimpanan internal aplikasi, bukan di folder-folder ini. Aplikasi terminal dan command line membaca folder `saved-state` yang sama: lihat [Tempat sesi tersimpan berada](/info/cli-reference.html#where-saved-sessions-live).
+Gambar, design system dan daftar unduhan terbaru tetap di penyimpanan internal aplikasi, bukan di folder ini. Aplikasi terminal dan baris perintah membaca folder `saved-state` yang sama: lihat [Tempat sesi tersimpan berada](/info/cli-reference.html#where-saved-sessions-live).
 :::
 
-## Dapatkan kembali sesuatu yang Anda hapus
+<!--i:eti-trash-->
+## Mengembalikan sesuatu yang Anda hapus
 
-Menghapus sebuah sesi tersimpan, sebuah folder, salah satu unggahan Anda atau salah satu font Anda di aplikasi memindahkannya ke **Sampah** selama 30 hari, di mana pun Anda menghapusnya: **Proyek**, **Aset**, **Pengaturan → Penyimpanan** atau daftar sesi tersimpan sebuah tool. Sebuah folder pergi beserta semua isinya, sebagai satu entri, dan sebuah sesi mempertahankan riwayat versinya selama berada di sana. Segera setelahnya, sebuah pesan menawarkan **Undo**. Setelahnya:
+Menghapus sesi tersimpan, folder, salah satu unggahan atau salah satu font Anda di aplikasi memindahkannya ke **Trash** selama 30 hari, dari mana pun Anda menghapusnya: **Projects**, **Assets**, **Settings → Storage** atau daftar sesi tersimpan milik alat. Folder beserta seluruh isinya masuk ke Trash sebagai satu entri. Sesi mempertahankan riwayat versinya di Trash. Tepat setelah Anda menghapus, sebuah pesan menawarkan **Undo**. Setelah itu:
 
-1. Buka **Sampah**: ubin **Sampah** di **Proyek**, tombol **Sampah** di **Aset → Unggahan Anda**, atau baris **Sampah** di **Pengaturan → Penyimpanan**. Ketiganya membuka daftar yang sama.
-2. Tekan **Pulihkan** di samping item itu. Item itu kembali ke foldernya, dan sebuah font mendapatkan kembali peran yang dimilikinya di design system-nya.
+1. Buka **Trash**: ubin **Trash** di **Projects**, tombol **Trash** di **Assets → Your uploads** atau baris **Trash** di **Settings → Storage**. Ketiganya membuka daftar yang sama.
+2. Tekan **Restore** di samping item. Item kembali ke foldernya, dan font mendapatkan kembali peran yang dimilikinya dalam design system.
 
-**Hapus permanen** menghapus satu item untuk selamanya. **Kosongkan Sampah** bertanya dulu, lalu menghapus setiap item di Sampah. Item yang lebih tua dari 30 hari dihapus untuk selamanya.
+**Delete forever** menghapus satu item secara permanen. **Empty Trash** meminta persetujuan lebih dulu, lalu menghapus setiap item di Trash. Item yang lebih lama dari 30 hari dihapus secara permanen.
 
-::: warning Sebagian penghapusan bersifat seketika
-Menghapus sebuah design system, sebuah logo atau foto profil Anda tidak masuk ke Sampah. Command line dan aplikasi terminal juga menghapus seketika.
+::: warning Sebagian penghapusan langsung berlaku
+Menghapus design system, logo atau foto profil Anda tidak memindahkannya ke Trash. Baris perintah dan aplikasi terminal juga langsung menghapus.
 :::
 
-Dengan [Sync](/info/sync.html) aktif, **Restore an earlier copy** dapat mengembalikan state perangkat secara keseluruhan dari hari sebelumnya, dan sebuah berkas **Export my data** mengembalikan apa yang dimuat berkas itu.
+Dengan [Sync](/info/sync.html) aktif, **Restore an earlier copy** dapat mengembalikan keadaan seluruh perangkat pada hari sebelumnya, dan file **Export my data** mengembalikan apa yang tersimpan dalam file tersebut.

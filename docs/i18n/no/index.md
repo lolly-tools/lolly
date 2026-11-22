@@ -1,4 +1,3 @@
-# Lolly - tekst til landingssiden
+# Lolly - Tekst til landingssiden
 
-Lag ferdige filer. Behold kontrollen over innholdet ditt.
-Grafikk, dokumenter, video og trykk i dine egne farger og din egen skrift: ingen konto, ikke noe kort, privat og åpen kildekode.
+Lag ferdig grafikk, dokumenter, video og trykksaker i dine egne farger og skrifter. Privat, åpen kildekode, ingen konto nødvendig.

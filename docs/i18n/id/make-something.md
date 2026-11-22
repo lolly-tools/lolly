@@ -1,48 +1,60 @@
-# Buat berkas pertama Anda
+# Buat file pertama Anda
 
-Pada akhir halaman ini, Anda akan telah mengunduh sebuah kode QR untuk sebuah alamat web dan menyimpan salinan yang dapat Anda buka dan ubah nanti. Anda tidak memerlukan akun dan tidak perlu menyiapkan apa pun terlebih dahulu.
+Unduh kode QR untuk alamat web dan simpan salinan yang dapat Anda buka dan ubah nanti. Anda tidak memerlukan akun dan tidak perlu menyiapkan apa pun terlebih dahulu. Anda tidak memerlukan akun atau penyiapan.
 
-::: note Sebelum Anda mulai
-Siapkan alamat web yang harus dibuka kode tersebut, dimulai dengan `https://`.
+::: note Sebelum memulai
+Siapkan alamat web yang akan dibuka kode, diawali dengan `https://`.
 :::
 
+::: steps
+- <!--i:eti-pen--> **[Buat kodenya](#make-the-code)** Masukkan alamat Anda di Lolly QR Code dan atur warnanya.
+- <!--i:eti-download--> **[Unduh file](#download-the-file)** Ekspor PNG untuk layar, atau SVG atau PDF untuk cetak.
+- <!--i:eti-folder-plus--> **[Simpan salinan yang dapat disunting](#keep-an-editable-copy)** Simpan pekerjaan Anda agar kode dapat diubah nanti.
+:::
+
+<!--i:eti-pen-->
 ## Buat kodenya
 
-1. Buka [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kontrolnya berada di samping pratinjau, atau di atasnya pada ponsel; apa yang ditampilkan pratinjau itulah yang akan menjadi berkas jadinya.
-2. Pada **URL**, ganti alamat contoh dengan alamat Anda, secara lengkap. Pratinjau berubah saat Anda mengetik.
-3. Untuk menyesuaikan dengan warna Anda sendiri, atur **Module colour** dan **Latar belakang**. Jaga kontras yang kuat di antara keduanya, atau ponsel akan kesulitan membaca kodenya.
-4. **Quiet zone**, di bawah **Modules**, dimulai pada 4. Jaga tetap pada 4 atau lebih: margin polos itulah yang dicari oleh kamera ponsel.
+1. Buka [Lolly QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Kontrol berada di samping pratinjau, atau di atas pratinjau pada ponsel. Pratinjau menunjukkan hasil file nantinya.
+2. Di **URL**, ganti seluruh alamat contoh dengan alamat Anda. Pratinjau berubah saat Anda mengetik.
+3. Untuk menyesuaikan dengan warna Anda sendiri, atur **Module colour** dan **Background**. Pertahankan kontras yang kuat di antara keduanya, atau ponsel akan kesulitan membaca kode.
+4. **Quiet zone**, di bawah **Modules**, dimulai dari 4. Pertahankan pada 4 atau lebih. Kamera ponsel mencari margin polos tersebut.
 
-## Unduh berkasnya
+<!--i:eti-download-->
+## Unduh file
 
-1. Tekan **Ekspor** pada pil **Export | Save as**, di bagian bawah kontrol pada komputer atau melayang di bagian bawah layar pada ponsel.
-2. Buka menu format di samping nama berkas (dimulai pada **SVG**) dan pilih **PNG** untuk layar atau pesan. Untuk cetak, lihat catatan di bawah.
-3. Tekan **Unduh**. Berkas tersebut masuk ke unduhan browser Anda; jika tidak ada di sana, lihat [Temukan berkas yang Anda unduh](/info/find-your-work.html#find-a-file-you-downloaded).
+1. Tekan **Export** pada pil **Export | Save as**, di dasar kontrol pada komputer atau mengambang di bagian bawah layar pada ponsel.
+2. Buka menu format di samping nama file (awalnya **SVG**) dan pilih **PNG** untuk layar atau pesan. Untuk cetak, lihat catatan di bawah.
+3. Tekan **Download**. File masuk ke unduhan browser Anda. Jika file tidak ada di sana, lihat [Temukan file yang Anda unduh](/info/find-your-work.html#find-a-file-you-downloaded).
 
-::: check Pindai kodenya sebelum Anda membagikan berkasnya
-Buka berkas yang diunduh pada sebuah layar dan pindai kodenya dengan kamera ponsel. Jika Anda membuatnya di ponsel Anda, pindai dari ponsel kedua atau layar komputer. Ponsel akan menawarkan alamat web Anda.
+::: check Pindai kode sebelum membagikan file
+Buka file yang diunduh di layar dan pindai kode dengan kamera ponsel. Jika Anda membuatnya di ponsel, pindai dari ponsel kedua atau layar komputer. Ponsel akan menawarkan alamat web Anda.
 :::
 
-::: details Jika kode akan dicetak atau ditangani langsung
-Pilih **SVG** atau **PDF** agar kode tetap tajam di ukuran berapa pun, dan uji cetak pada ukuran yang akan digunakan. Jika kode berisiko tergores atau terkena hujan, atur **Error correction**, di bawah **Modules**, ke **High (30%)**: kode yang rusak sebagian masih dapat terbaca.
+::: note Jika kode akan dicetak atau sering disentuh
+Pilih **SVG** atau **PDF** agar kode tetap tajam pada ukuran berapa pun. Uji hasil cetak pada ukuran yang akan digunakan. Jika kode mungkin lecet atau basah, atur **Error correction**, di bawah **Modules**, ke **High (30%)** agar kode yang rusak tetap terbaca.
 :::
 
-## Simpan salinan yang dapat diedit
+<!--i:eti-folder-plus-->
+## Simpan salinan yang dapat disunting
 
-Berkas yang Anda unduh sudah selesai. Untuk mengubah kodenya nanti, simpan juga pekerjaan Anda:
+Agar kode dapat diubah nanti, simpan juga pekerjaan Anda:
 
-1. Tekan **Simpan sebagai**, lalu **Simpan**. Dengan panel Ekspor terbuka, **Simpan sebagai** ada di dalam panel; jika tertutup, itu adalah tanda centang di samping **Ekspor**. Kodenya masuk ke **Pustaka saya**, dan pesan **Tersimpan** menawarkan **Buka Proyek**.
-2. Lain kali, tekan **Beranda** dan buka **Proyek** (ikon folder di ponsel). Kode Anda ada di sana, dengan nama **QR Code**. Buka, ubah apa saja dan ekspor lagi.
+1. Tekan **Save as**, lalu **Save**. Saat panel Export terbuka, **Save as** berada di panel. Saat panel tertutup, gunakan tanda centang di samping **Export**. Kode masuk ke **My library**, dan pesan **Saved** menawarkan **Open Projects**.
+2. Lain kali, tekan **Home** dan buka tampilan **Projects** (ikon folder pada ponsel). Kode Anda ada di sana, bernama **QR Code**. Buka, ubah apa pun dan ekspor lagi.
 
-Karya tersimpan tetap berada di perangkat ini, di browser atau aplikasi tempat Anda menyimpannya, kecuali Anda mengaktifkan [Sync](/info/sync.html). [Temukan dan pulihkan karya Anda](/info/find-your-work.html) membahas folder, versi sebelumnya dan memindahkan karya Anda ke perangkat lain.
+Pekerjaan tersimpan tetap berada di perangkat ini, dalam browser atau aplikasi yang Anda gunakan, kecuali Anda mengaktifkan [Sync](/info/sync.html). [Temukan dan pulihkan pekerjaan Anda](/info/find-your-work.html) membahas folder, versi sebelumnya dan pemindahan pekerjaan ke perangkat lain.
 
+<!--i:eti-sparkles-->
 ## Proyek pertama lainnya
 
-- [Lolly Audiogram](/#/tool/audiogram) mengubah sebuah catatan suara menjadi video: gelombang suara yang bergerak, kata-kata Anda pada sampul, warna Anda sendiri. Jatuhkan rekamannya ke **Audio**, tambahkan **Judul**, lalu ekspor **MP4**.
-- [Lolly Filter](/#/tool/filter) mengolah sebuah foto untuk poster: titik halftone cetak, dua warna datar atau beberapa blok tona. Pilih fotonya di bawah **Gambar**, pilih sebuah **Efek**, lalu ekspor **PNG**, atau **SVG** pada efek berlabel *vector*.
+- [Lolly Audiogram](/#/tool/audiogram) mengubah catatan suara menjadi video dengan bentuk gelombang bergerak, kata-kata Anda pada sampul dan warna Anda. Jatuhkan rekaman ke **Audio**, tambahkan **Title** lalu ekspor **MP4**.
+- [Lolly Filter](/#/tool/filter) mengolah foto untuk poster: titik halftone cetak, dua warna rata atau beberapa blok rona. Pilih foto di bawah **Image**, pilih **Effect** lalu ekspor **PNG**, atau **SVG** pada efek berlabel *vector*.
+- [Generator musik](/#/music) menggubah trek dari genre dan seed. Tekan tombol acak berbentuk bulat hingga Anda menyukai yang diputar, lalu buka **Render** dan unduh file M4A atau WAV. Musik yang Anda buat bebas digunakan, bahkan secara komersial, dengan kredit **Musik dibuat dengan Lolly (https://lolly.tools), CC BY 4.0**. [Panduan generator musik](/info/music-generator.html) menunjukkan setiap kontrol, dan [Musik latar gratis](/info/background-music.html) memiliki sampel setiap genre.
 
+<!--i:eti-map-pin-->
 ## Selanjutnya
 
-- **Kirim tautan, bukan berkas.** Setiap kontrol yang Anda sentuh tertulis ke dalam alamat halaman, sehingga **Bagikan** di panel ekspor memberikan sebuah tautan yang membuka kembali desain yang sama di layar orang lain. Foto yang Anda unggah dari perangkat Anda sendiri tidak ikut dalam tautan tersebut. Lihat [Membagikan karya Anda](/info/using.html#sharing-your-work).
-- **Tambahkan warna dan font Anda sekali saja**, sehingga setiap tool dimulai dengan warna dan font tersebut: [Mulai Cepat](/info/quickstart.html).
-- [Menggunakan Lolly](/info/using.html) adalah panduan lengkap untuk aplikasi ini, dan [Lolly untuk Kreator](/info/creators.html) menjelajahi apa lagi yang bisa dibuatnya.
+- **Kirim tautan sebagai pengganti file.** Setiap kontrol yang Anda ubah ada dalam alamat halaman. **Share** di panel ekspor memberikan tautan yang membuka kembali desain yang sama di layar orang lain. Foto yang Anda unggah dari perangkat sendiri tidak ikut dalam tautan. Lihat [Membagikan pekerjaan Anda](/info/using.html#sharing-your-work).
+- **Tambahkan warna dan font Anda sekali**, agar setiap alat dimulai dengan keduanya: [Panduan mulai cepat](/info/quickstart.html).
+- [Menggunakan Lolly](/info/using.html) adalah panduan lengkap aplikasi. [Lolly untuk Kreator](/info/creators.html) menunjukkan hal lain yang dapat dibuat Lolly.
