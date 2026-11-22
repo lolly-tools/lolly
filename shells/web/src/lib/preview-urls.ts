@@ -55,7 +55,7 @@ function svgDataUrl(blob: Blob): Promise<string> {
   if (typeof FileReader === 'function') {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      // The reader names the blob's own type, image/svg+xml; the string is not copied.
+      // The reader writes the blob's own type, image/svg+xml; the string is not copied.
       reader.onload = () => { const url = reader.result as string; resolve(url.startsWith('data:image/svg+xml') ? url : url.replace(/^data:[^;,]*/, 'data:image/svg+xml')); };
       reader.onerror = () => reject(reader.error);
       reader.readAsDataURL(blob);
