@@ -168,7 +168,9 @@
 /* Bullets wear the lollipop; numbered steps keep their numbers, and list text reads at
    the body size (Andy, 2026-11-06). A step list that loses its numbers loses the order
    it is there to give, and /info has always shown them. */
-.docs-content ul > li { list-style-type: "🍭 "; }
+/* A banked figure draws its own lists (a dot, a tick, or nothing), so the lollipop
+   stays out of figures: beside a figure's own dot it read as two bullets. */
+.docs-content ul > li:not(.docs-figure-art li) { list-style-type: "🍭 "; }
 .docs-content a { color: var(--green); text-decoration: underline; }
 .docs-content a:hover { text-decoration: underline; }
 .docs-content strong { font-weight: 600; }
