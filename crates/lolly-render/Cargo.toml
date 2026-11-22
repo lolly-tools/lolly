@@ -1,0 +1,30 @@
+[package]
+name = "lolly-render"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+publish = false
+description = "Draws a Lolly Design page from its drawing operations (plan 371, M3b)."
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "lolly-render"
+path = "src/bin/lolly-render.rs"
+
+[dependencies]
+# No SIMD and no platform float functions: the scalar paths and libm give the same
+# bits on every machine (see README.md, "Same bytes on every machine").
+tiny-skia = { version = "=0.12.0", default-features = false, features = ["no-std-float"] }
+libm = "=0.2.16"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = { version = "=1.0.154", features = ["float_roundtrip"] }
+miniz_oxide = "=0.8.9"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
