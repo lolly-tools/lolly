@@ -107,7 +107,11 @@ test('what an older desktop build sees: it lists only .json names and finds no t
   assert.equal(record.data.title, 'a');
 });
 
-const settle = async (): Promise<void> => { for (let i = 0; i < 50; i++) await new Promise(r => setImmediate(r)); };
+// The store hashes off the event loop, so turns of the loop alone are not enough on a busy
+// machine: a short wait on the real clock (taken before any test mocks timers) sits between them.
+const realTimeout = setTimeout;
+const turns = async (): Promise<void> => { for (let i = 0; i < 50; i++) await new Promise(r => setImmediate(r)); };
+const settle = async (): Promise<void> => { await turns(); await new Promise(r => realTimeout(r, 15)); await turns(); };
 
 test('two saves of the same picture at once share one write: the second never truncates a file the first verified', async () => {
   const { fs, bytes } = memoryFs();
