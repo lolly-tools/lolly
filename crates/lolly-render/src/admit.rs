@@ -8,7 +8,7 @@
 //! that grows with the input.
 
 pub use crate::geometry::Outline;
-use crate::geometry::{box_inside, push_outline};
+use crate::geometry::{box_inside, push_outline, ring};
 use crate::input::{self, Area, Input, Op, Paint, Stroke, DRAW_VERSION, INPUT_FORMAT, INPUT_VERSION};
 use crate::path_data::{append_path_data, PathDataError};
 use crate::picture::{base64, decode, Decoded, PictureRefusal};
@@ -169,6 +169,10 @@ pub enum Draw {
         cap: LineCap,
         join: LineJoin,
         dash: Option<StrokeDash>,
+        /// A stroke kept inside (true) or outside (false) a closed outline: drawn twice as
+        /// wide and clipped to that side of the outline, read with this rule, as the SVG
+        /// writer and the canvas draw it.
+        side: Option<(bool, FillRule)>,
     },
 }
 
@@ -452,13 +456,21 @@ fn outline_of(a: &mut Admit, id: &str, bbox: input::DrawBox, shape: &input::Shap
                 a.refuse("shape", id, format!("{what}: an ellipse with fields an ellipse does not have"));
                 return None;
             }
-            Some(Outline { x: bbox.x, y: bbox.y, w: bbox.w, h: bbox.h, ellipse: true, radius: 0.0 })
+            Some(Outline { x: bbox.x, y: bbox.y, w: bbox.w, h: bbox.h, ellipse: true, radius: 0.0, corners: None })
         }
         "rect" => {
-            if shape.corners.is_some() {
-                a.refuse("corner-radii", id, format!("{what}: corners of different radii, which this slice does not draw"));
-                return None;
-            }
+            // Eight radii of their own: the engine writes them for the edges of a border of
+            // unequal sides (`strokeRing`), each corner across then down from the top left.
+            let corners = match &shape.corners {
+                None => None,
+                Some(c) if c.len() == 8 && c.iter().all(|v| v.is_finite() && *v >= 0.0 && *v <= MAX_COORD) => {
+                    Some([c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]])
+                }
+                Some(_) => {
+                    a.refuse("corner-radii", id, format!("{what}: corner radii other than eight finite lengths"));
+                    return None;
+                }
+            };
             if shape.contours.is_some() || shape.even_odd.is_some() || shape.commands.is_some() {
                 a.refuse("shape", id, format!("{what}: a rectangle with path fields"));
                 return None;
@@ -468,7 +480,7 @@ fn outline_of(a: &mut Admit, id: &str, bbox: input::DrawBox, shape: &input::Shap
                 a.refuse("shape", id, format!("{what}: a corner radius outside the box"));
                 return None;
             }
-            Some(Outline { x: bbox.x, y: bbox.y, w: bbox.w, h: bbox.h, ellipse: false, radius: r.min(bbox.w.min(bbox.h) / 2.0) })
+            Some(Outline { x: bbox.x, y: bbox.y, w: bbox.w, h: bbox.h, ellipse: false, radius: r.min(bbox.w.min(bbox.h) / 2.0), corners })
         }
         "path" => {
             a.refuse("shape", id, format!("{what} is a path where a rectangle or ellipse is read"));
@@ -489,20 +501,6 @@ fn outline_path(o: &Outline, res: f64) -> Option<Path> {
     let mut b = PathBuilder::new();
     push_outline(&mut b, o, res).then_some(())?;
     b.finish()
-}
-
-/// The box inside an inside border: inset by the border (no more than half the box),
-/// the corner radius less the border, as CSS draws the padding box.
-fn padding(o: &Outline, border: f64) -> Outline {
-    let inset = border.min(o.w / 2.0).min(o.h / 2.0);
-    Outline {
-        x: o.x + inset,
-        y: o.y + inset,
-        w: o.w - 2.0 * inset,
-        h: o.h - 2.0 * inset,
-        ellipse: o.ellipse,
-        radius: (o.radius - inset).max(0.0),
-    }
 }
 
 enum ReadPaint {
@@ -583,10 +581,6 @@ fn stroke_colour(a: &mut Admit, id: &str, s: &Stroke) -> Option<Rgba> {
     let alpha = s.opacity.unwrap_or(1.0);
     if !unit(alpha) || !s.width.is_finite() || s.width <= 0.0 || s.width > MAX_STROKE {
         a.refuse("stroke", id, "a stroke opacity outside 0 to 1, or a width outside what is read");
-        return None;
-    }
-    if s.sides.is_some() {
-        a.refuse("stroke-sides", id, "per-side stroke widths, which this slice does not draw");
         return None;
     }
     Some(rgba(rgb, alpha))
@@ -1007,9 +1001,17 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
         }
         if let Some(s) = &op.stroke {
             let colour = stroke_colour(a, id, s);
-            if s.align.is_some() {
-                a.refuse("pen-stroke-side", id, "a pen stroke kept to one side of its outline, which this slice does not draw");
-            }
+            // The engine keeps a stroke to one side only on closed contours, and the SVG writer
+            // clips the outside with the even-odd rule.
+            let side = match s.align.as_deref() {
+                None | Some("center") => Some(None),
+                Some("inside") => Some(Some((true, if even_odd { FillRule::EvenOdd } else { FillRule::Winding }))),
+                Some("outside") => Some(Some((false, FillRule::EvenOdd))),
+                Some(other) => {
+                    a.refuse("pen-stroke-side", id, format!("an unknown pen stroke side \"{}\"", truncate(other)));
+                    None
+                }
+            };
             let cap = match s.cap.as_deref().unwrap_or("butt") {
                 "butt" => Some(LineCap::Butt),
                 "round" => Some(LineCap::Round),
@@ -1041,7 +1043,7 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
                     None
                 }
             };
-            if let (Some(colour), Some(cap), Some(join), Some(dash)) = (colour, cap, join, dash) {
+            if let (Some(colour), Some(cap), Some(join), Some(dash), Some(side)) = (colour, cap, join, dash, side) {
                 if let Some(path) = contours_path(a, id, contours, false)? {
                     if let Some((period, _)) = &dash {
                         if polygon_length(&path) / period > MAX_DASHES {
@@ -1049,7 +1051,7 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
                         }
                     }
                     steps.push(Step {
-                        draw: Draw::Stroke { path, width: s.width as f32, cap, join, dash: dash.map(|(_, d)| d) },
+                        draw: Draw::Stroke { path, width: s.width as f32, cap, join, dash: dash.map(|(_, d)| d), side },
                         ink: Ink::Solid(colour),
                         words: false,
                         clips: Vec::new(),
@@ -1075,26 +1077,42 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
         if read.len() == 1 && is_frame && !matches!(read[0], ReadPaint::Color(_)) {
             a.refuse("paint-order", id, "a frame without its own colour");
         }
-        let mut border: Option<(Rgba, f64)> = None;
+        // A border: its colour, its four widths and the part of each width outside the box.
+        let mut border: Option<(Rgba, [f64; 4], f64)> = None;
         if let Some(s) = &op.stroke {
             let colour = stroke_colour(a, id, s);
-            match s.align.as_deref() {
-                Some("inside") => {}
-                Some("center") | Some("outside") => {
-                    a.refuse("stroke-align", id, "a border centred on or outside the box, which this slice does not draw")
+            let out = match s.align.as_deref() {
+                Some("inside") => Some(0.0),
+                Some("center") => Some(0.5),
+                Some("outside") => Some(1.0),
+                None => {
+                    a.refuse("stroke-align", id, "a centred box outline of the preview reading");
+                    None
                 }
-                None => a.refuse("stroke-align", id, "a centred box outline of the preview reading"),
-                Some(other) => a.refuse("stroke-align", id, format!("an unknown stroke alignment \"{}\"", truncate(other))),
-            }
+                Some(other) => {
+                    a.refuse("stroke-align", id, format!("an unknown stroke alignment \"{}\"", truncate(other)));
+                    None
+                }
+            };
+            let sides = match &s.sides {
+                None => Some([s.width; 4]),
+                Some(v) if v.len() == 4 && v.iter().all(|w| w.is_finite() && (0.0..=MAX_STROKE).contains(w)) => {
+                    Some([v[0], v[1], v[2], v[3]])
+                }
+                Some(_) => {
+                    a.refuse("stroke-sides", id, "per-side widths other than four finite widths");
+                    None
+                }
+            };
             if s.dash.is_some() {
                 a.refuse("box-dash", id, "a dashed box outline of the preview reading");
             }
             if s.cap.is_some() || s.join.is_some() {
                 a.refuse("stroke-style", id, "a box border with a cap or join");
             }
-            if let Some(c) = colour {
-                border = Some((c, s.width));
-                if c.3 < 1.0 && read.iter().any(|p| !matches!(p, ReadPaint::Color(_))) {
+            if let (Some(c), Some(out), Some(sides)) = (colour, out, sides) {
+                border = Some((c, sides, out));
+                if c.3 < 1.0 && out == 0.0 && read.iter().any(|p| !matches!(p, ReadPaint::Color(_))) {
                     a.refuse(
                         "gradient-under-translucent-border",
                         id,
@@ -1103,39 +1121,54 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
                 }
             }
         }
-        let tile = match border {
-            Some((_, w)) => padding(&o, w),
-            None => o,
+        // The border's outer edge and the padding box inside it, where the gradient tile, the
+        // picture and the words sit (the engine's `strokeRing` and `paddingArea`).
+        let (outer, inner) = match border {
+            Some((_, sides, out)) => ring(&o, out, sides),
+            None => (o, Some(o)),
         };
-        // Chromium's background bleed avoidance: under an opaque border on a rounded or
-        // elliptical box, the background is painted inset by half the border's width, so the
-        // outer edge is anti-aliased once (by the border) rather than twice (background, then
-        // border). Blink's `BackgroundRoundedRectAdjustedForBleedAvoidance`.
+        let tile = inner.unwrap_or(Outline {
+            x: outer.x + outer.w / 2.0,
+            y: outer.y + outer.h / 2.0,
+            w: 0.0,
+            h: 0.0,
+            ellipse: o.ellipse,
+            radius: 0.0,
+            corners: None,
+        });
+        // What the background covers: the box under an inside border and the padding box under a
+        // centred or outside one, as the SVG writer paints it. Under an opaque inside border on a
+        // curved box the background is inset by half the border, Chromium's background bleed
+        // avoidance (`BackgroundRoundedRectAdjustedForBleedAvoidance`), so the outer edge is
+        // anti-aliased once rather than twice.
         let painted = match border {
-            Some((colour, w)) if colour.3 >= 1.0 && (o.ellipse || o.radius > 0.0) => padding(&o, w / 2.0),
-            _ => o,
+            Some((colour, sides, out)) if out == 0.0 && colour.3 >= 1.0 && o.curved() => ring(&o, 0.0, sides.map(|v| v / 2.0)).1,
+            Some((_, _, out)) if out > 0.0 => inner,
+            _ => Some(o),
         };
-        let outline = outline_path(&painted, res);
         if !a.spend(16, id) {
             return None;
         }
-        for p in read {
-            let Some(ink) = gradient_ink(a, id, p, &tile) else { continue };
-            let draw = if !painted.ellipse && painted.radius == 0.0 {
-                Draw::Rect([painted.x, painted.y, painted.w, painted.h])
-            } else if let Some(path) = &outline {
-                Draw::Fill { path: path.clone(), rule: FillRule::Winding }
-            } else {
-                continue;
-            };
-            steps.push(Step { draw, ink, words: false, clips: Vec::new() });
+        if let Some(painted) = painted.filter(|p| p.w > 0.0 && p.h > 0.0) {
+            let outline = outline_path(&painted, res);
+            for p in read {
+                let Some(ink) = gradient_ink(a, id, p, &tile) else { continue };
+                let draw = if !painted.curved() {
+                    Draw::Rect([painted.x, painted.y, painted.w, painted.h])
+                } else if let Some(path) = &outline {
+                    Draw::Fill { path: path.clone(), rule: FillRule::Winding }
+                } else {
+                    continue;
+                };
+                steps.push(Step { draw, ink, words: false, clips: Vec::new() });
+            }
         }
-        if let Some((colour, _)) = border {
-            // A CSS border: the ring between the box and its padding box.
+        if let Some((colour, _, _)) = border {
+            // A CSS border: the ring between its outer edge and the padding box.
             let mut pb = PathBuilder::new();
-            push_outline(&mut pb, &o, res);
-            if tile.w > 0.0 && tile.h > 0.0 {
-                push_outline(&mut pb, &tile, res);
+            push_outline(&mut pb, &outer, res);
+            if let Some(hole) = &inner {
+                push_outline(&mut pb, hole, res);
             }
             if let Some(path) = pb.finish() {
                 steps.push(Step {

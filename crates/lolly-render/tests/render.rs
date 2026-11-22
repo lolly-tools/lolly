@@ -17,6 +17,7 @@ const FIXTURES: &[(&str, &str)] = &[
     ("underlines", include_str!("fixtures/underlines.json")),
     ("pictures", include_str!("fixtures/pictures.json")),
     ("effects", include_str!("fixtures/effects.json")),
+    ("borders", include_str!("fixtures/borders.json")),
 ];
 
 /// FNV-1a over 64 bits: a pin on the exact bytes, not a security measure.
@@ -39,6 +40,7 @@ const PINNED: &[(&str, u64)] = &[
     ("underlines", 0xe74acc9aa3eae242),
     ("pictures", 0x7ed2e43123b884af),
     ("effects", 0xf5a4cba0c93e69af),
+    ("borders", 0x7f11680ab9c23064),
 ];
 
 fn codes(result: Result<Vec<u8>, Vec<lolly_render::Refusal>>) -> Vec<&'static str> {
@@ -119,7 +121,8 @@ fn what_this_slice_does_not_draw_is_refused_by_name() {
         "a box shadow needs the outline it follows"
     );
     assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["blur"] = json!(400)), ["blur"]);
-    assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["shape"]["corners"] = json!([1, 1, 2, 2, 3, 3, 4, 4])), ["corner-radii"]);
+    assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["shape"]["corners"] = json!([1, 1, 2, 2, 3])), ["corner-radii"]);
+    assert!(refused("shapes", |v| v["page"]["ops"][0]["shape"]["corners"] = json!([1, 1, 2, 2, 3, 3, 4, 4])).is_empty());
     assert_eq!(refused("shapes", |v| v["page"]["frame"]["shape"]["radius"] = json!(24)), ["frame-edge"]);
     let picture = json!({
         "ref": "lolly/logo/primary", "fit": "contain", "x": 50, "y": 50, "zoom": 1,

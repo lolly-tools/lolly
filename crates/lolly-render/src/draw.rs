@@ -100,10 +100,28 @@ fn step(target: &mut Pixmap, s: &Step, transform: Transform, mask: Option<&Mask>
                 target.fill_path(&PathBuilder::from_rect(rect), &paint, FillRule::Winding, transform, mask);
             }
         }
-        Draw::Stroke { path, width, cap, join, dash } => {
-            let stroke = tiny_skia::Stroke { width: *width, miter_limit: 4.0, line_cap: *cap, line_join: *join, dash: dash.clone() };
-            target.stroke_path(path, &paint, &stroke, transform, mask);
-        }
+        Draw::Stroke { path, width, cap, join, dash, side } => match side {
+            None => {
+                let stroke = tiny_skia::Stroke { width: *width, miter_limit: 4.0, line_cap: *cap, line_join: *join, dash: dash.clone() };
+                target.stroke_path(path, &paint, &stroke, transform, mask);
+            }
+            Some((inside, rule)) => {
+                // Twice the width, clipped to the outline's inside or to everything outside it.
+                let Some(mut keep) = Mask::new(target.width(), target.height()) else { return };
+                keep.fill_path(path, *rule, true, transform);
+                if !inside {
+                    keep.invert();
+                }
+                if let Some(m) = mask {
+                    for (k, v) in keep.data_mut().iter_mut().zip(m.data()) {
+                        *k = ((*k as u32 * *v as u32 + 127) / 255) as u8;
+                    }
+                }
+                let stroke =
+                    tiny_skia::Stroke { width: *width * 2.0, miter_limit: 4.0, line_cap: *cap, line_join: *join, dash: dash.clone() };
+                target.stroke_path(path, &paint, &stroke, transform, Some(&keep));
+            }
+        },
     }
 }
 
