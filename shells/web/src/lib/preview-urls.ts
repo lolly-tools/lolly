@@ -39,12 +39,33 @@ export async function srcForBlob(key: string, blob: Blob): Promise<string> {
   const held = heldObjectUrl(key);
   if (held) return held;
   if (blob.type === 'image/svg+xml') {
-    const url = `data:image/svg+xml,${encodeURIComponent(await blob.text())}`;
+    const url = await svgDataUrl(blob);
     live.set(key, url);
     trim();
     return url;
   }
   return objectUrlFor(key, blob);
+}
+
+/** An SVG as a base64 `data:` URL. The browser's file reader does the encoding off
+ *  the main thread; percent-encoding the text here cost a phone over a second for the
+ *  large SVG looks a gallery visit draws. Where there is no FileReader (a test), the
+ *  bytes are encoded here. */
+function svgDataUrl(blob: Blob): Promise<string> {
+  if (typeof FileReader === 'function') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).replace(/^data:[^;,]*/, 'data:image/svg+xml'));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  }
+  return blob.arrayBuffer().then(buffer => {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return `data:image/svg+xml;base64,${btoa(binary)}`;
+  });
 }
 
 function trim(): void {

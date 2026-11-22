@@ -59,7 +59,7 @@ test('the fidelity measure: identical pixels are 0, alpha weights colour, the 99
 test('an SVG picture is never handed out as a blob: URL; a raster is, and the map stays bounded', async () => {
   urls.revokeAllObjectUrls();
   const svg = await urls.srcForBlob('a'.repeat(32), new Blob(['<svg xmlns="http://www.w3.org/2000/svg"/>'], { type: 'image/svg+xml' }));
-  assert.match(svg, /^data:image\/svg\+xml,/);
+  assert.match(svg, /^data:image\/svg\+xml[;,]/);
   assert.throws(() => urls.objectUrlFor('b'.repeat(32), new Blob(['<svg/>'], { type: 'image/svg+xml' })), /never handed out/);
   const raster = await urls.srcForBlob('c'.repeat(32), new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' }));
   assert.match(raster, /^blob:/);
