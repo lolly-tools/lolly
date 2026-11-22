@@ -36,7 +36,11 @@ const { mountActionHistory, documentWords, PREVIEW_MAX_ELEMENTS, PREVIEW_TIMING,
 const { historyRedact, notKeptFiles } = await import('./tool-history-adapters.ts');
 // A preview waits for a pause; the tests shorten the wait, keep the interval long.
 Object.assign(PREVIEW_TIMING, { quietMs: 30, idleTimeoutMs: 10, intervalMs: 60_000 });
-const PNG = new dom.window.Blob([Uint8Array.from([137, 80, 78, 71])], { type: 'image/png' });
+// A real PNG: the preview store keeps only bytes that are the picture they claim (plan 373).
+const PNG_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==';
+const PNG = new dom.window.Blob([Uint8Array.from(atob(PNG_B64), c => c.charCodeAt(0))], { type: 'image/png' });
+/** A distinct real PNG data URL (bytes after the end chunk tell them apart). */
+const pngUrl = (tag: string): string => `data:image/png;base64,${btoa(atob(PNG_B64) + tag)}`;
 const pause = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
 const pin = { source: 'user', id: 'user/emoji/abc', type: 'data', format: 'json', pin: { version: 'abc', format: 'json' } };
@@ -94,7 +98,7 @@ test('pins arriving while a save takes its picture wait for it: the Projects til
   // The Save action writes the record, then photographs the scene and attaches the
   // picture (tool-actions/saving.ts). The Emoji section can resolve its pins in
   // between; that changes nothing the picture shows, so the picture must survive.
-  const THUMB = 'data:image/png;base64,SAVE';
+  const THUMB = pngUrl('SAVE');
   let pins: unknown[] = [];
   const data = (): SavedStateData => ({ __toolId: 'qr-code', url: 'https://example.com', __emoji: emojiParams(STYLE), __emojiAssets: pins });
   const env = mount(data);
@@ -105,7 +109,7 @@ test('pins arriving while a save takes its picture wait for it: the Projects til
     pins = [pin];
     env.emit(pins);
     await controller.attachSaveThumbnail(THUMB);
-    const tile = async (): Promise<string | null | undefined> => (await env.state.list()).find(item => item.slot === slot)?.thumb;
+    const tile = async (): Promise<string | null | undefined> => env.state.pictureDataUrl!({ slot });
     assert.equal(await tile(), THUMB, 'the save keeps its picture');
     // Released by the picture, the pins reach the record in a draft of their own,
     // which keeps the tile's picture.
@@ -130,10 +134,10 @@ test('pins arriving while a save takes its picture wait for it: the Projects til
 });
 
 test('pins arriving while the save is still writing also wait for the picture; a real edit in that gap still costs the picture', async () => {
-  const THUMB = 'data:image/png;base64,SAVE';
+  const THUMB = pngUrl('SAVE');
   let pins: unknown[] = [];
   const data = (): SavedStateData => ({ __toolId: 'qr-code', url: 'https://example.com', __emoji: emojiParams(STYLE), __emojiAssets: pins });
-  const tile = async (env: ReturnType<typeof mount>, slot: string): Promise<string | null | undefined> => (await env.state.list()).find(item => item.slot === slot)?.thumb;
+  const tile = async (env: ReturnType<typeof mount>, slot: string): Promise<string | null | undefined> => env.state.pictureDataUrl!({ slot });
 
   const env = mount(data);
   try {

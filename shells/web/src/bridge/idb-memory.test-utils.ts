@@ -45,7 +45,11 @@ const SCHEMA: Record<string, { keyPath?: string | string[]; indexes?: Record<str
   profile: {}, 'design-systems': { keyPath: 'id' },
   'asset-meta': { keyPath: 'id' }, 'asset-blob': {}, 'user-assets': { keyPath: 'id' },
   'asset-observations': { keyPath: 'key', indexes: { id: 'id' } }, 'user-asset-versions': { keyPath: ['assetId', 'version'] },
+  // Plan 373: the one preview store and the lean list of sessions (version 27).
+  'preview-blobs': { keyPath: 'key' }, 'preview-index': { keyPath: 'id', indexes: { content: 'content' } }, 'state-list': { keyPath: 'slot' },
 };
+/** The stores a database at version 26 (before plan 373) does not have. */
+export const PREVIEW_STORE_NAMES = ['preview-blobs', 'preview-index', 'state-list'];
 type Row = { key: Key; value: unknown };
 export type Stores = Map<string, Map<string, Row>>;
 const pathKey = (value: unknown, path: string | string[]): Key | undefined => {
@@ -54,9 +58,11 @@ const pathKey = (value: unknown, path: string | string[]): Key | undefined => {
   const parts = path.map(one);
   return parts.some(part => part === undefined) ? undefined : (parts as Key[]);
 };
-/** A fresh empty database. Cast `db` to IDBPDatabase where a module asks for one. */
-export function memoryDb() {
-  const stores: Stores = new Map(Object.keys(SCHEMA).map(name => [name, new Map()]));
+/** A fresh empty database. Cast `db` to IDBPDatabase where a module asks for one.
+ *  `{ without }` leaves stores out, as a database an older version made would. */
+export function memoryDb(options: { without?: readonly string[] } = {}) {
+  const stores: Stores = new Map(Object.keys(SCHEMA).filter(name => !options.without?.includes(name)).map(name => [name, new Map()]));
+  const nameList = (list: readonly string[]) => ({ contains: (name: string) => list.includes(name), length: list.length, [Symbol.iterator]: () => list[Symbol.iterator]() });
   const matches = (key: Key, query?: Key | KeyRange | null): boolean =>
     query == null || (query instanceof KeyRange ? query.includes(key) : compare(key, query) === 0);
   const cursorOver = (rows: Array<{ key: Key; primaryKey: Key; value: unknown }>, index = 0): unknown => {
@@ -84,6 +90,8 @@ export function memoryDb() {
         .filter((row): row is { key: Key; primaryKey: Key; value: unknown } => row.key !== undefined && matches(row.key, query))
         .sort((a, b) => compare(a.key, b.key) || compare(a.primaryKey, b.primaryKey));
       return {
+        count: async (query?: Key | KeyRange | null) => rows(query).length,
+        getAllKeys: async (query?: Key | KeyRange | null) => rows(query).map(row => row.primaryKey),
         getAll: async (query?: Key | KeyRange | null) => rows(query).map(row => structuredClone(row.value)),
         openCursor: async (query?: Key | KeyRange | null, direction = 'next') => { const r = rows(query); return cursorOver(direction === 'prev' ? r.reverse() : r); },
         openKeyCursor: async (query?: Key | KeyRange | null, direction = 'next') => { const r = rows(query); return cursorOver(direction === 'prev' ? r.reverse() : r); },
@@ -92,8 +100,10 @@ export function memoryDb() {
     return {
       indexNames: { contains: (indexName: string) => !!def.indexes?.[indexName] },
       get: async (key: Key) => { const row = map.get(JSON.stringify(key)); return row ? structuredClone(row.value) : undefined; },
-      getAll: async (query?: Key | KeyRange | null) => sorted().filter(row => matches(row.key, query)).map(row => structuredClone(row.value)),
-      getAllKeys: async (query?: Key | KeyRange | null) => sorted().filter(row => matches(row.key, query)).map(row => row.key),
+      count: async (query?: Key | KeyRange | null) => sorted().filter(row => matches(row.key, query)).length,
+      getAll: async (query?: Key | KeyRange | null, count?: number) => sorted().filter(row => matches(row.key, query)).slice(0, count ?? Infinity).map(row => structuredClone(row.value)),
+      getAllKeys: async (query?: Key | KeyRange | null, count?: number) => sorted().filter(row => matches(row.key, query)).slice(0, count ?? Infinity).map(row => row.key),
+      clear: async () => { map.clear(); },
       put: async (value: unknown, key?: Key) => write(value, key),
       add: async (value: unknown, key?: Key) => write(value, key, true),
       delete: async (key: Key) => { map.delete(JSON.stringify(key)); },
@@ -104,10 +114,13 @@ export function memoryDb() {
       index,
     };
   };
+  // The transaction hands back its database (idb's `tx.db`), set once `db` exists.
+  let self: unknown = null;
   const db = {
     objectStoreNames: { contains: (name: string) => stores.has(name) },
     transaction(names: string | string[]) {
       const list = Array.isArray(names) ? names : [names];
+      for (const name of list) if (!stores.has(name)) throw new Error(`NotFoundError: no store ${name}`);
       const saved = new Map(list.map(name => [name, new Map(stores.get(name))]));
       let settle!: (ok: boolean) => void;
       const done = new Promise<void>((resolve, reject) => { settle = ok => (ok ? resolve() : reject(new Error('AbortError'))); });
@@ -115,17 +128,22 @@ export function memoryDb() {
       setTimeout(() => { if (!finished) { finished = true; settle(true); } });
       return {
         done,
+        get db() { return self; },
+        objectStoreNames: nameList(list),
         store: store(list[0]!),
         objectStore(name: string) { if (!list.includes(name)) throw new Error(`${name} is not in this transaction`); return store(name); },
         abort() { for (const [name, map] of saved) stores.set(name, map); if (!finished) { finished = true; settle(false); } },
       };
     },
     get: (name: string, key: Key) => (stores.has(name) ? store(name).get(key) : Promise.resolve(undefined)),
-    getAll: (name: string, query?: Key | KeyRange) => store(name).getAll(query),
-    getAllKeys: (name: string, query?: Key | KeyRange) => store(name).getAllKeys(query),
+    getAll: (name: string, query?: Key | KeyRange, count?: number) => store(name).getAll(query, count),
+    getAllKeys: (name: string, query?: Key | KeyRange, count?: number) => store(name).getAllKeys(query, count),
+    count: (name: string, query?: Key | KeyRange) => store(name).count(query),
+    clear: (name: string) => store(name).clear(),
     put: (name: string, value: unknown, key?: Key) => store(name).put(value, key),
     add: (name: string, value: unknown, key?: Key) => store(name).add(value, key),
     delete: (name: string, key: Key) => store(name).delete(key),
   };
+  self = db;
   return { db, stores };
 }

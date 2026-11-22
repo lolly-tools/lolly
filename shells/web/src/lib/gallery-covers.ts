@@ -10,7 +10,7 @@
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { instanceFetch, instancePath } from './instance.ts';
-import { previewContextSignature } from './preview-context.ts';
+import { previewContextDigest } from './preview-recipe.ts';
 import { newWorkTokenSelection, type ColourwaySeedHost } from './colourway-seed.ts';
 
 export const COVERS_MANIFEST_PATH = '/catalog/previews/covers.json';
@@ -94,7 +94,9 @@ export async function bakedCoverSet(host: Pick<HostV1, 'tokens' | 'profile'>): P
   if (typeof Image === 'undefined' || typeof crypto === 'undefined' || !crypto.subtle) return null;
   try {
     if (await newWorkTokenSelection(host as ColourwaySeedHost)) return null;
-    const hash = await coverContextHash(await previewContextSignature(host));
+    // The same digest the preview store keys live renders by (lib/preview-recipe.ts),
+    // computed once per token set: coverContextHash(previewContextSignature(host)).
+    const hash = await previewContextDigest(host);
     if (globalThis.__lollyBakeCovers) { globalThis.__lollyCoverContext = hash; return null; }
     const manifest = await loadManifest();
     if (manifest?.v !== 1 || !manifest.contexts?.[hash]) return null;

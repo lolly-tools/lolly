@@ -118,13 +118,16 @@ export function makeLollyVehicle(
     const thumb = session
       ? await host.state
           .list()
-          .then((rows) => {
+          .then(async (rows) => {
             const mine = (
-              rows as unknown as { toolId: string; thumb: string | null; updatedAt?: string }[]
+              rows as unknown as { slot: string; toolId: string; thumb: string | null; preview?: import('../bridge/preview-store.ts').SessionPreviewRef; updatedAt?: string }[]
             )
-              .filter((r) => r.toolId === toolId && typeof r.thumb === 'string')
+              .filter((r) => r.toolId === toolId && (typeof r.thumb === 'string' || !!r.preview))
               .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
-            return mine[0]?.thumb ?? null;
+            // The stored picture as the PNG data URL the manifest field has always
+            // carried: the Linux thumbnailer and Quick Look read PNG only.
+            const { rowPicturePng } = await import('../lib/session-picture.ts');
+            return rowPicturePng(host.state as never, mine[0]);
           })
           .catch(() => null)
       : null;

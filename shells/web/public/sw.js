@@ -55,6 +55,10 @@
  * entries on activate (a one-time clear of anything already gone stale).
  */
 
+// v19: the page hands over the build files it loaded before this worker took control
+// (the boot chunks, the boot stylesheet, the preloaded fonts), and the worker stores the
+// ones it lacks (cacheBootSet, the 'lolly:boot-set' message). A first visit loads those
+// files before any worker exists, so until now a second visit fetched all of them again.
 // v18: /brand (the static brand standards page) joins BYPASS_PATTERNS. A worker from
 // before this one stores a /brand visit under the shell key, so the bump drops that
 // generation on activate and the offline app boots into the app again.
@@ -75,7 +79,7 @@
 // gains a cache-first rule, and three page-owned unversioned buckets join
 // lolly-pins: lolly-app (pre-downloaded build assets), lolly-ort (the ONNX
 // runtime for /verify's deep scan), lolly-info (the /info docs site).
-const CACHE = 'lolly-v18';
+const CACHE = 'lolly-v19';
 
 // Tools pinned "available offline": the page writes /tools/<id>/* copies into
 // this SEPARATE, unversioned bucket (shells/web/src/lib/offline-pins.ts - keep
@@ -274,6 +278,53 @@ self.addEventListener('activate', event => {
   );
 });
 
+// The build files a page loaded before this worker controlled it. A first visit
+// downloads the boot chunks, the boot stylesheet and the preloaded fonts before any
+// worker exists, so none of them passed through the cache-first route below, and a
+// second visit fetched every one of them again (plan 371: second-visit first paint
+// 623 ms against 259 ms once they were cached). The page posts their addresses once
+// it is controlled; only immutable build paths on this origin are accepted, at most
+// BOOT_SET_MAX of them, and a file already stored is skipped. The fetch here is
+// answered by the browser's HTTP cache (or a 304 revalidation where the host sends
+// no-cache), so this does not download the files a second time.
+const BOOT_SET_MAX = 200;
+const BOOT_SET_MESSAGE = 'lolly:boot-set';
+
+async function cacheBootSet(urls) {
+  const cache = await caches.open(CACHE);
+  const wanted = [];
+  for (const raw of urls.slice(0, BOOT_SET_MAX)) {
+    if (typeof raw !== 'string') continue;
+    let url;
+    try { url = new URL(raw, self.location.origin); } catch { continue; }
+    if (url.origin !== self.location.origin || url.search || url.hash) continue;
+    if (!IMMUTABLE_PATTERNS.some(p => p.test(url.pathname))) continue;
+    if (!wanted.includes(url.href)) wanted.push(url.href);
+  }
+  await Promise.all(wanted.map(async href => {
+    // Any copy already stored, whichever request stored it, stays: never replace it.
+    if (await cache.match(href, IMMUTABLE_MATCH)) return;
+    try {
+      // No redirects: a build file that redirects (to a sign-in page, say) is not that file,
+      // and storing the page under the chunk's address would break every later load.
+      const response = await fetch(href, { credentials: 'same-origin', redirect: 'error' });
+      if (!response || !response.ok || response.redirected) return;
+      // A page (a sign-in screen a proxy put in place of the file) is never a build file or a font.
+      if (/text\/html/i.test(response.headers.get('content-type') || '')) return;
+      // Checked again: a page request may have stored a copy while this fetch ran, and that copy stays.
+      if (await cache.match(href, IMMUTABLE_MATCH)) return;
+      await cache.put(href, response);
+    } catch { /* offline, gone or redirected: the cache-first route fills it on the next real use */ }
+  }));
+}
+
+self.addEventListener('message', event => {
+  const data = event.data;
+  if (!data || data.type !== BOOT_SET_MESSAGE || !Array.isArray(data.urls)) return;
+  // Only a page of this origin can reach this worker; the list is still checked above.
+  event.waitUntil(cacheBootSet(data.urls));
+});
+
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
@@ -393,10 +444,18 @@ async function receiveShare(event) {
 // bucket the offline download manager fills - so a pre-downloaded install
 // serves every chunk/font offline even when this CACHE generation is fresh
 // and empty (immutable content-hashed filenames make the fallback safe).
+// The immutable routes match WITHOUT the response's Vary: a content-hashed build file or
+// an app font on this origin is the same bytes for every request. A host that answers
+// with `Vary: Origin` (vite preview does) would otherwise keep a copy stored from one kind
+// of request (the boot-set hand-over's plain fetch) from ever answering another (a module
+// script or a font, which carry an Origin header): the second visit missed, and offline
+// every boot file came back 503.
+const IMMUTABLE_MATCH = { ignoreVary: true };
+
 async function cacheFirst(event) {
   const { request } = event;
   const cache = await caches.open(CACHE);
-  const cached = await cache.match(request);
+  const cached = await cache.match(request, IMMUTABLE_MATCH);
   if (cached) return cached;
   const downloaded = await caches.match(request, { cacheName: APP_CACHE }).catch(() => undefined);
   if (downloaded) {

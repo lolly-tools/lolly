@@ -51149,6 +51149,120 @@ lwo/CoR2mDAKBggqhkjOPQQDAwNpADBmAjEAwp2Jie8k6/haTc/df3QsX+Ttg7Wp
 ARtYTwJSP4Z+ggpf39sZ+7QPOE50BqBj9Q6zAjEAjZ+5glED9tav6r3jWuMOmKTB
 kobBXzvjqTDLGG570BbSQfNmS3HRC6u5YTIpElpb
 -----END CERTIFICATE-----
+
+Subject	CN=RealReel C2PA Root CA, O=Whole Earth Labs LLC, C=US
+-----BEGIN CERTIFICATE-----
+MIICPzCCAcWgAwIBAgIUK7g4QvDKVbdq1t88l76ZMwiegK0wCgYIKoZIzj0EAwMw
+TDELMAkGA1UEBhMCVVMxHTAbBgNVBAoMFFdob2xlIEVhcnRoIExhYnMgTExDMR4w
+HAYDVQQDDBVSZWFsUmVlbCBDMlBBIFJvb3QgQ0EwIBcNMjYwNzI0MDAyNzAyWhgP
+MjA1MTA3MjQwMDI3MDJaMEwxCzAJBgNVBAYTAlVTMR0wGwYDVQQKDBRXaG9sZSBF
+YXJ0aCBMYWJzIExMQzEeMBwGA1UEAwwVUmVhbFJlZWwgQzJQQSBSb290IENBMHYw
+EAYHKoZIzj0CAQYFK4EEACIDYgAEJVWLUwyoBcqwmv3cUuX4/fpVanvQdjJKG4Ca
+zLx5XO/eu7qgxCurzpLTuRAC3Lr+tY4LA5shXTSFYqNRRlQnxkYugqEfqDJcUhks
+1evDAlYZdBB3X134zjk9DHQElntEo2YwZDASBgNVHRMBAf8ECDAGAQH/AgEBMA4G
+A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUoaV/7ghFZ89nsoENzOrkL+Pmwg0wHwYD
+VR0jBBgwFoAUoaV/7ghFZ89nsoENzOrkL+Pmwg0wCgYIKoZIzj0EAwMDaAAwZQIw
+F8nY6P9IvWgtd9dKjnelTOZwICUuxVHbd/uHvU9hjwez+B33zyL1iP+8E/HUe9yD
+AjEAmUnK720BAi3UXkj8kZHs74wnIy4oh8buxmiecO1akF4I3B+0+18SkclV6ytF
++Zms
+-----END CERTIFICATE-----
+
+Subject	CN=Castlabs C2PA ECC P-384 Root CA, OU=C2PA Trust Infrastructure, O=Castlabs, L=Berlin, ST=Berlin, C=DE
+-----BEGIN CERTIFICATE-----
+MIICyDCCAk2gAwIBAgIUN5SkK2Lb2Ts/j1AC3K8Y3eVydFQwCgYIKoZIzj0EAwMw
+gZAxKDAmBgNVBAMMH0Nhc3RsYWJzIEMyUEEgRUNDIFAtMzg0IFJvb3QgQ0ExCzAJ
+BgNVBAYTAkRFMQ8wDQYDVQQHDAZCZXJsaW4xETAPBgNVBAoMCENhc3RsYWJzMSIw
+IAYDVQQLDBlDMlBBIFRydXN0IEluZnJhc3RydWN0dXJlMQ8wDQYDVQQIDAZCZXJs
+aW4wHhcNMjYwNzA4MDE0NDMwWhcNMzYwNzA1MDE0NDMwWjCBkDEoMCYGA1UEAwwf
+Q2FzdGxhYnMgQzJQQSBFQ0MgUC0zODQgUm9vdCBDQTELMAkGA1UEBhMCREUxDzAN
+BgNVBAcMBkJlcmxpbjERMA8GA1UECgwIQ2FzdGxhYnMxIjAgBgNVBAsMGUMyUEEg
+VHJ1c3QgSW5mcmFzdHJ1Y3R1cmUxDzANBgNVBAgMBkJlcmxpbjB2MBAGByqGSM49
+AgEGBSuBBAAiA2IABPXhd9L+pjQVnUXH6I7+oFSrd6JpO4A+CYDm/AuDZgJvwiuJ
+lrM9dC3CAE7UAK8IcQEo85qzuak0TfLdPaJWD26+q3tJ/S7NW4sOKhH09KRN7iFq
+XbsOe8FOxaQql/UrMqNmMGQwDgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYB
+Af8CAQIwHQYDVR0OBBYEFHNKe2PoAANQBj4/25eRv2VY4Fy7MB8GA1UdIwQYMBaA
+FHNKe2PoAANQBj4/25eRv2VY4Fy7MAoGCCqGSM49BAMDA2kAMGYCMQDUlNJD49Ux
+zwBccYHiz0wgmbIXBDdgpVrLfWTQnbi21BhfPBQ6j0HJ24FY36L5oj8CMQCv5+bK
+gBIkJq9USBx2FjjDkukYjQMI/WDD6SH6QGTdotsH3cQQ6bjr9C+0ruxxx08=
+-----END CERTIFICATE-----
+
+Subject	CN=Samsung C2PA Root CA G1, O=Samsung Electronics Co., Ltd., C=KR
+-----BEGIN CERTIFICATE-----
+MIICUzCCAdmgAwIBAgIUXYQuBuXdYI7lHAxAHCcQPNLbvUYwCgYIKoZIzj0EAwMw
+VzELMAkGA1UEBhMCS1IxJjAkBgNVBAoMHVNhbXN1bmcgRWxlY3Ryb25pY3MgQ28u
+LCBMdGQuMSAwHgYDVQQDDBdTYW1zdW5nIEMyUEEgUm9vdCBDQSBHMTAeFw0yNjEw
+MjYwODI2MzBaFw00NjEwMjYwODI2MzBaMFcxCzAJBgNVBAYTAktSMSYwJAYDVQQK
+DB1TYW1zdW5nIEVsZWN0cm9uaWNzIENvLiwgTHRkLjEgMB4GA1UEAwwXU2Ftc3Vu
+ZyBDMlBBIFJvb3QgQ0EgRzEwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAAQKoAWtthbv
+aezZVGq//i5MADN5FbBoMmmzt48j2zbNiLVKZ83zrlimCmgW9jLUbC1KTMtz7XEE
+GKsdADE92gyWLceNJMEzVv8ZYV1lQfFlBZTJdwZ+9/cnIODo8S6ubeSjZjBkMBIG
+A1UdEwEB/wQIMAYBAf8CAQIwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBT1OqZ3
+1TlXJV9yI+zIpgq43qZbmDAfBgNVHSMEGDAWgBT1OqZ31TlXJV9yI+zIpgq43qZb
+mDAKBggqhkjOPQQDAwNoADBlAjAlw7I2OKSx3Rlg/G0eAr22h01Yjs9myWE54q9z
+90s734WjMmAPH6Q8civjRsm2FbgCMQCi0Glq+IS0sINBpSFXKA8tY7D7O3ZIkDPW
+5McRmLTjdqTJbGhOWCPqObOM4GQE55M=
+-----END CERTIFICATE-----
+
+Subject	CN=Aretiico C2PA Issuing CA G1, O=Aretiico Group PLC, C=GB
+-----BEGIN CERTIFICATE-----
+MIIDVDCCAtqgAwIBAgIUejr4pSWVtCHFbGMVtRDquUDaNZowCgYIKoZIzj0EAwMw
+WTELMAkGA1UEBhMCR0IxGzAZBgNVBAoMEkFyZXRpaWNvIEdyb3VwIFBMQzEtMCsG
+A1UEAwwkQXJldGlpY28gRG9jdW1lbnQgU2lnbmluZyBSb290IENBIEcxMB4XDTI2
+MDkyMzE0NTA0MFoXDTMxMDkyMjE0NTAzOVowUDELMAkGA1UEBhMCR0IxGzAZBgNV
+BAoMEkFyZXRpaWNvIEdyb3VwIFBMQzEkMCIGA1UEAwwbQXJldGlpY28gQzJQQSBJ
+c3N1aW5nIENBIEcxMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEnmBVo/e923vIs2X3
+gbPMEQwDcpa8MZRhSXTcw6x/tX8cbaEYfhkc4+n2P+g70ldLK74K9O41D/x+kV7z
+XULa3V0SD2ZV53FDu3bs1RWJZpZ148/cUeQqS1hnSZyCNfE4o4IBajCCAWYwEgYD
+VR0TAQH/BAgwBgEB/wIBADAfBgNVHSMEGDAWgBSvUdrhp9w7mZprN2YpdbRcLzqp
+SzBDBggrBgEFBQcBAQQ3MDUwMwYIKwYBBQUHMAKGJ2h0dHA6Ly9hc3NldHMuYXJl
+dGlpY28uY29tL3BraS9kcmcxLmRlcjBnBgNVHSAEYDBeMAwGCisGAQQBg+heAQEw
+TgYLKwYBBAGD1zwBAQEwPzA9BggrBgEFBQcCARYxaHR0cHM6Ly9hc3NldHMuYXJl
+dGlpY28uY29tL0FyZXRpaWNvLUMyUEEtQ1BTLnBkZjAfBgNVHSUEGDAWBgorBgEE
+AYPoXgIBBggrBgEFBQcDJDAxBgNVHR8EKjAoMCagJKAihiBodHRwOi8vY3JsLmFy
+ZXRpaWNvLmNvbS9kcmcxLmNybDAdBgNVHQ4EFgQUxGEIEB/dRJvy1NfroLndr30v
+UAowDgYDVR0PAQH/BAQDAgEGMAoGCCqGSM49BAMDA2gAMGUCMF6t1hMBguFz4xaP
+hi79x4ZLoY1fw3qsmXCMSho/ALRdW5gfleqe0ws6FXgQmoiptAIxAKNtOE58vtZK
+0PPKgABMaFTStRff9hqCqbcca5uKzwrMv/gP9QHtT7cDFP0Fcblm5Q==
+-----END CERTIFICATE-----
+
+Subject	CN=Verimago Root CA, O=Verimago LLC, ST=Washington, C=US
+-----BEGIN CERTIFICATE-----
+MIICTzCCAdSgAwIBAgIVAN6RLP4V2hQWoOEHD68GpRzFEka/MAoGCCqGSM49BAMD
+MFQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9uMRUwEwYDVQQKEwxW
+ZXJpbWFnbyBMTEMxGTAXBgNVBAMTEFZlcmltYWdvIFJvb3QgQ0EwHhcNMjYxMTEy
+MDMzNDU2WhcNNDYxMTEyMDMzNDU2WjBUMQswCQYDVQQGEwJVUzETMBEGA1UECBMK
+V2FzaGluZ3RvbjEVMBMGA1UEChMMVmVyaW1hZ28gTExDMRkwFwYDVQQDExBWZXJp
+bWFnbyBSb290IENBMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE2LLaL/n8AOrruWLE
+bn6RxNckhVAvF/uQNR3IO81edSvDv4GEUGtYPXQbJivQbS+S/qmEDwaZiIfzL2E1
+TBxRXgcQkPvC7AYRZelN/tmOAWrG5JLI3rlIV6oxMkpqkzEdo2YwZDASBgNVHRMB
+Af8ECDAGAQH/AgECMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUt4F2npFGZASk
+W/XniK4dkEATyQQwHwYDVR0jBBgwFoAUt4F2npFGZASkW/XniK4dkEATyQQwCgYI
+KoZIzj0EAwMDaQAwZgIxAI6Fqw5ACGdslD3ZEzIqRPjmPMzXa0xc3YoIO1/i0048
+HrKVGYVmpWE58sp6F6YHqwIxAKDvpzF5VRT/3PUiKtMuXmN6D9GNOF8C6aa1HtpR
+jT5NYtryImktxyjDfMPeinXnzA==
+-----END CERTIFICATE-----
+
+Subject	CN=Verimago Claim Signing Issuing CA, O=Verimago LLC, ST=Washington, C=US
+-----BEGIN CERTIFICATE-----
+MIIDTTCCAtOgAwIBAgIUeMpXy1Z0CwByN+W2+PFYYqoqD1QwCgYIKoZIzj0EAwMw
+VDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24xFTATBgNVBAoTDFZl
+cmltYWdvIExMQzEZMBcGA1UEAxMQVmVyaW1hZ28gUm9vdCBDQTAeFw0yNjExMTIw
+MzM0NThaFw0zMTExMTIwOTM0NThaMGUxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpX
+YXNoaW5ndG9uMRUwEwYDVQQKEwxWZXJpbWFnbyBMTEMxKjAoBgNVBAMTIVZlcmlt
+YWdvIENsYWltIFNpZ25pbmcgSXNzdWluZyBDQTB2MBAGByqGSM49AgEGBSuBBAAi
+A2IABC9hdIQStbZ98anuhoFbxF+CEytyp3UjlyERYFn8VQJnj7X6q+bz9nfMh86X
+3fZnrK5Onm/x7KNYPnOkSeUEFITh/sUHkwJcaVioj/kGp7mJ/yxbvDQha1KpIvEA
+S8vvp6OCAVMwggFPMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEG
+MCkGA1UdJQQiMCAGCisGAQQBg+heAgEGCCsGAQUFBwMEBggrBgEFBQcDJDAXBgNV
+HSAEEDAOMAwGCisGAQQBg+heAQEwHQYDVR0OBBYEFNOJg/XyExxEf8tcyaDIqJhO
+twg1MB8GA1UdIwQYMBaAFLeBdp6RRmQEpFv154iuHZBAE8kEMDsGA1UdHwQ0MDIw
+MKAuoCyGKmh0dHA6Ly9jYS52ZXJpbWFnby5pby9jcmwvaW50ZXJtZWRpYXRlLmNy
+bDBoBggrBgEFBQcBAQRcMFowJgYIKwYBBQUHMAGGGmh0dHA6Ly9jYS52ZXJpbWFn
+by5pby9vY3NwMDAGCCsGAQUFBzAChiRodHRwOi8vY2EudmVyaW1hZ28uaW8vY2Vy
+dHMvcm9vdC5wZW0wCgYIKoZIzj0EAwMDaAAwZQIwNAacHt99jEIvu9aJHKdOY2mI
+vjxVcjeOx1sCo4VG3xOJZCxB3Ghp0jC7KImqf6S4AjEAz64v2HVKHkb47yh37dRH
+mXC2PxCxpyl/lFI0nJ9l0jixKhquUDgoOQI92c1ajZEB
+-----END CERTIFICATE-----
 `;
     cache = null;
   }
@@ -132425,6 +132539,85 @@ var init_fs_token = __esm({
   }
 });
 
+// engine/src/session-preview.ts
+function readPreviewRef(value2) {
+  if (!value2 || typeof value2 !== "object" || Array.isArray(value2)) return null;
+  const { key: key2, type, width, height, route, recipe, bytes: bytes2 } = value2;
+  if (typeof key2 !== "string" || !HEX32.test(key2)) return null;
+  if (typeof type !== "string" || !PREVIEW_TYPES.includes(type)) return null;
+  const side2 = (n7) => typeof n7 === "number" && Number.isInteger(n7) && n7 >= 0 && n7 <= MAX_SIDE;
+  if (!side2(width) || !side2(height)) return null;
+  const ref2 = { key: key2, type, width, height };
+  if (typeof route === "string" && PREVIEW_ROUTES.includes(route)) ref2.route = route;
+  if (typeof recipe === "string" && HEX32.test(recipe)) ref2.recipe = recipe;
+  if (typeof bytes2 === "number" && Number.isInteger(bytes2) && bytes2 > 0 && bytes2 <= 64 * 1024 * 1024) ref2.bytes = bytes2;
+  return ref2;
+}
+async function previewContentKey(bytes2) {
+  return bytesToHex((await sha256(bytes2)).subarray(0, 16));
+}
+function previewFileExt(type) {
+  return type === "image/svg+xml" ? "svg" : type === "image/jpeg" ? "jpg" : type.slice("image/".length);
+}
+function sessionWork(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return JSON.stringify(data ?? null);
+  const { __label: _label, __export_filename: _filename, ...work } = data;
+  return JSON.stringify(work);
+}
+async function sessionWorkKey(data) {
+  return previewContentKey(new TextEncoder().encode(sessionWork(data)));
+}
+function previewLinkName(workKey) {
+  return `w-${workKey}.ref`;
+}
+function readPreviewLinks(text13) {
+  if (typeof text13 !== "string" || text13.length > 64 * 1024) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(text13);
+  } catch {
+    return null;
+  }
+  const entries = parsed?.slots;
+  if (parsed?.v !== 1 || !Array.isArray(entries)) return null;
+  const out = [];
+  for (const entry2 of entries.slice(-PREVIEW_LINK_ENTRIES)) {
+    if (!Array.isArray(entry2) || typeof entry2[0] !== "string" || !entry2[0] || entry2[0].length > 1024) continue;
+    const ref2 = readPreviewRef(entry2[1]);
+    if (ref2) out.push({ slot: entry2[0], ref: ref2 });
+  }
+  return out;
+}
+function readPreviewLink(text13, slot) {
+  const entries = readPreviewLinks(text13);
+  if (!entries?.length) return null;
+  return entries.find((entry2) => entry2.slot === slot)?.ref ?? entries[entries.length - 1].ref;
+}
+function withPreviewLink(text13, slot, ref2) {
+  const kept2 = (readPreviewLinks(text13) ?? []).filter((entry2) => entry2.slot !== slot);
+  const plain = { key: ref2.key, type: ref2.type, width: ref2.width, height: ref2.height, ...ref2.route ? { route: ref2.route } : {} };
+  const slots = [...kept2.map((entry2) => [entry2.slot, entry2.ref]), [slot, plain]].slice(-PREVIEW_LINK_ENTRIES);
+  return JSON.stringify({ v: 1, slots });
+}
+function mayHaveLostPicture(record49) {
+  if (!record49 || readPreviewRef(record49.preview)) return false;
+  if (typeof record49.thumb === "string" && record49.thumb) return false;
+  return typeof record49.formatVersion !== "number" || record49.formatVersion < 5;
+}
+var PREVIEW_TYPES, PREVIEW_ROUTES, PREVIEW_MAX_BYTES, MAX_SIDE, HEX32, PREVIEW_LINK_ENTRIES;
+var init_session_preview = __esm({
+  "engine/src/session-preview.ts"() {
+    "use strict";
+    init_bytes();
+    PREVIEW_TYPES = ["image/svg+xml", "image/webp", "image/png", "image/jpeg", "image/gif", "image/avif"];
+    PREVIEW_ROUTES = ["export-svg", "export-raster", "baked", "operations-svg", "tool-svg", "received", "legacy", "stand-in"];
+    PREVIEW_MAX_BYTES = 256 * 1024;
+    MAX_SIDE = 32768;
+    HEX32 = /^[0-9a-f]{32}$/;
+    PREVIEW_LINK_ENTRIES = 16;
+  }
+});
+
 // engine/src/session-record.ts
 function sessionVersionStamp() {
   return { formatVersion: SESSION_FORMAT_VERSION, engineVersion: ENGINE_VERSION };
@@ -132454,6 +132647,9 @@ function sessionEmojiStamp(record49) {
   if (typeof emoji !== "string" || !emoji.trim()) return null;
   return { emoji: emoji.trim(), emojifx: typeof emojifx === "string" ? emojifx.trim() : "", ...typeof emojistyle === "string" ? { emojistyle } : {} };
 }
+function sessionPreviewRef(record49) {
+  return readPreviewRef(record49?.preview);
+}
 function migrateSessionRecord(record49, log) {
   if (!record49 || typeof record49 !== "object") return null;
   const data = record49.data;
@@ -132475,8 +132671,9 @@ var init_session_record = __esm({
   "engine/src/session-record.ts"() {
     "use strict";
     init_version();
-    SESSION_FORMAT_VERSION = 4;
-    SESSION_READER_VERSION = 4;
+    init_session_preview();
+    SESSION_FORMAT_VERSION = 5;
+    SESSION_READER_VERSION = 5;
     DECISION_KINDS = /* @__PURE__ */ new Set(["output-licence", "separate-permission", "acknowledged"]);
   }
 });
@@ -147779,8 +147976,8 @@ function sizeOf(spec) {
   checkKeys(spec.size, /* @__PURE__ */ new Set(["width", "height"]), "/size", "size");
   const width = Math.round(numberAt2(spec.size.width, "/size/width"));
   const height = Math.round(numberAt2(spec.size.height, "/size/height"));
-  if (!(width > 0) || width > MAX_SIDE) throw new Error(`/size/width: expected a page width from 1 to ${MAX_SIDE} px.`);
-  if (!(height > 0) || height > MAX_SIDE) throw new Error(`/size/height: expected a page height from 1 to ${MAX_SIDE} px.`);
+  if (!(width > 0) || width > MAX_SIDE2) throw new Error(`/size/width: expected a page width from 1 to ${MAX_SIDE2} px.`);
+  if (!(height > 0) || height > MAX_SIDE2) throw new Error(`/size/height: expected a page height from 1 to ${MAX_SIDE2} px.`);
   return { width, height };
 }
 function distance2(a, b) {
@@ -148058,7 +148255,7 @@ function composeDesignSlides(spec, ctx) {
   const theme = groundAt(raw.theme, "/theme") ?? "light";
   const surfaceAuto = themesAt(raw.themes, "/themes").length > 1;
   const gap = raw.gap === void 0 ? DEFAULT_GAP : numberAt2(raw.gap, "/gap");
-  if (gap < 0 || gap > MAX_SIDE) throw new Error(`/gap: expected a number from 0 to ${MAX_SIDE} px.`);
+  if (gap < 0 || gap > MAX_SIDE2) throw new Error(`/gap: expected a number from 0 to ${MAX_SIDE2} px.`);
   if (raw.footer !== void 0 && typeof raw.footer !== "string") throw new Error("/footer: expected the footer text.");
   if (raw.pageNumbers !== void 0 && typeof raw.pageNumbers !== "boolean") throw new Error("/pageNumbers: expected true or false.");
   if (raw.transition !== void 0 && (typeof raw.transition !== "string" || !DESIGN_COMPOSE_TRANSITIONS.includes(raw.transition))) {
@@ -149112,7 +149309,7 @@ function composeArchetypeCatalog(master) {
     return entry2;
   });
 }
-var DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_GAP, MAX_SLIDES2, MAX_SIDE, PER_ROW, SPEC_KEYS, SLIDE_KEYS, FURNITURE_KEYS, RESERVED2, CONTENT_KEYS, EMPHASIS_MODES, CASE_MODES, HEADLINE_SLOT_ROLES, HEADLINE_RULE_ROLES, PHOTO_COVER, ACCENT_CONTRAST, FURNITURE_KINDS2, COUNTER, REWORDED, STYLE_ROW_FIELDS2, record36, seg4, plural3, strings3, luminanceContrast, LARGE_TEXT_ROLES, NOTES_EMPTY_LINE, COMPOSE_COLOUR_FIELDS, SURFACE_TOKENS, INK_TOKENS, ACCENT_TOKENS, THEME_INK_CONTRAST, varies;
+var DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_GAP, MAX_SLIDES2, MAX_SIDE2, PER_ROW, SPEC_KEYS, SLIDE_KEYS, FURNITURE_KEYS, RESERVED2, CONTENT_KEYS, EMPHASIS_MODES, CASE_MODES, HEADLINE_SLOT_ROLES, HEADLINE_RULE_ROLES, PHOTO_COVER, ACCENT_CONTRAST, FURNITURE_KINDS2, COUNTER, REWORDED, STYLE_ROW_FIELDS2, record36, seg4, plural3, strings3, luminanceContrast, LARGE_TEXT_ROLES, NOTES_EMPTY_LINE, COMPOSE_COLOUR_FIELDS, SURFACE_TOKENS, INK_TOKENS, ACCENT_TOKENS, THEME_INK_CONTRAST, varies;
 var init_design_compose = __esm({
   "engine/src/design-compose.ts"() {
     "use strict";
@@ -149136,7 +149333,7 @@ var init_design_compose = __esm({
     DEFAULT_HEIGHT = 1080;
     DEFAULT_GAP = 160;
     MAX_SLIDES2 = 500;
-    MAX_SIDE = 1e5;
+    MAX_SIDE2 = 1e5;
     PER_ROW = 4;
     SPEC_KEYS = /* @__PURE__ */ new Set(["size", "theme", "themes", "slides", "$styles", "footer", "pageNumbers", "transition", "gap", "furniture", "emphasis", "case"]);
     SLIDE_KEYS = /* @__PURE__ */ new Set(["archetype", "id", "name", "ground", "source", "slots", "cells", "notes", "furniture", "under", "over", "intent", "emphasis", "case"]);
@@ -180079,20 +180276,20 @@ __export(emoji_exports, {
   EMOJI_PACK_TAG: () => EMOJI_PACK_TAG,
   createNodeEmojiAPI: () => createNodeEmojiAPI
 });
-import { readFile as readFile22, stat as stat3 } from "node:fs/promises";
+import { readFile as readFile22, stat as stat4 } from "node:fs/promises";
 import { resolve as resolve3, sep } from "node:path";
 import { gunzip as gunzip2 } from "node:zlib";
 import { promisify } from "node:util";
 async function bundleText(file) {
   try {
-    if ((await stat3(file)).size > BUNDLE_MAX_BYTES) return null;
+    if ((await stat4(file)).size > BUNDLE_MAX_BYTES) return null;
     return await readFile22(file, "utf8");
   } catch (error2) {
     if (error2.code !== "ENOENT") return null;
   }
   try {
     const compressed = `${file}.gz`;
-    if ((await stat3(compressed)).size > BUNDLE_MAX_BYTES) return null;
+    if ((await stat4(compressed)).size > BUNDLE_MAX_BYTES) return null;
     const bytes2 = await inflateBundle(await readFile22(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
     return bytes2.toString("utf8");
   } catch {
@@ -180966,7 +181163,7 @@ function designStillSize(page3, dims) {
   const dpi = physical ? dims.dpi && dims.dpi > 0 ? dims.dpi : 300 : 96;
   const given2 = (v) => typeof v === "number" && v > 0;
   if (!given2(dims.width) && !given2(dims.height)) {
-    return page3.width > MAX_SIDE2 || page3.height > MAX_SIDE2 ? { reason: `the page is over ${MAX_SIDE2} px a side` } : { width: Math.round(page3.width), height: Math.round(page3.height), dpi };
+    return page3.width > MAX_SIDE3 || page3.height > MAX_SIDE3 ? { reason: `the page is over ${MAX_SIDE3} px a side` } : { width: Math.round(page3.width), height: Math.round(page3.height), dpi };
   }
   if (!given2(dims.width) || !given2(dims.height)) return { reason: "the export gives one side of its size only" };
   const toPx = (v) => {
@@ -180976,7 +181173,7 @@ function designStillSize(page3, dims) {
   };
   const width = toPx(dims.width), height = toPx(dims.height);
   if (!(width > 0 && height > 0)) return { reason: `the export's unit "${unit2}" is not one this route reads` };
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width > MAX_SIDE2 || height > MAX_SIDE2) return { reason: `the requested size is over ${MAX_SIDE2} px a side` };
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width > MAX_SIDE3 || height > MAX_SIDE3) return { reason: `the requested size is over ${MAX_SIDE3} px a side` };
   if (Math.abs(height - page3.height * (width / page3.width)) > 0.5) return { reason: `the requested size changes the page's proportions (the page is ${Math.round(page3.width)} x ${Math.round(page3.height)})` };
   return { width, height, dpi };
 }
@@ -181059,7 +181256,7 @@ async function designStillPng(svg, size, opts = {}) {
   if (icc) png = await engine.insertPngIcc(png, icc, "sRGB");
   return { bytes: png, imprinted };
 }
-var DESIGN_RASTER_ENV, resvgVersion, designResvgRenderer, nodeResvgRoute, RESVG_BLENDS, hasElement, blendsThroughOpacity, GRADIENT_SAMPLES, MAX_SIDE2, FATAL;
+var DESIGN_RASTER_ENV, resvgVersion, designResvgRenderer, nodeResvgRoute, RESVG_BLENDS, hasElement, blendsThroughOpacity, GRADIENT_SAMPLES, MAX_SIDE3, FATAL;
 var init_design_still = __esm({
   "packages/node-shell/src/design-still.ts"() {
     "use strict";
@@ -181082,7 +181279,7 @@ var init_design_still = __esm({
     hasElement = (markup, name) => new RegExp(`<(?:[^\\s<>/:="']+:)?${name}[\\s/>]`, "iu").test(markup);
     blendsThroughOpacity = (a, b) => a.opacity !== b.opacity && (a.rgb[0] !== b.rgb[0] || a.rgb[1] !== b.rgb[1] || a.rgb[2] !== b.rgb[2]);
     GRADIENT_SAMPLES = 32;
-    MAX_SIDE2 = 16384;
+    MAX_SIDE3 = 16384;
     FATAL = /* @__PURE__ */ new Set(["RenderIntegrityError", "ExportHookError"]);
   }
 });
@@ -184245,7 +184442,7 @@ __export(webshell_render_exports, {
   transformViaWebShell: () => transformViaWebShell
 });
 import { createServer as createServer2 } from "node:http";
-import { readFile as readFile30, stat as stat6 } from "node:fs/promises";
+import { readFile as readFile30, stat as stat7 } from "node:fs/promises";
 import { existsSync as existsSync21, writeFileSync as writeFileSync2 } from "node:fs";
 import { join as join35, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
@@ -184303,7 +184500,7 @@ function serveDist2() {
         res.writeHead(403).end();
         return;
       }
-      if (!live2 && (urlPath === "/" || !existsSync21(filePath) || !(await stat6(filePath)).isFile())) {
+      if (!live2 && (urlPath === "/" || !existsSync21(filePath) || !(await stat7(filePath)).isFile())) {
         filePath = join35(root2, "index.html");
       }
       const data = await readFile30(filePath);
@@ -188292,7 +188489,7 @@ init_production_browser();
 init_export_wait();
 init_export_lock();
 init_open_session();
-import { readFile as readFile28, stat as stat5 } from "node:fs/promises";
+import { readFile as readFile28, stat as stat6 } from "node:fs/promises";
 import { existsSync as existsSync19 } from "node:fs";
 
 // shells/cli/src/bridge.ts
@@ -192911,10 +193108,14 @@ init_state_dir();
 // packages/node-shell/src/session-store.ts
 init_fs_token();
 init_session_record();
-import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2, rename as rename2 } from "node:fs/promises";
+init_session_preview();
+import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2, rename as rename2, stat as stat3 } from "node:fs/promises";
 import { join as join20 } from "node:path";
 import { randomUUID as randomUUID2 } from "node:crypto";
 var SESSION_SUBDIR = "saved-state";
+function sessionPicturePath(stateDir2, ref2) {
+  return join20(sessionsDir(stateDir2), "previews", `${ref2.key}.${previewFileExt(ref2.type)}`);
+}
 function sessionsDir(stateDir2) {
   return join20(stateDir2, SESSION_SUBDIR);
 }
@@ -192924,9 +193125,37 @@ function sessionFilePath(stateDir2, slot) {
 async function readSessionRecord(stateDir2, slot) {
   try {
     const raw = JSON.parse(await readFile16(sessionFilePath(stateDir2, slot), "utf8"));
-    return normalise5(raw);
+    const record49 = normalise5(raw);
+    return record49 ? withFoundPicture(stateDir2, record49) : null;
   } catch {
     return null;
+  }
+}
+var linkFile = (stateDir2, workKey) => join20(sessionsDir(stateDir2), "previews", previewLinkName(workKey));
+async function withFoundPicture(stateDir2, record49) {
+  if (!mayHaveLostPicture(record49)) return record49;
+  try {
+    const ref2 = readPreviewLink(await readFile16(linkFile(stateDir2, await sessionWorkKey(record49.data)), "utf8"), record49.slot);
+    if (ref2 && (await stat3(sessionPicturePath(stateDir2, ref2))).isFile()) return { ...record49, thumb: null, preview: ref2 };
+  } catch {
+  }
+  return record49;
+}
+async function writeLink(stateDir2, slot, data, ref2) {
+  try {
+    const path = linkFile(stateDir2, await sessionWorkKey(data));
+    const prior = await readFile16(path, "utf8").catch(() => null);
+    const text13 = withPreviewLink(prior, slot, ref2);
+    if (prior === text13) return;
+    await mkdir2(join20(sessionsDir(stateDir2), "previews"), { recursive: true });
+    const temp = `${path}.${randomUUID2()}.tmp`;
+    try {
+      await writeFile2(temp, text13, { mode: 384, flag: "wx" });
+      await rename2(temp, path);
+    } finally {
+      await rm2(temp, { force: true });
+    }
+  } catch {
   }
 }
 async function loadSessionData(stateDir2, slot) {
@@ -192972,7 +193201,9 @@ async function writeSessionRecord(stateDir2, write) {
     toolVersion: write.toolVersion ?? write.data.__toolVersion,
     label: write.label ?? write.data.__label,
     data: write.data,
-    thumb: write.thumb ?? prior?.thumb ?? null,
+    // The picture given replaces the record's; none given keeps the prior one, in
+    // whichever form it had (a session saved by the desktop app keeps its file).
+    ...write.thumb !== void 0 || write.preview !== void 0 ? { thumb: write.preview ? null : write.thumb ?? null, ...write.preview ? { preview: write.preview } : {} } : { thumb: prior?.preview ? null : prior?.thumb ?? null, ...prior?.preview ? { preview: prior.preview } : {} },
     updatedAt: write.updatedAt ?? now2,
     createdAt: prior?.createdAt ?? now2,
     emoji: write.emoji === void 0 ? prior?.emoji : write.emoji ?? void 0,
@@ -192991,6 +193222,7 @@ async function writeSessionRecord(stateDir2, write) {
   } finally {
     await rm2(temp, { force: true });
   }
+  if (record49.preview) await writeLink(stateDir2, record49.slot, record49.data, record49.preview);
   return record49;
 }
 async function deleteSessionRecord(stateDir2, slot) {
@@ -193017,6 +193249,7 @@ function normalise5(raw) {
     label: typeof raw.label === "string" && raw.label ? raw.label : typeof data.__label === "string" ? data.__label : void 0,
     data,
     thumb: typeof raw.thumb === "string" ? raw.thumb : null,
+    ...sessionPreviewRef(raw) ? { preview: sessionPreviewRef(raw) } : {},
     updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : "",
     ...typeof raw.createdAt === "string" ? { createdAt: raw.createdAt } : {},
     ...typeof raw.formatVersion === "number" ? { formatVersion: raw.formatVersion } : {},
@@ -194828,7 +195061,7 @@ function withHost(profile2, fn, opts = {}) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn as spawn2 } from "node:child_process";
-import { readFile as readFile26, stat as stat4 } from "node:fs/promises";
+import { readFile as readFile26, stat as stat5 } from "node:fs/promises";
 import { existsSync as existsSync18 } from "node:fs";
 import { join as join30, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
@@ -194987,7 +195220,7 @@ function serveDist(dist2) {
         res.writeHead(403).end();
         return;
       }
-      if (urlPath === "/" || !existsSync18(filePath) || !(await stat4(filePath)).isFile()) {
+      if (urlPath === "/" || !existsSync18(filePath) || !(await stat5(filePath)).isFile()) {
         filePath = join30(root2, "index.html");
       }
       const data = await readFile26(filePath);
@@ -195512,7 +195745,7 @@ async function withBrowserJob(job) {
   }
 }
 async function readBoundedDownload(filename) {
-  const info = await stat5(filename);
+  const info = await stat6(filename);
   if (info.size > MAX_BROWSER_OUTPUT_BYTES) {
     throw new RenderError(`Browser export exceeds the ${MAX_BROWSER_OUTPUT_BYTES}-byte output limit.`);
   }
@@ -204892,9 +205125,9 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
-var PREVIEW_TYPES = { svg: "image/svg+xml", webp: "image/webp", png: "image/png" };
+var PREVIEW_TYPES2 = { svg: "image/svg+xml", webp: "image/webp", png: "image/png" };
 function previewCandidates(id3, indexed) {
-  const catalog = Object.keys(PREVIEW_TYPES).map((ext) => `/catalog/previews/${id3}.${ext}`);
+  const catalog = Object.keys(PREVIEW_TYPES2).map((ext) => `/catalog/previews/${id3}.${ext}`);
   const cards = ["svg", "png"].map((ext) => `/tools/${id3}/card.${ext}`);
   const plain = typeof indexed === "string" ? indexed.replace(/^\/tools\/([a-z0-9-]+)@[0-9a-f]{16}\//, "/tools/$1/").replace(/^(\/catalog\/previews\/[a-z0-9-]+)\.[0-9a-f]{16}(\.[a-z]+)$/, "$1$2") : null;
   const first = plain !== null && [...cards, ...catalog].includes(plain) ? [plain] : [];
@@ -204905,7 +205138,7 @@ async function previewResource(uri, id3) {
   for (const url of previewCandidates(id3, entry2?.preview)) {
     const file = contentUrl(url);
     if (!file) continue;
-    const mimeType = PREVIEW_TYPES[url.slice(url.lastIndexOf(".") + 1)];
+    const mimeType = PREVIEW_TYPES2[url.slice(url.lastIndexOf(".") + 1)];
     try {
       const bytes2 = await readFile34(file);
       return mimeType === "image/svg+xml" ? { uri, mimeType, text: bytes2.toString("utf8") } : { uri, mimeType, blob: bytes2.toString("base64") };
@@ -205127,9 +205360,9 @@ var NODE_FILE_TARGETS = { image: ["png", "jpeg", "webp", "avif", "jxl", "jxl-los
 async function readOperationFile(path) {
   const handle = await open2(path, "r");
   try {
-    const stat7 = await handle.stat();
-    if (!stat7.isFile()) throw new Error("Choose a regular file.");
-    validateConvertFiles([stat7]);
+    const stat8 = await handle.stat();
+    if (!stat8.isFile()) throw new Error("Choose a regular file.");
+    validateConvertFiles([stat8]);
     const chunks = [];
     let total = 0;
     while (true) {

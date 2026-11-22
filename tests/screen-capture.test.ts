@@ -622,6 +622,8 @@ test('ENGINE_VERSION is 1.352.0', () => {
   // 1.347.0 makes the music credit line "Music made with Lolly (https://lolly.tools), CC BY 4.0". Capture is unchanged.
   // 1.348.0 adds the select display "picker" with option glyphs and groups (chrome only). Capture is unchanged.
   // 1.349.0 places a vector picture by its unrounded size and writes gradient stops as CSS holds them. Capture is unchanged.
+  // 1.350.0 refreshes the official C2PA trust list (6 more anchors, NETLOCK held back). Capture is unchanged.
+  // 1.351.0 moves the session record to format 5 (a picture reference beside the thumbnail). Capture is unchanged.
   // 1.352.0 reads a GFM table in the markdown helper. Capture is unchanged.
   assert.equal(ENGINE_VERSION, '1.352.0');
 });

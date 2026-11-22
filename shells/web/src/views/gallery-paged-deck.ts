@@ -6,12 +6,11 @@
  * that closure but the host, so the function takes the host and stands by itself.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import type { PreviewsAPI } from '../bridge/previews.ts';
 import { escape as esc } from '../utils.ts';
 import { renderFeaturedPages } from '../lib/featured-render.ts';
 import { stripCarouselNav } from './gallery-carousel.ts';
 
-type PagedDeckHost = HostV1 & { previews?: PreviewsAPI };
+type PagedDeckHost = HostV1;
 /** The part of a gallery tool the deck reads. */
 export interface PagedDeckTool { formats?: readonly string[]; width?: number; height?: number }
 

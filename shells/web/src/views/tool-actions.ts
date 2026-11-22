@@ -37,7 +37,7 @@ import { approvalStateOps } from './tool-actions/approval-state.ts';
 import { startingFormat } from '../lib/touch-export-format.ts';
 
 
-export { captureThumbnail, exportTargetNode, flatExportNode } from './tool-action-helpers.ts';
+export { captureThumbnail, capturePreview, exportTargetNode, flatExportNode } from './tool-action-helpers.ts';
 
 // Content Credentials default: the shared policy in lib/c2pa-policy.ts (also
 // applied by the offscreen batch/zip renderer, so zips sign like this button).

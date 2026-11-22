@@ -2253,7 +2253,7 @@ async function render(
             return {
               slot: e.slot, toolId: e.toolId, label: e.label,
               toolName: t?.name ?? e.toolId, toolIcon: t?.icon ?? null,
-              thumb: e.thumb ?? null, updatedAt: e.updatedAt,
+              thumb: e.thumb ?? null, preview: e.preview ?? null, updatedAt: e.updatedAt,
             };
           })
           .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));

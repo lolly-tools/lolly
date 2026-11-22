@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
+import { embeddablePictureSrc, rowPicture } from '../lib/session-picture.ts';
 import { closeButtonHtml } from '../lib/close-button.ts';
 import { updateRouteParams } from '../lib/url-state.ts';
-import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
+import { createProjectScenePreviews, projectRecentExports, recentExportsRailHtml } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu, removeProjectAsset } from './projects-asset-actions.ts';
 import { mountLocalProjectAsset, localProjectAssetHref, setProjectViewTitle } from './projects-asset-view.ts';
@@ -328,7 +329,7 @@ export async function mountProjects(
   // Recent-exports rail (plans/133 WP-10): the downloads log's reopen tiles,
   // rendered at the ROOT of /p now that this view is the one folder manager.
   // Collapsible, remembered per device (a convenience, not state that matters).
-  let recentExports: Array<{ href: string; thumb: string; caption: string; at: number }> = [];
+  let recentExports: Awaited<ReturnType<typeof projectRecentExports>> = [];
   const RECENTS_COLLAPSED_KEY = 'lolly-projects-recents-collapsed';
   let recentsCollapsed = ((): boolean => { try { return localStorage.getItem(RECENTS_COLLAPSED_KEY) === '1'; } catch { return false; } })();
 
@@ -405,7 +406,7 @@ export async function mountProjects(
   // Sessions resolve via the state index; images via the resolved AssetRef map.
   function previewForRef(ref: string): MemberPreview | null {
     const e = entryMap.get(ref);
-    if (e) return isBatchSlot(e.slot) ? { batch: true } : { thumb: e.thumb || null };
+    if (e) return isBatchSlot(e.slot) ? { batch: true } : { thumb: e.thumb || null, preview: e.preview ?? null, slot: e.slot };
     const img = imageRefs.get(ref);
     return img?.url ? { url: img.url } : null;
   }
@@ -634,21 +635,7 @@ export async function mountProjects(
         ${!list && loose.length && topFolders.length ? `<h2 class="projects-sec-label">${t('My library')}</h2>` : ''}
         ${looseTiles}${blueprintTile()}${templatesRootTile()}${trashTile}
       </div>
-      ${recentExports.length ? `
-        <section class="projects-exports folder-exports">
-          <button type="button" class="projects-exports-head" data-recents-toggle aria-expanded="${!recentsCollapsed}">
-            <span class="folder-exports-title">${t('Recent exports')}</span>
-            <span class="projects-exports-count">${recentExports.length}</span>
-          </button>
-          ${recentsCollapsed ? '' : `<div class="folder-exports-rail">
-            ${recentExports.map(x => `
-              ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - exportReopenHref() builds a fixed '#/tool/<id>' hash route */ ''}
-              <a class="folder-export-tile" href="${escape(x.href)}" data-open-export
-                 title="${escape(x.caption)} · ${escape(new Date(x.at).toLocaleDateString())}">
-                <img src="${escape(x.thumb)}" alt="${escape(x.caption)}" loading="lazy">
-              </a>`).join('')}
-          </div>`}
-        </section>` : ''}`);
+      ${recentExports.length ? recentExportsRailHtml(recentExports, recentsCollapsed) : ''}`);
   }
 
 
@@ -2049,16 +2036,16 @@ export async function mountProjects(
           // Re-keyed with its own times kept (plan 277 timing fix): a new slot
           // for a new name is not a new save.
           const state = (host as ProjectsHost).state;
-          if (state.restore && entry.updatedAt) await state.restore(newSlot, data, entry.thumb, entry.updatedAt, entry.savedAt);
-          else await state.save(newSlot, data, entry.thumb);
+          if (state.restore && entry.updatedAt) await state.restore(newSlot, data, rowPicture(entry), entry.updatedAt, entry.savedAt);
+          else await state.save(newSlot, data, rowPicture(entry));
           await host.state.delete(entry.slot).catch(() => {});
           await store.swapSessionSlot(entry.slot, newSlot);
         } else {
-          await (host as ProjectsHost).state.save(entry.slot, data, entry.thumb);
+          await (host as ProjectsHost).state.save(entry.slot, data, rowPicture(entry));
         }
       } else {
         data.__export_filename = name;   // the export filename for single-tool sessions
-        await (host as ProjectsHost).state.save(entry.slot, data, entry.thumb);
+        await (host as ProjectsHost).state.save(entry.slot, data, rowPicture(entry));
       }
     } catch (e) { if (host.log) host.log('warn', 'projects: rename failed', { error: String(e) }); }
   }
@@ -2099,7 +2086,7 @@ export async function mountProjects(
       }
       data.__label = name;
       if (!batch) data.__export_filename = name;   // single-tool export filename tracks the name
-      await (host as ProjectsHost).state.save(newSlot, data, entry.thumb || '');
+      await (host as ProjectsHost).state.save(newSlot, data, rowPicture(entry));
       // File beside the original: same folder, or loose (Uncategorised) if it was loose.
       const owner = ownerByRef.get(slot);
       if (owner) await store.moveItem(newSlot, owner.id, 'session');
@@ -2312,8 +2299,7 @@ export async function mountProjects(
     // Up to four member previews, resolved the same way the grid tile's mosaic is.
     const thumbs = folder.items.slice(0, 4).map(i => {
       const p = previewForRef(i.ref);
-      const src = p && 'thumb' in p && p.thumb ? p.thumb : p && 'url' in p && p.url ? p.url : '';
-      return typeof src === 'string' && src.startsWith('data:') ? src : '';
+      return embeddablePictureSrc(p);
     });
     // Body x14..166, y30..112; cells inset 8 with a 4px gutter.
     const CELL_W = 66, CELL_H = 31;
@@ -2342,7 +2328,7 @@ export async function mountProjects(
       if (e) {   // a favourited saved session
         const name = e.label || e.filename || toolName(e.toolId);
         const tn = toolName(e.toolId);
-        out.push({ id: ref, name, preview: e.thumb || undefined, href: resumeHref(e), featured: { blurb: name !== tn ? tn : undefined } });
+        out.push({ id: ref, name, preview: e.thumb || undefined, picture: { preview: e.preview, thumb: e.thumb, slot: e.slot, toolId: e.toolId }, href: resumeHref(e), featured: { blurb: name !== tn ? tn : undefined } });
         continue;
       }
       const folder = folders.find(f => f.id === ref);
@@ -2388,7 +2374,7 @@ export async function mountProjects(
       return {
         id: e.slot,
         name,
-        preview: e.thumb || undefined,
+        preview: e.thumb || undefined, picture: { preview: e.preview, thumb: e.thumb, slot: e.slot, toolId: e.toolId },
         href: resumeHref(e),
         featured: { blurb: name !== tn ? tn : undefined },
       };
@@ -2788,7 +2774,7 @@ export async function mountProjects(
         const data = await h.state.load(it.ref).catch(() => null);
         if (!e || !data) continue;
         const tslot = `${PTPL_SLOT_PREFIX}${token}:${it.ref}`;
-        await h.state.save(tslot, data, e.thumb || '');
+        await h.state.save(tslot, data, rowPicture(e));
         kept.push({ type: 'session', ref: tslot });
         copied++;
       }

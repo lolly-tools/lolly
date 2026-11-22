@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /** Gallery art is a real template or default render in the active brand. */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import type { PreviewsAPI } from '../bridge/previews.ts';
 import type { FeaturedVariant } from '../components/featured-row.ts';
 import { instanceFetch, instancePath } from './instance.ts';
 import { coverFormats, renderFeaturedVariant } from './featured-render.ts';
+import { srcStillLive } from './preview-urls.ts';
 import { parseTemplateMotion, type TemplateMotion } from './template-motion.ts';
 import { toolSeedHref } from './seed-url.ts';
 import { bakedCover } from './gallery-covers.ts';
@@ -73,13 +73,16 @@ export async function galleryLookHref(toolId: string, look?: FeaturedVariant): P
 const heldLooks = new Map<string, string>();
 const heldKey = (toolId: string, index: number): string => `${toolId}\u0000${index}`;
 
-/** The cover last drawn for this look in this visit, or null on a first draw. */
+/** The cover last drawn for this look in this visit, or null on a first draw. An
+ *  object URL the reader has since revoked (lib/preview-urls.ts) is not offered:
+ *  the new draw finds the look in the store again. */
 export function heldGalleryLook(toolId: string, index: number): string | null {
-  return heldLooks.get(heldKey(toolId, index)) ?? null;
+  const held = heldLooks.get(heldKey(toolId, index)) ?? null;
+  return held?.startsWith('blob:') && !srcStillLive(held) ? null : held;
 }
 
 export async function renderGalleryLook(
-  host: HostV1 & { previews?: PreviewsAPI }, tool: GalleryPreviewSource,
+  host: HostV1, tool: GalleryPreviewSource,
   index: number, look: FeaturedVariant,
 ): Promise<string> {
   const thumb = await drawGalleryLook(host, tool, index, look);
@@ -88,7 +91,7 @@ export async function renderGalleryLook(
 }
 
 async function drawGalleryLook(
-  host: HostV1 & { previews?: PreviewsAPI }, tool: GalleryPreviewSource,
+  host: HostV1, tool: GalleryPreviewSource,
   index: number, look: FeaturedVariant,
 ): Promise<string> {
   const baked = await bakedCover(host, tool, index, look.templateId);
