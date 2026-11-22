@@ -11,6 +11,16 @@ test('probe detects a private endpoint incorrectly carrying public cache headers
   assert.equal(result.passed, false);
   assert.ok(result.observations[0]!.failures.includes('cache-control'));
 });
+test('a private answer may vary on the view-as header; a public one may vary on its encoding only', async () => {
+  const personal = cachePolicy('person-private', { status: 401 });
+  const privateHeaders = (vary: string) => ({ 'Cache-Control': personal.cacheControl, ...(personal.cdnCacheControl ? { 'CDN-Cache-Control': personal.cdnCacheControl } : {}), 'Referrer-Policy': 'no-referrer', Vary: vary });
+  const asked = (vary: string) => probeSample({ origin: 'https://example.invalid', path: '/catalog/tools/index.json', cls: 'person-private', status: 401 }, async () => new Response('{}', { status: 401, headers: privateHeaders(vary) }));
+  assert.ok(!(await asked('Accept-Encoding, x-lw-view-as')).observations[0]!.failures.includes('vary'));
+  assert.ok((await asked('Accept-Encoding, Cookie')).observations[0]!.failures.includes('vary'), 'any other header still fails');
+  const shared = cachePolicy('public-revalidate');
+  const open = await probeSample({ origin: 'https://example.invalid', path: '/', cls: 'public-revalidate' }, async () => new Response('x', { headers: { 'Cache-Control': shared.cacheControl, 'CDN-Cache-Control': shared.cdnCacheControl ?? '', ETag: '"a"', Vary: 'Accept-Encoding, x-lw-view-as' } }));
+  assert.ok(open.observations[0]!.failures.includes('vary'), 'a public page that varies on view-as would split the shared cache');
+});
 test('probe qualifies decoded bytes rather than compressed representation length', async () => {
   const p = cachePolicy('public-revalidate');
   const body = 'abc'.repeat(1000);
