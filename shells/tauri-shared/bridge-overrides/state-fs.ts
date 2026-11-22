@@ -195,6 +195,29 @@ function writeDocument(fs: StateFs, path: string, text: string): Promise<void> {
   return fs.writeDocumentAtomic ? fs.writeDocumentAtomic(path, text) : fs.writeTextFile(path, text);
 }
 
+/** Background work the state APIs over each adapter have started and not finished:
+ *  moving old pictures into files, finding lost pictures again, sweeping. */
+const backgroundWork = new WeakMap<StateFs, Set<Promise<void>>>();
+
+function inBackground(fs: StateFs, work: Promise<unknown>): void {
+  let running = backgroundWork.get(fs);
+  if (!running) backgroundWork.set(fs, (running = new Set()));
+  const tracked: Promise<void> = work.then(() => undefined, () => undefined).finally(() => { running.delete(tracked); });
+  running.add(tracked);
+}
+
+/**
+ * Resolves once the background work started over this adapter has finished,
+ * including work that work started. The work runs after a timer and hashes with
+ * the platform's crypto, which finishes on a worker thread, so no count of
+ * event-loop turns says when it is done: a caller that needs the result (a test, a
+ * clean shutdown) waits here instead.
+ */
+export async function whenFsStateIdle(fs: StateFs): Promise<void> {
+  const running = backgroundWork.get(fs);
+  while (running?.size) await Promise.all([...running]);
+}
+
 /**
  * Build the state API over an `fs` adapter. One instance per shell; the migration
  * memo below is per instance, matching the old module-level `migrationPromise`.
@@ -488,7 +511,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     sweepTimer = setTimeout(() => {
       sweepTimer = null;
       leftSinceSweep = 0;
-      void sweepPictures().catch(() => { /* the next one tries again */ });
+      inBackground(fs, sweepPictures().catch(() => { /* the next one tries again */ }));
     }, 60_000);
   }
 
@@ -507,7 +530,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     moveStarted = true;
     const pending = raws.filter(raw => typeof raw.slot === 'string' && typeof raw.thumb === 'string' && raw.thumb && !sessionPreviewRef(raw));
     const lost = raws.filter(raw => typeof raw.slot === 'string' && mayHaveLostPicture(raw));
-    setTimeout(() => { void movePictures(pending, lost).catch(() => { /* the next launch tries again */ }); }, 3000);
+    setTimeout(() => { inBackground(fs, movePictures(pending, lost).catch(() => { /* the next launch tries again */ })); }, 3000);
   }
 
   /** Give a record an older writer saved without its reference the picture back,
