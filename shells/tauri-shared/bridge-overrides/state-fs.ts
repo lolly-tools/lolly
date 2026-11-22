@@ -493,7 +493,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
 
   /** Give a record an older writer saved without its reference the picture back,
    *  when the file still holds what was read and the picture verifies. Every other
-   *  field is kept as that writer left it. */
+   *  field stays as that writer wrote the record. */
   async function relinkRecords(lost: ParsedRecord[]): Promise<void> {
     for (const read of lost) {
       const ref = await relinked(read);
