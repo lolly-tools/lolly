@@ -370,7 +370,8 @@ export function upgradeRangeInput(input: HTMLInputElement): void {
   // The upgrade runs on an idle moment after load, so it can happen while someone is
   // on the input. fields.css hides an upgraded input, which would drop their focus to
   // the page and lose the next key; the slider takes the focus over instead.
-  const hadFocus = input.ownerDocument.activeElement === input;
+  // The input's own root, so an input inside a shadow root is seen as focused too.
+  const hadFocus = (input.getRootNode() as Document | ShadowRoot).activeElement === input;
 
   const host = document.createElement('div');
   host.innerHTML = customSliderHtml({

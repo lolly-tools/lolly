@@ -170,6 +170,17 @@ test('upgrade: an input that has the focus hands the focus to its slider, so the
   const other = rangeRow();
   upgradeRangeInput(other);
   assert.equal(w.document.activeElement, cs, 'an input without the focus takes nothing from where it is');
+
+  // Inside a shadow root the document sees only the host as focused.
+  const host = doc.createElement('div');
+  doc.body.appendChild(host);
+  const root = host.attachShadow({ mode: 'open' });
+  root.innerHTML = '<input type="range" class="field-range" min="0" max="4" step="1" value="2" aria-label="Card size">';
+  const shadowed = root.querySelector('input') as HTMLInputElement;
+  shadowed.focus();
+  assert.equal(root.activeElement, shadowed);
+  upgradeRangeInput(shadowed);
+  assert.equal(root.activeElement, shadowed.nextElementSibling, 'the slider in the shadow root has the focus');
 });
 
 test('upgrade: a range with no usable bounds is left alone', () => {
