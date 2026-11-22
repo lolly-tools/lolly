@@ -24,7 +24,7 @@ Every object is read strictly: an unknown field, kind or version refuses the pag
 
 ## What this slice draws
 
-The frame's paint and rounded clip, rectangles, rounded rectangles, ellipses, pen paths (fills, centred strokes, dashes), colour, linear and radial gradients, inside borders, outlined words with underlines and strikes, group opacity, turns and mirrors, and a row's clip polygon. Refused for now: pictures, shadows, layer blur, blend modes, per-side and centred or outside borders, pen strokes kept to one side, per-corner radii, a row that a rounded frame edge clips, and every finding the engine reports.
+The frame's paint (square corners) and its clip, rectangles, rounded rectangles, ellipses, pen paths (fills, centred strokes, dashes), colour, linear and radial gradients, inside borders, outlined words with underlines and strikes, group opacity, turns and mirrors, and a row's clip polygon. Refused for now: pictures, shadows, layer blur, blend modes, per-side and centred or outside borders, pen strokes kept to one side, per-corner radii, rounded and elliptical frames (their outer edge differs from the browser tier's), and every finding the engine reports.
 
 ## Same bytes on every machine
 

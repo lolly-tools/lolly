@@ -93,7 +93,7 @@ pub const REFUSAL_CODES: &[&str] = &[
     "live-text",
     "outline",
     "decoration",
-    "clip-edge",
+    "frame-edge",
 ];
 
 /// One reason a page is not drawn here.
@@ -178,8 +178,6 @@ pub struct Item {
     /// no glyph reaches the clip's edge.
     pub words_clip: Option<Outline>,
     pub steps: Vec<Step>,
-    /// What the item paints, posed, in page coordinates: x0, y0, x1, y1.
-    pub bounds: [f64; 4],
 }
 
 #[derive(Debug, Clone)]
@@ -639,77 +637,6 @@ fn contours_path(a: &mut Admit, id: &str, contours: &[input::Contour], close_all
     Some(b.finish())
 }
 
-/// What a step paints, before the pose: x0, y0, x1, y1.
-fn step_bounds(step: &Step) -> [f64; 4] {
-    let path_box = |p: &Path, grow: f64| {
-        let r = p.bounds();
-        [r.left() as f64 - grow, r.top() as f64 - grow, r.right() as f64 + grow, r.bottom() as f64 + grow]
-    };
-    match &step.draw {
-        Draw::Fill { path, .. } => path_box(path, 0.0),
-        Draw::Rect([x, y, w, h]) => [*x, *y, x + w, y + h],
-        // A mitre reaches at most the mitre limit (4) times half the width past the outline.
-        Draw::Stroke { path, width, join, cap, .. } => {
-            let half = *width as f64 / 2.0;
-            let grow = if matches!(join, LineJoin::Miter) {
-                half * 4.0
-            } else if matches!(cap, LineCap::Square) {
-                half * core::f64::consts::SQRT_2
-            } else {
-                half
-            };
-            path_box(path, grow)
-        }
-    }
-}
-
-/// The bounds of `b` after the affine `m`.
-fn posed_bounds(b: [f64; 4], m: [f64; 6]) -> [f64; 4] {
-    let corners = [[b[0], b[1]], [b[2], b[1]], [b[0], b[3]], [b[2], b[3]]];
-    let mut out = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
-    for [x, y] in corners {
-        let (px, py) = (m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]);
-        out = [out[0].min(px), out[1].min(py), out[2].max(px), out[3].max(py)];
-    }
-    out
-}
-
-/// Whether anything inside `b` lies within `margin` of a curved part of the outline `o`,
-/// where Chromium's clip coverage and tiny-skia's differ. Measured on the board fidelity
-/// page without its pictures: a row the frame's rounded clip cuts differs over 24 levels
-/// on 0.68% of its region (band 0.5%), all of it along the arc, as resvg's did in M3a.
-/// Straight clip edges sit on whole pixels on a Design page and match.
-pub fn touches_curve(b: [f64; 4], o: &Outline, margin: f64) -> bool {
-    let (x0, y0, x1, y1) = (b[0].max(o.x), b[1].max(o.y), b[2].min(o.x + o.w), b[3].min(o.y + o.h));
-    if x0 >= x1 || y0 >= y1 {
-        return false;
-    }
-    if o.ellipse {
-        return !box_inside([x0, y0, x1, y1], o, margin);
-    }
-    let r = o.radius;
-    if r <= 0.0 {
-        return false;
-    }
-    // Each corner square, with its circle's centre.
-    let corners = [
-        (o.x, o.y, o.x + r, o.y + r, o.x + r, o.y + r),
-        (o.x + o.w - r, o.y, o.x + o.w, o.y + r, o.x + o.w - r, o.y + r),
-        (o.x, o.y + o.h - r, o.x + r, o.y + o.h, o.x + r, o.y + o.h - r),
-        (o.x + o.w - r, o.y + o.h - r, o.x + o.w, o.y + o.h, o.x + o.w - r, o.y + o.h - r),
-    ];
-    corners.iter().any(|&(sx0, sy0, sx1, sy1, cx, cy)| {
-        let (ix0, iy0, ix1, iy1) = (x0.max(sx0), y0.max(sy0), x1.min(sx1), y1.min(sy1));
-        if ix0 >= ix1 || iy0 >= iy1 {
-            return false;
-        }
-        // The point of the overlap farthest from the circle's centre.
-        let fx = if (ix0 - cx).abs() > (ix1 - cx).abs() { ix0 } else { ix1 };
-        let fy = if (iy0 - cy).abs() > (iy1 - cy).abs() { iy0 } else { iy1 };
-        ((fx - cx) * (fx - cx) + (fy - cy) * (fy - cy)).sqrt() >= r - margin
-    })
-}
-
 /// One operation as an item, or None once the operation is refused.
 fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
     let id = op.id.as_str();
@@ -970,12 +897,7 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
     if a.refusals.len() + a.dropped > before {
         return None;
     }
-    let pose = pose_matrix(op);
-    let local = steps.iter().map(step_bounds).fold([f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY], |acc, b| {
-        [acc[0].min(b[0]), acc[1].min(b[1]), acc[2].max(b[2]), acc[3].max(b[3])]
-    });
-    let bounds = if steps.is_empty() { [0.0; 4] } else { posed_bounds(local, pose) };
-    Some(Item { id: op.id.clone(), opacity: (op.opacity / 100.0) as f32, pose, row_clip, words_clip, steps, bounds })
+    Some(Item { id: op.id.clone(), opacity: (op.opacity / 100.0) as f32, pose: pose_matrix(op), row_clip, words_clip, steps })
 }
 
 /// The steps that draw a row's words, in CSS's order per run: the underline, the
@@ -1234,6 +1156,18 @@ pub fn admit(input: &Input) -> Result<Plan, Vec<Refusal>> {
         o
     });
     let frame = page.frame.as_ref().and_then(|f| {
+        // Measured on the two board fidelity pages without their pictures: along a rounded
+        // frame's outer edge, 252 and 342 pixels differ from the browser tier by more than 24
+        // levels, where the anti-aliasing differs and the browser leaves a faint shadow outside
+        // the corner (M3a saw the same with resvg). A row whose region reaches that corner came
+        // out at 0.68% (band 0.5%). Square frames have no such edge.
+        if f.shape.as_ref().is_some_and(|s| s.kind == "ellipse" || s.radius.is_some_and(|r| r > 0.0)) {
+            a.refuse(
+                "frame-edge",
+                &f.id,
+                "a rounded or elliptical frame, whose outer edge tiny-skia and the browser tier draw differently",
+            );
+        }
         let framed = item(&mut a, f, true)?;
         if f.bbox.x != 0.0 || f.bbox.y != 0.0 || f.bbox.w != page.width || f.bbox.h != page.height || f.opacity != 100.0 {
             a.refuse("geometry", &f.id, "a frame operation that does not fill the page");
@@ -1244,16 +1178,6 @@ pub fn admit(input: &Input) -> Result<Plan, Vec<Refusal>> {
     let mut items = Vec::with_capacity(page.ops.len());
     for op in &page.ops {
         if let Some(i) = item(&mut a, op, false) {
-            if let Some(clip) = &page_clip {
-                if !i.steps.is_empty() && touches_curve(i.bounds, clip, 1.0 / a.res) {
-                    a.refuse(
-                        "clip-edge",
-                        &i.id,
-                        "a row the frame's rounded edge clips, which tiny-skia and the browser anti-alias differently",
-                    );
-                    continue;
-                }
-            }
             items.push(i);
         }
     }

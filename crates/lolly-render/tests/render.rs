@@ -107,6 +107,7 @@ fn what_this_slice_does_not_draw_is_refused_by_name() {
     );
     assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["blur"] = json!(4)), ["blur"]);
     assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["shape"]["corners"] = json!([1, 1, 2, 2, 3, 3, 4, 4])), ["corner-radii"]);
+    assert_eq!(refused("shapes", |v| v["page"]["frame"]["shape"]["radius"] = json!(24)), ["frame-edge"]);
     let picture = json!({
         "ref": "lolly/logo/primary", "fit": "contain", "x": 50, "y": 50, "zoom": 1,
         "area": { "x": 20, "y": 20, "w": 120, "h": 70 },
