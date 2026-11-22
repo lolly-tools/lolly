@@ -13,6 +13,7 @@
 #![forbid(unsafe_code)]
 
 pub mod admit;
+mod blur;
 mod draw;
 mod geometry;
 pub mod input;

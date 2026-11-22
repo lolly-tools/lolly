@@ -16,6 +16,7 @@ const FIXTURES: &[(&str, &str)] = &[
     ("gradients", include_str!("fixtures/gradients.json")),
     ("underlines", include_str!("fixtures/underlines.json")),
     ("pictures", include_str!("fixtures/pictures.json")),
+    ("effects", include_str!("fixtures/effects.json")),
 ];
 
 /// FNV-1a over 64 bits: a pin on the exact bytes, not a security measure.
@@ -37,6 +38,7 @@ const PINNED: &[(&str, u64)] = &[
     ("gradients", 0x3c9c15d3a159975f),
     ("underlines", 0xe74acc9aa3eae242),
     ("pictures", 0x7ed2e43123b884af),
+    ("effects", 0xf5a4cba0c93e69af),
 ];
 
 fn codes(result: Result<Vec<u8>, Vec<lolly_render::Refusal>>) -> Vec<&'static str> {
@@ -106,12 +108,17 @@ fn what_this_slice_does_not_draw_is_refused_by_name() {
     assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["shape"]["kind"] = json!("star")), ["unknown-shape"]);
     assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["fills"][0]["kind"] = json!("conic")), ["unknown-paint"]);
     assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["fills"][0]["color"] = json!("var(--brand-primary)")), ["colour"]);
-    assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["blend"] = json!("multiply")), ["blend"]);
+    assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["blend"] = json!("glow")), ["blend"]);
     assert_eq!(
-        refused("shapes", |v| v["page"]["ops"][0]["shadow"] = json!({ "target": "box", "dx": 0, "dy": 4, "blur": 8, "color": "#000000" })),
+        refused("shapes", |v| v["page"]["ops"][0]["shadow"] = json!({ "target": "halo", "dx": 0, "dy": 4, "blur": 8, "color": "#000000" })),
         ["shadow"]
     );
-    assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["blur"] = json!(4)), ["blur"]);
+    assert_eq!(
+        refused("shapes", |v| v["page"]["ops"][0]["shadow"] = json!({ "target": "box", "dx": 0, "dy": 4, "blur": 8, "color": "#000000" })),
+        ["shadow"],
+        "a box shadow needs the outline it follows"
+    );
+    assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["blur"] = json!(400)), ["blur"]);
     assert_eq!(refused("shapes", |v| v["page"]["ops"][0]["shape"]["corners"] = json!([1, 1, 2, 2, 3, 3, 4, 4])), ["corner-radii"]);
     assert_eq!(refused("shapes", |v| v["page"]["frame"]["shape"]["radius"] = json!(24)), ["frame-edge"]);
     let picture = json!({

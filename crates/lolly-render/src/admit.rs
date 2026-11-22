@@ -13,7 +13,7 @@ use crate::input::{self, Area, Input, Op, Paint, Stroke, DRAW_VERSION, INPUT_FOR
 use crate::path_data::{append_path_data, PathDataError};
 use crate::picture::{base64, decode, Decoded, PictureRefusal};
 use std::collections::HashMap;
-use tiny_skia::{FillRule, LineCap, LineJoin, Path, PathBuilder, StrokeDash};
+use tiny_skia::{BlendMode, FillRule, LineCap, LineJoin, Path, PathBuilder, StrokeDash};
 
 /// The largest input document read, in bytes.
 pub const MAX_INPUT_BYTES: usize = 64 * 1024 * 1024;
@@ -197,6 +197,39 @@ pub struct Item {
     /// no glyph reaches the clip's edge.
     pub words_clip: Option<Outline>,
     pub steps: Vec<Step>,
+    /// Blend, layer blur and shadows, drawn as CSS composites them.
+    pub effects: Effects,
+}
+
+/// A shadow: its offset in the operation's own coordinates, its Gaussian deviation in page
+/// units and its colour.
+#[derive(Debug, Clone, Copy)]
+pub struct Shadow {
+    pub dx: f64,
+    pub dy: f64,
+    pub sigma: f64,
+    pub color: Rgba,
+}
+
+/// An operation's effects, in CSS's order: a box shadow is part of the element's own
+/// painting; the layer blur, then the drop shadow, filter the whole posed element; the
+/// group is laid on the page with its opacity and blend mode. A text shadow follows the words.
+#[derive(Debug, Clone, Default)]
+pub struct Effects {
+    pub blend: Option<BlendMode>,
+    /// The layer blur's deviation in page units, 0 for none.
+    pub blur: f64,
+    /// A box shadow and the box outline it follows (drawn only outside that outline).
+    pub box_shadow: Option<(Shadow, Outline)>,
+    pub drop: Option<Shadow>,
+    pub text: Option<Shadow>,
+}
+
+impl Effects {
+    /// Whether the operation must be drawn on a layer of its own before it reaches the page.
+    pub fn layered(&self) -> bool {
+        self.blend.is_some() || self.blur > 0.0 || self.box_shadow.is_some() || self.drop.is_some()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -784,6 +817,88 @@ fn picture_steps(a: &mut Admit, id: &str, p: &input::Picture, steps: &mut Vec<St
     }
 }
 
+/// The CSS blend mode keywords Design writes, as tiny-skia names them.
+fn blend_mode(name: &str) -> Option<BlendMode> {
+    Some(match name {
+        "multiply" => BlendMode::Multiply,
+        "screen" => BlendMode::Screen,
+        "overlay" => BlendMode::Overlay,
+        "darken" => BlendMode::Darken,
+        "lighten" => BlendMode::Lighten,
+        "color-dodge" => BlendMode::ColorDodge,
+        "color-burn" => BlendMode::ColorBurn,
+        "hard-light" => BlendMode::HardLight,
+        "soft-light" => BlendMode::SoftLight,
+        "difference" => BlendMode::Difference,
+        "exclusion" => BlendMode::Exclusion,
+        "hue" => BlendMode::Hue,
+        "saturation" => BlendMode::Saturation,
+        "color" => BlendMode::Color,
+        "luminosity" => BlendMode::Luminosity,
+        _ => return None,
+    })
+}
+
+/// An operation's blend, layer blur and shadow, read as the engine's `effectsOf` writes them.
+fn effects_of(a: &mut Admit, op: &Op, is_frame: bool) -> Effects {
+    let id = op.id.as_str();
+    let mut fx = Effects::default();
+    if is_frame && (op.blend.is_some() || op.shadow.is_some() || op.blur.is_some()) {
+        a.refuse("shadow", id, "a frame with a blend, blur or shadow of its own");
+        return fx;
+    }
+    match op.blend.as_deref() {
+        None | Some("normal") => {}
+        Some(name) => match blend_mode(name) {
+            Some(m) => fx.blend = Some(m),
+            None => a.refuse("blend", id, format!("the blend mode \"{}\", which CSS does not name", truncate(name))),
+        },
+    }
+    if let Some(b) = op.blur {
+        if !b.is_finite() || !(0.0..=300.0).contains(&b) {
+            a.refuse("blur", id, "a layer blur outside 0 to 300");
+        } else {
+            fx.blur = b;
+        }
+    }
+    if let Some(sh) = &op.shadow {
+        let Some(rgb) = rrggbb(&sh.color) else {
+            a.refuse("colour", id, format!("a shadow colour \"{}\" that is not #rrggbb", truncate(&sh.color)));
+            return fx;
+        };
+        let alpha = sh.opacity.unwrap_or(1.0);
+        if !unit(alpha)
+            || !finite(sh.dx)
+            || !finite(sh.dy)
+            || sh.dx.abs() > 1000.0
+            || sh.dy.abs() > 1000.0
+            || !sh.blur.is_finite()
+            || !(0.0..=600.0).contains(&sh.blur)
+        {
+            a.refuse("shadow", id, "a shadow offset, blur or opacity outside what Design writes");
+            return fx;
+        }
+        let color = rgba(rgb, alpha);
+        match sh.target.as_str() {
+            // CSS box-shadow and text-shadow take half the blur as the deviation; drop-shadow takes the blur.
+            "box" => match &op.outline {
+                Some(shape) => {
+                    if let Some(o) = outline_of(a, id, op.bbox, shape, "the shadow's outline") {
+                        fx.box_shadow = Some((Shadow { dx: sh.dx, dy: sh.dy, sigma: sh.blur / 2.0, color }, o));
+                    }
+                }
+                None => a.refuse("shadow", id, "a box shadow without the outline it follows"),
+            },
+            "content" => fx.drop = Some(Shadow { dx: sh.dx, dy: sh.dy, sigma: sh.blur, color }),
+            "text" => fx.text = Some(Shadow { dx: sh.dx, dy: sh.dy, sigma: sh.blur / 2.0, color }),
+            other => a.refuse("shadow", id, format!("an unknown shadow target \"{}\"", truncate(other))),
+        }
+    } else if op.outline.is_some() {
+        a.refuse("shape", id, "a shadow outline without a shadow");
+    }
+    fx
+}
+
 /// One operation as an item, or None once the operation is refused.
 fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
     let id = op.id.as_str();
@@ -848,15 +963,7 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
             row_clip = pb.finish();
         }
     }
-    if op.blend.as_deref().is_some_and(|m| m != "normal") {
-        a.refuse("blend", id, format!("the blend mode {}, which this slice does not draw", truncate(op.blend.as_deref().unwrap_or(""))));
-    }
-    if op.shadow.is_some() {
-        a.refuse("shadow", id, "a shadow, which this slice does not draw");
-    }
-    if op.blur.is_some_and(|v| v != 0.0) {
-        a.refuse("blur", id, "a layer blur, which this slice does not draw");
-    }
+    let effects = effects_of(a, op, is_frame);
     let (Some(shape), Some(fills)) = (&op.shape, &op.fills) else {
         a.refuse("shape", id, "a shape operation without its shape or fills");
         return None;
@@ -1062,7 +1169,7 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
     if a.refusals.len() + a.dropped > before {
         return None;
     }
-    Some(Item { id: op.id.clone(), opacity: (op.opacity / 100.0) as f32, pose: pose_matrix(op), row_clip, words_clip, steps })
+    Some(Item { id: op.id.clone(), opacity: (op.opacity / 100.0) as f32, pose: pose_matrix(op), row_clip, words_clip, steps, effects })
 }
 
 /// The steps that draw a row's words, in CSS's order per run: the underline, the
