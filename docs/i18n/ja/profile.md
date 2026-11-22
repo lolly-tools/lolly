@@ -1,97 +1,105 @@
 # プロフィール
 
-お名前、連絡先、顔写真を一度設定すれば、それらを使うように作られたすべてのツールが自動で入力します。メール署名、バッジ、登壇者カードなどです。この小さな記録が**プロフィール**で、お使いのデバイス上にあります。
+名前、連絡先、顔写真を一度設定すると、それらを使うように作られたすべてのツールに自動入力されます。メール署名、名札、登壇者カードなどです。この記録があなたの**プロフィール**で、お使いのデバイス上に保存されます。
 
-プロフィールには、作業しながら蓄積されるものも含まれます。保存したセッション、アップロードした画像、ローカルの活動集計です。管理は**Settings → Preferences**で行い、ツールが読み取るのは、自動入力するように作られたフィールドだけです。単独で使うならアカウントは不要で、任意の同期、共有、組織サービスには、それぞれのデータの流れがあり、以下で説明します。
+プロフィールには、保存したセッション、アップロードした画像、ローカルのアクティビティ集計も含まれます。**Settings → Preferences**で管理します。ツールが読み取るのは、事前入力に使うように作られたフィールドだけです。単独での利用にアカウントは不要です。任意の同期、共有、組織のサービスには、それぞれ独自のデータの流れがあります。
 
+<!--i:eti-user-check-->
 ## プロフィールに含まれるもの
 
 | 項目 | 内容 |
 |---|---|
-| **Name** | 姓と名。 |
-| **Contact** | メールアドレスと電話番号。 |
-| **Location** | 都市と国。 |
-| **Headshot** | 任意の写真。正方形に切り抜かれ、ローカルの画像として保持され、メール署名、引用カード、組織図などのツールで使われます。 |
-| **Use my details to create** | 1つのオプトインスイッチ(オンにすると**Using my details**と表示されます)。書き出したファイルの作者クレジットとBatch実行に、詳細を含めるかどうかを決めます。自動入力には影響しません。[ツールがプロフィールを使う方法](#how-tools-use-your-profile)をご覧ください。 |
-| **Preferences** | テーマ、各デザインシステムでのカラーウェイ、アクセシビリティ設定、**Feature flags**でオンにしたアプリの機能。 |
-| **Your work** | サムネイル付きの保存済みセッション([Lolly Projects](/info/find-your-work.html)で整理)、アップロードした画像、ローカルの活動統計。 |
+| **Name** | 名と姓です。 |
+| **Contact** | メールアドレスと電話番号です。 |
+| **Location** | 都市と国です。 |
+| **Headshot** | 任意の写真です。正方形に切り抜いてローカルの画像として保持し、メール署名、引用カード、組織図などのツールで使います。 |
+| **Use my details to create** | 明示的にオンにするスイッチで、オンにすると**Using my details**と表示されます。書き出したファイルやLolly Batchの実行に、作者クレジットとして自分の情報を含めるかどうかを決めます。[ツールによるプロフィールの使い方](#how-tools-use-your-profile)をご覧ください。 |
+| **Preferences** | テーマ、デザインシステムごとのカラーウェイ、アクセシビリティ設定、**Feature flags**でオンにしたアプリの機能です。 |
+| **Your work** | [Lolly Projects](/info/find-your-work.html)で整理された、サムネイル付きの保存済みセッション、アップロードした画像、ローカルのアクティビティ統計です。 |
 
-必須のものはありません。空のプロフィールでも動作します。入力の手間が省けるものだけを入力してください。
+どれも必須ではなく、空のプロフィールでも動作します。
 
-![SettingsのPreferencesタブ: 設定レールと、Use my details to createスイッチ、名前・連絡先・場所のフィールドがあるYour details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![SettingsのPreferencesタブ: 設定レールと、Use my details to createスイッチ、名前、連絡先、所在地のフィールドを備えたYour details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-外観や絵文字からストレージやオフラインダウンロードまで、Preferencesのそれ以外のすべては[Lolly Settings](/info/dashboard.html)に整理されています。
+[Lollyの設定](/info/dashboard.html)では、外観や絵文字からストレージやオフライン用のダウンロードまで、Preferencesのその他の項目を扱っています。
 
+<!--i:eti-users-->
 ## 自分、チーム、役割
 
-「プロフィール」という言葉は、固定された一人の人物を連想させます。Lollyでは、むしろ作成時の文脈に近く、これを作るあいだのあなたが誰であるかです。3つの形があり、Lollyはどれも同じように扱います。
+Lollyのプロフィールは、何かを作るときの立場を表します。自分自身、チーム、または役割です。Lollyは、3つとも同じ方法で扱います。
 
 ::: cols
 ## 自分として
 
-既定です。あなたの名前、メールアドレス、顔写真。一度設定すれば、署名、バッジ、カンファレンスのロックアップが自動で埋まります。
+既定の使い方です。自分の名前、メールアドレス、顔写真を設定します。署名、名札、カンファレンスのロックアップに、それらが自動入力されます。
 
 ## チームとして
 
-チームの共有名、`events@…`のようなグループの受信箱、部門、チームのマークです。1人が設定して書き出し、他のメンバーが同じプロフィールを読み込むため、チームのファイルは一貫した詳細を持ちます。共有のキオスクやデモ用のノートパソコンは、1つのチームプロフィールで動かせます。
+チーム共通の名前、`events@…`などの共有メールアドレス、部署、チームのマークを設定します。1人がプロフィールを設定し、ファイルを書き出します。ほかの全員が同じプロフィールを読み込むことで、チームのファイルに同じ情報が入ります。共用のキオスク端末やデモ用のノートパソコンで、1つのチームプロフィールを使えます。
 
 ## 役割として
 
-年に3日だけイベントマネージャーを務める人は、バッジやサインにイベントの受信箱とイベントのサブブランドを使い、その後は普段の自分に戻したいものです。その役割を保存したプロフィールファイルとして持ち、イベントのときに読み込み、終わったら脇に置いておきます。
+イベント担当者は、年に3日間だけ、名札や案内表示にイベント用のメールアドレスとサブブランドを使い、その後は通常の情報に戻したい場合があります。その役割をプロフィールファイルとして保存しておき、イベントの際に読み込んで、終わったら使わずに保管します。
 :::
 
-![ヘッドショットのコントロール。写真をアップロードするまでは空で、アップロードした写真はこのデバイスに残る](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![顔写真のコントロール。写真をアップロードするまでは空で、アップロードした写真はこのデバイス上に保存されます](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-::: details Lolly Workを使う組織でのプロフィール
-[組織のLolly](/info/organisation.html)にサインインすると、Lolly Workは、IDプロバイダーから確認済みのプロフィール項目を提供し、組織のポリシーに基づいて項目や設定を固定できます。管理対象の項目には、アプリ内でその旨が表示されます。
+::: details Lolly Workを使う組織のプロフィール
+ユーザーが[組織のLolly](/info/organisation.html)にサインインすると、Lolly WorkはIDプロバイダーから検証済みのプロフィールフィールドを提供し、組織のポリシーに従ってフィールドや設定を固定できます。管理されているフィールドには、アプリ内でラベルが表示されます。
 
-そのサインインは、共有プロジェクトとアセットへのアクセスも制御します。チームのプロフィールファイルはあくまでローカルのファイルであり、組織のメンバーシップを付与するものでも、ワークアカウントの代わりになるものでもありません。**Use my details to create**が制御するのは書き出しのクレジットであり、組織のサインインや監査記録ではありません。[プライバシー](/info/privacy.html#organisation-services-with-lolly-work)をご覧ください。
+そのサインインは、共有プロジェクトやアセットへのアクセスも管理します。チームのプロフィールファイルは、ローカルのファイルです。組織のメンバー資格を付与するものでも、仕事用のアカウントに代わるものでもありません。**Use my details to create**は、書き出しのクレジットを管理するもので、組織のサインインや監査記録には関係しません。[プライバシー](/info/privacy.html#organisation-services-with-lolly-work)をご覧ください。
 :::
 
-## いくつも保持して、1つを使う
+<!--i:eti-copy-->
+## 複数を保持し、1つを使う
 
-インストールごとに、一度に有効なプロフィールは1つで、アプリ内に切り替え機能はありません。代わりに、各プロフィールは持ち運べるファイルで、新しいデバイスへ移すときに使うのと同じバックアップファイルです。別の文脈に入るには、次のようにします。
+1つのインストール環境で同時に有効にできるプロフィールは1つで、アプリ内に切り替え機能はありません。各プロフィールは持ち運べるファイルで、作品を新しいデバイスに移すバックアップファイルと同じものです。用途を切り替えるには、次の手順を行います。
 
 ::: timeline
 - <!--i:download--> **Settings → Storage → Move to another device**の**Export my data**で、現在のプロフィールを1つの`.zip`として保存します。
-- <!--i:trash--> **Clear all my data**で、このインストールを空にします。
-- <!--i:upload--> **Import data…**で、これから入る文脈のプロフィールファイルを読み込みます。
+- <!--i:trash--> **Clear all my data**で、このインストール環境を空にします。
+- <!--i:upload--> **Import data…**で、切り替え先の用途に対応するプロフィールファイルを読み込みます。
 :::
 
-先に消去せずにインポートすると、代わりに**マージ**されます。インポートされたセッションと画像が追加され、両方のコピーがある場合は、より新しく保存されたほうが残ります。フォルダ、お気に入り、テンプレートはお手元のものの隣に追加され、ご自身の詳細は、空のフィールドを除いて維持され、空のフィールドにはファイルの値が入ります。これは、あるチームのセッションを自分の環境に取り込むのには向いていますが、役割どうしをきれいに切り分けるのには向きません。
+::: note 先に消去せずインポートするとマージされます
+インポートしたセッションと画像は追加されます。両方に同じものがある場合は、より新しく保存された方が残ります。フォルダ、お気に入り、テンプレートは、既存のものと並べて追加されます。自分の情報はそのまま残り、空のフィールドだけにファイルの値が入ります。マージは、チームのセッションを自分の環境に取り込む用途に適していますが、役割を完全に切り替える用途には適していません。
+:::
 
-2つの文脈を同時に使うには、別のブラウザプロファイル、別のユーザーアカウント、または2つ目のWebアプリのインストールを使います。それぞれが、独立したLollyプロフィールを持ちます。
+2つの用途を同時に使うには、別のブラウザプロファイル、ユーザーアカウント、または別にインストールしたWebアプリを使います。それぞれに独自のLollyプロフィールがあります。
 
-![インストール全体を移す2つのボタン: Export my dataは1つのzipを書き出し、Import dataはそれを読み戻す](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
+![インストール環境全体を移す2つのボタン: Export my dataが1つのzipを書き出し、Import dataが読み戻します](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> 文脈ごとに1つのファイルを保持し、`LollyTools-events-2026.zip`と`LollyTools-me.zip`のように、それぞれに内容を表す名前を付けます。そのファイルがプロフィールです。
+::: note 用途ごとに1つのファイルを保持する
+`LollyTools-events-2026.zip`や`LollyTools-me.zip`など、内容が分かる名前を各ファイルに付けます。そのファイルがプロフィールです。
+:::
 
-ファイルに含まれるもの、残るもの、同期を含む他の移動方法は、[作品を別のデバイスに移す](/info/find-your-work.html#move-your-work-to-another-device)で扱っています。
+[作品を別のデバイスに移す](/info/find-your-work.html#move-your-work-to-another-device)では、ファイルに含まれるもの、元の場所に残るもの、同期を含むその他の移行方法を扱っています。
 
-## ツールがプロフィールをどう使うか
+<!--i:eti-pen-->
+## ツールによるプロフィールの使い方
 
-**自動入力。** ツールの作者は、入力がプロフィールから取得されることを指定します(`bindToProfile: "firstname"`、`"email"`、`"headshot"`など)。ツールを開くと、その入力はプロフィールから埋められ、組織のポリシーがその入力をロックしていないかぎり、プロフィールを変えずに1つのセッションだけ上書きできます。自動入力はローカルの便宜であり、**Use my details**がオンかどうかにかかわらず行われます。
+**事前入力。** ツールの作者は、プロフィールから値を取得する入力に指定を付けます(`bindToProfile: "firstname"`、`"email"`、`"headshot"`など)。ツールを開くと、その入力がプロフィールから埋められます。組織のポリシーで入力がロックされていなければ、プロフィールを変えずに、そのセッションだけ値を変更できます。事前入力はローカルで行われ、**Use my details**がオンかどうかに関係なく動作します。
 
-**クレジット。** 書き出すとき、詳細はファイルのメタデータ(PNG、PDFなど)に作者クレジットとして含められるため、完成したファイルに誰が作ったかを示せます。これと、Batch実行の作者は、**Use my details to create**が制御します。オフの場合、書き出しにはLollyで作られたことは記されますが、個人の作者や連絡先の行は付きません。
+**クレジット。** 書き出す際、ファイルのメタデータ(PNG、PDF、SVGなど)に、作者クレジットとして自分の情報を含められます。**Use my details to create**は、このクレジットとLolly Batchの実行時の作者を管理します。スイッチがオフでも、書き出したファイルにはLollyで作成したことが記載されますが、個人の作者名や連絡先の行は含まれません。
 
-ツールの作者の方は、[`bindToProfile`](/info/tool-inputs.html#bindtoprofile)と[`host.profile`](/info/host-api.html#host-profile)をご覧ください。
+ツールの作者は、[`bindToProfile`](/info/tool-inputs.html#bindtoprofile)と[`host.profile`](/info/host-api.html#host-profile)をご覧ください。
 
-![オプトインと明記され、オンにするまでオフのままの、Use my details to createスイッチ](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![Use my details to createの単独のスイッチ。明示的に有効にする設定と表示され、自分でオンにするまではオフです](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
-## プロフィール、デザインシステム、ケイパビリティ
+<!--i:eti-layers-->
+## プロフィール、デザインシステム、機能
 
-Settingsには互いに近い3つの項目があり、混同しやすいものです。
+Settingsには、近くに並んでいて混同しやすい3つの項目があります。
 
-- <!--i:people--> **プロフィール** - あなた、あなたのチーム、あるいは今担っている役割。名前、連絡先、顔写真、保存した作業。個人のもので、デバイスに保持され、ファイルとして持ち運べます。
-- <!--i:palette--> **デザインシステム** - ブランド。すべてのツールがレンダリングに使う色、フォント、設定。個人のものではなく共有され、一貫しています。[Lolly Design System Setup](/info/brand-studio.html)をご覧ください。
-- <!--i:sliders--> **ケイパビリティ** - アプリにできること。あなたが利用できる機能とツール。
+- <!--i:people--> **Profile** - 自分、チーム、または今の役割です。名前、連絡先、顔写真、保存した作品を含みます。個人用で、デバイス上に保存され、ファイルとして持ち運べます。
+- <!--i:palette--> **Design system** - ブランドです。すべてのツールがレンダリングに使う色、フォント、設定を含みます。個人用ではなく共有するものです。[Lolly Design System Setup](/info/brand-studio.html)をご覧ください。
+- <!--i:sliders--> **Capabilities** - アプリでできることです。利用できる機能とツールを示します。
 
-プロフィールは、ファイルが誰からのものかを変え、デザインシステムはファイルの見た目を変え、ケイパビリティは何を作れるかを表します。
+Lollyでは、この語にほかにも3つの意味があります。**コンテンツプロファイル**は、デプロイに含めるツールとカタログを選ぶビルド設定です。[用語集](/info/glossary.html)に定義があります。リンクの`profile`パラメーターは、CMYKの印刷条件など、書き出し用のカラープロファイルを選びます。[予約済みURLパラメーター](/info/url-parameters.html#print)をご覧ください。**検証済みID**は、メールアドレスと署名付きの書き出しを結び付ける、任意の署名証明書です。ここでの個人情報とは別のものですが、どちらについても、埋め込むかどうかは**Use my details to create**で決まります。[Content Credentials](/info/content-credentials-identity.html)をご覧ください。
 
-Lollyでは、この言葉にほかにも3つの意味があります。**コンテンツプロファイル**は、配備がどのツールとカタログを含むかを選ぶビルド設定で、その用語は[用語集](/info/glossary.html)で定義しています。`profile`リンクパラメーターは、CMYKの印刷条件など、書き出し用のカラープロファイルを選びます。[予約済みURLパラメーター](/info/url-parameters.html#print)をご覧ください。**認証済みID**は、お客様のメールアドレスを署名付き書き出しに結び付ける、任意の署名用証明書で、これらの詳細とは別のものですが、どちらが埋め込まれるかは**Use my details to create**が制御します。[Content Credentials](/info/content-credentials-identity.html)をご覧ください。
+![スマートフォン幅のVerified identityカード: 証明書の有効期間ピッカーと、その下の登録手順。個人情報とは別のIDプロフィールです](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
-![Verified identityカード(スマートフォン幅): 証明書の有効期間ピッカーと、その下の登録手順。個人の詳細とは別のIDプロファイル](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
-
+<!--i:eti-lock-->
 ## プライバシー
 
-個人のプロフィールはローカルに保存されます。詳細は、バックアップや同期のコピー、共有または書き出すコンテンツ、任意のContent Credentials登録の際に含まれることがあります。Lolly Workのインスタンスでは、サインイン、共有作業、テレメトリポリシー、監査記録は、このローカルプロフィールとは別です。**Settings → Preferences → Clear all my data**はこのデバイスを消去しますが、ストレージプロバイダーや組織が保持するコピーは消去しません。[プライバシーポリシー](/info/privacy.html)をご覧ください。
+個人のプロフィールはローカルに保存されます。個人情報は、バックアップや同期のコピー、共有または書き出したコンテンツ、任意のContent Credentials登録の際に送られることがあります。Lolly Workインスタンスでは、サインイン、共有作業、テレメトリーのポリシー、監査記録は、このローカルのプロフィールとは別のものです。**Settings → Preferences → Clear all my data**は、このデバイスのデータを消去します。ストレージプロバイダーや組織が保持するコピーは消去しません。[プライバシーポリシー](/info/privacy.html)をご覧ください。

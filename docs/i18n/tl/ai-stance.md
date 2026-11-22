@@ -1,55 +1,60 @@
-# Ang Paninindigan Namin sa AI
+# Aming Pananaw sa AI
 
-Binuo ang Lolly sa gitna ng pinakamalaking pagbabago sa paggawa ng media mula nang imbento ang printing press, ng mga taong hindi natataranta sa AI at hindi rin hinihingal sa teknolohiya. Narito ang posisyon ng proyekto, kasama ang mekanismo sa likod ng bawat pangako, para makapag-verify ka sa halip na magtiwala lang.
+Binuo ang Lolly sa gitna ng pinakamalaking pagbabago sa paggawa ng media mula nang magkaroon ng palimbagan, ng mga taong hindi natataranta sa AI at hindi rin labis ang paghanga sa teknolohiya. Narito ang posisyon ng proyekto, kasama ang mekanismo sa likod ng bawat pangako, para makapag-verify ka sa halip na basta magtiwala.
 
-> "Umiinom tayo na parang mauubusan ng tubig ang gripo anumang oras. Hindi ito mangyayari - ang AI ngayon ang pinakamasama na magiging estado nito kailanman. Kung tayo ay makaligtas sa baha, hindi ito sa pamamagitan ng pag-iimbak ng laman ng kalawanging tangke ng tubig sa ibaba ng burol, puno ng latak. Ito ay sa pamamagitan ng pagpapatubig at pagbawi sa ***ating*** lupa para sa masaganang kinabukasan."
+> "Umiinom tayo na para bang matutuyo ang gripo anumang sandali. Hindi iyon mangyayari - ang AI ngayon ang pinakamasahol na magiging kalagayan nito kailanman. Kung makaligtas tayo sa baha, hindi iyon sa pag-iimbak ng laman ng kinakalawang na tangke ng tubig sa ibaba ng burol, na puno ng latak. Sa halip, sa pagpapatubig at pagbawi ng ***ating*** lupa para sa masaganang kinabukasan."
 >
-> - Andy Fitzsimon, Lolly Contributor
+> - Andy Fitzsimon, Kontribyutor ng Lolly
 
-![Isang supercell storm na sumasabog sa itaas ng isang outback homestead - ang tangke at mga sheds sa ibaba, gumagawa na ang baha ng mga kanal sa tuyong bukid](/info/the-flood.webp)
+![Isang supercell na bagyong humahagupit sa isang homestead sa outback - ang tangke at mga kubol sa ibaba, gumagawa na ng mga daluyan ang tubig-baha sa tuyong pastulan](/info/the-flood.webp)
 
-%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} generated image %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} and %act{exported to WebP} as %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [I-verify ito ngayon](/#/verify?src=%2Finfo%2Fthe-flood.webp)
+%file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} larawang binuo ng %entity{Gemini} %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{watermarked} at %act{exported to WebP} bilang %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [I-verify ito ngayon](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
-Para maging tiyak, dahil ang pahinang ito ay nagsasabing mahalaga ang katumpakan: ang larawan sa itaas ay generated, hindi kinunan ng litrato. Walang camerang itinutok sa homestead na iyon, dahil walang homestead. Naglalarawan ito ng rehiyonal na Queensland, Australia, pinrompt mula sa United Kingdom, nabuo sa datacenter sa United States. Sinusubukan nitong maging tapat sa isang lugar nang hindi nagiging tala ng lugar, at ang pagkakaibang iyon ang buong dahilan kung bakit may Content Credentials ang larawan.
+Para maging eksakto, dahil ipinapahayag ng page na ito na mahalaga ang pagiging eksakto: binuo ang larawan sa itaas, hindi kinunan. Walang camera na itinutok sa homestead na iyon, dahil walang ganoong homestead. Inilalarawan nito ang rehiyonal na Queensland, Australia, mula sa prompt na ginawa sa United Kingdom, na binuo sa isang datacenter sa United States. Sinisikap nitong maging tapat sa isang lugar nang hindi nagiging tala ng isang lugar, at ang pagkakaibang iyon ang buong dahilan kung bakit may Content Credentials ang larawan.
 
-Ganito ang itsura kapag chine-check mo ang file. Siyam na hakbang ang nakaligtas sa file: lima ang itinala ng Google habang ginagawa at winawatermark ang larawan, saka apat ang itinala ng Lolly habang binubuksan, ginagawa, minamarkahan at kino-convert ang bersyon sa page na ito. Walang ginawa ang Lolly, at sinasabi iyon ng entry nito.
+Ito ang makikita kapag sinuri mo ang file. Siyam na hakbang ang nananatili sa file: lima na itinala ng Google habang binubuo at nilalagyan nito ng watermark ang larawan, saka apat na itinala ng Lolly habang binubuksan, ginagawa, minamarkahan at kino-convert nito ang bersyon sa page na ito. Walang anumang binuo gamit ang AI ang Lolly, at sinasabi iyon ng entry nito.
 
-![Ang change history na binabasa muli ni Lolly mula sa tapos na file - limang hakbang na naitala ni Google, pagkatapos ay apat ni Lolly, na natapos sa WebP sa pahinang ito](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
+![Ang history ng pagbabago na binabasa ng Lolly mula sa tapos na file - limang hakbang na itinala ng Google, saka apat ng Lolly, na nagtatapos sa WebP sa page na ito](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-Sa larawan ni Andy, ang scarcity posture sa AI ay ang pag-inom ng sirang tubig sa tangke habang rumaragasa ang baha sa kapatagan. Ang generated na nilalaman ay malapit nang maging halos walang hanggan. Kapag may naging walang hanggan, lumilipat ang halaga nito sa anumang nananatiling kakaunti sa paligid nito: tiwala, provenance, pagkakaugnay ng brand at paghuhusga ng tao. Hindi mas malaking timba para sa baha ang Lolly. Ito ang patubig: mga kanal na nagdidirekta ng tubig, at lupang pinagtutubuan ng mga bagay.
+Sa paglalarawan ni Andy, ang pagtingin sa AI bilang kapos na yaman ay parang pag-inom ng panis na tubig mula sa tangke habang rumaragasa ang tubig-baha sa kapatagan. Malapit nang maging halos walang hanggan ang nilalamang binuo ng AI. Kapag naging walang hanggan ang isang bagay, lumilipat ang halaga nito sa anumang nananatiling kakaunti sa paligid nito: tiwala, provenance, pagkakaugnay-ugnay ng brand at paghatol ng tao. Hindi mas malaking timba para sa baha ang Lolly. Patubig ito: mga daluyang gumagabay sa tubig at lupang may talagang tumutubo.
 
-## Ang stance, sa limang pangako
+<!--i:eti-checklist-->
+## Ang pananaw, sa limang pangako
 
-- <!--i:layers--> **Tinatanggap ang AI bilang input, hindi bilang pagpapanggap.** Ang mga agent ay first-class na user ng Lolly: pinapatakbo nila ang parehong tool na ginagamit ng mga tao, sa pamamagitan ng [MCP server](/info/mcp.html) at [URL mode](/info/url-mode.html), sa eksaktong parehong mga limitasyon. Ang hindi pinahihintulutan sa sinumang agent ay ang ipasa ang output nito bilang hindi ito. Iginuguhit ng [Input, hindi pagpapanggap](/info/input-not-impersonation.html) ang linyang iyon.
-- <!--i:shieldcheck--> **Nagdedeklara ang AI ng sarili.** Kapag AI ang gumawa ng mga pixel, sinasabi ito ng export: machine-readable na assertion sa Content Credentials ng file at nakikitang GEN AI badge kapag may nag-verify ng file. Kapag ang media na idineklara mong gawa ng AI ay inilagay sa design, sinasabi rin ito ng sariling credential ng export: composite origin mark at signed, machine-readable na AI disclosure. Binabasa at inilalabas din ng Lolly ang mga AI declaration ng mga file na ginawa sa ibang lugar, at nagfa-flag kapag malamang na may SynthID watermark, binabasa ang deklarasyon, hindi ang watermark mismo. Ang parehong patakaran ay nagbibigkis sa sariling on-device rewriter ng Lolly: bawat pangungusap na isinusulat nito ay may dalang pampublikong statistical watermark sa pagpili ng salita, isiniwalat dito at sa tool, kaya ang text na isinulat ng model ay nananatiling nagdedeklara ng sarili kahit bilang plain-text na kopya, at kahit sino ay makakapag-check ng text na iyon sa [Lolly Verify](/#/verify) ([paano gumagana ang check](/info/what-verify-checks.html#text-reworded-by-lolly)). Pampubliko ang scheme sa disenyo: verification para sa lahat, sikreto para sa wala. Karapat-dapat malaman ng mga manonood kung paano ginawa ang media.
-- <!--i:check--> **Naka-on bilang default ang provenance.** Ang mga export ay may dalang [Content Credentials](/info/content-credentials-identity.html) bilang default, hindi bilang nakabaong setting. Sakop ng chain ang mga edit at ingredient, kaya ang kasaysayan ng gawa ay naglalakbay kasama ng gawa. Maaari mong [i-verify ito mismo](/info/verify-yourself.html) sa anumang file na ginagawa ng Lolly.
-- <!--i:people--> **Ang mga tao pa rin ang may-akda.** Ang mga salita, ang larawan, ang palette, ang desisyong nangangailangan ng paghuhusga: pinalalawak ng mga tool ang paghuhusgang iyon at hindi kailanman pumapalit sa tao. Ang mga nakakapagod na bahagi ang ina-automate: ang brand-checking, ang pag-export muli sa bawat laki, ang manu-manong lokalisasyon. Ang natitira ay ang pagiging may-akda.
-- <!--i:globe--> **Mga kanal, hindi mga timba.** Ang mga model ngayon ay sahig, hindi kisame, kaya tumatanggi kaming bumuo ng anumang nakasalalay ang halaga sa pag-iimbak ng access sa kanila. Open source ang engine, nagre-render sa sarili mong device at gumagana offline. Walang model moat, walang usage meter, walang scarcity business na nakakabit sa baha mismo. Ang matibay na pamumuhunan ay ang infrastructure sa paligid ng tubig - at ang infrastructure na iyon ang ibinibigay namin.
+- <!--i:layers--> **Tinatanggap ang AI bilang input, hindi kailanman bilang pagpapanggap.** Ganap na mga user ng Lolly ang mga agent: pinapatakbo nila ang parehong mga tool na ginagamit ng mga tao, sa pamamagitan ng [MCP server](/info/mcp.html) at [URL mode](/info/url-mode.html), sa loob ng eksaktong parehong mga limitasyon. Ang hindi puwedeng gawin ng anumang agent ay ipasa ang output nito bilang isang bagay na hindi naman ito. Itinatakda ng [Input, hindi pagpapanggap](/info/input-not-impersonation.html) ang hangganang iyon.
+- <!--i:shieldcheck--> **Ipinapakilala ng AI ang sarili nito.** Kapag AI ang bumuo ng mga pixel, sinasabi iyon ng export: isang pahayag na nababasa ng machine sa Content Credentials ng file at isang nakikitang GEN AI badge kapag may nag-verify ng file. Kapag inilagay sa isang design ang media na idineklara mong gawa ng AI, sinasabi rin iyon ng sariling credential ng export: isang composite origin mark at isang nilagdaang pagsisiwalat tungkol sa AI na nababasa ng machine. Binabasa at ipinapakita rin ng Lolly ang mga deklarasyon tungkol sa AI sa mga file na ginawa sa ibang lugar, at minamarkahan kapag malamang na may SynthID watermark, na binabasa ang deklarasyon, hindi ang mismong watermark. Sakop ng parehong patakaran ang sariling rewriter ng Lolly na tumatakbo sa device: bawat pangungusap na isinusulat nito ay may pampublikong statistical watermark sa pagpili nito ng mga salita, na isiniwalat dito at sa tool, kaya patuloy na ipinapakilala ng text na isinulat ng model ang pinagmulan nito kahit bilang plain-text na kopya, at maaaring suriin ng kahit sino ang text na iyon sa [Lolly Verify](/#/verify) ([kung paano gumagana ang pagsusuri](/info/what-verify-checks.html#text-reworded-by-lolly)). Sadyang pampubliko ang pamamaraan: pag-verify para sa lahat, walang lihim para sa sinuman. Karapat-dapat malaman ng mga tumatanggap ng media kung paano ito ginawa.
+- <!--i:check--> **Naka-on bilang default ang provenance.** May [Content Credentials](/info/content-credentials-identity.html) ang mga export bilang default, hindi bilang nakatagong setting. Sakop ng chain ang mga edit at sangkap, kaya kasama ng gawa ang history nito. Maaari mong [i-verify ito mismo](/info/verify-yourself.html) sa anumang file na ginagawa ng Lolly.
+- <!--i:people--> **Ang mga tao pa rin ang may-akda.** Ang mga salita, larawan, palette, desisyong nangangailangan ng paghatol: pinalalawak ng mga tool ang paghatol na iyon at hindi kailanman pumapalit sa tao. Ang mga nakakapagod na bahagi ang ina-automate: ang pagsusuri sa pagsunod sa brand, muling pag-export sa bawat laki, manwal na pag-localize. Ang pagiging may-akda ang nananatili.
+- <!--i:globe--> **Mga daluyan, hindi mga timba.** Panimulang antas ang mga model ngayon, hindi hangganan, kaya tumatanggi kaming bumuo ng anumang nakasalalay ang halaga sa pagsosolo ng access sa mga ito. Open source ang engine, nagre-render sa sarili mong device at gumagana offline. Walang model na ginagawang panangga sa kumpetisyon, walang metro ng paggamit, walang negosyong nakabatay sa kakapusan na nakakabit sa baha mismo. Ang pangmatagalang pamumuhunan ay ang imprastraktura sa paligid ng tubig - at ang imprastrakturang iyon ang ipinamimigay namin.
 
-## Ang Desisyon ng Tao ang Punto
+<!--i:eti-user-check-->
+## Desisyon ng tao ang layunin
 
-Hinuhubog ng mga indibidwal ang lupa at ang ating kasaysayan. Ang mga pagpili nila, ginawa isa-isa, ang nagiging mundong tinitirhan ng iba sa atin. Ang mga ginagawa nila ang bumubuo sa mundong iyon. Ganyan nangyari ang anumang nangyari kailanman.
+Hinuhubog ng mga indibidwal ang mundo at ang kasaysayan natin. Ang mga pasya nila, na ginagawa nang paisa-isa, ang nagiging mundong tinitirhan ng iba sa atin. Ang mga kilos nila ang lumilikha sa mundong iyon. Ganoon naganap ang lahat ng bagay.
 
-Kaya pinalalakas namin ang desisyon ng tao at hindi kailanman ikinokompromiso iyon. Ang karapatang pumili. Ang agency. Ang awtonomiya. Ang kakayahang magpasya at kumilos, at na ang kilos na iyon ay sa iyo.
+Kaya binibigyan namin ng lakas ang desisyon ng tao at hindi kailanman ikinokompromiso iyon. Ang karapatang pumili. Kakayahang kumilos. Awtonomiya. Ang kakayahang magpasya at kumilos, at ang pagkilos na iyon ay maging iyo.
 
-Pinapalawak ng mga tool dito ang napagpasyahan ng isang tao. Hindi sila nagpapasya sa halip ng tao, at hindi sila kailanman tahimik na pumapalit sa kanila. Kung saan may desisyong dinadala ng automation, patuloy pa ring babalik ang record sa taong nagsimula nito, gaano man karaming systems at left turns ang dinaanan nito.
+Pinapalawak ng mga tool dito ang napagpasyahan ng tao at hindi kailanman tahimik na nagpapasya para sa kanila. Kapag ipinapatupad ng automation ang isang pasya, natutunton pa rin ng record ang taong nagpasimula nito, gaano man karaming system at liko ang dinaanan nito.
 
-Iginagalang namin ito hanggang sa dulo, at itinatala namin ito: para sa kasaysayan, para sa accountability, para sa tiwala at para sa bukas.
+Iginagalang namin iyon mula simula hanggang dulo, at itinatala namin ito: para sa kasaysayan, pananagutan, tiwala at bukas.
 
-## AI, Ayon sa Iyong mga Tuntunin
+<!--i:eti-sliders-->
+## AI, ayon sa gusto mo
 
-Hindi mo kailanman kailangan ang AI dito. Kung pipiliin mo ito, may tatlong bagay na nananatili:
+Hindi mo kailanman kailangan ng AI dito. Kung pipiliin mo ito, tatlong bagay ang nananatili:
 
-- <!--i:people--> **Ikaw ang may kontrol.** Tumutulong lang ang AI kapag hiniling mo, at sa piraso lang na itinuro mo. Walang ipinapasya para sa iyo.
-- <!--i:check--> **Hindi na ito nagkakahalaga.** Kung minsang tumulong ang AI sa paggawa ng isang bagay, sa iyo na ang resulta. Libre ang muling paggamit nito, ilang beses mang kailanganin mo ang resulta.
-- <!--i:shieldcheck--> **Nananatili itong tapat.** Ang pirasong gawa ng AI ay nagsasabi nito, at ang ginagawa mo ay may pangalan mo sa halip na magpanggap na ibang tao. Maging ang built-in na tulong ay ganito gumagana: sinasagot ng [Ask Lolly](/info/ask.html) ang tanong gamit ang sariling pangungusap ng manwal at link, hindi kailanman gawa-gawang sagot.
+- <!--i:people--> **Ikaw ang may kontrol.** Tumutulong lang ang AI kapag hiniling mo, at sa bahaging itinuro mo lang. Walang pinagpapasyahan para sa iyo.
+- <!--i:check--> **Wala nang kasunod na gastos.** Kung tumulong ang AI na gumawa ng isang bagay, sa iyo ang resulta. Libre ang paggamit nito muli, gaano man kadalas mo kailangan ang resulta.
+- <!--i:shieldcheck--> **Nananatili itong tapat.** Sinasabi ng gawang mula sa AI na iyon ang pinagmulan nito, at dala ng ginagawa mo ang pangalan mo sa halip na magpanggap na ibang tao. Ganito rin gumagana ang built-in na tulong: sumasagot ang [Ask Lolly](/info/ask.html) gamit ang mismong pangungusap ng manwal at isang link, hindi kailanman gawa-gawang sagot.
 
-## Ang hindi nito
+<!--i:eti-info-->
+## Ano ang hindi nito ibig sabihin
 
-- <!--i:check--> **Hindi isang pagbabawal.** Maaaring gumamit ng AI ang mga tool kung saan makakatulong ito sa trabaho, at ang mga agent ay suportadong audience - tingnan ang [AI Agents](/info/ai-agents.html).
-- <!--i:seal--> **Hindi isang claim ng purity.** Malawak na binabasa ni Lolly ang provenance at tapat itong isinusulat; hindi nito pinapanggap na nade-detect nito ang bawat generated pixel sa internet.
-- <!--i:sunburst--> **Hindi isang moral panic.** Hindi ang baha ang kaaway. Ang unattributed na tubig ang kaaway.
+- <!--i:check--> **Hindi pagbabawal.** Puwedeng gumamit ng AI ang mga tool kung nakakatulong ito sa gawain, at sinusuportahan din ang mga agent bilang gumagamit - tingnan ang [Mga AI Agent](/info/ai-agents.html).
+- <!--i:seal--> **Hindi pag-aangking walang bahid.** Malawak ang binabasang provenance ng Lolly at tapat ang pagsulat nito; hindi ito nagpapanggap na matutukoy ang bawat generated na pixel sa internet.
+- <!--i:sunburst--> **Hindi pagkataranta tungkol sa moralidad.** Hindi ang pagdagsa ng nilalaman ang kalaban. Ang kawalan ng pagkilala sa pinagmulan nito ang problema.
 
-## Suriin ang mga pangakong ito mismo
+<!--i:eti-search-->
+## Suriin mo mismo ang mga pangakong ito
 
-Ipinapatupad ang bawat pangako sa itaas sa bukas na codebase, hindi sa policy PDF: ang provenance path, ang GEN AI labelling at ang garantiyang walang tracker ay pawang may kasamang test, at ginagabayan ka ng pahinang [Verify It Yourself](/info/verify-yourself.html) sa pag-check ng mga pahayag laban sa totoong export.
+Ipinapatupad ang bawat pangako sa itaas sa bukas na codebase, hindi sa isang policy PDF: kasama sa release ang mga test para sa provenance path, GEN AI labelling at garantiyang walang tracker, at ginagabayan ka ng pahinang [Ikaw Mismo ang Mag-verify](/info/verify-yourself.html) sa pagsusuri ng mga pahayag gamit ang totoong export.

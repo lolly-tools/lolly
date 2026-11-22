@@ -1,25 +1,29 @@
-# Lolly 与 Adobe
+# Lolly 與 Adobe
 
-_最后核查：2026 年 9 月 28 日。_
+_最後查核：2026 年 9 月 28 日。_
 
-如果你日常文件用的是 Photoshop、Illustrator 或 InDesign，本页会说明其中哪些工作 Lolly 可以接手，哪些仍留给 Adobe。
+如果你用 Photoshop、Illustrator 或 InDesign 處理日常檔案，本頁會說明哪些工作可交給 Lolly，哪些仍由 Adobe 處理。
 
+<!--i:eti-award-->
 ## Adobe 做得更好的地方
 
-Adobe 的专业应用涵盖深入的创意工作。例如，[Photoshop](https://www.adobe.com/products/photoshop.html) 提供细致的照片编辑、选区、蒙版和合成。复杂的修饰和反复出现的品牌素材有不同的需求：在转移那项工作之前，请比较你的工作所需的编辑操作。
+Adobe 的專業應用程式涵蓋深入的創意工作。[Photoshop](https://www.adobe.com/products/photoshop.html) 提供精細的照片編輯、選取、遮罩與合成功能。複雜修圖與反覆製作的品牌素材有不同需求。移轉工作之前，請先比較工作所需的編輯操作。
 
-## 重叠之处
+<!--i:eti-blend-->
+## 功能重疊之處
 
-两者都能缩放图像、排版并导出专业格式。Lolly 支持 PDF/X、CMYK 和高位深栅格输出，具有[各格式的功能](/info/formats.html)，其设备端实用工具无需上传即可转换和清理文件。
+兩者都能調整圖片大小、編排版面與匯出專業格式。Lolly 支援 PDF/X、CMYK 與高位元深度的點陣輸出，並提供[各格式的特定功能](/info/formats.html)。裝置上的檔案工具可轉換與清理檔案，不必上傳。[匯入設計](/info/design-import.html)會在裝置上將 Photoshop、Illustrator 與 InDesign 檔案開啟為可編輯的版面。
 
-## Lolly 如何完成重叠的工作
+<!--i:eti-lolly-->
+## Lolly 如何完成重疊的工作
 
-独立使用的 Lolly 不需要 Adobe 账号，也不需要 Lolly 账号，并在浏览器、桌面应用和 CLI 中运行同一个引擎。模板和设计令牌使每个文件保持一致，[Share with rules](/info/create-a-tool.html) 把设计变成其他人填写的工具。
+獨立使用 Lolly 不需要 Adobe 帳號，也不需要 Lolly 帳號。它在瀏覽器、桌面應用程式與 CLI 中執行相同引擎。範本與設計 token 讓每個檔案保持一致。[依規則分享](/info/create-a-tool.html)可將設計轉成供他人填寫的工具。
 
-Lolly 默认在设备上用 Content Credentials 为受支持的导出签名；你可以关闭。设备密钥证明文件自签名以来未被更改。组织可以使用自己的证书颁发机构，这样它的验证者就会信任签名者；[Content Credentials 身份](/info/content-credentials-identity.html)解释了其中的区别。设备端转换实用工具不添加 Lolly 水印或 Content Credentials。
+Lolly 在裝置上以 Content Credentials 簽署支援的匯出。簽署預設開啟，也可以關閉。裝置金鑰證明檔案自簽署後未曾改變。組織可以使用自己的憑證授權單位，讓其驗證器信任簽署者。[Content Credentials 身分](/info/content-credentials-identity.html)說明了其中的差別。裝置上的轉換工具不會加入 Lolly 浮水印或 Content Credentials。
 
-## 与组织一起
+<!--i:eti-building-->
+## 在組織中使用
 
-Lolly Work 增加组织登录、共享素材、审批和服务器生产，并在组织证书下进行[服务器签名](/info/work-c2pa.html)。[什么在哪里运行](/info/compare.html#what-runs-where)把这两部分并排对比。
+Lolly Work 加入組織登入、共用素材、核准與伺服器製作流程，並可使用組織憑證進行[伺服器簽署](/info/work-c2pa.html)。[各部分在哪裡執行](/info/compare.html#what-runs-where)並列說明這兩個部分。
 
-Adobe、Photoshop 和 Creative Cloud 是 Adobe 的商标。本页描述的是这些产品重叠的地方，与 Adobe 没有关联。
+Adobe、Photoshop 與 Creative Cloud 是 Adobe 的商標。本頁說明產品功能重疊之處，與 Adobe 無關聯。

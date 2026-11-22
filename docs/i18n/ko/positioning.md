@@ -1,92 +1,97 @@
-# Lolly는 어떻게 비교되는가
+# Lolly 비교
 
-Lolly는 하나의 오픈 소스 프로젝트의 두 부분이에요. **Lolly**는 계정 없이 기기에서 만들고, 편집하고, 변환하고, 내보내는 엔진, 앱, 도구예요. **Lolly Work**는 로그인, 공유 프로젝트, 승인, 서버 렌더링을 위한 조직 서버이며 자체 인프라에서 운영해요. 둘 다 MPL-2.0이에요. 이 페이지는 이 둘을 사람들이 디자인하고, 관리하고, 파일을 만드는 다른 방법과 비교해요.
+Lolly는 계정 없이 사용자의 기기에서 브랜드에 맞는 파일을 만들어요. **Lolly Work**는 팀을 위한 서버예요. 조직이 운영하는 컴퓨터에서 로그인, 공유 프로젝트, 승인, 서버 렌더링을 제공해요. 둘 다 MPL-2.0에 따른 오픈 소스예요.
 
-조직화 아이디어는 [콘텐츠 주권](/info/content-sovereignty.html)이에요. 콘텐츠가 선택한 시스템에 걸쳐 만들어지고, 관리되고, 저장되고, 이동하는 방식을 통제하는 것이에요. 크리에이티브 애플리케이션이 디자인을 제공하고, DAM이 기록의 원본으로 남을 수 있으며, Lolly는 허용된 입력과 승인된 에셋을 새 파일로 바꿀 수 있어요. [기존 DAM과 함께 Lolly 사용하기](/info/use-with-dam.html)가 이 조합을 설명해요.
+대부분의 팀은 기존 도구를 유지해요. 디자인 앱이 디자인을 제공하고, DAM이 공식 원본 저장소로 남고, Lolly가 승인된 입력을 완성된 파일로 바꿔요. [기존 DAM과 Lolly 함께 사용하기](/info/use-with-dam.html)에서 이 조합을 설명해요. 그 바탕에 있는 생각은 [콘텐츠 주권](/info/content-sovereignty.html)이에요.
 
-## 오늘날의 도구들
+<!--i:eti-gauge-->
+## 오늘날의 도구
 
-각 링은 제품 부류가 기능을 얼마나 완전하게 제공하는지를 점수로 매기며, 모든 부류는 최고 대표 제품을 기준으로 해요. Lolly 열은 Lolly와 Lolly Work를 함께 다루고, 각 행은 어느 부분이 무엇을 제공하는지 밝혀요. 행 이름을 열면 점수의 근거를 볼 수 있어요. 열은 맨 위의 Overall completeness 행으로 정렬돼요. 지출 행을 제외한 점수 행의 평균이에요.
-
-점수는 계정이나 클라우드 요구 없이 통제할 수 있는 쪽을 선호하는 Lolly의 기준을 사용해요. 이 기준에 따른 비교이며, 제품 완성도에 대한 중립적인 순위나 엔터프라이즈 조달 점수가 아니에요. 특정 워크플로를 평가할 때는 기능, 배포, 근거의 한계를 따로 읽으세요.
+각 링은 한 종류의 제품이 한 가지 요구를 얼마나 완전히 충족하는지 보여줘요. 행 옆의 **?**를 누르면 근거를, 범례 옆의 **?**를 누르면 점수의 의미를 볼 수 있어요.
 
 ::: figure positioning-comparison
-기능 비교: 경쟁사 조사와 점수는 2026년 8월 기준이고, Lolly + Lolly Work 범위는 2026년 9월 28일에 검토했어요. 점수 기준: 0은 없음, 25는 임시방편 수준, 50은 실제로 있지만 제한되거나 부분적, 75는 단서가 있는 강점, 100은 핵심 역량.
+기능 비교. 경쟁 제품 조사는 공급업체 문서를 바탕으로 2026년 8월부터 11월 21일까지 진행했어요. Lolly와 Lolly Work는 2026년 11월 21일에 검토했어요. 점수: 0 없음, 25 우회 방법, 50 실제 기능이 있지만 사용 조건이 있거나 부분적임, 75 강력하지만 유의점이 있음, 100 핵심 역량.
 :::
 
-::: details 점수 안내
-제공되는 기능과 프로덕션 성숙도는 별개예요. Lolly는 출시되었어요. 버전 1.0이 2026년 8월 30일 오픈 소스로 출시되었고, 보안에 대해 아직 독립적인 감사를 받지 않았으며, 도입 증거는 몇 달 정도 되었어요([도입 및 거버넌스](/info/adoption-governance.html#status)에 현재 상태가 있어요). 싱글 사인온, 승인, 서버 렌더링이 있다고 프로덕션 실적이 입증되지는 않으므로 성숙도 점수가 이를 반영해요. 경쟁사 점수는 날짜가 있는 8월 검토를 유지해요.
-
-한 가지 규칙이 보드를 지배해요. 콘텐츠나 신원에 닿는 행에서 만점(100)은 계정이나 클라우드 전제 조건 없이 쓸 수 있는 기능이 필요해요. 성숙도나 사용 편의성처럼 제품 자체에 관한 행은 예외예요. 이 규칙 때문에 Adobe는 Content Credentials에서 점수를 잃어요. 가장 폭넓게 출시된 구현(Photoshop, Lightroom, Premiere, Firefly)이 로컬과 클라우드에서 서명하지만 Adobe 계정과 신원 없이는 절대 그렇지 않으므로 75예요. 같은 이유로 렌더링 API는 대량 생성과 자동화에서 상한이 걸려요.
-
-Canva는 Affinity와 Cavalry(둘 다 2025년 10월에 무료로 공개됨)를 소유하므로 행마다 최고 계열 제품으로 점수를 매겨요. 오프라인 및 기기 내 렌더링은 Affinity를 통해 75점인데, 검증된 계정이 여전히 필요하고 원격 측정이 있는 데스크톱 제품군이며 Adobe도 같은 감점을 받아요. Canva 자체의 오프라인 모드는 미리 동기화된 디자인만 한 기기에서 제한된 기간 동안 편집해요. Autofill은 50점이에요. 실제로 있지만 Enterprise 전용이고 비동기이며 텍스트와 이미지만 채워요. Figma의 대량 생성은 Buzz가 스프레드시트 채우기를 출시하면서(2026년 8월 무료 베타) 25에서 50으로 올랐어요.
-
-Lolly의 Content Credentials 점수 75는 기기 내 서명과 구성된 조직 신원을 사용하는 Lolly Work의 서버 서명을 다뤄요. 검증자는 여전히 서명자를 신뢰해야 해요([Content Credentials 신원](/info/content-credentials-identity.html)). Penpot의 50은 Penpot용 Lolly 자체 내보내기 플러그인을 통해 오는 것이에요. 같은 엔진 서명이며 옵트인이고 Lolly의 것으로 공개돼요. Penpot은 기기 내 렌더링에서 90점이에요. 직접 호스팅할 수 있는 서버에 저장 대상이 있는 브라우저 캔버스예요. Cloudinary는 에셋 라이브러리, 변환 API, CDN으로 자체 열을 받아요. 8월 검토는 전달 서명을 50으로 매겼어요.
-
-Lolly의 실시간 협업에는 두 기기 간 직접 비공개 collab과, 공유 편집, 커서, 저장된 팀 세션이 있는 Lolly Work를 통한 인증된 업무 collab이 포함돼요. Partial 점수는 팀 편집이 없다는 뜻이 아니라 현재의 단일 노드 업무 배포와 짧은 운영 이력을 반영해요. 가격 추정치는 날짜가 있는 정가 산수로 규모를 보여주는 것이며 조달 자료가 아니에요.
+::: details 2026년 11월에 바뀐 점수의 출처
+- Canva: [API 변경 기록](https://www.canva.dev/docs/apps/rest-apis/changelog/), [서비스 앱](https://www.canva.dev/blog/developers/canva-service-accounts/), [Brand Controls 도움말](https://www.canva.com/help/brand-control/)
+- Adobe: [InDesign API 변경 기록](https://developer.adobe.com/firefly-services/docs/indesign-apis/getting-started/changelog/), [Adobe Express 요금](https://www.adobe.com/express/pricing)
+- Figma: [에이전트와 AI 크레딧](https://help.figma.com/hc/en-us/articles/42614902212887), [MCP 서버](https://developers.figma.com/docs/figma-mcp-server/)
+- Frontify와 Bynder: [Frontify 2026년 10월 릴리스 노트](https://news.frontify.com/163371-what-s-new-in-october-2026), [Frontify MCP](https://help.frontify.com/en/articles/14787214-frontify-mcp-beta)
+- Bannerbear와 Placid: [Bannerbear 요금](https://www.bannerbear.com/pricing/), [Bannerbear 변경 기록](https://www.bannerbear.com/changelog/), [Placid 요금](https://placid.app/pricing)
+- Penpot: [자체 호스팅 요금](https://penpot.app/pricing/self-host), [릴리스](https://github.com/penpot/penpot/releases)
+- Cloudinary: [콘텐츠 출처](https://cloudinary.com/documentation/content_provenance_and_authenticity), [요금](https://cloudinary.com/pricing)
 :::
 
-## Lolly를 쓸 때
+기능과 실적은 별도의 행이에요. Lolly의 첫 공개 릴리스는 2026년 8월 30일의 1.0.1이었고, 보안은 아직 독립 감사를 받지 않았으며, 도입 근거는 몇 개월간 쌓인 것이에요. [도입 & 거버넌스](/info/adoption-governance.html#status)에 현재 상태가 있어요.
+
+<!--i:eti-hammer-->
+## Lolly를 선택할 때
 
 ::: cols
-## Lolly를 쓰세요
+## 이런 경우 Lolly를 선택하세요
 
-- 같은 종류의 파일이 반복해서 필요할 때: 행사 타일, 배지, 수료증, 알림, 소셜 카드
-- 하나의 템플릿과 값의 표로 많은 파일을 만들 때([Lolly Batch](/info/batch.html#make-many-versions-of-one-design) 또는 CLI)
-- 열린 캔버스에서도 색상, 서체, 에셋이 디자인 시스템 안에 머물러야 할 때
-- 완성된 Figma, Penpot, Illustrator, InDesign 또는 PDF 디자인을 편집 가능하고 반복 가능하게 만들어야 할 때([디자인 가져오기](/info/design-import.html))
-- 파일을 자신의 기기나 서버에서 만들어야 할 때
+- 이벤트 타일, 배지, 인증서, 알림, 소셜 카드처럼 같은 종류의 파일이 반복해서 필요할 때
+- [Lolly Batch](/info/batch.html#make-many-versions-of-one-design)나 CLI에서 템플릿 하나와 값이 담긴 표로 많은 파일을 만들 때
+- 자유 캔버스에서도 색상, 서체, 에셋이 디자인 시스템 안에 머물러야 할 때
+- 완성된 Figma, Penpot, Illustrator, InDesign, Affinity 또는 PDF 디자인을 편집하고 반복해서 만들 수 있어야 할 때([디자인 가져오기](/info/design-import.html))
+- 자신의 기기나 서버에서 파일을 만들어야 할 때
 
-## 다른 것을 쓰세요
+## 이런 경우 다른 것을 선택하세요
 
-- 정교한 사진 보정이나 일러스트 작업일 때
-- 애플리케이션 인터페이스를 디자인하고 프로토타이핑할 때
-- 첫날부터 대규모 스톡과 템플릿 라이브러리가 필요할 때
-- 대규모에서 오랜 실적이 있는 관리형 서비스가 필요할 때
+- 세밀한 사진 보정이나 일러스트 작업을 할 때
+- 애플리케이션 인터페이스를 디자인하고 프로토타입을 만들 때
+- 첫날부터 대규모 스톡 및 템플릿 라이브러리가 필요할 때
+- 대규모 운영에서 오랜 실적을 가진 관리형 서비스가 필요할 때
 :::
 
-가져온 디자인과 공유 디자인 토큰으로 팀은 Lolly를 전문 애플리케이션과 결합할 수 있고, Lolly Work는 공유 에셋, 검토, 전달을 관리해요.
+가져온 디자인과 공유 디자인 토큰으로 팀은 Lolly를 전문 애플리케이션과 함께 사용할 수 있으며, Lolly Work는 공유 에셋, 검토, 전달을 관리해요.
 
-엄선한 DAM이 있는 팀은 그 라이브러리와 관리자를 그대로 두는 것에서 시작하세요. [SUSE의 Brandfolder 경험](/info/suse-brandfolder.html)은 통합이 도입과 승인 변경 관리를 어떻게 뒷받침했는지 기록해요. DAM 공급업체와 구현 파트너는 [파트너 워크플로](/info/dam-partners.html)로 같은 구성을 평가할 수 있어요.
+잘 정리된 DAM이 있는 팀이라면 그 라이브러리와 관리자를 그대로 유지하는 것부터 시작하세요. [SUSE의 Brandfolder 경험](/info/suse-brandfolder.html)은 통합이 도입과 승인 절차의 변경 관리를 어떻게 지원했는지 기록해요. DAM 공급업체와 구현 파트너는 [파트너 워크플로](/info/dam-partners.html)로 같은 구성을 평가할 수 있어요.
 
-전체 슬라이드 덱이 한계를 보여줘요. **Lolly Markdown Slides**에서 덱은 데이터로 선언되고, 실시간으로 배치되고, 네이티브하며 편집 가능한 PowerPoint 파일로 내보내져요.
+전체 덱은 **Lolly Markdown Slides**에서 데이터로 작성되고, 실시간으로 배치되고, 네이티브 편집 가능 PowerPoint 파일로 내보내져요.
 
-![분할 보기의 Lolly Markdown Slides: 왼쪽에는 블록으로 나열된 덱의 슬라이드, 오른쪽에는 배치된 덱이 렌더링돼요](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+![분할 보기의 Lolly Markdown Slides. 왼쪽에는 덱의 슬라이드가 블록으로 나열되고, 오른쪽에는 배치된 덱이 렌더링돼요](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-## 규칙은 도구에 있어요
+<!--i:eti-shield-check-->
+## 규칙은 도구 안에 있어요
 
-Lolly는 재사용 가능한 브랜드 규칙을 도구에 넣어요. 색상, 글꼴, 도련 여백, 간격, 허용되는 입력이에요. 템플릿은 받는 사람이 바꾸면 안 되는 부분을 고정해요. Lolly Work는 그 템플릿 주위에 그룹 접근과 입력 정책, 카탈로그 제출과 전달을 위한 승인 체인을 더해요.
+Lolly는 색상, 글꼴, 도련 여백, 간격, 허용된 입력처럼 재사용할 수 있는 브랜드 규칙을 도구에 담아요. 템플릿은 수신자가 바꾸면 안 되는 부분을 고정해요. Lolly Work는 그 템플릿에 그룹 접근과 입력 정책을 더하고, 카탈로그 제출과 전달을 위한 승인 단계를 제공해요.
 
-도구를 한 번 확인하면 각 출력이 레이아웃 규칙을 물려받으므로 반복 제작이 쉬워져요. 카피, 업로드한 이미지, 사용 권리는 여전히 확인이 필요할 수 있으며 Lolly Work가 이를 위한 공유 카탈로그와 승인 단계를 제공해요. 크리에이티브 팀에게 도구는 가드레일이에요. 데이터, 카피, 이미지는 여전히 사용자가 가져오고, 도구는 모든 결과를 브랜드에 맞게 유지해요.
+도구를 한 번 확인하면 각 출력이 그 레이아웃 규칙을 물려받으므로 반복 제작이 쉬워져요. 문구, 업로드한 이미지, 사용 권한은 여전히 확인이 필요할 수 있으며, Lolly Work는 이를 위한 공유 카탈로그와 승인 단계를 제공해요. 창작 팀에게 도구는 안전장치예요. 데이터, 문구, 이미지는 여전히 사용자가 가져오고, 도구는 모든 결과가 브랜드에 맞도록 유지해요.
 
-![제작자가 하는 일의 전부는 단어를 입력하는 것: 서체, 색상, 간격은 도구를 만들 때 정해졌어요](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+![제작자가 할 일은 단어를 입력하는 것뿐이에요. 서체, 색상, 간격은 도구를 만들 때 정해졌어요](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
-이 접근 방식을 구분하는 것이 세 가지 더 있어요.
+그 밖의 차이 세 가지예요.
 
-- **입력에서 나오는 최종 파일.** 입력을 넣으면 완성된 파일이 나오며, "이제 디자인 도구에서 저장해서 손보세요"는 없어요.
-- **도구가 도구를 구성해요.** 한 도구가 코드 결합 없이 다른 도구의 렌더링을 하나의 완성된 파일에 임베드할 수 있어요.
-- **밑바닥까지 열려 있어요.** 엔진은 오픈 소스이고, 도구, 에셋, 디자인 토큰은 버전 관리에 두거나 Lolly Work에서 관리할 수 있는 파일이며, 다른 사람의 데이터베이스에 있는 행이 아니에요.
+- **입력에서 최종 파일로.** 입력을 넣으면 완성된 파일이 나와요. "이제 디자인 도구에서 저장한 뒤 다듬으세요"라는 단계가 없어요.
+- **도구가 도구를 조합해요.** 한 도구가 다른 도구의 렌더링을 하나의 완성된 파일에 임베드할 수 있으며, 둘 사이에 코드 결합이 없어요.
+- **오픈 소스.** 엔진은 오픈 소스이며, 도구, 에셋, 디자인 토큰은 버전 관리에 보관하거나 Lolly Work에서 관리할 수 있는 파일이에요. 다른 사람의 데이터베이스에 있는 행이 아니에요.
 
-대담한 디자인도 가드레일을 견뎌요. 포스터급 도시 지도는 진짜 벡터 도로와 물길 경로이며, 드롭다운 하나와 디자인 시스템 밖을 가리킬 수 없는 색상 입력란 두 개로 만들어졌어요.
+안전장치 안에서도 과감한 디자인을 할 수 있어요. 이 포스터용 도시 지도는 실제 벡터 도로와 수로 경로로 이뤄져 있으며, 디자인 시스템 밖의 값을 지정할 수 없는 드롭다운 하나와 색상 필드 두 개로 만들었어요.
 
-![디자인 시스템 자체 잉크로 가장자리까지 그려진 암스테르담의 운하 고리와 도로망: 모든 선이 손이 아니라 템플릿으로 배치돼요](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
+![디자인 시스템 자체의 색으로 화면 가득 그려진 암스테르담의 고리 모양 운하와 도로망. 모든 획은 손이 아니라 템플릿이 배치했어요](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
-## 혁신은 확률적으로, 규모 확장은 결정론적으로
+<!--i:eti-stamp-->
+## 확률적으로 혁신하고, 결정론적으로 확장해요
 
-대부분의 "AI 창작" 홍보는 모델을 오래된 선의 잘못된 쪽에 둬요. 필경사와 채색사들이 그 선이 어디 있는지 정했어요. 스케치에서는 자유롭게 작업해요. 무엇이든 시도할 수 있고 아무것도 확정되지 않아요. 그다음 확정하는 인쇄기로 가요. 예술은 스케치에 있었고 인쇄기는 그것이 퍼지는 방법이었으며, 인쇄기가 매번 찍을 때마다 약속을 지켰기에 인쇄된 작품을 믿을 수 있었어요.
+대부분의 "AI 창작" 제안은 오래전부터 있던 경계의 잘못된 쪽에 모델을 놓아요. 필경사와 채식사가 그 경계를 정했어요. 스케치에서는 자유롭게 작업하며 무엇이든 시도할 수 있고 아무것도 확정하지 않아요. 그런 다음 인쇄기로 가서 확정해요. 스케치에 예술이 담겼고 인쇄기는 그것을 전달하는 수단이었어요. 인쇄물이 신뢰받을 수 있었던 것은 인쇄기가 매번 찍을 때마다 약속을 지켰기 때문이에요.
 
-Lolly는 인쇄기예요. 아이디어에는 모델이든 디자이너든 대충 그린 그림이든 원하는 것을 가져오세요. 하지만 아이디어가 여러 파일이 되어야 하는 순간에는, 누구나 다시 읽을 수 있는 입력으로 매번 같은 방식으로 렌더링하는 무언가를 거쳐요. 위의 비교는 사실 그 확정 단계를 누가 반복 가능하게 만드는지에 관한 것이에요.
+Lolly는 그 인쇄기예요. 아이디어에는 모델이든 디자이너든 거친 스케치든 원하는 것을 가져오세요. 하지만 아이디어가 많은 파일이 되어야 하는 순간에는 누구나 다시 읽을 수 있는 입력으로 매번 같은 방식으로 렌더링하는 과정을 거쳐요. 위의 비교는 결국 누가 그 확정 단계를 반복 가능하게 만드는지에 관한 것이에요.
 
-> 크리에이티브 과정을 신뢰하고, 엄격함으로 규모를 키우세요.
+> 창작 과정을 믿고, 엄밀하게 확장하세요.
 
+<!--i:eti-tag-->
 ## 영원히 무료
 
-**기기에서 렌더링되면 영원히 무료예요.** 엔진, 셸, 도구, 형식은 오픈 소스이고, 배포된 버전은 되돌릴 수 없어요. Lolly Work도 오픈 소스예요. 조직은 직접 호스팅하는 경우 좌석당이나 렌더링당 소프트웨어 라이선스 비용 없이 선택한 인프라와 운영에 대해서만 비용을 지불해요. [질문과 답변](/info/faq.html)이 약속 뒤의 이야기를 들려줘요.
+**기기에서 렌더링된다면 영원히 무료예요.** 엔진, 셸, 도구, 형식은 오픈 소스이며, 출시된 버전은 회수할 수 없어요. Lolly Work도 오픈 소스예요. 조직은 선택한 인프라와 운영에 비용을 지불하며, 자체 호스팅에는 사용자별 또는 렌더링별 소프트웨어 라이선스 요금이 없어요. [질문과 답변](/info/faq.html)에서 이 약속의 배경을 이야기해요.
 
-## 콘텐츠가 있는 곳
+<!--i:eti-map-pin-->
+## 콘텐츠가 머무는 곳
 
-Lolly의 창작 작업은 직접 소유한 하드웨어에서 실행될 수 있고, 디자인 토큰, 글꼴, 로고, 도구는 보관할 수 있는 파일이에요. Lolly Work에서는 공유 프로젝트, 에셋, 정책, 감사 기록이 조직이 구성한 저장소에 있어요. [신뢰](/info/trust.html)가 이것이 중요한 이유를 설명하고, [개인정보 처리방침](/info/privacy.html)과 [Verify It Yourself](/info/verify-yourself.html)로 저희 말을 믿는 대신 직접 확인할 수 있어요.
+Lolly의 창작 작업은 소유한 하드웨어에서 실행할 수 있고, 디자인 토큰, 글꼴, 로고, 도구는 직접 보관할 수 있는 파일이에요. Lolly Work에서는 공유 프로젝트, 에셋, 정책, 감사 기록이 조직이 구성한 저장소에 머물러요. [신뢰](/info/trust.html)에서 이것이 왜 중요한지 설명하며, [개인정보 처리방침](/info/privacy.html)과 [직접 검증하기](/info/verify-yourself.html)로 우리 말을 그대로 믿는 대신 주장을 확인할 수 있어요.
 
+<!--i:eti-grid-->
 ## 도구별 비교
 
-[도구별 Lolly 비교](/info/compare.html)는 Lolly를 Canva, Adobe, Figma, Penpot, 브랜드 포털, 렌더링 API, 온라인 변환기와 한 페이지씩 비교하고 [어디서 무엇이 실행되는가](/info/compare.html#what-runs-where)를 정리해요.
+[Lolly 도구별 비교](/info/compare.html)는 Canva, Adobe, Figma, Penpot, 브랜드 포털, 렌더링 API, 온라인 변환기를 각각 한 페이지에서 Lolly와 비교하고, [무엇이 어디서 실행되는지](/info/compare.html#what-runs-where) 설명해요.

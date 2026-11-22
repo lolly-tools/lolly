@@ -1,21 +1,24 @@
-# Lolly 与在线文件转换器
+# Lolly 與線上檔案轉換器
 
-_最后核查：2026 年 9 月 28 日。_
+_最後查核：2026 年 9 月 28 日。_
 
-如果你通常搜索 “HEIC to JPG” 或 “compress PDF”，然后把文件上传到搜到的任何一个网站，Lolly 在你的浏览器里、你自己的设备上就能完成同样的转换。
+如果你通常會搜尋「HEIC 轉 JPG」或「壓縮 PDF」，再將檔案上傳到搜尋到的網站，Lolly 可以在你自己的裝置上，透過瀏覽器完成相同的轉換。
 
-## 转换器网站做得更好的地方
+<!--i:eti-award-->
+## 轉換網站可能做得更好的地方
 
-有些转换器网站能处理 Lolly 不支持的格式，而且无需事先设置任何东西。选择转换器时，除了它在哪里处理文件，也要看你需要的格式和保真度：有些转换会保留可编辑的结构，有些会把结果压平。
+有些轉換網站能處理 Lolly 不支援的格式，而且不需設定。請依你需要的格式、保真度，以及檔案處理位置選擇轉換器。有些轉換會保留可編輯結構，有些則會將結果壓平。
 
-## 转换在哪里进行
+<!--i:eti-map-pin-->
+## 轉換在哪裡進行
 
-基于浏览器的转换器可能会上传文件进行处理，也可能在本地转换。Lolly 的转换实用工具在本地处理文件，没有账号、广告或跟踪器，也不添加 Lolly 水印或 Content Credentials。一旦转换所需的素材保存好，它们就可以离线工作。文件大小受设备内存和特定格式读取器的限制。
+瀏覽器中的轉換器可能會上傳檔案進行處理，也可能在本機轉換。Lolly 的轉換工具在本機處理檔案，不需要帳號，也沒有廣告或追蹤器。它們不會加入 Lolly 浮水印或 Content Credentials。轉換所需的素材儲存後，工具即可離線運作。檔案大小受裝置記憶體與格式讀取器限制。
 
-![Utilities 视图：Lolly Strip Hidden Data、Compress PDF、Convert Image 以及其他设备端工作，全部集中在一处](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
+![Utilities 檢視：Lolly Strip Hidden Data、Compress PDF、Convert Image 與其他裝置上的工作集中於一處](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&waitSelector=.utilities-view%5Bdata-shots-settled%5D&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-[Lolly 可以打开和制作的所有格式](/info/formats.html)列出了受支持的转换及其限制，包括 HEIC 转 JPG、PNG 转 SVG 和 PDF 转图片。
+[Lolly 能開啟與製作的所有格式](/info/formats.html)列出支援的轉換及其限制，包括 HEIC 轉 JPG、PNG 轉 SVG 與 PDF 轉圖片。
 
-## 当团队需要更多时
+<!--i:eti-building-->
+## 當團隊需要更多功能
 
-即使组织运行 Lolly Work，组织成员仍然可以使用设备端实用工具进行本地转换。共享上传、服务器渲染或交付是数据发往其服务器的节点；[什么在哪里运行](/info/compare.html#what-runs-where)说明了两者的分离。
+使用 Lolly Work 的組織成員，仍透過裝置上的檔案工具進行本機轉換。只有共用上傳、伺服器渲染或交付時，資料才會傳送到組織的伺服器。[各部分在哪裡執行](/info/compare.html#what-runs-where)說明了這種區分。

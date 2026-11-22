@@ -1,61 +1,68 @@
-# Lolly a renderovací API
+# Lolly a vykreslovací API
 
-_Naposledy ověřeno: 5. listopadu 2026._
+_Poslední kontrola: 5. listopadu 2026._
 
-Pokud dnes generuješ obrázky ze šablon přes API, tato stránka říká, co se změní, když si tuto výrobu provozuješ sám: na vlastním zařízení, v CI nebo na serveru, který ovládáš. [Přechod z hostovaného vykreslovacího API](/info/work-move-from-render-api.html) říká, jak na to.
+Pokud generuješ obrázky ze šablon přes API, tato stránka říká, co se změní, když tuto tvorbu spustíš na vlastním zařízení, v CI nebo na serveru, který ovládáš. [Přechod z hostovaného vykreslovacího API](/info/work-move-from-render-api.html) uvádí postup.
 
-## Co hostovaná vykreslovací API dělají lépe
+<!--i:eti-award-->
+## Co hostovaná vykreslovací API zvládají lépe
 
-[Bannerbear](https://www.bannerbear.com/) a [Placid](https://placid.app/) jsou spravované služby a to je skutečná výhoda. Pošleš požadavek a servery provozuje, udržuje v chodu a zátěž řeší někdo jiný.
+[Bannerbear](https://www.bannerbear.com/) a [Placid](https://placid.app/) jsou spravované služby: odešleš požadavek a servery provozuje někdo jiný.
 
-- **Není co provozovat.** Žádný server, databáze, úložiště, aktualizace ani plánování kapacity.
-- **Hostovaný editor šablon** s hotovými šablonami k úpravě.
-- **Víc druhů výstupu z jednoho API.** Obě publikují koncové body pro video a PDF a Bannerbear dokumentuje také animovaný výstup, WebP a AVIF, snímky obrazovky a odstranění pozadí pomocí AI.
+- **Nic neprovozuješ.** Žádný server, databáze, úložiště, aktualizace ani plánování kapacity.
+- **Hostovaný editor šablon** se šablonami připravenými k úpravám.
+- **Více druhů výstupu z jednoho API.** Obě služby zveřejňují koncové body pro video a PDF a Bannerbear také dokumentuje animovaný výstup, WebP a AVIF, snímky obrazovky a odstranění pozadí pomocí AI.
 - **Vlastní integrace a podpora.**
 
-Pokud je to uspořádání, které chceš, jsou tyto služby rozumná volba.
+Pokud ti takové uspořádání vyhovuje, jsou tyto služby dobrou volbou.
 
-## Co ti dává vlastní provoz
+<!--i:eti-home-->
+## Co ti dává vlastní hosting
 
-- **Tvůj obsah zůstává na tvých systémech.** Vstupy, assety a výstupy žijí na infrastruktuře, kterou sis vybral. Vykreslování na zařízení nebo v CI nepotřebuje žádnou službu.
-- **Pravidla žijí v nástroji.** Barvy, písmo, loga a zamčené vstupy pocházejí z tvého [designového systému](/info/brand-studio.html), takže volající může změnit jen to, co povolíš. [Lolly Work](/info/compare.html#what-runs-where) uplatňuje viditelnost nástrojů a politiky vstupů na každý požadavek.
-- **Stejný nástroj všude.** Nástroj se vykresluje na notebooku, v úloze CI nebo na serveru ze stejných vstupů a lidé mohou tentýž nástroj upravovat v aplikaci.
-- **Záznamy, které držíš ty.** [Potvrzení o vykreslení](/info/work-renders.html#evidence-and-identity), auditní stopa a Content Credentials tam, kde nastavíš podpisovou identitu.
-- **Open source a žádný měřák.** Kód provozuješ ty a platíš za vlastní infrastrukturu.
+- **Tvůj obsah zůstává ve tvých systémech.** Vstupy, assety a výstupy jsou na infrastruktuře, kterou sis vybral. Vykreslování na zařízení nebo v CI nepotřebuje žádnou službu.
+- **Pravidla jsou v nástroji.** Barvy, písmo, loga a uzamčené vstupy pocházejí z tvého [designového systému](/info/brand-studio.html), takže volající může měnit jen to, co dovolíš. [Lolly Work](/info/compare.html#what-runs-where) uplatňuje viditelnost nástrojů a zásady vstupů na každý požadavek.
+- **Všude stejný nástroj.** Nástroj vykresluje ze stejných vstupů na notebooku, v úloze CI nebo na serveru. Lidé mohou stejný nástroj upravovat v aplikaci.
+- **Záznamy máš u sebe.** [Potvrzení o vykreslení](/info/work-renders.html#evidence-and-identity), auditní záznam a Content Credentials tam, kde nakonfiguruješ podpisovou identitu.
+- **Otevřený zdrojový kód bez účtování podle využití.** Provozuješ kód a platíš jen za svou infrastrukturu.
 
-Přebíráš práci, kterou za tebe tyto služby dělají. Trvalý server potřebuje trvalou databázi a úložiště výstupů a nástroje, které potřebují prohlížeč, potřebují pracovníka Chromium. Obojí popisuje [Instalace Lolly Work](/info/work-install.html).
+Přebíráš práci, kterou tyto služby dělají za tebe. Trvalý server potřebuje trvalou databázi a úložiště výstupů. Nástroje vyžadující prohlížeč potřebují pracovní proces Chromium. [Instalace Lolly Work](/info/work-install.html) popisuje obojí.
 
-## Jak si úlohy odpovídají
+<!--i:eti-table-->
+## Srovnání jednotlivých úkolů
 
-| Úloha | Hostované vykreslovací API | Lolly |
+| Úkol | Hostované vykreslovací API | Lolly |
 |---|---|---|
-| Vyplnit šablonu z dat | Požadavek API pojmenovávající šablonu a její vrstvy | [URL](/info/url-mode.html), [CLI](/info/cli.html) nebo [serverové API](/info/work-automation-api.html) pojmenovávající nástroj a jeho vstupy |
-| Mnoho souborů z tabulky | Dávky a kolekce | [Batch](/info/batch.html) na tvém zařízení nebo [dávky vykreslení](/info/work-renders.html#batches-with-durable-rows) na serveru |
-| Čekat na výsledek nebo se dotazovat | Dotazování nebo synchronní volba | Trvalá vykreslení, na která se dotazuješ, nebo okamžité vykreslení |
-| Zavolat webhook po dokončení | Ano | [Podepsané zpětné volání](/info/work-renders.html) na povolené originy |
-| Dynamická URL obrázku | Ano | [Odkazy ke sdílení a URL `/render`](/info/url-mode.html) |
-| Úprava šablony | Hostovaný editor | [Design](/info/using.html) na tvém zařízení |
-| Agenti | Obě publikují server MCP | [MCP](/info/mcp.html) s koncovým bodem organizace pod politikou tokenu v Lolly Work |
+| Vyplnit šablonu daty | Požadavek API určující šablonu a její vrstvy | [URL](/info/url-mode.html), [CLI](/info/cli.html) nebo [serverové API](/info/work-automation-api.html) určující nástroj a jeho vstupy |
+| Mnoho souborů z tabulky | Dávky a kolekce | [Dávka](/info/batch.html) na tvém zařízení nebo [dávky vykreslení](/info/work-renders.html#batches-with-durable-rows) na serveru |
+| Čekat na výsledek nebo se na něj dotazovat | Pravidelné dotazování nebo synchronní možnost | Trvalé vykreslovací úlohy, na které se dotazuješ, nebo okamžité vykreslení |
+| Po dokončení zavolat webhook | Ano | [Podepsaná zpětná volání](/info/work-renders.html) na originy, které povolíš |
+| Dynamická URL obrázku | Ano | [Odkazy pro sdílení a URL `/render`](/info/url-mode.html) |
+| Upravit šablonu | Hostovaný editor | [Design](/info/using.html) na tvém zařízení |
+| Agenti | Obě služby zveřejňují server MCP | [MCP](/info/mcp.html) s koncovým bodem organizace podle zásad tokenu v Lolly Work |
 
-Vlastní druhy výstupu Lolly jsou uvedeny v [Exportu](/info/exporting.html). Na serveru Work dnes trvalá vykreslení vytvářejí SVG, PNG, JPG a PDF a [video zůstává na zařízení, v CLI a v MCP](/info/work-renders.html#production-still-checks-and-permitted-repairs).
+Vlastní druhy výstupu Lolly jsou uvedené v [Exportu souboru](/info/exporting.html). Na serveru Work dnes trvalé vykreslovací úlohy vytvářejí SVG, PNG, JPG a PDF a [video zůstává na zařízení, v CLI a MCP](/info/work-renders.html#production-still-checks-and-permitted-repairs).
 
-## Co přechází a co ne
+<!--i:eti-folder-move-->
+## Co se přenese a co ne
 
 | | Bannerbear V5 | Bannerbear V2 | Placid |
 |---|---|---|---|
-| Tvé požadavky | Migrační API Work přijímá stejný tvar | Stejné | Stejné |
-| Tvé šablony | **Import** jako upravitelné dokumenty, kromě typů vrstev bez potvrzeného schématu | Jen názvy polí a náhled. Každou postav znovu | Jen názvy polí a náhled. Každou postav znovu |
-| Stávající dynamické URL | Nepodporováno | Nepodporováno | Podepsané URL po změně hostitele fungují dál, s tvým starým soukromým tokenem |
-| Webhooky | Registrované webhooky nejsou podporovány | `webhook_url` funguje | `webhook_success` funguje |
-| Výstup WebP a AVIF | Odmítnuto jménem | Nenabízeno | WebP odmítnuto jménem |
-| Animace, videa, kolekce, snímky obrazovky | Ne na migračním API | Ne na migračním API | Ne na migračním API |
+| Tvé požadavky | Migrační API Work přijímá stejnou strukturu | Totéž | Totéž |
+| Tvé šablony | **Import** jako upravitelné dokumenty kromě typů vrstev bez potvrzeného schématu | Jen názvy polí a náhled. Každou znovu sestav | Jen názvy polí a náhled. Každou znovu sestav |
+| Stávající dynamické URL | Nepodporované | Nepodporované | Podepsané URL fungují i po změně hostitele s tvým původním soukromým tokenem |
+| Webhooky | Registrované webhooky nejsou podporované | `webhook_url` funguje | `webhook_success` funguje |
+| Výstup WebP a AVIF | Odmítnuté podle názvu | Nenabízí se | WebP odmítnutý podle názvu |
+| Animace, videa, kolekce, snímky obrazovky | V migračním API nejsou | V migračním API nejsou | V migračním API nejsou |
 
-To vše bylo sestaveno z veřejné dokumentace každého dodavatele a nebylo to spuštěno proti živému účtu. [Průvodce přechodem](/info/work-move-from-render-api.html#check-it-on-your-own-account) má krátký kontrolní seznam, pokud nějaký účet máš.
+::: note Vytvořeno podle veřejné dokumentace
+Toto řešení vzniklo podle veřejné dokumentace jednotlivých dodavatelů a nebylo spuštěné proti živému účtu. Pokud máš účet, [průvodce přechodem](/info/work-move-from-render-api.html#check-it-on-your-own-account) obsahuje krátký kontrolní seznam.
+:::
 
-Přechod není všechno nebo nic. Můžeš přesunout jednu šablonu a ostatní nechat tam, kde jsou, a [odchod z Lolly](/info/work-move-from-render-api.html#leave-lolly-too) zůstává stejně otevřený: nástroje jsou prosté soubory a CLI je vykresluje bez serveru.
+Můžeš přesunout jednu šablonu a ostatní nechat tam, kde jsou. [Odchod z Lolly](/info/work-move-from-render-api.html#leave-lolly-too) je stejně otevřený: nástroje jsou obyčejné soubory a CLI je vykresluje bez serveru.
 
+<!--i:eti-building-->
 ## Kdo službu provozuje
 
-S Lolly jednotlivec vykresluje lokálně, nebo tým provozuje Lolly Work na vlastní infrastruktuře. Odeslání serverové úlohy posílá její vstupy a potřebné assety té instanci, což je jiné než cesta na zařízení.
+S Lolly jednotlivec vykresluje místně nebo tým provozuje Lolly Work na vlastní infrastruktuře. Serverová úloha posílá své vstupy a požadované assety do této instance. Postup na zařízení je neposílá.
 
-Bannerbear a Placid jsou ochranné známky svých vlastníků. Tato stránka popisuje, kde se produkty překrývají, podle jejich veřejné dokumentace, a není s žádným z nich nijak spojena.
+Bannerbear a Placid jsou ochranné známky svých vlastníků. Tato stránka podle jejich veřejné dokumentace popisuje, kde se produkty překrývají, a není spojená ani s jedním z nich.

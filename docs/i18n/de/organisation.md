@@ -1,92 +1,100 @@
-# Lolly in Ihrer Organisation nutzen
+# Lolly in Ihrer Organisation verwenden
 
-Ihre Organisation kann ein eigenes Lolly betreiben: dieselbe App, mit den Tools und Designsystemen, die sie gewählt hat. Diese Seite zeigt, wie Sie es erreichen, sich anmelden und was sich dann ändert.
+Ihre Organisation kann ein eigenes Lolly betreiben: dieselbe App, mit den Tools und Designsystemen, die sie ausgewählt hat. Erfahren Sie, wie Sie es erreichen, sich anmelden und was sich ändert.
 
-Wenn Sie das Setup der Organisation planen, erklärt [Lolly mit Ihrem bestehenden DAM nutzen](/info/use-with-dam.html), wie eine freigegebene Bibliothek an ihrem Platz bleiben kann, während Menschen in Lolly mit dem Erstellen von Inhalten beginnen. [Inhaltssouveränität](/info/content-sovereignty.html) beschreibt die weiter reichende Kontrolle über Erstellung, Steuerung, Speicherung und Übertragbarkeit.
+Für die Planung der Einrichtung Ihrer Organisation erklärt [Lolly mit Ihrem bestehenden DAM verwenden](/info/use-with-dam.html), wie eine freigegebene Bibliothek bestehen bleiben kann, während Menschen Inhalte in Lolly erstellen. [Souveränität über Inhalte](/info/content-sovereignty.html) beschreibt die umfassendere Kontrolle über Erstellung, Verwaltung, Speicherung und Übertragbarkeit.
 
 ::: note Was Sie von Ihrer Organisation brauchen
-Die Webadresse ihres Lolly, oder eine `.lolly`-Setup-Datei, die Ihre Organisation erstellt hat. lolly.tools allein verbindet sich mit keiner Organisation.
+Die Webadresse ihres Lolly oder eine `.lolly`-Einrichtungsdatei, die Ihre Organisation erstellt hat. lolly.tools allein stellt keine Verbindung zu einer Organisation her.
 :::
 
-## Im Browser
+<!--i:eti-globe-->
+## In einem Browser
 
-Öffnen Sie die Adresse, die Ihre Organisation Ihnen gegeben hat. Wenn die Seite Sie zur Anmeldung auffordert, drücken Sie **Sign in** und folgen Sie der Anmeldeseite, die sich öffnet. Danach funktioniert es wie jedes Lolly, mit den Tools und Designsystemen Ihrer Organisation.
+Öffnen Sie die Adresse, die Ihre Organisation Ihnen gegeben hat. Falls die Seite Sie zur Anmeldung auffordert, drücken Sie **Sign in** und folgen Sie der Anmeldeseite, die sich öffnet. Danach funktioniert Lolly wie gewohnt, mit den Tools und Designsystemen Ihrer Organisation.
 
-Sie können auch bei lolly.tools beginnen: Öffnen Sie die Ansicht **Settings**, drücken Sie auf der Karte **Lolly instance** **Open a workspace**, geben Sie die Adresse ein und drücken Sie **Open this instance**. Der Browser wechselt zur eigenen Adresse Ihrer Organisation, weil ein Browser von lolly.tools aus nicht die Tools eines anderen Lolly laden kann.
+Sie können auch von lolly.tools aus starten: Öffnen Sie die Ansicht **Settings**, drücken Sie auf der Karte **Lolly instance** auf **Open a workspace**, geben Sie die Adresse ein und drücken Sie **Open this instance**. Der Browser wechselt zur eigenen Adresse Ihrer Organisation, weil ein Browser von lolly.tools aus keine Tools eines anderen Lolly laden kann.
 
-![Die Karte Lolly instance in den Einstellungen, auf der Sie den Workspace Ihrer Organisation öffnen oder ändern, woher die App ihre Tools bezieht](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
+![Die Karte Lolly instance in Settings, auf der Sie den Arbeitsbereich Ihrer Organisation öffnen oder ändern, woher die App ihre Tools bezieht](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
-## In der Desktop- oder Mobile-App
+<!--i:eti-monitor-->
+## In der Desktop- oder Mobil-App
 
-Die App startet mit ihren mitgelieferten Tools. Um sich zu verbinden, öffnen Sie die Ansicht **Settings** und drücken auf der Karte **Lolly instance** **Change**. Das Blatt fragt **Where should Lolly get its tools?**
+Die App startet mit ihren mitgelieferten Tools. Zum Verbinden öffnen Sie die Ansicht **Settings** und drücken auf der Karte **Lolly instance** auf **Change**. Der Dialog fragt **Where should Lolly get its tools?**
 
-1. Wählen Sie **Mit einer Lolly-Instanz verbinden**.
-2. Geben Sie die Webadresse Ihrer Organisation ein und drücken Sie **Prüfen und verbinden**.
-3. Drücken Sie **Diese Instanz verwenden**. Der nächste Bildschirm, **Ihre Daten importieren (optional)**, überträgt gespeicherte Arbeit aus einem Lolly-Backup; drücken Sie **Überspringen**, wenn Sie keines haben.
-4. Melden Sie sich an, falls die App danach fragt.
+1. Wählen Sie **Connect to a Lolly instance**.
+2. Geben Sie die Webadresse Ihrer Organisation ein und drücken Sie **Check & connect**.
+3. Drücken Sie **Use this instance**. Der nächste Bildschirm, **Import your data (optional)**, übernimmt gespeicherte Arbeit aus einer Lolly-Sicherung. Drücken Sie **Skip**, wenn Sie keine haben.
+4. Melden Sie sich an, falls die App Sie dazu auffordert.
 
-Tools einer verbundenen Instanz laufen mit demselben Vertrauen wie die eigenen der App, verbinden Sie sich daher nur mit einer, der Sie vertrauen. Ihre Organisation kann Ihnen stattdessen eine `.lolly`-Setup-Datei schicken, die die App für Sie verbindet.
+Tools einer verbundenen Instanz werden mit demselben Vertrauen wie die eigenen Tools der App ausgeführt. Verbinden Sie sich daher nur mit einer Instanz, der Sie vertrauen. Ihre Organisation kann Ihnen stattdessen eine `.lolly`-Einrichtungsdatei senden, die die App für Sie verbindet.
 
-Um später zu wechseln, nutzen Sie erneut **Change** oder **Leave** auf derselben Karte.
+Zum späteren Wechseln verwenden Sie erneut **Change** oder **Leave** auf derselben Karte.
 
-### Anmelden mit einem Code
+### Mit einem Code anmelden
 
-In den Desktop- und Mobil-Apps bietet der Anmeldebildschirm auch einen kurzen Code an, wenn das Lolly Ihrer Organisation die Anmeldung per Code unterstützt. Drücken Sie **Open sign-in in browser**, melden Sie sich an und bestätigen Sie dort den Code. Oder öffnen Sie die angezeigte Adresse auf einem Smartphone oder Computer, auf dem Sie schon angemeldet sind, und geben Sie den Code ein. Der Code gilt etwa zehn Minuten.
+In den Desktop- und Mobil-Apps bietet der Anmeldebildschirm auch einen kurzen Code an, wenn das Lolly Ihrer Organisation die Code-Anmeldung unterstützt. Drücken Sie **Open sign-in in browser**, melden Sie sich an und bestätigen Sie dort den Code. Oder öffnen Sie die angezeigte Adresse auf einem Smartphone oder Computer, auf dem Sie bereits angemeldet sind, und geben Sie den Code ein. Der Code gilt etwa zehn Minuten.
 
+<!--i:eti-sliders-->
 ## Was dort anders ist
 
-- **Manche Steuerelemente sind für Sie festgelegt.** Ein Steuerelement, das Ihre Organisation regelt, zeigt **Managed by** und den Namen der Organisation oder **Managed by your organisation**. Ein festes Steuerelement lässt sich nicht ändern, ein Menü bietet eventuell nur einen Teil seiner Auswahl, und eine Zeile, die mit **Set by** beginnt, kann sagen, welche Regel gilt und warum. Manche Steuerelemente werden gar nicht angezeigt.
-- **Manche Designsysteme sind gesperrt.** Ein Designsystem, das Ihre Organisation liefert, zeigt ein Schloss und bleibt schreibgeschützt. Um Änderungen auszuprobieren, erstellen Sie unter **Settings → Preferences → Design systems** eine bearbeitbare Kopie.
-- **Nur ihre Tools sind aufgelistet.** Ein Tool, das Ihre Organisation nicht anbietet, wird gar nicht angezeigt.
-- **Gemeinsame Projekte.** Wenn Ihre Organisation Projekte mit Ihnen teilt, zeigt **Projects** eine Kachel **Team projects**. Diese Sitzungen liegen auf dem Server der Organisation. Öffnen Sie eine, um daran zu arbeiten, oder starten Sie, wenn verfügbar, über **Share** eine [Lolly Work-Collab](/info/collaborate.html#collabs-through-lolly-work-optional).
-- **Manche Exporte brauchen eventuell eine Freigabe.** Wo Ihre Organisation eine Freigabe verlangt, tritt **Request approval** an die Stelle von **Download**, und ein Tool bietet eventuell weniger Formate.
+- **Einige Steuerelemente sind für Sie voreingestellt.** Ein Steuerelement, das Ihre Organisation verwaltet, zeigt **Managed by** und den Namen der Organisation oder **Managed by your organisation**. Ein festgelegtes Steuerelement lässt sich nicht ändern, und ein Menü bietet möglicherweise nur einen Teil seiner Optionen an. Einige Steuerelemente sind ausgeblendet. Die Konsole Ihrer Organisation zeichnet auf, welche Regel ein Steuerelement festgelegt hat und warum. Fragen Sie die Person, die das Lolly Ihrer Organisation betreibt.
+- **Einige Designsysteme sind gesperrt.** Ein Designsystem, das Ihre Organisation bereitstellt, zeigt ein Schloss und bleibt schreibgeschützt. Um Änderungen auszuprobieren, erstellen Sie unter **Settings → Preferences → Design systems** eine bearbeitbare Kopie.
+- **Nur ihre Tools werden aufgelistet.** Ein Tool, das Ihre Organisation nicht anbietet, wird nicht angezeigt.
+- **Gemeinsame Projekte.** Wenn Ihre Organisation Projekte mit Ihnen teilt, zeigt **Projects** eine Kachel **Team projects**. Diese Sitzungen liegen auf dem Server der Organisation. Öffnen Sie eine, um daran zu arbeiten, oder starten Sie über **Share** eine [Work-Collab](/info/collaborate.html#collabs-through-lolly-work-optional), sofern verfügbar.
+- **Einige Exporte benötigen möglicherweise eine Freigabe.** Wo Ihre Organisation eine Freigabe verlangt, ersetzt **Request approval** die Schaltfläche **Download**, und ein Tool bietet möglicherweise weniger Formate an.
+- **Ihre Startseite zeigt möglicherweise Vorlagen.** Falls Ihre Organisation Vorlagen für Sie veröffentlicht, etwa für ein Partnerunternehmen, zeigt Ihre Startseite diese anstelle der Begrüßung beim ersten Besuch. Jede Vorlage ist eine Karte, mit **Your copy** zum Weiterarbeiten und **New version**, wenn sich die Vorlage ändert. Siehe [Partnervorlagen](/info/work-partner-templates.html).
 
 ### Was wo bleibt
 
 ::: cols
 ## Auf diesem Gerät
 
-- Ihre eigenen Speicherstände, sofern Sie nicht [Sync](/info/sync.html) einschalten
-- Designsysteme, die Sie selbst erstellt haben
+- Ihre eigenen gespeicherten Arbeiten, sofern Sie [Sync](/info/sync.html) nicht einschalten
+- Selbst erstellte Designsysteme
 - Alles, was Sie erstellen und herunterladen
 
 ## Auf dem Server Ihrer Organisation
 
-- Ihre Anmeldeidentität und Geräteangaben
-- Team-Projekte, gemeinsame Sitzungen und Live-Änderungen in einer Lolly Work-Collab
+- Ihre Anmeldeidentität und Geräteinformationen
+- Teamprojekte, gemeinsame Sitzungen und Live-Änderungen in einer Work-Collab
 - Assets, die Sie in die gemeinsame Bibliothek hochladen
-- Freigabeanfragen und freigegebene Lieferungen
-- Nutzungsereignisse, wo Ihre Organisation sie einschaltet
+- Freigabeanfragen und genehmigte Lieferungen
+- Ein Protokoll Ihrer Anmeldungen und Ihrer dortigen Aktivitäten
 :::
 
-[Datenschutz](/info/privacy.html#organisation-services-with-lolly-work) listet auf, was der Server speichert und wer diese Daten kontrolliert.
+Wenn ein Arbeitsbereich verbunden ist, steht dasselbe im Datenschutzhinweis auf dem ersten Bildschirm der App. Lollys eigene Apps senden keine Nutzungsereignisse an den Arbeitsbereich. [Datenschutz](/info/privacy.html#organisation-services-with-lolly-work) listet auf, was der Server speichert und wer diese Daten kontrolliert.
 
-## Was Lolly Work hinzufügt
+<!--i:eti-building-->
+## Was Lolly Work ergänzt
 
-Der Server Ihrer Organisation betreibt **Lolly Work**, die Organisationssoftware desselben Open-Source-Projekts. Die App braucht weder ein Work-Konto noch Lolly Work, wenn Sie sie allein nutzen.
+Auf dem Server Ihrer Organisation läuft **Lolly Work**, die Software für Organisationen aus demselben Open-Source-Projekt. Wenn Sie die App allein verwenden, braucht sie weder ein Arbeitskonto noch Lolly Work.
 
-::: details Was Lolly Work hinzufügen kann
-Ihre Organisation hostet [Lolly Work](https://github.com/lolly-tools/lolly-work) neben Lolly und wählt, welche Funktionen sie einschaltet:
+::: details Was Lolly Work ergänzen kann
+Ihre Organisation hostet [Lolly Work](https://github.com/lolly-tools/lolly-work) neben Lolly und wählt aus, welche Funktionen sie einschaltet:
 
 - **Anmeldung und Zugriff.** Single Sign-on der Organisation, gruppenbasierte Berechtigungen und verwaltete Profilfelder. Administratoren können Konten über SCIM bereitstellen und deaktivieren.
-- **Gemeinsame Arbeit.** Team-Projekte, gemeinsame Sitzungen und [Lolly Work-Collabs](/info/collaborate.html#collabs-through-lolly-work-optional), mit Live-Bearbeitung über den Server der Organisation.
+- **Gemeinsame Arbeit.** Teamprojekte, gemeinsame Sitzungen und [Work-Collabs](/info/collaborate.html#collabs-through-lolly-work-optional), mit Live-Bearbeitung über den Server der Organisation.
 - **Eine gemeinsame Asset-Bibliothek.** Hochgeladene Assets, Sammlungen und verbundene Bibliotheken, mit Zugriffsregeln, Versionen und Prüfung.
-- **Prüfung und Lieferung.** Freigabeschritte, verwaltete Links mit Ablauf oder Widerruf und Lieferung an Ziele, die die Organisation zulässt.
-- **Administration.** Nutzungsberichte nach der Telemetrie-Richtlinie der Instanz sowie ein Audit-Protokoll gesteuerter Aktionen.
-
-Wenn Sie den Dienst einrichten, beginnen Sie mit [Bereitstellung](/info/deployment.html#organisation-services-with-lolly-work). Die öffentliche Demo unter [lolly.work](https://lolly.work) ist eine Sandbox; nutzen Sie für Arbeit, die Sie behalten müssen, die eigene Adresse Ihrer Organisation.
+- **Prüfung und Lieferung.** Freigabeschritte, verwaltete Links mit Ablauf oder Widerruf und Lieferung an Ziele, die die Organisation erlaubt.
+- **Verwaltung.** Ein Audit-Protokoll der durch Richtlinien geregelten Aktionen und Nutzungsberichte gemäß der Telemetrierichtlinie der Instanz für Clients, die Nutzungsereignisse senden. Lollys eigene Apps senden derzeit keine.
 :::
 
+Beginnen Sie zum Einrichten des Dienstes mit [Bereitstellung](/info/deployment.html#organisation-services-with-lolly-work). Die öffentliche Demo unter [lolly.work](https://lolly.work) ist eine Sandbox. Verwenden Sie für Arbeit, die Sie behalten müssen, die eigene Adresse Ihrer Organisation.
+
+<!--i:eti-palette-->
 ## Die Marke einer anderen Organisation
 
-Ein Partner, Kunde oder Sponsor schickt Ihnen seine Marke vielleicht als Designsystem-Datei (`.lolly`) statt als Adresse. Eine solche Datei zu öffnen verbindet die App mit nichts: Sie fügt sein Designsystem auf diesem Gerät neben Ihrem eigenen hinzu. Eine Einrichtungsdatei Ihrer eigenen Organisation ist etwas anderes, denn sie verbindet die App mit dem Lolly der Organisation, und die Vorschau zeigt, was das Öffnen einer Datei bewirkt, bevor sich etwas ändert. [Zusammenarbeit mit Partnern](/info/partners.html) behandelt beide Seiten der Arbeit in der Marke einer anderen Organisation.
+Ein Partner, Kunde oder Sponsor kann Ihnen seine Marke als Designsystem-Datei (`.lolly`) statt als Adresse senden. Das Öffnen dieser Datei verbindet die App mit nichts. Die Datei fügt das Designsystem auf diesem Gerät neben Ihrem eigenen hinzu. Eine Einrichtungsdatei Ihrer eigenen Organisation verbindet die App mit dem Lolly der Organisation. Bevor sich etwas ändert, zeigt die Vorschau, was das Öffnen einer Datei bewirkt. [Mit Partnern arbeiten](/info/partners.html) behandelt beide Seiten der Arbeit mit der Marke einer anderen Organisation.
 
+<!--i:eti-unlink-->
 ## Verlassen
 
-**Leave** auf der Karte **Lolly instance** in **Settings** entfernt das Designsystem, die Tools und den Katalog Ihrer Organisation. Ihre eigene Arbeit bleibt. Alles, was Sie mit ihren Tools erstellt haben, öffnet sich erst wieder, wenn Sie sich neu verbinden.
+**Leave** auf der Karte **Lolly instance** in **Settings** entfernt das Designsystem, die Tools und den Katalog Ihrer Organisation. Ihre eigene Arbeit bleibt erhalten. Was Sie mit deren Tools erstellt haben, lässt sich erst wieder öffnen, wenn Sie sich erneut verbinden. Sofern das Lolly Ihrer Organisation es anbietet, beendet **Sign out everywhere** auf derselben Karte Ihre Sitzungen auf jedem Gerät, auch auf diesem.
 
-Alles, was Sie in der Organisation gespeichert haben, bleibt bei der Organisation, nach deren Zugriffs- und Aufbewahrungsrichtlinien. Das Verlassen oder Leeren dieses Geräts löscht diese Serverkopie nicht. In einem Browser unter der eigenen Adresse Ihrer Organisation gibt es nichts zu verlassen: Öffnen Sie stattdessen eine andere Adresse.
+Alles, was Sie bei der Organisation gespeichert haben, bleibt dort gemäß ihren Zugriffs- und Aufbewahrungsrichtlinien. Wenn Sie die Organisation verlassen oder dieses Gerät leeren, wird diese Serverkopie nicht gelöscht. In einem Browser unter der eigenen Adresse Ihrer Organisation gibt es nichts zu verlassen: Öffnen Sie stattdessen eine andere Adresse.
 
-## An wen Sie sich wenden
+<!--i:eti-help-->
+## An wen Sie sich wenden können
 
-Was den Server Ihrer Organisation erreicht, wer ihre gemeinsamen Projekte sehen kann und welche Einstellungen fest sind, sind Entscheidungen Ihrer Organisation. Fragen Sie, wer das Lolly Ihrer Organisation betreibt. [Datenschutzerklärung](/info/privacy.html) behandelt, was Lolly selbst mit Ihren Daten macht.
+Was den Server Ihrer Organisation erreicht, wer ihre gemeinsamen Projekte sehen kann und welche Einstellungen festgelegt sind, entscheidet Ihre Organisation. Fragen Sie die Person, die das Lolly Ihrer Organisation betreibt. [Datenschutz](/info/privacy.html) beschreibt, was Lolly selbst mit Ihren Daten macht.

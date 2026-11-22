@@ -1,28 +1,31 @@
 # 管理
 
-Lolly 在每个人的设备上运行。当团队需要登录、共享项目、受管控的素材、审阅和服务器作业时，组织可以添加 **Lolly Work**，即同一项目的开源组织服务器。这些页面面向设置和维护该服务器的人。
+Lolly 在每個人的裝置上執行。這些頁面寫給運行 **Lolly Work** 的人；它是此專案的開源組織伺服器，提供登入、共用專案、受管理素材、審閱與伺服器工作。
 
-先看[在你的组织中使用 Lolly](/info/organisation.html)，了解成员能得到什么；或看 [Lolly Work 架构](/info/work-overview.html)，了解服务器负责什么。
+從[在你的組織使用 Lolly](/info/organisation.html)開始，了解成員可以使用什麼，或閱讀 [Lolly Work 架構](/info/work-overview.html)了解伺服器的功能。
 
-## 设置访问与政策
+<!--i:eti-lock-->
+## 設定存取與政策
 
-- [采用与治理](/info/adoption-governance.html)介绍了推广和品牌规则的作用。
-- [身份与会话](/info/work-identity.html)介绍了登录和组映射。[角色与授权](/info/work-permissions.html)解释了角色、授权和所有者保护。
-- [政策与治理](/info/work-governance.html)介绍了工具覆盖层、锁定的输入项和政策。[管理组织 AI 政策](/info/work-ai-policy.html)介绍了审批和执行限制。
-- [账号数据控制](/info/work-account-lifecycle.html)和 [Lolly Work 存储与数据生命周期](/info/work-data-lifecycle.html)介绍了导出、离职、保留及其限制。
-- [配置文件、品牌与工具配置](/info/configuration.html)介绍了某个 Lolly 构建版本携带哪些工具和设计系统。
+- [導入與治理](/info/adoption-governance.html)說明推行方式與品牌規則的作用。
+- [身分與工作階段](/info/work-identity.html)說明登入與群組對應。[角色與授權](/info/work-permissions.html)說明角色、授權與擁有者保護機制。
+- [政策與治理](/info/work-governance.html)說明工具覆蓋設定、鎖定的輸入與政策。[管理組織 AI 政策](/info/work-ai-policy.html)說明核准與執行限制。
+- [帳號資料控制](/info/work-account-lifecycle.html)與 [Lolly Work 儲存與資料生命週期](/info/work-data-lifecycle.html)說明匯出、離職處理、保留及其限制。
+- [設定檔、品牌與工具設定](/info/configuration.html)說明 Lolly 建置版本包含哪些工具與設計系統。
 
-## 连接素材并审阅作品
+<!--i:eti-link-->
+## 連接素材與審閱作品
 
-- [在现有 DAM 中使用 Lolly](/info/use-with-dam.html)解释了来源权威和互联制作。[SUSE Brandfolder 账号](/info/suse-brandfolder.html)记录了采用经验，[规划 DAM 过渡](/info/dam-transition.html)介绍了之后可选的迁移。
+- [搭配現有的 DAM 使用 Lolly](/info/use-with-dam.html)說明來源的權威性與連接後的製作流程。[SUSE Brandfolder 紀實](/info/suse-brandfolder.html)記錄一次導入。[規劃 DAM 轉移](/info/dam-transition.html)說明之後可選擇的遷移。
 
-- [设计系统管理](/info/work-design-system-administration.html)介绍了来源清单、经审阅的更改和回滚。
-- [目录与内容](/info/work-catalog.html)介绍了共享素材和公开规则。[提供方指南](/info/work-provider-guides.html)给出了每个来源平台的设置和验证要求。
-- [审批](/info/work-approvals.html)介绍了审阅链和职责分离。[渲染与分享](/info/work-sharing.html)介绍了链接和服务器输出。
-- [邀请代理进入文档](/info/work-document-agents.html)介绍了限定范围的文档访问、过期和撤销。邀请不授予部署或基础设施访问权限。
+- [設計系統管理](/info/work-design-system-administration.html)說明來源清單、經審閱的變更與回復。
+- [目錄與內容](/info/work-catalog.html)說明共用素材與開放規則。[供應商指南](/info/work-provider-guides.html)列出各來源平台的設定與驗證要求。
+- [核准](/info/work-approvals.html)說明審閱鏈與職責分離。[渲染與分享](/info/work-sharing.html)說明連結與伺服器輸出。
+- [邀請代理程式加入文件](/info/work-document-agents.html)說明限定範圍的文件存取、到期與撤銷。邀請不會授予部署或基礎設施存取權。
 
-## 找到下一项任务
+<!--i:eti-search-->
+## 尋找下一項工作
 
-- [创作](/info/creators.html)有创意任务和团队手册。
-- [部署](/info/operate.html)介绍了安装和维护 Lolly 与 Lolly Work 服务器。实例的配置与个人的内容配置文件是分开的。
-- [信任](/info/trust.html)解释了数据流、签名和安全边界。
+- [創作](/info/creators.html)提供創作工作與團隊實作指南。
+- [部署](/info/operate.html)說明如何安裝與維護 Lolly 及 Lolly Work 伺服器。實例的設定與個人的內容設定檔是分開的。
+- [信任](/info/trust.html)說明資料流向、簽章與安全邊界。

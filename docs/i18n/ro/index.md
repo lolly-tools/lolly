@@ -1,4 +1,3 @@
-# Lolly - Textul paginii de start
+# Lolly - Textul paginii de prezentare
 
-Fă fișiere gata de folosit. Păstrează controlul asupra conținutului tău.
-Grafică, documente, video și tipar în culorile și fontul tău: fără cont, fără card, privat și open source.
+Creează grafică, documente, video și materiale pentru tipar finalizate, în culorile și fonturile tale. Confidențial, open source, fără cont.

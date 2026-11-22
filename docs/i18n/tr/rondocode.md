@@ -2,49 +2,52 @@
 
 <a id="rondocode-songs"></a>
 
-Bir rondocode şarkısı kod olarak yazılmış müziktir: sentezleyiciler, kalıplar ve bir miks; yazdıkça çalınır. Lolly bir videonun altında bir şarkı çalabilir ve **Rondocode** yardımcı aracı bir tane yazıp ses olarak dışa aktarmana izin verir. İkisi de şarkıyı dosyanın Content Credentials içinde kaydeder; böylece müzik nereden geldiğini söyler.
+Rondocode şarkısı, kod olarak yazılmış müziktir: yazarken çalınan sentezleyiciler, kalıplar ve bir miks. Lolly bir videonun altında şarkı çalabilir; **Rondocode** yardımcı aracı ise şarkı yazar ve ses olarak dışa aktarır. İkisi de şarkıyı dosyanın Content Credentials kaydına ekler.
 
-## Lolly'de bir şarkı çal
+<!--i:eti-music-->
+## Lolly'de şarkı çal
 
-Varlık seçici bir şarkıyı `.rondo` veya `.rondo.json` dosyası olarak ya da yapıştırılmış bir `rondocode.com` paylaşım bağlantısı olarak kabul eder. Bir şarkı kendi sesini üreten koddur; bu yüzden klibinin istediği her uzunlukta çalar. Bir video dışa aktarmasının altındaki **music bed** olabilir ya da Neurospicy Mode'un ortam oynatıcısında çalabilir.
+Varlık seçici, şarkıyı `.rondo` veya `.rondo.json` dosyası olarak ya da yapıştırılmış bir `rondocode.com` paylaşım bağlantısı olarak alır. Şarkı, klibi ne kadar süre istiyorsa o kadar çalar. Bir video dışa aktarmasının altında **fon müziği** olabilir veya Neurospicy Mode'un ortam oynatıcısında çalabilir.
 
-Şarkının kodu Lolly'nin sanal alanında, ağ ve dosyalarına erişim olmadan çalışır. Bir render'ın çalamadığı canlı mikrofon veya ses modelleri olmadan şarkı söyleme gibi her parça varlığın ayrıntılarında listelenir.
+Şarkının kodu Lolly'nin korumalı alanında, ağ bağlantısı ve dosyalarına erişim olmadan çalışır. Canlı mikrofon veya ses modelleri olmadan şarkı söyleme gibi, render'ın çalamadığı her bölüm varlığın ayrıntılarında listelenir.
 
-Terminalden `lolly mix` bir şarkıyı tüm ses kaydı olarak alır; bkz. [CLI rendering](/info/cli-rendering.html).
+Terminalde `lolly mix`, şarkıyı ses kuşağının tamamı olarak alır; bkz. [CLI ile render](/info/cli-rendering.html).
 
-## Bir şarkı yaz ve dışa aktar
+<!--i:eti-code-->
+## Şarkı yaz ve dışa aktar
 
-Rondocode'un canlı düzenleyicisinde bir şarkı yazmak ve yazdıkça duymak için **Utilities** içinden **Rondocode** aracını aç. Onu **WAV**, **MP3**, **M4A**, **Opus** veya **FLAC** olarak, bir kök (stem) ZIP'i olarak, **MIDI** olarak ya da çalanın bir kaydı olarak dışa aktar. Terminalden `lolly rondocode --export=mid` aynı MIDI dosyasını yazar. **Export length** bir ses dışa aktarmasının kaç saniye süreceğini belirler. Şarkı dosyasının kendisi (`.rondo.json`) yazdığın hâliyle kodundur ve eklenmiş hiçbir şey taşımaz.
+Rondocode'un canlı düzenleyicisinde bir şarkı yazmak ve yazarken duymak için **Utilities** içinden **Rondocode** aracını aç. **WAV**, **MP3**, **M4A**, **Opus** veya **FLAC** olarak, ayrı ses kanallarından oluşan bir ZIP olarak, **MIDI** olarak ya da çalan sesin kaydı olarak dışa aktar. Terminalde `lolly rondocode --export=mid` aynı MIDI dosyasını yazar. **Export length**, ses dışa aktarmasının kaç saniye süreceğini belirler. Şarkı dosyası (`.rondo.json`), hiçbir şey eklenmeden kodunun yazıldığı halidir.
 
-Bir şarkı sözlerini `sing()` ile söyleyebilir. Şarkı söyleme, cihazında indirilen ses modelleriyle yapılır ve sentezlenmiş şarkı söyleme tutan bir dosya, söylemeyi her zaman yapay zekâ üretimi olarak bildirir (bkz. [AI features](/info/ai-features.html)).
+Bir şarkı, `sing()` ile sözlerini söyleyebilir. İndirilen ses modelleri şarkı söyleme sesini cihazında üretir. Sentezlenmiş şarkı söyleme içeren bir dosya, bu sesin yapay zekâ ile üretildiğini her zaman belirtir (bkz. [Yapay zekâ özellikleri](/info/ai-features.html)).
 
+<!--i:eti-badge-check-->
 ## Kimlik bilgisindeki şarkılar
 
-Bir rondocode şarkısı çalan bir video veya ses dışa aktarması, her şarkıyı Content Credentials içinde bir kaynak olarak kaydeder:
+Bir rondocode şarkısı çalan video veya ses dışa aktarması, her şarkıyı Content Credentials içinde kaynak olarak kaydeder:
 
 - şarkının adı;
-- `.rondo.json` dosyasının SHA-256 değeri;
-- nasıl render edildiği: Lolly'nin sanal alanında, `vm` yürütme sınıfı, render edicinin sürümü ve tohumu ve render'ın çalamadığı her parça.
+- `.rondo.json` dosyasının SHA-256 özeti;
+- nasıl render edildiği: Lolly'nin korumalı alanında, `vm` yürütme sınıfında, render motorunun sürümü ve tohum değeriyle birlikte ve render'ın çalamadığı her bölüm.
 
-Bir şarkının kodundan hesaplanan müzik algoritmik medya olarak işaretlenir; bu yüzden Lolly Verify onu yapay zekâ olarak işaretlemez. Dışa aktarmadan önce **Download** altındaki bir satır kimlik bilgisinin kaydedeceği şarkıları listeler; dışa aktarmadan sonra aynı satır teslim edilen dosyanın okunmasında bulunanı bildirir. Kaydı dışarıda bırakmak için **C2PA Credentials** işaretini kaldır. Durağan bir görsel ses taşımadığı için hiçbir şarkı kaydetmez. `lolly mix` ve [MCP server](/info/mcp.html) aynı kaydı yazar.
+Şarkının kodundan hesaplanan müzik algoritmik medya olarak işaretlenir; bu yüzden Lolly Verify bunu yapay zekâ olarak işaretlemez. Dışa aktarmadan önce **Download** altındaki bir satır, kimlik bilgisinin kaydedeceği şarkıları listeler. Dışa aktarmadan sonra aynı satır, teslim edilen dosyanın okunmasıyla bulunanları bildirir. Kaydı dışarıda bırakmak için **C2PA Credentials** işaretini kaldır. Durağan bir görsel, sesi olmadığı için şarkı kaydetmez. Durağan bir görsel şarkı kaydetmez. `lolly mix` ve [MCP sunucusu](/info/mcp.html) aynı kaydı yazar.
 
-## Rondocode yardımcı aracından dosyalar
+<!--i:eti-file-->
+## Rondocode yardımcı aracından gelen dosyalar
 
-Cihaz üzerindeki yardımcı araçların çoğu, zaten sahip olduğun bir dosyayı dönüştürdükleri için kimlik bilgisi yazmaz. Lolly Rondocode yeni ses yapar; bu yüzden yazdığı her ses dosyası şarkıyı kaynağı olarak kaydeden Content Credentials taşır: adı, `.rondo.json` dosyasının SHA-256 değeri ve kodunun nerede çalıştığı. Bu WAV, MP3, M4A, Opus, FLAC, bir kök ZIP'indeki her kök ve çalanın bir kaydını kapsar.
+Cihazda çalışan yardımcı araçların çoğu kimlik bilgisi yazmaz; çünkü zaten sana ait olan bir dosyayı dönüştürürler. Lolly Rondocode yeni ses oluşturur; bu yüzden yazdığı her ses dosyası, şarkıyı kaynak olarak kaydeden Content Credentials taşır: WAV, MP3, M4A, Opus, FLAC, ayrı ses kanalları ZIP'indeki her kanal ve çalan sesin kaydı.
 
 - Düzenleyicinin kendi render'ları özel çerçevesinde (`frame` yürütme sınıfı) çalışır ve düzenleyicinin sürümünü kaydeder.
-- CLI veya bir paylaşım bağlantısıyla yapılan bir render `vm` sınıfında çalışır ve render edicinin sürümünü ve tohumunu kaydeder.
-- Bir WAV aynısını RIFF yorumunda da belirtir.
-- Şarkının kodundan hesaplanan müzik algoritmik medyadır ve yapay zekâ olarak işaretlenmez.
+- CLI veya bir paylaşım bağlantısıyla yapılan render, `vm` sınıfında çalışır ve render motorunun sürümünü ve tohum değerini kaydeder.
+- WAV, RIFF yorumunda da aynı bilgiyi belirtir.
 
-Bir şarkı söylediğinde dosya, bu söylemeyi makine tarafından okunabilir biçimde yapay zekâ üretimi olarak bildirir. Kimlik bilgisinin dijital kaynak türü, eğitilmiş modellerle yapılmış bileşik medyadır, kayıt söylenen bölümleri listeler ve model başına bir C2PA yapay zekâ bildirimi şarkı söylemenin geçtiği her modeli tanımlar: Supertonic-3 metinden konuşmaya, wav2vec 2.0 fonem hizalayıcı, ContentVec kodlayıcı ve RVC sesi; Lolly'nin onu barındırdığı depo ve commit ile. Sentezlenmiş şarkı söyleme tutan bir dosya bu bildirim olmadan asla kaydedilmez.
+Bir şarkı sözlerini söylediğinde yapay zekâ beyanı makine tarafından okunabilir. Kimlik bilgisinin dijital kaynak türü, eğitilmiş modellerle oluşturulmuş bileşik medyadır; kayıt, söylenen bölümleri listeler ve model başına bir C2PA yapay zekâ bildirimi, şarkı söyleme sesinin geçtiği her modeli tanımlar: Supertonic-3 metinden konuşmaya modeli, wav2vec 2.0 fonem hizalayıcısı, ContentVec kodlayıcısı ve RVC sesi; Lolly'nin bunları barındırmak için aldığı depo ve commit bilgisiyle birlikte.
 
-### MIDI dosyasında ne var
+### MIDI dosyasının içeriği
 
-MIDI dosyası, format 1 bir Standard MIDI File'dır. İlk parça tempoyu ve 4/4 ölçü birimini taşır, ondan sonra her synth için o synth'in adını taşıyan bir parça gelir. Her nota başlangıcını, uzunluğunu ve velocity değerini korur. Adı bir enstrüman gibi okunan bir synth, örneğin bas, yaylılar, pad ya da piyano, eşleşen General MIDI enstrümanını alır; davul benzeri bir ad ise 10. kanala gider. On iki sesli olmayan bir akort, pitch bend ile en yakın yarım sese yuvarlanır.
+MIDI dosyası, biçim 1 olan bir Standard MIDI File'dır. İlk iz tempoyu ve 4/4 ölçüyü tutar; ardından her sentezleyici için sentezleyicinin adını taşıyan bir iz gelir. Her nota başlangıcını, uzunluğunu ve vuruş şiddetini korur. Adı bas, yaylılar, pad veya piyano gibi bir enstrümanı belirten sentezleyici, eşleşen General MIDI enstrümanını alır; davul benzeri bir ad ise kanal 10'a gider. On iki tonlu olmayan bir akort, perde bükmeyle en yakın yarım tona yuvarlanır.
 
-Bir MIDI dosyası bir şarkının nasıl ses verdiğini taşıyamaz. Synth ayarları, filtreler, efektler, bus'lar, örnekler ve vokal içinde yoktur; bu yüzden bir DAW notaları kendi enstrümanlarıyla çalar. Tempo, şarkının saniyedeki döngü sayısından okunur ve bir döngü dört vuruşluk bir ölçü kabul edilir, çünkü şarkının kendi ölçü birimi, oluşturucunun geri verdiği şeyin parçası değildir.
+MIDI dosyası sentezleyici ayarlarını, filtreleri, efektleri, ses yollarını, ses örneklerini veya şarkı söyleme sesini tutamaz; bu yüzden DAW notaları kendi enstrümanlarıyla çalar. Tempo, bir döngü dört vuruşluk bir ölçü sayılarak şarkının saniyedeki döngü sayısından okunur; çünkü şarkının kendi ölçüsü, render motorunun döndürdüğü bilgiler arasında değildir.
 
-Bir MIDI dosyasında kimlik bilgisi için yer yoktur; bu yüzden dosyadaki bir metin olayı beyanı taşır ve dışa aktarma paneli bunu söyler. Panel tüm bunları dışa aktarmadan önce anlatır ve her dışa aktarmadan sonra düzenleyici kayıtlı dosyayı geri okur ve yalnızca o okumanın bulduğunu bildirir.
+MIDI dosyasında kimlik bilgisi için yer yoktur; bu yüzden dosyadaki bir metin olayı beyanı taşır ve dışa aktarma paneli bunu söyler. Panel, dışa aktarmadan önce bunların tümünü açıklar. Her dışa aktarmadan sonra düzenleyici kaydedilen dosyayı geri okur ve yalnızca bu okumanın bulduklarını bildirir.
 
-Content Credentials'ın genel olarak neyi kaydettiği için bkz. [Export a file](/info/exporting.html#content-credentials-c2pa).
+Content Credentials'ın genel olarak neleri kaydettiği için bkz. [Dosya dışa aktar](/info/exporting.html#content-credentials-c2pa).

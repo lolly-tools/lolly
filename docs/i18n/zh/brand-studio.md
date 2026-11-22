@@ -2,455 +2,501 @@
 
 <a id="design-system-setup"></a>
 
-你的徽标、颜色和字体应该放在同一个地方，让每个工具、页面和导出都用它们来绘制。这个地方就是位于 `#/start` 的 **Lolly Design System Setup**。
+**Lolly Design System Setup** 位於 `#/start`，包含你的標誌、色彩與字型。每個工具、頁面與匯出都會使用它們繪製。
 
-从你手头有的东西开始。放入一个徽标，Lolly 就会读取它的颜色。选择一种字体，或放入你公司授权的字体文件。每次更改都会立即显示在整个应用中。你的徽标、字体和令牌留在这台设备上。选择 Google Font 是唯一会向外联系的一步：Lolly 会先询问，然后只获取一次该字体家族。
+拖入標誌，Lolly 就會讀取其色彩。選擇字型，或拖入公司取得授權的字型檔案。每次變更都會立即反映在整個應用程式中。你的標誌、字型與 token 會留在這部裝置上。只有選擇 Google Font 時會對外連線：Lolly 會先詢問，然後下載該字型家族一次。
 
-外观满意之后，给设计系统起个名字并按 **Export**。你会得到一个 `.lolly` 文件，可以保留、在另一台设备上打开或交给同事。[Lolly Settings](/info/dashboard.html#design-system)以只读方式显示当前系统，其封面会链接回这里进行编辑。
+為設計系統命名，並按下 **Export**，即可取得一個 `.lolly` 檔案。保留檔案、在另一部裝置開啟，或交給同事。[Lolly Settings](/info/dashboard.html#design-system) 以唯讀方式顯示目前啟用的系統；其封面會連回此處供你編輯。
 
-## 五分钟让它成为你的
+<!--i:eti-clock-->
+## 五分鐘內打造你自己的設計系統
 
 ::: timeline
-- <!--i:upload--> **放入你的徽标**，拖到 **Logos** 中的放置区。Lolly 会读取它的形状和颜色。
-- <!--i:palette--> **使用这些颜色。** 徽标的主色成为你的主色，徽标中的深色中性色成为你的文字颜色。
-- <!--i:font--> **选择字体**，在 **Type** 中：一个 Google Font，或你拥有的字体文件。
-- <!--i:pentool--> **给系统命名。** 你的第一次编辑会创建你自己的设计系统，Lolly 会询问一次它的名称。
-- <!--i:download--> **Export** 把整个系统写成一个 `LollyBrand-….lolly` 文件。
+- <!--i:upload--> **將你的標誌拖入** **Logos** 的拖放區。Lolly 會讀取其形狀與色彩。
+- <!--i:palette--> **使用這些色彩。** 標誌的主色會成為你的主要色彩，標誌中的深色中性色則會成為文字色彩。
+- <!--i:font--> **選擇字型**，在 **Type** 中選用 Google Font 或你擁有的字型檔案。
+- <!--i:pentool--> **為系統命名。** 第一次編輯會建立你自己的設計系統，Lolly 會詢問一次名稱。
+- <!--i:download--> **Export** 會將整個系統寫成一個 `LollyBrand-….lolly` 檔案。
 :::
 
-页面顶部的栏里放着设计系统的名称，名称是一个可以随时更改的字段：**Enter** 保留新名称，**Escape** 恢复旧名称。当你的第一次编辑询问 **What is this design system called?** 时，如果徽标上写出了文字，这些文字会自动填入。**Save name** 保留名称；**Not now** 保留占位名称，直到你在栏中输入名称。名称会在 Settings 中以及切换时标记该系统，也会成为 **Export** 所写文件的名称。
+工作室頂端列會以可編輯欄位顯示設計系統名稱。**Enter** 保留新名稱，**Escape** 還原舊名稱。第一次編輯時若出現 **What is this design system called?**，Lolly 會填入標誌中的文字（若標誌有顯示文字）。**Save name** 會保留名稱；**Not now** 則保留預留名稱，直到你在頂端列輸入名稱。名稱會用於 Settings 與切換時的系統標示，也會作為 **Export** 寫出的檔名。
 
-## 房间
+<!--i:eti-grid-->
+## 各個工作區
 
-工作室是一组没有固定顺序的房间：没有编号，也没有什么要等其他东西。在桌面上，房间排成栏下方的一条带。在手机上，它们移到屏幕底部边缘的一条栏里，拇指够得着，打开的房间会滚动到可见位置；调色板面板和托盘从这条栏上方升起，你输入时这条栏会让开。用键盘时，Tab 只需一次就到达这条带，方向键、Home 和 End 在房间之间移动。
+工作室由多個工作區組成，沒有固定順序。工作區之間不必互相等待。在桌面上，工作區排列在頂端列下方的同一條導覽列中。在手機上，它們會移至底部邊緣的列中，並捲動到顯示目前開啟的工作區。調色盤面板與托盤會從該列上方展開，輸入時該列會移開。使用鍵盤時，Tab 只會停在這條列一次，方向鍵、Home 與 End 則用來在工作區之間移動。
 
-![工作室的栏和它的房间：Board、Colours、Type、Logos、Tokens、Files、Rules 和 Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
+![工作室的頂端列與各個工作區：Board、Colours、Type、Logos、Tokens、Files、Sound、Rules 與 Skills](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-top&waitSelector=.ds-room-nav&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
-| 房间 | 你在那里做什么 | 链接键 |
+| 工作區 | 你可以在這裡做什麼 | 連結鍵 |
 |---|---|---|
-| **Board** | 查看系统包含什么，每个房间都有入口 | `overview` |
-| **Colours** | 添加颜色、赋予角色、构建色阶和调色板 | `color` |
-| **Type** | 选择应用、工具和每个导出所读取的四种字体 | `type` |
-| **Logos** | 以每种方向和处理方式放置你的标志 | `logos` |
-| **Tokens** | 圆角、间距、阴影以及所有其他命名值 | `tokens` |
-| **Files** | 你的品牌保存的图片、音频和动态文件 | `catalogue` |
-| **Rules** | 你的品牌应用的规则，在真实示例上检查 | `usage` |
-| **Skills** | 品牌为人和代理撰写的标准，可阅读和下载 | `skills` |
+| **Board** | 查看系統包含的內容，並進入各個工作區 | `overview` |
+| **Colours** | 加入色彩、指定角色、建立色階與調色盤 | `color` |
+| **Type** | 選擇應用程式、工具與每次匯出讀取的四種字型 | `type` |
+| **Logos** | 放置各種方向與處理方式的標誌 | `logos` |
+| **Tokens** | 圓角、間距、陰影與其他所有命名數值 | `tokens` |
+| **Files** | 品牌保存的圖片、音訊與動態檔案 | `catalogue` |
+| **Sound** | 塑造聲音識別、不同用途的音樂，以及語音與品牌的關係 | `sound` |
+| **Rules** | 品牌採用的規則，並以實際範例檢查 | `usage` |
+| **Skills** | 供人員與代理程式閱讀、下載的品牌書面標準 | `skills` |
 
-用 `#/start?area=<key>` 链接到某个房间。Files 房间保留键 `catalogue`，Board 保留 `overview`，Rules 保留 `usage`，因为房间键是永久性约定，`?tab=` 仍作为旧别名可用。未知的键会打开 Board。
+使用 `#/start?area=<key>` 連到工作區。工作區的鍵是固定的，因此 Files 保留 `catalogue`，Board 保留 `overview`，Rules 保留 `usage`。`?tab=` 仍可作為舊版別名使用。未知的鍵會開啟 Board。
 
-**栏**放的是针对整个系统而非某个房间的操作。**Add from…** 导入一个品牌（[导入品牌](#bring-a-brand-in)），**Tray** 存放扫描发现但你尚未添加的内容。**Export** 把系统写成一个文件，**More** 里有 **Tokens (.json)**、**Fonts for Linux (.rpm)**、**Versions & publishing**、**Restore brand settings** 和 **Design systems**，后者会在 Settings 中打开列表，供你切换（[保存并迁移你的设计系统](#keep-and-move-your-design-system)）。每一项只有在有对象可作用时才会出现。在手机上，**Add from…** 移入 **More**，**Export** 显示为它的图标。
+整個系統的動作都在**頂端列**。**Add from…** 會匯入品牌（[匯入品牌](#bring-a-brand-in)）。**Tray** 保存掃描找到、但你尚未加入的內容。**Export** 將系統寫成一個檔案。**More** 包含 **Tokens (.json)**、**Fonts for Linux (.rpm)**、**Versions & publishing**、**Restore brand settings** 與 **Design systems**；最後一項會開啟 Settings 中供你切換的清單（[保存與搬移你的設計系統](#keep-and-move-your-design-system)）。每個動作都會在有可處理的內容時出現。在手機上，**Add from…** 會移至 **More**，而 **Export** 會以圖示顯示。
 
-## 看板
+當設計系統仍是應用程式隨附的系統時，頂端列以 **Make it yours** 開頭，這個選單包含 **Find a look**、**Add from…** 與 **Pick a colour**。系統成為你自己的之後，**Export** 就會回到該位置。
 
-在尚未选择任何内容时，Board 提供四种起步方式。**Start from a reference** 打开徽标、截图、网页或设计文件的来源选择器，**Pick a colour**、**Choose a face** 和 **Add a logo** 直接打开对应的控制项。打开它们不会写入任何内容，并且 **Explore the tools** 从一开始就在那里。
+<!--i:eti-clipboard-->
+## Board
 
-一旦有任何东西属于你自己，Board 就会显示你拥有什么，你自己的计数排在前面。Colours 给出颜色数量，在显示继承颜色的地方带有淡化的 `· N starter`；它的色带先放你的颜色，然后是一条细线，再是淡化的起步颜色。Colourways 把每个 colourway 显示为一个以其主色填充的小方块。Type 按角色读出，并用各自的字体显示每个字体族（*Inter for headings*，下一行是 *Starter for the rest*）。Logos 说明已填充多少个槽位（或 **Not set**），Tokens 显示圆角半径，库为空时 Files 显示 **Nothing yet**。每个区块都会打开对应的房间。
+尚未選擇任何內容時，Board 提供四種開始方式。**Start from a reference** 會開啟來源選擇器，可選擇標誌、螢幕截圖、網頁或設計檔案。**Pick a colour**、**Choose a face** 與 **Add a logo** 會開啟對應的控制項。開啟控制項不會寫入任何內容。在它們下方，**Find a look** 提供現成的色彩與字型供你試用，而 **Explore the tools** 從一開始就可使用。
 
-应用自带且可编辑的设计系统，例如 Lolly Demo，一开始就具备这一切：Board 显示它的颜色、colourway、字体和标志，标题旁带有 **Came with this app** 标签。
+只要有任何內容成為你自己的，Board 就會顯示你擁有的內容，先列出你自己的數量。Colours 顯示色彩數量，繼承的色彩則以淡化的 `· N starter` 表示。色彩列先顯示你的色彩，接著是細線，然後是淡化的起始色彩。Colourways 將每種配色方案顯示為使用其主導色彩的小方塊。Type 列出每個角色，並以各字型家族自己的字型呈現（*Inter for headings*，下方一行為 *Starter for the rest*）。Logos 顯示已填入多少個欄位（或 **Not set**），Tokens 顯示圓角半徑，Files 則在資料庫為空時顯示 **Nothing yet**。每個區塊都能開啟對應的工作區。
 
-### Starter 与你的
+應用程式隨附且可編輯的設計系統，例如 Lolly Demo，從一開始就會在 Board 顯示色彩、配色方案、字型與標誌，標題旁附有 **Came with this app** 標籤。它們上方的 **Start here** 提供 **Find a look**、**Add from…** 與 **Pick a colour**。
 
-**Starter** 指的是应用自带而不是你选择的任何东西。全新安装不带任何颜色，只有一个从墨色到纸色的中性色阶，这样在任何人做决定之前，表面、文字和细线就能渲染。同一个词在每个房间里都标记继承的内容。
+### 起始內容與你的內容
 
-::: cols
-## Starter
-
-- 应用自带：从墨色到纸色的中性色、起步字体、默认圆角半径。
-- 淡化，带有 **Starter** 标签，没有色调。
-- 不计入你的颜色。中性色位于 **Tokens** 中，名为 **Neutrals · starter · 9**，**Open** 会在 Colours 中以一个折叠的组显示它们（`#/start?area=color&group=neutral`）。
-- 站在起步颜色上的角色显示 *"Starter Paper stands in"*，其选择器上有 **Choose…**。
-
-## 你的
-
-- 由你选择或安装。
-- 全强度显示，你安装了字体的地方有带色调的卡片。
-- 计入 Board 和 Tokens。
-- 跟随另一个角色的角色显示 **↳ follows Primary**，而不是重复主色的名称。
-:::
-
-继承的内容绝不会用虚线边框绘制，因为在这里虚线边框表示放置目标。
-
-## 标志
-
-把你装标志的文件夹清空到顶部的放置区：**"Drop marks here, or choose several at once"** 接受任意多个文件。每个文件都会被读取其形状和墨色，然后作为一个芯片在 **Waiting for a slot** 下等待，芯片说明它看起来像什么，例如 *"Looks like the Horizontal primary"*，并附上所用的测量值和一个 **Place** 按钮（槽位已填充时为 **Replace**）。不确定时，芯片会说明并提供 **Change slot**，列出全部八个槽位。在你按下任何按钮之前，不会放置任何内容。
-
-边缘空白过多的标志会先收到裁切建议；接受它，或按 Escape，原件将原封不动放入。当某个标志可以填充空着的相邻槽位时，房间会以标记为 *Generated* 的芯片提供派生的 **mono** 或 **reverse** 版本。
-
-每个标志最终都放入由八个可选槽位组成的网格，每个槽位对应一种**方向**和**处理方式**：
-
-- **方向：**Horizontal（字标和符号排成一行）和 Vertical（堆叠，适合方形和高的空间）。
-- **处理方式：**Primary、Primary reverse（用于深色背景）、Mono（单色）和 Mono reverse。
-
-还没有标志的组会折叠成一行；展开可看到它的槽位。点击槽位可添加 PNG、SVG、JPEG 或 WebP，点击已填充的槽位可替换标志。一切都留在这台设备上。
-
-![展开了 Horizontal 和 Vertical 的徽标槽位：每种处理方式都是自己的槽位，每个槽位都是可选的](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
-
-- **Custom marks** 是你的品牌用自己的名称称呼的标志，例如图标、徽章或网站图标。
-- **更多标识。** 子品牌、产品或活动可以有自己的完整一套：**+ Add another logo** 并给这一套命名。你的主套是 “Your logo”。[品牌架构](/info/brand-architectures.html)说明了什么时候徽标标识是合适的构件。
-- **Lolly 读取徽标的颜色。** 放置区下方的一张卡片，以及 Colours 顶部的同一张卡片，会列出徽标的颜色并询问 **Which is the main colour?**，已选中最强的颜色（绝不是导出时所用的白色底）。**Use these colours** 会把它们加入你的调色板，使主色成为你的主色，并且当徽标有一个能在纸色上阅读的深色中性色时，把它作为文字颜色。**Not now** 把它们留在 Tray 中。在全新安装上，最可能的答案会立即应用，卡片提供 **Undo** 或另选主色。SVG 能给出精确的颜色；PNG、JPEG 或 WebP 给出覆盖标志相当大比例的颜色。
-
-## 颜色
-
-房间会随设计系统而成长：第一次访问只需做一个决定，其余的随调色板一起到来。
-
-### 第一个颜色
-
-没有自己颜色的系统会显示起步中性色，它们位于自己的组中并处于展开状态；房间顶部有一个虚线的粘贴与放置输入框：一个大色块和一个输入框。把图片或颜色列表放到输入框的任意位置，Lolly 就会从你放入的内容中读取颜色。
-
-- **色块就是选择器。** 按 **Pick a colour**，工作室的 OKLCH 卡片就会打开，以输入框中的内容为初始值：先是颜色的名称和十六进制值，颜色空间、色轮、四个转盘和透明度在 **Fine-tune** 下，底部有 **Cancel** 和 **Add colour**。在你按 **Add colour** 之前，不会有任何内容进入系统。
-- **输入框接受任何表示法**：`#e0452b`、`rgb(224 69 43)`、`oklch(58% .19 32)` 或颜色名称。粘贴一个列表，它会变成一排芯片，可逐个添加或用 **Add all** 全部添加。
-- **另外两种方式。** **Pick a colour from the screen** 在浏览器支持的地方使用吸管，**Take colours from an image** 读取这台设备上的截图或照片。
-- **Add 永远不会被禁用。** 输入框为空时它会打开选择器；无法读取的文字会在输入框下得到一行说明。
-
-你的第一个颜色成为**主色**，一个芯片会确认这一点，例如 *"Primary is now Vivid Violet"*，并带有 **Fine-tune** 来调整颜色。
-
-
-### 随调色板成长
-
-在宽屏上，你的颜色位于 **In context** 预览旁边，在较小的屏幕上则位于其上方。预览以你的调色板显示海报、图表或界面卡片。起步颜色留在它们自己的折叠组中，系统有了自己的颜色后该组就会折叠，粘贴与放置输入框则变成紧凑的一行。导出位于栏中的 **Export** 和 Tokens 房间，所以房间头部不再放导出。
-
-![Lolly Demo 上的 Colours 房间：折叠组中的调色板，每个颜色带有名称和十六进制值，头部是调色板下载](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
-
-![Lolly Demo 上添加一个颜色后的 Colours 房间：Colour roles 表，然后是新颜色的芯片，提供 Use as Lead? 和 Fine-tune，旁边是实时的构图预览](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
-
-### Colour roles：颜色叫什么
-
-设计系统会说明它的颜色叫什么、各自用来做什么，Lolly 会读取这些内容。**Colour roles** 位于 Colours 房间的头部。在宽屏上 **In context** 与它共享视图，所以你做出更改时，海报、图表和界面卡片会随之显示。
-
-![Wefthouse（一个虚构的纺织品牌）上用自己用语写成的 Colour roles 表：配色方案芯片 Indigo、Madder 和 Weld，然后是 Main、Accent、Supporting 和 Tertiary，每个都带有浅色和深色，分别读作主导色、合作伙伴颜色和仅按名称，表下列出的 Background、Text、Quiet text 和 Hairlines 是没有角色填充的读法](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
-
-这个表有四列，在手机上每一行变成一张卡片，并把浅色和深色并排放在一起：
-
-| 列 | 内容 |
-|---|---|
-| **Role** | 设计系统自己的用语，你可以就地编辑，以及一行说明这个颜色用来做什么的文字 |
-| **Light** 和 **Dark** | 所选配色方案在该外观下的颜色，带有它的名称或值，以及它的对比度 |
-| **Lolly reads this as** | 工具如何使用这个角色，用 Lolly 自己的话说明 |
-
-**Lolly 如何读取角色。** 每种读法只对应一个角色，所以选择另一个角色已占用的读法，会把该读法移到这里。Lolly 绝不会从一个词中推断含义。
-
-| 读法 | 由此产生的结果 |
-|---|---|
-| **Lead colour** | 大块形状、按钮，以及工具优先使用的颜色 |
-| **Partner colour** | 工具接着使用的第二种颜色 |
-| **Background** | 位于其他一切之后 |
-| **Text** | 标题和正文 |
-| **Quiet text** | 说明文字和小字 |
-| **Hairlines** | 分隔线、边框和分割线 |
-| **By name only** | 没有工具会自行选用这个角色。它会出现在每个颜色字段中，也会出现在 Design 中，在那里选取后保持关联，所以它会跟随配色方案 |
-
-没有角色填充的读法保持设计系统的定义，房间会在表下列出这些读法。与某种读法自己的 id 相同的角色，例如叫作 Primary 的角色，就是那种读法，不能移动。
-
-**在图表中。** Lolly Chart 的 **Design system - colour roles first** 调色板，会先按设计系统自己的顺序把它的颜色角色交给各数据系列，再给出其余调色板颜色。被读作背景、文字、弱化文字或细线的角色会被略去，因为图表用这些颜色绘制底色和文字。在你选择该调色板之前不会有任何变化，没有颜色角色的设计系统会按 **Design system - ordered** 绘制调色板。
-
-**值。** 按一个值，即可为该角色在该外观下、所选配色方案中选择一种颜色。**Same as light** 会让深色值跟随浅色值，直到你选择了自己的颜色。**Aa** 芯片显示 Lolly 选来放在该颜色上的文字，值下方的一行文字按外观说明该文字读起来如何：**Text reads well**、**Large text only** 或 **Hard to read as text**。这说的是该颜色上的文字，并不是对颜色本身的否定，它仍然可以用于形状和大面积区域。仅按名称读取的角色显示同样的文字，但不带警告色，因为没有工具会自行在它上面放文字。这些文字背后的数值，APCA 在先、WCAG 在后，显示在提示和选择器中。**Own text colour** 标记其文件指明了文字颜色的值，该颜色会保留。**Copied** 标记来自另一种配色方案或合作伙伴颜色、且尚无人选择的值；在选择器中按 **Keep this colour** 即可确定该值。
-
-**起点。** 没有自己角色的设计系统会显示现在的用语：Primary、Secondary、Surface 和 Text。在你更改其中之一之前，不会写入任何内容。**+ Add a role** 提供 **Primary、Secondary** 或 **Main、Accent、Supporting、Tertiary** 作为建议，也可以是你输入的任何词语，并显示每个词会得到的读法。前两个词成为主导色和合作伙伴颜色。工具继续绘制同样的颜色，在只有一个主导色的系统上，第一种配色方案以该颜色命名。
-
-**重命名、重新排序、移除。** 重命名只改变用语，所以使用该角色的一切都继续有效。拖动手柄来拖动角色，或在手柄上按空格键，用方向键移动，再按空格键放下。**Remove** 会说明还有什么在使用该角色。当工具读取它时，**Remove and keep those colours** 会让每种读法保留它现在绘制的颜色。使用该角色的内部规范、引导组、工具字段或其他令牌会一直保留它，直到那处使用被更改。已保存的 Design 文档也可能按名称使用角色，而 Lolly 无法从令牌文件看到这一点：使用了它的文档会将该颜色报告为未解析。
-
-**手写的文件。** 令牌文件中没有任何角色声明的颜色会列在 **In this file, with no role yet** 下，每个都带有一个用语字段和 **Make a role**。无论怎样它们都继续按名称生效。名称中带数字的令牌不能成为角色，所以它保留在文件中，并继续按路径生效。文件中无法通过验证的记录会显示没有控制项的表，并说明原因。
-
-**房间的其余部分使用同样的用语。** 芯片、色板的 **Use as** 行和调色板的 **Colour roles** 组都使用设计系统的用语，颜色角色的方块会打开它的值。导出的文件不会记录关于角色的新内容：渲染中的颜色发生变化，是因为令牌变了。
-
-**这些用语去向何处。** 用语和描述随设计系统一起传递。代理会在设计简报、`lolly://tokens` 和品牌页面的 `AGENTS.md` 中读取它们，终端在 `lolly system status` 中显示它们，品牌页面在 `brand.json` 中列出它们，并为每个角色测量一组对比度。每种导出格式保留它容得下的内容：DTCG 和 Tokens Studio 文件保留全部内容，`DESIGN.md` 保留用语和读法，PowerPoint 主题只保留品牌的顺序。[其他格式中的颜色角色](/info/design-tokens.html#colour-roles-in-other-formats)有完整列表。这些用语始终作为设计系统的数据被引用，绝不会被当作指令来读取。
-
-**在哪里选择颜色。** 工具和 Lolly Design 中的每个颜色字段，都以设计系统的角色打头，按它自己的顺序排列，并显示每个用语和该颜色的用途。角色旁边的 **Aa** 会选取放在该角色上的颜色。其余的跟在 **Other colours** 下，不含配色方案自己的副本、on 颜色和已被某个角色填充的任何读法。选取的颜色保持与角色关联并跟随配色方案，无论选择哪种配色方案，字段都继续显示该用语，Settings 和 Tokens 也使用该用语。没有角色的设计系统保留它一贯的色板网格。
-
-### 工具读取的每一种颜色
-
-**Colour roles** 收起时，最先的决定以芯片形式排在房间前面，每个芯片显示担任该角色的颜色及其名称。在没有自己用语的系统上，这些是 **Primary**、**Secondary**、**Surface** 和 **Text**。按一个芯片，即可从调色板自己的色板中为它选择颜色。**Colour roles** 底部的 **Every colour a tool reads** 有完整的色带。
-
-色带显示工具可以读取的七种颜色：Primary、Secondary、Surface、Text、Muted、Edge 和 On primary，有设计系统自己用语的地方使用这些用语。每一种在每个工具和导出中承担相同的部分。它们都不必设置（三个零散颜色就是一个好系统），任何颜色都可以填入其中一个，读数会说明文字读起来如何，是针对表面测量的，优先使用 APCA。每一行显示的是全强度的自有颜色、顶替的起步颜色，或 **↳ follows Primary**。
-
-On primary 由主色派生，显示为 **Derived**，没有选择器。它旁边的 **Light** 和 **Dark** 开关，以及 **In context** 旁边的那个开关，决定色带、调色板和预览显示哪种外观。
-
-应用自己的强调色默认跟随设计系统。这就是 **Settings → Appearance** 中的 **Interface follows the design system** 设置；关闭该设置会让应用的外壳保持中性，而工具、画布和导出无论如何都跟随设计系统。
-
-**配色方案。** 设计系统可以包含多个主导色，每件作品各自选择。**Colour roles** 最上方的 **Colourways** 行为每种配色方案显示一个芯片，规范的那一种带有 **Default**。**+ Add** 会从调色板中的某个颜色开始一种新的配色方案。选择一个芯片，表、色带、调色板和预览就会显示那种配色方案；所选的配色方案可以重命名、复制、设为默认或移除。在有配色方案的系统上，每种配色方案都需要自己的主色和次色，当配色方案给背景着色时还需要自己的表面色，所以这些角色在色板编辑器中保持设定。[为设计系统添加配色方案](/info/colourways.html#add-colourways-to-a-design-system)介绍了步骤和令牌格式，[实际使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)展示了真实作品上的配色方案。
-
-### 寻找更多颜色
-
-有三个工具以你的主色为基础。前两个只提供建议，第三个会在你审阅更改后替换调色板。
+在每個工作區中，**Starter** 標示應用程式隨附、且無人選擇過的內容。全新安裝不帶任何色彩，只有一組從墨色到紙色的中性色階，因此在任何人做出選擇之前，表面、文字與細線就能渲染。
 
 ::: cols
-## Explore shades & harmonies
+## 起始內容
 
-选择一个 **Starting colour**、一个 **Scheme**（Mono、Complement、Analogous 或 Triad）以及 **Shades** 的数量（3 到 20，默认 5）。**Fine-tune** 设置界面强度、对比度和品牌上的文字。点击一个色阶即可添加，或用 **Add 5 shades** 添加一组。你的颜色和角色保持不变。
+- 應用程式隨附：從墨色到紙色的中性色、起始字型與預設圓角半徑。
+- 淡化顯示，附有 **Starter** 標籤，不帶色調。
+- 不計入你的色彩。中性色在 **Tokens** 中以 **Neutrals · starter · 9** 顯示，**Open** 會在 Colours 中將它們顯示為一個摺疊群組（`#/start?area=color&group=neutral`）。
+- 使用起始色彩的角色會顯示 *"Starter Paper stands in"*，其選擇器上則顯示 **Choose…**。
 
-## Find matching colours
+## 你的內容
 
-选择一个 **Harmony**：Complementary、Adjacent、Triad、Tetrad 或 Analogous（**Accents** 从 2 到 5，**Angle** 从 10° 到 45°）。每个候选项都有生成的名称和 **+ Add**，每次按一下添加一种颜色。
-
-## Rebuild the whole palette
-
-在审阅将更改和保留的内容之后，从一个起始颜色替换调色板。先创建一个检查点，之后提供 **Undo**。
+- 由你選擇或安裝。
+- 完整顯示色彩，已安裝字型的卡片帶有色調。
+- 計入 Board 與 Tokens 的數量。
+- 跟隨另一角色的角色會顯示 **↳ follows Primary**。
 :::
 
-这三者使用的都是与引擎相同的感知色彩数学（OKLCH）。在 **Explore shades & harmonies** 中，**Primary**、**Neutral** 和 **Secondary** 行显示建议的色阶，**Theme preview** 显示浅色和深色示例及其对比度读数。
+繼承的素材絕不會有虛線邊框。虛線邊框表示可拖放的目標。
 
-![三组建议的色阶，各自带有单独的添加控件，以及一个独立的 Theme preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1400&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-preview&format=svg&walker=1&dark=1&filename=bs-colour-ramps)
+<!--i:eti-shapes-->
+## Logos
 
-![生成的强调色，每个都带有色块、自动生成的名称、十六进制值和一个 Add 按钮](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+頂端的拖放區 **"Drop marks here, or choose several at once"** 可接受你所有的檔案。Lolly 會讀取每個檔案的形狀與著色。接著，檔案會在 **Waiting for a slot** 下等待，以標籤說明它看起來像什麼，例如 *"Looks like the Horizontal primary"*，並附上判斷時使用的測量值與 **Place** 按鈕（欄位已有內容時為 **Replace**）。Lolly 不確定時，標籤會明確說明，並提供 **Change slot**，列出全部八個欄位。按下按鈕之前，不會放置任何內容。
 
-### 提交生成的调色板
+標誌若有多餘的空白邊界，會先提出裁切建議。回應建議，或按 Escape 原樣放置原始檔案。若標誌可填入同組的另一個空欄位，工作區會提供衍生的**單色**或**反白**版本，以標示 *Generated* 的標籤呈現。
 
-打开 **Rebuild the whole palette…** 并按 **Preview full rebuild**。审阅会统计有多少个角色保持你指定的样子、保留了多少你自己的颜色，以及有多少条色阶曲线、印刷锁定、隐藏的色阶和渐变色标被重新锚定或保留。**Apply rebuilt palette** 提交；**Cancel** 不做任何更改。之后卡片会提供焦点在其上的 **Undo**，替换之前创建的检查点可以恢复整个系统。
+每個標誌都放入由八個選用欄位組成的格線，每種**方向**與**處理方式**的組合各佔一個欄位：
 
-带有配色方案的系统在重建后会保留每种配色方案。标准配色方案跟随新的起始颜色，其他每种配色方案保留自己的颜色、名称、顺序和设置。审阅会列出哪种配色方案跟随、哪些保留其颜色。Lolly 不会重建以它无法编辑的方式编码配色方案的系统；卡片会说明原因，并且不会更改任何内容。
+- **方向：** Horizontal（字標與符號橫向排列）與 Vertical（垂直堆疊，適合正方形與狹長空間）。
+- **處理方式：** Primary、Primary reverse（適用於深色背景）、Mono（單色）與 Mono reverse。
 
-### 专家部分
+沒有標誌的群組會摺疊為一行；展開群組即可看到其欄位。點擊欄位可加入 PNG、SVG、JPEG 或 WebP，或點擊已有內容的欄位來取代標誌。空欄位也接受拖入的檔案。橫向標誌放在寬方塊中，縱向標誌則放在正方形中，各自使用原先設計搭配的表面，並留出標誌高度四分之一的淨空。所有內容都留在這部裝置上。
 
-预览和角色下方有四个折叠的部分。每一个都可以通过 `#/start?area=color&focus=<name>` 直接打开：
+![展開 Horizontal 與 Vertical 的標誌欄位：每種處理方式都有自己的欄位，所有欄位都可選填](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&system=new-design-system&width=1440&height=1600&dpi=192&waitMs=1600&drive=click%3A.be-logo-identity%3Edetails.be-logo-group--fold%3Anot%28.be-logo-group--custom%29%3Esummary%3Bwait%3A600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
-- **Explore shades & harmonies**（`focus=generate`），如上所述。
-- **Shade curves**（`focus=curves`）逐点重塑一条色阶，分别有明度、色度和色相曲线（L / C / H），拖动时色阶会重新绘制。
-- **Contrast**（`focus=contrast`）：**Contrast-lock** 针对你选择的背景，将色阶重新调整以达到 APCA 目标，**Rotate hue** 则让整条色阶绕色轮旋转。
-- **Print**（`focus=print`）设定主色在印刷机上变成什么：它的自动值、固定的 CMYK 配方或具名的专色油墨。
+- **Custom marks** 是品牌自行命名的標誌，例如圖示、徽章或網站圖示。
+- **更多識別。** 子品牌、產品或活動可以各有完整的一組：按下 **+ Add another logo**，並為該組命名。主要的一組稱為「Your logo」。[品牌架構](/info/brand-architectures.html)說明何時該使用標誌識別。
+- **Lolly 會讀取標誌的色彩。** 拖放區下方與 Colours 頂端的卡片會列出標誌的色彩，並詢問 **Which is the main colour?**。預先選取的是最鮮明的色彩，絕不會選標誌匯出時的白色底色。**Use these colours** 會將它們加入調色盤，並將主色設為你的主要色彩。當標誌中有在紙色上清晰可見的深色中性色時，該中性色會成為文字色彩。**Not now** 會將它們留在 Tray。全新安裝時，Lolly 會立即套用最可能的答案，卡片則提供 **Undo** 或選擇另一個主色。SVG 提供精確的色彩；PNG、JPEG 或 WebP 則提供在標誌中佔有相當比例的色彩。
 
-### 调色板和每个色板
+<!--i:eti-palette-->
+## Colours
 
-调色板把你的颜色列在折叠组中，每组都有自己的 **+ Add**。可以随意创建和重命名组。角色绝不会产生第二个方块：角色所指向的方块会改用角色的名称，例如 **Primary**。方块下方的 **Colour chart** 把同样的颜色显示在 OKLCH 的 **Wheel** 上（拖动圆点可重新着色，点击空白处可添加色板）以及 **Gamut** 图上，后者显示可显示范围在哪里结束。`#/start?area=color&focus=chart` 会直接打开该图表。
+工作區會隨設計系統成長。第一次使用只需做一個決定；調色盤擴充後，更多控制項就會出現。
 
-![调色板面板，每组都可折叠，调色板下载位于其头部](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+### 第一個色彩
 
-![OKLCH 色轮 - 角度代表色相，距中心的距离代表彩度，灰色沿侧边的明度轨道排列](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+尚無自有色彩的系統會將起始中性色顯示在獨立展開的群組中。工作區頂端是虛線框的貼上與拖放欄位：一個大色塊與一個欄位。將圖片或色彩清單拖到欄位的任何位置，Lolly 就會讀取色彩。
 
-点击色板可打开其编辑器：
+- **色塊就是選擇器。** **Pick a colour** 會開啟工作室的 OKLCH 卡片，以欄位內容作為初始值。卡片先顯示色彩名稱與十六進位值。色彩空間、色輪、四個旋鈕與 alpha 位於 **Fine-tune** 下，**Cancel** 與 **Add colour** 則在底部。按下 **Add colour** 前，不會將任何內容加入系統。
+- **欄位接受任何表示法**：`#e0452b`、`rgb(224 69 43)`、`oklch(58% .19 32)` 或色彩名稱。貼上的清單會變成一排色塊，可逐一加入或使用 **Add all**。
+- **另外兩種加入方式。** **Pick a colour from the screen** 會使用瀏覽器提供的滴管（若有提供），**Take colours from an image** 則會讀取這部裝置上的螢幕截圖或照片。
+- **Add 絕不會停用。** 欄位為空時會開啟選擇器；遇到無法讀取的文字，則會在欄位下方用一行文字說明。
 
-- **Rename** 色板。
-- 在 OKLCH 滑块上，或在 **Hex**、**HSL**、**RGB** 或 **CMYK** 中**设置颜色**。数值字段在当前色彩空间中读取和写入。这里的 CMYK 是通过转换来设置屏幕颜色的；要固定精确的油墨，请使用 **Print substitutes**。
-- **Stored as** 选择色板的保存方式：**LCH**（默认，感知均匀且广色域）、Hex、RGB 或 HSL。
-- **Use as** 直接给色板一个角色，有设计系统自己用语的地方使用这些用语。再次按下高亮的角色可清除该角色。
-- **Print substitutes**（折叠）：将 **CMYK** 从 **Auto** 锁定为精确的油墨值，或设置带有 **Name**（例如 `PANTONE 186 C`）、可选的 **Book** 和 **Finish** 的 **Spot colour**，Finish 可以是烫金、压凸、压凹、局部上光、柔触或模切、压痕或穿孔。导出 CMYK PDF 或 TIFF 时，印刷机会使用这些锁定值；参见[颜色配置文件](/info/exporting.html#colour-profiles)。
-- **In other spaces**（折叠）：每个色彩空间一个值，由推导得出或由你设定，设定的值在导出时优先。
+你的第一個色彩會成為**主要色彩**。標籤會確認變更，例如 *"Primary is now Vivid Violet"*，並提供 **Fine-tune** 來調整色彩。
 
-**删除色板**是安全的。派生的色阶和主题角色会被隐藏，所以读取它们的任何东西都不会损坏，而你添加的颜色则会被移除。
 
-::: details 处理大量色板
-每个色板都有一个拖动手柄。拖动可在组内重新排序，或让手柄获得焦点，按空格键，用方向键移动，再按空格键放下；Escape 取消。在手机上，调色板每行显示四种颜色，手柄出现在 Select 模式中，而不是每个颜色下面都有一行。要在组之间移动颜色，请使用编辑器的 **Group** 控制项，或选择多个并使用 **Move to**。
+### 隨著調色盤擴充
 
-选择不需要单独的开关。栏随第一个选中的方块出现，随最后一个离开。
+在寬螢幕上，你的色彩位於 **In context** 預覽旁，在較小螢幕上則位於預覽上方。預覽會使用你的調色盤顯示海報、圖表或介面卡片。起始色彩有自己的群組，系統一旦有了自有色彩，該群組就會摺疊。貼上與拖放欄位會縮成精簡的一列。工作區頂端沒有匯出功能；請使用頂端列的 **Export** 或 Tokens 工作區。
 
-- **在空白处拖动**画出矩形；它碰到的每个方块都会加入选区，可跨组。折叠的部分不会添加任何内容。
-- **Shift 点击**按阅读顺序选取一个范围，**Cmd/Ctrl 点击**切换单个方块，普通点击打开编辑器。
-- 每个组标题都有 **Select all**，方块获得焦点时按 **Cmd-A** 会选中你拥有的每个颜色，绝不包含起步颜色。
-- 网格只有一个 Tab 停靠点：方向键移动，Shift 加方向键扩展，空格键切换，Delete 移除，Escape 清除。要微调某个通道，请先按 `l`、`c` 或 `h`。
-- 在触摸屏上，按住方块开始选择，然后轻点添加。
+![Lolly Demo 的 Colours 工作區：頂端是角色標籤與貼上及拖放欄位，下方是分成可摺疊群組的調色盤，每個色彩都附有名稱與十六進位值](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
 
-栏上显示 **{n} selected**，然后是 **Move to**、**Give a role**（每个颜色依次取下一个角色）、**Download**（以六种调色板格式中的任意一种下载选区）、**Duplicate**（每个的副本，放在原件之后）、**Copy values** 和 **Delete**。一个副本会直接在编辑器中打开；多个则保持选中。一次 Cmd/Ctrl-Z 即可撤销整个批量操作。
+![Lolly Demo 加入一個色彩後的 Colours 工作區：Colour roles 表格，下方是新色彩的色塊，提供 Use as Lead? 與 Fine-tune，旁邊有即時構圖預覽](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+
+### 色彩角色：色彩的名稱
+
+設計系統會為色彩命名，並說明各自的用途，Lolly 會讀取這兩者。**Colour roles** 位於 Colours 工作區頂端。**In context** 會立即顯示每次變更。
+
+![虛構紡織品牌 Wefthouse 的 Colour roles 表格，使用品牌自己的用語：配色方案色塊 Indigo、Madder 與 Weld，接著是 Main、Accent、Supporting 與 Tertiary，各自包含淺色與深色色彩，分別解讀為主導色彩、搭配色彩或僅依名稱使用；表格下方列出 Background、Text、Quiet text 與 Hairlines，表示目前沒有角色對應的解讀用途](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&system=wefthouse&width=2720&height=2000&dpi=192&waitMs=1800&cropSelector=%5Bdata-be-roles-fold%5D&format=svg&walker=1&dark=1&filename=bs-colour-roles)
+
+表格有四欄。在手機上，每列都會變成一張卡片，將淺色與深色並排顯示：
+
+| 欄位 | 包含的內容 |
+|---|---|
+| **Role** | 設計系統自己的用語，可直接編輯，並有一行說明色彩的用途 |
+| **Light** 與 **Dark** | 所選配色方案在該外觀中的色彩，附有名稱或數值，以及對比度 |
+| **Lolly reads this as** | 以 Lolly 自己的用語說明工具如何使用該角色 |
+
+**Lolly 如何解讀角色。** 每種解讀方式對應一個角色。選擇其他角色已有的解讀方式，會將該解讀方式移到這個角色。Lolly 絕不從名稱推斷含義。
+
+| 解讀方式 | 對應用途 |
+|---|---|
+| **Lead colour** | 大型圖形、按鈕，以及工具優先使用的色彩 |
+| **Partner colour** | 工具其次使用的色彩 |
+| **Background** | 位於其他一切內容的後方 |
+| **Text** | 標題與內文 |
+| **Quiet text** | 圖說與小字 |
+| **Hairlines** | 橫線、邊框與分隔線 |
+| **By name only** | 沒有工具會自行選用此角色。每個色彩欄位與 Design 都會提供此角色，選取後會保持連結，因此會隨配色方案變化 |
+
+沒有角色對應的解讀方式會保留設計系統的定義，工作區會在表格下方列出這些解讀方式。與某種解讀方式使用相同 id 的角色，例如名為 Primary 的角色，本身就是該解讀方式，無法移動。
+
+**在圖表中。** Lolly Chart 的 **Design system - colour roles first** 色盤會依設計系統自己的順序，將其色彩角色指派給數列，接著使用色盤中的其餘色彩。解讀為背景、文字、次要文字或細線的角色會被排除，因為圖表會用這些色彩繪製背景與文字。選擇該色盤之前，不會有任何變化。沒有色彩角色的設計系統會以 **Design system - ordered** 繪製色盤。
+
+**數值。** 按下數值，即可為該角色選擇目前外觀與所選配色方案的色彩。**Same as light** 會讓深色數值跟隨淺色數值，直到你選擇深色色彩為止。**Aa** 晶片顯示 Lolly 選來放在該色彩上的文字。數值下方的一行說明文字在各種外觀中的可讀性：**Text reads well**、**Large text only** 或 **Hard to read as text**。評等只針對放在該色彩上的文字；該色彩仍可用於圖形與大面積區域。僅按名稱解讀的角色會顯示相同的文字，但不使用警告色，因為沒有工具會自行在該角色上放置文字。工具提示與選擇器會顯示數據，先列 APCA，再列 WCAG。**Own text colour** 標示檔案已指定文字色彩的數值；該文字色彩會保留。**Copied** 標示來自其他配色方案或搭配色、尚未經任何人選定的數值；選擇器中的 **Keep this colour** 可確定該數值。
+
+**起點。** 沒有自訂角色的設計系統會顯示目前的名稱：Primary、Secondary、Surface 與 Text。在你更改其中一項之前，不會寫入任何內容。**+ Add a role** 會建議 **Primary, Secondary** 或 **Main, Accent, Supporting, Tertiary**，也接受你輸入的任何名稱，並顯示各名稱會對應的解讀方式。前兩個名稱會成為主導色與搭配色。工具會繼續繪製相同的色彩。在只有一個主導色的系統中，第一個配色方案會採用該色彩的名稱。
+
+**重新命名、重新排序與移除。** 重新命名只會更改名稱；所有使用該角色的內容都會繼續運作。拖曳角色的把手，或在把手上按 Space、使用方向鍵，再按 Space 放下。**Remove** 會說明哪些內容仍在使用該角色。當工具會解讀該角色時，**Remove and keep those colours** 會讓各解讀方式保留目前的色彩。使用該角色的組織規則、指南群組、工具欄位或其他 token 會讓角色無法移除，直到該用途改變。已儲存的 Design 文件也可能按名稱使用角色，Lolly 無法從 token 檔案得知這件事。這類文件會將該色彩回報為無法解析。
+
+::: details 手寫 token 檔案中的角色
+**手寫檔案。** token 檔案中未由任何角色宣告的色彩，會列在 **In this file, with no role yet** 下，每個色彩都有名稱欄位與 **Make a role**。無論是否建立角色，它們都會繼續按名稱運作。名稱中含有數字的 token 無法成為角色；它會留在檔案中，繼續透過其路徑運作。如果檔案中的記錄未通過驗證，表格會顯示但沒有控制項，並說明原因。
 :::
 
-### 渐变
+**工作區的其他部分使用相同的名稱。** 晶片、色票的 **Use as** 列，以及色盤的 **Colour roles** 群組，都使用設計系統的名稱。色彩角色的方塊會開啟其數值。匯出的檔案不會新增任何角色記錄；渲染結果的色彩會改變，是因為 token 改變了。
 
-可选的 **Gradients** 面板根据调色板构建渐变令牌。每个渐变有预览、2 到 8 个命名色标和一个角度。色标指向一个色板，所以给色板重新着色，渐变也会随之变化。渐变在 OKLCH 中混合。
+**名稱會送到哪裡。** 名稱與描述會隨設計系統一起傳遞。代理程式會在設計摘要、`lolly://tokens` 與品牌頁面的 `AGENTS.md` 中讀取它們。終端機會在 `lolly system status` 中顯示它們。品牌頁面會將它們列在 `brand.json` 中，並為每個角色測量一組色彩的對比。DTCG 與 Tokens Studio 檔案會保留所有內容，`DESIGN.md` 會保留名稱與解讀方式，而 PowerPoint 佈景主題只保留品牌的順序。[其他格式中的色彩角色](/info/design-tokens.html#colour-roles-in-other-formats)有完整清單。名稱一律作為設計系統的資料引用，絕不會被當作指令解讀。
 
-调色板下载（设计令牌、CSS、SCSS、GIMP 和 Adobe Swatch Exchange）位于调色板的头部、标题旁边。[随处携带你的调色板和字体](/info/using.html#take-your-palette-and-fonts-anywhere)介绍了每种格式。
+**選擇色彩的地方。** 工具與 Lolly Design 中的每個色彩欄位，都會先依設計系統自己的順序列出其角色，附上各名稱與用途。角色旁的 **Aa** 可選擇放在該角色上的色彩。其他色彩接著列在 **Other colours** 下，不包含配色方案自己的副本、前景色，以及已有角色對應的解讀方式。選取的色彩會保持與角色連結，並隨配色方案變化。欄位在每個配色方案中都會顯示名稱，Settings 與 Tokens 也使用該名稱。沒有角色的設計系統會保留其色票格線。
 
-## 字体
+### 工具讀取的每個色彩
 
-在没有自己的字体时，这个房间只有一张卡片：**Primary**，以阅读尺寸用目前所用的字体显示，带有 **Starter** 标签、一个 **Choose for Primary** 按钮和一行 *"Nothing installs until you choose one."* Headings、code 和 italic 在你选择它们之前都跟随 primary；**Choose them separately** 会显示它们的卡片。
+收合 **Colour roles** 時，工作區會先顯示供初步選擇的晶片。每個晶片顯示角色的色彩與名稱。沒有自訂名稱的系統會使用 **Primary**、**Secondary**、**Surface** 與 **Text**。按下晶片，即可從色盤的色票中選擇其色彩。**Colour roles** 底部的 **Every colour a tool reads** 包含完整色彩列。
 
-![尚未选择字体的 Type 房间 - 一张阅读大小的卡片，带有一个 Starter 标签，以及一个已填色的 Choose for Primary](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+色彩列顯示工具可以讀取的七個色彩：Primary、Secondary、Surface、Text、Muted、Edge 與 On primary，設計系統有自訂名稱時則使用自訂名稱。各色彩在每個工具與匯出中的用途都相同。沒有任何一項必須設定，也可以用任何色彩填入。三個獨立的色彩就能構成良好的系統。讀數會說明文字相對於底色的可讀性，先列 APCA。每一列會以完整強度顯示你自己的色彩、暫代的起始色彩，或 **↳ follows Primary**。
 
-选择一种字体后，房间会展开为四张角色卡片、Fonts 列表和一个实时样张：
+On primary 由主色衍生，顯示 **Derived**，且沒有選擇器。On primary 旁的 **Light** 與 **Dark** 切換，以及 **In context** 旁的切換，可選擇色彩列、色盤與預覽所顯示的外觀。
 
-- **Primary**：正文、按钮和每个工具。
-- **Headings**：用于 `h1` 和 `h2` 的展示字体。
-- **Code**：用于代码和数据的等宽字体。
-- **Italic**：用于强调、引文和旁白的真正斜体。
+應用程式自己的強調色預設會透過 **Settings → Appearance** 中的 **Interface follows the design system** 設定跟隨設計系統。關閉此設定時，應用程式的介面維持中性色。無論此設定為何，工具、畫布與匯出都會跟隨設計系統。
 
-只有你安装了该字体的卡片才会带色调，其按钮会说明它对应哪个角色：在你自己的字体上显示 **Change Headings**，其他地方都显示 **Choose for Headings**。示例行会换行而不是被截断。卡片上没有任何内容会提交任何更改：按钮会为该角色打开对比台。
+**配色方案。** 設計系統可包含多個主導色，供每件作品各自選擇。**Colour roles** 頂端的 **Colourways** 列會為每個配色方案顯示一個晶片，並在標準配色方案上標示 **Default**。**+ Add** 會從色盤中的色彩建立新的配色方案。選擇晶片後，表格、色彩列、色盤與預覽都會顯示該配色方案。你可以重新命名、複製、移除所選配色方案，或將其設為預設值。在有配色方案的系統中，每個配色方案都需要自己的主色與次色；當配色方案會為背景上色時，也需要自己的底色。這些角色在色票編輯器中會保持設定。[為設計系統新增配色方案](/info/colourways.html#add-colourways-to-a-design-system)包含步驟與 token 格式，[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#colourways-on-real-work)則展示了在真實工作上的配色方案。每個人都可以在 **Settings → Appearance** 中選用自己的配色方案（[選用自己的配色方案](/info/colourways.html#make-a-colourway-your-own)）。
 
-![四张角色卡揭开 - 每张都以服务它的字体呈现，没人选择的一张带着 Starter 标签，Italic 跟随主体](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+### 尋找更多色彩
 
-### 对比舞台
+三個工具以你的主色為基礎。前兩個只提供建議；第三個會取代色盤。
 
-对比台在房间内、你按下的卡片下方打开，卡片会折叠成一行条带，这样对比台能出现在手机的第一屏。Escape 取消并把焦点还给卡片。
+::: cols
+## 探索色階與和諧配色
 
-1. 按卡片上的 **Choose for** 和角色名。
-2. 输入字体家族名称并按 **Preview**，或按输入框下方六个 **Pinned** 家族之一。
-3. 按 **Use this face**。
+選擇 **Starting colour**、**Scheme**（Mono、Complement、Analogous 或 Triad），以及 **Shades** 的數量（3 到 20，預設為 5）。**Fine-tune** 可設定 UI 強度、對比與品牌色上的文字。點擊色階即可加入，或按 **Add 5 shades** 加入一組。你的色彩與角色會保留。
 
-![compare stage 在其卡片下方打开，带有搜索行、已固定的字体家族，以及折叠成一行的卡片](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dtype%26focus%3Dstage&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-type-stage)
+## 尋找搭配色彩
 
-**只询问一次同意。** 第一次预览需要访问 Google Fonts 时，会有一个对话框解释：*Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.* **Fetch from Google** 继续并会被记住。**Cancel** 会让卡片显示 *"Not fetched. Nothing was sent to Google."*，并带有它自己的 **Fetch from Google**。
+選擇 **Harmony**：Complementary、Adjacent、Triad、Tetrad 或 Analogous（**Accents** 為 2 到 5，**Angle** 為 10° 到 45°）。每個候選色彩都有產生的名稱與 **+ Add**，每按一次加入一個色彩。
 
-**把字体文件拖到对比台上**（TTF、OTF 或 WOFF），即可预览你已拥有授权的字体。无论哪种方式，字体都留在这台设备上，在应用、工具和每个导出中离线渲染，并随设计系统文件一起传递。Google Fonts 上的所有内容都采用开放许可协议（OFL、Apache 或 UFL）。
+## 重建整個色盤
 
-### 本设备上的字体
+檢閱會更改與保留的內容後，從一個起始色彩重建並取代色盤。
+:::
 
-**Fonts** 面板列出这台设备上的每种字体及其担任的角色。你添加的字体在 **In the design system** 下排在最前，各带其角色和删除按钮。起步字体随后排成一行淡化的折叠行。**Add a face** 为任何角色打开对比台。**Type roles** 面板显示每个角色的实时样张，带有其字体家族和状态，例如 *Inter* 或 *Inter · follows Primary*。
+三者都使用與引擎相同的感知色彩數學（OKLCH）。在 **Explore shades & harmonies** 中，**Primary**、**Neutral** 與 **Secondary** 列會顯示建議的色階，**Theme preview** 則顯示淺色與深色範例及其對比讀數。
 
-## 令牌
+![三組建議色階，各有新增控制項，另有獨立的 Theme preview](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1400&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-preview&format=svg&walker=1&dark=1&filename=bs-colour-ramps)
 
-令牌是设计系统背后的命名值：颜色、字体、徽标、圆角和间距。工具按名称读取它们，所以在这里的更改会一次到达每个工具。
+![產生的強調色，每個都有色票、自動產生的名稱、十六進位色碼與 Add 按鈕](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
-![Tokens 房间：带有系统示例和文件操作的页头、统计每种令牌的方块，然后是带有对比度读数的颜色配对](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
+### 套用產生的色盤
 
-- **页头**给出你自己系统中的一个示例（*Primary is Spearmint, #033633*）以及文件操作：**Download**（整个系统作为设计令牌，或调色板的其他五种格式）、**Copy CSS** 和用于读回 JSON 文件的 **Add from…**。
-- **方块**统计每种令牌并跳转到对应部分：Colours、Type、Logos、Shape and spacing、More 和 All tokens。它们统计各部分所含的内容；只含空白起步内容的部分带有 **Starter** 标签，而应用自带的系统统计自己的内容，不带标签。在手机上，方块折成两行，每行三个。
-- **Colours** 先是工具搭配使用的配对（表面上的文字、主色上的文字、表面上的弱化文字），带有浅色和深色下的 APCA 读数，并在配对不足时标记 **Weak contrast**。然后是每个颜色组：色阶作为一行色块，其他颜色带有其值和工具使用的引用，例如 `{color.brand.spearmint}`。按下引用即可复制该引用。**Edit in Colours** 在 Colours 房间中打开一个组。在带有[颜色角色](#colour-roles-what-the-colours-are-called)的设计系统中，**Colour roles** 排在最前面，每个角色只出现一次，使用系统自己的名称和顺序。角色为每个配色方案和外观各保存一种颜色，这些颜色跟随角色，而不是作为独立的颜色出现：请在 Colour roles 表中更改。
-- **Type** 和 **Logos** 列出每个角色和每个徽标槽位的字体，当你有自己的之后会带有 **Edit in Type** 和 **Edit in Logos**。
-- **Shape and spacing** 包含 **Rounded corners**（`shape.radius`）和 **Spacing rhythm**（`space.base`）。每一项在你移动滑块之前显示 *Lolly default*，之后显示 *Yours*，立即保存且可以撤销。
-- **More tokens** 增加间距、尺寸、描边宽度、不透明度、旋转、普通数字和阴影，存储为标准的[设计令牌](/info/design-tokens.html)。
-- **App appearance (advanced)** 列出 Lolly 自己的界面使用的颜色、尺寸和阴影，**Inspect every token (advanced)** 可搜索和编辑任何存储的值，并先显示每个更改以供审阅。在那里，角色在每个配色方案中的值与该角色一同列出：选择角色的令牌即可看到每个配色方案一行，浅色和深色并排显示，计数行会说明这些角色共保存了多少个值。只读的设计系统会显示同样的列表。
+開啟 **Rebuild the whole palette…** 並按下 **Preview full rebuild**。檢閱畫面會統計有多少角色保留你指派的用途、多少自訂色彩被保留，以及多少色階曲線、印刷鎖定、隱藏色階與漸層色標會重新設定錨點或保留。**Apply rebuilt palette** 會套用；**Cancel** 不會更改任何內容。之後卡片會提供已取得焦點的 **Undo**，而替換前建立的檢查點可還原整個系統。
 
-空白的部分会提供填补空缺的方式：**Pick a colour**、**Choose a face** 或 **Add a logo**。
+有配色方案的系統會在重建時保留每個配色方案。標準配色方案會跟隨新的起始色彩，其他每個配色方案則保留自己的色彩、名稱、順序與設定。檢閱畫面會列出哪個配色方案會跟隨，以及哪些會保留自己的色彩。如果無法編輯系統的配色方案編碼，Lolly 就不會重建該系統；卡片會說明原因，且不會更改任何內容。
 
-## 文件
+### 專家區段
 
-放入你的品牌保存的文件（徽标除外）：**vector**、**image**、**audio** 和 **motion** 文件（视频、Lottie 和动画）。它们会出现在 [Assets](/info/using.html#assets-your-library) 中，分门别类，并在每个工具的素材选择器中就绪，它们留在这台设备上。
+預覽與角色下方有四個收合的區段。每個區段都能透過 `#/start?area=color&focus=<name>` 開啟：
 
-## Rules
+- **Explore shades & harmonies**（`focus=generate`）。
+- **Shade curves**（`focus=curves`）可逐點調整色階序列的形狀，明度、彩度與色相各有獨立曲線（L / C / H），拖曳時色階會跟著重繪。
+- **Contrast**（`focus=contrast`）：**Contrast-lock** 會調整色階序列的色調，讓它相對於你選擇的背景達到 APCA 目標，**Rotate hue** 則讓整個色階序列沿色輪旋轉。
+- **Print**（`focus=print`）可設定主色在印刷機上使用的色彩：自動數值、固定的 CMYK 配比，或具名的特別色油墨。
 
-**Rules** 让你品牌的选择发挥作用：人们可以更改什么、什么保持固定，以及 Lolly 可以检查什么。
+### 色盤與各個色票
 
-![Lolly Demo 上的 Rules：四条内部规范，各自标有 Checked in Design 以及 Required 或 Advisory，然后是 Try your design system in use，其示例已准备好渲染](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+色盤以可摺疊群組列出你的色彩，每組都有自己的 **+ Add**。你可以建立與重新命名群組。角色不會建立第二個方塊；角色指向的方塊會顯示角色名稱，例如 **Primary**。方塊下方的 **Colour chart** 會在 OKLCH **Wheel** 上顯示相同色彩（拖曳圓點以更改色彩，點擊空白處以新增色票），以及顯示可顯示範圍邊界的 **Gamut** 圖。`#/start?area=color&focus=chart` 可開啟該圖。
 
-**Brand rules** 列出你的规则。**Add rule**（或 **Add your first rule**）会打开一个简短的表单：
+![色盤面板，每個群組都可摺疊](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-roles-fold%5D%3Esummary%3Bwait%3A500%3Bclick%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-- 用你自己的话写的 **Rule name**，例如 *Beacon accents*；
-- **Check**：**Colour choices**、**Font choices**、**Fixed artwork** 或 **Text length**，以及它所用的品牌角色，使用你自己为该角色起的名称；
-- 它所适用的 **Example**（Poster、Title slide、Content slide 或 Lolly Chart）、**Mode**，以及它是 **Required** 还是 **Advisory**；
-- **Reviewed by**，然后是 **Save draft** 或 **Approve & save**。
+![OKLCH 色輪：角度是色相，向外的距離是彩度，灰色則排列在側邊的明度軌道上](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
-批准记录的是你在这台设备上自己的决定。已批准的必需规则会约束可复用的海报，检查只涵盖示例 PNG；它们不会改变任何其他工具。
+點擊色票即可開啟其編輯器：
 
-设计系统在其令牌文件中自带的规则，例如认可的配色组合、文字字重和对齐，或每个界面使用的徽标，在这里列为 **Checked in Design**。Lolly Design 会在导出面板的 **Before you export** 卡片中逐图层检查它们，`lolly check` 对已保存的 Lolly Design 文档做同样的事（[导出之前](/info/design.html#before-you-export)）。此版本没有检查器的规则会按提供的原样保留，并标记为 **Unchecked**。
+- **Rename** 可重新命名色票。
+- **Set the colour** 可使用 OKLCH 滑桿，或以 **Hex**、**HSL**、**RGB** 或 **CMYK** 設定色彩。數值欄位會以目前的色彩空間讀寫。這裡的 CMYK 會透過轉換設定螢幕色彩；若要固定精確的油墨值，請使用 **Print substitutes**。
+- **Stored as** 可選擇色票的儲存方式：**LCH**（預設，符合感知且具廣色域）、Hex、RGB 或 HSL。
+- **Use as** 會賦予色票一個角色，設計系統有自訂名稱時則使用自訂名稱。再次按下醒目標示的角色即可清除該角色。
+- **Print substitutes**（收合）：將 **CMYK** 從 **Auto** 鎖定為精確的油墨值，或設定 **Spot colour**，包含 **Name**（例如 `PANTONE 186 C`）、選用的 **Book**，以及 **Finish**，可用於燙箔、壓凸、壓凹、局部上光、柔觸處理，或模切、壓線、打孔。匯出 CMYK PDF 或 TIFF 時，印刷機會使用這些鎖定值；請見[色彩描述檔](/info/exporting.html#colour-profiles)。在 Print PDF 中，特別色油墨會以自己的色版印刷；若要在單次匯出中將所有特別色油墨以四色印刷呈現，請見[將特別色油墨轉為四色印刷](/info/exporting.html#spot-inks-as-process)。
+- **In other spaces**（收合）：每個色彩空間各有一個數值，可為衍生值或由你設定，匯出時以你設定的數值為優先。
 
-Lolly Demo 自带四条已批准的内部规范。标题绝不使用大写：这条规则是必需的，所以 `lolly check` 会把大写的标题报告为错误。其余三条是建议性的。正文左对齐。主标志放在浅色表面上，反白标志放在深色表面上。虚线表示放在这里。
+**刪除色票**是安全的。衍生色階與主題角色會被隱藏，因此讀取它們的內容不會失效。你新增的色彩則會被移除。
 
-**Try your design system in use** 用 **Render & check examples** 从当前修订渲染四个示例。选择一个 **Mode** 和 **Try your own text** 来输入标题、辅助文字和幻灯片文字。每个示例都会报告测量到的内容，带有 **See checks & sources** 和 **Download check report**，**Make reusable poster** 会下载一个 `.lolly`，其固定版面和已批准的输入选择随文件一起传递。示例是本地的：运行检查不会发布或批准任何内容。
+::: details 處理大量色票
+一般狀態下，色票會顯示其色彩、名稱與十六進位色碼。Select 會在任何螢幕上顯示各色票的核取方塊與拖曳把手，取得鍵盤焦點的方塊也會顯示把手。拖曳把手即可在群組內重新排序，或讓把手取得焦點、按 Space、使用方向鍵，再按 Space 放下；Escape 會取消。在手機上，色盤每列顯示四個色彩。若要在群組間移動色彩，請使用編輯器的 **Group** 控制項，或選取多個色彩並使用 **Move to**。
 
-带有固定品牌的构建版本会在 *This brand is set* 下以只读方式显示同样的规则和示例。
+選取不需要獨立的開關：選取第一個方塊時，操作列與核取方塊便會出現，最後一個方塊取消選取時便會消失。
 
-## Skills
+- **在空白處拖曳**以畫出矩形；矩形碰到的每個方塊都會加入選取範圍，可跨越群組。收合的區段不會加入任何內容。
+- **Shift 加點擊**會依閱讀順序選取一個範圍，**Cmd/Ctrl 加點擊**會切換單一方塊的選取狀態，一般點擊則會開啟編輯器。
+- 每個群組標題都有 **Select all**，方塊取得焦點時按 **Cmd-A** 會選取你擁有的每個色彩，絕不會選取起始色彩。
+- 格線只有一個 Tab 停駐點：方向鍵移動，Shift 加方向鍵延伸選取範圍，Space 切換選取狀態，Delete 移除，Escape 清除選取。若要微調通道，請先按 `l`、`c` 或 `h`。
+- 在觸控螢幕上，按住方塊即可開始選取，接著點按以加入。
 
-**Skills** 列出当前设计系统的[品牌技能](/info/brand-skills.html)：品牌的书面标准，每个领域一份，为人和 AI 代理而写。每一行给出领域、品牌自己的状态（**Draft** 或 **Approved**）、该技能是公开还是内部，以及它的修订版本。选择一行，即可在技能的覆盖范围旁阅读它，覆盖范围把技能的各条规定与你的令牌对照：Lolly 检查什么、什么有冲突、什么一致，以及什么只是指导。
+操作列會顯示 **{n} selected**，接著是 **Move to**、**Give a role**（各色彩依序取得下一個角色）、**Download**（以六種色盤格式中的任一種下載選取範圍）、**Duplicate**（各複製一份，放在原項目之後）、**Copy values** 與 **Delete**。單一副本會在編輯器中開啟；多個副本則保持選取。按一次 Cmd/Ctrl-Z 即可復原批次動作。
+:::
 
-**Download skill (.zip)** 会把技能写成供代理工具使用的 Agent Skills 文件夹，目录链接指向这个 Lolly；**Copy as one file** 则把同样的文字放到剪贴板，方便粘贴到聊天窗口。没有自己技能的设计系统会列出一份基础说明，每次读取时由 Lolly 根据其令牌和内部规范生成。这个房间只读取技能，从不编辑。
+### 漸層
 
-## 导入品牌
+選用的 **Gradients** 面板會從色盤建立混色 token。每個漸層都有預覽、2 到 8 個具名色標與角度。色標指向色票，因此更改色票的色彩時，漸層也會跟著變化。混色在 OKLCH 中進行。
 
-栏中的 **Add from…** 打开一个选择器，它问的是你有什么，而不是它是什么格式：
+色盤的下載選項（設計 token、CSS、SCSS、GIMP 與 Adobe Swatch Exchange）位於色盤頂端。[隨處使用你的色盤與字型](/info/using.html#take-your-palette-and-fonts-anywhere)說明了各種格式。
 
-- **Design tokens or a design file**：DTCG 或 Tokens Studio JSON、Penpot 项目、令牌集合的 zip、Lolly 设计系统包、SVG、`DESIGN.md` 或品牌页面文件夹。
-- **PDF**：演示稿或指南文件，在这台设备上读取其颜色、标志和嵌入字体。
-- **Logo or screenshot**：图片变成建议的调色板，在这台设备上读取。它读取的是颜色，而不是字体或版面。
-- **Saved web page**：一个 HTML 文件及其 CSS 文件，或粘贴的 HTML 或 CSS，最多 20 个文件和 2 MB。只读取你提供的文本：不会获取链接的资源，脚本也不会运行。
-- **Font file**：TTF、OTF 或 WOFF。打开 Type 房间，字体在那里安装。
-- **Website**：一个页面，读取其颜色和字体。这个方块只出现在能读取页面的设备上，并说明它使用哪种读取器：这台设备上的应用，或以你的身份登录、在后台标签页中运行的浏览器扩展。指定 URL 只是填写输入框；按下获取才算同意。
+<!--i:eti-type-->
+## 字體排印
 
-选择设计文件来源后，下一张卡片会以图标方块列出接受的格式，整张卡片就是一个放置目标。你也可以直接把文件拖到工作室上。
+尚未選擇自訂字型時，工作區會顯示一張卡片：**Primary**，以目前字型與適合閱讀的大小顯示，附有 **Starter** 標籤、**Choose for Primary** 按鈕，以及一行 *「選擇字型之前，不會安裝任何內容。」*。在你為標題、程式碼與斜體選擇字型之前，它們都會跟隨主字型；**Choose them separately** 會顯示各自的卡片。
 
-![导入卡片 - 可接受的格式以图标图块的形式排列在前,整张卡片是一个放置目标](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
+![尚未選擇字型的 Type 工作區：一張以適合閱讀的大小顯示的卡片，帶有 Starter 標籤，以及一個實心的 Choose for Primary 按鈕](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
 
-- **Lolly 设计系统包**（`.lolly`，或旧版 `.zip`）一步安装。
-- **Penpot** 导出（`.penpot`）会带入其设计令牌。
-- **Design Tokens**（W3C DTCG）或 **Tokens Studio** 文件（`.json`）会带入其令牌。要求读者忽略指令、声称拥有权限或要求运行代码的描述会被剔除，导入时会说明它位于何处。这是逐行检查，会漏掉其他措辞，所以应用令牌之前，请先仔细阅读来自陌生人的文件。
-- **普通 SVG** 会被扫描颜色供你挑选，第一个成为你的主色。
-- **`DESIGN.md`**（`.md`）会按原样带着它的令牌进入 **Try these colours**。它的文字可以保留为品牌技能草稿，卡片会标出要求读者忽略指令、声称权限或运行代码的行。在你于 Skills 房间按 **Keep this skill** 之前，代理和品牌页面看不到草稿，保留下来的技能仍然是内部使用。
-- **品牌页面文件夹**，可以按文件夹选取、拖放或打成 zip，会进入同样的审阅。每个文件都会对照文件夹的 `brand.json` 检查，有一个不匹配就会拒绝整个文件夹。它会添加令牌。徽标和字体留在文件夹中。
+選擇一個字型後，工作區會展開為四張角色卡片、Fonts 清單與即時字樣：
 
-Lolly 从你提供的文件中读取品牌页面。它不会获取其他网站的地址。
+- **Primary**：內文、按鈕與每個工具。
+- **Headings**：用於 `h1` 與 `h2` 的標題字型。
+- **Code**：用於程式碼與資料的等寬字型。
+- **Italic**：真正的斜體，用於強調、引文與附註。
 
-### 带有自己颜色用语的文件
+只有你安裝了該字型的卡片才會著色。按鈕會顯示角色：使用自訂字型時顯示 **Change Headings**，其他情況則顯示 **Choose for Headings**。範例文字會換行。卡片上的任何內容都不會直接套用變更；按鈕會開啟該角色的比較區。
 
-令牌文件或 `DESIGN.md` 可以用自己的词语称呼它的颜色，例如 main、accent、supporting 和 tertiary。当 Lolly 发现这类词语时，审阅会在应用任何内容之前逐个列出：词语、它在每种外观下的颜色、它来自的令牌，以及 Lolly 会把它读作什么。Lolly 仅根据词语本身、对照一份简短的列表来建议这些读法，不使用任何模型。不在列表中的词语会作为品牌自己的角色进入，读法为 **By name only**。你可以重命名任何词语、说明它的用途、把它读作别的东西，或取消勾选以让它保持为具名颜色。
+![展開的四張角色卡片：各自使用對應的字型，未選擇字型的卡片帶有 Starter 標籤，Italic 則跟隨主字型](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&system=new-design-system&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
-**Install with these roles** 会写入这些角色，**Install without roles** 则按文件原样安装。没有这类词语的文件不会显示新步骤。自己指明了角色的文件，例如 Lolly 写出的文件，会按原样显示这些角色并原封不动地安装，你之后可以在 Colours 房间中编辑它们。终端没有审阅步骤，所以 `lolly system import` 会保留已指明的记录，并把其他文件的词语保留为具名颜色。
+### 比較區
 
-### 审阅参考
+比較區會在你按下的卡片下方開啟。卡片會收合為單行列，讓比較區能顯示在手機的第一個畫面中。Escape 會取消並讓焦點回到卡片。
 
-徽标、截图、网站或保存的页面会打开 **Try these colours**：一个采用建议颜色的示例、一个你可以更改的 **Main colour**，以及新系统的名称。一个方框说明应用会做什么：它会用生成的调色板和默认样式**替换**当前的令牌设置，**保留**你的字体和库文件，并且之前的系统可以被**恢复**。**Apply suggested settings** 会在检查点之后应用浅色和深色调色板，**Restore brand settings** 可以找回旧设置。**Change reference** 选择另一个来源。
+1. 按下卡片上帶有角色名稱的 **Choose for**。
+2. 輸入字型家族名稱並按下 **Preview**，或按下欄位下方六個 **Pinned** 字型家族中的一個。
+3. 按下 **Use this face**。
 
-**Palette, source details and individual choices** 显示读取到的内容、发现的任何字体名称，以及预览的对比度。字体名称只是建议；安装字体仍要在 Type 中进行。来源详情可以包含观察到的排版、间距、内边距和圆角值，未观察到时标记为 **Not observed**。保存的页面或原生网站读取会报告声明的样式，页面可能并未使用它们，而浏览器扩展可以报告从可见元素样本中测量到的样式。这些是观察结果：不会安装任何东西，来源的间距也绝不会替换你自己的。**Choose individual items in the tray** 只保留单项，**Download design context** 会保存一份 JSON 报告，包含观察结果、建议的令牌和来源信息（以及所提供的任何 HTML 或 CSS 的 SHA-256）。该报告不含原始页面文本，也不是签名的 Content Credential。
+![在卡片下方開啟的比較區，包含搜尋列、釘選的字型家族，以及收合為單行列的卡片](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dtype%26focus%3Dstage&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-type-stage)
 
-PDF 和设计文件导入有自己的审阅控制项。**Tray** 中的项目在你把它们添加到拥有该类材料的房间之前不会改变任何内容。`#/start?source=<kind>` 会在某个来源上打开选择器（`file`、`pdf`、`image`、`font`、`url`、`page`），`?import` 打开普通列表。
+**只會詢問一次同意。** 預覽首次連線至 Google Fonts 時，對話框會說明：*Google 會得知字型家族名稱與你的 IP 位址。檔案隨後會保存在這部裝置上，並供離線使用。這是工作室中唯一會連線至第三方的步驟。* **Fetch from Google** 會繼續，並記住你的選擇。**Cancel** 會讓卡片顯示 *「尚未擷取。未傳送任何內容至 Google。」*，並附上自己的 **Fetch from Google**。
 
-### 查找并比较外观
+**將字型檔案拖放到比較區**（TTF、OTF 或 WOFF），即可預覽你擁有授權的字型。無論透過哪種方式，字型都會留在這部裝置上，在應用程式、工具與每次匯出中離線渲染，並隨設計系統檔案一起傳遞。Google Fonts 上的所有字型都以開放授權提供（OFL、Apache 或 UFL）。
 
-从 Board 或 Settings 中的设计系统列表打开 **Find a look**。浏览保存在这台设备上的系统和几个可复用的 Lolly 示例，并按名称、颜色标签或声明的字体搜索。**Closest to my current palette** 按测量到的颜色相似度排序，字体匹配用于打破平局；它不是质量评分。
+### 這部裝置上的字型
 
-点击一个外观即可在实际场景中预览。预览不会更改任何内容。每张卡片的 **Use this look** 会使用该外观。已保存的系统成为当前系统，这不会编辑任何内容。示例的颜色会通过常规检查点进入打开的设计系统，该设计系统的徽标、字体以及示例没有定义的一切都保持原样。**Compare looks** 给每张卡片加上一个复选框，这样你可以选两张并排比较。**Restore brand settings** 找回之前的外观。已保存的系统在 **Details and design context** 下有可编辑的 **Search tags**。这些示例是 Lolly 原创的配色方案，没有抓取的合集，也不需要账号。
+**Fonts** 面板列出這部裝置上的每個字型及其用途角色。你新增的字型會先列在 **In the design system** 下，各自附上角色與刪除選項。起始字型接著放在一個淡化、收合的列中。**Add a face** 可為任何角色開啟比較區。**Type roles** 面板會顯示每個角色的即時字樣，以及字型家族與狀態，例如 *Inter* 或 *Inter · follows Primary*。
 
-![并排比较 Sunroom 和 Orchard，然后再决定采用哪一套配色系统。](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+<!--i:eti-tag-->
+## Token
 
-## 保存并迁移你的设计系统
+Token 是設計系統背後的具名數值：色彩、字型、標誌、圓角與間距。工具會按名稱讀取它們，因此這裡的更改會立即影響每個工具。
 
-### 在设备之间迁移品牌
+![Tokens 工作區：頂端顯示系統中的範例與檔案動作，接著是統計各類 token 的方塊，再來是色彩配對及其對比讀數](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-**Export** 写出一个 **`LollyBrand-….lolly`** 文件：你的令牌、字体、徽标和主题偏好，带有一份在导回时会被检查的完整性清单。1.0.7 之前的网页版本把同一个文件命名为 `.zip`，这种写法仍被接受。**Tokens (.json)** 单独写出普通的设计令牌文档，不含字体或徽标，供仓库、构建步骤或其他令牌工具使用。
+- **頂端**提供你自己系統中的範例（*Primary 是 Spearmint，#033633*），以及檔案動作：**Download**（將系統下載為設計 token，或以其他五種格式下載色盤）、**Copy CSS** 與 **Add from…**，可將 JSON 檔案讀回。
+- **方塊**統計各類 token，並跳至對應區段：Colours、Type、Logos、Shape and spacing、More 與 All tokens。只含空白起始系統隨附內容的區段會帶有 **Starter** 標籤；隨應用程式提供的系統則會計算自己的素材，不加此標籤。在手機上，方塊會換行排成兩列，每列三個。
+- **Colours** 先列出工具搭配使用的色彩組合（底色上的文字、主色上的色彩、底色上的次要文字），附上淺色與深色外觀的 APCA 讀數，未達標準的配對則標示 **Weak contrast**。接著是每個色彩群組：色階序列以一列晶片顯示，其他色彩則附上數值與工具使用的參照，例如 `{color.brand.spearmint}`。按下參照即可複製該參照。**Edit in Colours** 可在 Colours 工作區中開啟群組。對於有[色彩角色](#colour-roles-what-the-colours-are-called)的設計系統，**Colour roles** 會排在最前面，依系統自己的名稱與順序，每個角色只列一次。每個角色會為各配色方案與外觀保留一個色彩。這些色彩會隨角色列出，不會列為獨立色彩；請在 Colour roles 表格中更改。
+- **Type** 與 **Logos** 列出每個角色的字型與每個標誌欄位；有了自己的內容後，便會提供 **Edit in Type** 與 **Edit in Logos**。
+- **Shape and spacing** 包含 **Rounded corners**（`shape.radius`）與 **Spacing rhythm**（`space.base`）。在你移動滑桿之前，各項都顯示 *Lolly default*，移動後則顯示 *Yours*，會立即儲存且可復原。
+- **More tokens** 可新增間距、尺寸、筆畫寬度、不透明度、旋轉、單純數字與陰影，並儲存為標準的[設計 token](/info/design-tokens.html)。
+- **App appearance (advanced)** 列出 Lolly 自身畫面使用的色彩、尺寸與陰影，**Inspect every token (advanced)** 則可搜尋與編輯任何已儲存數值，並先顯示每項變更供檢閱。在這裡，色彩角色在各配色方案中的數值會隨角色列出：選擇角色的 token，即可看到每個配色方案各佔一列，淺色與深色並排。計數列會說明角色共有多少個數值。唯讀設計系統也會顯示相同清單。
 
-要导回一个，请使用 **Add from… → Design tokens or a design file**，或把文件拖到工作室上。同事就是这样把品牌交给你的，你也是这样把品牌带到第二次安装的，无需账号，也无需云。[与合作伙伴协作](/info/partners.html)介绍了当接收你品牌的人在另一个组织工作时，还需要发送什么。要从命令行导入品牌，请参见 [`ingest:brand`](/info/configuration.html#brand-packs)。
+空白區段會提供 **Pick a colour**、**Choose a face** 或 **Add a logo**。
 
-**Fonts for Linux (.rpm)** 把你添加的字体打包成可安装的 RPM。如果其中任何字体是你自己上传的，Lolly 会先要求你确认你有权再分发它们。
+<!--i:eti-images-->
+## 檔案
 
-### 恢复早先的设置
+拖放品牌保存的標誌以外檔案：**向量**、**圖片**、**音訊**與**動態**檔案（影片、Lottie 與動畫）。它們會分類顯示於 [Assets](/info/using.html#assets-your-library) 的各區段，也會出現在每個工具的素材選擇器中。它們會留在這部裝置上。
 
-在栏中打开 **More**，选择 **Restore brand settings**，选中一个带日期的检查点并按 **Restore**。它会恢复当前品牌的颜色、字体设置和其他令牌；字体和图片文件保持不变。Lolly 会先把你当前的设置保存为 **Before restore**，所以即使在关闭浏览器之后，你也可以撤销恢复。最近的 20 个检查点保存在这台设备上。
+## 聲音
+
+**Sound** 要透過聆聽來選擇。工作區一開啟會提供三種起始聲音：**Calm**、**Steady** 與 **Bright**，各有一張使用該曲風色彩的卡片，並附播放按鈕。播放其中一種即可聽到短片段；開始播放另一種時，前一種就會停止。**Choose** 會讓每種使用情境都採用該聲音。第四張卡片 **Mixed** 會讓每種使用情境各有自己的聲音：Explain 使用 Calm，Demonstrate 使用 Steady，Play 使用 Bright。它的播放按鈕會依序播放這三種聲音。選擇 **Save sound** 之前，不會儲存任何內容。儲存後，聲音會成為此設計系統的一部分，並在其他工作區共用的歷史中建立檢查點。沒有聲音的設計系統會照常運作。
+
+使用情境是聲音播放的場合：起初有 **Explain**、**Demonstrate** 與 **Play**。每種使用情境都是一個帶有播放按鈕的晶片。晶片上方的 **Music** 或 **With narration** 可設定晶片播放純音樂，還是搭配人聲播放。你選擇的使用情境會以簡單文字顯示其用途與音樂，例如「溫暖 · 84 bpm · Rhodes、流動的貝斯、復古鼓組」。每種使用情境都會採用所選聲音的曲風、速度與樂器（使用 Mixed 時則各自不同）。各使用情境會保留自己的曲調與平衡：Explain 會讓旋律避開人聲，Play 則讓旋律主導。在 Mixed 與單一聲音之間切換時，兩者都會保留。你自行新增的使用情境會在 Mixed 下保留原有聲音。設計系統會記錄你的選擇。**Add a use** 可新增一種使用情境，並讓你直接輸入名稱。**Make main** 可選擇未指定其他情境時要播放的使用情境。**Another tune** 會以相同設定播放新的樂曲。
+
+**Edit in the music generator** 會以該使用情境的設定開啟[音樂產生器](/info/generated-music.html#the-music-generator)，頂端有一行說明你正在編輯哪個情境的聲音。**Save to this use** 會將設定帶回工作區；**Cancel** 則返回且不更改任何內容。你離開期間，工作區中尚未儲存的選擇會保留。如果這段期間有人在另一個分頁儲存聲音，會以較新的儲存為準，你的編輯則不會套用。
+
+**Voice** 可為使用情境選擇人聲、語速，以及人聲下方音樂的音量；**Hear the voice with the music** 會同時播放兩者。**More** 下包含人聲說話時的音量降低幅度、試聽文字（只留在工作區中）、發音註記（每行一項，格式為書寫形式 = 發音形式），以及人聲註記。預覽使用本機語音模型，混音方式與序列匯出相同。預覽會淡出；這不是編寫好的結尾。
+
+**Notes and signature** 包含使用情境中應留意的聆聽重點，以及聲音標誌：以獨立音訊檔案保存的固定開場或結尾。請將聲音標誌放入你的序列；產生的音樂絕不包含聲音標誌。如果某項要求是這個版本的 Lolly 無法檢查的，就會停止為該使用情境產生新音樂。
+
+**Details** 包含品牌個性（聲音應給人的感覺、哪些要保持一致，以及哪些要避免）與聆聽檢閱。**Record a listening review** 會針對已儲存的聲音版本保留檢閱者姓名、日期與註記。任何變更都會讓聲音重新成為草稿。檢閱只涵蓋該版本，不涵蓋之後以該聲音製作的每首曲子：每件新作品送出前都要聆聽。
+
+**Make a music project** 會在音樂產生器中將使用情境開啟為專案，並保留使用情境、聲音版本與精確設定。其中的 **New tune** 會產生新樂曲並保留聲音設定。如果你更改設定，**Put the sound back** 會還原聲音設定，**Keep as my own** 則會以獨立曲子繼續。在你選擇之前，專案無法以使用該聲音製作的形式儲存或下載。分享連結只包含音樂設定。專案與已儲存的曲子也會保留聲音的註記，這些註記不會放入分享連結，也不會放入音訊檔案的公開憑證。如果需要在產生器未來的版本中保留完全相同的音訊，請保存渲染後的錄音。
+
+<!--i:eti-checklist-->
+## 規則
+
+**Rules** 可設定人們能更改什麼、哪些保持固定，以及 Lolly 能檢查什麼。
+
+![Lolly Demo 的 Rules：四項組織規則，各自標示 Checked in Design 與 Required 或 Advisory，接著是 Try your design system in use，其範例已準備好可供渲染](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dusage&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23start-panel-usage&format=svg&walker=1&dark=1&filename=bs-usage-rules)
+
+**Brand rules** 列出你的規則。**Add rule**（或 **Add your first rule**）會開啟簡短表單：
+
+- 以你自己的文字填寫 **Rule name**，例如 *Beacon 強調色*；
+- **Check**：**Colour choices**、**Font choices**、**Fixed artwork** 或 **Text length**，以及它使用的品牌角色，以你為角色自訂的名稱顯示；
+- 適用的 **Example**（Poster、Title slide、Content slide 或 Lolly Chart）、**Mode**，以及屬於 **Required** 還是 **Advisory**；
+- **Reviewed by**，接著是 **Save draft** 或 **Approve & save**。
+
+核准會在這部裝置上記錄你自己的決定。已核准的必要規則會限制可重複使用的海報，檢查只涵蓋範例 PNG；它們不會更改其他任何工具。
+
+設計系統 token 檔案中的規則，例如已核准的色彩配對、文字粗細與對齊，或各底色對應的標誌，會在這裡列為 **Checked in Design**。Lolly Design 會在匯出面板的 **Before you export** 卡片中逐層檢查它們，`lolly check` 則會對已儲存的 Lolly Design 文件執行相同檢查（[匯出之前](/info/design.html#before-you-export)）。這個建置版本沒有對應檢查器的規則，會依原樣保留並標示為 **Unchecked**。
+
+Lolly Demo 提供四項已核准的組織規則。標題絕不使用全大寫：這項規則是必要規則，因此 `lolly check` 會將全大寫標題回報為錯誤。其他三項是建議規則。內文靠左對齊。主要標誌放在淺色底色上，反白標誌放在深色底色上。虛線表示在這裡放下。
+
+**Try your design system in use** 會透過 **Render & check examples**，以目前修訂版本渲染四個範例。選擇 **Mode**，並使用 **Try your own text** 輸入標題、輔助文字與投影片文字。每個範例都會回報測量的內容，並提供 **See checks & sources** 與 **Download check report**。**Make reusable poster** 會下載一個 `.lolly`，其中包含固定版面與已核准的輸入選項。範例在本機執行：執行檢查不會發佈或核准任何內容。
+
+隨附固定品牌的建置版本，會在 *This brand is set* 下以唯讀方式顯示相同的規則與範例。
+
+<!--i:eti-graduation-cap-->
+## 技能
+
+**Skills** 列出目前設計系統的[品牌技能](/info/brand-skills.html)：品牌的書面規範，每個專業領域一份，供人員與 AI 代理程式使用。每列會顯示專業領域、品牌自己的狀態（**Draft** 或 **Approved**）、技能是公開還是內部使用，以及修訂版本。選擇一列即可閱讀技能及其涵蓋範圍，後者會逐行比較技能與你的 token：Lolly 檢查什麼、哪些衝突、哪些一致，以及哪些僅供指引。
+
+**Download skill (.zip)** 會將技能寫成供代理程式工具使用的 Agent Skills 資料夾，目錄連結會指向這個 Lolly。**Copy as one file** 會將相同文字放到剪貼簿，供貼入聊天視窗。沒有自訂技能的設計系統會列出基準技能，每次讀取時，Lolly 都會根據其 token 與組織規則產生。工作區只讀取技能，絕不編輯。
+
+<!--i:eti-upload-->
+## 匯入品牌
+
+操作列中的 **Add from…** 會開啟選擇器，詢問你有哪些內容，而不是內容的格式：
+
+- **Design tokens or a design file**：DTCG 或 Tokens Studio JSON、Penpot 專案、token 集合的 zip、Lolly 設計系統套件、SVG、`DESIGN.md` 或品牌頁面資料夾。
+- **PDF**：簡報或規範檔案，在這部裝置上讀取其色彩、標誌與內嵌字型。
+- **Logo or screenshot**：在這部裝置上讀取圖片，轉成建議色盤。它只讀取色彩，不讀取字型或版面。
+- **Saved web page**：一個 HTML 檔案及其 CSS 檔案，或貼上的 HTML 或 CSS，最多 20 個檔案、2 MB。只讀取你提供的文字：不會擷取連結的資源，也不會執行指令碼。
+- **Font file**：TTF、OTF 或 WOFF。開啟 Type 工作區，在那裡安裝字型。
+- **Website**：讀取一個頁面的色彩與字體排印。這個方塊只會出現在能讀取頁面的裝置上，並說明使用哪個讀取器：這部裝置上的應用程式，或背景分頁中以你的身分登入的瀏覽器擴充功能。輸入 URL 只會填入欄位；按下擷取才表示同意。
+
+選擇設計檔案來源後，下一張卡片會以圖示方塊列出接受的格式。整張卡片都是放置區。你也可以將檔案拖放到工作室。
+
+![匯入卡片：接受的格式先以圖示方塊列出，整張卡片都是放置區](/t/url-shot?url=%2F%23%2Fstart%3Fsource%3Dfile&width=1440&height=900&dpi=192&waitMs=1600&css=.start-import-modal%20.modal-msg%2C.start-import-modal%20.modal-title%7Bdisplay%3Anone%7D&cropSelector=.start-import-drop&walker=1&format=svg&dark=1&filename=bs-brand-import-formats)
+
+- **Lolly 設計系統套件**（`.lolly` 或舊版 `.zip`）可一步完成安裝。
+- **Penpot** 匯出檔（`.penpot`）會帶入其設計 token。
+- **Design Tokens**（W3C DTCG）或 **Tokens Studio** 檔案（`.json`）會帶入其 token。要求讀取者忽略指令、聲稱具有權限，或要求執行程式碼的描述會被排除，匯入時會說明它原本的位置。
+- **一般 SVG** 會被掃描以列出可供選擇的色彩，第一個會成為你的主色。
+- **`DESIGN.md`**（`.md`）會帶著其原樣的 token 進入 **Try these colours**。其中的文字可保留為品牌技能草稿，卡片會標示要求讀取者忽略指令、聲稱具有權限或執行程式碼的行。在你於 Skills 工作區按下 **Keep this skill** 之前，代理程式與品牌頁面都看不到草稿，而保留的技能仍限內部使用。
+- **品牌頁面資料夾**，無論以資料夾選取、拖放或壓縮成 zip，都會進入相同的檢閱畫面。每個檔案都會對照資料夾的 `brand.json` 檢查；只要一個檔案不符，整個資料夾都會被拒絕。匯入會新增 token。標誌與字型會留在資料夾中。
+
+::: warning 指令檢查會逐行讀取
+用來排除 token 檔案描述中指令的檢查會逐行讀取，因此會漏掉其他措辭。套用 token 之前，請先閱讀來自陌生人的檔案。
+:::
+
+Lolly 會從你提供的檔案讀取品牌頁面。它不會透過其他網站的位址擷取內容。
+
+### 有自訂色彩名稱的檔案
+
+token 檔案或 `DESIGN.md` 可使用自己的色彩名稱，例如 main、accent、supporting 與 tertiary。Lolly 找到這類名稱時，檢閱畫面會在套用任何內容前逐一列出：名稱、各種外觀中的色彩、來源 token，以及 Lolly 建議的解讀方式。Lolly 只根據名稱比對一份簡短清單來建議解讀方式，不使用模型。清單以外的名稱會視為品牌自訂名稱，以 **By name only** 處理。你可以重新命名任何名稱、說明用途、指定另一種解讀方式，或取消勾選以保留為具名色彩。
+
+**Install with these roles** 會寫入角色；**Install without roles** 則依檔案原樣安裝。沒有這類名稱的檔案會略過此步驟。已宣告自身角色的檔案，例如由 Lolly 寫出的檔案，會依原樣顯示並安裝角色，不做更改；之後你可以在 Colours 工作區編輯。終端機沒有檢閱步驟：`lolly system import` 會保留已宣告的記錄，並將其他檔案的名稱保留為具名色彩。
+
+### 檢閱參考素材
+
+標誌、螢幕截圖、網站或已儲存的頁面會開啟 **Try these colours**：以建議色彩呈現的範例、可更改的 **Main colour**，以及新系統的名稱。方框會說明套用的作用：以產生的色盤與預設樣式**取代**目前的 token 設定，**保留**你的字型與資料庫檔案，而且先前的系統可以**復原**。**Apply suggested settings** 會先建立檢查點，再套用淺色與深色色盤。**Restore brand settings** 可還原舊設定。**Change reference** 可選擇其他來源。
+
+::: details 從參考素材讀取的內容，以及設計脈絡報告
+**Palette, source details and individual choices** 會顯示讀取的內容、找到的字型名稱，以及預覽的對比。字型名稱僅供建議；你要在 Type 中安裝字型。來源詳情可包含觀察到的字體排印、間隙、內距與圓角數值，未觀察到的則標示 **Not observed**。讀取已儲存的頁面或透過原生應用程式讀取網站，會回報宣告的樣式，而頁面不一定有使用這些樣式。瀏覽器擴充功能可從可見元素的樣本回報測量到的樣式。這些都是觀察結果：不會安裝任何內容，來源的間距也絕不會取代你自己的間距。**Choose individual items in the tray** 可保留個別項目。**Download design context** 會儲存 JSON 報告，包含觀察結果、建議的 token 與來源資訊（附上所提供 HTML 或 CSS 的 SHA-256）。報告不含原始頁面文字，也不是已簽署的 Content Credential。
+:::
+
+PDF 與設計檔案匯入會保留各自的檢閱控制項。**Tray** 中的項目，在你於負責該類素材的工作區加入它們之前，不會更改任何內容。`#/start?source=<kind>` 會開啟指定來源的選擇器（`file`、`pdf`、`image`、`font`、`url`、`page`），`?import` 則會開啟一般清單。
+
+### 尋找與比較外觀
+
+從 Board 或 Settings 中的設計系統清單開啟 **Find a look**。瀏覽儲存在這部裝置上的系統，以及幾個可重複使用的 Lolly 範例，並依名稱、色彩標籤或宣告的字型搜尋。**Closest to my current palette** 會依測量的色彩相似度排序，相同時以字型是否相符決定順序；這不是品質評分。
+
+點擊外觀即可在使用情境中預覽；預覽不會更改任何內容。卡片上的 **Use this look** 會套用該外觀。已儲存的系統會成為目前使用的系統，不會編輯任何內容。範例的色彩會在照常建立檢查點後加入已開啟的設計系統。系統的標誌、字型，以及範例未定義的其他內容都會維持原樣。**Compare looks** 會在每張卡片新增核取方塊：選擇兩個即可並排比較。**Restore brand settings** 可還原先前的外觀。已儲存的系統在 **Details and design context** 下有可編輯的 **Search tags**。這些範例都是 Lolly 原創的配色，沒有爬取的集合，也不需要帳號。
+
+![Lolly 在套用任一色彩系統前，並排比較 Sunroom 與 Orchard。](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-looks-compare-toggle%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+
+<!--i:eti-package-->
+## 保存與移動你的設計系統
+
+### 在裝置之間移動品牌
+
+**Export** 會寫出一個 **`LollyBrand-….lolly`** 檔案：包含你的 token、字型、標誌與主題偏好設定，以及在匯入時檢查的完整性 manifest。1.0.7 之前的網頁版本將檔案命名為 `.zip`，Lolly 仍接受這個副檔名。**Tokens (.json)** 會寫出純設計 token 文件，不含字型或標誌，可供儲存庫、建置步驟或其他 token 工具使用。
+
+若要重新匯入，請使用 **Add from… → Design tokens or a design file**，或將檔案拖放到工作室。同事可以用這種方式交給你一個品牌，你也可以將品牌帶到第二個安裝環境，不需要帳號或雲端。[與合作夥伴協作](/info/partners.html)說明接收品牌的人任職於其他組織時，還需要傳送哪些內容。若要從命令列匯入品牌，請見 [`ingest:brand`](/info/configuration.html#brand-packs)。
+
+**Fonts for Linux (.rpm)** 會將你新增的字型打包成可安裝的 RPM。如果其中有你自行上傳的字型，Lolly 會先要求你確認可以再次散布這些字型。
+
+### 還原較早的設定
+
+開啟操作列中的 **More**，選擇 **Restore brand settings**，選取帶有日期的檢查點，然後按下 **Restore**。這會還原目前品牌的色彩、字體排印設定與其他 token；字型與圖片檔案維持原樣。Lolly 會先將你目前的設定儲存為 **Before restore**，因此即使關閉瀏覽器後，你也能撤回還原。最近 20 個檢查點會保留在這部裝置上。工作室顯示 **Saving…** 時所做的編輯，重新載入後仍會保留，並有卡片提供還原尚未完成儲存的變更。
 
 ### 版本
 
-已发布的版本是保存在这台设备上的**永久命名副本**。它永不改变，所以固定了它的工具或链接（通过 `designv`）会一直画出同样的东西。含有你自己内容的系统会在栏的 **More** 菜单中列出 **Versions & publishing**；首次发布后 **Versions** 会加入房间。`#/start?area=versions` 会直接打开它。
+已發佈的版本是保存在這部裝置上的**永久具名副本**。它絕不會改變，因此固定使用該版本（透過 `designv`）的工具或連結會持續繪製相同的內容。含有自訂內容的系統，會在操作列的 **More** 選單中列出 **Versions & publishing**；首次發佈後，**Versions** 會加入工作區。`#/start?area=versions` 可開啟 Versions。
 
-- **版本是永久的。** 目前还不能删除，面板也这样说明。
-- **移除项排在兼容性卡片的最前面**，因为被移除的令牌会破坏工具。
-- **发布无法撤销；恢复可以。** *Restore latest from this version* 是一次普通的编辑，立即提供 **Undo**。
+::: warning 已發佈的版本是永久的
+目前還無法刪除，面板會說明這一點。發佈無法復原；還原則可以。*Restore latest from this version* 是一般編輯，會立即提供 **Undo**。
+:::
 
-**Publish only** 保留一个版本，而不改变工具跟随的内容；**Publish and make active** 让工具和应用跟随该版本。**Follow the latest again** 让你每次编辑后立即生效。
+**移除項目會列在相容性卡片最前面**，因為移除 token 會讓工具失效。
 
-### Publish a brand page
+**Publish only** 會保留版本，但不更改工具跟隨的內容；**Publish and make active** 會讓工具與應用程式跟隨該版本。**Follow the latest again** 會讓每次編輯立即生效。
 
-[品牌页面](/info/brand-page.html)是为人和代理提供的同一个地址：一个展示徽标、颜色、字体和示例的页面，同样的信息以文件形式放在页面旁边。位于 Versions & publishing 下的 **Publish a brand page** 会显示在线页面，并在页面旁边显示：
+### 發佈品牌頁面
 
-- **Goes public**：每个文件，分组列出，带有大小。
-- **Held back**：未包含的内容及原因。没有记录许可的徽标不会包含，直到你勾选该徽标的名称。字体文件需要有一条允许再分发的许可记录，文件不包含时页面会显示描边的字样样本。内部品牌技能绝不会出现。
-- **What was checked**：每种配色方案和模式下的颜色组合，以及内部规范。这些是测量结果，不是裁决。
-- **In your words**：一段使用说明和一个联系方式。页面会印出你写的内容，Lolly 不添加任何许可或法律声明。有一个开关可以关掉页脚中的 “Made with Lolly” 一行。
-- **On exports**：一个开关，可以[把页面地址记录到此设计系统的导出中](/info/brand-page.html#lead-back-from-your-files)。开启之前它是关闭的，它需要 `https` 地址，也不会随包或副本一起传递。锁定的设计系统不显示这个开关，因为由它的管理者决定。
+[品牌頁面](/info/brand-page.html)讓人員與代理程式共用一個位址：頁面包含標誌、色彩、字體排印與範例，旁邊的檔案也包含相同資訊。Versions & publishing 下的 **Publish a brand page** 會顯示即時頁面，並在頁面旁顯示：
 
-**Download folder** 把文件夹保存为 ZIP，由你托管到任何你选择的地方，在你这样做之前不会公开任何内容。在终端中，`lolly system publish --out=<dir>` 会写出同样的文件夹。提供品牌页面服务的实例还会提供 **Publish to** 其地址，这是一次明确的按下操作，如果实例有审批链，就会经过审批链。受管设计系统只有在其管理者允许时才能发布。
+- **Goes public**：每個檔案，依群組列出並附上大小。
+- **Held back**：哪些內容未納入，以及原因。未記錄授權的標誌會保持排除，直到你勾選該標誌名稱。字型檔案需要有記錄的授權，且允許轉交；未納入檔案時，頁面會顯示轉外框的字樣。內部品牌技能絕不會出現。
+- **What was checked**：各配色方案與模式的色彩配對，以及組織規則。這些是測量結果，不是判定。
+- **In your words**：使用聲明與聯絡資訊。頁面會顯示你寫的內容，Lolly 不會新增任何授權或法律聲明。開關可關閉頁尾的「Made with Lolly」一行。
+- **On exports**：一個會[在此設計系統的匯出中記錄頁面位址](/info/brand-page.html#lead-back-from-your-files)的開關。在你開啟之前，它會保持關閉，需要 `https` 位址，且不會隨套件或副本傳遞。鎖定的設計系統不會顯示此開關，因為這由其管理者決定。
 
-### Connect an agent
+**Download folder** 會將資料夾儲存為 ZIP，讓你在選擇的位置託管。在你託管資料夾之前，不會公開任何內容。在終端機中，`lolly system publish --out=<dir>` 會寫出相同的資料夾。提供品牌頁面的實例也會提供 **Publish to**，讓你發佈至其位址：需明確按下一次，實例有核准流程時會依流程進行。受管理的設計系統只有在其管理者允許時才能發佈。
 
-同一个位置的 **Connect an agent** 会给你一段可粘贴的文字，并说明每个选项能做什么：
+### 連接代理程式
 
-- 项目中的 **`AGENTS.md`**：代理会读取系统的名称和规则。它什么也不绘制，也不需要服务器。
-- **Lolly 的公共服务器**：使用 Lolly Demo 绘制，无论你在这里打开的是哪个系统。它不需要密钥。
-- **你的实例**：使用实例所持有的系统绘制，并从环境变量中读取服务令牌。该面板会给出变量的名称，从不显示令牌。
+同一位置的 **Connect an agent** 會提供可貼上的文字，並說明各選項的功能：
 
-当没有托管服务器能用你的系统绘制时，该面板会这样说明。
+- 專案中的 **`AGENTS.md`**：代理程式會讀取系統的名稱與規則。它不會繪製任何內容，也不需要伺服器。
+- **Lolly 的公開伺服器**：無論你在這裡開啟哪個系統，都使用 Lolly Demo 繪製。不需要金鑰。
+- **你的實例**：使用實例持有的系統繪製，並從環境變數讀取服務 token。面板會提供變數名稱，絕不顯示 token。
 
-## 管理你的设计系统
+沒有託管伺服器能使用你的系統繪製時，面板會說明這一點。
 
-打开 **Settings → Preferences → Design systems** 来切换、添加或移除系统。**Open** 选中一个系统并在这里打开它；**Make a new one** 创建本地系统并打开它，名称字段已就绪。同一时间在整台设备上有一个系统处于活动状态。[品牌架构](/info/brand-architectures.html)有助于判断品牌何时需要自己的设计系统。
+<!--i:eti-layers-->
+## 管理你的設計系統
 
-**系统来自哪里。** 部署的目录所提供的系统显示为 **Came with this app**，在连接到某个实例的应用中则显示 **From this instance**。展开 **Catalogue source** 可以看到由谁提供、它的令牌素材和命名空间，以及已知的版本或校验和；如果刷新失败，缓存的内容会有标注。
+開啟 **Settings → Preferences → Design systems** 即可切換、新增或移除系統。**Open** 會選取系統並在這裡開啟；**Make a new one** 會建立本機系統並開啟，名稱欄位已準備好供你輸入。同一時間整部裝置只會使用一個系統。[品牌架構](/info/brand-architectures.html)可協助判斷品牌何時需要自己的設計系統。
 
-**受管系统是只读的。** 当目录锁定某个系统时，该系统显示为 **Managed by this instance**（在没有实例的桌面应用中显示为 **Managed by this app**）。你可以使用和下载它，在这里打开它会显示一条只读提示，带有 **Make an editable copy** 和 **Switch**，然后是它的颜色角色和令牌，没有任何编辑控制项。你自己的本地系统仍然可以编辑，即使受管系统先出现。带有一个固定品牌的构建版本会在 *This brand is set* 上打开 Lolly Design System Setup，其中有品牌的令牌和使用规则供阅读。
+**系統的來源。** 部署環境的目錄所提供的系統會顯示 **Came with this app**；在連接到實例的應用程式中則顯示 **From this instance**。展開 **Catalogue source** 即可查看提供者、token 素材與命名空間，以及已知版本或校驗碼；如果重新整理失敗，快取素材會加上標示。
 
-**其他每个提供的系统都归你**隐藏、编辑和重置，包括 lolly.tools 上的 Lolly Demo 和 Lolly Starter。编辑其中一个会保留其名称并把该行标记为 **Edited here**，其菜单中的 **Reset to original** 会丢弃在这台设备上所做的更改。空白的 Starter 是例外：在那里的第一次更改会开始你自己的设计系统，所以 Lolly 会询问一次新系统叫什么。[实际使用 Lolly Demo](/info/lolly-demo-in-use.html#switch-to-your-own)展示了你自己的系统取代了什么。
+**受管理的系統是唯讀的。** 目錄鎖定系統時，系統會顯示 **Managed by this instance**（沒有實例的桌面應用程式則顯示 **Managed by this app**）。你可以使用與下載受管理的系統。在這裡開啟時，會顯示唯讀說明及 **Make an editable copy** 與 **Switch**，接著是其色彩角色與 token，不會有編輯控制項。你自己的本機系統仍可編輯，即使受管理的系統先存在也是如此。只有一個固定品牌的建置版本，會在開啟 Lolly Design System Setup 時顯示 *This brand is set*，並提供品牌的 token 與使用規則供閱讀。
 
-### 移除设计系统
+**其他所有隨附系統都由你掌控**，可隱藏、編輯與重設，包括 lolly.tools 上的 Lolly Demo 與 Lolly Starter。編輯系統會保留其名稱，並在該列標示 **Edited here**。其選單中的 **Reset to original** 會捨棄在這部裝置上所做的變更。空白起始系統是例外：首次更改時會建立你自己的設計系統，Lolly 會詢問一次名稱。[實際使用 Lolly Demo](/info/lolly-demo-in-use.html#switch-to-your-own)展示了你自己的系統會取代什麼。
 
-从系统菜单中选择 **Remove**；确认框会说明之后哪个系统将处于活动状态。已保存的会话、上传内容和与另一个系统共享的素材都会保留。
+### 移除設計系統
 
-移除提供的系统只是隐藏它：它的目录素材保留，**Bring back** 会再次显示它，而且如果你移除了其他所有系统，它会自行回来。移除导入的或编辑过的副本不会移除提供的系统、它的徽标或字体，如果该副本是活动的，提供的系统会再次成为活动系统。移除活动的托管副本只会清除该副本的连接；单独选择的实例保持选中。
+從系統的選單選擇 **Remove**；確認訊息會說明之後將使用哪個系統。已儲存的工作階段、上傳內容，以及與其他系統共用的素材都會保留。
 
-更改服务器提供的内容是管理员的任务：其运营者更改源目录并重新部署，或由 Lolly Work 管理员审阅并应用服务器更改。这里的编辑只保留在本地，只有一个例外：在授予你 `brand.edit` 的 Lolly Work 实例上，受管系统还会提供针对该实例的 **Edit for**，它会打开一个编辑副本，并在 **Versions** 中提供发送到该实例的 **Send to**，把它的颜色、配色方案、颜色角色和品牌页面地址发送回去。[在工作室中编辑此实例](/info/work-design-system-administration.html#edit-this-instance-from-the-studio)介绍了编辑可以更改什么，以及实例如何提供这些更改。参见[移除目录中的设计系统](/info/configuration.html#removing-a-catalogue-design-system)和[配置](/info/configuration.html#supplied-and-local-design-systems)。
+移除隨附系統只會隱藏系統：其目錄素材會保留，**Bring back** 可讓它重新顯示；如果你移除其他所有系統，它會自行恢復。移除匯入或編輯過的副本，不會移除隨附系統、其標誌或字型。如果原本使用的是該副本，就會重新使用隨附系統。移除目前使用的託管副本，只會清除該副本的連線；另行選擇的實例會保持選取。
 
-## 在应用之外使用设计上下文
+::: details 更改伺服器提供的設計系統
+更改伺服器提供的內容是管理員的工作：由營運者更改來源目錄並重新部署，或由 Lolly Work 管理員檢閱並套用伺服器變更。這裡的編輯會留在本機，但有一個例外。在授予你 `brand.edit` 的 Lolly Work 實例上，受管理的系統也會提供針對該實例的 **Edit for**，開啟可編輯副本。**Versions** 中針對該實例的 **Send to** 會將其色彩、配色方案、色彩角色與品牌頁面位址傳回。[從工作室編輯此實例](/info/work-design-system-administration.html#edit-this-instance-from-the-studio)說明編輯能更改哪些內容，以及實例如何提供變更後的內容。請見[移除目錄設計系統](/info/configuration.html#removing-a-catalogue-design-system)與[設定](/info/configuration.html#supplied-and-local-design-systems)。
+:::
 
-**Download design context** 会保存令牌文档、已解析的颜色、声明的字体家族、素材 id、有记录时的来源证据、覆盖范围和明确的规则，不含字体文件，也不证明所有权。命令行无需服务器即可读取该文件：`lolly system import` 使其成为终端的设计系统，`lolly system check` 则对照已保存的上下文检查 Lolly Design 的输入。[导入你的设计系统](/info/cli.html#bring-your-design-system)介绍了导入，[命令使用哪个设计系统](/info/cli-decks.html#which-design-system-a-command-uses)介绍了检查，MCP 客户端从 `lolly://design-context` 读取同样的简报（[MCP 服务器](/info/mcp.html)）。
+<!--i:eti-code-->
+## 在應用程式外使用設計脈絡
 
-## 接下来去哪里
+**Download design context** 會儲存 token 文件、解析後的色彩、宣告的字型家族、素材 id、已記錄的來源證據、涵蓋範圍與明確規則，不包含字型檔案或所有權證明。命令列不需要伺服器就能讀取此檔案：`lolly system import` 會將它設為終端機的設計系統，`lolly system check` 則會對照已儲存的脈絡檢查 Lolly Design 輸入。[帶入你的設計系統](/info/cli.html#bring-your-design-system)說明匯入，[命令使用哪個設計系統](/info/cli-decks.html#which-design-system-a-command-uses)則說明檢查。MCP 用戶端會從 `lolly://design-context` 讀取相同摘要（[MCP 伺服器](/info/mcp.html)）。
 
-- **[使用 Lolly](/info/using.html)**：工具、保存、分享和素材。
-- **[品牌架构](/info/brand-architectures.html)**：事业部、产品、背书品牌、客户和季节如何对应到设计系统、配色方案和徽标标识。
-- **[与合作伙伴协作](/info/partners.html)**：与合作伙伴分享你的品牌，以及在别人交给你的品牌中工作。
-- **[品牌页面](/info/brand-page.html)**：在同一个地址发布你的设计系统，作为媒体资料包和代理资料包。
-- **[设计令牌](/info/design-tokens.html)**：你的品牌所用的令牌模型。
-- **[导出文件](/info/exporting.html)**：印刷单位、CMYK，以及你的品牌可渲染成的格式。
+<!--i:eti-map-pin-->
+## 接下來看什麼
+
+- **[使用 Lolly](/info/using.html)**：工具、儲存、分享與 Assets。
+- **[品牌架構](/info/brand-architectures.html)**：部門、產品、背書品牌、客戶與季節如何對應到設計系統、配色方案與標誌識別。
+- **[與合作夥伴協作](/info/partners.html)**：與合作夥伴分享你的品牌，以及使用交給你的品牌進行工作。
+- **[品牌頁面](/info/brand-page.html)**：在一個位址發佈你的設計系統，作為媒體資料包與代理程式資料包。
+- **[設計 Token](/info/design-tokens.html)**：用來編寫品牌的 token 模型。
+- **[匯出檔案](/info/exporting.html)**：列印單位、CMYK，以及品牌渲染的輸出格式。

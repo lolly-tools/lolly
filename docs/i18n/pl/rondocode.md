@@ -1,50 +1,53 @@
-# Piosenki Lolly Rondocode
+# Utwory Lolly Rondocode
 
 <a id="rondocode-songs"></a>
 
-Piosenka rondocode to muzyka napisana jako kod: syntezatory, wzorce i miks, odtwarzane w trakcie pisania. Lolly może odtworzyć piosenkę pod wideo, a utility **Rondocode** pozwala napisać ją i wyeksportować jako audio. Oba zapisują piosenkę w Content Credentials pliku, więc muzyka mówi, skąd pochodzi.
+Utwór rondocode to muzyka zapisana jako kod: syntezatory, sekwencje i miks, odtwarzane podczas pisania. Lolly może odtwarzać utwór w tle wideo, a narzędzie pomocnicze **Rondocode** tworzy utwory i eksportuje je jako audio; oba zapisują utwór w Content Credentials pliku.
 
-## Odtwarzaj piosenkę w Lolly
+<!--i:eti-music-->
+## Odtwórz utwór w Lolly
 
-Selektor zasobów przyjmuje piosenkę jako plik `.rondo` lub `.rondo.json` albo wklejony link udostępniania `rondocode.com`. Piosenka to kod, który sam tworzy dźwięk, więc gra przez tyle, ile prosi jej klip. Może być **music bed** pod eksportem wideo albo grać w ambientowym odtwarzaczu Neurospicy Mode.
+Selektor zasobów przyjmuje utwór jako plik `.rondo` lub `.rondo.json` albo wklejony link udostępniania `rondocode.com`. Utwór odtwarza się przez czas określony przez jego klip. Może być **podkładem muzycznym** w eksporcie wideo lub grać w odtwarzaczu dźwięków tła trybu Neurospicy.
 
-Kod piosenki działa w piaskownicy Lolly, bez sieci i bez dostępu do Twoich plików. Każda część, której render nie potrafi odtworzyć, taka jak mikrofon na żywo, albo śpiew bez modeli głosu, jest wymieniona w szczegółach zasobu.
+Kod utworu działa w piaskownicy Lolly, bez sieci i dostępu do Twoich plików. Każda część, której renderowanie nie może odtworzyć, na przykład mikrofon na żywo lub śpiew bez modeli głosu, jest wymieniona w szczegółach zasobu.
 
-Z terminala `lolly mix` przyjmuje piosenkę jako całą ścieżkę dźwiękową; zobacz [CLI rendering](/info/cli-rendering.html).
+W terminalu `lolly mix` przyjmuje utwór jako całą ścieżkę dźwiękową; zobacz [Renderowanie w CLI](/info/cli-rendering.html).
 
-## Napisz i wyeksportuj piosenkę
+<!--i:eti-code-->
+## Napisz i wyeksportuj utwór
 
-Otwórz narzędzie **Rondocode** z **Utilities**, aby napisać piosenkę w żywym edytorze rondocode i słyszeć ją w trakcie pisania. Wyeksportuj ją jako **WAV**, **MP3**, **M4A**, **Opus** lub **FLAC**, jako ZIP ze ścieżkami, jako **MIDI** albo jako nagranie tego, co gra. Z terminala `lolly rondocode --export=mid` zapisuje ten sam plik MIDI. **Export length** ustawia, ile sekund trwa eksport audio. Sam plik piosenki (`.rondo.json`) to Twój kod tak, jak go napisałeś, i nie niesie niczego dodanego.
+Otwórz narzędzie **Rondocode** z **Utilities**, aby napisać utwór w edytorze na żywo rondocode i słyszeć go podczas pisania. Wyeksportuj go jako **WAV**, **MP3**, **M4A**, **Opus** lub **FLAC**, jako ZIP ze ścieżkami składowymi, jako **MIDI** lub jako nagranie tego, co jest odtwarzane. W terminalu `lolly rondocode --export=mid` zapisuje ten sam plik MIDI. **Export length** określa, ile sekund trwa eksport audio. Plik utworu (`.rondo.json`) to Twój kod w zapisanej postaci, bez żadnych dodatków.
 
-Piosenka może śpiewać swoje słowa przez `sing()`. Śpiew powstaje na Twoim urządzeniu przez pobrane modele głosu, a plik zawierający syntetyczny śpiew zawsze deklaruje ten śpiew jako wygenerowany przez AI (zobacz [AI features](/info/ai-features.html)).
+Utwór może śpiewać swój tekst za pomocą `sing()`. Pobrane modele głosu tworzą śpiew na Twoim urządzeniu. Plik zawierający syntezowany śpiew zawsze deklaruje go jako wygenerowany przez AI (zobacz [Funkcje AI](/info/ai-features.html)).
 
-## Piosenki w poświadczeniu
+<!--i:eti-badge-check-->
+## Utwory w poświadczeniu
 
-Eksport wideo lub audio, który odtwarza piosenkę rondocode, zapisuje każdą piosenkę w swoich Content Credentials jako źródło:
+Eksport wideo lub audio odtwarzający utwór rondocode zapisuje każdy utwór w swoich Content Credentials jako źródło:
 
-- nazwę piosenki;
-- SHA-256 jej pliku `.rondo.json`;
-- jak została wyrenderowana: w piaskownicy Lolly, klasa wykonania `vm`, z wersją i ziarnem renderera oraz każdą częścią, której render nie potrafił odtworzyć.
+- nazwę utworu;
+- SHA-256 jego pliku `.rondo.json`;
+- sposób renderowania: w piaskownicy Lolly, w klasie wykonania `vm`, z wersją renderera i ziarnem oraz każdą część, której renderowanie nie mogło odtworzyć.
 
-Muzyka obliczona z kodu piosenki jest oznaczona jako medium algorytmiczne, więc Lolly Verify nie oznacza jej jako AI. Przed eksportem linia pod **Download** wymienia piosenki, które zapisze poświadczenie; po eksporcie ta sama linia zgłasza, co znalazł odczyt dostarczonego pliku. Odznacz **C2PA Credentials**, aby pominąć zapis. Obraz nieruchomy nie zapisuje piosenki, ponieważ nie niesie dźwięku. `lolly mix` i [serwer MCP](/info/mcp.html) zapisują ten sam zapis.
+Muzyka obliczona z kodu utworu jest oznaczana jako media algorytmiczne, więc Lolly Verify nie oznacza jej jako AI. Przed eksportem wiersz pod **Download** wymienia utwory, które zapisze poświadczenie. Po eksporcie ten sam wiersz informuje, co wykrył odczyt dostarczonego pliku. Odznacz **C2PA Credentials**, aby pominąć zapis. Statyczny obraz nie zapisuje utworu, ponieważ nie ma dźwięku. Statyczny obraz nie zapisuje utworu. `lolly mix` i [serwer MCP](/info/mcp.html) tworzą ten sam zapis.
 
-## Pliki z utility Rondocode
+<!--i:eti-file-->
+## Pliki z narzędzia pomocniczego Rondocode
 
-Większość utility na urządzeniu nie zapisuje poświadczenia, ponieważ przekształcają plik, który już posiadasz. Lolly Rondocode tworzy nowe audio, więc każdy zapisany przez niego plik audio niesie Content Credentials, które zapisują piosenkę jako źródło: jej nazwę, SHA-256 jej pliku `.rondo.json` i miejsce, w którym działał jej kod. Obejmuje to WAV, MP3, M4A, Opus, FLAC, każdą ścieżkę w ZIP ze ścieżkami i nagranie tego, co gra.
+Większość narzędzi pomocniczych działających na urządzeniu nie zapisuje poświadczenia, ponieważ przekształca plik, który już posiadasz. Lolly Rondocode tworzy nowe audio, więc każdy zapisany przez nie plik audio zawiera Content Credentials, które zapisują utwór jako źródło: WAV, MP3, M4A, Opus, FLAC, każda ścieżka składowa w ZIP ze ścieżkami i nagranie tego, co jest odtwarzane.
 
 - Własne rendery edytora działają w jego prywatnej ramce (klasa wykonania `frame`) i zapisują wersję edytora.
-- Render wykonany przez CLI lub link udostępniania działa w klasie `vm` i zapisuje wersję renderera i ziarno.
-- WAV podaje to samo także w swoim komentarzu RIFF.
-- Muzyka obliczona z kodu piosenki jest medium algorytmicznym i nie jest oznaczana jako AI.
+- Render utworzony przez CLI lub link udostępniania działa w klasie `vm` i zapisuje wersję renderera i ziarno.
+- WAV podaje też te same informacje w komentarzu RIFF.
 
-Gdy piosenka śpiewa, plik deklaruje ten śpiew jako wygenerowany przez AI w formie czytelnej maszynowo. Cyfrowy typ źródła poświadczenia to media złożone wykonane z użyciem wytrenowanych modeli, zapis wymienia śpiewane części, a jedno ujawnienie AI C2PA na model identyfikuje każdy model, przez który przeszedł śpiew: zamianę tekstu na mowę Supertonic-3, aligner fonemów wav2vec 2.0, koder ContentVec i głos RVC, z repozytorium i commitem, z którego Lolly je hostuje. Plik zawierający syntetyczny śpiew nigdy nie jest zapisywany bez tej deklaracji.
+Gdy utwór zawiera śpiew, deklaracja AI jest czytelna maszynowo. Typ źródła cyfrowego w poświadczeniu to media złożone utworzone za pomocą wytrenowanych modeli, zapis wymienia śpiewane partie, a jedna deklaracja użycia AI w C2PA na model identyfikuje każdy model, przez który przeszedł śpiew: syntezę mowy Supertonic-3, narzędzie dopasowujące fonemy wav2vec 2.0, koder ContentVec i głos RVC, wraz z repozytorium i commitem, z których Lolly go udostępnia.
 
 ### Co zawiera plik MIDI
 
-Plik MIDI to Standard MIDI File, format 1. Pierwsza ścieżka zawiera tempo i metrum 4/4, a po niej jest po jednej ścieżce dla każdego syntezatora, nazwanej jego nazwą. Każda nuta zachowuje swój początek, długość i velocity. Syntezator, którego nazwa brzmi jak instrument, na przykład bas, smyczki, pad czy pianino, dostaje odpowiedni instrument General MIDI, a nazwa przypominająca perkusję trafia na kanał 10. Strój, który nie jest dwunastotonowy, jest zaokrąglany do najbliższego półtonu za pomocą pitch bendu.
+Plik MIDI to Standard MIDI File w formacie 1. Pierwsza ścieżka zawiera tempo i metrum 4/4, a po niej następuje jedna ścieżka na syntezator, nazwana od syntezatora. Każda nuta zachowuje początek, długość i siłę uderzenia. Syntezator, którego nazwa wskazuje na instrument, na przykład bas, smyczki, pad lub fortepian, otrzymuje odpowiadający mu instrument General MIDI, a nazwa wskazująca na perkusję trafia na kanał 10. Strój inny niż dwunastotonowy jest zaokrąglany do najbliższego półtonu z użyciem pitch bend.
 
-Plik MIDI nie może zawierać tego, jak brzmi piosenka. Ustawień syntezatorów, filtrów, efektów, szyn, sampli i śpiewu w nim nie ma, więc DAW odtwarza nuty własnymi instrumentami. Tempo jest odczytywane z cykli piosenki na sekundę, przy czym jeden cykl to takt o czterech uderzeniach, ponieważ własne metrum piosenki nie jest częścią tego, co zwraca renderer.
+Plik MIDI nie może zawierać ustawień syntezatorów, filtrów, efektów, szyn, sampli ani śpiewu, więc DAW odtwarza nuty własnymi instrumentami. Tempo jest odczytywane z liczby cykli na sekundę utworu, przyjmując jeden cykl za takt o czterech miarach, ponieważ własne metrum utworu nie jest częścią danych zwracanych przez renderer.
 
-Plik MIDI nie ma miejsca na poświadczenie, więc zamiast tego oświadczenie niesie zdarzenie tekstowe w pliku, a panel eksportu o tym mówi. Panel opisuje to wszystko przed eksportem, a po każdym eksporcie edytor odczytuje zapisany plik z powrotem i zgłasza tylko to, co znalazł ten odczyt.
+Plik MIDI nie ma miejsca na poświadczenie, więc deklarację przenosi zdarzenie tekstowe w pliku, a panel eksportu Cię o tym informuje. Panel opisuje to wszystko przed eksportem. Po każdym eksporcie edytor ponownie odczytuje zapisany plik i raportuje tylko to, co wykrył ten odczyt.
 
-Ogólnie o tym, co zapisują Content Credentials, zobacz [Export a file](/info/exporting.html#content-credentials-c2pa).
+Ogólne informacje o tym, co zapisują Content Credentials, znajdziesz w [Eksporcie pliku](/info/exporting.html#content-credentials-c2pa).

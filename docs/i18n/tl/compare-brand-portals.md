@@ -1,45 +1,50 @@
 # Lolly at mga brand portal
 
-_Na-update ang positioning: 31 Oktubre 2026. Sinuri ang halimbawa ng capability ng vendor: 28 Setyembre 2026._
+_Na-update ang pagpoposisyon: 31 Oktubre 2026. Sinuri ang halimbawa ng kakayahan ng vendor: 28 Setyembre 2026._
 
-Kung iniingatan ng organisasyon mo ang mga aprubadong asset nito sa Bynder, Frontify, Marq o Brandfolder, inihahambing ng pahinang ito iyon sa Lolly kasama ang Lolly Work: kung paano nakakahanap ang mga tao ng brand asset, at kung paano sila gumagawa ng bagong file mula sa mga iyon.
+Kung itinatago ng organisasyon mo ang mga aprubadong asset nito sa Bynder, Frontify, Marq o Brandfolder, inihahambing ng pahinang ito ang portal na iyon sa Lolly kasama ang Lolly Work. Sinasaklaw nito kung paano hinahanap ng mga tao ang mga brand asset at kung paano sila gumagawa ng mga bagong file mula sa mga ito.
 
-## Pag-iingat ng umiiral mong portal
+<!--i:eti-folder-shared-->
+## Pagpapanatili ng kasalukuyan mong portal
 
-Maaaring manatiling source of record ang umiiral na DAM. Ginagawang available sa Lolly ng mga catalog connector ng Lolly Work ang piniling bahagi ng library nito, kung saan gumagawa ang mga tao ng bagong file sa ilalim ng mga patakaran ng organisasyon. Ang mga sinusuportahang source constraint ng DAM at ang mga exposure rule ng Lolly Work ang namamahala sa access; hiwalay na desisyon ang pagsusuri ng huling output.
+Puwedeng manatiling opisyal na pinagkukunan ng record ang kasalukuyang DAM. Ginagawang magagamit sa Lolly ng mga catalog connector ng Lolly Work ang napiling bahagi ng library nito, kung saan gumagawa ang mga tao ng mga bagong file sa ilalim ng mga patakaran ng organisasyon. Pinamamahalaan ang access ng mga limitasyon sa pinagmulan na sinusuportahan ng DAM at ng mga patakaran ng Lolly Work sa kung ano ang ginagawang available. Hiwalay na pasya ang pagsusuri ng panghuling output.
 
-Ipinapaliwanag ng [Gamitin ang Lolly kasama ang umiiral mong DAM](/info/use-with-dam.html) ang mga responsibilidad at limitasyon. Itinatala ng [karanasan ng SUSE sa Brandfolder](/info/suse-brandfolder.html) ang matagumpay na integrasyon na sumuporta sa change management ng mga administrator bago ang planadong migration. Nananatiling sinusuportahang pagpili ang pag-iwan sa source na konektado.
+Ipinapaliwanag ng [Gamitin ang Lolly kasama ng kasalukuyan mong DAM](/info/use-with-dam.html) ang mga responsibilidad at limitasyon. Itinatala ng [Karanasan ng SUSE sa Brandfolder](/info/suse-brandfolder.html) ang matagumpay na integration na sumuporta sa pamamahala ng pagbabago ng mga administrator bago ang nakaplanong paglilipat.
 
-Ang layunin ng Lolly ay [content sovereignty](/info/content-sovereignty.html), kasama ang kontrol sa production at ang kalayaang pumili ng mga system. Sinusuportahan ng sarili nitong library at mga approval ang mga organisasyong piniling patakbuhin ang mga capability na iyon mismo. Inilalarawan ng [Lolly para sa mga DAM vendor at implementation partner](/info/dam-partners.html) kung paano makapagdaragdag ng halaga ang konektadong workflow sa umiiral na system of record.
+Layunin ng Lolly ang [soberanya sa nilalaman](/info/content-sovereignty.html), kasama ang kontrol sa paggawa at ang kalayaang pumili ng mga system. Nagsisilbi ang sarili nitong library at mga approval sa mga organisasyong pinipiling patakbuhin mismo ang mga kakayahang iyon. Inilalarawan ng [Lolly para sa mga DAM vendor at implementation partner](/info/dam-partners.html) kung paano nakakadagdag ng halaga ang magkakaugnay na workflow sa kasalukuyang system ng opisyal na mga record.
 
-## Ang mas mahusay na ginagawa ng itinatag na portal
+<!--i:eti-award-->
+## Ang mas mahusay na ginagawa ng matatag nang portal
 
-Ang mga itinatag na portal ay nag-aalok ng managed hosting, suporta at malawak na asset-management workflow. Halimbawa, pinagsasama ng [enterprise DAM ng Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) ang asset discovery, access control, approval workflow at distribution. Mas bata ang Lolly stack at sunud-sunod ang mga approval chain nito sa halip na arbitraryong branching workflow. Itinatala ng [Lolly Work status at roadmap](/info/work-status.html) ang mga limitasyon ng deployment nito.
+Nag-aalok ang mga matatag nang portal ng pinamamahalaang hosting, suporta at malawak na mga workflow sa pamamahala ng asset. Pinagsasama ng [enterprise DAM ng Frontify](https://www.frontify.com/en/solution/enterprise-digital-asset-management) ang paghahanap ng asset, mga kontrol sa access, workflow ng approval at pamamahagi. Mas bago ang Lolly stack. Sunod-sunod ang mga approval chain nito at hindi puwedeng magsanga nang anumang paraan. Itinatala ng [Status at roadmap ng Lolly Work](/info/work-status.html) ang mga limitasyon ng deployment nito.
 
-## Kung saan sila nagtatagpo
+<!--i:eti-blend-->
+## Saan sila magkapareho
 
-Parehong sinasaklaw ang mga aprubadong asset, naka-lock na template, access control, review at distribution. Ang Lolly ang gumagawa ng mga file: tinutukoy ng mga template, design token at pinapayagang input kung ano ang puwedeng baguhin ng tao, at puwedeng manatili ang rendering sa device nila. Nagdaragdag ang Lolly Work ng identity, shared storage, policy, approval at pag-uulat sa infrastructure na kontrolado ng organisasyon.
+Parehong sumasaklaw sa mga aprubadong asset, nakakandadong template, kontrol sa access, pagsusuri at pamamahagi. Lolly ang gumagawa ng mga file. Itinatakda ng mga template, design token at pinapayagang input kung ano ang puwedeng baguhin ng isang tao, at puwedeng manatili ang pag-render sa device nila. Idinaragdag ng Lolly Work ang pagkakakilanlan, pinagsasaluhang storage, policy, mga approval at pag-uulat sa imprastrakturang kontrolado ng organisasyon.
 
-![Ang aktibong design system sa Settings, ipinapakita bilang cover at mga pahina: ang mga kulay, type at logo na ginagamit ng bawat tool sa pagguhit](/info/shots/dashboard-brand.svg)
+![Ang aktibong design system sa Settings, na ipinapakita bilang pabalat at mga pahina: ang mga kulay, type at logo na ginagamit sa pagguhit ng bawat tool](/info/shots/dashboard-brand.svg)
 
+<!--i:eti-lolly-->
 ## Ang ibinibigay ng Lolly at Lolly Work
 
 | Pangangailangan | Lolly + Lolly Work |
 |---|---|
-| Sign-in at provisioning | OIDC single sign-on, maraming identity provider, SCIM 2.0 user provisioning at group membership, at pag-disable ng account na nagbabawi ng mga umiiral na session. Ang SAML-only na identity provider ay maaaring kumonekta sa pamamagitan ng OIDC bridge tulad ng Keycloak. |
-| Mga aprubadong template | Dinedefine ng Lolly ang mga mae-edit na input ng template; naglalapat ang Lolly Work ng group visibility at input policy na nagla-lock ng mga value, naglilimita ng mga pagpipilian o nagtatago ng mga kontrol. |
-| Shared na asset library | Mga upload na pag-aari ng instance, collection, custom metadata at mga catalogue na may access control, kasama ang mga connector na nagbabasa ng umiiral na DAM at storage library. |
-| Review | Mga ordered na hakbang sa pag-apruba, karapat-dapat na approver group, quorum rule at paghihiwalay ng tungkulin; ang review ay maaaring mamahala sa mga catalogue submission at delivery sa mga target ng organisasyon. |
-| History at availability ng asset | Mga bersyon at rollback para sa mga asset na pag-aari ng instance, retention at hold, nakaiskedyul na availability, expiry at revocation. Ang mga konektadong provider ay nag-iingat ng sarili nilang source history. |
-| Mga lisensya at credit | Itinatala ng Lolly ang lisensya ng bawat source na ginagamit ng file at inihahanda ang mga credit na utang nito; ipinapaliwanag ng [Creative rights at mga credit](/info/creative-rights.html) kung ano ang itinatala nito at saan isinusulat ang mga credit. Hindi nito nililinis ang mga karapatan. |
-| Pag-uulat | Mga bilang ng paggamit at download ng asset, aktibidad ng tool at export, mga dashboard at audit trail. Sinusunod ng usage attribution ang telemetry policy ng deployment; ang default na attribution setting ay nangangailangan ng pahintulot. |
-| Distribution | Mga link na nag-e-expire at mababawi, shared collection, guest access at delivery sa mga naka-configure na destinasyon ng organisasyon. |
-| Pampublikong brand page | Nagsusulat ang Lolly ng static na [brand page](/info/brand-page.html), mula sa Lolly Design System Setup o sa command line: mga logo, kulay, type, patakaran at halimbawa para sa mga tao, na may mga token, `DESIGN.md` at skill para sa mga agent. Ikaw ang nagho-host ng folder, o binubuksan ng administrator ang [brand page hosting](/info/work-design-system-administration.html#host-a-brand-page) sa Lolly Work, na naka-off bilang default. |
+| Sign-in at provisioning | OIDC single sign-on, maraming identity provider, SCIM 2.0 user provisioning at group membership, at pag-disable ng account na nagpapawalang-bisa sa mga kasalukuyang session. Puwedeng kumonekta ang identity provider na SAML lang ang gamit sa pamamagitan ng OIDC bridge tulad ng Keycloak. |
+| Mga aprubadong template | Itinatakda ng Lolly ang mga mae-edit na input ng template; naglalapat ang Lolly Work ng visibility ayon sa grupo at mga input policy na nagkakandado ng mga value, naglilimita sa mga pagpipilian o nagtatago ng mga kontrol. |
+| Pinagsasaluhang asset library | Mga upload na pag-aari ng instance, collection, custom na metadata at catalog na may kontrol sa access, kasama ang mga connector na bumabasa sa kasalukuyang mga DAM at storage library. |
+| Pagsusuri | Mga sunod-sunod na hakbang sa approval, grupo ng mga kwalipikadong approver, patakaran sa quorum at paghihiwalay ng mga tungkulin; puwedeng pamahalaan ng pagsusuri ang mga isinumite sa catalog at paghahatid sa mga target ng organisasyon. |
+| History at availability ng asset | Mga bersyon at rollback para sa mga asset na pag-aari ng instance, retention at hold, nakaiskedyul na availability, pag-expire at pagpapawalang-bisa. Pinananatili ng mga konektadong provider ang sarili nilang history ng pinagmulan. |
+| Mga lisensya at credit | Itinatala ng Lolly ang lisensya ng bawat pinagmulan na ginagamit ng file at inihahanda ang mga credit na kailangan nito; ipinapaliwanag ng [Mga karapatan at credit sa malikhaing gawa](/info/creative-rights.html) kung ano ang itinatala nito at saan isinusulat ang mga credit. Hindi nito inaayos ang mga pahintulot sa mga karapatan. |
+| Pag-uulat | Mga bilang ng paggamit at download ng asset, aktibidad sa tool at export, mga dashboard at audit trail. Sinusunod ng pag-uugnay ng paggamit sa user ang telemetry policy ng deployment; kailangan ng pahintulot sa default na setting ng pag-uugnay. |
+| Pamamahagi | Mga link na nag-e-expire at puwedeng pawalang-bisa, mga pinagsasaluhang collection, guest access at paghahatid sa mga naka-configure na destinasyon ng organisasyon. |
+| Pampublikong brand page | Nagsusulat ang Lolly ng static na [brand page](/info/brand-page.html), mula sa Lolly Design System Setup o command line: mga logo, kulay, type, patakaran at halimbawa para sa mga tao, kasama ang mga token, `DESIGN.md` at skill para sa mga agent. Ikaw ang magho-host ng folder, o io-on ng administrator ang [hosting ng brand page](/info/work-design-system-administration.html#host-a-brand-page) sa Lolly Work, na naka-off bilang default. |
 
-Inilalarawan ng [Catalog at nilalaman](/info/work-catalog.html), [Mga approval](/info/work-approvals.html) at [Policy at governance](/info/work-governance.html) ang mga feature na ito at ang configuration nila.
+Inilalarawan ng [Catalog at nilalaman](/info/work-catalog.html), [Mga approval](/info/work-approvals.html) at [Policy at pamamahala](/info/work-governance.html) ang mga feature na ito at ang configuration ng mga ito.
 
+<!--i:eti-checklist-->
 ## Suriin ang pinagsamang workflow
 
-Gamitin ang [event-card production sequence](/info/dam-production.html) para subukan ang source access, mga pinahihintulutang edit, pagsusuri ng output at delivery gamit ang sarili mong library. Inililista ng [Ano ang tumatakbo saan](/info/compare.html#what-runs-where) ang mga limitasyong pinagsasaluhan ng bawat paghahambing. Ang koneksyon sa source ay hindi mismong nagtatatag ng vendor partnership o kwalipikasyon para sa bawat tenant.
+Gamitin ang [sunod-sunod na hakbang sa paggawa ng event card](/info/dam-production.html) para subukan ang access sa pinagmulan, mga pinapayagang edit, pagsusuri ng output at paghahatid gamit ang sarili mong library. Inililista ng [Ano ang tumatakbo saan](/info/compare.html#what-runs-where) ang mga limitasyong pareho sa bawat paghahambing. Hindi sapat ang koneksyon sa pinagmulan lang para magtatag ng partnership sa vendor o pagiging kwalipikado para sa bawat tenant.
 
-Tingnan ang [Paano naghahambing ang Lolly](/info/positioning.html) para sa paghahambing ng kakayahan. Ang mga pangalan ng vendor ay kumikilala sa mga produktong inihahambing; hindi kaugnay ng mga ito ang Lolly.
+Nasa [Paano maihahambing ang Lolly](/info/positioning.html) ang paghahambing ng mga kakayahan. Tinutukoy ng mga pangalan ng vendor ang mga produktong inihahambing. Hindi kaanib ng mga ito ang Lolly.
