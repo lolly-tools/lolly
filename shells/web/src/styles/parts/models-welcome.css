@@ -43,14 +43,6 @@
   background: color-mix(in oklab, hsl(var(--primary)) 14%, transparent);
   color: hsl(var(--primary-text));
 }
-.mw-eyebrow {
-  margin: 0 0 6px;
-  font-size: calc(13px * var(--a11y-fs, 1));
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: hsl(var(--muted-foreground));
-}
 .mw-title {
   margin: 0 0 12px;
   font-size: clamp(24px, 4vw, 34px);
