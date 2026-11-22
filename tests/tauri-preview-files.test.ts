@@ -237,3 +237,47 @@ test('a picture from outside is read as the web store reads one: an SVG only thr
   assert.equal(bytes.size, 1);
   assert.equal(await state.pictureDataUrl!({ slot: 'poster:png' }), png('outside'));
 });
+
+/**
+ * A record as the 1.2.1 CLI and TUI write one again (packages/node-shell/src/
+ * session-store.ts at v1.2.1, `writeSessionRecord` with `normalise`d prior): only the
+ * fields that build knew, `thumb` carried from the prior record (null once the
+ * picture has moved), stamped as session format 4. `preview` does not survive.
+ */
+function writtenBy121(prior: Record<string, unknown>, slot: string, data: Record<string, unknown>, label: string): string {
+  const at = '2026-11-22T10:00:00.000Z';
+  return JSON.stringify({ slot, toolId: prior.toolId, toolVersion: prior.toolVersion, label, data,
+    thumb: typeof prior.thumb === 'string' ? prior.thumb : null, updatedAt: at, createdAt: prior.createdAt ?? at,
+    formatVersion: 4, engineVersion: '1.349.0' }, null, 2);
+}
+
+test('a 1.2.1 CLI or TUI rename or copy of a moved session: the picture is found again by its work, kept, and never swept', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-11-22T09:00:00Z') });
+  const { fs, bytes, text } = memoryFs();
+  text.set('saved-state/slotname-v1.marker', '1');
+  const picture = await prepared(png('desktop'));
+  const work = { __toolId: 'poster', title: 'launch', __label: 'Launch' };
+  await createFsStateAPI(fs).save('poster:1', work, picture);
+  const saved = JSON.parse(text.get('saved-state/poster%3A1.json')!);
+  assert.equal(saved.preview.key, picture.ref.key);
+  // The 1.2.1 TUI renames it; the 1.2.1 CLI copies it; and an old edit changes another copy's work.
+  text.set('saved-state/poster%3A1.json', writtenBy121(saved, 'poster:1', { ...work, __label: 'Renamed' }, 'Renamed'));
+  text.set('saved-state/poster%3A2.json', writtenBy121(saved, 'poster:2', { ...work, __label: 'Launch copy' }, 'Launch copy'));
+  text.set('saved-state/poster%3A3.json', writtenBy121(saved, 'poster:3', { ...work, title: 'edited' }, 'Edited'));
+  for (const slot of ['poster%3A1', 'poster%3A2']) assert.equal(JSON.parse(text.get(`saved-state/${slot}.json`)!).preview, undefined, 'the old writer dropped the reference');
+
+  const launch = async () => { const rows = await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(); return rows; };
+  const rows = await launch();
+  const key = (slot: string) => rows.find(row => row.slot === slot)?.preview?.key;
+  assert.equal(key('poster:1'), picture.ref.key, 'the rename shows its picture');
+  assert.equal(key('poster:2'), picture.ref.key, 'the copy shows the same picture');
+  assert.equal(key('poster:3'), undefined, 'changed work is not given a picture of other work');
+  const renamed = JSON.parse(text.get('saved-state/poster%3A1.json')!);
+  assert.equal(renamed.preview.key, picture.ref.key, 'kept on the record');
+  assert.equal(renamed.label, 'Renamed', 'every field the old writer wrote is kept');
+  assert.equal(renamed.formatVersion, 4);
+  // Two walks ten minutes apart: the picture stays, since records point at it again.
+  context.mock.timers.tick(11 * 60_000);
+  await launch();
+  assert.ok(bytes.has(`saved-state/previews/${picture.ref.key}.png`));
+});

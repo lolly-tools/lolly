@@ -11,6 +11,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const origin = process.env.LOLLY_PREVIEW_TEST_URL ?? process.env.LOLLY_IMPORT_TEST_URL;
 const skip = origin ? false : 'set LOLLY_PREVIEW_TEST_URL or LOLLY_IMPORT_TEST_URL to a local web shell';
@@ -294,4 +299,49 @@ test('a history-backed session keeps its SVG picture through a backup and a rest
     assert.equal(result.circle, true, 'the same picture');
     assert.equal(result.script, false, 'with the event handler the sanitiser removes');
   } finally { await context.close(); await closeBrowser(); }
+});
+
+test('an SVG-first session: its .lolly thumbnail is a PNG the Linux thumbnailer and Quick Look read, and Beam gets a raster picture its 1.2.1 receivers keep', { skip, timeout: 90_000 }, async () => {
+  const { context, page } = await blankPage();
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-thumb-'));
+  try {
+    const result = await page.evaluate(async () => {
+      const [{ memoryDb }, { createStateAPI }, store, pictures, pack] = await Promise.all([
+        import(String('/src/bridge/idb-memory.test-utils.ts')), import(String('/src/bridge/state.ts')), import(String('/src/bridge/preview-store.ts')),
+        import(String('/src/lib/session-picture.ts')), import(String('/src/lib/lolly-pack.ts')),
+      ]);
+      const { db } = memoryDb();
+      const state = createStateAPI(db);
+      const svg = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480"><rect width="640" height="480" fill="#0c322c"/><circle cx="320" cy="240" r="120" fill="#30ba78"/></svg>')}`;
+      await state.save('poster:v', { __toolId: 'poster', title: 'vector' }, await store.preparePicture(svg, 'legacy'));
+      const row = (await state.list())[0] as { preview?: { type: string } };
+      const png = await pictures.rowPicturePng(state, row);
+      const raster = await pictures.rowPictureRaster(state, row);
+      const { blob } = await pack.buildLollyFile({ session: { __toolId: 'poster', title: 'vector' }, toolId: 'poster', name: 'Vector', thumb: png, userAssets: [] });
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      let binary = '';
+      for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      return { stored: row.preview?.type, png, raster, file: btoa(binary) };
+    });
+    assert.equal(result.stored, 'image/svg+xml', 'the session keeps its picture as SVG');
+    // Beam: the receiver's test in 1.2.1 (THUMB_DATA_URL and MAX_THUMB_CHARS in lib/beam-pack.ts).
+    assert.match(result.raster ?? '', /^data:image\/(?:png|jpeg|jpg|webp|gif|avif);base64,[A-Za-z0-9+/=\s]*$/);
+    assert.ok((result.raster ?? '').length <= 512 * 1024);
+    // Quick Look (macos/quicklook/LollyArchiveThumbnail.m): a bounded base64 PNG.
+    assert.ok(result.png?.startsWith('data:image/png;base64,'));
+    const png = Buffer.from(result.png!.slice('data:image/png;base64,'.length), 'base64');
+    assert.deepEqual([...png.subarray(0, 8)], [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    assert.ok(png.length <= 16 * 1024 * 1024);
+    assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [720, 540], 'drawn sharp at the size session thumbnails always had (inside 720 x 560)');
+    // The Linux thumbnailer itself, on the file this build wrote.
+    const file = join(dir, 'vector.lolly'), out = join(dir, 'vector.png');
+    writeFileSync(file, Buffer.from(result.file, 'base64'));
+    const thumbnailer = fileURLToPath(new URL('../shells/tauri-desktop/linux/thumbnailer/lolly-thumbnail', import.meta.url));
+    let python = true;
+    try { execFileSync('python3', ['--version']); } catch { python = false; }
+    if (python) {
+      execFileSync('python3', [thumbnailer, file, out, '256']);
+      assert.deepEqual(readFileSync(out), png, 'it lifts out exactly that PNG');
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); await context.close(); await closeBrowser(); }
 });

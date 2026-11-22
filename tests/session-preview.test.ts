@@ -13,6 +13,7 @@ import assert from 'node:assert/strict';
 import {
   readPreviewRef, previewContentKey, decodePictureDataUrl, pictureDataUrl, pictureSize, pictureMatchesType,
   previewRefFor, previewFileExt, PREVIEW_MAX_BYTES, PREVIEW_TYPES,
+  sessionWork, sessionWorkKey, previewLinkName, readPreviewLink, mayHaveLostPicture,
 } from '../engine/src/session-preview.ts';
 import {
   sessionPreviewRef, migrateSessionRecord, SESSION_FORMAT_VERSION, SESSION_READER_VERSION, sessionVersionStamp,
@@ -121,4 +122,22 @@ test('format 5 is additive: data reads the same, and a format 4 reader would see
   const v6 = { ...v5, formatVersion: 6 };
   assert.equal(migrateSessionRecord(v6, (_l, m) => warnings.push(m)), data, 'a record from a newer app is read as-is');
   assert.equal(warnings.length, 1);
+});
+
+test('a picture link is keyed by the work, which a rename leaves alone, and read totally', async () => {
+  const work = { __toolId: 'poster', title: 'a', __label: 'One', __export_filename: 'one' };
+  assert.equal(sessionWork(work), JSON.stringify({ __toolId: 'poster', title: 'a' }));
+  const key = await sessionWorkKey(work);
+  assert.match(key, /^[0-9a-f]{32}$/);
+  assert.equal(await sessionWorkKey({ ...work, __label: 'Renamed', __export_filename: 'renamed' }), key, 'a rename keeps the key');
+  assert.notEqual(await sessionWorkKey({ ...work, title: 'b' }), key, 'changed work is another key');
+  assert.equal(previewLinkName(key), `w-${key}.ref`);
+  const ref = { key: 'd'.repeat(32), type: 'image/webp', width: 720, height: 560 };
+  assert.deepEqual(readPreviewLink(JSON.stringify(ref)), ref);
+  for (const junk of [null, 1, '', '{', '[]', JSON.stringify({ ...ref, key: 'x' }), 'x'.repeat(5000)]) assert.equal(readPreviewLink(junk), null);
+  assert.equal(mayHaveLostPicture({ formatVersion: 4, thumb: null }), true, 'a format 4 record with no picture');
+  assert.equal(mayHaveLostPicture({ thumb: null }), true, 'a record from before version stamps');
+  assert.equal(mayHaveLostPicture({ formatVersion: 5, thumb: null }), false, 'a format 5 record with no picture has none');
+  assert.equal(mayHaveLostPicture({ formatVersion: 4, thumb: 'data:image/png;base64,AA==' }), false);
+  assert.equal(mayHaveLostPicture({ formatVersion: 4, preview: ref }), false);
 });

@@ -65,8 +65,8 @@ import { assetDependency } from '../../../engine/src/asset-version.ts';
 import { textFontAssetIds } from '../../../engine/src/text-assets.ts';
 import { sessionPreviewRef } from '../../../engine/src/session-record.ts';
 import {
-  decodePictureDataUrl, pictureDataUrl, previewContentKey, previewFileExt, previewRefFor, readPreviewRef,
-  type SessionPreviewRef,
+  decodePictureDataUrl, mayHaveLostPicture, pictureDataUrl, previewContentKey, previewFileExt, previewLinkName, previewRefFor,
+  readPreviewLink, readPreviewRef, sessionWorkKey, type SessionPreviewRef,
 } from '../../../engine/src/session-preview.ts';
 import type { SavedStateData, WebStateAPI } from '../../web/src/bridge/state.ts';
 import { preparePicture, type PictureInput, type PreparedPicture } from '../../web/src/bridge/preview-store.ts';
@@ -391,6 +391,30 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     return { thumb: null, preview: ref };
   }
 
+  const linkPath = (workKey: string): string => `${PREVIEW_DIR}/${previewLinkName(workKey)}`;
+
+  /** Remember which picture shows this work (engine `previewLinkName`), so a record
+   *  an older writer saves again without its reference finds the picture again. */
+  async function writeLink(data: unknown, ref: SessionPreviewRef): Promise<void> {
+    try {
+      const path = linkPath(await sessionWorkKey(data));
+      const text = JSON.stringify({ key: ref.key, type: ref.type, width: ref.width, height: ref.height, ...(ref.route ? { route: ref.route } : {}) });
+      try { if (await fs.readTextFile(path) === text) return; } catch { /* none yet */ }
+      if (!await fs.exists(PREVIEW_DIR)) await fs.mkdirRecursive(PREVIEW_DIR);
+      await writeDocument(fs, path, text);
+    } catch { /* the record keeps its own reference either way */ }
+  }
+
+  /** The picture a record lost to an older writer (a 1.2.1 CLI or TUI rename or
+   *  copy), found again by its work when the picture file is still here. */
+  async function relinked(raw: ParsedRecord): Promise<SessionPreviewRef | null> {
+    if (!mayHaveLostPicture(raw) || !raw.data || !fs.readFile) return null;
+    try {
+      const ref = readPreviewLink(await fs.readTextFile(linkPath(await sessionWorkKey(raw.data))));
+      return ref && await fs.exists(previewPath(ref)) ? ref : null;
+    } catch { return null; }
+  }
+
   async function writeRecord(slot: string, data: SavedStateData, picture: PictureInput, times?: { updatedAt: string; savedAt: string }): Promise<void> {
     await ensureMigrated();
     await withSlot(slot, () => writeRecordNow(slot, data, picture, times));
@@ -431,6 +455,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       ...sessionVersionStamp(),
     };
     await writeDocument(fs, slotPath(slot), JSON.stringify(record, null, 2));
+    if (fields.preview) await writeLink(data, fields.preview);
     if (priorRef && priorRef.key !== fields.preview?.key) pictureLeft();
   }
 
@@ -462,10 +487,31 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     if (moveStarted || !fs.writeFile || !fs.readFile) return;
     moveStarted = true;
     const pending = raws.filter(raw => typeof raw.slot === 'string' && typeof raw.thumb === 'string' && raw.thumb && !sessionPreviewRef(raw));
-    setTimeout(() => { void movePictures(pending).catch(() => { /* the next launch tries again */ }); }, 3000);
+    const lost = raws.filter(raw => typeof raw.slot === 'string' && mayHaveLostPicture(raw));
+    setTimeout(() => { void movePictures(pending, lost).catch(() => { /* the next launch tries again */ }); }, 3000);
   }
 
-  async function movePictures(pending: ParsedRecord[]): Promise<void> {
+  /** Give a record an older writer saved without its reference the picture back,
+   *  when the file still holds what was read and the picture verifies. Every other
+   *  field is kept as that writer left it. */
+  async function relinkRecords(lost: ParsedRecord[]): Promise<void> {
+    for (const read of lost) {
+      const ref = await relinked(read);
+      if (!ref || !await readPicture(ref)) continue;
+      await withSlot(read.slot!, async () => {
+        try {
+          const path = slotPath(read.slot!);
+          const current = JSON.parse(await fs.readTextFile(path)) as ParsedRecord & Record<string, unknown>;
+          if (!mayHaveLostPicture(current) || current.updatedAt !== read.updatedAt || JSON.stringify(current.data) !== JSON.stringify(read.data)) return;
+          touched(ref.key);
+          await writeDocument(fs, path, JSON.stringify({ ...current, thumb: null, preview: ref }, null, 2));
+        } catch { /* left as it was; found again on the next list */ }
+      });
+    }
+  }
+
+  async function movePictures(pending: ParsedRecord[], lost: ParsedRecord[] = []): Promise<void> {
+    await relinkRecords(lost);
     for (const read of pending) {
       const decoded = decodePictureDataUrl(read.thumb);
       if (!decoded) continue;
@@ -481,6 +527,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
           if (current.thumb !== read.thumb || current.updatedAt !== read.updatedAt || current.savedAt !== read.savedAt
             || sessionPreviewRef(current) || JSON.stringify(current.data) !== JSON.stringify(read.data)) return;
           await writeDocument(fs, path, JSON.stringify({ ...current, thumb: null, preview: ref }, null, 2));
+          await writeLink(current.data, ref);
         } catch { /* left as it was; read the old way */ }
       });
     }
@@ -501,7 +548,11 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     const { records, complete, keysInText } = await scanRecords();
     if (!complete) return;
     const named = new Set<string>(keysInText);
-    for (const { raw } of records) { const ref = sessionPreviewRef(raw); if (ref) named.add(ref.key); }
+    for (const { raw } of records) {
+      // A record an older writer saved without its reference still owns its picture.
+      const ref = sessionPreviewRef(raw) ?? await relinked(raw);
+      if (ref) named.add(ref.key);
+    }
     const now = Date.now();
     for (const [key, at] of writtenHere) if (now - at > WRITTEN_GRACE_MS) writtenHere.delete(key);
     const seen = new Map<string, number>();
@@ -512,14 +563,24 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       }
     } catch { /* none yet */ }
     const next = new Map<string, number>();
+    const removed = new Set<string>();
     for (const file of files) {
       const key = file.split('.')[0] ?? '';
       if (!/^[0-9a-f]{32}$/.test(key) || named.has(key) || writtenHere.has(key) || writing.has(key)) continue;
       const first = seen.get(key);
       if (first !== undefined && now - first >= ORPHAN_AGE_MS) {
-        try { await fs.remove(`${PREVIEW_DIR}/${file}`); continue; } catch { /* kept; asked again next time */ }
+        try { await fs.remove(`${PREVIEW_DIR}/${file}`); removed.add(file); continue; } catch { /* kept; asked again next time */ }
       }
       next.set(key, first ?? now);
+    }
+    // A link whose picture file is gone has nothing left to find.
+    const present = new Set(files.filter(file => !removed.has(file)));
+    for (const file of files) {
+      if (!/^w-[0-9a-f]{32}\.ref$/.test(file)) continue;
+      try {
+        const ref = readPreviewLink(await fs.readTextFile(`${PREVIEW_DIR}/${file}`));
+        if (!ref || !present.has(previewPath(ref).slice(PREVIEW_DIR.length + 1))) await fs.remove(`${PREVIEW_DIR}/${file}`);
+      } catch { /* kept */ }
     }
     const text = [...next].map(([key, at]) => `${key} ${at}`).join('\n');
     if (text || seen.size) { try { await writeDocument(fs, ORPHANS_FILE, text); } catch { /* the next walk starts the count again */ } }
@@ -582,8 +643,16 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     async list() {
       const records = await readAllRecords();
       schedulePictureMove(records.map(({ raw }) => raw));
+      // Records an older writer saved without their reference show their picture again.
+      const found = new Map<string, SessionPreviewRef>();
+      for (const { raw } of records) {
+        if (!raw.slot || !mayHaveLostPicture(raw)) continue;
+        const ref = await relinked(raw);
+        if (ref) found.set(raw.slot, ref);
+      }
       return records
-        .map(({ raw }) => ({
+        .map(({ raw }) => (found.has(raw.slot ?? '') ? { ...raw, preview: found.get(raw.slot!)! } : raw))
+        .map((raw) => ({
           // A record that reached disk always carries these; the parsed type is
           // Partial because JSON.parse output is untrusted, so default rather
           // than assert. An empty slot is unreachable in practice and would only

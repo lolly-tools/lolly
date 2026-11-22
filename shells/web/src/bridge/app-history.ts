@@ -151,21 +151,21 @@ export async function queryAppHistory(db: IDBPDatabase, query: AppHistoryQuery, 
   return { entries, ...(next ? { before: JSON.stringify(next) } : {}) };
 }
 
-/** An `<img>` source for a History row's picture: an object URL into the preview
- *  store (plan 373), or the row's legacy data URL until the idle move reaches that row.
- *  A creation's picture is read by its record's reference, never by reading the
- *  record's document. */
+/** A History row's picture as a data URL, the form History's readers take (as every
+ *  picture there was one before plan 373): the stored picture, or the row's legacy
+ *  data URL until the idle move reaches that row. A creation's picture is read by its
+ *  record's reference, never by reading the record's document. */
 export async function appHistoryPreview(db: IDBPDatabase, row: AppHistoryRow): Promise<string | null> {
-  const { ownerSrc, revisionOwner, sessionOwner, exportOwner } = await import('./preview-store.ts');
-  if (row.kind === 'revision') return await ownerSrc(db, revisionOwner(row.ref)) ?? (await db.get('revision-previews', row.ref) as string | undefined) ?? null;
+  const { ownerDataUrl, revisionOwner, sessionOwner, exportOwner } = await import('./preview-store.ts');
+  if (row.kind === 'revision') return await ownerDataUrl(db, revisionOwner(row.ref)) ?? (await db.get('revision-previews', row.ref) as string | undefined) ?? null;
   if (row.kind === 'creation') {
-    const stored = await ownerSrc(db, sessionOwner(row.ref));
+    const stored = await ownerDataUrl(db, sessionOwner(row.ref));
     if (stored) return stored;
     const lean = db.objectStoreNames.contains('state-list') ? await db.get('state-list', row.ref) as { thumb?: string | null; legacyThumb?: boolean } | undefined : undefined;
     if (lean && !lean.legacyThumb) return lean.thumb ?? null;
     return (await db.get('state', row.ref) as StateRecord | undefined)?.thumb ?? null;
   }
-  if (row.kind === 'export') return await ownerSrc(db, exportOwner(row.ref)) ?? (await db.get('exports', row.ref) as ExportEntry | undefined)?.thumb ?? null;
+  if (row.kind === 'export') return await ownerDataUrl(db, exportOwner(row.ref)) ?? (await db.get('exports', row.ref) as ExportEntry | undefined)?.thumb ?? null;
   return null;
 }
 

@@ -20,7 +20,7 @@
  * lists correctly.
  */
 
-import { mkdir, readdir, readFile, rm, writeFile, rename } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile, rename, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { RightsDecisionV1 } from '@lolly-tools/core/rights-v1';
@@ -30,7 +30,9 @@ import type { SessionEmojiStamp } from '../../../engine/src/session-record.ts';
 // module and the MCP function bundle follows every import from there.
 import { decodeFsToken, encodeFsToken } from '../../../engine/src/fs-token.ts';
 import { migrateSessionRecord, sessionVersionStamp, sessionRightsDecisions, sessionEmojiStamp, sessionPreviewRef } from '../../../engine/src/session-record.ts';
-import { previewFileExt, type SessionPreviewRef } from '../../../engine/src/session-preview.ts';
+import {
+  mayHaveLostPicture, previewFileExt, previewLinkName, readPreviewLink, sessionWorkKey, type SessionPreviewRef,
+} from '../../../engine/src/session-preview.ts';
 
 /** The directory the shells share, under the resolved state directory. */
 export const SESSION_SUBDIR = 'saved-state';
@@ -89,10 +91,44 @@ export function sessionFilePath(stateDir: string, slot: string): string {
 export async function readSessionRecord(stateDir: string, slot: string): Promise<SessionRecord | null> {
   try {
     const raw = JSON.parse(await readFile(sessionFilePath(stateDir, slot), 'utf8')) as ParsedRecord;
-    return normalise(raw);
+    const record = normalise(raw);
+    return record ? withFoundPicture(stateDir, record) : null;
   } catch {
     return null;
   }
+}
+
+const linkFile = (stateDir: string, workKey: string): string => join(sessionsDir(stateDir), 'previews', previewLinkName(workKey));
+
+/**
+ * A record an older writer saved without its picture reference (the 1.2.1 CLI and
+ * TUI write a record again from the fields they know, so a rename or a copy there
+ * drops `preview`) gets its picture back through the link the writer of the picture
+ * left beside it, when the picture file is still here. A rename leaves the work alone,
+ * so the link still matches; a changed document does not, and stays without one.
+ */
+async function withFoundPicture(stateDir: string, record: SessionRecord): Promise<SessionRecord> {
+  if (!mayHaveLostPicture(record)) return record;
+  try {
+    const ref = readPreviewLink(await readFile(linkFile(stateDir, await sessionWorkKey(record.data)), 'utf8'));
+    if (ref && (await stat(sessionPicturePath(stateDir, ref))).isFile()) return { ...record, thumb: null, preview: ref };
+  } catch { /* no link, or no picture: the record as it is */ }
+  return record;
+}
+
+/** Remember which picture shows this work, as the desktop app does. Best effort. */
+async function writeLink(stateDir: string, data: SessionData, ref: SessionPreviewRef): Promise<void> {
+  try {
+    const path = linkFile(stateDir, await sessionWorkKey(data));
+    const text = JSON.stringify({ key: ref.key, type: ref.type, width: ref.width, height: ref.height, ...(ref.route ? { route: ref.route } : {}) });
+    if (await readFile(path, 'utf8').catch(() => null) === text) return;
+    await mkdir(join(sessionsDir(stateDir), 'previews'), { recursive: true });
+    const temp = `${path}.${randomUUID()}.tmp`;
+    try {
+      await writeFile(temp, text, { mode: 0o600, flag: 'wx' });
+      await rename(temp, path);
+    } finally { await rm(temp, { force: true }); }
+  } catch { /* the record keeps its own reference either way */ }
 }
 
 /**
@@ -125,7 +161,7 @@ export async function listSessionRecords(stateDir: string): Promise<SessionRecor
     try {
       const raw = JSON.parse(await readFile(join(sessionsDir(stateDir), name), 'utf8')) as ParsedRecord;
       const record = normalise(raw);
-      if (record) out.push(record);
+      if (record) out.push(await withFoundPicture(stateDir, record));
     } catch {
       /* skip corrupt entries */
     }
@@ -220,6 +256,7 @@ export async function writeSessionRecord(stateDir: string, write: SessionWrite):
     }
     await rename(temp, path);
   } finally { await rm(temp, { force: true }); }
+  if (record.preview) await writeLink(stateDir, record.data, record.preview);
   return record;
 }
 

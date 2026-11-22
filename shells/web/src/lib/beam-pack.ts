@@ -122,7 +122,7 @@
  * falls back to hashing in place. The API is async either way, so no caller can tell.
  */
 
-import { rowPictureDataUrl, type PictureState } from './session-picture.ts';
+import { rowPictureRaster, type PictureState } from './session-picture.ts';
 import { textFontAssetIds, mapTextFontAssets } from '../../../../engine/src/text-assets.ts';
 import { isJxl } from '../../../../engine/src/jxl.ts';
 import { extractC2paStore, sniffFormat } from '../../../../engine/src/c2pa-extract.ts';
@@ -993,9 +993,9 @@ export async function buildBeamOffer(source: BeamPackSource): Promise<BuiltBeamO
 
   // Sessions LAST - every asset they reference has landed and been re-keyed by the
   // time the receiver rewrites their refs.
-  // The picture as the data URL beam has always carried, rebuilt from the stored
-  // bytes; the receiver keeps only a raster one, as before.
-  const sessionThumb = sessionRow ? await rowPictureDataUrl(host.state as PictureState, sessionRow) : null;
+  // The picture as the raster data URL beam has always carried: a stored raster as
+  // it is, an SVG drawn into a PNG here, since every receiver keeps raster only.
+  const sessionThumb = sessionRow ? await rowPictureRaster(host.state as PictureState, sessionRow) : null;
   if (sessionBytes && sessionData && sessionSlot) {
     const index = items.length;
     const itemId = itemIdFor(index, sessionSlot);

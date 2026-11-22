@@ -124,9 +124,10 @@ export function makeLollyVehicle(
             )
               .filter((r) => r.toolId === toolId && (typeof r.thumb === 'string' || !!r.preview))
               .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
-            // The stored picture rebuilt as the data URL the manifest field has always carried.
-            const { rowPictureDataUrl } = await import('../lib/session-picture.ts');
-            return rowPictureDataUrl(host.state as never, mine[0]);
+            // The stored picture as the PNG data URL the manifest field has always
+            // carried: the Linux thumbnailer and Quick Look read PNG only.
+            const { rowPicturePng } = await import('../lib/session-picture.ts');
+            return rowPicturePng(host.state as never, mine[0]);
           })
           .catch(() => null)
       : null;

@@ -2,7 +2,7 @@
 /** Local revision storage (plan 221). No transport, DOM, or global database opens. */
 import type { IDBPDatabase } from 'idb';
 import { putStateRecord } from './state-rows.ts';
-import { ownerSrc, revisionOwner, scopeFor, type PictureInput } from './preview-store.ts';
+import { ownerDataUrl, revisionOwner, scopeFor, type PictureInput } from './preview-store.ts';
 import type { AppHistoryAPI } from './app-history.ts';
 import type { RevisionArchiveAPI } from './revision-archive-format.ts';
 import type { RevisionFidelityAPI } from './revision-fidelity.ts';
@@ -144,7 +144,7 @@ export function createRevisionStore(db: IDBPDatabase): RevisionStore {
     name: async (id, name) => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).name(id, name),
     read: async id => (await import('./revision-read.ts')).readRevision(db, id),
     async preview(id) {
-      return await ownerSrc(db, revisionOwner(id)) ?? (await db.get('revision-previews', id) as string | undefined) ?? null;
+      return await ownerDataUrl(db, revisionOwner(id)) ?? (await db.get('revision-previews', id) as string | undefined) ?? null;
     },
     attachPreview: async (id, thumb) => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).attachPreview(id, thumb),
     move: async (from, to) => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).move(from, to),

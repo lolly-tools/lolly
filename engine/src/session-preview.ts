@@ -244,3 +244,45 @@ export async function previewRefFor(bytes: Uint8Array, type: PreviewType, facts:
     ...(facts.recipe && HEX32.test(facts.recipe) ? { recipe: facts.recipe } : {}), bytes: bytes.length,
   };
 }
+
+/**
+ * The work a session's picture shows: its document without the name and the file
+ * name, the part a rename leaves alone. JSON in the document's own key order, so two
+ * readers of one file agree.
+ */
+export function sessionWork(data: unknown): string {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return JSON.stringify(data ?? null);
+  const { __label: _label, __export_filename: _filename, ...work } = data as Record<string, unknown>;
+  return JSON.stringify(work);
+}
+
+/** A short key for a session's work: the first 16 bytes of the SHA-256 of `sessionWork`. */
+export async function sessionWorkKey(data: unknown): Promise<string> {
+  return previewContentKey(new TextEncoder().encode(sessionWork(data)));
+}
+
+/**
+ * A picture link: a small file beside the picture files, named by the work key,
+ * holding the reference of the picture that shows that work. Builds before session
+ * format 5 (the 1.2.1 CLI and TUI) write a record again from the fields they know, so
+ * a rename or a copy there drops `preview`; a reader of format 5 finds the picture
+ * again through the link, since a rename does not change the work. Never `.json`, so
+ * no reader of `saved-state/` takes a link for a record.
+ */
+export function previewLinkName(workKey: string): string {
+  return `w-${workKey}.ref`;
+}
+
+/** The reference a link file holds, read totally: null for anything else. */
+export function readPreviewLink(text: unknown): SessionPreviewRef | null {
+  if (typeof text !== 'string' || text.length > 4096) return null;
+  try { return readPreviewRef(JSON.parse(text)); } catch { return null; }
+}
+
+/** Whether a record could have lost its picture reference to an older writer: no
+ *  picture of either form, written by a build before session format 5. */
+export function mayHaveLostPicture(record: { thumb?: unknown; preview?: unknown; formatVersion?: unknown } | null | undefined): boolean {
+  if (!record || readPreviewRef(record.preview)) return false;
+  if (typeof record.thumb === 'string' && record.thumb) return false;
+  return typeof record.formatVersion !== 'number' || record.formatVersion < 5;
+}

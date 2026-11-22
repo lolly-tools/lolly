@@ -163,6 +163,30 @@ export function fitTile(width: number, height: number, box = PREVIEW_TILE, enlar
 }
 
 /**
+ * A picture as a PNG, for a receiver that reads PNG only: a `.lolly` file's
+ * thumbnail, which the Linux thumbnailer and the macOS Quick Look extension read,
+ * and Beam, whose receivers take raster pictures only. A PNG comes back as it is.
+ * Any other picture is drawn by the browser into a canvas fitted inside 720 x 560,
+ * the size session thumbnails have always had, and encoded as PNG: an SVG by the
+ * browser's own SVG renderer at the full tile size (it is vector, so enlarging
+ * keeps it sharp), a raster never enlarged. `size` is the picture's own size when
+ * it is known (an SVG with only a viewBox has no natural size in some engines).
+ */
+export async function pngPicture(blob: Blob, size?: { width: number; height: number }): Promise<Blob | null> {
+  if (blob.type === 'image/png') return blob;
+  const vector = blob.type === 'image/svg+xml';
+  const image = await decode(blob);
+  const natural = size && size.width > 0 && size.height > 0 ? size : sizeOf(image);
+  if (!natural.width || !natural.height) return null;
+  const { width, height } = fitTile(natural.width, natural.height, PREVIEW_TILE, vector);
+  const canvas = canvasOf(width, height);
+  context2d(canvas).drawImage(image as CanvasImageSource, 0, 0, width, height);
+  if ('close' in image && typeof image.close === 'function') image.close();
+  const png = await encode(canvas, 'image/png');
+  return png.type === 'image/png' ? png : null;
+}
+
+/**
  * A raster picture from a render: a Blob (PNG from the export path, or an SVG to
  * rasterise), a canvas, or a decoded image. Fitted inside 720 x 560 and encoded by
  * the rule in the header.

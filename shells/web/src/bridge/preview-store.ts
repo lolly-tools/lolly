@@ -290,11 +290,15 @@ export async function pictureSrc(db: Pick<IDBPDatabase, 'get' | 'objectStoreName
   return row ? srcForBlob(key, blobOfRow(row)) : null;
 }
 
-/** An `<img>` source for the picture an owner holds, or null. */
-export async function ownerSrc(db: Pick<IDBPDatabase, 'get' | 'objectStoreNames'>, owner: string): Promise<string | null> {
+/** The picture an owner holds as the data URL a pre-373 reader was handed, or null.
+ *  History's readers take data URLs only (components/history-previews.ts), as every
+ *  revision preview was one before plan 373; they read only the tiles on screen. */
+export async function ownerDataUrl(db: Pick<IDBPDatabase, 'get' | 'objectStoreNames'>, owner: string): Promise<string | null> {
   try {
     if (!hasPreviewStores(db)) return null;
     const row = await db.get(PREVIEW_INDEX, owner) as PreviewIndexRow | undefined;
-    return row ? pictureSrc(db, row.content) : null;
+    const blob = row ? await readPictureRow(db, row.content) : null;
+    return blob ? dataUrlOfRow(blob) : null;
   } catch { return null; }
 }
+
