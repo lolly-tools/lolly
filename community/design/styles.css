@@ -12,8 +12,11 @@
 /* Connector / line / arrow layer (plan 90): one artboard-sized inline <svg> whose paths
    are built by the engine (host.connectors) from the current box geometry. It sits BEHIND
    the boxes (first child) and never steals the editor's drag/select pointer events. The
-   <svg> is CSS-stretched to the artboard (preserveAspectRatio="none" on a viewBox in native
-   px), so its coordinates map 1:1 with the boxes' inline left/top. Wrapped in a plain <div>
+   <svg> keeps the size its own width and height attributes give (the viewBox, in native
+   px) and draws past that box, so its coordinates map 1:1 with the boxes' inline left/top
+   on an artboard of any size. Stretched to the artboard, as it once was, every line was
+   scaled by the artboard's size over the layer's 1080 px square, and a connector on a
+   1920 x 1080 artboard sat well to the right of the boxes it joined. Wrapped in a plain <div>
    so the artboard's first child is not an <svg> (see template.html). */
 .lolly-conn-wrap {
   position: absolute;
@@ -24,8 +27,6 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
   display: block;
   overflow: visible;
   pointer-events: none;
