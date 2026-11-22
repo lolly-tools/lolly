@@ -1,6 +1,6 @@
 {
   "name": "Finishes",
-  "description": "Prévisualisez les finitions dorure, vernis sélectif, gaufrage et soft-touch sur votre visuel - puis exportez la plaque spot prête pour l'impression. Le lustre à l'écran n'est qu'une présentation ; la plaque est le vrai livrable dont votre imprimeur a besoin.",
+  "description": "Prévisualisez les finitions dorure, vernis sélectif, gaufrage et soft-touch sur votre visuel, puis exportez la plaque spot. Le lustre à l'écran n'est qu'une présentation.",
   "a11yLabel": "Visuel avec une finition d’impression simulée, ou la plaque prête à imprimer en vue plaque",
   "inputs.image.label": "Visuel",
   "inputs.image.help": "Choisissez votre visuel ou téléversez le vôtre. Il est traité sur votre appareil, les pixels ne quittent jamais le navigateur.",

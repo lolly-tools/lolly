@@ -1,6 +1,6 @@
 {
   "name": "Diagramm",
-  "description": "Diagramme von der ersten Einfügung bis zur fortgeschrittenen Visualisierung - erklärte Datenempfehlungen, explizites Feld-Mapping, 35 klassische Vektor-Diagrammtypen einschließlich Pareto, Bullet-Zielmarken und Bereichsbalken, sechzehn statistische und redaktionelle Darstellungsformen, echte 3-D-Szenen, filmische Kameraflüge, deterministische Bewegung, barrierefreie Beschreibungen und Stile aus dem aktiven Designsystem.",
+  "description": "Diagramme von der ersten Einfügung bis zur fortgeschrittenen Visualisierung - 35 Vektor-Diagrammtypen, 3-D-Szenen, Kameraflüge, Bewegung und Stile aus dem Designsystem.",
   "featured.blurb": "Fügen Sie eine Tabelle ein - Diagramm macht sie klar, barrierefrei und unverkennbar in Ihrem Design",
   "a11yLabel": "{{chartType}} Diagramm{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Diagrammtyp",

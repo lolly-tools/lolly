@@ -1,6 +1,6 @@
 {
   "name": "Zastrzeżenie",
-  "description": "Zastrzeż swoje imię na dowolnych mediach, które już stworzyłeś - obraz, PDF, wideo lub audio. Oznacz autora, prawa autorskie i licencję jako Content Credentials (także trwały raster Imprint), zachowując wszelkie dane uwierzytelniające już obecne w pliku - wszystko na Twoim urządzeniu, zanim gdziekolwiek to prześlesz.",
+  "description": "Zastrzeż swoje imię na dowolnych mediach - obraz, PDF, wideo lub audio. Oznacz autora, prawa autorskie i licencję jako Content Credentials, na Twoim urządzeniu.",
   "a11yLabel": "Osadź poświadczenia w swoim obrazie",
   "inputs.creator.label": "Artysta / autor",
   "inputs.creator.help": "Twoje imię - umieszczone jako autor/twórca obrazu (EXIF Artist, XMP dc:creator oraz Content Credential).",

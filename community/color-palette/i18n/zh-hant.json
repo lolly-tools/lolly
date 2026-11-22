@@ -1,6 +1,6 @@
 {
   "name": "調色盤實驗室",
-  "description": "從一個種子色生成調色盤 - 和諧配色、感知式 OKLab 漸層與 WCAG/APCA 可讀性徽章，並支援 DTCG 色票與 CSV 匯出。",
+  "description": "從一個種子色生成調色盤 - 和諧配色、OKLab 漸層與 WCAG/APCA 可讀性徽章，並支援 DTCG 色票與 CSV 匯出。",
   "inputs.seed.label": "種子色",
   "inputs.seed.help": "整組色盤衍生自的顏色 - 預設為你的品牌主色。",
   "inputs.harmony.label": "調和",

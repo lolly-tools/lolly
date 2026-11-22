@@ -1,5 +1,5 @@
 {
   "name": "ダークルーム",
-  "description": "フィルムルック、Adobe XMP プリセット、.cube LUT、デザインシステムの色で、写真や動画をグレーディングします。LUT 書き出しや動画のグレーディングでルックを再利用できます。Photoshop と GIMP のレイヤーを開いて、配置、合成、画像の書き出しができます。",
+  "description": "フィルムルック、Adobe XMP プリセット、.cube LUT、デザインシステムの色で、写真や動画をグレーディングします。Photoshop と GIMP のレイヤーを開けます。",
   "featured.blurb": "フィルム風、LUT、ブランドカラーで写真をグレーディング"
 }

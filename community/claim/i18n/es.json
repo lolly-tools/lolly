@@ -1,6 +1,6 @@
 {
   "name": "Claim",
-  "description": "Reclama tu nombre en cualquier contenido que ya hayas creado - imagen, PDF, vídeo o audio. Sella tu autoría, copyright y licencia como Content Credentials (también un Imprint ráster duradero), preservando cualquier credencial ya presente en el archivo - todo en tu dispositivo, antes de subirlo a ningún sitio.",
+  "description": "Reclama tu nombre en cualquier contenido - imagen, PDF, vídeo o audio. Sella tu autoría, copyright y licencia como Content Credentials, en tu dispositivo.",
   "a11yLabel": "Incrusta credenciales en tu imagen",
   "inputs.creator.label": "Artista / autor",
   "inputs.creator.help": "Tu nombre - incrustado como autor/creador de la imagen (EXIF Artist, XMP dc:creator y la Content Credential).",

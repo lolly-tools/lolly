@@ -1,5 +1,5 @@
 {
   "name": "Pindai",
-  "description": "Baca kode QR dan barcode di perangkat, tanpa apa pun yang dikirim ke cloud mana pun. Pembaca, bukan pembuka: alat ini mendekode, mengklasifikasikan dan menjelaskan apa yang dibawa sebuah kode - tautan, Wi-Fi, kontak, kode produk - dan membiarkan Anda bertindak dengan sengaja. Salin selalu menjadi tindakan pertama; membuka, bergabung atau menambahkan adalah ketukan eksplisit yang sudah diberi informasi.",
+  "description": "Baca kode QR dan barcode di perangkat. Salin selalu menjadi tindakan pertama; membuka, bergabung atau menambahkan adalah ketukan eksplisit yang sudah diberi informasi.",
   "featured.blurb": "Baca kode apa pun, dengan aman dan offline"
 }

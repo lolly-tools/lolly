@@ -1,5 +1,5 @@
 {
   "name": "Sken",
-  "description": "Načítej QR kódy a čárové kódy přímo v zařízení, aniž by se cokoli posílalo do cloudu. Je to čtečka, ne otvírač: dekóduje, klasifikuje a vysvětlí, co kód nese - odkazy, Wi-Fi, kontakty, kódy produktů - a necháš si prostor jednat uvážlivě. Kopírování je vždy první možnost; otevření, připojení nebo přidání je výslovné, informované ťuknutí.",
+  "description": "Načítej QR kódy a čárové kódy přímo v zařízení. Kopírování je vždy první možnost; otevření, připojení nebo přidání je výslovné, informované ťuknutí.",
   "featured.blurb": "Přečti jakýkoli kód, bezpečně a offline"
 }

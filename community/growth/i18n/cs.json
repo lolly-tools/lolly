@@ -1,4 +1,4 @@
 {
   "name": "Growth",
-  "description": "Diferenciální růst: čára, která se odpuzuje, dokud se nezvrásní do korálu. Vyjděte z kruhu, výbuchu, písmen nadpisu nebo loga a výsledek exportujte jako skutečné SVG cesty pro plotr."
+  "description": "Diferenciální růst: čára, která se zvrásní do korálu. Vyjděte z kruhu, výbuchu, písmen nadpisu nebo loga a exportujte SVG cesty připravené pro plotr."
 }

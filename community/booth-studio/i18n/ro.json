@@ -1,6 +1,6 @@
 {
   "name": "Stand",
-  "description": "Îmbracă un stand 3D de eveniment cu materiale de sponsor. Dă clic pe orice panou pentru a plasa o imagine pe el, alege un design de stand și randează o imagine statică sau o rotire 360° pentru o prezentare de sponsor.",
+  "description": "Îmbracă un stand 3D de eveniment cu materiale de sponsor. Alege un design de stand și randează o imagine statică sau o rotire 360° pentru o prezentare de sponsor.",
   "a11yLabel": "Machetă 3D a standului de eveniment {{default design \"an inline\"}} îmbrăcat cu grafica sponsorului",
   "inputs.design.label": "Design stand",
   "inputs.design.help": "Forma standului. Grafica panourilor tale se păstrează între modele - un perete din spate rămâne un perete din spate.",

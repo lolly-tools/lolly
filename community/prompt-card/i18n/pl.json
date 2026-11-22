@@ -1,6 +1,6 @@
 {
   "name": "Karta promptu",
-  "description": "Złóż długi prompt w jeden zwarty, czytelny obraz dla modelu multimodalnego - wejście obrazowe jest często tańsze niż te same słowa jako tokeny tekstowe.",
+  "description": "Złóż długi prompt w jeden obraz dla modelu multimodalnego - wejście obrazowe jest często tańsze niż te same słowa jako tokeny tekstowe.",
   "a11yLabel": "Prompt na obraz - wklej lub upuść tekst na płótnie, a zostanie on rozmieszczony tak, aby zmieścić się w jednym małym obrazie",
   "inputs.text.label": "Tekst",
   "inputs.text.help": "Wklej lub upuść w dowolnym miejscu na płótnie, aby to wypełnić.",

@@ -1,4 +1,4 @@
 {
   "name": "Saat Dilimi",
-  "description": "Yerleri ve saat dilimlerini tasarım sistemini izleyen görsellere dönüştür. Bir vektör atlasını ya da ayrıntılı bir WebGL küresini döndür, projeksiyonları aç, insanlarını ve yerlerini etiketle, ardından görselleri, bir kamera turunu ya da yapılandırılmış programları dışa aktar."
+  "description": "Yerleri ve saat dilimlerini görsellere dönüştür. Bir vektör atlasını ya da bir WebGL küresini döndür, ardından görselleri, bir kamera turunu ya da yapılandırılmış programları dışa aktar."
 }

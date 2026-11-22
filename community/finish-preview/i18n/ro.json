@@ -1,6 +1,6 @@
 {
   "name": "Finishes",
-  "description": "Previzualizează finisaje de folie, spot UV, embosare și soft-touch pe lucrarea ta - apoi exportă placa spot gata de tipar. Luciul de pe ecran este doar pentru prezentare; placa este livrabilul real de care are nevoie tipografia ta.",
+  "description": "Previzualizează finisaje de folie, spot UV, embosare și soft-touch pe lucrarea ta - apoi exportă placa spot. Luciul de pe ecran este doar pentru prezentare.",
   "a11yLabel": "Grafică cu un finisaj de tipar simulat, sau placa gata de tipar în vizualizarea plăcii",
   "inputs.image.label": "Grafică",
   "inputs.image.help": "Alege grafica sau încarcă una proprie. Este procesată pe dispozitivul tău, pixelii nu părăsesc niciodată browserul.",

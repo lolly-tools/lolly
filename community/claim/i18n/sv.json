@@ -1,6 +1,6 @@
 {
   "name": "Claim",
-  "description": "Gör anspråk på ditt namn på media du redan skapat - bild, PDF, video eller ljud. Stämpla författare, upphovsrätt och licens som Content Credentials (även en beständig raster-prägling), samtidigt som eventuella befintliga uppgifter i filen bevaras - allt på din enhet, innan du laddar upp den någonstans.",
+  "description": "Gör anspråk på ditt namn på all media - bild, PDF, video eller ljud. Stämpla författare, upphovsrätt och licens som Content Credentials, på din enhet.",
   "a11yLabel": "Bädda in uppgifter i din bild",
   "inputs.creator.label": "Konstnär / författare",
   "inputs.creator.help": "Ditt namn - bäddas in som bildens upphovsperson/skapare (EXIF Artist, XMP dc:creator och Content Credential).",

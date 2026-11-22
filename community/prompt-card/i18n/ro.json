@@ -1,6 +1,6 @@
 {
   "name": "Prompt Card",
-  "description": "Culege un prompt lung într-o singură imagine compactă, lizibilă, pentru un model multimodal - o imagine ca intrare este adesea mai ieftină decât aceleași cuvinte ca token-uri text.",
+  "description": "Culege un prompt lung într-o singură imagine pentru un model multimodal - o imagine ca intrare este adesea mai ieftină decât aceleași cuvinte ca token-uri text.",
   "a11yLabel": "Prompt la imagine - lipește sau plasează text pe canvas și acesta este așezat să încapă într-o singură imagine mică",
   "inputs.text.label": "Text",
   "inputs.text.help": "Lipește sau plasează oriunde pe canvas pentru a completa asta.",

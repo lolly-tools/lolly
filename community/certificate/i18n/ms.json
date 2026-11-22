@@ -1,6 +1,6 @@
 {
   "name": "Sijil",
-  "description": "Sijil tamat dan anugerah dalam sistem reka bentuk aktif dan skema warnanya: empat gaya, saiz cetakan dan media sosial, serta gerakan untuk perkongsian - satu nama pada satu masa, atau seluruh senarai daripada CSV dalam Pukal daripada baris.",
+  "description": "Sijil tamat dan anugerah: empat gaya, saiz cetakan dan media sosial, serta gerakan - satu nama pada satu masa, atau senarai daripada CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} untuk {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Jenis",
   "inputs.certKind.help": "Menetapkan perkataan: tajuk, baris di atas tujuan sijil dan tanda pada meterai.",

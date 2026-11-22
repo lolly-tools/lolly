@@ -1,6 +1,6 @@
 {
   "name": "Markdown Slides",
-  "description": "Verwandelt Markdown oder eine JSON-Spezifikation in Sekunden in eine native, bearbeitbare PowerPoint-Präsentation - mit echtem Text, Aufzählungen, Tabellen und dem Thema Ihres Designsystems. Der schnelle, textbasierte Weg zu einer Präsentation; greifen Sie zur Design-Fläche, wenn Sie Folien von Hand gestalten oder animieren möchten. Charts und Diagramme kommen aus Ihren anderen Lolly-Tools. Exportiert als .pptx (bearbeitbar), außerdem als PDF und PNG.",
+  "description": "Verwandelt Markdown oder eine JSON-Spezifikation in eine native, bearbeitbare PowerPoint-Präsentation. Exportiert als .pptx (bearbeitbar), außerdem als PDF und PNG.",
   "a11yLabel": "Präsentations-Deck mit {{_slideCount}} Folien",
   "inputs.size.label": "Deck-Größe",
   "inputs.size.help": "Eine Größe für das gesamte Deck - PowerPoint gibt jeder Folie die gleiche Größe.",

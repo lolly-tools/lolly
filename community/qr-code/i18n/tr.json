@@ -1,6 +1,6 @@
 {
   "name": "QR Kodu",
-  "description": "Bağlantı, kişi kartı, Wi-Fi ağı, takvim etkinliği, konum ya da düz metin için QR kodları.",
+  "description": "Her türden taranabilir kod: QR, Micro QR, Data Matrix, Aztec ve PDF417 - ayrıca EAN-13'ten MaxiCode'a perakende ve lojistik barkodları.",
   "a11yLabel": "{{default url \"(no URL set)\"}} adresine bağlanan QR kodu",
   "featured.blurb": "Her marka renginde QR kodları",
   "inputs.url.label": "URL",

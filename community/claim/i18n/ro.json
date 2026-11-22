@@ -1,6 +1,6 @@
 {
   "name": "Claim",
-  "description": "Revendică-ți numele pe orice media pe care ai creat-o deja - imagine, PDF, video sau audio. Marchează autorul, drepturile de autor și licența ca Content Credentials (și un Imprint raster durabil), păstrând orice credențial deja prezent în fișier - totul pe dispozitivul tău, înainte să-l încarci undeva.",
+  "description": "Revendică-ți numele pe orice media - imagine, PDF, video sau audio. Marchează autorul, drepturile de autor și licența ca Content Credentials, pe dispozitivul tău.",
   "a11yLabel": "Încorporează acreditări în imaginea ta",
   "inputs.creator.label": "Artist / autor",
   "inputs.creator.help": "Numele tău - inclus ca autor/creator al imaginii (EXIF Artist, XMP dc:creator și Content Credential).",

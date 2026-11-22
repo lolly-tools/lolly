@@ -1,6 +1,6 @@
 {
   "name": "Laboratorio de paletas",
-  "description": "Genera una paleta a partir de un color semilla - acentos armónicos, rampas OKLab perceptuales e insignias de legibilidad WCAG/APCA, con tokens DTCG y exportación CSV.",
+  "description": "Genera una paleta a partir de un color semilla - acentos armónicos, rampas OKLab e insignias de legibilidad WCAG/APCA, con tokens DTCG y exportación CSV.",
   "inputs.seed.label": "Color semilla",
   "inputs.seed.help": "El color del que crece toda la paleta - por defecto tu color primario de marca.",
   "inputs.harmony.label": "Armonía",

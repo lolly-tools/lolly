@@ -1,6 +1,6 @@
 {
   "name": "Finishes",
-  "description": "Visualize acabamentos de foil, verniz UV localizado, relevo e soft-touch na sua arte - depois exporte a chapa de plate pronta para gráfica. O brilho na tela é apenas apresentação; a chapa é a entrega real que sua gráfica precisa.",
+  "description": "Visualize acabamentos de foil, verniz UV localizado, relevo e soft-touch na sua arte - depois exporte a chapa spot. O brilho na tela é apenas apresentação.",
   "a11yLabel": "Arte com um acabamento de impressão simulado, ou a chapa pronta para impressão na vista de chapa",
   "inputs.image.label": "Arte",
   "inputs.image.help": "Escolha a sua arte ou envie a sua. É processada no seu dispositivo, os pixels nunca saem do navegador.",

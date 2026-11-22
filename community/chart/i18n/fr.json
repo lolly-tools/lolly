@@ -1,6 +1,6 @@
 {
   "name": "Graphique",
-  "description": "Des graphiques du premier collage à la visualisation avancée - recommandations de données expliquées, mappage explicite des champs, 35 familles vectorielles classiques dont Pareto, jauges à cible et barres de plage, seize articulations statistiques et éditoriales, vraies scènes 3D, survols cinématiques, mouvement déterministe, descriptions accessibles et styles compilés à partir du système de design actif.",
+  "description": "Des graphiques du premier collage à la visualisation avancée - 35 familles vectorielles, scènes 3D, survols, animation et styles du système de design.",
   "featured.blurb": "Colle un tableau - Chart le rend clair, accessible et indiscutablement fidèle à ton système de design",
   "a11yLabel": "Graphique {{chartType}}{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Type de graphique",

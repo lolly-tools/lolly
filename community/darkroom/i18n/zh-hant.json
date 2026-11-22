@@ -1,5 +1,5 @@
 {
   "name": "暗房",
-  "description": "以底片風格、Adobe XMP 預設集、.cube LUT 與你的設計系統色彩為照片和影片調色。可透過 LUT 匯出或「影片調色」重複使用同一種風格。可開啟 Photoshop 與 GIMP 圖層來定位、混合與匯出圖像。",
+  "description": "以底片風格、Adobe XMP 預設集、.cube LUT 與你的設計系統色彩為照片和影片調色。可開啟 Photoshop 與 GIMP 圖層。",
   "featured.blurb": "以底片風格、LUT 與您的品牌色調色"
 }

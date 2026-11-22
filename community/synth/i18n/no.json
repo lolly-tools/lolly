@@ -1,4 +1,4 @@
 {
   "name": "Synth",
-  "description": "Et visuelt instrument du spiller. Fire scener kjører live på GPU-en: flytende blekk, en partikkelsværm som flyr mot overskriften eller logoen din, et tilbakekoblingsfelt og ditt eget kamera. Hver farge kommer fra designsystemets palett, og bildet beveger seg til pekeren din, til et musikkspor og til en MIDI-kontroller. Eksporter et stillbilde eller en sømløs sløyfe."
+  "description": "Et visuelt instrument du spiller. Bildet beveger seg til pekeren din, et musikkspor og en MIDI-kontroller. Eksporter et stillbilde eller en sømløs sløyfe."
 }

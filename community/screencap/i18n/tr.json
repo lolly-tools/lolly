@@ -1,6 +1,6 @@
 {
   "name": "Ekran Yakalama",
-  "description": "Tüm ekranınızı, bir pencereyi veya bir tarayıcı sekmesini ekran görüntüsü alın ya da kaydedin. Kırpmak için tuval üzerinde sürükleyin - dışa aktarım, yakaladığınız tam pikselleri korur.",
+  "description": "Ekranının, bir pencerenin ya da bir tarayıcı sekmesinin ekran görüntüsünü al veya kaydet. Kırpmak için tuval üzerinde sürükle - dışa aktarım, yakaladığın tam pikselleri korur.",
   "a11yLabel": "Ekran yakalama, kırpmaya ve dışa aktarmaya hazır",
   "inputs.shot.label": "Ekran Görüntüsü",
   "inputs.shot.help": "Kırpmak için bir görsel seç veya tarayıcın ekran yakalamayı destekliyorsa tuvalin üstündeki Ekran Görüntüsü düğmesini kullan.",

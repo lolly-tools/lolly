@@ -1,6 +1,6 @@
 {
   "name": "Markdown Slides",
-  "description": "Transformă Markdown sau o specificație JSON într-o prezentare PowerPoint nativă și editabilă - text real, marcatori, tabele și tema sistemului de design - în câteva secunde. Calea rapidă, bazată pe text, spre o prezentare; folosește canvasul Design când vrei să aranjezi diapozitivele manual sau să le animezi. Graficele și diagramele provin din celelalte instrumente Lolly. Exportă .pptx (editabil), plus PDF și PNG.",
+  "description": "Transformă Markdown sau o specificație JSON într-o prezentare PowerPoint nativă și editabilă. Exportă .pptx (editabil), plus PDF și PNG.",
   "a11yLabel": "Prezentare cu {{_slideCount}} diapozitive",
   "inputs.size.label": "Dimensiune prezentare",
   "inputs.size.help": "O singură dimensiune pentru tot deck-ul - PowerPoint dă aceeași dimensiune fiecărui slide.",

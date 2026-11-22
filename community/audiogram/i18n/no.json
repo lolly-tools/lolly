@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Gjør en talesnutt eller sang til en video i designsystemets farger som faktisk beveger seg med lyden - stolper, spektrum, ring, ryggrekke eller oscilloskop, klar for sosiale medier.",
+  "description": "Gjør en talesnutt eller sang til en video i designsystemets farger som beveger seg med lyden.",
   "a11yLabel": "Audiogram-kort for {{default title \"an audio clip\"}} med en animert bølgeform",
   "inputs.audio.label": "Lyd",
   "inputs.audio.help": "Velg et spor fra biblioteket ditt, eller last opp et klipp. Det dekodes på enheten din for å tegne bølgeformen - lyden forlater aldri nettleseren. La stå tomt for en plassholder-bølgeform. For å høre den i eksporten, velg \"Dette verktøyets lyd\" som lydspor i nedlastingsalternativene.",

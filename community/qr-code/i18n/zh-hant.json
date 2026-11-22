@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "description": "產生連結、聯絡卡、Wi-Fi 網路、行事曆活動、地點或純文字用的 QR Code。",
+  "description": "各種可掃描的碼：QR、Micro QR、Data Matrix、Aztec 與 PDF417 - 還有從 EAN-13 到 MaxiCode 的零售與物流條碼。",
   "a11yLabel": "連結到 {{default url \"(no URL set)\"}} 的 QR Code",
   "featured.blurb": "任何品牌色都能產生 QR Code",
   "inputs.url.label": "網址",

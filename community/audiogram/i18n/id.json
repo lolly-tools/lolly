@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Ubah klip suara atau lagu menjadi video dalam warna sistem desain Anda yang benar-benar bergerak mengikuti suara - bar, spektrum, cincin, ridgeline atau scope, siap untuk media sosial.",
+  "description": "Ubah klip suara atau lagu menjadi video dalam warna sistem desain Anda yang bergerak mengikuti suara.",
   "a11yLabel": "Kartu Audiogram untuk {{default title \"an audio clip\"}} dengan waveform beranimasi",
   "inputs.audio.label": "Audio",
   "inputs.audio.help": "Pilih trek dari pustaka Anda atau unggah klip. Ini didekode di perangkat Anda untuk menggambar bentuk gelombang - audio tidak pernah meninggalkan browser. Biarkan kosong untuk bentuk gelombang placeholder. Untuk mendengarkannya di hasil ekspor, pilih \"Audio alat ini\" sebagai Trek Audio di opsi unduhan.",

@@ -1,4 +1,4 @@
 {
   "name": "Časové pásmo",
-  "description": "Proměň místa a časová pásma v grafiku, která se řídí design systémem. Otáčej vektorovým atlasem nebo podrobným globusem ve WebGL, rozviň projekce, popiš své lidi a místa, pak exportuj grafiku, kamerový průlet nebo strukturovaný rozvrh."
+  "description": "Proměň místa a časová pásma v grafiku. Otáčej vektorovým atlasem nebo globusem ve WebGL a pak exportuj grafiku, průlet kamerou nebo strukturované rozvrhy."
 }

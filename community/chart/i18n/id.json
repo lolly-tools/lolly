@@ -1,6 +1,6 @@
 {
   "name": "Grafik",
-  "description": "Grafik dari tempel pertama hingga visualisasi lanjutan - rekomendasi data yang dijelaskan, pemetaan bidang eksplisit, 35 keluarga vektor klasik termasuk Pareto, target bullet dan range bar, enam belas artikulasi statistik dan editorial, adegan 3D real-z, penerbangan sinematik, gerakan deterministik, deskripsi aksesibel dan gaya yang disusun dari sistem desain aktif.",
+  "description": "Grafik dari tempel pertama hingga visualisasi lanjutan - 35 keluarga vektor, adegan 3D, penerbangan, gerakan, dan gaya dari sistem desain.",
   "featured.blurb": "Tempel tabel - Grafik membuatnya jelas, aksesibel dan pasti sesuai sistem desain Anda",
   "a11yLabel": "Grafik {{chartType}}{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Jenis grafik",

@@ -1,6 +1,6 @@
 {
   "name": "Markdown 投影片",
-  "description": "把 Markdown 或 JSON 規格在幾秒內變成原生、可編輯的 PowerPoint 簡報 - 真正的文字、項目符號、表格，搭配設計系統主題。這是製作簡報最快的文字優先路徑；想手動排版投影片或加上動畫，就用 Design 畫布。圖表與示意圖來自你的其他 Lolly 工具。可匯出可編輯的 .pptx，以及 PDF 與 PNG。",
+  "description": "把 Markdown 或 JSON 規格變成原生、可編輯的 PowerPoint 簡報。可匯出可編輯的 .pptx，以及 PDF 與 PNG。",
   "a11yLabel": "簡報,共 {{_slideCount}} 張投影片",
   "inputs.size.label": "簡報大小",
   "inputs.size.help": "整份簡報只有一種大小 - PowerPoint 讓每張投影片大小相同。",

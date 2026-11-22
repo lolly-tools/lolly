@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Gawing video ang isang voice clip o kanta gamit ang mga kulay ng iyong design system na talagang gumagalaw kasabay ng tunog - bars, spectrum, ring, ridgeline o scope, handa na para sa social media.",
+  "description": "Gawing video ang isang voice clip o kanta gamit ang mga kulay ng iyong design system na gumagalaw kasabay ng tunog.",
   "a11yLabel": "Audiogram card para sa {{default title \"an audio clip\"}} na may animated na waveform",
   "inputs.audio.label": "Audio",
   "inputs.audio.help": "Pumili ng track mula sa iyong library o mag-upload ng clip. Dine-decode ito sa iyong device para iguhit ang waveform - hindi umaalis ang audio sa browser. Iwanang blangko para sa placeholder na waveform. Para marinig ito sa export, piliin ang \"Audio ng tool na ito\" bilang Audio track sa mga opsyon ng download.",

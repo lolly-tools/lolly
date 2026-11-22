@@ -1,5 +1,5 @@
 {
   "name": "Filter",
-  "description": "Isang tool para sa photo effects: pumili ng halftone, scanline, posterize, voronoi, dither o ASCII art (vector) o duotone, pixel-stretch, misprint o glitch (raster). May overlay mula sa design system, live camera at pag-export sa kasindami ng format na suportado ng bawat effect.",
+  "description": "Mga photo effect: halftone, scanline, posterize, voronoi, dither o ASCII art (vector), o duotone, pixel-stretch, misprint o glitch (raster).",
   "featured.blurb": "Sampung photo effect, vector o raster, sa isang tool"
 }
