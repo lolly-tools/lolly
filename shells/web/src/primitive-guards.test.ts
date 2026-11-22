@@ -226,7 +226,6 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   // named maps; these were never in scope). Counts surveyed 2026-07-13 - down only.
   'components/color-field.ts': 2,
   'components/help-tip.ts': 1,
-  'components/music-player.ts': 6,   // play/pause now come from lib/icons.ts (2026-07-29)
   'components/view-toggle.ts': 2,   // 3 → 2, 2026-08-20: the Tools tab's inline wrench went - it's icon('hammer') from lib/icons.ts now
   'lib/audio-coaching.ts': 1,
   // 5 → 0, plan 97 M1 (2026-08-09): the five BRAND_TABS glyphs went with the tab
@@ -860,7 +859,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'components/instance-sheet.ts': 1,
   'components/lang-menu.ts': 2,
   'components/modal.ts': 1,
-  'components/music-player.ts': 5,
   // Prepare for sharing (components/prepare/, 2026-09-10). Every sink is a template whose
   // free-text interpolations go through escape() (utils.ts): file names, byte counts,
   // scope paths, formats, limitations, masked and revealed values, replacements, rule
@@ -1199,7 +1197,6 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // (19 previously: +1 for renderCvdMatrix, feature #4 - the APCA contrast matrix,
   // whose only interpolations are escape()d hexes/names/title/band plus a Number Lc.)
   'views/color-lab.ts': 21,
-  'views/components-data.ts': 1,
   'views/components.ts': 6, // +1 2026-09-06: the reference block's fill (components-reference.ts output, every value escape()d). 8 to 6 on 2026-11-19: the source-snippet stage was unreachable and went, and the sample and the no-sample stages share one fill
   'views/components-examples.ts': 1, // shared bulkBarHtml renderer with literal demo actions; all labels escaped by the renderer
   // The cost card's body replace. Reviewed - costBodyHtml (views/cost-panel.ts)
