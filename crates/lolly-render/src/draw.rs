@@ -106,7 +106,8 @@ fn item(target: &mut Pixmap, layer: &mut Option<Pixmap>, plan: &Plan, it: &Item,
     let res = plan.scale.0.max(plan.scale.1);
     let base = compose(plan.scale, [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]);
     let posed = compose(plan.scale, it.pose);
-    let item_mask: Option<Mask> = match &it.row_clip {
+    // Only a row clip needs a mask of its own; otherwise the frame's is used as it is.
+    let own: Option<Mask> = match &it.row_clip {
         Some(path) => {
             let mut m = match outer {
                 Some(o) => o.clone(),
@@ -122,8 +123,9 @@ fn item(target: &mut Pixmap, layer: &mut Option<Pixmap>, plan: &Plan, it: &Item,
             }
             Some(m)
         }
-        None => outer.cloned(),
+        None => None,
     };
+    let item_mask: Option<&Mask> = own.as_ref().or(outer);
     if it.opacity < 1.0 {
         let words = it.words_clip.as_ref().and_then(|o| outline_mask(o, posed, w, h, res, None));
         let canvas = match layer {
@@ -140,11 +142,11 @@ fn item(target: &mut Pixmap, layer: &mut Option<Pixmap>, plan: &Plan, it: &Item,
             step(canvas, s, posed, if s.words { words.as_ref() } else { None });
         }
         let paint = PixmapPaint { opacity: it.opacity, blend_mode: BlendMode::SourceOver, quality: FilterQuality::Nearest };
-        target.draw_pixmap(0, 0, canvas.as_ref(), &paint, Transform::identity(), item_mask.as_ref());
+        target.draw_pixmap(0, 0, canvas.as_ref(), &paint, Transform::identity(), item_mask);
     } else {
-        let words = it.words_clip.as_ref().and_then(|o| outline_mask(o, posed, w, h, res, item_mask.as_ref()));
+        let words = it.words_clip.as_ref().and_then(|o| outline_mask(o, posed, w, h, res, item_mask));
         for s in &it.steps {
-            let mask = if s.words && it.words_clip.is_some() { words.as_ref() } else { item_mask.as_ref() };
+            let mask = if s.words && it.words_clip.is_some() { words.as_ref() } else { item_mask };
             step(target, s, posed, mask);
         }
     }
