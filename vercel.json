@@ -71,7 +71,14 @@
       ]
     },
     {
-      "source": "/((?!api(?:/|$)|tool(?:/|$)|live(?:/|$)).*)",
+      "source": "/(_app/.*|fonts/.*|icons/.*|favicon\\.ico)",
+      "headers": [
+        { "key": "Cache-Control", "value": "private, no-cache, no-transform" },
+        { "key": "CDN-Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/((?!api(?:/|$)|tool(?:/|$)|live(?:/|$)|_app/|fonts/|icons/|favicon\\.ico$).*)",
       "headers": [
         { "key": "Cache-Control", "value": "private, no-store, max-age=0, no-transform" },
         { "key": "CDN-Cache-Control", "value": "no-store" }

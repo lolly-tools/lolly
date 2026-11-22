@@ -35,6 +35,18 @@
  * any answer. A network error fails at once (an offline device) and is not
  * retried, so it adds no wait; only a 5xx, the cold start and migration signal,
  * is asked again.
+ *
+ * THE LAST ANSWER (plan 371, decided 2026-11-20). Separately from the six-hour
+ * skip, every definitive answer is written down with its time: "no control
+ * plane" or "a control plane". Boot reads it before the first route: when the
+ * last answer for this origin and instance base was "no control plane", given
+ * within {@link CLEAN_ANSWER_TTL_MS}, the browse routes (gallery, utilities, docs)
+ * paint while the probe runs, every other route waits for its answer, and a gate that
+ * arrives after all replaces the view (lib/late-gate.ts).
+ * Anything else waits as before: no record, a control plane, a damaged or future
+ * time stamp, or a device that has met a control plane anywhere on this origin
+ * (saved work is kept per origin, so it may hold an account's work). A probe that
+ * got no answer writes nothing, so it can never stand in for "no control plane".
  */
 import { getInstanceBase } from '../lib/instance.ts';
 import { fetchWithin, jsonBody } from '../lib/instance-json.ts';
@@ -65,6 +77,103 @@ const AUTH_PROBE_RETRY_DELAY_MS = 250;
 const ABSENT_TTL_MS = 6 * 60 * 60 * 1000; // 6h
 const absentKey = (): string => `lolly:org-absent:${getInstanceBase() || 'same-origin'}`;
 const unansweredKey = (): string => `lolly:org-probe-unanswered:${getInstanceBase() || 'same-origin'}`;
+/**
+ * How long a remembered "no control plane" lets boot paint before the probe answers.
+ * Every boot past the six-hour skip still probes, and a gate replaces the view as soon
+ * as it answers, so this lifetime does not decide how long a new gate can be missed
+ * (one probe round trip at most). It decides how old a prediction may be and still be
+ * acted on: a month covers people who come back weekly or monthly, while a device away
+ * for longer waits for one probe, as every device did before.
+ */
+export const CLEAN_ANSWER_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+/** A stored time further ahead of the clock than this is not believed. */
+const CLOCK_SKEW_MS = 60 * 1000;
+/** localStorage is already per origin; the origin is in the key as well so the record
+ *  says what it is about, beside the instance base that the probe asks. */
+const lastAnswerKey = (): string => `lolly:org-last-answer:${pageOrigin()}|${getInstanceBase() || 'same-origin'}`;
+
+function pageOrigin(): string {
+  try { return globalThis.location?.origin ?? ''; } catch { return ''; }
+}
+
+type ProbeAnswer = 'absent' | 'control-plane';
+interface LastAnswer { v: 1; answer: ProbeAnswer; at: number }
+
+function readLastAnswer(key = lastAnswerKey()): LastAnswer | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const record = JSON.parse(raw) as Partial<LastAnswer> | null;
+    if (!record || typeof record !== 'object' || record.v !== 1) return null;
+    if (record.answer !== 'absent' && record.answer !== 'control-plane') return null;
+    if (typeof record.at !== 'number' || !Number.isFinite(record.at)) return null;
+    return record as LastAnswer;
+  } catch { return null; }
+}
+
+/**
+ * Write down a definitive answer. A control plane always replaces the record. "No
+ * control plane" never replaces a control-plane answer stamped later, so a tab whose
+ * slower probe finishes last cannot undo what a newer probe in another tab learned.
+ */
+function recordAnswer(answer: ProbeAnswer, at = Date.now()): void {
+  try {
+    if (answer === 'absent') {
+      const previous = readLastAnswer();
+      if (previous?.answer === 'control-plane' && previous.at > at) return;
+    }
+    localStorage.setItem(lastAnswerKey(), JSON.stringify({ v: 1, answer, at } satisfies LastAnswer));
+  } catch { /* storage unavailable: nothing remembered, so boot keeps waiting */ }
+}
+
+/**
+ * Whether this device has ever met a control plane on this origin, under any instance
+ * base. Saved work lives in one database per origin and survives a change of instance,
+ * so the question is asked of the whole origin, not of the current base only: a device
+ * that ever signed in anywhere here may hold that account's work. Storage that cannot be
+ * read counts as yes.
+ */
+function controlPlaneSeenHere(): boolean {
+  if (knownManagedAi()) return true;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      if (key.startsWith('lolly:managed-ai:') && localStorage.getItem(key) === '1') return true;
+      if (key.startsWith('lolly:org-last-answer:') && readLastAnswer(key)?.answer === 'control-plane') return true;
+    }
+  } catch { return true; }
+  return false;
+}
+
+/**
+ * Whether the last definitive probe answer for this origin and instance base was "no
+ * control plane", recent enough to act on, on a device that has never met a control
+ * plane on this origin. Read after the instance base has loaded.
+ */
+export function cleanAnswerRemembered(now = Date.now()): boolean {
+  if (controlPlaneSeenHere()) return false;
+  const record = readLastAnswer();
+  if (!record || record.answer !== 'absent') return false;
+  if (record.at > now + CLOCK_SKEW_MS) return false;
+  return now - record.at < CLEAN_ANSWER_TTL_MS;
+}
+
+let gateListener: ((gate: Element | null) => void) | null = null;
+
+/**
+ * Hear about the sign-in gate at the moment it is drawn into the view. Boot sets this
+ * only when it painted before the probe answered, so the view underneath can be stopped
+ * in the same task as the gate is drawn. Pass null to stop listening.
+ */
+export function onGateShown(listener: ((gate: Element | null) => void) | null): void {
+  gateListener = listener;
+}
+
+/** Called by the gate's renderer (org/index.ts) right after it writes the gate. */
+export function noteGateShown(gate: Element | null): void {
+  try { gateListener?.(gate); } catch (error) { console.error('[org] gate listener failed', error); }
+}
 
 function isAuthConfig(v: unknown): v is AuthConfig {
   return !!v && typeof v === 'object'
@@ -118,6 +227,9 @@ export async function probeInstance(): Promise<AuthProbeResult> {
   }
   if (attempt.res) forgetUnanswered();
   else if (attempt.timedOut && long) rememberUnanswered();
+  // Only a definitive answer is written down; anything else leaves the last one.
+  if (r.auth) recordAnswer('control-plane');
+  else if (r.absent) recordAnswer('absent');
   return { auth: r.auth, absent: r.absent };
 }
 

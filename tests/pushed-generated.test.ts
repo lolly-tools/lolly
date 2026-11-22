@@ -53,8 +53,7 @@ function fixture(t: test.TestContext) {
   write('bin/pnpm', '#!/bin/sh\nprintf "package manager must not run\\n" >&2\nexit 99\n');
   chmodSync(join(root, 'bin/pnpm'), 0o755);
   write('.nvmrc', process.versions.node.split('.')[0] + '\n');
-  write('shells/web/src/README.md', '<!-- web-src-dirs:start -->\n<!-- web-src-dirs:end -->\n' +
-    '<!-- web-src-largest:start -->\n<!-- web-src-largest:end -->\n');
+  write('shells/web/src/README.md', '<!-- web-src-largest:start -->\n<!-- web-src-largest:end -->\n');
   write('shells/web/src/lib/widget.ts', 'export const widget = 1;\n');
   write('engine/src/index.ts', "export { engine } from './sample.ts';\n");
   write('engine/src/sample.ts', '/** Example module. */\nexport const engine = 1;\n');
@@ -90,23 +89,33 @@ test('valid pushed source ignores and preserves staged, unstaged, untracked and 
   assert.equal(readFileSync(join(f.root, WEB), 'utf8'), 'throw new Error("wrong generator");\n');
 });
 
-// Other merges move the generated counts, and generated-readmes.yml regenerates them after each
-// merge, so stale counts are reported and never refuse a push.
-test('stale counts at a pushed ref are reported and never refuse the push', t => {
+// The maps hold no counts (plan 371, 2026-11-21): an ordinary edit changes no generated line,
+// so two pull requests no longer conflict on them, and nothing needs regenerating.
+test('an ordinary edit changes no generated line and pushes clean', t => {
   const f = fixture(t);
   f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n\n');
-  const stale = f.commit();
-  f.regenerate();
-  const fixed = f.commit();
-  const result = f.run(update(stale, 'refs/heads/stale', f.valid));
+  const edited = f.commit();
+  const result = f.run(update(edited, 'refs/heads/edited', f.valid));
   assert.equal(result.status, 0, result.output);
-  assert.match(result.output, /README.md stats differ from the tree/);
-  assert.match(result.output, /refs\/heads\/stale/);
-  assert.match(result.output, /does not block\nthe push; .github\/workflows\/generated-readmes.yml regenerates them/);
-  assert.doesNotMatch(result.output, /::warning/, 'a local push prints plain text, not a CI annotation');
-  const clean = f.run(update(fixed, 'refs/heads/fixed', stale));
+  assert.match(result.output, /large-file list is current/);
+  assert.doesNotMatch(result.output, /does not match|differ from the tree/);
+});
+
+// A file that crosses the size line changes one generated line, which the pull request commits.
+test('a pushed tip whose large-file list is out of date is refused with the fix', t => {
+  const f = fixture(t);
+  f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n'.repeat(2600));
+  const stale = f.commit();
+  const result = f.run(update(stale, 'refs/heads/stale', f.valid));
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /large-file list does not match the tree/);
+  assert.match(result.output, /out of date in a pushed commit/);
+  assert.match(result.output, /pnpm run build:web-src-readme/);
+  f.regenerate();
+  assert.match(readFileSync(join(f.root, 'shells/web/src/README.md'), 'utf8'), /\| `lib\/widget\.ts` \|/);
+  const clean = f.run(update(f.commit(), 'refs/heads/fixed', stale));
   assert.equal(clean.status, 0, clean.output);
-  assert.doesNotMatch(clean.output, /differ from the tree/);
+  assert.doesNotMatch(clean.output, /does not match/);
 });
 
 test('engine source, direct tests and fuzz metadata are checked from the pushed commit', t => {
@@ -116,8 +125,8 @@ test('engine source, direct tests and fuzz metadata are checked from the pushed 
   f.write('tests/fuzz/targets.ts', "export const targets = [{\n  name: 'sample',\n}];\n");
   const stale = f.commit();
   const result = f.run(update(stale));
-  assert.equal(result.status, 0, result.output);
-  assert.match(result.output, /engine\/README.md module table differs from the tree/);
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /engine\/README.md module table does not match the tree \(sample\.ts\)/);
   f.regenerate();
   const clean = f.run(update(f.commit()));
   assert.equal(clean.status, 0, clean.output);
@@ -128,22 +137,22 @@ test('test-only coverage changes invalidate the engine table', t => {
   const f = fixture(t);
   f.write('tests/indirect.test.ts', "// Imports engine/src/sample.ts\n");
   const result = f.run(update(f.commit()));
-  assert.equal(result.status, 0, result.output);
-  assert.match(result.output, /engine\/README.md module table differs from the tree/);
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /engine\/README.md module table does not match the tree \(sample\.ts\)/);
 });
 
 test('multiple updates check every distinct tip and peel annotated tags', t => {
   const f = fixture(t);
   f.git('tag', '-a', 'valid-tag', '-m', 'tag', f.valid);
   const tag = f.git('rev-parse', 'valid-tag');
-  f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n\n');
+  f.write('engine/src/second.ts', '/** A second module. */\nexport const second = 1;\n');
   const stale = f.commit();
   const result = f.run(update(f.valid, 'refs/heads/valid') + update(tag, 'refs/tags/valid-tag') +
     update(stale, 'refs/heads/stale', OLD) + update(ZERO, 'refs/heads/deleted', stale));
-  assert.equal(result.status, 0, result.output);
+  assert.equal(result.status, 1, result.output, 'one out-of-date tip refuses the push');
   assert.match(result.output, /2 distinct commit tip\(s\) checked/);
   assert.match(result.output, /refs\/heads\/valid, refs\/tags\/valid-tag/);
-  assert.match(result.output, /README.md stats differ from the tree/);
+  assert.match(result.output, /module table does not match the tree \(second\.ts\)/);
 });
 
 test('new branches and unknown or non-fast-forward remote baselines need no fetch', t => {
@@ -195,10 +204,10 @@ test('missing generators and symlinked inputs fail without following external pa
 test('Git archive attributes cannot hide stale generator inputs', t => {
   const f = fixture(t);
   f.write('.gitattributes', 'shells/web/src/lib/widget.ts export-ignore\nengine/src/sample.ts export-subst\n');
-  f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n\n');
+  f.write('shells/web/src/lib/widget.ts', 'export const widget = 2;\n'.repeat(2600));
   const result = f.run(update(f.commit()));
-  assert.equal(result.status, 0, result.output);
-  assert.match(result.output, /README.md stats differ from the tree/);
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /large-file list does not match the tree/);
 });
 
 test('a map that cannot be built at a pushed ref refuses the push', t => {
@@ -206,10 +215,9 @@ test('a map that cannot be built at a pushed ref refuses the push', t => {
   f.write('shells/web/src/README.md', 'The markers were deleted.\n');
   let result = f.run(update(f.commit()));
   assert.equal(result.status, 1, result.output);
-  assert.match(result.output, /markers <!-- web-src-dirs:start -->/);
+  assert.match(result.output, /markers <!-- web-src-largest:start -->/);
   assert.match(result.output, /cannot be built in a pushed commit/);
-  f.write('shells/web/src/README.md', '<!-- web-src-dirs:start -->\n<!-- web-src-dirs:end -->\n' +
-    '<!-- web-src-largest:start -->\n<!-- web-src-largest:end -->\n');
+  f.write('shells/web/src/README.md', '<!-- web-src-largest:start -->\n<!-- web-src-largest:end -->\n');
   f.regenerate();
   f.write('engine/README.md', '<!-- engine-modules:end -->\n<!-- engine-modules:start -->\n');
   result = f.run(update(f.commit()));
@@ -217,7 +225,7 @@ test('a map that cannot be built at a pushed ref refuses the push', t => {
   assert.match(result.output, /markers in the wrong order/);
 });
 
-test('a tip whose generators predate --allow-drift reports their stale exit as drift only', t => {
+test('a tip based on an older main reports its generators\' count drift only', t => {
   const f = fixture(t);
   // The exact refusal the older generators print after a complete run.
   f.write(WEB, "console.error('shells/web/src/README.md stats are stale. Run `pnpm run build:web-src-readme` and commit the result.');\nprocess.exit(1);\n");
@@ -267,12 +275,17 @@ test('malformed updates fail and SHA-256 deletion records parse correctly', () =
 
 test('coverage fallback retains custom notes and handles sibling, imported and uncovered files', t => {
   const f = fixture(t);
+  // Every listed file is large; the list is in path order and carries no counts.
+  const big = 'export {};\n'.repeat(2600);
+  f.write('shells/web/src/lib/widget.ts', big);
   f.write('shells/web/src/lib/widget.test.ts', 'export {};\n');
-  f.write('shells/web/src/lib/imported.ts', 'export {};\n');
+  f.write('shells/web/src/lib/imported.ts', big);
   f.write('shells/web/src/lib/indirect.test.ts', "import './imported.ts';\n");
-  f.write('shells/web/src/lib/uncovered.ts', 'export {};\n');
-  f.write('shells/web/src/lib/custom.ts', 'export {};\n');
-  f.write('shells/web/src/README.md', '<!-- web-src-dirs:start -->\n<!-- web-src-dirs:end -->\n' +
+  f.write('shells/web/src/lib/uncovered.ts', big);
+  f.write('shells/web/src/lib/custom.ts', big);
+  f.write('shells/web/src/lib/small.ts', 'export {};\n');
+  // An older README: the per-directory counts block and a counted row, which carries its note across.
+  f.write('shells/web/src/README.md', '<!-- web-src-dirs:start -->\nRoughly 1 line.\n<!-- web-src-dirs:end -->\n' +
     '<!-- web-src-largest:start -->\n| 1 | `lib/custom.ts` | Hand-written detail |\n<!-- web-src-largest:end -->\n');
   f.regenerate();
   const readme = readFileSync(join(f.root, 'shells/web/src/README.md'), 'utf8');
@@ -280,6 +293,9 @@ test('coverage fallback retains custom notes and handles sibling, imported and u
   assert.match(readme, /`lib\/imported.ts` \| yes \|/);
   assert.match(readme, /`lib\/uncovered.ts` \| \*\*none\*\* \|/);
   assert.match(readme, /`lib\/custom.ts` \| Hand-written detail \|/);
+  assert.doesNotMatch(readme, /small\.ts|web-src-dirs|Roughly|\| \d/, 'no small files, no counts block, no counts');
+  const order = [...readme.matchAll(/`(lib\/[a-z]+\.ts)`/g)].map(m => m[1]);
+  assert.deepEqual(order, [...order].sort(), 'path order');
   f.regenerate();
   assert.equal(readFileSync(join(f.root, 'shells/web/src/README.md'), 'utf8'), readme);
 });

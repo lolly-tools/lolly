@@ -139,7 +139,7 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `gen-engine-modules.ts` | `build:engine-modules`, `check:engine-modules` (`--check`) | Regenerates the module table in [`../engine/README.md`](../engine/README.md), between the `<!-- engine-modules:start -->` and `<!-- engine-modules:end -->` markers. Never hand-edit inside those markers. `--check` fails on drift; `--check --allow-drift` only warns on drift and still fails on missing markers or a generator error, which is how CI's `typecheck` job and the pre-push hook run it. `.github/workflows/generated-readmes.yml` regenerates the table after each merge (with `gen-web-src-readme.ts`) and proposes it as one bot pull request. | DESTRUCTIVE |
+| `gen-engine-modules.ts` | `build:engine-modules`, `check:engine-modules` (`--check`) | Regenerates the module table in [`../engine/README.md`](../engine/README.md), between the `<!-- engine-modules:start -->` and `<!-- engine-modules:end -->` markers: one row per module (purpose, export, test, fuzz status) in path order, with no line counts or totals, so two pull requests that touch different modules touch different lines. Never hand-edit inside those markers. `--check` exits 3 when the table is out of date and lists the rows; CI's `typecheck` job and the pre-push hook run it, so a pull request that adds, removes or renames a module commits its rows. | DESTRUCTIVE |
 | `pack-engine.ts` | `pack:engine` | Produces the distributable, checksummed engine bundle that downstream consumers pin against, unmodified. | DESTRUCTIVE |
 
 ## Dev helpers, guards and audits

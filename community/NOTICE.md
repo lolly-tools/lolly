@@ -30,7 +30,12 @@ bar, scatter and surface adapter; it is rebuilt by
 official Observable Plot 0.6.17 UMD build (ISC, © 2020-2025 Observable, Inc.) for
 Chart's curated statistical/editorial SVG lane. The latter shares that D3
 runtime; `chart/lib/chart-plot.js` is Lolly's MPL-2.0 adapter and accepts no raw
-vendor configuration.
+vendor configuration. `sandbox/lib/` vendors the unchanged npm builds of React
+and ReactDOM 18.3.1 (MIT, © Facebook, Inc. and its affiliates) and Babel
+standalone 8.0.4 (MIT, © 2014-present Sebastian McKenzie and other
+contributors). `timezone/lib/renderer.min.js` and `timezone/hooks.js` bundle
+three.js, D3 Geo and D3 Array; `timezone/THIRD_PARTY.md` lists their versions,
+the map data and their licences.
 Each keeps
 its upstream license; see the `lolly` monorepo's `THIRD-PARTY-NOTICES.md` for
 full attribution.
