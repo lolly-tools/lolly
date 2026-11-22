@@ -20,13 +20,13 @@
  * from running twice.
  */
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { mkdir, readFile, writeFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { encodeFsToken } from '@lolly/engine';
 import { resolveStateDir } from '@lolly-tools/node-shell/state-dir';
 import {
-  deleteSessionRecord, listSessionRecords, readSessionRecord, sessionsDir, writeSessionRecord,
+  deleteSessionRecord, listSessionRecords, readSessionRecord, sessionPicturePath, sessionsDir, writeSessionRecord,
   type SessionData, type SessionRecord,
 } from '@lolly-tools/node-shell/session-store';
 
@@ -166,6 +166,7 @@ export async function renameSession(slot: string, label: string): Promise<void> 
     toolId: record.toolId,
     data: { ...record.data, __label: label },
     thumb: record.thumb,
+    preview: record.preview ?? null,
     updatedAt: record.updatedAt,
   });
 }
@@ -187,7 +188,14 @@ export async function backupData(stamp: string): Promise<{ path: string; count: 
   const { zipSync, strToU8 } = await import('fflate');
   const files: Record<string, Uint8Array> = {};
   const records = await listSessionRecords(DIR);
-  for (const r of records) files[`saved-state/${encodeFsToken(r.slot)}.json`] = strToU8(JSON.stringify(r, null, 2));
+  for (const r of records) {
+    files[`saved-state/${encodeFsToken(r.slot)}.json`] = strToU8(JSON.stringify(r, null, 2));
+    // The session's picture file travels beside it, at the path the record names.
+    if (r.preview) {
+      const path = sessionPicturePath(DIR, r.preview);
+      try { files[`saved-state/previews/${basename(path)}`] = new Uint8Array(await readFile(path)); } catch { /* no picture file here */ }
+    }
+  }
   try { files['profile.json'] = strToU8(await readFile(PROFILE_PATH, 'utf8')); } catch { /* none */ }
   try { files['folders.json'] = strToU8(await readFile(join(DIR, 'folders.json'), 'utf8')); } catch { /* none */ }
   const zip = zipSync(files, { level: 6 });

@@ -299,6 +299,24 @@ test('vendored c2paTrustAnchors() union both lists and dedup', async () => {
   assert.equal(new Set(fps).size, fps.length, 'no duplicate anchors');
 });
 
+// The 2026-11-21 refresh of the official list takes six new anchors and holds
+// back NETLOCK's two, whose entries in the official JSON state no
+// ServiceStatus. Both directions are pinned, so a verbatim re-paste cannot add
+// NETLOCK back without someone deciding to.
+test('official list refresh: six new anchors present, the two NETLOCK entries held back', () => {
+  const names = c2paTrustAnchors().map((der) => { try { return parseCertificate(der).subject.commonName; } catch { return null; } });
+  for (const cn of [
+    'Samsung C2PA Root CA G1',
+    'Castlabs C2PA ECC P-384 Root CA',
+    'RealReel C2PA Root CA',
+    'Aretiico C2PA Issuing CA G1',
+  ]) assert.ok(names.includes(cn), `${cn} present`);
+  // The reissued Verimago pair sits beside the earlier pair: two of each name.
+  assert.equal(names.filter((n) => n === 'Verimago Root CA').length, 2, 'both Verimago roots present');
+  assert.equal(names.filter((n) => n === 'Verimago Claim Signing Issuing CA').length, 2, 'both Verimago issuing CAs present');
+  assert.ok(!names.some((n) => /NETLOCK/i.test(n || '')), 'NETLOCK anchors are held back');
+});
+
 // The guardrail: a cert may CLAIM any organisation in its subject, but a name is
 // never proof. An attacker signs a fully valid credential (real COSE signature,
 // intact hard binding) with their OWN key under a self-made root that claims

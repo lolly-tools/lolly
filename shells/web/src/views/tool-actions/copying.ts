@@ -16,7 +16,7 @@ import { bumpMetric } from '../../metrics.js';
 import { foldBody } from '../../lib/disclosure-motion.ts';
 import { navigateTo } from '../../nav.js';
 import { escape as escapeText, safeHref } from '../../utils.js';
-import { captureThumbnail, exportTargetNode, flatExportNode } from '../tool-action-helpers.ts';
+import { capturePreview, exportTargetNode, flatExportNode } from '../tool-action-helpers.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
 // Copies the current render to the clipboard. Shared by the Copy button and
@@ -352,14 +352,9 @@ export function wireSendTargets(ta: ActionsCtx): void {
       multiBtn.setAttribute('aria-busy', 'true');
       try {
         const data = ta.saving.sessionSnapshot();
-        // One thumbnail serves every copy - they start identical.
-        const thumb = await captureThumbnail(
-          manifest,
-          canvasEl,
-          runtime,
-          exportUnscaled,
-          data.__export_format
-        );
+        // One picture serves every copy - they start identical, and the preview
+        // store keeps its bytes once for all of them.
+        const thumb = await capturePreview(manifest, canvasEl, runtime, exportUnscaled);
         const stamp = Date.now();
         const slots: string[] = [];
         for (let i = 0; i < count; i++) {

@@ -50,6 +50,57 @@ test('project discovery, private export and explicit copy use the shared records
   assert.equal((await run(['show', 'fixture/with spaces'])).result.label, 'Conference');
 });
 
+test('a session whose picture is a file (format 5): export inlines it, copy points at the same file, a rename keeps it', async () => {
+  const { mkdir, writeFile } = await import('node:fs/promises');
+  const { previewRefFor } = await import('../engine/src/session-preview.ts');
+  const { sessionPicturePath, readSessionRecord } = await import('../packages/node-shell/src/session-store.ts');
+  const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=='), c => c.charCodeAt(0));
+  const preview = (await previewRefFor(png, 'image/png', { route: 'export-raster' }))!;
+  await mkdir(join(state, 'saved-state', 'previews'), { recursive: true });
+  await writeFile(sessionPicturePath(state, preview), png);
+  await writeSessionRecord(state, { slot: 'pictured', label: 'Pictured', data: { __toolId: 'batch-fixture' }, preview });
+  const run = async (args: string[]) => JSON.parse((await exec(process.execPath, [entry, 'projects', ...args, '--json'], { env })).stdout);
+  const out = join(root, 'pictured.json');
+  await run(['export', 'pictured', `--output=${out}`]);
+  const exported = JSON.parse(await readFile(out, 'utf8'));
+  assert.equal(exported.thumb, `data:image/png;base64,${btoa(String.fromCharCode(...png))}`, 'the export carries the picture inline, as it always did');
+  assert.equal(exported.preview, undefined);
+  const copy = await run(['copy', 'pictured', '--label=Copy']);
+  assert.equal((await readSessionRecord(state, copy.result.slot))?.preview?.key, preview.key, 'the copy points at the same picture file');
+  await writeSessionRecord(state, { slot: 'pictured', label: 'Renamed', data: { __toolId: 'batch-fixture', __label: 'Renamed' } });
+  assert.equal((await readSessionRecord(state, 'pictured'))?.preview?.key, preview.key, 'a write with no picture keeps the one the record had');
+});
+
+test('a record the 1.2.1 CLI or TUI wrote again without its reference finds its picture by its work, in the CLI too', async () => {
+  const { mkdir, writeFile, rm: remove } = await import('node:fs/promises');
+  const { previewRefFor } = await import('../engine/src/session-preview.ts');
+  const { sessionPicturePath, sessionFilePath, readSessionRecord, listSessionRecords } = await import('../packages/node-shell/src/session-store.ts');
+  const png = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=='), c => c.charCodeAt(0));
+  const bytes = new Uint8Array([...png, ...new TextEncoder().encode('relink')]);
+  const preview = (await previewRefFor(bytes, 'image/png', { route: 'export-raster' }))!;
+  await mkdir(join(state, 'saved-state', 'previews'), { recursive: true });
+  await writeFile(sessionPicturePath(state, preview), bytes);
+  const work = { __toolId: 'batch-fixture', title: 'relink', __label: 'Before' };
+  await writeSessionRecord(state, { slot: 'relink', label: 'Before', data: work, preview });
+  // As 1.2.1's writeSessionRecord writes a rename: the fields it knows, format 4, no `preview`.
+  const old = (slot: string, data: Record<string, unknown>, label: string) => writeFile(sessionFilePath(state, slot), JSON.stringify({
+    slot, toolId: 'batch-fixture', label, data, thumb: null, updatedAt: '2026-11-22T10:00:00.000Z', createdAt: '2026-11-22T09:00:00.000Z', formatVersion: 4, engineVersion: '1.349.0',
+  }, null, 2));
+  await old('relink', { ...work, __label: 'After' }, 'After');
+  await old('relink-copy', { ...work, __label: 'After copy' }, 'After copy');
+  await old('relink-edited', { ...work, title: 'changed' }, 'Edited');
+  assert.equal((await readSessionRecord(state, 'relink'))?.preview?.key, preview.key, 'the rename finds its picture');
+  const listed = await listSessionRecords(state);
+  assert.equal(listed.find(r => r.slot === 'relink-copy')?.preview?.key, preview.key, 'so does the copy');
+  assert.equal(listed.find(r => r.slot === 'relink-edited')?.preview, undefined, 'changed work does not');
+  const run = async (args: string[]) => JSON.parse((await exec(process.execPath, [entry, 'projects', ...args, '--json'], { env })).stdout);
+  const out = join(root, 'relink.json');
+  await run(['export', 'relink', `--output=${out}`]);
+  assert.equal(JSON.parse(await readFile(out, 'utf8')).thumb, `data:image/png;base64,${btoa(String.fromCharCode(...bytes))}`, 'and the export carries it inline');
+  await remove(sessionPicturePath(state, preview));
+  assert.equal((await readSessionRecord(state, 'relink'))?.preview, undefined, 'with the picture file gone, nothing is pointed at');
+});
+
 test('run reads private input JSON from stdin and explicit flags win', async () => {
   const child = spawn(
     process.execPath,

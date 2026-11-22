@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { galleryPreviewLooks, galleryLookHref } from './gallery-preview.ts';
 import { coverFormats } from './featured-render.ts';
-import { previewContextSignature } from './preview-context.ts';
+import { previewContextSignature } from './preview-recipe.ts';
 
 test('Design discovery uses the available templates and opens the exact selected template', async () => {
   const index = JSON.parse(await readFile(new URL('../../../../brands/lolly-start/catalog/tools/index.json', import.meta.url), 'utf8'));

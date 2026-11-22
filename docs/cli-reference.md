@@ -264,7 +264,7 @@ State a tool saves during a `lolly` run stays in memory for that run. The run do
 3. The desktop app's data directory, when the app is installed: `~/Library/Application Support/tools.lolly.Desktop` on macOS, `$XDG_DATA_HOME/tools.lolly.Desktop` (or `~/.local/share/...`) on Linux, `%APPDATA%\tools.lolly.Desktop` on Windows.
 4. `~/.lolly`.
 
-Sessions are in `saved-state/<slot>.json` in that directory, in the record the desktop app writes. A project saved in the app loads in the terminal by its slot, and one saved in the TUI opens in the app.
+Sessions are in `saved-state/<slot>.json` in that directory, in the record the desktop app writes, and their pictures are files in `saved-state/previews/`; `lolly projects export` puts a session's picture back inline. A project saved in the app loads in the terminal by its slot, and one saved in the TUI opens in the app.
 
 `lolly` writes a tool's saved state to disk only when step 1 or 2 sets the directory. A headless render then leaves no unrequested files in your home directory or the app's store. Name a directory to make a state-saving tool scriptable across runs.
 

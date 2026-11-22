@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:61ee958e-1414-4b59-8708-617cd96239d0",
+  "serialNumber": "urn:uuid:5d9e4916-d84f-4424-8f5e-7f0ca6b097b7",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-21T13:50:44.211Z",
+    "timestamp": "2026-11-22T03:01:19.070Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -21192,6 +21192,47 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:generic/brotli@1.2.1",
+      "name": "brotli",
+      "version": "1.2.1",
+      "purl": "pkg:generic/brotli@1.2.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f688a3590bccf90fa65e5a70629840a5db6d50781d3681a86394631f11ec982"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/google/brotli"
+        },
+        {
+          "type": "distribution",
+          "url": "https://github.com/google/brotli/tree/db24a98aed38a16de78cc05ca15cdd8dc2a0d92d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "packages/node-shell/wasm/jxl/lolly-jxl.wasm"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:generic/craft-coated-fogra39@f8f8829cc7be65d466d687dae381d1ca60e31242",
       "name": "craft-coated-fogra39",
       "version": "f8f8829cc7be65d466d687dae381d1ca60e31242",
@@ -21224,6 +21265,45 @@
         {
           "name": "lolly:vendored",
           "value": "packages/node-shell/icc/craft-coated-fogra39.icc"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:generic/highway@1.2.0",
+      "name": "highway",
+      "version": "1.2.0",
+      "purl": "pkg:generic/highway@1.2.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "Apache-2.0 OR BSD-3-Clause"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f688a3590bccf90fa65e5a70629840a5db6d50781d3681a86394631f11ec982"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/google/highway"
+        },
+        {
+          "type": "distribution",
+          "url": "https://github.com/google/highway/tree/457c891775a7397bdb0376bb1031e6e027af1c48"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "packages/node-shell/wasm/jxl/lolly-jxl.wasm"
         },
         {
           "name": "lolly:local-changes",
@@ -21274,6 +21354,47 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:generic/libjxl@0.13.0",
+      "name": "libjxl",
+      "version": "0.13.0",
+      "purl": "pkg:generic/libjxl@0.13.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f688a3590bccf90fa65e5a70629840a5db6d50781d3681a86394631f11ec982"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/libjxl/libjxl"
+        },
+        {
+          "type": "distribution",
+          "url": "https://github.com/libjxl/libjxl/tree/5a7da83447212fe4900fc29ce97430b881caa67e"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "packages/node-shell/wasm/jxl/lolly-jxl.wasm"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:generic/libopenmpt-wasm@0.8.10",
       "name": "libopenmpt-wasm",
       "version": "0.8.10",
@@ -21306,6 +21427,47 @@
         {
           "name": "lolly:vendored",
           "value": "shells/web/src/vendor/libopenmpt/libopenmpt.mjs"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:generic/skcms@96d9171c94b937a1b5f0293de7309ac16311b722",
+      "name": "skcms",
+      "version": "96d9171c94b937a1b5f0293de7309ac16311b722",
+      "purl": "pkg:generic/skcms@96d9171c94b937a1b5f0293de7309ac16311b722",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f688a3590bccf90fa65e5a70629840a5db6d50781d3681a86394631f11ec982"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/google/skcms"
+        },
+        {
+          "type": "distribution",
+          "url": "https://github.com/google/skcms/tree/96d9171c94b937a1b5f0293de7309ac16311b722"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "packages/node-shell/wasm/jxl/lolly-jxl.wasm"
         },
         {
           "name": "lolly:local-changes",
@@ -21447,6 +21609,47 @@
         {
           "alg": "SHA-512",
           "content": "36af0e8465a264864657a84b1e8c8028b2dc26284fff115e04c189a14af14d7da9b08f1d0a27f32e16484856fe5564b7c053110e6086c3947e74ec920aa3cb87"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40babel/standalone@8.0.4",
+      "name": "@babel/standalone",
+      "version": "8.0.4",
+      "purl": "pkg:npm/%40babel/standalone@8.0.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9a4b639c5c1e174ec4702ed5ba6cc897dd8dcbbb6faf59c3a4b817a896c8ae2f"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/babel/babel"
+        },
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@babel/standalone/-/standalone-8.0.4.tgz"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/sandbox/lib/babel.min.js"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
         }
       ]
     },
@@ -27879,6 +28082,37 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/d3-array@3.2.4",
+      "name": "d3-array",
+      "version": "3.2.4",
+      "purl": "pkg:npm/d3-array@3.2.4",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5175b8a81aed6c3cee26063c2eb6df085bd34fead38c66076728d52304630402a9562b3960782eb605d092deb24a2eeb865a6b84e8dcb940427a3af7f52ccb06"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/timezone/lib/renderer.min.js"
+        },
+        {
+          "name": "lolly:vendored",
+          "value": "community/timezone/hooks.js"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/d3-array@3.2.5",
       "name": "d3-array",
       "version": "3.2.5",
@@ -28252,6 +28486,37 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/d3-geo@3.1.1",
+      "name": "d3-geo",
+      "version": "3.1.1",
+      "purl": "pkg:npm/d3-geo@3.1.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5175b8a81aed6c3cee26063c2eb6df085bd34fead38c66076728d52304630402a9562b3960782eb605d092deb24a2eeb865a6b84e8dcb940427a3af7f52ccb06"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/timezone/lib/renderer.min.js"
+        },
+        {
+          "name": "lolly:vendored",
+          "value": "community/timezone/hooks.js"
         }
       ]
     },
@@ -28711,6 +28976,14 @@
         {
           "name": "lolly:vendored",
           "value": "community/chart/lib/d3.min.js"
+        },
+        {
+          "name": "lolly:vendored",
+          "value": "community/meeting-planner/lib/d3.min.js"
+        },
+        {
+          "name": "lolly:vendored",
+          "value": "community/street-map/lib/d3.min.js"
         }
       ]
     },
@@ -32504,6 +32777,47 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/react-dom@18.3.1",
+      "name": "react-dom",
+      "version": "18.3.1",
+      "purl": "pkg:npm/react-dom@18.3.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "35f4f974f4b2bcd44da73963347f8952e341f83909e4498227d4e26b98f66f0d"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/facebook/react"
+        },
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/react-dom/-/react-dom-18.3.1.tgz"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/sandbox/lib/react-dom.production.min.js"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/react-dom@19.3.0",
       "name": "react-dom",
       "version": "19.3.0",
@@ -32547,6 +32861,47 @@
         {
           "alg": "SHA-512",
           "content": "29eb56472b45bf57a976925cdc9e06ef92385aba65644e6338bed8ab4a77e3e39538a17849eed6add21d542e395ec4929944e586dd8533f7ccd4565bd667d078"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/react@18.3.1",
+      "name": "react",
+      "version": "18.3.1",
+      "purl": "pkg:npm/react@18.3.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d949f1c3687aedadcedac85261865f29b17cd273997e7f6b2bfc53b2f9d4c4dd"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "vcs",
+          "url": "https://github.com/facebook/react"
+        },
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/react/-/react-18.3.1.tgz"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/sandbox/lib/react.production.min.js"
+        },
+        {
+          "name": "lolly:local-changes",
+          "value": "false"
         }
       ]
     },
@@ -33750,6 +34105,68 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/three@0.186.0",
+      "name": "three",
+      "version": "0.186.0",
+      "purl": "pkg:npm/three@0.186.0",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f8bb76ef5494379ced24dc9994e09fcca045fce3c8eb0d4d5e7aed8dafa505fd44b622afdaf4cc1a3c97dc65d0e871bce3fb29add1343d0d4c8624720ab2796c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/3d/lib/three.min.js"
+        },
+        {
+          "name": "lolly:vendored",
+          "value": "community/flythrough/lib/three.min.js"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/three@0.186.1",
+      "name": "three",
+      "version": "0.186.1",
+      "purl": "pkg:npm/three@0.186.1",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "42bcd3e4c45e12d6cc0b7e43630ae1769942d9fa82fde1657dad96a5175c87aabaae67bc578e08453bf30cb802b21ddedfeb97b1cb0b484f1e8e7766475aeea5"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "community/chart/lib/three-chart.min.js"
+        },
+        {
+          "name": "lolly:vendored",
+          "value": "community/timezone/lib/renderer.min.js"
         }
       ]
     },

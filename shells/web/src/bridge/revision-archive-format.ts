@@ -44,6 +44,10 @@ export interface RevisionArchiveRestoreOptions {
    * more recently (the default), or the backup's (a restore). The other side's
    * state is kept as a protected draft either way. See lib/backup-sessions.ts. */
   sameId?: 'newer' | 'incoming';
+  /** Each current state's own picture by the archive's slot, as a data URL from the
+   *  backup's sessions.json (see RevisionArchiveExportOptions.picture). Given a
+   *  state when its head's preview is not in the archive. */
+  pictures?: ReadonlyMap<string, string>;
 }
 export interface RevisionArchiveExportOptions {
   /** The archive's size limit in bytes of JSON; MAX_REVISION_ARCHIVE_BYTES by default. */
@@ -51,6 +55,11 @@ export interface RevisionArchiveExportOptions {
   /** Told how many automatic checkpoints were left out, oldest first, to stay
    * under the limit. Not called when every checkpoint fits. */
   leftOut?(count: number): void;
+  /** Told a current state's own picture as a data URL, read in the same transaction
+   *  as the archive, when the archive does not carry it as its head's preview (the
+   *  archive holds raster previews only, so an SVG picture never travels there).
+   *  The backup writes it beside the state in sessions.json. */
+  picture?(slot: string, dataUrl: string): void;
 }
 export interface RevisionArchiveAPI {
   /** The whole history, or all of it but the oldest automatic checkpoints when

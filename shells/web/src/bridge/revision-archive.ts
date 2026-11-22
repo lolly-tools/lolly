@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 import type { IDBPDatabase } from 'idb';
-import { indexSavedWork } from './history-index.ts';
+import { putStateRecord, recordDataUrl, withPicture } from './state-rows.ts';
+import { revisionPreviewSize, withoutPicture } from './revision-records.ts';
+import {
+  PREVIEW_BLOBS, PREVIEW_INDEX, bindOwner, dataUrlOfRow, isPrepared, ownerRef, preparePicture, revisionOwner, scopeFor, txHasPreviews,
+  type PreparedPicture, type PreviewBlobRow, type PreviewIndexRow, type SessionPreviewRef,
+} from './preview-store.ts';
 import type { RevisionEntry } from './revision-history.ts';
 import type { RecoveryEntry } from './revision-recovery.ts';
 import { MAX_REVISION_ARCHIVE_BYTES } from './revision-limits.ts';
@@ -11,6 +16,7 @@ import { collectAssetRefs } from './asset-ref-collector.ts';
 import { REVISION_STORES, type DocumentHead, type RevisionTransaction, documentVersion, holdsUnsavedWork, savedRevision } from './revision-records.ts';
 import { validateRevisionArchive, type RevisionArchive, type RevisionArchiveAPI, type RevisionArchiveSummary } from './revision-archive-format.ts';
 import type { SavedStateData, StateRecord } from './state.ts';
+import { readPreviewRef } from '../../../../engine/src/session-preview.ts';
 import { isDiscardedSlot, isTrashedSlot } from '../lib/batch-slots.ts';
 import { incomingIsNewer, sessionSavedAt } from '../lib/backup-sessions.ts';
 
@@ -21,7 +27,7 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
       const limit = options.maxBytes ?? MAX_REVISION_ARCHIVE_BYTES;
       // A single read transaction pairs each current session with its exact head
       // and draft generation, even while another tab continues editing.
-      const tx = db.transaction(REVISION_STORES);
+      const tx = db.transaction(scopeFor(db, REVISION_STORES));
       const archive: RevisionArchive = { version: 1, documents: [], revisions: [], recoveries: [] };
       const size = (value: unknown): number => new TextEncoder().encode(JSON.stringify(value)).byteLength;
       // Current states, drafts, explicit saves, named versions, heads and the last
@@ -46,10 +52,21 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
       let cursor = await tx.objectStore('revisions').openCursor();
       while (cursor) {
         const entry = cursor.value as RevisionEntry;
-        const preview = await tx.objectStore('revision-previews').get(entry.id) as string | undefined;
+        const preview = await archivePreview(tx, entry.id);
         rows.push({ entry, ...(preview ? { preview } : {}), bytes: entry.bytes + size(entry) + (preview?.length ?? 0) + 64 });
         if (entry.reason === 'save') pinned.add(entry.id);
         cursor = await cursor.continue();
+      }
+      // A state whose own picture the archive will not carry as its head's preview
+      // (an SVG, a picture over the limit, or a newer picture than the head's) has
+      // the picture told to the caller instead, from this same transaction.
+      if (options.picture) {
+        const carried = new Set(rows.filter(row => row.preview).map(row => row.entry.id));
+        for (const { document, state } of archive.documents) {
+          if (document.head && document.hash === document.workingHash && carried.has(document.head) && await headHolds(tx, document.head, state)) continue;
+          const url = await recordDataUrl(tx, state);
+          if (url) options.picture(document.slot, url);
+        }
       }
       const chosen = admit(rows.map(row => ({ id: row.entry.id, at: row.entry.at, bytes: row.bytes })), limit - fixed - 1024, pinned);
       if (rows.filter(row => pinned.has(row.entry.id)).reduce((sum, row) => sum + row.bytes, fixed) > limit)
@@ -74,7 +91,25 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
       // asynchronous, so it happens here too.
       const packed = new Map<string, { payload: RevisionPayload; stored: number }>();
       for (const row of archive.revisions) packed.set(row.entry.id, await packCanonical(row.data));
-      const tx = db.transaction(REVISION_STORES, 'readwrite'); void tx.done.catch(() => {});
+      // Previews are decoded and hashed here too, for the preview store.
+      const pictures = new Map<string, PreparedPicture>();
+      if (txHasPreviews({ objectStoreNames: db.objectStoreNames })) {
+        for (const row of archive.revisions) {
+          if (!row.preview) continue;
+          const picture = await preparePicture(row.preview, 'received').catch(() => null);
+          if (picture && isPrepared(picture)) pictures.set(row.entry.id, picture);
+        }
+      }
+      // Each state's own picture from sessions.json, for a state whose head preview
+      // is not in the archive. Received: an SVG passes the sanitiser first.
+      const statePictures = new Map<string, PreparedPicture>();
+      for (const { state } of archive.documents) {
+        const url = options.pictures?.get(state.slot);
+        if (!url) continue;
+        const picture = await preparePicture(url, 'received').catch(() => null);
+        if (picture && isPrepared(picture)) statePictures.set(state.slot, picture);
+      }
+      const tx = db.transaction(scopeFor(db, REVISION_STORES), 'readwrite'); void tx.done.catch(() => {});
       try {
         // Counts describe what this import changed here (plan 277 P1, recheck R1), not
         // what the archive holds, so a backup imported twice reports nothing new.
@@ -110,9 +145,14 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
             await tx.objectStore('revision-payloads').add(payload, row.entry.id);
           }
           // A preview is decoration: one that does not fit is skipped, not counted.
-          if (row.preview && usage.previews + row.preview.length <= budgets.previews && !await tx.objectStore('revision-previews').get(row.entry.id)) {
-            usage.previews += row.preview.length;
-            await tx.objectStore('revision-previews').put(row.preview, row.entry.id);
+          const picture = pictures.get(row.entry.id);
+          if (row.preview && !await revisionPreviewSize(tx, row.entry.id)) {
+            if (picture && usage.previews + picture.bytes.byteLength <= budgets.previews) {
+              if (await bindOwner(tx, revisionOwner(row.entry.id), 'revision', picture)) usage.previews += picture.bytes.byteLength;
+            } else if (!picture && !txHasPreviews(tx) && usage.previews + row.preview.length <= budgets.previews) {
+              usage.previews += row.preview.length;
+              await tx.objectStore('revision-previews').put(row.preview, row.entry.id);
+            }
           }
         }
         let recoveryBytes = await tx.objectStore('revision-usage').get('recovery') ?? 0;
@@ -137,7 +177,7 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
         const draftsAdmitted = admit(incomingDrafts.map(row => ({ id: row.entry.id, at: row.entry.at, bytes: row.entry.bytes })), budgets.recovery - recoveryBytes - reserved, new Set());
         summary.historyLeftOut! += draftsAdmitted.leftOut;
         for (const row of incomingDrafts) if (draftsAdmitted.ids.has(row.entry.id)) await putDraft(row.entry, row.data);
-        for (const plan of plans) await applyPlan(tx, plan, summary, putDraft, fits);
+        for (const plan of plans) await applyPlan(tx, plan, summary, putDraft, fits, statePictures.get(plan.row.state.slot));
         await tx.objectStore('revision-usage').put(usage, 'total');
         await tx.objectStore('revision-usage').put(recoveryBytes, 'recovery');
         await tx.done;
@@ -254,7 +294,7 @@ function draftOf(plan: Plan, snapshot: Snapshot, state: StateRecord, side: 'impo
 }
 
 async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionArchiveSummary,
-  putDraft: (entry: RecoveryEntry, data: unknown) => Promise<void>, fits: (bytes: number) => boolean): Promise<void> {
+  putDraft: (entry: RecoveryEntry, data: unknown) => Promise<void>, fits: (bytes: number) => boolean, ownPicture?: PreparedPicture): Promise<void> {
   const docs = tx.objectStore('revision-documents'), states = tx.objectStore('state');
   const { row } = plan;
   const incomingState = { ...row.state, slot: plan.slot };
@@ -265,10 +305,19 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
     if (!fits(entry.bytes)) { summary.historyLeftOut!++; return; }
     await putDraft(entry, data);
   };
+  /** The incoming state as a record with its picture: its own picture from
+   *  sessions.json when the backup carried one (the backup writes it only when the
+   *  head's preview is not that picture), else its head's preview when the state is
+   *  its head, else none. */
+  const incomingRecord = async (document: DocumentHead, extra: Partial<StateRecord> = {}): Promise<StateRecord> => {
+    const base = { ...withoutPicture(incomingState), documentId: document.documentId, ...extra } as StateRecord;
+    if (ownPicture) return withPicture(tx, base, ownPicture);
+    const picture = document.head && document.hash === document.workingHash ? await headPicture(tx, document.head) : {};
+    return { ...base, ...picture } as StateRecord;
+  };
   const addDocument = async (document: DocumentHead): Promise<void> => {
     await docs.put(document);
-    const preview = document.head ? await tx.objectStore('revision-previews').get(document.head) as string | undefined : undefined;
-    await states.put(indexSavedWork({ ...incomingState, documentId: document.documentId, thumb: document.hash === document.workingHash ? preview ?? null : null }));
+    await putStateRecord(tx, await incomingRecord(document));
   };
   if (plan.kind === 'add' || plan.kind === 'copy') {
     await addDocument({ ...row.document, slot: plan.slot });
@@ -300,10 +349,9 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
     const document: DocumentHead = { ...base, slot: plan.slot, head: row.document.head, hash: row.document.hash,
       workingHash: row.document.workingHash, version: crypto.randomUUID(), ...(row.document.saved !== undefined ? { saved: row.document.saved } : {}) };
     await keep(plan.localSnapshot, state, 'kept', document);
-    const preview = document.head ? await tx.objectStore('revision-previews').get(document.head) as string | undefined : undefined;
+    const record = await incomingRecord(document, { openedAt: state?.openedAt, createdAt: state?.createdAt ?? incomingState.createdAt });
     await docs.put(document);
-    await states.put(indexSavedWork({ ...incomingState, documentId: document.documentId, openedAt: state?.openedAt,
-      createdAt: state?.createdAt ?? incomingState.createdAt, thumb: document.hash === document.workingHash ? preview ?? null : null }));
+    await putStateRecord(tx, record);
     summary.replaced!++;
     return;
   }
@@ -311,9 +359,53 @@ async function applyPlan(tx: RevisionTransaction, plan: Plan, summary: RevisionA
   // backup's document, marked as saved outside the editor so it is adopted on open.
   if (!current && state) {
     await docs.put({ ...row.document, slot: plan.slot, workingHash: '' });
-    await states.put(indexSavedWork({ ...state, documentId: row.document.documentId }));
+    await putStateRecord(tx, { ...state, documentId: row.document.documentId });
   }
   await keep(plan.incoming, incomingState, 'import', current ?? { ...row.document, slot: plan.slot });
   // "Kept this browser's newer copy" is said only when this copy is the newer one.
   if (!plan.takeIncoming) summary.kept!++;
+}
+
+/**
+ * A revision's preview as the archive carries it: a raster data URL of at most
+ * 256 K characters, the only form `validateRevisionArchive` (and every older
+ * reader of `revision-history.json`) accepts. A picture this device keeps as SVG
+ * is left out of the archive rather than changing the format; the session's own
+ * picture still travels in `sessions.json`.
+ */
+async function archivePreview(tx: { objectStore(name: string): { get(key: string): Promise<unknown> }; objectStoreNames: DOMStringList | { contains(name: string): boolean } }, id: string): Promise<string | undefined> {
+  if (txHasPreviews(tx)) {
+    const row = await tx.objectStore(PREVIEW_INDEX).get(revisionOwner(id)) as PreviewIndexRow | undefined;
+    const blob = row ? await tx.objectStore(PREVIEW_BLOBS).get(row.content) as PreviewBlobRow | undefined : undefined;
+    if (blob) {
+      if (blob.type === 'image/svg+xml' || blob.type === 'image/gif' || blob.type === 'image/avif') return undefined;
+      const url = dataUrlOfRow({ ...blob, form: 'base64' });
+      return url.length <= 256 * 1024 ? url : undefined;
+    }
+  }
+  const legacy = await tx.objectStore('revision-previews').get(id) as string | undefined;
+  return typeof legacy === 'string' ? legacy : undefined;
+}
+
+/** The head revision's preview is the state's own picture: the same stored bytes,
+ *  or the same legacy data URL. A state with no picture has nothing else to carry. */
+async function headHolds(tx: { objectStore(name: string): { get(key: string): Promise<unknown> }; objectStoreNames: DOMStringList | { contains(name: string): boolean } }, head: string, state: StateRecord): Promise<boolean> {
+  const own = readPreviewRef(state.preview);
+  if (own) {
+    if (!txHasPreviews(tx)) return false;
+    const row = await tx.objectStore(PREVIEW_INDEX).get(revisionOwner(head)) as PreviewIndexRow | undefined;
+    return row?.content === own.key;
+  }
+  if (typeof state.thumb === 'string' && state.thumb) return await tx.objectStore('revision-previews').get(head) === state.thumb;
+  return true;
+}
+
+/** The picture fields for a state whose current data is its head revision: a
+ *  reference when the head's picture is in the preview store, else the legacy
+ *  data URL, else none. */
+async function headPicture(tx: RevisionTransaction, head: string): Promise<{ preview?: SessionPreviewRef; thumb?: string | null }> {
+  const ref = await ownerRef(tx, revisionOwner(head));
+  if (ref) return { preview: ref };
+  const legacy = await tx.objectStore('revision-previews').get(head) as string | undefined;
+  return typeof legacy === 'string' ? { thumb: legacy } : {};
 }

@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { bakedCover, bakedCoverSet, coverContextHash, pickBakedCover, type BakedCoverManifest } from './gallery-covers.ts';
-import { previewContextSignature } from './preview-context.ts';
+import { previewContextSignature } from './preview-recipe.ts';
 
 const manifest: BakedCoverManifest = {
   v: 1,

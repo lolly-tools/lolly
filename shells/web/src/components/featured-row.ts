@@ -25,6 +25,7 @@
  * link to its tool, so the whole feature degrades to "a scrollable row of links".
  */
 
+import { hasPicture, previewImg, type PictureSource } from './preview-image.ts';
 import { CoverflowGesture, CoverflowMotion, coverflowHaptics, coverflowWheel, type CoverflowGrid } from '../lib/coverflow-motion.ts';
 import { mountCoverflow, type CoverflowHandle } from './coverflow.ts';
 import { showOpenAtRest } from '../lib/coverflow-open-rest.ts';
@@ -45,7 +46,6 @@ import { currentTheme } from '../theme.ts';
 import { icon } from '../lib/icons.ts';
 import { tRaw } from '../i18n.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import type { PreviewsAPI } from '../bridge/previews.ts';
 
 export interface FeaturedVariant {
   motion?: import('../lib/template-motion.ts').TemplateMotion;
@@ -75,6 +75,9 @@ export interface FeaturedEntry {
   id: string;
   name: string;
   preview?: string;
+  /** A saved session's own picture (a stored reference or a legacy data URL), read
+   *  through components/preview-image.ts. Wins over `preview` when it has one. */
+  picture?: PictureSource;
   /** The tool's inlined icon SVG - shown as the tile's fallback art when no preview/
    *  variant has loaded (and revealed if one errors), hidden once real art is ready. */
   icon?: string;
@@ -101,7 +104,7 @@ export function resolveExamples(src: { examples?: FeaturedVariant[]; featured?: 
   return src?.examples ?? src?.featured?.variants ?? [];
 }
 
-type FeaturedHost = HostV1 & { previews?: PreviewsAPI };
+type FeaturedHost = HostV1;
 
 /** One queued look: the tool plus the example to paint. `index` is the look's ORIGINAL
  *  manifest position (not its position after the theme filter), so it keys the render
@@ -179,9 +182,11 @@ function tileMarkup(entry: FeaturedEntry, eager = false, menu = false): string {
   // priority - `loading="lazy"` on the hero delays LCP (the browser defers the very
   // image LCP measures). Off-screen tiles (index > 0) keep lazy.
   const loadAttrs = eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
-  const base = entry.preview
-    ? `<img class="ftile-img is-active" data-base src="${escape(entry.preview)}" alt="" aria-hidden="true" draggable="false" ${loadAttrs}>`
-    : '';
+  const base = hasPicture(entry.picture)
+    ? previewImg(entry.picture, `class="ftile-img is-active" data-base alt="" aria-hidden="true" draggable="false" ${loadAttrs}`)
+    : entry.preview
+      ? `<img class="ftile-img is-active" data-base src="${escape(entry.preview)}" alt="" aria-hidden="true" draggable="false" ${loadAttrs}>`
+      : '';
   // The tool's own icon is the always-present fallback: it shows until a real preview/
   // variant decodes (so a missing or slow image is never a blank/broken box), and it's
   // hidden the instant art is ready (`.ftile.has-art` - a transparent preview would
@@ -193,7 +198,7 @@ function tileMarkup(entry: FeaturedEntry, eager = false, menu = false): string {
   // (large, bold, brand-hued) instead of the faint loading ghost, and pairs it
   // with the name in a pill so icon + title read as ONE centred object: for a
   // utility the name identifies it faster than the glyph does.
-  const iconHero = !entry.preview && resolveExamples(entry).length === 0;
+  const iconHero = !entry.preview && !hasPicture(entry.picture) && resolveExamples(entry).length === 0;
   // The pill lives inside the (aria-hidden) stage, so it's decoration - the
   // link's aria-label still carries the name, and nothing is announced twice.
   // Its visible twin in .ftile-meta is hidden by CSS on these tiles.

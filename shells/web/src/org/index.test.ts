@@ -202,6 +202,34 @@ test('a sign-in gate stops catalog reads and is remembered; no gate leaves the c
   resetCatalogAccessForTests();
 });
 
+test('a gate is announced in the task that draws it, after the probe wrote "a control plane" (plan 371)', async () => {
+  reset();
+  const { onGateShown, cleanAnswerRemembered } = await import('./probe.ts');
+  // This device last saw no control plane here; the deployment has since gained a gate.
+  store.set('lolly:org-last-answer:https://instance.test|same-origin', JSON.stringify({ v: 1, answer: 'absent', at: Date.now() - 1000 }));
+  assert.equal(cleanAnswerRemembered(), true);
+  const seen: Array<{ node: Element | null; inView: boolean; clean: boolean }> = [];
+  onGateShown((node) => { seen.push({ node, inView: !!node && document.getElementById('view')!.contains(node), clean: cleanAnswerRemembered() }); });
+  try {
+    controlPlane({ mode: 'gated', session: 'none' });
+    const r = await initOrg();
+    assert.equal(r?.gate, true);
+    assert.equal(seen.length, 1, 'heard once');
+    assert.ok(seen[0]!.node?.classList.contains('org-gate'), 'with the gate markup');
+    assert.equal(seen[0]!.inView, true, 'already drawn into the view');
+    assert.equal(seen[0]!.clean, false, 'the record already says a control plane, so no later boot paints first');
+  } finally { onGateShown(null); }
+  // An open control plane with a member draws no gate and announces nothing.
+  reset();
+  seen.length = 0;
+  onGateShown((node) => { seen.push({ node, inView: false, clean: false }); });
+  try {
+    controlPlane({ mode: 'open', session: 'member' });
+    assert.equal((await initOrg())?.gate, false);
+    assert.equal(seen.length, 0);
+  } finally { onGateShown(null); }
+});
+
 test('gate builds a login link carrying returnTo=<current path>', async () => {
   reset();
   controlPlane({ mode: 'gated', session: 'none' });

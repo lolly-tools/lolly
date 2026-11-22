@@ -1,0 +1,119 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * A saved session's picture as the rest of the shell handles it (plan 373).
+ *
+ * A row from `host.state.list()` carries its picture by reference (`preview`) or,
+ * for a record not moved yet, as a legacy data URL (`thumb`). Code that writes the
+ * session again (a rename, a copy, a move to the Trash) hands `rowPicture(row)`
+ * back to save or restore, which keeps the same stored picture without reading
+ * the bytes. Code that writes a format which still carries a data URL (a `.lolly`, a
+ * backup, device sync, beam) asks `rowPictureDataUrl`, which rebuilds the field
+ * from the stored bytes in the form it always had.
+ */
+import type { SessionPreviewRef } from '../../../../engine/src/session-preview.ts';
+import { heldObjectUrl } from './preview-urls.ts';
+
+export interface RowWithPicture {
+  slot?: string;
+  preview?: SessionPreviewRef | null;
+  thumb?: string | null;
+}
+
+/** What to hand save or restore so a rewritten session keeps its picture. */
+export function rowPicture(row: RowWithPicture | null | undefined): SessionPreviewRef | string | null {
+  return row?.preview ?? row?.thumb ?? null;
+}
+
+/** The slice of the state API this reads. */
+export interface PictureState {
+  pictureDataUrl?(ref: SessionPreviewRef | { slot: string }): Promise<string | null>;
+}
+
+/** A session's picture as a data URL, for a format that carries one, or null. */
+export async function rowPictureDataUrl(state: PictureState, row: RowWithPicture | null | undefined): Promise<string | null> {
+  if (!row) return null;
+  if (row.thumb) return row.thumb;
+  if (!state.pictureDataUrl) return null;
+  if (row.preview) return state.pictureDataUrl(row.preview).catch(() => null);
+  return null;
+}
+
+/**
+ * A session's picture as a PNG data URL, for a receiver that reads PNG only (the
+ * thumbnail in a `.lolly` file's manifest, which the Linux thumbnailer and Quick
+ * Look read). A PNG is passed through byte for byte; any other picture is drawn into
+ * a PNG in the browser (lib/preview-writer.ts `pngPicture`). Where no canvas can
+ * draw the picture, the picture comes back in its own form rather than not at all:
+ * the app's own importer reads any picture type, and the file keeps its picture.
+ */
+export async function rowPicturePng(state: PictureState, row: RowWithPicture | null | undefined): Promise<string | null> {
+  const url = await rowPictureDataUrl(state, row);
+  if (!url) return null;
+  return (await asPng(url, row?.preview).catch(() => null)) ?? url;
+}
+
+/** The longest picture data URL Beam's receivers keep (MAX_THUMB_CHARS in lib/beam-pack.ts). */
+export const BEAM_PICTURE_CHARS = 512 * 1024;
+
+/**
+ * A session's picture as a raster data URL, for a receiver that takes raster
+ * pictures only (Beam: PNG, JPEG, WebP, GIF or AVIF, up to `maxChars`). A raster
+ * picture within the limit is passed through; an SVG is drawn into a PNG in the
+ * browser; a picture still over the limit is drawn again smaller in bytes
+ * (lib/preview-writer.ts `compactPicture`). Null when nothing fits, where the
+ * receiver would have dropped the picture anyway.
+ */
+export async function rowPictureRaster(state: PictureState, row: RowWithPicture | null | undefined, maxChars = BEAM_PICTURE_CHARS): Promise<string | null> {
+  const url = await rowPictureDataUrl(state, row);
+  if (!url) return null;
+  const vector = /^data:image\/svg\+xml[;,]/i.test(url);
+  if (!vector && url.length <= maxChars) return url;
+  const png = vector ? await asPng(url, row?.preview).catch(() => null) : null;
+  if (png && png.length <= maxChars) return png;
+  return compact(url, row?.preview, maxChars).catch(() => null);
+}
+
+const blobOfDataUrl = async (url: string): Promise<Blob | null> => {
+  const { decodePictureDataUrl } = await import('../../../../engine/src/session-preview.ts');
+  const decoded = decodePictureDataUrl(url);
+  return decoded ? new Blob([decoded.bytes.slice().buffer as ArrayBuffer], { type: decoded.type }) : null;
+};
+const sizeOfRef = (ref?: SessionPreviewRef | null): { width: number; height: number } | undefined =>
+  ref && ref.width > 0 && ref.height > 0 ? { width: ref.width, height: ref.height } : undefined;
+async function base64Url(blob: Blob): Promise<string> {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return `data:${blob.type};base64,${btoa(binary)}`;
+}
+
+async function asPng(url: string, ref?: SessionPreviewRef | null): Promise<string | null> {
+  if (/^data:image\/png;base64,/i.test(url)) return url;
+  const blob = await blobOfDataUrl(url);
+  if (!blob) return null;
+  const { pngPicture } = await import('./preview-writer.ts');
+  const png = await pngPicture(blob, sizeOfRef(ref));
+  return png ? base64Url(png) : null;
+}
+
+async function compact(url: string, ref: SessionPreviewRef | null | undefined, maxChars: number): Promise<string | null> {
+  const blob = await blobOfDataUrl(url);
+  if (!blob) return null;
+  const { compactPicture } = await import('./preview-writer.ts');
+  // Base64 is four characters for three bytes, plus the header.
+  const picture = await compactPicture(blob, Math.floor((maxChars - 64) * 3 / 4), sizeOfRef(ref));
+  const out = picture ? await base64Url(picture) : null;
+  return out && out.length <= maxChars ? out : null;
+}
+
+/**
+ * A picture to embed inside another SVG (a folder's cover mosaic): a data URL or
+ * nothing, since an SVG loaded in an `<img>` cannot fetch anything. A stored picture
+ * qualifies only when its data URL is already at hand (an SVG a tile has read); a
+ * raster's object URL cannot be used there.
+ */
+export function embeddablePictureSrc(p: { thumb?: string | null; preview?: SessionPreviewRef | null; url?: string | null } | null | undefined): string {
+  const held = p?.preview ? heldObjectUrl(p.preview.key) : null;
+  const src = p?.thumb || held || p?.url || '';
+  return src.startsWith('data:') ? src : '';
+}

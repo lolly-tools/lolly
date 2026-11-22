@@ -468,7 +468,7 @@
   "shells/web/src/bridge/identity.ts": 1,
   "shells/web/src/bridge/image-resize.ts": 1,
   "shells/web/src/bridge/images.ts": 1,
-  "shells/web/src/bridge/index.ts": 7,
+  "shells/web/src/bridge/index.ts": 6,
   "shells/web/src/bridge/live-capture-detect.ts": 4,
   "shells/web/src/bridge/live-capture.ts": 1,
   "shells/web/src/bridge/media.ts": 2,
