@@ -3,7 +3,7 @@
 Every tool in the gallery, in alphabetical order. [Open Lolly](https://lolly.tools) to use one, or go back to the [README](README.md).
 
 <!-- tools-table:start -->
-The Lolly Start (blank brand) catalog ships **75 tools** today - 64 listed in the gallery, plus 11 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Meeting Planner, Pricing, Sales Quote, Scorecard, Theme swap, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
+The Lolly Start (blank brand) catalog ships **75 tools** today - 63 listed in the gallery, plus 12 unlisted tools (Asset Export, Battlecards, Brief, Calendar, Email, Flow Chart, Meeting Planner, Pricing, Sales Quote, Scorecard, Theme swap, Week). Generated from `catalog/tools/index.json` by `pnpm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
@@ -31,7 +31,6 @@ The Lolly Start (blank brand) catalog ships **75 tools** today - 64 listed in th
 | Doc Studio | Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF. |
 | Filter | Photo effects: halftone, scanline, posterize, voronoi, dither or ASCII art (vector) or duotone, pixel-stretch, misprint or glitch (raster). |
 | Finishes | Preview foil, spot UV, emboss and soft-touch finishes on your artwork, then export the spot plate. The on-screen sheen is presentation only. |
-| Flow Chart | Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes. |
 | Flythrough | Fly a 3D camera through a screenshot. The picture lifts into layers at real depth; a timeline of poses animates the move. Export as video. |
 | Frame | Drop in a screenshot and get it framed, padded and shadowed on a design system backdrop. |
 | Gradient | Five ways to build a gradient from the design system swatches: Blend, Subdivide, Mesh, Warp and Flow. Export stills or join-free video loops. |
