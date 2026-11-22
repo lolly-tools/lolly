@@ -154,6 +154,24 @@ test('upgrade: a slider joins the input, which keeps the value and leaves the a1
   assert.equal(input.parentElement!.querySelectorAll('.custom-slider').length, 1);
 });
 
+test('upgrade: an input that has the focus hands the focus to its slider, so the next key is not lost', () => {
+  const input = rangeRow();
+  input.focus();
+  assert.equal(w.document.activeElement, input);
+  upgradeRangeInput(input);
+  const cs = input.nextElementSibling as HTMLElement;
+  assert.equal(w.document.activeElement, cs, 'the slider has the focus, not the page');
+  const seen: string[] = [];
+  input.addEventListener('input', () => seen.push(input.value));
+  w.document.activeElement!.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Home', bubbles: true, cancelable: true }));
+  assert.equal(input.value, '0', 'the key after the upgrade still moves the value');
+  assert.deepEqual(seen, ['0']);
+
+  const other = rangeRow();
+  upgradeRangeInput(other);
+  assert.equal(w.document.activeElement, cs, 'an input without the focus takes nothing from where it is');
+});
+
 test('upgrade: a range with no usable bounds is left alone', () => {
   const input = rangeRow('min="5" max="5" value="5"');
   upgradeRangeInput(input);

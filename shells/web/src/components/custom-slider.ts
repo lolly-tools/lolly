@@ -367,6 +367,10 @@ export function upgradeRangeInput(input: HTMLInputElement): void {
   const step = parseFloat(input.step || '') || 1;
   if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) return;  // nothing sane to draw
   input.dataset.csUpgraded = 'on';
+  // The upgrade runs on an idle moment after load, so it can happen while someone is
+  // on the input. fields.css hides an upgraded input, which would drop their focus to
+  // the page and lose the next key; the slider takes the focus over instead.
+  const hadFocus = input.ownerDocument.activeElement === input;
 
   const host = document.createElement('div');
   host.innerHTML = customSliderHtml({
@@ -418,6 +422,7 @@ export function upgradeRangeInput(input: HTMLInputElement): void {
     onDragStart: () => input.dispatchEvent(new CustomEvent(SLIDER_DRAG_EVENT, { bubbles: true, detail: { dragging: true } })),
     onDragEnd: () => input.dispatchEvent(new CustomEvent(SLIDER_DRAG_EVENT, { bubbles: true, detail: { dragging: false } })),
   });
+  if (hadFocus) el.focus({ preventScroll: true });
 
   // input → slider. Surfaces set `input.value` directly to push state back into a
   // slider (the brand editor's radius, the type demo's weight axis, a player
