@@ -43,7 +43,7 @@ pdfcraft-edit = { path = "vendor/pdfcraft-edit", version = "0.16.1" }
 pdfcraft-xfa = { path = "vendor/pdfcraft-xfa", version = "0.16.1" }
 pdfcraft-redact = { path = "vendor/pdfcraft-redact", version = "0.16.1" }
 hayro-syntax = "0.7.2"
-hayro-ccitt = "0.3"
+hayro-ccitt = "0.5"
 flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
 fax = "0.2.7"
 thiserror = "2"
