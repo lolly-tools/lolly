@@ -28,7 +28,7 @@
 // so the import has to be the lazy one. Both public functions below are already
 // async, so the await is invisible to callers.
 import type { ToolIntegrityOpts } from '../../../../engine/src/loader.ts';
-import { getInstanceBase, instanceFetch, instancePath } from '../lib/instance.ts';
+import { getInstanceBase, instanceCatalogKeyId, instanceFetch, instancePath } from '../lib/instance.ts';
 import type { CatalogSnapshot } from './snapshot.ts';
 import { CatalogRefusedError, isAccessRefused, noteCatalogRefused } from '../lib/catalog-access.ts';
 
@@ -118,6 +118,22 @@ function sameOriginInstanceKey(
 ): (() => Promise<import('./instance-key.ts').InstanceCatalogKey | null>) | null {
   const pageOrigin = globalThis.location?.origin ?? null;
   const tauri = (globalThis as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ !== undefined;
+  // An app connected to an instance: the one key the person accepted at connect, asked
+  // of that instance over the app's own instance transport.
+  const acceptedKeyId = keys.connectedInstanceKeyId({ pageOrigin, instanceBase: getInstanceBase(), tauri, acceptedKeyId: instanceCatalogKeyId() });
+  if (acceptedKeyId) {
+    // The instance's address, which may hold a path: the key document sits under that
+    // address, and the saved copy is kept under the same string.
+    const instance = getInstanceBase();
+    return () => keys.resolveInstanceCatalogKey({
+      origin: instance,
+      fetch: (url, init) => instanceFetch(url, init),
+      load: store.readInstanceKey,
+      save: store.saveInstanceKey,
+      forget: store.forgetInstanceKey,
+      expectedKeyId: acceptedKeyId,
+    });
+  }
   if (!pageOrigin || !keys.instanceKeyAllowed({ pageOrigin, instanceBase: getInstanceBase(), tauri })) return null;
   return () => keys.resolveInstanceCatalogKey({
     origin: pageOrigin,
@@ -236,7 +252,7 @@ export function noteInstanceCatalogSetAside(instanceBase: string): void {
   let host = instanceBase;
   try { host = new URL(instanceBase).host; } catch { /* keep the raw value */ }
   const id = 'lolly-instance-set-aside';
-  trustBadge(id, `${host} is signed with a key this app does not trust. Showing the tools built into this app.`);
+  trustBadge(id, `${host} is signed with a key this app has not accepted. Showing the tools built into this app. Connect to it again in Settings to accept its key.`);
   const note = document.getElementById(id);
   if (!note) return;
   note.style.pointerEvents = 'auto';

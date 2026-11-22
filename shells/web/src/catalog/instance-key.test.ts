@@ -8,7 +8,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  INSTANCE_KEY_PATH, createCatalogKeySelector, instanceKeyAllowed, keyIdOf, parseInstanceKeyDocument,
+  INSTANCE_KEY_PATH, askInstanceKeyId, connectedInstanceKeyId, createCatalogKeySelector, instanceKeyAllowed, keyIdOf, parseInstanceKeyDocument, shortKeyId,
   resolveInstanceCatalogKey, type InstanceKeyIO, type SavedInstanceKey,
 } from './instance-key.ts';
 import { fetchSignedCatalogSnapshot, CatalogTrustError, type AcceptedCatalog, type CatalogSnapshotIO } from './snapshot.ts';
@@ -52,6 +52,40 @@ test('only a browser page whose catalog comes from its own origin may read the k
   assert.equal(instanceKeyAllowed({ pageOrigin: 'null', instanceBase: '', tauri: false }), false);
   assert.equal(instanceKeyAllowed({ pageOrigin: null, instanceBase: '', tauri: false }), false);
   assert.equal(instanceKeyAllowed({ pageOrigin: ORIGIN, instanceBase: 'not a url', tauri: false }), false);
+});
+
+test('an app may take one key from the instance it is connected to: the id the person accepted', () => {
+  const app = { pageOrigin: 'tauri://localhost', tauri: true };
+  assert.equal(connectedInstanceKeyId({ ...app, instanceBase: ORIGIN, acceptedKeyId: instance.keyId }), instance.keyId);
+  assert.equal(connectedInstanceKeyId({ ...app, instanceBase: ORIGIN + '/team', acceptedKeyId: instance.keyId }), instance.keyId);
+  // Nothing accepted, no instance, a plain-http instance, or a value that is not a key id.
+  assert.equal(connectedInstanceKeyId({ ...app, instanceBase: ORIGIN, acceptedKeyId: '' }), '');
+  assert.equal(connectedInstanceKeyId({ ...app, instanceBase: '', acceptedKeyId: instance.keyId }), '');
+  assert.equal(connectedInstanceKeyId({ ...app, instanceBase: 'http://work.example', acceptedKeyId: instance.keyId }), '');
+  assert.equal(connectedInstanceKeyId({ ...app, instanceBase: ORIGIN, acceptedKeyId: 'not-a-key-id' }), '');
+  // A browser page keeps to the same-origin rule and never takes this path.
+  assert.equal(connectedInstanceKeyId({ pageOrigin: 'https://lolly.tools', tauri: false, instanceBase: ORIGIN, acceptedKeyId: instance.keyId }), '');
+});
+
+test('the connect step can ask an instance which key it signs with, and nothing is saved by asking', async () => {
+  const served = io(() => json(instance.doc));
+  assert.equal(await askInstanceKeyId(ORIGIN, served.io.fetch), instance.keyId);
+  assert.equal(served.state.writes, 0);
+  assert.equal(await askInstanceKeyId(ORIGIN, io(() => new Response('', { status: 404 })).io.fetch), '');
+  assert.equal(await askInstanceKeyId(ORIGIN, async () => { throw new Error('offline'); }), '');
+  assert.equal(shortKeyId('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ'), 'abcd efgh ijkl mnop');
+});
+
+test('a connected app accepts the instance catalog under the accepted key, and refuses a key that changed', async () => {
+  const selector = (expected: string, answer: TestKey) => createCatalogKeySelector({
+    pinned: publisher.pair.publicKey, pinnedKeyId: publisher.keyId,
+    instanceKey: () => resolveInstanceCatalogKey({ ...io(() => json(answer.doc)).io, expectedKeyId: expected }),
+  });
+  // The accepted key signs the catalog: that key verifies.
+  assert.notEqual(await selector(instance.keyId, instance)({ keyId: instance.keyId }), publisher.pair.publicKey, 'the instance key, not the build-time key');
+  // The instance now serves another key than the one accepted: the build-time key
+  // stands alone, so the envelope the new key signed does not verify.
+  assert.equal(await selector(instance.keyId, rotated)({ keyId: rotated.keyId }), publisher.pair.publicKey);
 });
 
 test('the document is read down to its public members, and its keyId is recomputed', async () => {

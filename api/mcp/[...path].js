@@ -4170,7 +4170,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.351.0";
+    ENGINE_VERSION = "1.352.0";
   }
 });
 
@@ -38693,6 +38693,18 @@ var init_framing = __esm({
 
 // engine/src/template.ts
 import Handlebars from "handlebars";
+function mdCells(line2) {
+  const inner = line2.trim().replace(/^\|/, "").replace(/(?<!\\)\|$/, "");
+  return inner.split(/(?<!\\)\|/).map((cell2) => cell2.replace(/\\\|/g, "|").trim());
+}
+function mdTableStart(lines, from) {
+  for (let i = from; i + 1 < lines.length; i++) {
+    const rule = lines[i + 1];
+    if (!lines[i].includes("|") || !rule.includes("|") || !MD_TABLE_RULE.test(rule)) continue;
+    if (mdCells(lines[i]).length === mdCells(rule).length) return i;
+  }
+  return -1;
+}
 function mdUrl(raw, allowed) {
   const s = raw.trim();
   if (!s) return "";
@@ -38848,7 +38860,7 @@ function hydrate(templateSource, values, { raw = false, data } = {}) {
   }
   return output;
 }
-var ARROW_GLYPHS, ARROW_CLASSES, LEADING_ARROW, MD_ESCAPE, MD_BULLET, MD_ORDERED, MD_HEADING, MD_IMAGE, MD_LINK, MD_LINK_SCHEMES, MD_IMAGE_SCHEMES, FIT_VALUES, PAINT_ATTR, PAINT_CSS, COMPILE_CACHE_MAX, COMPILE_CACHE_SOURCE_BYTES, compileCache, compileCacheBytes;
+var ARROW_GLYPHS, ARROW_CLASSES, LEADING_ARROW, MD_ESCAPE, MD_BULLET, MD_ORDERED, MD_HEADING, MD_TABLE_RULE, MD_IMAGE, MD_LINK, MD_LINK_SCHEMES, MD_IMAGE_SCHEMES, FIT_VALUES, PAINT_ATTR, PAINT_CSS, COMPILE_CACHE_MAX, COMPILE_CACHE_SOURCE_BYTES, compileCache, compileCacheBytes;
 var init_template = __esm({
   "engine/src/template.ts"() {
     "use strict";
@@ -38878,6 +38890,7 @@ var init_template = __esm({
     MD_BULLET = /^\s*([-*<>^v])\s+/;
     MD_ORDERED = /^\s*\d+[.)]\s+/;
     MD_HEADING = /^\s*(#{1,6})\s+(\S.*)$/;
+    MD_TABLE_RULE = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
     MD_IMAGE = /!\[([^\]]*)\]\(([^)\s]+)\)/g;
     MD_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;
     MD_LINK_SCHEMES = /^(https?|mailto|tel):/i;
@@ -38896,7 +38909,24 @@ var init_template = __esm({
           return safe ? `<a href="${park(safe)}">${label5}</a>` : label5;
         }).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/~~(.+?)~~/g, "<del>$1</del>").replace(/\*([^*\n]+?)\*/g, "<em>$1</em>").replace(/\u0000(\d+)\u0000/g, (_, i) => urls[Number(i)] ?? "");
       };
-      const renderRun = (lines) => {
+      const renderTable = (rows2) => {
+        const head2 = mdCells(rows2[0]);
+        const aligns = mdCells(rows2[1]).map((rule) => rule.startsWith(":") && rule.endsWith(":") ? "center" : rule.endsWith(":") ? "right" : rule.startsWith(":") ? "left" : "");
+        const cell2 = (tag3, text14, c) => `<${tag3}${aligns[c] ? ` class="md-align-${aligns[c]}"` : ""}>${inline(text14)}</${tag3}>`;
+        const body = rows2.slice(2).map((row) => {
+          const cells = mdCells(row);
+          return `<tr>${head2.map((_, c) => cell2("td", cells[c] ?? "", c)).join("")}</tr>`;
+        }).join("");
+        return `<table class="md-table"><thead><tr>${head2.map((text14, c) => cell2("th", text14, c)).join("")}</tr></thead>${body ? `<tbody>${body}</tbody>` : ""}</table>`;
+      };
+      const renderRun = (all) => {
+        const at = mdTableStart(all, 0);
+        if (at >= 0) {
+          let end = at + 2;
+          while (end < all.length && all[end].includes("|")) end += 1;
+          return (at > 0 ? renderRun(all.slice(0, at)) : "") + renderTable(all.slice(at, end)) + (end < all.length ? renderRun(all.slice(end)) : "");
+        }
+        const lines = all;
         if (lines.every((l) => MD_BULLET.test(l))) {
           const items2 = lines.map((l) => {
             const arrowClass = ARROW_CLASSES[l.match(MD_BULLET)?.[1] ?? ""];

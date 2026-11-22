@@ -353,3 +353,15 @@ test('an instance set aside for the page load stops being used and is still reme
   assert.equal(suspendInstanceBase(), '');
   assert.equal(suspendedInstanceBase(), 'https://lolly.example.org');
 });
+
+test('a renewed session cookie is read from an answer, a cleared one signs out, other cookies say nothing', async () => {
+  const { renewedSessionPair } = await import('./instance.ts');
+  assert.equal(renewedSessionPair([['content-type', 'application/json'], ['Set-Cookie', 'lw_session=abc.DEF-123; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=43200']]), 'lw_session=abc.DEF-123');
+  assert.equal(renewedSessionPair([['set-cookie', 'other=1; Path=/'], ['set-cookie', 'lw_session=next; Path=/']]), 'lw_session=next');
+  assert.equal(renewedSessionPair([['set-cookie', 'lw_session=; Path=/; Max-Age=0']]), null);
+  assert.equal(renewedSessionPair([['set-cookie', 'lw_session=gone; Expires=Thu, 01 Jan 1970 00:00:00 GMT']]), null);
+  assert.equal(renewedSessionPair([['set-cookie', 'theme=dark']]), undefined);
+  assert.equal(renewedSessionPair([]), undefined);
+  // A value that is not a plain token is not taken as a session.
+  assert.equal(renewedSessionPair([['set-cookie', 'lw_session=a b; Path=/']]), undefined);
+});

@@ -17,7 +17,7 @@
 //   • engine/src/doc-md.ts: doc-model BLOCKS → markdown, and blocks → HTML. Its
 //     input is a model, never text, so it cannot stand in for this path.
 //   • engine/src/template.ts's {{markdown}} helper: a narrower text → HTML dialect
-//     for tool templates. No tables, no fences, a leading `>` is an arrow bullet and
+//     for tool templates. Tables as a classed md-table, no fences, a leading `>` is an arrow bullet and
 //     ordered items carry <span class="md-index">, so its output is not this output.
 //   • shells/web/src/bridge/export.ts renderMarkdown: a rendered DOM → markdown.
 // Nothing above parses markdown into the doc-model. If a path needs that, write the

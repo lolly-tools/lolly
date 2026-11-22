@@ -6,6 +6,10 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.352.0
+
+- The `{{markdown}}` helper reads a GFM table: a row of pipes over a `| --- |` delimiter row becomes `<table class="md-table">` with a `<thead>` and a `<tbody>`, and a column the delimiter row aligns takes `md-align-left`, `md-align-center` or `md-align-right` on its cells. The look is the tool's stylesheet's, as with `md-index` and the arrow classes. Cells go through the same inline pass as other text, so a cell is escaped and may hold bold, italic, links and images; `\|` is a pipe inside a cell; a short row is padded and a long one cut. Text with no such table gives the same output as before, byte for byte: a line of pipes with no delimiter row under it, or a delimiter row with a different number of cells, stays a paragraph (lolly-tools/lolly#275).
+
 ## 1.351.0
 
 - The saved-session record moves to format 5 (`SESSION_FORMAT_VERSION` and `SESSION_READER_VERSION` 5, plan 373): a record may carry an optional `preview` reference, `{ key, type, width, height }` with the `route` that drew the picture and optionally its `recipe` and `bytes`, in place of the `thumb` data URL. The picture bytes live once in the shell's preview store, keyed by the first 16 bytes of their SHA-256, so a list of sessions reads no picture. `thumb` stays in the layout as a legacy field. Additive like formats 2 to 4: the data a record holds is untouched, a format 4 reader reads a format 5 record as-is and logs it as newer, and a format 5 reader reads `thumb` where a record has no `preview`. `sessionPreviewRef(record)` (new, `session-record.ts`, not on the barrel) reads the reference totally, in the manner of `sessionEmojiStamp`: the key must be 32 lower-case hex characters, the type one of the picture types and the sizes whole numbers in range, or it reads as absent.

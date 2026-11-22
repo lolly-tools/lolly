@@ -32,7 +32,8 @@ import { historySettled } from '../lib/overlay-back.ts';
 import { flushAddressWrites } from '../lib/url-state.ts';
 import { mountModal } from './modal.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
-import { getInstanceBase, initInstanceBase, setInstanceBase, instanceFetch } from '../lib/instance.ts';
+import { getInstanceBase, initInstanceBase, setInstanceBase, setInstanceCatalogKeyId, instanceFetch } from '../lib/instance.ts';
+import { askInstanceKeyId, shortKeyId } from '../catalog/instance-key.ts';
 import { validateInstanceUrl, probeConnection, isAccountInstance, workspaceAppUrl, type ProbeOutcome, type ProbedInstance, type UrlProblem } from '../lib/instance-probe.ts';
 import { wireDeviceCodeSignIn } from '../org/device-sign-in.ts';
 import { jsonBody, safeFetch } from '../lib/instance-json.ts';
@@ -91,7 +92,7 @@ function probeErrorMessage(outcome: Extract<ProbeOutcome, { ok: false }>): strin
 
 type Step =
   | { kind: 'choose' }
-  | { kind: 'connect'; url: string; error?: string; probing: boolean; probed?: ProbedInstance }
+  | { kind: 'connect'; url: string; error?: string; probing: boolean; probed?: ProbedInstance; keyId?: string }
   | { kind: 'account'; name: string }
   | { kind: 'import'; url: string; busy: boolean; error?: string; summary?: string };
 
@@ -182,6 +183,7 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
                   : t('Sign-in required.')}</div>`
               : ''}
             ${m.engineVersion ? `<div>${t('Serves engine {version}.', { version: m.engineVersion })}</div>` : ''}
+            ${s.keyId ? `<div>${t('Signs its tools with its own key: {key}', { key: `<code>${escape(shortKeyId(s.keyId))}</code>` })}</div>` : ''}
             ${m.packUrl ? `<div>${t('Offers a setup pack - your organisation may have sent you its .lolly file directly.')}</div>` : ''}
           </div>`
         : '';
@@ -290,9 +292,12 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
         void (async () => {
           try {
             const outcome = await probeConnection(valid.base);
+            // In the apps, the key the instance signs its tools with: shown before the
+            // choice is made, and accepted with the choice (catalog/instance-key.ts).
+            const keyId = outcome.ok && isTauriShell() ? await askInstanceKeyId(valid.base, (url, init) => instanceFetch(url, init), 6000) : '';
             if (step.kind !== 'connect' || !modal.el.isConnected) return;
             step = outcome.ok
-              ? { ...step, probing: false, probed: outcome.instance }
+              ? { ...step, probing: false, probed: outcome.instance, ...(keyId ? { keyId } : {}) }
               : { ...step, probing: false, error: probeErrorMessage(outcome) };
           } catch (e) {
             if (step.kind !== 'connect') return;
@@ -306,6 +311,7 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
       if (act === 'connect-confirm') {
         if (step.kind !== 'connect' || !step.probed || step.probing) return;
         const { base, manifest } = step.probed;
+        const acceptedKeyId = step.keyId ?? '';
         step = { ...step, probing: true, error: undefined };
         repaint();
         void (async () => {
@@ -320,6 +326,9 @@ export function openInstanceSheet(host: HostV1, opts: { start?: 'connect' } = {}
             await initInstanceBase();
             if (!modal.el.isConnected) return;
             await setInstanceBase(base);
+            // The key shown above is the one key this app will take this instance's
+            // tools from; with none shown, the app keeps to the key it was built with.
+            await setInstanceCatalogKeyId(acceptedKeyId || null);
             reloadOnClose = true;
             if (!modal.el.isConnected) { if (reloadOnClose) location.reload(); return; }
             if (isAccountInstance(manifest) && manifest.found) {
