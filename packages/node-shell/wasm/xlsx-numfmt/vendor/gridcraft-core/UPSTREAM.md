@@ -1,7 +1,7 @@
 # GridCraft core types
 
-Source: https://github.com/storytold/gridcraft/tree/5e415cdd34d287b90a4a9df67eb4f532f6f72d96/crates/core
-Commit: 5e415cdd34d287b90a4a9df67eb4f532f6f72d96
+Source: https://github.com/storytold/gridcraft/tree/11a5711ab11c4b94acce63faa07bb42c058c124f/crates/core
+Commit: 11a5711ab11c4b94acce63faa07bb42c058c124f (upstream main after v0.19.1; head 927d4d6 has the same crate contents on 2026-11-22)
 Licence: MIT OR Apache-2.0. The upstream licence and notice files are retained here.
 
 Modifications by Lolly:
@@ -12,4 +12,4 @@ Modifications by Lolly:
   in that file injects a value.
 All other source files are unchanged. The whole crate is kept, not only what number formats
 use, so the later formula engine can extend this module without another vendoring pass.
-The NOTICE keeps only the copyright and licence paragraph. The upstream third-party section covers fonts and icons in the GridCraft application, none of which is included here.
+The NOTICE keeps the copyright and licence paragraph and, from the upstream third-party section, the Unicode License v3 paragraph for the CLDR regional data in src/region.rs. The rest of that section covers fonts, icons and window decorations in the GridCraft application, none of which is included here.
