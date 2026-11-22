@@ -304,6 +304,8 @@ test('links stay honest: a renamed session gets its own picture back, not one an
   assert.ok(links() >= 30);
   context.mock.timers.tick(11 * 60_000);
   rows = await launch();
+  // The sweep hashes each record off the event loop, so a busy machine can need more turns.
+  for (let turn = 0; turn < 100 && links() > 2; turn++) await settle();
   assert.equal(links(), 2, 'one link for the shared document, one for the busy session');
 
   // A record that lost its reference, whose link cannot be read: nothing is swept.
