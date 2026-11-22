@@ -36,9 +36,10 @@
    toggle top-left, profile/history cluster top-right) instead of underlapping it. */
 .cat-toolbar {
   position: sticky;
-  /* Pin BELOW the fixed top chrome - the centred view toggle (Tools|Projects|Catalog) and
-     the profile cluster both live in the top ~48px band; sitting there would overlap them. */
-  top: calc(var(--sp-8) *2.06);
+  /* Pin BELOW the fixed top chrome: the centred view toggle and the profile cluster. Their
+     band is var(--chrome-top) down and var(--chrome-h) tall, and both grow with a system
+     inset or larger touch targets, so a fixed offset ends up under them. */
+  top: calc(var(--chrome-top) + var(--chrome-h) + 0.75rem);
 
   z-index: 50;
   display: flex; align-items: center; gap: var(--sp-5);
