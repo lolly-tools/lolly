@@ -45,7 +45,7 @@ pdfcraft-redact = { path = "vendor/pdfcraft-redact", version = "0.16.1" }
 hayro-syntax = "0.7.2"
 hayro-ccitt = "0.3"
 flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
-fax = "0.2.7"
+fax = "0.3.0"
 thiserror = "2"
 chrono = { version = "0.4.45", default-features = false, features = ["std"] }
 
