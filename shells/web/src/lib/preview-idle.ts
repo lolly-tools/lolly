@@ -4,14 +4,9 @@
  * move of old pictures into the preview store, and the redraw of a session tile
  * whose picture came from another build or another device.
  *
- * Nothing here runs when it would compete with the person or with a render:
- *
- *  - the tab is hidden, or the page is opening a tool (the tool route and the
- *    open sequence's held view, view-fade.ts);
- *  - an export or a batch render is running (lib/render-busy.ts);
- *  - Performance UI is on (by hand or switched on by the device's own signals,
- *    plan 335), the battery is low and not charging, or the browser asks to save
- *    data.
+ * Nothing here runs when it would compete with the person or with a render
+ * (lib/preview-work-gate.ts): a hidden tab, a tool opening or open, an export or a
+ * batch render, Performance UI, a low battery or Save-Data.
  *
  * A redraw also never replaces a picture made with another design system: a saved
  * piece records what was made, and drawing it in today's brand would make a
@@ -23,8 +18,11 @@
 import type { IDBPDatabase } from 'idb';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { prefersReducedMotion } from './a11y-prefs.ts';
-import { renderBusy } from './render-busy.ts';
 import { onStaleTile, type StaleTile } from './preview-events.ts';
+import { currentRoute, later, previewWorkAllowed, watchPreviewBattery, whenPreviewWorkMayResume } from './preview-work-gate.ts';
+
+/** Whether idle preview work may run now (lib/preview-work-gate.ts). Exported for tests. */
+export { previewWorkAllowed };
 
 /** Most tiles one visit to a view redraws. */
 const REDRAWS_PER_VISIT = 20;
@@ -35,81 +33,13 @@ const queued = new Map<string, { slot: string; toolId?: string; key?: string }>(
 const done = new Set<string>();
 let running = false;
 
-function currentRoute(): string {
-  return typeof location === 'undefined' ? '' : location.hash.split('?')[0] ?? '';
-}
-
-/** Whether idle preview work may run now. Exported for tests. */
-export function previewWorkAllowed(): boolean {
-  if (typeof document === 'undefined') return false;
-  if (document.visibilityState !== 'visible') return false;
-  if (currentRoute().startsWith('#/tool')) return false;
-  if (document.querySelector('.view-fade--hold')) return false;
-  if (renderBusy()) return false;
-  if (constrained) return false;
-  try {
-    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    if (nav.connection?.saveData) return false;
-  } catch { /* no connection info */ }
-  if (perfUi()) return false;
-  return true;
-}
-
-let perfUiRead: (() => boolean) | null = null;
-function perfUi(): boolean {
-  if (!perfUiRead) {
-    perfUiRead = () => false;
-    void import('../feature-flags.ts').then(m => { perfUiRead = m.perfUiOn; }).catch(() => {});
-  }
-  return perfUiRead();
-}
-
-let constrained = false;
-let batteryWatched = false;
-function watchBattery(): void {
-  if (batteryWatched) return;
-  batteryWatched = true;
-  const nav = navigator as Navigator & { getBattery?: () => Promise<{ charging: boolean; level: number; addEventListener(type: string, fn: () => void): void }> };
-  void nav.getBattery?.().then(async battery => {
-    const { batteryConstrained } = await import('./perf-ui-auto-temporary.ts');
-    const read = (): void => { constrained = batteryConstrained(battery.charging, battery.level); };
-    read();
-    battery.addEventListener('levelchange', read);
-    battery.addEventListener('chargingchange', read);
-  }).catch(() => {});
-}
-
-/** A timer that never keeps a test process alive. */
-function later(fn: () => void, ms: number): ReturnType<typeof setTimeout> {
-  const timer = setTimeout(fn, ms);
-  (timer as { unref?: () => void }).unref?.();
-  return timer;
-}
-
-/** Wait until the work might be allowed again: the tab comes back, the route
- *  changes, or (for a render or a power state, which send no event) a while passes. */
-function wake(fn: () => void): void {
-  let woken = false;
-  const go = (): void => {
-    if (woken) return;
-    woken = true;
-    window.removeEventListener('hashchange', go);
-    document.removeEventListener('visibilitychange', go);
-    clearTimeout(timer);
-    fn();
-  };
-  window.addEventListener('hashchange', go);
-  document.addEventListener('visibilitychange', go);
-  const timer = later(go, 15_000);
-}
-
 /** Run `step` on idle slices until it reports done or work stops being allowed. */
 function onIdle(step: (deadline: () => boolean) => Promise<boolean>): void {
   if (typeof window === 'undefined' || typeof document === 'undefined' || typeof window.addEventListener !== 'function') return;
   const idle = (window as Window & { requestIdleCallback?: (cb: (d: { timeRemaining(): number }) => void, o?: { timeout: number }) => number }).requestIdleCallback;
   const schedule = (fn: () => void): void => { if (idle) idle(() => fn(), { timeout: 5000 }); else later(fn, 400); };
   const run = (): void => {
-    if (!previewWorkAllowed()) { wake(() => schedule(run)); return; }
+    if (!previewWorkAllowed()) { whenPreviewWorkMayResume(() => schedule(run), 15_000); return; }
     const started = performance.now();
     void step(() => performance.now() - started > 40 || !previewWorkAllowed()).then(finished => {
       if (!finished) schedule(run);
@@ -137,7 +67,7 @@ export function startPreviewMigration(given?: IDBPDatabase): void {
 }
 
 function migrateOnIdle(db: IDBPDatabase): void {
-  watchBattery();
+  watchPreviewBattery();
   let stage = 0;
   onIdle(async stop => {
     const list = await import('../bridge/state-list.ts');
@@ -160,7 +90,7 @@ function migrateOnIdle(db: IDBPDatabase): void {
 export function queueStaleTile(tile: StaleTile): void {
   if (!tile.slot || done.has(tile.slot)) return;
   queued.set(tile.slot, tile);
-  watchBattery();
+  watchPreviewBattery();
   if (!running) { running = true; onIdle(drainOne); }
 }
 

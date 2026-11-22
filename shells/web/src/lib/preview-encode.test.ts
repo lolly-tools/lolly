@@ -113,11 +113,12 @@ test('a browser that cannot run the rule in a worker keeps the old path; an SVG 
 
 test('the page encoder is gated by the idle work rule and playback, and the background renders use it', () => {
   const source = readFileSync(new URL('./preview-encode.ts', import.meta.url), 'utf8');
-  assert.match(source, /allowed: \(\) => workAllowed!\(\) && !mediaPlaying\(\)/);
-  assert.match(source, /previewWorkAllowed/);
+  assert.match(source, /allowed: \(\) => previewWorkAllowed\(\) && !mediaPlaying\(\)/);
+  assert.match(source, /from '\.\/preview-work-gate\.ts'/, 'the same gate as the idle work');
+  assert.match(readFileSync(new URL('./preview-idle.ts', import.meta.url), 'utf8'), /from '\.\/preview-work-gate\.ts'/);
   const render = readFileSync(new URL('./preview-render.ts', import.meta.url), 'utf8');
   assert.match(render, /writeRaster\(blob, facts, \{ background: true \}\)/);
-  const idle = readFileSync(new URL('./preview-idle.ts', import.meta.url), 'utf8');
-  assert.match(idle, /if \(document\.querySelector\('\.view-fade--hold'\)\) return false;/, 'the tool-open sequence holds preview work');
-  assert.match(idle, /if \(renderBusy\(\)\) return false;/, 'so does an export or a batch render');
+  const gate = readFileSync(new URL('./preview-work-gate.ts', import.meta.url), 'utf8');
+  assert.match(gate, /if \(document\.querySelector\('\.view-fade--hold'\)\) return false;/, 'the tool-open sequence holds preview work');
+  assert.match(gate, /if \(renderBusy\(\)\) return false;/, 'so does an export or a batch render');
 });

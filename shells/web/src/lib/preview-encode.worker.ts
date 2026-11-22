@@ -8,19 +8,20 @@
 import { rasterPicture } from './preview-writer.ts';
 import type { PreviewEncodeReply, PreviewEncodeRequest } from './preview-encode-protocol.ts';
 
-const scope = globalThis as unknown as {
-  onmessage: ((event: MessageEvent<PreviewEncodeRequest>) => unknown) | null;
-  postMessage(message: PreviewEncodeReply, transfer: Transferable[]): void;
-};
+function reply(message: PreviewEncodeReply, transfer: Transferable[] = []): void {
+  self.postMessage(message, { transfer });
+}
+
 // Only the worker entry answers, in case a bundler shares this chunk with the page.
-if (typeof document === 'undefined') scope.onmessage = async ({ data }) => {
+if (typeof document === 'undefined') self.addEventListener('message', async (event: MessageEvent<PreviewEncodeRequest>) => {
+  const { data } = event;
   try {
     const picture = await rasterPicture(data.source, data.facts);
     if ('close' in data.source && typeof data.source.close === 'function') data.source.close();
-    if (!picture) { scope.postMessage({ id: data.id, ok: true, picture: null }, []); return; }
+    if (!picture) { reply({ id: data.id, ok: true, picture: null }); return; }
     const bytes = picture.bytes.byteOffset === 0 && picture.bytes.byteLength === picture.bytes.buffer.byteLength ? picture.bytes : picture.bytes.slice();
-    scope.postMessage({ id: data.id, ok: true, picture: { ref: picture.ref, bytes, ...(picture.verdict ? { verdict: picture.verdict } : {}) } }, [bytes.buffer as ArrayBuffer]);
+    reply({ id: data.id, ok: true, picture: { ref: picture.ref, bytes, ...(picture.verdict ? { verdict: picture.verdict } : {}) } }, [bytes.buffer as ArrayBuffer]);
   } catch (error) {
-    scope.postMessage({ id: data.id, ok: false, error: error instanceof Error ? error.message : String(error) }, []);
+    reply({ id: data.id, ok: false, error: error instanceof Error ? error.message : String(error) });
   }
-};
+});

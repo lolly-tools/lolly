@@ -12,7 +12,8 @@
  * Two lanes. A picture someone asked for (the capture when a session is saved) goes
  * at once. A background picture (a gallery or featured look, an idle redraw) waits
  * its turn, one at a time: after the page's first idle moment following load, and
- * only while preview work is allowed (lib/preview-idle.ts `previewWorkAllowed`: a
+ * only while preview work is allowed (lib/preview-work-gate.ts, which the idle work
+ * in lib/preview-idle.ts also follows: a
  * visible tab, no tool opening or open, no export or batch render, no Performance UI,
  * no low battery or Save-Data) and no audio or video is playing. Between pictures it
  * yields one turn of the event loop.
@@ -26,6 +27,7 @@
 import type { PreparedPicture } from '../bridge/preview-store.ts';
 import type { WriterFacts } from './preview-writer.ts';
 import type { PreviewEncodeReply, PreviewEncodeRequest } from './preview-encode-protocol.ts';
+import { previewWorkAllowed, watchPreviewBattery, whenPreviewWorkMayResume } from './preview-work-gate.ts';
 
 export interface EncodeWorker {
   onmessage: ((event: MessageEvent) => unknown) | null;
@@ -166,37 +168,24 @@ function afterFirstIdle(): Promise<void> {
   return firstIdle;
 }
 
-function wakeOn(fn: () => void): void {
-  let woken = false;
-  const go = (): void => {
-    if (woken) return;
-    woken = true;
-    window.removeEventListener('hashchange', go);
-    document.removeEventListener('visibilitychange', go);
-    clearTimeout(timer);
-    fn();
-  };
-  window.addEventListener('hashchange', go);
-  document.addEventListener('visibilitychange', go);
-  // Exports, Performance UI and playback send no event here: look again shortly.
-  const timer = setTimeout(go, 2000);
-}
-
 let shared: ReturnType<typeof createPreviewEncoder> | null = null;
-let workAllowed: (() => boolean) | null = null;
+
+/** A module worker, in the shape the encoder uses. */
+function encodeWorker(): EncodeWorker {
+  const worker: Worker = new Worker(new URL('./preview-encode.worker.ts', import.meta.url), { type: 'module' });
+  return worker;
+}
 
 /** The page's encoder. */
 export function previewEncoder(): ReturnType<typeof createPreviewEncoder> {
-  if (!workAllowed) {
-    workAllowed = () => false;
-    void import('./preview-idle.ts').then(m => { workAllowed = m.previewWorkAllowed; }).catch(() => { workAllowed = () => true; });
-  }
+  watchPreviewBattery();
   shared ??= createPreviewEncoder({
-    createWorker: () => new Worker(new URL('./preview-encode.worker.ts', import.meta.url), { type: 'module' }) as unknown as EncodeWorker,
+    createWorker: encodeWorker,
     workerCapable: () => typeof Worker === 'function' && typeof OffscreenCanvas === 'function' && typeof createImageBitmap === 'function',
-    allowed: () => workAllowed!() && !mediaPlaying(),
+    allowed: () => previewWorkAllowed() && !mediaPlaying(),
     ready: afterFirstIdle,
-    wake: wakeOn,
+    // Exports, Performance UI and playback send no event here: look again shortly.
+    wake: fn => whenPreviewWorkMayResume(fn, 2000),
     // The work is on the worker, so a turn of the event loop is enough: waiting for an
     // idle callback on a busy page held encoded looks back until the page closed, and
     // the next visit drew them again.
