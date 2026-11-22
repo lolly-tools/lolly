@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: MPL-2.0
+name: lolly-render same bytes
+
+# Plan 371 M3b: the lolly-render crate on a Linux x64 runner. The crate is built without
+# SIMD and with libm so every machine writes the same PNG bytes, and `cargo test` fails when
+# any engine-made fixture draws to bytes other than the ones pinned on macOS arm64 (the
+# hashes in crates/lolly-render/tests/render.rs). Dispatch only while no shell links the crate.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lolly-render-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  same-bytes:
+    name: Same bytes on Linux x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+        working-directory: crates/lolly-render
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: The toolchain pinned in rust-toolchain.toml
+        run: |
+          rustup toolchain install
+          rustc --version
+          uname -m
+      - name: Pinned fixture bytes, release and debug builds
+        run: |
+          cargo test --locked --release
+          cargo test --locked
