@@ -1,6 +1,6 @@
 {
   "name": "Sertifika",
-  "description": "Etkin tasarım sisteminde ve renk varyantında tamamlama ve ödül sertifikaları: dört stil, baskı ve sosyal medya boyutları ve paylaşım için hareket - tek tek isim ya da Satırlardan toplu bölümünde bir CSV'den tüm liste.",
+  "description": "Tamamlama ve ödül sertifikaları: dört stil, baskı ve sosyal medya boyutları ve hareket - tek tek isim ya da bir CSV'den tüm liste.",
   "a11yLabel": "{{default titleText \"Certificate\"}} için {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Tür",
   "inputs.certKind.help": "Metni belirler: başlığı, sertifikanın neyin için olduğunu söyleyen üst satırı ve mühürdeki işareti.",

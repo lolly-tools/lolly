@@ -1,6 +1,6 @@
 {
   "name": "Laboratorio Palette",
-  "description": "Fai crescere una palette da un colore seme - accenti armonici, rampe percettive OKLab e badge di leggibilità WCAG/APCA, con token DTCG ed export CSV.",
+  "description": "Fai crescere una palette da un colore seme - accenti armonici, rampe OKLab e badge di leggibilità WCAG/APCA, con token DTCG ed export CSV.",
   "inputs.seed.label": "Colore seme",
   "inputs.seed.help": "Il colore da cui nasce l'intera palette - di default il colore primario del tuo brand.",
   "inputs.harmony.label": "Armonia",

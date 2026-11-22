@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "description": "Kod QR untuk pautan, kad kenalan, rangkaian Wi-Fi, acara kalendar, lokasi atau teks biasa.",
+  "description": "Kod boleh imbas untuk setiap jenis: QR, Micro QR, Data Matrix, Aztec dan PDF417 - serta kod bar runcit dan logistik daripada EAN-13 hingga MaxiCode.",
   "featured.blurb": "Kod QR dalam sebarang warna jenama",
   "a11yLabel": "Kod QR yang menghubungkan ke {{default url \"(no URL set)\"}}",
   "inputs.url.label": "URL",

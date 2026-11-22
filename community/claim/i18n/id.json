@@ -1,6 +1,6 @@
 {
   "name": "Claim",
-  "description": "Klaim nama Anda pada media yang sudah Anda buat - gambar, PDF, video atau audio. Cap penulis, hak cipta dan lisensi Anda sebagai Content Credentials (juga Imprint raster yang tahan lama), sambil mempertahankan kredensial apa pun yang sudah ada di dalam file - semuanya di perangkat Anda, sebelum diunggah ke mana pun.",
+  "description": "Klaim nama Anda pada media apa pun - gambar, PDF, video atau audio. Cap penulis, hak cipta dan lisensi Anda sebagai Content Credentials, di perangkat Anda.",
   "a11yLabel": "Sematkan kredensial ke dalam gambar Anda",
   "inputs.creator.label": "Seniman / penulis",
   "inputs.creator.help": "Nama Anda - disematkan sebagai pembuat/kreator gambar (EXIF Artist, XMP dc:creator, dan Content Credential).",

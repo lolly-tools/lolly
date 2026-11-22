@@ -1,6 +1,6 @@
 {
   "name": "Krav",
-  "description": "Krev ditt navn på medier du allerede har laget - bilde, PDF, video eller lyd. Stempl forfatter, opphavsrett og lisens som Content Credentials (også et varig rasterstempel), samtidig som eksisterende legitimasjon i filen bevares - alt på din enhet, før du laster det opp noe sted.",
+  "description": "Krev ditt navn på alle medier - bilde, PDF, video eller lyd. Stempl forfatter, opphavsrett og lisens som Content Credentials, på din enhet.",
   "a11yLabel": "Bygg inn legitimasjon i bildet ditt",
   "inputs.creator.label": "Artist / forfatter",
   "inputs.creator.help": "Navnet ditt - bygges inn som bildets forfatter/skaper (EXIF Artist, XMP dc:creator og Content Credential).",

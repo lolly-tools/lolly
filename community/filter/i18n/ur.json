@@ -1,5 +1,5 @@
 {
   "name": "فلٹر",
-  "description": "فوٹو ایفیکٹس کے لیے ایک ٹول: halftone، scanline، posterize، voronoi، dither یا ASCII آرٹ (ویکٹر) یا duotone، pixel-stretch، misprint یا glitch (راسٹر) میں سے چنیں۔ ڈیزائن سسٹم اوورلیز، لائیو کیمرہ، اور ہر ایفیکٹ جتنے فارمیٹس سپورٹ کرے اتنے میں ایکسپورٹ۔",
+  "description": "فوٹو ایفیکٹس: halftone، scanline، posterize، voronoi، dither یا ASCII آرٹ (ویکٹر) یا duotone، pixel-stretch، misprint یا glitch (راسٹر)۔",
   "featured.blurb": "دس فوٹو ایفیکٹس، ویکٹر یا ریسٹر، ایک ٹول میں"
 }

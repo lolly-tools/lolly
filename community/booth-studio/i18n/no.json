@@ -1,6 +1,6 @@
 {
   "name": "Stand",
-  "description": "Utstyr en 3D-eventstand med sponsormateriell. Klikk på et panel for å slippe et bilde på det, velg en standdesign, og render et stillbilde eller en 360-visning til en sponsorpitch.",
+  "description": "Utstyr en 3D-eventstand med sponsormateriell. Velg en standdesign og render et stillbilde eller en 360-visning til en sponsorpitch.",
   "a11yLabel": "3D-mockup av {{default design \"an inline\"}} messestand pyntet med sponsorgrafikk",
   "inputs.design.label": "Standdesign",
   "inputs.design.help": "Standformen. Panelgrafikken din følger med på tvers av design - en bakvegg forblir en bakvegg.",

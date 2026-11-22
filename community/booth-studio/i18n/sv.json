@@ -1,6 +1,6 @@
 {
   "name": "Monter",
-  "description": "Klä en 3D-eventmonter med sponsormaterial. Klicka på valfri panel för att släppa en bild på den, välj en monterdesign och rendera en stillbild eller ett vridbord för en sponsorpitch.",
+  "description": "Klä en 3D-eventmonter med sponsormaterial. Välj en monterdesign och rendera en stillbild eller ett vridbord för en sponsorpitch.",
   "a11yLabel": "3D-mockup av en {{default design \"an inline\"}}-monter klädd med sponsorgrafik",
   "inputs.design.label": "Monterdesign",
   "inputs.design.help": "Monterns form. Din panelgrafik förs över mellan olika utformningar - en bakvägg förblir en bakvägg.",

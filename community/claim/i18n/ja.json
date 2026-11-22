@@ -1,6 +1,6 @@
 {
   "name": "権利主張",
-  "description": "すでに制作したメディアに自分の名前を主張 - 画像、PDF、動画、音声。作者、著作権、ライセンスをContent Credentialsとして刻印(耐久性のあるラスターImprintも)し、ファイル内にすでにある資格情報は保持します - すべてどこかにアップロードする前にデバイス上で処理します。",
+  "description": "どんなメディアにも自分の名前を主張 - 画像、PDF、動画、音声。作者、著作権、ライセンスをContent Credentialsとして刻印します。処理はすべてデバイス上で行われます。",
   "a11yLabel": "画像に資格情報を埋め込む",
   "inputs.creator.label": "アーティスト / 作者",
   "inputs.creator.help": "お名前 - 画像の作成者として埋め込まれます(EXIF Artist、XMP dc:creator、Content Credential)。",

@@ -1,6 +1,6 @@
 {
   "name": "Veredelungen",
-  "description": "Zeigt Folie, Spotlack, Prägung und Soft-Touch-Veredelungen an Ihrer Vorlage - und exportiert dann die druckfertige Spotplatte. Der Glanz am Bildschirm dient nur der Präsentation; die Platte ist die eigentliche Lieferung für Ihre Druckerei.",
+  "description": "Zeigt Folie, Spotlack, Prägung und Soft-Touch-Veredelungen an Ihrer Vorlage und exportiert dann die Spotplatte. Der Glanz am Bildschirm dient nur der Präsentation.",
   "a11yLabel": "Artwork mit simulierter Druckveredelung oder die druckfertige Plattenansicht",
   "inputs.image.label": "Artwork",
   "inputs.image.help": "Wähle dein Artwork oder lade eigenes hoch. Es wird auf deinem Gerät verarbeitet, die Pixel verlassen nie den Browser.",

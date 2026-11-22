@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "description": "लिंक, कॉन्टैक्ट कार्ड, Wi-Fi नेटवर्क, कैलेंडर इवेंट, लोकेशन या सादे टेक्स्ट के लिए QR कोड।",
+  "description": "हर तरह के स्कैन होने वाले कोड: QR, Micro QR, Data Matrix, Aztec और PDF417 - साथ ही EAN-13 से MaxiCode तक रिटेल और लॉजिस्टिक्स बारकोड।",
   "a11yLabel": "{{default url \"(no URL set)\"}} से लिंक करता QR कोड",
   "featured.blurb": "किसी भी ब्रांड रंग में QR कोड",
   "inputs.url.label": "URL",

@@ -1,6 +1,6 @@
 {
   "name": "Markdown 幻灯片",
-  "description": "把 Markdown 或 JSON 说明几秒钟变成原生、可编辑的 PowerPoint 演示文稿 - 真正的文字、项目符号、表格，配上设计系统主题。这是做演示文稿最快的文字优先路径；想手动排版幻灯片或做动画，就用 Design 画布。图表和示意图来自你的其他 Lolly 工具。可导出可编辑的 .pptx，以及 PDF 和 PNG。",
+  "description": "把 Markdown 或 JSON 说明变成原生、可编辑的 PowerPoint 演示文稿。可导出可编辑的 .pptx，以及 PDF 和 PNG。",
   "a11yLabel": "包含 {{_slideCount}} 张幻灯片的演示文稿",
   "inputs.size.label": "演示文稿尺寸",
   "inputs.size.help": "整个演示文稿使用同一尺寸 - PowerPoint 为每张幻灯片设定相同尺寸。",

@@ -1,6 +1,6 @@
 {
   "name": "Makmal Palet",
-  "description": "Tumbuhkan palet daripada satu warna benih - aksen harmoni, gred OKLab perseptual dan lencana kebolehbacaan WCAG/APCA, dengan token DTCG dan eksport CSV.",
+  "description": "Tumbuhkan palet daripada satu warna benih - aksen harmoni, gred OKLab dan lencana kebolehbacaan WCAG/APCA, dengan token DTCG dan eksport CSV.",
   "inputs.seed.label": "Warna benih",
   "inputs.seed.help": "Warna asas keseluruhan palet berkembang - lalai kepada warna utama jenama anda.",
   "inputs.harmony.label": "Harmoni",

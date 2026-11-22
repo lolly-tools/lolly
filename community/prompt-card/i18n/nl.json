@@ -1,6 +1,6 @@
 {
   "name": "Prompt Card",
-  "description": "Zet een lange prompt in typografie om tot één compacte, leesbare afbeelding voor een multimodaal model - afbeeldingsinvoer is vaak goedkoper dan diezelfde woorden als teksttokens.",
+  "description": "Zet een lange prompt in typografie om tot één afbeelding voor een multimodaal model - afbeeldingsinvoer is vaak goedkoper dan diezelfde woorden als teksttokens.",
   "a11yLabel": "Prompt naar afbeelding - plak of sleep tekst op het canvas en het wordt zo opgemaakt dat het in één kleine afbeelding past",
   "inputs.text.label": "Tekst",
   "inputs.text.help": "Plak of sleep ergens op het canvas om dit te vullen.",

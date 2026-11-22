@@ -1,6 +1,6 @@
 {
   "name": "Stand",
-  "description": "Habille un stand d'événement 3D avec les visuels d'un sponsor. Clique sur un panneau pour y déposer une image, choisis un design de stand, puis génère une image fixe ou un tour complet pour une présentation sponsor.",
+  "description": "Habille un stand d'événement 3D avec les visuels d'un sponsor. Choisis un design de stand, puis génère une image fixe ou un plateau tournant pour une proposition à un sponsor.",
   "a11yLabel": "Maquette 3D d'un stand d'événement {{default design \"linéaire\"}} habillé des visuels du sponsor",
   "inputs.design.label": "Design du stand",
   "inputs.design.help": "La forme du stand. Ton visuel de panneau se conserve d'un design à l'autre - un mur du fond reste un mur du fond.",

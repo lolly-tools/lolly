@@ -1,4 +1,4 @@
 {
   "name": "Synth",
-  "description": "Vizuální nástroj, na který hrajete. Čtyři scény běží živě na GPU: tekutý inkoust, roj částic, který letí na váš nadpis nebo logo, zpětnovazební pole a vaše kamera. Každá barva pochází z palety design systému a obraz reaguje na ukazatel, hudební stopu i MIDI kontroler. Exportujte snímek nebo plynulou smyčku."
+  "description": "Vizuální nástroj, na který hrajete. Obraz se hýbe podle vašeho ukazatele, hudební stopy a MIDI kontroleru. Exportujte snímek nebo plynulou smyčku."
 }

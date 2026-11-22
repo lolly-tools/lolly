@@ -1,6 +1,6 @@
 {
   "name": "Finishes",
-  "description": "Pratonton kemasan kerajang, spot UV, timbul dan sentuhan lembut pada karya seni anda - kemudian eksport plat spot sedia cetak. Kilauan pada skrin hanya untuk persembahan; plat itulah hasil sebenar yang diperlukan rumah percetakan anda.",
+  "description": "Pratonton kemasan kerajang, spot UV, timbul dan sentuhan lembut pada karya seni anda, kemudian eksport plat spot. Kilauan pada skrin hanya untuk persembahan.",
   "a11yLabel": "Karya dengan kemasan cetakan tersimulasi, atau plat sedia cetak dalam paparan plat",
   "inputs.image.label": "Karya",
   "inputs.image.help": "Pilih karya anda atau muat naik sendiri. Diproses pada peranti anda, piksel tidak pernah meninggalkan pelayar.",

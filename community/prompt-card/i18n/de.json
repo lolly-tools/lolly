@@ -1,6 +1,6 @@
 {
   "name": "Prompt-Karte",
-  "description": "Setzt einen langen Prompt zu einem kompakten, gut lesbaren Bild für ein multimodales Modell - Bildeingabe ist oft günstiger als dieselben Wörter als Text-Tokens.",
+  "description": "Setzt einen langen Prompt zu einem Bild für ein multimodales Modell - Bildeingabe ist oft günstiger als dieselben Wörter als Text-Tokens.",
   "a11yLabel": "Prompt zu Bild - Text auf dem Canvas einfügen oder ablegen, und er wird so angeordnet, dass er in ein kleines Bild passt",
   "inputs.text.label": "Text",
   "inputs.text.help": "Zum Füllen an beliebiger Stelle auf dem Canvas einfügen oder ablegen.",

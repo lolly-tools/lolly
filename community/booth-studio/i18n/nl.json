@@ -1,6 +1,6 @@
 {
   "name": "Stand",
-  "description": "Richt een 3D-eventstand in met sponsorartwork. Klik op een paneel om er een afbeelding op te zetten, kies een standontwerp en render een still of een turntable voor een sponsorpitch.",
+  "description": "Richt een 3D-eventstand in met sponsorartwork. Kies een standontwerp en render een still of een turntable voor een sponsorpitch.",
   "a11yLabel": "3D-mockup van {{default design \"an inline\"}} eventstand aangekleed met sponsorartwork",
   "inputs.design.label": "Standontwerp",
   "inputs.design.help": "De vorm van de stand. Je paneelillustratie werkt door in alle ontwerpen - een achterwand blijft een achterwand.",

@@ -1,6 +1,6 @@
 {
   "name": "Slajdy z Markdown",
-  "description": "Zamień Markdown albo specyfikację JSON w natywną, edytowalną prezentację PowerPoint - z prawdziwym tekstem, punktami, tabelami i motywem systemu projektowego - w kilka sekund. Najszybsza, tekstowa droga do prezentacji; sięgnij po płótno Design, gdy chcesz układać slajdy ręcznie albo je animować. Wykresy i diagramy pochodzą z innych Twoich narzędzi Lolly. Eksportuje .pptx (edytowalny), a także PDF i PNG.",
+  "description": "Zamień Markdown albo specyfikację JSON w natywną, edytowalną prezentację PowerPoint. Eksportuje .pptx (edytowalny), a także PDF i PNG.",
   "a11yLabel": "Prezentacja z {{_slideCount}} slajdami",
   "inputs.size.label": "Rozmiar prezentacji",
   "inputs.size.help": "Jeden rozmiar dla całej prezentacji - PowerPoint nadaje każdemu slajdowi ten sam rozmiar.",

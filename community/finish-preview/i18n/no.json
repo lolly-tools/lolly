@@ -1,6 +1,6 @@
 {
   "name": "Overflater",
-  "description": "Forhåndsvis folie, spot-UV, preging og myktouch-overflater på grafikken din - eksporter deretter den trykkeklare spotplaten. Glansen på skjermen er kun til presentasjon; platen er den egentlige leveransen trykkeriet trenger.",
+  "description": "Forhåndsvis folie, spot-UV, preging og myktouch-overflater på grafikken din - eksporter deretter spotplaten. Glansen på skjermen er kun til presentasjon.",
   "a11yLabel": "Kunstverk med en simulert trykkfinish, eller den trykkeklare platen i platevisning",
   "inputs.image.label": "Kunstverk",
   "inputs.image.help": "Velg kunstverket ditt eller last opp ditt eget. Det behandles på enheten din, pikslene forlater aldri nettleseren.",

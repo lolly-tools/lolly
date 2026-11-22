@@ -1,6 +1,6 @@
 {
   "name": "Laborator de palete",
-  "description": "Dezvoltă o paletă dintr-o culoare sămânță - accente armonice, rampe perceptuale OKLab și badge-uri de lizibilitate WCAG/APCA, cu token-uri DTCG și export CSV.",
+  "description": "Dezvoltă o paletă dintr-o culoare sămânță - accente armonice, rampe OKLab și badge-uri de lizibilitate WCAG/APCA, cu token-uri DTCG și export CSV.",
   "inputs.seed.label": "Culoare sursă",
   "inputs.seed.help": "Culoarea din care pornește întreaga paletă - implicit culoarea primară a brandului tău.",
   "inputs.harmony.label": "Armonie",

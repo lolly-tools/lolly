@@ -1,6 +1,6 @@
 {
   "name": "Stoisko",
-  "description": "Wystrój stoisko eventowe 3D grafikami sponsora. Kliknij dowolny panel, aby dodać obraz, wybierz wygląd stoiska i wyrenderuj zdjęcie lub obrót 360° do oferty dla sponsora.",
+  "description": "Udekoruj stoisko eventowe 3D grafikami sponsora. Wybierz wygląd stoiska i wyrenderuj zdjęcie lub obrót 360° do oferty dla sponsora.",
   "a11yLabel": "Makieta 3D stoiska targowego {{default design \"an inline\"}}, ubranego w grafikę sponsora",
   "inputs.design.label": "Projekt stoiska",
   "inputs.design.help": "Kształt stoiska. Twoja grafika paneli przenosi się między projektami - tylna ściana pozostaje tylną ścianą.",

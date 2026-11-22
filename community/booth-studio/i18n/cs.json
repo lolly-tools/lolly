@@ -1,6 +1,6 @@
 {
   "name": "Stánek",
-  "description": "Vyzdob 3D veletržní stánek grafikou sponzora. Klikni na libovolný panel a vlož na něj obrázek, vyber design stánku a vykresli statický snímek nebo otočný záběr pro sponzorskou prezentaci.",
+  "description": "Vyzdob 3D veletržní stánek grafikou sponzora. Vyber design stánku a vykresli statický snímek nebo otáčivý pohled pro nabídku sponzorovi.",
   "a11yLabel": "3D maketa {{default design \"an inline\"}} výstavního stánku se sponzorskou grafikou",
   "inputs.design.label": "Design stánku",
   "inputs.design.help": "Tvar stánku. Grafika panelu zůstává napříč návrhy - zadní stěna zůstává zadní stěnou.",

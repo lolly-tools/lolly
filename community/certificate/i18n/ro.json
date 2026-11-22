@@ -1,6 +1,6 @@
 {
   "name": "Certificat",
-  "description": "Certificate de absolvire și de premiere în sistemul de design activ și în varianta lui de culoare: patru stiluri, dimensiuni pentru tipar și pentru rețele sociale și mișcare pentru partajare - un nume pe rând sau o listă întreagă dintr-un CSV cu În masă din rânduri.",
+  "description": "Certificate de absolvire și de premiere: patru stiluri, dimensiuni pentru tipar și pentru rețele sociale și mișcare - un nume pe rând sau o listă dintr-un CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} pentru {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Tip",
   "inputs.certKind.help": "Stabilește textul: titlul, rândul de deasupra motivului certificatului și semnul de pe sigiliu.",

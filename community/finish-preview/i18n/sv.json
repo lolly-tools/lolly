@@ -1,6 +1,6 @@
 {
   "name": "Finishes",
-  "description": "Förhandsgranska folie, spot-UV, prägling och mjuktouch-finish på ditt konstverk - exportera sedan den tryckklara spotplattan. Skimret på skärmen är bara för presentation; plattan är den verkliga leveransen ditt tryckeri behöver.",
+  "description": "Förhandsgranska folie, spot-UV, prägling och mjuktouch-finish på ditt konstverk - exportera sedan spotplattan. Skimret på skärmen är bara för presentation.",
   "a11yLabel": "Konstverk med en simulerad tryckfinish, eller den tryckfärdiga plåten i plåtvyn",
   "inputs.image.label": "Konstverk",
   "inputs.image.help": "Välj ditt konstverk eller ladda upp eget. Det bearbetas på din enhet, pixlarna lämnar aldrig webbläsaren.",

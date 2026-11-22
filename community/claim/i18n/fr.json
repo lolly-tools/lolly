@@ -1,6 +1,6 @@
 {
   "name": "Claim",
-  "description": "Revendiquez votre nom sur tout média que vous avez déjà créé - image, PDF, vidéo ou audio. Apposez votre auteur, copyright et licence comme Content Credentials (aussi un Imprint raster durable), en préservant tout credential déjà présent dans le fichier - le tout sur votre appareil, avant de le mettre en ligne.",
+  "description": "Revendiquez votre nom sur tout média - image, PDF, vidéo ou audio. Apposez votre auteur, copyright et licence comme Content Credentials, sur votre appareil.",
   "a11yLabel": "Intègre des identifiants dans ton image",
   "inputs.creator.label": "Artiste / auteur",
   "inputs.creator.help": "Ton nom - intégré comme auteur/créateur de l'image (EXIF Artist, XMP dc:creator, et le Content Credential).",

@@ -1,6 +1,6 @@
 {
   "name": "QR-Code",
-  "description": "QR-Codes für einen Link, eine Kontaktkarte, ein Wi-Fi-Netzwerk, einen Kalendertermin, einen Standort oder reinen Text.",
+  "description": "Scannbare Codes aller Art: QR, Micro QR, Data Matrix, Aztec und PDF417 - dazu Handels- und Logistik-Barcodes von EAN-13 bis MaxiCode.",
   "featured.blurb": "QR-Codes in jeder Markenfarbe",
   "a11yLabel": "QR-Code, der zu {{default url \"(keine URL festgelegt)\"}} verlinkt",
   "inputs.url.label": "URL",

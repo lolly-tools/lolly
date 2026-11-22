@@ -1,6 +1,6 @@
 {
   "name": "Gian hàng",
-  "description": "Trang trí gian hàng sự kiện 3D bằng hình ảnh nhà tài trợ. Nhấp vào bất kỳ tấm nào để thả ảnh vào, chọn kiểu gian hàng, và render ảnh tĩnh hoặc turntable quay vòng cho bài thuyết trình tài trợ.",
+  "description": "Trang trí gian hàng sự kiện 3D bằng hình ảnh nhà tài trợ. Chọn kiểu gian hàng, và render ảnh tĩnh hoặc turntable quay vòng cho bài thuyết trình tài trợ.",
   "a11yLabel": "Mô hình 3D gian hàng sự kiện {{default design \"an inline\"}} được trang trí bằng tác phẩm của nhà tài trợ",
   "inputs.design.label": "Thiết kế gian hàng",
   "inputs.design.help": "Hình dạng gian hàng. Hình ảnh panel của bạn được giữ nguyên qua các thiết kế - tường sau vẫn là tường sau.",

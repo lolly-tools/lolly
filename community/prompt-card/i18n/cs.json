@@ -1,6 +1,6 @@
 {
   "name": "Karta promptu",
-  "description": "Vysázej dlouhý prompt do jednoho kompaktního, čitelného obrázku pro multimodální model - vstup obrázkem bývá levnější než stejná slova jako textové tokeny.",
+  "description": "Vysázej dlouhý prompt do jednoho obrázku pro multimodální model - vstup obrázkem bývá levnější než stejná slova jako textové tokeny.",
   "a11yLabel": "Prompt na obrázek - vlož nebo přetáhni text na plátno a rozvrhne se tak, aby se vešel do jednoho malého obrázku",
   "inputs.text.label": "Text",
   "inputs.text.help": "Vlož nebo přetáhni kamkoli na plátno pro vyplnění.",

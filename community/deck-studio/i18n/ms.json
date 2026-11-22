@@ -1,6 +1,6 @@
 {
   "name": "Markdown Slides",
-  "description": "Tukar Markdown atau spesifikasi JSON kepada dek PowerPoint asli yang boleh disunting - teks sebenar, bulet, jadual dan tema sistem reka bentuk - dalam beberapa saat. Laluan pantas berasaskan teks ke arah dek; gunakan kanvas Design apabila anda mahu susun atur slaid secara manual atau animasikannya. Carta dan gambar rajah datang daripada alat Lolly anda yang lain. Eksport .pptx (boleh disunting), serta PDF dan PNG.",
+  "description": "Tukar Markdown atau spesifikasi JSON kepada dek PowerPoint asli yang boleh disunting. Eksport .pptx (boleh disunting), serta PDF dan PNG.",
   "a11yLabel": "Dek pembentangan dengan {{_slideCount}} slaid",
   "inputs.size.label": "Saiz dek",
   "inputs.size.help": "Satu saiz untuk keseluruhan dek - PowerPoint memberikan saiz yang sama untuk setiap slaid.",

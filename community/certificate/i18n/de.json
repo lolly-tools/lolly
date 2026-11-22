@@ -1,6 +1,6 @@
 {
   "name": "Zertifikat",
-  "description": "Abschluss- und Auszeichnungszertifikate im aktiven Designsystem und seiner Farbvariante: vier Stile, Druck- und Social-Formate sowie Bewegung zum Teilen - ein Name nach dem anderen oder eine ganze Liste aus einer CSV unter Massenweise aus Zeilen.",
+  "description": "Abschluss- und Auszeichnungszertifikate: vier Stile, Druck- und Social-Formate sowie Bewegung - ein Name nach dem anderen oder eine Liste aus einer CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} für {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Art",
   "inputs.certKind.help": "Legt den Wortlaut fest: den Titel, die Zeile über dem Anlass des Zertifikats und das Zeichen auf dem Siegel.",

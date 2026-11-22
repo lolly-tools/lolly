@@ -1,6 +1,6 @@
 {
   "name": "Diplom",
-  "description": "Fullførings- og prisbevis i det aktive designsystemet og fargevarianten det bruker: fire stiler, trykk- og sosiale formater og bevegelse for deling - ett navn om gangen, eller en hel liste fra en CSV i Masse fra rader.",
+  "description": "Fullførings- og prisbevis: fire stiler, trykk- og sosiale formater og bevegelse - ett navn om gangen, eller en liste fra en CSV.",
   "a11yLabel": "{{default titleText \"Certificate\"}} til {{default recipientName \"a recipient\"}}",
   "inputs.certKind.label": "Type",
   "inputs.certKind.help": "Bestemmer ordlyden: tittelen, linjen over det beviset gjelder og merket på seglet.",

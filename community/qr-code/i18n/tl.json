@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "description": "Mga QR code para sa isang link, contact card, Wi-Fi network, calendar event, lokasyon o plain text.",
+  "description": "Mga scannable na code ng lahat ng uri: QR, Micro QR, Data Matrix, Aztec at PDF417 - pati mga barcode para sa retail at logistics mula EAN-13 hanggang MaxiCode.",
   "featured.blurb": "Mga QR code sa kahit anong kulay ng brand",
   "a11yLabel": "QR code na naka-link sa {{default url \"(walang naka-set na URL)\"}}",
   "inputs.url.label": "URL",

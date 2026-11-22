@@ -1,5 +1,5 @@
 {
   "name": "Filtro",
-  "description": "Una herramienta para efectos de foto: elige semitono, scanline, posterizado, voronoi, dither o arte ASCII (vectorial), o duotono, pixel-stretch, error de impresión o glitch (ráster). Superposiciones de tu sistema de diseño, cámara en vivo y exportación a tantos formatos como admita cada efecto.",
+  "description": "Efectos de foto: semitono, scanline, posterizado, voronoi, dither o arte ASCII (vectorial), o duotono, pixel-stretch, error de impresión o glitch (ráster).",
   "featured.blurb": "Diez efectos fotográficos, vectoriales o ráster, en una sola herramienta"
 }

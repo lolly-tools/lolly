@@ -1,6 +1,6 @@
 {
   "name": "QR کوڈ",
-  "description": "کسی لنک، رابطہ کارڈ، Wi-Fi نیٹ ورک، کیلنڈر ایونٹ، مقام یا سادہ متن کے لیے QR کوڈز۔",
+  "description": "ہر قسم کے اسکین ہونے والے کوڈز: QR، Micro QR، Data Matrix، Aztec اور PDF417 - ساتھ ہی EAN-13 سے MaxiCode تک ریٹیل اور لاجسٹکس بارکوڈز۔",
   "a11yLabel": "{{default url \"(no URL set)\"}} سے منسلک QR کوڈ",
   "featured.blurb": "کسی بھی برانڈ رنگ میں QR کوڈز",
   "inputs.url.label": "URL",

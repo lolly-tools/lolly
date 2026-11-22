@@ -1,6 +1,6 @@
 {
   "name": "Wykończenia",
-  "description": "Podejrzyj foliowanie, punktowy lakier UV, wytłaczanie i wykończenie soft-touch na swojej grafice - a następnie wyeksportuj płytę spot gotową dla drukarni. Połysk na ekranie to tylko prezentacja; płyta jest prawdziwym plikiem, którego potrzebuje Twoja drukarnia.",
+  "description": "Podejrzyj foliowanie, punktowy lakier UV, wytłaczanie i wykończenie soft-touch na swojej grafice - a następnie wyeksportuj płytę spot. Połysk na ekranie to tylko prezentacja.",
   "a11yLabel": "Grafika z symulowanym uszlachetnieniem druku, lub gotowa do druku matryca w widoku matrycy",
   "inputs.image.label": "Grafika",
   "inputs.image.help": "Wybierz grafikę lub prześlij własną. Jest przetwarzana na Twoim urządzeniu, piksele nigdy nie opuszczają przeglądarki.",

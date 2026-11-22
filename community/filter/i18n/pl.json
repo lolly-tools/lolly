@@ -1,5 +1,5 @@
 {
   "name": "Filtr",
-  "description": "Jedno narzędzie do efektów fotograficznych: wybierz halftone, scanline, posterize, voronoi, dither albo ASCII art (wektor), lub duotone, rozciąganie pikseli, błąd druku albo glitch (raster). Nakładki z systemu projektowego, kamera na żywo i eksport do tylu formatów, ile obsługuje dany efekt.",
+  "description": "Efekty fotograficzne: halftone, scanline, posterize, voronoi, dither albo ASCII art (wektor), lub duotone, rozciąganie pikseli, błąd druku albo glitch (raster).",
   "featured.blurb": "Dziesięć efektów zdjęciowych, wektorowo lub rastrowo, w jednym narzędziu"
 }

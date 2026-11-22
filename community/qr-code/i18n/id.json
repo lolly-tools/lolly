@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "description": "Kode QR untuk tautan, kartu kontak, jaringan Wi-Fi, acara kalender, lokasi, atau teks biasa.",
+  "description": "Kode yang dapat dipindai dari segala jenis: QR, Micro QR, Data Matrix, Aztec dan PDF417 - plus barcode ritel dan logistik dari EAN-13 hingga MaxiCode.",
   "a11yLabel": "Kode QR yang mengarah ke {{default url \"(no URL set)\"}}",
   "featured.blurb": "Kode QR dalam warna brand apa pun",
   "inputs.url.label": "URL",

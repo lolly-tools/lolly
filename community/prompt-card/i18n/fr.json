@@ -1,6 +1,6 @@
 {
   "name": "Prompt Card",
-  "description": "Composez une longue consigne en une seule image compacte et lisible pour un modèle multimodal - une image en entrée coûte souvent moins cher que les mêmes mots en jetons de texte.",
+  "description": "Composez une longue consigne en une seule image pour un modèle multimodal - une image en entrée coûte souvent moins cher que les mêmes mots en tokens de texte.",
   "a11yLabel": "Prompt vers image - colle ou dépose du texte sur le canevas, et il est mis en page pour tenir dans une seule petite image",
   "inputs.text.label": "Texte",
   "inputs.text.help": "Colle ou dépose n'importe où sur le canevas pour remplir ceci.",

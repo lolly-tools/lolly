@@ -1,6 +1,6 @@
 {
   "name": "Laboratoř palet",
-  "description": "Vypěstuj paletu z jedné výchozí barvy - harmonické akcenty, percepční OKLab přechody a odznaky čitelnosti WCAG/APCA, s tokeny DTCG a exportem do CSV.",
+  "description": "Vypěstuj paletu z jedné výchozí barvy - harmonické akcenty, OKLab přechody a odznaky čitelnosti WCAG/APCA, s tokeny DTCG a exportem do CSV.",
   "inputs.seed.label": "Základní barva",
   "inputs.seed.help": "Barva, ze které vychází celá paleta - výchozí je primární barva tvé značky.",
   "inputs.harmony.label": "Harmonie",

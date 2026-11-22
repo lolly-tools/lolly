@@ -1,5 +1,5 @@
 {
   "name": "Filtro",
-  "description": "Uma ferramenta só para efeitos de foto: escolha halftone, scanline, posterização, voronoi, dither ou arte ASCII (vetor), ou duotone, pixel-stretch, misprint ou glitch (raster). Sobreposições do sistema de design, câmera ao vivo e exportação para tantos formatos quanto cada efeito suportar.",
+  "description": "Efeitos de foto: halftone, scanline, posterização, voronoi, dither ou arte ASCII (vetor), ou duotone, pixel-stretch, misprint ou glitch (raster).",
   "featured.blurb": "Dez efeitos fotográficos, vetor ou raster, numa só ferramenta"
 }

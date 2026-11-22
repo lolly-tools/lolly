@@ -1,4 +1,4 @@
 {
   "name": "Timezone",
-  "description": "Transformă locuri și fusuri orare într-o lucrare vizuală aliniată sistemului de design. Rotește un atlas vectorial sau un glob WebGL detaliat, desfășoară proiecții, etichetează-ți oamenii și locurile, apoi exportă lucrarea, un tur de cameră sau programe structurate."
+  "description": "Transformă locuri și fusuri orare într-o lucrare vizuală. Rotește un atlas vectorial sau un glob WebGL, apoi exportă lucrarea, un tur de cameră sau programe structurate."
 }

@@ -1,6 +1,6 @@
 {
   "name": "Audiogram",
-  "description": "Biến một đoạn giọng nói hoặc bài hát thành video theo màu hệ thống thiết kế của bạn, thực sự chuyển động theo âm thanh - cột, phổ, vòng, đường sống núi hoặc dao động ký, sẵn sàng cho mạng xã hội.",
+  "description": "Biến một đoạn giọng nói hoặc bài hát thành video theo màu hệ thống thiết kế của bạn, chuyển động theo âm thanh.",
   "a11yLabel": "Thẻ Audiogram cho {{default title \"an audio clip\"}} với dạng sóng hoạt ảnh",
   "inputs.audio.label": "Âm thanh",
   "inputs.audio.help": "Chọn một bản nhạc từ thư viện của bạn hoặc tải lên một đoạn clip. Nó được giải mã trên thiết bị của bạn để vẽ dạng sóng - âm thanh không bao giờ rời khỏi trình duyệt. Để trống để có dạng sóng giữ chỗ. Để nghe trong bản xuất, hãy chọn \"Âm thanh của công cụ này\" làm kênh âm thanh trong tùy chọn tải xuống.",

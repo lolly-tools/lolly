@@ -1,6 +1,6 @@
 {
   "name": "QR Code",
-  "description": "Coduri QR pentru un link, o carte de vizită, o rețea Wi-Fi, un eveniment de calendar, o locație sau text simplu.",
+  "description": "Coduri scanabile de toate felurile: QR, Micro QR, Data Matrix, Aztec și PDF417 - plus coduri de bare pentru retail și logistică, de la EAN-13 la MaxiCode.",
   "featured.blurb": "Coduri QR în orice culoare de brand",
   "a11yLabel": "Cod QR care trimite la {{default url \"(no URL set)\"}}",
   "inputs.color.label": "Culoarea modulelor",

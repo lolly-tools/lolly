@@ -1,6 +1,6 @@
 {
   "name": "Grafico",
-  "description": "Grafici dal primo incolla fino alla visualizzazione avanzata - raccomandazioni sui dati spiegate, mappatura esplicita dei campi, 35 famiglie vettoriali classiche tra cui Pareto, bullet target e range bar, sedici articolazioni statistiche ed editoriali, scene 3D reali in z, voli cinematici, movimento deterministico, descrizioni accessibili e stili composti dal sistema di design attivo.",
+  "description": "Grafici dal primo incolla fino alla visualizzazione avanzata - 35 famiglie vettoriali, scene 3D, voli, movimento e stili composti dal sistema di design.",
   "featured.blurb": "Incolla una tabella - Grafico la rende chiara, accessibile e sempre fedele al tuo sistema di design",
   "a11yLabel": "grafico {{chartType}}{{#if heading}} - {{heading}}{{/if}}",
   "inputs.chartType.label": "Tipo di grafico",
