@@ -6,7 +6,7 @@
 //! reason it is refused, each with a stable code; nothing outside this slice is
 //! dropped or approximated. The CPU path (`draw.rs`) draws an admitted page with
 //! tiny-skia built without SIMD and with libm, so the same input gives the same pixels,
-//! and the same PNG bytes (`png.rs`), on every machine.
+//! and the same PNG bytes (`png_out.rs`), on every machine.
 //!
 //! This crate is not a default render route anywhere: no shell calls it yet.
 
@@ -17,7 +17,8 @@ mod draw;
 mod geometry;
 pub mod input;
 mod path_data;
-mod png;
+pub mod picture;
+mod png_out;
 
 pub use admit::{admit_json, Plan, Refusal, REFUSAL_CODES};
 
@@ -50,10 +51,10 @@ pub fn render_plan(plan: &Plan) -> Result<Rendered, Vec<Refusal>> {
 pub fn render_png(bytes: &[u8]) -> Result<Vec<u8>, Vec<Refusal>> {
     let plan = admit_json(bytes)?;
     let drawn = render_plan(&plan)?;
-    Ok(png::encode_rgba(&drawn.rgba, drawn.width, drawn.height, plan.dpi))
+    Ok(png_out::encode_rgba(&drawn.rgba, drawn.width, drawn.height, plan.dpi))
 }
 
 /// Straight RGBA8 rows as a plain PNG.
 pub fn encode_png(rgba: &[u8], width: u32, height: u32, dpi: Option<f64>) -> Vec<u8> {
-    png::encode_rgba(rgba, width, height, dpi)
+    png_out::encode_rgba(rgba, width, height, dpi)
 }

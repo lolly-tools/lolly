@@ -28,6 +28,21 @@ pub struct Input {
     pub draw_version: u32,
     pub output: Output,
     pub page: Page,
+    /// The pictures the page places, by their reference, as the engine embedded them.
+    #[serde(default)]
+    pub resources: Vec<Resource>,
+}
+
+/// One picture's bytes: `ref` is the operation's picture reference, `type` the type the
+/// host read (the crate reads the type from the bytes), `data` standard padded base64.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Resource {
+    #[serde(rename = "ref")]
+    pub reference: String,
+    #[serde(rename = "type")]
+    pub kind: String,
+    pub data: String,
 }
 
 /// The pixel size to draw at. The page is scaled to fill it; `dpi` only goes into

@@ -17,14 +17,15 @@ cargo +stable fmt --check && cargo +stable clippy --all-targets -- -D warnings
 ```json
 { "format": "lolly-render-input", "version": 1, "drawVersion": 0,
   "output": { "width": 640, "height": 400, "dpi": 96 },
-  "page": { "the DesignDrawPage": "as the engine's JSON.stringify writes it" } }
+  "page": { "the DesignDrawPage": "as the engine's JSON.stringify writes it" },
+  "resources": [{ "ref": "the picture reference", "type": "image/png", "data": "base64" }] }
 ```
 
 Every object is read strictly: an unknown field, kind or version refuses the page with a named reason (`REFUSAL_CODES` in `src/admit.rs`), never a guess. Every input is bounded (`MAX_*` in `src/admit.rs`) before any work that grows with the input. The words arrive as outlines; the crate never shapes text, and a run left as live text refuses the page.
 
 ## What this slice draws
 
-The frame's paint (square corners) and its clip, rectangles, rounded rectangles, ellipses, pen paths (fills, centred strokes, dashes), colour, linear and radial gradients, inside borders, outlined words with underlines and strikes, group opacity, turns and mirrors, and a row's clip polygon. Refused for now: pictures, shadows, layer blur, blend modes, per-side and centred or outside borders, pen strokes kept to one side, per-corner radii, rounded and elliptical frames (their outer edge differs from the browser tier's), and every finding the engine reports.
+The frame's paint (square corners) and its clip, rectangles, rounded rectangles, ellipses, pen paths (fills, centred strokes, dashes), colour, linear and radial gradients, inside borders, outlined words with underlines and strikes, group opacity, turns and mirrors, and a row's clip polygon. Pictures: embedded PNG, JPEG and WebP (`src/picture.rs`), placed as CSS places them and sampled bilinearly; a vector or GIF picture, a colour profile other than sRGB, PNG gamma or chromaticities of its own, sixteen bits a channel, CMYK, an Exif turn and animation are refused. Under an opaque border a rounded box's background is inset by half the border, as Chromium paints it. Refused for now: shadows, layer blur, blend modes, per-side and centred or outside borders, pen strokes kept to one side, per-corner radii, rounded and elliptical frames (their outer edge differs from the browser tier's), and every finding the engine reports.
 
 ## Same bytes on every machine
 

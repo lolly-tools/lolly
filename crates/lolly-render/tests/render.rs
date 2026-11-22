@@ -4,7 +4,8 @@
 //! The fixtures are `DesignDrawPage`s the engine compiled from the drawing fidelity
 //! pages and the GPU parity gradient page (tests/helpers/design-fidelity.ts and
 //! tests/helpers/design-webgpu-fixture.ts), with their words laid out and outlined
-//! by the Node host, in the lolly-render envelope.
+//! by the Node host, in the lolly-render envelope. `pictures` is the pictures fidelity
+//! page without its vector picture, its PNG pictures carried as resources.
 
 use serde_json::{json, Value};
 
@@ -14,6 +15,7 @@ const FIXTURES: &[(&str, &str)] = &[
     ("dashes", include_str!("fixtures/dashes.json")),
     ("gradients", include_str!("fixtures/gradients.json")),
     ("underlines", include_str!("fixtures/underlines.json")),
+    ("pictures", include_str!("fixtures/pictures.json")),
 ];
 
 /// FNV-1a over 64 bits: a pin on the exact bytes, not a security measure.
@@ -29,11 +31,12 @@ fn fnv1a(bytes: &[u8]) -> u64 {
 /// The PNG bytes each fixture draws to, measured on macOS arm64 and pinned. The build
 /// uses no SIMD and no platform float functions, so every machine must write these bytes.
 const PINNED: &[(&str, u64)] = &[
-    ("shapes", 0x15653122f5d6b916),
+    ("shapes", 0x35838686f63985f5),
     ("paths", 0x342dfc2adc7cc6f5),
     ("dashes", 0x82a9456c1bdea88e),
     ("gradients", 0x3c9c15d3a159975f),
-    ("underlines", 0x45c54b788519b295),
+    ("underlines", 0xe74acc9aa3eae242),
+    ("pictures", 0x7ed2e43123b884af),
 ];
 
 fn codes(result: Result<Vec<u8>, Vec<lolly_render::Refusal>>) -> Vec<&'static str> {
@@ -53,16 +56,19 @@ fn with(name: &str, change: impl FnOnce(&mut Value)) -> Vec<u8> {
 #[test]
 fn every_fixture_is_drawn_and_the_bytes_are_pinned() {
     let mut report = Vec::new();
+    let mut moved = Vec::new();
     for (name, source) in FIXTURES {
         let png = lolly_render::render_png(source.as_bytes()).unwrap_or_else(|r| panic!("{name} refused: {r:?}"));
         let again = lolly_render::render_png(source.as_bytes()).unwrap();
         assert_eq!(png, again, "{name}: the same input gave different bytes");
         let hash = fnv1a(&png);
         report.push(format!("(\"{name}\", 0x{hash:016x}),"));
-        let pinned = PINNED.iter().find(|(n, _)| n == name).unwrap().1;
-        assert_eq!(hash, pinned, "{name}: the PNG bytes moved; every machine must write the pinned bytes");
+        if PINNED.iter().find(|(n, _)| n == name).map(|p| p.1) != Some(hash) {
+            moved.push(*name);
+        }
     }
     eprintln!("{}", report.join("\n"));
+    assert!(moved.is_empty(), "the PNG bytes moved for {moved:?}; every machine must write the pinned bytes");
 }
 
 #[test]
@@ -114,7 +120,16 @@ fn what_this_slice_does_not_draw_is_refused_by_name() {
         "element": { "box": { "x": 20, "y": 20, "w": 120, "h": 70 }, "shape": { "kind": "rect", "radius": 0 } },
         "label": "Logo"
     });
-    assert_eq!(codes(lolly_render::render_png(&with("shapes", |v| v["page"]["ops"][0]["picture"] = picture))), ["picture"]);
+    assert_eq!(codes(lolly_render::render_png(&with("shapes", |v| v["page"]["ops"][0]["picture"] = picture))), ["picture-missing"]);
+    // A vector picture is resvg's to draw; the type is read from the bytes, not the declared type.
+    let svg = with("pictures", |v| {
+        for r in v["resources"].as_array_mut().unwrap() {
+            r["data"] = json!("PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnLz4=");
+        }
+    });
+    assert!(codes(lolly_render::render_png(&svg)).iter().all(|c| *c == "picture-vector"));
+    let unread = with("pictures", |v| v["resources"][0]["data"] = json!("not base64!"));
+    assert!(codes(lolly_render::render_png(&unread)).contains(&"picture-unreadable"));
     // A word the engine could not outline would have to be shaped here, so the page is refused.
     let live = with("underlines", |v| {
         let ops = v["page"]["ops"].as_array_mut().unwrap();

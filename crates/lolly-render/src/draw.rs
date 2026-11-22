@@ -10,20 +10,29 @@
 use crate::admit::{Draw, Ink, Item, Outline, Plan, Rgba, Step};
 use crate::geometry::push_outline;
 use tiny_skia::{
-    BlendMode, Color, FillRule, FilterQuality, GradientStop, LinearGradient, Mask, Paint, PathBuilder, Pixmap, PixmapPaint, Point,
-    RadialGradient, Rect, Shader, SpreadMode, Transform,
+    BlendMode, Color, ColorU8, FillRule, FilterQuality, GradientStop, LinearGradient, Mask, Paint, PathBuilder, Pattern, Pixmap,
+    PixmapPaint, Point, RadialGradient, Rect, Shader, SpreadMode, Transform,
 };
+
+/// How a picture is sampled when it is scaled (slice 2 evidence).
+pub const PICTURE_FILTER: FilterQuality = FilterQuality::Bilinear;
 
 fn color(c: Rgba) -> Option<Color> {
     Color::from_rgba(c.0, c.1, c.2, c.3)
 }
 
-fn shader(ink: &Ink) -> Option<Shader<'static>> {
+fn shader<'a>(ink: &Ink, pictures: &'a [Pixmap]) -> Option<Shader<'a>> {
     let stops = |s: &[crate::admit::GradientStop]| -> Option<Vec<GradientStop>> {
         s.iter().map(|g| Some(GradientStop::new(g.offset, color(g.color)?))).collect()
     };
     match ink {
         Ink::Solid(c) => Some(Shader::SolidColor(color(*c)?)),
+        Ink::Picture { index, rect } => {
+            let p = pictures.get(*index)?;
+            let (iw, ih) = (p.width() as f64, p.height() as f64);
+            let place = Transform::from_row((rect[2] / iw) as f32, 0.0, 0.0, (rect[3] / ih) as f32, rect[0] as f32, rect[1] as f32);
+            Some(Pattern::new(p.as_ref(), SpreadMode::Pad, PICTURE_FILTER, 1.0, place))
+        }
         Ink::Linear { x1, y1, x2, y2, stops: s } => LinearGradient::new(
             Point::from_xy(*x1 as f32, *y1 as f32),
             Point::from_xy(*x2 as f32, *y2 as f32),
@@ -71,8 +80,8 @@ fn outline_mask(o: &Outline, transform: Transform, width: u32, height: u32, res:
     }
 }
 
-fn step(target: &mut Pixmap, s: &Step, transform: Transform, mask: Option<&Mask>) {
-    let Some(shader) = shader(&s.ink) else { return };
+fn step(target: &mut Pixmap, s: &Step, transform: Transform, mask: Option<&Mask>, pictures: &[Pixmap]) {
+    let Some(shader) = shader(&s.ink, pictures) else { return };
     let mut paint = Paint { shader, anti_alias: true, blend_mode: BlendMode::SourceOver, ..Paint::default() };
     match &s.draw {
         Draw::Fill { path, rule } => target.fill_path(path, &paint, *rule, transform, mask),
@@ -97,8 +106,31 @@ fn step(target: &mut Pixmap, s: &Step, transform: Transform, mask: Option<&Mask>
     }
 }
 
+/// A step's own clips (a picture's rounded element or box) inside `base`, or None when it has none.
+fn clipped(s: &Step, base: Option<&Mask>, posed: Transform, w: u32, h: u32, res: f64) -> Option<Mask> {
+    let mut mask: Option<Mask> = None;
+    for o in &s.clips {
+        mask = outline_mask(o, posed, w, h, res, mask.as_ref().or(base));
+    }
+    mask
+}
+
+/// Straight RGBA8 pictures as tiny-skia's premultiplied pixmaps.
+fn pixmaps(plan: &Plan) -> Option<Vec<Pixmap>> {
+    plan.pictures
+        .iter()
+        .map(|d| {
+            let mut p = Pixmap::new(d.width, d.height)?;
+            for (px, c) in p.pixels_mut().iter_mut().zip(d.rgba.chunks_exact(4)) {
+                *px = ColorU8::from_rgba(c[0], c[1], c[2], c[3]).premultiply();
+            }
+            Some(p)
+        })
+        .collect()
+}
+
 /// Draw one item onto `target`, inside `outer` (the frame's clip) when given.
-fn item(target: &mut Pixmap, layer: &mut Option<Pixmap>, plan: &Plan, it: &Item, outer: Option<&Mask>) {
+fn item(target: &mut Pixmap, layer: &mut Option<Pixmap>, plan: &Plan, pictures: &[Pixmap], it: &Item, outer: Option<&Mask>) {
     if it.opacity.is_nan() || it.opacity <= 0.0 || it.steps.is_empty() {
         return;
     }
@@ -139,15 +171,18 @@ fn item(target: &mut Pixmap, layer: &mut Option<Pixmap>, plan: &Plan, it: &Item,
             },
         };
         for s in &it.steps {
-            step(canvas, s, posed, if s.words { words.as_ref() } else { None });
+            let base = if s.words { words.as_ref() } else { None };
+            let own = clipped(s, base, posed, w, h, res);
+            step(canvas, s, posed, if s.clips.is_empty() { base } else { own.as_ref() }, pictures);
         }
         let paint = PixmapPaint { opacity: it.opacity, blend_mode: BlendMode::SourceOver, quality: FilterQuality::Nearest };
         target.draw_pixmap(0, 0, canvas.as_ref(), &paint, Transform::identity(), item_mask);
     } else {
         let words = it.words_clip.as_ref().and_then(|o| outline_mask(o, posed, w, h, res, item_mask));
         for s in &it.steps {
-            let mask = if s.words && it.words_clip.is_some() { words.as_ref() } else { item_mask };
-            step(target, s, posed, mask);
+            let base = if s.words && it.words_clip.is_some() { words.as_ref() } else { item_mask };
+            let own = clipped(s, base, posed, w, h, res);
+            step(target, s, posed, if s.clips.is_empty() { base } else { own.as_ref() }, pictures);
         }
     }
 }
@@ -156,8 +191,9 @@ fn item(target: &mut Pixmap, layer: &mut Option<Pixmap>, plan: &Plan, it: &Item,
 pub fn draw(plan: &Plan) -> Option<Pixmap> {
     let mut target = Pixmap::new(plan.pixel_width, plan.pixel_height)?;
     let mut layer: Option<Pixmap> = None;
+    let pictures = pixmaps(plan)?;
     match &plan.frame {
-        Some(frame) => item(&mut target, &mut layer, plan, frame, None),
+        Some(frame) => item(&mut target, &mut layer, plan, &pictures, frame, None),
         None => target.fill(color(plan.ground)?),
     }
     let res = plan.scale.0.max(plan.scale.1);
@@ -168,7 +204,7 @@ pub fn draw(plan: &Plan) -> Option<Pixmap> {
         None => None,
     };
     for it in &plan.items {
-        item(&mut target, &mut layer, plan, it, page_mask.as_ref());
+        item(&mut target, &mut layer, plan, &pictures, it, page_mask.as_ref());
     }
     Some(target)
 }

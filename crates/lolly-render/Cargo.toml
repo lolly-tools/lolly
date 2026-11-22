@@ -21,6 +21,12 @@ libm = "=0.2.16"
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = { version = "=1.0.154", features = ["float_roundtrip"] }
 miniz_oxide = "=0.8.9"
+# Picture decoders, pure Rust. zune-jpeg without its x86 and neon features runs its scalar
+# IDCT, upsampling and colour conversion on every machine.
+png = { version = "=0.18.1", default-features = false }
+zune-jpeg = { version = "=0.5.15", default-features = false, features = ["std"] }
+zune-core = { version = "=0.5.3", default-features = false, features = ["std"] }
+image-webp = { version = "=0.2.4", default-features = false }
 
 [profile.release]
 opt-level = 3

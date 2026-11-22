@@ -11,6 +11,8 @@ pub use crate::geometry::Outline;
 use crate::geometry::{box_inside, push_outline};
 use crate::input::{self, Area, Input, Op, Paint, Stroke, DRAW_VERSION, INPUT_FORMAT, INPUT_VERSION};
 use crate::path_data::{append_path_data, PathDataError};
+use crate::picture::{base64, decode, Decoded, PictureRefusal};
+use std::collections::HashMap;
 use tiny_skia::{FillRule, LineCap, LineJoin, Path, PathBuilder, StrokeDash};
 
 /// The largest input document read, in bytes.
@@ -94,6 +96,15 @@ pub const REFUSAL_CODES: &[&str] = &[
     "outline",
     "decoration",
     "frame-edge",
+    "picture-missing",
+    "picture-type",
+    "picture-vector",
+    "picture-unreadable",
+    "picture-size",
+    "picture-depth",
+    "picture-colour",
+    "picture-orientation",
+    "picture-motion",
 ];
 
 /// One reason a page is not drawn here.
@@ -119,6 +130,11 @@ pub struct GradientStop {
 #[derive(Debug, Clone)]
 pub enum Ink {
     Solid(Rgba),
+    /// A decoded picture (`Plan::pictures[index]`) laid on `rect` (x, y, w, h).
+    Picture {
+        index: usize,
+        rect: [f64; 4],
+    },
     Linear {
         x1: f64,
         y1: f64,
@@ -162,6 +178,9 @@ pub struct Step {
     pub ink: Ink,
     /// Clipped to the operation's text clip (`Item::words_clip`).
     pub words: bool,
+    /// Further clips, each an outline in the operation's own coordinates (a picture's
+    /// element and box where they are not plain rectangles).
+    pub clips: Vec<Outline>,
 }
 
 #[derive(Debug, Clone)]
@@ -194,17 +213,23 @@ pub struct Plan {
     pub frame: Option<Item>,
     pub page_clip: Option<Outline>,
     pub items: Vec<Item>,
+    /// The decoded pictures the steps paint with.
+    pub pictures: Vec<Decoded>,
 }
 
-struct Admit {
+struct Admit<'a> {
     refusals: Vec<Refusal>,
     dropped: usize,
     segments: usize,
     path_bytes: usize,
     res: f64,
+    resources: HashMap<&'a str, &'a input::Resource>,
+    decoded: HashMap<&'a str, Result<usize, PictureRefusal>>,
+    pictures: Vec<Decoded>,
+    picture_pixels: u64,
 }
 
-impl Admit {
+impl Admit<'_> {
     fn refuse(&mut self, code: &'static str, id: &str, detail: impl Into<String>) {
         debug_assert!(REFUSAL_CODES.contains(&code), "unlisted refusal code {code}");
         if self.refusals.len() < MAX_REFUSALS {
@@ -637,6 +662,128 @@ fn contours_path(a: &mut Admit, id: &str, contours: &[input::Contour], close_all
     Some(b.finish())
 }
 
+/// Where CSS draws a picture inside its element: the engine's `pictureRect`
+/// (engine/src/design-draw.ts) step for step, with JavaScript's `Math.round`.
+fn picture_rect(p: &input::Picture, iw: f64, ih: f64) -> [f64; 4] {
+    let js_round = |v: f64| libm::floor(v + 0.5);
+    let a = p.area;
+    let contain = (a.w / iw).min(a.h / ih);
+    let scale = match p.fit.as_str() {
+        "cover" => (a.w / iw).max(a.h / ih),
+        "none" => 1.0,
+        "scale-down" => contain.min(1.0),
+        _ => contain,
+    };
+    let (w, h) = if p.fit == "fill" { (a.w, a.h) } else { (iw * scale, ih * scale) };
+    let x = a.x + ((a.w - w) * p.x) / 100.0;
+    let y = a.y + ((a.h - h) * p.y) / 100.0;
+    let (left, top, right, bottom) = (js_round(x), js_round(y), js_round(x + w), js_round(y + h));
+    let ox = a.x + (a.w * p.x) / 100.0;
+    let oy = a.y + (a.h * p.y) / 100.0;
+    let z = p.zoom;
+    [ox + (left - ox) * z, oy + (top - oy) * z, (right - left) * z, (bottom - top) * z]
+}
+
+/// The most picture pixels one page decodes.
+pub const MAX_PAGE_PICTURE_PIXELS: u64 = 64 * 1024 * 1024;
+
+/// A picture as the SVG writer draws it: laid out by `picture_rect`, clipped to its element
+/// (unless the box's own clip lies inside a plain square element) and then to the box. A
+/// plain rectangular clip narrows the drawn rectangle; a rounded or elliptical one is a mask.
+fn picture_steps(a: &mut Admit, id: &str, p: &input::Picture, steps: &mut Vec<Step>) {
+    if !matches!(p.fit.as_str(), "contain" | "cover" | "fill" | "none" | "scale-down") {
+        a.refuse("picture", id, format!("a picture fit \"{}\" Design does not write", truncate(&p.fit)));
+        return;
+    }
+    let pa = p.area;
+    let placed = [p.x, p.y].iter().all(|v| v.is_finite() && (0.0..=100.0).contains(v))
+        && p.zoom.is_finite()
+        && p.zoom > 0.0
+        && p.zoom <= 100.0
+        && [pa.x, pa.y, pa.w, pa.h].iter().all(|v| finite(*v))
+        && pa.w >= 0.0
+        && pa.h >= 0.0;
+    if !placed {
+        a.refuse("picture", id, "a picture placed outside the page or zoomed beyond what Design writes");
+        return;
+    }
+    let element = area_of(a, id, &p.element, "the picture's element");
+    let clip = match &p.clip {
+        Some(c) => match area_of(a, id, c, "the picture's clip") {
+            Some(o) => Some(o),
+            None => return,
+        },
+        None => None,
+    };
+    let Some(element) = element else { return };
+    let Some(resource) = a.resources.get(p.reference.as_str()).copied() else {
+        a.refuse("picture-missing", id, "a picture whose bytes the input does not carry");
+        return;
+    };
+    let index = match a.decoded.get(p.reference.as_str()) {
+        Some(done) => done.clone(),
+        None => {
+            let result = match base64(&resource.data) {
+                None => Err(PictureRefusal { code: "picture-unreadable", detail: "picture data that is not standard base64".into() }),
+                Some(bytes) => decode(&bytes).and_then(|d| {
+                    a.picture_pixels += d.width as u64 * d.height as u64;
+                    if a.picture_pixels > MAX_PAGE_PICTURE_PIXELS {
+                        return Err(PictureRefusal {
+                            code: "picture-size",
+                            detail: format!("more than {MAX_PAGE_PICTURE_PIXELS} picture pixels on the page"),
+                        });
+                    }
+                    a.pictures.push(d);
+                    Ok(a.pictures.len() - 1)
+                }),
+            };
+            a.decoded.insert(resource.reference.as_str(), result.clone());
+            result
+        }
+    };
+    let index = match index {
+        Ok(i) => i,
+        Err(r) => {
+            a.refuse(r.code, id, r.detail);
+            return;
+        }
+    };
+    let (iw, ih) = (a.pictures[index].width as f64, a.pictures[index].height as f64);
+    if let Some(n) = &p.natural {
+        if n.width != iw || n.height != ih {
+            a.refuse("picture-size", id, format!("a picture of {iw} x {ih} that the engine placed as {} x {}", n.width, n.height));
+            return;
+        }
+    }
+    let rect = picture_rect(p, iw, ih);
+    let mut visible = [rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]];
+    let square = !element.ellipse && element.radius == 0.0;
+    let mut outlines = Vec::new();
+    if !(clip.is_some() && square && p.zoom >= 1.0) {
+        outlines.push(element);
+    }
+    outlines.extend(clip);
+    let mut clips = Vec::new();
+    for o in outlines {
+        if !o.ellipse && o.radius == 0.0 {
+            visible = [visible[0].max(o.x), visible[1].max(o.y), visible[2].min(o.x + o.w), visible[3].min(o.y + o.h)];
+        } else {
+            clips.push(o);
+        }
+    }
+    if visible[2] <= visible[0] || visible[3] <= visible[1] {
+        return;
+    }
+    if a.spend(8, id) {
+        steps.push(Step {
+            draw: Draw::Rect([visible[0], visible[1], visible[2] - visible[0], visible[3] - visible[1]]),
+            ink: Ink::Picture { index, rect },
+            words: false,
+            clips,
+        });
+    }
+}
+
 /// One operation as an item, or None once the operation is refused.
 fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
     let id = op.id.as_str();
@@ -710,9 +857,6 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
     if op.blur.is_some_and(|v| v != 0.0) {
         a.refuse("blur", id, "a layer blur, which this slice does not draw");
     }
-    if op.picture.is_some() {
-        a.refuse("picture", id, "a picture, which this slice does not draw");
-    }
     let (Some(shape), Some(fills)) = (&op.shape, &op.fills) else {
         a.refuse("shape", id, "a shape operation without its shape or fills");
         return None;
@@ -751,7 +895,7 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
         let rule = if even_odd { FillRule::EvenOdd } else { FillRule::Winding };
         if let Some(c) = fill_ink {
             if let Some(path) = contours_path(a, id, contours, true)? {
-                steps.push(Step { draw: Draw::Fill { path, rule }, ink: Ink::Solid(c), words: false });
+                steps.push(Step { draw: Draw::Fill { path, rule }, ink: Ink::Solid(c), words: false, clips: Vec::new() });
             }
         }
         if let Some(s) = &op.stroke {
@@ -801,9 +945,13 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
                         draw: Draw::Stroke { path, width: s.width as f32, cap, join, dash: dash.map(|(_, d)| d) },
                         ink: Ink::Solid(colour),
                         words: false,
+                        clips: Vec::new(),
                     });
                 }
             }
+        }
+        if let Some(p) = &op.picture {
+            picture_steps(a, id, p, &mut steps);
         }
     } else {
         let o = outline_of(a, id, b, shape, "the box")?;
@@ -852,20 +1000,28 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
             Some((_, w)) => padding(&o, w),
             None => o,
         };
-        let outline = outline_path(&o, res);
+        // Chromium's background bleed avoidance: under an opaque border on a rounded or
+        // elliptical box, the background is painted inset by half the border's width, so the
+        // outer edge is anti-aliased once (by the border) rather than twice (background, then
+        // border). Blink's `BackgroundRoundedRectAdjustedForBleedAvoidance`.
+        let painted = match border {
+            Some((colour, w)) if colour.3 >= 1.0 && (o.ellipse || o.radius > 0.0) => padding(&o, w / 2.0),
+            _ => o,
+        };
+        let outline = outline_path(&painted, res);
         if !a.spend(16, id) {
             return None;
         }
         for p in read {
             let Some(ink) = gradient_ink(a, id, p, &tile) else { continue };
-            let draw = if !o.ellipse && o.radius == 0.0 {
-                Draw::Rect([o.x, o.y, o.w, o.h])
+            let draw = if !painted.ellipse && painted.radius == 0.0 {
+                Draw::Rect([painted.x, painted.y, painted.w, painted.h])
             } else if let Some(path) = &outline {
                 Draw::Fill { path: path.clone(), rule: FillRule::Winding }
             } else {
                 continue;
             };
-            steps.push(Step { draw, ink, words: false });
+            steps.push(Step { draw, ink, words: false, clips: Vec::new() });
         }
         if let Some((colour, _)) = border {
             // A CSS border: the ring between the box and its padding box.
@@ -875,8 +1031,17 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
                 push_outline(&mut pb, &tile, res);
             }
             if let Some(path) = pb.finish() {
-                steps.push(Step { draw: Draw::Fill { path, rule: FillRule::EvenOdd }, ink: Ink::Solid(colour), words: false });
+                steps.push(Step {
+                    draw: Draw::Fill { path, rule: FillRule::EvenOdd },
+                    ink: Ink::Solid(colour),
+                    words: false,
+                    clips: Vec::new(),
+                });
             }
+        }
+        // CSS paints a box's picture over its background and border, under its words.
+        if let Some(p) = &op.picture {
+            picture_steps(a, id, p, &mut steps);
         }
         if let Some(words) = &op.words {
             if is_frame {
@@ -949,7 +1114,7 @@ fn words_steps(a: &mut Admit, id: &str, b: &input::DrawBox, words: &input::Words
             if !a.spend(5, id) {
                 return false;
             }
-            steps.push(Step { draw: Draw::Rect([x, y, w, h]), ink: Ink::Solid(colour), words: true });
+            steps.push(Step { draw: Draw::Rect([x, y, w, h]), ink: Ink::Solid(colour), words: true, clips: Vec::new() });
             bounds.push([x, y, x + w, y + h]);
         }
         true
@@ -1046,7 +1211,12 @@ fn words_steps(a: &mut Admit, id: &str, b: &input::DrawBox, words: &input::Words
                 if let Some(path) = pb.finish() {
                     let r = path.bounds();
                     bounds.push([r.left() as f64, r.top() as f64, r.right() as f64, r.bottom() as f64]);
-                    steps.push(Step { draw: Draw::Fill { path, rule: FillRule::Winding }, ink: Ink::Solid(run_ink), words: true });
+                    steps.push(Step {
+                        draw: Draw::Fill { path, rule: FillRule::Winding },
+                        ink: Ink::Solid(run_ink),
+                        words: true,
+                        clips: Vec::new(),
+                    });
                 }
             }
             if let Some(s) = words.strikes.as_ref().and_then(|s| s[li][ri].as_ref()) {
@@ -1084,7 +1254,27 @@ pub fn admit_json(bytes: &[u8]) -> Result<Plan, Vec<Refusal>> {
 
 /// Admit a read input document.
 pub fn admit(input: &Input) -> Result<Plan, Vec<Refusal>> {
-    let mut a = Admit { refusals: Vec::new(), dropped: 0, segments: 0, path_bytes: 0, res: 1.0 };
+    let mut a = Admit {
+        refusals: Vec::new(),
+        dropped: 0,
+        segments: 0,
+        path_bytes: 0,
+        res: 1.0,
+        resources: HashMap::new(),
+        decoded: HashMap::new(),
+        pictures: Vec::new(),
+        picture_pixels: 0,
+    };
+    if input.resources.len() > MAX_OPS {
+        a.refuse("picture", "", format!("{} pictures (at most {MAX_OPS})", input.resources.len()));
+        return Err(a.refusals);
+    }
+    for r in &input.resources {
+        if a.resources.insert(r.reference.as_str(), r).is_some() {
+            a.refuse("picture", "", "two pictures with one reference");
+            return Err(a.refusals);
+        }
+    }
     if input.format != INPUT_FORMAT {
         a.refuse("input-format", "", format!("the format \"{}\", not \"{INPUT_FORMAT}\"", truncate(&input.format)));
     }
@@ -1156,11 +1346,13 @@ pub fn admit(input: &Input) -> Result<Plan, Vec<Refusal>> {
         o
     });
     let frame = page.frame.as_ref().and_then(|f| {
-        // Measured on the two board fidelity pages without their pictures: along a rounded
-        // frame's outer edge, 252 and 342 pixels differ from the browser tier by more than 24
-        // levels, where the anti-aliasing differs and the browser leaves a faint shadow outside
-        // the corner (M3a saw the same with resvg). A row whose region reaches that corner came
-        // out at 0.68% (band 0.5%). Square frames have no such edge.
+        // Measured on the two board fidelity pages without their pictures: a row whose region
+        // reaches the frame's rounded corner differs over 24 levels on 0.68% of it (0.79% with
+        // the background inset under the border; band 0.5%), every such pixel on the frame's
+        // outer arc. Against the exact covered area the browser over-covers that edge (mean
+        // +0.094 and +0.055 alpha) and leaves a faint shadow outside the corner the document
+        // does not have, so the browser is not the more faithful side; but this crate cannot
+        // match it inside the bands, so the frame is refused. Square frames have no such edge.
         if f.shape.as_ref().is_some_and(|s| s.kind == "ellipse" || s.radius.is_some_and(|r| r > 0.0)) {
             a.refuse(
                 "frame-edge",
@@ -1199,5 +1391,6 @@ pub fn admit(input: &Input) -> Result<Plan, Vec<Refusal>> {
         frame,
         page_clip,
         items,
+        pictures: a.pictures,
     })
 }

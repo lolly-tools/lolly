@@ -40,10 +40,10 @@ test('the crate\'s fixtures are lolly-render inputs of the engine\'s drawing ver
 });
 
 /** One fidelity page compiled by the engine, as the operations route compiles it, in the crate's envelope. */
-async function input(name: string): Promise<Buffer> {
+async function input(name: string, keep: (row: Record<string, unknown>) => boolean = () => true): Promise<Buffer> {
   const page = fidelityPages().find((p) => p.name === name)!;
   const pictures = fidelityPictures();
-  const rows = page.rows.map((row) => (typeof row.image === 'string' && pictures[row.image] ? { ...row, image: pictures[row.image]!.url } : row));
+  const rows = page.rows.filter(keep).map((row) => (typeof row.image === 'string' && pictures[row.image] ? { ...row, image: pictures[row.image]!.url } : row));
   const text = createNodeTextAPI({ repoRoot: ROOT });
   const drawing = await designPageDrawing({ boxes: rows }, page.name, {
     shaper: createNodeTextShaper({ repoRoot: ROOT }),
@@ -51,14 +51,18 @@ async function input(name: string): Promise<Buffer> {
     strikeMetrics: (url, variations) => nodeStrikeMetrics(url, variations, ROOT),
     picture: async (ref) => (ref.startsWith('data:') ? { bytes: new Uint8Array(Buffer.from(ref.slice(ref.indexOf(',') + 1), 'base64')) } : null),
   }, { dpi: 96 });
-  return Buffer.from(JSON.stringify({ format: 'lolly-render-input', version: 1, drawVersion: DESIGN_DRAW_VERSION, output: { width: drawing.frame.width, height: drawing.frame.height, dpi: 96 }, page: drawing.page }));
+  const resources = [...drawing.pictures].map(([ref, p]) => ({ ref, type: p.mime, data: Buffer.from(p.bytes).toString('base64') }));
+  return Buffer.from(JSON.stringify({ format: 'lolly-render-input', version: 1, drawVersion: DESIGN_DRAW_VERSION, output: { width: drawing.frame.width, height: drawing.frame.height, dpi: 96 }, page: drawing.page, resources }));
 }
 
 const run = (bytes: Buffer) => spawnSync(BIN!, ['-', '-'], { input: bytes, maxBuffer: 64 << 20 });
 
 test('lolly-render draws engine pages, the same bytes twice', { skip: BIN ? false : NOT_BUILT }, async () => {
-  for (const name of ['shapes', 'paths', 'dashes', 'text', 'strikes', 'underlines']) {
-    const bytes = await input(name);
+  const pages: Array<[string, Buffer]> = [];
+  for (const name of ['shapes', 'paths', 'dashes', 'text', 'strikes', 'underlines']) pages.push([name, await input(name)]);
+  // The pictures page with its PNG pictures and without its vector one.
+  pages.push(['pictures', await input('pictures', (row) => row.id !== 'vector')]);
+  for (const [name, bytes] of pages) {
     const first = run(bytes), second = run(bytes);
     assert.equal(first.status, 0, `${name}: ${first.stdout?.toString()}`);
     assert.ok(Buffer.compare(first.stdout, second.stdout) === 0, `${name}: the same input gave different bytes`);
@@ -67,9 +71,10 @@ test('lolly-render draws engine pages, the same bytes twice', { skip: BIN ? fals
 });
 
 test('lolly-render refuses a page it does not draw, by name, and writes nothing', { skip: BIN ? false : NOT_BUILT }, async () => {
+  // A vector picture is resvg's to draw, so the whole page is refused.
   const out = run(await input('pictures'));
   assert.equal(out.status, 3);
   const report = JSON.parse(out.stdout.toString());
   assert.equal(report.drawn, false);
-  assert.ok(report.refusals.some((r: { code: string }) => r.code === 'picture'), JSON.stringify(report.refusals));
+  assert.ok(report.refusals.some((r: { code: string }) => r.code === 'picture-vector'), JSON.stringify(report.refusals));
 });

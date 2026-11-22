@@ -22,7 +22,7 @@ const CRC_TABLE: [u32; 256] = {
     table
 };
 
-fn crc32(parts: &[&[u8]]) -> u32 {
+pub(crate) fn crc32(parts: &[&[u8]]) -> u32 {
     let mut c = 0xffff_ffffu32;
     for part in parts {
         for &b in *part {
