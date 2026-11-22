@@ -2,84 +2,91 @@
 
 <a id="batch-and-multi-edit"></a>
 
-Gdy często tworzysz ten sam rodzaj pliku, pojawiają się dwa zadania. Czasem potrzebujesz wielu wersji jednego projektu: karty w kilkunastu językach albo każdego rozmiaru banera. Czasem masz kilka różnych zapisanych projektów i chcesz, by jedna zmiana dotarła do wszystkich, na przykład nowa data lub nowy nagłówek.
+**Lolly Batch** tworzy wiele wersji jednego projektu, na przykład kartę w kilkunastu językach lub baner w każdym rozmiarze. **Lolly Multi-edit** wprowadza jedną zmianę, na przykład nową datę lub nagłówek, w kilku różnych zapisanych projektach.
 
-**Lolly Batch** wykonuje pierwsze zadanie, a **Lolly Multi-edit** drugie. Oba działają na Twoim urządzeniu i eksportują tą samą ścieżką renderowania co same narzędzia.
+Oba działają na Twoim urządzeniu i eksportują przez tę samą ścieżkę renderowania co narzędzia.
 
 ::: cols
 ## Batch
 
-- Jeden szablon, wiele wierszy. Każdy wiersz to jeden zestaw danych wejściowych i tworzy jeden plik.
-- Wypełniaj wiersze, wpisując, wklejając z arkusza kalkulacyjnego lub importując CSV.
-- Bez limitu wierszy; 50 na stronie.
-- Otwiera się z **Lolly Batch** w nagłówku Projects (`#/batch`).
+- Jeden szablon, wiele wierszy. Każdy wiersz to jeden zestaw danych wejściowych i jeden plik wynikowy.
+- Wypełnij wiersze, wpisując dane, wklejając je z arkusza kalkulacyjnego lub importując CSV.
+- Bez limitu wierszy; na stronie widać 50.
+- Otwiera się przez **Lolly Batch** w nagłówku Projects (`#/batch`).
 
 <a id="multi-edit"></a>
 ## Lolly Multi-edit
 
-- Od dwóch do ośmiu różnych zapisanych projektów, obok siebie jako żywe karty.
-- Jeden pasek boczny edytuje wspólne dane wejściowe, a potem własne każdej karty.
-- Każdy projekt zapisuje się z powrotem tam, skąd pochodzi.
-- Otwiera się z **Edit together** na pasku zaznaczania Projects.
+- Od dwóch do ośmiu różnych zapisanych projektów obok siebie jako karty z podglądem na żywo.
+- Jeden panel boczny pozwala edytować wspólne dane wejściowe, a potem dane każdej karty.
+- Każdy projekt zapisuje się z powrotem w swoim miejscu.
+- Otwiera się przez **Edit together** na pasku zaznaczenia w Projects.
 :::
 
-## Twórz wiele wersji jednego projektu
+<!--i:eti-table-->
+## Tworzenie wielu wersji jednego projektu
 
-Otwórz widok **Projects** i naciśnij **Batch** w jego nagłówku. Siatka zaczyna się od jednego wiersza: wybierz w nim szablon, a potem zduplikuj wiersz lub wklej dane z arkusza kalkulacyjnego. Otwarty z wnętrza folderu Batch zwraca Cię do tego folderu.
+Otwórz widok **Projects** i naciśnij **Batch** w jego nagłówku. Siatka zaczyna się od jednego wiersza. Wybierz w nim szablon, a potem powiel wiersz lub wklej dane z arkusza kalkulacyjnego. Batch otwarte z folderu pozwala wrócić do tego folderu.
 
-![Batch na nowej siatce: nazwa pliku i narzędzia wierszy u góry, a lista szablonów pierwszego wiersza otwarta na narzędziach do wyboru](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
+![Batch z nową siatką: nazwa pliku i narzędzia wierszy u góry oraz otwarta lista szablonów pierwszego wiersza z narzędziami do wyboru](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-**Wypełnij wiersze.** Wpisz w komórkę lub wklej blok prosto z Excela, Arkuszy Google albo innego arkusza kalkulacyjnego. **Import CSV** dodaje wiersze lub zastępuje batch. Gdy wklejasz do komórki zawierającej ustawienia eksportu, Lolly pyta, które dane wejściowe wypełnia każda wklejona kolumna. **Export CSV** zapisuje siatkę z powrotem. Otwórz **Columns** pod siatką, aby pokazać więcej danych wejściowych albo szerokość, wysokość, jednostkę i DPI dla wiersza.
+**Wypełnij wiersze.** Wpisz dane w komórkę lub wklej blok z Excel, Google Sheets albo innego arkusza kalkulacyjnego. **Import CSV** dodaje wiersze lub zastępuje całą partię. Gdy wklejasz do komórki zawierającej ustawienia eksportu, Lolly pyta, które dane wejściowe ma wypełnić każda wklejana kolumna. **Export CSV** zapisuje siatkę do pliku. Otwórz **Columns** pod siatką, aby pokazać więcej danych wejściowych lub szerokość, wysokość, jednostkę i DPI każdego wiersza. Okienko **Fill** kolumny liczbowej, tekstowej lub wyboru ma też sekcję **Design token**, która wiąże jeden token z wierszami tej kolumny ([Powiązanie wielu dokumentów naraz](/info/token-workflows.html#link-many-documents-at-once)).
 
-**Ustaw wynik.** Pasek narzędzi ustawia nazwę pliku zip, **Default format**, jednostki i DPI dla każdego wiersza. Menu formatu to pogrupowana lista z panelu eksportu, pokazująca formaty oferowane przez katalog i obsługiwane przez przeglądarkę. Wiersz z własnym formatem, rozmiarem lub nazwą pliku zachowuje własne ustawienie.
+**Ustaw wynik.** Pasek narzędzi ustala nazwę pliku zip, **Default format**, jednostki i DPI dla wszystkich wierszy. Menu formatu to pogrupowana lista z panelu eksportu, obejmująca formaty oferowane przez katalog i obsługiwane przez Twoją przeglądarkę. Wiersz z własnym formatem, rozmiarem lub nazwą pliku zachowuje swoje ustawienie.
 
-**Renderuj.** **Render all** eksportuje każdy wiersz do jednego `.zip`. Najpierw zaznacz wiersze, a **Render selected**, **Export selected CSV** i **Print selected rows** działają tylko na nich; wyczyść zaznaczenie, aby znów pracować na całym batchu. **Print sheet** układa wiersze na arkuszu do druku. **Batch activity** zgłasza każdy import i renderowanie, a zwija się, by dać tabeli więcej miejsca.
+**Renderuj.** **Render all** eksportuje wszystkie wiersze do jednego pliku `.zip`. Gdy zaznaczone są wiersze, **Render selected**, **Export selected CSV** i **Print selected rows** działają tylko na nich. Wyczyść zaznaczenie, aby znów pracować na całej partii. **Print sheet** układa wiersze na arkuszu do wydruku. **Batch activity** raportuje każdy import i renderowanie, a panel można zwinąć.
 
-**Zachowaj batch.** **Sessions** zapisuje całą siatkę jako nazwaną sesję batch, którą można później otworzyć z Projects. Sessions zawsze zapisuje każdy wiersz, niezależnie od zaznaczenia. **Folders…** w tym samym menu otwiera cały folder Projects jako wiersze, jeden na zapisaną sesję, a nazwa każdego pliku niesie ścieżkę folderu.
+**Zachowaj partię.** **Sessions** zapisuje wszystkie wiersze siatki jako nazwaną sesję partii, niezależnie od zaznaczenia. Sesję można ponownie otworzyć z Projects. **Folders…** w tym samym menu otwiera folder Projects jako wiersze, po jednym na zapisaną sesję; każda nazwa pliku zawiera ścieżkę folderu.
 
 ::: details Zaznaczanie wierszy i komórek
-Zaznaczaj wiersze ich polami wyboru albo kliknij z Shift pole wyboru, aby zaznaczyć zakres. Pole wyboru w nagłówku zaznacza bieżącą stronę, a **Select all *N* rows** obejmuje też wiersze na innych stronach. Zaznaczenia zostają przy przechodzeniu między stronami. **Edit input**, **Duplicate** i **Remove** działają na zaznaczonych wierszach, a **Undo remove** przywraca wiersze usunięte jako ostatnie. Z komórki z fokusem Shift+Space zaznacza ten wiersz, a Escape czyści zaznaczenie.
+Zaznaczaj wiersze ich polami wyboru lub kliknij pole z klawiszem Shift, aby zaznaczyć zakres. Pole w nagłówku zaznacza bieżącą stronę, a **Select all *N* rows** obejmuje też wiersze na pozostałych stronach. Zaznaczenia pozostają, gdy przechodzisz między stronami. **Edit input**, **Duplicate** i **Remove** działają na zaznaczonych wierszach, a **Undo remove** przywraca ostatnio usunięte. Gdy fokus jest na komórce, Shift+Space zaznacza jej wiersz, a Escape czyści zaznaczenie.
 
-Przeciągnij przez komórki, kliknij komórkę z Shift lub użyj Shift+strzałek, aby zaznaczyć prostokąt. **Copy cells** albo Ctrl+C / Command+C kopiuje wartości dla arkusza kalkulacyjnego. Ctrl+A / Command+A z komórki z fokusem zaznacza każdą widoczną kolumnę na każdej stronie; z pola wyboru wiersza ten sam skrót zaznacza każdy wiersz. Zaznaczenie komórek zostawia zaznaczone wiersze zaznaczonymi. Kliknij komórkę dwukrotnie lub naciśnij Enter, aby edytować jej tekst. Wklej prostokąt ze schowka albo wklej jedną wartość, aby wypełnić każdą zaznaczoną komórkę; puste komórki i tekst wielowierszowy zachowują swoje pozycje.
+Przeciągnij po komórkach, kliknij komórkę z klawiszem Shift lub użyj Shift i klawiszy strzałek, aby zaznaczyć prostokąt. **Copy cells** lub Ctrl+C / Command+C kopiuje wartości do arkusza kalkulacyjnego. Ctrl+A / Command+A przy fokusie na komórce zaznacza każdą widoczną kolumnę na każdej stronie; przy fokusie na polu wyboru wiersza ten sam skrót zaznacza wszystkie wiersze. Zaznaczanie komórek nie odznacza wierszy. Kliknij komórkę dwukrotnie lub naciśnij Enter, aby edytować jej tekst. Wklej prostokątny zakres ze schowka lub jedną wartość, aby wypełnić wszystkie zaznaczone komórki; puste komórki i tekst wielowierszowy zachowują swoje pozycje.
 :::
 
-### Warianty kolorystyczne i motywy na wiersz
+### Warianty kolorystyczne i motywy dla każdego wiersza
 
-Każdy wiersz zachowuje własne wybory motywu: jasny lub ciemny oraz colourway, gdy system projektowy je ma. Wiersz otwarty z Projects, folderu lub zapisanego batcha renderuje się w wyborach, w których zapisano jego sesję, a jego podgląd otwiera się w nich. Arkusz do druku, zduplikowany wiersz i wypełniony wiersz też je zachowują.
+Każdy wiersz zachowuje własne wybory motywu: jasny lub ciemny oraz wariant kolorystyczny, jeśli system projektowy je oferuje. Wiersz otwarty z Projects, folderu lub zapisanej partii renderuje się i wyświetla w podglądzie z wyborami zapisanymi w jego sesji. Arkusz wydruku, powielony wiersz i wypełniony wiersz zachowują je.
 
-CSV niesie te wybory w kolumnie `_themes` po kolumnach rozmiaru, z tym samym JSON co parametr linku `_themes`, na przykład `{"":"dark","colourway":"beach"}`. Pusta komórka lub `{}` oznacza domyślne wartości systemu projektowego. Kolumna jest zapisywana tylko wtedy, gdy jakiś wiersz ma wybory, więc batch bez nich eksportuje ten sam CSV co wcześniej. Przy imporcie komórka, która nie jest prawidłowym wyborem motywu, jest wymieniana jako problem, a jej wiersz renderuje się w wartościach domyślnych. Siatka nie ma jeszcze kontrolki do zmiany wyborów wiersza, więc ustaw je w CSV lub w zapisanej sesji.
+CSV przenosi te wybory w kolumnie `_themes` po kolumnach rozmiaru. Kolumna zawiera ten sam JSON co parametr linku `_themes`, na przykład `{"":"dark","colourway":"beach"}`. Pusta komórka lub `{}` oznacza ustawienia domyślne systemu projektowego. Kolumna jest zapisywana tylko wtedy, gdy któryś wiersz ma własne wybory. Podczas importu komórka, która nie zawiera prawidłowych wyborów motywu, jest zgłaszana jako problem, a jej wiersz renderuje się z ustawieniami domyślnymi.
+
+::: note Ustaw wybory wiersza w CSV
+Siatka nie ma jeszcze kontrolki do zmiany wyborów wiersza, więc ustaw je w CSV lub w zapisanej sesji.
+:::
 
 ### Język dla każdego wiersza
 
-Narzędzie, które drukuje własne teksty, takie jak Certificate, może przyjąć kolumnę `language` z krótkim kodem języka, takim jak `de`, `ja` lub `ar`. Każdy wiersz drukuje wtedy swoje teksty i datę w tym języku, a wiersze po arabsku i w urdu są układane od prawej do lewej. Pusta komórka podąża za językiem aplikacji. Język, którego tłumaczenia Lolly jeszcze nie ma, drukuje się po angielsku, łącznie z datą, więc certyfikat nigdy nie jest przetłumaczony do połowy.
+Narzędzie, które drukuje własne sformułowania, takie jak Certificate, może przyjąć kolumnę `language` z krótkim kodem języka, takim jak `de`, `ja` lub `ar`. Każdy wiersz drukuje wtedy tekst i datę w tym języku. Wiersze arabskie i urdu mają układ od prawej do lewej. Pusta komórka używa języka aplikacji. Język, dla którego Lolly nie ma jeszcze tłumaczenia, daje wydruk po angielsku, łącznie z datą, więc certyfikat nigdy nie jest przetłumaczony tylko w połowie.
 
-### Batch lub Render folder
+### Batch czy Render folder
 
-Lolly Batch tworzy wiele wariantów jednego szablonu. Aby ponownie wyrenderować już zapisane sesje, zaznacz je w Projects i użyj **Render selection**, lub **Render folder** dla całego folderu; [Find and recover your work](/info/find-your-work.html#find-something-you-saved) opisuje oba.
+Aby ponownie wyrenderować zapisane już sesje, zaznacz je w Projects i użyj **Render selection** lub **Render folder** dla całego folderu. [Znajdowanie i odzyskiwanie pracy](/info/find-your-work.html#find-something-you-saved) opisuje obie możliwości.
 
-## Edytuj razem kilka zapisanych projektów
+<!--i:eti-layers-->
+## Wspólna edycja kilku zapisanych projektów
 
-Zaznacz od dwóch do ośmiu zapisanych sesji w **Projects** i wybierz **Edit together** na pasku zaznaczania. Otwierają się obok siebie jako żywe karty pod `#/multi?s=<slot>,<slot>…`. Każda karta jest prawdziwym renderem swojej sesji, więc to, co widzisz, zostanie wyeksportowane.
+Zaznacz od dwóch do ośmiu zapisanych sesji w **Projects** i wybierz **Edit together** z paska zaznaczenia. Otworzą się obok siebie jako karty z podglądem na żywo pod `#/multi?s=<slot>,<slot>…`. Każda karta to rzeczywisty render swojej sesji i pokazuje, co zostanie wyeksportowane.
 
-Jeden pasek boczny steruje wszystkimi:
+Jeden panel boczny steruje wszystkimi:
 
-- <!--i:sliders--> **Shared** jest na pierwszym miejscu: każde dane wejściowe, które dwie lub więcej sesji deklaruje tak samo (ten sam identyfikator, ten sam typ, te same ograniczenia, reguła, której siatka batch używa dla kolumn). Edytuj wspólną kontrolkę raz, a wartość dociera do każdej sesji deklarującej te dane wejściowe, na żywo na każdej karcie. Dwie sesje tego samego narzędzia dzielą wszystko; dwa różne narzędzia dzielą tylko wspólne dane wejściowe.
-- <!--i:document--> Pod nim **jedna zwinięta karta na sesję** zawiera wszystkie własne dane wejściowe tej sesji, tak kompletne jak pasek boczny samego narzędzia, z kompaktowym blokiem eksportu: **Format**, **W** / **H**, **Unit**, **DPI** i **Download**. Ten Download najpierw zapisuje sesję, a potem renderuje plik z tą samą nazwą pliku, formatem i Content Credentials, jakie miałby z narzędzia.
-- <!--i:search--> **Filter inputs…** u góry zawęża kontrolki na każdej karcie naraz, więc możesz dotrzeć do "nagłówka" w ośmiu sesjach bez przewijania.
+- <!--i:sliders--> Najpierw jest **Shared**: wszystkie dane wejściowe, które co najmniej dwie sesje deklarują w ten sam sposób (ten sam identyfikator, typ i ograniczenia, według tej samej reguły, której siatka partii używa dla swoich kolumn). Zmiana wspólnej kontrolki dociera do każdej sesji deklarującej te dane wejściowe, na żywo na każdej karcie. Dwie sesje tego samego narzędzia mają wszystko wspólne; dwa różne narzędzia mają wspólne tylko te same dane wejściowe. Menu **Input actions** karty Shared wiąże token projektowy w każdej sesji deklarującej dane wejściowe.
+- <!--i:document--> Pod kartą Shared **jedna zwinięta karta na sesję** zawiera wszystkie dane wejściowe tej sesji, tak jak w panelu bocznym samego narzędzia, z kompaktowym blokiem eksportu: **Format**, **W** / **H**, **Unit**, **DPI** i **Download**. To Download najpierw zapisuje sesję, a potem renderuje plik z taką samą nazwą, formatem i Content Credentials jak przy eksporcie z narzędzia.
+- <!--i:search--> **Filter inputs…** u góry zawęża kontrolki na wszystkich kartach jednocześnie.
 
-Kliknij dowolną kartę (lub naciśnij na niej Enter), aby otworzyć kartę paska bocznego tej sesji. **Save all** zapisuje każdą sesję z powrotem w jej slocie. **Download all** najpierw zapisuje, a potem renderuje cały zestaw do jednego zip, tak jak robi to **Render selection** w Projects, z opcjonalną blokadą hasłem oferowaną po drodze.
+Kliknij dowolną kartę (lub naciśnij na niej Enter), aby otworzyć kartę tej sesji w panelu bocznym. **Save all** zapisuje każdą sesję z powrotem w jej własnym miejscu. **Download all** najpierw zapisuje, a potem renderuje zestaw do jednego pliku zip, tak jak **Render selection** w Projects, i oferuje opcjonalną blokadę hasłem.
 
-Każda karta rysuje się w wyborach motywu własnej sesji, w tym narzędzia umieszczonego wewnątrz projektu. Karty w różnych wyglądach leżą obok siebie, podczas gdy aplikacja wokół zachowuje własne kolory, a **Save all**, pobrania, **Batch grid** i **Send to Print Sheet** zachowują wybory każdej sesji.
+Każda karta rysuje się zgodnie z wyborami motywu swojej sesji, także narzędzie umieszczone wewnątrz projektu. Aplikacja wokół kart zachowuje własne kolory. **Save all**, pobrania, **Batch grid** i **Send to Print Sheet** zachowują wybory każdej sesji.
 
-### Limity
+### Ograniczenia
 
-- **Najwyżej osiem.** Każda karta montuje własne działające środowisko, a osiem to liczba, przy której wszystko pozostaje responsywne. Link prosi o więcej lub o sesję, która już nie istnieje, i mówi o tym, zamiast ładować się częściowo.
-- **Link jest lokalny.** Wskazuje Twoje własne zapisane sloty, więc otwiera ten zestaw na tym urządzeniu. Nie jest linkiem udostępniania.
-- **Dla czegoś większego** wybierz **Edit as sheet** na tym samym pasku zaznaczania. Otwiera całe zaznaczenie jako wiersze w siatce batch (`#/batch?s=…`), bez limitu rozmiaru i bez reguły tego samego narzędzia. Foldery zostają poza oboma: otwórz folder w siatce przez **Sessions → Folders…** albo wyrenderuj go przez **Render folder** w Projects.
-- **Wyszukiwanie nie sięga Lolly Multi-edit.** To jedyny widok, o którym pasek wyszukiwania nie wie.
+- **Najwyżej osiem.** Każda karta uruchamia własne środowisko na żywo, a osiem kart zachowuje płynność działania. Link wskazujący więcej sesji lub sesję, która już nie istnieje, informuje o tym i nie ładuje zestawu częściowo.
+- **Link jest lokalny.** Wskazuje Twoje zapisane miejsca i ponownie otwiera ten zestaw na tym urządzeniu. To nie jest link do udostępniania.
+- **Przy większej liczbie** wybierz **Edit as sheet** na tym samym pasku zaznaczenia. Otwiera zaznaczone sesje jako wiersze w siatce partii (`#/batch?s=…`), bez limitu rozmiaru i wymogu tego samego narzędzia. Foldery nie są objęte żadną z tych opcji: otwórz folder w siatce przez **Sessions → Folders…** lub wyrenderuj go przez **Render folder** w Projects.
+- **Wyszukiwanie nie obejmuje Lolly Multi-edit.** To jedyny widok, którego nie obejmuje pasek wyszukiwania.
 
-## Dokąd dalej
+<!--i:eti-map-pin-->
+## Co dalej
 
-- **[Export a file](/info/exporting.html)**: formaty, rozmiary i ustawienia druku, których może używać każdy wiersz.
-- **[Templates](/info/templates.html)**: punkty wyjścia, które dają dobry pierwszy wiersz.
-- **[Find and recover your work](/info/find-your-work.html)**: Projects, foldery i renderowanie tego, co zapisałeś.
+- **[Eksport pliku](/info/exporting.html)**: formaty, rozmiary i ustawienia druku dostępne dla każdego wiersza.
+- **[Szablony](/info/templates.html)**: punkty wyjścia, które sprawdzają się jako pierwszy wiersz.
+- **[Znajdowanie i odzyskiwanie pracy](/info/find-your-work.html)**: Projects, foldery i renderowanie zapisanej pracy.

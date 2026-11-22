@@ -1,61 +1,68 @@
-# Lolly 与渲染 API
+# Lolly 與渲染 API
 
-_最后核查：2026 年 11 月 5 日。_
+_最後查核：2026 年 11 月 5 日。_
 
-如果你今天通过 API 根据模板生成图像，本页会说明：如果由你自己来运行这项制作，也就是在你自己的设备上、CI 中或你控制的服务器上，会有什么变化。[从托管的渲染 API 迁移](/info/work-move-from-render-api.html)讲的是具体做法。
+如果你透過 API 從範本生成圖片，本頁會說明將製作流程移到你自己的裝置、CI 或你掌控的伺服器上時，有哪些改變。[從託管渲染 API 遷移](/info/work-move-from-render-api.html)提供操作步驟。
 
-## 托管渲染 API 做得更好的地方
+<!--i:eti-award-->
+## 託管渲染 API 做得更好的地方
 
-[Bannerbear](https://www.bannerbear.com/) 和 [Placid](https://placid.app/) 是托管服务，这是一项真正的优势。你发送请求，由别人运行服务器、保持其在线并处理负载。
+[Bannerbear](https://www.bannerbear.com/) 與 [Placid](https://placid.app/) 是代管服務：你送出請求，伺服器由他人營運。
 
-- **无需运维。** 没有服务器、数据库、存储、更新或容量规划。
-- **托管的模板编辑器**，带有可直接改用的现成模板。
-- **一个 API 提供更多输出类型。** 两者都提供视频和 PDF 端点，Bannerbear 还记录了动画输出、WebP 和 AVIF、截图以及 AI 背景移除。
-- **它们自己的集成和支持。**
+- **不必負責營運。** 不必管理伺服器、資料庫、儲存、更新或容量規劃。
+- **託管的範本編輯器**，附有可直接修改的範本。
+- **一個 API 提供更多輸出類型。** 兩者都發布影片與 PDF 端點，Bannerbear 的文件也涵蓋動畫輸出、WebP 與 AVIF、截圖及 AI 去背。
+- **各自提供整合與支援。**
 
-如果这正是你想要的安排，这些服务是可靠的选择。
+如果這正是你想要的安排，這些服務都是可靠的選擇。
 
-## 自托管能给你什么
+<!--i:eti-home-->
+## 自行託管帶來什麼
 
-- **你的内容留在你的系统上。** 输入、素材和输出都存放在你选择的基础设施上。在设备上或 CI 中渲染完全不需要任何服务。
-- **规则存在于工具中。** 颜色、字体、徽标和锁定的输入来自你的[设计系统](/info/brand-studio.html)，所以调用方只能更改你允许的内容。[Lolly Work](/info/compare.html#what-runs-where) 对每个请求应用工具可见性和输入政策。
-- **各处都是同一个工具。** 同一个工具可以用相同的输入在笔记本电脑上、CI 作业中或服务器上渲染，人们也可以在应用中编辑同一个工具。
-- **你持有的记录。** [渲染回执](/info/work-renders.html#evidence-and-identity)、审计轨迹，以及你配置了签名身份时的 Content Credentials。
-- **开源，没有计量。** 代码由你运行，你付费的只是你自己的基础设施。
+- **內容留在你的系統中。** 輸入、素材與輸出存放在你選擇的基礎設施上。在裝置或 CI 中渲染不需要服務。
+- **規則內建於工具。** 色彩、字型、標誌與鎖定的輸入來自你的[設計系統](/info/brand-studio.html)，因此呼叫端只能更改你允許的部分。[Lolly Work](/info/compare.html#what-runs-where) 會對每個請求套用工具可見性與輸入政策。
+- **到處都是同一個工具。** 工具可在筆記型電腦、CI 工作或伺服器上根據相同輸入渲染。使用者也可以在應用程式中編輯同一個工具。
+- **記錄由你持有。** [渲染回條](/info/work-renders.html#evidence-and-identity)、稽核軌跡，以及在你設定簽署身分時加入的 Content Credentials。
+- **開源且不按用量計費。** 你執行程式碼，只需支付自己的基礎設施費用。
 
-你要承担那些服务原本替你做的工作。持久的服务器需要持久的数据库和输出存储，需要浏览器的工具需要 Chromium 工作进程。[安装 Lolly Work](/info/work-install.html) 介绍了这两者。
+你需要承擔這些服務原本替你做的工作。可長期運作的伺服器需要持久資料庫與輸出儲存。需要瀏覽器的工具也需要 Chromium 工作程序。[安裝 Lolly Work](/info/work-install.html)說明了這兩項。
 
-## 各项工作如何对应
+<!--i:eti-table-->
+## 各項工作的對照
 
-| 工作 | 托管的渲染 API | Lolly |
+| 工作 | 託管渲染 API | Lolly |
 |---|---|---|
-| 根据数据填充模板 | 指明模板及其图层的 API 请求 | 指明工具及其输入的 [URL](/info/url-mode.html)、[CLI](/info/cli.html) 或[服务器 API](/info/work-automation-api.html) |
-| 根据表格生成多个文件 | 批处理和集合 | 在你设备上的 [Batch](/info/batch.html)，或服务器上的[渲染批处理](/info/work-renders.html#batches-with-durable-rows) |
-| 等待或轮询结果 | 轮询，或同步选项 | 你来轮询的持久渲染，或即时渲染 |
-| 完成时调用 webhook | 支持 | 发往你允许的来源的[签名回调](/info/work-renders.html) |
-| 动态图像 URL | 支持 | [分享链接和 `/render` URL](/info/url-mode.html) |
-| 编辑模板 | 托管的编辑器 | 在你设备上的 [Design](/info/using.html) |
-| 智能体 | 两者都提供 MCP 服务器 | [MCP](/info/mcp.html)，在 Lolly Work 上，组织端点受令牌的政策约束 |
+| 從資料填入範本 | 指定範本與其圖層的 API 請求 | 指定工具與其輸入的 [URL](/info/url-mode.html)、[CLI](/info/cli.html) 或[伺服器 API](/info/work-automation-api.html) |
+| 從表格製作多個檔案 | 批次與集合 | 裝置上的 [Batch](/info/batch.html)，或伺服器上的[渲染批次](/info/work-renders.html#batches-with-durable-rows) |
+| 等待或輪詢結果 | 輪詢或同步選項 | 可輪詢的持久化渲染，或立即渲染 |
+| 完成時呼叫 webhook | 支援 | [簽署回呼](/info/work-renders.html)，傳送至你允許的來源 |
+| 動態圖片 URL | 支援 | [分享連結與 `/render` URL](/info/url-mode.html) |
+| 編輯範本 | 託管編輯器 | 裝置上的 [Design](/info/using.html) |
+| 代理 | 兩者都發布 MCP 伺服器 | [MCP](/info/mcp.html)，在 Lolly Work 上提供受 token 政策管轄的組織端點 |
 
-Lolly 自己的输出类型列在[导出](/info/exporting.html)中。目前在 Work 服务器上，持久渲染生成 SVG、PNG、JPG 和 PDF，而[视频留在设备、CLI 和 MCP 上](/info/work-renders.html#production-still-checks-and-permitted-repairs)。
+Lolly 自身的輸出類型列於[匯出檔案](/info/exporting.html)。目前 Work 伺服器上的持久化渲染可製作 SVG、PNG、JPG 與 PDF，而[影片仍由裝置、CLI 與 MCP 處理](/info/work-renders.html#production-still-checks-and-permitted-repairs)。
 
-## 什么会带过去，什么不会
+<!--i:eti-folder-move-->
+## 哪些能移轉，哪些不能
 
 | | Bannerbear V5 | Bannerbear V2 | Placid |
 |---|---|---|---|
-| 你的请求 | Work 的迁移 API 接受相同的格式 | 相同 | 相同 |
-| 你的模板 | **导入**为可编辑的文档，没有已确认结构的图层类型除外 | 只有字段名称和预览。需要逐个重建 | 只有字段名称和预览。需要逐个重建 |
-| 现有的动态 URL | 不支持 | 不支持 | 更换主机后，签名 URL 仍可用你原来的私有令牌继续工作 |
-| Webhook | 不支持已注册的 webhook | `webhook_url` 可用 | `webhook_success` 可用 |
-| WebP 和 AVIF 输出 | 按名称拒绝 | 不提供 | WebP 按名称拒绝 |
-| 动画、视频、集合、截图 | 不在迁移 API 上 | 不在迁移 API 上 | 不在迁移 API 上 |
+| 你的請求 | Work 的遷移 API 接受相同結構 | 相同 | 相同 |
+| 你的範本 | 使用 **Import** 匯入為可編輯文件，但尚無已確認結構定義的圖層類型除外 | 僅有欄位名稱與預覽。每個範本都需重建 | 僅有欄位名稱與預覽。每個範本都需重建 |
+| 既有動態 URL | 不支援 | 不支援 | 更換主機後，簽署的 URL 仍可使用舊的私密 token 繼續運作 |
+| Webhook | 不支援已登錄的 webhook | 可使用 `webhook_url` | 可使用 `webhook_success` |
+| WebP 與 AVIF 輸出 | 依格式名稱明確拒絕 | 未提供 | 依格式名稱明確拒絕 WebP |
+| 動畫、影片、集合、截圖 | 遷移 API 不提供 | 遷移 API 不提供 | 遷移 API 不提供 |
 
-这一切都是根据各厂商的公开文档构建的，尚未在真实账号上运行过。如果你持有账号，[迁移指南](/info/work-move-from-render-api.html#check-it-on-your-own-account)中有一份简短的核对清单。
+::: note 依公開文件建置
+此功能依各供應商的公開文件建置，尚未使用實際帳號執行。若你持有帳號，[遷移指南](/info/work-move-from-render-api.html#check-it-on-your-own-account)提供一份簡短的檢查清單。
+:::
 
-迁移不是全有或全无。你可以迁移一个模板，把其余的留在原处，而[离开 Lolly](/info/work-move-from-render-api.html#leave-lolly-too) 同样是开放的：工具是纯文件，CLI 无需服务器即可渲染它们。
+你可以只移轉一個範本，其他範本留在原處。[離開 Lolly](/info/work-move-from-render-api.html#leave-lolly-too)也同樣開放：工具是一般檔案，CLI 不需要伺服器就能渲染它們。
 
-## 谁来运行服务
+<!--i:eti-building-->
+## 誰負責營運服務
 
-使用 Lolly，个人在本地渲染，或者团队在自己的基础设施上运行 Lolly Work。提交服务器作业会把它的输入和所需素材发送到该实例，这与设备端路径不同。
+使用 Lolly 時，個人可在本機渲染，團隊則可在自己的基礎設施上執行 Lolly Work。伺服器工作會將輸入與所需素材傳送到該實例。裝置上的處理路徑不會。
 
-Bannerbear 和 Placid 是其所有者的商标。本页根据它们的公开文档，描述这些产品重叠的地方，与它们均没有关联。
+Bannerbear 與 Placid 是各自擁有者的商標。本頁依據兩者的公開文件，說明產品功能重疊之處，與兩者均無關聯。

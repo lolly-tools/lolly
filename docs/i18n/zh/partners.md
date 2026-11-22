@@ -1,136 +1,152 @@
-# 与合作伙伴协作
+# 與合作夥伴協作
 
-活动海报上的赞助商标志、印在制造商名字之下的经销商优惠、一则联合公告、与供应商共同撰写的案例研究：许多作品都带有两个品牌。本页面向双方。内容包括：与合作伙伴分享你的品牌时要发送什么，如何在别人发给你的品牌中工作，如何放置合作伙伴的标志，如何制作赞助商或活动的标志墙，以及 Lolly 目前还不能做什么。
+許多作品會呈現兩個品牌，例如活動海報上的贊助商標誌、以製造商名義推出的經銷商優惠、聯合公告，或與供應商共同撰寫的案例研究。本頁適用於雙方。
 
-本页中有两个词始终含义相同。**主导品牌**是制作作品时所用设计系统所属的品牌，**合作伙伴**是作品上的另一个品牌。任何一方都可以制作作品。[品牌架构](/info/brand-architectures.html#co-branding)说明了联合品牌与组织安排品牌的其他方式有何关系。
+在本頁中，**主導品牌**是作品採用其設計系統製作的品牌，**合作夥伴**則是作品上的另一個品牌。任何一方都可以製作作品。[品牌架構](/info/brand-architectures.html#co-branding)比較了聯名品牌與其他品牌安排。
 
-## Lolly 目前如何处理两个品牌
+<!--i:eti-info-->
+## Lolly 目前如何處理兩個品牌
 
-- **每件作品由一个设计系统绘制。** 适用主导品牌的颜色、字体和内部规范。合作伙伴的标志作为素材图形放入：可以是来自 Assets 的图片，也可以是保存在设计系统中的自定义标志。
-- **品牌以文件形式传递。** 设计系统文件（`.lolly`）包含令牌、字体和徽标。用 **Share with rules** 制作的可复用工具包含一个完成的版面，以及你允许修改的输入项。品牌技能则以各自独立的文件传递。
-- **品牌也可以有一个地址。** [品牌页面](/info/brand-page.html)会发布徽标、颜色、字体和规则供合作伙伴阅读，并附上供其工具使用的令牌和技能。
-- **Lolly 只检查主导品牌的规则。** 它不了解合作伙伴的规则，例如留白或最小尺寸，所以请对照合作伙伴自己的指南自行检查。
+- **每件作品由一個設計系統繪製。** 採用主導品牌的色彩、字體排印與組織規則。合作夥伴的標誌以圖稿形式加入：來自 Assets 的圖片，或保存在設計系統中的自訂標誌。
+- **品牌以檔案形式傳遞。** 設計系統檔案（`.lolly`）包含 token、字型與標誌。使用 **Share with rules** 製作的可重複使用工具，包含一個完成的版面與你允許的輸入。品牌技能則以各自的檔案傳遞。
+- **品牌也可以有位址。** [品牌頁面](/info/brand-page.html)會發佈標誌、色彩、字體排印與規則供合作夥伴閱讀，並提供 token 與技能供其工具使用。
+- **Lolly 只檢查主導品牌的規則。** Lolly 不知道合作夥伴的規則，例如淨空區或最小尺寸，因此請對照合作夥伴的規範檢查。在 Lolly Work 合作夥伴計畫中，公司的合作夥伴資料包包含其規則，Lolly Design 會對照資料包檢查該公司的標誌。
+- **整套合作夥伴計畫在 Lolly Work 上運作。** 經銷商、分銷商或其他合作夥伴在你的 Lolly Work 上使用你的品牌製作作品時，合作夥伴計畫只會提供你選擇的工具、檔案與範本給各合作夥伴公司。計畫會保存公司的標誌與詳細資訊，將它們填入你的範本，並在每個檔案中記錄該公司。[經營合作夥伴計畫](/info/manage/run-a-partner-programme.html)是供營運團隊使用的指南。
 
-## 与合作伙伴分享你的品牌
+<!--i:eti-folder-shared-->
+## 與合作夥伴分享你的品牌
 
-### 选择要发送的内容
+### 選擇要傳送的內容
 
-| 发送 | 方式 | 合作伙伴得到 | 适合 |
+| 傳送內容 | 方式 | 合作夥伴會取得 | 適用於 |
 | --- | --- | --- | --- |
-| 设计系统文件 | 在 [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 顶部栏中点击 **Export** | 你的令牌、字体、徽标和主题偏好，成为一个他们可以切换使用的设计系统 | 要用你的品牌制作大量作品的合作伙伴 |
-| 可复用工具 | 在 Lolly Design 中点击 **Share with rules**（[分享带规则的设计](/info/create-a-tool.html)） | 一个完成的版面，以及你允许修改的输入项，例如他们的名称和徽标。文件携带已确定的颜色、字体和图片，因此他们自己的设计系统无法改变固定的图稿样式 | 每个合作伙伴各自填写的联合品牌传单、徽章或横幅 |
-| 品牌技能 | **Skills** 房间：**Download skill (.zip)** 或 **Copy as one file** | 你书面写下的标准，供他们的团队和 AI 代理使用 | 上述任一方式，当有一部分工作由 AI 代理完成时 |
-| 品牌页面 | 在 Lolly Design System Setup 中点击 **Publish a brand page**，或用 `lolly system publish`，写出一个由你托管的文件夹（[品牌页面](/info/brand-page.html)） | 你当前的徽标、颜色、字体和规则放在同一个地址，并附上供其工具使用的令牌和技能。徽标和字体文件在权利允许时才会出现，页面会列出它不发布的内容 | 与你不会发送文件的人分享 |
-| 令牌 | 工作室 **More** 菜单中的 **Tokens (.json)** | 纯粹的设计令牌文档，不含字体和徽标 | 合作伙伴自己的设计工具或构建流程 |
+| 設計系統檔案 | [Lolly Design System Setup](/info/brand-studio.html#move-a-brand-between-devices) 頂端列中的 **Export** | 你的 token、字型、標誌與主題偏好設定，以可切換使用的設計系統提供 | 使用你的品牌製作大量作品的合作夥伴 |
+| 可重複使用的工具 | Lolly Design 中的 **Share with rules**（[分享附有規則的設計](/info/create-a-tool.html)） | 一個完成的版面與你允許的輸入，例如對方的名稱與標誌。檔案包含解析後的色彩、字型與圖片，因此對方自己的設計系統無法更改固定圖稿的樣式 | 供各合作夥伴填寫的聯名傳單、徽章或橫幅 |
+| 品牌技能 | **Skills** 工作區：**Download skill (.zip)** 或 **Copy as one file** | 你的書面規範，供對方的人員與代理程式使用 | 上述任一情況中，由代理程式負責部分工作時 |
+| 品牌頁面 | Lolly Design System Setup 中的 **Publish a brand page**，或 `lolly system publish`，會寫出由你託管的資料夾（[品牌頁面](/info/brand-page.html)） | 在一個位址提供你目前的標誌、色彩、字體排印與規則，並提供 token 與技能供對方的工具使用。標誌與字型檔案會在權利允許時出現，頁面會列出未納入的內容 | 與你不會傳送檔案的對象分享 |
+| Token | 工作室 **More** 選單中的 **Tokens (.json)** | 純設計 token 文件，不含字型或標誌 | 合作夥伴自己的設計工具或建置 |
 
-![Lolly Demo 上的 Design System Setup，打开在 Skills 房间：顶部栏有 Export，More 菜单展开到 Tokens (.json)，所选技能旁边是 Download skill (.zip) 和 Copy as one file](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
+![Lolly Demo 上的 Lolly Design System Setup，開啟 Skills 區域：列上有 Export，More 選單開啟並顯示 Tokens (.json)，所選技能旁有 Download skill (.zip) 與 Copy as one file](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dskills&width=1200&height=900&dpi=192&waitMs=1800&waitSelector=.skills-reader-actions&drive=click%3A%5Bdata-ds-more%5D%3Bwait%3A500&format=svg&walker=1&dark=1&filename=partners-send)
 
-你添加的字体会随设计系统文件一起传递，因此请确认它们的许可允许你转交这些字体文件。如果某张图片的许可限制了转交，可复用工具在包含它之前会请你确认（[预览与分享](/info/create-a-tool.html#preview-and-share)）。
+::: warning 你的字型會隨檔案傳遞
+你新增的字型會包含在設計系統檔案中，因此請確認其授權允許你轉交這些檔案。
+:::
 
-### 制作联合品牌模板
+可重複使用的工具在納入受授權限制的圖片之前，會要求你確認（[預覽與分享](/info/create-a-tool.html#preview-and-share)）。
 
-可复用工具能让每个合作伙伴的作品都保持你的版面，因为合作伙伴只能修改你允许的内容。
+### 製作聯名範本
 
-1. 在 Design 中，用你的设计系统制作作品。在放置合作伙伴徽标的位置画一个图片框，并在框周围留出版面所需的空间。
-2. 在 File 菜单中选择 **Share with rules**。选中图片框并选择 **Make editable**。在它的 **Rules** 中，允许上传替换图片，设置最小像素尺寸和你接受的上传格式（尽量用 SVG）。把该框自己的 **Image fit** 设为 **Contain (fit inside)**，这样无论宽徽标还是高徽标，都会保持在框内。
-3. 也把合作伙伴的名称或优惠设为可编辑，并设置字数上限。
-4. 点击 **Preview**，试一试很宽的徽标、很高的徽标和很长的名称。
-5. 选择 **Share .lolly**，并为合作伙伴写好说明：请上传他们徽标的哪个版本，例如适用于浅色背景的全彩横版徽标。
+可重複使用的工具會將每個合作夥伴的內容保留在你的版面中。合作夥伴只能更改你允許的部分。
 
-![联合品牌活动卡片上的 Share with rules：合作伙伴的徽标框已选中并可编辑，它的 Rules 允许上传至少 480 × 110 像素、格式为 PNG 或 SVG 的图片](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%255B%257B%2522id%2522%253A%2522board%2522%252C%2522name%2522%253A%2522Build%2520day%2520card%2522%252C%2522kind%2522%253A%2522frame%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A0%252C%2522w%2522%253A1600%252C%2522h%2522%253A900%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.sugar%257D%2522%252C%2522clipChildren%2522%253Atrue%257D%252C%257B%2522id%2522%253A%2522dot-large%2522%252C%2522name%2522%253A%2522Large%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1040%252C%2522y%2522%253A70%252C%2522w%2522%253A480%252C%2522h%2522%253A480%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.pandanus%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522dot-small%2522%252C%2522name%2522%253A%2522Small%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1330%252C%2522y%2522%253A380%252C%2522w%2522%253A240%252C%2522h%2522%253A240%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.green-apple%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522band%2522%252C%2522name%2522%253A%2522Partner%2520band%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A680%252C%2522w%2522%253A1600%252C%2522h%2522%253A220%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.avocado%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522lolly%2522%252C%2522name%2522%253A%2522Lolly%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A96%252C%2522w%2522%253A260%252C%2522h%2522%253A90%252C%2522image%2522%253A%2522lolly%2Flogo%2Fhorizontal%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522imgpos%2522%253A%2522left%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522headline%2522%252C%2522name%2522%253A%2522Headline%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A260%252C%2522w%2522%253A880%252C%2522h%2522%253A180%252C%2522text%2522%253A%2522Build%2520day%25202026%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.liquorice%257D%2522%252C%2522fontSize%2522%253A120%252C%2522weight%2522%253A%2522700%2522%252C%2522font%2522%253A%2522display%2522%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522sub%2522%252C%2522name%2522%253A%2522Subtitle%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A450%252C%2522w%2522%253A880%252C%2522h%2522%253A90%252C%2522text%2522%253A%2522Twelve%2520hours%2520of%2520making%252C%2520with%2520friends%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A48%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522with%2522%252C%2522name%2522%253A%2522In%2520partnership%2520with%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A750%252C%2522w%2522%253A400%252C%2522h%2522%253A80%252C%2522text%2522%253A%2522In%2520partnership%2520with%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A34%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522partner%2522%252C%2522name%2522%253A%2522Partner%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A500%252C%2522y%2522%253A735%252C%2522w%2522%253A480%252C%2522h%2522%253A110%252C%2522image%2522%253A%2522%2Ftools%2Flogo-wall%2Fassets%2Fpartner-name.svg%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522frame%2522%253A%2522board%2522%257D%255D%26w%3D1600%26h%3D900&width=1280&height=1000&dpi=192&waitMs=3000&drive=click%3Abutton%5Baria-label%3D%22File%20menu%22%5D%3Bwait%3A500%3Bclick%3Atext%3DShare%20with%20rules%3Bwait%3A2500%3Bclick%3A%23tool-canvas%20%5Bdata-box-id%3D%22partner%22%5D%3Bclick%3Abutton%3Ahas-text%28%22Make%20editable%22%29%3Bwait%3A1200%3Bclick%3A.dr-input%20.dr-advanced%20%3E%20summary%3Bpress%3AControlOrMeta%2BA%7Con%3D%5Bdata-rule%3D%22image%3AminWidth%22%5D%3Bpress%3A4%3Bpress%3A8%3Bpress%3A0%3Bpress%3AControlOrMeta%2BA%7Con%3D%5Bdata-rule%3D%22image%3AminHeight%22%5D%3Bpress%3A1%3Bpress%3A1%3Bpress%3A0%3Bclick%3A%5Bdata-rule%3D%22image-format%3Ajpeg%22%5D%3Bclick%3A%5Bdata-rule%3D%22image-format%3Awebp%22%5D%3Bclick%3A%5Bdata-rule%3D%22image-format%3Aavif%22%5D&format=svg&walker=1&dark=1&filename=partners-template-rules)
+1. 在 Lolly Design 中，使用你的設計系統製作作品。在合作夥伴標誌的位置畫一個圖片方塊，並在方塊周圍保留版面所需的空間。
+2. 從 File 選單選擇 **Share with rules**。選取圖片方塊，然後選擇 **Make editable**。在其 **Rules** 中允許上傳替換圖片，設定最小像素尺寸與接受的上傳格式（盡可能使用 SVG）。將方塊的 **Image fit** 設為 **Contain (fit inside)**，讓寬形或高形標誌保持在方塊內。
+3. 也讓合作夥伴的名稱或優惠內容可供編輯，並設定字元限制。
+4. 按下 **Preview**，試用很寬的標誌、很高的標誌與很長的名稱。
+5. 選擇 **Share .lolly**，並為合作夥伴寫下操作說明：應上傳哪個版本的標誌，例如適用於淺色背景的全彩橫式標誌。
 
-合作伙伴把文件拖入 Lolly，查看信任提示，填写输入项，然后下载你允许的格式（[使用完成的工具](/info/create-a-tool.html#use-the-finished-tool)）。Lolly 会把徽标保持在你画的框内。它不会读取合作伙伴自己的留白规则，所以你在框周围留出的空间，就是徽标得到的空间。
+![聯名活動卡片上的 Share with rules：合作夥伴的標誌方塊已選取且可編輯，其 Rules 允許上傳至少 480 乘 110 像素的 PNG 或 SVG 圖片](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%255B%257B%2522id%2522%253A%2522board%2522%252C%2522name%2522%253A%2522Build%2520day%2520card%2522%252C%2522kind%2522%253A%2522frame%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A0%252C%2522w%2522%253A1600%252C%2522h%2522%253A900%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.sugar%257D%2522%252C%2522clipChildren%2522%253Atrue%257D%252C%257B%2522id%2522%253A%2522dot-large%2522%252C%2522name%2522%253A%2522Large%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1040%252C%2522y%2522%253A70%252C%2522w%2522%253A480%252C%2522h%2522%253A480%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.pandanus%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522dot-small%2522%252C%2522name%2522%253A%2522Small%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1330%252C%2522y%2522%253A380%252C%2522w%2522%253A240%252C%2522h%2522%253A240%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.green-apple%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522band%2522%252C%2522name%2522%253A%2522Partner%2520band%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A680%252C%2522w%2522%253A1600%252C%2522h%2522%253A220%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.avocado%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522lolly%2522%252C%2522name%2522%253A%2522Lolly%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A96%252C%2522w%2522%253A260%252C%2522h%2522%253A90%252C%2522image%2522%253A%2522lolly%2Flogo%2Fhorizontal%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522imgpos%2522%253A%2522left%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522headline%2522%252C%2522name%2522%253A%2522Headline%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A260%252C%2522w%2522%253A880%252C%2522h%2522%253A180%252C%2522text%2522%253A%2522Build%2520day%25202026%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.liquorice%257D%2522%252C%2522fontSize%2522%253A120%252C%2522weight%2522%253A%2522700%2522%252C%2522font%2522%253A%2522display%2522%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522sub%2522%252C%2522name%2522%253A%2522Subtitle%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A450%252C%2522w%2522%253A880%252C%2522h%2522%253A90%252C%2522text%2522%253A%2522Twelve%2520hours%2520of%2520making%252C%2520with%2520friends%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A48%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522with%2522%252C%2522name%2522%253A%2522In%2520partnership%2520with%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A750%252C%2522w%2522%253A400%252C%2522h%2522%253A80%252C%2522text%2522%253A%2522In%2520partnership%2520with%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A34%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522partner%2522%252C%2522name%2522%253A%2522Partner%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A500%252C%2522y%2522%253A735%252C%2522w%2522%253A480%252C%2522h%2522%253A110%252C%2522image%2522%253A%2522%2Ftools%2Flogo-wall%2Fassets%2Fpartner-name.svg%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522frame%2522%253A%2522board%2522%257D%255D%26w%3D1600%26h%3D900&width=1280&height=1000&dpi=192&waitMs=3000&drive=click%3Abutton%5Baria-label%3D%22File%20menu%22%5D%3Bwait%3A500%3Bclick%3Atext%3DShare%20with%20rules%3Bwait%3A2500%3Bclick%3A%23tool-canvas%20%5Bdata-box-id%3D%22partner%22%5D%3Bclick%3Abutton%3Ahas-text%28%22Make%20editable%22%29%3Bwait%3A1200%3Bclick%3A.dr-input%20.dr-advanced%20%3E%20summary%3Bpress%3AControlOrMeta%2BA%7Con%3D%5Bdata-rule%3D%22image%3AminWidth%22%5D%3Bpress%3A4%3Bpress%3A8%3Bpress%3A0%3Bpress%3AControlOrMeta%2BA%7Con%3D%5Bdata-rule%3D%22image%3AminHeight%22%5D%3Bpress%3A1%3Bpress%3A1%3Bpress%3A0%3Bclick%3A%5Bdata-rule%3D%22image-format%3Ajpeg%22%5D%3Bclick%3A%5Bdata-rule%3D%22image-format%3Awebp%22%5D%3Bclick%3A%5Bdata-rule%3D%22image-format%3Aavif%22%5D&format=svg&walker=1&dark=1&filename=partners-template-rules)
 
-### 把你的品牌技能交给AI 代理
+合作夥伴將檔案拖放到 Lolly，檢閱信任提示、填寫輸入欄位，並下載你允許的格式（[使用完成的工具](/info/create-a-tool.html#use-the-finished-tool)）。Lolly 會讓標誌保持在你畫的方塊內。Lolly 不會讀取合作夥伴的淨空區規範，因此標誌只有你在方塊周圍留下的空間。
 
-技能是写给人和AI 代理的指引；Lolly 检查的则是内部规则。
+### 將你的品牌技能交給代理程式
 
-- 在 Design System Setup 中打开 **Skills** 房间（`#/start?area=skills`），选择一项技能，点击 **Download skill (.zip)**。文件夹中的目录链接指向你的 Lolly，其中的 `lolly.json` 记录了这份副本的来源。**Copy as one file** 会把同样的文字放到剪贴板，供粘贴到聊天窗口。
-- 在终端中，`lolly system skill <name> --into=<dir>` 会写出同样的文件夹（[放在本地AI 代理工具的文件夹中](/info/brand-skills.html#in-a-folder-for-a-local-agent-tool)）。
-- 标记为 `internal` 的技能和 `public` 的技能一样会列在你自己的机器上，所以请选择要发送哪些（[公开与内部技能](/info/brand-skills.html#public-and-internal-skills)）。
-- 没有自己技能的设计系统会有一份基础技能，由 Lolly 根据它的令牌和内部规则写成，该房间同样会列出这份基础技能。
-- 副本不会自行更新。技能发布新修订后，请重新发送文件夹。
+技能指引人員與代理程式。Lolly 檢查組織規範。
 
-## 在别人给你的品牌中工作
+- 在 Lolly Design System Setup 中，開啟 **Skills** 區域（`#/start?area=skills`），選擇技能並按下 **Download skill (.zip)**。資料夾的目錄連結會指向你的 Lolly，其 `lolly.json` 則記錄這份副本的來源。**Copy as one file** 會將相同的文字放到剪貼簿，供貼入聊天視窗。
+- 在終端機中，`lolly system skill <name> --into=<dir>` 會寫出相同的資料夾（[放在資料夾中供本機代理程式工具使用](/info/brand-skills.html#in-a-folder-for-a-local-agent-tool)）。
+- 你自己的電腦會列出標記為 `internal` 與 `public` 的技能，因此請選擇要傳送哪些（[公開與內部技能](/info/brand-skills.html#public-and-internal-skills)）。
+- 對於沒有自有技能的設計系統，Lolly 會依其 token 與組織規範撰寫基礎版本，並在該區域列出。
+- 副本不會自行更新。發布技能的新修訂版本時，請再次傳送資料夾。
 
-写给收到设计系统文件的合作伙伴。
+<!--i:eti-download-->
+## 使用收到的品牌製作作品
 
-1. **打开文件。** 把文件拖到 Lolly 上，或点击 **Open**；Design System Setup 中的 **Add from…** 也可以接收这个文件。写入任何内容之前，预览会列出文件包含的内容。设计系统文件会以主导品牌的名称添加一个单独的设计系统并将其设为当前使用，你自己的设计系统仍保留在设备上。如果文件是让应用连接到主导品牌自己的 Lolly，会先列出它对你整台设备的影响；这类文件请见[在你的组织中使用 Lolly](/info/organisation.html)。
-2. **浏览品牌。** 在 Design System Setup 中，**Board** 显示设计系统包含的内容，**Logos** 是它的标志，**Rules** 列出 Lolly 检查的内部规则。**Skills** 显示 Lolly 根据令牌和规则写成的基础技能；主导品牌自己的技能如果发来，会以单独的文件到达。
-3. **在品牌之间切换。** **Settings → Preferences → Design systems** 会为整台设备切换设计系统，**Settings → Design system** 中有一排封面可供切换。切换之前，请先完成一个品牌的作品。
-4. **放置你自己的标志。** 把你的徽标上传到 **Assets**，它在每个设计系统中都可使用；也可以把它作为**自定义标志**添加到主导品牌的设计系统中（**Logos** 房间，**Custom marks**），这样它会随该设计系统的文件一起传递。显示锁形图标的设计系统是只读的，在那里请使用 Assets。检查事项见[放置合作伙伴的标志](#place-a-partner-s-mark)。
-5. **导出之前先检查。** 在 Design 中，导出面板的 **Before you export** 卡片会逐图层列出对照主导品牌内部规则的发现（[导出之前](/info/design.html#before-you-export)）。**Design system** 卡片显示文件所记录的设计系统。
-6. **把成果寄回去。** 发送导出的文件，或者以 `.lolly` 发送可编辑的设计（[分享你的作品](/info/using.html#sharing-your-work)）。设计会在当前使用的设计系统中打开，所以主导品牌打开你的设计时，用的是他们自己正在使用的设计系统。
+本節適用於收到設計系統檔案的合作夥伴。如果主導品牌在自己的 Lolly Work 上執行合作夥伴計畫，你則改為在那裡登入：首頁會顯示你的公司卡片與向你發布的範本（[合作夥伴看到的內容](/info/manage/run-a-partner-programme.html#what-partners-see)）。
 
-设计系统文件是品牌在导出当天的一份副本，不会有任何东西更新这份副本。主导品牌发来更新的文件时，用同样的方式打开新文件。然后在 **Settings → Preferences → Design systems** 中检查当前使用的是哪个设计系统，旧版本用完后，在那里移除旧副本。
+1. **開啟檔案。** 將檔案拖放到 Lolly，或按下 **Open**；Lolly Design System Setup 中的 **Add from…** 也能接收檔案。預覽會在寫入任何內容之前列出檔案內容。設計系統檔案會以主導品牌的名稱新增獨立的設計系統，並將其設為使用中。你自己的設計系統會留在裝置上。如果檔案的用途是將應用程式連接到主導品牌自己的 Lolly，則會先列出對整部裝置的影響；[在你的組織使用 Lolly](/info/organisation.html)說明這類檔案。
+2. **認識品牌。** 在 Lolly Design System Setup 中，**Board** 顯示設計系統的內容，**Logos** 包含其標誌，**Rules** 列出 Lolly 檢查的組織規範。**Skills** 顯示 Lolly 依 token 與規範撰寫的基礎版本；主導品牌若傳送自己的技能，則會以獨立檔案提供。
+3. **切換品牌。** **Settings → Preferences → Design systems** 可切換整部裝置的設計系統，**Settings → Design system** 則有一列封面可供切換。先完成一個品牌的作品再切換。
+4. **放置你自己的標誌。** 將標誌上傳到 **Assets**，就能在每個設計系統中使用；或將它新增為主導品牌設計系統中的 **custom mark**（**Logos** 區域的 **Custom marks**），讓它隨該設計系統的檔案傳遞。顯示鎖頭的設計系統為唯讀，這時請使用 Assets。[放置合作夥伴的標誌](#place-a-partner-s-mark)列出了檢查項目。
+5. **匯出前檢查。** 在 Lolly Design 中，匯出面板的 **Before you export** 卡片會逐圖層列出對照主導品牌組織規範的檢查結果（[匯出前](/info/design.html#before-you-export)）。**Design system** 卡片顯示檔案記錄的設計系統。
+6. **傳回作品。** 傳送匯出的檔案，或將可編輯的設計以 `.lolly` 傳送（[分享你的作品](/info/using.html#sharing-your-work)）。設計會在目前使用中的設計系統下開啟，因此主導品牌開啟你的設計時，需使用自己的設計系統。
 
-![Settings 中的设计系统：Lolly Demo 为当前使用，Lolly Starter 有一个会为整台设备切换的 Use 按钮，Open or import a file 可接收设计系统文件](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddesign-systems-section&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23design-systems-section&format=svg&walker=1&dark=1&filename=partners-design-systems)
+::: note 設計系統檔案不會更新
+設計系統檔案是品牌在匯出當天的副本。這份副本不會有任何更新。
+:::
 
-## 放置合作伙伴的标志
+主導品牌傳送較新的檔案時，以相同方式開啟。接著在 **Settings → Preferences → Design systems** 檢查哪個設計系統正在使用，並在不再需要舊副本時於該處移除。
 
-| 方式 | 步骤 | 最适合 |
+![Settings 中的設計系統：Lolly Demo 正在使用，Lolly Starter 有可切換整部裝置的 Use 按鈕，Open or import a file 可接收設計系統檔案](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddesign-systems-section&width=1440&height=1200&dpi=192&waitMs=2400&cropSelector=%23design-systems-section&format=svg&walker=1&dark=1&filename=partners-design-systems)
+
+<!--i:eti-image-->
+## 放置合作夥伴的標誌
+
+| 方式 | 步驟 | 適用情況 |
 | --- | --- | --- |
-| Assets 中的图片 | 把文件拖到 **Assets** 的上传区，然后在工具的图片字段中选择它，或在 Design 中通过侧栏添加菜单的 **Image** 选择 | 一次性作品。上传属于这台设备，所以无论当前使用哪个设计系统都可用 |
-| 自定义标志 | **Logos** 房间，**Custom marks**：输入标志的名称，然后点击 **Choose file…** | 经常合作的合作伙伴。标志属于该设计系统，并随它的文件一起传递 |
-| 完成的组合标志 | 在你的绘图工具中用两个标志做出组合标志，再将它添加为自定义标志 | 反复使用的“联合”或“与……合作”组合标志 |
+| Assets 中的圖片 | 將檔案拖放到 **Assets** 的上傳區域，再於工具的圖片欄位中選擇，或在 Lolly Design 工具列的新增選單中選擇 **Image** | 一次性作品。上傳內容屬於裝置，因此無論使用哪個設計系統都能使用 |
+| 自訂標誌 | **Logos** 區域的 **Custom marks**：輸入標誌名稱，再按 **Choose file…** | 經常合作的夥伴。標誌屬於設計系統，並隨其檔案傳遞 |
+| 完成的組合標誌 | 在你的繪圖工具中將兩個標誌組合，再新增為自訂標誌 | 重複使用的「與」或「合作夥伴」組合標誌 |
 
-导出之前，请检查这个标志：
+::: check 匯出前，檢查標誌
+- **正確的檔案。** 使用合作夥伴提供的檔案，有 SVG 就使用 SVG。從網頁或投影片複製的標誌列印時會模糊。
+- **適合背景的版本。** 在深色或複雜背景上，若合作夥伴的指南提供反白或單色版本，請使用該版本。
+- **比例。** 將圖片方塊的 **Image fit** 設為 **Contain (fit inside)**，標誌就絕不會被拉伸。
+- **淨空區與大小。** 在標誌周圍保留合作夥伴指南要求的空間，並讓標誌大於其最小尺寸。Lolly 不會測量這兩項。
+- **哪個品牌主導。** 依兩個品牌關於主導關係的指南設定兩個標誌的大小。
+- **權利。** Lolly 會顯示目錄素材記錄的授權。你自己上傳的檔案沒有授權記錄，其詳細資訊會顯示 *Licence not recorded*，因此請在自己的記錄中保留合作夥伴允許使用標誌的許可（[創作權利與署名](/info/creative-rights.html)）。
+:::
 
-- **文件正确。** 使用合作伙伴提供的文件，有 SVG 就用 SVG。从网页或幻灯片复制的徽标，印刷时会变模糊。
-- **版本与背景相配。** 在深色或杂乱的背景上，如果合作伙伴的指南提供反白版或单色版，就使用它。
-- **比例。** 把图片框的 **Image fit** 设为 **Contain (fit inside)**，标志就不会被拉伸。
-- **留白和尺寸。** 在标志周围留出合作伙伴指南要求的空间，并让标志保持在他们规定的最小尺寸之上。Lolly 对这两项都不测量。
-- **哪个品牌居主导。** 按两个品牌指南中关于谁居主导的要求，来确定两个标志的大小。
-- **权利。** Lolly 会显示目录素材所记录的许可。你自己上传的文件没有许可记录，它的详情会写 *Licence not recorded*，所以请把合作伙伴同意你使用其标志的许可，连同你自己的记录一起保存（[创作权益与署名](/info/creative-rights.html)）。
+![聯名卡片上的 Before you export：設計系統為 Lolly Demo，合作夥伴標誌被註記為設計系統素材以外的圖片，四項組織規範都沒有需要註記之處](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%255B%257B%2522id%2522%253A%2522board%2522%252C%2522name%2522%253A%2522Build%2520day%2520card%2522%252C%2522kind%2522%253A%2522frame%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A0%252C%2522w%2522%253A1600%252C%2522h%2522%253A900%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.sugar%257D%2522%252C%2522clipChildren%2522%253Atrue%257D%252C%257B%2522id%2522%253A%2522dot-large%2522%252C%2522name%2522%253A%2522Large%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1040%252C%2522y%2522%253A70%252C%2522w%2522%253A480%252C%2522h%2522%253A480%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.pandanus%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522dot-small%2522%252C%2522name%2522%253A%2522Small%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1330%252C%2522y%2522%253A380%252C%2522w%2522%253A240%252C%2522h%2522%253A240%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.green-apple%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522band%2522%252C%2522name%2522%253A%2522Partner%2520band%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A680%252C%2522w%2522%253A1600%252C%2522h%2522%253A220%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.avocado%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522lolly%2522%252C%2522name%2522%253A%2522Lolly%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A96%252C%2522w%2522%253A260%252C%2522h%2522%253A90%252C%2522image%2522%253A%2522lolly%2Flogo%2Fhorizontal%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522imgpos%2522%253A%2522left%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522headline%2522%252C%2522name%2522%253A%2522Headline%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A260%252C%2522w%2522%253A880%252C%2522h%2522%253A180%252C%2522text%2522%253A%2522Build%2520day%25202026%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.liquorice%257D%2522%252C%2522fontSize%2522%253A120%252C%2522weight%2522%253A%2522700%2522%252C%2522font%2522%253A%2522display%2522%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522sub%2522%252C%2522name%2522%253A%2522Subtitle%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A450%252C%2522w%2522%253A880%252C%2522h%2522%253A90%252C%2522text%2522%253A%2522Twelve%2520hours%2520of%2520making%252C%2520with%2520friends%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A48%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522with%2522%252C%2522name%2522%253A%2522In%2520partnership%2520with%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A750%252C%2522w%2522%253A400%252C%2522h%2522%253A80%252C%2522text%2522%253A%2522In%2520partnership%2520with%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A34%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522partner%2522%252C%2522name%2522%253A%2522Partner%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A500%252C%2522y%2522%253A735%252C%2522w%2522%253A480%252C%2522h%2522%253A110%252C%2522image%2522%253A%2522%2Ftools%2Flogo-wall%2Fassets%2Fpartner-name.svg%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522frame%2522%253A%2522board%2522%257D%255D%26w%3D1600%26h%3D900&width=1440&height=1000&dpi=192&waitMs=3000&drive=click%3A.edge-dock-tab%3Ahas-text%28%22Export%22%29%3Bwait%3A2500%3Bclick%3A%5Bdata-action%3D%22preflight-open%22%5D%3Bwait%3A1200&cropSelector=.preflight-modal&format=svg&walker=1&dark=1&filename=partners-before-export)
 
-![联合品牌卡片上的 Before you export：设计系统是 Lolly Demo，合作伙伴的徽标被记为设计系统素材之外的图片，四条内部规则没有需要说明的内容](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fboxes%3D%255B%257B%2522id%2522%253A%2522board%2522%252C%2522name%2522%253A%2522Build%2520day%2520card%2522%252C%2522kind%2522%253A%2522frame%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A0%252C%2522w%2522%253A1600%252C%2522h%2522%253A900%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.sugar%257D%2522%252C%2522clipChildren%2522%253Atrue%257D%252C%257B%2522id%2522%253A%2522dot-large%2522%252C%2522name%2522%253A%2522Large%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1040%252C%2522y%2522%253A70%252C%2522w%2522%253A480%252C%2522h%2522%253A480%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.pandanus%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522dot-small%2522%252C%2522name%2522%253A%2522Small%2520circle%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A1330%252C%2522y%2522%253A380%252C%2522w%2522%253A240%252C%2522h%2522%253A240%252C%2522shape%2522%253A%2522circle%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.green-apple%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522band%2522%252C%2522name%2522%253A%2522Partner%2520band%2522%252C%2522kind%2522%253A%2522box%2522%252C%2522x%2522%253A0%252C%2522y%2522%253A680%252C%2522w%2522%253A1600%252C%2522h%2522%253A220%252C%2522shape%2522%253A%2522rect%2522%252C%2522bg%2522%253A%2522%257Bcolor.brand.avocado%257D%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522lolly%2522%252C%2522name%2522%253A%2522Lolly%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A96%252C%2522w%2522%253A260%252C%2522h%2522%253A90%252C%2522image%2522%253A%2522lolly%2Flogo%2Fhorizontal%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522imgpos%2522%253A%2522left%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522headline%2522%252C%2522name%2522%253A%2522Headline%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A260%252C%2522w%2522%253A880%252C%2522h%2522%253A180%252C%2522text%2522%253A%2522Build%2520day%25202026%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.liquorice%257D%2522%252C%2522fontSize%2522%253A120%252C%2522weight%2522%253A%2522700%2522%252C%2522font%2522%253A%2522display%2522%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522sub%2522%252C%2522name%2522%253A%2522Subtitle%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A450%252C%2522w%2522%253A880%252C%2522h%2522%253A90%252C%2522text%2522%253A%2522Twelve%2520hours%2520of%2520making%252C%2520with%2520friends%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A48%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522with%2522%252C%2522name%2522%253A%2522In%2520partnership%2520with%2522%252C%2522kind%2522%253A%2522text%2522%252C%2522x%2522%253A120%252C%2522y%2522%253A750%252C%2522w%2522%253A400%252C%2522h%2522%253A80%252C%2522text%2522%253A%2522In%2520partnership%2520with%2522%252C%2522fg%2522%253A%2522%257Bcolor.brand.basalt%257D%2522%252C%2522fontSize%2522%253A34%252C%2522align%2522%253A%2522left%2522%252C%2522valign%2522%253A%2522middle%2522%252C%2522frame%2522%253A%2522board%2522%257D%252C%257B%2522id%2522%253A%2522partner%2522%252C%2522name%2522%253A%2522Partner%2520logo%2522%252C%2522kind%2522%253A%2522image%2522%252C%2522x%2522%253A500%252C%2522y%2522%253A735%252C%2522w%2522%253A480%252C%2522h%2522%253A110%252C%2522image%2522%253A%2522%2Ftools%2Flogo-wall%2Fassets%2Fpartner-name.svg%2522%252C%2522fit%2522%253A%2522contain%2522%252C%2522frame%2522%253A%2522board%2522%257D%255D%26w%3D1600%26h%3D900&width=1440&height=1000&dpi=192&waitMs=3000&drive=click%3A.edge-dock-tab%3Ahas-text%28%22Export%22%29%3Bwait%3A2500%3Bclick%3A%5Bdata-action%3D%22preflight-open%22%5D%3Bwait%3A1200&cropSelector=.preflight-modal&format=svg&walker=1&dark=1&filename=partners-before-export)
+匯出檔案的[設計系統記錄](/info/exporting.html#the-design-system-record)會列出主導品牌的設計系統與配色方案。它不會記錄合作夥伴的品牌，除非是在 Lolly Work 合作夥伴計畫中，這時也會列出作品所屬的合作夥伴公司與計畫。
 
-导出文件的[设计系统记录](/info/exporting.html#the-design-system-record)会给出主导品牌的设计系统和配色方案。它不会记录合作伙伴的品牌。
+### 將各品牌的技能交給代理程式
 
-### 把各品牌的技能交给AI 代理
+由代理程式製作作品時，將兩個品牌的技能原樣交給它，並告訴它哪個品牌主導。各品牌的技能保留自己的名稱與 id。Lolly 不會合併兩個品牌的技能，也不會決定哪個品牌優先。
 
-由AI 代理完成工作时，请把主导品牌的技能和合作伙伴的技能原样交给AI 代理，并告诉它哪个品牌居主导。每个品牌的技能保留各自的名称和 id。Lolly 不会合并两个品牌的技能，也不会决定哪个品牌优先，它只检查主导品牌的内部规则。
+<!--i:eti-grid-->
+## 贊助商與活動標誌牆
 
-## 赞助商与活动标志墙
+[Lolly Logo Wall](/#/tool/logo-wall) 工具會將標誌排列成均勻的格線，用於贊助商看板、合作夥伴投影片或媒體背板。活動通常由主辦單位的品牌主導：標誌牆使用主辦單位的設計系統製作，各贊助商的標誌則作為圖稿放在牆上。
 
-[标志墙](/#/tool/logo-wall)工具会把一堆徽标排成整齐的网格，可用于赞助商展板、合作伙伴幻灯片或新闻背景板。在活动中，主办方通常是主导品牌：标志墙用主办方的设计系统制作，每位赞助商的徽标作为图稿放在墙上。
+![深綠色背景的三級贊助商牆，所有標誌皆為白色：兩個金級合作夥伴、三個銀級合作夥伴與五個社群合作夥伴，各級都有自己的標題，級別每降低一級，標誌就縮小一級](/t/url-shot?url=%2F%23%2Ftool%2Flogo-wall%3Flogos%3D%255B%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fyour-logo.svg%2522%252C%2522tier%2522%253A%2522Gold%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Flogo-here.svg%2522%252C%2522tier%2522%253A%2522Gold%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fcompany.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fsponsor.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fbrand-name.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fsample-co.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fexample.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Florem-ipsum.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fplaceholder.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fpartner-name.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%255D%26columns%3D3%26gap%3D64%26padding%3D96%26background%3D033633%26headingColor%3Dffffff%26vectorizeAll%3Dtrue%26inkColor%3Dffffff%26transparentBg%3Dfalse&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&format=svg&walker=1&filename=partners-logo-wall&try=1)
 
-![深绿色背景上分三层的赞助商墙，所有徽标都以白色绘制：两个 Gold 合作伙伴、三个 Silver 合作伙伴和五个 Community 合作伙伴，每一层各有标题，较低的一层逐级缩小](/t/url-shot?url=%2F%23%2Ftool%2Flogo-wall%3Flogos%3D%255B%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fyour-logo.svg%2522%252C%2522tier%2522%253A%2522Gold%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Flogo-here.svg%2522%252C%2522tier%2522%253A%2522Gold%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fcompany.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fsponsor.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fbrand-name.svg%2522%252C%2522tier%2522%253A%2522Silver%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fsample-co.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fexample.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Florem-ipsum.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fplaceholder.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%252C%257B%2522logo%2522%253A%2522%252Ftools%252Flogo-wall%252Fassets%252Fpartner-name.svg%2522%252C%2522tier%2522%253A%2522Community%2520partners%2522%257D%255D%26columns%3D3%26gap%3D64%26padding%3D96%26background%3D033633%26headingColor%3Dffffff%26vectorizeAll%3Dtrue%26inkColor%3Dffffff%26transparentBg%3Dfalse&width=1440&height=900&dpi=192&waitMs=4000&cropSelector=%23tool-canvas&format=svg&walker=1&filename=partners-logo-wall&try=1)
+1. 開啟 Lolly Logo Wall，將標誌拖放到 **Logos**。每個標誌都有自己的一組控制項。
+2. 為每個標誌指定 **Tier**，例如「金級合作夥伴」。每個級別都有自己的列，依級別首次出現的順序排列在各自的標題下；**Tier headings** 可關閉標題。當 **Tier sizes** 設為 **Step down**，每降低一級，每列就多放一個標誌，因此較高級別看起來較大。**Presence** 與 **Size %** 可在級別內調整單一標誌。
+3. 保持 **Balance sizes** 開啟。Lolly Logo Wall 會依視覺重量調整每個標誌的大小，較厚重的縮小、較輕盈的放大，讓每個級別看起來均衡。
+4. **Trim margins** 會將每個標誌裁切到圖稿邊緣。如果標誌檔案已包含擁有者要求的淨空區，請關閉此選項。
+5. **Remove white backgrounds** 會清除從投影片複製的標誌常帶有的白色方框。
+6. 在 **Layout** 下設定 **Columns**、間距與內距。**Background** 的初始值是你設計系統的表面色彩。
+7. 若要製作單色牆，開啟 **Render all as vector** 並選擇 **Ink colour**，或將單一標誌的 **Filter** 設為 **Greyscale**。只有各贊助商的指南允許時才使用單色版本。
+8. 若要製作媒體背板，在 **Step & repeat** 下選擇 **Grid**、**Brick** 或 **Checker**，並設定 **Rows** 數量。
 
-1. 打开标志墙，把徽标拖到 **Logos** 上。每个徽标都有自己的一组控件。
-2. 给每个徽标设置一个 **Tier**，例如“金牌合作伙伴”。每个层级按首次出现的顺序各占几行，并有自己的标题；**Tier headings** 可关闭标题。把 **Tier sizes** 设为 **Step down** 后，每个较低层级每行多容纳一个徽标，所以较高层级显得更大。**Presence** 和 **Size %** 仍可在层级内微调单个徽标。
-3. 保持 **Balance sizes** 开启。标志墙按光学重量决定每个徽标的大小，所以视觉厚重的徽标会缩小，较轻的会放大，让每一层看起来均衡。
-4. **Trim margins** 会把每个徽标裁剪到只剩图稿。如果徽标文件本身已包含其所有者要求的留白，请关闭该选项。
-5. **Remove white backgrounds** 会去掉从幻灯片复制的徽标常带的白色方框。
-6. 在 **Layout** 下设置 **Columns**、间距和内边距。**Background** 起初是你的设计系统的表面颜色。
-7. 要做单色墙，请开启 **Render all as vector** 并选择 **Ink colour**，或把某个徽标的 **Filter** 设为 **Greyscale**。只有在各赞助商的指南允许单色版本时才使用。
-8. 要做新闻背景板，请在 **Step & repeat** 下选择 **Grid**、**Brick** 或 **Checker**，并设置 **Rows** 的数量。
+將標誌牆匯出為 PNG、SVG、PDF，或供印刷用的 CMYK PDF。在匯出面板設定不同的尺寸與形狀，例如 1080 x 1920 的直式限時動態或 A4 頁面，畫布就會重新排列標誌牆以填滿該形狀，每列的標誌數量會隨之增減。匯出結果與畫布一致。若要將標誌牆放到海報上，在 Lolly Design 工具列的新增選單中選擇 **Image**，畫一個框架，再於選擇器的 **Tools** 分頁選擇 Lolly Logo Wall（[設計中的工具](/info/design.html#tools-inside-a-design)）。若要在標誌之間放入說明文字，可在 Lolly Design 中將 **Dynamic layout** 設為 **grid**，讓每個標誌各佔一個圖片方塊（[Lolly Design 中的版面](/info/design-layout.html#dynamic-layouts)）。
 
-可将标志墙导出为 PNG、SVG、PDF，或用于印刷的 CMYK PDF。在导出面板中设置其他尺寸和形状，例如竖版 1080 x 1920 的快拍或 A4 页面，画布会显示重新排布后填满该形状的标志墙，每行的徽标会更少或更多。导出的就是画布上的标志墙。要把标志墙放到海报上，请在 Design 中通过侧栏添加菜单选择 **Image**，画一个框，然后在选择器的 **Tools** 标签页中选取标志墙（[设计中的工具](/info/design.html#tools-inside-a-design)）。如果要在徽标之间加说明文字，Design 中设为 **grid** 的 **Dynamic layout** 会为每个徽标提供一个图片框（[Design 中的版面](/info/design-layout.html#dynamic-layouts)）。
+在終端機中，`lolly run logo-wall logos/*.png --output=wall.svg` 會從一個圖片資料夾建立標誌牆，而含有 `logo` 與 `tier` 欄的 CSV 則會建立分級標誌牆。SVG 與 PNG 不需要瀏覽器（[分級贊助商牆](/info/cli-rendering.html#a-sponsor-wall-with-tiers)）。
 
-在终端中，`lolly run logo-wall logos/*.png --output=wall.svg` 会用一个图片文件夹生成标志墙，带有 `logo` 和 `tier` 列的 CSV 则生成分层的标志墙。SVG 和 PNG 不需要浏览器（[分层的赞助商墙](/info/cli-rendering.html#a-sponsor-wall-with-tiers)）。
+當贊助商發布[品牌頁面](/info/brand-page.html)時，`lolly run logo-wall --logos-from=<address or folder>` 會取得目前適用於該表面色彩的標誌，並列印頁面上的使用說明。為每個贊助商重複指定此旗標。
 
-当赞助商发布[品牌页面](/info/brand-page.html)时，`lolly run logo-wall --logos-from=<address or folder>` 会为该界面获取他们当前的徽标，并打印他们的页面对使用方式的说明。每个赞助商重复一次该参数。
+Lolly Logo Wall 不知道任何贊助商的規範。Tiers 與 Presence 設定的是標誌彼此的相對大小，而非贊助商要求的最小尺寸，也不會檢查相鄰標誌之間的淨空區。請以實際列印或顯示的大小，對照各贊助商的指南檢查完成的標誌牆。
 
-标志墙不了解任何赞助商的规则。Tier 和 Presence 设定的是各徽标之间的相对大小，而不是赞助商的最小尺寸，也没有任何检查会核对相邻徽标之间的留白。请按完成的标志墙实际印刷或展示的尺寸，对照每位赞助商的指南检查。
+<!--i:eti-hammer-->
+## Lolly 目前還做不到的事
 
-## Lolly 目前还不能做什么
+- 作品只在一個設計系統中繪製。合作夥伴的色彩、字體與規範不會在作品內構成另一個設計系統，合作夥伴的標誌是一張圖片。
+- 在 Lolly Work 合作夥伴計畫以外，應用程式不會儲存或檢查合作夥伴的規範：淨空區、最小尺寸，以及單色或反白等允許的處理方式。
+- 合作夥伴套件是包含合作夥伴標誌、色彩與規範的輕量套件，供其他品牌的作品使用；只有透過 Lolly Work 合作夥伴計畫才能將它帶入應用程式。在其他情況下，套件檢查需從終端機執行：`lolly check --kit=<file>` 會測量 Lolly Design 文件中的合作夥伴標誌（[檢查重製結果](/info/cli-decks.html#check-the-recreation)）。
+- Lolly 不會將兩個標誌自動組合成「與」、「合作夥伴」或「由」的配置。請將完成的組合標誌新增為自訂標誌。
+- 整部裝置只使用一個設計系統，因此無法並排開啟兩個品牌。
+- 從應用程式匯出的設計系統檔案不含品牌技能，因此請將技能作為獨立檔案傳送。
+- 從品牌頁面取得的標誌只是該列中的圖片，該列不會記住來源頁面。沒有任何資訊顯示頁面發布者，因此請自行檢查位址。
+- 託管的網頁應用程式無法擷取其他品牌的頁面，因為其 Content Security Policy 只允許指定的主機。請在終端機取得標誌，或儲存檔案後將它新增到 **Assets**。
 
-- 一件作品只在一个设计系统中绘制。合作伙伴的颜色、字体和规则不会成为作品内的设计系统，合作伙伴的标志只是一张图片。
-- 合作伙伴的规则不会被保存，也不会被检查：留白、最小尺寸，以及单色或反白等允许的处理方式。Lolly 只检查主导品牌的内部规范。
-- 目前还没有合作伙伴套件：一种轻量的包，用来保存合作伙伴的徽标、颜色和规则，以便在另一个品牌的作品中使用。
-- Lolly 不会为“联合”“与……合作”或“由……出品”这类安排，用两个标志生成组合标志。请把完成的组合标志添加为自定义标志。
-- 整台设备同一时间只有一个设计系统处于使用状态，所以无法并排打开两个品牌。
-- 设计系统文件是品牌在导出时的一份副本，不会有任何东西更新这份副本。从应用导出的设计系统文件不含品牌技能，请把它们作为单独的文件发送。
-- 导出文件记录的是主导品牌的设计系统和配色方案，而不是合作伙伴的品牌。
-- 从品牌页面获取的徽标是它所在行中的一张图片，该行不会记住这个页面。没有任何迹象显示谁发布了某个页面，所以请自行核对地址。
-- 托管的网页应用无法获取其他品牌的页面，因为它的内容安全策略只允许指定的主机。请在终端中获取徽标，或保存文件并在 **Assets** 中添加该文件。
+<!--i:eti-map-pin-->
+## 接下來看什麼
 
-## 接下来去哪里
-
-- **[品牌架构](/info/brand-architectures.html)**：联合品牌、白标及其他安排，以及在 Lolly 中各自该怎么做。
-- **[分享带规则的设计](/info/create-a-tool.html)**：版面固定、输入项由你选择的可复用工具。
-- **[品牌技能](/info/brand-skills.html)**：技能如何编写、阅读并交给 AI 代理。
-- **[Lolly Design System Setup](/info/brand-studio.html)**：徽标、自定义标志，以及在设备之间迁移设计系统。
-- **[品牌页面](/info/brand-page.html)**：在同一个地址发布你的品牌，并从合作伙伴的页面获取其徽标。
-- **[创作权益与署名](/info/creative-rights.html)**：Lolly 对所绘作品记录了哪些内容。
+- **[品牌架構](/info/brand-architectures.html)**：聯名、白牌與其他安排，以及各種情況在 Lolly 中的做法。
+- **[執行合作夥伴計畫](/info/manage/run-a-partner-programme.html)**：合作夥伴在你的 Lolly Work 上能取得什麼，以及如何設定與執行計畫。
+- **[分享附有規則的設計](/info/create-a-tool.html)**：可重複使用的工具，具有固定版面與你選擇的輸入。
+- **[品牌技能](/info/brand-skills.html)**：如何撰寫、閱讀技能並交給代理程式。
+- **[Lolly Design System Setup](/info/brand-studio.html)**：標誌、自訂標誌，以及在裝置間移動設計系統。
+- **[品牌頁面](/info/brand-page.html)**：在單一位址發布你的品牌，並從合作夥伴的頁面取得其標誌。
+- **[創作權利與署名](/info/creative-rights.html)**：Lolly 為其繪製的作品記錄哪些資訊。

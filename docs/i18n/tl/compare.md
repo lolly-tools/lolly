@@ -1,50 +1,53 @@
 # Paghahambing ng Lolly, tool por tool
 
-Kung gumagamit ka na ng ibang produkto, sinasabi ng mga pahinang ito kung pinapalitan ng Lolly ang produktong iyon, gumagana kasabay nito o hindi bagay sa gawa mo. Ang bawat isa ay nagsisimula sa kung ano ang mas mahusay na ginagawa ng ibang produkto.
+Sinasabi ng mga pahinang ito kung pinapalitan ng Lolly ang ibang produkto, gumagana kasabay ng produktong iyon o hindi bagay sa gawain mo. Nagsisimula ang bawat pahina sa kung ano ang mas mahusay na ginagawa ng ibang produkto.
 
 _Huling sinuri: 28 Setyembre 2026._
 
+<!--i:eti-grid-->
 ## Ihambing ayon sa produkto
 
-- [Lolly at Canva](/info/compare-canva.html) - mga template, pang-araw-araw na disenyo at shared na brand production.
-- [Lolly at Adobe](/info/compare-adobe.html) - pag-edit, conversion, propesyonal na output at Content Credentials.
-- [Lolly at Figma](/info/compare-figma.html) - disenyo, live na collaboration at magagamit muling asset production.
-- [Lolly at Penpot](/info/compare-penpot.html) - open-source na disenyo, shared token at gawa ng organisasyon.
-- [Lolly at mga brand portal](/info/compare-brand-portals.html) - aprubadong library, naka-lock na template, identity, review at pag-uulat.
-- [Lolly at mga rendering API](/info/compare-render-apis.html) - automated na paggawa sa device mo, sa CI o sa sarili mong server, at [kung paano lumipat](/info/work-move-from-render-api.html) mula sa Bannerbear o Placid.
-- [Lolly at mga online file converter](/info/compare-converters.html) - format conversion sa sarili mong device.
+- [Lolly at Canva](/info/compare-canva.html) - mga template, pang-araw-araw na design at magkakasamang paggawa para sa brand.
+- [Lolly at Adobe](/info/compare-adobe.html) - pag-edit, pag-convert, propesyonal na output at Content Credentials.
+- [Lolly at Figma](/info/compare-figma.html) - design, live na collaboration at paggawa ng asset na magagamit muli.
+- [Lolly at Penpot](/info/compare-penpot.html) - open-source na design, mga pinagsasaluhang token at gawain ng organisasyon.
+- [Lolly at mga brand portal](/info/compare-brand-portals.html) - mga aprubadong library, nakakandadong template, pagkakakilanlan, pagsusuri at pag-uulat.
+- [Lolly at mga rendering API](/info/compare-render-apis.html) - awtomatikong pagbuo sa device mo, sa CI o sa sarili mong server, at [paano lumipat](/info/work-move-from-render-api.html) mula sa Bannerbear o Placid.
+- [Lolly at mga online file converter](/info/compare-converters.html) - pag-convert ng format sa sarili mong device.
 
-Para sa paghahambing kada capability, tingnan ang [Paano nakikipagkumpitensya ang Lolly](/info/positioning.html). May petsa ang bawat paghahambing; ang pahayag na hindi na tumutugma sa alinman sa dalawang produkto ay kailangang itama.
+Nasa [Paano maihahambing ang Lolly](/info/positioning.html) ang pagtingin sa bawat kakayahan. May petsa ang bawat paghahambing. Kailangang itama ang pahayag na hindi na tumutugma sa alinmang produkto.
 
+<!--i:eti-map-pin-->
 ## Ano ang tumatakbo saan
 
-Sinasaklaw ng bawat paghahambing ang dalawang bahagi ng iisang open-source na proyekto. Ang **Lolly** ay ang engine, mga app at tool. Ang **Lolly Work** ay ang organisation server, pinapanatili sa [lolly-work repository](https://github.com/lolly-tools/lolly-work). Parehong MPL-2.0, at ang organisasyon ang nagpapasya kung aling mga Lolly Work service ang bubuksan.
+Sinasaklaw ng bawat paghahambing ang dalawang bahagi ng iisang open-source na proyekto. Ang **Lolly** ang engine, mga app at tool. Ang **Lolly Work** ang server ng organisasyon, na pinapanatili sa [lolly-work repository](https://github.com/lolly-tools/lolly-work). Parehong MPL-2.0 ang mga ito, at nagpapasya ang organisasyon kung aling mga serbisyo ng Lolly Work ang io-on.
 
 ::: cols
 ## Sa device mo: Lolly
 
-- Walang account sa standalone na paggamit
+- Walang account para sa standalone na paggamit
 - Paggawa, pag-edit, pag-convert at pag-export
-- Gumagana offline kapag na-save na ang mga tool at asset na kailangan
+- Gumagana offline kapag na-save na ang mga tool at asset na kailangan nito
 - Content Credentials na pinipirmahan sa device
-- Mga pribadong collab sa pagitan ng dalawang device, walang server
+- Mga pribadong collab sa pagitan ng dalawang device, na walang server
 
 ## Sa server ng organisasyon mo: Lolly Work
 
-- Single sign-on, SCIM provisioning, mga papel at policy
-- Mga shared catalogue, team project at work collab
-- Mga approval, usage reporting at audit record
-- Server rendering, mababawing job at aprubadong delivery
-- Server signing gamit ang identity ng organisasyon
+- Single sign-on, SCIM provisioning, mga role at policy
+- Mga pinagsasaluhang catalog, proyekto ng team at work collab
+- Mga approval, ulat ng paggamit at audit record
+- Pag-render sa server, mga job na maipagpapatuloy matapos ang aberya at aprubadong paghahatid
+- Pagpirma sa server gamit ang pagkakakilanlan ng organisasyon
 :::
 
-Pinananatili ng standalone na paggamit ang mga file sa device. Ang pagpili ng shared project, work collab, server render o delivery ay nagpapadala ng data na kailangan ng feature na iyon sa server ng organisasyon mo.
+Pinananatili ng standalone na paggamit ang mga file sa device. Kapag pinili mo ang mga pinagsasaluhang proyekto, work collab, server render o paghahatid, ipinapadala sa server ng organisasyon mo ang data na kailangan ng feature na iyon.
 
-## Ang ipinapalagay ng bawat paghahambing
+<!--i:eti-info-->
+## Ang ipinagpapalagay ng bawat paghahambing
 
-Naaangkop ang mga limitasyong ito sa bawat page sa hanay na ito, kaya minsan lang nakasaad dito:
+Naaangkop ang mga limitasyong ito sa bawat pahina sa hanay na ito:
 
-- **Tumatakbo ang mga work collab sa iisang server node ngayon.** Iba ang laki at kasaysayan ng operasyon nila sa mga matagal nang hosted na produkto. Itinatala ng [Lolly Work status at roadmap](/info/work-status.html) ang kasalukuyang mga limitasyon.
-- **Demo sandbox ang site sa [lolly.work](https://lolly.work).** Ang matibay na deployment ng organisasyon ay nangangailangan ng persistent storage at operator; sinasaklaw ng [Install Lolly Work](/info/work-install.html) ang pareho.
-- **Walang per-seat na bayad sa software licence** para sa Lolly o sa self-hosted na Lolly Work. Nagkakahalaga pa rin ang hosting, storage at operasyon.
-- **Ang signature ay hindi pinagkakatiwalaang pumirma.** Dapat pagkatiwalaan ng verifier ang certificate na pumirma sa file bago ipakitang pinagkakatiwalaan ang pumirma; ipinapaliwanag ng [Content Credentials Identity](/info/content-credentials-identity.html) kung paano.
+- **Tumatakbo ngayon ang mga Lolly Work collab sa iisang server node.** Iba ang laki ng operasyon at kasaysayan ng pagpapatakbo ng mga ito sa matatagal nang hosted na produkto. Itinatala ng [Status at roadmap ng Lolly Work](/info/work-status.html) ang kasalukuyang mga limitasyon.
+- **Ang site sa [lolly.work](https://lolly.work) ay demo sandbox.** Kailangan ng pangmatagalang deployment ng organisasyon ang persistent storage at isang operator. Sinasaklaw ng [I-install ang Lolly Work](/info/work-install.html) ang dalawa.
+- **Walang singil sa lisensya ng software sa bawat user** para sa Lolly o self-hosted na Lolly Work. May gastos pa rin ang hosting, storage at pagpapatakbo.
+- **Hindi katumbas ng pinagkakatiwalaang pumirma ang isang pirma.** Ipinapakita lang ng verifier na pinagkakatiwalaan ang pumirma kapag pinagkakatiwalaan ng verifier ang certificate na ginamit sa pagpirma sa file. Ipinapaliwanag ng [Pagkakakilanlan sa Content Credentials](/info/content-credentials-identity.html) kung paano.

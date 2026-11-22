@@ -1,50 +1,53 @@
-# Písně Lolly Rondocode
+# Skladby Lolly Rondocode
 
 <a id="rondocode-songs"></a>
 
-Píseň rondocode je hudba psaná jako kód: syntezátory, vzory a mix, přehrávané při psaní. Lolly umí přehrát píseň pod videem a utilita **Rondocode** umožňuje jednu napsat a exportovat jako zvuk. Obojí zaznamenává píseň v Content Credentials souboru, takže hudba říká, odkud pochází.
+Skladba rondocode je hudba zapsaná jako kód: syntezátory, patterny a mix, které hrají při psaní. Lolly může přehrávat skladbu pod videem a utilita **Rondocode** zapisuje skladby a exportuje je jako zvuk; obě zaznamenávají skladbu v Content Credentials souboru.
 
-## Přehraj píseň v Lolly
+<!--i:eti-music-->
+## Přehrávání skladby v Lolly
 
-Výběr assetů přijímá píseň jako soubor `.rondo` nebo `.rondo.json`, nebo jako vložený sdílený odkaz `rondocode.com`. Píseň je kód, který vytváří vlastní zvuk, takže hraje v jakékoli délce, kterou její klip žádá. Může být **music bed** pod video exportem nebo hrát v ambientním přehrávači Neurospicy Mode.
+Výběr assetů přijímá skladbu jako soubor `.rondo` nebo `.rondo.json` nebo jako vložený odkaz pro sdílení z `rondocode.com`. Skladba hraje po dobu, kterou požaduje její klip. Může sloužit jako **hudební podkres** pod exportem videa nebo hrát v ambientním přehrávači režimu Neurospicy.
 
-Kód písně běží v sandboxu Lolly, bez sítě a bez přístupu k tvým souborům. Jakákoli část, kterou vykreslení nedokáže přehrát, například živý mikrofon nebo zpěv bez hlasových modelů, je uvedena v podrobnostech assetu.
+Kód skladby běží v sandboxu Lolly, bez sítě a bez přístupu k tvým souborům. Každá část, kterou vykreslení nemůže přehrát, například živý mikrofon nebo zpěv bez hlasových modelů, je uvedena v podrobnostech assetu.
 
-Z terminálu bere `lolly mix` píseň jako celou zvukovou stopu; viz [Vykreslování pomocí CLI](/info/cli-rendering.html).
+Z terminálu přijímá `lolly mix` skladbu jako celou zvukovou stopu; viz [Vykreslování CLI](/info/cli-rendering.html).
 
-## Napiš a exportuj píseň
+<!--i:eti-code-->
+## Psaní a export skladby
 
-Otevři nástroj **Rondocode** z **Utilities**, abys napsal píseň v živém editoru rondocode a slyšel ji při psaní. Exportuj ji jako **WAV**, **MP3**, **M4A**, **Opus** nebo **FLAC**, jako ZIP stop, jako **MIDI** nebo jako nahrávku toho, co hraje. Z terminálu zapíše `lolly rondocode --export=mid` stejný soubor MIDI. **Export length** nastavuje, kolik sekund zvukový export trvá. Samotný soubor písně (`.rondo.json`) je tvůj kód tak, jak je psán, a nenese nic přidaného.
+Otevři nástroj **Rondocode** z **Utilities**, napiš skladbu v živém editoru rondocode a poslouchej ji při psaní. Exportuj ji jako **WAV**, **MP3**, **M4A**, **Opus** nebo **FLAC**, jako ZIP samostatných stop, jako **MIDI** nebo jako záznam toho, co právě hraje. Z terminálu zapíše `lolly rondocode --export=mid` stejný soubor MIDI. **Export length** nastavuje, kolik sekund trvá export zvuku. Soubor skladby (`.rondo.json`) je tvůj kód tak, jak je napsaný, bez čehokoli navíc.
 
-Píseň může zpívat svůj text pomocí `sing()`. Zpěv vytvářejí na tvém zařízení stažené hlasové modely a soubor, který drží syntetizovaný zpěv, vždy deklaruje zpěv jako generovaný AI (viz [Funkce AI](/info/ai-features.html)).
+Skladba může zpívat svůj text pomocí `sing()`. Stažené hlasové modely vytvářejí zpěv na tvém zařízení. Soubor obsahující syntetizovaný zpěv vždy deklaruje zpěv jako vytvořený pomocí AI (viz [Funkce AI](/info/ai-features.html)).
 
-## Písně v credential
+<!--i:eti-badge-check-->
+## Skladby v pověření
 
-Video nebo audio export, který hraje píseň rondocode, zaznamenává každou píseň v Content Credentials jako zdroj:
+Export videa nebo zvuku, který přehrává skladbu rondocode, zaznamenává každou skladbu ve svých Content Credentials jako zdroj:
 
-- jméno písně;
+- název skladby;
 - SHA-256 jejího souboru `.rondo.json`;
-- jak byla vykreslena: v sandboxu Lolly, třída provádění `vm`, s verzí a seedem vykreslovače a jakoukoli částí, kterou vykreslení nedokázalo přehrát.
+- jak byla vykreslena: v sandboxu Lolly, ve třídě provádění `vm`, s verzí vykreslovače a počáteční hodnotou generátoru a se všemi částmi, které vykreslení nemohlo přehrát.
 
-Hudba vypočítaná z kódu písně je označena jako algoritmické médium, takže ji Lolly Verify neoznačí jako AI. Před exportem řádek pod **Download** vypisuje písně, které credential zaznamená; po exportu stejný řádek hlásí, co nalezlo čtení doručeného souboru. Zruš zaškrtnutí **C2PA Credentials**, aby se záznam vynechal. Statický obrázek žádnou píseň nezaznamenává, protože nenese žádný zvuk. `lolly mix` a [server MCP](/info/mcp.html) zapisují stejný záznam.
+Hudba vypočítaná z kódu skladby se označuje jako algoritmické médium, takže ji Lolly Verify neoznačuje jako AI. Před exportem řádek pod **Download** vypisuje skladby, které pověření zaznamená. Po exportu stejný řádek hlásí, co zjistilo přečtení doručeného souboru. Zruš zaškrtnutí **C2PA Credentials**, aby se záznam vynechal. Statický obrázek nezaznamenává žádnou skladbu, protože nemá zvuk. Statický obrázek nezaznamenává žádnou skladbu. `lolly mix` a [MCP server](/info/mcp.html) zapisují stejný záznam.
 
+<!--i:eti-file-->
 ## Soubory z utility Rondocode
 
-Většina utilit na zařízení nezapisuje žádný credential, protože transformují soubor, který už vlastníš. Lolly Rondocode vytváří nový zvuk, takže každý zvukový soubor, který zapíše, nese Content Credentials zaznamenávající píseň jako zdroj: její jméno, SHA-256 jejího souboru `.rondo.json` a kde její kód běžel. To pokrývá WAV, MP3, M4A, Opus, FLAC, každou stopu ve ZIP stop a nahrávku toho, co hraje.
+Většina utilit běžících na zařízení nezapisuje pověření, protože transformují soubor, který už vlastníš. Lolly Rondocode vytváří nový zvuk, takže každý zvukový soubor, který zapíše, obsahuje Content Credentials zaznamenávající skladbu jako zdroj: WAV, MP3, M4A, Opus, FLAC, každá samostatná stopa v ZIP se stopami a záznam toho, co právě hraje.
 
-- Vlastní vykreslení editoru běží v jeho soukromém rámu (třída provádění `frame`) a zaznamenávají verzi editoru.
-- Vykreslení z CLI nebo sdíleného odkazu běží ve třídě `vm` a zaznamenává verzi vykreslovače a seed.
-- WAV totéž uvádí také ve svém komentáři RIFF.
-- Hudba vypočítaná z kódu písně je algoritmické médium a není označena jako AI.
+- Vlastní vykreslení editoru běží v jeho soukromém rámci (třída provádění `frame`) a zaznamenávají verzi editoru.
+- Vykreslení vytvořené pomocí CLI nebo odkazu pro sdílení běží ve třídě `vm` a zaznamenává verzi vykreslovače a počáteční hodnotu generátoru.
+- WAV uvádí totéž i ve svém komentáři RIFF.
 
-Když píseň zpívá, soubor deklaruje ten zpěv jako generovaný AI ve strojově čitelné podobě. Typ digitálního zdroje credential je složené médium vytvořené s trénovanými modely, záznam vypisuje zpívané části a jedno oznámení AI C2PA na model identifikuje každý model, jímž zpěv prošel: převod textu na řeč Supertonic-3, zarovnávač fonémů wav2vec 2.0, enkodér ContentVec a hlas RVC, s repozitářem a commitem, z nichž ho Lolly hostuje. Soubor, který drží syntetizovaný zpěv, se nikdy neuloží bez této deklarace.
+Když skladba zpívá, deklarace AI je strojově čitelná. Typ digitálního zdroje pověření je složené médium vytvořené trénovanými modely, záznam vypisuje zpívané části a jedna deklarace použití AI v C2PA pro každý model identifikuje každý model, kterým zpěv prošel: Supertonic-3 pro převod textu na řeč, zarovnávání fonémů wav2vec 2.0, kodér ContentVec a hlas RVC, s repozitářem a commitem, ze kterého jej Lolly hostuje.
 
 ### Co obsahuje soubor MIDI
 
-Soubor MIDI je Standard MIDI File, formát 1. První stopa obsahuje tempo a taktové označení 4/4 a po ní následuje jedna stopa pro každý syntezátor, pojmenovaná podle syntezátoru. Každá nota si zachová svůj začátek, délku a velocity. Syntezátor, jehož název zní jako nástroj, například bass, smyčce, pad nebo piano, dostane odpovídající nástroj General MIDI a název podobný bicím jde na kanál 10. Ladění, které není dvanáctitónové, se zaokrouhlí na nejbližší půltón pomocí pitch bendu.
+Soubor MIDI je Standard MIDI File, formát 1. První stopa obsahuje tempo a taktové označení 4/4, následované jednou stopou pro každý syntezátor, pojmenovanou podle něj. Každá nota si zachovává začátek, délku a dynamiku. Syntezátor, jehož název označuje nástroj, například basu, smyčce, pad nebo klavír, dostane odpovídající nástroj General MIDI a název připomínající bicí jde na kanál 10. Ladění, které není dvanáctitónové, se zaokrouhlí na nejbližší půltón s ohybem výšky tónu.
 
-Soubor MIDI nemůže uchovat, jak píseň zní. Nastavení syntezátorů, filtry, efekty, sběrnice, samply a zpěv v něm nejsou, takže DAW přehraje noty svými vlastními nástroji. Tempo se čte z cyklů písně za sekundu, přičemž jeden cyklus je takt o čtyřech dobách, protože vlastní taktové označení písně není součástí toho, co vykreslovač vrátí.
+Soubor MIDI nemůže obsahovat nastavení syntezátorů, filtry, efekty, sběrnice, samply ani zpěv, takže DAW přehrává noty vlastními nástroji. Tempo se čte z počtu cyklů skladby za sekundu, přičemž jeden cyklus je takt o čtyřech dobách, protože vlastní taktové označení skladby není součástí toho, co vykreslovač vrací.
 
-Soubor MIDI nemá místo pro credential, takže místo toho tvrzení nese textová událost v souboru a panel exportu to říká. Panel to všechno popisuje před exportem a po každém exportu editor čte uložený soubor zpět a hlásí jen to, co čtení našlo.
+Soubor MIDI nemá místo pro pověření, takže prohlášení nese textová událost v souboru a panel exportu tě o tom informuje. Panel to vše popisuje před exportem. Po každém exportu editor znovu přečte uložený soubor a hlásí jen to, co toto čtení zjistilo.
 
-K tomu, co Content Credentials zaznamenávají obecně, viz [Export souboru](/info/exporting.html#content-credentials-c2pa).
+Co Content Credentials obecně zaznamenávají, popisuje [Export souboru](/info/exporting.html#content-credentials-c2pa).

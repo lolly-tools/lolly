@@ -1,53 +1,58 @@
 # Hoe Lolly werkt
 
-Een Lolly-tool bevat de regels voor één soort bestand: de lay-out, de typografie, de kleuren en welke delen anderen mogen wijzigen. Jij, een collega, een script of een AI-agent vult de velden in, en elk bestand komt goed uit. Deze pagina laat zien wie wat doet, en de vier routes van een tool naar een afgerond bestand.
+Een Lolly-tool bevat de regels voor één soort bestand: de lay-out, de typografie, de kleuren en welke onderdelen anderen mogen wijzigen. Jij, een collega, een script of een AI-agent vult de velden in en elk bestand volgt die regels.
 
+<!--i:eti-repeat-->
 ## Eén tool, jouw regels, veel bestanden
 
-De merkregels zitten in de tool, niet in elk bestand dat hij maakt. Krijg de tool één keer goed en elke uitvoer erft dezelfde typografie, kleur en witruimte, of het nu één kaart is of een spreadsheet met rijen in een tiental talen.
+De merkregels zitten in de tool. Stel de tool één keer in en elke uitvoer krijgt dezelfde typografie, kleur en tussenruimte, van één kaart tot een spreadsheet met rijen in twaalf talen.
 
-![Een woordmerktool met één ingevuld veld: typografie, kleur en witruimte werden vastgelegd toen de tool werd gemaakt](/info/shots/aud-rules-in-the-tool.svg)
+![Een woordmerktool met één ingevuld veld: typografie, kleur en tussenruimte zijn vastgelegd toen de tool werd gemaakt](/info/shots/aud-rules-in-the-tool.svg)
 
-Wie het honderdste bestand maakt, typt alleen de woorden. Hoe je het werk controleert, en wie dat doet, blijft jouw beslissing. Lolly maakt wat controle verdient kleiner, en het volgende bestand sneller te maken.
+Wie het honderdste bestand maakt, typt alleen de woorden. Jij bepaalt hoe het werk wordt gecontroleerd en wie dat doet. Met Lolly hoef je minder te controleren en maak je het volgende bestand sneller.
 
-## Wie raakt een tool aan
+<!--i:eti-users-->
+## Wie met een tool werkt
 
-Volg één campagnekaart door een organisatie en er verschijnen drie paar handen. Elk bouwt voort op het vorige.
+Drie rollen binnen een organisatie werken aan één campagnekaart.
 
-![Een ontwerper stelt de regels één keer in een tool in; een ontwikkelaar draait hem vanuit een script en iedereen kan de velden invullen; beiden maken afgeronde bestanden](/info/diagrams/concepts/asset-relay.svg)
+![Een ontwerper legt de regels eenmalig vast in een tool; een ontwikkelaar voert hem uit via een script en iedereen kan de velden invullen; beide leveren afgeronde bestanden op](/info/diagrams/concepts/asset-relay.svg)
 
 ::: timeline
-- <!--i:pentool--> **Een ontwerper stelt de regels in.** Die legt de kaart in Design uit met de typografie en kleuren van het merk, en kiest dan welke velden open blijven. Dat gebeurt één keer, zodat niemand de kaart nog met de hand lokaliseert.
-- <!--i:code--> **Een ontwikkelaar schaalt de tool op.** Dezelfde tool draait in een nachtelijk script via de opdrachtregel, zodat een verse grafiek of een nieuwe taalversie aankomt zonder dat iemand het ontwerp heropent.
-- <!--i:people--> **Iedereen vult hem in.** Een verkoper in het vliegtuig, zonder netwerk en zonder ontwerpopleiding, opent de tool en maakt de kaart voor de vergadering van morgen.
+- <!--i:pentool--> **Een ontwerper legt de regels vast.** Die maakt de kaart in Lolly Design met de typografie en kleuren van het merk en kiest vervolgens welke velden openblijven. Dat gebeurt één keer, zodat niemand de kaart nog handmatig hoeft te lokaliseren.
+- <!--i:code--> **Een ontwikkelaar schaalt de tool op.** Dezelfde tool draait elke nacht in een script via de opdrachtregel. Een actueel diagram of een nieuwe taalversie verschijnt zonder dat iemand het ontwerp opnieuw opent.
+- <!--i:people--> **Iedereen kan hem invullen.** Een verkoper in een vliegtuig, zonder netwerk en zonder ontwerpopleiding, opent de tool en maakt de kaart voor de vergadering van morgen.
 :::
 
-De verse grafiek in de stap van de ontwikkelaar is een render zoals deze, gemaakt van een gegevensstring en een paar instellingen zonder dat iemand een ontwerpbestand opent:
+Het actuele diagram van de ontwikkelaar is een render zoals deze, gemaakt met een gegevensstring en een paar instellingen:
 
-![Een gestapelde vlakgrafiek met titel, de drie reeksen in banden in een koel palet, met assen, legenda en titel allemaal door de sjabloon geplaatst in plaats van met de hand](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
+![Een gestapeld vlakdiagram met een titel en drie reeksen in banden met een koel palet, waarbij assen, legenda en titel door het sjabloon zijn geplaatst in plaats van met de hand](/t/url-shot?url=%2F%23%2Ftool%2Fchart%3FchartType%3Darea%26stackMode%3Dstacked%26palette%3Dcool%26heading%3DProduct%2520mix%2520by%2520quarter%26full&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-lifecycle-chart)
 
-De makkelijke minuut van de verkoper is alleen mogelijk dankzij de zorg van de ontwerper en het script van de ontwikkelaar. Elke rol werkt met dezelfde tool, in plaats van met een apart product.
+Dat de verkoper maar een minuut nodig heeft, komt door de regels van de ontwerper en het script van de ontwikkelaar. Elke rol werkt met dezelfde tool.
 
+<!--i:eti-train-->
 ## Vier routes naar een bestand
 
-Elke route draait dezelfde engine op dezelfde tool, dus het bestand dat een script maakt komt overeen met wat je in de app bekijkt.
+Elke route gebruikt dezelfde engine met dezelfde tool, dus het bestand dat een script maakt, komt overeen met het voorbeeld dat je in de app ziet.
 
-![URL-parameters en opdrachtregelargumenten worden hetzelfde invoermodel, uitgevoerd door één gedeelde runtime en exportbrug](/info/diagrams/concepts/one-render-path.svg)
+![URL-parameters en opdrachtregelargumenten worden hetzelfde invoermodel en gaan door één gedeelde runtime en exportbrug](/info/diagrams/concepts/one-render-path.svg)
 
-- <!--i:people--> **In de app, één tegelijk.** Open een tool, vul de velden in en druk op **Export**. [Maak je eerste bestand](/info/make-something.html) leidt je door één.
+- <!--i:people--> **In de app, één tegelijk.** Open een tool, vul de velden in en druk op **Export**. [Je eerste bestand maken](/info/make-something.html) begeleidt je daarbij.
 - <!--i:layers--> **In de app, veel tegelijk.** [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) (`#/batch`) neemt een geplakte of geïmporteerde tabel en rendert één afgerond bestand per rij.
-- <!--i:cpu--> **Vanuit een script of een AI-agent.** De [CLI](/info/cli.html) draait een tool headless, en met de [MCP-server](/info/mcp.html) kan een agent tools ontdekken en draaien. Een link naar een tool draagt ook zijn invoer, dus een link is een volledig verzoek.
-- <!--i:server--> **Via de server van je organisatie.** [Lolly Work](/info/organisation.html) rendert op de server onder de aanmelding en het toolbeleid van je organisatie, houdt jobs bij die hervat kunnen worden en bewaart de uitvoer voor download of goedgekeurde bezorging.
+- <!--i:cpu--> **Vanuit een script of een AI-agent.** De [CLI](/info/cli.html) voert een tool zonder grafische interface uit en via de [MCP-server](/info/mcp.html) kan een agent tools ontdekken en uitvoeren. Een link naar een tool bevat ook de invoer, dus een link is een volledige aanvraag.
+- <!--i:server--> **Via de server van je organisatie.** [Lolly Work](/info/organisation.html) rendert op de server volgens het aanmeld- en toolbeleid van je organisatie, bewaart taken die hervat kunnen worden en houdt de uitvoer beschikbaar voor downloaden of goedgekeurde bezorging.
 
-Welke route een job kan gebruiken hangt af van de formaten van de tool en wat de host kan: sommige formaten hebben een browser nodig, dus de opdrachtregel geeft ze door aan een browserlaag. [Render with the CLI](/info/cli-rendering.html) noemt welke formaten waar renderen.
+Welke route een taak kan gebruiken, hangt af van de formaten van de tool en de mogelijkheden van de host. Sommige formaten hebben een browser nodig, dus de opdrachtregel draagt ze over aan een browserlaag. [Renderen met de CLI](/info/cli-rendering.html) vermeldt welke formaten waar worden gerenderd.
 
+<!--i:eti-monitor-->
 ## Wat waar draait
 
-Maken, bewerken en exporteren draaien op je apparaat, zonder account. Een functie die een server nodig heeft, zoals Sync of een bestand naar een gekoppelde dienst sturen, verbindt alleen wanneer je die functie gebruikt. Met Lolly Work gebruiken gedeelde projecten, live teambewerking, goedkeuringen en serverjobs de server van je organisatie. [Wat waar draait](/info/compare.html#what-runs-where) zet de twee delen naast elkaar.
+Maken, bewerken en exporteren gebeurt op je apparaat, zonder account. Een functie die een server nodig heeft, zoals Sync of een bestand naar een gekoppelde dienst sturen, maakt pas verbinding als je die functie gebruikt. Met Lolly Work gebruiken gedeelde projecten, live teambewerking, goedkeuringen en servertaken de server van je organisatie. [Wat waar draait](/info/compare.html#what-runs-where) zet de twee onderdelen naast elkaar.
 
-## Lees hierna
+<!--i:eti-graduation-cap-->
+## Verder lezen
 
-- [Maak je eerste bestand](/info/make-something.html), om het nu te proberen.
-- [Start](/info/quickstart.html), om je eigen design system erin te zetten.
+- [Je eerste bestand maken](/info/make-something.html), om het nu te proberen.
+- [Beginnen](/info/quickstart.html), om je eigen design system toe te voegen.
 - [Automatiseren](/info/builders.html), voor de opdrachtregel, links en agents.
-- [Lolly-architectuur](/info/overview.html), voor bijdragers: de engine, de shells en de regels die ze samenhouden.
+- [De architectuur van Lolly](/info/overview.html), voor bijdragers: de engine, de shells en de regels die ze samenhouden.

@@ -1,128 +1,128 @@
 # Soalan & jawapan
 
-Soalan lazim, dirender sebagai akordion pada `/info/start/faq.html`.
+Soalan lazim, dirender sebagai akordion di `/info/start/faq.html`.
 
-**Cara menyelenggara:** setiap tajuk `##` di bawah ialah satu soalan; segala yang berada
-di bawahnya (sehingga `##` berikutnya) ialah jawapannya. Jawapan menggunakan markdown
-ringan yang sama seperti bahagian lain laman ini - pisahkan perenggan dengan satu baris
-kosong. Tambah, buang atau susun semula soalan di sini dan jalankan semula `pnpm run build:info` (atau `pnpm run dev:web`).
-Segala yang di atas `##` pertama (tajuk ini dan nota ini) diabaikan oleh binaan.
+**Cara menyelenggara:** setiap tajuk `##` di bawah ialah soalan. Segala-galanya di bawah tajuk itu,
+sehingga `##` seterusnya, ialah jawapan. Jawapan menggunakan markdown ringan tapak:
+pisahkan perenggan dengan baris kosong. Tambah, alih keluar atau susun semula soalan di sini dan
+jalankan semula `pnpm run build:info` (atau `pnpm run dev:web`).
+Binaan mengabaikan segala-galanya di atas `##` pertama (tajuk ini dan nota ini).
 
-Susunannya ialah susunan orang baru: perangkap dahulu, kemudian fail anda, kemudian mendapatkan
-dan menjalankan Lolly, kemudian organisasi, kemudian bagaimana ia dibuat. Sauh setiap soalan
-dibina daripada soalan Inggeris pada kedudukan yang sama, jadi terjemahan mengekalkan
-susunan Inggeris.
+Susunannya mengikut keperluan pengguna baharu: syarat tersembunyi dahulu, kemudian fail anda, kemudian mendapatkan
+dan menjalankan Lolly, kemudian organisasi, kemudian cara ia dibuat. Sauh setiap soalan
+dibina daripada soalan bahasa Inggeris pada kedudukan yang sama, jadi terjemahan mengekalkan
+susunan bahasa Inggeris.
 
-## Kenapa ia percuma? Apa muslihatnya?
+## Mengapa ia percuma? Apa syarat tersembunyinya?
 
-**Kami membina Lolly untuk diri kami sendiri.** SUSE memerlukan beribu-ribu fail selari jenama, dibuat tanpa menyerahkan apa-apa kepada perkhidmatan luar. Jadi kami membina alat yang melakukan semuanya pada peranti, dan melepaskannya sebagai sumber terbuka, seperti semua yang kami buat. Kami terus menyelenggaranya kerana kami menggunakannya setiap hari. **Tiada kewajipan:** segala-galanya di sini berfungsi dengan atau tanpa kami.
+**Kami membina Lolly untuk diri sendiri.** SUSE memerlukan beribu-ribu fail yang mematuhi jenama, dibuat tanpa menyerahkan apa-apa kepada perkhidmatan luar. Jadi kami membina alat yang melakukan semuanya pada peranti, dan mengeluarkannya sebagai sumber terbuka, seperti segala-galanya yang kami buat. Kami terus menyelenggaranya kerana kami menggunakannya setiap hari. **Tiada kewajipan:** semua di sini berfungsi dengan atau tanpa kami.
 
-Garis itu dilukis dalam lesen, bukan dalam janji: apa-apa yang berjalan secara setempat adalah percuma, selama-lamanya. Versi yang dikeluarkan dilesenkan supaya tidak boleh ditarik balik, dan tiada perjanjian penyumbang yang boleh melesenkan semula kerja sesiapa.
+Batas itu ditetapkan dalam lesen, bukan janji: apa-apa yang berjalan secara setempat adalah percuma, selama-lamanya. Versi yang telah dikeluarkan dilesenkan supaya ia tidak boleh ditarik balik. Tiada perjanjian penyumbang boleh melesenkan semula kerja sesiapa.
 
-## Berapa banyak yang SUSE simpan secara peribadi? (iaitu bila tikar akan ditarik dari bawah kaki)
+## Berapa banyak yang SUSE rahsiakan? (atau bila ia akan ditarik balik)
 
-Enjin, shell, skema dan alat tanpa jenama ialah sumber terbuka. Cap dagangan dan alat berjenama SUSE ialah bahagian yang kekal persendirian, dan ia sudah diasingkan. Instans awam di [lolly.tools](https://lolly.tools) menjalankan [Lolly Demo](/info/lolly-demo.html), sistem reka bentuk Lolly sendiri.
+Enjin, kerangka aplikasi, skema dan alat yang tidak terikat pada jenama ialah sumber terbuka. Tanda dagangan dan alat berjenama SUSE kekal peribadi dan sudah diasingkan. Instans awam di [lolly.tools](https://lolly.tools) menjalankan [Lolly Demo](/info/lolly-demo.html), sistem reka bentuk Lolly sendiri.
 
-Tiada apa-apa di sini bergantung pada janji: setiap versi yang dikeluarkan kekal sumber terbuka, dan satu-satunya yang ditahan ialah cap dagangan. Apabila syarikat lain menutup sumber Linux perusahaannya pada 2023, SUSE turut mengasaskan [OpenELA](https://openela.org) untuk memastikan kod itu terbuka, pendirian yang sama diwarisi projek ini.
+Tiada apa di sini bergantung pada janji: setiap versi yang dikeluarkan kekal sumber terbuka. Apabila syarikat lain menutup sumber Linux perusahaan mereka pada 2023, SUSE mengasaskan bersama [OpenELA](https://openela.org) untuk mengekalkan kod itu terbuka. Projek ini mewarisi pendirian itu.
 
-Pendedahan penuh: SUSE *sedang* membina perkakasan dalaman untuk menyambungkan Lolly kepada sistem IT-nya sendiri. Itu persediaan dalaman SUSE, bukan pemisahan antara pembangunan awam dan persendirian. Lolly juga bertujuan untuk dibina melalui [Open Build Service](https://openbuildservice.org/), dengan artifak rantaian bekalan selamat yang dihantar oleh [SUSE Application Collection](https://apps.rancher.io/applications).
+SUSE *memang* sedang membina alat dalaman untuk menghubungkan Lolly dengan sistem ITnya sendiri. Itu ialah persediaan dalaman SUSE, bukan pemisahan antara pembangunan awam dan peribadi. Lolly juga menyasarkan pembinaan melalui [Open Build Service](https://openbuildservice.org/), dengan artifak rantaian bekalan yang selamat dihantar oleh [SUSE Application Collection](https://apps.rancher.io/applications).
 
-## Kenapa nama "Lolly Tools"?
+## Mengapa namanya "Lolly Tools"?
 
-**Lolly** kerana kebebasan itu manis, dan kerana di Australia, New Zealand dan Britain, lolly bermaksud gula-gula.
+**Lolly** kerana kebebasan itu manis, dan kerana di Australia, New Zealand dan Britain, lolly ialah gula-gula.
 
-**Tools** kerana sesuatu alat hanya terletak diam sehingga anda mengambilnya. Ia tidak berjalan ketika anda tidak menggunakannya, dan ia tidak memerhati anda ketika anda menggunakannya.
+**Tools** kerana alat tidak bergerak sehingga anda menggunakannya. Ia tidak berjalan apabila anda tidak menggunakannya, dan ia tidak memerhatikan anda semasa anda menggunakannya.
 
 ## Mengapa semuanya hijau?
 
-lolly.tools dibuka dalam [Lolly Demo](/info/lolly-demo.html), sistem reka bentuk contoh Lolly sendiri, dan warna utamanya ialah hijau. Ia contoh, bukan peraturan. Tukar kepada **Lolly Starter**, sistem reka bentuk kosong, atau kepada milik anda dalam [Settings → Design systems](/#/settings?focus=design-systems-section).
+lolly.tools dibuka dalam [Lolly Demo](/info/lolly-demo.html), sistem reka bentuk contoh Lolly sendiri, yang warna utamanya hijau. Tukar kepada **Lolly Starter**, sistem reka bentuk kosong, atau sistem anda sendiri dalam [Settings → Design systems](/#/settings?focus=design-systems-section).
 
-## Bolehkah saya menggunakan jenama saya sendiri?
+## Bolehkah saya menggunakan jenama sendiri?
 
-Ya. **Lolly Design System Setup** (`#/start`) membina sistem reka bentuk daripada satu warna, fail token reka bentuk atau reka bentuk yang siap, dan setiap alat kemudian melukis dengan sistem reka bentuk anda. [Start](/info/quickstart.html#put-your-brand-in) menelusuri tiga laluan itu.
+Ya. **Lolly Design System Setup** (`#/start`) membina sistem reka bentuk daripada satu warna, fail token reka bentuk atau reka bentuk siap. Setiap alat kemudian melukis dengan sistem reka bentuk anda. [Mula](/info/quickstart.html#put-your-brand-in) menelusuri ketiga-tiga laluan.
 
-Sistem reka bentuk yang dibekalkan organisasi atau binaan anda adalah terurus: ia menunjukkan kunci dan kekal baca sahaja, dan anda boleh membuat salinan boleh sunting untuk mengubahnya.
+Sistem reka bentuk yang dibekalkan oleh organisasi atau binaan anda ialah sistem terurus. Ia menunjukkan kunci dan kekal baca sahaja. Untuk mengubahnya, buat salinan boleh sunting.
 
-## Di mana perkara yang saya buat semalam?
+## Di manakah hasil yang saya buat semalam?
 
-Jika anda menekan **Save as** atau **Save**, ia ada dalam **Projects**, pada skrin utama, dalam pelayar atau apl tempat anda menyimpan. Jika anda hanya menekan **Download**, fail berada di tempat pelayar atau sistem anda menyimpan muat turun, dan biasanya salinan ada dalam **Assets**. Alat yang [menyimpan semasa anda bekerja](/info/find-your-work.html#which-tools-save-as-you-work) juga menyimpan kerja yang belum disimpan dalam **Projects**. [Find and recover your work](/info/find-your-work.html) meliputi setiap kes.
+Jika anda menekan **Save as** atau **Save**, kerja anda berada dalam **Projects** pada skrin utama, dalam pelayar atau apl yang anda gunakan untuk menyimpannya. Jika anda hanya menekan **Download**, fail itu berada dalam muat turun pelayar atau sistem anda, dan salinan biasanya berada dalam **Assets**. Alat yang [menyimpan semasa anda bekerja](/info/find-your-work.html#which-tools-save-as-you-work) juga menyimpan kerja yang belum disimpan dalam **Projects**. [Cari dan pulihkan kerja anda](/info/find-your-work.html) meliputi setiap keadaan.
 
 ## Saya menutup tab. Adakah kerja saya hilang?
 
-Kerja yang disimpan masih ada dalam **Projek**. Kerja yang belum disimpan hilang, kecuali pada alat yang menyimpan semasa anda bekerja, yang turut menyimpannya dalam **Projek**. Lain kali, tekan **Simpan sebagai** sebelum anda keluar. Lihat [Jika anda menutup tab atau meninggalkan alat](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Kerja tersimpan masih berada dalam **Projects**. Kerja yang belum disimpan hilang, kecuali dalam alat yang menyimpan semasa anda bekerja, yang turut menyimpannya dalam **Projects**. Lain kali, tekan **Save as** sebelum anda keluar. Lihat [Jika anda menutup tab atau meninggalkan alat](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
-## Bolehkah saya berkongsi hasil kerja saya sebagai fail dan bukan pautan?
+## Bolehkah saya berkongsi kerja sebagai fail dan bukannya pautan?
 
-Ya. Apabila pautan tidak dapat membawa segala-galanya, seperti foto anda sendiri atau teks panjang, dialog Share menyatakan apa yang akan hilang dan menawarkan fail **.lolly** sebagai gantinya: satu fail yang memegang reka bentuk, imej yang digunakannya dan, jika anda pilih, alat itu sendiri.
+Ya. Apabila pautan tidak boleh membawa semuanya, seperti foto anda sendiri atau teks panjang, dialog Share menyatakan apa yang akan tertinggal dan menawarkan fail **.lolly**. Satu fail itu mengandungi reka bentuk, imej yang digunakannya dan, jika anda pilih, alat itu.
 
-Anda memutuskan berapa banyak yang dibawa. Nama dan butiran anda masuk hanya jika profil anda ikut serta, dan seni berlesen ditahan melainkan anda memilih untuk menyertakan seni itu. Sesiapa yang membuka fail yang membawa alat ditanya sama ada mereka mempercayai alat itu sebelum ia boleh dijalankan. Lihat [Sharing your work](/info/using.html#sharing-your-work).
+Anda menentukan berapa banyak yang dibawa. Nama dan butiran anda hanya disertakan jika profil anda mengaktifkan penyertaan. Karya seni berlesen tidak disertakan melainkan anda memilih untuk menyertakannya. Sesiapa yang membuka fail yang membawa alat ditanya sama ada mereka mempercayai alat itu sebelum ia boleh berjalan. Lihat [Berkongsi kerja anda](/info/using.html#sharing-your-work).
 
-## Apa yang dilakukan butiran profil saya?
+## Apakah fungsi butiran profil saya?
 
-Butiran anda dalam **Settings** mengisi awal alat yang memintanya, seperti nama pada lencana. Ia kekal pada peranti ini. Jika anda juga menghidupkan pilihan ikut serta, butiran yang anda pilih dimeteraikan ke dalam apa yang anda buat, menamakan anda sebagai sumber. Tiada apa-apa disertakan melainkan anda memilih untuk menyertakan butiran anda.
+Butiran anda dalam **Settings** mengisi awal alat yang memintanya, seperti nama pada lencana. Butiran itu kekal pada peranti ini. Tiada apa dimasukkan ke dalam hasil anda melainkan anda menghidupkan pilihan penyertaan. Kemudian butiran yang anda pilih dimeterai di dalamnya dan menamakan anda sebagai sumber.
 
-Perkongsian dan Sync hanya menghantar kandungan yang anda pilih. Pada instans Lolly Work organisasi, sesi dikongsi dan kerja yang ditadbir juga pergi ke pelayan itu. Lihat [Privacy](/info/privacy.html).
+Perkongsian dan Sync hanya menghantar kandungan yang anda pilih. Pada instans Lolly Work organisasi, sesi bersama dan kerja yang ditadbir turut dihantar ke pelayan itu. Lihat [Privasi](/info/privacy.html).
 
 ## Bagaimana saya mendapatkan apl mudah alih atau desktop?
 
-Muat turun daripada [Install Lolly](/info/install.html). Halaman menyenaraikan setiap binaan untuk macOS, Windows, Linux dan Android, dan menunjukkan cara menyemak fail yang anda muat turun. iPhone dan iPad mendapat **Lolly Tools** daripada App Store; [bahagian iPhone dan iPad](/info/install.html#iphone-and-ipad) mempunyai pautan.
+Muat turun daripada [Pasang Lolly](/info/install.html). Halaman itu menyenaraikan setiap binaan untuk macOS, Windows, Linux dan Android, dan menunjukkan cara menyemak fail yang anda muat turun. iPhone dan iPad mendapatkan **Lolly Tools** daripada App Store. [Bahagian iPhone dan iPad](/info/install.html#iphone-and-ipad) mempunyai pautannya.
 
-Sesiapa juga boleh membina dan mengedarkan salinan apl mereka sendiri, dengan alat dan tetapan yang diperlukan khalayak mereka. [Build Guide](/info/build-guide.html) menunjukkan caranya.
+Sesiapa sahaja juga boleh membina dan mengedarkan salinan apl sendiri, dengan alat dan tetapan yang diperlukan khalayak mereka. [Panduan Binaan](/info/build-guide.html) menunjukkan caranya.
 
-## Lolly menyatakan ia memerlukan WebGPU. Apa yang boleh saya buat?
+## Lolly menyatakan ia memerlukan WebGPU. Apa yang boleh saya lakukan?
 
-Apl web melukis dengan WebGPU, ciri grafik pelayar semasa, dan ia menyemaknya sebelum membuka alat. Cuba ini mengikut susunan:
+Apl web melukis dengan WebGPU, ciri grafik pelayar semasa, dan menyemak WebGPU sebelum membuka alat. Cuba langkah ini mengikut susunan:
 
 1. Kemas kini pelayar anda kepada versi semasa.
 2. Hidupkan pecutan grafik atau perkakasan dalam tetapan pelayar, kemudian mulakan semula pelayar.
-3. Cuba pelayar yang telah diuji: [Supported environments](/info/supported-environments.html) menyenaraikannya.
+3. Cuba pelayar yang telah diuji: [Persekitaran yang disokong](/info/supported-environments.html) menyenaraikannya.
 4. Pada Mac, iPhone atau iPad, [pasang apl](/info/install.html) sebagai gantinya.
 
 ## Bolehkah Lolly menyunting dan merender fail Figma, Penpot, Illustrator atau InDesign saya?
 
-Ya. Buka alat **Design** dan klik **Import a design**: ia menerima **.fig** Figma asli (Save local copy), eksport **.penpot** Penpot, **.ai** atau **.pdf** Illustrator, **.idml** InDesign (File → Export → InDesign Markup) atau **mana-mana SVG**. Anda tidak memerlukan akaun, pemalam atau lesen apl reka bentuk.
+Ya. Buka alat **Design** dan klik **Import a design**: ia menerima fail asli Figma **.fig** (Save local copy), eksport Penpot **.penpot**, Illustrator **.ai** atau **.pdf**, InDesign **.idml** atau **.indd**, dokumen Affinity, Photoshop **.psd**, PowerPoint **.pptx**, CAD **.dxf** atau **mana-mana SVG** ([setiap format yang dibacanya](/info/design-import.html#what-comes-in-from-each-app)). Anda tidak memerlukan akaun, pemalam atau lesen apl reka bentuk.
 
-![Kanvas terbuka Lolly Design - Import reka bentuk berada dalam menu Lolly pada rel alat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Kanvas terbuka Lolly Design - Import a design berada dalam menu Lolly pada bar alat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
-Lapisan tiba sebagai kotak boleh sunting: teks kekal boleh ditaip semula, bentuk kekal bentuk dan imej menyertai pustaka anda sendiri. Simpannya, dan **Share with rules** boleh menukar reka letak menjadi alat yang boleh diisi semula oleh sesiapa yang mempunyai Lolly. Lihat [Import a design](/info/design-import.html).
+Lapisan tiba sebagai kotak boleh sunting. Teks kekal boleh ditaip semula, bentuk kekal sebagai bentuk dan imej menyertai pustaka anda. Setelah reka letak disimpan, **Share with rules** boleh menjadikannya alat yang boleh diisi semula oleh sesiapa yang mempunyai Lolly. Lihat [Import reka bentuk](/info/design-import.html).
 
 ## Bolehkah dua orang bekerja pada reka bentuk yang sama tanpa internet?
 
-Ya. Seorang berkongsi jemputan, sebagai pautan, kod QR atau kod pendek, dan yang lain menerima. Kedua-dua peranti kemudian memegang sesi yang sama secara langsung, termasuk kehadiran dan gelang fokus. Ia berfungsi pada mana-mana rangkaian dikongsi, termasuk hotspot telefon di ruang bawah tanah, kerana tiada pelayan di tengah. Lihat [Working together](/info/collaborate.html). Bagi rakan sekerja pada rangkaian berbeza, instans Lolly Work organisasi menyediakan collab kerja yang disahkan.
+Ya. Seorang berkongsi jemputan (pautan, kod QR atau kod pendek) dan seorang lagi menerimanya. Kedua-dua peranti kemudian memegang sesi yang sama secara langsung, dengan kehadiran dan gelang fokus. Ini berfungsi pada mana-mana rangkaian bersama, termasuk hotspot telefon, kerana tiada pelayan di tengah. Lihat [Bekerja bersama](/info/collaborate.html). Untuk rakan sekerja pada rangkaian berbeza, instans Lolly Work organisasi menyediakan kolaborasi kerja yang disahkan identitinya.
 
-## Apakah itu feature flags?
+## Apakah bendera ciri?
 
-Bendera ciri menghidupkan atau mematikan bahagian Lolly. Dalam penggunaan kendiri, anda memilih tetapan peribadi anda. Organisasi yang menggunakan Lolly Work boleh menetapkan lalai atau menyembunyikan suis terpilih di bawah dasarnya, dan kawalan terurus dilabelkan. Lihat [Use Lolly at your organisation](/info/organisation.html).
+Bendera ciri menghidupkan atau mematikan bahagian Lolly. Dalam penggunaan kendiri, anda memilih tetapan peribadi anda. Organisasi yang menggunakan Lolly Work boleh menetapkan lalai atau menyembunyikan suis terpilih mengikut dasarnya, dan kawalan terurus dilabelkan. Lihat [Gunakan Lolly di organisasi anda](/info/organisation.html).
 
 ![Bendera ciri peribadi dalam apl kendiri; dasar organisasi boleh mentadbir suis terpilih](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
 
 ## Apa yang membezakan utiliti daripada alat?
 
-Utiliti melakukan satu tugas pantas pada fail yang sudah anda ada, seperti memampatkan PDF, menukar foto atau membuang data tersembunyi, dan banyak daripadanya berjalan pada peranti anda tanpa apa-apa dimuat naik. Ia wujud supaya tugas yang biasanya diserahkan orang kepada laman web rawak kekal di dalam Lolly. Memampatkan kontrak, menukar foto percutian dengan lokasinya masih di dalam atau menampal token ke dalam pemformat dalam talian tidak sepatutnya bermakna memberikan fail kepada tapak dengan pengekalan, bidang kuasa dan model perniagaan yang tidak diketahui. [Lolly Utilities](/info/utilities.html) menyenaraikannya, dan [The trade we never agreed to](/info/status-quo.html) menceritakan kisah di sebaliknya.
+Utiliti melakukan satu tugas pantas pada fail yang sudah anda miliki, seperti memampatkan PDF, menukar foto atau membuang data tersembunyi. Banyak utiliti berjalan pada peranti anda tanpa memuat naik apa-apa. Utiliti mengekalkan dalam Lolly tugas yang biasanya diserahkan kepada laman web sebarangan. Memampatkan kontrak, menukar foto percutian yang masih menyimpan lokasi atau menampal token ke dalam pemformat dalam talian tidak sepatutnya bermakna menyerahkan fail kepada tapak dengan pengekalan, bidang kuasa dan model perniagaan yang tidak diketahui. [Lolly Utilities](/info/utilities.html) menyenaraikannya, dan [Pertukaran yang tidak pernah kita persetujui](/info/status-quo.html) menceritakan kisah di sebaliknya.
 
-![Paparan Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image dan tugas pada peranti yang lain, semuanya di satu tempat](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
+![Paparan Utilities: Lolly Strip Hidden Data, Compress PDF, Convert Image dan tugas lain pada peranti, semuanya di satu tempat](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=use-utilities&try=1)
 
-## Bolehkah organisasi kami menggunakan SSO, projek dikongsi dan kelulusan?
+## Bolehkah organisasi kami menggunakan SSO, projek bersama dan kelulusan?
 
-Ya, dengan **Lolly Work**, pelayan organisasi projek sumber terbuka yang sama. Ia berjalan secara berasingan dan menambah log masuk tunggal melalui penyedia identiti anda, penyediaan SCIM, kebenaran kumpulan, projek dan aset dikongsi, collab kerja langsung, kelulusan dan rekod audit. Apl harian masih berfungsi sendiri.
+Ya, dengan **Lolly Work**, pelayan organisasi bagi projek sumber terbuka yang sama. Ia berjalan secara berasingan dan menambah log masuk tunggal melalui penyedia identiti anda, penyediaan SCIM, kebenaran kumpulan, projek dan aset bersama, kolaborasi kerja langsung, kelulusan dan rekod audit. Apl harian masih berfungsi sendiri.
 
-[Use Lolly at your organisation](/info/organisation.html) meliputi log masuk dan mencari kerja dikongsi, dan [Deployment](/info/deployment.html#organisation-services-with-lolly-work) meliputi penyediaannya. Kandungan dikongsi dan rekod organisasi mengikut dasar privasi dan pengekalan instans itu.
+[Gunakan Lolly di organisasi anda](/info/organisation.html) meliputi log masuk dan mencari kerja bersama. [Pelaksanaan](/info/deployment.html#organisation-services-with-lolly-work) meliputi persediaan Lolly Work. Kandungan bersama dan rekod organisasi mengikut dasar privasi dan pengekalan instans itu.
 
-## Apakah halangan yang mungkin saya hadapi apabila menerima pakai Lolly?
+## Apakah halangan yang boleh dijangka apabila mula menggunakan Lolly?
 
-Kebanyakannya berubah pada sisi pengeluaran dan bukan teknologi. Pasukan yang mahukan set alat yang ditadbir memerlukan seseorang untuk mengarang sistem reka bentuknya dan templat pertama, walaupun sesiapa boleh mula membuat alat mereka sendiri dalam Lolly Design pada hari pertama, tanpa git. Dan proses sedia ada terus berfungsi walaupun outputnya tersasar daripada jenama, jadi menukar satu output yang kelihatan dengan baik, sebelum dan selepas bersebelahan, membuat kes lebih cepat daripada pelan.
+Kebanyakannya perubahan cara pasukan menghasilkan kerja, bukan teknologi. Pasukan yang mahukan set alat yang ditadbir memerlukan seseorang untuk mengarang sistem reka bentuk dan templat pertamanya. Sesiapa sahaja masih boleh membuat alat sendiri dalam Lolly Design pada hari pertama, tanpa memerlukan git. Proses sedia ada terus berfungsi walaupun outputnya tidak mematuhi jenama. Menukar satu output yang mudah dilihat dengan hasil yang baik, dengan hasil sebelum dan selepas bersebelahan, lebih cepat meyakinkan berbanding rancangan.
 
-[Adoption & Governance](/info/adoption-governance.html) meliputi orientasi mengikut peranan, cara mengukur perintis dan rupa proses tadbir urus.
+[Penerimagunaan & Tadbir Urus](/info/adoption-governance.html) meliputi orientasi mengikut peranan, cara mengukur projek rintis dan bentuk proses tadbir urus yang boleh digunakan.
 
-## Adakah Lolly "vibe coded"?
+## Adakah Lolly dibina melalui "vibe coding"?
 
-Lolly dibangunkan dengan pengekodan dibantu AI, penemuan dibantu AI dan, di banyak tempat, kandungan dibantu AI, menggunakan campuran model dan vendor, termasuk daripada syarikat sempadan awan awam. Seorang manusia mencipta seni bina, menyusun kod dengan sengaja dan mengarahkan seni pengalaman.
+Lolly dibangunkan dengan pengekodan dibantu AI, penemuan dibantu AI dan, di banyak tempat, kandungan dibantu AI, menggunakan gabungan model dan vendor, termasuk daripada syarikat awan awam dengan model termaju. Manusia mencipta seni binanya, memilih dan menyusun kod dengan tujuan yang jelas serta menentukan arah seni pengalaman itu.
 
-Nasihat keselamatan tinggi atau kritikal dalam kebergantungan Lolly menyekat CI. Nasihat yang belum dapat dibaiki ditahan hanya sebagai pengecualian yang diluluskan dengan sebab bertulis. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) menyenaraikan setiap pengecualian yang dipegang hari ini, dan [nota keluaran](https://github.com/lolly-tools/lolly/releases) menyenaraikan yang dibawa setiap keluaran. SECURITY.md juga menyatakan cara melaporkan kerentanan.
+Advisori bertaraf tinggi atau kritikal dalam kebergantungan Lolly menyekat CI. Advisori yang belum boleh diperbaiki hanya ditangguhkan sebagai pengecualian yang diluluskan dengan alasan bertulis. [SECURITY.md](https://github.com/lolly-tools/lolly/blob/main/SECURITY.md#dependency-audit-exceptions) menyenaraikan setiap pengecualian semasa, dan [nota keluaran](https://github.com/lolly-tools/lolly/releases) menyenaraikan pengecualian yang dibawa oleh setiap keluaran. SECURITY.md juga menyatakan cara melaporkan kerentanan.
 
-Semakan dalam binaan juga menolak perkataan yang kedengaran seperti buatan mesin dalam komen kod, apl dan dokumen ini, untuk memastikan teks mudah bagi setiap pembaca. Kesan sampingan ialah pengesan mungkin lebih sukar mengetahui teks mana yang ditulis model. Kami tidak berniat menyebabkannya.
+Semakan dalam binaan turut menolak ungkapan yang kedengaran seperti dihasilkan mesin dalam komen kod, apl dan dokumentasi ini, untuk mengekalkan teks yang jelas bagi setiap pembaca. Kesan sampingannya ialah pengesan mungkin lebih sukar menentukan teks yang ditulis oleh model. Itu bukan tujuan kami.
 
-Yang paling penting, Lolly berdiri di atas bahu kerja sumber terbuka berdekad-dekad oleh pakar di seluruh dunia.
+Yang paling utama, Lolly dibina berasaskan hasil kerja sumber terbuka selama berdekad-dekad oleh pakar di seluruh dunia.
 
 **Pendedahan AI generatif:**
 
@@ -131,24 +131,24 @@ Yang paling penting, Lolly berdiri di atas bahu kerja sumber terbuka berdekad-de
 - **Dokumentasi:** Sonnet 5
 - **Pustaka sumber terbuka:** Pengarang masing-masing, dinyatakan dalam SBOM, komen dan pengepala fail
 
-Senarai ini tidak termasuk model yang divendorkan ke dalam Lolly.
+Senarai ini tidak termasuk model yang disertakan terus dalam Lolly.
 
-**Tuntutan manusia:**
-- **Pengideaan, semakan dan maklum balas:** Ravan Naidoo, Matthias Eckermann, Kelly Andrews, Ryan Kleeman, Peter Chamalian, Penpot Community, Tim Hildred (senarai tidak lengkap)
-- **Seni bina, arahan seni & slop janitor:** Andy Fitzsimon
+**Sumbangan manusia:**
+- **Penjanaan idea, semakan dan maklum balas:** Ravan Naidoo, Matthias Eckermann, Kelly Andrews, Ryan Kleeman, Peter Chamalian, Penpot Community, Tim Hildred (senarai tidak menyeluruh)
+- **Seni bina, arahan seni & pembersih kandungan bermutu rendah:** Andy Fitzsimon
 
 ## Ke mana perginya alat berjenama SUSE?
 
-Ia berada dalam repositori persendirian yang berasingan. Klon awam tidak mengambil pek jenama SUSE langsung, jadi binaan daripadanya menggunakan profil neutral `lolly-start` melainkan anda memilih yang lain: alat komuniti tanpa jenama ditambah jenama kosong yang anda isi dengan milik anda sendiri. [lolly.tools](https://lolly.tools) dibina dengan profil `lolly-demo` dan dibuka dalam [Lolly Demo](/info/lolly-demo.html), sistem reka bentuk Lolly sendiri. SUSE mengendalikan instansnya sendiri untuk melindungi cap dagangannya.
+Alat itu berada dalam repositori peribadi yang berasingan. Klon awam tidak mengambil pek jenama SUSE, jadi binaan daripadanya menggunakan profil neutral `lolly-start` melainkan anda memilih yang lain. Profil itu mempunyai alat komuniti yang bebas jenama dan jenama kosong untuk anda isi dengan jenama sendiri. [lolly.tools](https://lolly.tools) dibina dengan profil `lolly-demo` dan dibuka dalam [Lolly Demo](/info/lolly-demo.html), sistem reka bentuk Lolly sendiri. SUSE mengendalikan instansnya sendiri untuk melindungi tanda dagangannya.
 
-## Logo Lolly itu perisa apa?
+## Apakah perisa logo Lolly itu?
 
-Ada yang kata Limau Nipis, ada yang kata Pudina dan kadangkala Epal, Lolly membawa manisnya, anda yang mewujudkan perisanya!
+Ada yang kata Limau, ada yang kata Pudina dan kadangkala Epal. Lolly membawa kemanisan, dan anda mencipta perisanya.
 
-## Apakah maksud kedaulatan kandungan bagi Lolly?
+## Apakah yang Lolly maksudkan dengan kedaulatan kandungan?
 
-Kawalan ke atas bagaimana kandungan anda dicipta, ditadbir, disimpan dan dipindahkan merentasi sistem yang anda pilih. Lolly menyokong pengeluaran setempat, kerja yang boleh disunting dan alat yang boleh dipindahkan; Lolly Work menambah perkhidmatan dikongsi yang dikawal organisasi. Lesen sumber, kebergantungan yang tersedia dan aliran data kerja itu masih penting. [What is content sovereignty?](/info/content-sovereignty.html) menerangkan setiap kawalan dan batasnya.
+Kawalan terhadap cara kandungan anda dicipta, ditadbir, disimpan dan dipindahkan merentas sistem yang anda pilih. Lolly menyokong penghasilan setempat, kerja boleh sunting dan alat mudah alih. Lolly Work menambah perkhidmatan bersama yang dikawal organisasi. Lesen sumber, kebergantungan yang tersedia dan aliran data dalam aliran kerja masih penting. [Apakah kedaulatan kandungan?](/info/content-sovereignty.html) menerangkan setiap kawalan dan hadnya.
 
 ## Bolehkah kami mengekalkan DAM sedia ada?
 
-Ya. DAM yang disokong boleh kekal sebagai sumber rekod sementara Lolly Work menyambungkan aset terpilih kepada alat Lolly. Akses sumber, suntingan yang dibenarkan, hak penggunaan dan kelulusan output siap ialah keputusan yang berasingan. [Use Lolly with your existing DAM](/info/use-with-dam.html) menerangkan susunan itu, dan [SUSE's Brandfolder experience](/info/suse-brandfolder.html) merekodkan penggunaan yang berjaya semasa penerimaan.
+Ya. DAM yang disokong boleh kekal sebagai sumber rekod rasmi sementara Lolly Work menghubungkan aset terpilih kepada alat Lolly. Akses sumber, suntingan yang dibenarkan, hak penggunaan dan kelulusan output siap ialah keputusan yang berasingan. [Gunakan Lolly dengan DAM sedia ada anda](/info/use-with-dam.html) menerangkan aturan ini, dan [Pengalaman SUSE dengan Brandfolder](/info/suse-brandfolder.html) merekodkan penggunaan yang berjaya semasa penerimagunaan.

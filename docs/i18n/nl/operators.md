@@ -1,28 +1,31 @@
 # Beheren
 
-Lolly draait op het apparaat van elke persoon. Wanneer een team aanmelden, gedeelde projecten, beheerde assets, reviews en serverjobs nodig heeft, voegt een organisatie **Lolly Work** toe, de open-sourceorganisatieserver van hetzelfde project. Deze pagina's zijn voor wie die server opzet en onderhoudt.
+Lolly draait op het apparaat van elke persoon. Deze pagina's zijn voor wie **Lolly Work** beheert, de open-source organisatieserver van het project voor aanmelding, gedeelde projecten, beheerde assets, beoordelingen en servertaken.
 
-Begin met [Lolly gebruiken bij je organisatie](/info/organisation.html) om te zien wat leden krijgen, of [Lolly Work-architectuur](/info/work-overview.html) voor waar de server verantwoordelijk voor is.
+Begin met [Lolly gebruiken in je organisatie](/info/organisation.html) om te zien wat leden krijgen of met [De architectuur van Lolly Work](/info/work-overview.html) om te zien wat de server doet.
 
+<!--i:eti-lock-->
 ## Toegang en beleid instellen
 
-- [Adoption & Governance](/info/adoption-governance.html) behandelt de uitrol en de rol van merkregels.
-- [Identity and sessions](/info/work-identity.html) behandelt aanmelden en groepskoppeling. [Roles and grants](/info/work-permissions.html) legt rollen, toekenningen en de eigenaarsbeveiliging uit.
-- [Policy and governance](/info/work-governance.html) behandelt tooloverlays, vergrendelde inputs en beleid. [Manage organisation AI policy](/info/work-ai-policy.html) behandelt goedkeuringen en uitvoeringsgrenzen.
-- [Account data controls](/info/work-account-lifecycle.html) en [Lolly Work storage and data lifecycle](/info/work-data-lifecycle.html) behandelen exports, offboarding, bewaartermijnen en hun grenzen.
-- [Profiles, brands and tool configuration](/info/configuration.html) behandelt welke tools en design systems een build van Lolly meedraagt.
+- [Invoering & governance](/info/adoption-governance.html) behandelt de uitrol en de rol van merkregels.
+- [Identiteit en sessies](/info/work-identity.html) behandelt aanmelding en groepstoewijzing. [Rollen en rechten](/info/work-permissions.html) legt rollen, rechten en de eigenaarsbeveiliging uit.
+- [Beleid en governance](/info/work-governance.html) behandelt tooloverlays, vergrendelde invoer en beleid. [AI-beleid van de organisatie beheren](/info/work-ai-policy.html) behandelt goedkeuringen en uitvoeringslimieten.
+- [Beheer van accountgegevens](/info/work-account-lifecycle.html) en [Opslag en gegevenslevenscyclus van Lolly Work](/info/work-data-lifecycle.html) behandelen exports, uitdiensttreding, bewaartermijnen en hun grenzen.
+- [Profielen, merken en toolconfiguratie](/info/configuration.html) behandelt welke tools en design systems een build van Lolly bevat.
 
-## Assets koppelen en werk reviewen
+<!--i:eti-link-->
+## Assets verbinden en werk beoordelen
 
-- [Use Lolly with your existing DAM](/info/use-with-dam.html) legt bronautoriteit en gekoppelde productie uit. [The SUSE Brandfolder account](/info/suse-brandfolder.html) legt de ervaring met de invoering vast, en [Plan a DAM transition](/info/dam-transition.html) behandelt een optionele latere overstap.
+- [Lolly gebruiken met je bestaande DAM](/info/use-with-dam.html) legt de gezaghebbende rol van de bron en productie met gekoppelde assets uit. [Het verhaal over SUSE en Brandfolder](/info/suse-brandfolder.html) beschrijft één invoering. [Een DAM-overgang plannen](/info/dam-transition.html) behandelt een optionele latere overstap.
 
-- [Design-system administration](/info/work-design-system-administration.html) behandelt bronnenoverzicht, gereviewde wijzigingen en terugdraaien.
-- [Catalog and content](/info/work-catalog.html) behandelt gedeelde assets en zichtbaarheidsregels. [Provider guides](/info/work-provider-guides.html) geeft de opzet- en verificatievereisten van elk bronplatform.
-- [Approvals](/info/work-approvals.html) behandelt reviewketens en functiescheiding. [Rendering and sharing](/info/work-sharing.html) behandelt links en serveruitvoer.
-- [Invite an agent to a document](/info/work-document-agents.html) behandelt afgebakende documenttoegang, verloop en intrekking. Een uitnodiging verleent geen toegang tot deployment of infrastructuur.
+- [Beheer van design systems](/info/work-design-system-administration.html) behandelt broninventarisatie, beoordeelde wijzigingen en terugdraaien.
+- [Catalogus en inhoud](/info/work-catalog.html) behandelt gedeelde assets en regels voor beschikbaarstelling. [Providergidsen](/info/work-provider-guides.html) geeft de configuratie- en verificatievereisten van elk bronplatform.
+- [Goedkeuringen](/info/work-approvals.html) behandelt beoordelingsketens en functiescheiding. [Renderen en delen](/info/work-sharing.html) behandelt links en serveruitvoer.
+- [Een agent uitnodigen voor een document](/info/work-document-agents.html) behandelt afgebakende documenttoegang, verloop en intrekking. Een uitnodiging geeft geen toegang tot deployments of infrastructuur.
 
+<!--i:eti-search-->
 ## De volgende taak vinden
 
-- [Maken](/info/creators.html) bevat de creatieve taken en teamplaybooks.
-- [Uitrollen](/info/operate.html) behandelt het installeren en onderhouden van Lolly en een Lolly Work-server. De configuratie van een instantie staat los van het contentprofiel van een persoon.
+- [Maken](/info/creators.html) bevat de creatieve taken en draaiboeken voor teams.
+- [Uitrollen](/info/operate.html) behandelt het installeren en onderhouden van Lolly en een Lolly Work-server. De configuratie van een instantie staat los van het inhoudsprofiel van een persoon.
 - [Vertrouwen](/info/trust.html) legt gegevensstromen, handtekeningen en beveiligingsgrenzen uit.

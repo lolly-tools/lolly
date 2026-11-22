@@ -1,92 +1,100 @@
-# Dùng Lolly tại tổ chức của bạn
+# Sử dụng Lolly tại tổ chức của bạn
 
-Tổ chức của bạn có thể chạy Lolly riêng: cùng ứng dụng, với các công cụ và hệ thống thiết kế do tổ chức chọn. Trang này cho thấy cách truy cập, đăng nhập và những gì thay đổi sau đó.
+Tổ chức của bạn có thể vận hành Lolly riêng: cùng ứng dụng với những công cụ và hệ thống thiết kế mà tổ chức đã chọn. Tìm hiểu cách truy cập, đăng nhập và những gì thay đổi.
 
-Nếu bạn đang lên kế hoạch thiết lập cho tổ chức, [Use Lolly with your existing DAM](/info/use-with-dam.html) giải thích cách một thư viện đã duyệt có thể ở nguyên chỗ trong khi mọi người bắt đầu tạo nội dung trong Lolly. [Content sovereignty](/info/content-sovereignty.html) mô tả quyền kiểm soát rộng hơn đối với việc tạo, quản trị, lưu trữ và di chuyển.
+Để lên kế hoạch thiết lập cho tổ chức, [Dùng Lolly với DAM hiện có](/info/use-with-dam.html) giải thích cách giữ nguyên thư viện đã được phê duyệt trong khi mọi người tạo nội dung trong Lolly. [Chủ quyền nội dung](/info/content-sovereignty.html) mô tả quyền kiểm soát rộng hơn đối với việc tạo, quản trị, lưu trữ và khả năng di chuyển nội dung.
 
-::: note Những gì bạn cần từ tổ chức của mình
-Địa chỉ web của Lolly thuộc tổ chức đó, hoặc một tệp thiết lập `.lolly` mà tổ chức của bạn đã tạo. Bản thân lolly.tools không kết nối với một tổ chức nào.
+::: note Những gì bạn cần từ tổ chức
+Địa chỉ web của Lolly do tổ chức vận hành hoặc một tệp thiết lập `.lolly` do tổ chức tạo. Bản thân lolly.tools không kết nối với tổ chức nào.
 :::
 
-## Trên trình duyệt
+<!--i:eti-globe-->
+## Trong trình duyệt
 
-Mở địa chỉ mà tổ chức đã đưa cho bạn. Nếu trang yêu cầu đăng nhập, nhấn **Sign in** và làm theo trang đăng nhập mà nó mở. Sau đó nó hoạt động như bất kỳ Lolly nào, với các công cụ và hệ thống thiết kế của tổ chức bạn.
+Mở địa chỉ tổ chức đã cung cấp. Nếu trang yêu cầu đăng nhập, nhấn **Sign in** và làm theo trang đăng nhập được mở ra. Sau đó, Lolly hoạt động như bình thường với các công cụ và hệ thống thiết kế của tổ chức.
 
-Bạn cũng có thể bắt đầu từ lolly.tools: mở trang **Settings**, và trên thẻ **Lolly instance** nhấn **Open a workspace**, nhập địa chỉ rồi nhấn **Open this instance**. Trình duyệt chuyển tới địa chỉ riêng của tổ chức bạn, vì trình duyệt không thể tải công cụ của một Lolly khác từ lolly.tools.
+Bạn cũng có thể bắt đầu từ lolly.tools: mở chế độ xem **Settings**, rồi trên thẻ **Lolly instance** nhấn **Open a workspace**, nhập địa chỉ và nhấn **Open this instance**. Trình duyệt chuyển đến địa chỉ riêng của tổ chức vì trình duyệt không thể tải công cụ của một Lolly khác từ lolly.tools.
 
-![Thẻ Lolly instance trong Settings, nơi bạn mở không gian làm việc của tổ chức hoặc đổi nơi ứng dụng lấy công cụ](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
+![Thẻ Lolly instance trong Settings, nơi bạn mở không gian làm việc của tổ chức hoặc thay đổi nơi ứng dụng lấy công cụ](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dinstance-section&width=1440&height=1400&dpi=192&waitMs=2000&format=svg&cropSelector=%23instance-section&walker=1&dark=1&filename=org-instance-card)
 
-## Trên ứng dụng máy tính hoặc di động
+<!--i:eti-monitor-->
+## Trong ứng dụng máy tính hoặc di động
 
-Ứng dụng khởi động với các công cụ đi kèm. Để kết nối, mở trang **Settings** và nhấn **Change** trên thẻ **Lolly instance**. Hộp thoại hỏi **Where should Lolly get its tools?**
+Ứng dụng bắt đầu với các công cụ đi kèm. Để kết nối, mở chế độ xem **Settings** và nhấn **Change** trên thẻ **Lolly instance**. Bảng hiện câu hỏi **Where should Lolly get its tools?**
 
-1. Chọn **Kết nối với một phiên bản Lolly**.
-2. Nhập địa chỉ web của tổ chức bạn và nhấn **Kiểm tra & kết nối**.
-3. Nhấn **Dùng phiên bản này**. Màn hình tiếp theo, **Nhập dữ liệu của bạn (tùy chọn)**, mang công việc đã lưu từ một bản sao lưu Lolly sang; nhấn **Bỏ qua** nếu bạn không có.
+1. Chọn **Connect to a Lolly instance**.
+2. Nhập địa chỉ web của tổ chức và nhấn **Check & connect**.
+3. Nhấn **Use this instance**. Màn hình tiếp theo, **Import your data (optional)**, chuyển công việc đã lưu từ bản sao lưu Lolly sang. Nhấn **Skip** nếu bạn không có bản sao lưu.
 4. Đăng nhập nếu ứng dụng yêu cầu.
 
-Các công cụ từ một phiên bản đã kết nối chạy với cùng mức độ tin cậy như của chính ứng dụng, nên chỉ kết nối với một phiên bản bạn tin tưởng. Thay vào đó, tổ chức của bạn có thể gửi cho bạn một tệp thiết lập `.lolly` để kết nối ứng dụng thay bạn.
+Công cụ từ một phiên bản đã kết nối chạy với cùng mức tin cậy như công cụ của ứng dụng, nên chỉ kết nối với phiên bản bạn tin tưởng. Thay vào đó, tổ chức có thể gửi tệp thiết lập `.lolly` để kết nối ứng dụng giúp bạn.
 
-Để chuyển sau này, dùng **Change** lần nữa, hoặc **Leave** trên cùng thẻ.
+Để chuyển sau này, dùng lại **Change** hoặc **Leave** trên cùng thẻ.
 
 ### Đăng nhập bằng mã
 
-Trong ứng dụng máy tính và di động, màn hình đăng nhập còn đưa ra một mã ngắn, khi Lolly của tổ chức bạn hỗ trợ đăng nhập bằng mã. Nhấn **Open sign-in in browser**, đăng nhập và chấp thuận mã ở đó. Hoặc mở địa chỉ nó hiển thị trên điện thoại hay máy tính nơi bạn đã đăng nhập, rồi nhập mã. Mã có hiệu lực khoảng mười phút.
+Trong ứng dụng máy tính và di động, màn hình đăng nhập cũng cung cấp mã ngắn khi Lolly của tổ chức hỗ trợ đăng nhập bằng mã. Nhấn **Open sign-in in browser**, đăng nhập và phê duyệt mã tại đó. Hoặc mở địa chỉ trên màn hình bằng điện thoại hay máy tính mà bạn đã đăng nhập rồi nhập mã. Mã có hiệu lực khoảng mười phút.
 
-## Điều gì khác biệt ở đó
+<!--i:eti-sliders-->
+## Những gì khác ở đó
 
-- **Một số điều khiển được đặt sẵn cho bạn.** Một điều khiển do tổ chức bạn quản trị hiện **Managed by** và tên tổ chức, hoặc **Managed by your organisation**. Điều khiển cố định không thể đổi, một menu có thể chỉ đưa ra một số lựa chọn, và dòng bắt đầu bằng **Set by** có thể cho biết quy tắc nào áp dụng và vì sao. Một số điều khiển không hiện ra.
-- **Một số hệ thống thiết kế bị khóa.** Hệ thống thiết kế do tổ chức bạn cung cấp hiện một khóa và chỉ đọc. Để thử thay đổi, hãy tạo bản sao có thể chỉnh sửa trong **Settings → Preferences → Design systems**.
-- **Chỉ các công cụ của tổ chức được liệt kê.** Công cụ mà tổ chức bạn không cung cấp hoàn toàn không hiện ra.
-- **Dự án chung.** Nếu tổ chức chia sẻ dự án với bạn, **Projects** hiện một ô **Team projects**. Các phiên này nằm trên máy chủ của tổ chức. Mở một phiên để làm việc, hoặc bắt đầu một [work collab](/info/collaborate.html#collabs-through-lolly-work-optional) từ **Share** khi có.
-- **Một số bản xuất có thể cần phê duyệt.** Nơi tổ chức yêu cầu phê duyệt, **Request approval** thay cho **Download**, và một công cụ có thể cung cấp ít định dạng hơn.
+- **Một số điều khiển được đặt sẵn cho bạn.** Điều khiển do tổ chức quản trị hiển thị **Managed by** và tên tổ chức hoặc **Managed by your organisation**. Điều khiển đã cố định không thể thay đổi và menu có thể chỉ cung cấp một số lựa chọn. Một số điều khiển bị ẩn. Bảng quản trị của tổ chức ghi lại quy tắc nào đã cố định điều khiển và lý do. Hãy hỏi người vận hành Lolly của tổ chức.
+- **Một số hệ thống thiết kế bị khóa.** Hệ thống thiết kế do tổ chức cung cấp có biểu tượng khóa và chỉ cho phép đọc. Để thử thay đổi, tạo bản sao có thể chỉnh sửa trong **Settings → Preferences → Design systems**.
+- **Chỉ các công cụ của tổ chức được liệt kê.** Công cụ mà tổ chức không cung cấp sẽ không xuất hiện.
+- **Dự án dùng chung.** Nếu tổ chức chia sẻ dự án với bạn, **Projects** hiển thị ô **Team projects**. Các phiên này nằm trên máy chủ của tổ chức. Mở một phiên để làm việc hoặc bắt đầu [phiên cộng tác công việc](/info/collaborate.html#collabs-through-lolly-work-optional) từ **Share** khi có tùy chọn này.
+- **Một số bản xuất có thể cần phê duyệt.** Khi tổ chức yêu cầu phê duyệt, **Request approval** thay cho **Download** và công cụ có thể cung cấp ít định dạng hơn.
+- **Màn hình chính có thể mở vào các mẫu.** Nếu tổ chức phát hành mẫu cho bạn, chẳng hạn cho một công ty đối tác, màn hình chính sẽ mở vào các mẫu thay vì lời chào lần đầu truy cập. Mỗi mẫu là một thẻ, với **Your copy** để tiếp tục và **New version** khi mẫu thay đổi. Xem [Mẫu cho đối tác](/info/work-partner-templates.html).
 
-### Cái gì ở đâu
+### Những gì được giữ ở đâu
 
 ::: cols
 ## Trên thiết bị này
 
-- Các bản lưu của riêng bạn, trừ khi bạn bật [Sync](/info/sync.html)
-- Các hệ thống thiết kế do chính bạn tạo
-- Mọi thứ bạn tạo và tải xuống
+- Những gì bạn tự lưu, trừ khi bạn bật [Sync](/info/sync.html)
+- Hệ thống thiết kế bạn tự tạo
+- Bất kỳ thứ gì bạn tạo và tải xuống
 
-## Trên máy chủ của tổ chức bạn
+## Trên máy chủ của tổ chức
 
 - Danh tính đăng nhập và thông tin thiết bị của bạn
-- Dự án nhóm, phiên chung và chỉnh sửa trực tiếp trong một work collab
-- Tài nguyên bạn tải lên thư viện chung
-- Yêu cầu phê duyệt và các bản bàn giao đã duyệt
-- Sự kiện sử dụng, nơi tổ chức bạn bật chúng
+- Dự án nhóm, phiên dùng chung và chỉnh sửa trực tiếp trong phiên cộng tác công việc
+- Tài nguyên bạn tải lên thư viện dùng chung
+- Yêu cầu phê duyệt và các lượt bàn giao đã được phê duyệt
+- Nhật ký đăng nhập và hoạt động của bạn tại đó
 :::
 
-[Privacy](/info/privacy.html#organisation-services-with-lolly-work) liệt kê những gì máy chủ lưu và ai kiểm soát dữ liệu đó.
+Khi đã kết nối không gian làm việc, dòng về quyền riêng tư trên màn hình đầu tiên của ứng dụng cũng nêu như vậy. Các ứng dụng của Lolly không gửi sự kiện sử dụng nào đến không gian làm việc. [Quyền riêng tư](/info/privacy.html#organisation-services-with-lolly-work) liệt kê những gì máy chủ lưu và ai kiểm soát dữ liệu đó.
 
-## Lolly Work bổ sung gì
+<!--i:eti-building-->
+## Lolly Work bổ sung những gì
 
-Máy chủ của tổ chức bạn chạy **Lolly Work**, phần mềm tổ chức của cùng dự án mã nguồn mở. Ứng dụng không cần tài khoản công việc hay Lolly Work khi bạn dùng một mình.
+Máy chủ của tổ chức chạy **Lolly Work**, phần mềm dành cho tổ chức thuộc cùng dự án mã nguồn mở. Ứng dụng không cần tài khoản công việc hay Lolly Work khi bạn dùng riêng.
 
-::: details Lolly Work có thể bổ sung gì
-Tổ chức của bạn lưu trữ [Lolly Work](https://github.com/lolly-tools/lolly-work) cùng với Lolly và chọn tính năng nào được bật:
+::: details Những gì Lolly Work có thể bổ sung
+Tổ chức của bạn lưu trữ và vận hành [Lolly Work](https://github.com/lolly-tools/lolly-work) cùng với Lolly và chọn những tính năng cần bật:
 
 - **Đăng nhập và truy cập.** Đăng nhập một lần của tổ chức, quyền theo nhóm và các trường hồ sơ được quản lý. Quản trị viên có thể cấp và vô hiệu hóa tài khoản qua SCIM.
-- **Công việc chung.** Dự án nhóm, phiên chung và [work collab](/info/collaborate.html#collabs-through-lolly-work-optional), với chỉnh sửa trực tiếp qua máy chủ của tổ chức.
-- **Thư viện tài nguyên chung.** Tài nguyên đã tải lên, bộ sưu tập và thư viện đã kết nối, với quy tắc truy cập, phiên bản và xem xét.
-- **Xem xét và bàn giao.** Các bước phê duyệt, liên kết được quản lý có hạn hoặc thu hồi được, và bàn giao tới các đích mà tổ chức cho phép.
-- **Quản trị.** Báo cáo sử dụng theo chính sách telemetry của phiên bản, cùng bản ghi kiểm toán các hành động được quản trị.
-
-Nếu bạn đang thiết lập dịch vụ, hãy bắt đầu với [Deployment](/info/deployment.html#organisation-services-with-lolly-work). Bản demo công khai tại [lolly.work](https://lolly.work) là một sandbox; hãy dùng địa chỉ riêng của tổ chức cho công việc bạn cần giữ.
+- **Công việc dùng chung.** Dự án nhóm, phiên dùng chung và [phiên cộng tác công việc](/info/collaborate.html#collabs-through-lolly-work-optional), với chỉnh sửa trực tiếp qua máy chủ của tổ chức.
+- **Thư viện tài nguyên dùng chung.** Tài nguyên đã tải lên, bộ sưu tập và thư viện đã kết nối, với quy tắc truy cập, phiên bản và khâu xét duyệt.
+- **Xét duyệt và bàn giao.** Các bước phê duyệt, liên kết được quản lý có thời hạn hoặc có thể thu hồi và bàn giao tới những đích mà tổ chức cho phép.
+- **Quản trị.** Bản ghi kiểm toán các hành động được quản trị và báo cáo sử dụng theo chính sách đo lường từ xa của phiên bản dành cho các ứng dụng khách gửi sự kiện sử dụng. Hiện các ứng dụng của Lolly không gửi sự kiện nào.
 :::
 
-## Thương hiệu của một tổ chức khác
+Để thiết lập dịch vụ, bắt đầu với [Triển khai](/info/deployment.html#organisation-services-with-lolly-work). Bản demo công khai tại [lolly.work](https://lolly.work) là môi trường thử nghiệm. Dùng địa chỉ riêng của tổ chức cho công việc bạn cần giữ lại.
 
-Một đối tác, khách hàng hoặc nhà tài trợ có thể gửi bạn thương hiệu của họ dưới dạng tệp hệ thống thiết kế (`.lolly`) thay vì một địa chỉ. Mở loại tệp đó không kết nối ứng dụng với gì cả: nó thêm hệ thống thiết kế của họ bên cạnh hệ thống của bạn trên thiết bị này. Tệp thiết lập từ chính tổ chức của bạn thì khác, vì nó kết nối ứng dụng với Lolly của tổ chức, và bản xem trước cho thấy việc mở một tệp sẽ làm gì trước khi có gì thay đổi. [Working with partners](/info/partners.html) nói về cả hai phía của việc làm việc trong thương hiệu của một tổ chức khác.
+<!--i:eti-palette-->
+## Thương hiệu của tổ chức khác
 
-## Rời đi
+Đối tác, khách hàng hoặc nhà tài trợ có thể gửi thương hiệu của họ dưới dạng tệp hệ thống thiết kế (`.lolly`) thay vì một địa chỉ. Mở tệp đó không kết nối ứng dụng với bất kỳ nơi nào. Tệp thêm hệ thống thiết kế của họ bên cạnh hệ thống của bạn trên thiết bị này. Tệp thiết lập từ chính tổ chức của bạn kết nối ứng dụng với Lolly của tổ chức. Trước khi có thay đổi, bản xem trước cho biết việc mở tệp sẽ làm gì. [Làm việc với đối tác](/info/partners.html) đề cập cả hai phía khi làm việc với thương hiệu của tổ chức khác.
 
-**Leave**, trên thẻ **Lolly instance** trong **Settings**, gỡ hệ thống thiết kế, công cụ và danh mục của tổ chức bạn. Công việc của riêng bạn vẫn còn. Mọi thứ bạn làm bằng các công cụ của nó sẽ không mở lại được cho đến khi bạn kết nối lại.
+<!--i:eti-unlink-->
+## Rời khỏi
 
-Mọi thứ bạn lưu vào tổ chức ở lại với tổ chức, theo chính sách truy cập và lưu giữ của họ. Rời đi hoặc xóa thiết bị này không xóa bản sao trên máy chủ đó. Trong trình duyệt tại địa chỉ riêng của tổ chức bạn, không có gì để rời: hãy mở một địa chỉ khác.
+**Leave**, trên thẻ **Lolly instance** trong **Settings**, xóa hệ thống thiết kế, công cụ và danh mục của tổ chức. Công việc riêng của bạn vẫn còn. Những gì bạn tạo bằng công cụ của tổ chức sẽ không mở lại được cho đến khi bạn kết nối lại. Nếu Lolly của tổ chức có tùy chọn này, **Sign out everywhere** trên cùng thẻ kết thúc các phiên của bạn trên mọi thiết bị, kể cả thiết bị này.
 
+Những gì bạn đã lưu vào tổ chức vẫn ở lại với tổ chức, theo chính sách truy cập và lưu giữ của tổ chức. Rời khỏi hoặc xóa dữ liệu trên thiết bị này không xóa bản sao trên máy chủ. Trong trình duyệt tại địa chỉ riêng của tổ chức, không có kết nối nào để rời khỏi: hãy mở một địa chỉ khác.
+
+<!--i:eti-help-->
 ## Hỏi ai
 
-Những gì đến được máy chủ của tổ chức bạn, ai có thể xem các dự án được chia sẻ của tổ chức đó và những cài đặt nào bị cố định là quyết định của tổ chức bạn. Hãy hỏi bất kỳ ai vận hành Lolly của tổ chức bạn. [Quyền riêng tư](/info/privacy.html) nói về những gì chính Lolly làm với dữ liệu của bạn.
+Những gì được gửi đến máy chủ của tổ chức, ai có thể xem dự án dùng chung và cài đặt nào bị cố định đều do tổ chức quyết định. Hãy hỏi người vận hành Lolly của tổ chức. [Quyền riêng tư](/info/privacy.html) trình bày những gì bản thân Lolly làm với dữ liệu của bạn.
