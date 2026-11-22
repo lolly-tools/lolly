@@ -61,10 +61,11 @@ async function bytesOf(blob: Blob): Promise<Uint8Array> {
 }
 
 /** An SVG export as a picture when it fits one entry, else null (the caller then
- *  draws the raster fallback). */
-export async function svgPicture(svg: Blob | string, facts: WriterFacts = {}): Promise<PreparedPicture | null> {
+ *  draws the raster fallback). With `keepOverLimit` an SVG over the limit is kept as
+ *  it is: a vector picture has no smaller form that stays a vector. */
+export async function svgPicture(svg: Blob | string, facts: WriterFacts & { keepOverLimit?: boolean } = {}): Promise<PreparedPicture | null> {
   const bytes = typeof svg === 'string' ? new TextEncoder().encode(svg) : await bytesOf(svg);
-  if (!bytes.length || bytes.byteLength > PREVIEW_MAX_BYTES) return null;
+  if (!bytes.length || (bytes.byteLength > PREVIEW_MAX_BYTES && !facts.keepOverLimit)) return null;
   const ref = await previewRefFor(bytes, 'image/svg+xml', { route: facts.route ?? 'export-svg', ...(facts.recipe ? { recipe: facts.recipe } : {}) });
   return ref ? { ref, bytes } : null;
 }

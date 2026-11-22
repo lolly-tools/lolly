@@ -17,7 +17,7 @@ import {
   PREVIEW_BLOBS, STATE_LIST, hasPreviewStores, isPrepared, preparePicture, scopeFor, readPictureRow, blobOfRow, dataUrlOfRow,
   type PictureInput, type PreparedPicture, type SessionPreviewRef,
 } from './preview-store.ts';
-import { putStateRecord, deleteStateRecord, recordDataUrl, type StateListRow } from './state-rows.ts';
+import { putStateRecord, deleteStateRecord, recordDataUrl, leanList, leanSizes, type StateListRow } from './state-rows.ts';
 import type { RightsDecisionV1 } from '@lolly-tools/core/rights-v1';
 import type { StateAPI, StateEntry } from '@lolly-tools/core/host-v1';
 import type { RevisionHistoryAPI, RevisionStore } from './revision-history.ts';
@@ -360,7 +360,6 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
 
     async list() {
       if (full) {
-        const { leanList } = await import('./state-list.ts');
         const lean = await leanList(full);
         if (lean) return lean.map(entryOf);
       }
@@ -414,7 +413,6 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
 
     async sizes() {
       if (full) {
-        const { leanSizes } = await import('./state-list.ts');
         const sizes = await leanSizes(full);
         if (sizes) return sizes;
       }

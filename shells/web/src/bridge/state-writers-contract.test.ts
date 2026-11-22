@@ -46,7 +46,7 @@ test('every read-write transaction that names the state store is opened with sco
       const scope = match[1]!;
       if (scope.includes('scopeFor(')) continue;
       // The lean list's own repair writes only lean rows; it reads `state`, writes none.
-      if (path === 'bridge/state-list.ts' && scope.includes('STATE_LIST')) continue;
+      if ((path === 'bridge/state-list.ts' || path === 'bridge/state-rows.ts') && scope.includes('STATE_LIST')) continue;
       const constant = /\b(STORES|REVISION_STORES|RELIEF_STORES|MOVE_STORES)\b/.exec(scope)?.[1];
       const constantNamesState = !!constant && (constant !== 'STORES' || /const STORES = [^;]*'state'/.test(text) || /REVISION_STORES as STORES/.test(text));
       const namesState = /'state'/.test(scope) || constantNamesState;

@@ -14,11 +14,11 @@
  * On a database without the new stores (an upgrade that could not run), the same
  * calls write the record alone, with its picture as a data URL as before.
  */
-import type { IDBPTransaction } from 'idb';
+import type { IDBPDatabase, IDBPTransaction } from 'idb';
 import { indexSavedWork } from './history-index.ts';
 import type { StateRecord } from './state.ts';
 import {
-  STATE_LIST, bindOwner, isPrepared, releaseOwner, sessionOwner, txHasPreviews, putPictureBytes, dataUrlOfRow, PREVIEW_BLOBS,
+  STATE_LIST, bindOwner, isPrepared, releaseOwner, sessionOwner, txHasPreviews, putPictureBytes, dataUrlOfRow, PREVIEW_BLOBS, PREVIEW_INDEX,
   type PictureTx, type PreparedPicture, type PreviewBlobRow, type SessionPreviewRef,
 } from './preview-store.ts';
 import { readPreviewRef, pictureDataUrl } from '../../../../engine/src/session-preview.ts';
@@ -155,3 +155,67 @@ export async function recordDataUrl(tx: Pick<IDBPTransaction<unknown, string[], 
   }
   return typeof record.thumb === 'string' && record.thumb ? record.thumb : null;
 }
+
+/** The row in `preview-index` that says how far the move into the lean list has got. */
+export const LIST_META = 'meta:state-list';
+export interface ListMeta { id: string; kind: 'meta'; complete: boolean; last?: string; at: number }
+
+/**
+ * Every saved session's lean row, or null while the rows are not all built yet
+ * (the caller then reads the records whole, as before). Rows and record keys are
+ * read in one transaction and reconciled: a record with no row gets one, and a row
+ * whose record is gone is dropped, so a write that ever slipped past the shared
+ * writer cannot hide or invent a session.
+ */
+export async function leanList(db: IDBPDatabase): Promise<StateListRow[] | null> {
+  const tx = db.transaction([STATE_LIST, 'state', PREVIEW_INDEX]);
+  const meta = await tx.objectStore(PREVIEW_INDEX).get(LIST_META) as ListMeta | undefined;
+  if (!meta?.complete) { await tx.done; return null; }
+  const [rows, keys] = await Promise.all([
+    tx.objectStore(STATE_LIST).getAll() as Promise<StateListRow[]>,
+    tx.objectStore('state').getAllKeys() as Promise<string[]>,
+  ]);
+  await tx.done;
+  const live = new Set(keys);
+  const have = new Set(rows.map(row => row.slot));
+  const missing = keys.filter(slot => !have.has(slot));
+  const extra = rows.filter(row => !live.has(row.slot));
+  let out = rows;
+  if (missing.length || extra.length) {
+    const fix = db.transaction([STATE_LIST, 'state'], 'readwrite');
+    for (const row of extra) if (!await fix.objectStore('state').count(row.slot)) await fix.objectStore(STATE_LIST).delete(row.slot);
+    const added: StateListRow[] = [];
+    for (const slot of missing) {
+      const record = await fix.objectStore('state').get(slot) as StateRecord | undefined;
+      if (!record) continue;
+      const row = leanRow(record);
+      await fix.objectStore(STATE_LIST).put(row);
+      added.push(row);
+    }
+    await fix.done;
+    out = [...rows.filter(row => live.has(row.slot)), ...added];
+  }
+  // A record whose old picture could not be moved keeps it; its row says so, and
+  // the picture is read off the record (rare: a data URL that does not decode).
+  for (const row of out) {
+    if (!row.legacyThumb) continue;
+    const record = await db.get('state', row.slot) as StateRecord | undefined;
+    row.thumb = typeof record?.thumb === 'string' ? record.thumb : null;
+  }
+  return out;
+}
+
+/** Each session's size from its lean row, or null while the rows are not built. */
+export async function leanSizes(db: IDBPDatabase): Promise<Record<string, number> | null> {
+  const meta = await db.get(PREVIEW_INDEX, LIST_META) as ListMeta | undefined;
+  if (!meta?.complete) return null;
+  const out: Record<string, number> = {};
+  for (const row of await db.getAll(STATE_LIST) as StateListRow[]) out[row.slot] = (row.bytes ?? 0) + (row.preview?.bytes ?? 0);
+  return out;
+}
+
+/** Whether every record has been visited and the lean list is in use. */
+export async function leanListReady(db: IDBPDatabase): Promise<boolean> {
+  try { return !!(await db.get(PREVIEW_INDEX, LIST_META) as ListMeta | undefined)?.complete; } catch { return false; }
+}
+

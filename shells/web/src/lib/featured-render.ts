@@ -94,14 +94,14 @@ export async function renderFeaturedVariant(
   const job = (async () => {
     const vw = Number((values as { width?: unknown }).width);
     const vh = Number((values as { height?: unknown }).height);
-    const opts = { tokenSelection: tokenSelection ?? undefined, previewTimeMs, recipe: key, rasterFallback: rasterFormatOf(formats), ...(vw > 0 && vh > 0 ? { width: vw, height: vh } : {}) };
+    const opts = { tokenSelection: tokenSelection ?? undefined, previewTimeMs, recipe: key, ...(vw > 0 && vh > 0 ? { width: vw, height: vh } : {}) };
     let picture: PreparedPicture;
     try {
       picture = await previewSeams.render(host, toolId, primary, values, opts);
     } catch (e) {
       const raster = rasterFormatOf(formats);
       if (primary !== 'svg' || !raster || raster === primary) throw e;
-      picture = await previewSeams.render(host, toolId, raster, values, { ...opts, rasterFallback: null });
+      picture = await previewSeams.render(host, toolId, raster, values, opts);
     }
     // The brand changed while this rendered: the picture belongs to the old one.
     const { previewContextDigest } = await import('./preview-recipe.ts');

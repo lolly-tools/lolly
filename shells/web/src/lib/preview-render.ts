@@ -4,10 +4,9 @@
  * with values, drawn through the same export path a batch render takes
  * (pro/render-export.ts), then encoded by the one rule in lib/preview-writer.ts.
  *
- * SVG first: a tool that exports SVG is drawn as SVG and kept as SVG when it fits
- * one entry; a larger SVG is drawn into the raster tile by the browser's own SVG
- * renderer, at the full tile size because the source is vector. A tool with no SVG
- * export is drawn in its first raster format. The picture records which.
+ * SVG first: a tool that exports SVG is drawn as SVG and kept as SVG, over the
+ * per-picture limit too (no smaller form stays a vector). A tool with no SVG export
+ * is drawn in its first raster format. The picture records which.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { PreparedPicture } from '../bridge/preview-store.ts';
@@ -24,9 +23,6 @@ export interface LookRenderOptions {
   /** Raster resolution for a physical unit. */
   dpi?: number;
   recipe?: string;
-  /** The tool's raster format, drawn when its SVG is over the per-picture limit, so
-   *  the raster is the tool's own raster render. */
-  rasterFallback?: string | null;
 }
 
 /** Draw one look at an exact format and make it a picture. Throws when the render
@@ -44,14 +40,12 @@ export async function renderLookPicture(host: HostV1, toolId: string, format: st
   );
   const facts = opts.recipe ? { recipe: opts.recipe } : {};
   if (format === 'svg') {
-    const svg = await writer.svgPicture(blob, facts);
+    // An SVG is kept as SVG, over the per-picture limit too: no smaller form stays a
+    // vector, and builds before plan 373 kept these looks verbatim at any size. A
+    // second, raster render of the tool here cost a phone seconds of main thread.
+    const svg = await writer.svgPicture(blob, { ...facts, keepOverLimit: true });
     if (svg) return svg;
-    // Over the limit: the tool's own raster render when it has one; else the tool's SVG
-    // drawn into the tile by the browser, the closest picture there is.
-    if (opts.rasterFallback && opts.rasterFallback !== 'svg') return renderLookPicture(host, toolId, opts.rasterFallback, values, { ...opts, rasterFallback: null });
-    const raster = await writer.rasterPicture(new Blob([blob], { type: 'image/svg+xml' }), { ...facts, vector: true });
-    if (raster) return raster;
-    throw new Error(`The SVG preview of ${toolId} could not be drawn.`);
+    throw new Error(`The SVG preview of ${toolId} could not be read.`);
   }
   const raster = await writer.rasterPicture(blob, facts);
   if (!raster) throw new Error(`The preview of ${toolId} could not be drawn.`);
@@ -66,7 +60,7 @@ export async function renderPagePictures(host: HostV1, toolId: string, format: s
   const out: PreparedPicture[] = [];
   for (const blob of pages) {
     const picture = format === 'svg'
-      ? (await writer.svgPicture(blob)) ?? (await writer.rasterPicture(new Blob([blob], { type: 'image/svg+xml' }), { vector: true }))
+      ? await writer.svgPicture(blob, { keepOverLimit: true })
       : await writer.rasterPicture(blob);
     if (!picture) throw new Error(`A page preview of ${toolId} could not be drawn.`);
     out.push(picture);
@@ -113,12 +107,12 @@ export async function renderSessionPicture(host: HostV1, data: Record<string, un
   if (!primary) return null;
   const row = rowFromToolSession(data as Parameters<typeof rowFromToolSession>[0]);
   const values = (row.values ?? {}) as Record<string, unknown>;
-  const opts = { rasterFallback: rasterFormatOf(formats), ...sessionRenderSize(row), ...(row.artifactDigest ? { artifactDigest: row.artifactDigest } : {}) };
+  const opts = { ...sessionRenderSize(row), ...(row.artifactDigest ? { artifactDigest: row.artifactDigest } : {}) };
   try {
     return await renderLookPicture(host, toolId, primary, values, opts);
   } catch {
     const raster = rasterFormatOf(formats);
     if (primary !== 'svg' || !raster) return null;
-    return renderLookPicture(host, toolId, raster, values, { ...opts, rasterFallback: null }).catch(() => null);
+    return renderLookPicture(host, toolId, raster, values, opts).catch(() => null);
   }
 }
