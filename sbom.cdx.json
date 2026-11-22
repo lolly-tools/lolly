@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:051e7391-2c2b-4355-8df5-e5f9bf3ac55f",
+  "serialNumber": "urn:uuid:bb9ba218-d53c-414d-876e-740a15626060",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-11-22T17:46:07.183Z",
+    "timestamp": "2026-11-22T17:55:15.340Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -17774,10 +17774,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/vectorcraft-affinity@0.19.0",
+      "bom-ref": "pkg:cargo/vectorcraft-affinity@0.24.0",
       "name": "vectorcraft-affinity",
-      "version": "0.19.0",
-      "purl": "pkg:cargo/vectorcraft-affinity@0.19.0",
+      "version": "0.24.0",
+      "purl": "pkg:cargo/vectorcraft-affinity@0.24.0",
       "scope": "required",
       "licenses": [
         {

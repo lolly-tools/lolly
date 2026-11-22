@@ -49657,7 +49657,7 @@ DEALINGS IN THE SOFTWARE.
 
 
 --------------------------------------------------------------------------------
-VectorCraft Affinity reader 0.19.0 (05d5f99fd7e7dc00db3a9754d594b1214945d855; pinned Cargo.lock)
+VectorCraft Affinity reader 0.24.0 (1b744eae520b7f0e1980d030560194b2121ae651; pinned Cargo.lock)
 SPDX-License-Identifier: MPL-2.0 AND MIT
 Files: packages/node-shell/wasm/affinity/affinity.wasm
 Copyright: The ArtCraft Team and the VectorCraft contributors, reproduced in the notices below.
@@ -55480,7 +55480,7 @@ dealings in these Data Files or Software without prior written
 authorization of the copyright holder.
 
 
-vectorcraft-affinity@0.19.0 (MIT OR Apache-2.0)
+vectorcraft-affinity@0.24.0 (MIT OR Apache-2.0)
 
 
 LICENSE-APACHE

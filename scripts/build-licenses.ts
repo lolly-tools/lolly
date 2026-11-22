@@ -648,7 +648,7 @@ const MANIFEST: {
     },
     {
       name: 'VectorCraft Affinity reader',
-      version: '0.19.0 (05d5f99fd7e7dc00db3a9754d594b1214945d855; pinned Cargo.lock)',
+      version: '0.24.0 (1b744eae520b7f0e1980d030560194b2121ae651; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',
       copyright: 'The ArtCraft Team and the VectorCraft contributors, reproduced in the notices below.',
       files: 'packages/node-shell/wasm/affinity/affinity.wasm',

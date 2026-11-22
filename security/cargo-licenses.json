@@ -715,7 +715,7 @@
     "uuid@1.23.3": "Apache-2.0 OR MIT",
     "uuid@1.23.4": "Apache-2.0 OR MIT",
     "vcpkg@0.2.15": "MIT OR Apache-2.0",
-    "vectorcraft-affinity@0.19.0": "MIT OR Apache-2.0",
+    "vectorcraft-affinity@0.24.0": "MIT OR Apache-2.0",
     "vectorcraft-geom@0.19.0": "MIT OR Apache-2.0",
     "vectorcraft-trace@0.19.0": "MIT OR Apache-2.0",
     "version_check@0.9.5": "MIT OR Apache-2.0",
