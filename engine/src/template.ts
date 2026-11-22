@@ -74,7 +74,9 @@ Handlebars.registerHelper('arrow', (text: unknown) =>
 // image carries class="md-image" so a tool can size it without a wrapper),
 // "# "…"###### " headings (<h1>–<h6>), bullet lists (a block whose every line
 // starts "- ", "* ", or a direction marker "> "/"< "/"^ "/"v "), numbered lists
-// (every line "1. "/"2) "), paragraph breaks (blank line), and line breaks within
+// (every line "1. "/"2) "), GFM tables (a row of pipes over a "| --- |" delimiter
+// row, emitted as <table class="md-table"> with md-align-left/center/right on the
+// cells of an aligned column), paragraph breaks (blank line), and line breaks within
 // a paragraph. Direction-marker items are tagged with a per-direction class
 // (md-arrow / md-arrow-left / md-arrow-up / md-arrow-down) so tools can render
 // them with the matching arrow marker. Most authors reach for a keyboard marker
@@ -88,6 +90,24 @@ const MD_ESCAPE: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt
 const MD_BULLET = /^\s*([-*<>^v])\s+/;               // "- "/"* " or a direction marker
 const MD_ORDERED = /^\s*\d+[.)]\s+/;                 // "1. "/"2) "
 const MD_HEADING = /^\s*(#{1,6})\s+(\S.*)$/;         // "# "…"###### " + text
+// A GFM table's delimiter row: "| --- | :---: | ---: |". It must hold a pipe, so a
+// lone "---" under a line of text stays the text it has always been.
+const MD_TABLE_RULE = /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$/;
+/** A table row's cells: outer pipes dropped, "\|" kept as a pipe inside a cell. */
+function mdCells(line: string): string[] {
+  const inner = line.trim().replace(/^\|/, '').replace(/(?<!\\)\|$/, '');
+  return inner.split(/(?<!\\)\|/).map((cell) => cell.replace(/\\\|/g, '|').trim());
+}
+/** Where a GFM table starts in a run of lines: a row with a pipe, then a delimiter row
+ *  with a pipe and the same number of cells. -1 when the run holds none. */
+function mdTableStart(lines: string[], from: number): number {
+  for (let i = from; i + 1 < lines.length; i++) {
+    const rule = lines[i + 1]!;
+    if (!lines[i]!.includes('|') || !rule.includes('|') || !MD_TABLE_RULE.test(rule)) continue;
+    if (mdCells(lines[i]!).length === mdCells(rule).length) return i;
+  }
+  return -1;
+}
 const MD_IMAGE = /!\[([^\]]*)\]\(([^)\s]+)\)/g;      // ![alt](url)   - must run BEFORE links
 const MD_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;        // [text](url)
 
@@ -144,7 +164,32 @@ Handlebars.registerHelper('markdown', (text: unknown) => {
   // bullet / direction marker), an ordered list (every line "N."/"N)"), or a
   // paragraph (lines joined with <br>). The leading marker is stripped before
   // inlining so it can't read as italic or get HTML-escaped.
-  const renderRun = (lines: string[]): string => {
+  // A GFM table: a header row, a delimiter row that sets each column's alignment, then
+  // body rows. Emitted as a classed table (md-table, md-align-*) and left to the tool's
+  // stylesheet, the way md-index and the arrow classes are. Every cell goes through
+  // `inline`, so a cell is escaped like any other text. A body row with too few cells
+  // is padded and one with too many is cut, as GFM does.
+  const renderTable = (rows: string[]): string => {
+    const head = mdCells(rows[0]!);
+    const aligns = mdCells(rows[1]!).map((rule) =>
+      (rule.startsWith(':') && rule.endsWith(':') ? 'center' : rule.endsWith(':') ? 'right' : rule.startsWith(':') ? 'left' : ''));
+    const cell = (tag: string, text: string, c: number): string =>
+      `<${tag}${aligns[c] ? ` class="md-align-${aligns[c]}"` : ''}>${inline(text)}</${tag}>`;
+    const body = rows.slice(2).map((row) => {
+      const cells = mdCells(row);
+      return `<tr>${head.map((_, c) => cell('td', cells[c] ?? '', c)).join('')}</tr>`;
+    }).join('');
+    return `<table class="md-table"><thead><tr>${head.map((text, c) => cell('th', text, c)).join('')}</tr></thead>${body ? `<tbody>${body}</tbody>` : ''}</table>`;
+  };
+  const renderRun = (all: string[]): string => {
+    // A table inside the run splits the run: the lines before, the table, the rest.
+    const at = mdTableStart(all, 0);
+    if (at >= 0) {
+      let end = at + 2;
+      while (end < all.length && all[end]!.includes('|')) end += 1;
+      return (at > 0 ? renderRun(all.slice(0, at)) : '') + renderTable(all.slice(at, end)) + (end < all.length ? renderRun(all.slice(end)) : '');
+    }
+    const lines = all;
     if (lines.every((l) => MD_BULLET.test(l))) {
       const items = lines.map((l) => {
         const arrowClass = ARROW_CLASSES[l.match(MD_BULLET)?.[1] ?? ''];

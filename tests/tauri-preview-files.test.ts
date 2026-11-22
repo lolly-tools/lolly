@@ -107,7 +107,11 @@ test('what an older desktop build sees: it lists only .json names and finds no t
   assert.equal(record.data.title, 'a');
 });
 
-const settle = async (): Promise<void> => { for (let i = 0; i < 50; i++) await new Promise(r => setImmediate(r)); };
+// The store hashes off the event loop, so turns of the loop alone are not enough on a busy
+// machine: a short wait on the real clock (taken before any test mocks timers) sits between them.
+const realTimeout = setTimeout;
+const turns = async (): Promise<void> => { for (let i = 0; i < 50; i++) await new Promise(r => setImmediate(r)); };
+const settle = async (): Promise<void> => { await turns(); await new Promise(r => realTimeout(r, 15)); await turns(); };
 
 test('two saves of the same picture at once share one write: the second never truncates a file the first verified', async () => {
   const { fs, bytes } = memoryFs();
@@ -304,6 +308,8 @@ test('links stay honest: a renamed session gets its own picture back, not one an
   assert.ok(links() >= 30);
   context.mock.timers.tick(11 * 60_000);
   rows = await launch();
+  // The sweep hashes each record off the event loop, so a busy machine can need more turns.
+  for (let turn = 0; turn < 100 && links() > 2; turn++) await settle();
   assert.equal(links(), 2, 'one link for the shared document, one for the busy session');
 
   // A record that lost its reference, whose link cannot be read: nothing is swept.

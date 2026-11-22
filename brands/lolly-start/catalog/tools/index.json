@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-21T17:12:31.135Z",
+  "generatedAt": "2026-11-22T10:27:13.576Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3759,7 +3759,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.52.2",
+      "version": "1.52.3",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -4025,6 +4025,12 @@
           "name": "Feature tour",
           "category": "Video",
           "description": "A five-beat feature tour: a title, three timed highlights, and a sign-off."
+        },
+        {
+          "id": "flow-chart",
+          "name": "Flow chart",
+          "category": "Diagrams",
+          "description": "Cards joined by connectors that stay attached. Drag a card and its lines follow."
         },
         {
           "id": "launch-cascade",
@@ -5167,7 +5173,7 @@
       "id": "multi-page-pdf",
       "name": "Booklet",
       "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -12874,9 +12880,12 @@
       "id": "org-chart",
       "name": "Flow Chart",
       "description": "Build flow charts on an open canvas - drag cards, connect them, and the lines route and stick to the boxes.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "status": "community",
       "category": "everyone",
+      "listed": false,
+      "deprecated": true,
+      "replacedBy": "design",
       "tags": [
         "flow chart",
         "flowchart",

@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.351.0', () => {
+test('ENGINE_VERSION is 1.352.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -624,7 +624,8 @@ test('ENGINE_VERSION is 1.351.0', () => {
   // 1.349.0 places a vector picture by its unrounded size and writes gradient stops as CSS holds them. Capture is unchanged.
   // 1.350.0 refreshes the official C2PA trust list (6 more anchors, NETLOCK held back). Capture is unchanged.
   // 1.351.0 moves the session record to format 5 (a picture reference beside the thumbnail). Capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.351.0');
+  // 1.352.0 reads a GFM table in the markdown helper. Capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.352.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
