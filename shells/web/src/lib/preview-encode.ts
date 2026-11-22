@@ -15,7 +15,7 @@
  * only while preview work is allowed (lib/preview-idle.ts `previewWorkAllowed`: a
  * visible tab, no tool opening or open, no export or batch render, no Performance UI,
  * no low battery or Save-Data) and no audio or video is playing. Between pictures it
- * yields to the page.
+ * yields one turn of the event loop.
  *
  * When the worker cannot help (a browser without OffscreenCanvas runs the rule on the
  * main thread, as before; a worker that crashes or runs past its time limit is set
@@ -197,10 +197,10 @@ export function previewEncoder(): ReturnType<typeof createPreviewEncoder> {
     allowed: () => workAllowed!() && !mediaPlaying(),
     ready: afterFirstIdle,
     wake: wakeOn,
-    yieldToPage: () => new Promise<void>(resolve => {
-      const idle = (globalThis as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
-      if (idle) idle(() => resolve(), { timeout: 1000 }); else setTimeout(resolve, 50);
-    }),
+    // The work is on the worker, so a turn of the event loop is enough: waiting for an
+    // idle callback on a busy page held encoded looks back until the page closed, and
+    // the next visit drew them again.
+    yieldToPage: () => new Promise<void>(resolve => { setTimeout(resolve, 0); }),
     inRealm: async (source, facts) => (await import('./preview-writer.ts')).rasterPicture(source, facts),
     asRendered: async (source, facts) => {
       const { bytesPicture, WRITER_VERSION } = await import('./preview-writer.ts');
