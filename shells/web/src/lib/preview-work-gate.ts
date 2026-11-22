@@ -3,14 +3,18 @@
  * When background preview work may run (plan 373). The idle work (lib/preview-idle.ts:
  * the move of old pictures, the redraw of stale tiles) and the background lane of the
  * picture encoder (lib/preview-encode.ts) both ask here, so they hold back for the
- * same things:
+ * same things. Two kinds:
  *
- *  - the tab is hidden, or the page is opening a tool (the tool route and the
- *    open sequence's held view, view-fade.ts);
- *  - an export or a batch render is running (lib/render-busy.ts);
- *  - Performance UI is on (by hand or switched on by the device's own signals,
- *    plan 335), the battery is low and not charging, or the browser asks to save
- *    data.
+ *  - the page is busy for now (`previewPageBusy`): the tab is hidden, the page is
+ *    opening a tool (the open sequence's held view, view-fade.ts), or an export or a
+ *    batch render is running (lib/render-busy.ts);
+ *  - the device asks for less work (`previewDeviceConstrained`): Performance UI is on
+ *    (by hand or switched on by the device's own signals, plan 335), the battery is
+ *    low and not charging, or the browser asks to save data.
+ *
+ * The idle work also stays off every tool route (`previewWorkAllowed`). The encoder
+ * waits while the page is busy and, when the device is constrained, keeps a render as
+ * it came instead of judging it, because a gallery tile is waiting for that picture.
  *
  * A leaf module: it imports neither of the modules that ask, so this module adds no
  * dependency between them.
@@ -22,19 +26,33 @@ export function currentRoute(): string {
   return typeof location === 'undefined' ? '' : location.hash.split('?')[0] ?? '';
 }
 
-/** Whether background preview work may run now. */
+/** The page is busy for now: a hidden tab, a tool opening, an export or a batch render. */
+export function previewPageBusy(): boolean {
+  if (typeof document === 'undefined') return true;
+  if (document.visibilityState !== 'visible') return true;
+  if (document.querySelector('.view-fade--hold')) return true;
+  if (renderBusy()) return true;
+  return false;
+}
+
+/** The device asks for less work: Performance UI, a low battery or Save-Data. */
+export function previewDeviceConstrained(): boolean {
+  if (constrained) return true;
+  try {
+    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
+    if (nav.connection?.saveData) return true;
+  } catch { /* no connection info */ }
+  return perfUi();
+}
+
+/** Whether idle preview work may run now. */
 export function previewWorkAllowed(): boolean {
   if (typeof document === 'undefined') return false;
   if (document.visibilityState !== 'visible') return false;
   if (currentRoute().startsWith('#/tool')) return false;
   if (document.querySelector('.view-fade--hold')) return false;
   if (renderBusy()) return false;
-  if (constrained) return false;
-  try {
-    const nav = navigator as Navigator & { connection?: { saveData?: boolean } };
-    if (nav.connection?.saveData) return false;
-  } catch { /* no connection info */ }
-  if (perfUi()) return false;
+  if (previewDeviceConstrained()) return false;
   return true;
 }
 

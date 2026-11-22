@@ -10,24 +10,27 @@
  * transferred.
  *
  * Two lanes. A picture someone asked for (the capture when a session is saved) goes
- * at once. A background picture (a gallery or featured look, an idle redraw) waits
- * its turn, one at a time: after the page's first idle moment following load, and
- * only while preview work is allowed (lib/preview-work-gate.ts, which the idle work
- * in lib/preview-idle.ts also follows: a
- * visible tab, no tool opening or open, no export or batch render, no Performance UI,
- * no low battery or Save-Data) and no audio or video is playing. Between pictures it
- * yields one turn of the event loop.
+ * at once, with a short time limit so a stalled worker cannot use up the save's own
+ * deadline. A background picture (a gallery, featured or chooser look) waits its
+ * turn, one at a time: after the page's first idle moment following load, and while
+ * the page is busy (lib/preview-work-gate.ts: a hidden tab, a tool opening, an export
+ * or a batch render) or audio or video is playing. A tile is waiting for that
+ * picture, so the wait is bounded: after 5 s, or at once when the device asks for
+ * less work (Performance UI, a low battery, Save-Data), the render is kept as it
+ * came, unencoded, and nothing is judged. Between pictures it yields one turn of the
+ * event loop.
  *
  * When the worker cannot help (a browser without OffscreenCanvas runs the rule on the
- * main thread, as before; a worker that crashes or runs past its time limit is set
- * aside after two failures), a background picture is kept exactly as the render made
- * it, unencoded, so it is neither lost nor encoded on the main thread; a picture
- * someone asked for is encoded on the main thread, as before.
+ * main thread, as before; a worker that cannot start, answers with an error, crashes
+ * or runs past its time limit; after two failures it is set aside), a background
+ * picture is kept exactly as the render made it, so it is neither lost nor encoded on
+ * the main thread; a picture someone asked for is encoded on the main thread, as
+ * before.
  */
 import type { PreparedPicture } from '../bridge/preview-store.ts';
 import type { WriterFacts } from './preview-writer.ts';
 import type { PreviewEncodeReply, PreviewEncodeRequest } from './preview-encode-protocol.ts';
-import { previewWorkAllowed, watchPreviewBattery, whenPreviewWorkMayResume } from './preview-work-gate.ts';
+import { previewDeviceConstrained, previewPageBusy, watchPreviewBattery, whenPreviewWorkMayResume } from './preview-work-gate.ts';
 
 export interface EncodeWorker {
   onmessage: ((event: MessageEvent) => unknown) | null;
@@ -42,19 +45,26 @@ export interface EncoderOptions {
   createWorker(): EncodeWorker;
   /** Whether this browser can run the rule in a worker. */
   workerCapable(): boolean;
-  /** Whether background work may start now. */
+  /** Whether background work may start now (false while the page is busy for now). */
   allowed(): boolean;
+  /** Whether the device asks for less work: background renders are then kept as they came. */
+  constrained(): boolean;
   /** Resolves once the page has had its first idle moment after load. */
   ready(): Promise<void>;
-  /** Call `fn` when something that may change `allowed()` has happened. */
-  wake(fn: () => void): void;
+  /** Call `fn` when something that may change `allowed()` has happened, or after `ms`. */
+  wake(fn: () => void, ms: number): void;
   /** Yield to the page between background pictures. */
   yieldToPage(): Promise<void>;
   /** The rule on this thread. */
   inRealm(source: EncodeSource, facts: WriterFacts): Promise<PreparedPicture | null>;
   /** The render's own bytes, unencoded. */
   asRendered(source: Blob, facts: WriterFacts): Promise<PreparedPicture | null>;
+  /** Time limit for one background picture in the worker. */
   budgetMs?: number;
+  /** Time limit for a picture someone asked for, before it is encoded here instead. */
+  foregroundBudgetMs?: number;
+  /** Longest a background picture waits for the page before it is kept as it came. */
+  maxWaitMs?: number;
 }
 
 /** Failures after which the worker is set aside for the rest of the visit. */
@@ -77,7 +87,8 @@ export function createPreviewEncoder(o: EncoderOptions) {
 
   function start(): EncodeWorker {
     if (worker) return worker;
-    const created = o.createWorker();
+    let created: EncodeWorker;
+    try { created = o.createWorker(); } catch (error) { failures++; throw error; }
     created.onmessage = event => {
       const data = event.data as PreviewEncodeReply;
       const job = pending.get(data.id);
@@ -92,11 +103,11 @@ export function createPreviewEncoder(o: EncoderOptions) {
     return created;
   }
 
-  function post(source: Blob | ImageBitmap, facts: WriterFacts): Promise<PreparedPicture | null> {
+  function post(source: Blob | ImageBitmap, facts: WriterFacts, budgetMs: number): Promise<PreparedPicture | null> {
     const current = start();
     const id = ++sequence;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => retire(new Error('The preview encoder ran past its time limit.')), o.budgetMs ?? 30_000);
+      const timer = setTimeout(() => retire(new Error('The preview encoder ran past its time limit.')), budgetMs);
       (timer as { unref?: () => void }).unref?.();
       pending.set(id, { resolve, reject, timer });
       try { current.postMessage({ id, source, facts }, source instanceof Blob ? [] : [source]); }
@@ -111,28 +122,45 @@ export function createPreviewEncoder(o: EncoderOptions) {
     try { return await createImageBitmap(source as ImageBitmapSource); } catch { return null; }
   }
 
+  /** A raster render that can be kept exactly as it came. */
+  function keepable(source: EncodeSource): source is Blob {
+    return source instanceof Blob && source.type !== 'image/svg+xml';
+  }
+
+  function keepAsRendered(source: Blob, facts: WriterFacts): Promise<PreparedPicture | null> {
+    stats.asRendered++;
+    return o.asRendered(source, facts);
+  }
+
   async function encodeNow(source: EncodeSource, facts: WriterFacts, inBackground: boolean): Promise<PreparedPicture | null> {
     const capable = o.workerCapable();
+    let workerFailed = false;
     if (failures < MAX_FAILURES && capable) {
       const sent = await portable(source);
       if (sent) {
-        try { const picture = await post(sent, facts); stats.worker++; return picture; } catch { /* below */ }
+        const budget = inBackground ? (o.budgetMs ?? 30_000) : (o.foregroundBudgetMs ?? 3_000);
+        try { const picture = await post(sent, facts, budget); stats.worker++; return picture; } catch { workerFailed = true; }
       }
     }
     // The worker failed, or was set aside after failing. A background render is kept
     // as it came rather than costing the main thread; a picture someone asked for,
     // or one in a browser that never had the worker, is encoded here, as before.
-    if (capable && failures > 0 && inBackground && source instanceof Blob && source.type !== 'image/svg+xml') {
-      stats.asRendered++;
-      return o.asRendered(source, facts);
-    }
+    if (capable && (workerFailed || failures > 0) && inBackground && keepable(source)) return keepAsRendered(source, facts);
     stats.inRealm++;
     return o.inRealm(source, facts);
   }
 
-  async function whenAllowed(): Promise<void> {
+  /** Wait for a background picture's turn: 'run' to judge it, 'keep' to keep it as it came. */
+  async function turn(): Promise<'run' | 'keep'> {
     await o.ready();
-    while (!o.allowed()) await new Promise<void>(resolve => o.wake(resolve));
+    const until = Date.now() + (o.maxWaitMs ?? 5_000);
+    for (;;) {
+      if (o.constrained()) return 'keep';
+      if (o.allowed()) return 'run';
+      const left = until - Date.now();
+      if (left <= 0) return 'keep';
+      await new Promise<void>(resolve => o.wake(resolve, left));
+    }
   }
 
   /**
@@ -142,8 +170,11 @@ export function createPreviewEncoder(o: EncoderOptions) {
   function encode(source: EncodeSource, facts: WriterFacts = {}, options: { background?: boolean } = {}): Promise<PreparedPicture | null> {
     if (!options.background) return encodeNow(source, facts, false);
     const run = background.then(async () => {
-      await whenAllowed();
-      try { return await encodeNow(source, facts, true); } finally { await o.yieldToPage(); }
+      const next = await turn();
+      try {
+        if (next === 'keep' && keepable(source)) return await keepAsRendered(source, facts);
+        return await encodeNow(source, facts, true);
+      } finally { await o.yieldToPage(); }
     });
     background = run.catch(() => undefined);
     return run;
@@ -182,10 +213,13 @@ export function previewEncoder(): ReturnType<typeof createPreviewEncoder> {
   shared ??= createPreviewEncoder({
     createWorker: encodeWorker,
     workerCapable: () => typeof Worker === 'function' && typeof OffscreenCanvas === 'function' && typeof createImageBitmap === 'function',
-    allowed: () => previewWorkAllowed() && !mediaPlaying(),
+    // Not held off the tool route as the idle work is: the template chooser shows
+    // these looks there, and the work is on the worker.
+    allowed: () => !previewPageBusy() && !mediaPlaying(),
+    constrained: previewDeviceConstrained,
     ready: afterFirstIdle,
-    // Exports, Performance UI and playback send no event here: look again shortly.
-    wake: fn => whenPreviewWorkMayResume(fn, 2000),
+    // Exports and playback send no event here: look again shortly.
+    wake: (fn, ms) => whenPreviewWorkMayResume(fn, Math.min(ms, 2000)),
     // The work is on the worker, so a turn of the event loop is enough: waiting for an
     // idle callback on a busy page held encoded looks back until the page closed, and
     // the next visit drew them again.
