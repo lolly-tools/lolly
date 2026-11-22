@@ -10,7 +10,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createFsStateAPI, type StateFs } from '../shells/tauri-shared/bridge-overrides/state-fs.ts';
+import { pbkdf2 } from 'node:crypto';
+import { createFsStateAPI, whenFsStateIdle, type StateFs } from '../shells/tauri-shared/bridge-overrides/state-fs.ts';
 import { previewRefFor, decodePictureDataUrl } from '../engine/src/session-preview.ts';
 
 const PNG_HEAD = atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==');
@@ -107,7 +108,19 @@ test('what an older desktop build sees: it lists only .json names and finds no t
   assert.equal(record.data.title, 'a');
 });
 
-const settle = async (): Promise<void> => { for (let i = 0; i < 50; i++) await new Promise(r => setImmediate(r)); };
+/** Wait for the background work the state APIs over `fs` started (a move, a re-link,
+ *  a sweep). It hashes on the platform's worker threads, so a count of event-loop
+ *  turns is not enough on a loaded machine: that count failed on a CI runner. */
+const settle = (fs: StateFs): Promise<void> => whenFsStateIdle(fs);
+
+/** Keep the platform's worker threads busy, as other test files on a loaded CI runner
+ *  do, so every hash the bridge takes finishes late. Returns the stop. */
+function busyThreadPool(): () => void {
+  let stop = false;
+  const spin = (): void => { if (!stop) pbkdf2('lolly', 'busy', 20_000, 32, 'sha256', spin); };
+  for (let i = 0; i < 8; i++) spin();
+  return () => { stop = true; };
+}
 
 test('two saves of the same picture at once share one write: the second never truncates a file the first verified', async () => {
   const { fs, bytes } = memoryFs();
@@ -143,7 +156,7 @@ test('the picture sweep removes nothing after a walk that could not read every r
   let failB = false;
   fs.readTextFile = async (path) => { if (failB && path.endsWith('poster%3Ab.json')) throw new Error('busy'); return read(path); };
   // Each launch lists, then sweeps a moment later.
-  const launch = async () => { await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(); };
+  const launch = async () => { await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(fs); };
   failB = true;
   await launch();
   assert.equal(bytes.size, 4, 'an incomplete walk removes nothing, not even the orphan');
@@ -164,7 +177,7 @@ test('a record another window writes while a walk runs keeps its picture: the se
   text.set('saved-state/slotname-v1.marker', '1');
   const picture = await prepared(png('shared'));
   bytes.set(`saved-state/previews/${picture.ref.key}.png`, picture.bytes);
-  const launch = async () => { await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(); };
+  const launch = async () => { await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(fs); };
   await launch();
   assert.ok(bytes.size === 1 && text.get('saved-state/previews/orphans.txt')?.startsWith(picture.ref.key), 'no record names the file yet: noted');
   // Another window copies a session by reference, naming the file.
@@ -185,13 +198,13 @@ test('a long-running app sweeps the pictures a session let go of, so saving new 
   // Three rounds of twenty saves of the same session, eleven minutes apart; each
   // round of let-go pictures starts a sweep a minute later.
   for (let i = 0; i < 21; i++) await save(`first-${i}`);
-  context.mock.timers.tick(11 * 60_000); await settle();
+  context.mock.timers.tick(11 * 60_000); await settle(fs);
   for (let i = 0; i < 20; i++) await save(`second-${i}`);
-  context.mock.timers.tick(60_000); await settle();
+  context.mock.timers.tick(60_000); await settle(fs);
   assert.equal(bytes.size, 41, 'the first round is only noted on its first walk');
-  context.mock.timers.tick(11 * 60_000); await settle();
+  context.mock.timers.tick(11 * 60_000); await settle(fs);
   for (let i = 0; i < 20; i++) await save(`third-${i}`);
-  context.mock.timers.tick(60_000); await settle();
+  context.mock.timers.tick(60_000); await settle(fs);
   for (let i = 0; i < 21; i++) assert.equal(bytes.has(`saved-state/previews/${await keyOf(`first-${i}`)}.png`), false, `first-${i} went`);
   assert.equal(bytes.size, 40, 'at most the two newest rounds remain');
   const record = JSON.parse(text.get('saved-state/poster%3A1.json')!);
@@ -212,7 +225,7 @@ test('a save or a delete that lands while old pictures move wins: the move never
   await state.save('poster:1', { __toolId: 'poster', title: 'edited' }, fresh);
   await state.delete('poster:2');
   context.mock.timers.tick(3000);
-  await settle();
+  await settle(fs);
   const one = JSON.parse(text.get('saved-state/poster%3A1.json')!);
   assert.equal(one.data.title, 'edited');
   assert.equal(one.preview.key, fresh.ref.key, 'its own new picture, not the old one moved over it');
@@ -266,7 +279,7 @@ test('a 1.2.1 CLI or TUI rename or copy of a moved session: the picture is found
   text.set('saved-state/poster%3A3.json', writtenBy121(saved, 'poster:3', { ...work, title: 'edited' }, 'Edited'));
   for (const slot of ['poster%3A1', 'poster%3A2']) assert.equal(JSON.parse(text.get(`saved-state/${slot}.json`)!).preview, undefined, 'the old writer dropped the reference');
 
-  const launch = async () => { const rows = await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(); return rows; };
+  const launch = async () => { const rows = await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(fs); return rows; };
   const rows = await launch();
   const key = (slot: string) => rows.find(row => row.slot === slot)?.preview?.key;
   assert.equal(key('poster:1'), picture.ref.key, 'the rename shows its picture');
@@ -282,6 +295,25 @@ test('a 1.2.1 CLI or TUI rename or copy of a moved session: the picture is found
   assert.ok(bytes.has(`saved-state/previews/${picture.ref.key}.png`));
 });
 
+test('on a busy machine the re-link is still written to the record: the wait is for the work, not for a count of turns', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-11-22T09:00:00Z') });
+  const { fs, text } = memoryFs();
+  text.set('saved-state/slotname-v1.marker', '1');
+  const picture = await prepared(png('busy'));
+  const work = { __toolId: 'poster', title: 'launch', __label: 'Launch' };
+  await createFsStateAPI(fs).save('poster:1', work, picture);
+  const saved = JSON.parse(text.get('saved-state/poster%3A1.json')!);
+  text.set('saved-state/poster%3A1.json', writtenBy121(saved, 'poster:1', { ...work, __label: 'Renamed' }, 'Renamed'));
+  const stop = busyThreadPool();
+  try {
+    await createFsStateAPI(fs).list();
+    context.mock.timers.tick(3000);
+    await settle(fs);
+    assert.equal(JSON.parse(text.get('saved-state/poster%3A1.json')!).preview?.key, picture.ref.key, 'kept on the record');
+  } finally { stop(); }
+  await whenFsStateIdle(fs);
+});
+
 test('links stay honest: a renamed session gets its own picture back, not one another session with the same document saved later; an unreadable link stops the sweep; links for work no record has go', async (context) => {
   context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.parse('2026-11-22T09:00:00Z') });
   const { fs, bytes, text } = memoryFs();
@@ -293,7 +325,7 @@ test('links stay honest: a renamed session gets its own picture back, not one an
   await app.restore!('poster:imported', { ...work, __label: 'From a backup' }, imported, '2026-11-22T09:05:00.000Z', '2026-11-22T09:05:00.000Z');
   const saved = JSON.parse(text.get('saved-state/poster%3A1.json')!);
   text.set('saved-state/poster%3A1.json', writtenBy121(saved, 'poster:1', { ...work, __label: 'Renamed' }, 'Renamed'));
-  const launch = async () => { const rows = await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(); return rows; };
+  const launch = async () => { const rows = await createFsStateAPI(fs).list(); context.mock.timers.tick(3000); await settle(fs); return rows; };
   let rows = await launch();
   assert.equal(rows.find(r => r.slot === 'poster:1')?.preview?.key, mine.ref.key, 'its own picture');
 
