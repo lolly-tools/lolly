@@ -283,6 +283,24 @@ export async function setInstanceCatalogKeyId(keyId: string | null): Promise<voi
 
 // ── Stored instance session (native shells; browsers keep their own cookie) ──
 
+/**
+ * What an answer's Set-Cookie headers say about the session: the new pair, null when
+ * the instance cleared the cookie (signed out, or an expiry in the past), undefined
+ * when they say nothing about the session. Pure, exported for tests.
+ */
+export function renewedSessionPair(headers: ReadonlyArray<readonly [string, string]>): string | null | undefined {
+  let found: string | null | undefined;
+  for (const [name, value] of headers) {
+    if (name.toLowerCase() !== 'set-cookie') continue;
+    const [pair = '', ...attributes] = value.split(';').map((part) => part.trim());
+    if (!pair.startsWith('lw_session=')) continue;
+    const cleared = pair === 'lw_session=' || attributes.some((a) => /^max-age=(0|-\d+)$/i.test(a))
+      || attributes.some((a) => { const m = /^expires=(.+)$/i.exec(a); return !!m && Date.parse(m[1]!) <= Date.now(); });
+    found = cleared ? null : /^lw_session=[^;\s]+$/.test(pair) ? pair : found;
+  }
+  return found;
+}
+
 /** Persist (or with null clear) the session cookie pair the device-code
  *  sign-in collected. Loaded by initInstanceBase; attached by tauriRemoteFetch
  *  to instance-base-origin requests only. */
@@ -574,6 +592,16 @@ async function tauriRemoteFetch(url: string, init?: RequestInit, allowedOrigins?
       ...(limits?.maxResponseBytes ? { maxResponseBytes: limits.maxResponseBytes } : {}),
     },
   });
+  // The instance renews the session by sending the cookie again with a later expiry
+  // (Work does on its session, org-config and inbox answers). A browser's own jar
+  // takes that in; this transport has no jar, so the pair is read here, before the
+  // Response below drops the header as the fetch rules require. Only from an answer
+  // of the instance itself to a request that carried this session.
+  if (!allowedOrigins && instanceSession && instanceSession.origin === instanceOrigin()
+    && isInstanceOrigin(url) && isInstanceOrigin(resp.url)) {
+    const renewed = renewedSessionPair(resp.headers);
+    if (renewed !== undefined && renewed !== instanceSession.cookiePair) void setInstanceSession(renewed);
+  }
   const body = resp.body instanceof ArrayBuffer ? new Uint8Array(resp.body) : Uint8Array.from(resp.body);
   // Null-body statuses (fetch spec) - Response() throws if handed bytes for them.
   const nullBody = [101, 103, 204, 205, 304].includes(resp.status);
