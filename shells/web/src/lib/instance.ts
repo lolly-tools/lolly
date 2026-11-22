@@ -77,6 +77,11 @@ const INSTALL_ID_KEY = 'install-id';
  *  (org/index.ts) parks the pair here and tauriRemoteFetch attaches it - to the
  *  instance base origin ONLY, never to any other URL this transport fetches. */
 const INSTANCE_SESSION_KEY = 'instance-session';
+/** The IndexedDB 'profile' key for the catalog key the person accepted when they
+ *  connected the app to an instance: the instance's origin and the key's id (an RFC
+ *  7638 thumbprint). catalog/integrity.ts lets that one key, and no other, verify
+ *  the instance's catalog beside the key this build pins. */
+const INSTANCE_CATALOG_KEY = 'instance-catalog-key';
 
 let base = '';
 let initPromise: Promise<void> | null = null;
@@ -90,6 +95,9 @@ interface InstanceSession {
   cookiePair: string;
 }
 let instanceSession: InstanceSession | null = null;
+/** The catalog key id accepted for the connected instance, or null. */
+let instanceCatalogKey: { origin: string; keyId: string } | null = null;
+const KEY_ID = /^[A-Za-z0-9_-]{43}$/;
 
 function instanceOrigin(value = base): string | null {
   try {
@@ -152,9 +160,11 @@ export async function setInstanceBase(url: string | null): Promise<void> {
   if (changedOrigin) {
     instanceSession = null;
     installTag = null;
+    instanceCatalogKey = null;
   }
   const db = await openDB();
   if (changedOrigin) {
+    await db.delete('profile', INSTANCE_CATALOG_KEY);
     await db.delete('profile', INSTANCE_SESSION_KEY);
     await db.delete('profile', INSTALL_ID_KEY);
   }
@@ -195,6 +205,13 @@ export function initInstanceBase(): Promise<void> {
         instanceSession = { origin: sess.origin, cookiePair: sess.cookiePair };
       } else if (sess) {
         await db.delete('profile', INSTANCE_SESSION_KEY);
+      }
+      const accepted = await db.get('profile', INSTANCE_CATALOG_KEY);
+      if (accepted && typeof accepted === 'object' && base
+        && accepted.origin === instanceOrigin() && typeof accepted.keyId === 'string' && KEY_ID.test(accepted.keyId)) {
+        instanceCatalogKey = { origin: accepted.origin, keyId: accepted.keyId };
+      } else if (accepted) {
+        await db.delete('profile', INSTANCE_CATALOG_KEY);
       }
     } catch {
       base = ''; // unreadable/invalid - fall back to bundled content
@@ -240,6 +257,28 @@ export async function ensureInstallId(): Promise<string> {
 export async function clearInstallId(): Promise<void> {
   installTag = null;
   try { await (await openDB()).delete('profile', INSTALL_ID_KEY); } catch { /* best-effort */ }
+}
+
+// ── The connected instance's catalog key (native shells) ─────────────────────
+
+/** The id of the catalog key the person accepted for the connected instance, or ''.
+ *  Bound to the instance's origin: another instance, or none, answers ''. */
+export function instanceCatalogKeyId(): string {
+  return base && instanceCatalogKey && instanceCatalogKey.origin === instanceOrigin() ? instanceCatalogKey.keyId : '';
+}
+
+/** Record (or with null forget) the catalog key the person accepted for the
+ *  connected instance. Refused for anything that is not a key id, and when no
+ *  instance is connected. */
+export async function setInstanceCatalogKeyId(keyId: string | null): Promise<void> {
+  const origin = base ? instanceOrigin() : null;
+  instanceCatalogKey = origin && keyId && KEY_ID.test(keyId) ? { origin, keyId } : null;
+  const accepted = instanceCatalogKey;
+  try {
+    const db = await openDB();
+    if (accepted) await db.put('profile', accepted, INSTANCE_CATALOG_KEY);
+    else await db.delete('profile', INSTANCE_CATALOG_KEY);
+  } catch { /* best-effort - the in-memory copy still serves this run */ }
 }
 
 // ── Stored instance session (native shells; browsers keep their own cookie) ──
