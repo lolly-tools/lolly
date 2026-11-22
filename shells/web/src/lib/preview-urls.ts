@@ -47,11 +47,29 @@ export async function srcForBlob(key: string, blob: Blob): Promise<string> {
   return objectUrlFor(key, blob);
 }
 
-/** An SVG as a base64 `data:` URL. The browser's file reader does the encoding off
- *  the main thread; percent-encoding the text here cost a phone over a second for the
- *  large SVG looks a gallery visit draws. Where there is no FileReader (a test), the
- *  bytes are encoded here. */
+/** Reads in flight: one SVG becomes a data URL at a time (see svgDataUrl). */
+let svgLane: Promise<unknown> = Promise.resolve();
+
+/**
+ * An SVG as a base64 `data:` URL. The browser's file reader does the encoding;
+ * percent-encoding the text here cost a phone over a second for the large SVG looks a
+ * gallery visit draws. The reader still hands its result over on the main thread, and
+ * an `<img>` given a `data:` URL reads and parses the SVG at once, so a page asking for
+ * many pictures together (a long document's pages, a list of saved work) would get them
+ * in one long piece. They go one at a time, and each result is handed over on a turn
+ * of the event loop of its own, so input is answered between pictures.
+ */
 function svgDataUrl(blob: Blob): Promise<string> {
+  const run = svgLane.then(() => readSvgDataUrl(blob)).then(url => new Promise<string>(resolve => {
+    const timer = setTimeout(() => resolve(url), 0);
+    (timer as { unref?: () => void }).unref?.();
+  }));
+  svgLane = run.catch(() => undefined);
+  return run;
+}
+
+/** Where there is no FileReader (a test), the bytes are encoded here. */
+function readSvgDataUrl(blob: Blob): Promise<string> {
   if (typeof FileReader === 'function') {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();

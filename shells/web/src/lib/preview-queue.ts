@@ -1,14 +1,32 @@
 // SPDX-License-Identifier: MPL-2.0
 import { previewDeadline } from './preview-deadline.ts';
-/** One serial idle queue shared by the gallery grid and featured strips. */
+/**
+ * One serial idle queue shared by the gallery grid and featured strips.
+ *
+ * Two kinds of task. Reading a look that is already stored (a baked file or the
+ * preview store) runs on the next idle callback. Drawing a look that is not stored
+ * yet (`draw: true`) also waits for the draw gate (lib/preview-work-gate.ts: the page
+ * at rest, and the device's own limits), and comes after every read the queue holds.
+ * One task runs at a time, with an idle callback between tasks.
+ */
 export interface PreviewTask {
   /** Lower runs first; null parks the task until the view makes it relevant. */
   priority(): number | null;
   stale?(): boolean;
   run(): Promise<void>;
+  /** Draws a look that is not stored yet (see the header). */
+  draw?: boolean;
 }
 
-const idle = (callback: () => void): (() => void) => {
+type Schedule = (callback: () => void) => () => void;
+
+/** When a draw may run, and how to hear that it may run again. */
+export interface DrawGate {
+  allowed(): boolean;
+  whenMayResume(fn: () => void): void;
+}
+
+const idle: Schedule = callback => {
   if (typeof requestIdleCallback === 'function') {
     const id = requestIdleCallback(callback, { timeout: 3000 });
     return () => cancelIdleCallback(id);
@@ -18,42 +36,57 @@ const idle = (callback: () => void): (() => void) => {
 };
 
 export function createPreviewQueue(
-  schedule: (callback: () => void) => () => void = idle,
+  schedule: Schedule = idle,
   onError: (error: unknown) => void = error => console.warn('Preview render failed', error),
   timeoutMs = 60_000,
+  drawGate?: DrawGate,
 ) {
   let tasks: PreviewTask[] = [];
   let cancel: (() => void) | undefined;
   let running = false;
   let destroyed = false;
   let paused = false;
+  /** Waiting for the draw gate to say a draw may run again. */
+  let gateWait = false;
   /** Short holds from moving strips (a Cover Flow swipe), counted so two strips and
    *  the welcome dialog's setPaused never release each other's pause. */
   let holds = 0;
   const halted = (): boolean => destroyed || paused || holds > 0;
 
+  function waitForGate(): void {
+    if (gateWait || !drawGate) return;
+    gateWait = true;
+    drawGate.whenMayResume(() => { gateWait = false; wake(); });
+  }
+
+  function fire(): void {
+    cancel = undefined;
+    if (halted()) return;
+    // Choose AFTER yielding: a newly queued cover always outranks an extra
+    // template, including one that was waiting when this idle was requested.
+    tasks = tasks.filter(task => !task.stale?.());
+    const drawOk = !drawGate || drawGate.allowed();
+    let chosen = -1;
+    let best = Infinity;
+    let drawHeld = false;
+    tasks.forEach((task, i) => {
+      const priority = task.priority();
+      if (priority === null) return;
+      if (task.draw && !drawOk) { drawHeld = true; return; }
+      if (priority < best) { chosen = i; best = priority; }
+    });
+    if (chosen < 0) { if (drawHeld) waitForGate(); return; }
+    const task = tasks.splice(chosen, 1)[0]!;
+    running = true;
+    void previewDeadline(Promise.resolve().then(() => task.run()), timeoutMs).catch(onError).finally(() => {
+      running = false;
+      wake();
+    });
+  }
+
   function wake(): void {
     if (halted() || running || cancel || !tasks.length) return;
-    cancel = schedule(() => {
-      cancel = undefined;
-      if (halted()) return;
-      // Choose AFTER yielding: a newly queued cover always outranks an extra
-      // template, including one that was waiting when this idle was requested.
-      tasks = tasks.filter(task => !task.stale?.());
-      let chosen = -1;
-      let best = Infinity;
-      tasks.forEach((task, i) => {
-        const priority = task.priority();
-        if (priority !== null && priority < best) { chosen = i; best = priority; }
-      });
-      if (chosen < 0) return;
-      const task = tasks.splice(chosen, 1)[0]!;
-      running = true;
-      void previewDeadline(Promise.resolve().then(() => task.run()), timeoutMs).catch(onError).finally(() => {
-        running = false;
-        wake();
-      });
-    });
+    cancel = schedule(fire);
   }
 
   return {

@@ -4,16 +4,25 @@ import { instanceFetch, instancePath } from './instance.ts';
 
 /** instanceFetch with an optional time box. Never rejects: `res` is null on any
  *  failure, and `timedOut` tells a spent budget apart from an instant error. A
- *  budget of zero or less aborts at once; only an omitted one means no limit. */
+ *  budget of zero or less aborts at once; only an omitted one means no limit. A
+ *  signal in `init` still cancels the request; a cancel is not a timeout. */
 export async function fetchWithin(path: string, init: RequestInit | undefined, timeoutMs: number | undefined): Promise<{ res: Response | null; timedOut: boolean }> {
   const ctrl = timeoutMs === undefined ? null : new AbortController();
-  const timer = ctrl ? setTimeout(() => ctrl.abort(), Math.max(1, timeoutMs ?? 0)) : null;
+  let timedOut = false;
+  const timer = ctrl ? setTimeout(() => { timedOut = true; ctrl.abort(); }, Math.max(1, timeoutMs ?? 0)) : null;
+  const outer = init?.signal;
+  const cancel = (): void => ctrl?.abort();
+  if (ctrl && outer) {
+    if (outer.aborted) ctrl.abort();
+    else outer.addEventListener('abort', cancel, { once: true });
+  }
   try {
     return { res: await instanceFetch(instancePath(path), ctrl ? { ...init, signal: ctrl.signal } : init), timedOut: false };
   } catch {
-    return { res: null, timedOut: !!ctrl?.signal.aborted };
+    return { res: null, timedOut };
   } finally {
     if (timer) clearTimeout(timer);
+    outer?.removeEventListener('abort', cancel);
   }
 }
 

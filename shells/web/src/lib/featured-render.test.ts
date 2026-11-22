@@ -7,7 +7,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderFeaturedVariant, renderMissingLook, isManifestLook, previewSeams, lookRecipe } from './featured-render.ts';
+import { renderFeaturedVariant, renderMissingLook, isManifestLook, previewSeams, lookRecipe, storedFeaturedVariant, checkLookStore } from './featured-render.ts';
 
 const VALUES = { headline: 'demo' };
 let tokenValue = '#0c322c';
@@ -79,4 +79,32 @@ test('a picture drawn while the brand changed is not kept, and the recipe follow
     assert.equal(store.calls.stored, 0);
     assert.notEqual((await lookRecipe(host, 'demo', { headline: 'brand' })).key, before);
   } finally { store.restore(); tokenValue = '#0c322c'; }
+});
+
+test('reading a stored look never draws: a miss is null, a hit is the picture the draw stored', async () => {
+  const store = fakeStore();
+  try {
+    assert.equal(await storedFeaturedVariant(host, 'demo', ['svg'], { headline: 'read' }), null, 'nothing stored yet');
+    assert.equal(store.calls.renders, 0, 'a read never renders, so no tool code loads for it');
+    const drawn = await renderFeaturedVariant(host, 'demo', ['svg'], 0, { headline: 'read' });
+    assert.equal(await storedFeaturedVariant(host, 'demo', ['svg'], { headline: 'read' }), drawn, 'same recipe as the draw');
+    assert.equal(await storedFeaturedVariant(host, 'demo', ['svg'], { headline: 'read' }, 'gallery@1'), drawn, 'a plain label is not part of the recipe');
+    assert.equal(await storedFeaturedVariant(host, 'demo', ['pptx'], { headline: 'read' }), null, 'no displayable format');
+    assert.equal(store.calls.renders, 1);
+  } finally { store.restore(); }
+});
+
+test('a store with no look at all answers a read at once, without looking anything up', async () => {
+  const store = fakeStore();
+  const real = previewSeams.empty;
+  try {
+    previewSeams.empty = async () => true;
+    checkLookStore();
+    assert.equal(await storedFeaturedVariant(host, 'demo', ['svg'], { headline: 'first visit' }), null);
+    assert.equal(store.calls.cached, 0, 'no store lookup on a first visit');
+    previewSeams.empty = async () => false;
+    checkLookStore();
+    await storedFeaturedVariant(host, 'demo', ['svg'], { headline: 'later visit' });
+    assert.equal(store.calls.cached, 1, 'a store with looks in it is read');
+  } finally { previewSeams.empty = async () => false; checkLookStore(); previewSeams.empty = real; store.restore(); }
 });

@@ -50,11 +50,11 @@ import { firstRunBannerMarkup } from './first-run-banner.ts';
 import { viewTopbarHtml, mountViewTopbar } from '../components/view-topbar.ts';
 import { mountFeaturedRow, resolveExamples } from '../components/featured-row.ts';
 import { armMotionPreviews, playMotionIn, stopMotionIn } from '../lib/preview-media.ts';
-import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
-import { createPreviewQueue, holdWhileBusy } from '../lib/preview-queue.ts';
+import { galleryPreviewLooks, galleryLookHref, renderGalleryLook, storedGalleryLook, galleryPreviewPriority } from '../lib/gallery-preview.ts';
+import { holdWhileBusy } from '../lib/preview-queue.ts';
 import { galleryWelcomeStep, placeGalleryWelcome } from './gallery-welcome.ts';
 import { isProgrammeMember } from '../lib/workspace-templates.ts';
-import { loadGalleryLook, placeBakedCovers, withHeldLook } from './gallery-look-loader.ts';
+import { createLookQueue, loadGalleryLook, lookTask, placeBakedCovers, readStoredLook, slideFinished, withHeldLook } from './gallery-look-loader.ts';
 import { hydratePaged } from './gallery-paged-deck.ts';
 import { renderFeaturedVariant, coverFormats, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
@@ -441,7 +441,7 @@ function createGalleryLifecycle(viewEl: HTMLElement) {
   // the featured row (timers + drift loop) and the preview queue below
   // register their teardown here so neither keeps running after the user moves on.
   const cleanups: Array<() => void> = [];
-  const previewQueue = createPreviewQueue();
+  const previewQueue = createLookQueue();
   previewQueue.setPaused(true); // Wait for the welcome decision before rendering behind it.
   cleanups.push(() => previewQueue.destroy());
   cleanups.push(holdWhileBusy(previewQueue));   // no render starts while the person scrolls or types
@@ -1361,17 +1361,16 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
         return { thumb, href };
       });
     };
-    slides.forEach((slide, i) => previewQueue.add(withHeldLook(gcar, slide, tool.id, i, {
-      priority: () => previewPriority(gcar, i === 0),
-      stale: () => !gcar.isConnected,
-      run: () => renderSlide(slide),
-    })));
+    // A stored look is read first; a missing one is drawn when the page is at rest (lookTask).
+    slides.forEach((slide, i) => previewQueue.add(withHeldLook(gcar, slide, tool.id, i, lookTask(previewQueue, gcar, () => previewPriority(gcar, i === 0), {
+      read: () => readStoredLook(gcar, slide, async () => (looks[i] ? storedGalleryLook(host, tool, i, looks[i]!) : null), () => galleryLookHref(tool.id, looks[i])),
+      draw: () => renderSlide(slide), done: () => slideFinished(slide),
+    }))));
     // A paged document also gets its single cover before we export the full deck.
-    if (gcar.dataset.paged === '1') previewQueue.add({
-      priority: () => previewPriority(gcar, false),
-      stale: () => !gcar.isConnected,
-      run: () => hydratePaged(host, gcar, toolId!, tool),
-    });
+    if (gcar.dataset.paged === '1') previewQueue.add(lookTask(previewQueue, gcar, () => previewPriority(gcar, false), {
+      read: () => hydratePaged(host, gcar, toolId!, tool, { storedOnly: true }),
+      draw: () => hydratePaged(host, gcar, toolId!, tool), done: () => gcar.dataset.pagedDone === '1',
+    }));
   }
 
   // The tool and first look of a card, for the baked cover pass (gallery-look-loader.ts).
