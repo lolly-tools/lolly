@@ -233,7 +233,7 @@ One file per saved session, in a `saved-state` folder:
 - Linux: `~/.local/share/tools.lolly.Desktop/saved-state/`, or the same path under `$XDG_DATA_HOME`
 - iPhone, iPad and Android: inside the app's own storage, which the Files app does not show
 
-Each session's picture is a file in `saved-state/previews/`, stored once however many copies show it. Uploaded pictures, design systems and the list of recent downloads stay in the app's internal storage, not in these folders. The terminal app and the command line read the same `saved-state` folder: see [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live).
+Each session's picture is a file in `saved-state/previews/`, stored once however many copies of the session there are. Uploaded pictures, design systems and the list of recent downloads stay in the app's internal storage, not in these folders. The terminal app and the command line read the same `saved-state` folder: see [Where saved sessions live](/info/cli-reference.html#where-saved-sessions-live).
 :::
 
 <!--i:eti-trash-->
