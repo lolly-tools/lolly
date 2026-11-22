@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-11-21T17:12:32.776Z",
+  "generatedAt": "2026-11-22T09:27:49.439Z",
   "tools": [
     {
       "id": "3d",
@@ -8297,7 +8297,7 @@
       "id": "multi-page-pdf",
       "name": "Booklet",
       "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "status": "official",
       "category": "designer",
       "tags": [

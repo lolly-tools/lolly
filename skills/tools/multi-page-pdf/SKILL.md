@@ -5,7 +5,7 @@ description: "Operate the Lolly Booklet tool (multi-page-pdf) using its declared
 
 # Booklet
 
-Tool ID: `multi-page-pdf`. Tool version: `1.2.0`. Engine range: `^1.0.0`.
+Tool ID: `multi-page-pdf`. Tool version: `1.2.1`. Engine range: `^1.0.0`.
 
 Build a multi-page PDF - a cover, flowing content blocks, and a back page.
 
