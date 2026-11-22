@@ -1,35 +1,37 @@
 # Arkitektura ng Lolly
 
-![Icon ng Lolly - Malaking berde at puting lollipop candy](/info/icon.svg)
+![Lolly Icon - Malaking berde at puting lollipop na kendi](/info/icon.svg)
 
-Ang pahinang ito ay para sa mga taong nagbabago ng code ng Lolly: kung paano nagkakasya ang engine, ang mga shell at ang mga tool pack, kung saan nakatira ang bawat isa sa repository, at ang mga pangakong naglilimita sa bawat pagbabago. Kung gusto mong malaman kung ano ang ginagawa ng Lolly at sino ang gumagamit nito, basahin muna ang [Paano gumagana ang Lolly](/info/how-lolly-works.html).
+Para ang pahinang ito sa mga nagbabago ng code ng Lolly: kung paano magkakaugnay ang engine, mga shell at mga tool pack, kung saan naroon ang bawat isa sa repository at ang mga prinsipyong nagtatakda ng hangganan ng bawat pagbabago. Para malaman kung ano ang ginagawa ng Lolly at sino ang gumagamit nito, basahin muna ang [Paano gumagana ang Lolly](/info/how-lolly-works.html).
 
-May dalawang kasama pa na mas malalim ang tinatalakay. Ang [`engine/README.md`](../engine/README.md) ay mapa ng engine, module por module, na binuo mula sa code. Binabasa ng [Threat Model & Trust Boundaries](/info/threat-model.html) ang parehong arkitektura bilang mga trust boundary, at iyon ang page para sa anumang tanong tungkol sa kung ano ang itinuturing ng engine na hindi pinagkakatiwalaan.
+Inilalatag ng [`engine/README.md`](https://github.com/lolly-tools/lolly/blob/main/engine/README.md) ang engine ayon sa bawat module at binubuo ito mula sa code. Tinitingnan ng [Modelo ng Banta & Mga Hangganan ng Tiwala](/info/threat-model.html) ang parehong arkitektura bilang mga hangganan ng tiwala at sinasabi kung ano ang itinuturing ng engine na hindi mapagkakatiwalaan.
 
+<!--i:eti-layers-->
 ## Ang kabuuang larawan
 
-Data ang mga tool sa itaas. Walang alam ang engine sa gitna tungkol sa anumang platform. Ang mga shell sa ibaba ay nagpapatupad ng iisang kontrata, at ang mga catalog ang nagbibigay ng nilalaman.
+Data ang mga tool sa itaas. Walang alam tungkol sa anumang platform ang engine sa gitna. Iisang kontrata ang ipinapatupad ng mga shell sa ibaba, at ang mga catalog ang nagbibigay ng nilalaman.
 
-![Nagbibigay ang mga tool ng manifest, template at hooks sa shared na engine. Ang mga web, Tauri at terminal shell ay nagpapatupad ng HostV1 capability bridge at nagbabasa ng mga tool at asset mula sa mga catalog.](/info/diagrams/concepts/platform-layers.svg)
+![Nagbibigay ang mga tool ng manifest, template at mga hook sa pinagsasaluhang engine. Ipinapatupad ng mga web, Tauri at terminal shell ang HostV1 capability bridge at binabasa ang mga tool at asset mula sa mga catalog.](/info/diagrams/concepts/platform-layers.svg)
 
-Kung mailalarawan mo ito sa purong data at Handlebars, nabibilang ito sa **engine**. Kung ito ay humahawak sa DOM, filesystem, network o anumang browser o operating-system API, nabibilang ito sa **host**, ang panig ng shell sa bridge. Open source ang engine, at walang bagay na may alam sa partikular na brand o platform ang napupunta sa engine.
+Anumang mailalarawan mo gamit ang purong data at Handlebars ay para sa **engine**. Anumang gumagamit ng DOM, filesystem, network o anumang browser o operating-system API ay para sa **host**, ang panig ng shell sa bridge. Open source ang engine. Walang anumang may kaalaman tungkol sa partikular na brand ang inilalagay sa engine.
 
-## Layout ng repository
+<!--i:eti-folder-shared-->
+## Ayos ng repository
 
-Isang repository ang Lolly. Ang bawat directory sa ibaba ay payak na directory dito, maliban sa `brands/suse`, isang **pribadong** git submodule na may hawak ng SUSE tool pack at catalog, na hindi kinukuha ng pampublikong clone. Ang content profile (`profiles.json`) ang nagpapasya kung aling mga pack ang binabasa ng build, nareresolba bawat process sa halip na inililipat nang global. Nasa [Build Guide](/info/build-guide.html) ang clone command at kung paano kino-commit ang pagbabago sa loob ng pribadong pack.
+Iisang repository ang Lolly. Karaniwang directory ang bawat directory sa ibaba, maliban sa `brands/suse`: isang **pribadong** git submodule na may SUSE tool pack at catalog, na hindi kinukuha ng pampublikong clone. Itinatakda ng content profile (`profiles.json`) kung aling mga pack ang binabasa ng build. Tinutukoy ng bawat proseso ang sarili nitong profile, at walang pangkalahatang switch. Nasa [Gabay sa Build](/info/build-guide.html) ang clone command at kung paano mag-commit ng pagbabago sa loob ng pribadong pack.
 
-| Directory | Ano ang hawak nito |
+| Directory | Laman nito |
 |---|---|
-| `engine/` | Ang platform-agnostic na core: loader, runtime, mga input, template, URL mode, mga unit at ang mga format module |
-| `shells/` | Ang web app, ang mga Tauri desktop at mobile app, ang CLI, ang TUI at ang browser extension |
-| `packages/` | Ang tool-author SDK (`@lolly-tools/core`), ang shared na Node shell piece at ang docs renderer, bukod sa iba |
-| `community/` | Ang mga brand-agnostic na tool, kasama ang shared na emoji pack |
-| `brands/` | Mga brand pack: `lolly-demo` (Lolly Demo, ang design system na pinapatakbo ng lolly.tools), `lolly-start` (ang blangkong panimula) at ang pribadong `suse` |
-| `services/` | Ang mga opsyonal na MCP, certificate at Penpot service, at ang server code na pinagsasaluhan nila |
+| `engine/` | Ang core na hindi nakadepende sa platform: loader, runtime, mga input, template, URL mode, unit at format module |
+| `shells/` | Ang web app, mga Tauri desktop at mobile app, CLI, TUI at browser extension |
+| `packages/` | Ang SDK ng may-akda ng tool (`@lolly-tools/core`), mga pinagsasaluhang bahagi ng Node shell at docs renderer, bukod sa iba pa |
+| `community/` | Ang mga tool na walang partikular na brand, kasama ang mga pinagsasaluhang emoji pack |
+| `brands/` | Mga brand pack: `lolly-demo` (Lolly Demo, ang design system na ginagamit ng lolly.tools), `lolly-start` (ang blangkong panimula) at ang pribadong `suse` |
+| `services/` | Ang mga opsyonal na serbisyo ng MCP, certificate at Penpot, at ang server code na pinagsasaluhan nila |
 | `schemas/` | JSON Schema para sa mga tool manifest, asset entry at asset reference |
-| `scripts/`, `tests/`, `docs/`, `api/` | Mga build at catalog script, ang engine test suite, ang mga docs na ito at ang mga generated na serverless bundle |
+| `scripts/`, `tests/`, `docs/`, `api/` | Mga build at catalog script, test suite ng engine, mga dokumentong ito at mga binuong serverless bundle |
 
-::: details Ang mga file ng engine at shell na unang makakaharap mo
+::: details Mga file ng engine at shell na una mong makikita
 ```
 engine/src/
   index.ts          public surface: loader, runtime, template, inputs, url-mode
@@ -55,127 +57,134 @@ shells/tui/         src/main.tsx (the full-screen app), src/bridge.ts
 ```
 :::
 
-Walang `tools/` o `catalog/` directory sa repository root. Sinasagot ng `packages/node-shell/src/content-roots.ts` ang "saan nakatira ang tool na `<id>`" at "nasaan ang catalog" mula sa `profiles.json` kapag hiniling. Ang tunay na pares ng `tools/` at `catalog/` ay isinusulat lang sa build output, tulad ng `dist/`, RPM payload o container image, dahil kinukuha ng browser ang dalawang path na iyon sa HTTP.
+::: note Walang `tools/` o `catalog/` directory sa root ng repository
+Sinasagot ng `packages/node-shell/src/content-roots.ts` ang "saan naroon ang tool na `<id>`" at "saan naroon ang catalog" mula sa `profiles.json`. Isinusulat lang ang tunay na pares ng `tools/` at `catalog/` sa build output, tulad ng `dist/`, RPM payload o container image, dahil kinukuha ng browser ang dalawang path na iyon sa HTTP.
+:::
 
-## Kung saan tumatakbo ang Lolly
+<!--i:eti-monitor-->
+## Saan tumatakbo ang Lolly
 
-Ginagamit ng bawat surface ang parehong engine at parehong mga tool file.
+Parehong engine at mga file ng tool ang ginagamit ng bawat interface.
 
-- **Ang web app.** Isang progressive web app na gumagana offline kapag na-cache na ng service worker nito ang mga tool at asset. Hindi nito kailangan ng account; nasa IndexedDB ng bawat device ang state. Isang responsive na layout ang naglilingkod sa desktop at phone: sa phone, nagiging sheet ang mga kontrol at bumubukas ang mga export control mula sa lumulutang na pill.
-- **Ang mga desktop at mobile app.** Mga Tauri package ng parehong web app, na may native na file dialog, filesystem state at buong offline na paggamit.
-- **Ang CLI.** Ang `lolly <tool-id> --input=value --output=file.png` ay naglo-load ng parehong engine sa headless na DOM at isinusulat ang file. Ito ay URL mode sa ibang transport, hindi hiwalay na implementasyon. Tingnan ang [CLI](/info/cli.html).
-- **Ang TUI.** Isang full-screen, keyboard-first na terminal app na gumagamit muli sa bridge ng CLI, nag-iingat ng mga naka-save na session sa disk (sa sariling folder ng desktop app kapag naka-install ang app, kung hindi ay sa ilalim ng `~/.lolly`) at nagsisimula lang ng scoped headless browser kapag kailangan ito ng isang format. Tingnan ang [TUI](/info/tui.html).
+- **Ang web app.** Isang progressive web app. Gumagana ito offline kapag na-cache na ng service worker nito ang mga tool at asset. Hindi nito kailangan ng account, at nasa IndexedDB sa bawat device ang state. Iisang responsive na layout ang ginagamit sa desktop at phone. Sa phone, nagiging sheet ang mga kontrol at bumubukas ang mga kontrol sa export mula sa lumulutang na pill.
+- **Ang mga desktop at mobile app.** Mga Tauri package ng parehong web app, na may mga native na file dialog, state sa filesystem at buong paggamit offline.
+- **Ang CLI.** Nilo-load ng `lolly <tool-id> --input=value --output=file.png` ang parehong engine sa headless DOM at isinusulat ang file. URL mode ito sa ibang transport. Tingnan ang [CLI](/info/cli.html).
+- **Ang TUI.** Isang full-screen na terminal app na pangunahing ginagamit sa keyboard. Ginagamit nito ang bridge ng CLI at pinananatili sa disk ang mga naka-save na session: sa folder ng desktop app kapag naka-install ang app, kung hindi ay sa `~/.lolly`. Nagsisimula lang ito ng headless browser na limitado ang saklaw kapag kailangan ito ng format. Tingnan ang [TUI](/info/tui.html).
 
-![Ang desktop split view: mga kontrol na binuo mula sa manifest sa kaliwa, ang live canvas sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
+![Ang split view sa desktop: mga kontrol na binuo mula sa manifest sa kaliwa, ang live na canvas sa kanan](/t/url-shot?url=%2F%23%2Ftool%2Fchart&width=1440&height=900&dpi=192&waitMs=2200&walker=1&format=svg&filename=aud-web-split)
 
-Ang parehong tool sa lapad ng phone ay hindi nangangailangan ng ikalawang layout: nagiging sheet sa itaas ang mga kontrol at hawak ng preview ang screen.
+Sa lapad ng phone, nasa itaas ang sheet ng mga kontrol at pinupuno ng preview ang screen.
 
-![Isang audiogram sa 430px-ang-lapad na screen: ang controls sheet sa itaas, ang tapos na parisukat na artwork sa ibaba at ang lumulutang na export pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
+![Isang audiogram sa screen na 430px ang lapad: ang sheet ng mga kontrol sa itaas, ang tapos na parisukat na artwork sa ibaba at ang lumulutang na export pill](/t/url-shot?url=%2F%23%2Ftool%2Faudiogram%3Faudio%3Dzzfxm%3A7%3Alofi%26title%3DField%2520notes%26subtitle%3DEpisode%252012%26style%3Dwave&width=430&height=900&dpi=192&waitMs=3200&css=%23ag-wave%7Bdisplay%3Anone!important%7D.ag-ph%7Bdisplay%3Ablock!important%7D&walker=1&format=svg&rasterDpi=110&dark=1&filename=ov2-phone-audiogram)
 
-Kasama rin sa web app ang **Batch** (`#/batch`, `shells/web/src/pro/`), isang spreadsheet-style na grid na nagre-render ng maraming row nang sabay sa isa o maraming tool; sinasaklaw ng [Batch at Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design) ang Batch. Ang **Settings → Capabilities** ay nagmamapa ng lahat ng idineklara ng platform na kaya nitong gawin.
+Kasama rin sa web app ang **Batch** (`#/batch`, `shells/web/src/pro/`), isang grid na parang spreadsheet na sabay-sabay na nagre-render ng maraming row sa isa o maraming tool. Tingnan ang [Batch at Lolly Multi-edit](/info/batch.html#make-many-versions-of-one-design). Inililista ng **Settings → Capabilities** ang lahat ng idinedeklara ng platform na kaya nitong gawin.
 
-![Ang Batch sa bagong install: isang walang laman na row na naghihintay ng tool, na nakalagay na ang spreadsheet surface at ang Render button bago pa dumating ang anumang data](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
+![Batch sa bagong install: isang walang lamang row na naghihintay ng tool, na may spreadsheet interface at Render button bago pa dumating ang anumang data](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-## Mga arkitekturang komitment
+<!--i:eti-lock-->
+## Mga prinsipyong sinusunod ng arkitektura
 
-Pinal na ang mga desisyong ito. Ang pagbabago sa alinman sa mga ito ay malaking gawain, dahil humuhubog ang mga ito sa bawat ibang desisyon sa codebase.
+Napagpasyahan na ang mga ito. Nakadepende sa mga ito ang bawat ibang desisyon sa codebase, kaya malaking gawain ang baguhin ang isa.
 
-### 1. Deklaratibong mga tool, na may imperatibong escape hatch
+### 1. Mga declarative na tool, na may opsyon para sa imperative na code
 
-Ang tool ay manifest (`tool.json`), template (`template.html`) at opsyonal na `hooks.js`. **Dineklara ng manifest ang mga input**, hindi kailanman ng template: ang mga input ay hindi hinuhuli mula sa mga Handlebars token. Karamihan ng tool ay manifest at template lang, kaya nakakapagsulat ng mga ito ang mga hindi developer.
+Ang tool ay isang manifest (`tool.json`), isang template (`template.html`) at opsyonal na `hooks.js`. **Ang manifest ang nagdedeklara ng mga input**. Hindi kailanman hinuhulaan ang mga input mula sa mga Handlebars token ng template. Manifest at template lang ang karamihan ng tool, kaya puwedeng gumawa ng mga ito kahit hindi developer.
 
-![Ang control stack ng Street Map: city dropdown, theme select, mga weight slider at colour trigger, bawat isa ay iginuhit mula sa isang linya ng manifest](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
+![Ang control stack ng Street Map: isang city dropdown, theme select, mga weight slider at colour trigger, bawat isa ay mula sa isang linya ng manifest](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-canvas%7Bdisplay%3Anone%7D&cropSelector=%23tool-inputs&dark=1&filename=ov2-street-map-controls)
 
-Ang mga tool na nagko-compute ng value, tulad ng QR encoding o chart shaping, ay nagdaragdag ng hooks: mga pinangalanang lifecycle function na tinatawag ng runtime kasama ang capability bridge na naka-inject. Ang mga hook ay portability contract, hindi security sandbox, at tumatakbo sila sa loob ng time budget. Ang mga tool na ang hooks ay napatunayang walang page global ay may dalang `isolate: true` at tumatakbo sa Worker. Nasa [Tool hooks](/info/tool-hooks.html) ang lifecycle at mga budget, at sinasabi ng [Threat Model](/info/threat-model.html) kung ano ang nasasaklaw at hindi nasasaklaw ng in-page executor.
+Nagdaragdag ng mga hook ang mga tool na nagkakalkula ng value, tulad ng QR encoding o paghubog ng chart: mga pinangalanang lifecycle function na tinatawag ng runtime na may naka-inject na capability bridge. Kontrata para sa portability ang mga hook, hindi security sandbox. Tumatakbo ang mga ito sa loob ng nakalaang oras. May `isolate: true` ang mga tool na napatunayang walang page global ang mga hook at tumatakbo ang mga ito sa Worker. Nasa [Mga tool hook](/info/tool-hooks.html) ang lifecycle at mga nakalaang oras. Sinasabi ng [Modelo ng Banta](/info/threat-model.html) kung ano ang kayang pigilan at hindi kayang pigilan ng in-page executor.
 
-### 2. Ang mga tool at asset ay data, hindi bundled code
+### 2. Data ang mga tool at asset, hindi naka-bundle na code
 
-Kinukuha ng web at Tauri app ang mga tool at asset catalog sa boot, ica-cache ang mga ito at gumagana sa anumang nandoon, kaya hindi nangangailangan ng app release ang bagong tool o asset. Ang mga byte ng asset ay may SHA-256 checksum, at ang `id` at `version` ng asset ang nagtutulak ng cache invalidation.
+Kinukuha ng mga web at Tauri app ang mga catalog ng tool at asset sa pagsisimula, kina-cache ang mga ito at ginagamit ang naka-cache. Hindi kailangan ng app release para sa bagong tool o asset. Sinusuri gamit ang SHA-256 checksum ang mga byte ng asset. Ang `id` at `version` ng asset ang batayan ng pag-invalidate ng cache.
 
 ### 3. Ang capability bridge lang ang API na nakikita ng mga tool
 
-Hindi kailanman humahawak ang mga tool sa DOM sa labas ng template nila, hindi kailanman direktang tumatawag ng `fetch` at hindi kailanman nagbabasa ng filesystem. Tumatawag sila ng mga versioned na `host.*` method. Ang canonical na kahulugan ng kontrata ay `packages/core/src/host-v1.ts`, ang tool-author SDK na `@lolly-tools/core`, kaya makakabuo ang third party laban dito nang hindi umaasa sa engine; ang `engine/src/bridge/host-v1.ts` ay nagre-re-export ng mga type nito.
+Hindi kailanman ginagamit ng mga tool ang DOM sa labas ng template nila, direktang tumatawag ng `fetch` o nagbabasa ng filesystem. Tumatawag sila ng mga may-bersyong `host.*` method. Nakadefine ang kontrata sa `packages/core/src/host-v1.ts`, sa SDK ng may-akda ng tool na `@lolly-tools/core`. Puwedeng bumuo ang third party gamit ang SDK nang hindi nakadepende sa engine. Muling ine-export ng `engine/src/bridge/host-v1.ts` ang mga type nito.
 
-| Kinakailangang API | Ano ang ginagawa nito |
+| Kinakailangang API | Ginagawa nito |
 |---|---|
-| `host.profile` | Ang mga detalye ng user; pre-fill ng mga input sa pamamagitan ng `bindToProfile` |
-| `host.assets` | Mga catalog query, asset resolution at ang picker ng host |
-| `host.state` | I-save at i-load ang mga input slot: IndexedDB sa web, ang filesystem sa Tauri, memory sa CLI |
-| `host.clipboard` | Magsulat ng text o larawan sa clipboard, na may platform fallback |
-| `host.export` | I-rasterise o i-serialise ang render target, at ang on-device na file transform path |
-| `host.log` | May-antas na logging papunta sa host |
+| `host.profile` | Ang mga detalye ng user; paunang pinupunan ang mga input gamit ang `bindToProfile` |
+| `host.assets` | Mga catalog query, pagtukoy ng asset at picker ng host |
+| `host.state` | Mag-save at mag-load ng mga input slot: IndexedDB sa web, filesystem sa Tauri, memory sa CLI |
+| `host.clipboard` | Magsulat ng text o larawan sa clipboard, na may mga fallback para sa platform |
+| `host.export` | I-rasterise o i-serialise ang render target, at ang path para sa pagbabago ng file sa device |
+| `host.log` | Pag-log sa host ayon sa antas |
 
-Opsyonal at additive ang bawat ibang API: `tokens`, `text`, `color`, `geom`, `pdf`, `compose`, `media`, `recorder` at marami pa. Inililista ng manifest ng tool sa ilalim ng `requires` ang mga opsyonal na API na tinatawag ng hooks nito nang hindi nagche-check muna, at ang host na kulang ng isa ay tumatangging i-mount ang tool; ang hooks ang nagfe-feature-detect sa iba. Ang ilan, tulad ng `recorder`, ay nangangailangan din ng device capability na dineklara ng tool. Inililista ng `packages/core/src/host-v1/apis.ts` ang lahat at dinodokumento ng [Host API](/info/host-api.html) ang bawat isa. Ang pagdaragdag ng method ay minor version; ang pag-alis o pagbabago ng isa ay major version, at patuloy na gumagana ang v1 kapag lumabas ang v2.
+Opsyonal at dagdag lang ang bawat ibang API: `tokens`, `text`, `color`, `geom`, `pdf`, `compose`, `media`, `recorder` at marami pa. Inililista ng `requires` ng manifest ang mga opsyonal na API na tinatawag ng mga hook nito nang hindi muna nagsusuri. Tumatangging i-mount ang tool ang host na kulang ng isa. Sinusuri ng mga hook kung available ang iba. Kailangan din ng ilan, tulad ng `recorder`, ng kakayahan ng device na idinedeklara ng tool. Inililista silang lahat ng `packages/core/src/host-v1/apis.ts` at idinodokumento ng [Host API](/info/host-api.html) ang bawat isa. Minor version ang pagdaragdag ng method. Major version ang pag-alis o pagbabago ng isa, at patuloy na gumagana ang v1 kapag inilabas ang v2.
 
-### 4. Habambuhay ang mga asset id
+### 4. Permanente ang mga asset id
 
-Ang `lolly/logo/primary` ay kontrata. Kapag nailathala, hindi na nagbabago ang id at hindi na ginagamit muli. Ang pagbabago ng byte ay nagpapataas ng `version` sa asset entry, at ang kapalit ay nagtatakda ng `deprecated: true` at, opsyonal, `replacedBy`, para laging nareresolba ang mga umiiral na reference. Iyon ang nagpapanatili sa mga naka-save na session at shared link na gumagana sa loob ng maraming taon.
+Kontrata ang `lolly/logo/primary`. Kapag nailathala na, hindi kailanman nagbabago o muling ginagamit ang id. Pinapataas ng pagbabago sa byte ang `version` sa asset entry. Itinatakda ng pagpapalit ang `deprecated: true` at, kung gusto, ang `replacedBy`. Laging natutukoy ang mga umiiral na reference, kaya patuloy na gumagana nang maraming taon ang mga naka-save na session at ibinahaging link.
 
-### 5. Ang URL mode ay first-class
+### 5. Ganap na sinusuportahan ang URL mode
 
-Bawat input ay maipapahayag bilang URL parameter, kaya ang link ay tapos na file:
+Maipapahayag bilang URL parameter ang bawat input, kaya ang link ay isang tapos na file:
 
 ```
 https://lolly.tools/t/qr-code?url=https://example.com&ecl=H
 ```
 
-![Ang link na iyon nang mag-isa, na walang ibang laman, ay ang tapos na file](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
+![Ang link na iyon lang, na walang ibang laman, ang tapos na file](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Fexample.com%26ecl%3DH%26full&width=760&height=760&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-url-mode-qr)
 
-Baguhin ang parameter at iba na ang file. Ang buong palette na ito ay isang seed colour, isang harmony at bilang ng hakbang:
+Baguhin ang parameter at makakakuha ka ng ibang file. Ang palette na ito ay isang seed colour, isang harmony at bilang ng hakbang:
 
-![Siyam na hakbang sa apat na kulay, lahat ay nagmula sa iisang seed color na dala ng link](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
+![Siyam na hakbang sa apat na hue, lahat ay mula sa iisang seed colour na nasa link](/t/url-shot?url=%2F%23%2Ftool%2Fcolor-palette%3Fseed%3De0521a%26harmony%3Dtetrad-4%26steps%3D9%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-url-palette)
 
-Binubuo ng CLI ang parehong URL state mula sa mga argument nito at pinapatakbo ang parehong pipeline, kaya hindi maaaring lumihis ang CLI sa app. Ang `engine/src/url-mode.ts` ang nagpa-parse at nagse-serialise; ang hanay ng mga reserved na pangalan (`format`, `width`, `dpi`, `c2pa`, `z` at iba pa) ay hindi kailanman ipinapasa sa tool, at inililista ng [Mga reserved na URL parameter](/info/url-parameters.html) ang lahat ng mga ito. Ang mga asset input ay sumasama ayon sa `id` at nareresolba sa pamamagitan ng `host.assets.get()` bago punan ang template.
+Binubuo ng CLI ang parehong URL state mula sa mga argument nito at pinapatakbo ang parehong pipeline, kaya hindi puwedeng lumihis ang CLI sa app. Pina-parse at sine-serialise ng `engine/src/url-mode.ts` ang URL state. Hindi kailanman ipinapasa sa tool ang mga nakareserbang pangalan (`format`, `width`, `dpi`, `c2pa`, `z` at iba pa). Inililista silang lahat ng [Mga nakareserbang URL parameter](/info/url-parameters.html). Sumasama ang mga asset input bilang `id` at tinutukoy gamit ang `host.assets.get()` bago punan ang template.
 
 ### 6. Dumadaan sa bridge ang storage
 
-Gumagamit ang web app ng IndexedDB, ang Tauri ng filesystem at ang CLI ng memory. Ang nakikita lang ng mga tool ay `host.state.save(slot, data)` at `host.state.load(slot)`, hindi kailanman `localStorage`. Makakapag-iingat ang mga tao ng ilang pinangalanang session bawat tool nang walang account. Dahil ang bridge ang tanging tahi, portable din ang state na iyon: binabasa ito pabalik ng `shells/web/src/data-transfer.ts` sa isang `lolly-backup` file na naii-import sa anumang ibang install ([Data transfer](/info/data-transfer.html)), at ipinapadala ng [Sync](/info/sync.html) ang parehong bundle sa storage na pinili ng tao.
+IndexedDB ang ginagamit ng web app, filesystem ng Tauri at memory ng CLI. `host.state.save(slot, data)` at `host.state.load(slot)` lang ang nakikita ng mga tool, hindi kailanman ang `localStorage`. Puwedeng magtago ang mga tao ng ilang pinangalanang session bawat tool nang walang account. Dahil bridge lang ang dugtungan, puwede ring ilipat ang state na iyon. Ine-export ng `shells/web/src/data-transfer.ts` ang state bilang iisang `lolly-backup` file na puwedeng i-import sa anumang ibang install ([Paglipat ng data](/info/data-transfer.html)). Ipinapadala ng [Sync](/info/sync.html) ang parehong bundle sa storage na pinipili ng tao.
 
-### 7. Sinasabi ng maturity tags kung ano ang isang tool
+### 7. Sinasabi ng mga maturity tag kung ano ang tool
 
-Bawat tool ay nagdedeklara ng `status: official | community | experimental`. Inaayos ng gallery ang pagkakasunod ayon sa status, at ang mga experimental na tool ay nagwa-watermark ng mga export nila bilang default: ino-on ng runtime ang watermark maliban kung magpasa ang caller ng `watermark: false`, at exempted ang mga on-device na tool. Anumang proseso na ilagay ng team sa paligid ng catalog ay nasa ibabaw nito.
+Nagdedeklara ang bawat tool ng `status: official | community | experimental`. Nagso-sort ang gallery ayon sa status. May watermark bilang default ang mga export ng experimental na tool: ino-on ng runtime ang watermark maliban kung magpasa ang tumatawag ng `watermark: false`. Hindi kasama rito ang mga on-device na tool. May sarili pang proseso ng catalog ang team bukod sa mga tag na ito.
 
-### 8. May uri ang mga input sa manifest
+### 8. Itinatakda sa manifest ang type ng mga input
 
-Dineklara ng input ang isang `type`: `text`, `longtext`, `number`, `boolean`, `color`, `select`, `asset`, `date`, `time`, `datetime-local`, `url`, `blocks`, `vector`, `table` o `file`. Nagre-render ang host ng kontrol bawat uri, kaya walang isinusulat na control code ang mga tool, at ang anumang input ay puwedeng may `bindToProfile`. Tatlo ang pinakamabigat:
+Nagdedeklara ang input ng `type`: `text`, `longtext`, `number`, `boolean`, `color`, `select`, `asset`, `date`, `time`, `datetime-local`, `url`, `blocks`, `vector`, `table` o `file`. Nagre-render ang host ng kontrol para sa bawat type, kaya walang isinusulat na code para sa kontrol ang mga tool. Puwedeng magkaroon ng `bindToProfile` ang anumang input. Tatlong type ang pinakamahalaga:
 
-- Ang **`asset`**, na may `filter` at `allowUpload`, ang tulay papunta sa asset system. Nililimitahan ng `allowUpload: false` ang slot sa mga asset ng library, at ang mga upload ng user ay may parehong `AssetRef` na hugis ng library.
-- Ang **`blocks`** ay umuulit na field group na ine-edit sa side panel, ginagamit ng Meeting Planner, Wayfinding, Diagrams at iba pa. Ang pag-click sa na-render na block ay nagfo-focus sa row nito.
-- Ang **`file`** ay may hawak ng sariling file ng user sa memory para sa mga on-device utility tulad ng Lolly Strip Hidden Data at Compress, at ang **`vector`** ay nagpapangkat ng nakapirming hanay ng mga numero sa isang kontrol.
+- Ang **`asset`**, na may `filter` at `allowUpload`, ang bridge sa asset system. Nililimitahan ng `allowUpload: false` ang slot sa mga asset ng library. Pareho ang `AssetRef` na istruktura ng mga upload ng user at ng library.
+- Ang **`blocks`** ay umuulit na grupo ng mga field na ine-edit sa side panel, na ginagamit ng Meeting Planner, Wayfinding, Diagrams at iba pa. Kapag nag-click ng naka-render na block, nagkakaroon ng focus ang row nito.
+- Hawak ng **`file`** ang sariling file ng user sa memory para sa mga on-device na utility tulad ng Lolly Strip Hidden Data at Compress, at pinagsasama ng **`vector`** ang nakapirming set ng mga numero sa iisang kontrol.
 
 ### 9. Walang logic ang mga template
 
-Handlebars ang mga template, pinili para makapagsulat ang mga hindi developer: nag-e-escape ang `{{x}}`, at tahasang opt-in ang `{{{x}}}`. Nasa `hooks.js` ang logic, kung saan tahasan ito at nasusuri. Maraming template ang gumagamit ng `{{{` para sa markup na kinompyut ng hook, kaya dapat mag-escape ang bawat hook ng ibinibigay nito. Ang mga helper ay `default`, `upper`, `lower`, `eq`, `markdown`, `asset`, `framing` at `media`, kasama ang `icsStamp`, `rfcText`, `csvCell` at `arrow` para sa mga katabing `.ics`, `.vcf` at `.csv` template. Sinasaklaw ng [Templates at rendering](/info/tool-rendering.html) ang mga ito.
+Handlebars ang mga template, kaya puwedeng sumulat ng mga ito kahit hindi developer. Nag-e-escape ang `{{x}}`, at tahasang pagpayag ang `{{{x}}}`. Nasa `hooks.js` ang logic, kung saan puwede itong i-review. Maraming template ang gumagamit ng `{{{` para sa markup na kinalkula ng hook, kaya dapat i-escape ng bawat hook ang ipinapasa nito. Ang mga helper ay `default`, `upper`, `lower`, `eq`, `markdown`, `asset`, `framing` at `media`, kasama ang `icsStamp`, `rfcText`, `csvCell` at `arrow` para sa mga kasamang `.ics`, `.vcf` at `.csv` template. Sinasaklaw sila ng [Mga template at pag-render](/info/tool-rendering.html).
 
-### 10. Pinagsasama-sama ng mga tool ang mga tool
+### 10. Pinagsasama ng mga tool ang ibang tool
 
-Ang tool ay maaaring mag-embed ng render ng ibang tool nang walang tool-to-tool na import; ang engine ang nagreresolba ng komposisyon. Maaaring magdeklara ang manifest ng `composes: [{ id, tool, inputs }]` at ilagay ang child gamit ang `{{asset <id>}}`, at ang portable na embed URL (`https://lolly.tools/tool/<id>.svg?…`) ay nagre-render ng child nang lokal, at ganito naglalagay ang Lolly Design ng live na QR code o chart. Ang SVG child ay nananatiling vector sa SVG o PDF na parent. Ang mga child ay intermediate, hindi kailanman nilalagyan ng watermark o selyo, at ang shell na hindi makapag-render nito ay iniiwang walang laman ang slot habang nagre-render pa rin ang parent. Nasa [Composition at brand overlays](/info/tool-composition.html) ang mga detalye.
+Puwedeng mag-embed ang tool ng render ng ibang tool nang walang mga import sa pagitan ng mga tool. Ang engine ang nag-aayos ng komposisyon. Puwedeng magdeklara ang manifest ng `composes: [{ id, tool, inputs }]` at ilagay ang child gamit ang `{{asset <id>}}`. Lokal na nire-render ng portable na embed URL (`https://lolly.tools/tool/<id>.svg?…`) ang child; ganito naglalagay ang Lolly Design ng live na QR code o chart. Nananatiling vector ang SVG child sa SVG o PDF parent. Mga intermediate lang ang mga child at hindi kailanman nilalagyan ng watermark o stamp. Iniiwang walang laman ng shell na hindi kayang mag-render ng child ang slot, at nagre-render pa rin ang parent. Nasa [Komposisyon at mga brand overlay](/info/tool-composition.html) ang mga detalye.
 
-## Ang pinili naming hindi gawin
+<!--i:eti-scissors-->
+## Ang mga pinili naming hindi gawin
 
 - **Walang arbitraryong JavaScript sa mga template.** Nasa `hooks.js` ang logic.
-- **Walang sapilitang asset server.** Nagdaragdag ang mga tao ng sarili nilang file sa Assets sa app at ipinapasa ang gawa bilang session: share link para sa mga input at setting, `.lolly` file kapag kasama ang mga upload. Ang shared na session ay maaaring maging template sa chooser ng tool. Ang organisasyong gustong magkaroon ng governed na catalog ay puwedeng gumamit ng catalogue, mga approval at policy ng Lolly Work, o pamahalaan ang brand pack sa git at mag-review ng mga pagbabago doon.
-- **Walang sapilitang access control.** Pampubliko bilang default ang bukas na app, at ang mga maturity tag at watermark ang may dala ng panganib sa brand. Ang organisation sign-in, mga papel at policy ay galing sa Lolly Work kapag gusto ito ng team.
-- **Walang sentral na database.** Nasa bawat device ang user state, at ang opsyonal na Sync ay kinokopya ito sa storage na pinili ng tao, hindi kailanman sa Lolly database.
-- **Walang shared na code path sa pagitan ng mga tool at engine.** Open source ang engine at ang mga community tool, at ang brand pack tulad ng pribadong `brands/suse/` ay may sarili nitong mga tool at catalog sa ilalim ng sarili nitong mga tuntunin. Walang tool na nag-i-import mula sa `engine/`, kaya nananatiling malinis ang paghahati.
+- **Walang sapilitang asset server.** Nagdaragdag ang mga tao ng sarili nilang file sa Assets sa app at ipinapasa ang gawa bilang session: share link para sa mga input at setting, `.lolly` file kapag kasama rin ang mga upload. Puwedeng maging template sa chooser ng tool ang ibinahaging session. Ang organisasyong gusto ng pinamamahalaang catalog ay puwedeng gumamit ng catalog, mga approval at policy ng Lolly Work, o mamahala ng brand pack sa git at mag-review ng mga pagbabago roon.
+- **Walang sapilitang kontrol sa access.** Pampubliko bilang default ang bukas na app. Ang mga maturity tag at watermark ang nagsasaad ng panganib sa brand. Mula sa Lolly Work ang sign-in ng organisasyon, mga role at policy kapag gusto ng team ang mga ito.
+- **Walang sentral na database.** Nasa bawat device ang state ng user, at kinokopya ito ng opsyonal na Sync sa storage na pinipili ng tao, hindi kailanman sa database ng Lolly.
+- **Walang pinagsasaluhang code path ang mga tool at engine.** Open source ang engine at mga community tool. May sariling mga tool at catalog sa ilalim ng sarili nitong mga tuntunin ang brand pack tulad ng pribadong `brands/suse/`. Walang tool na nag-i-import mula sa `engine/`, kaya nananatiling malinaw ang paghihiwalay.
 
+<!--i:eti-refresh-->
 ## Ang lifecycle ng isang render
 
 May nagbubukas ng `https://lolly.tools/t/qr-code?url=https://example.com&ecl=H`:
 
-1. **Boot.** Binubuksan ng web app ang IndexedDB, binubuo ang capability bridge at sini-sync ang mga tool at asset catalog, o nilo-load ang mga ito mula sa cache kapag offline.
-2. **Route.** Pinipili ng path ang tool view para sa `qr-code`, na ang query ang mga paunang value nito.
-3. **Load.** Kinukuha ng `loadTool` ang `tool.json`, vina-validate ito laban sa schema at kinukuha ang template, styles at hooks.
-4. **I-parse ang link.** Ginagawang input value ng `parseUrlState` ang mga parameter. Ang asset reference tulad ng `?logo=lolly/logo/primary` ay nagiging hindi pa nareresolbang `{ id }`.
-5. **Simulan ang runtime.** Binubuo ng `createRuntime(tool, host, initialValues)` ang input model mula sa profile data, mga default at link, nireresolba ang mga asset reference, nilo-load ang hooks at tinatawag ang `onInit`.
-6. **I-render.** Nagsa-subscribe ang shell sa runtime, iginuguhit ang mga kontrol mula sa model at isinusulat ang napunang template sa `#tool-canvas`.
-7. **Makipag-ugnayan.** Ang pagta-type ay tumatawag ng `runtime.setInput`, na naglalapat ng mga constraint, tumatawag ng `onInput`, pinupunan muli ang template at iginuguhit muli.
-8. **I-export.** Tinatawag ng **Download** ang `runtime.export(node, format)`, at ang `host.export` ng shell ang gumagawa ng file: raster, vector mula sa DOM walker, PDF, dokumento o isa sa ibang format sa `schemas/tool.schema.json`. Kino-convert ang mga pisikal na unit bawat format, at ine-embed ang metadata at Content Credentials kung kaya ng format na hawakan ang mga ito. Ang mga experimental na tool ay nakakakuha ng watermark mula sa host, hindi sa tool. Sinasaklaw ng [Templates at rendering](/info/tool-rendering.html) at [Mag-export ng file](/info/exporting.html) ang hakbang ng export.
+1. **Pagsisimula.** Binubuksan ng web app ang IndexedDB, binubuo ang capability bridge at sini-sync ang mga catalog ng tool at asset, o nilo-load ang mga ito mula sa cache kapag offline.
+2. **Pag-route.** Pinipili ng path ang tool view para sa `qr-code`, na may query bilang mga panimulang value nito.
+3. **Pag-load.** Kinukuha ng `loadTool` ang `tool.json`, bina-validate ito ayon sa schema at kinukuha ang template, mga style at hook.
+4. **Pag-parse ng link.** Ginagawang mga input value ng `parseUrlState` ang mga parameter. Ang asset reference tulad ng `?logo=lolly/logo/primary` ay nagiging hindi pa natutukoy na `{ id }`.
+5. **Pagsisimula ng runtime.** Binubuo ng `createRuntime(tool, host, initialValues)` ang input model mula sa data ng profile, mga default at link, tinutukoy ang mga asset reference, nilo-load ang mga hook at tinatawag ang `onInit`.
+6. **Pag-render.** Nagsu-subscribe ang shell sa runtime, iginuguhit ang mga kontrol mula sa model at isinusulat ang napunang template sa `#tool-canvas`.
+7. **Pakikipag-ugnayan.** Tinatawag ng pag-type ang `runtime.setInput`, na nagpapatupad ng mga limitasyon, tumatawag ng `onInput`, muling pumupuno sa template at muling gumuguhit.
+8. **Pag-export.** Tinatawag ng **Download** ang `runtime.export(node, format)`, at ginagawa ng `host.export` ng shell ang file: isang raster, vector mula sa DOM walker, PDF, dokumento o isa sa ibang format sa `schemas/tool.schema.json`. Kino-convert ang mga pisikal na unit ayon sa format. Ine-embed ang metadata at Content Credentials kung kayang hawakan ng format ang mga ito. Mula sa host ang watermark ng mga experimental na tool, hindi sa tool. Sinasaklaw ng [Mga template at pag-render](/info/tool-rendering.html) at [Mag-export ng file](/info/exporting.html) ang hakbang ng pag-export.
 
-![Ang export panel na binubuksan ng ?options: ang pares ng filename at format, ang laki ng output at ang mga kontrol na nagsusulat ng file](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
+![Ang export panel na binubuksan ng ?options: ang pares ng filename at format, laki ng output at mga kontrol na nagsusulat ng file](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
-Tumatakbo ang parehong lifecycle sa Tauri, at sa CLI na may headless na DOM, kung saan napupunta ang output sa file o stdout.
+Tumatakbo ang parehong lifecycle sa Tauri at sa CLI na may headless DOM, kung saan napupunta ang output sa file o stdout.
 
+<!--i:eti-stamp-->
 ## Mga lisensya
 
-Ang code, kasama ang `engine/`, `shells/`, `services/`, `schemas/` at ang documentation generator, ay MPL-2.0, sa isang pampublikong repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly). Ang prosa ng dokumentasyon ay CC BY-SA 4.0. Ang mga brand pack ay may sariling mga tuntunin sa `NOTICE.md` ng bawat pack: MPL-2.0 ang mga community tool, at proprietary sa SUSE ang pribadong SUSE pack. Nasa [About](/info/about.html) ang buong tala sa paglilisensya.
+MPL-2.0 ang code, kasama ang `engine/`, `shells/`, `services/`, `schemas/` at documentation generator, sa iisang pampublikong repository na [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly). CC BY-SA 4.0 ang prosa ng dokumentasyon. May sariling mga tuntunin ang mga brand pack sa `NOTICE.md` ng bawat pack: MPL-2.0 ang mga community tool, at pag-aari ng SUSE ang pribadong SUSE pack. Nasa [Tungkol](/info/about.html) ang buong tala tungkol sa lisensya.

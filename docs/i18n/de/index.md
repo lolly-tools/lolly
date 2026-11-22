@@ -1,4 +1,3 @@
-# Lolly - Text der Startseite
+# Lolly - Text der Landingpage
 
-Erstellen Sie fertige Dateien. Behalten Sie die Kontrolle über Ihre Inhalte.
-Grafiken, Dokumente, Video und Druck in Ihren Farben und Ihrer Schrift: ohne Konto, ohne Karte, privat und Open Source.
+Erstellen Sie fertige Grafiken, Dokumente, Videos und Drucksachen in Ihren eigenen Farben und Schriften. Privat, Open Source, ohne Konto.

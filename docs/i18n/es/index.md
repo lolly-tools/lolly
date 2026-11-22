@@ -1,4 +1,3 @@
 # Lolly - Texto de la página de inicio
 
-Crea archivos terminados. Conserva el control de tu contenido.
-Gráficos, documentos, vídeo e impresión con tus propios colores y tipografía: sin cuenta, sin tarjeta, privado y de código abierto.
+Crea gráficos, documentos, vídeos y material impreso terminados con tus propios colores y tipografía. Privado, de código abierto y sin necesidad de cuenta.

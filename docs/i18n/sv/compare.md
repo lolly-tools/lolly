@@ -1,50 +1,53 @@
 # Lolly jämfört, verktyg för verktyg
 
-Om du redan använder en annan produkt säger de här sidorna om Lolly ersätter den produkten, fungerar vid sidan av den eller inte passar ditt arbete. Var och en börjar med vad den andra produkten gör bättre.
+De här sidorna säger om Lolly ersätter en annan produkt, fungerar tillsammans med den eller inte passar ditt arbete. Varje sida börjar med vad den andra produkten gör bättre.
 
-_Senast kontrollerad: 28 september 2026._
+_Senast kontrollerat: 28 september 2026._
 
-## Jämför per produkt
+<!--i:eti-grid-->
+## Jämför efter produkt
 
-- [Lolly och Canva](/info/compare-canva.html) - mallar, vardagsdesign och delad varumärkesproduktion.
-- [Lolly och Adobe](/info/compare-adobe.html) - redigering, konvertering, professionell utdata och Content Credentials.
+- [Lolly och Canva](/info/compare-canva.html) - mallar, vardaglig design och gemensam varumärkesproduktion.
+- [Lolly och Adobe](/info/compare-adobe.html) - redigering, konvertering, professionella utdata och Content Credentials.
 - [Lolly och Figma](/info/compare-figma.html) - design, samarbete i realtid och återanvändbar tillgångsproduktion.
-- [Lolly och Penpot](/info/compare-penpot.html) - design med öppen källkod, delade tokens och organisationsarbete.
+- [Lolly och Penpot](/info/compare-penpot.html) - design med öppen källkod, gemensamma tokens och arbete i organisationer.
 - [Lolly och varumärkesportaler](/info/compare-brand-portals.html) - godkända bibliotek, låsta mallar, identitet, granskning och rapportering.
-- [Lolly och renderings-API:er](/info/compare-render-apis.html) - automatiserad generering på din enhet, i CI eller på din egen server, och [hur du flyttar](/info/work-move-from-render-api.html) från Bannerbear eller Placid.
-- [Lolly och filomvandlare online](/info/compare-converters.html) - formatkonvertering på din egen enhet.
+- [Lolly och renderings-API:er](/info/compare-render-apis.html) - automatiserad generering på din enhet, i CI eller på din egen server samt [hur du flyttar](/info/work-move-from-render-api.html) från Bannerbear eller Placid.
+- [Lolly och filkonverterare på nätet](/info/compare-converters.html) - formatkonvertering på din egen enhet.
 
-En jämförelse funktion för funktion finns i [Så jämför sig Lolly](/info/positioning.html). Varje jämförelse är daterad; ett påstående som inte längre stämmer för någon av produkterna behöver rättas.
+[Så står sig Lolly](/info/positioning.html) ger en jämförelse funktion för funktion. Varje jämförelse är daterad. Ett påstående som inte längre stämmer med någon av produkterna behöver rättas.
 
+<!--i:eti-map-pin-->
 ## Vad som körs var
 
-Varje jämförelse täcker två delar av ett projekt med öppen källkod. **Lolly** är motorn, apparna och verktygen. **Lolly Work** är organisationsservern, som underhålls i [arkivet lolly-work](https://github.com/lolly-tools/lolly-work). Båda är MPL-2.0, och en organisation avgör vilka Lolly Work-tjänster som slås på.
+Varje jämförelse omfattar två delar av ett projekt med öppen källkod. **Lolly** är motorn, apparna och verktygen. **Lolly Work** är organisationsservern, som underhålls i [kodförrådet lolly-work](https://github.com/lolly-tools/lolly-work). Båda är MPL-2.0, och en organisation bestämmer vilka Lolly Work-tjänster som ska aktiveras.
 
 ::: cols
 ## På din enhet: Lolly
 
 - Inget konto för fristående användning
-- Att skapa, redigera, konvertera och exportera
-- Fungerar offline när verktygen och tillgångarna det behöver är sparade
+- Skapa, redigera, konvertera och exportera
+- Fungerar offline när verktygen och tillgångarna som behövs är sparade
 - Content Credentials signerade på enheten
 - Privata collabs mellan två enheter, utan server
 
 ## På din organisations server: Lolly Work
 
 - Enkel inloggning, SCIM-provisionering, roller och policyer
-- Delade kataloger, teamprojekt och arbetscollabs
+- Delade kataloger, teamprojekt och work collabs
 - Godkännanden, användningsrapportering och granskningsposter
 - Serverrendering, återställningsbara jobb och godkänd leverans
 - Serversignering med organisationens identitet
 :::
 
-Fristående användning håller filerna på enheten. Att välja delade projekt, en arbetscollab, en serverrendering eller leverans skickar de data den funktionen behöver till din organisations server.
+Fristående användning behåller filer på enheten. Om du väljer delade projekt, en work collab, en serverrendering eller leverans skickas de data som funktionen behöver till din organisations server.
 
-## Vad varje jämförelse förutsätter
+<!--i:eti-info-->
+## Vad varje jämförelse utgår från
 
-De här gränserna gäller varje sida i den här uppsättningen, så de anges en gång här:
+De här begränsningarna gäller varje sida i den här samlingen:
 
-- **Arbetscollabs körs i dag på en enda servernod.** Deras skala och driftshistorik skiljer sig från de sedan länge etablerade värdbaserade produkterna. [Lolly Work status and roadmap](/info/work-status.html) registrerar de aktuella gränserna.
-- **Webbplatsen på [lolly.work](https://lolly.work) är en demo-sandlåda.** En varaktig organisationsinstallation behöver beständig lagring och en operatör; [Install Lolly Work](/info/work-install.html) beskriver båda.
-- **Det finns ingen programlicensavgift per plats** för Lolly eller en egen driftad Lolly Work. Hosting, lagring och drift kostar fortfarande pengar.
-- **En signatur är inte en betrodd signerare.** En verifierare måste lita på certifikatet som signerade en fil innan den visar signeraren som betrodd; [Content Credentials Identity](/info/content-credentials-identity.html) förklarar hur.
+- **Lolly Work-collabs körs på en enda servernod i dag.** Deras skala och drifthistorik skiljer sig från de sedan länge etablerade hostade produkternas. [Lolly Work: status och färdplan](/info/work-status.html) beskriver de aktuella begränsningarna.
+- **Webbplatsen på [lolly.work](https://lolly.work) är en demosandlåda.** En varaktig organisationsinstallation behöver beständig lagring och en driftansvarig. [Installera Lolly Work](/info/work-install.html) tar upp båda.
+- **Det finns ingen programlicensavgift per användare** för Lolly eller Lolly Work på egen server. Hosting, lagring och drift kostar fortfarande pengar.
+- **En signatur innebär inte att signeraren är betrodd.** En verifierare visar signeraren som betrodd bara när verifieraren litar på certifikatet som signerade filen. [Identitet för Content Credentials](/info/content-credentials-identity.html) förklarar hur.

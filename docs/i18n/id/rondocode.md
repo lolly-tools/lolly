@@ -2,49 +2,52 @@
 
 <a id="rondocode-songs"></a>
 
-Lagu rondocode adalah musik yang ditulis sebagai kode: synth, pola, dan mix, dimainkan saat Anda mengetik. Lolly dapat memutar lagu di bawah video, dan utilitas **Rondocode** memungkinkan Anda menulis satu dan mengekspornya sebagai audio. Keduanya mencatat lagu dalam Content Credentials file, sehingga musik menyatakan asalnya.
+Lagu rondocode adalah musik yang ditulis sebagai kode: synth, pola dan mix, diputar saat Anda mengetik. Lolly dapat memutar lagu sebagai latar video, dan utilitas **Rondocode** menulis lagu serta mengekspornya sebagai audio; keduanya mencatat lagu dalam Content Credentials file.
 
+<!--i:eti-music-->
 ## Putar lagu di Lolly
 
-Pemilih aset menerima lagu sebagai file `.rondo` atau `.rondo.json`, atau tautan berbagi `rondocode.com` yang ditempel. Lagu adalah kode yang membuat suaranya sendiri, jadi diputar pada panjang berapa pun yang diminta kliknya. Ia dapat menjadi **music bed** di bawah ekspor video atau diputar di pemutar ambient Neurospicy Mode.
+Pemilih aset menerima lagu sebagai file `.rondo` atau `.rondo.json`, atau tautan berbagi `rondocode.com` yang ditempel. Lagu diputar sepanjang durasi yang diminta klipnya. Lagu dapat menjadi **musik latar** pada ekspor video atau diputar di pemutar ambien Neurospicy Mode.
 
-Kode lagu berjalan di sandbox Lolly, tanpa jaringan dan tanpa akses ke file Anda. Bagian apa pun yang tidak dapat diputar render, seperti mikrofon langsung, atau nyanyian tanpa model suara, dicantumkan di detail aset.
+Kode lagu berjalan di sandbox Lolly, tanpa jaringan dan tanpa akses ke file Anda. Bagian apa pun yang tidak dapat diputar render, seperti mikrofon langsung, atau nyanyian tanpa model suara, dicantumkan dalam detail aset.
 
-Dari terminal, `lolly mix` menerima lagu sebagai seluruh soundtrack; lihat [CLI rendering](/info/cli-rendering.html).
+Dari terminal, `lolly mix` menerima lagu sebagai seluruh soundtrack; lihat [Render CLI](/info/cli-rendering.html).
 
+<!--i:eti-code-->
 ## Tulis dan ekspor lagu
 
-Buka alat **Rondocode** dari **Utilities** untuk menulis lagu di editor langsung rondocode dan mendengarnya saat Anda mengetik. Ekspor sebagai **WAV**, **MP3**, **M4A**, **Opus**, atau **FLAC**, sebagai ZIP stem, sebagai **MIDI**, atau sebagai rekaman apa yang sedang diputar. Dari terminal, `lolly rondocode --export=mid` menulis file MIDI yang sama. **Export length** menetapkan berapa detik ekspor audio berlangsung. File lagu itu sendiri (`.rondo.json`) adalah kode Anda sebagaimana ditulis dan tidak membawa tambahan apa pun.
+Buka alat **Rondocode** dari **Utilities** untuk menulis lagu di editor langsung rondocode dan mendengarnya saat Anda mengetik. Ekspor sebagai **WAV**, **MP3**, **M4A**, **Opus** atau **FLAC**, sebagai ZIP berisi stem, sebagai **MIDI** atau sebagai rekaman dari yang sedang diputar. Dari terminal, `lolly rondocode --export=mid` menulis file MIDI yang sama. **Export length** mengatur durasi ekspor audio dalam detik. File lagu (`.rondo.json`) adalah kode Anda sebagaimana ditulis, tanpa tambahan apa pun.
 
-Lagu dapat menyanyikan liriknya dengan `sing()`. Nyanyian dibuat di perangkat Anda oleh model suara yang diunduh, dan file yang memuat nyanyian sintetis selalu mendeklarasikan nyanyian itu sebagai buatan AI (lihat [AI features](/info/ai-features.html)).
+Lagu dapat menyanyikan liriknya dengan `sing()`. Model suara yang diunduh menghasilkan nyanyian di perangkat Anda. File yang memuat nyanyian sintetis selalu menyatakan nyanyian tersebut sebagai hasil AI (lihat [Fitur AI](/info/ai-features.html)).
 
+<!--i:eti-badge-check-->
 ## Lagu dalam kredensial
 
-Ekspor video atau audio yang memutar lagu rondocode mencatat setiap lagu dalam Content Credentials-nya sebagai sumber:
+Ekspor video atau audio yang memutar lagu rondocode mencatat setiap lagu dalam Content Credentials sebagai sumber:
 
 - nama lagu;
-- SHA-256 dari file `.rondo.json`-nya;
-- bagaimana ia dirender: di sandbox Lolly, kelas eksekusi `vm`, dengan versi dan seed perender, dan bagian apa pun yang tidak dapat diputar render.
+- SHA-256 file `.rondo.json`-nya;
+- cara lagu dirender: di sandbox Lolly, kelas eksekusi `vm`, dengan versi dan seed renderer, serta bagian yang tidak dapat diputar render.
 
-Musik yang dihitung dari kode lagu ditandai sebagai media algoritmik, sehingga Lolly Verify tidak menandainya sebagai AI. Sebelum Anda mengekspor, baris di bawah **Download** mencantumkan lagu yang akan dicatat kredensial; setelah ekspor, baris yang sama melaporkan apa yang ditemukan pembacaan file yang dikirim. Hapus centang **C2PA Credentials** untuk tidak menyertakan catatan. Gambar diam tidak mencatat lagu, karena tidak membawa suara. `lolly mix` dan [server MCP](/info/mcp.html) menulis catatan yang sama.
+Musik yang dihitung dari kode lagu ditandai sebagai media algoritmis, sehingga Lolly Verify tidak menandainya sebagai AI. Sebelum Anda mengekspor, baris di bawah **Download** mencantumkan lagu yang akan dicatat kredensial. Setelah ekspor, baris yang sama melaporkan hasil pembacaan file yang disampaikan. Hapus centang **C2PA Credentials** untuk tidak menyertakan catatan. Gambar diam tidak mencatat lagu, karena tidak memiliki suara. Gambar diam tidak mencatat lagu. `lolly mix` dan [server MCP](/info/mcp.html) menulis catatan yang sama.
 
+<!--i:eti-file-->
 ## File dari utilitas Rondocode
 
-Sebagian besar utilitas di perangkat tidak menulis kredensial, karena mentransformasi file yang sudah Anda miliki. Lolly Rondocode membuat audio baru, jadi setiap file audio yang ditulisnya membawa Content Credentials yang mencatat lagu sebagai sumbernya: namanya, SHA-256 file `.rondo.json`-nya, dan tempat kodenya dijalankan. Itu mencakup WAV, MP3, M4A, Opus, FLAC, setiap stem dalam ZIP stem, dan rekaman apa yang sedang diputar.
+Sebagian besar utilitas di perangkat tidak menulis kredensial, karena mentransformasi file yang sudah Anda miliki. Lolly Rondocode membuat audio baru, sehingga setiap file audio yang ditulisnya membawa Content Credentials yang mencatat lagu sebagai sumbernya: WAV, MP3, M4A, Opus, FLAC, setiap stem dalam ZIP berisi stem dan rekaman dari yang sedang diputar.
 
-- Render editor sendiri berjalan di frame privatnya (kelas eksekusi `frame`) dan mencatat versi editor.
-- Render yang dibuat CLI atau tautan berbagi berjalan di kelas `vm` dan mencatat versi dan seed perender.
+- Render editor sendiri berjalan dalam frame privatnya (kelas eksekusi `frame`) dan mencatat versi editor.
+- Render yang dibuat CLI atau tautan berbagi berjalan dalam kelas `vm` dan mencatat versi serta seed renderer.
 - WAV juga menyatakan hal yang sama dalam komentar RIFF-nya.
-- Musik yang dihitung dari kode lagu adalah media algoritmik dan tidak ditandai sebagai AI.
 
-Bila lagu bernyanyi, file mendeklarasikan nyanyian itu buatan AI dalam bentuk yang dapat dibaca mesin. Tipe sumber digital kredensial adalah media komposit yang dibuat dengan model terlatih, catatan mencantumkan bagian yang dinyanyikan, dan satu pengungkapan AI C2PA per model mengidentifikasi setiap model yang dilalui nyanyian: text to speech Supertonic-3, aligner fonem wav2vec 2.0, encoder ContentVec, dan suara RVC, dengan repositori dan commit tempat Lolly meng-host-nya. File yang memuat nyanyian sintetis tidak pernah disimpan tanpa deklarasi itu.
+Bila lagu bernyanyi, deklarasi AI dapat dibaca mesin. Jenis sumber digital kredensial adalah media komposit yang dibuat dengan model terlatih, catatan mencantumkan bagian yang dinyanyikan, dan satu pengungkapan AI C2PA per model mengidentifikasi setiap model yang dilalui nyanyian: Supertonic-3 teks ke ucapan, penyelaras fonem wav2vec 2.0, encoder ContentVec dan suara RVC, beserta repositori dan commit asal yang digunakan Lolly untuk menyajikannya.
 
 ### Isi file MIDI
 
-File MIDI adalah Standard MIDI File, format 1. Track pertama menyimpan tempo dan birama 4/4, lalu ada satu track untuk setiap synth, diberi nama sesuai synth tersebut. Setiap nada mempertahankan awal, panjang, dan velocity-nya. Synth yang namanya terbaca sebagai instrumen, seperti bass, strings, pad, atau piano, mendapat instrumen General MIDI yang sesuai, dan nama yang menyerupai drum masuk ke kanal 10. Penalaan yang bukan dua belas nada dibulatkan ke semiton terdekat dengan pitch bend.
+File MIDI adalah Standard MIDI File, format 1. Trek pertama memuat tempo dan tanda birama 4/4, diikuti satu trek per synth, dengan nama synth tersebut. Setiap not mempertahankan waktu mulai, durasi dan velocity. Synth yang namanya terbaca sebagai instrumen, seperti bas, gesek, pad atau piano, mendapat instrumen General MIDI yang sesuai, dan nama yang menyerupai drum ditempatkan pada kanal 10. Penyeteman yang bukan dua belas nada dibulatkan ke seminada terdekat dengan pitch bend.
 
-File MIDI tidak dapat menyimpan bagaimana suara sebuah lagu. Pengaturan synth, filter, efek, bus, sampel, dan nyanyian tidak ada di dalamnya, sehingga DAW memainkan nada dengan instrumennya sendiri. Tempo dibaca dari siklus per detik lagu, dengan satu siklus sebagai satu birama empat ketukan, karena birama bawaan lagu bukan bagian dari yang dikembalikan renderer.
+File MIDI tidak dapat memuat pengaturan synth, filter, efek, bus, sampel atau nyanyian, sehingga DAW memainkan not dengan instrumennya sendiri. Tempo dibaca dari siklus per detik lagu dengan satu siklus sebagai satu birama empat ketukan, karena tanda birama lagu sendiri bukan bagian dari yang dikembalikan renderer.
 
-File MIDI tidak memiliki tempat untuk kredensial, jadi peristiwa teks di dalam file membawa pernyataannya, dan panel ekspor memberi tahu Anda. Panel menjelaskan semua ini sebelum Anda mengekspor, dan setelah setiap ekspor editor membaca kembali file tersimpan dan hanya melaporkan apa yang ditemukan pembacaan itu.
+File MIDI tidak memiliki tempat untuk kredensial, sehingga peristiwa teks dalam file membawa pernyataan itu, dan panel ekspor memberi tahu Anda. Panel menjelaskan semua ini sebelum Anda mengekspor. Setelah setiap ekspor, editor membaca kembali file tersimpan dan hanya melaporkan hasil pembacaan itu.
 
-Untuk apa yang dicatat Content Credentials secara umum, lihat [Export a file](/info/exporting.html#content-credentials-c2pa).
+Untuk hal yang dicatat Content Credentials secara umum, lihat [Ekspor file](/info/exporting.html#content-credentials-c2pa).

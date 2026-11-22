@@ -1,78 +1,80 @@
-# Kendin Doğrula
+# Kendin doğrula
 
-Bu sitedeki her söz denetlenebilir, hesap gerekmeden. Denetimlerin çoğu yalnızca bir tarayıcı gerektirir; gerisi bir terminal ve kaynağın bir kopyasını. Aşağıdaki bir denetim gösterilen sonucu vermezse bu bir hata veya bozulmuş bir sözdür ve bunu duymak isteriz: bkz. [If a check fails](#if-a-check-fails).
+Bu sitedeki her söz, hesap olmadan denetlenebilir. Çoğu denetim yalnızca bir tarayıcı gerektirir; geri kalanı için terminal ve kaynak kodun bir kopyası gerekir. Aşağıdaki denetimlerden biri gösterilen sonucu vermezse bu bir hata veya tutulmamış bir sözdür ve bilmek isteriz: bkz. [Bir denetim başarısız olursa](#if-a-check-fails).
 
-En hızlısıyla başla: bir dosyayı Verify üzerine bırak. Sonra daha ileri git: bir araç kullanırken ağı izle, fişi çek ve çalışmaya devam et, çerezleri say ve kaynağı oku.
+Bu denetimler, Lolly'nin tek başına kullanımını kapsar. Kuruluşun Lolly Work çalıştırıyorsa buna oturum açma, paylaşılan içerik, yapılandırılmış telemetri ve denetim kayıtları eklenir; bunları [Sunucu arayüzleri](/info/server-surface.html) ve [gizlilik politikasının kuruluş bölümüyle](/info/privacy.html#organisation-services-with-lolly-work) karşılaştırarak denetle.
 
-Bu denetimler Lolly'yi tek başına kapsar. Kuruluşun Lolly Work çalıştırıyorsa o giriş, paylaşılan içerik, yapılandırılmış telemetri ve denetim kayıtları ekler; onları [Server Surface](/info/server-surface.html) ve [gizlilik politikasının kuruluş bölümü](/info/privacy.html#organisation-services-with-lolly-work) ile karşılaştırarak denetle.
-
+<!--i:eti-clock-->
 ## On saniyede çalıştığını gör
 
-[`/verify`](/#/verify) sayfasını aç ve sayfaya bir dosya bırak. Yükleme yok, hesap yok ve bir sunucu için bekleme yok. Burada Our AI Stance sayfasındaki [üretilmiş Queensland fırtınasını](/info/ai-stance.html) denetler: Gemini'nin ürettiği, Lolly'nin açtığı, işaretlediği ve dönüştürdüğü bir görsel. Her rozet cihazda, dosyanın kendi baytlarından hesaplandı.
+[`/verify`](/#/verify) sayfasını aç ve sayfaya bir dosya bırak. Sunucuya yükleme yok, hesap yok ve sunucu beklemek yok. Burada Yapay zekâya yaklaşımımız sayfasındaki [üretilmiş Queensland fırtınasını](/info/ai-stance.html) denetliyor: Gemini'nin ürettiği, Lolly'nin açıp işaretlediği ve dönüştürdüğü bir görsel. Her rozet, cihazda dosyanın kendi baytlarından hesaplandı.
 
-![Telefon genişliğinde bir ekranda Verify - fırtına görseli, yeşil bir Made with Lolly kararı ve altında sıralanmış kimlik bilgisi-sağlam ve bayt-değişmemiş rozetleri](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
+![Telefon genişliğindeki ekranda Lolly Verify: fırtına görseli, yeşil bir Made with Lolly sonucu ve altında sıralanmış, kimlik bilgisinin sağlam ve baytların değişmemiş olduğunu belirten rozetler](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=440&height=1500&dpi=192&waitMs=6000&waitSelector=.valid-steps&walker=1&format=svg&rasterDpi=96&cropSelector=.valid-top&dark=1&filename=cc-verify-mobile)
 
-Karar, her biri bağımsız bir olgu olan küçük bir rozet yığınıdır:
+Sonuç, her biri bağımsız bir olguyu gösteren birkaç rozetten oluşur:
 
 - <!--i:lock--> **Made with Lolly**: kimlik bilgisi sağlamdır *ve* bir Lolly dışa aktarmasını kaydeder.
-- <!--i:seal--> **The credential is intact**: imzalı C2PA bildirimi ayrıştırılır ve kendi iddia imzası doğrulanır.
-- <!--i:hash--> **The bytes have not changed**: dosyanın karması hâlâ imzalananla eşleşir. Tek bir pikseli değiştir ve bu rozet döner.
-- <!--i:sparkle--> **GEN AI**: bu pikselleri bir makine yaptı ve dosya bunu söylüyor. Lolly bu bildirimi gizlemek yerine geri okur.
+- <!--i:seal--> **The credential is intact**: imzalı C2PA bildirimi ayrıştırılır ve kendi beyan imzası doğrulanır.
+- <!--i:hash--> **The bytes have not changed**: dosyanın özeti hâlâ imzalanan değerle eşleşir. Tek bir pikseli değiştir ve bu rozet değişir.
+- <!--i:sparkle--> **GEN AI**: bu pikselleri bir makine üretti ve dosya bunu belirtiyor. Lolly, bu gerçeği gizlemek yerine beyanı dosyadan okur.
 
-Tüm geçmiş dosyayla birlikte gider. Burada dokuz adım sağ çıkar: Google'ın görseli üretirken ve filigranlarken kaydettiği beş adım, sonra Lolly'nin bu sayfadaki kopyayı açarken, işaretlerken ve dönüştürürken kaydettiği dört adım. Verify bunları doğrudan baytlardan okur ve bir zaman çizelgesi olarak çizer.
+Tüm geçmiş dosyayla birlikte taşınır. Burada dokuz adım korunur: Google'ın görseli üretirken ve filigran eklerken kaydettiği beş adım, ardından Lolly'nin bu sayfadaki kopyayı açarken, işaretlerken ve dönüştürürken kaydettiği dört adım. Lolly Verify bunları doğrudan baytlardan okur ve zaman çizelgesi olarak çizer.
 
-![Verify'ın fırtına görselinden geri okuduğu değişiklik geçmişi - Google tarafından kaydedilen beş adım, ardından Lolly tarafından kaydedilen dört adım, bu sayfadaki WebP ile sona eriyor](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
+![Lolly Verify'ın fırtına görselinden okuduğu değişiklik geçmişi: Google'ın kaydettiği beş adım, ardından Lolly'nin kaydettiği dört adım ve sonunda bu sayfadaki WebP](/t/url-shot?url=%2F%23%2Fverify%3Fsrc%3D%2Finfo%2Fthe-flood.webp&width=1440&height=1400&dpi=192&waitMs=6000&walker=1&format=svg&cropSelector=.valid-steps&dark=1&filename=ai-stance-change-history)
 
-Demo bu. Aşağıdaki denetimler onun altındaki güvencelerdir ve her biri yeniden üretilebilir. [Content Credentials](/info/content-credentials-identity.html) her kararı açıklar.
+Aşağıdaki denetimler, bu demonun dayandığı güvencelerdir ve her biri tekrarlanabilir. [Content Credentials](/info/content-credentials-identity.html) her sonucu açıklar.
 
-## Tarayıcında, hiçbir araç gerekmez
+<!--i:eti-globe-->
+## Tarayıcında, araç gerekmeden
 
 ::: timeline
-- <!--i:globe--> **1. Ağı izle.** [lolly.tools](https://lolly.tools) aç, tarayıcının DevTools'unu (F12) aç, **Network** sekmesine geç ve bir araç kullan: [Lolly QR Code](/t/qr-code) içine bir web adresi yaz, renkleri değiştir, bir PNG dışa aktar. Her istek `lolly.tools` üzerinde kalır: uygulama kabuğu, aracın kendi dosyaları ve katalog varlıkları. Analitik sunucusu, CDN işaretçisi, yazı tipi hizmeti ve hata raporlama uç noktası yoktur. Bir araca yazdığın şey **hiçbir istekte yer almaz**, çünkü render yereldir.
-- <!--i:eyeoff--> **2. Fişi çek.** Uygulamayı yükle ve bir iki araç aç, sonra çevrimdışı ol (uçak modu veya DevTools → Network → Offline) ve yenile. Galeri ve açtığın her araç, kullandığın biçimlerde render ve dışa aktarma dahil çalışmaya devam eder. Bir aracın dosyaları ve bir biçimin kodlayıcısı ilk kullandığında önbelleğe alınır; bu yüzden bir aracı çevrimdışı sınamadan önce çevrimiçiyken bir kez kullan. Bu, bu sayfadaki tek en güçlü denetimdir: eve telefon eden yazılım kablosu kesilince ayakta kalmaz.
-- <!--i:check--> **3. Çerezleri say.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Liste boştur: uygulama çerez ayarlamaz. Konsola `document.cookie` yapıştır ve `""` alırsın. İsteğe bağlı CA kaydı, `/api/ca` kapsamında kısa ömürlü bir `HttpOnly` çerezi olan `lolly_ca_state` ayarlar; bunu `document.cookie` gösteremez. Bir Lolly Work örneği kendi giriş çerezlerini kullanır; onları [Privacy](/info/privacy.html#organisation-services-with-lolly-work) ile karşılaştır.
-- <!--i:layers--> **4. Kendi depolamanı oku.** Aynı panelde Lolly'nin tuttuğu her şey önündedir: birkaç düzine düz `localStorage` anahtarı (tema, dil, kenar çubuğu genişliği, ses ve görünüm ayarları ve herkese açık araç kataloğu dizininin önbellekteki bir kopyası) ve IndexedDB içinde kendi belgelerin. Her değer okunabilir bir dize veya JSON'dur, gizlenmiş hiçbir şey yoktur. Site verisini temizlemek bu yerel kayıtları kaldırır, ancak bir Sync yedeğini veya bir Lolly Work örneğinin tuttuğu kayıtları değil. **Settings → Storage → Clear all my data** aynısını uygulamanın içinden yapar ve depoların ve önbelleklerin boşalışını izleyebilirsin.
-- <!--i:lock--> **5. Bildirim iletişiminin var olduğunu denetle.** [`/.well-known/security.txt`](/.well-known/security.txt), bir HTML sayfasıyla değil, bir [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) iletişim bloğuyla yanıt verir.
+- <!--i:globe--> **1. Ağı izle.** [lolly.tools](https://lolly.tools) sitesini aç, tarayıcının DevTools panelini aç (F12), **Network** sekmesine geç ve bir araç kullan: [Lolly QR Code](/t/qr-code) içine bir web adresi yaz, renkleri değiştir, bir PNG dışa aktar. Her istek `lolly.tools` adresine gider: uygulama kabuğu, aracın kendi dosyaları ve katalog varlıkları. Analitik sunucusu, CDN izleme sinyali, yazı tipi hizmeti veya hata raporlama uç noktası yoktur. Bir araca yazdıkların **hiçbir istekte görünmez**, çünkü render işlemi yereldir.
+- <!--i:eyeoff--> **2. Bağlantıyı kes.** Uygulamayı yükle ve bir iki araç aç, sonra çevrimdışı ol (uçak modu veya DevTools → Network → Offline) ve yeniden yükle. Galeri ve açtığın her araç, kullandığın biçimlerde render ve dışa aktarma dahil çalışmaya devam eder. Bir aracın dosyaları ve bir biçimin kodlayıcısı, ilk kullanımda önbelleğe alınır; bu yüzden çevrimdışı denemeden önce aracı bir kez çevrimiçi kullan. Bu, sayfadaki en güçlü tek denetimdir: merkeze veri gönderen yazılımın bağlantısı kesilince çalışması da durur.
+- <!--i:check--> **3. Çerezleri say.** DevTools → **Application** (Firefox: **Storage**) → Cookies → `https://lolly.tools`. Liste boştur: uygulama çerez oluşturmaz. Konsola `document.cookie` yapıştır ve `""` alırsın. İsteğe bağlı CA kaydı, `/api/ca` kapsamındaki kısa ömürlü bir `HttpOnly` çerezi olan `lolly_ca_state` oluşturur; `document.cookie` bunu gösteremez. Bir Lolly Work kurulumu kendi oturum açma çerezlerini kullanır; bunları [Gizlilik](/info/privacy.html#organisation-services-with-lolly-work) ile karşılaştır.
+- <!--i:layers--> **4. Kendi depolamanı oku.** Aynı panelde Lolly'nin sakladığı her şey önündedir: birkaç düzine düz `localStorage` anahtarı (tema, dil, kenar çubuğu genişliği, ses ve görünüm ayarları ve herkese açık araç katalog dizininin önbelleğe alınmış kopyası) ve IndexedDB'deki kendi belgelerin. Her değer okunabilir bir dize veya JSON'dur, hiçbir şey gizlenmiş değildir. Site verilerini temizlemek bu yerel kayıtları kaldırır, ancak bir Sync yedeğini veya Lolly Work kurulumunda saklanan kayıtları kaldırmaz. **Settings → Storage → Clear all my data**, uygulamanın içinden aynı işi yapar ve depolarla önbelleklerin boşalmasını izleyebilirsin.
+- <!--i:lock--> **5. Güvenlik açığı bildirim iletişiminin mevcut olduğunu denetle.** [`/.well-known/security.txt`](/.well-known/security.txt), HTML sayfası yerine [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) iletişim bloğuyla yanıt verir.
 :::
 
 ::: details Network sekmesinde başka neler görebilirsin
-Bazı özellikler ağa yalnızca kullandığında ulaşır ve her biri aynı sekmede görünür:
+Bazı özellikler ağa yalnızca onları kullandığında erişir ve her biri aynı sekmede görünür:
 
-- Design System Setup içinde bir **Google Font** eklemek, ilk getirmeden önce bir kez bunu söyleyen bir onay iletişim kutusundan sonra o tek aileyi Google'dan getirir;
-- bir **ICC press-profile preset** düğmesine tıklamak o profili color.org adresindeki ICC'nin herkese açık kayıt defterinden getirir;
-- isteğe bağlı yerleşik **radyoyu** çalmak istasyondan akış alır;
-- **Meeting Planner** içinde bir konum girmek, o yeri koordinatları ve saat dilimi için open-meteo'nun coğrafi kodlama hizmetinde şehir başına bir kez arar (yanıtlar cihazında saklanır) ve alan yazdığın yerde bunu söyler;
-- **URL Screenshot** yazdığın adresi yükler, çünkü işi budur ve bunun olduğunu izlersin.
+- Lolly Design System Setup içinde bir **Google Font** eklemek, ilk getirme işleminden önce bir kez gösterilen ve bunu belirten bir izin iletişim kutusunun ardından Google'dan o tek yazı tipi ailesini getirir;
+- bir **ICC baskı profili önayarına** tıklamak, o profili ICC'nin color.org adresindeki herkese açık kayıt sisteminden getirir;
+- isteğe bağlı yerleşik **radyo** çalındığında istasyondan akış alınır;
+- **Meeting Planner** içine konum girmek, koordinatlarını ve saat dilimini almak için o yeri open-meteo'nun coğrafi kodlama hizmetinde şehir başına bir kez arar (yanıtlar cihazına kaydedilir) ve alan, yazdığın yerde bunu belirtir;
+- **Lolly URL Screenshot** yazdığın adresi yükler ve bunu olurken izlersin.
 
-Bir ağ yeteneği bildiren bir araç yalnızca bildiriminin izin listesine aldığı sunuculardan getirebilir ve bu denetim güvenli biçimde başarısız olur. Bugün gönderilen hiçbir araç bir tane bildirmez; bu yüzden yukarıdaki listeyi sunucularıyla sınırlı tutan, tarayıcının uyguladığı Content-Security-Policy'dir. [Privacy policy](/info/privacy.html), politika yenilemeleri ve etkin raporlama gibi yönetilen örnek trafiği dahil, bunların hepsinin kurallı tablosunu tutar.
+Ağ yeteneği bildiren bir araç, yalnızca bildirimindeki izin listesinde bulunan sunuculardan veri getirebilir ve bu denetim başarısız olduğunda erişim engellenir. Bugün sunulan hiçbir araç böyle bir yetenek bildirmez; bu yüzden tarayıcının uyguladığı Content-Security-Policy, yukarıdaki listeyi izin verilen sunucularla sınırlar. [Gizlilik politikası](/info/privacy.html), politika yenilemeleri ve etkinleştirilmiş raporlama gibi yönetilen kurulum trafiği dahil tüm bunların esas alınan tablosunu içerir.
 :::
 
-## Bir terminalden
+<!--i:eti-code-->
+## Terminalden
 
-**6. Render uç noktası yalnızca herkese açık veriyle yanıt verir.** Yazılan girdileri bir URL'ye koyan tek sunucu özelliği, hot-link render'ları, burada canlıdır. [Privacy policy](/info/privacy.html) bunun bir bağlantıya koyduğun girdiler için ne anlama geldiğini söyler.
+**6. Render uç noktası yalnızca herkese açık verilerle yanıt verir.** Yazılan girdileri bir URL'ye koyan tek sunucu özelliği olan doğrudan bağlantılı render'lar burada etkindir. [Gizlilik politikası](/info/privacy.html), bunun bağlantıya koyduğun girdiler için ne anlama geldiğini açıklar.
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Her dağıtım seçer (`LOLLY_DISABLE_RENDER_GET=1`): bunu ayarlayan bir örnekte aynı yoklama `404` döndürür. Bu fark ayarın çalışmasıdır, bir tutarsızlık değil.
+Her dağıtım kendi seçimini yapar (`LOLLY_DISABLE_RENDER_GET=1`): değişkeni ayarlayan bir kurulumda aynı yoklama `404` döndürür. Bu fark, bir tutarsızlık değil, ayarın çalışmasıdır.
 
-**7. Dağıtımının etkinleştirdiği hizmetleri denetle.** [Server Surface](/info/server-surface.html) isteğe bağlı hizmetleri listeler ve ayrıntılı başvurularına bağlanır. Lolly Work için kimliği doğrulanmış API'lerini, iş birliği bağlantısını, depolamasını ve yapılandırılmış sağlayıcılarını ekle. Herkese açık lolly.tools'u yoklamak özel bir kuruluş örneğini sınamaz.
+**7. Dağıtımının etkinleştirdiği hizmetleri denetle.** [Sunucu arayüzleri](/info/server-surface.html), isteğe bağlı hizmetleri listeler ve ayrıntılı başvurularına bağlantı verir. Lolly Work için kimlik doğrulamalı API'lerini, işbirliği bağlantısını, depolamasını ve yapılandırılmış sağlayıcılarını dahil et. Herkese açık lolly.tools sitesinin yoklanması, özel bir kuruluş kurulumunu test etmez.
 
-Kendi örneğini çalıştırıyorsan [Delivery deployment](/info/deploy-delivery.html) onun için yayın denetimlerini içerir: model bütünlüğü, uç yoklaması ve örnek listesi, görüntüleme sürümleri, özel indirme ağ geçidi ve bir tarayıcıda imzalı katalog.
+Kendi kurulumunu çalıştırıyorsan [Teslimat dağıtımı](/info/deploy-delivery.html) sürüm denetimlerini içerir: model bütünlüğü, uç sunucu yoklaması ve örnek listesi, görüntüleme sürümleri, özel indirme ağ geçidi ve tarayıcıda imzalı katalog.
 
 
+<!--i:eti-search-->
 ## Kaynak kodda
 
-Yukarıdakilerin hepsi, dağıtılan kod herkese açık koddan farklı olsaydı yine de bir gösteri olabilirdi. O yüzden kodu denetle. Dağıtım [herkese açık depodan](https://github.com/lolly-tools/lolly) derlenir:
+Dağıtılan kod, herkese açık koddan farklı olsaydı yukarıdakilerin hepsi yine de bir gösteriden ibaret olabilirdi. Bu yüzden kodu denetle. Dağıtım, [herkese açık depodan](https://github.com/lolly-tools/lolly) derlenir:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
-**8. Hiçbir yerde izleyici ve analitik SDK'sı yok.** Gönderilen kodu (motor, tarayıcı uzantısı dahil her kabuk, Tauri köprü geçersiz kılmaları ve hizmet çalışanı, sunucu işlevleri ve araç paketleri) olağan şüpheliler için ara:
+**8. Hiçbir yerde izleyici veya analitik SDK'sı yok.** Dağıtılan kodda (motor, tarayıcı uzantısı dahil her kabuk, Tauri köprü geçersiz kılmaları ve service worker, sunucu işlevleri ve araç paketleri) bilinen şüphelileri ara:
 
 ```bash
 grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html' \
@@ -83,9 +85,9 @@ grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' --include='*.html'
 # (no output)
 ```
 
-Bu tarama üçüncü taraf izleme SDK'larını arar. Birinci taraf kullanım raporlamasının yokluğunu göstermez: Lolly Work, kendi politikası ve testleri olan kuruluş telemetrisini ve ayrı bir denetim günlüğünü destekler.
+Bu tarama üçüncü taraf izleme SDK'larını arar. Birinci taraf kullanım raporlamasının yokluğunu göstermez: Lolly Work, kendi politikaları ve testleri olan kuruluş telemetrisini ve ayrı bir denetim günlüğünü destekler.
 
-**9. Üçüncü taraf DNS çözümleyicisi yok.** Verify'ın SEAL denetimi, uygulamada bir çözümleyici olmadığı için bir sorguyu asla bir DNS-over-HTTPS sağlayıcısı üzerinden göndermez:
+**9. Üçüncü taraf DNS çözümleyicisi yok.** Lolly Verify'ın SEAL denetimi asla bir DNS-over-HTTPS sağlayıcısı üzerinden sorgu göndermez, çünkü uygulamanın çözümleyicisi yoktur:
 
 ```bash
 grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
@@ -97,25 +99,26 @@ grep -rnF --include='*.ts' --include='*.js' --include='*.mjs' \
 #  bans them)
 ```
 
-**10. Sertifika hizmeti bir düzenleme günlüğü tutmaz.** Kimlik CA'sı neyi verdiğine dair bir günlük ve kimlik envanteri tutmaz: stdout satırı yok, webhook yok, sertifika deposu yok. Yokluk aranabilir:
+**10. Sertifika hizmeti, sertifika verme günlüğü tutmaz.** Kimlik CA'sı, verdiği sertifikaların günlüğünü veya kimlik envanterini tutmaz: stdout satırı, webhook veya sertifika deposu yoktur. Bu yokluk, aramayla denetlenebilir:
 
 ```bash
 grep -rn logIssuance services/ca api/ca
 # (no output)
 ```
 
-CA, kısa ömürlü çalışma durumunu tutar: hız sınırı kovaları pencereleri boyunca karmalanmış IP ve e-posta anahtarlarını tutar ve yönetilen bir dağıtımın kabul deposu en fazla on dakika boyunca anahtarlı bir tanımlayıcı ve istek özeti tutar. Ayrıntı [Content Credentials engineering](/info/content-credentials-engineering.html#protocol) sayfasındadır.
+CA kısa ömürlü çalışma durumu tutar: hız sınırı kovaları, kendi zaman aralıkları boyunca özetlenmiş IP ve e-posta anahtarlarını saklar; yönetilen bir dağıtımın kabul deposu da en fazla on dakika boyunca anahtarlı bir tanımlayıcı ve istek özeti tutar. Ayrıntılar [Content Credentials mühendisliği](/info/content-credentials-engineering.html#protocol) sayfasındadır.
 
-## Testlerle zorlanır
+<!--i:eti-flask-->
+## Testlerle güvence altında
 
-Yukarıdaki kaynak denetimleri tek seferlik bir denetim değildir: test paketinde sabitlenmişlerdir; bu yüzden sessizce çürüyemezler. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts), yukarıdaki taramadan daha uzun bir izleyici adı listesini denetler ve şu durumlarda derlemeyi bozar:
+Yukarıdaki kaynak kod denetimleri tek seferlik bir inceleme değildir: test paketine sabitlenmiştir, bu yüzden sessizce işlevsizleşemezler. [`tests/no-trackers.test.ts`](https://github.com/lolly-tools/lolly/blob/main/tests/no-trackers.test.ts), yukarıdaki taramadan daha uzun bir izleyici adı listesini denetler ve şu durumlarda derlemeyi başarısız kılar:
 
-- uygulama, motor, sunucu, uzantı ve araç paketi kodu boyunca taradığı gönderilen kaynağın herhangi bir yerinde herhangi bir analitik veya izleme SDK'sı görünürse;
-- o kaynakta herhangi bir üçüncü taraf DNS-over-HTTPS çözümleyicisi görünürse;
-- CA düzenleme günlüğü kaynakta **veya** üretilen sunucu paketinde geri gelirse;
-- gizlilik politikası yasal olarak gerekli beyanlarını (adlandırılmış sorumlu, hukuki dayanak, şikâyet hakkı) kaybederse.
+- taradığı dağıtılmış kaynak kodun herhangi bir yerinde, uygulama, motor, sunucu, uzantı ve araç paketi kodunda herhangi bir analitik veya izleme SDK'sı bulunursa;
+- o kaynak kodda herhangi bir üçüncü taraf DNS-over-HTTPS çözümleyicisi bulunursa;
+- CA sertifika verme günlüğü, kaynak koda **veya** üretilen sunucu paketine geri gelirse;
+- gizlilik politikası, yasal olarak zorunlu beyanlarını kaybederse (adı belirtilen veri sorumlusu, hukuki dayanak, şikâyet hakkı).
 
-Klonda kendin çalıştır (Node 22.18 veya sonrası; bu dosya `pnpm install` gerektirmez):
+Klonlanmış depoda kendin çalıştır (Node 22.18 veya üzeri; bu dosya `pnpm install` gerektirmez):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -125,14 +128,16 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Tam paket (`pnpm install && pnpm test`), [Güvenlik ve Doğrulama](/info/security.html) sayfasında açıklanan çekişmeli kriptografi testleri de dahil olmak üzere birkaç bin test daha çalıştırır.
+Tam paket (`pnpm install && pnpm test`), [Güvenlik & Doğrulama](/info/security.html) sayfasında açıklanan saldırı odaklı kriptografi testleri dahil birkaç bin test daha çalıştırır.
 
-## Dışarıdan doğrulayamadıkların
+<!--i:eti-eye-off-->
+## Dışarıdan doğrulayamayacakların
 
-- **Barındırma erişim günlükleri.** Bir isteğe yanıt veren her sunucu onu günlüğe kaydedebilir: IP adresi, yol ve zaman. Dışarıdan bir yoklama günlüklerin ne kadar süre tutulduğunu belirleyemez. İşletme günlüğü, döndürmeyi ve dışa aktarmaları denetler ve bu seçimleri açıklamalıdır. Yerel render, sıradan düzenlemeleri cihazında tutar; isteğe bağlı sunucu render'ı ve paylaşılan çalışma alanı hizmetlerinin gizlilik politikasının anlattığı ayrı veri akışları vardır.
-- **Dağıtımın bu kodu çalıştırdığı.** Kaynağın temiz olduğunu ve dağıtılan davranışın onunla eşleştiğini denetleyebilirsin ve yukarıdaki denetimler ikisini de yapar. Bir web dağıtımının ikili düzeyde kanıtlanması, web platformunun sunduğu bir şey değildir. Azaltıcılar herkese açık depo, zorlanan testler ve çevrimdışı denetimdir: eve telefon eden kurcalanmış bir dağıtım 1. ve 2. denetimlerde hemen başarısız olur.
-- **Araç kancaları.** Yerleşik bir aracın isteğe bağlı mantığı sanal alana alınmak yerine incelenir: araç bir Worker'ı seçmedikçe sayfada çalışır. lolly.tools üzerindeki her araç birinci taraftır ve gönderilmeden önce incelenir. [Threat Model](/info/threat-model.html#trust-boundaries) kancaların nerede çalıştığını ve neyin onları sınırladığını ortaya koyar.
+- **Barındırma erişim günlükleri.** Her sunucu, yanıtladığı istekleri kaydedebilir: IP adresi, yol ve zaman. Dışarıdan yapılan bir yoklama, günlüklerin ne kadar süre saklandığını belirleyemez. İşletmen; günlük tutmayı, günlük döndürmeyi ve dışa aktarmaları kontrol eder ve bu tercihleri açıklamak zorundadır. Yerel render, olağan düzenlemeleri cihazında tutar; isteğe bağlı sunucu render'ı ve paylaşılan çalışma alanı hizmetleri, gizlilik politikasında açıklanan ayrı veri akışlarına sahiptir.
+- **Dağıtımın bu kodu çalıştırdığı.** Kaynak kodun temiz olduğunu ve dağıtımdaki davranışın kaynak kodla eşleştiğini denetleyebilirsin; yukarıdaki denetimler ikisini de yapar. Web platformu, bir web dağıtımı için ikili dosya düzeyinde tasdik sunmaz. Riski azaltan önlemler; herkese açık depo, zorunlu testler ve çevrimdışı denetimdir: değiştirilmiş ve merkeze veri gönderen bir dağıtım, 1. ve 2. denetimlerde aynı anda başarısız olur.
+- **Araç kancaları.** Yerleşik bir aracın isteğe bağlı mantığı, korumalı alana alınmak yerine incelenir: araç bir Worker kullanmayı seçmedikçe sayfada çalışır. lolly.tools üzerindeki her araç birinci taraftır ve dağıtılmadan önce incelenir. [Tehdit Modeli](/info/threat-model.html#trust-boundaries), kancaların nerede çalıştığını ve onları neyin sınırladığını açıklar.
 
-## Bir kontrol başarısız olursa
+<!--i:eti-warning-->
+## Bir denetim başarısız olursa
 
-Bu sayfa ile gözlemlediğin şey arasındaki bir fark bir güvenlik raporudur. Onu [Security & Verification](/info/security.html#reporting-a-vulnerability) üzerindeki özel kanallardan gönder. Koordineli ifşa uygularız ve bildirenleri anarız.
+Bu sayfa ile gözlemlediğin şey arasındaki bir fark, güvenlik bildirimi konusudur. [Güvenlik & Doğrulama](/info/security.html#reporting-a-vulnerability) sayfasındaki özel kanallardan gönder. Koordineli açıklama uygular ve bildirimde bulunanların katkısını belirtiriz.

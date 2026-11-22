@@ -1,97 +1,105 @@
 # Hồ sơ
 
-Đặt tên, thông tin liên hệ và ảnh chân dung một lần, và mọi công cụ được xây để dùng chúng sẽ điền giúp bạn: chữ ký email, thẻ tên, thẻ diễn giả. Bản ghi nhỏ đó là **hồ sơ** của bạn, và nó nằm trên thiết bị của bạn.
+Đặt tên, thông tin liên hệ và ảnh chân dung của bạn một lần, rồi mọi công cụ được tạo để dùng chúng sẽ tự điền, như chữ ký email, huy hiệu hay thẻ diễn giả. Bản ghi đó là **hồ sơ** của bạn và nằm trên thiết bị của bạn.
 
-Hồ sơ của bạn cũng chứa những gì bạn tích lũy khi làm việc: các phiên đã lưu, ảnh đã tải lên và bộ đếm hoạt động cục bộ. Bạn quản lý nó dưới **Settings → Preferences**; công cụ chỉ đọc các trường mà chúng được xây để điền sẵn. Dùng độc lập không cần tài khoản, và Sync tùy chọn, chia sẻ cùng dịch vụ tổ chức mỗi thứ có luồng dữ liệu riêng, mô tả bên dưới.
+Hồ sơ cũng chứa các phiên đã lưu, ảnh đã tải lên và số liệu hoạt động cục bộ của bạn. Quản lý nó trong **Settings → Preferences**. Công cụ chỉ đọc những trường mà chúng được thiết kế để điền sẵn. Sử dụng độc lập không cần tài khoản. Sync tùy chọn, chia sẻ và dịch vụ tổ chức đều có luồng dữ liệu riêng.
 
-## Những gì có trong hồ sơ
+<!--i:eti-user-check-->
+## Hồ sơ chứa gì
 
-| Phần | Nó là gì |
+| Phần | Nội dung |
 |---|---|
-| **Name** | Họ và tên. |
-| **Contact** | Email và điện thoại. |
+| **Name** | Tên và họ. |
+| **Contact** | Email và số điện thoại. |
 | **Location** | Thành phố và quốc gia. |
-| **Headshot** | Một ảnh tùy chọn, cắt vuông và giữ làm ảnh cục bộ, cho các công cụ như chữ ký email, thẻ trích dẫn và sơ đồ tổ chức. |
-| **Use my details to create** | Một công tắc tham gia (khi bật nó đọc **Using my details**). Nó quyết định thông tin của bạn có đi cùng làm ghi công tác giả trong tệp xuất và trong các lượt chạy Batch hay không. Nó không ảnh hưởng đến điền sẵn; xem [How tools use your profile](#how-tools-use-your-profile). |
-| **Preferences** | Chủ đề, colourway của bạn trong mỗi hệ thống thiết kế, cài đặt trợ năng và những phần của ứng dụng bạn đã bật trong **Feature flags**. |
-| **Your work** | Các phiên đã lưu cùng hình thu nhỏ, sắp xếp trong [Lolly Projects](/info/find-your-work.html), ảnh đã tải lên và số liệu hoạt động cục bộ. |
+| **Headshot** | Ảnh tùy chọn, được cắt thành hình vuông và giữ dưới dạng ảnh cục bộ, dành cho các công cụ như chữ ký email, thẻ trích dẫn và sơ đồ tổ chức. |
+| **Use my details to create** | Công tắc cần chủ động bật, hiển thị **Using my details** khi bật. Nó quyết định thông tin của bạn có đi cùng dưới dạng ghi công tác giả trong tệp xuất và các lần chạy Lolly Batch hay không; xem [Cách công cụ dùng hồ sơ của bạn](#how-tools-use-your-profile). |
+| **Preferences** | Chủ đề, colourway của bạn trong từng hệ thống thiết kế, cài đặt trợ năng và những phần của ứng dụng bạn đã bật trong **Feature flags**. |
+| **Your work** | Các phiên đã lưu cùng ảnh thu nhỏ, được sắp xếp trong [Lolly Projects](/info/find-your-work.html), ảnh bạn đã tải lên và số liệu hoạt động cục bộ của bạn. |
 
-Không cái nào bắt buộc. Một hồ sơ trống vẫn dùng được; chỉ điền những gì giúp bạn đỡ gõ.
+Không có mục nào là bắt buộc và hồ sơ trống vẫn dùng được.
 
-![Settings ở thẻ Preferences: thanh cài đặt, và Your details với công tắc Use my details to create cùng các trường tên, liên hệ và vị trí](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Settings ở thẻ Preferences: thanh cài đặt và Your details với công tắc Use my details to create cùng các trường tên, liên hệ và vị trí](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
-[Lolly Settings](/info/dashboard.html) vẽ ra mọi thứ khác dưới Preferences, từ giao diện và emoji đến lưu trữ và tải xuống ngoại tuyến.
+[Cài đặt Lolly](/info/dashboard.html) trình bày phần còn lại của Preferences, từ giao diện và emoji đến lưu trữ và tải xuống để dùng ngoại tuyến.
 
-## Bạn, một đội hoặc một vai trò
+<!--i:eti-users-->
+## Bạn, một nhóm hoặc một vai trò
 
-Từ "hồ sơ" gợi ý một người cố định. Trong Lolly nó gần với một bối cảnh sáng tạo hơn: bạn là ai khi làm thứ này. Nó có thể có ba hình dạng, và Lolly xử lý mỗi hình theo cùng một cách.
+Trong Lolly, hồ sơ thể hiện bạn là ai khi tạo một thứ: chính bạn, một nhóm hoặc một vai trò. Lolly xử lý cả ba theo cùng một cách.
 
 ::: cols
-## Là chính bạn
+## Với tư cách cá nhân
 
-Mặc định. Tên, email, ảnh chân dung của bạn. Đặt một lần và chữ ký, thẻ tên và logo hội nghị tự điền.
+Mặc định: tên, email và ảnh chân dung của bạn. Chữ ký, huy hiệu và bố cục nhận diện hội nghị của bạn được điền từ những thông tin đó.
 
-## Là một đội
+## Với tư cách nhóm
 
-Tên chung của đội, một hộp thư nhóm như `events@…`, một phòng ban và dấu hiệu của đội. Một người thiết lập và xuất nó, và mọi người khác nạp cùng hồ sơ, nên tệp của đội mang thông tin nhất quán. Một kiosk dùng chung hoặc laptop demo có thể chạy một hồ sơ đội.
+Tên chung của nhóm, hộp thư nhóm như `events@…`, một phòng ban và biểu trưng của nhóm. Một người thiết lập hồ sơ và xuất tệp. Những người khác nạp cùng hồ sơ đó, nên các tệp của nhóm mang cùng thông tin. Một kiosk dùng chung hoặc máy tính xách tay trình diễn có thể dùng một hồ sơ nhóm.
 
-## Là một vai trò
+## Với tư cách một vai trò
 
-Một quản lý sự kiện ba ngày mỗi năm muốn hộp thư sự kiện và thương hiệu con của sự kiện trên thẻ tên và biển hiệu, rồi lấy lại danh tính thường ngày. Hãy giữ vai trò đó thành một tệp hồ sơ đã lưu, nạp nó cho sự kiện và cất đi sau đó.
+Người quản lý sự kiện cần hộp thư sự kiện và thương hiệu phụ trên huy hiệu và biển chỉ dẫn trong ba ngày mỗi năm, rồi quay lại danh tính thường dùng. Giữ vai trò dưới dạng tệp hồ sơ đã lưu, nạp tệp cho sự kiện rồi để riêng sau đó.
 :::
 
-![Công cụ ảnh chân dung, trống cho tới khi bạn tải lên một ảnh rồi ảnh đó ở lại trên thiết bị này](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![Điều khiển ảnh chân dung, để trống cho đến khi bạn tải ảnh lên, sau đó ảnh được giữ trên thiết bị này](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-::: details Hồ sơ tại một tổ chức dùng Lolly Work
-Khi bạn đăng nhập vào [Lolly của tổ chức](/info/organisation.html), Lolly Work có thể cung cấp các trường hồ sơ đã xác minh từ nhà cung cấp danh tính của nó và cố định các trường hoặc tùy chọn theo chính sách tổ chức. Trường được quản lý có nhãn trong ứng dụng.
+::: details Hồ sơ tại tổ chức dùng Lolly Work
+Khi bạn đăng nhập vào [Lolly của tổ chức](/info/organisation.html), Lolly Work có thể cung cấp các trường hồ sơ đã xác minh từ nhà cung cấp danh tính của tổ chức và cố định các trường hoặc tùy chọn theo chính sách tổ chức. Trường được quản lý có nhãn trong ứng dụng.
 
-Đăng nhập đó cũng kiểm soát truy cập dự án và tài nguyên chung. Một tệp hồ sơ đội vẫn là tệp cục bộ: nó không cấp tư cách thành viên tổ chức hay thay thế tài khoản công việc. **Use my details to create** kiểm soát ghi công trong bản xuất của bạn, không phải đăng nhập hay bản ghi kiểm toán của tổ chức. Xem [Privacy](/info/privacy.html#organisation-services-with-lolly-work).
+Việc đăng nhập đó cũng kiểm soát quyền truy cập dự án và tài nguyên dùng chung. Tệp hồ sơ nhóm là tệp cục bộ. Nó không cấp tư cách thành viên tổ chức hay thay thế tài khoản công việc. **Use my details to create** kiểm soát phần ghi công trong bản xuất của bạn, không kiểm soát đăng nhập hay bản ghi kiểm toán của tổ chức. Xem [Quyền riêng tư](/info/privacy.html#organisation-services-with-lolly-work).
 :::
 
-## Giữ nhiều, dùng một
+<!--i:eti-copy-->
+## Giữ nhiều hồ sơ, dùng một hồ sơ
 
-Một bản cài có một hồ sơ đang dùng tại một thời điểm, và không có bộ chuyển trong ứng dụng. Thay vào đó, mỗi hồ sơ là một tệp khả chuyển, cùng tệp sao lưu bạn dùng để chuyển sang thiết bị mới. Để bước vào bối cảnh khác:
+Mỗi bản cài đặt có một hồ sơ hoạt động tại một thời điểm, không có bộ chuyển đổi trong ứng dụng. Mỗi hồ sơ là một tệp có thể chuyển đi, chính là tệp sao lưu dùng để chuyển công việc của bạn sang thiết bị mới. Để chuyển ngữ cảnh:
 
 ::: timeline
-- <!--i:download--> **Export my data** dưới **Settings → Storage → Move to another device** lưu hồ sơ hiện tại thành một `.zip`.
-- <!--i:trash--> **Clear all my data** làm trống bản cài này.
-- <!--i:upload--> **Import data…** nạp tệp hồ sơ cho bối cảnh bạn đang bước vào.
+- <!--i:download--> **Export my data** trong **Settings → Storage → Move to another device** lưu hồ sơ hiện tại thành một tệp `.zip`.
+- <!--i:trash--> **Clear all my data** xóa sạch dữ liệu trong bản cài đặt này.
+- <!--i:upload--> **Import data…** nạp tệp hồ sơ cho ngữ cảnh bạn sắp dùng.
 :::
 
-Nhập mà không xóa trước sẽ **gộp** thay thế. Các phiên và ảnh được nhập sẽ được thêm; nơi cả hai bản đều có, bản lưu gần hơn được giữ. Thư mục, mục yêu thích và mẫu được thêm bên cạnh của bạn, và thông tin của bạn ở lại, trừ các trường trống, sẽ nhận giá trị của tệp. Cách đó phù hợp để kéo các phiên của một đội vào thiết lập của riêng bạn, nhưng không phải một sự tách bạch sạch giữa các vai trò.
+::: note Nhập mà không xóa trước sẽ hợp nhất dữ liệu
+Các phiên và ảnh được nhập sẽ được thêm vào. Khi có cả hai bản, bản được lưu gần đây hơn được giữ lại. Thư mục, mục yêu thích và mẫu được thêm cạnh những mục của bạn. Thông tin riêng của bạn được giữ lại, trừ các trường trống sẽ nhận giá trị từ tệp. Hợp nhất phù hợp để đưa các phiên của nhóm vào thiết lập của bạn, nhưng không phù hợp để tách biệt hoàn toàn các vai trò.
+:::
 
-Để có hai bối cảnh cùng lúc, hãy dùng một hồ sơ trình duyệt riêng, một tài khoản người dùng riêng hoặc một bản cài thứ hai của ứng dụng web: mỗi cái mang hồ sơ Lolly độc lập của riêng nó.
+Để dùng hai ngữ cảnh cùng lúc, hãy dùng hồ sơ trình duyệt, tài khoản người dùng hoặc bản cài đặt ứng dụng web riêng. Mỗi nơi có hồ sơ Lolly riêng.
 
-![Hai nút chuyển cả một bản cài: Export my data ghi một zip, Import data đọc lại](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
+![Hai nút chuyển toàn bộ bản cài đặt: Export my data ghi một tệp zip, Import data đọc lại tệp đó](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-move%3Ediv%3Anth-of-type%282%29%2C.store-move%3Ep%3Alast-of-type%7Bdisplay%3Anone%7D&waitSelector=%5Bdata-store-group%3Dmove%5D&drive=click%3A%5Bdata-store-group%3Dmove%5D%3Esummary&walker=1&format=svg&cropSelector=%5Bdata-store-group%3Dmove%5D&dark=1&filename=pd-transfer-controls)
 
-> Giữ một tệp cho mỗi bối cảnh và đặt tên mỗi tệp theo đúng nó là gì, như `LollyTools-events-2026.zip` và `LollyTools-me.zip`. Tệp chính là hồ sơ.
+::: note Giữ một tệp cho mỗi ngữ cảnh
+Đặt tên tệp theo nội dung, như `LollyTools-events-2026.zip` và `LollyTools-me.zip`. Tệp chính là hồ sơ.
+:::
 
-[Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) đề cập tệp chứa gì, gì ở lại và các cách chuyển khác, kể cả Sync.
+[Chuyển công việc sang thiết bị khác](/info/find-your-work.html#move-your-work-to-another-device) trình bày những gì tệp chứa, những gì ở lại và các cách chuyển khác, bao gồm Sync.
 
-## Cách các công cụ sử dụng hồ sơ của bạn
+<!--i:eti-pen-->
+## Cách công cụ dùng hồ sơ của bạn
 
-**Điền sẵn.** Tác giả công cụ đánh dấu một đầu vào lấy từ hồ sơ của bạn (`bindToProfile: "firstname"`, `"email"`, `"headshot"` và v.v.). Khi công cụ mở, đầu vào đó tự điền từ hồ sơ, và bạn có thể ghi đè nó cho một phiên mà không đổi hồ sơ, trừ khi chính sách tổ chức khóa đầu vào. Điền sẵn là tiện ích cục bộ và diễn ra dù **Use my details** có bật hay không.
+**Điền sẵn.** Tác giả công cụ đánh dấu một đầu vào là lấy dữ liệu từ hồ sơ của bạn (`bindToProfile: "firstname"`, `"email"`, `"headshot"` và các trường khác). Khi công cụ mở, đầu vào đó được điền từ hồ sơ của bạn. Bạn có thể ghi đè giá trị cho một phiên mà không thay đổi hồ sơ, trừ khi chính sách tổ chức khóa đầu vào. Việc điền sẵn diễn ra cục bộ dù **Use my details** có bật hay không.
 
-**Ghi công.** Khi xuất, thông tin của bạn có thể đi cùng làm ghi công tác giả trong siêu dữ liệu của tệp (PNG, PDF, SVG và hơn nữa), để một tệp hoàn chỉnh nói được ai làm ra. **Use my details to create** chi phối điều này, và tác giả trên các lượt chạy Batch. Khi tắt, bản xuất vẫn ghi rằng nó được tạo bằng Lolly, và không mang dòng tác giả hay liên hệ cá nhân nào.
+**Ghi công.** Khi bạn xuất, thông tin của bạn có thể đi cùng dưới dạng ghi công tác giả trong siêu dữ liệu của tệp (PNG, PDF, SVG và các định dạng khác). **Use my details to create** kiểm soát phần ghi công này và tác giả trong các lần chạy Lolly Batch. Khi công tắc tắt, bản xuất vẫn ghi rằng được tạo bằng Lolly, nhưng không có dòng tác giả cá nhân hay thông tin liên hệ.
 
 Tác giả công cụ: xem [`bindToProfile`](/info/tool-inputs.html#bindtoprofile) và [`host.profile`](/info/host-api.html#host-profile).
 
-![Một công tắc Use my details to create, đánh dấu tham gia tự nguyện và tắt cho đến khi bạn bật](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![Công tắc Use my details to create duy nhất, được ghi là cần chủ động bật và ở trạng thái tắt cho đến khi bạn bật](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
+<!--i:eti-layers-->
 ## Hồ sơ, hệ thống thiết kế và khả năng
 
-Ba thứ nằm gần nhau trong Settings và dễ nhầm:
+Ba mục nằm gần nhau trong Settings và dễ nhầm lẫn:
 
-- <!--i:people--> **Profile** - bạn, đội của bạn hoặc vai trò bạn đang đảm nhận: tên, liên hệ, ảnh chân dung và công việc đã lưu. Cá nhân, giữ trên thiết bị và khả chuyển dưới dạng tệp.
-- <!--i:palette--> **Design system** - thương hiệu: màu sắc, phông chữ và cài đặt mà mọi công cụ dùng để kết xuất. Dùng chung và nhất quán hơn là cá nhân; xem [Lolly Design System Setup](/info/brand-studio.html).
-- <!--i:sliders--> **Capabilities** - ứng dụng làm được gì: các tính năng và công cụ dành cho bạn.
+- <!--i:people--> **Profile** - bạn, nhóm của bạn hoặc vai trò bạn đang đảm nhận: tên, liên hệ, ảnh chân dung và công việc đã lưu. Mang tính cá nhân, được giữ trên thiết bị và có thể chuyển đi dưới dạng tệp.
+- <!--i:palette--> **Design system** - thương hiệu: màu sắc, phông chữ và cài đặt mà mọi công cụ dùng để kết xuất. Dùng chung, không mang tính cá nhân; xem [Thiết lập hệ thống thiết kế Lolly](/info/brand-studio.html).
+- <!--i:sliders--> **Capabilities** - những gì ứng dụng có thể làm: các tính năng và công cụ có sẵn cho bạn.
 
-Hồ sơ đổi việc tệp đến từ ai; hệ thống thiết kế đổi việc tệp trông ra sao; khả năng là những gì bạn có thể làm.
+Từ này có ba nghĩa khác trong Lolly. **Hồ sơ nội dung** là cài đặt bản dựng chọn những công cụ và danh mục đi kèm một bản triển khai; [Bảng thuật ngữ](/info/glossary.html) định nghĩa thuật ngữ này. Tham số liên kết `profile` chọn một hồ sơ màu cho bản xuất, như điều kiện in CMYK; xem [Các tham số URL dành riêng](/info/url-parameters.html#print). **Danh tính đã xác minh** là chứng chỉ ký tùy chọn liên kết email của bạn với các bản xuất có chữ ký của bạn. Nó tách biệt với những thông tin này, nhưng **Use my details to create** quyết định có nhúng từng phần hay không; xem [Content Credentials](/info/content-credentials-identity.html).
 
-Từ này còn ba nghĩa khác trong Lolly. **Hồ sơ nội dung** (content profile) là cài đặt bản dựng chọn công cụ và danh mục mà một bản triển khai phát hành; [Glossary](/info/glossary.html) định nghĩa thuật ngữ này. Tham số liên kết `profile` chọn một hồ sơ màu cho bản xuất, như điều kiện in CMYK; xem [Reserved URL parameters](/info/url-parameters.html#print). **Danh tính đã xác minh** là chứng chỉ ký tùy chọn gắn email của bạn với các bản xuất có chữ ký, tách biệt với các thông tin này, dù **Use my details to create** chi phối việc có nhúng cái nào hay không; xem [Content Credentials](/info/content-credentials-identity.html).
+![Thẻ Verified identity ở chiều rộng màn hình điện thoại: bộ chọn thời hạn chứng chỉ và bước đăng ký bên dưới - hồ sơ danh tính, tách biệt với thông tin cá nhân của bạn](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
-![Thẻ Verified identity, chiều rộng điện thoại: bộ chọn thời hạn chứng chỉ và bước đăng ký bên dưới - identity profile, tách biệt với thông tin cá nhân của bạn](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
-
+<!--i:eti-lock-->
 ## Quyền riêng tư
 
-Hồ sơ cá nhân của bạn được lưu cục bộ. Thông tin của bạn có thể đi trong bản sao lưu hoặc bản sao Sync, trong nội dung bạn chia sẻ hoặc xuất và trong lúc đăng ký Content Credentials tùy chọn. Trên một phiên bản Lolly Work, đăng nhập, công việc chung, chính sách telemetry và bản ghi kiểm toán là tách biệt với hồ sơ cục bộ này. **Settings → Preferences → Clear all my data** xóa thiết bị này; nó không xóa các bản sao do nhà cung cấp lưu trữ hay tổ chức của bạn giữ. Xem [Privacy Policy](/info/privacy.html).
+Hồ sơ cá nhân của bạn được lưu cục bộ. Thông tin của bạn có thể đi cùng bản sao lưu hoặc bản sao Sync, nội dung bạn chia sẻ hay xuất và trong quá trình đăng ký Content Credentials tùy chọn. Trên một phiên bản Lolly Work, đăng nhập, công việc dùng chung, chính sách đo lường từ xa và bản ghi kiểm toán tách biệt với hồ sơ cục bộ này. **Settings → Preferences → Clear all my data** xóa dữ liệu trên thiết bị này; nó không xóa các bản sao do nhà cung cấp lưu trữ hoặc tổ chức của bạn giữ. Xem [Chính sách quyền riêng tư](/info/privacy.html).

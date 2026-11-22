@@ -1,92 +1,97 @@
-# Lolly 的比較定位
+# Lolly 與其他產品的比較
 
-Lolly 是同一個開源專案的兩個部分。**Lolly** 是在你的裝置上製作、編輯、轉換與匯出的引擎、應用程式與工具，不需要帳號。**Lolly Work** 是組織伺服器，運行在你自己的基礎架構上，負責登入、共用專案、核准與伺服器渲染。兩者都採用 MPL-2.0。本頁將這一對與人們設計、治理與產出檔案的其他方式比較。
+Lolly 在你自己的裝置上製作符合品牌規範的檔案，不需帳號。**Lolly Work** 是供團隊使用的伺服器：在組織運行的機器上提供登入、共用專案、核准與伺服器渲染。兩者都以 MPL-2.0 授權開放原始碼。
 
-貫穿全局的想法是[內容主權](/info/content-sovereignty.html)：掌控內容如何在你選擇的系統之間建立、治理、儲存與移動。創作應用程式可以提供設計，DAM 可以繼續作為記錄的來源，而 Lolly 可以把獲准的輸入與核准的素材變成新的檔案。[將 Lolly 與你現有的 DAM 搭配使用](/info/use-with-dam.html)說明了這種組合。
+大多數團隊會保留現有工具。設計應用程式提供設計，DAM 維持為權威資料來源，Lolly 則將已核准的輸入轉成完成的檔案。[搭配現有 DAM 使用 Lolly](/info/use-with-dam.html) 說明這種組合。這個組合背後的理念是[內容主權](/info/content-sovereignty.html)。
 
+<!--i:eti-gauge-->
 ## 今日的工具
 
-每個圓環評估某一類產品完整提供某項能力的程度，每一類都以其最佳代表來評分。Lolly 欄位涵蓋 Lolly 與 Lolly Work 合併計算，每一列說明哪一部分提供什麼。開啟列名即可看到其分數背後的理由。欄位依頂端的整體完整度列排序：已評分列的平均，不含花費列。
-
-這些分數反映的是 Lolly 偏好在沒有帳號或雲端要求下仍能掌控的取向。它們是在這些標準下的比較，不是產品完整度的中立排名，也不是企業採購評分。評估特定工作流程時，請分別閱讀能力、部署與證據方面的限制。
+每個圓環顯示一類產品能多完整地滿足某項需求。按下列旁的 **?** 可查看證據，按下圖例旁的 **?** 可查看評分方式。
 
 ::: figure positioning-comparison
-能力比較：競品研究與分數為 2026 年 8 月；Lolly + Lolly Work 的涵蓋範圍於 2026 年 9 月 28 日審閱。評分：0 無、25 變通等級、50 真實但受限或部分、75 強但有但書、100 核心競爭力。
+能力比較。競爭產品研究依據供應商文件，期間為 2026 年 8 月至 11 月 21 日。Lolly 與 Lolly Work 於 2026 年 11 月 21 日審查。評分：0 不具備、25 可透過變通方式達成、50 確實具備但受限或僅部分支援、75 功能強但有限制、100 核心能力。
 :::
 
-::: details 評分說明
-可用的功能與正式運作的成熟度是分開的。Lolly 已經發行：1.0 版於 2026 年 8 月 30 日以開源發布，其安全性尚未經過獨立稽核，而其採用證據只有幾個月（[採用與治理](/info/adoption-governance.html#status)有目前的狀態）。擁有單一登入、核准或伺服器渲染並不能確立正式運作的紀錄，所以成熟度分數反映了這一點。競品分數維持其 8 月的審閱日期。
-
-有一條規則管轄整張表。在涉及你的內容或身分的列上，滿分（100）需要一項不需要帳號、不需要雲端前提的能力；關於產品本身的列（例如成熟度與易用性）則不在此限。這條規則讓 Adobe 在 Content Credentials 上失分：最廣泛出貨的實作（Photoshop、Lightroom、Premiere、Firefly）在本機與雲端簽署，但從不在沒有 Adobe 帳號與身分的情況下進行，所以是 75。基於同樣的理由，它限制了渲染 API 在大量生成與自動化上的分數。
-
-Canva 的每一列都以其最佳的家族成員評分，因為它擁有 Affinity 與 Cavalry（兩者都在 2025 年 10 月免費釋出）。離線與裝置端渲染透過 Affinity 得到 75，這是一套仍需要驗證帳號並帶有遙測的桌面軟體，Adobe 也受到同樣的扣分；Canva 自己的離線模式只能在一部裝置上、有限的時間內編輯預先同步的設計。Autofill 得 50：它是真實的，但受 Enterprise 限制且是非同步的，而且只填入文字與圖片。Figma 的大量生成在 Buzz 推出試算表填入（免費測試版，2026 年 8 月）時，從 25 升至 50。
-
-Lolly 的 Content Credentials 得分 75，涵蓋裝置端簽署，以及 Lolly Work 搭配已設定的組織身分進行的伺服器簽署；驗證者仍必須信任簽署者（[Content Credentials 身分](/info/content-credentials-identity.html)）。Penpot 的 50 來自 Lolly 自己的 Penpot 匯出外掛程式：相同的引擎簽署，選擇加入，並明示為 Lolly 的。Penpot 在裝置端渲染上得 90：瀏覽器畫布，其伺服器上有儲存目標，該伺服器可以自行託管。Cloudinary 因其素材庫、轉換 API 與 CDN 而有自己的欄位；8 月的審閱將其交付簽署評為 50。
-
-Lolly 的即時協作包括直接的雙裝置私人協作，以及透過 Lolly Work 的經過驗證的工作協作，具有共用編輯、游標與已儲存的團隊工作階段。Partial 分數反映的是目前單節點的工作部署與較短的營運歷史，而不是沒有團隊編輯。價格估計是標明日期的牌價算術，用於規模參考，不是採購依據。
+::: details 2026 年 11 月評分變更的來源
+- Canva：[API 變更記錄](https://www.canva.dev/docs/apps/rest-apis/changelog/)、[服務應用程式](https://www.canva.dev/blog/developers/canva-service-accounts/)、[Brand Controls 說明](https://www.canva.com/help/brand-control/)
+- Adobe：[InDesign API 變更記錄](https://developer.adobe.com/firefly-services/docs/indesign-apis/getting-started/changelog/)、[Adobe Express 定價](https://www.adobe.com/express/pricing)
+- Figma：[代理與 AI 點數](https://help.figma.com/hc/en-us/articles/42614902212887)、[MCP 伺服器](https://developers.figma.com/docs/figma-mcp-server/)
+- Frontify 與 Bynder：[Frontify 2026 年 10 月版本說明](https://news.frontify.com/163371-what-s-new-in-october-2026)、[Frontify MCP](https://help.frontify.com/en/articles/14787214-frontify-mcp-beta)
+- Bannerbear 與 Placid：[Bannerbear 定價](https://www.bannerbear.com/pricing/)、[Bannerbear 變更記錄](https://www.bannerbear.com/changelog/)、[Placid 定價](https://placid.app/pricing)
+- Penpot：[自行託管定價](https://penpot.app/pricing/self-host)、[發布版本](https://github.com/penpot/penpot/releases)
+- Cloudinary：[內容來源證明](https://cloudinary.com/documentation/content_provenance_and_authenticity)、[定價](https://cloudinary.com/pricing)
 :::
 
-## 何時選擇 Lolly
+功能與實績分列呈現。Lolly 首次公開發布的是 1.0.1 版本，日期為 2026 年 8 月 30 日；其安全性尚未經過獨立稽核，採用證據也只有幾個月的歷史。[採用與治理](/info/adoption-governance.html#status)提供目前狀態。
+
+<!--i:eti-hammer-->
+## 何時選用 Lolly
 
 ::: cols
-## 選擇 Lolly，當
+## 這些情況適合選用 Lolly
 
-- 需要一次又一次地製作同類檔案：活動圖塊、名牌、證書、警示、社群卡片
-- 許多檔案來自一個範本和一張值的表格，在 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) 或 CLI 中
-- 色彩、字型與素材必須留在設計系統之內，即使在開放的畫布上也一樣
-- 完成的 Figma、Penpot、Illustrator、InDesign 或 PDF 設計應該變成可編輯且可重複製作（[匯入設計](/info/design-import.html)）
+- 反覆需要同一類檔案：活動圖卡、徽章、證書、通知、社群圖卡
+- 在 [Lolly Batch](/info/batch.html#make-many-versions-of-one-design) 或 CLI 中，從一份範本與一張數值表產生許多檔案
+- 即使在自由畫布上，色彩、字型與素材也必須維持在設計系統內
+- 已完成的 Figma、Penpot、Illustrator、InDesign、Affinity 或 PDF 設計，需要變成可編輯且可重複製作的內容（[匯入設計](/info/design-import.html)）
 - 檔案必須在你自己的裝置或伺服器上製作
 
-## 選擇其他工具，當
+## 這些情況適合選用其他工具
 
-- 工作是細緻的照片修圖或插畫
-- 你在設計與製作應用程式介面的原型
-- 你第一天就需要龐大的圖庫與範本庫
-- 你需要一項在大規模上有長期紀錄的託管服務
+- 工作是精細的照片修飾或插畫
+- 你正在設計應用程式介面並製作原型
+- 你需要從第一天起就有大量圖庫與範本可用
+- 你需要具備長期大規模運作實績的代管服務
 :::
 
-匯入的設計與共用的設計 token 讓團隊能將 Lolly 與專業應用程式結合，而 Lolly Work 管轄共用素材、審閱與交付。
+匯入的設計與共用設計 token，讓團隊能將 Lolly 與專業應用程式結合，而 Lolly Work 負責管理共用素材、審閱與交付。
 
-對於有精心維護 DAM 的團隊，先讓該資料庫與其管理員留在原位。[SUSE 的 Brandfolder 經驗](/info/suse-brandfolder.html)記錄了整合如何支援採用與核准的變更管理。DAM 供應商與實作夥伴可以透過[夥伴工作流程](/info/dam-partners.html)評估同樣的安排。
+已有妥善整理 DAM 的團隊，應先保留該資料庫與其管理員。[SUSE 的 Brandfolder 經驗](/info/suse-brandfolder.html)記錄了整合如何支援採用，以及核准流程的變更管理。DAM 供應商與導入合作夥伴可透過[合作夥伴工作流程](/info/dam-partners.html)評估相同安排。
 
-整份投影片簡報展示了上限：在 **Lolly Markdown Slides** 中，簡報以資料宣告、即時排版，並匯出為原生可編輯的 PowerPoint 檔案。
+在 **Lolly Markdown Slides** 中，整份簡報以資料形式撰寫，即時排版，並匯出為原生、可編輯的 PowerPoint 檔案。
 
-![分割檢視中的 Lolly Markdown Slides：左側以區塊列出簡報的投影片，右側是排版完成的簡報渲染結果](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
+![分割檢視中的 Lolly Markdown Slides：左側以區塊列出簡報的投影片，右側渲染排版完成的簡報](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio&width=1440&height=900&dpi=192&waitMs=2600&walker=1&format=svg&dark=1&filename=ov2-deck-studio-output)
 
-## 規則存在於工具中
+<!--i:eti-shield-check-->
+## 規則就在工具裡
 
-Lolly 把可重複使用的品牌規則放在工具裡：色彩、字型、出血邊距、間距與允許的輸入。範本固定接收者不得更改的部分。Lolly Work 在該範本周圍加入群組存取與輸入政策，以及目錄提交與交付的核准鏈。
+Lolly 將可重複使用的品牌規則放進工具：色彩、字型、出血邊界、間距與允許的輸入。範本固定收件者不得變更的部分。Lolly Work 圍繞該範本加入群組存取與輸入政策，並為目錄提交與交付提供核准鏈。
 
-檢查一次工具會讓重複製作更容易，因為每個輸出都繼承其版面規則。文案、上傳的圖像與使用權利仍可能需要檢查，而 Lolly Work 為此提供共用目錄與核准步驟。對創意團隊而言，工具是護欄：你仍然提供資料、文案和圖片，而工具讓每個結果都符合品牌。
+檢查工具一次，就能讓重複製作更容易，因為每份輸出都會繼承其版面規則。文案、上傳的圖片與使用權仍可能需要檢查，Lolly Work 為此提供共用目錄與核准步驟。對創作團隊來說，工具是一道護欄：資料、文案與圖片仍由你提供，工具則確保每個結果都符合品牌規範。
 
-![製作者的全部工作：輸入文字。字型、色彩與間距在工具製作時就已確定](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
+![製作者的全部工作：輸入文字。字型、色彩與間距在製作工具時就已確定](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&filename=aud-rules-in-the-tool)
 
-還有三件事讓這種做法與眾不同：
+另外三項差異：
 
-- **由輸入產生最終檔案。** 輸入進去，完成的檔案出來，不需要「現在從你的設計工具儲存並修整一下」。
-- **工具組合工具。** 一個工具可以把另一個工具的渲染結果嵌入單一完成的檔案中，兩者之間沒有程式碼耦合。
-- **從頭到尾都開放。** 引擎是開源的，工具、素材與設計 token 是你可以保存在版本控制中或在 Lolly Work 中管理的檔案，而不是別人資料庫中的資料列。
+- **從輸入直接產生最終檔案。** 提供輸入，就得到完成的檔案，不需要「現在從設計工具另存，再修整一下」。
+- **工具組合工具。** 一個工具可將另一個工具的渲染結果嵌入同一份完成的檔案，兩者之間不需程式碼耦合。
+- **開放原始碼。** 引擎是開放原始碼，工具、素材與設計 token 則是檔案，可納入版本控制或在 Lolly Work 中管理，而非別人資料庫裡的資料列。
 
-大膽的設計能在護欄中存活。這張海報等級的城市地圖是真正的向量道路與水域路徑，來自一個下拉選單和兩個無法指向設計系統之外的色彩欄位：
+有護欄也能做出大膽的設計。這張海報等級的城市地圖，以真正的向量路徑呈現道路與水域，只需一個下拉選單與兩個無法選到設計系統範圍外的色彩欄位：
 
-![阿姆斯特丹的運河環與道路網，從邊到邊以設計系統自己的墨色繪成，每一筆都由範本而非手動安排](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
+![以設計系統自己的色彩滿版繪製阿姆斯特丹的環狀運河與道路網，每一筆都由範本定位，無需手動放置](/t/url-shot?url=%2F%23%2Ftool%2Fstreet-map%3Fcity%3Damsterdam%26theme%3Dlight%26full&width=1440&height=900&dpi=96&waitMs=3200&walker=1&format=svg&cropSelector=%23tool-canvas&dark=1&filename=ov2-street-map-poster)
 
-## 以機率的方式創新,以確定的方式規模化
+<!--i:eti-stamp-->
+## 用機率探索創新，用確定性擴大製作規模
 
-大多數「AI 創意」的說法把模型放在了一條古老界線的錯誤一側。抄寫員與彩飾師早已確定它落在哪裡。你在草稿上隨意發揮，在那裡任何東西都可以嘗試，也沒有任何東西被定案。然後你走向印刷機，它會定案。草稿是藝術所在，印刷機是它傳播的方式，而印刷作品之所以可以信任，是因為印刷機每一次印製都守住了承諾。
+大多數「AI 創作」提案，把模型放在一條古老分界的錯誤一側。抄寫員與彩飾手稿畫師早已確立這條分界。畫草稿時可以自由發揮，什麼都能試，什麼都還沒定案。接著交給印刷機，將它定稿。藝術在草稿中成形，透過印刷機傳播；印出的作品之所以值得信任，是因為印刷機每次運作都信守承諾。
 
-Lolly 就是印刷機。你可以帶任何東西來發想，模型、設計師或粗略的草圖都行，但一旦想法必須變成許多檔案，它就要經過一個每次都以相同方式渲染、輸入任何人都能讀回的東西。上面的比較真正談的是，由誰來讓這個定案的步驟可重複。
+Lolly 就是印刷機。構思時可以帶入任何你喜歡的東西：模型、設計師或粗略的草圖。但當構想必須變成許多檔案時，就要經過每次都以相同方式渲染的系統，輸入內容也必須讓任何人都能讀回。上面的比較，實際上是在看誰能讓這個定稿步驟重複執行。
 
-> 信任創意過程，以嚴謹擴展規模。
+> 信任創作過程，以嚴謹擴大規模。
 
-## 永遠免費
+<!--i:eti-tag-->
+## 永久免費
 
-**只要它在你的裝置上渲染，就永遠免費。** 引擎、外殼、工具與格式都是開源的，已發布的版本無法收回。Lolly Work 也是開源的。組織為其選擇的基礎架構與營運付費，自行託管不收取每個席位或每次渲染的軟體授權費。[問與答](/info/faq.html)講述了這項承諾背後的故事。
+**只要在你的裝置上渲染，就永久免費。** 引擎、執行外殼、工具與格式都是開放原始碼，已發布的版本無法收回。Lolly Work 也開放原始碼。組織只需支付自己選擇的基礎設施與營運費用，自行託管不收取按席次或按渲染次數計算的軟體授權費。[問與答](/info/faq.html)說明這項承諾背後的故事。
 
-## 你的內容在哪裡
+<!--i:eti-map-pin-->
+## 你的內容存放在哪裡
 
-Lolly 的創作工作可以在你擁有的硬體上執行，而它的設計 token、字型、標誌與工具是你可以保存的檔案。有了 Lolly Work，共用專案、素材、政策與稽核記錄則存放在你的組織設定的儲存空間中。[信任](/info/trust.html)說明為什麼這很重要，而[隱私政策](/info/privacy.html)與[自行驗證](/info/verify-yourself.html)讓你檢查這項說法，而不必只聽我們的話。
+Lolly 的創作工作可在你擁有的硬體上執行，其設計 token、字型、標誌與工具都是你能保留的檔案。使用 Lolly Work 時，共用專案、素材、政策與稽核記錄都存放在組織設定的儲存空間中。[信任](/info/trust.html)說明這為何重要，而[隱私政策](/info/privacy.html)與[自行驗證](/info/verify-yourself.html)讓你能檢查這項聲明，無需只憑我們的一面之詞。
 
-## 逐項工具比較
+<!--i:eti-grid-->
+## 逐一比較工具
 
-[逐項工具比較 Lolly](/info/compare.html)將 Lolly 與 Canva、Adobe、Figma、Penpot、品牌入口網站、渲染 API 與線上轉換器逐一比較，每個一頁，並說明[什麼在哪裡執行](/info/compare.html#what-runs-where)。
+[逐一比較 Lolly 與其他工具](/info/compare.html)以每類一頁的方式，將 Lolly 與 Canva、Adobe、Figma、Penpot、品牌入口網站、渲染 API 及線上轉換器比較，並列出[各項功能在哪裡執行](/info/compare.html#what-runs-where)。
