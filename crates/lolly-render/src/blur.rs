@@ -7,7 +7,7 @@
 //! way and one of `d + 1`. Each pass sums whole bytes and divides with rounding, so the
 //! result is the same on every machine; no `exp` is evaluated anywhere.
 
-/// `3 * sqrt(2 pi) / 4`, written out so no platform function computes it.
+/// `3 * sqrt(2 pi) / 4`, written out so that no platform function computes the value.
 const BOX_FACTOR: f64 = 1.879_971_205_973_250_3;
 
 /// The box widths and their offsets for one deviation in pixels: `(width, shift)`, where a

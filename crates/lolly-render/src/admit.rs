@@ -170,8 +170,8 @@ pub enum Draw {
         join: LineJoin,
         dash: Option<StrokeDash>,
         /// A stroke kept inside (true) or outside (false) a closed outline: drawn twice as
-        /// wide and clipped to that side of the outline, read with this rule, as the SVG
-        /// writer and the canvas draw it.
+        /// wide and clipped to that side of the outline, read with this rule, the way the
+        /// SVG writer and the canvas draw such a stroke.
         side: Option<(bool, FillRule)>,
     },
 }
@@ -1137,7 +1137,7 @@ fn item(a: &mut Admit, op: &Op, is_frame: bool) -> Option<Item> {
             corners: None,
         });
         // What the background covers: the box under an inside border and the padding box under a
-        // centred or outside one, as the SVG writer paints it. Under an opaque inside border on a
+        // centred or outside one, as the SVG writer paints a background. Under an opaque inside border on a
         // curved box the background is inset by half the border, Chromium's background bleed
         // avoidance (`BackgroundRoundedRectAdjustedForBleedAvoidance`), so the outer edge is
         // anti-aliased once rather than twice.

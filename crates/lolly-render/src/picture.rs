@@ -220,7 +220,7 @@ fn png(bytes: &[u8]) -> Result<Decoded, PictureRefusal> {
         if info.chrm_chunk.is_some() {
             return Err(refuse("picture-colour", "a PNG picture with chromaticities of its own, which the browser applies"));
         }
-        // 45455 is sRGB's gamma written as PNG writes it.
+        // 45455 is sRGB's gamma in PNG's own units.
         if info.gama_chunk.is_some_and(|g| (g.into_scaled() as i64 - 45455).abs() > 100) {
             return Err(refuse("picture-colour", "a PNG picture with a gamma of its own, which the browser applies"));
         }

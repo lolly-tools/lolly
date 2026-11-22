@@ -106,7 +106,7 @@ fn step(target: &mut Pixmap, s: &Step, transform: Transform, mask: Option<&Mask>
                 target.stroke_path(path, &paint, &stroke, transform, mask);
             }
             Some((inside, rule)) => {
-                // Twice the width, clipped to the outline's inside or to everything outside it.
+                // Twice the width, clipped to the outline's inside or to everything outside the outline.
                 let Some(mut keep) = Mask::new(target.width(), target.height()) else { return };
                 keep.fill_path(path, *rule, true, transform);
                 if !inside {
@@ -286,7 +286,7 @@ fn item(target: &mut Pixmap, layer: &mut Option<Pixmap>, plan: &Plan, pictures: 
         }
     }
     if let Some(sh) = &fx.drop {
-        // CSS drop-shadow: the filtered element's silhouette, moved and blurred, under it.
+        // CSS drop-shadow: the filtered element's silhouette, moved and blurred, under the element.
         if let (Some(shadow), Some(mut group)) = (shadow_of(canvas, sh.color, sh.sigma * res), Pixmap::new(w, h)) {
             lay_offset(&mut group, &shadow, posed, sh.dx, sh.dy, None);
             group.draw_pixmap(0, 0, canvas.as_ref(), &PixmapPaint::default(), Transform::identity(), None);
