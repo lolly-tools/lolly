@@ -149,7 +149,8 @@ async function capture(host: HostV1, canvas: HTMLElement | null, words?: () => r
   } catch { return fallback(); }
   // Encoded by the writer's rule; where this browser cannot encode at all, the export
   // path's own PNG is kept as it came.
-  return (await writer.rasterPicture(blob).catch(() => null)) ?? writer.bytesPicture(blob);
+  const { writeRaster } = await import('../lib/preview-encode.ts');
+  return (await writeRaster(blob).catch(() => null)) ?? writer.bytesPicture(blob);
 }
 
 /**

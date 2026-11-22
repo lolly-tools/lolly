@@ -197,3 +197,18 @@ test('an idle redraw is not attached over a picture that arrived while it drew',
   assert.ok(await attachSessionPicture(db, 'poster:1', { updatedAt: now.updatedAt, thumb: now.thumb, preview: now.preview }, redraw));
   assert.equal(await state.pictureDataUrl!({ slot: 'poster:1' }), png('redraw'));
 });
+
+test("the raster rule's verdict is kept with the stored picture, and a stored picture is never judged again", async () => {
+  const { db } = setup();
+  const picture = { ...await prepared(png('judged')), verdict: { writer: 1, encoding: 'webp' as const, difference: 4 } };
+  let tx = db.transaction(store.PREVIEW_STORES as unknown as string[], 'readwrite');
+  await store.putPictureBytes(tx as never, picture);
+  await tx.done;
+  const row = await db.get('preview-blobs', picture.ref.key) as { verdict?: unknown };
+  assert.deepEqual(row.verdict, { writer: 1, encoding: 'webp', difference: 4 });
+  // The same bytes again (another look that drew the same picture): the first verdict stands.
+  tx = db.transaction(store.PREVIEW_STORES as unknown as string[], 'readwrite');
+  await store.putPictureBytes(tx as never, { ...picture, verdict: { writer: 1, encoding: 'png' } });
+  await tx.done;
+  assert.deepEqual((await db.get('preview-blobs', picture.ref.key) as { verdict?: unknown }).verdict, { writer: 1, encoding: 'webp', difference: 4 });
+});

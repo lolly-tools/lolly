@@ -28,7 +28,12 @@ import {
   PREVIEW_MAX_BYTES, PREVIEW_TILE, previewRefFor,
   type PreviewRoute, type PreviewType,
 } from '../../../../engine/src/session-preview.ts';
-import type { PreparedPicture } from '../bridge/preview-store.ts';
+import type { PictureVerdict, PreparedPicture } from '../bridge/preview-store.ts';
+
+/** The version of the rule below. A picture records the version that judged it
+ *  (`PictureVerdict`), so a later rule can tell which stored pictures it has not
+ *  judged; a picture is never judged twice by one version. */
+export const WRITER_VERSION = 1;
 
 /** The lossy WebP quality: identical to the eye on every sampled photo, gradient,
  *  UI capture and transparency edge at the sizes the interface shows, 1x and 2x. */
@@ -240,36 +245,39 @@ export async function rasterPicture(source: Blob | HTMLCanvasElement | Offscreen
     encoder = canvasOf(width, height);
     context2d(encoder, false).drawImage(canvas as CanvasImageSource, 0, 0);
   }
-  const finish = async (blob: Blob): Promise<PreparedPicture | null> => {
+  let difference: number | undefined;
+  const finish = async (blob: Blob, encoding: PictureVerdict['encoding']): Promise<PreparedPicture | null> => {
     const bytes = await bytesOf(blob);
     const ref = await previewRefFor(bytes, blob.type as PreviewType, { route, ...(facts.recipe ? { recipe: facts.recipe } : {}) });
-    return ref ? { ref, bytes } : null;
+    return ref ? { ref, bytes, verdict: { writer: WRITER_VERSION, encoding, ...(difference !== undefined ? { difference } : {}) } } : null;
   };
-  const faithful = async (blob: Blob): Promise<boolean> =>
-    pictureDifference(original, (await pixelsOf(blob, width, height)).data) <= DIFFERENCE_BOUND;
+  const faithful = async (blob: Blob): Promise<boolean> => {
+    difference = pictureDifference(original, (await pixelsOf(blob, width, height)).data);
+    return difference <= DIFFERENCE_BOUND;
+  };
 
   const lossy = await encode(encoder, 'image/webp', WEBP_QUALITY);
   if (lossy.type !== 'image/webp') {
     // No WebP encoder (WebKit): PNG is exact. An opaque PNG over the limit may be a
     // JPEG that passes the same bound; anything else stays PNG over the limit.
     const png = lossy.type === 'image/png' ? lossy : await encode(encoder, 'image/png');
-    if (png.size <= PREVIEW_MAX_BYTES || !opaque(original)) return finish(png);
+    if (png.size <= PREVIEW_MAX_BYTES || !opaque(original)) return finish(png, 'png');
     const jpeg = await encode(encoder, 'image/jpeg', JPEG_QUALITY);
-    if (jpeg.type === 'image/jpeg' && jpeg.size <= PREVIEW_MAX_BYTES && await faithful(jpeg)) return finish(jpeg);
-    return finish(png);
+    if (jpeg.type === 'image/jpeg' && jpeg.size <= PREVIEW_MAX_BYTES && await faithful(jpeg)) return finish(jpeg, 'jpeg');
+    return finish(png, 'png');
   }
   if (!await faithful(lossy)) {
     const lossless = await encode(encoder, 'image/webp', 1);
     // Quality 1.0 is lossless WebP in Chromium; where it is not, the check below
     // still decides, and the PNG is the exact form to fall back to.
-    if (lossless.type === 'image/webp' && await faithful(lossless)) return finish(lossless);
-    return finish(await encode(encoder, 'image/png'));
+    if (lossless.type === 'image/webp' && await faithful(lossless)) return finish(lossless, 'webp-lossless');
+    return finish(await encode(encoder, 'image/png'), 'png');
   }
-  if (lossy.size <= PREVIEW_MAX_BYTES) return finish(lossy);
+  if (lossy.size <= PREVIEW_MAX_BYTES) return finish(lossy, 'webp');
   for (const quality of STEP_DOWN) {
     const smaller = await encode(encoder, 'image/webp', quality);
-    if (smaller.size <= PREVIEW_MAX_BYTES && await faithful(smaller)) return finish(smaller);
+    if (smaller.size <= PREVIEW_MAX_BYTES && await faithful(smaller)) return finish(smaller, 'webp');
   }
   // Nothing under the limit is identical to the eye: keep the faithful one.
-  return finish(lossy);
+  return finish(lossy, 'webp');
 }

@@ -47,7 +47,10 @@ export async function renderLookPicture(host: HostV1, toolId: string, format: st
     if (svg) return svg;
     throw new Error(`The SVG preview of ${toolId} could not be read.`);
   }
-  const raster = await writer.rasterPicture(blob, facts);
+  // Encoded in the preview worker, in its turn (lib/preview-encode.ts): this is
+  // background work, never in the way of the page.
+  const { writeRaster } = await import('./preview-encode.ts');
+  const raster = await writeRaster(blob, facts, { background: true });
   if (!raster) throw new Error(`The preview of ${toolId} could not be drawn.`);
   return raster;
 }
@@ -61,7 +64,7 @@ export async function renderPagePictures(host: HostV1, toolId: string, format: s
   for (const blob of pages) {
     const picture = format === 'svg'
       ? await writer.svgPicture(blob, { keepOverLimit: true })
-      : await writer.rasterPicture(blob);
+      : await (await import('./preview-encode.ts')).writeRaster(blob, {}, { background: true });
     if (!picture) throw new Error(`A page preview of ${toolId} could not be drawn.`);
     out.push(picture);
   }

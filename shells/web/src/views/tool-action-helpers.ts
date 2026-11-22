@@ -226,7 +226,7 @@ export async function capturePreview(
       try {
         const { captureStudioCanvas } = await import('../lib/studio3d/mount.ts');
         const canvas = captureStudioCanvas(node);
-        if (canvas) return await writer.rasterPicture(canvas);
+        if (canvas) return await (await import('../lib/preview-encode.ts')).writeRaster(canvas);
       } catch { /* the ordinary export below */ }
     }
     const formats = manifest.render.formats ?? [];
@@ -250,7 +250,9 @@ export async function capturePreview(
       () => runtime.export(exportTargetNode(node), 'png', { width: tw, height: th, embedMeta: false, thumbnail: true }),
       { shutter }
     );
-    return await writer.rasterPicture(png);
+    // Encoded off the main thread where the browser can (lib/preview-encode.ts); a
+    // save's picture goes at once, ahead of any background picture.
+    return await (await import('../lib/preview-encode.ts')).writeRaster(png);
   } catch {
     return null;
   }

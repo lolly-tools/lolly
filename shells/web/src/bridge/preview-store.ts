@@ -49,6 +49,18 @@ export interface PreparedPicture {
   bytes: Uint8Array;
   /** How a data URL carried these bytes when they arrived as one. */
   form?: DataUrlForm;
+  /** How the raster rule judged the picture, when it was judged here. */
+  verdict?: PictureVerdict;
+}
+
+/** The raster rule's verdict on a picture (lib/preview-writer.ts), kept with the
+ *  stored bytes: the rule's version, the form chosen and, when the picture was
+ *  compared with its source, the difference measured. A stored picture is not
+ *  judged again by the same version. */
+export interface PictureVerdict {
+  writer: number;
+  encoding: 'webp' | 'webp-lossless' | 'png' | 'jpeg' | 'as-rendered';
+  difference?: number;
 }
 
 /** What a writer may hand a store: a data URL (legacy callers, received packs),
@@ -67,6 +79,8 @@ export interface PreviewBlobRow {
   route: PreviewRoute;
   recipe?: string;
   form?: DataUrlForm;
+  /** The raster rule's verdict, for a picture it judged. */
+  verdict?: PictureVerdict;
   at: number;
 }
 
@@ -158,7 +172,8 @@ export async function putPictureBytes(tx: PictureTx, picture: PreparedPicture): 
   const row: PreviewBlobRow = {
     key: picture.ref.key, type: picture.ref.type, bytes, size: bytes.byteLength,
     width: picture.ref.width, height: picture.ref.height, route: picture.ref.route ?? 'received',
-    ...(picture.ref.recipe ? { recipe: picture.ref.recipe } : {}), ...(picture.form ? { form: picture.form } : {}), at: Date.now(),
+    ...(picture.ref.recipe ? { recipe: picture.ref.recipe } : {}), ...(picture.form ? { form: picture.form } : {}),
+    ...(picture.verdict ? { verdict: picture.verdict } : {}), at: Date.now(),
   };
   await blobs.put(row);
   // Read back inside the same transaction before anything points at the row: a
