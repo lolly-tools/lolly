@@ -132409,15 +132409,68 @@ function readPreviewRef(value2) {
   if (typeof bytes2 === "number" && Number.isInteger(bytes2) && bytes2 > 0 && bytes2 <= 64 * 1024 * 1024) ref2.bytes = bytes2;
   return ref2;
 }
-var PREVIEW_TYPES, PREVIEW_ROUTES, PREVIEW_MAX_BYTES, MAX_SIDE, HEX32;
+async function previewContentKey(bytes2) {
+  return bytesToHex((await sha256(bytes2)).subarray(0, 16));
+}
+function previewFileExt(type) {
+  return type === "image/svg+xml" ? "svg" : type === "image/jpeg" ? "jpg" : type.slice("image/".length);
+}
+function sessionWork(data) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return JSON.stringify(data ?? null);
+  const { __label: _label, __export_filename: _filename, ...work } = data;
+  return JSON.stringify(work);
+}
+async function sessionWorkKey(data) {
+  return previewContentKey(new TextEncoder().encode(sessionWork(data)));
+}
+function previewLinkName(workKey) {
+  return `w-${workKey}.ref`;
+}
+function readPreviewLinks(text13) {
+  if (typeof text13 !== "string" || text13.length > 64 * 1024) return null;
+  let parsed;
+  try {
+    parsed = JSON.parse(text13);
+  } catch {
+    return null;
+  }
+  const entries = parsed?.slots;
+  if (parsed?.v !== 1 || !Array.isArray(entries)) return null;
+  const out = [];
+  for (const entry2 of entries.slice(-PREVIEW_LINK_ENTRIES)) {
+    if (!Array.isArray(entry2) || typeof entry2[0] !== "string" || !entry2[0] || entry2[0].length > 1024) continue;
+    const ref2 = readPreviewRef(entry2[1]);
+    if (ref2) out.push({ slot: entry2[0], ref: ref2 });
+  }
+  return out;
+}
+function readPreviewLink(text13, slot) {
+  const entries = readPreviewLinks(text13);
+  if (!entries?.length) return null;
+  return entries.find((entry2) => entry2.slot === slot)?.ref ?? entries[entries.length - 1].ref;
+}
+function withPreviewLink(text13, slot, ref2) {
+  const kept2 = (readPreviewLinks(text13) ?? []).filter((entry2) => entry2.slot !== slot);
+  const plain = { key: ref2.key, type: ref2.type, width: ref2.width, height: ref2.height, ...ref2.route ? { route: ref2.route } : {} };
+  const slots = [...kept2.map((entry2) => [entry2.slot, entry2.ref]), [slot, plain]].slice(-PREVIEW_LINK_ENTRIES);
+  return JSON.stringify({ v: 1, slots });
+}
+function mayHaveLostPicture(record49) {
+  if (!record49 || readPreviewRef(record49.preview)) return false;
+  if (typeof record49.thumb === "string" && record49.thumb) return false;
+  return typeof record49.formatVersion !== "number" || record49.formatVersion < 5;
+}
+var PREVIEW_TYPES, PREVIEW_ROUTES, PREVIEW_MAX_BYTES, MAX_SIDE, HEX32, PREVIEW_LINK_ENTRIES;
 var init_session_preview = __esm({
   "engine/src/session-preview.ts"() {
     "use strict";
+    init_bytes();
     PREVIEW_TYPES = ["image/svg+xml", "image/webp", "image/png", "image/jpeg", "image/gif", "image/avif"];
     PREVIEW_ROUTES = ["export-svg", "export-raster", "baked", "operations-svg", "tool-svg", "received", "legacy", "stand-in"];
     PREVIEW_MAX_BYTES = 256 * 1024;
     MAX_SIDE = 32768;
     HEX32 = /^[0-9a-f]{32}$/;
+    PREVIEW_LINK_ENTRIES = 16;
   }
 });
 
@@ -180079,20 +180132,20 @@ __export(emoji_exports, {
   EMOJI_PACK_TAG: () => EMOJI_PACK_TAG,
   createNodeEmojiAPI: () => createNodeEmojiAPI
 });
-import { readFile as readFile22, stat as stat3 } from "node:fs/promises";
+import { readFile as readFile22, stat as stat4 } from "node:fs/promises";
 import { resolve as resolve3, sep } from "node:path";
 import { gunzip as gunzip2 } from "node:zlib";
 import { promisify } from "node:util";
 async function bundleText(file) {
   try {
-    if ((await stat3(file)).size > BUNDLE_MAX_BYTES) return null;
+    if ((await stat4(file)).size > BUNDLE_MAX_BYTES) return null;
     return await readFile22(file, "utf8");
   } catch (error2) {
     if (error2.code !== "ENOENT") return null;
   }
   try {
     const compressed = `${file}.gz`;
-    if ((await stat3(compressed)).size > BUNDLE_MAX_BYTES) return null;
+    if ((await stat4(compressed)).size > BUNDLE_MAX_BYTES) return null;
     const bytes2 = await inflateBundle(await readFile22(compressed), { maxOutputLength: BUNDLE_MAX_BYTES });
     return bytes2.toString("utf8");
   } catch {
@@ -184245,7 +184298,7 @@ __export(webshell_render_exports, {
   transformViaWebShell: () => transformViaWebShell
 });
 import { createServer as createServer2 } from "node:http";
-import { readFile as readFile30, stat as stat6 } from "node:fs/promises";
+import { readFile as readFile30, stat as stat7 } from "node:fs/promises";
 import { existsSync as existsSync21, writeFileSync as writeFileSync2 } from "node:fs";
 import { join as join35, resolve as resolve7, extname as extname3, normalize as normalize3 } from "node:path";
 async function webShellBase2() {
@@ -184303,7 +184356,7 @@ function serveDist2() {
         res.writeHead(403).end();
         return;
       }
-      if (!live2 && (urlPath === "/" || !existsSync21(filePath) || !(await stat6(filePath)).isFile())) {
+      if (!live2 && (urlPath === "/" || !existsSync21(filePath) || !(await stat7(filePath)).isFile())) {
         filePath = join35(root2, "index.html");
       }
       const data = await readFile30(filePath);
@@ -188292,7 +188345,7 @@ init_production_browser();
 init_export_wait();
 init_export_lock();
 init_open_session();
-import { readFile as readFile28, stat as stat5 } from "node:fs/promises";
+import { readFile as readFile28, stat as stat6 } from "node:fs/promises";
 import { existsSync as existsSync19 } from "node:fs";
 
 // shells/cli/src/bridge.ts
@@ -192911,10 +192964,14 @@ init_state_dir();
 // packages/node-shell/src/session-store.ts
 init_fs_token();
 init_session_record();
-import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2, rename as rename2 } from "node:fs/promises";
+init_session_preview();
+import { mkdir as mkdir2, readdir as readdir4, readFile as readFile16, rm as rm2, writeFile as writeFile2, rename as rename2, stat as stat3 } from "node:fs/promises";
 import { join as join20 } from "node:path";
 import { randomUUID as randomUUID2 } from "node:crypto";
 var SESSION_SUBDIR = "saved-state";
+function sessionPicturePath(stateDir2, ref2) {
+  return join20(sessionsDir(stateDir2), "previews", `${ref2.key}.${previewFileExt(ref2.type)}`);
+}
 function sessionsDir(stateDir2) {
   return join20(stateDir2, SESSION_SUBDIR);
 }
@@ -192924,9 +192981,37 @@ function sessionFilePath(stateDir2, slot) {
 async function readSessionRecord(stateDir2, slot) {
   try {
     const raw = JSON.parse(await readFile16(sessionFilePath(stateDir2, slot), "utf8"));
-    return normalise5(raw);
+    const record49 = normalise5(raw);
+    return record49 ? withFoundPicture(stateDir2, record49) : null;
   } catch {
     return null;
+  }
+}
+var linkFile = (stateDir2, workKey) => join20(sessionsDir(stateDir2), "previews", previewLinkName(workKey));
+async function withFoundPicture(stateDir2, record49) {
+  if (!mayHaveLostPicture(record49)) return record49;
+  try {
+    const ref2 = readPreviewLink(await readFile16(linkFile(stateDir2, await sessionWorkKey(record49.data)), "utf8"), record49.slot);
+    if (ref2 && (await stat3(sessionPicturePath(stateDir2, ref2))).isFile()) return { ...record49, thumb: null, preview: ref2 };
+  } catch {
+  }
+  return record49;
+}
+async function writeLink(stateDir2, slot, data, ref2) {
+  try {
+    const path = linkFile(stateDir2, await sessionWorkKey(data));
+    const prior = await readFile16(path, "utf8").catch(() => null);
+    const text13 = withPreviewLink(prior, slot, ref2);
+    if (prior === text13) return;
+    await mkdir2(join20(sessionsDir(stateDir2), "previews"), { recursive: true });
+    const temp = `${path}.${randomUUID2()}.tmp`;
+    try {
+      await writeFile2(temp, text13, { mode: 384, flag: "wx" });
+      await rename2(temp, path);
+    } finally {
+      await rm2(temp, { force: true });
+    }
+  } catch {
   }
 }
 async function loadSessionData(stateDir2, slot) {
@@ -192993,6 +193078,7 @@ async function writeSessionRecord(stateDir2, write) {
   } finally {
     await rm2(temp, { force: true });
   }
+  if (record49.preview) await writeLink(stateDir2, record49.slot, record49.data, record49.preview);
   return record49;
 }
 async function deleteSessionRecord(stateDir2, slot) {
@@ -194831,7 +194917,7 @@ function withHost(profile2, fn, opts = {}) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn as spawn2 } from "node:child_process";
-import { readFile as readFile26, stat as stat4 } from "node:fs/promises";
+import { readFile as readFile26, stat as stat5 } from "node:fs/promises";
 import { existsSync as existsSync18 } from "node:fs";
 import { join as join30, resolve as resolve4, extname, normalize as normalize2 } from "node:path";
 
@@ -194990,7 +195076,7 @@ function serveDist(dist2) {
         res.writeHead(403).end();
         return;
       }
-      if (urlPath === "/" || !existsSync18(filePath) || !(await stat4(filePath)).isFile()) {
+      if (urlPath === "/" || !existsSync18(filePath) || !(await stat5(filePath)).isFile()) {
         filePath = join30(root2, "index.html");
       }
       const data = await readFile26(filePath);
@@ -195515,7 +195601,7 @@ async function withBrowserJob(job) {
   }
 }
 async function readBoundedDownload(filename) {
-  const info = await stat5(filename);
+  const info = await stat6(filename);
   if (info.size > MAX_BROWSER_OUTPUT_BYTES) {
     throw new RenderError(`Browser export exceeds the ${MAX_BROWSER_OUTPUT_BYTES}-byte output limit.`);
   }
@@ -205130,9 +205216,9 @@ var NODE_FILE_TARGETS = { image: ["png", "jpeg", "webp", "avif", "jxl", "jxl-los
 async function readOperationFile(path) {
   const handle = await open2(path, "r");
   try {
-    const stat7 = await handle.stat();
-    if (!stat7.isFile()) throw new Error("Choose a regular file.");
-    validateConvertFiles([stat7]);
+    const stat8 = await handle.stat();
+    if (!stat8.isFile()) throw new Error("Choose a regular file.");
+    validateConvertFiles([stat8]);
     const chunks = [];
     let total = 0;
     while (true) {
