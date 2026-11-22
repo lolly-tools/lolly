@@ -6,6 +6,11 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.352.0
+
+- The `{{markdown}}` helper reads a GFM table: a row of pipes over a `| --- |` delimiter row becomes `<table class="md-table">` with a `<thead>` and a `<tbody>`, and a column the delimiter row aligns takes `md-align-left`, `md-align-center` or `md-align-right` on its cells. The look is the tool's stylesheet's, as with `md-index` and the arrow classes. Cells go through the same inline pass as other text, so a cell is escaped and may hold bold, italic, links and images; `\|` is a pipe inside a cell; a short row is padded and a long one cut. Text with no such table gives the same output as before, byte for byte: a line of pipes with no delimiter row under it, or a delimiter row with a different number of cells, stays a paragraph (lolly-tools/lolly#275).
+- The number skips 1.350.0 and 1.351.0, which an open pull request (#1079) had taken when this was written.
+
 ## 1.349.0
 
 - A vector picture on a Design page is placed by its own size, unrounded, as the browser places one. `svgIntrinsicSize(bytes)` (new, `penpot-file.ts`, not on the barrel) reads an SVG root the way an `<img>` reads one: an absolute width and height first (px, pt, pc, in, cm, mm, and em or rem at 16 px), then one of them with the viewBox's aspect for the other, then the viewBox alone, with `natural` false. A percentage is no size of its own. `designPageDrawing` reads a picture's size through this rule, so the SVG, the PDF and the resvg PNG drawn from the operations place a contained 44.725 by 19.706 logo 204 px wide in a 90 px tall box, as the browser does, where the rounded 45 by 20 placed the logo 202 px wide.
