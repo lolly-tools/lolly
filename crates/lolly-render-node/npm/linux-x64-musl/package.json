@@ -1,0 +1,29 @@
+{
+  "name": "@lolly-tools/render-linux-x64-musl",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The lolly-render Node binding built for x86_64-unknown-linux-musl. Installed by @lolly-tools/render; not used on its own.",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lolly-tools/lolly.git",
+    "directory": "crates/lolly-render-node/npm/linux-x64-musl"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "libc": [
+    "musl"
+  ],
+  "main": "lolly-render.linux-x64-musl.node",
+  "files": [
+    "lolly-render.linux-x64-musl.node",
+    "LICENSES.txt"
+  ],
+  "engines": {
+    "node": ">= 20"
+  }
+}

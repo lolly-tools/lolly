@@ -657,6 +657,16 @@ const MANIFEST: {
       where: 'web',
     },
     {
+      name: 'lolly-render Node binding and its Rust dependencies',
+      version: '0.1.0 (pinned crates/lolly-render-node/Cargo.lock)',
+      spdx: 'MPL-2.0 AND MIT AND BSD-3-Clause AND BSD-2-Clause AND ISC AND Zlib',
+      copyright: 'Individual crate authors, reproduced in the notices below.',
+      files: 'crates/lolly-render-node (lolly-render.<platform>.node, built by .github/workflows/lolly-render-addon.yml)',
+      text: readFileSync(join(ROOT, 'crates/lolly-render-node/LICENSES.txt'), 'utf8'),
+      note: 'The Design page renderer (crates/lolly-render) and its napi-rs binding, which the Node shells load only when LOLLY_DESIGN_RASTER=lolly-render asks for it. Not yet in a published package. Upstream crates are unmodified, and MIT is elected for dependencies offering that licence choice; the list is written by scripts/build-lolly-render-notices.ts.',
+      where: 'cli',
+    },
+    {
       name: 'storytold indd-utils INDD converter',
       version: '0.1.0 (136f973a9d5f1b3ef34e46e27f4a08af196efde7; pinned Cargo.lock)',
       spdx: 'MPL-2.0 AND MIT',

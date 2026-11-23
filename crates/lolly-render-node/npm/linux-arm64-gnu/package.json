@@ -1,0 +1,29 @@
+{
+  "name": "@lolly-tools/render-linux-arm64-gnu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The lolly-render Node binding built for aarch64-unknown-linux-gnu. Installed by @lolly-tools/render; not used on its own.",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lolly-tools/lolly.git",
+    "directory": "crates/lolly-render-node/npm/linux-arm64-gnu"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "libc": [
+    "glibc"
+  ],
+  "main": "lolly-render.linux-arm64-gnu.node",
+  "files": [
+    "lolly-render.linux-arm64-gnu.node",
+    "LICENSES.txt"
+  ],
+  "engines": {
+    "node": ">= 20"
+  }
+}

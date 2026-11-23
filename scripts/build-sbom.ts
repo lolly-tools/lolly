@@ -354,6 +354,8 @@ addCargoCrates('packages/node-shell/wasm/audio-dsp/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/indd/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/camera-raw/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/affinity/Cargo.lock');
+// The lolly-render Node binding and the core crate it links (plan 371 M3b).
+addCargoCrates('crates/lolly-render-node/Cargo.lock');
 
 // An artifact copied unchanged from an npm tarball is an npm package, scoped or
 // not, so it takes an npm purl that advisory scanners can match.
