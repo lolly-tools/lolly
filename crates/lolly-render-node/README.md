@@ -38,23 +38,30 @@ To try the package's own loader, copy the build beside `index.cjs` as `lolly-ren
 
 ## Packages
 
-The same shape as `@resvg/resvg-js`: a main package, `@lolly-tools/render` (`package.json`, `index.cjs`, `index.d.ts`), that loads the binding for the machine it runs on from one of five optional platform packages (`npm/<platform>/`): `darwin-arm64`, `linux-x64-gnu`, `linux-x64-musl`, `linux-arm64-gnu` and `win32-x64-msvc`. There is no `darwin-x64`, because Intel Macs are no longer built for. Every package is `private: true`, so `npm publish` refuses them.
+The same shape as `@resvg/resvg-js`: a main package, `@lolly-tools/render` (`package.json`, `index.cjs`, `index.d.ts`), that loads the binding for the machine it runs on from one of five optional platform packages (`npm/<platform>/`): `darwin-arm64`, `linux-x64-gnu`, `linux-x64-musl`, `linux-arm64-gnu` and `win32-x64-msvc`. There is no `darwin-x64`, because Intel Macs are no longer built for. The packages carry the Lolly release version, as the CLI does (`tests/release-version-sync.test.ts`); the crates keep their own semver. Every package is `private: true` in the tree, so nothing can be published by accident.
 
-`.github/workflows/lolly-render-addon.yml` builds each platform on its own runner (musl inside Alpine), runs the unit tests and `test/smoke.cjs` where the runner can load the build, prints the oldest glibc a Linux build needs, and packs the six packages as artefacts. It runs on a manual dispatch and on changes under the two crates. It holds no registry token and no `id-token` permission, and it publishes nothing.
+`.github/workflows/lolly-render-addon.yml` builds each platform on its own runner, runs the unit tests and `test/smoke.cjs` (the eight core fixtures must draw to their pinned bytes through the package's own loader), and packs the six packages as artefacts. It runs on a manual dispatch and on changes under the two crates, holds no registry token and no `id-token` permission, and publishes nothing.
 
-## Getting the binary to people
+## The glibc floor
 
-Two ways were weighed; the choice is the maintainer's.
+The Linux gnu builds run on SUSE Linux Enterprise Server 15 SP7 and 16.1, the latest point releases of 15 and 16, so the floor is the lower of the two glibc versions: **glibc 2.38**.
 
-1. **npm packages under `@lolly-tools`, published with provenance (recommended).** A person runs a publish workflow, like `publish-core.yml`, that uses npm Trusted Publishing and `npm publish --provenance`, after this workflow's artefacts are checked. `packages/node-shell` then lists `@lolly-tools/render` in `optionalDependencies`, which `scripts/pack-cli.ts` already copies into the CLI package, as it does for `@resvg/resvg-js`.
-   - npm installs only the one binary the machine needs (1.5 MB on macOS arm64), and a machine with none still installs: the loader reports the binding absent and the default route draws.
-   - Each binary carries a provenance statement naming the commit and workflow that built it, which `npm audit signatures` checks.
-   - The TUI, the MCP server and the container images get the same binary through the same dependency.
-   - The cost: six package names to publish together at each release, and an install that fetches the binary from the registry.
-2. **The binaries inside the CLI tarball.** `scripts/pack-cli.ts` would copy all five builds into the package. One file to publish and no extra names, but every install carries every platform's binary (about five times the size), the pack step would depend on another workflow's artefacts, the binaries would carry no provenance of their own (the CLI is attached to a GitHub release and published by hand), and the other Node shells would need their own copies.
+- SLES 15 SP7 ships glibc 2.38: release notes, section "glibc 2.38" (<https://www.suse.com/releasenotes/x86_64/SUSE-SLES/15-SP7/index.html>), and the package `glibc-2.38-150600.14.61.1` in the Basesystem Module 15 SP7 (SUSE Customer Center package search for product `SLES/15.7/x86_64`, <https://scc.suse.com/api/package_search/packages?product_id=2793&query=glibc>).
+- SLES 16.1 ships glibc 2.40: the package `glibc-2.40-160100.4.1` (the same search for `SLES/16.1/x86_64`, <https://scc.suse.com/api/package_search/packages?product_id=3231&query=glibc>; 16.0 also shipped 2.40); 16.1's release notes were published 2026-11-18 (<https://documentation.suse.com/releasenotes/sles/16.1/index.html>).
+
+The workflow builds `linux-x64-gnu` and `linux-arm64-gnu` inside the SLE BCI base image for 15 SP7 (`registry.suse.com/bci/bci-base:15.7`, pinned by digest), so they link against glibc 2.38 and `test/smoke.cjs` loads them there. A step reads the highest `GLIBC_` symbol version the binding needs (`objdump -T`) and fails the job above 2.38. Read on 2026-11-23; a later point release with an older glibc would lower the floor.
+
+## Publishing
+
+npm under `@lolly-tools`, with Trusted Publishing and provenance (the maintainer's decision, 2026-11-23). `.github/workflows/publish-lolly-render.yml` is the only way to publish, and only a person can start it: a manual dispatch of main, a `confirm` input that reads exactly `publish @lolly-tools/render <version>`, a version equal to the release version that every package declares, no package still private, then approval in the `release-npm` environment, the only job that holds the OIDC identity. It reuses the build workflow and publishes the five platform packages, then the main one, each with `npm publish --provenance`.
+
+At release time:
+1. In the release commit, remove `"private": true` from the six `package.json` files (the versions already follow the release).
+2. Once, before the first release: create the `release-npm` environment with required reviewers and a main-only branch policy, as `release-images` has, and on npmjs.com name this repository, `publish-lolly-render.yml` and `release-npm` as the Trusted Publisher of each package.
+3. Add `@lolly-tools/render` to `optionalDependencies` in `packages/node-shell/package.json`; `scripts/pack-cli.ts` carries it into the CLI package as it carries `@resvg/resvg-js`, and npm installs only the one platform binary a machine needs. A machine with none still installs: the loader reports the binding absent and the default route draws.
 
 ## Not verified
 
-- Any build other than macOS arm64: the workflow is written and has not run. Linux musl is built inside Alpine with `-crt-static` off, untried here.
-- The oldest glibc the Linux builds need: printed by the workflow, not measured. Runners build against a recent glibc, so an older Linux (SUSE Linux Enterprise 15 among them) may need a build against an older one.
+- Every build but macOS arm64: the workflows are written and have not run. The likeliest to need a fix: musl in Alpine (JavaScript actions in an Alpine container, `-crt-static` off), the SLES 15 SP7 container (the tools it installs with zypper from the BCI repository) and Windows (the unit tests linking with `dyn-symbols`).
+- The publish workflow: not run; the `release-npm` environment does not exist yet.
 - The TUI's use of the opt-in: wired as the CLI's is, not exercised by a test.

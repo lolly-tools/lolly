@@ -13,8 +13,9 @@
  * - `LOLLY_RENDER_ADDON`: a path to a built binding (`.node`, or the library cargo
  *   writes). When set, only this path is tried, so a test can name an absent one.
  * - the `@lolly-tools/render` package, which picks its platform package itself, as
- *   `@resvg/resvg-js` does. Nothing installs it yet: whether binaries reach people as
- *   npm packages or inside the CLI package is the maintainer's decision.
+ *   `@resvg/resvg-js` does. Nothing installs that package yet: it is published to npm
+ *   at a release (.github/workflows/publish-lolly-render.yml) and then listed in this
+ *   package's optionalDependencies.
  * - a release build in this checkout (`cargo build --release` in crates/lolly-render-node).
  *
  * No route calls this unless `LOLLY_DESIGN_RASTER=lolly-render` asks for it

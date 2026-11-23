@@ -1,6 +1,6 @@
 {
   "name": "@lolly-tools/render-linux-x64-gnu",
-  "version": "0.1.0",
+  "version": "1.2.2",
   "private": true,
   "description": "The lolly-render Node binding built for x86_64-unknown-linux-gnu. Installed by @lolly-tools/render; not used on its own.",
   "license": "MPL-2.0",
