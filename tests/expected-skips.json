@@ -3795,6 +3795,20 @@
       "reason": "brands/suse is not checked out",
       "capability": "brand:suse",
       "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render.test.ts",
+      "fullName": "lolly-render draws engine pages, the same bytes twice",
+      "reason": "lolly-render is not built here: run `cargo build --release` in crates/lolly-render (or set LOLLY_RENDER_BIN)",
+      "capability": "environment",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/lolly-render.test.ts",
+      "fullName": "lolly-render refuses a page it does not draw, by name, and writes nothing",
+      "reason": "lolly-render is not built here: run `cargo build --release` in crates/lolly-render (or set LOLLY_RENDER_BIN)",
+      "capability": "environment",
+      "owner": "tests"
     }
   ]
 }
