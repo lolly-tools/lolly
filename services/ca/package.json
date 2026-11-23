@@ -1,6 +1,6 @@
 {
   "name": "@lolly/ca-service",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "Lolly CA - OIDC-verified short-lived X.509 leaf issuance for on-device C2PA signing. Uses jose for OIDC verification.",
   "license": "MPL-2.0",
