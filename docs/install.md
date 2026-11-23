@@ -9,7 +9,7 @@
 |---|---|---|
 | Mac with Apple silicon (M1 and later) | [`lolly-latest.dmg`](https://lolli.li/lolly-latest.dmg) | %download{macos} |
 | Mac with Intel (last build, no updates) | [`Lolly_1.1.0_x64.dmg`](https://lolli.li/Lolly_1.1.0_x64.dmg) | %download{macos-intel} |
-| iPhone and iPad | **Lolly** on the [App Store](https://apps.apple.com/app/id6836763603) | 1.2.1 |
+| iPhone and iPad | **Lolly** on the [App Store](https://apps.apple.com/app/id6836763603) | %download{ios} |
 | Android | [`lolly-latest.apk`](https://lolli.li/lolly-latest.apk) | %download{android} |
 | Windows | [`lolly-latest.exe`](https://lolli.li/lolly-latest.exe), not code-signed yet | %download{windows} |
 | Linux | [The web app, installed from your browser](#linux) | Newest |

@@ -65,7 +65,7 @@ Sharing and Sync send only the content you choose. On an organisation's Lolly Wo
 
 ## How do I get the mobile or desktop apps?
 
-Download them from [Install Lolly](/info/install.html). The page lists every build for macOS, Windows, Linux and Android, and shows how to check the file you downloaded. iPhone and iPad get **Lolly Tools** from the App Store. [The iPhone and iPad section](/info/install.html#iphone-and-ipad) has the link.
+Download them from [Install Lolly](/info/install.html). The page lists every build for macOS, Windows, Linux and Android, and shows how to check the file you downloaded. iPhone and iPad get **Lolly** from the [App Store](https://apps.apple.com/app/id6836763603).
 
 Anyone can also build and hand out their own copy of the app, with the tools and settings their audience needs. The [Build Guide](/info/build-guide.html) shows how.
 
