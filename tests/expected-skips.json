@@ -1978,7 +1978,7 @@
     },
     {
       "file": "tests/gallery-preview.browser.test.ts",
-      "fullName": "every gallery tool gets a cover before extra templates, including tools below the fold",
+      "fullName": "every tool near the screen gets a cover before an extra template is drawn; a tool below the fold gets one when the page comes near",
       "reason": "set LOLLY_GALLERY_TEST_URL to a local Vite shell",
       "capability": "environment",
       "owner": "tests"

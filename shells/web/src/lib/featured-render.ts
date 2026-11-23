@@ -33,7 +33,26 @@ export const previewSeams = {
   cached: async (key: string): Promise<string | null> => (await import('./preview-cache.ts')).cachedPreview(key),
   store: async (key: string, picture: import('../bridge/preview-store.ts').PreparedPicture): Promise<string> => (await import('./preview-cache.ts')).storePreview(key, picture),
   render: async (...args: Parameters<typeof import('./preview-render.ts').renderLookPicture>) => (await import('./preview-render.ts')).renderLookPicture(...args),
+  empty: async (): Promise<boolean> => (await import('./preview-cache.ts')).previewCacheEmpty(),
 };
+
+/** Whether the preview store held no look at all when the gallery last mounted. */
+let storeEmpty: Promise<boolean> = Promise.resolve(false);
+
+/**
+ * Ask the preview store once, as a gallery mounts, whether it holds any look at all.
+ * When it holds none (a first visit), reading a stored look answers "not drawn yet" at
+ * once, without the template file a read would otherwise fetch first: on a phone those
+ * reads cost a network round trip each, one after another, before the first draw.
+ */
+export function checkLookStore(): void {
+  storeEmpty = previewSeams.empty().catch(() => false);
+}
+
+/** The answer checkLookStore found (false until it has asked). */
+export function lookStoreEmpty(): Promise<boolean> {
+  return storeEmpty;
+}
 
 // In-flight renders, keyed by recipe. The featured hero row and the gallery carousel
 // both ask for the same look during the post-load window; without this, each ~350ms
@@ -113,6 +132,27 @@ export async function renderFeaturedVariant(
 }
 
 /**
+ * The stored picture of one look, or null when it has not been drawn yet. Never
+ * renders, so a look already in the preview store costs a read and no tool code: the
+ * gallery reads every stored look first and draws the missing ones later, when the
+ * page is at rest (lib/preview-queue.ts, lib/preview-work-gate.ts). Same recipe as
+ * renderFeaturedVariant, so the two always agree on what is stored.
+ */
+export async function storedFeaturedVariant(
+  host: FeaturedHost,
+  toolId: string,
+  formats: readonly string[] | undefined,
+  values: Record<string, unknown>,
+  keyPrefix = 'featured',
+  previewTimeMs?: number,
+): Promise<string | null> {
+  if (!displayFormatOf(formats) || await storeEmpty) return null;
+  const scope = keyPrefix.startsWith('template@') ? keyPrefix.slice('template@'.length) : undefined;
+  const { key } = await lookRecipe(host, toolId, values, previewTimeMs, scope);
+  return previewSeams.cached(key);
+}
+
+/**
  * Could this look src fail after it is set? A data URL cannot. A manifest file can
  * 404, and an object URL can be revoked once it leaves the reader's map
  * (lib/preview-urls.ts), so both get the error path below, which draws the look
@@ -145,7 +185,8 @@ export async function renderFeaturedPages(
   host: FeaturedHost,
   toolId: string,
   formats: readonly string[] | undefined,
-): Promise<string[]> {
+  opts: { storedOnly?: boolean } = {},
+): Promise<string[] | null> {
   const primary = displayFormatOf(formats);
   if (!primary) throw new Error(`no displayable export format for ${toolId}`);
   const { previewContextDigest, previewRecipeKey, catalogToolVersion } = await import('./preview-recipe.ts');
@@ -157,9 +198,18 @@ export async function renderFeaturedPages(
   // to know how many pages it has.
   const known = await cachedPageCount(countKey);
   if (known) {
-    const srcs = await Promise.all(Array.from({ length: known }, async (_, page) => cachedPreview(await previewRecipeKey({ tool: toolId, version, values: {}, context, frame: page }))));
-    if (srcs.every((src): src is string => !!src)) return srcs;
+    // One page at a time: an SVG page becomes a data URL on the main thread
+    // (lib/preview-urls.ts), so a long document read all at once held the page.
+    const srcs: string[] = [];
+    for (let page = 0; page < known; page++) {
+      const src = await cachedPreview(await previewRecipeKey({ tool: toolId, version, values: {}, context, frame: page }));
+      if (!src) break;
+      srcs.push(src);
+    }
+    if (srcs.length === known) return srcs;
   }
+  // A read only: the pages are drawn later, when the page is at rest.
+  if (opts.storedOnly) return null;
   const { renderPagePictures } = await import('./preview-render.ts');
   let pictures: PreparedPicture[];
   try {
