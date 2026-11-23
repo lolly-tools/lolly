@@ -17,10 +17,11 @@
  * - runs each decode in its own worker with a fresh copy of the module, ended after
  *   the one font or when the time limit passes: a Web Worker in browsers
  *   (`woff2-decode.worker.ts`), a worker thread in Node (`woff2-node.ts` registers
- *   that runner). With one shared module, a crafted 11 MB file grew it by about
- *   1 GB for the rest of the session, and repeated larger ones stopped every later
- *   WOFF2 decode in the process; a damaged heap could also have changed a later
- *   font's bytes. Each instance now ends with its font;
+ *   that runner), at most four at once. With one shared module, a crafted 11 MB
+ *   file grew it by about 1 GB for the rest of the session, and repeated larger ones
+ *   stopped every later WOFF2 decode in the process; a damaged heap could also have
+ *   changed a later font's bytes. Each instance now ends with its font. Where no
+ *   worker can start, the font is refused: nothing decodes in the page or process;
  * - checks what comes back (`checkSfntOutput`): an sfnt or collection header whose
  *   table records lie inside the returned bytes, no longer than the declared size
  *   or the end of the last table, with nothing but zeros after that table;
@@ -303,11 +304,48 @@ export function setWoff2Runner(runner: Woff2Runner | undefined): void {
   registeredRunner = runner;
 }
 
-/** The longest one decode may take. The largest public font in the tree takes about 0.25 s. */
+/** The longest one decode may take, counted from the worker's start. The largest public font in the tree takes about 0.25 s. */
 export const WOFF2_TIMEOUT_MS = 20_000;
 
+/**
+ * At most this many decode workers at once. A page can ask for every face of a document
+ * together; each worker holds its own copy of the module and up to the font's decoded
+ * size, so a document with 40 faces would otherwise hold 40 of them in memory at once.
+ * Each worker still decodes one font and ends.
+ */
+export const WOFF2_WORKER_LIMIT = 4;
+
+/**
+ * A slot under `limit` concurrent holders. The returned function releases the slot; an
+ * abort while waiting leaves the queue and rejects with the signal's reason.
+ */
+export function woff2Slots(limit: number): (signal?: AbortSignal) => Promise<() => void> {
+  let active = 0;
+  const waiting: Array<() => void> = [];
+  const release = (): void => { active--; waiting.shift()?.(); };
+  return (signal) => new Promise<() => void>((resolve, reject) => {
+    signal?.throwIfAborted();
+    const take = (): void => { signal?.removeEventListener('abort', abort); active++; resolve(release); };
+    const abort = (): void => {
+      const at = waiting.indexOf(take);
+      if (at >= 0) waiting.splice(at, 1);
+      reject(signal?.reason);
+    };
+    if (active < limit) { take(); return; }
+    waiting.push(take);
+    signal?.addEventListener('abort', abort, { once: true });
+  });
+}
+
+const webSlot = woff2Slots(WOFF2_WORKER_LIMIT);
+
 /** Browsers: one module Web Worker per decode, ended when the font comes back or time runs out. */
-const webWorkerRunner: Woff2Runner = (bytes, { timeoutMs, signal }) => new Promise((resolve, reject) => {
+const webWorkerRunner: Woff2Runner = async (bytes, options) => {
+  const release = await webSlot(options.signal);
+  try { return await runInWebWorker(bytes, options); } finally { release(); }
+};
+
+const runInWebWorker: Woff2Runner = (bytes, { timeoutMs, signal }) => new Promise((resolve, reject) => {
   signal?.throwIfAborted();
   const worker = new Worker(new URL('./woff2-decode.worker.ts', import.meta.url), { type: 'module' });
   let settled = false;
@@ -322,8 +360,8 @@ const webWorkerRunner: Woff2Runner = (bytes, { timeoutMs, signal }) => new Promi
   const abort = (): void => finish(signal?.reason ?? new Woff2Error('decode-failed', 'The WOFF2 decode was cancelled.'));
   const timer = setTimeout(() => finish(new Woff2Error('timed-out', 'This WOFF2 font took too long to decode.')), timeoutMs);
   signal?.addEventListener('abort', abort, { once: true });
-  worker.onerror = (event) => { event.preventDefault(); finish(new Woff2Error('decode-failed', 'The WOFF2 decoder could not start.')); };
-  worker.onmessage = ({ data }: MessageEvent<Woff2WorkerReply>) => finish(new Woff2Error('decode-failed', data.error ?? 'The WOFF2 decoder returned nothing.'), data.out);
+  worker.onerror = (event) => { event.preventDefault(); finish(new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: event.message || 'the decoder worker did not start' })); };
+  worker.onmessage = ({ data }: MessageEvent<Woff2WorkerReply>) => finish(new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: data.error ?? 'no reply' }), data.out);
   const copy = bytes.slice();
   worker.postMessage(copy, [copy.buffer]);
 });

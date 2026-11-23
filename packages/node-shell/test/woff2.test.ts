@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { brotliCompressSync } from 'node:zlib';
-import { checkSfntOutput, decodeWoff2, preflightWoff2, Woff2Error, WOFF2_LIMITS, type Woff2Runner } from '../src/woff2.ts';
+import { checkSfntOutput, decodeWoff2, preflightWoff2, Woff2Error, WOFF2_LIMITS, woff2Slots, type Woff2Runner } from '../src/woff2.ts';
 import { nodeWoff2Runner, useNodeWoff2Runner } from '../src/woff2-node.ts';
 
 useNodeWoff2Runner();
@@ -214,6 +214,27 @@ test('each decode runs in a worker thread that a time limit or an abort ends', a
   corrupt.fill(0xff, compressedOffset + 16, compressedOffset + 64);
   await assert.rejects(nodeWoff2Runner(corrupt, { timeoutMs: 20_000 }), refusedWith('decode-failed'));
   assert.equal(sha256(await decodeWoff2(bytes)), corpus.fonts[SMALL]!.sha256);
+});
+
+test('at most a fixed number of decode workers run at once, and a queued decode can be cancelled', async () => {
+  const slot = woff2Slots(2);
+  const first = await slot(), second = await slot();
+  let third: (() => void) | undefined;
+  const queued = slot().then((release) => { third = release; });
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(third, undefined, 'the third waits while two are held');
+  const controller = new AbortController();
+  const cancelled = slot(controller.signal);
+  controller.abort(new Error('no longer needed'));
+  await assert.rejects(cancelled, /no longer needed/);
+  first();
+  await queued;
+  assert.equal(typeof third, 'function');
+  second(); third!();
+  // Many fonts at once still decode, each in a thread of its own.
+  const bytes = read(SMALL);
+  const outs = await Promise.all(Array.from({ length: 6 }, () => decodeWoff2(bytes)));
+  for (const out of outs) assert.equal(sha256(out), corpus.fonts[SMALL]!.sha256);
 });
 
 test('one-byte changes to the header and directory give a checked font or a Woff2Error', async () => {

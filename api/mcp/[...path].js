@@ -176905,11 +176905,13 @@ var woff2_exports = {};
 __export(woff2_exports, {
   WOFF2_LIMITS: () => WOFF2_LIMITS,
   WOFF2_TIMEOUT_MS: () => WOFF2_TIMEOUT_MS,
+  WOFF2_WORKER_LIMIT: () => WOFF2_WORKER_LIMIT,
   Woff2Error: () => Woff2Error,
   checkSfntOutput: () => checkSfntOutput,
   decodeWoff2: () => decodeWoff2,
   preflightWoff2: () => preflightWoff2,
-  setWoff2Runner: () => setWoff2Runner
+  setWoff2Runner: () => setWoff2Runner,
+  woff2Slots: () => woff2Slots
 });
 function malformed(what) {
   return new Woff2Error("malformed", `This WOFF2 font is damaged: ${what}.`);
@@ -177045,6 +177047,33 @@ function checkSfntOutput(bytes2, facts2, maxBytes = WOFF2_LIMITS.maxOutputBytes)
 function setWoff2Runner(runner) {
   registeredRunner = runner;
 }
+function woff2Slots(limit3) {
+  let active = 0;
+  const waiting = [];
+  const release = () => {
+    active--;
+    waiting.shift()?.();
+  };
+  return (signal) => new Promise((resolve8, reject) => {
+    signal?.throwIfAborted();
+    const take = () => {
+      signal?.removeEventListener("abort", abort);
+      active++;
+      resolve8(release);
+    };
+    const abort = () => {
+      const at = waiting.indexOf(take);
+      if (at >= 0) waiting.splice(at, 1);
+      reject(signal?.reason);
+    };
+    if (active < limit3) {
+      take();
+      return;
+    }
+    waiting.push(take);
+    signal?.addEventListener("abort", abort, { once: true });
+  });
+}
 async function decodeWoff2(bytes2, options2 = {}) {
   const maxOutputBytes = Math.min(options2.maxOutputBytes ?? WOFF2_LIMITS.maxOutputBytes, WOFF2_LIMITS.maxOutputBytes);
   const facts2 = preflightWoff2(bytes2, { ...WOFF2_LIMITS, maxOutputBytes });
@@ -177060,7 +177089,7 @@ async function decodeWoff2(bytes2, options2 = {}) {
   checkSfntOutput(out, facts2, maxOutputBytes);
   return out;
 }
-var WOFF2_LIMITS, Woff2Error, WOFF2_SIGNATURE, TTC_FLAVOR, SFNT_FLAVORS, GLYF_INDEX, LOCA_INDEX, GLYF_TAG, LOCA_TAG, HEADER_BYTES, round45, sizeText, Reader2, registeredRunner, WOFF2_TIMEOUT_MS, webWorkerRunner;
+var WOFF2_LIMITS, Woff2Error, WOFF2_SIGNATURE, TTC_FLAVOR, SFNT_FLAVORS, GLYF_INDEX, LOCA_INDEX, GLYF_TAG, LOCA_TAG, HEADER_BYTES, round45, sizeText, Reader2, registeredRunner, WOFF2_TIMEOUT_MS, WOFF2_WORKER_LIMIT, webSlot, webWorkerRunner, runInWebWorker;
 var init_woff2 = __esm({
   "packages/node-shell/src/woff2.ts"() {
     "use strict";
@@ -177142,7 +177171,17 @@ var init_woff2 = __esm({
       }
     };
     WOFF2_TIMEOUT_MS = 2e4;
-    webWorkerRunner = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
+    WOFF2_WORKER_LIMIT = 4;
+    webSlot = woff2Slots(WOFF2_WORKER_LIMIT);
+    webWorkerRunner = async (bytes2, options2) => {
+      const release = await webSlot(options2.signal);
+      try {
+        return await runInWebWorker(bytes2, options2);
+      } finally {
+        release();
+      }
+    };
+    runInWebWorker = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
       signal?.throwIfAborted();
       const worker = new Worker(new URL("./woff2-decode.worker.ts", import.meta.url), { type: "module" });
       let settled = false;
@@ -177160,9 +177199,9 @@ var init_woff2 = __esm({
       signal?.addEventListener("abort", abort, { once: true });
       worker.onerror = (event) => {
         event.preventDefault();
-        finish3(new Woff2Error("decode-failed", "The WOFF2 decoder could not start."));
+        finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: event.message || "the decoder worker did not start" }));
       };
-      worker.onmessage = ({ data }) => finish3(new Woff2Error("decode-failed", data.error ?? "The WOFF2 decoder returned nothing."), data.out);
+      worker.onmessage = ({ data }) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: data.error ?? "no reply" }), data.out);
       const copy = bytes2.slice();
       worker.postMessage(copy, [copy.buffer]);
     });
@@ -177332,12 +177371,21 @@ function workerUrl() {
 function useNodeWoff2Runner() {
   setWoff2Runner(nodeWoff2Runner);
 }
-var nodeWoff2Runner;
+var nodeSlot, nodeWoff2Runner, runInThread;
 var init_woff2_node = __esm({
   "packages/node-shell/src/woff2-node.ts"() {
     "use strict";
     init_woff2();
-    nodeWoff2Runner = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
+    nodeSlot = woff2Slots(WOFF2_WORKER_LIMIT);
+    nodeWoff2Runner = async (bytes2, options2) => {
+      const release = await nodeSlot(options2.signal);
+      try {
+        return await runInThread(bytes2, options2);
+      } finally {
+        release();
+      }
+    };
+    runInThread = (bytes2, { timeoutMs, signal }) => new Promise((resolve8, reject) => {
       signal?.throwIfAborted();
       const copy = bytes2.slice();
       let worker;
@@ -177353,7 +177401,7 @@ var init_woff2_node = __esm({
           stderr: true
         });
       } catch (error2) {
-        reject(error2 instanceof Woff2Error ? error2 : new Woff2Error("decode-failed", "The WOFF2 decoder could not start.", { cause: error2 }));
+        reject(error2 instanceof Woff2Error ? error2 : new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 }));
         return;
       }
       worker.stdout.resume();
@@ -177371,9 +177419,9 @@ var init_woff2_node = __esm({
       const abort = () => finish3(signal?.reason ?? new Woff2Error("decode-failed", "The WOFF2 decode was cancelled."));
       const timer = setTimeout(() => finish3(new Woff2Error("timed-out", "This WOFF2 font took too long to decode.")), timeoutMs);
       signal?.addEventListener("abort", abort, { once: true });
-      worker.once("message", (reply) => finish3(new Woff2Error("decode-failed", reply.error ?? "The WOFF2 decoder returned nothing."), reply.out));
-      worker.once("error", (error2) => finish3(new Woff2Error("decode-failed", "The WOFF2 decoder stopped.", { cause: error2 })));
-      worker.once("exit", (code) => finish3(new Woff2Error("decode-failed", `The WOFF2 decoder stopped (${code}).`)));
+      worker.once("message", (reply) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: reply.error ?? "no reply" }), reply.out));
+      worker.once("error", (error2) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: error2 })));
+      worker.once("exit", (code) => finish3(new Woff2Error("decode-failed", "This WOFF2 font could not be decoded.", { cause: `the decoder thread exited (${code})` })));
     });
   }
 });

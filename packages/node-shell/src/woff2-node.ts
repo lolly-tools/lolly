@@ -10,7 +10,7 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
-import { setWoff2Runner, Woff2Error, type Woff2Runner, type Woff2WorkerReply } from './woff2.ts';
+import { setWoff2Runner, Woff2Error, WOFF2_WORKER_LIMIT, woff2Slots, type Woff2Runner, type Woff2WorkerReply } from './woff2.ts';
 
 /**
  * The thread's entry. From source it is woff2-worker.ts beside this file; in a
@@ -25,7 +25,15 @@ function workerUrl(): URL {
   throw new Woff2Error('decode-failed', 'The WOFF2 decoder is missing from this installation, so the font was not decoded.');
 }
 
-export const nodeWoff2Runner: Woff2Runner = (bytes, { timeoutMs, signal }) => new Promise((resolve, reject) => {
+const nodeSlot = woff2Slots(WOFF2_WORKER_LIMIT);
+
+/** At most WOFF2_WORKER_LIMIT threads at once; each decodes one font and exits. */
+export const nodeWoff2Runner: Woff2Runner = async (bytes, options) => {
+  const release = await nodeSlot(options.signal);
+  try { return await runInThread(bytes, options); } finally { release(); }
+};
+
+const runInThread: Woff2Runner = (bytes, { timeoutMs, signal }) => new Promise((resolve, reject) => {
   signal?.throwIfAborted();
   const copy = bytes.slice();
   let worker: Worker;
@@ -41,7 +49,7 @@ export const nodeWoff2Runner: Woff2Runner = (bytes, { timeoutMs, signal }) => ne
       stderr: true,
     });
   } catch (error) {
-    reject(error instanceof Woff2Error ? error : new Woff2Error('decode-failed', 'The WOFF2 decoder could not start.', { cause: error }));
+    reject(error instanceof Woff2Error ? error : new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: error }));
     return;
   }
   worker.stdout.resume();
@@ -58,9 +66,9 @@ export const nodeWoff2Runner: Woff2Runner = (bytes, { timeoutMs, signal }) => ne
   const abort = (): void => finish(signal?.reason ?? new Woff2Error('decode-failed', 'The WOFF2 decode was cancelled.'));
   const timer = setTimeout(() => finish(new Woff2Error('timed-out', 'This WOFF2 font took too long to decode.')), timeoutMs);
   signal?.addEventListener('abort', abort, { once: true });
-  worker.once('message', (reply: Woff2WorkerReply) => finish(new Woff2Error('decode-failed', reply.error ?? 'The WOFF2 decoder returned nothing.'), reply.out));
-  worker.once('error', (error) => finish(new Woff2Error('decode-failed', 'The WOFF2 decoder stopped.', { cause: error })));
-  worker.once('exit', (code) => finish(new Woff2Error('decode-failed', `The WOFF2 decoder stopped (${code}).`)));
+  worker.once('message', (reply: Woff2WorkerReply) => finish(new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: reply.error ?? 'no reply' }), reply.out));
+  worker.once('error', (error) => finish(new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: error })));
+  worker.once('exit', (code) => finish(new Woff2Error('decode-failed', 'This WOFF2 font could not be decoded.', { cause: `the decoder thread exited (${code})` })));
 });
 
 /** Make the worker-thread runner the default for every `decodeWoff2` in this process. */
